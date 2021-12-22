@@ -376,47 +376,58 @@ back.</p></li>
 <p>Tight using spaces:</p>
 <dl>
 <dt>apple</dt>
-<dd>red fruit
+<dd>
+red fruit
 </dd>
 <dt>orange</dt>
-<dd>orange fruit
+<dd>
+orange fruit
 </dd>
 <dt>banana</dt>
-<dd>yellow fruit
+<dd>
+yellow fruit
 </dd>
 </dl>
 <p>Tight using tabs:</p>
 <dl>
 <dt>apple</dt>
-<dd>red fruit
+<dd>
+red fruit
 </dd>
 <dt>orange</dt>
-<dd>orange fruit
+<dd>
+orange fruit
 </dd>
 <dt>banana</dt>
-<dd>yellow fruit
+<dd>
+yellow fruit
 </dd>
 </dl>
 <p>Loose:</p>
 <dl>
 <dt>apple</dt>
-<dd><p>red fruit</p>
+<dd>
+<p>red fruit</p>
 </dd>
 <dt>orange</dt>
-<dd><p>orange fruit</p>
+<dd>
+<p>orange fruit</p>
 </dd>
 <dt>banana</dt>
-<dd><p>yellow fruit</p>
+<dd>
+<p>yellow fruit</p>
 </dd>
 </dl>
 <p>Multiple blocks with italics:</p>
 <dl>
 <dt><em>apple</em></dt>
-<dd><p>red fruit</p>
+<dd>
+<p>red fruit</p>
 <p>contains seeds, crisp, pleasant to taste</p>
 </dd>
 <dt><em>orange</em></dt>
-<dd><p>orange fruit</p>
+<dd>
+<p>orange fruit</p>
 <pre><code>{ orange code block }</code></pre>
 <blockquote>
 <p>orange block quote</p>
@@ -426,38 +437,49 @@ back.</p></li>
 <p>Multiple definitions, tight:</p>
 <dl>
 <dt>apple</dt>
-<dd>red fruit
+<dd>
+red fruit
 </dd>
-<dd>computer
+<dd>
+computer
 </dd>
 <dt>orange</dt>
-<dd>orange fruit
+<dd>
+orange fruit
 </dd>
-<dd>bank
+<dd>
+bank
 </dd>
 </dl>
 <p>Multiple definitions, loose:</p>
 <dl>
 <dt>apple</dt>
-<dd><p>red fruit</p>
+<dd>
+<p>red fruit</p>
 </dd>
-<dd><p>computer</p>
+<dd>
+<p>computer</p>
 </dd>
 <dt>orange</dt>
-<dd><p>orange fruit</p>
+<dd>
+<p>orange fruit</p>
 </dd>
-<dd><p>bank</p>
+<dd>
+<p>bank</p>
 </dd>
 </dl>
 <p>Blank line after term, indented marker, alternate markers:</p>
 <dl>
 <dt>apple</dt>
-<dd><p>red fruit</p>
+<dd>
+<p>red fruit</p>
 </dd>
-<dd><p>computer</p>
+<dd>
+<p>computer</p>
 </dd>
 <dt>orange</dt>
-<dd><p>orange fruit</p>
+<dd>
+<p>orange fruit</p>
 <ol style="list-style-type: decimal">
 <li>sublist</li>
 <li>sublist</li>

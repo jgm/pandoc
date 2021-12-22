@@ -2,6 +2,7 @@
 module Tests.Writers.HTML (tests) where
 
 import Data.Text (unpack)
+import qualified Data.Text as T
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -68,7 +69,7 @@ tests =
   , testGroup "blocks"
     [ "definition list with empty <dt>" =:
       definitionList [(mempty, [para $ text "foo bar"])]
-      =?> "<dl><dt></dt><dd><p>foo bar</p></dd></dl>"
+      =?> "<dl>\n<dt></dt>\n<dd>\n<p>foo bar</p>\n</dd>\n</dl>"
     , "heading with disallowed attributes" =:
       headerWith ("", [], [("invalid","1"), ("lang", "en")]) 1 "test"
       =?>
@@ -108,37 +109,66 @@ tests =
       [ test (htmlWithOpts def{writerReferenceLocation=EndOfDocument})
         "at the end of a document" $
         noteTestDoc =?>
-        concat
+        T.unlines
           [ "<h1>Page title</h1>"
           , "<h2>First section</h2>"
           , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
-          , "<blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
+          , "<blockquote>"
+          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A second paragraph.</p>"
+          , "</blockquote>"
           , "<h2>Second section</h2>"
           , "<p>Some more text.</p>"
-          , "<div class=\"footnotes footnotes-end-of-document\"><hr /><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          , "<div class=\"footnotes footnotes-end-of-document\">"
+          , "<hr />"
+          , "<ol>"
+          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
           ]
       , test (htmlWithOpts def{writerReferenceLocation=EndOfBlock})
         "at the end of a block" $
         noteTestDoc =?>
-        concat
+        T.unlines
           [ "<h1>Page title</h1>"
           , "<h2>First section</h2>"
           , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
-          , "<div class=\"footnotes footnotes-end-of-block\"><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
-          , "<blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
-          , "<div class=\"footnotes footnotes-end-of-block\"><ol start=\"2\"><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          , "<div class=\"footnotes footnotes-end-of-block\">"
+          , "<ol>"
+          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
+          , "<blockquote>"
+          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A second paragraph.</p>"
+          , "</blockquote>"
+          , "<div class=\"footnotes footnotes-end-of-block\">"
+          , "<ol start=\"2\">"
+          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
           , "<h2>Second section</h2>"
           , "<p>Some more text.</p>"
           ]
       , test (htmlWithOpts def{writerReferenceLocation=EndOfSection})
         "at the end of a section" $
         noteTestDoc =?>
-        concat
+        T.unlines
           [ "<h1>Page title</h1>"
           , "<h2>First section</h2>"
           , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
-          , "<blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
-          , "<div class=\"footnotes footnotes-end-of-section\"><hr /><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
+          , "<blockquote>"
+          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A second paragraph.</p>"
+          , "</blockquote>"
+          , "<div class=\"footnotes footnotes-end-of-section\">"
+          , "<hr />"
+          , "<ol>"
+          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
           , "<h2>Second section</h2>"
           , "<p>Some more text.</p>"
           ]
@@ -147,15 +177,28 @@ tests =
         noteTestDoc =?>
         -- Footnotes are rendered _after_ their section (in this case after the level2 section
         -- that contains it).
-        concat
+        T.unlines
           [ "<div class=\"section level1\">"
           , "<h1>Page title</h1>"
           , "<div class=\"section level2\">"
           , "<h2>First section</h2>"
-          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p><blockquote><p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p><p>A second paragraph.</p></blockquote>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\"><sup>1</sup></a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<blockquote>"
+          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\"><sup>2</sup></a></p>"
+          , "<p>A second paragraph.</p>"
+          , "</blockquote>"
           , "</div>"
-          , "<div class=\"footnotes footnotes-end-of-section\"><hr /><ol><li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li><li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li></ol></div>"
-          , "<div class=\"section level2\"><h2>Second section</h2><p>Some more text.</p></div>"
+          , "<div class=\"footnotes footnotes-end-of-section\">"
+          , "<hr />"
+          , "<ol>"
+          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
+          , "<div class=\"section level2\">"
+          , "<h2>Second section</h2>"
+          , "<p>Some more text.</p>"
+          , "</div>"
           , "</div>"
           ]
       ]
