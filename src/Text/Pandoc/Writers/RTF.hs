@@ -43,10 +43,11 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
   (do result <- P.fetchItem src
       case result of
            (imgdata, Just mime)
-             | mime == "image/jpeg" || mime == "image/png" -> do
+             | mime' <- T.takeWhile (/=';') mime
+             , mime' == "image/jpeg" || mime' == "image/png" -> do
              let bytes = map (T.pack . printf "%02x") $ B.unpack imgdata
              filetype <-
-                case mime of
+                case mime' of
                      "image/jpeg" -> return "\\jpegblip"
                      "image/png"  -> return "\\pngblip"
                      _            -> throwError $
