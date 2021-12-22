@@ -132,10 +132,8 @@ needsVariationSelector '↔' = True
 needsVariationSelector _   = False
 
 -- | Hard linebreak.
-nl :: WriterOptions -> Html
-nl opts = if writerWrapText opts == WrapNone
-             then mempty
-             else preEscapedString "\n"
+nl :: Html
+nl = preEscapedString "\n"
 
 -- | Convert Pandoc document to Html 5 string.
 writeHtml5String :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -284,7 +282,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
     if null (stNotes st)
       then return mempty
       else do
-        notes <- footnoteSection opts EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
+        notes <- footnoteSection EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
         modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
         return notes
   st <- get
@@ -303,7 +301,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
         KaTeX url -> do
           H.script !
             A.src (toValue $ url <> "katex.min.js") $ mempty
-          nl opts
+          nl
           let katexFlushLeft =
                 case lookupContext "classoption" metadata of
                   Just clsops | "fleqn" `elem` (clsops :: [Doc Text]) -> "true"
@@ -323,7 +321,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
             , "   });"
             , "}}});"
             ]
-          nl opts
+          nl
           H.link ! A.rel "stylesheet" !
             A.href (toValue $ url <> "katex.min.css")
 
@@ -459,15 +457,15 @@ toList listop opts items = do
 
 unordList :: PandocMonad m
           => WriterOptions -> [Html] -> StateT WriterState m Html
-unordList opts = toList H.ul opts . toListItems opts
+unordList opts = toList H.ul opts . toListItems
 
 ordList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
-ordList opts = toList H.ol opts . toListItems opts
+ordList opts = toList H.ol opts . toListItems
 
 defList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
-defList opts items = toList H.dl opts (items ++ [nl opts])
+defList opts items = toList H.dl opts (items ++ [nl])
 
 isTaskListItem :: [Block] -> Bool
 isTaskListItem (Plain (Str "☐":Space:_):_) = True
@@ -489,7 +487,7 @@ listItemToHtml opts bls
       let checkbox  = if checked
                       then checkbox' ! A.checked ""
                       else checkbox'
-          checkbox' = H.input ! A.type_ "checkbox" ! A.disabled "" >> nl opts
+          checkbox' = H.input ! A.type_ "checkbox" ! A.disabled "" >> nl
       isContents <- inlineListToHtml opts is
       bsContents <- blockListToHtml opts bs
       return $ constr (checkbox >> isContents) >> bsContents
@@ -513,11 +511,13 @@ tableOfContents opts sects = do
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
 footnoteSection ::
-  PandocMonad m => WriterOptions -> ReferenceLocation -> Int -> [Html] -> StateT WriterState m Html
-footnoteSection opts refLocation startCounter notes = do
+  PandocMonad m => ReferenceLocation -> Int -> [Html] -> StateT WriterState m Html
+footnoteSection refLocation startCounter notes = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
-  let hrtag = if refLocation /= EndOfBlock then (if html5 then H5.hr else H.hr) else mempty
+  let hrtag = if refLocation /= EndOfBlock
+                 then (if html5 then H5.hr else H.hr) <> nl
+                 else mempty
   let additionalClassName = case refLocation of
         EndOfBlock -> "footnotes-end-of-block"
         EndOfDocument -> "footnotes-end-of-document"
@@ -538,17 +538,17 @@ footnoteSection opts refLocation startCounter notes = do
     if null notes
        then mempty
        else do
-         nl opts
+         nl
          container $ do
-           nl opts
+           nl
            hrtag
-           nl opts
            -- Keep the previous output exactly the same if we don't
            -- have multiple notes sections
            if startCounter == 1
-             then H.ol $ mconcat notes >> nl opts
-             else H.ol ! A.start (fromString (show startCounter)) $ mconcat notes >> nl opts
-           nl opts
+             then H.ol $ mconcat notes >> nl
+             else H.ol ! A.start (fromString (show startCounter)) $
+                         mconcat notes >> nl
+           nl
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: Text -> Maybe (Text, Text)
@@ -715,8 +715,8 @@ figure opts attr@(_, _, attrList) txt (s,tit) = do
   img <- inlineToHtml opts (Image attr alt (s,tit))
   capt <- if null txt
              then return mempty
-             else (nl opts <>) . tocapt <$> inlineListToHtml opts txt
-  let inner = mconcat [nl opts, img, capt, nl opts]
+             else (nl <>) . tocapt <$> inlineListToHtml opts txt
+  let inner = mconcat [nl, img, capt, nl]
   return $ if html5
               then H5.figure inner
               else H.div ! A.class_ "figure" $ inner
@@ -820,32 +820,32 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
   if titleSlide
      then do
        t <- addAttrs opts attr $
-             secttag $ nl opts <> header' <> nl opts <> titleContents <> nl opts
+             secttag $ nl <> header' <> nl <> titleContents <> nl
        -- ensure 2D nesting for revealjs, but only for one level;
        -- revealjs doesn't like more than one level of nesting
        return $
          if slideVariant == RevealJsSlides && not inSection &&
               not (null innerSecs)
-            then H5.section (nl opts <> t <> nl opts <> innerContents)
-            else t <> nl opts <> if null innerSecs
+            then H5.section (nl <> t <> nl <> innerContents)
+            else t <> nl <> if null innerSecs
                                     then mempty
-                                    else innerContents <> nl opts
+                                    else innerContents <> nl
      else if writerSectionDivs opts || slide ||
               (hident /= ident && not (T.null hident || T.null ident)) ||
               (hclasses /= dclasses) || (hkvs /= dkvs)
           then addAttrs opts attr
                $ secttag
-               $ nl opts <> header' <> nl opts <>
+               $ nl <> header' <> nl <>
                  if null innerSecs
                     then mempty
-                    else innerContents <> nl opts
+                    else innerContents <> nl
           else do
             let attr' = (ident, classes' \\ hclasses, dkvs \\ hkvs)
             t <- addAttrs opts attr' header'
             return $ t <>
                      if null innerSecs
                         then mempty
-                        else nl opts <> innerContents
+                        else nl <> innerContents
 blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
@@ -883,7 +883,7 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
                       -- off widths! see #4028
                       mconcat <$> mapM (blockToHtml opts) bs'
                  else blockListToHtml opts' bs'
-  let contents' = nl opts >> contents >> nl opts
+  let contents' = nl >> contents >> nl
   let (divtag, classes'') = if html5 && "section" `elem` classes'
                             then (H5.section, filter (/= "section") classes')
                             else (H.div, classes')
@@ -964,10 +964,10 @@ blockToHtmlInner opts (BlockQuote blocks) = do
                                   (DefinitionList lst)
              _                 -> do contents <- blockListToHtml opts blocks
                                      return $ H.blockquote
-                                            $ nl opts >> contents >> nl opts
+                                            $ nl >> contents >> nl
      else do
        contents <- blockListToHtml opts blocks
-       return $ H.blockquote $ nl opts >> contents >> nl opts
+       return $ H.blockquote $ nl >> contents >> nl
 blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
   contents <- inlineListToHtml opts lst
   let secnum = fromMaybe mempty $ lookup "number" kvs
@@ -1022,10 +1022,10 @@ blockToHtmlInner opts (OrderedList (startnum, numstyle, _) lst) = do
 blockToHtmlInner opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
                   do term' <- liftM H.dt $ inlineListToHtml opts term
-                     defs' <- mapM (liftM (\x -> H.dd (x >> nl opts)) .
+                     defs' <- mapM (liftM (\x -> H.dd (nl >> x >> nl)) .
                                     blockListToHtml opts) defs
-                     return $ mconcat $ nl opts : term' : nl opts :
-                                        intersperse (nl opts) defs') lst
+                     return $ mconcat $ nl : term' : nl :
+                                        intersperse (nl) defs') lst
   defList opts contents
 blockToHtmlInner opts (Table attr caption colspecs thead tbody tfoot) =
   tableToHtml opts (Ann.toTable attr caption colspecs thead tbody tfoot)
@@ -1052,7 +1052,7 @@ blockToHtml opts block = do
     then do
       notes <- if null (stNotes st)
         then return mempty
-        else footnoteSection opts (writerReferenceLocation opts) (stEmittedNotes st + 1) (reverse (stNotes st))
+        else footnoteSection (writerReferenceLocation opts) (stEmittedNotes st + 1) (reverse (stNotes st))
       modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
       return (doc <> notes)
     else return doc
@@ -1071,10 +1071,10 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
       cs <- blockListToHtml opts longCapt
       return $ do
         H.caption cs
-        nl opts
-  coltags <- colSpecListToHtml opts colspecs
+        nl
+  coltags <- colSpecListToHtml colspecs
   head' <- tableHeadToHtml opts thead
-  bodies <- intersperse (nl opts) <$> mapM (tableBodyToHtml opts) tbodies
+  bodies <- intersperse (nl) <$> mapM (tableBodyToHtml opts) tbodies
   foot' <- tableFootToHtml opts tfoot
   let (ident,classes,kvs) = attr
   -- When widths of columns are < 100%, we need to set width for the whole
@@ -1091,13 +1091,13 @@ tableToHtml opts (Ann.Table attr caption colspecs thead tbodies tfoot) = do
                          <> "%;"):kvs)
                 _ -> attr
   addAttrs opts attr' $ H.table $ do
-    nl opts
+    nl
     captionDoc
     coltags
     head'
     mconcat bodies
     foot'
-    nl opts
+    nl
 
 tableBodyToHtml :: PandocMonad m
                 => WriterOptions
@@ -1144,7 +1144,7 @@ tablePartToHtml opts tblpart attr rows =
     tablePartElement <- addAttrs opts attr $ tag' contents
     return $ do
       tablePartElement
-      nl opts
+      nl
   where
     isEmptyRow (Ann.HeaderRow _attr _rownum cells) = all isEmptyCell cells
     isEmptyCell (Ann.Cell _colspecs _colnum cell) =
@@ -1185,14 +1185,13 @@ rowListToHtml :: PandocMonad m
               -> [TableRow]
               -> StateT WriterState m Html
 rowListToHtml opts rows =
-  (\x -> nl opts *> mconcat x) <$>
+  (\x -> nl *> mconcat x) <$>
      mapM (tableRowToHtml opts) rows
 
 colSpecListToHtml :: PandocMonad m
-                  => WriterOptions
-                  -> [ColSpec]
+                  => [ColSpec]
                   -> StateT WriterState m Html
-colSpecListToHtml opts colspecs = do
+colSpecListToHtml colspecs = do
   html5 <- gets stHtml5
   let hasDefaultWidth (_, ColWidthDefault) = True
       hasDefaultWidth _                    = False
@@ -1206,16 +1205,16 @@ colSpecListToHtml opts colspecs = do
           ColWidth w -> if html5
                         then A.style (toValue $ "width: " <> percent w)
                         else A.width (toValue $ percent w)
-        nl opts
+        nl
 
   return $
     if all hasDefaultWidth colspecs
     then mempty
     else do
       H.colgroup $ do
-        nl opts
+        nl
         mapM_ (col . snd) colspecs
-      nl opts
+      nl
 
 tableRowToHtml :: PandocMonad m
                => WriterOptions
@@ -1234,12 +1233,12 @@ tableRowToHtml opts (TableRow tblpart attr rownum rowhead rowbody) = do
   headcells <- mapM (cellToHtml opts HeaderCell) rowhead
   bodycells <- mapM (cellToHtml opts celltype) rowbody
   rowHtml <- addAttrs opts attr' $ H.tr $ do
-    nl opts
+    nl
     mconcat headcells
     mconcat bodycells
   return $ do
     rowHtml
-    nl opts
+    nl
 
 alignmentToString :: Alignment -> Maybe Text
 alignmentToString = \case
@@ -1297,18 +1296,18 @@ tableCellToHtml opts ctype colAlign (Cell attr align rowspan colspan item) = do
               : otherAttribs
   return $ do
     tag' ! attribs $ contents
-    nl opts
+    nl
 
-toListItems :: WriterOptions -> [Html] -> [Html]
-toListItems opts items = map (toListItem opts) items ++ [nl opts]
+toListItems :: [Html] -> [Html]
+toListItems items = map toListItem items ++ [nl]
 
-toListItem :: WriterOptions -> Html -> Html
-toListItem opts item = nl opts *> H.li item
+toListItem :: Html -> Html
+toListItem item = nl *> H.li item
 
 blockListToHtml :: PandocMonad m
                 => WriterOptions -> [Block] -> StateT WriterState m Html
 blockListToHtml opts lst =
-  mconcat . intersperse (nl opts) . filter nonempty
+  mconcat . intersperse (nl) . filter nonempty
     <$> mapM (blockToHtml opts) lst
   where nonempty (Empty _) = False
         nonempty _         = True
@@ -1340,9 +1339,9 @@ inlineToHtml opts inline = do
     (Str str)      -> return $ strToHtml str
     Space          -> return $ strToHtml " "
     SoftBreak      -> return $ case writerWrapText opts of
-                                     WrapNone     -> preEscapedText " "
+                                     WrapNone     -> " "
                                      WrapAuto     -> " "
-                                     WrapPreserve -> preEscapedText "\n"
+                                     WrapPreserve -> nl
     LineBreak      -> return $ do
                         if html5 then H5.br else H.br
                         strToHtml "\n"
@@ -1607,7 +1606,7 @@ blockListToNote opts ref blocks = do
                        _ | html5  -> noteItem !
                                        customAttribute "role" "doc-endnote"
                        _          -> noteItem
-  return $ nl opts >> noteItem'
+  return $ nl >> noteItem'
 
 inDiv :: PandocMonad m=> Text -> Html -> StateT WriterState m Html
 inDiv cls x = do
