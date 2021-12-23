@@ -106,15 +106,25 @@ $endif$
 $if(author.email)$
 <email>$author.email$</email>
 $endif$
+$-- if affiliations are listed separately, then create links. Otherwise
+$-- include them here.
+$if(affiliation)$
 $for(author.affiliation)$
 <xref ref-type="aff" rid="aff-$author.affiliation$"/>
 $endfor$
+$else$
+$for(author.affiliation)$
+${ it:affiliations.jats() }
+$endfor$
+$endif$
 $if(author.cor-id)$
 <xref ref-type="corresp" rid="cor-$author.cor-id$"><sup>*</sup></xref>
 $endif$
 </contrib>
 $endfor$
-${ affiliations.jats() }
+$for(affiliation)$
+${ it:affiliations.jats() }
+$endfor$
 </contrib-group>
 $endif$
 $if(article.author-notes)$

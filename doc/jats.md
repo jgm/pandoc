@@ -45,10 +45,21 @@ Metadata Values
         element.
 
     `affiliation`
-    :   list of affiliation identifiers; marks the organizations
-        with which an author is affiliated. Each identifier in this
-        list must also occur as the `id` of an affiliation listed in
-        the top-level `affiliation` list.
+    :   either full affiliation entries as described in field
+        `affiliation`, or a list of affiliation identifiers.
+
+        The identifiers link to the organizations with which an
+        author is affiliated. Each identifier in this list must
+        also occur as the `id` of an affiliation listed in the
+        top-level `affiliation` list.
+
+        If the top-level `affiliation` field is set, then this
+        entry assumed to be a list of identifiers, and a list of
+        full entries if that field is unset.
+
+        Full entries must be given if the articleauthoring tag
+        set it used, as affiliation links are not allowed in that
+        schema.
 
     `equal-contrib`
     :   boolean attribute used to mark authors who contributed

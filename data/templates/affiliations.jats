@@ -1,38 +1,36 @@
 $--
 $-- Affiliations
 $--
-$for(affiliation)$
 <aff id="aff-$affiliation.id$">
 $-- wrap affiliation if it has a known institution identifier
-$if(affiliation.group)$
-<institution content-type="group">$affiliation.group$</institution>
+$if(it.group)$
+<institution content-type="group">${it.group}</institution>
 $endif$
-$if(affiliation.department)$
-<institution content-type="dept">$affiliation.department$</institution>
+$if(it.department)$
+<institution content-type="dept">${it.department}</institution>
 $endif$
 <institution-wrap>
-$if(affiliation.organization)$
-<institution>$affiliation.organization$</institution>
+$if(it.organization)$
+<institution>${it.organization}</institution>
 $else$
-<institution>$affiliation.name$</institution>
+<institution>${it.name}</institution>
 $endif$
-$if(affiliation.isni)$
-<institution-id institution-id-type="ISNI">$affiliation.isni$</institution-id>
+$if(it.isni)$
+<institution-id institution-id-type="ISNI">${it.isni}</institution-id>
 $endif$
-$if(affiliation.ringgold)$
-<institution-id institution-id-type="Ringgold">$affiliation.ringgold$</institution-id>
+$if(it.ringgold)$
+<institution-id institution-id-type="Ringgold">${it.ringgold}</institution-id>
 $endif$
-$if(affiliation.ror)$
-<institution-id institution-id-type="ROR">$affiliation.ror$</institution-id>
+$if(it.ror)$
+<institution-id institution-id-type="ROR">${it.ror}</institution-id>
 $endif$
-$for(affiliation.pid)$
-<institution-id institution-id-type="$affiliation.pid.type$">$affiliation.pid.id$</institution-id>
+$for(it.pid)$
+<institution-id institution-id-type="${it.type}">${it.id}</institution-id>
 $endfor$
-</institution-wrap>$if(affiliation.street-address)$,
-$for(affiliation.street-address)$
-<addr-line>$affiliation.street-address$</addr-line>$sep$,
+</institution-wrap>$if(it.street-address)$,
+$for(it.street-address)$
+<addr-line>${it}</addr-line>$sep$,
 $endfor$
-$else$$if(affiliation.city)$, <city>$affiliation.city$</city>$endif$$endif$$if(affiliation.country)$,
-<country$if(affiliation.country-code)$ country="$affiliation.country-code$"$endif$>$affiliation.country$</country>$endif$
+$else$$if(it.city)$, <city>$it.city$</city>$endif$$endif$$if(it.country)$,
+<country$if(it.country-code)$ country="$it.country-code$"$endif$>$it.country$</country>$endif$
 </aff>
-$endfor$
