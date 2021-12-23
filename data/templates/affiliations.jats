@@ -1,7 +1,7 @@
 $--
 $-- Affiliations
 $--
-<aff id="aff-$affiliation.id$">
+<aff id="aff-$it.id$">
 $-- wrap affiliation if it has a known institution identifier
 $if(it.group)$
 <institution content-type="group">${it.group}</institution>

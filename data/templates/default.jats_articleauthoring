@@ -36,12 +36,12 @@ $elseif(author.name)$
 $else$
 <string-name>$author$</string-name>
 $endif$
-$if(author.email)$
-<email>$author.email$</email>
-$endif$
 $for(author.affiliation)$
 ${ it:affiliations.jats() }
 $endfor$
+$if(author.email)$
+<email>$author.email$</email>
+$endif$
 $if(author.cor-id)$
 <xref ref-type="corresp" rid="cor-$author.cor-id$"><sup>*</sup></xref>
 $endif$
