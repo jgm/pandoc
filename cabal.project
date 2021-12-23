@@ -5,11 +5,6 @@ constraints: aeson >= 2.0.1.0
 
 source-repository-package
   type: git
-  location: https://github.com/pandoc/pandoc-lua-marshal
-  tag: f81ec19006cc4d0476f199d1fb913bac4af0a0d8
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/texmath.git
   tag: 46df85d747f4f233157d3476683264232a4f58be
 

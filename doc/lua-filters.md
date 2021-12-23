@@ -3727,6 +3727,22 @@ methods and convenience functions.
     Returns: a new list containing all elements from list1 and
     list2
 
+[`pandoc.List:__eq (a, b)`]{#pandoc.list:__concat}
+
+:   Compares two lists for equality. The lists are taken as equal
+    if and only if they are of the same type (i.e., have the same
+    non-nil metatable), have the same length, and if all elements
+    are equal.
+
+    Parameters:
+
+    `a`, `b`:
+    :   any Lua object
+
+    Returns:
+
+    -   `true` if the two lists are equal, `false` otherwise.
+
 ## Methods
 
 [`pandoc.List:clone ()`]{#pandoc.list:clone}

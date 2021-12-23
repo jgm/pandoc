@@ -26,6 +26,7 @@ extra-deps:
 - lua-2.0.2
 - tasty-hslua-1.0.0
 - tasty-lua-1.0.0
+- pandoc-lua-marshal-0.1.3
 - pandoc-types-1.22.1
 - commonmark-0.2.1.1
 - commonmark-extensions-0.2.2.1
@@ -37,8 +38,6 @@ extra-deps:
   commit: 46df85d747f4f233157d3476683264232a4f58be
 - git: https://github.com/jgm/ipynb.git
   commit: 00246af10885c2ad4413ace4f69a7e6c88297a08
-- git: https://github.com/pandoc/pandoc-lua-marshal
-  commit: f81ec19006cc4d0476f199d1fb913bac4af0a0d8
 - git: https://github.com/jgm/commonmark-hs
   commit: 4d460b206e0b1872376db86cadf7a4567eeddaed
   subdir: commonmark-pandoc
