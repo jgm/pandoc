@@ -197,10 +197,10 @@ from_simple_table :: SimpleTable -> LuaE PandocError NumResults
 from_simple_table (SimpleTable capt aligns widths head' body) = do
   Lua.push $ Table
     nullAttr
-    (Caption Nothing [Plain capt])
+    (Caption Nothing [Plain capt | not (null capt)])
     (zipWith (\a w -> (a, toColWidth w)) aligns widths)
     (TableHead nullAttr [blockListToRow head' | not (null head') ])
-    [TableBody nullAttr 0 [] $ map blockListToRow body]
+    [TableBody nullAttr 0 [] $ map blockListToRow body | not (null body)]
     (TableFoot nullAttr [])
   return (NumResults 1)
   where

@@ -302,5 +302,32 @@ return {
       -- reversible
       assert.are_same(simple_table, utils.to_simple_table(tbl))
     end),
+    test('empty caption', function ()
+      local simple_table = pandoc.SimpleTable(
+        {},
+        {pandoc.AlignDefault},
+        {0},
+        {{pandoc.Plain 'a'}},
+        {{{pandoc.Plain 'b'}}}
+      )
+      local tbl = utils.from_simple_table(simple_table)
+      assert.are_equal(
+        pandoc.Blocks{},
+        tbl.caption.long
+      )
+      assert.is_nil(tbl.caption.short)
+    end),
+    test('empty body', function ()
+      local simple_table = pandoc.SimpleTable(
+        pandoc.Inlines('a nice caption'),
+        {pandoc.AlignDefault},
+        {0},
+        {{pandoc.Plain 'a'}},
+        {}
+      )
+      local tbl = utils.from_simple_table(simple_table)
+      tbl.bodies:map(print)
+      assert.are_same(pandoc.List(), tbl.bodies)
+    end),
   }
 }
