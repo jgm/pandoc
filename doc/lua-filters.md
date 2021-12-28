@@ -3359,9 +3359,21 @@ non-null, `Header` levels will be reorganized so
 that there are no gaps, and so that the base level
 is the level specified.
 
+Parameters:
+
+`number_sections`
+:   whether section divs should get an additional `number`
+    attribute containing the section number. (boolean)
+
+`base_level`
+:   shift top-level headings to this level. (integer|nil)
+
+`blocks`
+:   list of blocks to process ([Blocks](#type-blocks))
+
 Returns:
 
--   List of [Blocks](#type-block).
+-   [Blocks](#type-blocks).
 
 Usage:
 
