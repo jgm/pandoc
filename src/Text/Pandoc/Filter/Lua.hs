@@ -18,25 +18,26 @@ import Text.Pandoc.Class (PandocMonad)
 import Control.Monad.Trans (MonadIO)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError, PandocLuaError))
+import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Lua (Global (..), runLua, runFilterFile, setGlobals)
-import Text.Pandoc.Options (ReaderOptions)
 
 -- | Run the Lua filter in @filterPath@ for a transformation to the
 -- target format (first element in args). Pandoc uses Lua init files to
 -- setup the Lua interpreter.
 apply :: (PandocMonad m, MonadIO m)
-      => ReaderOptions
+      => Environment
       -> [String]
       -> FilePath
       -> Pandoc
       -> m Pandoc
-apply ropts args fp doc = do
+apply fenv args fp doc = do
   let format = case args of
                  (x:_) -> x
                  _     -> error "Format not supplied for Lua filter"
   runLua >=> forceResult fp $ do
     setGlobals [ FORMAT $ T.pack format
-               , PANDOC_READER_OPTIONS ropts
+               , PANDOC_READER_OPTIONS (envReaderOptions fenv)
+               , PANDOC_WRITER_OPTIONS (envWriterOptions fenv)
                , PANDOC_SCRIPT_FILE fp
                ]
     runFilterFile fp doc

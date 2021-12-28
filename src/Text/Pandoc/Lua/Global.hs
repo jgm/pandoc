@@ -23,8 +23,9 @@ import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.CommonState (pushCommonState)
 import Text.Pandoc.Lua.Marshal.Pandoc (pushPandoc)
 import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
+import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
 import Text.Pandoc.Lua.Orphans ()
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Options (ReaderOptions, WriterOptions)
 
 import qualified Data.Text as Text
 
@@ -34,6 +35,7 @@ data Global =
   | PANDOC_API_VERSION
   | PANDOC_DOCUMENT Pandoc
   | PANDOC_READER_OPTIONS ReaderOptions
+  | PANDOC_WRITER_OPTIONS WriterOptions
   | PANDOC_SCRIPT_FILE FilePath
   | PANDOC_STATE CommonState
   | PANDOC_VERSION
@@ -47,7 +49,7 @@ setGlobal :: Global -> LuaE PandocError ()
 setGlobal global = case global of
   -- This could be simplified if Global was an instance of Data.
   FORMAT format -> do
-    Lua.push format
+    Lua.pushText format
     Lua.setglobal "FORMAT"
   PANDOC_API_VERSION -> do
     pushVersion pandocTypesVersion
@@ -58,8 +60,11 @@ setGlobal global = case global of
   PANDOC_READER_OPTIONS ropts -> do
     pushReaderOptionsReadonly ropts
     Lua.setglobal "PANDOC_READER_OPTIONS"
+  PANDOC_WRITER_OPTIONS wopts -> do
+    pushWriterOptions wopts
+    Lua.setglobal "PANDOC_WRITER_OPTIONS"
   PANDOC_SCRIPT_FILE filePath -> do
-    Lua.push filePath
+    Lua.pushString filePath
     Lua.setglobal "PANDOC_SCRIPT_FILE"
   PANDOC_STATE commonState -> do
     pushCommonState commonState
