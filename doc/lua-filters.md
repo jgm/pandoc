@@ -262,6 +262,11 @@ variables.
 `PANDOC_READER_OPTIONS`
 :   Table of the options which were provided to the parser.
 
+`PANDOC_WRITER_OPTIONS`
+:   Table of the options that will be passed to the writer.
+    While the object can be modified, the changes will **not**
+    be picked up by pandoc.
+
 `PANDOC_VERSION`
 :   Contains the pandoc version as a [Version] object which
     behaves like a numerically indexed table, most significant

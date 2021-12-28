@@ -14,6 +14,7 @@ Programmatically modifications of pandoc documents.
 -}
 module Text.Pandoc.Filter
   ( Filter (..)
+  , Environment (..)
   , applyFilters
   ) where
 
@@ -22,7 +23,7 @@ import Data.Aeson
 import GHC.Generics (Generic)
 import Text.Pandoc.Class (report, getVerbosity, PandocMonad)
 import Text.Pandoc.Definition (Pandoc)
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Citeproc (processCitations)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
@@ -71,19 +72,19 @@ instance ToJSON Filter where
 
 -- | Modify the given document using a filter.
 applyFilters :: (PandocMonad m, MonadIO m)
-             => ReaderOptions
+             => Environment
              -> [Filter]
              -> [String]
              -> Pandoc
              -> m Pandoc
-applyFilters ropts filters args d = do
+applyFilters fenv filters args d = do
   expandedFilters <- mapM expandFilterPath filters
   foldM applyFilter d expandedFilters
  where
   applyFilter doc (JSONFilter f) =
-    withMessages f $ JSONFilter.apply ropts args f doc
+    withMessages f $ JSONFilter.apply fenv args f doc
   applyFilter doc (LuaFilter f)  =
-    withMessages f $ LuaFilter.apply ropts args f doc
+    withMessages f $ LuaFilter.apply fenv args f doc
   applyFilter doc CiteprocFilter =
     processCitations doc
   withMessages f action = do
