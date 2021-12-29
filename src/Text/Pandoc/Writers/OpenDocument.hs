@@ -192,7 +192,7 @@ formulaStyle mt = inTags False "style:style"
                                                   ,("style:vertical-rel", "text")]
                                                 else
                                                   [("style:vertical-pos",   "middle")
-                                                  ,("style:vertical-rel",   "paragraph-content")
+                                                  ,("style:vertical-rel",   "text")
                                                   ,("style:horizontal-pos", "center")
                                                   ,("style:horizontal-rel", "paragraph-content")
                                                   ,("style:wrap",           "none")]
