@@ -505,7 +505,7 @@ archiveToRelationships archive docXmlPath =
 
 filePathIsMedia :: FilePath -> Bool
 filePathIsMedia fp =
-  "media" `elem` splitPath (takeDirectory fp)
+  "media" `elem` splitDirectories (takeDirectory fp)
 
 lookupLevel :: T.Text -> T.Text -> Numbering -> Maybe Level
 lookupLevel numId ilvl (Numbering _ numbs absNumbs) = do

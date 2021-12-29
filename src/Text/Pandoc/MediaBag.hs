@@ -80,7 +80,7 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
         uri = parseURI fp
         newpath = if isRelative fp
                        && isNothing uri
-                       && ".." `notElem` splitPath fp
+                       && ".." `notElem` splitDirectories fp
                      then T.unpack fp'
                      else showDigest (sha1 contents) <> "." <> ext
         fallback = case takeExtension fp of
