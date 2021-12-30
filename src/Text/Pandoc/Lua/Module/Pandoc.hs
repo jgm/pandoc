@@ -21,7 +21,6 @@ module Text.Pandoc.Lua.Module.Pandoc
 import Prelude hiding (read)
 import Control.Monad (forM_, when)
 import Control.Monad.Catch (catch, throwM)
-import Control.Monad.Except (throwError)
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
@@ -47,6 +46,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Text as T
 import qualified Text.Pandoc.Lua.Util as LuaUtil
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
 
 -- | Push the "pandoc" package to the Lua stack. Requires the `List`
@@ -170,12 +170,12 @@ functions =
   , defun "read"
     ### (\content mformatspec mreaderOptions -> do
             let formatSpec = fromMaybe "markdown" mformatspec
-                readerOptions = fromMaybe def mreaderOptions
+                readerOpts = fromMaybe def mreaderOptions
             res <- Lua.liftIO . runIO $ getReader formatSpec >>= \case
-              (TextReader r, es) -> r readerOptions{ readerExtensions = es }
-                                      content
-              _ -> throwError $ PandocSomeError
-                   "Only textual formats are supported"
+              (TextReader r, es)      ->
+                r readerOpts{ readerExtensions = es } (UTF8.toText content)
+              (ByteStringReader r, es) ->
+                r readerOpts{ readerExtensions = es } (BSL.fromStrict content)
             case res of
               Right pd -> return pd -- success, got a Pandoc document
               Left  (PandocUnknownReaderError f) ->
@@ -185,7 +185,7 @@ functions =
                 "Extension " <> e <> " not supported for " <> f
               Left e ->
                 throwM e)
-    <#> parameter peekText "string" "content" "text to parse"
+    <#> parameter peekByteString "string" "content" "text to parse"
     <#> optionalParameter peekText "string" "formatspec" "format and extensions"
     <#> optionalParameter peekReaderOptions "ReaderOptions" "reader_options"
           "reader options"
