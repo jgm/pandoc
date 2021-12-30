@@ -86,16 +86,14 @@ jobs:
 
     runs-on: macOS-10.15
 
-    env:
-        DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
-
     steps:
     - uses: actions/checkout@v1
 
     - name: Build executable
       run: |
-          stack update
-          stack install
+          stack --no-terminal setup
+          stack --no-terminal update
+          stack --no-terminal install
 
     - name: Create artifacts
       run: |
