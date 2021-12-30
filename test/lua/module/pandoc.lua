@@ -279,6 +279,14 @@ return {
         pandoc.read(indented_code, 'markdown', {indented_code_classes={'foo'}})
       )
     end),
+    test('can read epub', function ()
+      local epub = io.open('lua/module/tiny.epub', 'rb')
+      local blocks = pandoc.read(epub:read'a', 'epub').blocks
+      assert.are_equal(
+        blocks[#blocks],
+        pandoc.Para { pandoc.Emph 'EPUB' }
+      )
+    end),
     test('failing read', function ()
       assert.error_matches(
         function () pandoc.read('foo', 'nosuchreader') end,
