@@ -127,7 +127,7 @@ peekReaderOptionsTable idx = retrieving "ReaderOptions (table)" $ do
               setFields
     pushnil -- first key
     setFields
-  peekUD typeReaderOptions top
+  peekUD typeReaderOptions top `lastly` pop 1
 
 instance Pushable ReaderOptions where
   push = pushReaderOptions
