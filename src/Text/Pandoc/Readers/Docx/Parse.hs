@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
  Module : Text.Pandoc.Readers.Docx.Parse
@@ -78,6 +79,19 @@ import Text.TeXMath (Exp)
 import Text.TeXMath.Readers.OMML (readOMML)
 import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, textToFont)
 import Text.Pandoc.XML.Light
+    ( filterChild,
+      findElement,
+      strContent,
+      showElement,
+      findAttr,
+      filterChildrenName,
+      filterElementName,
+      parseXMLElement,
+      elChildren,
+      QName(QName, qName),
+      Content(Elem),
+      Element(elContent, elName),
+      findElements )
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envComments      :: Comments
@@ -886,16 +900,19 @@ elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
   , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
-  , Just picElem <- findElement (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
+  , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
   = let (title, alt) = getTitleAndAlt ns drawingElem
         a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
-        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) picElem
-                  >>= findAttrByName ns "r" "embed"
-    in
-     case drawing of
-       Just s -> expandDrawingId s >>= \(fp, bs) ->
-                   return [Drawing fp title alt bs (elemToExtent drawingElem)]
-       Nothing -> throwError WrongElem
+        drawings = map (\el ->
+                        ((findElement (QName "blip" (Just a_ns) (Just "a")) el
+                          >>= findAttrByName ns "r" "embed"), el)) picElems
+    in mapM (\case
+                (Just s, el) -> do
+                  (fp, bs) <- expandDrawingId s
+                  let extent = elemToExtent el <|> elemToExtent element
+                  return $ Drawing fp title alt bs extent
+                (Nothing, _) -> throwError WrongElem)
+            drawings
 -- The two cases below are an attempt to deal with images in deprecated vml format.
 -- Todo: check out title and attr for deprecated format.
 elemToParPart' ns element
@@ -930,11 +947,11 @@ elemToParPart' ns element
   = return [Chart]
 elemToParPart' ns element
   | isElem ns "w" "r" element = do
-    run <- elemToRun ns element
-    return [PlainRun run]
+    runs <- elemToRun ns element
+    return $ map PlainRun runs
 elemToParPart' ns element
   | Just change <- getTrackedChange ns element = do
-      runs <- mapD (elemToRun ns) (elChildren element)
+      runs <- mconcat <$> mapD (elemToRun ns) (elChildren element)
       return [ChangedRuns change runs]
 elemToParPart' ns element
   | isElem ns "w" "bookmarkStart" element
@@ -992,59 +1009,61 @@ lookupEndnote :: T.Text -> Notes -> Maybe Element
 lookupEndnote s (Notes _ _ ens) = ens >>= M.lookup s
 
 elemToExtent :: Element -> Extent
-elemToExtent drawingElem =
+elemToExtent el =
   case (getDim "cx", getDim "cy") of
     (Just w, Just h) -> Just (w, h)
     _                -> Nothing
-    where
-      wp_ns  = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
-      getDim at = findElement (QName "extent" (Just wp_ns) (Just "wp")) drawingElem
-                    >>= findAttr (QName at Nothing Nothing) >>= safeRead
+ where
+  getDim at = filterElementName (\n -> qName n `elem` ["extent", "ext"]) el
+              >>= findAttr (QName at Nothing Nothing) >>= safeRead
 
 
-childElemToRun :: NameSpaces -> Element -> D Run
+childElemToRun :: NameSpaces -> Element -> D [Run]
 childElemToRun ns element
   | isElem ns "w" "drawing" element
   , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
-  , Just picElem <- findElement (QName "pic" (Just pic_ns) (Just "pic")) element
+  , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) element
   = let (title, alt) = getTitleAndAlt ns element
         a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
-        drawing = findElement (QName "blip" (Just a_ns) (Just "a")) picElem
-                  >>= findAttr (QName "embed" (M.lookup "r" ns) (Just "r"))
-    in
-     case drawing of
-       Just s -> expandDrawingId s >>=
-                 (\(fp, bs) -> return $ InlineDrawing fp title alt bs $ elemToExtent element)
-       Nothing -> throwError WrongElem
+        drawings = map (\el ->
+                         ((findElement (QName "blip" (Just a_ns) (Just "a")) el
+                             >>= findAttrByName ns "r" "embed"), el)) picElems
+    in mapM (\case
+                (Just s, el) -> do
+                  (fp, bs) <- expandDrawingId s
+                  let extent = elemToExtent el <|> elemToExtent element
+                  return $ InlineDrawing fp title alt bs extent
+                (Nothing, _) -> throwError WrongElem)
+       drawings
 childElemToRun ns element
   | isElem ns "w" "drawing" element
   , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
   , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) element
-  = return InlineChart
+  = return [InlineChart]
 childElemToRun ns element
   | isElem ns "w" "drawing" element
   , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
   , Just _ <- findElement (QName "relIds" (Just c_ns) (Just "dgm")) element
-  = return InlineDiagram
+  = return [InlineDiagram]
 childElemToRun ns element
   | isElem ns "w" "footnoteReference" element
   , Just fnId <- findAttrByName ns "w" "id" element = do
     notes <- asks envNotes
     case lookupFootnote fnId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InFootnote}) $ mapD (elemToBodyPart ns) (elChildren e)
-                   return $ Footnote bps
-      Nothing  -> return $ Footnote []
+                   return [Footnote bps]
+      Nothing  -> return [Footnote []]
 childElemToRun ns element
   | isElem ns "w" "endnoteReference" element
   , Just enId <- findAttrByName ns "w" "id" element = do
     notes <- asks envNotes
     case lookupEndnote enId notes of
       Just e -> do bps <- local (\r -> r {envLocation=InEndnote}) $ mapD (elemToBodyPart ns) (elChildren e)
-                   return $ Endnote bps
-      Nothing  -> return $ Endnote []
+                   return [Endnote bps]
+      Nothing  -> return [Endnote []]
 childElemToRun _ _ = throwError WrongElem
 
-elemToRun :: NameSpaces -> Element -> D Run
+elemToRun :: NameSpaces -> Element -> D [Run]
 elemToRun ns element
   | isElem ns "w" "r" element
   , Just altCont <- findChildByName ns "mc" "AlternateContent" element =
@@ -1070,7 +1089,7 @@ elemToRun ns element
   | isElem ns "w" "r" element = do
     runElems <- elemToRunElems ns element
     runStyle <- elemToRunStyleD ns element
-    return $ Run runStyle runElems
+    return [Run runStyle runElems]
 elemToRun _ _ = throwError WrongElem
 
 getParentStyleValue :: (ParStyle -> Maybe a) -> ParStyle -> Maybe a
