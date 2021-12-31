@@ -320,8 +320,6 @@ data ParPart = PlainRun Run
              | Diagram                                            -- placeholder for now
              | PlainOMath [Exp]
              | Field FieldInfo [ParPart]
-             | NullParPart      -- when we need to return nothing, but
-                                -- not because of an error.
              deriving Show
 
 data Run = Run RunStyle [RunElem]
@@ -694,13 +692,13 @@ elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
     parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
-    parparts <- mapD (elemToParPart ns) (elChildren element)
+    parparts <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
     levelInfo <- lookupLevel numId lvl <$> asks envNumbering
     return $ ListItem parstyle numId lvl levelInfo parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
       parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
-      parparts' <- mapD (elemToParPart ns) (elChildren element)
+      parparts' <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
       fldCharState <- gets stateFldCharState
       modify $ \st -> st {stateFldCharState = emptyFldCharContents fldCharState}
       -- Word uses list enumeration for numbered headings, so we only
@@ -792,7 +790,7 @@ getTitleAndAlt ns element =
       alt = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "descr")
   in (title, alt)
 
-elemToParPart :: NameSpaces -> Element -> D ParPart
+elemToParPart :: NameSpaces -> Element -> D [ParPart]
 {-
 The next one is a bit complicated. fldChar fields work by first
 having a <w:fldChar fldCharType="begin"> in a run, then a run with
@@ -840,21 +838,21 @@ elemToParPart ns element
       case fldCharState of
         _ | fldCharType == "begin" -> do
           modify $ \st -> st {stateFldCharState = FldCharOpen : fldCharState}
-          return NullParPart
+          return []
         FldCharFieldInfo info : ancestors | fldCharType == "separate" -> do
           modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
-          return NullParPart
+          return []
         -- Some fields have no content, since Pandoc doesn't understand any of those fields, we can just close it.
         FldCharFieldInfo _ : ancestors | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = ancestors}
-          return NullParPart
+          return []
         [FldCharContent info children] | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = []}
-          return $ Field info $ reverse children
+          return [Field info $ reverse children]
         FldCharContent info children : FldCharContent parentInfo siblings : ancestors | fldCharType == "end" ->
           let parent = FldCharContent parentInfo $ (Field info (reverse children)) : siblings in do
             modify $ \st -> st {stateFldCharState = parent : ancestors}
-            return NullParPart
+            return []
         _ -> throwError WrongElem
 elemToParPart ns element
   | isElem ns "w" "r" element
@@ -864,8 +862,8 @@ elemToParPart ns element
         FldCharOpen : ancestors -> do
           info <- eitherToD $ parseFieldInfo $ strContent instrText
           modify $ \st -> st {stateFldCharState = FldCharFieldInfo info : ancestors}
-          return NullParPart
-        _ -> return NullParPart
+          return []
+        _ -> return []
 {-
 There is an open fldchar, so we calculate the element and add it to the
 children. For this we need to first change the fldchar state to an empty
@@ -878,12 +876,12 @@ elemToParPart ns element = do
   case fldCharState of
     FldCharContent info children : ancestors -> do
       modify $ \st -> st {stateFldCharState = []}
-      parPart <- elemToParPart' ns element `catchError` \_ -> return NullParPart
-      modify $ \st -> st{stateFldCharState = FldCharContent info (parPart : children) : ancestors}
-      return NullParPart
+      parParts <- elemToParPart' ns element `catchError` \_ -> return []
+      modify $ \st -> st{stateFldCharState = FldCharContent info (parParts ++ children) : ancestors}
+      return []
     _ -> elemToParPart' ns element
 
-elemToParPart' :: NameSpaces -> Element -> D ParPart
+elemToParPart' :: NameSpaces -> Element -> D [ParPart]
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
@@ -895,7 +893,8 @@ elemToParPart' ns element
                   >>= findAttrByName ns "r" "embed"
     in
      case drawing of
-       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp title alt bs $ elemToExtent drawingElem)
+       Just s -> expandDrawingId s >>= \(fp, bs) ->
+                   return [Drawing fp title alt bs (elemToExtent drawingElem)]
        Nothing -> throwError WrongElem
 -- The two cases below are an attempt to deal with images in deprecated vml format.
 -- Todo: check out title and attr for deprecated format.
@@ -906,7 +905,7 @@ elemToParPart' ns element
                   >>= findAttrByName ns "r" "id"
     in
      case drawing of
-       Just s -> expandDrawingId s >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
+       Just s -> expandDrawingId s >>= (\(fp, bs) -> return [Drawing fp "" "" bs Nothing])
        Nothing -> throwError WrongElem
 elemToParPart' ns element
   | isElem ns "w" "r" element
@@ -914,51 +913,52 @@ elemToParPart' ns element
   , Just shapeElem <- findChildByName ns "v" "shape" objectElem
   , Just imagedataElem <- findChildByName ns "v" "imagedata" shapeElem
   , Just drawingId <- findAttrByName ns "r" "id" imagedataElem
-  = expandDrawingId drawingId >>= (\(fp, bs) -> return $ Drawing fp "" "" bs Nothing)
+  = expandDrawingId drawingId >>= (\(fp, bs) -> return [Drawing fp "" "" bs Nothing])
 -- Diagram
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
   , d_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
   , Just _ <- findElement (QName "relIds" (Just d_ns) (Just "dgm")) drawingElem
-  = return Diagram
+  = return [Diagram]
 -- Chart
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
   , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
   , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) drawingElem
-  = return Chart
+  = return [Chart]
 elemToParPart' ns element
   | isElem ns "w" "r" element = do
     run <- elemToRun ns element
-    return $ PlainRun run
+    return [PlainRun run]
 elemToParPart' ns element
   | Just change <- getTrackedChange ns element = do
       runs <- mapD (elemToRun ns) (elChildren element)
-      return $ ChangedRuns change runs
+      return [ChangedRuns change runs]
 elemToParPart' ns element
   | isElem ns "w" "bookmarkStart" element
   , Just bmId <- findAttrByName ns "w" "id" element
   , Just bmName <- findAttrByName ns "w" "name" element =
-    return $ BookMark bmId bmName
+    return [BookMark bmId bmName]
 elemToParPart' ns element
   | isElem ns "w" "hyperlink" element
   , Just relId <- findAttrByName ns "r" "id" element = do
     location <- asks envLocation
-    children <- mapD (elemToParPart ns) (elChildren element)
+    children <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
     rels <- asks envRelationships
     case lookupRelationship location relId rels of
       Just target ->
          case findAttrByName ns "w" "anchor" element of
-             Just anchor -> return $ ExternalHyperLink (target <> "#" <> anchor) children
-             Nothing -> return $ ExternalHyperLink target children
-      Nothing     -> return $ ExternalHyperLink "" children
+             Just anchor -> return
+               [ExternalHyperLink (target <> "#" <> anchor) children]
+             Nothing -> return [ExternalHyperLink target children]
+      Nothing     -> return [ExternalHyperLink "" children]
 elemToParPart' ns element
   | isElem ns "w" "hyperlink" element
   , Just anchor <- findAttrByName ns "w" "anchor" element = do
-    children <- mapD (elemToParPart ns) (elChildren element)
-    return $ InternalHyperLink anchor children
+    children <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
+    return [InternalHyperLink anchor children]
 elemToParPart' ns element
   | isElem ns "w" "commentRangeStart" element
   , Just cmtId <- findAttrByName ns "w" "id" element = do
@@ -969,20 +969,20 @@ elemToParPart' ns element
 elemToParPart' ns element
   | isElem ns "w" "commentRangeEnd" element
   , Just cmtId <- findAttrByName ns "w" "id" element =
-    return $ CommentEnd cmtId
+    return [CommentEnd cmtId]
 elemToParPart' ns element
   | isElem ns "m" "oMath" element =
-    fmap PlainOMath (eitherToD $ readOMML $ showElement element)
+    fmap (return . PlainOMath) (eitherToD $ readOMML $ showElement element)
 elemToParPart' _ _ = throwError WrongElem
 
-elemToCommentStart :: NameSpaces -> Element -> D ParPart
+elemToCommentStart :: NameSpaces -> Element -> D [ParPart]
 elemToCommentStart ns element
   | isElem ns "w" "comment" element
   , Just cmtId <- findAttrByName ns "w" "id" element
   , Just cmtAuthor <- findAttrByName ns "w" "author" element
   , cmtDate <- findAttrByName ns "w" "date" element = do
       bps <- mapD (elemToBodyPart ns) (elChildren element)
-      return $ CommentStart cmtId cmtAuthor cmtDate bps
+      return [CommentStart cmtId cmtAuthor cmtDate bps]
 elemToCommentStart _ _ = throwError WrongElem
 
 lookupFootnote :: T.Text -> Notes -> Maybe Element

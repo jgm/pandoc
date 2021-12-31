@@ -450,7 +450,6 @@ parPartToInlines' (Field info children) =
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
     PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
     _ -> smushInlines <$> mapM parPartToInlines' children
-parPartToInlines' NullParPart = return mempty
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (_, ["anchor"], []) _) = True
