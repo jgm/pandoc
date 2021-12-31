@@ -527,7 +527,7 @@ splitHeaderRows hasFirstRowFormatting rs = bimap reverse reverse $ fst
 
 -- like trimInlines, but also take out linebreaks
 trimSps :: Inlines -> Inlines
-trimSps (Many ils) = Many $ Seq.dropWhileL isSp $Seq.dropWhileR isSp ils
+trimSps (Many ils) = Many $ Seq.dropWhileL isSp $ Seq.dropWhileR isSp ils
   where isSp Space     = True
         isSp SoftBreak = True
         isSp LineBreak = True

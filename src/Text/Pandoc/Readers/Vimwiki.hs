@@ -216,7 +216,7 @@ definitionTerm1 = try $
 
 definitionTerm2 :: PandocMonad m => VwParser m Inlines
 definitionTerm2 = try $ trimInlines . mconcat <$> manyTill inline'
-  (try $lookAhead (defMarkerM >> notFollowedBy hasDefMarkerM))
+  (try $ lookAhead (defMarkerM >> notFollowedBy hasDefMarkerM))
 
 defMarkerM :: PandocMonad m => VwParser m Char
 defMarkerM = string "::" >> spaceChar
@@ -382,7 +382,7 @@ bulletListMarkers = "ul" <$ (char '*' <|> char '-')
 
 orderedListMarkers :: PandocMonad m => VwParser m Text
 orderedListMarkers =
-  ("ol" <$choice (orderedListMarker Decimal Period:(($OneParen) . orderedListMarker <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
+  ("ol" <$ choice (orderedListMarker Decimal Period:(($ OneParen) . orderedListMarker <$> [Decimal, LowerRoman, UpperRoman, LowerAlpha, UpperAlpha])))
     <|> ("ol" <$ char '#')
 
 --many need trimInlines

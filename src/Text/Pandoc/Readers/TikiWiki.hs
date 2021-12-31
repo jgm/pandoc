@@ -125,7 +125,7 @@ header = tryMsg "header" $ do
   skipSpaces
   content <- B.trimInlines . mconcat <$> manyTill inline newline
   attr <- registerHeader nullAttr content
-  return $B.headerWith attr level content
+  return $ B.headerWith attr level content
 
 tableRow :: PandocMonad m => TikiWikiParser m [B.Blocks]
 tableRow = try $ do
@@ -163,11 +163,11 @@ table = try $ do
   string "||"
   newline
   -- return $ B.simpleTable (headers rows) $ trace ("rows: " ++ (show rows)) rows
-  return $B.simpleTable (headers rows) rows
+  return $ B.simpleTable (headers rows) rows
   where
     -- The headers are as many empty strings as the number of columns
     -- in the first row
-    headers rows = map (B.plain . B.str) $replicate (length $ head rows) ""
+    headers rows = replicate (length $ head rows) ((B.plain . B.str) "")
 
 para :: PandocMonad m => TikiWikiParser m B.Blocks
 para =  fmap (result . mconcat) ( many1Till inline endOfParaElement)

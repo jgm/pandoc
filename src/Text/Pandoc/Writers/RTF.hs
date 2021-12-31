@@ -105,13 +105,13 @@ writeRTF options doc = do
   toc <- blocksToRTF 0 AlignDefault [toTableOfContents options blocks]
   let context = defField "body" body
               $ defField "spacer" spacer
-              $(if writerTableOfContents options
-                   then defField "table-of-contents" toc
-                        -- for backwards compatibility,
-                        -- we populate toc with the contents
-                        -- of the toc rather than a boolean:
-                        . defField "toc" toc
-                   else id) metadata
+              $ (if writerTableOfContents options
+                    then defField "table-of-contents" toc
+                         -- for backwards compatibility,
+                         -- we populate toc with the contents
+                         -- of the toc rather than a boolean:
+                         . defField "toc" toc
+                    else id) metadata
   return $
     case writerTemplate options of
        Just tpl -> render Nothing $ renderTemplate tpl context

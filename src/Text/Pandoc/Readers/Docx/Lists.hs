@@ -153,7 +153,7 @@ singleItemHeaderToHeader blk                            = blk
 blocksToBullets :: [Block] -> [Block]
 blocksToBullets blks =
   map singleItemHeaderToHeader $
-  bottomUp removeListDivs $flatToBullets (handleListParagraphs blks)
+  bottomUp removeListDivs $ flatToBullets (handleListParagraphs blks)
 
 plainParaInlines :: Block -> [Inline]
 plainParaInlines (Plain ils) = ils
