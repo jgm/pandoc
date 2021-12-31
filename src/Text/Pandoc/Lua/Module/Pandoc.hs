@@ -36,9 +36,11 @@ import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
                                              , pushReaderOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
-import Text.Pandoc.Options (ReaderOptions (readerExtensions))
+import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
+                           , WriterOptions (writerExtensions) )
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
+import Text.Pandoc.Writers (Writer (..), getWriter)
 
 import qualified HsLua as Lua
 import qualified Data.ByteString.Lazy as BL
@@ -205,6 +207,23 @@ functions =
     <#> parameter peekInlineFuzzy "Inline" "inline" "element to traverse"
     <#> parameter peekFilter "Filter" "lua_filter" "filter functions"
     =#> functionResult pushInline "Inline" "modified Inline"
+
+  , defun "write"
+    ### (\doc mformatspec mwriterOpts -> do
+            let formatSpec = fromMaybe "html" mformatspec
+                writerOpts = fromMaybe def mwriterOpts
+            unPandocLua $ getWriter formatSpec >>= \case
+              (TextWriter w, es)      -> Right <$>
+                w writerOpts{ writerExtensions = es } doc
+              (ByteStringWriter w, es) -> Left <$>
+                w writerOpts{ writerExtensions = es } doc)
+    <#> parameter peekPandoc "Pandoc" "doc" "document to convert"
+    <#> optionalParameter peekText "string" "formatspec"
+          "format and extensions"
+    <#> optionalParameter peekWriterOptions "WriterOptions" "writer_options"
+          "writer options"
+    =#> functionResult (either pushLazyByteString pushText) "string"
+          "result document"
   ]
  where
   walkElement x f =

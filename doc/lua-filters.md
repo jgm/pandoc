@@ -3280,6 +3280,39 @@ Usage:
 
 [ReaderOptions]: #type-readeroptions
 
+### write {#pandoc.write}
+
+`write (doc[, format[, writer_options]])`
+
+Converts a document to the given target format.
+
+Parameters:
+
+`doc`:
+:   document to convert ([Pandoc](#type-pandoc))
+
+`format`:
+:   format specification, defaults to `'html'` (string)
+
+`writer_options`:
+:   options passed to the writer; may be a WriterOptions object
+    or a table with a subset of the keys and values of a
+    WriterOptions object; defaults to the default values
+    documented in the manual. ([WriterOptions]|table)
+
+Returns:
+-   converted document (string)
+
+Usage:
+
+    local doc = pandoc.Pandoc(
+      {pandoc.Para {pandoc.Strong 'Tea'}}
+    )
+    local html = pandoc.write(doc, 'html')
+    assert(html == "<p><strong>Tea</strong></p>")
+
+[WriterOptions]: #type-writeroptions
+
 # Module pandoc.utils
 
 This module exposes internal pandoc functions and utility
