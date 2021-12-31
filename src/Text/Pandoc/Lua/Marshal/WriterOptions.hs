@@ -93,7 +93,8 @@ typeWriterOptions = deftype "WriterOptions"
     (pushText, writerEpubSubdirectory)
     (peekText, \opts x -> opts{ writerEpubSubdirectory = x })
 
-  , property "extensions" "Markdown extensions that can be used"
+  , property "extensions"
+    "Markdown extensions that can be used"
     (pushViaJSON, writerExtensions)
     (peekViaJSON, \opts x -> opts{ writerExtensions = x })
 
@@ -147,15 +148,15 @@ typeWriterOptions = deftype "WriterOptions"
     (maybe pushnil pushString, writerReferenceDoc)
     (optional . peekString, \opts x -> opts{ writerReferenceDoc = x })
 
-  , property "reference_location"
-    "Location of footnotes and references for writing markdown"
-    (pushViaJSON, writerReferenceLocation)
-    (peekViaJSON, \opts x -> opts{ writerReferenceLocation = x })
-
   , property "reference_links"
     "Use reference links in writing markdown, rst"
     (pushBool, writerReferenceLinks)
     (peekBool, \opts x -> opts{ writerReferenceLinks = x })
+
+  , property "reference_location"
+    "Location of footnotes and references for writing markdown"
+    (pushViaJSON, writerReferenceLocation)
+    (peekViaJSON, \opts x -> opts{ writerReferenceLocation = x })
 
   , property "section_divs"
     "Put sections in div tags in HTML"

@@ -29,7 +29,7 @@ import Text.Pandoc.Definition (Attr, Block (BlockQuote, Div, Para), Pandoc,
                                Inline (Emph, Str), pandocTypesVersion)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
-import Text.Pandoc.Lua (runLua)
+import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
 
@@ -239,7 +239,9 @@ assertFilterConversion msg filterPath docIn expectedDoc = do
 
 runLuaTest :: HasCallStack => Lua.LuaE PandocError a -> IO a
 runLuaTest op = runIOorExplode $ do
-  res <- runLua op
+  res <- runLua $ do
+    setGlobals [ PANDOC_WRITER_OPTIONS def ]
+    op
   case res of
     Left e -> error (show e)
     Right x -> return x

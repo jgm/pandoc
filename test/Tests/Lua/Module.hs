@@ -31,6 +31,8 @@ tests =
                   ("lua" </> "module" </> "pandoc-types.lua")
   , testPandocLua "pandoc.utils"
                   ("lua" </> "module" </> "pandoc-utils.lua")
+  , testPandocLua "globals"
+                  ("lua" </> "module" </> "globals.lua")
   ]
 
 testPandocLua :: TestName -> FilePath -> TestTree
