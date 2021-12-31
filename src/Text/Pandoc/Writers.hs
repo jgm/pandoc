@@ -25,7 +25,6 @@ module Text.Pandoc.Writers
     , writeBibLaTeX
     , writeCommonMark
     , writeConTeXt
-    , writeCustom
     , writeCslJson
     , writeDZSlides
     , writeDocbook4
@@ -93,7 +92,6 @@ import Text.Pandoc.Writers.BibTeX
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.CslJson
-import Text.Pandoc.Writers.Custom
 import Text.Pandoc.Writers.Docbook
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
