@@ -3232,6 +3232,14 @@ Returns: the transformed inline element
 
 Parse the given string into a Pandoc document.
 
+The parser is run in the same environment that was used to read
+the main input files; it has full access to the file-system and
+the mediabag. This means that if the document specifies files to
+be included, as is possible in formats like LaTeX,
+reStructuredText, and Org, then these will be included in the
+resulting document. Any media elements are added to those
+retrieved from the other parsed input files.
+
 Parameters:
 
 `markup`:
@@ -3246,7 +3254,7 @@ Parameters:
     ReaderOptions object; defaults to the default values
     documented in the manual. ([ReaderOptions]|table)
 
-Returns: pandoc document
+Returns: pandoc document ([Pandoc](#type-pandoc))
 
 Usage:
 

@@ -28,7 +28,6 @@ import Data.Proxy (Proxy (Proxy))
 import HsLua hiding (pushModule)
 import HsLua.Class.Peekable (PeekError)
 import System.Exit (ExitCode (..))
-import Text.Pandoc.Class.PandocIO (runIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
@@ -36,7 +35,7 @@ import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
 import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
                                              , pushReaderOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
-import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua)
+import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Options (ReaderOptions (readerExtensions))
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
@@ -171,13 +170,15 @@ functions =
     ### (\content mformatspec mreaderOptions -> do
             let formatSpec = fromMaybe "markdown" mformatspec
                 readerOpts = fromMaybe def mreaderOptions
-            res <- Lua.liftIO . runIO $ getReader formatSpec >>= \case
-              (TextReader r, es)      ->
-                r readerOpts{ readerExtensions = es } (UTF8.toText content)
-              (ByteStringReader r, es) ->
-                r readerOpts{ readerExtensions = es } (BSL.fromStrict content)
-            case res of
-              Right pd -> return pd -- success, got a Pandoc document
+                readAction = getReader formatSpec >>= \case
+                  (TextReader r, es)      ->
+                    r readerOpts{readerExtensions = es} (UTF8.toText content)
+                  (ByteStringReader r, es) ->
+                    r readerOpts{readerExtensions = es} (BSL.fromStrict content)
+            try (unPandocLua readAction) >>= \case
+              Right pd ->
+                -- success, got a Pandoc document
+                return pd
               Left  (PandocUnknownReaderError f) ->
                 Lua.failLua . T.unpack $ "Unknown reader: " <> f
               Left  (PandocUnsupportedExtensionError e f) ->
