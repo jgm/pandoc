@@ -261,11 +261,13 @@ variables.
 
 `PANDOC_READER_OPTIONS`
 :   Table of the options which were provided to the parser.
+    ([ReaderOptions](#type-readeroptions))
 
 `PANDOC_WRITER_OPTIONS`
 :   Table of the options that will be passed to the writer.
     While the object can be modified, the changes will **not**
     be picked up by pandoc.
+    ([WriterOptions](#type-writeroptions))
 
     This variable is also set in custom writers.
 
@@ -2021,6 +2023,121 @@ Fields:
 :   track changes setting for docx; one of `accept-changes`,
     `reject-changes`, and `all-changes` (string)
 
+## WriterOptions {#type-writeroptions}
+
+Pandoc writer options
+
+Fields:
+
+`cite_method`
+:   How to print cites -- one of 'citeproc', 'natbib', or
+    'biblatex' (string)
+
+`columns`
+:   Characters in a line (for text wrapping) (integer)
+
+`dpi`
+:   DPI for pixel to/from inch/cm conversions (integer)
+
+`email_obfuscation`
+:   How to obfuscate emails -- one of 'none', 'references', or
+    'javascript' (string)
+
+`epub_chapter_level`
+:   Header level for chapters, i.e., how the document is split
+    into separate files (integer)
+
+`epub_fonts`
+:   Paths to fonts to embed (sequence of strings)
+
+`epub_metadata`
+:   Metadata to include in EPUB (string|nil)
+
+`epub_subdirectory`
+:   Subdir for epub in OCF (string)
+
+`extensions`
+:   Markdown extensions that can be used (sequence of strings)
+
+`highlight_style`
+:   Style to use for highlighting; see the output of `pandoc
+    --print-highlight-style=...` for an example structure. The
+    value `nil` means that no highlighting is used. (table|nil)
+
+`html_math_method`
+:   How to print math in HTML; one 'plain', 'gladtex', 'webtex',
+    'mathml', 'mathjax', or a table with keys `method` and
+    `url`. (string|table)
+
+`html_q_tags`
+:   Use `<q>` tags for quotes in HTML (boolean)
+
+`identifier_prefix`
+:   Prefix for section & note ids in HTML and for footnote marks
+    in markdown (string)
+
+`incremental`
+:   True if lists should be incremental (boolean)
+
+`listings`
+:   Use listings package for code (boolean)
+
+`number_offset`
+:   Starting number for section, subsection, ... (sequence of
+    integers)
+
+`number_sections`
+:   Number sections in LaTeX (boolean)
+
+`prefer_ascii`
+:   Prefer ASCII representations of characters when possible
+    (boolean)
+
+`reference_doc`
+:   Path to reference document if specified (string|nil)
+
+`reference_links`
+:   Use reference links in writing markdown, rst (boolean)
+
+`reference_location`
+:   Location of footnotes and references for writing markdown;
+    one of 'end-of-block', 'end-of-section', 'end-of-document'.
+    The common prefix may be omitted when setting this value.
+    (string)
+
+`section_divs`
+:   Put sections in div tags in HTML (boolean)
+
+`setext_headers`
+:   Use setext headers for levels 1-2 in markdown (boolean)
+
+`slide_level`
+:   Force header level of slides (integer\|nil)
+
+`tab_stop`
+:   Tabstop for conversion btw spaces and tabs (integer)
+
+`table_of_contents`
+:   Include table of contents (boolean)
+
+`toc_depth`
+:   Number of levels to include in TOC (integer)
+
+`top_level_division`
+:   Type of top-level divisions; one of 'top-level-part',
+    'top-level-chapter', 'top-level-section', or
+    'top-level-default'. The prefix `top-level` may be omitted
+    when setting this value. (string)
+
+`variables`
+:   Variables to set in template; string-indexed table (table)
+
+`wrap_text`
+:   Option for wrapping text; one of 'wrap-auto', 'wrap-none',
+    or 'wrap-preserve'. The `wrap-` prefix may be omitted when
+    setting this value. (string)
+
+
 ## CommonState {#type-commonstate}
 
 The state used by pandoc to collect information and make it
@@ -3169,6 +3286,30 @@ format, and functions to filter and modify a subtree.
 
         -- default reader options, but columns set to 66.
         local short_colums_opts = pandoc.ReaderOptions {columns = 66}
+
+[`WriterOptions (opts)`]{#pandoc.writeroptions}
+
+:   Creates a new [WriterOptions][] value.
+
+    Parameters
+
+    `opts`:
+    :   Either a table with a subset of the properties of a
+        [WriterOptions] object, or another WriterOptions object.
+        Uses the defaults specified in the manual for all
+        properties that are not explicitly specified. Throws an
+        error if a table contains properties which are not present
+        in a WriterOptions object. ([WriterOptions]|table)
+
+    Returns: new [WriterOptions] object
+
+    Usage:
+
+        -- copy of the writer options that were defined on the command line.
+        local cli_opts = pandoc.WriterOptions(PANDOC_WRITER_OPTIONS)
+
+        -- default writer options, but DPI set to 300.
+        local short_colums_opts = pandoc.WriterOptions {dpi = 300}
 
 ## Helper functions
 

@@ -34,6 +34,8 @@ import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
 import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
                                              , pushReaderOptions)
+import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
+                                             , pushWriterOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
@@ -129,6 +131,13 @@ otherConstructors =
     <#> parameter peekReaderOptions "ReaderOptions|table" "opts" "reader options"
     =#> functionResult pushReaderOptions "ReaderOptions" "new object"
     #? "Creates a new ReaderOptions value."
+
+  , defun "WriterOptions"
+    ### liftPure id
+    <#> parameter peekWriterOptions "WriterOptions|table" "opts"
+          "writer options"
+    =#> functionResult pushWriterOptions "WriterOptions" "new object"
+    #? "Creates a new WriterOptions value."
   ]
 
 stringConstants :: [Field e]
