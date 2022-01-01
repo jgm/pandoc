@@ -1007,13 +1007,12 @@ parseBlock (Elem e) =
            b <- getBlocks e
            modify $ \st -> st{ dbSectionLevel = n - 1 }
            return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs) n' headerText <> b
-         titleabbrevElAsAttr = do
-           txt <- case filterChild (named "titleabbrev") e `mplus`
-                            (filterChild (named "info") e >>=
-                                filterChild (named "titleabbrev")) of
-                            Just t  -> Just ("titleabbrev", strContentRecursive t)
-                            Nothing -> Nothing
-           return txt
+         titleabbrevElAsAttr =
+           case filterChild (named "titleabbrev") e `mplus`
+                (filterChild (named "info") e >>=
+                 filterChild (named "titleabbrev")) of
+             Just t  -> Just ("titleabbrev", strContentRecursive t)
+             Nothing -> Nothing
          lineItems = mapM getInlines $ filterChildren (named "line") e
          -- | Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the

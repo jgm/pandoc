@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Writers.Shared
-   Copyright   : Copyright (C) 2021 John MacFarlane
+   Module      : Text.Pandoc.Writers.Blaze
+   Copyright   : Copyright (C) 2021-2022 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -112,12 +112,10 @@ withWrap wrap
 toChunks :: Text -> [Doc Text]
 toChunks = map toDoc . T.groupBy sameStatus
   where
-   toDoc t =
-     if T.any (== ' ') t
-        then space
-        else if T.any (== '\n') t
-                then cr
-                else literal t
+   toDoc t
+     | T.any (== ' ')  t = space
+     | T.any (== '\n') t = cr
+     | otherwise         = literal t
    sameStatus c d =
      (c == ' ' && d == ' ') ||
      (c == '\n' && d == '\n') ||
