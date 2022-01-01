@@ -14,6 +14,7 @@ extra-deps:
 - doclayout-0.3.1.1
 - lpeg-1.0.1
 - hslua-2.0.1
+- hslua-aeson-2.0.1
 - hslua-classes-2.0.0
 - hslua-core-2.0.0.2
 - hslua-marshalling-2.0.1
