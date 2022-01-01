@@ -167,9 +167,8 @@ keyValues = try $
    value = skipSpaces *> manyTillChar anyChar endOfValue
 
    endOfValue :: Monad m => OrgParser m ()
-   endOfValue =
-     lookAhead $ (() <$ try (many1 spaceChar <* key))
-              <|> () <$ newline
+   endOfValue = lookAhead (void $ try (many1 spaceChar <* key))
+            <|> try (skipSpaces <* lookAhead newline)
 
 
 --

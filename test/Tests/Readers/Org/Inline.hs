@@ -213,6 +213,14 @@ tests =
                 ] =?>
       para (imageWith ("", [], [("width", "50%")]) "guinea-pig.gif" "" "")
 
+    , "HTML attributes can have trailing spaces" =:
+      T.unlines [ "#+attr_html: :width 100% :height 360px  "
+                , "[[file:fireworks.jpg]]"
+                ] =?>
+      let kv = [("width", "100%"), ("height", "360px")]
+      in para (imageWith (mempty, mempty, kv) "fireworks.jpg" mempty mempty)
+
+
     , "Uppercase extension" =:
       "[[file:test.PNG]]" =?>
       para (image "test.PNG" "" "")
