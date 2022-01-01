@@ -1,5 +1,5 @@
 Pandoc
-Copyright (C) 2006-2021 John MacFarlane <jgm at berkeley dot edu>
+Copyright (C) 2006-2022 John MacFarlane <jgm at berkeley dot edu>
 
 With the exceptions noted below, this code is released under the [GPL],
 version 2 or later:
@@ -83,19 +83,19 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Texinfo.hs
-Copyright (C) 2008-2021 John MacFarlane and Peter Wang
+Copyright (C) 2008-2022 John MacFarlane and Peter Wang
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/OpenDocument.hs
-Copyright (C) 2008-2021 Andrea Rossato and John MacFarlane
+Copyright (C) 2008-2022 Andrea Rossato and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Writers/Org.hs
-Copyright (C) 2010-2021 Puneeth Chaganti, John MacFarlane, and
+Copyright (C) 2010-2022 Puneeth Chaganti, John MacFarlane, and
                         Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
@@ -115,7 +115,7 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/Textile.hs
-Copyright (C) 2010-2021 Paul Rivier and John MacFarlane
+Copyright (C) 2010-2022 Paul Rivier and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
@@ -133,7 +133,7 @@ Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/EPUB.hs
-Copyright (C) 2014-2021 Matthew Pickering and John MacFarlane
+Copyright (C) 2014-2022 Matthew Pickering and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
@@ -141,7 +141,7 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Readers/Org.hs
 src/Text/Pandoc/Readers/Org/*
 test/Tests/Readers/Org/*
-Copyright (C) 2014-2021 Albert Krewinkel
+Copyright (C) 2014-2022 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
@@ -149,7 +149,7 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Lua.hs
 src/Text/Pandoc/Lua/*
 test/lua/*
-Copyright (C) 2017--2021 Albert Krewinkel and John MacFarlane
+Copyright (C) 2017--2022 Albert Krewinkel and John MacFarlane
 
 Released under the GNU General Public License version 2 or later.
 
@@ -157,19 +157,13 @@ Released under the GNU General Public License version 2 or later.
 src/Text/Pandoc/Readers/Jira.hs
 src/Text/Pandoc/Writers/Jira.hs
 test/Tests/Readers/Jira.hs
-Copyright (C) 2019--2021 Albert Krewinkel
+Copyright (C) 2019--2022 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 
 ----------------------------------------------------------------------
 src/Text/Pandoc/Readers/FB2.hs
 Copyright (C) 2018--2019 Alexander Krotov
-
-Released under the GNU General Public License version 2 or later.
-
-----------------------------------------------------------------------
-data/pandoc.lua
-Copyright (C) 2017-2021 Albert Krewinkel
 
 Released under the GNU General Public License version 2 or later.
 

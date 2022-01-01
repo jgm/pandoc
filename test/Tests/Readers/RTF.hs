@@ -1,6 +1,6 @@
 {- |
    Module      : Tests.Readers.RTF
-   Copyright   : © 2021 John MacFarlane
+   Copyright   : © 2021-2022 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : jgm@berkeley.edu

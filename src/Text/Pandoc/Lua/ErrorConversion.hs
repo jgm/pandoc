@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Text.Pandoc.Lua.ErrorConversion
-   Copyright   : © 2020-2021 Albert Krewinkel
+   Copyright   : © 2020-2022 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
