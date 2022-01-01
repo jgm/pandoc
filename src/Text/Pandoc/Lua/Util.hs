@@ -15,11 +15,16 @@ module Text.Pandoc.Lua.Util
   , callWithTraceback
   , pcallWithTraceback
   , dofileWithTraceback
+  , peekViaJSON
+  , pushViaJSON
   ) where
 
 import Control.Monad (when)
 import HsLua
+import HsLua.Aeson (peekValue, pushValue)
+import qualified Data.Aeson as Aeson
 import qualified HsLua as Lua
+import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Add a value to the table at the top of the stack at a string-index.
 addField :: (LuaError e, Pushable a) => String -> a -> LuaE e ()
@@ -60,3 +65,19 @@ dofileWithTraceback fp = do
   case loadRes of
     Lua.OK -> pcallWithTraceback 0 Lua.multret
     _ -> return loadRes
+
+
+-- These will become part of hslua-aeson in future versions.
+
+-- | Retrieves a value from the Lua stack via JSON.
+peekViaJSON :: (Aeson.FromJSON a, LuaError e) => Peeker e a
+peekViaJSON idx = do
+  value <- peekValue idx
+  case Aeson.fromJSON value of
+    Aeson.Success x -> pure x
+    Aeson.Error msg -> failPeek $ "failed to decode: " <>
+                       UTF8.fromString msg
+
+-- | Pushes a value to the Lua stack as a JSON-like value.
+pushViaJSON :: (Aeson.ToJSON a, LuaError e) => Pusher e a
+pushViaJSON = pushValue . Aeson.toJSON

@@ -1988,7 +1988,7 @@ Fields:
 
 `extensions`
 :   string representation of the syntax extensions bit field
-    (string)
+    (sequence of strings)
 
 `indented_code_classes`
 :   default classes for indented code blocks (list of strings)
@@ -2006,8 +2006,8 @@ Fields:
     (integer)
 
 `track_changes`
-:   track changes setting for docx; one of `AcceptChanges`,
-    `RejectChanges`, and `AllChanges` (string)
+:   track changes setting for docx; one of `accept-changes`,
+    `reject-changes`, and `all-changes` (string)
 
 ## CommonState {#type-commonstate}
 

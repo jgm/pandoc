@@ -22,6 +22,7 @@ module Text.Pandoc.Lua.Marshal.ReaderOptions
 import Data.Default (def)
 import HsLua as Lua
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
+import Text.Pandoc.Lua.Util (peekViaJSON, pushViaJSON)
 import Text.Pandoc.Options (ReaderOptions (..))
 
 --
@@ -87,23 +88,23 @@ readerOptionsMembers =
       (pushText, readerDefaultImageExtension)
       (peekText, \opts x -> opts{ readerDefaultImageExtension = x })
   , property "extensions" ""
-      (pushString . show, readerExtensions)
-      (peekRead, \opts x -> opts{ readerExtensions = x })
+      (pushViaJSON, readerExtensions)
+      (peekViaJSON, \opts x -> opts{ readerExtensions = x })
   , property "indented_code_classes" ""
       (pushPandocList pushText, readerIndentedCodeClasses)
       (peekList peekText, \opts x -> opts{ readerIndentedCodeClasses = x })
-  , property "strip_comments" ""
-      (pushBool, readerStripComments)
-      (peekBool, \opts x -> opts{ readerStripComments = x })
   , property "standalone" ""
       (pushBool, readerStandalone)
       (peekBool, \opts x -> opts{ readerStandalone = x })
+  , property "strip_comments" ""
+      (pushBool, readerStripComments)
+      (peekBool, \opts x -> opts{ readerStripComments = x })
   , property "tab_stop" ""
       (pushIntegral, readerTabStop)
       (peekIntegral, \opts x -> opts{ readerTabStop = x })
   , property "track_changes" ""
-      (pushString . show, readerTrackChanges)
-      (peekRead, \opts x -> opts{ readerTrackChanges = x })
+      (pushViaJSON, readerTrackChanges)
+      (choice [peekRead, peekViaJSON], \opts x -> opts{ readerTrackChanges = x })
   ]
 
 -- | Retrieves a 'ReaderOptions' object from a table on the stack, using
