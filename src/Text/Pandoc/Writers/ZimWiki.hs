@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
-   Copyright   : © 2008-2021 John MacFarlane,
+   Copyright   : © 2008-2022 John MacFarlane,
                    2017-2019 Alex Ivkin
    License     : GNU GPL, version 2 or above
 

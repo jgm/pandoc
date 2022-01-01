@@ -4,7 +4,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {- |
    Module      : Text.Pandoc.MediaBag
-   Copyright   : Copyright (C) 2014-2015, 2017-2021 John MacFarlane
+   Copyright   : Copyright (C) 2014-2015, 2017-2022 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

@@ -3,8 +3,8 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.HTML.Table
-   Copyright   : © 2006-2021 John MacFarlane,
-                   2020-2021 Albert Krewinkel
+   Copyright   : © 2006-2022 John MacFarlane,
+                   2020-2022 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert@zeitkraut.de>

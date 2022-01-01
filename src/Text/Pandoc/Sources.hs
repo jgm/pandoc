@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Sources
-   Copyright   : Copyright (C) 2021 John MacFarlane
+   Copyright   : Copyright (C) 2021-2022 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

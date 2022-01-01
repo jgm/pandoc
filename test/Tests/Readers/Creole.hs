@@ -2,7 +2,7 @@
 {- |
    Module      : Tests.Readers.Creole
    Copyright   : © 2017 Sascha Wilde
-                   2017-2021 John MacFarlane
+                   2017-2022 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Sascha Wilde <wilde@sha-bang.de>

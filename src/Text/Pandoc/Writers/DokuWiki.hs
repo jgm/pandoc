@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.DokuWiki
-   Copyright   : Copyright (C) 2008-2021 John MacFarlane
+   Copyright   : Copyright (C) 2008-2022 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Clare Macrae <clare.macrae@googlemail.com>

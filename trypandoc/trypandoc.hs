@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Main
-   Copyright   : © 2014-2021 John MacFarlane <jgm@berkeley.edu>
+   Copyright   : © 2014-2022 John MacFarlane <jgm@berkeley.edu>
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

@@ -1,6 +1,6 @@
 {- |
    Module      : Text.Pandoc.CSV
-   Copyright   : Copyright (C) 2017-2021 John MacFarlane <jgm@berkeley.edu>
+   Copyright   : Copyright (C) 2017-2022 John MacFarlane <jgm@berkeley.edu>
    License     : GNU GPL, version 2 or above
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
