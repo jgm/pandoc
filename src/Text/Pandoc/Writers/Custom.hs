@@ -16,20 +16,23 @@ Conversion of 'Pandoc' documents to custom markup using
 a Lua writer.
 -}
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
+import Control.Applicative (optional)
 import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)
 import Data.List (intersperse)
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text, pack)
 import HsLua as Lua hiding (Operation (Div), render)
 import HsLua.Class.Peekable (PeekError)
 import Text.DocLayout (render, literal)
+import Text.DocTemplates (Context)
 import Control.Monad.IO.Class (MonadIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
-import Text.Pandoc.Lua.Util (addField, dofileWithTraceback)
+import Text.Pandoc.Lua.Util (addField, dofileWithTraceback, peekViaJSON)
 import Text.Pandoc.Options
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Templates (renderTemplate)
@@ -98,12 +101,12 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
-    rendered <- docToCustom opts doc
-    context <- metaToContext opts
-               (fmap (literal . pack) . blockListToCustom)
-               (fmap (literal . pack) . inlineListToCustom)
-               meta
-    return (pack rendered, context)
+    (rendered, context) <- docToCustom opts doc
+    metaContext <- metaToContext opts
+                   (fmap (literal . pack) . blockListToCustom)
+                   (fmap (literal . pack) . inlineListToCustom)
+                   meta
+    return (pack rendered, context <> metaContext)
   case res of
     Left msg -> throw msg
     Right (body, context) -> return $
@@ -113,10 +116,19 @@ writeCustom luaFile opts doc@(Pandoc meta _) = do
                     renderTemplate tpl $ setField "body" body context
 
 docToCustom :: forall e. PeekError e
-            => WriterOptions -> Pandoc -> LuaE e String
+            => WriterOptions -> Pandoc -> LuaE e (String, Context Text)
 docToCustom opts (Pandoc (Meta metamap) blocks) = do
   body <- blockListToCustom blocks
-  invoke @e "Doc" body (fmap (Stringify @e) metamap) (writerVariables opts)
+  -- invoke doesn't work with multiple return values, so we have to call
+  -- `Doc` manually.
+  Lua.getglobal "Doc"                 -- function
+  push body                           -- argument 1
+  push (fmap (Stringify @e) metamap)  -- argument 2
+  push (writerVariables opts)         -- argument 3
+  call 3 2
+  rendered  <- peek (nth 2)           -- first return value
+  context <- forcePeek . optional $ peekViaJSON top  -- snd return value
+  return (rendered, fromMaybe mempty context)
 
 -- | Convert Pandoc block element to Custom.
 blockToCustom :: forall e. PeekError e
