@@ -1,0 +1,50 @@
+[ BulletList
+    [ [ Plain
+          [ Str "A"
+          , Space
+          , Str "list"
+          , Space
+          , Str "item"
+          , Space
+          , Str "(list-header)"
+          ]
+      ]
+    , [ Plain [ Str "A" , Space , Str "second" ] ]
+    , [ Para [ Str "A" , Space , Str "third" ]
+      , BulletList
+          [ [ Para
+                [ Str "New"
+                , Space
+                , Str "level!"
+                , Space
+                , Str "(list-header)"
+                ]
+            , BulletList
+                [ [ Plain
+                      [ Str "And"
+                      , Space
+                      , Str "another!"
+                      , Space
+                      , Str "(list-header)"
+                      ]
+                  ]
+                , [ Plain
+                      [ Str "It's"
+                      , Space
+                      , Str "great"
+                      , Space
+                      , Str "up"
+                      , Space
+                      , Str "here!"
+                      ]
+                  ]
+                ]
+            ]
+          , [ Plain [ Str "Oh" , Space , Str "noes" ] ]
+          , [ Plain [ Str "We" , Space , Str "fell!" ] ]
+          ]
+      ]
+    , [ Plain [ Str "Maybe" , Space , Str "someone" ] ]
+    , [ Plain [ Str "Pushed" , Space , Str "us?" ] ]
+    ]
+]
