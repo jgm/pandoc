@@ -151,15 +151,15 @@ filters on lists of blocks or lists of inlines.
     lists of inline elements, like the content of a [Para]
     (paragraph) block, or the description of an [Image]. The
     `inlines` argument passed to the function will be a [List] of
-    [Inlines] for each call.
+    [Inline] elements for each call.
 
 [`Blocks (blocks)`]{#blocks-filter}
 :   If present in a filter, this function will be called on all
     lists of block elements, like the content of a [MetaBlocks]
     meta element block, on each item of a list, and the main
     content of the [Pandoc] document. The `blocks` argument
-    passed to the function will be a [List] of [Blocks] for each
-    call.
+    passed to the function will be a [List] of [Block] elements
+    for each call.
 
 These filter functions are special in that the result must either
 be nil, in which case the list is left unchanged, or must be a
@@ -190,7 +190,7 @@ local filter = {
 return {filter}
 ```
 
-Support for this was added in pandoc 2.16.3; previous versions
+Support for this was added in pandoc 2.17; previous versions
 ignore the `traverse` setting.
 
 ### Typewise traversal
@@ -525,7 +525,7 @@ local vars = {}
 
 function get_vars (meta)
   for k, v in pairs(meta) do
-    if type(v) == 'table' and v.t == 'MetaInlines' then
+    if pandoc.utils.type(v) == 'Inlines' then
       vars["%" .. k .. "%"] = {table.unpack(v)}
     end
   end
@@ -582,8 +582,8 @@ headers), removes footnotes, and replaces links with regular
 text.
 
 ``` lua
--- we use preloaded text to get a UTF-8 aware 'upper' function
-local text = require('text')
+-- we use pandoc.text to get a UTF-8 aware 'upper' function
+local text = pandoc.text
 
 function Header(el)
     if el.level == 1 then
@@ -844,7 +844,7 @@ Values of this type can be created with the
 equal in Lua if and only if they are equal in Haskell.
 
 `blocks`
-:   document content ([List] of [Blocks])
+:   document content ([Blocks][])
 
 `meta`
 :   document meta information ([Meta] object)
@@ -916,6 +916,9 @@ can be made into an empty `MetaList` by calling
 using the generic functions like `pandoc.List`, `pandoc.Inlines`,
 or `pandoc.Blocks`.
 
+Use the function [`pandoc.utils.type`](#pandoc.utils.type) to
+get the type of a metadata value.
+
 ## Block {#type-block}
 
 Block values are equal in Lua if and only if they are equal in
@@ -967,7 +970,7 @@ Values of this type can be created with the
 Fields:
 
 `content`:
-:   block content ([List] of [Blocks])
+:   block content ([Blocks][])
 
 `tag`, `t`
 :   the literal `BlockQuote` (string)
@@ -982,7 +985,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   list items ([List] of [List] of [Blocks])
+:   list items ([List] of items, i.e., [List] of [Blocks][])
 
 `tag`, `t`
 :   the literal `BulletList` (string)
@@ -1039,7 +1042,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   block content ([List] of [Blocks])
+:   block content ([Blocks][])
 
 `attr`
 :   element attributes ([Attr])
@@ -1070,7 +1073,7 @@ Fields:
 :   header level (integer)
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `attr`
 :   element attributes ([Attr])
@@ -1111,7 +1114,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content
+:   inline content ([List] of lines, i.e. [List] of [Inlines][])
 
 `tag`, `t`
 :   the literal `LineBlock` (string)
@@ -1137,7 +1140,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   list items ([List] of [List] of [Blocks])
+:   list items ([List] of items, i.e., [List] of [Blocks][])
 
 `listAttributes`
 :   list parameters ([ListAttributes])
@@ -1164,7 +1167,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Para` (string)
@@ -1179,7 +1182,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Plain` (string)
@@ -1259,8 +1262,8 @@ of this type in user scripts, as pandoc can convert other types
 into Blocks wherever a value of this type is expected:
 
 -   a list of [Block] (or Block-like) values is used directly;
--   a single [Inlines] value is wrapped into a [Plain] element;
--   string values are turned into an [Inlines] value by splitting
+-   a single [Inlines][] value is wrapped into a [Plain] element;
+-   string values are turned into an [Inlines][] value by splitting
     the string into words (see [Inlines](#type-inlines)), and
     then wrapping the result into a Plain singleton.
 
@@ -1284,14 +1287,14 @@ see the section on [traversal order][Traversal order].
 Parameters:
 
 `self`
-:   the list ([Blocks](#type-blocks))
+:   the list ([Blocks][])
 
 `lua_filter`
 :   map of filter functions (table)
 
 Result:
 
--   filtered list ([Blocks](#type-blocks))
+-   filtered list ([Blocks][])
 
 Usage:
 
@@ -1350,7 +1353,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   ([List] of [Inlines])
+:   ([Inlines][])
 
 `citations`
 :   citation entries ([List] of [Citations])
@@ -1395,7 +1398,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Emph` (string)
@@ -1410,7 +1413,7 @@ Values of this type can be created with the
 Fields:
 
 `caption`
-:   text used to describe the image ([List] of [Inlines])
+:   text used to describe the image ([Inlines][])
 
 `src`
 :   path to the image file (string)
@@ -1458,7 +1461,7 @@ Fields:
 :   attributes ([Attr])
 
 `content`
-:   text for this link ([List] of [Inlines])
+:   text for this link ([Inlines][])
 
 `target`
 :   the link target (string)
@@ -1508,7 +1511,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   ([List] of [Blocks])
+:   ([Blocks][])
 
 `tag`, `t`
 :   the literal `Note` (string)
@@ -1527,7 +1530,7 @@ Fields:
     `DoubleQuote` (string)
 
 `content`
-:   quoted text ([List] of [Inlines])
+:   quoted text ([Inlines][])
 
 `tag`, `t`
 :   the literal `Quoted` (string)
@@ -1560,7 +1563,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   ([List] of [Inlines])
+:   ([Inlines][])
 
 `tag`, `t`
 :   the literal `SmallCaps` (string)
@@ -1602,7 +1605,7 @@ Fields:
 :   attributes ([Attr])
 
 `content`
-:   wrapped content ([List] of [Inlines])
+:   wrapped content ([Inlines][])
 
 `identifier`
 :   alias for `attr.identifier` (string)
@@ -1641,7 +1644,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Strikeout` (string)
@@ -1656,7 +1659,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Strong` (string)
@@ -1671,7 +1674,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Subscript` (string)
@@ -1686,7 +1689,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Superscript` (string)
@@ -1701,7 +1704,7 @@ Values of this type can be created with the
 Fields:
 
 `content`
-:   inline content ([List] of [Inlines])
+:   inline content ([Inlines][])
 
 `tag`, `t`
 :   the literal `Underline` (string)
@@ -1805,10 +1808,10 @@ The caption of a table, with an optional short caption.
 Fields:
 
 `long`
-:   long caption (list of [Blocks])
+:   long caption ([Blocks][])
 
 `short`
-:   short caption (list of [Inlines])
+:   short caption ([Inlines][])
 
 ### Cell {#type-cell}
 
@@ -1823,7 +1826,7 @@ Fields:
 :   individual cell alignment ([Alignment]).
 
 `contents`
-:   cell contents (list of [Blocks]).
+:   cell contents ([Blocks][]).
 
 `col_span`
 :   number of columns spanned by the cell; the width of the cell
@@ -1862,10 +1865,10 @@ Fields:
     `NormalCitation` (string)
 
 `prefix`
-:   citation prefix ([List] of [Inlines])
+:   citation prefix ([Inlines][])
 
 `suffix`
-:   citation suffix ([List] of [Inlines])
+:   citation suffix ([Inlines][])
 
 `note_num`
 :   note number (integer)
@@ -2092,7 +2095,7 @@ constructor.
 Fields:
 
 `caption`:
-:   [List] of [Inlines]
+:   [Inlines][]
 
 `aligns`:
 :   column alignments ([List] of [Alignments](#type-alignment))
@@ -2101,11 +2104,12 @@ Fields:
 :   column widths; a  ([List] of numbers)
 
 `headers`:
-:   table header row ([List] of lists of [Blocks])
+:   table header row ([List] of simple cells, i.e., [List] of
+    [Blocks][])
 
 `rows`:
-:   table rows ([List] of rows, where a row is a list of lists of
-    [Blocks])
+:   table rows ([List] of rows, where a row is a list of simple
+    cells, i.e., [List] of [Blocks][])
 
 ## Version {#type-version}
 
@@ -2159,7 +2163,7 @@ Usage:
 [Attr]: #type-attr
 [Attributes]: #type-attributes
 [Block]: #type-block
-[Blocks]: #type-block
+[Blocks]: #type-blocks
 [Caption]: #type-caption
 [Cell]: #type-cell
 [Cells]: #type-cell
@@ -2169,7 +2173,7 @@ Usage:
 [CommonState]: #type-commonstate
 [Image]: #type-image
 [Inline]: #type-inline
-[Inlines]: #type-inline
+[Inlines]: #type-inlines
 [List]: #type-list
 [ListAttributes]: #type-listattributes
 [Meta]: #type-meta
@@ -2283,7 +2287,7 @@ format, and functions to filter and modify a subtree.
     `blocks`:
     :   blocks
 
-    Returns: [Blocks](#type-blocks)
+    Returns: [Blocks][]
 
 [`MetaInlines (inlines)`]{#pandoc.metainlines}
 
@@ -2296,7 +2300,7 @@ format, and functions to filter and modify a subtree.
     `inlines`:
     :   inlines
 
-    Returns: [Inlines](#types-inlines)
+    Returns: [Inlines][]
 
 [`MetaList (meta_values)`]{#pandoc.metalist}
 
@@ -2534,7 +2538,7 @@ format, and functions to filter and modify a subtree.
 
 [`Blocks (block_like_elements)`]{#pandoc.blocks}
 
-:   Creates a [Blocks](#type-blocks) list.
+:   Creates a [Blocks][] list.
 
     Parameters:
 
@@ -2542,7 +2546,7 @@ format, and functions to filter and modify a subtree.
     :   List where each element can be treated as a [Block]
         value, or a single such value.
 
-    Returns: [Blocks] list
+    Returns: [Blocks][]
 
 ## Inline
 
@@ -2837,7 +2841,7 @@ format, and functions to filter and modify a subtree.
 
 [`Inlines (inline_like_elements)`]{#pandoc.inlines}
 
-:   Converts its argument into an [Inlines](#type-inlines) list:
+:   Converts its argument into an [Inlines][] list:
 
     -   copies a list of [Inline] elements into a fresh list; any
         string `s` within the list is treated as `pandoc.Str(s)`;
@@ -2851,7 +2855,7 @@ format, and functions to filter and modify a subtree.
     :   List where each element can be treated as an [Inline]
         values, or just a single such value.
 
-    Returns: [Inlines] list
+    Returns: [Inlines][] list
 
 
 ## Element components
@@ -2880,7 +2884,7 @@ format, and functions to filter and modify a subtree.
     Parameters:
 
     `blocks`:
-    :   cell contents (list of [Blocks])
+    :   cell contents ([Blocks][])
 
     `align`:
     :   text alignment; defaults to `AlignDefault` (Alignment)
@@ -2989,7 +2993,7 @@ format, and functions to filter and modify a subtree.
     Parameters:
 
     `caption`:
-    :   [List] of [Inlines]
+    :   [Inlines][]
 
     `aligns`:
     :   column alignments ([List] of [Alignments](#type-alignment))
@@ -2998,11 +3002,11 @@ format, and functions to filter and modify a subtree.
     :   column widths; a  ([List] of numbers)
 
     `headers`:
-    :   table header row ([List] of lists of [Blocks])
+    :   table header row ([List] of [Blocks][])
 
     `rows`:
-    :   table rows ([List] of rows, where a row is a list of lists
-        of [Blocks])
+    :   table rows ([List] of rows, where a row is a list
+        of [Blocks][])
 
     Returns: [SimpleTable] object
 
@@ -3298,16 +3302,16 @@ Squash a list of blocks into a list of inlines.
 Parameters:
 
 `blocks`:
-:   List of [Blocks](#type-block) to be flattened.
+:   List of [Block](#type-block) elements to be flattened.
 
 `sep`:
-:   List of [Inlines](#type-inline) inserted as separator between
-    two consecutive blocks; defaults to
-    `{ pandoc.Space(), pandoc.Str'¶', pandoc.Space()}`.
+:   List of [Inline](#type-inline) elements inserted as
+    separator between two consecutive blocks; defaults to `{
+    pandoc.Space(), pandoc.Str'¶', pandoc.Space()}`.
 
 Returns:
 
--   [List](#type-list) of [Inlines](#type-inline)
+-   [Inlines][]
 
 Usage:
 
@@ -3366,7 +3370,7 @@ Usage:
 
 `make_sections (number_sections, base_level, blocks)`
 
-Converts list of [Blocks](#type-block) into sections.
+Converts list of [Block](#type-block) elements into sections.
 `Div`s will be created beginning at each `Header`
 and containing following content until the next `Header`
 of comparable level.  If `number_sections` is true,
@@ -3386,11 +3390,11 @@ Parameters:
 :   shift top-level headings to this level. (integer|nil)
 
 `blocks`
-:   list of blocks to process ([Blocks](#type-blocks))
+:   list of blocks to process ([Blocks][])
 
 Returns:
 
--   [Blocks](#type-blocks).
+-   [Blocks][].
 
 Usage:
 
