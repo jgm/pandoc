@@ -50,3 +50,19 @@ the functions in `sample.lua` according to your needs.
 
 ``` {.lua include="sample.lua"}
 ```
+
+# Template variables
+
+New template variables can be added, or existing ones
+modified, by returning a second value from function `Doc`.
+
+For example, the following will add the current date in
+variable `date`, unless `date` is already defined as either a
+metadata value or a variable:
+
+``` lua
+function Doc (body, meta, vars)
+  vars.date = vars.date or meta.data or os.date '%B %e, %Y'
+  return body, vars
+end
+```
