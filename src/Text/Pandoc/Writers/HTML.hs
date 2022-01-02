@@ -300,6 +300,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                             _ -> mempty
         KaTeX url -> do
           H.script !
+            A.defer mempty !
             A.src (toValue $ url <> "katex.min.js") $ mempty
           nl
           let katexFlushLeft =
