@@ -89,6 +89,7 @@ writeCustom :: (PandocMonad m, MonadIO m)
 writeCustom luaFile opts doc@(Pandoc meta _) = do
   let globals = [ PANDOC_DOCUMENT doc
                 , PANDOC_SCRIPT_FILE luaFile
+                , PANDOC_WRITER_OPTIONS opts
                 ]
   res <- runLua $ do
     setGlobals globals

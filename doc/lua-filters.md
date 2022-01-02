@@ -267,6 +267,10 @@ variables.
     While the object can be modified, the changes will **not**
     be picked up by pandoc.
 
+    This variable is also set in custom writers.
+
+    *Since: pandoc 2.17*
+
 `PANDOC_VERSION`
 :   Contains the pandoc version as a [Version] object which
     behaves like a numerically indexed table, most significant
