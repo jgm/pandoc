@@ -16,7 +16,7 @@ import Prelude hiding (lookup)
 import Data.Maybe (fromMaybe)
 import HsLua ( LuaE, DocumentedFunction, Module (..)
              , (<#>), (###), (=#>), (=?>), defun, functionResult
-             , optionalParameter , parameter)
+             , opt, parameter, stringParam, textParam)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad (fetchItem, getMediaBag, modifyCommonState,
                                       setMediaBag)
@@ -55,7 +55,7 @@ delete :: DocumentedFunction PandocError
 delete = defun "delete"
   ### (\fp -> unPandocLua $ modifyCommonState
               (\st -> st { stMediaBag = MB.deleteMedia fp (stMediaBag st) }))
-  <#> parameter Lua.peekString "string" "filepath" "filename of item to delete"
+  <#> stringParam "filepath" "filename of item to delete"
   =#> []
 
 
@@ -72,10 +72,10 @@ insert = defun "insert"
           mb <- getMediaBag
           setMediaBag $ MB.insertMedia fp mmime contents mb
           return (Lua.NumResults 0))
-  <#> parameter Lua.peekString "string" "filepath" "item file path"
-  <#> optionalParameter Lua.peekText "string" "mimetype" "the item's MIME type"
+  <#> stringParam "filepath" "item file path"
+  <#> opt (textParam "mimetype" "the item's MIME type")
   <#> parameter Lua.peekLazyByteString "string" "contents" "binary contents"
-  =?> "Nothing"
+  =#> []
 
 -- | Returns iterator values to be used with a Lua @for@ loop.
 items :: DocumentedFunction PandocError
@@ -98,7 +98,7 @@ lookup = defun "lookup"
           Just item -> 2 <$ do
             Lua.pushText $ MB.mediaMimeType item
             Lua.pushLazyByteString $ MB.mediaContents item)
-  <#> parameter Lua.peekString "string" "filepath" "path of item to lookup"
+  <#> stringParam "filepath" "path of item to lookup"
   =?> "MIME type and contents"
 
 -- | Function listing all mediabag items.
@@ -122,5 +122,5 @@ fetch = defun "fetch"
           Lua.pushText $ fromMaybe "" mimeType
           Lua.pushByteString bs
           return 2)
-  <#> parameter Lua.peekText "string" "src" "URI to fetch"
+  <#> textParam "src" "URI to fetch"
   =?> "Returns two string values: the fetched contents and the mimetype."

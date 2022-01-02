@@ -68,10 +68,10 @@ runPandocLua pLua = do
   return result
 
 instance {-# OVERLAPPING #-} Exposable PandocError (PandocLua NumResults) where
-  partialApply _narg = unPandocLua
+  partialApply _narg = liftLua . unPandocLua
 
 instance Pushable a => Exposable PandocError (PandocLua a) where
-  partialApply _narg x = 1 <$ (unPandocLua x >>= Lua.push)
+  partialApply _narg x = 1 <$ (liftLua (unPandocLua x >>= Lua.push))
 
 -- | Global variables which should always be set.
 defaultGlobals :: PandocMonad m => m [Global]

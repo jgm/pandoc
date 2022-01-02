@@ -26,7 +26,6 @@ import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (Proxy))
 import HsLua hiding (pushModule)
-import HsLua.Class.Peekable (PeekError)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
@@ -49,7 +48,6 @@ import qualified HsLua as Lua
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Text as T
-import qualified Text.Pandoc.Lua.Util as LuaUtil
 import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Push the "pandoc" package to the Lua stack. Requires the `List`
@@ -198,9 +196,9 @@ functions =
               Left e ->
                 throwM e)
     <#> parameter peekByteString "string" "content" "text to parse"
-    <#> optionalParameter peekText "string" "formatspec" "format and extensions"
-    <#> optionalParameter peekReaderOptions "ReaderOptions" "reader_options"
-          "reader options"
+    <#> opt (textParam "formatspec" "format and extensions")
+    <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
+             "reader options")
     =#> functionResult pushPandoc "Pandoc" "result document"
 
   , sha1
@@ -227,10 +225,9 @@ functions =
               (ByteStringWriter w, es) -> Left <$>
                 w writerOpts{ writerExtensions = es } doc)
     <#> parameter peekPandoc "Pandoc" "doc" "document to convert"
-    <#> optionalParameter peekText "string" "formatspec"
-          "format and extensions"
-    <#> optionalParameter peekWriterOptions "WriterOptions" "writer_options"
-          "writer options"
+    <#> opt (textParam "formatspec" "format and extensions")
+    <#> opt (parameter peekWriterOptions "WriterOptions" "writer_options"
+              "writer options")
     =#> functionResult (either pushLazyByteString pushText) "string"
           "result document"
   ]
@@ -247,23 +244,23 @@ data PipeError = PipeError
   , pipeErrorOutput :: BL.ByteString
   }
 
-peekPipeError :: PeekError e => StackIndex -> LuaE e PipeError
+peekPipeError :: LuaError e => StackIndex -> LuaE e PipeError
 peekPipeError idx =
   PipeError
   <$> (Lua.getfield idx "command"    *> Lua.peek (-1) <* Lua.pop 1)
   <*> (Lua.getfield idx "error_code" *> Lua.peek (-1) <* Lua.pop 1)
   <*> (Lua.getfield idx "output"     *> Lua.peek (-1) <* Lua.pop 1)
 
-pushPipeError :: PeekError e => Pusher e PipeError
+pushPipeError :: LuaError e => Pusher e PipeError
 pushPipeError pipeErr = do
-  Lua.newtable
-  LuaUtil.addField "command" (pipeErrorCommand pipeErr)
-  LuaUtil.addField "error_code" (pipeErrorCode pipeErr)
-  LuaUtil.addField "output" (pipeErrorOutput pipeErr)
+  pushAsTable [ ("command"    , pushText . pipeErrorCommand)
+              , ("error_code" , pushIntegral . pipeErrorCode)
+              , ("output"     , pushLazyByteString . pipeErrorOutput)
+              ] pipeErr
   pushPipeErrorMetaTable
-  Lua.setmetatable (-2)
+  Lua.setmetatable (nth 2)
     where
-      pushPipeErrorMetaTable :: PeekError e => LuaE e ()
+      pushPipeErrorMetaTable :: LuaError e => LuaE e ()
       pushPipeErrorMetaTable = do
         v <- Lua.newmetatable "pandoc pipe error"
         when v $ do
@@ -271,7 +268,7 @@ pushPipeError pipeErr = do
           pushHaskellFunction pipeErrorMessage
           rawset (nth 3)
 
-      pipeErrorMessage :: PeekError e => LuaE e NumResults
+      pipeErrorMessage :: LuaError e => LuaE e NumResults
       pipeErrorMessage = do
         (PipeError cmd errorCode output) <- peekPipeError (nthBottom 1)
         pushByteString . BSL.toStrict . BSL.concat $

@@ -42,7 +42,7 @@ functions =
              Nothing -> runWithDefaultPartials
                         (compileTemplate "templates/default" template))
      <#> parameter peekText "string" "template" "template string"
-     <#> optionalParameter peekString "string" "templ_path" "template path"
+     <#> opt (stringParam "templ_path" "template path")
      =#> functionResult (either failLua pushTemplate) "pandoc Template"
            "compiled template"
 
@@ -53,8 +53,8 @@ functions =
                  forcePeek $ peekText top `lastly` pop 1
            format <- maybe getFORMAT pure mformat
            getDefaultTemplate format)
-     <#> optionalParameter peekText "string" "writer"
-           "writer for which the template should be returned."
+     <#> opt (textParam "writer"
+              "writer for which the template should be returned.")
      =#> functionResult pushText "string"
            "string representation of the writer's default template"
 
