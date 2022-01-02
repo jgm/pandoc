@@ -1,0 +1,80 @@
+[ OrderedList
+    ( 1 , Decimal , Period )
+    [ [ Plain
+          [ Str "A"
+          , Space
+          , Str "list"
+          , Space
+          , Str "item"
+          , Space
+          , Str "(list-header)"
+          ]
+      ]
+    , [ Plain [ Str "A" , Space , Str "second" ] ]
+    , [ Para [ Str "A" , Space , Str "third" ]
+      , OrderedList
+          ( 1 , Decimal , Period )
+          [ [ Para
+                [ Str "New"
+                , Space
+                , Str "level!"
+                , Space
+                , Str "(list-header)"
+                ]
+            , OrderedList
+                ( 1 , Decimal , Period )
+                [ [ Plain
+                      [ Str "And"
+                      , Space
+                      , Str "another!"
+                      , Space
+                      , Str "(list-header)"
+                      ]
+                  ]
+                , [ Plain
+                      [ Str "It's"
+                      , Space
+                      , Str "great"
+                      , Space
+                      , Str "up"
+                      , Space
+                      , Str "here!"
+                      ]
+                  ]
+                ]
+            ]
+          , [ Plain [ Str "Oh" , Space , Str "noes" ] ]
+          , [ Plain [ Str "We" , Space , Str "fell!" ] ]
+          ]
+      ]
+    , [ Plain [ Str "Maybe" , Space , Str "someone" ] ]
+    , [ Plain [ Str "Pushed" , Space , Str "us?" ] ]
+    ]
+, Para []
+, OrderedList
+    ( 4 , Decimal , Period )
+    [ [ Plain
+          [ Str "Start"
+          , Space
+          , Str "new"
+          , Space
+          , Str "list,"
+          , Space
+          , Str "but"
+          , Space
+          , Str "a"
+          , Space
+          , Str "different"
+          , Space
+          , Str "starting"
+          , Space
+          , Str "point."
+          , Space
+          , Str "(list-header)"
+          ]
+      ]
+    , [ Plain
+          [ Str "Because" , Space , Str "we" , Space , Str "can." ]
+      ]
+    ]
+]

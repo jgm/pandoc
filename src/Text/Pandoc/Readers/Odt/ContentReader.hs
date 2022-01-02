@@ -661,16 +661,23 @@ read_list         = matchingElement NsText "list"
                     $ constructList
 --                  $ liftA bulletList
                     $ matchChildContent' [ read_list_item
+                                         , read_list_header
                                          ]
 --
 read_list_item   :: ElementMatcher [Blocks]
-read_list_item    = matchingElement NsText "list-item"
-                    $ liftA (compactify.(:[]))
-                      ( matchChildContent' [ read_paragraph
-                                           , read_header
-                                           , read_list
-                                           ]
-                      )
+read_list_item    = read_list_element "list-item"
+
+read_list_header :: ElementMatcher [Blocks]
+read_list_header  = read_list_element "list-header"
+
+read_list_element               :: ElementName -> ElementMatcher [Blocks]
+read_list_element listElement   = matchingElement NsText listElement
+                                  $ liftA (compactify.(:[]))
+                                    ( matchChildContent' [ read_paragraph
+                                                         , read_header
+                                                         , read_list
+                                                         ]
+                                    )
 
 
 ----------------------
