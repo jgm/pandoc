@@ -65,9 +65,6 @@ instance Pushable QuoteType where
 instance Pushable Cell where
   push = pushCell
 
-instance Peekable Cell where
-  peek = forcePeek . peekCell
-
 instance Pushable Inline where
   push = pushInline
 
@@ -92,25 +89,28 @@ instance Pushable TableHead where
 -- These instances exist only for testing. It's a hack to avoid making
 -- the marshalling modules public.
 instance Peekable Inline where
-  peek = forcePeek . peekInline
+  safepeek = peekInline
 
 instance Peekable Block where
-  peek = forcePeek . peekBlock
+  safepeek = peekBlock
+
+instance Peekable Cell where
+  safepeek = peekCell
 
 instance Peekable Meta where
-  peek = forcePeek . peekMeta
+  safepeek = peekMeta
 
 instance Peekable Pandoc where
-  peek = forcePeek . peekPandoc
+  safepeek = peekPandoc
 
 instance Peekable Row where
-  peek = forcePeek . peekRow
+  safepeek = peekRow
 
 instance Peekable Version where
-  peek = forcePeek . peekVersionFuzzy
+  safepeek = peekVersionFuzzy
 
 instance {-# OVERLAPPING #-} Peekable Attr where
-  peek = forcePeek . peekAttr
+  safepeek = peekAttr
 
 instance Pushable Sources where
   push = pushSources

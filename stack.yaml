@@ -12,22 +12,23 @@ extra-deps:
 - doctemplates-0.10.0.1
 - emojis-0.1.2
 - doclayout-0.3.1.1
-- lpeg-1.0.1
-- hslua-2.0.1
-- hslua-aeson-2.0.1
-- hslua-classes-2.0.0
-- hslua-core-2.0.0.2
-- hslua-marshalling-2.0.1
-- hslua-module-path-1.0.0
-- hslua-module-system-1.0.0
-- hslua-module-text-1.0.0
-- hslua-module-version-1.0.0
-- hslua-objectorientation-2.0.1
-- hslua-packaging-2.0.0
-- lua-2.0.2
-- tasty-hslua-1.0.0
-- tasty-lua-1.0.0
-- pandoc-lua-marshal-0.1.3.1
+- lpeg-1.0.2
+- hslua-2.1.0
+- hslua-aeson-2.1.0
+- hslua-classes-2.1.0
+- hslua-core-2.1.0
+- hslua-marshalling-2.1.0
+- hslua-module-path-1.0.1
+- hslua-module-system-1.0.1
+- hslua-module-text-1.0.1
+- hslua-module-version-1.0.1
+- hslua-objectorientation-2.1.0
+- hslua-packaging-2.1.0
+- lua-2.1.0
+- lua-arbitrary-1.0.0
+- tasty-hslua-1.0.1
+- tasty-lua-1.0.1
+- pandoc-lua-marshal-0.1.4
 - pandoc-types-1.22.1
 - aeson-pretty-0.8.9
 - unicode-transforms-0.4.0
@@ -43,5 +44,3 @@ ghc-options:
 resolver: lts-18.10
 nix:
   packages: [zlib]
-
-

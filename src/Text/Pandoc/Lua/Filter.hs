@@ -23,13 +23,12 @@ import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter
 
-import qualified Text.Pandoc.Lua.Util as LuaUtil
 
 -- | Transform document using the filter defined in the given file.
 runFilterFile :: FilePath -> Pandoc -> LuaE PandocError Pandoc
 runFilterFile filterPath doc = do
   oldtop <- gettop
-  stat <- LuaUtil.dofileWithTraceback filterPath
+  stat <- dofileTrace filterPath
   if stat /= Lua.OK
     then throwErrorAsException
     else do

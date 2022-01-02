@@ -21,8 +21,8 @@ module Text.Pandoc.Lua.Marshal.ReaderOptions
 
 import Data.Default (def)
 import HsLua as Lua
+import HsLua.Aeson (peekViaJSON, pushViaJSON)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
-import Text.Pandoc.Lua.Util (peekViaJSON, pushViaJSON)
 import Text.Pandoc.Options (ReaderOptions (..))
 
 --

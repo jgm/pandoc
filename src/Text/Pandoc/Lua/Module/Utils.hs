@@ -56,8 +56,7 @@ documentedModule = Module
               return $ B.toList (Shared.blocksToInlinesWithSep sep blks))
       <#> parameter (peekList peekBlock) "list of blocks"
             "blocks" ""
-      <#> optionalParameter (peekList peekInline) "list of inlines"
-            "inline" ""
+      <#> opt (parameter (peekList peekInline) "list of inlines" "inline" "")
       =#> functionResult pushInlines "list of inlines" ""
 
     , defun "equals"
@@ -121,8 +120,8 @@ documentedModule = Module
           )
       <#> parameter peekPandoc "Pandoc" "doc" "input document"
       <#> parameter peekString "filepath" "filter_path" "path to filter"
-      <#> optionalParameter (peekList peekString) "list of strings"
-            "args" "arguments to pass to the filter"
+      <#> opt (parameter (peekList peekString) "list of strings"
+               "args" "arguments to pass to the filter")
       =#> functionResult pushPandoc "Pandoc" "filtered document"
 
     , defun "stringify"

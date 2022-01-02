@@ -28,7 +28,6 @@ import Text.Pandoc.Lua.Marshal.Inline (pushInlines)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 
 import qualified Data.Map as Map
-import qualified HsLua
 
 -- | Pushes a ReaderOptions value as userdata object.
 pushReference :: LuaError e => Pusher e (Reference Inlines)
@@ -94,14 +93,3 @@ pushDate = pushAsTable
  where
    -- date parts are lists of Int values
    pushDateParts (DateParts dp) = pushPandocList pushIntegral dp
-
--- | Helper funtion to push an object as a table.
-pushAsTable :: LuaError e
-            => [(HsLua.Name, a -> LuaE e ())]
-            -> a -> LuaE e ()
-pushAsTable props obj = do
-  createtable 0 (length props)
-  forM_ props $ \(name, pushValue) -> do
-    HsLua.pushName name
-    pushValue obj
-    rawset (nth 3)

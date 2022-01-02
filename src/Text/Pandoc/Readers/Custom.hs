@@ -14,7 +14,7 @@ Supports custom parsers written in Lua which produce a Pandoc AST.
 module Text.Pandoc.Readers.Custom ( readCustom ) where
 import Control.Exception
 import Control.Monad (when)
-import HsLua as Lua hiding (Operation (Div), render)
+import HsLua as Lua hiding (Operation (Div))
 import Control.Monad.IO.Class (MonadIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Class (PandocMonad, report)
@@ -22,8 +22,6 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Lua.PandocLua
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc)
-import Text.Pandoc.Lua.Util (dofileWithTraceback, callWithTraceback,
-                             pcallWithTraceback)
 import Text.Pandoc.Options
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import qualified Data.Text as T
@@ -35,7 +33,7 @@ readCustom luaFile opts srcs = do
   let globals = [ PANDOC_SCRIPT_FILE luaFile ]
   res <- runLua $ do
     setGlobals globals
-    stat <- dofileWithTraceback luaFile
+    stat <- dofileTrace luaFile
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
@@ -50,7 +48,7 @@ readCustom luaFile opts srcs = do
     getglobal "Reader"
     push input
     push opts
-    pcallWithTraceback 2 1 >>= \case
+    pcallTrace 2 1 >>= \case
       OK -> forcePeek $ peekPandoc top
       ErrRun -> do
         -- Caught a runtime error. Check if parsing might work if we
@@ -74,7 +72,7 @@ readCustom luaFile opts srcs = do
                 getglobal "Reader"
                 push $ sourcesToText input  -- push sources as string
                 push opts
-                callWithTraceback 2 1
+                callTrace 2 1
                 forcePeek $ peekPandoc top
               else
                 -- nothing we can do here

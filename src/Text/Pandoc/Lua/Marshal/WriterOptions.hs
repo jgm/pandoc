@@ -20,9 +20,9 @@ module Text.Pandoc.Lua.Marshal.WriterOptions
 import Control.Applicative (optional)
 import Data.Default (def)
 import HsLua as Lua
+import HsLua.Aeson (peekViaJSON, pushViaJSON)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
-import Text.Pandoc.Lua.Util (peekViaJSON, pushViaJSON)
 import Text.Pandoc.Options (WriterOptions (..))
 
 --
