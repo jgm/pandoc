@@ -842,11 +842,8 @@ options =
                            case arg of
                              Nothing  -> extensionsFromList extList
                              Just fmt -> getAllExtensions $ T.pack fmt
-                     let defExts =
-                           case arg of
-                             Nothing   -> getDefaultExtensions
-                                           "markdown"
-                             Just fmt  -> getDefaultExtensions $ T.pack fmt
+                     let formatName = maybe "markdown" T.pack arg
+                     let defExts = getDefaultExtensions formatName
                      let showExt x =
                            (if extensionEnabled x defExts
                                then '+'
