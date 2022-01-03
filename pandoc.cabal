@@ -706,6 +706,7 @@ library
                    Text.Pandoc.Lua.Marshal.ReaderOptions,
                    Text.Pandoc.Lua.Marshal.Reference,
                    Text.Pandoc.Lua.Marshal.Sources,
+                   Text.Pandoc.Lua.Marshal.Template,
                    Text.Pandoc.Lua.Marshal.WriterOptions,
                    Text.Pandoc.Lua.Module.MediaBag,
                    Text.Pandoc.Lua.Module.Pandoc,

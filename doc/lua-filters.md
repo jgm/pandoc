@@ -2120,6 +2120,9 @@ Fields:
 `table_of_contents`
 :   Include table of contents (boolean)
 
+`template`
+:   Template to use (pandoc Template|nil)
+
 `toc_depth`
 :   Number of levels to include in TOC (integer)
 
