@@ -9,7 +9,7 @@
 
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
-\setupinteractionscreen[option=bookmark]
+\setupinteractionscreen[option={bookmark,title}]
 
 \setuppagenumbering[location={footer,middle}]
 \setupbackend[export=yes]
