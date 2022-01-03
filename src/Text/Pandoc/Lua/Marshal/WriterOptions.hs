@@ -18,13 +18,12 @@ module Text.Pandoc.Lua.Marshal.WriterOptions
   ) where
 
 import Control.Applicative (optional)
-import Data.Aeson as Aeson
 import Data.Default (def)
 import HsLua as Lua
-import HsLua.Aeson (peekValue, pushValue)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
+import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
+import Text.Pandoc.Lua.Util (peekViaJSON, pushViaJSON)
 import Text.Pandoc.Options (WriterOptions (..))
-import Text.Pandoc.UTF8 (fromString)
 
 --
 -- Writer Options
@@ -188,9 +187,10 @@ typeWriterOptions = deftype "WriterOptions"
     (pushBool, writerTableOfContents)
     (peekBool, \opts x -> opts{ writerTableOfContents = x })
 
-  -- , property "template" "Template to use"
-  --   (maybe pushnil pushViaJSON, writerTemplate)
-  --   (optional . peekViaJSON, \opts x -> opts{ writerTemplate = x })
+  , property "template"
+    "Template to use"
+    (maybe pushnil pushTemplate, writerTemplate)
+    (optional . peekTemplate, \opts x -> opts{ writerTemplate = x })
     -- :: Maybe (Template Text)
 
   , property "toc_depth"
@@ -239,18 +239,3 @@ peekWriterOptionsTable idx = retrieving "WriterOptions (table)" $ do
 
 instance Pushable WriterOptions where
   push = pushWriterOptions
-
--- These will become part of hslua-aeson in future versions.
-
--- | Retrieves a value from the Lua stack via JSON.
-peekViaJSON :: (Aeson.FromJSON a, LuaError e) => Peeker e a
-peekViaJSON idx = do
-  value <- peekValue idx
-  case fromJSON value of
-    Aeson.Success x -> pure x
-    Aeson.Error msg -> failPeek $ "failed to decode: " <>
-                       fromString msg
-
--- | Pushes a value to the Lua stack as a JSON-like value.
-pushViaJSON :: (Aeson.ToJSON a, LuaError e) => Pusher e a
-pushViaJSON = pushValue . toJSON
