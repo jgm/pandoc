@@ -336,17 +336,11 @@ Pandoc
       , [ Para [ Str "asterisk" , Space , Str "2" ] ]
       , [ Para [ Str "asterisk" , Space , Str "3" ] ]
       ]
-  , Para [ Str "Pluses" , Space , Str "loose:" ]
+  , Para [ Str "Asterisks" , Space , Str "tight:" ]
   , BulletList
-      [ [ Para [ Str "Plus" , Space , Str "1" ] ]
-      , [ Para [ Str "Plus" , Space , Str "2" ] ]
-      , [ Para [ Str "Plus" , Space , Str "3" ] ]
-      ]
-  , Para [ Str "Minuses" , Space , Str "loose:" ]
-  , BulletList
-      [ [ Para [ Str "Minus" , Space , Str "1" ] ]
-      , [ Para [ Str "Minus" , Space , Str "2" ] ]
-      , [ Para [ Str "Minus" , Space , Str "3" ] ]
+      [ [ Plain [ Str "Plus" , Space , Str "1" ] ]
+      , [ Plain [ Str "Plus" , Space , Str "2" ] ]
+      , [ Plain [ Str "Plus" , Space , Str "3" ] ]
       ]
   , Header 2 ( "ordered" , [] , [] ) [ Str "Ordered" ]
   , OrderedList
@@ -355,13 +349,12 @@ Pandoc
       , [ Para [ Str "Second" ] ]
       , [ Para [ Str "Third" ] ]
       ]
-  , Para
-      [ Str "and" , Space , Str "using" , Space , Str "spaces:" ]
+  , Para [ Str "and" , Space , Str "tight:" ]
   , OrderedList
       ( 1 , Decimal , DefaultDelim )
-      [ [ Para [ Str "One" ] ]
-      , [ Para [ Str "Two" ] ]
-      , [ Para [ Str "Three" ] ]
+      [ [ Plain [ Str "One" ] ]
+      , [ Plain [ Str "Two" ] ]
+      , [ Plain [ Str "Three" ] ]
       ]
   , Para [ Str "Multiple" , Space , Str "paragraphs:" ]
   , OrderedList

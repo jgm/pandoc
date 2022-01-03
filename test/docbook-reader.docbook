@@ -194,9 +194,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </itemizedlist>
     <para>
-      Pluses loose:
+      Asterisks tight:
     </para>
-    <itemizedlist>
+    <itemizedlist spacing="compact">
       <listitem>
         <para>
           Plus 1
@@ -210,26 +210,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       <listitem>
         <para>
           Plus 3
-        </para>
-      </listitem>
-    </itemizedlist>
-    <para>
-      Minuses loose:
-    </para>
-    <itemizedlist>
-      <listitem>
-        <para>
-          Minus 1
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Minus 2
-        </para>
-      </listitem>
-      <listitem>
-        <para>
-          Minus 3
         </para>
       </listitem>
     </itemizedlist>
@@ -254,9 +234,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
       </listitem>
     </orderedlist>
     <para>
-      and using spaces:
+      and tight:
     </para>
-    <orderedlist numeration="arabic">
+    <orderedlist spacing="compact" numeration="arabic">
       <listitem>
         <para>
           One

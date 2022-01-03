@@ -843,7 +843,7 @@ parseBlock (Elem e) =
         "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
         "abstract" -> blockQuote <$> getBlocks e
         "calloutlist" -> bulletList <$> callouts
-        "itemizedlist" -> bulletList <$> listitems
+        "itemizedlist" -> bulletList . handleCompact <$> listitems
         "orderedlist" -> do
           let listStyle = case attrValue "numeration" e of
                                "arabic"     -> Decimal
@@ -855,7 +855,7 @@ parseBlock (Elem e) =
           let start = fromMaybe 1 $
                       filterElement (named "listitem") e
                        >>= safeRead . attrValue "override"
-          orderedListWith (start,listStyle,DefaultDelim)
+          orderedListWith (start,listStyle,DefaultDelim) . handleCompact
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems
         "procedure" -> bulletList <$> steps
@@ -902,6 +902,14 @@ parseBlock (Elem e) =
                          else qn
            lift $ report $ IgnoredElement name
            return mempty
+
+         compactSpacing = case attrValue "spacing" e of
+                            "compact" -> True
+                            _         -> False
+
+         handleCompact = if compactSpacing
+                            then map (fmap paraToPlain)
+                            else id
 
          codeBlockWithLang = do
            let classes' = case attrValue "language" e of
@@ -1320,3 +1328,8 @@ showVerbatimCData c = showContent c
 -- | Set the prefix of a name to 'Nothing'
 removePrefix :: QName -> QName
 removePrefix elname = elname { qPrefix = Nothing }
+
+paraToPlain :: Block -> Block
+paraToPlain (Para ils) = Plain ils
+paraToPlain x = x
+
