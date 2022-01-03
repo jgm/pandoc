@@ -116,8 +116,6 @@ convertWithOpts opts = do
     setInputFiles (fromMaybe ["-"] (optInputFiles opts))
     setOutputFile (optOutputFile opts)
 
-    inputs <- readSources sources
-
     -- assign reader and writer based on options and filenames
     readerName <- case optFrom opts of
                        Just f  -> return f
@@ -282,6 +280,9 @@ convertWithOpts opts = do
                          (optCitationAbbreviations opts) $ mempty
 
     let filterEnv = Environment readerOpts writerOptions
+
+    inputs <- readSources sources
+
     doc <- (case reader of
              TextReader r
                | readerNameBase == "json" ->
