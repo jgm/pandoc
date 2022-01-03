@@ -843,16 +843,22 @@ options =
                              Nothing  -> extensionsFromList extList
                              Just fmt -> getAllExtensions $ T.pack fmt
                      let formatName = maybe "markdown" T.pack arg
-                     let defExts = getDefaultExtensions formatName
-                     let showExt x =
-                           (if extensionEnabled x defExts
-                               then '+'
-                               else if extensionEnabled x allExts
-                                       then '-'
-                                       else ' ') : drop 4 (show x)
-                     mapM_ (UTF8.hPutStrLn stdout . T.pack . showExt)
-                       [ex | ex <- extList, extensionEnabled ex allExts]
-                     exitSuccess )
+                     if formatName `notElem`
+                         (map fst (readers :: [(Text, Reader PandocPure)]) ++
+                          map fst (writers :: [(Text, Writer PandocPure)]))
+                        then E.throwIO $ PandocOptionError $ formatName <>
+                               " is not a recognized reader or writer format"
+                        else do
+                          let defExts = getDefaultExtensions formatName
+                          let showExt x =
+                               (if extensionEnabled x defExts
+                                   then '+'
+                                   else if extensionEnabled x allExts
+                                           then '-'
+                                           else ' ') : drop 4 (show x)
+                          mapM_ (UTF8.hPutStrLn stdout . T.pack . showExt)
+                             [ex | ex <- extList, extensionEnabled ex allExts]
+                          exitSuccess )
                   "FORMAT")
                  ""
 
