@@ -29,6 +29,7 @@ import HsLua hiding (pushModule)
 import HsLua.Class.Peekable (PeekError)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Definition
+import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
@@ -50,7 +51,6 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Text as T
 import qualified Text.Pandoc.Lua.Util as LuaUtil
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Error
 
 -- | Push the "pandoc" package to the Lua stack. Requires the `List`
 -- module to be loadable.

@@ -26,6 +26,7 @@ import qualified HsLua.Module.Text as Text
 import qualified Text.Pandoc.Lua.Module.Pandoc as Pandoc
 import qualified Text.Pandoc.Lua.Module.MediaBag as MediaBag
 import qualified Text.Pandoc.Lua.Module.System as System
+import qualified Text.Pandoc.Lua.Module.Template as Template
 import qualified Text.Pandoc.Lua.Module.Types as Types
 import qualified Text.Pandoc.Lua.Module.Utils as Utils
 
@@ -50,6 +51,7 @@ pandocPackageSearcher pkgName =
     "pandoc.mediabag" -> pushModuleLoader MediaBag.documentedModule
     "pandoc.path"     -> pushModuleLoader Path.documentedModule
     "pandoc.system"   -> pushModuleLoader System.documentedModule
+    "pandoc.template" -> pushModuleLoader Template.documentedModule
     "pandoc.types"    -> pushModuleLoader Types.documentedModule
     "pandoc.utils"    -> pushModuleLoader Utils.documentedModule
     "text"            -> pushModuleLoader Text.documentedModule
