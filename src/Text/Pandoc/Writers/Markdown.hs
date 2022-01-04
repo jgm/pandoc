@@ -282,9 +282,13 @@ noteToMarkdown opts num blocks = do
                   then literal "[^" <> num' <> literal "]:"
                   else literal "[" <> num' <> literal "]"
   let markerSize = 4 + offset num'
-  let spacer = case writerTabStop opts - markerSize of
-                     n | n > 0  -> literal $ T.replicate n " "
-                     _ -> literal " "
+  let hspacer = case writerTabStop opts - markerSize of
+                      n | n > 0  -> literal $ T.replicate n " "
+                      _ -> literal " "
+  let spacer = case blocks of
+                    Para{}:_ -> hspacer
+                    Plain{}:_ -> hspacer
+                    _ -> cr
   return $ if isEnabled Ext_footnotes opts
               then hang (writerTabStop opts) (marker <> spacer) contents
               else marker <> spacer <> contents
