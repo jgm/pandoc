@@ -2121,7 +2121,7 @@ Fields:
 :   Include table of contents (boolean)
 
 `template`
-:   Template to use (pandoc Template|nil)
+:   Template to use ([Template](#type-template)|nil)
 
 `toc_depth`
 :   Number of levels to include in TOC (integer)
@@ -2230,6 +2230,10 @@ Fields:
 `rows`:
 :   table rows ([List] of rows, where a row is a list of simple
     cells, i.e., [List] of [Blocks][])
+
+## Template {#type-template}
+
+Opaque type holding a compiled template.
 
 ## Version {#type-version}
 
@@ -4392,6 +4396,55 @@ Parameters:
 Returns:
 
 -   The result(s) of the call to `callback`
+
+# Module pandoc.template
+
+Handle pandoc templates.
+
+### compile {#pandoc.template.compile}
+
+`compile (template[, templates_path])`
+
+Compiles a template string into a [Template](#type-template)
+object usable by pandoc.
+
+If the `templates_path` parameter is specified, should be the
+file path associated with the template. It is used when checking
+for partials. Partials will be taken only from the default data
+files if this parameter is omitted.
+
+An error is raised if compilation fails.
+
+Parameters:
+
+`template`:
+:   template string (string)
+
+`templates_path`:
+:   parameter to determine a default path and extension for
+    partials; uses the data files templates path by default.
+    (string)
+
+Returns:
+
+-   compiled template (Template)
+
+### default {#pandoc.template.default}
+
+`default ([writer])`
+
+Returns the default template for a given writer as a string. An
+error if no such template can be found.
+
+Parameters:
+
+`writer`:
+:   name of the writer for which the template should be
+    retrieved; defaults to the global `FORMAT`.
+
+Returns:
+
+-   raw template (string)
 
 # Module pandoc.types
 

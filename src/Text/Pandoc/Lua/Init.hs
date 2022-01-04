@@ -48,6 +48,7 @@ loadedModules =
   , ("pandoc.mediabag", "mediabag")
   , ("pandoc.path", "path")
   , ("pandoc.system", "system")
+  , ("pandoc.template", "template")
   , ("pandoc.types", "types")
   , ("pandoc.utils", "utils")
   , ("text", "text")
