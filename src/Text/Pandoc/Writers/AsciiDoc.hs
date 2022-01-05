@@ -454,7 +454,7 @@ inlineListToAsciiDoc opts lst = do
                                    _           -> False
        isSpacy Start (Str xs)
          | Just (c, _) <- T.uncons xs = isPunctuation c || isSpace c
-       isSpacy _ _ = False
+       isSpacy _ _ = True
 
 setIntraword :: PandocMonad m => Bool -> ADW m ()
 setIntraword b = modify $ \st -> st{ intraword = b }
