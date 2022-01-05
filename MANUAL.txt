@@ -3182,7 +3182,7 @@ at a performance penalty compared to extreme tables.
 
 Pandoc understands an extended and slightly revised version of
 John Gruber's [Markdown] syntax.  This document explains the syntax,
-noting differences from standard Markdown. Except where noted, these
+noting differences from original Markdown. Except where noted, these
 differences can be suppressed by using the `markdown_strict` format instead
 of `markdown`. Extensions can be enabled or disabled to specify the
 behavior more granularly. They are described in the following. See also
@@ -3257,7 +3257,7 @@ As with setext-style headings, the heading text can contain formatting:
 
 #### Extension: `blank_before_header` ####
 
-Standard Markdown syntax does not require a blank line before a heading.
+Original Markdown syntax does not require a blank line before a heading.
 Pandoc does require this (except, of course, at the beginning of the
 document). The reason for the requirement is that it is all too easy for a
 `#` to end up at the beginning of a line by accident (perhaps through line
@@ -3398,7 +3398,7 @@ block in a block quote, you need five spaces after the `>`:
 
 #### Extension: `blank_before_blockquote` ####
 
-Standard Markdown syntax does not require a blank line before a
+Original Markdown syntax does not require a blank line before a
 block quote.  Pandoc does require this (except, of course, at
 the beginning of the document). The reason for the requirement
 is that it is all too easy for a `>` to end up at the beginning
@@ -3645,7 +3645,7 @@ other blocks in a list item, the first line of each must be indented.
 Ordered lists work just like bulleted lists, except that the items
 begin with enumerators rather than bullets.
 
-In standard Markdown, enumerators are decimal numbers followed
+In original Markdown, enumerators are decimal numbers followed
 by a period and a space.  The numbers themselves are ignored, so
 there is no difference between this list:
 
@@ -3661,7 +3661,7 @@ and this one:
 
 #### Extension: `fancy_lists` ####
 
-Unlike standard Markdown, pandoc allows ordered list items to be marked
+Unlike original Markdown, pandoc allows ordered list items to be marked
 with uppercase and lowercase letters and roman numerals, in addition to
 Arabic numerals. List markers may be enclosed in parentheses or followed by a
 single right-parentheses or period. They must be separated from the
@@ -4317,12 +4317,12 @@ instead of
 
     <strong>hello</strong>
 
-This rule is easier to remember than standard Markdown's rule,
+This rule is easier to remember than original Markdown's rule,
 which allows only the following characters to be backslash-escaped:
 
     \`*_{}[]()>#+-.!
 
-(However, if the `markdown_strict` format is used, the standard Markdown rule
+(However, if the `markdown_strict` format is used, the original Markdown rule
 will be used.)
 
 A backslash-escaped space is parsed as a nonbreaking space. In TeX output,
@@ -4559,7 +4559,7 @@ they cannot use pipe syntax.
 
 #### Extension: `markdown_in_html_blocks` ####
 
-Standard Markdown allows you to include HTML "blocks":  blocks
+Original Markdown allows you to include HTML "blocks":  blocks
 of HTML between balanced tags that are separated from the surrounding text
 with blank lines, and start and end at the left margin.  Within
 these blocks, everything is interpreted as HTML, not Markdown;
@@ -4590,7 +4590,7 @@ whereas `Markdown.pl` will preserve it as is.
 There is one exception to this rule:  text between `<script>`,
 `<style>`, and `<textarea>` tags is not interpreted as Markdown.
 
-This departure from standard Markdown should make it easier to mix
+This departure from original Markdown should make it easier to mix
 Markdown with HTML block elements.  For example, one can surround
 a block of Markdown text with `<div>` tags without preventing it
 from being interpreted as Markdown.
