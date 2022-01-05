@@ -27,6 +27,13 @@ tests =
                  , plain "Item2"
                  ]
 
+  , "Simple Bullet List with Ignored Counter Cookie" =:
+      ("- [@4] Item1\n" <>
+       "- Item2\n") =?>
+      bulletList [ plain "Item1"
+                 , plain "Item2"
+                 ]
+
   , "Indented Bullet Lists" =:
       ("   - Item1\n" <>
        "   - Item2\n") =?>
@@ -131,9 +138,51 @@ tests =
                          ]
                ]
 
+  , "Task List with Counter Cookies" =:
+    T.unlines [ "- [ ] nope"
+              , "- [@9] [X] yup"
+              , "- [@a][-] started"
+              , "  1. [@3][X] sure"
+              , "  2. [@b] [ ] nuh-uh"
+              ] =?>
+    bulletList [ plain "☐ nope", plain "☒ yup"
+               , mconcat [ plain "☐ started"
+                         , orderedListWith
+                           (3, DefaultStyle, DefaultDelim)
+                           [plain "☒ sure", plain "☐ nuh-uh"]
+                         ]
+               ]
+
   , "Simple Ordered List" =:
       ("1. Item1\n" <>
        "2. Item2\n") =?>
+      let listStyle = (1, DefaultStyle, DefaultDelim)
+          listStructure = [ plain "Item1"
+                          , plain "Item2"
+                          ]
+      in orderedListWith listStyle listStructure
+
+  , "Simple Ordered List with Counter Cookie" =:
+      ("1. [@1234] Item1\n" <>
+       "2. Item2\n") =?>
+      let listStyle = (1234, DefaultStyle, DefaultDelim)
+          listStructure = [ plain "Item1"
+                          , plain "Item2"
+                          ]
+      in orderedListWith listStyle listStructure
+
+  , "Simple Ordered List with Alphabetical Counter Cookie" =:
+      ("1. [@c] Item1\n" <>
+       "2. Item2\n") =?>
+      let listStyle = (3, DefaultStyle, DefaultDelim)
+          listStructure = [ plain "Item1"
+                          , plain "Item2"
+                          ]
+      in orderedListWith listStyle listStructure
+
+  , "Simple Ordered List with Ignored Counter Cookie" =:
+      ("1. Item1\n" <>
+       "2. [@4] Item2\n") =?>
       let listStyle = (1, DefaultStyle, DefaultDelim)
           listStructure = [ plain "Item1"
                           , plain "Item2"
@@ -163,6 +212,13 @@ tests =
                 , "3. "
                 ] =?>
       orderedList [ plain "", plain "" ]
+
+  , "Empty ordered list item with counter cookie" =:
+      T.unlines [ "1. [@5]"
+                , "3. [@e] "
+                ] =?>
+      let listStyle = (5, DefaultStyle, DefaultDelim)
+      in orderedListWith listStyle [ plain "", plain "" ]
 
   , "Nested Ordered Lists" =:
       ("1. One\n" <>
