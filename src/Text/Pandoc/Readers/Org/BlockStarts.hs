@@ -25,8 +25,10 @@ module Text.Pandoc.Readers.Org.BlockStarts
 
 import Control.Monad (void)
 import Data.Text (Text)
-import qualified Data.Text as T
 import Text.Pandoc.Readers.Org.Parsing
+import Text.Pandoc.Definition as Pandoc
+import Text.Pandoc.Shared (safeRead)
+import Data.Char (toLower)
 
 -- | Horizontal Line (five -- dashes or more)
 hline :: Monad m => OrgParser m ()
@@ -60,30 +62,38 @@ latexEnvStart = try $
    latexEnvName :: Monad m => OrgParser m Text
    latexEnvName = try $ mappend <$> many1Char alphaNum <*> option "" (textStr "*")
 
+listCounterCookie :: Monad m => OrgParser m Int
+listCounterCookie = try $
+  string "[@"
+  *> ((many1Char digit >>= safeRead) <|> numFromAlph <$> oneOf asciiAlph)
+  <* char ']'
+  <* (skipSpaces <|> lookAhead eol)
+  where
+    asciiAlph = ['a'..'z'] ++ ['A'..'Z']
+    -- The number makes sense because char is always in asciiAlph
+    numFromAlph c = fromEnum (toLower c) - fromEnum 'a' + 1
+
 bulletListStart :: Monad m => OrgParser m Int
 bulletListStart = try $ do
   ind <- length <$> many spaceChar
    -- Unindented lists cannot use '*' bullets.
   oneOf (if ind == 0 then "+-" else "*+-")
   skipSpaces1 <|> lookAhead eol
-  return (ind + 1)
-
-genericListStart :: Monad m
-                 => OrgParser m Text
-                 -> OrgParser m Int
-genericListStart listMarker = try $ do
-  ind <- length <$> many spaceChar
-  void listMarker
-  skipSpaces1 <|> lookAhead eol
+  optionMaybe listCounterCookie
   return (ind + 1)
 
 eol :: Monad m => OrgParser m ()
 eol = void (char '\n')
 
-orderedListStart :: Monad m => OrgParser m Int
-orderedListStart = genericListStart orderedListMarker
+orderedListStart :: Monad m => OrgParser m (Int, ListAttributes)
+orderedListStart = try $ do
+  ind <- length <$> many spaceChar
+  orderedListMarker
+  skipSpaces1 <|> lookAhead eol
+  start <- option 1 listCounterCookie
+  return (ind + 1, (start, DefaultStyle, DefaultDelim))
   -- Ordered list markers allowed in org-mode
-  where orderedListMarker = T.snoc <$> many1Char digit <*> oneOf ".)"
+  where orderedListMarker = many1Char digit *> oneOf ".)"
 
 drawerStart :: Monad m => OrgParser m Text
 drawerStart = try $ skipSpaces *> drawerName <* skipSpaces <* newline

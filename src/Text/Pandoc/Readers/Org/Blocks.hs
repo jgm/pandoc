@@ -802,7 +802,7 @@ paraOrPlain = try $ do
   -- is directly followed by a list item, in which case the block is read as
   -- plain text.
   try (guard nl
-       *> notFollowedBy (inList *> (orderedListStart <|> bulletListStart))
+       *> notFollowedBy (inList *> (void orderedListStart <|> void bulletListStart))
        $> (B.para <$> ils))
     <|>  return (B.plain <$> ils)
 
@@ -834,9 +834,9 @@ indented indentedMarker minIndent = try $ do
 
 orderedList :: PandocMonad m => OrgParser m (F Blocks)
 orderedList = try $ do
-  indent <- lookAhead orderedListStart
-  fmap (B.orderedList . compactify) . sequence
-    <$> many1 (listItem (orderedListStart `indented` indent))
+  (indent, attr) <- lookAhead orderedListStart
+  fmap (B.orderedListWith attr . compactify) . sequence
+    <$> many1 (listItem ((fst <$> orderedListStart) `indented` indent))
 
 definitionListItem :: PandocMonad m
                    => OrgParser m Int
