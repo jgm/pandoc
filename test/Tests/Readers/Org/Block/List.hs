@@ -12,11 +12,20 @@ Test parsing of org lists.
 -}
 module Tests.Readers.Org.Block.List (tests) where
 
+import Data.Text (Text)
 import Test.Tasty (TestTree)
-import Tests.Helpers ((=?>))
+import Tests.Helpers ((=?>), purely, test)
 import Tests.Readers.Org.Shared ((=:), spcSep)
+import Text.Pandoc (ReaderOptions (readerExtensions),
+                    Extension (Ext_fancy_lists), def, enableExtension,
+                    getDefaultExtensions, readOrg)
 import Text.Pandoc.Builder
 import qualified Data.Text as T
+
+orgFancyLists :: Text -> Pandoc
+orgFancyLists = purely $
+  let extensionsFancy = enableExtension Ext_fancy_lists (getDefaultExtensions "org")
+  in readOrg def{ readerExtensions = extensionsFancy }
 
 tests :: [TestTree]
 tests =
@@ -153,10 +162,52 @@ tests =
                          ]
                ]
 
+  , test orgFancyLists "Task with alphabetical markers and counter cookie" $
+    T.unlines [ "- [ ] nope"
+              , "- [@9] [X] yup"
+              , "- [@a][-] started"
+              , "  a) [@D][X] sure"
+              , "  b) [@8] [ ] nuh-uh"
+              ] =?>
+    bulletList [ plain "☐ nope", plain "☒ yup"
+               , mconcat [ plain "☐ started"
+                         , orderedListWith
+                           (4, LowerAlpha, OneParen)
+                           [plain "☒ sure", plain "☐ nuh-uh"]
+                         ]
+               ]
+
   , "Simple Ordered List" =:
       ("1. Item1\n" <>
        "2. Item2\n") =?>
       let listStyle = (1, DefaultStyle, DefaultDelim)
+          listStructure = [ plain "Item1"
+                          , plain "Item2"
+                          ]
+      in orderedListWith listStyle listStructure
+
+  , test orgFancyLists "Simple Ordered List with fancy lists extension" $
+      ("1. Item1\n" <>
+       "2. Item2\n") =?>
+      let listStyle = (1, Decimal, Period)
+          listStructure = [ plain "Item1"
+                          , plain "Item2"
+                          ]
+      in orderedListWith listStyle listStructure
+
+  , test orgFancyLists "Simple Ordered List with lower alpha marker" $
+      ("a) Item1\n" <>
+       "b) Item2\n") =?>
+      let listStyle = (1, LowerAlpha, OneParen)
+          listStructure = [ plain "Item1"
+                          , plain "Item2"
+                          ]
+      in orderedListWith listStyle listStructure
+
+  , test orgFancyLists "Simple Ordered List with upper and lower alpha markers" $
+      ("A. Item1\n" <>
+       "b) Item2\n") =?>
+      let listStyle = (1, UpperAlpha, Period)
           listStructure = [ plain "Item1"
                           , plain "Item2"
                           ]
@@ -212,6 +263,12 @@ tests =
                 , "3. "
                 ] =?>
       orderedList [ plain "", plain "" ]
+
+  , test orgFancyLists "Empty ordered list item with fancy lists extension" $
+      T.unlines [ "a."
+                , "2. "
+                ] =?>
+      orderedListWith (1, LowerAlpha, Period) [ plain "", plain "" ]
 
   , "Empty ordered list item with counter cookie" =:
       T.unlines [ "1. [@5]"

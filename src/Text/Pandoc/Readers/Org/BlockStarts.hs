@@ -28,7 +28,8 @@ import Data.Text (Text)
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Shared (safeRead)
-import Data.Char (toLower)
+import Text.Pandoc.Parsing (lowerAlpha, upperAlpha)
+import Data.Functor (($>))
 
 -- | Horizontal Line (five -- dashes or more)
 hline :: Monad m => OrgParser m ()
@@ -65,13 +66,12 @@ latexEnvStart = try $
 listCounterCookie :: Monad m => OrgParser m Int
 listCounterCookie = try $
   string "[@"
-  *> ((many1Char digit >>= safeRead) <|> numFromAlph <$> oneOf asciiAlph)
+  *> parseNum
   <* char ']'
   <* (skipSpaces <|> lookAhead eol)
-  where
-    asciiAlph = ['a'..'z'] ++ ['A'..'Z']
-    -- The number makes sense because char is always in asciiAlph
-    numFromAlph c = fromEnum (toLower c) - fromEnum 'a' + 1
+  where parseNum = (safeRead =<< many1Char digit)
+                   <|> snd <$> lowerAlpha
+                   <|> snd <$> upperAlpha
 
 bulletListStart :: Monad m => OrgParser m Int
 bulletListStart = try $ do
@@ -88,12 +88,20 @@ eol = void (char '\n')
 orderedListStart :: Monad m => OrgParser m (Int, ListAttributes)
 orderedListStart = try $ do
   ind <- length <$> many spaceChar
-  orderedListMarker
+  style <- choice styles
+  delim <- choice delims
   skipSpaces1 <|> lookAhead eol
   start <- option 1 listCounterCookie
-  return (ind + 1, (start, DefaultStyle, DefaultDelim))
+  return (ind + 1, (start, style, delim))
   -- Ordered list markers allowed in org-mode
-  where orderedListMarker = many1Char digit *> oneOf ".)"
+  where
+    styles = [ many1Char digit $> Decimal
+             , fst <$> lowerAlpha
+             , fst <$> upperAlpha
+             ]
+    delims = [ char '.' $> Period
+             , char ')' $> OneParen
+             ]
 
 drawerStart :: Monad m => OrgParser m Text
 drawerStart = try $ skipSpaces *> drawerName <* skipSpaces <* newline

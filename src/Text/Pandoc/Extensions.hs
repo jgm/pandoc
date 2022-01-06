@@ -536,6 +536,7 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_citations
     , Ext_smart
+    , Ext_fancy_lists
     , Ext_task_lists
     ]
   getAll "html"            = autoIdExtensions <>
