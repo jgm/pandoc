@@ -816,7 +816,9 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
                   ["level" <> tshow level | slide || writerSectionDivs opts ]
-                  <> dclasses
+                  <> [d | d <- dclasses,
+                               slideVariant /= RevealJsSlides ||
+                               d /= "r-fit-text"] -- see #5965
   let attr = (ident, classes', dkvs)
   if titleSlide
      then do
