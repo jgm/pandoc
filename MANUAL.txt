@@ -3162,6 +3162,15 @@ output format.
 Some aspects of [Pandoc's Markdown citation syntax](#citations)
 are also accepted in `org` input.
 
+#### Extension: `fancy_lists` {#org-fancy-lists}
+
+Some aspects of [Pandoc's Markdown fancy lists](#extension-fancy_lists) are also
+accepted in `org` input, mimicking the option `org-list-allow-alphabetical` in
+Emacs. As in Org Mode, enabling this extension allows lowercase and uppercase
+alphabetical markers for ordered lists to be parsed in addition to arabic ones.
+Note that for Org, this does not include roman numerals or the `#` placeholder
+that are enabled by the extension in Pandoc's Markdown.
+
 #### Extension: `element_citations` ####
 
 In the `jats` output formats, this causes reference items to
