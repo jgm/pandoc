@@ -744,7 +744,7 @@ blockToHtmlInner :: PandocMonad m => WriterOptions -> Block -> StateT WriterStat
 blockToHtmlInner _ Null = return mempty
 blockToHtmlInner opts (Plain lst) = inlineListToHtml opts lst
 blockToHtmlInner opts (Para [Image attr@(_,classes,_) txt (src,tit)])
-  | "stretch" `elem` classes = do
+  | "r-stretch" `elem` classes = do
   slideVariant <- gets stSlideVariant
   case slideVariant of
        RevealJsSlides ->
@@ -1590,8 +1590,9 @@ blockListToNote opts ref blocks = do
                     else let lastBlock   = last blocks
                              otherBlocks = init blocks
                          in  case lastBlock of
-                                  Para [Image _ _ (_,tit)]
+                                  Para [Image (_,cls,_) _ (_,tit)]
                                       | "fig:" `T.isPrefixOf` tit
+                                        || "r-stretch" `elem` cls
                                             -> otherBlocks ++ [lastBlock,
                                                   Plain backlink]
                                   Para lst  -> otherBlocks ++
