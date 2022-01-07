@@ -185,7 +185,7 @@ polyglossiaLangToBCP47 = M.fromList
   , ("norsk", \_ -> simpleLang "no")
   , ("nko", \_ -> simpleLang "nqo")
   , ("occitan", \_ -> simpleLang "oc")
-  , ("panjabi", \_ -> simpleLang "pa")
+  , ("punjabi", \_ -> simpleLang "pa")
   , ("polish", \_ -> simpleLang "pl")
   , ("piedmontese", \_ -> simpleLang "pms")
   , ("portuguese", \_ -> simpleLang "pt")
