@@ -246,6 +246,7 @@ extra-source-files:
                  test/command/bar.tex
                  test/command/bar-endinput.tex
                  test/command/yaml-metadata.yaml
+                 test/command/7813-meta.yaml
                  test/command/3510-subdoc.org
                  test/command/3510-export.latex
                  test/command/3510-src.hs

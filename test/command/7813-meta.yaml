@@ -1,0 +1,6 @@
+---
+abstract: |
+    a footnote[^1] in abstract.
+
+    [^1]: content
+...

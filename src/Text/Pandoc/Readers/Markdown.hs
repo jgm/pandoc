@@ -81,8 +81,12 @@ yamlToMeta opts mbfp bstr = do
         oldPos <- getPosition
         setPosition $ initialPos (fromMaybe "" mbfp)
         meta <- yamlBsToMeta (fmap B.toMetaValue <$> parseBlocks) bstr
+        checkNotes
         setPosition oldPos
-        return $ runF meta defaultParserState
+        st <- getState
+        let result = runF meta st
+        reportLogMessages
+        return result
   parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
   case parsed of
     Right result -> return result
@@ -103,7 +107,11 @@ yamlToRefs idpred opts mbfp bstr = do
           Nothing -> return ()
           Just fp -> setPosition $ initialPos fp
         refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr
-        return $ runF refs defaultParserState
+        checkNotes
+        st <- getState
+        let result = runF refs st
+        reportLogMessages
+        return result
   parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
   case parsed of
     Right result -> return result
@@ -308,7 +316,17 @@ parseMarkdown = do
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
-  -- check for notes with no corresponding note references
+  checkNotes
+  let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
+                     meta <- stateMeta' st
+                     return $ Pandoc meta bs) st
+  reportLogMessages
+  return doc
+
+-- check for notes with no corresponding note references
+checkNotes :: PandocMonad m => MarkdownParser m ()
+checkNotes = do
+  st <- getState
   let notesUsed = stateNoteRefs st
   let notesDefined = M.keys (stateNotes' st)
   mapM_ (\n -> unless (n `Set.member` notesUsed) $
@@ -317,11 +335,7 @@ parseMarkdown = do
                    Nothing -> throwError $
                      PandocShouldNeverHappenError "note not found")
          notesDefined
-  let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
-                     meta <- stateMeta' st
-                     return $ Pandoc meta bs) st
-  reportLogMessages
-  return doc
+
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
 referenceKey = try $ do
