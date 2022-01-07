@@ -207,10 +207,9 @@ blockToOrg (OrderedList (start, _, delim) items) = do
                     x         -> x
   let markers = take (length items) $ orderedListMarkers
                                       (start, Decimal, delim')
-  let maxMarkerLength = maybe 0 maximum . nonEmpty $ map T.length markers
-  let markers' = map (\m -> let s = maxMarkerLength - T.length m
-                            in  m <> T.replicate s " ") markers
-  contents <- zipWithM orderedListItemToOrg markers' items
+      counters = (case start of 1 -> Nothing; n -> Just n) : repeat Nothing
+  contents <- zipWithM (\x f -> f x) items $
+              zipWith orderedListItemToOrg markers counters
   -- ensure that sublists have preceding blank line
   return $ blankline $$
            (if isTightList items then vcat else vsep) contents $$
@@ -232,12 +231,17 @@ bulletListItemToOrg items = do
 -- | Convert ordered list item (a list of blocks) to Org.
 orderedListItemToOrg :: PandocMonad m
                      => Text   -- ^ marker for list item
+                     -> Maybe Int -- ^ maybe number for a counter cookie
                      -> [Block]  -- ^ list item (list of blocks)
                      -> Org m (Doc Text)
-orderedListItemToOrg marker items = do
+orderedListItemToOrg marker counter items = do
   exts <- gets $ writerExtensions . stOptions
   contents <- blockListToOrg (taskListItemToOrg exts items)
-  return $ hang (T.length marker + 1) (literal marker <> space) contents $$
+  let cookie = maybe empty
+               (\n -> space <> literal "[@" <> literal (tshow n) <> literal "]")
+               counter
+  return $ hang (T.length marker + 1)
+                (literal marker <> cookie <> space) contents $$
           if endsWithPlain items
              then cr
              else blankline

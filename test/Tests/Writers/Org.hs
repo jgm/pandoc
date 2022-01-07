@@ -50,6 +50,14 @@ tests =
           [ "1. [ ] a"
           , "2. [X] b"
           ]
+    , "ordered task list with starting number"
+      =: orderedListWith
+         (9, DefaultStyle, DefaultDelim)
+         [plain ("☐" <> space <> "a"), plain "☒ b"]
+      =?> T.unlines
+          [ "9. [@9] [ ] a"
+          , "10. [X] b"
+          ]
     , test (orgWithOpts def) "bullet without task_lists" $
       bulletList [plain "☐ a", plain "☒ b"]
       =?> T.unlines

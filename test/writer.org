@@ -278,13 +278,13 @@ Same thing but with paragraphs:
    :CUSTOM_ID: fancy-list-markers
    :END:
 
-2) begins with 2
+2) [@2] begins with 2
 
 3) and now 3
 
    with a continuation
 
-   4. sublist with roman numerals, starting with 4
+   4. [@4] sublist with roman numerals, starting with 4
    5. more items
 
       1) a subsublist
@@ -296,9 +296,9 @@ Nesting:
 
    1. Upper Roman.
 
-      6) Decimal start with 6
+      6) [@6] Decimal start with 6
 
-         3) Lower alpha with paren
+         3) [@3] Lower alpha with paren
 
 Autonumbering:
 
