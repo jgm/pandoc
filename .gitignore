@@ -1,4 +1,12 @@
-*
+/*.*
+/build-artifacts*
+/dist-newstyle
+/dist
+/.stack-work
+/ctags
+/LOG
+/TAGS
+/bench-*
 !.circleci/**
 !.editorconfig
 !.gitattributes
@@ -41,3 +49,9 @@
 !trypandoc/**
 !windows/**
 *.bkp
+*.orig
+*.o
+*.hi
+*.dyn_o
+*.dyn_hi
+*~
