@@ -4,11 +4,46 @@ module Text.Pandoc.Readers.LaTeX.SIunitx
   ( siunitxCommands )
 where
 import Text.Pandoc.Builder
+    ( space,
+      subscript,
+      superscript,
+      emph,
+      str,
+      fromList,
+      text,
+      Many(Many, unMany),
+      Inline(Superscript, Str),
+      Inlines )
 import Text.Pandoc.Readers.LaTeX.Parsing
+    ( anyControlSeq,
+      braced,
+      bracketed,
+      controlSeq,
+      grouped,
+      isWordTok,
+      keyvals,
+      satisfyTok,
+      skipopts,
+      spaces1,
+      symbol,
+      untokenize,
+      LP )
 import Text.Pandoc.Readers.LaTeX.Types
-import Text.Pandoc.Class
-import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
-                            optional, space, spaces, withRaw, (<|>))
+    ( Tok(Tok), TokType(Word, CtrlSeq) )
+import Text.Pandoc.Class.PandocMonad ( PandocMonad )
+import Text.Pandoc.Parsing
+    ( many1,
+      eof,
+      string,
+      satisfy,
+      skipMany,
+      option,
+      many,
+      char,
+      try,
+      skipMany1,
+      runParser,
+      Parser )
 import Control.Applicative ((<|>))
 import Control.Monad (void)
 import qualified Data.Map as M
