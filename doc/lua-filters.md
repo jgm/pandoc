@@ -971,7 +971,7 @@ Values of this type can be created with the
 
 Fields:
 
-`content`:
+`content`
 :   block content ([Blocks][])
 
 `tag`, `t`
@@ -2214,20 +2214,20 @@ constructor.
 
 Fields:
 
-`caption`:
+`caption`
 :   [Inlines][]
 
-`aligns`:
+`aligns`
 :   column alignments ([List] of [Alignments](#type-alignment))
 
-`widths`:
+`widths`
 :   column widths; a  ([List] of numbers)
 
-`headers`:
+`headers`
 :   table header row ([List] of simple cells, i.e., [List] of
     [Blocks][])
 
-`rows`:
+`rows`
 :   table rows ([List] of rows, where a row is a list of simple
     cells, i.e., [List] of [Blocks][])
 
@@ -2377,10 +2377,10 @@ A complete pandoc document
 
 Parameters:
 
-`blocks`:
+`blocks`
 :   document content
 
-`meta`:
+`meta`
 :   document meta data
 
 Returns: [Pandoc] object
@@ -2393,7 +2393,7 @@ Create a new Meta object.
 
 Parameters:
 
-`table`:
+`table`
 :   table containing document meta information
 
 Returns: [Meta] object
@@ -2408,7 +2408,7 @@ discarding all non-list keys.
 
 Parameters:
 
-`blocks`:
+`blocks`
 :   blocks
 
 Returns: [Blocks][]
@@ -2421,7 +2421,7 @@ discarding all non-list keys.
 
 Parameters:
 
-`inlines`:
+`inlines`
 :   inlines
 
 Returns: [Inlines][]
@@ -2434,7 +2434,7 @@ discarding all non-list keys.
 
 Parameters:
 
-`meta_values`:
+`meta_values`
 :   list of meta values
 
 Returns: [List]
@@ -2447,7 +2447,7 @@ keys and discards all other keys.
 
 Parameters:
 
-`key_value_map`:
+`key_value_map`
 :   a string-indexed map of meta values
 
 Returns: table
@@ -2460,7 +2460,7 @@ for completeness.
 
 Parameters:
 
-`str`:
+`str`
 :   string value
 
 Returns: string
@@ -2473,7 +2473,7 @@ completeness.
 
 Parameters:
 
-`bool`:
+`bool`
 :   boolean value
 
 Returns: boolean
@@ -2486,7 +2486,7 @@ Creates a block quote element
 
 Parameters:
 
-`content`:
+`content`
 :   block content
 
 Returns: [BlockQuote] object
@@ -2497,7 +2497,7 @@ Creates a bullet list.
 
 Parameters:
 
-`items`:
+`items`
 :   list items
 
 Returns: [BulletList] object
@@ -2508,10 +2508,10 @@ Creates a code block element
 
 Parameters:
 
-`text`:
+`text`
 :   code string
 
-`attr`:
+`attr`
 :   element attributes
 
 Returns: [CodeBlock] object
@@ -2523,7 +2523,7 @@ explanation.
 
 Parameters:
 
-`content`:
+`content`
 :   list of items
 
 Returns: [DefinitionList] object
@@ -2534,10 +2534,10 @@ Creates a div element
 
 Parameters:
 
-`content`:
+`content`
 :   block content
 
-`attr`:
+`attr`
 :   element attributes
 
 Returns: [Div] object
@@ -2548,13 +2548,13 @@ Creates a header element.
 
 Parameters:
 
-`level`:
+`level`
 :   header level
 
-`content`:
+`content`
 :   inline content
 
-`attr`:
+`attr`
 :   element attributes
 
 Returns: [Header] object
@@ -2571,7 +2571,7 @@ Creates a line block element.
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [LineBlock] object
@@ -2588,10 +2588,10 @@ Creates an ordered list.
 
 Parameters:
 
-`items`:
+`items`
 :   list items
 
-`listAttributes`:
+`listAttributes`
 :   list parameters
 
 Returns: [OrderedList](#type-orderedlist) object
@@ -2602,7 +2602,7 @@ Creates a para element.
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Para](#type-para) object
@@ -2613,7 +2613,7 @@ Creates a plain element.
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Plain](#type-plain) object
@@ -2624,10 +2624,10 @@ Creates a raw content block of the specified format.
 
 Parameters:
 
-`format`:
+`format`
 :   format of content
 
-`text`:
+`text`
 :   string content
 
 Returns: [RawBlock](#type-rawblock) object
@@ -2638,22 +2638,22 @@ Creates a table element.
 
 Parameters:
 
-`caption`:
+`caption`
 :   table [caption](#type-caption)
 
-`colspecs`:
+`colspecs`
 :   column alignments and widths (list of [ColSpec](#type-colspec)s)
 
-`head`:
+`head`
 :   [table head](#type-tablehead)
 
-`bodies`:
+`bodies`
 :   [table bodies](#type-tablebody)
 
-`foot`:
+`foot`
 :   [table foot](#type-tablefoot)
 
-`attr`:
+`attr`
 :   element attributes
 
 Returns: [Table](#type-table) object
@@ -2666,7 +2666,7 @@ Creates a [Blocks][] list.
 
 Parameters:
 
-`block_like_elements`:
+`block_like_elements`
 :   List where each element can be treated as a [Block]
     value, or a single such value.
 
@@ -2680,10 +2680,10 @@ Creates a Cite inline element
 
 Parameters:
 
-`content`:
+`content`
 :   List of inlines
 
-`citations`:
+`citations`
 :   List of citations
 
 Returns: [Cite](#type-cite) object
@@ -2694,10 +2694,10 @@ Creates a Code inline element
 
 Parameters:
 
-`text`:
+`text`
 :   code string
 
-`attr`:
+`attr`
 :   additional attributes
 
 Returns: [Code](#type-code) object
@@ -2708,7 +2708,7 @@ Creates an inline element representing emphasized text.
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Emph](#type-emph) object
@@ -2719,16 +2719,16 @@ Creates a Image inline element
 
 Parameters:
 
-`caption`:
+`caption`
 :   text used to describe the image
 
-`src`:
+`src`
 :   path to the image file
 
-`title`:
+`title`
 :   brief image description
 
-`attr`:
+`attr`
 :   additional attributes
 
 Returns: [Image](#type-image) object
@@ -2745,16 +2745,16 @@ Creates a link inline element, usually a hyperlink.
 
 Parameters:
 
-`content`:
+`content`
 :   text for this link
 
-`target`:
+`target`
 :   the link target
 
-`title`:
+`title`
 :   brief link description
 
-`attr`:
+`attr`
 :   additional attributes
 
 Returns: [Link](#type-link) object
@@ -2765,10 +2765,10 @@ Creates a Math element, either inline or displayed.
 
 Parameters:
 
-`mathtype`:
+`mathtype`
 :   rendering specifier
 
-`text`:
+`text`
 :   Math content
 
 Returns: [Math](#type-math) object
@@ -2779,7 +2779,7 @@ Creates a math element of type "DisplayMath" (DEPRECATED).
 
 Parameters:
 
-`text`:
+`text`
 :   Math content
 
 Returns: [Math](#type-math) object
@@ -2790,7 +2790,7 @@ Creates a math element of type "InlineMath" (DEPRECATED).
 
 Parameters:
 
-`text`:
+`text`
 :   Math content
 
 Returns: [Math](#type-math) object
@@ -2801,7 +2801,7 @@ Creates a Note inline element
 
 Parameters:
 
-`content`:
+`content`
 :   footnote block content
 
 Returns: [Note](#type-note) object
@@ -2813,10 +2813,10 @@ quoted content.
 
 Parameters:
 
-`quotetype`:
+`quotetype`
 :   type of quotes to be used
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Quoted](#type-quoted) object
@@ -2827,7 +2827,7 @@ Creates a single-quoted inline element (DEPRECATED).
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Quoted](#type-quoted)
@@ -2838,7 +2838,7 @@ Creates a single-quoted inline element (DEPRECATED).
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Quoted](#type-quoted)
@@ -2849,10 +2849,10 @@ Creates a raw inline element
 
 Parameters:
 
-`format`:
+`format`
 :   format of the contents
 
-`text`:
+`text`
 :   string content
 
 Returns: [RawInline](#type-rawinline) object
@@ -2863,7 +2863,7 @@ Creates text rendered in small caps
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [SmallCaps](#type-smallcaps) object
@@ -2886,10 +2886,10 @@ Creates a Span inline element
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
-`attr`:
+`attr`
 :   additional attributes
 
 Returns: [Span](#type-span) object
@@ -2900,7 +2900,7 @@ Creates a Str inline element
 
 Parameters:
 
-`text`:
+`text`
 :   content
 
 Returns: [Str](#type-str) object
@@ -2911,7 +2911,7 @@ Creates text which is struck out.
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Strikeout](#type-strikeout) object
@@ -2923,7 +2923,7 @@ a bold font.
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Strong](#type-strong) object
@@ -2934,7 +2934,7 @@ Creates a Subscript inline element
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Subscript](#type-subscript) object
@@ -2945,7 +2945,7 @@ Creates a Superscript inline element
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Superscript](#type-superscript) object
@@ -2956,7 +2956,7 @@ Creates an Underline inline element
 
 Parameters:
 
-`content`:
+`content`
 :   inline content
 
 Returns: [Underline](#type-underline) object
@@ -2975,7 +2975,7 @@ Converts its argument into an [Inlines][] list:
 
 Parameters:
 
-`inline_like_elements`:
+`inline_like_elements`
 :   List where each element can be treated as an [Inline]
     values, or just a single such value.
 
@@ -2990,38 +2990,38 @@ Create a new set of attributes (Attr).
 
 Parameters:
 
-`identifier`:
+`identifier`
 :   element identifier
 
-`classes`:
+`classes`
 :   element classes
 
-`attributes`:
+`attributes`
 :   table containing string keys and values
 
 Returns: [Attr](#type-attr) object
 
-### `Cell (blocks[, align[, rowspan[, colspan[, attr]]]])` {#pandoc.attr}
+### `Cell (blocks[, align[, rowspan[, colspan[, attr]]]])` {#pandoc.cell}
 
 Create a new table cell.
 
 Parameters:
 
-`blocks`:
+`blocks`
 :   cell contents ([Blocks][])
 
-`align`:
+`align`
 :   text alignment; defaults to `AlignDefault` (Alignment)
 
-`rowspan`:
+`rowspan`
 :   number of rows occupied by the cell; defaults to `1`
     (integer)
 
-`colspan`:
+`colspan`
 :   number of columns spanned by the cell; defaults to `1`
     (integer)
 
-`attr`:
+`attr`
 :   cell attributes ([Attr](#type-attr))
 
 Returns:
@@ -3034,22 +3034,22 @@ Creates a single citation.
 
 Parameters:
 
-`id`:
+`id`
 :   citation identifier (like a bibtex key)
 
-`mode`:
+`mode`
 :   citation mode
 
-`prefix`:
+`prefix`
 :   citation prefix
 
-`suffix`:
+`suffix`
 :   citation suffix
 
-`note_num`:
+`note_num`
 :   note number
 
-`hash`:
+`hash`
 :   hash number
 
 Returns: [Citation](#type-citation) object
@@ -3060,13 +3060,13 @@ Creates a set of list attributes.
 
 Parameters:
 
-`start`:
+`start`
 :   number of the first list item
 
-`style`:
+`style`
 :   style used for list numbering
 
-`delimiter`:
+`delimiter`
 :   delimiter of list numbers
 
 Returns: [ListAttributes](#type-listattributes) object
@@ -3077,10 +3077,10 @@ Creates a table row.
 
 Parameters:
 
-`cells`:
+`cells`
 :   list of table cells in this row
 
-`attr`:
+`attr`
 :   row attributes
 
 ### `TableFoot ([rows[, attr]])` {#pandoc.tablefoot}
@@ -3089,10 +3089,10 @@ Creates a table foot.
 
 Parameters:
 
-`rows`:
+`rows`
 :   list of table rows
 
-`attr`:
+`attr`
 :   table foot attributes
 
 ### `TableHead ([rows[, attr]])` {#pandoc.tablehead}
@@ -3101,10 +3101,10 @@ Creates a table head.
 
 Parameters:
 
-`rows`:
+`rows`
 :   list of table rows
 
-`attr`:
+`attr`
 :   table head attributes
 
 ## Legacy types
@@ -3116,19 +3116,19 @@ table type.
 
 Parameters:
 
-`caption`:
+`caption`
 :   [Inlines][]
 
-`aligns`:
+`aligns`
 :   column alignments ([List] of [Alignments](#type-alignment))
 
-`widths`:
+`widths`
 :   column widths; a  ([List] of numbers)
 
-`headers`:
+`headers`
 :   table header row ([List] of [Blocks][])
 
-`rows`:
+`rows`
 :   table rows ([List] of rows, where a row is a list
     of [Blocks][])
 
@@ -3276,7 +3276,7 @@ Creates a new [ReaderOptions] value.
 
 Parameters
 
-`opts`:
+`opts`
 :   Either a table with a subset of the properties of a
     [ReaderOptions] object, or another ReaderOptions object.
     Uses the defaults specified in the manual for all
@@ -3300,7 +3300,7 @@ Creates a new [WriterOptions][] value.
 
 Parameters
 
-`opts`:
+`opts`
 :   Either a table with a subset of the properties of a
     [WriterOptions] object, or another WriterOptions object.
     Uses the defaults specified in the manual for all
@@ -3320,9 +3320,7 @@ Usage:
 
 ## Helper functions
 
-### pipe {#pandoc.pipe}
-
-`pipe (command, args, input)`
+### `pipe (command, args, input)` {#pandoc.pipe}
 
 Runs command with arguments, passing it some input, and returns
 the output.
@@ -3353,43 +3351,37 @@ Usage:
 
     local output = pandoc.pipe("sed", {"-e","s/a/b/"}, "abc")
 
-### walk\_block {#pandoc.walk_block}
-
-`walk_block (element, filter)`
+### `walk_block (element, filter)` {#pandoc.walk_block}
 
 Apply a filter inside a block element, walking its contents.
 
 Parameters:
 
-`element`:
+`element`
 :   the block element
 
-`filter`:
+`filter`
 :   a Lua filter (table of functions) to be applied within the
     block element
 
 Returns: the transformed block element
 
-### walk\_inline {#pandoc.walk_inline}
-
-`walk_inline (element, filter)`
+### `walk_inline (element, filter)` {#pandoc.walk_inline}
 
 Apply a filter inside an inline element, walking its contents.
 
 Parameters:
 
-`element`:
+`element`
 :   the inline element
 
-`filter`:
+`filter`
 :   a Lua filter (table of functions) to be applied within the
     inline element
 
 Returns: the transformed inline element
 
-### read {#pandoc.read}
-
-`read (markup[, format[, reader_options]])`
+### `read (markup[, format[, reader_options]])` {#pandoc.read}
 
 Parse the given string into a Pandoc document.
 
@@ -3403,13 +3395,13 @@ retrieved from the other parsed input files.
 
 Parameters:
 
-`markup`:
+`markup`
 :   the markup to be parsed (string)
 
-`format`:
+`format`
 :   format specification, defaults to `"markdown"` (string)
 
-`reader_options`:
+`reader_options`
 :   options passed to the reader; may be a ReaderOptions object or
     a table with a subset of the keys and values of a
     ReaderOptions object; defaults to the default values
@@ -3428,21 +3420,19 @@ Usage:
 
 [ReaderOptions]: #type-readeroptions
 
-### write {#pandoc.write}
-
-`write (doc[, format[, writer_options]])`
+### `write (doc[, format[, writer_options]])` {#pandoc.write}
 
 Converts a document to the given target format.
 
 Parameters:
 
-`doc`:
+`doc`
 :   document to convert ([Pandoc](#type-pandoc))
 
-`format`:
+`format`
 :   format specification, defaults to `'html'` (string)
 
-`writer_options`:
+`writer_options`
 :   options passed to the writer; may be a WriterOptions object
     or a table with a subset of the keys and values of a
     WriterOptions object; defaults to the default values
@@ -3474,18 +3464,16 @@ pandoc 2.6, this module had to be loaded explicitly. Example:
 
 Use the above for backwards compatibility.
 
-### blocks\_to\_inlines {#pandoc.utils.blocks_to_inlines}
-
-`blocks_to_inlines (blocks[, sep])`
+### `blocks_to_inlines (blocks[, sep])` {#pandoc.utils.blocks_to_inlines}
 
 Squash a list of blocks into a list of inlines.
 
 Parameters:
 
-`blocks`:
+`blocks`
 :   List of [Block](#type-block) elements to be flattened.
 
-`sep`:
+`sep`
 :   List of [Inline](#type-inline) elements inserted as
     separator between two consecutive blocks; defaults to `{
     pandoc.Space(), pandoc.Str'¶', pandoc.Space()}`.
@@ -3507,9 +3495,7 @@ Usage:
     --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
     -- }
 
-### equals {#pandoc.utils.equals}
-
-`equals (element1, element2)`
+### `equals (element1, element2)` {#pandoc.utils.equals}
 
 Test equality of AST elements. Elements in Lua are considered
 equal if and only if the objects obtained by unmarshaling are
@@ -3520,16 +3506,14 @@ operator instead.
 
 Parameters:
 
-`element1`, `element2`:
+`element1`, `element2`
 :   Objects to be compared (any type)
 
 Returns:
 
 -   Whether the two objects represent the same element (boolean)
 
-### from\_simple\_table {#pandoc.utils.from_simple_table}
-
-`from_simple_table (table)`
+### `from_simple_table (table)` {#pandoc.utils.from_simple_table}
 
 Creates a [Table] block element from a [SimpleTable]. This is
 useful for dealing with legacy code which was written for pandoc
@@ -3547,9 +3531,7 @@ Usage:
     -- create normal table block again
     table = pandoc.utils.from_simple_table(simple)
 
-### make\_sections {#pandoc.utils.make_sections}
-
-`make_sections (number_sections, base_level, blocks)`
+### `make_sections (number_sections, base_level, blocks)` {#pandoc.utils.make_sections}
 
 Converts list of [Block](#type-block) elements into sections.
 `Div`s will be created beginning at each `Header`
@@ -3601,7 +3583,7 @@ when generating bibliographies.
 
 Parameters:
 
-`doc`:
+`doc`
 :   document ([Pandoc](#type-pandoc))
 
 Returns:
@@ -3625,13 +3607,13 @@ Filter the given doc by passing it through the a JSON filter.
 
 Parameters:
 
-`doc`:
+`doc`
 :   the Pandoc document to filter
 
-`filter`:
+`filter`
 :   filter to run
 
-`args`:
+`args`
 :   list of arguments passed to the filter. Defaults to
     `{FORMAT}`.
 
@@ -3781,7 +3763,7 @@ Removes a single entry from the media bag.
 
 Parameters:
 
-`filepath`:
+`filepath`
 :   filename of the item to be deleted. The media bag will be
     left unchanged if no entry with the given filename exists.
 
@@ -3800,13 +3782,13 @@ mediabag entry with the same `filepath`.
 
 Parameters:
 
-`filepath`:
+`filepath`
 :   filename and path relative to the output folder.
 
-`mime_type`:
+`mime_type`
 :   the file's MIME type; use `nil` if unknown or unavailable.
 
-`contents`:
+`contents`
 :   the binary contents of the file.
 
 Usage:
@@ -3873,7 +3855,7 @@ and contents.
 
 Parameters:
 
-`filepath`:
+`filepath`
 :   name of the file to look up.
 
 Returns:
@@ -3901,7 +3883,7 @@ path" setting.
 
 Parameters:
 
-`source`:
+`source`
 :   path to a resource; either a local file path or URI
 
 Returns:
@@ -3935,7 +3917,7 @@ Concatenates two lists.
 
 Parameters:
 
-`list`:
+`list`
 :   second list concatenated to the first
 
 Returns: a new list containing all elements from list1 and
@@ -3950,7 +3932,7 @@ are equal.
 
 Parameters:
 
-`a`, `b`:
+`a`, `b`
 :   any Lua object
 
 Returns:
@@ -3969,7 +3951,7 @@ Adds the given list to the end of this list.
 
 Parameters:
 
-`list`:
+`list`
 :   list to appended
 
 ### `pandoc.List:find (needle, init)` {#pandoc.list:find}
@@ -3979,10 +3961,10 @@ given item.
 
 Parameters:
 
-`needle`:
+`needle`
 :   item to search for
 
-`init`:
+`init`
 :   index at which the search is started
 
 Returns: first item equal to the needle, or nil if no such
@@ -3995,10 +3977,10 @@ the predicate holds true.
 
 Parameters:
 
-`pred`:
+`pred`
 :   the predicate function
 
-`init`:
+`init`
 :   index at which the search is started
 
 Returns: first item for which \`test\` succeeds, or nil if
@@ -4011,7 +3993,7 @@ condition.
 
 Parameters:
 
-`pred`:
+`pred`
 :   condition items must satisfy.
 
 Returns: a new list containing all items for which \`test\`
@@ -4023,10 +4005,10 @@ Checks if the list has an item equal to the given needle.
 
 Parameters:
 
-`needle`:
+`needle`
 :   item to search for
 
-`init`:
+`init`
 :   index at which the search is started
 
 Returns: true if a list item is equal to the needle, false
@@ -4042,10 +4024,10 @@ This function is identical to
 
 Parameters:
 
-`pos`:
+`pos`
 :   index of the new value; defaults to length of the list + 1
 
-`value`:
+`value`
 :   value to insert into the list
 
 ### `pandoc.List:map (fn)` {#pandoc.list:map}
@@ -4055,7 +4037,7 @@ function to all elements.
 
 Parameters:
 
-`fn`:
+`fn`
 :   function which is applied to all list items.
 
 ### `pandoc.List:new([table])` {#pandoc.list:new}
@@ -4065,7 +4047,7 @@ set the metatable of that value to `pandoc.List`.
 
 Parameters:
 
-`table`:
+`table`
 :   table which should be treatable as a list; defaults to an
     empty table
 
@@ -4081,7 +4063,7 @@ This function is identical to
 
 Parameters:
 
-`pos`:
+`pos`
 :   position of the list value that will be removed; defaults
     to the index of the last element
 
@@ -4111,7 +4093,7 @@ This function is identical to
 
 Parameters:
 
-`comp`:
+`comp`
 :   Comparison function as described above.
 
 # Module pandoc.path
@@ -4417,10 +4399,10 @@ An error is raised if compilation fails.
 
 Parameters:
 
-`template`:
+`template`
 :   template string (string)
 
-`templates_path`:
+`templates_path`
 :   parameter to determine a default path and extension for
     partials; uses the data files templates path by default.
     (string)
@@ -4438,7 +4420,7 @@ error if no such template can be found.
 
 Parameters:
 
-`writer`:
+`writer`
 :   name of the writer for which the template should be
     retrieved; defaults to the global `FORMAT`.
 
@@ -4458,7 +4440,7 @@ Creates a Version object.
 
 Parameters:
 
-`version_specifier`:
+`version_specifier`
 :   Version specifier: this can be a version string like
     `'2.7.3'`, a list of integers like `{2, 7, 3}`, a single
     integer, or a [Version].
