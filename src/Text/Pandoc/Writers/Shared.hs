@@ -456,7 +456,9 @@ endsWithPlain :: [Block] -> Bool
 endsWithPlain xs =
   case lastMay xs of
     Just Plain{} -> True
-    _            -> False
+    Just (BulletList is) -> maybe False endsWithPlain (lastMay is)
+    Just (OrderedList _ is) -> maybe False endsWithPlain (lastMay is)
+    _ -> False
 
 -- | Convert the relevant components of a new-style table (with block
 -- caption, row headers, row and column spans, and so on) to those of

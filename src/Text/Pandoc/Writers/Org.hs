@@ -219,7 +219,7 @@ bulletListItemToOrg :: PandocMonad m => [Block] -> Org m (Doc Text)
 bulletListItemToOrg items = do
   exts <- gets $ writerExtensions . stOptions
   contents <- blockListToOrg (taskListItemToOrg exts items)
-  return $ hang 2 "- " contents $$
+  return $ hang 2 "- " (chomp contents) $$
           if null items || endsWithPlain items
              then cr
              else blankline
@@ -237,7 +237,7 @@ orderedListItemToOrg marker counter items = do
                (\n -> space <> literal "[@" <> literal (tshow n) <> literal "]")
                counter
   return $ hang (T.length marker + 1)
-                (literal marker <> cookie <> space) contents $$
+                (literal marker <> cookie <> space) (chomp contents) $$
           if null items || endsWithPlain items
              then cr
              else blankline

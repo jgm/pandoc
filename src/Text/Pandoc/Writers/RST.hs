@@ -32,6 +32,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
+import Safe (lastMay)
 
 type Refs = [([Inline], Target)]
 
@@ -365,7 +366,7 @@ bulletListItemToRST :: PandocMonad m => [Block] -> RST m (Doc Text)
 bulletListItemToRST items = do
   contents <- blockListToRST items
   return $ hang 3 "-  " contents $$
-      if null items || endsWithPlain items
+      if null items || (endsWithPlain items && not (endsWithList items))
          then cr
          else blankline
 
@@ -378,9 +379,15 @@ orderedListItemToRST marker items = do
   contents <- blockListToRST items
   let marker' = marker <> " "
   return $ hang (T.length marker') (literal marker') contents $$
-      if null items || endsWithPlain items
+      if null items || (endsWithPlain items && not (endsWithList items))
          then cr
          else blankline
+
+endsWithList :: [Block] -> Bool
+endsWithList bs = case lastMay bs of
+                    Just (BulletList{}) -> True
+                    Just (OrderedList{}) -> True
+                    _ -> False
 
 -- | Convert definition list item (label, list of blocks) to RST.
 definitionListItemToRST :: PandocMonad m => ([Inline], [[Block]]) -> RST m (Doc Text)
