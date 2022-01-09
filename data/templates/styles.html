@@ -73,6 +73,19 @@ blockquote {
   border-left: 2px solid #e6e6e6;
   color: #606060;
 }
+$if(abstract)$
+div.abstract {
+  margin: 2em 2em 2em 2em;
+  text-align: left;
+  font-size: 85%;
+}
+div.abstract-title {
+  font-weight: bold;
+  text-align: center;
+  padding: 0;
+  margin-bottom: 0.5em;
+}
+$endif$
 code {
   font-family: $if(monofont)$$monofont$$else$Menlo, Monaco, 'Lucida Console', Consolas, monospace$endif$;
 $if(monobackgroundcolor)$
@@ -160,12 +173,6 @@ div.csl-entry {
   clear: both;
 $if(csl-entry-spacing)$
   margin-bottom: $csl-entry-spacing$;
-$endif$
-$if(abstract)$
-div.abstract{
-  margin: auto;
-  width: 90%;
-}
 $endif$
 }
 .hanging div.csl-entry {

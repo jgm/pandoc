@@ -43,6 +43,7 @@ import Text.DocLayout (render, literal, Doc)
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)
+import Text.Pandoc.Translations (Term(Abstract))
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
                                  styleToCss)
@@ -65,7 +66,8 @@ import System.FilePath (takeBaseName)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report,
+                                      translateTerm)
 import Text.Pandoc.Class.PandocPure (runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
@@ -267,6 +269,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let descriptionMeta = literal $ escapeStringForXML $
                           lookupMetaString "description" meta
   slideVariant <- gets stSlideVariant
+  abstractTitle <- translateTerm Abstract
   let sects = adjustNumbers opts $
               makeSections (writerNumberSections opts) Nothing $
               if slideVariant == NoSlides
@@ -355,6 +358,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   (if stMath st
                       then defField "math" math
                       else id) .
+                  defField "abstract-title" abstractTitle .
                   (case writerHTMLMathMethod opts of
                         MathJax u -> defField "mathjax" True .
                                      defField "mathjaxurl"

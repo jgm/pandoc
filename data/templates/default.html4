@@ -48,6 +48,7 @@ $if(date)$
 $endif$
 $if(abstract)$
 <div class="abstract">
+<div class="abstract-title">$abstract-title$</div>
 $abstract$
 </div>
 $endif$
