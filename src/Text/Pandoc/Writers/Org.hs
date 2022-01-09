@@ -219,7 +219,13 @@ bulletListItemToOrg :: PandocMonad m => [Block] -> Org m (Doc Text)
 bulletListItemToOrg items = do
   exts <- gets $ writerExtensions . stOptions
   contents <- blockListToOrg (taskListItemToOrg exts items)
-  return $ hang 2 "- " (chomp contents) $$
+  -- if list item starts with non-paragraph, it must go on
+  -- the next line:
+  let contents' = (case items of
+                    Plain{}:_ -> mempty
+                    Para{}:_ -> mempty
+                    _ -> cr) <> chomp contents
+  return $ hang 2 "- " contents' $$
           if null items || endsWithPlain items
              then cr
              else blankline
@@ -233,11 +239,17 @@ orderedListItemToOrg :: PandocMonad m
 orderedListItemToOrg marker counter items = do
   exts <- gets $ writerExtensions . stOptions
   contents <- blockListToOrg (taskListItemToOrg exts items)
+  -- if list item starts with non-paragraph, it must go on
+  -- the next line:
+  let contents' = (case items of
+                    Plain{}:_ -> mempty
+                    Para{}:_ -> mempty
+                    _ -> cr) <> chomp contents
   let cookie = maybe empty
                (\n -> space <> literal "[@" <> literal (tshow n) <> literal "]")
                counter
   return $ hang (T.length marker + 1)
-                (literal marker <> cookie <> space) (chomp contents) $$
+                (literal marker <> cookie <> space) contents' $$
           if null items || endsWithPlain items
              then cr
              else blankline
