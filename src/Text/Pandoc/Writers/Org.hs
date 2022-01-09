@@ -220,7 +220,7 @@ bulletListItemToOrg items = do
   exts <- gets $ writerExtensions . stOptions
   contents <- blockListToOrg (taskListItemToOrg exts items)
   return $ hang 2 "- " contents $$
-          if endsWithPlain items
+          if null items || endsWithPlain items
              then cr
              else blankline
 
@@ -238,7 +238,7 @@ orderedListItemToOrg marker counter items = do
                counter
   return $ hang (T.length marker + 1)
                 (literal marker <> cookie <> space) contents $$
-          if endsWithPlain items
+          if null items || endsWithPlain items
              then cr
              else blankline
 
