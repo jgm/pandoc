@@ -2188,6 +2188,11 @@ Currently the following pipes are predefined:
 :   document summary, included in LaTeX, ConTeXt, AsciiDoc, and docx
     documents
 
+`abstract-title`
+:   title of abstract, currently used only in HTML and EPUB.
+    This will be set automatically to a localized value,
+    depending on `lang`, but can be manually overridden.
+
 `keywords`
 :   list of keywords to be included in HTML, PDF, ODT, pptx, docx
     and AsciiDoc metadata; repeat as for `author`, above

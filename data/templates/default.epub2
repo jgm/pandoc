@@ -6,11 +6,12 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <title>$pagetitle$</title>
-$if(highlighting-css)$
   <style type="text/css">
-$highlighting-css$
-  </style>
+    $styles.html()$
+$if(highlighting-css)$
+    $highlighting-css$
 $endif$
+  </style>
 $for(css)$
   <link rel="stylesheet" type="text/css" href="$css$" />
 $endfor$
@@ -44,6 +45,12 @@ $if(date)$
 $endif$
 $if(rights)$
   <div class="rights">$rights$</div>
+$endif$
+$if(abstract)$
+<div class="abstract">
+<div class="abstract-title">$abstract-title$</div>
+$abstract$
+</div>
 $endif$
 $else$
 $if(coverpage)$
