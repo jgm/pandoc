@@ -214,13 +214,15 @@ extractMedia dir d = do
       return $ walk (adjustImagePath dir media) d
 
 -- | Write the contents of a media bag to a path.
+-- If the path contains URI escape sequences (percent-encoding),
+-- these are resolved.
 writeMedia :: (PandocMonad m, MonadIO m)
            => FilePath
            -> (FilePath, MimeType, BL.ByteString)
            -> m ()
 writeMedia dir (fp, _mt, bs) = do
   -- we normalize to get proper path separators for the platform
-  let fullpath = normalise $ dir </> fp
+  let fullpath = normalise $ dir </> unEscapeString fp
   liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
   logIOError $ BL.writeFile fullpath bs
 
