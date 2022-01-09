@@ -401,6 +401,7 @@ extra-source-files:
                  test/odt/native/*.native
                  test/lua/*.lua
                  test/lua/module/*.lua
+                 test/lua/module/partial.test
                  test/lua/module/tiny.epub
 source-repository head
   type:          git
