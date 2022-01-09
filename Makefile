@@ -46,7 +46,9 @@ haddock:
 check: check-cabal checkdocs
 	cabal check # check cabal file
 	cabal outdated # check cabal dependencies
-	lsd # check that stack.yaml dependencies are up to date
+	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
+	! grep 'git:' stack.yaml # use only released versions
+	! grep 'git:' cabal.project # use only released versions
 
 check-cabal: git-files.txt sdist-files.txt
 	@echo "Checking to see if all committed test/data files are in sdist."
