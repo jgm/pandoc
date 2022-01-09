@@ -368,6 +368,28 @@ provide the options line on the command line:
 
 [export setting]: https://orgmode.org/manual/Export-Settings.html
 
+`fancy_lists` extension
+=======================
+
+Org-mode has a variable `org-list-allow-alphabetical` that when
+set to `t`, allows ordered lists with single-character
+alphabetical markers. Since this variable is `nil` by default,
+alphabetical markers can be optionally enabled in Pandoc by
+enabling the `fancy_lists` extension.
+
+When `fancy_lists` is enabled, Pandoc will also parse list
+markers starting with one lowercase or uppercase alphabetical
+character, like `a.` and `D)`. Countrary to the use of this
+extension in markdown, roman numerals or the `#` placeholder
+can't be used as markers as they are not allowed in Org-mode.
+
+One additional behavior that is enabled by the `fancy_lists`
+extension is that the `.` and `)` delimiters for list markers
+will be distinguished by Pandoc. In essence, this means that when
+converting Org into formats like LaTeX, Pandoc will respect the
+type of delimiter that you used in your Org file, instead of
+always using the default delimiter for the exported format.
+
 Currently unsupported features
 ==============================
 
