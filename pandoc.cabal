@@ -507,7 +507,7 @@ library
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
                  texmath               >= 0.12.3.2 && < 0.12.4,
-                 text                  >= 1.1.1.0  && < 1.3,
+                 text                  >= 1.1.1.0  && < 2.1,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.14,
                  unicode-collation     >= 0.1.1    && < 0.2,
@@ -782,7 +782,7 @@ test-suite test-pandoc
                   tasty-hunit       >= 0.9     && < 0.11,
                   tasty-lua         >= 1.0     && < 1.1,
                   tasty-quickcheck  >= 0.8     && < 0.11,
-                  text              >= 1.1.1.0  && < 1.3,
+                  text              >= 1.1.1.0 && < 2.1,
                   time              >= 1.5     && < 1.14,
                   xml               >= 1.3.12  && < 1.4,
                   zip-archive       >= 0.2.3.4 && < 0.5
@@ -852,7 +852,7 @@ benchmark benchmark-pandoc
   build-depends:   bytestring,
                    tasty-bench >= 0.2     && <= 0.4,
                    mtl         >= 2.2     && < 2.3,
-                   text        >= 1.1.1.0 && < 1.3,
+                   text        >= 1.1.1.0 && < 2.1,
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:
   ghc-options:     -rtsopts -with-rtsopts=-A8m -threaded
