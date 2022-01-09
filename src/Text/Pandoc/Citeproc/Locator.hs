@@ -276,7 +276,9 @@ toLocatorMap locale =
   go tname locmap =
     case M.lookup tname (localeTerms locale) of
       Nothing -> locmap
-      Just ts -> foldr (\x -> M.insert (snd x) tname) locmap ts
+      Just ts -> foldr (\x -> M.insert (T.toCaseFold $ snd x) tname) locmap ts
+-- we store keys in "case-folded" (lowercase) form, so that both
+-- "Chap." and "chap." will match, for example.
 
 locatorTerms :: [Text]
 locatorTerms =
