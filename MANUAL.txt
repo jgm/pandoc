@@ -6331,6 +6331,20 @@ images can be declared with `![img](url){external=1}`. Note that this
 only works for images; the other media elements have no native
 representation in pandoc's AST and requires the use of raw HTML.
 
+## EPUB styling
+
+By default, pandoc will include some basic styling
+contained in its `epub.css` data file.  (To see this,
+use `pandoc --print-default-data-file epub.css`.)
+To use a different CSS file, just use the `--css` command
+line option.  A few inline styles are defined in addition; these
+are essential for correct formatting of pandoc's HTML output.
+
+The `document-css` variable may be set if the more opinionated
+styling of pandoc's default HTML templates is desired (and
+in that case the variables defined in [Variables for HTML] may
+be used to fine-tune the style).
+
 # Jupyter notebooks
 
 When creating a [Jupyter notebook], pandoc will try to infer the
