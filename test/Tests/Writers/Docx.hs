@@ -88,6 +88,11 @@ tests = [ testGroup "inlines"
             "docx/lists_multiple_initial.native"
             "docx/golden/lists_multiple_initial.docx"
           , docxTest
+            "lists with div bullets"
+            def
+            "docx/lists_div_bullets.native"
+            "docx/golden/lists_div_bullets.docx"
+          , docxTest
             "definition lists"
             def
             "docx/definition_list.native"

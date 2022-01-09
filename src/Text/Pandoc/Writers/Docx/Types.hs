@@ -111,6 +111,7 @@ data WriterState = WriterState{
        , stDelId          :: Int
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
+       , stNumIdUsed      :: Bool
        , stInTable        :: Bool
        , stInList         :: Bool
        , stTocTitle       :: [Inline]
@@ -133,6 +134,7 @@ defaultWriterState = WriterState{
       , stDelId          = 1
       , stStyleMaps      = StyleMaps M.empty M.empty
       , stFirstPara      = False
+      , stNumIdUsed      = False
       , stInTable        = False
       , stInList         = False
       , stTocTitle       = [Str "Table of Contents"]
