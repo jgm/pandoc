@@ -197,9 +197,7 @@ blockToOrg (Table _ blkCapt specs thead tbody tfoot) =  do
   return $ head'' $$ body $$ caption $$ blankline
 blockToOrg (BulletList items) = do
   contents <- mapM bulletListItemToOrg items
-  -- ensure that sublists have preceding blank line
-  return $ blankline $$
-           (if isTightList items then vcat else vsep) contents $$
+  return $ (if isTightList items then vcat else vsep) contents $$
            blankline
 blockToOrg (OrderedList (start, _, delim) items) = do
   let delim' = case delim of
@@ -210,9 +208,7 @@ blockToOrg (OrderedList (start, _, delim) items) = do
       counters = (case start of 1 -> Nothing; n -> Just n) : repeat Nothing
   contents <- zipWithM (\x f -> f x) items $
               zipWith orderedListItemToOrg markers counters
-  -- ensure that sublists have preceding blank line
-  return $ blankline $$
-           (if isTightList items then vcat else vsep) contents $$
+  return $ (if isTightList items then vcat else vsep) contents $$
            blankline
 blockToOrg (DefinitionList items) = do
   contents <- mapM definitionListItemToOrg items
