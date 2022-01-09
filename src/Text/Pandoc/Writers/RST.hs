@@ -365,7 +365,7 @@ bulletListItemToRST :: PandocMonad m => [Block] -> RST m (Doc Text)
 bulletListItemToRST items = do
   contents <- blockListToRST items
   return $ hang 3 "-  " contents $$
-      if endsWithPlain items
+      if null items || endsWithPlain items
          then cr
          else blankline
 
@@ -378,7 +378,7 @@ orderedListItemToRST marker items = do
   contents <- blockListToRST items
   let marker' = marker <> " "
   return $ hang (T.length marker') (literal marker') contents $$
-      if endsWithPlain items
+      if null items || endsWithPlain items
          then cr
          else blankline
 
