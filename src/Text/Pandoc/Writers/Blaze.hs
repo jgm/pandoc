@@ -57,20 +57,20 @@ layoutMarkup = go True mempty
           (space' wrap
             <> literal (getText rawkey)
             <> char '='
-            <> doubleQuotes (fromChoiceString wrap value)
+            <> doubleQuotes (fromChoiceString False value)
             <> attrs) h
     go wrap attrs (AddCustomAttribute key value h) =
         go wrap
           (space' wrap
             <> fromChoiceString wrap key
             <> char '='
-            <> doubleQuotes (fromChoiceString wrap value)
+            <> doubleQuotes (fromChoiceString False value)
             <> attrs) h
     go wrap _ (Content content _) = fromChoiceString wrap content
     go wrap _ (Comment comment _) =
         literal "<!--"
             <> space' wrap
-            <> fromChoiceString wrap comment
+            <> fromChoiceString False comment
             <> space' wrap
             <> "-->"
     go wrap attrs (Append h1 h2) = go wrap attrs h1 <> go wrap attrs h2

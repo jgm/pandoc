@@ -598,10 +598,11 @@ href="http://example.com/?foo=1&amp;bar=2">quoted link</a>”.</p>
 <li><span class="math inline"><em>α</em> ∧ <em>ω</em></span></li>
 <li><span class="math inline">223</span></li>
 <li><span class="math inline"><em>p</em></span>-Tree</li>
-<li>Here’s some display math: <span class="math
-display">$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$</span></li>
-<li>Here’s one that has a line break in it: <span class="math
-inline"><em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup></span>.</li>
+<li>Here’s some display math: <span
+class="math display">$$\frac{d}{dx}f(x)=\lim_{h\to
+0}\frac{f(x+h)-f(x)}{h}$$</span></li>
+<li>Here’s one that has a line break in it: <span
+class="math inline"><em>α</em> + <em>ω</em> × <em>x</em><sup>2</sup></span>.</li>
 </ul>
 <p>These shouldn’t be math:</p>
 <ul>
