@@ -975,7 +975,11 @@ listItemToOpenXML opts numid bs = do
         _             -> False
   -- Prepend an empty string if the first entry is another
   -- list. Otherwise the outer bullet will disappear.
-  let bs' = if isListBlock (head bs) then (Plain [Str ""]:bs) else bs
+  let bs' = case bs of
+                 [] -> []
+                 first:rest -> if isListBlock first
+                               then Plain [Str ""]:first:rest
+                               else first:rest
   modify $ \st -> st{ stNumIdUsed = False }
   contents <- withNumId numid $ blocksToOpenXML opts bs'
   modify $ \st -> st{ stInList = oldInList }

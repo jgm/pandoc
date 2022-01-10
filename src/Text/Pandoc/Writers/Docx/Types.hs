@@ -111,7 +111,8 @@ data WriterState = WriterState{
        , stDelId          :: Int
        , stStyleMaps      :: StyleMaps
        , stFirstPara      :: Bool
-       , stNumIdUsed      :: Bool
+       , stNumIdUsed      :: Bool  -- ^ True if the current numId (envListNumId) has been used.
+                                   --   Should only be used once, for the first paragraph.
        , stInTable        :: Bool
        , stInList         :: Bool
        , stTocTitle       :: [Inline]
