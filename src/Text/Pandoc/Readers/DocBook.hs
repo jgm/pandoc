@@ -1241,7 +1241,9 @@ parseInline (Elem e) =
            let classes' = case attrValue "language" e of
                                "" -> []
                                l  -> [l]
-           return $ codeWith (attrValue "id" e,classes',[]) $ strContentRecursive e
+           return $ codeWith (attrValue "id" e,classes',[]) $
+             T.unwords $ T.words $ strContentRecursive e
+             -- collapse internal spaces/newlines, see #7821
          simpleList = mconcat . intersperse (str "," <> space) <$> mapM getInlines
                          (filterChildren (named "member") e)
          segmentedList = do
