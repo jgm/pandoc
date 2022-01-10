@@ -113,8 +113,8 @@ toChunks :: Text -> [Doc Text]
 toChunks = map toDoc . T.groupBy sameStatus
   where
    toDoc t
-     | T.any (== ' ')  t = space
-     | T.any (== '\n') t = cr
+     | t == " " = space
+     | t == "\n" = cr
      | otherwise         = literal t
    sameStatus c d =
      (c == ' ' && d == ' ') ||
