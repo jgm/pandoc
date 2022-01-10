@@ -3,7 +3,7 @@ title: JATS
 author: Albert Krewinkel
 ---
 
-This document describes pandoc's handling of JATS.
+This document describes pandoc's handling of [JATS].
 
 Metadata Values
 ===============
@@ -379,6 +379,7 @@ Required metadata values:
   `journal.pmc`.
 - One or more of `journal.pissn`, `journal.eissn`.
 
+[JATS]: https://jats.nlm.nih.gov/
 [Ringgold]: https://ringgold.com/
 [attr:content-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/content-type.html
 [attr:date-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/date-type.html
