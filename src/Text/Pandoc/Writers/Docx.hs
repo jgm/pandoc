@@ -965,7 +965,6 @@ listItemToOpenXML :: (PandocMonad m)
                   => WriterOptions
                   -> Int -> [Block]
                   -> WS m [Content]
-listItemToOpenXML _ _ []                  = return []
 listItemToOpenXML opts numid bs = do
   oldInList <- gets stInList
   modify $ \st -> st{ stInList = True }
