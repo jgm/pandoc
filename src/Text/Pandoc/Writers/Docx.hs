@@ -965,8 +965,7 @@ listItemToOpenXML :: (PandocMonad m)
                   => WriterOptions
                   -> Int -> [Block]
                   -> WS m [Content]
-listItemToOpenXML _ _ []                  = return []
-listItemToOpenXML opts numid (first:rest) = do
+listItemToOpenXML opts numid bs = do
   oldInList <- gets stInList
   modify $ \st -> st{ stInList = True }
   let isListBlock = \case
@@ -975,14 +974,15 @@ listItemToOpenXML opts numid (first:rest) = do
         _             -> False
   -- Prepend an empty string if the first entry is another
   -- list. Otherwise the outer bullet will disappear.
-  let (first', rest') = if isListBlock first
-                           then (Plain [Str ""] , first:rest)
-                           else (first, rest)
-  first'' <- withNumId numid $ blockToOpenXML opts first'
-  -- baseListId is the code for no list marker:
-  rest''  <- withNumId baseListId $ blocksToOpenXML opts rest'
+  let bs' = case bs of
+                 [] -> []
+                 first:rest -> if isListBlock first
+                               then Plain [Str ""]:first:rest
+                               else first:rest
+  modify $ \st -> st{ stNumIdUsed = False }
+  contents <- withNumId numid $ blocksToOpenXML opts bs'
   modify $ \st -> st{ stInList = oldInList }
-  return $ first'' ++ rest''
+  return contents
 
 -- | Convert a list of inline elements to OpenXML.
 inlinesToOpenXML :: PandocMonad m => WriterOptions -> [Inline] -> WS m [Content]
@@ -1015,9 +1015,14 @@ getParaProps displayMathPara = do
   props <- asks envParaProperties
   listLevel <- asks envListLevel
   numid <- asks envListNumId
+  numIdUsed <- gets stNumIdUsed
+  -- clear numId after first use to support multiple paragraphs in the same bullet
+  -- baseListId is the code for no list marker
+  let numid' = if numIdUsed then baseListId else numid
+  modify $ \st -> st{ stNumIdUsed = True }
   let listPr = [mknode "w:numPr" []
                 [ mknode "w:ilvl" [("w:val",tshow listLevel)] ()
-                , mknode "w:numId" [("w:val",tshow numid)] () ] | listLevel >= 0 && not displayMathPara]
+                , mknode "w:numId" [("w:val",tshow numid')] () ] | listLevel >= 0 && not displayMathPara]
   return $ case listPr ++ squashProps props of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]

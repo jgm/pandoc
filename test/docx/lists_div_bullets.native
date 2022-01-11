@@ -1,0 +1,5 @@
+[ BulletList
+  [ [ Div ( "", [], []) [ Para [ Str "one" ], Para [ Str "two" ] ] ]
+  , [ Div ( "refs", [], []) [ Header 1 ( "" , [] , [] ) [ Str "three" ], Para [ Str "four" ] ] ]
+  ]
+]
