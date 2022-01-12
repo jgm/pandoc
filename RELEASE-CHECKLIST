@@ -2,6 +2,7 @@
 [ ] make README.md and commit if needed
 [ ] make man/pandoc.1 and commit if needed
 [ ] Finalize changelog
+[ ] Update AUTHORS
 [ ] push release candidate branch rc/VERSION and (if it builds
     successfully) download artifacts
 [ ] run tools/build-arm.sh to create and download arm64 linux package
