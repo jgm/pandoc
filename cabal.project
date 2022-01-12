@@ -5,28 +5,6 @@ constraints: aeson >= 2.0.1.0
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/commonmark-hs
-  tag: 530c6d93c9d7f84b1d71e10d23c1bfaee82e86bd
-  subdir: commonmark-pandoc
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/commonmark-hs
-  tag: 530c6d93c9d7f84b1d71e10d23c1bfaee82e86bd
-  subdir: commonmark-extensions
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/commonmark-hs
-  tag: 530c6d93c9d7f84b1d71e10d23c1bfaee82e86bd
-  subdir: commonmark
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/ipynb.git
   tag: 00246af10885c2ad4413ace4f69a7e6c88297a08
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/citeproc.git
-  tag: 81f8a77b7378f3e7305fb0ea1554e9a4726d4ade

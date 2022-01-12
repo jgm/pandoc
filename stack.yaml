@@ -33,19 +33,12 @@ extra-deps:
 - unicode-transforms-0.4.0
 - unicode-data-0.2.0
 - texmath-0.12.4
+- commonmark-0.2.1.1
+- commonmark-extensions-0.2.2.1
+- commonmark-pandoc-0.2.1.1
+- citeproc-0.6.0.1
 - git: https://github.com/jgm/ipynb.git
   commit: 00246af10885c2ad4413ace4f69a7e6c88297a08
-- git: https://github.com/jgm/citeproc.git
-  commit: 81f8a77b7378f3e7305fb0ea1554e9a4726d4ade
-- git: https://github.com/jgm/commonmark-hs
-  commit: 530c6d93c9d7f84b1d71e10d23c1bfaee82e86bd
-  subdir: commonmark
-- git: https://github.com/jgm/commonmark-hs
-  commit: 530c6d93c9d7f84b1d71e10d23c1bfaee82e86bd
-  subdir: commonmark-pandoc
-- git: https://github.com/jgm/commonmark-hs
-  commit: 530c6d93c9d7f84b1d71e10d23c1bfaee82e86bd
-  subdir: commonmark-extensions
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
