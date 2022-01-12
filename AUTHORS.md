@@ -134,6 +134,7 @@
 - Jan Larres
 - Jan Schulz
 - Jan Tojnar
+- Jannik Buhr
 - Jan-Otto Kröpke
 - Jared Lander
 - Jason Ronallo
@@ -141,6 +142,7 @@
 - Jeff Runningen
 - Jens Getreu
 - Jens Petersen
+- Jesse Hathaway
 - Jérémy Bobbio
 - Jeroen de Haas
 - Jerry Sky
@@ -178,6 +180,7 @@
 - Loïc Grobol
 - Lorenzo
 - Lucas Escot
+- Lucas Viana
 - Luke Plant
 - Marc Schreiber
 - Mark Szepieniec
@@ -250,6 +253,7 @@
 - S.P.H
 - Salim B
 - Samuel Tardieu
+- Saumel Lemmenmeier
 - Sascha Wilde
 - Scott Morrison
 - Sebastian Talmon
@@ -272,6 +276,7 @@
 - Thomas Hodgson
 - Thomas Weißschuh
 - Tim Lin
+- Tim Wisotzki
 - Timm Albers
 - Timothy Humphries
 - Tiziano Müller
@@ -279,6 +284,7 @@
 - Tom Leese
 - Tristan Stenner
 - Tristan de Cacqueray
+- Tuong Nguyen Manh
 - Uli Köhler
 - Urs Liska
 - Václav Haisman
