@@ -32,8 +32,7 @@ extra-deps:
 - aeson-pretty-0.8.9
 - unicode-transforms-0.4.0
 - unicode-data-0.2.0
-- git: https://github.com/jgm/texmath.git
-  commit: 9a5b233a6a995b6b6d11051367984c76e457d9f7
+- texmath-0.12.4
 - git: https://github.com/jgm/ipynb.git
   commit: 00246af10885c2ad4413ace4f69a7e6c88297a08
 - git: https://github.com/jgm/citeproc.git
