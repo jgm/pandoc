@@ -99,9 +99,7 @@
 
   * HTML reader:
 
-    + Parse attributes on links and images.
-
-    Closes #6970.
+    + Parse attributes on links and images (#6970).
 
  * Docx reader:
 
@@ -150,9 +148,9 @@
       A special type is no longer necessary. This change also makes it
       possible to use the global variable with library functions such as
       `pandoc.utils.references`, or to inspect the document contents with
-    `walk()`.
+      `walk()`.
 
-    * LaTeX writer:
+  * LaTeX writer:
 
     + Fix typo `panjabi` -> `punjabi` in babel mappings (#7814).
 
@@ -202,12 +200,9 @@
 
   * Ms writer: properly encode strings for PDF contents (#7731).
 
-  * JATS writer: keep quotes in element-citations
-
-    The JATS writer was losing quotes in element-citations, as it uses the
-    `T.P.Citeproc.getReferences` function to get references. That function
-    replaces `Quoted` elements with spans. That transformation is required
-    in `T.P.Citeproc.processCitations`, so it has been moved there.
+  * JATS writer: keep quotes in element-citations (Albert Krewinkel).
+    Fixed a bug that lead to quote characters being lost in
+    element-citations.
 
   * RTF writer:
 
@@ -350,11 +345,11 @@
 
   * Lua (Albert Krewinkel):
 
-    + Allow single elements as singleton MetaBlocks/MetaInlines Single
+    + Allow single elements as singleton MetaBlocks/MetaInlines. Single
       elements should always be treated as singleton lists in the Lua
       subsystem.
-    + Add `pandoc.template` module The module provides a `compile` function
-      to use strings as templates.
+    + Add `pandoc.template` module. The module provides a `compile`
+      function to use strings as templates.
     + Add `pandoc.WriterOptions` constructor.
     + Add function `pandoc.write`.
     + Provide global `PANDOC_WRITER_OPTIONS` (#5221).
@@ -381,6 +376,7 @@
     + Marshal ReaderOptions field `extensions`, `track_changes` via JSON.
       Extensions are now available as a list of strings; the track-changes
       settings are given as the kebab-case representation used in JSON.
+    + Allow binary (byte string) readers to be used with `pandoc.read`.
     + Use global state when parsing documents in `pandoc.read`.
       The function `pandoc.read` is updated to use the same state that was
       used while parsing the main input files. This ensures that log
@@ -389,9 +385,6 @@
     + Cleanup stack in `peekReadOptionsTable`. A ReaderOptions element was
       left on top of the stack when the `peekReadOptionsTable` function
       was invoked.
-    + Remove roundtrip tests. Property tests that roundtrip elements
-      through the Lua stack are performed in the test-suite of
-      the pandoc-lua-marshal package. No need to test this here as well.
     + `walk` methods are added to `Block` and `Inline` values; the methods
       are similar to `pandoc.utils.walk_block` and
       `pandoc.utils.walk_inline`, but apply to filter also to the element
@@ -399,7 +392,6 @@
       element.
     + Functions of name `Doc` are no longer accepted as alternatives for
       `Pandoc` filter functions. This functionality was undocumented.
-    + Allow binary (byte string) readers to be used with `pandoc.read`.
     + Improve handling of empty caption, body by `from_simple_table`
       #7776). Create truly empty table caption and body when these are
       empty in the simple table.
@@ -428,8 +420,8 @@
     The marshaling functions for pandoc's AST are extracted into a separate
     package. The package comes with a number of changes:
 
-    + Pandoc's List module was rewritten in C, thereby improving error
-      messages.
+    + Pandoc's List module was rewritten in C, and error messages were
+      improved.
     + Lists of `Block` and `Inline` elements are marshaled using the new
       list types `Blocks` and `Inlines`, respectively. These types
       currently behave identical to the generic List type, but give better
