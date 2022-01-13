@@ -120,7 +120,7 @@
 
   * Markdown writer:
 
-    + Add new exported function `writeMarkua` from T.P.Writers.Markdown
+    + Add new exported function `writeMarkua` from Text.Pandoc.Writers.Markdown
       [API change] (#1871, Tim Wisotzki and Saumel Lemmenmeier).
     + Fix indentation issue in footnotes (#7801).
     + Avoid extra space before citation suffix if it already starts
