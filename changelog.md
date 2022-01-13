@@ -2,7 +2,7 @@
 
 ## pandoc 2.17 (2022-01-12)
 
-  * Support `markua` as an output format Add (#1871, Tim Wisotzki and
+  * Support `markua` as an output format (#1871, Tim Wisotzki and
     Saumel Lemmenmeier). Markua is a markdown variant used by Leanpub.
 
   * Add text wrapping for HTML output (#7764). Previously the HTML writer
