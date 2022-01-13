@@ -93,8 +93,8 @@ processCitations (Pandoc meta bs) = do
                      B.divWith ("ref-" <> ident,["csl-entry"],[]) . B.para .
                          insertSpace $ out)
                       (resultBibliography result)
-  let moveNotes = styleIsNoteStyle sopts &&
-           maybe True truish (lookupMeta "notes-after-punctuation" meta)
+  let moveNotes = maybe (styleIsNoteStyle sopts) truish
+                   (lookupMeta "notes-after-punctuation" meta)
   let cits = resultCitations result
 
   let metanocites = lookupMeta "nocite" meta

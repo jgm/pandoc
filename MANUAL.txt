@@ -5727,13 +5727,16 @@ A few other metadata fields affect bibliography formatting:
        before lower (default is lower before upper).
 
 `notes-after-punctuation`
-:    If true (the default), pandoc will put footnote citations
+:    If true (the default for note styles), pandoc will put
+     footnote references or superscripted numerical citations
      after following punctuation.  For example, if the source
      contains `blah blah [@jones99].`, the result will look like
      `blah blah.[^1]`, with the note moved after the period and
      the space collapsed.  If false, the space will still be
      collapsed, but the footnote will not be moved after the
-     punctuation.
+     punctuation.  The option may also be used in numerical styles
+     that use superscripts for citation numbers (but for these
+     styles the default is not to move the citation).
 
 
 # Slide shows
