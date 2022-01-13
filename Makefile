@@ -136,7 +136,7 @@ pandoc-templates:
 	popd
 
 trypandoc:
-	ssh -t macfarlane 'cd src/pandoc && git pull && stack install --flag pandoc:trypandoc --flag pandoc:embed_data_files && cd trypandoc && sudo make install'
+	ssh -t macfarlane 'cd src/pandoc && git pull && cabal update && cabal install -ftrypandoc -fembed_data_files --install-method=copy --overwrite-policy=always && cd trypandoc && sudo make install'
 
 update-website:
 	make -C $(WEBSITE) update
