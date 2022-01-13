@@ -42,7 +42,7 @@
       Previously `@item [p. 12; @item2]` was incorrectly parsed as
       three citations rather than two.  This is now fixed by ensuring
       that `prefix` doesn't gobble any semicolons.
-    + Revert changes to `inlinesInBlanacedBrackets` (commit fa83246),
+    + Revert changes to `inlinesInBalancedBrackets` (commit fa83246),
       which caused regressions.
     + Improve detection of pipe table line widths (#7713).  Fixed
       calculation of maximum column widths in pipe tables.  It is
