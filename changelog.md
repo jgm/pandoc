@@ -269,11 +269,9 @@
       `document-css`.  Setting the `document-css` variable will cause it
       not to be ignored.
 
-  * HTML template:
-
-    + Add abstract (#7588, Jannik Buhr, John MacFarlane).  By default,
-      a localized title (the word "Abstract") will be used, unless the
-      variable `abstract-title` is set.
+  * HTML template:  Add abstract (#7588, Jannik Buhr, John MacFarlane).
+    By default, a localized title (the word "Abstract") will be
+    used, unless the variable `abstract-title` is set.
 
   * ConTeXt template:  Make title appear in PDF title bar.  This is
     recommended for accessibility reasons.  Note: doesn't work with macOS
