@@ -52,6 +52,7 @@ import Data.Text (Text, unpack)
 import Data.Default (def)
 import qualified Data.Text as T
 import qualified Data.Map as M
+import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
 import Data.Aeson (defaultOptions, Options(..), Result(..), fromJSON, camelTo2)
 import Data.Aeson.TH (deriveJSON)
@@ -692,7 +693,7 @@ applyDefaults opt file = do
   setVerbosity $ optVerbosity opt
   modify $ \defsState -> defsState{ curDefaults = Just file }
   inp <- readFileStrict file
-  case decodeEither' inp of
+  case decodeEither' (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
       Right f -> f opt
       Left err'  -> throwError $
          PandocParseError
