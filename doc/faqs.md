@@ -134,3 +134,21 @@ example,
 
 :::
 
+## When I convert from ipynb, some visualizations aren't showing up.
+
+First, unless your target is a binary format (docx, odt, epub),
+you must use either `--extract-media` or (for HTML only)
+`--self-contained` to make the images in the ipynb container
+available to your output file.
+
+Second, some Jupyter extensions, especially those that use JavaScript
+for visualizations, assume the presence of
+[`require.js`](https://github.com/requirejs/requirejs).
+To ensure that this script is available in your HTML output, you
+can use:
+
+```
+pandoc -s -o output.html input.ipynb \
+-V header-includes='<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>'
+```
+
