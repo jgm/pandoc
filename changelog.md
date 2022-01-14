@@ -1,5 +1,33 @@
 # Revision history for pandoc
 
+## pandoc 2.17.0.1 (2022-01-14)
+
+  * Require pandoc-lua-marshal 0.1.3.1 (#7831, Albert Krewinkel).
+    Fixes a problem with `List.includes` and `List.find` that caused a
+    Lua stackoverflow and subsequent program crash.
+
+  * HTML template: load header-includes before math (#7833, Kolen Cheung).
+    MathJax expect the config comes before loading the MathJax script.
+    This change of order allows one to config MathJax via
+    header-includes, which loads before the MathJax script. Cf. #2750.
+
+  * When reading defaults file, stop at a line `...`.  This line signals
+    the end of a YAML document.  This restores the behavior we got with
+    HsYaml.  yaml complains about content past this line.  See
+    https://github.com/jgm/pandoc/issues/4627#issuecomment-1012438765
+
+  * Text.Pandoc.Citeproc: allow `notes-after-punctuation` to work with
+    numerical styles that use superscripts (e.g.
+    american-medical-association.csl), as well as with note styles. The
+    default setting of `notes-after-punctuation` is true for note styles
+    and false otherwise.  This restores a behavior of pandoc-citeproc
+    that wasn't properly carried over to Citeproc (#7826, cf.
+    jgm/pandoc-citeproc#384).
+
+  * Use commonmark-pandoc 0.2.1.2 (#7769).
+
+  * Add FAQ on images in ipynb containers (#7749, Kolen Cheung).
+
 ## pandoc 2.17 (2022-01-12)
 
   * Support `markua` as an output format (#1871, Tim Wisotzki and
@@ -383,7 +411,7 @@
       attributes are accessible through the `.attr` field. Rows in `TableHead`
       and `TableFoot` are available via the `.rows` field. Row objects have a
       `.cells` field, containing the list of table cells.
-    + Simplify code of `pandoc.utils.stringify`. Minor behavior change:
+    + [Simplify](Simplify) code of `pandoc.utils.stringify`. Minor behavior change:
       plain strings nested in tables are now included in the result string.
     + Simplify and deprecate function `pandoc.utils.equals`. The function
       is no longer required for element comparisons; it is now an alias
