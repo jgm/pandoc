@@ -35,7 +35,7 @@ extra-deps:
 - texmath-0.12.4
 - commonmark-0.2.1.1
 - commonmark-extensions-0.2.3
-- commonmark-pandoc-0.2.1.1
+- commonmark-pandoc-0.2.1.2
 - citeproc-0.6.0.1
 - ipynb-0.2
 ghc-options:
