@@ -6441,33 +6441,16 @@ soft line breaks in Markdown cells; `--atx-headers` will
 cause ATX-style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
 
-## Image media
-
-When the ipynb input has media such as svg, png, pdf,
-you may want to use `--self-contained` for any of the supported
-output formats including HTML, or use `--extract-media` in general.
-
-## Javascript media
-
-When converting from ipynb, some Jupyter extensions,
-especially those that uses javascript for visualization,
+Regarding media, `--self-contained`/`--extract-media` can be used
+to include them in the output format,
+whereas some javascript media
 expects the presence of
-[`require.js`](https://github.com/requirejs/requirejs).
-In this case when converting say from ipynb to html,
-you can add the following
-either via `header-includes` in metadata or
-`--include-in-header` on the command line:
+[`require.js`](https://github.com/requirejs/requirejs),
+where you may load this using `header-includes`, such as
 
-```
+```html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js">
 </script>
-```
-
-such as
-
-```
-pandoc -s -o require.html require.ipynb \
--V header-includes='<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>'
 ```
 
 # Syntax highlighting
