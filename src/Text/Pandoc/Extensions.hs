@@ -434,6 +434,9 @@ getDefaultExtensions "jats_articleauthoring" = getDefaultExtensions "jats"
 getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions "markua"          = extensionsFromList
                                           []
+getDefaultExtensions "asciidoc" =  extensionsFromList
+                                     [Ext_auto_identifiers,
+                                      Ext_task_lists]
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
 

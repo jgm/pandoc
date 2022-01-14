@@ -10,14 +10,11 @@ import Text.Pandoc.Builder
 
 defopts :: WriterOptions
 defopts = def
-  { writerExtensions = getAllExtensions "asciidoc"
+  { writerExtensions = getDefaultExtensions "asciidoc"
   }
 
-asciidocWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-asciidocWithOpts opts = unpack . purely (writeAsciiDoc opts) . toPandoc
-
 asciidoc :: (ToPandoc a) => a -> String
-asciidoc = asciidocWithOpts defopts
+asciidoc = unpack . purely (writeAsciiDoc defopts) . toPandoc
 
 testAsciidoc :: (ToString a, ToPandoc a)
              => String
@@ -89,11 +86,6 @@ tests = [ testGroup "emphasis"
                bulletList [plain "☐ a", plain "☒ b"] =?> unlines
                                            [ "* [ ] a"
                                            , "* [X] b"
-                                           ]
-          , test (asciidocWithOpts def) "bullet without task_lists" $
-               bulletList [plain "☐ a", plain "☒ b"] =?> unlines
-                                           [ "* ☐ a"
-                                           , "* ☒ b"
                                            ]
           ]
         ]

@@ -389,9 +389,8 @@ orderedListItemToAsciiDoc :: PandocMonad m
                           -> ADW m (Doc Text)
 orderedListItemToAsciiDoc opts blocks = do
   lev <- gets orderedListLevel
-  let exts = writerExtensions opts
   modify $ \s -> s{ orderedListLevel = lev + 1 }
-  contents <- foldM (addBlock opts) empty (taskListItemToAsciiDoc exts blocks)
+  contents <- foldM (addBlock opts) empty blocks
   modify $ \s -> s{ orderedListLevel = lev }
   let marker = text (replicate (lev + 1) '.')
   return $ marker <> text " " <> listBegin blocks <> contents <> cr
