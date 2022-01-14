@@ -499,7 +499,9 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "muse"            = autoIdExtensions <>
     extensionsFromList
     [ Ext_amuse ]
-  getAll "asciidoc"        = autoIdExtensions
+  getAll "asciidoc"        = autoIdExtensions <>
+    extensionsFromList
+    [ Ext_task_lists ]
   getAll "plain"           = allMarkdownExtensions
   getAll "gfm"             = getAll "commonmark"
   getAll "commonmark"      =

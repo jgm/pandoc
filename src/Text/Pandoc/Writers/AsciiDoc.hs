@@ -248,13 +248,13 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
              $ zipWith colspec aligns widths')
          <> text ","
          <> headerspec <> text "]"
-         
+
   -- construct cells and recurse in case of nested tables
   parentTableLevel <- gets tableNestingLevel
   let currentNestingLevel = parentTableLevel + 1
-  
+
   modify $ \st -> st{ tableNestingLevel = currentNestingLevel }
-  
+
   let separator = text (if parentTableLevel == 0
                           then "|"  -- top level separator
                           else "!") -- nested separator
@@ -283,7 +283,7 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
   let maxwidth = maximum $ fmap offset (head' :| rows')
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
   let border = separator <> text "==="
-  return $ 
+  return $
     caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
   inlist <- gets inList
@@ -341,12 +341,22 @@ bulletListItemToAsciiDoc :: PandocMonad m
                          => WriterOptions -> [Block] -> ADW m (Doc Text)
 bulletListItemToAsciiDoc opts blocks = do
   lev <- gets bulletListLevel
+  let exts = writerExtensions opts
   modify $ \s -> s{ bulletListLevel = lev + 1 }
-  contents <- foldM (addBlock opts) empty blocks
+  contents <- foldM (addBlock opts) empty (taskListItemToAsciiDoc exts blocks)
   modify $ \s -> s{ bulletListLevel = lev }
   let marker = text (replicate (lev + 1) '*')
   return $ marker <> text " " <> listBegin blocks <>
     contents <> cr
+
+-- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
+-- or @U+2612 BALLOT BOX WITH X@ to org checkbox syntax (e.g. @[X]@).
+taskListItemToAsciiDoc :: Extensions -> [Block] -> [Block]
+taskListItemToAsciiDoc = handleTaskListItem toOrg
+  where
+    toOrg (Str "☐" : Space : is) = Str "[ ]" : Space : is
+    toOrg (Str "☒" : Space : is) = Str "[X]" : Space : is
+    toOrg is = is
 
 addBlock :: PandocMonad m
          => WriterOptions -> Doc Text -> Block -> ADW m (Doc Text)
@@ -379,8 +389,9 @@ orderedListItemToAsciiDoc :: PandocMonad m
                           -> ADW m (Doc Text)
 orderedListItemToAsciiDoc opts blocks = do
   lev <- gets orderedListLevel
+  let exts = writerExtensions opts
   modify $ \s -> s{ orderedListLevel = lev + 1 }
-  contents <- foldM (addBlock opts) empty blocks
+  contents <- foldM (addBlock opts) empty (taskListItemToAsciiDoc exts blocks)
   modify $ \s -> s{ orderedListLevel = lev }
   let marker = text (replicate (lev + 1) '.')
   return $ marker <> text " " <> listBegin blocks <> contents <> cr
