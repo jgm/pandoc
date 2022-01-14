@@ -678,7 +678,7 @@ header when requesting a document from a URL:
     the source document to the path *DIR*, creating it if
     necessary, and adjust the images references in the document
     so they point to the extracted files.  Media are downloaded,
-    read from the file system, or extracted from a binary
+    read from the file system, or extracted from a
     container (e.g. docx, ipynb), as needed.  The original file paths
     are used if they are relative paths not containing `..`.
     Otherwise filenames are constructed from the SHA1 hash of
