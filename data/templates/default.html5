@@ -23,15 +23,15 @@ $endif$
 $for(css)$
   <link rel="stylesheet" href="$css$" />
 $endfor$
+$for(header-includes)$
+  $header-includes$
+$endfor$
 $if(math)$
   $math$
 $endif$
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
-$for(header-includes)$
-  $header-includes$
-$endfor$
 </head>
 <body>
 $for(include-before)$
