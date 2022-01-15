@@ -27,7 +27,6 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
-import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -229,7 +228,7 @@ definitionListItemToMan :: PandocMonad m
 definitionListItemToMan opts (label, defs) = do
   -- in most man pages, option and other code in option lists is boldface,
   -- but not other things, so we try to reproduce this style:
-  labelText <- inlineListToMan opts $ makeCodeBold label
+  labelText <- inlineListToMan opts label
   contents <- if null defs
                  then return empty
                  else liftM vcat $ forM defs $ \case
@@ -246,11 +245,6 @@ definitionListItemToMan opts (label, defs) = do
                                         else literal ".RS" $$ rest' $$ literal ".RE"
                           [] -> return empty
   return $ literal ".TP" $$ nowrap labelText $$ contents
-
-makeCodeBold :: [Inline] -> [Inline]
-makeCodeBold = walk go
-  where go x@Code{} = Strong [x]
-        go x        = x
 
 -- | Convert list of Pandoc block elements to man.
 blockListToMan :: PandocMonad m
@@ -293,7 +287,8 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan opts (Code _ str) =
-  withFontFeature 'C' (return (literal $ escString opts str))
+  withFontFeature 'B' $ withFontFeature 'C' $
+    return (literal $ escString opts str)
 inlineToMan opts (Str str@(T.uncons -> Just ('.',_))) =
   return $ afterBreak "\\&" <> literal (escString opts str)
 inlineToMan opts (Str str) = return $ literal $ escString opts str
