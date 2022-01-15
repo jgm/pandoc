@@ -341,9 +341,10 @@ bulletListItemToAsciiDoc :: PandocMonad m
                          => WriterOptions -> [Block] -> ADW m (Doc Text)
 bulletListItemToAsciiDoc opts blocks = do
   lev <- gets bulletListLevel
-  let exts = writerExtensions opts
   modify $ \s -> s{ bulletListLevel = lev + 1 }
-  contents <- foldM (addBlock opts) empty (taskListItemToAsciiDoc exts blocks)
+  isAsciidoctor <- gets asciidoctorVariant
+  let blocksWithTaskList = if isAsciidoctor then (taskListItemToAsciiDoc blocks) else blocks
+  contents <- foldM (addBlock opts) empty blocksWithTaskList
   modify $ \s -> s{ bulletListLevel = lev }
   let marker = text (replicate (lev + 1) '*')
   return $ marker <> text " " <> listBegin blocks <>
@@ -351,8 +352,8 @@ bulletListItemToAsciiDoc opts blocks = do
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
 -- or @U+2612 BALLOT BOX WITH X@ to org checkbox syntax (e.g. @[X]@).
-taskListItemToAsciiDoc :: Extensions -> [Block] -> [Block]
-taskListItemToAsciiDoc = handleTaskListItem toOrg
+taskListItemToAsciiDoc :: [Block] -> [Block]
+taskListItemToAsciiDoc = handleTaskListItemNoExtsCheck toOrg
   where
     toOrg (Str "☐" : Space : is) = Str "[ ]" : Space : is
     toOrg (Str "☒" : Space : is) = Str "[X]" : Space : is

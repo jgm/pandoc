@@ -434,9 +434,6 @@ getDefaultExtensions "jats_articleauthoring" = getDefaultExtensions "jats"
 getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions "markua"          = extensionsFromList
                                           []
-getDefaultExtensions "asciidoc" =  extensionsFromList
-                                     [Ext_auto_identifiers,
-                                      Ext_task_lists]
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
 
@@ -502,9 +499,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "muse"            = autoIdExtensions <>
     extensionsFromList
     [ Ext_amuse ]
-  getAll "asciidoc"        = autoIdExtensions <>
-    extensionsFromList
-    [ Ext_task_lists ]
+  getAll "asciidoc"        = autoIdExtensions
   getAll "plain"           = allMarkdownExtensions
   getAll "gfm"             = getAll "commonmark"
   getAll "commonmark"      =
