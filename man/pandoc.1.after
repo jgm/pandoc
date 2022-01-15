@@ -1,3 +1,5 @@
 .PP
-The Pandoc source code and all documentation may be downloaded
-from <https://pandoc.org>.
+The Pandoc source code may be downloaded
+from <https://hackage.haskell.org/package/pandoc> or
+<https://github.com/jgm/pandoc/releases>.  Further
+documentation is available at <https://pandoc.org>.
