@@ -79,8 +79,7 @@ x &= y\\\end{aligned}\]
 \newcommand{\my}{\phi}
 
 \begin{equation}
-\phi+\phi
-\end{equation}
+\phi+\phi\end{equation}
 ```
 
 ```

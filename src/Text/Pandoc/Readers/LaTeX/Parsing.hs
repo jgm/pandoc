@@ -120,6 +120,7 @@ import Text.Pandoc.Readers.LaTeX.Types (ExpansionPoint (..), Macro (..),
 import Text.Pandoc.Shared
 import Text.Parsec.Pos
 import Text.Pandoc.Walk
+import Debug.Trace
 
 newtype DottedNum = DottedNum [Int]
   deriving (Show, Eq)
@@ -369,27 +370,27 @@ tokenize = totoks
                       -- to \makeatletter and \makeatother, but this is
                       -- probably best for now
                       let (ws, rest'') = T.span isLetterOrAt rest
-                          (ss, rest''') = T.span isSpaceOrTab rest''
+                          (ss, rest''') = spanSpaces rest''
+                          newsp = if T.any (== '\n') ss
+                                     then setSourceColumn
+                                            (incSourceLine pos 1)
+                                            (1 + T.length
+                                              (T.takeWhileEnd (/='\n') ss))
+                                     else incSourceColumn pos
+                                            (1 + T.length ws + T.length ss)
                       in  Tok pos (CtrlSeq ws) ("\\" <> ws <> ss)
-                          : totoks (incSourceColumn pos
-                               (1 + T.length ws + T.length ss)) rest'''
+                          : totoks newsp rest'''
                   | isSpaceOrTab d || d == '\n' ->
-                      let (w1, r1) = T.span isSpaceOrTab rest
-                          (w2, (w3, r3)) = case T.uncons r1 of
-                                          Just ('\n', r2)
-                                                  -> (T.pack "\n",
-                                                        T.span isSpaceOrTab r2)
-                                          _ -> (mempty, (mempty, r1))
-                          ws = "\\" <> w1 <> w2 <> w3
-                      in  case T.uncons r3 of
-                               Just ('\n', _) ->
-                                 Tok pos (CtrlSeq " ") ("\\" <> w1)
-                                 : totoks (incSourceColumn pos (T.length ws))
-                                   r1
-                               _ ->
-                                 Tok pos (CtrlSeq " ") ws
-                                 : totoks (incSourceColumn pos (T.length ws))
-                                   r3
+                      let (ss', r1) = spanSpaces rest'
+                          ss = T.singleton d <> ss'
+                          newsp = if T.any (== '\n') ss
+                                     then setSourceColumn
+                                            (incSourceLine pos 1)
+                                            (1 + T.length
+                                              (T.takeWhileEnd (/='\n') ss))
+                                     else incSourceColumn pos (1 + T.length ss)
+                      in  Tok pos (CtrlSeq " ") ("\\" <> ss) :
+                          totoks newsp r1
                   | otherwise  ->
                       Tok pos (CtrlSeq (T.singleton d)) (T.pack [c,d])
                       : totoks (incSourceColumn pos 2) rest'
@@ -430,6 +431,18 @@ isSpaceOrTab :: Char -> Bool
 isSpaceOrTab ' '  = True
 isSpaceOrTab '\t' = True
 isSpaceOrTab _    = False
+
+-- gobble spaces and at most one newline not followed by a blank line
+spanSpaces :: Text -> (Text, Text)
+spanSpaces t =
+  let (a, r1) = T.span isSpaceOrTab t
+  in  case T.uncons r1 of
+        Just ('\n', r2) ->
+          let (b, r3) = T.span isSpaceOrTab r2
+           in case T.uncons r3 of
+                Just ('\n', _) -> (a, r1)  -- blank line
+                _ -> (a <> "\n" <> b, r3)
+        _ -> (a, r1)
 
 isLetterOrAt :: Char -> Bool
 isLetterOrAt '@' = True

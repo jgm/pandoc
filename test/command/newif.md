@@ -43,9 +43,7 @@ should not print
 should print
 \fi
 ^D
-should print
-
-should print
+should print should print
 
 should print
 

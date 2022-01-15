@@ -1312,7 +1312,7 @@ Pandoc
                 ]
             ]
         ]
-      , [ RawBlock (Format "latex") "\\doublespacing" ]
+      , [ RawBlock (Format "latex") "\\doublespacing\n" ]
       , [ Para [ Math InlineMath "2+2=4" ] ]
       , [ Para [ Math InlineMath "x \\in y" ] ]
       , [ Para [ Math InlineMath "\\alpha \\wedge \\omega" ] ]

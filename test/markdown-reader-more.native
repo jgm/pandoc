@@ -67,16 +67,10 @@ Pandoc
       , Space
       , Str "environments"
       ]
-  , RawBlock (Format "tex") "\\placeformula \\startformula"
-  , Para
-      [ Str "L_{1}"
-      , Space
-      , Str "="
-      , Space
-      , Str "L_{2}"
-      , SoftBreak
-      , RawInline (Format "tex") "\\stopformula"
-      ]
+  , RawBlock (Format "tex") "\\placeformula"
+  , RawBlock
+      (Format "tex")
+      "\\startformula\n   L_{1} = L_{2}\n   \\stopformula"
   , RawBlock
       (Format "tex")
       "\\start[a2]\n\\start[a2]\n\\stop[a2]\n\\stop[a2]"
