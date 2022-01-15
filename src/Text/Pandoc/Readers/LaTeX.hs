@@ -771,33 +771,18 @@ blockCommand :: PandocMonad m => LP m Blocks
 blockCommand = try $ do
   Tok _ (CtrlSeq name) txt <- anyControlSeq
   guard $ name /= "begin" && name /= "end" && name /= "and"
+  guard $ isBlockCommand name || not (isInlineCommand name)
+  unless (isBlockCommand name) $
+    -- if it could be either inline or block, take it to be inline
+    -- if regular text follows:
+    notFollowedBy $ try $ optional whitespace >> satisfyTok isWordTok
   star <- option "" ("*" <$ symbol '*' <* sp)
   let name' = name <> star
   let names = ordNub [name', name]
-  let rawDefiniteBlock = do
-        guard $ isBlockCommand name
+  let raw = do
         rawcontents <- getRawCommand name (txt <> star)
         (guardEnabled Ext_raw_tex >> return (rawBlock "latex" rawcontents))
           <|> ignore rawcontents
-  -- heuristic:  if it could be either block or inline, we
-  -- treat it if block if we have a sequence of block
-  -- commands followed by a newline.  But we stop if we
-  -- hit a \startXXX, since this might start a raw ConTeXt
-  -- environment (this is important because this parser is
-  -- used by the Markdown reader).
-  let startCommand = try $ do
-        Tok _ (CtrlSeq n) _ <- anyControlSeq
-        guard $ "start" `T.isPrefixOf` n
-  let rawMaybeBlock = try $ do
-        guard $ not $ isInlineCommand name
-        rawcontents <- getRawCommand name (txt <> star)
-        curr <- (guardEnabled Ext_raw_tex >>
-                    return (rawBlock "latex" rawcontents))
-                   <|> ignore rawcontents
-        rest <- many $ notFollowedBy startCommand *> blockCommand
-        lookAhead $ blankline <|> startCommand
-        return $ curr <> mconcat rest
-  let raw = rawDefiniteBlock <|> rawMaybeBlock
   lookupListDefault raw names blockCommands
 
 closing :: PandocMonad m => LP m Blocks
