@@ -57,7 +57,7 @@ use the `-s` or `--standalone` flag:
 For more information on how standalone documents are produced, see
 [Templates] below.
 
-If multiple input files are given, `pandoc` will concatenate them all (with
+If multiple input files are given, pandoc will concatenate them all (with
 blank lines between them) before parsing. (Use `--file-scope` to parse files
 individually.)
 
@@ -80,7 +80,7 @@ can also use `pandoc --list-input-formats` and
 `pandoc --list-output-formats` to print lists of supported
 formats.
 
-If the input or output format is not specified explicitly, `pandoc`
+If the input or output format is not specified explicitly, pandoc
 will attempt to guess it from the extensions of the filenames.
 Thus, for example,
 
@@ -5479,13 +5479,13 @@ If both an external bibliography and inline (YAML metadata)
 references are provided, both will be used. In case of
 conflicting `id`s, the inline references will take precedence.
 
-Note that `pandoc` can be used to produce such a YAML metadata
+Note that pandoc can be used to produce such a YAML metadata
 section from a BibTeX, BibLaTeX, or CSL JSON bibliography:
 
     pandoc chem.bib -s -f biblatex -t markdown
     pandoc chem.json -s -f csljson -t markdown
 
-Indeed, `pandoc` can convert between any of these
+Indeed, pandoc can convert between any of these
 citation formats:
 
     pandoc chem.bib -s -f biblatex -t csljson
@@ -5686,7 +5686,7 @@ whether or not they appear in the document, by using a wildcard:
 For LaTeX output, you can also use [`natbib`] or [`biblatex`] to
 render the bibliography. In order to do so, specify bibliography
 files as outlined above, and add `--natbib` or `--biblatex`
-argument to `pandoc` invocation. Bear in mind that bibliography
+argument to pandoc invocation. Bear in mind that bibliography
 files have to be in either BibTeX (for `--natbib`)
 or BibLaTeX (for `--biblatex`) format.
 
