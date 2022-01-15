@@ -1,10 +1,16 @@
-.\" Define V font for inline verbatim, using CB font in formats
+.\" Define V font for inline verbatim, using C font in formats
 .\" that render this, and otherwise B font.
 .ie "\f[CB]x\f[]"x" \{\
 . ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
 .\}
 .el \{\
-. ftr V CB
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
 .\}
 .TH "Pandoc Test Suite" "" "July 17, 2006" "" ""
 .hy
