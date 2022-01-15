@@ -96,7 +96,7 @@ verbTok stopchar = do
          let (t1, t2) = T.splitAt i txt
          inp <- getInput
          setInput $ Tok (incSourceColumn pos i) Symbol (T.singleton stopchar)
-                  : totoks (incSourceColumn pos (i + 1)) (T.drop 1 t2) ++ inp
+                  : tokenize (incSourceColumn pos (i + 1)) (T.drop 1 t2) ++ inp
          return $ Tok pos toktype t1
 
 listingsLanguage :: [(Text, Text)] -> Maybe Text

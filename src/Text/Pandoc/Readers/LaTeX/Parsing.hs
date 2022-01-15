@@ -32,7 +32,6 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , getInputTokens
   , untokenize
   , untoken
-  , totoks
   , toksToString
   , satisfyTok
   , parseFromToks
@@ -307,7 +306,7 @@ applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
       pstate <- getState
       let lstate = def{ sOptions = extractReaderOptions pstate
                       , sMacros  = extractMacros pstate :| [] }
-      res <- runParserT retokenize lstate "math" (tokenize "math" s)
+      res <- runParserT retokenize lstate "math" (tokenize (initialPos "math") s)
       case res of
            Left e   -> Prelude.fail (show e)
            Right s' -> return s'
@@ -324,7 +323,7 @@ QuickCheck property:
 tokenizeSources :: Sources -> [Tok]
 tokenizeSources = concatMap tokenizeSource . unSources
  where
-   tokenizeSource (pos, t) = totoks pos t
+   tokenizeSource (pos, t) = tokenize pos t
 
 -- Return tokens from input sources. Ensure that starting position is
 -- correct.
@@ -337,12 +336,11 @@ getInputTokens = do
       Sources [] -> []
       Sources ((_,t):rest) -> tokenizeSources $ Sources ((pos,t):rest)
 
-tokenize :: SourceName -> Text -> [Tok]
-tokenize sourcename = totoks (initialPos sourcename)
-
-totoks :: SourcePos -> Text -> [Tok]
-totoks pos t =
-  case T.uncons t of
+tokenize :: SourcePos -> Text -> [Tok]
+tokenize = totoks
+ where
+  totoks pos t =
+    case T.uncons t of
        Nothing        -> []
        Just (c, rest)
          | c == '\n' ->
@@ -806,7 +804,7 @@ retokenizeComment = (do
   let updPos (Tok pos' toktype' txt') =
         Tok (incSourceColumn (incSourceLine pos' (sourceLine pos - 1))
              (sourceColumn pos)) toktype' txt'
-  let newtoks = map updPos $ tokenize (sourceName pos) $ T.tail txt
+  let newtoks = map updPos $ tokenize pos $ T.tail txt
   getInput >>= setInput . ((Tok pos Symbol "%" : newtoks) ++))
     <|> return ()
 

@@ -126,7 +126,8 @@ resolveRefs _ x = x
 --   res <- runIOorExplode (runParserT p defaultLaTeXState{
 --             sOptions = def{ readerExtensions =
 --               enableExtension Ext_raw_tex $
---                 getDefaultExtensions "latex" }} "source" (tokenize "source" t))
+--                 getDefaultExtensions "latex" }} "source"
+--                   (tokenize (initialPos "source") t))
 --   case res of
 --        Left e  -> error (show e)
 --        Right r -> return r
@@ -721,7 +722,7 @@ insertIncluded defaultExtension f' = do
                    Nothing -> do
                      report $ CouldNotLoadIncludeFile (T.pack f) pos
                      return ""
-  getInput >>= setInput . (tokenize f contents ++)
+  getInput >>= setInput . (tokenize (initialPos f) contents ++)
   updateState dropLatestIncludeFile
 
 authors :: PandocMonad m => LP m ()
