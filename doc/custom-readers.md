@@ -737,7 +737,7 @@ local function handle_div(el)
   for i,k in ipairs(boring_attributes) do
     el.attributes[k] = nil
   end
-  if el.identifier:match("readability-") then
+  if el.identifier:match("readability%-") then
     el.identifier = ""
   end
   if #el.classes == 0 and #el.attributes == 0 and #el.identifier == 0 then
