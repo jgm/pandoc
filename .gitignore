@@ -55,3 +55,4 @@
 *.dyn_o
 *.dyn_hi
 *~
+.DS_Store
