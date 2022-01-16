@@ -65,7 +65,6 @@ module Text.Pandoc.Shared (
                      taskListItemFromAscii,
                      taskListItemToAscii,
                      handleTaskListItem,
-                     handleTaskListItemNoExtsCheck,
                      addMetaField,
                      makeMeta,
                      eastAsianLineBreakFilter,
@@ -666,12 +665,8 @@ taskListItemToAscii = handleTaskListItem toMd
 handleTaskListItem :: ([Inline] -> [Inline]) -> Extensions -> [Block] -> [Block]
 handleTaskListItem handleInlines exts bls =
   if Ext_task_lists `extensionEnabled` exts
-  then handleTaskListItemNoExtsCheck handleInlines bls
+  then handleItem bls
   else bls
-
-handleTaskListItemNoExtsCheck :: ([Inline] -> [Inline]) -> [Block] -> [Block]
-handleTaskListItemNoExtsCheck handleInlines bls =
-  handleItem bls
   where
     handleItem (Plain is : bs) = Plain (handleInlines is) : bs
     handleItem (Para is  : bs) = Para  (handleInlines is) : bs
