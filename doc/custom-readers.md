@@ -683,7 +683,7 @@ function Reader (input, opts)
 end
 ```
 
-# Example: "readable HTML" reader
+# Example: extracting the content from web pages
 
 This reader uses the command-line program `readable`
 (install via `npm install -g readability-cli`)
@@ -691,10 +691,12 @@ to clean out parts of HTML input that have to do with
 navigation, leaving only the content.
 
 ``` lua
--- Custom reader for "readable HTML."  This pipes HTML content
--- through the 'readable' program (npm install -g readability-cli)
--- and then calls the HTML reader.  In addition, Divs that seem
--- to have only a layout function are removed to avoid clutter.
+-- Custom reader that extracts the content from HTML documents,
+-- ignoring navigation and layout elements. This preprocesses input
+-- through the 'readable' program (which can be installed using
+-- 'npm install -g readability-cli') and then calls the HTML reader.
+-- In addition, Divs that seem to have only a layout function are removed
+-- to avoid clutter.
 
 function make_readable(source)
   local result
