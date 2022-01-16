@@ -9,13 +9,22 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 asciidoc :: (ToPandoc a) => a -> String
-asciidoc = unpack . purely (writeAsciiDoc def{ writerWrapText = WrapNone }) . toPandoc
+asciidoc = unpack . purely (writeAsciiDoc def) . toPandoc
+
+asciidoctor :: (ToPandoc a) => a -> String
+asciidoctor = unpack . purely (writeAsciiDoctor def) . toPandoc
 
 testAsciidoc :: (ToString a, ToPandoc a)
              => String
              -> (a, String)
              -> TestTree
 testAsciidoc = test asciidoc
+
+testAsciidoctor :: (ToString a, ToPandoc a)
+             => String
+             -> (a, String)
+             -> TestTree
+testAsciidoctor = test asciidoctor
 
 tests :: [TestTree]
 tests = [ testGroup "emphasis"
@@ -76,4 +85,12 @@ tests = [ testGroup "emphasis"
                                            , "|==="
                                            ]
           ]
+        , testGroup "lists"
+          [ testAsciidoctor "bullet task list" $
+               bulletList [plain "☐ a", plain "☒ b"] =?> unlines
+                                           [ "* [ ] a"
+                                           , "* [X] b"
+                                           ]
+          ]
         ]
+
