@@ -70,7 +70,8 @@ changePathSeparators =
 
 makePDF :: (PandocMonad m, MonadIO m, MonadMask m)
         => String              -- ^ pdf creator (pdflatex, lualatex, xelatex,
-                               -- wkhtmltopdf, weasyprint, prince, context, pdfroff,
+                               -- wkhtmltopdf, weasyprint, prince, context,
+                               -- pdfroff, pagedjs,
                                -- or path to executable)
         -> [String]            -- ^ arguments to pass to pdf creator
         -> (WriterOptions -> Pandoc -> m Text)  -- ^ writer
@@ -80,7 +81,7 @@ makePDF :: (PandocMonad m, MonadIO m, MonadMask m)
 makePDF program pdfargs writer opts doc =
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
-    prog | prog `elem` ["weasyprint", "prince"] -> do
+    prog | prog `elem` ["pagedjs-cli" ,"weasyprint", "prince"] -> do
       source <- writer opts doc
       verbosity <- getVerbosity
       liftIO $ html2pdf verbosity program pdfargs source
@@ -434,7 +435,8 @@ html2pdf verbosity program args source =
       hClose h1
       hClose h2
       BS.writeFile file $ UTF8.fromText source
-      let pdfFileArgName = ["-o" | takeBaseName program == "prince"]
+      let pdfFileArgName = ["-o" | takeBaseName program `elem`
+                                   ["pagedjs-cli", "prince"]]
       let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
       env' <- getEnvironment
       when (verbosity >= INFO) $
