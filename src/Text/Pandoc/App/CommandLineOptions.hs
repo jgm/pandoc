@@ -109,7 +109,7 @@ latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
 
 htmlEngines :: [String]
-htmlEngines  = ["wkhtmltopdf", "weasyprint", "prince"]
+htmlEngines  = ["pagedjs-cli", "wkhtmltopdf", "weasyprint", "prince"]
 
 engines :: [(Text, String)]
 engines = map ("html",) htmlEngines ++

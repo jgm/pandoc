@@ -1299,16 +1299,18 @@ header when requesting a document from a URL:
 
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
-    `tectonic`, `wkhtmltopdf`, `weasyprint`, `prince`, `context`,
-    and `pdfroff`. If the engine is not in your PATH, the full
-    path of the engine may be specified here.  If this option
-    is not specified, pandoc uses the following defaults
-    depending on the output format specified using `-t/--to`:
+    `tectonic`, `wkhtmltopdf`, `weasyprint`, `pagedjs-cli`,
+    `prince`, `context`, and `pdfroff`. If the engine is not in
+    your PATH, the full path of the engine may be specified here.
+    If this option is not specified, pandoc uses the following
+    defaults depending on the output format specified using
+    `-t/--to`:
 
     - `-t latex` or none: `pdflatex` (other options: `xelatex`, `lualatex`,
         `tectonic`, `latexmk`)
     - `-t context`: `context`
-    - `-t html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`;
+    - `-t html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`,
+        `pagedjs-cli`;
         see [print-css.rocks](https://print-css.rocks) for a good
         introduction to PDF generation from HTML/CSS.)
     - `-t ms`:  `pdfroff`
