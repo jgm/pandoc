@@ -133,6 +133,11 @@ tests = [ testGroup "inlines"
             "docx/table_one_row.native"
             "docx/golden/table_one_row.docx"
           , docxTest
+            "tables separated with RawBlock"
+            def
+            "docx/tables_separated_with_rawblock.native"
+            "docx/golden/tables_separated_with_rawblock.docx"
+          , docxTest
             "code block"
             def
             "docx/codeblock.native"
