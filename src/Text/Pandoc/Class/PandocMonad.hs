@@ -46,6 +46,7 @@ module Text.Pandoc.Class.PandocMonad
   , getResourcePath
   , readDefaultDataFile
   , readDataFile
+  , readMetadataFile
   , fillMediaBag
   , toLang
   , setTranslations
@@ -585,6 +586,25 @@ readDataFile fname = do
          if exists
             then readFileStrict (userDir </> fname)
             else readDefaultDataFile fname
+
+-- | Read metadata file from the working directory or, if not found there, from
+-- the metadata subdirectory of the user data directory.
+readMetadataFile :: PandocMonad m => FilePath -> m B.ByteString
+readMetadataFile fname = do
+  existsInWorkingDir <- fileExists fname
+  if existsInWorkingDir
+     then readFileStrict fname
+     else do
+       dataDir <- getUserDataDir
+       case dataDir of
+         Nothing ->
+           throwError $ PandocCouldNotFindMetadataFileError $ T.pack fname
+         Just userDir -> do
+           let path = userDir </> "metadata" </> fname
+           existsInUserDir <- fileExists path
+           if existsInUserDir
+              then readFileStrict path
+              else throwError $ PandocCouldNotFindMetadataFileError $ T.pack fname
 
 -- | Read file from from the default data files.
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString

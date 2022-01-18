@@ -219,7 +219,7 @@ convertWithOpts opts = do
       case optMetadataFiles opts of
         []    -> return mempty
         paths -> mconcat <$>
-           mapM (\path -> do raw <- readFileStrict path
+           mapM (\path -> do raw <- readMetadataFile path
                              yamlToMeta readerOpts (Just path) raw) paths
 
     let transforms = (case optShiftHeadingLevelBy opts of

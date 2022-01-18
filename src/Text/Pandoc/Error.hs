@@ -54,6 +54,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocFilterError Text Text
                  | PandocLuaError Text
                  | PandocCouldNotFindDataFileError Text
+                 | PandocCouldNotFindMetadataFileError Text
                  | PandocResourceNotFound Text
                  | PandocTemplateError Text
                  | PandocAppError Text
@@ -118,6 +119,8 @@ renderError e =
     PandocLuaError msg -> "Error running Lua:\n" <> msg
     PandocCouldNotFindDataFileError fn ->
         "Could not find data file " <> fn
+    PandocCouldNotFindMetadataFileError fn ->
+        "Could not find metadata file " <> fn
     PandocResourceNotFound fn ->
         "File " <> fn <> " not found in resource path"
     PandocTemplateError s -> "Error compiling template " <> s
@@ -198,6 +201,7 @@ handleError (Left e) =
       PandocIpynbDecodingError{} -> 93
       PandocUnsupportedCharsetError{} -> 94
       PandocCouldNotFindDataFileError{} -> 97
+      PandocCouldNotFindMetadataFileError{} -> 98
       PandocResourceNotFound{} -> 99
 
 err :: Int -> Text -> IO a

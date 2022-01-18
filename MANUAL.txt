@@ -644,7 +644,9 @@ header when requesting a document from a URL:
     files specified later on the command line will be preferred
     over those specified in earlier files. Metadata values
     specified inside the document, or by using `-M`, overwrite
-    values specified with this option.
+    values specified with this option. The file will be searched
+    for first in the working directory, and then in the `metadata`
+    subdirectory of the user data directory (see `--data-dir`).
 
 `-p`, `--preserve-tabs`
 
@@ -1512,6 +1514,7 @@ Nonzero exit codes have the following meanings:
    93 PandocIpynbDecodingError
    94 PandocUnsupportedCharsetError
    97 PandocCouldNotFindDataFileError
+   98 PandocCouldNotFindMetadataFileError
    99 PandocResourceNotFound
 ----- ------------------------------------
 
