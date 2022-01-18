@@ -57,6 +57,7 @@ let
     network
     network
     network-uri
+    pandoc-lua-marshal
     pandoc-types
     parsec
     process
