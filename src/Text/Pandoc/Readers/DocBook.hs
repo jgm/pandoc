@@ -1022,7 +1022,7 @@ parseBlock (Elem e) =
              Just t  -> Just ("titleabbrev", strContentRecursive t)
              Nothing -> Nothing
          lineItems = mapM getInlines $ filterChildren (named "line") e
-         -- | Admonitions are parsed into a div. Following other Docbook tools that output HTML,
+         -- Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
          -- block itself a class corresponding to the admonition name.
          parseAdmonition label = do

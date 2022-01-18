@@ -360,7 +360,7 @@ blockToMarkdown' opts (Div attrs ils) = do
                    case () of
                         () | "blurb" `elem` classes' -> prefixed "B> " contents <> blankline
                            | "aside" `elem` classes' -> prefixed "A> " contents <> blankline
-                           -- | necessary to enable option to create a bibliography
+                           -- necessary to enable option to create a bibliography
                            | (take 3 (T.unpack id')) == "ref" -> contents <> blankline
                            | otherwise -> contents <> blankline
            | isEnabled Ext_fenced_divs opts &&

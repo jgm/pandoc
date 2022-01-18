@@ -332,7 +332,7 @@ normalOrgRefCite = try $ do
   moreCitations <- many (try $ char ',' *> orgRefCiteList mode)
   return . sequence $ firstCitation : moreCitations
  where
-  -- | A list of org-ref style citation keys, parsed as citation of the given
+  -- A list of org-ref style citation keys, parsed as citation of the given
   -- citation mode.
   orgRefCiteList :: PandocMonad m => CitationMode -> OrgParser m (F Citation)
   orgRefCiteList citeMode = try $ do

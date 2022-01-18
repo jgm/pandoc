@@ -448,7 +448,7 @@ updateMasterElems layouts master masterRels = (updatedMaster, updatedMasterRels)
         in (thisId, Elem newRelationship : relationships)
       in (newRelationshipIds, e {elContent = elContent e <> newRelationships})
 
-    -- | Whether the layout needs to be added to the Relationships element.
+    -- Whether the layout needs to be added to the Relationships element.
     isNew :: Element -> SlideLayout -> Bool
     isNew relationships SlideLayout{..} = let
       toDetails = fmap (takeFileName . T.unpack)

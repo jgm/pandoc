@@ -274,15 +274,10 @@ rowsToRowspans rows = let
       spans = g cells Nothing (listToMaybe acc)
       in spans : acc
 
-    g ::
-      -- | The current row
-      [Cell] ->
-      -- | Number of columns left below
-      Maybe Integer ->
-      -- | (rowspan so far, cell) for the row below this one
-      Maybe [(Int, Cell)] ->
-      -- | (rowspan so far, cell) for this row
-      [(Int, Cell)]
+    g :: [Cell] -- the current row
+      -> Maybe Integer -- Number of columns left below
+      -> Maybe [(Int, Cell)] -- (rowspan so far, cell) for the row below this one
+      -> [(Int, Cell)] -- (rowspan so far, cell) for this row
     g cells _ Nothing = zip (repeat 1) cells
     g cells columnsLeftBelow (Just rowBelow) =
         case cells of

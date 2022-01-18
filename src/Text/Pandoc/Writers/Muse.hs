@@ -213,8 +213,8 @@ blockToMuse (OrderedList (start, style, _) items) = do
   topLevel <- asks envTopLevel
   return $ (if topLevel then nest 1 else id) (vcat contents) $$ blankline
   where orderedListItemToMuse :: PandocMonad m
-                              => Text     -- ^ marker for list item
-                              -> [Block]  -- ^ list item (list of blocks)
+                              => Text     -- marker for list item
+                              -> [Block]  -- list item (list of blocks)
                               -> Muse m (Doc Text)
         orderedListItemToMuse marker item = hang (T.length marker + 1) (literal marker <> space)
           <$> blockListToMuse item
@@ -597,7 +597,7 @@ inlineToMuse (Strong [Emph lst]) = do
     else if null lst' || startsWithSpace lst' || endsWithSpace lst'
            then emphasis "**<em>" "</em>**" lst'
            else emphasis "***" "***" lst'
--- | Underline is only supported in Emacs Muse mode.
+-- Underline is only supported in Emacs Muse mode.
 inlineToMuse (Underline lst) = do
   opts <- asks envOptions
   contents <- inlineListToMuse lst

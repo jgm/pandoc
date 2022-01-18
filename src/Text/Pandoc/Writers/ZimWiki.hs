@@ -324,7 +324,7 @@ inlineToZimWiki _ (Math mathType str) = return $ delim <> str <> delim   -- note
                      DisplayMath -> "$$"
                      InlineMath  -> "$"
 
--- | f == Format "html"     = return $ "<html>" <> str <> "</html>"
+-- f == Format "html"     = return $ "<html>" <> str <> "</html>"
 inlineToZimWiki opts il@(RawInline f str)
   | f == Format "zimwiki" = return str
   | f == Format "html"    = indentFromHTML opts str
