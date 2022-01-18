@@ -1,0 +1,27 @@
+[Table ("", [], []) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[]) [])
+ [TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "a"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "b"]]]]]
+ (TableFoot ("",[],[]) [])
+,RawBlock (Format "latex") ""
+,Table ("",[],[]) (Caption Nothing
+ [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+   (TableHead ("",[],[]) [])
+   [TableBody ("",[],[]) (RowHeadColumns 0)
+    []
+    [Row ("",[],[])
+     [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "c"]]
+     ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+      [Plain [Str "d"]]]]]
+ (TableFoot ("",[],[]) [])]
