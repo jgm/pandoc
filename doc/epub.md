@@ -6,7 +6,8 @@ author: John MacFarlane
 Starting with version 1.6, pandoc can produce output in the [EPUB]
 electronic book format. EPUB books can be viewed on iPads, Nooks, and
 other electronic book readers, including many smart phones. (They can
-also be converted to Kindle books using [KindleGen].)
+also be converted to Kindle books using [KindlePreviewer] on Windows 
+and Mac OSX.)
 
 This means that it's now very easy to produce an electronic book!
 Let's try it.
@@ -151,7 +152,7 @@ or target readers that don't support MathML. Then you have two options:
 Both GladTeX and WebTeX add the LaTeX source of the formula as alternative text
 of the image,  increasing accessibility for blind users.
 
-[KindleGen]: https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211
+[KindlePreviewer]: https://www.amazon.com/Kindle-Previewer/b?node=21381691011
 [EPUB]:  https://en.wikipedia.org/wiki/EPUB
 [Pro Git]: https://git-scm.com/book/en/v2
 [Creative Commons]: https://creativecommons.org/
