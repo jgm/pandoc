@@ -26,6 +26,7 @@ type Anchor = T.Text
 data FieldInfo = HyperlinkField URL
                 -- The boolean indicates whether the field is a hyperlink.
                | PagerefField Anchor Bool
+               | ZoteroField T.Text
                | UnknownField
                deriving (Show)
 
@@ -38,7 +39,20 @@ fieldInfo =
   <|>
   try ((uncurry PagerefField) <$> pageref) 
   <|>
+  try (ZoteroField <$> zotero)
+  <|>
   return UnknownField
+
+zotero :: Parser T.Text
+zotero = do
+  spaces
+  string "ADDIN"
+  spaces
+  string "ZOTERO_ITEM"
+  spaces
+  string "CSL_CITATION"
+  spaces
+  getInput
 
 escapedQuote :: Parser T.Text
 escapedQuote = string "\\\"" $> "\\\""
