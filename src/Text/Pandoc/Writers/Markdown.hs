@@ -599,7 +599,8 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
                 rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
                            rows
-                (id,) <$> pipeTable (all null headers) aligns' rawHeaders rawRows
+                (id,) <$> pipeTable opts (all null headers) aligns' widths'
+                            rawHeaders rawRows
             | not hasBlocks &&
               isEnabled Ext_multiline_tables opts -> do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
@@ -616,7 +617,8 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
                 rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
                 rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
                            rows
-                (id,) <$> pipeTable (all null headers) aligns' rawHeaders rawRows
+                (id,) <$> pipeTable opts (all null headers) aligns' widths'
+                           rawHeaders rawRows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
                    literal <$>
                    writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [t])
@@ -667,19 +669,31 @@ addMarkdownAttribute s =
        _ -> s
 
 pipeTable :: PandocMonad m
-          => Bool -> [Alignment] -> [Doc Text] -> [[Doc Text]]
+          => WriterOptions
+          -> Bool -> [Alignment] -> [Double] -> [Doc Text] -> [[Doc Text]]
           -> MD m (Doc Text)
-pipeTable headless aligns rawHeaders rawRows = do
+pipeTable opts headless aligns widths rawHeaders rawRows = do
   let sp = literal " "
   let blockFor AlignLeft   x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
       blockFor AlignCenter x y = cblock (x + 2) (sp <> y <> sp) <> lblock 0 empty
       blockFor AlignRight  x y = rblock (x + 2) (y <> sp) <> lblock 0 empty
       blockFor _           x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
-  let widths = map (max 3 . maybe 3 maximum . nonEmpty . map offset) $
-                     transpose (rawHeaders : rawRows)
+  let contentWidths = map (max 3 . maybe 3 maximum . nonEmpty . map offset) $
+                       transpose (rawHeaders : rawRows)
+  let colwidth = writerColumns opts
+  let numcols = length contentWidths
+  let maxwidth = sum contentWidths
+  variant <- asks envVariant
+  let pipeWidths = if variant == Markdown &&
+                      not (all (== 0) widths) &&
+                      maxwidth + (numcols + 1) > colwidth
+                      then map
+                            (floor . (* fromIntegral (colwidth - (numcols +1))))
+                            widths
+                      else contentWidths
   let torow cs = nowrap $ literal "|" <>
                     hcat (intersperse (literal "|") $
-                          zipWith3 blockFor aligns widths (map chomp cs))
+                          zipWith3 blockFor aligns contentWidths (map chomp cs))
                     <> literal "|"
   let toborder a w = literal $ case a of
                           AlignLeft    -> ":" <> T.replicate (w + 1) "-"
@@ -693,7 +707,7 @@ pipeTable headless aligns rawHeaders rawRows = do
                   then torow (replicate (length aligns) empty)
                   else torow rawHeaders
   let border = nowrap $ literal "|" <> hcat (intersperse (literal "|") $
-                        zipWith toborder aligns widths) <> literal "|"
+                        zipWith toborder aligns pipeWidths) <> literal "|"
   let body   = vcat $ map torow rawRows
   return $ header $$ border $$ body
 
