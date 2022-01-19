@@ -130,6 +130,7 @@ langsList =
   ("comsol","Comsol"),
   ("csh","csh"),
   ("delphi","Delphi"),
+  ("diff","Diff"),
   ("eiffel","Eiffel"),
   ("elan","Elan"),
   ("elisp","elisp"),

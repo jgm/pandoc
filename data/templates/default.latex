@@ -257,6 +257,15 @@ $if(listings)$
 \newcommand{\passthrough}[1]{#1}
 \lstset{defaultdialect=[5.3]Lua}
 \lstset{defaultdialect=[x86masm]Assembler}
+\definecolor{diffstart}{named}{Grey}
+\definecolor{diffincl}{named}{Green}
+\definecolor{diffrem}{named}{OrangeRed}
+\lstdefinelanguage{Diff}{
+  basicstyle=\ttfamily\small,
+  morecomment=[f][\color{diffstart}]{@@},
+  morecomment=[f][\color{diffincl}]{+\ },
+  morecomment=[f][\color{diffrem}]{-\ },
+}
 $endif$
 $if(lhs)$
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
