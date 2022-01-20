@@ -390,18 +390,11 @@ deLink :: Inline -> Inline
 deLink (Link _ ils _) = Span nullAttr ils
 deLink x              = x
 
-deQuote :: Inline -> Inline
-deQuote (Quoted SingleQuote xs) =
-  Span ("",[],[]) (Str "\8216" : xs ++ [Str "\8217"])
-deQuote (Quoted DoubleQuote xs) =
-  Span ("",[],[]) (Str "\8220" : xs ++ [Str "\8221"])
-deQuote x = x
-
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
 -- labels).
 stringify :: Walkable Inline a => a -> T.Text
-stringify = query go . walk (deNote . deQuote)
+stringify = query go . walk fixInlines
   where go :: Inline -> T.Text
         go Space                                       = " "
         go SoftBreak                                   = " "
@@ -412,6 +405,19 @@ stringify = query go . walk (deNote . deQuote)
                                                        = " " -- see #2105
         go LineBreak                                   = " "
         go _                                           = ""
+
+        fixInlines :: Inline -> Inline
+        fixInlines (Cite _ ils) = Cite [] ils
+        fixInlines (Note _) = Note []
+        fixInlines (q@Quoted{}) = deQuote q
+        fixInlines x = x
+
+deQuote :: Inline -> Inline
+deQuote (Quoted SingleQuote xs) =
+  Span ("",[],[]) (Str "\8216" : xs ++ [Str "\8217"])
+deQuote (Quoted DoubleQuote xs) =
+  Span ("",[],[]) (Str "\8220" : xs ++ [Str "\8221"])
+deQuote x = x
 
 -- | Bring all regular text in a pandoc structure to uppercase.
 --
