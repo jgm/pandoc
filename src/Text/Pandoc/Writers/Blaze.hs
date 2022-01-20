@@ -30,9 +30,13 @@ layoutMarkup = go True mempty
        in literal open'
             <> attrs
             <> char '>'
-            <> (if allowsWrap open'
-                   then go wrap mempty content
-                   else flush $ go False mempty content)
+            <> (case open' of
+                  "<code" -> go False mempty content
+                  t | t == "<pre" ||
+                      t == "<style" ||
+                      t == "<script" ||
+                      t == "<textarea" -> flush $ go False mempty content
+                    | otherwise -> go wrap mempty content)
             <> literal (getText close)
     go wrap attrs (CustomParent tag content) =
         char '<'
@@ -77,9 +81,6 @@ layoutMarkup = go True mempty
     go _ _ (Empty _) = mempty
     space' wrap = if wrap then space else char ' '
 
-allowsWrap :: T.Text -> Bool
-allowsWrap t =
-  not (t == "<pre" || t == "<style" || t == "<script" || t == "<textarea")
 
 fromChoiceString :: Bool                  -- ^ Allow wrapping
                  -> ChoiceString          -- ^ String to render
