@@ -7,11 +7,9 @@ Starting with version 1.6, pandoc can produce output in the [EPUB]
 electronic book format. EPUB books can be viewed on iPads, Nooks, and
 other electronic book readers, including many smart phones. (They can
 also be converted to Kindle books using the GUI only [KindlePreviewer] 
-on Windows and Mac OSX.  [KindleGen] which offers a command line
-interface has been deprecated. Binaries of the last KindleGen release
-for [Linux], [Mac OSX] and [Windows] can still be found on the internet,
-though may not be suitable for the latest releases of these operating
-systems.)
+on Windows and Mac OSX.  [KindleGen] has which offers a command line
+interface and supports Linux, Mac OSX and Windows has been deprecated.
+Binaries can still be found on the internet.)
 
 This means that it's now very easy to produce an electronic book!
 Let's try it.
@@ -158,9 +156,6 @@ of the image,  increasing accessibility for blind users.
 
 [KindlePreviewer]: https://www.amazon.com/Kindle-Previewer/b?node=21381691011
 [KindleGen]: https://www.amazon.com/gp/feature.html?docId=1000765211
-[Linux]: https://archive.org/details/kindlegen2.9
-[Mac OSX]: https://web.archive.org/web/20190905040839/https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211
-[Windows]: https://archive.org/details/kindlegen_win32_v2_9
 [EPUB]:  https://en.wikipedia.org/wiki/EPUB
 [Pro Git]: https://git-scm.com/book/en/v2
 [Creative Commons]: https://creativecommons.org/
