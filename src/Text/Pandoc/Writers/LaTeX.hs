@@ -235,10 +235,13 @@ elementToBeamer slideLevel (Div (ident,"section":dclasses,dkvs)
              isSlide _                         = False
          let (titleBs, slideBs) = break isSlide ys
          return $
-           if null titleBs
-              then Div (ident,"section":dclasses,dkvs) xs
-              else Div (ident,"section":dclasses,dkvs)
-                    (h : Div ("","slide":dclasses,dkvs) (h:titleBs) : slideBs)
+           case titleBs of
+              [] -> Div (ident,"section":dclasses,dkvs) xs
+              [Div (_,"notes":_,_) _] ->  -- see #7857, don't create frame
+                    -- just for speaker notes after section heading
+                    Div (ident,"section":dclasses,dkvs) xs
+              _  -> Div (ident,"section":dclasses,dkvs)
+                     (h : Div ("","slide":dclasses,dkvs) (h:titleBs) : slideBs)
   | otherwise
     = return $ Div (ident,"slide":dclasses,dkvs) xs
 elementToBeamer _ x = return x
