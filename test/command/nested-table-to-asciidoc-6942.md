@@ -67,7 +67,7 @@ The table on level 3 is thus converted to level 2 and a warning is produced
 </body>
 </html>
 ^D
-[INFO] Not rendering Table ("",[],[]) (Caption Nothing []) [(AlignDefault,ColWidth 0.5),(AlignDefault,ColWidth 0.5)] (TableHead ("",[],[]) []) [TableBody ("",[],[]) (RowHeadColumns 0) [] [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "a1"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Table ("",[],[]) (Caption Nothing []) [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)] (TableHead ("",[],[]) []) [TableBody ("",[],[]) (RowHeadColumns 0) [] [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2"]]]]] (TableFoot ("",[],[]) [])]]]] (TableFoot ("",[],[]) [])
+2> [INFO] Not rendering Table ("",[],[]) (Caption Nothing []) [(AlignDefault,ColWidth 0.5),(AlignDefault,ColWidth 0.5)] (TableHead ("",[],[]) []) [TableBody ("",[],[]) (RowHeadColumns 0) [] [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "a1"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Table ("",[],[]) (Caption Nothing []) [(AlignDefault,ColWidthDefault),(AlignDefault,ColWidthDefault)] (TableHead ("",[],[]) []) [TableBody ("",[],[]) (RowHeadColumns 0) [] [Row ("",[],[]) [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "1"]],Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [Plain [Str "2"]]]]] (TableFoot ("",[],[]) [])]]]] (TableFoot ("",[],[]) [])
 [width="100%",cols="50%,50%",]
 |===
 a|

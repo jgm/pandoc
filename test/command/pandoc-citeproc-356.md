@@ -15,6 +15,6 @@ references:
 
 [@bar]
 ^D
-[WARNING] Citeproc: citation bar not found
+2> [WARNING] Citeproc: citation bar not found
 (**bar?**)
 ```

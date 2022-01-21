@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {- |
    Module      : Tests.Command
    Copyright   : © 2006-2022 John MacFarlane
@@ -8,6 +9,27 @@
    Portability : portable
 
 Run commands, and test results, defined in markdown files.
+
+A command test is a code block with the following format:
+
+> ```
+> % pandoc -f markdown -t latex
+> *hi*
+> ^D
+> \emph{hi}
+> ```
+
+- The first line, after "%", should contain a command to run.
+- Then comes zero or more lines of text which will be passed
+  to the command as stdin.
+- The stdin terminates with a line containing "^D".
+- The following lines are typically the expected output
+  on stdout.
+- If any output on stderr is expected, it should come first
+  and each stderr line should be preceded by the string "2> ".
+- If a nonzero exit status is expected, the last line should
+  contain "=> " followed by the exit status.
+
 -}
 module Tests.Command (runTest, tests)
 where
@@ -39,13 +61,14 @@ execTest :: String    -- ^ Path to test executable
 execTest testExePath cmd inp = do
   env' <- setupEnvironment testExePath
   let pr = (shell (pandocToEmulate True cmd)){ env = Just env' }
-  (ec, out', err') <- readCreateProcessWithExitCode pr inp
+  (!ec, out', err') <- readCreateProcessWithExitCode pr inp
+  let err = unlines . map ("2> " ++) . lines $ err'
   -- filter \r so the tests will work on Windows machines
-  let out = filter (/= '\r') $ err' ++ out'
-  case ec of
-    ExitFailure _ -> hPutStr stderr err'
-    ExitSuccess   -> return ()
-  return (ec, out)
+  let out'' = filter (/= '\r') $ err ++ out'
+  let out' = out'' ++ case ec of
+                        ExitFailure !n -> "=> " ++ show n ++ "\n"
+                        ExitSuccess    -> ""
+  return (ec, out')
 
 pandocToEmulate :: Bool -> String -> String
 pandocToEmulate True ('p':'a':'n':'d':'o':'c':cs) =
@@ -63,15 +86,11 @@ runTest :: String    -- ^ Path to test executable
         -> String    -- ^ Expected output
         -> TestTree
 runTest testExePath testname cmd inp norm = testCase testname $ do
-  (ec, out) <- execTest testExePath cmd inp
-  result  <- if ec == ExitSuccess
-                then
-                  if out == norm
-                     then return TestPassed
-                     else return
-                          $ TestFailed cmd "expected"
-                          $ getDiff (lines out) (lines norm)
-                else return $ TestError ec
+  (_ec, out) <- execTest testExePath cmd inp
+  result  <- if out == norm
+                then return TestPassed
+                else return $ TestFailed cmd "expected"
+                            $ getDiff (lines out) (lines norm)
   assertBool (show result) (result == TestPassed)
 
 tests :: TestTree
