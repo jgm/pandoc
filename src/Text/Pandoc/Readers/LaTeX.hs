@@ -138,14 +138,15 @@ rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
-  snd <$> (rawLaTeXParser toks False (macroDef (const mempty)) blocks
-      <|> rawLaTeXParser toks True
-             (do choice (map controlSeq
+  snd <$> (
+          rawLaTeXParser toks
+             (macroDef (const mempty) <|>
+              do choice (map controlSeq
                    ["include", "input", "subfile", "usepackage"])
                  skipMany opt
                  braced
                  return mempty) blocks
-      <|> rawLaTeXParser toks True
+      <|> rawLaTeXParser toks
            (environment <|> blockCommand)
            (mconcat <$> many (block <|> beginOrEndCommand)))
 
@@ -169,10 +170,10 @@ rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
   raw <- snd <$>
-          (   rawLaTeXParser toks True
+          (   rawLaTeXParser toks
               (mempty <$ (controlSeq "input" >> skipMany rawopt >> braced))
               inlines
-          <|> rawLaTeXParser toks True (inlineEnvironment <|> inlineCommand')
+          <|> rawLaTeXParser toks (inlineEnvironment <|> inlineCommand')
               inlines
           )
   finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
@@ -182,7 +183,7 @@ inlineCommand :: PandocMonad m => ParserT Sources ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
-  fst <$> rawLaTeXParser toks True (inlineEnvironment <|> inlineCommand')
+  fst <$> rawLaTeXParser toks (inlineEnvironment <|> inlineCommand')
           inlines
 
 -- inline elements:

@@ -255,9 +255,9 @@ withVerbatimMode parser = do
        return result
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s, Show a)
-               => [Tok] -> Bool -> LP m a -> LP m a
+               => [Tok] -> LP m a -> LP m a
                -> ParserT Sources s m (a, Text)
-rawLaTeXParser toks retokenize parser valParser = do
+rawLaTeXParser toks parser valParser = do
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
   let lstate' = lstate { sMacros = extractMacros pstate :| [] }
@@ -271,12 +271,7 @@ rawLaTeXParser toks retokenize parser valParser = do
   case res' of
        Left _    -> mzero
        Right (endpos, toks') -> do
-         res <- lift $ runParserT (do when retokenize $ do
-                                        -- retokenize, applying macros
-                                        ts <- many anyTok
-                                        setInput ts
-                                      rawparser)
-                        lstate' "chunk" toks'
+         res <- lift $ runParserT rawparser lstate' "chunk" toks'
          case res of
               Left _    -> mzero
               Right ((val, raw), st) -> do
