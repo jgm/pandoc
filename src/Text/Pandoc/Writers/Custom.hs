@@ -21,7 +21,6 @@ import Control.Arrow ((***))
 import Control.Exception
 import Control.Monad (when)
 import Data.List (intersperse)
-import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text, pack)
@@ -32,13 +31,20 @@ import Text.DocTemplates (Context)
 import Control.Monad.IO.Class (MonadIO)
 import Text.Pandoc.Definition
 import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
+import Text.Pandoc.Lua.Marshal.Attr (pushAttributeList)
 import Text.Pandoc.Options
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
-attrToMap :: Attr -> M.Map T.Text T.Text
-attrToMap (id',classes,keyvals) = M.fromList
+-- | List of key-value pairs that is pushed to Lua as AttributeList
+-- userdata.
+newtype AttributeList = AttributeList [(Text, Text)]
+instance Pushable AttributeList where
+  push (AttributeList kvs) = pushAttributeList kvs
+
+attrToMap :: Attr -> AttributeList
+attrToMap (id',classes,keyvals) = AttributeList
     $ ("id", id')
     : ("class", T.unwords classes)
     : keyvals
