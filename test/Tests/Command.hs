@@ -43,7 +43,6 @@ import Data.List (isSuffixOf)
 import System.Directory
 import System.Exit
 import System.FilePath ((</>))
-import System.IO (hPutStr, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Process
 import Test.Tasty
@@ -65,10 +64,10 @@ execTest testExePath cmd inp = do
   let err = unlines . map ("2> " ++) . lines $ err'
   -- filter \r so the tests will work on Windows machines
   let out'' = filter (/= '\r') $ err ++ out'
-  let out' = out'' ++ case ec of
+  let out = out'' ++ case ec of
                         ExitFailure !n -> "=> " ++ show n ++ "\n"
                         ExitSuccess    -> ""
-  return (ec, out')
+  return (ec, out)
 
 pandocToEmulate :: Bool -> String -> String
 pandocToEmulate True ('p':'a':'n':'d':'o':'c':cs) =
