@@ -6,7 +6,11 @@ author: John MacFarlane
 Starting with version 1.6, pandoc can produce output in the [EPUB]
 electronic book format. EPUB books can be viewed on iPads, Nooks, and
 other electronic book readers, including many smart phones. (They can
-also be converted to Kindle books using [KindleGen].)
+also be converted to Kindle books using the GUI only [KindlePreviewer] 
+on Windows and Mac OSX. [KindleGen] – which offers a command line
+interface and supports [Linux][KindleGenLinux], [Mac OSX][KindleGenMacOSX]
+and [Windows][KindleGenWindows] – has been deprecated, but binaries can still
+be found on the internet.)
 
 This means that it's now very easy to produce an electronic book!
 Let's try it.
@@ -149,9 +153,13 @@ or target readers that don't support MathML. Then you have two options:
     to convert maths into SVG images on your local machine.
 
 Both GladTeX and WebTeX add the LaTeX source of the formula as alternative text
-of the image,  increasing accessibility for blind users.
+of the image, increasing accessibility for blind users.
 
-[KindleGen]: https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211
+[KindlePreviewer]: https://www.amazon.com/Kindle-Previewer/b?node=21381691011
+[KindleGen]: https://www.amazon.com/gp/feature.html?docId=1000765211
+[KindleGenLinux]: https://archive.org/details/kindlegen2.9
+[KindleGenMacOSX]: https://web.archive.org/web/20190905040839/https://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000765211
+[KindleGenWindows]: https://archive.org/details/kindlegen_win32_v2_9
 [EPUB]:  https://en.wikipedia.org/wiki/EPUB
 [Pro Git]: https://git-scm.com/book/en/v2
 [Creative Commons]: https://creativecommons.org/
