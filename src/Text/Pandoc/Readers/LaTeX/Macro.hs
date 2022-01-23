@@ -130,13 +130,17 @@ newif = do
                    Macro GroupScope ExpandWhenUsed [] Nothing
                    [ Tok pos (CtrlSeq "def") "\\def"
                    , Tok pos (CtrlSeq name) ("\\" <> name)
+                   , Tok pos Symbol "{"
                    , Tok pos (CtrlSeq "iftrue") "\\iftrue"
+                   , Tok pos Symbol "}"
                    ])
            , (base <> "false",
                    Macro GroupScope ExpandWhenUsed [] Nothing
                    [ Tok pos (CtrlSeq "def") "\\def"
                    , Tok pos (CtrlSeq name) ("\\" <> name)
+                   , Tok pos Symbol "{"
                    , Tok pos (CtrlSeq "iffalse") "\\iffalse"
+                   , Tok pos Symbol "}"
                    ])
            ]
 
