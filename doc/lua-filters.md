@@ -1887,8 +1887,7 @@ This is a pair, i.e., a plain table, with the following
 components:
 
 1. cell alignment ([Alignment]).
-2. table column width, as a fraction of the total table width
-   (number).
+2. table column width, as a fraction of the page width (number).
 
 ### ListAttributes {#type-listattributes}
 
