@@ -30,10 +30,10 @@ import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
 import Control.Monad.Except
 import Data.Functor.Identity (runIdentity)
 import Data.Typeable
-import Text.Pandoc.Parsing (runParserT, getInput,
+import Text.Pandoc.Parsing (runParserT, getInput, getPosition,
                             runF, defaultParserState, option, many1, anyChar,
                             Sources(..), ToSources(..), ParserT, Future,
-                            sourceName)
+                            sourceName, sourceLine, incSourceLine)
 import qualified Data.Text as T
 
 -- | Parse a CommonMark formatted string into a 'Pandoc' structure.
@@ -42,11 +42,19 @@ readCommonMark :: (PandocMonad m, ToSources a)
 readCommonMark opts s
   | isEnabled Ext_yaml_metadata_block opts = do
     let sources = toSources s
+    let firstSourceName = case unSources sources of
+                               ((pos,_):_) -> sourceName pos
+                               _ -> ""
     let toks = concatMap sourceToToks (unSources sources)
     res <- runParserT (do meta <- yamlMetaBlock (metaValueParser opts)
+                          pos <- getPosition
                           rest <- getInput
-                          return (meta, rest))
-                      defaultParserState "YAML metadata" (toSources s)
+                          let rest' = case rest of
+                                -- update position of first source (#7863):
+                                Sources ((_,t):xs) -> Sources ((pos,t):xs)
+                                _ -> rest
+                          return (meta, rest'))
+                      defaultParserState firstSourceName sources
     case res of
       Left _ -> readCommonMarkBody opts sources toks
       Right (meta, rest) -> do
@@ -60,7 +68,13 @@ readCommonMark opts s
     readCommonMarkBody opts sources toks
 
 sourceToToks :: (SourcePos, Text) -> [Tok]
-sourceToToks (pos, s) = tokenize (sourceName pos) s
+sourceToToks (pos, s) = map adjust $ tokenize (sourceName pos) s
+ where
+   adjust = case sourceLine pos of
+              1 -> id
+              n -> \tok -> tok{ tokPos =
+                                  incSourceLine (tokPos tok) (n - 1) }
+
 
 metaValueParser :: Monad m
                 => ReaderOptions -> ParserT Sources st m (Future st MetaValue)
