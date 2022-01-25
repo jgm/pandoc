@@ -1187,7 +1187,7 @@ item = void blocks *> controlSeq "item" *> skipopts *> blocks
 
 descItem :: PandocMonad m => LP m (Inlines, [Blocks])
 descItem = do
-  blocks -- skip blocks before item
+  optional spaces1
   controlSeq "item"
   sp
   ils <- opt
