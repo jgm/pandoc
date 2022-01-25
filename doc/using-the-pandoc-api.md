@@ -317,6 +317,16 @@ file in the "user data directory" (`setUserDataDir`,
 return the default installed with the system.
 To force the use of the default, `setUserDataDir Nothing`.
 
+# Metadata files
+
+Pandoc can add metadata to documents, as described in the
+User's Guide. Similar to data files, metadata YAML files can
+be retrieved using `readMetadataFile` from Text.Pandoc.Class.
+`readMetadataFile` will first look for the file in the working
+directory, and if it is not found there, it will look for it
+in the `metadata` subdirectory of the user data directory
+(`setUserDataDir`, `getUserDataDir`).
+
 # Templates
 
 Pandoc has its own template system, described in the User's
