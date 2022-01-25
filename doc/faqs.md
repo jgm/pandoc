@@ -132,8 +132,6 @@ example,
 
     pandoc -o my.pdf --pdf-engine=/Library/TeX/texbin/pdflatex
 
-:::
-
 ## When I convert from ipynb, some visualizations aren't showing up.
 
 First, unless your target is a binary format (docx, odt, epub),
@@ -152,3 +150,4 @@ pandoc -s -o output.html input.ipynb \
 -V header-includes='<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>'
 ```
 
+:::
