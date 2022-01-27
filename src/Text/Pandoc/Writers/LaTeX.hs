@@ -284,7 +284,7 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
   let fragile = "fragile" `elem` classes ||
                 not (null $ query hasCodeBlock bs ++ query hasCode bs)
   let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
-                      "b", "c", "t", "environment",
+                      "b", "c", "t", "environment", "s", "squeeze",
                       "label", "plain", "shrink", "standout",
                       "noframenumbering"]
   let optionslist = ["fragile" | fragile
