@@ -637,9 +637,10 @@ checkExistence fn = do
 makeCanonical :: FilePath -> FilePath
 makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
  where  transformPathParts = reverse . foldl' go []
-        go as     "."  = as
-        go (_:as) ".." = as
-        go as     x    = x : as
+        go as        "."  = as
+        go ("..":as) ".." = ["..", ".."] <> as
+        go (_:as)    ".." = as
+        go as        x    = x : as
 
 -- | Tries to run an action on a file: for each directory given, a
 -- filepath is created from the given filename, and the action is run on
