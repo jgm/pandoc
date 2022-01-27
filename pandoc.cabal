@@ -254,6 +254,8 @@ extra-source-files:
                  test/command/5876.yaml
                  test/command/5876/metadata/5876.yaml
                  test/command/5876/metadata/command/5876.yaml
+                 test/command/7861.yaml
+                 test/command/7861/metadata/placeholder
                  test/docbook-chapter.docbook
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook

@@ -574,11 +574,25 @@ getDefaultReferencePptx = do
      Nothing   -> foldr addEntryToArchive emptyArchive <$>
                      mapM pathToEntry paths
 
--- | Read file from user data directory or,
--- if not found there, from the default data files.
+-- | Checks if the file path is relative to a parent directory.
+isRelativeToParentDir :: FilePath -> Bool
+isRelativeToParentDir fname =
+  let canonical = makeCanonical fname
+   in length canonical >= 2 && take 2 canonical == ".."
+
+-- | Returns possible user data directory if the file path refers to a file or
+-- subdirectory within it.
+checkUserDataDir :: PandocMonad m => FilePath -> m (Maybe FilePath)
+checkUserDataDir fname =
+  if isRelative fname && not (isRelativeToParentDir fname)
+     then getUserDataDir
+     else return Nothing
+
+--- | Read file from user data directory or,
+--- if not found there, from the default data files.
 readDataFile :: PandocMonad m => FilePath -> m B.ByteString
 readDataFile fname = do
-  datadir <- getUserDataDir
+  datadir <- checkUserDataDir fname
   case datadir of
        Nothing -> readDefaultDataFile fname
        Just userDir -> do
@@ -595,7 +609,7 @@ readMetadataFile fname = do
   if existsInWorkingDir
      then readFileStrict fname
      else do
-       dataDir <- getUserDataDir
+       dataDir <- checkUserDataDir fname
        case dataDir of
          Nothing ->
            throwError $ PandocCouldNotFindMetadataFileError $ T.pack fname
