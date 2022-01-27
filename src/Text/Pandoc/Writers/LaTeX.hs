@@ -291,7 +291,8 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
                                , isNothing (lookup "fragile" kvs)
                                , "fragile" `notElem` classes] ++
                     [k | k <- classes, k `elem` frameoptions] ++
-                    [k <> "=" <> v | (k,v) <- kvs, k `elem` frameoptions]
+                    [k <> "=" <> v | (k,v) <- kvs, k `elem` frameoptions] ++
+                    [v | ("frameoptions", v) <- kvs]
   let options = if null optionslist
                    then empty
                    else brackets (literal (T.intercalate "," optionslist))

@@ -5987,13 +5987,10 @@ To style beamer slides, you can specify a `theme`, `colortheme`,
 
 Note that heading attributes will turn into slide attributes
 (on a `<div>` or `<section>`) in HTML slide formats, allowing you
-to style individual slides.  In beamer, the only heading attribute
-that affects slides is the `allowframebreaks` class, which sets the
-`allowframebreaks` option, causing multiple slides to be created
-if the content overfills the frame.  This is recommended especially for
-bibliographies:
-
-    # References {.allowframebreaks}
+to style individual slides.  In beamer, a number of heading
+classes and attributes are recognized as frame options and
+will be passed through as options to the frame: see
+[Frame attributes in beamer], below.
 
 ## Speaker notes
 
@@ -6077,8 +6074,18 @@ introducing the slide:
 
 All of the other frame attributes described in Section 8.1 of
 the [Beamer User's Guide] may also be used: `allowdisplaybreaks`,
-`allowframebreaks`, `b`, `c`, `t`, `environment`, `label`, `plain`,
-`shrink`, `standout`, `noframenumbering`.
+`allowframebreaks`, `b`, `c`, `s`, `t`, `environment`, `label`, `plain`,
+`shrink`, `standout`, `noframenumbering`, `squeeze`.
+`allowframebreaks` is recommended especially for bibliographies, as
+it allows multiple slides to be created if the content overfills the
+frame:
+
+    # References {.allowframebreaks}
+
+In addition, the `frameoptions` attribute may be used to
+pass arbitrary frame options to a beamer slide:
+
+    # Heading {frameoptions="squeeze,shrink,customoption=foobar"}
 
 ## Background in reveal.js, beamer, and pptx
 
