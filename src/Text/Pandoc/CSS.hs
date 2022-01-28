@@ -18,6 +18,7 @@ module Text.Pandoc.CSS
   )
 where
 
+import Data.Either (fromRight)
 import Data.Maybe (mapMaybe, listToMaybe)
 import Data.Text (Text, pack)
 import Text.Pandoc.Shared (trim)
@@ -37,10 +38,7 @@ styleAttrParser = many1 ruleParser
 -- Returns an empty list on failure.
 cssAttributes :: Text -> [(Text, Text)]
 cssAttributes styleString =
-  -- Use Data.Either.fromRight once GHC 8.0 is no longer supported
-  case parse styleAttrParser "" styleString of
-    Left _  -> []
-    Right x -> x
+  fromRight [] $ parse styleAttrParser "" styleString
 
 -- | takes a list of keys/properties and a CSS string and
 -- returns the corresponding key-value-pairs.

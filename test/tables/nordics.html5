@@ -51,8 +51,8 @@
 <tr id="summary" class="even">
 <td style="text-align: center;">Total</td>
 <td style="text-align: left;"></td>
-<td style="text-align: left;" id="total-population">27,376,022</td>
-<td style="text-align: left;" id="total-area">1,258,336</td>
+<td id="total-population" style="text-align: left;">27,376,022</td>
+<td id="total-area" style="text-align: left;">1,258,336</td>
 </tr>
 </tfoot>
 

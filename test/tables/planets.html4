@@ -2,7 +2,7 @@
 <caption><p>Data about the planets of our solar system.</p></caption>
 <thead>
 <tr class="header">
-<th align="center" colspan="2"></th>
+<th colspan="2" align="center"></th>
 <th>Name</th>
 <th align="right">Mass (10^24kg)</th>
 <th align="right">Diameter (km)</th>
@@ -17,7 +17,7 @@
 </thead>
 <tbody>
 <tr class="odd">
-<th align="center" colspan="2" rowspan="4">Terrestrial planets</th>
+<th colspan="2" rowspan="4" align="center">Terrestrial planets</th>
 <th>Mercury</th>
 <td align="right">0.330</td>
 <td align="right">4,879</td>
@@ -66,8 +66,8 @@
 <td>The red planet</td>
 </tr>
 <tr class="odd">
-<th align="center" rowspan="4">Jovian planets</th>
-<th align="center" rowspan="2">Gas giants</th>
+<th rowspan="4" align="center">Jovian planets</th>
+<th rowspan="2" align="center">Gas giants</th>
 <th>Jupiter</th>
 <td align="right">1898</td>
 <td align="right">142,984</td>
@@ -92,7 +92,7 @@
 <td></td>
 </tr>
 <tr class="odd">
-<th align="center" rowspan="2">Ice giants</th>
+<th rowspan="2" align="center">Ice giants</th>
 <th>Uranus</th>
 <td align="right">86.8</td>
 <td align="right">51,118</td>
@@ -117,7 +117,7 @@
 <td></td>
 </tr>
 <tr class="odd">
-<th align="center" colspan="2">Dwarf planets</th>
+<th colspan="2" align="center">Dwarf planets</th>
 <th>Pluto</th>
 <td align="right">0.0146</td>
 <td align="right">2,370</td>
