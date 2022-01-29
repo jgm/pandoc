@@ -1576,7 +1576,8 @@ Note that, where command-line arguments may be repeated
 the command line will combine with values specified in the
 defaults file, rather than replacing them.
 
-The following tables show the mapping between the command line and defaults file entries.
+The following tables show the mapping between the command line and
+defaults file entries.
 
 +----------------------------------+-----------------------------------+
 | command line                     | defaults file                     |
@@ -1591,6 +1592,9 @@ The following tables show the mapping between the command line and defaults file
 |                                  |   - bar.md                        |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
+
+The value of `input-files` may be left empty to indicate input from
+stdin, and it can be an empty sequence `[]` for no input.
 
 ## General options
 
@@ -1624,6 +1628,11 @@ The following tables show the mapping between the command line and defaults file
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
+| --defaults file                  | defaults:                         |
+| ```                              | - file                            |
+|                                  | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
 | --verbose                        | verbosity: INFO                   |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
@@ -1639,6 +1648,11 @@ The following tables show the mapping between the command line and defaults file
 | --log=FILE                       | log-file: FILE                    |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
+
+Options specified in a defaults file itself always have priority over
+those in another file included with a `defaults:` entry.
+
+`verbosity` can have the values `ERROR`, `WARNING`, or `INFO`.
 
 ## Reader options
 
@@ -1680,6 +1694,9 @@ The following tables show the mapping between the command line and defaults file
 | --metadata-file meta.yaml        | metadata-files:                   |
 |                                  |   - meta.yaml                     |
 | ```                              | ```                               |
+|                                  | ``` yaml                          |
+|                                  | metadata-file: meta.yaml          |
+|                                  | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --preserve-tabs                  | preserve-tabs: true               |
@@ -1701,6 +1718,15 @@ The following tables show the mapping between the command line and defaults file
 | --abbreviations abbrevs.txt      | abbreviations: abbrevs.txt        |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
+
+Metadata values specified in a defaults file are parsed as literal
+string text, not Markdown.
+
+Filters will be assumed to be Lua filters if they have the `.lua`
+extension, and JSON filters otherwise.  But the filter type can also be
+specified explicitly, as shown.  Filters are run in the order specified.
+To include the built-in citeproc filter, use either `citeproc` or
+`{type: citeproc}`.
 
 ## General writer options
 
@@ -1738,6 +1764,10 @@ The following tables show the mapping between the command line and defaults file
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
+| --table-of-contents              | table-of-contents: true           |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
 | --toc                            | toc: true                         |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
@@ -1761,6 +1791,9 @@ The following tables show the mapping between the command line and defaults file
 | --syntax-definition mylang.xml   | syntax-definitions:               |
 |                                  |   - mylang.xml                    |
 | ```                              | ```                               |
+|                                  | ``` yaml                          |
+|                                  | syntax-definition: mylang.xml     |
+|                                  | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --include-in-header inc.tex      | include-in-header:                |
@@ -1783,7 +1816,7 @@ The following tables show the mapping between the command line and defaults file
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --request-header foo:bar         | request-headers:                  |
-|                                  |   - ['foo', 'bar']                |
+|                                  |   - ["User-Agent", "Mozilla/5.0"] |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 
@@ -1899,8 +1932,11 @@ The following tables show the mapping between the command line and defaults file
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --pdf-engine-opt=--shell-escape  | pdf-engine-opts:                  |
-|                                  |   - '--shell-escape'              |
+|                                  |   - '-shell-escape'               |
 | ```                              | ```                               |
+|                                  | ``` yaml                          |
+|                                  | pdf-engine-opt: '-shell-escape'   |
+|                                  | ```                               |
 +----------------------------------+-----------------------------------+
 
 ## Citation rendering
@@ -1936,9 +1972,15 @@ The following tables show the mapping between the command line and defaults file
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 
-## Math rendering in HTML
+`cite-method` can be `citeproc`, `natbib`, or `biblatex`. This only
+affects LaTeX output.  If you want to use citeproc to format citations,
+you should also set 'citeproc: true'.
 
-If the option accepts a URL argument, an `url:` field can be added to `html-math-method:`.
+If you need control over when the citeproc processing is done relative
+to other filters, you should instead use `citeproc` in the list
+of `filters` (see above).
+
+## Math rendering in HTML
 
 +----------------------------------+-----------------------------------+
 | command line                     | defaults file                     |
@@ -1968,6 +2010,12 @@ If the option accepts a URL argument, an `url:` field can be added to `html-math
 |                                  |   method: gladtex                 |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
+
+In addition to the values listed above, `method` can have the
+value `plain`.
+
+If the command line option accepts a URL argument, an `url:` field can
+be added to `html-math-method:`.
 
 ## Options for wrapper scripts
 
