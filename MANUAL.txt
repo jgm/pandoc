@@ -383,7 +383,7 @@ header when requesting a document from a URL:
     be searched for first in the working directory, and then in
     the `defaults` subdirectory of the user data directory
     (see `--data-dir`).  The `.yaml` extension may be omitted.
-    See the section [Default files] for more information on the
+    See the section [Defaults files] for more information on the
     file format.  Settings from the defaults file may be
     overridden or extended by subsequent options on the command
     line.
@@ -1518,187 +1518,10 @@ Nonzero exit codes have the following meanings:
    99 PandocResourceNotFound
 ----- ------------------------------------
 
-# Default files
+# Defaults files
 
 The `--defaults` option may be used to specify a package
-of options.  Here is a sample defaults file demonstrating all of
-the fields that may be used:
-
-``` yaml
-from: markdown+emoji
-# reader: may be used instead of from:
-to: html5
-# writer: may be used instead of to:
-
-# leave blank for output to stdout:
-output-file:
-# leave blank for input from stdin, use [] for no input:
-input-files:
-- preface.md
-- content.md
-# or you may use input-file: with a single value
-
-# Include options from the specified defaults files.
-# The files will be searched for first in the working directory
-# and then in the defaults subdirectory of the user data directory.
-# The files are included in the same order in which they appear in
-# the list. Options specified in this defaults file always have
-# priority over the included ones.
-defaults:
-- defsA
-- defsB
-
-template: letter
-standalone: true
-self-contained: false
-
-# note that structured variables may be specified:
-variables:
-  documentclass: book
-  classoption:
-    - twosides
-    - draft
-
-# metadata values specified here are parsed as literal
-# string text, not markdown:
-metadata:
-  author:
-  - Sam Smith
-  - Julie Liu
-metadata-files:
-- boilerplate.yaml
-# or you may use metadata-file: with a single value
-
-# Note that these take files, not their contents:
-include-before-body: []
-include-after-body: []
-include-in-header: []
-resource-path: ["."]
-
-# turn on built-in citation processing.  Note that if you need
-# control over when the citeproc processing is done relative
-# to other filters, you should instead use `citeproc` in the
-# list of `filters` (see below).
-citeproc: true
-csl: ieee
-bibliography:
-- foobar.bib
-- barbaz.json
-citation-abbreviations: abbrevs.json
-
-# Filters will be assumed to be Lua filters if they have
-# the .lua extension, and json filters otherwise.  But
-# the filter type can also be specified explicitly, as shown.
-# Filters are run in the order specified.
-# To include the built-in citeproc filter, use either `citeproc`
-# or `{type: citeproc}`.
-filters:
-- wordcount.lua
-- type: json
-  path: foo.lua
-
-file-scope: false
-
-data-dir:
-
-# ERROR, WARNING, or INFO
-verbosity: INFO
-log-file: log.json
-
-# citeproc, natbib, or biblatex. This only affects LaTeX
-# output.  If you want to use citeproc to format citations,
-# you should also set 'citeproc: true' (see above).
-cite-method: citeproc
-
-# part, chapter, section, or default:
-top-level-division: chapter
-abbreviations:
-
-pdf-engine: pdflatex
-pdf-engine-opts:
-- "-shell-escape"
-# you may also use pdf-engine-opt: with a single option
-# pdf-engine-opt: "-shell-escape"
-
-# auto, preserve, or none
-wrap: auto
-columns: 78
-dpi: 72
-
-extract-media: mediadir
-
-table-of-contents: true
-toc-depth: 2
-number-sections: false
-# a list of offsets at each heading level
-number-offset: [0,0,0,0,0,0]
-# toc: may also be used instead of table-of-contents:
-shift-heading-level-by: 1
-section-divs: true
-identifier-prefix: foo
-title-prefix: ""
-strip-empty-paragraphs: true
-# lf, crlf, or native
-eol: lf
-strip-comments: false
-indented-code-classes: []
-ascii: true
-default-image-extension: ".jpg"
-
-# either a style name of a style definition file:
-highlight-style: pygments
-syntax-definitions:
-- c.xml
-# or you may use syntax-definition: with a single value
-listings: false
-
-reference-doc: myref.docx
-
-# method is plain, webtex, gladtex, mathml, mathjax, katex
-# you may specify a url with webtex, mathjax, katex
-html-math-method:
-  method: mathjax
-  url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
-# none, references, or javascript
-email-obfuscation: javascript
-
-tab-stop: 8
-preserve-tabs: true
-
-incremental: false
-slide-level: 2
-
-epub-subdirectory: EPUB
-epub-metadata: meta.xml
-epub-fonts:
-- foobar.otf
-epub-chapter-level: 1
-epub-cover-image: cover.jpg
-
-reference-links: true
-# block, section, or document
-reference-location: block
-markdown-headings: setext
-
-# accept, reject, or all
-track-changes: accept
-
-html-q-tags: false
-css:
-- site.css
-
-# none, all, or best
-ipynb-output: best
-
-# A list of two-element lists
-request-headers:
-- ["User-Agent", "Mozilla/5.0"]
-
-fail-if-warnings: false
-dump-args: false
-ignore-args: false
-trace: false
-```
+of options, in the form of a YAML file.
 
 Fields that are omitted will just have their regular
 default values.  So a defaults file can be as simple as
@@ -1720,7 +1543,7 @@ user data directory that is current when the defaults file is
 parsed, regardless of the setting of the environment
 variable `USERDATA`.
 
-`${.}` will resolve to the directory containing the default
+`${.}` will resolve to the directory containing the defaults
 file itself.  This allows you to refer to resources contained
 in that directory:
 
@@ -1736,7 +1559,7 @@ resource-path:
 This environment variable interpolation syntax *only* works in
 fields that expect file paths.
 
-Default files can be placed in the `defaults` subdirectory of
+Defaults files can be placed in the `defaults` subdirectory of
 the user data directory and used from any directory.  For
 example, one could create a file specifying defaults for writing
 letters, save it as `letter.yaml` in the `defaults` subdirectory
@@ -1752,6 +1575,417 @@ Note that, where command-line arguments may be repeated
 `--metadata`, `--syntax-definition`), the values specified on
 the command line will combine with values specified in the
 defaults file, rather than replacing them.
+
+The following tables show the mapping between the command line and defaults file entries.
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| foo.md                           | input-file: foo.md                |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| foo.md bar.md                    | input-files:                      |
+|                                  |   - foo.md                        |
+|                                  |   - bar.md                        |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+
+## General options
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| --from markdown+emoji            | from: markdown+emoji              |
+| ```                              | ```                               |
+|                                  | ``` yaml                          |
+|                                  | reader: markdown+emoji            |
+|                                  | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --to markdown+hard_line_breaks   | to: markdown+hard_line_breaks     |
+| ```                              | ```                               |
+|                                  | ``` yaml                          |
+|                                  | writer: markdown+hard_line_breaks |
+|                                  | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --output foo.pdf                 | output-file: foo.pdf              |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --output -                       | output-file:                      |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --data-dir dir                   | data-dir: dir                     |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --verbose                        | verbosity: INFO                   |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --quiet                          | verbosity: ERROR                  |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --fail-if-warnings               | fail-if-warnings: true            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --log=FILE                       | log-file: FILE                    |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+
+## Reader options
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| --shift-heading-level-by -1      | shift-heading-level-by: -1        |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --indented-code-classes python   | indented-code-classes:            |
+|                                  |   - python                        |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --default-image-extension ".jpg" | default-image-extension: '.jpg'   |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --file-scope                     | file-scope: true                  |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --filter pandoc-citeproc \       | filters:                          |
+|  --lua-filter count-words.lua \  |   - pandoc-citeproc               |
+|  --filter special.lua            |   - count-words.lua               |
+|                                  |   - type: json                    |
+|                                  |     path: special.lua             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --metadata key=value \           | metadata:                         |
+|  --metadata key2                 |   key: value                      |
+|                                  |   key2: true                      |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --metadata-file meta.yaml        | metadata-files:                   |
+|                                  |   - meta.yaml                     |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --preserve-tabs                  | preserve-tabs: true               |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --tab-stop 8                     | tab-stop: 8                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --track-changes accept           | track-changes: accept             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --extract-media dir              | extract-media: dir                |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --abbreviations abbrevs.txt      | abbreviations: abbrevs.txt        |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+
+## General writer options
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| --standalone                     | standalone: true                  |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --template letter                | template: letter                  |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --variable key=val \             | variables:                        |
+|   --variable key2                |   key: val                        |
+|                                  |   key2: true                      |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --eol nl                         | eol: nl                           |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --dpi 300                        | dpi: 300                          |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --wrap 60                        | wrap: 60                          |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --columns 72                     | columns: 72                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --toc                            | toc: true                         |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --toc-depth 3                    | toc-depth: 3                      |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --strip-comments                 | strip-comments: true              |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --no-highlight                   | highlight-style: null             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --highlight-style kate           | highlight-style: kate             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --syntax-definition mylang.xml   | syntax-definitions:               |
+|                                  |   - mylang.xml                    |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --include-in-header inc.tex      | include-in-header:                |
+|                                  |   - inc.tex                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --include-before-body inc.tex    | include-before-body:              |
+|                                  |   - inc.tex                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --include-after-body inc.tex     | include-after-body:               |
+|                                  |   - inc.tex                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --resource-path .:foo            | resource-path: ['.','foo']        |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --request-header foo:bar         | request-headers:                  |
+|                                  |   - ['foo', 'bar']                |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+
+
+## Options affecting specific writers
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| --self-contained                 | self-contained: true              |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --html-q-tags                    | html-q-tags: true                 |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --ascii                          | ascii: true                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --reference-links                | reference-links: true             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --reference-location block       | reference-location: block         |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --markdown-headings atx          | markdown-headings: atx            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --top-level-division chapter     | top-level-division: chapter       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --number-sections                | number-sections: true             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --number-offset=1,4              | number-offset: \[1,4\]            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --listings                       | listings: true                    |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --incremental                    | incremental: true                 |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --slide-level 2                  | slide-level: 2                    |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --section-divs                   | section-divs: true                |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --email-obfuscation references   | email-obfuscation: references     |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --id-prefix ch1                  | identifier-prefix: ch1            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --title-prefix MySite            | title-prefix: MySite              |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --css styles/screen.css  \       | css:                              |
+|   --css styles/special.css       |   - styles/screen.css             |
+|                                  |   - styles/special.css            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --reference-doc my.docx          | reference-doc: my.docx            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --epub-cover-image cover.jpg     | epub-cover-image: cover.jpg       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --epub-metadata meta.xml         | epub-metadata: meta.xml           |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --epub-embed-font special.otf \  | epub-fonts:                       |
+|   --epub-embed-font headline.otf |   - special.otf                   |
+|                                  |   - headline.otf                  |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --epub-chapter-level 2           | epub-chapter-level: 2             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --epub-subdirectory=""           | epub-subdirectory: ''             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --ipynb-output best              | ipynb-output: best                |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --pdf-engine xelatex             | pdf-engine: xelatex               |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --pdf-engine-opt=--shell-escape  | pdf-engine-opts:                  |
+|                                  |   - '--shell-escape'              |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+
+## Citation rendering
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| --citeproc                       | citeproc: true                    |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --bibliography logic.bib         | metadata:                         |
+|                                  |   bibliography: logic.bib         |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --csl ieee.csl                   | metadata:                         |
+|                                  |   csl: ieee.csl                   |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --citation-abbreviations ab.json | metadata:                         |
+|                                  |   citation-abbreviations: ab.json |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --natbib                         | cite-method: natbib               |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --biblatex                       | cite-method: biblatex             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+
+## Math rendering in HTML
+
+If the option accepts a URL argument, an `url:` field can be added to `html-math-method:`.
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| --mathjax                        | html-math-method:                 |
+|                                  |   method: mathjax                 |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --mathml                         | html-math-method:                 |
+|                                  |   method: mathml                  |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --webtex                         | html-math-method:                 |
+|                                  |   method: webtex                  |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --katex                          | html-math-method:                 |
+|                                  |   method: katex                   |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --gladtex                        | html-math-method:                 |
+|                                  |   method: gladtex                 |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+
+## Options for wrapper scripts
+
++----------------------------------+-----------------------------------+
+| command line                     | defaults file                     |
++:=================================+:==================================+
+| ```                              | ``` yaml                          |
+| --trace                          | trace: true                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --dump-args                      | dump-args: true                   |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --ignore-args                    | ignore-args: true                 |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
 
 # Templates
 
