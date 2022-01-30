@@ -83,7 +83,7 @@
     at the beginning of a path (Even Brenden).  Prior to this commit,
     `../../file` would evaluate to `file`, when it should be unchanged.
 
-  * Search for metadata files in $DATADIR/metadata (#7851, Even Brenden).
+  * Search for metadata files in `$DATADIR/metadata` (#7851, Even Brenden).
     If files specified with `--metadata-file` are not found in the working
     directory, look in `$DATADIR/metadata` (#5876).
 
