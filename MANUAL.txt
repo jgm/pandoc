@@ -2682,10 +2682,7 @@ These variables change the appearance of PDF slides using [`beamer`].
     `1610` for 16:10, `149` for 14:9, `141` for 1.41:1, `54` for 5:4,
     `32` for 3:2)
 
-`beamerarticle`
-:   produce an article from Beamer slides
-
-`beameroption`
+``beameroption`
 :   add extra beamer option with `\setbeameroption{}`
 
 `institute`
@@ -2807,6 +2804,9 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `secnumdepth`
 :   numbering depth for sections (with `--number-sections` option
     or `numbersections` variable)
+
+`beamerarticle`
+:   produce an article from Beamer slides
 
 #### Fonts
 
