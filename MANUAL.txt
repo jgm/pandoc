@@ -701,6 +701,12 @@ header when requesting a document from a URL:
     space, and the period will not produce sentence-ending space
     in formats like LaTeX.  The strings may not contain spaces.
 
+`--trace`
+
+:   Print diagnostic output tracing parser progress to stderr.
+    This option is intended for use by developers in diagnosing
+    performance issues.
+
 [`pandocfilters`]: https://github.com/jgm/pandocfilters
 [PHP]: https://github.com/vinai/pandocfilters-php
 [perl]: https://metacpan.org/pod/Pandoc::Filter
@@ -1722,6 +1728,10 @@ those in another file included with a `defaults:` entry.
 | --abbreviations abbrevs.txt      | abbreviations: abbrevs.txt        |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --trace                          | trace: true                       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
 
 Metadata values specified in a defaults file are parsed as literal
 string text, not Markdown.
@@ -2030,10 +2040,6 @@ be added to `html-math-method:`.
 +----------------------------------+-----------------------------------+
 | command line                     | defaults file                     |
 +:=================================+:==================================+
-| ```                              | ``` yaml                          |
-| --trace                          | trace: true                       |
-| ```                              | ```                               |
-+----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --dump-args                      | dump-args: true                   |
 | ```                              | ```                               |
