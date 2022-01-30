@@ -1,5 +1,164 @@
 # Revision history for pandoc
 
+## pandoc 2.17.1 (PROVISIONAL)
+
+  * Support `pagedjs-cli` as pdf engine (#7838, Albert Krewinkel).
+    PagedJS is a polyfill and supports the Paged Media standards by the W3C.
+    <https://www.pagedjs.org/>
+
+  * CommonMark reader: fix source position after YAML metadata (#7863).
+
+  * LaTeX reader:
+
+    + Remove retokenizing in `rawLaTeXParser`.
+    + Ensure that `\raggedright` doesn't gobble an argument (#7757).
+    + Improve `descItem`.  For some reason we were skipping
+      arbitrary blocks before `\item`.  This is now changed to "skip
+      whitespace and comments."
+    + Improve handling of `\newif`.  Adding a pair of braces around the
+      second argument of `\def` prevents LaTeX from an emergency stop
+      on input like the following (#6096).
+      ```
+      \newif\ifepub
+      \epubtrue
+      \ifepub
+      hi
+      \fi
+      ```
+
+  * Docx reader: Parse both Zotero citation and bibliography as
+    `FieldInfo` (#7840).
+
+  * LaTeX writer:
+
+    + Allow arbitrary frameoptions to be passed to a beamer
+      frame, using the frameoptions attribute (#7869).
+    + Add s and squeeze to recognized beamer frameoptions (#7869).
+
+  * Markdown writer: handle explicit column widths with pipe tables (#7847).
+    If a table has explicit column width information *and* the content
+    extends beyond the `--columns` width, we need to adjust the
+    widths of the pipe separators to encode this width information.
+
+  * Docx writer: Separate tables even with RawBlocks between (#7224,
+    Michael Hoffmann).  Adjacent docx tables need to be separated by an
+    empty paragraph. If there's a RawBlock between tables which renders
+    to nothing, be sure to still insert the empty paragraph so that
+    they will not collapse together.
+
+  * Man writer: use custom font V for inline code (#7506).
+    The V font is defined conditionally, so that it renders
+    like CB in output formats that support that, and like B
+    in those that don't (e.g. the terminal).
+    Aliases also defined for VI, VB, VBI.
+
+  * Asciidoc writer: Support checklists in asciidoctor writer (#7832,
+    Nikolai Korobeinikov, ricnorr).  The checklist syntax (similar to
+    `task_list` in markdown) seems to be an asciidoctor-only addition.
+
+  * HTML writer:
+
+    + Avoid duplicate "style" attributes on table cells (#7871).
+    + Don't break lines inside code elements.  With the new (default)
+      line wrapping of HTML, in conjunction with the default CSS which
+      includes `code { whitespace: pre-wrap; }`, spurious line
+      breaks could be introduced into inline code (#7858).
+
+  * Custom writer: preserve order of element attributes (#7489, Albert
+    Krewinkel).  Attribute key-value pairs are marshaled as AttributeList,
+    i.e., as a userdata type that behaves both like a list and a map. This
+    allows to preserve the order of key-value pairs.
+
+  * Switch to hslua-2.1 (Albert Krewinkel). This allows for some code
+    simplification and improves stability.
+
+  * Don't read files outside of user data directory (Even Brenden).
+    If a file path does not exist relative to the working directory, and
+    it does exist relative to the user data directory, but outside of
+    of the user data directory, do not read it. This applies to `readDataFile`
+    and `readMetadataFile` in PandocMonad and, by extension, any module that
+    uses these by passing them relative paths.
+
+  * Text.Pandoc.Class.`makeCanonical`: Correctly handle consecutive ".."s
+    at the beginning of a path (Even Brenden).  Prior to this commit,
+    `../../file` would evaluate to `file`, when it should be unchanged.
+
+  * Search for metadata files in $DATADIR/metadata (#7851, Even Brenden).
+    If files specified with `--metadata-file` are not found in the working
+    directory, look in `$DATADIR/metadata` (#5876).
+
+  * Text.Pandoc.Class: export `readMetadataFile` [API change] (#5876).
+
+  * Text.Pandoc.Error: export new `PandocCouldNotFindMetadataFileError`
+    constructor for `PandocError` [API change] (#5876).
+
+  * Avoid putting a frame around speaker notes in beamer (#7857).
+    If speaker notes (a Div with class 'notes') occur right
+    after a section heading, but above slide level, the
+    resulting `\note{..}` caommand should not be wrapped in
+    a frame, as that will cause a spurious blank slide.
+
+  * CSS in HTML template: adjust #TOC and h1 on mobile (#7835, Mauro Bieg).
+
+  * Text.Pandoc.Readers.LaTeX.Parsing: don't export `totoks`.
+    Make the first param of `tokenize` a SourcePos instead of
+    SourceName, and use it instead of `totoks`.
+
+  * Text.Pandoc.Shared: Modify `stringify` so it ignores `[Citation]`
+    inside `Cite` (#7855).  Otherwise we'll sometimes get two copies of
+    things, one from the `citationPrefix` or `citationSuffix` and another
+    from the embedded fallback text.  When there is no fallback text,
+    we'll get no content.  However, it really isn't an alternative to just
+    rely on the result of running `query` on the embedded `Citation`s;
+    this will result in a jumble of text rather than anything structured.
+
+  * Omit `--enable-doc` in the cabal haddock invocation in
+    `tools/build-and-upload-api-docs.sh`.
+
+  * Text.Pandoc.App.Opt: fix logic bug in `fullDefaultsPath`.
+    Previously we would (also) search the default user data directory
+    for a defaults file, even if a different user data directory
+    was specified using `--data-dir`.  This was a mistake; if
+    `--data-dir` is used, the default user data directory should
+    not be searched.
+
+  * Text.Pandoc.Shared: `defaultUserDataDir` behavior change (#7842).
+    If the XDG data directory is not defined (e.g. because
+    it's not supported in the OS or HOME isn't defined), we
+    return the empty string instead of raising an exception.
+
+  * Update command tests to distinguish stderr and test exit status.
+
+  * MANUAL: add that speaker notes can be used with beamer (#7856).
+
+  * Update `build-and-upload-api-docs.sh`.
+
+  * Document `--trace` option.
+    Document `no-check-certificate` in defaults files.
+    Document 'sandbox' option for defaults files.  (#7873).
+
+  * Fix pattern syntax in sample readability custom reader.
+
+  * doc/custom-readers.lua: add example for "readable HTML."
+
+  * Fix message in man page about where code can be found.
+
+  * `manfilter.lua`:  remove extra indent in table cells with code blocks.
+
+  * Fix lua-filters documentation for table column widths (#7864).
+
+  * epub.doc: Update links to KindleGen (#7846, Benson Muite, Mauro Bieg).
+    KindleGen has been deprecated and we need to link to archived versions.
+
+  * Use tables in defaults files documentation, so each
+    default option is paired with the corresponding command-line
+    option (Carsten Allefeld).
+
+  * Use skylighting 0.12.2.
+
+  * Add pandoc-lua-marshal to Nix shell (#7849, Even Brenden).
+
+
 ## pandoc 2.17.0.1 (2022-01-14)
 
   * Require pandoc-lua-marshal 0.1.3.1 (#7831, Albert Krewinkel).
