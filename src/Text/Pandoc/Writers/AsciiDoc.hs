@@ -353,12 +353,12 @@ bulletListItemToAsciiDoc opts blocks = do
     contents <> cr
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
--- or @U+2612 BALLOT BOX WITH X@ to org checkbox syntax (e.g. @[X]@).
+-- or @U+2612 BALLOT BOX WITH X@ to asciidoctor checkbox syntax (e.g. @[x]@).
 taskListItemToAsciiDoc :: [Block] -> [Block]
 taskListItemToAsciiDoc = handleTaskListItem toOrg listExt
   where
     toOrg (Str "☐" : Space : is) = Str "[ ]" : Space : is
-    toOrg (Str "☒" : Space : is) = Str "[X]" : Space : is
+    toOrg (Str "☒" : Space : is) = Str "[x]" : Space : is
     toOrg is = is
     listExt = extensionsFromList [Ext_task_lists]
 

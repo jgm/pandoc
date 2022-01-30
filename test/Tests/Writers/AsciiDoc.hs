@@ -89,7 +89,7 @@ tests = [ testGroup "emphasis"
           [ testAsciidoctor "bullet task list" $
                bulletList [plain "☐ a", plain "☒ b"] =?> unlines
                                            [ "* [ ] a"
-                                           , "* [X] b"
+                                           , "* [x] b"
                                            ]
           ]
         ]
