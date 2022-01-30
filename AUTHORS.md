@@ -35,6 +35,7 @@
 - Beni Cherniavsky-Paskin
 - Benjamin Bray
 - Benoit Schweblin
+- Benson Muite
 - Bjorn Buckwalter
 - Blake Eryx
 - Bodigrim
@@ -46,6 +47,7 @@
 - Caleb Mclennan
 - Calvin Beck
 - Carlos Sosa
+- Carsten Allefeld
 - Cécile Chemin
 - Cédric Couralet
 - Charanjit Singh
@@ -88,6 +90,7 @@
 - Erik Rask
 - Ethan Riley
 - Étienne Bersac
+- Even Brenden
 - Ezwal
 - Fabián Heredia Montiel
 - Félix Baylac-Jacqué
@@ -217,6 +220,7 @@
 - Nick Berendsen
 - Nick Fleisher
 - Nicolas Kaiser
+- Nikolai Korobeinikov
 - Nikolay Yakimov
 - Nils Carlson
 - Nixon Enraght-Moony
@@ -336,6 +340,7 @@
 - oquechy
 - qerub
 - quasicomputational
+- ricnorr
 - robabla
 - roblabla
 - rodja.trappe
