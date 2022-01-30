@@ -3922,7 +3922,7 @@ Parameters:
 Returns: a new list containing all elements from list1 and
 list2
 
-### `pandoc.List:__eq (a, b)` {#pandoc.list:__concat}
+### `pandoc.List:__eq (a, b)` {#pandoc.list:__eq}
 
 Compares two lists for equality. The lists are taken as equal
 if and only if they are of the same type (i.e., have the same
