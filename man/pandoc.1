@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "Pandoc User\[cq]s Guide" "" "January 14, 2022" "pandoc 2.17.0.1" ""
+.TH "Pandoc User\[cq]s Guide" "" "January 30, 2022" "pandoc 2.17.1" ""
 .hy
 .SH NAME
 pandoc - general markup converter
@@ -756,6 +756,11 @@ The only use pandoc makes of this list is in the Markdown reader.
 Strings found in this list will be followed by a nonbreaking space, and
 the period will not produce sentence-ending space in formats like LaTeX.
 The strings may not contain spaces.
+.TP
+\f[V]--trace\f[R]
+Print diagnostic output tracing parser progress to stderr.
+This option is intended for use by developers in diagnosing performance
+issues.
 .SS General writer options
 .TP
 \f[V]-s\f[R], \f[V]--standalone\f[R]
@@ -2089,6 +2094,25 @@ T{
 .IP
 .nf
 \f[C]
+--sandbox
+\f[R]
+.fi
+.RE
+T}@T{
+.RS -14n
+.IP
+.nf
+\f[C]
+sandbox: true
+\f[R]
+.fi
+.RE
+T}
+T{
+.RS -14n
+.IP
+.nf
+\f[C]
 --log=FILE
 \f[R]
 .fi
@@ -2363,6 +2387,25 @@ T}@T{
 .nf
 \f[C]
 abbreviations: abbrevs.txt
+\f[R]
+.fi
+.RE
+T}
+T{
+.RS -14n
+.IP
+.nf
+\f[C]
+--trace
+\f[R]
+.fi
+.RE
+T}@T{
+.RS -14n
+.IP
+.nf
+\f[C]
+trace: true
 \f[R]
 .fi
 .RE
@@ -2760,6 +2803,25 @@ T}@T{
 \f[C]
 request-headers:
   - [\[dq]User-Agent\[dq], \[dq]Mozilla/5.0\[dq]]
+\f[R]
+.fi
+.RE
+T}
+T{
+.RS -14n
+.IP
+.nf
+\f[C]
+--no-check-certificate
+\f[R]
+.fi
+.RE
+T}@T{
+.RS -14n
+.IP
+.nf
+\f[C]
+no-check-certificate: true
 \f[R]
 .fi
 .RE
@@ -3557,25 +3619,6 @@ T{
 .IP
 .nf
 \f[C]
---trace
-\f[R]
-.fi
-.RE
-T}@T{
-.RS -14n
-.IP
-.nf
-\f[C]
-trace: true
-\f[R]
-.fi
-.RE
-T}
-T{
-.RS -14n
-.IP
-.nf
-\f[C]
 --dump-args
 \f[R]
 .fi
@@ -4302,10 +4345,7 @@ slide aspect ratio (\f[V]43\f[R] for 4:3 [default], \f[V]169\f[R] for
 16:9, \f[V]1610\f[R] for 16:10, \f[V]149\f[R] for 14:9, \f[V]141\f[R]
 for 1.41:1, \f[V]54\f[R] for 5:4, \f[V]32\f[R] for 3:2)
 .TP
-\f[V]beamerarticle\f[R]
-produce an article from Beamer slides
-.TP
-\f[V]beameroption\f[R]
+\[ga]\f[V]beameroption\f[R]
 add extra beamer option with \f[V]\[rs]setbeameroption{}\f[R]
 .TP
 \f[V]institute\f[R]
@@ -4451,6 +4491,9 @@ paper size, e.g.\ \f[V]letter\f[R], \f[V]a4\f[R]
 \f[V]secnumdepth\f[R]
 numbering depth for sections (with \f[V]--number-sections\f[R] option or
 \f[V]numbersections\f[R] variable)
+.TP
+\f[V]beamerarticle\f[R]
+produce an article from Beamer slides
 .SS Fonts
 .TP
 \f[V]fontenc\f[R]
