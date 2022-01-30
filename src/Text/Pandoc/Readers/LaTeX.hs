@@ -921,6 +921,8 @@ blockCommands = M.fromList
    , ("PackageError", mempty <$ (braced >> braced >> braced))
    -- epigraph package
    , ("epigraph", epigraph)
+   -- alignment
+   , ("raggedright", pure mempty)
    ]
 
 skipSameFileToks :: PandocMonad m => LP m ()
