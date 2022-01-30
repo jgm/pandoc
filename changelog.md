@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.17.1 (PROVISIONAL)
+## pandoc 2.17.1 (2022-01-30)
 
   * Support `pagedjs-cli` as pdf engine (#7838, Albert Krewinkel).
     PagedJS is a polyfill and supports the Paged Media standards by the W3C.
@@ -75,9 +75,9 @@
   * Don't read files outside of user data directory (Even Brenden).
     If a file path does not exist relative to the working directory, and
     it does exist relative to the user data directory, but outside of
-    of the user data directory, do not read it. This applies to `readDataFile`
-    and `readMetadataFile` in PandocMonad and, by extension, any module that
-    uses these by passing them relative paths.
+    of the user data directory, do not read it. This applies to
+    `readDataFile` and `readMetadataFile` in PandocMonad and, by
+    extension, any module that uses these by passing them relative paths.
 
   * Text.Pandoc.Class.`makeCanonical`: Correctly handle consecutive ".."s
     at the beginning of a path (Even Brenden).  Prior to this commit,
