@@ -6,7 +6,6 @@
 [ ] push release candidate branch rc/VERSION and (if it builds
     successfully) download artifacts
 [ ] run tools/build-arm.sh to create and download arm64 linux package
-[ ] download macos artifacts from CircleCI
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website
 [ ] make trypandoc
