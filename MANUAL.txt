@@ -1823,6 +1823,10 @@ To include the built-in citeproc filter, use either `citeproc` or
 |                                  |   - ["User-Agent", "Mozilla/5.0"] |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --no-check-certificate           | no-check-certificate: true        |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
 
 
 ## Options affecting specific writers
