@@ -21,29 +21,26 @@ REVISION?=1
 # For tasty-bench:
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
-quick:
+# Note:  to accept current results of golden tests,
+# make test TESTARGS='--accept'
+quick: ## build & test with stack, no optimizations
 	stack install --ghc-options='$(GHCOPTS)' --system-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 
-quick-cabal:
+quick-cabal: ## build & test with stack, no optimizations
 	cabal v2-build -j8 --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
 	cabal v2-test --disable-optimization --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
 	echo "Path to built executable:" && cabal exec -- sh -c 'command -v pandoc' | sed -e 's!x/pandoc/build!x/pandoc/noopt/build!'
 
-full-cabal:
-	cabal v2-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
-	cabal v2-build . --disable-optimization
-	cabal v2-run test-pandoc --disable-optimization -- --hide-successes --ansi-tricks=false $(TESTARGS)
-
-full:
+full: ## build with stack, including benchmarks, trypandoc
 	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes--ansi-tricks-false' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
 
-ghci:
+ghci: ## start ghci session
 	stack ghci --flag 'pandoc:embed_data_files'
 
-haddock:
+haddock: ## build haddocks
 	stack haddock
 
-check: check-cabal checkdocs
+check: check-cabal checkdocs ## prerelease checks
 	cabal check # check cabal file
 	cabal outdated # check cabal dependencies
 	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
@@ -58,47 +55,34 @@ checkdocs:
 	@echo "Checking for tabs in manual."
 	! grep -q -n -e "\t" MANUAL.txt changelog.md
 
-# Note:  to accept current results of golden tests,
-# make test TESTARGS='--accept'
-test:
-	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)' --ghc-options '$(GHCOPTS)'
-
-ghcid:
+ghcid: ## run ghcid/stack
 	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
 
-ghcid-test:
+ghcid-test: ## run ghcid/stack with tests
 	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files' --ghci-options=-fobject-code pandoc:lib pandoc:test-pandoc"
 
-bench:
+bench: ## build and run benchmarks
 	stack bench \
 	  --ghc-options '$(GHCOPTS)' \
 	  --benchmark-arguments='$(BENCHARGS)' 2>&1 | \
 	  tee "bench_latest.txt"
 
-reformat:
+reformat: ## reformat with stylish-haskell
 	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
 
-lint: hlint fix_spacing
+lint: hlint fix_spacing ## run linters
 
-hlint:
+hlint: ## run hlint
 	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-s -o -' $$f; done
 
-fix_spacing:
-	# Fix trailing newlines and spaces at ends of lines
+fix_spacing: ## Fix trailing newlines and spaces
 	for f in $(SOURCEFILES); do printf '%s\n' "`cat $$f`" | sed -e 's/  *$$//' > $$f.tmp; mv $$f.tmp $$f; done
 
-changes_github:
+changes_github: ## copy this release's changes in gfm
 	pandoc --filter tools/extract-changes.hs changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 
-dist: man/pandoc.1
-	cabal sdist
-	rm -rf "pandoc-${version}"
-	tar xvzf dist/pandoc-${version}.tar.gz
-	cd pandoc-${version}
-	stack setup && stack test && cd .. && rm -rf "pandoc-${version}"
 
-
-debpkg:
+debpkg: ## create linux package
 	docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \
@@ -123,11 +107,11 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
-download_stats:
+download_stats: ## print download stats from GitHub releases
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
 
-pandoc-templates:
+pandoc-templates: ## update pandoc-templates repo
 	rm ../pandoc-templates/default.* ; \
 	cp data/templates/* ../pandoc-templates/ ; \
 	pushd ../pandoc-templates/ && \
@@ -135,15 +119,15 @@ pandoc-templates:
 	git commit -m "Updated templates for pandoc $(version)" && \
 	popd
 
-trypandoc:
+trypandoc: ## build trypandoc on server
 	ssh -t macfarlane 'cd src/pandoc && git pull && cabal update && cabal install -ftrypandoc -fembed_data_files --install-method=copy --overwrite-policy=always && cd trypandoc && sudo make install'
 
-update-website:
+update-website: ## update website and upload
 	make -C $(WEBSITE) update
 	make -C $(WEBSITE)
 	make -C $(WEBSITE) upload
 
-clean:
+clean: ## clean up
 	stack clean
 
 sdist-files.txt: .FORCE
@@ -152,4 +136,8 @@ sdist-files.txt: .FORCE
 git-files.txt: .FORCE
 	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
 
-.PHONY: .FORCE deps quick full haddock install clean test bench changes_github dist prof download_stats reformat lint weigh doc/lua-filters.md pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal check
+.PHONY: help
+help: ## Display this help
+	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-30s %s\n", $$1, $$2}'
+
+.PHONY: .FORCE deps quick haddock install clean test bench changes_github download_stats reformat lint weigh pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal check
