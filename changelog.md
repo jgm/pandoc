@@ -1,5 +1,15 @@
 # Revision history for pandoc
 
+## pandoc 2.17.1.1 (2022-01-31)
+
+  * Fix regression in 2.17.1 which caused problems finding
+    default files in the default user data directory.  (Reverts
+    the item "logic bug in `fullDefaultsPath`", which was
+    misguided.)
+
+  * Sample custom writer: use single quotes for strings (#7487,
+    Albert Krewinkel).
+
 ## pandoc 2.17.1 (2022-01-30)
 
   * Support `pagedjs-cli` as pdf engine (#7838, Albert Krewinkel).
