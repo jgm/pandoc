@@ -235,6 +235,7 @@ header when requesting a document from a URL:
     - `docbook` ([DocBook])
     - `docx` ([Word docx])
     - `dokuwiki` ([DokuWiki markup])
+    - `endnotexml` ([EndNote XML bibliography])
     - `epub` ([EPUB])
     - `fb2` ([FictionBook2] e-book)
     - `gfm` ([GitHub-Flavored Markdown]),
@@ -504,6 +505,7 @@ header when requesting a document from a URL:
 [BibTeX]: https://ctan.org/pkg/bibtex
 [BibLaTeX]: https://ctan.org/pkg/biblatex
 [Markua]: https://leanpub.com/markua/read
+[EndNote XML bibliography]: https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition
 
 ## Reader options {.options}
 
