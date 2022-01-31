@@ -5,7 +5,7 @@ John Gruber’s markdown test suite.</p>
 
 <h1 id="headers">Headers</h1>
 
-<h2 id="level-2-with-an-embedded-link">Level 2 with an <a href='/url' title=''>embedded link</a></h2>
+<h2 id="level-2-with-an-embedded-link">Level 2 with an <a href="/url" title="">embedded link</a></h2>
 
 <h3 id="level-3-with-emphasis">Level 3 with <em>emphasis</em></h3>
 
@@ -525,7 +525,7 @@ Blah
 
 <p>This is <strong>strong</strong>, and so <strong>is this</strong>.</p>
 
-<p>An <em><a href='/url' title=''>emphasized link</a></em>.</p>
+<p>An <em><a href="/url" title="">emphasized link</a></em>.</p>
 
 <p><strong><em>This is strong and em.</em></strong></p>
 
@@ -560,7 +560,7 @@ So is &lsquo;pine.&rsquo;</p>
 <p>&lsquo;He said, &ldquo;I want to go.&rdquo;&rsquo; Were you alive in the
 70’s?</p>
 
-<p>Here is some quoted &lsquo;<code>code</code>&rsquo; and a &ldquo;<a href='http://example.com/?foo=1&amp;bar=2' title=''>quoted link</a>&rdquo;.</p>
+<p>Here is some quoted &lsquo;<code>code</code>&rsquo; and a &ldquo;<a href="http://example.com/?foo=1&amp;bar=2" title="">quoted link</a>&rdquo;.</p>
 
 <p>Some dashes: one—two — three—four — five.</p>
 
@@ -660,70 +660,70 @@ So is &lsquo;pine.&rsquo;</p>
 
 <h2 id="explicit">Explicit</h2>
 
-<p>Just a <a href='/url/' title=''>URL</a>.</p>
+<p>Just a <a href="/url/" title="">URL</a>.</p>
 
-<p><a href='/url/' title='title'>URL and title</a>.</p>
+<p><a href="/url/" title="title">URL and title</a>.</p>
 
-<p><a href='/url/' title='title preceded by two spaces'>URL and title</a>.</p>
+<p><a href="/url/" title="title preceded by two spaces">URL and title</a>.</p>
 
-<p><a href='/url/' title='title preceded by a tab'>URL and title</a>.</p>
+<p><a href="/url/" title="title preceded by a tab">URL and title</a>.</p>
 
-<p><a href='/url/' title='title with &quot;quotes&quot; in it'>URL and title</a></p>
+<p><a href="/url/" title="title with &quot;quotes&quot; in it">URL and title</a></p>
 
-<p><a href='/url/' title='title with single quotes'>URL and title</a></p>
+<p><a href="/url/" title="title with single quotes">URL and title</a></p>
 
-<p><a href='/url/with_underscore' title=''>with_underscore</a></p>
+<p><a href="/url/with_underscore" title="">with_underscore</a></p>
 
-<p><a href='mailto:nobody@nowhere.net' title=''>Email link</a></p>
+<p><a href="mailto:nobody@nowhere.net" title="">Email link</a></p>
 
-<p><a href='' title=''>Empty</a>.</p>
+<p><a href="" title="">Empty</a>.</p>
 
 <h2 id="reference">Reference</h2>
 
-<p>Foo <a href='/url/' title=''>bar</a>.</p>
+<p>Foo <a href="/url/" title="">bar</a>.</p>
 
-<p>With <a href='/url/' title=''>embedded [brackets]</a>.</p>
+<p>With <a href="/url/" title="">embedded [brackets]</a>.</p>
 
-<p><a href='/url/' title=''>b</a> by itself should be a link.</p>
+<p><a href="/url/" title="">b</a> by itself should be a link.</p>
 
-<p>Indented <a href='/url' title=''>once</a>.</p>
+<p>Indented <a href="/url" title="">once</a>.</p>
 
-<p>Indented <a href='/url' title=''>twice</a>.</p>
+<p>Indented <a href="/url" title="">twice</a>.</p>
 
-<p>Indented <a href='/url' title=''>thrice</a>.</p>
+<p>Indented <a href="/url" title="">thrice</a>.</p>
 
 <p>This should [not][] be a link.</p>
 
 <pre><code>[not]: /url</code></pre>
 
-<p>Foo <a href='/url/' title='Title with &quot;quotes&quot; inside'>bar</a>.</p>
+<p>Foo <a href="/url/" title="Title with &quot;quotes&quot; inside">bar</a>.</p>
 
-<p>Foo <a href='/url/' title='Title with &quot;quote&quot; inside'>biz</a>.</p>
+<p>Foo <a href="/url/" title="Title with &quot;quote&quot; inside">biz</a>.</p>
 
 <h2 id="with-ampersands">With ampersands</h2>
 
-<p>Here’s a <a href='http://example.com/?foo=1&amp;bar=2' title=''>link with an ampersand in the URL</a>.</p>
+<p>Here’s a <a href="http://example.com/?foo=1&amp;bar=2" title="">link with an ampersand in the URL</a>.</p>
 
-<p>Here’s a link with an amersand in the link text: <a href='http://att.com/' title='AT&amp;T'>AT&amp;T</a>.</p>
+<p>Here’s a link with an amersand in the link text: <a href="http://att.com/" title="AT&amp;T">AT&amp;T</a>.</p>
 
-<p>Here’s an <a href='/script?foo=1&amp;bar=2' title=''>inline link</a>.</p>
+<p>Here’s an <a href="/script?foo=1&amp;bar=2" title="">inline link</a>.</p>
 
-<p>Here’s an <a href='/script?foo=1&amp;bar=2' title=''>inline link in pointy braces</a>.</p>
+<p>Here’s an <a href="/script?foo=1&amp;bar=2" title="">inline link in pointy braces</a>.</p>
 
 <h2 id="autolinks">Autolinks</h2>
 
-<p>With an ampersand: <a href='http://example.com/?foo=1&amp;bar=2' title='' class="uri">http://example.com/?foo=1&amp;bar=2</a></p>
+<p>With an ampersand: <a href="http://example.com/?foo=1&amp;bar=2" title="" class="uri">http://example.com/?foo=1&amp;bar=2</a></p>
 
 <ul>
 <li>In a list?</li>
-<li><a href='http://example.com/' title='' class="uri">http://example.com/</a></li>
+<li><a href="http://example.com/" title="" class="uri">http://example.com/</a></li>
 <li>It should.</li>
 </ul>
 
-<p>An e-mail address: <a href='mailto:nobody@nowhere.net' title='' class="email">nobody@nowhere.net</a></p>
+<p>An e-mail address: <a href="mailto:nobody@nowhere.net" title="" class="email">nobody@nowhere.net</a></p>
 
 <blockquote>
-<p>Blockquoted: <a href='http://example.com/' title='' class="uri">http://example.com/</a></p>
+<p>Blockquoted: <a href="http://example.com/" title="" class="uri">http://example.com/</a></p>
 </blockquote>
 
 <p>Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code></p>
@@ -740,7 +740,7 @@ So is &lsquo;pine.&rsquo;</p>
 <img src="lalune.jpg" id="" alt="lalune"/><figcaption>lalune</figcaption>
 </figure>
 
-<p>Here is a movie <img src='movie.jpg' title=''/> icon.</p>
+<p>Here is a movie <img src="movie.jpg" title=""/> icon.</p>
 
 <hr/>
 
@@ -774,7 +774,7 @@ footnote (as with list items).</p>
 lazy and just indent the first line of each block. <a href="#fnref2">&#8617;</a></p></li>
 <li id="fn3"><p>This
 is <em>easier</em> to type. Inline notes may contain
-<a href='http://google.com' title=''>links</a> and <code>]</code> verbatim characters,
+<a href="http://google.com" title="">links</a> and <code>]</code> verbatim characters,
 as well as [bracketed text]. <a href="#fnref3">&#8617;</a></p></li>
 <li id="fn4"><p>In quote. <a href="#fnref4">&#8617;</a></p></li>
 <li id="fn5"><p>In list. <a href="#fnref5">&#8617;</a></p></li>
