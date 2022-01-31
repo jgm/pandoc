@@ -707,10 +707,9 @@ fullDefaultsPath dataDir file = do
   let fp = if null (takeExtension file)
               then addExtension file "yaml"
               else file
-  let searchpath = fp : case dataDir of
-                          Nothing -> []
-                          Just d  -> [d </> "defaults" </> fp]
-  fromMaybe fp <$> findM fileExists searchpath
+  defaultDataDir <- liftIO defaultUserDataDir
+  let defaultFp = fromMaybe defaultDataDir dataDir </> "defaults" </> fp
+  fromMaybe fp <$> findM fileExists [fp, defaultFp]
 
 -- | In a list of lists, append another list in front of every list which
 -- starts with specific element.
