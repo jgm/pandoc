@@ -19,6 +19,7 @@ module Text.Pandoc.Citeproc.BibTeX
     ( Variant(..)
     , readBibtexString
     , writeBibtexString
+    , toName
     )
     where
 
@@ -1173,7 +1174,7 @@ emptyName =
           , nameStaticOrdering      = False
           }
 
-toName :: Options -> [Inline] -> Bib Name
+toName :: MonadPlus m => Options -> [Inline] -> m Name
 toName _ [Str "others"] =
   return emptyName{ nameLiteral = Just "others" }
 toName _ [Span ("",[],[]) ils] = -- corporate author
