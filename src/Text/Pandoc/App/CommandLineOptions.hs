@@ -105,11 +105,15 @@ parseOptionsFromArgs options' defaults prg rawArgs = do
                      not (null (optIncludeBeforeBody opts)) ||
                      not (null (optIncludeAfterBody opts)) }
 
+-- | Supported LaTeX engines; the first item is used as default engine
+-- when going through LaTeX.
 latexEngines :: [String]
 latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
 
+-- | Supported HTML PDF engines; the first item is used as default
+-- engine when going through HTML.
 htmlEngines :: [String]
-htmlEngines  = ["pagedjs-cli", "wkhtmltopdf", "weasyprint", "prince"]
+htmlEngines  = ["wkhtmltopdf", "weasyprint", "pagedjs-cli", "prince"]
 
 engines :: [(Text, String)]
 engines = map ("html",) htmlEngines ++
