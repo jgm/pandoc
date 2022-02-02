@@ -17,6 +17,7 @@ entire bibliography will be printed.
 -}
 module Text.Pandoc.Readers.EndNote
   ( readEndNoteXML
+  , readEndNoteXMLReferences
   )
 where
 
@@ -27,7 +28,7 @@ import Text.Pandoc.Builder as B
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
-import Text.Pandoc.Sources (ToSources(..), sourcesToText)
+import Text.Pandoc.Sources (Sources(..), ToSources(..), sourcesToText)
 import Text.Pandoc.Citeproc.BibTeX (toName)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)
@@ -57,11 +58,17 @@ readEndNoteXML :: (PandocMonad m, ToSources a)
                => ReaderOptions -> a -> m Pandoc
 readEndNoteXML _opts inp = do
   let sources = toSources inp
+  refs <- readEndNoteXMLReferences sources
+  return $ setMeta "references" (map referenceToMetaValue refs) $ B.doc mempty
+
+readEndNoteXMLReferences :: PandocMonad m
+                         => Sources -> m [Reference Inlines]
+readEndNoteXMLReferences sources = do
   tree <- either (throwError . PandocXMLError "") return $
               parseXMLElement (TL.fromStrict . sourcesToText $ sources)
   let records = filterElementsName ((== "record") . qName) tree
-  let refs = map (referenceToMetaValue . recordToReference) records
-  return $ setMeta "references" refs $ B.doc mempty
+  return $ map recordToReference records
+
 
 recordToReference :: Element -> Reference Inlines
 recordToReference e =
