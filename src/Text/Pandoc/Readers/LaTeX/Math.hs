@@ -102,6 +102,7 @@ inlineEnvironments = M.fromList [
   , ("dgroup*", mathEnvWith id (Just "aligned") "dgroup*")
   , ("darray", mathEnvWith id (Just "aligned") "darray")
   , ("darray*", mathEnvWith id (Just "aligned") "darray*")
+  , ("subequations", mathEnvWith id Nothing "subequations")
   ]
 
 theoremstyle :: PandocMonad m => LP m Blocks
