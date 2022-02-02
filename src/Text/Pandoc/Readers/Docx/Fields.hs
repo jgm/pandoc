@@ -28,6 +28,8 @@ data FieldInfo = HyperlinkField URL
                | PagerefField Anchor Bool
                | ZoteroItem T.Text
                | ZoteroBibliography
+               | EndNoteCite T.Text
+               | EndNoteRefList
                | UnknownField
                deriving (Show)
 
@@ -49,10 +51,10 @@ addIn = do
   spaces
   string "ADDIN"
   spaces
-  try zoteroItem <|> zoteroBibliography
+  zoteroItem <|> zoteroBibliography <|> endnoteCite <|> endnoteRefList
 
 zoteroItem :: Parser FieldInfo
-zoteroItem = do
+zoteroItem = try $ do
   string "ZOTERO_ITEM"
   spaces
   string "CSL_CITATION"
@@ -60,9 +62,21 @@ zoteroItem = do
   ZoteroItem <$> getInput
 
 zoteroBibliography :: Parser FieldInfo
-zoteroBibliography = do
+zoteroBibliography = try $ do
   string "ZOTERO_BIBL"
   return ZoteroBibliography
+
+endnoteCite :: Parser FieldInfo
+endnoteCite = try $ do
+  string "EN.CITE"
+  spaces
+  EndNoteCite <$> getInput
+
+endnoteRefList :: Parser FieldInfo
+endnoteRefList = try $ do
+  string "EN.REFLIST"
+  return EndNoteRefList
+
 
 escapedQuote :: Parser T.Text
 escapedQuote = string "\\\"" $> "\\\""
