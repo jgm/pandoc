@@ -42,6 +42,7 @@ import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
 
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Map.Strict as Map
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
 data WriterState =
@@ -52,6 +53,7 @@ data WriterState =
   , stNextRef          :: Int  -- number of next URL reference
   , stOptions          :: WriterOptions -- writer options
   , stOrderedListLevel :: Int  -- level of ordered list
+  , stEmphasisCommands :: Map.Map Text (Doc Text)
   }
 
 -- | Table type
@@ -75,6 +77,7 @@ writeConTeXt options document =
         , stNextRef = 1
         , stOptions = options
         , stOrderedListLevel = 0
+        , stEmphasisCommands = mempty
         }
   in evalStateT (pandocToConTeXt options document) defaultWriterState
 
@@ -123,6 +126,8 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                           | all isDigit (d:ds) -> resetField "papersize"
                                                    (T.pack ('A':d:ds))
                         _                     -> id)
+                $ defField "emphasis-commands"
+                    (mconcat $ Map.elems (stEmphasisCommands st))
                 $ (case writerHighlightStyle options of
                         Just sty | stHighlighting st ->
                           defField "highlighting-commands" (styleToConTeXt sty)
@@ -185,10 +190,20 @@ blockToConTeXt (Div attr@(_,"section":_,_)
   footer' <- sectionFooter attr level
   innerContents <- blockListToConTeXt xs
   return $ header' $$ innerContents $$ footer'
-blockToConTeXt (Plain lst) = inlineListToConTeXt lst
-blockToConTeXt (Para lst) = do
+blockToConTeXt (Plain lst) = do
+  opts <- gets stOptions
   contents <- inlineListToConTeXt lst
-  return $ contents <> blankline
+  return $
+    if isEnabled Ext_tagging opts
+    then "\\bpar{}" <> contents <> "\\epar{}"
+    else contents
+blockToConTeXt (Para lst) = do
+  opts <- gets stOptions
+  contents <- inlineListToConTeXt lst
+  return $
+    if isEnabled Ext_tagging opts
+    then "\\bpar" $$ contents $$ "\\epar" <> blankline
+    else contents <> blankline
 blockToConTeXt (LineBlock lns) = do
   let emptyToBlankline doc = if isEmpty doc
                              then blankline
@@ -551,19 +566,31 @@ inlineListToConTeXt lst = liftM hcat $ mapM inlineToConTeXt $ addStruts lst
         isSpacey (Str (T.uncons -> Just ('\160',_))) = True
         isSpacey _                                   = False
 
+highlightInlines :: PandocMonad m
+                 => Text -> (Doc Text) -> [Inline]
+                 -> WM m (Doc Text)
+highlightInlines name style inlines = do
+  opts <- gets stOptions
+  contents <- inlineListToConTeXt inlines
+  if not (isEnabled Ext_tagging opts)
+    then return $ braces (style <> space <> contents)
+    else do
+      let cmd = "\\definehighlight " <> brackets (literal name) <>
+                brackets ("style=" <> braces style)
+      modify (\st -> st{ stEmphasisCommands =
+                         Map.insert name cmd (stEmphasisCommands st) })
+      return $ "\\" <> literal name <> braces contents
+
 -- | Convert inline element to ConTeXt
 inlineToConTeXt :: PandocMonad m
                 => Inline    -- ^ Inline to convert
                 -> WM m (Doc Text)
-inlineToConTeXt (Emph lst) = do
-  contents <- inlineListToConTeXt lst
-  return $ braces $ "\\em " <> contents
+inlineToConTeXt (Emph lst)      = highlightInlines "emph"      "\\em" lst
+inlineToConTeXt (Strong lst)    = highlightInlines "strong"    "\\bf" lst
+inlineToConTeXt (SmallCaps lst) = highlightInlines "smallcaps" "\\sc" lst
 inlineToConTeXt (Underline lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\underbar" <> braces contents
-inlineToConTeXt (Strong lst) = do
-  contents <- inlineListToConTeXt lst
-  return $ braces $ "\\bf " <> contents
 inlineToConTeXt (Strikeout lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\overstrikes" <> braces contents
@@ -573,9 +600,6 @@ inlineToConTeXt (Superscript lst) = do
 inlineToConTeXt (Subscript lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\low" <> braces contents
-inlineToConTeXt (SmallCaps lst) = do
-  contents <- inlineListToConTeXt lst
-  return $ braces $ "\\sc " <> contents
 inlineToConTeXt (Code (_ident, classes, _kv) str) = do
   let rawCode =
         pure . literal $

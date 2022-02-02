@@ -129,6 +129,7 @@ data Extension =
     | Ext_subscript           -- ^ Subscript using ~this~ syntax
     | Ext_superscript         -- ^ Superscript using ^this^ syntax
     | Ext_styles              -- ^ Read styles that pandoc doesn't know
+    | Ext_tagging             -- ^ Output optimized for PDF tagging
     | Ext_task_lists          -- ^ Parse certain list items as task list items
     | Ext_table_captions      -- ^ Pandoc-style table captions
     | Ext_tex_math_dollars    -- ^ TeX math between $..$ or $$..$$
@@ -602,6 +603,7 @@ getAllExtensions f = universalExtensions <> getAll f
     [ Ext_smart
     , Ext_raw_tex
     , Ext_ntb
+    , Ext_tagging
     ]
   getAll "textile"         = autoIdExtensions <>
     extensionsFromList
