@@ -3579,6 +3579,15 @@ In the `context` output format this enables the use of [Natural Tables
 Natural tables allow more fine-grained global customization but come
 at a performance penalty compared to extreme tables.
 
+#### Extension: `tagging` ####
+
+Enabling this extension with `context` output will produce markup
+suitable for the production of tagged PDFs. This includes
+additional markers for paragraphs and alternative markup for
+emphasized text. The `emphasis-command` template variable is set
+if the extension is enabled. Combine this with the `pdfa` variable
+to generate accessible PDFs.
+
 
 # Pandoc's Markdown
 

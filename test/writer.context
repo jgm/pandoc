@@ -86,8 +86,8 @@ markdown test suite.
 \startsectionlevel[title={Level 2 with an \goto{embedded
 link}[url(/url)]},reference={level-2-with-an-embedded-link}]
 
-\startsectionlevel[title={Level 3 with
-{\em emphasis}},reference={level-3-with-emphasis}]
+\startsectionlevel[title={Level 3 with {\em
+emphasis}},reference={level-3-with-emphasis}]
 
 \startsectionlevel[title={Level 4},reference={level-4}]
 
@@ -105,8 +105,8 @@ link}[url(/url)]},reference={level-2-with-an-embedded-link}]
 
 \startsectionlevel[title={Level 1},reference={level-1}]
 
-\startsectionlevel[title={Level 2 with
-{\em emphasis}},reference={level-2-with-emphasis}]
+\startsectionlevel[title={Level 2 with {\em
+emphasis}},reference={level-2-with-emphasis}]
 
 \startsectionlevel[title={Level 3},reference={level-3}]
 
