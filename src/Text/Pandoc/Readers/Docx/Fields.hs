@@ -28,6 +28,8 @@ data FieldInfo = HyperlinkField URL
                | PagerefField Anchor Bool
                | CslCitation T.Text
                | CslBibliography
+               | EndNoteCite T.Text
+               | EndNoteRefList
                | UnknownField
                deriving (Show)
 
@@ -38,7 +40,7 @@ fieldInfo :: Parser FieldInfo
 fieldInfo =
   try (HyperlinkField <$> hyperlink)
   <|>
-  try ((uncurry PagerefField) <$> pageref) 
+  try ((uncurry PagerefField) <$> pageref)
   <|>
   try addIn
   <|>
@@ -49,7 +51,7 @@ addIn = do
   spaces
   string "ADDIN"
   spaces
-  try cslCitation <|> cslBibliography
+  try cslCitation <|> cslBibliography <|> endnoteCite <|> endnoteRefList
 
 cslCitation :: Parser FieldInfo
 cslCitation = do
@@ -63,6 +65,18 @@ cslBibliography :: Parser FieldInfo
 cslBibliography = do
   string "ZOTERO_BIBL" <|> string "Mendeley Bibliography CSL_BIBLIOGRAPHY"
   return CslBibliography
+
+endnoteCite :: Parser FieldInfo
+endnoteCite = try $ do
+  string "EN.CITE"
+  spaces
+  EndNoteCite <$> getInput
+
+endnoteRefList :: Parser FieldInfo
+endnoteRefList = try $ do
+  string "EN.REFLIST"
+  return EndNoteRefList
+
 
 escapedQuote :: Parser T.Text
 escapedQuote = string "\\\"" $> "\\\""
