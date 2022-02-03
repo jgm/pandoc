@@ -485,8 +485,10 @@ inlineToMarkdown opts (Math InlineMath str) = do
   case () of
     _ | variant == Markua -> return $ "`" <> literal str <> "`" <> "$"
       | otherwise -> case writerHTMLMathMethod opts of
-          WebTeX url -> inlineToMarkdown opts
-                          (Image nullAttr [Str str] (url <> urlEncode str, str))
+          WebTeX url ->
+            let str' = T.strip str
+             in inlineToMarkdown opts
+                  (Image nullAttr [Str str'] (url <> urlEncode str', str'))
           _ | isEnabled Ext_tex_math_dollars opts ->
                 return $ "$" <> literal str <> "$"
             | isEnabled Ext_tex_math_single_backslash opts ->
@@ -507,9 +509,11 @@ inlineToMarkdown opts (Math DisplayMath str) = do
         return $ blankline <> attributes <> cr <> literal "```" <> cr
             <> literal str <> cr <> literal "```" <> blankline
       | otherwise -> case writerHTMLMathMethod opts of
-          WebTeX url -> (\x -> blankline <> x <> blankline) `fmap`
-                 inlineToMarkdown opts (Image nullAttr [Str str]
-                        (url <> urlEncode str, str))
+          WebTeX url ->
+            let str' = T.strip str
+             in (\x -> blankline <> x <> blankline) `fmap`
+                 inlineToMarkdown opts (Image nullAttr [Str str']
+                        (url <> urlEncode str', str'))
           _ | isEnabled Ext_tex_math_dollars opts ->
                 return $ "$$" <> literal str <> "$$"
             | isEnabled Ext_tex_math_single_backslash opts ->

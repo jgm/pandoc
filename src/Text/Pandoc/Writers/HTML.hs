@@ -1465,13 +1465,15 @@ inlineToHtml opts inline = do
       case writerHTMLMathMethod opts of
            WebTeX url -> do
               let imtag = if html5 then H5.img else H.img
+              let str' = T.strip str
               let s = case t of
                            InlineMath  -> "\\textstyle "
                            DisplayMath -> "\\displaystyle "
               return $ imtag ! A.style "vertical-align:middle"
-                             ! A.src (toValue . (url <>) . urlEncode $ s <> str)
-                             ! A.alt (toValue str)
-                             ! A.title (toValue str)
+                             ! A.src (toValue . (url <>) .
+                                 urlEncode $ s <> str')
+                             ! A.alt (toValue str')
+                             ! A.title (toValue str')
                              ! A.class_ mathClass
            GladTeX ->
               return $
