@@ -321,7 +321,7 @@ fromPandocCitations locale otherIdsMap = concatMap go
                , citationItemSuffix = case suffix of
                                         [] -> Nothing
                                         ils -> Just $ B.fromList ils
-               }
+               , citationItemData = Nothing }
      in if Pandoc.citationId c == "*"
            then []
            else
