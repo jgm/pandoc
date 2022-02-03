@@ -405,7 +405,8 @@ propertiesDrawer = try $ do
 
    key :: Monad m => OrgParser m PropertyKey
    key = fmap toPropertyKey . try $
-         skipSpaces *> char ':' *> many1TillChar nonspaceChar (char ':')
+         skipSpaces *> char ':' *>
+         many1TillChar nonspaceChar (try $ char ':' *> spaceChar)
 
    value :: Monad m => OrgParser m PropertyValue
    value = fmap toPropertyValue . try $
