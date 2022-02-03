@@ -72,6 +72,7 @@ import Data.Maybe (catMaybes, isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
+import Citeproc (ItemId(..), Reference(..))
 import Text.Pandoc.Builder as Pandoc
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
@@ -115,6 +116,7 @@ data DState = DState { docxAnchorMap :: M.Map T.Text T.Text
                      , docxListState :: M.Map (T.Text, T.Text) Integer
                      , docxPrevPara  :: Inlines
                      , docxTableCaptions :: [Blocks]
+                     , docxReferences :: M.Map ItemId (Reference Inlines)
                      }
 
 instance Default DState where
@@ -126,6 +128,7 @@ instance Default DState where
                , docxListState = M.empty
                , docxPrevPara  = mempty
                , docxTableCaptions = []
+               , docxReferences = mempty
                }
 
 data DEnv = DEnv { docxOptions       :: ReaderOptions
@@ -449,6 +452,10 @@ parPartToInlines' (Field info children) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
     PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
+    ZoteroItem _t -> do
+      formattedCite <- smushInlines <$> mapM parPartToInlines' children
+      let citations = [] -- TODO parse Citation from t
+      return $ cite citations formattedCite
     _ -> smushInlines <$> mapM parPartToInlines' children
 
 isAnchorSpan :: Inline -> Bool
