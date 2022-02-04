@@ -17,13 +17,14 @@ entire bibliography will be printed.
 -}
 module Text.Pandoc.Readers.EndNote
   ( readEndNoteXML
-  , readEndNoteXMLReferences
+  , readEndNoteXMLCitation
   )
 where
 
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Citeproc (Reference(..), ItemId(..), Val(..), Date(..), DateParts(..))
+import qualified Citeproc
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Class (PandocMonad)
@@ -32,7 +33,7 @@ import Text.Pandoc.Sources (Sources(..), ToSources(..), sourcesToText)
 import Text.Pandoc.Citeproc.BibTeX (toName)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)
-import Control.Monad (mzero)
+import Control.Monad (mzero, unless)
 import Text.Pandoc.XML.Light
     ( filterElementName,
       strContent,
@@ -41,6 +42,7 @@ import Text.Pandoc.XML.Light
       Content(..),
       CData(..),
       filterElementsName,
+      filterChildName,
       filterChildrenName,
       findAttrBy,
       parseXMLElement )
@@ -61,14 +63,46 @@ readEndNoteXML _opts inp = do
   refs <- readEndNoteXMLReferences sources
   return $ setMeta "references" (map referenceToMetaValue refs) $ B.doc mempty
 
+readEndNoteXMLCitation :: PandocMonad m
+                    => Sources -> m (Citeproc.Citation Inlines)
+readEndNoteXMLCitation sources = do
+  tree <- either (throwError . PandocXMLError "") return $
+              parseXMLElement (TL.fromStrict . sourcesToText $ sources)
+  unless (qName (elName tree) == "EndNote") $
+    throwError $ PandocXMLError "" "Expected EndNote element"
+  let items = map toCitationItem $ filterElementsName (name "Cite") tree
+  return $ Citeproc.Citation{
+                     Citeproc.citationId = Nothing
+                   , Citeproc.citationNoteNumber = Nothing
+                   , Citeproc.citationItems = items
+                   }
+
 readEndNoteXMLReferences :: PandocMonad m
                          => Sources -> m [Reference Inlines]
 readEndNoteXMLReferences sources = do
   tree <- either (throwError . PandocXMLError "") return $
               parseXMLElement (TL.fromStrict . sourcesToText $ sources)
-  let records = filterElementsName ((== "record") . qName) tree
+  let records = filterElementsName (name "record") tree
   return $ map recordToReference records
 
+
+toCitationItem :: Element -> Citeproc.CitationItem Inlines
+toCitationItem el =
+    Citeproc.CitationItem{ Citeproc.citationItemId =
+                              maybe mempty referenceId mbref
+                         , Citeproc.citationItemLabel = Nothing -- TODO
+                         , Citeproc.citationItemLocator = Nothing -- TODO
+                         , Citeproc.citationItemType = Citeproc.NormalCite
+                         , Citeproc.citationItemPrefix = Nothing -- TODO
+                         , Citeproc.citationItemSuffix = Nothing -- TODO
+                         , Citeproc.citationItemData = mbref
+                         }
+ where
+  mbref :: Maybe (Reference Inlines)
+  mbref = recordToReference <$> filterChildName (name "record") el
+
+name :: Text -> (QName -> Bool)
+name t = (== t) . qName
 
 recordToReference :: Element -> Reference Inlines
 recordToReference e =
@@ -84,7 +118,6 @@ recordToReference e =
    getText' (Text cd) = cdData cd
    getText' (CRef _) = mempty
      -- mconcat . map cdData . onlyText . elContent
-   name t = (== t) . qName
    refid = maybe mempty (T.strip . strContent)
            (filterElementName (name "key") e
             <|> filterElementName (name "rec-number") e)
