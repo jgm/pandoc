@@ -68,7 +68,7 @@ import Data.List (delete, intersect, foldl')
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Maybe (catMaybes, isJust, fromMaybe)
+import Data.Maybe (catMaybes, isJust, fromMaybe, mapMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -92,6 +92,7 @@ import Data.List.NonEmpty (nonEmpty)
 import Data.Aeson (eitherDecode)
 import qualified Data.Text.Lazy as TL
 import Text.Pandoc.UTF8 (fromTextLazy)
+import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
 
 readDocx :: PandocMonad m
          => ReaderOptions
@@ -478,7 +479,15 @@ parPartToInlines' (Field info children) =
                              , citationMode = NormalCitation -- TODO for now
                              , citationNoteNum = 0
                              , citationHash = 0 }
-               let cs = map toPandocCitation $ citationItems citation
+               let items = citationItems citation
+               let cs = map toPandocCitation items
+               refs <- mapM (traverse (return . text)) $
+                         mapMaybe citationItemData items
+               modify $ \st ->
+                 st{ docxReferences = foldr
+                       (\ref -> M.insert (referenceId ref) ref)
+                       (docxReferences st)
+                       refs }
                return $ cite cs formattedCite
          else return formattedCite
     ZoteroBibliography -> do
@@ -781,7 +790,11 @@ bodyToOutput (Body bps) = do
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
   blks'' <- removeOrphanAnchors blks'
-  return (meta, blks'')
+  refs <- gets (map referenceToMetaValue . M.elems . docxReferences)
+  let meta' = if null refs
+                 then meta
+                 else setMeta "references" refs meta
+  return (meta', blks'')
 
 docxToOutput :: PandocMonad m
              => ReaderOptions
