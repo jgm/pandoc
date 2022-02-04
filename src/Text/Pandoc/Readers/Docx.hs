@@ -470,11 +470,11 @@ parPartToInlines' (Field info children) =
                              , citationPrefix = maybe [] (toList . text) $
                                                   citationItemPrefix item
                              , citationSuffix = (toList . text) $
-                                 maybe mempty (<> " ")
-                                     (citationItemLabel item) <>
-                                 maybe mempty (<> " ")
-                                     (citationItemLocator item) <>
-                                 fromMaybe mempty (citationItemSuffix item)
+                                 maybe mempty (\x ->
+                                    fromMaybe "" (citationItemLabel item)
+                                      <> " " <> x <> " ")
+                                  (citationItemLocator item)
+                                 <> fromMaybe mempty (citationItemSuffix item)
                              , citationMode = NormalCitation -- TODO for now
                              , citationNoteNum = 0
                              , citationHash = 0 }
