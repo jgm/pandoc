@@ -375,6 +375,11 @@ tests = [ testGroup "document"
             "zotero with -citations"
             "docx/zotero_citations.docx"
             "docx/zotero_citations_minus.native"
+          , testCompareWithOpts def{readerExtensions =
+                  extensionsFromList [Ext_citations]}
+            "zotero with +citations"
+            "docx/zotero_citations.docx"
+            "docx/zotero_citations_plus.native"
           ]
         , testGroup "track changes"
           [ testCompare

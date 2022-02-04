@@ -1,0 +1,140 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "citation"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "109"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "(Smith"
+          , Space
+          , Str "et"
+          , Space
+          , Str "al.,"
+          , Space
+          , Str "2013)"
+          ]
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "citation"
+      , Space
+      , Str "with"
+      , Space
+      , Str "two"
+      , Space
+      , Str "sources"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "6"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          , Citation
+              { citationId = "109"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "(Boer"
+          , Space
+          , Str "et"
+          , Space
+          , Str "al.,"
+          , Space
+          , Str "2016;"
+          , Space
+          , Str "Smith"
+          , Space
+          , Str "et"
+          , Space
+          , Str "al.,"
+          , Space
+          , Str "2013)"
+          ]
+      , Str "."
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "citation"
+      , Space
+      , Str "with"
+      , Space
+      , Str "additional"
+      , Space
+      , Str "prefix,"
+      , Space
+      , Str "suffix"
+      , Space
+      , Str "and"
+      , Space
+      , Str "a"
+      , Space
+      , Str "page"
+      , Space
+      , Str "number"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "10"
+              , citationPrefix = [ Str "prefix" ]
+              , citationSuffix =
+                  [ Space , Str "2" , Space , Str "suffix" ]
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "(prefix"
+          , Space
+          , Str "Bellomo"
+          , Space
+          , Str "et"
+          , Space
+          , Str "al.,"
+          , Space
+          , Str "2016,"
+          , Space
+          , Str "p."
+          , Space
+          , Str "2"
+          , Space
+          , Str "suffix)"
+          ]
+      , Str "."
+      ]
+  , Header
+      1
+      ( "reference-list" , [] , [] )
+      [ Str "Reference" , Space , Str "list" ]
+  ]
