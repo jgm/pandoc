@@ -33,4 +33,23 @@ writeCustom luaFile opts doc = either throw pure <=< runLua $ do
   dofileTrace luaFile >>= \case
     OK -> pure ()
     _  -> throwErrorAsException
-  Classic.runCustom opts doc
+  -- Most classic writers contain code that throws an error if a global
+  -- is not present. This would break our check for the existence of a
+  -- "Writer" function. We resort to raw access for that reason, but
+  -- could also catch the error instead.
+  let rawgetglobal x = do
+        pushglobaltable
+        pushName x
+        rawget (nth 2) <* remove (nth 2) -- remove global table
+
+  rawgetglobal "Writer" >>= \case
+    TypeNil -> do
+      pop 1  -- remove nil
+      Classic.runCustom opts doc
+    _       -> do
+      -- Writer on top of the stack. Call it with document and writer
+      -- options as arguments.
+      push doc
+      push opts
+      call 2 1
+      forcePeek $ peekText top
