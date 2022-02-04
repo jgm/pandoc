@@ -458,25 +458,34 @@ parPartToInlines' (Field info children) =
     PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
     ZoteroItem t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children
-      let bs = fromTextLazy $ TL.fromStrict t
-      case eitherDecode bs of
-        Left _err -> return formattedCite
-        Right citation -> do
-          let toPandocCitation item =
-                Citation{ citationId = unItemId (citationItemId item)
-                        , citationPrefix = maybe [] (toList . text) $
-                                             citationItemPrefix item
-                        , citationSuffix = (toList . text) $
-                            maybe mempty (<> " ")
-                                (citationItemLabel item) <>
-                            maybe mempty (<> " ")
-                                (citationItemLocator item) <>
-                            maybe mempty id (citationItemSuffix item)
-                        , citationMode = NormalCitation -- TODO for now
-                        , citationNoteNum = 0
-                        , citationHash = 0 }
-          let cs = map toPandocCitation $ citationItems citation
-          return $ cite cs formattedCite
+      opts <- asks docxOptions
+      if isEnabled Ext_citations opts
+         then do
+           let bs = fromTextLazy $ TL.fromStrict t
+           case eitherDecode bs of
+             Left _err -> return formattedCite
+             Right citation -> do
+               let toPandocCitation item =
+                     Citation{ citationId = unItemId (citationItemId item)
+                             , citationPrefix = maybe [] (toList . text) $
+                                                  citationItemPrefix item
+                             , citationSuffix = (toList . text) $
+                                 maybe mempty (<> " ")
+                                     (citationItemLabel item) <>
+                                 maybe mempty (<> " ")
+                                     (citationItemLocator item) <>
+                                 fromMaybe mempty (citationItemSuffix item)
+                             , citationMode = NormalCitation -- TODO for now
+                             , citationNoteNum = 0
+                             , citationHash = 0 }
+               let cs = map toPandocCitation $ citationItems citation
+               return $ cite cs formattedCite
+         else return formattedCite
+    ZoteroBibliography -> do
+      opts <- asks docxOptions
+      if isEnabled Ext_citations opts
+         then return mempty -- omit Zotero-generated bibliography
+         else smushInlines <$> mapM parPartToInlines' children
     _ -> smushInlines <$> mapM parPartToInlines' children
 
 isAnchorSpan :: Inline -> Bool
