@@ -53,6 +53,7 @@ import Network.URI (unEscapeString)
 import System.Directory (createDirectoryIfMissing)
 import System.Environment (getEnv)
 import System.FilePath ((</>), takeDirectory, normalise)
+import qualified System.FilePath.Posix as Posix
 import System.IO (stderr)
 import System.IO.Error
 import System.Random (StdGen)
@@ -234,6 +235,6 @@ adjustImagePath dir mediabag (Image attr lab (src, tit)) =
   case lookupMedia (T.unpack src) mediabag of
     Nothing -> Image attr lab (src, tit)
     Just item ->
-      let fullpath = dir <> "/" <> mediaPath item
+      let fullpath = dir Posix.</> mediaPath item
       in  Image attr lab (T.pack fullpath, tit)
 adjustImagePath _ _ x = x

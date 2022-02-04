@@ -29,6 +29,8 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Typeable (Typeable)
 import System.FilePath
+import qualified System.FilePath.Posix as Posix
+import qualified System.FilePath.Windows as Windows
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef, extensionFromMimeType)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -78,7 +80,8 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
                              , mediaMimeType = mt }
         fp' = canonicalize fp
         uri = parseURI fp
-        newpath = if isRelative fp
+        newpath = if Posix.isRelative fp
+                       && Windows.isRelative fp
                        && isNothing uri
                        && ".." `notElem` splitDirectories fp
                      then T.unpack fp'
