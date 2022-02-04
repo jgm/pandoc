@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xml>
+  <records>
+    <record>
+      <database name="EndNote Ecology.enl"
+      path="/Users/LowDecarie/Dropbox/Meta presentation of stats/Data/EndNote Ecology.enl">
+      EndNote Ecology.enl</database>
+      <source-app name="EndNote" version="15.0">
+      EndNote</source-app>
+      <rec-number>13264</rec-number>
+      <foreign-keys>
+        <key app="EN" db-id="0xxzez5ectezp7e9zrnxp0dq5zrafepwxfe2">
+        13264</key>
+      </foreign-keys>
+      <ref-type name="Journal Article">17</ref-type>
+      <contributors>
+        <authors>
+          <author>
+            <style face="normal" font="default" size="100%">
+            Chapman, A. G.</style>
+          </author>
+        </authors>
+      </contributors>
+      <auth-address>
+        <style face="normal" font="default" size="100%">Cent States
+        Forest Expt Stn, Columbus, OH USA</style>
+      </auth-address>
+      <titles>
+        <title>
+          <style face="normal" font="default" size="100%">An
+          ecological basis for reforestation of submariginal lands
+          in the Central Hardwood Region</style>
+        </title>
+        <secondary-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </secondary-title>
+        <alt-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </alt-title>
+      </titles>
+      <periodical>
+        <full-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </full-title>
+        <abbr-1>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </abbr-1>
+      </periodical>
+      <alt-periodical>
+        <full-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </full-title>
+        <abbr-1>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </abbr-1>
+      </alt-periodical>
+      <pages>
+        <style face="normal" font="default" size="100%">
+        93-105</style>
+      </pages>
+      <volume>
+        <style face="normal" font="default" size="100%">18</style>
+      </volume>
+      <number>
+        <style face="normal" font="default" size="100%">1</style>
+      </number>
+      <dates>
+        <year>
+          <style face="normal" font="default" size="100%">
+          1937</style>
+        </year>
+        <pub-dates>
+          <date>
+            <style face="normal" font="default" size="100%">
+            Jan</style>
+          </date>
+        </pub-dates>
+      </dates>
+      <isbn>
+        <style face="normal" font="default" size="100%">
+        0012-9658</style>
+      </isbn>
+      <accession-num>
+        <style face="normal" font="default" size="100%">
+        ISI:000200148800007</style>
+      </accession-num>
+      <notes>
+        <style face="normal" font="default" size="100%">V02fgTimes
+        Cited:5Cited References Count:2</style>
+      </notes>
+      <urls>
+        <related-urls>
+          <url>
+            <style face="normal" font="default" size="100%">&lt;Go
+            to ISI&gt;://000200148800007</style>
+          </url>
+        </related-urls>
+      </urls>
+      <language>
+        <style face="normal" font="default" size="100%">
+        English</style>
+      </language>
+    </record>
+    <record>
+      <database name="EndNote Ecology.enl"
+      path="/Users/LowDecarie/Dropbox/Meta presentation of stats/Data/EndNote Ecology.enl">
+      EndNote Ecology.enl</database>
+      <source-app name="EndNote" version="15.0">
+      EndNote</source-app>
+      <rec-number>13265</rec-number>
+      <foreign-keys>
+        <key app="EN" db-id="0xxzez5ectezp7e9zrnxp0dq5zrafepwxfe2">
+        13265</key>
+      </foreign-keys>
+      <ref-type name="Journal Article">17</ref-type>
+      <contributors>
+        <authors>
+          <author>
+            <style face="normal" font="default" size="100%">
+            Strohecker, H. F.</style>
+          </author>
+        </authors>
+      </contributors>
+      <auth-address>
+        <style face="normal" font="default" size="100%">Univ
+        Chicago, Chicago, IL USA</style>
+      </auth-address>
+      <titles>
+        <title>
+          <style face="normal" font="default" size="100%">A survey
+          of soil temperatures in the Chicago area</style>
+        </title>
+        <secondary-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </secondary-title>
+        <alt-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </alt-title>
+      </titles>
+      <periodical>
+        <full-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </full-title>
+        <abbr-1>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </abbr-1>
+      </periodical>
+      <alt-periodical>
+        <full-title>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </full-title>
+        <abbr-1>
+          <style face="normal" font="default" size="100%">
+          Ecology</style>
+        </abbr-1>
+      </alt-periodical>
+      <pages>
+        <style face="normal" font="default" size="100%">
+        162-168</style>
+      </pages>
+      <volume>
+        <style face="normal" font="default" size="100%">18</style>
+      </volume>
+      <number>
+        <style face="normal" font="default" size="100%">1</style>
+      </number>
+      <dates>
+        <year>
+          <style face="normal" font="default" size="100%">
+          1937</style>
+        </year>
+        <pub-dates>
+          <date>
+            <style face="normal" font="default" size="100%">
+            Jan</style>
+          </date>
+        </pub-dates>
+      </dates>
+      <isbn>
+        <style face="normal" font="default" size="100%">
+        0012-9658</style>
+      </isbn>
+      <accession-num>
+        <style face="normal" font="default" size="100%">
+        ISI:000200148800014</style>
+      </accession-num>
+      <notes>
+        <style face="normal" font="default" size="100%">V02fgTimes
+        Cited:5Cited References Count:14</style>
+      </notes>
+      <urls>
+        <related-urls>
+          <url>
+            <style face="normal" font="default" size="100%">&lt;Go
+            to ISI&gt;://000200148800014</style>
+          </url>
+        </related-urls>
+      </urls>
+      <language>
+        <style face="normal" font="default" size="100%">
+        English</style>
+      </language>
+    </record>
+  </records>
+</xml>

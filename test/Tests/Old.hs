@@ -211,6 +211,9 @@ tests pandocPath =
     ]
   , testGroup "rtf"
     [ testGroup "writer" $ writerTests' "rtf" ]
+  , testGroup "endnotexml"
+    [ test' "reader" ["-r", "endnotexml", "-w", "native", "-s"]
+        "endnotexml-reader.xml" "endnotexml-reader.native" ]
   , testGroup "ipynb"
     [ test' "reader" ["-f", "ipynb-raw_html-raw_tex+raw_attribute",
                       "-t", "native", "-s"]

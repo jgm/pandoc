@@ -1,0 +1,109 @@
+Pandoc
+  Meta
+    { unMeta =
+        fromList
+          [ ( "references"
+            , MetaList
+                [ MetaMap
+                    (fromList
+                       [ ( "author"
+                         , MetaList
+                             [ MetaMap
+                                 (fromList
+                                    [ ( "family"
+                                      , MetaString "Chapman"
+                                      )
+                                    , ( "given" , MetaString "A. G." )
+                                    ])
+                             ]
+                         )
+                       , ( "container-title"
+                         , MetaInlines [ Str "Ecology" ]
+                         )
+                       , ( "id" , MetaString "13264" )
+                       , ( "isbn" , MetaInlines [ Str "0012-9658" ] )
+                       , ( "issued" , MetaString "1937" )
+                       , ( "number" , MetaInlines [ Str "1" ] )
+                       , ( "pages" , MetaInlines [ Str "93-105" ] )
+                       , ( "title"
+                         , MetaInlines
+                             [ Str "An"
+                             , SoftBreak
+                             , Str "ecological"
+                             , Space
+                             , Str "basis"
+                             , Space
+                             , Str "for"
+                             , Space
+                             , Str "reforestation"
+                             , Space
+                             , Str "of"
+                             , Space
+                             , Str "submariginal"
+                             , Space
+                             , Str "lands"
+                             , SoftBreak
+                             , Str "in"
+                             , Space
+                             , Str "the"
+                             , Space
+                             , Str "Central"
+                             , Space
+                             , Str "Hardwood"
+                             , Space
+                             , Str "Region"
+                             ]
+                         )
+                       , ( "type" , MetaString "article-journal" )
+                       , ( "volume" , MetaInlines [ Str "18" ] )
+                       ])
+                , MetaMap
+                    (fromList
+                       [ ( "author"
+                         , MetaList
+                             [ MetaMap
+                                 (fromList
+                                    [ ( "family"
+                                      , MetaString "Strohecker"
+                                      )
+                                    , ( "given" , MetaString "H. F." )
+                                    ])
+                             ]
+                         )
+                       , ( "container-title"
+                         , MetaInlines [ Str "Ecology" ]
+                         )
+                       , ( "id" , MetaString "13265" )
+                       , ( "isbn" , MetaInlines [ Str "0012-9658" ] )
+                       , ( "issued" , MetaString "1937" )
+                       , ( "number" , MetaInlines [ Str "1" ] )
+                       , ( "pages" , MetaInlines [ Str "162-168" ] )
+                       , ( "title"
+                         , MetaInlines
+                             [ Str "A"
+                             , Space
+                             , Str "survey"
+                             , SoftBreak
+                             , Str "of"
+                             , Space
+                             , Str "soil"
+                             , Space
+                             , Str "temperatures"
+                             , Space
+                             , Str "in"
+                             , Space
+                             , Str "the"
+                             , Space
+                             , Str "Chicago"
+                             , Space
+                             , Str "area"
+                             ]
+                         )
+                       , ( "type" , MetaString "article-journal" )
+                       , ( "volume" , MetaInlines [ Str "18" ] )
+                       ])
+                ]
+            )
+          ]
+    }
+  []
