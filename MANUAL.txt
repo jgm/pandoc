@@ -3472,10 +3472,11 @@ native pandoc citations.
   [org-cite]: https://orgmode.org/manual/Citations.html
   [org-ref]:  https://github.com/jkitchin/org-ref
 
-When `citations` is enabled in `docx`, Zotero-inserted
-citations will be parsed as native pandoc citations.
-(Otherwise, the Zotero-generated citation text and
-bibliography will be parsed as regular text.)
+When `citations` is enabled in `docx`, citations inserted
+by Zotero or Mendeley plugins will be parsed as native pandoc
+citations.  (Otherwise, the Zotero- or Mendeley-generated
+citation text and bibliography will be parsed as regular
+text.)
 
 #### Extension: `fancy_lists` {#org-fancy-lists}
 

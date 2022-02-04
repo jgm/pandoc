@@ -457,7 +457,7 @@ parPartToInlines' (Field info children) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
     PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
-    ZoteroItem t -> do
+    CslCitation t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children
       opts <- asks docxOptions
       if isEnabled Ext_citations opts
@@ -490,7 +490,7 @@ parPartToInlines' (Field info children) =
                        refs }
                return $ cite cs formattedCite
          else return formattedCite
-    ZoteroBibliography -> do
+    CslBibliography -> do
       opts <- asks docxOptions
       if isEnabled Ext_citations opts
          then return mempty -- omit Zotero-generated bibliography
