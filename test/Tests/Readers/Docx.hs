@@ -370,6 +370,12 @@ tests = [ testGroup "document"
             "docx/drop_cap.docx"
             "docx/drop_cap.native"
           ]
+        , testGroup "citations"
+          [ testCompare
+            "zotero with -citations"
+            "docx/zotero_citations.docx"
+            "docx/zotero_citations_minus.native"
+          ]
         , testGroup "track changes"
           [ testCompare
             "insertion (default)"

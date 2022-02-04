@@ -1,0 +1,335 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "citation"
+      , Space
+      , Str "(Smith"
+      , Space
+      , Str "et"
+      , Space
+      , Str "al.,"
+      , Space
+      , Str "2013)"
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "citation"
+      , Space
+      , Str "with"
+      , Space
+      , Str "two"
+      , Space
+      , Str "sources"
+      , Space
+      , Str "(Boer"
+      , Space
+      , Str "et"
+      , Space
+      , Str "al.,"
+      , Space
+      , Str "2016;"
+      , Space
+      , Str "Smith"
+      , Space
+      , Str "et"
+      , Space
+      , Str "al.,"
+      , Space
+      , Str "2013)."
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "citation"
+      , Space
+      , Str "with"
+      , Space
+      , Str "additional"
+      , Space
+      , Str "prefix,"
+      , Space
+      , Str "suffix"
+      , Space
+      , Str "and"
+      , Space
+      , Str "a"
+      , Space
+      , Str "page"
+      , Space
+      , Str "number"
+      , Space
+      , Str "(prefix"
+      , Space
+      , Str "Bellomo"
+      , Space
+      , Str "et"
+      , Space
+      , Str "al.,"
+      , Space
+      , Str "2016,"
+      , Space
+      , Str "p."
+      , Space
+      , Str "2"
+      , Space
+      , Str "suffix)."
+      ]
+  , Header
+      1
+      ( "reference-list" , [] , [] )
+      [ Str "Reference" , Space , Str "list" ]
+  , Para
+      [ Str "Bellomo,"
+      , Space
+      , Str "K.,"
+      , Space
+      , Str "Clement,"
+      , Space
+      , Str "A."
+      , Space
+      , Str "C.,"
+      , Space
+      , Str "Murphy,"
+      , Space
+      , Str "L."
+      , Space
+      , Str "N.,"
+      , Space
+      , Str "Polvani,"
+      , Space
+      , Str "L."
+      , Space
+      , Str "M.,"
+      , Space
+      , Str "&"
+      , Space
+      , Str "Cane,"
+      , Space
+      , Str "M."
+      , Space
+      , Str "A."
+      , Space
+      , Str "(2016)."
+      , Space
+      , Str "New"
+      , Space
+      , Str "observational"
+      , Space
+      , Str "evidence"
+      , Space
+      , Str "for"
+      , Space
+      , Str "a"
+      , Space
+      , Str "positive"
+      , Space
+      , Str "cloud"
+      , Space
+      , Str "feedback"
+      , Space
+      , Str "that"
+      , Space
+      , Str "amplifies"
+      , Space
+      , Str "the"
+      , Space
+      , Str "Atlantic"
+      , Space
+      , Str "Multidecadal"
+      , Space
+      , Str "Oscillation."
+      , Space
+      , Emph
+          [ Str "Geophys."
+          , Space
+          , Str "Res."
+          , Space
+          , Str "Lett."
+          ]
+      , Str ","
+      , Space
+      , Emph [ Str "43" ]
+      , Str "(18),"
+      , Space
+      , Str "9852\8211\&9859."
+      , Space
+      , Str "https://doi.org/10.1002/2016GL069961"
+      ]
+  , Para
+      [ Str "Boer,"
+      , Space
+      , Str "G."
+      , Space
+      , Str "J.,"
+      , Space
+      , Str "Smith,"
+      , Space
+      , Str "D."
+      , Space
+      , Str "M.,"
+      , Space
+      , Str "Cassou,"
+      , Space
+      , Str "C.,"
+      , Space
+      , Str "Doblas-Reyes,"
+      , Space
+      , Str "F.,"
+      , Space
+      , Str "Danabasoglu,"
+      , Space
+      , Str "G.,"
+      , Space
+      , Str "Kirtman,"
+      , Space
+      , Str "B.,"
+      , Space
+      , Str "Kushnir,"
+      , Space
+      , Str "Y.,"
+      , Space
+      , Str "Kimoto,"
+      , Space
+      , Str "M.,"
+      , Space
+      , Str "Meehl,"
+      , Space
+      , Str "G."
+      , Space
+      , Str "A.,"
+      , Space
+      , Str "Msadek,"
+      , Space
+      , Str "R.,"
+      , Space
+      , Str "M\252ller,"
+      , Space
+      , Str "W."
+      , Space
+      , Str "A.,"
+      , Space
+      , Str "Taylor,"
+      , Space
+      , Str "K."
+      , Space
+      , Str "E.,"
+      , Space
+      , Str "Zwiers,"
+      , Space
+      , Str "F.,"
+      , Space
+      , Str "Rixen,"
+      , Space
+      , Str "M.,"
+      , Space
+      , Str "Ruprich-Robert,"
+      , Space
+      , Str "Y.,"
+      , Space
+      , Str "&"
+      , Space
+      , Str "Eade,"
+      , Space
+      , Str "R."
+      , Space
+      , Str "(2016)."
+      , Space
+      , Str "The"
+      , Space
+      , Str "Decadal"
+      , Space
+      , Str "Climate"
+      , Space
+      , Str "Prediction"
+      , Space
+      , Str "Project"
+      , Space
+      , Str "(DCPP)."
+      , Space
+      , Emph
+          [ Str "Geoscientific"
+          , Space
+          , Str "Model"
+          , Space
+          , Str "Development"
+          ]
+      , Str ","
+      , Space
+      , Emph [ Str "9" ]
+      , Str ","
+      , Space
+      , Str "3751\8211\&3777."
+      , Space
+      , Str "https://doi.org/10.5194/gmd-9-3751-2016"
+      ]
+  , Para
+      [ Str "Smith,"
+      , Space
+      , Str "D."
+      , Space
+      , Str "M.,"
+      , Space
+      , Str "Eade,"
+      , Space
+      , Str "R.,"
+      , Space
+      , Str "&"
+      , Space
+      , Str "Pohlmann,"
+      , Space
+      , Str "H."
+      , Space
+      , Str "(2013)."
+      , Space
+      , Str "A"
+      , Space
+      , Str "comparison"
+      , Space
+      , Str "of"
+      , Space
+      , Str "full-field"
+      , Space
+      , Str "and"
+      , Space
+      , Str "anomaly"
+      , Space
+      , Str "initialization"
+      , Space
+      , Str "for"
+      , Space
+      , Str "seasonal"
+      , Space
+      , Str "to"
+      , Space
+      , Str "decadal"
+      , Space
+      , Str "climate"
+      , Space
+      , Str "prediction."
+      , Space
+      , Emph [ Str "Climate" , Space , Str "Dynamics" ]
+      , Str ","
+      , Space
+      , Emph [ Str "41" ]
+      , Str "(11\8211\&12),"
+      , Space
+      , Str "3325\8211\&3338."
+      , Space
+      , Str "https://doi.org/10.1007/s00382-013-1683-2"
+      ]
+  ]
