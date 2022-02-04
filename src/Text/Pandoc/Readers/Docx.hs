@@ -72,7 +72,8 @@ import Data.Maybe (catMaybes, isJust, fromMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Citeproc (ItemId(..), Reference(..))
+import Citeproc (ItemId(..), Reference(..), CitationItem(..),
+                    Citation(citationItems))
 import Text.Pandoc.Builder as Pandoc
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
@@ -88,6 +89,9 @@ import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Data.List.NonEmpty (nonEmpty)
+import Data.Aeson (eitherDecode)
+import qualified Data.Text.Lazy as TL
+import Text.Pandoc.UTF8 (fromTextLazy)
 
 readDocx :: PandocMonad m
          => ReaderOptions
@@ -452,10 +456,27 @@ parPartToInlines' (Field info children) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
     PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
-    ZoteroItem _t -> do
+    ZoteroItem t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children
-      let citations = [] -- TODO parse Citation from t
-      return $ cite citations formattedCite
+      let bs = fromTextLazy $ TL.fromStrict t
+      case eitherDecode bs of
+        Left _err -> return formattedCite
+        Right citation -> do
+          let toPandocCitation item =
+                Citation{ citationId = unItemId (citationItemId item)
+                        , citationPrefix = maybe [] (toList . text) $
+                                             citationItemPrefix item
+                        , citationSuffix = (toList . text) $
+                            maybe mempty (<> " ")
+                                (citationItemLabel item) <>
+                            maybe mempty (<> " ")
+                                (citationItemLocator item) <>
+                            maybe mempty id (citationItemSuffix item)
+                        , citationMode = NormalCitation -- TODO for now
+                        , citationNoteNum = 0
+                        , citationHash = 0 }
+          let cs = map toPandocCitation $ citationItems citation
+          return $ cite cs formattedCite
     _ -> smushInlines <$> mapM parPartToInlines' children
 
 isAnchorSpan :: Inline -> Bool
