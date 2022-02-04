@@ -3465,8 +3465,12 @@ output format.
 
 #### Extension: `citations` {#org-citations}
 
-Some aspects of [Pandoc's Markdown citation syntax](#citations)
-are also accepted in `org` input.
+When the `citations` extension is enabled in `org`,
+org-cite and org-ref style citations will be parsed as
+native pandoc citations.
+
+  [org-cite]: https://orgmode.org/manual/Citations.html
+  [org-ref]:  https://github.com/jkitchin/org-ref
 
 #### Extension: `fancy_lists` {#org-fancy-lists}
 
