@@ -380,6 +380,15 @@ tests = [ testGroup "document"
             "zotero with +citations"
             "docx/zotero_citations.docx"
             "docx/zotero_citations_plus.native"
+          , testCompare
+            "mendeley with -citations"
+            "docx/mendeley_citations.docx"
+            "docx/mendeley_citations_minus.native"
+          , testCompareWithOpts def{readerExtensions =
+                  extensionsFromList [Ext_citations]}
+            "mendeley with +citations"
+            "docx/mendeley_citations.docx"
+            "docx/mendeley_citations_plus.native"
           ]
         , testGroup "track changes"
           [ testCompare

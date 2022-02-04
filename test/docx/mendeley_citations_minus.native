@@ -1,0 +1,318 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "Mendeley"
+      , Space
+      , Str "test"
+      , Space
+      , Str "(prefix"
+      , Space
+      , Str "Hadwen-Bennett"
+      , Space
+      , Str "et"
+      , Space
+      , Str "al.,"
+      , Space
+      , Str "2018,"
+      , Space
+      , Str "p."
+      , Space
+      , Str "123"
+      , Space
+      , Str "suffix)."
+      ]
+  , Para
+      [ Str "Another"
+      , Space
+      , Str "test"
+      , Space
+      , Str "(prefix"
+      , Space
+      , Str "Seo,"
+      , Space
+      , Str "2019,"
+      , Space
+      , Str "pp."
+      , Space
+      , Str "10\8211\&20"
+      , Space
+      , Str "suffix)."
+      ]
+  , Para
+      [ Str "The"
+      , Space
+      , Str "last"
+      , Space
+      , Str "test"
+      , Space
+      , Str "(Koh"
+      , Space
+      , Str "&"
+      , Space
+      , Str "Abbas,"
+      , Space
+      , Str "2015;"
+      , Space
+      , Str "Lee"
+      , Space
+      , Str "et"
+      , Space
+      , Str "al.,"
+      , Space
+      , Str "2011)."
+      ]
+  , Header 1 ( "references" , [] , [] ) [ Str "References" ]
+  , Para
+      [ Str "Hadwen-Bennett,"
+      , Space
+      , Str "A.,"
+      , Space
+      , Str "Sentance,"
+      , Space
+      , Str "S.,"
+      , Space
+      , Str "&"
+      , Space
+      , Str "Morrison,"
+      , Space
+      , Str "C."
+      , Space
+      , Str "(2018)."
+      , Space
+      , Str "Making"
+      , Space
+      , Str "Programming"
+      , Space
+      , Str "Accessible"
+      , Space
+      , Str "to"
+      , Space
+      , Str "Learners"
+      , Space
+      , Str "with"
+      , Space
+      , Str "Visual"
+      , Space
+      , Str "Impairments:"
+      , Space
+      , Str "A"
+      , Space
+      , Str "Literature"
+      , Space
+      , Str "Review."
+      , Space
+      , Emph
+          [ Str "International"
+          , Space
+          , Str "Journal"
+          , Space
+          , Str "of"
+          , Space
+          , Str "Computer"
+          , Space
+          , Str "Science"
+          , Space
+          , Str "Education"
+          , Space
+          , Str "in"
+          , Space
+          , Str "Schools"
+          ]
+      , Str ","
+      , Space
+      , Emph [ Str "2" ]
+      , Str "(2),"
+      , Space
+      , Str "3\8211\&13."
+      , Space
+      , Str
+          "https://www.microsoft.com/en-us/research/publication/making-programming-accessible-to-learners-with-visual-impairments-a-literature-review/"
+      ]
+  , Para
+      [ Str "Koh,"
+      , Space
+      , Str "K.,"
+      , Space
+      , Str "&"
+      , Space
+      , Str "Abbas,"
+      , Space
+      , Str "J."
+      , Space
+      , Str "(2015)."
+      , Space
+      , Str "Future"
+      , Space
+      , Str "of"
+      , Space
+      , Str "library"
+      , Space
+      , Str "and"
+      , Space
+      , Str "museum"
+      , Space
+      , Str "services"
+      , Space
+      , Str "supporting"
+      , Space
+      , Str "teen"
+      , Space
+      , Str "learning:"
+      , Space
+      , Str "Perceptions"
+      , Space
+      , Str "of"
+      , Space
+      , Str "professionals"
+      , Space
+      , Str "in"
+      , Space
+      , Str "learning"
+      , Space
+      , Str "labs"
+      , Space
+      , Str "and"
+      , Space
+      , Str "makerspaces."
+      , Space
+      , Emph
+          [ Str "Journal"
+          , Space
+          , Str "of"
+          , Space
+          , Str "Research"
+          , Space
+          , Str "on"
+          , Space
+          , Str "Libraries"
+          , Space
+          , Str "\\&"
+          , Space
+          , Str "Young"
+          , Space
+          , Str "Adults"
+          ]
+      , Str ","
+      , Space
+      , Emph [ Str "6" ]
+      , Str "(4)."
+      ]
+  , Para
+      [ Str "Lee,"
+      , Space
+      , Str "I.,"
+      , Space
+      , Str "Martin,"
+      , Space
+      , Str "F.,"
+      , Space
+      , Str "Denner,"
+      , Space
+      , Str "J.,"
+      , Space
+      , Str "Coulter,"
+      , Space
+      , Str "B.,"
+      , Space
+      , Str "Allan,"
+      , Space
+      , Str "W.,"
+      , Space
+      , Str "Erickson,"
+      , Space
+      , Str "J.,"
+      , Space
+      , Str "Malyn-Smith,"
+      , Space
+      , Str "J.,"
+      , Space
+      , Str "&"
+      , Space
+      , Str "Werner,"
+      , Space
+      , Str "L."
+      , Space
+      , Str "(2011)."
+      , Space
+      , Str "Computational"
+      , Space
+      , Str "Thinking"
+      , Space
+      , Str "for"
+      , Space
+      , Str "Youth"
+      , Space
+      , Str "in"
+      , Space
+      , Str "Practice."
+      , Space
+      , Emph [ Str "ACM" , Space , Str "Inroads" ]
+      , Str ","
+      , Space
+      , Emph [ Str "2" ]
+      , Str "(1),"
+      , Space
+      , Str "32\8211\&37."
+      , Space
+      , Str "https://doi.org/10.1145/1929887.1929902"
+      ]
+  , Para
+      [ Str "Seo,"
+      , Space
+      , Str "J."
+      , Space
+      , Str "(2019)."
+      , Space
+      , Str "Is"
+      , Space
+      , Str "the"
+      , Space
+      , Str "Maker"
+      , Space
+      , Str "Movement"
+      , Space
+      , Str "Inclusive"
+      , Space
+      , Str "of"
+      , Space
+      , Str "{ANYONE}?:"
+      , Space
+      , Str "Three"
+      , Space
+      , Str "Accessibility"
+      , Space
+      , Str "Considerations"
+      , Space
+      , Str "to"
+      , Space
+      , Str "Invite"
+      , Space
+      , Str "Blind"
+      , Space
+      , Str "Makers"
+      , Space
+      , Str "to"
+      , Space
+      , Str "the"
+      , Space
+      , Str "Making"
+      , Space
+      , Str "World."
+      , Space
+      , Emph [ Str "TechTrends" ]
+      , Str ","
+      , Space
+      , Emph [ Str "63" ]
+      , Str "(5),"
+      , Space
+      , Str "514\8211\&520."
+      , Space
+      , Str "https://doi.org/10.1007/s11528-019-00377-3"
+      ]
+  ]

@@ -1,0 +1,369 @@
+Pandoc
+  Meta
+    { unMeta =
+        fromList
+          [ ( "references"
+            , MetaList
+                [ MetaMap
+                    (fromList
+                       [ ( "DOI"
+                         , MetaInlines [ Str "10.1145/1929887.1929902" ]
+                         )
+                       , ( "ISSN" , MetaInlines [ Str "2153-2184" ] )
+                       , ( "author"
+                         , MetaList
+                             [ MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family" , MetaString "Lee" )
+                                    , ( "given" , MetaString "Irene" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family" , MetaString "Martin" )
+                                    , ( "given" , MetaString "Fred" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family" , MetaString "Denner" )
+                                    , ( "given" , MetaString "Jill" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family"
+                                      , MetaString "Coulter"
+                                      )
+                                    , ( "given" , MetaString "Bob" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family" , MetaString "Allan" )
+                                    , ( "given" , MetaString "Walter" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family"
+                                      , MetaString "Erickson"
+                                      )
+                                    , ( "given" , MetaString "Jeri" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family"
+                                      , MetaString "Malyn-Smith"
+                                      )
+                                    , ( "given" , MetaString "Joyce" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family" , MetaString "Werner" )
+                                    , ( "given" , MetaString "Linda" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             ]
+                         )
+                       , ( "container-title"
+                         , MetaInlines
+                             [ Str "ACM" , Space , Str "Inroads" ]
+                         )
+                       , ( "id" , MetaString "ITEM-1" )
+                       , ( "issue" , MetaString "1" )
+                       , ( "issued" , MetaString "2011-02" )
+                       , ( "page" , MetaString "32-37" )
+                       , ( "publisher" , MetaInlines [ Str "ACM" ] )
+                       , ( "publisher-place"
+                         , MetaInlines
+                             [ Str "New"
+                             , Space
+                             , Str "York,"
+                             , Space
+                             , Str "NY,"
+                             , Space
+                             , Str "USA"
+                             ]
+                         )
+                       , ( "title"
+                         , MetaInlines
+                             [ Str "Computational"
+                             , Space
+                             , Str "Thinking"
+                             , Space
+                             , Str "for"
+                             , Space
+                             , Str "Youth"
+                             , Space
+                             , Str "in"
+                             , Space
+                             , Str "Practice"
+                             ]
+                         )
+                       , ( "type" , MetaString "article-journal" )
+                       , ( "volume" , MetaString "2" )
+                       ])
+                , MetaMap
+                    (fromList
+                       [ ( "author"
+                         , MetaList
+                             [ MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family" , MetaString "Koh" )
+                                    , ( "given"
+                                      , MetaString "Kyungwon"
+                                      )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             , MetaMap
+                                 (fromList
+                                    [ ( "dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "family" , MetaString "Abbas" )
+                                    , ( "given" , MetaString "June" )
+                                    , ( "non-dropping-particle"
+                                      , MetaString ""
+                                      )
+                                    , ( "suffix" , MetaString "" )
+                                    ])
+                             ]
+                         )
+                       , ( "container-title"
+                         , MetaInlines
+                             [ Str "Journal"
+                             , Space
+                             , Str "of"
+                             , Space
+                             , Str "Research"
+                             , Space
+                             , Str "on"
+                             , Space
+                             , Str "Libraries"
+                             , Space
+                             , Str "\\&"
+                             , Space
+                             , Str "Young"
+                             , Space
+                             , Str "Adults"
+                             ]
+                         )
+                       , ( "id" , MetaString "ITEM-2" )
+                       , ( "issue" , MetaString "4" )
+                       , ( "issued" , MetaString "2015" )
+                       , ( "title"
+                         , MetaInlines
+                             [ Str "Future"
+                             , Space
+                             , Str "of"
+                             , Space
+                             , Str "library"
+                             , Space
+                             , Str "and"
+                             , Space
+                             , Str "museum"
+                             , Space
+                             , Str "services"
+                             , Space
+                             , Str "supporting"
+                             , Space
+                             , Str "teen"
+                             , Space
+                             , Str "learning:"
+                             , Space
+                             , Str "Perceptions"
+                             , Space
+                             , Str "of"
+                             , Space
+                             , Str "professionals"
+                             , Space
+                             , Str "in"
+                             , Space
+                             , Str "learning"
+                             , Space
+                             , Str "labs"
+                             , Space
+                             , Str "and"
+                             , Space
+                             , Str "makerspaces"
+                             ]
+                         )
+                       , ( "type" , MetaString "article-journal" )
+                       , ( "volume" , MetaString "6" )
+                       ])
+                ]
+            )
+          ]
+    }
+  [ Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "Mendeley"
+      , Space
+      , Str "test"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "ITEM-1"
+              , citationPrefix = [ Str "prefix" ]
+              , citationSuffix =
+                  [ Space , Str "123" , Space , Str "suffix" ]
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "(prefix"
+          , Space
+          , Str "Hadwen-Bennett"
+          , Space
+          , Str "et"
+          , Space
+          , Str "al.,"
+          , Space
+          , Str "2018,"
+          , Space
+          , Str "p."
+          , Space
+          , Str "123"
+          , Space
+          , Str "suffix)"
+          ]
+      , Str "."
+      ]
+  , Para
+      [ Str "Another"
+      , Space
+      , Str "test"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "ITEM-1"
+              , citationPrefix = [ Str "prefix" ]
+              , citationSuffix =
+                  [ Space , Str "10-20" , Space , Str "suffix" ]
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "(prefix"
+          , Space
+          , Str "Seo,"
+          , Space
+          , Str "2019,"
+          , Space
+          , Str "pp."
+          , Space
+          , Str "10\8211\&20"
+          , Space
+          , Str "suffix)"
+          ]
+      , Str "."
+      ]
+  , Para
+      [ Str "The"
+      , Space
+      , Str "last"
+      , Space
+      , Str "test"
+      , Space
+      , Cite
+          [ Citation
+              { citationId = "ITEM-1"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          , Citation
+              { citationId = "ITEM-2"
+              , citationPrefix = []
+              , citationSuffix = []
+              , citationMode = NormalCitation
+              , citationNoteNum = 0
+              , citationHash = 0
+              }
+          ]
+          [ Str "(Koh"
+          , Space
+          , Str "&"
+          , Space
+          , Str "Abbas,"
+          , Space
+          , Str "2015;"
+          , Space
+          , Str "Lee"
+          , Space
+          , Str "et"
+          , Space
+          , Str "al.,"
+          , Space
+          , Str "2011)"
+          ]
+      , Str "."
+      ]
+  , Header 1 ( "references" , [] , [] ) [ Str "References" ]
+  ]
