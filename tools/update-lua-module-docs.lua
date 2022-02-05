@@ -76,9 +76,9 @@ local function render_function (doc, level, modulename)
     Header(level, name, {id}),
     Plain{Code(string.format('%s (%s)', name, args))},
   } .. read_blocks(doc.description)
-    .. List(#doc.parameters > 0 and {Header(level+1, 'Parameters')} or {})
+    .. List(#doc.parameters > 0 and {Para 'Parameters'} or {})
     .. List{paramlist}
-    .. List(#doc.results > 0 and {Header(level + 1, 'Returns')} or {})
+    .. List(#doc.results > 0 and {Para 'Returns'} or {})
     .. render_results(doc.results)
 end
 
@@ -106,7 +106,7 @@ local function render_module (doc)
 
   return Blocks{
     Header(1, Inlines('Module ' .. doc.name), {'module-' .. doc.name})
-  } .. fields .. functions
+  } .. read_blocks(doc.description) .. fields .. functions
 end
 
 --- Retrieves the documentation object for the given value.
@@ -119,7 +119,9 @@ local function get_module_name(header)
 end
 
 --- Set of modules for which documentation should be generated.
-local handled_modules = {}
+local handled_modules = {
+  layout = true
+}
 
 return {{
     Pandoc = function (doc)

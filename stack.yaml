@@ -18,6 +18,7 @@ extra-deps:
 - hslua-classes-2.1.0
 - hslua-core-2.1.0
 - hslua-marshalling-2.1.0
+- hslua-module-doclayout-1.0.2
 - hslua-module-path-1.0.1
 - hslua-module-system-1.0.1
 - hslua-module-text-1.0.1

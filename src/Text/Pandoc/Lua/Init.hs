@@ -45,6 +45,7 @@ runLua luaOp = do
 loadedModules :: [(Name, Name)]
 loadedModules =
   [ ("pandoc.List", "List")
+  , ("pandoc.layout", "layout")
   , ("pandoc.mediabag", "mediabag")
   , ("pandoc.path", "path")
   , ("pandoc.system", "system")

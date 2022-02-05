@@ -2179,6 +2179,25 @@ Fields:
 `verbosity`
 :   Verbosity level; one of `INFO`, `WARNING`, `ERROR` (string)
 
+## Doc {#type-doc}
+
+Reflowable plain-text document. A Doc value can be rendered and
+reflown to fit a given column width.
+
+The [`pandoc.layout`](#module-pandoc.layout) module can be used to
+create and modify Doc values. All functions in that module that
+take a Doc value as their first argument are also available as Doc
+methods. E.g., `(pandoc.layout.literal 'text'):render()`.
+
+If a string is passed to a function expecting a Doc, then the
+string is treated as a literal value. I.e., the following two
+lines are equivalent:
+
+``` lua
+test = pandoc.layout.quotes(pandoc.layout.literal 'this')
+test = pandoc.layout.quotes('this')
+```
+
 ## List {#type-list}
 
 A list is any Lua table with integer indices. Indices start at
@@ -4377,6 +4396,563 @@ Parameters:
 Returns:
 
 -   The result(s) of the call to `callback`
+
+# Module pandoc.layout
+
+Plain-text document layouting.
+
+## Fields {#pandoc.layout-fields}
+
+### blankline {#pandoc.layout.blankline}
+
+Inserts a blank line unless one exists already.
+
+### cr {#pandoc.layout.cr}
+
+A carriage return. Does nothing if we\'re at the beginning of a
+line; otherwise inserts a newline.
+
+### empty {#pandoc.layout.empty}
+
+The empty document.
+
+### space {#pandoc.layout.space}
+
+A breaking (reflowable) space.
+
+## Functions {#pandoc.layout-functions}
+
+### after_break {#pandoc.layout.after_break}
+
+`after_break (text)`
+
+Creates a `Doc` which is conditionally included only if it comes
+at the beginning of a line.
+
+An example where this is useful is for escaping line-initial `.`
+in roff man.
+
+Parameters
+
+`text`
+
+:   content to include when placed after a break (string)
+
+Returns
+
+-   new doc (Doc)
+
+### before_non_blank {#pandoc.layout.before_non_blank}
+
+`before_non_blank (doc)`
+
+Conditionally includes the given `doc` unless it is followed by a
+blank space.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   conditional doc (Doc)
+
+### blanklines {#pandoc.layout.blanklines}
+
+`blanklines (n)`
+
+Inserts blank lines unless they exist already.
+
+Parameters
+
+`n`
+
+:   number of blank lines (integer)
+
+Returns
+
+-   conditional blank lines (Doc)
+
+### braces {#pandoc.layout.braces}
+
+`braces (doc)`
+
+Puts the `doc` in curly braces.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   doc enclosed by {}. (Doc)
+
+### brackets {#pandoc.layout.brackets}
+
+`brackets (doc)`
+
+Puts the `doc` in square brackets
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   doc enclosed by \[\]. (Doc)
+
+### cblock {#pandoc.layout.cblock}
+
+`cblock (doc, width)`
+
+Creates a block with the given width and content, aligned
+centered.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`width`
+
+:   block width in chars (integer)
+
+Returns
+
+-   doc, aligned centered in a block with max`width` chars per
+    line. (Doc)
+
+### chomp {#pandoc.layout.chomp}
+
+`chomp (doc)`
+
+Chomps trailing blank space off of the `doc`.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   `doc` without trailing blanks (Doc)
+
+### concat {#pandoc.layout.concat}
+
+`concat (docs[, sep])`
+
+Concatenates a list of `Doc`s.
+
+Parameters
+
+`docs`
+
+:   list of Docs (`{Doc,...}`)
+
+`sep`
+
+:   separator (default: none) (Doc)
+
+Returns
+
+-   concatenated doc (Doc)
+
+### double_quotes {#pandoc.layout.double_quotes}
+
+`double_quotes (doc)`
+
+Wraps a `Doc` in double quotes.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   `doc` enclosed by `"` chars (Doc)
+
+### flush {#pandoc.layout.flush}
+
+`flush (doc)`
+
+Makes a `Doc` flush against the left margin.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   flushed `doc` (Doc)
+
+### hang {#pandoc.layout.hang}
+
+`hang (doc, ind, start)`
+
+Creates a hanging indent.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`ind`
+
+:   indentation width (integer)
+
+`start`
+
+:   document (Doc)
+
+Returns
+
+-   `doc` prefixed by `start` on the first line, subsequent lines
+    indented by `ind` spaces. (Doc)
+
+### inside {#pandoc.layout.inside}
+
+`inside (contents, start, end)`
+
+Encloses a `Doc` inside a start and end `Doc`.
+
+Parameters
+
+`contents`
+
+:   document (Doc)
+
+`start`
+
+:   document (Doc)
+
+`end`
+
+:   document (Doc)
+
+Returns
+
+-   enclosed contents (Doc)
+
+### lblock {#pandoc.layout.lblock}
+
+`lblock (doc, width)`
+
+Creates a block with the given width and content, aligned to the
+left.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`width`
+
+:   block width in chars (integer)
+
+Returns
+
+-   doc put into block with max `width` chars per line. (Doc)
+
+### literal {#pandoc.layout.literal}
+
+`literal (text)`
+
+Creates a `Doc` from a string.
+
+Parameters
+
+`text`
+
+:   literal value (string)
+
+Returns
+
+-   doc contatining just the literal string (Doc)
+
+### nest {#pandoc.layout.nest}
+
+`nest (doc, ind)`
+
+Indents a `Doc` by the specified number of spaces.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`ind`
+
+:   indentation size (integer)
+
+Returns
+
+-   `doc` indented by `ind` spaces (Doc)
+
+### nestle {#pandoc.layout.nestle}
+
+`nestle (doc)`
+
+Removes leading blank lines from a `Doc`.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   `doc` with leading blanks removed (Doc)
+
+### nowrap {#pandoc.layout.nowrap}
+
+`nowrap (doc)`
+
+Makes a `Doc` non-reflowable.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   same as input, but non-reflowable (Doc)
+
+### parens {#pandoc.layout.parens}
+
+`parens (doc)`
+
+Puts the `doc` in parentheses.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   doc enclosed by (). (Doc)
+
+### prefixed {#pandoc.layout.prefixed}
+
+`prefixed (doc, prefix)`
+
+Uses the specified string as a prefix for every line of the inside
+document (except the first, if not at the beginning of the line).
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`prefix`
+
+:   prefix for each line (string)
+
+Returns
+
+-   prefixed `doc` (Doc)
+
+### quotes {#pandoc.layout.quotes}
+
+`quotes (doc)`
+
+Wraps a `Doc` in single quotes.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   doc enclosed in `'`. (Doc)
+
+### rblock {#pandoc.layout.rblock}
+
+`rblock (doc, width)`
+
+Creates a block with the given width and content, aligned to the
+right.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`width`
+
+:   block width in chars (integer)
+
+Returns
+
+-   doc, right aligned in a block with max`width` chars per line.
+    (Doc)
+
+### vfill {#pandoc.layout.vfill}
+
+`vfill (border)`
+
+An expandable border that, when placed next to a box, expands to
+the height of the box. Strings cycle through the list provided.
+
+Parameters
+
+`border`
+
+:   vertically expanded characters (string)
+
+Returns
+
+-   automatically expanding border Doc (Doc)
+
+### render {#pandoc.layout.render}
+
+`render (doc[, colwidth])`
+
+Render a @\'Doc\'@. The text is reflowed on breakable spacesto
+match the given line length. Text is not reflowed if theline
+length parameter is omitted or nil.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`colwidth`
+
+:   planned maximum line length (integer)
+
+Returns
+
+-   rendered doc (Doc)
+
+### is_empty {#pandoc.layout.is_empty}
+
+`is_empty (doc)`
+
+Checks whether a doc is empty.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   `true` iff `doc` is the empty document, `false` otherwise.
+    (boolean)
+
+### height {#pandoc.layout.height}
+
+`height (doc)`
+
+Returns the height of a block or other Doc.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   doc height (integer\|string)
+
+### min_offset {#pandoc.layout.min_offset}
+
+`min_offset (doc)`
+
+Returns the minimal width of a `Doc` when reflowed at breakable
+spaces.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   minimal possible width (integer\|string)
+
+### offset {#pandoc.layout.offset}
+
+`offset (doc)`
+
+Returns the width of a `Doc` as number of characters.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+Returns
+
+-   doc width (integer\|string)
+
+### real_length {#pandoc.layout.real_length}
+
+`real_length (str)`
+
+Returns the real length of a string in a monospace font: 0 for a
+combining chaeracter, 1 for a regular character, 2 for an East
+Asian wide character.
+
+Parameters
+
+`str`
+
+:   UTF-8 string to measure (string)
+
+Returns
+
+-   text length (integer\|string)
+
+### update_column {#pandoc.layout.update_column}
+
+`update_column (doc, i)`
+
+Returns the column that would be occupied by the last laid out
+character.
+
+Parameters
+
+`doc`
+
+:   document (Doc)
+
+`i`
+
+:   start column (integer)
+
+Returns
+
+-   column number (integer\|string)
 
 # Module pandoc.template
 
