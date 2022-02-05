@@ -268,7 +268,7 @@ Pandoc
               { citationId = "ITEM-1"
               , citationPrefix = [ Str "prefix" ]
               , citationSuffix =
-                  [ Space , Str "123" , Space , Str "suffix" ]
+                  [ Str ",", Space , Str "123" , Space , Str "suffix" ]
               , citationMode = NormalCitation
               , citationNoteNum = 0
               , citationHash = 0
@@ -302,7 +302,7 @@ Pandoc
               { citationId = "ITEM-1"
               , citationPrefix = [ Str "prefix" ]
               , citationSuffix =
-                  [ Space , Str "10-20" , Space , Str "suffix" ]
+                  [ Str ",", Space , Str "10-20" , Space , Str "suffix" ]
               , citationMode = NormalCitation
               , citationNoteNum = 0
               , citationHash = 0

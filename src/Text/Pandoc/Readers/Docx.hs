@@ -503,9 +503,9 @@ handleCitation citation = do
                 , citationPrefix = maybe [] (toList . text) $
                                      Citeproc.citationItemPrefix item
                 , citationSuffix = (toList . text) $
-                    maybe mempty (\x ->
-                       fromMaybe "" (Citeproc.citationItemLabel item)
-                         <> " " <> x <> " ")
+                    maybe mempty (\x -> ", " <>
+                       maybe "" (<>" ") (Citeproc.citationItemLabel item)
+                         <> x <> " ")
                      (Citeproc.citationItemLocator item)
                     <> fromMaybe mempty (Citeproc.citationItemSuffix item)
                 , citationMode = NormalCitation -- TODO for now

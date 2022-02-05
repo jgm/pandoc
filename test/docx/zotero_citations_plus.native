@@ -412,7 +412,7 @@ Pandoc
               { citationId = "10"
               , citationPrefix = [ Str "prefix" ]
               , citationSuffix =
-                  [ Space , Str "2" , Space , Str "suffix" ]
+                  [ Str ",", Space , Str "2" , Space , Str "suffix" ]
               , citationMode = NormalCitation
               , citationNoteNum = 0
               , citationHash = 0
