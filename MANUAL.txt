@@ -260,6 +260,7 @@ header when requesting a document from a URL:
     - `odt` ([ODT])
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
+    - `ris` ([RIS] bibliography)
     - `rtf` ([Rich Text Format])
     - `rst` ([reStructuredText])
     - `t2t` ([txt2tags])
@@ -487,6 +488,7 @@ header when requesting a document from a URL:
 [roff ms]: https://man.cx/groff_ms(7)
 [Haskell]: https://www.haskell.org
 [GNU Texinfo]: https://www.gnu.org/software/texinfo/
+[RIS]: https://en.wikipedia.org/wiki/RIS_(file_format)
 [Emacs Org mode]: https://orgmode.org
 [AsciiDoc]: https://www.methods.co.nz/asciidoc/
 [AsciiDoctor]: https://asciidoctor.org/
