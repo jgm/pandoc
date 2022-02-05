@@ -16,6 +16,7 @@ module Text.Pandoc.Lua.Packages
   ) where
 
 import Control.Monad (forM_)
+import Data.String (fromString)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.List (pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua)
@@ -60,8 +61,9 @@ pandocPackageSearcher pkgName =
     _                 -> reportPandocSearcherFailure
  where
   pushModuleLoader mdl = liftPandocLua $ do
+    let mdl' = mdl { Lua.moduleName = fromString pkgName }
     Lua.pushHaskellFunction $
-      Lua.NumResults 1 <$ Lua.pushModule @PandocError mdl
+      Lua.NumResults 1 <$ Lua.pushModule mdl'
     return (Lua.NumResults 1)
   pushWrappedHsFun f = liftPandocLua $ do
     Lua.pushHaskellFunction f
