@@ -90,18 +90,28 @@ toCitationItem :: Element -> Citeproc.CitationItem Text
 toCitationItem el =
     Citeproc.CitationItem{ Citeproc.citationItemId =
                               maybe mempty referenceId mbref
-                         , Citeproc.citationItemLabel = Nothing -- TODO
-                         , Citeproc.citationItemLocator = Nothing -- TODO
+                         , Citeproc.citationItemLabel = Nothing
+                         , Citeproc.citationItemLocator = mbpages
                          , Citeproc.citationItemType = Citeproc.NormalCite
-                         , Citeproc.citationItemPrefix = Nothing -- TODO
-                         , Citeproc.citationItemSuffix = Nothing -- TODO
+                         , Citeproc.citationItemPrefix = mbprefix
+                         , Citeproc.citationItemSuffix = mbsuffix
                          , Citeproc.citationItemData = mbref
                          }
  where
   mbref = recordToReference <$> filterChildName (name "record") el
+  mbprefix = getText <$> filterChildName (name "Prefix") el
+  mbsuffix = getText <$> filterChildName (name "Suffix") el
+  mbpages  = getText <$> filterChildName (name "Pages") el
 
 name :: Text -> (QName -> Bool)
 name t = (== t) . qName
+
+getText :: Element -> Text
+getText el = getText' (Elem el)
+ where
+  getText' (Elem el') = mconcat $ map getText' $ elContent el'
+  getText' (Text cd) = cdData cd
+  getText' (CRef _) = mempty
 
 recordToReference :: Element -> Reference Text
 recordToReference e =
@@ -112,10 +122,6 @@ recordToReference e =
 
  where
    -- get strContent, recursing inside style elements:
-   getText el = getText' (Elem el)
-   getText' (Elem el) =  mconcat $ map getText' $ elContent el
-   getText' (Text cd) = cdData cd
-   getText' (CRef _) = mempty
    refid = maybe mempty (T.strip . strContent)
            (filterElementName (name "key") e
             <|> filterElementName (name "rec-number") e)
