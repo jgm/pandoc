@@ -259,6 +259,7 @@ extra-source-files:
                  test/docbook-chapter.docbook
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
+                 test/endnotexml-reader.xml
                  test/html-reader.html
                  test/opml-reader.opml
                  test/org-select-tags.org
