@@ -72,8 +72,8 @@ import Data.Maybe (catMaybes, isJust, fromMaybe, mapMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
-import Citeproc (ItemId(..), Reference(..), CitationItem(..),
-                    Citation(citationItems))
+import Citeproc (ItemId(..), Reference(..), CitationItem(..))
+import qualified Citeproc
 import Text.Pandoc.Builder as Pandoc
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
@@ -464,8 +464,9 @@ parPartToInlines' (Field info children) =
       opts <- asks docxOptions
       if isEnabled Ext_citations opts
          then do
-           _citation <- readEndNoteXMLCitation (toSources t)
-           undefined -- TODO
+           citation <- readEndNoteXMLCitation (toSources t)
+           cs <- handleCitation citation
+           return $ cite cs formattedCite
          else return formattedCite
     CslCitation t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children
@@ -476,28 +477,7 @@ parPartToInlines' (Field info children) =
            case eitherDecode bs of
              Left _err -> return formattedCite
              Right citation -> do
-               let toPandocCitation item =
-                     Citation{ citationId = unItemId (citationItemId item)
-                             , citationPrefix = maybe [] (toList . text) $
-                                                  citationItemPrefix item
-                             , citationSuffix = (toList . text) $
-                                 maybe mempty (\x ->
-                                    fromMaybe "" (citationItemLabel item)
-                                      <> " " <> x <> " ")
-                                  (citationItemLocator item)
-                                 <> fromMaybe mempty (citationItemSuffix item)
-                             , citationMode = NormalCitation -- TODO for now
-                             , citationNoteNum = 0
-                             , citationHash = 0 }
-               let items = citationItems citation
-               let cs = map toPandocCitation items
-               refs <- mapM (traverse (return . text)) $
-                         mapMaybe citationItemData items
-               modify $ \st ->
-                 st{ docxReferences = foldr
-                       (\ref -> M.insert (referenceId ref) ref)
-                       (docxReferences st)
-                       refs }
+               cs <- handleCitation citation
                return $ cite cs formattedCite
          else return formattedCite
     CslBibliography -> do
@@ -508,9 +488,40 @@ parPartToInlines' (Field info children) =
     EndNoteRefList -> do
       opts <- asks docxOptions
       if isEnabled Ext_citations opts
-         then return mempty -- omit Zotero-generated bibliography
+         then return mempty -- omit EndNote-generated bibliography
          else smushInlines <$> mapM parPartToInlines' children
     _ -> smushInlines <$> mapM parPartToInlines' children
+
+-- Turn a 'Citeproc.Citation' into a list of 'Text.Pandoc.Definition.Citation',
+-- and store the embedded bibliographic data in state.
+handleCitation :: PandocMonad m
+               => Citeproc.Citation T.Text
+               -> DocxContext m [Citation]
+handleCitation citation = do
+  let toPandocCitation item =
+        Citation{ citationId = unItemId (Citeproc.citationItemId item)
+                , citationPrefix = maybe [] (toList . text) $
+                                     Citeproc.citationItemPrefix item
+                , citationSuffix = (toList . text) $
+                    maybe mempty (\x ->
+                       fromMaybe "" (Citeproc.citationItemLabel item)
+                         <> " " <> x <> " ")
+                     (Citeproc.citationItemLocator item)
+                    <> fromMaybe mempty (Citeproc.citationItemSuffix item)
+                , citationMode = NormalCitation -- TODO for now
+                , citationNoteNum = 0
+                , citationHash = 0 }
+  let items = Citeproc.citationItems citation
+  let cs = map toPandocCitation items
+  refs <- mapM (traverse (return . text)) $
+            mapMaybe Citeproc.citationItemData items
+  modify $ \st ->
+    st{ docxReferences = foldr
+          (\ref -> M.insert (referenceId ref) ref)
+          (docxReferences st)
+          refs }
+  return cs
+
 
 isAnchorSpan :: Inline -> Bool
 isAnchorSpan (Span (_, ["anchor"], []) _) = True

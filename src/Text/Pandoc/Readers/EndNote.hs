@@ -60,11 +60,11 @@ readEndNoteXML :: (PandocMonad m, ToSources a)
                => ReaderOptions -> a -> m Pandoc
 readEndNoteXML _opts inp = do
   let sources = toSources inp
-  refs <- readEndNoteXMLReferences sources
+  refs <- readEndNoteXMLReferences sources >>= mapM (traverse (return . text))
   return $ setMeta "references" (map referenceToMetaValue refs) $ B.doc mempty
 
 readEndNoteXMLCitation :: PandocMonad m
-                    => Sources -> m (Citeproc.Citation Inlines)
+                    => Sources -> m (Citeproc.Citation Text)
 readEndNoteXMLCitation sources = do
   tree <- either (throwError . PandocXMLError "") return $
               parseXMLElement (TL.fromStrict . sourcesToText $ sources)
@@ -78,7 +78,7 @@ readEndNoteXMLCitation sources = do
                    }
 
 readEndNoteXMLReferences :: PandocMonad m
-                         => Sources -> m [Reference Inlines]
+                         => Sources -> m [Reference Text]
 readEndNoteXMLReferences sources = do
   tree <- either (throwError . PandocXMLError "") return $
               parseXMLElement (TL.fromStrict . sourcesToText $ sources)
@@ -86,7 +86,7 @@ readEndNoteXMLReferences sources = do
   return $ map recordToReference records
 
 
-toCitationItem :: Element -> Citeproc.CitationItem Inlines
+toCitationItem :: Element -> Citeproc.CitationItem Text
 toCitationItem el =
     Citeproc.CitationItem{ Citeproc.citationItemId =
                               maybe mempty referenceId mbref
@@ -98,13 +98,12 @@ toCitationItem el =
                          , Citeproc.citationItemData = mbref
                          }
  where
-  mbref :: Maybe (Reference Inlines)
   mbref = recordToReference <$> filterChildName (name "record") el
 
 name :: Text -> (QName -> Bool)
 name t = (== t) . qName
 
-recordToReference :: Element -> Reference Inlines
+recordToReference :: Element -> Reference Text
 recordToReference e =
   Reference{ referenceId = ItemId refid,
              referenceType = reftype,
@@ -117,7 +116,6 @@ recordToReference e =
    getText' (Elem el) =  mconcat $ map getText' $ elContent el
    getText' (Text cd) = cdData cd
    getText' (CRef _) = mempty
-     -- mconcat . map cdData . onlyText . elContent
    refid = maybe mempty (T.strip . strContent)
            (filterElementName (name "key") e
             <|> filterElementName (name "rec-number") e)
@@ -128,30 +126,30 @@ recordToReference e =
      filterChildrenName (name "contributors") e >>=
      filterChildrenName (name "authors") >>=
      filterChildrenName (name "author") >>=
-     toName [] . B.toList . B.text . T.strip . getText
+     toName [] . B.toList .  B.text . T.strip . getText
    titles = do
      x <- filterChildrenName (name "titles") e
      (key, name') <- [("title", "title"),
                       ("container-title", "secondary-title")]
-     (key,) . FancyVal . B.text . T.strip . getText <$>
+     (key,) . FancyVal . T.strip . getText <$>
                     filterChildrenName (name name') x
-   pages = ("pages",) . FancyVal . B.text. T.strip . getText <$>
+   pages = ("pages",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "pages") e
-   volume = ("volume",) . FancyVal . B.text. T.strip . getText <$>
+   volume = ("volume",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "volume") e
-   number = ("number",) . FancyVal . B.text. T.strip . getText <$>
+   number = ("number",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "number") e
-   isbn = ("isbn",) . FancyVal . B.text. T.strip . getText <$>
+   isbn = ("isbn",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "isbn") e
-   publisher = ("publisher",) . FancyVal . B.text. T.strip . getText <$>
+   publisher = ("publisher",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "publisher") e
    originalPublisher =
-     ("original-publisher",) . FancyVal . B.text. T.strip . getText <$>
+     ("original-publisher",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "orig-pub") e
    publisherPlace =
-     ("publisher-place",) . FancyVal . B.text. T.strip . getText <$>
+     ("publisher-place",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "pub-location") e
-   abstract = ("abstract",) . FancyVal . B.text. T.strip . getText <$>
+   abstract = ("abstract",) . FancyVal . T.strip . getText <$>
                 filterChildrenName (name "abstract") e
    dates = ("issued",) . toDate <$> filterChildrenName (name "dates") e
    toDate e' = DateVal $
