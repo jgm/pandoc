@@ -107,6 +107,15 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
+.PHONY: doc/lua-filters.md
+doc/lua-filters.md: tools/update-lua-module-docs.lua
+	cabal run pandoc -- --standalone \
+		--reference-links \
+		--lua-filter=$< \
+		--columns=66 \
+		--output=$@ \
+		$@
+
 download_stats: ## print download stats from GitHub releases
 	curl https://api.github.com/repos/jgm/pandoc/releases | \
 		jq -r '.[] | .assets | .[] | "\(.download_count)\t\(.name)"'
