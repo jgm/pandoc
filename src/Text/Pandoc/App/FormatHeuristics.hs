@@ -69,6 +69,7 @@ formatFromFilePath x =
     ".org"      -> Just "org"
     ".pdf"      -> Just "pdf"  -- so we get an "unknown reader" error
     ".pptx"     -> Just "pptx"
+    ".ris"      -> Just "ris"
     ".roff"     -> Just "ms"
     ".rst"      -> Just "rst"
     ".rtf"      -> Just "rtf"

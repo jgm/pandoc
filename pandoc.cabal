@@ -547,6 +547,7 @@ library
                    Text.Pandoc.Readers.Creole,
                    Text.Pandoc.Readers.BibTeX,
                    Text.Pandoc.Readers.EndNote,
+                   Text.Pandoc.Readers.RIS,
                    Text.Pandoc.Readers.CslJson,
                    Text.Pandoc.Readers.MediaWiki,
                    Text.Pandoc.Readers.Vimwiki,
