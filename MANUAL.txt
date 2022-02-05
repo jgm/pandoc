@@ -3475,10 +3475,9 @@ native pandoc citations.
   [org-ref]:  https://github.com/jkitchin/org-ref
 
 When `citations` is enabled in `docx`, citations inserted
-by Zotero or Mendeley plugins will be parsed as native pandoc
-citations.  (Otherwise, the Zotero- or Mendeley-generated
-citation text and bibliography will be parsed as regular
-text.)
+by Zotero or Mendeley or EndNote plugins will be parsed as native
+pandoc citations.  (Otherwise, the formatted citations generated
+by the bibliographic software will be parsed as regular text.)
 
 #### Extension: `fancy_lists` {#org-fancy-lists}
 
