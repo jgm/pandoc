@@ -61,7 +61,15 @@ readEndNoteXML :: (PandocMonad m, ToSources a)
 readEndNoteXML _opts inp = do
   let sources = toSources inp
   refs <- readEndNoteXMLReferences sources >>= mapM (traverse (return . text))
-  return $ setMeta "references" (map referenceToMetaValue refs) $ B.doc mempty
+  return $
+    setMeta "nocite" (cite [Citation {citationId = "*"
+                                     , citationPrefix = []
+                                     , citationSuffix = []
+                                     , citationMode = NormalCitation
+                                     , citationNoteNum = 0
+                                     , citationHash = 0}] (str "[@*]")) $
+    setMeta "references" (map referenceToMetaValue refs) $
+    B.doc mempty
 
 readEndNoteXMLCitation :: PandocMonad m
                     => Sources -> m (Citeproc.Citation Text)
