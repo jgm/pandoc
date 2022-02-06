@@ -88,6 +88,7 @@ risRecordToReference keys = addId $ foldr go defref keys
      case key of
        "TY" -> \ref -> ref{ referenceType =
           fromMaybe "misc" (M.lookup val risTypes) }
+       "ID" -> \ref -> ref{ referenceId = ItemId val }
        "VL" -> addVar "volume" val
        "KW" -> \ref ->
          ref{ referenceVariables =
@@ -100,6 +101,7 @@ risRecordToReference keys = addId $ foldr go defref keys
                (referenceVariables ref) }
        "PB" -> addVar "publisher" val
        "PP" -> addVar "publisher-place" val
+       "DO" -> addVar "DOI" val
        "SP" -> \ref ->
          case M.lookup "page" (referenceVariables ref) of
            Nothing -> addVar "page" val ref
@@ -165,7 +167,10 @@ risRecordToReference keys = addId $ foldr go defref keys
      , referenceType = mempty
      , referenceDisambiguation = Nothing
      , referenceVariables = mempty }
-   addId rec = rec{ referenceId = ItemId (authors <> pubdate) }
+   addId rec =
+     if referenceId rec == mempty
+        then rec{ referenceId = ItemId (authors <> pubdate) }
+        else rec
    authors = T.intercalate "_" $
                [T.takeWhile (\c -> c /= ',' && not (isSpace c)) n
                  | (k, n) <- keys, k == "AU" || k == "A1"]
