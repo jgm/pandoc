@@ -16,6 +16,7 @@ import Text.Pandoc.Citeproc.Locator (parseLocator, toLocatorMap,
                                      LocatorInfo(..))
 import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
+import Text.Pandoc.Readers.RIS (readRIS)
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
 import Text.Pandoc.Readers.Markdown (yamlToRefs)
 import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
@@ -267,6 +268,11 @@ getRefs locale format idpred mbfp raw = do
               (T.unpack <$> mbfp)
               raw
       return $ mapMaybe metaValueToReference rs
+    Format_ris -> do
+      Pandoc meta _ <- readRIS def (UTF8.toText raw)
+      case lookupMeta "references" meta of
+        Just (MetaList rs) -> return $ mapMaybe metaValueToReference rs
+        _ -> return []
 
 -- assumes we walk in same order as query
 insertResolvedCitations :: Inline -> State [Inlines] Inline
@@ -343,6 +349,7 @@ data BibFormat =
   | Format_bibtex
   | Format_json
   | Format_yaml
+  | Format_ris
   deriving (Show, Eq, Ord)
 
 formatFromExtension :: FilePath -> Maybe BibFormat
@@ -353,6 +360,7 @@ formatFromExtension fp = case dropWhile (== '.') $ takeExtension fp of
                            "json"     -> Just Format_json
                            "yaml"     -> Just Format_yaml
                            "yml"      -> Just Format_yaml
+                           "ris"      -> Just Format_ris
                            _          -> Nothing
 
 

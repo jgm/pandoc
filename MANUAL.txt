@@ -5730,6 +5730,7 @@ to YAML array.  A bibliography may have any of these formats:
   BibTeX            .bibtex
   CSL JSON          .json
   CSL YAML          .yaml
+  RIS               .ris
 
 Note that `.bib` can be used with both BibTeX and BibLaTeX files;
 use the extension `.bibtex` to force interpretation as BibTeX.
