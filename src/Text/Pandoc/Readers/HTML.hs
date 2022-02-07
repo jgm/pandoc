@@ -107,12 +107,18 @@ stripPrefix x = x
 replaceNotes :: PandocMonad m => [Block] -> TagParser m [Block]
 replaceNotes bs = do
   st <- getState
-  return $ walk (replaceNotes' (noteTable st)) bs
+  walkM (replaceNotes' (noteTable st)) bs
 
-replaceNotes' :: [(Text, Blocks)] -> Inline -> Inline
+replaceNotes' :: PandocMonad m
+              => [(Text, Blocks)] -> Inline -> TagParser m Inline
 replaceNotes' noteTbl (RawInline (Format "noteref") ref) =
-  maybe (Str "") (Note . B.toList) $ lookup ref noteTbl
-replaceNotes' _ x = x
+  maybe warnNotFound (pure . Note . B.toList) $ lookup ref noteTbl
+ where
+  warnNotFound = do
+    pos <- getPosition
+    logMessage $ ReferenceNotFound ref pos
+    pure (Note [])
+replaceNotes' _ x = pure x
 
 setInChapter :: PandocMonad m => HTMLParser m s a -> HTMLParser m s a
 setInChapter = local (\s -> s {inChapter = True})
