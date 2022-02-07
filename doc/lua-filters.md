@@ -4440,7 +4440,7 @@ Parameters
 
 Returns
 
--   new doc (Doc)
+-   new doc ([Doc])
 
 ### before_non_blank {#pandoc.layout.before_non_blank}
 
@@ -4453,11 +4453,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   conditional doc (Doc)
+-   conditional doc ([Doc])
 
 ### blanklines {#pandoc.layout.blanklines}
 
@@ -4473,7 +4473,7 @@ Parameters
 
 Returns
 
--   conditional blank lines (Doc)
+-   conditional blank lines ([Doc])
 
 ### braces {#pandoc.layout.braces}
 
@@ -4485,11 +4485,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   doc enclosed by {}. (Doc)
+-   doc enclosed by {}. ([Doc])
 
 ### brackets {#pandoc.layout.brackets}
 
@@ -4501,11 +4501,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   doc enclosed by \[\]. (Doc)
+-   doc enclosed by \[\]. ([Doc])
 
 ### cblock {#pandoc.layout.cblock}
 
@@ -4518,7 +4518,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 `width`
 
@@ -4527,7 +4527,7 @@ Parameters
 Returns
 
 -   doc, aligned centered in a block with max`width` chars per
-    line. (Doc)
+    line. ([Doc])
 
 ### chomp {#pandoc.layout.chomp}
 
@@ -4539,11 +4539,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   `doc` without trailing blanks (Doc)
+-   `doc` without trailing blanks ([Doc])
 
 ### concat {#pandoc.layout.concat}
 
@@ -4559,11 +4559,11 @@ Parameters
 
 `sep`
 
-:   separator (default: none) (Doc)
+:   separator (default: none) ([Doc])
 
 Returns
 
--   concatenated doc (Doc)
+-   concatenated doc ([Doc])
 
 ### double_quotes {#pandoc.layout.double_quotes}
 
@@ -4575,11 +4575,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   `doc` enclosed by `"` chars (Doc)
+-   `doc` enclosed by `"` chars ([Doc])
 
 ### flush {#pandoc.layout.flush}
 
@@ -4591,11 +4591,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   flushed `doc` (Doc)
+-   flushed `doc` ([Doc])
 
 ### hang {#pandoc.layout.hang}
 
@@ -4607,7 +4607,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 `ind`
 
@@ -4615,12 +4615,12 @@ Parameters
 
 `start`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
 -   `doc` prefixed by `start` on the first line, subsequent lines
-    indented by `ind` spaces. (Doc)
+    indented by `ind` spaces. ([Doc])
 
 ### inside {#pandoc.layout.inside}
 
@@ -4632,19 +4632,19 @@ Parameters
 
 `contents`
 
-:   document (Doc)
+:   document ([Doc])
 
 `start`
 
-:   document (Doc)
+:   document ([Doc])
 
 `end`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   enclosed contents (Doc)
+-   enclosed contents ([Doc])
 
 ### lblock {#pandoc.layout.lblock}
 
@@ -4657,7 +4657,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 `width`
 
@@ -4665,7 +4665,7 @@ Parameters
 
 Returns
 
--   doc put into block with max `width` chars per line. (Doc)
+-   doc put into block with max `width` chars per line. ([Doc])
 
 ### literal {#pandoc.layout.literal}
 
@@ -4681,7 +4681,7 @@ Parameters
 
 Returns
 
--   doc contatining just the literal string (Doc)
+-   doc contatining just the literal string ([Doc])
 
 ### nest {#pandoc.layout.nest}
 
@@ -4693,7 +4693,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 `ind`
 
@@ -4701,7 +4701,7 @@ Parameters
 
 Returns
 
--   `doc` indented by `ind` spaces (Doc)
+-   `doc` indented by `ind` spaces ([Doc])
 
 ### nestle {#pandoc.layout.nestle}
 
@@ -4713,11 +4713,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   `doc` with leading blanks removed (Doc)
+-   `doc` with leading blanks removed ([Doc])
 
 ### nowrap {#pandoc.layout.nowrap}
 
@@ -4729,11 +4729,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   same as input, but non-reflowable (Doc)
+-   same as input, but non-reflowable ([Doc])
 
 ### parens {#pandoc.layout.parens}
 
@@ -4745,11 +4745,11 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
--   doc enclosed by (). (Doc)
+-   doc enclosed by (). ([Doc])
 
 ### prefixed {#pandoc.layout.prefixed}
 
@@ -4762,7 +4762,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 `prefix`
 
@@ -4770,7 +4770,7 @@ Parameters
 
 Returns
 
--   prefixed `doc` (Doc)
+-   prefixed `doc` ([Doc])
 
 ### quotes {#pandoc.layout.quotes}
 
@@ -4786,7 +4786,7 @@ Parameters
 
 Returns
 
--   doc enclosed in `'`. (Doc)
+-   doc enclosed in `'`. ([Doc])
 
 ### rblock {#pandoc.layout.rblock}
 
@@ -4808,7 +4808,7 @@ Parameters
 Returns
 
 -   doc, right aligned in a block with max`width` chars per line.
-    (Doc)
+    ([Doc])
 
 ### vfill {#pandoc.layout.vfill}
 
@@ -4825,7 +4825,7 @@ Parameters
 
 Returns
 
--   automatically expanding border Doc (Doc)
+-   automatically expanding border Doc ([Doc])
 
 ### render {#pandoc.layout.render}
 
@@ -4847,7 +4847,7 @@ Parameters
 
 Returns
 
--   rendered doc (Doc)
+-   rendered doc ([Doc])
 
 ### is_empty {#pandoc.layout.is_empty}
 
@@ -4859,7 +4859,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
@@ -4876,7 +4876,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
@@ -4893,7 +4893,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
@@ -4909,7 +4909,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 Returns
 
@@ -4944,7 +4944,7 @@ Parameters
 
 `doc`
 
-:   document (Doc)
+:   document ([Doc])
 
 `i`
 
@@ -4953,6 +4953,8 @@ Parameters
 Returns
 
 -   column number (integer\|string)
+
+[Doc]: #type-doc
 
 # Module pandoc.template
 
