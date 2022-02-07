@@ -608,7 +608,7 @@ copyChildren refArchive distArchive path timestamp elNames = do
       qName n1 == qName n2
     cleanElem el@Element{elName=name} = el{elName=name{qURI=Nothing}}
 
--- this is the lowest number used for a list numId
+-- this is the lowest number used for a list numId; except in case of Example, then baseListId - 1 is used
 baseListId :: Int
 baseListId = 1000
 
@@ -941,7 +941,9 @@ blockToOpenXML' opts el
   where
     addOpenXMLList marker lst = do
       addList marker
-      numid  <- getNumId
+      numid  <- case marker of
+                     NumberMarker Example _ _ -> return $ baseListId - 1
+                     _ -> getNumId
       l <- asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
       setFirstPara
       return l
