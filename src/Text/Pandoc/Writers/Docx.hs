@@ -27,7 +27,7 @@ import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList)
+import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -608,7 +608,7 @@ copyChildren refArchive distArchive path timestamp elNames = do
       qName n1 == qName n2
     cleanElem el@Element{elName=name} = el{elName=name{qURI=Nothing}}
 
--- this is the lowest number used for a list numId; except in case of Example, then baseListId - 1 is used
+-- this is the lowest number used for a list numId
 baseListId :: Int
 baseListId = 1000
 
@@ -941,10 +941,10 @@ blockToOpenXML' opts el
   where
     addOpenXMLList marker lst = do
       addList marker
-      numid  <- case marker of
-                     NumberMarker Example _ _ -> return $ baseListId - 1
-                     _ -> getNumId
-      l <- asList $ concat `fmap` mapM (listItemToOpenXML opts numid) lst
+      exampleid <- case marker of
+                        NumberMarker Example _ _ -> gets stExampleId
+                        _ -> return Nothing
+      l <- asList $ concat `fmap` mapM (listItemToOpenXML opts $ fromMaybe numid exampleid) lst
       setFirstPara
       return l
 blockToOpenXML' opts (DefinitionList items) = do
@@ -965,7 +965,16 @@ definitionListItemToOpenXML opts (term,defs) = do
 addList :: (PandocMonad m) => ListMarker -> WS m ()
 addList marker = do
   lists <- gets stLists
-  modify $ \st -> st{ stLists = lists ++ [marker] }
+  lastExampleId <- gets stExampleId
+  modify $ \st -> st{ stLists = lists ++ case marker of
+                                         -- Use only first occurence of Example for list declaration to avoid overhead
+                                         NumberMarker Example _ _ | isJust lastExampleId -> []
+                                         _ -> [marker]
+                    , stExampleId = case marker of
+                                         -- Reuse the same identifier for all other occurences of Example
+                                         NumberMarker Example _ _ -> lastExampleId <|> Just (baseListId + length lists)
+                                         _ -> lastExampleId
+                  }
 
 listItemToOpenXML :: (PandocMonad m)
                   => WriterOptions
