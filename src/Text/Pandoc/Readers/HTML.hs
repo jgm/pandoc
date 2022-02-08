@@ -89,7 +89,7 @@ readHtml opts inp = do
   result <- flip runReaderT def $
        runParserT parseDoc
        (HTMLState def{ stateOptions = opts }
-         [] Nothing Set.empty [] M.empty opts)
+         [] Nothing Set.empty [] M.empty opts False)
        "source" tags
   case result of
     Right doc -> return doc
@@ -106,8 +106,8 @@ stripPrefix x = x
 
 replaceNotes :: PandocMonad m => [Block] -> TagParser m [Block]
 replaceNotes bs = do
-  st <- getState
-  walkM (replaceNotes' (noteTable st)) bs
+  notes <- noteTable <$> getState
+  walkM (replaceNotes' notes) bs
 
 replaceNotes' :: PandocMonad m
               => [(Text, Blocks)] -> Inline -> TagParser m Inline
@@ -178,6 +178,9 @@ block = ((do
           , epubExts
           , "chapter" `T.isInfixOf` type'
           -> eSection
+        _ | epubExts
+          , type' `elem` ["footnotes", "rearnotes"]
+          -> eFootnotes
         _ | epubExts
           , type' `elem` ["footnote", "rearnote"]
           -> mempty <$ eFootnote
@@ -256,19 +259,39 @@ eCase = do
     Nothing -> Nothing <$ manyTill pAny (pSatisfy (matchTagClose "case"))
 
 eFootnote :: PandocMonad m => TagParser m ()
-eFootnote = try $ do
-  let notes = ["footnote", "rearnote"]
+eFootnote = do
+  guardEnabled Ext_epub_html_exts
+  TagOpen tag attr' <- lookAhead $ pSatisfy
+    (\case
+       TagOpen _ attr'
+         -> case lookup "type" attr' <|> lookup "epub:type" attr' of
+              Just "footnote" -> True
+              Just "rearnote" -> True
+              _ -> False
+       _ -> False)
+  let attr = toStringAttr attr'
+  let ident = fromMaybe "" (lookup "id" attr)
+  content <- pInTags tag block
+  updateState $ \s ->
+    s {noteTable = (ident, content) : noteTable s}
+
+eFootnotes :: PandocMonad m => TagParser m Blocks
+eFootnotes = try $ do
+  let notes = ["footnotes", "rearnotes"]
   guardEnabled Ext_epub_html_exts
   (TagOpen tag attr') <- lookAhead pAny
   let attr = toStringAttr attr'
   guard $ maybe False (`elem` notes)
           (lookup "type" attr <|> lookup "epub:type" attr)
-  let ident = fromMaybe "" (lookup "id" attr)
-  content <- pInTags tag block
-  addNote ident content
-
-addNote :: PandocMonad m => Text -> Blocks -> TagParser m ()
-addNote uid cont = updateState (\s -> s {noteTable = (uid, cont) : noteTable s})
+  updateState $ \s -> s{ inFootnotes = True }
+  result <- pInTags tag block
+  updateState $ \s -> s{ inFootnotes = False }
+  if null result
+     -- if it just contains notes, we don't need the container:
+     then return result
+     -- but there might be content other than notes, in which case
+     -- we want a div:
+     else return $ B.divWith (toAttr attr') result
 
 eNoteref :: PandocMonad m => TagParser m Inlines
 eNoteref = try $ do
@@ -337,6 +360,7 @@ parseTypeAttr _   = DefaultStyle
 pOrderedList :: PandocMonad m => TagParser m Blocks
 pOrderedList = try $ do
   TagOpen _ attribs' <- pSatisfy (matchTagOpen "ol" [])
+  isNoteList <- inFootnotes <$> getState
   let attribs = toStringAttr attribs'
   let start = fromMaybe 1 $ lookup "start" attribs >>= safeRead
   let style = fromMaybe DefaultStyle
@@ -352,8 +376,14 @@ pOrderedList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pListItem nonItem) (pCloses "ol")
-  return $ B.orderedListWith (start, style, DefaultDelim) $ map (fixPlains True) items
+  if isNoteList
+     then do
+       _ <- manyTill (eFootnote <|> pBlank) (pCloses "ol")
+       return mempty
+     else do
+       items <- manyTill (pListItem nonItem) (pCloses "ol")
+       return $ B.orderedListWith (start, style, DefaultDelim) $
+                map (fixPlains True) items
 
 pDefinitionList :: PandocMonad m => TagParser m Blocks
 pDefinitionList = try $ do
@@ -518,7 +548,10 @@ pHeader = try $ do
 pHrule :: PandocMonad m => TagParser m Blocks
 pHrule = do
   pSelfClosing (=="hr") (const True)
-  return B.horizontalRule
+  inNotes <- inFootnotes <$> getState
+  return $ if inNotes
+              then mempty
+              else B.horizontalRule
 
 pBlockQuote :: PandocMonad m => TagParser m Blocks
 pBlockQuote = do
@@ -715,14 +748,18 @@ pLink = try $ do
   let title = fromAttrib "title" tag
   let attr = toAttr $ filter (\(k,_) -> k /= "title" && k /= "href") attr'
   lab <- mconcat <$> manyTill inline (pCloses "a")
-  -- check for href; if href, then a link, otherwise a span
-  case maybeFromAttrib "href" tag of
-       Nothing   ->
-         return $ extractSpaces (B.spanWith attr) lab
-       Just url' -> do
-         url <- canonicalizeUrl url'
-         return $ extractSpaces
-                   (B.linkWith attr (escapeURI url) title) lab
+  st <- getState
+  if inFootnotes st && maybeFromAttrib "role" tag == Just "doc-backlink"
+     then return mempty
+     else do
+       -- check for href; if href, then a link, otherwise a span
+       case maybeFromAttrib "href" tag of
+            Nothing   ->
+              return $ extractSpaces (B.spanWith attr) lab
+            Just url' -> do
+              url <- canonicalizeUrl url'
+              return $ extractSpaces
+                        (B.linkWith attr (escapeURI url) title) lab
 
 pImage :: PandocMonad m => TagParser m Inlines
 pImage = do

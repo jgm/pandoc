@@ -52,6 +52,7 @@ data HTMLState = HTMLState
   , logMessages :: [LogMessage]
   , macros      :: Map Text Macro
   , readerOpts  :: ReaderOptions
+  , inFootnotes :: Bool
   }
 
 -- | Local HTML parser state

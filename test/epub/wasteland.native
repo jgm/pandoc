@@ -4230,7 +4230,7 @@
     )
     [ Div
         ( "wasteland-content.xhtml#rearnotes"
-        , [ "section" , "rearnotes" ]
+        , [ "rearnotes" ]
         , []
         )
         [ Header
