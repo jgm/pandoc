@@ -44,10 +44,15 @@ local function render_results (results)
     return {BulletList(
       List(results):map(
         function (res)
+          -- Types starting with a capital letter are pandoc types, so we can
+          -- link them.
+          local type_ = res.type:match'^[A-Z]'
+            and Link(res.type, '#type-' .. res.type:lower())
+            or Str(res.type)
           return Para(
             read_inlines(res.description)
             .. {Space()}
-            .. Inlines('(' .. res.type .. ')')
+            .. Inlines '(' .. Inlines{type_} .. Inlines ')'
           )
         end
       )

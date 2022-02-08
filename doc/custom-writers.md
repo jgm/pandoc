@@ -25,7 +25,7 @@ document and writer options, and then does all rendering.
 # Classic style
 
 A writer using the classic style defines rendering functions for
-all elements of pandoc's AST.
+each element of the pandoc AST.
 
 For example,
 

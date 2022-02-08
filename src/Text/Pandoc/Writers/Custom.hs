@@ -51,5 +51,5 @@ writeCustom luaFile opts doc = either throw pure <=< runLua $ do
       -- options as arguments.
       push doc
       push opts
-      call 2 1
+      callTrace 2 1
       forcePeek $ peekText top
