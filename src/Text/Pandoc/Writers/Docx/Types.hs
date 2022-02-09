@@ -107,6 +107,7 @@ data WriterState = WriterState{
        , stExternalLinks  :: M.Map Text Text
        , stImages         :: M.Map FilePath (String, String, Maybe MimeType, B.ByteString)
        , stLists          :: [ListMarker]
+       , stExampleId      :: Maybe Int
        , stInsId          :: Int
        , stDelId          :: Int
        , stStyleMaps      :: StyleMaps
@@ -131,6 +132,7 @@ defaultWriterState = WriterState{
       , stExternalLinks  = M.empty
       , stImages         = M.empty
       , stLists          = [NoMarker]
+      , stExampleId      = Nothing
       , stInsId          = 1
       , stDelId          = 1
       , stStyleMaps      = StyleMaps M.empty M.empty
