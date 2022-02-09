@@ -254,6 +254,10 @@ pdfWriterAndProg mWriter mEngine =
       go Nothing Nothing       = Right ("latex", "pdflatex")
       go (Just writer) Nothing = (writer,) <$> engineForWriter writer
       go Nothing (Just engine) = (,engine) <$> writerForEngine (takeBaseName engine)
+      go (Just writer) (Just engine) | isCustomWriter writer =
+           -- custom writers can produce any format, so assume the user knows
+           -- what they are doing.
+           Right (writer, engine)
       go (Just writer) (Just engine) =
            case find (== (baseWriterName writer, takeBaseName engine)) engines of
                 Just _  -> Right (writer, engine)
@@ -266,10 +270,12 @@ pdfWriterAndProg mWriter mEngine =
                                    "pdf-engine " <> T.pack eng <> " not known"
 
       engineForWriter "pdf" = Left "pdf writer"
-      engineForWriter w = case [e |  (f,e) <- engines, f == baseWriterName w] of
+      engineForWriter w = case [e | (f,e) <- engines, f == baseWriterName w] of
                                 eng : _ -> Right eng
                                 []      -> Left $
                                    "cannot produce pdf output from " <> w
+
+      isCustomWriter w = ".lua" `T.isSuffixOf` w
 
 isTextFormat :: T.Text -> Bool
 isTextFormat s =
