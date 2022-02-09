@@ -941,6 +941,7 @@ blockToOpenXML' opts el
   where
     addOpenXMLList marker lst = do
       addList marker
+      numid  <- getNumId
       exampleid <- case marker of
                         NumberMarker Example _ _ -> gets stExampleId
                         _ -> return Nothing
