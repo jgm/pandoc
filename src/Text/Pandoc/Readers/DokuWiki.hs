@@ -19,8 +19,8 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Char (isAlphaNum, isDigit)
 import qualified Data.Foldable as F
-import Data.List (transpose)
 import Data.Maybe (fromMaybe, catMaybes)
+import Data.Bifunctor (second)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -96,7 +96,11 @@ codeTag f tag = try $ f
 -- | Parse any inline element but softbreak.
 inline' :: PandocMonad m => DWParser m B.Inlines
 inline' = whitespace
-      <|> br
+      <|> inline''
+
+-- | Parse any inline element but whitespace.
+inline'' :: PandocMonad m => DWParser m B.Inlines
+inline'' = br
       <|> bold
       <|> italic
       <|> underlined
@@ -120,6 +124,10 @@ inline' = whitespace
       <|> str
       <|> symbol
       <?> "inline"
+
+-- | Parse any inline element but soft breaks and do not consolidate spaces.
+inlineUnconsolidatedWhitespace :: PandocMonad m => DWParser m B.Inlines
+inlineUnconsolidatedWhitespace = (B.space <$ spaceChar) <|> inline'
 
 -- | Parse any inline element, including soft break.
 inline :: PandocMonad m => DWParser m B.Inlines
@@ -471,19 +479,24 @@ table = do
   let (headerRow, body) = if firstSeparator == '^'
                             then (head rows, tail rows)
                             else ([], rows)
-  let attrs = (AlignDefault, ColWidthDefault) <$ transpose rows
+  -- Since Pandoc only has column level alignment, we have to make an arbitrary
+  -- choice of how to reconcile potentially different alignments in the row.
+  -- Here we end up assuming that the alignment of the header / first row is
+  -- what the user wants to apply to the whole thing.
+  let attrs =  map (\(a, _) -> (a, ColWidthDefault)) . head $ rows
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
   pure $ B.table B.emptyCaption
                  attrs
-                 (TableHead nullAttr $ toHeaderRow headerRow)
-                 [TableBody nullAttr 0 [] $ map toRow body]
+                 (TableHead nullAttr $ toHeaderRow (map snd headerRow))
+                 [TableBody nullAttr 0 [] $ map (toRow . (map snd)) body]
                  (TableFoot nullAttr [])
 
-tableRows :: PandocMonad m => DWParser m [[B.Blocks]]
+
+tableRows :: PandocMonad m => DWParser m [[(Alignment, B.Blocks)]]
 tableRows = many1 tableRow
 
-tableRow :: PandocMonad m => DWParser m [B.Blocks]
+tableRow :: PandocMonad m => DWParser m [(Alignment, B.Blocks)]
 tableRow = many1Till tableCell tableRowEnd
 
 tableRowEnd :: PandocMonad m => DWParser m Char
@@ -492,11 +505,23 @@ tableRowEnd = try $ tableCellSeparator <* manyTill spaceChar eol
 tableCellSeparator :: PandocMonad m => DWParser m Char
 tableCellSeparator = char '|' <|> char '^'
 
-tableCell :: PandocMonad m => DWParser m B.Blocks
-tableCell = try $ B.plain . B.trimInlines . mconcat <$> (normalCell <|> headerCell)
+tableCell :: PandocMonad m => DWParser m (Alignment, B.Blocks)
+tableCell = try $ (second (B.plain . B.trimInlines . mconcat)) <$> cellContent
   where
-    normalCell = char '|' *> manyTill inline' (lookAhead tableCellSeparator)
-    headerCell = char '^' *> manyTill inline' (lookAhead tableCellSeparator)
+    cellContent = do
+      -- https://www.dokuwiki.org/wiki:syntax#tables
+      -- DokuWiki represents the alignment of cells with two spaces padding.
+      tableCellSeparator
+      cellInline <- manyTill inlineUnconsolidatedWhitespace (lookAhead tableCellSeparator)
+      let left  = (==2) . length . filter (== B.space) . take 2 $ cellInline
+      let right = (==2) . length . filter (== B.space) . take 2 . reverse $ cellInline
+      let alignment = case (left, right) of
+                           (True, True)   -> AlignCenter
+                           (True, False)  -> AlignRight
+                           (False, True)  -> AlignLeft
+                           (False, False) -> AlignDefault
+      return (alignment, cellInline)
+
 
 blockCode :: PandocMonad m => DWParser m B.Blocks
 blockCode = codeTag B.codeBlockWith "code"
