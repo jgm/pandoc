@@ -1304,7 +1304,7 @@ simpleTableHeader headless = try $ do
   let indices  = scanl (+) 0 lines'
   let aligns   = replicate (length lines') AlignDefault
   let rawHeads = if headless
-                    then replicate (length dashes) ""
+                    then []
                     else simpleTableSplitLine indices rawContent
   heads <- mapM ( parseFromString' (mconcat <$> many plain) . trim) rawHeads
   return (heads, aligns, indices)
