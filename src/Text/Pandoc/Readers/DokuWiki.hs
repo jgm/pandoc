@@ -30,6 +30,8 @@ import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Shared (trim, stringify, tshow)
+import Data.List (isPrefixOf, isSuffixOf)
+import qualified Safe
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
 readDokuWiki :: (PandocMonad m, ToSources a)
@@ -476,14 +478,15 @@ table :: PandocMonad m => DWParser m B.Blocks
 table = do
   firstSeparator <- lookAhead tableCellSeparator
   rows <- tableRows
+  let firstRow = fromMaybe [] . Safe.headMay $ rows
   let (headerRow, body) = if firstSeparator == '^'
-                            then (head rows, tail rows)
+                            then (firstRow, tail rows)
                             else ([], rows)
   -- Since Pandoc only has column level alignment, we have to make an arbitrary
   -- choice of how to reconcile potentially different alignments in the row.
   -- Here we end up assuming that the alignment of the header / first row is
   -- what the user wants to apply to the whole thing.
-  let attrs =  map (\(a, _) -> (a, ColWidthDefault)) . head $ rows
+  let attrs =  map (\(a, _) -> (a, ColWidthDefault)) firstRow
   let toRow = Row nullAttr . map B.simpleCell
       toHeaderRow l = [toRow l | not (null l)]
   pure $ B.table B.emptyCaption
@@ -513,8 +516,8 @@ tableCell = try $ (second (B.plain . B.trimInlines . mconcat)) <$> cellContent
       -- DokuWiki represents the alignment of cells with two spaces padding.
       tableCellSeparator
       cellInline <- manyTill inlineUnconsolidatedWhitespace (lookAhead tableCellSeparator)
-      let left  = (==2) . length . filter (== B.space) . take 2 $ cellInline
-      let right = (==2) . length . filter (== B.space) . take 2 . reverse $ cellInline
+      let left  = [B.space, B.space] `isPrefixOf` cellInline
+      let right = [B.space, B.space] `isSuffixOf` cellInline
       let alignment = case (left, right) of
                            (True, True)   -> AlignCenter
                            (True, False)  -> AlignRight
