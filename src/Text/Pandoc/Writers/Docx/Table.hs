@@ -13,19 +13,42 @@ module Text.Pandoc.Writers.Docx.Table
   ( tableToOpenXML
   ) where
 
-import Control.Monad.State.Strict
-import Data.Array
+import Control.Monad.State.Strict ( modify, gets, unless )
+import Data.Array ( elems, (!), assocs, indices )
 import Data.Text (Text)
 import Text.Pandoc.Definition
+    ( ColSpec,
+      Caption(Caption),
+      Format(Format),
+      Attr,
+      Block(Para, Plain),
+      Inline(Str, Span, RawInline),
+      Alignment(..),
+      RowSpan(..),
+      ColSpan(..),
+      ColWidth(ColWidth) )
 import Text.Pandoc.Class.PandocMonad (PandocMonad, translateTerm)
 import Text.Pandoc.Writers.Docx.Types
-import Text.Pandoc.Shared
+    ( WS,
+      WriterState(stNextTableNum, stInTable),
+      setFirstPara,
+      pStyleM,
+      withParaProp,
+      withParaPropM )
+import Text.Pandoc.Shared ( tshow, stringify )
 import Text.Pandoc.Options (WriterOptions, isEnabled)
 import Text.Pandoc.Extensions (Extension(Ext_native_numbering))
 import Text.Printf (printf)
-import Text.Pandoc.Writers.GridTable hiding (Table)
-import Text.Pandoc.Writers.OOXML
-import Text.Pandoc.XML.Light as XML hiding (Attr)
+import Text.Pandoc.Writers.GridTable
+    ( rowArray,
+      ColIndex,
+      GridCell(..),
+      Part(Part, partCellArray, partRowAttrs),
+      RowIndex )
+import Text.Pandoc.Writers.OOXML ( mknode )
+import Text.Pandoc.XML.Light.Proc ( onlyElems )
+import Text.Pandoc.XML.Light.Types
+    ( Content(Elem), Element(elName), QName(qName) )
 import qualified Data.Text as T
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Writers.GridTable as Grid
