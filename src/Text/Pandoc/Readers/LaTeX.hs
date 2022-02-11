@@ -36,10 +36,10 @@ import Skylighting (defaultSyntaxMap)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocPure (PandocPure)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getResourcePath,
-                                      readFileFromDirs, report,
-                                      setResourcePath)
+import Text.Pandoc.Class (PandocPure, PandocMonad (..), getResourcePath,
+                          readFileFromDirs, report,
+                          setResourcePath, getZonedTime)
+import Data.Time (ZonedTime(..), LocalTime(..), showGregorian)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
 import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
@@ -422,7 +422,14 @@ inlineCommands = M.unions
     , ("uline", underline <$> tok)
     -- plain tex stuff that should just be passed through as raw tex
     , ("ifdim", ifdim)
+    -- generally only used in \date
+    , ("today", today)
     ]
+
+today :: PandocMonad m => LP m Inlines
+today =
+  text . T.pack . showGregorian . localDay . zonedTimeToLocalTime
+    <$> getZonedTime
 
 lettrine :: PandocMonad m => LP m Inlines
 lettrine = do
