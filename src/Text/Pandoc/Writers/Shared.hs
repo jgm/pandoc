@@ -446,7 +446,7 @@ sectionToListItem opts (Div (ident,_,_)
    headerText' = addNumber $ walk (deLink . deNote) ils
    headerLink = if T.null ident
                    then headerText'
-                   else [Link nullAttr headerText' ("#" <> ident, "")]
+                   else [Link ("toc-" <> ident, [], []) headerText' ("#" <> ident, "")]
    listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
 sectionToListItem _ _ = []
 
