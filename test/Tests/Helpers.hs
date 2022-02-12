@@ -36,6 +36,7 @@ import Test.Tasty
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.HUnit
 import Text.Pandoc.Builder (Blocks, Inlines, doc, plain)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -149,6 +150,12 @@ instance ToString Pandoc where
 
 instance ToString Blocks where
   toString = unpack . purely (writeNative def) . toPandoc
+
+instance ToString [Block] where
+  toString = toString . B.fromList
+
+instance ToString Block where
+  toString = toString . B.singleton 
 
 instance ToString Inlines where
   toString = unpack . trimr . purely (writeNative def) . toPandoc
