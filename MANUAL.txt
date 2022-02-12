@@ -6255,6 +6255,15 @@ option):
 Both methods allow incremental and nonincremental lists to be mixed
 in a single document.
 
+If you want to include a block-quoted list, you can work around
+this behavior by putting the list inside a fenced div, so that
+it is not the direct child of the block quote:
+
+    > ::: wrapper
+    > - a
+    > - list in a quote
+    > :::
+
 ## Inserting pauses
 
 You can add "pauses" within a slide by including a paragraph containing
