@@ -7,3 +7,9 @@ source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
   tag: 32fcf268d8bac2825eddd3c51a9112112e5eaadb
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs.git
+  tag: e114359f413b95ef0f4b3d78956a76fcb38a4b2f
+  subdir: commonmark
