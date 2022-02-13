@@ -30,8 +30,9 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (safeRead, extractSpaces)
-import Text.TeXMath (readMathML, writeTeX)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML.Light
+import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
@@ -43,6 +44,7 @@ data JATSState = JATSState{ jatsSectionLevel :: Int
                           , jatsQuoteType    :: QuoteType
                           , jatsMeta         :: Meta
                           , jatsBook         :: Bool
+                          , jatsFootnotes    :: Map.Map Text Blocks
                           , jatsContent      :: [Content]
                           } deriving Show
 
@@ -51,6 +53,7 @@ instance Default JATSState where
                  , jatsQuoteType = DoubleQuote
                  , jatsMeta = mempty
                  , jatsBook = False
+                 , jatsFootnotes = mempty
                  , jatsContent = [] }
 
 
@@ -63,7 +66,17 @@ readJATS _ inp = do
   tree <- either (throwError . PandocXMLError "") return $
             parseXMLContents (TL.fromStrict . sourcesToText $ sources)
   (bs, st') <- flip runStateT (def{ jatsContent = tree }) $ mapM parseBlock tree
-  return $ Pandoc (jatsMeta st') (toList . mconcat $ bs)
+  let footnotes = jatsFootnotes st'
+  let blockList = toList $ mconcat bs
+  let linkToFootnotes :: Inline -> Inline
+      linkToFootnotes link'@(Link _attr _txt (href, _title)) =
+        case T.uncons href of
+          Just ('#', rid) -> case Map.lookup rid footnotes of
+                               Just footnote -> Note (toList footnote)
+                               Nothing       -> link'
+          _               -> link'
+      linkToFootnotes inline = inline
+  return $ Pandoc (jatsMeta st') (walk linkToFootnotes blockList)
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: Text -> Element -> Text
@@ -175,6 +188,7 @@ parseBlock (Elem e) =
         "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], [])
                           <$> getBlocks e
         "caption" -> divWith (attrValue "id" e, ["caption"], []) <$> sect 6
+        "fn-group" -> parseFootnoteGroup
         "ref-list" -> parseRefList e
         "?xml"  -> return mempty
         _       -> getBlocks e
@@ -239,6 +253,13 @@ parseBlock (Elem e) =
                           (attrValue "title" g)
 
                   _   -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
+         parseFootnoteGroup = do
+           forM_ (filterChildren (named "fn") e) $ \fn -> do
+             let id' = attrValue "id" fn
+             contents <- getBlocks fn
+             modify $ \st ->
+               st { jatsFootnotes = Map.insert id' contents (jatsFootnotes st) }
+           return mempty
 
          parseTable = do
                       let isCaption x = named "title" x || named "caption" x
