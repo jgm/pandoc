@@ -1364,9 +1364,9 @@ pipeBreak = try $ do
   openPipe <- (True <$ char '|') <|> return False
   first <- pipeTableHeaderPart
   rest <- many $ sepPipe *> pipeTableHeaderPart
-  -- surrounding pipes needed for a one-column table:
-  guard $ not (null rest && not openPipe)
-  optional (char '|')
+  closePipe <- (True <$ char '|') <|> return False
+  -- at least one pipe needed for a one-column table:
+  guard $ not (null rest && not (openPipe || closePipe))
   blankline
   return $ unzip (first:rest)
 
@@ -1406,9 +1406,10 @@ pipeTableRow = try $ do
   -- split into cells
   let chunk = void (code <|> math <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
        <|> void (noneOf "|\n\r")
-  cells <- (snd <$> withRaw (many chunk)) `sepEndBy1` char '|'
-  -- surrounding pipes needed for a one-column table:
-  guard $ not (length cells == 1 && not openPipe)
+  cells <- (snd <$> withRaw (many chunk)) `sepBy1` char '|'
+  closePipe <- (True <$ char '|') <|> return False
+  -- at least one pipe needed for a one-column table:
+  guard $ not (length cells == 1 && not (openPipe || closePipe))
   blankline
   return cells
 
