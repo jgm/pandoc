@@ -32,7 +32,6 @@ import Control.Monad.Except (throwError, catchError)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (toLower)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -129,16 +128,6 @@ convertWithOpts opts = do
                              return "markdown"
 
     let readerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') readerName
-    let pdfOutput = map toLower (takeExtension outputFile) == ".pdf"
-
-    when (pdfOutput && readerNameBase == "latex") $
-      case optInputFiles opts of
-        Just (inputFile:_) -> report $ UnusualConversion $ T.pack $
-          "to convert a .tex file to PDF, you get better results by using pdflatex "
-            <> "(or lualatex or xelatex) directly, try `pdflatex " <> inputFile
-            <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
-        _ -> return ()
-
 
     let makeSandboxed pureReader =
           let files = maybe id (:) (optReferenceDoc opts) .
@@ -169,6 +158,8 @@ convertWithOpts opts = do
     let writerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') writerName
     let writerOptions = outputWriterOptions outputSettings
 
+    let pdfOutput = isJust $ outputPdfProgram outputSettings
+
     let bibOutput = writerNameBase == "bibtex" ||
                     writerNameBase == "biblatex" ||
                     writerNameBase == "csljson"
@@ -178,6 +169,14 @@ convertWithOpts opts = do
                      pdfOutput ||
                      bibOutput
 
+    when (pdfOutput && readerNameBase == "latex") $
+      case optInputFiles opts of
+        Just (inputFile:_) -> report $ UnusualConversion $ T.pack $
+          "to convert a .tex file to PDF, you get better results by using pdflatex "
+            <> "(or lualatex or xelatex) directly, try `pdflatex " <> inputFile
+            <> "` instead of `pandoc " <> inputFile <> " -o " <> outputFile <> "`."
+        _ -> return ()
+
     -- We don't want to send output to the terminal if the user
     -- does 'pandoc -t docx input.txt'; though we allow them to
     -- force this with '-o -'.  On posix systems, we detect
@@ -186,7 +185,8 @@ convertWithOpts opts = do
     when ((pdfOutput || not (isTextFormat format)) &&
              istty && isNothing ( optOutputFile opts)) $
       throwError $ PandocAppError $
-              "Cannot write " <> format <> " output to terminal.\n" <>
+              "Cannot write " <> (if pdfOutput then "pdf" else format) <>
+              " output to terminal.\n" <>
               "Specify an output file using the -o option, or " <>
               "use '-o -' to force output to stdout."
 
