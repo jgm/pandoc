@@ -40,7 +40,7 @@ extra-deps:
 - git: https://github.com/jgm/citeproc.git
   commit: 32fcf268d8bac2825eddd3c51a9112112e5eaadb
 - git: https://github.com/jgm/commonmark-hs.git
-  commit: 3f7d9abcd5366576e308c1cd5dad91c7b4d4e31b
+  commit: 02f573527d537a3f9e037d460638d1e4f8a5ca9b
   subdirs: [commonmark, commonmark-extensions]
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
