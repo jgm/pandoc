@@ -29,7 +29,7 @@ extra-deps:
 - lua-arbitrary-1.0.0
 - tasty-hslua-1.0.1
 - tasty-lua-1.0.1
-- pandoc-lua-marshal-0.1.4
+- pandoc-lua-marshal-0.1.5
 - pandoc-types-1.22.1
 - aeson-pretty-0.8.9
 - unicode-transforms-0.4.0@rev:1
