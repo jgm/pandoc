@@ -218,9 +218,16 @@ convertWithOpts opts = do
     metadataFromFile <-
       case optMetadataFiles opts of
         []    -> return mempty
-        paths -> mconcat <$>
-           mapM (\path -> do raw <- readMetadataFile path
-                             yamlToMeta readerOpts (Just path) raw) paths
+        paths -> do
+          -- If format is markdown or commonmark, use the enabled extensions,
+          -- otherwise treat metadata as pandoc markdown (see #7926, #6832)
+          let readerOptsMeta =
+                if readerNameBase == "markdown" || readerNameBase == "commonmark"
+                   then readerOpts
+                   else readerOpts{ readerExtensions = pandocExtensions }
+          mconcat <$> mapM
+                (\path -> do raw <- readMetadataFile path
+                             yamlToMeta readerOptsMeta (Just path) raw) paths
 
     let transforms = (case optShiftHeadingLevelBy opts of
                           0             -> id

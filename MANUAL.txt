@@ -641,10 +641,12 @@ header when requesting a document from a URL:
 
 :   Read metadata from the supplied YAML (or JSON) file. This
     option can be used with every input format, but string scalars
-    in the YAML file will always be parsed as Markdown. Generally,
-    the input will be handled the same as in [YAML metadata
-    blocks][Extension: `yaml_metadata_block`]. This option can be
-    used repeatedly to include multiple metadata files; values in
+    in the YAML file will always be parsed as Markdown. (If the
+    input format is Markdown or a Markdown variant, then the
+    same variant will be used to parse the metadata file;
+    if it is a non-Markdown format, pandoc's default Markdown
+    extensions will be used.) This option can be used
+    repeatedly to include multiple metadata files; values in
     files specified later on the command line will be preferred
     over those specified in earlier files. Metadata values
     specified inside the document, or by using `-M`, overwrite
