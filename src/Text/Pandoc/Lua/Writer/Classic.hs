@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -24,7 +25,9 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text, pack)
 import HsLua as Lua hiding (Operation (Div))
+#if !MIN_VERSION_hslua(2,2,0)
 import HsLua.Aeson (peekViaJSON)
+#endif
 import Text.DocLayout (literal, render)
 import Text.DocTemplates (Context)
 import Text.Pandoc.Definition

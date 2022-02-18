@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -20,7 +21,9 @@ module Text.Pandoc.Lua.Marshal.WriterOptions
 import Control.Applicative (optional)
 import Data.Default (def)
 import HsLua as Lua
+#if !MIN_VERSION_hslua(2,2,0)
 import HsLua.Aeson (peekViaJSON, pushViaJSON)
+#endif
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
 import Text.Pandoc.Options (WriterOptions (..))
