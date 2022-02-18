@@ -7,8 +7,8 @@ flags:
 packages:
 - '.'
 extra-deps:
-- skylighting-core-0.12.2
-- skylighting-0.12.2
+- skylighting-core-0.12.3
+- skylighting-0.12.3
 - doctemplates-0.10.0.1
 - emojis-0.1.2
 - doclayout-0.3.1.1
