@@ -31,7 +31,7 @@ import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Shared (safeRead, isURI)
 import Text.Pandoc.Writers.Shared (metaToContext')
-import Text.Pandoc.Writers.Markdown (writeMarkdown)
+import Text.Pandoc.Writers.Markdown (writePlain, writeMarkdown)
 import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString.Lazy as BL
 import Data.Aeson.Encode.Pretty (Config(..), defConfig,
@@ -57,10 +57,11 @@ writeIpynb opts d = do
 pandocToNotebook :: PandocMonad m
                  => WriterOptions -> Pandoc -> m (Notebook NbV4)
 pandocToNotebook opts (Pandoc meta blocks) = do
-  let blockWriter bs = literal <$> writeMarkdown
-           opts{ writerTemplate = Nothing } (Pandoc nullMeta bs)
-  let inlineWriter ils = literal . T.stripEnd <$> writeMarkdown
-           opts{ writerTemplate = Nothing } (Pandoc nullMeta [Plain ils])
+  -- we use writePlain w/ default options because e.g. we don't want
+  -- to add backslash escapes or convert en dashes, see #7928
+  let blockWriter bs = literal <$> writePlain def (Pandoc nullMeta bs)
+  let inlineWriter ils = literal . T.stripEnd <$>
+                            writePlain def (Pandoc nullMeta [Plain ils])
   let jupyterMeta =
         case lookupMeta "jupyter" meta of
           Just (MetaMap m) -> Meta m
