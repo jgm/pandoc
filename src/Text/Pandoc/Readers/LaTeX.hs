@@ -383,7 +383,7 @@ inlineCommands = M.unions
     , ("MakeTextLowercase", makeLowercase <$> tok)
     , ("lowercase", makeLowercase <$> tok)
     , ("thanks", skipopts >> note <$> grouped block)
-    , ("footnote", skipopts >> note <$> grouped block)
+    , ("footnote", skipopts >> footnote)
     , ("passthrough", tok) -- \passthrough macro used by latex writer
                            -- for listings
     , ("includegraphics", do options <- option [] keyvals
@@ -430,6 +430,22 @@ today :: PandocMonad m => LP m Inlines
 today =
   text . T.pack . showGregorian . localDay . zonedTimeToLocalTime
     <$> getZonedTime
+
+footnote :: PandocMonad m => LP m Inlines
+footnote = do
+  updateState $ \st -> st{ sLastNoteNum = sLastNoteNum st + 1 }
+  contents <- grouped block >>= walkM resolveNoteLabel
+  return $ note contents
+
+resolveNoteLabel :: PandocMonad m => Inline -> LP m Inline
+resolveNoteLabel (Span (_,cls,kvs) _)
+  | Just lab <- lookup "label" kvs = do
+      updateState $ \st -> st{
+        sLabels = M.insert lab (toList . text . tshow $ sLastNoteNum st)
+                      $ sLabels st }
+      return $ Span (lab,cls,kvs) []
+resolveNoteLabel il = return il
+
 
 lettrine :: PandocMonad m => LP m Inlines
 lettrine = do
