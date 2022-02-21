@@ -99,23 +99,23 @@ filterElement p e     = listToMaybe (filterElements p e)
 filterElementName     :: (QName -> Bool) -> Element -> Maybe Element
 filterElementName p e  = listToMaybe (filterElementsName p e)
 
--- | Find all non-nested occurances of an element.
+-- | Find all non-nested occurrences of an element.
 -- (i.e., once we have found an element, we do not search
--- for more occurances among the element's children).
+-- for more occurrences among the element's children).
 findElements       :: QName -> Element -> [Element]
 findElements qn e = filterElementsName (qn==) e
 
 -- | Find all non-nested occurrences of an element wrt. given predicate.
 -- (i.e., once we have found an element, we do not search
--- for more occurances among the element's children).
+-- for more occurrences among the element's children).
 filterElements       :: (Element -> Bool) -> Element -> [Element]
 filterElements p e
  | p e        = [e]
  | otherwise  = concatMap (filterElements p) $ onlyElems $ elContent e
 
--- | Find all non-nested occurences of an element wrt a predicate over element names.
+-- | Find all non-nested occurrences of an element wrt a predicate over element names.
 -- (i.e., once we have found an element, we do not search
--- for more occurances among the element's children).
+-- for more occurrences among the element's children).
 filterElementsName       :: (QName -> Bool) -> Element -> [Element]
 filterElementsName p e = filterElements (p.elName) e
 

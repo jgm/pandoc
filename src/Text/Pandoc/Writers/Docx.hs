@@ -968,11 +968,11 @@ addList marker = do
   lists <- gets stLists
   lastExampleId <- gets stExampleId
   modify $ \st -> st{ stLists = lists ++ case marker of
-                                         -- Use only first occurence of Example for list declaration to avoid overhead
+                                         -- Use only first occurrence of Example for list declaration to avoid overhead
                                          NumberMarker Example _ _ | isJust lastExampleId -> []
                                          _ -> [marker]
                     , stExampleId = case marker of
-                                         -- Reuse the same identifier for all other occurences of Example
+                                         -- Reuse the same identifier for all other occurrences of Example
                                          NumberMarker Example _ _ -> lastExampleId <|> Just (baseListId + length lists)
                                          _ -> lastExampleId
                   }

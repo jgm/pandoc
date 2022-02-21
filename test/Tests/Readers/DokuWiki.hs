@@ -225,12 +225,12 @@ tests = [ testGroup "inlines"
           , "Ordered list" =:
             T.unlines [ "  - The same list but ordered"
                       , "  - Another item"
-                      , "    - Just use indention for deeper levels"
+                      , "    - Just use indentation for deeper levels"
                       , "  - That's it"
                       ] =?>
             orderedList [ plain "The same list but ordered"
                         , plain "Another item" <>
-                          orderedList [ plain "Just use indention for deeper levels" ]
+                          orderedList [ plain "Just use indentation for deeper levels" ]
                         , plain "That's it"
                         ]
           , "Multiline list items" =: -- https://www.dokuwiki.org/faq:lists

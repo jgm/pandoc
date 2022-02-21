@@ -4799,7 +4799,7 @@ them and they won't be treated as math delimiters.
 
 For display math, use `$$` delimiters.  (In this case, the delimiters
 may be separated from the formula by whitespace.  However, there can be
-no blank lines betwen the opening and closing `$$` delimiters.)
+no blank lines between the opening and closing `$$` delimiters.)
 
 TeX math will be printed in all output formats. How it is rendered
 depends on the output format:

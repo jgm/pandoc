@@ -2,7 +2,7 @@
 % pandoc -f biblatex -t markdown -s
 @comment{
 
-Nested crossreferences (see biber manual v 1.7)
+Nested cross-references (see biber manual v 1.7)
 
 }
 
