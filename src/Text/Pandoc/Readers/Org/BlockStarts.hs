@@ -58,7 +58,6 @@ latexEnvStart = try $
   skipSpaces *> string "\\begin{"
              *> latexEnvName
              <* string "}"
-             <* blankline
  where
    latexEnvName :: Monad m => OrgParser m Text
    latexEnvName = try $ mappend <$> many1Char alphaNum <*> option "" (textStr "*")
