@@ -104,7 +104,7 @@
                   </names>
                 </if>
               </choose>
-              <!--This includes page numers after the container author, e.g. for Introductions -->
+              <!--This includes page numbers after the container author, e.g. for Introductions -->
               <choose>
                 <if variable="container-author author" match="all">
                   <group delimiter=". ">

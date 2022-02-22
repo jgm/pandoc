@@ -617,7 +617,7 @@ defListItemToLaTeX (term, defs) = do
      _                       ->
        "\\item" <> brackets term'' $$ def'
 
--- | Craft the section header, inserting the secton reference, if supplied.
+-- | Craft the section header, inserting the section reference, if supplied.
 sectionHeader :: PandocMonad m
               => [Text]  -- classes
               -> Text

@@ -89,7 +89,7 @@ instance (Pushable a, Pushable b) => Pushable (KeyValue a b) where
     Lua.push v
     Lua.rawset (Lua.nth 3)
 
--- | Convert Pandoc to custom markup usind a classic Lua writer.
+-- | Convert Pandoc to custom markup using a classic Lua writer.
 runCustom :: LuaError e
           => WriterOptions
           -> Pandoc

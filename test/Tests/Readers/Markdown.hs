@@ -371,13 +371,13 @@ tests = [ testGroup "inline code"
           , test markdownMMD "normal superscript"
             ("x^3^"
             =?> para ("x" <> superscript "3"))
-          , test markdownMMD "short subscript delimeted by space"
+          , test markdownMMD "short subscript delimited by space"
             ("O~2 is dangerous"
             =?> para ("O" <> subscript "2" <> space <> "is dangerous"))
-          , test markdownMMD "short subscript delimeted by newline"
+          , test markdownMMD "short subscript delimited by newline"
             ("O~2\n"
             =?> para ("O" <> subscript "2"))
-          , test markdownMMD "short subscript delimeted by EOF"
+          , test markdownMMD "short subscript delimited by EOF"
             ("O~2"
             =?> para ("O" <> subscript "2"))
           , test markdownMMD "short subscript delimited by punctuation"
@@ -389,13 +389,13 @@ tests = [ testGroup "inline code"
           , test markdownMMD "no nesting in short subscripts"
             ("y~*2*"
             =?> para ("y~" <> emph "2"))
-          , test markdownMMD "short superscript delimeted by space"
+          , test markdownMMD "short superscript delimited by space"
             ("x^2 = y"
             =?> para ("x" <> superscript "2" <> space <> "= y"))
-          , test markdownMMD "short superscript delimeted by newline"
+          , test markdownMMD "short superscript delimited by newline"
             ("x^2\n"
             =?> para ("x" <> superscript "2"))
-          , test markdownMMD "short superscript delimeted by ExF"
+          , test markdownMMD "short superscript delimited by ExF"
             ("x^2"
             =?> para ("x" <> superscript "2"))
           , test markdownMMD "short superscript delimited by punctuation"

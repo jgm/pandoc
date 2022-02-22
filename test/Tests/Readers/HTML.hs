@@ -120,7 +120,7 @@ tests = [ testGroup "base tag"
             =?>
             codeBlockWith ("a", ["python"], []) "print('hi')"
 
-          , test html "attributes in pre take precendence" $
+          , test html "attributes in pre take precedence" $
             "<pre id=\"c\"><code id=\"d\">\nprint('hi mom!')\n</code></pre>"
             =?>
             codeBlockWith ("c", [], []) "print('hi mom!')"

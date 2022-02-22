@@ -37,7 +37,7 @@
             * correcting errors
             known bugs, help appreciated
             * Abbreviations (Mitarb.) & (Hrsg. der Reihe) are missing (contributor, seriesEditor labels)
-            * "contributor" is not valid as a name variable , nevertheless it works but doesnt validate!
+            * "contributor" is not valid as a name variable , nevertheless it works but doesn't validate!
             * author etc. first names should not be abbreviated
             * reviewed author seems to be not available as variable (newspaper article)
             * thesis type does notoffer a PLACE or FACULTY as variable!

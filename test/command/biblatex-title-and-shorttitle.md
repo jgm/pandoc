@@ -9,7 +9,7 @@ When there’s a biblatex “title” and a “subtitle” field, CSL “title-s
 
 CSL “container-title-short” could also be set
 - from biblatex “shortjournal”
-- for inbook, incollection etc. from the “shorttitle” field of the crossreferenced book, collection etc. entry (see item5, item6)
+- for inbook, incollection etc. from the “shorttitle” field of the cross-referenced book, collection etc. entry (see item5, item6)
 ... but it might not really be worth it, “container-title-short” not being used once in my sample of 70+ CSL styles.
 
 }

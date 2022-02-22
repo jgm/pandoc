@@ -1,4 +1,4 @@
-A table within a table should be convertet into a table within table
+A table within a table should be converted into a table within table
 
 ```
 % pandoc -f html -t asciidoc

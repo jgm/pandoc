@@ -39,7 +39,7 @@ newtype JATSState = JATSState
 
 -- | Environment containing all information relevant for rendering.
 data JATSEnv m = JATSEnv
-  { jatsTagSet :: JATSTagSet  -- ^ The tag set that's being ouput
+  { jatsTagSet :: JATSTagSet  -- ^ The tag set that's being output
 
   , jatsBlockWriter   :: (Block -> Bool)
                       -> WriterOptions -> [Block]  -> JATS m (Doc Text)
