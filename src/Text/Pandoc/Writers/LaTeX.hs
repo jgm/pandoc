@@ -741,12 +741,13 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
   let cmds = mapMaybe classToCmd classes ++ mapMaybe kvToCmd kvs ++ langCmds
   contents <- inlineListToLaTeX ils
   return $
-    (case classes of
-              ["csl-block"] -> (cr <>)
-              ["csl-left-margin"] -> (cr <>)
-              ["csl-right-inline"] -> (cr <>)
-              ["csl-indent"] -> (cr <>)
-              _ -> id) $
+    (if "csl-right-inline" `elem` classes
+        then ("%" <>) -- see #7932
+        else id) $
+    (if any (`elem` classes)
+            ["csl-block","csl-left-margin","csl-right-inline","csl-indent"]
+        then (cr <>)
+        else id) $
     (if T.null id'
         then empty
         else "\\protect" <> linkAnchor) <>
