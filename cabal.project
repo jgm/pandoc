@@ -5,13 +5,20 @@ constraints: aeson >= 2.0.1.0
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/texmath.git
+  tag: 70ed0b8d143fcfc78b425885ed593c91305c8639
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/citeproc.git
   tag: 32fcf268d8bac2825eddd3c51a9112112e5eaadb
+
 source-repository-package
   type: git
   location: https://github.com/jgm/commonmark-hs.git
   tag: 02f573527d537a3f9e037d460638d1e4f8a5ca9b
   subdir: commonmark
+
 source-repository-package
   type: git
   location: https://github.com/jgm/commonmark-hs.git
