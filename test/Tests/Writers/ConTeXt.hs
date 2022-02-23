@@ -3,6 +3,7 @@ module Tests.Writers.ConTeXt (tests) where
 
 import Data.Text (unpack, pack)
 import Test.Tasty
+import Test.Tasty.HUnit (HasCallStack)
 import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
@@ -34,7 +35,7 @@ which is in turn shorthand for
 -}
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
+(=:) :: (ToString a, ToPandoc a, HasCallStack)
      => String -> (a, String) -> TestTree
 (=:) = test context
 

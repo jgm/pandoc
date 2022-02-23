@@ -16,6 +16,7 @@ module Tests.Readers.Jira (tests) where
 import Prelude hiding (unlines)
 import Data.Text (Text, unlines)
 import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers (ToString, purely, test, (=?>))
 import Text.Pandoc (def)
 import Text.Pandoc.Readers.Jira (readJira)
@@ -25,7 +26,7 @@ jira :: Text -> Pandoc
 jira = purely $ readJira def
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: (ToString c, HasCallStack)
      => String -> (Text, c) -> TestTree
 (=:) = test jira
 

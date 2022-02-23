@@ -2,6 +2,7 @@
 module Tests.Writers.FB2 (tests) where
 
 import Test.Tasty
+import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -12,7 +13,7 @@ fb2 x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ++
         "<FictionBook xmlns=\"http://www.gribuser.ru/xml/fictionbook/2.0\" xmlns:l=\"http://www.w3.org/1999/xlink\"><description><title-info><genre>unrecognised</genre></title-info><document-info><program-used>pandoc</program-used></document-info></description><body><title><p /></title><section>" ++ x ++ "</section></body></FictionBook>"
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
+(=:) :: (ToString a, ToPandoc a, HasCallStack)
      => String -> (a, String) -> TestTree
 (=:) = test (purely (writeFB2 def) . toPandoc)
 

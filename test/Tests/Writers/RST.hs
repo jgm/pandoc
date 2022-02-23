@@ -12,7 +12,7 @@ import Text.Pandoc.Writers.RST
 import qualified Data.Text as T
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
+(=:) :: (ToString a, ToPandoc a, HasCallStack)
      => String -> (a, String) -> TestTree
 (=:) = test (purely (writeRST def . toPandoc))
 

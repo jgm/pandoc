@@ -17,6 +17,7 @@ import Data.List (intersperse)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
+import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -30,7 +31,7 @@ t2t = purely $ \s -> do
   readTxt2Tags def s
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: (ToString c, HasCallStack)
      => String -> (Text, c) -> TestTree
 (=:) = test t2t
 

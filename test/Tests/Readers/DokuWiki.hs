@@ -17,6 +17,7 @@ module Tests.Readers.DokuWiki (tests) where
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
+import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -26,7 +27,7 @@ dokuwiki :: Text -> Pandoc
 dokuwiki = purely $ readDokuWiki def{ readerStandalone = True }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: (ToString c, HasCallStack)
      => String -> (Text, c) -> TestTree
 (=:) = test dokuwiki
 
@@ -305,13 +306,13 @@ tests = [ testGroup "inlines"
           T.unlines [ "^ 0  ^  1  ^  2 ^ 3 ^"
                     , "| a  | b   | c  |d  |"
                     ] =?>
-          table emptyCaption 
-                (map (, ColWidthDefault) [AlignLeft, AlignCenter, AlignRight, AlignDefault])  
-                (TableHead nullAttr 
+          table emptyCaption
+                (map (, ColWidthDefault) [AlignLeft, AlignCenter, AlignRight, AlignDefault])
+                (TableHead nullAttr
                           [Row nullAttr . map (simpleCell . plain) $ ["0", "1", "2", "3"]])
                 [TableBody nullAttr 0 []
                           [Row nullAttr . map (simpleCell . plain) $ ["a", "b", "c", "d"]]]
-                (TableFoot nullAttr []) 
+                (TableFoot nullAttr [])
         , "Table with colspan" =:
           T.unlines [ "^ 0,0 ^ 0,1 ^ 0,2 ^"
                     , "| 1,0 | 1,1 ||"

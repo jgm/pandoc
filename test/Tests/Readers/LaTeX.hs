@@ -15,6 +15,7 @@ module Tests.Readers.LaTeX (tests) where
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
+import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -25,7 +26,7 @@ latex = purely $ readLaTeX def{
                    readerExtensions = getDefaultExtensions "latex" }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: (ToString c, HasCallStack)
      => String -> (Text, c) -> TestTree
 (=:) = test latex
 
@@ -166,7 +167,7 @@ tests = [ testGroup "basic"
                                   , simpleCell (plain "Two")
                                   ]
                    , Row nullAttr [ simpleCell (plain "Three") ]
-                   , Row nullAttr [ simpleCell (plain "Four") 
+                   , Row nullAttr [ simpleCell (plain "Four")
                                   , simpleCell (plain "Five")
                                   , simpleCell (plain "Six")
                                   , simpleCell (plain "Seven")
@@ -174,8 +175,8 @@ tests = [ testGroup "basic"
                    ]
           , "Table with multicolumn header" =:
             T.unlines [ "\\begin{tabular}{ |l|l| }"
-                      , "\\hline\\multicolumn{2}{|c|}{Header}\\\\" 
-                      , "\\hline key & val\\\\" 
+                      , "\\hline\\multicolumn{2}{|c|}{Header}\\\\"
+                      , "\\hline key & val\\\\"
                       , "\\hline\\end{tabular}"
                       ] =?>
             table emptyCaption

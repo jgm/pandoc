@@ -4,6 +4,7 @@ module Tests.Writers.Markdown (tests) where
 
 import Data.Text (unpack)
 import Test.Tasty
+import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
@@ -33,7 +34,7 @@ which is in turn shorthand for
 -}
 
 infix 4 =:
-(=:) :: (ToString a, ToPandoc a)
+(=:) :: (ToString a, ToPandoc a, HasCallStack)
      => String -> (a, String) -> TestTree
 (=:) = test markdown
 
@@ -182,7 +183,7 @@ noteTests = testGroup "note and reference location"
 shortcutLinkRefsTests :: TestTree
 shortcutLinkRefsTests =
   let infix 4 =:
-      (=:) :: (ToString a, ToPandoc a)
+      (=:) :: (ToString a, ToPandoc a, HasCallStack)
 
         => String -> (a, String) -> TestTree
       (=:) = test (purely (writeMarkdown defopts{writerReferenceLinks = True}) . toPandoc)

@@ -21,6 +21,7 @@ import Data.List (intersperse)
 import Data.Text (Text)
 import Tests.Helpers (ToString, purely, test)
 import Test.Tasty (TestTree)
+import Test.Tasty.HUnit (HasCallStack)
 import Text.Pandoc (Pandoc, ReaderOptions (readerExtensions),
                     def, getDefaultExtensions, readOrg)
 import Text.Pandoc.Builder (Inlines, smallcaps, space, spanWith, str)
@@ -29,7 +30,7 @@ org :: Text -> Pandoc
 org = purely $ readOrg def{ readerExtensions = getDefaultExtensions "org" }
 
 infix 4 =:
-(=:) :: ToString c
+(=:) :: (ToString c, HasCallStack)
      => String -> (Text, c) -> TestTree
 (=:) = test org
 
