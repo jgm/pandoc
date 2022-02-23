@@ -43,9 +43,9 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Val(..), Context(..), FromContext(..))
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
-import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown, 
-                                            linkAttributes, 
-                                            attrsToMarkdown, 
+import Text.Pandoc.Writers.Markdown.Inline (inlineListToMarkdown,
+                                            linkAttributes,
+                                            attrsToMarkdown,
                                             attrsToMarkua)
 import Text.Pandoc.Writers.Markdown.Types (MarkdownVariant(..),
                                            WriterState(..),
@@ -356,7 +356,7 @@ blockToMarkdown' opts (Div attrs ils) = do
   variant <- asks envVariant
   return $
      case () of
-         _ | variant == Markua -> 
+         _ | variant == Markua ->
                    case () of
                         () | "blurb" `elem` classes' -> prefixed "B> " contents <> blankline
                            | "aside" `elem` classes' -> prefixed "A> " contents <> blankline
@@ -515,7 +515,7 @@ blockToMarkdown' opts (Header level attr inlines) = do
             -- ghc interprets '#' characters in column 1 as linenum specifiers.
             _ | variant == PlainText || isEnabled Ext_literate_haskell opts ->
                 contents <> blankline
-            _ | variant == Markua -> attr' <> cr <> literal (T.replicate level "#") 
+            _ | variant == Markua -> attr' <> cr <> literal (T.replicate level "#")
                                         <> space <> contents <> blankline
             _ -> literal (T.replicate level "#") <> space <> contents <> attr' <> blankline
 
@@ -533,7 +533,7 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
           backticks <> attrs <> cr <> literal str <> cr <> backticks <> blankline
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> literal str <> cr <> tildes <> blankline
-     _ | variant == Markua -> blankline <> attrsToMarkua attribs <> cr <> backticks <> cr <> 
+     _ | variant == Markua -> blankline <> attrsToMarkua attribs <> cr <> backticks <> cr <>
                                 literal str <> cr <> backticks <> cr <> blankline
        | otherwise -> nest (writerTabStop opts) (literal str) <> blankline
    where
@@ -626,7 +626,7 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
   return $ nst (tbl $$ caption'') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
-  return $ (if isTightList items then vcat else vsep) 
+  return $ (if isTightList items then vcat else vsep)
                   contents <> blankline
 blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
   variant <- asks envVariant
@@ -635,7 +635,7 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
                   else 1
   let sty'   = if isEnabled Ext_fancy_lists opts then sty else DefaultStyle
   let delim' | isEnabled Ext_fancy_lists opts =
-               case variant of 
+               case variant of
                    -- Markua supports 'fancy' enumerators, but no TwoParens
                    Markua -> if delim == TwoParens then OneParen else delim
                    _ -> delim
