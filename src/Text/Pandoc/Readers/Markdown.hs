@@ -635,7 +635,7 @@ identifier = do
 identifierAttr :: PandocMonad m => MarkdownParser m (Attr -> Attr)
 identifierAttr = try $ do
   char '#'
-  result <- identifier
+  result <- T.pack <$> many1 (alphaNum <|> oneOf "-_:.") -- see #7920
   return $ \(_,cs,kvs) -> (result,cs,kvs)
 
 classAttr :: PandocMonad m => MarkdownParser m (Attr -> Attr)
