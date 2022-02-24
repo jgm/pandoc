@@ -6,7 +6,7 @@ constraints: aeson >= 2.0.1.0
 source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
-  tag: 70ed0b8d143fcfc78b425885ed593c91305c8639
+  tag: 31438be6166497425039d7f2ac29b13ad6792387
 
 source-repository-package
   type: git

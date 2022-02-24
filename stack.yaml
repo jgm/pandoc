@@ -42,7 +42,7 @@ extra-deps:
   commit: 02f573527d537a3f9e037d460638d1e4f8a5ca9b
   subdirs: [commonmark, commonmark-extensions]
 - git: https://github.com/jgm/texmath.git
-  commit: 70ed0b8d143fcfc78b425885ed593c91305c8639
+  commit: 31438be6166497425039d7f2ac29b13ad6792387
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
