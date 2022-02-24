@@ -37,6 +37,7 @@ module Text.Pandoc.Writers.Shared (
                      , endsWithPlain
                      , toLegacyTable
                      , splitSentences
+                     , ensureValidXmlIdentifiers
                      )
 where
 import Safe (lastMay)
@@ -44,7 +45,7 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (fromMaybe, isNothing)
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
-import Data.Char (chr, ord, isSpace)
+import Data.Char (chr, ord, isSpace, isLetter)
 import Data.List (groupBy, intersperse, transpose, foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Text.Conversions (FromText(..))
@@ -547,3 +548,45 @@ splitSentences = go . toList
              Just (_,d) -> d == '.' || d == '!' || d == '?'
              _ -> False
       _ -> False
+
+-- | Ensure that all identifiers start with a letter,
+-- and modify internal links accordingly. (Yes, XML allows an
+-- underscore, but HTML 4 doesn't, so we are more conservative.)
+ensureValidXmlIdentifiers :: Pandoc -> Pandoc
+ensureValidXmlIdentifiers = walk fixLinks . walkAttr fixIdentifiers
+ where
+  fixIdentifiers (ident, classes, kvs) =
+    (case T.uncons ident of
+      Nothing -> ident
+      Just (c, _) | isLetter c -> ident
+      _ -> "id_" <> ident,
+     classes, kvs)
+  needsFixing src =
+    case T.uncons src of
+      Just ('#',t) ->
+        case T.uncons t of
+          Just (c,_) | not (isLetter c) -> Just ("#id_" <> t)
+          _ -> Nothing
+      _ -> Nothing
+  fixLinks (Link attr ils (src, tit))
+    | Just src' <- needsFixing src = Link attr ils (src', tit)
+  fixLinks (Image attr ils (src, tit))
+    | Just src' <- needsFixing src = Image attr ils (src', tit)
+  fixLinks x = x
+
+-- | Walk Pandoc document, modifying attributes.
+walkAttr :: (Attr -> Attr) -> Pandoc -> Pandoc
+walkAttr f = walk goInline . walk goBlock
+ where
+  goInline (Span attr ils) = Span (f attr) ils
+  goInline (Link attr ils target) = Link (f attr) ils target
+  goInline (Image attr ils target) = Image (f attr) ils target
+  goInline (Code attr txt) = Code (f attr) txt
+  goInline x = x
+
+  goBlock (Header lev attr ils) = Header lev (f attr) ils
+  goBlock (CodeBlock attr txt) = CodeBlock (f attr) txt
+  goBlock (Table attr cap colspecs thead tbodies tfoot) =
+    Table (f attr) cap colspecs thead tbodies tfoot
+  goBlock (Div attr bs) = Div (f attr) bs
+  goBlock x = x
