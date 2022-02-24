@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 {- |
    Module      : Text.Pandoc.Readers.DocBook
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -12,7 +13,9 @@ Conversion of DocBook XML to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
 import Control.Monad.State.Strict
-import Data.Char (isSpace, isLetter)
+import Data.ByteString (ByteString)
+import Data.FileEmbed
+import Data.Char (isSpace, isLetter, chr)
 import Data.Default
 import Data.Either (rights)
 import Data.Foldable (asum)
@@ -21,6 +24,8 @@ import Data.List (intersperse,elemIndex)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (catMaybes,fromMaybe,mapMaybe,maybeToList)
 import Data.Text (Text)
+import Data.Text.Read as TR
+import Data.Text.Encoding (decodeUtf8)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Except (throwError)
@@ -33,6 +38,7 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Shared (safeRead, extractSpaces)
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.TeXMath (readMathML, writeTeX)
+import qualified Data.Map as M
 import Text.Pandoc.XML.Light
 
 {-
@@ -548,7 +554,8 @@ readDocBook :: (PandocMonad m, ToSources a)
 readDocBook _ inp = do
   let sources = toSources inp
   tree <- either (throwError . PandocXMLError "") return $
-            parseXMLContents
+            parseXMLContentsWithEntities
+            docbookEntityMap
               (TL.fromStrict . handleInstructions . sourcesToText $ sources)
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
   return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
@@ -1335,3 +1342,17 @@ paraToPlain :: Block -> Block
 paraToPlain (Para ils) = Plain ils
 paraToPlain x = x
 
+docbookEntityMap :: M.Map Text Text
+docbookEntityMap = M.fromList
+  (map lineToPair (T.lines (decodeUtf8 docbookEntities)))
+ where
+   lineToPair l =
+     case T.words l of
+       (x:ys) -> (x, T.pack (mapMaybe readHex ys))
+       [] -> ("","")
+   readHex t = case TR.hexadecimal t of
+                 Left _ -> Nothing
+                 Right (n,_) -> Just (chr n)
+
+docbookEntities :: ByteString
+docbookEntities = $(embedFile "data/docbook-entities.txt")

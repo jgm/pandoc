@@ -93,6 +93,8 @@ data-files:
                  data/templates/default.markua
                  -- translations
                  data/translations/*.yaml
+                 -- entities
+                 data/docbook-entities.txt
                  -- source files for reference.docx
                  data/docx/[Content_Types].xml
                  data/docx/_rels/.rels
