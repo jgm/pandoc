@@ -36,6 +36,9 @@ module Text.Pandoc.XML.Light
     -- * Replacement for xml-light's Text.XML.Input
   , parseXMLElement
   , parseXMLContents
+    --  * Versions that allow passing in a custom entity table
+  , parseXMLElementWithEntities
+  , parseXMLContentsWithEntities
   ) where
 
 import qualified Control.Exception as E
@@ -48,23 +51,45 @@ import Data.Maybe (mapMaybe)
 import Text.Pandoc.XML.Light.Types
 import Text.Pandoc.XML.Light.Proc
 import Text.Pandoc.XML.Light.Output
+import qualified Data.XML.Types as XML
 
 -- Drop in replacement for parseXMLDoc in xml-light.
 parseXMLElement :: TL.Text -> Either T.Text Element
-parseXMLElement t =
+parseXMLElement = parseXMLElementWithEntities mempty
+
+-- Drop in replacement for parseXMLDoc in xml-light.
+parseXMLElementWithEntities :: M.Map T.Text T.Text
+                            -> TL.Text -> Either T.Text Element
+parseXMLElementWithEntities entityMap t =
   elementToElement .  Conduit.documentRoot <$>
     either (Left . T.pack . E.displayException) Right
-    (Conduit.parseText Conduit.def{ Conduit.psRetainNamespaces = True } t)
+    (Conduit.parseText Conduit.def{ Conduit.psRetainNamespaces = True
+                                  , Conduit.psDecodeEntities = decodeEnts } t)
+ where
+   decodeEnts ref = case M.lookup ref entityMap of
+                      Nothing -> XML.ContentEntity ref
+                      Just t' -> XML.ContentText t'
 
 parseXMLContents :: TL.Text -> Either T.Text [Content]
-parseXMLContents t =
-  case Conduit.parseText Conduit.def{ Conduit.psRetainNamespaces = True } t of
+parseXMLContents = parseXMLContentsWithEntities mempty
+
+parseXMLContentsWithEntities :: M.Map T.Text T.Text
+                             -> TL.Text -> Either T.Text [Content]
+parseXMLContentsWithEntities entityMap t =
+  case Conduit.parseText Conduit.def{ Conduit.psRetainNamespaces = True
+                                    , Conduit.psDecodeEntities = decodeEnts
+                                    } t of
     Left e ->
       case E.fromException e of
         Just (ContentAfterRoot _) ->
-          elContent <$> parseXMLElement ("<wrapper>" <> t <> "</wrapper>")
+          elContent <$> parseXMLElementWithEntities entityMap
+                          ("<wrapper>" <> t <> "</wrapper>")
         _ -> Left . T.pack . E.displayException $ e
     Right x -> Right [Elem . elementToElement . Conduit.documentRoot $ x]
+ where
+   decodeEnts ref = case M.lookup ref entityMap of
+                      Nothing -> XML.ContentEntity ref
+                      Just t' -> XML.ContentText t'
 
 elementToElement :: Conduit.Element -> Element
 elementToElement (Conduit.Element name attribMap nodes) =
