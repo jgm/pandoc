@@ -28,7 +28,8 @@ import Text.Pandoc.XML
 
 -- | Convert Pandoc document to string in Docbook format.
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeTEI opts (Pandoc meta blocks) = do
+writeTEI opts doc = do
+  let Pandoc meta blocks = ensureValidXmlIdentifiers doc
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing

@@ -131,7 +131,8 @@ citeName          = "Cite"
 
 -- | Convert Pandoc document to string in ICML format.
 writeICML :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeICML opts (Pandoc meta blocks) = do
+writeICML opts doc = do
+  let Pandoc meta blocks = ensureValidXmlIdentifiers doc
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing

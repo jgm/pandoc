@@ -149,12 +149,14 @@ writeHtml5 = writeHtml' defaultWriterState{ stHtml5 = True }
 
 -- | Convert Pandoc document to Html 4 string.
 writeHtml4String :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeHtml4String = writeHtmlString'
-                      defaultWriterState{ stHtml5 = False }
+writeHtml4String opts = writeHtmlString'
+                         defaultWriterState{ stHtml5 = False } opts .
+                        ensureValidXmlIdentifiers
 
 -- | Convert Pandoc document to Html 4 structure.
 writeHtml4 :: PandocMonad m => WriterOptions -> Pandoc -> m Html
-writeHtml4 = writeHtml' defaultWriterState{ stHtml5 = False }
+writeHtml4 opts = writeHtml' defaultWriterState{ stHtml5 = False } opts .
+                    ensureValidXmlIdentifiers
 
 -- | Convert Pandoc document to Html appropriate for an epub version.
 writeHtmlStringForEPUB :: PandocMonad m
@@ -164,6 +166,8 @@ writeHtmlStringForEPUB version o = writeHtmlString'
                       defaultWriterState{ stHtml5 = version == EPUB3,
                                           stEPUBVersion = Just version }
                       o{ writerWrapText = WrapNone }
+   -- we don't use ensureValidXmlIdentifiers here because we
+   -- do that in the EPUB writer
 
 -- | Convert Pandoc document to Reveal JS HTML slide show.
 writeRevealJs :: PandocMonad m
@@ -173,22 +177,25 @@ writeRevealJs = writeHtmlSlideShow' RevealJsSlides
 -- | Convert Pandoc document to S5 HTML slide show.
 writeS5 :: PandocMonad m
         => WriterOptions -> Pandoc -> m Text
-writeS5 = writeHtmlSlideShow' S5Slides
+writeS5 opts = writeHtmlSlideShow' S5Slides opts .
+               ensureValidXmlIdentifiers
 
 -- | Convert Pandoc document to Slidy HTML slide show.
 writeSlidy :: PandocMonad m
            => WriterOptions -> Pandoc -> m Text
-writeSlidy = writeHtmlSlideShow' SlidySlides
+writeSlidy opts = writeHtmlSlideShow' SlidySlides opts .
+                  ensureValidXmlIdentifiers
 
 -- | Convert Pandoc document to Slideous HTML slide show.
 writeSlideous :: PandocMonad m
               => WriterOptions -> Pandoc -> m Text
-writeSlideous = writeHtmlSlideShow' SlideousSlides
+writeSlideous opts = writeHtmlSlideShow' SlideousSlides opts .
+                     ensureValidXmlIdentifiers
 
 -- | Convert Pandoc document to DZSlides HTML slide show.
 writeDZSlides :: PandocMonad m
               => WriterOptions -> Pandoc -> m Text
-writeDZSlides = writeHtmlSlideShow' DZSlides
+writeDZSlides opts = writeHtmlSlideShow' DZSlides opts
 
 writeHtmlSlideShow' :: PandocMonad m
                     => HTMLSlideVariant -> WriterOptions -> Pandoc -> m Text

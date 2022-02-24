@@ -35,7 +35,8 @@ import qualified Data.Text.Lazy as TL
 import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Writers.Shared (ensureValidXmlIdentifiers)
+import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocPure as P
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
@@ -435,8 +436,9 @@ pandocToEPUB :: PandocMonad m
              -> Pandoc
              -> E m B.ByteString
 pandocToEPUB version opts doc = do
+  let doc' = ensureValidXmlIdentifiers doc
   -- handle pictures
-  Pandoc meta blocks <- walkM (transformInline opts) doc >>=
+  Pandoc meta blocks <- walkM (transformInline opts) doc' >>=
                         walkM transformBlock
   picEntries <- mapMaybe (snd . snd) <$> gets stMediaPaths
 

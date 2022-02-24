@@ -36,7 +36,8 @@ import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, pandocVersion, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
-                                   fixDisplayMath, getLang)
+                                   fixDisplayMath, getLang,
+                                   ensureValidXmlIdentifiers)
 import Text.Pandoc.UTF8 (fromStringLazy, fromTextLazy, toTextLazy)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.OpenDocument (writeOpenDocument)
@@ -58,8 +59,9 @@ writeODT :: PandocMonad m
 writeODT  opts doc =
   let initState = ODTState{ stEntries = []
                           }
+      doc' = ensureValidXmlIdentifiers doc
   in
-    evalStateT (pandocToODT opts doc) initState
+    evalStateT (pandocToODT opts doc') initState
 
 -- | Produce an ODT file from a Pandoc document.
 pandocToODT :: PandocMonad m

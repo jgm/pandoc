@@ -94,7 +94,8 @@ writeDocbook5 opts d =
 
 -- | Convert Pandoc document to string in Docbook format.
 writeDocbook :: PandocMonad m => WriterOptions -> Pandoc -> DB m Text
-writeDocbook opts (Pandoc meta blocks) = do
+writeDocbook opts doc = do
+  let Pandoc meta blocks = ensureValidXmlIdentifiers doc
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing

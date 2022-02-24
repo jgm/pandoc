@@ -40,7 +40,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
 import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
                            makeSections, tshow, stringify)
-import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable)
+import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable,
+                                   ensureValidXmlIdentifiers)
 import Data.Generics (everywhere, mkT)
 
 -- | Data to be written at the end of the document:
@@ -76,7 +77,8 @@ pandocToFB2 :: PandocMonad m
             => WriterOptions
             -> Pandoc
             -> FBM m Text
-pandocToFB2 opts (Pandoc meta blocks) = do
+pandocToFB2 opts doc = do
+     let Pandoc meta blocks = ensureValidXmlIdentifiers doc
      modify (\s -> s { writerOptions = opts })
      desc <- description meta
      title <- cMapM toXml . docTitle $ meta
