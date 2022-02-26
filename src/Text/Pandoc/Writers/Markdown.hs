@@ -470,13 +470,15 @@ blockToMarkdown' opts (Header level attr inlines) = do
           else return empty
   variant <- asks envVariant
   -- we calculate the id that would be used by auto_identifiers
+  -- or gfm_auto_identifiers
   -- so we know whether to print an explicit identifier
   ids <- gets stIds
   let autoId = uniqueIdent (writerExtensions opts) inlines ids
   modify $ \st -> st{ stIds = Set.insert autoId ids }
   let attr' = case attr of
                    ("",[],[]) -> empty
-                   (id',[],[]) | isEnabled Ext_auto_identifiers opts
+                   (id',[],[]) | (isEnabled Ext_auto_identifiers opts
+                                  || isEnabled Ext_gfm_auto_identifiers opts)
                                  && id' == autoId -> empty
                    (id',_,_)   | isEnabled Ext_mmd_header_identifiers opts ->
                                     space <> brackets (literal id')
