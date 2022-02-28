@@ -4,8 +4,7 @@ Pandoc
         fromList
           [ ( "author"
             , MetaList
-                [ MetaInlines
-                    [ Str "John" , SoftBreak , Str "MacFarlane" ]
+                [ MetaInlines [ Str "John" , Space , Str "MacFarlane" ]
                 , MetaInlines [ Str "Anonymous" ]
                 ]
             )

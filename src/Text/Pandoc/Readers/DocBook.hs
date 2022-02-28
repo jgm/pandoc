@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {- |
    Module      : Text.Pandoc.Readers.DocBook
@@ -21,6 +22,7 @@ import Data.Either (rights)
 import Data.Foldable (asum)
 import Data.Generics
 import Data.List (intersperse,elemIndex)
+import qualified Data.Set as Set
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (catMaybes,fromMaybe,mapMaybe,maybeToList)
 import Data.Text (Text)
@@ -598,35 +600,81 @@ named s e = qName (elName e) == s
 --
 
 addMetadataFromElement :: PandocMonad m => Element -> DB m Blocks
-addMetadataFromElement e = do
-    case filterChild (named "title") e of
-         Nothing -> return ()
-         Just z  -> do
-           getInlines z >>= addMeta "title"
-           addMetaField "subtitle" z
-    case filterChild (named "authorgroup") e of
-         Nothing -> return ()
-         Just z  -> addMetaField "author" z
-    addMetaField "subtitle" e
-    addAuthor e
-    addMetaField "date" e
-    addMetaField "release" e
-    addMetaField "releaseinfo" e
-    addMetaField "abstract" e
-    return mempty
-  where
-   addAuthor elt =
-     case filterChildren (named "author") elt of
-       [] -> return ()
-       [z] -> fromAuthor z >>= addMeta "author"
-       zs  -> mapM fromAuthor zs >>= addMeta "author"
-   fromAuthor elt =
-     mconcat . intersperse space <$> mapM getInlines (elChildren elt)
-   addMetaField fieldname elt =
-     case filterChildren (named fieldname) elt of
-       []  -> return ()
-       [z] -> getInlines z >>= addMeta fieldname
-       zs  -> mapM getInlines zs >>= addMeta fieldname
+addMetadataFromElement e =
+  mempty <$ mapM_ handleMetadataElement
+                  (filterChildren ((isMetadataField . qName . elName)) e)
+ where
+  handleMetadataElement elt =
+    case qName (elName elt) of
+      "title" -> addContentsToMetadata "title" elt
+      "subtitle" -> addContentsToMetadata "subtitle" elt
+      "abstract" -> addContentsToMetadata "abstract" elt
+      "date" -> addContentsToMetadata "date" elt
+      "release" -> addContentsToMetadata "release" elt
+      "releaseinfo" -> addContentsToMetadata "releaseinfo" elt
+      "author" -> fromAuthor elt >>= addMeta "author"
+      "authorgroup" ->
+        mapM fromAuthor (filterChildren (named "author") elt) >>= addMeta "author"
+      _ -> report . IgnoredElement . qName . elName $ elt
+
+  fromAuthor elt =
+    mconcat . intersperse space . filter (not . null)
+      <$> mapM getInlines (elChildren elt)
+
+  addContentsToMetadata fieldname elt =
+    if any ((`Set.member` blockTags) . qName . elName) (elChildren elt)
+       then getBlocks elt >>= addMeta fieldname
+       else getInlines elt >>= addMeta fieldname
+
+  isMetadataField "abstract" = True
+  isMetadataField "address" = True
+  isMetadataField "annotation" = True
+  isMetadataField "artpagenums" = True
+  isMetadataField "author" = True
+  isMetadataField "authorgroup" = True
+  isMetadataField "authorinitials" = True
+  isMetadataField "bibliocoverage" = True
+  isMetadataField "biblioid" = True
+  isMetadataField "bibliomisc" = True
+  isMetadataField "bibliomset" = True
+  isMetadataField "bibliorelation" = True
+  isMetadataField "biblioset" = True
+  isMetadataField "bibliosource" = True
+  isMetadataField "collab" = True
+  isMetadataField "confgroup" = True
+  isMetadataField "contractnum" = True
+  isMetadataField "contractsponsor" = True
+  isMetadataField "copyright" = True
+  isMetadataField "cover" = True
+  isMetadataField "date" = True
+  isMetadataField "edition" = True
+  isMetadataField "editor" = True
+  isMetadataField "extendedlink" = True
+  isMetadataField "issuenum" = True
+  isMetadataField "itermset" = True
+  isMetadataField "keywordset" = True
+  isMetadataField "legalnotice" = True
+  isMetadataField "mediaobject" = True
+  isMetadataField "org" = True
+  isMetadataField "orgname" = True
+  isMetadataField "othercredit" = True
+  isMetadataField "pagenums" = True
+  isMetadataField "printhistory" = True
+  isMetadataField "productname" = True
+  isMetadataField "productnumber" = True
+  isMetadataField "pubdate" = True
+  isMetadataField "publisher" = True
+  isMetadataField "publishername" = True
+  isMetadataField "releaseinfo" = True
+  isMetadataField "revhistory" = True
+  isMetadataField "seriesvolnums" = True
+  isMetadataField "subjectset" = True
+  isMetadataField "subtitle" = True
+  isMetadataField "title" = True
+  isMetadataField "titleabbrev" = True
+  isMetadataField "volumenum" = True
+  isMetadataField _ = False
+
 
 addMeta :: PandocMonad m => ToMetaValue a => Text -> a -> DB m ()
 addMeta field val = modify (setMeta field val)
@@ -636,11 +684,11 @@ instance HasMeta DBState where
   deleteMeta field s = s {dbMeta = deleteMeta field (dbMeta s)}
 
 isBlockElement :: Content -> Bool
-isBlockElement (Elem e) = qName (elName e) `elem` blockTags
+isBlockElement (Elem e) = qName (elName e) `Set.member` blockTags
 isBlockElement _ = False
 
-blockTags :: [Text]
-blockTags =
+blockTags :: Set.Set Text
+blockTags = Set.fromList $
   [ "abstract"
   , "ackno"
   , "answer"
@@ -902,7 +950,7 @@ parseBlock (Elem e) =
         "?xml"  -> return mempty
         "title" -> return mempty     -- handled in parent element
         "subtitle" -> return mempty  -- handled in parent element
-        _       -> skip >> getBlocks e
+        _ -> skip >> getBlocks e
    where skip = do
            let qn = qName $ elName e
            let name = if "pi-" `T.isPrefixOf` qn
