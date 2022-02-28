@@ -612,6 +612,7 @@ addMetadataFromElement e = do
     addMetaField "date" e
     addMetaField "release" e
     addMetaField "releaseinfo" e
+    addMetaField "abstract" e
     return mempty
   where
    addAuthor elt =
