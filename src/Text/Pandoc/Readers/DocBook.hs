@@ -612,6 +612,8 @@ addMetadataFromElement e =
       "date" -> addContentsToMetadata "date" elt
       "release" -> addContentsToMetadata "release" elt
       "releaseinfo" -> addContentsToMetadata "releaseinfo" elt
+      "address" -> addContentsToMetadata "address" elt
+      "copyright" -> addContentsToMetadata "copyright" elt
       "author" -> fromAuthor elt >>= addMeta "author"
       "authorgroup" ->
         mapM fromAuthor (filterChildren (named "author") elt) >>= addMeta "author"
