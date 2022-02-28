@@ -360,6 +360,7 @@ inlineCommands = M.unions
     , ("underline", underline <$> tok)
     , ("mbox", rawInlineOr "mbox" $ processHBox <$> tok)
     , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
+    , ("vbox", rawInlineOr "vbox" tok)
     , ("lettrine", rawInlineOr "lettrine" lettrine)
     , ("(", mathInline . untokenize <$> manyTill anyTok (controlSeq ")"))
     , ("[", mathDisplay . untokenize <$> manyTill anyTok (controlSeq "]"))
