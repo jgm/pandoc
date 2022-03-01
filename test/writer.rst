@@ -4,7 +4,7 @@ Pandoc Test Suite
 
 :Author: John MacFarlane
 :Author: Anonymous
-:Date:   July 17, 2006
+:Date: July 17, 2006
 
 .. role:: raw-latex(raw)
    :format: latex

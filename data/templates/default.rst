@@ -1,19 +1,45 @@
 $if(titleblock)$
 $titleblock$
 
-$endif$
 $for(author)$
-:Author: $author$
+:Author: $^$$author$
 $endfor$
-$if(date)$
-:Date:   $date$
+$if(authors)$
+:Authors:
+   $author$
 $endif$
-$if(author)$
-
-$else$
 $if(date)$
-
+:Date: $^$$date$
 $endif$
+$if(address)$
+:Addresss: $^$$address$
+$endif$
+$if(contact)$
+:Contact: $^$$contact$
+$endif$
+$if(copyright)$
+:Copyright: $^$$copyright$
+$endif$
+$if(dedication)$
+:Dedication: $^$$dedication$
+$endif$
+$if(organization)$
+:Organization: $^$$organization$
+$endif$
+$if(revision)$
+:Revision: $^$$revision$
+$endif$
+$if(status)$
+:Status: $^$$status$
+$endif$
+$if(version)$
+:Version: $^$$version$
+$endif$
+$if(abstract)$
+:Abstract:
+   $abstract$
+$endif$
+
 $endif$
 $if(rawtex)$
 .. role:: raw-latex(raw)
