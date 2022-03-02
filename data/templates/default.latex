@@ -368,7 +368,9 @@ $if(lang)$
 \else
 \usepackage[bidi=default]{babel}
 \fi
+$if(babel-lang)$
 \babelprovide[main,import]{$babel-lang$}
+$endif$
 $for(babel-otherlangs)$
 \babelprovide[import]{$babel-otherlangs$}
 $endfor$
