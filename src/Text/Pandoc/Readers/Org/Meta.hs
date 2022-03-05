@@ -78,6 +78,7 @@ a ~~> b = (a, b)
 keywordHandlers :: PandocMonad m => Map Text (OrgParser m ())
 keywordHandlers = Map.fromList
   [ "author" ~~> lineOfInlines `parseThen` collectLines "author"
+  , "bibliography" ~~> fmap pure anyLine `parseThen` B.setMeta "bibliography"
   , "creator" ~~> fmap pure anyLine `parseThen` B.setMeta "creator"
   , "date" ~~> lineOfInlines `parseThen` B.setMeta "date"
   , "description" ~~> lineOfInlines `parseThen` collectLines "description"
