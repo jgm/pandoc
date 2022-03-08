@@ -33,6 +33,11 @@ without SVG support), [Python] (to use Pandoc filters), and
 [MiKTeX] (to typeset PDFs with [LaTeX]):
 
     choco install rsvg-convert python miktex
+    
+Or, you can install pandoc using
+[winget](https://github.com/microsoft/winget-pkgs):
+
+    winget install pandoc
 
 Using multiple installation methods can result in two separate
 installations of pandoc; it is recommended to properly uninstall
