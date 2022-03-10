@@ -509,7 +509,13 @@ exampleCode = B.codeBlockWith ("", ["example"], [])
 --
 
 specialLine :: PandocMonad m => OrgParser m (F Blocks)
-specialLine = fmap return . try $ rawExportLine <|> metaLine <|> commentLine
+specialLine = fmap return . try $
+  rawExportLine <|> printbibliographyLine <|> metaLine <|> commentLine
+
+printbibliographyLine :: PandocMonad m => OrgParser m Blocks
+printbibliographyLine = do
+  try $ skipSpaces <* string "#+print_bibliography:" <* anyLine
+  return $ B.divWith ("refs",[],[]) mempty
 
 -- | Include the content of a file.
 include :: PandocMonad m => OrgParser m (F Blocks)
