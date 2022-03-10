@@ -639,9 +639,9 @@ inline = do
         "}"     -> mzero
         _       -> symbolAsString
     CtrlSeq _   -> macroDef (rawInline "latex")
+                  <|> inlineGroup
                   <|> inlineCommand'
                   <|> inlineEnvironment
-                  <|> inlineGroup
     _           -> mzero
 
 inlines :: PandocMonad m => LP m Inlines
