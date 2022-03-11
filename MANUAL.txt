@@ -3167,7 +3167,8 @@ inserted after certain abbreviations, such as "Mr."
 This extension can be enabled/disabled for the following formats:
 
 input formats
-:  `markdown`, `commonmark`, `latex`, `mediawiki`, `org`, `rst`, `twiki`
+:  `markdown`, `commonmark`, `latex`, `mediawiki`, `org`, `rst`, `twiki`,
+   `html`
 
 output formats
 :  `markdown`, `latex`, `context`, `rst`

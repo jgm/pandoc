@@ -78,6 +78,7 @@ a ~~> b = (a, b)
 keywordHandlers :: PandocMonad m => Map Text (OrgParser m ())
 keywordHandlers = Map.fromList
   [ "author" ~~> lineOfInlines `parseThen` collectLines "author"
+  , "bibliography" ~~> fmap pure anyLine `parseThen` collectAsList "bibliography"
   , "creator" ~~> fmap pure anyLine `parseThen` B.setMeta "creator"
   , "date" ~~> lineOfInlines `parseThen` B.setMeta "date"
   , "description" ~~> lineOfInlines `parseThen` collectLines "description"
@@ -156,7 +157,7 @@ collectLines key value meta =
     MetaBool _bool    -> []
 
 -- | Accumulate the result as a MetaList under the given key.
-collectAsList :: Text -> Inlines -> Meta -> Meta
+collectAsList :: B.ToMetaValue a => Text -> a -> Meta -> Meta
 collectAsList key value meta =
   let value' = metaListAppend meta (B.toMetaValue value)
   in B.setMeta key value' meta

@@ -8,5 +8,5 @@
 hi
 \end{foo}
 ^D
-<p><em>hi</em></p>
+<p><span> <em>hi</em> </span></p>
 ```
