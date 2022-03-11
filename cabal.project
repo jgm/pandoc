@@ -15,6 +15,11 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/pandoc-types.git
+  tag: feb3a90a17334ab314f63b2de3ec0c7dd59b4be0
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/commonmark-hs.git
   tag: cc815e013f0d87eef3daef8ad9e376ad807b012b
   subdir: commonmark

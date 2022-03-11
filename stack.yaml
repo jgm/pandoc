@@ -30,7 +30,6 @@ extra-deps:
 - tasty-hslua-1.0.2
 - tasty-lua-1.0.2
 - pandoc-lua-marshal-0.1.5.1
-- pandoc-types-1.22.1
 - aeson-pretty-0.8.9
 - unicode-transforms-0.4.0@rev:1
 - unicode-data-0.3.0
@@ -43,6 +42,8 @@ extra-deps:
   subdirs: [commonmark, commonmark-extensions]
 - git: https://github.com/jgm/texmath.git
   commit: 31438be6166497425039d7f2ac29b13ad6792387
+- git: https://github.com/jgm/pandoc-types.git
+  commit: feb3a90a17334ab314f63b2de3ec0c7dd59b4be0
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
