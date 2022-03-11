@@ -9,51 +9,51 @@ markdown test suite.
 --------------
 
 * Headers
-  :PROPERTIES:
-  :CUSTOM_ID: headers
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: headers
+:END:
 ** Level 2 with an [[/url][embedded link]]
-   :PROPERTIES:
-   :CUSTOM_ID: level-2-with-an-embedded-link
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: level-2-with-an-embedded-link
+:END:
 *** Level 3 with /emphasis/
-    :PROPERTIES:
-    :CUSTOM_ID: level-3-with-emphasis
-    :END:
+:PROPERTIES:
+:CUSTOM_ID: level-3-with-emphasis
+:END:
 **** Level 4
-     :PROPERTIES:
-     :CUSTOM_ID: level-4
-     :END:
+:PROPERTIES:
+:CUSTOM_ID: level-4
+:END:
 ***** Level 5
-      :PROPERTIES:
-      :CUSTOM_ID: level-5
-      :END:
+:PROPERTIES:
+:CUSTOM_ID: level-5
+:END:
 * Level 1
-  :PROPERTIES:
-  :CUSTOM_ID: level-1
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: level-1
+:END:
 ** Level 2 with /emphasis/
-   :PROPERTIES:
-   :CUSTOM_ID: level-2-with-emphasis
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: level-2-with-emphasis
+:END:
 *** Level 3
-    :PROPERTIES:
-    :CUSTOM_ID: level-3
-    :END:
+:PROPERTIES:
+:CUSTOM_ID: level-3
+:END:
 with no blank line
 
 ** Level 2
-   :PROPERTIES:
-   :CUSTOM_ID: level-2
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: level-2
+:END:
 with no blank line
 
 --------------
 
 * Paragraphs
-  :PROPERTIES:
-  :CUSTOM_ID: paragraphs
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: paragraphs
+:END:
 Here's a regular paragraph.
 
 In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
@@ -68,38 +68,42 @@ here.
 --------------
 
 * Block Quotes
-  :PROPERTIES:
-  :CUSTOM_ID: block-quotes
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: block-quotes
+:END:
 E-mail style:
 
 #+begin_quote
-  This is a block quote. It is pretty short.
+This is a block quote. It is pretty short.
+
 #+end_quote
 
 #+begin_quote
-  Code in a block quote:
+Code in a block quote:
 
-  #+begin_example
-  sub status {
-      print "working";
-  }
-  #+end_example
+#+begin_example
+sub status {
+    print "working";
+}
+#+end_example
 
-  A list:
+A list:
 
-  1. item one
-  2. item two
+1. item one
+2. item two
 
-  Nested block quotes:
+Nested block quotes:
 
-  #+begin_quote
-    nested
-  #+end_quote
+#+begin_quote
+nested
 
-  #+begin_quote
-    nested
-  #+end_quote
+#+end_quote
+
+#+begin_quote
+nested
+
+#+end_quote
+
 #+end_quote
 
 This should not be a block quote: 2 > 1.
@@ -109,9 +113,9 @@ And a following paragraph.
 --------------
 
 * Code Blocks
-  :PROPERTIES:
-  :CUSTOM_ID: code-blocks
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: code-blocks
+:END:
 Code:
 
 #+begin_example
@@ -135,13 +139,13 @@ These should not be escaped:  \$ \\ \> \[ \{
 --------------
 
 * Lists
-  :PROPERTIES:
-  :CUSTOM_ID: lists
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: lists
+:END:
 ** Unordered
-   :PROPERTIES:
-   :CUSTOM_ID: unordered
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: unordered
+:END:
 Asterisks tight:
 
 - asterisk 1
@@ -185,9 +189,9 @@ Minuses loose:
 - Minus 3
 
 ** Ordered
-   :PROPERTIES:
-   :CUSTOM_ID: ordered
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: ordered
+:END:
 Tight:
 
 1. First
@@ -227,9 +231,9 @@ Multiple paragraphs:
 3. Item 3.
 
 ** Nested
-   :PROPERTIES:
-   :CUSTOM_ID: nested
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: nested
+:END:
 - Tab
   - Tab
     - Tab
@@ -256,9 +260,9 @@ Same thing but with paragraphs:
 3. Third
 
 ** Tabs and spaces
-   :PROPERTIES:
-   :CUSTOM_ID: tabs-and-spaces
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: tabs-and-spaces
+:END:
 - this is a list item indented with tabs
 
 - this is a list item indented with spaces
@@ -268,9 +272,9 @@ Same thing but with paragraphs:
   - this is an example list item indented with spaces
 
 ** Fancy list markers
-   :PROPERTIES:
-   :CUSTOM_ID: fancy-list-markers
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: fancy-list-markers
+:END:
 2) [@2] begins with 2
 
 3) and now 3
@@ -304,9 +308,9 @@ B. Williams
 --------------
 
 * Definition Lists
-  :PROPERTIES:
-  :CUSTOM_ID: definition-lists
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: definition-lists
+:END:
 Tight using spaces:
 
 - apple :: red fruit
@@ -340,7 +344,8 @@ Multiple blocks with italics:
   #+end_example
 
   #+begin_quote
-    orange block quote
+  orange block quote
+
   #+end_quote
 
 Multiple definitions, tight:
@@ -372,9 +377,9 @@ Blank line after term, indented marker, alternate markers:
   2. sublist
 
 * HTML Blocks
-  :PROPERTIES:
-  :CUSTOM_ID: html-blocks
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: html-blocks
+:END:
 Simple block on one line:
 
 foo
@@ -529,9 +534,9 @@ Hr's:
 --------------
 
 * Inline Markup
-  :PROPERTIES:
-  :CUSTOM_ID: inline-markup
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: inline-markup
+:END:
 This is /emphasized/, and so /is this/.
 
 This is *strong*, and so *is this*.
@@ -560,9 +565,9 @@ a^b c^d, a~b c~d.
 --------------
 
 * Smart quotes, ellipses, dashes
-  :PROPERTIES:
-  :CUSTOM_ID: smart-quotes-ellipses-dashes
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: smart-quotes-ellipses-dashes
+:END:
 "Hello," said the spider. "'Shelob' is my name."
 
 'A', 'B', and 'C' are letters.
@@ -583,9 +588,9 @@ Ellipses...and...and....
 --------------
 
 * LaTeX
-  :PROPERTIES:
-  :CUSTOM_ID: latex
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: latex
+:END:
 - \cite[22-23]{smith.1899}
 - \(2+2=4\)
 - \(x \in y\)
@@ -615,9 +620,9 @@ Cat    & 1      \\ \hline
 --------------
 
 * Special Characters
-  :PROPERTIES:
-  :CUSTOM_ID: special-characters
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: special-characters
+:END:
 Here is some unicode:
 
 - I hat: Î
@@ -671,13 +676,13 @@ Minus: -
 --------------
 
 * Links
-  :PROPERTIES:
-  :CUSTOM_ID: links
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: links
+:END:
 ** Explicit
-   :PROPERTIES:
-   :CUSTOM_ID: explicit
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: explicit
+:END:
 Just a [[/url/][URL]].
 
 [[/url/][URL and title]].
@@ -697,9 +702,9 @@ Just a [[/url/][URL]].
 [[][Empty]].
 
 ** Reference
-   :PROPERTIES:
-   :CUSTOM_ID: reference
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: reference
+:END:
 Foo [[/url/][bar]].
 
 With [[/url/][embedded [brackets]]].
@@ -723,9 +728,9 @@ Foo [[/url/][bar]].
 Foo [[/url/][biz]].
 
 ** With ampersands
-   :PROPERTIES:
-   :CUSTOM_ID: with-ampersands
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: with-ampersands
+:END:
 Here's a [[http://example.com/?foo=1&bar=2][link with an ampersand in the URL]].
 
 Here's a link with an amersand in the link text: [[http://att.com/][AT&T]].
@@ -735,9 +740,9 @@ Here's an [[/script?foo=1&bar=2][inline link]].
 Here's an [[/script?foo=1&bar=2][inline link in pointy braces]].
 
 ** Autolinks
-   :PROPERTIES:
-   :CUSTOM_ID: autolinks
-   :END:
+:PROPERTIES:
+:CUSTOM_ID: autolinks
+:END:
 With an ampersand: [[http://example.com/?foo=1&bar=2]]
 
 - In a list?
@@ -747,7 +752,8 @@ With an ampersand: [[http://example.com/?foo=1&bar=2]]
 An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 
 #+begin_quote
-  Blockquoted: [[http://example.com/]]
+Blockquoted: [[http://example.com/]]
+
 #+end_quote
 
 Auto-links should not occur here: =<http://example.com/>=
@@ -759,9 +765,9 @@ or here: <http://example.com/>
 --------------
 
 * Images
-  :PROPERTIES:
-  :CUSTOM_ID: images
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: images
+:END:
 From "Voyage dans la Lune" by Georges Melies (1902):
 
 #+caption: lalune
@@ -772,15 +778,16 @@ Here is a movie [[file:movie.jpg]] icon.
 --------------
 
 * Footnotes
-  :PROPERTIES:
-  :CUSTOM_ID: footnotes
-  :END:
+:PROPERTIES:
+:CUSTOM_ID: footnotes
+:END:
 Here is a footnote reference,[fn:1] and another.[fn:2] This should /not/ be a
 footnote reference, because it contains a space.[^my note] Here is an inline
 note.[fn:3]
 
 #+begin_quote
-  Notes can go in quotes.[fn:4]
+Notes can go in quotes.[fn:4]
+
 #+end_quote
 
 1. And in list items.[fn:5]
