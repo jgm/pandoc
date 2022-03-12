@@ -41,7 +41,7 @@ extra-deps:
   commit: cc815e013f0d87eef3daef8ad9e376ad807b012b
   subdirs: [commonmark, commonmark-extensions]
 - git: https://github.com/jgm/texmath.git
-  commit: 31438be6166497425039d7f2ac29b13ad6792387
+  commit: df209eb0e390518dae407d9b2a4984782be2fb1f
 - git: https://github.com/jgm/pandoc-types.git
   commit: feb3a90a17334ab314f63b2de3ec0c7dd59b4be0
 ghc-options:
