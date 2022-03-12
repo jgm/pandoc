@@ -63,6 +63,7 @@ data LogMessage =
   | UndefinedToggle Text SourcePos
   | ParsingUnescaped Text SourcePos
   | CouldNotLoadIncludeFile Text SourcePos
+  | CouldNotParseIncludeFile Text SourcePos
   | MacroAlreadyDefined Text SourcePos
   | InlineNotRendered Inline
   | BlockNotRendered Block
@@ -152,6 +153,11 @@ instance ToJSON LogMessage where
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       CouldNotLoadIncludeFile fp pos ->
+           ["path" .= fp,
+            "source" .= sourceName pos,
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      CouldNotParseIncludeFile fp pos ->
            ["path" .= fp,
             "source" .= sourceName pos,
             "line" .= toJSON (sourceLine pos),
@@ -280,6 +286,8 @@ showLogMessage msg =
          "Parsing unescaped '" <> s <> "' at " <> showPos pos
        CouldNotLoadIncludeFile fp pos ->
          "Could not load include file " <> fp <> " at " <> showPos pos
+       CouldNotParseIncludeFile fp pos ->
+         "Parsing include file " <> fp <> " failed at " <> showPos pos
        MacroAlreadyDefined name pos ->
          "Macro '" <> name <> "' already defined, ignoring at " <> showPos pos
        InlineNotRendered il ->
@@ -383,6 +391,7 @@ messageVerbosity msg =
        CouldNotLoadIncludeFile f _
         | ".sty" `Text.isSuffixOf` f -> INFO
         | otherwise                  -> WARNING
+       CouldNotParseIncludeFile{}    -> WARNING
        MacroAlreadyDefined{}         -> WARNING
        ParsingUnescaped{}            -> INFO
        InlineNotRendered{}           -> INFO

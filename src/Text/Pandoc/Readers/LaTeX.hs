@@ -708,13 +708,27 @@ doSubfile = do
   return bs
 
 include :: (PandocMonad m, Monoid a) => Text -> LP m a
-include name = do
+include _name = do
   skipMany opt
   fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize <$> braced
-  let defaultExt | name == "usepackage" = ".sty"
-                 | otherwise            = ".tex"
+  let defaultExt = ".tex"
   mapM_ (insertIncluded defaultExt) fs
+  return mempty
+
+usepackage :: (PandocMonad m, Monoid a) => LP m a
+usepackage = do
+  skipMany opt
+  fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
+         untokenize <$> braced
+  let parsePackage f = do
+        TokStream _ ts <- getIncludedToks ".sty" f
+        parseFromToks (do _ <- blocks
+                          eof <|>
+                            do pos <- getPosition
+                               report $ CouldNotParseIncludeFile (T.pack f) pos)
+                      ts
+  mapM_ parsePackage fs
   return mempty
 
 readFileFromTexinputs :: PandocMonad m => FilePath -> LP m (Maybe Text)
@@ -727,11 +741,11 @@ readFileFromTexinputs fp = do
                <$> lookupEnv "TEXINPUTS"
       readFileFromDirs dirs fp
 
-insertIncluded :: PandocMonad m
-               => FilePath
-               -> FilePath
-               -> LP m ()
-insertIncluded defaultExtension f' = do
+getIncludedToks :: PandocMonad m
+                => FilePath
+                -> FilePath
+                -> LP m TokStream
+getIncludedToks defaultExtension f' = do
   let f = case takeExtension f' of
                 ".tex" -> f'
                 ".sty" -> f'
@@ -747,9 +761,17 @@ insertIncluded defaultExtension f' = do
                    Nothing -> do
                      report $ CouldNotLoadIncludeFile (T.pack f) pos
                      return ""
-  TokStream _ ts <- getInput
-  setInput $ TokStream False (tokenize (initialPos f) contents ++ ts)
   updateState dropLatestIncludeFile
+  return $ TokStream False $ tokenize (initialPos f) contents
+
+insertIncluded :: PandocMonad m
+               => FilePath
+               -> FilePath
+               -> LP m ()
+insertIncluded defaultExtension f' = do
+  contents <- getIncludedToks defaultExtension f'
+  ts <- getInput
+  setInput $ contents <> ts
 
 authors :: PandocMonad m => LP m ()
 authors = try $ do
@@ -941,7 +963,7 @@ blockCommands = M.fromList
    , ("include", rawBlockOr "include" $ include "include")
    , ("input", rawBlockOr "input" $ include "input")
    , ("subfile", rawBlockOr "subfile" doSubfile)
-   , ("usepackage", rawBlockOr "usepackage" $ include "usepackage")
+   , ("usepackage", rawBlockOr "usepackage" usepackage)
    -- preamble
    , ("PackageError", mempty <$ (braced >> braced >> braced))
    -- epigraph package
