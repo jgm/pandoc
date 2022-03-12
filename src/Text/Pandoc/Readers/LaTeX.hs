@@ -188,9 +188,6 @@ inlineCommand = do
 
 -- inline elements:
 
-word :: PandocMonad m => LP m Inlines
-word = str . untoken <$> satisfyTok isWordTok
-
 inlineGroup :: PandocMonad m => LP m Inlines
 inlineGroup = do
   ils <- grouped inline
@@ -604,33 +601,32 @@ lookupListDefault d = (fromMaybe d .) . lookupList
 inline :: PandocMonad m => LP m Inlines
 inline = do
   Tok pos toktype t <- peekTok
-  let symbolAsString = str . untoken <$> anySymbol
+  let eatOneToken = satisfyTok (const True)
+  let symbolAsString = str t <$ eatOneToken
   let unescapedSymbolAsString =
-        do s <- untoken <$> anySymbol
-           report $ ParsingUnescaped s pos
-           return $ str s
+        do eatOneToken
+           report $ ParsingUnescaped t pos
+           return $ str t
   case toktype of
-    Comment     -> mempty <$ comment
-    Spaces      -> space <$ whitespace
+    Comment     -> mempty <$ eatOneToken
+    Spaces      -> space <$ eatOneToken
     Newline     -> softbreak <$ endline
-    Word        -> word
-    Esc1        -> str . T.singleton <$> primEscape
-    Esc2        -> str . T.singleton <$> primEscape
+    Word        -> str t <$ eatOneToken
     Symbol      ->
       case t of
-        "-"     -> symbol '-' *>
+        "-"     -> eatOneToken *>
                     option (str "-") (symbol '-' *>
                       option (str "–") (str "—" <$ symbol '-'))
-        "'"     -> symbol '\'' *>
-                  option (str "’") (str  "”" <$ symbol '\'')
-        "~"     -> str "\160" <$ symbol '~'
+        "'"     -> eatOneToken *>
+                    option (str "’") (str  "”" <$ symbol '\'')
+        "~"     -> str "\160" <$ eatOneToken
         "`"     -> doubleQuote <|> singleQuote <|> symbolAsString
         "\""    -> doubleQuote <|> singleQuote <|> symbolAsString
         "“"     -> doubleQuote <|> symbolAsString
         "‘"     -> singleQuote <|> symbolAsString
         "$"     -> dollarsMath <|> unescapedSymbolAsString
         "|"     -> (guardEnabled Ext_literate_haskell *>
-                    symbol '|' *> doLHSverb) <|> symbolAsString
+                    eatOneToken *> doLHSverb) <|> symbolAsString
         "{"     -> inlineGroup
         "#"     -> unescapedSymbolAsString
         "&"     -> unescapedSymbolAsString
@@ -643,6 +639,8 @@ inline = do
                   <|> inlineGroup
                   <|> inlineCommand'
                   <|> inlineEnvironment
+    Esc1        -> str . T.singleton <$> primEscape
+    Esc2        -> str . T.singleton <$> primEscape
     _           -> mzero
 
 inlines :: PandocMonad m => LP m Inlines
