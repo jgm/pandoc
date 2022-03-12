@@ -251,6 +251,14 @@ instance Default LaTeXState where
 data TokStream = TokStream !Bool [Tok]
   deriving (Show)
 
+instance Semigroup TokStream where
+  (TokStream exp1 ts1) <> (TokStream exp2 ts2) =
+    TokStream (if null ts1 then exp2 else exp1) (ts1 <> ts2)
+
+instance Monoid TokStream where
+  mempty = TokStream False mempty
+  mappend = (<>)
+
 instance Monad m => Stream TokStream m Tok where
   uncons (TokStream _ []) = return Nothing
   uncons (TokStream _ (t:ts)) = return $ Just (t, TokStream False ts)
