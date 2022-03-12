@@ -62,10 +62,11 @@ amp = symbol '&'
 -- Split a Word into individual Symbols (for parseAligns)
 splitWordTok :: PandocMonad m => LP m ()
 splitWordTok = do
-  inp <- getInput
+  TokStream macrosExpanded inp <- getInput
   case inp of
        (Tok spos Word t : rest) ->
-         setInput $ map (Tok spos Symbol . T.singleton) (T.unpack t) <> rest
+         setInput $ TokStream macrosExpanded
+                  $ map (Tok spos Symbol . T.singleton) (T.unpack t) <> rest
        _ -> return ()
 
 parseAligns :: PandocMonad m => LP m [(Alignment, ColWidth, ([Tok], [Tok]))]
@@ -108,8 +109,9 @@ parseAligns = try $ do
         spaces
         spec <- braced
         case safeRead ds of
-             Just n  ->
-               getInput >>= setInput . (mconcat (replicate n spec) ++)
+             Just n  -> do
+               TokStream _ ts <- getInput
+               setInput $ TokStream False (mconcat (replicate n spec) ++ ts)
              Nothing -> Prelude.fail $ "Could not parse " <> T.unpack ds <> " as number"
   bgroup
   spaces

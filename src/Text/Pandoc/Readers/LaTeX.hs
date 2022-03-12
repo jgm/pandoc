@@ -84,7 +84,7 @@ readLaTeX :: (PandocMonad m, ToSources a)
 readLaTeX opts ltx = do
   let sources = toSources ltx
   parsed <- runParserT parseLaTeX def{ sOptions = opts } "source"
-               (tokenizeSources sources)
+               (TokStream False (tokenizeSources sources))
   case parsed of
     Right result -> return result
     Left e       -> throwError $ PandocParsecError sources e
@@ -516,11 +516,11 @@ ifToggle = do
   spaces
   no <- braced
   toggles <- sToggles <$> getState
-  inp <- getInput
+  TokStream _ inp <- getInput
   let name' = untokenize name
   case M.lookup name' toggles of
-                Just True  -> setInput (yes ++ inp)
-                Just False -> setInput (no  ++ inp)
+                Just True  -> setInput $ TokStream False (yes ++ inp)
+                Just False -> setInput $ TokStream False (no  ++ inp)
                 Nothing    -> do
                   pos <- getPosition
                   report $ UndefinedToggle name' pos
@@ -532,9 +532,10 @@ ifstrequal = do
   str2 <- tok
   ifequal <- braced
   ifnotequal <- braced
+  TokStream _ ts <- getInput
   if str1 == str2
-     then getInput >>= setInput . (ifequal ++)
-     else getInput >>= setInput . (ifnotequal ++)
+     then setInput $ TokStream False (ifequal ++ ts)
+     else setInput $ TokStream False (ifnotequal ++ ts)
   return mempty
 
 coloredInline :: PandocMonad m => Text -> LP m Inlines
@@ -602,7 +603,7 @@ lookupListDefault d = (fromMaybe d .) . lookupList
 
 inline :: PandocMonad m => LP m Inlines
 inline = do
-  Tok pos toktype t <- lookAhead anyTok
+  Tok pos toktype t <- peekTok
   let symbolAsString = str . untoken <$> anySymbol
   let unescapedSymbolAsString =
         do s <- untoken <$> anySymbol
@@ -652,7 +653,8 @@ opt = do
   toks <- try (sp *> bracketedToks <* sp)
   -- now parse the toks as inlines
   st <- getState
-  parsed <- runParserT (mconcat <$> many inline) st "bracketed option" toks
+  parsed <- runParserT (mconcat <$> many inline) st "bracketed option"
+              (TokStream False toks)
   case parsed of
     Right result -> return result
     Left e       -> throwError $ PandocParsecError (toSources toks) e
@@ -700,7 +702,7 @@ doSubfile = do
   skipMany opt
   f <- T.unpack . removeDoubleQuotes . T.strip . untokenize <$> braced
   oldToks <- getInput
-  setInput []
+  setInput $ TokStream False []
   insertIncluded ".tex" f
   bs <- blocks
   eof
@@ -747,7 +749,8 @@ insertIncluded defaultExtension f' = do
                    Nothing -> do
                      report $ CouldNotLoadIncludeFile (T.pack f) pos
                      return ""
-  getInput >>= setInput . (tokenize (initialPos f) contents ++)
+  TokStream _ ts <- getInput
+  setInput $ TokStream False (tokenize (initialPos f) contents ++ ts)
   updateState dropLatestIncludeFile
 
 authors :: PandocMonad m => LP m ()
@@ -1265,7 +1268,7 @@ orderedList' = try $ do
 
 block :: PandocMonad m => LP m Blocks
 block = do
-  Tok _ toktype _ <- lookAhead anyTok
+  Tok _ toktype _ <- peekTok
   res <- (case toktype of
             Newline           -> mempty <$ spaces1
             Spaces            -> mempty <$ spaces1

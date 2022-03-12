@@ -94,8 +94,9 @@ verbTok stopchar = do
        Nothing -> return t
        Just i  -> do
          let (t1, t2) = T.splitAt i txt
-         inp <- getInput
-         setInput $ Tok (incSourceColumn pos i) Symbol (T.singleton stopchar)
+         TokStream macrosExpanded inp <- getInput
+         setInput $ TokStream macrosExpanded
+                  $ Tok (incSourceColumn pos i) Symbol (T.singleton stopchar)
                   : tokenize (incSourceColumn pos (i + 1)) (T.drop 1 t2) ++ inp
          return $ Tok pos toktype t1
 
