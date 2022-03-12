@@ -56,7 +56,8 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
-romanNumeral :: (Stream s m Char, UpdateSourcePos s Char) => Bool                  -- ^ Uppercase if true
+romanNumeral :: (Stream s m Char, UpdateSourcePos s Char)
+             => Bool                  -- ^ Uppercase if true
              -> ParserT s st m Int
 romanNumeral upperCase = do
     let rchar uc = char $ if upperCase then uc else toLower uc
@@ -212,4 +213,3 @@ orderedListMarker style delim = do
                TwoParens    -> inTwoParens
   (start, _, _) <- context num
   return start
-

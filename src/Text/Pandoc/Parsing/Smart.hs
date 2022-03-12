@@ -46,6 +46,10 @@ import Text.Parsec
 
 import qualified Text.Pandoc.Builder as B
 
+-- | Parses various ASCII punctuation, quotes, and apostrophe in a smart
+-- way, inferring their semantic meaning.
+--
+-- Fails unless the 'Ext_smart' extension has been enabled.
 smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st,
                      HasQuoteContext st m,
                      Stream s m Char, UpdateSourcePos s Char)
@@ -55,12 +59,16 @@ smartPunctuation inlineParser = do
   guardEnabled Ext_smart
   choice [ quoted inlineParser, apostrophe, doubleCloseQuote, dash, ellipses ]
 
+-- | Parses inline text in single or double quotes, assumes English
+-- quoting conventions.
 quoted :: (HasLastStrPosition st, HasQuoteContext st m,
            Stream s m Char, UpdateSourcePos s Char)
        => ParserT s st m Inlines
        -> ParserT s st m Inlines
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
+-- | Parses inline text in single quotes, assumes English quoting
+-- conventions.
 singleQuoted :: (HasLastStrPosition st, HasQuoteContext st m,
                  Stream s m Char, UpdateSourcePos s Char)
              => ParserT s st m Inlines
@@ -72,6 +80,8 @@ singleQuoted inlineParser = do
      (withQuoteContext InSingleQuote (many1Till inlineParser singleQuoteEnd)))
    <|> pure "\8217"
 
+-- | Parses inline text in double quotes; assumes English quoting
+-- conventions.
 doubleQuoted :: (HasQuoteContext st m, HasLastStrPosition st,
                  Stream s m Char, UpdateSourcePos s Char)
              => ParserT s st m Inlines
@@ -89,6 +99,14 @@ charOrRef cs =
                        guard (c `elem` cs)
                        return c)
 
+-- | Succeeds if the parser is
+--
+-- * not within single quoted text;
+-- * not directly after a word; and
+-- * looking at an opening single quote char that's not followed by a
+--   space.
+--
+-- Gobbles the quote character on success.
 singleQuoteStart :: (HasLastStrPosition st, HasQuoteContext st m,
                      Stream s m Char, UpdateSourcePos s Char)
                  => ParserT s st m ()
@@ -106,6 +124,16 @@ singleQuoteEnd = try $ do
   charOrRef "'\8217\146"
   notFollowedBy alphaNum
 
+-- | Succeeds if the parser is
+--
+-- * not within a double quoted text;
+--
+-- * not directly after a word; and
+--
+-- * looking at an opening double quote char that's not followed by a
+--   space.
+--
+-- Gobbles the quote character on success.
 doubleQuoteStart :: (HasLastStrPosition st,
                      HasQuoteContext st m,
                      Stream s m Char, UpdateSourcePos s Char)
@@ -116,20 +144,33 @@ doubleQuoteStart = do
   try $ do charOrRef "\"\8220\147"
            void $ lookAhead (satisfy (not . isSpaceChar))
 
+-- | Parses a closing quote character.
 doubleQuoteEnd :: (Stream s m Char, UpdateSourcePos s Char)
                => ParserT s st m ()
 doubleQuoteEnd = void (charOrRef "\"\8221\148")
 
-apostrophe :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Inlines
+-- | Parses an ASCII apostrophe (@'@) or right single quotation mark and
+-- returns a RIGHT SINGLE QUOtatiON MARK character.
+apostrophe :: (Stream s m Char, UpdateSourcePos s Char)
+           => ParserT s st m Inlines
 apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\8217")
 
-doubleCloseQuote :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Inlines
+-- | Parses an ASCII quotation mark character and returns a RIGHT DOUBLE
+-- QUOTATION MARK.
+doubleCloseQuote :: (Stream s m Char, UpdateSourcePos s Char)
+                 => ParserT s st m Inlines
 doubleCloseQuote = B.str "\8221" <$ char '"'
 
+-- | Parses three dots as HORIZONTAL ELLIPSIS.
 ellipses :: (Stream s m Char, UpdateSourcePos s Char)
          => ParserT s st m Inlines
 ellipses = try (string "..." >> return (B.str "\8230"))
 
+-- | Parses two hyphens as EN DASH and three as EM DASH.
+--
+-- If the extension @'Ext_old_dashes'@ is enabled, then two hyphens are
+-- parsed as EM DASH, and one hyphen is parsed as EN DASH if it is
+-- followed by a digit.
 dash :: (HasReaderOptions st, Stream s m Char, UpdateSourcePos s Char)
      => ParserT s st m Inlines
 dash = try $ do

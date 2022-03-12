@@ -152,6 +152,9 @@ splitTextBy isSep t
   | otherwise = let (first, rest) = T.break isSep t
                 in  first : splitTextBy isSep (T.dropWhile isSep rest)
 
+-- | Split text at the given widths. Note that the break points are
+-- /not/ indices but text widths, which will be different for East Asian
+-- characters, emojis, etc.
 splitTextByIndices :: [Int] -> T.Text -> [T.Text]
 splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns)) . T.unpack
  where
@@ -160,9 +163,12 @@ splitTextByIndices ns = splitTextByRelIndices (zipWith (-) ns (0:ns)) . T.unpack
     let (first, rest) = splitAt' x cs
      in T.pack first : splitTextByRelIndices xs rest
 
--- Note: don't replace this with T.splitAt, which is not sensitive
+-- | Returns a pair whose first element is a prefix of @t@ and that has
+-- width @n@, and whose second is the remainder of the string.
+--
+-- Note: Do *not* replace this with 'T.splitAt', which is not sensitive
 -- to character widths!
-splitAt' :: Int -> [Char] -> ([Char],[Char])
+splitAt' :: Int {-^ n -} -> [Char] {-^ t -} -> ([Char],[Char])
 splitAt' _ []          = ([],[])
 splitAt' n xs | n <= 0 = ([],xs)
 splitAt' n (x:xs)      = (x:ys,zs)
@@ -175,7 +181,11 @@ ordNub l = go Set.empty l
     go s (x:xs) = if x `Set.member` s then go s xs
                                       else x : go (Set.insert x s) xs
 
-findM :: forall m t a. (Monad m, Foldable t) => (a -> m Bool) -> t a -> m (Maybe a)
+-- | Returns the last element in a foldable structure for that the
+-- monadic predicate holds true, and @Nothing@ if no such element
+-- exists.
+findM :: forall m t a. (Monad m, Foldable t)
+      => (a -> m Bool) -> t a -> m (Maybe a)
 findM p = foldr go (pure Nothing)
   where
     go :: a -> m (Maybe a) -> m (Maybe a)
@@ -191,6 +201,7 @@ findM p = foldr go (pure Nothing)
 inquotes :: T.Text -> T.Text
 inquotes txt = T.cons '\"' (T.snoc txt '\"')
 
+-- | Like @'show'@, but returns a 'T.Text' instead of a 'String'.
 tshow :: Show a => a -> T.Text
 tshow = T.pack . show
 
@@ -206,6 +217,8 @@ notElemText c = T.all (/= c)
 stripTrailingNewlines :: T.Text -> T.Text
 stripTrailingNewlines = T.dropWhileEnd (== '\n')
 
+-- | Returns 'True' for an ASCII whitespace character, viz. space,
+-- carriage return, newline, and horizontal tab.
 isWS :: Char -> Bool
 isWS ' '  = True
 isWS '\r' = True
@@ -317,6 +330,7 @@ crFilter = T.filter (/= '\r')
 normalizeDate :: T.Text -> Maybe T.Text
 normalizeDate = fmap T.pack . normalizeDate' . T.unpack
 
+-- | Like @'normalizeDate'@, but acts on 'String' instead of 'T.Text'.
 normalizeDate' :: String -> Maybe String
 normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
   (msum $ map (\fs -> parsetimeWith fs s >>= rejectBadYear) formats :: Maybe Day)
@@ -382,10 +396,12 @@ removeFormatting = query go . walk (deNote . deQuote)
         go LineBreak  = [Space]
         go _          = []
 
+-- | Replaces 'Note' elements with empty strings.
 deNote :: Inline -> Inline
 deNote (Note _) = Str ""
 deNote x        = x
 
+-- | Turns links into spans, keeping just the link text.
 deLink :: Inline -> Inline
 deLink (Link _ ils _) = Span nullAttr ils
 deLink x              = x
@@ -412,6 +428,8 @@ stringify = query go . walk fixInlines
         fixInlines (q@Quoted{}) = deQuote q
         fixInlines x = x
 
+-- | Unwrap 'Quoted' inline elements, enclosing the contents with
+-- English-style Unicode quotes instead.
 deQuote :: Inline -> Inline
 deQuote (Quoted SingleQuote xs) =
   Span ("",[],[]) (Str "\8216" : xs ++ [Str "\8217"])
@@ -813,7 +831,7 @@ collapseFilePath = Posix.joinPath . reverse . foldl' go [] . splitDirectories
     isSingleton _   = Nothing
     checkPathSeperator = fmap isPathSeparator . isSingleton
 
--- Convert the path part of a file: URI to a regular path.
+-- | Converts the path part of a file: URI to a regular path.
 -- On windows, @/c:/foo@ should be @c:/foo@.
 -- On linux, @/foo@ should be @/foo@.
 uriPathToPath :: T.Text -> FilePath

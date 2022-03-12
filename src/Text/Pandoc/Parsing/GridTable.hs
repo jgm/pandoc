@@ -40,16 +40,18 @@ import qualified Text.Pandoc.Builder as B
 -- line).
 gridTableWith :: (Monad m, Monad mf, HasLastStrPosition st, HasReaderOptions st)
               => ParserT Sources st m (mf Blocks)  -- ^ Block list parser
-              -> Bool                        -- ^ Headerless table
+              -> Bool                              -- ^ Headerless table
               -> ParserT Sources st m (mf Blocks)
 gridTableWith blocks headless =
   tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
+-- | Like @'gridTableWith'@, but returns 'TableComponents' instead of a
+-- Table.
 gridTableWith' :: (Monad m, Monad mf,
                    HasReaderOptions st, HasLastStrPosition st)
-               => ParserT Sources st m (mf Blocks)  -- ^ Block list parser
-               -> Bool                        -- ^ Headerless table
+               => ParserT Sources st m (mf Blocks) -- ^ Block list parser
+               -> Bool                             -- ^ Headerless table
                -> ParserT Sources st m (TableComponents mf)
 gridTableWith' blocks headless =
   tableWith' (gridTableHeader headless blocks) (gridTableRow blocks)
@@ -59,6 +61,10 @@ gridTableSplitLine :: [Int] -> Text -> [Text]
 gridTableSplitLine indices line = map removeFinalBar $ tail $
   splitTextByIndices (init indices) $ trimr line
 
+-- | Parses a grid segment, where the grid line is made up from the
+-- given char and terminated with a plus (@+@). The grid line may begin
+-- and/or end with a colon, signaling column alignment. Returns the size
+-- of the grid part and column alignment
 gridPart :: Monad m => Char -> ParserT Sources st m ((Int, Int), Alignment)
 gridPart ch = do
   leftColon <- option False (True <$ char ':')
