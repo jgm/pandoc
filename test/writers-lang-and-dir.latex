@@ -64,6 +64,8 @@
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+% Avoid problems with \sout in headers with hyperref
+\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 \hypersetup{
   pdflang={en},
   hidelinks,

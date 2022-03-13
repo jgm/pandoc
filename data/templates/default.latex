@@ -282,8 +282,6 @@ $endif$
 $if(strikeout)$
 $-- also used for underline
 \usepackage[normalem]{ulem}
-% Avoid problems with \sout in headers with hyperref
-\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 $endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
@@ -383,6 +381,8 @@ $if(csquotes)$
 \usepackage{csquotes}
 $endif$
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+% Avoid problems with \sout in headers with hyperref
+\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 \hypersetup{
 $if(title-meta)$
   pdftitle={$title-meta$},
