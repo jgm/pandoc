@@ -35,12 +35,6 @@
 \usepackage{fancyvrb}
 \usepackage{xcolor}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-\hypersetup{
-  pdftitle={Pandoc Test Suite},
-  pdfauthor={John MacFarlane; Anonymous},
-  hidelinks,
-  pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
 \VerbatimFootnotes % allow verbatim text in footnotes
 \usepackage{graphicx}
@@ -66,6 +60,12 @@
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Pandoc Test Suite},
+  pdfauthor={John MacFarlane; Anonymous},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
 
 \title{Pandoc Test Suite}
 \author{John MacFarlane \and Anonymous}
