@@ -105,6 +105,7 @@ import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
+import Data.Containers.ListUtils (nubOrd)
 import Data.List (find, intercalate, intersperse, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
@@ -174,14 +175,12 @@ splitAt' n xs | n <= 0 = ([],xs)
 splitAt' n (x:xs)      = (x:ys,zs)
   where (ys,zs) = splitAt' (n - charWidth x) xs
 
+-- | Remove duplicates from a list.
 ordNub :: (Ord a) => [a] -> [a]
-ordNub l = go Set.empty l
-  where
-    go _ [] = []
-    go s (x:xs) = if x `Set.member` s then go s xs
-                                      else x : go (Set.insert x s) xs
+ordNub = nubOrd
+{-# INLINE ordNub #-}
 
--- | Returns the last element in a foldable structure for that the
+-- | Returns the first element in a foldable structure for that the
 -- monadic predicate holds true, and @Nothing@ if no such element
 -- exists.
 findM :: forall m t a. (Monad m, Foldable t)
