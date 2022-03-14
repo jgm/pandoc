@@ -59,8 +59,6 @@
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-% Avoid problems with \sout in headers with hyperref
-\pdfstringdefDisableCommands{\renewcommand{\sout}{}}
 \hypersetup{
   pdftitle={Pandoc Test Suite},
   pdfauthor={John MacFarlane; Anonymous},
