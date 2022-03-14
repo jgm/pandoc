@@ -63,8 +63,8 @@ jobs:
             prefix: ''
             cabalopts: ''
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
-          - ghc: '9.2.1'
-            cabal: '3.4'
+          - ghc: '9.2.2'
+            cabal: '3.6'
             prefix: ''
             cabalopts: ''
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
@@ -75,13 +75,10 @@ jobs:
     - name: Install numa
       run: sudo apt-get install libnuma-dev
 
-    # need to install older cabal/ghc versions from ppa repository
-
-    - name: Install recent cabal/ghc
-      uses: haskell/actions/setup@v1
-      with:
-        ghc-version: ${{ matrix.versions.ghc }}
-        cabal-version: ${{ matrix.versions.cabal }}
+    - name: Install cabal/ghc
+      run: |
+        ghcup install ghc --set ${{ matrix.versions.ghc }}
+        ghcup install cabal ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
