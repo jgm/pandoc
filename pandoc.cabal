@@ -713,6 +713,7 @@ library
                    Text.Pandoc.Writers.LaTeX.Types,
                    Text.Pandoc.Writers.LaTeX.Citation,
                    Text.Pandoc.Writers.LaTeX.Util,
+                   Text.Pandoc.Writers.Markdown.Table,
                    Text.Pandoc.Writers.Markdown.Types,
                    Text.Pandoc.Writers.Markdown.Inline,
                    Text.Pandoc.Writers.Roff,
