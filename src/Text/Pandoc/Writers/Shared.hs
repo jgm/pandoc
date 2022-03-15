@@ -231,14 +231,15 @@ unsmartify opts = T.concatMap $ \c -> case c of
   '\8216' -> "'"
   _       -> T.singleton c
 
+-- | Writes a grid table.
 gridTable :: (Monad m, HasChars a)
           => WriterOptions
-          -> (WriterOptions -> [Block] -> m (Doc a))
-          -> Bool -- ^ headless
-          -> [Alignment]
-          -> [Double]
-          -> [[Block]]
-          -> [[[Block]]]
+          -> (WriterOptions -> [Block] -> m (Doc a)) -- ^ format Doc writer
+          -> Bool             -- ^ headless
+          -> [Alignment]      -- ^ column alignments
+          -> [Double]         -- ^ column widths
+          -> [[Block]]        -- ^ table header row
+          -> [[[Block]]]      -- ^ table body rows
           -> m (Doc a)
 gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- the number of columns will be used in case of even widths

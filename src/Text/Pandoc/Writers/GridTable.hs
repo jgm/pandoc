@@ -10,7 +10,13 @@ License     : GNU GPL, version 2 or above
 
 Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
 
-Grid representation of pandoc tables.
+Grid representation of pandoc tables. The structures in this module
+allow to describe 'Text.Pandoc.Definition.Table' elements without loss
+of information. However, they are simpler to use when the grid layout of
+a table must be known.
+
+The "grid tables" handled here are conceptually similar to grid tables
+in reStructuredText and Markdown, but are more general.
 -}
 module Text.Pandoc.Writers.GridTable
   ( Table (..)
@@ -97,7 +103,7 @@ data BuilderCell
 fromBuilderCell :: BuilderCell -> GridCell
 fromBuilderCell = \case
   FilledCell c -> c
-  FreeCell -> error "Found an unassigned cell."
+  FreeCell -> error "Found an unassigned cell. Please report this as a bug!"
 
 rowsToPart :: Attr -> [B.Row] -> Part
 rowsToPart attr = \case
