@@ -65,7 +65,7 @@ gridTableSplitLine indices line = map removeFinalBar $ tail $
 -- given char and terminated with a plus (@+@). The grid line may begin
 -- and/or end with a colon, signaling column alignment. Returns the size
 -- of the grid part and column alignment
-gridPart :: Monad m => Char -> ParserT Sources st m ((Int, Int), Alignment)
+gridPart :: Monad m => Char -> ParserT Sources st m (Int, Alignment)
 gridPart ch = do
   leftColon <- option False (True <$ char ':')
   dashes <- many1 (char ch)
@@ -78,9 +78,10 @@ gridPart ch = do
                        (True, False)  -> AlignLeft
                        (False, True)  -> AlignRight
                        (False, False) -> AlignDefault
-  return ((lengthDashes, lengthDashes + 1), alignment)
+  return (lengthDashes + 1, alignment)
 
-gridDashedLines :: Monad m => Char -> ParserT Sources st m [((Int, Int), Alignment)]
+gridDashedLines :: Monad m
+                => Char -> ParserT Sources st m [(Int, Alignment)]
 gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
 
 removeFinalBar :: Text -> Text
@@ -101,7 +102,7 @@ gridTableHeader True _ = do
   optional blanklines
   dashes <- gridDashedLines '-'
   let aligns = map snd dashes
-  let lines'   = map (snd . fst) dashes
+  let lines'   = map fst dashes
   let indices  = scanl (+) 0 lines'
   return (return [], aligns, indices)
 gridTableHeader False blocks = try $ do
@@ -111,7 +112,7 @@ gridTableHeader False blocks = try $ do
                            T.pack <$> many1Till anyChar newline)
   underDashes <- gridDashedLines '='
   guard $ length dashes == length underDashes
-  let lines'   = map (snd . fst) underDashes
+  let lines'   = map fst underDashes
   let indices  = scanl (+) 0 lines'
   let aligns   = map snd underDashes
   let rawHeads = map (T.unlines . map trim) $ transpose
@@ -119,7 +120,8 @@ gridTableHeader False blocks = try $ do
   heads <- sequence <$> mapM (parseFromString' blocks . trim) rawHeads
   return (heads, aligns, indices)
 
-gridTableRawLine :: (Stream s m Char, UpdateSourcePos s Char) => [Int] -> ParserT s st m [Text]
+gridTableRawLine :: (Stream s m Char, UpdateSourcePos s Char)
+                 => [Int] -> ParserT s st m [Text]
 gridTableRawLine indices = do
   char '|'
   line <- many1Till anyChar newline
@@ -150,7 +152,8 @@ removeOneLeadingSpace xs =
            Just (c, _) -> c == ' '
 
 -- | Parse footer for a grid table.
-gridTableFooter :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m ()
+gridTableFooter :: (Stream s m Char, UpdateSourcePos s Char)
+                => ParserT s st m ()
 gridTableFooter = optional blanklines
 
 ---
@@ -170,7 +173,8 @@ tableWith headerParser rowParser lineParser footerParser = try $ do
   let th = TableHead nullAttr <$> heads
       tb = (:[]) . TableBody nullAttr 0 [] <$> rows
       tf = pure $ TableFoot nullAttr []
-  return $ B.table B.emptyCaption (zip aligns (map fromWidth widths)) <$> th <*> tb <*> tf
+      colspecs = zip aligns (map fromWidth widths)
+  return $ B.table B.emptyCaption colspecs <$> th <*> tb <*> tf
   where
     fromWidth n
       | n > 0     = ColWidth n
