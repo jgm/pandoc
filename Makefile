@@ -16,9 +16,6 @@ endif
 GHCOPTS=-fdiagnostics-color=always -j4 +RTS -A8m -RTS
 WEBSITE=../../web/pandoc.org
 REVISION?=1
-# For gauge:
-# BENCHARGS?=--small --ci=0.90 --match=pattern $(PATTERN)
-# For tasty-bench:
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
 # Note:  to accept current results of golden tests,
