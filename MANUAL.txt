@@ -5975,6 +5975,19 @@ The bibliography will be inserted after this heading.  Note that
 the `unnumbered` class will be added to this heading, so that the
 section will not be numbered.
 
+If you want to put the bibliography into a variable in your
+template, one way to do that is to put the div with id `refs`
+into a metadata field, e.g.
+
+    ---
+    refs: |
+       ::: {#refs}
+       :::
+    ...
+
+You can then put the variable `$refs$` into your template where
+you want the bibliography to be placed.
+
 ## Including uncited items in the bibliography
 
 If you want to include items in the bibliography without actually

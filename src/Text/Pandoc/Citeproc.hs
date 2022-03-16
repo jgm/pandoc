@@ -108,8 +108,8 @@ processCitations (Pandoc meta bs) = do
          evalState (walkM insertResolvedCitations $ Pandoc meta' bs)
          $ cits
   return $ walk removeQuoteSpan
-         $ Pandoc meta''
-         $ insertRefs refkvs classes meta'' (B.toList bibs) bs'
+         $ insertRefs refkvs classes (B.toList bibs)
+         $ Pandoc meta'' bs'
 
 removeQuoteSpan :: Inline -> Inline
 removeQuoteSpan (Span ("",["csl-quoted"],[]) xs) = Span nullAttr xs
@@ -461,23 +461,24 @@ isYesValue _ = False
 -- if document contains a Div with id="refs", insert
 -- references as its contents.  Otherwise, insert references
 -- at the end of the document in a Div with id="refs"
-insertRefs :: [(Text,Text)] -> [Text] -> Meta -> [Block] -> [Block] -> [Block]
-insertRefs _ _ _  []   bs = bs
-insertRefs refkvs refclasses meta refs bs =
+insertRefs :: [(Text,Text)] -> [Text] -> [Block] -> Pandoc -> Pandoc
+insertRefs _ _ [] d = d
+insertRefs refkvs refclasses refs (Pandoc meta bs) =
   if isRefRemove meta
-     then bs
-     else case runState (walkM go bs) False of
-               (bs', True) -> bs'
-               (_, False)
-                 -> case refTitle meta of
+     then Pandoc meta bs
+     else case runState (walkM go (Pandoc meta bs)) False of
+               (d', True) -> d'
+               (Pandoc meta' bs', False)
+                 -> Pandoc meta' $
+                    case refTitle meta of
                       Nothing ->
-                        case reverse bs of
+                        case reverse bs' of
                           Header lev (id',classes,kvs) ys : xs ->
                             reverse xs ++
                             [Header lev (id',addUnNumbered classes,kvs) ys,
                              Div ("refs",refclasses,refkvs) refs]
-                          _ -> bs ++ [refDiv]
-                      Just ils -> bs ++
+                          _ -> bs' ++ [refDiv]
+                      Just ils -> bs' ++
                         [Header 1 ("bibliography", ["unnumbered"], []) ils,
                          refDiv]
   where
