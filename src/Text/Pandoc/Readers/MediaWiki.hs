@@ -34,7 +34,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (nested)
+import Text.Pandoc.Parsing hiding (nested, tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
 import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
                            trim, splitTextBy, tshow)

@@ -221,9 +221,9 @@ listItemLine prefix marker = mconcat <$> (lineContent >>= parseContent)
 
 table :: PandocMonad m => TWParser m B.Blocks
 table = try $ do
-  tableHead <- optionMaybe (unzip <$> many1Till tableParseHeader newline)
+  thead <- optionMaybe (unzip <$> many1Till tableParseHeader newline)
   rows <- many1 tableParseRow
-  return $ buildTable mempty rows $ fromMaybe (align rows, columns rows) tableHead
+  return $ buildTable mempty rows $ fromMaybe (align rows, columns rows) thead
   where
     buildTable caption rows (aligns, heads)
                     = B.table (B.simpleCaption $ B.plain caption)
