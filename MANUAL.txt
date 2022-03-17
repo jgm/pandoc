@@ -7012,9 +7012,6 @@ metadata field (see [EPUB Metadata], above).
 
 # A note on security
 
-If you use pandoc to convert user-contributed content in a web
-application, here are some things to keep in mind:
-
 1. Although pandoc itself will not create or modify any files other
    than those you explicitly ask it create (with the exception
    of temporary files used in producing PDFs), a filter or custom
@@ -7040,7 +7037,8 @@ application, here are some things to keep in mind:
    that fully isolates pandoc from your file system, by running the
    pandoc operations in the `PandocPure` monad. See the document
    [Using the pandoc API](https://pandoc.org/using-the-pandoc-api.html)
-   for more details.
+   for more details. (This corresponds to the use of the `--sandbox`
+   option on the command line.) 
 
 5. Pandoc's parsers can exhibit pathological performance on some
    corner cases.  It is wise to put any pandoc operations under
@@ -7056,8 +7054,8 @@ application, here are some things to keep in mind:
    If `raw_html` is enabled for the Markdown input, users can
    inject arbitrary HTML.  Even if `raw_html` is disabled,
    users can include dangerous content in URLs and attributes.
-   To be safe, you should run all the generated HTML through
-   an HTML sanitizer.
+   To be safe, you should run all HTML generated from untrusted
+   user input through an HTML sanitizer.
 
 # Authors
 
