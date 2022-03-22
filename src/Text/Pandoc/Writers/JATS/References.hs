@@ -144,7 +144,9 @@ toNameElements :: Name -> Doc Text
 toNameElements name =
   if not (isEmpty nameTags)
   then inTags' "name" [] nameTags
-  else nameLiteral name `inNameTag` "string-name"
+  else if nameLiteral name == Just "others"  -- indicates an "et al."
+       then "<etal/>"
+       else nameLiteral name `inNameTag` "string-name"
     where
       inNameTag mVal tag = case mVal of
         Nothing  -> empty
