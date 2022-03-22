@@ -63,11 +63,11 @@ jobs:
             prefix: ''
             cabalopts: ''
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
-#         - ghc: '9.2.2'
-#           cabal: '3.6'
-#           prefix: ''
-#           cabalopts: ''
-#           testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
+          - ghc: '9.2.2'
+            cabal: '3.6'
+            prefix: ''
+            cabalopts: ''
+            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
     steps:
     - uses: actions/checkout@v2
 
