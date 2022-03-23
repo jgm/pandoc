@@ -10,8 +10,13 @@ source-repository-package
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/doclayout.git
+  tag: e30d98bb5e6b6c53ad0c643f9d2bd90a07988882
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/citeproc.git
-  tag: 57975c8b673324140ac0c6adbc1531ff5f6e248a
+  tag: 363a810024b93aa9230eee4fe27b557b39176bcb
 
 source-repository-package
   type: git
