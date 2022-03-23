@@ -311,7 +311,7 @@ variables.
 :   This variable holds the `lpeg` module, a package based on
     Parsing Expression Grammars (PEG).  It provides excellent
     parsing utilities and is documented on the official [LPeg
-    homepage].  Pandoc uses a built-int version of the library,
+    homepage].  Pandoc uses a built-in version of the library,
     unless it has been configured by the package maintainer to
     rely on a system-wide installation.
 
