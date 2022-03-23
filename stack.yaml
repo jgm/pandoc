@@ -36,7 +36,7 @@ extra-deps:
 - commonmark-pandoc-0.2.1.2
 - ipynb-0.2
 - git: https://github.com/jgm/citeproc.git
-  commit: 32fcf268d8bac2825eddd3c51a9112112e5eaadb
+  commit: 57975c8b673324140ac0c6adbc1531ff5f6e248a
 - git: https://github.com/jgm/commonmark-hs.git
   commit: cc815e013f0d87eef3daef8ad9e376ad807b012b
   subdirs: [commonmark, commonmark-extensions]
