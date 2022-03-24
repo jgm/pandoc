@@ -18,15 +18,13 @@ WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
+quick-cabal: ## build & test with stack, no optimizations
+	cabal v2-test -j --disable-optimization --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)" && cabal build -j --disable-optimization exe:pandoc
+
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 quick: ## build & test with stack, no optimizations
 	stack install --ghc-options='$(GHCOPTS)' --system-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
-
-quick-cabal: ## build & test with stack, no optimizations
-	cabal v2-build -j8 --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
-	cabal v2-test --disable-optimization --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
-	echo "Path to built executable:" && cabal exec -- sh -c 'command -v pandoc' | sed -e 's!x/pandoc/build!x/pandoc/noopt/build!'
 
 full: ## build with stack, including benchmarks, trypandoc
 	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes--ansi-tricks-false' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
