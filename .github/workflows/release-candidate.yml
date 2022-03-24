@@ -5,6 +5,9 @@ on:
     branches:
     - 'rc/**'
 
+permissions:
+  contents: read
+
 jobs:
   linux:
 
