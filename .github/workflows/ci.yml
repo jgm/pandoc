@@ -69,7 +69,7 @@ jobs:
             cabalopts: ''
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     # needed by memory
     - name: Install numa
@@ -117,7 +117,7 @@ jobs:
     runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
@@ -160,7 +160,7 @@ jobs:
             cabal: '3.2'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install cabal/ghc
       run: |
@@ -210,7 +210,7 @@ jobs:
           - ghc: '9.2.2'
             cabal: '3.6'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install cabal/ghc
       run: |
