@@ -1,6 +1,9 @@
 name: commit-validation
 on: [ push, pull_request ]
 
+permissions:
+  contents: read
+
 jobs:
   check-commit-msg-length:
     runs-on: ubuntu-latest

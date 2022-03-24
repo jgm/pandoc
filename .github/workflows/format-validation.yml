@@ -26,6 +26,9 @@ on:
       - 'test/tables/planets.jats_archiving'
       - 'test/tables/students.jats_archiving'
 
+permissions:
+  contents: read
+
 jobs:
   jats:
     name: JATS
