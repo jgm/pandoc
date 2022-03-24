@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Parsing.GridTable
@@ -14,6 +15,11 @@ module Text.Pandoc.Parsing.GridTable
   , tableWith
   , tableWith'
   , widthsFromIndices
+    -- * Components of a plain-text table
+  , TableComponents (..)
+  , TableNormalization (..)
+  , toTableComponents
+  , toTableComponents'
   )
 where
 
@@ -34,6 +40,65 @@ import Text.Parsec
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 
+-- | Collection of components making up a Table block.
+data TableComponents = TableComponents
+  { tableAttr     :: Attr
+  , tableCaption  :: Caption
+  , tableColSpecs :: [ColSpec]
+  , tableHead     :: TableHead
+  , tableBodies   :: [TableBody]
+  , tableFoot     :: TableFoot
+  }
+
+-- | Creates a table block from the collection of table parts.
+tableFromComponents :: TableComponents -> Blocks
+tableFromComponents (TableComponents attr capt colspecs th tb tf) =
+  B.tableWith attr capt colspecs th tb tf
+
+-- | Bundles basic table components into a single value.
+toTableComponents :: [Alignment] -> [Double] -> [Blocks] -> [[Blocks]]
+                  -> TableComponents
+toTableComponents = toTableComponents' NoNormalization
+
+-- | Bundles basic table components into a single value, performing
+-- normalizations as necessary.
+toTableComponents' :: TableNormalization
+                   -> [Alignment] -> [Double] -> [Blocks] -> [[Blocks]]
+                   -> TableComponents
+toTableComponents' normalization aligns widths heads rows =
+  let th = TableHead nullAttr (toHeaderRow normalization heads)
+      tb = TableBody nullAttr 0 [] (map toRow rows)
+      tf = TableFoot nullAttr []
+      colspecs = toColSpecs aligns widths
+  in TableComponents nullAttr B.emptyCaption colspecs th [tb] tf
+
+-- | Combine a list of column alignments and column widths into a list
+-- of column specifiers. Both input lists should have the same length.
+toColSpecs :: [Alignment]   -- ^ column alignments
+           -> [Double]      -- ^ column widths
+           -> [ColSpec]
+toColSpecs aligns widths = zip aligns (map fromWidth widths')
+  where
+    fromWidth n
+      | n > 0     = ColWidth n
+      | otherwise = ColWidthDefault
+
+    -- renormalize widths if greater than 100%:
+    totalWidth = sum widths
+    widths' = if totalWidth < 1
+              then widths
+              else map (/ totalWidth) widths
+
+-- | Whether the table header should be normalized, i.e., whether an header row
+-- with only empty cells should be omitted.
+data TableNormalization
+  = NoNormalization
+  | NormalizeHeader
+
+--
+-- Grid Tables
+--
+
 -- | Parse a grid table: starts with row of '-' on top, then header
 -- (which may be grid), then the rows, which may be grid, separated by
 -- blank lines, and ending with a footer (dashed line followed by blank
@@ -50,11 +115,13 @@ gridTableWith blocks headless =
 -- Table.
 gridTableWith' :: (Monad m, Monad mf,
                    HasReaderOptions st, HasLastStrPosition st)
-               => ParserT Sources st m (mf Blocks) -- ^ Block list parser
+               => TableNormalization
+               -> ParserT Sources st m (mf Blocks) -- ^ Block list parser
                -> Bool                             -- ^ Headerless table
-               -> ParserT Sources st m (TableComponents mf)
-gridTableWith' blocks headless =
-  tableWith' (gridTableHeader headless blocks) (gridTableRow blocks)
+               -> ParserT Sources st m (mf TableComponents)
+gridTableWith' normalization blocks headless =
+  tableWith' normalization
+             (gridTableHeader headless blocks) (gridTableRow blocks)
              (gridTableSep '-') gridTableFooter
 
 gridTableSplitLine :: [Int] -> Text -> [Text]
@@ -162,44 +229,39 @@ gridTableFooter = optional blanklines
 -- 'lineParser', and 'footerParser'.
 tableWith :: (Stream s m Char, UpdateSourcePos s Char,
               HasReaderOptions st, Monad mf)
-          => ParserT s st m (mf [Blocks], [Alignment], [Int])
-          -> ([Int] -> ParserT s st m (mf [Blocks]))
-          -> ParserT s st m sep
-          -> ParserT s st m end
+          => ParserT s st m (mf [Blocks], [Alignment], [Int]) -- ^ header parser
+          -> ([Int] -> ParserT s st m (mf [Blocks]))  -- ^ row parser
+          -> ParserT s st m sep                       -- ^ line parser
+          -> ParserT s st m end                       -- ^ footer parser
           -> ParserT s st m (mf Blocks)
-tableWith headerParser rowParser lineParser footerParser = try $ do
-  (aligns, widths, heads, rows) <- tableWith' headerParser rowParser
-                                                lineParser footerParser
-  let th = TableHead nullAttr <$> heads
-      tb = (:[]) . TableBody nullAttr 0 [] <$> rows
-      tf = pure $ TableFoot nullAttr []
-      colspecs = zip aligns (map fromWidth widths)
-  return $ B.table B.emptyCaption colspecs <$> th <*> tb <*> tf
-  where
-    fromWidth n
-      | n > 0     = ColWidth n
-      | otherwise = ColWidthDefault
-
-type TableComponents mf = ([Alignment], [Double], mf [Row], mf [Row])
+tableWith hp rp lp fp = fmap tableFromComponents <$>
+  tableWith' NoNormalization hp rp lp fp
 
 tableWith' :: (Stream s m Char, UpdateSourcePos s Char,
                HasReaderOptions st, Monad mf)
-           => ParserT s st m (mf [Blocks], [Alignment], [Int])
-           -> ([Int] -> ParserT s st m (mf [Blocks]))
-           -> ParserT s st m sep
-           -> ParserT s st m end
-           -> ParserT s st m (TableComponents mf)
-tableWith' headerParser rowParser lineParser footerParser = try $ do
-    (heads, aligns, indices) <- headerParser
-    lines' <- sequence <$> rowParser indices `sepEndBy1` lineParser
-    footerParser
-    numColumns <- getOption readerColumns
-    let widths = if null indices
-                    then replicate (length aligns) 0.0
-                    else widthsFromIndices numColumns indices
-    let toRow =  Row nullAttr . map B.simpleCell
-        toHeaderRow l = [toRow l | not (null l)]
-    return (aligns, widths, toHeaderRow <$> heads, map toRow <$> lines')
+           => TableNormalization
+           -> ParserT s st m (mf [Blocks], [Alignment], [Int]) -- ^ header parser
+           -> ([Int] -> ParserT s st m (mf [Blocks]))  -- ^ row parser
+           -> ParserT s st m sep                       -- ^ line parser
+           -> ParserT s st m end                       -- ^ footer parser
+           -> ParserT s st m (mf TableComponents)
+tableWith' n11n headerParser rowParser lineParser footerParser = try $ do
+  (heads, aligns, indices) <- headerParser
+  lines' <- sequence <$> rowParser indices `sepEndBy1` lineParser
+  footerParser
+  numColumns <- getOption readerColumns
+  let widths = if null indices
+               then replicate (length aligns) 0.0
+               else widthsFromIndices numColumns indices
+  return $ toTableComponents' n11n aligns widths <$> heads <*> lines'
+
+toRow :: [Blocks] -> Row
+toRow =  Row nullAttr . map B.simpleCell
+
+toHeaderRow :: TableNormalization -> [Blocks] -> [Row]
+toHeaderRow = \case
+  NoNormalization -> \l -> [toRow l | not (null l)]
+  NormalizeHeader -> \l -> [toRow l | not (null l) && not (all null l)]
 
 -- Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
