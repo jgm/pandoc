@@ -205,10 +205,10 @@ jobs:
       fail-fast: true
       matrix:
         versions:
-          - ghc: '8.8.4'
-            cabal: '3.2'
           - ghc: '8.10.7'
             cabal: '3.2'
+          - ghc: '9.2.2'
+            cabal: '3.6'
     steps:
     - uses: actions/checkout@v2
 
