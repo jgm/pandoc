@@ -119,12 +119,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # We should have ghc 8.10, cabal, stack pre-installed
-    # - uses: haskell/actions/setup@v1
-    #   with:
-    #     enable-stack: true
-    #     stack-version: 'latest'
-
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
     # https://github.com/actions/cache/issues/63
@@ -168,11 +162,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install recent cabal/ghc
-      uses: haskell/actions/setup@v1
-      with:
-        ghc-version: ${{ matrix.versions.ghc }}
-        cabal-version: ${{ matrix.versions.cabal }}
+    - name: Install cabal/ghc
+      run: |
+        ghcup install ghc --set ${{ matrix.versions.ghc }}
+        ghcup install cabal ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
@@ -219,13 +212,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # need to install older cabal/ghc versions from ppa repository
-
-    - name: Install recent cabal/ghc
-      uses: haskell/actions/setup@v1
-      with:
-        ghc-version: ${{ matrix.versions.ghc }}
-        cabal-version: ${{ matrix.versions.cabal }}
+    - name: Install cabal/ghc
+      run: |
+        ghcup install ghc --set ${{ matrix.versions.ghc }}
+        ghcup install cabal ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
