@@ -30,7 +30,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..), insertMedia)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
-import Text.Pandoc.Shared (safeRead, tshow)
+import Text.Pandoc.Shared (tshow)
 import Data.Char (isAlphaNum, chr, isAscii, isLetter, isSpace, ord)
 import qualified Data.ByteString.Lazy as BL
 import Data.Digest.Pure.SHA (sha1, showDigest)
@@ -252,10 +252,18 @@ tok = do
     dat <- BL.pack . map (fromIntegral . ord) <$> count n anyChar
     return $ BinData dat
   parameter = do
-    hyph <- string "-" <|> pure ""
+    hyph <- option False $ True <$ char '-'
     rest <- many digit
-    let pstr = T.pack $ hyph <> rest
-    return $ safeRead pstr
+    if null rest
+       then return Nothing
+       else do
+         let pstr = T.pack rest
+         case TR.decimal pstr of
+           Right (i,_) ->
+                return $ Just $ if hyph
+                                   then (-1) * i
+                                   else i
+           _ -> return Nothing
   hexVal = do
     char '\''
     x <- hexDigit
