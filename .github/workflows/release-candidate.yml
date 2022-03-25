@@ -13,7 +13,7 @@ jobs:
 
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Create linux package
       run: |
           make debpkg
@@ -36,7 +36,7 @@ jobs:
             arch: "x64"
             stack_opts: "-j1"
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Install dependencies
       run: |
           stack update
@@ -90,7 +90,7 @@ jobs:
     runs-on: macOS-10.15
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     - name: Build executable
       run: |
