@@ -86,7 +86,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cabal
@@ -94,7 +94,7 @@ jobs:
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           dist-newstyle
@@ -125,7 +125,7 @@ jobs:
 
     - name: Cache stack global package db
       id:   stack-global-package-db
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           C:\Users\runneradmin\AppData\Roaming\stack\
@@ -173,7 +173,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cabal
@@ -181,7 +181,7 @@ jobs:
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           dist-newstyle
@@ -223,7 +223,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cabal
@@ -231,7 +231,7 @@ jobs:
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           dist-newstyle
