@@ -216,7 +216,7 @@ parseRTF = do
   kvs <- sMetadata <$> getState
   pure $ foldr (uncurry B.setMeta) doc kvs
 
-data Tok = Tok SourcePos TokContents
+data Tok = Tok !SourcePos !TokContents
   deriving (Show, Eq)
 
 data TokContents =
@@ -273,10 +273,10 @@ tok = do
     y <- hexDigit
     return $ hexToWord (T.pack [x,y])
   letterSequence = T.pack <$> many1 (satisfy (\c -> isAscii c && isLetter c))
-  unformattedText =
-    UnformattedText . T.pack . mconcat <$>
-      many1 (   many1 (satisfy (not . isSpecial))
-            <|> ("" <$ nl))
+  unformattedText = do
+    ts <-  many1 (   many1 (satisfy (not . isSpecial))
+                  <|> ("" <$ nl))
+    return $! UnformattedText $! T.pack $ mconcat ts
   grouped = Grouped <$> (char '{' *> skipMany nl *> manyTill tok (char '}'))
 
 nl :: PandocMonad m => RTFParser m ()
