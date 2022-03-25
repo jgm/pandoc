@@ -202,15 +202,7 @@ newtype TableRow = TableRow [Blocks] -- cells in reverse order
 parseRTF :: PandocMonad m => RTFParser m Pandoc
 parseRTF = do
   skipMany nl
-  toks <- many tok
-  -- return $! traceShowId toks
-  bs <- (case toks of
-          -- if we start with {\rtf1...}, parse that and ignore
-          -- what follows (which in certain cases can be non-RTF content)
-          rtftok@(Tok _ (Grouped (Tok _ (ControlWord "rtf" (Just 1)) : _))) : _
-            -> foldM processTok mempty [rtftok]
-          _ -> foldM processTok mempty toks)
-        >>= emitBlocks
+  bs <- many tok >>= foldM processTok mempty >>= emitBlocks
   unclosed <- closeContainers
   let doc = B.doc $ bs <> unclosed
   kvs <- sMetadata <$> getState
@@ -277,7 +269,16 @@ tok = do
     ts <-  filter (\c -> c /= '\r' && c /= '\n') <$>
            ( many1 (satisfy (\c -> not (isSpecial c) || c == '\r' || c == '\n')))
     return $! UnformattedText $ T.pack ts
-  grouped = Grouped <$> (char '{' *> skipMany nl *> manyTill tok (char '}'))
+  grouped = do
+    char '{'
+    skipMany nl
+    ts <- manyTill tok (char '}')
+    case ts of
+       Tok _ (ControlWord "rtf" (Just 1)) : _ -> do
+         setInput mempty -- discard remaining input: content after the \rtf1
+                         -- group can be non-RTF
+       _ -> return ()
+    return $! Grouped ts
 
 nl :: PandocMonad m => RTFParser m ()
 nl = void (char '\n' <|> char '\r')
