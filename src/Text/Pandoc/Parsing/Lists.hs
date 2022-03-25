@@ -12,7 +12,6 @@ Parsers for list markers.
 module Text.Pandoc.Parsing.Lists
   ( anyOrderedListMarker
   , decimal
-  , indentWith
   , lowerAlpha
   , lowerRoman
   , orderedListMarker
@@ -48,7 +47,6 @@ import Text.Parsec
   , try
   , updateState
   )
-import Text.Pandoc.Parsing.Combinators
 import Text.Pandoc.Parsing.State
 import Text.Pandoc.Parsing.Types (ParserT)
 

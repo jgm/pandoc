@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
-Module      : Text.Pandoc.Parsing.Combinators
+Module      : Text.Pandoc.Parsing.General
 Copyright   : © 2006-2022 John MacFarlane
 License     : GPL-2.0-or-later
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -9,7 +9,7 @@ Maintainer  : John MacFarlane <jgm@berkeley.edu>
 Parser combinators for pandoc format readers.
 -}
 
-module Text.Pandoc.Parsing.Combinators
+module Text.Pandoc.Parsing.General
   ( (<+?>)
   , anyLine
   , anyLineNewline

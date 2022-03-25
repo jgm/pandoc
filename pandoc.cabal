@@ -651,7 +651,7 @@ library
                    Text.Pandoc.Filter.Path,
                    Text.Pandoc.Parsing.Capabilities,
                    Text.Pandoc.Parsing.Citations,
-                   Text.Pandoc.Parsing.Combinators,
+                   Text.Pandoc.Parsing.General,
                    Text.Pandoc.Parsing.GridTable,
                    Text.Pandoc.Parsing.Lists,
                    Text.Pandoc.Parsing.Math,

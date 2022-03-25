@@ -30,7 +30,7 @@ import Text.Pandoc.Options (ReaderOptions (readerColumns))
 import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing.Capabilities
-import Text.Pandoc.Parsing.Combinators
+import Text.Pandoc.Parsing.General
 import Text.Pandoc.Parsing.Types
 import Text.Pandoc.Shared (compactify, splitTextByIndices, trim, trimr)
 import Text.Pandoc.Sources

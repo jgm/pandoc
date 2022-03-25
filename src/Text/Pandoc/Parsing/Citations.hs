@@ -27,7 +27,7 @@ import Text.Parsec
   , try
   )
 import Text.Pandoc.Parsing.Capabilities (HasLastStrPosition, notAfterString)
-import Text.Pandoc.Parsing.Combinators
+import Text.Pandoc.Parsing.General
 import Text.Pandoc.Parsing.Types (ParserT)
 
 import qualified Data.Text as T

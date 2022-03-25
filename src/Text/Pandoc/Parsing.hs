@@ -240,7 +240,7 @@ import Text.Pandoc.Parsing.Capabilities
       HasReaderOptions(..),
       QuoteContext(..) )
 import Text.Pandoc.Parsing.Citations ( citeKey )
-import Text.Pandoc.Parsing.Combinators
+import Text.Pandoc.Parsing.General
     ( readWithM,
       (<+?>),
       anyLine,
@@ -299,8 +299,7 @@ import Text.Pandoc.Parsing.GridTable
       TableComponents(..),
       TableNormalization(..) )
 import Text.Pandoc.Parsing.Lists
-    ( indentWith,
-      anyOrderedListMarker,
+    ( anyOrderedListMarker,
       decimal,
       lowerAlpha,
       lowerRoman,

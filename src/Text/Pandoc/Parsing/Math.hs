@@ -22,7 +22,7 @@ import Text.Pandoc.Options
   ( Extension(Ext_tex_math_dollars, Ext_tex_math_single_backslash,
               Ext_tex_math_double_backslash) )
 import Text.Pandoc.Parsing.Capabilities (HasReaderOptions, guardEnabled)
-import Text.Pandoc.Parsing.Combinators
+import Text.Pandoc.Parsing.General
 import Text.Pandoc.Parsing.Types (ParserT)
 import Text.Pandoc.Shared (trimMath)
 import Text.Pandoc.Sources

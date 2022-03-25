@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
-Module      : Text.Pandoc.Parsing.Combinators
+Module      : Text.Pandoc.Parsing.Smart
 Copyright   : © 2006-2022 John MacFarlane
 License     : GPL-2.0-or-later
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -32,7 +32,7 @@ import Text.Pandoc.Options
   , ReaderOptions(readerExtensions) )
 import Text.Pandoc.Sources
 import Text.Pandoc.Parsing.Capabilities
-import Text.Pandoc.Parsing.Combinators
+import Text.Pandoc.Parsing.General
 import Text.Pandoc.Parsing.Types (ParserT)
 import Text.Parsec
   ( (<|>)
