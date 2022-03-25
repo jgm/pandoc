@@ -220,11 +220,11 @@ data Tok = Tok SourcePos TokContents
   deriving (Show, Eq)
 
 data TokContents =
-    ControlWord Text (Maybe Int)
-  | ControlSymbol Char
-  | UnformattedText Text
-  | BinData BL.ByteString
-  | HexVal Word8
+    ControlWord !Text !(Maybe Int)
+  | ControlSymbol !Char
+  | UnformattedText !Text
+  | BinData !BL.ByteString
+  | HexVal !Word8
   | Grouped [Tok]
   deriving (Show, Eq)
 
@@ -235,35 +235,38 @@ tok = do
  where
   controlThing = do
     char '\\' *>
-      ( binData
-     <|> (ControlWord <$> letterSequence <*> (parameter <* optional delimChar))
+      ( controlWord
      <|> (HexVal <$> hexVal)
      <|> (ControlSymbol <$> anyChar) )
-  binData = try $ do
-    string "bin" <* notFollowedBy letter
-    n <- fromMaybe 0 <$> parameter
-    spaces
-    -- NOTE: We assume here that if the document contains binary
-    -- data, it will not be valid UTF-8 and hence it will have been
-    -- read as latin1, so we can recover the data in the following
-    -- way.  This is probably not completely reliable, but I don't
-    -- know if we can do better without making this reader take
-    -- a ByteString input.
-    dat <- BL.pack . map (fromIntegral . ord) <$> count n anyChar
-    return $ BinData dat
+  controlWord = do
+    name <- letterSequence
+    param <- parameter <* optional delimChar
+    case name of
+      "bin" -> do
+        let n = fromMaybe 0 param
+        spaces
+        -- NOTE: We assume here that if the document contains binary
+        -- data, it will not be valid UTF-8 and hence it will have been
+        -- read as latin1, so we can recover the data in the following
+        -- way.  This is probably not completely reliable, but I don't
+        -- know if we can do better without making this reader take
+        -- a ByteString input.
+        dat <- BL.pack . map (fromIntegral . ord) <$> count n anyChar
+        return $! BinData dat
+      _ -> return $! ControlWord name param
   parameter = do
     hyph <- option False $ True <$ char '-'
     rest <- many digit
     if null rest
-       then return Nothing
+       then return $! Nothing
        else do
          let pstr = T.pack rest
          case TR.decimal pstr of
            Right (i,_) ->
-                return $ Just $ if hyph
-                                   then (-1) * i
-                                   else i
-           _ -> return Nothing
+                return $! Just $ if hyph
+                                    then (-1) * i
+                                    else i
+           _ -> return $! Nothing
   hexVal = do
     char '\''
     x <- hexDigit
