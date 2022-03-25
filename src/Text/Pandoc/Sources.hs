@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -144,7 +145,7 @@ satisfy :: (Monad m, Stream s m Char, UpdateSourcePos s Char)
          => (Char -> Bool) -> ParsecT s u m Char
 satisfy f = P.tokenPrim show updateSourcePos matcher
  where
-  matcher c = if f c then Just c else Nothing
+  matcher !c = if f c then Just c else Nothing
 
 oneOf :: (Monad m, Stream s m Char, UpdateSourcePos s Char)
       => [Char] -> ParsecT s u m Char
