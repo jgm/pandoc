@@ -930,10 +930,12 @@ blockToOpenXML' _ HorizontalRule = do
     $ mknode "v:rect" [("style","width:0;height:1.5pt"),
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
-blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) =
-  tableToOpenXML opts
+blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) = do
+  content <- tableToOpenXML opts
                  (blocksToOpenXML opts)
                  (Grid.toTable attr caption colspecs thead tbodies tfoot)
+  let (tableId, _, _) = attr
+  wrapBookmark tableId content
 blockToOpenXML' opts el
   | BulletList lst <- el = addOpenXMLList BulletMarker lst
   | OrderedList (start, numstyle, numdelim) lst <- el
