@@ -37,7 +37,7 @@ referencesToJATS :: PandocMonad m
                  -> [Reference Inlines]
                  -> JATS m (Doc Text)
 referencesToJATS opts =
-  fmap (inTags True "ref-list" [] . vcat) . mapM (referenceToJATS opts)
+  fmap vcat . mapM (referenceToJATS opts)
 
 referenceToJATS :: PandocMonad m
                 => WriterOptions
