@@ -15,9 +15,7 @@ module Text.Pandoc.Lua.Marshal.CommonState
   , pushCommonState
   ) where
 
-import HsLua.Core
-import HsLua.Marshalling
-import HsLua.Packaging
+import HsLua
 import Text.Pandoc.Class (CommonState (..))
 import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)

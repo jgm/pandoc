@@ -19,8 +19,7 @@ module Text.Pandoc.Lua.Marshal.PandocError
   )
   where
 
-import HsLua.Core (LuaError)
-import HsLua.Marshalling (Peeker, Pusher, pushString, liftLua)
+import HsLua (LuaError, Peeker, Pusher, liftLua, pushString)
 import HsLua.Packaging
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 

@@ -14,8 +14,7 @@ module Text.Pandoc.Lua.ErrorConversion
   ( addContextToException
   ) where
 
-import HsLua (LuaError, LuaE, top)
-import HsLua.Marshalling (resultToEither, runPeek)
+import HsLua (LuaError, LuaE, resultToEither, runPeek, top)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Marshal.PandocError (pushPandocError, peekPandocError)
 
