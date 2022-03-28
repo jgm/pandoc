@@ -65,6 +65,7 @@ referenceToJATS _opts ref = do
     , accessed
     , "volume"          `varInTag` "volume"
     , "issue"           `varInTag` "issue"
+    , "edition"         `varInTag` "edition"
     , "page-first"      `varInTag` "fpage"
     , "page-last"       `varInTag` "lpage"
     , "pages"           `varInTag` "page-range"
