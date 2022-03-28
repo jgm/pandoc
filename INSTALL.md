@@ -310,8 +310,7 @@ You will need cabal version 2.0 or higher.
     - `embed_data_files`: embed all data files into the binary (default no).
       This is helpful if you want to create a relocatable binary.
 
-    - `https`:  enable support for downloading resources over https
-      (using the `http-client` and `http-client-tls` libraries).
+    - `lua53`: embed support for Lua 5.3 instead of 5.4.
 
 3.  Build:
 

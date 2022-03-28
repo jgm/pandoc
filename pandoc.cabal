@@ -420,6 +420,10 @@ flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
+flag lua53
+  Description:   Embed Lua 5.3 instead of 5.4.
+  Default:       False
+
 flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
@@ -484,7 +488,6 @@ library
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.5,
                  haddock-library       >= 1.10     && < 1.11,
-                 hslua                 >= 2.1      && < 2.3,
                  hslua-marshalling     >= 2.1      && < 2.3,
                  hslua-module-doclayout>= 1.0.2    && < 1.1,
                  hslua-module-path     >= 1.0      && < 1.1,
@@ -529,6 +532,11 @@ library
                  zlib                  >= 0.5      && < 0.7
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.8
+  if flag(lua53)
+    build-depends:  hslua >= 2.1 && < 2.2,
+                    hslua-aeson >= 2.1 && < 2.3
+  else
+    build-depends:  hslua >= 2.2 && < 2.3
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      other-modules: Text.Pandoc.Data
