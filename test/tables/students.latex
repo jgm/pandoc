@@ -3,17 +3,17 @@
   >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
 \caption{List of Students}\tabularnewline
 \toprule
-\begin{minipage}[b]{\linewidth}\centering
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Student ID
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Name
 \end{minipage} \\
 \midrule
 \endfirsthead
 \toprule
-\begin{minipage}[b]{\linewidth}\centering
+\TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Student ID
-\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\end{minipage} & \TableHeaderItemStyle \begin{minipage}[b]{\linewidth}\centering
 Name
 \end{minipage} \\
 \midrule

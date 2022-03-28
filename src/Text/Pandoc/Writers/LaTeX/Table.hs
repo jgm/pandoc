@@ -159,9 +159,19 @@ headToLaTeX :: PandocMonad m
             -> Ann.TableHead
             -> LW m (Doc Text)
 headToLaTeX blocksWriter (Ann.TableHead _attr headerRows) = do
-  rowsContents <- mapM (rowToLaTeX blocksWriter HeaderCell . headerRowCells)
+  rowsContents <- mapM (headrowToLaTeX blocksWriter HeaderCell . headerRowCells)
                        headerRows
   return ("\\toprule" $$ vcat rowsContents $$ "\\midrule")
+
+-- | Converts a row of table cells into a LaTeX row.
+headrowToLaTeX :: PandocMonad m
+           => BlocksWriter m
+           -> CellType
+           -> [Ann.Cell]
+           -> LW m (Doc Text)
+headrowToLaTeX blocksWriter celltype row = do
+  cellsDocs <- mapM (cellToLaTeX blocksWriter celltype) (fillRow row)
+  return $ "\\TableHeaderItemStyle " <> hsep (intersperse "& \\TableHeaderItemStyle" cellsDocs) <> " \\\\"
 
 -- | Converts a row of table cells into a LaTeX row.
 rowToLaTeX :: PandocMonad m
