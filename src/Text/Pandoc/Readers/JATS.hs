@@ -21,7 +21,7 @@ import Data.Default
 import Data.Generics
 import Data.List (foldl', intersperse)
 import qualified Data.Map as Map
-import Data.Maybe (maybeToList, fromMaybe)
+import Data.Maybe (maybeToList, fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -417,6 +417,7 @@ parseRef e = do
          refLabel <- getInlineText "label" c
          refYear <- getInlineText "year" c
          refVolume <- getInlineText "volume" c
+         refIssue <- getInlineText "issue" c
          refFirstPage <- getInlineText "fpage" c
          refLastPage <- getInlineText "lpage" c
          refPublisher <- getInlineText "publisher-name" c
@@ -434,6 +435,15 @@ parseRef e = do
                    ("given" :: Text, given)
                  , ("family", family)
                  ]
+         let extractObjectId e' =
+               let v = toMetaValue (strContent e')
+                in case attrValue "pub-id-type" e' of
+                      "doi"  -> Just ("DOI",  v)
+                      "pmid" -> Just ("PMID", v)
+                      _      -> Nothing
+         let objectIds = mapMaybe extractObjectId $
+                          (filterChildren (\e' -> named "object-id" e' ||
+                                                  named "pub-id" e') c)
          personGroups <- mapM (\pg ->
                                 do names <- mapM getName
                                             (filterChildren (named "name") pg)
@@ -453,9 +463,10 @@ parseRef e = do
                             ("year" :: Text, refYear)
                           ])
            , ("volume", toMetaValue refVolume)
+           , ("issue", toMetaValue refIssue)
            , ("page", toMetaValue refPages)
            , ("citation-label", toMetaValue refLabel)
-           ] ++ personGroups
+           ] ++ objectIds ++ personGroups
        Nothing -> return $ Map.insert "id" (toMetaValue refId) mempty
        -- TODO handle mixed-citation
 
