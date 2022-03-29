@@ -67,14 +67,19 @@ referenceToJATS _opts ref = do
     , "issue"           `varInTag` "issue"
     , "edition"         `varInTag` "edition"
     , "page-first"      `varInTag` "fpage"
-    , "page-last"       `varInTag` "lpage"
-    , "pages"           `varInTag` "page-range"
     , "ISBN"            `varInTag` "isbn"
     , "ISSN"            `varInTag` "issn"
     , "URL"             `varInTag` "uri"
     , varInTagWith "doi"  "pub-id" [("pub-id-type", "doi")]
     , varInTagWith "pmid" "pub-id" [("pub-id-type", "pmid")]
-    ]
+    ] ++
+    case lookupVariable "page" ref >>= valToText of
+      Nothing -> []
+      Just val ->
+        let isdash c = c == '-' || c == '\x2013'
+            (fpage, lpage) = T.dropWhile isdash <$> T.break isdash val
+         in [ inTags' "fpage" [] $ literal $ escapeStringForXML fpage,
+              inTags' "lpage" [] $ literal $ escapeStringForXML lpage ]
   where
     varInTag var tagName = varInTagWith var tagName []
 
