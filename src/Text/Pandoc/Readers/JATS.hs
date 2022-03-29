@@ -460,7 +460,10 @@ parseRef e = do
                             x -> x) :) .
                   catMaybes <$> mapM (refElement c) (elChildren c)
       Nothing -> pure []   -- TODO handle mixed-citation
-  return $ Map.fromList (("id", toMetaValue $ attrValue "id" e) : refVariables)
+  -- allows round-tripping, since JATS writer puts ref- in front of citation ids:
+  let stripPref t = fromMaybe t $ T.stripPrefix "ref-" t
+  return $ Map.fromList (("id", toMetaValue $ stripPref $ attrValue "id" e)
+                        : refVariables)
 
 textContent :: Element -> Text
 textContent = strContent
