@@ -930,7 +930,7 @@ inlineToLaTeX il@(Image _ _ (src, _))
   | Just _ <- T.stripPrefix "data:" src = do
       report $ InlineNotRendered il
       return empty
-inlineToLaTeX (Image attr _ (source, _)) = do
+inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   setEmptyLine False
   modify $ \s -> s{ stGraphics = True }
   opts <- gets stOptions
@@ -953,10 +953,13 @@ inlineToLaTeX (Image attr _ (source, _)) = do
                                 Height | isJust (dimension Width attr) ->
                                   [d <> "\\textheight"]
                                 _ -> []
-      dimList = showDim Width <> showDim Height
-      dims = if null dimList
-                then empty
-                else brackets $ mconcat (intersperse "," dimList)
+      optList = showDim Width <> showDim Height <>
+                maybe [] (\x -> ["page=" <> literal x]) (lookup "page" kvs) <>
+                maybe [] (\x -> ["trim=" <> literal x]) (lookup "trim" kvs) <>
+                maybe [] (\_ -> ["clip"]) (lookup "clip" kvs)
+      options = if null optList
+                   then empty
+                   else brackets $ mconcat (intersperse "," optList)
       source' = if isURI source
                    then source
                    else T.pack $ unEscapeString $ T.unpack source
@@ -964,7 +967,7 @@ inlineToLaTeX (Image attr _ (source, _)) = do
   inHeading <- gets stInHeading
   return $
     (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
-    dims <> braces (literal source'')
+    options <> braces (literal source'')
 inlineToLaTeX (Note contents) = do
   setEmptyLine False
   externalNotes <- gets stExternalNotes
