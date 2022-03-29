@@ -720,8 +720,12 @@ directive' = do
         "aafig" -> do
           let attribs = (name, ["aafig"], map (second trimr) fields)
           return $ B.codeBlockWith attribs $ stripTrailingNewlines body
-        "math" -> return $ B.para $ mconcat $ map B.displayMath
-                         $ toChunks $ top <> "\n\n" <> body
+        "math" -> return $ B.para
+                  $ (case mkAttr name classes fields of
+                       attr | attr == nullAttr -> id
+                            | otherwise        -> B.spanWith attr)
+                  $ mconcat $ map B.displayMath
+                  $ toChunks $ top <> "\n\n" <> body
         "figure" -> do
            (caption, legend) <- parseFromString' extractCaption body'
            let src = escapeURI $ trim top
@@ -1026,6 +1030,14 @@ codeblock ident classes fields lang rmTrailingNewlines body =
                 ++ case lookup "number-lines" fields of
                      Just v | not (T.null v) -> [("startFrom", v)]
                      _ -> []
+
+-- | Creates element attributes from a name, list of classes, and fields.
+-- Removes fields named @name@, @id@, or @class@.
+mkAttr :: Text -> [Text] -> [(Text, Text)] -> Attr
+mkAttr ident classes fields = (ident, classes, fields')
+  where fields' = [(k, v') | (k, v) <- fields
+                           , let v' = trimr v
+                           , k /= "name", k /= "id", k /= "class"]
 
 ---
 --- note block

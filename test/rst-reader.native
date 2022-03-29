@@ -1556,10 +1556,13 @@ Pandoc
       , Math DisplayMath "\\alpha = \\beta"
       ]
   , Para
-      [ Math
-          DisplayMath
-          "\\begin{aligned}\nE &= mc^2\\\\\nF &= \\pi E\n\\end{aligned}"
-      , Math DisplayMath "F &= \\gamma \\alpha^2"
+      [ Span
+          ( "" , [] , [ ( "label" , "hithere" ) , ( "nowrap" , "" ) ] )
+          [ Math
+              DisplayMath
+              "\\begin{aligned}\nE &= mc^2\\\\\nF &= \\pi E\n\\end{aligned}"
+          , Math DisplayMath "F &= \\gamma \\alpha^2"
+          ]
       ]
   , Para [ Str "All" , Space , Str "done." ]
   , Header 1 ( "default-role" , [] , [] ) [ Str "Default-Role" ]
