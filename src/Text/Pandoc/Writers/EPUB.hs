@@ -835,94 +835,93 @@ createChapterEntries opts' vars cssvars writeHtml chapters = do
 
 -- | Splits the blocks into chapters and creates a corresponding reftable
 createChaptersAndReftable :: WriterOptions -> [Block] -> ([Chapter], [(Text, Text)])
-createChaptersAndReftable opts secs = do
-  let chapterHeaderLevel = writerEpubChapterLevel opts
+createChaptersAndReftable opts secs = (chapters, reftable)
+  where 
+    chapterHeaderLevel = writerEpubChapterLevel opts
 
-  let isChapterHeader :: Block -> Bool
-      isChapterHeader (Div _ (Header n _ _:_)) = n <= chapterHeaderLevel
-      isChapterHeader _ = False
+    isChapterHeader :: Block -> Bool
+    isChapterHeader (Div _ (Header n _ _:_)) = n <= chapterHeaderLevel
+    isChapterHeader _ = False
 
-  let secsToChapters :: [Block] -> [Chapter]
-      secsToChapters [] = []
-      secsToChapters (d@(Div attr (h@(Header lvl _ _) : bs)) : rest)
-        -- If the header is of the same level as chapters, create a chapter
-        | chapterHeaderLevel == lvl =
-           Chapter [d] : secsToChapters rest
-        -- If the header is a level higher than chapters, 
-        -- create a chapter of everything until the next chapter header.
-        | chapterHeaderLevel > lvl =
-           Chapter [Div attr (h:xs)] :
-           secsToChapters ys ++ secsToChapters rest
-             where (xs, ys) = break isChapterHeader bs
-      secsToChapters bs =
-        -- If this is the last block, keep it as is, 
-        -- otherwise create a chapter for everything until the next chapter header.
-          (if null xs then id else (Chapter xs :)) $ secsToChapters ys
+    secsToChapters :: [Block] -> [Chapter]
+    secsToChapters [] = []
+    secsToChapters (d@(Div attr (h@(Header lvl _ _) : bs)) : rest)
+      -- If the header is of the same level as chapters, create a chapter
+      | chapterHeaderLevel == lvl =
+          Chapter [d] : secsToChapters rest
+      -- If the header is a level higher than chapters, 
+      -- create a chapter of everything until the next chapter header.
+      | chapterHeaderLevel > lvl =
+          Chapter [Div attr (h:xs)] :
+          secsToChapters ys ++ secsToChapters rest
             where (xs, ys) = break isChapterHeader bs
+    secsToChapters bs =
+      -- If this is the last block, keep it as is, 
+      -- otherwise create a chapter for everything until the next chapter header.
+        (if null xs then id else (Chapter xs :)) $ secsToChapters ys
+          where (xs, ys) = break isChapterHeader bs
   
-  -- Convert the sections to initial chapters
-  let chapters' = secsToChapters secs
+    -- Convert the sections to initial chapters
+    chapters' = secsToChapters secs
 
-  -- Extract references for the reftable from Inline elements
-  let extractLinkURL' :: Int -> Inline -> [(T.Text, T.Text)]
-      extractLinkURL' num (Span (ident, _, _) _)
-        | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
-      extractLinkURL' num (Link (ident, _, _) _ _)
-        | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
-      extractLinkURL' num (Image (ident, _, _) _ _)
-        | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
-      extractLinkURL' num (RawInline fmt raw)
-        | isHtmlFormat fmt
-        = foldr (\tag ->
-                   case tag of
-                     TagOpen{} ->
-                       case fromAttrib "id" tag of
-                         "" -> id
-                         x  -> ((x, showChapter num <> "#" <> x):)
-                     _ -> id)
-            [] (parseTags raw)
-      extractLinkURL' _ _ = []
+    -- Extract references for the reftable from Inline elements
+    extractLinkURL' :: Int -> Inline -> [(T.Text, T.Text)]
+    extractLinkURL' num (Span (ident, _, _) _)
+      | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
+    extractLinkURL' num (Link (ident, _, _) _ _)
+      | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
+    extractLinkURL' num (Image (ident, _, _) _ _)
+      | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
+    extractLinkURL' num (RawInline fmt raw)
+      | isHtmlFormat fmt
+      = foldr (\tag ->
+                  case tag of
+                    TagOpen{} ->
+                      case fromAttrib "id" tag of
+                        "" -> id
+                        x  -> ((x, showChapter num <> "#" <> x):)
+                    _ -> id)
+          [] (parseTags raw)
+    extractLinkURL' _ _ = []
   
-  -- Extract references for the reftable from Block elements
-  let extractLinkURL :: Int -> Block -> [(T.Text, T.Text)]
-      extractLinkURL num (Div (ident, _, _) _)
-        | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
-      extractLinkURL num (Header _ (ident, _, _) _)
-        | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
-      extractLinkURL num (Table (ident,_,_) _ _ _ _ _)
-        | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
-      extractLinkURL num (RawBlock fmt raw)
-        | isHtmlFormat fmt
-        = foldr (\tag ->
-                   case tag of
-                     TagOpen{} ->
-                       case fromAttrib "id" tag of
-                         "" -> id
-                         x  -> ((x, showChapter num <> "#" <> x):)
-                     _ -> id)
-            [] (parseTags raw)
-      extractLinkURL num b = query (extractLinkURL' num) b
+    -- Extract references for the reftable from Block elements
+    extractLinkURL :: Int -> Block -> [(T.Text, T.Text)]
+    extractLinkURL num (Div (ident, _, _) _)
+      | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
+    extractLinkURL num (Header _ (ident, _, _) _)
+      | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
+    extractLinkURL num (Table (ident,_,_) _ _ _ _ _)
+      | not (T.null ident) = [(ident, showChapter num <> "#" <> ident)]
+    extractLinkURL num (RawBlock fmt raw)
+      | isHtmlFormat fmt
+      = foldr (\tag ->
+                  case tag of
+                    TagOpen{} ->
+                      case fromAttrib "id" tag of
+                        "" -> id
+                        x  -> ((x, showChapter num <> "#" <> x):)
+                    _ -> id)
+          [] (parseTags raw)
+    extractLinkURL num b = query (extractLinkURL' num) b
 
-  -- Create a reference table for the chapters with appropriate numbering
-  let reftable = concat $ zipWith (\(Chapter bs) num ->
+    -- Create a reference table for the chapters with appropriate numbering
+    reftable = concat $ zipWith (\(Chapter bs) num ->
                                     query (extractLinkURL num) bs)
                           chapters' [1..]
 
-  let fixInternalReferences :: Inline -> Inline
-      fixInternalReferences (Link attr lab (src, tit))
-        | Just ('#', xs) <- T.uncons src = case lookup xs reftable of
-             Just ys -> Link attr lab (ys, tit)
-             Nothing -> Link attr lab (src, tit)
-      fixInternalReferences x = x
+    fixInternalReferences :: Inline -> Inline
+    fixInternalReferences (Link attr lab (src, tit))
+      | Just ('#', xs) <- T.uncons src = case lookup xs reftable of
+            Just ys -> Link attr lab (ys, tit)
+            Nothing -> Link attr lab (src, tit)
+    fixInternalReferences x = x
 
-  -- internal reference IDs change when we chunk the file,
-  -- so that '#my-header-1' might turn into 'chap004.xhtml#my-header'.
-  -- this fixes that:
-  let chapters = map (\(Chapter bs) ->
-                         Chapter $ walk fixInternalReferences bs)
-                 chapters'
-
-  (chapters, reftable)
+    -- internal reference IDs change when we chunk the file,
+    -- so that '#my-header-1' might turn into 'chap004.xhtml#my-header'.
+    -- this fixes that:
+    chapters = map (\(Chapter bs) ->
+                        Chapter $ walk fixInternalReferences bs)
+                chapters'
 
 createTocEntry :: PandocMonad m =>
                           Meta
