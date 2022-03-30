@@ -341,6 +341,7 @@ parseMetadata e = do
   getAuthors e
   getAffiliations e
   getAbstract e
+  getPubDate e
   return mempty
 
 getTitle :: PandocMonad m => Element -> JATS m ()
@@ -378,6 +379,19 @@ getAbstract e =
     Just s -> do
       blks <- getBlocks s
       addMeta "abstract" blks
+    Nothing -> pure ()
+
+getPubDate :: PandocMonad m => Element -> JATS m ()
+getPubDate e =
+  case filterElement (named "pub-date") e of
+    Just d -> do
+      case maybeAttrValue "iso-8601-date" d of
+        Just isod -> addMeta "date" (text isod)
+        Nothing -> do
+          let yr = strContent <$> filterElement (named "year") d
+          let mon = strContent <$> filterElement (named "month") d
+          let day = strContent <$> filterElement (named "day") d
+          addMeta "date" $ text $ T.intercalate "-" $ catMaybes [yr, mon, day]
     Nothing -> pure ()
 
 getContrib :: PandocMonad m => Element -> JATS m Inlines
