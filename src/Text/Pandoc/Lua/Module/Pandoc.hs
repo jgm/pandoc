@@ -19,6 +19,7 @@ module Text.Pandoc.Lua.Module.Pandoc
   ) where
 
 import Prelude hiding (read)
+import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
 import Control.Monad.Catch (catch, throwM)
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
@@ -34,6 +35,7 @@ import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
 import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
                                              , pushReaderOptions)
+import Text.Pandoc.Lua.Marshal.Sources (peekSources)
 import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
@@ -42,6 +44,7 @@ import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
                            , WriterOptions (writerExtensions) )
 import Text.Pandoc.Process (pipeProcess)
 import Text.Pandoc.Readers (Reader (..), getReader)
+import Text.Pandoc.Sources (toSources)
 import Text.Pandoc.Writers (Writer (..), getWriter)
 
 import qualified HsLua as Lua
@@ -180,10 +183,17 @@ functions =
             let formatSpec = fromMaybe "markdown" mformatspec
                 readerOpts = fromMaybe def mreaderOptions
                 readAction = getReader formatSpec >>= \case
-                  (TextReader r, es)      ->
-                    r readerOpts{readerExtensions = es} (UTF8.toText content)
+                  (TextReader r, es)       ->
+                    r readerOpts{readerExtensions = es}
+                      (case content of
+                         Left bs       -> toSources $ UTF8.toText bs
+                         Right sources -> sources)
                   (ByteStringReader r, es) ->
-                    r readerOpts{readerExtensions = es} (BSL.fromStrict content)
+                    case content of
+                      Left bs -> r readerOpts{readerExtensions = es}
+                                   (BSL.fromStrict bs)
+                      Right _ -> liftPandocLua $ Lua.failLua
+                                 "Cannot use bytestring reader with Sources"
             try (unPandocLua readAction) >>= \case
               Right pd ->
                 -- success, got a Pandoc document
@@ -195,7 +205,9 @@ functions =
                 "Extension " <> e <> " not supported for " <> f
               Left e ->
                 throwM e)
-    <#> parameter peekByteString "string" "content" "text to parse"
+    <#> parameter (\idx -> (Left  <$> peekByteString idx)
+                       <|> (Right <$> peekSources idx))
+          "string|Sources" "content" "text to parse"
     <#> opt (textParam "formatspec" "format and extensions")
     <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
              "reader options")
