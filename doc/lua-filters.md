@@ -3414,7 +3414,7 @@ retrieved from the other parsed input files.
 Parameters:
 
 `markup`
-:   the markup to be parsed (string)
+:   the markup to be parsed (string|Sources)
 
 `format`
 :   format specification, defaults to `"markdown"` (string)

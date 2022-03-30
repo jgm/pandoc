@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
@@ -9,13 +10,15 @@ Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 Marshal 'Sources'.
 -}
 module Text.Pandoc.Lua.Marshal.Sources
-  ( pushSources
+  ( peekSources
+  , pushSources
   ) where
 
+import Control.Monad ((<$!>))
 import Data.Text (Text)
 import HsLua as Lua
 import Text.Pandoc.Lua.Marshal.List (newListMetatable)
-import Text.Pandoc.Sources (Sources (..))
+import Text.Pandoc.Sources (Sources (..), toSources)
 import Text.Parsec (SourcePos, sourceName)
 
 -- | Pushes the 'Sources' as a list of lazy Lua objects.
@@ -30,6 +33,13 @@ pushSources (Sources srcs) = do
       return 1
     rawset (nth 3)
   setmetatable (nth 2)
+
+-- | Retrieves sources from the stack.
+peekSources :: LuaError e => Peeker e Sources
+peekSources idx = liftLua (ltype idx) >>= \case
+  TypeString -> toSources <$!> peekText idx
+  TypeTable  -> Sources <$!> peekList (peekUD typeSource) idx
+  _          -> Sources . (:[]) <$!> peekUD typeSource idx
 
 -- | Source object type.
 typeSource :: LuaError e => DocumentedType e (SourcePos, Text)
