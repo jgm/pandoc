@@ -223,7 +223,7 @@ data TokContents =
 tok :: PandocMonad m => RTFParser m Tok
 tok = do
   pos <- getPosition
-  Tok pos <$> ((controlThing <|> unformattedText <|> grouped) <* skipMany nl)
+  Tok pos <$!> ((controlThing <|> unformattedText <|> grouped) <* skipMany nl)
  where
   controlThing = do
     char '\\' *>
@@ -255,9 +255,9 @@ tok = do
          let pstr = T.pack rest
          case TR.decimal pstr of
            Right (i,_) ->
-                return $! Just $ if hyph
-                                    then (-1) * i
-                                    else i
+                return $! Just $! if hyph
+                                     then (-1) * i
+                                     else i
            _ -> return $! Nothing
   hexVal = do
     char '\''
