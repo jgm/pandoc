@@ -113,7 +113,9 @@ defaultWriterState = WriterState {stNotes= [], stEmittedNotes = 0, stMath = Fals
 -- Helpers to render HTML with the appropriate function.
 
 strToHtml :: Text -> Html
-strToHtml = strToHtml' . T.unpack
+strToHtml t
+    | T.any isSpecial t = strToHtml' $ T.unpack t
+    | otherwise = toHtml t
   where
     strToHtml' ('\'':xs) = preEscapedString "\'" `mappend` strToHtml' xs
     strToHtml' ('"' :xs) = preEscapedString "\"" `mappend` strToHtml' xs
@@ -122,11 +124,11 @@ strToHtml = strToHtml' . T.unpack
                         case xs of
                           ('\xFE0E':ys) -> strToHtml' ys
                           _             -> strToHtml' xs
-    strToHtml' xs@(_:_) = case break (\c -> c == '\'' || c == '"' ||
-                                       needsVariationSelector c) xs of
+    strToHtml' xs@(_:_) = case break isSpecial xs of
                             (_ ,[]) -> toHtml xs
                             (ys,zs) -> toHtml ys `mappend` strToHtml' zs
     strToHtml' [] = ""
+    isSpecial c = c == '\'' || c == '"' || needsVariationSelector c
 
 -- See #5469: this prevents iOS from substituting emojis.
 needsVariationSelector :: Char -> Bool
