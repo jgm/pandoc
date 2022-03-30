@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.RTF
@@ -254,7 +255,7 @@ tok = do
        else do
          let pstr = T.pack rest
          case TR.decimal pstr of
-           Right (i,_) ->
+           Right (!i,_) ->
                 return $! Just $! if hyph
                                      then (-1) * i
                                      else i
