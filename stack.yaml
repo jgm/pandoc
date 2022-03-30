@@ -45,8 +45,6 @@ extra-deps:
   commit: 506e9433db94246371c1b66f95cf1e3ccab24232
 - git: https://github.com/jgm/pandoc-types.git
   commit: b084b2af7151d2d9ae84b7f558f2a77c5103cdd7
-- git: https://github.com/jgm/doclayout.git
-  commit: 17fedfc7c3b692c958111d34ace757ca49b695e7
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
