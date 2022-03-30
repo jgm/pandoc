@@ -37,14 +37,16 @@ extra-deps:
 - git: https://github.com/jgm/citeproc.git
   commit: 363a810024b93aa9230eee4fe27b557b39176bcb
 - git: https://github.com/jgm/doclayout.git
-  commit: e30d98bb5e6b6c53ad0c643f9d2bd90a07988882
+  commit: b274a5658f3655f31c0bc6175d5b27a9467c1456
 - git: https://github.com/jgm/commonmark-hs.git
   commit: cc815e013f0d87eef3daef8ad9e376ad807b012b
   subdirs: [commonmark, commonmark-extensions]
 - git: https://github.com/jgm/texmath.git
   commit: 506e9433db94246371c1b66f95cf1e3ccab24232
 - git: https://github.com/jgm/pandoc-types.git
-  commit: feb3a90a17334ab314f63b2de3ec0c7dd59b4be0
+  commit: b084b2af7151d2d9ae84b7f558f2a77c5103cdd7
+- git: https://github.com/jgm/doclayout.git
+  commit: 17fedfc7c3b692c958111d34ace757ca49b695e7
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

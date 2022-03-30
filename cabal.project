@@ -3,15 +3,16 @@ tests: True
 flags: +embed_data_files
 constraints: aeson >= 2.0.1.0
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/texmath.git
-  tag: 506e9433db94246371c1b66f95cf1e3ccab24232
 
 source-repository-package
   type: git
   location: https://github.com/jgm/doclayout.git
-  tag: e30d98bb5e6b6c53ad0c643f9d2bd90a07988882
+  tag: b274a5658f3655f31c0bc6175d5b27a9467c1456
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath.git
+  tag: 506e9433db94246371c1b66f95cf1e3ccab24232
 
 source-repository-package
   type: git
@@ -21,7 +22,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/pandoc-types.git
-  tag: feb3a90a17334ab314f63b2de3ec0c7dd59b4be0
+  tag: b084b2af7151d2d9ae84b7f558f2a77c5103cdd7
 
 source-repository-package
   type: git
