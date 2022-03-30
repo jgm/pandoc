@@ -296,6 +296,7 @@ mimeTypesList =
            ,("mid","audio/midi")
            ,("midi","audio/midi")
            ,("mif","application/x-mif")
+           ,("mkv","video/x-matroska")
            ,("mm","application/x-freemind")
            ,("mmd","chemical/x-macromodel-input")
            ,("mmf","application/vnd.smaf")
