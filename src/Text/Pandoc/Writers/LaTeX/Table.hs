@@ -52,7 +52,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
                else ($$ text "\\endfirsthead") <$>
                     headToLaTeX blksToLaTeX thead
   head' <- if isEmptyHead thead
-           then return "\\toprule"
+           then return "\\toprule()"
            -- avoid duplicate notes in head and firsthead:
            else headToLaTeX blksToLaTeX
                 (if isEmpty firsthead
@@ -71,7 +71,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
     $$ head'
     $$ "\\endhead"
     $$ vcat rows'
-    $$ "\\bottomrule"
+    $$ "\\bottomrule()"
     $$ "\\end{longtable}"
     $$ captNotes
     $$ notes
@@ -161,7 +161,7 @@ headToLaTeX :: PandocMonad m
 headToLaTeX blocksWriter (Ann.TableHead _attr headerRows) = do
   rowsContents <- mapM (rowToLaTeX blocksWriter HeaderCell . headerRowCells)
                        headerRows
-  return ("\\toprule" $$ vcat rowsContents $$ "\\midrule")
+  return ("\\toprule()" $$ vcat rowsContents $$ "\\midrule()")
 
 -- | Converts a row of table cells into a LaTeX row.
 rowToLaTeX :: PandocMonad m

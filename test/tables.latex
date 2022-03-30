@@ -2,49 +2,49 @@ Simple table with caption:
 
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
-\toprule
+\toprule()
 Right & Left & Center & Default \\
-\midrule
+\midrule()
 \endfirsthead
-\toprule
+\toprule()
 Right & Left & Center & Default \\
-\midrule
+\midrule()
 \endhead
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule
+\bottomrule()
 \end{longtable}
 
 Simple table without caption:
 
 \begin{longtable}[]{@{}rlcl@{}}
-\toprule
+\toprule()
 Right & Left & Center & Default \\
-\midrule
+\midrule()
 \endhead
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule
+\bottomrule()
 \end{longtable}
 
 Simple table indented two spaces:
 
 \begin{longtable}[]{@{}rlcl@{}}
 \caption{Demonstration of simple table syntax.}\tabularnewline
-\toprule
+\toprule()
 Right & Left & Center & Default \\
-\midrule
+\midrule()
 \endfirsthead
-\toprule
+\toprule()
 Right & Left & Center & Default \\
-\midrule
+\midrule()
 \endhead
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule
+\bottomrule()
 \end{longtable}
 
 Multiline table with caption:
@@ -55,7 +55,7 @@ Multiline table with caption:
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \caption{Here's the caption. It may span multiple lines.}\tabularnewline
-\toprule
+\toprule()
 \begin{minipage}[b]{\linewidth}\centering
 Centered Header
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
@@ -65,9 +65,9 @@ Right Aligned
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
-\midrule
+\midrule()
 \endfirsthead
-\toprule
+\toprule()
 \begin{minipage}[b]{\linewidth}\centering
 Centered Header
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
@@ -77,11 +77,11 @@ Right Aligned
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
-\midrule
+\midrule()
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
-\bottomrule
+\bottomrule()
 \end{longtable}
 
 Multiline table without caption:
@@ -91,7 +91,7 @@ Multiline table without caption:
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
-\toprule
+\toprule()
 \begin{minipage}[b]{\linewidth}\centering
 Centered Header
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
@@ -101,22 +101,22 @@ Right Aligned
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 Default aligned
 \end{minipage} \\
-\midrule
+\midrule()
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
-\bottomrule
+\bottomrule()
 \end{longtable}
 
 Table without column headers:
 
 \begin{longtable}[]{@{}rlcr@{}}
-\toprule
+\toprule()
 \endhead
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule
+\bottomrule()
 \end{longtable}
 
 Multiline table without column headers:
@@ -126,9 +126,9 @@ Multiline table without column headers:
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1375}}
   >{\raggedleft\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1625}}
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
-\toprule
+\toprule()
 \endhead
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
-\bottomrule
+\bottomrule()
 \end{longtable}
