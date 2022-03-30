@@ -19,7 +19,7 @@ REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
 quick-cabal: ## build & test with stack, no optimizations
-	cabal v2-test -j --disable-optimization --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)" && cabal build -j --disable-optimization exe:pandoc
+	cabal v2-test --ghc-options='$(GHCOPTS)' --disable-optimization --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)" && cabal build --ghc-options='$(GHCOPTS)' --disable-optimization exe:pandoc
 
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
