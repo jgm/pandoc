@@ -991,7 +991,7 @@ blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
   let contents' = if writerNumberSections opts && not (T.null secnum)
                      && "unnumbered" `notElem` classes
                      then (H.span ! A.class_ "header-section-number"
-                             $ toHtml secnum) >> strToHtml " " >> contents
+                             $ toHtml secnum) >> toHtml ' ' >> contents
                      else contents
   html5 <- gets stHtml5
   let kvs' = if html5
@@ -1373,14 +1373,14 @@ inlineToHtml opts inline = do
   html5 <- gets stHtml5
   case inline of
     (Str str)      -> return $ strToHtml str
-    Space          -> return $ strToHtml " "
+    Space          -> return $ toHtml ' '
     SoftBreak      -> return $ case writerWrapText opts of
-                                     WrapNone     -> " "
-                                     WrapAuto     -> " "
-                                     WrapPreserve -> nl
+                                     WrapNone     -> toHtml ' '
+                                     WrapAuto     -> toHtml ' '
+                                     WrapPreserve -> toHtml '\n'
     LineBreak      -> return $ do
                         if html5 then H5.br else H.br
-                        strToHtml "\n"
+                        toHtml '\n'
     (Span ("",[cls],[]) ils)
         | cls == "csl-block" || cls == "csl-left-margin" ||
           cls == "csl-right-inline" || cls == "csl-indent"
@@ -1449,10 +1449,10 @@ inlineToHtml opts inline = do
     (Subscript lst)   -> H.sub <$> inlineListToHtml opts lst
     (Quoted quoteType lst) ->
                         let (leftQuote, rightQuote) = case quoteType of
-                              SingleQuote -> (strToHtml "‘",
-                                              strToHtml "’")
-                              DoubleQuote -> (strToHtml "“",
-                                              strToHtml "”")
+                              SingleQuote -> (toHtml '‘',
+                                              toHtml '’')
+                              DoubleQuote -> (toHtml '“',
+                                              toHtml '”')
 
                         in if writerHtmlQTags opts
                                then do
