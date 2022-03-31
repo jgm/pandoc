@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -1724,7 +1725,7 @@ nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
 str = do
-  result <- mconcat <$> many1
+  !result <- mconcat <$> many1
              ( T.pack <$> (many1 alphaNum)
               <|> "." <$ try (char '.' <* notFollowedBy (char '.')) )
   updateLastStrPos
@@ -1740,11 +1741,11 @@ str = do
                         ils' <- ils
                         case B.toList ils' of
                              [Space] ->
-                                 return (B.str result <> B.str "\160")
-                             _ -> return (B.str result <> ils'))
-                <|> return (return (B.str result))
-         else return (return (B.str result)))
-     <|> return (return (B.str result))
+                                 return $! (B.str result <> B.str "\160")
+                             _ -> return $! (B.str result <> ils'))
+                <|> return (return $! B.str result)
+         else return (return $! B.str result))
+     <|> return (return $! B.str result)
 
 -- an endline character that can be treated as a space, not a structural break
 endline :: PandocMonad m => MarkdownParser m (F Inlines)
