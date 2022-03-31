@@ -159,16 +159,21 @@ Metadata Values
     together.
 
     `statement`
-    :   the year of copyright; used as content of the
-        [`<copyright-statement>`][elem:copyright-statement]
+    :   copyright notice or statement; used as content of the
+        [`<copyright-statement>`][elem:copyright-statement]. Use a
+        list for multiple statements.
 
     `year`
     :   the year of copyright; used as content of the
-        [`<copyright-year>`][elem:copyright-year]
+        [`<copyright-year>`][elem:copyright-year]. Use a list to
+        for multiple copyright years. The JATS documentation
+        states that this field need not to be used if the year is
+        included in the copyright statement.
 
     `holder`
     :   the copyright holder; included via the
-        [`<copyright-holder>`][elem:copyright-holder] element.
+        [`<copyright-holder>`][elem:copyright-holder] element. Use
+        a list for multiple copyright holders.
 
     `text`
     :   inline text setting the license under which the text is

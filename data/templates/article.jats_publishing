@@ -174,15 +174,15 @@ $if(history)$
 $endif$
 $if(copyright)$
 <permissions>
-$if(copyright.statement)$
+$for(copyright.statement)$
 <copyright-statement>$copyright.statement$</copyright-statement>
-$endif$
-$if(copyright.year)$
+$endfor$
+$for(copyright.year)$
 <copyright-year>$copyright.year$</copyright-year>
-$endif$
-$if(copyright.holder)$
+$endfor$
+$for(copyright.holder)$
 <copyright-holder>$copyright.holder$</copyright-holder>
-$endif$
+$endfor$
 $if(copyright.text)$
 <license license-type="$copyright.type$" xlink:href="$copyright.link$">
 <license-p>$copyright.text$</license-p>
