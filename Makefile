@@ -57,7 +57,7 @@ ghcid-test: ## run ghcid/stack with tests
 	ghcid -c "stack repl --ghc-options=-XNoImplicitPrelude --flag 'pandoc:embed_data_files' --ghci-options=-fobject-code pandoc:lib pandoc:test-pandoc"
 
 bench: ## build and run benchmarks
-	cabal bench --benchmark-options='$(BENCHARGS)' 2>&1 | tee "bench_latest.txt"
+	cabal bench --benchmark-options='$(BENCHARGS)' 2>&1 | tee "bench_$(TIMESTAMP).txt"
 #	stack bench \
 #	  --ghc-options '$(GHCOPTS)' \
 #	  --benchmark-arguments='$(BENCHARGS)' 2>&1 | \
