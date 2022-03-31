@@ -269,7 +269,7 @@ tok = do
   unformattedText = do
     ts <-  filter (\c -> c /= '\r' && c /= '\n') <$>
            ( many1 (satisfy (\c -> not (isSpecial c) || c == '\r' || c == '\n')))
-    return $! UnformattedText $ T.pack ts
+    return $! UnformattedText $! T.pack ts
   grouped = do
     char '{'
     skipMany nl
@@ -345,7 +345,7 @@ addFormatting (props, txt) =
 addText :: PandocMonad m => Text -> RTFParser m ()
 addText t = do
   gs <- sGroupStack <$> getState
-  let props = case gs of
+  let !props = case gs of
                 (x:_) -> x
                 _ -> def
   updateState (\s -> s{ sTextContent = (props, t) : sTextContent s })
