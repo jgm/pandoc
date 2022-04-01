@@ -68,6 +68,7 @@ import Control.Monad
   , unless
   , void
   , when
+  , (<$!>)
   )
 import Control.Monad.Except ( MonadError(throwError) )
 import Control.Monad.Identity ( Identity(..), MonadPlus(mzero) )
@@ -199,20 +200,20 @@ indentWith num = do
 manyChar :: Stream s m t
          => ParserT s st m Char
          -> ParserT s st m Text
-manyChar = fmap T.pack . many
+manyChar p = T.pack <$!> many p
 
 -- | Like @many1@, but packs its result.
 many1Char :: Stream s m t
           => ParserT s st m Char
           -> ParserT s st m Text
-many1Char = fmap T.pack . many1
+many1Char p = T.pack <$!> many1 p
 
 -- | Like @manyTill@, but packs its result.
 manyTillChar :: Stream s m t
              => ParserT s st m Char
              -> ParserT s st m a
              -> ParserT s st m Text
-manyTillChar p = fmap T.pack . manyTill p
+manyTillChar p end = T.pack <$!> manyTill p end
 
 -- | Like @manyTill@, but reads at least one item.
 many1Till :: (Show end, Stream s m t)
