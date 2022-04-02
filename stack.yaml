@@ -35,6 +35,7 @@ extra-deps:
 - commonmark-pandoc-0.2.1.2
 - ipynb-0.2
 - pandoc-types-1.22.2
+- texmath-0.12.5
 - git: https://github.com/jgm/citeproc.git
   commit: 363a810024b93aa9230eee4fe27b557b39176bcb
 - git: https://github.com/jgm/doclayout.git
@@ -42,8 +43,6 @@ extra-deps:
 - git: https://github.com/jgm/commonmark-hs.git
   commit: cc815e013f0d87eef3daef8ad9e376ad807b012b
   subdirs: [commonmark, commonmark-extensions]
-- git: https://github.com/jgm/texmath.git
-  commit: 506e9433db94246371c1b66f95cf1e3ccab24232
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
