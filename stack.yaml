@@ -36,8 +36,7 @@ extra-deps:
 - ipynb-0.2
 - pandoc-types-1.22.2
 - texmath-0.12.5
-- git: https://github.com/jgm/citeproc.git
-  commit: 363a810024b93aa9230eee4fe27b557b39176bcb
+- citeproc-0.7
 - git: https://github.com/jgm/doclayout.git
   commit: b274a5658f3655f31c0bc6175d5b27a9467c1456
 - git: https://github.com/jgm/commonmark-hs.git

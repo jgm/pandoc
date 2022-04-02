@@ -472,7 +472,7 @@ library
                  blaze-markup          >= 0.8      && < 0.9,
                  bytestring            >= 0.9      && < 0.12,
                  case-insensitive      >= 1.2      && < 1.3,
-                 citeproc              >= 0.6.0.1  && < 0.7,
+                 citeproc              >= 0.7      && < 0.8,
                  commonmark            >= 0.2.1.1  && < 0.3,
                  commonmark-extensions >= 0.2.3    && < 0.3,
                  commonmark-pandoc     >= 0.2.1.2  && < 0.3,
