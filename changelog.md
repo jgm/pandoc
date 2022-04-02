@@ -222,7 +222,7 @@
     + Put id attributes on TOC entries (#7907, damon-sava-stanley).
       Naming scheme of id is "toc-" + id of linked to header/section.
       Effects HTML, Markdown, Powerpoint, and RTF.
-    + Define `ordNub as alias for nubOrd from containers package (#7963,
+    + Define `ordNub` as alias for `nubOrd` from containers package (#7963,
       Albert Krewinkel).
     + Export `ensureValidXmlIdentifiers`.  This function changes identifiers
       that don't start with letters, and internal links to these identifiers,
