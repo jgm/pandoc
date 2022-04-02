@@ -1,5 +1,356 @@
 # Revision history for pandoc
 
+## pandoc 2.18 (PROVISIONAL)
+
+  * New input formats: `endnotexml` (EndNote XML bibliography),
+    `ris` (RIS bibliography).
+
+  * A RIS bibliography file may now be used with `--citeproc`.
+
+  * Citeproc: Allow a formatted bibliography to be placed in metadata fields
+    via a Div with class `refs` (#7969, #526).  Thus, one can include a
+    metadata field, say `refs`, whose content is an
+    empty div with id `refs`, and the formatted bibliography will be put into
+    this metadata field.  It may then be interpolated into a template using the
+    variable `refs`.
+
+  * Ensure that you don't get PDF output to terminal.  `-t pdf` now behaves
+    like `-t docx` and gives an error unless the output is redirected.
+
+  * `--version` now prints hslua version (#7929) and
+    Lua version (#7997, Albert Krewinkel).
+
+  * Change `--metadata-file` parsing so that, when the input format is not
+    markdown or a markdown variant, pandoc's markdown is used (#6832, #7926).
+    When the input format is a markdown variant, the same format is used.
+    Reason for the change: it doesn't make sense to run the markdown parser
+    with a set of extensions designed for a non-markdown format, and
+    this dramatically limits what people can do in metadata files.
+
+  * Trim whitespace from math in `--webtex` (#7892).
+    This fixes problems with --webtex and markdown output,
+    when display math starts or ends with a newline.
+
+  * New exported module Text.Pandoc.Readers.EndNote, exporting
+    `readEndNoteXML`, `readEndNoteXMLCitation`,
+    and `readEndNoteXMLReferences`. [API change]
+
+  * `--self-contained`: issue warning rather than failing with an error
+    if a resource can't be found (#7904).
+
+  * New exported module, Text.Pandoc.Readers.RIS, exporting `readRIS` (#7894).
+
+  * LaTeX reader:
+
+    + Handle subequations as inline math environment (#7883).
+    + Rudimentary support for `vbox` (#7939).
+    + Support `\today` (#7905).
+    + Handle `\label` and `\ref` for footnotes (#7930).
+    + Allow inline groups starting with `\bgroup` (#7953).
+    + Use custom TokStream that keeps track of whether macros are expanded.
+      This allows us to improve performance a bit by avoiding unnecessary
+      runs of the macro expansion code (e.g. from 24 ms to 20 ms on
+      our standard benchmark).
+    + Further optimizations for inline parsing.
+    + Better handling of `\usepackage`.  If the package is local but
+      causes parse errors, parse everything up to the error and skip the
+      rest.  Issue a `CouldNotParseIncludeFile` warning indicating that
+      parsing failed at that point.
+    + Text.Pandoc.Readers.LaTeX.Parsing: Monoid and Semigroup instances for
+      TokStream.
+
+  * HTML reader:
+
+    + Give warnings and emit empty note when parsing
+      `<a epub:type="noteref">` and the identifier
+      doesn't correspond to anything in the note table (#7884).
+      Previously we just silently skipped these cases.
+    + Fix parsing of epub footnotes (#7884).
+
+  * DocBook reader:
+
+    + Handle complete set of entities as specified at
+      <https://www.w3.org/2003/entities/2007doc/byalpha.html> (#7938).
+    + Handle abstract in info section (#7747).
+    + Improve info parsing.
+    + Simplify metadata parsing code (#7747).
+      Handle abstract as block-level content.
+      Report skipped info elements with `--verbose`.
+    + Handle address and coyright in metadata (#7747).
+
+  * DokuWiki reader:
+
+    + Add DokuWiki table alignment (#5202, damon-sava-stanley).
+
+  * RST reader:
+
+    + Fix treatment of headerless simple tables (#7902).
+    + Wrap math in Span to preserve attributes (#7998, Albert Krewinkel).
+      Math elements with a name, classes, or other fields are wrapped in a
+      `Span` with these attributes.
+
+  * JATS reader:
+
+    + Improve handling of fn-group elements (#6348, Albert Krewinkel).
+      Footnotes in `<fn-group>` elements are collected and re-inserted into
+      the document as proper footnotes in the place where they are referenced.
+    + Handle `pub-date` (#8000).
+    + Support PMID, DOI, issue in citations (#7995).
+    + Improve refs parsing.  Handle `issn` and `isbn`; use simpler form
+      for issued date.
+    + Strip 'ref-' from ref id in constructing CSL id.  This allows better
+      round-tripping, because the JATS writer adds the `ref-` prefix to
+      the citation id to get the ref element's id.
+
+  * Org reader:
+
+    + Allow ":" in property drawer keys (Lucas V. R).
+      Any non-space character is allowed as property drawer key, including ":"
+      itself (so it is not really a delimiter). The real delimiter is a space
+      character, so in a drawer like
+      ```
+      :PROPERTIES:
+      ::k:ey:: value
+      :END:
+      ```
+      ":k:ey:" is a key with value "value".
+
+    + Allow comments above property drawer.
+    + More flexible LaTeX environments (Lucas V. R).
+    + Handle `#+bibliography:` as metadata so that it can work with
+      `--citeproc`.
+    + Parse `#+print_bibliography:` as Div with id `refs`.
+    + Allow multiple `#+bibliography:`.
+
+  * Markdown reader:
+
+    + Allow one-column pipe tables with pipe on right (#7919).
+    + Remove restriction on identifiers, so they no longer need to
+      begin with a letter (#7920).
+
+  * Docx reader:
+
+    + Enable `citations` extension for docx reader (#7840).
+      When enabled, Zotero, Mendeley, and EndNote citations embedded in
+      a docx are parsed as native pandoc citations.
+      (When disabled, the generated citation
+      text and bibliography are passed through as regular text.)
+      The bibliography generated by the plugin is suppressed.
+      Instead, bibliographic data embedded in citation items is added
+      to the `references` metadata field so that it can be used
+      with `--citeproc`.
+
+  * Docbook writer:
+
+    + Interpret links without contents as cross-references (#7360, Jan Tojnar).
+      Links without text contents are converted to `<xref>` elements. DocBook
+      processors will generate appropriate cross-reference text when presented
+      with an xref element.
+
+  * Docx writer:
+
+    + Single numbering ID for examples (#7895, mjfs).
+      This change ensures that example list items all belong to a single
+      number sequence, so that if items are added or deleted in a word
+      processor, the other items will renumber automatically.
+    + Add bookmark with table id to table (#7989, Nikolai
+      Korobeinikov, #7285).  This allows tables with ids to be linked to.
+
+  * Ipynb writer:
+
+    + Handle metadata better (#7928).  Previously we used the markdown
+      writer to render metadata.  This had some undesirable consequences
+      (e.g. en dash expanded to `--` when `smart` enabled), so now we use
+      the plain writer.
+
+  * LaTeX writer:
+
+    + Avoid extra space before `\CSLRightInline` (#7932).
+    + Add `scrreport` to `chaptersClasses` (#6168, ivardb).
+    + Support `page`,`trim`,`clip` attributes on images (#7181).
+    + Add `()` after booktabs rules (#8001).  These commands take optional
+      arguments with () and [], which can lead to problems if the content
+      of the table cell begins with these characters.
+
+  * RST writer:
+
+    + Support all standard metadata ("bibliographic") fields.
+
+  * HTML writer: performance improvements.
+
+  * Org writer:
+
+    + Stop indenting property drawers, quote blocks
+      (#3245, Albert Krewinkel).  This follows the current default org-mode
+      behavior.
+
+  * Markdown writer:
+
+    + Move table-related code into submodule (Albert Krewinkel).
+    + Don't produce redundant header identifier when the
+      `gfm_auto_identifiers` extension is set (#7941).
+    + Update escaping rules for `\`.  We now escape `\` only if `raw_tex`
+      is enabled or it is followed by a non-alphanumeric.
+
+  * JATS writer:
+
+    + Encode author "others" as `<etal/>` (Albert Krewinkel).
+      Citeproc adopted the BibTeX convention to use the author name "others"
+      when there are additional authors that are not named. JATS uses the
+      `<etal>` element for this.
+    + Avoid doubled ref-list element (#7990).  Previously when generating JATS
+      with the `element_citations` extension enabled, the references were
+      put in a doubly-nested ref-list element (`<ref-list><ref-list>...`).
+    + Keep edition info in element citations (#7993, Albert Krewinkel).
+    + Fix handling of CSL variable 'page' (not 'pages' as we had before).
+      It should go to 'lpage' and 'rpage', not 'page-range'.
+
+  * EPUB writer: refactor for clarity (#7991, Jonathan Dönszelmann,
+    Ola Wolska, Ivar de Bruin, Jaap de Jong).
+
+  * Custom writer (Albert Krewinkel):
+
+    + Support new-style Writer function (Albert Krewinkel).
+      See the documentation for custom writers for details.
+    + Produce stacktrace if Writer function fails
+
+  * Text.Pandoc.Logging: add `CouldNotParseIncludeFile` constructor
+    for `LogMessage` [API change].
+
+  * Text.Pandoc.Shared:
+
+    + Put id attributes on TOC entries (#7907, damon-sava-stanley).
+      Naming scheme of id is "toc-" + id of linked to header/section.
+      Effects HTML, Markdown, Powerpoint, and RTF.
+    + Define `ordNub as alias for nubOrd from containers package (#7963,
+      Albert Krewinkel).
+    + Export `ensureValidXmlIdentifiers`.  This function changes identifiers
+      that don't start with letters, and internal links to these identifiers,
+      making them compatible with XML standards.  The change
+      is simple: we add `id_` to the front.  There is potential
+      for duplication if there are already `id_...` identifiers
+      defined, but this seems rare enough not to worry too much
+      about.
+
+  * Ensure that valid XML identifiers are used in Docbook, EPUB, FB2,
+    HTML4, S5, Slidy, Slideous, ICML, ODT, TEI writers.
+    Thus, if you convert `[anchor]{#1} and [link to](#1)`,
+    `id_1` will be used instead of `1` for the identifier.
+
+  * Lua (Albert Krewinkel).
+
+    + Add module `pandoc.layout` to format and layout text.
+    + Move custom writer code into Lua hierarchy.
+    + Use pandoc-lua-marshal 0.1.5.
+    +  Allow any type of callable object as argument to List
+       functions `filter`, `map`, and `find_if`. These previously
+       required the argument to be of type `function`, which was too
+       restrictive.
+    + Inline: the type of Image captions is now `Inlines` instead of `List`.
+    + Allow passing `Sources` to `pandoc.read` (#8002).
+
+  * Text.Pandoc.PDF:
+
+    + Restore `wkhtmltopdf` as default pdf engine for HTML (Albert Krewinkel).
+    + Allow custom writer as format if engine is explicitly specified (#7898,
+      Albert Krewinkel).  Note that it may be necessary to explicitly
+      specify a template on the command line.
+
+  * Text.Pandoc.MediaBag: improve detection of absolute paths (#7881).
+
+  * Text.Pandoc.Extensions:
+
+    + Remove `raw_tex` extension from list of commonmark extensions, and
+      from the `commonmark_x` defaults.  commonmark doesn't parse raw TeX,
+      and it doesn't make sense to write it if we don't parse it.
+    + Remove `native_divs` from allowed gfm extensions (#7965).  This allows
+      `<div>` to be suppressed using `-raw_html`.  Previously `native_divs`
+      was enabled but could not be suppressed, because it was not in the
+      list of available extensions for commonmark-based formats.
+
+  * Text.Pandoc.Parsing:
+
+    + Partition module into (internal) submodules (#7962, Albert Krewinkel).
+    + Unify grid table parsing (#7971, Albert Krewinkel).
+      Grid table parsing in Markdown and RST are updated use the same
+      functions. Functions are generalized to meet requirements for both
+      formats.  This change also lays the ground for further generalizations
+      in table parsers, including support for advanced table features.
+      [API change] in Text.Pandoc.Parsing:
+
+      - Parse results of functions `tableWith'` and `gridTableWith'` are now a
+        `mf TableComponents` instead of a quadruple of alignments, column
+        widths, header rows and body rows.
+      - Additional exports from Text.Pandoc.Parsing:
+        `tableWith'`, `TableComponents`, `TableNormalization`,
+        `toTableComponents`, `toTableComponents'`.
+
+  * Text.Pandoc.XML.Light: add versions of the parsers that allow
+    specifying a custom entity map.  Exports new functions:
+    `parseXMLElementWithEntities`, `parseXMLContentsWithEntities` [API change].
+
+  * Text.Pandoc.Writers.GridTable: improve module documentation (Albert
+    Krewinkel).
+
+  * Text.Pandoc.Parsing.GridTable: simplify column handling code (Albert
+    Krewinkel).
+
+  * Text.Pandoc.MIME: Add mime type for mkv extension (#7181).
+
+  * Text.Pandoc.Asciify: Fix regression with `ascii_identifiers` and Turkish
+    undotted i (#8003).
+
+  * Relax upper bound for hslua, allow hslua-2.2. (#7929)
+    Lua 5.4 is used by default after this is merged. Packagers may still
+    include Lua 5.3 instead by building pandoc with `--constraint='hslua <2.2'`.
+    Differences between 5.3 and 5.4 should not generally affect pandoc Lua
+    filters.  See list of incompatible changes here:
+    <https://www.lua.org/manual/5.4/manual.html#8.1>
+
+  * LaTeX template:
+
+    + Skip `\babelprovide` if `babel-lang` is empty (#7945) to avoid an error.
+    + Move hyperref near end of preamble (#5811).  It now comes after
+      header-includes and right before title, author, date, abstract.
+      Note:  Users who presuppose hyperref in their header-includes
+      will now have to add `\usepackage{hyperref}` to their header-includes
+      to make it available there.  (The redundant `\usepackage` will
+      do no harm in this case.)
+    + Remove special redefinition of `\sout`.  This used to be necessary to
+      avoid problems with hyperref, when headings contain strikeout text,
+      but it does not seem to be necessary any more (tested).
+
+  * Tests: improve location reporting of failing tests (Albert Krewinkel).
+
+  * Add tests for idempotency of `makeSections` (#7950).
+
+  * Add armhf support in linux build script (#7944, Tony).
+
+  * Use latest pandoc-types, so that toJSONFilter will work with
+    Meta and MetaValue.
+
+  * INSTALL.md: add reference to install via winget (#7951, Guriy Samarin).
+
+  * MANUAL.txt:
+
+    - Document way to get list in block quote in slide shows (#7916).
+    - Minor changes to security section.
+    - Note that `smart` works for html input.
+    - Fix typos (#7934, Dimitris Apostolou).
+    - Fix documentation for citations and org mode.
+    - Remove claim that `--self-contained` does not work with `--mathjax`
+      (#682).
+
+  * doc/org.md: remove obsolete citations section.
+    This mostly described citation formats we no longer support.
+
+  * doc/lua-filters.md: Fix typo (#7981, Mario Lang).
+
+  * Makefile: Use cabal for default build
+
+  * Add `lua53` cabal flag.  It is false by default.  If set to true, compile
+    with hslua 2.1 and Lua 5.3, otherwise hslua 2.2 and Lua 5.4.
+
 ## pandoc 2.17.1.1 (2022-01-31)
 
   * Fix regression in 2.17.1 which caused problems finding
