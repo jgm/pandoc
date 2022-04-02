@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -504,7 +505,9 @@ satisfyTok f = do
     res <- tokenPrim (T.unpack . untoken) updatePos matcher
     updateState $ \st ->
       if sEnableWithRaw st
-         then st{ sRawTokens = IntMap.map (res:) $ sRawTokens st }
+         then
+           let !newraws = IntMap.map (res:) $! sRawTokens st
+            in  st{ sRawTokens = newraws }
          else st
     return $! res
   where matcher t | f t       = Just t
