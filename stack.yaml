@@ -37,11 +37,10 @@ extra-deps:
 - pandoc-types-1.22.2
 - texmath-0.12.5
 - citeproc-0.7
+- commonmark-0.2.2
+- commonmark-extensions-0.2.3.1
 - git: https://github.com/jgm/doclayout.git
   commit: b274a5658f3655f31c0bc6175d5b27a9467c1456
-- git: https://github.com/jgm/commonmark-hs.git
-  commit: cc815e013f0d87eef3daef8ad9e376ad807b012b
-  subdirs: [commonmark, commonmark-extensions]
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

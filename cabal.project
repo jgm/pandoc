@@ -8,15 +8,3 @@ source-repository-package
   type: git
   location: https://github.com/jgm/doclayout.git
   tag: b274a5658f3655f31c0bc6175d5b27a9467c1456
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/commonmark-hs.git
-  tag: cc815e013f0d87eef3daef8ad9e376ad807b012b
-  subdir: commonmark
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/commonmark-hs.git
-  tag: cc815e013f0d87eef3daef8ad9e376ad807b012b
-  subdir: commonmark-extensions
