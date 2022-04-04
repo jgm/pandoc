@@ -29,7 +29,7 @@ extra-deps:
 - tasty-lua-1.0.2
 - pandoc-lua-marshal-0.1.5.1
 - aeson-pretty-0.8.9
-- unicode-transforms-0.4.0@rev:1
+- unicode-transforms-0.4.0.1
 - unicode-data-0.3.0
 - commonmark-pandoc-0.2.1.2
 - ipynb-0.2
