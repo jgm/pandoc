@@ -31,14 +31,14 @@
     This fixes problems with --webtex and markdown output,
     when display math starts or ends with a newline.
 
-  * New exported module Text.Pandoc.Readers.EndNote, exporting
-    `readEndNoteXML`, `readEndNoteXMLCitation`,
-    and `readEndNoteXMLReferences`. [API change]
-
   * `--self-contained`: issue warning rather than failing with an error
     if a resource can't be found (#7904).
 
-  * New exported module, Text.Pandoc.Readers.RIS, exporting `readRIS` (#7894).
+  * New exported module Text.Pandoc.Readers.EndNote, exporting
+    `readEndNoteXML` and `readEndNoteXMLCitation` [API change].
+
+  * New exported module, Text.Pandoc.Readers.RIS, exporting `readRIS` (#7894)
+    [API change].
 
   * LaTeX reader:
 
