@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.18 (PROVISIONAL)
+## pandoc 2.18 (2022-04-22)
 
   * New input formats: `endnotexml` (EndNote XML bibliography),
     `ris` (RIS bibliography).
