@@ -78,7 +78,7 @@ jobs:
     - name: Install cabal/ghc
       run: |
         ghcup install ghc --set ${{ matrix.versions.ghc }}
-        ghcup install cabal ${{ matrix.versions.cabal }}
+        ghcup install cabal --set ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
     # caching doesn't work for scheduled runs yet
