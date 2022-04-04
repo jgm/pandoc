@@ -152,11 +152,13 @@ Metadata Values
         (if the latter is present).
 
 `copyright`
-:   Licensing and copyright information. This information is
+:   Copyright and licensing information. This information is
     rendered via the [`<permissions>`][elem:permissions] element.
 
-    The variables `type`, `link`, and `text` should always be used
-    together.
+    It is recommended to use the `license` field (described below)
+    for licensing information. If licensing information is
+    included below `copyright`, then the variables `type`, `link`,
+    and `text` should always be used together.
 
     `statement`
     :   copyright notice or statement; used as content of the
@@ -347,6 +349,27 @@ Metadata Values
     `publisher-loc`
     :   place of publication. Used as the content of the
         [`<publisher-loc>`][elem:publisher-loc] element.
+
+`license`
+:   Article licensing information. Each item of this field is
+    rendered as a `<license>` element within the
+    [`<permissions>`][elem:permissions] element.
+
+    Item content should be either a single paragraph, or a map
+    with the fields listed below.
+
+    `text`
+    :   inline text describing a license under which the text is
+        published; included via the
+        [`<license-p>`][elem:copyright-holder] element.
+
+    `type`
+    :   type of the license; used as value of the
+        [`license-type`][attr:license-type] attribute.
+
+    `link`
+    :   external link describing the license; used as value of a
+        `xlink:href` attribute in the `<license>` element.
 
 `notes`
 :   Additional notes concerning the whole article. Added to the

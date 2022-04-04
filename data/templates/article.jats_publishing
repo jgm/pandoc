@@ -188,6 +188,11 @@ $if(copyright.text)$
 <license-p>$copyright.text$</license-p>
 </license>
 $endif$
+$for(license)$
+<license$if(it.type)$ license-type="${it.type}"$endif$$if(it.link)$ xlink:href="${it.link}"$endif$>
+<license-p>$if(it.text)$${it.text}$else$${it}$endif$</license-p>
+</license>
+$endfor$
 </permissions>
 $endif$
 $if(abstract)$
