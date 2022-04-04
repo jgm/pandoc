@@ -307,6 +307,8 @@
     filters.  See list of incompatible changes here:
     <https://www.lua.org/manual/5.4/manual.html#8.1>
 
+  * JATS template: allow multiple licenses (Albert Krewinkel).
+
   * LaTeX template:
 
     + Skip `\babelprovide` if `babel-lang` is empty (#7945) to avoid an error.
@@ -329,6 +331,8 @@
   * Use latest pandoc-types, so that toJSONFilter will work with
     Meta and MetaValue.
 
+  * Use latest doclayout, texmath, commonmark, citeproc.
+
   * INSTALL.md: add reference to install via winget (#7951, Guriy Samarin).
 
   * MANUAL.txt:
@@ -350,6 +354,7 @@
 
   * Add `lua53` cabal flag.  It is false by default.  If set to true, compile
     with hslua 2.1 and Lua 5.3, otherwise hslua 2.2 and Lua 5.4.
+
 
 ## pandoc 2.17.1.1 (2022-01-31)
 
