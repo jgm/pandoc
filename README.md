@@ -39,6 +39,8 @@ library. It can convert *from*
 -   `docbook` ([DocBook](https://docbook.org))
 -   `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
 -   `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
+-   `endnotexml` ([EndNote XML
+    bibliography](https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition))
 -   `epub` ([EPUB](http://idpf.org/epub))
 -   `fb2`
     ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
@@ -76,6 +78,8 @@ library. It can convert *from*
 -   `odt` ([ODT](https://en.wikipedia.org/wiki/OpenDocument))
 -   `opml` ([OPML](http://dev.opml.org/spec2.html))
 -   `org` ([Emacs Org mode](https://orgmode.org))
+-   `ris` ([RIS](https://en.wikipedia.org/wiki/RIS_(file_format))
+    bibliography)
 -   `rtf` ([Rich Text
     Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
 -   `rst`
