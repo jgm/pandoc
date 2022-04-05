@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '53 7 * * *'
 
+permissions:
+  contents: read
+
 jobs:
   linux:
 
