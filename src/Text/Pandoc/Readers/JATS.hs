@@ -528,7 +528,9 @@ parseInline (Elem e) =
             return $ if refType == Just ("ref-type","bibr")
                         then cite
                              (map (\id' ->
-                                     Citation{ citationId = id'
+                               let id'' = fromMaybe id' $
+                                           T.stripPrefix "ref-" id'
+                                 in Citation { citationId = id''
                                              , citationPrefix = []
                                              , citationSuffix = []
                                              , citationMode = NormalCitation
