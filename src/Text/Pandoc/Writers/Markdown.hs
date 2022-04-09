@@ -684,15 +684,15 @@ bulletListItemToMarkdown opts bs = do
   variant <- asks envVariant
   let exts = writerExtensions opts
   contents <- blockListToMarkdown opts $ taskListItemToAscii exts bs
-  let sps = T.replicate (writerTabStop opts - 2) " "
   let start = case variant of
-              Markua -> literal "* "
-              _      -> literal $ "- " <> sps
+              Markua -> "* "
+              Commonmark -> "- "
+              _ -> "- " <> T.replicate (writerTabStop opts - 2) " "
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr
                      else contents
-  return $ hang (writerTabStop opts) start contents'
+  return $ hang (T.length start) (literal start) contents'
 
 -- | Convert ordered list item (a list of blocks) to markdown.
 orderedListItemToMarkdown :: PandocMonad m

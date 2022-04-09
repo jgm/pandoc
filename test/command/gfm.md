@@ -217,6 +217,6 @@ hi
 - [ ] foo
 - [x] bar
 ^D
--   [ ] foo
--   [x] bar
+- [ ] foo
+- [x] bar
 ```

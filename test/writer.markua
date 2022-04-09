@@ -202,8 +202,8 @@ Multiple paragraphs:
 ## Nested
 
 * Tab
+  * Tab
     * Tab
-        * Tab
 
 Here’s another:
 
@@ -233,9 +233,9 @@ Same thing but with paragraphs:
 
 * this is a list item indented with spaces
 
-    * this is an example list item indented with tabs
+  * this is an example list item indented with tabs
 
-    * this is an example list item indented with spaces
+  * this is an example list item indented with spaces
 
 {id: fancy-list-markers}
 ## Fancy list markers
@@ -492,17 +492,17 @@ Ellipses…and…and….
 * `p`$-Tree
 * Here’s some display math:
 
-    {format: latex}
-    ```
-    \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}
-    ```
+  {format: latex}
+  ```
+  \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}
+  ```
 * Here’s one that has a line break in it: `\alpha + \omega \times x^2`$.
 
 These shouldn’t be math:
 
 * To get the famous equation, write `$e = mc^2$`.
 * $22,000 is a *lot* of money. So is $34,000. (It worked if "lot" is
-    emphasized.)
+  emphasized.)
 * Shoes ($20) and socks ($5).
 * Escaped `$`: $73 *this should be emphasized* 23$.
 
