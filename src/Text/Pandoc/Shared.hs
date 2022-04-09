@@ -682,6 +682,8 @@ taskListItemToAscii = handleTaskListItem toMd
   where
     toMd (Str "☐" : Space : is) = rawMd "[ ]" : Space : is
     toMd (Str "☒" : Space : is) = rawMd "[x]" : Space : is
+    toMd (Str "❏" : Space : is) = rawMd "[ ]" : Space : is
+    toMd (Str "✓" : Space : is) = rawMd "[x]" : Space : is
     toMd is = is
     rawMd = RawInline (Format "markdown")
 
