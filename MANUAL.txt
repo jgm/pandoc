@@ -2491,7 +2491,7 @@ Currently the following pipes are predefined:
     documents
 
 `abstract`
-:   document summary, included in LaTeX, ConTeXt, AsciiDoc, and docx
+:   document summary, included in HTML, LaTeX, ConTeXt, AsciiDoc, and docx
     documents
 
 `abstract-title`
