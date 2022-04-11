@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {- |
    Module      : Text.Pandoc.App.CommandLineOptions
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -70,6 +71,7 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
+import GitHash
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -952,9 +954,14 @@ options =
                        openlibs
                        getglobal "_VERSION"
                        peek top
+                     let buildInfo = either
+                             (\_ -> mempty)
+                             (\gi -> "\nBuilt from commit " ++ giDescribe gi ++
+                                     " on " ++ giCommitDate gi)
+                             $$tGitInfoCwdTry
                      UTF8.hPutStrLn stdout
                       $ T.pack
-                      $ prg ++ " " ++ T.unpack pandocVersion ++
+                      $ prg ++ " " ++ T.unpack pandocVersion ++ buildInfo ++
                         compileInfo ++ "\nScripting engine: " ++ luaVersion ++
                         "\nUser data directory: " ++ defaultDatadir ++
                         ('\n':copyrightMessage)
