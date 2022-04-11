@@ -529,7 +529,7 @@ library
                  yaml                  >= 0.11     && < 0.12,
                  zip-archive           >= 0.2.3.4  && < 0.5,
                  zlib                  >= 0.5      && < 0.7,
-                 githash               >= 0.1.6    && < 0.2
+                 githash               >= 0.1.6.2  && < 0.2
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.8
   if flag(lua53)
