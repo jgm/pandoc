@@ -56,8 +56,6 @@ import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDir)
 import Text.Printf
-import Data.Time.Clock (UTCTime(utctDay), getCurrentTime)
-import Data.Time.Format (defaultTimeLocale, iso8601DateFormat, formatTime)
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
@@ -954,20 +952,9 @@ options =
                        openlibs
                        getglobal "_VERSION"
                        peek top
-                     versionSuffix <-
-#ifdef NIGHTLY
-                          ("-nightly-" ++)
-                        . formatTime defaultTimeLocale
-                            (iso8601DateFormat Nothing)
-                        . utctDay
-                        <$> Data.Time.Clock.getCurrentTime
-#else
-                       pure ""
-#endif
                      UTF8.hPutStrLn stdout
                       $ T.pack
-                      $ prg ++ " " ++
-                        T.unpack pandocVersion ++ versionSuffix ++
+                      $ prg ++ " " ++ T.unpack pandocVersion ++
                         compileInfo ++ "\nScripting engine: " ++ luaVersion ++
                         "\nUser data directory: " ++ defaultDatadir ++
                         ('\n':copyrightMessage)
