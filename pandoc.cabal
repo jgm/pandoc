@@ -428,6 +428,10 @@ flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
 
+flag nightly
+  Description:   Add '-nightly-DATE' to the output of '--version'.
+  Default:       False
+
 common common-options
   default-language: Haskell2010
   build-depends:    base         >= 4.12 && < 5
@@ -531,6 +535,8 @@ library
                  zlib                  >= 0.5      && < 0.7
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.8
+  if flag(nightly)
+    cpp-options:    -DNIGHTLY
   if flag(lua53)
     build-depends:  hslua >= 2.1 && < 2.2,
                     hslua-aeson >= 2.1 && < 2.3
