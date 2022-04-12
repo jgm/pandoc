@@ -56,8 +56,11 @@ import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles)
 import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDir)
 import Text.Printf
+
+#ifdef NIGHTLY
 import Data.Time.Clock (UTCTime(utctDay), getCurrentTime)
 import Data.Time.Format (defaultTimeLocale, iso8601DateFormat, formatTime)
+#endif
 
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data (dataFiles)
