@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                 #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
@@ -70,6 +71,21 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
+
+#ifdef NIGHTLY
+import qualified Language.Haskell.TH as TH
+import Data.Time
+#endif
+
+#ifdef NIGHTLY
+versionSuffix :: String
+versionSuffix = "-nightly-" ++
+  $(TH.stringE =<<
+    TH.runIO (formatTime defaultTimeLocale "%F" <$> Data.Time.getCurrentTime))
+#else
+versionSuffix :: String
+versionSuffix = ""
+#endif
 
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
@@ -954,7 +970,7 @@ options =
                        peek top
                      UTF8.hPutStrLn stdout
                       $ T.pack
-                      $ prg ++ " " ++ T.unpack pandocVersion ++
+                      $ prg ++ " " ++ T.unpack pandocVersion ++ versionSuffix ++
                         compileInfo ++ "\nScripting engine: " ++ luaVersion ++
                         "\nUser data directory: " ++ defaultDatadir ++
                         ('\n':copyrightMessage)
