@@ -2687,7 +2687,7 @@ These variables change the appearance of PDF slides using [`beamer`].
     `1610` for 16:10, `149` for 14:9, `141` for 1.41:1, `54` for 5:4,
     `32` for 3:2)
 
-``beameroption`
+`beameroption`
 :   add extra beamer option with `\setbeameroption{}`
 
 `institute`
@@ -7038,7 +7038,7 @@ metadata field (see [EPUB Metadata], above).
    pandoc operations in the `PandocPure` monad. See the document
    [Using the pandoc API](https://pandoc.org/using-the-pandoc-api.html)
    for more details. (This corresponds to the use of the `--sandbox`
-   option on the command line.) 
+   option on the command line.)
 
 5. Pandoc's parsers can exhibit pathological performance on some
    corner cases.  It is wise to put any pandoc operations under
