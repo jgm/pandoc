@@ -445,7 +445,10 @@ sectionToListItem opts (Div (ident,_,_)
                    then id
                    else (Span ("",["toc-section-number"],[])
                            [Str num] :) . (Space :)
-   headerText' = addNumber $ walk (deLink . deNote) ils
+   clean (Link _ ils _) = ils
+   clean (Note _) = []
+   clean x = [x]
+   headerText' = addNumber $ walk (concatMap clean) ils
    headerLink = if T.null ident
                    then headerText'
                    else [Link ("toc-" <> ident, [], []) headerText' ("#" <> ident, "")]
