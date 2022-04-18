@@ -56,7 +56,7 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, makeSections, deNote, deLink, blocksToInlines)
+import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
 import Text.Pandoc.Walk (walk)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
@@ -445,7 +445,7 @@ sectionToListItem opts (Div (ident,_,_)
                    then id
                    else (Span ("",["toc-section-number"],[])
                            [Str num] :) . (Space :)
-   clean (Link _ ils _) = ils
+   clean (Link _ xs _) = xs
    clean (Note _) = []
    clean x = [x]
    headerText' = addNumber $ walk (concatMap clean) ils
