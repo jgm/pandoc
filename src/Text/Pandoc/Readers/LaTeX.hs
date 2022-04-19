@@ -389,6 +389,12 @@ inlineCommands = M.unions
                              mkImage options .
                                unescapeURL .
                                removeDoubleQuotes $ untokenize src)
+    -- svg
+    , ("includesvg",      do options <- option [] keyvals
+                             src <- braced
+                             mkImage options .
+                               unescapeURL .
+                               removeDoubleQuotes $ untokenize src)
     -- hyperref
     , ("url", (\url -> linkWith ("",["uri"],[]) url "" (str url))
                         . unescapeURL . untokenize <$> bracedUrl)
