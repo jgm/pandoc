@@ -209,6 +209,7 @@ inlinesInBalancedBrackets =
           (() <$ (escapedChar <|>
                 code <|>
                 math <|>
+                endline <|>
                 rawHtmlInline <|>
                 rawLaTeXInline') >> go openBrackets)
           <|>
@@ -217,7 +218,7 @@ inlinesInBalancedBrackets =
           <|>
           (char '[' >> go (openBrackets + 1))
           <|>
-          (anyChar >> go openBrackets)
+          (satisfy (/= '\n') >> go openBrackets)
 
 --
 -- document structure
