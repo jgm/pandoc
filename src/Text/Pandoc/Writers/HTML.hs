@@ -1642,8 +1642,6 @@ blockListToNote opts ref blocks = do
   let noteItem' = case epubVersion of
                        Just EPUB3 -> noteItem !
                                        customAttribute "epub:type" "footnote"
-                       _ | html5  -> noteItem !
-                                       customAttribute "role" "doc-endnote"
                        _          -> noteItem
   return $ nl >> noteItem'
 
