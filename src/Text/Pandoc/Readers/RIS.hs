@@ -66,8 +66,7 @@ risLine = do
   key <- T.pack <$> count 2 (satisfy (\c -> isAsciiUpper c || isDigit c))
   _ <- many1 spaceChar
   char '-'
-  _ <- many1 spaceChar
-  val <- anyLine
+  val <- (many1 spaceChar *> anyLine) <|> mempty <$ newline
   return (key, T.strip val)
 
 risSeparator :: PandocMonad m => RISParser m ()
@@ -76,7 +75,7 @@ risSeparator = do
   _ <- many1 spaceChar
   char '-'
   _ <- anyLine
-  return ()
+  optional blanklines
 
 risRecord :: PandocMonad m => RISParser m [(Text, Text)]
 risRecord = manyTill risLine risSeparator
