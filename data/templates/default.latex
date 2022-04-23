@@ -154,7 +154,7 @@ $if(zero-width-non-joiner)$
 \def\zerowidthnonjoiner{%
   % Prevent ligatures and adjust kerning, but still support hyphenating.
   \texorpdfstring{%
-    \textormath{\nobreak\discretionary{-}{}{\kern.03em}%
+    \TextOrMath{\nobreak\discretionary{-}{}{\kern.03em}%
       \ifvmode\else\nobreak\hskip\z@skip\fi}{}%
   }{}%
 }
