@@ -80,14 +80,18 @@ writeCommonMark opts document =
                    -- properly.
                    enableExtension Ext_all_symbols_escapable $
                    enableExtension Ext_intraword_underscores $
-                     writerExtensions opts }
+                     writerExtensions opts ,
+                writerWrapText =
+                  if isEnabled Ext_hard_line_breaks opts
+                     then WrapNone
+                     else writerWrapText opts }
 
 -- | Convert Pandoc to Markua.
 writeMarkua :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMarkua opts document =
   evalMD (pandocToMarkdown opts' document) def{ envVariant = Markua } def
  where
-  opts' = opts{   writerExtensions =
+  opts' = opts{ writerExtensions =
                   enableExtension Ext_hard_line_breaks $
                   enableExtension Ext_pipe_tables $
                   -- required for fancy list enumerators
@@ -99,7 +103,11 @@ writeMarkua opts document =
                   enableExtension Ext_definition_lists $
                   enableExtension Ext_smart $
                   enableExtension Ext_footnotes
-                    mempty }
+                    mempty ,
+                writerWrapText =
+                  if isEnabled Ext_hard_line_breaks opts
+                     then WrapNone
+                     else writerWrapText opts }
 
 
 pandocTitleBlock :: Doc Text -> [Doc Text] -> Doc Text -> Doc Text
