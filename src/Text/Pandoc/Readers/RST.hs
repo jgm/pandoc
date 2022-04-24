@@ -845,8 +845,8 @@ csvTableDirective top fields rawcsv = do
                                 _            -> ','
               , csvQuote = case trim <$> lookup "quote" fields of
                                 Just (T.unpack -> [c])
-                                  -> c
-                                _ -> '"'
+                                  -> Just c
+                                _ -> Just '"'
               , csvEscape = case trim <$> lookup "escape" fields of
                                 Just (T.unpack -> [c])
                                   -> Just c

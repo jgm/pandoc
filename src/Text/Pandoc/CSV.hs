@@ -16,7 +16,7 @@ module Text.Pandoc.CSV (
   ParseError
 ) where
 
-import Control.Monad (unless, void)
+import Control.Monad (unless, void, mzero)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Parsec
@@ -24,7 +24,7 @@ import Text.Parsec.Text (Parser)
 
 data CSVOptions = CSVOptions{
     csvDelim     :: Char
-  , csvQuote     :: Char
+  , csvQuote     :: Maybe Char
   , csvKeepSpace :: Bool -- treat whitespace following delim as significant
   , csvEscape    :: Maybe Char -- default is to double up quote
 } deriving (Read, Show)
@@ -32,7 +32,7 @@ data CSVOptions = CSVOptions{
 defaultCSVOptions :: CSVOptions
 defaultCSVOptions = CSVOptions{
     csvDelim = ','
-  , csvQuote = '"'
+  , csvQuote = Just '"'
   , csvKeepSpace = False
   , csvEscape = Nothing }
 
@@ -53,18 +53,24 @@ pCSVCell :: CSVOptions -> Parser Text
 pCSVCell opts = pCSVQuotedCell opts <|> pCSVUnquotedCell opts
 
 pCSVQuotedCell :: CSVOptions -> Parser Text
-pCSVQuotedCell opts = do
-  char (csvQuote opts)
-  res <- many (satisfy (\c -> c /= csvQuote opts &&
-                              Just c /= csvEscape opts) <|> escaped opts)
-  char (csvQuote opts)
-  return $ T.pack res
+pCSVQuotedCell opts =
+  case csvQuote opts of
+    Nothing -> mzero
+    Just quotechar -> do
+      char quotechar
+      res <- many (satisfy (\c -> c /= quotechar &&
+                                  Just c /= csvEscape opts) <|> escaped opts)
+      char quotechar
+      return $ T.pack res
 
 escaped :: CSVOptions -> Parser Char
-escaped opts = try $
+escaped opts =
   case csvEscape opts of
-       Nothing -> char (csvQuote opts) >> char (csvQuote opts)
-       Just c  -> char c >> noneOf "\r\n"
+    Nothing ->
+      case csvQuote opts of
+        Nothing -> mzero
+        Just q -> try $ char q >> char q
+    Just c  -> try $ char c >> noneOf "\r\n"
 
 pCSVUnquotedCell :: CSVOptions -> Parser Text
 pCSVUnquotedCell opts = T.pack <$>

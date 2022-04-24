@@ -52,6 +52,7 @@ module Text.Pandoc.Readers
   , readFB2
   , readIpynb
   , readCSV
+  , readTSV
   , readCslJson
   , readBibTeX
   , readBibLaTeX
@@ -152,6 +153,7 @@ readers = [("native"       , TextReader readNative)
           ,("fb2"          , TextReader readFB2)
           ,("ipynb"        , TextReader readIpynb)
           ,("csv"          , TextReader readCSV)
+          ,("tsv"          , TextReader readTSV)
           ,("csljson"      , TextReader readCslJson)
           ,("bibtex"       , TextReader readBibTeX)
           ,("biblatex"     , TextReader readBibLaTeX)

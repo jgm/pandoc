@@ -258,7 +258,8 @@ convertWithOpts opts = do
 
     let convertTabs = tabFilter (if optPreserveTabs opts ||
                                       readerNameBase == "t2t" ||
-                                      readerNameBase == "man"
+                                      readerNameBase == "man" ||
+                                      readerNameBase == "tsv"
                                     then 0
                                     else optTabStop opts)
 

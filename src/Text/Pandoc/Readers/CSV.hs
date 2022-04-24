@@ -10,11 +10,14 @@
    Stability   : alpha
    Portability : portable
 
-Conversion from CSV to a 'Pandoc' table.
+Conversion from CSV or TSV to a 'Pandoc' table.
 -}
-module Text.Pandoc.Readers.CSV ( readCSV ) where
+module Text.Pandoc.Readers.CSV (
+  readCSV,
+  readTSV
+) where
 import qualified Data.Text as T
-import Text.Pandoc.CSV (parseCSV, defaultCSVOptions)
+import Text.Pandoc.CSV (parseCSV, defaultCSVOptions, CSVOptions(..))
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
@@ -22,14 +25,34 @@ import Text.Pandoc.Error
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.Pandoc.Options (ReaderOptions)
 import Control.Monad.Except (throwError)
+import Data.Text (Text)
 
 readCSV :: (PandocMonad m, ToSources a)
         => ReaderOptions -- ^ Reader options
         -> a
         -> m Pandoc
 readCSV _opts s = do
-  let txt = sourcesToText $ toSources s
-  case parseCSV defaultCSVOptions txt of
+  readCSVWith defaultCSVOptions $ sourcesToText $ toSources s
+
+readTSV :: (PandocMonad m, ToSources a)
+        => ReaderOptions -- ^ Reader options
+        -> a
+        -> m Pandoc
+readTSV _opts s = do
+  readCSVWith tsvOpts $ sourcesToText $ toSources s
+ where
+  tsvOpts = CSVOptions{
+    csvDelim = '\t',
+    csvQuote = Nothing,
+    csvKeepSpace = False,
+    csvEscape = Nothing }
+
+readCSVWith :: PandocMonad m
+            => CSVOptions
+            -> Text
+            -> m Pandoc
+readCSVWith csvopts txt = do
+  case parseCSV csvopts txt of
     Right (r:rs) -> return $ B.doc $ B.table capt
                                              (zip aligns widths)
                                              (TableHead nullAttr hdrs)

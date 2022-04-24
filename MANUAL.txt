@@ -232,6 +232,7 @@ header when requesting a document from a URL:
     - `creole` ([Creole 1.0])
     - `csljson` ([CSL JSON] bibliography)
     - `csv` ([CSV] table)
+    - `tsv` ([TSV] table)
     - `docbook` ([DocBook])
     - `docx` ([Word docx])
     - `dokuwiki` ([DokuWiki markup])
@@ -484,6 +485,7 @@ header when requesting a document from a URL:
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
 [Creole 1.0]: http://www.wikicreole.org/wiki/Creole1.0
 [CSV]: https://tools.ietf.org/html/rfc4180
+[TSV]: https://www.iana.org/assignments/media-types/text/tab-separated-values
 [roff man]: https://man.cx/groff_man(7)
 [roff ms]: https://man.cx/groff_ms(7)
 [Haskell]: https://www.haskell.org
