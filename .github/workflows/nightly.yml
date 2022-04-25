@@ -14,11 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install recent cabal/ghc
-      uses: haskell/actions/setup@v2
-      with:
-        ghc-version: '8.10.7'
-        cabal-version: '3.2'
+    - name: Install cabal/ghc
+      run: |
+        ghcup install ghc --set 8.10.7
+        ghcup install cabal --set 3.2
 
     - name: Install dependencies
       run: |
