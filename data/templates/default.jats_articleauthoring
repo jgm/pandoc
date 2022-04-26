@@ -49,7 +49,6 @@ $endif$
 $endfor$
 </contrib-group>
 $endif$
-$if(copyright)$
 <permissions>
 $for(copyright.statement)$
 <copyright-statement>$copyright.statement$</copyright-statement>
@@ -71,7 +70,6 @@ $for(license)$
 </license>
 $endfor$
 </permissions>
-$endif$
 <abstract>
 $abstract$
 </abstract>

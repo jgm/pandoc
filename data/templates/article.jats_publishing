@@ -172,7 +172,6 @@ $if(history)$
 <history>
 </history>
 $endif$
-$if(copyright)$
 <permissions>
 $for(copyright.statement)$
 <copyright-statement>$copyright.statement$</copyright-statement>
@@ -194,7 +193,6 @@ $for(license)$
 </license>
 $endfor$
 </permissions>
-$endif$
 $if(abstract)$
 <abstract>
 $abstract$
