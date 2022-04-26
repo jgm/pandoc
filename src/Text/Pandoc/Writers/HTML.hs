@@ -542,9 +542,11 @@ footnoteSection refLocation startCounter notes = do
   let container x
         | html5
         , epubVersion == Just EPUB3
-                = H5.section ! A.class_ className
+                = H5.section ! A.id "footnotes"
+                             ! A.class_ className
                              ! customAttribute "epub:type" "footnotes" $ x
-        | html5 = H5.section ! A.class_ className
+        | html5 = H5.section ! A.id "footnotes"
+                             ! A.class_ className
                              ! customAttribute "role" "doc-endnotes"
                              $ x
         | slideVariant /= NoSlides = H.div ! A.class_ "footnotes slide" $ x
