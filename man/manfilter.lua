@@ -11,27 +11,25 @@ function Header(el)
     end
 end
 
--- unindent table content
+-- For portability with mandoc, which doesn't allow man commands
+-- inside table cells, we convert all tables to code blocks.
 function Table(el)
-  for _,body in ipairs(el.bodies) do
-    handleTableBody(body)
-  end
-  return el
-end
-
-local function handleCell(el)
-  if #el.contents > 0 and el.contents[1].t == "CodeBlock" then
-    table.insert(el.contents, 1, pandoc.RawBlock("man", ".RS -14n"))
-    table.insert(el.contents, pandoc.RawBlock("man", ".RE"))
-  end
-end
-
-function handleTableBody(el)
-  for _,row in ipairs(el.body) do
-    for _,cell in ipairs(row.cells) do
-      handleCell(cell)
-    end
-  end
+  local rendered = pandoc.write(pandoc.Pandoc({el}), "plain")
+  local adjusted = rendered  -- tame grid table lines
+                     :gsub("%+([=:][=:]+)",
+                       function(s)
+                         return " " .. string.rep("-", #s - 1)
+                       end)
+                     :gsub("(%+[-:][-:]+)",
+                       function(s)
+                         return ""
+                       end)
+                     :gsub("%+\n","\n")
+                     :gsub("\n|    ","\n|")
+                     :gsub("|","")
+  return { pandoc.RawBlock("man", ".RS -14n"),
+           pandoc.CodeBlock(adjusted),
+           pandoc.RawBlock("man", ".RE") }
 end
 
 
