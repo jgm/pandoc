@@ -686,19 +686,13 @@ attrsToHtml opts (id',classes',keyvals) = do
 imgAttrsToHtml :: PandocMonad m
                => WriterOptions -> Attr -> StateT WriterState m [Attribute]
 imgAttrsToHtml opts attr = do
-  attrs <- attrsToHtml opts (ident,cls,kvs')
-  dimattrs <- toAttrs (dimensionsToAttrList attr)
-  return $ attrs ++ dimattrs
+  attrsToHtml opts (ident,cls, consolidateStyles (kvs' ++ dimensionsToAttrList attr))
   where
     (ident,cls,kvs) = attr
     kvs' = filter isNotDim kvs
     isNotDim ("width", _)  = False
     isNotDim ("height", _) = False
     isNotDim _             = True
-
-dimensionsToAttrList :: Attr -> [(Text, Text)]
-dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
-  where
     consolidateStyles :: [(Text, Text)] -> [(Text, Text)]
     consolidateStyles xs =
       case partition isStyle xs of
@@ -706,6 +700,10 @@ dimensionsToAttrList attr = consolidateStyles $ go Width ++ go Height
            (ss, rest) -> ("style", T.intercalate ";" $ map snd ss) : rest
     isStyle ("style", _) = True
     isStyle _            = False
+
+dimensionsToAttrList :: Attr -> [(Text, Text)]
+dimensionsToAttrList attr = go Width ++ go Height
+  where
     go dir = case dimension dir attr of
                (Just (Pixel a)) -> [(tshow dir, tshow a)]
                (Just x)         -> [("style", tshow dir <> ":" <> tshow x)]
