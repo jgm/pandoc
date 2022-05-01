@@ -95,8 +95,14 @@ $if(author.orcid)$
 $endif$
 $if(author.surname)$
 <name>
-<surname>$author.surname$</surname>
-<given-names>$author.given-names$</given-names>
+<surname>$if(author.non-dropping-particle)$${author.non-dropping-particle} $endif$$author.surname$</surname>
+<given-names>$author.given-names$$if(author.dropping-particle)$ ${author.dropping-particle}$endif$</given-names>
+$if(author.prefix)$
+<prefix>${author.suffix}</prefix>
+$endif$
+$if(author.suffix)$
+<suffix>${author.suffix}</suffix>
+$endif$
 </name>
 $elseif(author.name)$
 <string-name>$author.name$</string-name>
