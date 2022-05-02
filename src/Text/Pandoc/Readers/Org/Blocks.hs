@@ -634,25 +634,23 @@ orgTable = try $ do
 
   let caption = fromMaybe mempty (blockAttrCaption blockAttrs)
   let orgTbl = normalizeTable <$> rowsToTable rows
-  -- wrap table in div if a name or label is given
   let identMb = blockAttrName blockAttrs `mplus` blockAttrLabel blockAttrs
-  let wrap = case identMb of
-        Just ident -> B.divWith (ident, mempty, mempty)
-        Nothing    -> id
-  return . fmap wrap $ (orgToPandocTable <$> orgTbl <*> caption)
+  let attr = (fromMaybe mempty identMb, [], blockAttrKeyValues blockAttrs)
+  return $ orgToPandocTable attr <$> orgTbl <*> caption
 
-orgToPandocTable :: OrgTable
+orgToPandocTable :: Attr
+                 -> OrgTable
                  -> Inlines
                  -> Blocks
-orgToPandocTable (OrgTable colProps heads lns) caption =
+orgToPandocTable attr (OrgTable colProps heads lns) caption =
   let totalWidth = if any (isJust . columnRelWidth) colProps
                    then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
                    else Nothing
-  in B.table (B.simpleCaption $ B.plain caption)
-             (map (convertColProp totalWidth) colProps)
-             (TableHead nullAttr $ toHeaderRow heads)
-             [TableBody nullAttr 0 [] $ map toRow lns]
-             (TableFoot nullAttr [])
+  in B.tableWith attr (B.simpleCaption $ B.plain caption)
+                 (map (convertColProp totalWidth) colProps)
+                 (TableHead nullAttr $ toHeaderRow heads)
+                 [TableBody nullAttr 0 [] $ map toRow lns]
+                 (TableFoot nullAttr [])
  where
    toRow = Row nullAttr . map B.simpleCell
    toHeaderRow l = [toRow l | not (null l)]
