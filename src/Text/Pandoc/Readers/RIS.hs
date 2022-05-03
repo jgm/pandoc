@@ -142,7 +142,7 @@ risRecordToReference keys = addId $ foldr go defref keys
    addName k v r =
      let new = toName [] . B.toList .  B.text $ v
          f Nothing   = Just (NamesVal new)
-         f (Just (NamesVal ns)) = Just (NamesVal (ns ++ new))
+         f (Just (NamesVal ns)) = Just (NamesVal (new ++ ns))
          f (Just x) = Just x
       in r{ referenceVariables =
               M.alter f k (referenceVariables r) }
