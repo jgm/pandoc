@@ -214,6 +214,7 @@ resolveVarsInOpt
     , optCSL                   = oCSL
     , optBibliography          = oBibliography
     , optCitationAbbreviations = oCitationAbbreviations
+    , optPdfEngine             = oPdfEngine
     }
   = do
       oTemplate' <- mapM resolveVars oTemplate
@@ -238,6 +239,7 @@ resolveVarsInOpt
       oCSL' <- mapM resolveVars oCSL
       oBibliography' <- mapM resolveVars oBibliography
       oCitationAbbreviations' <- mapM resolveVars oCitationAbbreviations
+      oPdfEngine' <- mapM resolveVars oPdfEngine
       return opt{ optTemplate              = oTemplate'
                 , optMetadataFiles         = oMetadataFiles'
                 , optOutputFile            = oOutputFile'
@@ -260,6 +262,7 @@ resolveVarsInOpt
                 , optCSL                   = oCSL'
                 , optBibliography          = oBibliography'
                 , optCitationAbbreviations = oCitationAbbreviations'
+                , optPdfEngine             = oPdfEngine'
                 }
 
  where
