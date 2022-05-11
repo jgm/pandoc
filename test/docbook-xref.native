@@ -141,6 +141,33 @@ Pandoc
             , Str "."
             ]
         ]
+      , [ Para
+            [ Str "A"
+            , Space
+            , Str "link"
+            , Space
+            , Str "to"
+            , Space
+            , Str "a"
+            , SoftBreak
+            , Str "figure"
+            , Space
+            , Str "element:"
+            , Space
+            , Link
+                ( "" , [] , [] )
+                [ Str "The"
+                , Space
+                , Str "Pythagorean"
+                , Space
+                , Str "Theorem"
+                , Space
+                , Str "Illustrated"
+                ]
+                ( "#fig01" , "" )
+            , Str "."
+            ]
+        ]
       ]
   , Header
       1
@@ -174,4 +201,17 @@ Pandoc
   , Plain [ Str "int1" ]
   , Plain [ Str "int" ]
   , Plain [ Str "int2" ]
+  , Para
+      [ Image
+          ( "fig01" , [] , [] )
+          [ Str "The"
+          , Space
+          , Str "Pythagorean"
+          , Space
+          , Str "Theorem"
+          , Space
+          , Str "Illustrated"
+          ]
+          ( "figures/pythag.png" , "fig:" )
+      ]
   ]
