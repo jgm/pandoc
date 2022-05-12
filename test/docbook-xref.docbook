@@ -24,6 +24,9 @@ cross-reference text: <xref linkend="ch02"/>.
 <listitem><para>A link to an
 <sgmltag>funcsynopsis</sgmltag> element: <xref linkend="func01"/>.
 </para></listitem>
+<listitem><para>A link to a
+<sgmltag>figure</sgmltag> element: <xref linkend="fig01"/>.
+</para></listitem>
 </itemizedlist>
 </chapter>
 
@@ -65,6 +68,14 @@ cross-reference text: <xref linkend="ch02"/>.
 </funcprototype>
 </funcsynopsis>
 
+<figure id="fig01"><title>The Pythagorean Theorem Illustrated</title>
+<mediaobject>
+  <imageobject>
+    <imagedata fileref="figures/pythag.png"/>
+  </imageobject>
+  <textobject><phrase>An illustration of the Pythagorean Theorem</phrase></textobject>
+</mediaobject>
+</figure>
+
 </chapter>
 </book>
-
