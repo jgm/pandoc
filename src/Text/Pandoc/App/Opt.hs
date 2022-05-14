@@ -215,6 +215,7 @@ resolveVarsInOpt
     , optBibliography          = oBibliography
     , optCitationAbbreviations = oCitationAbbreviations
     , optPdfEngine             = oPdfEngine
+    , optHighlightStyle        = oHighlightStyle
     }
   = do
       oTemplate' <- mapM resolveVars oTemplate
@@ -240,6 +241,7 @@ resolveVarsInOpt
       oBibliography' <- mapM resolveVars oBibliography
       oCitationAbbreviations' <- mapM resolveVars oCitationAbbreviations
       oPdfEngine' <- mapM resolveVars oPdfEngine
+      oHighlightStyle' <- mapM (fmap T.pack . resolveVars . T.unpack) oHighlightStyle
       return opt{ optTemplate              = oTemplate'
                 , optMetadataFiles         = oMetadataFiles'
                 , optOutputFile            = oOutputFile'
@@ -263,6 +265,7 @@ resolveVarsInOpt
                 , optBibliography          = oBibliography'
                 , optCitationAbbreviations = oCitationAbbreviations'
                 , optPdfEngine             = oPdfEngine'
+                , optHighlightStyle        = oHighlightStyle'
                 }
 
  where
