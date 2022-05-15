@@ -487,7 +487,7 @@ inlineToAsciiDoc opts (Emph lst) = do
   return $ marker <> contents <> marker
 inlineToAsciiDoc opts (Underline lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "+++" <> contents <> "+++"
+  return $ "[.underline]#" <> contents <> "#"
 inlineToAsciiDoc opts (Strong lst) = do
   contents <- inlineListToAsciiDoc opts lst
   isIntraword <- gets intraword
