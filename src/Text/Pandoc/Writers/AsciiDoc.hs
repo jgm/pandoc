@@ -560,7 +560,8 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
 -- abs:  http://google.cod[Google]
 -- or my@email.com[email john]
-  linktext <- inlineListToAsciiDoc opts txt
+  let fixCommas = T.replace "," "&#44;"  -- see #8070
+  linktext <- fmap fixCommas <$> inlineListToAsciiDoc opts txt
   let isRelative = T.all (/= ':') src
   let needsPassthrough = "--" `T.isInfixOf` src
   let prefix = if isRelative
