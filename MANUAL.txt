@@ -4629,7 +4629,7 @@ following restrictions apply:
   if the link definition is somewhere else in the document.
 
 [YAML escape sequence]: https://yaml.org/spec/1.2/spec.html#id2776092
-[Wikipedia entry on YAML syntax]:  https://en.m.wikipedia.org/wiki/YAML#Syntax
+[Wikipedia entry on YAML syntax]:  https://en.wikipedia.org/wiki/YAML#Syntax
 
 ## Backslash escapes
 
