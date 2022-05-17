@@ -84,6 +84,7 @@ data WriterEnv = WriterEnv
   , envChangesAuthor  :: Text
   , envChangesDate    :: Text
   , envPrintWidth     :: Integer
+  , envLang           :: Maybe Text
   }
 
 defaultWriterEnv :: WriterEnv
@@ -97,6 +98,7 @@ defaultWriterEnv = WriterEnv
   , envChangesAuthor  = "unknown"
   , envChangesDate    = "1969-12-31T19:00:00Z"
   , envPrintWidth     = 1
+  , envLang           = Nothing
   }
 
 

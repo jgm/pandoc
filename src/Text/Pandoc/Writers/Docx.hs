@@ -823,8 +823,11 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   let bibmod = if ident == "refs"
                   then withParaPropM (pStyleM "Bibliography")
                   else id
+  let langmod = case lookup "lang" kvs of
+                  Nothing -> id
+                  Just lang -> local (\env -> env{envLang = Just lang})
   header <- dirmod $ stylemod $ blocksToOpenXML opts hs
-  contents <- dirmod $ bibmod $ stylemod $ blocksToOpenXML opts bs'
+  contents <- dirmod $ bibmod $ stylemod $ langmod $ blocksToOpenXML opts bs'
   wrapBookmark ident $ header <> contents
 blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
   setFirstPara
@@ -1015,7 +1018,12 @@ asList = local $ \env -> env{ envListLevel = envListLevel env + 1 }
 getTextProps :: (PandocMonad m) => WS m [Element]
 getTextProps = do
   props <- asks envTextProperties
-  let squashed = squashProps props
+  mblang <- asks envLang
+  let langnode = case mblang of
+                   Nothing -> mempty
+                   Just l  -> EnvProps Nothing
+                               [mknode "w:lang" [("w:val", l)] ()]
+  let squashed = squashProps (props <> langnode)
   return [mknode "w:rPr" [] squashed | (not . null) squashed]
 
 withTextProp :: PandocMonad m => Element -> WS m a -> WS m a
@@ -1150,8 +1158,11 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
                    return [Elem $ mknode "w:del"
                              (("w:id", tshow delId) : changeAuthorDate) x]
                else return id
-  contents <- insmod $ delmod $ dirmod $ stylemod $ pmod
-                     $ inlinesToOpenXML opts ils
+  let langmod = case lookup "lang" kvs of
+                  Nothing -> id
+                  Just lang -> local (\env -> env{envLang = Just lang})
+  contents <- insmod $ delmod $ dirmod $ stylemod $ pmod $
+              langmod $ inlinesToOpenXML opts ils
   wrapBookmark ident contents
 inlineToOpenXML' opts (Strong lst) =
   withTextProp (mknode "w:b" [] ()) $
