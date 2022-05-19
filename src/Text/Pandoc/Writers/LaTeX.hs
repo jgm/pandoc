@@ -287,10 +287,11 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
   let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
                       "b", "c", "t", "environment", "s", "squeeze",
                       "label", "plain", "shrink", "standout",
-                      "noframenumbering"]
+                      "noframenumbering", "containsverbatim"]
   let optionslist = ["fragile" | fragile
                                , isNothing (lookup "fragile" kvs)
-                               , "fragile" `notElem` classes] ++
+                               , "fragile" `notElem` classes
+                               , "containsverbatim" `notElem` classes] ++
                     [k | k <- classes, k `elem` frameoptions] ++
                     [k <> "=" <> v | (k,v) <- kvs, k `elem` frameoptions] ++
                     [v | ("frameoptions", v) <- kvs]
