@@ -363,6 +363,7 @@ getDefaultExtensions "gfm"             = extensionsFromList
   , Ext_emoji
   , Ext_yaml_metadata_block
   , Ext_footnotes
+  , Ext_tex_math_dollars
   ]
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
