@@ -535,8 +535,15 @@ include = try $ do
         return $ pure . B.codeBlockWith attr <$> parseRaw
       _ -> return $ return . B.fromList . blockFilter params <$> blockList
   currentDir <- takeDirectory . sourceName <$> getPosition
+  let (startLine, endLine) =
+        case lookup "lines" params of
+          Nothing -> (Nothing, Nothing)
+          Just bounds -> let boundStr = T.drop 1 (T.dropEnd 1 bounds)
+                             begStr = T.takeWhile (/= '-') boundStr
+                             endStr = T.takeWhileEnd (/= '-') boundStr
+                         in (safeRead begStr, pred <$> safeRead endStr)
   insertIncludedFile blocksParser toSources
-                     [currentDir] filename Nothing Nothing
+                     [currentDir] filename startLine endLine
  where
   includeTarget :: PandocMonad m => OrgParser m FilePath
   includeTarget = do
