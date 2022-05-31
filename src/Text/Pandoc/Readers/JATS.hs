@@ -452,6 +452,8 @@ parseRef e = do
           "publisher-name" -> Just . ("publisher",) . toMetaValue <$> getInlines el
           "publisher-loc" -> Just . ("publisher-place",) . toMetaValue
                                 <$> getInlines el
+          "edition" -> pure $ Just ("edition",
+                               toMetaValue . T.filter isDigit $ strContent el)
           "person-group" -> do names <- mapM getName
                                             (filterChildren (named "name") el)
                                pure $ Just (attrValue "person-group-type" el,
