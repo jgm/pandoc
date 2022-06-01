@@ -18,13 +18,16 @@ Name
 \end{minipage} \\
 \midrule()
 \endhead
-\multicolumn{2}{l}{Computer Science} \\
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{1.0000\columnwidth - 0\tabcolsep}@{}}{%
+Computer Science} \\
 3741255 & Jones, Martha \\
 4077830 & Pierce, Benjamin \\
 5151701 & Kirk, James \\
-\multicolumn{2}{l}{Russian Literature} \\
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{1.0000\columnwidth - 0\tabcolsep}@{}}{%
+Russian Literature} \\
 3971244 & Nim, Victor \\
-\multicolumn{2}{l}{Astrophysics} \\
+\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{1.0000\columnwidth - 0\tabcolsep}@{}}{%
+Astrophysics} \\
 4100332 & Petrov, Alexandra \\
 4100332 & Toyota, Hiroko \\
 \bottomrule()
