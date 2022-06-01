@@ -43,22 +43,23 @@ tableToLaTeX :: PandocMonad m
              -> Ann.Table
              -> LW m (Doc Text)
 tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
-  let (Ann.Table _attr caption _specs thead tbodies tfoot) = tbl
+  let (Ann.Table _attr caption specs thead tbodies tfoot) = tbl
   CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
+  let colCount = ColumnCount $ length specs
   firsthead <- if isEmpty capt || isEmptyHead thead
                then return empty
                else ($$ text "\\endfirsthead") <$>
-                    headToLaTeX blksToLaTeX thead
+                    headToLaTeX blksToLaTeX colCount thead
   head' <- if isEmptyHead thead
            then return "\\toprule()"
            -- avoid duplicate notes in head and firsthead:
-           else headToLaTeX blksToLaTeX
+           else headToLaTeX blksToLaTeX colCount
                 (if isEmpty firsthead
                  then thead
                  else walk removeNote thead)
-  rows' <- mapM (rowToLaTeX blksToLaTeX BodyCell) $
+  rows' <- mapM (rowToLaTeX blksToLaTeX colCount BodyCell) $
                 mconcat (map bodyRows tbodies) <> footRows tfoot
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
@@ -75,6 +76,9 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
     $$ "\\end{longtable}"
     $$ captNotes
     $$ notes
+
+-- | Total number of columns in a table.
+newtype ColumnCount = ColumnCount Int
 
 -- | Creates column descriptors for the table.
 colDescriptors :: Ann.Table -> Doc Text
@@ -156,21 +160,24 @@ type BlocksWriter m = [Block] -> LW m (Doc Text)
 
 headToLaTeX :: PandocMonad m
             => BlocksWriter m
+            -> ColumnCount
             -> Ann.TableHead
             -> LW m (Doc Text)
-headToLaTeX blocksWriter (Ann.TableHead _attr headerRows) = do
-  rowsContents <- mapM (rowToLaTeX blocksWriter HeaderCell . headerRowCells)
-                       headerRows
+headToLaTeX blocksWriter colCount (Ann.TableHead _attr headerRows) = do
+  rowsContents <-
+    mapM (rowToLaTeX blocksWriter colCount HeaderCell . headerRowCells)
+         headerRows
   return ("\\toprule()" $$ vcat rowsContents $$ "\\midrule()")
 
 -- | Converts a row of table cells into a LaTeX row.
 rowToLaTeX :: PandocMonad m
            => BlocksWriter m
+           -> ColumnCount
            -> CellType
            -> [Ann.Cell]
            -> LW m (Doc Text)
-rowToLaTeX blocksWriter celltype row = do
-  cellsDocs <- mapM (cellToLaTeX blocksWriter celltype) (fillRow row)
+rowToLaTeX blocksWriter colCount celltype row = do
+  cellsDocs <- mapM (cellToLaTeX blocksWriter colCount celltype) (fillRow row)
   return $ hsep (intersperse "&" cellsDocs) <> " \\\\"
 
 -- | Pads row with empty cells to adjust for rowspans above this row.
@@ -241,12 +248,14 @@ displayMathToInline x                    = x
 
 cellToLaTeX :: PandocMonad m
             => BlocksWriter m
+            -> ColumnCount
             -> CellType
             -> Ann.Cell
             -> LW m (Doc Text)
-cellToLaTeX blockListToLaTeX celltype annotatedCell = do
-  let (Ann.Cell specs _colnum cell) = annotatedCell
-  let hasWidths = snd (NonEmpty.head specs) /= ColWidthDefault
+cellToLaTeX blockListToLaTeX colCount celltype annotatedCell = do
+  let (Ann.Cell specs colnum cell) = annotatedCell
+  let colWidths = NonEmpty.map snd specs
+  let hasWidths = NonEmpty.head colWidths /= ColWidthDefault
   let specAlign = fst (NonEmpty.head specs)
   let (Cell _attr align' rowspan colspan blocks) = cell
   let align = case align' of
@@ -254,7 +263,6 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
                 _            -> align'
   beamer <- gets stBeamer
   externalNotes <- gets stExternalNotes
-  inMinipage <- gets stInMinipage
   -- See #5367 -- footnotehyper/footnote don't work in beamer,
   -- so we need to produce the notes outside the table...
   modify $ \st -> st{ stExternalNotes = beamer }
@@ -272,9 +280,7 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
        then
          blockListToLaTeX $ walk fixLineBreaks $ walk displayMathToInline blocks
        else do
-         modify $ \st -> st{ stInMinipage = True }
-         cellContents <- blockListToLaTeX blocks
-         modify $ \st -> st{ stInMinipage = inMinipage }
+         cellContents <- inMinipage $ blockListToLaTeX blocks
          let valign = text $ case celltype of
                                HeaderCell -> "[b]"
                                BodyCell   -> "[t]"
@@ -290,16 +296,63 @@ cellToLaTeX blockListToLaTeX celltype annotatedCell = do
     modify (\st -> st{ stMultiRow = True })
   let inMultiColumn x = case colspan of
                           (ColSpan 1) -> x
-                          (ColSpan n) -> "\\multicolumn"
-                                         <> braces (literal (tshow n))
-                                         <> braces (literal $ colAlign align)
-                                         <> braces x
+                          (ColSpan n) ->
+                            let colDescr = multicolumnDescriptor align
+                                                                 colWidths
+                                                                 colCount
+                                                                 colnum
+                            in "\\multicolumn"
+                               <> braces (literal (tshow n))
+                               <> braces (literal colDescr)
+                               <> braces ("%\n" <> x)
+                                  -- linebreak for readability
   let inMultiRow x = case rowspan of
                        (RowSpan 1) -> x
                        (RowSpan n) -> let nrows = literal (tshow n)
                                       in "\\multirow" <> braces nrows
                                          <> braces "*" <> braces x
   return . inMultiColumn . inMultiRow $ result
+
+-- | Returns the width of a cell spanning @n@ columns.
+multicolumnDescriptor :: Alignment
+                      -> NonEmpty ColWidth
+                      -> ColumnCount
+                      -> Ann.ColNumber
+                      -> Text
+multicolumnDescriptor align
+  colWidths
+  (ColumnCount numcols)
+  (Ann.ColNumber colnum) =
+  let toWidth = \case
+        ColWidthDefault -> 0
+        ColWidth x      -> x
+      colspan = length colWidths
+      width = sum $ NonEmpty.map toWidth colWidths
+
+      -- no column separators at beginning of first and end of last column.
+      numseps = (case colnum + 1 of
+                   1 -> 0  -- Not sure why this case is needed (tarleb)
+                   _ -> -- the final cell has only one tabcolsep
+                        if colnum + colspan == numcols
+                        then 1
+                        else 2) :: Int
+      skipColSep = "@{}" :: String
+  in T.pack $
+     printf "%s>{%s\\arraybackslash}p{%0.4f\\columnwidth - %d\\tabcolsep}%s"
+            (if colnum == 0 then skipColSep else "")
+            (T.unpack (alignCommand align))
+            width
+            numseps
+            (if colnum + colspan == numcols then skipColSep else "")
+
+-- | Perform a conversion, assuming that the context is a minipage.
+inMinipage :: Monad m => LW m a -> LW m a
+inMinipage action = do
+  isInMinipage <- gets stInMinipage
+  modify $ \st -> st{ stInMinipage = True }
+  result <- action
+  modify $ \st -> st{ stInMinipage = isInMinipage }
+  return result
 
 data CellType
   = HeaderCell
