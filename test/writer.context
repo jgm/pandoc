@@ -78,8 +78,8 @@ markdown test suite.
 
 \section[title={Headers},reference={headers}]
 
-\subsection[title={Level 2 with an \useURL[url1][/url][][embedded
-link]\from[url1]},reference={level-2-with-an-embedded-link}]
+\subsection[title={Level 2 with an \goto{embedded
+link}[url(/url)]},reference={level-2-with-an-embedded-link}]
 
 \subsubsection[title={Level 3 with
 {\em emphasis}},reference={level-3-with-emphasis}]
@@ -625,7 +625,7 @@ This is {\em emphasized}, and so {\em is this}.
 
 This is {\bf strong}, and so {\bf is this}.
 
-An {\em \useURL[url2][/url][][emphasized link]\from[url2]}.
+An {\em \goto{emphasized link}[url(/url)]}.
 
 {\bf {\em This is strong and em.}}
 
@@ -660,9 +660,8 @@ dashes},reference={smart-quotes-ellipses-dashes}]
 
 \quote{He said, \quotation{I want to go.}} Were you alive in the 70's?
 
-Here is some quoted \quote{\type{code}} and a
-\quotation{\useURL[url3][http://example.com/?foo=1&bar=2][][quoted
-link]\from[url3]}.
+Here is some quoted \quote{\type{code}} and a \quotation{\goto{quoted
+link}[url(http://example.com/?foo=1&bar=2)]}.
 
 Some dashes: one---two --- three---four --- five.
 
@@ -783,37 +782,37 @@ Minus: -
 
 \subsection[title={Explicit},reference={explicit}]
 
-Just a \useURL[url4][/url/][][URL]\from[url4].
+Just a \goto{URL}[url(/url/)].
 
-\useURL[url5][/url/][][URL and title]\from[url5].
+\goto{URL and title}[url(/url/)].
 
-\useURL[url6][/url/][][URL and title]\from[url6].
+\goto{URL and title}[url(/url/)].
 
-\useURL[url7][/url/][][URL and title]\from[url7].
+\goto{URL and title}[url(/url/)].
 
-\useURL[url8][/url/][][URL and title]\from[url8]
+\goto{URL and title}[url(/url/)]
 
-\useURL[url9][/url/][][URL and title]\from[url9]
+\goto{URL and title}[url(/url/)]
 
-\useURL[url10][/url/with_underscore][][with_underscore]\from[url10]
+\goto{with_underscore}[url(/url/with_underscore)]
 
-\useURL[url11][mailto:nobody@nowhere.net][][Email link]\from[url11]
+\goto{Email link}[url(mailto:nobody@nowhere.net)]
 
-\useURL[url12][][][Empty]\from[url12].
+\goto{Empty}[url()].
 
 \subsection[title={Reference},reference={reference}]
 
-Foo \useURL[url13][/url/][][bar]\from[url13].
+Foo \goto{bar}[url(/url/)].
 
-With \useURL[url14][/url/][][embedded {[}brackets{]}]\from[url14].
+With \goto{embedded {[}brackets{]}}[url(/url/)].
 
-\useURL[url15][/url/][][b]\from[url15] by itself should be a link.
+\goto{b}[url(/url/)] by itself should be a link.
 
-Indented \useURL[url16][/url][][once]\from[url16].
+Indented \goto{once}[url(/url)].
 
-Indented \useURL[url17][/url][][twice]\from[url17].
+Indented \goto{twice}[url(/url)].
 
-Indented \useURL[url18][/url][][thrice]\from[url18].
+Indented \goto{thrice}[url(/url)].
 
 This should {[}not{]}{[}{]} be a link.
 
@@ -821,41 +820,39 @@ This should {[}not{]}{[}{]} be a link.
 [not]: /url
 \stoptyping
 
-Foo \useURL[url19][/url/][][bar]\from[url19].
+Foo \goto{bar}[url(/url/)].
 
-Foo \useURL[url20][/url/][][biz]\from[url20].
+Foo \goto{biz}[url(/url/)].
 
 \subsection[title={With ampersands},reference={with-ampersands}]
 
-Here's a \useURL[url21][http://example.com/?foo=1&bar=2][][link with an
-ampersand in the URL]\from[url21].
+Here's a \goto{link with an ampersand in the
+URL}[url(http://example.com/?foo=1&bar=2)].
 
 Here's a link with an amersand in the link text:
-\useURL[url22][http://att.com/][][AT&T]\from[url22].
+\goto{AT&T}[url(http://att.com/)].
 
-Here's an \useURL[url23][/script?foo=1&bar=2][][inline link]\from[url23].
+Here's an \goto{inline link}[url(/script?foo=1&bar=2)].
 
-Here's an \useURL[url24][/script?foo=1&bar=2][][inline link in pointy
-braces]\from[url24].
+Here's an \goto{inline link in pointy braces}[url(/script?foo=1&bar=2)].
 
 \subsection[title={Autolinks},reference={autolinks}]
 
-With an ampersand: \useURL[url25][http://example.com/?foo=1&bar=2]\from[url25]
+With an ampersand: \useURL[url1][http://example.com/?foo=1&bar=2]\from[url1]
 
 \startitemize[packed]
 \item
   In a list?
 \item
-  \useURL[url26][http://example.com/]\from[url26]
+  \useURL[url2][http://example.com/]\from[url2]
 \item
   It should.
 \stopitemize
 
-An e-mail address:
-\useURL[url27][mailto:nobody@nowhere.net][][nobody@nowhere.net]\from[url27]
+An e-mail address: \goto{nobody@nowhere.net}[url(mailto:nobody@nowhere.net)]
 
 \startblockquote
-Blockquoted: \useURL[url28][http://example.com/]\from[url28]
+Blockquoted: \useURL[url3][http://example.com/]\from[url3]
 \stopblockquote
 
 Auto-links should not occur here: \type{<http://example.com/>}
@@ -894,8 +891,8 @@ Here is a footnote reference,\footnote{Here is the footnote. It can go anywhere
   indent the first line of each block.\stopbuffer\footnote{\getbuffer} This
 should {\em not} be a footnote reference, because it contains a space.{[}^my
 note{]} Here is an inline note.\footnote{This is {\em easier} to type. Inline
-  notes may contain \useURL[url29][http://google.com][][links]\from[url29] and
-  \type{]} verbatim characters, as well as {[}bracketed text{]}.}
+  notes may contain \goto{links}[url(http://google.com)] and \type{]} verbatim
+  characters, as well as {[}bracketed text{]}.}
 
 \startblockquote
 Notes can go in quotes.\footnote{In quote.}
