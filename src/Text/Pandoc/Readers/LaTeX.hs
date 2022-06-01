@@ -707,19 +707,23 @@ doSubfile = do
   f <- T.unpack . removeDoubleQuotes . T.strip . untokenize <$> braced
   oldToks <- getInput
   setInput $ TokStream False []
-  insertIncluded ".tex" f
+  insertIncluded (ensureExtension (/= "") ".tex" f)
   bs <- blocks
   eof
   setInput oldToks
   return bs
 
 include :: (PandocMonad m, Monoid a) => Text -> LP m a
-include _name = do
+include name = do
+  let isAllowed =
+        case name of
+          "include" -> (== ".tex")
+          "input" -> (/= "")
+          _ -> const False
   skipMany opt
   fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize <$> braced
-  let defaultExt = ".tex"
-  mapM_ (insertIncluded defaultExt) fs
+  mapM_ (insertIncluded . ensureExtension isAllowed ".tex") fs
   return mempty
 
 usepackage :: (PandocMonad m, Monoid a) => LP m a
@@ -728,7 +732,7 @@ usepackage = do
   fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
          untokenize <$> braced
   let parsePackage f = do
-        TokStream _ ts <- getIncludedToks ".sty" f
+        TokStream _ ts <- getIncludedToks (ensureExtension (== ".sty") ".sty" f)
         parseFromToks (do _ <- blocks
                           eof <|>
                             do pos <- getPosition
@@ -747,15 +751,17 @@ readFileFromTexinputs fp = do
                <$> lookupEnv "TEXINPUTS"
       readFileFromDirs dirs fp
 
+ensureExtension :: (FilePath -> Bool) -> FilePath -> FilePath -> FilePath
+ensureExtension isAllowed defaultExt fp =
+  let ext = takeExtension fp
+   in if isAllowed ext
+         then fp
+         else addExtension fp defaultExt
+
 getIncludedToks :: PandocMonad m
                 => FilePath
-                -> FilePath
                 -> LP m TokStream
-getIncludedToks defaultExtension f' = do
-  let f = case takeExtension f' of
-                ".tex" -> f'
-                ".sty" -> f'
-                _      -> addExtension f' defaultExtension
+getIncludedToks f = do
   pos <- getPosition
   containers <- getIncludeFiles <$> getState
   when (T.pack f `elem` containers) $
@@ -772,10 +778,9 @@ getIncludedToks defaultExtension f' = do
 
 insertIncluded :: PandocMonad m
                => FilePath
-               -> FilePath
                -> LP m ()
-insertIncluded defaultExtension f' = do
-  contents <- getIncludedToks defaultExtension f'
+insertIncluded f = do
+  contents <- getIncludedToks f
   ts <- getInput
   setInput $ contents <> ts
 
