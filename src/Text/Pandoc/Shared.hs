@@ -574,7 +574,8 @@ makeSections numbering mbBaseLevel bs =
                Header level' _ _ -> level' > level
                _                 -> True) ys
       , "column" `notElem` dclasses
-      , "columns" `notElem` dclasses = do
+      , "columns" `notElem` dclasses
+      , "fragment" `notElem` dclasses = do
     inner <- go (Header level hattr title':ys)
     rest <- go xs
     return $
