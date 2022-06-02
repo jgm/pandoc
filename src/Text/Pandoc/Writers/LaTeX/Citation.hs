@@ -171,8 +171,9 @@ citationsToBiblatex inlineListToLaTeX (c:cs)
       return $ text cmd <> mconcat groups
 
   where grouper prev cit = case prev of
-         ((CiteGroup oPfx oSfx ids):rest)
-             | null oSfx && null pfx -> CiteGroup oPfx sfx (cid:ids) : rest
+         ((CiteGroup oPfx [] ids):rest)
+             | null pfx && null sfx
+           -> CiteGroup oPfx sfx (cid:ids) : rest
          _ -> CiteGroup pfx sfx [cid] : prev
          where pfx = citationPrefix cit
                sfx = citationSuffix cit
