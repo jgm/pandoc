@@ -743,6 +743,8 @@ adjustNumbers opts doc =
      then doc
      else walk go doc
   where
+   go (Div (ident,"section":classes,kvs) lst) =
+     Div (ident,"section":classes,map fixnum kvs) lst
    go (Header level (ident,classes,kvs) lst) =
      Header level (ident,classes,map fixnum kvs) lst
    go x = x
