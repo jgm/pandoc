@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -411,34 +412,36 @@ inlineToConTeXt SoftBreak = do
                WrapNone     -> space
                WrapPreserve -> cr
 inlineToConTeXt Space = return space
--- Handle HTML-like internal document references to sections
-inlineToConTeXt (Link _ txt (T.uncons -> Just ('#', ref), _)) = do
-  opts <- gets stOptions
-  contents <-  inlineListToConTeXt txt
-  let ref' = toLabel $ stringToConTeXt opts ref
-  return $ literal "\\goto"
-           <> braces contents
-           <> brackets (literal ref')
-
 inlineToConTeXt (Link _ txt (src, _)) = do
   let isAutolink = txt == [Str (T.pack $ unEscapeString $ T.unpack src)]
-  st <- get
-  let next = stNextRef st
-  put $ st {stNextRef = next + 1}
-  let ref = "url" <> tshow next
-  contents <-  inlineListToConTeXt txt
-  let escChar '#' = "\\#"
-      escChar '%' = "\\%"
-      escChar c   = T.singleton c
-  let escContextURL = T.concatMap escChar
-  return $ "\\useURL"
-           <> brackets (literal ref)
-           <> brackets (literal $ escContextURL src)
-           <> (if isAutolink
-                  then empty
-                  else brackets empty <> brackets contents)
-           <> "\\from"
-           <> brackets (literal ref)
+  let escConTeXtURL = T.concatMap $ \case
+        '#' -> "\\#"
+        '%' -> "\\%"
+        c   -> T.singleton c
+  if isAutolink
+    then do
+      next <- gets stNextRef
+      modify $ \st -> st {stNextRef = next + 1}
+      let ref = "url" <> tshow next
+      return $ mconcat
+        [ "\\useURL"
+        , brackets (literal ref)
+        , brackets (literal $ escConTeXtURL src)
+        , "\\from"
+        , brackets (literal ref)
+        ]
+    else do
+      contents <- inlineListToConTeXt txt
+      -- Handle HTML-like internal document references to sections
+      reference <- case T.uncons src of
+        Just ('#', ref) -> toLabel <$>
+                           (stringToConTeXt <$> gets stOptions <*> pure ref)
+        _               -> pure $ "url(" <> escConTeXtURL src <> ")"
+      return $ mconcat
+        [ "\\goto"
+        , braces contents
+        , brackets (literal reference)
+        ]
 inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
   opts <- gets stOptions
   let showDim dir = let d = literal (tshow dir) <> "="
