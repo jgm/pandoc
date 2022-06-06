@@ -104,11 +104,20 @@ makeRoundTrip (OrderedList (start, LowerAlpha, _) items) = OrderedList (start, D
 makeRoundTrip (OrderedList (start, UpperAlpha, _) items) = OrderedList (start, Decimal, Period) items
 makeRoundTrip x = x
 
+-- | Ensure an Inline element is representable in Muse.
+--
+-- TODO: Check if string handling could be improved.
+makeRoundTripInline :: Inline -> Inline
+makeRoundTripInline (Str xs) = Str (T.replace "\DEL" "" xs)
+makeRoundTripInline x = x
+
 -- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
 -- Currently we remove tables and compare first rewrite to the second.
 roundTrip :: Blocks -> Bool
 roundTrip b = d' == d''
-  where d = walk makeRoundTrip $ Pandoc nullMeta $ toList b
+  where d = walk makeRoundTrip
+          . walk makeRoundTripInline
+          $ Pandoc nullMeta $ toList b
         d' = rewrite d
         d'' = rewrite d'
         rewrite = amuse . T.pack . (++ "\n") . T.unpack .
