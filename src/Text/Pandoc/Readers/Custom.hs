@@ -14,10 +14,11 @@ Supports custom parsers written in Lua which produce a Pandoc AST.
 module Text.Pandoc.Readers.Custom ( readCustom ) where
 import Control.Exception
 import Control.Monad (when)
-import HsLua as Lua hiding (Operation (Div))
 import Control.Monad.IO.Class (MonadIO)
+import Data.Maybe (fromMaybe)
+import HsLua as Lua hiding (Operation (Div))
 import Text.Pandoc.Definition
-import Text.Pandoc.Class (PandocMonad, report)
+import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Lua.PandocLua
@@ -31,9 +32,10 @@ readCustom :: (PandocMonad m, MonadIO m, ToSources s)
             => FilePath -> ReaderOptions -> s -> m Pandoc
 readCustom luaFile opts srcs = do
   let globals = [ PANDOC_SCRIPT_FILE luaFile ]
+  luaFile' <- fromMaybe luaFile <$> findFileWithDataFallback "readers" luaFile
   res <- runLua $ do
     setGlobals globals
-    stat <- dofileTrace luaFile
+    stat <- dofileTrace luaFile'
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
