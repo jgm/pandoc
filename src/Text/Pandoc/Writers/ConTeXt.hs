@@ -42,7 +42,13 @@ data WriterState =
               , stCslHangingIndent :: Bool -- CSL hanging indent
               }
 
-data Tabl = Xtb | Ntb deriving (Show, Eq)
+-- | Table type
+data Tabl = Xtb  -- ^ Extreme tables
+          | Ntb  -- ^ Natural tables
+  deriving (Show, Eq)
+
+-- | Whether a heading belongs to a section environment or is standalone.
+data HeadingType = SectionHeading | NonSectionHeading
 
 orderedListStyles :: [Char]
 orderedListStyles = cycle "narg"
@@ -158,7 +164,7 @@ blockToConTeXt :: PandocMonad m => Block -> WM m (Doc Text)
 blockToConTeXt Null = return empty
 blockToConTeXt (Div attr@(_,"section":_,_)
                  (Header level _ title' : xs)) = do
-  header' <- sectionHeader attr level title'
+  header' <- sectionHeader attr level title' SectionHeading
   footer' <- sectionFooter attr level
   innerContents <- blockListToConTeXt xs
   return $ header' $$ innerContents $$ footer'
@@ -250,7 +256,8 @@ blockToConTeXt (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
 blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
-blockToConTeXt (Header level attr lst) = sectionHeader attr level lst
+blockToConTeXt (Header level attr lst) =
+  sectionHeader attr level lst NonSectionHeading
 blockToConTeXt (Table _ blkCapt specs thead tbody tfoot) = do
     let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
     opts <- gets stOptions
@@ -500,11 +507,12 @@ sectionHeader :: PandocMonad m
               => Attr
               -> Int
               -> [Inline]
+              -> HeadingType
               -> WM m (Doc Text)
-sectionHeader (ident,classes,kvs) hdrLevel lst = do
+sectionHeader (ident,classes,kvs) hdrLevel lst secenv = do
   opts <- gets stOptions
   contents <- inlineListToConTeXt lst
-  levelText <- sectionLevelToText opts (ident,classes,kvs) hdrLevel
+  levelText <- sectionLevelToText opts (ident,classes,kvs) hdrLevel secenv
   let ident' = if T.null ident
                then empty
                else "reference=" <> braces (literal (toLabel ident))
@@ -514,38 +522,44 @@ sectionHeader (ident,classes,kvs) hdrLevel lst = do
   let options = if isEmpty keys || isEmpty levelText
                 then empty
                 else brackets keys
-        where keys = hcat $ intersperse "," $ filter (not . isEmpty) [contents', ident']
-  let starter = if writerSectionDivs opts
-                then "\\start"
-                else "\\"
+        where keys = hcat $ intersperse "," $
+                     filter (not . isEmpty) [contents', ident']
+  let starter = case secenv of
+                  SectionHeading -> "\\start"
+                  NonSectionHeading -> "\\"
   return $ starter <> levelText <> options <> blankline
 
 -- | Craft the section footer
 sectionFooter :: PandocMonad m => Attr -> Int -> WM m (Doc Text)
 sectionFooter attr hdrLevel = do
   opts <- gets stOptions
-  levelText <- sectionLevelToText opts attr hdrLevel
-  return $ if writerSectionDivs opts
-           then "\\stop" <> levelText <> blankline
-           else empty
+  levelText <- sectionLevelToText opts attr hdrLevel SectionHeading
+  return $ "\\stop" <> levelText <> blankline
 
 -- | Generate a textual representation of the section level
-sectionLevelToText :: PandocMonad m => WriterOptions -> Attr -> Int -> WM m (Doc Text)
-sectionLevelToText opts (_,classes,_) hdrLevel = do
-  let level' = case writerTopLevelDivision opts of
-                 TopLevelPart    -> hdrLevel - 2
-                 TopLevelChapter -> hdrLevel - 1
-                 TopLevelSection -> hdrLevel
-                 TopLevelDefault -> hdrLevel
-  let (section, chapter) = if "unnumbered" `elem` classes
-                              then (literal "subject", literal "title")
-                              else (literal "section", literal "chapter")
-  return $ case level' of
-             -1         -> literal "part"
-             0          -> chapter
-             n | n >= 1 -> text (concat (replicate (n - 1) "sub"))
-                           <> section
-             _          -> empty -- cannot happen
+sectionLevelToText :: PandocMonad m
+                   => WriterOptions -> Attr -> Int -> HeadingType
+                   -> WM m (Doc Text)
+sectionLevelToText opts (_,classes,_) hdrLevel headingType = do
+  let semanticSection shift = do
+        let (section, chapter) = if "unnumbered" `elem` classes
+                                 then (literal "subject", literal "title")
+                                 else (literal "section", literal "chapter")
+        return $ case hdrLevel + shift of
+                   -1         -> literal "part"
+                   0          -> chapter
+                   n | n >= 1 -> text (concat (replicate (n - 1) "sub"))
+                                 <> section
+                   _          -> empty -- cannot happen
+
+  case writerTopLevelDivision opts of
+    TopLevelPart    -> semanticSection (-2)
+    TopLevelChapter -> semanticSection (-1)
+    TopLevelSection -> semanticSection 0
+    TopLevelDefault -> return . literal $
+                       case headingType of
+                         SectionHeading    -> "sectionlevel"
+                         NonSectionHeading -> ""
 
 fromBCP47 :: PandocMonad m => Maybe Text -> WM m (Maybe Text)
 fromBCP47 mbs = fromBCP47' <$> toLang mbs

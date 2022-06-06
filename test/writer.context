@@ -40,6 +40,10 @@
 \setuphead[subsubsubsection]   [style=\sc]
 \setuphead[subsubsubsubsection][style=\it]
 
+\definesectionlevels
+   [default]
+   [section, subsection, subsubsection, subsubsubsection, subsubsubsubsection]
+
 \setuphead[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][number=no]
 
 \definedescription
@@ -76,34 +80,52 @@ markdown test suite.
 
 \thinrule
 
-\section[title={Headers},reference={headers}]
+\startsectionlevel[title={Headers},reference={headers}]
 
-\subsection[title={Level 2 with an \goto{embedded
+\startsectionlevel[title={Level 2 with an \goto{embedded
 link}[url(/url)]},reference={level-2-with-an-embedded-link}]
 
-\subsubsection[title={Level 3 with
+\startsectionlevel[title={Level 3 with
 {\em emphasis}},reference={level-3-with-emphasis}]
 
-\subsubsubsection[title={Level 4},reference={level-4}]
+\startsectionlevel[title={Level 4},reference={level-4}]
 
-\subsubsubsubsection[title={Level 5},reference={level-5}]
+\startsectionlevel[title={Level 5},reference={level-5}]
 
-\section[title={Level 1},reference={level-1}]
+\stopsectionlevel
 
-\subsection[title={Level 2 with
+\stopsectionlevel
+
+\stopsectionlevel
+
+\stopsectionlevel
+
+\stopsectionlevel
+
+\startsectionlevel[title={Level 1},reference={level-1}]
+
+\startsectionlevel[title={Level 2 with
 {\em emphasis}},reference={level-2-with-emphasis}]
 
-\subsubsection[title={Level 3},reference={level-3}]
+\startsectionlevel[title={Level 3},reference={level-3}]
 
 with no blank line
 
-\subsection[title={Level 2},reference={level-2}]
+\stopsectionlevel
+
+\stopsectionlevel
+
+\startsectionlevel[title={Level 2},reference={level-2}]
 
 with no blank line
 
 \thinrule
 
-\section[title={Paragraphs},reference={paragraphs}]
+\stopsectionlevel
+
+\stopsectionlevel
+
+\startsectionlevel[title={Paragraphs},reference={paragraphs}]
 
 Here's a regular paragraph.
 
@@ -118,7 +140,9 @@ here.
 
 \thinrule
 
-\section[title={Block Quotes},reference={block-quotes}]
+\stopsectionlevel
+
+\startsectionlevel[title={Block Quotes},reference={block-quotes}]
 
 E-mail style:
 
@@ -161,7 +185,9 @@ And a following paragraph.
 
 \thinrule
 
-\section[title={Code Blocks},reference={code-blocks}]
+\stopsectionlevel
+
+\startsectionlevel[title={Code Blocks},reference={code-blocks}]
 
 Code:
 
@@ -185,9 +211,11 @@ These should not be escaped:  \$ \\ \> \[ \{
 
 \thinrule
 
-\section[title={Lists},reference={lists}]
+\stopsectionlevel
 
-\subsection[title={Unordered},reference={unordered}]
+\startsectionlevel[title={Lists},reference={lists}]
+
+\startsectionlevel[title={Unordered},reference={unordered}]
 
 Asterisks tight:
 
@@ -255,7 +283,9 @@ Minuses loose:
   Minus 3
 \stopitemize
 
-\subsection[title={Ordered},reference={ordered}]
+\stopsectionlevel
+
+\startsectionlevel[title={Ordered},reference={ordered}]
 
 Tight:
 
@@ -314,7 +344,9 @@ Multiple paragraphs:
   Item 3.
 \stopenumerate
 
-\subsection[title={Nested},reference={nested}]
+\stopsectionlevel
+
+\startsectionlevel[title={Nested},reference={nested}]
 
 \startitemize[packed]
 \item
@@ -368,7 +400,9 @@ Same thing but with paragraphs:
   Third
 \stopenumerate
 
-\subsection[title={Tabs and spaces},reference={tabs-and-spaces}]
+\stopsectionlevel
+
+\startsectionlevel[title={Tabs and spaces},reference={tabs-and-spaces}]
 
 \startitemize
 \item
@@ -384,7 +418,9 @@ Same thing but with paragraphs:
   \stopitemize
 \stopitemize
 
-\subsection[title={Fancy list markers},reference={fancy-list-markers}]
+\stopsectionlevel
+
+\startsectionlevel[title={Fancy list markers},reference={fancy-list-markers}]
 
 \startenumerate[n][start=2,left=(,stopper=)]
 \item
@@ -448,7 +484,11 @@ B. Williams
 
 \thinrule
 
-\section[title={Definition Lists},reference={definition-lists}]
+\stopsectionlevel
+
+\stopsectionlevel
+
+\startsectionlevel[title={Definition Lists},reference={definition-lists}]
 
 Tight using spaces:
 
@@ -559,7 +599,9 @@ Blank line after term, indented marker, alternate markers:
   \stopenumerate
 \stopdescription
 
-\section[title={HTML Blocks},reference={html-blocks}]
+\stopsectionlevel
+
+\startsectionlevel[title={HTML Blocks},reference={html-blocks}]
 
 Simple block on one line:
 
@@ -619,7 +661,9 @@ Hr's:
 
 \thinrule
 
-\section[title={Inline Markup},reference={inline-markup}]
+\stopsectionlevel
+
+\startsectionlevel[title={Inline Markup},reference={inline-markup}]
 
 This is {\em emphasized}, and so {\em is this}.
 
@@ -648,7 +692,9 @@ a^b c^d, a\lettertilde{}b c\lettertilde{}d.
 
 \thinrule
 
-\section[title={Smart quotes, ellipses,
+\stopsectionlevel
+
+\startsectionlevel[title={Smart quotes, ellipses,
 dashes},reference={smart-quotes-ellipses-dashes}]
 
 \quotation{Hello,} said the spider. \quotation{\quote{Shelob} is my name.}
@@ -671,7 +717,9 @@ Ellipses\ldots{}and\ldots{}and\ldots{}.
 
 \thinrule
 
-\section[title={LaTeX},reference={latex}]
+\stopsectionlevel
+
+\startsectionlevel[title={LaTeX},reference={latex}]
 
 \startitemize[packed]
 \item
@@ -717,7 +765,9 @@ Cat    & 1      \\ \hline
 
 \thinrule
 
-\section[title={Special Characters},reference={special-characters}]
+\stopsectionlevel
+
+\startsectionlevel[title={Special Characters},reference={special-characters}]
 
 Here is some unicode:
 
@@ -778,9 +828,11 @@ Minus: -
 
 \thinrule
 
-\section[title={Links},reference={links}]
+\stopsectionlevel
 
-\subsection[title={Explicit},reference={explicit}]
+\startsectionlevel[title={Links},reference={links}]
+
+\startsectionlevel[title={Explicit},reference={explicit}]
 
 Just a \goto{URL}[url(/url/)].
 
@@ -800,7 +852,9 @@ Just a \goto{URL}[url(/url/)].
 
 \goto{Empty}[url()].
 
-\subsection[title={Reference},reference={reference}]
+\stopsectionlevel
+
+\startsectionlevel[title={Reference},reference={reference}]
 
 Foo \goto{bar}[url(/url/)].
 
@@ -824,7 +878,9 @@ Foo \goto{bar}[url(/url/)].
 
 Foo \goto{biz}[url(/url/)].
 
-\subsection[title={With ampersands},reference={with-ampersands}]
+\stopsectionlevel
+
+\startsectionlevel[title={With ampersands},reference={with-ampersands}]
 
 Here's a \goto{link with an ampersand in the
 URL}[url(http://example.com/?foo=1&bar=2)].
@@ -836,7 +892,9 @@ Here's an \goto{inline link}[url(/script?foo=1&bar=2)].
 
 Here's an \goto{inline link in pointy braces}[url(/script?foo=1&bar=2)].
 
-\subsection[title={Autolinks},reference={autolinks}]
+\stopsectionlevel
+
+\startsectionlevel[title={Autolinks},reference={autolinks}]
 
 With an ampersand: \useURL[url1][http://example.com/?foo=1&bar=2]\from[url1]
 
@@ -863,7 +921,11 @@ or here: <http://example.com/>
 
 \thinrule
 
-\section[title={Images},reference={images}]
+\stopsectionlevel
+
+\stopsectionlevel
+
+\startsectionlevel[title={Images},reference={images}]
 
 From \quotation{Voyage dans la Lune} by Georges Melies (1902):
 
@@ -873,7 +935,9 @@ Here is a movie {\externalfigure[movie.jpg]} icon.
 
 \thinrule
 
-\section[title={Footnotes},reference={footnotes}]
+\stopsectionlevel
+
+\startsectionlevel[title={Footnotes},reference={footnotes}]
 
 Here is a footnote reference,\footnote{Here is the footnote. It can go anywhere
   after the footnote reference. It need not be placed at the end of the
@@ -904,5 +968,7 @@ Notes can go in quotes.\footnote{In quote.}
 \stopenumerate
 
 This paragraph should not be part of the note, as it is not indented.
+
+\stopsectionlevel
 
 \stoptext

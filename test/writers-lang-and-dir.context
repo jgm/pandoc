@@ -38,6 +38,10 @@
 \setuphead[subsubsubsection]   [style=\sc]
 \setuphead[subsubsubsubsection][style=\it]
 
+\definesectionlevels
+   [default]
+   [section, subsection, subsubsection, subsubsubsection, subsubsubsubsection]
+
 \setuphead[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][number=no]
 
 \definedescription
@@ -61,7 +65,8 @@
 
 \starttext
 
-\section[title={Empty Divs and Spans},reference={empty-divs-and-spans}]
+\startsectionlevel[title={Empty Divs and
+Spans},reference={empty-divs-and-spans}]
 
 Some text and
 
@@ -71,7 +76,9 @@ and more text.
 
 Next paragraph with a span and a word-thatincludesaspanright?
 
-\section[title={Directionality},reference={directionality}]
+\stopsectionlevel
+
+\startsectionlevel[title={Directionality},reference={directionality}]
 
 Some text and
 
@@ -90,7 +97,9 @@ and a ltr div. with a {\righttoleft rtl span}.
 Next paragraph with a {\righttoleft rtl span} and a
 word-that-includesa{\lefttoright ltrspan}right?
 
-\section[title={Languages},reference={languages}]
+\stopsectionlevel
+
+\startsectionlevel[title={Languages},reference={languages}]
 
 Some text and
 
@@ -106,7 +115,9 @@ word-that-includesa{\language[de-ch]Swiss German span}right?
 
 Some {\language[es]Spanish text}.
 
-\section[title={Combined},reference={combined}]
+\stopsectionlevel
+
+\startsectionlevel[title={Combined},reference={combined}]
 
 Some text and
 
@@ -122,5 +133,7 @@ and more text.
 Next paragraph with a {\language[en-gb]{\lefttoright British ltr span}}
 and a word-that-includesa{\language[de-ch]{\lefttoright Swiss German ltr
 span}}right?
+
+\stopsectionlevel
 
 \stoptext

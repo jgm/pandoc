@@ -19,8 +19,10 @@ context' = unpack . purely (writeConTeXt def{ writerWrapText = WrapNone }) . toP
 contextNtb :: (ToPandoc a) => a -> String
 contextNtb = unpack . purely (writeConTeXt def{ writerExtensions = enableExtension Ext_ntb pandocExtensions }) . toPandoc
 
-contextDiv :: (ToPandoc a) => a -> String
-contextDiv = unpack . purely (writeConTeXt def{ writerSectionDivs = True }) . toPandoc
+contextSection :: (ToPandoc a) => a -> String
+contextSection = unpack
+  . purely (writeConTeXt def{ writerTopLevelDivision = TopLevelSection })
+  . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -56,8 +58,10 @@ tests =
   , testGroup "headers"
     [ "level 1" =:
       headerWith ("my-header",[],[]) 1 "My header" =?>
-      "\\section[title={My header},reference={my-header}]"
-    , test contextDiv "section-divs" $
+      "\\startsectionlevel[title={My header},reference={my-header}]\n" <>
+      "\n" <>
+      "\\stopsectionlevel"
+    , test contextSection "Section as top-level" $
       (   headerWith ("header1", [], []) 1 (text "Header1")
        <> headerWith ("header2", [], []) 2 (text "Header2")
        <> headerWith ("header3", [], []) 3 (text "Header3")

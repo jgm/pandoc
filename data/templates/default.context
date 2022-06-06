@@ -80,6 +80,10 @@ $endif$
 \setuphead[subsubsubsection]   [style=\sc]
 \setuphead[subsubsubsubsection][style=\it]
 
+\definesectionlevels
+   [default]
+   [section, subsection, subsubsection, subsubsubsection, subsubsubsubsection]
+
 $if(headertext)$
 \setupheadertexts$for(headertext)$[$headertext$]$endfor$
 $endif$
