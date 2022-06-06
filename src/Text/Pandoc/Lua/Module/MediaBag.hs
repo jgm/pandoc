@@ -15,12 +15,13 @@ module Text.Pandoc.Lua.Module.MediaBag
 import Prelude hiding (lookup)
 import Data.Maybe (fromMaybe)
 import HsLua ( LuaE, DocumentedFunction, Module (..)
-             , (<#>), (###), (=#>), (=?>), defun, functionResult
+             , (<#>), (###), (=#>), (=?>), (#?), defun, functionResult
              , opt, parameter, stringParam, textParam)
 import Text.Pandoc.Class.CommonState (CommonState (..))
-import Text.Pandoc.Class.PandocMonad (fetchItem, getMediaBag, modifyCommonState,
-                                      setMediaBag)
+import Text.Pandoc.Class.PandocMonad (fetchItem, fillMediaBag, getMediaBag,
+                                      modifyCommonState, setMediaBag)
 import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc, pushPandoc)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.PandocLua (unPandocLua)
@@ -42,6 +43,7 @@ documentedModule = Module
       [ delete
       , empty
       , fetch
+      , fill
       , insert
       , items
       , list
@@ -64,6 +66,21 @@ empty :: DocumentedFunction PandocError
 empty = defun "empty"
   ### unPandocLua (modifyCommonState (\st -> st { stMediaBag = mempty }))
   =#> []
+
+-- | Fill the mediabag with all images in the document that aren't
+-- present yet.
+fill :: DocumentedFunction PandocError
+fill = defun "fill"
+  ### unPandocLua . fillMediaBag
+  <#> parameter peekPandoc "Pandoc" "doc"
+        "document from which to fill the mediabag"
+  =#> functionResult pushPandoc "Pandoc" "modified document"
+  #? ("Fills the mediabag with the images in the given document.\n" <>
+      "An image that cannot be retrieved will be replaced with a Span\n" <>
+      "of class \"image\" that contains the image description.\n" <>
+      "" <>
+      "Images for which the mediabag already contains an item will\n" <>
+      "not be processed again.")
 
 -- | Insert a new item into the media bag.
 insert :: DocumentedFunction PandocError

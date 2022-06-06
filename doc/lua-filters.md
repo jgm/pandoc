@@ -3791,6 +3791,26 @@ Parameters:
 
 Clear-out the media bag, deleting all items.
 
+### fill {#pandoc.mediabag.fill}
+
+`fill (doc)`
+
+Fills the mediabag with the images in the given document. An
+image that cannot be retrieved will be replaced with a Span of
+class "image" that contains the image description.
+
+Images for which the mediabag already contains an item will
+not be processed again.
+
+Parameters:
+
+`doc`
+:   document from which to fill the mediabag ([Pandoc](#type-pandoc))
+
+Returns:
+
+-   modified document ([Pandoc](#type-pandoc))
+
 ### insert {#pandoc.mediabag.insert}
 
 `insert (filepath, mime_type, contents)`
