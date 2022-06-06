@@ -2,6 +2,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -52,6 +53,7 @@ module Text.Pandoc.Class.PandocMonad
   , setTranslations
   , translateTerm
   , makeCanonical
+  , findFileWithDataFallback
   , getTimestamp
   ) where
 
@@ -604,21 +606,9 @@ readDataFile fname = do
 -- | Read metadata file from the working directory or, if not found there, from
 -- the metadata subdirectory of the user data directory.
 readMetadataFile :: PandocMonad m => FilePath -> m B.ByteString
-readMetadataFile fname = do
-  existsInWorkingDir <- fileExists fname
-  if existsInWorkingDir
-     then readFileStrict fname
-     else do
-       dataDir <- checkUserDataDir fname
-       case dataDir of
-         Nothing ->
-           throwError $ PandocCouldNotFindMetadataFileError $ T.pack fname
-         Just userDir -> do
-           let path = userDir </> "metadata" </> fname
-           existsInUserDir <- fileExists path
-           if existsInUserDir
-              then readFileStrict path
-              else throwError $ PandocCouldNotFindMetadataFileError $ T.pack fname
+readMetadataFile fname = findFileWithDataFallback "metadata" fname >>= \case
+  Nothing -> throwError $ PandocCouldNotFindMetadataFileError (T.pack fname)
+  Just metadataFile -> readFileStrict metadataFile
 
 -- | Read file from from the default data files.
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString
@@ -667,6 +657,31 @@ withPaths [] _ fp = throwError $ PandocResourceNotFound $ T.pack fp
 withPaths (p:ps) action fp =
   catchError ((p </> fp,) <$> action (p </> fp))
              (\_ -> withPaths ps action fp)
+
+-- | Returns @fp@ if the file exists in the current directory; otherwise
+-- searches for the data file relative to @/subdir/@. Returns @Nothing@
+-- if neither file exists.
+findFileWithDataFallback :: PandocMonad m
+                         => FilePath  -- ^ subdir
+                         -> FilePath  -- ^ fp
+                         -> m (Maybe FilePath)
+findFileWithDataFallback subdir fp = do
+  -- First we check to see if the file is found. If not, and if it's not
+  -- an absolute path, we check to see whether it's in @userdir/@. If
+  -- not, we leave it unchanged.
+  existsInWorkingDir <- fileExists fp
+  if existsInWorkingDir
+     then return $ Just fp
+     else do
+       mbDataDir <- checkUserDataDir fp
+       case mbDataDir of
+         Nothing -> return Nothing
+         Just datadir -> do
+           let datafp = datadir </> subdir </> fp
+           existsInDataDir <- fileExists datafp
+           return $ if existsInDataDir
+                    then Just datafp
+                    else Nothing
 
 -- | Traverse tree, filling media bag for any images that
 -- aren't already in the media bag.
