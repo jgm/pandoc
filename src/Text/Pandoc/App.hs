@@ -306,17 +306,16 @@ convertWithOpts opts = do
                                 >>= r readerOpts
              ByteStringReader r ->
                mconcat <$> mapM (r readerOpts . inputToLazyByteString) inputs)
-            >>=
-              (   (if not (optSandbox opts) &&
-                      (isJust (optExtractMedia opts)
-                       || writerNameBase == "docx") -- for fallback pngs
-                      then fillMediaBag
-                      else return)
-              >=> return . adjustMetadata (metadataFromFile <>)
+            >>= ( return . adjustMetadata (metadataFromFile <>)
               >=> return . adjustMetadata (<> optMetadata opts)
               >=> return . adjustMetadata (<> cslMetadata)
               >=> applyTransforms transforms
               >=> applyFilters filterEnv filters [T.unpack format]
+              >=> (if not (optSandbox opts) &&
+                      (isJust (optExtractMedia opts)
+                       || writerNameBase == "docx") -- for fallback pngs
+                   then fillMediaBag
+                   else return)
               >=> maybe return extractMedia (optExtractMedia opts)
               )
 
