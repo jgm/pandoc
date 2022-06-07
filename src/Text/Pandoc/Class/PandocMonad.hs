@@ -688,14 +688,23 @@ fillMediaBag d = walkM handleImage d
                   report $ CouldNotFetchResource src
                             "replacing image with description"
                   -- emit alt text
-                  return $ Span ("",["image"],[]) lab
+                  return $ replacementSpan attr src tit lab
                 PandocHttpError u er -> do
                   report $ CouldNotFetchResource u
                             (T.pack $ show er ++ "\rReplacing image with description.")
                   -- emit alt text
-                  return $ Span ("",["image"],[]) lab
+                  return $ replacementSpan attr src tit lab
                 _ -> throwError e)
         handleImage x = return x
+
+        replacementSpan (ident, classes, attribs) src title descr =
+          Span ( ident
+               , "image":"placeholder":classes
+               , ("original-image-src", src) :
+                 ("original-image-title", title) :
+                 attribs
+               )
+               descr
 
 -- This requires UndecidableInstances.  We could avoid that
 -- by repeating the definitions below for every monad transformer
