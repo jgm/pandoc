@@ -58,9 +58,10 @@
 \setupfloat[table][default={here,nonumber}]
 
 \setupxtable[frame=off]
-\setupxtable[head][topframe=on,bottomframe=on]
+\setupxtable[head][topframe=on]
 \setupxtable[body][]
-\setupxtable[foot][bottomframe=on]
+\setupxtable[foot][]
+\setupxtable[lastrow][bottomframe=on]
 
 
 \starttext
