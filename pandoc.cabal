@@ -753,7 +753,6 @@ library
                    Text.Pandoc.Lua.Module.Types,
                    Text.Pandoc.Lua.Module.Utils,
                    Text.Pandoc.Lua.Orphans,
-                   Text.Pandoc.Lua.Packages,
                    Text.Pandoc.Lua.PandocLua,
                    Text.Pandoc.Lua.Writer.Classic,
                    Text.Pandoc.XML.Light,

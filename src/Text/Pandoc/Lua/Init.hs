@@ -22,11 +22,20 @@ import HsLua as Lua hiding (status, try)
 import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
-import Text.Pandoc.Lua.Packages (installPandocPackageSearcher)
+import Text.Pandoc.Lua.Marshal.List (pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLua)
+import qualified Data.ByteString as B
 import qualified Data.Text as T
 import qualified Lua.LPeg as LPeg
-import qualified Text.Pandoc.Lua.Module.Pandoc as ModulePandoc
+import qualified HsLua.Module.DocLayout as Module.Layout
+import qualified HsLua.Module.Path as Module.Path
+import qualified HsLua.Module.Text as Module.Text
+import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
+import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
+import qualified Text.Pandoc.Lua.Module.System as Pandoc.System
+import qualified Text.Pandoc.Lua.Module.Template as Pandoc.Template
+import qualified Text.Pandoc.Lua.Module.Types as Pandoc.Types
+import qualified Text.Pandoc.Lua.Module.Utils as Pandoc.Utils
 
 -- | Run the lua interpreter, using pandoc's default way of environment
 -- initialization.
@@ -42,47 +51,45 @@ runLua luaOp = do
 
 -- | Modules that are loaded at startup and assigned to fields in the
 -- pandoc module.
-loadedModules :: [(Name, Name)]
+--
+-- Note that @pandoc.List@ is not included here for technical reasons;
+-- it must be handled separately.
+loadedModules :: [Module PandocError]
 loadedModules =
-  [ ("pandoc.List", "List")
-  , ("pandoc.layout", "layout")
-  , ("pandoc.mediabag", "mediabag")
-  , ("pandoc.path", "path")
-  , ("pandoc.system", "system")
-  , ("pandoc.template", "template")
-  , ("pandoc.types", "types")
-  , ("pandoc.utils", "utils")
-  , ("text", "text")
+  [ Pandoc.MediaBag.documentedModule
+  , Pandoc.System.documentedModule
+  , Pandoc.Template.documentedModule
+  , Pandoc.Types.documentedModule
+  , Pandoc.Utils.documentedModule
+  , Module.Layout.documentedModule { moduleName = "pandoc.layout" }
+  , Module.Path.documentedModule { moduleName = "pandoc.path" }
+  , Module.Text.documentedModule
   ]
 
 -- | Initialize the lua state with all required values
 initLuaState :: PandocLua ()
 initLuaState = do
   liftPandocLua Lua.openlibs
-  installPandocPackageSearcher
   initPandocModule
   installLpegSearcher
   setGlobalModules
   loadInitScript "init.lua"
  where
   initPandocModule :: PandocLua ()
-  initPandocModule = do
+  initPandocModule = liftPandocLua $ do
     -- Push module table
-    ModulePandoc.pushModule
-    -- register as loaded module
-    liftPandocLua $ do
-      Lua.getfield Lua.registryindex Lua.loaded
-      Lua.pushvalue (Lua.nth 2)
-      Lua.setfield (Lua.nth 2) "pandoc"
-      Lua.pop 1  -- remove LOADED table
+    registerModule Module.Pandoc.documentedModule
     -- load modules and add them to the `pandoc` module table.
-    liftPandocLua $ forM_ loadedModules $ \(pkgname, fieldname) -> do
-      Lua.getglobal "require"
-      Lua.pushName pkgname
-      Lua.call 1 1
-      Lua.setfield (nth 2) fieldname
+    forM_ loadedModules $ \mdl -> do
+      registerModule mdl
+      let isNotAsciiDot = (/= 46)
+      let fieldname = B.takeWhileEnd isNotAsciiDot (fromName $ moduleName mdl)
+      Lua.setfield (nth 2) (Name fieldname)
+    -- pandoc.List is low-level and must be opened differently.
+    requirehs "pandoc.List" (const pushListModule)
+    setfield (nth 2) "List"
     -- assign module to global variable
-    liftPandocLua $ Lua.setglobal "pandoc"
+    Lua.setglobal "pandoc"
 
   loadInitScript :: FilePath -> PandocLua ()
   loadInitScript scriptFile = do
