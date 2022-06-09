@@ -24,7 +24,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Marshal.List (pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLua)
-import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Lua.LPeg as LPeg
 import qualified HsLua.Module.DocLayout as Module.Layout
@@ -82,9 +82,10 @@ initLuaState = do
     -- load modules and add them to the `pandoc` module table.
     forM_ loadedModules $ \mdl -> do
       registerModule mdl
-      let isNotAsciiDot = (/= 46)
-      let fieldname = B.takeWhileEnd isNotAsciiDot (fromName $ moduleName mdl)
-      Lua.setfield (nth 2) (Name fieldname)
+      let fieldname (Name mdlname) = Name .
+            maybe mdlname snd . Char8.uncons . snd $
+            Char8.break (== '.') mdlname
+      Lua.setfield (nth 2) (fieldname $ moduleName mdl)
     -- pandoc.List is low-level and must be opened differently.
     requirehs "pandoc.List" (const pushListModule)
     setfield (nth 2) "List"
