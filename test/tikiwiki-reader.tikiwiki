@@ -28,6 +28,12 @@ __strong with ''emph''__
 
 ''__strong inside__ emph''
 
+! other inlines
+
+===underlined text===
+
+--strikeout--
+
 ! horizontal rule
 
 top

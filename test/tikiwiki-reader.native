@@ -101,6 +101,13 @@ Pandoc
       ]
   , Header
       1
+      ( "other-inlines" , [] , [] )
+      [ Str "other" , Space , Str "inlines" ]
+  , Para
+      [ Underline [ Str "underlined" , Space , Str "text" ] ]
+  , Para [ Strikeout [ Str "strikeout" ] ]
+  , Header
+      1
       ( "horizontal-rule" , [] , [] )
       [ Str "horizontal" , Space , Str "rule" ]
   , Para [ Str "top" ]

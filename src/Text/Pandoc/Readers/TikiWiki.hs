@@ -523,14 +523,9 @@ colored = try $ do
   string "~~"
   return $ B.str $ " NOT SUPPORTED: ~~ (colored) BEGIN: ~~" <> inner <> "~~ :END "
 
--- UNSUPPORTED, as there doesn't seem to be any facility in calibre
--- for this
+-- ===underlined===
 underlined :: PandocMonad m => TikiWikiParser m B.Inlines
-underlined = try $ do
-  string "==="
-  inner <- fmap T.pack $ many1 $ noneOf "=\n"
-  string "==="
-  return $ B.str $ " NOT SUPPORTED: ==== (underlined) BEGIN: ===" <> inner <> "=== :END "
+underlined = try $ B.underline <$> enclosed (string "===") nestedInlines
 
 -- UNSUPPORTED, as there doesn't seem to be any facility in calibre
 -- for this
