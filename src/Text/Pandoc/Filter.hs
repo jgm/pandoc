@@ -20,15 +20,16 @@ module Text.Pandoc.Filter
 
 import System.CPUTime (getCPUTime)
 import Data.Aeson
+import Data.Maybe (fromMaybe)
 import GHC.Generics (Generic)
-import Text.Pandoc.Class (report, getVerbosity, PandocMonad)
+import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback, getVerbosity,
+                          report)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Citeproc (processCitations)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Filter.Lua as LuaFilter
-import qualified Text.Pandoc.Filter.Path as Path
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Control.Applicative ((<|>))
@@ -99,6 +100,9 @@ applyFilters fenv filters args d = do
 
 -- | Expand paths of filters, searching the data directory.
 expandFilterPath :: (PandocMonad m, MonadIO m) => Filter -> m Filter
-expandFilterPath (LuaFilter fp) = LuaFilter <$> Path.expandFilterPath fp
-expandFilterPath (JSONFilter fp) = JSONFilter <$> Path.expandFilterPath fp
+expandFilterPath (LuaFilter fp) = LuaFilter <$> filterPath fp
+expandFilterPath (JSONFilter fp) = JSONFilter <$> filterPath fp
 expandFilterPath CiteprocFilter = return CiteprocFilter
+
+filterPath :: PandocMonad m => FilePath -> m FilePath
+filterPath fp = fromMaybe fp <$> findFileWithDataFallback "filters" fp
