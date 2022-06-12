@@ -686,7 +686,7 @@ Images are added to the mediabag. For output to binary formats,
 pandoc will use images in the mediabag. For textual formats, use
 `--extract-media` to specify a directory where the files in the
 mediabag will be written, or (for HTML only) use
-`--self-contained`.
+`--embed-resources`.
 
 ``` lua
 -- Pandoc filter to process code blocks with class "abc" containing
@@ -694,7 +694,7 @@ mediabag will be written, or (for HTML only) use
 --
 -- * Assumes that abcm2ps and ImageMagick's convert are in the path.
 -- * For textual output formats, use --extract-media=abc-images
--- * For HTML formats, you may alternatively use --self-contained
+-- * For HTML formats, you may alternatively use --embed-resources
 
 local filetypes = { html = {"png", "image/png"}
                   , latex = {"pdf", "application/pdf"}
@@ -3765,7 +3765,7 @@ Usage:
 
 The `pandoc.mediabag` module allows accessing pandoc's media
 storage. The "media bag" is used when pandoc is called with the
-`--extract-media` or (for HTML only) `--self-contained` option.
+`--extract-media` or (for HTML only) `--embed-resources` option.
 
 The module is loaded as part of module `pandoc` and can either
 be accessed via the `pandoc.mediabag` field, or explicitly

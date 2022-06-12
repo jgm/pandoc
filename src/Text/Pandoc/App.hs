@@ -351,7 +351,7 @@ convertWithOpts opts = do
                       | T.null t || T.last t /= '\n' = t <> T.singleton '\n'
                       | otherwise = t
                 textOutput <- ensureNl <$> f writerOptions doc
-                if optSelfContained opts && htmlFormat format
+                if (optSelfContained opts || optEmbedResources opts) && htmlFormat format
                    then TextOutput <$> makeSelfContained textOutput
                    else return $ TextOutput textOutput
     reports <- getLog

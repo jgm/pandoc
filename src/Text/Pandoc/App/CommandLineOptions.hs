@@ -439,7 +439,14 @@ options =
 
     , Option "" ["self-contained"]
                  (NoArg
-                  (\opt -> return opt { optSelfContained = True }))
+                  (\opt -> do
+                    deprecatedOption "--self-contained" "use --embed-resources --standalone"
+                    return opt { optSelfContained = True }))
+                 "" -- "Make slide shows include all the needed js and css (deprecated)"
+
+    , Option "" ["embed-resources"]
+                 (NoArg
+                  (\opt -> return opt { optEmbedResources = True }))
                  "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["request-header"]
