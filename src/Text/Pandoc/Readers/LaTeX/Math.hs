@@ -65,7 +65,7 @@ mathEnvWith f innerEnv name = f . mathDisplay . inner <$> mathEnv name
    where inner x = case innerEnv of
                         Nothing -> x
                         Just y  -> "\\begin{" <> y <> "}\n" <> x <>
-                                   "\\end{" <> y <> "}"
+                                   "\n\\end{" <> y <> "}"
 
 mathEnv :: PandocMonad m => Text -> LP m Text
 mathEnv name = do

@@ -62,7 +62,8 @@ x &= y\\
 \(5-67\)
 
 \[\begin{aligned}
-x &= y\\\end{aligned}\]
+x &= y\\
+\end{aligned}\]
 
 \emph{hi}
 
