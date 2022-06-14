@@ -96,7 +96,8 @@ data Opt = Opt
     , optNumberOffset          :: [Int]   -- ^ Starting number for sections
     , optSectionDivs           :: Bool    -- ^ Put sections in div tags in HTML
     , optIncremental           :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
-    , optSelfContained         :: Bool    -- ^ Make HTML accessible offline
+    , optSelfContained         :: Bool    -- ^ Make HTML accessible offline (deprecated)
+    , optEmbedResources        :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
     , optHighlightStyle        :: Maybe Text -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
@@ -415,6 +416,8 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optIncremental = x })
     "self-contained" ->
       parseJSON v >>= \x -> return (\o -> o{ optSelfContained = x })
+    "embed-resources" ->
+      parseJSON v >>= \x -> return (\o -> o{ optEmbedResources = x })
     "html-q-tags" ->
       parseJSON v >>= \x -> return (\o -> o{ optHtmlQTags = x })
     "highlight-style" ->
@@ -622,6 +625,7 @@ defaultOpts = Opt
     , optSectionDivs           = False
     , optIncremental           = False
     , optSelfContained         = False
+    , optEmbedResources        = False
     , optHtmlQTags             = False
     , optHighlightStyle        = Just "pygments"
     , optSyntaxDefinitions     = []

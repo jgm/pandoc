@@ -944,15 +944,19 @@ header when requesting a document from a URL:
 
 `--self-contained`
 
+:   *Deprecated synonym for `--embed-resources --standalone`.*
+
+`--embed-resources`
+
 :   Produce a standalone HTML file with no external dependencies, using
     `data:` URIs to incorporate the contents of linked scripts, stylesheets,
-    images, and videos. Implies `--standalone`. The resulting file should be
-    "self-contained," in the sense that it needs no external files and no net
-    access to be displayed properly by a browser. This option works only with
-    HTML output formats, including `html4`, `html5`, `html+lhs`, `html5+lhs`,
-    `s5`, `slidy`, `slideous`, `dzslides`, and `revealjs`. Scripts, images,
-    and stylesheets at absolute URLs will be downloaded; those at relative
-    URLs will be sought relative to the working directory (if the first source
+    images, and videos. The resulting file should be "self-contained," in the
+    sense that it needs no external files and no net access to be displayed
+    properly by a browser. This option works only with HTML output formats,
+    including `html4`, `html5`, `html+lhs`, `html5+lhs`, `s5`, `slidy`,
+    `slideous`, `dzslides`, and `revealjs`. Scripts, images, and stylesheets at
+    absolute URLs will be downloaded; those at relative URLs will be sought
+    relative to the working directory (if the first source
     file is local) or relative to the base URL (if the first source
     file is remote).  Elements with the attribute
     `data-external="1"` will be left alone; the documents they
