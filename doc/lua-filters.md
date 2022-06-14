@@ -859,7 +859,9 @@ equal in Lua if and only if they are equal in Haskell.
 Applies a Lua filter to the Pandoc element. Just as for
 full-document filters, the order in which elements are traversed
 can be controlled by setting the `traverse` field of the filter;
-see the section on [traversal order][Traversal order].
+see the section on [traversal order][Traversal order]. Returns a
+(deep) copy on which the filter has been applied: the original
+element is left untouched.
 
 Parameters:
 
@@ -935,7 +937,9 @@ Haskell.
 Applies a Lua filter to the block element. Just as for
 full-document filters, the order in which elements are traversed
 can be controlled by setting the `traverse` field of the filter;
-see the section on [traversal order][Traversal order].
+see the section on [traversal order][Traversal order]. Returns a
+(deep) copy on which the filter has been applied: the original
+element is left untouched.
 
 Note that the filter is applied to the subtree, but not to the
 `self` block element. The rationale is that otherwise the element
@@ -1284,7 +1288,9 @@ values:
 Applies a Lua filter to the Blocks list. Just as for
 full-document filters, the order in which elements are traversed
 can be controlled by setting the `traverse` field of the filter;
-see the section on [traversal order][Traversal order].
+see the section on [traversal order][Traversal order]. Returns a
+(deep) copy on which the filter has been applied: the original
+list is left untouched.
 
 Parameters:
 
@@ -1319,7 +1325,9 @@ Haskell.
 Applies a Lua filter to the Inline element. Just as for
 full-document filters, the order in which elements are traversed
 can be controlled by setting the `traverse` field of the filter;
-see the section on [traversal order][Traversal order].
+see the section on [traversal order][Traversal order]. Returns a
+(deep) copy on which the filter has been applied: the original
+element is left untouched.
 
 Note that the filter is applied to the subtree, but not to the
 `self` inline element. The rationale is that otherwise the
@@ -1740,7 +1748,9 @@ values:
 Applies a Lua filter to the Inlines list. Just as for
 full-document filters, the order in which elements are handled
 are are Inline → Inlines → Block → Blocks. The filter is applied
-to all list items *and* to the list itself.
+to all list items *and* to the list itself. Returns a (deep)
+copy on which the filter has been applied: the original list is
+left untouched.
 
 Parameters:
 
@@ -3372,6 +3382,8 @@ Usage:
 ### `walk_block (element, filter)` {#pandoc.walk_block}
 
 Apply a filter inside a block element, walking its contents.
+Returns a (deep) copy on which the filter has been applied:
+the original element is left untouched.
 
 Parameters:
 
@@ -3387,6 +3399,8 @@ Returns: the transformed block element
 ### `walk_inline (element, filter)` {#pandoc.walk_inline}
 
 Apply a filter inside an inline element, walking its contents.
+Returns a (deep) copy on which the filter has been applied:
+the original element is left untouched.
 
 Parameters:
 
@@ -3981,7 +3995,8 @@ Returns:
 
 ### `pandoc.List:clone ()` {#pandoc.list:clone}
 
-Returns a (shallow) copy of the list.
+Returns a (shallow) copy of the list. (To get a deep copy
+of the list, use `walk` with an empty filter.)
 
 ### `pandoc.List:extend (list)` {#pandoc.list:extend}
 
