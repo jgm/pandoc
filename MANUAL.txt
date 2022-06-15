@@ -759,6 +759,14 @@ header when requesting a document from a URL:
     through the use of `include` directives.  Anyone using
     pandoc on untrusted user input should use this option.
 
+    Note: some readers and writers (e.g., `docx`) need access to data
+    files.  If these are stored on the file system, then pandoc
+    will not be able to find them when run in `--sandbox` mode
+    and will raise an error. For these applications, we
+    recommend using a pandoc binary compiled with the `embed_data_files`
+    option, which causes the data files to be baked into the binary
+    instead of being stored on the file system.
+
 `-D` *FORMAT*, `--print-default-template=`*FORMAT*
 
 :   Print the system default template for an output *FORMAT*. (See `-t`
