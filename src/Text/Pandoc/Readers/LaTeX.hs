@@ -347,7 +347,7 @@ inlineCommands = M.unions
     , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
     , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
     , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
-    , ("texttt", ttfamily)
+    , ("texttt", formatCode nullAttr <$> tok)
     , ("sout", extractSpaces strikeout <$> tok)
     , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
     , ("textsuperscript", extractSpaces superscript <$> tok)
@@ -368,7 +368,7 @@ inlineCommands = M.unions
     , ("it", extractSpaces emph <$> inlines)
     , ("sl", extractSpaces emph <$> inlines)
     , ("bf", extractSpaces strong <$> inlines)
-    , ("tt", code . stringify . toList <$> inlines)
+    , ("tt", formatCode nullAttr <$> inlines)
     , ("rm", inlines)
     , ("itshape", extractSpaces emph <$> inlines)
     , ("slshape", extractSpaces emph <$> inlines)
@@ -407,8 +407,8 @@ inlineCommands = M.unions
     , ("hypertarget", hypertargetInline)
     -- hyphenat
     , ("nohyphens", tok)
-    , ("textnhtt", ttfamily)
-    , ("nhttfamily", ttfamily)
+    , ("textnhtt", formatCode nullAttr <$> tok)
+    , ("nhttfamily", formatCode nullAttr <$> tok)
     -- LaTeX colors
     , ("textcolor", coloredInline "color")
     , ("colorbox", coloredInline "background-color")
@@ -546,9 +546,6 @@ coloredInline stylename = do
   skipopts
   color <- braced
   spanWith ("",[],[("style",stylename <> ": " <> untokenize color)]) <$> tok
-
-ttfamily :: PandocMonad m => LP m Inlines
-ttfamily = code . stringify . toList <$> tok
 
 processHBox :: Inlines -> Inlines
 processHBox = walk convert
