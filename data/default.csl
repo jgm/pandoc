@@ -45,6 +45,30 @@
       <term name="translator" form="short">trans.</term>
     </terms>
   </locale>
+  <locale xml:lang="pt-PT">
+    <terms>
+      <term name="accessed">acedido a</term>
+    </terms>
+  </locale>
+  <locale xml:lang="pt">
+    <terms>
+      <term name="editor" form="verb">editado por</term>
+      <term name="editor" form="verb-short">ed.</term>
+      <term name="container-author" form="verb">por</term>
+      <term name="translator" form="verb-short">traduzido por</term>
+      <term name="translator" form="short">trad.</term>
+      <term name="editortranslator" form="verb">editado e traduzido por</term>
+      <term name="and">e</term>
+      <term name="no date" form="long">s.d</term>
+      <term name="no date" form="short">s.d.</term>
+      <term name="in">em</term>
+      <term name="at">em</term>
+      <term name="by">por</term>
+      <!-- PUNCTUATION -->
+      <term name="open-quote">"</term>
+      <term name="close-quote">"</term>
+    </terms>
+  </locale>
   <macro name="secondary-contributors">
     <choose>
       <if type="chapter entry-dictionary entry-encyclopedia paper-conference" match="none">
@@ -526,7 +550,7 @@
   </macro>
   <macro name="description">
     <choose>
-      <if type="interview">
+      <if variable="interviewer" type="interview" match="any">
         <group delimiter=". ">
           <text macro="interviewer"/>
           <text variable="medium" text-case="capitalize-first"/>
