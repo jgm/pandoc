@@ -81,6 +81,7 @@ pushVal = \case
   NumVal i       -> pushIntegral i
   NamesVal names -> pushPandocList pushName names
   DateVal date   -> pushDate date
+  _              -> pushText mempty
 
 -- | Pushes a 'Date' as table.
 pushDate :: LuaError e => Pusher e Date

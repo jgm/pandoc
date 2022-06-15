@@ -56,6 +56,7 @@ valToMetaValue (FancyVal ils) = MetaInlines (B.toList ils)
 valToMetaValue (NumVal n) = MetaString (T.pack $ show n)
 valToMetaValue (NamesVal ns) = MetaList $ map nameToMetaValue ns
 valToMetaValue (DateVal d) = dateToMetaValue d
+valToMetaValue _ = MetaString mempty
 
 nameToMetaValue :: Name -> MetaValue
 nameToMetaValue name =

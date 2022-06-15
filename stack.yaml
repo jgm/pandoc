@@ -35,11 +35,12 @@ extra-deps:
 - ipynb-0.2
 - pandoc-types-1.22.2
 - texmath-0.12.5
-- citeproc-0.7
 - commonmark-0.2.2
 - commonmark-extensions-0.2.3.1
 - doclayout-0.4
 - doctemplates-0.10.0.2
+- git: https://github.com/jgm/citeproc
+  commit: 7874a4ccf1845e5a8a6855c251f1aaea9bf12807
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10

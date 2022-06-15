@@ -192,6 +192,7 @@ writeBibtexString opts variant mblang ref =
       Just t  -> t
       Nothing -> T.intercalate "/" (map renderDatePart (dateParts date)) <>
                     (if dateCirca date then "~" else mempty)
+  valToInlines SubstitutedVal = mempty
 
   renderDatePart (DateParts xs) = T.intercalate "-" $
                                     map (T.pack . printf "%02d") xs
