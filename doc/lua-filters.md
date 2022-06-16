@@ -416,6 +416,50 @@ should add/modify your `LUA_PATH` and `LUA_CPATH` to include the
 correct locations; [see detailed instructions
 here](https://studio.zerobrane.com/doc-remote-debugging).
 
+## Common pitfalls
+
+AST elements not updated
+:   A filtered element will only be updated if the filter
+    function returns a new element to replace it. A function like
+    the below has no effect, as the function returns no value:
+
+    ``` lua
+    function Str (str)
+      str.text = string.upper(str.text)
+    end
+    ```
+
+    The correct version would be
+
+    ``` lua
+    function Str (str)
+      str.text = string.upper(str.text)
+      return str
+    end
+    ```
+
+Pattern behavior is locate dependent
+:   The character classes in Lua's pattern library depend on the
+    current locale: E.g., the character `©` will be treated as
+    punctuation, and matched by the pattern `%p`, on CP-1252
+    locales, but not on systems using a UTF-8 locale.
+
+    A reliable way to ensure unified handling of patterns and
+    character classes is to use the "C" locale by adding
+    `os.setlocale 'C'` to the top of the Lua script.
+
+String library is not Unicode aware
+:   Lua's `string` library treats each byte as a single
+    character. A function like `string.upper` will not have the
+    intended effect when applied to words with non-ASCII
+    characters. Similarly, a pattern like `[☃]` will match *any*
+    of the bytes `\240`, `\159`, `\154`, and `\178`, but
+    **won't** match the "snowman" Unicode character.
+
+    Use the [pandoc.text](#module-text) module for Unicode-aware
+    transformation, and consider using using the lpeg or re
+    library for pattern matching.
+
 # Examples
 
 The following filters are presented as examples. A repository of
