@@ -466,7 +466,7 @@ library
   build-depends: Glob                  >= 0.7      && < 0.11,
                  JuicyPixels           >= 3.1.6.1  && < 3.4,
                  SHA                   >= 1.6      && < 1.7,
-                 aeson                 >= 0.7      && < 2.1,
+                 aeson                 >= 0.7      && < 2.2,
                  aeson-pretty          >= 0.8.9    && < 0.9,
                  array                 >= 0.5      && < 0.6,
                  attoparsec            >= 0.12     && < 0.15,
