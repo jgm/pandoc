@@ -217,7 +217,7 @@ setSelectedTags tags st =
 
 setEmphasisPreChar :: Maybe [Char] -> OrgParserState -> OrgParserState
 setEmphasisPreChar csMb st =
-  let preChars = fromMaybe (orgStateEmphasisPostChars defaultOrgParserState) csMb
+  let preChars = fromMaybe (orgStateEmphasisPreChars defaultOrgParserState) csMb
   in st { orgStateEmphasisPreChars = preChars }
 
 setEmphasisPostChar :: Maybe [Char] -> OrgParserState -> OrgParserState
