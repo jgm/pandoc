@@ -19,7 +19,6 @@ import Control.Monad.Catch (throwM, try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Maybe (catMaybes)
 import HsLua as Lua hiding (status, try)
-import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Marshal.List (pushListModule)
@@ -41,13 +40,10 @@ import qualified Text.Pandoc.Lua.Module.Utils as Pandoc.Utils
 -- initialization.
 runLua :: (PandocMonad m, MonadIO m)
        => LuaE PandocError a -> m (Either PandocError a)
-runLua luaOp = do
-  enc <- liftIO $ getForeignEncoding <* setForeignEncoding utf8
-  res <- runPandocLua . try $ do
+runLua action =
+  runPandocLua . try $ do
     initLuaState
-    liftPandocLua luaOp
-  liftIO $ setForeignEncoding enc
-  return res
+    liftPandocLua action
 
 -- | Modules that are loaded at startup and assigned to fields in the
 -- pandoc module.
