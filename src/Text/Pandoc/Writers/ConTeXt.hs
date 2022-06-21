@@ -17,7 +17,8 @@ module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
 import Control.Monad.State.Strict
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
-import Data.Maybe (mapMaybe)
+import Data.List.NonEmpty (NonEmpty ((:|)))
+import Data.Maybe (mapMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
@@ -33,6 +34,9 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
 import Text.Printf (printf)
+
+import qualified Data.List.NonEmpty as NonEmpty
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
 data WriterState =
   WriterState { stNextRef          :: Int  -- number of next URL reference
@@ -258,81 +262,225 @@ blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
 blockToConTeXt (Header level attr lst) =
   sectionHeader attr level lst NonSectionHeading
-blockToConTeXt (Table _ blkCapt specs thead tbody tfoot) = do
-    let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-    opts <- gets stOptions
-    let tabl = if isEnabled Ext_ntb opts
-          then Ntb
-          else Xtb
-    captionText <- inlineListToConTeXt caption
-    headers <- if all null heads
-               then return empty
-               else tableRowToConTeXt tabl aligns widths heads
-    rows' <- mapM (tableRowToConTeXt tabl aligns widths) rows
-    body <- tableToConTeXt tabl headers rows'
-    return $ "\\startplacetable" <> brackets (
-      if null caption
-        then "location=none"
-        else "title=" <> braces captionText
-      ) $$ body $$ "\\stopplacetable" <> blankline
+blockToConTeXt (Table attr caption colspecs thead tbody tfoot) =
+  tableToConTeXt (Ann.toTable attr caption colspecs thead tbody tfoot)
 
-tableToConTeXt :: PandocMonad m
-               => Tabl -> Doc Text -> [Doc Text] -> WM m (Doc Text)
-tableToConTeXt Xtb heads rows =
-  return $ "\\startxtable" $$
-    (if isEmpty heads
-      then empty
-      else "\\startxtablehead[head]" $$ heads $$ "\\stopxtablehead") $$
-    (if null rows
-      then empty
-      else "\\startxtablebody[body]" $$ vcat (init rows) $$ "\\stopxtablebody" $$
-           "\\startxtablefoot[foot]" $$ last rows $$ "\\stopxtablefoot") $$
-    "\\stopxtable"
-tableToConTeXt Ntb heads rows =
-  return $ "\\startTABLE" $$
-    (if isEmpty heads
-      then empty
-      else "\\startTABLEhead" $$ heads $$ "\\stopTABLEhead") $$
-    (if null rows
-      then empty
-      else "\\startTABLEbody" $$ vcat (init rows) $$ "\\stopTABLEbody" $$
-           "\\startTABLEfoot" $$ last rows $$ "\\stopTABLEfoot") $$
-    "\\stopTABLE"
+tableToConTeXt :: PandocMonad m => Ann.Table -> WM m (Doc Text)
+tableToConTeXt (Ann.Table attr caption colspecs thead tbodies tfoot) = do
+  opts <- gets stOptions
+  let tabl = if isEnabled Ext_ntb opts
+             then Ntb
+             else Xtb
+  captionText <- case caption of
+                   Caption _ []       -> return mempty
+                   Caption _ longCapt -> blockListToConTeXt longCapt
+  head'  <- tableHeadToConTeXt tabl thead
+  bodies <- mapM (tableBodyToConTeXt tabl) tbodies
+  foot'  <- tableFootToConTeXt tabl tfoot
+  let body = case tabl of
+        Xtb -> "\\startxtable" $$
+               head' $$
+               "\\startxtablebody[body]" $$
+               vcat bodies $$
+               "\\stopxtablebody" $$
+               foot' $$
+               "\\stopxtable"
+        Ntb -> setupCols colspecs $$
+               "\\bTABLE" $$
+               head' $$
+               "\\bTABLEbody" $$
+               vcat bodies $$
+               "\\eTABLEbody" $$
+               foot' $$
+               "\\eTABLE"
+  let (ident, _classes, _attribs) = attr
+  let tblopts = filter (not . isEmpty)
+             [ if isEmpty captionText
+               then "location=none"
+               else "title=" <> braces captionText
+             , if T.null ident
+               then empty
+               else "reference=" <> braces (literal (toLabel ident))
+             ]
+  return $ vcat
+    [ "\\startplacetable" <> brackets (mconcat $ intersperse "," tblopts)
+    , body
+    , "\\stopplacetable" <> blankline
+    ]
 
-tableRowToConTeXt :: PandocMonad m => Tabl -> [Alignment] -> [Double] -> [[Block]] -> WM m (Doc Text)
-tableRowToConTeXt Xtb aligns widths cols = do
-  cells <- mapM (tableColToConTeXt Xtb) $ zip3 aligns widths cols
-  return $ "\\startxrow" $$ vcat cells $$ "\\stopxrow"
-tableRowToConTeXt Ntb aligns widths cols = do
-  cells <- mapM (tableColToConTeXt Ntb) $ zip3 aligns widths cols
-  return $ vcat cells $$ "\\NC\\NR"
+setupCols :: [ColSpec] -> Doc Text
+setupCols = vcat . map toColSetup . zip [1::Int ..]
+  where
+    toColSetup (i, (align, width)) =
+      let opts = filter (not . isEmpty)
+                 [ case align of
+                     AlignLeft    -> "align=right"
+                     AlignRight   -> "align=left"
+                     AlignCenter  -> "align=middle"
+                     AlignDefault -> "align=left"
+                 , case width of
+                     ColWidthDefault -> empty
+                     ColWidth w -> ("width=" <>) . braces . text $
+                                   printf "%.2f\\textwidth" w
+                 ]
+      in "\\setupTABLE[column]" <> brackets (text $ show i)
+                                <> brackets (mconcat $ intersperse "," opts)
 
-tableColToConTeXt :: PandocMonad m => Tabl -> (Alignment, Double, [Block]) -> WM m (Doc Text)
-tableColToConTeXt tabl (align, width, blocks) = do
-  cellContents <- blockListToConTeXt blocks
-  let colwidth = if width == 0
-        then empty
-        else "width=" <> braces (text (printf "%.2f\\textwidth" width))
-  let halign = alignToConTeXt align
+tableBodyToConTeXt :: PandocMonad m
+                   => Tabl
+                   -> Ann.TableBody
+                   -> WM m (Doc Text)
+tableBodyToConTeXt tabl (Ann.TableBody _attr _rowHeadCols inthead rows) = do
+  intermediateHead <-
+    if null inthead
+    then return mempty
+    else headerRowsToConTeXt tabl Thead inthead
+  bodyRows <- bodyRowsToConTeXt tabl rows
+  return $ intermediateHead <> bodyRows
+
+tableHeadToConTeXt :: PandocMonad m
+                   => Tabl
+                   -> Ann.TableHead
+                   -> WM m (Doc Text)
+tableHeadToConTeXt tabl (Ann.TableHead attr rows) =
+  tablePartToConTeXt tabl Thead attr rows
+
+tableFootToConTeXt :: PandocMonad m
+                   => Tabl
+                   -> Ann.TableFoot
+                   -> WM m (Doc Text)
+tableFootToConTeXt tbl (Ann.TableFoot attr rows) =
+  tablePartToConTeXt tbl Tfoot attr rows
+
+tablePartToConTeXt :: PandocMonad m
+                   => Tabl
+                   -> TablePart
+                   -> Attr
+                   -> [Ann.HeaderRow]
+                   -> WM m (Doc Text)
+tablePartToConTeXt tabl tblpart _attr rows = do
+  let (startCmd, stopCmd) = case (tabl, tblpart) of
+        (Ntb, Thead) -> ("\\bTABLEhead", "\\eTABLEhead")
+        (Ntb, Tfoot) -> ("\\bTABLEfoot", "\\eTABLEfoot")
+        (Xtb, Thead) -> ("\\startxtablehead[head]", "\\stopxtablehead")
+        (Xtb, Tfoot) -> ("\\startxtablefoot[foot]", "\\stopxtablefoot")
+        _            -> ("", "") -- this would be unexpected
+  contents <- headerRowsToConTeXt tabl tblpart rows
+  return $ startCmd $$ contents $$ stopCmd
+
+-- | The part of a table; header, footer, or body.
+data TablePart = Thead | Tfoot | Tbody
+  deriving (Eq)
+
+data CellType = HeaderCell | BodyCell
+
+data TableRow = TableRow TablePart Attr Ann.RowHead Ann.RowBody
+
+headerRowsToConTeXt :: PandocMonad m
+                    => Tabl
+                    -> TablePart
+                    -> [Ann.HeaderRow]
+                    -> WM m (Doc Text)
+headerRowsToConTeXt tabl tablepart = rowListToConTeXt tabl . map toTableRow
+  where
+    toTableRow (Ann.HeaderRow attr _rownum rowbody) =
+      TableRow tablepart attr [] rowbody
+
+bodyRowsToConTeXt :: PandocMonad m
+                  => Tabl
+                  -> [Ann.BodyRow]
+                  -> WM m (Doc Text)
+bodyRowsToConTeXt tabl = rowListToConTeXt tabl . map toTableRow
+  where
+    toTableRow (Ann.BodyRow attr _rownum rowhead rowbody) =
+      TableRow Tbody attr rowhead rowbody
+
+
+rowListToConTeXt :: PandocMonad m
+                 => Tabl
+                 -> [TableRow]
+                 -> WM m (Doc Text)
+rowListToConTeXt = \case
+  Ntb -> fmap vcat . mapM (tableRowToConTeXt Ntb)
+  Xtb -> \rows -> do
+    (butlast, lastrow) <-
+      case reverse rows of
+        []   -> pure ( []
+                     , empty
+                     )
+        r:rs -> (,) <$> (mapM (tableRowToConTeXt Xtb) (reverse rs))
+                    <*> tableRowToConTeXt Xtb r
+    return $
+      vcat butlast $$
+      if isEmpty lastrow
+      then empty
+      else "\\startxrowgroup[lastrow]" $$ lastrow $$ "\\stopxrowgroup"
+
+tableRowToConTeXt :: PandocMonad m
+               => Tabl
+               -> TableRow
+               -> WM m (Doc Text)
+tableRowToConTeXt tabl (TableRow tblpart _attr rowhead rowbody) = do
+  let celltype = case tblpart of
+                   Thead -> HeaderCell
+                   _     -> BodyCell
+  headcells <- mapM (tableCellToConTeXt tabl HeaderCell) rowhead
+  bodycells <- mapM (tableCellToConTeXt tabl celltype) rowbody
+  let cells = vcat headcells $$ vcat bodycells
+  return $ case tabl of
+    Xtb -> "\\startxrow" $$ cells $$ "\\stopxrow"
+    Ntb -> "\\bTR" $$ cells $$ "\\eTR"
+
+tableCellToConTeXt :: PandocMonad m
+                   => Tabl
+                   -> CellType
+                   -> Ann.Cell -> WM m (Doc Text)
+tableCellToConTeXt tabl celltype (Ann.Cell colspecs _colnum cell) = do
+  let Cell _attr cellalign rowspan colspan blocks = cell
+  let (colalign, _) :| _ = colspecs
+  let halign = alignToConTeXt $
+               case (cellalign, tabl) of
+                 (AlignDefault, Xtb) -> colalign
+                 _                   -> cellalign
+  let nx = case colspan of
+             ColSpan 1 -> empty
+             ColSpan n -> "nc=" <> literal (tshow n)
+  let ny = case rowspan of
+             RowSpan 1 -> empty
+             RowSpan n -> "nr=" <> literal (tshow n)
+  let widths = map snd (NonEmpty.toList colspecs)
+  let mbcolwidth = flip map widths $ \case
+        ColWidthDefault -> Nothing
+        ColWidth w      -> Just w
+  let colwidth = case catMaybes mbcolwidth of
+                   [] -> empty
+                   ws -> ("width=" <>) . braces . text $
+                         printf "%.2f\\textwidth" (sum ws)
+  let keys = hcat . intersperse "," $ filter (not . isEmpty) $
+             case tabl of
+               Xtb -> [halign, colwidth, nx, ny]
+               Ntb -> [halign, nx, ny]  -- no need for a column width
   let options = (if isEmpty keys
                  then empty
                  else brackets keys) <> space
-        where keys = hcat $ intersperse "," $ filter (not . isEmpty) [halign, colwidth]
-  tableCellToConTeXt tabl options cellContents
-
-tableCellToConTeXt :: PandocMonad m
-                   => Tabl -> Doc Text -> Doc Text -> WM m (Doc Text)
-tableCellToConTeXt Xtb options cellContents =
-  return $ "\\startxcell" <> options <> cellContents <> " \\stopxcell"
-tableCellToConTeXt Ntb options cellContents =
-  return $ "\\NC" <> options <> cellContents
+  cellContents <- blockListToConTeXt blocks
+  return $ case tabl of
+             Xtb -> "\\startxcell" <> options <> cellContents <> " \\stopxcell"
+             Ntb -> case celltype of
+               BodyCell   -> "\\bTD" <> options <> cellContents <> "\\eTD"
+               HeaderCell -> "\\bTH" <> options <> cellContents <> "\\eTH"
 
 alignToConTeXt :: Alignment -> Doc Text
-alignToConTeXt align = case align of
-                         AlignLeft    -> "align=right"
-                         AlignRight   -> "align=left"
-                         AlignCenter  -> "align=middle"
-                         AlignDefault -> empty
+alignToConTeXt = \case
+  AlignLeft    -> "align=right"
+  AlignRight   -> "align=left"
+  AlignCenter  -> "align=middle"
+  AlignDefault -> empty
+
+
+---
+--- Lists
+--
 
 listItemToConTeXt :: PandocMonad m => [Block] -> WM m (Doc Text)
 listItemToConTeXt list = ("\\item" $$) . nest 2 <$> blockListToConTeXt list
