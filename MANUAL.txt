@@ -4212,6 +4212,10 @@ A line containing a row of three or more `*`, `-`, or `_` characters
 
     ---------------
 
+We strongly recommend that horizontal rules be separated from
+surrounding text by blank lines.  If a horizontal rule is not
+followed by a blank line, pandoc may try to interpret the
+lines that follow as a YAML metadata block or a table.
 
 ## Tables
 
@@ -4520,16 +4524,19 @@ will also have "Version 4.0" in the header.
 
 A [YAML] metadata block is a valid YAML object, delimited by a line of three
 hyphens (`---`) at the top and a line of three hyphens (`---`) or three dots
-(`...`) at the bottom.  A YAML metadata block may occur anywhere in the
-document, but if it is not at the beginning, it must be preceded by a blank
-line.  (Note that, because of the way pandoc concatenates input files when
-several are provided, you may also keep the metadata in a separate YAML file
-and pass it to pandoc as an argument, along with your Markdown files:
+(`...`) at the bottom.  The initial line `---` must not be followed by a blank
+line. A YAML metadata block may occur anywhere in the document, but if
+it is not at the beginning, it must be preceded by a blank line.
+
+Note that, because of the way pandoc concatenates input files
+when several are provided, you may also keep the metadata in a
+separate YAML file and pass it to pandoc as an argument, along
+with your Markdown files:
 
     pandoc chap1.md chap2.md chap3.md metadata.yaml -s -o book.html
 
 Just be sure that the YAML file begins with `---` and ends with `---` or
-`...`.) Alternatively, you can use the `--metadata-file` option. Using
+`...`. Alternatively, you can use the `--metadata-file` option. Using
 that approach however, you cannot reference content (like footnotes)
 from the main markdown input document.
 
