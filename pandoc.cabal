@@ -540,9 +540,10 @@ library
     build-depends:  template-haskell
   if flag(lua53)
     build-depends:  hslua >= 2.1 && < 2.2,
-                    hslua-aeson >= 2.1 && < 2.3
+                    hslua-aeson >= 2.2.1 && < 2.3
   else
     build-depends:  hslua >= 2.2.1 && < 2.3
+                  , hslua-aeson >= 2.2.1 && < 2.3
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      other-modules: Text.Pandoc.Data
