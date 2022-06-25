@@ -52,6 +52,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Writers.Shared (getField, metaToContext)
 import Control.Monad.Catch (MonadMask)
+import Data.Digest.Pure.SHA (sha1, showDigest)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
@@ -215,8 +216,9 @@ convertImage opts tmpdir fname = do
                  E.catch (Right pngOut <$ JP.savePngImage pngOut img) $
                      \(e :: E.SomeException) -> return (Left (tshow e))
   where
-    pngOut = normalise $ replaceDirectory (replaceExtension fname ".png") tmpdir
-    pdfOut = normalise $ replaceDirectory (replaceExtension fname ".pdf") tmpdir
+    sha = showDigest (sha1 (UTF8.fromStringLazy fname))
+    pngOut = normalise $ tmpdir </> sha <.> "png"
+    pdfOut = normalise $ tmpdir </> sha <.> "pdf"
     svgIn = normalise fname
     mime = getMimeType fname
     doNothing = return (Right fname)
