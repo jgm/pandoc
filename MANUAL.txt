@@ -4871,7 +4871,7 @@ DocBook
     in an `inlineequation` or `informalequation` tag.  Otherwise it
     will be rendered, if possible, using Unicode characters.
 
-Docx
+Docx and PowerPoint
   ~ It will be rendered using OMML math markup.
 
 FictionBook2
