@@ -39,8 +39,7 @@ extra-deps:
 - commonmark-extensions-0.2.3.1
 - doclayout-0.4
 - doctemplates-0.10.0.2
-- git: https://github.com/jgm/citeproc
-  commit: 7874a4ccf1845e5a8a6855c251f1aaea9bf12807
+- citeproc-0.8
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-18.10
