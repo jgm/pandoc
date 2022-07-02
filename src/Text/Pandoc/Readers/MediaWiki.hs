@@ -37,8 +37,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (nested, tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag)
 import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
-                           trim, splitTextBy, tshow)
-import Text.Pandoc.Walk (walk)
+                           trim, splitTextBy, tshow, formatCode)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -392,14 +391,7 @@ preformatted = try $ do
      else return $ B.para $ encode contents
 
 encode :: Inlines -> Inlines
-encode = B.fromList . normalizeCode . B.toList . walk strToCode
-  where strToCode (Str s) = Code ("",[],[]) s
-        strToCode Space   = Code ("",[],[]) " "
-        strToCode  x      = x
-        normalizeCode []  = []
-        normalizeCode (Code a1 x : Code a2 y : zs) | a1 == a2 =
-          normalizeCode $ Code a1 (x <> y) : zs
-        normalizeCode (x:xs) = x : normalizeCode xs
+encode = formatCode nullAttr
 
 header :: PandocMonad m => MWParser m Blocks
 header = try $ do
