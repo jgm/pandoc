@@ -589,6 +589,7 @@ makeSections numbering mbBaseLevel bs =
     xs' <- go xs
     rest' <- go rest
     return $ Div attr xs' : rest'
+  go (Null:xs) = go xs
   go (x:xs) = (x :) <$> go xs
   go [] = return []
 
