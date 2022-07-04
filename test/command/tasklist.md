@@ -6,8 +6,10 @@ tests adapted from <https://github.github.com/gfm/#task-list-items-extension->
 - [x] bar
 ^D
 <ul class="task-list">
-<li><input type="checkbox" disabled="" />foo</li>
-<li><input type="checkbox" disabled="" checked="" />bar</li>
+<li><input type="checkbox" disabled="" />
+foo</li>
+<li><input type="checkbox" disabled="" checked="" />
+bar</li>
 </ul>
 ```
 
@@ -20,12 +22,15 @@ tests adapted from <https://github.github.com/gfm/#task-list-items-extension->
 - [ ] bim
 ^D
 <ul class="task-list">
-<li><input type="checkbox" disabled="" checked="" />foo<ul
-class="task-list">
-<li><input type="checkbox" disabled="" />bar</li>
-<li><input type="checkbox" disabled="" checked="" />baz</li>
+<li><input type="checkbox" disabled="" checked="" />
+foo<ul class="task-list">
+<li><input type="checkbox" disabled="" />
+bar</li>
+<li><input type="checkbox" disabled="" checked="" />
+baz</li>
 </ul></li>
-<li><input type="checkbox" disabled="" />bim</li>
+<li><input type="checkbox" disabled="" />
+bim</li>
 </ul>
 ```
 
@@ -53,21 +58,26 @@ paragraph
 - [x] checked
 ^D
 <ul>
-<li><input type="checkbox" disabled="" />unchecked</li>
+<li><input type="checkbox" disabled="" />
+unchecked</li>
 <li>plain item</li>
-<li><input type="checkbox" disabled="" checked="" />checked</li>
+<li><input type="checkbox" disabled="" checked="" />
+checked</li>
 </ul>
 <p>paragraph</p>
 <ol type="1">
-<li><input type="checkbox" disabled="" />ordered unchecked</li>
+<li><input type="checkbox" disabled="" />
+ordered unchecked</li>
 <li>[] plain item</li>
-<li><input type="checkbox" disabled="" checked="" />ordered checked</li>
+<li><input type="checkbox" disabled="" checked="" />
+ordered checked</li>
 </ol>
 <p>paragraph</p>
 <ul class="task-list">
-<li><p><input type="checkbox" disabled="" />list item with
-a</p><p>second paragraph</p></li>
-<li><p><input type="checkbox" disabled="" checked="" />checked</p></li>
+<li><p><input type="checkbox" disabled="" />
+list item with a</p><p>second paragraph</p></li>
+<li><p><input type="checkbox" disabled="" checked="" />
+checked</p></li>
 </ul>
 ```
 
