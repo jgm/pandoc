@@ -1505,7 +1505,12 @@
             , Space
             , Str "the"
             , Space
-            , Code ( "" , [] , [] ) "epub:switch"
+            , Link
+                ( "" , [] , [] )
+                [ Code ( "" , [] , [] ) "epub:switch" ]
+                ( "http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-content-switch"
+                , ""
+                )
             , Space
             , Str "element"
             , Space
@@ -1615,7 +1620,12 @@
             , Space
             , Str "an"
             , Space
-            , Code ( "" , [] , [] ) "epub:case"
+            , Link
+                ( "" , [] , [] )
+                [ Code ( "" , [] , [] ) "epub:case" ]
+                ( "http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-epub-case"
+                , ""
+                )
             , Space
             , Str "element."
             ]

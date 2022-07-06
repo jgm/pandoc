@@ -63,7 +63,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
     addMetaField, blocksToInlines', escapeURI, extractSpaces,
-    htmlSpanLikeElements, renderTags', safeRead, tshow)
+    htmlSpanLikeElements, renderTags', safeRead, tshow, formatCode)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -786,18 +786,20 @@ pSvg = do
 pCodeWithClass :: PandocMonad m => Text -> Text -> TagParser m Inlines
 pCodeWithClass name class' = try $ do
   TagOpen open attr' <- pSatisfy $ tagOpen (== name) (const True)
-  result <- manyTill pAny (pCloses open)
   let (ids,cs,kvs) = toAttr attr'
       cs'          = class' : cs
-  return . B.codeWith (ids,cs',kvs) .
-    T.unwords . T.lines . innerText $ result
+  code open (ids,cs',kvs)
 
 pCode :: PandocMonad m => TagParser m Inlines
 pCode = try $ do
   (TagOpen open attr') <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
   let attr = toAttr attr'
-  result <- manyTill pAny (pCloses open)
-  return $ B.codeWith attr $ T.unwords $ T.lines $ innerText result
+  code open attr
+
+code :: PandocMonad m => Text -> Attr -> TagParser m Inlines
+code open attr = do
+  result <- mconcat <$> manyTill inline (pCloses open)
+  return $ formatCode attr result
 
 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo
 -- Bidirectional Text Override
