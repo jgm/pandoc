@@ -253,8 +253,8 @@ blockToDocbook opts (LineBlock lns) =
 blockToDocbook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" <$> blocksToDocbook opts blocks
 blockToDocbook opts (CodeBlock (_,classes,_) str) = return $
-  literal ("<programlisting" <> lang <> ">") <> cr <>
-     flush (literal (escapeStringForXML str) <> cr <> literal "</programlisting>")
+  literal ("<programlisting" <> lang <> ">") <>
+     flush (literal (escapeStringForXML str) <> literal "</programlisting>")
     where lang  = if null langs
                      then ""
                      else " language=\"" <> escapeStringForXML (head langs) <>
