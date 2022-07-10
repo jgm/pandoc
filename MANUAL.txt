@@ -2456,7 +2456,7 @@ Currently the following pipes are predefined:
   letters, chain with `uppercase`.
 
 - `roman`:  Converts textual values that can be
-  read as an integer into lowercase roman numerials.
+  read as an integer into lowercase roman numerals.
   This can be used to get lettered enumeration from array indices.
   To get uppercase roman, chain with `uppercase`.
 
