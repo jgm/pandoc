@@ -5471,7 +5471,7 @@ containing file, relative to the working directory, and prepend
 the resulting path to the link or image path.
 
 The use of this extension is best understood by example.
-Suppose you have a a subdirectory for each chapter of a book,
+Suppose you have a subdirectory for each chapter of a book,
 `chap1`, `chap2`, `chap3`. Each contains a file `text.md` and a
 number of images used in the chapter.  You would like to have
 `![image](spider.jpg)` in `chap1/text.md` refer to
