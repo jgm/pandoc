@@ -578,7 +578,7 @@ hexColor (RGB r g b) = T.pack $ printf "%02x%02x%02x" r g b
 
 toMacro :: Style -> TokenType -> Doc Text
 toMacro sty toktype =
-  nowrap (literal ".ds " <> literal (tshow toktype) <> literal " " <>
+  nowrap (literal ".ds " <> literal (tshow toktype) <> literal " \\&" <>
             setbg <> setcolor <> setfont <>
             literal "\\\\$1" <>
             resetfont <> resetcolor <> resetbg)
