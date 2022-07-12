@@ -43,13 +43,14 @@ import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
                            , WriterOptions (writerExtensions) )
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.Readers (Reader (..), getReader)
+import Text.Pandoc.Readers (Reader (..), getReader, readers)
 import Text.Pandoc.Sources (toSources)
-import Text.Pandoc.Writers (Writer (..), getWriter)
+import Text.Pandoc.Writers (Writer (..), getWriter, writers)
 
 import qualified HsLua as Lua
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -68,7 +69,8 @@ documentedModule = Module
     , "document elements, functions to parse text in a given"
     , "format, and functions to filter and modify a subtree."
     ]
-  , moduleFields = stringConstants ++ [inlineField, blockField]
+  , moduleFields = readersField : writersField :
+                   stringConstants ++ [inlineField, blockField]
   , moduleOperations = []
   , moduleFunctions = mconcat
       [ functions
@@ -77,6 +79,30 @@ documentedModule = Module
       , inlineConstructors
       , metaValueConstructors
       ]
+  }
+
+-- | Set of input formats accepted by @read@.
+readersField :: Field PandocError
+readersField = Field
+  { fieldName = "readers"
+  , fieldDescription = T.unlines
+    [ "Set of formats that pandoc can parse. All keys in this table can"
+    , "be used as the `format` value in `pandoc.read`."
+    ]
+  , fieldPushValue = pushSet pushText $
+                     Set.fromList (map fst (readers @PandocLua))
+  }
+
+-- | Set of input formats accepted by @write@.
+writersField :: Field PandocError
+writersField = Field
+  { fieldName = "writers"
+  , fieldDescription = T.unlines
+    [ "Set of formats that pandoc can generate. All keys in this table"
+    , "can be used as the `format` value in `pandoc.write`."
+    ]
+  , fieldPushValue = pushSet pushText $
+                     Set.fromList (map fst (writers @PandocLua))
   }
 
 -- | Inline table field
