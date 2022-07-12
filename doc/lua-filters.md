@@ -2437,9 +2437,21 @@ indexing rules.
 
 # Module pandoc
 
-Lua functions for pandoc scripts; includes constructors for
+Fields and functions for pandoc scripts; includes constructors for
 document tree elements, functions to parse text in a given
 format, and functions to filter and modify a subtree.
+
+## Static Fields {#pandoc.fields}
+
+### readers {#pandoc.readers}
+
+Set of formats that pandoc can parse. All keys in this table can
+be used as the `format` value in `pandoc.read`.
+
+### writers {#pandoc.writers}
+
+Set of formats that pandoc can generate. All keys in this table
+can be used as the `format` value in `pandoc.write`.
 
 ## Pandoc
 
