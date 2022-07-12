@@ -48,27 +48,22 @@ jobs:
         versions:
           - ghc: '8.6.5'
             cabal: '3.2'
-            prefix: ''
             cabalopts: '-f-embed_data_files'
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.8.4'
             cabal: '3.2'
-            prefix: ''
             cabalopts: ''
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.10.7'
             cabal: '3.2'
-            prefix: ''
             cabalopts: '-ftrypandoc'
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '9.0.2'
             cabal: '3.4'
-            prefix: ''
             cabalopts: ''
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '9.2.3'
             cabal: '3.6'
-            prefix: ''
             cabalopts: ''
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
     steps:
@@ -105,15 +100,15 @@ jobs:
 
     - name: Install dependencies
       run: |
-          cabal ${{ matrix.versions.prefix }}update
-          cabal ${{ matrix.versions.prefix }}build ${{ matrix.versions.cabalopts }} --dependencies-only --enable-tests --disable-optimization
+          cabal update
+          cabal build ${{ matrix.versions.cabalopts }} --dependencies-only --enable-tests --disable-optimization
 
     - name: Build and test
       run: |
-          cabal ${{ matrix.versions.prefix }}build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization 2>&1 | tee build.log
+          cabal build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal ${{ matrix.versions.prefix }}test ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
+          cabal test ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
 
   windows:
 
