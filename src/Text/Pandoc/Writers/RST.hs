@@ -165,7 +165,8 @@ escapeText o = T.pack . escapeString' True o . T.unpack -- This ought to be pars
   escapeString' _ _  [] = []
   escapeString' firstChar opts (c:cs) =
     case c of
-         _    | c `elemText` "\\`*_|" &&
+         '\\' -> '\\':c:escapeString' False opts cs
+         _    | c `elemText` "`*_|" &&
                 (firstChar || null cs) -> '\\':c:escapeString' False opts cs
          '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString' False opts cs
          '"'  | isEnabled Ext_smart opts -> '\\':'"':escapeString' False opts cs
