@@ -16,7 +16,7 @@ module Text.Pandoc.Lua.Module.System
 
 import HsLua
 import HsLua.Module.System
-  (arch, env, getwd, os, with_env, with_tmpdir, with_wd)
+  (arch, env, getwd, ls, mkdir, os, rmdir, with_env, with_tmpdir, with_wd)
 
 -- | Push the pandoc.system module on the Lua stack.
 documentedModule :: LuaError e => Module e
@@ -30,6 +30,9 @@ documentedModule = Module
   , moduleFunctions =
       [ setName "environment" env
       , setName "get_working_directory" getwd
+      , setName "list_directory" ls
+      , setName "make_directory" mkdir
+      , setName "remove_directory" rmdir
       , setName "with_environment" with_env
       , setName "with_temporary_directory" with_tmpdir
       , setName "with_working_directory" with_wd
