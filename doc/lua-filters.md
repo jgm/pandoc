@@ -395,6 +395,12 @@ colon syntax (`mystring:uc_upper()`).
 
 # Debugging Lua filters
 
+William Lupton has written a Lua module with some handy
+functions for debugging Lua filters, including functions
+that can pretty-print the Pandoc AST elements manipulated
+by the filters: it is available at
+<https://github.com/wlupton/pandoc-lua-logging>.
+
 It is possible to use a debugging interface to halt execution and
 step through a Lua filter line by line as it is run inside Pandoc.
 This is accomplished using the remote-debugging interface of the
