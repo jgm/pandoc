@@ -3853,6 +3853,18 @@ This is equivalent to:
     qsort [] = []
     ```
 
+This shortcut form may be combined with attributes:
+
+    ```haskell {.numberLines}
+	qsort [] = []
+	```
+
+Which is equivalent to:
+
+	``` {.haskell .numberLines}
+	qsort [] = []
+	```
+
 If the `fenced_code_attributes` extension is disabled, but
 input contains class attribute(s) for the code block, the first
 class attribute will be printed after the opening fence as a bare
