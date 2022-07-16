@@ -32,7 +32,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
-import Safe (lastMay)
+import Safe (lastMay, headMay)
 
 type Refs = [([Inline], Target)]
 
@@ -478,7 +478,18 @@ transformInlines =  insertBS .
         insertBS (x:ys) = x : insertBS ys
         insertBS [] = []
         transformNested :: [Inline] -> [Inline]
-        transformNested = map (mapNested stripLeadingTrailingSpace)
+        transformNested = concatMap exportLeadingTrailingSpace
+        exportLeadingTrailingSpace :: Inline -> [Inline]
+        exportLeadingTrailingSpace il
+          | isComplex il =
+             let contents = dropInlineParent il
+                 headSpace = headMay contents == Just Space
+                 lastSpace = lastMay contents == Just Space
+              in (if headSpace then (Space:) else id) .
+                 (if lastSpace then (++ [Space]) else id) $
+                 [setInlineChildren il (stripLeadingTrailingSpace contents)]
+          | otherwise = [il]
+
         surroundComplex :: Inline -> Inline -> Bool
         surroundComplex (Str s) (Str s')
           | Just (_, c)  <- T.unsnoc s

@@ -98,8 +98,8 @@ tests = [ testGroup "rubrics"
             strong (emph (link "loc" "" (str "text"))) =?>
             "`text <loc>`__"
           , "RST inlines cannot start nor end with spaces" =:
-            emph (str "f" <> space <> strong (str "d") <> space <> str "l") =?>
-            "*f*\\ **d**\\ *l*"
+            emph (str "f" <> strong (space <> str "d" <> space) <> str "l") =?>
+            "*f* **d** *l*"
           , "keeps quotes" =:
             strong (str "f" <> doubleQuoted (str "d") <> str "l") =?>
             "**f“d”l**"
