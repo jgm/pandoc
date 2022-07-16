@@ -2687,7 +2687,7 @@ pandoc](#slide-shows).
 
 `title-slide-attributes`
 :   additional attributes for the title slide of reveal.js slide shows.
-    See [background in reveal.js and beamer] for an example.
+    See [background in reveal.js, beamer, and pptx] for an example.
 
 All [reveal.js configuration options] are available as variables.
 To turn off boolean flags that default to true in reveal.js, use `0`.
