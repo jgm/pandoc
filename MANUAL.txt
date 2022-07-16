@@ -2665,7 +2665,8 @@ math equations flush left using [YAML metadata](#layout) or with
 
 ### Variables for HTML slides
 
-These affect HTML output when [producing slide shows with pandoc].
+These affect HTML output when [producing slide shows with
+pandoc](#slide-shows).
 
 `institute`
 :   author affiliations: can be a list when there are multiple authors
