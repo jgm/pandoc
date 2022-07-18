@@ -26,6 +26,7 @@ where
 import Control.Monad (guard)
 import Data.List (transpose)
 import Data.Text (Text)
+import Safe (lastDef)
 import Text.Pandoc.Options (ReaderOptions (readerColumns))
 import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition
@@ -263,13 +264,13 @@ toHeaderRow = \case
   NoNormalization -> \l -> [toRow l | not (null l)]
   NormalizeHeader -> \l -> [toRow l | not (null l) && not (all null l)]
 
--- Calculate relative widths of table columns, based on indices
+-- | Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
                   -> [Int]    -- Indices
                   -> [Double] -- Fractional relative sizes of columns
 widthsFromIndices _ [] = []
 widthsFromIndices numColumns' indices =
-  let numColumns = max numColumns' (if null indices then 0 else last indices)
+  let numColumns = max numColumns' (lastDef 0 indices)
       lengths' = zipWith (-) indices (0:indices)
       lengths  = reverse $
                  case reverse lengths' of
