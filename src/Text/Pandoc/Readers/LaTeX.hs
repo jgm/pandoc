@@ -382,7 +382,8 @@ inlineCommands = M.unions
     , ("lowercase", makeLowercase <$> tok)
     , ("thanks", skipopts >> note <$> grouped block)
     , ("footnote", skipopts >> footnote)
-    , ("passthrough", tok) -- \passthrough macro used by latex writer
+    , ("passthrough", fixPassthroughEscapes <$> tok)
+    -- \passthrough macro used by latex writer
                            -- for listings
     , ("includegraphics", do options <- option [] keyvals
                              src <- braced
@@ -472,6 +473,16 @@ makeLowercase = fromList . walk (alterStr T.toLower) . toList
 alterStr :: (Text -> Text) -> Inline -> Inline
 alterStr f (Str xs) = Str (f xs)
 alterStr _ x = x
+
+fixPassthroughEscapes :: Inlines -> Inlines
+fixPassthroughEscapes = walk go
+ where
+  go (Code attr txt) = Code attr (T.pack $ unescapePassthrough $ T.unpack txt)
+  go x = x
+  unescapePassthrough [] = []
+  unescapePassthrough ('\\':c:cs)
+    | c `elem` ['%','{','}','\\'] = c : unescapePassthrough cs
+  unescapePassthrough (c:cs) = c : unescapePassthrough cs
 
 hyperlink :: PandocMonad m => LP m Inlines
 hyperlink = try $ do
