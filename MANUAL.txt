@@ -4720,6 +4720,17 @@ just part of a word, use `*`:
 
     feas*ible*, not feas*able*.
 
+### Highlighting ###
+
+To highlight text, use the `mark` class:
+
+    [Mark]{.mark}
+
+Or, without the `bracketed_spans` extension (but with `native_spans`):
+
+    <span class="mark">Mark</span>
+
+This will work in html output.
 
 ### Strikeout ###
 
