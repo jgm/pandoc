@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TupleSections     #-}
 {- |
    Module      : Text.Pandoc.SelfContained
@@ -62,6 +63,13 @@ convertTags :: PandocMonad m => [Tag T.Text] -> m [Tag T.Text]
 convertTags [] = return []
 convertTags (t@TagOpen{}:ts)
   | fromAttrib "data-external" t == "1" = (t:) <$> convertTags ts
+convertTags (t@(TagOpen "style" _):ts) =
+  case span isTagText ts of
+    (xs,rest) -> do
+      xs' <- mapM (\case
+                    TagText s -> TagText . toText <$> cssURLs "" (fromText s)
+                    tag -> return tag) xs
+      ((t:xs') ++) <$> convertTags rest
 convertTags (t@(TagOpen "script" as):tc@(TagClose "script"):ts) =
   case fromAttrib "src" t of
        ""  -> (t:) <$> convertTags ts
