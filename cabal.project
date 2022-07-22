@@ -5,5 +5,10 @@ constraints: aeson >= 2.0.1.0
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/texmath
+  tag: c884291bc6ee0ac7fc28d180d248c3e3c7d6fc62
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/citeproc
   tag: 647c5d292bbb6d9a8d683bcae0ba129c65086901
