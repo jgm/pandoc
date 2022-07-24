@@ -4720,18 +4720,6 @@ just part of a word, use `*`:
 
     feas*ible*, not feas*able*.
 
-### Highlighting ###
-
-To highlight text, use the `mark` class:
-
-    [Mark]{.mark}
-
-Or, without the `bracketed_spans` extension (but with `native_spans`):
-
-    <span class="mark">Mark</span>
-
-This will work in html output.
-
 ### Strikeout ###
 
 #### Extension: `strikeout` ####
@@ -4817,6 +4805,18 @@ For compatibility with other Markdown flavors, CSS is also supported:
     <span style="font-variant:small-caps;">Small caps</span>
 
 This will work in all output formats that support small caps.
+
+### Highlighting ###
+
+To highlight text, use the `mark` class:
+
+    [Mark]{.mark}
+
+Or, without the `bracketed_spans` extension (but with `native_spans`):
+
+    <span class="mark">Mark</span>
+
+This will work in all output formats that support highlighting.
 
 
 ## Math
