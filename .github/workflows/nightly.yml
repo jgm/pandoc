@@ -69,7 +69,7 @@ jobs:
 
   macos:
 
-    runs-on: macOS-10.15
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v3
