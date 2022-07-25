@@ -1389,15 +1389,28 @@ inlineToHtml opts inline = do
         -> inlineListToHtml opts ils >>= inDiv cls
 
     (Span (id',classes,kvs) ils) ->
-                        let spanLikeTag = case classes of
-                                (c:_) -> do
-                                  guard (c `Set.member` htmlSpanLikeElements)
-                                  pure $ customParent (textTag c)
-                                _   -> Nothing
-                        in case spanLikeTag of
-                            Just tag -> do
+                        let go Nothing c
+                             | c `Set.member` htmlSpanLikeElements
+                               = Just (customParent (textTag c), [])
+                             | c == "smallcaps"
+                               = Just (H.span ! A.class_ "smallcaps", [])
+                             | c == "underline"
+                               = Just (H.u, [])
+                             | otherwise = Nothing
+                            go (Just (t,cs)) c
+                             | c `Set.member` htmlSpanLikeElements
+                               = Just (t . customParent (textTag c), cs)
+                             | c == "smallcaps"
+                               = Just (t . (H.span ! A.class_ "smallcaps"), cs)
+                             | c == "underline"
+                               = Just (t . H.u, cs)
+                             | otherwise
+                               = Just (t, c:cs)
+                            spanLikeTags = foldl' go Nothing
+                        in case spanLikeTags classes of
+                            Just (tag, cs) -> do
                               h <- inlineListToHtml opts ils
-                              addAttrs opts (id',tail classes',kvs') $ tag h
+                              addAttrs opts (id',cs,kvs') $ tag h
                             Nothing -> do
                               h <- inlineListToHtml opts ils
                               addAttrs opts (id',classes',kvs') (H.span h)
