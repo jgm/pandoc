@@ -1252,9 +1252,6 @@ headerBlock = do
 --  - multiline support
 --  - ensure that rightmost column span does not need to reach end
 --  - require at least 2 columns
---
--- Grid tables TODO:
---  - column spans
 
 dashedLine :: Monad m => Char -> ParserT Sources st m (Int, Int)
 dashedLine ch = do

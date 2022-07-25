@@ -10,6 +10,7 @@ extra-deps:
 - skylighting-core-0.12.3.1
 - skylighting-0.12.3.1
 - emojis-0.1.2
+- gridtables-0.0.2.0
 - lpeg-1.0.3
 - hslua-2.2.1
 - hslua-aeson-2.2.1
