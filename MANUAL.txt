@@ -2885,6 +2885,9 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 :   add color to link text; automatically enabled if any of
     `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, or `toccolor` are set
 
+`boxlinks`
+:   add visible box around links (has no effect if `colorlinks` is set)
+
 `linkcolor`, `filecolor`, `citecolor`, `urlcolor`, `toccolor`
 :   color for internal links, external links, citation links, linked
     URLs, and links in table of contents, respectively: uses options

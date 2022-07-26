@@ -403,6 +403,8 @@ $if(colorlinks)$
   filecolor={$if(filecolor)$$filecolor$$else$Maroon$endif$},
   citecolor={$if(citecolor)$$citecolor$$else$Blue$endif$},
   urlcolor={$if(urlcolor)$$urlcolor$$else$Blue$endif$},
+$endif$
+$if(boxlinks)$
 $else$
   hidelinks,
 $endif$
