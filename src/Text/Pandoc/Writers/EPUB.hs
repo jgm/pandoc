@@ -491,10 +491,6 @@ pandocToEPUB version opts doc = do
       opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
                   , writerVariables = vars
-                  , writerHTMLMathMethod =
-                       if epub3
-                          then MathML
-                          else writerHTMLMathMethod opts
                   , writerWrapText = WrapAuto }
 
   -- cover page
