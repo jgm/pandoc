@@ -215,6 +215,7 @@ table = do
   skipMany spaceChar
   optional $ template >> skipMany spaceChar
   optional blanklines
+  optional rowsep
   let tableWidth = case lookup "width" styles of
                          Just w  -> fromMaybe 1.0 $ parseWidth w
                          Nothing -> 1.0
@@ -252,7 +253,9 @@ parseAttr :: PandocMonad m => MWParser m (Text, Text)
 parseAttr = try $ do
   skipMany spaceChar
   k <- many1Char letter
+  skipMany spaceChar
   char '='
+  skipMany spaceChar
   v <- (char '"' >> many1TillChar (satisfy (/='\n')) (char '"'))
        <|> many1Char (satisfy $ \c -> not (isSpace c) && c /= '|')
   return (k,v)
