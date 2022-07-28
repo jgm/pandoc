@@ -265,7 +265,10 @@ tableEnd = try $ guardColumnOne *> skipSpaces *> sym "|}"
 
 rowsep :: PandocMonad m => MWParser m ()
 rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
-               many (char '-') <* optional parseAttrs <* blanklines
+               many (char '-') <* optional parseAttrs
+                               <* skipSpaces
+                               <* skipMany htmlComment
+                               <* blanklines
 
 cellsep :: PandocMonad m => MWParser m ()
 cellsep = try $ do
