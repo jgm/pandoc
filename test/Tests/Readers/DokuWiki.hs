@@ -80,7 +80,7 @@ tests = [ testGroup "inlines"
             para (rawInline "html" "\nThis is some <span style=\"color:red;font-size:150%;\">inline HTML</span>\n")
           , "Inline PHP" =:
             "<php>echo '<p>Hello World</p>';</php>" =?>
-            para (codeWith ("", ["php"], []) "echo '<p>Hello World</p>';")
+            para (rawInline "html" "<?php echo '<p>Hello World</p>'; ?>")
           , "Linebreak" =:
             T.unlines [ "This is some text with some linebreaks\\\\ Note that the"
                       , "two backslashes are only recognized at the end of a line\\\\"
@@ -260,7 +260,7 @@ tests = [ testGroup "inlines"
                     , "echo '<p>Hello World</p>';"
                     , "</PHP>"
                     ] =?>
-          codeBlockWith ("", ["php"], []) "echo '<p>Hello World</p>';\n"
+          rawBlock "html" "<?php echo '<p>Hello World</p>';\n ?>"
         , "Quote" =:
           T.unlines [ "> foo"
                     , ">no space is required after >"

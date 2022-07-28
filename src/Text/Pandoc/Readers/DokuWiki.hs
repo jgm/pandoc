@@ -117,8 +117,8 @@ inline'' = br
       <|> footnote
       <|> inlineCode
       <|> inlineFile
-      <|> inlineHtml
-      <|> inlinePhp
+      <|> inlineRaw
+      <|> math
       <|> autoLink
       <|> autoEmail
       <|> notoc
@@ -209,11 +209,22 @@ inlineCode = codeTag B.codeWith "code"
 inlineFile :: PandocMonad m => DWParser m B.Inlines
 inlineFile = codeTag B.codeWith "file"
 
-inlineHtml :: PandocMonad m => DWParser m B.Inlines
-inlineHtml = try $ B.rawInline "html" <$ string "<html>" <*> manyTillChar anyChar (try $ string "</html>")
+inlineRaw :: PandocMonad m => DWParser m B.Inlines
+inlineRaw = try $ do
+  char '<'
+  fmt <- oneOfStrings ["html", "php", "latex"]
+  -- LaTeX via https://www.dokuwiki.org/plugin:latex
+  char '>'
+  contents <- manyTillChar anyChar
+                (try $ string "</" *> string (T.unpack fmt) *> char '>')
+  return $
+    case T.toLower fmt of
+         "php" -> B.rawInline "html" $ "<?php " <> contents <> " ?>"
+         f -> B.rawInline f contents
 
-inlinePhp :: PandocMonad m => DWParser m B.Inlines
-inlinePhp = try $ B.codeWith ("", ["php"], []) <$ string "<php>" <*> manyTillChar anyChar (try $ string "</php>")
+-- see https://www.dokuwiki.org/plugin:latex
+math :: PandocMonad m => DWParser m B.Inlines
+math = (B.displayMath <$> mathDisplay) <|> (B.math <$> mathInline)
 
 makeLink :: (Text, Text) -> B.Inlines
 makeLink (text, url) = B.link url "" $ B.str text
@@ -410,8 +421,7 @@ blockElements = horizontalLine
             <|> quote
             <|> blockCode
             <|> blockFile
-            <|> blockHtml
-            <|> blockPhp
+            <|> blockRaw
             <|> table
 
 horizontalLine :: PandocMonad m => DWParser m B.Blocks
@@ -462,17 +472,19 @@ quote = try $ nestedQuote 0
     quoteContinuation level = mconcat <$> many (try $ prefix level *> contents level)
     nestedQuote level = B.blockQuote <$ char '>' <*> quoteContents (level + 1 :: Int)
 
-blockHtml :: PandocMonad m => DWParser m B.Blocks
-blockHtml = try $ B.rawBlock "html"
-  <$  string "<HTML>"
-  <*  optional (manyTill spaceChar eol)
-  <*> manyTillChar anyChar (try $ string "</HTML>")
-
-blockPhp :: PandocMonad m => DWParser m B.Blocks
-blockPhp = try $ B.codeBlockWith ("", ["php"], [])
-  <$  string "<PHP>"
-  <*  optional (manyTill spaceChar eol)
-  <*> manyTillChar anyChar (try $ string "</PHP>")
+blockRaw :: PandocMonad m => DWParser m B.Blocks
+blockRaw = try $ do
+  char '<'
+  fmt <- oneOfStrings ["HTML", "PHP", "LATEX"]
+  -- LaTeX via https://www.dokuwiki.org/plugin:latex
+  char '>'
+  optional (manyTill spaceChar eol)
+  contents <- manyTillChar anyChar
+               (try $ string "</" *> string (T.unpack fmt) *> char '>')
+  return $
+    case T.toLower fmt of
+         "php" -> B.rawBlock "html" $ "<?php " <> contents <> " ?>"
+         f -> B.rawBlock f contents
 
 table :: PandocMonad m => DWParser m B.Blocks
 table = do
