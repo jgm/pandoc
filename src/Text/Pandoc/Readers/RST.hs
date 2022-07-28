@@ -1344,14 +1344,12 @@ simpleTable headless = do
   rewidth = fmap $ fmap $ const ColWidthDefault
 
 gridTable :: PandocMonad m
-          => Bool -- ^ Headerless table
-          -> RSTParser m Blocks
-gridTable headerless = runIdentity <$>
-  gridTableWith (Identity <$> parseBlocks) headerless
+          => RSTParser m Blocks
+gridTable = runIdentity <$>
+  gridTableWith (Identity <$> parseBlocks)
 
 table :: PandocMonad m => RSTParser m Blocks
-table = gridTable False <|> simpleTable False <|>
-        gridTable True  <|> simpleTable True <?> "table"
+table = gridTable <|> simpleTable False <|> simpleTable True <?> "table"
 
 --
 -- inline

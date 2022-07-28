@@ -36,7 +36,7 @@ import Text.Pandoc.Parsing.Types
 import Text.Pandoc.Shared (compactify, splitTextByIndices, trim, trimr)
 import Text.Pandoc.Sources
 import Text.Parsec
-  ( Stream (..), many1, notFollowedBy, option, optional, sepEndBy1, try )
+  ( (<|>), Stream (..), many1, notFollowedBy, option, optional, sepEndBy1, try )
 
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -106,10 +106,12 @@ data TableNormalization
 -- line).
 gridTableWith :: (Monad m, Monad mf, HasLastStrPosition st, HasReaderOptions st)
               => ParserT Sources st m (mf Blocks)  -- ^ Block list parser
-              -> Bool                              -- ^ Headerless table
               -> ParserT Sources st m (mf Blocks)
-gridTableWith blocks headless =
-  tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
+gridTableWith blocks =
+  tableWith (gridTableHeader False blocks) (gridTableRow blocks)
+            (gridTableSep '-') gridTableFooter
+  <|>
+  tableWith (gridTableHeader True blocks) (gridTableRow blocks)
             (gridTableSep '-') gridTableFooter
 
 -- | Like @'gridTableWith'@, but returns 'TableComponents' instead of a
@@ -118,11 +120,14 @@ gridTableWith' :: (Monad m, Monad mf,
                    HasReaderOptions st, HasLastStrPosition st)
                => TableNormalization
                -> ParserT Sources st m (mf Blocks) -- ^ Block list parser
-               -> Bool                             -- ^ Headerless table
                -> ParserT Sources st m (mf TableComponents)
-gridTableWith' normalization blocks headless =
+gridTableWith' normalization blocks =
   tableWith' normalization
-             (gridTableHeader headless blocks) (gridTableRow blocks)
+             (gridTableHeader False blocks) (gridTableRow blocks)
+             (gridTableSep '-') gridTableFooter
+  <|>
+  tableWith' normalization
+             (gridTableHeader True blocks) (gridTableRow blocks)
              (gridTableSep '-') gridTableFooter
 
 gridTableSplitLine :: [Int] -> Text -> [Text]
