@@ -260,6 +260,26 @@ Multiple blocks in a cell
 | r1 bis           | - b 2     | c 2        |
 +------------------+-----------+------------+
 
+East Asian characters have double width
+
++--+----+
+|魚|fish|
++--+----+
+
+Zero-width space in German
+
++-------+-------+
+|German |English|
++-------+-------+
+|Auf‌lage|edition|
++-------+-------+
+
+Zero-width non-joiner in Persian
+
++-------+---------+
+|می‌خواهم|I want to|
++-------+---------+
+
 Empty cells
 
 +---+---+
