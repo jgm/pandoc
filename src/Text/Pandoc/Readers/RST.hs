@@ -1252,9 +1252,6 @@ headerBlock = do
 --  - multiline support
 --  - ensure that rightmost column span does not need to reach end
 --  - require at least 2 columns
---
--- Grid tables TODO:
---  - column spans
 
 dashedLine :: Monad m => Char -> ParserT Sources st m (Int, Int)
 dashedLine ch = do
@@ -1344,14 +1341,12 @@ simpleTable headless = do
   rewidth = fmap $ fmap $ const ColWidthDefault
 
 gridTable :: PandocMonad m
-          => Bool -- ^ Headerless table
-          -> RSTParser m Blocks
-gridTable headerless = runIdentity <$>
-  gridTableWith (Identity <$> parseBlocks) headerless
+          => RSTParser m Blocks
+gridTable = runIdentity <$>
+  gridTableWith (Identity <$> parseBlocks)
 
 table :: PandocMonad m => RSTParser m Blocks
-table = gridTable False <|> simpleTable False <|>
-        gridTable True  <|> simpleTable True <?> "table"
+table = gridTable <|> simpleTable False <|> simpleTable True <?> "table"
 
 --
 -- inline

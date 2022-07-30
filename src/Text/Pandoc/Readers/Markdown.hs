@@ -1362,9 +1362,9 @@ multilineTableHeader headless = try $ do
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTable :: PandocMonad m => Bool -- ^ Headerless table
-          -> MarkdownParser m (F TableComponents)
-gridTable headless = gridTableWith' NormalizeHeader parseBlocks headless
+gridTable :: PandocMonad m
+          => MarkdownParser m (F TableComponents)
+gridTable = gridTableWith' NormalizeHeader parseBlocks
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
 pipeBreak = try $ do
@@ -1466,7 +1466,7 @@ table = try $ do
          (guardEnabled Ext_multiline_tables >>
                 try (multilineTable True)) <|>
          (guardEnabled Ext_grid_tables >>
-                try (gridTable False <|> gridTable True)) <?> "table"
+                try gridTable) <?> "table"
   optional blanklines
   caption <- case frontCaption of
                   Nothing -> option (return mempty) tableCaption
