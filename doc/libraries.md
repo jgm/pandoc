@@ -49,6 +49,13 @@ pandoc:
 [gridtables]
 :   Support for parsing grid style textual tables.
 
+[hslua-objectorientation], [hslua-packaging]
+:   Bindings, wrappers, and helper functions to access Haskell data
+    types from Lua via an object-oriented interface.
+
+[hslua-aeson]
+:   Converter from aeson data types to Lua objects.
+
 [skylighting]: https://hackage.haskell.org/package/skylighting
 [skylighting-core]: https://hackage.haskell.org/package/skylighting-core
 [citeproc]: https://hackage.haskell.org/package/citeproc
@@ -65,3 +72,7 @@ pandoc:
 [jira-wiki-markup]: https://hackage.haskell.org/package/jira-wiki-markup
 [unicode-collation]: https://hackage.haskell.org/package/unicode-collation
 [gridtables]: https://hackage.haskell.org/package/gridtables
+[hslua-objectorientation]: https://hackage.haskell.org/package/hslua-objectorientation
+[hslua-packaging]: https://hackage.haskell.org/package/hslua-packaging
+[hslua-aeson]: https://hackage.haskell.org/package/hslua-aeson
+
