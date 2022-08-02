@@ -20,6 +20,8 @@ import Data.Char (isAlphaNum)
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (isValid, takeExtension)
+import qualified System.FilePath.Posix as Posix
+import qualified System.FilePath.Windows as Windows
 import Text.Pandoc.Shared (elemText)
 
 -- | Check whether the given string looks like the path to of URL of an image.
@@ -37,13 +39,21 @@ isImageFilename fp = hasImageExtension && (isValid (T.unpack fp) || isKnownProto
 -- the string does not appear to be a link.
 cleanLinkText :: Text -> Maybe Text
 cleanLinkText s
-  | Just _ <- T.stripPrefix "/" s      = Just $ "file://" <> s -- absolute path
+  | isAbsolute s                       = Just $ "file://" <> s -- absolute path
   | Just _ <- T.stripPrefix "./" s     = Just s                -- relative path
   | Just _ <- T.stripPrefix "../" s    = Just s                -- relative path
   -- Relative path or URL (file schema)
-  | Just s' <- T.stripPrefix "file:" s = Just $ if "//" `T.isPrefixOf` s' then s else s'
-  | otherwise                          = if isUrl s then Just s else Nothing
+  | Just s' <- T.stripPrefix "file:" s = Just $
+                                         if "//" `T.isPrefixOf` s'
+                                         then s
+                                         else if isAbsolute s'
+                                              then "file://" <> s'
+                                              else s'
+  | isUrl s                            = Just s
+  | otherwise                          = Nothing
   where
+    isAbsolute :: Text -> Bool
+    isAbsolute = ((||) <$> Posix.isAbsolute <*> Windows.isAbsolute) . T.unpack
     isUrl :: Text -> Bool
     isUrl cs =
       let (scheme, path) = T.break (== ':') cs
