@@ -180,6 +180,8 @@ renderSection lvl (Div (id',"section":_,_) (Header _ _ title : xs)) = do
       then el "section" (title' ++ content)
       else el "section" ([uattr "id" id'], title' ++ content)
   return [sectionContent]
+renderSection lvl (Div _attr bs) =
+  cMapM (renderSection lvl) bs
 renderSection _ b = blockToXml b
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
