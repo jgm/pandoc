@@ -1,5 +1,371 @@
 # Revision history for pandoc
 
+## pandoc 2.19 (PROVISIONAL)
+
+  * Add `--embed-resources` flag (Elliot Bobrow, #7331).  This can be
+    used to embed resources without implying `--standalone`.
+    Deprecate `--self-contained` in favor of `--embed-resources --standalone`.
+
+  * Allow environment variable interpolation in `highlight-style`
+    and `pdf-engine` fields in defaults files
+    (#8061; Jaehwang Jung, #8073).
+
+  * Allow placing custom readers and writers in user data directory
+    (Albert Krewinkel, #8112) (`readers` and `writers` subdirectories).
+
+  * Add `tsv` (tab separated values) as an input format (#7974).
+    [API change]: Text.Pandoc.Readers.CSV now exports `readTSV`.
+    Internal change:  In Text.Pandoc.CSV, `CSVOptions` has changed
+    so that `csvQuote` takes a Maybe value.
+
+  * Add `tex_math_dollars` to `gfm` default extensions (reflecting
+    gfm's new support for math).
+
+  * RST, Org, Markdown readers: support rowspans and colspans in grid tables
+    (#8202, Albert Krewinkel). Note: the writers does not yet support these
+    more complex grid table features, so these complex grid tables will
+    not round-trip.
+
+  * HTML, LaTeX, and MediaWiki readers: use `formatCode`
+    (#8162, #8129, Elliot Bobrow). This moves formatting from inside inline
+    code elements to the outside, since pandoc's Code element only takes string
+    content.
+
+  * Markdown reader:
+
+    + Don't parse inline notes with blank lines inside (#8028).
+    + Allow attributes in special spans (e.g. `smallcaps`, `underline`)
+      (Albert krewinkel, #4102). These spans are parsed as
+      SmallCaps or Underline elements, but any attributes are included
+      in a wrapping Span.
+
+  * HTML reader:
+
+    + Allow sublists that are not marked as items (Albert
+      Krewinkel, #8150). This is technically invalid HTML, but it can
+      be found in the wild and browsers handle it.
+
+  * Org reader (Albert Krewinkel):
+
+    + Recognize absolute paths on Windows (Albert Krewinkel, #8201).
+    + Recognize {webp,jxl} files as images (YI).
+    + Allow attrs for Org tables (Albert Krewinkel, #8049). Tables with
+      attributes are no longer wrapped in Div elements; attributes are added
+      directly to the table element.
+    + Support line selection in INCLUDE directives (Brian Leung, #8060).
+    + Fix Post / Pre mixup when setting emphasis chars (Amir Dekel, #8134).
+
+  * LaTeX reader:
+
+    + Support `\includesvg` (#8027).
+    + Unescape characters in `\lstinline` inside `\passthrough` (#8179).
+    + Improve `mathEnvWith` (#8122). When converting e.g. an align
+      environment to an aligned environment inside a Math element, we need
+      to include a newline before the `\end{aligned}`, since the previous
+      line might end in a comment.
+    + Fix treatment of extensions for `\input` in LaTeX reader (#8092).
+      Previously we required a `.tex` extension, but TeX
+      allows any extension for `\input` (as opposed to `\include`).
+
+  * RTF reader:
+
+    + support `\nosupersub` (#8170).
+
+  * TikiWiki reader:
+
+    + Support underlined text
+
+  * DocBook reader:
+
+    + Improved reading `<xref>` elements (Frerich Raabe, #8065).
+
+  * JATS reader:
+
+    + Strip `ref-` prefix from ref id in xref (#8007).
+    + Support edition in references (#8087).
+
+  * RIS reader:
+
+    + Make parser more forgiving (#8034). Allow blank lines after entries.
+      Allow entries with no space after the `-`, provided they
+      just have a newline, e.g. `DB -\n`.
+    + Get right order of names (#8055).
+
+  * MediaWiki reader:
+
+    + Allow HTML comment after row start (#8110).
+
+  * DokuWiki reader:
+
+    + The `tex_math_dollars` extension is now supported for `dokuwiki`
+      (but off by default) (#8178).
+    + Content inside `<latex>...</latex>` is parsed as raw LaTeX inline,
+      and inside `<LATEX>..</LATEX>` as raw LaTeX block (#8178).
+    + The behavior of `<php>...</php>` is changed, so that instead of
+      producing a code block, it produces raw HTML with `<?php ... ?>`.
+
+  * LaTeX writer:
+
+    + Improve grouping with autocites (#8088).
+    + Extend list of book documentclasses (Wentau Han, #8053).
+    + Fix width of multicolumn cells (Albert Krewinkel, #8090).
+      Cells spanning multiple columns must be given an explicit width,
+      calculated from the table properties.
+    + Beamer: allow containsverbatim as alternative to fragile (#8080).
+
+  * HTML writer:
+
+    + Add 'footnotes' identifier to footnotes section (#8043).
+    + Fix bug with `--number-offset`. This formerly caused section divs
+      to be produced, even when `--section-divs` was not specified (#8097).
+    + Use CSS flexboxes for columns (Albert Krewinkel). This allows
+      an arbitrary number of columns, while the previous approach assumed
+      exactly two columns.
+    + Allow "spanlike" classes to be combined (see #8194). Previously
+      classes like "underline" and "marked" had to be the first class
+      in a span in order for the span to be interpreted as a "ul" or
+      "mark" element.  This commit allows these special classes to be
+      "stacked," e.g. `[test]{.mark .underline}`; in addition, the
+      special classes are no longer required to come first in the list
+      of classes.
+    + Avoid doubled style attribute when height and width are added to
+      style because of an image, but the image already has a style attribute
+      (#8047).
+    + Do not include the deprecated doc-endnote role (#8030).
+      doc-endnote was deprecated in DPUB-ARIA 1.1.
+    + Remove extra soft break for tasklist (black-desk, #8142).
+      Browser will display the extra newline character between checkbox and
+      text as a space, which make tasklist items cannot be aligned.
+
+  * EPUB writer:
+
+    + Allow choice of math method for v3 (#8164). Previously we always
+      used MathML for math in EPUB3, because the spec includes MathML.
+      But this is not widely supported by readers, so it seems better
+      to allow users to choose their math method as they can with
+      EPUB2 or HTML. **NOTE:** Existing workflows that produce EPUBv3
+      documents including math will be affected by this change.  You
+      must add `--mathml` to your command line if you want to continue
+      producing MathML.
+
+  * RST writer:
+
+    + Fix missing spaces with nested inlines (#8182).
+    + Always escape literal backslash (#8178).
+
+  * Ms writer:
+
+    + Add comment in preamble stating generator.
+    + Fix roff ms syntax highlighting definitions (#8175, thanks to
+      Branden Robinson).
+
+  * ConTeXt writer:
+
+    + Support complex table structures (Albert Krewinkel, #8116).
+      The following table feature are now supported in ConTeXt:
+
+      - colspans,
+      - rowspans,
+      - multiple bodies,
+      - row headers, and
+      - multi-row table head and foot.
+
+      The wrapping `placetable` environment is also given a `reference` option
+      with the table identifier, enabling referencing of the table from within
+      the document.
+    + Unify link handling (Albert Krewinkel, #8096).
+      Autolinks, i.e. links with content that's the same as the linked URL,
+      are now marked with the `\url` command. All other links, both internal
+      and external, are created with the `\goto` command, leading to shorter,
+      slightly more idiomatic code. As before, autolinks can still be styled
+      via `\setupurl`, other links via `\setupinteraction`.
+    + Use "sectionlevel" environment for headings (Albert Krewinkel, #5539).
+      The document hierarchy is now conveyed using the
+      `\startsectionlevel`/`\stopsectionlevel` by default. This makes it easy
+      to include pandoc-generated snippets in documents at arbitrary levels.
+      The more semantic environments "chapter", "section", "subsection", etc.
+      are used if the `--top-level-division` command line parameter is set to
+      a non-default value.
+
+  * Docx writer:
+
+    + Add `w:lang` to `rPr` for Span and Div with lang attribute, so
+      that Word can know that "Apfel" is not a spelling error (#8026).
+    + Prevent crashing when handling invalid tables (Albert Krewinkel, #8102).
+      Tables with different numbers of cells per row would sometimes crash
+      pandoc. This fix prevents this by cutting off overlong rows.
+
+  * ICML writer:
+
+    + Support custom-style attribute on Table (#8079).
+
+  * AsciiDoc writer:
+
+    + Fix commas in link text (#8070). Commas in link text trigger
+      interpretation of attributes. To block this, we replace them with
+      numeric entities.
+    + Fix underline. We were rendering it as `+++text+++`; this is now
+      changed to `[.underline]#text#`.  See comment at
+      <https://github.com/jgm/pandoc/issues/8070#issuecomment-1126883824>.
+
+  * Markdown writer:
+
+    + Disable soft wrapping when `hard_line_breaks` enabled (#8035).
+      We were already doing this for `markdown`; this commit does
+      the same thing for `markua` and `commonmark` and `gfm`.
+    + Avoid excessive indentation on bullet lists for `commonmark`,
+      `markua`, `gfm`.  They are now nested by 2 spaces instead of 4 (#8011).
+
+  * Text.Pandoc.Class:
+
+    + Add new function `findFileWithDataFallback` [API Change]
+      (Albert Krewinkel).
+    + `fillMediaBag`: Keep attributes of original image on Span (Albert
+      Krewinkel, #8099). Images that cannot be fetched are replaced with a
+      Span that contains the image's description. The span now also retains
+      all original image attributes and inherits all attributes of the image.
+      Furthermore, the classes `image` and `placeholder` are added, and path
+      and title are store in attributes `original-image-src` and
+      `original-image-title`, respectively.
+
+  * Text.Pandoc.Shared:
+
+    + `makeSections`: don't make a section for a div with class "fragments"
+      (#8098).
+    + Ensure that Nulls are ignored by `makeSection` and in segmenting
+      slides (#8155).
+    + Add `formatCode` function to Text.Pandoc.Shared [API change]
+      (Elliot Bobrow, #8129).
+    + `taskListItemToAscii`: handle asciidoctor's characters (#8011).
+      Asciidoctor uses different unicode characters for task
+      lists; we should recognize them too and be able to convert
+      them to ascii task lists in formats like gfm.
+    + Deprecate `deLink` and mark for later removal.
+
+  * Text.Pandoc.Writers.Shared:
+
+    + `toTableOfContents`: Don't replace links with empty spans in TOC (#8020).
+
+  * Text.Pandoc.Readers.Metadata:
+
+    + Ensure that metadata values w/o trailing newlines are
+      parsed as inlines, as the manual states.
+      Previously, they were parsed as inlines if they would
+      otherwise have been a single Plain or Para, but otherwise
+      left unchanged.  This led to some quirky results (e.g. #8143).
+      We now use the general function `blocksToInlines` from T.P.Shared.
+
+  * Text.Pandoc.Parsing:
+
+    + Simplify `gridTableWith'`, `gridTableWith` [API Change] (Albert
+      Krewinkel). The functions `gridTableWith` and `gridTableWith'` no
+      longer takes a boolean argument that toggles whether a table head
+      should be parsed: both, tables with heads and without heads, are
+      always accepted now.
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + Extend `pandoc.system` module (Albert Krewinkel, #8184).
+      The module now has the additional functions `list_directory`,
+      `make_directory`, and `remove_directory`. This makes it easier to write
+      cross-platform scripts that need to inspect or modify the file system.
+    + Require pandoc-lua-marshal 0.1.7. Adds a `clone` methods to
+      Pandoc objects and allows to pass Blocks in instead of full
+      Caption elements.
+    + Add fields `pandoc.readers` and `pandoc.writers` (#8177).
+      The set of supported input and output formats is made available to Lua
+      users.
+    + Ensure that tables marshaled via JSON arrays behave like Lists.
+      This allows to invoke methods like `map` and `includes` on lists like
+      `PANDOC_WRITER_OPTIONS.extensions`.
+    + Require hslua-2.2.1, unless lua53 flag is set, and do not reset
+      foreign encoding before running Lua. This fixes a problem where
+      the encoding used for Lua filenames would sometimes mismatch the
+      encoding used by the OS.
+    + Simplify module loading code. Modules are now loaded directly;
+      the special pandoc Lua package searcher is no longer necessary and
+      has been removed.
+    + Add function pandoc.mediabag.fill (#8104). The function allows to
+      fill the mediabag with all images in a given document. Images that
+      cannot be fetched are replaced with a Span containing the
+      image description.
+
+  * Populate mediabag after filters have run (Albert Krewinkel, #8099).
+    The mediabag is filled with document resources after the filters have
+    run. This allows, for example, filter authors to modify image paths
+    before pandoc tries to fetch the images.
+    Lua filters that rely on a filled mediabag can use the new
+    `pandoc.mediabag.fill` function to perform that action in the filter.
+
+  * Ms template: redefine rather than removing .CH macro (#8175).
+
+  * JATS template (Albert Krewinkel, except as noted):
+
+    + Include particles, prefix, suffix in names.
+    + Mark authors with cor-id as corresponding authors.
+      Corresponding authors are marked by setting the attribute
+      `corresp="yes"` in their respective `<contrib>` element.
+    + Unconditionally include permissions element (#8040).
+      Fixes a bug that caused license information to be omitted when no
+      copyright information was provided.
+    + Follow JATS4R recommendation and PudMed Central for license URI
+      (Castedo Ellerman, #8041).
+
+  * LaTeX template:
+
+    + Rename  `\textormath` to `\TextOrMath` (Hos Es, #8036).
+    + Fix links-as-notes (Albert Krewinkel, #8077).
+
+  * HTML template styles:
+
+    + Remove `span.underline` rule. This is superfluous now that we
+      render Underline as `<u>`.
+    + Improve CSS for task lists (#8151).
+
+  * LaTeX template: Add `boxlinks` variable for LaTeX/PDF output (#8198).
+    If `boxlinks` is set but `colorlinks` is not, then boxes will
+    be printed around links (`hidelinks` will not be set in `hypersetup`).
+
+  * `--self-contained`: Handle `url()` in `<style>` elements (#8193).
+
+  * Text.Pandoc.PDF: use SHA1 hash of filename when converting SVG.
+    The previous code threw away the directory component of
+    the filename in constructing a new one. This led to
+    surprising results if you had e.g. `foo/pic.svg` and `bar/pic.svg`;
+    in the final PDF they'd be the same image, because the latter
+    would overwrite the former in the temp directory.
+
+  * Remove Muse reader round-trip tests. These are nondeterministic and have
+    repeatedly failed on strange edge cases.
+
+  * Update fonts MIME following IANA recommendation (Gabriel Lewertowski,
+    #8127).
+
+  * Future compat change for `liftA2` export from Prelude (Georgi Lyubenov,
+    #8132).
+
+  * Update `default.csl` from the latest chicago-author-date.csl.
+
+  * Update manfilter.hs for greater portability (#8045).
+    The tables in our man pages were not rendering correctly
+    with mandoc, now used by default with macOS. mandoc doesn't
+    allow man formatting inside table cells. For maximum portability,
+    we now render the tables in plain format and include them as code
+    blocks in the man page.
+
+  * CI: update macos container version (#8197, Sukka).
+
+  * Add `nightly` flag. This causes a `-nightly-COMPILEDATE`
+    suffix to be added the the output of `--version` (#8016).
+    This is used in the nightly CI builds.
+
+  * Update dependencies (aeson, skylighting, pandoc-lua-marshall,
+    citeproc, texmath).
+
+  * Documentation improvements (thanks to Jiří Wolker,
+    Castedo Ellerman, Albert Krewinkel, Bastien Dumont, Cezar Drożak, Benjamin
+    Wuethrich, Ivan Panchenko, Sukil Etxenike, Masataka Ogawa).
+
 ## pandoc 2.18 (2022-04-04)
 
   * New input formats: `endnotexml` (EndNote XML bibliography),
