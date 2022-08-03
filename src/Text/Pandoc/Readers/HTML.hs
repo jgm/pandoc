@@ -327,11 +327,11 @@ pBulletList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pListItem nonItem) (pCloses "ul")
+  items <- manyTill (pListItem' nonItem) (pCloses "ul")
   return $ B.bulletList $ map (fixPlains True) items
 
-pListItem :: PandocMonad m => TagParser m a -> TagParser m Blocks
-pListItem nonItem = do
+pListItem :: PandocMonad m => TagParser m Blocks
+pListItem = do
   TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "li" [])
   let attr = toStringAttr attr'
   let addId ident bs = case B.toList bs of
@@ -339,7 +339,13 @@ pListItem nonItem = do
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
   maybe id addId (lookup "id" attr) <$>
-    pInTags "li" block <* skipMany nonItem
+    pInTags "li" block
+
+-- | Parses a list item just like 'pListItem', but allows sublists outside of
+-- @li@ tags to be treated as items.
+pListItem' :: PandocMonad m => TagParser m a -> TagParser m Blocks
+pListItem' nonItem = (pListItem <|> pBulletList <|> pOrderedList)
+  <* skipMany nonItem
 
 parseListStyleType :: Text -> ListNumberStyle
 parseListStyleType "lower-roman" = LowerRoman
@@ -381,7 +387,7 @@ pOrderedList = try $ do
        _ <- manyTill (eFootnote <|> pBlank) (pCloses "ol")
        return mempty
      else do
-       items <- manyTill (pListItem nonItem) (pCloses "ol")
+       items <- manyTill (pListItem' nonItem) (pCloses "ol")
        return $ B.orderedListWith (start, style, DefaultDelim) $
                 map (fixPlains True) items
 
