@@ -39,10 +39,8 @@ extra-deps:
 - commonmark-extensions-0.2.3.1
 - doclayout-0.4
 - doctemplates-0.10.0.2
-- git: https://github.com/jgm/citeproc
-  commit: 647c5d292bbb6d9a8d683bcae0ba129c65086901
-- git: https://github.com/jgm/texmath
-  commit: c884291bc6ee0ac7fc28d180d248c3e3c7d6fc62
+- citeproc-0.8.0.1
+- texmath-0.12.5.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
