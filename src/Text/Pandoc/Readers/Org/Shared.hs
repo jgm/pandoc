@@ -16,6 +16,7 @@ module Text.Pandoc.Readers.Org.Shared
   , exportsCode
   ) where
 
+import Control.Applicative ((<|>))
 import Data.Char (isAlphaNum)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -39,21 +40,21 @@ isImageFilename fp = hasImageExtension && (isValid (T.unpack fp) || isKnownProto
 -- the string does not appear to be a link.
 cleanLinkText :: Text -> Maybe Text
 cleanLinkText s
-  | isAbsolute s                       = Just $ "file://" <> s -- absolute path
+  | Just f <- toFileSchema s           = Just f                -- absolute path
   | Just _ <- T.stripPrefix "./" s     = Just s                -- relative path
   | Just _ <- T.stripPrefix "../" s    = Just s                -- relative path
   -- Relative path or URL (file schema)
-  | Just s' <- T.stripPrefix "file:" s = Just $
-                                         if "//" `T.isPrefixOf` s'
-                                         then s
-                                         else if isAbsolute s'
-                                              then "file://" <> s'
-                                              else s'
+  | Just s' <- T.stripPrefix "file:" s = if "//" `T.isPrefixOf` s'
+                                         then Just s
+                                         else  toFileSchema s' <|> Just s'
   | isUrl s                            = Just s
   | otherwise                          = Nothing
   where
-    isAbsolute :: Text -> Bool
-    isAbsolute = ((||) <$> Posix.isAbsolute <*> Windows.isAbsolute) . T.unpack
+    toFileSchema :: Text -> Maybe Text
+    toFileSchema t
+      | Windows.isAbsolute (T.unpack t) = Just ("file:///" <> t)
+      | Posix.isAbsolute (T.unpack t)   = Just ("file://" <> t)
+      | otherwise                       = Nothing
     isUrl :: Text -> Bool
     isUrl cs =
       let (scheme, path) = T.break (== ':') cs
