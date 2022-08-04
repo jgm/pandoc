@@ -7,8 +7,10 @@ flags:
 packages:
 - '.'
 extra-deps:
-- skylighting-core-0.12.3.1
-- skylighting-0.12.3.1
+- skylighting-core-0.13
+- skylighting-0.13
+- skylighting-format-latex-0.1
+- skylighting-format-blaze-html-0.1
 - emojis-0.1.2
 - gridtables-0.0.2.0
 - lpeg-1.0.3
@@ -36,11 +38,11 @@ extra-deps:
 - ipynb-0.2
 - pandoc-types-1.22.2
 - commonmark-0.2.2
-- commonmark-extensions-0.2.3.1
+- commonmark-extensions-0.2.3.2
 - doclayout-0.4
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
-- texmath-0.12.5.1
+- texmath-0.12.5.2
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
