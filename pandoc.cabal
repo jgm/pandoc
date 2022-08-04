@@ -257,6 +257,10 @@ extra-source-files:
                  test/command/5876.yaml
                  test/command/5876/metadata/5876.yaml
                  test/command/5876/metadata/command/5876.yaml
+                 test/command/6466-beg.hs
+                 test/command/6466-end.hs
+                 test/command/6466-mid.hs
+                 test/command/6466-whole.hs
                  test/command/7861.yaml
                  test/command/7861/metadata/placeholder
                  test/docbook-chapter.docbook
