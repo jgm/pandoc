@@ -208,6 +208,10 @@
       changed to `[.underline]#text#`.  See comment at
       <https://github.com/jgm/pandoc/issues/8070#issuecomment-1126883824>.
 
+  * FB2 writer:
+
+    + Fix handling of non-section Divs (#8123).
+
   * Markdown writer:
 
     + Disable soft wrapping when `hard_line_breaks` enabled (#8035).
