@@ -9,6 +9,7 @@ packages:
 extra-deps:
 - skylighting-core-0.13
 - skylighting-0.13
+- skylighting-format-ansi-0.1
 - skylighting-format-latex-0.1
 - skylighting-format-blaze-html-0.1
 - emojis-0.1.2
