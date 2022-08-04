@@ -12,6 +12,7 @@
 - Alexander V Vershilov
 - Alexandre Franke
 - Alfred Wechselberger
+- Amir Dekel
 - Amogh Rathore
 - Anabra
 - Anders Waldenborg
@@ -29,11 +30,13 @@
 - Arlo O'Keeffe
 - Artyom Kazak
 - B. Scott Michel
+- Bastien Dumont
 - Ben Firshman
 - Ben Gamari
 - Ben Steinberg
 - Beni Cherniavsky-Paskin
 - Benjamin Bray
+- Benjamin Wuethrich
 - Benoit Schweblin
 - Benson Muite
 - Bjorn Buckwalter
@@ -48,8 +51,10 @@
 - Calvin Beck
 - Carlos Sosa
 - Carsten Allefeld
+- Castedo Ellerman
 - Cécile Chemin
 - Cédric Couralet
+- Cezary Drożak
 - Charanjit Singh
 - Chris Black
 - Christian Conkle
@@ -81,6 +86,7 @@
 - Dmitry Volodin
 - Douglas Calvert
 - Eigil Rischel
+- Elliot Bobrow
 - Emanuel Evans
 - Emerson Harkin
 - Emily Bourke
@@ -109,7 +115,9 @@
 - Frerich Raabe
 - Fyodor Sheremetyev
 - Gabor Pali
+- Gabriel Lewertowski
 - Gavin Beatty
+- Georgi Lyubenov
 - Gottfried Haider
 - Greg Maslov
 - Greg Rundlett
@@ -122,17 +130,20 @@
 - Henrik Tramberend
 - Henry de Valence
 - Herwig Stuetz
+- Hos Es
 - Hubert Plociniczak
 - Ian Max Andolina
 - Igor Khorlo
 - Igor Pashev
 - Ilya V. Portnov
+- Ivan Panchenko
 - Ivan Trubach
 - Ivar de Bruin
 - Ivo Clarysse
 - Jaap de Jong
 - J. B. Rainsberger
 - J. Lewis Muir
+- Jaehwang Jung
 - Jaime Marquínez Ferrándiz
 - Jake Zimmerman
 - Jakob Voß
@@ -196,6 +207,7 @@
 - Mark Szepieniec
 - Mark Wright
 - Martin Linn
+- Masataka Ogawa
 - Masayoshi Takahashi
 - Matej Kollar
 - Mathias Schenner
@@ -281,6 +293,8 @@
 - Simon Hengel
 - Simon Schuster
 - Stefan Dresselhaus
+- Sukil Etxenike
+- Sukka
 - Sumit Sahrawat
 - TEC
 - Tarik Graba
@@ -311,11 +325,13 @@
 - Vlad Hanciuta
 - Waldir Pimenta
 - Wandmalfarbe
+- Wentao Han
 - Wikiwide
 - William Lupton
 - Winnie Hellmann
 - Xavier Olive
 - Yan Pashkovsky
+- YI
 - Yoan Blanc
 - Yuchen Pei
 - Zihang Chen
@@ -323,6 +339,7 @@
 - andrebauer
 - argent0
 - badumont
+- black-desk
 - blmage
 - bucklereed
 - bumper314
