@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 2.19 (PROVISIONAL)
+## pandoc 2.19 (2022-08-03)
 
   * Add `--embed-resources` flag (Elliot Bobrow, #7331).  This can be
     used to embed resources without implying `--standalone`.
