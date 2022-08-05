@@ -3,3 +3,7 @@ tests: True
 flags: +embed_data_files
 constraints: aeson >= 2.0.1.0
 
+source-repository-package
+  type: git
+  location: https://github.com/tarleb/gridtables
+  tag: 76198add9b404124b3a2fdf137399256a91d337b
