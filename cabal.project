@@ -7,3 +7,9 @@ source-repository-package
   type: git
   location: https://github.com/tarleb/gridtables
   tag: 76198add9b404124b3a2fdf137399256a91d337b
+
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/pandoc-server
+  tag: fb4a86f725c5e61eff63227a39df591262bccf67

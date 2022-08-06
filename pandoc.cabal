@@ -428,8 +428,8 @@ flag lua53
   Description:   Embed Lua 5.3 instead of 5.4.
   Default:       False
 
-flag trypandoc
-  Description:   Build trypandoc cgi executable.
+flag pandoc-cgi
+  Description:   Build pandoc-cgi executable.
   Default:       False
 
 flag nightly
@@ -789,16 +789,20 @@ executable pandoc
   buildable:       True
   other-modules:   Paths_pandoc
 
-executable trypandoc
+executable pandoc-cgi
   import:          common-executable
-  main-is:         trypandoc.hs
-  hs-source-dirs:  trypandoc
-  if flag(trypandoc)
-    build-depends: aeson,
-                   http-types,
+  main-is:         Main.hs
+  other-modules:   PandocCGI
+  hs-source-dirs:  pandoc-cgi
+  if flag(pandoc-cgi)
+    build-depends: base,
+                   pandoc,
+                   aeson,
                    text,
+                   servant-server,
                    wai >= 0.3,
                    wai-extra >= 3.0.24
+
     buildable:     True
   else
     buildable:     False
