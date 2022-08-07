@@ -43,6 +43,8 @@ $(deriveJSON defaultOptions ''Params)
 type API =
   "convert" :> ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
   :<|>
+  "multidingus" :> ReqBody '[JSON] Params :> Post '[JSON] Value
+  :<|>
   "convert-batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
   :<|>
   "version" :> Get '[PlainText, JSON] Text
@@ -55,9 +57,14 @@ api = Proxy
 
 server :: Server API
 server = convert
+    :<|> multidingus  -- for babelmark
     :<|> mapM convert
     :<|> pure pandocVersion
  where
+  multidingus params = do
+    res <- convert params
+    return $ toJSON $ object [ "html" .= res, "version" .= pandocVersion ]
+
   -- We use runPure for the pandoc conversions, which ensures that
   -- they will do no IO.  This makes the server safe to use.  However,
   -- it will mean that features requiring IO, like RST includes, will not work.
