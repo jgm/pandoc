@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-module PandocCGI
+module PandocServer
     ( app
     , Params(..)
     ) where

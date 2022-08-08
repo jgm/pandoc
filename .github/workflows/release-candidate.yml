@@ -20,7 +20,7 @@ jobs:
           mkdir linux-release-candidate
           cp linux/artifacts/*.deb linux-release-candidate/
           cp linux/artifacts/*.tar.gz linux-release-candidate/
-          cp linux/artifacts/pandoc-cgi linux-release-candidate/
+          cp linux/artifacts/pandoc-server linux-release-candidate/
     - uses: actions/upload-artifact@v2
       with:
         name: linux-release-candidate
