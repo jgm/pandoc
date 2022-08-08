@@ -13,18 +13,21 @@ import Data.Aeson.TH
 import Network.Wai
 import Servant
 import Text.Pandoc
+import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
 import Data.Char (isAlphaNum)
+import Data.ByteString.Lazy (fromStrict, toStrict)
+import Data.ByteString.Base64
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
 -- given default values.
 data Params = Params
-  { text           :: Text
+  { input          :: Text
   , from           :: Maybe Text
   , to             :: Maybe Text
   , wrapText       :: Maybe WrapOption
@@ -88,22 +91,23 @@ server = convert
                             Just t  -> Just <$>
                               compileCustomTemplate toformat t
                      else return Nothing
-    -- We don't yet handle binary formats:
-    reader <- case readerSpec of
-                TextReader r -> return r
-                _ -> throwError $ PandocAppError $
-                       readerFormat <> " is not a text reader"
-    writer <- case writerSpec of
-                TextWriter w -> return w
-                _ -> throwError $ PandocAppError $
-                       readerFormat <> " is not a text reader"
-    reader def{ readerExtensions = readerExts
-              , readerStandalone = isStandalone }
-           (text params) >>=
-      writer def{ writerExtensions = writerExts
-                , writerWrapText = fromMaybe WrapAuto (wrapText params)
-                , writerColumns = fromMaybe 72 (columns params)
-                , writerTemplate = mbTemplate }
+    let readeropts = def{ readerExtensions = readerExts
+                        , readerStandalone = isStandalone }
+    let writeropts = def{ writerExtensions = writerExts
+                        , writerWrapText = fromMaybe WrapAuto (wrapText params)
+                        , writerColumns = fromMaybe 72 (columns params)
+                        , writerTemplate = mbTemplate }
+    let reader = case readerSpec of
+                TextReader r -> r readeropts
+                ByteStringReader r -> \t -> do
+                  let eitherbs = decodeBase64 $ UTF8.fromText t
+                  case eitherbs of
+                    Left errt -> throwError $ PandocSomeError errt
+                    Right bs -> r readeropts $ fromStrict bs
+    let writer = case writerSpec of
+                TextWriter w -> w writeropts
+                ByteStringWriter w -> fmap (encodeBase64 . toStrict) . w writeropts
+    reader (input params) >>= writer
 
   handleErr (Right t) = return t
   handleErr (Left err) = throwError $

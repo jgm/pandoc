@@ -799,6 +799,8 @@ executable pandoc-server
                    pandoc,
                    aeson,
                    text,
+                   bytestring,
+                   base64 >= 0.4,
                    servant-server,
                    wai >= 0.3,
                    wai-extra >= 3.0.24,
