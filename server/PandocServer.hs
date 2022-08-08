@@ -27,7 +27,7 @@ import Data.ByteString.Base64
 -- of requests.  Maybe values may be omitted and will be
 -- given default values.
 data Params = Params
-  { input          :: Text
+  { text           :: Text
   , from           :: Maybe Text
   , to             :: Maybe Text
   , wrapText       :: Maybe WrapOption
@@ -107,7 +107,7 @@ server = convert
     let writer = case writerSpec of
                 TextWriter w -> w writeropts
                 ByteStringWriter w -> fmap (encodeBase64 . toStrict) . w writeropts
-    reader (input params) >>= writer
+    reader (text params) >>= writer
 
   handleErr (Right t) = return t
   handleErr (Left err) = throwError $
