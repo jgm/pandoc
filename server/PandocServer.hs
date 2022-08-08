@@ -46,7 +46,7 @@ $(deriveJSON defaultOptions ''Params)
 type API =
   ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
   :<|>
-  ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
+  "batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
   :<|>
   "babelmark" :> ReqBody '[JSON] Params :> Get '[JSON] Value
   :<|>
