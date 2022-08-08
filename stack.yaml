@@ -1,6 +1,6 @@
 flags:
   pandoc:
-    pandoc-cgi: false
+    server: false
     embed_data_files: true
   QuickCheck:
     old-random: false
