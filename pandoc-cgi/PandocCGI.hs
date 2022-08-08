@@ -45,7 +45,7 @@ type API =
   :<|>
   ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
   :<|>
-  "babelmark" :> ReqBody '[JSON] Params :> Post '[JSON] Value
+  "babelmark" :> ReqBody '[JSON] Params :> Get '[JSON] Value
   :<|>
   "version" :> Get '[PlainText, JSON] Text
 
