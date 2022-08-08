@@ -159,7 +159,7 @@ function newpage() {
     let standalone = params.get("standalone") === "true";
     document.getElementById("standalone").checked = standalone;
     if (text && text != "") {
-       fetch("/cgi-bin/pandoc-cgi/version")
+       fetch("/cgi-bin/pandoc-server.cgi/version")
           .then(response => response.text())
           .then(restext =>
              document.getElementById("version").textContent = restext
@@ -167,7 +167,7 @@ function newpage() {
 
        let params = { from: from, to: to, text: text, standalone: standalone };
        // console.log(JSON.stringify(params));
-       fetch("/cgi-bin/pandoc-cgi", {
+       fetch("/cgi-bin/pandoc-server.cgi", {
          method: "POST",
          headers: {"Content-Type": "application/json"},
          body: JSON.stringify(params)
@@ -182,8 +182,9 @@ function newpage() {
        });
     };
     document.getElementById("convert").onclick = newpage;
-    document.getElementById("from").onclick = newpage;
-    document.getElementById("to").onclick = newpage;
+    document.getElementById("from").onchange = newpage;
+    document.getElementById("to").onchange = newpage;
+    document.getElementById("standalone").onchange = newpage;
 })();
   </script>
 
