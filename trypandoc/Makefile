@@ -1,7 +1,7 @@
 CGIBIN=/home/website/cgi-bin
 TRYPANDOC=/home/website/pandoc.org/try/
-CGI=${CGIBIN}/trypandoc
-BIN=/home/jgm/.cabal/bin/pandoc-cgi
+CGI=${CGIBIN}/pandoc-server.cgi
+BIN=/home/jgm/.cabal/bin/pandoc-server
 
 install: ${CGI} ${TRYPANDOC}/index.html
 
