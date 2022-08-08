@@ -41,11 +41,11 @@ $(deriveJSON defaultOptions ''Params)
 -- Get requests with either plain text or JSON, depending on the
 -- Accept header.
 type API =
-  "convert" :> ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
+  ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
   :<|>
-  "multidingus" :> ReqBody '[JSON] Params :> Post '[JSON] Value
+  ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
   :<|>
-  "convert-batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
+  "babelmark" :> ReqBody '[JSON] Params :> Post '[JSON] Value
   :<|>
   "version" :> Get '[PlainText, JSON] Text
 
@@ -57,11 +57,11 @@ api = Proxy
 
 server :: Server API
 server = convert
-    :<|> multidingus  -- for babelmark
     :<|> mapM convert
+    :<|> babelmark  -- for babelmark which expects {"html": "", "version": ""}
     :<|> pure pandocVersion
  where
-  multidingus params = do
+  babelmark params = do
     res <- convert params
     return $ toJSON $ object [ "html" .= res, "version" .= pandocVersion ]
 

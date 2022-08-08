@@ -167,7 +167,7 @@ function newpage() {
 
        let params = { from: from, to: to, text: text, standalone: standalone };
        // console.log(JSON.stringify(params));
-       fetch("/cgi-bin/pandoc-cgi/convert", {
+       fetch("/cgi-bin/pandoc-cgi", {
          method: "POST",
          headers: {"Content-Type": "application/json"},
          body: JSON.stringify(params)
