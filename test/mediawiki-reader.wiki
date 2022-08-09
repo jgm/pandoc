@@ -326,6 +326,7 @@ Written {{{date}}} by {{{name}}}.
 |}
 
 {|
+|-
 |+Food complements
 !Orange
 !Apple
