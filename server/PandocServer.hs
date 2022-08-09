@@ -85,7 +85,10 @@ server = convert
     let writerFormat = fromMaybe "html" $ to params
     (readerSpec, readerExts) <- getReader readerFormat
     (writerSpec, writerExts) <- getWriter writerFormat
-    let isStandalone = fromMaybe False (standalone params)
+    let binaryOutput = case writerSpec of
+                         ByteStringWriter{} -> True
+                         _ -> False
+    let isStandalone = fromMaybe binaryOutput (standalone params)
     let toformat = T.toLower $ T.takeWhile isAlphaNum $ writerFormat
     mbTemplate <- if isStandalone
                      then case template params of
