@@ -48,7 +48,7 @@ type API =
   :<|>
   "batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
   :<|>
-  "babelmark" :> ReqBody '[JSON] Params :> Get '[JSON] Value
+  "babelmark" :> QueryParam "text" Text :> QueryParam "from" Text :> QueryParam "to" Text :> QueryFlag "standalone" :> Get '[JSON] Value
   :<|>
   "version" :> Get '[PlainText, JSON] Text
 
@@ -64,8 +64,11 @@ server = convert
     :<|> babelmark  -- for babelmark which expects {"html": "", "version": ""}
     :<|> pure pandocVersion
  where
-  babelmark params = do
-    res <- convert params
+  babelmark text' from' to' standalone' = do
+    res <- convert Params{ text = fromMaybe mempty text',
+                           from = from', to = to',
+                           standalone = Just standalone', wrapText = Nothing,
+                           columns = Nothing, template = Nothing }
     return $ toJSON $ object [ "html" .= res, "version" .= pandocVersion ]
 
   -- We use runPure for the pandoc conversions, which ensures that
