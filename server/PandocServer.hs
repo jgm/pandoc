@@ -48,7 +48,7 @@ type API =
   :<|>
   "batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
   :<|>
-  "babelmark" :> QueryParam "text" Text :> QueryParam "from" Text :> QueryParam "to" Text :> QueryFlag "standalone" :> Get '[JSON] Value
+  "babelmark" :> QueryParam' '[Required] "text" Text :> QueryParam "from" Text :> QueryParam "to" Text :> QueryFlag "standalone" :> Get '[JSON] Value
   :<|>
   "version" :> Get '[PlainText, JSON] Text
 
@@ -65,7 +65,7 @@ server = convert
     :<|> pure pandocVersion
  where
   babelmark text' from' to' standalone' = do
-    res <- convert Params{ text = fromMaybe mempty text',
+    res <- convert Params{ text = text',
                            from = from', to = to',
                            standalone = Just standalone', wrapText = Nothing,
                            columns = Nothing, template = Nothing }
