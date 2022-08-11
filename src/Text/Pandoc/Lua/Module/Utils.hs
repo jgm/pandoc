@@ -25,7 +25,7 @@ import Data.Maybe (fromMaybe)
 import Data.Version (Version)
 import HsLua as Lua
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
-import Text.Pandoc.Citeproc (getReferences)
+import Text.Pandoc.Citeproc (getReferences, processCitations)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.AST
@@ -58,6 +58,16 @@ documentedModule = Module
             "blocks" ""
       <#> opt (parameter (peekList peekInline) "list of inlines" "inline" "")
       =#> functionResult pushInlines "list of inlines" ""
+
+    , defun "citeproc"
+      ### unPandocLua . processCitations
+      <#> parameter peekPandoc "Pandoc" "doc" "document"
+      =#> functionResult pushPandoc "Pandoc" "processed document"
+      #?  T.unwords
+          [ "Process the citations in the file, replacing them with "
+          , "rendered citations and adding a bibliography. "
+          , "See the manual section on citation rendering for details."
+          ]
 
     , defun "equals"
       ### equal
