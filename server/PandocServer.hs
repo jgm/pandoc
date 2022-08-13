@@ -22,6 +22,7 @@ import Data.Maybe (fromMaybe)
 import Data.Char (isAlphaNum)
 import Data.ByteString.Lazy (fromStrict, toStrict)
 import Data.ByteString.Base64
+import Data.Default
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
@@ -35,6 +36,17 @@ data Params = Params
   , standalone     :: Maybe Bool
   , template       :: Maybe Text
   } deriving (Show)
+
+instance Default Params where
+  def = Params
+    { text = ""
+    , from = Nothing
+    , to = Nothing
+    , wrapText = Nothing
+    , columns = Nothing
+    , standalone = Nothing
+    , template = Nothing
+    }
 
 -- Automatically derive code to convert to/from JSON.
 $(deriveJSON defaultOptions ''Params)
@@ -65,10 +77,9 @@ server = convert
     :<|> pure pandocVersion
  where
   babelmark text' from' to' standalone' = do
-    res <- convert Params{ text = text',
-                           from = from', to = to',
-                           standalone = Just standalone', wrapText = Nothing,
-                           columns = Nothing, template = Nothing }
+    res <- convert def{ text = text',
+                        from = from', to = to',
+                        standalone = Just standalone' }
     return $ toJSON $ object [ "html" .= res, "version" .= pandocVersion ]
 
   -- We use runPure for the pandoc conversions, which ensures that
@@ -98,7 +109,8 @@ server = convert
                               compileCustomTemplate toformat t
                      else return Nothing
     let readeropts = def{ readerExtensions = readerExts
-                        , readerStandalone = isStandalone }
+                        , readerStandalone = isStandalone
+                        }
     let writeropts = def{ writerExtensions = writerExts
                         , writerWrapText = fromMaybe WrapAuto (wrapText params)
                         , writerColumns = fromMaybe 72 (columns params)
