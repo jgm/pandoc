@@ -58,6 +58,7 @@ import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
 import Text.Pandoc.Class (fillMediaBag, getVerbosity,
+                          readFileLazy, readFileStrict, fileExists,
                           report, extractMedia, PandocMonad)
 import Text.Pandoc.Logging
 
@@ -335,21 +336,21 @@ getResultingPDF :: (PandocMonad m, MonadIO m)
                 => Maybe String -> String
                 -> m (Maybe ByteString, Maybe ByteString)
 getResultingPDF logFile pdfFile = do
-    pdfExists <- liftIO $ doesFileExist pdfFile
+    pdfExists <- fileExists pdfFile
     pdf <- if pdfExists
               -- We read PDF as a strict bytestring to make sure that the
               -- temp directory is removed on Windows.
               -- See https://github.com/jgm/pandoc/issues/1192.
               then (Just . BL.fromChunks . (:[])) `fmap`
-                   liftIO (BS.readFile pdfFile)
+                   (readFileStrict pdfFile)
               else return Nothing
     -- Note that some things like Missing character warnings
     -- appear in the log but not on stderr, so we prefer the log:
     log' <- case logFile of
               Just logFile' -> do
-                logExists <- liftIO $ doesFileExist logFile'
+                logExists <- fileExists logFile'
                 if logExists
-                  then liftIO $ Just <$> BL.readFile logFile'
+                  then Just <$> readFileLazy logFile'
                   else return Nothing
               Nothing -> return Nothing
     return (log', pdf)
