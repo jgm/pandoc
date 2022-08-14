@@ -27,7 +27,7 @@ import Control.Applicative ((<|>))
 import Control.Monad (guard, msum, mzero, unless, void)
 import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader (ask, asks, lift, local, runReaderT)
-import Data.ByteString.Base64 (encode)
+import Data.Text.Encoding.Base64.URL (encodeBase64)
 import Data.Char (isAlphaNum, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
@@ -785,8 +785,7 @@ pSvg = do
   contents <- many (notFollowedBy (pCloses "svg") >> pAny)
   closet <- TagClose "svg" <$ (pCloses "svg" <|> eof)
   let rawText = T.strip $ renderTags' (opent : contents ++ [closet])
-  let svgData = "data:image/svg+xml;base64," <>
-                   UTF8.toText (encode $ UTF8.fromText rawText)
+  let svgData = "data:image/svg+xml;base64," <> encodeBase64 rawText
   return $ B.imageWith (ident,cls,[]) svgData mempty mempty
 
 pCodeWithClass :: PandocMonad m => Text -> Text -> TagParser m Inlines
