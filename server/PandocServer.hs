@@ -23,20 +23,26 @@ import Data.Char (isAlphaNum)
 import Data.ByteString.Lazy (fromStrict, toStrict)
 import Data.ByteString.Base64
 import Data.Default
+import Data.Set (Set)
+import Skylighting (defaultSyntaxMap)
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
 -- given default values.
 data Params = Params
-  { text           :: Text
-  , from           :: Maybe Text
-  , to             :: Maybe Text
-  , wrapText       :: Maybe WrapOption
-  , columns        :: Maybe Int
-  , standalone     :: Maybe Bool
-  , template       :: Maybe Text
-  , tabStop        :: Maybe Int
-  , indentedCodeClasses :: Maybe [Text]
+  { text:                  :: Text
+  , from:                  :: Maybe Text
+  , to:                    :: Maybe Text
+  , wrapText:              :: Maybe WrapOption
+  , columns:               :: Maybe Int
+  , standalone:            :: Maybe Bool
+  , template:              :: Maybe Text
+  , tabStop:               :: Maybe Int
+  , indentedCodeClasses:   :: Maybe [Text]
+  , abbreviations:         :: Maybe (Set Text)
+  , defaultImageExtension: :: Maybe Text
+  , trackChanges:          :: Maybe TrackChanges
+  , stripComments:         :: Maybe Bool
   } deriving (Show)
 
 instance Default Params where
@@ -50,6 +56,10 @@ instance Default Params where
     , template = Nothing
     , tabStop = Nothing
     , indentedCodeClasses = Nothing
+    , abbreviations = Nothing
+    , defaultImageExtension = Nothing
+    , trackChanges = Nothing
+    , stripComments = Nothing
     }
 
 -- Automatically derive code to convert to/from JSON.
@@ -117,11 +127,21 @@ server = convert
                         , readerTabStop = fromMaybe 4 (tabStop params)
                         , readerIndentedCodeClasses = fromMaybe []
                             (indentedCodeClasses params)
+                        , readerAbbreviations =
+                            fromMaybe mempty (abbreviations params)
+                        , readerDefaultImageExtension =
+                            fromMaybe mempty (defaultImageExtension params)
+                        , readerTrackChanges =
+                            fromMaybe AcceptChanges (trackChanges params)
+                        , readerStripComments =
+                            fromMaybe False (stripComments params)
                         }
     let writeropts = def{ writerExtensions = writerExts
+                        , writerTabStop = fromMaybe 4 (tabStop params)
                         , writerWrapText = fromMaybe WrapAuto (wrapText params)
                         , writerColumns = fromMaybe 72 (columns params)
-                        , writerTemplate = mbTemplate }
+                        , writerTemplate = mbTemplate
+                        , writerSyntaxMap = defaultSyntaxMap }
     let reader = case readerSpec of
                 TextReader r -> r readeropts
                 ByteStringReader r -> \t -> do

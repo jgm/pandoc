@@ -799,6 +799,7 @@ executable pandoc-server
                    pandoc,
                    aeson,
                    text,
+                   containers,
                    data-default,
                    bytestring,
                    base64 >= 0.4,
