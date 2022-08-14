@@ -35,6 +35,8 @@ data Params = Params
   , columns        :: Maybe Int
   , standalone     :: Maybe Bool
   , template       :: Maybe Text
+  , tabStop        :: Maybe Int
+  , indentedCodeClasses :: Maybe [Text]
   } deriving (Show)
 
 instance Default Params where
@@ -46,6 +48,8 @@ instance Default Params where
     , columns = Nothing
     , standalone = Nothing
     , template = Nothing
+    , tabStop = Nothing
+    , indentedCodeClasses = Nothing
     }
 
 -- Automatically derive code to convert to/from JSON.
@@ -110,6 +114,9 @@ server = convert
                      else return Nothing
     let readeropts = def{ readerExtensions = readerExts
                         , readerStandalone = isStandalone
+                        , readerTabStop = fromMaybe 4 (tabStop params)
+                        , readerIndentedCodeClasses = fromMaybe []
+                            (indentedCodeClasses params)
                         }
     let writeropts = def{ writerExtensions = writerExts
                         , writerWrapText = fromMaybe WrapAuto (wrapText params)
