@@ -400,13 +400,13 @@ adjustMetadata f (Pandoc meta bs) = Pandoc (f meta) bs
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
-readSources :: (PandocMonad m, MonadIO m)
+readSources :: PandocMonad m
             => [FilePath] -> m [(FilePath, (BS.ByteString, Maybe MimeType))]
 readSources srcs =
   mapM (\fp -> do t <- readSource fp
                   return (if fp == "-" then "" else fp, t)) srcs
 
-readSource :: (PandocMonad m, MonadIO m)
+readSource :: PandocMonad m
            => FilePath -> m (BS.ByteString, Maybe MimeType)
 readSource "-" = (,Nothing) <$> readStdinStrict
 readSource src =
