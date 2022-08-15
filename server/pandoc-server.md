@@ -24,7 +24,10 @@ program, rename it as `pandoc-server.cgi`.
 :    Timeout in seconds, after which a conversion is killed. Default: 2.
 
 `--help`
-:    Help
+:    Print this help.
+
+`--version`
+:    Print version.
 
 # API
 

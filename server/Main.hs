@@ -1,15 +1,20 @@
 module Main where
 
 import PandocServer (app)
+import Text.Pandoc (pandocVersion)
+import Control.Monad (when)
 import qualified Network.Wai.Handler.CGI as CGI
 import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Middleware.Timeout (timeout)
 import System.Environment (getProgName)
 import Options.Applicative
+import System.Exit (exitWith, ExitCode(ExitSuccess))
+import Data.Text as T
 
 data Opts = Opts
   { optPort :: Warp.Port,
-    optTimeout :: Int }  -- in seconds
+    optTimeout :: Int, -- seconds
+    optVersion :: Bool }
 
 options :: Parser Opts
 options = Opts
@@ -23,6 +28,9 @@ options = Opts
          <> value 2
          <> metavar "SECONDS"
          <> help "Seconds timeout" )
+  <*> flag False True
+         ( long "version"
+         <> help "Print version" )
 
 main :: IO ()
 main = do
@@ -32,6 +40,10 @@ main = do
        <> progDesc "Run a pandoc server"
        <> header "pandoc-server - text conversion server" )
   opts <- execParser optspec
+
+  when (optVersion opts) $ do
+    putStrLn $ progname <> " " <> T.unpack pandocVersion
+    exitWith ExitSuccess
 
   let port = optPort opts
   let app' = timeout (optTimeout opts) app
