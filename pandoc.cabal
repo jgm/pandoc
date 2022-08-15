@@ -804,6 +804,7 @@ executable pandoc-server
                    bytestring,
                    skylighting,
                    base64 >= 0.4,
+                   doctemplates,
                    servant-server,
                    wai >= 0.3,
                    wai-extra >= 3.0.24,

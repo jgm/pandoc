@@ -12,6 +12,7 @@ import Data.Aeson
 import Data.Aeson.TH
 import Network.Wai
 import Servant
+import Text.DocTemplates as DocTemplates
 import Text.Pandoc
 import Text.Pandoc.Citeproc (processCitations)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -55,6 +56,15 @@ data Params = Params
   , trackChanges          :: Maybe TrackChanges
   , stripComments         :: Maybe Bool
   , citeproc              :: Maybe Bool
+  , variables             :: Maybe (DocTemplates.Context Text)
+  , tableOfContents       :: Maybe Bool
+  , incremental           :: Maybe Bool
+  , htmlMathMethod        :: Maybe HTMLMathMethod
+  , numberSections        :: Maybe Bool
+  , numberOffset          :: Maybe [Int]
+  , sectionDivs           :: Maybe Bool
+  , referenceLinks        :: Maybe Bool
+  , dpi                   :: Maybe Int
   } deriving (Show)
 
 instance Default Params where
@@ -74,6 +84,15 @@ instance Default Params where
     , trackChanges = Nothing
     , stripComments = Nothing
     , citeproc = Nothing
+    , variables = Nothing
+    , tableOfContents = Nothing
+    , incremental = Nothing
+    , htmlMathMethod = Nothing
+    , numberSections = Nothing
+    , numberOffset = Nothing
+    , sectionDivs = Nothing
+    , referenceLinks = Nothing
+    , dpi = Nothing
     }
 
 -- Automatically derive code to convert to/from JSON.
@@ -155,7 +174,26 @@ server = convert
                         , writerWrapText = fromMaybe WrapAuto (wrapText params)
                         , writerColumns = fromMaybe 72 (columns params)
                         , writerTemplate = mbTemplate
-                        , writerSyntaxMap = defaultSyntaxMap }
+                        , writerSyntaxMap = defaultSyntaxMap
+                        , writerVariables =
+                            fromMaybe mempty (variables params)
+                        , writerTableOfContents =
+                            fromMaybe False (tableOfContents params)
+                        , writerIncremental =
+                            fromMaybe False (incremental params)
+                        , writerHTMLMathMethod =
+                            fromMaybe PlainMath (htmlMathMethod params)
+                        , writerNumberSections =
+                            fromMaybe False (numberSections params)
+                        , writerNumberOffset =
+                            fromMaybe [] (numberOffset params)
+                        , writerSectionDivs =
+                            fromMaybe False (sectionDivs params)
+                        , writerReferenceLinks =
+                            fromMaybe False (referenceLinks params)
+                        , writerDpi =
+                            fromMaybe 96 (dpi params)
+                        }
     let reader = case readerSpec of
                 TextReader r -> r readeropts
                 ByteStringReader r -> \t -> do
