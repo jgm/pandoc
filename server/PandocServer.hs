@@ -15,6 +15,7 @@ import Servant
 import Text.DocTemplates as DocTemplates
 import Text.Pandoc
 import Text.Pandoc.Citeproc (processCitations)
+import Text.Pandoc.Highlighting (lookupHighlightingStyle)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -65,6 +66,23 @@ data Params = Params
   , sectionDivs           :: Maybe Bool
   , referenceLinks        :: Maybe Bool
   , dpi                   :: Maybe Int
+  , emailObfuscation      :: Maybe ObfuscationMethod
+  , identifierPrefix      :: Maybe Text
+  , citeMethod            :: Maybe CiteMethod
+  , htmlQTags             :: Maybe Bool
+  , slideLevel            :: Maybe Int
+  , topLevelDivision      :: Maybe TopLevelDivision
+  , listings              :: Maybe Bool
+  , highlightStyle        :: Maybe Text
+  , setextHeaders         :: Maybe Bool
+  , epubSubdirectory      :: Maybe Text
+  , epubMetadata          :: Maybe Text
+  , epubFonts             :: Maybe [FilePath]
+  , epubChapterLevel      :: Maybe Int
+  , tocDepth              :: Maybe Int
+  , referenceDoc          :: Maybe FilePath
+  , referenceLocation     :: Maybe ReferenceLocation
+  , preferAscii           :: Maybe Bool
   } deriving (Show)
 
 instance Default Params where
@@ -93,6 +111,23 @@ instance Default Params where
     , sectionDivs = Nothing
     , referenceLinks = Nothing
     , dpi = Nothing
+    , emailObfuscation = Nothing
+    , identifierPrefix = Nothing
+    , citeMethod = Nothing
+    , htmlQTags = Nothing
+    , slideLevel = Nothing
+    , topLevelDivision = Nothing
+    , listings = Nothing
+    , highlightStyle = Nothing
+    , setextHeaders = Nothing
+    , epubSubdirectory = Nothing
+    , epubMetadata = Nothing
+    , epubFonts = Nothing
+    , epubChapterLevel = Nothing
+    , tocDepth = Nothing
+    , referenceDoc = Nothing
+    , referenceLocation = Nothing
+    , preferAscii = Nothing
     }
 
 -- Automatically derive code to convert to/from JSON.
@@ -148,6 +183,8 @@ server = convert
                          _ -> False
     let isStandalone = fromMaybe binaryOutput (standalone params)
     let toformat = T.toLower $ T.takeWhile isAlphaNum $ writerFormat
+    hlStyle <- traverse (lookupHighlightingStyle . T.unpack)
+                  $ highlightStyle params
     mbTemplate <- if isStandalone
                      then case template params of
                             Nothing -> Just <$>
@@ -169,31 +206,46 @@ server = convert
                         , readerStripComments =
                             fromMaybe False (stripComments params)
                         }
-    let writeropts = def{ writerExtensions = writerExts
-                        , writerTabStop = fromMaybe 4 (tabStop params)
-                        , writerWrapText = fromMaybe WrapAuto (wrapText params)
-                        , writerColumns = fromMaybe 72 (columns params)
-                        , writerTemplate = mbTemplate
-                        , writerSyntaxMap = defaultSyntaxMap
-                        , writerVariables =
-                            fromMaybe mempty (variables params)
-                        , writerTableOfContents =
-                            fromMaybe False (tableOfContents params)
-                        , writerIncremental =
-                            fromMaybe False (incremental params)
-                        , writerHTMLMathMethod =
-                            fromMaybe PlainMath (htmlMathMethod params)
-                        , writerNumberSections =
-                            fromMaybe False (numberSections params)
-                        , writerNumberOffset =
-                            fromMaybe [] (numberOffset params)
-                        , writerSectionDivs =
-                            fromMaybe False (sectionDivs params)
-                        , writerReferenceLinks =
-                            fromMaybe False (referenceLinks params)
-                        , writerDpi =
-                            fromMaybe 96 (dpi params)
-                        }
+    let writeropts =
+          def{ writerExtensions = writerExts
+             , writerTabStop = fromMaybe 4 (tabStop params)
+             , writerWrapText = fromMaybe WrapAuto (wrapText params)
+             , writerColumns = fromMaybe 72 (columns params)
+             , writerTemplate = mbTemplate
+             , writerSyntaxMap = defaultSyntaxMap
+             , writerVariables = fromMaybe mempty (variables params)
+             , writerTableOfContents = fromMaybe False (tableOfContents params)
+             , writerIncremental = fromMaybe False (incremental params)
+             , writerHTMLMathMethod =
+                 fromMaybe PlainMath (htmlMathMethod params)
+             , writerNumberSections = fromMaybe False (numberSections params)
+             , writerNumberOffset = fromMaybe [] (numberOffset params)
+             , writerSectionDivs = fromMaybe False (sectionDivs params)
+             , writerReferenceLinks = fromMaybe False (referenceLinks params)
+             , writerDpi = fromMaybe 96 (dpi params)
+             , writerEmailObfuscation =
+                 fromMaybe NoObfuscation (emailObfuscation params)
+             , writerIdentifierPrefix =
+                 fromMaybe mempty (identifierPrefix params)
+             , writerCiteMethod = fromMaybe Citeproc (citeMethod params)
+             , writerHtmlQTags = fromMaybe False (htmlQTags params)
+             , writerSlideLevel = slideLevel params
+             , writerTopLevelDivision =
+                 fromMaybe TopLevelDefault (topLevelDivision params)
+             , writerListings = fromMaybe False (listings params)
+             , writerHighlightStyle = hlStyle
+             , writerSetextHeaders = fromMaybe False (setextHeaders params)
+             , writerEpubSubdirectory =
+                 fromMaybe "EPUB" (epubSubdirectory params)
+             , writerEpubMetadata = epubMetadata params
+             , writerEpubFonts = fromMaybe [] (epubFonts params)
+             , writerEpubChapterLevel = fromMaybe 1 (epubChapterLevel params)
+             , writerTOCDepth = fromMaybe 3 (tocDepth params)
+             , writerReferenceDoc = referenceDoc params
+             , writerReferenceLocation =
+                 fromMaybe EndOfDocument (referenceLocation params)
+             , writerPreferAscii = fromMaybe False (preferAscii params)
+             }
     let reader = case readerSpec of
                 TextReader r -> r readeropts
                 ByteStringReader r -> \t -> do
