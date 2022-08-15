@@ -40,7 +40,7 @@ make_deb() {
   REVISION=${REVISION:-1}
   DEBVER=$VERSION-$REVISION
   BASE=$EXE-$DEBVER-$ARCHITECTURE
-  DIST=`pwd`/$BASE
+  DIST=/mnt/$BASE
   DEST=$DIST/usr
   COPYRIGHT=$DEST/share/doc/$EXE/copyright
 
@@ -59,7 +59,7 @@ make_deb() {
 
   INSTALLED_SIZE=$(du -k -s $DEST | awk '{print $1}')
   mkdir $DIST/DEBIAN
-  perl -pe "s/VERSION/$DEBVER/" linux/control.in | \
+  perl -pe "s/VERSION/$DEBVER/" /mnt/linux/control.in | \
     perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
     perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
     > $DIST/DEBIAN/control
