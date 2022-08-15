@@ -23,27 +23,31 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
 import Data.Char (isAlphaNum)
-import Data.ByteString.Lazy (fromStrict, toStrict)
-import Data.ByteString.Base64
+import Data.ByteString.Lazy (fromStrict, toStrict, ByteString)
+import Data.ByteString.Base64 (decodeBase64, encodeBase64)
 import Data.Default
 import Data.Set (Set)
 import Skylighting (defaultSyntaxMap)
 
-data FileSpec = FileSpec
-  { path     :: Text
-  , contents :: Text
-  , base64   :: Maybe Bool
-  } deriving (Show)
+newtype Blob = Blob ByteString
+  deriving (Show, Eq)
 
--- Automatically derive code to convert to/from JSON.
-$(deriveJSON defaultOptions ''FileSpec)
+instance ToJSON Blob where
+  toJSON (Blob bs) = toJSON (encodeBase64 $ toStrict bs)
+
+instance FromJSON Blob where
+ parseJSON = withText "Blob" $ \t -> do
+   let inp = UTF8.fromText t
+   case decodeBase64 inp of
+        Right bs -> return $ Blob $ fromStrict bs
+        Left _ -> -- treat as regular text
+                    return $ Blob $ fromStrict inp
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
 -- given default values.
 data Params = Params
   { text                  :: Text
-  , files                 :: Maybe [FileSpec]
   , from                  :: Maybe Text
   , to                    :: Maybe Text
   , wrapText              :: Maybe WrapOption
@@ -76,19 +80,19 @@ data Params = Params
   , highlightStyle        :: Maybe Text
   , setextHeaders         :: Maybe Bool
   , epubSubdirectory      :: Maybe Text
-  , epubMetadata          :: Maybe Text
   , epubFonts             :: Maybe [FilePath]
+  , epubMetadata          :: Maybe Text
   , epubChapterLevel      :: Maybe Int
   , tocDepth              :: Maybe Int
   , referenceDoc          :: Maybe FilePath
   , referenceLocation     :: Maybe ReferenceLocation
   , preferAscii           :: Maybe Bool
+  , files                 :: Maybe [(FilePath, Blob)]
   } deriving (Show)
 
 instance Default Params where
   def = Params
     { text = ""
-    , files = Nothing
     , from = Nothing
     , to = Nothing
     , wrapText = Nothing
@@ -122,15 +126,15 @@ instance Default Params where
     , setextHeaders = Nothing
     , epubSubdirectory = Nothing
     , epubMetadata = Nothing
-    , epubFonts = Nothing
     , epubChapterLevel = Nothing
+    , epubFonts = Nothing
     , tocDepth = Nothing
     , referenceDoc = Nothing
     , referenceLocation = Nothing
     , preferAscii = Nothing
+    , files = Nothing
     }
     -- TODO:
-    -- [ ] add files to common state
     -- shiftHeadingLevelBy
     -- metadata
     -- selfContained
@@ -138,11 +142,7 @@ instance Default Params where
     -- epubCoverImage
     -- stripEmptyParagraphs
     -- titlePrefix
-    -- css
     -- ipynbOutput
-    -- includeBeforeBody
-    -- includeAfterBody
-    -- includeInHeader
     -- eol
     -- csl
     -- bibliography
