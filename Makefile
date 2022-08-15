@@ -99,6 +99,12 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--variable footer="pandoc $(version)" \
 		-o $@
 
+man/pandoc-server.1: server/pandoc-server.md
+	pandoc $< -f markdown -t man -s \
+		--lua-filter man/manfilter.lua \
+		--variable footer="pandoc-server $(version)" \
+		-o $@
+
 README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
