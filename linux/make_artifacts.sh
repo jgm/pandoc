@@ -46,6 +46,7 @@ make_deb() {
 
   mkdir -p $DEST/bin
   mkdir -p $DEST/share/man/man1
+  mkdir -p $DEST/share/doc/$EXE
 
   find $DIST -type d | xargs chmod 755
   cp $ARTIFACTS/$EXE $DEST/bin/
