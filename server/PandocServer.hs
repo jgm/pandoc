@@ -129,6 +129,24 @@ instance Default Params where
     , referenceLocation = Nothing
     , preferAscii = Nothing
     }
+    -- TODO:
+    -- [ ] add files to common state
+    -- shiftHeadingLevelBy
+    -- metadata
+    -- selfContained
+    -- embedResources
+    -- epubCoverImage
+    -- stripEmptyParagraphs
+    -- titlePrefix
+    -- css
+    -- ipynbOutput
+    -- includeBeforeBody
+    -- includeAfterBody
+    -- includeInHeader
+    -- eol
+    -- csl
+    -- bibliography
+    -- citationAbbreviations
 
 -- Automatically derive code to convert to/from JSON.
 $(deriveJSON defaultOptions ''Params)
