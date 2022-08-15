@@ -802,6 +802,7 @@ executable pandoc-server
                    containers,
                    data-default,
                    bytestring,
+                   skylighting,
                    base64 >= 0.4,
                    servant-server,
                    wai >= 0.3,

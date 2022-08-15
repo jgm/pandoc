@@ -26,28 +26,39 @@ import Data.Default
 import Data.Set (Set)
 import Skylighting (defaultSyntaxMap)
 
+data FileSpec = FileSpec
+  { path     :: Text
+  , contents :: Text
+  , base64   :: Maybe Bool
+  } deriving (Show)
+
+-- Automatically derive code to convert to/from JSON.
+$(deriveJSON defaultOptions ''FileSpec)
+
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
 -- given default values.
 data Params = Params
-  { text:                  :: Text
-  , from:                  :: Maybe Text
-  , to:                    :: Maybe Text
-  , wrapText:              :: Maybe WrapOption
-  , columns:               :: Maybe Int
-  , standalone:            :: Maybe Bool
-  , template:              :: Maybe Text
-  , tabStop:               :: Maybe Int
-  , indentedCodeClasses:   :: Maybe [Text]
-  , abbreviations:         :: Maybe (Set Text)
-  , defaultImageExtension: :: Maybe Text
-  , trackChanges:          :: Maybe TrackChanges
-  , stripComments:         :: Maybe Bool
+  { text                  :: Text
+  , files                 :: Maybe [FileSpec]
+  , from                  :: Maybe Text
+  , to                    :: Maybe Text
+  , wrapText              :: Maybe WrapOption
+  , columns               :: Maybe Int
+  , standalone            :: Maybe Bool
+  , template              :: Maybe Text
+  , tabStop               :: Maybe Int
+  , indentedCodeClasses   :: Maybe [Text]
+  , abbreviations         :: Maybe (Set Text)
+  , defaultImageExtension :: Maybe Text
+  , trackChanges          :: Maybe TrackChanges
+  , stripComments         :: Maybe Bool
   } deriving (Show)
 
 instance Default Params where
   def = Params
     { text = ""
+    , files = Nothing
     , from = Nothing
     , to = Nothing
     , wrapText = Nothing
