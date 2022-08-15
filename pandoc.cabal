@@ -28,7 +28,8 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - TeX formats (LaTeX, ConTeXt)
                  - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
                  - Outline formats (OPML)
-                 - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML)
+                 - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML,
+                   RIS)
                  - Word processor formats (Docx, RTF, ODT)
                  - Interactive notebook formats (Jupyter notebook ipynb)
                  - Page layout formats (InDesign ICML)
@@ -36,7 +37,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                    Vimwiki, XWiki, ZimWiki, Jira wiki, Creole)
                  - Slide show formats (LaTeX Beamer, PowerPoint, Slidy,
                    reveal.js, Slideous, S5, DZSlides)
-                 - Data formats (CSV tables)
+                 - Data formats (CSV and TSV tables)
                  - PDF (via external programs such as pdflatex or wkhtmltopdf)
                  .
                  Pandoc can convert mathematical content in documents
