@@ -23,25 +23,26 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
 import Data.Char (isAlphaNum)
-import Data.ByteString.Lazy (fromStrict, toStrict, ByteString)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Base64 (decodeBase64, encodeBase64)
 import Data.Default
 import Data.Set (Set)
 import Skylighting (defaultSyntaxMap)
 
-newtype Blob = Blob ByteString
+newtype Blob = Blob BL.ByteString
   deriving (Show, Eq)
 
 instance ToJSON Blob where
-  toJSON (Blob bs) = toJSON (encodeBase64 $ toStrict bs)
+  toJSON (Blob bs) = toJSON (encodeBase64 $ BL.toStrict bs)
 
 instance FromJSON Blob where
  parseJSON = withText "Blob" $ \t -> do
    let inp = UTF8.fromText t
    case decodeBase64 inp of
-        Right bs -> return $ Blob $ fromStrict bs
+        Right bs -> return $ Blob $ BL.fromStrict bs
         Left _ -> -- treat as regular text
-                    return $ Blob $ fromStrict inp
+                    return $ Blob $ BL.fromStrict inp
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
@@ -158,6 +159,8 @@ $(deriveJSON defaultOptions ''Params)
 type API =
   ReqBody '[JSON] Params :> Post '[PlainText, JSON] Text
   :<|>
+  ReqBody '[JSON] Params :> Post '[OctetStream] BS.ByteString
+  :<|>
   "batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
   :<|>
   "babelmark" :> QueryParam' '[Required] "text" Text :> QueryParam "from" Text :> QueryParam "to" Text :> QueryFlag "standalone" :> Get '[JSON] Value
@@ -172,6 +175,7 @@ api = Proxy
 
 server :: Server API
 server = convert
+    :<|> convertBytes
     :<|> mapM convert
     :<|> babelmark  -- for babelmark which expects {"html": "", "version": ""}
     :<|> pure pandocVersion
@@ -188,10 +192,15 @@ server = convert
   -- Changing this to
   --    handleErr =<< liftIO (runIO (convert' params))
   -- will allow the IO operations.
-  convert params = handleErr $ runPure (convert' params)
+  convert params = handleErr $
+    runPure (convert' id (encodeBase64 . BL.toStrict) params)
 
-  convert' :: PandocMonad m => Params -> m Text
-  convert' params = do
+  convertBytes params = handleErr $
+    runPure (convert' UTF8.fromText BL.toStrict params)
+
+  convert' :: PandocMonad m
+           => (Text -> a) -> (BL.ByteString -> a) -> Params -> m a
+  convert' textHandler bsHandler params = do
     let readerFormat = fromMaybe "markdown" $ from params
     let writerFormat = fromMaybe "html" $ to params
     (readerSpec, readerExts) <- getReader readerFormat
@@ -270,10 +279,10 @@ server = convert
                   let eitherbs = decodeBase64 $ UTF8.fromText t
                   case eitherbs of
                     Left errt -> throwError $ PandocSomeError errt
-                    Right bs -> r readeropts $ fromStrict bs
+                    Right bs -> r readeropts $ BL.fromStrict bs
     let writer = case writerSpec of
-                TextWriter w -> w writeropts
-                ByteStringWriter w -> fmap (encodeBase64 . toStrict) . w writeropts
+                TextWriter w -> fmap textHandler . w writeropts
+                ByteStringWriter w -> fmap bsHandler . w writeropts
     reader (text params) >>=
       (if citeproc params == Just True
           then processCitations
