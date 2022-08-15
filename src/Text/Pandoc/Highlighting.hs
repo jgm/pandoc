@@ -30,6 +30,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , breezeDark
                                 , haddock
                                 , Style
+                                , lookupHighlightingStyle
                                 , fromListingsLanguage
                                 , toListingsLanguage
                                 ) where
@@ -39,6 +40,10 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting
 import Text.Pandoc.Definition
+import Text.Pandoc.Class (PandocMonad, readFileLazy)
+import Text.Pandoc.Error (PandocError(..))
+import Control.Monad.Except (throwError)
+import System.FilePath (takeExtension)
 import Text.Pandoc.Shared (safeRead)
 
 highlightingStyles :: [(T.Text, Style)]
@@ -214,3 +219,21 @@ toListingsLanguage lang = M.lookup (T.toLower lang) langToListingsMap
 -- | Determine skylighting language name from listings language name.
 fromListingsLanguage :: T.Text -> Maybe T.Text
 fromListingsLanguage lang = M.lookup lang listingsToLangMap
+
+-- | Lookup style from a name. If the name is a standard style,
+-- load it; if it ends in ".theme", attempt to load a KDE theme
+-- from the file path specified.
+lookupHighlightingStyle :: PandocMonad m => String -> m Style
+lookupHighlightingStyle s
+  | takeExtension s == ".theme" = -- attempt to load KDE theme
+    do contents <- readFileLazy s
+       case parseTheme contents of
+            Left _    -> throwError $ PandocOptionError $ T.pack $
+                           "Could not read highlighting theme " ++ s
+            Right sty -> return sty
+  | otherwise =
+  case lookup (T.toLower $ T.pack s) highlightingStyles of
+       Just sty -> return sty
+       Nothing  -> throwError $ PandocOptionError $ T.pack $
+                      "Unknown highlight-style " ++ s
+
