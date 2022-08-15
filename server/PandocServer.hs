@@ -13,6 +13,7 @@ import Data.Aeson.TH
 import Network.Wai
 import Servant
 import Text.Pandoc
+import Text.Pandoc.Citeproc (processCitations)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -53,6 +54,7 @@ data Params = Params
   , defaultImageExtension :: Maybe Text
   , trackChanges          :: Maybe TrackChanges
   , stripComments         :: Maybe Bool
+  , citeproc              :: Maybe Bool
   } deriving (Show)
 
 instance Default Params where
@@ -71,6 +73,7 @@ instance Default Params where
     , defaultImageExtension = Nothing
     , trackChanges = Nothing
     , stripComments = Nothing
+    , citeproc = Nothing
     }
 
 -- Automatically derive code to convert to/from JSON.
@@ -163,7 +166,11 @@ server = convert
     let writer = case writerSpec of
                 TextWriter w -> w writeropts
                 ByteStringWriter w -> fmap (encodeBase64 . toStrict) . w writeropts
-    reader (text params) >>= writer
+    reader (text params) >>=
+      (if citeproc params == Just True
+          then processCitations
+          else return) >>=
+      writer
 
   handleErr (Right t) = return t
   handleErr (Left err) = throwError $
