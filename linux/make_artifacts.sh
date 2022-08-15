@@ -59,7 +59,7 @@ make_deb() {
 
   INSTALLED_SIZE=$(du -k -s $DEST | awk '{print $1}')
   mkdir $DIST/DEBIAN
-  perl -pe "s/VERSION/$DEBVER/" /mnt/linux/control.in | \
+  perl -pe "s/VERSION/$DEBVER/" /mnt/linux/$EXE.control.in | \
     perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
     perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
     > $DIST/DEBIAN/control
