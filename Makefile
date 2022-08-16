@@ -91,7 +91,7 @@ debpkg: ## create linux package
 		   --rm \
 		   $(DOCKERIMAGE) \
 		   bash \
-		   /mnt/linux/make_artifacts.sh 2>&1 > docker.log
+		   /mnt/linux/make_artifacts.sh
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
