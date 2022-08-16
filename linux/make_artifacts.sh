@@ -44,6 +44,7 @@ make_deb() {
   DEST=$DIST/usr
   COPYRIGHT=$DEST/share/doc/$EXE/copyright
 
+  cd /mnt
   mkdir -p $DEST/bin
   mkdir -p $DEST/share/man/man1
   mkdir -p $DEST/share/doc/$EXE
