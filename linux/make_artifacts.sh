@@ -27,8 +27,14 @@ ghc --version
 
 cabal update
 cabal clean
-cabal install -j4 -fserver -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' --install-method=copy --installdir=$ARTIFACTS
-ls $ARTIFACTS
+cabal configure -fserver -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' pandoc pandoc-server
+cabal build -j4
+for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f $ARTIFACTS/; done
+for f in $(find dist-newstyle -name 'pandoc-server' -type f -perm /400); do cp $f /$ARTIFACTS/; done
+
+# Confirm that we have static builds
+file $ARTIFACTS/pandoc | grep "statically linked"
+file $ARTIFACTS/pandoc-server | grep "statically linked"
 
 # make deb for EXE
 make_deb() {
