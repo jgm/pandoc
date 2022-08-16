@@ -27,7 +27,7 @@ ghc --version
 
 cabal update
 cabal clean
-cabal install -j4 -fserver -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' --install-method=copy --bindir=$ARTIFACTS
+cabal install -j4 -fserver -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' --install-method=copy --installdir=$ARTIFACTS
 ls $ARTIFACTS
 
 # make deb for EXE
