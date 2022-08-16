@@ -27,42 +27,44 @@ ghc --version
 
 cabal update
 cabal clean
-cabal configure -fserver -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' pandoc pandoc-server
+cabal configure -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' pandoc
 cabal build -j4
 for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f $ARTIFACTS/; done
-for f in $(find dist-newstyle -name 'pandoc-server' -type f -perm /400); do cp $f /$ARTIFACTS/; done
 
 # Confirm that we have static builds
 file $ARTIFACTS/pandoc | grep "statically linked"
-file $ARTIFACTS/pandoc-server | grep "statically linked"
 
-# make deb for EXE
 make_deb() {
-  VERSION=`$ARTIFACTS/$EXE --version | awk '{print $2; exit;}'`
+  VERSION=`$ARTIFACTS/pandoc --version | awk '{print $2; exit;}'`
   REVISION=${REVISION:-1}
   DEBVER=$VERSION-$REVISION
-  BASE=$EXE-$DEBVER-$ARCHITECTURE
+  BASE=pandoc-$DEBVER-$ARCHITECTURE
   DIST=/mnt/$BASE
   DEST=$DIST/usr
-  COPYRIGHT=$DEST/share/doc/$EXE/copyright
+  COPYRIGHT=$DEST/share/doc/pandoc/copyright
 
   cd /mnt
   mkdir -p $DEST/bin
   mkdir -p $DEST/share/man/man1
-  mkdir -p $DEST/share/doc/$EXE
+  mkdir -p $DEST/share/doc/pandoc
 
   find $DIST -type d | xargs chmod 755
-  cp $ARTIFACTS/$EXE $DEST/bin/
-  strip $DEST/bin/$EXE
-  cp /mnt/man/$EXE.1 $DEST/share/man/man1/$EXE.1
-  gzip -9 $DEST/share/man/man1/$EXE.1
+  cp $ARTIFACTS/pandoc $DEST/bin/
+  cd $DEST/bin
+  strip pandoc
+  ln -s pandoc pandoc-server
+  cd /mnt
+  cp /mnt/man/pandoc.1 $DEST/share/man/man1/pandoc.1
+  gzip -9 $DEST/share/man/man1/pandoc.1
+  cp /mnt/man/pandoc-server.1 $DEST/share/man/man1/pandoc-server.1
+  gzip -9 $DEST/share/man/man1/pandoc-server.1
 
   cp /mnt/COPYRIGHT $COPYRIGHT
   echo "" >> $COPYRIGHT
 
   INSTALLED_SIZE=$(du -k -s $DEST | awk '{print $1}')
   mkdir $DIST/DEBIAN
-  perl -pe "s/VERSION/$DEBVER/" /mnt/linux/$EXE.control.in | \
+  perl -pe "s/VERSION/$DEBVER/" /mnt/linux/control.in | \
     perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
     perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
     > $DIST/DEBIAN/control
@@ -73,26 +75,28 @@ make_deb() {
   cp $BASE.deb $ARTIFACTS/
 }
 
-# Make tarball for EXE
+# Make tarball for pandoc
 make_tarball() {
-  TARGET=$EXE-$VERSION
+  TARGET=pandoc-$VERSION
   cd $ARTIFACTS
   rm -rf $TARGET
   mkdir $TARGET
   mkdir $TARGET/bin $TARGET/share $TARGET/share/man $TARGET/share/man/man1
-  cp /mnt/man/$EXE.1 $TARGET/share/man/man1
-  mv $EXE $TARGET/bin
-  strip $TARGET/bin/$EXE
-  gzip -9 $TARGET/share/man/man1/$EXE.1
+  cp /mnt/man/pandoc.1 $TARGET/share/man/man1
+  cp /mnt/man/pandoc-server.1 $TARGET/share/man/man1
+  mv pandoc $TARGET/bin
+  cd $TARGET/bin
+  strip pandoc
+  ln -s pandoc pandoc-server
+  cd $ARTIFACTS
+  gzip -9 $TARGET/share/man/man1/pandoc.1
+  gzip -9 $TARGET/share/man/man1/pandoc-server.1
 
   tar cvzf $TARGET-linux-$ARCHITECTURE.tar.gz $TARGET
   rm -r $TARGET
 }
 
-for EXE in pandoc pandoc-server
-do
-  make_deb
-  make_tarball
-done
+make_deb
+make_tarball
 
 exit 0

@@ -429,10 +429,6 @@ flag lua53
   Description:   Embed Lua 5.3 instead of 5.4.
   Default:       False
 
-flag server
-  Description:   Build pandoc-server executable.
-  Default:       False
-
 flag nightly
   Description:   Add '-nightly-COMPILEDATE' to the output of '--version'.
   Default:       False
@@ -538,7 +534,10 @@ library
                  xml-types             >= 0.3      && < 0.4,
                  yaml                  >= 0.11     && < 0.12,
                  zip-archive           >= 0.2.3.4  && < 0.5,
-                 zlib                  >= 0.5      && < 0.7
+                 zlib                  >= 0.5      && < 0.7,
+                 servant-server,
+                 wai                   >= 0.3
+
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.8
   if flag(nightly)
@@ -564,6 +563,7 @@ library
                    Text.Pandoc.MediaBag,
                    Text.Pandoc.Error,
                    Text.Pandoc.Filter,
+                   Text.Pandoc.Server,
                    Text.Pandoc.Readers,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
@@ -789,32 +789,8 @@ executable pandoc
   main-is:         pandoc.hs
   buildable:       True
   other-modules:   Paths_pandoc
-
-executable pandoc-server
-  import:          common-executable
-  main-is:         Main.hs
-  other-modules:   PandocServer
-  hs-source-dirs:  server
-  if flag(server)
-    build-depends: base,
-                   pandoc,
-                   aeson,
-                   text,
-                   containers,
-                   data-default,
-                   bytestring,
-                   skylighting,
-                   base64 >= 0.4,
-                   doctemplates,
-                   servant-server,
-                   wai >= 0.3,
-                   wai-extra >= 3.0.24,
-                   warp,
-                   optparse-applicative
-
-    buildable:     True
-  else
-    buildable:     False
+  build-depends:   wai-extra             >= 3.0.24,
+                   warp
 
 test-suite test-pandoc
   import:         common-executable

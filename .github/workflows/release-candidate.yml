@@ -96,7 +96,7 @@ jobs:
       run: |
           stack --no-terminal setup
           stack --no-terminal update
-          stack --no-terminal install
+          stack --no-terminal install --ghc-options='-j4 +RTS -A256m -RTS -split-sections'
 
     - name: Create artifacts
       run: |
@@ -112,8 +112,13 @@ jobs:
           mkdir -p ${DEST}/bin
           mkdir -p ${DEST}/share/man/man1
           cp ~/.local/bin/pandoc ${DEST}/bin/
-          strip ${DEST}/bin/pandoc
+          SRCDIR=$(pwd)
+          cd ${DEST}/bin
+          strip pandoc
+          ln -s pandoc pandoc-server
+          cd ${SRCDIR}
           cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
+          cp man/pandoc-server.1 ${DEST}/share/man/man1/pandoc-server.1
           ~/.local/bin/pandoc -s COPYING.md -Vpagetitle=License -o ${RESOURCES}/license.html
           chown -R $ME:staff ${ROOT}
           sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml

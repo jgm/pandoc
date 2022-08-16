@@ -102,7 +102,7 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--variable footer="pandoc $(version)" \
 		-o $@
 
-man/pandoc-server.1: server/pandoc-server.md
+man/pandoc-server.1: doc/pandoc-server.md
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--variable footer="pandoc-server $(version)" \
