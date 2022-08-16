@@ -71,97 +71,97 @@ the first one given is the default.
 
 `text` (string)
 
-:   the document to be converted.  Note:
+:   The document to be converted.  Note:
     if the `from` format is binary (e.g., `epub` or `docx`), then
     `text` should be a base64 encoding of the document.
 
 `from` (string, default `"markdown"`)
 
-:   the input format, possibly with extensions, just as it is
+:   The input format, possibly with extensions, just as it is
     specified on the pandoc command line.
 
 `to` (string, default `"html"`)
 
-:   the output format, possibly with extensions, just as it is
+:   The output format, possibly with extensions, just as it is
     specified on the pandoc command line.
 
 `wrapText` (`"auto"|"preserve"|"none"`)
 
-:   text wrapping option: either `"auto"` (automatic
+:   Text wrapping option: either `"auto"` (automatic
     hard-wrapping to fit within a column width), `"preserve"`
     (insert newlines where they are present in the source),
     or `"none"` (don't insert any unnecessary newlines at all).
 
 `columns` (integer, default 72)
 
-:   column width (affects text wrapping and calculation of
+:   Column width (affects text wrapping and calculation of
     table column widths in plain text formats)
 
 `standalone` (boolean, default false)
 
-:   if true, causes a standalone document to be produced, using
+:   If true, causes a standalone document to be produced, using
     the default template or the custom template specified using
     `template`.  If false, a fragment will be produced.
 
 `template` (string)
 
-:   string contents of a document template (see Templates in
+:   String contents of a document template (see Templates in
     `pandoc(1)` for the format).
 
 `tabStop` (integer, default 4)
 
-:   tab stop (spaces per tab).
+:   Tab stop (spaces per tab).
 
 `indentedCodeClasses` (array of strings)
 
-:   list of classes to be applied to indented Markdown code blocks.
+:   List of classes to be applied to indented Markdown code blocks.
 
 `abbreviations` (array of strings)
 
-:   list of strings to be regarded as abbreviations when
+:   List of strings to be regarded as abbreviations when
     parsing Markdown. See `--abbreviations` in `pandoc(1)` for
     details.
 
 `defaultImageExtension` (string)
 
-:   extension to be applied to image sources that lack extensions
+:   Extension to be applied to image sources that lack extensions
     (e.g. `".jpg"`).
 
 `trackChanges` (`"accept"|"reject"|"all"`)
 
-:   specifies what to do with insertions, deletions, and
+:   Specifies what to do with insertions, deletions, and
     comments produced by the MS Word "Track Changes" feature. Only
     affects docx input.
 
 `stripComments` (boolean, default false)
 
-:   causes HTML comments to be stripped in Markdown or Textile
+:   Causes HTML comments to be stripped in Markdown or Textile
     source, instead of being passed through to the output format.
 
 `citeproc` (boolean, default false)
 
-:   causes citations to be processed using citeproc.  See
+:   Causes citations to be processed using citeproc.  See
     Citations in `pandoc(1)` for details.
 
 `citeMethod` (`"citeproc"|"natbib"|"biblatex"`)
 
-:   determines how citations are formatted in LaTeX output.
+:   Determines how citations are formatted in LaTeX output.
 
 `tableOfContents` (boolean, default false)
 
-:   include a table of contents (in supported formats).
+:   Include a table of contents (in supported formats).
 
 `tocDepth` (integer, default 3)
 
-:   depth of sections to include in the table of contents.
+:   Depth of sections to include in the table of contents.
 
 `numberSections` (boolean, default false)
 
-:   automatically number sections (in supported formats).
+:   Automatically number sections (in supported formats).
 
 `numberOffset` (array of integers)
 
-:   offsets to be added to each component of the section number.
+:   Offsets to be added to each component of the section number.
     For example, `[1]` will cause the first section to be
     numbered "2" and the first subsection "2.1"; `[0,1]` will
     cause the first section to be numbered "1" and the first
@@ -169,96 +169,116 @@ the first one given is the default.
 
 `identifierPrefix` (string)
 
-:   prefix to be added to all automatically-generated identifiers.
+:   Prefix to be added to all automatically-generated identifiers.
 
 `sectionDivs` (boolean, default false)
 
-:   arrange the document into a hierarchy of nested sections
+:   Arrange the document into a hierarchy of nested sections
     based on the headings.
 
 `htmlQTags` (boolean, default false)
 
-:   use `<q>` elements in HTML instead of literal quotation marks.
+:   Use `<q>` elements in HTML instead of literal quotation marks.
 
 `listings` (boolean, default false)
 
-:   use the `listings` package to format code in LaTeX output.
+:   Use the `listings` package to format code in LaTeX output.
 
 `referenceLinks` (boolean, default false)
 
-:   create reference links rather than inline links in Markdown output.
+:   Create reference links rather than inline links in Markdown output.
 
 `setextHeaders` (boolean, default false)
 
-:   use Setext (underlined) headings instead of ATX (`#`-prefixed)
+:   Use Setext (underlined) headings instead of ATX (`#`-prefixed)
     in Markdown output.
 
 `preferAscii` (boolean, default false)
 
-:   use entities and escapes when possible to avoid non-ASCII
+:   Use entities and escapes when possible to avoid non-ASCII
     characters in the output.
 
-`referenceLocation` (`"document"|"block"|"section"`)
+`referenceLocation` (`"document"|"section"|"block"`)
 
-:
+:   Determines whether link references and footnotes are placed
+    at the end of the document, the end of the section, or the
+    end of the block (e.g. paragraph), in
+    certain formats. (See `pandoc(1)` under `--reference-location`.)
 
 
 `topLevelDivision` (`"default"|"part"|"chapter"|"section"`)
 
-:
+:   Determines how top-level headings are interpreted in
+    LaTeX, ConTeXt, DocBook, and TEI.  The `"default"` value
+    tries to choose the best interpretation based on heuristics.
 
 `emailObfuscation` (`"none"|"references"|"javascript"`)
 
-:
+:   Determines how email addresses are obfuscated in HTML.
 
 `htmlMathMethod` (`"plain"|"webtex"|"gladtex"|"mathml"|"mathjax"|"katex"`)
 
-:
+:   Determines how math is represented in HTML.
 
 `variables` (JSON mapping)
 
-:
+:   Variables to be interpolated in the template. (See Templates
+    in `pandoc(1)`.)
 
 `dpi` (integer, default 96)
 
-:
+:   Dots-per-inch to use for conversions between pixels and
+    other measurements (for image sizes).
 
 `incremental` (boolean, default false)
 
-:
+:   If true, lists appear incrementally by default in slide shows.
 
 `slideLevel` (integer)
 
-:
+:   Heading level that deterimes slide divisions in slide shows.
+    The default is to pick the highest heading level under which
+    there is body text.
 
 `highlightStyle` (string, default `"pygments"`)
 
-:   pygments (the default), kate, monochrome, breezeDark,
-espresso, zenburn, haddock, and tango or .theme file
+:   Specify the style to use for syntax highlighting of code.
+    Standard styles are `"pygments"` (the default), `"kate"`,
+    `"monochrome"`, `"breezeDark"`, `"espresso"`, `"zenburn"`,
+    `"haddock"`, and `"tango"`. Alternatively, the path of
+    a `.theme` with a KDE syntax theme may be used (in this
+    case, the relevant file contents must also be included
+    in `files`, see below).
 
 `epubMetadata` (string)
 
-:
+:   Dublin core XML elements to be used for EPUB metadata.
 
 `epubChapterLevel` (integer, default 1)
 
-:
+:   Heading level at which chapter splitting occurs in EPUBs.
 
 `epubSubdirectory` (string, default "EPUB")
 
-:
+:   Name of content subdirectory in the EPUB container.
 
 `epubFonts` (array of file paths)
 
-:
+:   Fonts to include in the EPUB. The fonts themselves must be
+    included in `files` (see below).
 
 `referenceDoc` (file path)
 
-:
+:   Reference doc to use in creating `docx` or `odt` or `pptx`.
+    See `pandoc(1)` under `--reference-doc` for details.
 
 `files` (JSON mapping of file paths to base64-encoded strings)
 
-:
+:   Any files needed for the conversion, including images
+    referred to in the document source, should be included here.
+    Binary data must be base64-encoded.  Textual data may be
+    left as it is, unless it is *also* valid base 64 data,
+    in which case it will be interpreted that way.
 
 
 ## `/batch` endpoint

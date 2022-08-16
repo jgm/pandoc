@@ -24,8 +24,26 @@
 \f[V]pandoc-server\f[R] is a web server that can perform pandoc
 conversions.
 It can be used either as a running server or as a CGI program.
-To use \f[V]pandoc-server\f[R] as a CGI program, rename it as
-\f[V]pandoc-server.cgi\f[R].
+To use \f[V]pandoc-server\f[R] as a CGI program, rename it (or symlink
+it) as \f[V]pandoc-server.cgi\f[R].
+(Note: if you symlink it, you may need to adjust your webserver\[cq]s
+configuration in order to allow it to follow symlinks for the CGI
+script.)
+.PP
+All pandoc functions are run in the PandocPure monad, which ensures that
+they can do no I/O operations on the server.
+This should provide a high degree of security.
+It does, however, impose certain limitations:
+.IP \[bu] 2
+PDFs cannot be produced.
+.IP \[bu] 2
+Filters are not supported.
+.IP \[bu] 2
+Resources cannot be fetched via HTTP.
+.IP \[bu] 2
+Any images, include files, or other resources needed for the document
+conversion must be explicitly included in the request, via the
+\f[V]files\f[R] field (see below under API).
 .SH OPTIONS
 .TP
 \f[V]--port NUM\f[R]
@@ -37,7 +55,10 @@ Timeout in seconds, after which a conversion is killed.
 Default: 2.
 .TP
 \f[V]--help\f[R]
-Help
+Print this help.
+.TP
+\f[V]--version\f[R]
+Print version.
 .SH API
 .SS Root endpoint
 .PP
@@ -59,63 +80,182 @@ The body of the POST request should be a JSON object, with the following
 fields.
 Only the \f[V]text\f[R] field is required; all of the others can be
 omitted for default values.
+When there are several string alternatives, the first one given is the
+default.
 .TP
 \f[V]text\f[R] (string)
-the document to be converted.
+The document to be converted.
 Note: if the \f[V]from\f[R] format is binary (e.g., \f[V]epub\f[R] or
 \f[V]docx\f[R]), then \f[V]text\f[R] should be a base64 encoding of the
 document.
 .TP
 \f[V]from\f[R] (string, default \f[V]\[dq]markdown\[dq]\f[R])
-the input format, possibly with extensions, just as it is specified on
+The input format, possibly with extensions, just as it is specified on
 the pandoc command line.
 .TP
 \f[V]to\f[R] (string, default \f[V]\[dq]html\[dq]\f[R])
-the output format, possibly with extensions, just as it is specified on
+The output format, possibly with extensions, just as it is specified on
 the pandoc command line.
-.IP
-.nf
-\f[C]
-wrapText              :: Maybe WrapOption
-columns               :: Maybe Int
-standalone            :: Maybe Bool
-template              :: Maybe Text
-tabStop               :: Maybe Int
-indentedCodeClasses   :: Maybe [Text]
-abbreviations         :: Maybe (Set Text)
-defaultImageExtension :: Maybe Text
-trackChanges          :: Maybe TrackChanges
-stripComments         :: Maybe Bool
-citeproc              :: Maybe Bool
-variables             :: Maybe (DocTemplates.Context Text)
-tableOfContents       :: Maybe Bool
-incremental           :: Maybe Bool
-htmlMathMethod        :: Maybe HTMLMathMethod
-numberSections        :: Maybe Bool
-numberOffset          :: Maybe [Int]
-sectionDivs           :: Maybe Bool
-referenceLinks        :: Maybe Bool
-dpi                   :: Maybe Int
-emailObfuscation      :: Maybe ObfuscationMethod
-identifierPrefix      :: Maybe Text
-citeMethod            :: Maybe CiteMethod
-htmlQTags             :: Maybe Bool
-slideLevel            :: Maybe Int
-topLevelDivision      :: Maybe TopLevelDivision
-listings              :: Maybe Bool
-highlightStyle        :: Maybe Text
-setextHeaders         :: Maybe Bool
-epubSubdirectory      :: Maybe Text
-epubFonts             :: Maybe [FilePath]
-epubMetadata          :: Maybe Text
-epubChapterLevel      :: Maybe Int
-tocDepth              :: Maybe Int
-referenceDoc          :: Maybe FilePath
-referenceLocation     :: Maybe ReferenceLocation
-preferAscii           :: Maybe Bool
-files                 :: Maybe [(FilePath, Blob)]
-\f[R]
-.fi
+.TP
+\f[V]wrapText\f[R] (\f[V]\[dq]auto\[dq]|\[dq]preserve\[dq]|\[dq]none\[dq]\f[R])
+Text wrapping option: either \f[V]\[dq]auto\[dq]\f[R] (automatic
+hard-wrapping to fit within a column width),
+\f[V]\[dq]preserve\[dq]\f[R] (insert newlines where they are present in
+the source), or \f[V]\[dq]none\[dq]\f[R] (don\[cq]t insert any
+unnecessary newlines at all).
+.TP
+\f[V]columns\f[R] (integer, default 72)
+Column width (affects text wrapping and calculation of table column
+widths in plain text formats)
+.TP
+\f[V]standalone\f[R] (boolean, default false)
+If true, causes a standalone document to be produced, using the default
+template or the custom template specified using \f[V]template\f[R].
+If false, a fragment will be produced.
+.TP
+\f[V]template\f[R] (string)
+String contents of a document template (see Templates in
+\f[V]pandoc(1)\f[R] for the format).
+.TP
+\f[V]tabStop\f[R] (integer, default 4)
+Tab stop (spaces per tab).
+.TP
+\f[V]indentedCodeClasses\f[R] (array of strings)
+List of classes to be applied to indented Markdown code blocks.
+.TP
+\f[V]abbreviations\f[R] (array of strings)
+List of strings to be regarded as abbreviations when parsing Markdown.
+See \f[V]--abbreviations\f[R] in \f[V]pandoc(1)\f[R] for details.
+.TP
+\f[V]defaultImageExtension\f[R] (string)
+Extension to be applied to image sources that lack extensions
+(e.g.\ \f[V]\[dq].jpg\[dq]\f[R]).
+.TP
+\f[V]trackChanges\f[R] (\f[V]\[dq]accept\[dq]|\[dq]reject\[dq]|\[dq]all\[dq]\f[R])
+Specifies what to do with insertions, deletions, and comments produced
+by the MS Word \[lq]Track Changes\[rq] feature.
+Only affects docx input.
+.TP
+\f[V]stripComments\f[R] (boolean, default false)
+Causes HTML comments to be stripped in Markdown or Textile source,
+instead of being passed through to the output format.
+.TP
+\f[V]citeproc\f[R] (boolean, default false)
+Causes citations to be processed using citeproc.
+See Citations in \f[V]pandoc(1)\f[R] for details.
+.TP
+\f[V]citeMethod\f[R] (\f[V]\[dq]citeproc\[dq]|\[dq]natbib\[dq]|\[dq]biblatex\[dq]\f[R])
+Determines how citations are formatted in LaTeX output.
+.TP
+\f[V]tableOfContents\f[R] (boolean, default false)
+Include a table of contents (in supported formats).
+.TP
+\f[V]tocDepth\f[R] (integer, default 3)
+Depth of sections to include in the table of contents.
+.TP
+\f[V]numberSections\f[R] (boolean, default false)
+Automatically number sections (in supported formats).
+.TP
+\f[V]numberOffset\f[R] (array of integers)
+Offsets to be added to each component of the section number.
+For example, \f[V][1]\f[R] will cause the first section to be numbered
+\[lq]2\[rq] and the first subsection \[lq]2.1\[rq]; \f[V][0,1]\f[R] will
+cause the first section to be numbered \[lq]1\[rq] and the first
+subsection \[lq]1.2.\[rq]
+.TP
+\f[V]identifierPrefix\f[R] (string)
+Prefix to be added to all automatically-generated identifiers.
+.TP
+\f[V]sectionDivs\f[R] (boolean, default false)
+Arrange the document into a hierarchy of nested sections based on the
+headings.
+.TP
+\f[V]htmlQTags\f[R] (boolean, default false)
+Use \f[V]<q>\f[R] elements in HTML instead of literal quotation marks.
+.TP
+\f[V]listings\f[R] (boolean, default false)
+Use the \f[V]listings\f[R] package to format code in LaTeX output.
+.TP
+\f[V]referenceLinks\f[R] (boolean, default false)
+Create reference links rather than inline links in Markdown output.
+.TP
+\f[V]setextHeaders\f[R] (boolean, default false)
+Use Setext (underlined) headings instead of ATX (\f[V]#\f[R]-prefixed)
+in Markdown output.
+.TP
+\f[V]preferAscii\f[R] (boolean, default false)
+Use entities and escapes when possible to avoid non-ASCII characters in
+the output.
+.TP
+\f[V]referenceLocation\f[R] (\f[V]\[dq]document\[dq]|\[dq]section\[dq]|\[dq]block\[dq]\f[R])
+Determines whether link references and footnotes are placed at the end
+of the document, the end of the section, or the end of the block
+(e.g.\ paragraph), in certain formats.
+(See \f[V]pandoc(1)\f[R] under \f[V]--reference-location\f[R].)
+.TP
+\f[V]topLevelDivision\f[R] (\f[V]\[dq]default\[dq]|\[dq]part\[dq]|\[dq]chapter\[dq]|\[dq]section\[dq]\f[R])
+Determines how top-level headings are interpreted in LaTeX, ConTeXt,
+DocBook, and TEI.
+The \f[V]\[dq]default\[dq]\f[R] value tries to choose the best
+interpretation based on heuristics.
+.TP
+\f[V]emailObfuscation\f[R] (\f[V]\[dq]none\[dq]|\[dq]references\[dq]|\[dq]javascript\[dq]\f[R])
+Determines how email addresses are obfuscated in HTML.
+.TP
+\f[V]htmlMathMethod\f[R] (\f[V]\[dq]plain\[dq]|\[dq]webtex\[dq]|\[dq]gladtex\[dq]|\[dq]mathml\[dq]|\[dq]mathjax\[dq]|\[dq]katex\[dq]\f[R])
+Determines how math is represented in HTML.
+.TP
+\f[V]variables\f[R] (JSON mapping)
+Variables to be interpolated in the template.
+(See Templates in \f[V]pandoc(1)\f[R].)
+.TP
+\f[V]dpi\f[R] (integer, default 96)
+Dots-per-inch to use for conversions between pixels and other
+measurements (for image sizes).
+.TP
+\f[V]incremental\f[R] (boolean, default false)
+If true, lists appear incrementally by default in slide shows.
+.TP
+\f[V]slideLevel\f[R] (integer)
+Heading level that deterimes slide divisions in slide shows.
+The default is to pick the highest heading level under which there is
+body text.
+.TP
+\f[V]highlightStyle\f[R] (string, default \f[V]\[dq]pygments\[dq]\f[R])
+Specify the style to use for syntax highlighting of code.
+Standard styles are \f[V]\[dq]pygments\[dq]\f[R] (the default),
+\f[V]\[dq]kate\[dq]\f[R], \f[V]\[dq]monochrome\[dq]\f[R],
+\f[V]\[dq]breezeDark\[dq]\f[R], \f[V]\[dq]espresso\[dq]\f[R],
+\f[V]\[dq]zenburn\[dq]\f[R], \f[V]\[dq]haddock\[dq]\f[R], and
+\f[V]\[dq]tango\[dq]\f[R].
+Alternatively, the path of a \f[V].theme\f[R] with a KDE syntax theme
+may be used (in this case, the relevant file contents must also be
+included in \f[V]files\f[R], see below).
+.TP
+\f[V]epubMetadata\f[R] (string)
+Dublin core XML elements to be used for EPUB metadata.
+.TP
+\f[V]epubChapterLevel\f[R] (integer, default 1)
+Heading level at which chapter splitting occurs in EPUBs.
+.TP
+\f[V]epubSubdirectory\f[R] (string, default \[lq]EPUB\[rq])
+Name of content subdirectory in the EPUB container.
+.TP
+\f[V]epubFonts\f[R] (array of file paths)
+Fonts to include in the EPUB.
+The fonts themselves must be included in \f[V]files\f[R] (see below).
+.TP
+\f[V]referenceDoc\f[R] (file path)
+Reference doc to use in creating \f[V]docx\f[R] or \f[V]odt\f[R] or
+\f[V]pptx\f[R].
+See \f[V]pandoc(1)\f[R] under \f[V]--reference-doc\f[R] for details.
+.TP
+\f[V]files\f[R] (JSON mapping of file paths to base64-encoded strings)
+Any files needed for the conversion, including images referred to in the
+document source, should be included here.
+Binary data must be base64-encoded.
+Textual data may be left as it is, unless it is \f[I]also\f[R] valid
+base 64 data, in which case it will be interpreted that way.
 .SS \f[V]/batch\f[R] endpoint
 .PP
 The \f[V]/batch\f[R] endpoint behaves like the root endpoint, except for
