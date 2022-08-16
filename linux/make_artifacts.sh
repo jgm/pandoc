@@ -25,14 +25,10 @@ trap clean_up EXIT
 cabal --version
 ghc --version
 
-cabal v2-update
-cabal v2-clean
-cabal v2-configure --enable-tests -fserver -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' pandoc
-cabal v2-build -j4
-cabal v2-test -j4
-cabal v2-install --bindir=$ARTIFACTS
-for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f $ARTIFACTS/; done
-for f in $(find dist-newstyle -name 'pandoc-server' -type f -perm /400); do cp $f /$ARTIFACTS/; done
+cabal update
+cabal clean
+cabal install -j4 -fserver -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' --install-method=copy --bindir=$ARTIFACTS
+ls $ARTIFACTS
 
 # make deb for EXE
 make_deb() {
