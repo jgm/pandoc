@@ -9,59 +9,7 @@
        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
        <![endif]-->
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-  <script>
-"use strict";
-(function($) { // https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values
-	$.QueryString = (function(a) {
-	    if (a == "") return {};
-	    var b = {};
-	    for (var i = 0; i < a.length; ++i)
-	    {
-		var p=a[i].split('=');
-		if (p.length != 2) continue;
-		b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-	    }
-	    return b;
-        })(window.location.search.substr(1).split('&'))
-})(jQuery);
-
-function newpage() {
-  var input = $("#text").val();
-  var from = $("#from").val();
-  var to = $("#to").val();
-  var standalone = $("#standalone").is(':checked') ? "1" : "0";
-  var href = window.location.href;
-  window.location.href = href.replace(/([?].*)?$/,"?" + $.param({text: input, from: from, to: to, standalone: standalone}));
-};
-
-$(document).ready(function() {
-    var text = $.QueryString["text"];
-    $("#text").val(text);
-    var from = $.QueryString["from"] || "markdown";
-    $("#from").val(from);
-    var to = $.QueryString["to"] || "html";
-    $("#to").val(to);
-    var standalone = ($.QueryString["standalone"] === "1") ? "1" : "0";
-    $("#standalone").prop('checked', (standalone === "1"));
-    if (text && text != "") {
-       $.getJSON("/cgi-bin/trypandoc", { from: from, to: to, text: text, standalone: standalone },
-         function(res) {
-          $("#results").text(res.html);
-          $("#version").text(res.version);
-          var commandString = "pandoc"
-            + ((standalone === "1") ? " --standalone" : "")
-            + " --from " + from + " --to " + to;
-          $("#command").text(commandString);
-         });
-    };
-    $("#convert").click(newpage);
-    $("#from").change(newpage);
-    $("#to").change(newpage);
-});
-  </script>
   <style>
     h1 { margin-bottom: 1em; }
     body { margin: auto; }
@@ -123,7 +71,7 @@ $(document).ready(function() {
         <option value="vimwiki">Vimwiki</option>
       </select>
       <input type="checkbox" id="standalone" name="standalone">
-      <label for="standalone">Generate standalone document
+      <label for="standalone">Standalone
         <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
       </label>
       <br/>
@@ -186,5 +134,59 @@ $(document).ready(function() {
  <p class="version">pandoc <span id="version"></span></p>
  <p><a href="https://pandoc.org">https://pandoc.org</a></p>
 </footer>
+
+<script>
+"use strict";
+
+function newpage() {
+  let input = document.getElementById("text").value;
+  let from = document.getElementById("from").value;
+  let to = document.getElementById("to").value;
+  let standalone = document.getElementById("standalone").checked ? true : false;
+  let href = window.location.href;
+  const URLparams = new URLSearchParams(Object.entries({text: input, from: from, to: to, standalone: standalone}));
+  window.location.href = href.replace(/([?].*)?$/,"?" + URLparams);
+};
+
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    let text = params.get("text");
+    document.getElementById("text").value = text;
+    let from = params.get("from") || "markdown";
+    document.getElementById("from").value = from;
+    let to = params.get("to") || "html";
+    document.getElementById("to").value = to;
+    let standalone = params.get("standalone") === "true";
+    document.getElementById("standalone").checked = standalone;
+    if (text && text != "") {
+       fetch("/cgi-bin/pandoc-server.cgi/version")
+          .then(response => response.text())
+          .then(restext =>
+             document.getElementById("version").textContent = restext
+            );
+
+       let params = { from: from, to: to, text: text, standalone: standalone };
+       // console.log(JSON.stringify(params));
+       fetch("/cgi-bin/pandoc-server.cgi", {
+         method: "POST",
+         headers: {"Content-Type": "application/json"},
+         body: JSON.stringify(params)
+        })
+       .then(response => response.text())
+       .then(restext => {
+         document.getElementById("results").textContent = restext;
+         let commandString = "pandoc"
+           + (standalone ? " --standalone" : "")
+           + " --from " + from + " --to " + to;
+         document.getElementById("command").textContent = commandString;
+       });
+    };
+    document.getElementById("convert").onclick = newpage;
+    document.getElementById("from").onchange = newpage;
+    document.getElementById("to").onchange = newpage;
+    document.getElementById("standalone").onchange = newpage;
+})();
+  </script>
+
 </body>
 </html>

@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc
-version:         2.18
+version:         2.19
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -28,7 +28,8 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - TeX formats (LaTeX, ConTeXt)
                  - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
                  - Outline formats (OPML)
-                 - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML)
+                 - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML,
+                   RIS)
                  - Word processor formats (Docx, RTF, ODT)
                  - Interactive notebook formats (Jupyter notebook ipynb)
                  - Page layout formats (InDesign ICML)
@@ -36,7 +37,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                    Vimwiki, XWiki, ZimWiki, Jira wiki, Creole)
                  - Slide show formats (LaTeX Beamer, PowerPoint, Slidy,
                    reveal.js, Slideous, S5, DZSlides)
-                 - Data formats (CSV tables)
+                 - Data formats (CSV and TSV tables)
                  - PDF (via external programs such as pdflatex or wkhtmltopdf)
                  .
                  Pandoc can convert mathematical content in documents
@@ -257,6 +258,10 @@ extra-source-files:
                  test/command/5876.yaml
                  test/command/5876/metadata/5876.yaml
                  test/command/5876/metadata/command/5876.yaml
+                 test/command/6466-beg.hs
+                 test/command/6466-end.hs
+                 test/command/6466-mid.hs
+                 test/command/6466-whole.hs
                  test/command/7861.yaml
                  test/command/7861/metadata/placeholder
                  test/docbook-chapter.docbook
@@ -424,8 +429,8 @@ flag lua53
   Description:   Embed Lua 5.3 instead of 5.4.
   Default:       False
 
-flag trypandoc
-  Description:   Build trypandoc cgi executable.
+flag server
+  Description:   Build pandoc-server executable.
   Default:       False
 
 flag nightly
@@ -470,13 +475,12 @@ library
                  aeson-pretty          >= 0.8.9    && < 0.9,
                  array                 >= 0.5      && < 0.6,
                  attoparsec            >= 0.12     && < 0.15,
-                 base64-bytestring     >= 0.1      && < 1.3,
                  binary                >= 0.7      && < 0.11,
                  blaze-html            >= 0.9      && < 0.10,
                  blaze-markup          >= 0.8      && < 0.9,
                  bytestring            >= 0.9      && < 0.12,
                  case-insensitive      >= 1.2      && < 1.3,
-                 citeproc              >= 0.8      && < 0.9,
+                 citeproc              >= 0.8.0.1  && < 0.9,
                  commonmark            >= 0.2.2    && < 0.3,
                  commonmark-extensions >= 0.2.3.1  && < 0.3,
                  commonmark-pandoc     >= 0.2.1.2  && < 0.3,
@@ -487,10 +491,12 @@ library
                  directory             >= 1.2.3    && < 1.4,
                  doclayout             >= 0.4      && < 0.5,
                  doctemplates          >= 0.10     && < 0.11,
+                 base64                >= 0.4      && < 0.5,
                  emojis                >= 0.1      && < 0.2,
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.5,
+                 gridtables            >= 0.0.2    && < 0.1,
                  haddock-library       >= 1.10     && < 1.11,
                  hslua-module-doclayout>= 1.0.4    && < 1.1,
                  hslua-module-path     >= 1.0      && < 1.1,
@@ -515,13 +521,13 @@ library
                  random                >= 1        && < 1.3,
                  safe                  >= 0.3.18   && < 0.4,
                  scientific            >= 0.3      && < 0.4,
-                 skylighting           >= 0.12.3.1 && < 0.13,
-                 skylighting-core      >= 0.12.3.1 && < 0.13,
+                 skylighting           >= 0.13     && < 0.14,
+                 skylighting-core      >= 0.13     && < 0.14,
                  split                 >= 0.2      && < 0.3,
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.12.5   && < 0.12.6,
+                 texmath               >= 0.12.5.1 && < 0.12.6,
                  text                  >= 1.1.1.0  && < 2.1,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.14,
@@ -784,16 +790,28 @@ executable pandoc
   buildable:       True
   other-modules:   Paths_pandoc
 
-executable trypandoc
+executable pandoc-server
   import:          common-executable
-  main-is:         trypandoc.hs
-  hs-source-dirs:  trypandoc
-  if flag(trypandoc)
-    build-depends: aeson,
-                   http-types,
+  main-is:         Main.hs
+  other-modules:   PandocServer
+  hs-source-dirs:  server
+  if flag(server)
+    build-depends: base,
+                   pandoc,
+                   aeson,
                    text,
+                   containers,
+                   data-default,
+                   bytestring,
+                   skylighting,
+                   base64 >= 0.4,
+                   doctemplates,
+                   servant-server,
                    wai >= 0.3,
-                   wai-extra >= 3.0.24
+                   wai-extra >= 3.0.24,
+                   warp,
+                   optparse-applicative
+
     buildable:     True
   else
     buildable:     False

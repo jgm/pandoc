@@ -1022,7 +1022,7 @@ Pandoc
                       1
                       ( "col-1" , [] , [] )
                       [ Str "col" , Space , Str "1" ]
-                  , Plain [ Str "col" , Space , Str "1" ]
+                  , Para [ Str "col" , Space , Str "1" ]
                   ]
               , Cell
                   ( "" , [] , [] )
@@ -1033,7 +1033,7 @@ Pandoc
                       1
                       ( "col-2" , [] , [] )
                       [ Str "col" , Space , Str "2" ]
-                  , Plain [ Str "col" , Space , Str "2" ]
+                  , Para [ Str "col" , Space , Str "2" ]
                   ]
               , Cell
                   ( "" , [] , [] )
@@ -1044,7 +1044,7 @@ Pandoc
                       1
                       ( "col-3" , [] , [] )
                       [ Str "col" , Space , Str "3" ]
-                  , Plain [ Str "col" , Space , Str "3" ]
+                  , Para [ Str "col" , Space , Str "3" ]
                   ]
               ]
           , Row
@@ -1089,6 +1089,148 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "East"
+      , Space
+      , Str "Asian"
+      , Space
+      , Str "characters"
+      , Space
+      , Str "have"
+      , Space
+      , Str "double"
+      , Space
+      , Str "width"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 4.1666666666666664e-2 )
+      , ( AlignDefault , ColWidth 6.944444444444445e-2 )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "\39770" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "fish" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "Zero-width"
+      , Space
+      , Str "space"
+      , Space
+      , Str "in"
+      , Space
+      , Str "German"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.1111111111111111 )
+      , ( AlignDefault , ColWidth 0.1111111111111111 )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "German" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "English" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Auf\8204lage" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "edition" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "Zero-width"
+      , Space
+      , Str "non-joiner"
+      , Space
+      , Str "in"
+      , Space
+      , Str "Persian"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.1111111111111111 )
+      , ( AlignDefault , ColWidth 0.1388888888888889 )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "\1605\1740\8204\1582\1608\1575\1607\1605" ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "I"
+                      , Space
+                      , Str "want"
+                      , Space
+                      , Str "to"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
   , Para [ Str "Empty" , Space , Str "cells" ]
   , Table
       ( "" , [] , [] )
@@ -1115,6 +1257,239 @@ Pandoc
                   (RowSpan 1)
                   (ColSpan 1)
                   []
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "Table"
+      , Space
+      , Str "with"
+      , Space
+      , Str "cells"
+      , Space
+      , Str "spanning"
+      , Space
+      , Str "multiple"
+      , Space
+      , Str "rows"
+      , Space
+      , Str "or"
+      , Space
+      , Str "columns:"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.19444444444444445 )
+      , ( AlignDefault , ColWidth 0.1111111111111111 )
+      , ( AlignDefault , ColWidth 0.1527777777777778 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 2)
+                 [ Plain [ Str "Property" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Earth" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 3)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "Temperature"
+                      , SoftBreak
+                      , Str "1961-1990"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "min" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "-89.2" , Space , Str "\176C" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "mean" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "14" , Space , Str "\176C" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "min" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "56.7" , Space , Str "\176C" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "Table"
+      , Space
+      , Str "with"
+      , Space
+      , Str "complex"
+      , Space
+      , Str "header:"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.3055555555555556 )
+      , ( AlignDefault , ColWidth 0.1111111111111111 )
+      , ( AlignDefault , ColWidth 0.1111111111111111 )
+      , ( AlignDefault , ColWidth 0.1111111111111111 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 2)
+                 (ColSpan 1)
+                 [ Plain [ Str "Location" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 3)
+                 [ Plain
+                     [ Str "Temperature"
+                     , Space
+                     , Str "1961-1990"
+                     , SoftBreak
+                     , Str "in"
+                     , Space
+                     , Str "degree"
+                     , Space
+                     , Str "Celsius"
+                     ]
+                 ]
+             ]
+         , Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "min" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "mean" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "max" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Antarctica" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "-89.2" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "N/A" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "19.8" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Earth" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "-89.2" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "14" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "56.7" ] ]
               ]
           ]
       ]

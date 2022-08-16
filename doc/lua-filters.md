@@ -3589,6 +3589,28 @@ Usage:
     --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
     -- }
 
+### `citeproc (doc)` {#pandoc.utils.citeproc}
+
+Process the citations in the file, replacing them with rendered
+citations and adding a bibliography. See the manual section on
+citation rendering for details.
+
+Parameters:
+
+`doc`
+:   document ([Pandoc](#type-pandoc))
+
+Returns:
+
+-   processed document ([Pandoc](#type-pandoc))
+
+Usage:
+
+    -- Lua filter that behaves like `--citeproc`
+    function Pandoc (doc)
+      return pandoc.utils.citeproc(doc)
+    end
+
 ### `equals (element1, element2)` {#pandoc.utils.equals}
 
 Test equality of AST elements. Elements in Lua are considered

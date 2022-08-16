@@ -592,7 +592,9 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_smart ]
   getAll "vimwiki"         = autoIdExtensions
-  getAll "dokuwiki"        = autoIdExtensions
+  getAll "dokuwiki"        = autoIdExtensions <>
+    extensionsFromList
+    [ Ext_tex_math_dollars ]
   getAll "tikiwiki"        = autoIdExtensions
   getAll "rst"             = autoIdExtensions <>
     extensionsFromList

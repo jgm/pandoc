@@ -285,7 +285,7 @@ import qualified Data.Text as T
 
 doInclude :: Block -> IO Block
 doInclude cb@(CodeBlock (id, classes, namevals) contents) =
-  case lookup "include" namevals of
+  case lookup (T.pack "include") namevals of
        Just f     -> CodeBlock (id, classes, namevals) <$>
                       TIO.readFile (T.unpack f)
        Nothing    -> return cb

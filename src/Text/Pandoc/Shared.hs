@@ -401,6 +401,7 @@ deNote :: Inline -> Inline
 deNote (Note _) = Str ""
 deNote x        = x
 
+-- {- DEPRECATED deLink "deLink will be removed in a future version" -}
 -- | Turns links into spans, keeping just the link text.
 deLink :: Inline -> Inline
 deLink (Link _ ils _) = Span nullAttr ils

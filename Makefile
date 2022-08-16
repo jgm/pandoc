@@ -75,8 +75,11 @@ fix_spacing: ## Fix trailing newlines and spaces
 	for f in $(SOURCEFILES); do printf '%s\n' "`cat $$f`" | sed -e 's/  *$$//' > $$f.tmp; mv $$f.tmp $$f; done
 
 changes_github: ## copy this release's changes in gfm
-	pandoc --filter tools/extract-changes.hs changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
+	pandoc --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 
+man: man/pandoc.1 man/pandoc-server.1
+
+.PHONY: man
 
 debpkg: ## create linux package
 	docker run -v `pwd`:/mnt \
@@ -88,7 +91,7 @@ debpkg: ## create linux package
 		   --rm \
 		   $(DOCKERIMAGE) \
 		   bash \
-		   /mnt/linux/make_artifacts.sh 2>&1 > docker.log
+		   /mnt/linux/make_artifacts.sh
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
@@ -97,6 +100,12 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--include-after-body man/pandoc.1.after \
 		--metadata author="" \
 		--variable footer="pandoc $(version)" \
+		-o $@
+
+man/pandoc-server.1: server/pandoc-server.md
+	pandoc $< -f markdown -t man -s \
+		--lua-filter man/manfilter.lua \
+		--variable footer="pandoc-server $(version)" \
 		-o $@
 
 README.md: README.template MANUAL.txt tools/update-readme.lua

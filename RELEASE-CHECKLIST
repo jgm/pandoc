@@ -1,6 +1,6 @@
 [ ] make check
 [ ] make README.md and commit if needed
-[ ] make man/pandoc.1 and commit if needed
+[ ] make man
 [ ] Finalize changelog
 [ ] Update AUTHORS
 [ ] push release candidate branch rc/VERSION and (if it builds
