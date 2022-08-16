@@ -88,7 +88,7 @@ data Params = Params
   , referenceDoc          :: Maybe FilePath
   , referenceLocation     :: Maybe ReferenceLocation
   , preferAscii           :: Maybe Bool
-  , files                 :: Maybe [(FilePath, Blob)]
+  , files                 :: Maybe (Map FilePath Blob)
   } deriving (Show)
 
 instance Default Params where

@@ -13,18 +13,21 @@ date: August 15, 2022
 `pandoc-server` is a web server that can perform pandoc
 conversions.  It can be used either as a running server
 or as a CGI program.  To use `pandoc-server` as a CGI
-program, rename it as `pandoc-server.cgi`.
+program, rename it (or symlink it) as `pandoc-server.cgi`.
+(Note: if you symlink it, you may need to adjust your
+webserver's configuration in order to allow it to follow
+symlinks for the CGI script.)
 
 All pandoc functions are run in the PandocPure monad, which
 ensures that they can do no I/O operations on the server.
 This should provide a high degree of security.  It does,
 however, impose certain limitations:
 
-- Resources cannot be fetched via HTTP.
-
 - PDFs cannot be produced.
 
 - Filters are not supported.
+
+- Resources cannot be fetched via HTTP.
 
 - Any images, include files, or other resources needed for
   the document conversion must be explicitly included in
@@ -63,7 +66,8 @@ binary will be base64 encoded.
 The body of the POST request should be a JSON object,
 with the following fields.  Only the `text` field is
 required; all of the others can be omitted for default
-values.
+values.  When there are several string alternatives,
+the first one given is the default.
 
 `text` (string)
 
@@ -81,48 +85,181 @@ values.
 :   the output format, possibly with extensions, just as it is
     specified on the pandoc command line.
 
+`wrapText` (`"auto"|"preserve"|"none"`)
+
+:   text wrapping option: either `"auto"` (automatic
+    hard-wrapping to fit within a column width), `"preserve"`
+    (insert newlines where they are present in the source),
+    or `"none"` (don't insert any unnecessary newlines at all).
+
+`columns` (integer, default 72)
+
+:   column width (affects text wrapping and calculation of
+    table column widths in plain text formats)
+
+`standalone` (boolean, default false)
+
+:   if true, causes a standalone document to be produced, using
+    the default template or the custom template specified using
+    `template`.  If false, a fragment will be produced.
+
+`template` (string)
+
+:   string contents of a document template (see Templates in
+    `pandoc(1)` for the format).
+
+`tabStop` (integer, default 4)
+
+:   tab stop (spaces per tab).
+
+`indentedCodeClasses` (array of strings)
+
+:   list of classes to be applied to indented Markdown code blocks.
+
+`abbreviations` (array of strings)
+
+:   list of strings to be regarded as abbreviations when
+    parsing Markdown. See `--abbreviations` in `pandoc(1)` for
+    details.
+
+`defaultImageExtension` (string)
+
+:   extension to be applied to image sources that lack extensions
+    (e.g. `".jpg"`).
+
+`trackChanges` (`"accept"|"reject"|"all"`)
+
+:   specifies what to do with insertions, deletions, and
+    comments produced by the MS Word "Track Changes" feature. Only
+    affects docx input.
+
+`stripComments` (boolean, default false)
+
+:   causes HTML comments to be stripped in Markdown or Textile
+    source, instead of being passed through to the output format.
+
+`citeproc` (boolean, default false)
+
+:   causes citations to be processed using citeproc.  See
+    Citations in `pandoc(1)` for details.
+
+`citeMethod` (`"citeproc"|"natbib"|"biblatex"`)
+
+:   determines how citations are formatted in LaTeX output.
+
+`tableOfContents` (boolean, default false)
+
+:   include a table of contents (in supported formats).
+
+`tocDepth` (integer, default 3)
+
+:   depth of sections to include in the table of contents.
+
+`numberSections` (boolean, default false)
+
+:   automatically number sections (in supported formats).
+
+`numberOffset` (array of integers)
+
+:   offsets to be added to each component of the section number.
+    For example, `[1]` will cause the first section to be
+    numbered "2" and the first subsection "2.1"; `[0,1]` will
+    cause the first section to be numbered "1" and the first
+    subsection "1.2."
+
+`identifierPrefix` (string)
+
+:   prefix to be added to all automatically-generated identifiers.
+
+`sectionDivs` (boolean, default false)
+
+:   arrange the document into a hierarchy of nested sections
+    based on the headings.
+
+`htmlQTags` (boolean, default false)
+
+:   use `<q>` elements in HTML instead of literal quotation marks.
+
+`listings` (boolean, default false)
+
+:   use the `listings` package to format code in LaTeX output.
+
+`referenceLinks` (boolean, default false)
+
+:   create reference links rather than inline links in Markdown output.
+
+`setextHeaders` (boolean, default false)
+
+:   use Setext (underlined) headings instead of ATX (`#`-prefixed)
+    in Markdown output.
+
+`preferAscii` (boolean, default false)
+
+:   use entities and escapes when possible to avoid non-ASCII
+    characters in the output.
+
+`referenceLocation` (`"document"|"block"|"section"`)
+
+:
 
 
-``` TODO
-wrapText              :: Maybe WrapOption
-columns               :: Maybe Int
-standalone            :: Maybe Bool
-template              :: Maybe Text
-tabStop               :: Maybe Int
-indentedCodeClasses   :: Maybe [Text]
-abbreviations         :: Maybe (Set Text)
-defaultImageExtension :: Maybe Text
-trackChanges          :: Maybe TrackChanges
-stripComments         :: Maybe Bool
-citeproc              :: Maybe Bool
-variables             :: Maybe (DocTemplates.Context Text)
-tableOfContents       :: Maybe Bool
-incremental           :: Maybe Bool
-htmlMathMethod        :: Maybe HTMLMathMethod
-numberSections        :: Maybe Bool
-numberOffset          :: Maybe [Int]
-sectionDivs           :: Maybe Bool
-referenceLinks        :: Maybe Bool
-dpi                   :: Maybe Int
-emailObfuscation      :: Maybe ObfuscationMethod
-identifierPrefix      :: Maybe Text
-citeMethod            :: Maybe CiteMethod
-htmlQTags             :: Maybe Bool
-slideLevel            :: Maybe Int
-topLevelDivision      :: Maybe TopLevelDivision
-listings              :: Maybe Bool
-highlightStyle        :: Maybe Text
-setextHeaders         :: Maybe Bool
-epubSubdirectory      :: Maybe Text
-epubFonts             :: Maybe [FilePath]
-epubMetadata          :: Maybe Text
-epubChapterLevel      :: Maybe Int
-tocDepth              :: Maybe Int
-referenceDoc          :: Maybe FilePath
-referenceLocation     :: Maybe ReferenceLocation
-preferAscii           :: Maybe Bool
-files                 :: Maybe [(FilePath, Blob)]
-```
+`topLevelDivision` (`"default"|"part"|"chapter"|"section"`)
+
+:
+
+`emailObfuscation` (`"none"|"references"|"javascript"`)
+
+:
+
+`htmlMathMethod` (`"plain"|"webtex"|"gladtex"|"mathml"|"mathjax"|"katex"`)
+
+:
+
+`variables` (JSON mapping)
+
+:
+
+`dpi` (integer, default 96)
+
+:
+
+`incremental` (boolean, default false)
+
+:
+
+`slideLevel` (integer)
+
+:
+
+`highlightStyle` (string, default `"pygments"`)
+
+:   pygments (the default), kate, monochrome, breezeDark,
+espresso, zenburn, haddock, and tango or .theme file
+
+`epubMetadata` (string)
+
+:
+
+`epubChapterLevel` (integer, default 1)
+
+:
+
+`epubSubdirectory` (string, default "EPUB")
+
+:
+
+`epubFonts` (array of file paths)
+
+:
+
+`referenceDoc` (file path)
+
+:
+
+`files` (JSON mapping of file paths to base64-encoded strings)
+
+:
+
 
 ## `/batch` endpoint
 
