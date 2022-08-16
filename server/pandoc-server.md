@@ -15,6 +15,21 @@ conversions.  It can be used either as a running server
 or as a CGI program.  To use `pandoc-server` as a CGI
 program, rename it as `pandoc-server.cgi`.
 
+All pandoc functions are run in the PandocPure monad, which
+ensures that they can do no I/O operations on the server.
+This should provide a high degree of security.  It does,
+however, impose certain limitations:
+
+- Resources cannot be fetched via HTTP.
+
+- PDFs cannot be produced.
+
+- Filters are not supported.
+
+- Any images, include files, or other resources needed for
+  the document conversion must be explicitly included in
+  the request, via the `files` field (see below under API).
+
 # OPTIONS
 
 `--port NUM`
@@ -65,6 +80,7 @@ values.
 
 :   the output format, possibly with extensions, just as it is
     specified on the pandoc command line.
+
 
 
 ``` TODO
