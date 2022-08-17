@@ -70,10 +70,6 @@
         <option value="twiki">TWiki</option>
         <option value="vimwiki">Vimwiki</option>
       </select>
-      <input type="checkbox" id="standalone" name="standalone">
-      <label for="standalone">Standalone
-        <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
-      </label>
       <br/>
       <textarea id="text" maxlength="3000" rows="15"></textarea>
     </div>
@@ -125,6 +121,10 @@
         <option value="textile">Textile</option>
         <option value="zimwiki">ZimWiki</option>
       </select>
+      <input type="checkbox" id="standalone" name="standalone">
+      <label for="standalone">Standalone
+        <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
+      </label>
       <br/>
       <pre id="results"></pre>
     </div>
@@ -154,7 +154,7 @@ function newpage() {
     document.getElementById("text").value = text;
     let from = params.get("from") || "markdown";
     document.getElementById("from").value = from;
-    let to = params.get("to") || "html";
+    let to = params.get("to") || "html5";
     document.getElementById("to").value = to;
     let standalone = params.get("standalone") === "true";
     document.getElementById("standalone").checked = standalone;
