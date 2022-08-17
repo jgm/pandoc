@@ -21,6 +21,7 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isBlockTag
                                 , isTextTag
                                 , isCommentTag
+                                , toAttr
                                 ) where
 
 import Control.Applicative ((<|>))
