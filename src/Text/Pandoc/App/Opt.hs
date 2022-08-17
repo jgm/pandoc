@@ -54,7 +54,8 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..), fromJSON, camelTo2)
+import Data.Aeson (defaultOptions, Options(..), Result(..), camelTo2,
+                   genericToJSON, fromJSON)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
 import Data.Yaml
@@ -156,8 +157,90 @@ data Opt = Opt
     , optSandbox               :: Bool
     } deriving (Generic, Show)
 
-$(deriveJSON
-   defaultOptions{ fieldLabelModifier = camelTo2 '-' . drop 3 } ''Opt)
+instance FromJSON Opt where
+   parseJSON = withObject "Opt" $ \o ->
+     Opt
+       <$> o .:? "tab-stop" .!= optTabStop defaultOpts
+       <*> o .:? "preserve-tabs" .!= optPreserveTabs defaultOpts
+       <*> o .:? "standalone" .!= optStandalone defaultOpts
+       <*> o .:? "from"
+       <*> o .:? "to"
+       <*> o .:? "table-of-contents" .!= optTableOfContents defaultOpts
+       <*> o .:? "shift-heading-level-by" .!= optShiftHeadingLevelBy defaultOpts
+       <*> o .:? "template"
+       <*> o .:? "variables" .!= optVariables defaultOpts
+       <*> o .:? "metadata" .!= optMetadata defaultOpts
+       <*> o .:? "metadata-files" .!= optMetadataFiles defaultOpts
+       <*> o .:? "output-file"
+       <*> o .:? "input-files"
+       <*> o .:? "number-sections" .!= optNumberSections defaultOpts
+       <*> o .:? "number-offset" .!= optNumberOffset defaultOpts
+       <*> o .:? "section-divs" .!= optSectionDivs defaultOpts
+       <*> o .:? "incremental" .!= optIncremental defaultOpts
+       <*> o .:? "self-contained" .!= optSelfContained defaultOpts
+       <*> o .:? "embed-resources" .!= optEmbedResources defaultOpts
+       <*> o .:? "html-q-tags" .!= optHtmlQTags defaultOpts
+       <*> o .:? "highlight-style"
+       <*> o .:? "syntax-definitions" .!= optSyntaxDefinitions defaultOpts
+       <*> o .:? "top-level-division" .!= optTopLevelDivision defaultOpts
+       <*> o .:? "html-math-method" .!= optHTMLMathMethod defaultOpts
+       <*> o .:? "abbreviations"
+       <*> o .:? "reference-doc"
+       <*> o .:? "epub-subdirectory" .!= optEpubSubdirectory defaultOpts
+       <*> o .:? "epub-metadata"
+       <*> o .:? "epub-fonts" .!= optEpubFonts defaultOpts
+       <*> o .:? "epub-chapter-level" .!= optEpubChapterLevel defaultOpts
+       <*> o .:? "epub-cover-image"
+       <*> o .:? "toc-depth" .!= optTOCDepth defaultOpts
+       <*> o .:? "dump-args" .!= optDumpArgs defaultOpts
+       <*> o .:? "ignore-args" .!= optIgnoreArgs defaultOpts
+       <*> o .:? "verbosity" .!= optVerbosity defaultOpts
+       <*> o .:? "trace" .!= optTrace defaultOpts
+       <*> o .:? "log-file"
+       <*> o .:? "fail-if-warnings" .!= optFailIfWarnings defaultOpts
+       <*> o .:? "reference-links" .!= optReferenceLinks defaultOpts
+       <*> o .:? "reference-location" .!= optReferenceLocation defaultOpts
+       <*> o .:? "dpi" .!= optDpi defaultOpts
+       <*> o .:? "wrap" .!= optWrap defaultOpts
+       <*> o .:? "columns" .!= optColumns defaultOpts
+       <*> o .:? "filters" .!= optFilters defaultOpts
+       <*> o .:? "email-obfuscation" .!= optEmailObfuscation defaultOpts
+       <*> o .:? "identifier-prefix" .!= optIdentifierPrefix defaultOpts
+       <*> o .:? "strip-empty-paragraphs" .!= optStripEmptyParagraphs defaultOpts
+       <*> o .:? "indented-code-classes" .!= optIndentedCodeClasses defaultOpts
+       <*> o .:? "data-dir"
+       <*> o .:? "cite-method" .!= optCiteMethod defaultOpts
+       <*> o .:? "listings" .!= optListings defaultOpts
+       <*> o .:? "pdf-engine"
+       <*> o .:? "pdf-engine-opts" .!= optPdfEngineOpts defaultOpts
+       <*> o .:? "slide-level"
+       <*> o .:? "setext-headers" .!= optSetextHeaders defaultOpts
+       <*> o .:? "ascii" .!= optAscii defaultOpts
+       <*> o .:? "default-image-extension" .!= optDefaultImageExtension defaultOpts
+       <*> o .:? "extract-media"
+       <*> o .:? "track-changes" .!= optTrackChanges defaultOpts
+       <*> o .:? "file-scope" .!= optFileScope defaultOpts
+       <*> o .:? "title-prefix" .!= optTitlePrefix defaultOpts
+       <*> o .:? "css" .!= optCss defaultOpts
+       <*> o .:? "ipynb-output" .!= optIpynbOutput defaultOpts
+       <*> o .:? "include-before-body" .!= optIncludeBeforeBody defaultOpts
+       <*> o .:? "include-after-body" .!= optIncludeAfterBody defaultOpts
+       <*> o .:? "include-in-header" .!= optIncludeInHeader defaultOpts
+       <*> o .:? "resource-path" .!= optResourcePath defaultOpts
+       <*> o .:? "request-headers" .!= optRequestHeaders defaultOpts
+       <*> o .:? "no-check-certificate" .!= optNoCheckCertificate defaultOpts
+       <*> o .:? "eol" .!= optEol defaultOpts
+       <*> o .:? "strip-comments" .!= optStripComments defaultOpts
+       <*> o .:? "csl"
+       <*> o .:? "bibliography" .!= optBibliography defaultOpts
+       <*> o .:? "citation-abbreviations"
+       <*> o .:? "sandbox" .!= optSandbox defaultOpts
+
+instance ToJSON Opt where
+ toJSON = genericToJSON defaultOptions{
+                                 fieldLabelModifier = camelTo2 '-' . drop 3,
+                                 omitNothingFields = True }
+
 
 instance FromJSON (Opt -> Opt) where
   parseJSON (Object m) =
