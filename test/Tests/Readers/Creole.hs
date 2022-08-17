@@ -119,7 +119,7 @@ tests = [
                          , plain "blubb" ]
         , "nested many unordered lists, one separating space" =:
           ("* foo\n** bar\n*** third\n*** third two\n** baz\n*** third again\n"
-           <> "**** fourth\n***** fith\n* blubb")
+           <> "**** fourth\n***** fifth\n* blubb")
           =?> bulletList [ plain "foo"
                            <> bulletList [ plain "bar"
                                            <> bulletList [ plain "third"
@@ -129,7 +129,7 @@ tests = [
                                                          <> bulletList [
                                                              plain "fourth"
                                                              <> bulletList [
-                                                                 plain "fith"
+                                                                 plain "fifth"
                                                                  ]
                                                              ]
                                                          ]
@@ -166,7 +166,7 @@ tests = [
                          , plain "blubb" ]
         , "nested many ordered lists, one separating space" =:
           ("# foo\n## bar\n### third\n### third two\n## baz\n### third again\n"
-           <> "#### fourth\n##### fith\n# blubb")
+           <> "#### fourth\n##### fifth\n# blubb")
           =?> orderedList [ plain "foo"
                            <> orderedList [ plain "bar"
                                            <> orderedList [ plain "third"
@@ -176,7 +176,7 @@ tests = [
                                                          <> orderedList [
                                                              plain "fourth"
                                                              <> orderedList [
-                                                                 plain "fith"
+                                                                 plain "fifth"
                                                                  ]
                                                              ]
                                                          ]
@@ -189,7 +189,7 @@ tests = [
                          , plain "blubb" ]
         , "mixed nested ordered and unordered lists, one separating space" =:
           ("# foo\n** bar\n### third\n### third two\n** baz\n### third again\n"
-           <> "#### fourth\n***** fith\n# blubb")
+           <> "#### fourth\n***** fifth\n# blubb")
           =?> orderedList [ plain "foo"
                            <> bulletList [ plain "bar"
                                            <> orderedList [ plain "third"
@@ -199,7 +199,7 @@ tests = [
                                                          <> orderedList [
                                                              plain "fourth"
                                                              <> bulletList [
-                                                                 plain "fith"
+                                                                 plain "fifth"
                                                                  ]
                                                              ]
                                                          ]

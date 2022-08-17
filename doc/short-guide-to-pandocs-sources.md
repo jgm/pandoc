@@ -61,7 +61,7 @@ the following points:
    text, others contain "Inline" elements.
 
  * [Inlines][def-Inline] are "running text", with many different
-   types. The most important contstructors are `Str` (a word),
+   types. The most important constructors are `Str` (a word),
    `Space` (a space char), `Emph` (emphasized text), and `Strong`
    (strongly emphasized text). It's worth checking their
    definitions.
@@ -87,7 +87,7 @@ directory, in the `Text.Pandoc` module. The basic flow is:
 
  2. the document AST is modified (optional);
 
- 3. then the internal respresentation is converted into the target
+ 3. then the internal representation is converted into the target
     format by a *writer*.
 
 The [*readers*] can be found in `Text.Pandoc.Readers`, while the

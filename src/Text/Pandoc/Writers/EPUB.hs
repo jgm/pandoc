@@ -449,7 +449,7 @@ pandocToEPUB version opts doc = do
                       writeHtmlStringForEPUB version o
   metadata <- getEPUBMetadata opts meta
 
-  -- retreive title of document
+  -- retrieve title of document
   let plainTitle :: Text
       plainTitle = case docTitle' meta of
                         [] -> case epubTitle metadata of

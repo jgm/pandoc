@@ -4854,7 +4854,7 @@ Parameters
 
 Returns
 
--   doc contatining just the literal string ([Doc])
+-   doc containing just the literal string ([Doc])
 
 ### nest {#pandoc.layout.nest}
 
