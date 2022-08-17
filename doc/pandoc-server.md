@@ -195,7 +195,7 @@ the first one given is the default.
 
 :   Create reference links rather than inline links in Markdown output.
 
-`referenceLocation` (`"document"|"section"|"block"`)
+`reference-location` (`"document"|"section"|"block"`)
 
 :   Determines whether link references and footnotes are placed
     at the end of the document, the end of the section, or the
