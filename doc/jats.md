@@ -79,7 +79,7 @@ Metadata Values
 
         Furthermore, the [`corresp`][attr:corresp] attribute on
         the author's [`<contrib>`] element is set to `yes` if
-        this attribute is set to a truty.
+        this attribute is set to a truthy.
 
 `affiliation`
 :   the list of organizations with which contributors are

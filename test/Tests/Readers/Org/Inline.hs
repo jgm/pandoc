@@ -186,7 +186,7 @@ tests =
                   , "3" <> subscript "{}"
                   , "4" <> superscript ("(a(" <> strong "b(c" <> ")d))")
                   ])
-  , "Verbatim text can contain equal signes (=)" =:
+  , "Verbatim text can contain equal signs (=)" =:
       "=is_subst = True=" =?>
       para (codeWith ("", ["verbatim"], []) "is_subst = True")
 
