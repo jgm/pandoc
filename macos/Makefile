@@ -10,13 +10,16 @@ signed.txt: $(DEST)
 	codesign --force --options runtime -s "5U2WKE6DES" $(DEST)/bin/pandoc
 	echo "SIGNED" > signed.txt
 
-pandoc.pkg: signed.txt
+$(DEST)/bin/pandoc-server:
+	cd $(DEST)/bin && ln -s pandoc pandoc-server
+
+pandoc.pkg: $(DEST)/bin/pandoc-server signed.txt
 	pkgbuild --root pandoc --identifier net.johnmacfarlane.pandoc --version $(VERSION) --ownership recommended $@
 
 $(BASE)-macOS.pkg: pandoc.pkg
 	productbuild --distribution distribution.xml --resources Resources --package-path $< --version $(VERSION) --sign 'Developer ID Installer: John Macfarlane' $@
 
-$(BASE)-macOS.zip: signed.txt
+$(BASE)-macOS.zip: $(DEST)/bin/pandoc-server signed.txt
 	ln -s $(DEST) $(BASE)
 	zip -r $@ $(BASE)
 

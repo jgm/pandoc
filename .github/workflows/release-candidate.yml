@@ -112,11 +112,7 @@ jobs:
           mkdir -p ${DEST}/bin
           mkdir -p ${DEST}/share/man/man1
           cp ~/.local/bin/pandoc ${DEST}/bin/
-          SRCDIR=$(pwd)
-          cd ${DEST}/bin
-          strip pandoc
-          ln -s pandoc pandoc-server
-          cd ${SRCDIR}
+          strip ${DEST}/bin/pandoc
           cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
           cp man/pandoc-server.1 ${DEST}/share/man/man1/pandoc-server.1
           ~/.local/bin/pandoc -s COPYING.md -Vpagetitle=License -o ${RESOURCES}/license.html
