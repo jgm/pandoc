@@ -191,6 +191,7 @@ orgBlock = try $ do
       "quote"   -> parseBlockLines (fmap B.blockQuote)
       "verse"   -> verseBlock
       "src"     -> codeBlock blockAttrs
+      "abstract"-> metadataBlock
       _         -> parseBlockLines $
                    let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
                    in fmap $ B.divWith (ident, classes ++ [blkType], kv)
@@ -289,6 +290,16 @@ verseBlock blockType = try $ do
                       else B.str $ T.map (const '\160') initialSpaces
      line <- parseFromString inlines (indentedLine <> "\n")
      return (trimInlinesF $ pure nbspIndent <> line)
+
+-- | Parses an environment of the given name and adds the result to the document
+-- metadata under a key of the same name.
+metadataBlock :: PandocMonad m => Text -> OrgParser m (F Blocks)
+metadataBlock blockType = try $ do
+  content <- parseBlockLines id blockType
+  meta'   <- orgStateMeta <$> getState
+  updateState $ \st ->
+    st { orgStateMeta = B.setMeta blockType <$> content <*> meta' }
+  return mempty
 
 -- | Read a code block and the associated results block if present.  Which of
 -- the blocks is included in the output is determined using the "exports"

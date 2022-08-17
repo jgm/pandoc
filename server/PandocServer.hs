@@ -27,6 +27,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Base64 (decodeBase64, encodeBase64)
 import Data.Default
+import Data.Map (Map)
 import Data.Set (Set)
 import Skylighting (defaultSyntaxMap)
 

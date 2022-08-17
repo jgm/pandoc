@@ -13,6 +13,11 @@ $for(header-includes)$
 $header-includes$
 
 $endfor$
+$if(abstract)$
+#+begin_abstract
+$abstract$
+#+end_abstract
+$endif$
 $for(include-before)$
 $include-before$
 
