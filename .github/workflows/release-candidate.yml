@@ -34,7 +34,8 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            stack_opts: "-j1"
+            stack_opts: '-j4 +RTS -A256m -RTS -split-sections'
+
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
