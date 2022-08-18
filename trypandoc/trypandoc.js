@@ -55,6 +55,12 @@ function handleErrors(response) {
     if (!response.ok) {
         throw Error(response.statusText);
     }
+    if (response.status == 300) {
+        throw Error("Conversion timed out.")
+    }
+    if (response.status != 200) {
+        throw Error("Server returned status " + response.status.toString())
+    }
     return response;
 }
 
@@ -71,7 +77,8 @@ function convert() {
        fetch("/cgi-bin/pandoc-server.cgi/version")
           .then(handleErrors)
           .catch(error =>
-            document.getElementById("results").textContent = error
+            document.getElementById("results").textContent = error;
+            return Promise.reject();
             )
           .then(response => response.text())
           .then(restext =>
