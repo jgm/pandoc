@@ -53,8 +53,11 @@
       <select id="from">
         <option value="commonmark">CommonMark</option>
         <option value="creole">Creole</option>
+        <option value="csv">CSV</option>
         <option value="docbook">DocBook</option>
         <option value="dokuwiki">DokuWiki</option>
+	<option value="docx">Docx (Word)</option>
+	<option value="epub">EPUB</option>
         <option value="fb2">FB2</option>
         <option value="haddock">Haddock markup</option>
         <option value="html">HTML</option>
@@ -71,6 +74,7 @@
         <option value="markdown_mmd">MultiMarkdown</option>
         <option value="muse">Muse</option>
         <option value="native">Native (Pandoc AST)</option>
+	<option value="odt">ODT</option>
         <option value="opml">OPML</option>
         <option value="org">Org Mode</option>
         <option value="rst">reStructuredText</option>
@@ -79,7 +83,9 @@
         <option value="tikiwiki">TikiWiki</option>
         <option value="twiki">TWiki</option>
         <option value="vimwiki">Vimwiki</option>
-      </select>
+      </select><br/>
+      <label for="loadfile">Load from file</label>
+      <input id="loadfile" type="file" />
       <br/>
       <textarea id="text" maxlength="3000" rows="15"></textarea>
     </div>
@@ -88,7 +94,6 @@
       to
       </label>
       <select id="to">
-        <option value="S5">S5</option>
         <option value="asciidoc">AsciiDoc (original)</option>
         <option value="asciidoctor">AsciiDoc (asciidoctor-flavored)</option>
         <option value="beamer">LaTeX Beamer</option>
@@ -129,6 +134,7 @@
         <option value="revealjs">reveal.js</option>
         <option value="rst">reStructuredText</option>
         <option value="rtf">RTF</option>
+        <option value="S5">S5</option>
         <option value="slideous">Slideous</option>
         <option value="slidy">Slidy</option>
         <option value="tei">TEI</option>
@@ -141,6 +147,7 @@
         <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
       </label>
       <br/>
+      <a id="permalink" title="link to this conversion" href="">permalink</a></br/>
       <pre id="results"></pre>
     </div>
   </div>
@@ -149,15 +156,21 @@
 <script>
 "use strict";
 
-function newpage() {
+var params = {
+  text: '"hello *world*"',
+  to: 'html5',
+  from: 'markdown',
+  standalone: false };
+
+function permalink() {
   let input = document.getElementById("text").value;
   let from = document.getElementById("from").value;
   let to = document.getElementById("to").value;
   let standalone = document.getElementById("standalone").checked ? true : false;
   let href = window.location.href;
   const URLparams = new URLSearchParams(Object.entries({text: input, from: from, to: to, standalone: standalone}));
-  window.location.href = href.replace(/([?].*)?$/,"?" + URLparams);
-};
+  return href.replace(/([?].*)?$/,"?" + URLparams);
+}
 
 const binaryFormats = {
    docx: { extension: "docx",
@@ -166,22 +179,31 @@ const binaryFormats = {
            mime: "application/vnd.oasis.opendocument.text" },
     pptx: { extension: "pptx",
             mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
+    epub:  { extension: "epub",
+             mime: "application/epub+zip" },
     epub2: { extension: "epub",
              mime: "application/epub+zip" },
     epub3: { extension: "epub",
              mime: "application/epub+zip" }
 };
 
-(function() {
-    const params = new URLSearchParams(window.location.search);
-    let text = params.get("text") || '"hello *world*"';
-    document.getElementById("text").value = text;
-    let from = params.get("from") || "markdown";
-    document.getElementById("from").value = from;
-    let to = params.get("to") || "html5";
-    document.getElementById("to").value = to;
-    let standalone = params.get("standalone") === "true";
-    document.getElementById("standalone").checked = standalone;
+function paramsFromURL() {
+  if (window.location.search.length > 0) {
+    const uparams = new URLSearchParams(window.location.search);
+    params.text = uparams.get("text") || "";
+    params.from = uparams.get("from") || "markdown";
+    params.to = uparams.get("to") || "html5";
+    params.standalone = uparams.get("standalone") === "true";
+  }
+}
+
+function convert() {
+    let text = document.getElementById("text").value;
+    let from = document.getElementById("from").value;
+    let to = document.getElementById("to").value;
+    let standalone = document.getElementById("standalone").checked;
+    params = { text: text, from: from, to: to, standalone: standalone };
+
     if (text && text != "") {
        fetch("/cgi-bin/pandoc-server.cgi/version")
           .then(response => response.text())
@@ -202,8 +224,8 @@ const binaryFormats = {
         })
        .then(response => response.text())
        .then(restext => {
-          let binary = binaryFormats[to];
-           if (binary) {
+            let binary = binaryFormats[to];
+            if (binary) {
             document.getElementById("results").innerHTML =
                 '<a download="trypandoc.' + binary.extension +
                 '" href="data:' + binary.mime + ';base64,' + restext +
@@ -211,12 +233,54 @@ const binaryFormats = {
           } else {
             document.getElementById("results").textContent = restext;
           }
+          document.getElementById("permalink").href = permalink();
        });
     };
-    document.getElementById("convert").onclick = newpage;
-    document.getElementById("from").onchange = newpage;
-    document.getElementById("to").onchange = newpage;
-    document.getElementById("standalone").onchange = newpage;
+}
+
+(function() {
+    paramsFromURL();
+    document.getElementById("text").value = params.text;
+    document.getElementById("from").value = params.from;
+    document.getElementById("to").value = params.to;
+    document.getElementById("standalone").checked = params.standalone;
+
+    document.getElementById("convert").onclick = convert;
+    document.getElementById("from").onchange = convert;
+    document.getElementById("to").onchange = convert;
+    document.getElementById("standalone").onchange = convert;
+
+    const fileInput = document.getElementById('loadfile');
+
+    // Listen for the change event so we can capture the file
+    fileInput.addEventListener('change', (e) => {
+      // Get a reference to the file
+      const file = e.target.files[0];
+      
+      // Encode the file using the FileReader API
+      const reader = new FileReader();
+      let binary = binaryFormats[params.from];
+      let inputtext = document.getElementById("text");
+      reader.onloadend = () => {
+        // Use a regex to remove data url part
+        if (binary) {
+          const base64String = reader.result
+           .replace('data:', '')
+           .replace(/^.+,/, '');
+          inputtext.value = base64String;
+	} else {
+          inputtext.value = reader.result;
+        }
+      };
+      if (binary) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
+    });
+	
+    convert();
+
 })();
   </script>
 
