@@ -212,6 +212,13 @@ function paramsFromURL() {
   }
 }
 
+function handleErrors(response) {
+    if (!response.ok) {
+        throw Error(response.statusText);
+    }
+    return response;
+}
+
 function convert() {
     let text = document.getElementById("text").value;
     let from = document.getElementById("from").value;
@@ -223,6 +230,10 @@ function convert() {
 
     if (text && text != "") {
        fetch("/cgi-bin/pandoc-server.cgi/version")
+          .then(handleErrors)
+          .catch(error =>
+            document.getElementById("results").textContent = error
+            )
           .then(response => response.text())
           .then(restext =>
               document.getElementById("version").textContent = restext
