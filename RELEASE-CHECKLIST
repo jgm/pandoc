@@ -17,6 +17,7 @@
     git push --tags
 [ ] Add release on github (use 'make changes_github' and upload files)
 [ ] stack upload .
+[ ] copy deb to server, install it; if trypandoc/ changes, upload them
 [ ] if needed, sh tools/build-and-upload-api-docs.sh
 [ ] Announce on pandoc-announce, pandoc-discuss
 
