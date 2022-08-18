@@ -493,7 +493,7 @@ library
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.5,
                  gridtables            >= 0.0.2    && < 0.1,
-                 haddock-library       >= 1.10     && < 1.11,
+                 haddock-library       >= 1.10     && < 1.12,
                  hslua-module-doclayout>= 1.0.4    && < 1.1,
                  hslua-module-path     >= 1.0      && < 1.1,
                  hslua-module-system   >= 1.0      && < 1.1,
