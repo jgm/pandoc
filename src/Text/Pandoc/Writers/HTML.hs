@@ -876,7 +876,7 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
   let isCslBibEntry = "csl-entry" `elem` classes
   let kvs = [(k,v) | (k,v) <- kvs'
                    , k /= "width" || "column" `notElem` classes] ++
-            [("style", "width:" <> w <> ";") | "column" `elem` classes
+            [("style", "flex:" <> w <> ";")  | "column" `elem` classes
                                              , ("width", w) <- kvs'] ++
             [("role", "doc-bibliography") | isCslBibBody && html5] ++
             [("role", "doc-biblioentry") | isCslBibEntry && html5]
