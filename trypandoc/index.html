@@ -156,7 +156,7 @@ function newpage() {
 
 (function() {
     const params = new URLSearchParams(window.location.search);
-    let text = params.get("text");
+    let text = params.get("text") || '"hello *world*"';
     document.getElementById("text").value = text;
     let from = params.get("from") || "markdown";
     document.getElementById("from").value = from;
@@ -173,6 +173,10 @@ function newpage() {
 
        let params = { from: from, to: to, text: text, standalone: standalone };
        // console.log(JSON.stringify(params));
+       let commandString = "pandoc"
+         + " --from " + from + " --to " + to
+         + (standalone ? " --standalone" : "");
+       document.getElementById("command").textContent = commandString;
        fetch("/cgi-bin/pandoc-server.cgi", {
          method: "POST",
          headers: {"Content-Type": "application/json"},
@@ -181,10 +185,6 @@ function newpage() {
        .then(response => response.text())
        .then(restext => {
          document.getElementById("results").textContent = restext;
-         let commandString = "pandoc"
-           + (standalone ? " --standalone" : "")
-           + " --from " + from + " --to " + to;
-         document.getElementById("command").textContent = commandString;
        });
     };
     document.getElementById("convert").onclick = newpage;
