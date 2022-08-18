@@ -72,7 +72,17 @@ docHToBlocks d' =
     DocHeader h -> B.header (headerLevel h)
                            (docHToInlines False $ headerTitle h)
     DocUnorderedList items -> B.bulletList (map docHToBlocks items)
+#if MIN_VERSION_haddock_library(1,11,0)
+    DocOrderedList items ->
+      B.orderedListWith attr (map (docHToBlocks . snd) items)
+     where
+      attr = (start, DefaultStyle, DefaultDelim)
+      start = case items of
+                [] -> 1
+                ((n,_):_) -> n
+#else
     DocOrderedList items -> B.orderedList (map docHToBlocks items)
+#endif
     DocDefList items -> B.definitionList (map (\(d,t) ->
                                (docHToInlines False d,
                                 [consolidatePlains $ docHToBlocks t])) items)
