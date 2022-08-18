@@ -12,6 +12,7 @@ extra-deps:
 - skylighting-format-latex-0.1
 - skylighting-format-blaze-html-0.1
 - emojis-0.1.2
+- gridtables-0.0.3.0
 - lpeg-1.0.3
 - hslua-2.2.1
 - hslua-aeson-2.2.1
@@ -42,8 +43,6 @@ extra-deps:
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
 - texmath-0.12.5.2
-- git: https://github.com/tarleb/gridtables
-  commit: 76198add9b404124b3a2fdf137399256a91d337b
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
