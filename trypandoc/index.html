@@ -201,6 +201,13 @@ const binaryFormats = {
              mime: "application/epub+zip" }
 };
 
+const binaryMimeTypes = {
+  ["application/epub+zip"]: true,
+  ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]: true,
+  ["application/vnd.openxmlformats-officedocument.presentationml.presentation"]: true,
+  ["application/vnd.oasis.opendocument.text"]: true
+};
+
 function paramsFromURL() {
   if (window.location.search.length > 0) {
     const uparams = new URLSearchParams(window.location.search);
@@ -286,13 +293,15 @@ function convert() {
     fileInput.addEventListener('change', (e) => {
       // Get a reference to the file
       const file = e.target.files[0];
-      
+      const mimetype = file.type;
+      let binary = binaryMimeTypes[mimetype];
+
       // Encode the file using the FileReader API
       const reader = new FileReader();
-      let binary = binaryFormats[params.from];
       let inputtext = document.getElementById("text");
       reader.onloadend = () => {
         // Use a regex to remove data url part
+        console.log(mimetype);
         if (binary) {
           const base64String = reader.result
            .replace('data:', '')
@@ -308,7 +317,7 @@ function convert() {
         reader.readAsText(file);
       }
     });
-	
+
     convert();
 
 })();
