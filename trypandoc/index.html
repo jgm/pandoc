@@ -9,33 +9,43 @@
        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
        <![endif]-->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <style>
-    h1 { margin-bottom: 1em; }
-    body { margin: auto; }
-    textarea { height: auto; width: 100%; font-family: monospace; margin-top: 15px; }
+    body { margin: auto; font-family: sans-serif; font-size: 10pt; color: #555; }
+    #command { min-width: 26em; background-color: #555; color: #eee; border-radius: 9pt; margin: 6pt; padding: 6pt; }
+    h1 { margin-bottom: 1em; font-size: 166%; margin: 0; padding: 6pt; }
+    h1 a { text-decoration: none; color: inherit; }
+    label { font-weight: 600; }
+    textarea { height: auto; font-family: monospace; font-size: 10pt; margin-top: 15px; min-height: 65vh; width: 44vw; }
     div.alert { margin: 1em; }
-    h3 { margin-top: 0; margin-bottom: 0; padding: 0; font-size: 100%; }
-    pre#results { width: 100%; margin-top: 15px; }
+    pre#results { width: 100%; margin-top: 15px; min-height: 65vh; width: 44vw; }
     footer { color: #555; text-align: center; margin: 1em; }
     p.version { color: #555; }
+    .container { margin: 12px; }
+    .row { display: flex; flex-wrap: nowrap; justify-content: space-between; }
+    #frompane { flex: 1; padding: 1em; }
+    #topane { flex: 1; padding: 1em;  }
+    #command { font-family: monospace; padding: 1em; }
     button#convert { vertical-align: bottom; }
     pre#command { margin-top: 1em; background-color: transparent; border: none; }
   </style>
 </head>
 <body>
-<div class="container-fluid">
+<div class="container">
   <div class="row">
-    <div class="col-md-6">
-      <h1>Try pandoc!</h1>
+    <div id="title">
+    <h1>Try <a href="https://pandoc.org">pandoc</a>!</h1>
     </div>
-    <div class="col-md-6">
+    <div id="versioninfo">
+      <p class="version">v<span id="version"></span></p>
+</footer>
+    </div>
+    <div id="command">
       <pre id="command"></pre>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-6">
-      <button class="btn btn-primary btn-xs" id="convert">Convert</button>
+    <div id="frompane">
+      <button id="convert">Convert</button>
       &nbsp;
       <label for="from">
       from
@@ -73,7 +83,7 @@
       <br/>
       <textarea id="text" maxlength="3000" rows="15"></textarea>
     </div>
-    <div class="col-md-6">
+    <div id="topane">
       <label for="to">
       to
       </label>
@@ -130,10 +140,6 @@
     </div>
   </div>
 </div>
-<footer>
- <p class="version">pandoc <span id="version"></span></p>
- <p><a href="https://pandoc.org">https://pandoc.org</a></p>
-</footer>
 
 <script>
 "use strict";
