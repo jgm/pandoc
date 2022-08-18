@@ -26,8 +26,8 @@ quick-cabal: ## build & test with stack, no optimizations
 quick: ## build & test with stack, no optimizations
 	stack install --ghc-options='$(GHCOPTS)' --system-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 
-full: ## build with stack, including benchmarks, trypandoc
-	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes--ansi-tricks-false' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
+full: ## build with stack, including benchmarks
+	stack install --flag 'pandoc:embed_data_files' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes--ansi-tricks-false' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
 
 ghci: ## start ghci session
 	stack ghci --flag 'pandoc:embed_data_files'
@@ -133,9 +133,6 @@ pandoc-templates: ## update pandoc-templates repo
 	git commit -m "Updated templates for pandoc $(version)" && \
 	popd
 
-trypandoc: ## build trypandoc on server
-	ssh -t macfarlane 'cd src/pandoc && git pull && cabal update && cabal install -ftrypandoc -fembed_data_files --install-method=copy --overwrite-policy=always && cd trypandoc && sudo make install'
-
 update-website: ## update website and upload
 	make -C $(WEBSITE) update
 	make -C $(WEBSITE)
@@ -154,4 +151,4 @@ git-files.txt: .FORCE
 help: ## Display this help
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-30s %s\n", $$1, $$2}'
 
-.PHONY: .FORCE deps quick haddock install clean test bench changes_github download_stats reformat lint weigh pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal check
+.PHONY: .FORCE deps quick haddock install clean test bench changes_github download_stats reformat lint weigh pandoc-templates update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal check
