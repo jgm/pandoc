@@ -96,8 +96,11 @@
         <option value="context">ConTeXt</option>
         <option value="docbook4">DocBook v4</option>
         <option value="docbook5">DocBook v5</option>
+        <option value="docx">Docx (Word)</option>
         <option value="dokuwiki">DokuWiki</option>
         <option value="dzslides">DZSlides</option>
+        <option value="epub2">EPUB v2</option>
+        <option value="epub3">EPUB v3</option>
         <option value="haddock">Haddock markup</option>
         <option value="html4">HTML 4</option>
         <option value="html5" selected>HTML 5</option>
@@ -117,10 +120,12 @@
         <option value="markdown_mmd">MultiMarkdown</option>
         <option value="muse">Muse</option>
         <option value="native">Native (Pandoc AST)</option>
+        <option value="odt">ODT</option>
         <option value="opendocument">OpenDocument</option>
         <option value="opml">OPML</option>
         <option value="org">Org Mode</option>
         <option value="plain">Plain text</option>
+        <option value="pptx">Powerpoint</option>
         <option value="revealjs">reveal.js</option>
         <option value="rst">reStructuredText</option>
         <option value="rtf">RTF</option>
@@ -154,6 +159,19 @@ function newpage() {
   window.location.href = href.replace(/([?].*)?$/,"?" + URLparams);
 };
 
+const binaryFormats = {
+   docx: { extension: "docx",
+           mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+    odt: { extension: "odt",
+           mime: "application/vnd.oasis.opendocument.text" },
+    pptx: { extension: "pptx",
+            mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
+    epub2: { extension: "epub",
+             mime: "application/epub+zip" },
+    epub3: { extension: "epub",
+             mime: "application/epub+zip" }
+};
+
 (function() {
     const params = new URLSearchParams(window.location.search);
     let text = params.get("text") || '"hello *world*"';
@@ -168,7 +186,7 @@ function newpage() {
        fetch("/cgi-bin/pandoc-server.cgi/version")
           .then(response => response.text())
           .then(restext =>
-             document.getElementById("version").textContent = restext
+              document.getElementById("version").textContent = restext
             );
 
        let params = { from: from, to: to, text: text, standalone: standalone };
@@ -184,7 +202,15 @@ function newpage() {
         })
        .then(response => response.text())
        .then(restext => {
-         document.getElementById("results").textContent = restext;
+          let binary = binaryFormats[to];
+           if (binary) {
+            document.getElementById("results").innerHTML =
+                '<a download="trypandoc.' + binary.extension +
+                '" href="data:' + binary.mime + ';base64,' + restext +
+                '">click to download trypandoc.' + binary.extension + '</a>';
+          } else {
+            document.getElementById("results").textContent = restext;
+          }
        });
     };
     document.getElementById("convert").onclick = newpage;
