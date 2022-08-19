@@ -78,7 +78,11 @@ function convert() {
        fetch("/cgi-bin/pandoc-server.cgi", {
          method: "POST",
          headers: {"Content-Type": "application/json"},
-         body: JSON.stringify(params)
+         body: JSON.stringify({ from: params.from,
+                                to: params.to,
+                                text: params.text,
+                                standalone: params.standalone,
+                                filters: params.citeproc ? ["citeproc"] : [] })
         })
        .then(handleErrors)
        .then(response => response.text())
