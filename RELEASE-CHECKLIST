@@ -8,7 +8,6 @@
 [ ] run tools/build-arm.sh to create and download arm64 linux package
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website
-[ ] update pandoc-server (upload deb to website, dpkg -i it)
 [ ] Tag release in git
 [ ] make pandoc-templates
     cd ../pandoc-templates
