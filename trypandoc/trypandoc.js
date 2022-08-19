@@ -54,13 +54,14 @@ function paramsFromURL() {
 function handleErrors(response) {
     if (response.status == 503) {
         throw Error("Conversion timed out.")
-    } else if (!response.ok) {
-        throw Error(response.statusText);
+//    } else if (!response.ok) {
+//        throw Error(response.statusText);
     }
     return response;
 }
 
 function convert() {
+    document.getElementById("results").textContent = "";
     let text = document.getElementById("text").value;
     let from = document.getElementById("from").value;
     let to = document.getElementById("to").value;
@@ -99,7 +100,7 @@ function convert() {
           document.getElementById("permalink").href = permalink();
        })
        .catch(error => {
-         document.getElementById("results").textContent = error;
+         document.getElementById("results").textContent = error
        }
        );
     };
