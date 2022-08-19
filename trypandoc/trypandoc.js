@@ -52,7 +52,7 @@ function paramsFromURL() {
 }
 
 function handleErrors(response) {
-    if (response.status == 503 || response.status == 500) {
+    if (response.status == 503) {
         throw Error("Conversion timed out.")
     } else if (!response.ok) {
         throw Error(response.statusText);
