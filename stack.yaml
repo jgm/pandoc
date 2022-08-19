@@ -36,7 +36,7 @@ extra-deps:
 - unicode-data-0.3.0
 - commonmark-pandoc-0.2.1.2
 - ipynb-0.2
-- pandoc-types-1.22.2
+- pandoc-types-1.22.2.1
 - commonmark-0.2.2
 - commonmark-extensions-0.2.3.2
 - doclayout-0.4
