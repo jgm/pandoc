@@ -52,7 +52,7 @@ function paramsFromURL() {
 }
 
 function handleErrors(response) {
-    if (response.status == 503) {
+    if (response.status == 503 || response.status == 500) {
         throw Error("Conversion timed out.")
     } else if (!response.ok) {
         throw Error(response.statusText);
@@ -70,16 +70,6 @@ function convert() {
                citeproc: citeproc };
 
     if (text && text != "") {
-       fetch("/cgi-bin/pandoc-server.cgi/version")
-          .then(handleErrors)
-          .catch(error =>
-            document.getElementById("results").textContent = error )
-          .then(response => response.text())
-          .then(restext =>
-              document.getElementById("version").textContent = restext
-            );
-
-       // console.log(JSON.stringify(params));
        let commandString = "pandoc"
          + " --from " + from + " --to " + to
          + (standalone ? " --standalone" : "")
@@ -90,6 +80,7 @@ function convert() {
          headers: {"Content-Type": "application/json"},
          body: JSON.stringify(params)
         })
+       .then(handleErrors)
        .then(response => response.text())
        .then(restext => {
             let binary = binaryFormats[to];
@@ -102,7 +93,11 @@ function convert() {
             document.getElementById("results").textContent = restext;
           }
           document.getElementById("permalink").href = permalink();
-       });
+       })
+       .catch(error => {
+         document.getElementById("results").textContent = error;
+       }
+       );
     };
 }
 
@@ -137,7 +132,6 @@ function convert() {
       let inputtext = document.getElementById("text");
       reader.onloadend = () => {
         // Use a regex to remove data url part
-        console.log(mimetype);
         if (binary) {
           const base64String = reader.result
            .replace('data:', '')
@@ -153,6 +147,13 @@ function convert() {
         reader.readAsText(file);
       }
     });
+
+    fetch("/cgi-bin/pandoc-server.cgi/version")
+       .then(handleErrors)
+       .then(response => response.text())
+       .then(restext =>
+           document.getElementById("version").textContent = restext
+         );
 
     convert();
 
