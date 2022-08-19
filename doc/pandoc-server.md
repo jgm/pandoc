@@ -42,6 +42,9 @@ does, however, impose certain limitations:
 `--timeout SECONDS`
 :    Timeout in seconds, after which a conversion is killed. Default: 2.
 
+     When `pandoc-server` is run as a CGI program, this option
+     can be set via the `PANDOC_SERVER_TIMEOUT` environment variable.
+
 `--help`
 :    Print this help.
 

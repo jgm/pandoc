@@ -790,7 +790,8 @@ executable pandoc
   buildable:       True
   other-modules:   Paths_pandoc
   build-depends:   wai-extra             >= 3.0.24,
-                   warp
+                   warp,
+                   safe
 
 test-suite test-pandoc
   import:         common-executable
