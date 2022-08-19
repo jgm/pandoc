@@ -52,14 +52,10 @@ function paramsFromURL() {
 }
 
 function handleErrors(response) {
-    if (!response.ok) {
-        throw Error(response.statusText);
-    }
-    if (response.status == 300) {
+    if (response.status == 503) {
         throw Error("Conversion timed out.")
-    }
-    if (response.status != 200) {
-        throw Error("Server returned status " + response.status.toString())
+    } else if (!response.ok) {
+        throw Error(response.statusText);
     }
     return response;
 }
@@ -77,9 +73,7 @@ function convert() {
        fetch("/cgi-bin/pandoc-server.cgi/version")
           .then(handleErrors)
           .catch(error =>
-            document.getElementById("results").textContent = error;
-            return Promise.reject();
-            )
+            document.getElementById("results").textContent = error )
           .then(response => response.text())
           .then(restext =>
               document.getElementById("version").textContent = restext
