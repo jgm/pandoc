@@ -1,11 +1,11 @@
 # Revision history for pandoc
 
-## pandoc 2.19.1 (PROVISIONAL)
+## pandoc 2.19.1 (2022-08-18)
 
   * Add server capabilities.
 
     + New exported module Text.Pandoc.Server [API change].
-    + The pandoc executable now starts up a webserver when renamed or
+    + The pandoc executable now starts up a web server when renamed or
       symlinked as `pandoc-server`, and functions as a CGI program when
       renamed or symlinked as `pandoc-server.cgi`.  See the man page for
       `pandoc-server` for full documentation.
@@ -64,10 +64,6 @@
 
   * Update INSTALL.md installation from source instructions.
 
-  * pandoc.cabal: small update to description.
-
-  * Makefile: Add man target.
-
   * Use base64 package instead of base64-bytestring. It is supposed to be
     faster and more standards-compliant.
 
@@ -80,11 +76,7 @@
     + Add permalink.  Don't always reload page.
     + Use vanilla JS and CSS + the new `pandoc-server.cgi`.
 
-  * Use dev version of gridtables (Albert Krewinkel, #8216).
-
   * Allow haddock-library-1.11.0.
-
-  * MANUAL.txt: Add section on pandoc-server.
 
   * Convert `tool/extract-changes.hs` to a Lua filter.
 
