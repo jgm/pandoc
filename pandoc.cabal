@@ -495,7 +495,7 @@ library
                  gridtables            >= 0.0.3    && < 0.1,
                  haddock-library       >= 1.10     && < 1.12,
                  hslua-module-doclayout>= 1.0.4    && < 1.1,
-                 hslua-module-path     >= 1.0      && < 1.1,
+                 hslua-module-path     >= 1.0.3    && < 1.1,
                  hslua-module-system   >= 1.0      && < 1.1,
                  hslua-module-text     >= 1.0      && < 1.1,
                  hslua-module-version  >= 1.0      && < 1.1,
