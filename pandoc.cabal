@@ -539,7 +539,7 @@ library
                  wai                   >= 0.3
 
   if !os(windows)
-    build-depends:  unix >= 2.4 && < 2.8
+    build-depends:  unix >= 2.4 && < 2.9
   if flag(nightly)
     cpp-options:    -DNIGHTLY
     build-depends:  template-haskell
