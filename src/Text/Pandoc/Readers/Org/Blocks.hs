@@ -311,7 +311,11 @@ codeBlock blockAttrs blockType = do
   content        <- rawBlockContent blockType
   resultsContent <- option mempty babelResultsBlock
   let identifier = fromMaybe mempty $ blockAttrName blockAttrs
-  let codeBlk    = B.codeBlockWith (identifier, classes, kv) content
+  let classes'   = case classes of
+                     c:cs | Just c' <- T.stripPrefix "jupyter-" c ->
+                            c' : "code" : cs
+                     _ -> classes
+  let codeBlk    = B.codeBlockWith (identifier, classes', kv) content
   let wrap       = maybe pure addCaption (blockAttrCaption blockAttrs)
   return $
     (if exportsCode kv    then wrap codeBlk   else mempty) <>
