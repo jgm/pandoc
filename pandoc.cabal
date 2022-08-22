@@ -206,6 +206,7 @@ extra-source-files:
                  man/pandoc.1.before
                  man/pandoc.1.after
                  -- trypandoc
+                 trypandoc/Makefile
                  trypandoc/index.html
                  trypandoc/trypandoc.js
                  -- tests
