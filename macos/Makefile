@@ -20,7 +20,7 @@ $(BASE)-macOS.pkg: pandoc.pkg
 	productbuild --distribution distribution.xml --resources Resources --package-path $< --version $(VERSION) --sign 'Developer ID Installer: John Macfarlane' $@
 
 $(BASE)-macOS.zip: $(DEST)/bin/pandoc-server signed.txt
-	ln -s $(DEST) $(BASE)
+	mv $(DEST) $(BASE)
 	zip --symlinks -r $@ $(BASE)
 
 gon.hcl: version.txt
