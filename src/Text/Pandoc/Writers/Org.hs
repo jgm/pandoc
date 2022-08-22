@@ -105,6 +105,14 @@ blockToOrg :: PandocMonad m
            => Block         -- ^ Block element
            -> Org m (Doc Text)
 blockToOrg Null = return empty
+blockToOrg (Div (_, ["cell", "code"], _) (CodeBlock attr t : bs)) = do
+  -- ipynb code cell
+  let (ident, classes, kvs) = attr
+  blockListToOrg (CodeBlock (ident, classes ++ ["code"], kvs) t : bs)
+blockToOrg (Div (_, ["output", "execute_result"], _) [CodeBlock _attr t]) = do
+  -- ipynb code result
+  return $ "#+RESULTS:" $$
+    (prefixed ": " . vcat . map literal $ T.split (== '\n') t)
 blockToOrg (Div attr@(ident,_,_) bs) = do
   opts <- gets stOptions
   -- Strip off bibliography if citations enabled
