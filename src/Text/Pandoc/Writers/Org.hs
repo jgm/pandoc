@@ -161,7 +161,9 @@ blockToOrg (CodeBlock (ident,classes,kvs) str) = do
   let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
   let lang = case at of
         []  -> Nothing
-        l:_ -> Just l
+        l:_ -> if "code" `elem` classes    -- check for ipynb code cell
+               then Just ("jupyter-" <> l)
+               else Just l
   let args = mconcat $
              [ " :" <> k <> " " <> v
              | (k, v) <- kvs, k `notElem` ["startFrom", "org-language"]]
