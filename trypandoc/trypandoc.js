@@ -52,16 +52,22 @@ function paramsFromURL() {
 }
 
 function handleErrors(response) {
+    let errs = document.getElementById("errors");
+    if (!response.ok) {
+      errs.textContent = "Conversion failed, status = " + response.status;
+      errs.style.display = "block";
+    }
     if (response.status == 503) {
-        throw Error("Conversion timed out.")
-//    } else if (!response.ok) {
-//        throw Error(response.statusText);
+      errs.textContent += "  Timed out.";
     }
     return response;
 }
 
 function convert() {
     document.getElementById("results").textContent = "";
+    let errs = document.getElementById("errors");
+    errs.style.display = "none";
+    errs.textContent = "";
     let text = document.getElementById("text").value;
     let from = document.getElementById("from").value;
     let to = document.getElementById("to").value;
@@ -89,20 +95,17 @@ function convert() {
        .then(response => response.text())
        .then(restext => {
             let binary = binaryFormats[to];
-            if (binary) {
-            document.getElementById("results").innerHTML =
+            if (binary &&
+              document.getElementById("errors").style.display == "none") {
+            document.getElementById("results").innerHTML +=
                 '<a download="trypandoc.' + binary.extension +
                 '" href="data:' + binary.mime + ';base64,' + restext +
                 '">click to download trypandoc.' + binary.extension + '</a>';
           } else {
-            document.getElementById("results").textContent = restext;
+            document.getElementById("results").textContent += restext;
           }
           document.getElementById("permalink").href = permalink();
-       })
-       .catch(error => {
-         document.getElementById("results").textContent = error
-       }
-       );
+       });
     };
 }
 
