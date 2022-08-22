@@ -3856,14 +3856,14 @@ This is equivalent to:
 This shortcut form may be combined with attributes:
 
     ```haskell {.numberLines}
-	qsort [] = []
-	```
+    qsort [] = []
+    ```
 
 Which is equivalent to:
 
-	``` {.haskell .numberLines}
-	qsort [] = []
-	```
+    ``` {.haskell .numberLines}
+    qsort [] = []
+    ```
 
 If the `fenced_code_attributes` extension is disabled, but
 input contains class attribute(s) for the code block, the first
