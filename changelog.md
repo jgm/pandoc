@@ -1,5 +1,36 @@
 # Revision history for pandoc
 
+## pandoc 2.19.2 (2022-08-22)
+
+  * Fix regression with data uris in 2.19.1 (#8239).
+    In 2.19.1 we used the base64URL encoding rather than base64.
+
+  * pandoc-server: handle `citeproc` parameter as documented (#8235).
+
+  * Org reader: treat *emacs-jupyter* src blocks as code cells (#8236,
+    Albert Krewinkel). This improves support for notebook-like org files
+    that are intended to be used with emacs-jupyter package.
+
+  * HTML writer and templates: revert to using `width` property for column
+    widths (Albert Krewinkel). The default `flex` and `overflow-x` properties
+    of a column are set to `auto`. In combination, these changes allow to
+    get good results when using columns with or without explicit widths.
+
+  * Org writer (Albert Krewinkel):
+
+    + Add support for jupyter nodebook cells (#6367).
+    + Prefix code language of ipynb code blocks with `jupyter-`.
+      This is the convention used by the *emacs-jupyter* package.
+    + Keep code block attributes as header args. This allows to keep more
+      information in the resulting `src` blocks, making it easier to
+      roundtrip from or through Org. Org babel ignores unknown header
+      arguments.
+    + Add code block identifier as `#+name` to src blocks.
+
+  * Fix some typos in the codebase (luz paz).
+
+  * Require hslua-module-path 1.0.3 (#8228, Albert Krewinkel).
+
 ## pandoc 2.19.1 (2022-08-18)
 
   * Add server capabilities.
