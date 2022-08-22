@@ -89,7 +89,7 @@ function convert() {
        .then(response => response.text())
        .then(restext => {
             let binary = binaryFormats[to];
-            if (binary) {
+            if (binary and response.ok) {
             document.getElementById("results").innerHTML =
                 '<a download="trypandoc.' + binary.extension +
                 '" href="data:' + binary.mime + ';base64,' + restext +
