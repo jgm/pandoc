@@ -36,7 +36,7 @@ module Text.Pandoc.Class.IO
 
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.ByteString.Base64.URL (decodeBase64Lenient)
+import Data.ByteString.Base64 (decodeBase64Lenient)
 import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)

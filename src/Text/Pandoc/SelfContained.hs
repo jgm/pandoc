@@ -19,7 +19,7 @@ import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
 import Control.Monad.Trans (lift)
 import Data.ByteString (ByteString)
-import Data.ByteString.Base64.URL (encodeBase64)
+import Data.ByteString.Base64 (encodeBase64)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T

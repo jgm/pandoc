@@ -21,7 +21,7 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad (zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, liftM, modify)
-import Data.ByteString.Base64.URL (encodeBase64)
+import Data.ByteString.Base64 (encodeBase64)
 import Data.Char (isAscii, isControl, isSpace)
 import Data.Either (lefts, rights)
 import Data.List (intercalate)

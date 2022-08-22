@@ -25,7 +25,7 @@ TODO:
 module Text.Pandoc.Readers.FB2 ( readFB2 ) where
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
-import Data.ByteString.Lazy.Base64.URL
+import Data.ByteString.Lazy.Base64
 import Data.Functor
 import Data.List (intersperse)
 import qualified Data.Map as M
