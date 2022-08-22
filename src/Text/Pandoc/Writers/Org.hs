@@ -159,10 +159,16 @@ blockToOrg (CodeBlock (ident,classes,kvs) str) = do
                              else " -n" <> startnum
                       else ""
   let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
-  let (beg, end) = case at of
-                      []    -> ("#+begin_example" <> numberlines, "#+end_example")
-                      (x:_) -> ("#+begin_src " <> x <> numberlines, "#+end_src")
-  return $ name $$ literal beg $$ literal str $$ text end $$ blankline
+  let lang = case at of
+        []  -> Nothing
+        l:_ -> Just l
+  let args = mconcat $
+             [ " :" <> k <> " " <> v
+             | (k, v) <- kvs, k `notElem` ["startFrom", "org-language"]]
+  let (beg, end) = case lang of
+        Nothing -> ("#+begin_example" <> numberlines, "#+end_example")
+        Just x  -> ("#+begin_src " <> x <> numberlines <> args, "#+end_src")
+  return $ name $$ literal beg $$ literal str $$ literal end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+begin_quote" $$
