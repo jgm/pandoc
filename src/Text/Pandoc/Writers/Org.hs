@@ -148,7 +148,10 @@ blockToOrg (Header level attr inlines) = do
                   then empty
                   else cr <> propertiesDrawer attr
   return $ headerStr <> " " <> contents <> drawerStr <> cr
-blockToOrg (CodeBlock (_,classes,kvs) str) = do
+blockToOrg (CodeBlock (ident,classes,kvs) str) = do
+  let name = if T.null ident
+             then empty
+             else literal $ "#+name: " <> ident
   let startnum = maybe "" (\x -> " " <> trimr x) $ lookup "startFrom" kvs
   let numberlines = if "numberLines" `elem` classes
                       then if "continuedSourceBlock" `elem` classes
@@ -159,7 +162,7 @@ blockToOrg (CodeBlock (_,classes,kvs) str) = do
   let (beg, end) = case at of
                       []    -> ("#+begin_example" <> numberlines, "#+end_example")
                       (x:_) -> ("#+begin_src " <> x <> numberlines, "#+end_src")
-  return $ literal beg $$ literal str $$ text end $$ blankline
+  return $ name $$ literal beg $$ literal str $$ text end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+begin_quote" $$

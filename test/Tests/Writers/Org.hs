@@ -66,4 +66,15 @@ tests =
           , "- ☒ b"
           ]
     ]
+
+  , testGroup "code blocks"
+    [ "identifier"
+      =: codeBlockWith ("abc", ["python"], []) "return True"
+      =?> T.unlines
+      [ "#+name: abc"
+      , "#+begin_src python"
+      , "return True"
+      , "#+end_src"
+      ]
+    ]
   ]
