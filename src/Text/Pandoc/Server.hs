@@ -38,7 +38,6 @@ import qualified Control.Exception as E
 import Text.Pandoc.Shared (safeStrRead, headerShift, filterIpynbOutput,
                            eastAsianLineBreakFilter, stripEmptyParagraphs)
 import Text.Pandoc.App.Opt ( IpynbOutput (..), Opt(..), defaultOpts )
-import Text.Pandoc.Filter (Filter(..))
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import System.Exit
@@ -122,6 +121,7 @@ data Params = Params
   { options               :: Opt
   , text                  :: Text
   , files                 :: Maybe (M.Map FilePath Blob)
+  , citeproc              :: Maybe Bool
   } deriving (Show)
 
 instance Default Params where
@@ -129,6 +129,7 @@ instance Default Params where
     { options = defaultOpts
     , text = mempty
     , files = Nothing
+    , citeproc = Nothing
     }
 
 -- Automatically derive code to convert to/from JSON.
@@ -138,6 +139,7 @@ instance FromJSON Params where
      <$> parseJSON (Object o)
      <*> o .: "text"
      <*> o .:? "files"
+     <*> o .:? "citeproc"
 
 
 -- This is the API.  The "/convert" endpoint takes a request body
@@ -327,15 +329,11 @@ server = convert
 
     let addMetadata m' (Pandoc m bs) = Pandoc (m <> m') bs
 
-    let hasCiteprocFilter [] = False
-        hasCiteprocFilter (CiteprocFilter:_) = True
-        hasCiteprocFilter (_:xs) = hasCiteprocFilter xs
-
     reader (text params) >>=
       return . transforms . addMetadata meta >>=
-      (if hasCiteprocFilter (optFilters opts)
-          then processCitations
-          else return) >>=
+        (case citeproc params of
+          Just True -> processCitations
+          _ -> return) >>=
       writer
 
   htmlFormat :: Maybe Text -> Bool

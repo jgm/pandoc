@@ -83,7 +83,7 @@ function convert() {
                                 to: params.to,
                                 text: params.text,
                                 standalone: params.standalone,
-                                filters: params.citeproc ? ["citeproc"] : [] })
+                                citeproc: params.citeproc })
         })
        .then(handleErrors)
        .then(response => response.text())
