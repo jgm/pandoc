@@ -694,7 +694,7 @@ codeBlockFenced = try $ do
            maybeAttr <- option Nothing (Just <$> (guardEnabled Ext_fenced_code_attributes >> try attributes))
            return $ case maybeAttr of
               Nothing -> ("", maybeToList languageId, [])
-              Just (_id, classes, _attrs) -> (_id, maybe classes (: classes) languageId, _attrs)))
+              Just (id, classes, attrs) -> (id, maybe classes (: classes) languageId, attrs)))
   blankline
   contents <- T.intercalate "\n" <$>
                  manyTill (gobbleAtMostSpaces indentLevel >> anyLine)
