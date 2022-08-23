@@ -64,23 +64,13 @@ function convert() {
     let errs = document.getElementById("errors");
     errs.style.display = "none";
     errs.textContent = "";
-    let text = document.getElementById("text").value;
-    let from = document.getElementById("from").value;
-    let to = document.getElementById("to").value;
-    let standalone = document.getElementById("standalone").checked;
-    let citeproc = document.getElementById("citeproc").checked;
-    params.text = text;
-    params.from = from;
-    params.to = to;
-    params.standalone = standalone;
-    params.citeproc = citeproc;
     console.log(params);
 
-    if (text && text != "") {
+    if (params.text && params.text != "") {
        let commandString = "pandoc"
-         + " --from " + from + " --to " + to
-         + (standalone ? " --standalone" : "")
-         + (citeproc ? " --citeproc" : "") ;
+         + " --from " + params.from + " --to " + params.to
+         + (params.standalone ? " --standalone" : "")
+         + (params.citeproc ? " --citeproc" : "") ;
        document.getElementById("command").textContent = commandString;
        fetch("/cgi-bin/pandoc-server.cgi", {
          method: "POST",
@@ -90,7 +80,7 @@ function convert() {
        .then(handleErrors)
        .then(response => response.text())
        .then(restext => {
-            let binary = binaryFormats[to];
+            let binary = binaryFormats[params.to];
             if (binary &&
               document.getElementById("errors").style.display == "none") {
             document.getElementById("results").innerHTML +=
@@ -114,10 +104,25 @@ function convert() {
     document.getElementById("citeproc").checked = params.citeproc;
 
     document.getElementById("convert").onclick = convert;
-    document.getElementById("from").onchange = convert;
-    document.getElementById("to").onchange = convert;
-    document.getElementById("standalone").onchange = convert;
-    document.getElementById("citeproc").onchange = convert;
+    document.getElementById("from").onchange = (e) => {
+      params.from = e.target.value;
+      convert();
+    }
+    document.getElementById("to").onchange = (e) => {
+      params.to = e.target.value;
+      convert();
+    }
+    document.getElementById("text").onchange = (e) => {
+      params.text = e.target.value;
+    }
+    document.getElementById("standalone").onchange = (e) => {
+      params.standalone = e.target.checked;
+      convert();
+    }
+    document.getElementById("citeproc").onchange = (e) => {
+      params.citeproc = e.target.checked;
+      convert();
+    }
 
     document.getElementById("examples").onchange =
       (e => window.location.href = e.target.value );
@@ -144,6 +149,7 @@ function convert() {
 	} else {
           inputtext.value = reader.result;
         }
+        params.text = inputtext.value;
       };
       if (binary) {
         reader.readAsDataURL(file);
