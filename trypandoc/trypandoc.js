@@ -8,13 +8,8 @@ var params = {
   citeproc: false };
 
 function permalink() {
-  let input = document.getElementById("text").value;
-  let from = document.getElementById("from").value;
-  let to = document.getElementById("to").value;
-  let standalone = document.getElementById("standalone").checked ? true : false;
-  let citeproc = document.getElementById("citeproc").checked ? true : false;
   let href = window.location.href;
-  const URLparams = new URLSearchParams(Object.entries({text: input, from: from, to: to, standalone: standalone, citeproc: citeproc}));
+  const URLparams = new URLSearchParams(Object.entries(params));
   return href.replace(/([?].*)?$/,"?" + URLparams);
 }
 
