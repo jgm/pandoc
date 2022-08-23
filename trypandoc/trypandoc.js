@@ -152,24 +152,24 @@ function convert() {
       }
     });
 
-    const supportFiles = document.getElementById('supportfiles');
-
-    // Listen for the change event so we can capture the file
-    supportFiles.addEventListener('change', (e) => {
-      // Get a reference to the file
-      const files = e.target.files;
-      params.files = {};
-      Object.keys(files).forEach(i => {
-        const file = files[i];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          params.files[file.name] = reader.result
-           .replace('data:', '')
-           .replace(/^.+,/, '');
-        }
-        reader.readAsDataURL(file);
-      });
-    });
+    // const supportFiles = document.getElementById('supportfiles');
+    //
+    // // Listen for the change event so we can capture the file
+    // supportFiles.addEventListener('change', (e) => {
+    //   // Get a reference to the file
+    //   const files = e.target.files;
+    //   params.files = {};
+    //   Object.keys(files).forEach(i => {
+    //     const file = files[i];
+    //     const reader = new FileReader();
+    //     reader.onload = (e) => {
+    //       params.files[file.name] = reader.result
+    //        .replace('data:', '')
+    //        .replace(/^.+,/, '');
+    //     }
+    //     reader.readAsDataURL(file);
+    //   });
+    // });
 
     fetch("/cgi-bin/pandoc-server.cgi/version")
        .then(handleErrors)
