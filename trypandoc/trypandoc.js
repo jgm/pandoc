@@ -9,6 +9,13 @@ var params = {
   files: {} };
 
 const examples = {
+  hello_world:
+    { text: '*Hello* world!',
+      from: 'markdown',
+      to: 'html5',
+      standalone: false,
+      citeproc: false,
+      files: {} },
   bibtex_to_csl_json:
     { text: `@BOOK{Wurm2011-ho,
   title     = "{Substanz und Qualität : Ein Beitrag zur Interpretation der
