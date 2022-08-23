@@ -40,17 +40,18 @@ tableEnvironments blocks inline =
 hline :: PandocMonad m => LP m ()
 hline = try $ do
   spaces
-  controlSeq "hline" <|>
-    (controlSeq "cline" <* braced) <|>
-    -- booktabs rules:
-    controlSeq "toprule" <|>
-    controlSeq "bottomrule" <|>
-    controlSeq "midrule" <|>
-    controlSeq "endhead" <|>
-    controlSeq "endfirsthead"
-  spaces
+  hasParenArg <-
+      (False <$ controlSeq "hline") <|>
+      (False <$ controlSeq "cline") <|>
+      (True <$ controlSeq "cmidrule") <|>
+      -- booktabs rules:
+      (True <$ controlSeq "toprule") <|>
+      (True <$ controlSeq "bottomrule") <|>
+      (True <$ controlSeq "midrule") <|>
+      (True <$ controlSeq "endhead") <|>
+      (True <$ controlSeq "endfirsthead")
   optional rawopt
-  return ()
+  when hasParenArg $ void $ optional (parenWrapped (() <$ singleChar))
 
 lbreak :: PandocMonad m => LP m Tok
 lbreak = (controlSeq "\\" <|> controlSeq "tabularnewline")
