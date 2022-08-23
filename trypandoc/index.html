@@ -5,10 +5,6 @@
   <title>Try pandoc!</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <!--[if lt IE 9]>
-       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-       <![endif]-->
   <style>
     body { margin: auto; font-family: sans-serif; font-size: 10pt; color: #555; }
     #command { min-width: 26em; background-color: #555; color: #eee; border-radius: 9pt; margin: 6pt; padding: 6pt; }
@@ -26,6 +22,7 @@
     #frompane { flex: 1; padding: 1em; }
     #topane { flex: 1; padding: 1em;  }
     #command { font-family: monospace; padding: 1em; }
+    #text {margin-top: 0; padding-top: 0;}
     button#convert { vertical-align: bottom; }
     pre#command { margin-top: 1em; background-color: transparent; border: none; }
     a#permalink { margin-top: 6pt; margin-bottom: 6pt; display: block; }
@@ -87,13 +84,17 @@
         <option value="twiki">TWiki</option>
         <option value="vimwiki">Vimwiki</option>
       </select><br/>
-      <label for="loadfile">Load from file</label>
+      <label for="loadfile">Input</label>
       <input id="loadfile" type="file" />
-      <!-- <br/>
-      <label for="supportfiles">Support files (images, etc.)</label>
-      <input id="supportfiles" type="file" multiple />
-      -->
+      <!-- <label for="supportfile">+ Support</label>
+      <input id="supportfile" type="file" /> -->
       <br/>
+      <!-- <div id="tabs">
+        <span class="tab"><a onclick="showFile('stdin')">stdin</a></span>
+        <span id="files">
+        </span>
+      </div>
+      -->
       <textarea id="text" rows="15"></textarea>
       <br/>
       <label for="examples">
