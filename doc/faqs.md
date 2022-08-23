@@ -120,7 +120,7 @@ and using the `tlmgr` tool to install a few packages required by pandoc
 
 Or, you can produce PDFs via HTML and `wkhtmltopdf`,
 or via groff ms and `pdfroff`.  (These don't produce as nice
-topography as TeX, particularly when it comes to math, but they
+typography as TeX, particularly when it comes to math, but they
 may be fine for many purposes.)
 
 
