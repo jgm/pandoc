@@ -245,10 +245,7 @@ table = do
                    (TableFoot nullAttr [])
 
 calculateAlignments :: [Cell] -> [Alignment]
-calculateAlignments cells =
-  case cells of
-    c:cs -> cellAligns c : calculateAlignments cs
-    _    -> []
+calculateAlignments = map cellAligns
   where
     cellAligns :: Cell -> Alignment
     cellAligns (Cell _ align _ _ _) = align
