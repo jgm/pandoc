@@ -5,7 +5,8 @@ var params = {
   to: 'html5',
   from: 'markdown',
   standalone: false,
-  citeproc: false };
+  citeproc: false,
+  files: {} };
 
 function permalink() {
   let href = window.location.href;
@@ -68,8 +69,12 @@ function convert() {
     let to = document.getElementById("to").value;
     let standalone = document.getElementById("standalone").checked;
     let citeproc = document.getElementById("citeproc").checked;
-    params = { text: text, from: from, to: to, standalone: standalone,
-               citeproc: citeproc };
+    params.text = text;
+    params.from = from;
+    params.to = to;
+    params.standalone = standalone;
+    params.citeproc = citeproc;
+    console.log(params);
 
     if (text && text != "") {
        let commandString = "pandoc"
@@ -145,6 +150,25 @@ function convert() {
       } else {
         reader.readAsText(file);
       }
+    });
+
+    const supportFiles = document.getElementById('supportfiles');
+
+    // Listen for the change event so we can capture the file
+    supportFiles.addEventListener('change', (e) => {
+      // Get a reference to the file
+      const files = e.target.files;
+      params.files = {};
+      Object.keys(files).forEach(i => {
+        const file = files[i];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          params.files[file.name] = reader.result
+           .replace('data:', '')
+           .replace(/^.+,/, '');
+        }
+        reader.readAsDataURL(file);
+      });
     });
 
     fetch("/cgi-bin/pandoc-server.cgi/version")
