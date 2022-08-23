@@ -2,3 +2,9 @@ packages: pandoc.cabal
 tests: True
 flags: +embed_data_files
 constraints: aeson >= 2.0.1.0
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs
+  tag: 4f4fbe277044de0724dd0828a45311ab1413e30b
+  subdir: commonmark-extensions
