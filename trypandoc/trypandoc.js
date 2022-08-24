@@ -62,21 +62,15 @@ references:
     standalone: false,
     citeproc: true,
     files: {} },
-  mediawiki_to_docx_with_equations:
-  { text: `== Definition ==
-Although seemingly different, the various approaches to defining tensors describe the same geometric concept using different language and at different levels of abstraction.
+  ["MediaWiki to docx with equations"]:
+  { text: `Just as the components of a vector change when we change the [[basis (linear algebra)|basis]] of the vector space, the components of a tensor also change under such a transformation.  Each type of tensor comes equipped with a ''transformation law'' that details how the components of the tensor respond to a [[change of basis]].  The components of a vector can respond in two distinct ways to a [[change of basis]] (see [[covariance and contravariance of vectors]]), where the new [[basis vectors]] <math>\\mathbf{\\hat{e}}_i</math> are expressed in terms of the old basis vectors <math>\\mathbf{e}_j</math> as,
+:<math>\\mathbf{\\hat{e}}_i = \\sum_{j=1}^n \\mathbf{e}_j R^j_i = \\mathbf{e}_j R^j_i .</math>
 
-=== As multidimensional arrays ===
-A tensor may be represented as an array (potentially multidimensional). Just as a [[Vector space|vector]] in an {{mvar|n}}-[[dimension (vector space)|dimensional]] space is represented by a one-dimensional array with {{mvar|n}} components with respect to a given [[Basis (linear algebra)#Ordered bases and coordinates|basis]], any tensor with respect to a basis is represented by a multidimensional array.  For example, a [[linear operator]] is represented in a basis as a two-dimensional square {{math|''n'' × ''n''}} array.  The numbers in the multidimensional array are known as the ''scalar components'' of the tensor or simply its ''components''.  They are denoted by indices giving their position in the array, as [[subscript and superscript|subscripts and superscripts]], following the symbolic name of the tensor.  For example, the components of an order {{math|2}} tensor {{mvar|T}} could be denoted {{math|''T''<sub>''ij''</sub>}} , where {{mvar|i}} and {{mvar|j}} are indices running from {{math|1}} to {{mvar|n}}, or also by {{math|''T''&thinsp;{{su|b=''j''|p=''i''}}}}.  Whether an index is displayed as a superscript or subscript depends on the transformation properties of the tensor, described below. Thus while {{math|''T''<sub>''ij''</sub>}} and {{math|''T''&thinsp;{{su|b=''j''|p=''i''}}}} can both be expressed as ''n'' by ''n'' matrices, and are numerically related via [[Raising and lowering indices|index juggling]], the difference in their transformation laws indicates it would be improper to add them together. The total number of indices required to identify each component uniquely is equal to the [[Array data structure#Dimension|dimension]] of the array, and is called the ''order'', ''degree'' or ''rank'' of the tensor.  However, the term "rank" generally has [[tensor rank|another meaning]] in the context of matrices and tensors.
-
-Just as the components of a vector change when we change the [[basis (linear algebra)|basis]] of the vector space, the components of a tensor also change under such a transformation.  Each type of tensor comes equipped with a ''transformation law'' that details how the components of the tensor respond to a [[change of basis]].  The components of a vector can respond in two distinct ways to a [[change of basis]] (see [[covariance and contravariance of vectors]]), where the new [[basis vectors]] <math>\mathbf{\hat{e}}_i</math> are expressed in terms of the old basis vectors <math>\mathbf{e}_j</math> as,
-:<math>\mathbf{\hat{e}}_i = \sum_{j=1}^n \mathbf{e}_j R^j_i = \mathbf{e}_j R^j_i .</math>
-
-Here ''R''<sup>'' j''</sup><sub>''i''</sub> are the entries of the change of basis matrix, and in the rightmost expression the [[summation]] sign was suppressed: this is the [[Einstein summation convention]], which will be used throughout this article.<ref group="Note">The Einstein summation convention, in brief, requires the sum to be taken over all values of the index whenever the same symbol appears as a subscript and superscript in the same term.  For example, under this convention <math>B_i C^i = B_1 C^1 + B_2 C^2 + \cdots B_n C^n</math></ref>  The components ''v''<sup>''i''</sup> of a column vector '''v''' transform with the [[matrix inverse|inverse]] of the matrix ''R'',
-:<math>\hat{v}^i = \left(R^{-1}\right)^i_j v^j,</math>
+Here ''R''<sup>'' j''</sup><sub>''i''</sub> are the entries of the change of basis matrix, and in the rightmost expression the [[summation]] sign was suppressed: this is the [[Einstein summation convention]], which will be used throughout this article.<ref group="Note">The Einstein summation convention, in brief, requires the sum to be taken over all values of the index whenever the same symbol appears as a subscript and superscript in the same term.  For example, under this convention <math>B_i C^i = B_1 C^1 + B_2 C^2 + \\cdots B_n C^n</math></ref>  The components ''v''<sup>''i''</sup> of a column vector '''v''' transform with the [[matrix inverse|inverse]] of the matrix ''R'',
+:<math>\\hat{v}^i = \\left(R^{-1}\\right)^i_j v^j,</math>
 
 where the hat denotes the components in the new basis.  This is called a ''contravariant'' transformation law, because the vector components transform by the ''inverse'' of the change of basis.  In contrast, the components, ''w''<sub>''i''</sub>, of a covector (or row vector), '''w''', transform with the matrix ''R'' itself,
-:<math>\hat{w}_i = w_j R^j_i .</math>`,
+:<math>\\hat{w}_i = w_j R^j_i .</math>`,
     from: 'mediawiki',
     to: 'docx',
     standalone: true,
@@ -85,36 +79,6 @@ where the hat denotes the components in the new basis.  This is called a ''contr
   ["HTML to reStructuredText"]:
   { text: `<h2 class="options" id="reader-options">Reader options</h2>
 <dl>
-<dt><code>--shift-heading-level-by=</code><em>NUMBER</em></dt>
-<dd>
-<p>Shift heading levels by a positive or negative integer. For example,
-with <code>--shift-heading-level-by=-1</code>, level 2 headings become
-level 1 headings, and level 3 headings become level 2 headings. Headings
-cannot have a level less than 1, so a heading that would be shifted
-below level 1 becomes a regular paragraph. Exception: with a shift of
--N, a level-N heading at the beginning of the document replaces the
-metadata title. <code>--shift-heading-level-by=-1</code> is a good
-choice when converting HTML or Markdown documents that use an initial
-level-1 heading for the document title and level-2+ headings for
-sections. <code>--shift-heading-level-by=1</code> may be a good choice
-for converting Markdown documents that use level-1 headings for sections
-to HTML, since pandoc uses a level-1 heading to render the document
-title.</p>
-</dd>
-<dt><code>--base-header-level=</code><em>NUMBER</em></dt>
-<dd>
-<p><em>Deprecated. Use <code>--shift-heading-level-by</code>=X instead,
-where X = NUMBER - 1.</em> Specify the base level for headings (defaults
-to 1).</p>
-</dd>
-<dt><code>--strip-empty-paragraphs</code></dt>
-<dd>
-<p><em>Deprecated. Use the <code>+empty_paragraphs</code> extension
-instead.</em> Ignore paragraphs with no content. This option is useful
-for converting word processing documents where users have used empty
-paragraphs to create inter-paragraph space.</p>
-</dd>
-<dt><code>--indented-code-classes=</code><em>CLASSES</em></dt>
 <dt><code>-L</code> <em>SCRIPT</em>,
 <code>--lua-filter=</code><em>SCRIPT</em></dt>
 <dd>
@@ -149,7 +113,40 @@ issues.</p>
     to: 'rst',
     standalone: false,
     citeproc: false,
+    files: {} },
+  ["LaTeX with macros to DocBook"]:
+  { text: `% from https://en.wikibooks.org/wiki/LaTeX/Macros
+\\newcommand{\\wbalTwo}[2][Wikimedia]{
+This is the Wikibook about LaTeX
+supported by {#1} and {#2}!}
+
+\\begin{itemize}
+\\item \\wbalTwo{John Doe}
+\\item \\wbalTwo[lots of users]{John Doe}
+\\end{itemize}`,
+    from: 'latex',
+    to: 'docbook5',
+    standalone: true,
+    citeproc: false,
+    files: {} },
+
+  ["CSV table to gfm"]:
+  { text: `"Year", "Score", "Title"
+1968,  86, "Greetings"
+1970,  17, "Bloody Mama"
+1970,  73, "Hi, Mom!"
+1971,  40, "Born to Win"
+1973,  98, "Mean Streets"
+1973,  88, "Bang the Drum Slowly"
+1974,  97, "The Godfather, Part II"
+1976,  41, "The Last Tycoon"
+1976,  99, "Taxi Driver"`,
+    from: 'csv',
+    to: 'gfm',
+    standalone: false,
+    citeproc: false,
     files: {} }
+
 }
 
 function permalink() {
