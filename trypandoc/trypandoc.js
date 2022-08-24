@@ -9,14 +9,14 @@ var params = {
   files: {} };
 
 const examples = {
-  hello_world:
+  ["Hello world"]:
     { text: '*Hello* world!',
       from: 'markdown',
       to: 'html5',
       standalone: false,
       citeproc: false,
       files: {} },
-  bibtex_to_csl_json:
+  ["BibTeX to CSL JSON"]:
     { text: `@BOOK{Wurm2011-ho,
   title     = "{Substanz und Qualität : Ein Beitrag zur Interpretation der
                plotinischen Traktate VI,1, 2 und 3}",
@@ -34,7 +34,7 @@ const examples = {
       standalone: false,
       citeproc: false,
       files: {} },
-  markdown_to_man_with_citations:
+  ["Markdown to man with citations"]:
   { text: `---
 references:
 - author:
@@ -82,7 +82,7 @@ where the hat denotes the components in the new basis.  This is called a ''contr
     standalone: true,
     citeproc: false,
     files: {} },
-  html_to_restructuredtext:
+  ["HTML to reStructuredText"]:
   { text: `<h2 class="options" id="reader-options">Reader options</h2>
 <dl>
 <dt><code>--shift-heading-level-by=</code><em>NUMBER</em></dt>
@@ -251,6 +251,12 @@ function setFormFromParams() {
 (function() {
     paramsFromURL();
     setFormFromParams();
+
+    const exampleSelect = document.getElementById("examples");
+    for (const k in examples) {
+      exampleSelect.innerHTML += '<option value="' + k + '">' + k + '</option>';
+    }
+
     document.getElementById("convert").onclick = convert;
     document.getElementById("from").onchange = (e) => {
       params.from = e.target.value;
