@@ -34,7 +34,7 @@ const examples = {
       standalone: false,
       citeproc: false,
       files: {} },
-  ["Markdown to man with citations"]:
+  ["Markdown to Docbook with citations"]:
   { text: `---
 references:
 - author:
@@ -58,8 +58,8 @@ references:
 
 @salam [p. 370] says some interesting things.`,
     from: 'markdown',
-    to: 'man',
-    standalone: false,
+    to: 'docbook5',
+    standalone: true,
     citeproc: true,
     files: {} },
   ["MediaWiki to docx with equations"]:
@@ -76,45 +76,53 @@ where the hat denotes the components in the new basis.  This is called a ''contr
     standalone: true,
     citeproc: false,
     files: {} },
-  ["HTML to reStructuredText"]:
-  { text: `<h2 class="options" id="reader-options">Reader options</h2>
-<dl>
-<dt><code>-L</code> <em>SCRIPT</em>,
-<code>--lua-filter=</code><em>SCRIPT</em></dt>
-<dd>
-<p>Transform the document in a similar fashion as JSON filters (see
-<code>--filter</code>), but use pandoc’s built-in Lua filtering system.
+  ["Man page to ConTeXt"]:
+  { text: `.TP
+\\f[C]-L\\f[R] \\f[I]SCRIPT\\f[R], \\f[C]--lua-filter=\\f[R]\\f[I]SCRIPT\\f[R]
+Transform the document in a similar fashion as JSON filters (see
+\\f[C]--filter\\f[R]), but use pandoc\\[cq]s built-in Lua filtering system.
 The given Lua script is expected to return a list of Lua filters which
-will be applied in order. Each Lua filter must contain
-element-transforming functions indexed by the name of the AST element on
-which the filter function should be applied.</p>
-<p>The <code>pandoc</code> Lua module provides helper functions for
-element creation. It is always loaded into the script’s Lua
-environment.</p>
-<p>See the <a href="https://pandoc.org/lua-filters.html">Lua filters
-documentation</a> for further details.</p>
-<p>In order of preference, pandoc will look for Lua filters in</p>
-<ol type="1">
-<li><p>a specified full or relative path,</p></li>
-<li><p><code>$DATADIR/filters</code> where <code>$DATADIR</code> is the
-user data directory (see <code>--data-dir</code>, above).</p></li>
-</ol>
-<p>Filters, Lua filters, and citeproc processing are applied in the
-order specified on the command line.</p>
-</dd>
-<dt><code>--trace</code></dt>
-<dd>
-<p>Print diagnostic output tracing parser progress to stderr. This
-option is intended for use by developers in diagnosing performance
-issues.</p>
-</dd>
-</dl>`,
-    from: 'html',
-    to: 'rst',
+will be applied in order.
+Each Lua filter must contain element-transforming functions indexed by
+the name of the AST element on which the filter function should be
+applied.
+.RS
+.PP
+The \\f[C]pandoc\\f[R] Lua module provides helper functions for element
+creation.
+It is always loaded into the script\\[cq]s Lua environment.
+.PP
+See the Lua filters documentation for further details.
+.PP
+In order of preference, pandoc will look for Lua filters in
+.IP "1." 3
+a specified full or relative path,
+.IP "2." 3
+\\f[C]$DATADIR/filters\\f[R] where \\f[C]$DATADIR\\f[R] is the user data
+directory (see \\f[C]--data-dir\\f[R], above).
+.PP
+Filters, Lua filters, and citeproc processing are applied in the order
+specified on the command line.
+.RE
+.TP
+\\f[C]-M\\f[R] \\f[I]KEY\\f[R][\\f[C]=\\f[R]\\f[I]VAL\\f[R]], \\f[C]--metadata=\\f[R]\\f[I]KEY\\f[R][\\f[C]:\\f[R]\\f[I]VAL\\f[R]]
+Set the metadata field \\f[I]KEY\\f[R] to the value \\f[I]VAL\\f[R].
+A value specified on the command line overrides a value specified in the
+document using YAML metadata blocks.
+Values will be parsed as YAML boolean or string values.
+If no value is specified, the value will be treated as Boolean true.
+Like \\f[C]--variable\\f[R], \\f[C]--metadata\\f[R] causes template
+variables to be set.
+But unlike \\f[C]--variable\\f[R], \\f[C]--metadata\\f[R] affects the
+metadata of the underlying document (which is accessible from filters
+and may be printed in some output formats) and metadata values will be
+escaped when inserted into the template.`,
+    from: 'man',
+    to: 'context',
     standalone: false,
     citeproc: false,
     files: {} },
-  ["LaTeX with macros to DocBook"]:
+  ["LaTeX with macros to reStructuredText"]:
   { text: `% from https://en.wikibooks.org/wiki/LaTeX/Macros
 \\newcommand{\\wbalTwo}[2][Wikimedia]{
 This is the Wikibook about LaTeX
@@ -125,7 +133,7 @@ supported by {#1} and {#2}!}
 \\item \\wbalTwo[lots of users]{John Doe}
 \\end{itemize}`,
     from: 'latex',
-    to: 'docbook5',
+    to: 'rst',
     standalone: true,
     citeproc: false,
     files: {} },
