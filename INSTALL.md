@@ -367,7 +367,7 @@ To run just the markdown benchmarks:
 [Arch]: https://www.archlinux.org/packages/community/x86_64/pandoc/
 [Cabal User's Guide]: https://cabal.readthedocs.io/
 [Debian]: https://packages.debian.org/pandoc
-[Fedora]: https://apps.fedoraproject.org/packages/pandoc
+[Fedora]: https://packages.fedoraproject.org/pkgs/pandoc/pandoc/
 [FreeBSD ports]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
 [GitLab CI/CD]: https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/
