@@ -216,7 +216,7 @@ newenvironment = do
     let result = (name,
                     Macro GroupScope ExpandWhenUsed argspecs optarg
                       (bg:startcontents),
-                    Macro GroupScope ExpandWhenUsed [] Nothing
+                    Macro GroupScope ExpandWhenUsed argspecs optarg
                       (endcontents ++ [eg]))
     (do lookupMacro name
         case mtype of

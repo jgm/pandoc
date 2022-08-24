@@ -25,7 +25,7 @@ import Text.Pandoc.Sources
 import Data.List (groupBy)
 
 data TokType = CtrlSeq Text | Spaces | Newline | Symbol | Word | Comment |
-               Esc1    | Esc2   | Arg Int
+               Esc1    | Esc2   | Arg Int  | DeferredArg Int
      deriving (Eq, Ord, Show)
 
 data Tok = Tok SourcePos TokType Text
