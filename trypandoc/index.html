@@ -27,6 +27,9 @@
     pre#command { margin-top: 1em; background-color: transparent; border: none; }
     a#permalink { margin-top: 6pt; margin-bottom: 6pt; display: block; }
     #examples { margin-left: 6pt; }
+    div.file div.title { margin-bottom: 0; }
+    span.filename { }
+    div.file textarea { margin-top: 0; }
   </style>
 </head>
 <body>
@@ -107,7 +110,11 @@
       -->
       <textarea id="text" rows="15"></textarea>
       <br/>
-
+      <div id="files">
+      </div>
+      <br/>
+      <label for="addfile">Add support file</label>
+      <input id="addfile" type="file" />
     </div>
     <div id="topane">
       <label for="to">

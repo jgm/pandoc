@@ -162,6 +162,42 @@ function clearText() {
   document.getElementById("text").value = '';
 }
 
+function addSupportFile(e) {
+
+}
+
+function addFile(name, contents) {
+  if (params.files[name]) {
+    throw("File " + name + " already exists. Remove it before re-adding.");
+    return;
+  }
+  params.files[name] = contents;
+  let filesDiv = document.getElementById("files");
+  let fileDiv = document.createElement("div");
+  fileDiv.classList.add("file");
+  let title = document.createElement("div");
+  title.classList.add("title");
+  let removeButton = document.createElement("button");
+  removeButton.textContent = "Remove";
+  removeButton.onclick = (e) => {
+    delete params.files[name];
+    e.target.parentElement.parentElement.remove();
+  }
+  let filename = document.createElement("span");
+  filename.classList.add("filename");
+  filename.textContent = name;
+  title.appendChild(filename);
+  title.appendChild(removeButton);
+  fileDiv.appendChild(title);
+  let textarea = document.createElement("textarea");
+  textarea.onchange = (e) => {
+    params.files[name] = e.target.value;
+  }
+  textarea.textContent = contents;
+  fileDiv.appendChild(textarea);
+  filesDiv.appendChild(fileDiv);
+}
+
 function permalink() {
   let href = window.location.href;
   const URLparams = new URLSearchParams(Object.entries(params));
@@ -321,6 +357,34 @@ function setFormFromParams() {
       } else {
         reader.readAsText(file);
       }
+    });
+
+    const addfileButton = document.getElementById("addfile");
+    addfileButton.addEventListener('change', (e) => {
+      // Get a reference to the file
+      const file = e.target.files[0];
+      const mimetype = file.type;
+      let binary = binaryMimeTypes[mimetype];
+
+      // Encode the file using the FileReader API
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Use a regex to remove data url part
+        if (binary) {
+          const base64String = reader.result
+           .replace('data:', '')
+           .replace(/^.+,/, '');
+          addFile(file.name, base64String);
+	} else {
+          addFile(file.name, reader.result);
+        }
+      };
+      if (binary) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
+
     });
 
     // const supportFiles = document.getElementById('supportfiles');
