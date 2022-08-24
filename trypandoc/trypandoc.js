@@ -130,7 +130,7 @@ supported by {#1} and {#2}!}
     citeproc: false,
     files: {} },
 
-  ["CSV table to gfm"]:
+  ["CSV table to org"]:
   { text: `"Year", "Score", "Title"
 1968,  86, "Greetings"
 1970,  17, "Bloody Mama"
@@ -142,7 +142,7 @@ supported by {#1} and {#2}!}
 1976,  41, "The Last Tycoon"
 1976,  99, "Taxi Driver"`,
     from: 'csv',
-    to: 'gfm',
+    to: 'org',
     standalone: false,
     citeproc: false,
     files: {} }
