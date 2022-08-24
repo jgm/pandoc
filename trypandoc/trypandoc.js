@@ -157,6 +157,11 @@ supported by {#1} and {#2}!}
 
 }
 
+function clearText() {
+  params.text = '';
+  document.getElementById("text").value = '';
+}
+
 function permalink() {
   let href = window.location.href;
   const URLparams = new URLSearchParams(Object.entries(params));
@@ -215,33 +220,31 @@ function convert() {
     errs.textContent = "";
     console.log(params);
 
-    if (params.text && params.text != "") {
-       let commandString = "pandoc"
-         + " --from " + params.from + " --to " + params.to
-         + (params.standalone ? " --standalone" : "")
-         + (params.citeproc ? " --citeproc" : "") ;
-       document.getElementById("command").textContent = commandString;
-       fetch("/cgi-bin/pandoc-server.cgi", {
-         method: "POST",
-         headers: {"Content-Type": "application/json"},
-         body: JSON.stringify(params)
-        })
-       .then(handleErrors)
-       .then(response => response.text())
-       .then(restext => {
-            let binary = binaryFormats[params.to];
-            if (binary &&
-              document.getElementById("errors").style.display == "none") {
-            document.getElementById("results").innerHTML +=
-                '<a download="trypandoc.' + binary.extension +
-                '" href="data:' + binary.mime + ';base64,' + restext +
-                '">click to download trypandoc.' + binary.extension + '</a>';
-          } else {
-            document.getElementById("results").textContent += restext;
-          }
-          document.getElementById("permalink").href = permalink();
-       });
-    };
+    let commandString = "pandoc"
+      + " --from " + params.from + " --to " + params.to
+      + (params.standalone ? " --standalone" : "")
+      + (params.citeproc ? " --citeproc" : "") ;
+    document.getElementById("command").textContent = commandString;
+    fetch("/cgi-bin/pandoc-server.cgi", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(params)
+     })
+    .then(handleErrors)
+    .then(response => response.text())
+    .then(restext => {
+         let binary = binaryFormats[params.to];
+         if (binary &&
+           document.getElementById("errors").style.display == "none") {
+         document.getElementById("results").innerHTML +=
+             '<a download="trypandoc.' + binary.extension +
+             '" href="data:' + binary.mime + ';base64,' + restext +
+             '">click to download trypandoc.' + binary.extension + '</a>';
+       } else {
+         document.getElementById("results").textContent += restext;
+       }
+       document.getElementById("permalink").href = permalink();
+    });
 }
 
 function setFormFromParams() {
