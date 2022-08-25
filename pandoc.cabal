@@ -208,6 +208,7 @@ extra-source-files:
                  -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
+                 trypandoc/examples.js
                  trypandoc/trypandoc.js
                  -- tests
                  test/bodybg.gif
