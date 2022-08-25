@@ -162,10 +162,6 @@ function clearText() {
   document.getElementById("text").value = '';
 }
 
-function addSupportFile(e) {
-
-}
-
 function addFile(name, contents) {
   params.files[name] = contents;
   let filesDiv = document.getElementById("files");
