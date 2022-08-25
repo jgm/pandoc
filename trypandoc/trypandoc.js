@@ -1,7 +1,7 @@
 "use strict";
 
-var params = {
-  text: '"hello *world*"',
+const defaultParams = {
+  text: '',
   to: 'html5',
   from: 'markdown',
   standalone: false,
@@ -12,10 +12,7 @@ const examples = {
   ["Hello world"]:
     { text: '*Hello* world!',
       from: 'markdown',
-      to: 'html5',
-      standalone: false,
-      citeproc: false,
-      files: {} },
+      to: 'html5'},
   ["BibTeX to CSL JSON"]:
     { text: `@BOOK{Wurm2011-ho,
   title     = "{Substanz und Qualität : Ein Beitrag zur Interpretation der
@@ -30,10 +27,7 @@ const examples = {
   language  = "de"
 }`,
       from: 'bibtex',
-      to: 'csljson',
-      standalone: false,
-      citeproc: false,
-      files: {} },
+      to: 'csljson' },
   ["Markdown to Docbook with citations"]:
   { text: `---
 references:
@@ -73,9 +67,8 @@ where the hat denotes the components in the new basis.  This is called a ''contr
 :<math>\\hat{w}_i = w_j R^j_i .</math>`,
     from: 'mediawiki',
     to: 'docx',
-    standalone: true,
-    citeproc: false,
-    files: {} },
+    standalone: true },
+
   ["Man page to ConTeXt"]:
   { text: `.TP
 \\f[C]-L\\f[R] \\f[I]SCRIPT\\f[R], \\f[C]--lua-filter=\\f[R]\\f[I]SCRIPT\\f[R]
@@ -118,10 +111,7 @@ metadata of the underlying document (which is accessible from filters
 and may be printed in some output formats) and metadata values will be
 escaped when inserted into the template.`,
     from: 'man',
-    to: 'context',
-    standalone: false,
-    citeproc: false,
-    files: {} },
+    to: 'context' },
   ["LaTeX with macros to reStructuredText"]:
   { text: `% from https://en.wikibooks.org/wiki/LaTeX/Macros
 \\newcommand{\\wbalTwo}[2][Wikimedia]{
@@ -150,12 +140,11 @@ supported by {#1} and {#2}!}
 1976,  41, "The Last Tycoon"
 1976,  99, "Taxi Driver"`,
     from: 'csv',
-    to: 'org',
-    standalone: false,
-    citeproc: false,
-    files: {} }
+    to: 'org' }
 
 }
+
+var params = examples["Hello world"];
 
 function clearText() {
   params.text = '';
@@ -334,7 +323,11 @@ function readFile(file, callback) {
     }
 
     document.getElementById("examples").onchange = (e) => {
-      params = examples[e.target.value];
+      let newparams = examples[e.target.value];
+      params = defaultParams;
+      for (const key in newparams) {
+        params[key] = newparams[key]; // allow defaults
+      };
       setFormFromParams();
       convert();
     }
