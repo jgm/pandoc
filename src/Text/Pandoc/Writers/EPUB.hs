@@ -449,7 +449,7 @@ pandocToEPUB version opts doc = do
                       writeHtmlStringForEPUB version o
   metadata <- getEPUBMetadata opts meta
 
-  -- retreive title of document
+  -- retrieve title of document
   let plainTitle :: Text
       plainTitle = case docTitle' meta of
                         [] -> case epubTitle metadata of
@@ -491,10 +491,6 @@ pandocToEPUB version opts doc = do
       opts' = opts{ writerEmailObfuscation = NoObfuscation
                   , writerSectionDivs = True
                   , writerVariables = vars
-                  , writerHTMLMathMethod =
-                       if epub3
-                          then MathML
-                          else writerHTMLMathMethod opts
                   , writerWrapText = WrapAuto }
 
   -- cover page

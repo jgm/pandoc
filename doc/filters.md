@@ -285,7 +285,7 @@ import qualified Data.Text as T
 
 doInclude :: Block -> IO Block
 doInclude cb@(CodeBlock (id, classes, namevals) contents) =
-  case lookup "include" namevals of
+  case lookup (T.pack "include") namevals of
        Just f     -> CodeBlock (id, classes, namevals) <$>
                       TIO.readFile (T.unpack f)
        Nothing    -> return cb
@@ -411,7 +411,7 @@ Then run it:
 
 Note:  to use this to generate PDFs via LaTeX, you'll need
 to use `--pdf-engine=xelatex`, specify a `mainfont` that has
-the Japanese characters (e.g. "Noto Sans CJK TC"), and add
+the Japanese characters (e.g. "[Noto Sans CJK JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP)"), and add
 `\usepackage{ruby}` to your template or header-includes.
 
 # Exercises

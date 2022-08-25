@@ -12,7 +12,13 @@ Pandoc
     { unMeta =
         fromList
           [ ( "ml"
-            , MetaBlocks [ Para [ Str "TEST" ] , Plain [ Str "BLOCK" ] ]
+            , MetaInlines
+                [ Str "TEST"
+                , Space
+                , Str "\182"
+                , Space
+                , Str "BLOCK"
+                ]
             )
           ]
     }

@@ -50,7 +50,7 @@
 .als SN SN-NO-DOT
 .als SN-STYLE SN-NO-DOT
 .\" page numbers in footer, centered
-.rm CH
+.ds CH
 .ds CF %
 .\" pdf outline fold level
 .nr PDFOUTLINE.FOLDLEVEL 3

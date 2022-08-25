@@ -1,6 +1,6 @@
 [ ] make check
 [ ] make README.md and commit if needed
-[ ] make man/pandoc.1 and commit if needed
+[ ] make man
 [ ] Finalize changelog
 [ ] Update AUTHORS
 [ ] push release candidate branch rc/VERSION and (if it builds
@@ -8,7 +8,6 @@
 [ ] run tools/build-arm.sh to create and download arm64 linux package
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website
-[ ] make trypandoc
 [ ] Tag release in git
 [ ] make pandoc-templates
     cd ../pandoc-templates
@@ -17,6 +16,8 @@
     git push --tags
 [ ] Add release on github (use 'make changes_github' and upload files)
 [ ] stack upload .
+[ ] copy deb to server, install it
+[ ] cd trypandoc; make upload
 [ ] if needed, sh tools/build-and-upload-api-docs.sh
 [ ] Announce on pandoc-announce, pandoc-discuss
 

@@ -26,12 +26,11 @@ import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
 import Data.Aeson (Value(..), Object, Result(..), fromJSON, (.:?), withObject)
 import Data.Aeson.Types (parse)
-import Text.Pandoc.Shared (tshow)
+import Text.Pandoc.Shared (tshow, blocksToInlines)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition hiding (Null)
 import Text.Pandoc.Error
 import Text.Pandoc.Parsing hiding (tableWith, parse)
-
 
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -82,13 +81,12 @@ normalizeMetaValue pMetaValue x =
    -- Note: a standard quoted or unquoted YAML value will
    -- not end in a newline, but a "block" set off with
    -- `|` or `>` will.
-   if "\n" `T.isSuffixOf` T.dropWhileEnd isSpaceChar x -- see #6823
+   if "\n" `T.isSuffixOf` (T.dropWhileEnd isSpaceChar x) -- see #6823
       then parseFromString' pMetaValue (x <> "\n")
       else parseFromString' asInlines x
   where asInlines = fmap b2i <$> pMetaValue
-        b2i (MetaBlocks [Plain ils]) = MetaInlines ils
-        b2i (MetaBlocks [Para ils]) = MetaInlines ils
-        b2i bs = bs
+        b2i (MetaBlocks bs) = MetaInlines (blocksToInlines bs)
+        b2i y = y
         isSpaceChar ' '  = True
         isSpaceChar '\t' = True
         isSpaceChar _    = False

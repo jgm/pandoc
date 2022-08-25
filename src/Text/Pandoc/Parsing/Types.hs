@@ -19,7 +19,8 @@ module Text.Pandoc.Parsing.Types
   )
 where
 
-import Control.Applicative (liftA2)
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..))
 import Control.Monad.Reader
   ( asks, runReader, MonadReader(ask), Reader, ReaderT(ReaderT) )
 import Text.Parsec ( Parsec , ParsecT )

@@ -25,7 +25,7 @@ TODO:
 module Text.Pandoc.Readers.FB2 ( readFB2 ) where
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
-import Data.ByteString.Base64.Lazy
+import Data.ByteString.Lazy.Base64
 import Data.Functor
 import Data.List (intersperse)
 import qualified Data.Map as M
@@ -202,7 +202,7 @@ parseBinaryElement e =
       report $ IgnoredElement "binary without content-type attribute"
     (Just filename, contentType) ->
       insertMedia (T.unpack filename) contentType
-                    (decodeLenient
+                    (decodeBase64Lenient
                       (UTF8.fromTextLazy . TL.fromStrict . strContent $ e))
 
 -- * Type parsers

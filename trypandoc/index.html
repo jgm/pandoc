@@ -5,186 +5,204 @@
   <title>Try pandoc!</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <!--[if lt IE 9]>
-       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-       <![endif]-->
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-  <script>
-"use strict";
-(function($) { // https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values
-	$.QueryString = (function(a) {
-	    if (a == "") return {};
-	    var b = {};
-	    for (var i = 0; i < a.length; ++i)
-	    {
-		var p=a[i].split('=');
-		if (p.length != 2) continue;
-		b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-	    }
-	    return b;
-        })(window.location.search.substr(1).split('&'))
-})(jQuery);
-
-function newpage() {
-  var input = $("#text").val();
-  var from = $("#from").val();
-  var to = $("#to").val();
-  var standalone = $("#standalone").is(':checked') ? "1" : "0";
-  var href = window.location.href;
-  window.location.href = href.replace(/([?].*)?$/,"?" + $.param({text: input, from: from, to: to, standalone: standalone}));
-};
-
-$(document).ready(function() {
-    var text = $.QueryString["text"];
-    $("#text").val(text);
-    var from = $.QueryString["from"] || "markdown";
-    $("#from").val(from);
-    var to = $.QueryString["to"] || "html";
-    $("#to").val(to);
-    var standalone = ($.QueryString["standalone"] === "1") ? "1" : "0";
-    $("#standalone").prop('checked', (standalone === "1"));
-    if (text && text != "") {
-       $.getJSON("/cgi-bin/trypandoc", { from: from, to: to, text: text, standalone: standalone },
-         function(res) {
-          $("#results").text(res.html);
-          $("#version").text(res.version);
-          var commandString = "pandoc"
-            + ((standalone === "1") ? " --standalone" : "")
-            + " --from " + from + " --to " + to;
-          $("#command").text(commandString);
-         });
-    };
-    $("#convert").click(newpage);
-    $("#from").change(newpage);
-    $("#to").change(newpage);
-});
-  </script>
   <style>
-    h1 { margin-bottom: 1em; }
-    body { margin: auto; }
-    textarea { height: auto; width: 100%; font-family: monospace; margin-top: 15px; }
+    body { margin: auto; font-family: sans-serif; font-size: 10pt; color: #555; }
+    #command { min-width: 26em; background-color: #555; color: #eee; border-radius: 9pt; margin: 6pt; padding: 6pt; }
+    h1 { margin-bottom: 1em; font-size: 166%; margin: 0; padding: 6pt; }
+    h1 a { text-decoration: none; color: inherit; }
+    label { font-weight: 600; }
+    textarea { height: auto; font-family: monospace; font-size: 10pt; margin-top: 15px; min-height: 65vh; width: 44vw; }
     div.alert { margin: 1em; }
-    h3 { margin-top: 0; margin-bottom: 0; padding: 0; font-size: 100%; }
-    pre#results { width: 100%; margin-top: 15px; }
+    div#errors { width: 100%; color: red; font-weight: 600; padding-top: 6pt; padding-bottom: 6pt; display: none; }
+    pre#results { width: 100%; margin-top: 0; min-height: 65vh; width: 44vw; }
     footer { color: #555; text-align: center; margin: 1em; }
     p.version { color: #555; }
+    .container { margin: 12px; }
+    .row { display: flex; flex-wrap: nowrap; justify-content: space-between; }
+    #frompane { flex: 1; padding: 1em; }
+    #topane { flex: 1; padding: 1em;  }
+    #command { font-family: monospace; padding: 1em; }
+    #text {margin-top: 0; padding-top: 0;}
     button#convert { vertical-align: bottom; }
     pre#command { margin-top: 1em; background-color: transparent; border: none; }
+    a#permalink { margin-top: 6pt; margin-bottom: 6pt; display: block; }
+    #examples { margin-left: 6pt; }
+    div.file div.title { margin-bottom: 0; }
+    span.filename { }
+    div.file textarea { margin-top: 0; }
   </style>
 </head>
 <body>
-<div class="container-fluid">
+<div class="container">
   <div class="row">
-    <div class="col-md-6">
-      <h1>Try pandoc!</h1>
+    <div id="title">
+      <h1>Try <a href="https://pandoc.org">pandoc</a>!</h1>
+      <select id="examples">
+      </select>
     </div>
-    <div class="col-md-6">
+    <div id="command">
       <pre id="command"></pre>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-6">
-      <button class="btn btn-primary btn-xs" id="convert">Convert</button>
+    <div id="frompane">
+      <button id="convert">Convert</button>
       &nbsp;
       <label for="from">
       from
       </label>
       <select id="from">
-        <option value="commonmark">CommonMark</option>
-        <option value="creole">Creole</option>
-        <option value="docbook">DocBook</option>
-        <option value="dokuwiki">DokuWiki</option>
-        <option value="fb2">FB2</option>
-        <option value="haddock">Haddock markup</option>
-        <option value="html">HTML</option>
-        <option value="jats">JATS</option>
-        <option value="jira">Jira</option>
-        <option value="ipynb">Jupyter Notebook (ipynb)</option>
-        <option value="latex">LaTeX</option>
-        <option value="man">Man</option>
-        <option value="markdown" selected>Markdown (pandoc)</option>
-        <option value="gfm">Markdown (GitHub-flavored)</option>
-        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
-        <option value="markdown_strict">Markdown (strict)</option>
-        <option value="mediawiki">MediaWiki</option>
-        <option value="markdown_mmd">MultiMarkdown</option>
-        <option value="muse">Muse</option>
-        <option value="native">Native (Pandoc AST)</option>
-        <option value="opml">OPML</option>
-        <option value="org">Org Mode</option>
-        <option value="rst">reStructuredText</option>
-        <option value="t2t">Txt2Tags</option>
-        <option value="textile">Textile</option>
-        <option value="tikiwiki">TikiWiki</option>
-        <option value="twiki">TWiki</option>
-        <option value="vimwiki">Vimwiki</option>
+        <option value="biblatex">biblatex</option>
+        <option value="bibtex">bibtex</option>
+        <option value="commonmark">commonmark</option>
+        <option value="commonmark_x">commonmark_x</option>
+        <option value="creole">creole</option>
+        <option value="csljson">csljson</option>
+        <option value="csv">csv</option>
+        <option value="docbook">docbook</option>
+        <option value="docx">docx</option>
+        <option value="dokuwiki">dokuwiki</option>
+        <option value="endnotexml">endnotexml</option>
+        <option value="epub">epub</option>
+        <option value="fb2">fb2</option>
+        <option value="gfm">gfm</option>
+        <option value="haddock">haddock</option>
+        <option value="html">html</option>
+        <option value="ipynb">ipynb</option>
+        <option value="jats">jats</option>
+        <option value="jira">jira</option>
+        <option value="json">json</option>
+        <option value="latex">latex</option>
+        <option value="man">man</option>
+        <option value="markdown">markdown</option>
+        <option value="markdown_github">markdown_github</option>
+        <option value="markdown_mmd">markdown_mmd</option>
+        <option value="markdown_phpextra">markdown_phpextra</option>
+        <option value="markdown_strict">markdown_strict</option>
+        <option value="mediawiki">mediawiki</option>
+        <option value="muse">muse</option>
+        <option value="native">native</option>
+        <option value="odt">odt</option>
+        <option value="opml">opml</option>
+        <option value="org">org</option>
+        <option value="ris">ris</option>
+        <option value="rst">rst</option>
+        <option value="rtf">rtf</option>
+        <option value="t2t">t2t</option>
+        <option value="textile">textile</option>
+        <option value="tikiwiki">tikiwiki</option>
+        <option value="tsv">tsv</option>
+        <option value="twiki">twiki</option>
+        <option value="vimwiki">vimwiki</option>
       </select>
-      <input type="checkbox" id="standalone" name="standalone">
-      <label for="standalone">Generate standalone document
-        <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
-      </label>
       <br/>
-      <textarea id="text" maxlength="3000" rows="15"></textarea>
+      <button onclick="clearText()">clear</button>
+      <label for="loadfile">Input</label>
+      <input id="loadfile" type="file" />
+      <!-- <label for="supportfile">+ Support</label>
+      <input id="supportfile" type="file" /> -->
+      <br/>
+      <!-- <div id="tabs">
+        <span class="tab"><a onclick="showFile('stdin')">stdin</a></span>
+        <span id="files">
+        </span>
+      </div>
+      -->
+      <textarea id="text" rows="15"></textarea>
+      <br/>
+      <div id="files">
+      </div>
+      <br/>
+      <label for="addfile">Add support file</label>
+      <input id="addfile" type="file" />
     </div>
-    <div class="col-md-6">
+    <div id="topane">
       <label for="to">
       to
       </label>
       <select id="to">
-        <option value="S5">S5</option>
-        <option value="asciidoc">AsciiDoc (original)</option>
-        <option value="asciidoctor">AsciiDoc (asciidoctor-flavored)</option>
-        <option value="beamer">LaTeX Beamer</option>
-        <option value="commonmark">CommonMark</option>
-        <option value="context">ConTeXt</option>
-        <option value="docbook4">DocBook v4</option>
-        <option value="docbook5">DocBook v5</option>
-        <option value="dokuwiki">DokuWiki</option>
-        <option value="dzslides">DZSlides</option>
-        <option value="haddock">Haddock markup</option>
-        <option value="html4">HTML 4</option>
-        <option value="html5" selected>HTML 5</option>
-        <option value="icml">ICML</option>
-        <option value="jats">JATS</option>
-        <option value="jira">Jira</option>
-        <option value="json">JSON</option>
-        <option value="ipynb">Jupyter Notebook (ipynb)</option>
-        <option value="latex">LaTeX</option>
-        <option value="man">Man</option>
-        <option value="ms">Ms</option>
-        <option value="markdown">Markdown (pandoc)</option>
-        <option value="gfm">Markdown (GitHub-flavored)</option>
-        <option value="markdown_phpextra">Markdown (PHP Markdown Extra)</option>
-        <option value="markdown_strict">Markdown (strict)</option>
-        <option value="mediawiki">MediaWiki</option>
-        <option value="markdown_mmd">MultiMarkdown</option>
-        <option value="muse">Muse</option>
-        <option value="native">Native (Pandoc AST)</option>
-        <option value="opendocument">OpenDocument</option>
-        <option value="opml">OPML</option>
-        <option value="org">Org Mode</option>
-        <option value="plain">Plain text</option>
-        <option value="revealjs">reveal.js</option>
-        <option value="rst">reStructuredText</option>
-        <option value="rtf">RTF</option>
-        <option value="slideous">Slideous</option>
-        <option value="slidy">Slidy</option>
-        <option value="tei">TEI</option>
-        <option value="texinfo">Texinfo</option>
-        <option value="textile">Textile</option>
-        <option value="zimwiki">ZimWiki</option>
+        <option value="asciidoc">asciidoc</option>
+        <option value="asciidoctor">asciidoctor</option>
+        <option value="beamer">beamer</option>
+        <option value="biblatex">biblatex</option>
+        <option value="bibtex">bibtex</option>
+        <option value="commonmark">commonmark</option>
+        <option value="commonmark_x">commonmark_x</option>
+        <option value="context">context</option>
+        <option value="csljson">csljson</option>
+        <option value="docbook">docbook</option>
+        <option value="docbook4">docbook4</option>
+        <option value="docbook5">docbook5</option>
+        <option value="docx">docx</option>
+        <option value="dokuwiki">dokuwiki</option>
+        <option value="dzslides">dzslides</option>
+        <option value="epub">epub</option>
+        <option value="epub2">epub2</option>
+        <option value="epub3">epub3</option>
+        <option value="fb2">fb2</option>
+        <option value="gfm">gfm</option>
+        <option value="haddock">haddock</option>
+        <option value="html">html</option>
+        <option value="html4">html4</option>
+        <option value="html5">html5</option>
+        <option value="icml">icml</option>
+        <option value="ipynb">ipynb</option>
+        <option value="jats">jats</option>
+        <option value="jats_archiving">jats_archiving</option>
+        <option value="jats_articleauthoring">jats_articleauthoring</option>
+        <option value="jats_publishing">jats_publishing</option>
+        <option value="jira">jira</option>
+        <option value="json">json</option>
+        <option value="latex">latex</option>
+        <option value="man">man</option>
+        <option value="markdown">markdown</option>
+        <option value="markdown_github">markdown_github</option>
+        <option value="markdown_mmd">markdown_mmd</option>
+        <option value="markdown_phpextra">markdown_phpextra</option>
+        <option value="markdown_strict">markdown_strict</option>
+        <option value="markua">markua</option>
+        <option value="mediawiki">mediawiki</option>
+        <option value="ms">ms</option>
+        <option value="muse">muse</option>
+        <option value="native">native</option>
+        <option value="odt">odt</option>
+        <option value="opendocument">opendocument</option>
+        <option value="opml">opml</option>
+        <option value="org">org</option>
+        <option value="plain">plain</option>
+        <option value="pptx">pptx</option>
+        <option value="revealjs">revealjs</option>
+        <option value="rst">rst</option>
+        <option value="rtf">rtf</option>
+        <option value="s5">s5</option>
+        <option value="slideous">slideous</option>
+        <option value="slidy">slidy</option>
+        <option value="tei">tei</option>
+        <option value="texinfo">texinfo</option>
+        <option value="textile">textile</option>
+        <option value="xwiki">xwiki</option>
+        <option value="zimwiki">zimwiki</option>
       </select>
+      <input type="checkbox" id="standalone" name="standalone">
+      <label for="standalone">Standalone
+        <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
+      </label>
+      <input type="checkbox" id="citeproc" name="citeproc">
+      <label for="citeproc">Citeproc
+        <a href="https://pandoc.org/MANUAL.html#option--citeproc" target="_blank">(?)</a>
+      </label>
       <br/>
+      <a id="permalink" title="link to this conversion" href="">permalink</a></br/>
+      <div id="errors"></div>
       <pre id="results"></pre>
     </div>
   </div>
 </div>
 <footer>
- <p class="version">pandoc <span id="version"></span></p>
- <p><a href="https://pandoc.org">https://pandoc.org</a></p>
+ <p class="version">pandoc version <span id="version"></span></p>
 </footer>
+
+<script src="trypandoc.js?__DATE__"></script>
+
 </body>
 </html>

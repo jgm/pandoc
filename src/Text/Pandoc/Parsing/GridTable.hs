@@ -23,21 +23,20 @@ module Text.Pandoc.Parsing.GridTable
   )
 where
 
-import Control.Monad (guard)
-import Data.List (transpose)
+import Data.Array (elems)
 import Data.Text (Text)
+import Safe (lastDef)
 import Text.Pandoc.Options (ReaderOptions (readerColumns))
 import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.General
 import Text.Pandoc.Parsing.Types
-import Text.Pandoc.Shared (compactify, splitTextByIndices, trim, trimr)
 import Text.Pandoc.Sources
-import Text.Parsec
-  ( Stream (..), many1, notFollowedBy, option, optional, sepEndBy1, try )
+import Text.Parsec (Stream (..), optional, sepEndBy1, try)
 
 import qualified Data.Text as T
+import qualified Text.GridTable as GT
 import qualified Text.Pandoc.Builder as B
 
 -- | Collection of components making up a Table block.
@@ -105,11 +104,9 @@ data TableNormalization
 -- line).
 gridTableWith :: (Monad m, Monad mf, HasLastStrPosition st, HasReaderOptions st)
               => ParserT Sources st m (mf Blocks)  -- ^ Block list parser
-              -> Bool                              -- ^ Headerless table
               -> ParserT Sources st m (mf Blocks)
-gridTableWith blocks headless =
-  tableWith (gridTableHeader headless blocks) (gridTableRow blocks)
-            (gridTableSep '-') gridTableFooter
+gridTableWith blocks = fmap tableFromComponents <$>
+  gridTableWith' NoNormalization blocks
 
 -- | Like @'gridTableWith'@, but returns 'TableComponents' instead of a
 -- Table.
@@ -117,97 +114,46 @@ gridTableWith' :: (Monad m, Monad mf,
                    HasReaderOptions st, HasLastStrPosition st)
                => TableNormalization
                -> ParserT Sources st m (mf Blocks) -- ^ Block list parser
-               -> Bool                             -- ^ Headerless table
                -> ParserT Sources st m (mf TableComponents)
-gridTableWith' normalization blocks headless =
-  tableWith' normalization
-             (gridTableHeader headless blocks) (gridTableRow blocks)
-             (gridTableSep '-') gridTableFooter
-
-gridTableSplitLine :: [Int] -> Text -> [Text]
-gridTableSplitLine indices line = map removeFinalBar $ tail $
-  splitTextByIndices (init indices) $ trimr line
-
--- | Parses a grid segment, where the grid line is made up from the
--- given char and terminated with a plus (@+@). The grid line may begin
--- and/or end with a colon, signaling column alignment. Returns the size
--- of the grid part and column alignment
-gridPart :: Monad m => Char -> ParserT Sources st m (Int, Alignment)
-gridPart ch = do
-  leftColon <- option False (True <$ char ':')
-  dashes <- many1 (char ch)
-  rightColon <- option False (True <$ char ':')
-  char '+'
-  let lengthDashes = length dashes + (if leftColon then 1 else 0) +
-                       (if rightColon then 1 else 0)
-  let alignment = case (leftColon, rightColon) of
-                       (True, True)   -> AlignCenter
-                       (True, False)  -> AlignLeft
-                       (False, True)  -> AlignRight
-                       (False, False) -> AlignDefault
-  return (lengthDashes + 1, alignment)
-
-gridDashedLines :: Monad m
-                => Char -> ParserT Sources st m [(Int, Alignment)]
-gridDashedLines ch = try $ char '+' >> many1 (gridPart ch) <* blankline
-
-removeFinalBar :: Text -> Text
-removeFinalBar = T.dropWhileEnd go . T.dropWhileEnd (=='|')
-  where
-    go c = T.any (== c) " \t"
-
--- | Separator between rows of grid table.
-gridTableSep :: Monad m => Char -> ParserT Sources st m Char
-gridTableSep ch = try $ gridDashedLines ch >> return '\n'
-
--- | Parse header for a grid table.
-gridTableHeader :: (Monad m, Monad mf, HasLastStrPosition st)
-                => Bool -- ^ Headerless table
-                -> ParserT Sources st m (mf Blocks)
-                -> ParserT Sources st m (mf [Blocks], [Alignment], [Int])
-gridTableHeader True _ = do
-  optional blanklines
-  dashes <- gridDashedLines '-'
-  let aligns = map snd dashes
-  let lines'   = map fst dashes
-  let indices  = scanl (+) 0 lines'
-  return (return [], aligns, indices)
-gridTableHeader False blocks = try $ do
-  optional blanklines
-  dashes <- gridDashedLines '-'
-  rawContent  <- many1 (notFollowedBy (gridTableSep '=') >> char '|' >>
-                           T.pack <$> many1Till anyChar newline)
-  underDashes <- gridDashedLines '='
-  guard $ length dashes == length underDashes
-  let lines'   = map fst underDashes
-  let indices  = scanl (+) 0 lines'
-  let aligns   = map snd underDashes
-  let rawHeads = map (T.unlines . map trim) $ transpose
-                       $ map (gridTableSplitLine indices) rawContent
-  heads <- sequence <$> mapM (parseFromString' blocks . trim) rawHeads
-  return (heads, aligns, indices)
-
-gridTableRawLine :: (Stream s m Char, UpdateSourcePos s Char)
-                 => [Int] -> ParserT s st m [Text]
-gridTableRawLine indices = do
-  char '|'
-  line <- many1Till anyChar newline
-  return (gridTableSplitLine indices $ T.pack line)
-
--- | Parse row of grid table.
-gridTableRow :: (Monad m, Monad mf, HasLastStrPosition st)
-             => ParserT Sources st m (mf Blocks)
-             -> [Int]
-             -> ParserT Sources st m (mf [Blocks])
-gridTableRow blocks indices = do
-  colLines <- many1 (gridTableRawLine indices)
-  let cols = map ((<> "\n") . T.unlines . removeOneLeadingSpace) $
-               transpose colLines
-      compactifyCell bs = case compactify [bs] of
-                            []  -> mempty
-                            x:_ -> x
-  cells <- sequence <$> mapM (parseFromString' blocks) cols
-  return $ fmap (map compactifyCell) cells
+gridTableWith' normalization blocks = do
+  tbl <- GT.gridTable <* optional blanklines
+  let blkTbl = GT.mapCells
+               (\lns -> parseFromString' blocks
+                        . flip T.snoc '\n'  -- ensure proper block parsing
+                        . T.unlines
+                        . removeOneLeadingSpace
+                        $ map T.stripEnd lns)
+               tbl
+  let rows = GT.rows blkTbl
+  let toPandocCell (GT.Cell c (GT.RowSpan rs) (GT.ColSpan cs)) =
+        fmap (B.cell AlignDefault (B.RowSpan rs) (B.ColSpan cs) . plainify) <$> c
+  rows' <- mapM (mapM toPandocCell) rows
+  columns <- getOption readerColumns
+  let colspecs = zipWith (\cs w -> (convAlign $ fst cs, B.ColWidth w))
+                         (elems $ GT.arrayTableColSpecs tbl)
+                         (fractionalColumnWidths tbl columns)
+  let caption = B.emptyCaption
+  return $ do
+    rows'' <- mapM sequence rows'
+    let (hRows, bRows) =
+          splitAt (maybe 0 GT.fromRowIndex $ GT.arrayTableHead tbl)
+                  (map (B.Row B.nullAttr) rows'')
+    let thead = B.TableHead B.nullAttr $ case (hRows, normalization) of
+          -- normalize header if necessary: remove header if it contains
+          -- only a single row in which all cells are empty.
+          ([hrow], NormalizeHeader) ->
+            let Row _attr cells = hrow
+                simple = \case
+                  Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1) [] ->
+                    True
+                  _ ->
+                    False
+            in [B.Row nullAttr cells | not (null cells) &&
+                                       not (all simple cells)]
+          _ -> hRows
+    let tfoot = B.TableFoot B.nullAttr []
+    let tbody = B.TableBody B.nullAttr 0 [] bRows
+    return $ TableComponents nullAttr caption colspecs thead [tbody] tfoot
 
 removeOneLeadingSpace :: [Text] -> [Text]
 removeOneLeadingSpace xs =
@@ -218,10 +164,23 @@ removeOneLeadingSpace xs =
            Nothing     -> True
            Just (c, _) -> c == ' '
 
--- | Parse footer for a grid table.
-gridTableFooter :: (Stream s m Char, UpdateSourcePos s Char)
-                => ParserT s st m ()
-gridTableFooter = optional blanklines
+plainify :: B.Blocks -> B.Blocks
+plainify blks = case B.toList blks of
+  [Para x] -> B.fromList [Plain x]
+  _        -> blks
+
+convAlign :: GT.Alignment -> B.Alignment
+convAlign GT.AlignLeft    = B.AlignLeft
+convAlign GT.AlignRight   = B.AlignRight
+convAlign GT.AlignCenter  = B.AlignCenter
+convAlign GT.AlignDefault = B.AlignDefault
+
+fractionalColumnWidths :: GT.ArrayTable a -> Int -> [Double]
+fractionalColumnWidths gt charColumns =
+  let widths = map ((+1) . snd) $ -- include width of separator
+               (elems $ GT.arrayTableColSpecs gt)
+      norm = fromIntegral $ max (sum widths + length widths - 2) charColumns
+  in map (\w -> fromIntegral w / norm) widths
 
 ---
 
@@ -263,13 +222,13 @@ toHeaderRow = \case
   NoNormalization -> \l -> [toRow l | not (null l)]
   NormalizeHeader -> \l -> [toRow l | not (null l) && not (all null l)]
 
--- Calculate relative widths of table columns, based on indices
+-- | Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
                   -> [Int]    -- Indices
                   -> [Double] -- Fractional relative sizes of columns
 widthsFromIndices _ [] = []
 widthsFromIndices numColumns' indices =
-  let numColumns = max numColumns' (if null indices then 0 else last indices)
+  let numColumns = max numColumns' (lastDef 0 indices)
       lengths' = zipWith (-) indices (0:indices)
       lengths  = reverse $
                  case reverse lengths' of

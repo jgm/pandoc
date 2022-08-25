@@ -1362,9 +1362,9 @@ multilineTableHeader headless = try $ do
 -- (which may be grid), then the rows,
 -- which may be grid, separated by blank lines, and
 -- ending with a footer (dashed line followed by blank line).
-gridTable :: PandocMonad m => Bool -- ^ Headerless table
-          -> MarkdownParser m (F TableComponents)
-gridTable headless = gridTableWith' NormalizeHeader parseBlocks headless
+gridTable :: PandocMonad m
+          => MarkdownParser m (F TableComponents)
+gridTable = gridTableWith' NormalizeHeader parseBlocks
 
 pipeBreak :: PandocMonad m => MarkdownParser m ([Alignment], [Int])
 pipeBreak = try $ do
@@ -1466,7 +1466,7 @@ table = try $ do
          (guardEnabled Ext_multiline_tables >>
                 try (multilineTable True)) <|>
          (guardEnabled Ext_grid_tables >>
-                try (gridTable False <|> gridTable True)) <?> "table"
+                try gridTable) <?> "table"
   optional blanklines
   caption <- case frontCaption of
                   Nothing -> option (return mempty) tableCaption
@@ -1819,30 +1819,34 @@ bracketedSpan = do
   try $ do
     (lab,_) <- reference
     attr <- attributes
-    return $ if isSmallCaps attr
-                then B.smallcaps <$> lab
-                else if isUnderline attr
-                        then B.underline <$> lab
-                        else B.spanWith attr <$> lab
+    return $ wrapSpan attr <$> lab
 
--- | We treat a span as SmallCaps if class is "smallcaps" (and
--- no other attributes are set or if style is "font-variant:small-caps"
--- (and no other attributes are set).
-isSmallCaps :: Attr -> Bool
-isSmallCaps ("",["smallcaps"],[]) = True
-isSmallCaps ("",[],kvs) =
-  case lookup "style" kvs of
-       Just s -> T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
-                    "font-variant:small-caps"
-       Nothing -> False
-isSmallCaps _ = False
+-- | Given an @Attr@ value, this returns a function to wrap the contents
+-- of a span. Handles special classes (@smallcaps@, @ul@, @underline@)
+-- and uses the respective constructors to handle them.
+wrapSpan :: Attr -> Inlines -> Inlines
+wrapSpan (ident, classes, kvs) =
+  let (initConst, kvs') = case lookup "style" kvs of
+        Just s | isSmallCapsFontVariant s ->
+                   let kvsNoStyle =  [(k, v) | (k, v) <- kvs, k /= "style"]
+                   in (Just B.smallcaps, kvsNoStyle)
+        _ -> (Nothing, kvs)
+      (mConstr, remainingClasses) = foldr go (initConst, []) classes
+      wrapInConstr c = maybe c (c .)
+      go cls (accConstr, other) =
+        case cls of
+          "smallcaps" -> (Just $ wrapInConstr B.smallcaps accConstr, other)
+          "ul"        -> (Just $ wrapInConstr B.underline accConstr, other)
+          "underline" -> (Just $ wrapInConstr B.underline accConstr, other)
+          _           -> (accConstr, cls:other)
+  in case (ident, remainingClasses, kvs') of
+       ("", [], []) -> fromMaybe (B.spanWith nullAttr) mConstr
+       attr         -> wrapInConstr (B.spanWith attr) mConstr
 
--- | We treat a span as Underline if class is "ul" or
--- "underline" (and no other attributes are set).
-isUnderline :: Attr -> Bool
-isUnderline ("",["ul"],[]) = True
-isUnderline ("",["underline"],[]) = True
-isUnderline _ = False
+isSmallCapsFontVariant :: Text -> Bool
+isSmallCapsFontVariant s =
+  T.toLower (T.filter (`notElem` [' ', '\t', ';']) s) ==
+  "font-variant:small-caps"
 
 regLink :: PandocMonad m
         => (Attr -> Text -> Text -> Inlines -> Inlines)
@@ -2026,11 +2030,7 @@ spanHtml = do
     let ident = fromMaybe "" $ lookup "id" attrs
     let classes = maybe [] T.words $ lookup "class" attrs
     let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-    return $ if isSmallCaps (ident, classes, keyvals)
-                then B.smallcaps <$> contents
-                else if isUnderline (ident, classes, keyvals)
-                        then B.underline <$> contents
-                        else B.spanWith (ident, classes, keyvals) <$> contents
+    return $ wrapSpan (ident, classes, keyvals) <$> contents
 
 divHtml :: PandocMonad m => MarkdownParser m (F Blocks)
 divHtml = do

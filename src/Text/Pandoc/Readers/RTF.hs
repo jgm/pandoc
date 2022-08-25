@@ -590,6 +590,9 @@ processTok bs (Tok pos tok') = do
       modifyGroup (\g -> g{ gSub = boolParam mbp })
     ControlWord "super" mbp -> bs <$
       modifyGroup (\g -> g{ gSuper = boolParam mbp })
+    ControlWord "nosupersub" mbp -> bs <$
+      modifyGroup (\g -> g{ gSuper = not $ boolParam mbp
+                          , gSub = not $ boolParam mbp })
     ControlWord "up" mbp -> bs <$
       modifyGroup (\g -> g{ gSuper = boolParam mbp })
     ControlWord "strike" mbp -> bs <$

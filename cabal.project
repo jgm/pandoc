@@ -5,5 +5,6 @@ constraints: aeson >= 2.0.1.0
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/citeproc
-  tag: 7874a4ccf1845e5a8a6855c251f1aaea9bf12807
+  location: https://github.com/jgm/commonmark-hs
+  tag: 4f4fbe277044de0724dd0828a45311ab1413e30b
+  subdir: commonmark-extensions

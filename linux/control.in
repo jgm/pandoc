@@ -10,17 +10,21 @@ Suggests: texlive-latex-recommended, texlive-xetex,
  texlive-fonts-recommended
 Maintainer: John MacFarlane <jgm@berkeley.edu>
 Description: general markup converter
-  Pandoc is a Haskell library for converting from one markup
-  format to another, and a command-line tool that uses
-  this library. It can read several dialects of Markdown and
-  (subsets of) HTML, reStructuredText, LaTeX, DocBook,
-  MediaWiki markup, TWiki markup, TikiWiki markup, Haddock
-  markup, OPML, Emacs Org-Mode, txt2tags, Muse, Vimwiki,
-  Word Docx, ODT, and Textile, and it can write Markdown,
-  reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
-  JATS, OPML, TEI, OpenDocument, ODT, Word docx, RTF,
-  MediaWiki, DokuWiki, ZimWiki, Textile, groff man, groff
-  ms, plain text, Emacs Org-Mode, AsciiDoc, Haddock markup,
-  EPUB (v2 and v3), FictionBook2, InDesign ICML, Muse, and
-  several kinds of HTML/JavaScript slide shows (S5, Slidy,
-  Slideous, DZSlides, reveal.js).
+  Pandoc is a Haskell library for converting from one markup format
+  to another, and a command-line tool that uses this library. The
+  formats it can handle include light markup formats (many variants
+  of Markdown, reStructuredText, AsciiDoc, Org-mode, Muse, Textile,
+  txt2tags), HTML formats (HTML 4 and 5), ebook formats (EPUB v2
+  and v3, FB2), Documentation formats (GNU TexInfo, Haddock),
+  Roff formats (man, ms), TeX formats (LaTeX, ConTeXt), XML
+  formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument),
+  outline formats (OPML), bibliography formats (BibTeX, BibLaTeX,
+  CSL JSON, CSL YAML, RIS), word processor formats (Docx, RTF,
+  ODT), interactive notebook formats (Jupyter notebook
+  ipynb), page layout formats (InDesign ICML), wiki markup
+  formats (MediaWiki, DokuWiki, TikiWiki, TWiki, Vimwiki,
+  XWiki, ZimWiki, Jira wiki, Creole), slide show formats
+  (LaTeX Beamer, PowerPoint, Slidy, reveal.js, Slideous, S5,
+  DZSlides), data formats (CSV and TSV tables), and PDF (via
+  external programs such as pdflatex or wkhtmltopdf).
+

@@ -228,7 +228,7 @@ isCodeCharStyle :: CharStyle -> Bool
 isCodeCharStyle = isInheritedFromStyles ["Verbatim Char"]
 
 isCodeDiv :: ParagraphStyle -> Bool
-isCodeDiv = hasStylesInheritedFrom ["Source Code"]
+isCodeDiv = hasStylesInheritedFrom ["Source Code", "SourceCode", "source_code"]
 
 isBlockQuote :: ParStyle -> Bool
 isBlockQuote =

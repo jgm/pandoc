@@ -70,6 +70,7 @@ module Text.Pandoc.Shared (
                      eastAsianLineBreakFilter,
                      htmlSpanLikeElements,
                      filterIpynbOutput,
+                     formatCode,
                      -- * TagSoup HTML handling
                      renderTags',
                      -- * File handling
@@ -106,7 +107,7 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
 import Data.Containers.ListUtils (nubOrd)
-import Data.List (find, intercalate, intersperse, sortOn, foldl')
+import Data.List (find, intercalate, intersperse, sortOn, foldl', groupBy)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
@@ -400,6 +401,7 @@ deNote :: Inline -> Inline
 deNote (Note _) = Str ""
 deNote x        = x
 
+-- {- DEPRECATED deLink "deLink will be removed in a future version" -}
 -- | Turns links into spans, keeping just the link text.
 deLink :: Inline -> Inline
 deLink (Link _ ils _) = Span nullAttr ils
@@ -588,6 +590,7 @@ makeSections numbering mbBaseLevel bs =
     xs' <- go xs
     rest' <- go rest
     return $ Div attr xs' : rest'
+  go (Null:xs) = go xs
   go (x:xs) = (x :) <$> go xs
   go [] = return []
 
@@ -778,6 +781,26 @@ filterIpynbOutput mode = walk go
                     | Just (c, cs) <- T.uncons t = T.cons c $ removeANSIEscapes cs
                     | otherwise = ""
         go x = x
+
+-- | Reformat 'Inlines' as code, putting the stringlike parts in 'Code'
+-- elements while bringing other inline formatting outside.
+-- The idea is that e.g. `[Str "a",Space,Strong [Str "b"]]` should turn
+-- into `[Code ("",[],[]) "a ", Strong [Code ("",[],[]) "b"]]`.
+-- This helps work around the limitation that pandoc's Code element can
+-- only contain string content (see issue #7525).
+formatCode :: Attr -> Inlines -> Inlines
+formatCode attr = B.fromList . walk fmt . B.toList
+  where
+    isPlaintext (Str _) = True
+    isPlaintext Space = True
+    isPlaintext SoftBreak = True
+    isPlaintext (Quoted _ _) = True
+    isPlaintext _ = False
+    fmt = concatMap go . groupBy (\a b -> isPlaintext a && isPlaintext b)
+      where
+        go xs
+          | all isPlaintext xs = B.toList $ B.codeWith attr $ stringify xs
+          | otherwise = xs
 
 --
 -- TagSoup HTML handling

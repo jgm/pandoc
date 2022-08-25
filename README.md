@@ -26,74 +26,77 @@ library. It can convert *from*
 
 <div id="input-formats">
 
--   `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
--   `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
--   `commonmark` ([CommonMark](https://commonmark.org) Markdown)
--   `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
-    extensions)
--   `creole` ([Creole 1.0](http://www.wikicreole.org/wiki/Creole1.0))
--   `csljson` ([CSL
-    JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html)
-    bibliography)
--   `csv` ([CSV](https://tools.ietf.org/html/rfc4180) table)
--   `docbook` ([DocBook](https://docbook.org))
--   `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
--   `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
--   `endnotexml` ([EndNote XML
-    bibliography](https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition))
--   `epub` ([EPUB](http://idpf.org/epub))
--   `fb2`
-    ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
-    e-book)
--   `gfm` ([GitHub-Flavored
-    Markdown](https://help.github.com/articles/github-flavored-markdown/)),
-    or the deprecated and less accurate `markdown_github`; use
-    [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
-    only if you need extensions not supported in
-    [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
--   `haddock` ([Haddock
-    markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
--   `html` ([HTML](https://www.w3.org/html/))
--   `ipynb` ([Jupyter
-    notebook](https://nbformat.readthedocs.io/en/latest/))
--   `jats` ([JATS](https://jats.nlm.nih.gov) XML)
--   `jira`
-    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)/Confluence
-    wiki markup)
--   `json` (JSON version of native AST)
--   `latex` ([LaTeX](https://www.latex-project.org/))
--   `markdown` ([Pandoc’s
-    Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
--   `markdown_mmd`
-    ([MultiMarkdown](https://fletcherpenney.net/multimarkdown/))
--   `markdown_phpextra` ([PHP Markdown
-    Extra](https://michelf.ca/projects/php-markdown/extra/))
--   `markdown_strict` (original unextended
-    [Markdown](https://daringfireball.net/projects/markdown/))
--   `mediawiki` ([MediaWiki
-    markup](https://www.mediawiki.org/wiki/Help:Formatting))
--   `man` ([roff man](https://man.cx/groff_man(7)))
--   `muse` ([Muse](https://amusewiki.org/library/manual))
--   `native` (native Haskell)
--   `odt` ([ODT](https://en.wikipedia.org/wiki/OpenDocument))
--   `opml` ([OPML](http://dev.opml.org/spec2.html))
--   `org` ([Emacs Org mode](https://orgmode.org))
--   `ris` ([RIS](https://en.wikipedia.org/wiki/RIS_(file_format))
-    bibliography)
--   `rtf` ([Rich Text
-    Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
--   `rst`
-    ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
--   `t2t` ([txt2tags](https://txt2tags.org))
--   `textile` ([Textile](https://www.promptworks.com/textile))
--   `tikiwiki` ([TikiWiki
-    markup](https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax))
--   `twiki` ([TWiki
-    markup](https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
--   `vimwiki` ([Vimwiki](https://vimwiki.github.io))
--   the path of a custom Lua reader, see [Custom readers and
-    writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
-    below
+- `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
+- `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
+- `commonmark` ([CommonMark](https://commonmark.org) Markdown)
+- `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
+  extensions)
+- `creole` ([Creole 1.0](http://www.wikicreole.org/wiki/Creole1.0))
+- `csljson` ([CSL
+  JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html)
+  bibliography)
+- `csv` ([CSV](https://tools.ietf.org/html/rfc4180) table)
+- `tsv`
+  ([TSV](https://www.iana.org/assignments/media-types/text/tab-separated-values)
+  table)
+- `docbook` ([DocBook](https://docbook.org))
+- `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
+- `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
+- `endnotexml` ([EndNote XML
+  bibliography](https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition))
+- `epub` ([EPUB](http://idpf.org/epub))
+- `fb2`
+  ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
+  e-book)
+- `gfm` ([GitHub-Flavored
+  Markdown](https://help.github.com/articles/github-flavored-markdown/)),
+  or the deprecated and less accurate `markdown_github`; use
+  [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
+  only if you need extensions not supported in
+  [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
+- `haddock` ([Haddock
+  markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
+- `html` ([HTML](https://www.w3.org/html/))
+- `ipynb` ([Jupyter
+  notebook](https://nbformat.readthedocs.io/en/latest/))
+- `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+- `jira`
+  ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)/Confluence
+  wiki markup)
+- `json` (JSON version of native AST)
+- `latex` ([LaTeX](https://www.latex-project.org/))
+- `markdown` ([Pandoc’s
+  Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
+- `markdown_mmd`
+  ([MultiMarkdown](https://fletcherpenney.net/multimarkdown/))
+- `markdown_phpextra` ([PHP Markdown
+  Extra](https://michelf.ca/projects/php-markdown/extra/))
+- `markdown_strict` (original unextended
+  [Markdown](https://daringfireball.net/projects/markdown/))
+- `mediawiki` ([MediaWiki
+  markup](https://www.mediawiki.org/wiki/Help:Formatting))
+- `man` ([roff man](https://man.cx/groff_man(7)))
+- `muse` ([Muse](https://amusewiki.org/library/manual))
+- `native` (native Haskell)
+- `odt` ([ODT](https://en.wikipedia.org/wiki/OpenDocument))
+- `opml` ([OPML](http://dev.opml.org/spec2.html))
+- `org` ([Emacs Org mode](https://orgmode.org))
+- `ris` ([RIS](https://en.wikipedia.org/wiki/RIS_(file_format))
+  bibliography)
+- `rtf` ([Rich Text
+  Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
+- `rst`
+  ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
+- `t2t` ([txt2tags](https://txt2tags.org))
+- `textile` ([Textile](https://www.promptworks.com/textile))
+- `tikiwiki` ([TikiWiki
+  markup](https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax))
+- `twiki` ([TWiki
+  markup](https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
+- `vimwiki` ([Vimwiki](https://vimwiki.github.io))
+- the path of a custom Lua reader, see [Custom readers and
+  writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
+  below
 
 </div>
 
@@ -101,104 +104,104 @@ It can convert *to*
 
 <div id="output-formats">
 
--   `asciidoc` ([AsciiDoc](https://www.methods.co.nz/asciidoc/)) or
-    `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
--   `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
--   `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
--   `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
--   `commonmark` ([CommonMark](https://commonmark.org) Markdown)
--   `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
-    extensions)
--   `context` ([ConTeXt](https://www.contextgarden.net/))
--   `csljson` ([CSL
-    JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html)
-    bibliography)
--   `docbook` or `docbook4` ([DocBook](https://docbook.org) 4)
--   `docbook5` (DocBook 5)
--   `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
--   `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
--   `epub` or `epub3` ([EPUB](http://idpf.org/epub) v3 book)
--   `epub2` (EPUB v2)
--   `fb2`
-    ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
-    e-book)
--   `gfm` ([GitHub-Flavored
-    Markdown](https://help.github.com/articles/github-flavored-markdown/)),
-    or the deprecated and less accurate `markdown_github`; use
-    [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
-    only if you need extensions not supported in
-    [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
--   `haddock` ([Haddock
-    markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
--   `html` or `html5` ([HTML](https://www.w3.org/html/),
-    i.e. [HTML5](https://html.spec.whatwg.org/)/XHTML [polyglot
-    markup](https://www.w3.org/TR/html-polyglot/))
--   `html4` ([XHTML](https://www.w3.org/TR/xhtml1/) 1.0 Transitional)
--   `icml` ([InDesign
-    ICML](https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
--   `ipynb` ([Jupyter
-    notebook](https://nbformat.readthedocs.io/en/latest/))
--   `jats_archiving` ([JATS](https://jats.nlm.nih.gov) XML, Archiving
-    and Interchange Tag Set)
--   `jats_articleauthoring` ([JATS](https://jats.nlm.nih.gov) XML,
-    Article Authoring Tag Set)
--   `jats_publishing` ([JATS](https://jats.nlm.nih.gov) XML, Journal
-    Publishing Tag Set)
--   `jats` (alias for `jats_archiving`)
--   `jira`
-    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)/Confluence
-    wiki markup)
--   `json` (JSON version of native AST)
--   `latex` ([LaTeX](https://www.latex-project.org/))
--   `man` ([roff man](https://man.cx/groff_man(7)))
--   `markdown` ([Pandoc’s
-    Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
--   `markdown_mmd`
-    ([MultiMarkdown](https://fletcherpenney.net/multimarkdown/))
--   `markdown_phpextra` ([PHP Markdown
-    Extra](https://michelf.ca/projects/php-markdown/extra/))
--   `markdown_strict` (original unextended
-    [Markdown](https://daringfireball.net/projects/markdown/))
--   `markua` ([Markua](https://leanpub.com/markua/read))
--   `mediawiki` ([MediaWiki
-    markup](https://www.mediawiki.org/wiki/Help:Formatting))
--   `ms` ([roff ms](https://man.cx/groff_ms(7)))
--   `muse` ([Muse](https://amusewiki.org/library/manual)),
--   `native` (native Haskell),
--   `odt` ([OpenOffice text
-    document](https://en.wikipedia.org/wiki/OpenDocument))
--   `opml` ([OPML](http://dev.opml.org/spec2.html))
--   `opendocument` ([OpenDocument](http://opendocument.xml.org))
--   `org` ([Emacs Org mode](https://orgmode.org))
--   `pdf` ([PDF](https://www.adobe.com/pdf/))
--   `plain` (plain text),
--   `pptx`
-    ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint)
-    slide show)
--   `rst`
-    ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
--   `rtf` ([Rich Text
-    Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
--   `texinfo` ([GNU Texinfo](https://www.gnu.org/software/texinfo/))
--   `textile` ([Textile](https://www.promptworks.com/textile))
--   `slideous` ([Slideous](https://goessner.net/articles/slideous/) HTML
-    and JavaScript slide show)
--   `slidy` ([Slidy](https://www.w3.org/Talks/Tools/Slidy2/) HTML and
-    JavaScript slide show)
--   `dzslides` ([DZSlides](https://paulrouget.com/dzslides/) HTML5 +
-    JavaScript slide show),
--   `revealjs` ([reveal.js](https://revealjs.com/) HTML5 + JavaScript
-    slide show)
--   `s5` ([S5](https://meyerweb.com/eric/tools/s5/) HTML and JavaScript
-    slide show)
--   `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
--   `xwiki` ([XWiki
-    markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
--   `zimwiki` ([ZimWiki
-    markup](https://zim-wiki.org/manual/Help/Wiki_Syntax.html))
--   the path of a custom Lua writer, see [Custom readers and
-    writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
-    below
+- `asciidoc` ([AsciiDoc](https://www.methods.co.nz/asciidoc/)) or
+  `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
+- `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
+- `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
+- `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
+- `commonmark` ([CommonMark](https://commonmark.org) Markdown)
+- `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
+  extensions)
+- `context` ([ConTeXt](https://www.contextgarden.net/))
+- `csljson` ([CSL
+  JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html)
+  bibliography)
+- `docbook` or `docbook4` ([DocBook](https://docbook.org) 4)
+- `docbook5` (DocBook 5)
+- `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
+- `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
+- `epub` or `epub3` ([EPUB](http://idpf.org/epub) v3 book)
+- `epub2` (EPUB v2)
+- `fb2`
+  ([FictionBook2](http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1)
+  e-book)
+- `gfm` ([GitHub-Flavored
+  Markdown](https://help.github.com/articles/github-flavored-markdown/)),
+  or the deprecated and less accurate `markdown_github`; use
+  [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
+  only if you need extensions not supported in
+  [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
+- `haddock` ([Haddock
+  markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
+- `html` or `html5` ([HTML](https://www.w3.org/html/),
+  i.e. [HTML5](https://html.spec.whatwg.org/)/XHTML [polyglot
+  markup](https://www.w3.org/TR/html-polyglot/))
+- `html4` ([XHTML](https://www.w3.org/TR/xhtml1/) 1.0 Transitional)
+- `icml` ([InDesign
+  ICML](https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
+- `ipynb` ([Jupyter
+  notebook](https://nbformat.readthedocs.io/en/latest/))
+- `jats_archiving` ([JATS](https://jats.nlm.nih.gov) XML, Archiving and
+  Interchange Tag Set)
+- `jats_articleauthoring` ([JATS](https://jats.nlm.nih.gov) XML, Article
+  Authoring Tag Set)
+- `jats_publishing` ([JATS](https://jats.nlm.nih.gov) XML, Journal
+  Publishing Tag Set)
+- `jats` (alias for `jats_archiving`)
+- `jira`
+  ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)/Confluence
+  wiki markup)
+- `json` (JSON version of native AST)
+- `latex` ([LaTeX](https://www.latex-project.org/))
+- `man` ([roff man](https://man.cx/groff_man(7)))
+- `markdown` ([Pandoc’s
+  Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
+- `markdown_mmd`
+  ([MultiMarkdown](https://fletcherpenney.net/multimarkdown/))
+- `markdown_phpextra` ([PHP Markdown
+  Extra](https://michelf.ca/projects/php-markdown/extra/))
+- `markdown_strict` (original unextended
+  [Markdown](https://daringfireball.net/projects/markdown/))
+- `markua` ([Markua](https://leanpub.com/markua/read))
+- `mediawiki` ([MediaWiki
+  markup](https://www.mediawiki.org/wiki/Help:Formatting))
+- `ms` ([roff ms](https://man.cx/groff_ms(7)))
+- `muse` ([Muse](https://amusewiki.org/library/manual))
+- `native` (native Haskell)
+- `odt` ([OpenOffice text
+  document](https://en.wikipedia.org/wiki/OpenDocument))
+- `opml` ([OPML](http://dev.opml.org/spec2.html))
+- `opendocument` ([OpenDocument](http://opendocument.xml.org))
+- `org` ([Emacs Org mode](https://orgmode.org))
+- `pdf` ([PDF](https://www.adobe.com/pdf/))
+- `plain` (plain text)
+- `pptx`
+  ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint)
+  slide show)
+- `rst`
+  ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
+- `rtf` ([Rich Text
+  Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
+- `texinfo` ([GNU Texinfo](https://www.gnu.org/software/texinfo/))
+- `textile` ([Textile](https://www.promptworks.com/textile))
+- `slideous` ([Slideous](https://goessner.net/articles/slideous/) HTML
+  and JavaScript slide show)
+- `slidy` ([Slidy](https://www.w3.org/Talks/Tools/Slidy2/) HTML and
+  JavaScript slide show)
+- `dzslides` ([DZSlides](https://paulrouget.com/dzslides/) HTML5 +
+  JavaScript slide show)
+- `revealjs` ([reveal.js](https://revealjs.com/) HTML5 + JavaScript
+  slide show)
+- `s5` ([S5](https://meyerweb.com/eric/tools/s5/) HTML and JavaScript
+  slide show)
+- `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
+- `xwiki` ([XWiki
+  markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
+- `zimwiki` ([ZimWiki
+  markup](https://zim-wiki.org/manual/Help/Wiki_Syntax.html))
+- the path of a custom Lua writer, see [Custom readers and
+  writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
+  below
 
 </div>
 

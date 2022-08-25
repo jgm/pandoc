@@ -33,6 +33,7 @@ import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
   ( LW, WriterState (stBeamer, stExternalNotes, stInMinipage, stMultiRow
                     , stNotes, stTable) )
+import Text.Pandoc.Writers.LaTeX.Util (labelFor)
 import Text.Printf (printf)
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
@@ -43,8 +44,8 @@ tableToLaTeX :: PandocMonad m
              -> Ann.Table
              -> LW m (Doc Text)
 tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
-  let (Ann.Table _attr caption specs thead tbodies tfoot) = tbl
-  CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption
+  let (Ann.Table (ident, _, _) caption specs thead tbodies tfoot) = tbl
+  CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption ident
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
   let colCount = ColumnCount $ length specs
@@ -144,16 +145,20 @@ data CaptionDocs =
 captionToLaTeX :: PandocMonad m
                => ([Inline] -> LW m (Doc Text))
                -> Caption
+               -> Text     -- ^ table identifier (label)
                -> LW m CaptionDocs
-captionToLaTeX inlnsToLaTeX (Caption _maybeShort longCaption) = do
+captionToLaTeX inlnsToLaTeX (Caption _maybeShort longCaption) ident = do
   let caption = blocksToInlines longCaption
-  (captionText, captForLof, captNotes) <- getCaption inlnsToLaTeX False caption
+  (captionText, captForLot, captNotes) <- getCaption inlnsToLaTeX False caption
+  label <- labelFor ident
   return $ CaptionDocs
     { captionNotes = captNotes
-    , captionCommand = if isEmpty captionText
+    , captionCommand = if isEmpty captionText && isEmpty label
                        then empty
-                       else "\\caption" <> captForLof <>
-                            braces captionText <> "\\tabularnewline"
+                       else "\\caption" <> captForLot <>
+                            braces captionText
+                            <> label
+                            <> "\\tabularnewline"
     }
 
 type BlocksWriter m = [Block] -> LW m (Doc Text)
@@ -330,20 +335,15 @@ multicolumnDescriptor align
       width = sum $ NonEmpty.map toWidth colWidths
 
       -- no column separators at beginning of first and end of last column.
-      numseps = (case colnum + 1 of
-                   1 -> 0  -- Not sure why this case is needed (tarleb)
-                   _ -> -- the final cell has only one tabcolsep
-                        if colnum + colspan == numcols
-                        then 1
-                        else 2) :: Int
       skipColSep = "@{}" :: String
   in T.pack $
-     printf "%s>{%s\\arraybackslash}p{%0.4f\\columnwidth - %d\\tabcolsep}%s"
+     printf "%s>{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.4f} + %d\\tabcolsep}%s"
             (if colnum == 0 then skipColSep else "")
             (T.unpack (alignCommand align))
+            (2 * (numcols - 1))
             width
-            numseps
-            (if colnum + colspan == numcols then skipColSep else "")
+            (2 * (colspan - 1))
+            (if colnum + colspan >= numcols then skipColSep else "")
 
 -- | Perform a conversion, assuming that the context is a minipage.
 inMinipage :: Monad m => LW m a -> LW m a

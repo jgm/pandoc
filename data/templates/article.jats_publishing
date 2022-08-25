@@ -89,7 +89,7 @@ $endif$
 $if(author)$
 <contrib-group>
 $for(author)$
-<contrib contrib-type="author"$if(author.equal-contrib)$ equal-contrib="yes"$endif$>
+<contrib contrib-type="author"$if(author.equal-contrib)$ equal-contrib="yes"$endif$$if(author.cor-id)$ corresp="yes"$endif$>
 $if(author.orcid)$
 <contrib-id contrib-id-type="orcid">$author.orcid$</contrib-id>
 $endif$
@@ -194,7 +194,10 @@ $if(copyright.text)$
 </license>
 $endif$
 $for(license)$
-<license$if(it.type)$ license-type="${it.type}"$endif$$if(it.link)$ xlink:href="${it.link}"$endif$>
+<license$if(it.type)$ license-type="${it.type}"$endif$>
+$if(it.link)$
+<ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/">${it.link}</ali:license_ref>
+$endif$
 <license-p>$if(it.text)$${it.text}$else$${it}$endif$</license-p>
 </license>
 $endfor$

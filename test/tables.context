@@ -3,12 +3,14 @@ Simple table with caption:
 \startplacetable[title={Demonstration of simple table syntax.}]
 \startxtable
 \startxtablehead[head]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=left] Right \stopxcell
 \startxcell[align=right] Left \stopxcell
 \startxcell[align=middle] Center \stopxcell
 \startxcell Default \stopxcell
 \stopxrow
+\stopxrowgroup
 \stopxtablehead
 \startxtablebody[body]
 \startxrow
@@ -23,14 +25,16 @@ Simple table with caption:
 \startxcell[align=middle] 123 \stopxcell
 \startxcell 123 \stopxcell
 \stopxrow
-\stopxtablebody
-\startxtablefoot[foot]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=left] 1 \stopxcell
 \startxcell[align=right] 1 \stopxcell
 \startxcell[align=middle] 1 \stopxcell
 \startxcell 1 \stopxcell
 \stopxrow
+\stopxrowgroup
+\stopxtablebody
+\startxtablefoot[foot]
 \stopxtablefoot
 \stopxtable
 \stopplacetable
@@ -40,12 +44,14 @@ Simple table without caption:
 \startplacetable[location=none]
 \startxtable
 \startxtablehead[head]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=left] Right \stopxcell
 \startxcell[align=right] Left \stopxcell
 \startxcell[align=middle] Center \stopxcell
 \startxcell Default \stopxcell
 \stopxrow
+\stopxrowgroup
 \stopxtablehead
 \startxtablebody[body]
 \startxrow
@@ -60,14 +66,16 @@ Simple table without caption:
 \startxcell[align=middle] 123 \stopxcell
 \startxcell 123 \stopxcell
 \stopxrow
-\stopxtablebody
-\startxtablefoot[foot]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=left] 1 \stopxcell
 \startxcell[align=right] 1 \stopxcell
 \startxcell[align=middle] 1 \stopxcell
 \startxcell 1 \stopxcell
 \stopxrow
+\stopxrowgroup
+\stopxtablebody
+\startxtablefoot[foot]
 \stopxtablefoot
 \stopxtable
 \stopplacetable
@@ -77,12 +85,14 @@ Simple table indented two spaces:
 \startplacetable[title={Demonstration of simple table syntax.}]
 \startxtable
 \startxtablehead[head]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=left] Right \stopxcell
 \startxcell[align=right] Left \stopxcell
 \startxcell[align=middle] Center \stopxcell
 \startxcell Default \stopxcell
 \stopxrow
+\stopxrowgroup
 \stopxtablehead
 \startxtablebody[body]
 \startxrow
@@ -97,14 +107,16 @@ Simple table indented two spaces:
 \startxcell[align=middle] 123 \stopxcell
 \startxcell 123 \stopxcell
 \stopxrow
-\stopxtablebody
-\startxtablefoot[foot]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=left] 1 \stopxcell
 \startxcell[align=right] 1 \stopxcell
 \startxcell[align=middle] 1 \stopxcell
 \startxcell 1 \stopxcell
 \stopxrow
+\stopxrowgroup
+\stopxtablebody
+\startxtablefoot[foot]
 \stopxtablefoot
 \stopxtable
 \stopplacetable
@@ -114,12 +126,14 @@ Multiline table with caption:
 \startplacetable[title={Here's the caption. It may span multiple lines.}]
 \startxtable
 \startxtablehead[head]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=middle,width={0.15\textwidth}] Centered Header \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] Left Aligned \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] Right Aligned \stopxcell
 \startxcell[align=right,width={0.35\textwidth}] Default aligned \stopxcell
 \stopxrow
+\stopxrowgroup
 \stopxtablehead
 \startxtablebody[body]
 \startxrow
@@ -129,8 +143,7 @@ Multiline table with caption:
 \startxcell[align=right,width={0.35\textwidth}] Example of a row that spans
 multiple lines. \stopxcell
 \stopxrow
-\stopxtablebody
-\startxtablefoot[foot]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=middle,width={0.15\textwidth}] Second \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
@@ -138,6 +151,9 @@ multiple lines. \stopxcell
 \startxcell[align=right,width={0.35\textwidth}] Here's another one. Note the
 blank line between rows. \stopxcell
 \stopxrow
+\stopxrowgroup
+\stopxtablebody
+\startxtablefoot[foot]
 \stopxtablefoot
 \stopxtable
 \stopplacetable
@@ -147,12 +163,14 @@ Multiline table without caption:
 \startplacetable[location=none]
 \startxtable
 \startxtablehead[head]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=middle,width={0.15\textwidth}] Centered Header \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] Left Aligned \stopxcell
 \startxcell[align=left,width={0.16\textwidth}] Right Aligned \stopxcell
 \startxcell[align=right,width={0.35\textwidth}] Default aligned \stopxcell
 \stopxrow
+\stopxrowgroup
 \stopxtablehead
 \startxtablebody[body]
 \startxrow
@@ -162,8 +180,7 @@ Multiline table without caption:
 \startxcell[align=right,width={0.35\textwidth}] Example of a row that spans
 multiple lines. \stopxcell
 \stopxrow
-\stopxtablebody
-\startxtablefoot[foot]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=middle,width={0.15\textwidth}] Second \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
@@ -171,6 +188,9 @@ multiple lines. \stopxcell
 \startxcell[align=right,width={0.35\textwidth}] Here's another one. Note the
 blank line between rows. \stopxcell
 \stopxrow
+\stopxrowgroup
+\stopxtablebody
+\startxtablefoot[foot]
 \stopxtablefoot
 \stopxtable
 \stopplacetable
@@ -179,6 +199,8 @@ Table without column headers:
 
 \startplacetable[location=none]
 \startxtable
+\startxtablehead[head]
+\stopxtablehead
 \startxtablebody[body]
 \startxrow
 \startxcell[align=left] 12 \stopxcell
@@ -192,14 +214,16 @@ Table without column headers:
 \startxcell[align=middle] 123 \stopxcell
 \startxcell[align=left] 123 \stopxcell
 \stopxrow
-\stopxtablebody
-\startxtablefoot[foot]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=left] 1 \stopxcell
 \startxcell[align=right] 1 \stopxcell
 \startxcell[align=middle] 1 \stopxcell
 \startxcell[align=left] 1 \stopxcell
 \stopxrow
+\stopxrowgroup
+\stopxtablebody
+\startxtablefoot[foot]
 \stopxtablefoot
 \stopxtable
 \stopplacetable
@@ -208,6 +232,8 @@ Multiline table without column headers:
 
 \startplacetable[location=none]
 \startxtable
+\startxtablehead[head]
+\stopxtablehead
 \startxtablebody[body]
 \startxrow
 \startxcell[align=middle,width={0.15\textwidth}] First \stopxcell
@@ -216,8 +242,7 @@ Multiline table without column headers:
 \startxcell[width={0.35\textwidth}] Example of a row that spans multiple
 lines. \stopxcell
 \stopxrow
-\stopxtablebody
-\startxtablefoot[foot]
+\startxrowgroup[lastrow]
 \startxrow
 \startxcell[align=middle,width={0.15\textwidth}] Second \stopxcell
 \startxcell[align=right,width={0.14\textwidth}] row \stopxcell
@@ -225,6 +250,9 @@ lines. \stopxcell
 \startxcell[width={0.35\textwidth}] Here's another one. Note the blank line
 between rows. \stopxcell
 \stopxrow
+\stopxrowgroup
+\stopxtablebody
+\startxtablefoot[foot]
 \stopxtablefoot
 \stopxtable
 \stopplacetable

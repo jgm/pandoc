@@ -215,31 +215,31 @@ The easiest way to build pandoc from source is to use [stack][stack]:
     `pandoc` executable into `~/.local/bin`, which you should
     add to your `PATH`.  This process will take a while, and
     will consume a considerable amount of disk space.
+    If you also want the `pandoc-server` executable, add
+    `--flag pandoc:server` to the above command.
+
 
 ### Quick cabal method
 
-1.  Install the [Haskell platform].  This will give you [GHC] and
-    the [cabal-install] build tool.  Note that pandoc requires
-    GHC >= 7.10 and cabal >= 2.0.
+1.  Install [ghcup](https://www.haskell.org/ghcup/install/).
+    This will give you `ghc` and `cabal`.
 
 2.  Update your package database:
 
         cabal update
 
-3.  Check your cabal version with
-
-        cabal --version
-
-    If you have a version less than 2.0, install the latest with:
-
-        cabal install cabal-install
-
-4.  Use `cabal` to install pandoc and its dependencies:
+3.  Use `cabal` to install pandoc and its dependencies:
 
         cabal install pandoc
 
     This procedure will install the released version of pandoc,
     which will be downloaded automatically from HackageDB.
+    The `pandoc` executable will be placed in `$HOME/.cabal/bin`
+    on linux/unix/macOS and in `%APPDATA%\cabal\bin` on Windows.
+    Make sure this directory is in your path.
+
+    If you also want the `pandoc-server` executable, add
+    `-fserver` to the above command.
 
     If you want to install a modified or development version
     of pandoc instead, switch to the source directory and do
@@ -247,34 +247,14 @@ The easiest way to build pandoc from source is to use [stack][stack]:
 
         cabal install
 
-5.  Make sure the `$CABALDIR/bin` directory is in your path.  You should
-    now be able to run `pandoc`:
+4.  You should now be able to run `pandoc`:
 
         pandoc --help
 
-    [Not sure where `$CABALDIR` is?](https://wiki.haskell.org/Cabal-Install#The_cabal-install_configuration_file)
-
-5.  By default `pandoc` uses the "i;unicode-casemap" method
-    to sort bibliography entries (RFC 5051).  If you would like to
-    use the locale-sensitive unicode collation algorithm instead,
-    specify the `icu` flag (which affects the dependency `citeproc`):
-
-        cabal install pandoc -ficu
-
-    Note that this requires the `text-icu` library, which in turn
-    depends on the C library `icu4c`.  Installation directions
-    vary by platform.  Here is how it might work on macOS with Homebrew:
-
-        brew install icu4c
-        stack install pandoc \
-          --flag "citeproc:icu" \
-          --extra-lib-dirs=/usr/local/opt/icu4c/lib \
-          --extra-include-dirs=/usr/local/opt/icu4c/include
-
-6.  The `pandoc.1` man page will be installed automatically.  cabal shows
-    you where it is installed: you may need to set your `MANPATH`
-    accordingly. If `MANUAL.txt` has been modified, the man page can be
-    rebuilt: `make man/pandoc.1`.
+5.  Cabal does not install the `pandoc.1` man page, but you can
+    copy it from the `man/` directory of the source code to
+    `/usr/local/share/man/man1/` or wherever man pages go on
+    your system.
 
 
 ### Custom cabal method
@@ -312,6 +292,8 @@ You will need cabal version 2.0 or higher.
 
     - `lua53`: embed support for Lua 5.3 instead of 5.4.
 
+    - `server`:  build the `pandoc-server` executable.
+
 3.  Build:
 
         cabal build
@@ -321,19 +303,6 @@ You will need cabal version 2.0 or higher.
 
         cabal haddock --html-location=URL --hyperlink-source
 
-5.  Copy the files:
-
-        cabal copy --destdir=PATH
-
-    The default destdir is `/`.
-
-6.  Register pandoc as a GHC package:
-
-        cabal register
-
-    Package managers may want to use the `--gen-script` option to
-    generate a script that can be run to register the package at
-    install time.
 
 ### Creating a relocatable binary
 
@@ -398,7 +367,7 @@ To run just the markdown benchmarks:
 [Arch]: https://www.archlinux.org/packages/community/x86_64/pandoc/
 [Cabal User's Guide]: https://cabal.readthedocs.io/
 [Debian]: https://packages.debian.org/pandoc
-[Fedora]: https://apps.fedoraproject.org/packages/pandoc
+[Fedora]: https://packages.fedoraproject.org/pkgs/pandoc/pandoc/
 [FreeBSD ports]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
 [GitLab CI/CD]: https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/

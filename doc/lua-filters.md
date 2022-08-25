@@ -395,6 +395,12 @@ colon syntax (`mystring:uc_upper()`).
 
 # Debugging Lua filters
 
+William Lupton has written a Lua module with some handy
+functions for debugging Lua filters, including functions
+that can pretty-print the Pandoc AST elements manipulated
+by the filters: it is available at
+<https://github.com/wlupton/pandoc-lua-logging>.
+
 It is possible to use a debugging interface to halt execution and
 step through a Lua filter line by line as it is run inside Pandoc.
 This is accomplished using the remote-debugging interface of the
@@ -2437,9 +2443,21 @@ indexing rules.
 
 # Module pandoc
 
-Lua functions for pandoc scripts; includes constructors for
+Fields and functions for pandoc scripts; includes constructors for
 document tree elements, functions to parse text in a given
 format, and functions to filter and modify a subtree.
+
+## Static Fields {#pandoc.fields}
+
+### readers {#pandoc.readers}
+
+Set of formats that pandoc can parse. All keys in this table can
+be used as the `format` value in `pandoc.read`.
+
+### writers {#pandoc.writers}
+
+Set of formats that pandoc can generate. All keys in this table
+can be used as the `format` value in `pandoc.write`.
 
 ## Pandoc
 
@@ -3571,6 +3589,28 @@ Usage:
     --   pandoc.Emph{ pandoc.Str 'Paragraph2' }
     -- }
 
+### `citeproc (doc)` {#pandoc.utils.citeproc}
+
+Process the citations in the file, replacing them with rendered
+citations and adding a bibliography. See the manual section on
+citation rendering for details.
+
+Parameters:
+
+`doc`
+:   document ([Pandoc](#type-pandoc))
+
+Returns:
+
+-   processed document ([Pandoc](#type-pandoc))
+
+Usage:
+
+    -- Lua filter that behaves like `--citeproc`
+    function Pandoc (doc)
+      return pandoc.utils.citeproc(doc)
+    end
+
 ### `equals (element1, element2)` {#pandoc.utils.equals}
 
 Test equality of AST elements. Elements in Lua are considered
@@ -4405,6 +4445,60 @@ Returns:
 
 -   The current working directory (string).
 
+### list\_directory {#pandoc.system.list_directory}
+
+`list_directory ([directory])`
+
+List the contents of a directory.
+
+Parameters:
+
+`directory`
+:   Path of the directory whose contents should be listed
+    (string). Defaults to `.`.
+
+Returns:
+
+-   A table of all entries in `directory` without the special
+    entries `.` and `..`. (list of strings)
+
+### make\_directory {#pandoc.system.make_directory}
+
+`make_directory (dirname [, create_parent])`
+
+Create a new directory which is initially empty, or as near to
+empty as the operating system allows. The function throws an
+error if the directory cannot be created, e.g., if the parent
+directory does not exist or if a directory of the same name is
+already present.
+
+If the optional second parameter is provided and truthy, then all
+directories, including parent directories, are created as
+necessary.
+
+Parameters:
+
+`dirname`
+:   name of the new directory (string)
+
+`create_parent`
+:   create parent directories if necessary (boolean)
+
+### remove\_directory {#pandoc.system.remove_directory}
+
+`remove_directory (dirname [, recursive])`
+
+Remove an existing, empty directory. If `recursive` is given,
+then delete the directory and its contents recursively.
+
+Parameters:
+
+`dirname`
+:   name of the directory to delete (string)
+
+`recursive`
+:   delete content recursively (boolean)
+
 ### with\_environment {#pandoc.system.with_environment}
 
 `with_environment (environment, callback)`
@@ -4760,7 +4854,7 @@ Parameters
 
 Returns
 
--   doc contatining just the literal string ([Doc])
+-   doc containing just the literal string ([Doc])
 
 ### nest {#pandoc.layout.nest}
 

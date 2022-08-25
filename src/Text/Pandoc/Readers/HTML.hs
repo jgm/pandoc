@@ -27,7 +27,7 @@ import Control.Applicative ((<|>))
 import Control.Monad (guard, msum, mzero, unless, void)
 import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader (ask, asks, lift, local, runReaderT)
-import Data.ByteString.Base64 (encode)
+import Data.Text.Encoding.Base64 (encodeBase64)
 import Data.Char (isAlphaNum, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
@@ -63,7 +63,7 @@ import Text.Pandoc.Options (
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
     addMetaField, blocksToInlines', escapeURI, extractSpaces,
-    htmlSpanLikeElements, renderTags', safeRead, tshow)
+    htmlSpanLikeElements, renderTags', safeRead, tshow, formatCode)
 import Text.Pandoc.Walk
 import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
@@ -327,11 +327,11 @@ pBulletList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pListItem nonItem) (pCloses "ul")
+  items <- manyTill (pListItem' nonItem) (pCloses "ul")
   return $ B.bulletList $ map (fixPlains True) items
 
-pListItem :: PandocMonad m => TagParser m a -> TagParser m Blocks
-pListItem nonItem = do
+pListItem :: PandocMonad m => TagParser m Blocks
+pListItem = do
   TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "li" [])
   let attr = toStringAttr attr'
   let addId ident bs = case B.toList bs of
@@ -339,7 +339,13 @@ pListItem nonItem = do
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
   maybe id addId (lookup "id" attr) <$>
-    pInTags "li" block <* skipMany nonItem
+    pInTags "li" block
+
+-- | Parses a list item just like 'pListItem', but allows sublists outside of
+-- @li@ tags to be treated as items.
+pListItem' :: PandocMonad m => TagParser m a -> TagParser m Blocks
+pListItem' nonItem = (pListItem <|> pBulletList <|> pOrderedList)
+  <* skipMany nonItem
 
 parseListStyleType :: Text -> ListNumberStyle
 parseListStyleType "lower-roman" = LowerRoman
@@ -381,7 +387,7 @@ pOrderedList = try $ do
        _ <- manyTill (eFootnote <|> pBlank) (pCloses "ol")
        return mempty
      else do
-       items <- manyTill (pListItem nonItem) (pCloses "ol")
+       items <- manyTill (pListItem' nonItem) (pCloses "ol")
        return $ B.orderedListWith (start, style, DefaultDelim) $
                 map (fixPlains True) items
 
@@ -779,25 +785,26 @@ pSvg = do
   contents <- many (notFollowedBy (pCloses "svg") >> pAny)
   closet <- TagClose "svg" <$ (pCloses "svg" <|> eof)
   let rawText = T.strip $ renderTags' (opent : contents ++ [closet])
-  let svgData = "data:image/svg+xml;base64," <>
-                   UTF8.toText (encode $ UTF8.fromText rawText)
+  let svgData = "data:image/svg+xml;base64," <> encodeBase64 rawText
   return $ B.imageWith (ident,cls,[]) svgData mempty mempty
 
 pCodeWithClass :: PandocMonad m => Text -> Text -> TagParser m Inlines
 pCodeWithClass name class' = try $ do
   TagOpen open attr' <- pSatisfy $ tagOpen (== name) (const True)
-  result <- manyTill pAny (pCloses open)
   let (ids,cs,kvs) = toAttr attr'
       cs'          = class' : cs
-  return . B.codeWith (ids,cs',kvs) .
-    T.unwords . T.lines . innerText $ result
+  code open (ids,cs',kvs)
 
 pCode :: PandocMonad m => TagParser m Inlines
 pCode = try $ do
   (TagOpen open attr') <- pSatisfy $ tagOpen (`elem` ["code","tt"]) (const True)
   let attr = toAttr attr'
-  result <- manyTill pAny (pCloses open)
-  return $ B.codeWith attr $ T.unwords $ T.lines $ innerText result
+  code open attr
+
+code :: PandocMonad m => Text -> Attr -> TagParser m Inlines
+code open attr = do
+  result <- mconcat <$> manyTill inline (pCloses open)
+  return $ formatCode attr result
 
 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo
 -- Bidirectional Text Override

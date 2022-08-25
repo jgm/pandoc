@@ -12,7 +12,7 @@ $if(date)$
 :Date: $^$$date$
 $endif$
 $if(address)$
-:Addresss: $^$$address$
+:Address: $^$$address$
 $endif$
 $if(contact)$
 :Contact: $^$$contact$

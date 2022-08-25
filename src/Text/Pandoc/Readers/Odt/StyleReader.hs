@@ -39,6 +39,7 @@ module Text.Pandoc.Readers.Odt.StyleReader
 , readStylesAt
 ) where
 
+import Prelude hiding (Applicative(..))
 import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
 

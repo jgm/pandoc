@@ -14,7 +14,20 @@ module Main where
 import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
 import Text.Pandoc.Error (handleError)
+import Text.Pandoc.Server (ServerOpts(..), parseServerOpts, app)
+import Safe (readDef)
+import System.Environment (getProgName, lookupEnv)
+import qualified Network.Wai.Handler.CGI as CGI
+import qualified Network.Wai.Handler.Warp as Warp
+import Network.Wai.Middleware.Timeout (timeout)
 
 main :: IO ()
-main = E.catch (parseOptions options defaultOpts >>= convertWithOpts)
-          (handleError . Left)
+main = E.handle (handleError . Left) $ do
+  prg <- getProgName
+  cgiTimeout <- maybe 2 (readDef 2) <$> lookupEnv "PANDOC_SERVER_TIMEOUT"
+  case prg of
+    "pandoc-server.cgi" -> CGI.run (timeout cgiTimeout app)
+    "pandoc-server" -> do
+      sopts <- parseServerOpts
+      Warp.run (serverPort sopts) (timeout (serverTimeout sopts) app)
+    _ -> parseOptions options defaultOpts >>= convertWithOpts

@@ -54,6 +54,7 @@ module Text.Pandoc.Readers.Odt.Generic.XMLConverter
 , matchContent
 ) where
 
+import           Prelude hiding (Applicative(..))
 import           Control.Applicative  hiding ( liftA, liftA2 )
 import           Control.Monad               ( MonadPlus )
 import           Control.Arrow

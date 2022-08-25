@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE TupleSections     #-}
 {- |
    Module      : Text.Pandoc.SelfContained
@@ -18,7 +19,7 @@ import Codec.Compression.GZip as Gzip
 import Control.Applicative ((<|>))
 import Control.Monad.Trans (lift)
 import Data.ByteString (ByteString)
-import Data.ByteString.Base64
+import Data.ByteString.Base64 (encodeBase64)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
@@ -44,7 +45,7 @@ makeDataURI :: (MimeType, ByteString) -> T.Text
 makeDataURI (mime, raw) =
   if textual
      then "data:" <> mime' <> "," <> T.pack (escapeURIString isOk (toString raw))
-     else "data:" <> mime' <> ";base64," <> toText (encode raw)
+     else "data:" <> mime' <> ";base64," <> encodeBase64 raw
   where textual = "text/" `T.isPrefixOf` mime
         mime' = if textual && T.any (== ';') mime
                    then mime <> ";charset=utf-8"
@@ -62,6 +63,13 @@ convertTags :: PandocMonad m => [Tag T.Text] -> m [Tag T.Text]
 convertTags [] = return []
 convertTags (t@TagOpen{}:ts)
   | fromAttrib "data-external" t == "1" = (t:) <$> convertTags ts
+convertTags (t@(TagOpen "style" _):ts) =
+  case span isTagText ts of
+    (xs,rest) -> do
+      xs' <- mapM (\case
+                    TagText s -> TagText . toText <$> cssURLs "" (fromText s)
+                    tag -> return tag) xs
+      ((t:xs') ++) <$> convertTags rest
 convertTags (t@(TagOpen "script" as):tc@(TagClose "script"):ts) =
   case fromAttrib "src" t of
        ""  -> (t:) <$> convertTags ts

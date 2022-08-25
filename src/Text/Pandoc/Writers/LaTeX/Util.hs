@@ -120,7 +120,7 @@ stringToLaTeX context zs = do
          '>' -> emitcseq "\\textgreater"
          '[' -> emits "{[}"  -- to avoid interpretation as
          ']' -> emits "{]}"  -- optional arguments
-         '\'' | ctx == CodeString -> emitcseq "\\textquotesingle"
+         '\'' -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
          '\x202F' -> emits "\\,"

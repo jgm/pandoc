@@ -26,8 +26,8 @@ quick-cabal: ## build & test with stack, no optimizations
 quick: ## build & test with stack, no optimizations
 	stack install --ghc-options='$(GHCOPTS)' --system-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 
-full: ## build with stack, including benchmarks, trypandoc
-	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes--ansi-tricks-false' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
+full: ## build with stack, including benchmarks
+	stack install --flag 'pandoc:embed_data_files' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes--ansi-tricks-false' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 $(GHCOPTS)'
 
 ghci: ## start ghci session
 	stack ghci --flag 'pandoc:embed_data_files'
@@ -75,8 +75,11 @@ fix_spacing: ## Fix trailing newlines and spaces
 	for f in $(SOURCEFILES); do printf '%s\n' "`cat $$f`" | sed -e 's/  *$$//' > $$f.tmp; mv $$f.tmp $$f; done
 
 changes_github: ## copy this release's changes in gfm
-	pandoc --filter tools/extract-changes.hs changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
+	pandoc --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 
+man: man/pandoc.1 man/pandoc-server.1
+
+.PHONY: man
 
 debpkg: ## create linux package
 	docker run -v `pwd`:/mnt \
@@ -88,7 +91,7 @@ debpkg: ## create linux package
 		   --rm \
 		   $(DOCKERIMAGE) \
 		   bash \
-		   /mnt/linux/make_artifacts.sh 2>&1 > docker.log
+		   /mnt/linux/make_artifacts.sh
 
 man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
@@ -97,6 +100,12 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--include-after-body man/pandoc.1.after \
 		--metadata author="" \
 		--variable footer="pandoc $(version)" \
+		-o $@
+
+man/pandoc-server.1: doc/pandoc-server.md
+	pandoc $< -f markdown -t man -s \
+		--lua-filter man/manfilter.lua \
+		--variable footer="pandoc-server $(version)" \
 		-o $@
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
@@ -124,9 +133,6 @@ pandoc-templates: ## update pandoc-templates repo
 	git commit -m "Updated templates for pandoc $(version)" && \
 	popd
 
-trypandoc: ## build trypandoc on server
-	ssh -t macfarlane 'cd src/pandoc && git pull && cabal update && cabal install -ftrypandoc -fembed_data_files --install-method=copy --overwrite-policy=always && cd trypandoc && sudo make install'
-
 update-website: ## update website and upload
 	make -C $(WEBSITE) update
 	make -C $(WEBSITE)
@@ -145,4 +151,4 @@ git-files.txt: .FORCE
 help: ## Display this help
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-30s %s\n", $$1, $$2}'
 
-.PHONY: .FORCE deps quick haddock install clean test bench changes_github download_stats reformat lint weigh pandoc-templates trypandoc update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal check
+.PHONY: .FORCE deps quick haddock install clean test bench changes_github download_stats reformat lint weigh pandoc-templates update-website debpkg checkdocs ghcid ghci fix_spacing hlint check check-cabal check

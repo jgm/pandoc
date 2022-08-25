@@ -70,12 +70,16 @@ Metadata Values
 
     `cor-id`
     :   identifier linking to the contributor's correspondence
-        information. The info itself must be stored in as an item in
+        information. The info itself must be stored as an item in
         `article.author-notes.corresp`. If the `cor-id` value is
-        then, an [`<xref>`][elem:xref] link of
+        set, then an [`<xref>`][elem:xref] link of
         [`ref-type`][attr:ref-type] `corresp` is added. The
         [`rid`][attr:rid] attribute is set to `cor-<ID>`, where
         `<ID>` is the stringified value of this attribute.
+
+        Furthermore, the [`corresp`][attr:corresp] attribute on
+        the author's [`<contrib>`] element is set to `yes` if
+        this attribute is set to a truthy.
 
 `affiliation`
 :   the list of organizations with which contributors are
@@ -410,6 +414,7 @@ Required metadata values:
 [JATS]: https://jats.nlm.nih.gov/
 [Ringgold]: https://ringgold.com/
 [attr:content-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/content-type.html
+[attr:corresp]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/corresp.html
 [attr:date-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/date-type.html
 [attr:equal-contrib]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/equal-contrib.html
 [attr:fn-type]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/fn-type.html

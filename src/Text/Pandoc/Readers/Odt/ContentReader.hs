@@ -24,6 +24,7 @@ module Text.Pandoc.Readers.Odt.ContentReader
 , read_body
 ) where
 
+import Prelude hiding (Applicative(..))
 import Control.Applicative hiding (liftA, liftA2, liftA3)
 import Control.Arrow
 import Control.Monad ((<=<))

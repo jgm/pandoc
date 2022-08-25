@@ -105,6 +105,14 @@ blockToOrg :: PandocMonad m
            => Block         -- ^ Block element
            -> Org m (Doc Text)
 blockToOrg Null = return empty
+blockToOrg (Div (_, ["cell", "code"], _) (CodeBlock attr t : bs)) = do
+  -- ipynb code cell
+  let (ident, classes, kvs) = attr
+  blockListToOrg (CodeBlock (ident, classes ++ ["code"], kvs) t : bs)
+blockToOrg (Div (_, ["output", "execute_result"], _) [CodeBlock _attr t]) = do
+  -- ipynb code result
+  return $ "#+RESULTS:" $$
+    (prefixed ": " . vcat . map literal $ T.split (== '\n') t)
 blockToOrg (Div attr@(ident,_,_) bs) = do
   opts <- gets stOptions
   -- Strip off bibliography if citations enabled
@@ -148,7 +156,10 @@ blockToOrg (Header level attr inlines) = do
                   then empty
                   else cr <> propertiesDrawer attr
   return $ headerStr <> " " <> contents <> drawerStr <> cr
-blockToOrg (CodeBlock (_,classes,kvs) str) = do
+blockToOrg (CodeBlock (ident,classes,kvs) str) = do
+  let name = if T.null ident
+             then empty
+             else literal $ "#+name: " <> ident
   let startnum = maybe "" (\x -> " " <> trimr x) $ lookup "startFrom" kvs
   let numberlines = if "numberLines" `elem` classes
                       then if "continuedSourceBlock" `elem` classes
@@ -156,10 +167,18 @@ blockToOrg (CodeBlock (_,classes,kvs) str) = do
                              else " -n" <> startnum
                       else ""
   let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
-  let (beg, end) = case at of
-                      []    -> ("#+begin_example" <> numberlines, "#+end_example")
-                      (x:_) -> ("#+begin_src " <> x <> numberlines, "#+end_src")
-  return $ literal beg $$ literal str $$ text end $$ blankline
+  let lang = case at of
+        []  -> Nothing
+        l:_ -> if "code" `elem` classes    -- check for ipynb code cell
+               then Just ("jupyter-" <> l)
+               else Just l
+  let args = mconcat $
+             [ " :" <> k <> " " <> v
+             | (k, v) <- kvs, k `notElem` ["startFrom", "org-language"]]
+  let (beg, end) = case lang of
+        Nothing -> ("#+begin_example" <> numberlines, "#+end_example")
+        Just x  -> ("#+begin_src " <> x <> numberlines <> args, "#+end_src")
+  return $ name $$ literal beg $$ literal str $$ literal end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+begin_quote" $$

@@ -30,7 +30,7 @@ getSlideLevel = go 6
 
 -- | Prepare a block list to be passed to makeSections.
 prepSlides :: Int -> [Block] -> [Block]
-prepSlides slideLevel = ensureStartWithH . splitHrule . extractRefsHeader
+prepSlides slideLevel = ensureStartWithH . splitHrule . extractRefsHeader . filter (/= Null)
   where splitHrule (HorizontalRule : Header n attr xs : ys)
                        | n == slideLevel = Header slideLevel attr xs : splitHrule ys
         splitHrule (HorizontalRule : xs) = Header slideLevel nullAttr [Str "\0"] :

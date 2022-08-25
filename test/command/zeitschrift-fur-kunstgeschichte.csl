@@ -20,7 +20,7 @@
     <category field="humanities"/>
     <category field="history"/>
     <issn>0044-2992</issn>
-    <summary>From the editors: "Die Herausgeber werden im Falle von Editionen, Lexika und Ausstellungskatalogen dem Titel nachgestellt [use encyclopedia articles with or without container-title for that]. Bei gewöhnlichen Sammelbänden werden die Herausgeber dem Titel vorangestellt [use book for that]." Multilingual style; the information for exhibition catalogues should be entered in the field collection-title; locators may use the word "here" or "hier" in front of the page refering to which must be entered individually (the style outputs the locator as it is entered w/o any label or additional text).</summary>
+    <summary>From the editors: "Die Herausgeber werden im Falle von Editionen, Lexika und Ausstellungskatalogen dem Titel nachgestellt [use encyclopedia articles with or without container-title for that]. Bei gewöhnlichen Sammelbänden werden die Herausgeber dem Titel vorangestellt [use book for that]." Multilingual style; the information for exhibition catalogues should be entered in the field collection-title; locators may use the word "here" or "hier" in front of the page referring to which must be entered individually (the style outputs the locator as it is entered w/o any label or additional text).</summary>
     <updated>2016-02-03T17:41:02+00:00</updated>
     <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
   </info>

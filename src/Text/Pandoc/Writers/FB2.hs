@@ -21,14 +21,13 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad (zipWithM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, liftM, modify)
-import Data.ByteString.Base64 (encode)
+import Data.ByteString.Base64 (encodeBase64)
 import Data.Char (isAscii, isControl, isSpace)
 import Data.Either (lefts, rights)
 import Data.List (intercalate)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Encoding as TE
 import Text.Pandoc.Network.HTTP (urlEncode)
 import Text.Pandoc.XML.Light as X
 
@@ -180,6 +179,8 @@ renderSection lvl (Div (id',"section":_,_) (Header _ _ title : xs)) = do
       then el "section" (title' ++ content)
       else el "section" ([uattr "id" id'], title' ++ content)
   return [sectionContent]
+renderSection lvl (Div _attr bs) =
+  cMapM (renderSection lvl) bs
 renderSection _ b = blockToXml b
 
 -- | Only <p> and <empty-line> are allowed within <title> in FB2.
@@ -235,7 +236,7 @@ fetchImage href link = do
                                report $ CouldNotDetermineMimeType link
                                return Nothing
                              Just mime -> return $ Just (mime,
-                                                      TE.decodeUtf8 $ encode bs))
+                                                        encodeBase64 bs))
                     (\e ->
                        do report $ CouldNotFetchResource link (tshow e)
                           return Nothing)

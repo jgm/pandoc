@@ -11,7 +11,7 @@ permissions:
 jobs:
   linux:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Create linux package
@@ -34,7 +34,8 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            stack_opts: "-j1"
+            stack_opts: '-j4 +RTS -A256m -RTS'
+
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
@@ -87,7 +88,7 @@ jobs:
 
   macos:
 
-    runs-on: macOS-10.15
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v3
@@ -96,7 +97,7 @@ jobs:
       run: |
           stack --no-terminal setup
           stack --no-terminal update
-          stack --no-terminal install
+          stack --no-terminal install --ghc-options='-j4 +RTS -A256m -RTS -split-sections'
 
     - name: Create artifacts
       run: |
@@ -114,6 +115,7 @@ jobs:
           cp ~/.local/bin/pandoc ${DEST}/bin/
           strip ${DEST}/bin/pandoc
           cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
+          cp man/pandoc-server.1 ${DEST}/share/man/man1/pandoc-server.1
           ~/.local/bin/pandoc -s COPYING.md -Vpagetitle=License -o ${RESOURCES}/license.html
           chown -R $ME:staff ${ROOT}
           sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml

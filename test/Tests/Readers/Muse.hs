@@ -13,19 +13,14 @@ Tests for the Muse reader.
 module Tests.Readers.Muse (tests) where
 
 import Data.List (intersperse)
-import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.Tasty
 import Test.Tasty.HUnit (HasCallStack)
-import Test.Tasty.QuickCheck
-import Test.Tasty.Options (IsOption(defaultValue))
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Writers.Shared (toLegacyTable)
-import Text.Pandoc.Walk
 
 amuse :: Text -> Pandoc
 amuse = purely $ readMuse def { readerExtensions = extensionsFromList [Ext_amuse]}
@@ -51,79 +46,6 @@ simpleTable' n capt headers rows
   where
     toRow = Row nullAttr . map simpleCell
     toHeaderRow l = [toRow l | not (null l)]
-
--- Tables don't round-trip yet
---
-makeRoundTrip :: Block -> Block
-makeRoundTrip t@(Table tattr blkCapt specs thead tbody tfoot) =
-  if isSimple && numcols > 1
-    then t
-    else Para [Str "table was here"]
-  where (_, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-        numcols = maximum (length aligns : length widths : map length (headers:rows))
-        isLineBreak LineBreak = Any True
-        isLineBreak _         = Any False
-        hasLineBreak = getAny . query isLineBreak
-        isSimple = and [ isSimpleHead thead
-                       , isSimpleBodies tbody
-                       , isSimpleFoot tfoot
-                       , all (== 0) widths
-                       , isNullAttr tattr
-                       , simpleCapt ]
-        isNullAttr ("", [], []) = True
-        isNullAttr _            = False
-        isAlignDefault AlignDefault = True
-        isAlignDefault _            = False
-        isSimpleRow (Row attr body) = isNullAttr attr && all isSimpleCell body
-        isSimpleCell (Cell attr ali h w body)
-          = and [ h == 1
-                , w == 1
-                , isNullAttr attr
-                , isAlignDefault ali
-                , isSimpleCellBody body ]
-        isSimpleCellBody [Plain ils] = not (hasLineBreak ils)
-        isSimpleCellBody [Para ils ] = not (hasLineBreak ils)
-        isSimpleCellBody []          = True
-        isSimpleCellBody _           = False
-        simpleCapt = case blkCapt of
-          Caption Nothing [Para _]  -> True
-          Caption Nothing [Plain _] -> True
-          _                         -> False
-        isSimpleHead (TableHead attr [r])
-          = isNullAttr attr && isSimpleRow r
-        isSimpleHead _ = False
-        isSimpleBody (TableBody attr rhc hd bd) = and [ isNullAttr attr
-                                                      , rhc == 0
-                                                      , null hd
-                                                      , all isSimpleRow bd ]
-        isSimpleBodies [b] = isSimpleBody b
-        isSimpleBodies _   = False
-        isSimpleFoot (TableFoot attr rs) = isNullAttr attr && null rs
-
-makeRoundTrip (OrderedList (start, LowerAlpha, _) items) = OrderedList (start, Decimal, Period) items
-makeRoundTrip (OrderedList (start, UpperAlpha, _) items) = OrderedList (start, Decimal, Period) items
-makeRoundTrip x = x
-
--- | Ensure an Inline element is representable in Muse.
---
--- TODO: Check if string handling could be improved.
-makeRoundTripInline :: Inline -> Inline
-makeRoundTripInline (Str xs) = Str (T.replace "\DEL" "" xs)
-makeRoundTripInline x = x
-
--- Demand that any AST produced by Muse reader and written by Muse writer can be read back exactly the same way.
--- Currently we remove tables and compare first rewrite to the second.
-roundTrip :: Blocks -> Bool
-roundTrip b = d' == d''
-  where d = walk makeRoundTrip
-          . walk makeRoundTripInline
-          $ Pandoc nullMeta $ toList b
-        d' = rewrite d
-        d'' = rewrite d'
-        rewrite = amuse . T.pack . (++ "\n") . T.unpack .
-                  purely (writeMuse def { writerExtensions = extensionsFromList [Ext_amuse]
-                                          , writerWrapText = WrapPreserve
-                                          })
 
 tests :: [TestTree]
 tests =
@@ -393,12 +315,7 @@ tests =
       ]
 
   , testGroup "Blocks"
-      [ askOption $ \(QuickCheckTests numtests) ->
-          testProperty "Round trip" $
-            withMaxSuccess (if QuickCheckTests numtests == defaultValue
-                               then 25
-                               else numtests) roundTrip
-      , "Block elements end paragraphs" =:
+      [ "Block elements end paragraphs" =:
         T.unlines [ "First paragraph"
                   , "----"
                   , "Second paragraph"

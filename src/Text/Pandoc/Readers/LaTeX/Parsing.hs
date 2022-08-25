@@ -414,14 +414,24 @@ tokenize = totoks
                       Tok pos (CtrlSeq (T.singleton d)) (T.pack [c,d])
                       : totoks (incSourceColumn pos 2) rest'
          | c == '#' ->
-           let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') rest
-           in  case safeRead t1 of
-                    Just i ->
-                       Tok pos (Arg i) ("#" <> t1)
-                       : totoks (incSourceColumn pos (1 + T.length t1)) t2
-                    Nothing ->
-                       Tok pos Symbol "#"
-                       : totoks (incSourceColumn pos 1) t2
+           case T.uncons rest of
+             Just ('#', t3) ->
+               let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') t3
+               in  case safeRead t1 of
+                        Just i ->
+                           Tok pos (DeferredArg i) ("##" <> t1)
+                           : totoks (incSourceColumn pos (2 + T.length t1)) t2
+                        Nothing -> Tok pos Symbol "#"
+                                  : Tok (incSourceColumn pos 1) Symbol "#"
+                                  : totoks (incSourceColumn pos 1) t2
+             _ ->
+               let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') rest
+               in  case safeRead t1 of
+                        Just i ->
+                           Tok pos (Arg i) ("#" <> t1)
+                           : totoks (incSourceColumn pos (1 + T.length t1)) t2
+                        Nothing -> Tok pos Symbol "#"
+                                  : totoks (incSourceColumn pos 1) rest
          | c == '^' ->
            case T.uncons rest of
                 Just ('^', rest') ->
@@ -571,6 +581,8 @@ doMacros' n inp =
       x <- try $ spaces >> bracedOrToken
       getargs (M.insert i x argmap) rest
 
+    addTok False _args spos (Tok _ (DeferredArg i) txt) acc =
+      Tok spos (Arg i) txt : acc
     addTok False args spos (Tok _ (Arg i) _) acc =
        case M.lookup i args of
             Nothing -> mzero

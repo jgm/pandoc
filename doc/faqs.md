@@ -120,7 +120,7 @@ and using the `tlmgr` tool to install a few packages required by pandoc
 
 Or, you can produce PDFs via HTML and `wkhtmltopdf`,
 or via groff ms and `pdfroff`.  (These don't produce as nice
-topography as TeX, particularly when it comes to math, but they
+typography as TeX, particularly when it comes to math, but they
 may be fine for many purposes.)
 
 
@@ -160,5 +160,30 @@ when you use `latex` and `bibtex`; you can change the format
 of the citations by specifying an appropriate CSL bibliography
 style using `--csl`
 (see [the manual](https://pandoc.org/MANUAL.html#specifying-a-citation-style)).
+
+### Pandoc adds column widths to pipe tables when any line is wider than the setting for `--columns`. How can I prevent this?
+
+Save this filter as `nowidths.lua` and then pass `--lua-filter
+nowidths.lua` as an additional option to pandoc.
+(See <https://github.com/jgm/pandoc/issues/8139>.)
+
+``` lua
+-- Unset the width attribute of HTML colspecs in tables
+-- See https://github.com/jgm/pandoc/issues/8139
+function Table (tbl)
+  if PANDOC_VERSION[1] >= 2 and PANDOC_VERSION[2] >= 10 then
+    tbl.colspecs = tbl.colspecs:map(function (colspec)
+        local align = colspec[1]
+        local width = nil  -- default width
+        return {align, width}
+    end)
+  else
+    for i, w in ipairs(tbl.widths) do
+      tbl.widths[i] = 0
+    end
+  end
+  return tbl
+end
+```
 
 :::

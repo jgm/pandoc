@@ -19,14 +19,14 @@ import Control.Monad.Catch (throwM, try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Maybe (catMaybes)
 import HsLua as Lua hiding (status, try)
-import GHC.IO.Encoding (getForeignEncoding, setForeignEncoding, utf8)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
-import Text.Pandoc.Lua.Marshal.List (pushListModule)
+import Text.Pandoc.Lua.Marshal.List (newListMetatable, pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLua)
 import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Lua.LPeg as LPeg
+import qualified HsLua.Aeson
 import qualified HsLua.Module.DocLayout as Module.Layout
 import qualified HsLua.Module.Path as Module.Path
 import qualified HsLua.Module.Text as Module.Text
@@ -41,13 +41,10 @@ import qualified Text.Pandoc.Lua.Module.Utils as Pandoc.Utils
 -- initialization.
 runLua :: (PandocMonad m, MonadIO m)
        => LuaE PandocError a -> m (Either PandocError a)
-runLua luaOp = do
-  enc <- liftIO $ getForeignEncoding <* setForeignEncoding utf8
-  res <- runPandocLua . try $ do
+runLua action =
+  runPandocLua . try $ do
     initLuaState
-    liftPandocLua luaOp
-  liftIO $ setForeignEncoding enc
-  return res
+    liftPandocLua action
 
 -- | Modules that are loaded at startup and assigned to fields in the
 -- pandoc module.
@@ -70,6 +67,7 @@ loadedModules =
 initLuaState :: PandocLua ()
 initLuaState = do
   liftPandocLua Lua.openlibs
+  initJsonMetatable
   initPandocModule
   installLpegSearcher
   setGlobalModules
@@ -147,3 +145,9 @@ initLuaState = do
     Lua.pushHaskellFunction $ Lua.state >>= liftIO . LPeg.lpeg_searcher
     Lua.rawseti (Lua.nth 2) . (+1) . fromIntegral =<< Lua.rawlen (Lua.nth 2)
     Lua.pop 1  -- remove 'package.searchers' from stack
+
+-- | Setup the metatable that's assigned to Lua tables that were created
+-- from/via JSON arrays.
+initJsonMetatable :: PandocLua ()
+initJsonMetatable = liftPandocLua $ do
+  newListMetatable HsLua.Aeson.jsonarray (pure ())

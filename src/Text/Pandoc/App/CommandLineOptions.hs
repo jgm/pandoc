@@ -22,12 +22,10 @@ module Text.Pandoc.App.CommandLineOptions (
           , parseOptionsFromArgs
           , options
           , engines
-          , lookupHighlightStyle
           , setVariable
           ) where
 import Control.Monad
 import Control.Monad.Trans
-import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
@@ -41,7 +39,7 @@ import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
 import HsLua (Exception, getglobal, openlibs, peek, run, top)
 import Safe (tailDef)
-import Skylighting (Style, Syntax (..), defaultSyntaxMap, parseTheme)
+import Skylighting (Syntax (..), defaultSyntaxMap)
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
 import System.Exit (exitSuccess)
@@ -54,7 +52,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             DefaultsState (..), applyDefaults,
                             fullDefaultsPath)
 import Text.Pandoc.Filter (Filter (..))
-import Text.Pandoc.Highlighting (highlightingStyles)
+import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
 import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDir)
 import Text.Printf
 
@@ -946,7 +944,7 @@ options =
                  (ReqArg
                   (\arg opt -> do
                      let write = maybe B.putStr B.writeFile $ optOutputFile opt
-                     sty <- runIOorExplode $ lookupHighlightStyle arg
+                     sty <- runIOorExplode $ lookupHighlightingStyle arg
                      write $ encodePretty'
                        defConfig{confIndent = Spaces 4
                                 ,confCompare = keyOrder
@@ -1058,20 +1056,6 @@ writersNames = sort
 
 splitField :: String -> (String, String)
 splitField = second (tailDef "true") . break (`elemText` ":=")
-
-lookupHighlightStyle :: PandocMonad m => String -> m Style
-lookupHighlightStyle s
-  | takeExtension s == ".theme" = -- attempt to load KDE theme
-    do contents <- readFileLazy s
-       case parseTheme contents of
-            Left _    -> throwError $ PandocOptionError $ T.pack $
-                           "Could not read highlighting theme " ++ s
-            Right sty -> return sty
-  | otherwise =
-  case lookup (T.toLower $ T.pack s) highlightingStyles of
-       Just sty -> return sty
-       Nothing  -> throwError $ PandocOptionError $ T.pack $
-                      "Unknown highlight-style " ++ s
 
 deprecatedOption :: String -> String -> IO ()
 deprecatedOption o msg =

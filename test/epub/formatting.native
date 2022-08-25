@@ -605,7 +605,12 @@
         , Space
         , Str "the"
         , Space
-        , Code ( "" , [] , [] ) "CSS Multi-Column Layout"
+        , Link
+            ( "" , [] , [] )
+            [ Code ( "" , [] , [] ) "CSS Multi-Column Layout" ]
+            ( "http://idpf.org/epub/30/spec/epub30-contentdocs.html#sec-css-multi-column"
+            , ""
+            )
         , Space
         , Str "properties"
         , Space
