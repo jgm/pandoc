@@ -282,6 +282,9 @@ function setFormFromParams() {
     document.getElementById("to").value = params.to;
     document.getElementById("standalone").checked = params.standalone;
     document.getElementById("citeproc").checked = params.citeproc;
+    for (const filename in params.files) {
+      addFile(filename, params.files[filename]);
+    }
 }
 
 function readFile(file, callback) {
