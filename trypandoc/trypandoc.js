@@ -167,10 +167,6 @@ function addSupportFile(e) {
 }
 
 function addFile(name, contents) {
-  if (params.files[name]) {
-    throw("File " + name + " already exists. Remove it before re-adding.");
-    return;
-  }
   params.files[name] = contents;
   let filesDiv = document.getElementById("files");
   let fileDiv = document.createElement("div");
@@ -200,7 +196,7 @@ function addFile(name, contents) {
 
 function permalink() {
   let href = window.location.href;
-  const URLparams = new URLSearchParams(Object.entries(params));
+  const URLparams = new URLSearchParams([["params", JSON.stringify(params)]]);
   return href.replace(/([?].*)?$/,"?" + URLparams);
 }
 
@@ -221,12 +217,9 @@ const binaryFormats = {
 
 function paramsFromURL() {
   if (window.location.search.length > 0) {
-    const uparams = new URLSearchParams(window.location.search);
-    params.text = uparams.get("text") || "";
-    params.from = uparams.get("from") || "markdown";
-    params.to = uparams.get("to") || "html5";
-    params.standalone = uparams.get("standalone") === "true";
-    params.citeproc = uparams.get("citeproc") === "true";
+    const query = new URLSearchParams(window.location.search);
+    const rawparams = query.get("params");
+    params = JSON.parse(rawparams);
   }
 }
 
