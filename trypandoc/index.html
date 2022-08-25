@@ -18,17 +18,18 @@
     footer { color: #555; text-align: center; margin: 1em; }
     p.version { color: #555; }
     .container { margin: 12px; }
-    .row { display: flex; flex-wrap: nowrap; justify-content: space-between; }
-    #frompane { flex: 1; padding: 1em; }
-    #topane { flex: 1; padding: 1em;  }
+    .row { display: flex; flex-wrap: nowrap; justify-content: space-between; margin: 0; padding: 0; }
+    #frompane { flex: 1; padding: 1m; }
+    #topane { flex: 1; padding: 1em; }
     #command { font-family: monospace; padding: 1em; }
     #text {margin-top: 0; padding-top: 0;}
     button#convert { vertical-align: bottom; }
     pre#command { margin-top: 1em; background-color: transparent; border: none; }
     a#permalink { margin-top: 6pt; margin-bottom: 6pt; display: block; }
-    #examples { margin-left: 6pt; }
-    div.file div.title { margin-bottom: 0; }
+    #examples { margin-left: 0; }
+    div.file div.title { margin: 0; padding: 0; }
     span.filename { }
+    #convert { margin-left: 0; }
     div.file textarea { margin-top: 0; }
   </style>
 </head>
@@ -38,6 +39,7 @@
     <div id="title">
       <h1>Try <a href="https://pandoc.org">pandoc</a>!</h1>
       <select id="examples">
+        <option value="" disabled selected>Select an example</option>
       </select>
     </div>
     <div id="command">
@@ -96,8 +98,8 @@
         <option value="vimwiki">vimwiki</option>
       </select>
       <br/>
+      <span>Input</span>
       <button onclick="clearText()">clear</button>
-      <label for="loadfile">Input</label>
       <input id="loadfile" type="file" />
       <!-- <label for="supportfile">+ Support</label>
       <input id="supportfile" type="file" /> -->
@@ -108,7 +110,7 @@
         </span>
       </div>
       -->
-      <textarea id="text" rows="15"></textarea>
+      <textarea id="text" rows="15" placeholder="Type in this box and press Convert, or select an example..."></textarea>
       <br/>
       <div id="files">
       </div>
@@ -185,12 +187,21 @@
       </select>
       <input type="checkbox" id="standalone" name="standalone">
       <label for="standalone">Standalone
-        <a href="https://pandoc.org/MANUAL.html#option--standalone" target="_blank">(?)</a>
+      &nbsp;
       </label>
       <input type="checkbox" id="citeproc" name="citeproc">
       <label for="citeproc">Citeproc
-        <a href="https://pandoc.org/MANUAL.html#option--citeproc" target="_blank">(?)</a>
       </label>
+      &nbsp;
+      <select id="html-math-method">
+        <option value="" disabled selected>Math rendering</option>
+        <option id="math-plain" value="plain">Plain math</option>
+        <option id="math-mathml" value="mathml">MathML</option>
+        <option id="math-mathjax" value="mathjax">MathJax</option>
+        <option id="math-katex" value="katex">KaTeX</option>
+        <option id="math-webtex" value="webtex">WebTeX</option>
+        <option id="math-gladtex" value="gladtex">GladTeX</option>
+      </select>
       <br/>
       <a id="permalink" title="link to this conversion" href="">permalink</a></br/>
       <div id="errors"></div>

@@ -6,9 +6,10 @@ const defaultParams = {
   from: 'markdown',
   standalone: false,
   citeproc: false,
+  ["html-math-method"]: "plain",
   files: {} };
 
-var params = examples["Hello world"];
+var params = defaultParams;
 
 function clearText() {
   params.text = '';
@@ -124,6 +125,7 @@ function setFormFromParams() {
     document.getElementById("to").value = params.to;
     document.getElementById("standalone").checked = params.standalone;
     document.getElementById("citeproc").checked = params.citeproc;
+    document.getElementById("html-math-method").value = params["html-math-method"];
     for (const filename in params.files) {
       addFile(filename, params.files[filename]);
     }
@@ -177,12 +179,19 @@ function readFile(file, callback) {
     document.getElementById("text").onchange = (e) => {
       params.text = e.target.value;
     }
+    // document.getElementById("text").onblur = (e) => {
+    //   convert();
+    // }
     document.getElementById("standalone").onchange = (e) => {
       params.standalone = e.target.checked;
       convert();
     }
     document.getElementById("citeproc").onchange = (e) => {
       params.citeproc = e.target.checked;
+      convert();
+    }
+    document.getElementById("html-math-method").onchange = (e) => {
+      params["html-math-method"] = e.target.value;
       convert();
     }
 

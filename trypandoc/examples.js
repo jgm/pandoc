@@ -651,7 +651,41 @@ Foo [@legras_michel_2010].`,
     </layout>
   </bibliography>
 </style>` }
-    }
+    },
+
+  ["LaTeX to DocBook with MathML"]:
+  { text: `\\newtheorem{theorem}{Theorem}
+\\newtheorem{corollary}[theorem]{Corollary}
+\\newtheorem{lemma}[theorem]{Lemma}
+\\theoremstyle{definition}
+\\newtheorem{definition}[theorem]{Definition}
+\\theoremstyle{remark}
+\\newtheorem{remark}{Remark}
+
+\\begin{definition}[right-angled triangles] \\label{def:tri}
+A \\emph{right-angled triangle} is a triangle whose sides of length~\\(a\\), \\(b\\) and~\\(c\\), in some permutation of order, satisfies \\(a^2+b^2=c^2\\).
+\\end{definition}
+
+\\begin{lemma}
+The triangle with sides of length~\\(3\\), \\(4\\) and~\\(5\\) is right-angled.
+\\end{lemma}
+
+\\begin{proof}
+This lemma follows from \\cref{def:tri} since \\(3^2+4^2=9+16=25=5^2\\).
+\\end{proof}
+
+\\begin{theorem}[Pythagorean triplets] \\label{thm:py}
+Triangles with sides of length \\(a=p^2-q^2\\), \\(b=2pq\\) and \\(c=p^2+q^2\\) are right-angled triangles.
+\\end{theorem}
+
+\\begin{remark}
+These are all pretty interesting facts.
+\\end{remark}
+`,
+    from: 'latex',
+    to: 'docbook5',
+    ['html-math-method']: 'mathml',
+    standalone: true }
 }
 
 
