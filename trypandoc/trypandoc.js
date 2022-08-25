@@ -219,13 +219,6 @@ const binaryFormats = {
              mime: "application/epub+zip" }
 };
 
-const binaryMimeTypes = {
-  ["application/epub+zip"]: true,
-  ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"]: true,
-  ["application/vnd.openxmlformats-officedocument.presentationml.presentation"]: true,
-  ["application/vnd.oasis.opendocument.text"]: true
-};
-
 function paramsFromURL() {
   if (window.location.search.length > 0) {
     const uparams = new URLSearchParams(window.location.search);
@@ -291,6 +284,32 @@ function setFormFromParams() {
     document.getElementById("citeproc").checked = params.citeproc;
 }
 
+function readFile(file, callback) {
+    if (file.size > 200000) {
+      alert("File exceeds 200KB size limit: " + file.name);
+      throw("File exceeds 200KB size limit: " + file.name);
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      let result = reader.result;
+      // check for valid UTF-8
+      let invalidUtf8 = result.match(/[\uFFFD]/);
+      if (invalidUtf8) {
+        // if not valid UTF-8, treat as binary and base64 encode it
+        const base64reader = new FileReader();
+        base64reader.onloadend = () => {
+          const base64string = base64reader.result
+           .replace('data:', '')
+           .replace(/^.+,/, '');
+          callback(base64string);
+        }
+        base64reader.readAsDataURL(file);
+      } else {
+        callback(result);
+      }
+    }
+    reader.readAsText(file);
+}
 
 (function() {
     paramsFromURL();
@@ -333,78 +352,22 @@ function setFormFromParams() {
     // Listen for the change event so we can capture the file
     fileInput.addEventListener('change', (e) => {
       // Get a reference to the file
-      const file = e.target.files[0];
-      const mimetype = file.type;
-      let binary = binaryMimeTypes[mimetype];
-
-      // Encode the file using the FileReader API
-      const reader = new FileReader();
       let inputtext = document.getElementById("text");
-      reader.onloadend = () => {
-        // Use a regex to remove data url part
-        if (binary) {
-          const base64String = reader.result
-           .replace('data:', '')
-           .replace(/^.+,/, '');
-          inputtext.value = base64String;
-	} else {
-          inputtext.value = reader.result;
-        }
-        params.text = inputtext.value;
-      };
-      if (binary) {
-        reader.readAsDataURL(file);
-      } else {
-        reader.readAsText(file);
-      }
+      const file = e.target.files[0];
+      readFile(file, (s) => {
+        inputtext.value = s;
+        params.text = s;
+      });
     });
 
     const addfileButton = document.getElementById("addfile");
     addfileButton.addEventListener('change', (e) => {
       // Get a reference to the file
       const file = e.target.files[0];
-      const mimetype = file.type;
-      let binary = binaryMimeTypes[mimetype];
-
-      // Encode the file using the FileReader API
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // Use a regex to remove data url part
-        if (binary) {
-          const base64String = reader.result
-           .replace('data:', '')
-           .replace(/^.+,/, '');
-          addFile(file.name, base64String);
-	} else {
-          addFile(file.name, reader.result);
-        }
-      };
-      if (binary) {
-        reader.readAsDataURL(file);
-      } else {
-        reader.readAsText(file);
-      }
-
+      readFile(file, (s) => {
+        addFile(file.name, s);
+      });
     });
-
-    // const supportFiles = document.getElementById('supportfiles');
-    //
-    // // Listen for the change event so we can capture the file
-    // supportFiles.addEventListener('change', (e) => {
-    //   // Get a reference to the file
-    //   const files = e.target.files;
-    //   params.files = {};
-    //   Object.keys(files).forEach(i => {
-    //     const file = files[i];
-    //     const reader = new FileReader();
-    //     reader.onload = (e) => {
-    //       params.files[file.name] = reader.result
-    //        .replace('data:', '')
-    //        .replace(/^.+,/, '');
-    //     }
-    //     reader.readAsDataURL(file);
-    //   });
-    // });
 
     fetch("/cgi-bin/pandoc-server.cgi/version")
        .then(handleErrors)
