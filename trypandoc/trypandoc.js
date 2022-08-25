@@ -128,6 +128,10 @@ function setFormFromParams() {
     document.getElementById("standalone").checked = params.standalone;
     document.getElementById("citeproc").checked = params.citeproc;
     document.getElementById("html-math-method").value = params["html-math-method"];
+    const files = document.querySelectorAll(".file");
+    files.forEach(file => {
+      file.remove();
+    });
     for (const filename in params.files) {
       addFile(filename, params.files[filename]);
     }
