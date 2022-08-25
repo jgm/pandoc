@@ -688,9 +688,13 @@ codeBlockFenced = try $ do
   rawattr <-
      (Left <$> (guardEnabled Ext_raw_attribute >> try rawAttribute))
     <|>
-     (Right <$> option ("",[],[])
-         ((guardEnabled Ext_fenced_code_attributes >> try attributes)
-          <|> ((\x -> ("",[toLanguageId x],[])) <$> many1Char nonspaceChar)))
+     (Right <$> (do
+           languageId <- option Nothing (Just . toLanguageId <$> try (many1Char $ satisfy (\x -> x `notElem` ['`', '{', '}'] && not (isSpace x))))
+           skipMany spaceChar
+           maybeAttr <- option Nothing (Just <$> (guardEnabled Ext_fenced_code_attributes >> try attributes))
+           return $ case maybeAttr of
+              Nothing -> ("", maybeToList languageId, [])
+              Just (elementId, classes, attrs) -> (elementId, maybe classes (: classes) languageId, attrs)))
   blankline
   contents <- T.intercalate "\n" <$>
                  manyTill (gobbleAtMostSpaces indentLevel >> anyLine)
