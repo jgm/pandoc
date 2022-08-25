@@ -1,15 +1,17 @@
 "use strict";
 
-const defaultParams = {
-  text: '',
-  to: 'html5',
-  from: 'markdown',
-  standalone: false,
-  citeproc: false,
-  ["html-math-method"]: "plain",
-  files: {} };
+// reset params to defaults
+function resetParams() {
+  params.text = '';
+  params.to = 'html5';
+  params.from = 'markdown';
+  params.standalone = false;
+  params.citeproc = false;
+  params["html-math-method"] = "plain";
+  params.files = {};
+};
 
-var params = defaultParams;
+var params = {};
 
 function clearText() {
   params.text = '';
@@ -159,6 +161,7 @@ function readFile(file, callback) {
 }
 
 (function() {
+    resetParams();
     paramsFromURL();
     setFormFromParams();
 
@@ -197,7 +200,7 @@ function readFile(file, callback) {
 
     document.getElementById("examples").onchange = (e) => {
       let newparams = examples[e.target.value];
-      params = defaultParams;
+      resetParams();
       for (const key in newparams) {
         params[key] = newparams[key]; // allow defaults
       };
