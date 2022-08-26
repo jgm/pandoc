@@ -1613,7 +1613,10 @@ inlineToHtml opts inline = do
                                       _ | html5  -> link ! H5.customAttribute
                                                       "role" "doc-noteref"
                                       _          -> link
-    (Cite cits il)-> do contents <- inlineListToHtml opts (walk addRoleToLink il)
+    (Cite cits il)-> do contents <- inlineListToHtml opts
+                                      (if html5
+                                          then walk addRoleToLink il
+                                          else il)
                         let citationIds = T.unwords $ map citationId cits
                         let result = H.span ! A.class_ "citation" $ contents
                         return $ if html5
