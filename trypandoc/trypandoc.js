@@ -31,6 +31,7 @@ function isBase64(s) {
 function downloadLink(name, contents) {
   let downloadlink = document.createElement("a");
   downloadlink.setAttribute("download", name);
+  downloadlink.setAttribute("class", "download-link");
   downloadlink.setAttribute("href", 'data:application/octet-stream;base64,' + contents);
   downloadlink.textContent = 'click to download ' + name;
   return downloadlink;
@@ -145,7 +146,19 @@ function convert() {
 }
 
 function setFormFromParams() {
-    document.getElementById("text").value = params.text;
+    let inputtext = document.getElementById("text");
+    let downloadinput = document.getElementById("downloadinput");
+    let isbinary = isBase64(params.text);
+    if (isbinary) {
+      inputtext.style.display = "none";
+      downloadinput.innerHTML = "";
+      downloadinput.appendChild(downloadLink("input." + params.from, params.text));
+      downloadinput.style.display = "block";
+    } else {
+      inputtext.value = params.text;
+      inputtext.style.display = "block";
+      downloadinput.style.display = "none";
+    }
     if (params.template) {
       document.getElementById("templatetext").value = params.template;
       document.getElementById("template").value = "custom";
@@ -268,6 +281,12 @@ function readFile(file, callback) {
       readFile(file, (s, isbase64) => {
         params.text = s;
         if (isbase64) {
+          let binaryfmt = file.name.match(/\.(docx|odt|epub|pptx)$/);
+          console.log(binaryfmt);
+          if (binaryfmt) {
+            params.from = binaryfmt[1];
+            document.getElementById("from").value = params.from;
+          }
           inputtext.style.display = "none";
           downloadinput.innerHTML = "";
           downloadinput.appendChild(downloadLink(file.name, s));
