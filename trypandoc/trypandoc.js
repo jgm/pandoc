@@ -95,10 +95,14 @@ function convert() {
     errs.textContent = "";
     console.log(params);
 
+    let mm = params["html-math-method"];
+    let mathopts = mm == "plain" ? "" : (" --" + mm)
     let commandString = "pandoc"
       + " --from " + params.from + " --to " + params.to
       + (params.standalone ? " --standalone" : "")
-      + (params.citeproc ? " --citeproc" : "") ;
+      + (params.template ? " --template=custom.tpl" : "")
+      + (params.citeproc ? " --citeproc" : "")
+      + mathopts ;
     document.getElementById("command").textContent = commandString;
     fetch("/cgi-bin/pandoc-server.cgi", {
       method: "POST",
