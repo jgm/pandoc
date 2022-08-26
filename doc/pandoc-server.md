@@ -168,7 +168,7 @@ the first one given is the default.
 :   Causes HTML comments to be stripped in Markdown or Textile
     source, instead of being passed through to the output format.
 
-`highlight-style` (string, default `"pygments"`)
+`highlight-style` (string, leave unset for no highlighting)
 
 :   Specify the style to use for syntax highlighting of code.
     Standard styles are `"pygments"` (the default), `"kate"`,
