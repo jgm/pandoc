@@ -205,11 +205,6 @@ extra-source-files:
                  man/manfilter.lua
                  man/pandoc.1.before
                  man/pandoc.1.after
-                 -- trypandoc
-                 trypandoc/Makefile
-                 trypandoc/index.html
-                 trypandoc/examples.js
-                 trypandoc/trypandoc.js
                  -- tests
                  test/bodybg.gif
                  test/*.native
