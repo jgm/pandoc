@@ -16,10 +16,27 @@ var params = {};
 
 function clearText() {
   params.text = '';
+  document.getElementById("downloadinput").innerHTML = "";
+  document.getElementById("downloadinput").style.display = "none";
+  document.getElementById("text").style.display = "block";
   document.getElementById("text").value = '';
 }
 
-function addFile(name, contents) {
+const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+
+function isBase64(s) {
+  return (s.length > 0 && base64regex.test(s))
+}
+
+function downloadLink(name, contents) {
+  let downloadlink = document.createElement("a");
+  downloadlink.setAttribute("download", name);
+  downloadlink.setAttribute("href", 'data:application/octet-stream;base64,' + contents);
+  downloadlink.textContent = 'click to download ' + name;
+  return downloadlink;
+}
+
+function addFile(name, contents, isbase64) {
   params.files[name] = contents;
   let filesDiv = document.getElementById("files");
   let fileDiv = document.createElement("div");
@@ -38,12 +55,16 @@ function addFile(name, contents) {
   title.appendChild(filename);
   title.appendChild(removeButton);
   fileDiv.appendChild(title);
-  let textarea = document.createElement("textarea");
-  textarea.onchange = (e) => {
-    params.files[name] = e.target.value;
+  if (isbase64) {
+    fileDiv.appendChild(downloadLink(name, contents));
+  } else {
+    let textarea = document.createElement("textarea");
+    textarea.onchange = (e) => {
+      params.files[name] = e.target.value;
+    }
+    textarea.textContent = contents;
+    fileDiv.appendChild(textarea);
   }
-  textarea.textContent = contents;
-  fileDiv.appendChild(textarea);
   filesDiv.appendChild(fileDiv);
 }
 
@@ -115,10 +136,7 @@ function convert() {
          let binary = binaryFormats[params.to];
          if (binary &&
            document.getElementById("errors").style.display == "none") {
-         document.getElementById("results").innerHTML +=
-             '<a download="trypandoc.' + binary.extension +
-             '" href="data:' + binary.mime + ';base64,' + restext +
-             '">click to download trypandoc.' + binary.extension + '</a>';
+         document.getElementById("results").appendChild(downloadLink("trypandoc." + binary.extension, restext));
        } else {
          document.getElementById("results").textContent += restext;
        }
@@ -147,10 +165,12 @@ function setFormFromParams() {
       file.remove();
     });
     for (const filename in params.files) {
-      addFile(filename, params.files[filename]);
+      addFile(filename, params.files[filename], isBase64(params.files[filename]));
     }
 }
 
+// callback takes two arguments:  the string text and a boolean
+// which is true if the string is base64-encoded binary data
 function readFile(file, callback) {
     if (file.size > 200000) {
       alert("File exceeds 200KB size limit: " + file.name);
@@ -168,11 +188,11 @@ function readFile(file, callback) {
           const base64string = base64reader.result
            .replace('data:', '')
            .replace(/^.+,/, '');
-          callback(base64string);
+          callback(base64string, true);
         }
         base64reader.readAsDataURL(file);
       } else {
-        callback(result);
+        callback(result, false);
       }
     }
     reader.readAsText(file);
@@ -243,10 +263,20 @@ function readFile(file, callback) {
     fileInput.addEventListener('change', (e) => {
       // Get a reference to the file
       let inputtext = document.getElementById("text");
+      let downloadinput = document.getElementById("downloadinput");
       const file = e.target.files[0];
-      readFile(file, (s) => {
-        inputtext.value = s;
+      readFile(file, (s, isbase64) => {
         params.text = s;
+        if (isbase64) {
+          inputtext.style.display = "none";
+          downloadinput.innerHTML = "";
+          downloadinput.appendChild(downloadLink(file.name, s));
+          downloadinput.style.display = "block";
+        } else {
+          inputtext.value = s;
+          inputtext.style.display = "block";
+          downloadinput.style.display = "none";
+        }
       });
     });
 
@@ -254,8 +284,8 @@ function readFile(file, callback) {
     addfileButton.addEventListener('change', (e) => {
       // Get a reference to the file
       const file = e.target.files[0];
-      readFile(file, (s) => {
-        addFile(file.name, s);
+      readFile(file, (s, isbase64) => {
+        addFile(file.name, s, isbase64);
       });
     });
 
