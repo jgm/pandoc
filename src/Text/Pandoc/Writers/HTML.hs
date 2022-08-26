@@ -545,9 +545,9 @@ footnoteSection refLocation startCounter notes = do
                 = H5.section ! A.id "footnotes"
                              ! A.class_ className
                              ! customAttribute "epub:type" "footnotes" $ x
-        | html5 = H5.section ! A.id "footnotes"
-                             ! A.class_ className
-                             ! customAttribute "role" "doc-endnotes"
+        | html5 = H5.section ! A5.id "footnotes"
+                             ! A5.class_ className
+                             ! A5.role "doc-endnotes"
                              $ x
         | slideVariant /= NoSlides = H.div ! A.class_ "footnotes slide" $ x
         | otherwise = H.div ! A.class_ className $ x
@@ -913,7 +913,7 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
                DZSlides       -> do
                  t <- addAttrs opts' attr $
                              H5.div contents'
-                 return $ t ! H5.customAttribute "role" "note"
+                 return $ t ! A5.role "note"
                NoSlides       -> addAttrs opts' attr $
                            H.div contents'
                _              -> return mempty
@@ -1610,8 +1610,7 @@ inlineToHtml opts inline = do
                                        $ toHtml ref
                         return $ case epubVersion of
                                       Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
-                                      _ | html5  -> link ! H5.customAttribute
-                                                      "role" "doc-noteref"
+                                      _ | html5  -> link ! A5.role "doc-noteref"
                                       _          -> link
     (Cite cits il)-> do contents <- inlineListToHtml opts
                                       (if html5
