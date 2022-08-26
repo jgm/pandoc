@@ -31,10 +31,12 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, translateTerm)
 import Text.Pandoc.Writers.Docx.Types
     ( WS,
       WriterState(stNextTableNum, stInTable),
+      WriterEnv(..),
       setFirstPara,
       pStyleM,
       withParaProp,
       withParaPropM )
+import Control.Monad.Reader (asks)
 import Text.Pandoc.Shared ( tshow, stringify )
 import Text.Pandoc.Options (WriterOptions, isEnabled)
 import Text.Pandoc.Extensions (Extension(Ext_native_numbering))
@@ -97,6 +99,8 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
   -- 0×0400  Do not apply column banding conditional formattin
   let tblLookVal = if hasHeader then (0x20 :: Int) else 0
   let (gridCols, tblWattr) = tableLayout (elems colspecs)
+  listLevel <- asks envListLevel
+  let indent = (listLevel + 1) * 720
   let tbl = mknode "w:tbl" []
         ( mknode "w:tblPr" []
           ( mknode "w:tblStyle" [("w:val","Table")] () :
@@ -109,6 +113,9 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
                                ,("w:noVBand","0")
                                ,("w:val", T.pack $ printf "%04x" tblLookVal)
                                ] () :
+            mknode "w:jc" [("w:val","start")] ()
+            : [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
+                | indent > 0 ] ++
             [ mknode "w:tblCaption" [("w:val", captionStr)] ()
             | not (T.null captionStr) ]
           )

@@ -937,8 +937,8 @@ blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) = do
   -- Remove extra paragraph indentation due to list items (#5947).
   -- This means that tables in lists will not be indented, but it
   -- avoids unwanted indentation in each cell.
-  content <- local (\env -> env{ envListLevel = - 1 }) $ tableToOpenXML opts
-                 (blocksToOpenXML opts)
+  content <- tableToOpenXML opts
+              (local (\env -> env{ envListLevel = -1 }) . blocksToOpenXML opts)
                  (Grid.toTable attr caption colspecs thead tbodies tfoot)
   let (tableId, _, _) = attr
   wrapBookmark tableId content
