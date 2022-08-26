@@ -685,7 +685,29 @@ These are all pretty interesting facts.
     from: 'latex',
     to: 'docbook5',
     ['html-math-method']: 'mathml',
-    standalone: true }
+    standalone: true },
+
+  ["Custom template"]:
+  { text: `---
+keywords:
+- bee
+- ant
+- ladybug
+author: E. N. Tymologist
+title: Some bugs
+...
+
+This is a book about bugs.`,
+    from: 'markdown',
+    to: 'html5',
+    standalone: true,
+    template: `<h1>$title$</h1>
+<p>by $author$</p>
+<p>Keywords: $for(keywords)$$it$$sep$; $endfor$</p>
+<main>
+$body$
+</main>
+` }
 }
 
 

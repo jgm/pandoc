@@ -11,7 +11,7 @@
     h1 { margin-bottom: 1em; font-size: 166%; margin: 0; padding: 6pt; }
     h1 a { text-decoration: none; color: inherit; }
     label { font-weight: 600; }
-    textarea { height: auto; font-family: monospace; font-size: 10pt; margin-top: 15px; min-height: 65vh; width: 44vw; }
+    textarea { height: auto; font-family: monospace; font-size: 10pt; margin-top: 15px; min-height: 45vh; width: 44vw; }
     div.alert { margin: 1em; }
     div#errors { width: 100%; color: red; font-weight: 600; padding-top: 6pt; padding-bottom: 6pt; display: none; }
     pre#results { width: 100%; margin-top: 0; min-height: 65vh; width: 44vw; }
@@ -31,6 +31,7 @@
     span.filename { }
     #convert { margin-left: 0; }
     div.file textarea { margin-top: 0; }
+    #customtemplate { display: none; }
   </style>
 </head>
 <body>
@@ -101,22 +102,23 @@
       <span>Input</span>
       <button onclick="clearText()">clear</button>
       <input id="loadfile" type="file" />
-      <!-- <label for="supportfile">+ Support</label>
-      <input id="supportfile" type="file" /> -->
       <br/>
-      <!-- <div id="tabs">
-        <span class="tab"><a onclick="showFile('stdin')">stdin</a></span>
-        <span id="files">
-        </span>
-      </div>
-      -->
-      <textarea id="text" rows="15" placeholder="Type in this box and press Convert, or select an example..."></textarea>
+      <textarea id="text" placeholder="Type in this box and press Convert, or select an example..."></textarea>
       <br/>
       <div id="files">
       </div>
       <br/>
       <label for="addfile">Add support file</label>
       <input id="addfile" type="file" />
+      <br/>
+      <label for="template">Template</label>
+      <select id="template">
+        <option selected value="default">Default</option>
+        <option value="custom">Custom</option>
+      </select>
+      <div id="customtemplate">
+        <textarea id="templatetext"></textarea>
+      </div>
     </div>
     <div id="topane">
       <label for="to">

@@ -9,6 +9,7 @@ function resetParams() {
   params.citeproc = false;
   params["html-math-method"] = "plain";
   params.files = {};
+  params.template = null;
 };
 
 var params = {};
@@ -123,6 +124,15 @@ function convert() {
 
 function setFormFromParams() {
     document.getElementById("text").value = params.text;
+    if (params.template) {
+      document.getElementById("templatetext").value = params.template;
+      document.getElementById("template").value = "custom";
+      document.getElementById("customtemplate").style.display = "block";
+    } else {
+      document.getElementById("templatetext").value = "";
+      document.getElementById("template").value = "default";
+      document.getElementById("customtemplate").style.display = "none";
+    }
     document.getElementById("from").value = params.from;
     document.getElementById("to").value = params.to;
     document.getElementById("standalone").checked = params.standalone;
@@ -201,7 +211,18 @@ function readFile(file, callback) {
       params["html-math-method"] = e.target.value;
       convert();
     }
-
+    document.getElementById("template").onchange = (e) => {
+      if (e.target.value == "custom") {
+        document.getElementById("customtemplate").style.display = "block";
+        params.template = document.getElementById("templatetext").value;
+      } else {
+        params.template = null;
+        document.getElementById("customtemplate").style.display = "none";
+      }
+    }
+    document.getElementById("templatetext").onchange = (e) => {
+      params.template = e.target.value;
+    }
     document.getElementById("examples").onchange = (e) => {
       let newparams = examples[e.target.value];
       resetParams();
