@@ -35,7 +35,7 @@ import Data.List (intercalate, sort, foldl')
 #ifdef _WINDOWS
 import Data.List (isPrefixOf)
 #endif
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, fromJust)
 import Data.Text (Text)
 import HsLua (Exception, getglobal, openlibs, peek, run, top)
 import Safe (tailDef)
@@ -69,6 +69,7 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Citeproc.MetaValue (metaValueToText)
 
 #ifdef NIGHTLY
 import qualified Language.Haskell.TH as TH
@@ -727,10 +728,14 @@ options =
 
      , Option "" ["csl"]
                  (ReqArg
-                  (\arg opt ->
-                     return opt{ optMetadata =
-                                   addMeta "csl" (normalizePath arg) $
-                                   optMetadata opt })
+                  (\arg opt -> do
+                     let (replaced, meta) = replaceMeta "csl" (normalizePath arg) $
+                                   optMetadata opt
+                     when (isJust replaced) $
+                      runIOorExplode $ report $ DuplicateMeta $
+                          "Mulitiple CSL styles provided. The last one is used"
+                            <> maybe "" (" - ignored " <>) (metaValueToText $ fromJust replaced)
+                     return opt{ optMetadata = meta})
                    "FILE")
                  ""
 
@@ -1081,6 +1086,15 @@ addMeta k v meta =
  where
   v' = readMetaValue v
   k' = T.pack k
+
+replaceMeta :: String -> String -> Meta -> (Maybe MetaValue, Meta)
+replaceMeta k v meta =
+  case lookupMeta k' meta of
+    Nothing -> (Nothing, setMeta k' v' meta)
+    m -> (m, setMeta k' v' meta)
+  where
+    v' = readMetaValue v
+    k' = T.pack k
 
 readMetaValue :: String -> MetaValue
 readMetaValue s
