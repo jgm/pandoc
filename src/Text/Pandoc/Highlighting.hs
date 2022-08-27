@@ -20,6 +20,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , styleToLaTeX
                                 , formatHtmlInline
                                 , formatHtmlBlock
+                                , formatHtml4Block
                                 , styleToCss
                                 , pygments
                                 , espresso

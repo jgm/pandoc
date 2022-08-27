@@ -46,8 +46,8 @@ import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Translations (Term(Abstract))
 import Text.Pandoc.CSS (cssAttributes)
 import Text.Pandoc.Definition
-import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
-                                 styleToCss)
+import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtml4Block,
+                 formatHtmlInline, highlight, styleToCss)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
@@ -934,6 +934,7 @@ blockToHtmlInner _ HorizontalRule = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
 blockToHtmlInner opts (CodeBlock (id',classes,keyvals) rawCode) = do
+  html5 <- gets stHtml5
   id'' <- if T.null id'
              then do
                modify $ \st -> st{ stCodeBlockNum = stCodeBlockNum st + 1 }
@@ -952,7 +953,8 @@ blockToHtmlInner opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     then T.unlines . map ("> " <>) . T.lines $ rawCode
                     else rawCode
       hlCode   = if isJust (writerHighlightStyle opts)
-                    then highlight (writerSyntaxMap opts) formatHtmlBlock
+                    then highlight (writerSyntaxMap opts)
+                         (if html5 then formatHtmlBlock else formatHtml4Block)
                             (id'',classes',keyvals) adjCode
                     else Left ""
   case hlCode of
