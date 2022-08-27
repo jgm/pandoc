@@ -43,7 +43,7 @@ extra-deps:
 - citeproc-0.8.0.1
 - texmath-0.12.5.2
 - git: https://github.com/jgm/skylighting
-  tag: 6079d8b0fb6e45c6a03b05501900be1c151701e6
+  commit: 6079d8b0fb6e45c6a03b05501900be1c151701e6
   subdirs: [skylighting-format-blaze-html]
 
 ghc-options:
