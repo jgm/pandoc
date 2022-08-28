@@ -98,7 +98,6 @@ data LogMessage =
   | EnvironmentVariableUndefined Text
   | DuplicateAttribute Text Text
   | NotUTF8Encoded FilePath
-  | DuplicateMeta Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -245,8 +244,6 @@ instance ToJSON LogMessage where
            ,"value" .= val]
       NotUTF8Encoded src ->
            ["source" .= src]
-      DuplicateMeta msg ->
-           ["message" .= msg]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -378,7 +375,6 @@ showLogMessage msg =
        NotUTF8Encoded src ->
          Text.pack src <>
            " is not UTF-8 encoded: falling back to latin1."
-       DuplicateMeta ms -> ms
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -431,4 +427,3 @@ messageVerbosity msg =
        EnvironmentVariableUndefined{}-> WARNING
        DuplicateAttribute{}          -> WARNING
        NotUTF8Encoded{}              -> WARNING
-       DuplicateMeta{}               -> WARNING
