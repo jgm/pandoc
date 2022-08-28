@@ -35,7 +35,7 @@ import Data.List (intercalate, sort, foldl')
 #ifdef _WINDOWS
 import Data.List (isPrefixOf)
 #endif
-import Data.Maybe (fromMaybe, isJust, fromJust)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
 import HsLua (Exception, getglobal, openlibs, peek, run, top)
 import Safe (tailDef)
@@ -729,13 +729,11 @@ options =
      , Option "" ["csl"]
                  (ReqArg
                   (\arg opt -> do
-                     let (replaced, meta) = replaceMeta "csl" (normalizePath arg) $
-                                   optMetadata opt
-                     when (isJust replaced) $
-                      runIOorExplode $ report $ DuplicateMeta $
-                          "Only one CSL file can be specified."
-                            <> maybe "" (" Ignoring " <>) (metaValueToText $ fromJust replaced)
-                     return opt{ optMetadata = meta})
+                    case lookupMeta (T.pack "csl") $ optMetadata opt of
+                      Just meta -> E.throwIO $ PandocOptionError $
+                         "Only one CSL file can be specified." <> maybe "" (" Ignoring " <>) (metaValueToText meta)
+                      Nothing -> return opt{ optMetadata = addMeta "csl" (normalizePath arg) $
+                                   optMetadata opt })
                    "FILE")
                  ""
 
@@ -1086,15 +1084,6 @@ addMeta k v meta =
  where
   v' = readMetaValue v
   k' = T.pack k
-
-replaceMeta :: String -> String -> Meta -> (Maybe MetaValue, Meta)
-replaceMeta k v meta =
-  case lookupMeta k' meta of
-    Nothing -> (Nothing, setMeta k' v' meta)
-    m -> (m, setMeta k' v' meta)
-  where
-    v' = readMetaValue v
-    k' = T.pack k
 
 readMetaValue :: String -> MetaValue
 readMetaValue s
