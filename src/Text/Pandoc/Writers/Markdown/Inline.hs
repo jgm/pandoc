@@ -117,8 +117,8 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
               attribClasses = case attribs of
                                 (_,[],_) -> empty
                                 (_,cs,_) -> hsep $
-                                            map (escAttr . ("."<>))
-                                            cs
+                                            map (escAttr . ("."<>)) $
+                                            filter (not . T.null) cs
               attribKeys = case attribs of
                                 (_,_,[]) -> empty
                                 (_,_,ks) -> hsep $

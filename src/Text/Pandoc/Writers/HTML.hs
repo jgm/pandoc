@@ -679,9 +679,10 @@ attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
 attrsToHtml opts (id',classes',keyvals) = do
   attrs <- toAttrs keyvals
+  let classes'' = filter (not . T.null) classes'
   return $
     [prefixedId opts id' | not (T.null id')] ++
-    [A.class_ (toValue $ T.unwords classes') | not (null classes')] ++ attrs
+    [A.class_ (toValue $ T.unwords classes'') | not (null classes'')] ++ attrs
 
 imgAttrsToHtml :: PandocMonad m
                => WriterOptions -> Attr -> StateT WriterState m [Attribute]
