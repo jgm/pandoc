@@ -733,8 +733,8 @@ options =
                                    optMetadata opt
                      when (isJust replaced) $
                       runIOorExplode $ report $ DuplicateMeta $
-                          "Mulitiple CSL styles provided. The last one is used"
-                            <> maybe "" (" - ignored " <>) (metaValueToText $ fromJust replaced)
+                          "Only one CSL file can be specified."
+                            <> maybe "" (" Ignoring " <>) (metaValueToText $ fromJust replaced)
                      return opt{ optMetadata = meta})
                    "FILE")
                  ""
