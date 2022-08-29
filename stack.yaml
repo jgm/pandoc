@@ -37,14 +37,19 @@ extra-deps:
 - ipynb-0.2
 - pandoc-types-1.22.2.1
 - commonmark-0.2.2
-- commonmark-extensions-0.2.3.2
 - doclayout-0.4
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
 - texmath-0.12.5.2
+- servant-server-0.19.1
 - git: https://github.com/jgm/skylighting
   commit: 6079d8b0fb6e45c6a03b05501900be1c151701e6
   subdirs: [skylighting-format-blaze-html]
+  type: git
+  location: https://github.com/jgm/commonmark-hs
+  commit: 4f4fbe277044de0724dd0828a45311ab1413e30b
+  subdirs: [commonmark-extensions]
+
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
