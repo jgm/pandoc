@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Server
     ( app
+    , API
     , ServerOpts(..)
     , Params(..)
     , Blob(..)
@@ -12,6 +13,7 @@ module Text.Pandoc.Server
     ) where
 
 import Data.Aeson
+import qualified Data.Aeson.KeyMap as KeyMap
 import Network.Wai
 import Servant
 import Text.DocTemplates as DocTemplates
@@ -145,6 +147,16 @@ instance FromJSON Params where
      <*> o .:? "files"
      <*> o .:? "citeproc"
 
+instance ToJSON Params where
+ toJSON params =
+   case toJSON (options params) of
+     (Object o) -> Object $
+       KeyMap.insert "text" (toJSON $ text params)
+       . KeyMap.insert "files" (toJSON $ files params)
+       . KeyMap.insert "citeproc" (toJSON $ citeproc params)
+       $ o
+     x -> x
+
 data Message =
   Message
   { verbosity :: Verbosity
@@ -154,28 +166,32 @@ data Message =
 instance ToJSON Message where
  toEncoding = genericToEncoding defaultOptions
 
-data Output =
-  Output
-  { output    :: Text
-  , base64    :: Bool
-  , messages  :: [Message] }
+type Base64 = Bool
+
+data Output = Succeeded Text Base64 [Message]
+            | Failed Text
   deriving (Generic, Show)
 
 instance ToJSON Output where
- toEncoding = genericToEncoding defaultOptions
+  toEncoding (Succeeded o b m) = pairs
+    ( "output" .= o  <>
+      "base64" .= b  <>
+      "messages" .= m )
+  toEncoding (Failed errmsg) = pairs
+    ( "error" .= errmsg )
 
 -- This is the API.  The "/convert" endpoint takes a request body
 -- consisting of a JSON-encoded Params structure and responds to
 -- Get requests with either plain text or JSON, depending on the
 -- Accept header.
 type API =
-  ReqBody '[JSON] Params :> Post '[PlainText] Text
-  :<|>
   ReqBody '[JSON] Params :> Post '[OctetStream] BS.ByteString
+  :<|>
+  ReqBody '[JSON] Params :> Post '[PlainText] Text
   :<|>
   ReqBody '[JSON] Params :> Post '[JSON] Output
   :<|>
-  "batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Text]
+  "batch" :> ReqBody '[JSON] [Params] :> Post '[JSON] [Output]
   :<|>
   "babelmark" :> QueryParam' '[Required] "text" Text :> QueryParam "from" Text :> QueryParam "to" Text :> QueryFlag "standalone" :> Get '[JSON] Value
   :<|>
@@ -188,15 +204,16 @@ api :: Proxy API
 api = Proxy
 
 server :: Server API
-server = convert
-    :<|> convertBytes
+server = convertBytes
+    :<|> convertText
     :<|> convertJSON
-    :<|> mapM convert
+    :<|> mapM convertJSON
     :<|> babelmark  -- for babelmark which expects {"html": "", "version": ""}
     :<|> pure pandocVersion
  where
   babelmark text' from' to' standalone' = do
-    res <- convert def{ text = text',
+    res <- convertText def{
+                        text = text',
                         options = defaultOpts{
                           optFrom = from',
                           optTo = to',
@@ -210,25 +227,22 @@ server = convert
   -- Changing this to
   --    handleErr =<< liftIO (runIO (convert' params))
   -- will allow the IO operations.
-  convert params = handleErr $
+  convertText params = handleErr $
     runPure (convert' return (return . encodeBase64 . BL.toStrict) params)
 
   convertBytes params = handleErr $
     runPure (convert' (return . UTF8.fromText) (return . BL.toStrict) params)
 
-  convertJSON params = handleErr $
+  convertJSON params = handleErrJSON $
     runPure
       (convert'
         (\t -> do
             msgs <- getLog
-            return Output{ output = t
-                         , base64 = False
-                         , messages = map toMessage msgs })
+            return $ Succeeded t False (map toMessage msgs))
         (\bs -> do
             msgs <- getLog
-            return Output{ output = encodeBase64 (BL.toStrict bs)
-                         , base64 = True
-                         , messages = map toMessage msgs })
+            return $ Succeeded (encodeBase64 (BL.toStrict bs)) True
+                               (map toMessage msgs))
         params)
 
   toMessage m = Message { verbosity = messageVerbosity m
@@ -401,6 +415,10 @@ server = convert
   handleErr (Right t) = return t
   handleErr (Left err) = throwError $
     err500 { errBody = TLE.encodeUtf8 $ TL.fromStrict $ renderError err }
+
+  handleErrJSON (Right o) = return o
+  handleErrJSON (Left err) =
+    return $ Failed (renderError err)
 
   compileCustomTemplate toformat t = do
     res <- runWithPartials $ compileTemplate ("custom." <> T.unpack toformat)
