@@ -45,8 +45,7 @@ extra-deps:
 - git: https://github.com/jgm/skylighting
   commit: 6079d8b0fb6e45c6a03b05501900be1c151701e6
   subdirs: [skylighting-format-blaze-html]
-  type: git
-  location: https://github.com/jgm/commonmark-hs
+- git: https://github.com/jgm/commonmark-hs
   commit: 4f4fbe277044de0724dd0828a45311ab1413e30b
   subdirs: [commonmark-extensions]
 
