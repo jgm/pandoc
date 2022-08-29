@@ -16,6 +16,7 @@ import Network.Wai
 import Servant
 import Text.DocTemplates as DocTemplates
 import Text.Pandoc
+import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Citeproc (processCitations)
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -33,6 +34,7 @@ import Control.Monad (when, foldM)
 import qualified Data.Set as Set
 import Skylighting (defaultSyntaxMap)
 import qualified Data.Map as M
+import Text.Collate.Lang (Lang (..), parseLang)
 import System.Console.GetOpt
 import System.Environment (getArgs, getProgName)
 import qualified Control.Exception as E
@@ -283,6 +285,7 @@ server = convert
                         , readerTrackChanges = optTrackChanges opts
                         , readerStripComments = optStripComments opts
                         }
+
     let writeropts =
           def{ writerExtensions = writerExts
              , writerTabStop = optTabStop opts
@@ -317,6 +320,7 @@ server = convert
              , writerReferenceLocation = optReferenceLocation opts
              , writerPreferAscii = optAscii opts
              }
+
     let reader = case readerSpec of
                 TextReader r -> r readeropts
                 ByteStringReader r -> \t -> do
@@ -324,7 +328,15 @@ server = convert
                   case eitherbs of
                     Left errt -> throwError $ PandocSomeError errt
                     Right bs -> r readeropts $ BL.fromStrict bs
-    let writer d = case writerSpec of
+
+    let writer d@(Pandoc meta _) = do
+          case lookupMetaString "lang" meta of
+              ""      -> setTranslations $
+                            Lang "en" Nothing (Just "US") [] [] []
+              l       -> case parseLang l of
+                              Left _   -> report $ InvalidLang l
+                              Right l' -> setTranslations l'
+          case writerSpec of
                 TextWriter w ->
                   w writeropts d >>=
                     (if optEmbedResources opts && htmlFormat (optTo opts)
