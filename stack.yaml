@@ -41,6 +41,7 @@ extra-deps:
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
 - texmath-0.12.5.2
+- servant-0.19
 - servant-server-0.19.1
 - git: https://github.com/jgm/skylighting
   commit: 6079d8b0fb6e45c6a03b05501900be1c151701e6
