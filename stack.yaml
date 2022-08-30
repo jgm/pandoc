@@ -10,39 +10,19 @@ extra-deps:
 - skylighting-0.13
 - skylighting-format-ansi-0.1
 - skylighting-format-latex-0.1
-- emojis-0.1.2
 - gridtables-0.0.3.0
-- lpeg-1.0.3
 - hslua-2.2.1
 - hslua-aeson-2.2.1
 - hslua-classes-2.2.0
 - hslua-core-2.2.1
 - hslua-marshalling-2.2.1
-- hslua-module-doclayout-1.0.4
-- hslua-module-path-1.0.3
-- hslua-module-system-1.0.2
-- hslua-module-text-1.0.2
-- hslua-module-version-1.0.2
 - hslua-objectorientation-2.2.1
 - hslua-packaging-2.2.1
 - lua-2.2.1
-- lua-arbitrary-1.0.1
-- tasty-hslua-1.0.2
-- tasty-lua-1.0.2
-- pandoc-lua-marshal-0.1.7
-- aeson-pretty-0.8.9
-- unicode-transforms-0.4.0.1
-- unicode-data-0.3.0
-- commonmark-pandoc-0.2.1.2
-- ipynb-0.2
-- pandoc-types-1.22.2.1
-- commonmark-0.2.2
 - doclayout-0.4
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
 - texmath-0.12.5.2
-- servant-0.19
-- servant-server-0.19.1
 - git: https://github.com/jgm/skylighting
   commit: 6079d8b0fb6e45c6a03b05501900be1c151701e6
   subdirs: [skylighting-format-blaze-html]
@@ -53,6 +33,6 @@ extra-deps:
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-18.10
+resolver: lts-19.21
 nix:
   packages: [zlib]
