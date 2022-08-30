@@ -36,6 +36,7 @@ import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import Text.Collate.Lang (renderLang)
+import Text.DocLayout (literal, render)
 import Text.Pandoc.Class (PandocMonad, report, toLang, translateTerm,
                            getMediaBag)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
@@ -43,6 +44,7 @@ import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
 import Text.Pandoc.UTF8 (fromTextLazy)
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
@@ -51,6 +53,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType, getMimeTypeDef)
 import Text.Pandoc.Options
+import Text.Pandoc.Templates
 import Text.Pandoc.Writers.Docx.StyleMap
 import Text.Pandoc.Writers.Docx.Table
 import Text.Pandoc.Writers.Docx.Types
@@ -338,16 +341,31 @@ writeDocx opts doc = do
                          add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
         Nothing      -> mknode "w:sectPr" [] ()
 
-  -- let sectpr = fromMaybe (mknode "w:sectPr" [] ()) mbsectpr'
-  let contents' = contents ++ [Elem sectpr]
-  let docContents = mknode "w:document" stdAttributes
-                    $ mknode "w:body" [] contents'
+  let metadata' = metaToContext'
+        (fmap (literal . mconcat . map XML.ppContent) . blocksToOpenXML opts)
+        (fmap (literal . mconcat . map XML.ppContent) . inlinesToOpenXML opts)
+        meta
+  metadata <- evalStateT (runReaderT metadata' env) initialSt
+  let context = defField "body" (mconcat $ map XML.showContent contents)
+              . defField "sectpr" (XML.showContent (Elem sectpr))
+              $ metadata
 
-
+  let templatePath = "templates/docx/document.xml"
+  documentXml <-
+    (UTF8.toText <$> P.readDataFile templatePath)
+         >>= (runWithDefaultPartials .
+               compileTemplate templatePath)
+         >>= \case
+               Left _ -> return . renderXml
+                   $ mknode "w:document" stdAttributes
+                   $ mknode "w:body" [] (contents ++ [Elem sectpr])
+               Right (t :: Template Text) ->
+                 return . BL.fromStrict . UTF8.fromText $
+                 render Nothing $ renderTemplate t context
 
   -- word/document.xml
   let contentEntry = toEntry "word/document.xml" epochtime
-                     $ renderXml docContents
+                     documentXml
 
   -- footnotes
   let notes = mknode "w:footnotes" stdAttributes footnotes
