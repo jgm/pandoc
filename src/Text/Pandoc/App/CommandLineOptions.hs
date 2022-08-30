@@ -727,10 +727,11 @@ options =
 
      , Option "" ["csl"]
                  (ReqArg
-                  (\arg opt ->
-                     return opt{ optMetadata =
-                                   addMeta "csl" (normalizePath arg) $
-                                   optMetadata opt })
+                  (\arg opt -> do
+                    case lookupMeta (T.pack "csl") $ optMetadata opt of
+                      Just _ -> E.throwIO $ PandocOptionError "Only one CSL file can be specified."
+                      Nothing -> return opt{ optMetadata = addMeta "csl" (normalizePath arg) $
+                      optMetadata opt })
                    "FILE")
                  ""
 
