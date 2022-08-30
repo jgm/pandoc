@@ -332,11 +332,9 @@ tableCell = try $ do
   let colspan = ColSpan . fromMaybe 1 $
                 safeRead =<< lookup "colspan" attribs
   let handledAttribs = ["align", "colspan", "rowspan"]
-      attribs' = foldr go [] attribs
-      go kv@(k, _) acc = case k of
-        -- drop attrib if it's already handled
-        _ | k `elem` handledAttribs -> acc
-        _ -> kv : acc
+      attribs' = [ (k, v) | (k, v) <- attribs
+                          , k `notElem` handledAttribs
+                 ]
   return (width, B.cellWith (toAttr attribs') align rowspan colspan bs)
 
 parseWidth :: Text -> Maybe Double
