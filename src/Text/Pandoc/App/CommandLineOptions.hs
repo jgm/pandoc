@@ -69,7 +69,6 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Citeproc.MetaValue (metaValueToText)
 
 #ifdef NIGHTLY
 import qualified Language.Haskell.TH as TH
@@ -730,10 +729,9 @@ options =
                  (ReqArg
                   (\arg opt -> do
                     case lookupMeta (T.pack "csl") $ optMetadata opt of
-                      Just meta -> E.throwIO $ PandocOptionError $
-                         "Only one CSL file can be specified." <> maybe "" (" Ignoring " <>) (metaValueToText meta)
+                      Just _ -> E.throwIO $ PandocOptionError "Only one CSL file can be specified."
                       Nothing -> return opt{ optMetadata = addMeta "csl" (normalizePath arg) $
-                                   optMetadata opt })
+                      optMetadata opt })
                    "FILE")
                  ""
 
