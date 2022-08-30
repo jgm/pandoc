@@ -4243,8 +4243,8 @@ proportionally spaced fonts, as it does not require lining up columns.
 
 A caption may optionally be provided with all 4 kinds of tables (as
 illustrated in the examples below). A caption is a paragraph beginning
-with the string `Table:` (or just `:`), which will be stripped off.
-It may appear either before or after the table.
+with the string `Table:` (or `table:` or just `:`), which will be stripped
+off. It may appear either before or after the table.
 
 #### Extension: `simple_tables` ####
 
