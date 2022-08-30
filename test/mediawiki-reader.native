@@ -820,24 +820,7 @@ Pandoc
       [ ( AlignDefault , ColWidthDefault )
       , ( AlignDefault , ColWidthDefault )
       ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             ]
-         ])
+      (TableHead ( "" , [] , [] ) [])
       [ TableBody
           ( "" , [] , [] )
           (RowHeadColumns 0)
@@ -1016,30 +999,7 @@ Pandoc
       , ( AlignDefault , ColWidthDefault )
       , ( AlignDefault , ColWidthDefault )
       ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             ]
-         ])
+      (TableHead ( "" , [] , [] ) [])
       [ TableBody
           ( "" , [] , [] )
           (RowHeadColumns 0)
@@ -1122,20 +1082,20 @@ Pandoc
          [ Row
              ( "" , [] , [] )
              [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
+                 ( "" , [] , [ ( "width" , "50%" ) ] )
+                 AlignLeft
                  (RowSpan 1)
                  (ColSpan 1)
                  [ Para [ Str "Left" ] ]
              , Cell
                  ( "" , [] , [] )
-                 AlignDefault
+                 AlignRight
                  (RowSpan 1)
                  (ColSpan 1)
                  [ Para [ Str "Right" ] ]
              , Cell
                  ( "" , [] , [] )
-                 AlignDefault
+                 AlignCenter
                  (RowSpan 1)
                  (ColSpan 1)
                  [ Para [ Str "Center" ] ]
@@ -1196,24 +1156,7 @@ Pandoc
       [ ( AlignDefault , ColWidthDefault )
       , ( AlignDefault , ColWidthDefault )
       ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             ]
-         ])
+      (TableHead ( "" , [] , [] ) [])
       [ TableBody
           ( "" , [] , [] )
           (RowHeadColumns 0)
@@ -1321,18 +1264,7 @@ Pandoc
       ( "" , [] , [] )
       (Caption Nothing [])
       [ ( AlignDefault , ColWidthDefault ) ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 []
-             ]
-         ])
+      (TableHead ( "" , [] , [] ) [])
       [ TableBody
           ( "" , [] , [] )
           (RowHeadColumns 0)
