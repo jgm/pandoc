@@ -6,7 +6,8 @@ where
 import Citeproc.CslJson
 import Citeproc.Types
 import Control.Monad.Identity (runIdentity)
-import Data.Aeson (eitherDecodeStrict')
+import Data.Aeson (eitherDecodeStrict', FromJSON(parseJSON), (.:), Value(..))
+import Data.Aeson.Types (parseEither)
 import Data.ByteString (ByteString)
 import Text.Pandoc.Builder as B
 import Data.Text (Text)
@@ -31,8 +32,11 @@ fromCslJson (CslDiv t x) = B.spanWith ("",["csl-" <> t],[]) (fromCslJson x)
 fromCslJson (CslLink u x) = B.link u "" (fromCslJson x)
 
 cslJsonToReferences :: ByteString -> Either String [Reference Inlines]
-cslJsonToReferences raw =
-  case eitherDecodeStrict' raw of
-    Left e        -> Left e
-    Right cslrefs -> Right $
-      map (runIdentity . traverse (return . fromCslJson)) cslrefs
+cslJsonToReferences raw = do
+  items <-
+    case eitherDecodeStrict' raw of
+      Left e -> Left e
+      Right (Object o) -> parseEither (.: "items") o
+      Right val@(Array _) -> parseEither parseJSON val
+      Right _ -> Left "expecting Object or Array"
+  pure $ map (runIdentity . traverse (return . fromCslJson)) items
