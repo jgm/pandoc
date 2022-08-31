@@ -16,6 +16,7 @@ import Text.Pandoc.Citeproc.Locator (parseLocator, toLocatorMap,
                                      LocatorInfo(..))
 import Text.Pandoc.Citeproc.CslJson (cslJsonToReferences)
 import Text.Pandoc.Citeproc.BibTeX (readBibtexString, Variant(..))
+import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Readers.RIS (readRIS)
 import Text.Pandoc.Citeproc.MetaValue (metaValueToReference, metaValueToText)
 import Text.Pandoc.Readers.Markdown (yamlToRefs)
@@ -235,8 +236,8 @@ insertSpace ils =
 getRefsFromBib :: PandocMonad m
                => Locale -> (Text -> Bool) -> Text -> m [Reference Inlines]
 getRefsFromBib locale idpred fp = do
-  (raw, _) <- fetchItem fp
-  case formatFromExtension (T.unpack fp) of
+  (raw, mt) <- fetchItem fp
+  case getBibliographyFormat (T.unpack fp) mt of
     Just f -> getRefs locale f idpred (Just fp) raw
     Nothing -> throwError $ PandocAppError $
                  "Could not determine bibliography format for " <> fp
@@ -352,17 +353,28 @@ data BibFormat =
   | Format_ris
   deriving (Show, Eq, Ord)
 
-formatFromExtension :: FilePath -> Maybe BibFormat
-formatFromExtension fp = case dropWhile (== '.') $ takeExtension fp of
-                           "biblatex" -> Just Format_biblatex
-                           "bibtex"   -> Just Format_bibtex
-                           "bib"      -> Just Format_biblatex
-                           "json"     -> Just Format_json
-                           "yaml"     -> Just Format_yaml
-                           "yml"      -> Just Format_yaml
-                           "ris"      -> Just Format_ris
-                           _          -> Nothing
-
+getBibliographyFormat :: FilePath -> Maybe MimeType -> Maybe BibFormat
+getBibliographyFormat fp mbmime = do
+  let ext = takeExtension fp
+  case ext of
+    ".biblatex" -> pure Format_biblatex
+    ".bibtex"   -> pure Format_bibtex
+    ".bib"      -> pure Format_biblatex
+    ".json"     -> pure Format_json
+    ".yaml"     -> pure Format_yaml
+    ".yml"      -> pure Format_yaml
+    ".ris"      -> pure Format_ris
+    _ -> do
+      mime <- mbmime
+      case T.takeWhile (/= ';') mime of
+            "application/x-bibtex" -> pure Format_biblatex
+            "application/x-reseach-info-systems" -> pure Format_ris
+            "application/vnd.citationstyles.csl+json" -> pure Format_json
+            "application/json" -> pure Format_json
+            "application/x-yaml" -> pure Format_yaml
+            "text/x-yaml" -> pure Format_yaml
+            "text/yaml" -> pure Format_yaml
+            _ -> Nothing
 
 isNote :: Inline -> Bool
 isNote (Cite _ [Note _]) = True
