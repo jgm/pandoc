@@ -100,8 +100,11 @@ let
     ghc
     pkgs.gdb
     haskellPackages.ghcid
+    haskellPackages.haskell-language-server
     haskellPackages.cabal2nix
     haskellPackages.cabal-install
+    haskellPackages.hlint
+    haskellPackages.stylish-haskell
   ];
 in
 pkgs.stdenv.mkDerivation {
