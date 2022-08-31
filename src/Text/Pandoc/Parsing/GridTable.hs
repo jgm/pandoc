@@ -135,9 +135,13 @@ gridTableWith' normalization blocks = do
   let caption = B.emptyCaption
   return $ do
     rows'' <- mapM sequence rows'
-    let (hRows, bRows) =
-          splitAt (maybe 0 GT.fromRowIndex $ GT.arrayTableHead tbl)
-                  (map (B.Row B.nullAttr) rows'')
+    let headLen = maybe 0 GT.fromRowIndex $ GT.arrayTableHead tbl
+    let (hRows, bRows') =
+          splitAt headLen (map (B.Row B.nullAttr) rows'')
+    let (bRows, fRows) =
+          case GT.arrayTableFoot tbl of
+            Just fIdx -> splitAt (GT.fromRowIndex fIdx - headLen - 1) bRows'
+            Nothing   -> (bRows', [])
     let thead = B.TableHead B.nullAttr $ case (hRows, normalization) of
           -- normalize header if necessary: remove header if it contains
           -- only a single row in which all cells are empty.
@@ -151,7 +155,7 @@ gridTableWith' normalization blocks = do
             in [B.Row nullAttr cells | not (null cells) &&
                                        not (all simple cells)]
           _ -> hRows
-    let tfoot = B.TableFoot B.nullAttr []
+    let tfoot = B.TableFoot B.nullAttr $ fRows
     let tbody = B.TableBody B.nullAttr 0 [] bRows
     return $ TableComponents nullAttr caption colspecs thead [tbody] tfoot
 

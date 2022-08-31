@@ -15,3 +15,7 @@ source-repository-package
   tag: 6079d8b0fb6e45c6a03b05501900be1c151701e6
   subdir: skylighting-format-blaze-html
 
+source-repository-package
+  type: git
+  location: https://github.com/quarto-dev/gridtables
+  tag: 1dbf2ad311fc7b2d9aded51eb263067b6ff3ae28
