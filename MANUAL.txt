@@ -4379,19 +4379,6 @@ For headerless tables, the colons go on the top line instead:
     | Right         | Left          | Centered           |
     +---------------+---------------+--------------------+
 
-##### Grid Table Limitations #####
-
-Pandoc does not support grid tables with row spans or column spans.
-This means that neither variable numbers of columns across rows nor
-variable numbers of rows across columns are supported by Pandoc.
-All grid tables must have the same number of columns in each row,
-and the same number of rows in each column.  For example, the
-Docutils [sample grid tables] will not render as expected with
-Pandoc.
-
-[sample grid tables]: https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#grid-tables
-
-
 #### Extension: `pipe_tables` ####
 
 Pipe tables look like this:
