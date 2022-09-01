@@ -15,6 +15,7 @@ extra-deps:
 - hslua-classes-2.2.0
 - hslua-core-2.2.1
 - hslua-marshalling-2.2.1
+- hslua-module-version-1.0.3
 - hslua-objectorientation-2.2.1
 - hslua-packaging-2.2.1
 - lua-2.2.1
