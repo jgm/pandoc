@@ -4379,6 +4379,23 @@ For headerless tables, the colons go on the top line instead:
     | Right         | Left          | Centered           |
     +---------------+---------------+--------------------+
 
+##### Grid table foot #####
+
+A table foot can be defined by enclosing it with separator lines
+that use `=` instead of `-`:
+
+     +---------------+---------------+
+     | Fruit         | Price         |
+     +===============+===============+
+     | Bananas       | $1.34         |
+     +---------------+---------------+
+     | Oranges       | $2.10         |
+     +===============+===============+
+     | Sum           | $3.44         |
+     +===============+===============+
+
+The foot must always be placed at the very bottom of the table.
+
 #### Extension: `pipe_tables` ####
 
 Pipe tables look like this:
