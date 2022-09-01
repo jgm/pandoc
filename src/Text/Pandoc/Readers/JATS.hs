@@ -444,6 +444,7 @@ parseRef e = do
           "issue" -> Just . ("issue",) . toMetaValue <$> getInlines el
           "isbn" -> Just . ("ISBN",) . toMetaValue <$> getInlines el
           "issn" -> Just . ("ISSN",) . toMetaValue <$> getInlines el
+          "uri" -> Just . ("url",) . toMetaValue <$> getInlines el
           "fpage" ->
             case filterChild (named "lpage") c of
               Just lp -> Just . ("page",) . toMetaValue <$>
