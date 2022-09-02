@@ -888,7 +888,7 @@
     extends beyond the `--columns` width, we need to adjust the
     widths of the pipe separators to encode this width information.
 
-  * Docx writer: Separate tables even with RawBlocks between (#7224,
+  * Docx writer: Separate tables even with RawBlocks between (#7724,
     Michael Hoffmann).  Adjacent docx tables need to be separated by an
     empty paragraph. If there's a RawBlock between tables which renders
     to nothing, be sure to still insert the empty paragraph so that
