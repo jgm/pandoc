@@ -105,6 +105,7 @@ library
                      , hslua-module-system   >= 1.0     && < 1.1
                      , hslua-module-text     >= 1.0     && < 1.1
                      , hslua-module-version  >= 1.0.3   && < 1.1
+                     , hslua-module-zip      >= 1.0.0   && < 1.1
                      , lpeg                  >= 1.0.1   && < 1.1
                      , mtl                   >= 2.2     && < 2.3
                      , pandoc                >= 3.0     && < 3.1

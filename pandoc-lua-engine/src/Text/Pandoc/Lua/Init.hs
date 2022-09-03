@@ -36,6 +36,7 @@ import qualified HsLua.Aeson
 import qualified HsLua.Module.DocLayout as Module.Layout
 import qualified HsLua.Module.Path as Module.Path
 import qualified HsLua.Module.Text as Module.Text
+import qualified HsLua.Module.Zip as Module.Zip
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
 import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
 import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
@@ -89,6 +90,7 @@ loadedModules =
   , Module.Layout.documentedModule { moduleName = "pandoc.layout" }
   , Module.Path.documentedModule { moduleName = "pandoc.path" }
   , Module.Text.documentedModule
+  , Module.Zip.documentedModule { moduleName = "pandoc.zip" }
   ]
 
 -- | Initialize the lua state with all required values
