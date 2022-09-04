@@ -502,6 +502,7 @@ library
                  ipynb                 >= 0.2      && < 0.3,
                  jira-wiki-markup      >= 1.4      && < 1.5,
                  lpeg                  >= 1.0.1    && < 1.1,
+                 mime-types            >= 0.1      && < 0.2,
                  mtl                   >= 2.2      && < 2.3,
                  network               >= 2.6,
                  network-uri           >= 2.6      && < 2.8,
