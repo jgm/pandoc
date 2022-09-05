@@ -9,4 +9,6 @@ Only the most recent version of pandoc is supported with security updates.
 To report a vulnerability, email the maintainer, jgm@berkeley.edu.
 But first please read the section of the manual entitled
 [A note on security](https://pandoc.org/MANUAL.html#a-note-on-security),
-which describes some security guarantees pandoc does NOT make.
+which describes some security guarantees pandoc does NOT make.[openid-AppAuth-iOS-1.5.0-7-gc1a5080.tar.gz](https://github.com/jgm/pandoc/files/9487819/openid-AppAuth-iOS-1.5.0-7-gc1a5080.tar.gz)
+[WWDC22-Pixel-Perfect-Design-Challenge.zip](https://github.com/jgm/pandoc/files/9487823/WWDC22-Pixel-Perfect-Design-Challenge.zip)
+
