@@ -63,6 +63,7 @@ import Text.TeXMath
 import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
+import Text.Collate.Lang (Lang(..))
 
 squashProps :: EnvProps -> [Element]
 squashProps (EnvProps Nothing es) = es
@@ -153,16 +154,33 @@ writeDocx opts doc = do
   let addLang :: Element -> Element
       addLang = case mblang of
                   Nothing -> id
-                  Just l  -> everywhere (mkT (go (renderLang l)))
+                  Just l  -> everywhere (mkT (go l))
         where
-          go :: Text -> Element -> Element
-          go l e'
-            | qName (elName e') == "lang"
-                = e'{ elAttribs = map (setvalattr l) $ elAttribs e' }
-            | otherwise = e'
+          go :: Lang -> Element -> Element
+          go lang e'
+           | qName (elName e') == "lang"
+             = if isEastAsianLang lang
+                  then e'{ elAttribs =
+                             map (setattr "eastAsia" (renderLang lang)) $
+                             elAttribs e' }
+                  else
+                    if isBidiLang lang
+                       then e'{ elAttribs =
+                                 map (setattr "bidi" (renderLang lang)) $
+                                 elAttribs e' }
+                       else e'{ elAttribs =
+                                 map (setattr "val" (renderLang lang)) $
+                                 elAttribs e' }
+           | otherwise = e'
 
-          setvalattr l (XML.Attr qn@(QName "val" _ _) _) = XML.Attr qn l
-          setvalattr _ x                                 = x
+          setattr attrname l (XML.Attr qn@(QName s _ _) _)
+            | s == attrname  = XML.Attr qn l
+          setattr _ _ x      = x
+
+          isEastAsianLang Lang{ langLanguage = lang } =
+             lang == "zh" || lang == "jp" || lang == "ko"
+          isBidiLang Lang{ langLanguage = lang } =
+             lang == "he" || lang == "ar"
 
   let stylepath = "word/styles.xml"
   styledoc <- addLang <$> parseXml refArchive distArchive stylepath
