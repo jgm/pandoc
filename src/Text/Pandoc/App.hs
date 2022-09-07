@@ -49,6 +49,7 @@ import System.FilePath ( takeBaseName, takeExtension)
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MediaBag (mediaItems)
 import Text.Pandoc.MIME (getCharset, MimeType)
@@ -66,7 +67,7 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
-         defaultUserDataDir, tshow)
+         defaultUserDataDir, tshow, textToIdentifier)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import Text.Pandoc.Readers.Custom (readCustom)
@@ -315,6 +316,7 @@ convertWithOpts' istty datadir opts = do
 
   inputs <- readSources sources
 
+
   doc <- (case reader of
            TextReader r
              | readerNameBase == "json" ->
@@ -323,8 +325,11 @@ convertWithOpts' istty datadir opts = do
                            >=> r readerOpts . (:[])) inputs
              | optFileScope opts  ->
                  mconcat <$> mapM
-                    (inputToText convertTabs
-                           >=> r readerOpts . (:[]))
+                    (\source -> do
+                      (fp, txt) <- inputToText convertTabs source
+                      adjustLinksAndIds (readerExtensions readerOpts)
+                        (T.pack fp) (map (T.pack . fst) inputs)
+                        <$> r readerOpts [(fp, txt)])
                     inputs
              | otherwise -> mapM (inputToText convertTabs) inputs
                               >>= r readerOpts
@@ -465,3 +470,60 @@ writeFnBinary f   = BL.writeFile (UTF8.encodePath f)
 writerFn :: IO.Newline -> FilePath -> Text -> IO ()
 writerFn eol "-" = UTF8.putStrWith eol
 writerFn eol f   = UTF8.writeFileWith eol f
+
+adjustLinksAndIds :: Extensions -> Text -> [Text] -> Pandoc -> Pandoc
+adjustLinksAndIds exts thisfile allfiles
+  | length allfiles > 1 = addDiv . walk fixInline . walk fixBlock
+  | otherwise           = id
+ where
+  toIdent :: Text -> Text
+  toIdent = textToIdentifier exts . T.intercalate "__" .
+            T.split (\c -> c == '/' || c == '\\')
+
+  addDiv :: Pandoc -> Pandoc
+  addDiv (Pandoc m bs)
+    | T.null thisfile = Pandoc m bs
+    | otherwise = Pandoc m [Div (toIdent thisfile,[],[]) bs]
+
+  fixBlock :: Block -> Block
+  fixBlock (CodeBlock attr t) = CodeBlock (fixAttrs attr) t
+  fixBlock (Header lev attr ils) = Header lev (fixAttrs attr) ils
+  fixBlock (Table attr cap cols th tbs tf) =
+     Table (fixAttrs attr) cap cols th tbs tf
+  fixBlock (Div attr bs) = Div (fixAttrs attr) bs
+  fixBlock x = x
+
+  -- add thisfile as prefix of identifier
+  fixAttrs :: Attr -> Attr
+  fixAttrs (i,cs,kvs)
+    | T.null i = (i,cs,kvs)
+    | otherwise =
+        (T.intercalate "__"
+          (filter (not . T.null) [toIdent thisfile, i]),
+        cs, kvs)
+
+  -- if URL begins with file from allfiles, convert to
+  -- an internal link with the appropriate identifier
+  fixURL :: Text -> Text
+  fixURL u =
+    let (a,b) = T.break (== '#') u
+        filepart = if T.null a
+                      then toIdent thisfile
+                      else toIdent a
+        fragpart = T.dropWhile (== '#') b
+     in if T.null a || a `elem` allfiles
+           then "#" <> T.intercalate "__"
+                         (filter (not . T.null) [filepart, fragpart])
+           else u
+
+  fixInline :: Inline -> Inline
+  fixInline (Code attr t) = Code (fixAttrs attr) t
+  fixInline (Link attr ils (url,tit)) =
+    Link (fixAttrs attr) ils (fixURL url,tit)
+  fixInline (Image attr ils (url,tit)) =
+    Image (fixAttrs attr) ils (fixURL url,tit)
+  fixInline (Span attr ils) = Span (fixAttrs attr) ils
+  fixInline x = x
+
+
+
