@@ -15,8 +15,7 @@ tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
                  GHC == 9.2.3
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
-                 format to another, and a command-line tool that uses
-                 this library. The formats it can handle include
+                 format to another.  The formats it can handle include
                  .
                  - light markup formats (many variants of Markdown,
                    reStructuredText, AsciiDoc, Org-mode, Muse, Textile,
@@ -535,8 +534,6 @@ library
                  yaml                  >= 0.11     && < 0.12,
                  zip-archive           >= 0.2.3.4  && < 0.5,
                  zlib                  >= 0.5      && < 0.7,
-                 servant-server        >= 0.19     && < 0.20,
-                 wai                   >= 0.3
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
@@ -563,7 +560,6 @@ library
                    Text.Pandoc.MediaBag,
                    Text.Pandoc.Error,
                    Text.Pandoc.Filter,
-                   Text.Pandoc.Server,
                    Text.Pandoc.Readers,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
@@ -784,16 +780,6 @@ library
                    Paths_pandoc
   autogen-modules: Paths_pandoc
   buildable:       True
-
-executable pandoc
-  import:          common-executable
-  hs-source-dirs:  app
-  main-is:         pandoc.hs
-  buildable:       True
-  other-modules:   Paths_pandoc
-  build-depends:   wai-extra             >= 3.0.24,
-                   warp,
-                   safe
 
 test-suite test-pandoc
   import:         common-executable
