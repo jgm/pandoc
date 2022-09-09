@@ -80,9 +80,9 @@ pLocatorDelimited locMap = try $ do
 
 pLocatorLabelDelimited :: LocatorMap -> LocatorParser (Text, Text, Bool)
 pLocatorLabelDelimited locMap
-  = pLocatorLabel' locMap lim <|> return ("", "page", True)
-    where
-        lim = stringify <$> anyToken
+  = pLocatorLabel' locMap (stringify <$> anyToken)
+      <|> (("", "page", True) <$ lookAhead (pMatchChar "digit" isDigit))
+      <|> (pure ("", "", True))
 
 pLocatorIntegrated :: LocatorMap -> LocatorParser LocatorInfo
 pLocatorIntegrated locMap = try $ do
