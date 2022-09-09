@@ -18,6 +18,7 @@ module Text.Pandoc.App (
             convertWithOpts
           , Opt(..)
           , LineEnding(..)
+          , IpynbOutput (..)
           , Filter(..)
           , defaultOpts
           , parseOptions
