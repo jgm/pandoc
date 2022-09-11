@@ -19,6 +19,7 @@ extra-deps:
 - hslua-objectorientation-2.2.1
 - hslua-packaging-2.2.1
 - lua-2.2.1
+- mime-types-0.1.1.0
 - doclayout-0.4
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
