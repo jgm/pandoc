@@ -13,15 +13,22 @@ Stability   : alpha
 Types and functions for running Lua filters.
 -}
 module Text.Pandoc.Lua.Filter
-  ( runFilterFile
+  ( applyFilter
   ) where
 import Control.Monad ((>=>), (<$!>))
 import HsLua as Lua
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter
+import Text.Pandoc.Lua.Global (Global (..), setGlobals)
+import Text.Pandoc.Lua.Init (runLua)
+import Control.Exception (throw)
+import qualified Data.Text as T
+import Text.Pandoc.Class (PandocMonad)
+import Control.Monad.Trans (MonadIO)
+import Text.Pandoc.Error (PandocError (PandocFilterError, PandocLuaError))
+
 
 
 -- | Transform document using the filter defined in the given file.
@@ -44,3 +51,24 @@ runFilterFile filterPath doc = do
 
 runAll :: [Filter] -> Pandoc -> LuaE PandocError Pandoc
 runAll = foldr ((>=>) . applyFully) return
+
+-- | Run the Lua filter in @filterPath@ for a transformation to the
+-- target format (first element in args). Pandoc uses Lua init files to
+-- setup the Lua interpreter.
+applyFilter :: (PandocMonad m, MonadIO m)
+      => [Global]
+      -> FilePath
+      -> Pandoc
+      -> m Pandoc
+applyFilter globals fp doc = do
+  runLua >=> forceResult fp $ do
+    setGlobals globals
+    runFilterFile fp doc
+
+forceResult :: (PandocMonad m, MonadIO m)
+            => FilePath -> Either PandocError Pandoc -> m Pandoc
+forceResult fp eitherResult = case eitherResult of
+  Right x  -> return x
+  Left err -> throw . PandocFilterError (T.pack fp) $ case err of
+    PandocLuaError msg -> msg
+    _                  -> T.pack $ show err
