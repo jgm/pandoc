@@ -36,6 +36,7 @@
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\subsubparagraph}{} % template for Level 6 Markdown headers
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 \ifLuaTeX
 \usepackage[bidi=basic]{babel}

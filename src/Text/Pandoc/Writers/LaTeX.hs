@@ -674,6 +674,7 @@ sectionHeader classes ident level lst = do
                           3  -> "subsubsection"
                           4  -> "paragraph"
                           5  -> "subparagraph"
+                          6  -> "subsubparagraph"
                           _  -> ""
   inQuote <- gets stInQuote
   let prefix = if inQuote && level' >= 4
@@ -686,7 +687,7 @@ sectionHeader classes ident level lst = do
   let stuffing = star <> optional <> contents
   stuffing' <- hypertarget True ident $
                   text ('\\':sectionType) <> stuffing <> lab
-  return $ if level' > 5
+  return $ if level' > 6
               then txt
               else prefix $$ stuffing'
                    $$ if unnumbered && not unlisted
