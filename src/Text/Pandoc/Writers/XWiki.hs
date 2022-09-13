@@ -44,6 +44,9 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
 import Text.Pandoc.Writers.Shared (toLegacyTable)
+import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Writers.Shared (defField, metaToContext)
+import Text.DocLayout (render, literal)
 
 newtype WriterState = WriterState {
   listLevel :: Text -- String at the beginning of items
@@ -53,9 +56,19 @@ type XWikiReader m = ReaderT WriterState m
 
 -- | Convert Pandoc to XWiki.
 writeXWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeXWiki _ (Pandoc _ blocks) =
+writeXWiki opts (Pandoc meta blocks) = do
   let env = WriterState { listLevel = "" }
-  in runReaderT (blockListToXWiki blocks) env
+  metadata <- metaToContext opts
+              (fmap (literal . trimr) . (\bs -> runReaderT (blockListToXWiki bs) env))
+              (fmap (literal . trimr) . (\is -> runReaderT (inlineListToXWiki is) env))
+              meta
+  body <- runReaderT (blockListToXWiki blocks) env
+  let context = defField "body" body
+                $ defField "toc" (writerTableOfContents opts) metadata
+  return $
+    case writerTemplate opts of
+       Just tpl -> render Nothing $ renderTemplate tpl context
+       Nothing  -> body
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [Text] -> Text
