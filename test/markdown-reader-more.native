@@ -357,7 +357,7 @@ Pandoc
       , Link
           ( "" , [] , [] )
           [ Str "My" , Space , Str "header" ]
-          ( "#my-header-1" , "" )
+          ( "#my-header" , "" )
       , Str "."
       ]
   , Para
@@ -367,7 +367,7 @@ Pandoc
       , Space
       , Str "to"
       , Space
-      , Link ( "" , [] , [] ) [ Str "it" ] ( "#my-header-1" , "" )
+      , Link ( "" , [] , [] ) [ Str "it" ] ( "#my-header" , "" )
       , Str "."
       ]
   , Para
@@ -378,7 +378,7 @@ Pandoc
       , Link
           ( "" , [] , [] )
           [ Str "case" , Space , Str "insensitive" ]
-          ( "#my-header-1" , "" )
+          ( "#my-header" , "" )
       , Str "."
       ]
   , Para

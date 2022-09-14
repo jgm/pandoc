@@ -582,8 +582,9 @@ registerImplicitHeader raw attr@(ident, _, _)
   | T.null raw = return ()
   | otherwise = do
       let key = toKey $ "[" <> raw <> "]"
-      updateState $ \s ->
-        s { stateHeaderKeys = M.insert key (("#" <> ident,""), attr)
+      updateState $ \s ->  -- don't override existing headers
+        s { stateHeaderKeys = M.insertWith (\_new old -> old)
+                                     key (("#" <> ident,""), attr)
                                      (stateHeaderKeys s) }
 
 --
