@@ -20,7 +20,7 @@ jobs:
           mkdir linux-release-candidate
           cp linux/artifacts/*.deb linux-release-candidate/
           cp linux/artifacts/*.tar.gz linux-release-candidate/
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: linux-release-candidate
         path: linux-release-candidate
@@ -81,7 +81,7 @@ jobs:
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
           copy windows\Makefile windows-release-candidate
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: windows-release-candidate
         path: windows-release-candidate
@@ -122,7 +122,7 @@ jobs:
           cp macos/Makefile ${ARTIFACTS}/
           echo ${VERSION} > ${ARTIFACTS}/version.txt
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: macos-release-candidate
         path: macos-release-candidate
