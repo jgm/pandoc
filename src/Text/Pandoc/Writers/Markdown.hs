@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE BangPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -29,6 +30,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
+import Data.Char (isSpace)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -448,6 +450,8 @@ blockToMarkdown' opts b@(RawBlock f str) = do
     Commonmark
       | f `elem` ["gfm", "commonmark", "commonmark_x", "markdown"]
          -> return $ literal str <> literal "\n"
+      | f `elem` ["html", "html5", "html4"]
+         -> return $ literal (removeBlankLinesInHTML str) <> literal "\n"
     Markdown
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"]
@@ -631,7 +635,7 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
                 (id,) <$> pipeTable opts (all null headers) aligns' widths'
                            rawHeaders rawRows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
-                   literal <$>
+                   literal . removeBlankLinesInHTML <$>
                    writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [t])
             | otherwise -> return (id, literal "[TABLE]")
   return $ nst (tbl $$ caption'') $$ blankline
@@ -822,3 +826,12 @@ lineBreakToSpace :: Inline -> Inline
 lineBreakToSpace LineBreak = Space
 lineBreakToSpace SoftBreak = Space
 lineBreakToSpace x         = x
+
+removeBlankLinesInHTML :: Text -> Text
+removeBlankLinesInHTML = T.pack . go False . T.unpack
+  where go _ [] = []
+        go True ('\n':cs) = "&#10;" <> go False cs
+        go False ('\n':cs) = '\n' : go True cs
+        go !afternewline (!c:cs)
+          | isSpace c = c : go afternewline cs
+          | otherwise = c : go False cs
