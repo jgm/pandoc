@@ -380,8 +380,9 @@ orgRefCiteKey =
       endOfCitation = try $ do
         many $ satisfy isCiteKeySpecialChar
         satisfy $ not . isCiteKeyChar
-  in try $ satisfy isCiteKeyChar `many1TillChar` lookAhead endOfCitation
-
+  in try $ do
+        optional (char '&') -- this is used in org-ref v3
+        satisfy isCiteKeyChar `many1TillChar` lookAhead endOfCitation
 
 -- | Supported citation types.  Only a small subset of org-ref types is
 -- supported for now.  TODO: rewrite this, use LaTeX reader as template.
