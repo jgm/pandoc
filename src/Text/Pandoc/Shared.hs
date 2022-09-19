@@ -57,6 +57,7 @@ module Text.Pandoc.Shared (
                      makeSections,
                      uniqueIdent,
                      inlineListToIdentifier,
+                     textToIdentifier,
                      isHeaderBlock,
                      headerShift,
                      stripEmptyParagraphs,
@@ -497,12 +498,10 @@ isPara :: Block -> Bool
 isPara (Para _) = True
 isPara _        = False
 
--- | Convert Pandoc inline list to plain text identifier.  HTML
--- identifiers must start with a letter, and may contain only
--- letters, digits, and the characters _-.
+-- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: Extensions -> [Inline] -> T.Text
 inlineListToIdentifier exts =
-  dropNonLetter . filterAscii . toIdent . stringify . walk unEmojify
+  textToIdentifier exts . stringify . walk unEmojify
   where
     unEmojify :: [Inline] -> [Inline]
     unEmojify
@@ -511,6 +510,12 @@ inlineListToIdentifier exts =
       | otherwise = id
     unEmoji (Span ("",["emoji"],[("data-emoji",ename)]) _) = Str ename
     unEmoji x = x
+
+-- | Convert string to plain text identifier.
+textToIdentifier :: Extensions -> T.Text -> T.Text
+textToIdentifier exts =
+  dropNonLetter . filterAscii . toIdent
+  where
     dropNonLetter
       | extensionEnabled Ext_gfm_auto_identifiers exts = id
       | otherwise = T.dropWhile (not . isAlpha)

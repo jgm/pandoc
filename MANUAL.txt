@@ -564,6 +564,17 @@ header when requesting a document from a URL:
     footnotes and links will not work across files. Reading binary
     files (docx, odt, epub) implies `--file-scope`.
 
+    If two or more files are processed using `--file-scope`,
+    prefixes based on the filenames will be added to identifiers
+    in order to disambiguate them, and internal links will
+    be adjusted accordingly.  For example, a header with
+    identifier `foo` in `subdir/file1.txt` will have its
+    identifier changed to `subdir__file1.txt__foo`.
+
+    In addition, a Div with an identifier based on the filename
+    will be added around the file's content, so that internal
+    links to the filename will point to this Div's identifier.
+
 `-F` *PROGRAM*, `--filter=`*PROGRAM*
 
 :   Specify an executable to be used as a filter transforming the
