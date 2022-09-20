@@ -454,7 +454,7 @@ inlineToMs opts (Math InlineMath str) = do
        Left il -> inlineToMs opts il
        Right r -> return $ literal "@" <> literal r <> literal "@"
 inlineToMs opts (Math DisplayMath str) = do
-  res <- convertMath writeEqn InlineMath str
+  res <- convertMath writeEqn DisplayMath str
   case res of
        Left il -> do
          contents <- inlineToMs opts il
