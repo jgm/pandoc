@@ -49,9 +49,14 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
   let colCount = ColumnCount $ length specs
+  -- The first head is not repeated on the following pages. If we were to just
+  -- use a single head, without a separate first head, then the caption would be
+  -- repeated on all pages that contain a part of the table. We avoid this by
+  -- making the caption part of the first head. The downside is that we must
+  -- duplicate the header rows for this.
   firsthead <- if isEmpty capt || isEmptyHead thead
                then return empty
-               else ($$ text "\\endfirsthead") <$>
+               else (\firstrows -> capt $$ firstrows $$ "\\endfirsthead") <$>
                     headToLaTeX blksToLaTeX colCount thead
   head' <- if isEmptyHead thead
            then return "\\toprule()"
@@ -68,7 +73,6 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
     $  "\\begin{longtable}[]" <>
           braces ("@{}" <> colDescriptors tbl <> "@{}")
           -- the @{} removes extra space at beginning and end
-    $$ capt
     $$ firsthead
     $$ head'
     $$ "\\endhead"
