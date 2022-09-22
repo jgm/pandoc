@@ -77,7 +77,7 @@ fix_spacing: ## Fix trailing newlines and spaces
 changes_github: ## copy this release's changes in gfm
 	pandoc --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 
-man: man/pandoc.1 man/pandoc-server.1
+man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1
 
 .PHONY: man
 
@@ -102,10 +102,10 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--variable footer="pandoc $(version)" \
 		-o $@
 
-man/pandoc-server.1: doc/pandoc-server.md
+man/pandoc-%.1: doc/pandoc-%.md
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
-		--variable footer="pandoc-server $(version)" \
+		--variable footer="pandoc-$* $(version)" \
 		-o $@
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
