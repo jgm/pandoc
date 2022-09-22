@@ -1353,6 +1353,11 @@ header when requesting a document from a URL:
         see [print-css.rocks](https://print-css.rocks) for a good
         introduction to PDF generation from HTML/CSS)
     - `-t ms`:  `pdfroff`
+    
+    Note that LaTeX engines have difficulty producing structured PDFs
+    that are accessible for screen readers. If you need to produce
+    accessible PDFs, consider using `--pdf-engine=prince` with
+    `--pdf-engine-opt=--tagged-pdf`.
 
 `--pdf-engine-opt=`*STRING*
 
