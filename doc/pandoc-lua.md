@@ -11,7 +11,7 @@ date: September 22, 2022
 # DESCRIPTION
 
 `pandoc-lua` is a standalone Lua interpreter with behavior similar
-to that of the standard `lua` executable, but exposes all of
+to that of the standard `lua` executable, but exposing all of
 pandoc's Lua libraries. All `pandoc.*` packages, as well as the
 packages `re` and `lpeg`, are available via global variables.
 Furthermore, the globals `PANDOC_VERSION`, `PANDOC_STATE`, and
