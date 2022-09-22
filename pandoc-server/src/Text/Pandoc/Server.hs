@@ -42,7 +42,7 @@ import System.Environment (getArgs, getProgName)
 import qualified Control.Exception as E
 import Text.Pandoc.Shared (safeStrRead, headerShift, filterIpynbOutput,
                            eastAsianLineBreakFilter, stripEmptyParagraphs)
-import Text.Pandoc.App.Opt ( IpynbOutput (..), Opt(..), defaultOpts )
+import Text.Pandoc.App ( IpynbOutput (..), Opt(..), defaultOpts )
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import System.Exit

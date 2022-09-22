@@ -1,4 +1,6 @@
-packages: pandoc.cabal
+packages: .
+          pandoc-server
+          pandoc-cli
 tests: True
 flags: +embed_data_files
 constraints: aeson >= 2.0.1.0
