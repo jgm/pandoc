@@ -13,13 +13,16 @@ signed.txt: $(DEST)
 $(DEST)/bin/pandoc-server:
 	cd $(DEST)/bin && ln -s pandoc pandoc-server
 
-pandoc.pkg: $(DEST)/bin/pandoc-server signed.txt
+$(DEST)/bin/pandoc-lua:
+	cd $(DEST)/bin && ln -s pandoc pandoc-lua
+
+pandoc.pkg: $(DEST)/bin/pandoc-server $(DEST)/bin/pandoc-lua signed.txt
 	pkgbuild --root pandoc --identifier net.johnmacfarlane.pandoc --version $(VERSION) --ownership recommended $@
 
 $(BASE)-macOS.pkg: pandoc.pkg
 	productbuild --distribution distribution.xml --resources Resources --package-path $< --version $(VERSION) --sign 'Developer ID Installer: John Macfarlane' $@
 
-$(BASE)-macOS.zip: $(DEST)/bin/pandoc-server signed.txt
+$(BASE)-macOS.zip: $(DEST)/bin/pandoc-server $(DEST)/bin/pandoc-lua signed.txt
 	mv $(DEST) $(BASE)
 	zip --symlinks -r $@ $(BASE)
 

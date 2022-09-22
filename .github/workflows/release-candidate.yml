@@ -116,6 +116,7 @@ jobs:
           strip ${DEST}/bin/pandoc
           cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
           cp man/pandoc-server.1 ${DEST}/share/man/man1/pandoc-server.1
+          cp man/pandoc-lua.1 ${DEST}/share/man/man1/pandoc-lua.1
           ~/.local/bin/pandoc -s COPYING.md -Vpagetitle=License -o ${RESOURCES}/license.html
           chown -R $ME:staff ${ROOT}
           sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml

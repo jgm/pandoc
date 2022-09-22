@@ -53,11 +53,14 @@ make_deb() {
   cd $DEST/bin
   strip pandoc
   ln -s pandoc pandoc-server
+  ln -s pandoc pandoc-lua
   cd /mnt
   cp /mnt/man/pandoc.1 $DEST/share/man/man1/pandoc.1
   gzip -9 $DEST/share/man/man1/pandoc.1
   cp /mnt/man/pandoc-server.1 $DEST/share/man/man1/pandoc-server.1
   gzip -9 $DEST/share/man/man1/pandoc-server.1
+  cp /mnt/man/pandoc-server.1 $DEST/share/man/man1/pandoc-lua.1
+  gzip -9 $DEST/share/man/man1/pandoc-lua.1
 
   cp /mnt/COPYRIGHT $COPYRIGHT
   echo "" >> $COPYRIGHT
@@ -84,13 +87,16 @@ make_tarball() {
   mkdir $TARGET/bin $TARGET/share $TARGET/share/man $TARGET/share/man/man1
   cp /mnt/man/pandoc.1 $TARGET/share/man/man1
   cp /mnt/man/pandoc-server.1 $TARGET/share/man/man1
+  cp /mnt/man/pandoc-lua.1 $TARGET/share/man/man1
   mv pandoc $TARGET/bin
   cd $TARGET/bin
   strip pandoc
   ln -s pandoc pandoc-server
+  ln -s pandoc pandoc-lua
   cd $ARTIFACTS
   gzip -9 $TARGET/share/man/man1/pandoc.1
   gzip -9 $TARGET/share/man/man1/pandoc-server.1
+  gzip -9 $TARGET/share/man/man1/pandoc-lua.1
 
   tar cvzf $TARGET-linux-$ARCHITECTURE.tar.gz $TARGET
   rm -r $TARGET
