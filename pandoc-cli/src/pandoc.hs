@@ -14,6 +14,7 @@ module Main where
 import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
 import Text.Pandoc.Error (handleError)
+import Text.Pandoc.Lua (runScript)
 import Text.Pandoc.Server (ServerOpts(..), parseServerOpts, app)
 import Safe (readDef)
 import System.Environment (getProgName, lookupEnv)
@@ -30,4 +31,5 @@ main = E.handle (handleError . Left) $ do
     "pandoc-server" -> do
       sopts <- parseServerOpts
       Warp.run (serverPort sopts) (timeout (serverTimeout sopts) app)
+    "pandoc-lua" -> runScript
     _ -> parseOptions options defaultOpts >>= convertWithOpts

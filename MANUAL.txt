@@ -7096,6 +7096,16 @@ will be performed on the server during pandoc conversions.
 
 [pandoc-server]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-server.md
 
+# Running pandoc as a Lua interpreter
+
+Calling the pandoc executable under the name `pandoc-lua` will
+make it function as a standalone Lua interpreter. The behavior is
+mostly identical to that of the [standalone `lua`
+executable][standalone lua], version 5.4. However, there is no
+REPL yet, and the options `-W`, `-E`, and `-i` currently don't
+have any effect.
+
+[lua standalone]: https://www.lua.org/manual/5.4/manual.html#7
 
 # A note on security
 
