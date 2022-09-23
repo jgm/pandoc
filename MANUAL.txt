@@ -7101,7 +7101,7 @@ will be performed on the server during pandoc conversions.
 Calling the pandoc executable under the name `pandoc-lua` will
 make it function as a standalone Lua interpreter. The behavior is
 mostly identical to that of the [standalone `lua`
-executable][standalone lua], version 5.4. However, there is no
+executable][lua standalone], version 5.4. However, there is no
 REPL yet, and the options `-W`, `-E`, and `-i` currently don't
 have any effect.
 
