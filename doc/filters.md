@@ -172,7 +172,7 @@ and then
 
 (It is also necessary that `pandoc-types` be installed in the
 local package repository. To do this using cabal-install,
-`cabal v2-update && cabal v2-install --lib pandoc-types`.)
+`cabal v2-update && cabal v2-install --lib pandoc-types --package-env .`.)
 
 Alternatively, we could compile the filter:
 
