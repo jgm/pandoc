@@ -56,7 +56,7 @@ executable pandoc
   buildable:       True
   build-depends:   pandoc == 2.19.2,
                    pandoc-server >= 0.1 && < 0.2,
+                   hslua-cli >= 1.0 && < 1.1,
                    wai-extra >= 3.0.24,
                    warp,
                    safe
-
