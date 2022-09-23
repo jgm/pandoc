@@ -5,6 +5,8 @@ flags:
     old-random: false
 packages:
 - '.'
+- 'pandoc-cli'
+- 'pandoc-server'
 extra-deps:
 - skylighting-core-0.13
 - skylighting-0.13
