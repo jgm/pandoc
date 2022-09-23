@@ -18,7 +18,7 @@ Org-Mode:  <http://orgmode.org>
 module Text.Pandoc.Writers.Org (writeOrg) where
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isDigit)
-import Data.List (intersect, intersperse, partition, transpose)
+import Data.List (intersperse, partition, transpose)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -166,12 +166,11 @@ blockToOrg (CodeBlock (ident,classes,kvs) str) = do
                              then " +n" <> startnum
                              else " -n" <> startnum
                       else ""
-  let at = map pandocLangToOrg classes `intersect` orgLangIdentifiers
-  let lang = case at of
+  let lang = case filter (`notElem` ["example","code"]) classes of
         []  -> Nothing
         l:_ -> if "code" `elem` classes    -- check for ipynb code cell
-               then Just ("jupyter-" <> l)
-               else Just l
+               then Just ("jupyter-" <> pandocLangToOrg l)
+               else Just (pandocLangToOrg l)
   let args = mconcat $
              [ " :" <> k <> " " <> v
              | (k, v) <- kvs, k `notElem` ["startFrom", "org-language"]]
@@ -527,53 +526,6 @@ pandocLangToOrg cs =
     "r"          -> "R"
     "bash"       -> "sh"
     _            -> cs
-
--- | List of language identifiers recognized by org-mode.
--- See <https://orgmode.org/manual/Languages.html>.
-orgLangIdentifiers :: [Text]
-orgLangIdentifiers =
-  [ "asymptote"
-  , "lisp"
-  , "awk"
-  , "lua"
-  , "C"
-  , "matlab"
-  , "C++"
-  , "mscgen"
-  , "clojure"
-  , "ocaml"
-  , "css"
-  , "octave"
-  , "D"
-  , "org"
-  , "ditaa"
-  , "oz"
-  , "calc"
-  , "perl"
-  , "emacs-lisp"
-  , "plantuml"
-  , "eshell"
-  , "processing"
-  , "fortran"
-  , "python"
-  , "gnuplot"
-  , "R"
-  , "screen"
-  , "ruby"
-  , "dot"
-  , "sass"
-  , "haskell"
-  , "scheme"
-  , "java"
-  , "sed"
-  , "js"
-  , "sh"
-  , "latex"
-  , "sql"
-  , "ledger"
-  , "sqlite"
-  , "lilypond"
-  , "vala" ]
 
 -- taken from oc-csl.el in the org source tree:
 locmap :: LocatorMap
