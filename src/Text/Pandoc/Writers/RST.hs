@@ -311,7 +311,7 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
 blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
-blockToRST (Table _ blkCapt specs thead tbody tfoot) = do
+blockToRST (Table attrs blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
@@ -321,18 +321,23 @@ blockToRST (Table _ blkCapt specs thead tbody tfoot) = do
          modify $ \st -> st{ stOptions = oldOpts }
          return result
   opts <- gets stOptions
-  let isSimple = all (== 0) widths && length widths > 1
-  tbl <- if isSimple
-            then do
-              tbl' <- simpleTable opts blocksToDoc headers rows
-              if offset tbl' > writerColumns opts
-                 then gridTable opts blocksToDoc (all null headers)
-                      (map (const AlignDefault) aligns) widths
-                      headers rows
-                 else return tbl'
-            else gridTable opts blocksToDoc (all null headers)
-                  (map (const AlignDefault) aligns) widths
-                  headers rows
+  let renderGrid = gridTable opts blocksToDoc (all null headers)
+                    (map (const AlignDefault) aligns) widths
+                    headers rows
+      isSimple = all (== 0) widths && length widths > 1
+      renderSimple = do
+        tbl' <- simpleTable opts blocksToDoc headers rows
+        if offset tbl' > writerColumns opts
+          then renderGrid
+          else return tbl'
+      isList = any ("list-table" ==) $ (\(_, classes, _) -> classes) attrs
+      renderList = tableToRSTList caption (map (const AlignDefault) aligns)
+                    widths headers rows
+      rendered
+        | isList    = renderList
+        | isSimple  = renderSimple
+        | otherwise = renderGrid
+  tbl <- rendered
   return $ blankline $$
            (if null caption
                then tbl
@@ -437,6 +442,79 @@ blockListToRST :: PandocMonad m
                => [Block]       -- ^ List of block elements
                -> RST m (Doc Text)
 blockListToRST = blockListToRST' False
+
+{-
+
+http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#directives
+
+According to the terminology used in the spec, a marker includes a
+final whitespace and a block includes the directive arguments. Here
+the variable names have slightly different meanings because we don't
+want to finish the line with a space if there are no arguments, it
+would produce rST that differs from what users expect in a way that's
+not easy to detect
+
+-}
+toRSTDirective :: Doc Text -> Doc Text -> [(Doc Text, Doc Text)] -> Doc Text -> Doc Text
+toRSTDirective typ args options content = marker <> spaceArgs <> cr <> block
+  where marker = ".. " <> typ <> "::"
+        block = nest 3 (fieldList $$
+                        blankline $$
+                        content $$
+                        blankline)
+        spaceArgs = if isEmpty args then "" else " " <> args
+        -- a field list could end up being an empty doc thus being
+        -- omitted by $$
+        fieldList = foldl ($$) "" $ map joinField options
+        -- a field body can contain multiple lines
+        joinField (name, body) = ":" <> name <> ": " <> body
+
+tableToRSTList :: PandocMonad m
+             => [Inline]
+             -> [Alignment]
+             -> [Double]
+             -> [[Block]]
+             -> [[[Block]]]
+             -> RST m (Doc Text)
+tableToRSTList caption _ propWidths headers rows = do
+  captionRST <- inlineListToRST caption
+  opts       <- gets stOptions
+  content    <- listTableContent toWrite
+  pure $ toRSTDirective "list-table" captionRST (directiveOptions opts) content
+  where directiveOptions opts = widths (writerColumns opts) propWidths <>
+                                headerRows
+        toWrite = if noHeaders then rows else headers:rows
+        headerRows = [("header-rows", text $ show (1 :: Int)) | not noHeaders]
+        widths tot pro = [("widths", showWidths tot pro) |
+                          not (null propWidths || all (==0.0) propWidths)]
+        noHeaders = all null headers
+        -- >>> showWidths 70 [0.5, 0.5]
+        -- "35 35"
+        showWidths :: Int -> [Double] -> Doc Text
+        showWidths tot = text . unwords . map (show . toColumns tot)
+        -- toColumns converts a width expressed as a proportion of the
+        -- total into a width expressed as a number of columns
+        toColumns :: Int -> Double -> Int
+        toColumns t p = round (p * fromIntegral t)
+        listTableContent :: PandocMonad m => [[[Block]]] -> RST m (Doc Text)
+        listTableContent = joinTable joinDocsM joinDocsM .
+                           mapTable blockListToRST
+        -- joinDocsM adapts joinDocs in order to work in the `RST m` monad
+        joinDocsM :: PandocMonad m => [RST m (Doc Text)] -> RST m (Doc Text)
+        joinDocsM = fmap joinDocs . sequence
+        -- joinDocs will be used to join cells and to join rows
+        joinDocs :: [Doc Text] -> Doc Text
+        joinDocs items = blankline $$
+                         (chomp . vcat . map formatItem) items $$
+                         blankline
+        formatItem :: Doc Text -> Doc Text
+        formatItem i = hang 3 "- " (i <> cr)
+        -- apply a function to all table cells changing their type
+        mapTable :: (a -> b) -> [[a]] -> [[b]]
+        mapTable = map . map
+        -- function hor to join cells and function ver to join rows
+        joinTable :: ([a] -> a) -> ([a] -> a) -> [[a]] -> a
+        joinTable hor ver = ver . map hor
 
 transformInlines :: [Inline] -> [Inline]
 transformInlines =  insertBS .
