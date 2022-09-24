@@ -651,6 +651,7 @@ library
                    Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
+                   Text.Pandoc.Scripting,
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
