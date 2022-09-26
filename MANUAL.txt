@@ -3767,7 +3767,7 @@ unless the `markdown_strict` format is used, the following does
 not produce a nested block quote in pandoc:
 
     > This is a block quote.
-    >> Nested.
+    >> Not nested, since `blank_before_blockquote` is enabled by default
 
 
 ## Verbatim (code) blocks
