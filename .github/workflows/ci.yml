@@ -79,8 +79,6 @@ jobs:
         ghcup install cabal --set ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
-    # caching doesn't work for scheduled runs yet
-    # https://github.com/actions/cache/issues/63
 
     - name: Cache cabal global package db
       id:   cabal-global
@@ -88,7 +86,7 @@ jobs:
       with:
         path: |
           ~/.cabal
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
       id:   cabal-local
@@ -96,7 +94,7 @@ jobs:
       with:
         path: |
           dist-newstyle
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
 
     - name: Install dependencies
       run: |
@@ -118,8 +116,6 @@ jobs:
     - uses: actions/checkout@v3
 
     # declare/restore cached things
-    # caching doesn't work for scheduled runs yet
-    # https://github.com/actions/cache/issues/63
 
     - name: Cache stack global package db
       id:   stack-global-package-db
@@ -130,12 +126,13 @@ jobs:
         key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('stack.yaml') }}
 
     # stack's local package dbs for the project and each package
-    # - name: Cache .stack-work
-    #   uses: actions/cache@v1
-    #   with:
-    #     path: .stack-work
-    #     key:          ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}
-    #     restore-keys: ${{ runner.os }}-stack-work
+    - name: Cache .stack-work
+      uses: actions/cache@v1
+      with:
+        path: |
+          .stack-work
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}-${{ secrets.CACHE_VERSION }}
+        restore-keys: ${{ runner.os }}-stack-work-${{ secrets.CACHE_VERSION }}
 
     - name: Install dependencies
       run: |
@@ -166,8 +163,6 @@ jobs:
         ghcup install cabal ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
-    # caching doesn't work for scheduled runs yet
-    # https://github.com/actions/cache/issues/63
 
     - name: Cache cabal global package db
       id:   cabal-global
@@ -175,7 +170,7 @@ jobs:
       with:
         path: |
           ~/.cabal
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
       id:   cabal-local
@@ -183,7 +178,7 @@ jobs:
       with:
         path: |
           dist-newstyle
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
 
     - name: Install dependencies
       run: |
@@ -216,8 +211,6 @@ jobs:
         ghcup install cabal ${{ matrix.versions.cabal }}
 
     # declare/restore cached things
-    # caching doesn't work for scheduled runs yet
-    # https://github.com/actions/cache/issues/63
 
     - name: Cache cabal global package db
       id:   cabal-global
@@ -225,7 +218,7 @@ jobs:
       with:
         path: |
           ~/.cabal
-        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ hashFiles('cabal.project') }}
+        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
       id:   cabal-local
@@ -233,7 +226,7 @@ jobs:
       with:
         path: |
           dist-newstyle
-        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local
+        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
 
     - name: Install dependencies
       run: |
