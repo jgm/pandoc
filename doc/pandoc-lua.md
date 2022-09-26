@@ -21,6 +21,12 @@ If no script argument is given, then the script is assumed to be
 passed in via *stdin*. Interactive mode is not supported at this
 time.
 
+When called without the option `-E`, the interpreter checks for an
+environment variable `LUA_INIT` before running any argument. If
+the variable content has the format *`@filename`*, then
+`pandoc-lua` executes the file. Otherwise, `pandoc-lua` executes
+the string itself.
+
 # OPTIONS
 
 `-e stat`
@@ -34,8 +40,16 @@ time.
 `-v`
 :   Show version information.
 
-`-i`, `-E`, `-W`
-:    Not supported yet; print a warning to that effect.
+`-i`
+:   Not supported yet; print a warning to that effect.
+
+`-E`
+:   Ignore environment variables. This is not fully implemented
+    yet and only ignores the `LUA_INIT` variable. Other variables
+    like `LUA_PATH` and `LUA_CPATH` are **not** ignored.
+
+`-W`
+:   Turn warnings on.
 
 # AUTHORS
 

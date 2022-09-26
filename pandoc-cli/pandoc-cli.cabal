@@ -58,7 +58,7 @@ executable pandoc
   main-is:         pandoc.hs
   buildable:       True
   build-depends:   pandoc,
-                   hslua-cli >= 1.0 && < 1.1
+                   hslua-cli >= 1.1 && < 1.2
   if flag(server)
     build-depends:   pandoc-server >= 0.1 && < 0.2,
                      wai-extra >= 3.0.24,
