@@ -21,6 +21,10 @@ source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
+flag server
+  Description:   Include support for running pandoc as an HTTP server.
+  Default:       True
+
 common common-options
   default-language: Haskell2010
   build-depends:    base         >= 4.12 && < 5
@@ -33,7 +37,6 @@ common common-options
                     -Wpartial-fields
                     -Wmissing-signatures
                     -fhide-source-paths
-                    -- -Wmissing-export-lists
 
   if impl(ghc >= 8.10)
     ghc-options:    -Wunused-packages
@@ -54,9 +57,11 @@ executable pandoc
   hs-source-dirs:  src
   main-is:         pandoc.hs
   buildable:       True
-  build-depends:   pandoc == 2.19.2,
-                   pandoc-server >= 0.1 && < 0.2,
-                   hslua-cli >= 1.0 && < 1.1,
-                   wai-extra >= 3.0.24,
-                   warp,
-                   safe
+  build-depends:   pandoc,
+                   hslua-cli >= 1.0 && < 1.1
+  if flag(server)
+    build-depends:   pandoc-server >= 0.1 && < 0.2,
+                     wai-extra >= 3.0.24,
+                     warp,
+                     safe
+    cpp-options:     -D_SERVER

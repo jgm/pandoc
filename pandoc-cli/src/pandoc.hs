@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 {- |
    Module      : Main
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -19,23 +20,38 @@ import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Lua (runLua)
-import Text.Pandoc.Server (ServerOpts(..), parseServerOpts, app)
 import Text.Pandoc.Shared (pandocVersion)
-import Safe (readDef)
-import System.Environment (getProgName, lookupEnv)
+import System.Environment (getProgName)
+#ifdef _SERVER
 import qualified Network.Wai.Handler.CGI as CGI
 import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Middleware.Timeout (timeout)
+import Text.Pandoc.Server (ServerOpts(..), parseServerOpts, app)
+import Safe (readDef)
+import System.Environment (lookupEnv)
+#else
+import System.IO (hPutStrLn, stderr)
+import System.Exit (exitWith, ExitCode(ExitFailure))
+#endif
 
 main :: IO ()
 main = E.handle (handleError . Left) $ do
   prg <- getProgName
-  cgiTimeout <- maybe 2 (readDef 2) <$> lookupEnv "PANDOC_SERVER_TIMEOUT"
   case prg of
-    "pandoc-server.cgi" -> CGI.run (timeout cgiTimeout app)
+    "pandoc-server.cgi" -> do
+#ifdef _SERVER
+      cgiTimeout <- maybe 2 (readDef 2) <$> lookupEnv "PANDOC_SERVER_TIMEOUT"
+      CGI.run (timeout cgiTimeout app)
+#else
+      serverUnsupported
+#endif
     "pandoc-server" -> do
+#ifdef _SERVER
       sopts <- parseServerOpts
       Warp.run (serverPort sopts) (timeout (serverTimeout sopts) app)
+#else
+      serverUnsupported
+#endif
     "pandoc-lua" -> do
       let settings = Settings
             { settingsVersionInfo = "\nEmbedded in pandoc " <> pandocVersion
@@ -43,3 +59,11 @@ main = E.handle (handleError . Left) $ do
             }
       runStandalone settings
     _ -> parseOptions options defaultOpts >>= convertWithOpts
+
+#ifndef _SERVER
+serverUnsupported :: IO ()
+serverUnsupported = do
+  hPutStrLn stderr $ "Server mode unsupported.\n" <>
+                     "Pandoc was not compiled with the 'server' flag."
+  exitWith $ ExitFailure 4
+#endif

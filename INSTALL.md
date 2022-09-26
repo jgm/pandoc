@@ -215,8 +215,6 @@ The easiest way to build pandoc from source is to use [stack][stack]:
     `pandoc` executable into `~/.local/bin`, which you should
     add to your `PATH`.  This process will take a while, and
     will consume a considerable amount of disk space.
-    If you also want the `pandoc-server` executable, add
-    `--flag pandoc:server` to the above command.
 
 
 ### Quick cabal method
@@ -237,9 +235,6 @@ The easiest way to build pandoc from source is to use [stack][stack]:
     The `pandoc` executable will be placed in `$HOME/.cabal/bin`
     on linux/unix/macOS and in `%APPDATA%\cabal\bin` on Windows.
     Make sure this directory is in your path.
-
-    If you also want the `pandoc-server` executable, add
-    `-fserver` to the above command.
 
     If you want to install a modified or development version
     of pandoc instead, switch to the source directory and do
@@ -292,7 +287,9 @@ You will need cabal version 2.0 or higher.
 
     - `lua53`: embed support for Lua 5.3 instead of 5.4.
 
-    - `server`:  build the `pandoc-server` executable.
+    - `server`:  compile in support for running in HTTP server
+      mode when the executable is renamed (or symlinked as)
+      `pandoc-server`.
 
 3.  Build:
 
