@@ -36,7 +36,7 @@ import System.Exit (exitWith, ExitCode(ExitFailure))
 
 main :: IO ()
 main = E.handle (handleError . Left) $ do
-  prg <- getProgName
+  prg <- maybe getProgName pure =<< lookupEnv "PANDOC_PROGRAM_NAME"
   case prg of
     "pandoc-server.cgi" -> do
 #ifdef _SERVER

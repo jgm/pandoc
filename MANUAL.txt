@@ -7094,6 +7094,10 @@ exposing the same API as `pandoc-server`.
 Haskell's type system to provide strong guarantees that no I/O
 will be performed on the server during pandoc conversions.
 
+An alternative to renaming or symlinking the binary is to set the
+`PANDOC_PROGRAM_NAME` environment variable. Its value, if set,
+overrides the name of the executable.
+
 [pandoc-server]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-server.md
 
 # Running pandoc as a Lua interpreter
@@ -7104,6 +7108,11 @@ mostly identical to that of the [standalone `lua`
 executable][lua standalone], version 5.4. However, there is no
 REPL yet, and the options `-W`, `-E`, and `-i` currently don't
 have any effect.
+
+The name of the executable can be changed by renaming, by creating
+a symlink with a new name, or by setting the `PANDOC_PROGRAM_NAME`
+environment variable. The latter, if set, overrides the name of
+the executable.
 
 [lua standalone]: https://www.lua.org/manual/5.4/manual.html#7
 
