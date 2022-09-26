@@ -296,6 +296,6 @@ locatorTerms =
   , "paragraph"
   , "part"
   , "section"
-  , "sub verbo"
+  , "sub-verbo"
   , "verse"
   , "volume" ]
