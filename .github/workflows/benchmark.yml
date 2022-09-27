@@ -1,0 +1,58 @@
+name: benchmarks
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        versions:
+          - ghc: '8.10.7'
+            cabal: '3.2'
+          - ghc: '9.2.2'
+            cabal: '3.6'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install cabal/ghc
+      run: |
+        ghcup install ghc --set ${{ matrix.versions.ghc }}
+        ghcup install cabal ${{ matrix.versions.cabal }}
+
+    # declare/restore cached things
+
+    - name: Cache cabal global package db
+      id:   cabal-global
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cabal
+        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
+
+    - name: Cache cabal work
+      id:   cabal-local
+      uses: actions/cache@v3
+      with:
+        path: |
+          dist-newstyle
+        key: benchmark-${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
+
+    - name: Install dependencies
+      run: |
+          v2=$([ "${{ matrix.versions.cabal }}" = "2.2" ] && printf 'new' || printf 'v2')
+          cabal $v2-update
+          cabal $v2-build --dependencies-only --enable-optimization=1 --enable-benchmarks --disable-tests
+
+    - name: Build and test
+      run: |
+          v2=$([ "${{ matrix.versions.cabal }}" = "2.2" ] && printf 'new' || printf 'v2')
+          cabal $v2-build --enable-optimization=1 --enable-benchmarks --disable-tests 2>&1 | tee build.log
+          # fail if warnings in local build
+          ! grep -q ": *[Ww]arning:" build.log || exit 1
+          cabal $v2-bench --enable-optimization=1 --benchmark-options='--timeout=6 +RTS -T -RTS'

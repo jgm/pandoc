@@ -10,7 +10,6 @@
 !.circleci/**
 !.editorconfig
 !.gitattributes
-!.github/**
 !.gitignore
 !.hlint.yaml
 !.mailmap
