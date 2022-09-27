@@ -144,50 +144,51 @@ jobs:
       run: |
           stack test --fast --test-arguments="--hide-successes --ansi-tricks=false"
 
-  macos:
+# We no longer run the macos tests, to make CI faster.
+# macos:
 
-    runs-on: macos-11
-    strategy:
-      fail-fast: true
-      matrix:
-        versions:
-          - ghc: '8.8.4'
-            cabal: '3.2'
+#   runs-on: macos-11
+#   strategy:
+#     fail-fast: true
+#     matrix:
+#       versions:
+#         - ghc: '8.8.4'
+#           cabal: '3.2'
 
-    steps:
-    - uses: actions/checkout@v3
+#   steps:
+#   - uses: actions/checkout@v3
 
-    - name: Install cabal/ghc
-      run: |
-        ghcup install ghc --set ${{ matrix.versions.ghc }}
-        ghcup install cabal ${{ matrix.versions.cabal }}
+#   - name: Install cabal/ghc
+#     run: |
+#       ghcup install ghc --set ${{ matrix.versions.ghc }}
+#       ghcup install cabal ${{ matrix.versions.cabal }}
 
-    # declare/restore cached things
+#   # declare/restore cached things
 
-    - name: Cache cabal global package db
-      id:   cabal-global
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cabal
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
+#   - name: Cache cabal global package db
+#     id:   cabal-global
+#     uses: actions/cache@v3
+#     with:
+#       path: |
+#         ~/.cabal
+#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
 
-    - name: Cache cabal work
-      id:   cabal-local
-      uses: actions/cache@v3
-      with:
-        path: |
-          dist-newstyle
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
+#   - name: Cache cabal work
+#     id:   cabal-local
+#     uses: actions/cache@v3
+#     with:
+#       path: |
+#         dist-newstyle
+#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
 
-    - name: Install dependencies
-      run: |
-          cabal v2-update
-          cabal v2-build --dependencies-only --enable-tests --disable-optimization
-    - name: Build and test
-      run: |
-          cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
-          # fail if warnings in local build
-          ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal v2-test --disable-optimization --test-option=--hide-successes --test-option=--ansi-tricks=false
+#   - name: Install dependencies
+#     run: |
+#         cabal v2-update
+#         cabal v2-build --dependencies-only --enable-tests --disable-optimization
+#   - name: Build and test
+#     run: |
+#         cabal v2-build --enable-tests --disable-optimization 2>&1 | tee build.log
+#         # fail if warnings in local build
+#         ! grep -q ": *[Ww]arning:" build.log || exit 1
+#         cabal v2-test --disable-optimization --test-option=--hide-successes --test-option=--ansi-tricks=false
 
