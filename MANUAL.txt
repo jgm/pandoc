@@ -6493,8 +6493,10 @@ beamer slide shows, and pptx slide shows.
 ### On all slides (beamer, reveal.js, pptx)
 
 With beamer and reveal.js, the configuration option `background-image` can be
-used either in the YAML metadata block or as a command-line variable to get the
-same image on every slide.
+used either in the YAML metadata block or as a command-line variable to get the same image on every slide.
+
+Note that for reveal.js, the `background-image` will be used as
+a `parallaxBackgroundImage` (see below).
 
 For pptx, you can use a [reference doc](#option--reference-doc) in which
 background images have been set on the [relevant
@@ -6503,11 +6505,12 @@ layouts](#powerpoint-layout-choice).
 #### `parallaxBackgroundImage` (reveal.js)
 
 For reveal.js, there is also the reveal.js-native option
-`parallaxBackgroundImage`, which can be used instead of `background-image` to
-produce a parallax scrolling background. You must also set
-`parallaxBackgroundSize`, and can optionally set `parallaxBackgroundHorizontal`
-and `parallaxBackgroundVertical` to configure the scrolling behaviour. See the
-[reveal.js documentation](https://revealjs.com/backgrounds/#parallax-background)
+`parallaxBackgroundImage`, which produces a parallax scrolling background.
+You must also set `parallaxBackgroundSize`, and can optionally set
+`parallaxBackgroundHorizontal`
+and `parallaxBackgroundVertical` to configure the scrolling behaviour.
+See the [reveal.js
+documentation](https://revealjs.com/backgrounds/#parallax-background)
 for more details about the meaning of these options.
 
 In reveal.js's overview mode, the parallaxBackgroundImage will show up
