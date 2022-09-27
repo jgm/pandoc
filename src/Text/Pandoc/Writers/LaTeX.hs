@@ -208,9 +208,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
           maybe id (\l -> defField "lang"
                       (literal $ renderLang l)) mblang
         $ maybe id (\l -> defField "babel-lang"
-                      (literal $ toBabel l)) mblang
+                      (literal l)) (mblang >>= toBabel)
         $ defField "babel-otherlangs"
-             (map (literal . toBabel) docLangs)
+             (map literal $ mapMaybe toBabel docLangs)
         $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
@@ -738,10 +738,9 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
       kvToCmd ("dir","ltr") = Just "LR"
       kvToCmd _ = Nothing
       langCmds =
-        case lang of
-           Just lng -> let l = toBabel lng
-                       in  ["foreignlanguage{" <> l <> "}"]
-           Nothing  -> []
+        case lang >>= toBabel of
+           Just l  -> ["foreignlanguage{" <> l <> "}"]
+           Nothing -> []
   let cmds = mapMaybe classToCmd classes ++ mapMaybe kvToCmd kvs ++ langCmds
   contents <- inlineListToLaTeX ils
   return $

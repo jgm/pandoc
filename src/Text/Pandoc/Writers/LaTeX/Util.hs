@@ -237,9 +237,8 @@ wrapDiv (_,classes,kvs) t = do
                   Just "rtl" -> align "RTL"
                   Just "ltr" -> align "LTR"
                   _          -> id
-      wrapLang txt = case lang of
-                       Just lng -> let l = toBabel lng
-                                   in  inCmd "begin" "otherlanguage"
+      wrapLang txt = case lang >>= toBabel of
+                       Just l -> inCmd "begin" "otherlanguage"
                                             <> (braces (literal l))
                                        $$ blankline <> txt <> blankline
                                        $$ inCmd "end" "otherlanguage"
