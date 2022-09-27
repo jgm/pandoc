@@ -52,7 +52,7 @@ jobs:
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.8.4'
             cabal: '3.2'
-            cabalopts: ''
+            cabalopts: '-f-server'
             testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.10.7'
             cabal: '3.2'
