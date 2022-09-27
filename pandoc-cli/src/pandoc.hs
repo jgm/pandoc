@@ -39,9 +39,11 @@ main = E.handle (handleError . Left) $ do
 -- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
 -- the default @lua@ program shipping with Lua.
 runLuaInterpreter :: String -> [String] -> IO ()
-runLuaInterpreter _progName _args = do
+runLuaInterpreter progName args = do
   let settings = Settings
         { settingsVersionInfo = "\nEmbedded in pandoc " <> pandocVersion
-        , settingsRunner = handleError <=< runIOorExplode . runLua
+        , settingsRunner = runner
         }
-  runStandalone settings
+  runStandalone settings progName args
+  where
+    runner _envBehavior = handleError <=< runIOorExplode . runLua
