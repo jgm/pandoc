@@ -68,14 +68,11 @@ reformat: ## reformat with stylish-haskell
 	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
 .PHONY: reformat
 
-lint: hlint fix_spacing ## run linters
+lint: ## run hlint
+	for f in $(SOURCEFILES); do echo $$f; hlint --refactor --refactor-options='-s -o -' $$f; done
 .PHONY: lint
 
-hlint: ## run hlint
-	for f in $(SOURCEFILES); do echo $$f; hlint --refactor --refactor-options='-s -o -' $$f; done
-.PHONY: hlint
-
-fix_spacing: ## Fix trailing newlines and spaces
+fix_spacing: ## fix trailing newlines and spaces
 	for f in $(SOURCEFILES); do printf '%s\n' "`cat $$f`" | sed -e 's/  *$$//' > $$f.tmp; mv $$f.tmp $$f; done
 .PHONY: fix_spacing
 
@@ -83,7 +80,7 @@ changes_github: ## copy this release's changes in gfm
 	pandoc --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 .PHONY: changes_github
 
-man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1
+man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1 ## build man pages
 .PHONY: man
 
 coverage: ## code coverage information
@@ -94,6 +91,10 @@ coverage: ## code coverage information
 	hpc markup --destdir=coverage test/test-pandoc.tix
 	open coverage/hpc_index.html
 .PHONY: coverage
+
+transitive-deps: ## print transitive dependencies
+	cabal-plan topo | sort | sed -e 's/-[0-9]\..*//'
+.PHONY: transitive-deps
 
 debpkg: ## create linux package
 	docker run -v `pwd`:/mnt \
@@ -127,7 +128,7 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
-doc/lua-filters.md: tools/update-lua-module-docs.lua
+doc/lua-filters.md: tools/update-lua-module-docs.lua  ## update lua-filters.md module docs
 	cabal run pandoc -- --standalone \
 		--reference-links \
 		--lua-filter=$< \
@@ -167,7 +168,7 @@ sdist-files.txt: .FORCE
 git-files.txt: .FORCE
 	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
 
-help: ## Display this help
+help: ## display this help
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-30s %s\n", $$1, $$2}'
 .PHONY: help
 
