@@ -14,13 +14,13 @@ writers.
 module Main where
 import Control.Monad ((<=<))
 import qualified Control.Exception as E
-import HsLua.CLI (Settings (..), runStandalone)
+import HsLua.CLI (EnvBehavior (..), Settings (..), runStandalone)
 import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
                        , parseOptionsFromArgs)
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
-import Text.Pandoc.Lua (runLua)
+import Text.Pandoc.Lua (runLua, runLuaNoEnv)
 import Text.Pandoc.Shared (pandocVersion)
 import qualified Text.Pandoc.UTF8 as UTF8
 import PandocCLI.Server
@@ -50,4 +50,8 @@ runLuaInterpreter progName args = do
         }
   runStandalone settings progName args
   where
-    runner _envBehavior = handleError <=< runIOorExplode . runLua
+    runner envBehavior =
+      let runLua' = case envBehavior of
+                      IgnoreEnvVars  -> runLuaNoEnv
+                      ConsultEnvVars -> runLua
+      in handleError <=< runIOorExplode . runLua'
