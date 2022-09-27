@@ -10,6 +10,7 @@ module Text.Pandoc.Server
     , Params(..)
     , Blob(..)
     , parseServerOpts
+    , parseServerOptsFromArgs
     ) where
 
 import Data.Aeson
@@ -94,6 +95,10 @@ cliOptions =
 parseServerOpts :: IO ServerOpts
 parseServerOpts = do
   args <- getArgs
+  parseServerOptsFromArgs args
+
+parseServerOptsFromArgs :: [String] -> IO ServerOpts
+parseServerOptsFromArgs args = do
   let handleUnknownOpt x = "Unknown option: " <> x
   case getOpt' Permute cliOptions args of
     (os, ns, unrecognizedOpts, es) -> do
@@ -426,4 +431,3 @@ server = convertBytes
     case res of
       Left e -> throwError $ PandocTemplateError (T.pack e)
       Right tpl -> return tpl
-

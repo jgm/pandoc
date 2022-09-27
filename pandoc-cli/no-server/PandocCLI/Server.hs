@@ -23,8 +23,8 @@ runCGI = serverUnsupported
 
 -- | Placeholder function for the HTTP server; prints an error message
 -- and exists with error code.
-runServer :: IO ()
-runServer = serverUnsupported
+runServer :: [String] -> IO ()
+runServer _args = serverUnsupported
 
 serverUnsupported :: IO ()
 serverUnsupported = do
