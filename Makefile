@@ -86,6 +86,15 @@ changes_github: ## copy this release's changes in gfm
 man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1
 .PHONY: man
 
+coverage: ## code coverage information
+	cabal v2-test \
+	  --ghc-options='-fhpc $(GHCOPTS)' \
+	  --disable-optimization \
+	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
+	hpc markup --destdir=coverage test/test-pandoc.tix
+	open coverage/hpc_index.html
+.PHONY: coverage
+
 debpkg: ## create linux package
 	docker run -v `pwd`:/mnt \
                    -v `pwd`/linux/artifacts:/artifacts \
