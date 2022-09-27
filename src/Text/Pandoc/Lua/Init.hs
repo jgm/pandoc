@@ -12,6 +12,7 @@ Functions to initialize the Lua interpreter.
 -}
 module Text.Pandoc.Lua.Init
   ( runLua
+  , runLuaNoEnv
   ) where
 
 import Control.Monad (forM, forM_, when)
@@ -43,6 +44,19 @@ runLua :: (PandocMonad m, MonadIO m)
        => LuaE PandocError a -> m (Either PandocError a)
 runLua action =
   runPandocLua . try $ do
+    initLuaState
+    liftPandocLua action
+
+-- | Like 'runLua', but ignores all environment variables like @LUA_PATH@.
+runLuaNoEnv :: (PandocMonad m, MonadIO m)
+            => LuaE PandocError a -> m (Either PandocError a)
+runLuaNoEnv action =
+  runPandocLua . try $ do
+    liftPandocLua $ do
+      -- This is undocumented, but works -- the code is adapted from the
+      -- `lua.c` sources for the default interpreter.
+      Lua.pushboolean True
+      Lua.setfield Lua.registryindex "LUA_NOENV"
     initLuaState
     liftPandocLua action
 

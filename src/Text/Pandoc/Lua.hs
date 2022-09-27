@@ -20,11 +20,12 @@ module Text.Pandoc.Lua
   , Global(..)
   , setGlobals
   , runLua
+  , runLuaNoEnv
   ) where
 
 import Text.Pandoc.Lua.Filter (applyFilter)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Init (runLua)
+import Text.Pandoc.Lua.Init (runLua, runLuaNoEnv)
 import Text.Pandoc.Lua.Reader (readCustom)
 import Text.Pandoc.Lua.Writer (writeCustom)
 import Text.Pandoc.Lua.Orphans ()
