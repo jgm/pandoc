@@ -93,9 +93,7 @@ cliOptions =
   ]
 
 parseServerOpts :: IO ServerOpts
-parseServerOpts = do
-  args <- getArgs
-  parseServerOptsFromArgs args
+parseServerOpts = getArgs >>= parseServerOptsFromArgs
 
 parseServerOptsFromArgs :: [String] -> IO ServerOpts
 parseServerOptsFromArgs args = do
