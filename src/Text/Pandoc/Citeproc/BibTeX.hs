@@ -179,6 +179,8 @@ writeBibtexString opts variant mblang ref =
            , "type"
            , "note"
            , "annote"
+           , "url" -- not officially supported, but supported by
+                   -- some styles (#8287)
            ]
 
   valToInlines (TextVal t) = B.text t
