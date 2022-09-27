@@ -42,7 +42,7 @@ quick-stack: ## unoptimized build and tests with stack
 	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
-check: check-cabal checkdocs ## prerelease checks
+check: fix_spacing check-cabal checkdocs ## prerelease checks
 	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
 	! grep 'git:' cabal.project # use only released versions
@@ -73,7 +73,7 @@ lint: ## run hlint
 .PHONY: lint
 
 fix_spacing: ## fix trailing newlines and spaces
-	for f in $(SOURCEFILES); do printf '%s\n' "`cat $$f`" | sed -e 's/  *$$//' > $$f.tmp; mv $$f.tmp $$f; done
+	@ERRORS=0; echo "Checking for spacing errors..." && for f in $(SOURCEFILES); do printf '%s\n' "`cat $$f`" | sed -e 's/  *$$//' > $$f.tmp; diff -u $$f $$f.tmp || ERRORS=1; mv $$f.tmp $$f; done; [ $$ERRORS -eq 0 ] || echo "Spacing errors have been fixed; please commit the changes."; exit $$ERRORS
 .PHONY: fix_spacing
 
 changes_github: ## copy this release's changes in gfm
@@ -161,6 +161,8 @@ clean: ## clean up
 	cabal clean
 	stack clean
 .PHONY: clean
+
+.PHONY: .FORCE
 
 sdist-files.txt: .FORCE
 	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)\/' | sort > $@
