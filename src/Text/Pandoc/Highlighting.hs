@@ -237,4 +237,3 @@ lookupHighlightingStyle s
        Just sty -> return sty
        Nothing  -> throwError $ PandocOptionError $ T.pack $
                       "Unknown highlight-style " ++ s
-

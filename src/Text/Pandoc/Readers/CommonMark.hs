@@ -158,4 +158,3 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
          [ (taskListSpec <>) | isEnabled Ext_task_lists opts ] ++
          [ (rebaseRelativePathsSpec <>)
            | isEnabled Ext_rebase_relative_paths opts ]
-

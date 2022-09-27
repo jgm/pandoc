@@ -67,4 +67,3 @@ findAttrByName :: NameSpaces -> Text -> Text -> Element -> Maybe Text
 findAttrByName ns pref name el =
   let ns' = ns <> elemToNameSpaces el
   in  findAttr (elemName ns' pref name) el
-

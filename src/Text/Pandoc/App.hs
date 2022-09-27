@@ -525,6 +525,3 @@ adjustLinksAndIds exts thisfile allfiles
     Image (fixAttrs attr) ils (fixURL url,tit)
   fixInline (Span attr ils) = Span (fixAttrs attr) ils
   fixInline x = x
-
-
-

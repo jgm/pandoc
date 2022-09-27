@@ -79,4 +79,3 @@ toIETF "ukrainian"       = "uk-UA"
 toIETF "vietnamese"      = "vi-VN"
 toIETF "latin"           = "la"
 toIETF x                 = x
-

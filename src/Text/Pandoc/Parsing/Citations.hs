@@ -54,4 +54,3 @@ simpleCiteIdentifier = do
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
                  try (oneOf ":/" <* lookAhead (char '/'))
   return $ T.pack $ firstChar:rest
-

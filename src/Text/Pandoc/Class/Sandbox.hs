@@ -47,4 +47,3 @@ sandbox files action = do
             mapM_ logOutput
               (filter ((<= verbosity) . messageVerbosity) newMessages)
             return result
-

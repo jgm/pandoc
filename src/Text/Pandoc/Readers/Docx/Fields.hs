@@ -132,6 +132,6 @@ pageref = do
   farg <- fieldArgument
   switches <- spaces *> many pagerefSwitch
   let isLink = case switches of
-              ("\\h", _) : _ -> True 
+              ("\\h", _) : _ -> True
               _              -> False
   return (farg, isLink)

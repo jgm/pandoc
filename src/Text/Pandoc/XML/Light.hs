@@ -111,4 +111,3 @@ nodeToContent (Conduit.NodeElement el) =
 nodeToContent (Conduit.NodeContent t) =
   Just (Text (CData CDataText t Nothing))
 nodeToContent _ = Nothing
-

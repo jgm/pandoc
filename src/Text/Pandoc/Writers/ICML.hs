@@ -486,7 +486,7 @@ inlineToICML opts style _ (Span (ident, _, kvs) lst) =
   in  inlinesToICML opts (dynamicStyle <> style) ident lst
 -- ident will be the id of the span, that we need to use down in the hyperlink setter
 --  if T.null ident
---     then 
+--     then
 --     else do
 
 -- | Convert a list of block elements to an ICML footnote.
@@ -559,7 +559,7 @@ makeLinkDest ident cont = vcat [
 -- | Create the markup for the content (incl. named destinations)
 -- |  NOTE: since we have no easy way to get actual named dests, we just create them for any short content blocks
 makeContent :: Text -> Doc Text -> Doc Text
-makeContent ident cont 
+makeContent ident cont
               | isEmpty cont = empty
               | not (Text.null ident) = makeLinkDest ident cont
               | otherwise = inTagsSimple "Content" $ flush cont

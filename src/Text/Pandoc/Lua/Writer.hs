@@ -61,4 +61,3 @@ writeCustom luaFile opts doc = do
         push opts
         callTrace 2 1
         forcePeek $ peekText top
-

@@ -119,4 +119,3 @@ main = do
            fp <- getExecutablePath
            -- putStrLn $ "Using pandoc executable at " ++ fp
            defaultMain $ tests fp
-

@@ -1324,4 +1324,3 @@ block = do
 
 blocks :: PandocMonad m => LP m Blocks
 blocks = mconcat <$> many block
-

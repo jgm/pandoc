@@ -189,5 +189,3 @@ fromXLContent :: XL.Content -> Content
 fromXLContent (XL.Elem el) = Elem $ fromXLElement el
 fromXLContent (XL.Text cd) = Text $ fromXLCData cd
 fromXLContent (XL.CRef s)  = CRef (T.pack s)
-
-

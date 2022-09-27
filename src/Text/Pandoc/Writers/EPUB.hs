@@ -689,7 +689,7 @@ pandocToEPUB version opts doc = do
       navPointNode formatter (Div _ bs) =
         concat <$> mapM (navPointNode formatter) bs
       navPointNode _ _ = return []
-  
+
   -- Create the tocEntry from the metadata together with the sections and title.
   tocEntry <- createTocEntry meta metadata plainTitle secs navPointNode
 
@@ -740,7 +740,7 @@ createCoverPage :: PandocMonad m =>
                    -> (WriterOptions -> Pandoc -> m B8.ByteString)
                    -> Text
                    -> StateT EPUBState m ([Entry], [Entry])
-createCoverPage meta metadata opts' vars cssvars writeHtml plainTitle = 
+createCoverPage meta metadata opts' vars cssvars writeHtml plainTitle =
     case epubCoverImage metadata of
         Nothing   -> return ([],[])
         Just img  -> do
@@ -807,7 +807,7 @@ createChapterEntries opts' vars cssvars writeHtml chapters = do
                        -- remove notes or we get doubled footnotes
                        (Pandoc (setMeta "title"
                            (walk removeNote $ fromList xs) nullMeta) bs,
-                        -- Check if the chapters belongs to the frontmatter, 
+                        -- Check if the chapters belongs to the frontmatter,
                         -- backmatter of bodymatter defaulting to the body
                         case lookup "epub:type" kvs of
                              Nothing -> "bodymatter"
@@ -832,7 +832,7 @@ createChapterEntries opts' vars cssvars writeHtml chapters = do
 -- | Splits the blocks into chapters and creates a corresponding reftable
 createChaptersAndReftable :: WriterOptions -> [Block] -> ([Chapter], [(Text, Text)])
 createChaptersAndReftable opts secs = (chapters, reftable)
-  where 
+  where
     chapterHeaderLevel = writerEpubChapterLevel opts
 
     isChapterHeader :: Block -> Bool
@@ -845,18 +845,18 @@ createChaptersAndReftable opts secs = (chapters, reftable)
       -- If the header is of the same level as chapters, create a chapter
       | chapterHeaderLevel == lvl =
           Chapter [d] : secsToChapters rest
-      -- If the header is a level higher than chapters, 
+      -- If the header is a level higher than chapters,
       -- create a chapter of everything until the next chapter header.
       | chapterHeaderLevel > lvl =
           Chapter [Div attr (h:xs)] :
           secsToChapters ys ++ secsToChapters rest
             where (xs, ys) = break isChapterHeader bs
     secsToChapters bs =
-      -- If this is the last block, keep it as is, 
+      -- If this is the last block, keep it as is,
       -- otherwise create a chapter for everything until the next chapter header.
         (if null xs then id else (Chapter xs :)) $ secsToChapters ys
           where (xs, ys) = break isChapterHeader bs
-  
+
     -- Convert the sections to initial chapters
     chapters' = secsToChapters secs
 
@@ -879,7 +879,7 @@ createChaptersAndReftable opts secs = (chapters, reftable)
                     _ -> id)
           [] (parseTags raw)
     extractLinkURL' _ _ = []
-  
+
     -- Extract references for the reftable from Block elements
     extractLinkURL :: Int -> Block -> [(T.Text, T.Text)]
     extractLinkURL num (Div (ident, _, _) _)

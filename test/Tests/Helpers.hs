@@ -155,7 +155,7 @@ instance ToString [Block] where
   toString = toString . B.fromList
 
 instance ToString Block where
-  toString = toString . B.singleton 
+  toString = toString . B.singleton
 
 instance ToString Inlines where
   toString = unpack . trimr . purely (writeNative def) . toPandoc

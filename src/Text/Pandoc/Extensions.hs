@@ -631,4 +631,3 @@ parseFormatSpec = parse formatSpec ""
                     case polarity of
                         '+' -> (ext : extsToEnable, extsToDisable)
                         _   -> (extsToEnable, ext : extsToDisable)
-

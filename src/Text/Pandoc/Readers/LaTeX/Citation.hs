@@ -208,4 +208,3 @@ complexNatbibCitation inline mode = try $ do
 inNote :: Inlines -> Inlines
 inNote ils =
   note $ para $ ils <> str "."
-

@@ -78,5 +78,3 @@ instance Default WriterState
                          , stIds = Set.empty
                          , stNoteNum = 1
                          }
-
-

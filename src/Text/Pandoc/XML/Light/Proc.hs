@@ -11,7 +11,7 @@
    This code is taken from xml-light, released under the BSD3 license.
 -}
 module Text.Pandoc.XML.Light.Proc
-  ( 
+  (
     -- * Replacement for xml-light's Text.XML.Proc
     strContent
   , onlyElems
@@ -135,5 +135,3 @@ lookupAttrBy p as   = attrVal `fmap` find (p . attrKey) as
 -- satisfies the given predicate.
 findAttrBy         :: (QName -> Bool) -> Element -> Maybe Text
 findAttrBy p e      = lookupAttrBy p (elAttribs e)
-
-

@@ -394,5 +394,3 @@ doAcronymPlural form = do
   return . mconcat $ [spanWith ("",[],[("acronym-label", untokenize acro),
     ("acronym-form", "plural+" <> form)]) $
    mconcat [str $ untokenize acro, plural]]
-
-

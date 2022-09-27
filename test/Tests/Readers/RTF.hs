@@ -39,4 +39,3 @@ tests = map rtfTest [ "footnote"
                     , "table_simple"
                     , "table_error_codes"
                     ]
-

@@ -12,4 +12,3 @@ a Lua writer.
 module Text.Pandoc.Writers.Custom ( writeCustom ) where
 
 import Text.Pandoc.Lua.Writer ( writeCustom )
-

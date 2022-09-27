@@ -469,5 +469,3 @@ siUnitMap = M.fromList
   , ("watt", str "W")
   , ("weber", str "Wb")
   ]
-
-
