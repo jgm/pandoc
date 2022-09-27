@@ -17,7 +17,7 @@ import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Middleware.Timeout (timeout)
 import Safe (readDef)
 import System.Environment (lookupEnv)
-import Text.Pandoc.Server (ServerOpts(..), parseServerOpts, app)
+import Text.Pandoc.Server (ServerOpts(..), parseServerOptsFromArgs, app)
 
 -- | Runs the CGI server.
 runCGI :: IO ()
@@ -26,7 +26,7 @@ runCGI = do
   CGI.run (timeout cgiTimeout app)
 
 -- | Runs the HTTP server.
-runServer :: IO ()
-runServer = do
-  sopts <- parseServerOpts
+runServer :: [String] -> IO ()
+runServer args = do
+  sopts <- parseServerOptsFromArgs args
   Warp.run (serverPort sopts) (timeout (serverTimeout sopts) app)

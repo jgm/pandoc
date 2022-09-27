@@ -31,10 +31,14 @@ main = E.handle (handleError . Left) $ do
   rawArgs <- map UTF8.decodeArg <$> getArgs
   case prg of
     "pandoc-server.cgi" -> runCGI
-    "pandoc-server"     -> runServer
+    "pandoc-server"     -> runServer rawArgs
     "pandoc-lua"        -> runLuaInterpreter prg rawArgs
-    _ -> parseOptionsFromArgs options defaultOpts prg rawArgs
-         >>= convertWithOpts
+    _ ->
+      case rawArgs of
+        "lua" : args   -> runLuaInterpreter "pandoc lua" args
+        "serve" : args -> runServer args
+        _              -> parseOptionsFromArgs options defaultOpts prg rawArgs
+                          >>= convertWithOpts
 
 -- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
 -- the default @lua@ program shipping with Lua.
