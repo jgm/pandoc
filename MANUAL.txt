@@ -7106,8 +7106,10 @@ Calling the pandoc executable under the name `pandoc-lua` or with
 Lua interpreter. The behavior is mostly identical to that of the
 [standalone `lua` executable][lua standalone], version 5.4.
 However, there is no REPL yet, and the `-i` option has no effect.
+For full documentation, see the [pandoc-lua] man page.
 
 [lua standalone]: https://www.lua.org/manual/5.4/manual.html#7
+[pandoc-server]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-lua.md
 
 # A note on security
 
