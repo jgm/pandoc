@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 {- |
    Module      : Main
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -16,54 +15,33 @@ module Main where
 import Control.Monad ((<=<))
 import qualified Control.Exception as E
 import HsLua.CLI (Settings (..), runStandalone)
-import Text.Pandoc.App (convertWithOpts, defaultOpts, options, parseOptions)
+import System.Environment (getArgs, getProgName)
+import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
+                       , parseOptionsFromArgs)
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Lua (runLua)
 import Text.Pandoc.Shared (pandocVersion)
-import System.Environment (getProgName)
-#ifdef _SERVER
-import qualified Network.Wai.Handler.CGI as CGI
-import qualified Network.Wai.Handler.Warp as Warp
-import Network.Wai.Middleware.Timeout (timeout)
-import Text.Pandoc.Server (ServerOpts(..), parseServerOpts, app)
-import Safe (readDef)
-import System.Environment (lookupEnv)
-#else
-import System.IO (hPutStrLn, stderr)
-import System.Exit (exitWith, ExitCode(ExitFailure))
-#endif
+import qualified Text.Pandoc.UTF8 as UTF8
+import PandocCLI.Server
 
 main :: IO ()
 main = E.handle (handleError . Left) $ do
   prg <- getProgName
+  rawArgs <- map UTF8.decodeArg <$> getArgs
   case prg of
-    "pandoc-server.cgi" -> do
-#ifdef _SERVER
-      cgiTimeout <- maybe 2 (readDef 2) <$> lookupEnv "PANDOC_SERVER_TIMEOUT"
-      CGI.run (timeout cgiTimeout app)
-#else
-      serverUnsupported
-#endif
-    "pandoc-server" -> do
-#ifdef _SERVER
-      sopts <- parseServerOpts
-      Warp.run (serverPort sopts) (timeout (serverTimeout sopts) app)
-#else
-      serverUnsupported
-#endif
-    "pandoc-lua" -> do
-      let settings = Settings
-            { settingsVersionInfo = "\nEmbedded in pandoc " <> pandocVersion
-            , settingsRunner = handleError <=< runIOorExplode . runLua
-            }
-      runStandalone settings
-    _ -> parseOptions options defaultOpts >>= convertWithOpts
+    "pandoc-server.cgi" -> runCGI
+    "pandoc-server"     -> runServer
+    "pandoc-lua"        -> runLuaInterpreter prg rawArgs
+    _ -> parseOptionsFromArgs options defaultOpts prg rawArgs
+         >>= convertWithOpts
 
-#ifndef _SERVER
-serverUnsupported :: IO ()
-serverUnsupported = do
-  hPutStrLn stderr $ "Server mode unsupported.\n" <>
-                     "Pandoc was not compiled with the 'server' flag."
-  exitWith $ ExitFailure 4
-#endif
+-- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
+-- the default @lua@ program shipping with Lua.
+runLuaInterpreter :: String -> [String] -> IO ()
+runLuaInterpreter _progName _args = do
+  let settings = Settings
+        { settingsVersionInfo = "\nEmbedded in pandoc " <> pandocVersion
+        , settingsRunner = handleError <=< runIOorExplode . runLua
+        }
+  runStandalone settings
