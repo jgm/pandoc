@@ -1547,10 +1547,10 @@ inlineToHtml opts inline = do
              _ -> do report $ InlineNotRendered inline
                      return mempty
     (Link attr txt (s,_)) | "mailto:" `T.isPrefixOf` s -> do
-                        linkText <- inlineListToHtml opts txt
+                        linkText <- inlineListToHtml opts (removeLinks txt)
                         obfuscateLink opts attr linkText s
     (Link (ident,classes,kvs) txt (s,tit)) -> do
-                        linkText <- inlineListToHtml opts txt
+                        linkText <- inlineListToHtml opts (removeLinks txt)
                         slideVariant <- gets stSlideVariant
                         let s' = case T.uncons s of
                                    Just ('#',xs) -> let prefix = if slideVariant == RevealJsSlides
@@ -1731,3 +1731,11 @@ isRawHtml f = do
   html5 <- gets stHtml5
   return $ f == Format "html" ||
            ((html5 && f == Format "html5") || f == Format "html4")
+
+-- We need to remove links from link text, because an <a> element is
+-- not allowed inside another <a> element.
+removeLinks :: [Inline] -> [Inline]
+removeLinks = walk go
+ where
+  go (Link attr ils _) = Span attr ils
+  go x = x
