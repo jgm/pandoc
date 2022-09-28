@@ -47,7 +47,6 @@ module Text.Pandoc.Shared (
                      extractSpaces,
                      removeFormatting,
                      deNote,
-                     deLink,
                      stringify,
                      capitalize,
                      compactify,
@@ -395,12 +394,6 @@ removeFormatting = query go . walk (deNote . deQuote)
 deNote :: Inline -> Inline
 deNote (Note _) = Str ""
 deNote x        = x
-
--- {- DEPRECATED deLink "deLink will be removed in a future version" -}
--- | Turns links into spans, keeping just the link text.
-deLink :: Inline -> Inline
-deLink (Link _ ils _) = Span nullAttr ils
-deLink x              = x
 
 -- | Convert pandoc structure to a string with formatting removed.
 -- Footnotes are skipped (since we don't want their contents in link
