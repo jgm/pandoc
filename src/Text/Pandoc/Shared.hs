@@ -208,6 +208,7 @@ tshow = T.pack . show
 elemText :: Char -> T.Text -> Bool
 elemText c = T.any (== c)
 
+{-# DEPRECATED notElemText "Use T.all (/= c)" #-}
 -- | @True@ exactly when the @Char@ does not appear in the @Text@.
 notElemText :: Char -> T.Text -> Bool
 notElemText c = T.all (/= c)
