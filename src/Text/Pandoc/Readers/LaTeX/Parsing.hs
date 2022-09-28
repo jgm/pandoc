@@ -34,7 +34,6 @@ module Text.Pandoc.Readers.LaTeX.Parsing
   , getInputTokens
   , untokenize
   , untoken
-  , toksToString
   , satisfyTok
   , peekTok
   , parseFromToks
@@ -484,9 +483,6 @@ untokenAccum (Tok _ _ t) accum = t <> accum
 
 untoken :: Tok -> Text
 untoken t = untokenAccum t mempty
-
-toksToString :: [Tok] -> String
-toksToString = T.unpack . untokenize
 
 parseFromToks :: PandocMonad m => LP m a -> [Tok] -> LP m a
 parseFromToks parser toks = do
