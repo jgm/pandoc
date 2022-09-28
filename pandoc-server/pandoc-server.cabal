@@ -45,12 +45,11 @@ common common-options
 
 common common-executable
   import:           common-options
-  build-depends:    pandoc
   ghc-options:      -rtsopts -with-rtsopts=-A8m -threaded
 
 library
   import:        common-options
-  build-depends: pandoc  == 2.19.2,
+  build-depends: pandoc                >= 2.20,
                  pandoc-types          >= 1.22.2   && < 1.23,
                  containers            >= 0.6.0.1  && < 0.7,
                  aeson                 >= 2.0      && < 2.2,

@@ -50,7 +50,6 @@ common common-options
 
 common common-executable
   import:           common-options
-  build-depends:    pandoc
   ghc-options:      -rtsopts -with-rtsopts=-A8m -threaded
 
 executable pandoc
@@ -58,7 +57,7 @@ executable pandoc
   hs-source-dirs:  src
   main-is:         pandoc.hs
   buildable:       True
-  build-depends:   pandoc,
+  build-depends:   pandoc >= 2.20,
                    hslua-cli >= 1.2 && < 1.3
   other-modules:   PandocCLI.Server
   if flag(server)
