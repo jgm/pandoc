@@ -40,7 +40,6 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
-                     crFilter,
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
@@ -315,11 +314,6 @@ tabFilter tabStop = T.unlines . map go . T.lines
                 else s1 <> T.replicate
                        (tabStop - (T.length s1 `mod` tabStop)) (T.pack " ")
                        <> go (T.drop 1 s2)
-
-{-# DEPRECATED crFilter "readers filter crs automatically" #-}
--- | Strip out DOS line endings.
-crFilter :: T.Text -> T.Text
-crFilter = T.filter (/= '\r')
 
 --
 -- Date/time
