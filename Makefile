@@ -13,7 +13,7 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-GHCOPTS=-fdiagnostics-color=always -j4 +RTS -A8m -RTS
+GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j4 +RTS -A8m -RTS
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
@@ -91,6 +91,10 @@ coverage: ## code coverage information
 	hpc markup --destdir=coverage test/test-pandoc.tix
 	open coverage/hpc_index.html
 .PHONY: coverage
+
+weeder: ## run weeder to find dead code
+	weeder
+.PHONY: weeder
 
 transitive-deps: ## print transitive dependencies
 	cabal-plan topo | sort | sed -e 's/-[0-9]\..*//'
