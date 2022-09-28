@@ -35,12 +35,7 @@ eitherToMaybe :: Either _l a -> Maybe a
 eitherToMaybe (Left  _) = Nothing
 eitherToMaybe (Right a) = Just a
 
--- | > fromLeft f === either f id
-fromLeft :: (a -> b) -> Either a b -> b
-fromLeft f (Left  a) = f a
-fromLeft _ (Right b) = b
-
--- | > recover a === fromLeft (const a) === either (const a) id
+-- | > recover a === either (const a) id
 recover :: a -> Either _f a -> a
 recover a (Left  _) = a
 recover _ (Right a) = a

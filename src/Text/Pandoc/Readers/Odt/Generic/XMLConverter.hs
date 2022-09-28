@@ -40,7 +40,6 @@ module Text.Pandoc.Readers.Odt.Generic.XMLConverter
 , findAttrText'
 , findAttr
 , findAttrText
-, findAttrWithDefault
 , findAttrTextWithDefault
 , readAttr
 , readAttr'
@@ -494,15 +493,6 @@ findAttrText           :: (NameSpaceID nsID)
 findAttrText nsID attrName
                        = findAttr' nsID attrName
                          >>> maybeToChoice
-
--- | Return value as string or return provided default value
-findAttrWithDefault    :: (NameSpaceID nsID)
-                       => nsID -> AttributeName
-                       -> AttributeValue
-                       -> XMLConverter nsID extraState x AttributeValue
-findAttrWithDefault nsID attrName deflt
-                       = findAttr' nsID attrName
-                         >>^ fromMaybe deflt
 
 -- | Return value as string or return provided default value
 findAttrTextWithDefault :: (NameSpaceID nsID)
