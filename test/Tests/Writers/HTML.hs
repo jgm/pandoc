@@ -84,6 +84,11 @@ tests =
       doubleQuoted (spanWith ("", [], [("cite", "http://example.org")]) (str "examples"))
       =?> "<q cite=\"http://example.org\">examples</q>"
     ]
+  , testGroup "code"
+    [ "code should be rendered correctly" =:
+      plain (codeWith ("",[],[]) "Answer is 42") =?>
+      "<code>Answer is 42</code>"
+    ]
   , testGroup "sample"
     [ "sample should be rendered correctly" =:
       plain (codeWith ("",["sample"],[]) "Answer is 42") =?>

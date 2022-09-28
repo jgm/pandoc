@@ -663,6 +663,7 @@ inline = pTagText <|> do
         "svg" -> pSvg
         "bdo" -> pBdo
         "code" -> pCode
+        "tt" -> pCode
         "samp" -> pCodeWithClass "samp" "sample"
         "var" -> pCodeWithClass "var" "variable"
         "span" -> pSpan
