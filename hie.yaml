@@ -1,0 +1,25 @@
+cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:pandoc"
+
+    - path: "./test"
+      component: "pandoc:test:test-pandoc"
+
+    - path: "./benchmark/benchmark-pandoc.hs"
+      component: "pandoc:bench:benchmark-pandoc"
+
+    - path: "pandoc-cli/no-server/pandoc.hs"
+      component: "pandoc-cli:exe:pandoc"
+
+    - path: "pandoc-cli/no-server/PandocCLI/Server.hs"
+      component: "pandoc-cli:exe:pandoc"
+
+    - path: "pandoc-cli/server/pandoc.hs"
+      component: "pandoc-cli:exe:pandoc"
+
+    - path: "pandoc-cli/server/PandocCLI/Server.hs"
+      component: "pandoc-cli:exe:pandoc"
+
+    - path: "pandoc-server/src"
+      component: "lib:pandoc-server"
