@@ -9,7 +9,6 @@ module Text.Pandoc.Server
     , ServerOpts(..)
     , Params(..)
     , Blob(..)
-    , parseServerOpts
     , parseServerOptsFromArgs
     ) where
 
@@ -39,7 +38,7 @@ import Skylighting (defaultSyntaxMap)
 import qualified Data.Map as M
 import Text.Collate.Lang (Lang (..), parseLang)
 import System.Console.GetOpt
-import System.Environment (getArgs, getProgName)
+import System.Environment (getProgName)
 import qualified Control.Exception as E
 import Text.Pandoc.Shared (safeStrRead, headerShift, filterIpynbOutput,
                            eastAsianLineBreakFilter, stripEmptyParagraphs)
@@ -91,9 +90,6 @@ cliOptions =
       "version info"
 
   ]
-
-parseServerOpts :: IO ServerOpts
-parseServerOpts = getArgs >>= parseServerOptsFromArgs
 
 parseServerOptsFromArgs :: [String] -> IO ServerOpts
 parseServerOptsFromArgs args = do
