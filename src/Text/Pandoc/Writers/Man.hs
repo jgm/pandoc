@@ -73,7 +73,7 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
               $ defField "hyphenate" True
-              $ defField "pandoc-version" pandocVersion metadata
+              $ defField "pandoc-version" pandocVersionText metadata
   return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main

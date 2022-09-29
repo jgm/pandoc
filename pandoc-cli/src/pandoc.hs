@@ -21,7 +21,7 @@ import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Lua (runLua, runLuaNoEnv)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Shared (pandocVersionText)
 import qualified Text.Pandoc.UTF8 as UTF8
 import PandocCLI.Server
 
@@ -45,7 +45,7 @@ main = E.handle (handleError . Left) $ do
 runLuaInterpreter :: String -> [String] -> IO ()
 runLuaInterpreter progName args = do
   let settings = Settings
-        { settingsVersionInfo = "\nEmbedded in pandoc " <> pandocVersion
+        { settingsVersionInfo = "\nEmbedded in pandoc " <> pandocVersionText
         , settingsRunner = runner
         }
   runStandalone settings progName args
