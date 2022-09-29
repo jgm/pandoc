@@ -242,7 +242,6 @@ extra-source-files:
                  test/command/SVG_logo.svg
                  test/command/corrupt.svg
                  test/command/inkscape-cube.svg
-                 test/command/lua-pandoc-state.lua
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
                  test/command/bar.tex
@@ -324,7 +323,6 @@ extra-source-files:
                  test/tables.txt
                  test/tables.fb2
                  test/tables.muse
-                 test/tables.custom
                  test/tables.xwiki
                  test/tables/*.html4
                  test/tables/*.html5
@@ -365,7 +363,6 @@ extra-source-files:
                  test/writer.zimwiki
                  test/writer.xwiki
                  test/writer.muse
-                 test/writer.custom
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
                  test/dokuwiki_inline_formatting.dokuwiki
@@ -411,20 +408,12 @@ extra-source-files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
-                 test/lua/*.lua
-                 test/lua/module/*.lua
-                 test/lua/module/partial.test
-                 test/lua/module/tiny.epub
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
 flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
-  Default:       False
-
-flag lua53
-  Description:   Embed Lua 5.3 instead of 5.4.
   Default:       False
 
 flag nightly
@@ -506,22 +495,15 @@ library
                  filepath              >= 1.1      && < 1.5,
                  gridtables            >= 0.0.3    && < 0.1,
                  haddock-library       >= 1.10     && < 1.12,
-                 hslua-module-doclayout>= 1.0.4    && < 1.1,
-                 hslua-module-path     >= 1.0.3    && < 1.1,
-                 hslua-module-system   >= 1.0      && < 1.1,
-                 hslua-module-text     >= 1.0      && < 1.1,
-                 hslua-module-version  >= 1.0.3    && < 1.1,
                  http-client           >= 0.4.30   && < 0.8,
                  http-client-tls       >= 0.2.4    && < 0.4,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,
                  jira-wiki-markup      >= 1.4      && < 1.5,
-                 lpeg                  >= 1.0.1    && < 1.1,
                  mime-types            >= 0.1.1    && < 0.2,
                  mtl                   >= 2.2      && < 2.3,
                  network               >= 2.6,
                  network-uri           >= 2.6      && < 2.8,
-                 pandoc-lua-marshal    >= 0.1.7    && < 0.2,
                  pandoc-types          >= 1.22.2   && < 1.23,
                  parsec                >= 3.1      && < 3.2,
                  pretty                >= 1.1      && < 1.2,
@@ -552,12 +534,6 @@ library
   if flag(nightly)
     cpp-options:    -DNIGHTLY
     build-depends:  template-haskell
-  if flag(lua53)
-    build-depends:  hslua >= 2.1 && < 2.2,
-                    hslua-aeson >= 2.2.1 && < 2.3
-  else
-    build-depends:  hslua >= 2.2.1 && < 2.3
-                  , hslua-aeson >= 2.2.1 && < 2.3
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      other-modules: Text.Pandoc.Data
@@ -646,7 +622,6 @@ library
                    Text.Pandoc.Writers.OOXML,
                    Text.Pandoc.Writers.AnnotatedTable,
                    Text.Pandoc.Writers.BibTeX,
-                   Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Scripting,
@@ -746,29 +721,6 @@ library
                    Text.Pandoc.Writers.Blaze,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
-                   Text.Pandoc.Lua.ErrorConversion,
-                   Text.Pandoc.Lua.Filter,
-                   Text.Pandoc.Lua.Global,
-                   Text.Pandoc.Lua.Init,
-                   Text.Pandoc.Lua.Marshal.CommonState,
-                   Text.Pandoc.Lua.Marshal.Context,
-                   Text.Pandoc.Lua.Marshal.PandocError,
-                   Text.Pandoc.Lua.Marshal.ReaderOptions,
-                   Text.Pandoc.Lua.Marshal.Reference,
-                   Text.Pandoc.Lua.Marshal.Sources,
-                   Text.Pandoc.Lua.Marshal.Template,
-                   Text.Pandoc.Lua.Marshal.WriterOptions,
-                   Text.Pandoc.Lua.Module.MediaBag,
-                   Text.Pandoc.Lua.Module.Pandoc,
-                   Text.Pandoc.Lua.Module.System,
-                   Text.Pandoc.Lua.Module.Template,
-                   Text.Pandoc.Lua.Module.Types,
-                   Text.Pandoc.Lua.Module.Utils,
-                   Text.Pandoc.Lua.Orphans,
-                   Text.Pandoc.Lua.PandocLua,
-                   Text.Pandoc.Lua.Writer,
-                   Text.Pandoc.Lua.Writer.Classic,
-                   Text.Pandoc.Lua.Reader,
                    Text.Pandoc.Network.HTTP,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
@@ -799,16 +751,13 @@ test-suite test-pandoc
                   containers        >= 0.4.2.1 && < 0.7,
                   directory         >= 1.2.3   && < 1.4,
                   doctemplates      >= 0.10    && < 0.11,
-                  exceptions        >= 0.8     && < 0.11,
                   filepath          >= 1.1     && < 1.5,
-                  hslua             >= 2.1     && < 2.3,
                   mtl               >= 2.2     && < 2.3,
                   pandoc-types      >= 1.22.2  && < 1.23,
                   process           >= 1.2.3   && < 1.7,
                   tasty             >= 0.11    && < 1.5,
                   tasty-golden      >= 2.3     && < 2.4,
                   tasty-hunit       >= 0.9     && < 0.11,
-                  tasty-lua         >= 1.0     && < 1.1,
                   tasty-quickcheck  >= 0.8     && < 0.11,
                   text              >= 1.1.1.0 && < 2.1,
                   time              >= 1.5     && < 1.14,
@@ -817,8 +766,6 @@ test-suite test-pandoc
   other-modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
-                  Tests.Lua
-                  Tests.Lua.Module
                   Tests.Shared
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML

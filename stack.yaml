@@ -6,6 +6,7 @@ flags:
 packages:
 - '.'
 - 'pandoc-cli'
+- 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
 - skylighting-core-0.13

@@ -1,0 +1,137 @@
+cabal-version:       2.4
+name:                pandoc-lua-engine
+version:             0.1
+build-type:          Simple
+license:             GPL-2.0-or-later
+license-file:        COPYING.md
+copyright:           © 2006-2022 John MacFarlane, 2017-2022 Albert Krewinkel
+author:              John MacFarlane, Albert Krewinkel
+maintainer:          Albert Krewinkel <albert@hslua.org>
+bug-reports:         https://github.com/jgm/pandoc/issues
+homepage:            https://pandoc.org
+category:            Text
+tested-with:         GHC == 8.6.5
+                   , GHC == 8.8.4
+                   , GHC == 8.10.7
+                   , GHC == 9.0.2
+                   , GHC == 9.2.3
+synopsis:            Lua engine to power custom pandoc conversions
+description:         This package provides a pandoc scripting engine based on
+                     Lua.
+extra-source-files:  README.md
+                   , test/lua/*.lua
+                   , test/lua/module/*.lua
+                   , test/lua/module/partial.test
+                   , test/lua/module/tiny.epub
+                   , test/sample.lua
+                   , test/tables.custom
+                   , test/tables.native
+                   , test/testsuite.native
+                   , test/writer.custom
+
+source-repository head
+  type:                git
+  location:            https://github.com/jgm/pandoc.git
+  subdir:              pandoc-lua-engine
+
+flag lua53
+  Description:         Embed Lua 5.3 instead of 5.4.
+  Default:             False
+
+common common-options
+  default-language:    Haskell2010
+  build-depends:       base              >= 4.12 && < 5
+  ghc-options:         -Wall -fno-warn-unused-do-bind
+                       -Wincomplete-record-updates
+                       -Wnoncanonical-monad-instances
+                       -Wcpp-undef
+                       -Wincomplete-uni-patterns
+                       -Widentities
+                       -Wpartial-fields
+                       -Wmissing-export-lists
+                       -Wmissing-signatures
+                       -fhide-source-paths
+
+  if impl(ghc >= 8.10)
+    ghc-options:         -Wunused-packages
+
+  if impl(ghc >= 9.0)
+    ghc-options:         -Winvalid-haddock
+
+library
+  import:              common-options
+  hs-source-dirs:      src
+  exposed-modules:     Text.Pandoc.Lua
+  other-modules:       Text.Pandoc.Lua.ErrorConversion
+                     , Text.Pandoc.Lua.Filter
+                     , Text.Pandoc.Lua.Global
+                     , Text.Pandoc.Lua.Init
+                     , Text.Pandoc.Lua.Marshal.CommonState
+                     , Text.Pandoc.Lua.Marshal.Context
+                     , Text.Pandoc.Lua.Marshal.PandocError
+                     , Text.Pandoc.Lua.Marshal.ReaderOptions
+                     , Text.Pandoc.Lua.Marshal.Reference
+                     , Text.Pandoc.Lua.Marshal.Sources
+                     , Text.Pandoc.Lua.Marshal.Template
+                     , Text.Pandoc.Lua.Marshal.WriterOptions
+                     , Text.Pandoc.Lua.Module.MediaBag
+                     , Text.Pandoc.Lua.Module.Pandoc
+                     , Text.Pandoc.Lua.Module.System
+                     , Text.Pandoc.Lua.Module.Template
+                     , Text.Pandoc.Lua.Module.Types
+                     , Text.Pandoc.Lua.Module.Utils
+                     , Text.Pandoc.Lua.Orphans
+                     , Text.Pandoc.Lua.PandocLua
+                     , Text.Pandoc.Lua.Reader
+                     , Text.Pandoc.Lua.Writer
+                     , Text.Pandoc.Lua.Writer.Classic
+
+  build-depends:       SHA                   >= 1.6     && < 1.7
+                     , bytestring            >= 0.9     && < 0.12
+                     , citeproc              >= 0.8     && < 0.9
+                     , containers            >= 0.6.0.1 && < 0.7
+                     , data-default          >= 0.4     && < 0.8
+                     , doclayout             >= 0.4     && < 0.5
+                     , doctemplates          >= 0.10    && < 0.11
+                     , exceptions            >= 0.8     && < 0.11
+                     , hslua-module-doclayout>= 1.0.4   && < 1.1
+                     , hslua-module-path     >= 1.0.3   && < 1.1
+                     , hslua-module-system   >= 1.0     && < 1.1
+                     , hslua-module-text     >= 1.0     && < 1.1
+                     , hslua-module-version  >= 1.0.3   && < 1.1
+                     , lpeg                  >= 1.0.1   && < 1.1
+                     , mtl                   >= 2.2     && < 2.3
+                     , pandoc                >= 3.0     && < 3.1
+                     , pandoc-lua-marshal    >= 0.1.7   && < 0.2
+                     , pandoc-types          >= 1.22.2  && < 1.23
+                     , parsec                >= 3.1     && < 3.2
+                     , text                  >= 1.1.1   && < 2.1
+  if flag(lua53)
+    build-depends:       hslua >= 2.1 && < 2.2,
+                         hslua-aeson >= 2.2.1 && < 2.3
+  else
+    build-depends:       hslua >= 2.2.1 && < 2.3
+                       , hslua-aeson >= 2.2.1 && < 2.3
+
+test-suite test-pandoc-lua-engine
+  import:              common-options
+  type:                exitcode-stdio-1.0
+  main-is:             test-pandoc-lua-engine.hs
+  hs-source-dirs:      test
+  build-depends:       pandoc-lua-engine
+                     , bytestring
+                     , directory
+                     , data-default
+                     , exceptions            >= 0.8     && < 0.11
+                     , filepath
+                     , hslua                 >= 2.1     && < 2.3
+                     , pandoc
+                     , pandoc-types          >= 1.22.2  && < 1.23
+                     , tasty
+                     , tasty-golden
+                     , tasty-hunit
+                     , tasty-lua             >= 1.0     && < 1.1
+                     , text                  >= 1.1.1   && < 2.1
+  other-modules:       Tests.Lua
+                     , Tests.Lua.Module
+                     , Tests.Lua.Writer

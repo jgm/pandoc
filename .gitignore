@@ -45,6 +45,7 @@
 !linux/**
 !macos/**
 !man/**
+!pandoc-lua-engine/**
 !pandoc-server/**
 !pandoc-cli/**
 !src/**
