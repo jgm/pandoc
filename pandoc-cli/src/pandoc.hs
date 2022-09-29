@@ -20,7 +20,7 @@ import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
                        , parseOptionsFromArgs)
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
-import Text.Pandoc.Lua (runLua, runLuaNoEnv)
+import Text.Pandoc.Lua (getEngine, runLua, runLuaNoEnv)
 import Text.Pandoc.Shared (pandocVersionText)
 import qualified Text.Pandoc.UTF8 as UTF8
 import PandocCLI.Server
@@ -37,8 +37,10 @@ main = E.handle (handleError . Left) $ do
       case rawArgs of
         "lua" : args   -> runLuaInterpreter "pandoc lua" args
         "serve" : args -> runServer args
-        _              -> parseOptionsFromArgs options defaultOpts prg rawArgs
-                          >>= convertWithOpts
+        _              -> do
+          engine <- getEngine
+          let opts = options engine
+          parseOptionsFromArgs opts defaultOpts prg rawArgs >>= convertWithOpts
 
 -- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
 -- the default @lua@ program shipping with Lua.

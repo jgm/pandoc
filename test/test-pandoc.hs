@@ -7,6 +7,7 @@ import qualified Control.Exception as E
 import Text.Pandoc.App (convertWithOpts, defaultOpts, options,
                         parseOptionsFromArgs)
 import Text.Pandoc.Error (handleError)
+import Text.Pandoc.Scripting (noEngine)
 import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command
@@ -112,8 +113,8 @@ main = do
   case args of
     "--emulate":args' -> -- emulate pandoc executable
           E.catch
-            (parseOptionsFromArgs options defaultOpts "pandoc" args' >>=
-              convertWithOpts)
+            (parseOptionsFromArgs (options noEngine) defaultOpts "pandoc" args'
+             >>= convertWithOpts)
             (handleError . Left)
     _ -> inDirectory "test" $ do
            fp <- getExecutablePath
