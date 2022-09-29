@@ -21,11 +21,32 @@ module Text.Pandoc.Lua
   , setGlobals
   , runLua
   , runLuaNoEnv
+  -- * Engine
+  , getEngine
   ) where
 
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import HsLua.Core (getglobal, openlibs, run, top, tostring)
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Filter (applyFilter)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLua, runLuaNoEnv)
 import Text.Pandoc.Lua.Reader (readCustom)
 import Text.Pandoc.Lua.Writer (writeCustom)
 import Text.Pandoc.Lua.Orphans ()
+import Text.Pandoc.Scripting (ScriptingEngine (..))
+import qualified Text.Pandoc.UTF8 as UTF8
+
+-- | Constructs the Lua scripting engine.
+getEngine :: MonadIO m => m ScriptingEngine
+getEngine = do
+  versionName <- liftIO . run @PandocError $ do
+    openlibs
+    getglobal "_VERSION"
+    tostring top
+  pure $ ScriptingEngine
+    { engineName = maybe "Lua (unknown version)" UTF8.toText versionName
+    , engineApplyFilter = applyFilter
+    , engineReadCustom = readCustom
+    , engineWriteCustom = writeCustom
+    }
