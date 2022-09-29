@@ -51,6 +51,7 @@
 !test/**
 !tools/**
 !trypandoc/**
+!xml-light/**
 !windows/**
 *.bkp
 *.orig
