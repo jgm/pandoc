@@ -37,7 +37,6 @@ import Data.List (isPrefixOf)
 #endif
 import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
-import HsLua (Exception, getglobal, openlibs, peek, run, top)
 import Safe (tailDef)
 import Skylighting (Syntax (..), defaultSyntaxMap)
 import System.Console.GetOpt
@@ -1007,7 +1006,7 @@ compileInfo =
   "\nCompiled with pandoc-types " ++ VERSION_pandoc_types ++
   ", texmath " ++ VERSION_texmath ++ ", skylighting " ++
   VERSION_skylighting ++ ",\nciteproc " ++ VERSION_citeproc ++
-  ", ipynb " ++ VERSION_ipynb ++ ", hslua " ++ VERSION_hslua
+  ", ipynb " ++ VERSION_ipynb
 
 handleUnrecognizedOption :: String -> [String] -> [String]
 handleUnrecognizedOption "--smart" =
