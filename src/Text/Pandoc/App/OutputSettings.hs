@@ -224,6 +224,7 @@ optToOutputSettings opts = do
         , writerSlideLevel       = optSlideLevel opts
         , writerHighlightStyle   = hlStyle
         , writerSetextHeaders    = optSetextHeaders opts
+        , writerListTables       = optListTables opts
         , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
         , writerEpubMetadata     = epubMetadata
         , writerEpubFonts        = optEpubFonts opts

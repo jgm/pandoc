@@ -312,6 +312,7 @@ data WriterOptions = WriterOptions
   , writerHighlightStyle    :: Maybe Style  -- ^ Style to use for highlighting
                                            -- (Nothing = no highlighting)
   , writerSetextHeaders     :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
+  , writerListTables        :: Bool       -- ^ Use list tables for RST tables
   , writerEpubSubdirectory  :: Text       -- ^ Subdir for epub in OCF
   , writerEpubMetadata      :: Maybe Text -- ^ Metadata to include in EPUB
   , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
@@ -347,6 +348,7 @@ instance Default WriterOptions where
                       , writerListings         = False
                       , writerHighlightStyle   = Just pygments
                       , writerSetextHeaders    = False
+                      , writerListTables       = False
                       , writerEpubSubdirectory = "EPUB"
                       , writerEpubMetadata     = Nothing
                       , writerEpubFonts        = []

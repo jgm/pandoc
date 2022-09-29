@@ -135,6 +135,7 @@ data Opt = Opt
     , optPdfEngineOpts         :: [String]   -- ^ Flags to pass to the engine
     , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders         :: Bool       -- ^ Use atx headers for markdown level 1-2
+    , optListTables            :: Bool       -- ^ Use list tables for RST
     , optAscii                 :: Bool       -- ^ Prefer ascii output
     , optDefaultImageExtension :: Text       -- ^ Default image extension
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
@@ -215,6 +216,7 @@ instance FromJSON Opt where
        <*> o .:? "pdf-engine-opts" .!= optPdfEngineOpts defaultOpts
        <*> o .:? "slide-level"
        <*> o .:? "setext-headers" .!= optSetextHeaders defaultOpts
+       <*> o .:? "list-tables" .!= optListTables defaultOpts
        <*> o .:? "ascii" .!= optAscii defaultOpts
        <*> o .:? "default-image-extension" .!= optDefaultImageExtension defaultOpts
        <*> o .:? "extract-media"
@@ -609,6 +611,8 @@ doOpt (k,v) = do
           "atx"    -> o{ optSetextHeaders = False }
           "setext" -> o{ optSetextHeaders = True }
           _        -> o)
+    "list-tables" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListTables = x })
     "ascii" ->
       parseJSON v >>= \x -> return (\o -> o{ optAscii = x })
     "default-image-extension" ->
@@ -745,6 +749,7 @@ defaultOpts = Opt
     , optPdfEngineOpts         = []
     , optSlideLevel            = Nothing
     , optSetextHeaders         = False
+    , optListTables            = False
     , optAscii                 = False
     , optDefaultImageExtension = ""
     , optExtractMedia          = Nothing

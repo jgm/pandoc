@@ -311,7 +311,7 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
 blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
-blockToRST (Table attrs blkCapt specs thead tbody tfoot) = do
+blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
@@ -330,7 +330,7 @@ blockToRST (Table attrs blkCapt specs thead tbody tfoot) = do
         if offset tbl' > writerColumns opts
           then renderGrid
           else return tbl'
-      isList = any ("list-table" ==) $ (\(_, classes, _) -> classes) attrs
+      isList = writerListTables opts
       renderList = tableToRSTList caption (map (const AlignDefault) aligns)
                     widths headers rows
       rendered

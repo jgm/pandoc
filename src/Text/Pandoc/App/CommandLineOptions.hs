@@ -586,6 +586,12 @@ options =
                   "setext|atx")
                   ""
 
+    , Option "" ["list-tables"]
+                 (NoArg
+                  (\opt -> do
+                    return opt { optListTables = True } ))
+                 "" -- "Use list tables for RST"
+
     , Option "" ["listings"]
                  (NoArg
                   (\opt -> return opt { optListings = True }))

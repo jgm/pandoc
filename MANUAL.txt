@@ -1028,6 +1028,10 @@ header when requesting a document from a URL:
 
 :   *Deprecated synonym for `--markdown-headings=atx`.*
 
+`--list-tables`
+
+:   Render tables as list tables in RST output.
+
 `--top-level-division=default`|`section`|`chapter`|`part`
 
 :   Treat top-level headings as the given division type in
@@ -1897,6 +1901,10 @@ To include the built-in citeproc filter, use either `citeproc` or
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --markdown-headings atx          | markdown-headings: atx            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --list-tables                    | list-tables: true                 |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
