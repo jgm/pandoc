@@ -27,9 +27,7 @@ extra-deps:
 - doclayout-0.4
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
-- git: https://github.com/jgm/commonmark-hs
-  commit: 4f4fbe277044de0724dd0828a45311ab1413e30b
-  subdirs: [commonmark-extensions]
+- commonmark-extensions-0.2.3.3
 - git: https://github.com/quarto-dev/gridtables
   commit: 1dbf2ad311fc7b2d9aded51eb263067b6ff3ae28
 - git: https://github.com/jgm/texmath
