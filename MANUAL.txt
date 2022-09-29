@@ -1024,10 +1024,6 @@ header when requesting a document from a URL:
     ATX-style headings are always used for levels 3+.
     This option also affects Markdown cells in `ipynb` output.
 
-`--atx-headers`
-
-:   *Deprecated synonym for `--markdown-headings=atx`.*
-
 `--list-tables`
 
 :   Render tables as list tables in RST output.
@@ -3192,7 +3188,7 @@ for other formats are covered.
 
 Note that markdown extensions added to the `ipynb` format
 affect Markdown cells in Jupyter notebooks (as do command-line
-options like `--atx-headers`).
+options like `--markdown-headings`).
 
 ## Typography
 
@@ -6890,8 +6886,8 @@ translating between Markdown and ipynb notebooks.
 Note that options and extensions that affect reading and
 writing of Markdown will also affect Markdown cells in ipynb
 notebooks.  For example, `--wrap=preserve` will preserve
-soft line breaks in Markdown cells; `--atx-headers` will
-cause ATX-style headings to be used; and `--preserve-tabs` will
+soft line breaks in Markdown cells; `--markdown-headings=setext` will
+cause Setext-style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
 
 # Syntax highlighting

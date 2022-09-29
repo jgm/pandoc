@@ -564,14 +564,6 @@ options =
                   "block|section|document")
                  "" -- "Accepting or reject MS Word track-changes.""
 
-    , Option "" ["atx-headers"]
-                 (NoArg
-                  (\opt -> do
-                    deprecatedOption "--atx-headers"
-                      "Use --markdown-headings=atx instead."
-                    return opt { optSetextHeaders = False } ))
-                 "" -- "Use atx-style headers for markdown"
-
     , Option "" ["markdown-headings"]
                   (ReqArg
                     (\arg opt -> do

@@ -603,8 +603,6 @@ doOpt (k,v) = do
              return (\o -> o{ optPdfEngineOpts = [unpack x] }))
     "slide-level" ->
       parseJSON v >>= \x -> return (\o -> o{ optSlideLevel = x })
-    "atx-headers" ->
-      parseJSON v >>= \x -> return (\o -> o{ optSetextHeaders = not x })
     "markdown-headings" ->
       parseJSON v >>= \x -> return (\o ->
         case T.toLower x of
