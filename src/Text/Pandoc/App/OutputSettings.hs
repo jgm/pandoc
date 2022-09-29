@@ -39,7 +39,7 @@ import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines, setVariable)
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
-import Text.Pandoc.Lua (writeCustom)
+import Text.Pandoc.Scripting (ScriptingEngine (engineWriteCustom))
 import qualified Text.Pandoc.UTF8 as UTF8
 
 readUtf8File :: PandocMonad m => FilePath -> m T.Text
@@ -55,8 +55,9 @@ data OutputSettings m = OutputSettings
   }
 
 -- | Get output settings from command line options.
-optToOutputSettings :: (PandocMonad m, MonadIO m) => Opt -> m (OutputSettings m)
-optToOutputSettings opts = do
+optToOutputSettings :: (PandocMonad m, MonadIO m)
+                    => ScriptingEngine -> Opt -> m (OutputSettings m)
+optToOutputSettings scriptingEngine opts = do
   let outputFile = fromMaybe "-" (optOutputFile opts)
 
   when (optDumpArgs opts) . liftIO $ do
@@ -107,8 +108,11 @@ optToOutputSettings opts = do
 
   (writer, writerExts) <-
             if ".lua" `T.isSuffixOf` format
-               then return (TextWriter
-                       (\o d -> writeCustom (T.unpack writerName) o d), mempty)
+               then return ( TextWriter $
+                             engineWriteCustom scriptingEngine
+                                               (T.unpack writerName)
+                           , mempty
+                           )
                else if optSandbox opts
                        then
                          case runPure (getWriter writerName) of
