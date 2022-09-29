@@ -1,1 +1,2 @@
 test/fb2/reader/* -text
+pandoc-lua-engine/test/*.custom		-text

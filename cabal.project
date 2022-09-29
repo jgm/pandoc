@@ -1,4 +1,5 @@
 packages: .
+          pandoc-lua-engine
           pandoc-server
           pandoc-cli
 tests: True

@@ -11,8 +11,6 @@ import Text.Pandoc.Scripting (noEngine)
 import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command
-import qualified Tests.Lua
-import qualified Tests.Lua.Module
 import qualified Tests.Old
 import qualified Tests.Readers.Creole
 import qualified Tests.Readers.Docx
@@ -100,10 +98,6 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "FB2" Tests.Readers.FB2.tests
           , testGroup "DokuWiki" Tests.Readers.DokuWiki.tests
           ]
-        ,  testGroup "Lua"
-          [ testGroup "Lua filters" Tests.Lua.tests
-          , testGroup "Lua modules" Tests.Lua.Module.tests
-          ]
         ]
 
 main :: IO ()
@@ -114,7 +108,7 @@ main = do
     "--emulate":args' -> -- emulate pandoc executable
           E.catch
             (parseOptionsFromArgs (options noEngine) defaultOpts "pandoc" args'
-             >>= convertWithOpts)
+             >>= convertWithOpts noEngine)
             (handleError . Left)
     _ -> inDirectory "test" $ do
            fp <- getExecutablePath
