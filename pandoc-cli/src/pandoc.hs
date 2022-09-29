@@ -39,8 +39,9 @@ main = E.handle (handleError . Left) $ do
         "serve" : args -> runServer args
         _              -> do
           engine <- getEngine
-          let opts = options engine
-          parseOptionsFromArgs opts defaultOpts prg rawArgs >>= convertWithOpts
+          let cliOpts = options engine
+          opts <- parseOptionsFromArgs cliOpts defaultOpts prg rawArgs
+          convertWithOpts engine opts
 
 -- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
 -- the default @lua@ program shipping with Lua.

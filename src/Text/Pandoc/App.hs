@@ -64,13 +64,13 @@ import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
-import Text.Pandoc.Lua as Lua (getEngine, readCustom)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
          defaultUserDataDir, tshow, textToIdentifier)
+import Text.Pandoc.Sources (toSources)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -79,8 +79,8 @@ import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
 
-convertWithOpts :: Opt -> IO ()
-convertWithOpts opts = do
+convertWithOpts :: ScriptingEngine -> Opt -> IO ()
+convertWithOpts scriptingEngine opts = do
   let outputFile = fromMaybe "-" (optOutputFile opts)
   datadir <- case optDataDir opts of
                   Nothing   -> do
@@ -102,7 +102,6 @@ convertWithOpts opts = do
 #else
   istty <- liftIO $ queryTerminal stdOutput
 #endif
-  scriptingEngine <- Lua.getEngine
 
   res <- runIO $ convertWithOpts' scriptingEngine istty datadir opts
   case res of
@@ -173,14 +172,20 @@ convertWithOpts' scriptingEngine istty datadir opts = do
 
   (reader, readerExts) <-
     if ".lua" `T.isSuffixOf` readerName
-       then return (TextReader (readCustom (T.unpack readerName)), mempty)
+       then return ( TextReader $ \ropts s ->
+                       engineReadCustom scriptingEngine
+                                        (T.unpack readerName)
+                                        ropts
+                                        (toSources s)
+                   , mempty
+                   )
        else if optSandbox opts
                then case runPure (getReader readerName) of
                       Left e -> throwError e
                       Right (r, rexts) -> return (makeSandboxed r, rexts)
                else getReader readerName
 
-  outputSettings <- optToOutputSettings opts
+  outputSettings <- optToOutputSettings scriptingEngine opts
   let format = outputFormat outputSettings
   let writer = outputWriter outputSettings
   let writerName = outputWriterName outputSettings
