@@ -18,7 +18,7 @@ module Text.Pandoc.Lua.Filter
 import Control.Monad ((>=>), (<$!>))
 import HsLua as Lua
 import Text.Pandoc.Definition
-import Text.Pandoc.Filter.Environment (Environment (..))
+import Text.Pandoc.Filter (Environment (..))
 import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter

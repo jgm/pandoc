@@ -16,7 +16,7 @@ module Text.Pandoc.Lua.Global
 
 import HsLua as Lua
 import HsLua.Module.Version (pushVersion)
-import Text.Pandoc.Class.CommonState (CommonState)
+import Text.Pandoc.Class (CommonState)
 import Text.Pandoc.Definition (Pandoc, pandocTypesVersion)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.CommonState (pushCommonState)
