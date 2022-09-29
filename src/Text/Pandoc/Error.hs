@@ -53,6 +53,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocXMLError Text Text
                  | PandocFilterError Text Text
                  | PandocLuaError Text
+                 | PandocNoScriptingEngine
                  | PandocCouldNotFindDataFileError Text
                  | PandocCouldNotFindMetadataFileError Text
                  | PandocResourceNotFound Text
@@ -117,6 +118,8 @@ renderError e =
     PandocFilterError filtername msg -> "Error running filter " <>
         filtername <> ":\n" <> msg
     PandocLuaError msg -> "Error running Lua:\n" <> msg
+    PandocNoScriptingEngine -> "This version of pandoc has been compiled " <>
+                               "without Lua support."
     PandocCouldNotFindDataFileError fn ->
         "Could not find data file " <> fn
     PandocCouldNotFindMetadataFileError fn ->
@@ -196,6 +199,7 @@ handleError (Left e) =
       PandocSyntaxMapError{} -> 67
       PandocFilterError{} -> 83
       PandocLuaError{} -> 84
+      PandocNoScriptingEngine -> 89
       PandocMacroLoop{} -> 91
       PandocUTF8DecodingError{} -> 92
       PandocIpynbDecodingError{} -> 93
