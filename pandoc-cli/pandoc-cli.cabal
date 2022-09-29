@@ -57,7 +57,7 @@ executable pandoc
   hs-source-dirs:  src
   main-is:         pandoc.hs
   buildable:       True
-  build-depends:   pandoc >= 2.20,
+  build-depends:   pandoc >= 3.0,
                    hslua-cli >= 1.2 && < 1.3
   other-modules:   PandocCLI.Server
   if flag(server)
