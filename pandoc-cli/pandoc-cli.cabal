@@ -21,6 +21,11 @@ source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
+flag lua
+  description:   Support custom modifications and conversions with the
+                 pandoc Lua scripting engine.
+  default:       True
+
 flag server
   Description:   Include support for running pandoc as an HTTP server.
   Default:       True
@@ -58,9 +63,8 @@ executable pandoc
   main-is:         pandoc.hs
   buildable:       True
   build-depends:   pandoc >= 3.0,
-                   pandoc-lua-engine >= 0.1 && < 0.2,
-                   hslua-cli >= 1.2 && < 1.3
-  other-modules:   PandocCLI.Server
+  other-modules:   PandocCLI.Lua
+                 , PandocCLI.Server
   if flag(server)
     build-depends:   pandoc-server >= 0.1 && < 0.2,
                      wai-extra >= 3.0.24,
@@ -69,3 +73,10 @@ executable pandoc
     hs-source-dirs:  server
   else
     hs-source-dirs:  no-server
+
+  if flag(lua)
+    build-depends:   hslua-cli         >= 1.2 && < 1.3,
+                     pandoc-lua-engine >= 0.1 && < 0.2
+    hs-source-dirs:  lua
+  else
+    hs-source-dirs:  no-lua

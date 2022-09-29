@@ -12,17 +12,13 @@ Parses command-line options and calls the appropriate readers and
 writers.
 -}
 module Main where
-import Control.Monad ((<=<))
 import qualified Control.Exception as E
-import HsLua.CLI (EnvBehavior (..), Settings (..), runStandalone)
 import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
                        , parseOptionsFromArgs)
-import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
-import Text.Pandoc.Lua (getEngine, runLua, runLuaNoEnv)
-import Text.Pandoc.Shared (pandocVersionText)
 import qualified Text.Pandoc.UTF8 as UTF8
+import PandocCLI.Lua
 import PandocCLI.Server
 
 main :: IO ()
@@ -42,19 +38,3 @@ main = E.handle (handleError . Left) $ do
           let cliOpts = options engine
           opts <- parseOptionsFromArgs cliOpts defaultOpts prg rawArgs
           convertWithOpts engine opts
-
--- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
--- the default @lua@ program shipping with Lua.
-runLuaInterpreter :: String -> [String] -> IO ()
-runLuaInterpreter progName args = do
-  let settings = Settings
-        { settingsVersionInfo = "\nEmbedded in pandoc " <> pandocVersionText
-        , settingsRunner = runner
-        }
-  runStandalone settings progName args
-  where
-    runner envBehavior =
-      let runLua' = case envBehavior of
-                      IgnoreEnvVars  -> runLuaNoEnv
-                      ConsultEnvVars -> runLua
-      in handleError <=< runIOorExplode . runLua'
