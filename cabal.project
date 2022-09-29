@@ -2,8 +2,8 @@ packages: .
           pandoc-server
           pandoc-cli
 tests: True
-flags: +embed_data_files
-constraints: aeson >= 2.0.1.0,
+constraints: pandoc +embed_data_files,
+             aeson >= 2.0.1.0,
              skylighting-format-blaze-html >= 0.1.1
 
 source-repository-package
