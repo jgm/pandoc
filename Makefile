@@ -163,7 +163,6 @@ update-website: ## update website and upload
 
 clean: ## clean up
 	cabal clean
-	stack clean
 .PHONY: clean
 
 .PHONY: .FORCE
