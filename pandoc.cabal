@@ -675,7 +675,6 @@ library
                    Text.Pandoc.Class.Sandbox,
                    Text.Pandoc.Filter.Environment,
                    Text.Pandoc.Filter.JSON,
-                   Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Parsing.Capabilities,
                    Text.Pandoc.Parsing.Citations,
                    Text.Pandoc.Parsing.General,

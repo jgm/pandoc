@@ -18,6 +18,7 @@ module Text.Pandoc.Lua.Filter
 import Control.Monad ((>=>), (<$!>))
 import HsLua as Lua
 import Text.Pandoc.Definition
+import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter
@@ -28,8 +29,6 @@ import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)
 import Control.Monad.Trans (MonadIO)
 import Text.Pandoc.Error (PandocError (PandocFilterError, PandocLuaError))
-
-
 
 -- | Transform document using the filter defined in the given file.
 runFilterFile :: FilePath -> Pandoc -> LuaE PandocError Pandoc
@@ -56,11 +55,19 @@ runAll = foldr ((>=>) . applyFully) return
 -- target format (first element in args). Pandoc uses Lua init files to
 -- setup the Lua interpreter.
 applyFilter :: (PandocMonad m, MonadIO m)
-      => [Global]
-      -> FilePath
-      -> Pandoc
-      -> m Pandoc
-applyFilter globals fp doc = do
+            => Environment
+            -> [String]
+            -> FilePath
+            -> Pandoc
+            -> m Pandoc
+applyFilter fenv args fp doc = do
+  let globals = [ FORMAT $ case args of
+                    x:_ -> T.pack x
+                    _   -> ""
+                , PANDOC_READER_OPTIONS (envReaderOptions fenv)
+                , PANDOC_WRITER_OPTIONS (envWriterOptions fenv)
+                , PANDOC_SCRIPT_FILE fp
+                ]
   runLua >=> forceResult fp $ do
     setGlobals globals
     runFilterFile fp doc
