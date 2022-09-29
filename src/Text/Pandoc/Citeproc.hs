@@ -333,6 +333,8 @@ fromPandocCitations locale otherIdsMap = concatMap go
            then []
            else
              case citationMode c of
+                  AuthorOnly   -> [ cit{ citationItemType = AuthorOnly
+                                         , citationItemSuffix = Nothing } ]
                   AuthorInText   -> [ cit{ citationItemType = AuthorOnly
                                          , citationItemSuffix = Nothing }
                                     , cit{ citationItemType =
