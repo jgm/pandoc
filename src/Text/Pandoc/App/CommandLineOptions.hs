@@ -53,6 +53,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             fullDefaultsPath)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
+import Text.Pandoc.Scripting (ScriptingEngine (engineName))
 import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDir)
 import Text.Printf
 
@@ -145,8 +146,8 @@ pdfEngines = ordNub $ map snd engines
 
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.
-options :: [OptDescr (Opt -> IO Opt)]
-options =
+options :: ScriptingEngine -> [OptDescr (Opt -> IO Opt)]
+options scriptingEngine =
     [ Option "fr" ["from","read"]
                  (ReqArg
                   (\arg opt -> return opt { optFrom =
@@ -828,7 +829,8 @@ options =
                      let optnames (Option shorts longs _ _) =
                            map (\c -> ['-',c]) shorts ++
                            map ("--" ++) longs
-                     let allopts = unwords (concatMap optnames options)
+                     let allopts = unwords (concatMap optnames
+                                            (options scriptingEngine))
                      UTF8.hPutStrLn stdout $ T.pack $ printf tpl allopts
                          (T.unpack $ T.unwords readersNames)
                          (T.unpack $ T.unwords writersNames)
@@ -960,14 +962,11 @@ options =
                   (\_ -> do
                      prg <- getProgName
                      defaultDatadir <- defaultUserDataDir
-                     luaVersion <- HsLua.run @HsLua.Exception $ do
-                       openlibs
-                       getglobal "_VERSION"
-                       peek top
                      UTF8.hPutStrLn stdout
                       $ T.pack
                       $ prg ++ " " ++ T.unpack pandocVersionText ++ versionSuffix ++
-                        compileInfo ++ "\nScripting engine: " ++ luaVersion ++
+                        compileInfo ++ "\nScripting engine: " ++
+                        T.unpack (engineName scriptingEngine) ++
                         "\nUser data directory: " ++ defaultDatadir ++
                         ('\n':copyrightMessage)
                      exitSuccess ))
@@ -977,7 +976,8 @@ options =
                  (NoArg
                   (\_ -> do
                      prg <- getProgName
-                     UTF8.hPutStr stdout (T.pack $ usageMessage prg options)
+                     UTF8.hPutStr stdout (T.pack $ usageMessage prg
+                                          (options scriptingEngine))
                      exitSuccess ))
                  "" -- "Show help"
     ]
