@@ -10,8 +10,3 @@ source-repository-package
   type: git
   location: https://github.com/quarto-dev/gridtables
   tag: 1dbf2ad311fc7b2d9aded51eb263067b6ff3ae28
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/texmath
-  tag: 0fb6bf8cff1a424cdbc91713c30e59dbb979211c
