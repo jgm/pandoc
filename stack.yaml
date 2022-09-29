@@ -12,6 +12,7 @@ extra-deps:
 - skylighting-0.13
 - skylighting-format-ansi-0.1
 - skylighting-format-latex-0.1
+- skylighting-format-blaze-html-0.1.1
 - hslua-2.2.1
 - hslua-aeson-2.2.1
 - hslua-cli-1.2.0
@@ -26,9 +27,6 @@ extra-deps:
 - doclayout-0.4
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.1
-- git: https://github.com/jgm/skylighting
-  commit: 6079d8b0fb6e45c6a03b05501900be1c151701e6
-  subdirs: [skylighting-format-blaze-html]
 - git: https://github.com/jgm/commonmark-hs
   commit: 4f4fbe277044de0724dd0828a45311ab1413e30b
   subdirs: [commonmark-extensions]
