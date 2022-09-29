@@ -21,7 +21,7 @@ BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --non
 quick-cabal: quick-cabal-test ## tests and build executable
 	cabal build \
 	  --ghc-options='$(GHCOPTS)' \
-	  --disable-optimization pandoc-cli
+	  --disable-optimization all
 .PHONY: quick-cabal
 
 # Note:  to accept current results of golden tests,

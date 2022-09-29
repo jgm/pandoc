@@ -24,10 +24,10 @@ jobs:
           ghc --version
           cabal --version
           cabal v2-update
-          cabal v2-build --dependencies-only pandoc-cli
+          cabal v2-build --dependencies-only -fembed_data_files -fnightly pandoc-cli
     - name: Build
       run: |
-          cabal v2-install -fnightly pandoc-cli
+          cabal v2-install -fembed_data_files -fnightly pandoc-cli
           strip $HOME/.cabal/bin/pandoc
     - name: Install artifact
       run: |

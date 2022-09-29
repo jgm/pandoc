@@ -27,8 +27,7 @@ ghc --version
 
 cabal update
 cabal clean
-cabal configure -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' pandoc
-cabal build -j4
+cabal build -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' -j4 all
 for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f $ARTIFACTS/; done
 
 # Confirm that we have static builds
