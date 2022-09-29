@@ -16,7 +16,6 @@ module Text.Pandoc.Lua.Global
 
 import HsLua as Lua
 import HsLua.Module.Version (pushVersion)
-import Paths_pandoc (version)
 import Text.Pandoc.Class.CommonState (CommonState)
 import Text.Pandoc.Definition (Pandoc, pandocTypesVersion)
 import Text.Pandoc.Error (PandocError)
@@ -26,6 +25,7 @@ import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Options (ReaderOptions, WriterOptions)
+import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Data.Text as Text
 
@@ -70,5 +70,5 @@ setGlobal global = case global of
     pushCommonState commonState
     Lua.setglobal "PANDOC_STATE"
   PANDOC_VERSION              -> do
-    pushVersion version
+    pushVersion pandocVersion
     Lua.setglobal "PANDOC_VERSION"

@@ -57,6 +57,7 @@ module Text.Pandoc
                , module Text.Pandoc.Templates
                -- * Miscellaneous
                , pandocVersion
+               , pandocVersionText
              ) where
 
 import Text.Pandoc.Class
@@ -66,6 +67,6 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Readers
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Shared (pandocVersion, pandocVersionText)
 import Text.Pandoc.Templates
 import Text.Pandoc.Writers

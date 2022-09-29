@@ -31,7 +31,7 @@ import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
 import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
 import Text.Pandoc.Options (def)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Shared (pandocVersionText)
 
 import qualified Control.Monad.Catch as Catch
 import qualified Data.Text as T
@@ -149,7 +149,7 @@ tests =
   , testCase "Pandoc version is set" . runLuaTest $ do
       Lua.getglobal "PANDOC_VERSION"
       Lua.liftIO .
-        assertEqual "pandoc version is wrong" (TE.encodeUtf8 pandocVersion)
+        assertEqual "pandoc version is wrong" (TE.encodeUtf8 pandocVersionText)
         =<< Lua.tostring' Lua.top
 
   , testCase "Pandoc types version is set" . runLuaTest $ do

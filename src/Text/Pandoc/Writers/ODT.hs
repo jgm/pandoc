@@ -34,7 +34,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, pandocVersion, tshow)
+import Text.Pandoc.Shared (stringify, pandocVersionText, tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath, getLang,
                                    ensureValidXmlIdentifiers)
@@ -139,7 +139,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
            ,("xmlns:ooo","http://openoffice.org/2004/office")
            ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
            ,("office:version","1.2")] ( inTags True "office:meta" []
-                 ( metaTag "meta:generator" ("Pandoc/" <> pandocVersion)
+                 ( metaTag "meta:generator" ("Pandoc/" <> pandocVersionText)
                    $$
                    metaTag "dc:title" (stringify title)
                    $$

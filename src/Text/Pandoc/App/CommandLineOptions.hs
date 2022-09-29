@@ -966,7 +966,7 @@ options =
                        peek top
                      UTF8.hPutStrLn stdout
                       $ T.pack
-                      $ prg ++ " " ++ T.unpack pandocVersion ++ versionSuffix ++
+                      $ prg ++ " " ++ T.unpack pandocVersionText ++ versionSuffix ++
                         compileInfo ++ "\nScripting engine: " ++ luaVersion ++
                         "\nUser data directory: " ++ defaultDatadir ++
                         ('\n':copyrightMessage)
