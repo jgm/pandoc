@@ -270,6 +270,9 @@ $if(graphics)$
 \def\fps@figure{htbp}
 \makeatother
 $endif$
+$if(svg)$
+\usepackage{svg}
+$endif$
 $if(strikeout)$
 $-- also used for underline
 \usepackage[normalem]{ulem}

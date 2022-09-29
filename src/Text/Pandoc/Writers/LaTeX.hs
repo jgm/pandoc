@@ -165,6 +165,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "numbersections" (writerNumberSections options) $
                   defField "lhs" (stLHS st) $
                   defField "graphics" (stGraphics st) $
+                  defField "svg" (stSVG st) $
                   defField "has-chapters" (stHasChapters st) $
                   defField "has-frontmatter" (documentClass `elem` frontmatterClasses) $
                   defField "listings" (writerListings options || stLHS st) $
@@ -934,7 +935,9 @@ inlineToLaTeX il@(Image _ _ (src, _))
       return empty
 inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   setEmptyLine False
-  modify $ \s -> s{ stGraphics = True }
+  let isSVG = ".svg" `T.isSuffixOf` source || ".SVG" `T.isSuffixOf` source
+  modify $ \s -> s{ stGraphics = True
+                  , stSVG = stSVG s || isSVG }
   opts <- gets stOptions
   let showDim dir = let d = text (show dir) <> "="
                     in case dimension dir attr of
@@ -968,7 +971,8 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   source'' <- stringToLaTeX URLString source'
   inHeading <- gets stInHeading
   return $
-    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
+    (if inHeading then "\\protect" else "") <>
+      (if isSVG then "\\includesvg" else "\\includegraphics") <>
     options <> braces (literal source'')
 inlineToLaTeX (Note contents) = do
   setEmptyLine False

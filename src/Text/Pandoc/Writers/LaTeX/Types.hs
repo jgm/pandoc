@@ -35,6 +35,7 @@ data WriterState =
   , stStrikeout     :: Bool          -- ^ true if document has strikeout
   , stUrl           :: Bool          -- ^ true if document has visible URL link
   , stGraphics      :: Bool          -- ^ true if document contains images
+  , stSVG           :: Bool          -- ^ true if document contains SVGs
   , stLHS           :: Bool          -- ^ true if document has literate haskell code
   , stHasChapters   :: Bool          -- ^ true if document has chapters
   , stCsquotes      :: Bool          -- ^ true if document uses csquotes
@@ -66,6 +67,7 @@ startingState options =
   , stStrikeout = False
   , stUrl = False
   , stGraphics = False
+  , stSVG = False
   , stLHS = False
   , stHasChapters = case writerTopLevelDivision options of
                       TopLevelPart    -> True
