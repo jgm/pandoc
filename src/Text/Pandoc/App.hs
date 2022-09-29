@@ -64,8 +64,9 @@ import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
-import Text.Pandoc.Lua (readCustom)
+import Text.Pandoc.Lua as Lua (getEngine, readCustom)
 import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
@@ -101,8 +102,9 @@ convertWithOpts opts = do
 #else
   istty <- liftIO $ queryTerminal stdOutput
 #endif
+  scriptingEngine <- Lua.getEngine
 
-  res <- runIO $ convertWithOpts' istty datadir opts
+  res <- runIO $ convertWithOpts' scriptingEngine istty datadir opts
   case res of
     Left e -> E.throwIO e
     Right (output, reports) -> do
@@ -121,11 +123,12 @@ convertWithOpts opts = do
         BinaryOutput bs -> writeFnBinary outputFile bs
 
 convertWithOpts' :: (PandocMonad m, MonadIO m, MonadMask m)
-                 => Bool
+                 => ScriptingEngine
+                 -> Bool
                  -> Maybe FilePath
                  -> Opt
                  -> m (PandocOutput, [LogMessage])
-convertWithOpts' istty datadir opts = do
+convertWithOpts' scriptingEngine istty datadir opts = do
   let outputFile = fromMaybe "-" (optOutputFile opts)
   let filters = optFilters opts
   let verbosity = optVerbosity opts
@@ -337,7 +340,7 @@ convertWithOpts' istty datadir opts = do
             >=> return . adjustMetadata (<> optMetadata opts)
             >=> return . adjustMetadata (<> cslMetadata)
             >=> applyTransforms transforms
-            >=> applyFilters filterEnv filters [T.unpack format]
+            >=> applyFilters scriptingEngine filterEnv filters [T.unpack format]
             >=> (if not (optSandbox opts) &&
                     (isJust (optExtractMedia opts)
                      || writerNameBase == "docx") -- for fallback pngs

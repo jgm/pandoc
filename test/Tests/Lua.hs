@@ -28,8 +28,7 @@ import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Attr, Block (BlockQuote, Div, Para), Pandoc,
                                Inline (Emph, Str), pandocTypesVersion)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
-import Text.Pandoc.Filter (Filter (LuaFilter), applyFilters)
-import Text.Pandoc.Lua (Global (..), runLua, setGlobals)
+import Text.Pandoc.Lua (Global (..), applyFilter, runLua, setGlobals)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersionText)
 
@@ -234,7 +233,7 @@ assertFilterConversion :: String -> FilePath -> Pandoc -> Pandoc -> Assertion
 assertFilterConversion msg filterPath docIn expectedDoc = do
   actualDoc <- runIOorExplode $ do
     setUserDataDir (Just "../data")
-    applyFilters def [LuaFilter ("lua" </> filterPath)] ["HTML"] docIn
+    applyFilter def ["HTML"] ("lua" </> filterPath) docIn
   assertEqual msg expectedDoc actualDoc
 
 runLuaTest :: HasCallStack => Lua.LuaE PandocError a -> IO a
