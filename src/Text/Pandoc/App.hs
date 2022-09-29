@@ -64,6 +64,7 @@ import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
+import Text.Pandoc.Lua (readCustom)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
@@ -71,7 +72,6 @@ import Text.Pandoc.Shared (eastAsianLineBreakFilter,
          defaultUserDataDir, tshow, textToIdentifier)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
-import Text.Pandoc.Readers.Custom (readCustom)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)

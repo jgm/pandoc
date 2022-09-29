@@ -39,7 +39,7 @@ import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines, setVariable)
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
-import Text.Pandoc.Writers.Custom (writeCustom)
+import Text.Pandoc.Lua (writeCustom)
 import qualified Text.Pandoc.UTF8 as UTF8
 
 readUtf8File :: PandocMonad m => FilePath -> m T.Text
