@@ -126,7 +126,6 @@ data Opt = Opt
     , optFilters               :: [Filter] -- ^ Filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
     , optIdentifierPrefix      :: Text
-    , optStripEmptyParagraphs  :: Bool -- ^ Strip empty paragraphs
     , optIndentedCodeClasses   :: [Text] -- ^ Default classes for indented code blocks
     , optDataDir               :: Maybe FilePath
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
@@ -207,7 +206,6 @@ instance FromJSON Opt where
        <*> o .:? "filters" .!= optFilters defaultOpts
        <*> o .:? "email-obfuscation" .!= optEmailObfuscation defaultOpts
        <*> o .:? "identifier-prefix" .!= optIdentifierPrefix defaultOpts
-       <*> o .:? "strip-empty-paragraphs" .!= optStripEmptyParagraphs defaultOpts
        <*> o .:? "indented-code-classes" .!= optIndentedCodeClasses defaultOpts
        <*> o .:? "data-dir"
        <*> o .:? "cite-method" .!= optCiteMethod defaultOpts
@@ -579,8 +577,6 @@ doOpt (k,v) = do
     "identifier-prefix" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optIdentifierPrefix = x })
-    "strip-empty-paragraphs" ->
-      parseJSON v >>= \x -> return (\o -> o{ optStripEmptyParagraphs = x })
     "indented-code-classes" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optIndentedCodeClasses = x })
@@ -738,7 +734,6 @@ defaultOpts = Opt
     , optFilters               = []
     , optEmailObfuscation      = NoObfuscation
     , optIdentifierPrefix      = ""
-    , optStripEmptyParagraphs  = False
     , optIndentedCodeClasses   = []
     , optDataDir               = Nothing
     , optCiteMethod            = Citeproc

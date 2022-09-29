@@ -66,7 +66,7 @@ import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.SelfContained (makeSelfContained)
-import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
+import Text.Pandoc.Shared (eastAsianLineBreakFilter,
          headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
          defaultUserDataDir, tshow, textToIdentifier)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
@@ -258,9 +258,6 @@ convertWithOpts' istty datadir opts = do
   let transforms = (case optShiftHeadingLevelBy opts of
                         0             -> id
                         x             -> (headerShift x :)) .
-                   (if optStripEmptyParagraphs opts
-                       then (stripEmptyParagraphs :)
-                       else id) .
                    (if extensionEnabled Ext_east_asian_line_breaks
                           readerExts &&
                        not (extensionEnabled Ext_east_asian_line_breaks

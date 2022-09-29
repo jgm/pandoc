@@ -536,13 +536,6 @@ header when requesting a document from a URL:
     where X = NUMBER - 1.* Specify the base level for headings
     (defaults to 1).
 
-`--strip-empty-paragraphs`
-
-:   *Deprecated.  Use the `+empty_paragraphs` extension instead.*
-    Ignore paragraphs with no content.  This option is useful
-    for converting word processing documents where users have
-    used empty paragraphs to create inter-paragraph space.
-
 `--indented-code-classes=`*CLASSES*
 
 :   Specify classes to use for indented code blocks--for example,

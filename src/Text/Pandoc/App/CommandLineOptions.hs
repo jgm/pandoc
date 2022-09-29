@@ -520,14 +520,6 @@ options =
                   "NUMBER")
                  "" -- "Headers base level"
 
-    , Option "" ["strip-empty-paragraphs"]
-                 (NoArg
-                  (\opt -> do
-                      deprecatedOption "--strip-empty-paragraphs"
-                        "Use +empty_paragraphs extension."
-                      return opt{ optStripEmptyParagraphs = True }))
-                 "" -- "Strip empty paragraphs"
-
     , Option "" ["track-changes"]
                  (ReqArg
                   (\arg opt -> do
