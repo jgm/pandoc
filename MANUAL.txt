@@ -1539,6 +1539,7 @@ Nonzero exit codes have the following meanings:
    67 PandocSyntaxMapError
    83 PandocFilterError
    84 PandocLuaError
+   89 PandocNoScriptingEngine
    91 PandocMacroLoop
    92 PandocUTF8DecodingError
    93 PandocIpynbDecodingError

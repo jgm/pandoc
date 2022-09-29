@@ -15,10 +15,12 @@ module Text.Pandoc.Scripting
   )
 where
 
+import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text (Text)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
+import Text.Pandoc.Error (PandocError (PandocNoScriptingEngine))
 import Text.Pandoc.Filter.Environment (Environment)
 import Text.Pandoc.Options (ReaderOptions, WriterOptions)
 import Text.Pandoc.Sources (Sources)
@@ -45,9 +47,9 @@ noEngine :: ScriptingEngine
 noEngine = ScriptingEngine
   { engineName = "none"
   , engineApplyFilter = \_env _args _fp _doc ->
-      error "Custom filters are not supported."
+      throwError PandocNoScriptingEngine
   , engineReadCustom = \_fp _ropts _sources ->
-      error "Custom readers are not supported."
+      throwError PandocNoScriptingEngine
   , engineWriteCustom = \_fp _wopts _doc ->
-      error "Custom writers are not supported."
+      throwError PandocNoScriptingEngine
   }
