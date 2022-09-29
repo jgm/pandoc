@@ -17,9 +17,8 @@ import Data.Maybe (fromMaybe)
 import HsLua ( LuaE, DocumentedFunction, Module (..)
              , (<#>), (###), (=#>), (=?>), (#?), defun, functionResult
              , opt, parameter, stringParam, textParam)
-import Text.Pandoc.Class.CommonState (CommonState (..))
-import Text.Pandoc.Class.PandocMonad (fetchItem, fillMediaBag, getMediaBag,
-                                      modifyCommonState, setMediaBag)
+import Text.Pandoc.Class ( CommonState (..), fetchItem, fillMediaBag
+                         , getMediaBag, modifyCommonState, setMediaBag)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc, pushPandoc)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)

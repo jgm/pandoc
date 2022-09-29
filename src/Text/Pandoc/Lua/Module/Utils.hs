@@ -28,6 +28,7 @@ import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Citeproc (getReferences, processCitations)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Filter (applyJSONFilter)
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Reference
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
@@ -37,7 +38,6 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
-import qualified Text.Pandoc.Filter.JSON as JSONFilter
 import qualified Text.Pandoc.Shared as Shared
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.Pandoc.Writers.Shared as Shared
@@ -126,7 +126,7 @@ documentedModule = Module
                         Nothing -> do
                           Lua.getglobal "FORMAT"
                           (forcePeek ((:[]) <$!> peekString top) <* pop 1)
-              JSONFilter.apply def args filterPath doc
+              applyJSONFilter def args filterPath doc
           )
       <#> parameter peekPandoc "Pandoc" "doc" "input document"
       <#> parameter peekString "filepath" "filter_path" "path to filter"
