@@ -30,7 +30,7 @@ import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Citeproc (processCitations)
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
-import qualified Text.Pandoc.Filter.Lua as LuaFilter
+import qualified Text.Pandoc.Lua as LuaFilter
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Control.Applicative ((<|>))
@@ -86,7 +86,7 @@ applyFilters fenv filters args d = do
   applyFilter doc (JSONFilter f) =
     withMessages f $ JSONFilter.apply fenv args f doc
   applyFilter doc (LuaFilter f)  =
-    withMessages f $ LuaFilter.apply fenv args f doc
+    withMessages f $ LuaFilter.applyFilter fenv args f doc
   applyFilter doc CiteprocFilter =
     processCitations doc
   withMessages f action = do
