@@ -70,21 +70,6 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
-#ifdef NIGHTLY
-import qualified Language.Haskell.TH as TH
-import Data.Time
-#endif
-
-#ifdef NIGHTLY
-versionSuffix :: String
-versionSuffix = "-nightly-" ++
-  $(TH.stringE =<<
-    TH.runIO (formatTime defaultTimeLocale "%F" <$> Data.Time.getCurrentTime))
-#else
-versionSuffix :: String
-versionSuffix = ""
-#endif
-
 parseOptions :: [OptDescr (Opt -> IO Opt)] -> Opt -> IO Opt
 parseOptions options' defaults = do
   rawArgs <- map UTF8.decodeArg <$> getArgs
@@ -963,7 +948,7 @@ options scriptingEngine =
                      defaultDatadir <- defaultUserDataDir
                      UTF8.hPutStrLn stdout
                       $ T.pack
-                      $ prg ++ " " ++ T.unpack pandocVersionText ++ versionSuffix ++
+                      $ prg ++ " " ++ T.unpack pandocVersionText ++
                         compileInfo ++ "\nScripting engine: " ++
                         T.unpack (engineName scriptingEngine) ++
                         "\nUser data directory: " ++ defaultDatadir ++

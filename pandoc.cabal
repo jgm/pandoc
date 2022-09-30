@@ -416,10 +416,6 @@ flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
-flag nightly
-  Description:   Add '-nightly-COMPILEDATE' to the output of '--version'.
-  Default:       False
-
 common common-options
   default-language: Haskell2010
   build-depends:    base         >= 4.12 && < 5
@@ -531,9 +527,6 @@ library
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
-  if flag(nightly)
-    cpp-options:    -DNIGHTLY
-    build-depends:  template-haskell
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      other-modules: Text.Pandoc.Data
