@@ -14,6 +14,7 @@ extra-deps:
 - skylighting-format-ansi-0.1
 - skylighting-format-latex-0.1
 - skylighting-format-blaze-html-0.1.1
+- gridtables-0.1.0.0
 - hslua-2.2.1
 - hslua-aeson-2.2.1
 - hslua-cli-1.2.0
@@ -30,8 +31,6 @@ extra-deps:
 - citeproc-0.8.0.1
 - commonmark-extensions-0.2.3.3
 - texmath-0.12.5.3
-- git: https://github.com/quarto-dev/gridtables
-  commit: 1dbf2ad311fc7b2d9aded51eb263067b6ff3ae28
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-19.21
