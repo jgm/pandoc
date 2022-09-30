@@ -30,9 +30,7 @@ import qualified Control.Exception as E
 import Control.Monad ( (>=>), when, forM_ )
 import Control.Monad.Trans ( MonadIO(..) )
 import Control.Monad.Catch ( MonadMask )
-import Control.Monad.Except (throwError, catchError)
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as B8
+import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
@@ -40,26 +38,22 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
-import qualified Data.Text.Encoding as TSE
 import qualified Data.Text.Encoding.Error as TE
-import qualified Data.Text.Encoding.Error as TSE
-import Network.URI (URI (..), parseURI)
 import System.Directory (doesDirectoryExist)
 import System.Exit (exitSuccess)
 import System.FilePath ( takeBaseName, takeExtension)
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
-import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MediaBag (mediaItems)
-import Text.Pandoc.MIME (getCharset, MimeType)
 import Text.Pandoc.Image (svgToPng)
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
                                            options)
+import Text.Pandoc.App.Input (InputParameters (..), readInput)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
@@ -68,8 +62,7 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
-         headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
-         defaultUserDataDir, tshow, textToIdentifier)
+         headerShift, isURI, filterIpynbOutput, defaultUserDataDir, tshow)
 import Text.Pandoc.Sources (toSources)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
@@ -287,14 +280,6 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                                           _        -> Format format) :))
                    $ []
 
-  let convertTabs = tabFilter (if optPreserveTabs opts ||
-                                    readerNameBase == "t2t" ||
-                                    readerNameBase == "man" ||
-                                    readerNameBase == "tsv"
-                                  then 0
-                                  else optTabStop opts)
-
-
   when (readerNameBase == "markdown_github" ||
         writerNameBase == "markdown_github") $
     report $ Deprecated "markdown_github" "Use gfm instead."
@@ -320,27 +305,18 @@ convertWithOpts' scriptingEngine istty datadir opts = do
 
   let filterEnv = Environment readerOpts writerOptions
 
-  inputs <- readSources sources
+  let inputParams = InputParameters
+        { inputReader = reader
+        , inputReaderName = readerNameBase
+        , inputReaderOptions = readerOpts
+        , inputSources = sources
+        , inputFileScope = optFileScope opts
+        , inputSpacesPerTab = if optPreserveTabs opts
+                              then Nothing
+                              else Just (optTabStop opts)
+        }
 
-
-  doc <- (case reader of
-           TextReader r
-             | readerNameBase == "json" ->
-                 mconcat <$>
-                    mapM (inputToText convertTabs
-                           >=> r readerOpts . (:[])) inputs
-             | optFileScope opts  ->
-                 mconcat <$> mapM
-                    (\source -> do
-                      (fp, txt) <- inputToText convertTabs source
-                      adjustLinksAndIds (readerExtensions readerOpts)
-                        (T.pack fp) (map (T.pack . fst) inputs)
-                        <$> r readerOpts [(fp, txt)])
-                    inputs
-             | otherwise -> mapM (inputToText convertTabs) inputs
-                              >>= r readerOpts
-           ByteStringReader r ->
-             mconcat <$> mapM (r readerOpts . inputToLazyByteString) inputs)
+  doc <- readInput inputParams
           >>= ( return . adjustMetadata (metadataFromFile <>)
             >=> return . adjustMetadata (<> optMetadata opts)
             >=> return . adjustMetadata (<> cslMetadata)
@@ -411,64 +387,6 @@ adjustMetadata f (Pandoc meta bs) = Pandoc (f meta) bs
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
 
-readSources :: PandocMonad m
-            => [FilePath] -> m [(FilePath, (BS.ByteString, Maybe MimeType))]
-readSources srcs =
-  mapM (\fp -> do t <- readSource fp
-                  return (if fp == "-" then "" else fp, t)) srcs
-
-readSource :: PandocMonad m
-           => FilePath -> m (BS.ByteString, Maybe MimeType)
-readSource "-" = (,Nothing) <$> readStdinStrict
-readSource src =
-  case parseURI src of
-    Just u | uriScheme u `elem` ["http:","https:"] -> openURL (T.pack src)
-           | uriScheme u == "file:" ->
-               (,Nothing) <$>
-                 readFileStrict (uriPathToPath $ T.pack $ uriPath u)
-    _       -> (,Nothing) <$> readFileStrict src
-
-utf8ToText :: PandocMonad m => FilePath -> BS.ByteString -> m Text
-utf8ToText fp bs =
-  case TSE.decodeUtf8' . dropBOM $ bs of
-    Left (TSE.DecodeError _ (Just w)) ->
-      case BS.elemIndex w bs of
-        Just offset -> throwError $ PandocUTF8DecodingError (T.pack fp) offset w
-        Nothing -> throwError $ PandocUTF8DecodingError (T.pack fp) 0 w
-    Left e -> throwError $ PandocAppError (tshow e)
-    Right t -> return t
- where
-   dropBOM bs' =
-     if "\xEF\xBB\xBF" `BS.isPrefixOf` bs'
-        then BS.drop 3 bs'
-        else bs'
-
-
-inputToText :: PandocMonad m
-            => (Text -> Text)
-            -> (FilePath, (BS.ByteString, Maybe MimeType))
-            -> m (FilePath, Text)
-inputToText convTabs (fp, (bs,mt)) =
-  (fp,) . convTabs . T.filter (/='\r') <$>
-  case mt >>= getCharset of
-    Just "UTF-8"      -> utf8ToText fp bs
-    Just "ISO-8859-1" -> return $ T.pack $ B8.unpack bs
-    Just charset      -> throwError $ PandocUnsupportedCharsetError charset
-    Nothing           -> catchError
-                           (utf8ToText fp bs)
-                           (\case
-                              PandocUTF8DecodingError{} -> do
-                                report $ NotUTF8Encoded
-                                  (if null fp
-                                      then "input"
-                                      else fp)
-                                return $ T.pack $ B8.unpack bs
-                              e -> throwError e)
-
-inputToLazyByteString :: (FilePath, (BS.ByteString, Maybe MimeType))
-                      -> BL.ByteString
-inputToLazyByteString (_, (bs,_)) = BL.fromStrict bs
-
 writeFnBinary :: FilePath -> BL.ByteString -> IO ()
 writeFnBinary "-" = BL.putStr
 writeFnBinary f   = BL.writeFile (UTF8.encodePath f)
@@ -476,57 +394,3 @@ writeFnBinary f   = BL.writeFile (UTF8.encodePath f)
 writerFn :: IO.Newline -> FilePath -> Text -> IO ()
 writerFn eol "-" = UTF8.putStrWith eol
 writerFn eol f   = UTF8.writeFileWith eol f
-
-adjustLinksAndIds :: Extensions -> Text -> [Text] -> Pandoc -> Pandoc
-adjustLinksAndIds exts thisfile allfiles
-  | length allfiles > 1 = addDiv . walk fixInline . walk fixBlock
-  | otherwise           = id
- where
-  toIdent :: Text -> Text
-  toIdent = textToIdentifier exts . T.intercalate "__" .
-            T.split (\c -> c == '/' || c == '\\')
-
-  addDiv :: Pandoc -> Pandoc
-  addDiv (Pandoc m bs)
-    | T.null thisfile = Pandoc m bs
-    | otherwise = Pandoc m [Div (toIdent thisfile,[],[]) bs]
-
-  fixBlock :: Block -> Block
-  fixBlock (CodeBlock attr t) = CodeBlock (fixAttrs attr) t
-  fixBlock (Header lev attr ils) = Header lev (fixAttrs attr) ils
-  fixBlock (Table attr cap cols th tbs tf) =
-     Table (fixAttrs attr) cap cols th tbs tf
-  fixBlock (Div attr bs) = Div (fixAttrs attr) bs
-  fixBlock x = x
-
-  -- add thisfile as prefix of identifier
-  fixAttrs :: Attr -> Attr
-  fixAttrs (i,cs,kvs)
-    | T.null i = (i,cs,kvs)
-    | otherwise =
-        (T.intercalate "__"
-          (filter (not . T.null) [toIdent thisfile, i]),
-        cs, kvs)
-
-  -- if URL begins with file from allfiles, convert to
-  -- an internal link with the appropriate identifier
-  fixURL :: Text -> Text
-  fixURL u =
-    let (a,b) = T.break (== '#') u
-        filepart = if T.null a
-                      then toIdent thisfile
-                      else toIdent a
-        fragpart = T.dropWhile (== '#') b
-     in if T.null a || a `elem` allfiles
-           then "#" <> T.intercalate "__"
-                         (filter (not . T.null) [filepart, fragpart])
-           else u
-
-  fixInline :: Inline -> Inline
-  fixInline (Code attr t) = Code (fixAttrs attr) t
-  fixInline (Link attr ils (url,tit)) =
-    Link (fixAttrs attr) ils (fixURL url,tit)
-  fixInline (Image attr ils (url,tit)) =
-    Image (fixAttrs attr) ils (fixURL url,tit)
-  fixInline (Span attr ils) = Span (fixAttrs attr) ils
-  fixInline x = x

@@ -641,6 +641,7 @@ library
                    Text.Pandoc.Citeproc
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
+                   Text.Pandoc.App.Input,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
                    Text.Pandoc.Class.CommonState,
