@@ -16,6 +16,7 @@ module Text.Pandoc.Filter
   ( Filter (..)
   , Environment (..)
   , applyFilters
+  , applyJSONFilter
   ) where
 
 import System.CPUTime (getCPUTime)
@@ -106,3 +107,11 @@ expandFilterPath CiteprocFilter = return CiteprocFilter
 
 filterPath :: PandocMonad m => FilePath -> m FilePath
 filterPath fp = fromMaybe fp <$> findFileWithDataFallback "filters" fp
+
+applyJSONFilter :: MonadIO m
+                => Environment
+                -> [String]
+                -> FilePath
+                -> Pandoc
+                -> m Pandoc
+applyJSONFilter = JSONFilter.apply
