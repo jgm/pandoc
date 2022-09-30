@@ -32,7 +32,7 @@ main = E.handle (handleError . Left) $ do
     _ ->
       case rawArgs of
         "lua" : args   -> runLuaInterpreter "pandoc lua" args
-        "serve" : args -> runServer args
+        "server": args -> runServer args
         _              -> do
           engine <- getEngine
           let cliOpts = options engine

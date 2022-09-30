@@ -7082,7 +7082,7 @@ metadata field (see [EPUB Metadata], above).
 # Running pandoc as a web server
 
 If you rename (or symlink) the pandoc executable to
-`pandoc-server`, or if you call pandoc with `serve` as the first
+`pandoc-server`, or if you call pandoc with `server` as the first
 argument, it will start up a web server with a JSON API. This
 server exposes most of the conversion functionality of pandoc. For
 full documentation, see the [pandoc-server] man page.
