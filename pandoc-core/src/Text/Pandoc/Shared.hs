@@ -116,7 +116,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Version (Version, showVersion)
 import Network.URI (URI (uriScheme), escapeURIString, parseURI)
-import Paths_pandoc (version)
+import Paths_pandoc_core (version)
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix

@@ -80,7 +80,7 @@ import qualified System.FilePath.Glob
 import qualified System.Random
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef EMBED_DATA_FILES
-import qualified Paths_pandoc as Paths
+import qualified Paths_pandoc_core as Paths
 #endif
 
 -- | Utility function to lift IO errors into 'PandocError's.

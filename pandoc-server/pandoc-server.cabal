@@ -50,6 +50,7 @@ common common-executable
 library
   import:        common-options
   build-depends: pandoc                >= 3.0,
+                 pandoc-core           >= 3.0      && < 3.1,
                  pandoc-types          >= 1.22.2   && < 1.23,
                  containers            >= 0.6.0.1  && < 0.7,
                  aeson                 >= 2.0      && < 2.2,
@@ -67,4 +68,3 @@ library
 
   exposed-modules: Text.Pandoc.Server
   buildable:       True
-

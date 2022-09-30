@@ -63,6 +63,7 @@ executable pandoc
   main-is:         pandoc.hs
   buildable:       True
   build-depends:   pandoc >= 3.0,
+                   pandoc-core >= 3.0,
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server
   if flag(server)
