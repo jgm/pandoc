@@ -8,14 +8,14 @@
 [ ] run tools/build-arm.sh to create and download arm64 linux package
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website
-[ ] Tag release in git
+[ ] Tag release in git (use X.Y for pandoc, but also: pandoc-cli-X.Y, pandoc-server-X.Y, pandoc-lua-engine-X.Y if these change)
+[ ] Upload packages to hackage if changed: pandoc, pandoc-cli, pandoc-server, pandoc-lua-engine
 [ ] make pandoc-templates
     cd ../pandoc-templates
     git tag REL
     git push
     git push --tags
 [ ] Add release on github (use 'make changes_github' and upload files)
-[ ] stack upload .
 [ ] copy deb to server, install it
 [ ] if needed, sh tools/build-and-upload-api-docs.sh
 [ ] Announce on pandoc-announce, pandoc-discuss
