@@ -57,7 +57,7 @@ jobs:
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
           set ARTIFACTS=%CD%\nightly-windows\pandoc-nightly-windows-%THEDATE%
           mkdir %ARTIFACTS%
-          stack build --flag pandoc:nightly --flag pandoc:embed_data_files pandoc-cli
+          stack build --flag pandoc-cli:nightly --flag pandoc:embed_data_files pandoc-cli
           forfiles /P .\.stack-work\install /M pandoc*.exe /S /C "cmd /C copy @path %%ARTIFACTS%%"
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
