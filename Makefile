@@ -161,6 +161,22 @@ update-website: ## update website and upload
 	make -C $(WEBSITE) upload
 .PHONY: update-website
 
+modules.dot: $(SOURCEFILES)
+	@echo "digraph G {" > $@
+	@echo "overlap=\"scale\"" >> $@
+	@rg '^import.*Text\.Pandoc\.' --with-filename src \
+		| rg -v 'Text\.Pandoc\.(Definition|Builder|Walk|Generic)' \
+		| sort \
+		| uniq \
+		| sed -e 's/src\///' \
+	        | sed -e 's/\//\./g' \
+		| sed -e 's/\.hs:import *\(qualified *\)*\([^ ]*\).*/ -> \2/' \
+		| sed -e 's/Text\.Pandoc\([^ ]*\)/"T\.P\1"/g' >> $@
+	@echo "}" >> $@
+
+modules.pdf: modules.dot
+	cat $< | dot -Tpdf > $@
+
 clean: ## clean up
 	cabal clean
 .PHONY: clean
