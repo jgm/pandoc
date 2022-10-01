@@ -67,15 +67,7 @@ executable pandoc
   main-is:         pandoc.hs
   buildable:       True
   build-depends:   pandoc >= 3.0,
-                   text,
-                   -- The following are needed only to get cabal to
-                   -- define the VERSION_xxx macros. They are all
-                   -- transitive dependencies anyway.
-                   texmath,
-                   skylighting,
-                   pandoc-types,
-                   ipynb,
-                   citeproc
+                   text
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server
   if flag(nightly)

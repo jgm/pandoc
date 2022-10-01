@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 {- |
    Module      : Main
@@ -28,13 +27,6 @@ import Text.Pandoc.Shared (pandocVersion, defaultUserDataDir)
 import Text.Pandoc.Scripting (ScriptingEngine(..))
 import Data.Version (showVersion)
 import qualified Data.Text as T
--- We import the following to avoid warnings about unused packages.
--- We need these in the cabal file so that VERSION_xxx is defined.
-import Text.TeXMath ()
-import Skylighting ()
-import Data.Ipynb ()
-import Text.Pandoc.Definition ()
-import Citeproc ()
 
 #ifdef NIGHTLY
 import qualified Language.Haskell.TH as TH
@@ -81,21 +73,8 @@ copyrightMessage =
  ++
  "warranty, not even for merchantability or fitness for a particular purpose."
 
-compileInfo :: String
-compileInfo =
-  "Compiled with pandoc-types " ++ VERSION_pandoc_types ++
-  ", texmath " ++ VERSION_texmath ++ ", skylighting " ++
-  VERSION_skylighting ++ ",\nciteproc " ++ VERSION_citeproc ++
-  ", ipynb " ++ VERSION_ipynb ++ ", pandoc-cli " ++ VERSION_pandoc_cli
-#ifdef VERSION_pandoc_server
-  ++ ", pandoc-server " ++ VERSION_pandoc_server
-#endif
-#ifdef VERSION_hslua_cli
-  ++ ", hslua_cli " ++ VERSION_hslua_cli
-#endif
-
 flagSettings :: String
-flagSettings =
+flagSettings = "Features: " ++
 #ifdef VERSION_pandoc_server
   "+server"
 #else
@@ -116,7 +95,6 @@ versionInfo = do
   putStr $ unlines
    [ progname ++ " " ++ showVersion pandocVersion ++ versionSuffix
    , flagSettings
-   , compileInfo
    , "Scripting engine: " ++ T.unpack (engineName scriptingEngine)
    , "User data directory: " ++ defaultDatadir
    , copyrightMessage
