@@ -8,6 +8,7 @@ COMMIT=$(shell git rev-parse --short HEAD)
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
+ROOTNODE?=T.P
 ifeq ($(BASELINE),)
 BASELINECMD=
 else
@@ -174,8 +175,10 @@ modules.dot: $(SOURCEFILES)
 		| sed -e 's/Text\.Pandoc\([^ ]*\)/"T\.P\1"/g' >> $@
 	@echo "}" >> $@
 
+# To get the module dependencies of T.P.Parsing:
+# make modules.pdf ROOTNODE=T.P.Parsing
 modules.pdf: modules.dot
-	cat $< | dot -Tpdf > $@
+	gvpr -f tools/cliptree.gvpr -a '"$(ROOTNODE)"' $< | dot -Tpdf > $@
 
 clean: ## clean up
 	cabal clean

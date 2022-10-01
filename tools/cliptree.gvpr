@@ -1,0 +1,17 @@
+/* Construct subgraph reachable from node ARGV[0] by forward edges */
+BEG_G {
+  node_t r = node($,ARGV[0]);
+
+  $tvroot = r;
+  $tvtype = TV_fwd;
+  //print ("//  Staring node: ", r.name);
+}
+N{
+  print ("// subgraph node: ", $.name);
+  $tvroot=NULL;
+  subnode($T,$);
+}
+E{
+  print ("// subgraph edge: ", $.name);
+  subedge($T,$);
+}
