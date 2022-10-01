@@ -180,6 +180,11 @@ modules.dot: $(SOURCEFILES)
 modules.pdf: modules.dot
 	gvpr -f tools/cliptree.gvpr -a '"$(ROOTNODE)"' $< | dot -Tpdf > $@
 
+# make moduledeps ROOTNODE=T.P.Parsing
+moduledeps: modules.dot  ## Print dependencies of a module ROOTNODE
+	gvpr -f tools/depthfirst.gvpr -a '"$(ROOTNODE)"' modules.dot
+.PHONY: moduledeps
+
 clean: ## clean up
 	cabal clean
 .PHONY: clean
