@@ -21,6 +21,7 @@ uses Lua to handle state.
 module Text.Pandoc.Lua.PandocLua
   ( PandocLua (..)
   , runPandocLua
+  , runPandocLuaWith
   , liftPandocLua
   ) where
 
@@ -55,10 +56,16 @@ liftPandocLua = PandocLua
 -- | Evaluate a @'PandocLua'@ computation, running all contained Lua
 -- operations..
 runPandocLua :: (PandocMonad m, MonadIO m) => PandocLua a -> m a
-runPandocLua pLua = do
+runPandocLua = runPandocLuaWith Lua.run
+
+runPandocLuaWith :: (PandocMonad m, MonadIO m)
+                 => (forall b. LuaE PandocError b -> IO b)
+                 -> PandocLua a
+                 -> m a
+runPandocLuaWith runner pLua = do
   origState <- getCommonState
   globals <- defaultGlobals
-  (result, newState) <- liftIO . Lua.run . unPandocLua $ do
+  (result, newState) <- liftIO . runner . unPandocLua $ do
     putCommonState origState
     liftPandocLua $ setGlobals globals
     r <- pLua
