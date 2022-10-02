@@ -234,8 +234,13 @@ tableCellToJats :: PandocMonad m
 tableCellToJats opts ctype colAlign (Cell attr align rowspan colspan item) = do
   blockToJats   <- asks jatsBlockWriter
   inlinesToJats <- asks jatsInlinesWriter
+  let fixBreak LineBreak = RawInline (Format "jats") "<break/>"
+      fixBreak x         = x
   let cellContents = \case
-        [Plain inlines] -> inlinesToJats opts inlines
+        [Plain inlines] -> inlinesToJats opts
+                             (map fixBreak inlines)
+                             -- Note: <break/> is allowed only as a direct
+                             -- child of <td>, so we don't use walk.
         blocks          -> blockToJats needsWrapInCell opts blocks
   let tag' = case ctype of
         BodyCell   -> "td"

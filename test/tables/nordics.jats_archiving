@@ -13,10 +13,8 @@
       <tr>
         <th align="center">Name</th>
         <th align="center">Capital</th>
-        <th align="center">Population
-        (in 2018)</th>
-        <th align="center">Area
-        (in km<sup>2</sup>)</th>
+        <th align="center">Population<break/>(in 2018)</th>
+        <th align="center">Area<break/>(in km<sup>2</sup>)</th>
       </tr>
     </thead>
     <tfoot>
