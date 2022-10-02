@@ -70,6 +70,7 @@ writeJatsArticleAuthoring = writeJats TagSetArticleAuthoring
 -- | Alias for @'writeJatsArchiving'@. This function exists for backwards
 -- compatibility, but will be deprecated in the future. Use
 -- @'writeJatsArchiving'@ instead.
+{-# DEPRECATED writeJATS "Use writeJatsArchiving instead" #-}
 writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJATS = writeJatsArchiving
 
