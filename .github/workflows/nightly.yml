@@ -81,7 +81,7 @@ jobs:
       run: |
           export ARTIFACTS=nightly-macos/pandoc-nightly-macos-$(date +%Y-%m-%d)
           mkdir -p ${ARTIFACTS}
-          stack build --flag pandoc:nightly --flag pandoc:embed_data_files pandoc-cli
+          stack build --flag pandoc-cli:nightly --flag pandoc:embed_data_files pandoc-cli
           for f in $(find .stack-work/install -name 'pandoc*' -perm +001 -type f); do cp $f ${ARTIFACTS}/; done
           mv ${ARTIFACTS}/pandoc ${ARTIFACTS}/pandoc
           cp COPYRIGHT ${ARTIFACTS}/
