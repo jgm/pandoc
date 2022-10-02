@@ -16,10 +16,12 @@ install any additional software to do this.
 [Lua]: https://www.lua.org
 
 A custom writer is a Lua file that defines how to render the
-document. Writers must define just a single function named
-`Writer`, which gets passed the document and writer options, and
-then handles the conversion of the document, rendering it into a
-string. This interface was introduced in pandoc 2.17.2.
+document. Writers must define just a single function, named either
+`Writer` or `ByteStringWriter`, which gets passed the document and
+writer options, and then handles the conversion of the document,
+rendering it into a string. This interface was introduced in
+pandoc 2.17.2, with ByteString writers becoming available in
+pandoc 3.0.
 
 Pandoc also supports "classic" custom writers, where a Lua
 function must be defined for each AST element type. Classic style
@@ -29,15 +31,23 @@ writers if possible.
 # Writers
 
 Custom writers using the new style must contain a global function
-named `Writer`. Pandoc calls this function with the document and
-writer options as arguments, and expects the function to return a
-UTF-8 encoded string.
+named `Writer` or `ByteStringWriter`. Pandoc calls this function
+with the document and writer options as arguments, and expects the
+function to return a UTF-8 encoded string.
 
 ``` lua
 function Writer (doc, opts)
   -- ...
 end
 ```
+
+Writers that do not return text but binary data should define a
+function with name `ByteStringWriter` instead. The function must
+still return a string, but it does not have to be UTF-8 encoded
+and can contain arbitrary binary data.
+
+If both `Writer` and `ByteStringWriter` functions are defined,
+then only the `Writer` function will be used.
 
 ## Example: modified Markdown writer
 
