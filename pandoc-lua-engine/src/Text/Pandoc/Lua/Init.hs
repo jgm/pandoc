@@ -13,6 +13,7 @@ Functions to initialize the Lua interpreter.
 module Text.Pandoc.Lua.Init
   ( runLua
   , runLuaNoEnv
+  , runLuaWith
   ) where
 
 import Control.Monad (forM, forM_, when)
@@ -20,10 +21,11 @@ import Control.Monad.Catch (throwM, try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Maybe (catMaybes)
 import HsLua as Lua hiding (status, try)
+import HsLua.Core.Run as Lua
 import Text.Pandoc.Class (PandocMonad, readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua.Marshal.List (newListMetatable, pushListModule)
-import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLua)
+import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLuaWith)
 import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Lua.LPeg as LPeg
@@ -38,20 +40,27 @@ import qualified Text.Pandoc.Lua.Module.Template as Pandoc.Template
 import qualified Text.Pandoc.Lua.Module.Types as Pandoc.Types
 import qualified Text.Pandoc.Lua.Module.Utils as Pandoc.Utils
 
--- | Run the lua interpreter, using pandoc's default way of environment
+-- | Run the Lua interpreter, using pandoc's default way of environment
 -- initialization.
 runLua :: (PandocMonad m, MonadIO m)
        => LuaE PandocError a -> m (Either PandocError a)
-runLua action =
-  runPandocLua . try $ do
+runLua action = do
+  runPandocLuaWith Lua.run . try $ do
+    initLuaState
+    liftPandocLua action
+
+runLuaWith :: (PandocMonad m, MonadIO m)
+           => GCManagedState -> LuaE PandocError a -> m (Either PandocError a)
+runLuaWith luaState action = do
+  runPandocLuaWith (withGCManagedState luaState) . try $ do
     initLuaState
     liftPandocLua action
 
 -- | Like 'runLua', but ignores all environment variables like @LUA_PATH@.
 runLuaNoEnv :: (PandocMonad m, MonadIO m)
             => LuaE PandocError a -> m (Either PandocError a)
-runLuaNoEnv action =
-  runPandocLua . try $ do
+runLuaNoEnv action = do
+  runPandocLuaWith Lua.run . try $ do
     liftPandocLua $ do
       -- This is undocumented, but works -- the code is adapted from the
       -- `lua.c` sources for the default interpreter.
