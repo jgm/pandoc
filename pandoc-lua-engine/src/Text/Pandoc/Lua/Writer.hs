@@ -56,13 +56,25 @@ writeCustom luaFile = do
     let writerField = "PANDOC Writer function"
 
     rawgetglobal "Writer" >>= \case
-      TypeNil -> do
-        -- Neither `Writer` nor `BinaryWriter` are defined. Try to
-        -- use the file as a classic writer.
-        pop 1  -- remove nil
-        return . TextWriter $ \opts doc ->
-          liftIO $ withGCManagedState luaState $ do
-            Classic.runCustom @PandocError opts doc
+      TypeNil -> rawgetglobal "ByteStringWriter" >>= \case
+        TypeNil -> do
+          -- Neither `Writer` nor `BinaryWriter` are defined. Try to
+          -- use the file as a classic writer.
+          pop 1  -- remove nil
+          return . TextWriter $ \opts doc ->
+            liftIO $ withGCManagedState luaState $ do
+              Classic.runCustom @PandocError opts doc
+        _ -> do
+          -- Binary writer. Writer function is on top of the stack.
+          setfield registryindex writerField
+          return . ByteStringWriter $ \opts doc ->
+            -- Call writer with document and writer options as arguments.
+            liftIO $ withGCManagedState luaState $ do
+              getfield registryindex writerField
+              push doc
+              push opts
+              callTrace 2 1
+              forcePeek @PandocError $ peekLazyByteString top
       _ -> do
         -- New-type text writer. Writer function is on top of the stack.
         setfield registryindex writerField
