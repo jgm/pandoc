@@ -22,8 +22,9 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Error (PandocError (PandocNoScriptingEngine))
 import Text.Pandoc.Filter.Environment (Environment)
-import Text.Pandoc.Options (ReaderOptions, WriterOptions)
+import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Sources (Sources)
+import Text.Pandoc.Writers (Writer)
 
 -- | Structure to define a scripting engine.
 data ScriptingEngine = ScriptingEngine
@@ -39,7 +40,7 @@ data ScriptingEngine = ScriptingEngine
     -- ^ Function to parse input into a 'Pandoc' document.
 
   , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
-                      => FilePath -> WriterOptions -> Pandoc -> m Text
+                      => FilePath -> m (Writer m)
     -- ^ Invoke the given script file to convert to any custom format.
   }
 
@@ -50,6 +51,6 @@ noEngine = ScriptingEngine
       throwError PandocNoScriptingEngine
   , engineReadCustom = \_fp _ropts _sources ->
       throwError PandocNoScriptingEngine
-  , engineWriteCustom = \_fp _wopts _doc ->
+  , engineWriteCustom = \_fp ->
       throwError PandocNoScriptingEngine
   }

@@ -13,19 +13,19 @@
 -- produce informative error messages if your code contains
 -- syntax errors.
 
+function Writer (doc, opts)
+  PANDOC_DOCUMENT = doc
+  PANDOC_WRITER_OPTIONS = opts
+  loadfile(PANDOC_SCRIPT_FILE)()
+  return pandoc.write_classic(doc, opts)
+end
+
 local pipe = pandoc.pipe
 local stringify = (require 'pandoc.utils').stringify
 
--- The global variable PANDOC_DOCUMENT contains the full AST of
--- the document which is going to be written. It can be used to
--- configure the writer.
-local meta = PANDOC_DOCUMENT.meta
-
 -- Choose the image format based on the value of the
--- `image_format` meta value.
-local image_format = meta.image_format
-  and stringify(meta.image_format)
-  or 'png'
+-- `image_format` environment variable.
+local image_format = os.getenv 'image_format' or 'png'
 local image_mime_type = ({
     jpeg = 'image/jpeg',
     jpg = 'image/jpeg',
