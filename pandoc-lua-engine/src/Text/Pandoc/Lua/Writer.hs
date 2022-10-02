@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Writer
    Copyright   : Copyright (C) 2012-2022 John MacFarlane
@@ -17,26 +18,28 @@ module Text.Pandoc.Lua.Writer
 
 import Control.Exception
 import Control.Monad ((<=<))
+import Data.Default (def)
 import Data.Maybe (fromMaybe)
-import Data.Text (Text)
 import HsLua
+import HsLua.Core.Run (newGCManagedState, withGCManagedState)
 import Control.Monad.IO.Class (MonadIO)
 import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback)
-import Text.Pandoc.Definition (Pandoc (..))
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Init (runLua)
-import Text.Pandoc.Options (WriterOptions)
+import Text.Pandoc.Lua.Init (runLuaWith)
+import Text.Pandoc.Writers (Writer (..))
 import qualified Text.Pandoc.Lua.Writer.Classic as Classic
 
 -- | Convert Pandoc to custom markup.
 writeCustom :: (PandocMonad m, MonadIO m)
-            => FilePath -> WriterOptions -> Pandoc -> m Text
-writeCustom luaFile opts doc = do
+            => FilePath -> m (Writer m)
+writeCustom luaFile = do
+  luaState <- liftIO newGCManagedState
   luaFile' <- fromMaybe luaFile <$> findFileWithDataFallback "writers" luaFile
-  either throw pure <=< runLua $ do
-    setGlobals [ PANDOC_DOCUMENT doc
+  either throw pure <=< runLuaWith luaState $ do
+    setGlobals [ PANDOC_DOCUMENT mempty
                , PANDOC_SCRIPT_FILE luaFile'
-               , PANDOC_WRITER_OPTIONS opts
+               , PANDOC_WRITER_OPTIONS def
                ]
     dofileTrace luaFile' >>= \case
       OK -> pure ()
@@ -50,14 +53,23 @@ writeCustom luaFile opts doc = do
           pushName x
           rawget (nth 2) <* remove (nth 2) -- remove global table
 
+    let writerField = "PANDOC Writer function"
+
     rawgetglobal "Writer" >>= \case
       TypeNil -> do
+        -- Neither `Writer` nor `BinaryWriter` are defined. Try to
+        -- use the file as a classic writer.
         pop 1  -- remove nil
-        Classic.runCustom opts doc
-      _       -> do
-        -- Writer on top of the stack. Call it with document and writer
-        -- options as arguments.
-        push doc
-        push opts
-        callTrace 2 1
-        forcePeek $ peekText top
+        return . TextWriter $ \opts doc ->
+          liftIO $ withGCManagedState luaState $ do
+            Classic.runCustom @PandocError opts doc
+      _ -> do
+        -- New-type text writer. Writer function is on top of the stack.
+        setfield registryindex writerField
+        return . TextWriter $ \opts doc ->
+          liftIO $ withGCManagedState luaState $ do
+            getfield registryindex writerField
+            push doc
+            push opts
+            callTrace 2 1
+            forcePeek @PandocError $ peekText top

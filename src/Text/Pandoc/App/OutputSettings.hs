@@ -102,24 +102,18 @@ optToOutputSettings scriptingEngine opts = do
                       optBibliography opts
            in  case pureWriter of
                  TextWriter w -> TextWriter $ \o d -> sandbox files (w o d)
-                 ByteStringWriter w
-                            -> ByteStringWriter $ \o d -> sandbox files (w o d)
-
+                 ByteStringWriter w ->
+                   ByteStringWriter $ \o d -> sandbox files (w o d)
 
   (writer, writerExts) <-
-            if ".lua" `T.isSuffixOf` format
-               then return ( TextWriter $
-                             engineWriteCustom scriptingEngine
-                                               (T.unpack writerName)
-                           , mempty
-                           )
-               else if optSandbox opts
-                       then
-                         case runPure (getWriter writerName) of
-                           Left e -> throwError e
-                           Right (w, wexts) ->
-                                  return (makeSandboxed w, wexts)
-                       else getWriter (T.toLower writerName)
+    if ".lua" `T.isSuffixOf` format
+    then (,mempty) <$> engineWriteCustom scriptingEngine (T.unpack writerName)
+    else if optSandbox opts
+         then
+           case runPure (getWriter writerName) of
+             Left e -> throwError e
+             Right (w, wexts) ->return (makeSandboxed w, wexts)
+         else getWriter (T.toLower writerName)
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 

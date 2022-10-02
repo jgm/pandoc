@@ -81,13 +81,21 @@ end
 Custom writers using the new style must contain a global function
 named `Writer`. Pandoc calls this function with the document and
 writer options as arguments, and expects the function to return a
-string.
+UTF-8 encoded string.
 
 ``` lua
 function Writer (doc, opts)
   -- ...
 end
 ```
+
+Writers that do not return text but binary data should define a
+function with name `BinaryWriter` instead. The function must still
+return a string, but it does not have to be UTF-8 encoded and can
+contain arbitrary binary data.
+
+If both `Writer` and `BinaryWriter` functions are defined, then
+only the `Writer` function will be used.
 
 ## Example: modified Markdown writer
 
