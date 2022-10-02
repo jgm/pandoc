@@ -724,6 +724,7 @@ library
                    Text.Pandoc.Slides,
                    Text.Pandoc.Image,
                    Text.Pandoc.Citeproc.BibTeX,
+                   Text.Pandoc.Citeproc.Name,
                    Text.Pandoc.Citeproc.CslJson,
                    Text.Pandoc.Citeproc.Data,
                    Text.Pandoc.Citeproc.Locator,

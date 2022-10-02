@@ -30,7 +30,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
 import Text.Pandoc.Sources (Sources(..), ToSources(..), sourcesToText)
-import Text.Pandoc.Citeproc.BibTeX (toName)
+import Text.Pandoc.Citeproc.Name (toName, NameOpts(..))
 import Control.Applicative ((<|>))
 import Control.Monad.Except (throwError)
 import Control.Monad (mzero, unless)
@@ -140,7 +140,9 @@ recordToReference e =
      filterChildrenName (name "contributors") e >>=
      filterChildrenName (name "authors") >>=
      filterChildrenName (name "author") >>=
-     toName [] . B.toList .  B.text . T.strip . getText
+          toName NameOpts{ nameOptsPrefixIsNonDroppingParticle = False
+                         , nameOptsUseJuniorComma = False }
+             . B.toList .  B.text . T.strip . getText
    titles = do
      x <- filterChildrenName (name "titles") e
      (key, name') <- [("title", "title"),
