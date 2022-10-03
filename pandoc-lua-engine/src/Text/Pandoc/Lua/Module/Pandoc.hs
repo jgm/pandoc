@@ -40,6 +40,7 @@ import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
+import Text.Pandoc.Lua.Writer.Classic (runCustom)
 import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
                            , WriterOptions (writerExtensions) )
 import Text.Pandoc.Process (pipeProcess)
@@ -268,6 +269,17 @@ functions =
               "writer options")
     =#> functionResult (either pushLazyByteString pushText) "string"
           "result document"
+
+  , defun "write_classic"
+    ### (\doc mwopts -> runCustom (fromMaybe def mwopts) doc)
+    <#> parameter peekPandoc "Pandoc" "doc" "document to convert"
+    <#> opt (parameter peekWriterOptions "WriterOptions" "writer_options"
+              "writer options")
+    =#> functionResult pushText "string" "rendered document"
+    #? (T.unlines
+       [ "Runs a classic custom Lua writer, using the functions defined"
+       , "in the current environment."
+       ])
   ]
  where
   walkElement x f =
