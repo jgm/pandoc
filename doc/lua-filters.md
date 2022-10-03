@@ -269,7 +269,9 @@ variables.
     be picked up by pandoc.
     ([WriterOptions](#type-writeroptions))
 
-    This variable is also set in custom writers.
+    This variable is also set in custom writers, but, starting
+    with pandoc 3.0, contains only the default options. The actual
+    writer options can be accessed via new-style writers.
 
     *Since: pandoc 2.17*
 
