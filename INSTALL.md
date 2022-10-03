@@ -280,12 +280,15 @@ You will need cabal version 2.0 or higher.
 
     `FLAGSPEC` is a list of Cabal configuration flags, optionally
     preceded by a `-` (to force the flag to `false`), and separated
-    by spaces.  Pandoc's flags include:
+    by spaces.  `pandoc`'s flags include:
 
     - `embed_data_files`: embed all data files into the binary (default no).
       This is helpful if you want to create a relocatable binary.
 
-    - `lua53`: embed support for Lua 5.3 instead of 5.4.
+    `pandoc-cli`'s flags include:
+
+    - `lua`:  compile in support for Lua filters and custom
+      writers.
 
     - `server`:  compile in support for running in HTTP server
       mode when the executable is renamed (or symlinked as)

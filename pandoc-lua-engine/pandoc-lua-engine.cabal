@@ -34,10 +34,6 @@ source-repository head
   location:            https://github.com/jgm/pandoc.git
   subdir:              pandoc-lua-engine
 
-flag lua53
-  Description:         Embed Lua 5.3 instead of 5.4.
-  Default:             False
-
 common common-options
   default-language:    Haskell2010
   build-depends:       base              >= 4.12 && < 5
