@@ -27,8 +27,9 @@ module Text.Pandoc.Templates ( Template
 import System.FilePath ((<.>), (</>), takeFileName)
 import Text.DocTemplates (Template, TemplateMonad(..), compileTemplate, renderTemplate)
 import Text.Pandoc.Class.CommonState (CommonState(..))
-import Text.Pandoc.Class.PandocMonad (PandocMonad, readDataFile, fetchItem,
+import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem,
                                       getCommonState, modifyCommonState)
+import Text.Pandoc.Data (readDataFile)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Control.Monad.Except (catchError, throwError)
 import Data.Text (Text)

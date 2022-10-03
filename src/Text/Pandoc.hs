@@ -47,6 +47,8 @@ module Text.Pandoc
                , module Text.Pandoc.Logging
                -- * Typeclass
                , module Text.Pandoc.Class
+               -- * Internal data files
+               , module Text.Pandoc.Data
                -- * Error handling
                , module Text.Pandoc.Error
                -- * Readers: converting /to/ Pandoc format
@@ -55,13 +57,17 @@ module Text.Pandoc
                , module Text.Pandoc.Writers
                -- * Rendering templates and default templates
                , module Text.Pandoc.Templates
-               -- * Miscellaneous
+               -- * Localization
+               , setTranslations
+               , translateTerm
+               -- * Version information
                , pandocVersion
                , pandocVersionText
              ) where
 
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
+import Text.Pandoc.Data
 import Text.Pandoc.Error
 import Text.Pandoc.Generic
 import Text.Pandoc.Logging
@@ -69,4 +75,5 @@ import Text.Pandoc.Options
 import Text.Pandoc.Readers
 import Text.Pandoc.Shared (pandocVersion, pandocVersionText)
 import Text.Pandoc.Templates
+import Text.Pandoc.Translations (setTranslations, translateTerm)
 import Text.Pandoc.Writers

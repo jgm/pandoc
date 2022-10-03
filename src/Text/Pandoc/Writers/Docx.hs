@@ -36,11 +36,12 @@ import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import Text.Collate.Lang (renderLang)
-import Text.Pandoc.Class (PandocMonad, report, toLang, translateTerm,
-                           getMediaBag)
+import Text.Pandoc.Class (PandocMonad, report, toLang, getMediaBag)
+import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
+import Text.Pandoc.Data (readDataFile, readDefaultDataFile)
 import Data.Time
 import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
@@ -119,13 +120,13 @@ writeDocx opts doc = do
   utctime <- P.getTimestamp
   oldUserDataDir <- P.getUserDataDir
   P.setUserDataDir Nothing
-  res <- P.readDefaultDataFile "reference.docx"
+  res <- readDefaultDataFile "reference.docx"
   P.setUserDataDir oldUserDataDir
   let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> toArchive . BL.fromStrict <$>
-                        P.readDataFile "reference.docx"
+                          readDataFile "reference.docx"
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)

@@ -74,6 +74,7 @@ module Text.Pandoc.Shared (
                      renderTags',
                      -- * File handling
                      inDirectory,
+                     makeCanonical,
                      collapseFilePath,
                      uriPathToPath,
                      filteredFilesFromArchive,
@@ -823,6 +824,15 @@ inDirectory path action = E.bracket
                              getCurrentDirectory
                              setCurrentDirectory
                              (const $ setCurrentDirectory path >> action)
+
+-- | Canonicalizes a file path by removing redundant @.@ and @..@.
+makeCanonical :: FilePath -> FilePath
+makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
+ where  transformPathParts = reverse . foldl' go []
+        go as        "."  = as
+        go ("..":as) ".." = ["..", ".."] <> as
+        go (_:as)    ".." = as
+        go as        x    = x : as
 
 --
 -- Error reporting

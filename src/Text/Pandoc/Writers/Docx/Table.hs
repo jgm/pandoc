@@ -27,7 +27,8 @@ import Text.Pandoc.Definition
       RowSpan(..),
       ColSpan(..),
       ColWidth(ColWidth) )
-import Text.Pandoc.Class.PandocMonad (PandocMonad, translateTerm)
+import Text.Pandoc.Class.PandocMonad (PandocMonad)
+import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.Writers.Docx.Types
     ( WS,
       WriterState(stNextTableNum, stInTable),

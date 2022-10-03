@@ -47,6 +47,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Error (PandocError(..))
 import qualified Text.Pandoc.Class.PandocMonad as P
+import Text.Pandoc.Data (readDataFile, readDefaultDataFile)
 import Text.Pandoc.Options
 import Text.Pandoc.MIME
 import qualified Data.ByteString.Lazy as BL
@@ -572,11 +573,11 @@ presentationToArchive :: PandocMonad m
                       => WriterOptions -> Meta -> Presentation -> m Archive
 presentationToArchive opts meta pres = do
   distArchive <- toArchive . BL.fromStrict <$>
-                      P.readDefaultDataFile "reference.pptx"
+                        readDefaultDataFile "reference.pptx"
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> toArchive . BL.fromStrict <$>
-                        P.readDataFile "reference.pptx"
+                        readDataFile "reference.pptx"
 
   let (referenceLayouts, defaultReferenceLayouts) =
         (getLayoutsFromArchive refArchive, getLayoutsFromArchive distArchive)

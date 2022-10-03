@@ -529,11 +529,12 @@ library
     build-depends:  unix >= 2.4 && < 2.9
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
-     other-modules: Text.Pandoc.Data
+     other-modules: Text.Pandoc.Data.BakedIn
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
+                   Text.Pandoc.Data,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
                    Text.Pandoc.Shared,
@@ -541,6 +542,8 @@ library
                    Text.Pandoc.MediaBag,
                    Text.Pandoc.Error,
                    Text.Pandoc.Filter,
+                   Text.Pandoc.Translations,
+                   Text.Pandoc.Translations.Types,
                    Text.Pandoc.Readers,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
@@ -720,7 +723,6 @@ library
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
                    Text.Pandoc.UUID,
-                   Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Image,
                    Text.Pandoc.Citeproc.BibTeX,
