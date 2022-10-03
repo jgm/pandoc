@@ -24,10 +24,10 @@ import Codec.Archive.Zip
 import qualified Data.Text as T
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(..))
-import Text.Pandoc.Shared (makeCanonical)
 import System.FilePath
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data.BakedIn (dataFiles)
+import Text.Pandoc.Shared (makeCanonical)
 #else
 import Paths_pandoc (getDataDir)
 import System.Directory (getDirectoryContents)
