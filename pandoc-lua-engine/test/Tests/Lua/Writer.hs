@@ -16,7 +16,7 @@ import Data.Default (Default (def))
 import Text.Pandoc.Class (runIOorExplode, readFileStrict)
 import Text.Pandoc.Lua (writeCustom)
 import Text.Pandoc.Readers (readNative)
-import Text.Pandoc.Writers (Writer (TextWriter))
+import Text.Pandoc.Writers (Writer (ByteStringWriter, TextWriter))
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsString)
 
@@ -44,4 +44,12 @@ tests =
           TextWriter f -> f def doc
           _            -> error "Expected a text writer"
         pure $ BL.fromStrict (UTF8.fromText txt))
+
+  , goldenVsString "tables testsuite"
+    "bytestring.bin"
+    (runIOorExplode $ do
+        txt <- writeCustom "bytestring.lua" >>= \case
+          ByteStringWriter f -> f def mempty
+          _                  -> error "Expected a bytestring writer"
+        pure txt)
   ]

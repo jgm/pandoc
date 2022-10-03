@@ -19,6 +19,8 @@ synopsis:            Lua engine to power custom pandoc conversions
 description:         This package provides a pandoc scripting engine based on
                      Lua.
 extra-source-files:  README.md
+                   , test/bytestring.bin
+                   , test/bytestring.lua
                    , test/lua/*.lua
                    , test/lua/module/*.lua
                    , test/lua/module/partial.test
