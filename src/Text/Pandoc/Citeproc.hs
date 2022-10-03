@@ -24,7 +24,8 @@ import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Class (PandocMonad(..), getResourcePath, getUserDataDir,
-                          fetchItem, readDataFile, report, setResourcePath)
+                          fetchItem, report, setResourcePath)
+import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Extensions (pandocExtensions)
 import Text.Pandoc.Logging (LogMessage(..))

@@ -27,6 +27,7 @@ import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Collate.Lang (Lang (..), renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
+import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.ImageSize
@@ -77,7 +78,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
        case writerReferenceDoc opts of
              Just f -> liftM toArchive $ lift $ P.readFileLazy f
              Nothing -> lift $ toArchive . B.fromStrict <$>
-                                P.readDataFile "reference.odt"
+                                readDataFile "reference.odt"
   -- handle formulas and pictures
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts) $ walk fixDisplayMath doc

@@ -30,7 +30,8 @@ import Text.Pandoc.Shared (toRomanNumeral, safeRead)
 import Text.Pandoc.Readers.LaTeX.Types (Tok (..), TokType (..))
 import Control.Applicative (optional, (<|>))
 import Control.Monad (guard, mzero, mplus, unless)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), translateTerm)
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Extensions (extensionEnabled, Extension(..))
 import Text.Pandoc.Parsing (getOption, updateState, getState, notFollowedBy,

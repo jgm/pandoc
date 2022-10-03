@@ -26,8 +26,8 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Collate.Lang (Lang (..), parseLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, translateTerm,
-                                      setTranslations, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import Text.Pandoc.Translations (translateTerm, setTranslations)
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging

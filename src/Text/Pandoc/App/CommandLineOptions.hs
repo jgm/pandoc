@@ -55,14 +55,6 @@ import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
 import Text.Pandoc.Scripting (ScriptingEngine (engineName))
 import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDir)
 import Text.Printf
-
-#ifdef EMBED_DATA_FILES
-import Text.Pandoc.Data (dataFiles)
-#else
-import Paths_pandoc (getDataDir)
-import System.Directory (getDirectoryContents)
-#endif
-
 import qualified Control.Exception as E
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
@@ -965,16 +957,6 @@ options scriptingEngine =
                      exitSuccess ))
                  "" -- "Show help"
     ]
-
-getDataFileNames :: IO [FilePath]
-getDataFileNames = do
-#ifdef EMBED_DATA_FILES
-  let allDataFiles = map fst dataFiles
-#else
-  allDataFiles <- filter (\x -> x /= "." && x /= "..") <$>
-                      (getDataDir >>= getDirectoryContents)
-#endif
-  return $ "reference.docx" : "reference.odt" : "reference.pptx" : allDataFiles
 
 -- Returns usage message
 usageMessage :: String -> [OptDescr (Opt -> IO Opt)] -> String

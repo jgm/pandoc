@@ -22,7 +22,7 @@ import Data.Text (Text)
 import Text.Collate.Lang (Lang)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Logging (LogMessage, Verbosity (WARNING))
-import Text.Pandoc.Translations (Translations)
+import Text.Pandoc.Translations.Types (Translations)
 
 -- | 'CommonState' represents state that is used by all
 -- instances of 'PandocMonad'.  Normally users should not
