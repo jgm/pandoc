@@ -163,17 +163,22 @@ update-website: ## update website and upload
 	make -C $(WEBSITE) upload
 .PHONY: update-website
 
-modules.dot: $(PANDOCSOURCEFILES)
-	@echo "digraph G {" > $@
-	@echo "overlap=\"scale\"" >> $@
+modules.csv: $(PANDOCSOURCEFILES)
 	@rg '^import.*Text\.Pandoc\.' --with-filename $^ \
 		| rg -v 'Text\.Pandoc\.(Definition|Builder|Walk|Generic)' \
 		| sort \
 		| uniq \
 		| sed -e 's/src\///' \
 	        | sed -e 's/\//\./g' \
-		| sed -e 's/\.hs:import *\(qualified *\)*\([^ ]*\).*/ -> \2/' \
-		| sed -e 's/Text\.Pandoc\([^ ]*\)/"T\.P\1"/g' >> $@
+		| sed -e 's/\.hs:import *\(qualified *\)*\([^ ]*\).*/,\2/' \
+		> $@
+
+modules.dot: modules.csv
+	@echo "digraph G {" > $@
+	@echo "overlap=\"scale\"" >> $@
+	@sed -e 's/\([^,]*\),\(.*\)/  "\1" -> "\2";/' $< \
+		| sed -e 's/Text\.Pandoc/T.P/g' \
+		>> $@
 	@echo "}" >> $@
 
 # To get the module dependencies of T.P.Parsing:
