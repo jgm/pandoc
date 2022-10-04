@@ -47,7 +47,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
-import Text.Pandoc.Readers.LaTeX.Types (Tok (..), TokType (..))
+import Text.Pandoc.TeX (Tok (..), TokType (..))
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Readers.LaTeX.Citation (citationCommands, cites)
 import Text.Pandoc.Readers.LaTeX.Math (dollarsMath, inlineEnvironments,

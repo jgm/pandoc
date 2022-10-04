@@ -33,7 +33,7 @@ import Text.Pandoc.Logging (LogMessage)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.Types
-import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.TeX (Macro)
 
 import qualified Data.Map as M
 import qualified Data.Set as Set

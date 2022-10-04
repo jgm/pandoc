@@ -7,7 +7,7 @@ where
 import Data.Functor (($>))
 import Text.Pandoc.Class
 import Text.Pandoc.Readers.LaTeX.Parsing
-import Text.Pandoc.Readers.LaTeX.Types
+import Text.Pandoc.TeX
 import Text.Pandoc.Builder as B
 import qualified Data.Map as M
 import Data.Text (Text)

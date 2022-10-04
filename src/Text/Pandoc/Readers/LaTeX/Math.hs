@@ -16,7 +16,7 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder as B
 import qualified Data.Sequence as Seq
 import Text.Pandoc.Readers.LaTeX.Parsing
-import Text.Pandoc.Readers.LaTeX.Types
+import Text.Pandoc.TeX
 import Text.Pandoc.Class
 import Text.Pandoc.Shared (trimMath, stripTrailingNewlines)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,

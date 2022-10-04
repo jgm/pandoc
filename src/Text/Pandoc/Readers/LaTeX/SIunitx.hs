@@ -28,7 +28,7 @@ import Text.Pandoc.Readers.LaTeX.Parsing
       symbol,
       untokenize,
       LP )
-import Text.Pandoc.Readers.LaTeX.Types
+import Text.Pandoc.TeX
     ( Tok(Tok), TokType(Word, CtrlSeq) )
 import Text.Pandoc.Class.PandocMonad ( PandocMonad )
 import Text.Pandoc.Parsing

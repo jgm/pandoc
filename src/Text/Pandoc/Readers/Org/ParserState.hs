@@ -56,7 +56,7 @@ import Text.Pandoc.Parsing (Future, HasIdentifierList (..),
                             HasQuoteContext (..), HasReaderOptions (..),
                             ParserContext (..), QuoteContext (..), SourcePos,
                             askF, asksF, returnF, runF, trimInlinesF)
-import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.TeX (Macro)
 
 -- | This is used to delay evaluation until all relevant information has been
 -- parsed and made available in the parser state.

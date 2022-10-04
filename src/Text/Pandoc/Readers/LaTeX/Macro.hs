@@ -6,7 +6,7 @@ where
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Pandoc.Logging (LogMessage(MacroAlreadyDefined))
 import Text.Pandoc.Readers.LaTeX.Parsing
-import Text.Pandoc.Readers.LaTeX.Types
+import Text.Pandoc.TeX
 import Text.Pandoc.Class
 import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,

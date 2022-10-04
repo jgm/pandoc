@@ -35,7 +35,7 @@ import Text.Pandoc.Parsing
   , HasMacros (..), HasQuoteContext (..), HasReaderOptions (..)
   , ParserT, ParserState, QuoteContext (NoQuote)
   )
-import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.TeX (Macro)
 
 -- | HTML parser type
 type HTMLParser m s = ParserT s HTMLState (ReaderT HTMLLocal m)

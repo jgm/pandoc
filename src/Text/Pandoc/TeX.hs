@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {- |
-   Module      : Text.Pandoc.Readers.LaTeX.Types
+   Module      : Text.Pandoc.TeX
    Copyright   : Copyright (C) 2017-2022 John MacFarlane
    License     : GNU GPL, version 2 or above
 
@@ -8,16 +8,16 @@
    Stability   : alpha
    Portability : portable
 
-Types for LaTeX tokens and macros.
+Types for TeX tokens and macros.
 -}
-module Text.Pandoc.Readers.LaTeX.Types ( Tok(..)
-                                       , TokType(..)
-                                       , Macro(..)
-                                       , ArgSpec(..)
-                                       , ExpansionPoint(..)
-                                       , MacroScope(..)
-                                       , SourcePos
-                                       )
+module Text.Pandoc.TeX ( Tok(..)
+                       , TokType(..)
+                       , Macro(..)
+                       , ArgSpec(..)
+                       , ExpansionPoint(..)
+                       , MacroScope(..)
+                       , SourcePos
+                       )
 where
 import Data.Text (Text)
 import Text.Parsec.Pos (SourcePos, sourceName)

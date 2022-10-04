@@ -52,7 +52,7 @@ import Text.Pandoc.Options
   , extensionEnabled
   )
 import Text.Pandoc.Parsing.Types
-import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.TeX (Macro)
 
 import qualified Data.Map as M
 import qualified Data.Set as Set
