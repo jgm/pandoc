@@ -23,6 +23,8 @@ tests =
                   ("lua" </> "module" </> "pandoc.lua")
   , testPandocLua "pandoc.List"
                   ("lua" </> "module" </> "pandoc-list.lua")
+  , testPandocLua "pandoc.format"
+                  ("lua" </> "module" </> "pandoc-format.lua")
   , testPandocLua "pandoc.mediabag"
                   ("lua" </> "module" </> "pandoc-mediabag.lua")
   , testPandocLua "pandoc.path"
