@@ -61,11 +61,15 @@ function print_direct_deps(mod, ind)
   end
 end
 
+local seen = {}
 for _,root in ipairs(roots) do
   if mode == "transitive" then
       add_transitive_deps(root)
       for dep,_ in pairs(transitive[root]) do
-        prind(2,dep)
+        if not seen[dep] then
+          prind(2,dep)
+          seen[dep] = true
+        end
       end
   elseif mode == "tree" then
     print_direct_deps(root, 0)
