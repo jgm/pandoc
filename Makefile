@@ -9,7 +9,7 @@ COMMIT=$(shell git rev-parse --short HEAD)
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
-ROOTNODE?=T.P
+ROOT?=Text.Pandoc
 ifeq ($(BASELINE),)
 BASELINECMD=
 else
@@ -176,19 +176,18 @@ modules.csv: $(PANDOCSOURCEFILES)
 modules.dot: modules.csv
 	@echo "digraph G {" > $@
 	@echo "overlap=\"scale\"" >> $@
-	@sed -e 's/\([^,]*\),\(.*\)/  "\1" -> "\2";/' $< \
-		| sed -e 's/Text\.Pandoc/T.P/g' \
-		>> $@
+	@sed -e 's/\([^,]*\),\(.*\)/  "\1" -> "\2";/' $< >> $@
 	@echo "}" >> $@
 
-# To get the module dependencies of T.P.Parsing:
-# make modules.pdf ROOTNODE=T.P.Parsing
+# To get the module dependencies of Text.Pandoc.Parsing:
+# make modules.pdf ROOT=Text.Pandoc.Parsing
 modules.pdf: modules.dot
-	gvpr -f tools/cliptree.gvpr -a '"$(ROOTNODE)"' $< | dot -Tpdf > $@
+	gvpr -f tools/cliptree.gvpr -a '"$(ROOT)"' $< | dot -Tpdf > $@
 
-# make moduledeps ROOTNODE=T.P.Parsing
-moduledeps: modules.dot  ## Print dependencies of a module ROOTNODE
-	gvpr -f tools/depthfirst.gvpr -a '"$(ROOTNODE)"' modules.dot
+# make moduledeps ROOT=Text.Pandoc.Parsing
+moduledeps: modules.csv  ## Print transitive dependencies of a module ROOT
+	@echo "$(ROOT)"
+	@lua tools/moduledeps.lua transitive $(ROOT) | sort
 .PHONY: moduledeps
 
 clean: ## clean up
