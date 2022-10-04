@@ -34,7 +34,7 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            stack_opts: '-j4 +RTS -A256m -RTS'
+            stack_opts: '-j4 +RTS -A256m -RTS --flag pandoc:embed_data_files --flag pandoc-cli:lua --flag pandoc-cli:server'
 
     steps:
     - uses: actions/checkout@v3
@@ -46,7 +46,7 @@ jobs:
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          stack build  ${{ matrix.versions.stack_opts }} pandoc
+          stack build  ${{ matrix.versions.stack_opts }} pandoc-cli
           for /f "tokens=1-2 delims= " %%a in ('stack exec pandoc -- --version') do (
             @set VERSION=%%b
             goto :next
