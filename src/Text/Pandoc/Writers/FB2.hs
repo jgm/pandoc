@@ -28,7 +28,7 @@ import Data.List (intercalate)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.Pandoc.Network.HTTP (urlEncode)
+import Text.Pandoc.URI (urlEncode)
 import Text.Pandoc.XML.Light as X
 
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)

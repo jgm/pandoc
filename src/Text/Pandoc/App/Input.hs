@@ -26,7 +26,8 @@ import Text.Pandoc.Logging (LogMessage (..))
 import Text.Pandoc.MIME (getCharset, MimeType)
 import Text.Pandoc.Options (Extensions, ReaderOptions (..))
 import Text.Pandoc.Readers (Reader (..))
-import Text.Pandoc.Shared (tabFilter, textToIdentifier, tshow, uriPathToPath)
+import Text.Pandoc.Shared (tabFilter, textToIdentifier, tshow)
+import Text.Pandoc.URI (uriPathToPath)
 import Text.Pandoc.Walk (walk)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8

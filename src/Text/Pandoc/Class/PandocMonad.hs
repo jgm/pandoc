@@ -73,7 +73,8 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, MediaItem(..))
-import Text.Pandoc.Shared (uriPathToPath, safeRead, makeCanonical)
+import Text.Pandoc.Shared (safeRead, makeCanonical)
+import Text.Pandoc.URI (uriPathToPath)
 import Text.Pandoc.Walk (walkM)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.ByteString as B

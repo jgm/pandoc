@@ -32,7 +32,8 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..), fetchItem,
 import Text.Pandoc.Logging
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.MIME (MimeType)
-import Text.Pandoc.Shared (isURI, renderTags', trim, tshow)
+import Text.Pandoc.Shared (renderTags', trim, tshow)
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.UTF8 (toString, toText, fromText)
 import Text.Parsec (ParsecT, runParserT)
 import Control.Monad.Except (throwError, catchError)

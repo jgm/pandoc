@@ -32,7 +32,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
-import Text.Pandoc.Network.HTTP (urlEncode)
+import Text.Pandoc.URI (urlEncode)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)

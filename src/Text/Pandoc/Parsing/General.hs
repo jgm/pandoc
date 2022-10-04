@@ -95,7 +95,8 @@ import Text.Pandoc.Options
   ( extensionEnabled
   , Extension(Ext_auto_identifiers, Ext_ascii_identifiers)
   , ReaderOptions(readerTabStop, readerExtensions) )
-import Text.Pandoc.Shared (escapeURI, mapLeft, schemes, tshow, uniqueIdent)
+import Text.Pandoc.Shared (escapeURI, mapLeft, tshow, uniqueIdent)
+import Text.Pandoc.URI (schemes)
 import Text.Pandoc.Sources
 import Text.Pandoc.XML (fromEntities)
 import Text.Parsec
