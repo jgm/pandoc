@@ -21,9 +21,7 @@ module Text.Pandoc.Lua.Marshal.WriterOptions
 import Control.Applicative (optional)
 import Data.Default (def)
 import HsLua as Lua
-#if !MIN_VERSION_hslua(2,2,0)
-import HsLua.Aeson (peekViaJSON, pushViaJSON)
-#endif
+import Text.Pandoc.Lua.Marshal.Extensions (peekExtensions, pushExtensions)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
 import Text.Pandoc.Options (WriterOptions (..))
@@ -97,8 +95,8 @@ typeWriterOptions = deftype "WriterOptions"
 
   , property "extensions"
     "Markdown extensions that can be used"
-    (pushViaJSON, writerExtensions)
-    (peekViaJSON, \opts x -> opts{ writerExtensions = x })
+    (pushExtensions, writerExtensions)
+    (peekExtensions, \opts x -> opts{ writerExtensions = x })
 
   , property "highlight_style"
     "Style to use for highlighting (nil = no highlighting)"

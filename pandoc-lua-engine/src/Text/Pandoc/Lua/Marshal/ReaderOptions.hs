@@ -22,9 +22,7 @@ module Text.Pandoc.Lua.Marshal.ReaderOptions
 
 import Data.Default (def)
 import HsLua as Lua
-#if !MIN_VERSION_hslua(2,2,0)
-import HsLua.Aeson (peekViaJSON, pushViaJSON)
-#endif
+import Text.Pandoc.Lua.Marshal.Extensions (peekExtensions, pushExtensions)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Options (ReaderOptions (..))
 
@@ -91,8 +89,8 @@ readerOptionsMembers =
       (pushText, readerDefaultImageExtension)
       (peekText, \opts x -> opts{ readerDefaultImageExtension = x })
   , property "extensions" ""
-      (pushViaJSON, readerExtensions)
-      (peekViaJSON, \opts x -> opts{ readerExtensions = x })
+      (pushExtensions, readerExtensions)
+      (peekExtensions, \opts x -> opts{ readerExtensions = x })
   , property "indented_code_classes" ""
       (pushPandocList pushText, readerIndentedCodeClasses)
       (peekList peekText, \opts x -> opts{ readerIndentedCodeClasses = x })
