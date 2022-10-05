@@ -44,11 +44,17 @@ quick-stack: ## unoptimized build and tests with stack
 	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
-check: fix_spacing check-cabal checkdocs ## prerelease checks
+prerelease: README.md fix_spacing check-cabal check-stack checkdocs man uncommitted_changes ## prerelease checks
+.PHONY: prerelease
+
+uncommitted_changes:
+	! git diff | grep '.'
+.PHONY: uncommitted_changes
+
+check-stack:
 	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
-	! grep 'git:' cabal.project # use only released versions
-.PHONY: check
+.PHONY: check-stack
 
 check-cabal: git-files.txt sdist-files.txt
 	@echo "Checking to see if all committed test/data files are in sdist."
@@ -60,6 +66,7 @@ check-cabal: git-files.txt sdist-files.txt
 	     cabal outdated ; \
 	     popd ; \
 	done
+	! grep 'git:' cabal.project # use only released versions
 
 .PHONY: check-cabal
 
