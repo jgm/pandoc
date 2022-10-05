@@ -151,8 +151,7 @@ instance Monoid Extensions where
   mappend = (<>)
 
 instance FromJSON Extensions where
-  parseJSON =
-    return . foldr enableExtension emptyExtensions . fromJSON
+  parseJSON = fmap extensionsFromList . parseJSON
 
 instance ToJSON Extensions where
   toJSON exts = toJSON $
