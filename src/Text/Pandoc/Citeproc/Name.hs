@@ -153,5 +153,3 @@ isCapitalized (Str (T.uncons -> Just (c,cs)) : rest)
   | otherwise = False
 isCapitalized (_:rest) = isCapitalized rest
 isCapitalized [] = True
-
-

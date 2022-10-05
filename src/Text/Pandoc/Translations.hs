@@ -96,5 +96,3 @@ translateTerm term = do
        Nothing -> do
          report $ NoTranslation $ T.pack $ show term
          return ""
-
-
