@@ -19,9 +19,9 @@ module Text.Pandoc.Lua.Marshal.PandocError
   )
   where
 
-import HsLua (LuaError, Peeker, Pusher, liftLua, pushString)
+import HsLua (LuaError, Peeker, Pusher, liftLua, pushText)
 import HsLua.Packaging
-import Text.Pandoc.Error (PandocError (PandocLuaError))
+import Text.Pandoc.Error (PandocError (PandocLuaError), renderError)
 
 import qualified HsLua as Lua
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -30,9 +30,9 @@ import qualified Text.Pandoc.UTF8 as UTF8
 typePandocError :: LuaError e => DocumentedType e PandocError
 typePandocError = deftype "PandocError"
   [ operation Tostring $ defun "__tostring"
-    ### liftPure (show @PandocError)
+    ### liftPure renderError
     <#> udparam typePandocError "obj" "PandocError object"
-    =#> functionResult pushString "string" "string representation of error."
+    =#> functionResult pushText "string" "string representation of error."
   ]
   mempty -- no members
 

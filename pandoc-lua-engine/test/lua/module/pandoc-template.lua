@@ -50,7 +50,7 @@ return {
     test('fails if template has non-existing partial', function ()
       assert.error_matches(
         function () return template.compile('${ nosuchpartial() }') end,
-        'PandocCouldNotFindDataFileError'
+        'Could not find data file templates/nosuchpartial'
       )
     end),
     test('works with default template that uses partials', function ()
