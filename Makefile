@@ -53,8 +53,14 @@ check: fix_spacing check-cabal checkdocs ## prerelease checks
 check-cabal: git-files.txt sdist-files.txt
 	@echo "Checking to see if all committed test/data files are in sdist."
 	diff -u $^
-	cabal check
-	cabal outdated
+	@for pkg in . pandoc-lua-engine pandoc-server pandoc-cli; \
+	do \
+	     pushd $$pkg ; \
+	     cabal check ; \
+	     cabal outdated ; \
+	     popd ; \
+	done
+
 .PHONY: check-cabal
 
 checkdocs:
