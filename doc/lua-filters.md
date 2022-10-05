@@ -3495,13 +3495,23 @@ reStructuredText, and Org, then these will be included in the
 resulting document. Any media elements are added to those
 retrieved from the other parsed input files.
 
+The `format` parameter defines the format flavor that will be
+parsed. This can be either a string, using `+` and `-` to enable
+and disable extensions, or a table with fields `format` (string)
+and `extensions` (table). The `extensions` table can be a list of
+all enabled extensions, or a table with extensions as keys and
+their activation status as values (`true` or `'enable'` to enable
+an extension, `false` or `'disable'` to disable it).
+
 Parameters:
 
 `markup`
 :   the markup to be parsed (string|Sources)
 
 `format`
-:   format specification, defaults to `"markdown"` (string)
+:   format specification; defaults to `"markdown"`. See the
+    description above for a complete description of this
+    parameter. (string|table)
 
 `reader_options`
 :   options passed to the reader; may be a ReaderOptions object or
@@ -3532,7 +3542,9 @@ Parameters:
 :   document to convert ([Pandoc](#type-pandoc))
 
 `format`
-:   format specification, defaults to `'html'` (string)
+:   format specification; defaults to `"html"`. See the
+    documentation of [`pandoc.read`](#pandoc.read) for a complete
+    description of this parameter. (string|table)
 
 `writer_options`
 :   options passed to the writer; may be a WriterOptions object

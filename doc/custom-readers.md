@@ -98,10 +98,10 @@ end
 Custom readers can be built such that their behavior is
 controllable through format extensions, such as `smart`,
 `citations`, or `hard-line-breaks`. Supported extensions are those
-that are present as a key in the global `Extensions` table.
-Fields of extensions that are enabled default have the value
-`true`, while those that are supported but disabled have value
-`false`.
+that are present as a key in the global `Extensions` table. Fields
+of extensions that are enabled default have the value `true` or
+`enable`, while those that are supported but disabled have value
+`false` or `disable`.
 
 Example: A writer with the following global table supports the
 extensions `smart`, `citations`, and `foobar`, with `smart` enabled and
@@ -109,9 +109,9 @@ the other two disabled by default:
 
 ``` lua
 Extensions = {
-  smart = true,
-  citations = false,
-  foobar = false
+  smart = 'enable',
+  citations = 'disable',
+  foobar = true
 }
 ```
 
