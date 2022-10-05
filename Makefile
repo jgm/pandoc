@@ -65,7 +65,8 @@ check-cabal: git-files.txt sdist-files.txt
 
 checkdocs:
 	@echo "Checking for tabs in manual."
-	! grep -q -n -e "\t" MANUAL.txt changelog.md
+	! grep -q -n -e "\t" \
+	   MANUAL.txt changelog.md doc/pandoc-server.md doc/pandoc-lua.md
 .PHONY: checkdocs
 
 bench: ## build and run benchmarks
