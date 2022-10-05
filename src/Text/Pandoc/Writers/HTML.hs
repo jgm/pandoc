@@ -881,8 +881,8 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
                    , k /= "width" || "column" `notElem` classes] ++
             [("style", "width:" <> w <> ";") | "column" `elem` classes
                                              , ("width", w) <- kvs'] ++
-            [("role", "doc-bibliography") | isCslBibBody && html5] ++
-            [("role", "doc-biblioentry") | isCslBibEntry && html5]
+            [("role", "list") | isCslBibBody && html5] ++
+            [("role", "listitem") | isCslBibEntry && html5]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if | speakerNotes -> opts{ writerIncremental = False }
