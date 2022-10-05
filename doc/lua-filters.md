@@ -413,16 +413,21 @@ run within the donation-ware Lua editor and IDE,
 REPL console and UI to step-through and view all variables and
 state.
 
-If you already have Lua 5.3 installed, you can add
+Zerobrane doesn't come with Lua 5.4 bundled, but it can debug it, 
+so you should install Lua 5.4, and then add
 [`mobdebug`](https://luarocks.org/modules/paulclinger/mobdebug)
 and its dependency
 [`luasocket`](https://luarocks.org/modules/luasocket/luasocket)
-using [`luarocks`](https://luarocks.org), which should then be
-available on the path. ZeroBrane also includes both of these in
-its package, so if you don't want to install Lua separately, you
-should add/modify your `LUA_PATH` and `LUA_CPATH` to include the
-correct locations; [see detailed instructions
-here](https://studio.zerobrane.com/doc-remote-debugging).
+using [`luarocks`](https://luarocks.org). ZeroBrane can use your 
+lua 5.4 install by adding `path.lua = "/path/to/your/lua"` 
+in your settings file. Open your lua filter in Zerobrane, 
+add `require('mobdebug').start()` at the line where you want 
+your breakpoint.  Then make sure the Project > Lua Intepreter 
+is set to "Lua" and enable "Start Debugger Server" 
+[see detailed instructions
+here](https://studio.zerobrane.com/doc-remote-debugging). 
+Run pandoc as you normally would and Zerobrane should break 
+at the correct line.
 
 ## Common pitfalls
 
