@@ -292,7 +292,33 @@ return {
         function () pandoc.read('foo', 'nosuchreader') end,
         'Unknown input format nosuchreader'
       )
-    end)
+    end),
+    group 'extensions' {
+      test('string spec', function ()
+        local doc = pandoc.read('"vice versa"', 'markdown-smart')
+        assert.are_equal(doc, pandoc.Pandoc{pandoc.Para '"vice versa"'})
+      end),
+      test('unsupported extension', function ()
+        assert.error_matches(
+          function () pandoc.read('foo', 'gfm+empty_paragraphs') end,
+          'The extension empty_paragraphs is not supported for gfm'
+        )
+      end),
+      test('unknown extension', function ()
+        local format_spec = { format = 'markdown', extensions = {'nope'}}
+        assert.error_matches(
+          function () pandoc.read('x', format_spec) end,
+          'The extension nope is not supported for markdown'
+        )
+      end),
+      test('fails on invalid extension', function ()
+        local format_spec = { format = 'markdown', extensions = {'nope'}}
+        assert.error_matches(
+          function () pandoc.read('nu-uh', format_spec) end,
+          'The extension nope is not supported for markdown'
+        )
+      end),
+    },
   },
 
   group 'walk_block' {
@@ -331,6 +357,47 @@ return {
       )
       assert.are_equal('1234', table.concat(acc))
     end)
+  },
+
+  group 'write' {
+    test('string spec', function ()
+      local doc = pandoc.Pandoc{pandoc.Quoted('DoubleQuote', 'vice versa')}
+      local plain = pandoc.write(doc, 'plain+smart')
+      assert.are_equal(plain, '"vice versa"\n')
+    end),
+    test('table format spec with extensions list', function ()
+      local doc = pandoc.Pandoc{pandoc.Quoted('DoubleQuote', 'vice versa')}
+      local format_spec = { format = 'plain', extensions = {'smart'}}
+      local plain = pandoc.write(doc, format_spec)
+      assert.are_equal(plain, '"vice versa"\n')
+    end),
+    test('table format spec with `enable`/`disable` diff', function ()
+      local diff = {
+        enable = {'smart'}
+      }
+      local doc = pandoc.Pandoc{pandoc.Quoted('DoubleQuote', 'vice versa')}
+      local format_spec = { format = 'plain', extensions = diff}
+      local plain = pandoc.write(doc, format_spec)
+      assert.are_equal(plain, '"vice versa"\n')
+    end),
+    test('table format spec with set-like diff', function ()
+      local diff = {
+        smart = true,
+        auto_identifiers = false
+      }
+      local doc = pandoc.Pandoc{pandoc.Quoted('DoubleQuote', 'vice versa')}
+      local format_spec = { format = 'plain', extensions = diff}
+      local plain = pandoc.write(doc, format_spec)
+      assert.are_equal(plain, '"vice versa"\n')
+    end),
+    test('fails on invalid extension', function ()
+      local doc = pandoc.Pandoc{'nope'}
+      local format_spec = { format = 'plain', extensions = {'nope'}}
+      assert.error_matches(
+        function () pandoc.write(doc, format_spec) end,
+        'The extension nope is not supported for plain'
+      )
+    end),
   },
 
   group 'Marshal' {

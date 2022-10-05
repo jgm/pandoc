@@ -32,6 +32,7 @@ import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Format (parseFlavoredFormat)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
+import Text.Pandoc.Lua.Marshal.Format (peekFlavoredFormat)
 import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
 import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
                                              , pushReaderOptions)
@@ -200,9 +201,9 @@ functions =
 
   , defun "read"
     ### (\content mformatspec mreaderOptions -> unPandocLua $ do
+            flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
             let readerOpts = fromMaybe def mreaderOptions
-            formatSpec <- parseFlavoredFormat $ fromMaybe "markdown" mformatspec
-            getReader formatSpec >>= \case
+            getReader flvrd >>= \case
               (TextReader r, es)       ->
                  r readerOpts{readerExtensions = es}
                    (case content of
@@ -217,7 +218,8 @@ functions =
     <#> parameter (\idx -> (Left  <$> peekByteString idx)
                        <|> (Right <$> peekSources idx))
           "string|Sources" "content" "text to parse"
-    <#> opt (textParam "formatspec" "format and extensions")
+    <#> opt (parameter peekFlavoredFormat "string|table"
+                       "formatspec" "format and extensions")
     <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
              "reader options")
     =#> functionResult pushPandoc "Pandoc" "result document"
@@ -238,15 +240,16 @@ functions =
 
   , defun "write"
     ### (\doc mformatspec mwriterOpts -> unPandocLua $ do
+            flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
             let writerOpts = fromMaybe def mwriterOpts
-            formatSpec <- parseFlavoredFormat $ fromMaybe "html" mformatspec
-            getWriter formatSpec >>= \case
+            getWriter flvrd >>= \case
               (TextWriter w, es)      -> Right <$>
                 w writerOpts{ writerExtensions = es } doc
               (ByteStringWriter w, es) -> Left <$>
                 w writerOpts{ writerExtensions = es } doc)
     <#> parameter peekPandoc "Pandoc" "doc" "document to convert"
-    <#> opt (textParam "formatspec" "format and extensions")
+    <#> opt (parameter peekFlavoredFormat "string|table"
+                       "formatspec" "format and extensions")
     <#> opt (parameter peekWriterOptions "WriterOptions" "writer_options"
               "writer options")
     =#> functionResult (either pushLazyByteString pushText) "string"
