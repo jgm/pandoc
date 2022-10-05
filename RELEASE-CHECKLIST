@@ -1,8 +1,8 @@
 [ ] make prerelease
 [ ] Finalize changelog
-[ ] Update AUTHORS
-[ ] push release candidate branch rc/VERSION and (if it builds
-    successfully) download artifacts
+[ ] Update AUTHORS (make authors LASTRELEASE=x.y.z)
+[ ] push release candidate branch rc/VERSION
+[ ] if it builds successfully, download artifacts
 [ ] run tools/build-arm.sh to create and download arm64 linux package
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website

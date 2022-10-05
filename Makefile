@@ -51,6 +51,10 @@ uncommitted_changes:
 	! git diff | grep '.'
 .PHONY: uncommitted_changes
 
+authors:  ## prints unique authors since LASTRELEASE (version)
+	git log --pretty=format:"%an" $(LASTRELEASE)..HEAD | sort | uniq
+
+
 check-stack:
 	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
