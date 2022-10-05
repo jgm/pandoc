@@ -16,6 +16,7 @@
 Data structures and functions for representing markup extensions.
 -}
 module Text.Pandoc.Extensions ( Extension(..)
+                              , readExtension
                               , Extensions
                               , emptyExtensions
                               , extensionsFromList
@@ -38,8 +39,8 @@ import Data.List (foldl')
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
-import Safe (readMay)
 import Text.Parsec
+import Text.Read (readMaybe)
 import Data.Aeson.TH (deriveJSON)
 import Data.Aeson
 
@@ -156,6 +157,12 @@ instance FromJSON Extensions where
 instance ToJSON Extensions where
   toJSON exts = toJSON $
     [ext | ext <- [minBound..maxBound], extensionEnabled ext exts]
+
+-- | Reads a single extension from a string.
+readExtension :: String -> Maybe Extension
+readExtension name = case name of
+  "lhs" -> Just Ext_literate_haskell
+  _     -> readMaybe ("Ext_" ++ name)
 
 extensionsFromList :: [Extension] -> Extensions
 extensionsFromList = foldr enableExtension emptyExtensions
@@ -620,12 +627,9 @@ parseFormatSpec = parse formatSpec ""
         extMod = do
           polarity <- oneOf "-+"
           name <- many $ noneOf "-+"
-          ext <- case readMay ("Ext_" ++ name) of
+          ext <- case readExtension name of
                        Just n  -> return n
-                       Nothing
-                         | name == "lhs" -> return Ext_literate_haskell
-                         | otherwise -> unexpected $
-                                          "unknown extension: " ++ name
+                       Nothing -> unexpected $ "unknown extension: " ++ name
           return $ \(extsToEnable, extsToDisable) ->
                     case polarity of
                         '+' -> (ext : extsToEnable, extsToDisable)
