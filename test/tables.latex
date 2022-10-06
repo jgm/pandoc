@@ -10,10 +10,11 @@ Right & Left & Center & Default \\
 Right & Left & Center & Default \\
 \midrule()
 \endhead
+\bottomrule()
+\endlastfoot
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule()
 \end{longtable}
 
 Simple table without caption:
@@ -23,10 +24,11 @@ Simple table without caption:
 Right & Left & Center & Default \\
 \midrule()
 \endhead
+\bottomrule()
+\endlastfoot
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule()
 \end{longtable}
 
 Simple table indented two spaces:
@@ -41,10 +43,11 @@ Right & Left & Center & Default \\
 Right & Left & Center & Default \\
 \midrule()
 \endhead
+\bottomrule()
+\endlastfoot
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule()
 \end{longtable}
 
 Multiline table with caption:
@@ -79,9 +82,10 @@ Default aligned
 \end{minipage} \\
 \midrule()
 \endhead
+\bottomrule()
+\endlastfoot
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
-\bottomrule()
 \end{longtable}
 
 Multiline table without caption:
@@ -103,9 +107,10 @@ Default aligned
 \end{minipage} \\
 \midrule()
 \endhead
+\bottomrule()
+\endlastfoot
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
-\bottomrule()
 \end{longtable}
 
 Table without column headers:
@@ -113,10 +118,11 @@ Table without column headers:
 \begin{longtable}[]{@{}rlcr@{}}
 \toprule()
 \endhead
+\bottomrule()
+\endlastfoot
 12 & 12 & 12 & 12 \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
-\bottomrule()
 \end{longtable}
 
 Multiline table without column headers:
@@ -128,7 +134,8 @@ Multiline table without column headers:
   >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3500}}@{}}
 \toprule()
 \endhead
+\bottomrule()
+\endlastfoot
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
-\bottomrule()
 \end{longtable}

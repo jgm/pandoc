@@ -18,6 +18,8 @@ Name
 \end{minipage} \\
 \midrule()
 \endhead
+\bottomrule()
+\endlastfoot
 \multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{1.0000} + 2\tabcolsep}@{}}{%
 Computer Science} \\
 3741255 & Jones, Martha \\
@@ -30,5 +32,4 @@ Russian Literature} \\
 Astrophysics} \\
 4100332 & Petrov, Alexandra \\
 4100332 & Toyota, Hiroko \\
-\bottomrule()
 \end{longtable}

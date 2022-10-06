@@ -66,7 +66,13 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
         repeated  <- mkHead (walk removeNote thead)
         return $ capt $$ firsthead $$ "\\endfirsthead" $$ repeated
   rows' <- mapM (rowToLaTeX blksToLaTeX colCount BodyCell) $
-                mconcat (map bodyRows tbodies) <> footRows tfoot
+                mconcat (map bodyRows tbodies)
+  foot' <- if isEmptyFoot tfoot
+           then pure empty
+           else do
+             lastfoot <- mapM (rowToLaTeX blksToLaTeX colCount BodyCell) $
+                              footRows tfoot
+             pure $ "\\midrule()" $$ vcat lastfoot
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
   return
@@ -75,8 +81,10 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
           -- the @{} removes extra space at beginning and end
     $$ head'
     $$ "\\endhead"
-    $$ vcat rows'
+    $$ foot'
     $$ "\\bottomrule()"
+    $$ "\\endlastfoot"
+    $$ vcat rows'
     $$ "\\end{longtable}"
     $$ captNotes
     $$ notes
@@ -207,6 +215,10 @@ fillRow = go 0
 isEmptyHead :: Ann.TableHead -> Bool
 isEmptyHead (Ann.TableHead _attr []) = True
 isEmptyHead (Ann.TableHead _attr rows) = all (null . headerRowCells) rows
+
+isEmptyFoot :: Ann.TableFoot -> Bool
+isEmptyFoot (Ann.TableFoot _attr []) = True
+isEmptyFoot (Ann.TableFoot _attr rows) = all (null . headerRowCells) rows
 
 -- | Gets all cells in a header row.
 headerRowCells :: Ann.HeaderRow -> [Ann.Cell]
