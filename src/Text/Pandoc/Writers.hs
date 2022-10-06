@@ -196,8 +196,7 @@ writers = [
 getWriter :: PandocMonad m => Text -> m (Writer m, Extensions)
 getWriter s =
   case parseFormatSpec s of
-        Left e  -> throwError $ PandocAppError $
-                    "Error parsing writer format " <> tshow s <> ": " <> tshow e
+        Left e  -> throwError $ PandocFormatError s (tshow e)
         Right (writerName, extsToEnable, extsToDisable) ->
            case lookup writerName writers of
                    Nothing  -> throwError $

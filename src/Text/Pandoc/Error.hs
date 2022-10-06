@@ -64,6 +64,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocUTF8DecodingError Text Int Word8
                  | PandocIpynbDecodingError Text
                  | PandocUnsupportedCharsetError Text
+                 | PandocFormatError Text Text
                  | PandocUnknownReaderError Text
                  | PandocUnknownWriterError Text
                  | PandocUnsupportedExtensionError Text Text
@@ -140,6 +141,8 @@ renderError e =
       "ipynb decoding error: " <> w
     PandocUnsupportedCharsetError charset ->
       "Unsupported charset " <> charset
+    PandocFormatError format s ->
+      "Error parsing format " <> tshow format <> ": " <> s
     PandocUnknownReaderError r ->
       "Unknown input format " <> r <>
       case r of
@@ -181,6 +184,7 @@ handleError (Left e) =
       PandocAppError{} -> 4
       PandocTemplateError{} -> 5
       PandocOptionError{} -> 6
+      PandocFormatError{} -> 20
       PandocUnknownReaderError{} -> 21
       PandocUnknownWriterError{} -> 22
       PandocUnsupportedExtensionError{} -> 23

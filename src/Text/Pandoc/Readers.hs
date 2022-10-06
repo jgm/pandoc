@@ -166,8 +166,7 @@ readers = [("native"       , TextReader readNative)
 getReader :: PandocMonad m => Text -> m (Reader m, Extensions)
 getReader s =
   case parseFormatSpec s of
-       Left e  -> throwError $ PandocAppError $
-                    "Error parsing reader format " <> tshow s <> ": " <> tshow e
+       Left e  -> throwError $ PandocFormatError s (tshow e)
        Right (readerName, extsToEnable, extsToDisable) ->
            case lookup readerName readers of
                    Nothing  -> throwError $ PandocUnknownReaderError
