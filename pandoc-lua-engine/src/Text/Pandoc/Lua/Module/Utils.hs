@@ -204,7 +204,7 @@ stringify idx = forcePeek . retrieving "stringifyable element" $
 -- | Converts an old/simple table into a normal table block element.
 from_simple_table :: SimpleTable -> LuaE PandocError NumResults
 from_simple_table (SimpleTable capt aligns widths head' body) = do
-  Lua.push $ Table
+  pushBlock $ Table
     nullAttr
     (Caption Nothing [Plain capt | not (null capt)])
     (zipWith (\a w -> (a, toColWidth w)) aligns widths)

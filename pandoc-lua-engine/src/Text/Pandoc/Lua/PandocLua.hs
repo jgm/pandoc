@@ -4,24 +4,18 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.PandocLua
-   Copyright   : Copyright © 2020-2022 Albert Krewinkel
-   License     : GNU GPL, version 2 or above
-
+   Copyright   : © 2020-2022 Albert Krewinkel
+   License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
-   Stability   : alpha
 
 PandocMonad instance which allows execution of Lua operations and which
 uses Lua to handle state.
 -}
 module Text.Pandoc.Lua.PandocLua
   ( PandocLua (..)
-  , runPandocLua
-  , runPandocLuaWith
   , liftPandocLua
   ) where
 
@@ -30,11 +24,12 @@ import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.IO.Class (MonadIO)
 import HsLua as Lua
 import Text.Pandoc.Class (PandocMonad (..))
-import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Marshal.CommonState (peekCommonState)
+import Text.Pandoc.Error (PandocError (..))
+import Text.Pandoc.Lua.Marshal.CommonState (peekCommonState, pushCommonState)
+import Text.Pandoc.Lua.Marshal.PandocError (peekPandocError, pushPandocError)
 
 import qualified Control.Monad.Catch as Catch
+import qualified Data.Text as T
 import qualified Text.Pandoc.Class.IO as IO
 
 -- | Type providing access to both, pandoc and Lua operations.
@@ -53,42 +48,11 @@ newtype PandocLua a = PandocLua { unPandocLua :: LuaE PandocError a }
 liftPandocLua :: LuaE PandocError a -> PandocLua a
 liftPandocLua = PandocLua
 
--- | Evaluate a @'PandocLua'@ computation, running all contained Lua
--- operations..
-runPandocLua :: (PandocMonad m, MonadIO m) => PandocLua a -> m a
-runPandocLua = runPandocLuaWith Lua.run
-
-runPandocLuaWith :: (PandocMonad m, MonadIO m)
-                 => (forall b. LuaE PandocError b -> IO b)
-                 -> PandocLua a
-                 -> m a
-runPandocLuaWith runner pLua = do
-  origState <- getCommonState
-  globals <- defaultGlobals
-  (result, newState) <- liftIO . runner . unPandocLua $ do
-    putCommonState origState
-    liftPandocLua $ setGlobals globals
-    r <- pLua
-    c <- getCommonState
-    return (r, c)
-  putCommonState newState
-  return result
-
 instance {-# OVERLAPPING #-} Exposable PandocError (PandocLua NumResults) where
   partialApply _narg = liftLua . unPandocLua
 
 instance Pushable a => Exposable PandocError (PandocLua a) where
   partialApply _narg x = 1 <$ (liftLua (unPandocLua x >>= Lua.push))
-
--- | Global variables which should always be set.
-defaultGlobals :: PandocMonad m => m [Global]
-defaultGlobals = do
-  commonState <- getCommonState
-  return
-    [ PANDOC_API_VERSION
-    , PANDOC_STATE commonState
-    , PANDOC_VERSION
-    ]
 
 instance MonadError PandocError PandocLua where
   catchError = Catch.catch
@@ -115,6 +79,22 @@ instance PandocMonad PandocLua where
   getCommonState = PandocLua $ do
     Lua.getglobal "PANDOC_STATE"
     forcePeek $ peekCommonState Lua.top
-  putCommonState = PandocLua . setGlobals . (:[]) . PANDOC_STATE
+  putCommonState cst = PandocLua $ do
+    pushCommonState cst
+    Lua.setglobal "PANDOC_STATE"
 
   logOutput = IO.logOutput
+
+-- | Retrieve a @'PandocError'@ from the Lua stack.
+popPandocError :: LuaE PandocError PandocError
+popPandocError = do
+  errResult <- runPeek $ peekPandocError top
+  case resultToEither errResult of
+    Right x -> return x
+    Left err -> return $ PandocLuaError (T.pack err)
+
+-- | Conversions between Lua errors and 'PandocError' exceptions.
+instance LuaError PandocError where
+  popException = popPandocError
+  pushException = pushPandocError
+  luaException = PandocLuaError . T.pack

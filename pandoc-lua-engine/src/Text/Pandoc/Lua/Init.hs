@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes        #-}
 {- |
    Module      : Text.Pandoc.Lua
    Copyright   : Copyright © 2017-2022 Albert Krewinkel
@@ -22,11 +23,12 @@ import Control.Monad.Trans (MonadIO (..))
 import Data.Maybe (catMaybes)
 import HsLua as Lua hiding (status, try)
 import HsLua.Core.Run as Lua
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
+import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Marshal.List (newListMetatable, pushListModule)
-import Text.Pandoc.Lua.PandocLua (PandocLua, liftPandocLua, runPandocLuaWith)
+import Text.Pandoc.Lua.PandocLua (PandocLua (..), liftPandocLua)
 import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Lua.LPeg as LPeg
@@ -177,3 +179,31 @@ initLuaState = do
 initJsonMetatable :: PandocLua ()
 initJsonMetatable = liftPandocLua $ do
   newListMetatable HsLua.Aeson.jsonarray (pure ())
+
+-- | Evaluate a @'PandocLua'@ computation, running all contained Lua
+-- operations.
+runPandocLuaWith :: (PandocMonad m, MonadIO m)
+                 => (forall b. LuaE PandocError b -> IO b)
+                 -> PandocLua a
+                 -> m a
+runPandocLuaWith runner pLua = do
+  origState <- getCommonState
+  globals <- defaultGlobals
+  (result, newState) <- liftIO . runner . unPandocLua $ do
+    putCommonState origState
+    liftPandocLua $ setGlobals globals
+    r <- pLua
+    c <- getCommonState
+    return (r, c)
+  putCommonState newState
+  return result
+
+-- | Global variables which should always be set.
+defaultGlobals :: PandocMonad m => m [Global]
+defaultGlobals = do
+  commonState <- getCommonState
+  return
+    [ PANDOC_API_VERSION
+    , PANDOC_STATE commonState
+    , PANDOC_VERSION
+    ]

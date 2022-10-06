@@ -19,11 +19,11 @@ import Control.Monad ((>=>), (<$!>))
 import HsLua as Lua
 import Text.Pandoc.Definition
 import Text.Pandoc.Filter (Environment (..))
-import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLua)
+import Text.Pandoc.Lua.PandocLua ()
 import Control.Exception (throw)
 import qualified Data.Text as T
 import Text.Pandoc.Class (PandocMonad)

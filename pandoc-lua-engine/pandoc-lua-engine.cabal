@@ -60,8 +60,7 @@ library
   import:              common-options
   hs-source-dirs:      src
   exposed-modules:     Text.Pandoc.Lua
-  other-modules:       Text.Pandoc.Lua.ErrorConversion
-                     , Text.Pandoc.Lua.Filter
+  other-modules:       Text.Pandoc.Lua.Filter
                      , Text.Pandoc.Lua.Global
                      , Text.Pandoc.Lua.Init
                      , Text.Pandoc.Lua.Marshal.CommonState

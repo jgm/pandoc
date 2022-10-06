@@ -17,7 +17,7 @@ import HsLua ( Module (..), (###), (<#>), (=#>)
              , defun, functionResult, parameter)
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.ErrorConversion ()
+import Text.Pandoc.Lua.PandocLua ()
 
 -- | Push the pandoc.types module on the Lua stack.
 documentedModule :: Module PandocError

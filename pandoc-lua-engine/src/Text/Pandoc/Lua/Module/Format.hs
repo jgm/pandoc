@@ -15,8 +15,8 @@ import HsLua
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Extensions
   ( getAllExtensions, getDefaultExtensions )
-import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Lua.Marshal.Extensions (pushExtensions)
+import Text.Pandoc.Lua.PandocLua ()
 
 import qualified Data.Text as T
 

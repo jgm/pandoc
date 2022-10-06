@@ -23,7 +23,6 @@ import Text.Pandoc.Lua.Marshal.Context ()
 import Text.Pandoc.Lua.Marshal.PandocError()
 import Text.Pandoc.Lua.Marshal.ReaderOptions ()
 import Text.Pandoc.Lua.Marshal.Sources (pushSources)
-import Text.Pandoc.Lua.ErrorConversion ()
 import Text.Pandoc.Sources (Sources)
 
 instance Pushable Pandoc where

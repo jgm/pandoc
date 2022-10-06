@@ -23,7 +23,7 @@ import Text.Pandoc.Lua.Marshal.CommonState (pushCommonState)
 import Text.Pandoc.Lua.Marshal.Pandoc (pushPandoc)
 import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
-import Text.Pandoc.Lua.Orphans ()
+import Text.Pandoc.Lua.PandocLua ()
 import Text.Pandoc.Options (ReaderOptions, WriterOptions)
 import Text.Pandoc.Shared (pandocVersion)
 
