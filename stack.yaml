@@ -28,7 +28,7 @@ extra-deps:
 - mime-types-0.1.1.0
 - doclayout-0.4
 - doctemplates-0.10.0.2
-- citeproc-0.8.0.1
+- citeproc-0.8.0.2
 - commonmark-extensions-0.2.3.3
 - texmath-0.12.5.3
 ghc-options:
