@@ -27,7 +27,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
-import Data.Char (isAlphaNum)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Base64 (decodeBase64, encodeBase64)
@@ -44,6 +43,7 @@ import Text.Pandoc.Shared (safeStrRead, headerShift, filterIpynbOutput,
                            eastAsianLineBreakFilter)
 import Text.Pandoc.App ( IpynbOutput (..), Opt(..), defaultOpts )
 import Text.Pandoc.Builder (setMeta)
+import Text.Pandoc.Format (parseFlavoredFormat, formatName)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import System.Exit
 import GHC.Generics (Generic)
@@ -270,7 +270,7 @@ server = convertBytes
     (writerSpec, writerExts) <- getWriter writerFormat
 
     let isStandalone = optStandalone opts
-    let toformat = T.toLower $ T.takeWhile isAlphaNum $ writerFormat
+    toformat <- formatName <$> parseFlavoredFormat writerFormat
     hlStyle <- traverse (lookupHighlightingStyle . T.unpack)
                   $ optHighlightStyle opts
 

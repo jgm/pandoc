@@ -1,7 +1,8 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -76,14 +77,12 @@ module Text.Pandoc.Writers
     ) where
 
 import Control.Monad.Except (throwError)
-import Control.Monad (unless)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)
-import qualified Data.Text as T
-import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
+import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
@@ -194,27 +193,13 @@ writers = [
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
 getWriter :: PandocMonad m => Text -> m (Writer m, Extensions)
-getWriter s =
-  case parseFormatSpec s of
-        Left e  -> throwError $ PandocFormatError s (tshow e)
-        Right (writerName, extsToEnable, extsToDisable) ->
-           case lookup writerName writers of
-                   Nothing  -> throwError $
-                                 PandocUnknownWriterError writerName
-                   Just  w  -> do
-                     let allExts = getAllExtensions writerName
-                     let exts = foldr disableExtension
-                           (foldr enableExtension
-                             (getDefaultExtensions writerName)
-                                   extsToEnable) extsToDisable
-                     mapM_ (\ext ->
-                              unless (extensionEnabled ext allExts) $
-                                throwError $
-                                   PandocUnsupportedExtensionError
-                                   (T.drop 4 $ T.pack $ show ext) writerName)
-                          (extsToEnable ++ extsToDisable)
-                     return (w, exts)
-
+getWriter s = do
+  spec <- Format.parseFlavoredFormat s
+  let writerName = Format.formatName spec
+  case lookup writerName writers of
+    Nothing  -> throwError $ PandocUnknownWriterError writerName
+    Just  w  -> (w,) <$>
+      Format.applyExtensionsDiff (Format.getExtensionsConfig writerName) spec
 
 writeJSON :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJSON _ = return . UTF8.toText . BL.toStrict . encode

@@ -537,6 +537,7 @@ library
                    Text.Pandoc.Data,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
+                   Text.Pandoc.Format,
                    Text.Pandoc.Shared,
                    Text.Pandoc.Sources,
                    Text.Pandoc.MediaBag,

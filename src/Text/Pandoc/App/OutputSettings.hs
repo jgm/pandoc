@@ -38,6 +38,7 @@ import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines, setVariable)
+import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
 import Text.Pandoc.Scripting (ScriptingEngine (engineWriteCustom))
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -88,10 +89,6 @@ optToOutputSettings scriptingEngine opts = do
                              return ("html", Nothing)
                            Just f  -> return (f, Nothing)
 
-  let format = if ".lua" `T.isSuffixOf` writerName
-                  then writerName
-                  else T.toLower $ baseWriterName writerName
-
   let makeSandboxed pureWriter =
           let files = maybe id (:) (optReferenceDoc opts) .
                       maybe id (:) (optEpubMetadata opts) .
@@ -105,15 +102,17 @@ optToOutputSettings scriptingEngine opts = do
                  ByteStringWriter w ->
                    ByteStringWriter $ \o d -> sandbox files (w o d)
 
+  Format.FlavoredFormat format _extsDiff <- Format.parseFlavoredFormat writerName
   (writer, writerExts) <-
-    if ".lua" `T.isSuffixOf` format
-    then (,mempty) <$> engineWriteCustom scriptingEngine (T.unpack writerName)
-    else if optSandbox opts
-         then
-           case runPure (getWriter writerName) of
-             Left e -> throwError e
-             Right (w, wexts) ->return (makeSandboxed w, wexts)
-         else getWriter (T.toLower writerName)
+    if "lua" `T.isSuffixOf` format
+    then do
+      (, mempty) <$> engineWriteCustom scriptingEngine (T.unpack format)
+    else do
+      if optSandbox opts
+      then case runPure (getWriter writerName) of
+             Right (w, wexts) -> return (makeSandboxed w, wexts)
+             Left e           -> throwError e
+      else getWriter writerName
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 

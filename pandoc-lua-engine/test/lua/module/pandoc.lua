@@ -266,7 +266,7 @@ return {
     test('unsupported extension', function ()
       assert.error_matches(
         function () pandoc.read('foo', 'gfm+empty_paragraphs') end,
-        'Extension empty_paragraphs not supported for gfm'
+        'The extension empty_paragraphs is not supported for gfm'
       )
     end),
     test('read with other indented code classes', function()
@@ -290,7 +290,7 @@ return {
     test('failing read', function ()
       assert.error_matches(
         function () pandoc.read('foo', 'nosuchreader') end,
-        'Unknown reader: nosuchreader'
+        'Unknown input format nosuchreader'
       )
     end)
   },
