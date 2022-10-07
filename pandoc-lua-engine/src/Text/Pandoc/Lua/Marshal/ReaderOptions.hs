@@ -22,7 +22,7 @@ module Text.Pandoc.Lua.Marshal.ReaderOptions
 
 import Data.Default (def)
 import HsLua as Lua
-import Text.Pandoc.Lua.Marshal.Extensions (peekExtensions, pushExtensions)
+import Text.Pandoc.Lua.Marshal.Format (peekExtensions, pushExtensions)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Options (ReaderOptions (..))
 

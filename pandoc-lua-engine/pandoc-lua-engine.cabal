@@ -22,6 +22,7 @@ extra-source-files:  README.md
                    , test/bytestring.bin
                    , test/bytestring.lua
                    , test/bytestring-reader.lua
+                   , test/extensions.lua
                    , test/lua/*.lua
                    , test/lua/module/*.lua
                    , test/lua/module/partial.test
@@ -66,7 +67,7 @@ library
                      , Text.Pandoc.Lua.Init
                      , Text.Pandoc.Lua.Marshal.CommonState
                      , Text.Pandoc.Lua.Marshal.Context
-                     , Text.Pandoc.Lua.Marshal.Extensions
+                     , Text.Pandoc.Lua.Marshal.Format
                      , Text.Pandoc.Lua.Marshal.PandocError
                      , Text.Pandoc.Lua.Marshal.ReaderOptions
                      , Text.Pandoc.Lua.Marshal.Reference

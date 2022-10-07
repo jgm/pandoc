@@ -18,10 +18,11 @@ where
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text (Text)
-import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
+import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocNoScriptingEngine))
 import Text.Pandoc.Filter.Environment (Environment)
+import Text.Pandoc.Format (ExtensionsConfig)
 import Text.Pandoc.Readers (Reader)
 import Text.Pandoc.Writers (Writer)
 
@@ -39,7 +40,7 @@ data ScriptingEngine = ScriptingEngine
     -- ^ Function to parse input into a 'Pandoc' document.
 
   , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
-                      => FilePath -> m (Writer m)
+                      => FilePath -> m (Writer m, ExtensionsConfig)
     -- ^ Invoke the given script file to convert to any custom format.
   }
 
