@@ -58,6 +58,7 @@ import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
+import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.SelfContained (makeSelfContained)
@@ -148,8 +149,8 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                                (map (T.pack . takeExtension) sources) "markdown"
                            return "markdown"
 
-  let readerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') readerName
-
+  Format.FlavoredFormat readerNameBase _extsDiff <-
+    Format.parseFlavoredFormat readerName
   let makeSandboxed pureReader =
         let files = maybe id (:) (optReferenceDoc opts) .
                     maybe id (:) (optEpubMetadata opts) .

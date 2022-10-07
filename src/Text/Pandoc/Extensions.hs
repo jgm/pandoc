@@ -20,7 +20,6 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , Extensions
                               , emptyExtensions
                               , extensionsFromList
-                              , parseFormatSpec
                               , extensionEnabled
                               , enableExtension
                               , disableExtension
@@ -35,11 +34,9 @@ module Text.Pandoc.Extensions ( Extension(..)
 where
 import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
-import Data.List (foldl')
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
-import Text.Parsec
 import Text.Read (readMaybe)
 import Data.Aeson.TH (deriveJSON)
 import Data.Aeson
@@ -611,26 +608,3 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_smart ]
   getAll _                 = mempty
-
-
--- | Parse a format-specifying string into a markup format,
--- a set of extensions to enable, and a set of extensions to disable.
-parseFormatSpec :: T.Text
-                -> Either ParseError (T.Text, [Extension], [Extension])
-parseFormatSpec = parse formatSpec ""
-  where formatSpec = do
-          name <- formatName
-          (extsToEnable, extsToDisable) <- foldl' (flip ($)) ([],[]) <$>
-                                             many extMod
-          return (T.pack name, reverse extsToEnable, reverse extsToDisable)
-        formatName = many1 $ noneOf "-+"
-        extMod = do
-          polarity <- oneOf "-+"
-          name <- many $ noneOf "-+"
-          ext <- case readExtension name of
-                       Just n  -> return n
-                       Nothing -> unexpected $ "unknown extension: " ++ name
-          return $ \(extsToEnable, extsToDisable) ->
-                    case polarity of
-                        '+' -> (ext : extsToEnable, extsToDisable)
-                        _   -> (extsToEnable, ext : extsToDisable)
