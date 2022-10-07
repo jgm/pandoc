@@ -21,7 +21,7 @@ module Text.Pandoc.Lua.Marshal.WriterOptions
 import Control.Applicative (optional)
 import Data.Default (def)
 import HsLua as Lua
-import Text.Pandoc.Lua.Marshal.Extensions (peekExtensions, pushExtensions)
+import Text.Pandoc.Lua.Marshal.Format (peekExtensions, pushExtensions)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
 import Text.Pandoc.Options (WriterOptions (..))

@@ -49,6 +49,40 @@ and can contain arbitrary binary data.
 If both `Writer` and `ByteStringWriter` functions are defined,
 then only the `Writer` function will be used.
 
+## Format extensions
+
+Custom writers can be built such that their behavior is
+controllable through format extensions, such as `smart`,
+`citations`, or `hard-line-breaks`. Supported extensions are those
+that are present as a key in the global `writer_extensions` table.
+Field of extensions by enabled default have the value `true`,
+while those that are supported but disabled have value `false`.
+
+Example: A writer with the following global table supports the
+extensions `smart` and `citations`, with the former enabled and
+the latter disabled by default:
+
+``` lua
+writer_extensions = {
+  smart = true,
+  citations = false,
+}
+```
+
+The users control extensions as usual, e.g., `pandoc -t
+my-writer.lua+citations`. The extensions are accessible through
+the writer options' `extensions` field, e.g.:
+
+``` lua
+function Writer (doc, opts)
+  print(
+    'The citations extension is',
+    opts.extensions:includes 'citations' and 'enabled' or 'disabled'
+  )
+  -- ...
+end
+```
+
 ## Example: modified Markdown writer
 
 Writers have access to all modules described in the [Lua filters

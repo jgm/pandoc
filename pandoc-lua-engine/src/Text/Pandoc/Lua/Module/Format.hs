@@ -13,9 +13,8 @@ module Text.Pandoc.Lua.Module.Format
 
 import HsLua
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Extensions
-  ( getAllExtensions, getDefaultExtensions )
-import Text.Pandoc.Lua.Marshal.Extensions (pushExtensions)
+import Text.Pandoc.Extensions (getAllExtensions, getDefaultExtensions)
+import Text.Pandoc.Lua.Marshal.Format (pushExtensions)
 import Text.Pandoc.Lua.PandocLua ()
 
 import qualified Data.Text as T

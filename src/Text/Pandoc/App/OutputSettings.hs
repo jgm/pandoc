@@ -107,7 +107,9 @@ optToOutputSettings scriptingEngine opts = do
   (writer, writerExts) <-
     if "lua" `T.isSuffixOf` format
     then do
-      (, mempty) <$> engineWriteCustom scriptingEngine (T.unpack format)
+      (w, extsConf) <- engineWriteCustom scriptingEngine (T.unpack format)
+      wexts         <- Format.applyExtensionsDiff extsConf flvrd
+      return (w, wexts)
     else do
       if optSandbox opts
       then case runPure (getWriter flvrd) of
