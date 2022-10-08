@@ -30,7 +30,7 @@ extra-deps:
 - doctemplates-0.10.0.2
 - citeproc-0.8.0.2
 - commonmark-extensions-0.2.3.3
-- texmath-0.12.5.3
+- texmath-0.12.5.4
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-19.21
