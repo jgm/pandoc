@@ -102,17 +102,18 @@ optToOutputSettings scriptingEngine opts = do
                  ByteStringWriter w ->
                    ByteStringWriter $ \o d -> sandbox files (w o d)
 
-  Format.FlavoredFormat format _extsDiff <- Format.parseFlavoredFormat writerName
+  flvrd@(Format.FlavoredFormat format _extsDiff) <-
+    Format.parseFlavoredFormat writerName
   (writer, writerExts) <-
     if "lua" `T.isSuffixOf` format
     then do
       (, mempty) <$> engineWriteCustom scriptingEngine (T.unpack format)
     else do
       if optSandbox opts
-      then case runPure (getWriter writerName) of
+      then case runPure (getWriter flvrd) of
              Right (w, wexts) -> return (makeSandboxed w, wexts)
              Left e           -> throwError e
-      else getWriter writerName
+      else getWriter flvrd
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 

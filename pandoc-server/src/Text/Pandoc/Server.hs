@@ -264,13 +264,13 @@ server = convertBytes
         modifyPureState $ \st -> st{ stFiles = filetree }
 
     let opts = options params
-    let readerFormat = fromMaybe "markdown" $ optFrom opts
-    let writerFormat = fromMaybe "html" $ optTo opts
+    readerFormat <- parseFlavoredFormat <$> fromMaybe "markdown" $ optFrom opts
+    writerFormat <- parseFlavoredFormat <$> fromMaybe "html" $ optTo opts
     (readerSpec, readerExts) <- getReader readerFormat
     (writerSpec, writerExts) <- getWriter writerFormat
 
     let isStandalone = optStandalone opts
-    toformat <- formatName <$> parseFlavoredFormat writerFormat
+    let toformat = formatName writerFormat
     hlStyle <- traverse (lookupHighlightingStyle . T.unpack)
                   $ optHighlightStyle opts
 

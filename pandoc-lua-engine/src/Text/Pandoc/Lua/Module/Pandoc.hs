@@ -30,6 +30,7 @@ import HsLua hiding (pushModule)
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
+import Text.Pandoc.Format (parseFlavoredFormat)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
@@ -208,7 +209,7 @@ functions =
   , defun "read"
     ### (\content mformatspec mreaderOptions -> unPandocLua $ do
             let readerOpts = fromMaybe def mreaderOptions
-            let formatSpec = fromMaybe "markdown" mformatspec
+            formatSpec <- parseFlavoredFormat $ fromMaybe "markdown" mformatspec
             getReader formatSpec >>= \case
               (TextReader r, es)       ->
                  r readerOpts{readerExtensions = es}
@@ -246,7 +247,7 @@ functions =
   , defun "write"
     ### (\doc mformatspec mwriterOpts -> unPandocLua $ do
             let writerOpts = fromMaybe def mwriterOpts
-            let formatSpec = fromMaybe "html" mformatspec
+            formatSpec <- parseFlavoredFormat $ fromMaybe "html" mformatspec
             getWriter formatSpec >>= \case
               (TextWriter w, es)      -> Right <$>
                 w writerOpts{ writerExtensions = es } doc
