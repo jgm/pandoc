@@ -149,7 +149,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                                (map (T.pack . takeExtension) sources) "markdown"
                            return "markdown"
 
-  Format.FlavoredFormat readerNameBase _extsDiff <-
+  flvrd@(Format.FlavoredFormat readerNameBase _extsDiff) <-
     Format.parseFlavoredFormat readerName
   let makeSandboxed pureReader =
         let files = maybe id (:) (optReferenceDoc opts) .
@@ -174,10 +174,10 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                    , mempty
                    )
        else if optSandbox opts
-               then case runPure (getReader readerName) of
+               then case runPure (getReader flvrd) of
                       Left e -> throwError e
                       Right (r, rexts) -> return (makeSandboxed r, rexts)
-               else getReader readerName
+               else getReader flvrd
 
   outputSettings <- optToOutputSettings scriptingEngine opts
   let format = outputFormat outputSettings

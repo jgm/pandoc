@@ -192,14 +192,13 @@ writers = [
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
-getWriter :: PandocMonad m => Text -> m (Writer m, Extensions)
-getWriter s = do
-  spec <- Format.parseFlavoredFormat s
-  let writerName = Format.formatName spec
+getWriter :: PandocMonad m => Format.FlavoredFormat -> m (Writer m, Extensions)
+getWriter flvrd = do
+  let writerName = Format.formatName flvrd
   case lookup writerName writers of
     Nothing  -> throwError $ PandocUnknownWriterError writerName
     Just  w  -> (w,) <$>
-      Format.applyExtensionsDiff (Format.getExtensionsConfig writerName) spec
+      Format.applyExtensionsDiff (Format.getExtensionsConfig writerName) flvrd
 
 writeJSON :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJSON _ = return . UTF8.toText . BL.toStrict . encode

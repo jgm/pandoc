@@ -163,14 +163,13 @@ readers = [("native"       , TextReader readNative)
            ]
 
 -- | Retrieve reader, extensions based on format spec (format+extensions).
-getReader :: PandocMonad m => Text -> m (Reader m, Extensions)
-getReader s = do
-  spec <- Format.parseFlavoredFormat s
-  let readerName = Format.formatName spec
+getReader :: PandocMonad m => Format.FlavoredFormat -> m (Reader m, Extensions)
+getReader flvrd = do
+  let readerName = Format.formatName flvrd
   case lookup readerName readers of
     Nothing  -> throwError $ PandocUnknownReaderError readerName
     Just  r  -> (r,) <$>
-      Format.applyExtensionsDiff (Format.getExtensionsConfig readerName) spec
+      Format.applyExtensionsDiff (Format.getExtensionsConfig readerName) flvrd
 
 -- | Read pandoc document from JSON format.
 readJSON :: (PandocMonad m, ToSources a)
