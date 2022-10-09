@@ -99,14 +99,14 @@ jobs:
     - name: Install dependencies
       run: |
           cabal update
-          cabal build ${{ matrix.versions.cabalopts }} --dependencies-only --enable-tests --disable-optimization
+          cabal build all ${{ matrix.versions.cabalopts }} --dependencies-only --enable-tests --disable-optimization
 
     - name: Build and test
       run: |
           cabal build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
           ! grep -q ": *[Ww]arning:" build.log || exit 1
-          cabal test ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
+          cabal test all ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
 
   windows:
 
@@ -191,4 +191,3 @@ jobs:
 #         # fail if warnings in local build
 #         ! grep -q ": *[Ww]arning:" build.log || exit 1
 #         cabal v2-test --disable-optimization --test-option=--hide-successes --test-option=--ansi-tricks=false
-
