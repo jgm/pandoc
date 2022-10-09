@@ -1006,7 +1006,8 @@ blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
              else [ (k, v) | (k, v) <- kvs
                            , k `elem` (["lang", "dir", "title", "style"
                                       , "align"] ++ intrinsicEventsHTML4)]
-  addAttrs opts (ident,classes,kvs')
+  let classes' = if level > 6 then "heading":classes else classes
+  addAttrs opts (ident,classes',kvs')
          $ case level of
               1 -> H.h1 contents'
               2 -> H.h2 contents'
@@ -1014,7 +1015,7 @@ blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
               4 -> H.h4 contents'
               5 -> H.h5 contents'
               6 -> H.h6 contents'
-              _ -> H.p ! A.class_ "heading" $ contents'
+              _ -> H.p  contents'
 blockToHtmlInner opts (BulletList lst) = do
   contents <- mapM (listItemToHtml opts) lst
   let isTaskList = not (null lst) && all isTaskListItem lst
