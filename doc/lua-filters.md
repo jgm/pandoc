@@ -408,25 +408,24 @@ step through a Lua filter line by line as it is run inside Pandoc.
 This is accomplished using the remote-debugging interface of the
 package [`mobdebug`](https://github.com/pkulchenko/MobDebug).
 Although mobdebug can be run from the terminal, it is more useful
-run within the donation-ware Lua editor and IDE,
-[ZeroBrane](https://studio.zerobrane.com/). ZeroBrane offers a
-REPL console and UI to step-through and view all variables and
-state.
+run within the donation-ware Lua editor and IDE, [ZeroBrane
+Studio](https://studio.zerobrane.com/). ZeroBrane offers a REPL
+console and UI to step-through and view all variables and state.
 
-Zerobrane doesn't come with Lua 5.4 bundled, but it can debug it, so
+ZeroBrane doesn't come with Lua 5.4 bundled, but it can debug it, so
 you should install Lua 5.4, and then add
 [`mobdebug`](https://luarocks.org/modules/paulclinger/mobdebug) and
 its dependency
 [`luasocket`](https://luarocks.org/modules/luasocket/luasocket) using
 [`luarocks`](https://luarocks.org). ZeroBrane can use your Lua 5.4
-install by adding `path.lua = "/path/to/your/lua"` in your Zerobrane
-settings file. Next, open your Lua filter in Zerobrane, and add
+install by adding `path.lua = "/path/to/your/lua"` in your ZeroBrane
+settings file. Next, open your Lua filter in ZeroBrane, and add
 `require('mobdebug').start()` at the line where you want your
 breakpoint. Then make sure the Project > Lua Intepreter is set to the
 "Lua" you added in settings and enable "Start Debugger Server" [see
 detailed instructions
 here](https://studio.zerobrane.com/doc-remote-debugging). Run Pandoc
-as you normally would, and Zerobrane should break at the correct line.
+as you normally would, and ZeroBrane should break at the correct line.
 
 ## Common pitfalls
 
