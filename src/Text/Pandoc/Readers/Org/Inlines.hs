@@ -130,7 +130,8 @@ str = return . B.str <$>
       ( many1Char (noneOf $ specialChars ++ "\n\r ") >>= updatePositions' )
       <* updateLastStrPos
   where
-    updatePositions' str' = updatePositions (T.last str') >> return str'
+    updatePositions' str' = str' <$
+      maybe mzero (updatePositions . snd) (T.unsnoc str')
 
 -- | An endline character that can be treated as a space, not a structural
 -- break.  This should reflect the values of the Emacs variable
