@@ -64,7 +64,6 @@ import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
          headerShift, isURI, filterIpynbOutput, defaultUserDataDir, tshow)
-import Text.Pandoc.Sources (toSources)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -166,13 +165,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
 
   (reader, readerExts) <-
     if ".lua" `T.isSuffixOf` readerName
-       then return ( TextReader $ \ropts s ->
-                       engineReadCustom scriptingEngine
-                                        (T.unpack readerName)
-                                        ropts
-                                        (toSources s)
-                   , mempty
-                   )
+       then (,mempty) <$> engineReadCustom scriptingEngine (T.unpack readerName)
        else if optSandbox opts
                then case runPure (getReader flvrd) of
                       Left e -> throwError e

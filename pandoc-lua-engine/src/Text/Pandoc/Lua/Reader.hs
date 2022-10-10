@@ -13,40 +13,39 @@ Supports custom parsers written in Lua which produce a Pandoc AST.
 -}
 module Text.Pandoc.Lua.Reader ( readCustom ) where
 import Control.Exception
-import Control.Monad (when)
+import Control.Monad ((<=<), when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe (fromMaybe)
 import HsLua as Lua hiding (Operation (Div))
-import Text.Pandoc.Definition
+import HsLua.Core.Run (newGCManagedState, withGCManagedState)
 import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback, report)
 import Text.Pandoc.Logging
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Init (runLua)
+import Text.Pandoc.Lua.Init (runLuaWith)
 import Text.Pandoc.Lua.PandocLua
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc)
-import Text.Pandoc.Options
+import Text.Pandoc.Readers (Reader (..))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import qualified Data.Text as T
 
 -- | Convert custom markup to Pandoc.
-readCustom :: (PandocMonad m, MonadIO m, ToSources s)
-            => FilePath -> ReaderOptions -> s -> m Pandoc
-readCustom luaFile opts srcs = do
-  let globals = [ PANDOC_SCRIPT_FILE luaFile ]
+readCustom :: (PandocMonad m, MonadIO m)
+            => FilePath -> m (Reader m)
+readCustom luaFile = do
+  luaState <- liftIO newGCManagedState
   luaFile' <- fromMaybe luaFile <$> findFileWithDataFallback "readers" luaFile
-  res <- runLua $ do
+  either throw pure <=< runLuaWith luaState $ do
+    let globals = [ PANDOC_SCRIPT_FILE luaFile ]
     setGlobals globals
     stat <- dofileTrace luaFile'
     -- check for error in lua script (later we'll change the return type
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
-    parseCustom
-  case res of
-    Left msg -> throw msg
-    Right doc -> return doc
+    pure (reader luaState)
+
  where
-  parseCustom = do
+  reader st = TextReader $ \opts srcs -> liftIO . withGCManagedState st $ do
     let input = toSources srcs
     getglobal "Reader"
     push input

@@ -22,7 +22,7 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Error (PandocError (PandocNoScriptingEngine))
 import Text.Pandoc.Filter.Environment (Environment)
-import Text.Pandoc.Options (ReaderOptions)
+import Text.Pandoc.Readers (Reader)
 import Text.Pandoc.Sources (Sources)
 import Text.Pandoc.Writers (Writer)
 
@@ -36,7 +36,7 @@ data ScriptingEngine = ScriptingEngine
     -- ^ Use the scripting engine to run a filter.
 
   , engineReadCustom :: forall m. (PandocMonad m, MonadIO m)
-                     => FilePath -> ReaderOptions -> Sources -> m Pandoc
+                     => FilePath -> m (Reader m)
     -- ^ Function to parse input into a 'Pandoc' document.
 
   , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
@@ -49,7 +49,7 @@ noEngine = ScriptingEngine
   { engineName = "none"
   , engineApplyFilter = \_env _args _fp _doc ->
       throwError PandocNoScriptingEngine
-  , engineReadCustom = \_fp _ropts _sources ->
+  , engineReadCustom = \_fp ->
       throwError PandocNoScriptingEngine
   , engineWriteCustom = \_fp ->
       throwError PandocNoScriptingEngine
