@@ -126,8 +126,12 @@ linebreak :: PandocMonad m => OrgParser m (F Inlines)
 linebreak = try $ pure B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
 str :: PandocMonad m => OrgParser m (F Inlines)
-str = return . B.str <$> many1Char (noneOf $ specialChars ++ "\n\r ")
+str = return . B.str <$>
+      ( many1Char (noneOf $ specialChars ++ "\n\r ") >>= updatePositions' )
       <* updateLastStrPos
+  where
+    updatePositions' str' = str' <$
+      maybe mzero (updatePositions . snd) (T.unsnoc str')
 
 -- | An endline character that can be treated as a space, not a structural
 -- break.  This should reflect the values of the Emacs variable
@@ -680,7 +684,6 @@ rawMathBetween s e = try $ textStr s *> manyTillChar anyChar (try $ textStr e)
 emphasisStart :: PandocMonad m => Char -> OrgParser m Char
 emphasisStart c = try $ do
   guard =<< afterEmphasisPreChar
-  guard =<< notAfterString
   char c
   lookAhead (noneOf emphasisForbiddenBorderChars)
   pushToInlineCharStack c
