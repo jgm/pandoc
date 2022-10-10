@@ -269,9 +269,12 @@ variables.
     be picked up by pandoc.
     ([WriterOptions](#type-writeroptions))
 
-    This variable is also set in custom writers, but, starting
-    with pandoc 3.0, contains only the default options. The actual
-    writer options can be accessed via new-style writers.
+    Accessing this variable in **custom writers** is
+    **deprecated**. Starting with pandoc 3.0, it is set to a
+    placeholder value (the default options) in custom writers.
+    Access to the actual writer options is provided via the
+    `Writer` or `ByteStringWriter` function, to which the options
+    are passed as the second function argument.
 
     *Since: pandoc 2.17*
 
