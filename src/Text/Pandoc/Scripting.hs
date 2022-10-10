@@ -23,7 +23,6 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Error (PandocError (PandocNoScriptingEngine))
 import Text.Pandoc.Filter.Environment (Environment)
 import Text.Pandoc.Readers (Reader)
-import Text.Pandoc.Sources (Sources)
 import Text.Pandoc.Writers (Writer)
 
 -- | Structure to define a scripting engine.
