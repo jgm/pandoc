@@ -53,8 +53,15 @@ pandoc:
 :   Bindings, wrappers, and helper functions to access Haskell data
     types from Lua via an object-oriented interface.
 
+[hslua-module-path], [-system], [-text], and [-version]
+:   Lua modules that expose functionality of basic Haskell
+    libraries to Lua.
+
 [hslua-aeson]
 :   Converter from aeson data types to Lua objects.
+
+[hslua-cli]
+:   Command-line interface mimicking the default `lua` executable.
 
 [skylighting]: https://hackage.haskell.org/package/skylighting
 [skylighting-core]: https://hackage.haskell.org/package/skylighting-core
@@ -75,4 +82,8 @@ pandoc:
 [hslua-objectorientation]: https://hackage.haskell.org/package/hslua-objectorientation
 [hslua-packaging]: https://hackage.haskell.org/package/hslua-packaging
 [hslua-aeson]: https://hackage.haskell.org/package/hslua-aeson
-
+[hslua-cli]: https://hackage.haskell.org/package/hslua-cli
+[hslua-module-path]: https://hackage.haskell.org/package/hslua-module-path
+[-system]: https://hackage.haskell.org/package/hslua-module-system
+[-text]: https://hackage.haskell.org/package/hslua-module-text
+[-version]: https://hackage.haskell.org/package/hslua-module-version
