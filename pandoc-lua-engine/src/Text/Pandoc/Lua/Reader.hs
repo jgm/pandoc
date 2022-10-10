@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Reader
    Copyright   : Copyright (C) 2021-2022 John MacFarlane
@@ -17,8 +18,9 @@ import Control.Monad ((<=<), when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe (fromMaybe)
 import HsLua as Lua hiding (Operation (Div))
-import HsLua.Core.Run (newGCManagedState, withGCManagedState)
+import HsLua.Core.Run (GCManagedState, newGCManagedState, withGCManagedState)
 import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback, report)
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Logging
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLuaWith)
@@ -42,14 +44,23 @@ readCustom luaFile = do
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
-    pure (reader luaState)
+    getCustomReader luaState
 
  where
-  reader st = TextReader $ \opts srcs -> liftIO . withGCManagedState st $ do
-    let input = toSources srcs
-    getglobal "Reader"
+  readerField = "PANDOC Reader function"
+  inLua st = liftIO . withGCManagedState @PandocError st
+  byteStringReader :: MonadIO m => GCManagedState -> Reader m
+  byteStringReader st = ByteStringReader $ \ropts input -> inLua st $ do
+    getfield registryindex readerField
     push input
-    push opts
+    push ropts
+    callTrace 2 1
+    forcePeek $ peekPandoc top
+  textReader st = TextReader $ \ropts srcs -> inLua st $ do
+    let input = toSources srcs
+    getfield registryindex readerField
+    push input
+    push ropts
     pcallTrace 2 1 >>= \case
       OK -> forcePeek $ peekPandoc top
       ErrRun -> do
@@ -59,25 +70,38 @@ readCustom luaFile = do
           Failure {} ->
             -- not a string error object. Bail!
             throwErrorAsException
-          Success errmsg -> do
+          Success errmsg ->
             if "string expected, got pandoc Sources" `T.isInfixOf` errmsg
-              then do
-                pop 1
-                _ <- unPandocLua $ do
-                  report $ Deprecated "old Reader function signature" $
-                    T.unlines
-                    [ "Reader functions should accept a sources list; "
-                    , "functions expecting `string` input are deprecated. "
-                    , "Use `tostring` to convert the first argument to a "
-                    , "string."
-                    ]
-                getglobal "Reader"
-                push $ sourcesToText input  -- push sources as string
-                push opts
-                callTrace 2 1
-                forcePeek $ peekPandoc top
-              else
-                -- nothing we can do here
-                throwErrorAsException
+            then do
+              pop 1
+              _ <- unPandocLua $ do
+                report $ Deprecated "old Reader function signature" $
+                  T.unlines
+                  [ "Reader functions should accept a sources list; "
+                  , "functions expecting `string` input are deprecated. "
+                  , "Use `tostring` to convert the first argument to a "
+                  , "string."
+                  ]
+              getglobal "Reader"
+              push $ sourcesToText input  -- push sources as string
+              push ropts
+              callTrace 2 1
+              forcePeek $ peekPandoc top
+            else
+              -- nothing we can do here
+              throwErrorAsException
       _ ->  -- not a runtime error, we won't be able to recover from that
-        throwErrorAsException
+              throwErrorAsException
+  getCustomReader st = do
+    getglobal "Reader" >>= \case
+      TypeNil -> do
+        pop 1
+        getglobal "ByteStringReader" >>= \case
+          TypeNil -> failLua $ "No reader function found: either 'Reader' or "
+                     <> "'ByteStringReader' must be defined."
+          _ -> do
+            setfield registryindex readerField
+            pure (byteStringReader st)
+      _ -> do
+        setfield registryindex readerField
+        pure (textReader st)

@@ -76,6 +76,23 @@ ensuring backwards compatibility.
 [patterns]: http://lua-users.org/wiki/PatternsTutorial
 [lpeg]: http://www.inf.puc-rio.br/~roberto/lpeg/
 
+# Bytestring readers
+
+Pandoc expects text input to be UTF-8 encoded. However, formats
+like docx, odt, epub, etc. are not text but binary formats. To
+read them, pandoc supports `ByteStringReader` functions. These
+functions work just like the `Reader` function that process text
+input, but instead of a list of sources, `ByteStringReader`
+functions are passed a bytestring, i.e., a string that contains
+the binary input.
+
+``` lua
+-- read input as epub
+function ByteStringReader (input)
+  return pandoc.read(input, 'epub')
+end
+```
+
 # Example: plain text reader
 
 This is a simple example using [lpeg] to parse the input

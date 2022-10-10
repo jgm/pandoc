@@ -21,6 +21,7 @@ description:         This package provides a pandoc scripting engine based on
 extra-source-files:  README.md
                    , test/bytestring.bin
                    , test/bytestring.lua
+                   , test/bytestring-reader.lua
                    , test/lua/*.lua
                    , test/lua/module/*.lua
                    , test/lua/module/partial.test
@@ -131,4 +132,5 @@ test-suite test-pandoc-lua-engine
                      , text                  >= 1.1.1   && < 2.1
   other-modules:       Tests.Lua
                      , Tests.Lua.Module
+                     , Tests.Lua.Reader
                      , Tests.Lua.Writer
