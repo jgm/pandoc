@@ -974,7 +974,8 @@ header when requesting a document from a URL:
     `data-external="1"` will be left alone; the documents they
     link to will not be incorporated in the document.
     Limitation: resources that are loaded dynamically through
-    JavaScript cannot be incorporated; as a result, some
+    JavaScript cannot be incorporated; as a result, fonts may
+    be missing when `--mathjax` is used, and some
     advanced features (e.g.  zoom or speaker notes) may not work
     in an offline "self-contained" `reveal.js` slide show.
 
