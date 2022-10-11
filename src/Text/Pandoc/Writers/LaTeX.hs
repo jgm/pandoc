@@ -67,12 +67,12 @@ writeBeamer options document =
 pandocToLaTeX :: PandocMonad m
               => WriterOptions -> Pandoc -> LW m Text
 pandocToLaTeX options (Pandoc meta blocks) = do
-  -- Strip off final 'references' header if --natbib or --biblatex
+  -- Strip off 'references' header if --natbib or --biblatex
   let method = writerCiteMethod options
+  let isRefsDiv (Div ("refs",_,_) _) = True
+      isRefsDiv _ = False
   let blocks' = if method == Biblatex || method == Natbib
-                   then case reverse blocks of
-                             Div ("refs",_,_) _:xs -> reverse xs
-                             _                     -> blocks
+                   then filter (not . isRefsDiv) blocks
                    else blocks
   -- see if there are internal links
   let isInternalLink (Link _ _ (s,_))
