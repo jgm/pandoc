@@ -188,7 +188,9 @@ optToOutputSettings scriptingEngine opts = do
 
   templ <- case optTemplate opts of
                   _ | not standalone -> return Nothing
-                  Nothing -> Just <$> compileDefaultTemplate format
+                  Nothing ->
+                    let filename = T.pack . takeFileName . T.unpack
+                    in Just <$> compileDefaultTemplate (filename format)
                   Just tp -> do
                     -- strip off extensions
                     let tp' = case takeExtension tp of
