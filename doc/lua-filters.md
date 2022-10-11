@@ -5171,6 +5171,28 @@ Returns
 
 Handle pandoc templates.
 
+### apply {#pandoc.template.apply}
+
+`apply (template, context)`
+
+Applies a context with variable assignments to a template,
+returning the rendered template. The `context` parameter must be a
+table with variable names as keys and [Doc], string, boolean, or
+table as values, where the table can be either be a list of the
+aforementioned types, or a nested context.
+
+Parameters:
+
+`template`
+:   template to apply ([Template]{#type-template})
+
+`context`
+:   variable values (table)
+
+Returns:
+
+-   rendered template ([Doc])
+
 ### compile {#pandoc.template.compile}
 
 `compile (template[, templates_path])`

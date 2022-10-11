@@ -12,11 +12,14 @@ module Text.Pandoc.Lua.Module.Template
   ) where
 
 import HsLua
+import HsLua.Module.DocLayout (pushDoc)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.Marshal.Template (pushTemplate)
+import Text.Pandoc.Lua.Marshal.Context (peekContext)
+import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Templates
-  (compileTemplate, getDefaultTemplate, runWithPartials, runWithDefaultPartials)
+  ( compileTemplate, getDefaultTemplate, renderTemplate
+  , runWithPartials, runWithDefaultPartials )
 
 import qualified Data.Text as T
 
@@ -35,7 +38,20 @@ documentedModule = Module
 -- | Template module functions.
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ defun "compile"
+  [ defun "apply"
+     ### liftPure2 renderTemplate
+     <#> parameter peekTemplate "pandoc Template" "template" "template to apply"
+     <#> parameter peekContext "table" "context" "variable values"
+     =#> functionResult pushDoc "Doc" "rendered template"
+     #? T.unlines
+     [ "Applies a context with variable assignments to a template,"
+     , "returning the rendered template. The `context` parameter must be a"
+     , "table with variable names as keys and [Doc], string, boolean, or"
+     , "table as values, where the table can be either be a list of the"
+     , "aforementioned types, or a nested context."
+     ]
+
+  , defun "compile"
      ### (\template mfilepath -> unPandocLua $
            case mfilepath of
              Just fp -> runWithPartials (compileTemplate fp template)
