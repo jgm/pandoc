@@ -81,8 +81,7 @@ getTemplate tp = UTF8.toText <$>
 getDefaultTemplate :: PandocMonad m
                    => Text           -- ^ Name of writer
                    -> m Text
-getDefaultTemplate writer = do
-  let format = T.takeWhile (`notElem` ("+-" :: String)) writer  -- strip off extensions
+getDefaultTemplate format = do
   case format of
        "native"  -> return ""
        "csljson" -> return ""
