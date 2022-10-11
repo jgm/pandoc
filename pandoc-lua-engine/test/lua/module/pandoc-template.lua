@@ -62,4 +62,24 @@ return {
       )
     end),
   },
+  group 'apply' {
+    test('is function', function ()
+      assert.are_equal(type(template.apply), 'function')
+    end),
+    test('returns a Doc value', function ()
+      local tmpl = template.compile('placeholder')
+      assert.are_equal(
+        pandoc.utils.type(template.apply(tmpl, {})),
+        'Doc'
+      )
+    end),
+    test('applies the given context', function ()
+      local tmpl = template.compile('song: $title$')
+      local context = {title = 'Along Comes Mary'}
+      assert.are_equal(
+        template.apply(tmpl, context):render(),
+        'song: Along Comes Mary'
+      )
+    end),
+  },
 }

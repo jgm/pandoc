@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE LambdaCase           #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.Context
@@ -10,19 +13,50 @@
 
 Marshaling instance for doctemplates Context and its components.
 -}
-module Text.Pandoc.Lua.Marshal.Context () where
+module Text.Pandoc.Lua.Marshal.Context
+  ( peekContext
+  , pushContext
+  ) where
 
-import qualified HsLua as Lua
-import HsLua (Pushable)
-import Text.DocTemplates (Context(..), Val(..), TemplateTarget)
-import Text.DocLayout (render)
+import Control.Monad ((<$!>))
+import Data.Text (Text)
+import HsLua as Lua
+import HsLua.Module.DocLayout (peekDoc, pushDoc)
+import Text.DocTemplates (Context(..), Val(..))
 
-instance (TemplateTarget a, Pushable a) => Pushable (Context a) where
-  push (Context m) = Lua.push m
+instance Pushable (Context Text) where
+  push = pushContext
 
-instance (TemplateTarget a, Pushable a) => Pushable (Val a) where
-  push NullVal = Lua.push ()
-  push (BoolVal b) = Lua.push b
-  push (MapVal ctx) = Lua.push ctx
-  push (ListVal xs) = Lua.push xs
-  push (SimpleVal d) = Lua.push $ render Nothing d
+instance Pushable (Val Text) where
+  push = pushVal
+
+-- | Retrieves a template context from the Lua stack.
+peekContext :: LuaError e => Peeker e (Context Text)
+peekContext idx = Context <$!> peekMap peekText peekVal idx
+
+-- | Pushes a template context to the Lua stack.
+pushContext :: LuaError e => Pusher e (Context Text)
+pushContext = pushMap pushText pushVal . unContext
+
+pushVal :: LuaError e => Pusher e (Val Text)
+pushVal = \case
+  NullVal     -> Lua.pushnil
+  BoolVal b   -> Lua.pushBool b
+  MapVal ctx  -> pushContext ctx
+  ListVal xs  -> pushList pushVal xs
+  SimpleVal d -> pushDoc d
+
+peekVal :: LuaError e => Peeker e (Val Text)
+peekVal idx = liftLua (ltype idx) >>= \case
+  TypeNil      -> pure NullVal
+  TypeBoolean  -> BoolVal <$!> peekBool idx
+  TypeNumber   -> SimpleVal <$!> peekDoc idx
+  TypeString   -> SimpleVal <$!> peekDoc idx
+  TypeTable    -> do
+    len <- liftLua $ Lua.rawlen idx
+    if len <= 0
+      then MapVal <$!> peekContext idx
+      else ListVal <$!> peekList peekVal idx
+  TypeUserdata -> SimpleVal <$!> peekDoc idx
+  _ -> failPeek =<<
+       typeMismatchMessage "Doc, string, boolean, table, or nil" idx
