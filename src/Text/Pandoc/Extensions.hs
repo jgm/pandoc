@@ -23,6 +23,7 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , extensionEnabled
                               , enableExtension
                               , disableExtension
+                              , disableExtensions
                               , getDefaultExtensions
                               , getAllExtensions
                               , pandocExtensions
@@ -192,6 +193,14 @@ enableExtension x (Extensions exts) = Extensions (Set.insert x exts)
 
 disableExtension :: Extension -> Extensions -> Extensions
 disableExtension x (Extensions exts) = Extensions (Set.delete x exts)
+
+-- | Removes the extensions in the second set from those in the first.
+disableExtensions :: Extensions  -- ^ base set
+                  -> Extensions  -- ^ extensions to remove
+                  -> Extensions
+disableExtensions (Extensions base) (Extensions remove) = Extensions $
+  -- keep only those extensions that are in `base` but not in `remove`.
+  base `Set.difference` remove
 
 -- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions
