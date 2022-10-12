@@ -4271,6 +4271,47 @@ Parameters:
 `comp`
 :   Comparison function as described above.
 
+# Module pandoc.format
+
+Information about the formats supported by pandoc.
+
+## Functions {#pandoc.format-functions}
+
+### all_extensions {#pandoc.format.default_extensions}
+
+`all_extensions (format)`
+
+Returns the list of all valid extensions for a format. No
+distinction is made between input and output; an extension can
+have an effect when reading a format but not when writing it, or
+*vice versa*.
+
+Parameters:
+
+`format`
+:   format name (string)
+
+Returns:
+
+-   all extensions supported for `format` (FormatExtensions)
+
+### default_extensions {#pandoc.format.default_extensions}
+
+`default_extensions (format)`
+
+Returns the list of default extensions of the given format; this
+function does not check if the format is supported, it will return
+a fallback list of extensions even for unknown formats.
+
+Parameters:
+
+`format`
+:   format name (string)
+
+Returns:
+
+-   default extensions enabled for `format` (FormatExtensions)
+
 # Module pandoc.path
 
 Module for file path manipulations.
