@@ -12,7 +12,7 @@ module Tests.Lua.Writer (tests) where
 
 import Data.Default (Default (def))
 import Text.Pandoc.Class (runIOorExplode, readFileStrict)
-import Text.Pandoc.Extensions (Extension (..))
+import Text.Pandoc.Extensions (Extension (..), extensionsFromList)
 import Text.Pandoc.Format (ExtensionsDiff (..), FlavoredFormat (..),
                            applyExtensionsDiff)
 import Text.Pandoc.Lua (writeCustom)
@@ -68,8 +68,7 @@ tests =
         pure $ BL.fromStrict (UTF8.fromText txt))
 
   , testCase "preset extensions" $ do
-      let ediff = ExtensionsDiff{extsToEnable = [], extsToDisable = []}
-      let format = FlavoredFormat "extensions.lua" ediff
+      let format = FlavoredFormat "extensions.lua" mempty
       result <- runIOorExplode $ writeCustom "extensions.lua" >>= \case
           (TextWriter write, extsConf, _) -> do
             exts <- applyExtensionsDiff extsConf format
@@ -78,8 +77,8 @@ tests =
       result @?= "smart extension is enabled;\ncitations extension is disabled\n"
   , testCase "modified extensions" $ do
       let ediff = ExtensionsDiff
-            { extsToEnable = [Ext_citations]
-            , extsToDisable = []
+            { extsToEnable = extensionsFromList [Ext_citations]
+            , extsToDisable = mempty
             }
       let format = FlavoredFormat "extensions.lua" ediff
       result <- runIOorExplode $ writeCustom "extensions.lua" >>= \case
