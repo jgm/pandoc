@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc.Lua.Reader
    Copyright   : Copyright (C) 2021-2022 John MacFarlane
@@ -14,17 +15,19 @@ Supports custom parsers written in Lua which produce a Pandoc AST.
 -}
 module Text.Pandoc.Lua.Reader ( readCustom ) where
 import Control.Exception
-import Control.Monad ((<=<), when)
+import Control.Monad ((<=<), (<$!>), when)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe (fromMaybe)
 import HsLua as Lua hiding (Operation (Div))
 import HsLua.Core.Run (GCManagedState, newGCManagedState, withGCManagedState)
 import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback, report)
 import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Format (ExtensionsConfig (..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLuaWith)
 import Text.Pandoc.Lua.PandocLua
+import Text.Pandoc.Lua.Marshal.Format (peekExtensionsConfig)
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc)
 import Text.Pandoc.Readers (Reader (..))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
@@ -32,7 +35,7 @@ import qualified Data.Text as T
 
 -- | Convert custom markup to Pandoc.
 readCustom :: (PandocMonad m, MonadIO m)
-            => FilePath -> m (Reader m)
+            => FilePath -> m (Reader m, ExtensionsConfig)
 readCustom luaFile = do
   luaState <- liftIO newGCManagedState
   luaFile' <- fromMaybe luaFile <$> findFileWithDataFallback "readers" luaFile
@@ -44,7 +47,12 @@ readCustom luaFile = do
     -- to handle this more gracefully):
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
-    getCustomReader luaState
+
+    extsConf <- getglobal "reader_extensions" >>= \case
+      TypeNil   -> pure $ ExtensionsConfig mempty mempty
+      _         -> forcePeek $ peekExtensionsConfig top `lastly` pop 1
+
+    (,extsConf) <$!> getCustomReader luaState
 
  where
   readerField = "PANDOC Reader function"

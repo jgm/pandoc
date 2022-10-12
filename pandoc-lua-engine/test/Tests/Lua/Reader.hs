@@ -27,8 +27,8 @@ tests =
     input <- BL.readFile "bytestring.bin"
     doc <- runIOorExplode $
       readCustom "bytestring-reader.lua" >>= \case
-        ByteStringReader f -> f def input
-        TextReader {}      -> error "Expected a bytestring reader"
+        (ByteStringReader f, _) -> f def input
+        (TextReader {}, _)      -> error "Expected a bytestring reader"
     let bytes = mconcat $ map (B.str . T.singleton . chr) [0..255]
     doc @?= B.doc (B.plain bytes)
   ]

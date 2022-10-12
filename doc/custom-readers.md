@@ -93,6 +93,47 @@ function ByteStringReader (input)
 end
 ```
 
+# Format extensions
+
+Custom readers can be built such that their behavior is
+controllable through format extensions, such as `smart`,
+`citations`, or `hard-line-breaks`. Supported extensions are those
+that are present as a key in the global `reader_extensions` table.
+Fields of extensions that are enabled default have the value
+`true`, while those that are supported but disabled have value
+`false`.
+
+Example: A writer with the following global table supports the
+extensions `smart` and `citations`, with the former enabled and
+the latter disabled by default:
+
+``` lua
+reader_extensions = {
+  smart = true,
+  citations = false,
+}
+```
+
+The users control extensions as usual, e.g., `pandoc -f
+my-reader.lua+citations`. The extensions are accessible through
+the reader options' `extensions` field, e.g.:
+
+``` lua
+function Reader (input, opts)
+  print(
+    'The citations extension is',
+    opts.extensions:includes 'citations' and 'enabled' or 'disabled'
+  )
+  -- ...
+end
+```
+
+Extensions that are neither enabled nor disabled in the
+`reader_extensions` field are treated as unsupported by the
+reader. Trying to modify such an extension via the command line
+will lead to an error.
+
+
 # Example: plain text reader
 
 This is a simple example using [lpeg] to parse the input

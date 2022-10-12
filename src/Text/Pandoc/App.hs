@@ -165,7 +165,11 @@ convertWithOpts' scriptingEngine istty datadir opts = do
 
   (reader, readerExts) <-
     if ".lua" `T.isSuffixOf` readerName
-       then (,mempty) <$> engineReadCustom scriptingEngine (T.unpack readerName)
+       then do
+            let scriptPath = T.unpack readerNameBase
+            (r, extsConf) <- engineReadCustom scriptingEngine scriptPath
+            rexts         <- Format.applyExtensionsDiff extsConf flvrd
+            return (r, rexts)
        else if optSandbox opts
                then case runPure (getReader flvrd) of
                       Left e -> throwError e

@@ -36,7 +36,7 @@ data ScriptingEngine = ScriptingEngine
     -- ^ Use the scripting engine to run a filter.
 
   , engineReadCustom :: forall m. (PandocMonad m, MonadIO m)
-                     => FilePath -> m (Reader m)
+                     => FilePath -> m (Reader m, ExtensionsConfig)
     -- ^ Function to parse input into a 'Pandoc' document.
 
   , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
