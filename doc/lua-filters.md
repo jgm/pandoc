@@ -5238,6 +5238,29 @@ Returns:
 
 -   raw template (string)
 
+### meta_to_context {#pandoc.template.meta_to_context}
+
+`meta_to_context (meta, blocks_writer, inlines_writer)`
+
+Creates template context from the document's [Meta]{#type-meta}
+data, using the given functions to convert [Blocks] and [Inlines]
+to [Doc] values.
+
+Parameters:
+
+`meta`
+:   document metadata ([Meta])
+
+`blocks_writer`
+:   converter from [Blocks] to [Doc] values (function)
+
+`inlines_writer`
+:   converter from [Inlines] to [Doc] values (function)
+
+Returns:
+
+-   template context (table)
+
 # Module pandoc.types
 
 Constructors for types which are not part of the pandoc AST.

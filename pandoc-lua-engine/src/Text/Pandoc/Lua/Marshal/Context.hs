@@ -18,7 +18,7 @@ module Text.Pandoc.Lua.Marshal.Context
   , pushContext
   ) where
 
-import Control.Monad ((<$!>))
+import Control.Monad (when, (<$!>))
 import Data.Text (Text)
 import HsLua as Lua
 import HsLua.Module.DocLayout (peekDoc, pushDoc)
@@ -36,7 +36,18 @@ peekContext idx = Context <$!> peekMap peekText peekVal idx
 
 -- | Pushes a template context to the Lua stack.
 pushContext :: LuaError e => Pusher e (Context Text)
-pushContext = pushMap pushText pushVal . unContext
+pushContext ctx = do
+  pushMap pushText pushVal $ unContext ctx
+  created <- Lua.newmetatable "pandoc Context"
+  when created $ do
+    pushName "__concat"
+    pushHaskellFunction $ do
+      c1 <- forcePeek $ peekContext (nthBottom 1)
+      c2 <- forcePeek $ peekContext (nthBottom 2)
+      pushContext (c1 <> c2)
+      return 1
+    rawset (nth 3)
+  setmetatable (nth 2)
 
 pushVal :: LuaError e => Pusher e (Val Text)
 pushVal = \case

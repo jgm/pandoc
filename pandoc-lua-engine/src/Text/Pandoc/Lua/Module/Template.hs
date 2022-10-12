@@ -12,11 +12,13 @@ module Text.Pandoc.Lua.Module.Template
   ) where
 
 import HsLua
-import HsLua.Module.DocLayout (pushDoc)
+import HsLua.Module.DocLayout (peekDoc, pushDoc)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.Marshal.Context (peekContext)
+import Text.Pandoc.Lua.Marshal.AST (peekMeta, pushBlocks, pushInlines)
+import Text.Pandoc.Lua.Marshal.Context (peekContext, pushContext)
 import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
+import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Templates
   ( compileTemplate, getDefaultTemplate, renderTemplate
   , runWithPartials, runWithDefaultPartials )
@@ -40,7 +42,7 @@ functions :: [DocumentedFunction PandocError]
 functions =
   [ defun "apply"
      ### liftPure2 renderTemplate
-     <#> parameter peekTemplate "pandoc Template" "template" "template to apply"
+     <#> parameter peekTemplate "Template" "template" "template to apply"
      <#> parameter peekContext "table" "context" "variable values"
      =#> functionResult pushDoc "Doc" "rendered template"
      #? T.unlines
@@ -74,4 +76,28 @@ functions =
      =#> functionResult pushText "string"
            "string representation of the writer's default template"
 
+  , defun "meta_to_context"
+     ### (\meta blockWriterIdx inlineWriterIdx -> unPandocLua $ do
+             let blockWriter blks = liftPandocLua $ do
+                   pushvalue blockWriterIdx
+                   pushBlocks blks
+                   callTrace 1 1
+                   forcePeek $ peekDoc top
+             let inlineWriter blks = liftPandocLua $ do
+                   pushvalue inlineWriterIdx
+                   pushInlines blks
+                   callTrace 1 1
+                   forcePeek $ peekDoc top
+             metaToContext' blockWriter inlineWriter meta)
+     <#> parameter peekMeta "Meta" "meta" "document metadata"
+     <#> parameter pure "function" "blocks_writer"
+           "converter from Blocks to Doc values"
+     <#> parameter pure "function" "inlines_writer"
+           "converter from Inlines to Doc values"
+     =#> functionResult pushContext "table" "template context"
+     #? T.unlines
+     [ "Creates template context from the document's [Meta]{#type-meta}"
+     , "data, using the given functions to convert [Blocks] and [Inlines]"
+     , "to [Doc] values."
+     ]
   ]
