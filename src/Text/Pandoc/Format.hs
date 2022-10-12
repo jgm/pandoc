@@ -23,20 +23,17 @@ import System.FilePath (splitExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Extensions
-  ( Extension
-  , Extensions
-  , disableExtension
+  ( Extensions
+  , disableExtensions
   , enableExtension
-  , extensionEnabled
+  , extensionsToList
   , getAllExtensions
   , getDefaultExtensions
-  , readExtension
   , showExtension
+  , readExtension
   )
 import Text.Pandoc.Parsing
 import qualified Data.Text as T
-
-type Parser = Parsec T.Text ()
 
 -- | Format specifier with the format's name and the lists of extensions
 -- to be enabled or disabled.
@@ -48,17 +45,19 @@ data FlavoredFormat = FlavoredFormat
 -- | Changes to a set of extensions, i.e., list of extensions to be
 -- enabled or disabled.
 data ExtensionsDiff = ExtensionsDiff
-  { extsToEnable  :: [Extension]
-  , extsToDisable :: [Extension]
+  { extsToEnable  :: Extensions
+  , extsToDisable :: Extensions
   } deriving (Show)
 
 instance Semigroup ExtensionsDiff where
-  ExtensionsDiff x1 y1 <> ExtensionsDiff x2 y2 =
-    ExtensionsDiff (x1 <> x2) (y1 <> y2)
+  ExtensionsDiff enA disA <> ExtensionsDiff enB disB =
+    ExtensionsDiff
+    ((enA `disableExtensions` disB) <> enB)
+    ((disA `disableExtensions` enB) <> disB)
 
 instance Monoid ExtensionsDiff where
+  mempty = ExtensionsDiff mempty mempty
   mappend = (<>)
-  mempty = ExtensionsDiff [] []
 
 -- | Describes the properties of a format.
 data ExtensionsConfig = ExtensionsConfig
@@ -81,16 +80,13 @@ applyExtensionsDiff :: PandocMonad m
                     -> FlavoredFormat
                     -> m Extensions
 applyExtensionsDiff extConf (FlavoredFormat fname extsDiff) = do
-  let unsupported =
-        filter (\ext -> not $ extensionEnabled ext (extsSupported extConf))
-               (extsToEnable extsDiff ++ extsToDisable extsDiff)
-  case unsupported of
-    ext:_ -> throwError $ PandocUnsupportedExtensionError (showExtension ext)
-                          fname
-    []    -> let enabled = foldr enableExtension
-                                 (extsDefault extConf)
-                                 (extsToEnable extsDiff)
-             in pure $ foldr disableExtension enabled (extsToDisable extsDiff)
+  let extsInDiff  = extsToEnable extsDiff <> extsToDisable extsDiff
+  let unsupported = extsInDiff `disableExtensions` (extsSupported extConf)
+  case extensionsToList unsupported of
+    ext:_ -> throwError $ PandocUnsupportedExtensionError
+             (showExtension ext) fname
+    []    -> pure ((extsDefault extConf `disableExtensions`
+                    extsToDisable extsDiff) <> extsToEnable extsDiff)
 
 -- | Parse a format-specifying string into a markup format and the
 -- change set to the format's extensions. Throws an error if the spec
@@ -121,8 +117,9 @@ parseFlavoredFormat spec =
                         (_, "") -> ("", T.toLower spec) -- no extension
                         (p,s)   -> (T.pack p, T.pack s)
 
-pExtensionsDiff :: Parser ExtensionsDiff
-pExtensionsDiff = foldl' (flip ($)) (ExtensionsDiff [] []) <$> many extMod
+pExtensionsDiff :: (UpdateSourcePos s Char, Stream s m Char)
+                => ParsecT s u m ExtensionsDiff
+pExtensionsDiff = foldl' (flip ($)) mempty <$> many extMod
   where
     extMod = do
       polarity <- oneOf "-+"
@@ -130,5 +127,7 @@ pExtensionsDiff = foldl' (flip ($)) (ExtensionsDiff [] []) <$> many extMod
       let ext = readExtension name
       return $ \extsDiff ->
         case polarity of
-          '+' -> extsDiff{extsToEnable  = (ext : extsToEnable extsDiff)}
-          _   -> extsDiff{extsToDisable = (ext : extsToDisable extsDiff)}
+          '+' -> extsDiff{extsToEnable  = enableExtension ext $
+                                          extsToEnable extsDiff}
+          _   -> extsDiff{extsToDisable = enableExtension ext $
+                                          extsToDisable extsDiff}
