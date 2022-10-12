@@ -32,6 +32,8 @@ extra-source-files:  README.md
                    , test/tables.native
                    , test/testsuite.native
                    , test/writer.custom
+                   , test/writer-template.lua
+                   , test/writer-template.out.txt
 
 source-repository head
   type:                git

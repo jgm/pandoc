@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
@@ -104,20 +105,40 @@ optToOutputSettings scriptingEngine opts = do
 
   flvrd@(Format.FlavoredFormat format _extsDiff) <-
     Format.parseFlavoredFormat writerName
-  (writer, writerExts) <-
-    if "lua" `T.isSuffixOf` format
-    then do
-      (w, extsConf) <- engineWriteCustom scriptingEngine (T.unpack format)
-      wexts         <- Format.applyExtensionsDiff extsConf flvrd
-      return (w, wexts)
-    else do
-      if optSandbox opts
-      then case runPure (getWriter flvrd) of
-             Right (w, wexts) -> return (makeSandboxed w, wexts)
-             Left e           -> throwError e
-      else getWriter flvrd
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
+  let processCustomTemplate getDefault =
+        case optTemplate opts of
+          _ | not standalone -> return Nothing
+          Nothing -> Just <$> getDefault
+          Just tp -> do
+            -- strip off extensions
+            let tp' = case takeExtension tp of
+                        "" -> tp <.> T.unpack format
+                        _  -> tp
+            getTemplate tp'
+              >>= runWithPartials . compileTemplate tp'
+              >>= (\case
+                      Left  e -> throwError $ PandocTemplateError (T.pack e)
+                      Right t -> return $ Just t)
+
+  (writer, writerExts, mtemplate) <-
+    if "lua" `T.isSuffixOf` format
+    then do
+      (w, extsConf, mt) <- engineWriteCustom scriptingEngine (T.unpack format)
+      wexts <- Format.applyExtensionsDiff extsConf flvrd
+      templ <- processCustomTemplate mt
+      return (w, wexts, templ)
+    else do
+      tmpl <- processCustomTemplate (compileDefaultTemplate format)
+      if optSandbox opts
+      then case runPure (getWriter flvrd) of
+             Right (w, wexts) -> return (makeSandboxed w, wexts, tmpl)
+             Left e           -> throwError e
+      else do
+           (w, wexts) <- getWriter flvrd
+           return (w, wexts, tmpl)
+
 
   let addSyntaxMap existingmap f = do
         res <- liftIO (parseSyntaxDefinition f)
@@ -186,23 +207,8 @@ optToOutputSettings scriptingEngine opts = do
                       setVariableM "dzslides-core" dzcore vars
                   else return vars)
 
-  templ <- case optTemplate opts of
-                  _ | not standalone -> return Nothing
-                  Nothing ->
-                    let filename = T.pack . takeFileName . T.unpack
-                    in Just <$> compileDefaultTemplate (filename format)
-                  Just tp -> do
-                    -- strip off extensions
-                    let tp' = case takeExtension tp of
-                                   "" -> tp <.> T.unpack format
-                                   _  -> tp
-                    res <- getTemplate tp' >>= runWithPartials . compileTemplate tp'
-                    case res of
-                      Left  e -> throwError $ PandocTemplateError $ T.pack e
-                      Right t -> return $ Just t
-
   let writerOpts = def {
-          writerTemplate         = templ
+          writerTemplate         = mtemplate
         , writerVariables        = variables
         , writerTabStop          = optTabStop opts
         , writerTableOfContents  = optTableOfContents opts
