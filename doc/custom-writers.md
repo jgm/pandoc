@@ -83,6 +83,17 @@ function Writer (doc, opts)
 end
 ```
 
+## Default template
+
+The default template of a custom writer is defined by the return
+value of the global function `Template`. Pandoc uses the default
+template for rendering when the user has not specified a template,
+but invoked with the `-s`/`--standalone` flag.
+
+The `Template` global can be left undefined, in which case pandoc
+will throw an error when it would otherwise use the default
+template.
+
 ## Example: modified Markdown writer
 
 Writers have access to all modules described in the [Lua filters
@@ -105,6 +116,11 @@ function Writer (doc, opts)
     end
   }
   return pandoc.write(doc:walk(filter), 'gfm', opts)
+end
+
+function Template ()
+  local template = pandoc.template
+  return template.compile(template.default 'gfm')
 end
 ```
 
