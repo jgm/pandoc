@@ -21,6 +21,7 @@ module Text.Pandoc.Lua.Marshal.WriterOptions
 import Control.Applicative (optional)
 import Data.Default (def)
 import HsLua as Lua
+import Text.Pandoc.Lua.Marshal.Context (peekContext, pushContext)
 import Text.Pandoc.Lua.Marshal.Format (peekExtensions, pushExtensions)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
@@ -206,8 +207,8 @@ typeWriterOptions = deftype "WriterOptions"
 
   , property "variables"
     "Variables to set in template"
-    (pushViaJSON, writerVariables)
-    (peekViaJSON, \opts x -> opts{ writerVariables = x })
+    (pushContext, writerVariables)
+    (peekContext, \opts x -> opts{ writerVariables = x })
 
   , property "wrap_text"
     "Option for wrapping text"
