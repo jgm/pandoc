@@ -51,12 +51,7 @@ then only the `Writer` function will be used.
 
 ## Format extensions
 
-Custom writers can be built such that their behavior is
-controllable through format extensions, such as `smart`,
-`citations`, or `hard-line-breaks`. Supported extensions are those
-that are present as a key in the global `writer_extensions` table.
-Field of extensions by enabled default have the value `true`,
-while those that are supported but disabled have value `false`.
+Writers can be customized through format extensions, such as `smart, citations, or hard-line-breaks`. The global `writer_extensions` table indicates supported extensions with a key. Extensions enabled by default are assigned a true value, while those that are supported but disabled are assigned a false value.
 
 Example: A writer with the following global table supports the
 extensions `smart` and `citations`, with the former enabled and
