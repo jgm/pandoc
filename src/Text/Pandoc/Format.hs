@@ -40,20 +40,28 @@ import qualified Data.Text as T
 data FlavoredFormat = FlavoredFormat
   { formatName     :: T.Text
   , formatExtsDiff :: ExtensionsDiff
-  }
+  } deriving (Show)
 
 -- | Changes to a set of extensions, i.e., list of extensions to be
 -- enabled or disabled.
 data ExtensionsDiff = ExtensionsDiff
   { extsToEnable  :: [Extension]
   , extsToDisable :: [Extension]
-  }
+  } deriving (Show)
+
+instance Semigroup ExtensionsDiff where
+  ExtensionsDiff x1 y1 <> ExtensionsDiff x2 y2 =
+    ExtensionsDiff (x1 <> x2) (y1 <> y2)
+
+instance Monoid ExtensionsDiff where
+  mappend = (<>)
+  mempty = ExtensionsDiff [] []
 
 -- | Describes the properties of a format.
 data ExtensionsConfig = ExtensionsConfig
   { extsDefault   :: Extensions -- ^ Extensions enabled by default
   , extsSupported :: Extensions -- ^ Extensions that can be enabled or disabled.
-  }
+  } deriving (Show)
 
 -- | Returns the extensions configuration of a format.
 getExtensionsConfig :: T.Text -> ExtensionsConfig
