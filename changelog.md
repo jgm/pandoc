@@ -299,13 +299,6 @@
       if the input format can still contain extensions. The same is true
       for `compileDefaultTemplate`, which calls `getDefaultTemplate`
       internally
-    + Use filename to search for default template of custom writers
-      (#8137, Albert Krewinkel). The default template of a custom writer
-      `/path/to/my-writer.lua` is expected in the
-      `templates/default.my-writer.lua` data file. Note that templates
-      are *not* applied automatically to the output of custom
-      writers; custom writer authors must ensure that the template is applied
-      if one is present in the writer options.
 
   * New exported module Text.Pandoc.Scripting (Albert Krewinkel).
     The module contains the central data structure for scripting engines
