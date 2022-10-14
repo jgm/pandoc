@@ -28,6 +28,7 @@ import Test.Tasty.Bench
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (mapMaybe)
 import Data.List (sortOn)
+import Text.Pandoc.Format (FlavoredFormat(..))
 
 readerBench :: Pandoc
             -> T.Text
@@ -36,8 +37,8 @@ readerBench _ name
   | name `elem` ["bibtex", "biblatex", "csljson"] = Nothing
 readerBench doc name = either (const Nothing) Just $
   runPure $ do
-    (rdr, rexts) <- getReader name
-    (wtr, wexts) <- getWriter name
+    (rdr, rexts) <- getReader $ FlavoredFormat name mempty
+    (wtr, wexts) <- getWriter $ FlavoredFormat name mempty
     case (rdr, wtr) of
       (TextReader r, TextWriter w) -> do
         inp <- w def{ writerWrapText = WrapAuto
@@ -70,7 +71,7 @@ writerBench _ _ name
   | name `elem` ["bibtex", "biblatex", "csljson"] = Nothing
 writerBench imgs doc name = either (const Nothing) Just $
   runPure $ do
-    (wtr, wexts) <- getWriter name
+    (wtr, wexts) <- getWriter $ FlavoredFormat name mempty
     case wtr of
       TextWriter writerFun ->
         return $ bench (T.unpack name)
