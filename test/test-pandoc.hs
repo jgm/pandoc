@@ -107,7 +107,7 @@ main = do
   case args of
     "--emulate":args' -> -- emulate pandoc executable
           E.catch
-            (parseOptionsFromArgs (options noEngine) defaultOpts "pandoc" args'
+            (parseOptionsFromArgs options defaultOpts "pandoc" args'
              >>= convertWithOpts noEngine)
             (handleError . Left)
     _ -> inDirectory "test" $ do

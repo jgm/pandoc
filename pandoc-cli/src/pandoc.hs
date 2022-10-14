@@ -62,8 +62,7 @@ main = E.handle (handleError . Left) $ do
         "server": args -> runServer args
         _              -> do
           engine <- getEngine
-          let cliOpts = options engine
-          opts <- parseOptionsFromArgs cliOpts defaultOpts prg rawArgs
+          opts <- parseOptionsFromArgs options defaultOpts prg rawArgs
           convertWithOpts engine opts
 
 copyrightMessage :: String
