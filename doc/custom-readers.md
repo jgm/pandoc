@@ -78,13 +78,12 @@ ensuring backwards compatibility.
 
 # Bytestring readers
 
-Pandoc expects text input to be UTF-8 encoded. However, formats
-like docx, odt, epub, etc. are not text but binary formats. To
-read them, pandoc supports `ByteStringReader` functions. These
-functions work just like the `Reader` function that process text
-input, but instead of a list of sources, `ByteStringReader`
-functions are passed a bytestring, i.e., a string that contains
-the binary input.
+In order to read binary formats, including docx, odt, and epub,
+pandoc supports the `ByteStringReader` function. A
+`ByteStringReader` function is similar to the `Reader` function
+that processes text input. Instead of a list of sources, the
+ByteStringReader function is passed a bytestring, i.e., a string
+that contains the binary input.
 
 ``` lua
 -- read input as epub
