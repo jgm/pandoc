@@ -236,6 +236,8 @@
     + Remove `parseFormatSpec` [API change]. This has been moved
       to Text.Pandoc.Format and renamed as `parseFlavoredFormat`
       (Albert Krewinkel).
+    + Simpler implementation of Extensions based on Set
+      (benchmarks show no performance penalty).
 
   * Text.Pandoc.MIME:
 
@@ -400,6 +402,28 @@
     + Fix the behavior of Lua "Version" objects under equality
       comparisons (#8267).
     + Support running Lua with a GC-collected Lua state.
+    + Ensure that extensions marshaling is consistent.
+    + Produce more informative error messages for pandoc errors.
+      Errors are reported in Lua in the same words in which they would be
+      reported in the terminal.
+    + Add new module `pandoc.format`. The module provides functions to
+      query the set of extensions supported by formats and the set
+      of extension enabled per default.
+    + Add function `pandoc.template.apply`.
+    + Add function `pandoc.template.meta_to_context`.
+      The functions converts Meta values to template contexts; the intended
+      use is in combination with `pandoc.template.apply`.
+    + Allow Doc values in `WriterOptions.variables`.
+      The specialized peeker and pusher function for `Context Text` values
+      does not go via JSON, and thus keeps Doc values unchanged during
+      round-tripping.
+
+  * Custom writers:
+
+    + The global variables `PANDOC_DOCUMENT` and `PANDOC_WRITER_OPTIONS`
+      are no longer set when the writer script is loaded. Both variables
+      are still set in classic writers before the conversion is started,
+      so they can be used when they are wrapped in functions.
     + Deprecate classic custom writers.
     + Add function `pandoc.write_classic`. The function can be used to
       convert a classic writer into a new-style writer by setting it as
@@ -416,25 +440,6 @@
         return pandoc.write_classic(doc, opts)
       end
       ```
-    + Ensure that extensions marshaling is consistent.
-    + Produce more informative error messages for pandoc errors.
-      Errors are reported in Lua in the same words in which they would be
-      reported in the terminal.
-    + Add new module `pandoc.format`. The module provides functions to
-      query the set of extensions supported by formats and the set
-      of extension enabled per default.
-    + Add function `pandoc.template.apply`.
-    + Add function `pandoc.template.meta_to_context`.
-      The functions converts Meta values to template contexts; the intended
-      use is in combination with `pandoc.template.apply`.
-    + Allow Doc values in `WriterOptions.variables`.
-      The specialized peeker and pusher function for `Context Text` values
-      does not go via JSON, and thus keeps Doc values unchanged during
-      round-tripping.
-    + The global variables `PANDOC_DOCUMENT` and `PANDOC_WRITER_OPTIONS`
-      are no longer set when the writer script is loaded. Both variables
-      are still set in classic writers before the conversion is started,
-      so they can be used when they are wrapped in functions.
     + Support extensions in custom writers. Custom writers can define the
       extensions that they support via the global `writer_extensions`.
       The variable's value must be a table with all supported extensions
@@ -447,6 +452,18 @@
         sourcepos = false,
       }
       ```
+    + Custom writers can define a default template via a global `Template`
+      function; the data directory is no longer searched for a default
+      template. Writer authors can restore the old lookup behavior with
+      ``` lua
+      Template = function ()
+        local template
+        return template.compile(template.default(PANDOC_SCRIPT_FILE))
+      end
+      ```
+
+  * Custom readers:
+
     + Support extensions in custom readers.
       Custom readers, like writers, can define the set of supported
       extensions by setting a global. E.g.:
@@ -480,6 +497,8 @@
     + Modify Zerobrane instructions to use Lua 5.4 (#8353, Ian Max Andolina).
     + Fix documentation for highlight-style in `pandoc-server.md`.
     + Fix link to fedora package site (#8246, Akos Marton).
+    + Rephrase paragraph on format extensions (#8375, Ilona
+      Silverwood).
 
   * Tests.Command: remove unused `runTest`.
 
