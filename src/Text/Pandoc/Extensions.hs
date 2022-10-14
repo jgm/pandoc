@@ -32,7 +32,6 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
@@ -40,6 +39,7 @@ import GHC.Generics (Generic)
 import Text.Read (readMaybe)
 import Data.Aeson.TH (deriveJSON)
 import Data.Aeson
+import qualified Data.Set as Set
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -139,13 +139,13 @@ data Extension =
 
 $(deriveJSON defaultOptions{ constructorTagModifier = drop 4 } ''Extension)
 
-newtype Extensions = Extensions Integer
+newtype Extensions = Extensions (Set.Set Extension)
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
 instance Semigroup Extensions where
-  (Extensions a) <> (Extensions b) = Extensions (a .|. b)
+  (Extensions a) <> (Extensions b) = Extensions (a <> b)
 instance Monoid Extensions where
-  mempty = Extensions 0
+  mempty = Extensions mempty
   mappend = (<>)
 
 instance FromJSON Extensions where
@@ -165,16 +165,16 @@ extensionsFromList :: [Extension] -> Extensions
 extensionsFromList = foldr enableExtension emptyExtensions
 
 emptyExtensions :: Extensions
-emptyExtensions = Extensions 0
+emptyExtensions = Extensions mempty
 
 extensionEnabled :: Extension -> Extensions -> Bool
-extensionEnabled x (Extensions exts) = testBit exts (fromEnum x)
+extensionEnabled x (Extensions exts) = x `Set.member` exts
 
 enableExtension :: Extension -> Extensions -> Extensions
-enableExtension x (Extensions exts) = Extensions (setBit exts (fromEnum x))
+enableExtension x (Extensions exts) = Extensions (Set.insert x exts)
 
 disableExtension :: Extension -> Extensions -> Extensions
-disableExtension x (Extensions exts) = Extensions (clearBit exts (fromEnum x))
+disableExtension x (Extensions exts) = Extensions (Set.delete x exts)
 
 -- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions
