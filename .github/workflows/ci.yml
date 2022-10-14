@@ -105,7 +105,7 @@ jobs:
       run: |
           cabal build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization 2>&1 | tee build.log
           # fail if warnings in local build
-          ! grep -q ": *[Ww]arning:" build.log || exit 1
+          ! grep -q ": *[Ww]arning:\|: *error:" build.log || exit 1
           cabal test all ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
 
   windows:
