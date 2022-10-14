@@ -13,8 +13,8 @@
   * Pandoc behaves like a server when called as `pandoc-server`
     or when `pandoc server` is used. (See the `pandoc-server` man page.)
 
-  * A new command-line option `--list-tables`, causes tables to
-    be formatted as list tables in RST (#4564).
+  * A new command-line option `--list-tables`, causes tables to be
+    formatted as list tables in RST (#4564, with Francesco Occhipinti).
 
   * `--version` output no longer contains version info for dependent
     packages. Instead, it contains a "Features" line that indicates
@@ -52,7 +52,7 @@
 
   * LaTeX reader:
 
-    + Skip parenthenized args of toprule, midrule, etc (#8242.
+    + Skip parenthenized args of toprule, midrule, etc (#8242).
     + Handle `##` macro arguments properly (#8243).
     + Remove unused function `toksToString` in Parsing module.
 
@@ -144,7 +144,7 @@
   * RST writer:
 
     + Render tables as list tables when the `--list-tables` option is
-      specified (`writerListTables`) (#4564, danse).
+      specified (`writerListTables`) (#4564, Francesco Occhipinti).
 
   * Commonmark writer:
 
@@ -446,7 +446,7 @@
       extensions that they support via the global `writer_extensions`.
       The variable's value must be a table with all supported extensions
       as keys, and their default status as values. For example,
-      the below specifies that the writer support the extensions `smart`
+      the below specifies that the writer supports the extensions `smart`
       and `sourcepos`, but only the `smart` extension is enabled by default:
       ``` lua
       writer_extensions = {
