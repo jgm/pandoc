@@ -115,7 +115,7 @@ parseFlavoredFormat spec =
       return ( T.pack name, extsDiff )
     parseFormatName = many1 $ noneOf "-+"
     (prefix, spec') = case splitExtension (T.unpack spec) of
-                        (_, "") -> ("", T.toLower $ spec) -- no extension
+                        (_, "") -> ("", T.toLower spec) -- no extension
                         (p,s)   -> (T.pack p, T.pack s)
 
 pExtensionsDiff :: Stream s m Char => ParsecT s u m ExtensionsDiff

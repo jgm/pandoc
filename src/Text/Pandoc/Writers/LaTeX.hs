@@ -961,7 +961,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
       optList = showDim Width <> showDim Height <>
                 maybe [] (\x -> ["page=" <> literal x]) (lookup "page" kvs) <>
                 maybe [] (\x -> ["trim=" <> literal x]) (lookup "trim" kvs) <>
-                maybe [] (\_ -> ["clip"]) (lookup "clip" kvs)
+                maybe [] (const ["clip"]) (lookup "clip" kvs)
       options = if null optList
                    then empty
                    else brackets $ mconcat (intersperse "," optList)

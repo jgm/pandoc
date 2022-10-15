@@ -1221,8 +1221,10 @@ modifyMediaRef oldsrc = do
          Just (n,_) -> return $ T.pack n
          Nothing    -> catchError
            (do (img, mbMime) <- P.fetchItem $ T.pack oldsrc
-               let ext = maybe (takeExtension (takeWhile (/='?') oldsrc)) T.unpack
-                         (("." <>) <$> (mbMime >>= extensionFromMimeType))
+               let ext = maybe
+                          (takeExtension (takeWhile (/='?') oldsrc))
+                          (T.unpack . ("." <>))
+                          (mbMime >>= extensionFromMimeType)
                newName <- getMediaNextNewName ext
                let newPath = "media/" ++ newName
                entry <- mkEntry newPath (B.fromChunks . (:[]) $ img)

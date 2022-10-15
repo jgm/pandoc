@@ -191,8 +191,8 @@ optToOutputSettings scriptingEngine opts = do
     >>=
     maybe return (setVariableM "title-prefix") (optTitlePrefix opts)
     >>=
-    maybe return (setVariableM "epub-cover-image")
-                 (T.pack <$> optEpubCoverImage opts)
+    maybe return (setVariableM "epub-cover-image" . T.pack)
+                 (optEpubCoverImage opts)
     >>=
     setVariableM "curdir" (T.pack curdir)
     >>=

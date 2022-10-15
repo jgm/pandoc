@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -280,12 +281,12 @@ rowsToRowspans rows = let
       -> Maybe Integer -- Number of columns left below
       -> Maybe [(Int, Cell)] -- (rowspan so far, cell) for the row below this one
       -> [(Int, Cell)] -- (rowspan so far, cell) for this row
-    g cells _ Nothing = zip (repeat 1) cells
+    g cells _ Nothing = map (1,) cells
     g cells columnsLeftBelow (Just rowBelow) =
         case cells of
           [] -> []
           thisCell@(Cell thisGridSpan _ _) : restOfRow -> case rowBelow of
-            [] -> zip (repeat 1) cells
+            [] -> map (1,) cells
             (spanSoFarBelow, Cell gridSpanBelow vmerge _) : _ ->
               let spanSoFar = case vmerge of
                     Restart -> 1

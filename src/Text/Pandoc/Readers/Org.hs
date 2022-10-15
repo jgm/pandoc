@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org
    Copyright   : Copyright (C) 2014-2022 Albert Krewinkel

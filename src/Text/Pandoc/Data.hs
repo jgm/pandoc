@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
+#ifdef EMBED_DATA_FILES
 {-# LANGUAGE TemplateHaskell #-}
+#endif
 {- |
 Module      : Text.Pandoc.Data
 Copyright   : Copyright (C) 2013-2022 John MacFarlane

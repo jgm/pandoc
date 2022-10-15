@@ -16,13 +16,12 @@ module Text.Pandoc.URI ( urlEncode
                        , schemes
                        , uriPathToPath
                        ) where
-import Network.URI (URI (uriScheme), parseURI)
 import qualified Network.HTTP.Types as HTTP
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
 import qualified Data.Set as Set
 import Data.Char (isSpace)
-import Network.URI (escapeURIString)
+import Network.URI (URI (uriScheme), parseURI, escapeURIString)
 
 urlEncode :: T.Text -> T.Text
 urlEncode = UTF8.toText . HTTP.urlEncode True . UTF8.fromText

@@ -1,11 +1,9 @@
 {-# LANGUAGE CPP                 #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.App.CommandLineOptions
    Copyright   : Copyright (C) 2006-2022 John MacFarlane

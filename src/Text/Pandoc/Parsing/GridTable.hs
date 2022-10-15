@@ -155,7 +155,7 @@ gridTableWith' normalization blocks = do
             in [B.Row nullAttr cells | not (null cells) &&
                                        not (all simple cells)]
           _ -> hRows
-    let tfoot = B.TableFoot B.nullAttr $ fRows
+    let tfoot = B.TableFoot B.nullAttr fRows
     let tbody = B.TableBody B.nullAttr 0 [] bRows
     return $ TableComponents nullAttr caption colspecs thead [tbody] tfoot
 
@@ -181,7 +181,7 @@ convAlign GT.AlignDefault = B.AlignDefault
 
 fractionalColumnWidths :: GT.ArrayTable a -> Int -> [Double]
 fractionalColumnWidths gt charColumns =
-  let widths = map ((+1) . snd) $ -- include width of separator
+  let widths = map ((+1) . snd) -- include width of separator
                (elems $ GT.arrayTableColSpecs gt)
       norm = fromIntegral $ max (sum widths + length widths - 2) charColumns
   in map (\w -> fromIntegral w / norm) widths

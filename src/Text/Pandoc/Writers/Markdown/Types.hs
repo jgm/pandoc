@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown.Types
    Copyright   : Copyright (C) 2006-2022 John MacFarlane

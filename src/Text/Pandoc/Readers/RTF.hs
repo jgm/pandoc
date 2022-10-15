@@ -251,7 +251,7 @@ tok = do
     hyph <- option False $ True <$ char '-'
     rest <- many digit
     if null rest
-       then return $! Nothing
+       then return Nothing
        else do
          let pstr = T.pack rest
          case TR.decimal pstr of
@@ -259,7 +259,7 @@ tok = do
                 return $! Just $! if hyph
                                      then (-1) * i
                                      else i
-           _ -> return $! Nothing
+           _ -> return Nothing
   hexVal = do
     char '\''
     x <- hexDigit
