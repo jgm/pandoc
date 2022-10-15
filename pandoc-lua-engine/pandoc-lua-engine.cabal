@@ -88,6 +88,7 @@ library
                      , Text.Pandoc.Lua.Reader
                      , Text.Pandoc.Lua.Writer
                      , Text.Pandoc.Lua.Writer.Classic
+                     , Text.Pandoc.Lua.Writer.Elements
 
   build-depends:       SHA                   >= 1.6     && < 1.7
                      , bytestring            >= 0.9     && < 0.12

@@ -42,6 +42,7 @@ import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
 import Text.Pandoc.Lua.Module.Utils (sha1)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Lua.Writer.Classic (runCustom)
+import Text.Pandoc.Lua.Writer.Elements (pushElementWriter)
 import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
                            , WriterOptions (writerExtensions) )
 import Text.Pandoc.Process (pipeProcess)
@@ -190,7 +191,11 @@ stringConstants =
 
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ defun "pipe"
+  [ defun "make_writer"
+    ### pushElementWriter
+    =?> "Writer"
+
+  , defun "pipe"
     ### (\command args input -> do
             (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
                             `catch` (throwM . PandocIOError "pipe")
