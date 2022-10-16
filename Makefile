@@ -25,7 +25,7 @@ all: test ## tests and build executable
 .PHONY: quick-cabal
 
 binpath: ## print path of built pandoc executable
-	cabal list-bin $(CABALOPTS) pandoc-cli
+	@cabal list-bin $(CABALOPTS) pandoc-cli
 .PHONY: binpath
 
 # Note:  to accept current results of golden tests,
