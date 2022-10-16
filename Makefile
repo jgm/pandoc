@@ -2,10 +2,7 @@ version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r master --name-only src | grep "\.hs$$")
-BRANCH?=master
-ARCH=$(shell uname -m)
 DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.2.3
-COMMIT=$(shell git rev-parse --short HEAD)
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
@@ -226,6 +223,14 @@ git-files.txt: .FORCE
 	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
 
 help: ## display this help
-	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-30s %s\n", $$1, $$2}'
+	@echo "Targets:"
+	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-16s %s\n", $$1, $$2}'
+	@echo
+	@echo "Environment variables with default values:"
+	@printf "%-16s%s\n" "CABALOPTS" "$(CABALOPTS)"
+	@printf "%-16s%s\n" "GHCOPTS" "$(GHCOPTS)"
+	@printf "%-16s%s\n" "TESTARGS" "$(TESTARGS)"
+	@printf "%-16s%s\n" "BASELINE" "$(BASELINE)"
+	@printf "%-16s%s\n" "REVISION" "$(REVISION)"
 .PHONY: help
 
