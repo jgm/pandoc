@@ -24,7 +24,7 @@ import Data.Text (Text)
 import Data.String (IsString (fromString))
 import HsLua
 import HsLua.Module.DocLayout (peekDoc, pushDoc)
-import Text.DocLayout (Doc, blankline, cr, literal, render, space)
+import Text.DocLayout (Doc, blankline, render)
 import Text.DocTemplates (Context)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
@@ -34,7 +34,6 @@ import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Context (peekContext)
 import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
-import Text.Pandoc.Shared (stringify)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (metaToContext, setField)
 
@@ -46,8 +45,8 @@ pushElementWriter = do
   writer <- toWriterTable top
   addField "Blocks"  $ pushDocumentedFunction (blocksFn writer)
   addField "Inlines" $ pushDocumentedFunction (inlinesFn writer)
-  addField "Block"   $ newtable *> pushBlockMT  *> setmetatable (nth 2)
-  addField "Inline"  $ newtable *> pushInlineMT *> setmetatable (nth 2)
+  addField "Block"   $ newtable *> pushBlockMT  writer *> setmetatable (nth 2)
+  addField "Inline"  $ newtable *> pushInlineMT writer *> setmetatable (nth 2)
   addField "Pandoc"  $ pushDocumentedFunction $ lambda
     ### (\(Pandoc _ blks) -> blockListToCustom writer Nothing blks)
     <#> parameter peekPandoc "Pandoc" "doc" ""
@@ -64,37 +63,26 @@ pushElementWriter = do
     ### inlineListToCustom w
     <#> parameter peekInlines "Inlines" "inlines" ""
     =#> functionResult pushDoc "Doc" ""
-  pushBlockMT = do
+  pushBlockMT writer = do
     newtable
     addField "__call" $ pushDocumentedFunction $ lambda
       ### blockToCustom
       <#> parameter peekWriter "table" "writer" ""
       <#> parameter peekBlockFuzzy "Block" "block" ""
       =#> functionResult pushDoc "Doc" "rendered blocks"
-    addField "__index" $ pushDocumentedFunction $ lambda
-      ### (pushDocumentedFunction $ lambda
-            ### liftPure (literal . stringify)
-            <#> parameter peekBlock "Block" "block" ""
-            =#> functionResult pushDoc "Doc" "")
-      =#> functionResult pure "function" ""
-  pushInlineMT = do
+    addField "__index" $
+      -- lookup missing fields in the main Writer table
+      pushWriterTable writer
+  pushInlineMT writer = do
     newtable
     addField "__call" $ pushDocumentedFunction $ lambda
       ### inlineToCustom
       <#> parameter peekWriter "table" "writer" ""
       <#> parameter peekInlineFuzzy "Inline" "inline" ""
       =#> functionResult pushDoc "Doc" "rendered inline"
-    addField "__index" $ pushDocumentedFunction $ lambda
-      ### (\_writer key -> pushDocumentedFunction $ lambda
-            ### liftPure (\inline -> case key of
-                             "Space"     -> space
-                             "LineBreak" -> cr
-                             _           -> literal . stringify $ inline)
-            <#> parameter peekInline "Inline" "inline" ""
-            =#> functionResult pushDoc "Doc" "")
-      <#> parameter peekWriter "table" "writer" ""
-      <#> parameter peekName "string" "key" ""
-      =#> functionResult pure "function" ""
+    addField "__index" $ do
+      -- lookup missing fields in the main Writer table
+      pushWriterTable writer
 
 pushWriterMT :: LuaE PandocError ()
 pushWriterMT = do
@@ -113,7 +101,6 @@ addField name action = do
   rawset (nth 3)
 
 getfield' :: LuaError e => StackIndex -> Name -> LuaE e HsLua.Type
--- getfield' = getfield
 getfield' idx name = do
   aidx <- absindex idx
   pushName name
@@ -184,12 +171,11 @@ getNestedWriterField :: LuaError e
 getNestedWriterField writer subtable field = do
   pushWriterTable writer
   getfield' top subtable >>= \case
-    TypeNil -> pop 1 *> getfield' top field
+    TypeNil -> TypeNil <$ remove (nth 2) -- remove Writer table
     _       -> do
-      getfield' top field >>= \case
-        TypeNil -> pop 2 *> getfield' top field
-        t       -> t <$ remove (nth 2)  -- remove subtable
-      <* remove (nth 2) -- remove Writer table
+      getfield' top field
+        -- remove Writer and subtable
+        <* remove (nth 3) <* remove (nth 2)
 
 pandocToCustom :: WriterTable -> Pandoc
                -> LuaE PandocError (Doc Text, Maybe (Context Text))
