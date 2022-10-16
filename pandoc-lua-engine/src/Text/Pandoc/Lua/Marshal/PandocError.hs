@@ -30,7 +30,9 @@ import qualified Text.Pandoc.UTF8 as UTF8
 typePandocError :: LuaError e => DocumentedType e PandocError
 typePandocError = deftype "PandocError"
   [ operation Tostring $ defun "__tostring"
-    ### liftPure renderError
+    ### liftPure (\case
+                     PandocLuaError e -> e
+                     err              -> renderError err)
     <#> udparam typePandocError "obj" "PandocError object"
     =#> functionResult pushText "string" "string representation of error."
   ]
