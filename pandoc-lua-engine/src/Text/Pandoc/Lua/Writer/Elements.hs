@@ -191,16 +191,18 @@ blockToCustom :: WriterTable -> Block -> LuaE PandocError (Doc Text)
 blockToCustom writer blk = do
   let constrName = fromString . showConstr . toConstr $ blk
   getNestedWriterField writer "Block" constrName
-  pushBlock blk
-  pushOpts
-  call 2 1
-  forcePeek $ peekDocFuzzy top `lastly` pop 1
+  forcePeek . (`lastly` pop 1) $ -- remove final Doc value
+    -- try to use the value as a Doc; if that fails, use it as a function.
+    peekDocFuzzy top <|> do
+      -- try to call value as a function
+      liftLua $ pushBlock blk *> pushOpts *> call 2 1
+      peekDocFuzzy top
 
 inlineToCustom :: WriterTable -> Inline -> LuaE PandocError (Doc Text)
 inlineToCustom writer blk = do
   let constrName = fromString . showConstr . toConstr $ blk
   getNestedWriterField writer "Inline" constrName
-  forcePeek . (`lastly` pop 1) $
+  forcePeek . (`lastly` pop 1) $ -- remove final Doc value
     -- try to use the value as a Doc; if that fails, use it as a function.
     peekDocFuzzy top <|> do
       -- try to call value as a function
