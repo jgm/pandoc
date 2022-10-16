@@ -88,9 +88,9 @@ instance PandocMonad PandocLua where
 -- | Retrieve a @'PandocError'@ from the Lua stack.
 popPandocError :: LuaE PandocError PandocError
 popPandocError = do
-  errResult <- runPeek $ peekPandocError top
+  errResult <- runPeek $ peekPandocError top `lastly` pop 1
   case resultToEither errResult of
-    Right x -> return x
+    Right x  -> return x
     Left err -> return $ PandocLuaError (T.pack err)
 
 -- | Conversions between Lua errors and 'PandocError' exceptions.

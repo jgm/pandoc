@@ -46,5 +46,7 @@ peekPandocError idx = Lua.retrieving "PandocError" $
   liftLua (Lua.ltype idx) >>= \case
     Lua.TypeUserdata -> peekUD typePandocError idx
     _ -> do
-      msg <- liftLua $ Lua.state >>= \l -> Lua.liftIO (Lua.popErrorMessage l)
+      msg <- liftLua $ do
+        Lua.pushvalue idx
+        Lua.state >>= \l -> Lua.liftIO (Lua.popErrorMessage l)
       return $ PandocLuaError (UTF8.toText msg)
