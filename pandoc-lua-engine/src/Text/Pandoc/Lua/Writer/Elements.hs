@@ -16,7 +16,8 @@ module Text.Pandoc.Lua.Writer.Elements
 
 import Control.Applicative ((<|>))
 import Control.Monad ((<$!>), void)
-import Data.Data ( showConstr, toConstr )
+import Data.ByteString (ByteString)
+import Data.Data (dataTypeConstrs, dataTypeOf, showConstr, toConstr)
 import Data.Default (def)
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
@@ -36,6 +37,7 @@ import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (metaToContext, setField)
+import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Convert Pandoc to custom markup.
 pushElementWriter :: LuaE PandocError NumResults
@@ -93,6 +95,12 @@ pushWriterMT = do
     <#> parameter peekPandoc "Pandoc" "doc" ""
     <#> opt (parameter peekWriterOptions "WriterOptions" "opts" "")
     =#> functionResult pushText "string" "rendered document"
+  addField "__index" . pushDocumentedFunction $ lambda
+    ### (\_writer key -> handleMissingField key)
+    <#> parameter pure "table"  "writer" ""
+    <#> parameter (liftLua . tostring') "string" "key" ""
+    =#> functionResult (const pushnil) "string" ""
+
 
 addField :: LuaError e => Name -> LuaE e a -> LuaE e ()
 addField name action = do
@@ -172,10 +180,9 @@ getNestedWriterField writer subtable field = do
   pushWriterTable writer
   getfield' top subtable >>= \case
     TypeNil -> TypeNil <$ remove (nth 2) -- remove Writer table
-    _       -> do
-      getfield' top field
-        -- remove Writer and subtable
-        <* remove (nth 3) <* remove (nth 2)
+    _       -> getfield' top field
+               -- remove Writer and subtable
+               <* remove (nth 3) <* remove (nth 2)
 
 pandocToCustom :: WriterTable -> Pandoc
                -> LuaE PandocError (Doc Text, Maybe (Context Text))
@@ -229,3 +236,22 @@ peekDocFuzzy :: LuaError e => Peeker e (Doc Text)
 peekDocFuzzy idx = liftLua (ltype idx) >>= \case
   TypeTable -> mconcat <$!> peekList peekDoc idx
   _         -> peekDoc idx
+
+handleMissingField :: LuaError e => ByteString -> LuaE e ()
+handleMissingField key' =
+  let key = UTF8.toString key'
+      blockNames  = map (fromString . show) . dataTypeConstrs . dataTypeOf
+                      $ HorizontalRule
+      inlineNames = map (fromString . show) . dataTypeConstrs . dataTypeOf
+                      $ Space
+      mtypeName = case () of
+       _ | key `elem` blockNames  -> Just "Block"
+       _ | key `elem` inlineNames -> Just "Inline"
+       _                          -> Nothing
+  in case mtypeName of
+       Just typeName  -> failLua $
+                         "No render function for " <> typeName <> " value " <>
+                         "'" <> key <> "';\ndefine a function `Writer." <>
+                         typeName <> "." <> key <> "` that returns " <>
+                         "a string or Doc."
+       _ -> pure ()
