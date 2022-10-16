@@ -15,7 +15,10 @@ reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
 import Control.Monad.State.Strict
-import Data.Char (isSpace)
+import Data.Char (isSpace, generalCategory, isAscii, isAlphaNum,
+                  GeneralCategory(
+                        ClosePunctuation, OpenPunctuation, InitialQuote,
+                         FinalQuote, DashPunctuation, OtherPunctuation))
 import Data.List (transpose, intersperse, foldl')
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe (fromMaybe)
@@ -160,25 +163,62 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
 
 -- | Escape special characters for RST.
 escapeText :: WriterOptions -> Text -> Text
-escapeText o = T.pack . escapeString' True o . T.unpack -- This ought to be parser
-  where
-  escapeString' _ _  [] = []
-  escapeString' firstChar opts (c:cs) =
-    case c of
-         '\\' -> '\\':c:escapeString' False opts cs
-         _    | c `elemText` "`*_|" &&
-                (firstChar || null cs) -> '\\':c:escapeString' False opts cs
-         '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString' False opts cs
-         '"'  | isEnabled Ext_smart opts -> '\\':'"':escapeString' False opts cs
-         '-'  | isEnabled Ext_smart opts ->
-                  case cs of
-                    '-':_ -> '\\':'-':escapeString' False opts cs
-                    _     -> '-':escapeString' False opts cs
-         '.'  | isEnabled Ext_smart opts ->
-                  case cs of
-                    '.':'.':rest -> '\\':'.':'.':'.':escapeString' False opts rest
-                    _            -> '.':escapeString' False opts cs
-         _ -> c : escapeString' False opts cs
+escapeText opts t =
+  if T.any isSpecial t
+     then T.pack . escapeString' True . T.unpack $ t
+     else t -- optimization
+ where
+  isSmart = isEnabled Ext_smart opts
+  isSpecial c = c == '\\' || c == '_' || c == '`' || c == '*' || c == '|'
+                || (isSmart && (c == '-' || c == '.' || c == '"' || c == '\''))
+  canFollowInlineMarkup c = c == '-' || c == '.' || c == ',' || c == ':'
+                    || c == ';' || c == '!' || c == '?' || c == '\''
+                    || c == '"' || c == ')' || c == ']' || c == '}'
+                    || c == '>' || isSpace c
+                    || (not (isAscii c) &&
+                        generalCategory c `elem`
+                        [OpenPunctuation, InitialQuote, FinalQuote,
+                         DashPunctuation, OtherPunctuation])
+  canPrecedeInlineMarkup c = c == '-' || c == ':' || c == '/' || c == '\''
+                     || c == '"' || c == '<' || c == '(' || c == '['
+                     || c == '{' || isSpace c
+                     || (not (isAscii c) &&
+                          generalCategory c `elem`
+                          [ClosePunctuation, InitialQuote, FinalQuote,
+                          DashPunctuation, OtherPunctuation])
+  escapeString' canStart cs =
+    case cs of
+      [] -> []
+      d:ds
+        | d == '\\'
+        -> '\\' : d : escapeString' False ds
+      '\'':ds
+        | isSmart
+        -> '\\' : '\'' : escapeString' True ds
+      '"':ds
+        | isSmart
+        -> '\\' : '"' : escapeString' True ds
+      '-':'-':ds
+        | isSmart
+        -> '\\' : '-' : escapeString' False ('-':ds)
+      '.':'.':'.':ds
+        | isSmart
+        -> '\\' : '.' : escapeString' False ('.':'.':ds)
+      e:[]
+        | e == '*' || e == '_' || e == '|' || e == '`'
+        -> ['\\',e]
+      d:ds
+        | canPrecedeInlineMarkup d
+        -> d : escapeString' True ds
+      e:d:ds
+        | e == '*' || e == '_' || e == '|' || e == '`'
+        , (not canStart && canFollowInlineMarkup d)
+          || (canStart && not (isSpace d))
+        -> '\\' : e : escapeString' False (d:ds)
+      '_':d:ds
+        | not (isAlphaNum d)
+        -> '\\' : '_' : escapeString' False (d:ds)
+      d:ds -> d : escapeString' False ds
 
 titleToRST :: PandocMonad m => [Inline] -> [Inline] -> RST m (Doc Text)
 titleToRST [] _ = return empty
