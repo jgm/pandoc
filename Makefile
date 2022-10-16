@@ -16,22 +16,27 @@ else
 BASELINECMD=--baseline $(BASELINE)
 endif
 GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j4 +RTS -A8m -RTS
+CABALOPTS?=--disable-optimization
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
-quick-cabal: quick-cabal-test ## tests and build executable
+all: test ## tests and build executable
 	cabal build \
 	  --ghc-options='$(GHCOPTS)' \
-	  --disable-optimization all
+	  $(CABALOPTS) all
 .PHONY: quick-cabal
+
+binpath: ## print path of built pandoc executable
+	cabal list-bin $(CABALOPTS) pandoc-cli
+.PHONY: binpath
 
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
-quick-cabal-test:  ## unoptimized build and run tests with cabal
-	cabal v2-test \
+test:  ## unoptimized build and run tests with cabal
+	cabal test \
 	  --ghc-options='$(GHCOPTS)' \
-	  --disable-optimization \
+	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
 .PHONY: quick-cabal-test
 
@@ -104,9 +109,9 @@ man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1 ## build man pages
 .PHONY: man
 
 coverage: ## code coverage information
-	cabal v2-test \
+	cabal test \
 	  --ghc-options='-fhpc $(GHCOPTS)' \
-	  --disable-optimization \
+	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
 	hpc markup --destdir=coverage test/test-pandoc.tix
 	open coverage/hpc_index.html
