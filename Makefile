@@ -18,11 +18,15 @@ WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
-all: test ## tests and build executable
+all: test build ## build executable and run tests
+.PHONY: all
+
+build: ## build executable
 	cabal build \
 	  --ghc-options='$(GHCOPTS)' \
-	  $(CABALOPTS) all
-.PHONY: quick-cabal
+	  $(CABALOPTS) pandoc-cli
+	@cabal list-bin $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
+.PHONY: build
 
 binpath: ## print path of built pandoc executable
 	@cabal list-bin $(CABALOPTS) pandoc-cli
@@ -35,7 +39,7 @@ test:  ## unoptimized build and run tests with cabal
 	  --ghc-options='$(GHCOPTS)' \
 	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
-.PHONY: quick-cabal-test
+.PHONY: test
 
 quick-stack: ## unoptimized build and tests with stack
 	stack install \
