@@ -10,6 +10,7 @@ $if(csl-css)$
     $styles.citations.html()$
 $endif$
 $if(highlighting-css)$
+    /* CSS for syntax highlighting */
     $highlighting-css$
 $endif$
   </style>
