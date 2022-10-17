@@ -1112,6 +1112,10 @@ header when requesting a document from a URL:
 
 :   Link to a CSS style sheet. This option can be used repeatedly to
     include multiple files. They will be included in the order specified.
+    This option only affects HTML (including HTML slide shows)
+    and EPUB output.  It should be used together with
+    `-s/--standalone`, because the link to the stylesheet goes
+    in the document header.
 
     A stylesheet is required for generating EPUB.  If none is
     provided using this option (or the `css` or `stylesheet`
