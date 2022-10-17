@@ -48,6 +48,7 @@ description:     Pandoc is a Haskell library for converting from one markup
 data-files:
                  -- templates
                  data/templates/styles.html
+                 data/templates/styles.citations.html
                  data/templates/default.html4
                  data/templates/default.html5
                  data/templates/default.docbook4
