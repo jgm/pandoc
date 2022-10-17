@@ -146,7 +146,7 @@ runWriter writer doc@(Pandoc meta _blks) mopts = do
   pushWriterOptions opts *>
     setfield registryindex writerOptionsField
 
-  (body, mcontext) <- pandocToCustom writer doc
+  (body, mcontext) <- forcePeek $ pandocToCustom writer doc
 
   -- convert metavalues to a template context (variables)
   defaultContext <- metaToContext opts
@@ -185,46 +185,74 @@ getNestedWriterField writer subtable field = do
                <* remove (nth 3) <* remove (nth 2)
 
 pandocToCustom :: WriterTable -> Pandoc
-               -> LuaE PandocError (Doc Text, Maybe (Context Text))
-pandocToCustom writer doc = do
-  getWriterField writer "Pandoc"
-  pushPandoc doc
-  pushOpts
-  callTrace 2 2
-  forcePeek $ ((,) <$> peekDocFuzzy (nth 2) <*> orNil peekContext top)
-    `lastly` pop 2
+               -> Peek PandocError (Doc Text, Maybe (Context Text))
+pandocToCustom writer doc = withContext "rendering Pandoc" $ do
+  callStatus <- liftLua $ do
+    getWriterField writer "Pandoc"
+    pushPandoc doc
+    pushOpts
+    pcallTrace 2 2
+  case callStatus of
+    OK -> ((,) <$> peekDocFuzzy (nth 2) <*> orNil peekContext top)
+          `lastly` pop 2
+    _  -> failPeek =<< liftLua (tostring' top)
+
 
 blockToCustom :: WriterTable -> Block -> LuaE PandocError (Doc Text)
-blockToCustom writer blk = do
+blockToCustom writer blk = forcePeek $ renderBlock writer blk
+
+renderBlock :: WriterTable -> Block -> Peek PandocError (Doc Text)
+renderBlock writer blk = do
   let constrName = fromString . showConstr . toConstr $ blk
-  getNestedWriterField writer "Block" constrName
-  forcePeek . (`lastly` pop 1) $ -- remove final Doc value
-    -- try to use the value as a Doc; if that fails, use it as a function.
-    peekDocFuzzy top <|> do
-      -- try to call value as a function
-      liftLua $ pushBlock blk *> pushOpts *> call 2 1
-      peekDocFuzzy top
+  withContext ("rendering Block " <> constrName) $
+    liftLua (getNestedWriterField writer "Block" constrName) >>= \case
+      TypeNil -> failPeek =<< typeMismatchMessage "function or Doc" top
+      _       -> callOrDoc (pushBlock blk)
 
 inlineToCustom :: WriterTable -> Inline -> LuaE PandocError (Doc Text)
-inlineToCustom writer blk = do
-  let constrName = fromString . showConstr . toConstr $ blk
-  getNestedWriterField writer "Inline" constrName
-  forcePeek . (`lastly` pop 1) $ -- remove final Doc value
-    -- try to use the value as a Doc; if that fails, use it as a function.
-    peekDocFuzzy top <|> do
-      -- try to call value as a function
-      liftLua $ pushInline blk *> pushOpts *> call 2 1
-      peekDocFuzzy top
+inlineToCustom writer inln = forcePeek $ renderInline writer inln
+
+renderInline :: WriterTable -> Inline -> Peek PandocError (Doc Text)
+renderInline writer inln = withContext "rendering Inline" $ do
+  let constrName = fromString . showConstr . toConstr $ inln
+  liftLua (getNestedWriterField writer "Inline" constrName) >>= \case
+    TypeNil -> failPeek =<< typeMismatchMessage "function or Doc" top
+    _       -> callOrDoc (pushInline inln)
+
+-- | If the value at the top of the stack can be called as a function,
+-- then push the element and writer options to the stack and call it;
+-- otherwise treat it as a plain Doc value
+callOrDoc :: LuaE PandocError ()
+          -> Peek PandocError (Doc Text)
+callOrDoc pushElement = do
+  liftLua (ltype top) >>= \case
+    TypeFunction -> peekCall
+    _            -> do
+      isCallable <- liftLua $ getmetafield top "__call" >>= \case
+        TypeNil -> pure False
+        _       -> True <$ pop 1
+      if isCallable
+        then peekCall
+        else peekDocFuzzy top
+ where
+   peekCall :: Peek PandocError (Doc Text)
+   peekCall =
+     liftLua (pushElement *> pushOpts *> pcallTrace 2 1) >>= \case
+       OK -> peekDocFuzzy top
+       _  -> failPeek =<< liftLua (tostring' top)
 
 blockListToCustom :: WriterTable -> Maybe (Doc Text) -> [Block]
                   -> LuaE PandocError (Doc Text)
-blockListToCustom writer msep blocks = do
+blockListToCustom writer msep blocks = forcePeek $ do
   let addSeps = intersperse $ fromMaybe blankline msep
-  mconcat . addSeps <$> mapM (blockToCustom writer) blocks
+  mconcat . addSeps <$> mapM (renderBlock writer) blocks
 
 inlineListToCustom :: WriterTable -> [Inline] -> LuaE PandocError (Doc Text)
-inlineListToCustom writer inlines = do
-  mconcat <$> mapM (inlineToCustom writer) inlines
+inlineListToCustom writer inlines = forcePeek $ renderInlineList writer inlines
+
+renderInlineList :: WriterTable -> [Inline] -> Peek PandocError (Doc Text)
+renderInlineList writer inlines = withContext "rendering Inlines" $ do
+  mconcat <$> mapM (renderInline writer) inlines
 
 orNil :: Peeker e a -> Peeker e (Maybe a)
 orNil p idx = liftLua (ltype idx) >>= \case
