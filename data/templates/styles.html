@@ -175,33 +175,12 @@ ul.task-list li input[type="checkbox"] {
 $if(quotes)$
 q { quotes: "“" "”" "‘" "’"; }
 $endif$
-$if(highlighting-css)$
-$highlighting-css$
-$endif$
 $if(displaymath-css)$
 .display.math{display: block; text-align: center; margin: 0.5rem auto;}
 $endif$
-$if(csl-css)$
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-$if(csl-entry-spacing)$
-  margin-bottom: $csl-entry-spacing$;
+$if(highlighting-css)$
+$highlighting-css$
 $endif$
-}
-.hanging div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}
+$if(csl-css)$
+$style.citations.html()$
 $endif$
