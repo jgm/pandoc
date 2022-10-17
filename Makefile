@@ -32,6 +32,10 @@ binpath: ## print path of built pandoc executable
 	@cabal list-bin $(CABALOPTS) pandoc-cli
 .PHONY: binpath
 
+ghcid: ## run ghcid
+	ghcid -c 'cabal repl pandoc'
+.PHONY: ghcid
+
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 test:  ## unoptimized build and run tests with cabal
