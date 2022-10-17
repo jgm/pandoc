@@ -1,17 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {- |
-   Module      : Text.Pandoc.Parsing
+   Module      : Text.Pandoc.Parsing.Future
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
-Types and type-related functions for parsers.
+Future type for parsing.
 -}
 
-module Text.Pandoc.Parsing.Types
-  ( Parser
-  , ParserT
-  , Future (..)
+module Text.Pandoc.Parsing.Future
+  ( Future (..)
   , runF
   , askF
   , asksF
@@ -23,13 +21,6 @@ import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..))
 import Control.Monad.Reader
   ( asks, runReader, MonadReader(ask), Reader, ReaderT(ReaderT) )
-import Text.Parsec ( Parsec , ParsecT )
-
--- | Generic parser type used by many pandoc readers.
-type Parser t s = Parsec t s
-
--- | Generic parser transformer used by many pandoc readers.
-type ParserT = ParsecT
 
 -- | Reader monad wrapping the parser state. This is used to possibly
 -- delay evaluation until all relevant information has been parsed and

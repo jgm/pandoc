@@ -35,7 +35,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
 import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
 
-type T2T = ParserT Sources ParserState (Reader T2TMeta)
+type T2T = ParsecT Sources ParserState (Reader T2TMeta)
 
 -- | An object for the T2T macros meta information
 -- the contents of each field is simply substituted verbatim into the file
@@ -402,7 +402,7 @@ tagged = do
   target <- getTarget
   inlineMarkup (T.singleton <$> anyChar) (B.rawInline target) '\'' id
 
--- Parser for markup indicated by a double character.
+-- Parsec for markup indicated by a double character.
 -- Inline markup is greedy and glued
 -- Greedy meaning ***a*** = Bold [Str "*a*"]
 -- Glued meaning that markup must be tight to content

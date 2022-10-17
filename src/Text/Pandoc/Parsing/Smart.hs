@@ -33,10 +33,10 @@ import Text.Pandoc.Options
 import Text.Pandoc.Sources
 import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.General
-import Text.Pandoc.Parsing.Types (ParserT)
 import Text.Parsec
   ( (<|>)
   , Stream(..)
+  , ParsecT
   , choice
   , lookAhead
   , manyTill
@@ -53,8 +53,8 @@ import qualified Text.Pandoc.Builder as B
 smartPunctuation :: (HasReaderOptions st, HasLastStrPosition st,
                      HasQuoteContext st m,
                      Stream s m Char, UpdateSourcePos s Char)
-                 => ParserT s st m Inlines
-                 -> ParserT s st m Inlines
+                 => ParsecT s st m Inlines
+                 -> ParsecT s st m Inlines
 smartPunctuation inlineParser = do
   guardEnabled Ext_smart
   choice [ quoted inlineParser, apostrophe, doubleCloseQuote, dash, ellipses ]
@@ -63,16 +63,16 @@ smartPunctuation inlineParser = do
 -- quoting conventions.
 quoted :: (HasLastStrPosition st, HasQuoteContext st m,
            Stream s m Char, UpdateSourcePos s Char)
-       => ParserT s st m Inlines
-       -> ParserT s st m Inlines
+       => ParsecT s st m Inlines
+       -> ParsecT s st m Inlines
 quoted inlineParser = doubleQuoted inlineParser <|> singleQuoted inlineParser
 
 -- | Parses inline text in single quotes, assumes English quoting
 -- conventions.
 singleQuoted :: (HasLastStrPosition st, HasQuoteContext st m,
                  Stream s m Char, UpdateSourcePos s Char)
-             => ParserT s st m Inlines
-             -> ParserT s st m Inlines
+             => ParsecT s st m Inlines
+             -> ParsecT s st m Inlines
 singleQuoted inlineParser = do
   singleQuoteStart
   (B.singleQuoted . mconcat <$>
@@ -84,8 +84,8 @@ singleQuoted inlineParser = do
 -- conventions.
 doubleQuoted :: (HasQuoteContext st m, HasLastStrPosition st,
                  Stream s m Char, UpdateSourcePos s Char)
-             => ParserT s st m Inlines
-             -> ParserT s st m Inlines
+             => ParsecT s st m Inlines
+             -> ParsecT s st m Inlines
 doubleQuoted inlineParser = do
   doubleQuoteStart
   (B.doubleQuoted . mconcat <$>
@@ -93,7 +93,7 @@ doubleQuoted inlineParser = do
      (withQuoteContext InDoubleQuote (manyTill inlineParser doubleQuoteEnd)))
    <|> pure (B.str "\8220")
 
-charOrRef :: (Stream s m Char, UpdateSourcePos s Char) => [Char] -> ParserT s st m Char
+charOrRef :: (Stream s m Char, UpdateSourcePos s Char) => [Char] -> ParsecT s st m Char
 charOrRef cs =
   oneOf cs <|> try (do c <- characterReference
                        guard (c `elem` cs)
@@ -109,7 +109,7 @@ charOrRef cs =
 -- Gobbles the quote character on success.
 singleQuoteStart :: (HasLastStrPosition st, HasQuoteContext st m,
                      Stream s m Char, UpdateSourcePos s Char)
-                 => ParserT s st m ()
+                 => ParsecT s st m ()
 singleQuoteStart = do
   failIfInQuoteContext InSingleQuote
   -- single quote start can't be right after str
@@ -119,7 +119,7 @@ singleQuoteStart = do
     void $ lookAhead (satisfy (not . isSpaceChar))
 
 singleQuoteEnd :: (Stream s m Char, UpdateSourcePos s Char)
-               => ParserT s st m ()
+               => ParsecT s st m ()
 singleQuoteEnd = try $ do
   charOrRef "'\8217\146"
   notFollowedBy alphaNum
@@ -137,7 +137,7 @@ singleQuoteEnd = try $ do
 doubleQuoteStart :: (HasLastStrPosition st,
                      HasQuoteContext st m,
                      Stream s m Char, UpdateSourcePos s Char)
-                 => ParserT s st m ()
+                 => ParsecT s st m ()
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   guard =<< notAfterString
@@ -146,24 +146,24 @@ doubleQuoteStart = do
 
 -- | Parses a closing quote character.
 doubleQuoteEnd :: (Stream s m Char, UpdateSourcePos s Char)
-               => ParserT s st m ()
+               => ParsecT s st m ()
 doubleQuoteEnd = void (charOrRef "\"\8221\148")
 
 -- | Parses an ASCII apostrophe (@'@) or right single quotation mark and
 -- returns a RIGHT SINGLE QUOtatiON MARK character.
 apostrophe :: (Stream s m Char, UpdateSourcePos s Char)
-           => ParserT s st m Inlines
+           => ParsecT s st m Inlines
 apostrophe = (char '\'' <|> char '\8217') >> return (B.str "\8217")
 
 -- | Parses an ASCII quotation mark character and returns a RIGHT DOUBLE
 -- QUOTATION MARK.
 doubleCloseQuote :: (Stream s m Char, UpdateSourcePos s Char)
-                 => ParserT s st m Inlines
+                 => ParsecT s st m Inlines
 doubleCloseQuote = B.str "\8221" <$ char '"'
 
 -- | Parses three dots as HORIZONTAL ELLIPSIS.
 ellipses :: (Stream s m Char, UpdateSourcePos s Char)
-         => ParserT s st m Inlines
+         => ParsecT s st m Inlines
 ellipses = try (string "..." >> return (B.str "\8230"))
 
 -- | Parses two hyphens as EN DASH and three as EM DASH.
@@ -172,7 +172,7 @@ ellipses = try (string "..." >> return (B.str "\8230"))
 -- parsed as EM DASH, and one hyphen is parsed as EN DASH if it is
 -- followed by a digit.
 dash :: (HasReaderOptions st, Stream s m Char, UpdateSourcePos s Char)
-     => ParserT s st m Inlines
+     => ParsecT s st m Inlines
 dash = try $ do
   oldDashes <- extensionEnabled Ext_old_dashes <$> getOption readerExtensions
   if oldDashes

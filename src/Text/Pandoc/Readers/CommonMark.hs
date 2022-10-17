@@ -32,7 +32,7 @@ import Data.Functor.Identity (runIdentity)
 import Data.Typeable
 import Text.Pandoc.Parsing (runParserT, getInput, getPosition,
                             runF, defaultParserState, option, many1, anyChar,
-                            Sources(..), ToSources(..), ParserT, Future,
+                            Sources(..), ToSources(..), ParsecT, Future,
                             sourceName, sourceLine, incSourceLine)
 import Text.Pandoc.Walk (walk)
 import qualified Data.Text as T
@@ -80,7 +80,7 @@ sourceToToks (pos, s) = map adjust $ tokenize (sourceName pos) s
 
 
 metaValueParser :: Monad m
-                => ReaderOptions -> ParserT Sources st m (Future st MetaValue)
+                => ReaderOptions -> ParsecT Sources st m (Future st MetaValue)
 metaValueParser opts = do
   inp <- option "" $ T.pack <$> many1 anyChar
   let toks = concatMap sourceToToks (unSources (toSources inp))

@@ -120,8 +120,6 @@ import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
 import Text.Pandoc.TeX (ExpansionPoint (..), Macro (..),
                                         ArgSpec (..), Tok (..), TokType (..))
 import Text.Pandoc.Shared
-import Text.Parsec.Pos
-import Text.Parsec (Stream(uncons))
 import Text.Pandoc.Walk
 
 newtype DottedNum = DottedNum [Int]
@@ -263,7 +261,7 @@ instance Monad m => Stream TokStream m Tok where
   uncons (TokStream _ []) = return Nothing
   uncons (TokStream _ (t:ts)) = return $ Just (t, TokStream False ts)
 
-type LP m = ParserT TokStream LaTeXState m
+type LP m = ParsecT TokStream LaTeXState m
 
 withVerbatimMode :: PandocMonad m => LP m a -> LP m a
 withVerbatimMode parser = do
@@ -278,7 +276,7 @@ withVerbatimMode parser = do
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s, Show a)
                => [Tok] -> LP m a -> LP m a
-               -> ParserT Sources s m (a, Text)
+               -> ParsecT Sources s m (a, Text)
 rawLaTeXParser toks parser valParser = do
   pstate <- getState
   let lstate = def{ sOptions = extractReaderOptions pstate }
@@ -318,7 +316,7 @@ rawLaTeXParser toks parser valParser = do
                 return (val, result')
 
 applyMacros :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-            => Text -> ParserT Sources s m Text
+            => Text -> ParsecT Sources s m Text
 applyMacros s = (guardDisabled Ext_latex_macros >> return s) <|>
    do let retokenize = untokenize <$> many anyTok
       pstate <- getState
@@ -346,7 +344,7 @@ tokenizeSources = concatMap tokenizeSource . unSources
 
 -- Return tokens from input sources. Ensure that starting position is
 -- correct.
-getInputTokens :: PandocMonad m => ParserT Sources s m [Tok]
+getInputTokens :: PandocMonad m => ParsecT Sources s m [Tok]
 getInputTokens = do
   pos <- getPosition
   ss <- getInput
@@ -883,7 +881,7 @@ dimenarg = try $ do
   guard $ rest `elem` ["", "pt","pc","in","bp","cm","mm","dd","cc","sp"]
   return $ T.pack ['=' | ch] <> minus <> s
 
-ignore :: (Monoid a, PandocMonad m) => Text -> ParserT s u m a
+ignore :: (Monoid a, PandocMonad m) => Text -> ParsecT s u m a
 ignore raw = do
   pos <- getPosition
   report $ SkippedContent raw pos

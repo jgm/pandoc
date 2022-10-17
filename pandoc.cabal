@@ -656,7 +656,7 @@ library
                    Text.Pandoc.Parsing.Math,
                    Text.Pandoc.Parsing.Smart,
                    Text.Pandoc.Parsing.State,
-                   Text.Pandoc.Parsing.Types,
+                   Text.Pandoc.Parsing.Future,
                    Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
                    Text.Pandoc.Readers.Docx.Parse,

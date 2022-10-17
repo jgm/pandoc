@@ -114,7 +114,7 @@ import Control.Monad (guard)
 import Control.Monad.Reader (ReaderT)
 
 -- | The parser used to read org files.
-type OrgParser m = ParserT Sources OrgParserState (ReaderT OrgParserLocal m)
+type OrgParser m = ParsecT Sources OrgParserState (ReaderT OrgParserLocal m)
 
 --
 -- Adaptions and specializations of parsing utilities
@@ -163,7 +163,7 @@ inList = do
 -- | Parse in different context
 withContext :: Monad m
             => ParserContext -- ^ New parser context
-            -> OrgParser m a   -- ^ Parser to run in that context
+            -> OrgParser m a   -- ^ Parsec to run in that context
             -> OrgParser m a
 withContext context parser = do
   oldContext <- orgStateParserContext <$> getState
@@ -173,7 +173,7 @@ withContext context parser = do
   return result
 
 --
--- Parser state functions
+-- Parsec state functions
 --
 
 -- | Get an export setting.

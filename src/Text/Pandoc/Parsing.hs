@@ -106,8 +106,8 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              dash,
                              nested,
                              citeKey,
-                             Parser,
-                             ParserT,
+                             Parsec,
+                             ParsecT,
                              Future(..),
                              runF,
                              askF,
@@ -119,7 +119,7 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              extractIdClass,
                              insertIncludedFile,
                              -- * Re-exports from Text.Parsec
-                             Stream,
+                             Stream(..),
                              runParser,
                              runParserT,
                              parse,
@@ -154,6 +154,8 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              setState,
                              updateState,
                              SourcePos,
+                             SourceName,
+                             updatePosString,
                              getPosition,
                              setPosition,
                              sourceName,
@@ -174,7 +176,11 @@ where
 
 import Text.Pandoc.Sources
 import Text.Parsec
-    ( setSourceName,
+    ( Parsec,
+      ParsecT,
+      SourcePos,
+      SourceName,
+      setSourceName,
       Column,
       Line,
       incSourceLine,
@@ -221,9 +227,8 @@ import Text.Parsec
       runParserT,
       runParser,
       ParseError,
-      SourcePos,
       Stream(..) )
-import Text.Parsec.Pos (initialPos, newPos)
+import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 import Text.Pandoc.Parsing.Capabilities
     ( guardDisabled,
       guardEnabled,
@@ -329,5 +334,5 @@ import Text.Pandoc.Parsing.State
       ParserContext(..),
       ParserState(..),
       SubstTable )
-import Text.Pandoc.Parsing.Types
-    ( ParserT, askF, asksF, returnF, runF, Future(..), Parser )
+import Text.Pandoc.Parsing.Future
+    ( askF, asksF, returnF, runF, Future(..) )

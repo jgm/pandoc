@@ -55,7 +55,7 @@ readRST opts s = do
     Right result -> return result
     Left e       -> throwError e
 
-type RSTParser m = ParserT Sources ParserState m
+type RSTParser m = ParsecT Sources ParserState m
 
 --
 -- Constants and data structure definitions
@@ -355,7 +355,7 @@ singleHeader' = try $ do
 -- hrule block
 --
 
-hrule :: Monad m => ParserT Sources st m Blocks
+hrule :: Monad m => ParsecT Sources st m Blocks
 hrule = try $ do
   chr <- oneOf underlineChars
   count 3 (char chr)
@@ -370,7 +370,7 @@ hrule = try $ do
 
 -- read a line indented by a given string
 indentedLine :: (HasReaderOptions st, Monad m)
-             => Int -> ParserT Sources st m Text
+             => Int -> ParsecT Sources st m Text
 indentedLine indents = try $ do
   lookAhead spaceChar
   gobbleAtMostSpaces indents
@@ -379,7 +379,7 @@ indentedLine indents = try $ do
 -- one or more indented lines, possibly separated by blank lines.
 -- any amount of indentation will work.
 indentedBlock :: (HasReaderOptions st, Monad m)
-              => ParserT Sources st m Text
+              => ParsecT Sources st m Text
 indentedBlock = try $ do
   indents <- length <$> lookAhead (many1 spaceChar)
   lns <- many1 $ try $ do b <- option "" blanklines
@@ -388,20 +388,20 @@ indentedBlock = try $ do
   optional blanklines
   return $ T.unlines lns
 
-quotedBlock :: Monad m => ParserT Sources st m Text
+quotedBlock :: Monad m => ParsecT Sources st m Text
 quotedBlock = try $ do
     quote <- lookAhead $ oneOf "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
     lns <- many1 $ lookAhead (char quote) >> anyLine
     optional blanklines
     return $ T.unlines lns
 
-codeBlockStart :: Monad m => ParserT Sources st m Char
+codeBlockStart :: Monad m => ParsecT Sources st m Char
 codeBlockStart = string "::" >> blankline >> blankline
 
-codeBlock :: Monad m => ParserT Sources ParserState m Blocks
+codeBlock :: Monad m => ParsecT Sources ParserState m Blocks
 codeBlock = try $ codeBlockStart >> codeBlockBody
 
-codeBlockBody :: Monad m => ParserT Sources ParserState m Blocks
+codeBlockBody :: Monad m => ParsecT Sources ParserState m Blocks
 codeBlockBody = do
   lang <- stateRstHighlight <$> getState
   try $ B.codeBlockWith ("", maybeToList lang, []) . stripTrailingNewlines <$>
@@ -417,14 +417,14 @@ lhsCodeBlock = try $ do
   return $ B.codeBlockWith ("", ["haskell","literate"], [])
          $ T.intercalate "\n" lns
 
-latexCodeBlock :: Monad m => ParserT Sources st m [Text]
+latexCodeBlock :: Monad m => ParsecT Sources st m [Text]
 latexCodeBlock = try $ do
   try (latexBlockLine "\\begin{code}")
   many1Till anyLine (try $ latexBlockLine "\\end{code}")
  where
   latexBlockLine s = skipMany spaceChar >> string s >> blankline
 
-birdCodeBlock :: Monad m => ParserT Sources st m [Text]
+birdCodeBlock :: Monad m => ParsecT Sources st m [Text]
 birdCodeBlock = filterSpace <$> many1 birdTrackLine
   where filterSpace lns =
             -- if (as is normal) there is always a space after >, drop it
@@ -432,7 +432,7 @@ birdCodeBlock = filterSpace <$> many1 birdTrackLine
                then map (T.drop 1) lns
                else lns
 
-birdTrackLine :: Monad m => ParserT Sources st m Text
+birdTrackLine :: Monad m => ParsecT Sources st m Text
 birdTrackLine = char '>' >> anyLine
 
 --
@@ -509,7 +509,7 @@ definitionList :: PandocMonad m => RSTParser m Blocks
 definitionList = B.definitionList <$> many1 definitionListItem
 
 -- parses bullet list start and returns its length (inc. following whitespace)
-bulletListStart :: Monad m => ParserT Sources st m Int
+bulletListStart :: Monad m => ParsecT Sources st m Int
 bulletListStart = try $ do
   notFollowedBy' hrule  -- because hrules start out just like lists
   marker <- oneOf bulletListMarkers
@@ -1106,7 +1106,7 @@ quotedReferenceName = try $ do
 -- plus isolated (no two adjacent) internal hyphens, underscores,
 -- periods, colons and plus signs; no whitespace or other characters
 -- are allowed.
-simpleReferenceName :: Monad m => ParserT Sources st m Text
+simpleReferenceName :: Monad m => ParsecT Sources st m Text
 simpleReferenceName = do
   x <- alphaNum
   xs <- many $  alphaNum
@@ -1125,7 +1125,7 @@ referenceKey = do
   -- return enough blanks to replace key
   return $ T.replicate (sourceLine endPos - sourceLine startPos) "\n"
 
-targetURI :: Monad m => ParserT Sources st m Text
+targetURI :: Monad m => ParsecT Sources st m Text
 targetURI = do
   skipSpaces
   optional $ try $ newline >> notFollowedBy blankline
@@ -1253,13 +1253,13 @@ headerBlock = do
 --  - ensure that rightmost column span does not need to reach end
 --  - require at least 2 columns
 
-dashedLine :: Monad m => Char -> ParserT Sources st m (Int, Int)
+dashedLine :: Monad m => Char -> ParsecT Sources st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many (char ' ')
   return (length dashes, length $ dashes ++ sp)
 
-simpleDashedLines :: Monad m => Char -> ParserT Sources st m [(Int,Int)]
+simpleDashedLines :: Monad m => Char -> ParsecT Sources st m [(Int,Int)]
 simpleDashedLines ch = try $ many1 (dashedLine ch)
 
 -- Parse a table row separator
@@ -1383,7 +1383,7 @@ hyphens = do
   -- don't want to treat endline after hyphen or dash as a space
   return $ B.str result
 
-escapedChar :: Monad m => ParserT Sources st m Inlines
+escapedChar :: Monad m => ParsecT Sources st m Inlines
 escapedChar = do c <- escaped anyChar
                  return $ if c == ' ' || c == '\n' || c == '\r'
                              -- '\ ' is null in RST

@@ -19,8 +19,9 @@ module Text.Pandoc.CSV (
 import Control.Monad (unless, void, mzero)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Parsec
-import Text.Parsec.Text (Parser)
+import Text.Pandoc.Parsing hiding (escaped)
+
+type Parser = Parsec Text ()
 
 data CSVOptions = CSVOptions{
     csvDelim     :: Char

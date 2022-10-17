@@ -67,7 +67,7 @@ readTextile opts s = do
      Right result -> return result
      Left e       -> throwError e
 
-type TextileParser = ParserT Sources ParserState
+type TextileParser = ParsecT Sources ParserState
 
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: PandocMonad m => TextileParser m Pandoc
@@ -681,9 +681,9 @@ langAttr = do
 
 -- | Parses material surrounded by a parser.
 surrounded :: (PandocMonad m, Show t)
-           => ParserT Sources st m t   -- ^ surrounding parser
-           -> ParserT Sources st m a   -- ^ content parser (to be used repeatedly)
-           -> ParserT Sources st m [a]
+           => ParsecT Sources st m t   -- ^ surrounding parser
+           -> ParsecT Sources st m a   -- ^ content parser (to be used repeatedly)
+           -> ParsecT Sources st m [a]
 surrounded border =
   enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 
@@ -713,5 +713,5 @@ groupedInlineMarkup = try $ do
     char ']'
     return $ sp1 <> result <> sp2
 
-eof' :: Monad m => ParserT Sources s m Char
+eof' :: Monad m => ParsecT Sources s m Char
 eof' = '\n' <$ eof

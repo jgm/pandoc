@@ -36,7 +36,7 @@ readCreole opts s = do
        Left e  -> throwError e
        Right d -> return d
 
-type CRLParser = ParserT Sources ParserState
+type CRLParser = ParsecT Sources ParserState
 
 --
 -- Utility functions

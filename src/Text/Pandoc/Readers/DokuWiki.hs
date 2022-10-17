@@ -46,12 +46,12 @@ readDokuWiki opts s = do
        Left e  -> throwError $ PandocParsecError sources e
        Right d -> return d
 
-type DWParser = ParserT Sources ParserState
+type DWParser = ParsecT Sources ParserState
 
 -- * Utility functions
 
 -- | Parse end-of-line, which can be either a newline or end-of-file.
-eol :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m ()
+eol :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m ()
 eol = void newline <|> eof
 
 nested :: PandocMonad m => DWParser m a -> DWParser m a

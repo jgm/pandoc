@@ -184,7 +184,7 @@ instance Default Properties where
                     , gInTable = False
                     }
 
-type RTFParser m = ParserT Sources RTFState m
+type RTFParser m = ParsecT Sources RTFState m
 
 data ListType = Bullet | Ordered ListAttributes
   deriving (Show, Eq)

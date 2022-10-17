@@ -31,9 +31,8 @@ import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.General
-import Text.Pandoc.Parsing.Types
 import Text.Pandoc.Sources
-import Text.Parsec (Stream (..), optional, sepEndBy1, try)
+import Text.Parsec (Stream (..), ParsecT, optional, sepEndBy1, try)
 
 import qualified Data.Text as T
 import qualified Text.GridTable as GT
@@ -103,8 +102,8 @@ data TableNormalization
 -- blank lines, and ending with a footer (dashed line followed by blank
 -- line).
 gridTableWith :: (Monad m, Monad mf, HasLastStrPosition st, HasReaderOptions st)
-              => ParserT Sources st m (mf Blocks)  -- ^ Block list parser
-              -> ParserT Sources st m (mf Blocks)
+              => ParsecT Sources st m (mf Blocks)  -- ^ Block list parser
+              -> ParsecT Sources st m (mf Blocks)
 gridTableWith blocks = fmap tableFromComponents <$>
   gridTableWith' NoNormalization blocks
 
@@ -113,8 +112,8 @@ gridTableWith blocks = fmap tableFromComponents <$>
 gridTableWith' :: (Monad m, Monad mf,
                    HasReaderOptions st, HasLastStrPosition st)
                => TableNormalization
-               -> ParserT Sources st m (mf Blocks) -- ^ Block list parser
-               -> ParserT Sources st m (mf TableComponents)
+               -> ParsecT Sources st m (mf Blocks) -- ^ Block list parser
+               -> ParsecT Sources st m (mf TableComponents)
 gridTableWith' normalization blocks = do
   tbl <- GT.gridTable <* optional blanklines
   let blkTbl = GT.mapCells
@@ -192,22 +191,22 @@ fractionalColumnWidths gt charColumns =
 -- 'lineParser', and 'footerParser'.
 tableWith :: (Stream s m Char, UpdateSourcePos s Char,
               HasReaderOptions st, Monad mf)
-          => ParserT s st m (mf [Blocks], [Alignment], [Int]) -- ^ header parser
-          -> ([Int] -> ParserT s st m (mf [Blocks]))  -- ^ row parser
-          -> ParserT s st m sep                       -- ^ line parser
-          -> ParserT s st m end                       -- ^ footer parser
-          -> ParserT s st m (mf Blocks)
+          => ParsecT s st m (mf [Blocks], [Alignment], [Int]) -- ^ header parser
+          -> ([Int] -> ParsecT s st m (mf [Blocks]))  -- ^ row parser
+          -> ParsecT s st m sep                       -- ^ line parser
+          -> ParsecT s st m end                       -- ^ footer parser
+          -> ParsecT s st m (mf Blocks)
 tableWith hp rp lp fp = fmap tableFromComponents <$>
   tableWith' NoNormalization hp rp lp fp
 
 tableWith' :: (Stream s m Char, UpdateSourcePos s Char,
                HasReaderOptions st, Monad mf)
            => TableNormalization
-           -> ParserT s st m (mf [Blocks], [Alignment], [Int]) -- ^ header parser
-           -> ([Int] -> ParserT s st m (mf [Blocks]))  -- ^ row parser
-           -> ParserT s st m sep                       -- ^ line parser
-           -> ParserT s st m end                       -- ^ footer parser
-           -> ParserT s st m (mf TableComponents)
+           -> ParsecT s st m (mf [Blocks], [Alignment], [Int]) -- ^ header parser
+           -> ([Int] -> ParsecT s st m (mf [Blocks]))  -- ^ row parser
+           -> ParsecT s st m sep                       -- ^ line parser
+           -> ParsecT s st m end                       -- ^ footer parser
+           -> ParsecT s st m (mf TableComponents)
 tableWith' n11n headerParser rowParser lineParser footerParser = try $ do
   (heads, aligns, indices) <- headerParser
   lines' <- sequence <$> rowParser indices `sepEndBy1` lineParser

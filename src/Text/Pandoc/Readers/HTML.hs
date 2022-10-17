@@ -1028,7 +1028,7 @@ isCommentTag = tagComment (const True)
 -- | Matches a stretch of HTML in balanced tags.
 htmlInBalanced :: Monad m
                => (Tag Text -> Bool)
-               -> ParserT Sources st m Text
+               -> ParsecT Sources st m Text
 htmlInBalanced f = try $ do
   lookAhead (char '<')
   sources <- getInput
@@ -1077,7 +1077,7 @@ hasTagWarning _                = False
 -- | Matches a tag meeting a certain condition.
 htmlTag :: (HasReaderOptions st, Monad m)
         => (Tag Text -> Bool)
-        -> ParserT Sources st m (Tag Text, Text)
+        -> ParsecT Sources st m (Tag Text, Text)
 htmlTag f = try $ do
   lookAhead (char '<')
   startpos <- getPosition

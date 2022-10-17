@@ -20,7 +20,7 @@ module Text.Pandoc.TeX ( Tok(..)
                        )
 where
 import Data.Text (Text)
-import Text.Parsec.Pos (SourcePos, sourceName)
+import Text.Parsec (SourcePos, sourceName)
 import Text.Pandoc.Sources
 import Data.List (groupBy)
 

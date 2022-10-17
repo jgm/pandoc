@@ -311,7 +311,7 @@ classOrAttrsToMarkdown ("",[cls],[]) = literal cls
 classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parser Text ParserState ()
+olMarker :: Parsec Text ParserState ()
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&

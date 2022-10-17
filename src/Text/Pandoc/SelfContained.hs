@@ -36,8 +36,8 @@ import Text.Pandoc.Shared (renderTags', trim, tshow)
 import Text.Pandoc.URI (isURI)
 import Text.Pandoc.UTF8 (toString, toText, fromText)
 import Text.Parsec (ParsecT, runParserT)
-import Control.Monad.Except (throwError, catchError)
 import qualified Text.Parsec as P
+import Control.Monad.Except (throwError, catchError)
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c

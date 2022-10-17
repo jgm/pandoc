@@ -69,7 +69,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwInTT            :: Bool
                        }
 
-type MWParser m = ParserT Sources MWState m
+type MWParser m = ParsecT Sources MWState m
 
 instance HasReaderOptions MWState where
   extractReaderOptions = mwOptions

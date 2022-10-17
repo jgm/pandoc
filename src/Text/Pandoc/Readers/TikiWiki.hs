@@ -46,7 +46,7 @@ readTikiWiki opts s = do
        Left e  -> throwError e
        Right d -> return d
 
-type TikiWikiParser = ParserT Sources ParserState
+type TikiWikiParser = ParsecT Sources ParserState
 
 --
 -- utility functions

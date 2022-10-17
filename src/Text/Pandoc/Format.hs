@@ -32,8 +32,10 @@ import Text.Pandoc.Extensions
   , getDefaultExtensions
   , readExtension
   )
-import Text.Parsec
+import Text.Pandoc.Parsing
 import qualified Data.Text as T
+
+type Parser = Parsec T.Text ()
 
 -- | Format specifier with the format's name and the lists of extensions
 -- to be enabled or disabled.
@@ -107,7 +109,7 @@ parseFlavoredFormat spec =
     Left err -> throwError $ PandocFormatError spec (T.pack $ show err)
   where
     fixSourcePos = do
-      pos <- statePos <$> getParserState
+      pos <- getPosition
       setPosition (incSourceColumn pos (T.length prefix))
     formatSpec = do
       name <- parseFormatName
@@ -118,7 +120,7 @@ parseFlavoredFormat spec =
                         (_, "") -> ("", T.toLower spec) -- no extension
                         (p,s)   -> (T.pack p, T.pack s)
 
-pExtensionsDiff :: Stream s m Char => ParsecT s u m ExtensionsDiff
+pExtensionsDiff :: Parser ExtensionsDiff
 pExtensionsDiff = foldl' (flip ($)) (ExtensionsDiff [] []) <$> many extMod
   where
     extMod = do

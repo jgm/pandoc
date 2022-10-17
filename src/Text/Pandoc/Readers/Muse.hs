@@ -23,7 +23,7 @@ import Control.Monad.Reader
 import Control.Monad.Except (throwError)
 import Data.Bifunctor
 import Data.Default
-import Data.List (transpose, uncons)
+import Data.List (transpose)
 import qualified Data.Map as M
 import qualified Data.Set as Set
 import Data.Maybe (fromMaybe, isNothing, maybeToList)
@@ -83,7 +83,7 @@ instance Default MuseEnv where
                 , museInPara = False
                 }
 
-type MuseParser m = ParserT Sources MuseState (ReaderT MuseEnv m)
+type MuseParser m = ParsecT Sources MuseState (ReaderT MuseEnv m)
 
 instance HasReaderOptions MuseState where
   extractReaderOptions = museOptions
@@ -156,7 +156,7 @@ firstColumn = getPosition >>= \pos -> guard (sourceColumn pos == 1)
 -- * Parsers
 
 -- | Parse end-of-line, which can be either a newline or end-of-file.
-eol :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m ()
+eol :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m ()
 eol = void newline <|> eof
 
 getIndent :: PandocMonad m
@@ -652,7 +652,10 @@ museToPandocTable (MuseTable caption headers body footers) =
           [TableBody nullAttr 0 [] $ map toRow $ rows ++ body ++ footers]
           (TableFoot nullAttr [])
   where attrs = (AlignDefault, ColWidthDefault) <$ transpose (headers ++ body ++ footers)
-        (headRow, rows) = fromMaybe ([], []) $ uncons headers
+        (headRow, rows) =
+          case headers of
+            (r:rs) -> (r, rs)
+            []     -> ([], [])
         toRow = Row nullAttr . map B.simpleCell
         toHeaderRow l = [toRow l | not (null l)]
 

@@ -348,7 +348,7 @@ defaultLang = Lang "en" Nothing (Just "US") [] [] []
 -- a map of bibtex "string" macros
 type StringMap = Map.Map Text Text
 
-type BibParser = Parser Sources (Lang, StringMap)
+type BibParser = Parsec Sources (Lang, StringMap)
 
 data Item = Item{ identifier :: Text
                 , sourcePos  :: SourcePos
@@ -832,7 +832,7 @@ bibString = do
   updateState (\(l,m) -> (l, Map.insert k v m))
   return ()
 
-take1WhileP :: Monad m => (Char -> Bool) -> ParserT Sources u m Text
+take1WhileP :: Monad m => (Char -> Bool) -> ParsecT Sources u m Text
 take1WhileP f = T.pack <$> many1 (satisfy f)
 
 inBraces :: BibParser Text

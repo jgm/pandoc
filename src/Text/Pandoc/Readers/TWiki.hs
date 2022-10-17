@@ -43,7 +43,7 @@ readTWiki opts s = do
        Left e  -> throwError e
        Right d -> return d
 
-type TWParser = ParserT Sources ParserState
+type TWParser = ParsecT Sources ParserState
 
 --
 -- utility functions

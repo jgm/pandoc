@@ -134,7 +134,7 @@ resolveRefs _ x = x
 
 
 rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-              => ParserT Sources s m Text
+              => ParsecT Sources s m Text
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
@@ -165,7 +165,7 @@ beginOrEndCommand = try $ do
                     (txt <> untokenize rawargs)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-               => ParserT Sources s m Text
+               => ParsecT Sources s m Text
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
@@ -179,7 +179,7 @@ rawLaTeXInline = do
   finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
   return $ raw <> T.pack finalbraces
 
-inlineCommand :: PandocMonad m => ParserT Sources ParserState m Inlines
+inlineCommand :: PandocMonad m => ParsecT Sources ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens

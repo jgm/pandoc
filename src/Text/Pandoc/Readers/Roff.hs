@@ -121,16 +121,16 @@ instance Default RoffState where
                   , afterConditional = False
                   }
 
-type RoffLexer m = ParserT Sources RoffState m
+type RoffLexer m = ParsecT Sources RoffState m
 
 --
 -- Lexer: T.Text -> RoffToken
 --
 
-eofline :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s u m ()
+eofline :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s u m ()
 eofline = void newline <|> eof <|> () <$ lookAhead (string "\\}")
 
-spacetab :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s u m Char
+spacetab :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s u m Char
 spacetab = char ' ' <|> char '\t'
 
 characterCodeMap :: M.Map T.Text Char

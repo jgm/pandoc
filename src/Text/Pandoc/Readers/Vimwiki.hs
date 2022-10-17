@@ -70,7 +70,7 @@ import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
                                ListNumberStyle (..), Pandoc (..),
                                nullMeta)
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
+import Text.Pandoc.Parsing (ParserState, ParsecT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,
                             registerHeader, spaceChar, stateMeta,
                             stateOptions, uri, manyTillChar, manyChar, textStr,
@@ -95,7 +95,7 @@ readVimwiki opts s = do
        Left e       -> throwError e
        Right result -> return result
 
-type VwParser = ParserT Sources ParserState
+type VwParser = ParsecT Sources ParserState
 
 
 -- constants

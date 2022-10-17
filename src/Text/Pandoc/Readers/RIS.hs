@@ -59,7 +59,7 @@ readRIS _opts inp = do
         B.doc mempty
     Left e       -> throwError e
 
-type RISParser m = ParserT Sources () m
+type RISParser m = ParsecT Sources () m
 
 risLine :: PandocMonad m => RISParser m (Text, Text)
 risLine = do

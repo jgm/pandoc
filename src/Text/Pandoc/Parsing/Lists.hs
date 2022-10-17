@@ -37,6 +37,7 @@ import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Sources
 import Text.Parsec
   ( (<|>)
+  , ParsecT
   , Stream(..)
   , choice
   , getState
@@ -48,7 +49,6 @@ import Text.Parsec
   , updateState
   )
 import Text.Pandoc.Parsing.State
-import Text.Pandoc.Parsing.Types (ParserT)
 
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -56,7 +56,7 @@ import qualified Data.Text as T
 -- | Parses a roman numeral (uppercase or lowercase), returns number.
 romanNumeral :: (Stream s m Char, UpdateSourcePos s Char)
              => Bool                  -- ^ Uppercase if true
-             -> ParserT s st m Int
+             -> ParsecT s st m Int
 romanNumeral upperCase = do
     let rchar uc = char $ if upperCase then uc else toLower uc
     let one         = rchar 'I'
@@ -88,19 +88,19 @@ romanNumeral upperCase = do
        else return total
 
 -- | Parses an uppercase roman numeral and returns (UpperRoman, number).
-upperRoman :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
+upperRoman :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
 upperRoman = do
   num <- romanNumeral True
   return (UpperRoman, num)
 
 -- | Parses a lowercase roman numeral and returns (LowerRoman, number).
-lowerRoman :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
+lowerRoman :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
 lowerRoman = do
   num <- romanNumeral False
   return (LowerRoman, num)
 
 -- | Parses a decimal numeral and returns (Decimal, number).
-decimal :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
+decimal :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
 decimal = do
   num <- many1 digit
   return (Decimal, fromMaybe 1 $ safeRead $ T.pack num)
@@ -110,7 +110,7 @@ decimal = do
 -- example number is incremented in parser state, and the label
 -- (if present) is added to the label table.
 exampleNum :: (Stream s m Char, UpdateSourcePos s Char)
-           => ParserT s ParserState m (ListNumberStyle, Int)
+           => ParsecT s ParserState m (ListNumberStyle, Int)
 exampleNum = do
   char '@'
   lab <- mconcat . map T.pack <$>
@@ -128,30 +128,30 @@ exampleNum = do
   return (Example, num)
 
 -- | Parses a '#' returns (DefaultStyle, 1).
-defaultNum :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
+defaultNum :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
 defaultNum = do
   char '#'
   return (DefaultStyle, 1)
 
 -- | Parses a lowercase letter and returns (LowerAlpha, number).
-lowerAlpha :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
+lowerAlpha :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
 lowerAlpha = do
   ch <- satisfy isAsciiLower
   return (LowerAlpha, ord ch - ord 'a' + 1)
 
 -- | Parses an uppercase letter and returns (UpperAlpha, number).
-upperAlpha :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
+upperAlpha :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
 upperAlpha = do
   ch <- satisfy isAsciiUpper
   return (UpperAlpha, ord ch - ord 'A' + 1)
 
 -- | Parses a roman numeral i or I
-romanOne :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (ListNumberStyle, Int)
+romanOne :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
 romanOne = (char 'i' >> return (LowerRoman, 1)) <|>
            (char 'I' >> return (UpperRoman, 1))
 
 -- | Parses an ordered list marker and returns list attributes.
-anyOrderedListMarker :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s ParserState m ListAttributes
+anyOrderedListMarker :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s ParserState m ListAttributes
 anyOrderedListMarker = choice
   [delimParser numParser | delimParser <- [inPeriod, inOneParen, inTwoParens],
                            numParser <- [decimal, exampleNum, defaultNum, romanOne,
@@ -159,8 +159,8 @@ anyOrderedListMarker = choice
 
 -- | Parses a list number (num) followed by a period, returns list attributes.
 inPeriod :: (Stream s m Char, UpdateSourcePos s Char)
-         => ParserT s st m (ListNumberStyle, Int)
-         -> ParserT s st m ListAttributes
+         => ParsecT s st m (ListNumberStyle, Int)
+         -> ParsecT s st m ListAttributes
 inPeriod num = try $ do
   (style, start) <- num
   char '.'
@@ -171,8 +171,8 @@ inPeriod num = try $ do
 
 -- | Parses a list number (num) followed by a paren, returns list attributes.
 inOneParen :: (Stream s m Char, UpdateSourcePos s Char)
-           => ParserT s st m (ListNumberStyle, Int)
-           -> ParserT s st m ListAttributes
+           => ParsecT s st m (ListNumberStyle, Int)
+           -> ParsecT s st m ListAttributes
 inOneParen num = try $ do
   (style, start) <- num
   char ')'
@@ -180,8 +180,8 @@ inOneParen num = try $ do
 
 -- | Parses a list number (num) enclosed in parens, returns list attributes.
 inTwoParens :: (Stream s m Char, UpdateSourcePos s Char)
-            => ParserT s st m (ListNumberStyle, Int)
-            -> ParserT s st m ListAttributes
+            => ParsecT s st m (ListNumberStyle, Int)
+            -> ParsecT s st m ListAttributes
 inTwoParens num = try $ do
   char '('
   (style, start) <- num
@@ -193,7 +193,7 @@ inTwoParens num = try $ do
 orderedListMarker :: (Stream s m Char, UpdateSourcePos s Char)
                   => ListNumberStyle
                   -> ListNumberDelim
-                  -> ParserT s ParserState m Int
+                  -> ParsecT s ParserState m Int
 orderedListMarker style delim = do
   let num = defaultNum <|>  -- # can continue any kind of list
             case style of

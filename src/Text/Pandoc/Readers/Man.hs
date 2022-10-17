@@ -31,8 +31,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Shared (mapLeft)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
-import qualified Text.Parsec as Parsec
-import Text.Parsec.Pos (updatePosString)
+import qualified Text.Pandoc.Parsing as P
 import qualified Data.Foldable as Foldable
 
 data ManState = ManState { readerOptions   :: ReaderOptions
@@ -45,7 +44,7 @@ instance Default ManState where
                  , metadata        = nullMeta
                  , tableCellsPlain = True }
 
-type ManParser m = ParserT [RoffToken] ManState m
+type ManParser m = P.ParsecT [RoffToken] ManState m
 
 
 -- | Read man (troff) from an input string and return a Pandoc document.
@@ -65,7 +64,7 @@ readMan opts s = do
 
 
 readWithMTokens :: PandocMonad m
-        => ParserT [RoffToken] ManState m a  -- ^ parser
+        => ParsecT [RoffToken] ManState m a  -- ^ parser
         -> ManState                         -- ^ initial state
         -> [RoffToken]                       -- ^ input
         -> m (Either PandocError a)
@@ -180,14 +179,16 @@ parseNewParagraph = do
 -- Parser: [RoffToken] -> Pandoc
 --
 
-msatisfy :: Monad m => (RoffToken -> Bool) -> ParserT [RoffToken] st m RoffToken
-msatisfy predic = tokenPrim show nextPos testTok
+msatisfy :: Monad m
+         => (RoffToken -> Bool) -> P.ParsecT [RoffToken] st m RoffToken
+msatisfy predic = P.tokenPrim show nextPos testTok
   where
     testTok t     = if predic t then Just t else Nothing
     nextPos _pos _x (ControlLine _ _ pos':_) = pos'
-    nextPos pos _x _xs  = updatePosString
-                             (setSourceColumn
-                               (setSourceLine pos $ sourceLine pos + 1) 1) ""
+    nextPos pos _x _xs  = P.updatePosString
+                             (P.setSourceColumn
+                               (P.setSourceLine pos $
+                                 P.sourceLine pos + 1) 1) ""
 
 mtoken :: PandocMonad m => ManParser m RoffToken
 mtoken = msatisfy (const True)
@@ -431,7 +432,7 @@ listItem mbListType = try $ do
     (arg1 : _)  -> do
       let cs = linePartsToText arg1
       let cs' = if not (T.any (== '.') cs || T.any (== ')') cs) then cs <> "." else cs
-      let lt = case Parsec.runParser anyOrderedListMarker defaultParserState
+      let lt = case P.runParser anyOrderedListMarker defaultParserState
                      "list marker" cs' of
                   Right (start, listtype, listdelim)
                     | cs == cs' -> Ordered (start, listtype, listdelim)

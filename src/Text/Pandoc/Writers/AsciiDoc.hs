@@ -112,7 +112,7 @@ escapeString t
         escChar c   = T.singleton c
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parser Text ParserState Char
+olMarker :: Parsec Text ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&

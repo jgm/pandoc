@@ -22,8 +22,9 @@ import Data.Either (fromRight)
 import Data.Maybe (mapMaybe, listToMaybe)
 import Data.Text (Text, pack)
 import Text.Pandoc.Shared (trim)
-import Text.Parsec
-import Text.Parsec.Text
+import Text.Pandoc.Parsing
+
+type Parser = Parsec Text ()
 
 ruleParser :: Parser (Text, Text)
 ruleParser = do

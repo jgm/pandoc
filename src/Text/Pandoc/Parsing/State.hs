@@ -32,7 +32,7 @@ import Text.Pandoc.Definition (Attr, Meta, Target, nullMeta)
 import Text.Pandoc.Logging (LogMessage)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing.Capabilities
-import Text.Pandoc.Parsing.Types
+import Text.Pandoc.Parsing.Future
 import Text.Pandoc.TeX (Macro)
 
 import qualified Data.Map as M
