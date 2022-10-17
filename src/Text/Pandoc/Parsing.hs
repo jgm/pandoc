@@ -170,7 +170,9 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              initialPos,
                              Line,
                              Column,
-                             ParseError
+                             ParseError,
+                             errorMessages,
+                             messageString
                              )
 where
 
@@ -228,6 +230,9 @@ import Text.Parsec
       runParser,
       ParseError,
       Stream(..) )
+import Text.Parsec.Error (
+      errorMessages,
+      messageString )
 import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 import Text.Pandoc.Parsing.Capabilities
     ( guardDisabled,

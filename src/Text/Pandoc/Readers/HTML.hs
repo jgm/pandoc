@@ -66,7 +66,6 @@ import Text.Pandoc.Shared (
     addMetaField, blocksToInlines', escapeURI, extractSpaces,
     htmlSpanLikeElements, renderTags', safeRead, tshow, formatCode)
 import Text.Pandoc.Walk
-import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
