@@ -33,7 +33,6 @@ import Text.Pandoc.Builder (Blocks, Inlines, underline)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -49,7 +48,7 @@ readMuse opts s = do
   res <- flip runReaderT def $ runParserT parseMuse def{ museOptions = opts }
               (initialSourceName sources) sources
   case res of
-       Left e  -> throwError $ PandocParsecError sources e
+       Left e  -> throwError $ fromParsecError sources e
        Right d -> return d
 
 type F = Future MuseState

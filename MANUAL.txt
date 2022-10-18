@@ -1539,7 +1539,6 @@ Nonzero exit codes have the following meanings:
    62 PandocShouldNeverHappenError
    63 PandocSomeError
    64 PandocParseError
-   65 PandocParsecError
    66 PandocMakePDFError
    67 PandocSyntaxMapError
    83 PandocFilterError

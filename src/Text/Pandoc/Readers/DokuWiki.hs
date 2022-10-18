@@ -26,7 +26,6 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed, nested)
 import Text.Pandoc.Shared (trim, stringify, tshow)
@@ -43,7 +42,7 @@ readDokuWiki opts s = do
   res <- runParserT parseDokuWiki def {stateOptions = opts }
            (initialSourceName sources) sources
   case res of
-       Left e  -> throwError $ PandocParsecError sources e
+       Left e  -> throwError $ fromParsecError sources e
        Right d -> return d
 
 type DWParser = ParsecT Sources ParserState

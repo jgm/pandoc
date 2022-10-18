@@ -25,7 +25,6 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
-import Text.Pandoc.Error
 import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
 import Control.Monad.Except
 import Data.Functor.Identity (runIdentity)
@@ -33,7 +32,8 @@ import Data.Typeable
 import Text.Pandoc.Parsing (runParserT, getInput, getPosition,
                             runF, defaultParserState, option, many1, anyChar,
                             Sources(..), ToSources(..), ParsecT, Future,
-                            sourceName, sourceLine, incSourceLine)
+                            sourceName, sourceLine, incSourceLine,
+                            fromParsecError)
 import Text.Pandoc.Walk (walk)
 import qualified Data.Text as T
 import qualified Data.Attoparsec.Text as A
@@ -95,10 +95,10 @@ readCommonMarkBody opts s toks =
       else id) <$>
   if isEnabled Ext_sourcepos opts
      then case runIdentity (parseCommonmarkWith (specFor opts) toks) of
-            Left err -> throwError $ PandocParsecError s err
+            Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm SourceRange Blocks) -> return $ B.doc bls
      else case runIdentity (parseCommonmarkWith (specFor opts) toks) of
-            Left err -> throwError $ PandocParsecError s err
+            Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
 
 stripBlockComments :: Block -> Block

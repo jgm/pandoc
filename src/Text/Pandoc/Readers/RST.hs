@@ -871,7 +871,7 @@ csvTableDirective top fields rawcsv = do
   let res = parseCSV opts rawcsv'
   case (<>) <$> header' <*> res of
        Left e  ->
-         throwError $ PandocParsecError "csv table" e
+         throwError $ fromParsecError (toSources rawcsv') e
        Right rawrows -> do
          let singleParaToPlain bs =
                case B.toList bs of
