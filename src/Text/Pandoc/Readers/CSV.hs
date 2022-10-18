@@ -21,11 +21,11 @@ import Text.Pandoc.CSV (parseCSV, defaultCSVOptions, CSVOptions(..))
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
-import Text.Pandoc.Error
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.Pandoc.Options (ReaderOptions)
 import Control.Monad.Except (throwError)
 import Data.Text (Text)
+import Text.Pandoc.Parsing (fromParsecError)
 
 readCSV :: (PandocMonad m, ToSources a)
         => ReaderOptions -- ^ Reader options
@@ -68,4 +68,4 @@ readCSVWith csvopts txt = do
              aligns = replicate numcols AlignDefault
              widths = replicate numcols ColWidthDefault
     Right []     -> return $ B.doc mempty
-    Left e       -> throwError $ PandocParsecError (toSources [("",txt)]) e
+    Left e       -> throwError $ fromParsecError (toSources [("",txt)]) e

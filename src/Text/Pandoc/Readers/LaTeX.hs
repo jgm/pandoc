@@ -40,7 +40,7 @@ import Text.Pandoc.Class (PandocPure, PandocMonad (..), getResourcePath,
                           readFileFromDirs, report,
                           setResourcePath, getZonedTime)
 import Data.Time (ZonedTime(..), LocalTime(..), showGregorian)
-import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
+import Text.Pandoc.Error (PandocError (PandocParseError))
 import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -87,7 +87,7 @@ readLaTeX opts ltx = do
                (TokStream False (tokenizeSources sources))
   case parsed of
     Right result -> return result
-    Left e       -> throwError $ PandocParsecError sources e
+    Left e       -> throwError $ fromParsecError sources e
 
 parseLaTeX :: PandocMonad m => LP m Pandoc
 parseLaTeX = do
@@ -669,7 +669,7 @@ opt = do
               (TokStream False toks)
   case parsed of
     Right result -> return result
-    Left e       -> throwError $ PandocParsecError (toSources toks) e
+    Left e       -> throwError $ fromParsecError (toSources toks) e
 
 -- block elements:
 

@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.Man (readMan) where
 
 import Data.Char (toLower)
 import Data.Default (Default)
-import Control.Monad (liftM, mzero, guard, void)
+import Control.Monad (mzero, guard, void)
 import Control.Monad.Trans (lift)
 import Control.Monad.Except (throwError)
 import Data.Maybe (catMaybes, isJust)
@@ -24,12 +24,10 @@ import Data.List (intersperse)
 import qualified Data.Text as T
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad(..), report)
-import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Walk (query)
-import Text.Pandoc.Shared (mapLeft)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import qualified Text.Pandoc.Parsing as P
 import qualified Data.Foldable as Foldable
@@ -56,21 +54,18 @@ readMan opts s = do
   let Sources inps = toSources s
   tokenz <- mconcat <$> mapM (uncurry lexRoff) inps
   let state = def {readerOptions = opts} :: ManState
-  let fixError (PandocParsecError _ e) = PandocParsecError (Sources inps) e
-      fixError e = e
   eitherdoc <- readWithMTokens parseMan state
      (Foldable.toList . unRoffTokens $ tokenz)
-  either (throwError . fixError) return eitherdoc
+  either (throwError . fromParsecError (Sources inps)) return eitherdoc
 
 
 readWithMTokens :: PandocMonad m
         => ParsecT [RoffToken] ManState m a  -- ^ parser
         -> ManState                         -- ^ initial state
         -> [RoffToken]                       -- ^ input
-        -> m (Either PandocError a)
+        -> m (Either ParseError a)
 readWithMTokens parser state input =
-  let leftF = PandocParsecError mempty
-  in mapLeft leftF `liftM` runParserT parser state "source" input
+  runParserT parser state "source" input
 
 
 parseMan :: PandocMonad m => ManParser m Pandoc

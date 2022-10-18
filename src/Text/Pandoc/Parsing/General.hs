@@ -58,6 +58,7 @@ module Text.Pandoc.Parsing.General
   , uri
   , withHorizDisplacement
   , withRaw
+  , fromParsecError
   )
 where
 
@@ -82,7 +83,8 @@ import Data.Char
   , toUpper
   )
 import Data.Functor (($>))
-import Data.List (intercalate)
+import Data.List (intercalate, sortOn)
+import Data.Ord (Down(..))
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.HTML.TagSoup.Entity (lookupEntity)
@@ -103,6 +105,11 @@ import Text.Parsec
   ( (<|>)
   , ParsecT
   , SourcePos
+  , sourceLine
+  , sourceColumn
+  , sourceName
+  , ParseError
+  , errorPos
   , Stream(..)
   , between
   , choice
@@ -130,7 +137,7 @@ import Text.Parsec
 import Text.Parsec.Pos (initialPos, newPos)
 import Text.Parsec (Parsec)
 import Text.Pandoc.Error
-  ( PandocError(PandocParseError, PandocParsecError) )
+  ( PandocError(PandocParseError) )
 import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.State
 import Text.Pandoc.Parsing.Future (Future (..))
@@ -623,7 +630,7 @@ readWithM :: (Monad m, ToSources t)
           -> t                       -- ^ input
           -> m (Either PandocError a)
 readWithM parser state input =
-    mapLeft (PandocParsecError sources)
+    mapLeft (fromParsecError sources)
       <$> runParserT parser state (initialSourceName sources) sources
  where
    sources = toSources input
@@ -750,3 +757,28 @@ exciseLines mbstartline mbendline t =
                  Nothing -> numLines
                  Just x | x >= 0 -> x
                         | otherwise -> numLines + x -- negative from end
+
+fromParsecError :: Sources -> ParseError -> PandocError
+fromParsecError (Sources inputs) err' = PandocParseError msg
+ where
+  msg = "Error at " <> tshow  err' <> errorContext
+  errPos = errorPos err'
+  errLine = sourceLine errPos
+  errColumn = sourceColumn errPos
+  errFile = sourceName errPos
+  errorContext =
+    case sortOn (Down . sourceLine . fst)
+            [ (pos,t)
+              | (pos,t) <- inputs
+              , sourceName pos == errFile
+              , sourceLine pos <= errLine
+            ] of
+      []  -> ""
+      ((pos,txt):_) ->
+        let ls = T.lines txt <> [""]
+            ln = (errLine - sourceLine pos) + 1
+         in if length ls > ln && ln >= 1
+               then T.concat ["\n", ls !! (ln - 1)
+                             ,"\n", T.replicate (errColumn - 1) " "
+                             ,"^"]
+               else ""

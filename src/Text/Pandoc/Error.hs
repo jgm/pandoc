@@ -23,18 +23,13 @@ import Control.Exception (Exception, displayException)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
 import Data.Text (Text)
-import Data.List (sortOn)
 import qualified Data.Text as T
-import Data.Ord (Down(..))
 import GHC.Generics (Generic)
 import Network.HTTP.Client (HttpException)
 import System.Exit (ExitCode (..), exitWith)
 import System.IO (stderr)
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Sources (Sources(..))
 import Text.Printf (printf)
-import Text.Parsec.Error
-import Text.Parsec.Pos hiding (Line)
 import Text.Pandoc.Shared (tshow)
 import Citeproc (CiteprocError, prettyCiteprocError)
 
@@ -43,7 +38,6 @@ data PandocError = PandocIOError Text IOError
                  | PandocShouldNeverHappenError Text
                  | PandocSomeError Text
                  | PandocParseError Text
-                 | PandocParsecError Sources ParseError
                  | PandocMakePDFError Text
                  | PandocOptionError Text
                  | PandocSyntaxMapError Text
@@ -85,28 +79,6 @@ renderError e =
       "Please report this to pandoc's developers: " <> s
     PandocSomeError s -> s
     PandocParseError s -> s
-    PandocParsecError (Sources inputs) err' ->
-        let errPos = errorPos err'
-            errLine = sourceLine errPos
-            errColumn = sourceColumn errPos
-            errFile = sourceName errPos
-            errorInFile =
-              case sortOn (Down . sourceLine . fst)
-                      [ (pos,t)
-                        | (pos,t) <- inputs
-                        , sourceName pos == errFile
-                        , sourceLine pos <= errLine
-                      ] of
-                []  -> ""
-                ((pos,txt):_) ->
-                  let ls = T.lines txt <> [""]
-                      ln = (errLine - sourceLine pos) + 1
-                   in if length ls > ln && ln >= 1
-                         then T.concat ["\n", ls !! (ln - 1)
-                                       ,"\n", T.replicate (errColumn - 1) " "
-                                       ,"^"]
-                         else ""
-        in  "Error at " <> tshow  err' <> errorInFile
     PandocMakePDFError s -> s
     PandocOptionError s -> s
     PandocSyntaxMapError s -> s
@@ -198,7 +170,6 @@ handleError (Left e) =
       PandocShouldNeverHappenError{} -> 62
       PandocSomeError{} -> 63
       PandocParseError{} -> 64
-      PandocParsecError{} -> 65
       PandocMakePDFError{} -> 66
       PandocSyntaxMapError{} -> 67
       PandocFilterError{} -> 83

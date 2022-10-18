@@ -47,6 +47,7 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              mathDisplay,
                              withHorizDisplacement,
                              withRaw,
+                             fromParsecError,
                              escaped,
                              characterReference,
                              upperRoman,
@@ -297,7 +298,8 @@ import Text.Pandoc.Parsing.General
       trimInlinesF,
       uri,
       withHorizDisplacement,
-      withRaw )
+      withRaw,
+      fromParsecError )
 import Text.Pandoc.Parsing.GridTable
     ( gridTableWith,
       gridTableWith',
