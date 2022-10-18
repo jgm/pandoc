@@ -52,7 +52,7 @@ pushElementWriter = do
   addField "Pandoc"  $ pushDocumentedFunction $ lambda
     ### (\(Pandoc _ blks) -> do
             pushWriterTable writer
-            getfield' top "Blocks" <* remove (nth 2)
+            getfield' top "Blocks"
             pushBlocks blks
             callTrace 1 1
             pure (NumResults 1))
@@ -253,13 +253,10 @@ callOrDoc :: LuaE PandocError ()
 callOrDoc pushElement = do
   liftLua (ltype top) >>= \case
     TypeFunction -> peekCall
-    _            -> do
-      isCallable <- liftLua $ getmetafield top "__call" >>= \case
-        TypeNil -> pure False
-        _       -> True <$ pop 1
-      if isCallable
-        then peekCall
-        else peekDocFuzzy top
+    _            ->
+      liftLua (getmetafield top "__call") >>= \case
+        TypeNil -> peekDocFuzzy top
+        _       -> liftLua (pop 1) *> peekCall
  where
    peekCall :: Peek PandocError (Doc Text)
    peekCall =
