@@ -82,10 +82,6 @@ blockToMediaWiki :: PandocMonad m
 
 blockToMediaWiki Null = return ""
 
-blockToMediaWiki (Div (ident,("section":_),_)
-                   (Header lev (_, cls, kvs) ils : bs)) =
-  blockListToMediaWiki (Header lev (ident,cls,kvs) ils : bs)
-
 blockToMediaWiki (Div attrs bs) = do
   contents <- blockListToMediaWiki bs
   return $ render Nothing (tagWithAttrs "div" attrs) <> "\n\n" <>
