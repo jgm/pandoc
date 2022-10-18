@@ -291,7 +291,10 @@ eFootnotes = try $ do
      then return result
      -- but there might be content other than notes, in which case
      -- we want a div:
-     else return $ B.divWith (toAttr attr') result
+     else do
+       let attr'' =toAttr attr'
+       updateIdentifiers attr''
+       return $ B.divWith attr'' result
 
 eNoteref :: PandocMonad m => TagParser m Inlines
 eNoteref = try $ do
@@ -456,6 +459,7 @@ pDiv = try $ do
   guardEnabled Ext_native_divs
   TagOpen tag attr' <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
   let (ident, classes, kvs) = toAttr attr'
+  updateIdentifiers (ident, classes, kvs)
   contents <- pInTags tag block
   let classes' = if tag == "section"
                     then "section":classes
@@ -614,6 +618,7 @@ pCodeBlock = try $ do
                   , let v' = if k == "class"
                              then fromMaybe v (T.stripPrefix "language-" v)
                              else v ]
+  updateIdentifiers attr
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents
   -- drop leading newline if any
@@ -726,6 +731,7 @@ pSpanLike =
     parseTag tagName = do
       TagOpen _ attrs <- pSatisfy $ tagOpenLit tagName (const True)
       let (ids, cs, kvs) = toAttr attrs
+      updateIdentifiers (ids, cs, kvs)
       content <- mconcat <$> manyTill inline (pCloses tagName <|> eof)
       return $ B.spanWith (ids, tagName : cs, kvs) content
 
@@ -759,6 +765,7 @@ pLink = try $ do
   if inFootnotes st && maybeFromAttrib "role" tag == Just "doc-backlink"
      then return mempty
      else do
+       updateIdentifiers attr
        -- check for href; if href, then a link, otherwise a span
        case maybeFromAttrib "href" tag of
             Nothing   ->
@@ -775,6 +782,7 @@ pImage = do
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
   let attr = toAttr $ filter (\(k,_) -> k /= "alt" && k /= "title" && k /= "src") attr'
+  updateIdentifiers attr
   return $ B.imageWith attr (escapeURI url) title (B.text alt)
 
 pSvg :: PandocMonad m => TagParser m Inlines
@@ -783,6 +791,7 @@ pSvg = do
   -- if raw_html enabled, parse svg tag as raw
   opent@(TagOpen _ attr') <- pSatisfy (matchTagOpen "svg" [])
   let (ident,cls,_) = toAttr attr'
+  updateIdentifiers (ident,cls,[])
   contents <- many (notFollowedBy (pCloses "svg") >> pAny)
   closet <- TagClose "svg" <$ (pCloses "svg" <|> eof)
   let rawText = T.strip $ renderTags' (opent : contents ++ [closet])
@@ -805,6 +814,7 @@ pCode = try $ do
 code :: PandocMonad m => Text -> Attr -> TagParser m Inlines
 code open attr = do
   result <- mconcat <$> manyTill inline (pCloses open)
+  updateIdentifiers attr
   return $ formatCode attr result
 
 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo
@@ -824,6 +834,7 @@ pSpan = try $ do
   guardEnabled Ext_native_spans
   TagOpen _ attr' <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
   let attr = toAttr attr'
+  updateIdentifiers attr
   contents <- pInTags "span" inline
   let isSmallCaps = fontVariant == "small-caps" || "smallcaps" `elem` classes
                     where styleAttr   = fromMaybe "" $ lookup "style" attr'
@@ -1153,3 +1164,11 @@ canonicalizeUrl url = do
   return $ case (parseURIReference (T.unpack url), mbBaseHref) of
                 (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
                 _                   -> url
+
+-- | Update list of identifiers in state to prevent auto_identifiers
+-- from duplicating existing identifiers.
+updateIdentifiers :: PandocMonad m => Attr -> TagParser m ()
+updateIdentifiers (ident,_,_)
+  | T.null ident = return ()
+  | otherwise = unless (T.null ident) $
+                  updateState $ updateIdentifierList $ Set.insert ident
