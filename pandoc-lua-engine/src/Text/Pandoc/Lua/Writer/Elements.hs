@@ -14,7 +14,6 @@ module Text.Pandoc.Lua.Writer.Elements
   ( pushElementWriter
   ) where
 
-import Control.Applicative ((<|>))
 import Control.Monad ((<$!>), void)
 import Data.ByteString (ByteString)
 import Data.Data (dataTypeConstrs, dataTypeOf, showConstr, toConstr)
@@ -37,6 +36,7 @@ import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (metaToContext, setField)
+import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Convert Pandoc to custom markup.
@@ -50,9 +50,14 @@ pushElementWriter = do
   addField "Block"   $ newtable *> pushBlockMT  writer *> setmetatable (nth 2)
   addField "Inline"  $ newtable *> pushInlineMT writer *> setmetatable (nth 2)
   addField "Pandoc"  $ pushDocumentedFunction $ lambda
-    ### (\(Pandoc _ blks) -> blockListToCustom writer Nothing blks)
+    ### (\(Pandoc _ blks) -> do
+            pushWriterTable writer
+            getfield' top "Blocks" <* remove (nth 2)
+            pushBlocks blks
+            callTrace 1 1
+            pure (NumResults 1))
     <#> parameter peekPandoc "Pandoc" "doc" ""
-    =#> functionResult pushDoc "Doc" "rendered doc"
+    =?> "rendered doc"
   freeWriter writer
   return 1
  where
@@ -146,7 +151,9 @@ runWriter writer doc@(Pandoc meta _blks) mopts = do
   pushWriterOptions opts *>
     setfield registryindex writerOptionsField
 
-  (body, mcontext) <- forcePeek $ pandocToCustom writer doc
+  (body, mcontext) <- runPeek (pandocToCustom writer doc) >>= force . \case
+    Failure msg contexts -> Failure (cleanupTrace msg) contexts
+    s -> s
 
   -- convert metavalues to a template context (variables)
   defaultContext <- metaToContext opts
@@ -164,6 +171,24 @@ runWriter writer doc@(Pandoc meta _blks) mopts = do
     case writerTemplate opts of
        Nothing  -> body
        Just tpl -> renderTemplate tpl context
+
+-- | Keep exactly one traceback and clean it up. This wouldn't be
+-- necessary if the @pcallTrace@ function would do nothing whenever the
+-- error already included a trace, but that would require some bigger
+-- changes; removing the additional traces in this post-process step is
+-- much easier (for now).
+cleanupTrace :: ByteString -> ByteString
+cleanupTrace msg = UTF8.fromText . T.intercalate "\n" $
+  let tmsg = T.lines $ UTF8.toText msg
+      traceStart = (== "stack traceback:")
+  in case break traceStart tmsg of
+        (x, t:traces) -> (x <>) . (t:) $
+                         let (firstTrace, rest) = break traceStart traces
+                             isPeekContext = ("\twhile " `T.isPrefixOf`)
+                             isUnknownCFn = (== "\t[C]: in ?")
+                         in filter (not . isUnknownCFn) firstTrace <>
+                            filter isPeekContext rest
+        _ -> tmsg
 
 -- | Pushes the field in the writer table.
 getWriterField :: LuaError e
@@ -204,7 +229,7 @@ blockToCustom writer blk = forcePeek $ renderBlock writer blk
 renderBlock :: WriterTable -> Block -> Peek PandocError (Doc Text)
 renderBlock writer blk = do
   let constrName = fromString . showConstr . toConstr $ blk
-  withContext ("rendering Block " <> constrName) $
+  withContext ("rendering Block `" <> constrName <> "`") $
     liftLua (getNestedWriterField writer "Block" constrName) >>= \case
       TypeNil -> failPeek =<< typeMismatchMessage "function or Doc" top
       _       -> callOrDoc (pushBlock blk)
@@ -213,11 +238,12 @@ inlineToCustom :: WriterTable -> Inline -> LuaE PandocError (Doc Text)
 inlineToCustom writer inln = forcePeek $ renderInline writer inln
 
 renderInline :: WriterTable -> Inline -> Peek PandocError (Doc Text)
-renderInline writer inln = withContext "rendering Inline" $ do
+renderInline writer inln = do
   let constrName = fromString . showConstr . toConstr $ inln
-  liftLua (getNestedWriterField writer "Inline" constrName) >>= \case
-    TypeNil -> failPeek =<< typeMismatchMessage "function or Doc" top
-    _       -> callOrDoc (pushInline inln)
+  withContext ("rendering Inline `" <> constrName <> "`") $ do
+    liftLua (getNestedWriterField writer "Inline" constrName) >>= \case
+      TypeNil -> failPeek =<< typeMismatchMessage "function or Doc" top
+      _       -> callOrDoc (pushInline inln)
 
 -- | If the value at the top of the stack can be called as a function,
 -- then push the element and writer options to the stack and call it;
@@ -243,12 +269,18 @@ callOrDoc pushElement = do
 
 blockListToCustom :: WriterTable -> Maybe (Doc Text) -> [Block]
                   -> LuaE PandocError (Doc Text)
-blockListToCustom writer msep blocks = forcePeek $ do
-  let addSeps = intersperse $ fromMaybe blankline msep
-  mconcat . addSeps <$> mapM (renderBlock writer) blocks
+blockListToCustom writer msep blocks = forcePeek $
+  renderBlockList writer msep blocks
 
 inlineListToCustom :: WriterTable -> [Inline] -> LuaE PandocError (Doc Text)
-inlineListToCustom writer inlines = forcePeek $ renderInlineList writer inlines
+inlineListToCustom writer inlines = forcePeek $
+  renderInlineList writer inlines
+
+renderBlockList :: WriterTable -> Maybe (Doc Text) -> [Block]
+                -> Peek PandocError (Doc Text)
+renderBlockList writer msep blocks = withContext "rendering Blocks" $ do
+  let addSeps = intersperse $ fromMaybe blankline msep
+  mconcat . addSeps <$> mapM (renderBlock writer) blocks
 
 renderInlineList :: WriterTable -> [Inline] -> Peek PandocError (Doc Text)
 renderInlineList writer inlines = withContext "rendering Inlines" $ do
