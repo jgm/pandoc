@@ -47,6 +47,7 @@ module Text.Pandoc.Parsing.General
   , readWith
   , readWithM
   , registerHeader
+  , registerIdentifier
   , sepBy1'
   , skipSpaces
   , spaceChar
@@ -670,8 +671,8 @@ registerHeader (ident,classes,kvs) header' = do
        let id'' = if Ext_ascii_identifiers `extensionEnabled` exts
                      then toAsciiText id'
                      else id'
-       updateState $ updateIdentifierList $ Set.insert id'
-       updateState $ updateIdentifierList $ Set.insert id''
+       registerIdentifier id'
+       when (id'' /= id') $ registerIdentifier id''
        return (id'',classes,kvs)
      else do
         unless (T.null ident) $ do
@@ -680,6 +681,16 @@ registerHeader (ident,classes,kvs) header' = do
             logMessage $ DuplicateIdentifier ident pos
           updateState $ updateIdentifierList $ Set.insert ident
         return (ident,classes,kvs)
+
+-- | Update list of identifiers in state to prevent auto_identifiers
+-- from duplicating existing identifiers.
+registerIdentifier :: (Stream s m a, HasIdentifierList st)
+                   => Text -> ParsecT s st m ()
+registerIdentifier ident
+  | T.null ident = return ()
+  | otherwise = unless (T.null ident) $
+                  updateState $ updateIdentifierList $ Set.insert ident
+
 
 -- This is used to prevent exponential blowups for things like:
 -- a**a*a**a*a**a*a**a*a**a*a**a*a**
