@@ -368,7 +368,7 @@ referenceKey = try $ do
   addKvs <- option [] $ guardEnabled Ext_mmd_link_attributes
                           >> many (try $ spnl >> keyValAttr)
   blanklines
-  let attr'@(ident,_,_)  = extractIdClass $ foldl' (\x f -> f x) attr addKvs
+  let attr'  = extractIdClass $ foldl' (\x f -> f x) attr addKvs
       target = (escapeURI $ trimr src, tit)
   st <- getState
   let oldkeys = stateKeys st
@@ -380,7 +380,6 @@ referenceKey = try $ do
       -- or section. See #3701.
       logMessage $ DuplicateLinkReference raw pos
     _ -> return ()
-  registerIdentifier ident
   updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
   return $ return mempty
 
@@ -703,11 +702,10 @@ codeBlockFenced = try $ do
                           (try $ do
                             blockDelimiter (== c) (Just size)
                             blanklines)
-  case rawattr of
-    Left syn -> return $ return $ B.rawBlock syn contents
-    Right attr@(ident,_,_) -> do
-            registerIdentifier ident
-            return $ return $ B.codeBlockWith attr contents
+  return $ return $
+    case rawattr of
+          Left syn   -> B.rawBlock syn contents
+          Right attr -> B.codeBlockWith attr contents
 
 -- correctly handle github language identifiers
 toLanguageId :: Text -> Text
@@ -1607,11 +1605,10 @@ code = try $ do
     <|>
      (Right <$> option ("",[],[])
          (guardEnabled Ext_inline_code_attributes >> try attributes))
-  case rawattr of
-    Left syn -> return $ return $ B.rawInline syn $! result
-    Right attr@(ident,_,_) -> do
-      registerIdentifier ident
-      return $ return $ B.codeWith attr $! result
+  return $ return $
+    case rawattr of
+         Left syn   -> B.rawInline syn $! result
+         Right attr -> B.codeWith attr $! result
 
 math :: PandocMonad m => MarkdownParser m (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros))
@@ -1827,8 +1824,7 @@ bracketedSpan = do
   guardEnabled Ext_bracketed_spans
   try $ do
     (lab,_) <- reference
-    attr@(ident,_,_) <- attributes
-    registerIdentifier ident
+    attr <- attributes
     return $ wrapSpan attr <$> lab
 
 -- | Given an @Attr@ value, this returns a function to wrap the contents
@@ -1867,9 +1863,8 @@ regLink constructor lab = try $ do
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   pos <- getPosition
   let src' = if rebase then rebasePath pos src else src
-  attr@(ident,_,_) <- option nullAttr $
+  attr <- option nullAttr $
           guardEnabled Ext_link_attributes >> attributes
-  registerIdentifier ident
   return $ constructor attr src' tit <$> lab
 
 -- a link like [this][ref] or [this][] or [this]
@@ -2039,7 +2034,6 @@ spanHtml = do
     (TagOpen _ attrs, _) <- htmlTag (~== TagOpen ("span" :: Text) [])
     contents <- mconcat <$> manyTill inline (htmlTag (~== TagClose ("span" :: Text)))
     let ident = fromMaybe "" $ lookup "id" attrs
-    registerIdentifier ident
     let classes = maybe [] T.words $ lookup "class" attrs
     let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
     return $ wrapSpan (ident, classes, keyvals) <$> contents
@@ -2061,7 +2055,6 @@ divHtml = do
        then do
          updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
          let ident = fromMaybe "" $ lookup "id" attrs
-         registerIdentifier ident
          let classes = maybe [] T.words $ lookup "class" attrs
          let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
          return $ B.divWith (ident, classes, keyvals) <$> contents
@@ -2075,9 +2068,7 @@ divFenced = do
     string ":::"
     skipMany (char ':')
     skipMany spaceChar
-    attribs@(ident,_,_) <- attributes
-                           <|> ((\x -> ("",[x],[])) <$> many1Char nonspaceChar)
-    registerIdentifier ident
+    attribs <- attributes <|> ((\x -> ("",[x],[])) <$> many1Char nonspaceChar)
     skipMany spaceChar
     skipMany (char ':')
     blankline

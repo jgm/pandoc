@@ -562,7 +562,7 @@ makeSections numbering mbBaseLevel bs =
     let attr = ("",classes,kvs')
     return $
       Div divattr (Header level' attr title' : sectionContents') : rest'
-  go (Div divattr@(dident,dclasses,dkvs) (Header level hattr title':ys) : xs)
+  go (Div divattr@(dident,dclasses,_) (Header level hattr title':ys) : xs)
       | all (\case
                Header level' _ _ -> level' > level
                _                 -> True) ys
@@ -573,15 +573,9 @@ makeSections numbering mbBaseLevel bs =
     rest <- go xs
     return $
       case inner of
-            [Div (dident',dclasses'@("section":_),dkvs')
-              (Header lev (_,hcs,hkvs) ils : zs)]
-              -> Div (if T.null dident
-                         then dident'
-                         else dident, combineClasses dclasses' dclasses,
-                                      combineKvs dkvs' dkvs)
-                   (Header lev (if T.null dident
-                                   then "" -- dident' promoted to Div
-                                   else dident', hcs, hkvs) ils : zs) : rest
+            [Div divattr'@(dident',_,_) zs]
+              | T.null dident || T.null dident' || dident == dident'
+              -> Div (combineAttr divattr' divattr) zs : rest
             _ -> Div divattr inner : rest
   go (Div attr xs : rest) = do
     xs' <- go xs
@@ -591,15 +585,13 @@ makeSections numbering mbBaseLevel bs =
   go (x:xs) = (x :) <$> go xs
   go [] = return []
 
-  combineClasses :: [T.Text] -> [T.Text] -> [T.Text]
-  combineClasses classes1 classes2 =
-    classes1 ++ [cl | cl <- classes2, cl `notElem` classes1]
-
-  combineKvs :: [(T.Text, T.Text)] -> [(T.Text, T.Text)] -> [(T.Text, T.Text)]
-  combineKvs kvs1 kvs2 =
+  combineAttr :: Attr -> Attr -> Attr
+  combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
+    (if T.null id1 then id2 else id1,
+     ordNub (classes1 ++ classes2),
      foldr (\(k,v) kvs -> case lookup k kvs of
                              Nothing -> (k,v):kvs
-                             Just _  -> kvs) mempty (kvs1 ++ kvs2)
+                             Just _  -> kvs) mempty (kvs1 ++ kvs2))
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)  = l <= level

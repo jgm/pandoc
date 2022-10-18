@@ -14,12 +14,12 @@ Ok
 :::
 ^D
 <section id="hi" class="level1">
-<h1 id="hi-1">Hi</h1>
+<h1>Hi</h1>
 <section id="there" class="level2">
-<h2 id="there-1">there</h2>
+<h2>there</h2>
 </section>
 </section>
 <section id="ok" class="level1">
-<h1 id="ok-1">Ok</h1>
+<h1>Ok</h1>
 </section>
 ```
