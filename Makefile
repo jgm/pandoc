@@ -113,6 +113,10 @@ changes_github: ## copy this release's changes in gfm
 man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1 ## build man pages
 .PHONY: man
 
+latex-package-dependencies: ## print packages used by default latex template
+	pandoc lua tools=latex-package-dependencies.lua
+.PHONY: latex-package-dependencies
+
 coverage: ## code coverage information
 	cabal test \
 	  --ghc-options='-fhpc $(GHCOPTS)' \
