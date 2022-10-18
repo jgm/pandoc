@@ -292,8 +292,8 @@ eFootnotes = try $ do
      -- but there might be content other than notes, in which case
      -- we want a div:
      else do
-       let attr''@(ident,_,_) = toAttr attr'
-       registerIdentifier ident
+       let attr'' =toAttr attr'
+       updateIdentifiers attr''
        return $ B.divWith attr'' result
 
 eNoteref :: PandocMonad m => TagParser m Inlines
@@ -459,7 +459,7 @@ pDiv = try $ do
   guardEnabled Ext_native_divs
   TagOpen tag attr' <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
   let (ident, classes, kvs) = toAttr attr'
-  registerIdentifier ident
+  updateIdentifiers (ident, classes, kvs)
   contents <- pInTags tag block
   let classes' = if tag == "section"
                     then "section":classes
@@ -608,7 +608,7 @@ pCodeBlock = try $ do
   TagOpen _ attr' <- pSatisfy (matchTagOpen "pre" [])
   -- if the `pre` has no attributes, try if it is followed by a `code`
   -- element and use those attributes if possible.
-  attr@(ident,_,_) <- case attr' of
+  attr <- case attr' of
     _:_ -> pure (toAttr attr')
     []  -> option nullAttr $ do
       TagOpen _ codeAttr <- pSatisfy (matchTagOpen "code" [])
@@ -618,7 +618,7 @@ pCodeBlock = try $ do
                   , let v' = if k == "class"
                              then fromMaybe v (T.stripPrefix "language-" v)
                              else v ]
-  registerIdentifier ident
+  updateIdentifiers attr
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents
   -- drop leading newline if any
@@ -731,7 +731,7 @@ pSpanLike =
     parseTag tagName = do
       TagOpen _ attrs <- pSatisfy $ tagOpenLit tagName (const True)
       let (ids, cs, kvs) = toAttr attrs
-      registerIdentifier ids
+      updateIdentifiers (ids, cs, kvs)
       content <- mconcat <$> manyTill inline (pCloses tagName <|> eof)
       return $ B.spanWith (ids, tagName : cs, kvs) content
 
@@ -759,13 +759,13 @@ pLink :: PandocMonad m => TagParser m Inlines
 pLink = try $ do
   tag@(TagOpen _ attr') <- pSatisfy $ tagOpenLit "a" (const True)
   let title = fromAttrib "title" tag
-  let attr@(ident,_,_) = toAttr $ filter (\(k,_) -> k /= "title" && k /= "href") attr'
+  let attr = toAttr $ filter (\(k,_) -> k /= "title" && k /= "href") attr'
   lab <- mconcat <$> manyTill inline (pCloses "a")
   st <- getState
   if inFootnotes st && maybeFromAttrib "role" tag == Just "doc-backlink"
      then return mempty
      else do
-       registerIdentifier ident
+       updateIdentifiers attr
        -- check for href; if href, then a link, otherwise a span
        case maybeFromAttrib "href" tag of
             Nothing   ->
@@ -781,9 +781,8 @@ pImage = do
   url <- canonicalizeUrl $ fromAttrib "src" tag
   let title = fromAttrib "title" tag
   let alt = fromAttrib "alt" tag
-  let attr@(ident,_,_) =
-        toAttr $ filter (\(k,_) -> k /= "alt" && k /= "title" && k /= "src") attr'
-  registerIdentifier ident
+  let attr = toAttr $ filter (\(k,_) -> k /= "alt" && k /= "title" && k /= "src") attr'
+  updateIdentifiers attr
   return $ B.imageWith attr (escapeURI url) title (B.text alt)
 
 pSvg :: PandocMonad m => TagParser m Inlines
@@ -792,7 +791,7 @@ pSvg = do
   -- if raw_html enabled, parse svg tag as raw
   opent@(TagOpen _ attr') <- pSatisfy (matchTagOpen "svg" [])
   let (ident,cls,_) = toAttr attr'
-  registerIdentifier ident
+  updateIdentifiers (ident,cls,[])
   contents <- many (notFollowedBy (pCloses "svg") >> pAny)
   closet <- TagClose "svg" <$ (pCloses "svg" <|> eof)
   let rawText = T.strip $ renderTags' (opent : contents ++ [closet])
@@ -813,9 +812,9 @@ pCode = try $ do
   code open attr
 
 code :: PandocMonad m => Text -> Attr -> TagParser m Inlines
-code open attr@(ident,_,_) = do
+code open attr = do
   result <- mconcat <$> manyTill inline (pCloses open)
-  registerIdentifier ident
+  updateIdentifiers attr
   return $ formatCode attr result
 
 -- https://developer.mozilla.org/en-US/docs/Web/HTML/Element/bdo
@@ -834,8 +833,8 @@ pSpan :: PandocMonad m => TagParser m Inlines
 pSpan = try $ do
   guardEnabled Ext_native_spans
   TagOpen _ attr' <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
-  let attr@(ident,_,_) = toAttr attr'
-  registerIdentifier ident
+  let attr = toAttr attr'
+  updateIdentifiers attr
   contents <- pInTags "span" inline
   let isSmallCaps = fontVariant == "small-caps" || "smallcaps" `elem` classes
                     where styleAttr   = fromMaybe "" $ lookup "style" attr'
@@ -1165,3 +1164,11 @@ canonicalizeUrl url = do
   return $ case (parseURIReference (T.unpack url), mbBaseHref) of
                 (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
                 _                   -> url
+
+-- | Update list of identifiers in state to prevent auto_identifiers
+-- from duplicating existing identifiers.
+updateIdentifiers :: PandocMonad m => Attr -> TagParser m ()
+updateIdentifiers (ident,_,_)
+  | T.null ident = return ()
+  | otherwise = unless (T.null ident) $
+                  updateState $ updateIdentifierList $ Set.insert ident
