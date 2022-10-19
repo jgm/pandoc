@@ -126,6 +126,62 @@ end
 
 [Lua filters documentation]: https://pandoc.org/lua-filters.html
 
+## Reducing boilerplate with `pandoc.make_writer`
+
+The module `pandoc.make_writer` is a custom writer scaffold that
+serves to avoid common boilerplate code when defining a custom
+writer. The function allows to define a writer by adding render
+functions for each element type.
+
+The output of `pandoc.make_writer` is a new function that should
+usually be assigned to the global `Writer`:
+
+``` lua
+Writer = pandoc.make_writer()
+```
+
+The render functions for Block and Inline values can then be added
+to `Writer.Block` and `Writer.Inline`, respectively. The functions
+are passed the element and the WriterOptions.
+
+``` lua
+Writer.Inline.Str = function (str)
+  return str.text
+end
+Writer.Inline.SoftBreak = function (_, opts)
+  return opts.wrap_text == "wrap-preserve"
+    and cr
+    or space
+end
+Writer.Inline.LineBreak = cr
+
+Writer.Block.Para = function (para)
+  return {Writer.Inlines(para.content), pandoc.layout.blankline}
+end
+```
+
+The render functions must return a string, a pandoc.layout *Doc*
+element, or a list of such elements. In the latter case, the
+values are concatenated as if they were passed to
+`pandoc.layout.concat`. If the value does not depend on the input,
+a constant can be used as well.
+
+The tables `Writer.Block` and `Writer.Inline` can be used as
+functions; they apply the right render function for an element of
+the respective type. E.g., `Writer.Block(pandoc.Para 'x')` will
+delegate to the `Writer.Para` render function and will the result
+of that call.
+
+Similarly, the functions `Writer.Blocks` and `Writer.Inlines` can
+be used to render lists of elements, and `Writer.Pandoc` renders
+the document's blocks.
+
+All predefined functions can be overwritten when needed.
+
+The resulting Writer uses the render functions to handle metadata
+values and converts them to template variables. The template is
+applied automatically if one is given.
+
 # Classic style
 
 A writer using the classic style defines rendering functions for

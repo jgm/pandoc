@@ -3418,6 +3418,11 @@ Usage:
 
 ## Helper functions
 
+### `make_writer ()` {pandoc.make_writer}
+
+Creates scaffolding for a custom Writer. See the documentation for
+custom writers for details.
+
 ### `pipe (command, args, input)` {#pandoc.pipe}
 
 Runs command with arguments, passing it some input, and returns
