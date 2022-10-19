@@ -37,6 +37,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Slides
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)

@@ -76,9 +76,6 @@ module Text.Pandoc.Shared (
                      makeCanonical,
                      collapseFilePath,
                      filteredFilesFromArchive,
-                     -- * URI handling
-                     escapeURI,
-                     isURI,
                      -- * Error handling
                      mapLeft,
                      -- * for squashing blocks
@@ -129,7 +126,6 @@ import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
-import Text.Pandoc.URI (escapeURI, isURI)
 
 -- | Version number of pandoc library.
 pandocVersion :: Version

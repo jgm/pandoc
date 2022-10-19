@@ -51,6 +51,7 @@ import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
+import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
 -- import Debug.Trace (traceShowId)

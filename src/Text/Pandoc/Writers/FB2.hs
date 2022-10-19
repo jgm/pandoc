@@ -28,7 +28,7 @@ import Data.List (intercalate)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.Pandoc.URI (urlEncode)
+import Text.Pandoc.URI (urlEncode, isURI)
 import Text.Pandoc.XML.Light as X
 
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -37,7 +37,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
+import Text.Pandoc.Shared (capitalize, orderedListMarkers,
                            makeSections, tshow, stringify)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable,
                                    ensureValidXmlIdentifiers)

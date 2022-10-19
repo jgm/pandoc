@@ -29,7 +29,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Shared (safeRead, isURI)
+import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Writers.Markdown (writePlain, writeMarkdown)
 import qualified Data.Text.Encoding as TE

@@ -81,8 +81,8 @@ import Text.Pandoc.Parsing (ParserState, ParsecT, blanklines, emailAddress,
                             skipMany1, try, option,
                             updateState, getState, (<|>))
 import Text.Pandoc.Sources (ToSources(..), Sources)
-import Text.Pandoc.Shared (splitTextBy, stringify, stripFirstAndLast,
-                           isURI, tshow)
+import Text.Pandoc.Shared (splitTextBy, stringify, stripFirstAndLast, tshow)
+import Text.Pandoc.URI (isURI)
 
 readVimwiki :: (PandocMonad m, ToSources a)
             => ReaderOptions

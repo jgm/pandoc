@@ -63,8 +63,9 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
-    addMetaField, blocksToInlines', escapeURI, extractSpaces,
+    addMetaField, blocksToInlines', extractSpaces,
     htmlSpanLikeElements, renderTags', safeRead, tshow, formatCode)
+import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Walk
 import Text.TeXMath (readMathML, writeTeX)
 

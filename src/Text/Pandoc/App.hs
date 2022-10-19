@@ -61,7 +61,8 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
-         headerShift, isURI, filterIpynbOutput, defaultUserDataDir, tshow)
+         headerShift, filterIpynbOutput, defaultUserDataDir, tshow)
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import qualified Text.Pandoc.UTF8 as UTF8

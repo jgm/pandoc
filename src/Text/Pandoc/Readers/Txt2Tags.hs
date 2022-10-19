@@ -33,7 +33,8 @@ import Data.Time (defaultTimeLocale)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (space, spaces, uri)
-import Text.Pandoc.Shared (compactify, compactifyDL, escapeURI)
+import Text.Pandoc.Shared (compactify, compactifyDL)
+import Text.Pandoc.URI (escapeURI)
 
 type T2T = ParsecT Sources ParserState (Reader T2TMeta)
 

@@ -32,7 +32,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..),
            WriterOptions (writerTableOfContents, writerTemplate,
                           writerWrapText))
-import Text.Pandoc.Shared (escapeURI, isURI, linesToPara, removeFormatting, trimr)
+import Text.Pandoc.Shared (linesToPara, removeFormatting, trimr)
+import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
 

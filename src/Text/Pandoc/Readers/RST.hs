@@ -36,6 +36,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Time.Format
 import System.FilePath (takeDirectory)
