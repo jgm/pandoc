@@ -36,6 +36,10 @@ ghcid: ## run ghcid
 	ghcid -c 'cabal repl pandoc'
 .PHONY: ghcid
 
+repl:  ## run cabal repl
+	cabal repl $(CABALOPTS) pandoc
+.PHONY: repl
+
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 test:  ## unoptimized build and run tests with cabal
