@@ -12,6 +12,7 @@ module Text.Pandoc.Format
   ( FlavoredFormat (..)
   , ExtensionsConfig (..)
   , ExtensionsDiff (..)
+  , diffExtensions
   , parseFlavoredFormat
   , applyExtensionsDiff
   , getExtensionsConfig
@@ -58,6 +59,14 @@ instance Semigroup ExtensionsDiff where
 instance Monoid ExtensionsDiff where
   mempty = ExtensionsDiff mempty mempty
   mappend = (<>)
+
+-- | Calculate the change set to get from one set of extensions to
+-- another.
+diffExtensions :: Extensions -> Extensions -> ExtensionsDiff
+diffExtensions def actual = ExtensionsDiff
+  { extsToEnable = actual `disableExtensions` def
+  , extsToDisable = def `disableExtensions` actual
+  }
 
 -- | Describes the properties of a format.
 data ExtensionsConfig = ExtensionsConfig
