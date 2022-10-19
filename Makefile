@@ -42,7 +42,7 @@ test:  ## unoptimized build and run tests with cabal
 	cabal test \
 	  --ghc-options='$(GHCOPTS)' \
 	  $(CABALOPTS) \
-	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
+	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)" all
 .PHONY: test
 
 quick-stack: ## unoptimized build and tests with stack
