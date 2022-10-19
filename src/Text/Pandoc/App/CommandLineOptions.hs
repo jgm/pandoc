@@ -50,7 +50,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             fullDefaultsPath)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
-import Text.Pandoc.Shared (ordNub, safeStrRead, defaultUserDataDir)
+import Text.Pandoc.Shared (ordNub, safeStrRead)
 import Text.Printf
 import qualified Control.Exception as E
 import qualified Data.ByteString as BS

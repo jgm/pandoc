@@ -83,9 +83,7 @@ module Text.Pandoc.Shared (
                      defaultBlocksSeparator,
                      -- * Safe read
                      safeRead,
-                     safeStrRead,
-                     -- * User data directory
-                     defaultUserDataDir,
+                     safeStrRead
                     ) where
 
 import Codec.Archive.Zip
@@ -902,24 +900,3 @@ safeStrRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> mzero
---
--- User data directory
---
-
--- | Return appropriate user data directory for platform.  We use
--- XDG_DATA_HOME (or its default value), but for backwards compatibility,
--- we fall back to the legacy user data directory ($HOME/.pandoc on *nix)
--- if the XDG_DATA_HOME is missing and this exists.  If neither directory
--- is present, we return the XDG data directory.  If the XDG data directory
--- is not defined (e.g. because we are in an environment where $HOME is
--- not defined), we return the empty string.
-defaultUserDataDir :: IO FilePath
-defaultUserDataDir = do
-  xdgDir <- E.catch (getXdgDirectory XdgData "pandoc")
-               (\(_ :: E.SomeException) -> return mempty)
-  legacyDir <- getAppUserDataDirectory "pandoc"
-  xdgExists <- doesDirectoryExist xdgDir
-  legacyDirExists <- doesDirectoryExist legacyDir
-  if not xdgExists && legacyDirExists
-     then return legacyDir
-     else return xdgDir
