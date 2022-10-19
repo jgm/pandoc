@@ -40,6 +40,13 @@ repl:  ## run cabal repl
 	cabal repl $(CABALOPTS) pandoc
 .PHONY: repl
 
+linecounts: ## print line counts for each module
+	@for f in $(SOURCEFILES); do \
+		wc -l $$f; \
+		done; \
+	wc -l $(SOURCEFILES)
+.PHONY: linecounts
+
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 test:  ## unoptimized build and run tests with cabal
