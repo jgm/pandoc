@@ -514,8 +514,8 @@ orgPath src = case T.uncons src of
     isUrl :: Text -> Bool
     isUrl cs =
       let (scheme, path) = T.break (== ':') cs
-      in T.all (\c -> isAlphaNum c || c `elemText` ".-") scheme
-         && not (T.null path)
+       in T.all (\c -> isAlphaNum c || T.any (== c) ".-") scheme
+          && not (T.null path)
 
 -- | Translate from pandoc's programming language identifiers to those used by
 -- org-mode.

@@ -27,8 +27,6 @@ module Text.Pandoc.Shared (
                      -- * Text processing
                      inquotes,
                      tshow,
-                     elemText,
-                     notElemText,
                      stripTrailingNewlines,
                      trim,
                      triml,
@@ -190,15 +188,6 @@ inquotes txt = T.cons '\"' (T.snoc txt '\"')
 -- | Like @'show'@, but returns a 'T.Text' instead of a 'String'.
 tshow :: Show a => a -> T.Text
 tshow = T.pack . show
-
--- | @True@ exactly when the @Char@ appears in the @Text@.
-elemText :: Char -> T.Text -> Bool
-elemText c = T.any (== c)
-
-{-# DEPRECATED notElemText "Use T.all (/= c)" #-}
--- | @True@ exactly when the @Char@ does not appear in the @Text@.
-notElemText :: Char -> T.Text -> Bool
-notElemText c = T.all (/= c)
 
 -- | Strip trailing newlines from string.
 stripTrailingNewlines :: T.Text -> T.Text

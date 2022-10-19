@@ -398,7 +398,7 @@ blockToMarkdown' opts (Div attrs ils) = do
 blockToMarkdown' opts (Plain inlines) = do
   -- escape if para starts with ordered list marker
   variant <- asks envVariant
-  let escapeMarker = T.concatMap $ \x -> if x `elemText` ".()"
+  let escapeMarker = T.concatMap $ \x -> if T.any (== x) ".()"
                                          then T.pack ['\\', x]
                                          else T.singleton x
   let startsWithSpace (Space:_)     = True

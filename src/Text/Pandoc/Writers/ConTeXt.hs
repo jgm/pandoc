@@ -538,7 +538,7 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code _ str) | not ('{' `elemText` str || '}' `elemText` str) =
+inlineToConTeXt (Code _ str) | not (T.any (\c -> c == '{' || c == '}') str) =
   return $ "\\type" <> braces (literal str)
 inlineToConTeXt (Code _ str) = do
   opts <- gets stOptions

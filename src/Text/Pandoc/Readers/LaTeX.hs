@@ -315,7 +315,7 @@ tok = tokWith inline
 unescapeURL :: Text -> Text
 unescapeURL = T.concat . go . T.splitOn "\\"
   where
-    isEscapable c = c `elemText` "#$%&~_^\\{}"
+    isEscapable c = T.any (== c) "#$%&~_^\\{}"
     go (x:xs) = x : map unescapeInterior xs
     go []     = []
     unescapeInterior t

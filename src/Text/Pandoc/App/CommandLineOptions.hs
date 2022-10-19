@@ -50,7 +50,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             fullDefaultsPath)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
-import Text.Pandoc.Shared (ordNub, elemText, safeStrRead, defaultUserDataDir)
+import Text.Pandoc.Shared (ordNub, safeStrRead, defaultUserDataDir)
 import Text.Printf
 import qualified Control.Exception as E
 import qualified Data.ByteString as BS
@@ -1006,7 +1006,7 @@ writersNames = sort
   ("pdf" : map fst (writers :: [(Text, Writer PandocIO)]))
 
 splitField :: String -> (String, String)
-splitField = second (tailDef "true") . break (`elemText` ":=")
+splitField = second (tailDef "true") . break (\c -> c == ':' || c == '=')
 
 deprecatedOption :: String -> String -> IO ()
 deprecatedOption o msg =

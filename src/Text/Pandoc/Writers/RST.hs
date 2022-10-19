@@ -626,14 +626,14 @@ transformInlines =  insertBS .
         okAfterComplex SoftBreak = True
         okAfterComplex LineBreak = True
         okAfterComplex (Str (T.uncons -> Just (c,_)))
-          = isSpace c || c `elemText` "-.,:;!?\\/'\")]}>–—"
+          = isSpace c || T.any (== c) "-.,:;!?\\/'\")]}>–—"
         okAfterComplex _ = False
         okBeforeComplex :: Inline -> Bool
         okBeforeComplex Space = True
         okBeforeComplex SoftBreak = True
         okBeforeComplex LineBreak = True
         okBeforeComplex (Str (T.unsnoc -> Just (_,c)))
-                          = isSpace c || c `elemText` "-:/'\"<([{–—"
+          = isSpace c || T.any (== c) "-:/'\"<([{–—"
         okBeforeComplex _ = False
         isComplex :: Inline -> Bool
         isComplex (Emph _)        = True
@@ -791,7 +791,7 @@ inlineToRST (Code _ str) = do
   -- we use :literal: when the code contains backticks, since
   -- :literal: allows backslash-escapes; see #3974
   return $
-    if '`' `elemText` str
+    if T.any (== '`') str
        then ":literal:`" <> literal (escapeText opts (trim str)) <> "`"
        else "``" <> literal (trim str) <> "``"
 inlineToRST (Str str) = do
@@ -804,7 +804,7 @@ inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
               then ":math:`" <> literal str <> "`"
-              else if '\n' `elemText` str
+              else if T.any (== '\n') str
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (literal str) $$ blankline
                    else blankline $$ (".. math:: " <> literal str) $$ blankline
