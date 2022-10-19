@@ -33,6 +33,7 @@ import Control.Monad.State.Strict
 import Data.Char (ord)
 import Data.List (intercalate, intersperse, partition, delete, (\\), foldl')
 import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.Containers.ListUtils (nubOrd)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -829,7 +830,7 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
     res <- blockListToHtml opts innerSecs
     modify $ \st -> st{ stInSection = inSection }
     return res
-  let classes' = ordNub $
+  let classes' = nubOrd $
                   ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++

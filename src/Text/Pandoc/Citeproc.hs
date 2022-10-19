@@ -30,7 +30,8 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Extensions (pandocExtensions)
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options (ReaderOptions(..))
-import Text.Pandoc.Shared (stringify, ordNub, tshow)
+import Text.Pandoc.Shared (stringify, tshow)
+import Data.Containers.ListUtils (nubOrd)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (query, walk, walkM)
 import Control.Applicative ((<|>))
@@ -501,8 +502,8 @@ insertRefs refkvs refclasses refs (Pandoc meta bs) =
    go (Div ("refs",cs,kvs) xs) = do
      put True
      -- refHeader isn't used if you have an explicit references div
-     let cs' = ordNub $ cs ++ refclasses
-     let kvs' = ordNub $ kvs ++ refkvs
+     let cs' = nubOrd $ cs ++ refclasses
+     let kvs' = nubOrd $ kvs ++ refkvs
      return $ Div ("refs",cs',kvs') (xs ++ refs)
    go x = return x
 

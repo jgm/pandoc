@@ -24,6 +24,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit, isLetter, isAlphaNum, toUpper, chr)
 import Data.Default
 import Data.List (intercalate)
@@ -301,7 +302,7 @@ inlineCommand' = try $ do
              else pure ""
   overlay <- option "" overlaySpecification
   let name' = name <> star <> overlay
-  let names = ordNub [name', name] -- check non-starred as fallback
+  let names = nubOrd [name', name] -- check non-starred as fallback
   let raw = do
        guard $ isInlineCommand name || not (isBlockCommand name)
        rawcommand <- getRawCommand name (cmd <> star)
@@ -840,7 +841,7 @@ blockCommand = try $ do
   guard $ name /= "begin" && name /= "end" && name /= "and"
   star <- option "" ("*" <$ symbol '*' <* sp)
   let name' = name <> star
-  let names = ordNub [name', name]
+  let names = nubOrd [name', name]
   let rawDefiniteBlock = do
         guard $ isBlockCommand name
         rawcontents <- getRawCommand name (txt <> star)

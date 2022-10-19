@@ -23,6 +23,7 @@ import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as BL
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
@@ -633,7 +634,7 @@ baseListId = 1000
 mkNumbering :: [ListMarker] -> [Element]
 mkNumbering lists =
   elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
-    where elts = map mkAbstractNum (ordNub lists)
+    where elts = map mkAbstractNum (nubOrd lists)
 
 maxListLevel :: Int
 maxListLevel = 8

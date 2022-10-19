@@ -43,7 +43,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
-import Text.Pandoc.Shared (findM, ordNub)
+import Text.Pandoc.Shared (findM)
+import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Data (defaultUserDataDir)
 import qualified Text.Pandoc.Parsing as P
 import Text.Pandoc.Readers.Metadata (yamlMap)
@@ -816,4 +817,4 @@ expand ps ns n = concatMap (ext n ns) ps
 cyclic :: Ord a => [[a]] -> Bool
 cyclic = any hasDuplicate
   where
-    hasDuplicate xs = length (ordNub xs) /= length xs
+    hasDuplicate xs = length (nubOrd xs) /= length xs

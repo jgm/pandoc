@@ -22,7 +22,6 @@ module Text.Pandoc.Shared (
                      splitBy,
                      splitTextBy,
                      splitTextByIndices,
-                     ordNub,
                      findM,
                      -- * Text processing
                      inquotes,
@@ -89,10 +88,10 @@ import qualified Control.Exception as E
 import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.Containers.ListUtils (nubOrd)
 import Data.List (find, intercalate, intersperse, sortOn, foldl', groupBy)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
@@ -154,11 +153,6 @@ splitAt' _ []          = ([],[])
 splitAt' n xs | n <= 0 = ([],xs)
 splitAt' n (x:xs)      = (x:ys,zs)
   where (ys,zs) = splitAt' (n - charWidth x) xs
-
--- | Remove duplicates from a list.
-ordNub :: (Ord a) => [a] -> [a]
-ordNub = nubOrd
-{-# INLINE ordNub #-}
 
 -- | Returns the first element in a foldable structure for that the
 -- monadic predicate holds true, and @Nothing@ if no such element
@@ -555,7 +549,7 @@ makeSections numbering mbBaseLevel bs =
   combineAttr :: Attr -> Attr -> Attr
   combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
     (if T.null id1 then id2 else id1,
-     ordNub (classes1 ++ classes2),
+     nubOrd (classes1 ++ classes2),
      foldr (\(k,v) kvs -> case lookup k kvs of
                              Nothing -> (k,v):kvs
                              Just _  -> kvs) mempty (kvs1 ++ kvs2))

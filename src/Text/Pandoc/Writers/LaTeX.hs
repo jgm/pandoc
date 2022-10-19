@@ -20,6 +20,7 @@ module Text.Pandoc.Writers.LaTeX (
   , writeBeamer
   ) where
 import Control.Monad.State.Strict
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
@@ -124,7 +125,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   docLangs <- catMaybes <$>
-      mapM (toLang . Just) (ordNub (query (extract "lang") blocks))
+      mapM (toLang . Just) (nubOrd (query (extract "lang") blocks))
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
                             mapMaybe (\(x,y) ->
@@ -284,8 +285,8 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
       hasCodeBlock _               = []
   let hasCode (Code _ _) = [True]
       hasCode _          = []
-  let classes = ordNub $ dclasses ++ hclasses
-  let kvs = ordNub $ dkvs ++ hkvs
+  let classes = nubOrd $ dclasses ++ hclasses
+  let kvs = nubOrd $ dkvs ++ hkvs
   let fragile = "fragile" `elem` classes ||
                 not (null $ query hasCodeBlock bs ++ query hasCode bs)
   let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",

@@ -25,6 +25,7 @@ module Text.Pandoc.App.CommandLineOptions (
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.State.Strict
+import Data.Containers.ListUtils (nubOrd)
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Bifunctor (second)
@@ -50,7 +51,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             fullDefaultsPath)
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
-import Text.Pandoc.Shared (ordNub, safeStrRead)
+import Text.Pandoc.Shared (safeStrRead)
 import Text.Printf
 import qualified Control.Exception as E
 import qualified Data.ByteString as BS
@@ -115,7 +116,7 @@ engines = map ("html",) htmlEngines ++
           ]
 
 pdfEngines :: [String]
-pdfEngines = ordNub $ map snd engines
+pdfEngines = nubOrd $ map snd engines
 
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.

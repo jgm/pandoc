@@ -21,6 +21,7 @@ TODO:
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
 import Control.Monad.State.Strict
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAscii, isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
 import Data.List.NonEmpty (nonEmpty)
@@ -566,7 +567,7 @@ styleToMs sty = vcat $ colordefs <> map (toMacro sty) alltoktypes
         colordefs = map toColorDef allcolors
         toColorDef c = literal (".defcolor " <>
             hexColor c <> " rgb #" <> hexColor c)
-        allcolors = catMaybes $ ordNub $
+        allcolors = catMaybes $ nubOrd $
           [defaultColor sty, backgroundColor sty,
            lineNumberColor sty, lineNumberBackgroundColor sty] <>
            concatMap (colorsForToken. snd) (Map.toList (tokenStyles sty))
