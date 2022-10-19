@@ -1,6 +1,6 @@
 version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
-SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
+SOURCEFILES?=$(shell git ls-tree -r master --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r master --name-only src | grep "\.hs$$")
 DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.2.3
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
