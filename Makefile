@@ -41,10 +41,7 @@ repl:  ## run cabal repl
 .PHONY: repl
 
 linecounts: ## print line counts for each module
-	@for f in $(SOURCEFILES); do \
-		wc -l $$f; \
-		done; \
-	wc -l $(SOURCEFILES)
+	@wc -l $(SOURCEFILES) | sort -n
 .PHONY: linecounts
 
 # Note:  to accept current results of golden tests,
