@@ -24,7 +24,8 @@ import Data.Monoid (Any(..))
 import Control.Monad (when)
 import PandocCLI.Lua
 import PandocCLI.Server
-import Text.Pandoc.Shared (pandocVersion, defaultUserDataDir)
+import Text.Pandoc.Version (pandocVersion)
+import Text.Pandoc.Shared (defaultUserDataDir)
 import Text.Pandoc.Scripting (ScriptingEngine(..))
 import Data.Version (showVersion)
 import qualified Data.Text as T

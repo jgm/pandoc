@@ -73,7 +73,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Readers
-import Text.Pandoc.Shared (pandocVersion, pandocVersionText)
+import Text.Pandoc.Version (pandocVersion, pandocVersionText)
 import Text.Pandoc.Templates
 import Text.Pandoc.Translations (setTranslations, translateTerm)
 import Text.Pandoc.Writers

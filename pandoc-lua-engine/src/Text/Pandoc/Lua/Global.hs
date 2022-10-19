@@ -25,7 +25,7 @@ import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
 import Text.Pandoc.Lua.PandocLua ()
 import Text.Pandoc.Options (ReaderOptions, WriterOptions)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Version (pandocVersion)
 
 import qualified Data.Text as Text
 

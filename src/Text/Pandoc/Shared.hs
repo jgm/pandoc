@@ -88,9 +88,6 @@ module Text.Pandoc.Shared (
                      safeStrRead,
                      -- * User data directory
                      defaultUserDataDir,
-                     -- * Version
-                     pandocVersion,
-                     pandocVersionText
                     ) where
 
 import Codec.Archive.Zip
@@ -110,8 +107,6 @@ import Data.Monoid (Any (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
-import Data.Version (Version, showVersion)
-import Paths_pandoc (version)
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
@@ -126,14 +121,6 @@ import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
-
--- | Version number of pandoc library.
-pandocVersion :: Version
-pandocVersion = version
-
--- | Text representation of the library's version number.
-pandocVersionText :: T.Text
-pandocVersionText = T.pack $ showVersion version
 
 --
 -- List processing

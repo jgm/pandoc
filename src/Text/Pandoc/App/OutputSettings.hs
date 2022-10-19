@@ -181,6 +181,8 @@ optToOutputSettings scriptingEngine opts = do
     >>=
     setVariableM "outputfile" (T.pack outputFile)
     >>=
+    setVariableM "pandoc-version" pandocVersionText
+    >>=
     setFilesVariableM "include-before" (optIncludeBeforeBody opts)
     >>=
     setFilesVariableM "include-after" (optIncludeAfterBody opts)

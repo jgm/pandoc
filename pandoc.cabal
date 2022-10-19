@@ -636,7 +636,8 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Class,
                    Text.Pandoc.Class.IO,
-                   Text.Pandoc.Citeproc
+                   Text.Pandoc.Citeproc,
+                   Text.Pandoc.Version
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Input,

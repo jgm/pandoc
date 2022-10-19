@@ -3158,6 +3158,9 @@ on the output format, and include the following:
 `curdir`
 :   working directory from which pandoc is run.
 
+`pandoc-version`
+:   pandoc version.
+
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
 

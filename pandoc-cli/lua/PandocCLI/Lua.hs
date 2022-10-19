@@ -14,7 +14,7 @@ import HsLua.CLI (EnvBehavior (..), Settings (..), runStandalone)
 import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Lua (runLua, runLuaNoEnv, getEngine)
-import Text.Pandoc.Shared (pandocVersionText)
+import Text.Pandoc.Version (pandocVersionText)
 
 -- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
 -- the default @lua@ program shipping with Lua.
