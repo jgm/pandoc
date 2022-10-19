@@ -61,7 +61,6 @@ module Text.Pandoc.Shared (
                      taskListItemToAscii,
                      handleTaskListItem,
                      addMetaField,
-                     makeMeta,
                      eastAsianLineBreakFilter,
                      htmlSpanLikeElements,
                      filterIpynbOutput,
@@ -666,15 +665,6 @@ addMetaField key val (Meta meta) =
         combine newval x             = MetaList [x, newval]
         tolist (MetaList ys) = ys
         tolist y             = [y]
-
-{-# DEPRECATED makeMeta "Use addMetaField directly" #-}
--- | Create 'Meta' from old-style title, authors, date.  This is
--- provided to ease the transition from the old API.
-makeMeta :: [Inline] -> [[Inline]] -> [Inline] -> Meta
-makeMeta title authors date =
-      addMetaField "title" (B.fromList title)
-    $ addMetaField "author" (map B.fromList authors)
-    $ addMetaField "date" (B.fromList date) nullMeta
 
 -- | Remove soft breaks between East Asian characters.
 eastAsianLineBreakFilter :: Pandoc -> Pandoc
