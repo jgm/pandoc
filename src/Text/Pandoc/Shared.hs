@@ -74,8 +74,6 @@ module Text.Pandoc.Shared (
                      makeCanonical,
                      collapseFilePath,
                      filteredFilesFromArchive,
-                     -- * Error handling
-                     mapLeft,
                      -- * for squashing blocks
                      blocksToInlines,
                      blocksToInlines',
@@ -91,7 +89,6 @@ import qualified Control.Exception as E
 import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
@@ -795,13 +792,6 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         go ("..":as) ".." = ["..", ".."] <> as
         go (_:as)    ".." = as
         go as        x    = x : as
-
---
--- Error reporting
---
-
-mapLeft :: (a -> b) -> Either a c -> Either b c
-mapLeft = Bifunctor.first
 
 -- | Remove intermediate "." and ".." directories from a path.
 --

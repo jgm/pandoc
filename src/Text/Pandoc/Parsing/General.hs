@@ -97,7 +97,7 @@ import Text.Pandoc.Options
   ( extensionEnabled
   , Extension(Ext_auto_identifiers, Ext_ascii_identifiers)
   , ReaderOptions(readerTabStop, readerExtensions) )
-import Text.Pandoc.Shared (mapLeft, tshow, uniqueIdent)
+import Text.Pandoc.Shared (tshow, uniqueIdent)
 import Text.Pandoc.URI (schemes, escapeURI)
 import Text.Pandoc.Sources
 import Text.Pandoc.XML (fromEntities)
@@ -145,6 +145,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
+import qualified Data.Bifunctor as Bifunctor
 
 -- | Remove whitespace from start and end; just like @'trimInlines'@,
 -- but lifted into the 'Future' type.
@@ -630,10 +631,11 @@ readWithM :: (Monad m, ToSources t)
           -> t                       -- ^ input
           -> m (Either PandocError a)
 readWithM parser state input =
-    mapLeft (fromParsecError sources)
+    Bifunctor.first (fromParsecError sources)
       <$> runParserT parser state (initialSourceName sources) sources
  where
    sources = toSources input
+
 
 -- | Parse a string with a given parser and state
 readWith :: ToSources t
