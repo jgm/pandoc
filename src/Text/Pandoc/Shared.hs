@@ -22,7 +22,6 @@ module Text.Pandoc.Shared (
                      splitBy,
                      splitTextBy,
                      splitTextByIndices,
-                     findM,
                      -- * Text processing
                      inquotes,
                      tshow,
@@ -152,18 +151,6 @@ splitAt' _ []          = ([],[])
 splitAt' n xs | n <= 0 = ([],xs)
 splitAt' n (x:xs)      = (x:ys,zs)
   where (ys,zs) = splitAt' (n - charWidth x) xs
-
--- | Returns the first element in a foldable structure for that the
--- monadic predicate holds true, and @Nothing@ if no such element
--- exists.
-findM :: forall m t a. (Monad m, Foldable t)
-      => (a -> m Bool) -> t a -> m (Maybe a)
-findM p = foldr go (pure Nothing)
-  where
-    go :: a -> m (Maybe a) -> m (Maybe a)
-    go x acc = do
-      b <- p x
-      if b then pure (Just x) else acc
 
 --
 -- Text processing
