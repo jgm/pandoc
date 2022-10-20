@@ -202,7 +202,7 @@ getDefaultReferencePptx = do
               ]
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do
-        epochtime <- floor . utcTimeToPOSIXSeconds <$> getCurrentTime
+        epochtime <- floor <$> getPOSIXTime
         contents <- toLazy <$> readDataFile ("pptx/" ++ path)
         return $ toEntry path epochtime contents
   datadir <- getUserDataDir

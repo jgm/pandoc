@@ -23,6 +23,7 @@ and writers.
 
 module Text.Pandoc.Class.PandocMonad
   ( PandocMonad(..)
+  , getTimestamp
   , getPOSIXTime
   , getZonedTime
   , readFileFromDirs
@@ -50,7 +51,6 @@ module Text.Pandoc.Class.PandocMonad
   , toLang
   , makeCanonical
   , findFileWithDataFallback
-  , getTimestamp
   , checkUserDataDir
   ) where
 
@@ -172,21 +172,6 @@ report msg = do
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
 
--- | Get the time from the @SOURCE_DATE_EPOCH@
--- environment variable. The variable should contain a
--- unix time stamp, the number of seconds since midnight Jan 01
--- 1970 UTC.  If the variable is not set or cannot be
--- parsed as a unix time stamp, the current time is returned.
--- This function is designed to make possible reproducible
--- builds in formats that include a creation timestamp.
-getTimestamp :: PandocMonad m => m UTCTime
-getTimestamp = do
-  mbSourceDateEpoch <- lookupEnv "SOURCE_DATE_EPOCH"
-  case mbSourceDateEpoch >>= safeRead of
-    Just (epoch :: Integer) ->
-      return $ posixSecondsToUTCTime $ fromIntegral epoch
-    Nothing -> getCurrentTime
-
 -- | Determine whether tracing is enabled.  This affects
 -- the behavior of 'trace'.  If tracing is not enabled,
 -- 'trace' does nothing.
@@ -256,14 +241,28 @@ getResourcePath = getsCommonState stResourcePath
 setResourcePath :: PandocMonad m => [FilePath] -> m ()
 setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
 
--- | Get the POSIX time.
-getPOSIXTime :: PandocMonad m => m POSIXTime
-getPOSIXTime = utcTimeToPOSIXSeconds <$> getCurrentTime
+-- | Get the current UTC time. If the @SOURCE_DATE_EPOCH@ environment
+-- variable is set to a unix time (number of seconds since midnight
+-- Jan 01 1970 UTC), it is used instead of the current time, to support
+-- reproducible builds.
+getTimestamp :: PandocMonad m => m UTCTime
+getTimestamp = do
+  mbSourceDateEpoch <- lookupEnv "SOURCE_DATE_EPOCH"
+  case mbSourceDateEpoch >>= safeRead of
+    Just (epoch :: Integer) ->
+      return $ posixSecondsToUTCTime $ fromIntegral epoch
+    Nothing -> getCurrentTime
 
--- | Get the zoned time.
+-- | Get the POSIX time. If @SOURCE_DATE_EPOCH@ is set to a unix time,
+-- it is used instead of the current time.
+getPOSIXTime :: PandocMonad m => m POSIXTime
+getPOSIXTime = utcTimeToPOSIXSeconds <$> getTimestamp
+
+-- | Get the zoned time. If @SOURCE_DATE_EPOCH@ is set to a unix time,
+-- value (POSIX time), it is used instead of the current time.
 getZonedTime :: PandocMonad m => m ZonedTime
 getZonedTime = do
-  t <- getCurrentTime
+  t <- getTimestamp
   tz <- getCurrentTimeZone
   return $ utcToZonedTime tz t
 
