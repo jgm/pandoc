@@ -31,6 +31,7 @@ import Text.Pandoc.Extensions
   , getAllExtensions
   , getDefaultExtensions
   , readExtension
+  , showExtension
   )
 import Text.Pandoc.Parsing
 import qualified Data.Text as T
@@ -84,8 +85,8 @@ applyExtensionsDiff extConf (FlavoredFormat fname extsDiff) = do
         filter (\ext -> not $ extensionEnabled ext (extsSupported extConf))
                (extsToEnable extsDiff ++ extsToDisable extsDiff)
   case unsupported of
-    ext:_ -> throwError $ PandocUnsupportedExtensionError
-             (T.drop 4 . T.pack $ show ext) fname
+    ext:_ -> throwError $ PandocUnsupportedExtensionError (showExtension ext)
+                          fname
     []    -> let enabled = foldr enableExtension
                                  (extsDefault extConf)
                                  (extsToEnable extsDiff)
@@ -126,9 +127,7 @@ pExtensionsDiff = foldl' (flip ($)) (ExtensionsDiff [] []) <$> many extMod
     extMod = do
       polarity <- oneOf "-+"
       name <- many $ noneOf "-+"
-      ext <- case readExtension name of
-               Just n  -> return n
-               Nothing -> unexpected $ "unknown extension: " ++ name
+      let ext = readExtension name
       return $ \extsDiff ->
         case polarity of
           '+' -> extsDiff{extsToEnable  = (ext : extsToEnable extsDiff)}

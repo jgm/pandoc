@@ -19,16 +19,12 @@ module Text.Pandoc.Lua.Marshal.Format
 import HsLua
 import Text.Pandoc.Extensions (Extension, Extensions, extensionsFromList, readExtension)
 import Text.Pandoc.Format (ExtensionsConfig (..))
-import qualified HsLua.Core.Utf8 as UTF8
 
 -- | Retrieves an 'Extensions' set from the Lua stack.
 peekExtension :: LuaError e => Peeker e Extension
 peekExtension idx = do
   extString <- peekString idx
-  case readExtension extString of
-    Just ext -> return ext
-    Nothing  -> failPeek . UTF8.fromString $
-                "Unknown extension: " <> extString
+  return $ readExtension extString
 {-# INLINE peekExtension #-}
 
 -- | Retrieves an 'Extensions' set from the Lua stack.
