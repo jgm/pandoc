@@ -22,7 +22,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocNoScriptingEngine))
 import Text.Pandoc.Filter.Environment (Environment)
-import Text.Pandoc.Format (ExtensionsConfig)
+import Text.Pandoc.Format (ExtensionsDiff)
 import Text.Pandoc.Templates (Template)
 import Text.Pandoc.Readers (Reader)
 import Text.Pandoc.Writers (Writer)
@@ -37,23 +37,28 @@ data ScriptingEngine = ScriptingEngine
     -- ^ Use the scripting engine to run a filter.
 
   , engineReadCustom :: forall m. (PandocMonad m, MonadIO m)
-                     => FilePath -> m (Reader m, ExtensionsConfig)
-    -- ^ Function to parse input into a 'Pandoc' document.
+                     => FilePath -> ExtensionsDiff -> m (Reader m)
+    -- ^ Use the scripting engine to generate a custom reader
+    -- based on the script in the 'FilePath'. Pass 'ExtensionsDiff'
+    -- to the reader to process.
 
   , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
-                      => FilePath -> m (WriterProperties m)
-    -- ^ Invoke the given script file to convert to any custom format.
+                      => FilePath -> ExtensionsDiff
+                      -> m (Writer m, m (Template Text))
+    -- ^ Use the scripting engine to generate a custom writer
+    -- based on the script in the 'FilePath'. Pass 'ExtensionsDiff'
+    -- to the writer to process.
+    -- The return value includes both a writer and an action to retrieve
+    -- a default template (defined in the writer).
   }
-
-type WriterProperties m = (Writer m, ExtensionsConfig, m (Template Text))
 
 noEngine :: ScriptingEngine
 noEngine = ScriptingEngine
   { engineName = "none"
   , engineApplyFilter = \_env _args _fp _doc ->
       throwError PandocNoScriptingEngine
-  , engineReadCustom = \_fp ->
+  , engineReadCustom = \_ ->
       throwError PandocNoScriptingEngine
-  , engineWriteCustom = \_fp ->
+  , engineWriteCustom = \_ ->
       throwError PandocNoScriptingEngine
   }
