@@ -829,12 +829,10 @@ options =
     , Option "" ["list-extensions"]
                  (OptArg
                   (\arg _ -> do
-                     let extList :: [Extension]
-                         extList = [minBound..maxBound]
-                     let allExts =
-                           case arg of
-                             Nothing  -> extensionsFromList extList
-                             Just fmt -> getAllExtensions $ T.pack fmt
+                     let allExts = getAllExtensions $
+                                    case arg of
+                                      Nothing  -> "markdown"
+                                      Just fmt -> T.pack fmt
                      let formatName = maybe "markdown" T.pack arg
                      if formatName `notElem`
                          (map fst (readers :: [(Text, Reader PandocPure)]) ++
@@ -850,7 +848,7 @@ options =
                                            then '-'
                                            else ' ') : drop 4 (show x)
                           mapM_ (UTF8.hPutStrLn stdout . T.pack . showExt)
-                             [ex | ex <- extList, extensionEnabled ex allExts]
+                             (extensionsToList allExts)
                           exitSuccess )
                   "FORMAT")
                  ""
