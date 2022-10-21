@@ -126,18 +126,19 @@ end
 
 [Lua filters documentation]: https://pandoc.org/lua-filters.html
 
-## Reducing boilerplate with `pandoc.make_writer`
+## Reducing boilerplate with `pandoc.scaffolding.Writer`
 
-The module `pandoc.make_writer` is a custom writer scaffold that
-serves to avoid common boilerplate code when defining a custom
-writer. The function allows to define a writer by adding render
-functions for each element type.
+The `pandoc.scaffolding.Writer` structure is a custom writer scaffold
+that serves to avoid common boilerplate code when defining a custom
+writer. The object can be used as a function and allows to skip details
+like metadata and template handling, requiring only the render functions
+for each AST element type.
 
-The output of `pandoc.make_writer` is a new function that should
+The value of `pandoc.scaffolding.Writer` is a function that should
 usually be assigned to the global `Writer`:
 
 ``` lua
-Writer = pandoc.make_writer()
+Writer = pandoc.scaffolding.Writer
 ```
 
 The render functions for Block and Inline values can then be added
@@ -169,8 +170,8 @@ a constant can be used as well.
 The tables `Writer.Block` and `Writer.Inline` can be used as
 functions; they apply the right render function for an element of
 the respective type. E.g., `Writer.Block(pandoc.Para 'x')` will
-delegate to the `Writer.Para` render function and will the result
-of that call.
+delegate to the `Writer.Para` render function and will return the
+result of that call.
 
 Similarly, the functions `Writer.Blocks` and `Writer.Inlines` can
 be used to render lists of elements, and `Writer.Pandoc` renders
