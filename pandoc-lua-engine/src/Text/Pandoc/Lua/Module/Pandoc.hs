@@ -14,8 +14,7 @@
 Pandoc module for lua.
 -}
 module Text.Pandoc.Lua.Module.Pandoc
-  ( pushModule
-  , documentedModule
+  ( documentedModule
   ) where
 
 import Prelude hiding (read)
@@ -26,7 +25,7 @@ import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (Proxy))
-import HsLua hiding (pushModule)
+import HsLua
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
@@ -40,7 +39,7 @@ import Text.Pandoc.Lua.Marshal.Sources (peekSources)
 import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
-import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
+import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 import Text.Pandoc.Lua.Writer.Classic (runCustom)
 import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
                            , WriterOptions (writerExtensions) )
@@ -55,13 +54,6 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
-
--- | Push the "pandoc" package to the Lua stack. Requires the `List`
--- module to be loadable.
-pushModule :: PandocLua NumResults
-pushModule = do
-  liftPandocLua $ Lua.pushModule documentedModule
-  return 1
 
 documentedModule :: Module PandocError
 documentedModule = Module
