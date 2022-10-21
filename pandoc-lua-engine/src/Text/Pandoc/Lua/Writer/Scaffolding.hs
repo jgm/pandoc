@@ -11,7 +11,7 @@
 Conversion of Pandoc documents using a custom Lua writer.
 -}
 module Text.Pandoc.Lua.Writer.Scaffolding
-  ( pushScaffolding
+  ( pushWriterScaffolding
   ) where
 
 import Control.Monad ((<$!>), void)
@@ -40,8 +40,8 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Convert Pandoc to custom markup.
-pushScaffolding :: LuaE PandocError NumResults
-pushScaffolding = do
+pushWriterScaffolding :: LuaE PandocError NumResults
+pushWriterScaffolding = do
   newtable
     *> pushWriterMT *> setmetatable (nth 2)
   writer <- toWriterTable top

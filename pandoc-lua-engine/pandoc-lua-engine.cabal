@@ -79,6 +79,7 @@ library
                      , Text.Pandoc.Lua.Module.Format
                      , Text.Pandoc.Lua.Module.MediaBag
                      , Text.Pandoc.Lua.Module.Pandoc
+                     , Text.Pandoc.Lua.Module.Scaffolding
                      , Text.Pandoc.Lua.Module.System
                      , Text.Pandoc.Lua.Module.Template
                      , Text.Pandoc.Lua.Module.Types
