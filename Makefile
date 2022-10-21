@@ -254,3 +254,6 @@ help: ## display this help
 	@printf "%-16s%s\n" "REVISION" "$(REVISION)"
 .PHONY: help
 
+hie.yaml: ## regenerate hie.yaml
+	gen-hie > $@
+.PHONY: hie.yaml
