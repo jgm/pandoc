@@ -34,7 +34,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (nested, tableCaption)
+import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag, toAttr)
 import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
                            trim, splitTextBy, tshow, formatCode)
@@ -85,17 +85,6 @@ instance HasLogMessages MWState where
 --
 -- auxiliary functions
 --
-
--- This is used to prevent exponential blowups for things like:
--- ''a'''a''a'''a''a'''a''a'''a
-nested :: PandocMonad m => MWParser m a -> MWParser m a
-nested p = do
-  nestlevel <- mwMaxNestingLevel `fmap` getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ mwMaxNestingLevel = mwMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ mwMaxNestingLevel = nestlevel }
-  return res
 
 specialChars :: [Char]
 specialChars = "'[]<=&*{}|\":\\"
@@ -706,12 +695,12 @@ inlinesBetween start end =
   trimInlines . mconcat <$> try (start >> many1Till inline end)
 
 emph :: PandocMonad m => MWParser m Inlines
-emph = B.emph <$> nested (inlinesBetween start end)
+emph = B.emph <$> inlinesBetween start end
     where start = sym "''"
           end   = try $ notFollowedBy' (() <$ strong) >> sym "''"
 
 strong :: PandocMonad m => MWParser m Inlines
-strong = B.strong <$> nested (inlinesBetween start end)
+strong = B.strong <$> inlinesBetween start end
     where start = sym "'''"
           end   = sym "'''"
 
@@ -720,6 +709,6 @@ doubleQuotes = do
   guardEnabled Ext_smart
   inTT <- mwInTT <$> getState
   guard (not inTT)
-  B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
+  B.doubleQuoted <$> inlinesBetween openDoubleQuote closeDoubleQuote
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""

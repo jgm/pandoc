@@ -27,7 +27,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, nested)
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Shared (trim, stringify, tshow)
 import Data.List (isPrefixOf, isSuffixOf)
 import qualified Safe
@@ -52,15 +52,6 @@ type DWParser = ParsecT Sources ParserState
 -- | Parse end-of-line, which can be either a newline or end-of-file.
 eol :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m ()
 eol = void newline <|> eof
-
-nested :: PandocMonad m => DWParser m a -> DWParser m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
 
 guardColumnOne :: PandocMonad m => DWParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
@@ -163,7 +154,7 @@ nestedInlines :: (Show a, PandocMonad m)
 nestedInlines end = innerSpace <|> nestedInline
   where
     innerSpace   = try $ whitespace <* notFollowedBy end
-    nestedInline = notFollowedBy whitespace >> nested inline
+    nestedInline = notFollowedBy whitespace >> inline
 
 bold :: PandocMonad m => DWParser m B.Inlines
 bold = try $ B.strong <$> enclosed (string "**") nestedInlines

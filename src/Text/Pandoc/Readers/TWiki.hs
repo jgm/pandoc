@@ -26,7 +26,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, nested)
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.XML (fromEntities)
@@ -52,15 +52,6 @@ type TWParser = ParsecT Sources ParserState
 tryMsg :: Text -> TWParser m a -> TWParser m a
 tryMsg msg p = try p <?> T.unpack msg
 
-nested :: PandocMonad m => TWParser m a -> TWParser m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
-
 htmlElement :: PandocMonad m => Text -> TWParser m (Attr, Text)
 htmlElement tag = tryMsg tag $ do
   (TagOpen _ attr, _) <- htmlTag (~== TagOpen tag [])
@@ -85,7 +76,7 @@ parseHtmlContentWithAttrs tag parser = do
   parsedContent <- try $ parseContent content
   return (attr, parsedContent)
   where
-    parseContent = parseFromString' $ nested $ manyTill parser endOfContent
+    parseContent = parseFromString' $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseCharHtmlContentWithAttrs :: PandocMonad m
@@ -402,7 +393,7 @@ nestedInlines :: (Show a, PandocMonad m)
 nestedInlines end = innerSpace <|> nestedInline
   where
     innerSpace   = try $ whitespace <* notFollowedBy end
-    nestedInline = notFollowedBy whitespace >> nested inline
+    nestedInline = notFollowedBy whitespace >> inline
 
 strong :: PandocMonad m => TWParser m B.Inlines
 strong = try $ B.strong <$> enclosed (char '*') nestedInlines

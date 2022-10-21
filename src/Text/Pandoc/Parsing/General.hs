@@ -37,7 +37,6 @@ module Text.Pandoc.Parsing.General
   , manyTillChar
   , manyUntil
   , manyUntilChar
-  , nested
   , nonspaceChar
   , notFollowedBy'
   , oneOfStrings
@@ -63,8 +62,7 @@ module Text.Pandoc.Parsing.General
 where
 
 import Control.Monad
-  ( guard
-  , join
+  ( join
   , liftM
   , unless
   , void
@@ -682,19 +680,6 @@ registerHeader (ident,classes,kvs) header' = do
             logMessage $ DuplicateIdentifier ident pos
           updateState $ updateIdentifierList $ Set.insert ident
         return (ident,classes,kvs)
-
--- This is used to prevent exponential blowups for things like:
--- a**a*a**a*a**a*a**a*a**a*a**a*a**
-nested :: Stream s m a
-       => ParsecT s ParserState m a
-       -> ParsecT s ParserState m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
 
 token :: (Stream s m t)
       => (t -> Text)

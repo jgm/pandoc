@@ -29,7 +29,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging (Verbosity (..))
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, nested)
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.XML (fromEntities)
 import Text.Printf (printf)
@@ -57,15 +57,6 @@ tryMsg msg p = try p <?> T.unpack msg
 
 skip :: TikiWikiParser m a -> TikiWikiParser m ()
 skip parser = Control.Monad.void parser
-
-nested :: PandocMonad m => TikiWikiParser m a -> TikiWikiParser m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
 
 --
 -- main parser
@@ -450,7 +441,7 @@ nestedInlines :: (Show a, PandocMonad m) => TikiWikiParser m a -> TikiWikiParser
 nestedInlines end = innerSpace <|> nestedInline
   where
     innerSpace   = try $ whitespace <* notFollowedBy end
-    nestedInline = notFollowedBy whitespace >> nested inline
+    nestedInline = notFollowedBy whitespace >> inline
 
 -- {img attId="39" imalign="right" link="http://info.tikiwiki.org" alt="Panama Hat"}
 --
