@@ -3,15 +3,15 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
 {- |
-   Module      : Text.Pandoc.Lua.Writer.Elements
+   Module      : Text.Pandoc.Lua.Writer.Scaffolding
    Copyright   : © 2022 Albert Krewinkel
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <pandoc@tarleb.com>
 
 Conversion of Pandoc documents using a custom Lua writer.
 -}
-module Text.Pandoc.Lua.Writer.Elements
-  ( pushElementWriter
+module Text.Pandoc.Lua.Writer.Scaffolding
+  ( pushScaffolding
   ) where
 
 import Control.Monad ((<$!>), void)
@@ -40,8 +40,8 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Convert Pandoc to custom markup.
-pushElementWriter :: LuaE PandocError NumResults
-pushElementWriter = do
+pushScaffolding :: LuaE PandocError NumResults
+pushScaffolding = do
   newtable
     *> pushWriterMT *> setmetatable (nth 2)
   writer <- toWriterTable top
@@ -221,7 +221,6 @@ pandocToCustom writer doc = withContext "rendering Pandoc" $ do
     OK -> ((,) <$> peekDocFuzzy (nth 2) <*> orNil peekContext top)
           `lastly` pop 2
     _  -> failPeek =<< liftLua (tostring' top)
-
 
 blockToCustom :: WriterTable -> Block -> LuaE PandocError (Doc Text)
 blockToCustom writer blk = forcePeek $ renderBlock writer blk

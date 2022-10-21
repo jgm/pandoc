@@ -42,7 +42,7 @@ import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
 import Text.Pandoc.Lua.Module.Utils (sha1)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Lua.Writer.Classic (runCustom)
-import Text.Pandoc.Lua.Writer.Elements (pushElementWriter)
+import Text.Pandoc.Lua.Writer.Scaffolding (pushScaffolding)
 import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
                            , WriterOptions (writerExtensions) )
 import Text.Pandoc.Process (pipeProcess)
@@ -72,7 +72,7 @@ documentedModule = Module
     , "document elements, functions to parse text in a given"
     , "format, and functions to filter and modify a subtree."
     ]
-  , moduleFields = readersField : writersField :
+  , moduleFields = readersField : writersField : scaffoldingField :
                    stringConstants ++ [inlineField, blockField]
   , moduleOperations = []
   , moduleFunctions = mconcat
@@ -106,6 +106,20 @@ writersField = Field
     ]
   , fieldPushValue = pushSet pushText $
                      Set.fromList (map fst (writers @PandocLua))
+  }
+
+-- | Set of input formats accepted by @write@.
+scaffoldingField :: Field PandocError
+scaffoldingField = Field
+  { fieldName = "writer_scaffolding"
+  , fieldDescription = "Scaffolding for a custom writer."
+  , fieldPushValue = do
+      pushScaffolding
+      -- treat it like a submodule so we get better error messages
+      getfield registryindex loaded
+      pushvalue (nth 2)
+      setfield (nth 2) "pandoc.writer_scaffolding"
+      pop 1 -- remove "LOADED_TABLE"
   }
 
 -- | Inline table field
@@ -191,11 +205,7 @@ stringConstants =
 
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ defun "make_writer"
-    ### pushElementWriter
-    =?> "Writer"
-
-  , defun "pipe"
+  [ defun "pipe"
     ### (\command args input -> do
             (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
                             `catch` (throwM . PandocIOError "pipe")
