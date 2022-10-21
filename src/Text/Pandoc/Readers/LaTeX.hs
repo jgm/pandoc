@@ -1171,7 +1171,7 @@ addImageCaption = walkM go
           st <- getState
           case sCaption st of
             Nothing -> return p
-            Just figureCaption -> do
+            Just (Caption _mbshort bs) -> do
               let mblabel = sLastLabel st
               let attr' = case mblabel of
                             Just lab -> (lab, cls, kvs)
@@ -1186,7 +1186,8 @@ addImageCaption = walkM go
                                      [Str (renderDottedNum num)] (sLabels st) }
 
               return $ SimpleFigure attr'
-                       (maybe id removeLabel mblabel (B.toList figureCaption))
+                       (maybe id removeLabel mblabel
+                         (blocksToInlines bs))
                        (src, tit)
         go x = return x
 

@@ -157,7 +157,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLogMessages   :: [LogMessage]
                             , sIdentifiers   :: Set.Set Text
                             , sVerbatimMode  :: Bool
-                            , sCaption       :: Maybe Inlines
+                            , sCaption       :: Maybe Caption
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
                             , sLastHeaderNum :: DottedNum
@@ -1072,10 +1072,11 @@ label = do
 
 setCaption :: PandocMonad m => LP m Inlines -> LP m ()
 setCaption inline = try $ do
-  skipopts
+  mbshort <- Just . toList <$> bracketed inline <|> pure Nothing
   ils <- tokWith inline
   optional $ try $ spaces *> label
-  updateState $ \st -> st{ sCaption = Just ils }
+  updateState $ \st -> st{ sCaption = Just $
+                              Caption mbshort [Plain $ toList ils] }
 
 resetCaption :: PandocMonad m => LP m ()
 resetCaption = updateState $ \st -> st{ sCaption   = Nothing
