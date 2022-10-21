@@ -5167,6 +5167,19 @@ Returns
 
 [Doc]: #type-doc
 
+# Module pandoc.scaffolding
+
+Scaffolding for custom writers.
+
+## Writer {#pandoc.scaffolding.writer}
+
+A structure to be used as a `Writer` function; the construct
+handles most of the boilerplate, expecting only render functions
+for all AST elements. See the documentation for custom writers for
+details.
+
+
+
 # Module pandoc.template
 
 Handle pandoc templates.
