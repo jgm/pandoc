@@ -96,6 +96,7 @@ data Extension =
     | Ext_link_attributes         -- ^ link and image attributes
     | Ext_lists_without_preceding_blankline -- ^ Allow lists without preceding blank
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
+    | Ext_literate_agda    -- ^ Enable literate Agda conventions
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown iff
                                   --   container has attribute 'markdown'
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
@@ -163,6 +164,7 @@ instance ToJSON Extensions where
 -- | Reads a single extension from a string.
 readExtension :: String -> Extension
 readExtension "lhs" = Ext_literate_haskell
+readExtension "lagda" = Ext_literate_agda
 readExtension name =
   case readMaybe ("Ext_" ++ name) of
     Just ext -> ext
@@ -492,6 +494,7 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_gutenberg
        , Ext_smart
        , Ext_literate_haskell
+       , Ext_literate_agda
        , Ext_short_subsuperscripts
        , Ext_rebase_relative_paths
        ]
@@ -585,6 +588,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_raw_tex
     , Ext_task_lists
     , Ext_literate_haskell
+    , Ext_literate_agda
     ]
   getAll "beamer"          = getAll "latex"
   getAll "context"         = autoIdExtensions <>

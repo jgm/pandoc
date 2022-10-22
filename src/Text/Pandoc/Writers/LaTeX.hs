@@ -405,6 +405,9 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   let linkAnchor = if isEmpty linkAnchor'
                       then empty
                       else linkAnchor' <> "%"
+  let lagdaCodeBlock = do
+        return $ flush (linkAnchor $$ "\\begin{code}" $$ literal str $$
+                            "\\end{code}") $$ cr
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
         return $ flush (linkAnchor $$ "\\begin{code}" $$ literal str $$
@@ -458,6 +461,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes           -> lhsCodeBlock
+       | isEnabled Ext_literate_agda opts && "agda" `elem` classes
+                                             -> lagdaCodeBlock
        | writerListings opts                 -> listingsCodeBlock
        | not (null classes) && isJust (writerHighlightStyle opts)
                                              -> highlightedCodeBlock
