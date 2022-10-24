@@ -7080,10 +7080,7 @@ second `options` parameter.
 
 A custom writer is a Lua script that defines a function
 that specifies how to render each element in a Pandoc AST.
-To see a documented example which you can modify according
-to your needs:
-
-    pandoc --print-default-data-file sample.lua
+See the [djot-writer.lua] for a full-featured example.
 
 Note that custom writers have no default template.  If you want
 to use `--standalone` with a custom writer, you will need to
@@ -7094,6 +7091,7 @@ subdirectory of your user data directory (see [Templates]).
 
 [Lua]: https://www.lua.org
 [lpeg]:  http://www.inf.puc-rio.br/~roberto/lpeg/
+[djot-writer.lua]: https://github.com/jgm/djot/blob/main/djot-writer.lua
 
 # Reproducible builds
 

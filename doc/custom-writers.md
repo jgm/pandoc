@@ -197,31 +197,6 @@ function Para(s)
 end
 ```
 
-The best way to go about creating a classic custom writer is to
-modify the example that comes with pandoc. To get the example,
-you can do
-
-```
-pandoc --print-default-data-file sample.lua > sample.lua
-```
-
-## A custom HTML writer
-
-`sample.lua` is a full-features HTML writer, with explanatory
-comments. To use it, just use the path to the custom writer as
-the writer name:
-
-```
-pandoc -t sample.lua myfile.md
-```
-
-`sample.lua` defines all the functions needed by any custom
-writer, so you can design your own custom writer by modifying
-the functions in `sample.lua` according to your needs.
-
-``` {.lua include="sample.lua"}
-```
-
 ## Template variables
 
 New template variables can be added, or existing ones

@@ -180,8 +180,6 @@ data-files:
                  data/dzslides/template.html
                  -- default abbreviations file
                  data/abbreviations
-                 -- sample lua custom writer
-                 data/sample.lua
                  -- sample lua custom reader
                  data/creole.lua
                  -- lua init script
