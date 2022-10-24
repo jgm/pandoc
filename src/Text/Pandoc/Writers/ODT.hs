@@ -47,6 +47,7 @@ import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
 import Text.TeXMath
 import qualified Text.XML.Light as XL
+import Network.URI (parseRelativeReference, URI(uriPath))
 
 newtype ODTState = ODTState { stEntries :: [Entry]
                          }
@@ -61,9 +62,25 @@ writeODT :: PandocMonad m
 writeODT  opts doc =
   let initState = ODTState{ stEntries = []
                           }
-      doc' = ensureValidXmlIdentifiers doc
+      doc' = fixInternalLinks . ensureValidXmlIdentifiers $ doc
   in
     evalStateT (pandocToODT opts doc') initState
+
+-- | ODT internal links are evaluated relative to an imaginary folder
+-- structure that mirrors the zip structure.  The result is that relative
+-- links in the document need to start with `..`.  See #3524.
+fixInternalLinks :: Pandoc -> Pandoc
+fixInternalLinks = walk go
+ where
+  go (Link attr ils (src,tit)) =
+    Link attr ils (fixRel src,tit)
+  go (Image attr ils (src,tit)) =
+    Image attr ils (fixRel src,tit)
+  go x = x
+  fixRel uri =
+    case parseRelativeReference (T.unpack uri) of
+      Nothing -> uri
+      Just u  -> tshow $ u{ uriPath = "../" <> uriPath u }
 
 -- | Produce an ODT file from a Pandoc document.
 pandocToODT :: PandocMonad m
