@@ -74,8 +74,6 @@ fixInternalLinks = walk go
  where
   go (Link attr ils (src,tit)) =
     Link attr ils (fixRel src,tit)
-  go (Image attr ils (src,tit)) =
-    Image attr ils (fixRel src,tit)
   go x = x
   fixRel uri =
     case parseRelativeReference (T.unpack uri) of
