@@ -1,9 +1,6 @@
 name: Release candidate
 
-on:
-  push:
-    branches:
-    - 'rc/**'
+on: workflow_dispatch
 
 permissions:
   contents: read
