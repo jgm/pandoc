@@ -10,4 +10,4 @@ constraints: aeson >= 2.0.1.0,
 source-repository-package
   type: git
   location: https://github.com/jgm/citeproc
-  tag: 897ea3984965f1bf0c2d02d5eed3705e691c7431
+  tag: cb54223919ecd327250f1b167e4e0c61473f402e
