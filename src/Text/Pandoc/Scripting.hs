@@ -41,11 +41,10 @@ data ScriptingEngine = ScriptingEngine
     -- ^ Function to parse input into a 'Pandoc' document.
 
   , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
-                      => FilePath -> m (WriterProperties m)
+                      => FilePath
+                      -> m (Writer m, ExtensionsConfig, m (Template Text))
     -- ^ Invoke the given script file to convert to any custom format.
   }
-
-type WriterProperties m = (Writer m, ExtensionsConfig, m (Template Text))
 
 noEngine :: ScriptingEngine
 noEngine = ScriptingEngine
