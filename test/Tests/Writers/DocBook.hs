@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Tests.Writers.Docbook (tests) where
+module Tests.Writers.DocBook (tests) where
 
 import Data.Text (unpack)
 import Test.Tasty
@@ -15,10 +15,10 @@ docbook5 :: (ToPandoc a) => a -> String
 docbook5 = docbook5WithOpts def{ writerWrapText = WrapNone }
 
 docbookWithOpts :: ToPandoc a => WriterOptions -> a -> String
-docbookWithOpts opts = unpack . purely (writeDocbook4 opts) . toPandoc
+docbookWithOpts opts = unpack . purely (writeDocBook4 opts) . toPandoc
 
 docbook5WithOpts :: ToPandoc a => WriterOptions -> a -> String
-docbook5WithOpts opts = unpack . purely (writeDocbook5 opts) . toPandoc
+docbook5WithOpts opts = unpack . purely (writeDocBook5 opts) . toPandoc
 {-
   "my test" =: X =?> Y
 

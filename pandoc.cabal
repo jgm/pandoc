@@ -580,7 +580,7 @@ library
                    Text.Pandoc.Readers.RTF,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
-                   Text.Pandoc.Writers.Docbook,
+                   Text.Pandoc.Writers.DocBook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
@@ -797,7 +797,7 @@ test-suite test-pandoc
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
-                  Tests.Writers.Docbook
+                  Tests.Writers.DocBook
                   Tests.Writers.HTML
                   Tests.Writers.JATS
                   Tests.Writers.Jira

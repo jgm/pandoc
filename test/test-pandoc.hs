@@ -32,7 +32,7 @@ import qualified Tests.Readers.Man
 import qualified Tests.Shared
 import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.ConTeXt
-import qualified Tests.Writers.Docbook
+import qualified Tests.Writers.DocBook
 import qualified Tests.Writers.Docx
 import qualified Tests.Writers.FB2
 import qualified Tests.Writers.HTML
@@ -64,7 +64,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "HTML" Tests.Writers.HTML.tests
           , testGroup "JATS" Tests.Writers.JATS.tests
           , testGroup "Jira" Tests.Writers.Jira.tests
-          , testGroup "Docbook" Tests.Writers.Docbook.tests
+          , testGroup "Docbook" Tests.Writers.DocBook.tests
           , testGroup "Markdown" Tests.Writers.Markdown.tests
           , testGroup "Org" Tests.Writers.Org.tests
           , testGroup "Plain" Tests.Writers.Plain.tests
