@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TupleSections     #-}
 {- |
-   Module      : Text.Pandoc.Readers.Odt.Arrows.State
+   Module      : Text.Pandoc.Readers.ODT.Arrows.State
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -17,14 +17,14 @@ Most of these might be implemented without access to innards, but it's much
 faster and easier to implement this way.
 -}
 
-module Text.Pandoc.Readers.Odt.Arrows.State where
+module Text.Pandoc.Readers.ODT.Arrows.State where
 
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Monad
 import Data.List (foldl')
-import Text.Pandoc.Readers.Odt.Arrows.Utils
-import Text.Pandoc.Readers.Odt.Generic.Fallible
+import Text.Pandoc.Readers.ODT.Arrows.Utils
+import Text.Pandoc.Readers.ODT.Generic.Fallible
 
 
 newtype ArrowState state a b = ArrowState

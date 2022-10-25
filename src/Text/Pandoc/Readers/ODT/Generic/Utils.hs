@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns  #-}
 {- |
-   Module      : Text.Pandoc.Reader.Odt.Generic.Utils
+   Module      : Text.Pandoc.Reader.ODT.Generic.Utils
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -11,7 +11,7 @@
 General utility functions for the odt reader.
 -}
 
-module Text.Pandoc.Readers.Odt.Generic.Utils
+module Text.Pandoc.Readers.ODT.Generic.Utils
 ( uncurry3
 , uncurry4
 , uncurry5

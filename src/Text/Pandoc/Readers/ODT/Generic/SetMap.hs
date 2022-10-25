@@ -1,5 +1,5 @@
 {- |
-   Module      : Text.Pandoc.Readers.Odt.Generic.SetMap
+   Module      : Text.Pandoc.Readers.ODT.Generic.SetMap
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -10,7 +10,7 @@
 A map of values to sets of values.
 -}
 
-module Text.Pandoc.Readers.Odt.Generic.SetMap where
+module Text.Pandoc.Readers.ODT.Generic.SetMap where
 
 import qualified Data.Map as M
 import qualified Data.Set as S

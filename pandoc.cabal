@@ -569,7 +569,7 @@ library
                    Text.Pandoc.Readers.TikiWiki,
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
-                   Text.Pandoc.Readers.Odt,
+                   Text.Pandoc.Readers.ODT,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Readers.Man,
@@ -675,17 +675,17 @@ library
                    Text.Pandoc.Readers.LaTeX.Parsing,
                    Text.Pandoc.Readers.LaTeX.SIunitx,
                    Text.Pandoc.Readers.LaTeX.Table,
-                   Text.Pandoc.Readers.Odt.Base,
-                   Text.Pandoc.Readers.Odt.Namespaces,
-                   Text.Pandoc.Readers.Odt.StyleReader,
-                   Text.Pandoc.Readers.Odt.ContentReader,
-                   Text.Pandoc.Readers.Odt.Generic.Fallible,
-                   Text.Pandoc.Readers.Odt.Generic.SetMap,
-                   Text.Pandoc.Readers.Odt.Generic.Utils,
-                   Text.Pandoc.Readers.Odt.Generic.Namespaces,
-                   Text.Pandoc.Readers.Odt.Generic.XMLConverter,
-                   Text.Pandoc.Readers.Odt.Arrows.State,
-                   Text.Pandoc.Readers.Odt.Arrows.Utils,
+                   Text.Pandoc.Readers.ODT.Base,
+                   Text.Pandoc.Readers.ODT.Namespaces,
+                   Text.Pandoc.Readers.ODT.StyleReader,
+                   Text.Pandoc.Readers.ODT.ContentReader,
+                   Text.Pandoc.Readers.ODT.Generic.Fallible,
+                   Text.Pandoc.Readers.ODT.Generic.SetMap,
+                   Text.Pandoc.Readers.ODT.Generic.Utils,
+                   Text.Pandoc.Readers.ODT.Generic.Namespaces,
+                   Text.Pandoc.Readers.ODT.Generic.XMLConverter,
+                   Text.Pandoc.Readers.ODT.Arrows.State,
+                   Text.Pandoc.Readers.ODT.Arrows.Utils,
                    Text.Pandoc.Readers.Org.BlockStarts,
                    Text.Pandoc.Readers.Org.Blocks,
                    Text.Pandoc.Readers.Org.DocumentTree,
@@ -787,7 +787,7 @@ test-suite test-pandoc
                   Tests.Readers.RST
                   Tests.Readers.RTF
                   Tests.Readers.Docx
-                  Tests.Readers.Odt
+                  Tests.Readers.ODT
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
                   Tests.Readers.Muse

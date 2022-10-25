@@ -23,7 +23,7 @@ import qualified Tests.Readers.Jira
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.Muse
-import qualified Tests.Readers.Odt
+import qualified Tests.Readers.ODT
 import qualified Tests.Readers.Org
 import qualified Tests.Readers.RST
 import qualified Tests.Readers.RTF
@@ -89,7 +89,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "RST" Tests.Readers.RST.tests
           , testGroup "RTF" Tests.Readers.RTF.tests
           , testGroup "Docx" Tests.Readers.Docx.tests
-          , testGroup "Odt" Tests.Readers.Odt.tests
+          , testGroup "ODT" Tests.Readers.ODT.tests
           , testGroup "Txt2Tags" Tests.Readers.Txt2Tags.tests
           , testGroup "EPUB" Tests.Readers.EPUB.tests
           , testGroup "Muse" Tests.Readers.Muse.tests

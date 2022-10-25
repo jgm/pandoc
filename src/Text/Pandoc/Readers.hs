@@ -26,7 +26,7 @@ module Text.Pandoc.Readers
     Reader (..)
   , readers
   , readDocx
-  , readOdt
+  , readODT
   , readMarkdown
   , readCommonMark
   , readCreole
@@ -93,7 +93,7 @@ import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.Muse
 import Text.Pandoc.Readers.Native
-import Text.Pandoc.Readers.Odt
+import Text.Pandoc.Readers.ODT
 import Text.Pandoc.Readers.OPML
 import Text.Pandoc.Readers.Org
 import Text.Pandoc.Readers.RST
@@ -145,7 +145,7 @@ readers = [("native"       , TextReader readNative)
           ,("twiki"        , TextReader readTWiki)
           ,("tikiwiki"     , TextReader readTikiWiki)
           ,("docx"         , ByteStringReader readDocx)
-          ,("odt"          , ByteStringReader readOdt)
+          ,("odt"          , ByteStringReader readODT)
           ,("t2t"          , TextReader readTxt2Tags)
           ,("epub"         , ByteStringReader readEPUB)
           ,("muse"         , TextReader readMuse)

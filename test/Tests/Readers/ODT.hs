@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Tests.Readers.Odt
+   Module      : Tests.Readers.ODT
    Copyright   : © 2015-2022 John MacFarlane
                    2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
@@ -11,7 +11,7 @@
 
 Tests for the ODT reader.
 -}
-module Tests.Readers.Odt (tests) where
+module Tests.Readers.ODT (tests) where
 
 import Control.Monad (liftM)
 import qualified Data.ByteString as BS
@@ -33,21 +33,21 @@ tests = testsComparingToMarkdown ++ testsComparingToNative
 testsComparingToMarkdown :: [TestTree]
 testsComparingToMarkdown    = map nameToTest namesOfTestsComparingToMarkdown
   where nameToTest     name = createTest
-                                compareOdtToMarkdown
+                                compareODTToMarkdown
                                 name
-                                (toOdtPath      name)
+                                (toODTPath      name)
                                 (toMarkdownPath name)
-        toOdtPath      name = "odt/odt/"      ++ name ++ ".odt"
+        toODTPath      name = "odt/odt/"      ++ name ++ ".odt"
         toMarkdownPath name = "odt/markdown/" ++ name ++ ".md"
 
 testsComparingToNative   :: [TestTree]
 testsComparingToNative      = map nameToTest namesOfTestsComparingToNative
   where nameToTest     name = createTest
-                                compareOdtToNative
+                                compareODTToNative
                                 name
-                                (toOdtPath      name)
+                                (toODTPath      name)
                                 (toNativePath   name)
-        toOdtPath      name = "odt/odt/"      ++ name ++ ".odt"
+        toODTPath      name = "odt/odt/"      ++ name ++ ".odt"
         toNativePath   name = "odt/native/"   ++ name ++ ".native"
 
 
@@ -73,22 +73,22 @@ type TestCreator =  ReaderOptions
                  -> FilePath -> FilePath
                  -> IO (NoNormPandoc, NoNormPandoc)
 
-compareOdtToNative   :: TestCreator
-compareOdtToNative opts odtPath nativePath = do
+compareODTToNative   :: TestCreator
+compareODTToNative opts odtPath nativePath = do
    nativeFile   <- UTF8.toText <$> BS.readFile nativePath
    odtFile      <- B.readFile       odtPath
    native       <- getNoNormVia id  "native" <$> runIO (readNative def nativeFile)
-   odt          <- getNoNormVia id  "odt"    <$> runIO (readOdt  opts odtFile)
+   odt          <- getNoNormVia id  "odt"    <$> runIO (readODT  opts odtFile)
    return (odt,native)
 
-compareOdtToMarkdown :: TestCreator
-compareOdtToMarkdown opts odtPath markdownPath = do
+compareODTToMarkdown :: TestCreator
+compareODTToMarkdown opts odtPath markdownPath = do
    markdownFile <- UTF8.toText <$> BS.readFile markdownPath
    odtFile      <- B.readFile       odtPath
    markdown     <- getNoNormVia id "markdown" <$>
                       runIO (readMarkdown def{ readerExtensions = pandocExtensions }
                               markdownFile)
-   odt          <- getNoNormVia id "odt"      <$> runIO (readOdt      opts odtFile)
+   odt          <- getNoNormVia id "odt"      <$> runIO (readODT      opts odtFile)
    return (odt,markdown)
 
 
@@ -125,7 +125,7 @@ compareMediaPathIO mediaPath mediaBag odtPath = do
 compareMediaBagIO :: FilePath -> IO Bool
 compareMediaBagIO odtFile = do
     df <- B.readFile odtFile
-    let (_, mb) = readOdt def df
+    let (_, mb) = readODT def df
     bools <- mapM
              (\(fp, _, _) -> compareMediaPathIO fp mb odtFile)
              (mediaDirectory mb)

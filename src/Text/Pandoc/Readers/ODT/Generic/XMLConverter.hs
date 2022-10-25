@@ -4,7 +4,7 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE PatternGuards   #-}
 {- |
-   Module      : Text.Pandoc.Readers.Odt.Generic.XMLConverter
+   Module      : Text.Pandoc.Readers.ODT.Generic.XMLConverter
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -17,7 +17,7 @@ It might be sufficient to define this reader as a comonad, but there is
 not a lot of use in trying.
 -}
 
-module Text.Pandoc.Readers.Odt.Generic.XMLConverter
+module Text.Pandoc.Readers.ODT.Generic.XMLConverter
 ( ElementName
 , XMLConverterState
 , XMLConverter
@@ -68,11 +68,11 @@ import           Data.List (foldl')
 
 import qualified Text.Pandoc.XML.Light as XML
 
-import           Text.Pandoc.Readers.Odt.Arrows.State
-import           Text.Pandoc.Readers.Odt.Arrows.Utils
-import           Text.Pandoc.Readers.Odt.Generic.Namespaces
-import           Text.Pandoc.Readers.Odt.Generic.Utils
-import           Text.Pandoc.Readers.Odt.Generic.Fallible
+import           Text.Pandoc.Readers.ODT.Arrows.State
+import           Text.Pandoc.Readers.ODT.Arrows.Utils
+import           Text.Pandoc.Readers.ODT.Generic.Namespaces
+import           Text.Pandoc.Readers.ODT.Generic.Utils
+import           Text.Pandoc.Readers.ODT.Generic.Fallible
 
 --------------------------------------------------------------------------------
 --  Basis types for readability

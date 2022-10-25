@@ -8,7 +8,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Readers.Odt.ContentReader
+   Module      : Text.Pandoc.Readers.ODT.ContentReader
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -19,7 +19,7 @@
 The core of the odt reader that converts odt features into Pandoc types.
 -}
 
-module Text.Pandoc.Readers.Odt.ContentReader
+module Text.Pandoc.Readers.ODT.ContentReader
 ( readerState
 , read_body
 ) where
@@ -46,15 +46,15 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Extensions (extensionsFromList, Extension(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
-import Text.Pandoc.Readers.Odt.Base
-import Text.Pandoc.Readers.Odt.Namespaces
-import Text.Pandoc.Readers.Odt.StyleReader
+import Text.Pandoc.Readers.ODT.Base
+import Text.Pandoc.Readers.ODT.Namespaces
+import Text.Pandoc.Readers.ODT.StyleReader
 
-import Text.Pandoc.Readers.Odt.Arrows.State (foldS)
-import Text.Pandoc.Readers.Odt.Arrows.Utils
-import Text.Pandoc.Readers.Odt.Generic.Fallible
-import Text.Pandoc.Readers.Odt.Generic.Utils
-import Text.Pandoc.Readers.Odt.Generic.XMLConverter
+import Text.Pandoc.Readers.ODT.Arrows.State (foldS)
+import Text.Pandoc.Readers.ODT.Arrows.Utils
+import Text.Pandoc.Readers.ODT.Generic.Fallible
+import Text.Pandoc.Readers.ODT.Generic.Utils
+import Text.Pandoc.Readers.ODT.Generic.XMLConverter
 
 import Network.URI (parseRelativeReference, URI(uriPath))
 import qualified Data.Set as Set
@@ -146,37 +146,37 @@ insertMedia' (fp, bs) state@ReaderState{..}
 -- Reader type and associated tools
 --------------------------------------------------------------------------------
 
-type OdtReader      a b = XMLReader     ReaderState a b
+type ODTReader      a b = XMLReader     ReaderState a b
 
-type OdtReaderSafe  a b = XMLReaderSafe ReaderState a b
+type ODTReaderSafe  a b = XMLReaderSafe ReaderState a b
 
 -- | Extract something from the styles
-fromStyles :: (a -> Styles -> b) -> OdtReaderSafe a b
+fromStyles :: (a -> Styles -> b) -> ODTReaderSafe a b
 fromStyles f =     keepingTheValue
                      (getExtraState >>^ styleSet)
                >>% f
 
 --
-getStyleByName :: OdtReader StyleName Style
+getStyleByName :: ODTReader StyleName Style
 getStyleByName = fromStyles lookupStyle >>^ maybeToChoice
 
 --
-findStyleFamily :: OdtReader Style StyleFamily
+findStyleFamily :: ODTReader Style StyleFamily
 findStyleFamily = fromStyles getStyleFamily >>^ maybeToChoice
 
 --
-lookupListStyle :: OdtReader StyleName ListStyle
+lookupListStyle :: ODTReader StyleName ListStyle
 lookupListStyle = fromStyles lookupListStyleByName >>^ maybeToChoice
 
 --
-switchCurrentListStyle :: OdtReaderSafe (Maybe ListStyle) (Maybe ListStyle)
+switchCurrentListStyle :: ODTReaderSafe (Maybe ListStyle) (Maybe ListStyle)
 switchCurrentListStyle =     keepingTheValue getExtraState
                          >>% swapCurrentListStyle
                          >>> first setExtraState
                          >>^ snd
 
 --
-pushStyle :: OdtReaderSafe Style Style
+pushStyle :: ODTReaderSafe Style Style
 pushStyle =     keepingTheValue (
                   (     keepingTheValue getExtraState
                     >>% pushStyle'
@@ -186,7 +186,7 @@ pushStyle =     keepingTheValue (
             >>^ fst
 
 --
-popStyle :: OdtReaderSafe x x
+popStyle :: ODTReaderSafe x x
 popStyle =     keepingTheValue (
                      getExtraState
                  >>> arr popStyle'
@@ -195,11 +195,11 @@ popStyle =     keepingTheValue (
            >>^ fst
 
 --
-getCurrentListLevel :: OdtReaderSafe _x ListLevel
+getCurrentListLevel :: ODTReaderSafe _x ListLevel
 getCurrentListLevel = getExtraState >>^ currentListLevel
 
 --
-updateMediaWithResource :: OdtReaderSafe (FilePath, B.ByteString) (FilePath, B.ByteString)
+updateMediaWithResource :: ODTReaderSafe (FilePath, B.ByteString) (FilePath, B.ByteString)
 updateMediaWithResource = keepingTheValue (
                  (keepingTheValue getExtraState
                   >>% insertMedia'
@@ -208,7 +208,7 @@ updateMediaWithResource = keepingTheValue (
                )
            >>^ fst
 
-lookupResource :: OdtReaderSafe FilePath (FilePath, B.ByteString)
+lookupResource :: ODTReaderSafe FilePath (FilePath, B.ByteString)
 lookupResource = proc target -> do
     state <- getExtraState -< ()
     case lookup target (getMediaEnv state) of
@@ -232,7 +232,7 @@ uniqueIdentFrom baseIdent usedIdents =
 -- | First argument: basis for a new "pretty" anchor if none exists yet
 -- Second argument: a key ("ugly" anchor)
 -- Returns: saved "pretty" anchor or created new one
-getPrettyAnchor :: OdtReaderSafe (AnchorPrefix, Anchor) Anchor
+getPrettyAnchor :: ODTReaderSafe (AnchorPrefix, Anchor) Anchor
 getPrettyAnchor = proc (baseIdent, uglyAnchor) -> do
   state <- getExtraState -< ()
   case lookupPrettyAnchor uglyAnchor state of
@@ -243,7 +243,7 @@ getPrettyAnchor = proc (baseIdent, uglyAnchor) -> do
 
 -- | Input: basis for a new header anchor
 -- Output: saved new anchor
-getHeaderAnchor :: OdtReaderSafe Inlines Anchor
+getHeaderAnchor :: ODTReaderSafe Inlines Anchor
 getHeaderAnchor = proc title -> do
   state <- getExtraState -< ()
   let exts = extensionsFromList [Ext_auto_identifiers]
@@ -257,7 +257,7 @@ getHeaderAnchor = proc title -> do
 --------------------------------------------------------------------------------
 
 --
-readStyleByName :: OdtReader _x (StyleName, Style)
+readStyleByName :: ODTReader _x (StyleName, Style)
 readStyleByName =
   findAttr NsText "style-name" >>? keepingTheValue getStyleByName >>^ liftE
   where
@@ -266,11 +266,11 @@ readStyleByName =
     liftE (_, Left v)     = Left v
 
 --
-isStyleToTrace :: OdtReader Style Bool
+isStyleToTrace :: ODTReader Style Bool
 isStyleToTrace = findStyleFamily >>?^ (==FaText)
 
 --
-withNewStyle :: OdtReaderSafe x Inlines -> OdtReaderSafe x Inlines
+withNewStyle :: ODTReaderSafe x Inlines -> ODTReaderSafe x Inlines
 withNewStyle a = proc x -> do
   fStyle <- readStyleByName -< ()
   case fStyle of
@@ -404,7 +404,7 @@ getParaModifier Style{..} | Just props <- paraProperties styleProperties
      = False
 
 --
-constructPara :: OdtReaderSafe Blocks Blocks -> OdtReaderSafe Blocks Blocks
+constructPara :: ODTReaderSafe Blocks Blocks -> ODTReaderSafe Blocks Blocks
 constructPara reader = proc blocks -> do
   fStyle <- readStyleByName -< blocks
   case fStyle of
@@ -459,7 +459,7 @@ getListConstructor ListLevelStyle{..} =
 -- state must be switched before and after the call to the child converter
 -- while in the latter the child converter can be called directly.
 -- If anything goes wrong, a default ordered-list-constructor is used.
-constructList :: OdtReaderSafe x [Blocks] -> OdtReaderSafe x Blocks
+constructList :: ODTReaderSafe x [Blocks] -> ODTReaderSafe x Blocks
 constructList reader = proc x -> do
   modifyExtraState (shiftListLevel 1)        -< ()
   listLevel  <- getCurrentListLevel          -< ()
@@ -502,7 +502,7 @@ constructList reader = proc x -> do
 -- Readers
 --------------------------------------------------------------------------------
 
-type ElementMatcher result = (Namespace, ElementName, OdtReader result result)
+type ElementMatcher result = (Namespace, ElementName, ODTReader result result)
 
 type InlineMatcher = ElementMatcher Inlines
 
@@ -517,7 +517,7 @@ firstMatch = FirstMatch . Alt . Just
 --
 matchingElement :: (Monoid e)
                 => Namespace -> ElementName
-                -> OdtReaderSafe  e e
+                -> ODTReaderSafe  e e
                 -> ElementMatcher e
 matchingElement ns name reader = (ns, name, asResultAccumulator reader)
   where
@@ -527,14 +527,14 @@ matchingElement ns name reader = (ns, name, asResultAccumulator reader)
 --
 matchChildContent'   :: (Monoid result)
                      => [ElementMatcher result]
-                     ->  OdtReaderSafe _x result
+                     ->  ODTReaderSafe _x result
 matchChildContent' ls = returnV mempty >>> matchContent' ls
 
 --
 matchChildContent    :: (Monoid result)
                      => [ElementMatcher result]
-                     ->  OdtReaderSafe  (result, XML.Content) result
-                     ->  OdtReaderSafe _x result
+                     ->  ODTReaderSafe  (result, XML.Content) result
+                     ->  ODTReaderSafe _x result
 matchChildContent ls fallback = returnV mempty >>> matchContent ls fallback
 
 --------------------------------------------
@@ -547,11 +547,11 @@ matchChildContent ls fallback = returnV mempty >>> matchContent ls fallback
 
 --
 -- | Open Document allows several consecutive spaces if they are marked up
-read_plain_text :: OdtReaderSafe (Inlines, XML.Content) Inlines
+read_plain_text :: ODTReaderSafe (Inlines, XML.Content) Inlines
 read_plain_text =  fst ^&&& read_plain_text' >>% recover
   where
     -- fallible version
-    read_plain_text' :: OdtReader (Inlines, XML.Content) Inlines
+    read_plain_text' :: ODTReader (Inlines, XML.Content) Inlines
     read_plain_text' =      (     second ( arr extractText )
                               >>^ spreadChoice >>?! second text
                             )
@@ -784,7 +784,7 @@ read_frame = matchingElement NsDraw "frame"
            >>> foldS read_frame_child
            >>> arr fold
 
-read_frame_child :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_child :: ODTReaderSafe XML.Element (FirstMatch Inlines)
 read_frame_child =
   proc child -> case elName child of
     "image"    -> read_frame_img      -< child
@@ -792,7 +792,7 @@ read_frame_child =
     "text-box" -> read_frame_text_box -< child
     _          -> returnV mempty      -< ()
 
-read_frame_img :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_img :: ODTReaderSafe XML.Element (FirstMatch Inlines)
 read_frame_img =
   proc img -> do
     src <- executeIn (findAttr' NsXLink "href") -< img
@@ -820,7 +820,7 @@ image_attributes x y =
     dim name (Just v) = [(name, v)]
     dim _ Nothing     = []
 
-read_frame_mathml :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_mathml :: ODTReaderSafe XML.Element (FirstMatch Inlines)
 read_frame_mathml =
   proc obj -> do
     src <- executeIn (findAttr' NsXLink "href") -< obj
@@ -834,7 +834,7 @@ read_frame_mathml =
           Left _     -> returnV mempty -< ()
           Right exps -> arr (firstMatch . displayMath . writeTeX) -< exps
 
-read_frame_text_box :: OdtReaderSafe XML.Element (FirstMatch Inlines)
+read_frame_text_box :: ODTReaderSafe XML.Element (FirstMatch Inlines)
 read_frame_text_box = proc box -> do
     paragraphs <- executeIn (matchChildContent' [ read_paragraph ]) -< box
     arr read_img_with_caption -< toList paragraphs
@@ -857,19 +857,19 @@ _ANCHOR_PREFIX_ :: T.Text
 _ANCHOR_PREFIX_ = "anchor"
 
 --
-readAnchorAttr :: OdtReader _x Anchor
+readAnchorAttr :: ODTReader _x Anchor
 readAnchorAttr = findAttrText NsText "name"
 
 -- | Beware: may fail
-findAnchorName :: OdtReader AnchorPrefix Anchor
+findAnchorName :: ODTReader AnchorPrefix Anchor
 findAnchorName = (      keepingTheValue readAnchorAttr
                    >>^  spreadChoice
                  ) >>?! getPrettyAnchor
 
 
 --
-maybeAddAnchorFrom :: OdtReader Inlines AnchorPrefix
-                   -> OdtReaderSafe Inlines Inlines
+maybeAddAnchorFrom :: ODTReader Inlines AnchorPrefix
+                   -> ODTReaderSafe Inlines Inlines
 maybeAddAnchorFrom anchorReader =
   keepingTheValue (anchorReader >>? findAnchorName >>?^ toAnchorElem)
   >>>
@@ -898,14 +898,14 @@ read_reference_start = matchingElement NsText "reference-mark-start"
                      $ maybeAddAnchorFrom readAnchorAttr
 
 -- | Beware: may fail
-findAnchorRef :: OdtReader _x Anchor
+findAnchorRef :: ODTReader _x Anchor
 findAnchorRef = (      findAttrText NsText "ref-name"
                   >>?^ (_ANCHOR_PREFIX_,)
                 ) >>?! getPrettyAnchor
 
 
 --
-maybeInAnchorRef :: OdtReaderSafe Inlines Inlines
+maybeInAnchorRef :: ODTReaderSafe Inlines Inlines
 maybeInAnchorRef = proc inlines -> do
   fRef <- findAnchorRef -< ()
   case fRef of
@@ -933,7 +933,7 @@ read_reference_ref = matchingElement NsText "reference-ref"
 -- Entry point
 ----------------------
 
-read_text :: OdtReaderSafe _x Pandoc
+read_text :: ODTReaderSafe _x Pandoc
 read_text = matchChildContent' [ read_header
                                , read_paragraph
                                , read_list
@@ -950,7 +950,7 @@ post_process' (Table attr _ specs th tb tf : Div ("", ["caption"], _) blks : xs)
   = Table attr (Caption Nothing blks) specs th tb tf : post_process' xs
 post_process' bs = bs
 
-read_body :: OdtReader _x (Pandoc, MediaBag)
+read_body :: ODTReader _x (Pandoc, MediaBag)
 read_body = executeInSub NsOffice "body"
           $ executeInSub NsOffice "text"
           $ liftAsSuccess

@@ -1,5 +1,5 @@
 {- |
-   Module      : Text.Pandoc.Readers.Odt.Arrows.Utils
+   Module      : Text.Pandoc.Readers.ODT.Arrows.Utils
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -19,14 +19,14 @@ with an equivalent return value.
 -}
 
 -- We export everything
-module Text.Pandoc.Readers.Odt.Arrows.Utils where
+module Text.Pandoc.Readers.ODT.Arrows.Utils where
 
 import Prelude hiding (Applicative(..))
 import Control.Arrow
 import Control.Monad (join)
 
-import Text.Pandoc.Readers.Odt.Generic.Fallible
-import Text.Pandoc.Readers.Odt.Generic.Utils
+import Text.Pandoc.Readers.ODT.Generic.Fallible
+import Text.Pandoc.Readers.ODT.Generic.Utils
 
 and2 :: (Arrow a) => a b c -> a b c' -> a b (c,c')
 and2 = (&&&)

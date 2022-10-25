@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Reader.Odt.Namespaces
+   Module      : Text.Pandoc.Reader.ODT.Namespaces
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -11,14 +11,14 @@
 Namespaces used in odt files.
 -}
 
-module Text.Pandoc.Readers.Odt.Namespaces ( Namespace (..)
+module Text.Pandoc.Readers.ODT.Namespaces ( Namespace (..)
                                           ) where
 
 import qualified Data.Map as M (empty, insert)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Readers.Odt.Generic.Namespaces
+import Text.Pandoc.Readers.ODT.Generic.Namespaces
 
 
 instance NameSpaceID Namespace where

@@ -1,5 +1,5 @@
 {- |
-   Module      : Text.Pandoc.Readers.Odt.Base
+   Module      : Text.Pandoc.Readers.ODT.Base
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -10,12 +10,12 @@
 Core types of the odt reader.
 -}
 
-module Text.Pandoc.Readers.Odt.Base where
+module Text.Pandoc.Readers.ODT.Base where
 
-import Text.Pandoc.Readers.Odt.Generic.XMLConverter
-import Text.Pandoc.Readers.Odt.Namespaces
+import Text.Pandoc.Readers.ODT.Generic.XMLConverter
+import Text.Pandoc.Readers.ODT.Namespaces
 
-type OdtConverterState s = XMLConverterState Namespace s
+type ODTConverterState s = XMLConverterState Namespace s
 
 type XMLReader     s a b = FallibleXMLConverter Namespace s a b
 

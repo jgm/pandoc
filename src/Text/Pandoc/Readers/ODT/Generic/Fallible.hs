@@ -1,5 +1,5 @@
 {- |
-   Module      : Text.Pandoc.Readers.Odt.Generic.Fallible
+   Module      : Text.Pandoc.Readers.ODT.Generic.Fallible
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -17,7 +17,7 @@ compatible instances of "ArrowChoice".
 -}
 
 -- We export everything
-module Text.Pandoc.Readers.Odt.Generic.Fallible where
+module Text.Pandoc.Readers.ODT.Generic.Fallible where
 
 -- | Default for now. Will probably become a class at some point.
 type Failure = ()

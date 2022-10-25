@@ -4,7 +4,7 @@
 {-# LANGUAGE TupleSections   #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Readers.Odt.StyleReader
+   Module      : Text.Pandoc.Readers.ODT.StyleReader
    Copyright   : Copyright (C) 2015 Martin Linnemann
    License     : GNU GPL, version 2 or above
 
@@ -15,7 +15,7 @@
 Reader for the style information in an odt document.
 -}
 
-module Text.Pandoc.Readers.Odt.StyleReader
+module Text.Pandoc.Readers.ODT.StyleReader
 ( Style                (..)
 , StyleName
 , StyleFamily          (..)
@@ -56,15 +56,15 @@ import qualified Text.Pandoc.XML.Light as XML
 
 import Text.Pandoc.Shared (safeRead, tshow)
 
-import Text.Pandoc.Readers.Odt.Arrows.Utils
+import Text.Pandoc.Readers.ODT.Arrows.Utils
 
-import Text.Pandoc.Readers.Odt.Generic.Fallible
-import qualified Text.Pandoc.Readers.Odt.Generic.SetMap as SM
-import Text.Pandoc.Readers.Odt.Generic.Utils
-import Text.Pandoc.Readers.Odt.Generic.XMLConverter
+import Text.Pandoc.Readers.ODT.Generic.Fallible
+import qualified Text.Pandoc.Readers.ODT.Generic.SetMap as SM
+import Text.Pandoc.Readers.ODT.Generic.Utils
+import Text.Pandoc.Readers.ODT.Generic.XMLConverter
 
-import Text.Pandoc.Readers.Odt.Base
-import Text.Pandoc.Readers.Odt.Namespaces
+import Text.Pandoc.Readers.ODT.Base
+import Text.Pandoc.Readers.ODT.Namespaces
 
 readStylesAt :: XML.Element -> Fallible Styles
 readStylesAt e = runConverter' readAllStyles mempty e
