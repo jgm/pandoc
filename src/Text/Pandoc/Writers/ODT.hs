@@ -77,8 +77,9 @@ fixInternalLinks = walk go
   go x = x
   fixRel uri =
     case parseRelativeReference (T.unpack uri) of
-      Nothing -> uri
-      Just u  -> tshow $ u{ uriPath = "../" <> uriPath u }
+      Just u
+        | not (null (uriPath u)) -> tshow $ u{ uriPath = "../" <> uriPath u }
+      _ -> uri
 
 -- | Produce an ODT file from a Pandoc document.
 pandocToODT :: PandocMonad m
