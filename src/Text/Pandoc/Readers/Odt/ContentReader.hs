@@ -56,6 +56,7 @@ import Text.Pandoc.Readers.Odt.Generic.Fallible
 import Text.Pandoc.Readers.Odt.Generic.Utils
 import Text.Pandoc.Readers.Odt.Generic.XMLConverter
 
+import Network.URI (parseRelativeReference, URI(uriPath))
 import qualified Data.Set as Set
 
 --------------------------------------------------------------------------------
@@ -688,7 +689,8 @@ read_list_element listElement   = matchingElement NsText listElement
 read_link        :: InlineMatcher
 read_link         = matchingElement NsText "a"
                     $ liftA3 link
-                      ( findAttrTextWithDefault NsXLink  "href"  ""          )
+                      ( findAttrTextWithDefault NsXLink  "href"  ""
+                        >>> arr fixRelativeLink                              )
                       ( findAttrTextWithDefault NsOffice "title" ""          )
                       ( matchChildContent [ read_span
                                           , read_note
@@ -700,6 +702,14 @@ read_link         = matchingElement NsText "a"
                                           , read_reference_ref
                                           ] read_plain_text                  )
 
+fixRelativeLink :: T.Text -> T.Text
+fixRelativeLink uri =
+    case parseRelativeReference (T.unpack uri) of
+      Nothing -> uri
+      Just u  ->
+        case uriPath u of
+          '.':'.':'/':xs -> tshow $ u{ uriPath = xs }
+          _ -> uri
 
 -------------------------
 -- Footnotes
