@@ -61,7 +61,7 @@ writeCustom luaFile = do
 
     let writerField = "Pandoc Writer function"
 
-    extsConf <- rawgetglobal "writer_extensions" >>= \case
+    extsConf <- rawgetglobal "Extensions" >>= \case
       TypeNil   -> ExtensionsConfig mempty mempty <$ pop 1
       _         -> forcePeek $ peekExtensionsConfig top `lastly` pop 1
 

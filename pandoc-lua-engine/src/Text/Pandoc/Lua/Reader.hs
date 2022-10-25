@@ -48,7 +48,7 @@ readCustom luaFile = do
     when (stat /= Lua.OK)
       Lua.throwErrorAsException
 
-    extsConf <- getglobal "reader_extensions" >>= \case
+    extsConf <- getglobal "Extensions" >>= \case
       TypeNil   -> pure $ ExtensionsConfig mempty mempty
       _         -> forcePeek $ peekExtensionsConfig top `lastly` pop 1
 

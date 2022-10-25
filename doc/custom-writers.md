@@ -53,19 +53,20 @@ then only the `Writer` function will be used.
 
 Writers can be customized through format extensions, such as
 `smart`, `citations`, or `hard_line_breaks`. The global
-`writer_extensions` table indicates supported extensions with a
+`Extensions` table indicates supported extensions with a
 key. Extensions enabled by default are assigned a true value,
 while those that are supported but disabled are assigned a false
 value.
 
 Example: A writer with the following global table supports the
-extensions `smart` and `citations`, with the former enabled and
-the latter disabled by default:
+extensions `smart`, `citations`, and `foobar`, with `smart` enabled and
+the others disabled by default:
 
 ``` lua
-writer_extensions = {
+Extensions = {
   smart = true,
   citations = false,
+  foobar = false
 }
 ```
 
