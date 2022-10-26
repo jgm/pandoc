@@ -621,6 +621,13 @@ imageICML opts style attr (src, _) = do
                    , selfClosingTag "PathPointType" [("Anchor", hw<>" -"<>hh),
                        ("LeftDirection", hw<>" -"<>hh), ("RightDirection", hw<>" -"<>hh)]
                    ]
+      img = if "data:" `Text.isPrefixOf` src' && "base64," `Text.isInfixOf` src'
+               then -- see #8398
+                  inTags True "Contents" [] $
+                    literal ("<![CDATA[" <>
+                             Text.drop 1 (Text.dropWhile (/=',') src') <> "]]>")
+               else selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
+
       image  = inTags True "Image"
                    [("Self","ue6"), ("ItemTransform", scale<>" -"<>hw<>" -"<>hh)]
                  $ vcat [
@@ -630,7 +637,7 @@ imageICML opts style attr (src, _) = do
                          , ("Right",  showFl $ ow*ow / imgWidth)
                          , ("Bottom", showFl $ oh*oh / imgHeight)]
                        ]
-                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
+                   , img
                    ]
       doc    = inTags True "CharacterStyleRange" attrs
                  $ inTags True "Rectangle" [("Self","uec"), ("StrokeWeight", "0"),
