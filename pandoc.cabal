@@ -463,7 +463,7 @@ library
                  Glob                  >= 0.7      && < 0.11,
                  JuicyPixels           >= 3.1.6.1  && < 3.4,
                  SHA                   >= 1.6      && < 1.7,
-                 aeson                 >= 2.0      && < 2.2,
+                 aeson                 >= 2.0.1.0  && < 2.2,
                  aeson-pretty          >= 0.8.9    && < 0.9,
                  array                 >= 0.5      && < 0.6,
                  attoparsec            >= 0.12     && < 0.15,
