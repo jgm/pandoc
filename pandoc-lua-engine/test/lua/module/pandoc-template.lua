@@ -84,7 +84,7 @@ return {
     test('accepts string as template', function ()
       local context = {number = '2'}
       assert.are_equal(
-        template.apply('$Song $number$', context):render(),
+        template.apply('Song $number$', context):render(),
         'Song 2'
       )
     end)
