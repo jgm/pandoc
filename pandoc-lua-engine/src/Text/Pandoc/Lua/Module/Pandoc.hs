@@ -131,7 +131,7 @@ pushWithConstructorsSubtable constructors = do
     rawset (nth 3)
   pop 1 -- pop constructor table
 
-otherConstructors :: LuaError e => [DocumentedFunction e]
+otherConstructors :: [DocumentedFunction PandocError]
 otherConstructors =
   [ mkPandoc
   , mkMeta

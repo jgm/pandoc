@@ -21,6 +21,7 @@ module Text.Pandoc.Lua.Marshal.WriterOptions
 import Control.Applicative (optional)
 import Data.Default (def)
 import HsLua as Lua
+import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.Context (peekContext, pushContext)
 import Text.Pandoc.Lua.Marshal.Format (peekExtensions, pushExtensions)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
@@ -34,7 +35,7 @@ import Text.Pandoc.Options (WriterOptions (..))
 -- | Retrieve a WriterOptions value, either from a normal WriterOptions
 -- value, from a read-only object, or from a table with the same
 -- keys as a WriterOptions object.
-peekWriterOptions :: LuaError e => Peeker e WriterOptions
+peekWriterOptions :: Peeker PandocError WriterOptions
 peekWriterOptions = retrieving "WriterOptions" . \idx ->
   liftLua (ltype idx) >>= \case
     TypeUserdata -> peekUD typeWriterOptions idx
@@ -43,11 +44,11 @@ peekWriterOptions = retrieving "WriterOptions" . \idx ->
                     typeMismatchMessage "WriterOptions userdata or table" idx
 
 -- | Pushes a WriterOptions value as userdata object.
-pushWriterOptions :: LuaError e => Pusher e WriterOptions
+pushWriterOptions :: Pusher PandocError WriterOptions
 pushWriterOptions = pushUD typeWriterOptions
 
 -- | 'WriterOptions' object type.
-typeWriterOptions :: LuaError e => DocumentedType e WriterOptions
+typeWriterOptions :: DocumentedType PandocError WriterOptions
 typeWriterOptions = deftype "WriterOptions"
   [ operation Tostring $ lambda
     ### liftPure show
@@ -223,7 +224,7 @@ typeWriterOptions = deftype "WriterOptions"
 -- key/value pair of the table in the userdata value, then retrieves the
 -- object again. This will update all fields and complain about unknown
 -- keys.
-peekWriterOptionsTable :: LuaError e => Peeker e WriterOptions
+peekWriterOptionsTable :: Peeker PandocError WriterOptions
 peekWriterOptionsTable idx = retrieving "WriterOptions (table)" $ do
   liftLua $ do
     absidx <- absindex idx
@@ -238,6 +239,3 @@ peekWriterOptionsTable idx = retrieving "WriterOptions (table)" $ do
     pushnil -- first key
     setFields
   peekUD typeWriterOptions top `lastly` pop 1
-
-instance Pushable WriterOptions where
-  push = pushWriterOptions

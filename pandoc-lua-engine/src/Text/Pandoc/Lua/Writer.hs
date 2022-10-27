@@ -32,6 +32,7 @@ import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLuaWith)
 import Text.Pandoc.Lua.Marshal.Format (peekExtensionsConfig)
 import Text.Pandoc.Lua.Marshal.Template (peekTemplate)
+import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
 import Text.Pandoc.Templates (Template)
 import Text.Pandoc.Writers (Writer (..))
 import qualified Text.Pandoc.Lua.Writer.Classic as Classic
@@ -96,7 +97,7 @@ writeCustom luaFile = do
             liftIO $ withGCManagedState luaState $ do
               getfield registryindex writerField
               push doc
-              push opts
+              pushWriterOptions opts
               callTrace 2 1
               forcePeek @PandocError $ peekLazyByteString top
       _ -> do
@@ -106,6 +107,6 @@ writeCustom luaFile = do
           liftIO $ withGCManagedState luaState $ do
             getfield registryindex writerField
             push doc
-            push opts
+            pushWriterOptions opts
             callTrace 2 1
             forcePeek @PandocError $ peekText top
