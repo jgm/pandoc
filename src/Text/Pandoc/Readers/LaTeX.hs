@@ -756,8 +756,11 @@ readFileFromTexinputs fp = do
   case M.lookup (T.pack fp) fileContentsMap of
     Just t -> return (Just t)
     Nothing -> do
-      dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "."
-               <$> lookupEnv "TEXINPUTS"
+      dirs <- map (\t -> if T.null t
+                            then "."
+                            else T.unpack t)
+               . T.split (==':') . fromMaybe ""
+              <$> lookupEnv "TEXINPUTS"
       readFileFromDirs dirs fp
 
 ensureExtension :: (FilePath -> Bool) -> FilePath -> FilePath -> FilePath

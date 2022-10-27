@@ -30,9 +30,10 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup.Entity (lookupEntity, htmlEntities)
 import Text.DocLayout
+    ( ($$), char, hcat, nest, text, Doc, HasChars )
 import Text.Printf (printf)
 import qualified Data.Map as M
-import Data.String
+import Data.String ( IsString )
 import qualified Data.Set as Set
 
 -- | Escape one character as needed for XML.
