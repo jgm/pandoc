@@ -454,6 +454,7 @@ sectionToListItem opts (Div (ident,_,_)
                    then headerText'
                    else [Link ("toc-" <> ident, [], []) headerText' ("#" <> ident, "")]
    listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
+sectionToListItem opts (Div _ [d@Div{}]) = sectionToListItem opts d -- #8402
 sectionToListItem _ _ = []
 
 -- | Returns 'True' iff the list of blocks has a @'Plain'@ as its last
