@@ -82,14 +82,18 @@ normalizeMetaValue pMetaValue x =
    -- not end in a newline, but a "block" set off with
    -- `|` or `>` will.
    if "\n" `T.isSuffixOf` (T.dropWhileEnd isSpaceChar x) -- see #6823
-      then parseFromString' pMetaValue (x <> "\n")
-      else parseFromString' asInlines x
+      then parseFromString' pMetaValue (x <> "\n\n")
+      else parseFromString' asInlines (T.dropWhile isSpaceOrNlChar x)
+           -- see #8358
   where asInlines = fmap b2i <$> pMetaValue
         b2i (MetaBlocks bs) = MetaInlines (blocksToInlines bs)
         b2i y = y
         isSpaceChar ' '  = True
         isSpaceChar '\t' = True
         isSpaceChar _    = False
+        isSpaceOrNlChar '\r' = True
+        isSpaceOrNlChar '\n' = True
+        isSpaceOrNlChar c = isSpaceChar c
 
 yamlToMetaValue :: (PandocMonad m, HasLastStrPosition st)
                 => ParsecT Sources st m (Future st MetaValue)
