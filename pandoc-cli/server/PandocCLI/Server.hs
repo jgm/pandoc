@@ -29,4 +29,5 @@ runCGI = do
 runServer :: [String] -> IO ()
 runServer args = do
   sopts <- parseServerOptsFromArgs args
+  putStrLn $ "Starting server on port " <> show (serverPort sopts) <> "..."
   Warp.run (serverPort sopts) (timeout (serverTimeout sopts) app)
