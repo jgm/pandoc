@@ -585,7 +585,7 @@ noparse = try $ do
   return $ B.str $ T.pack body
 
 str :: PandocMonad m => TikiWikiParser m B.Inlines
-str = fmap B.str (T.pack <$> many1 alphaNum <|> countChar 1 characterReference)
+str = fmap B.str (T.pack <$> many1 alphaNum <|> characterReference)
 
 symbol :: PandocMonad m => TikiWikiParser m B.Inlines
 symbol = fmap B.str (countChar 1 nonspaceChar)

@@ -447,7 +447,7 @@ autoLink = try $ do
       | otherwise = isAlphaNum c
 
 str :: PandocMonad m => TWParser m B.Inlines
-str = B.str <$> (many1Char alphaNum <|> countChar 1 characterReference)
+str = B.str <$> (many1Char alphaNum <|> characterReference)
 
 nop :: PandocMonad m => TWParser m B.Inlines
 nop = try $ (void exclamation <|> void nopTag) >> followContent

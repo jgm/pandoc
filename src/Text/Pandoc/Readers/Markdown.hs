@@ -189,11 +189,11 @@ skipNonindentSpaces = do
   tabStop <- getOption readerTabStop
   gobbleAtMostSpaces (tabStop - 1) <* notFollowedBy spaceChar
 
-litChar :: PandocMonad m => MarkdownParser m Char
-litChar = escapedChar'
+litChar :: PandocMonad m => MarkdownParser m Text
+litChar = T.singleton <$> escapedChar'
        <|> characterReference
-       <|> noneOf "\n"
-       <|> try (newline >> notFollowedBy blankline >> return ' ')
+       <|> T.singleton <$> noneOf "\n"
+       <|> try (newline >> notFollowedBy blankline >> return " ")
 
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
@@ -356,8 +356,9 @@ referenceKey = try $ do
                     notFollowedBy' $ guardEnabled Ext_mmd_link_attributes >>
                                      try (spnl <* keyValAttr)
                     notFollowedBy' (() <$ reference)
-                    many1Char $ notFollowedBy space >> litChar
-  let betweenAngles = try $ char '<' >> manyTillChar litChar (char '>')
+                    mconcat <$> many1 (notFollowedBy space *> litChar)
+  let betweenAngles = try $ char '<' >>
+                             mconcat <$> (manyTill litChar (char '>'))
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   src <- (if rebase then rebasePath pos else id) <$>
              (try betweenAngles <|> sourceURL)
@@ -395,7 +396,7 @@ quotedTitle c = try $ do
   char c
   notFollowedBy spaces
   let pEnder = try $ char c >> notFollowedBy (satisfy isAlphaNum)
-  let regChunk = many1Char (noneOf ['\\','\n','&',c]) <|> countChar 1 litChar
+  let regChunk = many1Char (noneOf ['\\','\n','&',c]) <|> litChar
   let nestedChunk = (\x -> T.singleton c <> x <> T.singleton c) <$> quotedTitle c
   T.unwords . T.words . T.concat <$> manyTill (nestedChunk <|> regChunk) pEnder
 
@@ -653,8 +654,8 @@ keyValAttr :: PandocMonad m => MarkdownParser m (Attr -> Attr)
 keyValAttr = try $ do
   key <- identifier
   char '='
-  val <- T.pack <$> enclosed (char '"') (char '"') litChar
-     <|> T.pack <$> enclosed (char '\'') (char '\'') litChar
+  val <- mconcat <$> enclosed (char '"') (char '"') litChar
+     <|> mconcat <$> enclosed (char '\'') (char '\'') litChar
      <|> ("" <$ try (string "\"\""))
      <|> ("" <$ try (string "''"))
      <|> manyChar (escapedChar' <|> noneOf " \t\n\r}")
@@ -1797,11 +1798,11 @@ source = do
   skipSpaces
   let urlChunk =
             try parenthesizedChars
-        <|> (notFollowedBy (oneOf " )") >> countChar 1 litChar)
+        <|> (notFollowedBy (oneOf " )") >> litChar)
         <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
-         char '<' >> manyTillChar litChar (char '>')
+         char '<' >> mconcat <$> (manyTill litChar (char '>'))
   src <- try betweenAngles <|> sourceURL
   tit <- option "" $ try $ spnl >> linkTitle
   skipSpaces

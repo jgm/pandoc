@@ -445,7 +445,7 @@ inlineParsers = [ str
                 , link
                 , image
                 , mark
-                , B.str . T.singleton <$> characterReference
+                , B.str <$> characterReference
                 , smartPunctuation inline
                 , symbol
                 ]

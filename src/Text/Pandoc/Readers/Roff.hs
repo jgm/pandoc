@@ -503,7 +503,7 @@ lexConditional mname = do
 
 expression :: PandocMonad m => RoffLexer m (Maybe Bool)
 expression = do
-  raw <- charsInBalanced '(' ')' (satisfy (/= '\n'))
+  raw <- charsInBalanced '(' ')' (T.singleton <$> (satisfy (/= '\n')))
       <|> many1Char nonspaceChar
   returnValue $
     case raw of

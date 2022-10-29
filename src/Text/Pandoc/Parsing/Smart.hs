@@ -43,7 +43,7 @@ import Text.Parsec
   , notFollowedBy
   , try
   )
-
+import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 
 -- | Parses various ASCII punctuation, quotes, and apostrophe in a smart
@@ -95,9 +95,10 @@ doubleQuoted inlineParser = do
 
 charOrRef :: (Stream s m Char, UpdateSourcePos s Char) => [Char] -> ParsecT s st m Char
 charOrRef cs =
-  oneOf cs <|> try (do c <- characterReference
-                       guard (c `elem` cs)
-                       return c)
+  oneOf cs <|> try (do t <- characterReference
+                       case T.unpack t of
+                         [c] | c `elem` cs -> return c
+                         _ -> fail "unexpected character reference")
 
 -- | Succeeds if the parser is
 --

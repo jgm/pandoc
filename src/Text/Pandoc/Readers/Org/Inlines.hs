@@ -796,8 +796,8 @@ notAfterForbiddenBorderChar = do
 subOrSuperExpr :: PandocMonad m => OrgParser m (F Inlines)
 subOrSuperExpr = try $
   simpleSubOrSuperText <|>
-  (choice [ charsInBalanced '{' '}' (noneOf "\n\r")
-          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
+  (choice [ charsInBalanced '{' '}' (T.singleton <$> noneOf "\n\r")
+          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (T.singleton <$> noneOf "\n\r")
           ] >>= parseFromString (mconcat <$> many inline))
  where enclosing (left, right) s = T.cons left $ T.snoc s right
 

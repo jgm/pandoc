@@ -41,7 +41,8 @@ citeKey allowBraced = try $ do
   char '@'
   key <- simpleCiteIdentifier
         <|> if allowBraced
-               then charsInBalanced '{' '}' (satisfy (not . isSpace))
+               then charsInBalanced '{' '}'
+                     (T.singleton <$> (satisfy (not . isSpace)))
                else mzero
   return (suppress_author, key)
 

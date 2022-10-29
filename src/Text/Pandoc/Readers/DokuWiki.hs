@@ -244,7 +244,7 @@ nocache :: PandocMonad m => DWParser m B.Inlines
 nocache = try $ mempty <$ string "~~NOCACHE~~"
 
 str :: PandocMonad m => DWParser m B.Inlines
-str = B.str <$> (many1Char alphaNum <|> countChar 1 characterReference)
+str = B.str <$> (many1Char alphaNum <|> characterReference)
 
 symbol :: PandocMonad m => DWParser m B.Inlines
 symbol = B.str <$> countChar 1 nonspaceChar
