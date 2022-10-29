@@ -12,7 +12,7 @@ Conversion of jira wiki formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Jira ( readJira ) where
 
 import Control.Monad.Except (throwError)
-import Data.Text (Text, append, pack, singleton, unpack)
+import Data.Text (Text, append, pack, singleton)
 import Text.Pandoc.XML (lookupEntity)
 import Text.Jira.Parser (parse)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
