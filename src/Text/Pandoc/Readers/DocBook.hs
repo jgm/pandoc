@@ -31,7 +31,7 @@ import Data.Text.Encoding (decodeUtf8)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Except (throwError)
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -1166,7 +1166,7 @@ attrValueAsOptionalAttr n e = case attrValue n e of
 parseInline :: PandocMonad m => Content -> DB m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
-  return $ text $ maybe (T.toUpper ref) T.pack $ lookupEntity (T.unpack ref)
+  return $ text $ fromMaybe (T.toUpper ref) $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "anchor" -> do

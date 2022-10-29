@@ -85,7 +85,6 @@ import Data.List (intercalate, sortOn)
 import Data.Ord (Down(..))
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import Commonmark.Entity (lookupEntity)
 import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Builder (Attr, Inline(Str), Inlines, trimInlines)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileFromDirs, report)
@@ -98,7 +97,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (tshow, uniqueIdent)
 import Text.Pandoc.URI (schemes, escapeURI)
 import Text.Pandoc.Sources
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.XML (fromEntities, lookupEntity)
 import Text.Parsec
   ( (<|>)
   , ParsecT

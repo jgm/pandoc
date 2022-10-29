@@ -26,7 +26,7 @@ import Data.Maybe (maybeToList, fromMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
@@ -495,8 +495,8 @@ elementToStr x = x
 
 parseInline :: PandocMonad m => Content -> JATS m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
-parseInline (CRef ref) = return $ maybe (text $ T.toUpper ref) (text . T.pack)
-                                $ lookupEntity (T.unpack ref)
+parseInline (CRef ref) = return $ maybe (text $ T.toUpper ref) text
+                                $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "italic" -> innerInlines emph

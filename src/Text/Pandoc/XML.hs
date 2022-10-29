@@ -21,6 +21,7 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          toEntities,
                          toHtml5Entities,
                          fromEntities,
+                         lookupEntity,
                          html4Attributes,
                          html5Attributes,
                          rdfaAttributes ) where
