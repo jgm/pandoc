@@ -100,6 +100,7 @@ import Text.Pandoc.Sources
 import Text.Pandoc.XML (fromEntities, lookupEntity)
 import Text.Parsec
   ( (<|>)
+  , Parsec
   , ParsecT
   , SourcePos
   , sourceLine
@@ -132,7 +133,6 @@ import Text.Parsec
   , updateState
   )
 import Text.Parsec.Pos (initialPos, newPos)
-import Text.Parsec (Parsec)
 import Text.Pandoc.Error
   ( PandocError(PandocParseError) )
 import Text.Pandoc.Parsing.Capabilities

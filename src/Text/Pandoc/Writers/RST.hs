@@ -205,7 +205,7 @@ escapeText opts t =
       '.':'.':'.':ds
         | isSmart
         -> '\\' : '.' : escapeString' False ('.':'.':ds)
-      e:[]
+      [e]
         | e == '*' || e == '_' || e == '|' || e == '`'
         -> ['\\',e]
       d:ds

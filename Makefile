@@ -107,7 +107,8 @@ reformat: ## reformat with stylish-haskell
 .PHONY: reformat
 
 lint: ## run hlint
-	for f in $(SOURCEFILES); do echo $$f; hlint $$f; done
+	hlint --report=hlint.html $(SOURCEFILES)
+	open hlint.html
 .PHONY: lint
 
 fix_spacing: ## fix trailing newlines and spaces

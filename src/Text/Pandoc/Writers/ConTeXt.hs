@@ -310,9 +310,9 @@ tableToConTeXt (Ann.Table attr caption colspecs thead tbodies tfoot) = do
     ]
 
 setupCols :: [ColSpec] -> Doc Text
-setupCols = vcat . map toColSetup . zip [1::Int ..]
+setupCols = vcat . zipWith toColSetup [1::Int ..]
   where
-    toColSetup (i, (align, width)) =
+    toColSetup i (align, width) =
       let opts = filter (not . isEmpty)
                  [ case align of
                      AlignLeft    -> "align=right"
