@@ -51,6 +51,7 @@ jobs:
           set ARTIFACTS=%CD%\nightly-windows\pandoc-nightly-windows-%THEDATE%
           mkdir %ARTIFACTS%
           cabal install --install-method=copy --installdir=%ARTIFACTS% -fnightly -fembed_data_files pandoc-cli
+          strip %ARTIFACTS%/pandoc
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
@@ -74,6 +75,7 @@ jobs:
           export ARTIFACTS=nightly-macos/pandoc-nightly-macos-$(date +%Y-%m-%d)
           mkdir -p ${ARTIFACTS}
           cabal install --install-method=copy --installdir="${ARTIFACTS}" -fnightly -fembed_data_files pandoc-cli
+          strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
     - uses: actions/upload-artifact@v3
