@@ -107,7 +107,7 @@ reformat: ## reformat with stylish-haskell
 .PHONY: reformat
 
 lint: ## run hlint
-	for f in $(SOURCEFILES); do echo $$f; hlint --refactor --refactor-options='-s -o -' $$f; done
+	for f in $(SOURCEFILES); do echo $$f; hlint $$f; done
 .PHONY: lint
 
 fix_spacing: ## fix trailing newlines and spaces
