@@ -51,11 +51,10 @@ tests =
 
   , goldenVsString "bytestring writer"
     "bytestring.bin"
-    (runIOorExplode $ do
-        txt <- writeCustom "bytestring.lua" >>= \case
+    (runIOorExplode $
+        writeCustom "bytestring.lua" >>= \case
           (ByteStringWriter f, _, _) -> f def mempty
-          _                       -> error "Expected a bytestring writer"
-        pure txt)
+          _                       -> error "Expected a bytestring writer")
 
   , goldenVsString "template"
     "writer-template.out.txt"

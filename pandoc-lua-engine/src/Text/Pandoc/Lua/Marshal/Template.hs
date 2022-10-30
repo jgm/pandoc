@@ -33,7 +33,7 @@ peekTemplate idx = liftLua (ltype idx) >>= \case
     let path = "templates/default.custom"
     let liftPM = liftLua . unPandocLua
     tmpl <- peekText idx
-    (liftPM $ runWithDefaultPartials (compileTemplate path tmpl)) >>= \case
+    liftPM (runWithDefaultPartials (compileTemplate path tmpl)) >>= \case
       Left e  -> failPeek (Lua.fromString e)
       Right t -> pure t
   _ -> peekUD typeTemplate idx

@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : PandocCLI.Lua
    Copyright   : © 2022 Albert Krewinkel

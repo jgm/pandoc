@@ -830,9 +830,7 @@ options =
                  (OptArg
                   (\arg _ -> do
                      let allExts = getAllExtensions $
-                                    case arg of
-                                      Nothing  -> "markdown"
-                                      Just fmt -> T.pack fmt
+                                    maybe "markdown" T.pack arg
                      let formatName = maybe "markdown" T.pack arg
                      if formatName `notElem`
                          (map fst (readers :: [(Text, Reader PandocPure)]) ++

@@ -1,7 +1,5 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Writer.Scaffolding
    Copyright   : © 2022 Albert Krewinkel

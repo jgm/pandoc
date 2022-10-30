@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE TypeApplications     #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshal.PandocError
    Copyright   : © 2020-2022 Albert Krewinkel

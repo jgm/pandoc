@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
 {- |
    Module      : Main
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
