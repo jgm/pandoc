@@ -4,7 +4,7 @@ module Main where
 
 import System.Environment (getArgs, getExecutablePath)
 import qualified Control.Exception as E
-import Text.Pandoc.App (convertWithOpts, defaultOpts, options,
+import Text.Pandoc.App (convertWithOpts, handleOptInfo, defaultOpts, options,
                         parseOptionsFromArgs)
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Scripting (noEngine)
@@ -107,8 +107,11 @@ main = do
   case args of
     "--emulate":args' -> -- emulate pandoc executable
           E.catch
-            (parseOptionsFromArgs options defaultOpts "pandoc" args'
-             >>= convertWithOpts noEngine)
+            (do
+              res <- parseOptionsFromArgs options defaultOpts "pandoc" args'
+              case res of
+                Left e -> handleOptInfo noEngine e
+                Right opts -> convertWithOpts noEngine opts)
             (handleError . Left)
     _ -> inDirectory "test" $ do
            fp <- getExecutablePath

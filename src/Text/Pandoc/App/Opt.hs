@@ -18,6 +18,7 @@ Options for pandoc when used as an app.
 -}
 module Text.Pandoc.App.Opt (
             Opt(..)
+          , OptInfo(..)
           , LineEnding (..)
           , IpynbOutput (..)
           , DefaultsState (..)
@@ -55,8 +56,8 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..), camelTo2,
-                   genericToJSON, fromJSON)
+import Data.Aeson (defaultOptions, Options(..), Result(..),
+                   genericToJSON, fromJSON, camelTo2)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
 import Data.Yaml
@@ -78,6 +79,22 @@ data IpynbOutput =
 
 $(deriveJSON
    defaultOptions{ fieldLabelModifier = map toLower . drop 11 } ''IpynbOutput)
+
+-- | Option parser results requesting informational output.
+data OptInfo =
+     BashCompletion
+   | ListInputFormats
+   | ListOutputFormats
+   | ListExtensions (Maybe Text)
+   | ListHighlightLanguages
+   | ListHighlightStyles
+   | PrintDefaultTemplate (Maybe FilePath) Text
+   | PrintDefaultDataFile (Maybe FilePath) Text
+   | PrintHighlightStyle (Maybe FilePath) Text
+   | VersionInfo
+   | Help
+   | OptError PandocError
+   deriving (Show, Generic)
 
 -- | Data structure for command line options.
 data Opt = Opt
