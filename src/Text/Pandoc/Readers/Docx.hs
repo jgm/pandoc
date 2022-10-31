@@ -59,6 +59,7 @@ module Text.Pandoc.Readers.Docx
        ) where
 
 import Codec.Archive.Zip
+import Control.Monad ( liftM, unless )
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, first)

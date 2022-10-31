@@ -22,6 +22,7 @@ module Text.Pandoc.Writers.JATS
   , writeJatsArticleAuthoring
   ) where
 import Control.Applicative ((<|>))
+import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)

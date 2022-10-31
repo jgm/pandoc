@@ -13,7 +13,8 @@ module Text.Pandoc.Writers.Docx.Table
   ( tableToOpenXML
   ) where
 
-import Control.Monad.State.Strict ( modify, gets, unless )
+import Control.Monad.State.Strict ( modify, gets )
+import Control.Monad ( unless )
 import Data.Array ( elems, (!), assocs, indices )
 import Data.Text (Text)
 import Text.Pandoc.Definition

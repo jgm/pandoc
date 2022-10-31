@@ -16,6 +16,7 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org (writeOrg) where
+import Control.Monad (zipWithM)
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isDigit)
 import Data.List (intersperse, partition, transpose)

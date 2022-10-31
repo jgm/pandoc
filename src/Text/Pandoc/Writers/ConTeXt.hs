@@ -14,7 +14,9 @@
 Conversion of 'Pandoc' format into ConTeXt.
 -}
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
+import Control.Monad (liftM)
 import Control.Monad.State.Strict
+    ( StateT, MonadState(put, get), gets, modify, evalStateT )
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty ((:|)))

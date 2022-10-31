@@ -46,7 +46,8 @@ import qualified Data.Map               as Map
 import           Data.Maybe
 import           Text.Pandoc.Parsing hiding ((<|>), many)
 import           Control.Applicative
-import           Control.Monad.RWS      hiding ((<>))
+import           Control.Monad ( guard, MonadPlus(..), void )
+import Control.Monad.RWS ( asks, RWST, gets, modify, evalRWST )
 import qualified Data.Sequence          as Seq
 import           Data.Char              (isAlphaNum, isDigit, isLetter,
                                          isUpper, toLower, toUpper,

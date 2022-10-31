@@ -54,8 +54,9 @@ module Text.Pandoc.Class.PandocMonad
   , checkUserDataDir
   ) where
 
-import Control.Monad.Except (MonadError (catchError, throwError),
-                             MonadTrans, lift, when)
+import Control.Monad.Except (MonadError (catchError, throwError))
+import Control.Monad.Trans (MonadTrans, lift)
+import Control.Monad (when)
 import Data.Time (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds,
                              posixSecondsToUTCTime)

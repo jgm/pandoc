@@ -17,6 +17,7 @@ into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Control.Monad.Except (catchError)
+import Control.Monad (liftM2)
 import Control.Monad.State.Strict
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)

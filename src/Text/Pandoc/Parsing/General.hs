@@ -67,9 +67,10 @@ import Control.Monad
   , unless
   , void
   , when
+  , MonadPlus(mzero)
   )
 import Control.Monad.Except ( MonadError(throwError) )
-import Control.Monad.Identity ( Identity(..), MonadPlus(mzero) )
+import Control.Monad.Identity ( Identity(..) )
 import Data.Char
   ( chr
   , isAlphaNum

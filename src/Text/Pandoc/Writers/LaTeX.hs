@@ -20,6 +20,15 @@ module Text.Pandoc.Writers.LaTeX (
   , writeBeamer
   ) where
 import Control.Monad.State.Strict
+    ( MonadState(get, put),
+      gets,
+      modify,
+      evalStateT )
+import Control.Monad
+    ( MonadPlus(mplus),
+      liftM,
+      when,
+      unless )
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))

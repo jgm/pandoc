@@ -25,7 +25,9 @@ module Text.Pandoc.App.Opt (
           , applyDefaults
           , fullDefaultsPath
           ) where
-import Control.Monad.Except (MonadIO, liftIO, throwError, (>=>), foldM)
+import Control.Monad.Except (throwError)
+import Control.Monad.Trans (MonadIO, liftIO)
+import Control.Monad ((>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
 import System.FilePath ( addExtension, (</>), takeExtension, takeDirectory )
 import System.Directory ( canonicalizePath )

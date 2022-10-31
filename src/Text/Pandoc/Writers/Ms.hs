@@ -21,6 +21,8 @@ TODO:
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
 import Control.Monad.State.Strict
+    ( gets, modify, evalStateT )
+import Control.Monad ( MonadPlus(mplus), liftM, unless, forM )
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAscii, isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)

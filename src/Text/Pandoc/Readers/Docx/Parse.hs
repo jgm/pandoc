@@ -60,6 +60,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
 import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict

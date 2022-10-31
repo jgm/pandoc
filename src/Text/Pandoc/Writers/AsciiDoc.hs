@@ -19,6 +19,7 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
+import Control.Monad (foldM)
 import Control.Monad.State.Strict
 import Data.Char (isPunctuation, isSpace)
 import Data.List (delete, intercalate, intersperse)

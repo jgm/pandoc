@@ -21,6 +21,7 @@ module Text.Pandoc.Writers.Markdown (
   writeCommonMark,
   writeMarkua,
   writePlain) where
+import Control.Monad (foldM, zipWithM, MonadPlus(..), when)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Default

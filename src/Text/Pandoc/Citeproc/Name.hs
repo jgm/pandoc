@@ -29,7 +29,6 @@ import Citeproc.Pandoc ()
 import Text.Pandoc.Citeproc.Util (splitStrWhen)
 import qualified Data.Text              as T
 import           Data.List.Split        (splitWhen, wordsBy)
-import           Control.Monad.RWS      hiding ((<>))
 import Data.Char (isUpper, isDigit)
 import Data.List (foldl')
 
@@ -59,7 +58,7 @@ data NameOpts =
 
 -- | Parse a list of 'Inline's into a citeproc 'Name', identifying
 -- first and last name, particles, suffixes.
-toName :: MonadPlus m => NameOpts -> [Inline] -> m Name
+toName :: Monad m => NameOpts -> [Inline] -> m Name
 toName _ [Str "others"] =
   return emptyName{ nameLiteral = Just "others" }
 toName _ [Span ("",[],[]) ils] = -- corporate author

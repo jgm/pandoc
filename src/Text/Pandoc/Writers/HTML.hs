@@ -30,6 +30,9 @@ module Text.Pandoc.Writers.HTML (
   tagWithAttributes
   ) where
 import Control.Monad.State.Strict
+    ( StateT, MonadState(get), gets, modify, evalStateT )
+import Control.Monad ( liftM, when, foldM, unless )
+import Control.Monad.Trans ( MonadTrans(lift) )
 import Data.Char (ord)
 import Data.List (intercalate, intersperse, partition, delete, (\\), foldl')
 import Data.List.NonEmpty (NonEmpty((:|)))

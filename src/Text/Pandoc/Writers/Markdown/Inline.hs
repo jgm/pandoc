@@ -16,6 +16,7 @@ module Text.Pandoc.Writers.Markdown.Inline (
   attrsToMarkdown,
   attrsToMarkua
   ) where
+import Control.Monad (when, liftM2)
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Char (isAlphaNum, isDigit)

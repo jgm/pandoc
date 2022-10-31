@@ -19,6 +19,7 @@ Conversion of 'Pandoc' documents to docx.
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
+import Control.Monad (MonadPlus(mplus), unless, when)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
 import Control.Monad.State.Strict

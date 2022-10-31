@@ -31,6 +31,7 @@ module Text.Pandoc.Class.PandocPure
 import Codec.Archive.Zip
 import Control.Monad.Except
 import Control.Monad.State.Strict
+import Control.Monad (foldM)
 import Data.Default
 import Data.Text (Text)
 import Data.Time (UTCTime)

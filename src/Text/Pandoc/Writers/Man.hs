@@ -14,7 +14,9 @@ Conversion of 'Pandoc' documents to roff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan ) where
-import Control.Monad.State.Strict
+import Control.Monad ( liftM, zipWithM, forM )
+import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
+import Control.Monad.Trans (MonadTrans(lift))
 import Data.List (intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)

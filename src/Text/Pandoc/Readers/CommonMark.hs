@@ -26,6 +26,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
+import Control.Monad (MonadPlus(mzero))
 import Control.Monad.Except
 import Data.Functor.Identity (runIdentity)
 import Data.Typeable
