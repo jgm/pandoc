@@ -61,7 +61,15 @@ module Text.Pandoc.Readers.Docx
 import Codec.Archive.Zip
 import Control.Monad ( liftM, unless )
 import Control.Monad.Reader
+    ( asks,
+      MonadReader(local),
+      MonadTrans(lift),
+      ReaderT(runReaderT) )
 import Control.Monad.State.Strict
+    ( StateT,
+      gets,
+      modify,
+      evalStateT )
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)

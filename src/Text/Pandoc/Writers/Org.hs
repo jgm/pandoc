@@ -18,6 +18,7 @@ Org-Mode:  <http://orgmode.org>
 module Text.Pandoc.Writers.Org (writeOrg) where
 import Control.Monad (zipWithM)
 import Control.Monad.State.Strict
+    ( StateT, gets, modify, evalStateT )
 import Data.Char (isAlphaNum, isDigit)
 import Data.List (intersperse, partition, transpose)
 import Data.List.NonEmpty (nonEmpty)

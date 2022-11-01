@@ -24,7 +24,9 @@ module Text.Pandoc.Writers.Powerpoint.Output ( presentationToArchive
 import Control.Monad ( MonadPlus(mplus), foldM, unless )
 import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader
+    ( asks, MonadReader(local), ReaderT(runReaderT) )
 import Control.Monad.State
+    ( StateT, gets, modify, evalStateT )
 import Codec.Archive.Zip
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
 import Data.Bifunctor (bimap)

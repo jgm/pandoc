@@ -21,6 +21,7 @@ AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
 import Control.Monad (foldM)
 import Control.Monad.State.Strict
+    ( StateT, MonadState(get), gets, modify, evalStateT )
 import Data.Char (isPunctuation, isSpace)
 import Data.List (delete, intercalate, intersperse)
 import Data.List.NonEmpty (NonEmpty(..))

@@ -18,11 +18,20 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Codec.Archive.Zip
+    ( Archive(zEntries),
+      addEntryToArchive,
+      emptyArchive,
+      findEntryByPath,
+      fromArchive,
+      toArchive,
+      toEntry,
+      Entry(eRelativePath) )
 import Control.Applicative ((<|>))
 import Control.Monad (MonadPlus(mplus), unless, when)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
-import Control.Monad.State.Strict
+    ( asks, MonadReader(local), MonadTrans(lift), ReaderT(runReaderT) )
+import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
 import qualified Data.ByteString.Lazy as BL
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isSpace, isLetter)

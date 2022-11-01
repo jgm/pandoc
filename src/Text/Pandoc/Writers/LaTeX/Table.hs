@@ -14,7 +14,7 @@ Output LaTeX formatted tables.
 module Text.Pandoc.Writers.LaTeX.Table
   ( tableToLaTeX
   ) where
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict ( gets, modify )
 import Control.Monad (when)
 import Data.List (intersperse)
 import qualified Data.List.NonEmpty as NonEmpty

@@ -30,7 +30,17 @@ module Text.Pandoc.Class.PandocPure
 
 import Codec.Archive.Zip
 import Control.Monad.Except
+    ( MonadTrans(lift),
+      ExceptT(..),
+      MonadError(throwError),
+      runExceptT )
 import Control.Monad.State.Strict
+    ( StateT(StateT),
+      State,
+      MonadState(put, get),
+      modify,
+      evalState,
+      evalStateT )
 import Control.Monad (foldM)
 import Data.Default
 import Data.Text (Text)

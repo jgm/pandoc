@@ -27,7 +27,7 @@ import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
 import Control.Monad (MonadPlus(mzero))
-import Control.Monad.Except
+import Control.Monad.Except (  MonadError(throwError) )
 import Data.Functor.Identity (runIdentity)
 import Data.Typeable
 import Text.Pandoc.Parsing (runParserT, getInput, getPosition,
