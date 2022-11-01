@@ -29,11 +29,9 @@ module Text.Pandoc.Class.PandocPure
   ) where
 
 import Codec.Archive.Zip
+import Control.Monad.Trans ( MonadTrans(lift) )
 import Control.Monad.Except
-    ( MonadTrans(lift),
-      ExceptT(..),
-      MonadError(throwError),
-      runExceptT )
+    ( ExceptT(..), MonadError(throwError), runExceptT )
 import Control.Monad.State.Strict
     ( StateT(StateT),
       State,
