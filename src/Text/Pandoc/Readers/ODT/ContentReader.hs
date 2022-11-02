@@ -678,8 +678,23 @@ read_list_element listElement   = matchingElement NsText listElement
                                     ( matchChildContent' [ read_paragraph
                                                          , read_header
                                                          , read_list
+                                                         , read_section
                                                          ]
                                     )
+
+----------------------
+-- Sections
+----------------------
+
+read_section :: ElementMatcher Blocks
+read_section = matchingElement NsText "section"
+                 $ liftA (divWith nullAttr)
+                 $ matchChildContent' [ read_paragraph
+                                      , read_header
+                                      , read_list
+                                      , read_table
+                                      , read_section
+                                      ]
 
 
 ----------------------
@@ -937,6 +952,7 @@ read_text :: ODTReaderSafe _x Pandoc
 read_text = matchChildContent' [ read_header
                                , read_paragraph
                                , read_list
+                               , read_section
                                , read_table
                                ]
             >>^ doc
