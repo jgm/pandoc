@@ -696,7 +696,7 @@ pandocToEPUB version opts doc = do
 
   -- Create the navEntry using the metadata, all of the various writer options,
   -- the CSS and HTML helpers, the document and toc title as well as the epub version and all of the sections
-  navEntry <- createNavEntry meta metadata opts' vars cssvars writeHtml tocTitle version secs navPointNode
+  navEntry <- createNavEntry meta metadata opts' True vars cssvars writeHtml tocTitle version secs navPointNode
 
   -- mimetype
   mimetypeEntry <- mkEntry "mimetype" $
@@ -973,6 +973,7 @@ createNavEntry :: PandocMonad m =>
                           Meta
                           -> EPUBMetadata
                           -> WriterOptions
+                          -> Bool
                           -> Context Text
                           -> (Bool -> Context Text)
                           -> (WriterOptions -> Pandoc -> m B8.ByteString)
@@ -981,7 +982,8 @@ createNavEntry :: PandocMonad m =>
                           -> [Block]
                           -> ((Int -> [Inline] -> T.Text -> [Element] -> Element) -> Block -> StateT Int m [Element])
                           -> StateT EPUBState m Entry
-createNavEntry meta metadata opts vars cssvars writeHtml tocTitle version secs navPointNode = do
+createNavEntry meta metadata opts includeTitlePage
+               vars cssvars writeHtml tocTitle version secs navPointNode = do
   let navXhtmlFormatter :: Int -> [Inline] -> T.Text -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                     [("id", "toc-li-" <> tshow n)] $
@@ -1015,11 +1017,12 @@ createNavEntry meta metadata opts vars cssvars writeHtml tocTitle version secs n
                     [ unode "h1" ! [("id","toc-title")] $ tocTitle
                     , unode "ol" ! [("class","toc")] $ tocBlocks ]]
   let landmarkItems = if version == EPUB3
-                         then unode "li"
+                         then [ unode "li"
                                 [ unode "a" ! [("href",
                                                   "text/title_page.xhtml")
                                                ,("epub:type", "titlepage")] $
-                                  ("Title Page" :: Text) ] :
+                                  ("Title Page" :: Text) ] |
+                                  includeTitlePage ] ++
                               [ unode "li"
                                 [ unode "a" ! [("href", "text/cover.xhtml")
                                               ,("epub:type", "cover")] $
