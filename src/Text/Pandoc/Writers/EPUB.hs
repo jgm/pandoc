@@ -696,7 +696,7 @@ pandocToEPUB version opts doc = do
 
   -- Create the navEntry using the metadata, all of the various writer options,
   -- the CSS and HTML helpers, the document and toc title as well as the epub version and all of the sections
-  navEntry <- createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTitle version secs navPointNode
+  navEntry <- createNavEntry meta metadata opts' vars cssvars writeHtml tocTitle version secs navPointNode
 
   -- mimetype
   mimetypeEntry <- mkEntry "mimetype" $
@@ -973,17 +973,15 @@ createNavEntry :: PandocMonad m =>
                           Meta
                           -> EPUBMetadata
                           -> WriterOptions
-                          -> WriterOptions
                           -> Context Text
                           -> (Bool -> Context Text)
                           -> (WriterOptions -> Pandoc -> m B8.ByteString)
-                          -> Text
                           -> Text
                           -> EPUBVersion
                           -> [Block]
                           -> ((Int -> [Inline] -> T.Text -> [Element] -> Element) -> Block -> StateT Int m [Element])
                           -> StateT EPUBState m Entry
-createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTitle version secs navPointNode = do
+createNavEntry meta metadata opts vars cssvars writeHtml tocTitle version secs navPointNode = do
   let navXhtmlFormatter :: Int -> [Inline] -> T.Text -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                     [("id", "toc-li-" <> tshow n)] $
@@ -997,12 +995,7 @@ createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTit
                                 parseXMLContents (TL.fromStrict titRendered)
                 titRendered = case P.runPure
                                 (writeHtmlStringForEPUB version
-                                  opts{ writerTemplate = Nothing
-                                      , writerVariables =
-                                          Context (M.fromList
-                                            [("pagetitle", toVal $
-                                              escapeStringForXML plainTitle)])
-                                        <> writerVariables opts}
+                                  opts{ writerTemplate = Nothing }
                                   (Pandoc nullMeta
                                     [Plain $ walk clean tit])) of
                                 Left _  -> stringify tit
@@ -1046,7 +1039,7 @@ createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTit
                                   ,("hidden","hidden")] $
                     [ unode "ol" landmarkItems ]
                   | not (null landmarkItems)]
-  navData <- lift $ writeHtml opts'{ writerVariables =
+  navData <- lift $ writeHtml opts{ writerVariables =
                      Context (M.fromList [("navpage", toVal' "true")
                                          ,("body-type",  toVal' "frontmatter")
                                          ])
