@@ -14,7 +14,9 @@ Does a pandoc conversion based on command-line options.
 -}
 module Text.Pandoc.App (
             convertWithOpts
+          , handleOptInfo
           , Opt(..)
+          , OptInfo(..)
           , LineEnding(..)
           , IpynbOutput (..)
           , Filter(..)
@@ -48,9 +50,9 @@ import Text.Pandoc.MediaBag (mediaItems)
 import Text.Pandoc.Image (svgToPng)
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
-                            IpynbOutput (..))
+                            IpynbOutput (..), OptInfo(..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
-                                           options)
+                                           options, handleOptInfo)
 import Text.Pandoc.App.Input (InputParameters (..), readInput)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Collate.Lang (Lang (..), parseLang)

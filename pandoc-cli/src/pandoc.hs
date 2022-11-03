@@ -16,7 +16,7 @@ module Main where
 import qualified Control.Exception as E
 import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
-                       , parseOptionsFromArgs )
+                       , parseOptionsFromArgs, handleOptInfo )
 import Text.Pandoc.Error (handleError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (exitSuccess)
@@ -61,10 +61,12 @@ main = E.handle (handleError . Left) $ do
       case rawArgs of
         "lua" : args   -> runLuaInterpreter "pandoc lua" args
         "server": args -> runServer args
-        _              -> do
+        args           -> do
           engine <- getEngine
-          opts <- parseOptionsFromArgs options defaultOpts prg rawArgs
-          convertWithOpts engine opts
+          res <- parseOptionsFromArgs options defaultOpts prg args
+          case res of
+            Left e -> handleOptInfo engine e
+            Right opts -> convertWithOpts engine opts
 
 copyrightMessage :: String
 copyrightMessage =
