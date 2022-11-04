@@ -3095,7 +3095,7 @@ The `--css` option also affects the output.
      Additional fonts may be installed using the script
      [`install-fonts.sh`](https://www.schaffter.ca/mom/bin/install-font.sh)
      provided by Peter Schaffter and documented in detail on 
-     [his web site](https://www.schaffter.ca/mom/momdoc/appendices.html).
+     [his web site](https://www.schaffter.ca/mom/momdoc/appendices.html#steps).
 
 `indent`
 :    paragraph indent (e.g. `2m`)
