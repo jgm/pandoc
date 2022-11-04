@@ -3088,22 +3088,13 @@ The `--css` option also affects the output.
 ### Variables for ms
 
 `fontfamily`
-:    The default installation of ghostscript and pdfgroff offers
-     multiple fonts of different shape and weight (e.g., Times New
-     Roman Italic, Times New Roman Bold, Times New Roman Italic)
-     which are addressed as a font family (e.g., Times New Roman)
-     by a specific letter code.  These are AvantGarde (`A`), Bookman 
-     (`B`), Helvetica (`C`), Helvetica Narrow (`HN`), Palatino (`P`,
-     Pandoc's default), Times New Roman (`T`).  If explicitly called,
-     the font family's styles are applied both on the body of text, 
-     as well as on section headings while the display of source code
-     defaults to monospace Courier.
-
-     The coverage of characters of these font families varies,
-     especially in perspective of UTF-8.  Additional fonts may be 
-     comfortably installed e.g., by script
+:    `A` (Avant Garde), `B` (Bookman), `C` (Helvetica), `HN` (Helvetica
+     Narrow), `P` (Palatino), or `T` (Times New Roman). This setting does not
+     affect source code, which is always displayed using monospace Courier.
+     These built-in fonts are limited in their coverage of characters.
+     Additional fonts may be installed using the script
      [`install-fonts.sh`](https://www.schaffter.ca/mom/bin/install-font.sh)
-     provided by Peter Schaffter documented in detail on 
+     provided by Peter Schaffter and documented in detail on 
      [his web site](https://www.schaffter.ca/mom/momdoc/appendices.html).
 
 `indent`
