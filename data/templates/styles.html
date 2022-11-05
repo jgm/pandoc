@@ -1,7 +1,9 @@
 $if(document-css)$
-html {$if(linestretch)$
+html {
+$if(linestretch)$
   line-height: $linestretch$;$endif$
-  font-family: $if(mainfont)$$mainfont$$else$Georgia, serif$endif$;$if(fontsize)$
+  font-family: $if(mainfont)$$mainfont$$else$Georgia, serif$endif$;
+$if(fontsize)$
   font-size: $fontsize$;$endif$
   color: $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
   background-color: $if(backgroundcolor)$$backgroundcolor$$else$#fdfdfd$endif$;
