@@ -28,6 +28,9 @@ body {
   }
 }
 @media print {
+  html {
+    background-color: $if(backgroundcolor)$$backgroundcolor$$else$white$endif$;
+  }
   body {
     background-color: transparent;
     color: black;
