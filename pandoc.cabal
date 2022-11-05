@@ -635,6 +635,7 @@ library
                    Text.Pandoc.Class,
                    Text.Pandoc.Class.IO,
                    Text.Pandoc.Citeproc,
+                   Text.Pandoc.Chunks,
                    Text.Pandoc.Version
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
