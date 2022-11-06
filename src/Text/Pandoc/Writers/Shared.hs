@@ -34,6 +34,8 @@ module Text.Pandoc.Writers.Shared (
                      , toSubscript
                      , toSuperscript
                      , toTableOfContents
+                     , toTOCTree
+                     , SecInfo(..)
                      , endsWithPlain
                      , toLegacyTable
                      , splitSentences
@@ -43,7 +45,7 @@ where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (fromMaybe, isNothing)
-import Control.Monad (zipWithM)
+import Control.Monad (zipWithM, mfilter)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter)
 import Data.List (groupBy, intersperse, transpose, foldl')
@@ -62,6 +64,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
+import Data.Tree
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -427,35 +430,67 @@ toSubscript c
 toTableOfContents :: WriterOptions
                   -> [Block]
                   -> Block
-toTableOfContents opts bs =
-  BulletList $ filter (not . null)
-             $ map (sectionToListItem opts)
-             $ makeSections (writerNumberSections opts) Nothing bs
+toTableOfContents opts =
+  tocToList (writerTOCDepth opts)
+  . toTOCTree
+  . makeSections (writerNumberSections opts) Nothing
 
--- | Converts a section Div to a list item for a table of contents;
--- returns an empty list if the given block is not a section Div.
-sectionToListItem :: WriterOptions -> Block -> [Block]
-sectionToListItem opts (Div (ident,_,_)
-                         (Header lev (_,classes,kvs) ils : subsecs))
-  | lev <= writerTOCDepth opts
-  , not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
-  = Plain headerLink : [BulletList listContents | not (null listContents)]
+data SecInfo =
+  SecInfo
+  { secTitle :: [Inline]
+  , secNumber :: Maybe Text
+  , secIdent :: Text
+  , secLevel :: Int
+  } deriving (Show, Ord, Eq)
+
+-- | Create tree of sections with titles, links, and numbers,
+-- in a form that can be turned into a table of contents.
+-- Presupposes that the '[Block]' is the output of 'makeSections'.
+toTOCTree :: [Block] -> Tree SecInfo
+toTOCTree bs =
+  Node SecInfo{ secTitle = []
+              , secNumber = Nothing
+              , secIdent = ""
+              , secLevel = 0 } $ foldr go [] bs
  where
-   num = fromMaybe "" $ lookup "number" kvs
-   addNumber  = if T.null num
-                   then id
-                   else (Span ("",["toc-section-number"],[])
-                           [Str num] :) . (Space :)
-   clean (Link _ xs _) = xs
-   clean (Note _) = []
-   clean x = [x]
-   headerText' = addNumber $ walk (concatMap clean) ils
-   headerLink = if T.null ident
-                   then headerText'
-                   else [Link ("toc-" <> ident, [], []) headerText' ("#" <> ident, "")]
-   listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
-sectionToListItem opts (Div _ [d@Div{}]) = sectionToListItem opts d -- #8402
-sectionToListItem _ _ = []
+  go :: Block -> [Tree SecInfo] -> [Tree SecInfo]
+  go (Div (ident,_,_) (Header lev (_,classes,kvs) ils : subsecs))
+    | not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
+    = ((Node SecInfo{ secTitle = ils
+                    , secNumber = lookup "number" kvs
+                    , secIdent = ident
+                    , secLevel = lev } (foldr go [] subsecs)) :)
+  go (Div _ [d@Div{}]) = go d -- #8402
+  go _ = id
+
+tocEntryToLink :: SecInfo -> [Inline]
+tocEntryToLink secinfo = headerLink
+ where
+  addNumber  = case secNumber secinfo of
+                 Just num -> (Span ("",["toc-section-number"],[])
+                               [Str num] :) . (Space :)
+                 Nothing -> id
+  clean (Link _ xs _) = xs
+  clean (Note _) = []
+  clean x = [x]
+  ident = secIdent secinfo
+  headerText = addNumber $ walk (concatMap clean) (secTitle secinfo)
+  headerLink = if T.null ident
+                  then headerText
+                  else [Link ("toc-" <> ident, [], [])
+                         headerText ("#" <> ident, "")]
+
+tocToList :: Int -> Tree SecInfo -> Block
+tocToList tocDepth (Node secinfo subtrees)
+  = BulletList (toItems subtrees)
+ where
+  toItems = map go . filter isBelowTocDepth
+  isBelowTocDepth (Node sec _) = secLevel sec <= tocDepth
+  go (Node secinfo xs) =
+    Plain (tocEntryToLink secinfo) :
+      if null xs
+         then []
+         else [BulletList (toItems xs)]
 
 -- | Returns 'True' iff the list of blocks has a @'Plain'@ as its last
 -- element.
