@@ -44,8 +44,8 @@ module Text.Pandoc.Writers.Shared (
 where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
-import Data.Maybe (fromMaybe, isNothing)
-import Control.Monad (zipWithM, mfilter)
+import Data.Maybe (isNothing)
+import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter)
 import Data.List (groupBy, intersperse, transpose, foldl')
@@ -481,7 +481,7 @@ tocEntryToLink secinfo = headerLink
                          headerText ("#" <> ident, "")]
 
 tocToList :: Int -> Tree SecInfo -> Block
-tocToList tocDepth (Node secinfo subtrees)
+tocToList tocDepth (Node _ subtrees)
   = BulletList (toItems subtrees)
  where
   toItems = map go . filter isBelowTocDepth
