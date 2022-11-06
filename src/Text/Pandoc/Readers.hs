@@ -1,7 +1,8 @@
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE MonoLocalBinds      #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc.Readers
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -25,7 +26,7 @@ module Text.Pandoc.Readers
     Reader (..)
   , readers
   , readDocx
-  , readOdt
+  , readODT
   , readMarkdown
   , readCommonMark
   , readCreole
@@ -64,17 +65,16 @@ module Text.Pandoc.Readers
   , getDefaultExtensions
   ) where
 
-import Control.Monad (unless)
 import Control.Monad.Except (throwError)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Extensions
+import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.CommonMark
 import Text.Pandoc.Readers.Markdown
@@ -93,7 +93,7 @@ import Text.Pandoc.Readers.LaTeX
 import Text.Pandoc.Readers.MediaWiki
 import Text.Pandoc.Readers.Muse
 import Text.Pandoc.Readers.Native
-import Text.Pandoc.Readers.Odt
+import Text.Pandoc.Readers.ODT
 import Text.Pandoc.Readers.OPML
 import Text.Pandoc.Readers.Org
 import Text.Pandoc.Readers.RST
@@ -145,7 +145,7 @@ readers = [("native"       , TextReader readNative)
           ,("twiki"        , TextReader readTWiki)
           ,("tikiwiki"     , TextReader readTikiWiki)
           ,("docx"         , ByteStringReader readDocx)
-          ,("odt"          , ByteStringReader readOdt)
+          ,("odt"          , ByteStringReader readODT)
           ,("t2t"          , TextReader readTxt2Tags)
           ,("epub"         , ByteStringReader readEPUB)
           ,("muse"         , TextReader readMuse)
@@ -162,29 +162,14 @@ readers = [("native"       , TextReader readNative)
           ,("rtf"          , TextReader readRTF)
            ]
 
--- | Retrieve reader, extensions based on formatSpec (format+extensions).
-getReader :: PandocMonad m => Text -> m (Reader m, Extensions)
-getReader s =
-  case parseFormatSpec s of
-       Left e  -> throwError $ PandocAppError $
-                    "Error parsing reader format " <> tshow s <> ": " <> tshow e
-       Right (readerName, extsToEnable, extsToDisable) ->
-           case lookup readerName readers of
-                   Nothing  -> throwError $ PandocUnknownReaderError
-                                             readerName
-                   Just  r  -> do
-                     let allExts = getAllExtensions readerName
-                     let exts = foldr disableExtension
-                           (foldr enableExtension
-                             (getDefaultExtensions readerName)
-                                   extsToEnable) extsToDisable
-                     mapM_ (\ext ->
-                              unless (extensionEnabled ext allExts) $
-                                throwError $
-                                   PandocUnsupportedExtensionError
-                                   (T.drop 4 $ T.pack $ show ext) readerName)
-                          (extsToEnable ++ extsToDisable)
-                     return (r, exts)
+-- | Retrieve reader, extensions based on format spec (format+extensions).
+getReader :: PandocMonad m => Format.FlavoredFormat -> m (Reader m, Extensions)
+getReader flvrd = do
+  let readerName = Format.formatName flvrd
+  case lookup readerName readers of
+    Nothing  -> throwError $ PandocUnknownReaderError readerName
+    Just  r  -> (r,) <$>
+      Format.applyExtensionsDiff (Format.getExtensionsConfig readerName) flvrd
 
 -- | Read pandoc document from JSON format.
 readJSON :: (PandocMonad m, ToSources a)

@@ -14,7 +14,8 @@ Ipynb (Jupyter notebook JSON format) writer for pandoc.
 -}
 module Text.Pandoc.Writers.Ipynb ( writeIpynb )
 where
-import Control.Monad.State
+import Control.Monad (foldM)
+import Control.Monad.State ( StateT(runStateT), modify )
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe)
 import Text.Pandoc.Options
@@ -29,7 +30,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Shared (safeRead, isURI)
+import Text.Pandoc.Shared (safeRead)
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Writers.Markdown (writePlain, writeMarkdown)
 import qualified Data.Text.Encoding as TE

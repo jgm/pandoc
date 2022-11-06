@@ -32,9 +32,11 @@
 !changelog.md
 !default.nix
 !pandoc.cabal
+!hie.yaml
 !release.nix
 !shell.nix
 !stack.yaml
+!weeder.dhall
 !app/**
 !benchmark/**
 !citeproc/**
@@ -43,10 +45,14 @@
 !linux/**
 !macos/**
 !man/**
+!pandoc-lua-engine/**
+!pandoc-server/**
+!pandoc-cli/**
 !src/**
 !test/**
 !tools/**
 !trypandoc/**
+!xml-light/**
 !windows/**
 *.bkp
 *.orig

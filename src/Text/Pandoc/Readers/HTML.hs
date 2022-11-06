@@ -21,6 +21,7 @@ module Text.Pandoc.Readers.HTML ( readHtml
                                 , isBlockTag
                                 , isTextTag
                                 , isCommentTag
+                                , toAttr
                                 ) where
 
 import Control.Applicative ((<|>))
@@ -62,10 +63,10 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
-    addMetaField, blocksToInlines', escapeURI, extractSpaces,
+    addMetaField, blocksToInlines', extractSpaces,
     htmlSpanLikeElements, renderTags', safeRead, tshow, formatCode)
+import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Walk
-import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
@@ -661,6 +662,7 @@ inline = pTagText <|> do
         "img" -> pImage
         "svg" -> pSvg
         "bdo" -> pBdo
+        "tt" -> pCode
         "code" -> pCode
         "samp" -> pCodeWithClass "samp" "sample"
         "var" -> pCodeWithClass "var" "variable"
@@ -1026,7 +1028,7 @@ isCommentTag = tagComment (const True)
 -- | Matches a stretch of HTML in balanced tags.
 htmlInBalanced :: Monad m
                => (Tag Text -> Bool)
-               -> ParserT Sources st m Text
+               -> ParsecT Sources st m Text
 htmlInBalanced f = try $ do
   lookAhead (char '<')
   sources <- getInput
@@ -1075,7 +1077,7 @@ hasTagWarning _                = False
 -- | Matches a tag meeting a certain condition.
 htmlTag :: (HasReaderOptions st, Monad m)
         => (Tag Text -> Bool)
-        -> ParserT Sources st m (Tag Text, Text)
+        -> ParsecT Sources st m (Tag Text, Text)
 htmlTag f = try $ do
   lookAhead (char '<')
   startpos <- getPosition

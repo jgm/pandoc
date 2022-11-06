@@ -1,12 +1,183 @@
 /* This defines styles and classes used in the book */
-body { margin: 5%; text-align: justify; font-size: medium; }
-code { font-family: monospace; }
-h1 { text-align: left; }
-h2 { text-align: left; }
-h3 { text-align: left; }
-h4 { text-align: left; }
-h5 { text-align: left; }
-h6 { text-align: left; }
+@page {
+  margin: 10px;
+}
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+ol, ul, li, dl, dt, dd {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+html {
+  line-height: 1.2;
+  font-family: Georgia, serif;
+  color: #1a1a1a;
+  background-color: #fdfdfd;
+}
+p {
+  text-indent: 0;
+  margin: 1em 0;
+  widows: 2;
+  orphans: 2;
+}
+a {
+  color: #1a1a1a;
+}
+a:visited {
+  color: #1a1a1a;
+}
+img {
+  max-width: 100%;
+}
+h1 {
+  text-indent: 0;
+  text-align: left;
+  margin: 3em 0 0 0;
+  font-size: 2em;
+  font-weight: bold;
+  page-break-before: always;
+  line-height: 150%;
+}
+h2 {
+  text-indent: 0;
+  text-align: left;
+  margin: 1.5em 0 0 0;
+  font-size: 1.5em;
+  font-weight: bold;
+  line-height: 135%;
+}
+h3 {
+  text-indent: 0;
+  text-align: left;
+  margin: 1.3em 0 0 0;
+  font-size: 1.3em;
+  font-weight: bold;
+}
+h4 {
+  text-indent: 0;
+  text-align: left;
+  margin: 1.2em 0 0 0;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+h5 {
+  text-indent: 0;
+  text-align: left;
+  margin: 1.1em 0 0 0;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+h5 {
+  text-indent: 0;
+  text-align: left;
+  font-size: 1em;
+  font-weight: bold;
+}
+h1, h2, h3, h4, h5, h6 {
+  page-break-after: avoid;
+  page-break-inside: avoid;
+}
+
+ol, ul {
+  margin: 1em 0 0 1.7em;
+}
+li > ol, li > ul {
+  margin-top: 0;
+}
+blockquote {
+  margin: 1em 0 1em 1.7em;
+}
+code {
+  font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+  font-size: 85%;
+  margin: 0;
+}
+pre {
+  margin: 1em 0;
+  overflow: auto;
+}
+pre code {
+  padding: 0;
+  overflow: visible;
+  overflow-wrap: normal;
+}
+.sourceCode {
+ background-color: transparent;
+ overflow: visible;
+}
+hr {
+  background-color: #1a1a1a;
+  border: none;
+  height: 1px;
+  margin: 1em 0;
+}
+table {
+  margin: 1em 0;
+  border-collapse: collapse;
+  width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+table caption {
+  margin-bottom: 0.75em;
+}
+tbody {
+  margin-top: 0.5em;
+  border-top: 1px solid #1a1a1a;
+  border-bottom: 1px solid #1a1a1a;
+}
+th {
+  border-top: 1px solid #1a1a1a;
+  padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+  padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+  margin-bottom: 4em;
+  text-align: center;
+}
+#TOC li {
+  list-style: none;
+}
+#TOC ul {
+  padding-left: 1.3em;
+}
+#TOC > ul {
+  padding-left: 0;
+}
+#TOC a:not(:hover) {
+  text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+
+/* This is the most compatible CSS, but it only allows two columns: */
+div.column{ display: inline-block; vertical-align: top; width: 50%; }
+/* If you can rely on CSS3 support, use this instead: */
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;} */
+
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+.display.math{
+  display: block;
+  text-align: center;
+  margin: 0.5rem auto;
+}
 /* For title, author, and date on the cover page */
 h1.title { }
 p.author { }
@@ -18,12 +189,7 @@ nav#landmarks ol li { list-style-type: none; margin: 0; padding: 0; }
 a.footnote-ref { vertical-align: super; }
 em, em em em, em em em em em { font-style: italic;}
 em em, em em em em { font-style: normal; }
-code{ white-space: pre-wrap; }
-span.smallcaps{ font-variant: small-caps; }
-span.underline{ text-decoration: underline; }
 q { quotes: "“" "”" "‘" "’"; }
-div.column{ display: inline-block; vertical-align: top; width: 50%; }
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 @media screen { /* Workaround for iBooks issue; see #6242 */
   .sourceCode {
     overflow: visible !important;

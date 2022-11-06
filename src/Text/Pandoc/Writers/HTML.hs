@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -29,9 +30,13 @@ module Text.Pandoc.Writers.HTML (
   tagWithAttributes
   ) where
 import Control.Monad.State.Strict
+    ( StateT, MonadState(get), gets, modify, evalStateT )
+import Control.Monad ( liftM, when, foldM, unless )
+import Control.Monad.Trans ( MonadTrans(lift) )
 import Data.Char (ord)
 import Data.List (intercalate, intersperse, partition, delete, (\\), foldl')
 import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.Containers.ListUtils (nubOrd)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -43,11 +48,10 @@ import Text.DocLayout (render, literal, Doc)
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)
-import Text.Pandoc.Translations (Term(Abstract))
 import Text.Pandoc.CSS (cssAttributes)
 import Text.Pandoc.Definition
-import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtmlInline, highlight,
-                                 styleToCss)
+import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtml4Block,
+                 formatHtmlInline, highlight, styleToCss)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
@@ -57,7 +61,7 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
-import Text.Pandoc.Network.HTTP (urlEncode)
+import Text.Pandoc.URI (urlEncode)
 import Text.Pandoc.XML (escapeStringForXML, fromEntities, toEntities,
                         html5Attributes, html4Attributes, rdfaAttributes)
 import qualified Text.Blaze.XHtml5 as H5
@@ -67,8 +71,8 @@ import System.FilePath (takeBaseName)
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report,
-                                      translateTerm)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.Class.PandocPure (runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
@@ -114,21 +118,20 @@ defaultWriterState = WriterState {stNotes= [], stEmittedNotes = 0, stMath = Fals
 
 strToHtml :: Text -> Html
 strToHtml t
-    | T.any isSpecial t = strToHtml' $ T.unpack t
+    | T.any isSpecial t =
+       let !x = foldl' go mempty $ T.groupBy samegroup t
+        in x
     | otherwise = toHtml t
   where
-    strToHtml' ('\'':xs) = preEscapedString "\'" `mappend` strToHtml' xs
-    strToHtml' ('"' :xs) = preEscapedString "\"" `mappend` strToHtml' xs
-    strToHtml' (x:xs) | needsVariationSelector x
-                      = preEscapedString [x, '\xFE0E'] `mappend`
-                        case xs of
-                          ('\xFE0E':ys) -> strToHtml' ys
-                          _             -> strToHtml' xs
-    strToHtml' xs@(_:_) = case break isSpecial xs of
-                            (_ ,[]) -> toHtml xs
-                            (ys,zs) -> toHtml ys `mappend` strToHtml' zs
-    strToHtml' [] = ""
-    isSpecial c = c == '\'' || c == '"' || needsVariationSelector c
+    samegroup c d = d == '\xFE0E' || not (isSpecial c || isSpecial d)
+    isSpecial '\'' = True
+    isSpecial '"' = True
+    isSpecial c = needsVariationSelector c
+    go h "\'" = h <> preEscapedString "\'"
+    go h "\"" = h <> preEscapedString "\""
+    go h txt | T.length txt == 1 && T.all needsVariationSelector txt
+           = h <> preEscapedString (T.unpack txt <> "\xFE0E")
+    go h txt = h <> toHtml txt
 
 -- See #5469: this prevents iOS from substituting emojis.
 needsVariationSelector :: Char -> Bool
@@ -545,9 +548,9 @@ footnoteSection refLocation startCounter notes = do
                 = H5.section ! A.id "footnotes"
                              ! A.class_ className
                              ! customAttribute "epub:type" "footnotes" $ x
-        | html5 = H5.section ! A.id "footnotes"
-                             ! A.class_ className
-                             ! customAttribute "role" "doc-endnotes"
+        | html5 = H5.section ! A5.id "footnotes"
+                             ! A5.class_ className
+                             ! A5.role "doc-endnotes"
                              $ x
         | slideVariant /= NoSlides = H.div ! A.class_ "footnotes slide" $ x
         | otherwise = H.div ! A.class_ className $ x
@@ -679,9 +682,10 @@ attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
 attrsToHtml opts (id',classes',keyvals) = do
   attrs <- toAttrs keyvals
+  let classes'' = filter (not . T.null) classes'
   return $
     [prefixedId opts id' | not (T.null id')] ++
-    [A.class_ (toValue $ T.unwords classes') | not (null classes')] ++ attrs
+    [A.class_ (toValue $ T.unwords classes'') | not (null classes'')] ++ attrs
 
 imgAttrsToHtml :: PandocMonad m
                => WriterOptions -> Attr -> StateT WriterState m [Attribute]
@@ -808,9 +812,11 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
   let inDiv' zs = RawBlock (Format "html") ("<div class=\""
                        <> fragmentClass <> "\">") :
                    (zs ++ [RawBlock (Format "html") "</div>"])
-  let breakOnPauses zs = case splitBy isPause zs of
+  let breakOnPauses zs
+        | slide = case splitBy isPause zs of
                            []   -> []
                            y:ys -> y ++ concatMap inDiv' ys
+        | otherwise = zs
   let (titleBlocks, innerSecs) =
         if titleSlide
            -- title slides have no content of their own
@@ -827,7 +833,7 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
     res <- blockListToHtml opts innerSecs
     modify $ \st -> st{ stInSection = inSection }
     return res
-  let classes' = ordNub $
+  let classes' = nubOrd $
                   ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
@@ -878,8 +884,8 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
                    , k /= "width" || "column" `notElem` classes] ++
             [("style", "width:" <> w <> ";") | "column" `elem` classes
                                              , ("width", w) <- kvs'] ++
-            [("role", "doc-bibliography") | isCslBibBody && html5] ++
-            [("role", "doc-biblioentry") | isCslBibEntry && html5]
+            [("role", "list") | isCslBibBody && html5] ++
+            [("role", "listitem") | isCslBibEntry && html5]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
   let opts' = if | speakerNotes -> opts{ writerIncremental = False }
@@ -913,7 +919,7 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
                DZSlides       -> do
                  t <- addAttrs opts' attr $
                              H5.div contents'
-                 return $ t ! H5.customAttribute "role" "note"
+                 return $ t ! A5.role "note"
                NoSlides       -> addAttrs opts' attr $
                            H.div contents'
                _              -> return mempty
@@ -934,6 +940,7 @@ blockToHtmlInner _ HorizontalRule = do
   html5 <- gets stHtml5
   return $ if html5 then H5.hr else H.hr
 blockToHtmlInner opts (CodeBlock (id',classes,keyvals) rawCode) = do
+  html5 <- gets stHtml5
   id'' <- if T.null id'
              then do
                modify $ \st -> st{ stCodeBlockNum = stCodeBlockNum st + 1 }
@@ -952,7 +959,8 @@ blockToHtmlInner opts (CodeBlock (id',classes,keyvals) rawCode) = do
                     then T.unlines . map ("> " <>) . T.lines $ rawCode
                     else rawCode
       hlCode   = if isJust (writerHighlightStyle opts)
-                    then highlight (writerSyntaxMap opts) formatHtmlBlock
+                    then highlight (writerSyntaxMap opts)
+                         (if html5 then formatHtmlBlock else formatHtml4Block)
                             (id'',classes',keyvals) adjCode
                     else Left ""
   case hlCode of
@@ -1001,7 +1009,8 @@ blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
              else [ (k, v) | (k, v) <- kvs
                            , k `elem` (["lang", "dir", "title", "style"
                                       , "align"] ++ intrinsicEventsHTML4)]
-  addAttrs opts (ident,classes,kvs')
+  let classes' = if level > 6 then "heading":classes else classes
+  addAttrs opts (ident,classes',kvs')
          $ case level of
               1 -> H.h1 contents'
               2 -> H.h2 contents'
@@ -1009,7 +1018,7 @@ blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
               4 -> H.h4 contents'
               5 -> H.h5 contents'
               6 -> H.h6 contents'
-              _ -> H.p ! A.class_ "heading" $ contents'
+              _ -> H.p  contents'
 blockToHtmlInner opts (BulletList lst) = do
   contents <- mapM (listItemToHtml opts) lst
   let isTaskList = not (null lst) && all isTaskListItem lst
@@ -1542,10 +1551,10 @@ inlineToHtml opts inline = do
              _ -> do report $ InlineNotRendered inline
                      return mempty
     (Link attr txt (s,_)) | "mailto:" `T.isPrefixOf` s -> do
-                        linkText <- inlineListToHtml opts txt
+                        linkText <- inlineListToHtml opts (removeLinks txt)
                         obfuscateLink opts attr linkText s
     (Link (ident,classes,kvs) txt (s,tit)) -> do
-                        linkText <- inlineListToHtml opts txt
+                        linkText <- inlineListToHtml opts (removeLinks txt)
                         slideVariant <- gets stSlideVariant
                         let s' = case T.uncons s of
                                    Just ('#',xs) -> let prefix = if slideVariant == RevealJsSlides
@@ -1610,10 +1619,12 @@ inlineToHtml opts inline = do
                                        $ toHtml ref
                         return $ case epubVersion of
                                       Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
-                                      _ | html5  -> link ! H5.customAttribute
-                                                      "role" "doc-noteref"
+                                      _ | html5  -> link ! A5.role "doc-noteref"
                                       _          -> link
-    (Cite cits il)-> do contents <- inlineListToHtml opts (walk addRoleToLink il)
+    (Cite cits il)-> do contents <- inlineListToHtml opts
+                                      (if html5
+                                          then walk addRoleToLink il
+                                          else il)
                         let citationIds = T.unwords $ map citationId cits
                         let result = H.span ! A.class_ "citation" $ contents
                         return $ if html5
@@ -1724,3 +1735,11 @@ isRawHtml f = do
   html5 <- gets stHtml5
   return $ f == Format "html" ||
            ((html5 && f == Format "html5") || f == Format "html4")
+
+-- We need to remove links from link text, because an <a> element is
+-- not allowed inside another <a> element.
+removeLinks :: [Inline] -> [Inline]
+removeLinks = walk go
+ where
+  go (Link attr ils _) = Span attr ils
+  go x = x

@@ -20,6 +20,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , styleToLaTeX
                                 , formatHtmlInline
                                 , formatHtmlBlock
+                                , formatHtml4Block
                                 , styleToCss
                                 , pygments
                                 , espresso
@@ -236,4 +237,3 @@ lookupHighlightingStyle s
        Just sty -> return sty
        Nothing  -> throwError $ PandocOptionError $ T.pack $
                       "Unknown highlight-style " ++ s
-

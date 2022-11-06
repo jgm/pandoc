@@ -19,7 +19,9 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
+import Control.Monad (foldM)
 import Control.Monad.State.Strict
+    ( StateT, MonadState(get), gets, modify, evalStateT )
 import Data.Char (isPunctuation, isSpace)
 import Data.List (delete, intercalate, intersperse)
 import Data.List.NonEmpty (NonEmpty(..))
@@ -35,6 +37,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 
@@ -112,7 +115,7 @@ escapeString t
         escChar c   = T.singleton c
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parser Text ParserState Char
+olMarker :: Parsec Text ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&

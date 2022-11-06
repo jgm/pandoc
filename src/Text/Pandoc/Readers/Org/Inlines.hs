@@ -126,8 +126,12 @@ linebreak :: PandocMonad m => OrgParser m (F Inlines)
 linebreak = try $ pure B.linebreak <$ string "\\\\" <* skipSpaces <* newline
 
 str :: PandocMonad m => OrgParser m (F Inlines)
-str = return . B.str <$> many1Char (noneOf $ specialChars ++ "\n\r ")
+str = return . B.str <$>
+      ( many1Char (noneOf $ specialChars ++ "\n\r ") >>= updatePositions' )
       <* updateLastStrPos
+  where
+    updatePositions' str' = str' <$
+      maybe mzero (updatePositions . snd) (T.unsnoc str')
 
 -- | An endline character that can be treated as a space, not a structural
 -- break.  This should reflect the values of the Emacs variable
@@ -380,8 +384,9 @@ orgRefCiteKey =
       endOfCitation = try $ do
         many $ satisfy isCiteKeySpecialChar
         satisfy $ not . isCiteKeyChar
-  in try $ satisfy isCiteKeyChar `many1TillChar` lookAhead endOfCitation
-
+  in try $ do
+        optional (char '&') -- this is used in org-ref v3
+        satisfy isCiteKeyChar `many1TillChar` lookAhead endOfCitation
 
 -- | Supported citation types.  Only a small subset of org-ref types is
 -- supported for now.  TODO: rewrite this, use LaTeX reader as template.
@@ -679,7 +684,6 @@ rawMathBetween s e = try $ textStr s *> manyTillChar anyChar (try $ textStr e)
 emphasisStart :: PandocMonad m => Char -> OrgParser m Char
 emphasisStart c = try $ do
   guard =<< afterEmphasisPreChar
-  guard =<< notAfterString
   char c
   lookAhead (noneOf emphasisForbiddenBorderChars)
   pushToInlineCharStack c
@@ -792,8 +796,8 @@ notAfterForbiddenBorderChar = do
 subOrSuperExpr :: PandocMonad m => OrgParser m (F Inlines)
 subOrSuperExpr = try $
   simpleSubOrSuperText <|>
-  (choice [ charsInBalanced '{' '}' (noneOf "\n\r")
-          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
+  (choice [ charsInBalanced '{' '}' (T.singleton <$> noneOf "\n\r")
+          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (T.singleton <$> noneOf "\n\r")
           ] >>= parseFromString (mconcat <$> many inline))
  where enclosing (left, right) s = T.cons left $ T.snoc s right
 

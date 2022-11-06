@@ -17,8 +17,7 @@ module Text.Pandoc.Readers.Docx.Fields ( FieldInfo(..)
 
 import Data.Functor (($>), void)
 import qualified Data.Text as T
-import Text.Parsec
-import Text.Parsec.Text (Parser)
+import Text.Pandoc.Parsing
 
 type URL = T.Text
 type Anchor = T.Text
@@ -32,6 +31,8 @@ data FieldInfo = HyperlinkField URL
                | EndNoteRefList
                | UnknownField
                deriving (Show)
+
+type Parser = Parsec T.Text ()
 
 parseFieldInfo :: T.Text -> Either ParseError FieldInfo
 parseFieldInfo = parse fieldInfo ""
@@ -132,6 +133,6 @@ pageref = do
   farg <- fieldArgument
   switches <- spaces *> many pagerefSwitch
   let isLink = case switches of
-              ("\\h", _) : _ -> True 
+              ("\\h", _) : _ -> True
               _              -> False
   return (farg, isLink)

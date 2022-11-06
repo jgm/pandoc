@@ -1,8 +1,6 @@
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Extensions
@@ -16,10 +14,12 @@
 Data structures and functions for representing markup extensions.
 -}
 module Text.Pandoc.Extensions ( Extension(..)
+                              , readExtension
+                              , showExtension
                               , Extensions
                               , emptyExtensions
                               , extensionsFromList
-                              , parseFormatSpec
+                              , extensionsToList
                               , extensionEnabled
                               , enableExtension
                               , disableExtension
@@ -32,16 +32,14 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , githubMarkdownExtensions
                               , multimarkdownExtensions )
 where
-import Data.Bits (clearBit, setBit, testBit, (.|.))
 import Data.Data (Data)
-import Data.List (foldl')
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
-import Safe (readMay)
-import Text.Parsec
-import Data.Aeson.TH (deriveJSON)
+import Text.Read (readMaybe)
 import Data.Aeson
+import Data.List (sort)
+import qualified Data.Set as Set
 
 -- | Individually selectable syntax extensions.
 data Extension =
@@ -137,41 +135,62 @@ data Extension =
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
-    deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
+    | CustomExtension T.Text  -- ^ Custom extension
+    deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
-$(deriveJSON defaultOptions{ constructorTagModifier = drop 4 } ''Extension)
+instance FromJSON Extension where
+  parseJSON = withText "Extension" (pure . readExtension . T.unpack)
 
-newtype Extensions = Extensions Integer
+instance ToJSON Extension where
+ toJSON = String . showExtension
+
+newtype Extensions = Extensions (Set.Set Extension)
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
 instance Semigroup Extensions where
-  (Extensions a) <> (Extensions b) = Extensions (a .|. b)
+  (Extensions a) <> (Extensions b) = Extensions (a <> b)
 instance Monoid Extensions where
-  mempty = Extensions 0
+  mempty = Extensions mempty
   mappend = (<>)
 
 instance FromJSON Extensions where
-  parseJSON =
-    return . foldr enableExtension emptyExtensions . fromJSON
+  parseJSON = fmap extensionsFromList . parseJSON
 
 instance ToJSON Extensions where
-  toJSON exts = toJSON $
-    [ext | ext <- [minBound..maxBound], extensionEnabled ext exts]
+  toJSON (Extensions exts) = toJSON exts
+
+-- | Reads a single extension from a string.
+readExtension :: String -> Extension
+readExtension "lhs" = Ext_literate_haskell
+readExtension name =
+  case readMaybe ("Ext_" ++ name) of
+    Just ext -> ext
+    Nothing -> CustomExtension (T.pack name)
+
+-- | Show an extension in human-readable form.
+showExtension :: Extension -> T.Text
+showExtension ext =
+  case ext of
+    CustomExtension t -> t
+    _ -> T.drop 4 $ T.pack $ show ext
 
 extensionsFromList :: [Extension] -> Extensions
-extensionsFromList = foldr enableExtension emptyExtensions
+extensionsFromList = Extensions . Set.fromList
+
+extensionsToList :: Extensions -> [Extension]
+extensionsToList (Extensions extset) = sort $ Set.toList extset
 
 emptyExtensions :: Extensions
-emptyExtensions = Extensions 0
+emptyExtensions = Extensions mempty
 
 extensionEnabled :: Extension -> Extensions -> Bool
-extensionEnabled x (Extensions exts) = testBit exts (fromEnum x)
+extensionEnabled x (Extensions exts) = x `Set.member` exts
 
 enableExtension :: Extension -> Extensions -> Extensions
-enableExtension x (Extensions exts) = Extensions (setBit exts (fromEnum x))
+enableExtension x (Extensions exts) = Extensions (Set.insert x exts)
 
 disableExtension :: Extension -> Extensions -> Extensions
-disableExtension x (Extensions exts) = Extensions (clearBit exts (fromEnum x))
+disableExtension x (Extensions exts) = Extensions (Set.delete x exts)
 
 -- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions
@@ -605,30 +624,3 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_smart ]
   getAll _                 = mempty
-
-
--- | Parse a format-specifying string into a markup format,
--- a set of extensions to enable, and a set of extensions to disable.
-parseFormatSpec :: T.Text
-                -> Either ParseError (T.Text, [Extension], [Extension])
-parseFormatSpec = parse formatSpec ""
-  where formatSpec = do
-          name <- formatName
-          (extsToEnable, extsToDisable) <- foldl' (flip ($)) ([],[]) <$>
-                                             many extMod
-          return (T.pack name, reverse extsToEnable, reverse extsToDisable)
-        formatName = many1 $ noneOf "-+"
-        extMod = do
-          polarity <- oneOf "-+"
-          name <- many $ noneOf "-+"
-          ext <- case readMay ("Ext_" ++ name) of
-                       Just n  -> return n
-                       Nothing
-                         | name == "lhs" -> return Ext_literate_haskell
-                         | otherwise -> unexpected $
-                                          "unknown extension: " ++ name
-          return $ \(extsToEnable, extsToDisable) ->
-                    case polarity of
-                        '+' -> (ext : extsToEnable, extsToDisable)
-                        _   -> (extsToEnable, ext : extsToDisable)
-

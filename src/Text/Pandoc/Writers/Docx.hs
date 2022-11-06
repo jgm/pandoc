@@ -18,11 +18,22 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Codec.Archive.Zip
+    ( Archive(zEntries),
+      addEntryToArchive,
+      emptyArchive,
+      findEntryByPath,
+      fromArchive,
+      toArchive,
+      toEntry,
+      Entry(eRelativePath) )
 import Control.Applicative ((<|>))
+import Control.Monad (MonadPlus(mplus), unless, when)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
-import Control.Monad.State.Strict
+    ( asks, MonadReader(local), MonadTrans(lift), ReaderT(runReaderT) )
+import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
 import qualified Data.ByteString.Lazy as BL
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
@@ -35,12 +46,12 @@ import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
-import Text.Collate.Lang (renderLang)
-import Text.Pandoc.Class (PandocMonad, report, toLang, translateTerm,
-                           getMediaBag)
+import Text.Pandoc.Class (PandocMonad, report, toLang, getMediaBag)
+import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
+import Text.Pandoc.Data (readDataFile, readDefaultDataFile)
 import Data.Time
 import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
@@ -63,6 +74,7 @@ import Text.TeXMath
 import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
+import Text.Collate.Lang (renderLang, Lang(..))
 
 squashProps :: EnvProps -> [Element]
 squashProps (EnvProps Nothing es) = es
@@ -118,13 +130,13 @@ writeDocx opts doc = do
   utctime <- P.getTimestamp
   oldUserDataDir <- P.getUserDataDir
   P.setUserDataDir Nothing
-  res <- P.readDefaultDataFile "reference.docx"
+  res <- readDefaultDataFile "reference.docx"
   P.setUserDataDir oldUserDataDir
   let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
                      Just f  -> toArchive <$> P.readFileLazy f
                      Nothing -> toArchive . BL.fromStrict <$>
-                        P.readDataFile "reference.docx"
+                          readDataFile "reference.docx"
 
   parsedDoc <- parseXml refArchive distArchive "word/document.xml"
   let wname f qn = qPrefix qn == Just "w" && f (qName qn)
@@ -153,16 +165,33 @@ writeDocx opts doc = do
   let addLang :: Element -> Element
       addLang = case mblang of
                   Nothing -> id
-                  Just l  -> everywhere (mkT (go (renderLang l)))
+                  Just l  -> everywhere (mkT (go l))
         where
-          go :: Text -> Element -> Element
-          go l e'
-            | qName (elName e') == "lang"
-                = e'{ elAttribs = map (setvalattr l) $ elAttribs e' }
-            | otherwise = e'
+          go :: Lang -> Element -> Element
+          go lang e'
+           | qName (elName e') == "lang"
+             = if isEastAsianLang lang
+                  then e'{ elAttribs =
+                             map (setattr "eastAsia" (renderLang lang)) $
+                             elAttribs e' }
+                  else
+                    if isBidiLang lang
+                       then e'{ elAttribs =
+                                 map (setattr "bidi" (renderLang lang)) $
+                                 elAttribs e' }
+                       else e'{ elAttribs =
+                                 map (setattr "val" (renderLang lang)) $
+                                 elAttribs e' }
+           | otherwise = e'
 
-          setvalattr l (XML.Attr qn@(QName "val" _ _) _) = XML.Attr qn l
-          setvalattr _ x                                 = x
+          setattr attrname l (XML.Attr qn@(QName s _ _) _)
+            | s == attrname  = XML.Attr qn l
+          setattr _ _ x      = x
+
+          isEastAsianLang Lang{ langLanguage = lang } =
+             lang == "zh" || lang == "jp" || lang == "ko"
+          isBidiLang Lang{ langLanguage = lang } =
+             lang == "he" || lang == "ar"
 
   let stylepath = "word/styles.xml"
   styledoc <- addLang <$> parseXml refArchive distArchive stylepath
@@ -615,7 +644,7 @@ baseListId = 1000
 mkNumbering :: [ListMarker] -> [Element]
 mkNumbering lists =
   elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
-    where elts = map mkAbstractNum (ordNub lists)
+    where elts = map mkAbstractNum (nubOrd lists)
 
 maxListLevel :: Int
 maxListLevel = 8
@@ -934,8 +963,11 @@ blockToOpenXML' _ HorizontalRule = do
                        ("o:hralign","center"),
                        ("o:hrstd","t"),("o:hr","t")] () ]
 blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) = do
+  -- Remove extra paragraph indentation due to list items (#5947).
+  -- This means that tables in lists will not be indented, but it
+  -- avoids unwanted indentation in each cell.
   content <- tableToOpenXML opts
-                 (blocksToOpenXML opts)
+              (local (\env -> env{ envListLevel = -1 }) . blocksToOpenXML opts)
                  (Grid.toTable attr caption colspecs thead tbodies tfoot)
   let (tableId, _, _) = attr
   wrapBookmark tableId content

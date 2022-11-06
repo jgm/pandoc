@@ -14,4 +14,3 @@ CommonMark:  <http://commonmark.org>
 module Text.Pandoc.Writers.CommonMark (writeCommonMark) where
 
 import Text.Pandoc.Writers.Markdown (writeCommonMark)
-

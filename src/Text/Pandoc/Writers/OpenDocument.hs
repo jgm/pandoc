@@ -15,7 +15,8 @@ Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Arrow ((***), (>>>))
-import Control.Monad.State.Strict hiding (when)
+import Control.Monad (unless, liftM)
+import Control.Monad.State.Strict ( StateT(..), modify, gets, lift )
 import Data.Char (chr)
 import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
@@ -26,8 +27,8 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Collate.Lang (Lang (..), parseLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, translateTerm,
-                                      setTranslations, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import Text.Pandoc.Translations (translateTerm, setTranslations)
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging

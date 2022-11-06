@@ -1,0 +1,31 @@
+cradle:
+  cabal:
+    - path: "./xml-light"
+      component: "pandoc:lib:xml-light"
+
+    - path: "./src"
+      component: "lib:pandoc"
+
+    - path: "./test"
+      component: "pandoc:test:test-pandoc"
+
+    - path: "./benchmark/benchmark-pandoc.hs"
+      component: "pandoc:bench:benchmark-pandoc"
+
+    - path: "pandoc-cli/no-lua/pandoc.hs"
+      component: "pandoc-cli:exe:pandoc"
+
+    - path: "pandoc-cli/no-lua/PandocCLI/Lua.hs"
+      component: "pandoc-cli:exe:pandoc"
+
+    - path: "pandoc-cli/no-lua/PandocCLI/Server.hs"
+      component: "pandoc-cli:exe:pandoc"
+
+    - path: "pandoc-lua-engine/src"
+      component: "lib:pandoc-lua-engine"
+
+    - path: "pandoc-lua-engine/test"
+      component: "pandoc-lua-engine:test:test-pandoc-lua-engine"
+
+    - path: "pandoc-server/src"
+      component: "lib:pandoc-server"

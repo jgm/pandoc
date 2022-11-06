@@ -104,8 +104,10 @@ tests =
       "[fn::Schreib mir eine E-Mail]" =?>
       para (note $ para "Schreib mir eine E-Mail")
 
-  , "Markup-chars not occurring on word break are symbols" =:
-      T.unlines [ "this+that+ +so+on"
+  , "By default, markup-chars not occurring on word break are symbols" =:
+      T.unlines [ "#+pandoc-emphasis-pre:"
+                , "#+pandoc-emphasis-post:"
+                , "this+that+ +so+on"
                 , "seven*eight* nine*"
                 , "+not+funny+"
                 ] =?>

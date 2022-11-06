@@ -1,6 +1,4 @@
 {-# LANGUAGE CPP                        #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Translations
@@ -11,88 +9,88 @@
    Stability   : alpha
    Portability : portable
 
-Data types for localization.
-
-Translations are stored in @data/translations/langname.trans@,
-where langname can be the full BCP47 language specifier, or
-just the language part.  File format is:
-
-> # A comment, ignored
-> Figure: Figura
-> Index: Indeksi
-
+Functions for getting localized translations of terms.
 -}
 module Text.Pandoc.Translations (
-                           Term(..)
-                         , Translations
-                         , lookupTerm
+                           module Text.Pandoc.Translations.Types
                          , readTranslations
+                         , getTranslations
+                         , setTranslations
+                         , translateTerm
                          )
 where
-import Data.Aeson.Types (Value(..), FromJSON(..))
-import qualified Data.Aeson.Types as Aeson
-import qualified Data.Map as M
+import Text.Pandoc.Translations.Types
+import Text.Pandoc.Class (PandocMonad(..), CommonState(..), report)
+import Text.Pandoc.Data (readDataFile)
+import Text.Pandoc.Error (PandocError(..))
+import Text.Pandoc.Logging (LogMessage(..))
+import Control.Monad.Except (catchError)
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
-import GHC.Generics (Generic)
-import Text.Pandoc.Shared (safeRead)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Yaml (prettyPrintParseException)
+import Text.Collate.Lang (Lang(..), renderLang)
 
-data Term =
-    Abstract
-  | Appendix
-  | Bibliography
-  | Cc
-  | Chapter
-  | Contents
-  | Encl
-  | Figure
-  | Glossary
-  | Index
-  | Listing
-  | ListOfFigures
-  | ListOfTables
-  | Page
-  | Part
-  | Preface
-  | Proof
-  | References
-  | See
-  | SeeAlso
-  | Table
-  | To
-  deriving (Show, Eq, Ord, Generic, Enum, Read)
-
-newtype Translations = Translations (M.Map Term T.Text)
-        deriving (Show, Generic, Semigroup, Monoid)
-
-instance FromJSON Term where
-  parseJSON (String t) = case safeRead t of
-                               Just t' -> pure t'
-                               Nothing -> Prelude.fail $ "Invalid Term name " ++
-                                                 show t
-  parseJSON invalid = Aeson.typeMismatch "Term" invalid
-
-instance FromJSON Translations where
-  parseJSON o@(Object{}) = do
-    xs <- parseJSON o >>= mapM addItem . M.toList
-    return $ Translations (M.fromList xs)
-    where addItem (k,v) =
-            case safeRead k of
-                 Nothing -> Prelude.fail $ "Invalid Term name " ++ show k
-                 Just t  ->
-                   case v of
-                        (String s) -> return (t, T.strip s)
-                        inv        -> Aeson.typeMismatch "String" inv
-  parseJSON invalid = Aeson.typeMismatch "Translations" invalid
-
-lookupTerm :: Term -> Translations -> Maybe T.Text
-lookupTerm t (Translations tm) = M.lookup t tm
-
+-- | Parse YAML translations.
 readTranslations :: T.Text -> Either T.Text Translations
 readTranslations s =
   case Yaml.decodeAllEither' $ UTF8.fromText s of
        Left err' -> Left $ T.pack $ prettyPrintParseException err'
        Right (t:_)     -> Right t
        Right []        -> Left "empty YAML document"
+
+-- | Select the language to use with 'translateTerm'.
+-- Note that this does not read a translation file;
+-- that is only done the first time 'translateTerm' is
+-- used.
+setTranslations :: PandocMonad m => Lang -> m ()
+setTranslations lang =
+  modifyCommonState $ \st -> st{ stTranslations = Just (lang, Nothing) }
+
+-- | Load term map.
+getTranslations :: PandocMonad m => m Translations
+getTranslations = do
+  mbtrans <- getsCommonState stTranslations
+  case mbtrans of
+       Nothing -> return mempty  -- no language defined
+       Just (_, Just t) -> return t
+       Just (lang, Nothing) -> do  -- read from file
+         let translationFile = "translations/" <> renderLang lang <> ".yaml"
+         let fallbackFile = "translations/" <> langLanguage lang <> ".yaml"
+         let getTrans fp = do
+               bs <- readDataFile fp
+               case readTranslations (UTF8.toText bs) of
+                    Left e   -> do
+                      report $ CouldNotLoadTranslations (renderLang lang)
+                        (T.pack fp <> ": " <> e)
+                      -- make sure we don't try again...
+                      modifyCommonState $ \st ->
+                        st{ stTranslations = Nothing }
+                      return mempty
+                    Right t -> do
+                      modifyCommonState $ \st ->
+                                  st{ stTranslations = Just (lang, Just t) }
+                      return t
+         catchError (getTrans $ T.unpack translationFile)
+           (\_ ->
+             catchError (getTrans $ T.unpack fallbackFile)
+               (\e -> do
+                 report $ CouldNotLoadTranslations (renderLang lang)
+                          $ case e of
+                               PandocCouldNotFindDataFileError _ ->
+                                 "data file " <> fallbackFile <> " not found"
+                               _ -> ""
+                 -- make sure we don't try again...
+                 modifyCommonState $ \st -> st{ stTranslations = Nothing }
+                 return mempty))
+
+-- | Get a translation from the current term map.
+-- Issue a warning if the term is not defined.
+translateTerm :: PandocMonad m => Term -> m T.Text
+translateTerm term = do
+  translations <- getTranslations
+  case lookupTerm term translations of
+       Just s -> return s
+       Nothing -> do
+         report $ NoTranslation $ T.pack $ show term
+         return ""

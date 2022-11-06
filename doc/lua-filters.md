@@ -30,7 +30,7 @@ executable.
 
 Starting with version 2.0, pandoc makes it possible to write
 filters in Lua without any external dependencies at all. A Lua
-interpreter (version 5.3) and a Lua library for creating pandoc
+interpreter (version 5.4) and a Lua library for creating pandoc
 filters is built into the pandoc executable. Pandoc data types
 are marshaled to Lua directly, avoiding the overhead of writing
 JSON to stdout and reading it from stdin.
@@ -269,7 +269,12 @@ variables.
     be picked up by pandoc.
     ([WriterOptions](#type-writeroptions))
 
-    This variable is also set in custom writers.
+    Accessing this variable in **custom writers** is
+    **deprecated**. Starting with pandoc 3.0, it is set to a
+    placeholder value (the default options) in custom writers.
+    Access to the actual writer options is provided via the
+    `Writer` or `ByteStringWriter` function, to which the options
+    are passed as the second function argument.
 
     *Since: pandoc 2.17*
 
@@ -406,21 +411,24 @@ step through a Lua filter line by line as it is run inside Pandoc.
 This is accomplished using the remote-debugging interface of the
 package [`mobdebug`](https://github.com/pkulchenko/MobDebug).
 Although mobdebug can be run from the terminal, it is more useful
-run within the donation-ware Lua editor and IDE,
-[ZeroBrane](https://studio.zerobrane.com/). ZeroBrane offers a
-REPL console and UI to step-through and view all variables and
-state.
+run within the donation-ware Lua editor and IDE, [ZeroBrane
+Studio](https://studio.zerobrane.com/). ZeroBrane offers a REPL
+console and UI to step-through and view all variables and state.
 
-If you already have Lua 5.3 installed, you can add
-[`mobdebug`](https://luarocks.org/modules/paulclinger/mobdebug)
-and its dependency
-[`luasocket`](https://luarocks.org/modules/luasocket/luasocket)
-using [`luarocks`](https://luarocks.org), which should then be
-available on the path. ZeroBrane also includes both of these in
-its package, so if you don't want to install Lua separately, you
-should add/modify your `LUA_PATH` and `LUA_CPATH` to include the
-correct locations; [see detailed instructions
-here](https://studio.zerobrane.com/doc-remote-debugging).
+ZeroBrane doesn't come with Lua 5.4 bundled, but it can debug it, so
+you should install Lua 5.4, and then add
+[`mobdebug`](https://luarocks.org/modules/paulclinger/mobdebug) and
+its dependency
+[`luasocket`](https://luarocks.org/modules/luasocket/luasocket) using
+[`luarocks`](https://luarocks.org). ZeroBrane can use your Lua 5.4
+install by adding `path.lua = "/path/to/your/lua"` in your ZeroBrane
+settings file. Next, open your Lua filter in ZeroBrane, and add
+`require('mobdebug').start()` at the line where you want your
+breakpoint. Then make sure the Project > Lua Intepreter is set to the
+"Lua" you added in settings and enable "Start Debugger Server" [see
+detailed instructions
+here](https://studio.zerobrane.com/doc-remote-debugging). Run Pandoc
+as you normally would, and ZeroBrane should break at the correct line.
 
 ## Common pitfalls
 
@@ -3543,6 +3551,36 @@ Usage:
     local html = pandoc.write(doc, 'html')
     assert(html == "<p><strong>Tea</strong></p>")
 
+### `write_classic (doc[, writer_options])` {#pandoc.write_custom}
+
+Runs a classic custom Lua writer, using the functions defined
+in the current environment.
+
+Parameters:
+
+`doc`
+:   document to convert ([Pandoc](#type-pandoc))
+
+`writer_options`
+:   options passed to the writer; may be a [WriterOptions] object
+    or a table with a subset of the keys and values of a
+    WriterOptions object; defaults to the default values
+    documented in the manual. ([WriterOptions]|table)
+
+Returns:
+-   converted document (string)
+
+Usage:
+
+    -- Adding this function converts a classic writer into a
+    -- new-style custom writer.
+    function Writer (doc, opts)
+      PANDOC_DOCUMENT = doc
+      PANDOC_WRITER_OPTIONS = opts
+      loadfile(PANDOC_SCRIPT_FILE)()
+      return pandoc.write_classic(doc, opts)
+    end
+
 [WriterOptions]: #type-writeroptions
 
 # Module pandoc.utils
@@ -4157,7 +4195,7 @@ Inserts element `value` at position `pos` in list, shifting
 elements to the next-greater index if necessary.
 
 This function is identical to
-[`table.insert`](https://www.lua.org/manual/5.3/manual.html#6.6).
+[`table.insert`](https://www.lua.org/manual/5.4/manual.html#6.6).
 
 Parameters:
 
@@ -4196,7 +4234,7 @@ Removes the element at position `pos`, returning the value
 of the removed element.
 
 This function is identical to
-[`table.remove`](https://www.lua.org/manual/5.3/manual.html#6.6).
+[`table.remove`](https://www.lua.org/manual/5.4/manual.html#6.6).
 
 Parameters:
 
@@ -4226,7 +4264,7 @@ by the given order may have their relative positions changed
 by the sort.
 
 This function is identical to
-[`table.sort`](https://www.lua.org/manual/5.3/manual.html#6.6).
+[`table.sort`](https://www.lua.org/manual/5.4/manual.html#6.6).
 
 Parameters:
 
@@ -5129,9 +5167,44 @@ Returns
 
 [Doc]: #type-doc
 
+# Module pandoc.scaffolding
+
+Scaffolding for custom writers.
+
+## Writer {#pandoc.scaffolding.writer}
+
+A structure to be used as a `Writer` function; the construct
+handles most of the boilerplate, expecting only render functions
+for all AST elements. See the documentation for custom writers for
+details.
+
+
+
 # Module pandoc.template
 
 Handle pandoc templates.
+
+### apply {#pandoc.template.apply}
+
+`apply (template, context)`
+
+Applies a context with variable assignments to a template,
+returning the rendered template. The `context` parameter must be a
+table with variable names as keys and [Doc], string, boolean, or
+table as values, where the table can be either be a list of the
+aforementioned types, or a nested context.
+
+Parameters:
+
+`template`
+:   template to apply ([Template]{#type-template})
+
+`context`
+:   variable values (table)
+
+Returns:
+
+-   rendered template ([Doc])
 
 ### compile {#pandoc.template.compile}
 
@@ -5178,6 +5251,29 @@ Returns:
 
 -   raw template (string)
 
+### meta_to_context {#pandoc.template.meta_to_context}
+
+`meta_to_context (meta, blocks_writer, inlines_writer)`
+
+Creates template context from the document's [Meta]{#type-meta}
+data, using the given functions to convert [Blocks] and [Inlines]
+to [Doc] values.
+
+Parameters:
+
+`meta`
+:   document metadata ([Meta])
+
+`blocks_writer`
+:   converter from [Blocks] to [Doc] values (function)
+
+`inlines_writer`
+:   converter from [Inlines] to [Doc] values (function)
+
+Returns:
+
+-   template context (table)
+
 # Module pandoc.types
 
 Constructors for types which are not part of the pandoc AST.
@@ -5198,3 +5294,148 @@ Parameters:
 Returns:
 
 -   A new [Version] object.
+
+# Module pandoc.zip
+
+Functions to create, modify, and extract files from zip archives.
+
+The module can be called as a function, in which case it behaves
+like the `zip` function described below.
+
+Zip options are optional; when defined, they must be a table with
+any of the following keys:
+
+  - `recursive`: recurse directories when set to `true`;
+  - `verbose`: print info messages to stdout;
+  - `destination`: the value specifies the directory in which to
+    extract;
+  - `location`: value is used as path name, defining where files
+    are placed.
+  - `preserve_symlinks`: Boolean value, controlling whether
+    symbolic links are preserved as such. This option is ignored
+    on Windows.
+
+## Functions
+
+### Archive {#pandoc.zip.Archive}
+
+`Archive (bytestring_or_entries)`
+
+Reads an *Archive* structure from a raw zip archive or a list of
+Entry items; throws an error if the given string cannot be decoded
+into an archive.
+
+*Since: 1.0.0*
+
+Parameters:
+
+bytestring_or_entries
+:    (string|{ZipEntry,...})
+
+Returns:
+
+ -   (ZipArchive)
+
+### Entry {#pandoc.zip.Entry}
+
+`Entry (path, contents[, modtime])`
+
+Generates a zip Entry from a filepath, the file's uncompressed
+content, and the file's modification time.
+
+*Since: 1.0.0*
+
+Parameters:
+
+path
+:   file path in archive (string)
+
+contents
+:   uncompressed contents (string)
+
+modtime
+:   modification time (integer)
+
+### read_entry {#pandoc.zip.read_entry}
+
+`read_entry (filepath, opts)`
+
+Generates a ZipEntry from a file or directory.
+
+*Since: 1.0.0*
+
+Parameters:
+
+filepath
+:    (string)
+
+opts
+:   zip options (table)
+
+Returns:
+
+ -  a new zip archive entry (ZipEntry)
+
+### zip {#pandoc.zip.zip}
+
+`zip (filepaths[, options])`
+
+Package and compress the given files into a new Archive.
+
+*Since: 1.0.0*
+
+Parameters:
+
+filepaths
+:    list of files from which the archive is created. ({string,...})
+
+options
+:   zip options (table)
+
+Returns:
+
+ -  a new archive (ZipArchive)
+
+## Types
+
+### Archive {#type-pandoc.zip.Archive}
+
+A zip archive with file entries.
+
+#### Fields
+
+`entries`
+:   files in this zip archive ({Entry,...})
+
+#### Methods
+
+`extract([opts])`
+:   Extract all files from this archive, creating directories as
+    needed. Note that the last-modified time is set correctly only
+    in POSIX, not in Windows. This function fails if encrypted
+    entries are present.
+
+    Use `archive:extract{destination = 'dir'}` to extract to
+    subdirectory `dir`.
+
+`bytestring()`
+:   Returns the raw binary string representation of the archive.
+
+### Entry {#type-pandoc.zip.Entry}
+
+File or directory entry in a zip archive.
+
+#### Fields
+
+`path`
+:   relative path, using `/` as separator
+
+`modtime`
+:   modification time (seconds since unix epoch)
+
+#### Methods
+
+`contents([password])`
+:   Get the uncompressed contents of a zip entry. If `password` is
+    given, then that password is used to decrypt the contents. An
+    error is throws if decrypting fails.

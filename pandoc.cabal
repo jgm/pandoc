@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc
-version:         2.19.2
+version:         3.0
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -15,8 +15,7 @@ tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
                  GHC == 9.2.3
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
-                 format to another, and a command-line tool that uses
-                 this library. The formats it can handle include
+                 format to another.  The formats it can handle include
                  .
                  - light markup formats (many variants of Markdown,
                    reStructuredText, AsciiDoc, Org-mode, Muse, Textile,
@@ -49,6 +48,7 @@ description:     Pandoc is a Haskell library for converting from one markup
 data-files:
                  -- templates
                  data/templates/styles.html
+                 data/templates/styles.citations.html
                  data/templates/default.html4
                  data/templates/default.html5
                  data/templates/default.docbook4
@@ -180,8 +180,6 @@ data-files:
                  data/dzslides/template.html
                  -- default abbreviations file
                  data/abbreviations
-                 -- sample lua custom writer
-                 data/sample.lua
                  -- sample lua custom reader
                  data/creole.lua
                  -- lua init script
@@ -205,10 +203,6 @@ extra-source-files:
                  man/manfilter.lua
                  man/pandoc.1.before
                  man/pandoc.1.after
-                 -- trypandoc
-                 trypandoc/Makefile
-                 trypandoc/index.html
-                 trypandoc/trypandoc.js
                  -- tests
                  test/bodybg.gif
                  test/*.native
@@ -220,6 +214,8 @@ extra-source-files:
                  test/command/B.txt
                  test/command/C.txt
                  test/command/D.txt
+                 test/command/file1.txt
+                 test/command/file2.txt
                  test/command/three.txt
                  test/command/01.csv
                  test/command/chap1/spider.png
@@ -245,7 +241,6 @@ extra-source-files:
                  test/command/SVG_logo.svg
                  test/command/corrupt.svg
                  test/command/inkscape-cube.svg
-                 test/command/lua-pandoc-state.lua
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
                  test/command/bar.tex
@@ -327,7 +322,6 @@ extra-source-files:
                  test/tables.txt
                  test/tables.fb2
                  test/tables.muse
-                 test/tables.custom
                  test/tables.xwiki
                  test/tables/*.html4
                  test/tables/*.html5
@@ -368,7 +362,6 @@ extra-source-files:
                  test/writer.zimwiki
                  test/writer.xwiki
                  test/writer.muse
-                 test/writer.custom
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
                  test/dokuwiki_inline_formatting.dokuwiki
@@ -414,24 +407,12 @@ extra-source-files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
-                 test/lua/*.lua
-                 test/lua/module/*.lua
-                 test/lua/module/partial.test
-                 test/lua/module/tiny.epub
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
 
 flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
-  Default:       False
-
-flag lua53
-  Description:   Embed Lua 5.3 instead of 5.4.
-  Default:       False
-
-flag nightly
-  Description:   Add '-nightly-COMPILEDATE' to the output of '--version'.
   Default:       False
 
 common common-options
@@ -462,13 +443,27 @@ common common-executable
   build-depends:    pandoc
   ghc-options:      -rtsopts -with-rtsopts=-A8m -threaded
 
+library xml-light
+  import:        common-options
+  build-depends: xml                   >= 1.3.12   && < 1.4,
+                 xml-conduit           >= 1.9.1.1  && < 1.10,
+                 xml-types             >= 0.3      && < 0.4,
+                 containers            >= 0.6.0.1  && < 0.7,
+                 text                  >= 1.1.1.0  && < 2.1
+
+  hs-source-dirs:  xml-light
+  exposed-modules: Text.Pandoc.XML.Light,
+                   Text.Pandoc.XML.Light.Types,
+                   Text.Pandoc.XML.Light.Proc,
+                   Text.Pandoc.XML.Light.Output
 
 library
   import:        common-options
-  build-depends: Glob                  >= 0.7      && < 0.11,
+  build-depends: xml-light,
+                 Glob                  >= 0.7      && < 0.11,
                  JuicyPixels           >= 3.1.6.1  && < 3.4,
                  SHA                   >= 1.6      && < 1.7,
-                 aeson                 >= 0.7      && < 2.2,
+                 aeson                 >= 2.0.1.0  && < 2.2,
                  aeson-pretty          >= 0.8.9    && < 0.9,
                  array                 >= 0.5      && < 0.6,
                  attoparsec            >= 0.12     && < 0.15,
@@ -477,9 +472,9 @@ library
                  blaze-markup          >= 0.8      && < 0.9,
                  bytestring            >= 0.9      && < 0.12,
                  case-insensitive      >= 1.2      && < 1.3,
-                 citeproc              >= 0.8.0.1  && < 0.9,
+                 citeproc              >= 0.8.0.2  && < 0.9,
                  commonmark            >= 0.2.2    && < 0.3,
-                 commonmark-extensions >= 0.2.3.1  && < 0.3,
+                 commonmark-extensions >= 0.2.3.3  && < 0.3,
                  commonmark-pandoc     >= 0.2.1.2  && < 0.3,
                  connection            >= 0.3.1,
                  containers            >= 0.6.0.1  && < 0.7,
@@ -493,23 +488,17 @@ library
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.5,
-                 gridtables            >= 0.0.3    && < 0.1,
+                 gridtables            >= 0.1      && < 0.2,
                  haddock-library       >= 1.10     && < 1.12,
-                 hslua-module-doclayout>= 1.0.4    && < 1.1,
-                 hslua-module-path     >= 1.0.3    && < 1.1,
-                 hslua-module-system   >= 1.0      && < 1.1,
-                 hslua-module-text     >= 1.0      && < 1.1,
-                 hslua-module-version  >= 1.0      && < 1.1,
                  http-client           >= 0.4.30   && < 0.8,
                  http-client-tls       >= 0.2.4    && < 0.4,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,
                  jira-wiki-markup      >= 1.4      && < 1.5,
-                 lpeg                  >= 1.0.1    && < 1.1,
-                 mtl                   >= 2.2      && < 2.3,
+                 mime-types            >= 0.1.1    && < 0.2,
+                 mtl                   >= 2.2      && < 2.4,
                  network               >= 2.6,
                  network-uri           >= 2.6      && < 2.8,
-                 pandoc-lua-marshal    >= 0.1.7    && < 0.2,
                  pandoc-types          >= 1.22.2   && < 1.23,
                  parsec                >= 3.1      && < 3.2,
                  pretty                >= 1.1      && < 1.2,
@@ -518,53 +507,43 @@ library
                  random                >= 1        && < 1.3,
                  safe                  >= 0.3.18   && < 0.4,
                  scientific            >= 0.3      && < 0.4,
-                 skylighting           >= 0.13     && < 0.14,
-                 skylighting-core      >= 0.13     && < 0.14,
+                 skylighting           >= 0.13.1.1 && < 0.14,
+                 skylighting-core      >= 0.13.1.1 && < 0.14,
                  split                 >= 0.2      && < 0.3,
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.12.5.1 && < 0.12.6,
+                 texmath               >= 0.12.5.4 && < 0.12.6,
                  text                  >= 1.1.1.0  && < 2.1,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.14,
                  unicode-collation     >= 0.1.1    && < 0.2,
                  unicode-transforms    >= 0.3      && < 0.5,
-                 xml                   >= 1.3.12   && < 1.4,
-                 xml-conduit           >= 1.9.1.1  && < 1.10,
-                 xml-types             >= 0.3      && < 0.4,
                  yaml                  >= 0.11     && < 0.12,
                  zip-archive           >= 0.2.3.4  && < 0.5,
                  zlib                  >= 0.5      && < 0.7,
-                 servant-server,
-                 wai                   >= 0.3
+                 xml                   >= 1.3.12   && < 1.4
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
-  if flag(nightly)
-    cpp-options:    -DNIGHTLY
-    build-depends:  template-haskell
-  if flag(lua53)
-    build-depends:  hslua >= 2.1 && < 2.2,
-                    hslua-aeson >= 2.2.1 && < 2.3
-  else
-    build-depends:  hslua >= 2.2.1 && < 2.3
-                  , hslua-aeson >= 2.2.1 && < 2.3
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
-     other-modules: Text.Pandoc.Data
+     other-modules: Text.Pandoc.Data.BakedIn
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
+                   Text.Pandoc.Data,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
+                   Text.Pandoc.Format,
                    Text.Pandoc.Shared,
                    Text.Pandoc.Sources,
                    Text.Pandoc.MediaBag,
                    Text.Pandoc.Error,
                    Text.Pandoc.Filter,
-                   Text.Pandoc.Server,
+                   Text.Pandoc.Translations,
+                   Text.Pandoc.Translations.Types,
                    Text.Pandoc.Readers,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
@@ -590,7 +569,7 @@ library
                    Text.Pandoc.Readers.TikiWiki,
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
-                   Text.Pandoc.Readers.Odt,
+                   Text.Pandoc.Readers.ODT,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Readers.Man,
@@ -599,10 +578,9 @@ library
                    Text.Pandoc.Readers.Ipynb,
                    Text.Pandoc.Readers.CSV,
                    Text.Pandoc.Readers.RTF,
-                   Text.Pandoc.Readers.Custom,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
-                   Text.Pandoc.Writers.Docbook,
+                   Text.Pandoc.Writers.DocBook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
@@ -621,7 +599,6 @@ library
                    Text.Pandoc.Writers.RST,
                    Text.Pandoc.Writers.Org,
                    Text.Pandoc.Writers.AsciiDoc,
-                   Text.Pandoc.Writers.Custom,
                    Text.Pandoc.Writers.Textile,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.DokuWiki,
@@ -641,9 +618,9 @@ library
                    Text.Pandoc.Writers.OOXML,
                    Text.Pandoc.Writers.AnnotatedTable,
                    Text.Pandoc.Writers.BibTeX,
-                   Text.Pandoc.Lua,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
+                   Text.Pandoc.Scripting,
                    Text.Pandoc.Templates,
                    Text.Pandoc.XML,
                    Text.Pandoc.SelfContained,
@@ -656,20 +633,21 @@ library
                    Text.Pandoc.Emoji,
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Class,
-                   Text.Pandoc.Citeproc
+                   Text.Pandoc.Class.IO,
+                   Text.Pandoc.Citeproc,
+                   Text.Pandoc.Version
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
+                   Text.Pandoc.App.Input,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
                    Text.Pandoc.Class.CommonState,
-                   Text.Pandoc.Class.IO,
                    Text.Pandoc.Class.PandocMonad,
                    Text.Pandoc.Class.PandocIO,
                    Text.Pandoc.Class.PandocPure,
                    Text.Pandoc.Class.Sandbox,
                    Text.Pandoc.Filter.Environment,
                    Text.Pandoc.Filter.JSON,
-                   Text.Pandoc.Filter.Lua,
                    Text.Pandoc.Parsing.Capabilities,
                    Text.Pandoc.Parsing.Citations,
                    Text.Pandoc.Parsing.General,
@@ -678,7 +656,7 @@ library
                    Text.Pandoc.Parsing.Math,
                    Text.Pandoc.Parsing.Smart,
                    Text.Pandoc.Parsing.State,
-                   Text.Pandoc.Parsing.Types,
+                   Text.Pandoc.Parsing.Future,
                    Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
                    Text.Pandoc.Readers.Docx.Parse,
@@ -697,18 +675,17 @@ library
                    Text.Pandoc.Readers.LaTeX.Parsing,
                    Text.Pandoc.Readers.LaTeX.SIunitx,
                    Text.Pandoc.Readers.LaTeX.Table,
-                   Text.Pandoc.Readers.LaTeX.Types,
-                   Text.Pandoc.Readers.Odt.Base,
-                   Text.Pandoc.Readers.Odt.Namespaces,
-                   Text.Pandoc.Readers.Odt.StyleReader,
-                   Text.Pandoc.Readers.Odt.ContentReader,
-                   Text.Pandoc.Readers.Odt.Generic.Fallible,
-                   Text.Pandoc.Readers.Odt.Generic.SetMap,
-                   Text.Pandoc.Readers.Odt.Generic.Utils,
-                   Text.Pandoc.Readers.Odt.Generic.Namespaces,
-                   Text.Pandoc.Readers.Odt.Generic.XMLConverter,
-                   Text.Pandoc.Readers.Odt.Arrows.State,
-                   Text.Pandoc.Readers.Odt.Arrows.Utils,
+                   Text.Pandoc.Readers.ODT.Base,
+                   Text.Pandoc.Readers.ODT.Namespaces,
+                   Text.Pandoc.Readers.ODT.StyleReader,
+                   Text.Pandoc.Readers.ODT.ContentReader,
+                   Text.Pandoc.Readers.ODT.Generic.Fallible,
+                   Text.Pandoc.Readers.ODT.Generic.SetMap,
+                   Text.Pandoc.Readers.ODT.Generic.Utils,
+                   Text.Pandoc.Readers.ODT.Generic.Namespaces,
+                   Text.Pandoc.Readers.ODT.Generic.XMLConverter,
+                   Text.Pandoc.Readers.ODT.Arrows.State,
+                   Text.Pandoc.Readers.ODT.Arrows.Utils,
                    Text.Pandoc.Readers.Org.BlockStarts,
                    Text.Pandoc.Readers.Org.Blocks,
                    Text.Pandoc.Readers.Org.DocumentTree,
@@ -741,40 +718,16 @@ library
                    Text.Pandoc.Writers.Blaze,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
-                   Text.Pandoc.Lua.ErrorConversion,
-                   Text.Pandoc.Lua.Filter,
-                   Text.Pandoc.Lua.Global,
-                   Text.Pandoc.Lua.Init,
-                   Text.Pandoc.Lua.Marshal.CommonState,
-                   Text.Pandoc.Lua.Marshal.Context,
-                   Text.Pandoc.Lua.Marshal.PandocError,
-                   Text.Pandoc.Lua.Marshal.ReaderOptions,
-                   Text.Pandoc.Lua.Marshal.Reference,
-                   Text.Pandoc.Lua.Marshal.Sources,
-                   Text.Pandoc.Lua.Marshal.Template,
-                   Text.Pandoc.Lua.Marshal.WriterOptions,
-                   Text.Pandoc.Lua.Module.MediaBag,
-                   Text.Pandoc.Lua.Module.Pandoc,
-                   Text.Pandoc.Lua.Module.System,
-                   Text.Pandoc.Lua.Module.Template,
-                   Text.Pandoc.Lua.Module.Types,
-                   Text.Pandoc.Lua.Module.Utils,
-                   Text.Pandoc.Lua.Orphans,
-                   Text.Pandoc.Lua.PandocLua,
-                   Text.Pandoc.Lua.Writer.Classic,
-                   Text.Pandoc.XML.Light,
-                   Text.Pandoc.XML.Light.Types,
-                   Text.Pandoc.XML.Light.Proc,
-                   Text.Pandoc.XML.Light.Output,
-                   Text.Pandoc.Network.HTTP,
+                   Text.Pandoc.TeX,
+                   Text.Pandoc.URI,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
                    Text.Pandoc.UUID,
-                   Text.Pandoc.Translations,
                    Text.Pandoc.Slides,
                    Text.Pandoc.Image,
                    Text.Pandoc.Citeproc.BibTeX,
+                   Text.Pandoc.Citeproc.Name,
                    Text.Pandoc.Citeproc.CslJson,
                    Text.Pandoc.Citeproc.Data,
                    Text.Pandoc.Citeproc.Locator,
@@ -783,16 +736,6 @@ library
                    Paths_pandoc
   autogen-modules: Paths_pandoc
   buildable:       True
-
-executable pandoc
-  import:          common-executable
-  hs-source-dirs:  app
-  main-is:         pandoc.hs
-  buildable:       True
-  other-modules:   Paths_pandoc
-  build-depends:   wai-extra             >= 3.0.24,
-                   warp,
-                   safe
 
 test-suite test-pandoc
   import:         common-executable
@@ -806,16 +749,13 @@ test-suite test-pandoc
                   containers        >= 0.4.2.1 && < 0.7,
                   directory         >= 1.2.3   && < 1.4,
                   doctemplates      >= 0.10    && < 0.11,
-                  exceptions        >= 0.8     && < 0.11,
                   filepath          >= 1.1     && < 1.5,
-                  hslua             >= 2.1     && < 2.3,
-                  mtl               >= 2.2     && < 2.3,
+                  mtl               >= 2.2     && < 2.4,
                   pandoc-types      >= 1.22.2  && < 1.23,
                   process           >= 1.2.3   && < 1.7,
                   tasty             >= 0.11    && < 1.5,
                   tasty-golden      >= 2.3     && < 2.4,
                   tasty-hunit       >= 0.9     && < 0.11,
-                  tasty-lua         >= 1.0     && < 1.1,
                   tasty-quickcheck  >= 0.8     && < 0.11,
                   text              >= 1.1.1.0 && < 2.1,
                   time              >= 1.5     && < 1.14,
@@ -824,8 +764,6 @@ test-suite test-pandoc
   other-modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
-                  Tests.Lua
-                  Tests.Lua.Module
                   Tests.Shared
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
@@ -849,7 +787,7 @@ test-suite test-pandoc
                   Tests.Readers.RST
                   Tests.Readers.RTF
                   Tests.Readers.Docx
-                  Tests.Readers.Odt
+                  Tests.Readers.ODT
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
                   Tests.Readers.Muse
@@ -859,7 +797,7 @@ test-suite test-pandoc
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
-                  Tests.Writers.Docbook
+                  Tests.Writers.DocBook
                   Tests.Writers.HTML
                   Tests.Writers.JATS
                   Tests.Writers.Jira
@@ -886,7 +824,7 @@ benchmark benchmark-pandoc
   hs-source-dirs:  benchmark
   build-depends:   bytestring,
                    tasty-bench >= 0.2     && <= 0.4,
-                   mtl         >= 2.2     && < 2.3,
+                   mtl         >= 2.2     && < 2.4,
                    text        >= 1.1.1.0 && < 2.1,
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:

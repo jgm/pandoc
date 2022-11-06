@@ -6,18 +6,12 @@ let
   haskellDeps = ps: with ps; [
     Diff
     Glob
-    HTTP
-    HTTP
-    HsYAML
-    JuicyPixels
-    QuickCheck
-    SHA
     aeson
     aeson-pretty
+    array
     attoparsec
     base
-    base-compat
-    base64-bytestring
+    base64
     binary
     blaze-html
     blaze-markup
@@ -27,8 +21,6 @@ let
     commonmark
     commonmark-extensions
     commonmark-pandoc
-    conduit-extra
-    connection
     connection
     containers
     data-default
@@ -40,38 +32,44 @@ let
     exceptions
     file-embed
     filepath
+    Glob
+    gridtables
     haddock-library
-    haskell-language-server
-    hsc2hs
     hslua
+    hslua-aeson
+    hslua-module-doclayout
+    hslua-module-path
     hslua-module-system
     hslua-module-text
+    hslua-module-version
     http-client
-    http-client
-    http-client-tls
     http-client-tls
     http-types
     ipynb
     jira-wiki-markup
+    JuicyPixels
+    lpeg
     mtl
-    network
     network
     network-uri
     pandoc-lua-marshal
     pandoc-types
     parsec
+    pretty
+    pretty-show
     process
     random
     safe
     scientific
+    servant-server
+    SHA
     skylighting
     skylighting-core
-    socks
     split
-    streaming-commons
     syb
     tagsoup
     tasty
+    tasty-bench
     tasty-golden
     tasty-hunit
     tasty-lua
@@ -81,12 +79,16 @@ let
     text
     text-conversions
     time
-    tls
+    unicode-collation
     unicode-transforms
-    unordered-containers
-    weigh
+    unix
+    wai
+    wai-extra
+    warp
     xml
     xml-conduit
+    xml-types
+    yaml
     zip-archive
     zlib
   ];
@@ -98,8 +100,11 @@ let
     ghc
     pkgs.gdb
     haskellPackages.ghcid
+    haskellPackages.haskell-language-server
     haskellPackages.cabal2nix
     haskellPackages.cabal-install
+    haskellPackages.hlint
+    haskellPackages.stylish-haskell
   ];
 in
 pkgs.stdenv.mkDerivation {

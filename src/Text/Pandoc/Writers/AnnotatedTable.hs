@@ -42,7 +42,6 @@ module Text.Pandoc.Writers.AnnotatedTable
 where
 
 import           Control.Monad.RWS.Strict
-                                         hiding ( (<>) )
 import           Data.Generics                  ( Data
                                                 , Typeable
                                                 )

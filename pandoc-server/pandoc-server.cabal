@@ -1,0 +1,70 @@
+cabal-version:   2.4
+name:            pandoc-server
+version:         0.1
+build-type:      Simple
+license:         GPL-2.0-or-later
+license-file:    COPYING.md
+copyright:       (c) 2006-2022 John MacFarlane
+author:          John MacFarlane <jgm@berkeley.edu>
+maintainer:      John MacFarlane <jgm@berkeley.edu>
+bug-reports:     https://github.com/jgm/pandoc/issues
+stability:       alpha
+homepage:        https://pandoc.org
+category:        Text
+tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
+                 GHC == 9.2.3
+synopsis:        Pandoc document conversion as an HTTP servant-server
+description:     Pandoc-server provides pandoc's document conversion functions
+                 in an HTTP server.
+source-repository head
+  type:          git
+  location:      git://github.com/jgm/pandoc.git
+
+common common-options
+  default-language: Haskell2010
+  build-depends:    base         >= 4.12 && < 5
+  ghc-options:      -Wall -fno-warn-unused-do-bind
+                    -Wincomplete-record-updates
+                    -Wnoncanonical-monad-instances
+                    -Wcpp-undef
+                    -Wincomplete-uni-patterns
+                    -Widentities
+                    -Wpartial-fields
+                    -Wmissing-signatures
+                    -fhide-source-paths
+                    -- -Wmissing-export-lists
+
+  if impl(ghc >= 8.10)
+    ghc-options:    -Wunused-packages
+
+  if impl(ghc >= 9.0)
+    ghc-options:    -Winvalid-haddock
+
+  if os(windows)
+    cpp-options:      -D_WINDOWS
+
+common common-executable
+  import:           common-options
+  ghc-options:      -rtsopts -with-rtsopts=-A8m -threaded
+
+library
+  import:        common-options
+  build-depends: pandoc                >= 3.0,
+                 pandoc-types          >= 1.22.2   && < 1.23,
+                 containers            >= 0.6.0.1  && < 0.7,
+                 aeson                 >= 2.0      && < 2.2,
+                 bytestring            >= 0.9      && < 0.12,
+                 base64                >= 0.4      && < 0.5,
+                 doctemplates          >= 0.10     && < 0.11,
+                 data-default          >= 0.4      && < 0.8,
+                 text                  >= 1.1.1.0  && < 2.1,
+                 unicode-collation     >= 0.1.1    && < 0.2,
+                 servant-server        >= 0.19     && < 0.20,
+                 skylighting           >= 0.13     && < 0.14,
+                 wai                   >= 0.3
+
+  hs-source-dirs:  src
+
+  exposed-modules: Text.Pandoc.Server
+  buildable:       True
+

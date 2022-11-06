@@ -82,11 +82,6 @@ $if(beamerarticle)$
 \usepackage{beamerarticle} % needs to be loaded first
 $endif$
 \usepackage{amsmath,amssymb}
-$if(fontfamily)$
-\usepackage[$for(fontfamilyoptions)$$fontfamilyoptions$$sep$,$endfor$]{$fontfamily$}
-$else$
-\usepackage{lmodern}
-$endif$
 $if(linestretch)$
 \usepackage{setspace}
 $endif$
@@ -98,15 +93,48 @@ $endif$
 \else % if luatex or xetex
 $if(mathspec)$
   \ifXeTeX
-    \usepackage{mathspec}
+    \usepackage{mathspec} % this also loads fontspec
   \else
-    \usepackage{unicode-math}
+    \usepackage{unicode-math} % this also loads fontspec
   \fi
 $else$
-  \usepackage{unicode-math}
+  \usepackage{unicode-math} % this also loads fontspec
 $endif$
-  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures{Scale=MatchLowercase}$-- must come before Beamer theme
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+$if(fontfamily)$
+$else$
+$-- Set default font before Beamer theme so the theme can override it
+\usepackage{lmodern}
+$endif$
+$-- Set Beamer theme before user font settings so they can override theme
+$if(beamer)$
+$if(theme)$
+\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
+$endif$
+$if(colortheme)$
+\usecolortheme{$colortheme$}
+$endif$
+$if(fonttheme)$
+\usefonttheme{$fonttheme$}
+$endif$
+$if(mainfont)$
+\usefonttheme{serif} % use mainfont rather than sansfont for slide text
+$endif$
+$if(innertheme)$
+\useinnertheme{$innertheme$}
+$endif$
+$if(outertheme)$
+\useoutertheme{$outertheme$}
+$endif$
+$endif$
+$-- User font settings (must come after default font and Beamer theme)
+$if(fontfamily)$
+\usepackage[$for(fontfamilyoptions)$$fontfamilyoptions$$sep$,$endfor$]{$fontfamily$}
+$endif$
+\ifPDFTeX\else
+  % xetex/luatex font selection
 $if(mainfont)$
   \setmainfont[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$]{$mainfont$}
 $endif$
@@ -166,26 +194,6 @@ $if(zero-width-non-joiner)$
   \protected\def ^^^^200c{\zerowidthnonjoiner}
 \fi
 %% End of ZWNJ support
-$endif$
-$if(beamer)$
-$if(theme)$
-\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
-$endif$
-$if(colortheme)$
-\usecolortheme{$colortheme$}
-$endif$
-$if(fonttheme)$
-\usefonttheme{$fonttheme$}
-$endif$
-$if(mainfont)$
-\usefonttheme{serif} % use mainfont rather than sansfont for slide text
-$endif$
-$if(innertheme)$
-\useinnertheme{$innertheme$}
-$endif$
-$if(outertheme)$
-\useoutertheme{$outertheme$}
-$endif$
 $endif$
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -269,6 +277,9 @@ $if(graphics)$
 \makeatletter
 \def\fps@figure{htbp}
 \makeatother
+$endif$
+$if(svg)$
+\usepackage{svg}
 $endif$
 $if(strikeout)$
 $-- also used for underline

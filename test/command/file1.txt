@@ -1,0 +1,9 @@
+# Zed
+
+[foo]: bar
+
+[foo]
+and [Zed](#zed)
+and [other Zed](command/file2.txt#zed)
+and [other file](command/file2.txt)
+and [foreign Zed](c.md#zed)

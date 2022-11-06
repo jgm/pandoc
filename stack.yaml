@@ -5,47 +5,38 @@ flags:
     old-random: false
 packages:
 - '.'
+- 'pandoc-cli'
+- 'pandoc-lua-engine'
+- 'pandoc-server'
 extra-deps:
-- skylighting-core-0.13
-- skylighting-0.13
+- skylighting-core-0.13.1.1
+- skylighting-0.13.1.1
 - skylighting-format-ansi-0.1
 - skylighting-format-latex-0.1
-- skylighting-format-blaze-html-0.1
-- emojis-0.1.2
-- gridtables-0.0.3.0
-- lpeg-1.0.3
+- skylighting-format-blaze-html-0.1.1
+- gridtables-0.1.0.0
 - hslua-2.2.1
 - hslua-aeson-2.2.1
+- hslua-cli-1.2.0
 - hslua-classes-2.2.0
 - hslua-core-2.2.1
+- hslua-list-1.1.0
 - hslua-marshalling-2.2.1
-- hslua-module-doclayout-1.0.4
-- hslua-module-path-1.0.3
-- hslua-module-system-1.0.2
-- hslua-module-text-1.0.2
-- hslua-module-version-1.0.2
+- hslua-module-version-1.0.3
+- hslua-module-zip-1.0.0
 - hslua-objectorientation-2.2.1
 - hslua-packaging-2.2.1
 - lua-2.2.1
-- lua-arbitrary-1.0.1
-- tasty-hslua-1.0.2
-- tasty-lua-1.0.2
-- pandoc-lua-marshal-0.1.7
-- aeson-pretty-0.8.9
-- unicode-transforms-0.4.0.1
-- unicode-data-0.3.0
-- commonmark-pandoc-0.2.1.2
-- ipynb-0.2
-- pandoc-types-1.22.2.1
-- commonmark-0.2.2
-- commonmark-extensions-0.2.3.2
+- mime-types-0.1.1.0
 - doclayout-0.4
 - doctemplates-0.10.0.2
-- citeproc-0.8.0.1
-- texmath-0.12.5.2
+- commonmark-extensions-0.2.3.3
+- texmath-0.12.5.4
+- git: https://github.com/jgm/citeproc
+  commit: cb54223919ecd327250f1b167e4e0c61473f402e
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-18.10
+resolver: lts-19.21
 nix:
   packages: [zlib]

@@ -1,9 +1,6 @@
 name: Release candidate
 
-on:
-  push:
-    branches:
-    - 'rc/**'
+on: workflow_dispatch
 
 permissions:
   contents: read
@@ -20,7 +17,7 @@ jobs:
           mkdir linux-release-candidate
           cp linux/artifacts/*.deb linux-release-candidate/
           cp linux/artifacts/*.tar.gz linux-release-candidate/
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: linux-release-candidate
         path: linux-release-candidate
@@ -34,7 +31,7 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            stack_opts: '-j4 +RTS -A256m -RTS'
+            stack_opts: '-j4 +RTS -A256m -RTS --flag pandoc:embed_data_files --flag pandoc-cli:lua --flag pandoc-cli:server'
 
     steps:
     - uses: actions/checkout@v3
@@ -46,7 +43,7 @@ jobs:
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          stack build  ${{ matrix.versions.stack_opts }} pandoc
+          stack build  ${{ matrix.versions.stack_opts }} pandoc-cli
           for /f "tokens=1-2 delims= " %%a in ('stack exec pandoc -- --version') do (
             @set VERSION=%%b
             goto :next
@@ -81,7 +78,7 @@ jobs:
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
           copy windows\Makefile windows-release-candidate
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: windows-release-candidate
         path: windows-release-candidate
@@ -116,13 +113,14 @@ jobs:
           strip ${DEST}/bin/pandoc
           cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
           cp man/pandoc-server.1 ${DEST}/share/man/man1/pandoc-server.1
+          cp man/pandoc-lua.1 ${DEST}/share/man/man1/pandoc-lua.1
           ~/.local/bin/pandoc -s COPYING.md -Vpagetitle=License -o ${RESOURCES}/license.html
           chown -R $ME:staff ${ROOT}
           sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml
           cp macos/Makefile ${ARTIFACTS}/
           echo ${VERSION} > ${ARTIFACTS}/version.txt
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: macos-release-candidate
         path: macos-release-candidate

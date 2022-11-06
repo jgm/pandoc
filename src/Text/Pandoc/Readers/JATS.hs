@@ -14,7 +14,8 @@ Conversion of JATS XML to 'Pandoc' document.
 -}
 
 module Text.Pandoc.Readers.JATS ( readJATS ) where
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
+import Control.Monad (forM_,  when, unless, MonadPlus(mplus))
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(..))
 import Data.Char (isDigit, isSpace)
@@ -26,7 +27,7 @@ import Data.Maybe (maybeToList, fromMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
@@ -444,6 +445,7 @@ parseRef e = do
           "issue" -> Just . ("issue",) . toMetaValue <$> getInlines el
           "isbn" -> Just . ("ISBN",) . toMetaValue <$> getInlines el
           "issn" -> Just . ("ISSN",) . toMetaValue <$> getInlines el
+          "uri" -> Just . ("url",) . toMetaValue <$> getInlines el
           "fpage" ->
             case filterChild (named "lpage") c of
               Just lp -> Just . ("page",) . toMetaValue <$>
@@ -494,8 +496,8 @@ elementToStr x = x
 
 parseInline :: PandocMonad m => Content -> JATS m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
-parseInline (CRef ref) = return $ maybe (text $ T.toUpper ref) (text . T.pack)
-                                $ lookupEntity (T.unpack ref)
+parseInline (CRef ref) = return $ maybe (text $ T.toUpper ref) text
+                                $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "italic" -> innerInlines emph

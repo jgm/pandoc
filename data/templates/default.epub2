@@ -7,8 +7,11 @@
   <meta name="generator" content="pandoc" />
   <title>$pagetitle$</title>
   <style type="text/css">
-    $styles.html()$
+$if(csl-css)$
+    $styles.citations.html()$
+$endif$
 $if(highlighting-css)$
+    /* CSS for syntax highlighting */
     $highlighting-css$
 $endif$
   </style>

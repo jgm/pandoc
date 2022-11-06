@@ -245,8 +245,9 @@ gridTable opts blocksToDoc headless aligns widths headers rows = do
   -- the number of columns will be used in case of even widths
   let numcols = maximum (length aligns :| length widths :
                            map length (headers:rows))
-  let officialWidthsInChars widths' = map (
-                        (\x -> if x < 1 then 1 else x) .
+  let officialWidthsInChars :: [Double] -> [Int]
+      officialWidthsInChars widths' = map (
+                        (max 1) .
                         (\x -> x - 3) . floor .
                         (fromIntegral (writerColumns opts) *)
                         ) widths'
@@ -453,6 +454,7 @@ sectionToListItem opts (Div (ident,_,_)
                    then headerText'
                    else [Link ("toc-" <> ident, [], []) headerText' ("#" <> ident, "")]
    listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
+sectionToListItem opts (Div _ [d@Div{}]) = sectionToListItem opts d -- #8402
 sectionToListItem _ _ = []
 
 -- | Returns 'True' iff the list of blocks has a @'Plain'@ as its last

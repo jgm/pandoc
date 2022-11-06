@@ -56,16 +56,43 @@ does, however, impose certain limitations:
 ## Root endpoint
 
 The root (`/`) endpoint accepts only POST requests.
-It returns a converted document in one of the following
-formats, depending on Accept headers:
 
+### Response
+
+It returns a converted document in one of the following
+formats (in order of preference), depending on the `Accept` header:
+
+- `application/octet-stream`
 - `text/plain`
 - `application/json`
-- `application/octet-stream`
 
 If the result is a binary format (e.g., `epub` or `docx`)
 and the content is returned as plain text or JSON, the
 binary will be base64 encoded.
+
+If a JSON response is given, it will have one of the
+following formats. If the conversion is not successful:
+
+```
+{ "error": string with the error message }
+```
+
+If the conversion is successful:
+
+```
+{ "output": string with textual or base64-encoded binary output,
+  "base64": boolean (true means the "output" is base64-encoded),
+  "messages": array of message objects (see below) }
+```
+
+Each element of the "messages" array will have the format
+
+```
+{ "message": string,
+  "verbosity": string (either "WARNING" or "INFO") }
+```
+
+### Request
 
 The body of the POST request should be a JSON object,
 with the following fields.  Only the `text` field is
@@ -168,7 +195,7 @@ the first one given is the default.
 :   Causes HTML comments to be stripped in Markdown or Textile
     source, instead of being passed through to the output format.
 
-`highlight-style` (string, default `"pygments"`)
+`highlight-style` (string, leave unset for no highlighting)
 
 :   Specify the style to use for syntax highlighting of code.
     Standard styles are `"pygments"` (the default), `"kate"`,
@@ -337,8 +364,7 @@ except for these two points:
 
 - It accepts a JSON array, each element of which is a JSON
   object like the one expected by the root endpoint.
-- It returns a JSON array of results.  (It will not return
-  plain text or octet-stream, like the root endpoint.)
+- It returns a JSON array of JSON results.
 
 This endpoint can be used to convert a sequence of small
 snippets in one request.

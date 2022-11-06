@@ -59,8 +59,17 @@ module Text.Pandoc.Readers.Docx
        ) where
 
 import Codec.Archive.Zip
+import Control.Monad ( liftM, unless )
 import Control.Monad.Reader
+    ( asks,
+      MonadReader(local),
+      MonadTrans(lift),
+      ReaderT(runReaderT) )
 import Control.Monad.State.Strict
+    ( StateT,
+      gets,
+      modify,
+      evalStateT )
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
@@ -117,6 +126,7 @@ data DState = DState { docxAnchorMap :: M.Map T.Text T.Text
                      , docxAnchorSet :: Set.Set T.Text
                      , docxImmedPrevAnchor :: Maybe T.Text
                      , docxMediaBag  :: MediaBag
+                     , docxNumberedHeadings :: Bool
                      , docxDropCap   :: Inlines
                      -- keep track of (numId, lvl) values for
                      -- restarting
@@ -131,6 +141,7 @@ instance Default DState where
                , docxAnchorSet = mempty
                , docxImmedPrevAnchor = Nothing
                , docxMediaBag  = mempty
+               , docxNumberedHeadings = False
                , docxDropCap   = mempty
                , docxListState = M.empty
                , docxPrevPara  = mempty
@@ -662,10 +673,17 @@ bodyPartToBlocks (Paragraph pPr parparts)
         T.concat $
         map parPartToText parparts
   | Just (style, n) <- pHeading pPr = do
-    ils <-local (\s-> s{docxInHeaderBlock=True})
+    ils <- local (\s-> s{docxInHeaderBlock=True})
            (smushInlines <$> mapM parPartToInlines parparts)
+    let classes = map normalizeToClassName . delete style
+                $ getStyleNames (pStyle pPr)
+
+    hasNumbering <- gets docxNumberedHeadings
+    let addNum = if hasNumbering && not (numbered pPr)
+                 then (++ ["unnumbered"])
+                 else id
     makeHeaderAnchor $
-      headerWith ("", map normalizeToClassName . delete style $ getStyleNames (pStyle pPr), []) n ils
+      headerWith ("", addNum classes, []) n ils
   | otherwise = do
     ils <- trimSps . smushInlines <$> mapM parPartToInlines parparts
     prevParaIls <- gets docxPrevPara
@@ -812,6 +830,9 @@ bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
   captions <- catMaybes <$> mapM bodyPartToTableCaption blkbps
+  let isNumberedPara (Paragraph pPr _) = numbered pPr
+      isNumberedPara _                 = False
+  modify (\s -> s { docxNumberedHeadings = any isNumberedPara blkbps })
   modify (\s -> s { docxTableCaptions = captions })
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks

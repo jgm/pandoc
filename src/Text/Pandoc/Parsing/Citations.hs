@@ -21,6 +21,7 @@ import Text.Pandoc.Sources
 import Text.Parsec
   ( (<|>)
   , Stream(..)
+  , ParsecT
   , lookAhead
   , many
   , option
@@ -28,25 +29,25 @@ import Text.Parsec
   )
 import Text.Pandoc.Parsing.Capabilities (HasLastStrPosition, notAfterString)
 import Text.Pandoc.Parsing.General
-import Text.Pandoc.Parsing.Types (ParserT)
 
 import qualified Data.Text as T
 
 citeKey :: (Stream s m Char, UpdateSourcePos s Char, HasLastStrPosition st)
         => Bool -- ^ If True, allow expanded @{..} syntax.
-        -> ParserT s st m (Bool, Text)
+        -> ParsecT s st m (Bool, Text)
 citeKey allowBraced = try $ do
   guard =<< notAfterString
   suppress_author <- option False (True <$ char '-')
   char '@'
   key <- simpleCiteIdentifier
         <|> if allowBraced
-               then charsInBalanced '{' '}' (satisfy (not . isSpace))
+               then charsInBalanced '{' '}'
+                     (T.singleton <$> (satisfy (not . isSpace)))
                else mzero
   return (suppress_author, key)
 
 simpleCiteIdentifier :: (Stream s m Char, UpdateSourcePos s Char)
-                      => ParserT s st m Text
+                      => ParsecT s st m Text
 simpleCiteIdentifier = do
   firstChar <- alphaNum <|> char '_' <|> char '*' -- @* for wildcard in nocite
   let regchar = satisfy (\c -> isAlphaNum c || c == '_')
@@ -54,4 +55,3 @@ simpleCiteIdentifier = do
   rest <- many $ regchar <|> internal (oneOf ":.#$%&-+?<>~/") <|>
                  try (oneOf ":/" <* lookAhead (char '/'))
   return $ T.pack $ firstChar:rest
-

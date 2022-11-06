@@ -37,7 +37,6 @@ module Text.Pandoc.Parsing.General
   , manyTillChar
   , manyUntil
   , manyUntilChar
-  , nested
   , nonspaceChar
   , notFollowedBy'
   , oneOfStrings
@@ -58,19 +57,20 @@ module Text.Pandoc.Parsing.General
   , uri
   , withHorizDisplacement
   , withRaw
+  , fromParsecError
   )
 where
 
 import Control.Monad
-  ( guard
-  , join
+  ( join
   , liftM
   , unless
   , void
   , when
+  , MonadPlus(mzero)
   )
 import Control.Monad.Except ( MonadError(throwError) )
-import Control.Monad.Identity ( Identity(..), MonadPlus(mzero) )
+import Control.Monad.Identity ( Identity(..) )
 import Data.Char
   ( chr
   , isAlphaNum
@@ -82,10 +82,10 @@ import Data.Char
   , toUpper
   )
 import Data.Functor (($>))
-import Data.List (intercalate)
+import Data.List (intercalate, sortOn)
+import Data.Ord (Down(..))
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import Text.HTML.TagSoup.Entity (lookupEntity)
 import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Builder (Attr, Inline(Str), Inlines, trimInlines)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileFromDirs, report)
@@ -95,13 +95,20 @@ import Text.Pandoc.Options
   ( extensionEnabled
   , Extension(Ext_auto_identifiers, Ext_ascii_identifiers)
   , ReaderOptions(readerTabStop, readerExtensions) )
-import Text.Pandoc.Shared (escapeURI, mapLeft, schemes, tshow, uniqueIdent)
+import Text.Pandoc.Shared (tshow, uniqueIdent)
+import Text.Pandoc.URI (schemes, escapeURI)
 import Text.Pandoc.Sources
-import Text.Pandoc.XML (fromEntities)
+import Text.Pandoc.XML (fromEntities, lookupEntity)
 import Text.Parsec
   ( (<|>)
+  , Parsec
   , ParsecT
   , SourcePos
+  , sourceLine
+  , sourceColumn
+  , sourceName
+  , ParseError
+  , errorPos
   , Stream(..)
   , between
   , choice
@@ -128,15 +135,15 @@ import Text.Parsec
   )
 import Text.Parsec.Pos (initialPos, newPos)
 import Text.Pandoc.Error
-  ( PandocError(PandocParseError, PandocParsecError) )
+  ( PandocError(PandocParseError) )
 import Text.Pandoc.Parsing.Capabilities
 import Text.Pandoc.Parsing.State
-import Text.Pandoc.Parsing.Types ( Parser, ParserT, Future (..))
-
+import Text.Pandoc.Parsing.Future (Future (..))
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.UTF8 as UTF8 (putStrLn)
+import qualified Data.Bifunctor as Bifunctor
 
 -- | Remove whitespace from start and end; just like @'trimInlines'@,
 -- but lifted into the 'Future' type.
@@ -158,7 +165,7 @@ textStr t = string (T.unpack t) $> t
 
 -- | Parse any line of text, returning the contents without the
 -- final newline.
-anyLine :: Monad m => ParserT Sources st m Text
+anyLine :: Monad m => ParsecT Sources st m Text
 anyLine = do
   -- This is much faster than:
   -- manyTill anyChar newline
@@ -181,13 +188,13 @@ anyLine = do
                  return this
 
 -- | Parse any line, include the final newline in the output
-anyLineNewline :: Monad m => ParserT Sources st m Text
+anyLineNewline :: Monad m => ParsecT Sources st m Text
 anyLineNewline = (<> "\n") <$> anyLine
 
 -- | Parse indent by specified number of spaces (or equiv. tabs)
 indentWith :: (Stream s m Char, UpdateSourcePos s Char)
            => HasReaderOptions st
-           => Int -> ParserT s st m Text
+           => Int -> ParsecT s st m Text
 indentWith num = do
   tabStop <- getOption readerTabStop
   if num < tabStop
@@ -197,28 +204,28 @@ indentWith num = do
 
 -- | Like @many@, but packs its result.
 manyChar :: Stream s m t
-         => ParserT s st m Char
-         -> ParserT s st m Text
+         => ParsecT s st m Char
+         -> ParsecT s st m Text
 manyChar = fmap T.pack . many
 
 -- | Like @many1@, but packs its result.
 many1Char :: Stream s m t
-          => ParserT s st m Char
-          -> ParserT s st m Text
+          => ParsecT s st m Char
+          -> ParsecT s st m Text
 many1Char = fmap T.pack . many1
 
 -- | Like @manyTill@, but packs its result.
 manyTillChar :: Stream s m t
-             => ParserT s st m Char
-             -> ParserT s st m a
-             -> ParserT s st m Text
+             => ParsecT s st m Char
+             -> ParsecT s st m a
+             -> ParsecT s st m Text
 manyTillChar p = fmap T.pack . manyTill p
 
 -- | Like @manyTill@, but reads at least one item.
 many1Till :: (Show end, Stream s m t)
-          => ParserT s st m a
-          -> ParserT s st m end
-          -> ParserT s st m [a]
+          => ParsecT s st m a
+          -> ParsecT s st m end
+          -> ParsecT s st m [a]
 many1Till p end = do
          notFollowedBy' end
          first <- p
@@ -227,15 +234,15 @@ many1Till p end = do
 
 -- | Like @many1Till@, but packs its result
 many1TillChar :: (Show end, Stream s m t)
-              => ParserT s st m Char
-              -> ParserT s st m end
-              -> ParserT s st m Text
+              => ParsecT s st m Char
+              -> ParsecT s st m end
+              -> ParsecT s st m Text
 many1TillChar p = fmap T.pack . many1Till p
 
 -- | Like @manyTill@, but also returns the result of end parser.
-manyUntil :: ParserT s u m a
-          -> ParserT s u m b
-          -> ParserT s u m ([a], b)
+manyUntil :: ParsecT s u m a
+          -> ParsecT s u m b
+          -> ParsecT s u m ([a], b)
 manyUntil p end = scan
   where scan =
           (do e <- end
@@ -246,9 +253,9 @@ manyUntil p end = scan
               return (x:xs, e))
 
 -- | Like @manyUntil@, but also packs its result.
-manyUntilChar :: ParserT s u m Char
-              -> ParserT s u m b
-              -> ParserT s u m (Text, b)
+manyUntilChar :: ParsecT s u m Char
+              -> ParsecT s u m b
+              -> ParsecT s u m (Text, b)
 manyUntilChar p = fmap go . manyUntil p
   where
     go (x, y) = (T.pack x, y)
@@ -263,7 +270,7 @@ sepBy1' p sep = (:) <$> p <*> many (try $ sep >> p)
 -- | A more general form of @notFollowedBy@.  This one allows any
 -- type of parser to be specified, and succeeds only if that parser fails.
 -- It does not consume any input.
-notFollowedBy' :: (Show b, Stream s m a) => ParserT s st m b -> ParserT s st m ()
+notFollowedBy' :: (Show b, Stream s m a) => ParsecT s st m b -> ParsecT s st m ()
 notFollowedBy' p  = try $ join $  do  a <- try p
                                       return (unexpected (show a))
                                   <|>
@@ -271,12 +278,12 @@ notFollowedBy' p  = try $ join $  do  a <- try p
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
 oneOfStrings' :: (Stream s m Char, UpdateSourcePos s Char)
-              => (Char -> Char -> Bool) -> [Text] -> ParserT s st m Text
+              => (Char -> Char -> Bool) -> [Text] -> ParsecT s st m Text
 oneOfStrings' f = fmap T.pack . oneOfStrings'' f . fmap T.unpack
 
 -- TODO: This should be re-implemented in a Text-aware way
 oneOfStrings'' :: (Stream s m Char, UpdateSourcePos s Char)
-               => (Char -> Char -> Bool) -> [String] -> ParserT s st m String
+               => (Char -> Char -> Bool) -> [String] -> ParsecT s st m String
 oneOfStrings'' _ []   = Prelude.fail "no strings"
 oneOfStrings'' matches strs = try $ do
   c <- anyChar
@@ -292,7 +299,7 @@ oneOfStrings'' matches strs = try $ do
 -- two strings one of which is a prefix of the other, the longer
 -- string will be matched if possible.
 oneOfStrings :: (Stream s m Char, UpdateSourcePos s Char)
-             => [Text] -> ParserT s st m Text
+             => [Text] -> ParsecT s st m Text
 oneOfStrings = oneOfStrings' (==)
 
 -- | Parses one of a list of strings (tried in order), case insensitive.
@@ -300,7 +307,7 @@ oneOfStrings = oneOfStrings' (==)
 -- TODO: This will not be accurate with general Unicode (neither
 -- Text.toLower nor Text.toCaseFold can be implemented with a map)
 oneOfStringsCI :: (Stream s m Char, UpdateSourcePos s Char)
-               => [Text] -> ParserT s st m Text
+               => [Text] -> ParsecT s st m Text
 oneOfStringsCI = oneOfStrings' ciMatch
   where ciMatch x y = toLower' x == toLower' y
         -- this optimizes toLower by checking common ASCII case
@@ -312,12 +319,12 @@ oneOfStringsCI = oneOfStrings' ciMatch
 
 -- | Parses a space or tab.
 spaceChar :: (Stream s m Char, UpdateSourcePos s Char)
-          => ParserT s st m Char
+          => ParsecT s st m Char
 spaceChar = satisfy $ \c -> c == ' ' || c == '\t'
 
 -- | Parses a nonspace, nonnewline character.
 nonspaceChar :: (Stream s m Char, UpdateSourcePos s Char)
-             => ParserT s st m Char
+             => ParsecT s st m Char
 nonspaceChar = satisfy (not . isSpaceChar)
 
 isSpaceChar :: Char -> Bool
@@ -329,23 +336,23 @@ isSpaceChar _    = False
 
 -- | Skips zero or more spaces or tabs.
 skipSpaces :: (Stream s m Char, UpdateSourcePos s Char)
-           => ParserT s st m ()
+           => ParsecT s st m ()
 skipSpaces = skipMany spaceChar
 
 -- | Skips zero or more spaces or tabs, then reads a newline.
 blankline :: (Stream s m Char, UpdateSourcePos s Char)
-          => ParserT s st m Char
+          => ParsecT s st m Char
 blankline = try $ skipSpaces >> newline
 
 -- | Parses one or more blank lines and returns a string of newlines.
 blanklines :: (Stream s m Char, UpdateSourcePos s Char)
-           => ParserT s st m Text
+           => ParsecT s st m Text
 blanklines = T.pack <$> many1 blankline
 
 -- | Gobble n spaces; if tabs are encountered, expand them
 -- and gobble some or all of their spaces, leaving the rest.
 gobbleSpaces :: (HasReaderOptions st, Monad m)
-             => Int -> ParserT Sources st m ()
+             => Int -> ParsecT Sources st m ()
 gobbleSpaces 0 = return ()
 gobbleSpaces n
   | n < 0     = error "gobbleSpaces called with negative number"
@@ -353,7 +360,7 @@ gobbleSpaces n
       char ' ' <|> eatOneSpaceOfTab
       gobbleSpaces (n - 1)
 
-eatOneSpaceOfTab :: (HasReaderOptions st, Monad m) => ParserT Sources st m Char
+eatOneSpaceOfTab :: (HasReaderOptions st, Monad m) => ParsecT Sources st m Char
 eatOneSpaceOfTab = do
   lookAhead (char '\t')
   pos <- getPosition
@@ -372,7 +379,7 @@ eatOneSpaceOfTab = do
 -- | Gobble up to n spaces; if tabs are encountered, expand them
 -- and gobble some or all of their spaces, leaving the rest.
 gobbleAtMostSpaces :: (HasReaderOptions st, Monad m)
-                   => Int -> ParserT Sources st m Int
+                   => Int -> ParsecT Sources st m Int
 gobbleAtMostSpaces 0 = return 0
 gobbleAtMostSpaces n
   | n < 0     = error "gobbleAtMostSpaces called with negative number"
@@ -382,20 +389,20 @@ gobbleAtMostSpaces n
 
 -- | Parses material enclosed between start and end parsers.
 enclosed :: (Show end, Stream s m Char, UpdateSourcePos s Char)
-         => ParserT s st m t   -- ^ start parser
-         -> ParserT s st m end  -- ^ end parser
-         -> ParserT s st m a    -- ^ content parser (to be used repeatedly)
-         -> ParserT s st m [a]
+         => ParsecT s st m t   -- ^ start parser
+         -> ParsecT s st m end  -- ^ end parser
+         -> ParsecT s st m a    -- ^ content parser (to be used repeatedly)
+         -> ParsecT s st m [a]
 enclosed start end parser = try $
   start >> notFollowedBy space >> many1Till parser end
 
 -- | Parse string, case insensitive.
 stringAnyCase :: (Stream s m Char, UpdateSourcePos s Char)
-              => Text -> ParserT s st m Text
+              => Text -> ParsecT s st m Text
 stringAnyCase = fmap T.pack . stringAnyCase' . T.unpack
 
 stringAnyCase' :: (Stream s m Char, UpdateSourcePos s Char)
-               => String -> ParserT s st m String
+               => String -> ParsecT s st m String
 stringAnyCase' [] = string ""
 stringAnyCase' (x:xs) = do
   firstChar <- char (toUpper x) <|> char (toLower x)
@@ -405,9 +412,9 @@ stringAnyCase' (x:xs) = do
 -- TODO rewrite by just adding to Sources stream?
 -- | Parse contents of 'str' using 'parser' and return result.
 parseFromString :: Monad m
-                => ParserT Sources st m r
+                => ParsecT Sources st m r
                 -> Text
-                -> ParserT Sources st m r
+                -> ParsecT Sources st m r
 parseFromString parser str = do
   oldPos <- getPosition
   oldInput <- getInput
@@ -422,9 +429,9 @@ parseFromString parser str = do
 -- | Like 'parseFromString' but specialized for 'ParserState'.
 -- This resets 'stateLastStrPos', which is almost always what we want.
 parseFromString' :: (Monad m, HasLastStrPosition u)
-                 => ParserT Sources u m a
+                 => ParsecT Sources u m a
                  -> Text
-                 -> ParserT Sources u m a
+                 -> ParsecT Sources u m a
 parseFromString' parser str = do
   oldLastStrPos <- getLastStrPos <$> getState
   updateState $ setLastStrPos Nothing
@@ -433,7 +440,7 @@ parseFromString' parser str = do
   return res
 
 -- | Parse raw line block up to and including blank lines.
-lineClump :: Monad m => ParserT Sources st m Text
+lineClump :: Monad m => ParsecT Sources st m Text
 lineClump = blanklines
           <|> (T.unlines <$> many1 (notFollowedBy blankline >> anyLine))
 
@@ -442,27 +449,22 @@ lineClump = blanklines
 -- pairs of open and close, which must be different. For example,
 -- @charsInBalanced '(' ')' anyChar@ will parse "(hello (there))"
 -- and return "hello (there)".
-charsInBalanced :: (Stream s m Char, UpdateSourcePos s Char) => Char -> Char -> ParserT s st m Char
-                -> ParserT s st m Text
+charsInBalanced :: (Stream s m Char, UpdateSourcePos s Char)
+                => Char -> Char -> ParsecT s st m Text -> ParsecT s st m Text
 charsInBalanced open close parser = try $ do
   char open
   let isDelim c = c == open || c == close
-  raw <- many $  T.pack <$> many1 (notFollowedBy (satisfy isDelim) >> parser)
+  raw <- many $ mconcat <$> many1 (notFollowedBy (satisfy isDelim) >> parser)
              <|> (do res <- charsInBalanced open close parser
                      return $ T.singleton open <> res <> T.singleton close)
   char close
-  return $ T.concat raw
-
--- old charsInBalanced would be:
--- charsInBalanced open close (noneOf "\n" <|> char '\n' >> notFollowedBy blankline)
--- old charsInBalanced' would be:
--- charsInBalanced open close anyChar
+  return $ mconcat raw
 
 -- Parsers for email addresses and URIs
 
 -- | Parses an email address; returns original and corresponding
 -- escaped mailto: URI.
-emailAddress :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (Text, Text)
+emailAddress :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (Text, Text)
 emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
  where toResult mbox dom = let full = fromEntities $ T.pack $ mbox ++ '@':dom
                            in  (full, escapeURI $ "mailto:" <> full)
@@ -485,11 +487,11 @@ emailAddress = try $ toResult <$> mailbox <*> (char '@' *> domain)
        isEmailPunct c    = T.any (== c) "!\"#$%&'*+-/=?^_{|}~;"
 
 
-uriScheme :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Text
+uriScheme :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m Text
 uriScheme = oneOfStringsCI (Set.toList schemes)
 
 -- | Parses a URI. Returns pair of original and URI-escaped version.
-uri :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m (Text, Text)
+uri :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (Text, Text)
 uri = try $ do
   scheme <- uriScheme
   char ':'
@@ -523,7 +525,7 @@ uri = try $ do
 
     wordChar = satisfy isWordChar
     percentEscaped = try $ (:) <$> char '%' <*> many1 hexDigit
-    entity = try $ pure <$> characterReference
+    entity = try $ T.unpack <$> characterReference
     punct = try $ many1 (char ',') <|> fmap pure (satisfy (\c -> not (isSpace c) && c /= '<' && c /= '>'))
     uriChunk = many1 wordChar
            <|> percentEscaped
@@ -537,8 +539,8 @@ uri = try $ do
 -- and the source column at the beginning). Vertical displacement
 -- (source row) is ignored.
 withHorizDisplacement :: (Stream s m Char, UpdateSourcePos s Char)
-                      => ParserT s st m a  -- ^ Parser to apply
-                      -> ParserT s st m (a, Int) -- ^ (result, displacement)
+                      => ParsecT s st m a  -- ^ Parsec to apply
+                      -> ParsecT s st m (a, Int) -- ^ (result, displacement)
 withHorizDisplacement parser = do
   pos1 <- getPosition
   result <- parser
@@ -573,28 +575,24 @@ sourcesDifference (Sources is1) (Sources is2) = go is1 is2
 
 -- | Parses backslash, then applies character parser.
 escaped :: (Stream s m Char, UpdateSourcePos s Char)
-        => ParserT s st m Char  -- ^ Parser for character to escape
-        -> ParserT s st m Char
+        => ParsecT s st m Char  -- ^ Parsec for character to escape
+        -> ParsecT s st m Char
 escaped parser = try $ char '\\' >> parser
 
 -- | Parse character entity.
-characterReference :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Char
+characterReference :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m Text
 characterReference = try $ do
   char '&'
-  ent <- many1Till nonspaceChar (char ';')
-  let ent' = case ent of
-                  '#':'X':xs -> '#':'x':xs  -- workaround tagsoup bug
-                  '#':_      -> ent
-                  _          -> ent ++ ";"
-  case lookupEntity ent' of
-       Just (c : _) -> return c
+  ent <- many1TillChar nonspaceChar (char ';')
+  case lookupEntity (ent <> ";") of
+       Just t       -> return t
        _            -> Prelude.fail "entity not found"
 
 -- | Parses a character reference and returns a Str element.
-charRef :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Inline
-charRef = Str . T.singleton <$> characterReference
+charRef :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m Inline
+charRef = Str <$> characterReference
 
-lineBlockLine :: Monad m => ParserT Sources st m Text
+lineBlockLine :: Monad m => ParsecT Sources st m Text
 lineBlockLine = try $ do
   char '|'
   char ' '
@@ -604,11 +602,11 @@ lineBlockLine = try $ do
   continuations <- many (try $ char ' ' >> anyLine)
   return $ white <> T.unwords (line : continuations)
 
-blankLineBlockLine :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m Char
+blankLineBlockLine :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m Char
 blankLineBlockLine = try (char '|' >> blankline)
 
 -- | Parses an RST-style line block and returns a list of strings.
-lineBlockLines :: Monad m => ParserT Sources st m [Text]
+lineBlockLines :: Monad m => ParsecT Sources st m [Text]
 lineBlockLines = try $ do
   lines' <- many1 (lineBlockLine <|> (T.singleton <$> blankLineBlockLine))
   skipMany blankline
@@ -617,19 +615,20 @@ lineBlockLines = try $ do
 
 -- | Removes the ParsecT layer from the monad transformer stack
 readWithM :: (Monad m, ToSources t)
-          => ParserT Sources st m a  -- ^ parser
+          => ParsecT Sources st m a  -- ^ parser
           -> st                      -- ^ initial state
           -> t                       -- ^ input
           -> m (Either PandocError a)
 readWithM parser state input =
-    mapLeft (PandocParsecError sources)
+    Bifunctor.first (fromParsecError sources)
       <$> runParserT parser state (initialSourceName sources) sources
  where
    sources = toSources input
 
+
 -- | Parse a string with a given parser and state
 readWith :: ToSources t
-         => Parser Sources st a
+         => Parsec Sources st a
          -> st
          -> t
          -> Either PandocError a
@@ -637,7 +636,7 @@ readWith p t inp = runIdentity $ readWithM p t inp
 
 -- | Parse a string with @parser@ (for testing).
 testStringWith :: Show a
-               => ParserT Sources ParserState Identity a
+               => ParsecT Sources ParserState Identity a
                -> Text
                -> IO ()
 testStringWith parser str = UTF8.putStrLn $ tshow $
@@ -652,7 +651,7 @@ testStringWith parser str = UTF8.putStrLn $ tshow $
 --  (explicit or automatically generated).
 registerHeader :: (Stream s m a, HasReaderOptions st,
                    HasLogMessages st, HasIdentifierList st)
-               => Attr -> Inlines -> ParserT s st m Attr
+               => Attr -> Inlines -> ParsecT s st m Attr
 registerHeader (ident,classes,kvs) header' = do
   ids <- extractIdentifierList <$> getState
   exts <- getOption readerExtensions
@@ -673,19 +672,6 @@ registerHeader (ident,classes,kvs) header' = do
           updateState $ updateIdentifierList $ Set.insert ident
         return (ident,classes,kvs)
 
--- This is used to prevent exponential blowups for things like:
--- a**a*a**a*a**a*a**a*a**a*a**a*a**
-nested :: Stream s m a
-       => ParserT s ParserState m a
-       -> ParserT s ParserState m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
-
 token :: (Stream s m t)
       => (t -> Text)
       -> (t -> SourcePos)
@@ -694,7 +680,7 @@ token :: (Stream s m t)
 token pp pos match = tokenPrim (T.unpack . pp) (\_ t _ -> pos t) match
 
 infixr 5 <+?>
-(<+?>) :: (Monoid a) => ParserT s st m a -> ParserT s st m a -> ParserT s st m a
+(<+?>) :: (Monoid a) => ParsecT s st m a -> ParsecT s st m a -> ParsecT s st m a
 a <+?> b = a >>= flip fmap (try b <|> return mempty) . mappend
 
 extractIdClass :: Attr -> Attr
@@ -705,13 +691,13 @@ extractIdClass (ident, cls, kvs) = (ident', cls', kvs')
     kvs'   = filter (\(k,_) -> k /= "id" || k /= "class") kvs
 
 insertIncludedFile :: (PandocMonad m, HasIncludeFiles st)
-                   => ParserT a st m b -- ^ parser to apply
+                   => ParsecT a st m b -- ^ parser to apply
                    -> (Text -> a) -- ^ convert Text to stream type
                    -> [FilePath]  -- ^ search path (directories)
                    -> FilePath    -- ^ path of file to include
                    -> Maybe Int   -- ^ start line (negative counts from end)
                    -> Maybe Int   -- ^ end line (negative counts from end)
-                   -> ParserT a st m b
+                   -> ParsecT a st m b
 insertIncludedFile parser toStream dirs f mbstartline mbendline = do
   oldPos <- getPosition
   oldInput <- getInput
@@ -749,3 +735,28 @@ exciseLines mbstartline mbendline t =
                  Nothing -> numLines
                  Just x | x >= 0 -> x
                         | otherwise -> numLines + x -- negative from end
+
+fromParsecError :: Sources -> ParseError -> PandocError
+fromParsecError (Sources inputs) err' = PandocParseError msg
+ where
+  msg = "Error at " <> tshow  err' <> errorContext
+  errPos = errorPos err'
+  errLine = sourceLine errPos
+  errColumn = sourceColumn errPos
+  errFile = sourceName errPos
+  errorContext =
+    case sortOn (Down . sourceLine . fst)
+            [ (pos,t)
+              | (pos,t) <- inputs
+              , sourceName pos == errFile
+              , sourceLine pos <= errLine
+            ] of
+      []  -> ""
+      ((pos,txt):_) ->
+        let ls = T.lines txt <> [""]
+            ln = (errLine - sourceLine pos) + 1
+         in if length ls > ln && ln >= 1
+               then T.concat ["\n", ls !! (ln - 1)
+                             ,"\n", T.replicate (errColumn - 1) " "
+                             ,"^"]
+               else ""

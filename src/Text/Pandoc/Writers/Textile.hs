@@ -13,7 +13,8 @@ Conversion of 'Pandoc' documents to Textile markup.
 Textile:  <http://thresholdstate.com/articles/4312/the-textile-reference-manual>
 -}
 module Text.Pandoc.Writers.Textile ( writeTextile ) where
-import Control.Monad.State.Strict
+import Control.Monad (zipWithM, liftM)
+import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
 import Data.Char (isSpace)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -380,37 +381,37 @@ inlineToTextile opts (Span _ lst) =
 
 inlineToTextile opts (Emph lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '_' `elemText` contents
+  return $ if T.any (== '_') contents
               then "<em>" <> contents <> "</em>"
               else "_" <> contents <> "_"
 
 inlineToTextile opts (Underline lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '+' `elemText` contents
+  return $ if T.any (== '+') contents
               then "<u>" <> contents <> "</u>"
               else "+" <> contents <> "+"
 
 inlineToTextile opts (Strong lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '*' `elemText` contents
+  return $ if T.any (== '*') contents
               then "<strong>" <> contents <> "</strong>"
               else "*" <> contents <> "*"
 
 inlineToTextile opts (Strikeout lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '-' `elemText` contents
+  return $ if T.any (== '-') contents
               then "<del>" <> contents <> "</del>"
               else "-" <> contents <> "-"
 
 inlineToTextile opts (Superscript lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '^' `elemText` contents
+  return $ if T.any (== '^') contents
               then "<sup>" <> contents <> "</sup>"
               else "[^" <> contents <> "^]"
 
 inlineToTextile opts (Subscript lst) = do
   contents <- inlineListToTextile opts lst
-  return $ if '~' `elemText` contents
+  return $ if T.any (== '~') contents
               then "<sub>" <> contents <> "</sub>"
               else "[~" <> contents <> "~]"
 
@@ -427,7 +428,7 @@ inlineToTextile opts (Quoted DoubleQuote lst) = do
 inlineToTextile opts (Cite _  lst) = inlineListToTextile opts lst
 
 inlineToTextile _ (Code _ str) =
-  return $ if '@' `elemText` str
+  return $ if T.any (== '@') str
            then "<tt>" <> escapeStringForXML str <> "</tt>"
            else "@" <> str <> "@"
 

@@ -16,8 +16,11 @@ module Text.Pandoc.Writers.Markdown.Inline (
   attrsToMarkdown,
   attrsToMarkua
   ) where
+import Control.Monad (when, liftM2)
 import Control.Monad.Reader
+    ( asks, MonadReader(local) )
 import Control.Monad.State.Strict
+    ( MonadState(get), gets, modify )
 import Data.Char (isAlphaNum, isDigit)
 import Data.List (find, intersperse)
 import Data.List.NonEmpty (nonEmpty)
@@ -32,7 +35,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
-import Text.Pandoc.Network.HTTP (urlEncode)
+import Text.Pandoc.URI (urlEncode, escapeURI, isURI)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
@@ -117,8 +120,8 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
               attribClasses = case attribs of
                                 (_,[],_) -> empty
                                 (_,cs,_) -> hsep $
-                                            map (escAttr . ("."<>))
-                                            cs
+                                            map (escAttr . ("."<>)) $
+                                            filter (not . T.null) cs
               attribKeys = case attribs of
                                 (_,_,[]) -> empty
                                 (_,_,ks) -> hsep $

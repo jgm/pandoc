@@ -16,6 +16,7 @@ module Text.Pandoc.Filter
   ( Filter (..)
   , Environment (..)
   , applyFilters
+  , applyJSONFilter
   ) where
 
 import System.CPUTime (getCPUTime)
@@ -28,8 +29,8 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Citeproc (processCitations)
+import Text.Pandoc.Scripting (ScriptingEngine (engineApplyFilter))
 import qualified Text.Pandoc.Filter.JSON as JSONFilter
-import qualified Text.Pandoc.Filter.Lua as LuaFilter
 import qualified Data.Text as T
 import System.FilePath (takeExtension)
 import Control.Applicative ((<|>))
@@ -73,19 +74,20 @@ instance ToJSON Filter where
 
 -- | Modify the given document using a filter.
 applyFilters :: (PandocMonad m, MonadIO m)
-             => Environment
+             => ScriptingEngine
+             -> Environment
              -> [Filter]
              -> [String]
              -> Pandoc
              -> m Pandoc
-applyFilters fenv filters args d = do
+applyFilters scrngin fenv filters args d = do
   expandedFilters <- mapM expandFilterPath filters
   foldM applyFilter d expandedFilters
  where
   applyFilter doc (JSONFilter f) =
     withMessages f $ JSONFilter.apply fenv args f doc
   applyFilter doc (LuaFilter f)  =
-    withMessages f $ LuaFilter.apply fenv args f doc
+    withMessages f $ engineApplyFilter scrngin fenv args f doc
   applyFilter doc CiteprocFilter =
     processCitations doc
   withMessages f action = do
@@ -106,3 +108,11 @@ expandFilterPath CiteprocFilter = return CiteprocFilter
 
 filterPath :: PandocMonad m => FilePath -> m FilePath
 filterPath fp = fromMaybe fp <$> findFileWithDataFallback "filters" fp
+
+applyJSONFilter :: MonadIO m
+                => Environment
+                -> [String]
+                -> FilePath
+                -> Pandoc
+                -> m Pandoc
+applyJSONFilter = JSONFilter.apply

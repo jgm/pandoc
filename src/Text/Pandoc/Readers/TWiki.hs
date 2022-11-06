@@ -26,7 +26,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, nested)
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag)
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.XML (fromEntities)
@@ -43,7 +43,7 @@ readTWiki opts s = do
        Left e  -> throwError e
        Right d -> return d
 
-type TWParser = ParserT Sources ParserState
+type TWParser = ParsecT Sources ParserState
 
 --
 -- utility functions
@@ -51,15 +51,6 @@ type TWParser = ParserT Sources ParserState
 
 tryMsg :: Text -> TWParser m a -> TWParser m a
 tryMsg msg p = try p <?> T.unpack msg
-
-nested :: PandocMonad m => TWParser m a -> TWParser m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
 
 htmlElement :: PandocMonad m => Text -> TWParser m (Attr, Text)
 htmlElement tag = tryMsg tag $ do
@@ -85,7 +76,7 @@ parseHtmlContentWithAttrs tag parser = do
   parsedContent <- try $ parseContent content
   return (attr, parsedContent)
   where
-    parseContent = parseFromString' $ nested $ manyTill parser endOfContent
+    parseContent = parseFromString' $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
 parseCharHtmlContentWithAttrs :: PandocMonad m
@@ -402,7 +393,7 @@ nestedInlines :: (Show a, PandocMonad m)
 nestedInlines end = innerSpace <|> nestedInline
   where
     innerSpace   = try $ whitespace <* notFollowedBy end
-    nestedInline = notFollowedBy whitespace >> nested inline
+    nestedInline = notFollowedBy whitespace >> inline
 
 strong :: PandocMonad m => TWParser m B.Inlines
 strong = try $ B.strong <$> enclosed (char '*') nestedInlines
@@ -456,7 +447,7 @@ autoLink = try $ do
       | otherwise = isAlphaNum c
 
 str :: PandocMonad m => TWParser m B.Inlines
-str = B.str <$> (many1Char alphaNum <|> countChar 1 characterReference)
+str = B.str <$> (many1Char alphaNum <|> characterReference)
 
 nop :: PandocMonad m => TWParser m B.Inlines
 nop = try $ (void exclamation <|> void nopTag) >> followContent

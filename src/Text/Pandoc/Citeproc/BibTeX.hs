@@ -11,7 +11,8 @@
 -- License     :  BSD-style (see LICENSE)
 --
 -- Maintainer  :  John MacFarlane <fiddlosopher@gmail.com>
--- Stability   :  unstable-- Portability :  unportable
+-- Stability   :  unstable
+-- Portability :  portable
 --
 -----------------------------------------------------------------------------
 
@@ -19,7 +20,6 @@ module Text.Pandoc.Citeproc.BibTeX
     ( Variant(..)
     , readBibtexString
     , writeBibtexString
-    , toName
     )
     where
 
@@ -35,8 +35,10 @@ import Text.Pandoc.Class (runPure)
 import qualified Text.Pandoc.Walk       as Walk
 import Citeproc.Types
 import Citeproc.Pandoc ()
+import Data.List.Split (splitOn)
 import Text.Pandoc.Citeproc.Util (toIETF, splitStrWhen)
 import Text.Pandoc.Citeproc.Data (biblatexStringMap)
+import Text.Pandoc.Citeproc.Name (toName, NameOpts(..), emptyName)
 import Data.Default
 import           Data.Text              (Text)
 import qualified Data.Text              as T
@@ -44,8 +46,8 @@ import qualified Data.Map               as Map
 import           Data.Maybe
 import           Text.Pandoc.Parsing hiding ((<|>), many)
 import           Control.Applicative
-import           Data.List.Split        (splitOn, splitWhen, wordsBy)
-import           Control.Monad.RWS      hiding ((<>))
+import           Control.Monad ( guard, MonadPlus(..), void )
+import Control.Monad.RWS ( asks, RWST, gets, modify, evalRWST )
 import qualified Data.Sequence          as Seq
 import           Data.Char              (isAlphaNum, isDigit, isLetter,
                                          isUpper, toLower, toUpper,
@@ -179,6 +181,8 @@ writeBibtexString opts variant mblang ref =
            , "type"
            , "note"
            , "annote"
+           , "url" -- not officially supported, but supported by
+                   -- some styles (#8287)
            ]
 
   valToInlines (TextVal t) = B.text t
@@ -345,7 +349,7 @@ defaultLang = Lang "en" Nothing (Just "US") [] [] []
 -- a map of bibtex "string" macros
 type StringMap = Map.Map Text Text
 
-type BibParser = Parser Sources (Lang, StringMap)
+type BibParser = Parsec Sources (Lang, StringMap)
 
 data Item = Item{ identifier :: Text
                 , sourcePos  :: SourcePos
@@ -404,9 +408,7 @@ itemToReference locale variant item = do
 
     -- names
     let getNameList' f = Just <$>
-         getNameList (("bibtex", case variant of
-                                      Bibtex   -> "true"
-                                      Biblatex -> "false") : opts) f
+         getNameList opts f
 
     author' <- getNameList' "author" <|> return Nothing
     containerAuthor' <- getNameList' "bookauthor" <|> return Nothing
@@ -793,14 +795,6 @@ parseLaTeX lang t =
 latex :: Text -> Bib Inlines
 latex = fmap blocksToInlines . latex' . T.strip
 
-type Options = [(Text, Text)]
-
-parseOptions :: Text -> Options
-parseOptions = map breakOpt . T.splitOn ","
-  where breakOpt x = case T.break (=='=') x of
-                          (w,v) -> (T.toLower $ T.strip w,
-                                    T.toLower $ T.strip $ T.drop 1 v)
-
 bibEntries :: BibParser [Item]
 bibEntries = do
   skipMany nonEntry
@@ -839,17 +833,26 @@ bibString = do
   updateState (\(l,m) -> (l, Map.insert k v m))
   return ()
 
-take1WhileP :: Monad m => (Char -> Bool) -> ParserT Sources u m Text
+take1WhileP :: Monad m => (Char -> Bool) -> ParsecT Sources u m Text
 take1WhileP f = T.pack <$> many1 (satisfy f)
 
 inBraces :: BibParser Text
 inBraces = do
   char '{'
   res <- manyTill
+         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\' && c /= '%')
+        <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
+        <|> ("" <$ (char '%' >> anyLine))
+        <|> (braced <$> inBraces)
+         ) (char '}')
+  return $ T.concat res
+
+inBracesURL :: BibParser Text
+inBracesURL = do
+  char '{'
+  res <- manyTill
          (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\')
-        <|> (char '\\' >> (do c <- oneOf "{}"
-                              return $ T.pack ['\\',c])
-                         <|> return "\\")
+        <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
         <|> (braced <$> inBraces)
          ) (char '}')
   return $ T.concat res
@@ -866,6 +869,14 @@ inQuotes = do
                <|> ("" <$ (char '%' >> anyLine))
                <|> braced <$> inBraces
             ) (char '"')
+
+inQuotesURL :: BibParser Text
+inQuotesURL = do
+  char '"'
+  T.concat <$> manyTill
+             ( take1WhileP (\c -> c /= '{' && c /= '"' && c /= '\\')
+               <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
+             ) (char '"')
 
 fieldName :: BibParser Text
 fieldName = resolveAlias . T.toLower
@@ -902,7 +913,9 @@ entField = do
   spaces'
   char '='
   spaces'
-  vs <- (expandString <|> inQuotes <|> inBraces <|> rawWord) `sepBy`
+  let inQ = if k == "url" then inQuotesURL else inQuotes
+  let inB = if k == "url" then inBracesURL else inBraces
+  vs <- (expandString <|> inQ <|> inB <|> rawWord) `sepBy`
             try (spaces' >> char '#' >> spaces')
   spaces'
   return (k, T.concat vs)
@@ -1132,21 +1145,37 @@ concatWith sep = foldl' go mempty
                                                 B.space <> s
 
 
-getNameList :: Options -> Text -> Bib [Name]
+parseOptions :: Text -> [(Text, Text)]
+parseOptions = map breakOpt . T.splitOn ","
+  where breakOpt x = case T.break (=='=') x of
+                          (w,v) -> (T.toLower $ T.strip w,
+                                    T.toLower $ T.strip $ T.drop 1 v)
+
+optionSet :: Text -> [(Text, Text)] -> Bool
+optionSet key opts = case lookup key opts of
+                      Just "true" -> True
+                      Just s      -> s == mempty
+                      _           -> False
+
+getNameList :: [(Text, Text)] -> Text -> Bib [Name]
 getNameList opts  f = do
   fs <- asks fields
   case Map.lookup f fs of
-       Just x  -> latexNames opts x
+       Just x  -> latexNames nameopts x
        Nothing -> notFound f
+ where
+  nameopts = NameOpts{
+                 nameOptsPrefixIsNonDroppingParticle = optionSet "useprefix" opts,
+                 nameOptsUseJuniorComma = optionSet "juniorcomma" opts}
 
-toNameList :: Options -> [Block] -> Bib [Name]
+toNameList :: NameOpts -> [Block] -> Bib [Name]
 toNameList opts [Para xs] =
   filter (/= emptyName) <$> mapM (toName opts . addSpaceAfterPeriod)
                                     (splitByAnd xs)
 toNameList opts [Plain xs] = toNameList opts [Para xs]
 toNameList _ _ = mzero
 
-latexNames :: Options -> Text -> Bib [Name]
+latexNames :: NameOpts -> Text -> Bib [Name]
 latexNames opts t = latex' (T.strip t) >>= toNameList opts
 
 -- see issue 392 for motivation.  We want to treat
@@ -1163,109 +1192,6 @@ addSpaceAfterPeriod = go . splitStrWhen (=='.')
         = Str (T.singleton c):Str ".":Space:go (Str (T.singleton d):xs)
     go (x:xs) = x:go xs
 
-emptyName :: Name
-emptyName =
-    Name {  nameFamily              = Nothing
-          , nameGiven               = Nothing
-          , nameDroppingParticle    = Nothing
-          , nameNonDroppingParticle = Nothing
-          , nameSuffix              = Nothing
-          , nameLiteral             = Nothing
-          , nameCommaSuffix         = False
-          , nameStaticOrdering      = False
-          }
-
-toName :: MonadPlus m => Options -> [Inline] -> m Name
-toName _ [Str "others"] =
-  return emptyName{ nameLiteral = Just "others" }
-toName _ [Span ("",[],[]) ils] = -- corporate author
-  return emptyName{ nameLiteral = Just $ stringify ils }
- -- extended BibLaTeX name format - see #266
-toName _ ils@(Str ys:_) | T.any (== '=') ys = do
-  let commaParts = splitWhen (== Str ",")
-                   . splitStrWhen (\c -> c == ',' || c == '=' || c == '\160')
-                   $ ils
-  let addPart ag (Str "given" : Str "=" : xs) =
-        ag{ nameGiven = case nameGiven ag of
-                          Nothing -> Just $ stringify xs
-                          Just t  -> Just $ t <> " " <> stringify xs }
-      addPart ag (Str "family" : Str "=" : xs) =
-        ag{ nameFamily = Just $ stringify xs }
-      addPart ag (Str "prefix" : Str "=" : xs) =
-        ag{ nameDroppingParticle =  Just $ stringify xs }
-      addPart ag (Str "useprefix" : Str "=" : Str "true" : _) =
-        ag{ nameNonDroppingParticle = nameDroppingParticle ag
-          , nameDroppingParticle    = Nothing }
-      addPart ag (Str "suffix" : Str "=" : xs) =
-        ag{ nameSuffix = Just $ stringify xs }
-      addPart ag (Space : xs) = addPart ag xs
-      addPart ag _ = ag
-  return $ foldl' addPart emptyName commaParts
--- First von Last
--- von Last, First
--- von Last, Jr ,First
--- NOTE: biblatex and bibtex differ on:
--- Drummond de Andrade, Carlos
--- bibtex takes "Drummond de" as the von;
--- biblatex takes the whole as a last name.
--- See https://github.com/plk/biblatex/issues/236
--- Here we implement the more sensible biblatex behavior.
-toName opts ils = do
-  let useprefix = optionSet "useprefix" opts
-  let usecomma  = optionSet "juniorcomma" opts
-  let bibtex    = optionSet "bibtex" opts
-  let words' = wordsBy (\x -> x == Space || x == Str "\160")
-  let commaParts = map words' $ splitWhen (== Str ",")
-                              $ splitStrWhen
-                                   (\c -> c == ',' || c == '\160') ils
-  let (first, vonlast, jr) =
-          case commaParts of
-               --- First is the longest sequence of white-space separated
-               -- words starting with an uppercase and that is not the
-               -- whole string. von is the longest sequence of whitespace
-               -- separated words whose last word starts with lower case
-               -- and that is not the whole string.
-               [fvl]      -> let (caps', rest') = span isCapitalized fvl
-                             in  if null rest' && not (null caps')
-                                 then (init caps', [last caps'], [])
-                                 else (caps', rest', [])
-               [vl,f]     -> (f, vl, [])
-               (vl:j:f:_) -> (f, vl, j )
-               []         -> ([], [], [])
-
-  let (von, lastname) =
-         if bibtex
-            then case span isCapitalized $ reverse vonlast of
-                        ([],w:ws) -> (reverse ws, [w])
-                        (vs, ws)    -> (reverse ws, reverse vs)
-            else case break isCapitalized vonlast of
-                        (vs@(_:_), []) -> (init vs, [last vs])
-                        (vs, ws)       -> (vs, ws)
-  let prefix = T.unwords $ map stringify von
-  let family = T.unwords $ map stringify lastname
-  let suffix = T.unwords $ map stringify jr
-  let given = T.unwords $ map stringify first
-  return
-    Name {  nameFamily              = if T.null family
-                                         then Nothing
-                                         else Just family
-          , nameGiven               = if T.null given
-                                         then Nothing
-                                         else Just given
-          , nameDroppingParticle    = if useprefix || T.null prefix
-                                         then Nothing
-                                         else Just prefix
-          , nameNonDroppingParticle = if useprefix && not (T.null prefix)
-                                         then Just prefix
-                                         else Nothing
-          , nameSuffix              = if T.null suffix
-                                         then Nothing
-                                         else Just suffix
-          , nameLiteral             = Nothing
-          , nameCommaSuffix         = usecomma
-          , nameStaticOrdering      = False
-          }
-
 ordinalize :: Locale -> Text -> Text
 ordinalize locale n =
   let terms = localeTerms locale
@@ -1278,20 +1204,6 @@ ordinalize locale n =
         Nothing    -> n
         Just []    -> n
         Just (t:_) -> n <> snd t
-
-isCapitalized :: [Inline] -> Bool
-isCapitalized (Str (T.uncons -> Just (c,cs)) : rest)
-  | isUpper c = True
-  | isDigit c = isCapitalized (Str cs : rest)
-  | otherwise = False
-isCapitalized (_:rest) = isCapitalized rest
-isCapitalized [] = True
-
-optionSet :: Text -> Options -> Bool
-optionSet key opts = case lookup key opts of
-                      Just "true" -> True
-                      Just s      -> s == mempty
-                      _           -> False
 
 getTypeAndGenre :: Bib (Text, Maybe Text)
 getTypeAndGenre = do

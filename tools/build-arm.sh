@@ -88,7 +88,7 @@ while true
 do
   sleep 20
   # print free memory
-  free -h | grep Mem"
+  $SSH "free -h | grep Mem"
   # Check to see if the artifact has been produced
   $SSH "ls -l src/pandoc/linux/artifacts/DONE 2>/dev/null" && break
 done

@@ -25,15 +25,16 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Options
-import Text.Pandoc.Error
 import Text.Pandoc.Readers.Metadata (yamlMetaBlock)
-import Control.Monad.Except
+import Control.Monad (MonadPlus(mzero))
+import Control.Monad.Except (  MonadError(throwError) )
 import Data.Functor.Identity (runIdentity)
 import Data.Typeable
 import Text.Pandoc.Parsing (runParserT, getInput, getPosition,
                             runF, defaultParserState, option, many1, anyChar,
-                            Sources(..), ToSources(..), ParserT, Future,
-                            sourceName, sourceLine, incSourceLine)
+                            Sources(..), ToSources(..), ParsecT, Future,
+                            sourceName, sourceLine, incSourceLine,
+                            fromParsecError)
 import Text.Pandoc.Walk (walk)
 import qualified Data.Text as T
 import qualified Data.Attoparsec.Text as A
@@ -80,7 +81,7 @@ sourceToToks (pos, s) = map adjust $ tokenize (sourceName pos) s
 
 
 metaValueParser :: Monad m
-                => ReaderOptions -> ParserT Sources st m (Future st MetaValue)
+                => ReaderOptions -> ParsecT Sources st m (Future st MetaValue)
 metaValueParser opts = do
   inp <- option "" $ T.pack <$> many1 anyChar
   let toks = concatMap sourceToToks (unSources (toSources inp))
@@ -95,10 +96,10 @@ readCommonMarkBody opts s toks =
       else id) <$>
   if isEnabled Ext_sourcepos opts
      then case runIdentity (parseCommonmarkWith (specFor opts) toks) of
-            Left err -> throwError $ PandocParsecError s err
+            Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm SourceRange Blocks) -> return $ B.doc bls
      else case runIdentity (parseCommonmarkWith (specFor opts) toks) of
-            Left err -> throwError $ PandocParsecError s err
+            Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
 
 stripBlockComments :: Block -> Block
@@ -158,4 +159,3 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
          [ (taskListSpec <>) | isEnabled Ext_task_lists opts ] ++
          [ (rebaseRelativePathsSpec <>)
            | isEnabled Ext_rebase_relative_paths opts ]
-

@@ -51,11 +51,12 @@ import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
+import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
 -- import Debug.Trace (traceShowId)
 
-type MarkdownParser m = ParserT Sources ParserState m
+type MarkdownParser m = ParsecT Sources ParserState m
 
 type F = Future ParserState
 
@@ -157,14 +158,14 @@ inList = do
   ctx <- stateParserContext <$> getState
   guard (ctx == ListItemState)
 
-spnl :: PandocMonad m => ParserT Sources st m ()
+spnl :: PandocMonad m => ParsecT Sources st m ()
 spnl = try $ do
   skipSpaces
   optional newline
   skipSpaces
   notFollowedBy (char '\n')
 
-spnl' :: PandocMonad m => ParserT Sources st m Text
+spnl' :: PandocMonad m => ParsecT Sources st m Text
 spnl' = try $ do
   xs <- many spaceChar
   ys <- option "" $ try $ (:) <$> newline
@@ -188,11 +189,11 @@ skipNonindentSpaces = do
   tabStop <- getOption readerTabStop
   gobbleAtMostSpaces (tabStop - 1) <* notFollowedBy spaceChar
 
-litChar :: PandocMonad m => MarkdownParser m Char
-litChar = escapedChar'
+litChar :: PandocMonad m => MarkdownParser m Text
+litChar = T.singleton <$> escapedChar'
        <|> characterReference
-       <|> noneOf "\n"
-       <|> try (newline >> notFollowedBy blankline >> return ' ')
+       <|> T.singleton <$> noneOf "\n"
+       <|> try (newline >> notFollowedBy blankline >> return " ")
 
 -- | Parse a sequence of inline elements between square brackets,
 -- including inlines between balanced pairs of square brackets.
@@ -355,8 +356,9 @@ referenceKey = try $ do
                     notFollowedBy' $ guardEnabled Ext_mmd_link_attributes >>
                                      try (spnl <* keyValAttr)
                     notFollowedBy' (() <$ reference)
-                    many1Char $ notFollowedBy space >> litChar
-  let betweenAngles = try $ char '<' >> manyTillChar litChar (char '>')
+                    mconcat <$> many1 (notFollowedBy space *> litChar)
+  let betweenAngles = try $ char '<' >>
+                             mconcat <$> (manyTill litChar (char '>'))
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   src <- (if rebase then rebasePath pos else id) <$>
              (try betweenAngles <|> sourceURL)
@@ -394,7 +396,7 @@ quotedTitle c = try $ do
   char c
   notFollowedBy spaces
   let pEnder = try $ char c >> notFollowedBy (satisfy isAlphaNum)
-  let regChunk = many1Char (noneOf ['\\','\n','&',c]) <|> countChar 1 litChar
+  let regChunk = many1Char (noneOf ['\\','\n','&',c]) <|> litChar
   let nestedChunk = (\x -> T.singleton c <> x <> T.singleton c) <$> quotedTitle c
   T.unwords . T.words . T.concat <$> manyTill (nestedChunk <|> regChunk) pEnder
 
@@ -582,15 +584,16 @@ registerImplicitHeader raw attr@(ident, _, _)
   | T.null raw = return ()
   | otherwise = do
       let key = toKey $ "[" <> raw <> "]"
-      updateState $ \s ->
-        s { stateHeaderKeys = M.insert key (("#" <> ident,""), attr)
+      updateState $ \s ->  -- don't override existing headers
+        s { stateHeaderKeys = M.insertWith (\_new old -> old)
+                                     key (("#" <> ident,""), attr)
                                      (stateHeaderKeys s) }
 
 --
 -- hrule block
 --
 
-hrule :: PandocMonad m => ParserT Sources st m (F Blocks)
+hrule :: PandocMonad m => ParsecT Sources st m (F Blocks)
 hrule = try $ do
   skipSpaces
   start <- satisfy isHruleChar
@@ -610,7 +613,7 @@ indentedLine = indentSpaces >> anyLineNewline
 blockDelimiter :: PandocMonad m
                => (Char -> Bool)
                -> Maybe Int
-               -> ParserT Sources ParserState m Int
+               -> ParsecT Sources ParserState m Int
 blockDelimiter f len = try $ do
   skipNonindentSpaces
   c <- lookAhead (satisfy f)
@@ -651,8 +654,8 @@ keyValAttr :: PandocMonad m => MarkdownParser m (Attr -> Attr)
 keyValAttr = try $ do
   key <- identifier
   char '='
-  val <- T.pack <$> enclosed (char '"') (char '"') litChar
-     <|> T.pack <$> enclosed (char '\'') (char '\'') litChar
+  val <- mconcat <$> enclosed (char '"') (char '"') litChar
+     <|> mconcat <$> enclosed (char '\'') (char '\'') litChar
      <|> ("" <$ try (string "\"\""))
      <|> ("" <$ try (string "''"))
      <|> manyChar (escapedChar' <|> noneOf " \t\n\r}")
@@ -688,9 +691,13 @@ codeBlockFenced = try $ do
   rawattr <-
      (Left <$> (guardEnabled Ext_raw_attribute >> try rawAttribute))
     <|>
-     (Right <$> option ("",[],[])
-         ((guardEnabled Ext_fenced_code_attributes >> try attributes)
-          <|> ((\x -> ("",[toLanguageId x],[])) <$> many1Char nonspaceChar)))
+     (Right <$> (do
+           languageId <- option Nothing (Just . toLanguageId <$> try (many1Char $ satisfy (\x -> x `notElem` ['`', '{', '}'] && not (isSpace x))))
+           skipMany spaceChar
+           maybeAttr <- option Nothing (Just <$> (guardEnabled Ext_fenced_code_attributes >> try attributes))
+           return $ case maybeAttr of
+              Nothing -> ("", maybeToList languageId, [])
+              Just (elementId, classes, attrs) -> (elementId, maybe classes (: classes) languageId, attrs)))
   blankline
   contents <- T.intercalate "\n" <$>
                  manyTill (gobbleAtMostSpaces indentLevel >> anyLine)
@@ -754,7 +761,7 @@ lhsCodeBlockBirdWith c = try $ do
   blanklines
   return $ T.intercalate "\n" lns'
 
-birdTrackLine :: PandocMonad m => Char -> ParserT Sources st m Text
+birdTrackLine :: PandocMonad m => Char -> ParsecT Sources st m Text
 birdTrackLine c = try $ do
   char c
   -- allow html tags on left margin:
@@ -1199,7 +1206,7 @@ lineBlock = do
 -- and the length including trailing space.
 dashedLine :: PandocMonad m
            => Char
-           -> ParserT Sources st m (Int, Int)
+           -> ParsecT Sources st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many spaceChar
@@ -1295,7 +1302,8 @@ tableCaption = do
   guardEnabled Ext_table_captions
   try $ do
     skipNonindentSpaces
-    (string ":" <* notFollowedBy (satisfy isPunctuation)) <|> string "Table:"
+    (string ":" <* notFollowedBy (satisfy isPunctuation)) <|>
+      (oneOf ['T','t'] >> string "able:")
     trimInlinesF <$> inlines1 <* blanklines
 
 -- Parse a simple table with '---' header and one line per row.
@@ -1428,7 +1436,7 @@ pipeTableCell =
       return $ B.plain <$> result)
     <|> return mempty
 
-pipeTableHeaderPart :: PandocMonad m => ParserT Sources st m (Alignment, Int)
+pipeTableHeaderPart :: PandocMonad m => ParsecT Sources st m (Alignment, Int)
 pipeTableHeaderPart = try $ do
   skipMany spaceChar
   left <- optionMaybe (char ':')
@@ -1444,7 +1452,7 @@ pipeTableHeaderPart = try $ do
       (Just _,Just _)   -> AlignCenter, len)
 
 -- Succeed only if current line contains a pipe.
-scanForPipe :: PandocMonad m => ParserT Sources st m ()
+scanForPipe :: PandocMonad m => ParsecT Sources st m ()
 scanForPipe = do
   Sources inps <- getInput
   let ln = case inps of
@@ -1576,7 +1584,7 @@ symbol = do
          <|> try (do lookAhead $ char '\\'
                      notFollowedBy' (() <$ rawTeXBlock)
                      char '\\')
-  return $ return $ B.str $ T.singleton result
+  return $ return $ B.str $! T.singleton result
 
 -- parses inline code, between n `s and n `s
 code :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1601,8 +1609,8 @@ code = try $ do
          (guardEnabled Ext_inline_code_attributes >> try attributes))
   return $ return $
     case rawattr of
-         Left syn   -> B.rawInline syn result
-         Right attr -> B.codeWith attr result
+         Left syn   -> B.rawInline syn $! result
+         Right attr -> B.codeWith attr $! result
 
 math :: PandocMonad m => MarkdownParser m (F Inlines)
 math =  (return . B.displayMath <$> (mathDisplay >>= applyMacros))
@@ -1721,7 +1729,7 @@ whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
   where lb = spaceChar >> skipMany spaceChar >> option B.space (endline >> return B.linebreak)
         regsp = skipMany spaceChar >> return B.space
 
-nonEndline :: PandocMonad m => ParserT Sources st m Char
+nonEndline :: PandocMonad m => ParsecT Sources st m Char
 nonEndline = satisfy (/='\n')
 
 str :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1790,11 +1798,11 @@ source = do
   skipSpaces
   let urlChunk =
             try parenthesizedChars
-        <|> (notFollowedBy (oneOf " )") >> countChar 1 litChar)
+        <|> (notFollowedBy (oneOf " )") >> litChar)
         <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
-         char '<' >> manyTillChar litChar (char '>')
+         char '<' >> mconcat <$> (manyTill litChar (char '>'))
   src <- try betweenAngles <|> sourceURL
   tit <- option "" $ try $ spnl >> linkTitle
   skipSpaces
@@ -2005,7 +2013,7 @@ rawLaTeXInline' = do
     s <- rawLaTeXInline
     return $ return $ B.rawInline "tex" s -- "tex" because it might be context
 
-rawConTeXtEnvironment :: PandocMonad m => ParserT Sources st m Text
+rawConTeXtEnvironment :: PandocMonad m => ParsecT Sources st m Text
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
@@ -2014,7 +2022,7 @@ rawConTeXtEnvironment = try $ do
                        (try $ string "\\stop" >> textStr completion)
   return $ "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
 
-inBrackets :: PandocMonad m => ParserT Sources st m Char -> ParserT Sources st m Text
+inBrackets :: PandocMonad m => ParsecT Sources st m Char -> ParsecT Sources st m Text
 inBrackets parser = do
   char '['
   contents <- manyChar parser

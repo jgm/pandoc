@@ -73,11 +73,11 @@ testTOC = [ givesTOC "empty case" $ mempty =?> bulletList []
               bulletList [plain "H1a" <> bulletList [plain "H2"]]
           , givesTOC "only referenced headers" $
               header 1 "H1a" <> headerId "h2" 2 "H2" =?>
-              bulletList [plain "H1a" <> 
+              bulletList [plain "H1a" <>
                           bulletList [plain $ linkId "toc-h2" "#h2" "" "H2"]]
           , givesTOC "section id used as backup" $
               divWith ("sec",["section"],[]) (header 1 "H1") =?>
-              bulletList [plain $ linkId "toc-sec" "#sec" "" "H1"]             
+              bulletList [plain $ linkId "toc-sec" "#sec" "" "H1"]
           ]
 
 testCollapse :: [TestTree]

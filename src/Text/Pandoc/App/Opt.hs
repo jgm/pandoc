@@ -18,6 +18,7 @@ Options for pandoc when used as an app.
 -}
 module Text.Pandoc.App.Opt (
             Opt(..)
+          , OptInfo(..)
           , LineEnding (..)
           , IpynbOutput (..)
           , DefaultsState (..)
@@ -25,7 +26,9 @@ module Text.Pandoc.App.Opt (
           , applyDefaults
           , fullDefaultsPath
           ) where
-import Control.Monad.Except (MonadIO, liftIO, throwError, (>=>), foldM)
+import Control.Monad.Except (throwError)
+import Control.Monad.Trans (MonadIO, liftIO)
+import Control.Monad ((>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
 import System.FilePath ( addExtension, (</>), takeExtension, takeDirectory )
 import System.Directory ( canonicalizePath )
@@ -43,7 +46,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
-import Text.Pandoc.Shared (defaultUserDataDir, findM, ordNub)
+import Data.Containers.ListUtils (nubOrd)
+import Text.Pandoc.Data (defaultUserDataDir)
 import qualified Text.Pandoc.Parsing as P
 import Text.Pandoc.Readers.Metadata (yamlMap)
 import Text.Pandoc.Class.PandocPure
@@ -54,8 +58,8 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..), camelTo2,
-                   genericToJSON, fromJSON)
+import Data.Aeson (defaultOptions, Options(..), Result(..),
+                   genericToJSON, fromJSON, camelTo2)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
 import Data.Yaml
@@ -77,6 +81,22 @@ data IpynbOutput =
 
 $(deriveJSON
    defaultOptions{ fieldLabelModifier = map toLower . drop 11 } ''IpynbOutput)
+
+-- | Option parser results requesting informational output.
+data OptInfo =
+     BashCompletion
+   | ListInputFormats
+   | ListOutputFormats
+   | ListExtensions (Maybe Text)
+   | ListHighlightLanguages
+   | ListHighlightStyles
+   | PrintDefaultTemplate (Maybe FilePath) Text
+   | PrintDefaultDataFile (Maybe FilePath) Text
+   | PrintHighlightStyle (Maybe FilePath) Text
+   | VersionInfo
+   | Help
+   | OptError PandocError
+   deriving (Show, Generic)
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -126,7 +146,6 @@ data Opt = Opt
     , optFilters               :: [Filter] -- ^ Filters to apply
     , optEmailObfuscation      :: ObfuscationMethod
     , optIdentifierPrefix      :: Text
-    , optStripEmptyParagraphs  :: Bool -- ^ Strip empty paragraphs
     , optIndentedCodeClasses   :: [Text] -- ^ Default classes for indented code blocks
     , optDataDir               :: Maybe FilePath
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
@@ -135,6 +154,7 @@ data Opt = Opt
     , optPdfEngineOpts         :: [String]   -- ^ Flags to pass to the engine
     , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
     , optSetextHeaders         :: Bool       -- ^ Use atx headers for markdown level 1-2
+    , optListTables            :: Bool       -- ^ Use list tables for RST
     , optAscii                 :: Bool       -- ^ Prefer ascii output
     , optDefaultImageExtension :: Text       -- ^ Default image extension
     , optExtractMedia          :: Maybe FilePath -- ^ Path to extract embedded media
@@ -206,7 +226,6 @@ instance FromJSON Opt where
        <*> o .:? "filters" .!= optFilters defaultOpts
        <*> o .:? "email-obfuscation" .!= optEmailObfuscation defaultOpts
        <*> o .:? "identifier-prefix" .!= optIdentifierPrefix defaultOpts
-       <*> o .:? "strip-empty-paragraphs" .!= optStripEmptyParagraphs defaultOpts
        <*> o .:? "indented-code-classes" .!= optIndentedCodeClasses defaultOpts
        <*> o .:? "data-dir"
        <*> o .:? "cite-method" .!= optCiteMethod defaultOpts
@@ -215,6 +234,7 @@ instance FromJSON Opt where
        <*> o .:? "pdf-engine-opts" .!= optPdfEngineOpts defaultOpts
        <*> o .:? "slide-level"
        <*> o .:? "setext-headers" .!= optSetextHeaders defaultOpts
+       <*> o .:? "list-tables" .!= optListTables defaultOpts
        <*> o .:? "ascii" .!= optAscii defaultOpts
        <*> o .:? "default-image-extension" .!= optDefaultImageExtension defaultOpts
        <*> o .:? "extract-media"
@@ -577,8 +597,6 @@ doOpt (k,v) = do
     "identifier-prefix" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optIdentifierPrefix = x })
-    "strip-empty-paragraphs" ->
-      parseJSON v >>= \x -> return (\o -> o{ optStripEmptyParagraphs = x })
     "indented-code-classes" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optIndentedCodeClasses = x })
@@ -601,14 +619,14 @@ doOpt (k,v) = do
              return (\o -> o{ optPdfEngineOpts = [unpack x] }))
     "slide-level" ->
       parseJSON v >>= \x -> return (\o -> o{ optSlideLevel = x })
-    "atx-headers" ->
-      parseJSON v >>= \x -> return (\o -> o{ optSetextHeaders = not x })
     "markdown-headings" ->
       parseJSON v >>= \x -> return (\o ->
         case T.toLower x of
           "atx"    -> o{ optSetextHeaders = False }
           "setext" -> o{ optSetextHeaders = True }
           _        -> o)
+    "list-tables" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListTables = x })
     "ascii" ->
       parseJSON v >>= \x -> return (\o -> o{ optAscii = x })
     "default-image-extension" ->
@@ -736,7 +754,6 @@ defaultOpts = Opt
     , optFilters               = []
     , optEmailObfuscation      = NoObfuscation
     , optIdentifierPrefix      = ""
-    , optStripEmptyParagraphs  = False
     , optIndentedCodeClasses   = []
     , optDataDir               = Nothing
     , optCiteMethod            = Citeproc
@@ -745,6 +762,7 @@ defaultOpts = Opt
     , optPdfEngineOpts         = []
     , optSlideLevel            = Nothing
     , optSetextHeaders         = False
+    , optListTables            = False
     , optAscii                 = False
     , optDefaultImageExtension = ""
     , optExtractMedia          = Nothing
@@ -802,7 +820,14 @@ fullDefaultsPath dataDir file = do
               else file
   defaultDataDir <- liftIO defaultUserDataDir
   let defaultFp = fromMaybe defaultDataDir dataDir </> "defaults" </> fp
-  fromMaybe fp <$> findM fileExists [fp, defaultFp]
+  fpExists <- fileExists fp
+  if fpExists
+     then return fp
+     else do
+       defaultFpExists <- fileExists defaultFp
+       if defaultFpExists
+          then return defaultFp
+          else return fp
 
 -- | In a list of lists, append another list in front of every list which
 -- starts with specific element.
@@ -817,4 +842,4 @@ expand ps ns n = concatMap (ext n ns) ps
 cyclic :: Ord a => [[a]] -> Bool
 cyclic = any hasDuplicate
   where
-    hasDuplicate xs = length (ordNub xs) /= length xs
+    hasDuplicate xs = length (nubOrd xs) /= length xs

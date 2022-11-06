@@ -536,13 +536,6 @@ header when requesting a document from a URL:
     where X = NUMBER - 1.* Specify the base level for headings
     (defaults to 1).
 
-`--strip-empty-paragraphs`
-
-:   *Deprecated.  Use the `+empty_paragraphs` extension instead.*
-    Ignore paragraphs with no content.  This option is useful
-    for converting word processing documents where users have
-    used empty paragraphs to create inter-paragraph space.
-
 `--indented-code-classes=`*CLASSES*
 
 :   Specify classes to use for indented code blocks--for example,
@@ -563,6 +556,17 @@ header when requesting a document from a URL:
     same identifiers to work as expected. If this option is set,
     footnotes and links will not work across files. Reading binary
     files (docx, odt, epub) implies `--file-scope`.
+
+    If two or more files are processed using `--file-scope`,
+    prefixes based on the filenames will be added to identifiers
+    in order to disambiguate them, and internal links will
+    be adjusted accordingly.  For example, a header with
+    identifier `foo` in `subdir/file1.txt` will have its
+    identifier changed to `subdir__file1.txt__foo`.
+
+    In addition, a Div with an identifier based on the filename
+    will be added around the file's content, so that internal
+    links to the filename will point to this Div's identifier.
 
 `-F` *PROGRAM*, `--filter=`*PROGRAM*
 
@@ -970,7 +974,8 @@ header when requesting a document from a URL:
     `data-external="1"` will be left alone; the documents they
     link to will not be incorporated in the document.
     Limitation: resources that are loaded dynamically through
-    JavaScript cannot be incorporated; as a result, some
+    JavaScript cannot be incorporated; as a result, fonts may
+    be missing when `--mathjax` is used, and some
     advanced features (e.g.  zoom or speaker notes) may not work
     in an offline "self-contained" `reveal.js` slide show.
 
@@ -1013,9 +1018,9 @@ header when requesting a document from a URL:
     ATX-style headings are always used for levels 3+.
     This option also affects Markdown cells in `ipynb` output.
 
-`--atx-headers`
+`--list-tables`
 
-:   *Deprecated synonym for `--markdown-headings=atx`.*
+:   Render tables as list tables in RST output.
 
 `--top-level-division=default`|`section`|`chapter`|`part`
 
@@ -1107,6 +1112,10 @@ header when requesting a document from a URL:
 
 :   Link to a CSS style sheet. This option can be used repeatedly to
     include multiple files. They will be included in the order specified.
+    This option only affects HTML (including HTML slide shows)
+    and EPUB output.  It should be used together with
+    `-s/--standalone`, because the link to the stylesheet goes
+    in the document header.
 
     A stylesheet is required for generating EPUB.  If none is
     provided using this option (or the `css` or `stylesheet`
@@ -1530,11 +1539,11 @@ Nonzero exit codes have the following meanings:
    62 PandocShouldNeverHappenError
    63 PandocSomeError
    64 PandocParseError
-   65 PandocParsecError
    66 PandocMakePDFError
    67 PandocSyntaxMapError
    83 PandocFilterError
    84 PandocLuaError
+   89 PandocNoScriptingEngine
    91 PandocMacroLoop
    92 PandocUTF8DecodingError
    93 PandocIpynbDecodingError
@@ -1886,6 +1895,10 @@ To include the built-in citeproc filter, use either `citeproc` or
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --markdown-headings atx          | markdown-headings: atx            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --list-tables                    | list-tables: true                 |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
@@ -3075,7 +3088,14 @@ The `--css` option also affects the output.
 ### Variables for ms
 
 `fontfamily`
-:    font family (e.g. `T` or `P`)
+:    `A` (Avant Garde), `B` (Bookman), `C` (Helvetica), `HN` (Helvetica
+     Narrow), `P` (Palatino), or `T` (Times New Roman). This setting does not
+     affect source code, which is always displayed using monospace Courier.
+     These built-in fonts are limited in their coverage of characters.
+     Additional fonts may be installed using the script
+     [`install-fonts.sh`](https://www.schaffter.ca/mom/bin/install-font.sh)
+     provided by Peter Schaffter and documented in detail on 
+     [his web site](https://www.schaffter.ca/mom/momdoc/appendices.html#steps).
 
 `indent`
 :    paragraph indent (e.g. `2m`)
@@ -3145,6 +3165,9 @@ on the output format, and include the following:
 `curdir`
 :   working directory from which pandoc is run.
 
+`pandoc-version`
+:   pandoc version.
+
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
 
@@ -3173,7 +3196,7 @@ for other formats are covered.
 
 Note that markdown extensions added to the `ipynb` format
 affect Markdown cells in Jupyter notebooks (as do command-line
-options like `--atx-headers`).
+options like `--markdown-headings`).
 
 ## Typography
 
@@ -3756,7 +3779,7 @@ unless the `markdown_strict` format is used, the following does
 not produce a nested block quote in pandoc:
 
     > This is a block quote.
-    >> Nested.
+    >> Not nested, since `blank_before_blockquote` is enabled by default
 
 
 ## Verbatim (code) blocks
@@ -3854,6 +3877,18 @@ the code block:
 This is equivalent to:
 
     ``` {.haskell}
+    qsort [] = []
+    ```
+
+This shortcut form may be combined with attributes:
+
+    ```haskell {.numberLines}
+    qsort [] = []
+    ```
+
+Which is equivalent to:
+
+    ``` {.haskell .numberLines}
     qsort [] = []
     ```
 
@@ -4231,8 +4266,8 @@ proportionally spaced fonts, as it does not require lining up columns.
 
 A caption may optionally be provided with all 4 kinds of tables (as
 illustrated in the examples below). A caption is a paragraph beginning
-with the string `Table:` (or just `:`), which will be stripped off.
-It may appear either before or after the table.
+with the string `Table:` (or `table:` or just `:`), which will be stripped
+off. It may appear either before or after the table.
 
 #### Extension: `simple_tables` ####
 
@@ -4344,12 +4379,35 @@ Grid tables look like this:
     |               |               | - tasty            |
     +---------------+---------------+--------------------+
 
-The row of `=`s separates the header from the table body, and can be
-omitted for a headerless table. The cells of grid tables may contain
-arbitrary block elements (multiple paragraphs, code blocks, lists,
-etc.). Cells that span multiple columns or rows are not
-supported. Grid tables can be created easily using Emacs' table-mode
-(`M-x table-insert`).
+The row of `=`s separates the header from the table body,
+and can be omitted for a headerless table. The cells of grid
+tables may contain arbitrary block elements (multiple
+paragraphs, code blocks, lists, etc.).
+
+Cells can span multiple columns or rows:
+
+    +---------------------+----------+
+    | Property            | Earth    |
+    +=============+=======+==========+
+    |             | min   | -89.2 °C |
+    | Temperature +-------+----------+
+    | 1961-1990   | mean  | 14 °C    |
+    |             +-------+----------+
+    |             | min   | 56.7 °C  |
+    +-------------+-------+----------+
+
+A table header may contain more than one row:
+
+    +---------------------+-----------------------+
+    | Location            | Temperature 1961-1990 |
+    |                     | in degree Celsius     |
+    |                     +-------+-------+-------+
+    |                     | min   | mean  | max   |
+    +=====================+=======+=======+=======+
+    | Antarctica          | -89.2 | N/A   | 19.8  |
+    +---------------------+-------+-------+-------+
+    | Earth               | -89.2 | 14    | 56.7  |
+    +---------------------+-------+-------+-------+
 
 Alignments can be specified as with pipe tables, by putting
 colons at the boundaries of the separator line after the
@@ -4367,18 +4425,23 @@ For headerless tables, the colons go on the top line instead:
     | Right         | Left          | Centered           |
     +---------------+---------------+--------------------+
 
-##### Grid Table Limitations #####
+A table foot can be defined by enclosing it with separator lines
+that use `=` instead of `-`:
 
-Pandoc does not support grid tables with row spans or column spans.
-This means that neither variable numbers of columns across rows nor
-variable numbers of rows across columns are supported by Pandoc.
-All grid tables must have the same number of columns in each row,
-and the same number of rows in each column.  For example, the
-Docutils [sample grid tables] will not render as expected with
-Pandoc.
+     +---------------+---------------+
+     | Fruit         | Price         |
+     +===============+===============+
+     | Bananas       | $1.34         |
+     +---------------+---------------+
+     | Oranges       | $2.10         |
+     +===============+===============+
+     | Sum           | $3.44         |
+     +===============+===============+
 
-[sample grid tables]: https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#grid-tables
+The foot must always be placed at the very bottom of the table.
 
+Grid tables can be created easily using Emacs' table-mode
+(`M-x table-insert`).
 
 #### Extension: `pipe_tables` ####
 
@@ -6466,8 +6529,10 @@ beamer slide shows, and pptx slide shows.
 ### On all slides (beamer, reveal.js, pptx)
 
 With beamer and reveal.js, the configuration option `background-image` can be
-used either in the YAML metadata block or as a command-line variable to get the
-same image on every slide.
+used either in the YAML metadata block or as a command-line variable to get the same image on every slide.
+
+Note that for reveal.js, the `background-image` will be used as
+a `parallaxBackgroundImage` (see below).
 
 For pptx, you can use a [reference doc](#option--reference-doc) in which
 background images have been set on the [relevant
@@ -6476,11 +6541,12 @@ layouts](#powerpoint-layout-choice).
 #### `parallaxBackgroundImage` (reveal.js)
 
 For reveal.js, there is also the reveal.js-native option
-`parallaxBackgroundImage`, which can be used instead of `background-image` to
-produce a parallax scrolling background. You must also set
-`parallaxBackgroundSize`, and can optionally set `parallaxBackgroundHorizontal`
-and `parallaxBackgroundVertical` to configure the scrolling behaviour. See the
-[reveal.js documentation](https://revealjs.com/backgrounds/#parallax-background)
+`parallaxBackgroundImage`, which produces a parallax scrolling background.
+You must also set `parallaxBackgroundSize`, and can optionally set
+`parallaxBackgroundHorizontal`
+and `parallaxBackgroundVertical` to configure the scrolling behaviour.
+See the [reveal.js
+documentation](https://revealjs.com/backgrounds/#parallax-background)
 for more details about the meaning of these options.
 
 In reveal.js's overview mode, the parallaxBackgroundImage will show up
@@ -6852,8 +6918,8 @@ translating between Markdown and ipynb notebooks.
 Note that options and extensions that affect reading and
 writing of Markdown will also affect Markdown cells in ipynb
 notebooks.  For example, `--wrap=preserve` will preserve
-soft line breaks in Markdown cells; `--atx-headers` will
-cause ATX-style headings to be used; and `--preserve-tabs` will
+soft line breaks in Markdown cells; `--markdown-headings=setext` will
+cause Setext-style headings to be used; and `--preserve-tabs` will
 prevent tabs from being turned to spaces.
 
 # Syntax highlighting
@@ -7021,10 +7087,7 @@ second `options` parameter.
 
 A custom writer is a Lua script that defines a function
 that specifies how to render each element in a Pandoc AST.
-To see a documented example which you can modify according
-to your needs:
-
-    pandoc --print-default-data-file sample.lua
+See the [djot-writer.lua] for a full-featured example.
 
 Note that custom writers have no default template.  If you want
 to use `--standalone` with a custom writer, you will need to
@@ -7035,6 +7098,7 @@ subdirectory of your user data directory (see [Templates]).
 
 [Lua]: https://www.lua.org
 [lpeg]:  http://www.inf.puc-rio.br/~roberto/lpeg/
+[djot-writer.lua]: https://github.com/jgm/djot/blob/main/djot-writer.lua
 
 # Reproducible builds
 
@@ -7054,10 +7118,10 @@ metadata field (see [EPUB Metadata], above).
 # Running pandoc as a web server
 
 If you rename (or symlink) the pandoc executable to
-`pandoc-server`, it will start up a web server with a JSON
-API. This server exposes most of the conversion functionality
-of pandoc.  For full documentation, see the [pandoc-server]
-man page.
+`pandoc-server`, or if you call pandoc with `server` as the first
+argument, it will start up a web server with a JSON API. This
+server exposes most of the conversion functionality of pandoc. For
+full documentation, see the [pandoc-server] man page.
 
 If you rename (or symlink) the pandoc executable to
 `pandoc-server.cgi`, it will function as a CGI program
@@ -7069,6 +7133,17 @@ will be performed on the server during pandoc conversions.
 
 [pandoc-server]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-server.md
 
+# Running pandoc as a Lua interpreter
+
+Calling the pandoc executable under the name `pandoc-lua` or with
+`lua` as the first argument will make it function as a standalone
+Lua interpreter. The behavior is mostly identical to that of the
+[standalone `lua` executable][lua standalone], version 5.4.
+However, there is no REPL yet, and the `-i` option has no effect.
+For full documentation, see the [pandoc-lua] man page.
+
+[lua standalone]: https://www.lua.org/manual/5.4/manual.html#7
+[pandoc-lua]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-lua.md
 
 # A note on security
 

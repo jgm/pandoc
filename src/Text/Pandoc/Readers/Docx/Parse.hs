@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -59,6 +60,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
 import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -219,6 +221,7 @@ data TrackedChange = TrackedChange ChangeType ChangeInfo
 
 data ParagraphStyle = ParagraphStyle { pStyle      :: [ParStyle]
                                      , indentation :: Maybe ParIndentation
+                                     , numbered    :: Bool
                                      , dropCap     :: Bool
                                      , pChange     :: Maybe TrackedChange
                                      , pBidi       :: Maybe Bool
@@ -228,6 +231,7 @@ data ParagraphStyle = ParagraphStyle { pStyle      :: [ParStyle]
 defaultParagraphStyle :: ParagraphStyle
 defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , indentation = Nothing
+                                       , numbered    = False
                                        , dropCap     = False
                                        , pChange     = Nothing
                                        , pBidi       = Just False
@@ -278,12 +282,12 @@ rowsToRowspans rows = let
       -> Maybe Integer -- Number of columns left below
       -> Maybe [(Int, Cell)] -- (rowspan so far, cell) for the row below this one
       -> [(Int, Cell)] -- (rowspan so far, cell) for this row
-    g cells _ Nothing = zip (repeat 1) cells
+    g cells _ Nothing = map (1,) cells
     g cells columnsLeftBelow (Just rowBelow) =
         case cells of
           [] -> []
           thisCell@(Cell thisGridSpan _ _) : restOfRow -> case rowBelow of
-            [] -> zip (repeat 1) cells
+            [] -> map (1,) cells
             (spanSoFarBelow, Cell gridSpanBelow vmerge _) : _ ->
               let spanSoFar = case vmerge of
                     Restart -> 1
@@ -688,6 +692,11 @@ pHeading = getParStyleField headingLev . pStyle
 pNumInfo :: ParagraphStyle -> Maybe (T.Text, T.Text)
 pNumInfo = getParStyleField numInfo . pStyle
 
+mkListItem :: ParagraphStyle -> Text -> Text -> [ParPart] -> D BodyPart
+mkListItem parstyle numId lvl parparts = do
+  lvlInfo <- lookupLevel numId lvl <$> asks envNumbering
+  return $ ListItem parstyle numId lvl lvlInfo parparts
+
 pStyleIndentation :: ParagraphStyle -> Maybe ParIndentation
 pStyleIndentation style = (getParStyleField indent . pStyle) style
 
@@ -700,38 +709,43 @@ elemToBodyPart ns element
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
-    parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
+    parstyle <- elemToParagraphStyle ns element
+                <$> asks envParStyles
+                <*> asks envNumbering
     parparts <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
-    levelInfo <- lookupLevel numId lvl <$> asks envNumbering
-    return $ ListItem parstyle numId lvl levelInfo parparts
+    case pHeading parstyle of
+      Nothing -> mkListItem parstyle numId lvl parparts
+      Just _  -> do
+        return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
-      parstyle <- elemToParagraphStyle ns element <$> asks envParStyles
+      parstyle <- elemToParagraphStyle ns element
+                  <$> asks envParStyles
+                  <*> asks envNumbering
       parparts' <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
       fldCharState <- gets stateFldCharState
       modify $ \st -> st {stateFldCharState = emptyFldCharContents fldCharState}
       -- Word uses list enumeration for numbered headings, so we only
       -- want to infer a list from the styles if it is NOT a heading.
-      let parparts = parparts' ++ (openFldCharsToParParts fldCharState) in
-        case pHeading parstyle of
-          Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
-                      levelInfo <- lookupLevel numId lvl <$> asks envNumbering
-                      return $ ListItem parstyle numId lvl levelInfo parparts
-          _ -> let
-            hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
+      let parparts = parparts' ++ (openFldCharsToParParts fldCharState)
+      case pHeading parstyle of
+        Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
+                    mkListItem parstyle numId lvl parparts
+        _ -> let
+          hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
 
-            hasSimpleTableField = fromMaybe False $ do
-              fldSimple <- findChildByName ns "w" "fldSimple" element
-              instr <- findAttrByName ns "w" "instr" fldSimple
-              pure ("Table" `elem` T.words instr)
+          hasSimpleTableField = fromMaybe False $ do
+            fldSimple <- findChildByName ns "w" "fldSimple" element
+            instr <- findAttrByName ns "w" "instr" fldSimple
+            pure ("Table" `elem` T.words instr)
 
-            hasComplexTableField = fromMaybe False $ do
-              instrText <- findElementByName ns "w" "instrText" element
-              pure ("Table" `elem` T.words (strContent instrText))
+          hasComplexTableField = fromMaybe False $ do
+            instrText <- findElementByName ns "w" "instrText" element
+            pure ("Table" `elem` T.words (strContent instrText))
 
-            in if hasCaptionStyle && (hasSimpleTableField || hasComplexTableField)
-              then return $ TblCaption parstyle parparts
-              else return $ Paragraph parstyle parparts
+          in if hasCaptionStyle && (hasSimpleTableField || hasComplexTableField)
+            then return $ TblCaption parstyle parparts
+            else return $ Paragraph parstyle parparts
 
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
@@ -1115,15 +1129,22 @@ getTrackedChange ns element
       Just $ TrackedChange Deletion (ChangeInfo cId cAuthor mcDate)
 getTrackedChange _ _ = Nothing
 
-elemToParagraphStyle :: NameSpaces -> Element -> ParStyleMap -> ParagraphStyle
-elemToParagraphStyle ns element sty
+elemToParagraphStyle :: NameSpaces -> Element
+                     -> ParStyleMap
+                     -> Numbering
+                     -> ParagraphStyle
+elemToParagraphStyle ns element sty numbering
   | Just pPr <- findChildByName ns "w" "pPr" element =
     let style =
           mapMaybe
           (fmap ParaStyleId . findAttrByName ns "w" "val")
           (findChildrenByName ns "w" "pStyle" pPr)
+        pStyle' = mapMaybe (`M.lookup` sty) style
     in ParagraphStyle
-      {pStyle = mapMaybe (`M.lookup` sty) style
+      {pStyle = pStyle'
+      , numbered = case getNumInfo ns element of
+          Just (numId, lvl) -> isJust $ lookupLevel numId lvl numbering
+          Nothing -> isJust $ getParStyleField numInfo pStyle'
       , indentation =
           getIndentation ns element
       , dropCap =
@@ -1143,7 +1164,7 @@ elemToParagraphStyle ns element sty
                       getTrackedChange ns
       , pBidi = checkOnOff ns pPr (elemName ns "w" "bidi")
       }
-elemToParagraphStyle _ _ _ =  defaultParagraphStyle
+  | otherwise = defaultParagraphStyle
 
 elemToRunStyleD :: NameSpaces -> Element -> D RunStyle
 elemToRunStyleD ns element

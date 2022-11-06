@@ -76,6 +76,65 @@ ensuring backwards compatibility.
 [patterns]: http://lua-users.org/wiki/PatternsTutorial
 [lpeg]: http://www.inf.puc-rio.br/~roberto/lpeg/
 
+# Bytestring readers
+
+Pandoc expects text input to be UTF-8 encoded. However, formats
+like docx, odt, epub, etc. are not text but binary formats. To
+read them, pandoc supports `ByteStringReader` functions. These
+functions work just like the `Reader` function that process text
+input, but instead of a list of sources, `ByteStringReader`
+functions are passed a bytestring, i.e., a string that contains
+the binary input.
+
+``` lua
+-- read input as epub
+function ByteStringReader (input)
+  return pandoc.read(input, 'epub')
+end
+```
+
+# Format extensions
+
+Custom readers can be built such that their behavior is
+controllable through format extensions, such as `smart`,
+`citations`, or `hard-line-breaks`. Supported extensions are those
+that are present as a key in the global `Extensions` table.
+Fields of extensions that are enabled default have the value
+`true`, while those that are supported but disabled have value
+`false`.
+
+Example: A writer with the following global table supports the
+extensions `smart`, `citations`, and `foobar`, with `smart` enabled and
+the other two disabled by default:
+
+``` lua
+Extensions = {
+  smart = true,
+  citations = false,
+  foobar = false
+}
+```
+
+The users control extensions as usual, e.g., `pandoc -f
+my-reader.lua+citations`. The extensions are accessible through
+the reader options' `extensions` field, e.g.:
+
+``` lua
+function Reader (input, opts)
+  print(
+    'The citations extension is',
+    opts.extensions:includes 'citations' and 'enabled' or 'disabled'
+  )
+  -- ...
+end
+```
+
+Extensions that are neither enabled nor disabled in the
+`Extensions` field are treated as unsupported by the
+reader. Trying to modify such an extension via the command line
+will lead to an error.
+
+
 # Example: plain text reader
 
 This is a simple example using [lpeg] to parse the input

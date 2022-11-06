@@ -11,7 +11,7 @@ import Text.Pandoc.Builder
 import qualified Data.Text as T
 
 jats :: (ToPandoc a) => a -> Text
-jats = purely (writeJATS def{ writerWrapText = WrapNone })
+jats = purely (writeJatsArchiving def{ writerWrapText = WrapNone })
      . toPandoc
 
 jatsArticleAuthoring :: (ToPandoc a) => a -> Text

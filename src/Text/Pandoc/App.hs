@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -16,8 +14,11 @@ Does a pandoc conversion based on command-line options.
 -}
 module Text.Pandoc.App (
             convertWithOpts
+          , handleOptInfo
           , Opt(..)
+          , OptInfo(..)
           , LineEnding(..)
+          , IpynbOutput (..)
           , Filter(..)
           , defaultOpts
           , parseOptions
@@ -29,9 +30,7 @@ import qualified Control.Exception as E
 import Control.Monad ( (>=>), when, forM_ )
 import Control.Monad.Trans ( MonadIO(..) )
 import Control.Monad.Catch ( MonadMask )
-import Control.Monad.Except (throwError, catchError)
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.Char8 as B8
+import Control.Monad.Except (throwError)
 import qualified Data.ByteString.Lazy as BL
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
@@ -39,10 +38,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
-import qualified Data.Text.Encoding as TSE
 import qualified Data.Text.Encoding.Error as TE
-import qualified Data.Text.Encoding.Error as TSE
-import Network.URI (URI (..), parseURI)
 import System.Directory (doesDirectoryExist)
 import System.Exit (exitSuccess)
 import System.FilePath ( takeBaseName, takeExtension)
@@ -51,33 +47,34 @@ import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MediaBag (mediaItems)
-import Text.Pandoc.MIME (getCharset, MimeType)
 import Text.Pandoc.Image (svgToPng)
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
-                            IpynbOutput (..))
+                            IpynbOutput (..), OptInfo(..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
-                                           options)
+                                           options, handleOptInfo)
+import Text.Pandoc.App.Input (InputParameters (..), readInput)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
 import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
+import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.PDF (makePDF)
+import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.SelfContained (makeSelfContained)
-import Text.Pandoc.Shared (eastAsianLineBreakFilter, stripEmptyParagraphs,
-         headerShift, isURI, tabFilter, uriPathToPath, filterIpynbOutput,
-         defaultUserDataDir, tshow)
+import Text.Pandoc.Shared (eastAsianLineBreakFilter,
+         headerShift, filterIpynbOutput, tshow)
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
-import Text.Pandoc.Readers.Custom (readCustom)
 import qualified Text.Pandoc.UTF8 as UTF8
 #ifndef _WINDOWS
 import System.Posix.IO (stdOutput)
 import System.Posix.Terminal (queryTerminal)
 #endif
 
-convertWithOpts :: Opt -> IO ()
-convertWithOpts opts = do
+convertWithOpts :: ScriptingEngine -> Opt -> IO ()
+convertWithOpts scriptingEngine opts = do
   let outputFile = fromMaybe "-" (optOutputFile opts)
   datadir <- case optDataDir opts of
                   Nothing   -> do
@@ -100,7 +97,7 @@ convertWithOpts opts = do
   istty <- liftIO $ queryTerminal stdOutput
 #endif
 
-  res <- runIO $ convertWithOpts' istty datadir opts
+  res <- runIO $ convertWithOpts' scriptingEngine istty datadir opts
   case res of
     Left e -> E.throwIO e
     Right (output, reports) -> do
@@ -119,11 +116,12 @@ convertWithOpts opts = do
         BinaryOutput bs -> writeFnBinary outputFile bs
 
 convertWithOpts' :: (PandocMonad m, MonadIO m, MonadMask m)
-                 => Bool
+                 => ScriptingEngine
+                 -> Bool
                  -> Maybe FilePath
                  -> Opt
                  -> m (PandocOutput, [LogMessage])
-convertWithOpts' istty datadir opts = do
+convertWithOpts' scriptingEngine istty datadir opts = do
   let outputFile = fromMaybe "-" (optOutputFile opts)
   let filters = optFilters opts
   let verbosity = optVerbosity opts
@@ -151,8 +149,8 @@ convertWithOpts' istty datadir opts = do
                                (map (T.pack . takeExtension) sources) "markdown"
                            return "markdown"
 
-  let readerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') readerName
-
+  flvrd@(Format.FlavoredFormat readerNameBase _extsDiff) <-
+    Format.parseFlavoredFormat readerName
   let makeSandboxed pureReader =
         let files = maybe id (:) (optReferenceDoc opts) .
                     maybe id (:) (optEpubMetadata opts) .
@@ -168,14 +166,18 @@ convertWithOpts' istty datadir opts = do
 
   (reader, readerExts) <-
     if ".lua" `T.isSuffixOf` readerName
-       then return (TextReader (readCustom (T.unpack readerName)), mempty)
+       then do
+            let scriptPath = T.unpack readerNameBase
+            (r, extsConf) <- engineReadCustom scriptingEngine scriptPath
+            rexts         <- Format.applyExtensionsDiff extsConf flvrd
+            return (r, rexts)
        else if optSandbox opts
-               then case runPure (getReader readerName) of
+               then case runPure (getReader flvrd) of
                       Left e -> throwError e
                       Right (r, rexts) -> return (makeSandboxed r, rexts)
-               else getReader readerName
+               else getReader flvrd
 
-  outputSettings <- optToOutputSettings opts
+  outputSettings <- optToOutputSettings scriptingEngine opts
   let format = outputFormat outputSettings
   let writer = outputWriter outputSettings
   let writerName = outputWriterName outputSettings
@@ -256,9 +258,6 @@ convertWithOpts' istty datadir opts = do
   let transforms = (case optShiftHeadingLevelBy opts of
                         0             -> id
                         x             -> (headerShift x :)) .
-                   (if optStripEmptyParagraphs opts
-                       then (stripEmptyParagraphs :)
-                       else id) .
                    (if extensionEnabled Ext_east_asian_line_breaks
                           readerExts &&
                        not (extensionEnabled Ext_east_asian_line_breaks
@@ -279,14 +278,6 @@ convertWithOpts' istty datadir opts = do
                                           "beamer" -> Format "latex"
                                           _        -> Format format) :))
                    $ []
-
-  let convertTabs = tabFilter (if optPreserveTabs opts ||
-                                    readerNameBase == "t2t" ||
-                                    readerNameBase == "man" ||
-                                    readerNameBase == "tsv"
-                                  then 0
-                                  else optTabStop opts)
-
 
   when (readerNameBase == "markdown_github" ||
         writerNameBase == "markdown_github") $
@@ -313,28 +304,23 @@ convertWithOpts' istty datadir opts = do
 
   let filterEnv = Environment readerOpts writerOptions
 
-  inputs <- readSources sources
+  let inputParams = InputParameters
+        { inputReader = reader
+        , inputReaderName = readerNameBase
+        , inputReaderOptions = readerOpts
+        , inputSources = sources
+        , inputFileScope = optFileScope opts
+        , inputSpacesPerTab = if optPreserveTabs opts
+                              then Nothing
+                              else Just (optTabStop opts)
+        }
 
-  doc <- (case reader of
-           TextReader r
-             | readerNameBase == "json" ->
-                 mconcat <$>
-                    mapM (inputToText convertTabs
-                           >=> r readerOpts . (:[])) inputs
-             | optFileScope opts  ->
-                 mconcat <$> mapM
-                    (inputToText convertTabs
-                           >=> r readerOpts . (:[]))
-                    inputs
-             | otherwise -> mapM (inputToText convertTabs) inputs
-                              >>= r readerOpts
-           ByteStringReader r ->
-             mconcat <$> mapM (r readerOpts . inputToLazyByteString) inputs)
+  doc <- readInput inputParams
           >>= ( return . adjustMetadata (metadataFromFile <>)
             >=> return . adjustMetadata (<> optMetadata opts)
             >=> return . adjustMetadata (<> cslMetadata)
             >=> applyTransforms transforms
-            >=> applyFilters filterEnv filters [T.unpack format]
+            >=> applyFilters scriptingEngine filterEnv filters [T.unpack format]
             >=> (if not (optSandbox opts) &&
                     (isJust (optExtractMedia opts)
                      || writerNameBase == "docx") -- for fallback pngs
@@ -399,64 +385,6 @@ adjustMetadata f (Pandoc meta bs) = Pandoc (f meta) bs
 
 applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
 applyTransforms transforms d = return $ foldr ($) d transforms
-
-readSources :: PandocMonad m
-            => [FilePath] -> m [(FilePath, (BS.ByteString, Maybe MimeType))]
-readSources srcs =
-  mapM (\fp -> do t <- readSource fp
-                  return (if fp == "-" then "" else fp, t)) srcs
-
-readSource :: PandocMonad m
-           => FilePath -> m (BS.ByteString, Maybe MimeType)
-readSource "-" = (,Nothing) <$> readStdinStrict
-readSource src =
-  case parseURI src of
-    Just u | uriScheme u `elem` ["http:","https:"] -> openURL (T.pack src)
-           | uriScheme u == "file:" ->
-               (,Nothing) <$>
-                 readFileStrict (uriPathToPath $ T.pack $ uriPath u)
-    _       -> (,Nothing) <$> readFileStrict src
-
-utf8ToText :: PandocMonad m => FilePath -> BS.ByteString -> m Text
-utf8ToText fp bs =
-  case TSE.decodeUtf8' . dropBOM $ bs of
-    Left (TSE.DecodeError _ (Just w)) ->
-      case BS.elemIndex w bs of
-        Just offset -> throwError $ PandocUTF8DecodingError (T.pack fp) offset w
-        Nothing -> throwError $ PandocUTF8DecodingError (T.pack fp) 0 w
-    Left e -> throwError $ PandocAppError (tshow e)
-    Right t -> return t
- where
-   dropBOM bs' =
-     if "\xEF\xBB\xBF" `BS.isPrefixOf` bs'
-        then BS.drop 3 bs'
-        else bs'
-
-
-inputToText :: PandocMonad m
-            => (Text -> Text)
-            -> (FilePath, (BS.ByteString, Maybe MimeType))
-            -> m (FilePath, Text)
-inputToText convTabs (fp, (bs,mt)) =
-  (fp,) . convTabs . T.filter (/='\r') <$>
-  case mt >>= getCharset of
-    Just "UTF-8"      -> utf8ToText fp bs
-    Just "ISO-8859-1" -> return $ T.pack $ B8.unpack bs
-    Just charset      -> throwError $ PandocUnsupportedCharsetError charset
-    Nothing           -> catchError
-                           (utf8ToText fp bs)
-                           (\case
-                              PandocUTF8DecodingError{} -> do
-                                report $ NotUTF8Encoded
-                                  (if null fp
-                                      then "input"
-                                      else fp)
-                                return $ T.pack $ B8.unpack bs
-                              e -> throwError e)
-
-inputToLazyByteString :: (FilePath, (BS.ByteString, Maybe MimeType))
-                      -> BL.ByteString
-inputToLazyByteString (_, (bs,_)) = BL.fromStrict bs
 
 writeFnBinary :: FilePath -> BL.ByteString -> IO ()
 writeFnBinary "-" = BL.putStr

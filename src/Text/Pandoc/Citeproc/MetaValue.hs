@@ -3,7 +3,6 @@ module Text.Pandoc.Citeproc.MetaValue
   ( referenceToMetaValue
   , metaValueToReference
   , metaValueToText
-  , metaValueToPath
   )
 where
 
@@ -27,9 +26,6 @@ metaValueToText (MetaInlines ils) = Just $ stringify ils
 metaValueToText (MetaBlocks bls) = Just $ stringify bls
 metaValueToText (MetaList xs) = T.unwords <$> mapM metaValueToText xs
 metaValueToText _ = Nothing
-
-metaValueToPath :: MetaValue -> Maybe FilePath
-metaValueToPath = fmap T.unpack . metaValueToText
 
 metaValueToBool :: MetaValue -> Maybe Bool
 metaValueToBool (MetaBool b) = Just b

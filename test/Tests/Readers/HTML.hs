@@ -98,6 +98,18 @@ tests = [ testGroup "base tag"
           , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>
             doc (divWith ("", [], [("role", "main")]) (plain (text "main content")) <> plain (text "non-main content"))
           ]
+        , testGroup "code"
+          [
+            test html "inline code block" $
+            "<code>Answer is 42</code>" =?>
+            plain (codeWith ("",[],[]) "Answer is 42")
+          ]
+        , testGroup "tt"
+          [
+            test html "inline tt block" $
+            "<tt>Answer is 42</tt>" =?>
+            plain (codeWith ("",[],[]) "Answer is 42")
+          ]
         , testGroup "samp"
           [
             test html "inline samp block" $

@@ -33,12 +33,12 @@ import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing
   ( HasIdentifierList (..), HasLastStrPosition (..), HasLogMessages (..)
   , HasMacros (..), HasQuoteContext (..), HasReaderOptions (..)
-  , ParserT, ParserState, QuoteContext (NoQuote)
+  , ParsecT, ParserState, QuoteContext (NoQuote)
   )
-import Text.Pandoc.Readers.LaTeX.Types (Macro)
+import Text.Pandoc.TeX (Macro)
 
 -- | HTML parser type
-type HTMLParser m s = ParserT s HTMLState (ReaderT HTMLLocal m)
+type HTMLParser m s = ParsecT s HTMLState (ReaderT HTMLLocal m)
 
 -- | HTML parser, expecting @Tag Text@ as tokens.
 type TagParser m = HTMLParser m [Tag Text]

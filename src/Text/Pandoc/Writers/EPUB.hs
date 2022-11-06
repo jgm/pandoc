@@ -38,6 +38,7 @@ import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Writers.Shared (ensureValidXmlIdentifiers)
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocPure as P
+import Text.Pandoc.Data (readDataFile)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Data.Time
 import Text.Pandoc.Definition
@@ -45,7 +46,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, extensionFromMimeType, getMimeType)
-import Text.Pandoc.Network.HTTP (urlEncode)
+import Text.Pandoc.URI (urlEncode)
 import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
@@ -460,7 +461,7 @@ pandocToEPUB version opts doc = do
   -- stylesheet
   stylesheets <- case epubStylesheets metadata of
                       [] -> (\x -> [B.fromChunks [x]]) <$>
-                             P.readDataFile "epub.css"
+                               readDataFile "epub.css"
                       fs -> mapM P.readFileLazy fs
   stylesheetEntries <- zipWithM
         (\bs n -> mkEntry ("styles/stylesheet" ++ show n ++ ".css") bs)
@@ -689,13 +690,13 @@ pandocToEPUB version opts doc = do
       navPointNode formatter (Div _ bs) =
         concat <$> mapM (navPointNode formatter) bs
       navPointNode _ _ = return []
-  
+
   -- Create the tocEntry from the metadata together with the sections and title.
   tocEntry <- createTocEntry meta metadata plainTitle secs navPointNode
 
   -- Create the navEntry using the metadata, all of the various writer options,
   -- the CSS and HTML helpers, the document and toc title as well as the epub version and all of the sections
-  navEntry <- createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTitle version secs navPointNode
+  navEntry <- createNavEntry meta metadata opts' True vars cssvars writeHtml tocTitle version secs navPointNode
 
   -- mimetype
   mimetypeEntry <- mkEntry "mimetype" $
@@ -740,7 +741,7 @@ createCoverPage :: PandocMonad m =>
                    -> (WriterOptions -> Pandoc -> m B8.ByteString)
                    -> Text
                    -> StateT EPUBState m ([Entry], [Entry])
-createCoverPage meta metadata opts' vars cssvars writeHtml plainTitle = 
+createCoverPage meta metadata opts' vars cssvars writeHtml plainTitle =
     case epubCoverImage metadata of
         Nothing   -> return ([],[])
         Just img  -> do
@@ -807,7 +808,7 @@ createChapterEntries opts' vars cssvars writeHtml chapters = do
                        -- remove notes or we get doubled footnotes
                        (Pandoc (setMeta "title"
                            (walk removeNote $ fromList xs) nullMeta) bs,
-                        -- Check if the chapters belongs to the frontmatter, 
+                        -- Check if the chapters belongs to the frontmatter,
                         -- backmatter of bodymatter defaulting to the body
                         case lookup "epub:type" kvs of
                              Nothing -> "bodymatter"
@@ -832,7 +833,7 @@ createChapterEntries opts' vars cssvars writeHtml chapters = do
 -- | Splits the blocks into chapters and creates a corresponding reftable
 createChaptersAndReftable :: WriterOptions -> [Block] -> ([Chapter], [(Text, Text)])
 createChaptersAndReftable opts secs = (chapters, reftable)
-  where 
+  where
     chapterHeaderLevel = writerEpubChapterLevel opts
 
     isChapterHeader :: Block -> Bool
@@ -845,18 +846,18 @@ createChaptersAndReftable opts secs = (chapters, reftable)
       -- If the header is of the same level as chapters, create a chapter
       | chapterHeaderLevel == lvl =
           Chapter [d] : secsToChapters rest
-      -- If the header is a level higher than chapters, 
+      -- If the header is a level higher than chapters,
       -- create a chapter of everything until the next chapter header.
       | chapterHeaderLevel > lvl =
           Chapter [Div attr (h:xs)] :
           secsToChapters ys ++ secsToChapters rest
             where (xs, ys) = break isChapterHeader bs
     secsToChapters bs =
-      -- If this is the last block, keep it as is, 
+      -- If this is the last block, keep it as is,
       -- otherwise create a chapter for everything until the next chapter header.
         (if null xs then id else (Chapter xs :)) $ secsToChapters ys
           where (xs, ys) = break isChapterHeader bs
-  
+
     -- Convert the sections to initial chapters
     chapters' = secsToChapters secs
 
@@ -879,7 +880,7 @@ createChaptersAndReftable opts secs = (chapters, reftable)
                     _ -> id)
           [] (parseTags raw)
     extractLinkURL' _ _ = []
-  
+
     -- Extract references for the reftable from Block elements
     extractLinkURL :: Int -> Block -> [(T.Text, T.Text)]
     extractLinkURL num (Div (ident, _, _) _)
@@ -972,17 +973,17 @@ createNavEntry :: PandocMonad m =>
                           Meta
                           -> EPUBMetadata
                           -> WriterOptions
-                          -> WriterOptions
+                          -> Bool
                           -> Context Text
                           -> (Bool -> Context Text)
                           -> (WriterOptions -> Pandoc -> m B8.ByteString)
-                          -> Text
                           -> Text
                           -> EPUBVersion
                           -> [Block]
                           -> ((Int -> [Inline] -> T.Text -> [Element] -> Element) -> Block -> StateT Int m [Element])
                           -> StateT EPUBState m Entry
-createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTitle version secs navPointNode = do
+createNavEntry meta metadata opts includeTitlePage
+               vars cssvars writeHtml tocTitle version secs navPointNode = do
   let navXhtmlFormatter :: Int -> [Inline] -> T.Text -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                     [("id", "toc-li-" <> tshow n)] $
@@ -996,12 +997,7 @@ createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTit
                                 parseXMLContents (TL.fromStrict titRendered)
                 titRendered = case P.runPure
                                 (writeHtmlStringForEPUB version
-                                  opts{ writerTemplate = Nothing
-                                      , writerVariables =
-                                          Context (M.fromList
-                                            [("pagetitle", toVal $
-                                              escapeStringForXML plainTitle)])
-                                        <> writerVariables opts}
+                                  opts{ writerTemplate = Nothing }
                                   (Pandoc nullMeta
                                     [Plain $ walk clean tit])) of
                                 Left _  -> stringify tit
@@ -1021,11 +1017,12 @@ createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTit
                     [ unode "h1" ! [("id","toc-title")] $ tocTitle
                     , unode "ol" ! [("class","toc")] $ tocBlocks ]]
   let landmarkItems = if version == EPUB3
-                         then unode "li"
+                         then [ unode "li"
                                 [ unode "a" ! [("href",
                                                   "text/title_page.xhtml")
                                                ,("epub:type", "titlepage")] $
-                                  ("Title Page" :: Text) ] :
+                                  ("Title Page" :: Text) ] |
+                                  includeTitlePage ] ++
                               [ unode "li"
                                 [ unode "a" ! [("href", "text/cover.xhtml")
                                               ,("epub:type", "cover")] $
@@ -1045,7 +1042,7 @@ createNavEntry meta metadata opts opts' vars cssvars writeHtml plainTitle tocTit
                                   ,("hidden","hidden")] $
                     [ unode "ol" landmarkItems ]
                   | not (null landmarkItems)]
-  navData <- lift $ writeHtml opts'{ writerVariables =
+  navData <- lift $ writeHtml opts{ writerVariables =
                      Context (M.fromList [("navpage", toVal' "true")
                                          ,("body-type",  toVal' "frontmatter")
                                          ])
@@ -1220,8 +1217,10 @@ modifyMediaRef oldsrc = do
          Just (n,_) -> return $ T.pack n
          Nothing    -> catchError
            (do (img, mbMime) <- P.fetchItem $ T.pack oldsrc
-               let ext = maybe (takeExtension (takeWhile (/='?') oldsrc)) T.unpack
-                         (("." <>) <$> (mbMime >>= extensionFromMimeType))
+               let ext = maybe
+                          (takeExtension (takeWhile (/='?') oldsrc))
+                          (T.unpack . ("." <>))
+                          (mbMime >>= extensionFromMimeType)
                newName <- getMediaNextNewName ext
                let newPath = "media/" ++ newName
                entry <- mkEntry newPath (B.fromChunks . (:[]) $ img)

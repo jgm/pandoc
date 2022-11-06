@@ -20,6 +20,16 @@ module Text.Pandoc.Writers.LaTeX (
   , writeBeamer
   ) where
 import Control.Monad.State.Strict
+    ( MonadState(get, put),
+      gets,
+      modify,
+      evalStateT )
+import Control.Monad
+    ( MonadPlus(mplus),
+      liftM,
+      when,
+      unless )
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
@@ -37,6 +47,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Slides
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
@@ -67,12 +78,12 @@ writeBeamer options document =
 pandocToLaTeX :: PandocMonad m
               => WriterOptions -> Pandoc -> LW m Text
 pandocToLaTeX options (Pandoc meta blocks) = do
-  -- Strip off final 'references' header if --natbib or --biblatex
+  -- Strip off 'references' header if --natbib or --biblatex
   let method = writerCiteMethod options
+  let isRefsDiv (Div ("refs",_,_) _) = True
+      isRefsDiv _ = False
   let blocks' = if method == Biblatex || method == Natbib
-                   then case reverse blocks of
-                             Div ("refs",_,_) _:xs -> reverse xs
-                             _                     -> blocks
+                   then filter (not . isRefsDiv) blocks
                    else blocks
   -- see if there are internal links
   let isInternalLink (Link _ _ (s,_))
@@ -123,7 +134,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   docLangs <- catMaybes <$>
-      mapM (toLang . Just) (ordNub (query (extract "lang") blocks))
+      mapM (toLang . Just) (nubOrd (query (extract "lang") blocks))
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
                             mapMaybe (\(x,y) ->
@@ -165,6 +176,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "numbersections" (writerNumberSections options) $
                   defField "lhs" (stLHS st) $
                   defField "graphics" (stGraphics st) $
+                  defField "svg" (stSVG st) $
                   defField "has-chapters" (stHasChapters st) $
                   defField "has-frontmatter" (documentClass `elem` frontmatterClasses) $
                   defField "listings" (writerListings options || stLHS st) $
@@ -208,9 +220,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
           maybe id (\l -> defField "lang"
                       (literal $ renderLang l)) mblang
         $ maybe id (\l -> defField "babel-lang"
-                      (literal $ toBabel l)) mblang
+                      (literal l)) (mblang >>= toBabel)
         $ defField "babel-otherlangs"
-             (map (literal . toBabel) docLangs)
+             (map literal $ mapMaybe toBabel docLangs)
         $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
@@ -282,8 +294,8 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
       hasCodeBlock _               = []
   let hasCode (Code _ _) = [True]
       hasCode _          = []
-  let classes = ordNub $ dclasses ++ hclasses
-  let kvs = ordNub $ dkvs ++ hkvs
+  let classes = nubOrd $ dclasses ++ hclasses
+  let kvs = nubOrd $ dkvs ++ hkvs
   let fragile = "fragile" `elem` classes ||
                 not (null $ query hasCodeBlock bs ++ query hasCode bs)
   let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
@@ -738,10 +750,9 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
       kvToCmd ("dir","ltr") = Just "LR"
       kvToCmd _ = Nothing
       langCmds =
-        case lang of
-           Just lng -> let l = toBabel lng
-                       in  ["foreignlanguage{" <> l <> "}"]
-           Nothing  -> []
+        case lang >>= toBabel of
+           Just l  -> ["foreignlanguage{" <> l <> "}"]
+           Nothing -> []
   let cmds = mapMaybe classToCmd classes ++ mapMaybe kvToCmd kvs ++ langCmds
   contents <- inlineListToLaTeX ils
   return $
@@ -935,7 +946,9 @@ inlineToLaTeX il@(Image _ _ (src, _))
       return empty
 inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   setEmptyLine False
-  modify $ \s -> s{ stGraphics = True }
+  let isSVG = ".svg" `T.isSuffixOf` source || ".SVG" `T.isSuffixOf` source
+  modify $ \s -> s{ stGraphics = True
+                  , stSVG = stSVG s || isSVG }
   opts <- gets stOptions
   let showDim dir = let d = text (show dir) <> "="
                     in case dimension dir attr of
@@ -959,7 +972,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
       optList = showDim Width <> showDim Height <>
                 maybe [] (\x -> ["page=" <> literal x]) (lookup "page" kvs) <>
                 maybe [] (\x -> ["trim=" <> literal x]) (lookup "trim" kvs) <>
-                maybe [] (\_ -> ["clip"]) (lookup "clip" kvs)
+                maybe [] (const ["clip"]) (lookup "clip" kvs)
       options = if null optList
                    then empty
                    else brackets $ mconcat (intersperse "," optList)
@@ -969,7 +982,8 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   source'' <- stringToLaTeX URLString source'
   inHeading <- gets stInHeading
   return $
-    (if inHeading then "\\protect\\includegraphics" else "\\includegraphics") <>
+    (if inHeading then "\\protect" else "") <>
+      (if isSVG then "\\includesvg" else "\\includegraphics") <>
     options <> braces (literal source'')
 inlineToLaTeX (Note contents) = do
   setEmptyLine False

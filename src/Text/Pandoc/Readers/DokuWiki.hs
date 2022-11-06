@@ -26,9 +26,8 @@ import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError (PandocParsecError))
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (enclosed, nested)
+import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Shared (trim, stringify, tshow)
 import Data.List (isPrefixOf, isSuffixOf)
 import qualified Safe
@@ -43,25 +42,16 @@ readDokuWiki opts s = do
   res <- runParserT parseDokuWiki def {stateOptions = opts }
            (initialSourceName sources) sources
   case res of
-       Left e  -> throwError $ PandocParsecError sources e
+       Left e  -> throwError $ fromParsecError sources e
        Right d -> return d
 
-type DWParser = ParserT Sources ParserState
+type DWParser = ParsecT Sources ParserState
 
 -- * Utility functions
 
 -- | Parse end-of-line, which can be either a newline or end-of-file.
-eol :: (Stream s m Char, UpdateSourcePos s Char) => ParserT s st m ()
+eol :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m ()
 eol = void newline <|> eof
-
-nested :: PandocMonad m => DWParser m a -> DWParser m a
-nested p = do
-  nestlevel <- stateMaxNestingLevel <$>  getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ stateMaxNestingLevel = stateMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ stateMaxNestingLevel = nestlevel }
-  return res
 
 guardColumnOne :: PandocMonad m => DWParser m ()
 guardColumnOne = getPosition >>= \pos -> guard (sourceColumn pos == 1)
@@ -164,7 +154,7 @@ nestedInlines :: (Show a, PandocMonad m)
 nestedInlines end = innerSpace <|> nestedInline
   where
     innerSpace   = try $ whitespace <* notFollowedBy end
-    nestedInline = notFollowedBy whitespace >> nested inline
+    nestedInline = notFollowedBy whitespace >> inline
 
 bold :: PandocMonad m => DWParser m B.Inlines
 bold = try $ B.strong <$> enclosed (string "**") nestedInlines
@@ -254,7 +244,7 @@ nocache :: PandocMonad m => DWParser m B.Inlines
 nocache = try $ mempty <$ string "~~NOCACHE~~"
 
 str :: PandocMonad m => DWParser m B.Inlines
-str = B.str <$> (many1Char alphaNum <|> countChar 1 characterReference)
+str = B.str <$> (many1Char alphaNum <|> characterReference)
 
 symbol :: PandocMonad m => DWParser m B.Inlines
 symbol = B.str <$> countChar 1 nonspaceChar

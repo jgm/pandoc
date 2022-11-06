@@ -27,7 +27,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (blocksToInlines, safeRead)
-import Text.Pandoc.Network.HTTP (urlEncode)
+import Text.Pandoc.URI (urlEncode)
 
 import Control.Monad (mzero, void)
 import Data.List (intercalate, intersperse)

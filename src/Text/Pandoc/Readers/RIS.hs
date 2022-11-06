@@ -29,7 +29,7 @@ import Citeproc (Reference(..), ItemId(..), Val(..), Date(..), DateParts(..),
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
-import Text.Pandoc.Citeproc.BibTeX (toName)
+import Text.Pandoc.Citeproc.Name (toName, NameOpts(..))
 import Control.Monad.Except (throwError)
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -59,7 +59,7 @@ readRIS _opts inp = do
         B.doc mempty
     Left e       -> throwError e
 
-type RISParser m = ParserT Sources () m
+type RISParser m = ParsecT Sources () m
 
 risLine :: PandocMonad m => RISParser m (Text, Text)
 risLine = do
@@ -140,7 +140,9 @@ risRecordToReference keys = addId $ foldr go defref keys
                        M.insert (toVariable k) (FancyVal v)
                        (referenceVariables r) }
    addName k v r =
-     let new = toName [] . B.toList .  B.text $ v
+     let new = toName NameOpts{ nameOptsPrefixIsNonDroppingParticle = False
+                              , nameOptsUseJuniorComma = False }
+                . B.toList .  B.text $ v
          f Nothing   = Just (NamesVal new)
          f (Just (NamesVal ns)) = Just (NamesVal (new ++ ns))
          f (Just x) = Just x

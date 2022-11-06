@@ -34,9 +34,11 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents,
+                            writerTemplate, writerWrapText))
+import Text.Pandoc.Shared (camelCaseToHyphenated, linesToPara,
                            removeFormatting, trimr, tshow)
+import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)

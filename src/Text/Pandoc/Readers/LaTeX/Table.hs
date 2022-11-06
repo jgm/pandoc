@@ -7,7 +7,7 @@ where
 import Data.Functor (($>))
 import Text.Pandoc.Class
 import Text.Pandoc.Readers.LaTeX.Parsing
-import Text.Pandoc.Readers.LaTeX.Types
+import Text.Pandoc.TeX
 import Text.Pandoc.Builder as B
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -355,18 +355,18 @@ addTableCaption :: PandocMonad m => Blocks -> LP m Blocks
 addTableCaption = walkM go
   where go (Table attr c spec th tb tf) = do
           st <- getState
+          let capt = fromMaybe c $ sCaption st
           let mblabel = sLastLabel st
-          capt <- case (sCaption st, mblabel) of
-                   (Just ils, Nothing)  -> return $ caption Nothing (plain ils)
-                   (Just ils, Just lab) -> do
+          case mblabel of
+            Nothing -> return ()
+            Just lab -> do
                      num <- getNextNumber sLastTableNum
                      setState
                        st{ sLastTableNum = num
                          , sLabels = M.insert lab
                                     [Str (renderDottedNum num)]
                                     (sLabels st) }
-                     return $ caption Nothing (plain ils) -- add number??
-                   (Nothing, _)  -> return c
+          -- add num to caption?
           let attr' = case (attr, mblabel) of
                         ((_,classes,kvs), Just ident) ->
                            (ident,classes,kvs)

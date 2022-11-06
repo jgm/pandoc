@@ -1,7 +1,8 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -27,8 +28,8 @@ module Text.Pandoc.Writers
     , writeConTeXt
     , writeCslJson
     , writeDZSlides
-    , writeDocbook4
-    , writeDocbook5
+    , writeDocBook4
+    , writeDocBook5
     , writeDocx
     , writeDokuWiki
     , writeEPUB2
@@ -76,14 +77,12 @@ module Text.Pandoc.Writers
     ) where
 
 import Control.Monad.Except (throwError)
-import Control.Monad (unless)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as BL
 import Data.Text (Text)
-import qualified Data.Text as T
-import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Class
 import Text.Pandoc.Definition
+import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
@@ -92,7 +91,7 @@ import Text.Pandoc.Writers.BibTeX
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.CslJson
-import Text.Pandoc.Writers.Docbook
+import Text.Pandoc.Writers.DocBook
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
 import Text.Pandoc.Writers.EPUB
@@ -148,9 +147,9 @@ writers = [
   ,("slideous"     , TextWriter writeSlideous)
   ,("dzslides"     , TextWriter writeDZSlides)
   ,("revealjs"     , TextWriter writeRevealJs)
-  ,("docbook"      , TextWriter writeDocbook5)
-  ,("docbook4"     , TextWriter writeDocbook4)
-  ,("docbook5"     , TextWriter writeDocbook5)
+  ,("docbook"      , TextWriter writeDocBook5)
+  ,("docbook4"     , TextWriter writeDocBook4)
+  ,("docbook5"     , TextWriter writeDocBook5)
   ,("jats"         , TextWriter writeJatsArchiving)
   ,("jats_articleauthoring", TextWriter writeJatsArticleAuthoring)
   ,("jats_publishing" , TextWriter writeJatsPublishing)
@@ -193,29 +192,13 @@ writers = [
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
-getWriter :: PandocMonad m => Text -> m (Writer m, Extensions)
-getWriter s =
-  case parseFormatSpec s of
-        Left e  -> throwError $ PandocAppError $
-                    "Error parsing writer format " <> tshow s <> ": " <> tshow e
-        Right (writerName, extsToEnable, extsToDisable) ->
-           case lookup writerName writers of
-                   Nothing  -> throwError $
-                                 PandocUnknownWriterError writerName
-                   Just  w  -> do
-                     let allExts = getAllExtensions writerName
-                     let exts = foldr disableExtension
-                           (foldr enableExtension
-                             (getDefaultExtensions writerName)
-                                   extsToEnable) extsToDisable
-                     mapM_ (\ext ->
-                              unless (extensionEnabled ext allExts) $
-                                throwError $
-                                   PandocUnsupportedExtensionError
-                                   (T.drop 4 $ T.pack $ show ext) writerName)
-                          (extsToEnable ++ extsToDisable)
-                     return (w, exts)
-
+getWriter :: PandocMonad m => Format.FlavoredFormat -> m (Writer m, Extensions)
+getWriter flvrd = do
+  let writerName = Format.formatName flvrd
+  case lookup writerName writers of
+    Nothing  -> throwError $ PandocUnknownWriterError writerName
+    Just  w  -> (w,) <$>
+      Format.applyExtensionsDiff (Format.getExtensionsConfig writerName) flvrd
 
 writeJSON :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJSON _ = return . UTF8.toText . BL.toStrict . encode

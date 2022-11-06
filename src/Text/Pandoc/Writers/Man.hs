@@ -14,7 +14,9 @@ Conversion of 'Pandoc' documents to roff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan ) where
-import Control.Monad.State.Strict
+import Control.Monad ( liftM, zipWithM, forM )
+import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
+import Control.Monad.Trans (MonadTrans(lift))
 import Data.List (intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)
@@ -27,6 +29,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -73,7 +76,7 @@ pandocToMan opts (Pandoc meta blocks) = do
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
               $ defField "hyphenate" True
-              $ defField "pandoc-version" pandocVersion metadata
+                metadata
   return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main

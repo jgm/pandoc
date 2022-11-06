@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Native
    Copyright   : Copyright (C) 2006-2022 John MacFarlane

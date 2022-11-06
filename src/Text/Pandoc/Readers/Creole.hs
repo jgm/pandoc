@@ -13,7 +13,8 @@ Conversion of creole text to 'Pandoc' document.
 module Text.Pandoc.Readers.Creole ( readCreole
                                   ) where
 
-import Control.Monad.Except (guard, liftM2, throwError)
+import Control.Monad
+import Control.Monad.Except (throwError)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -36,7 +37,7 @@ readCreole opts s = do
        Left e  -> throwError e
        Right d -> return d
 
-type CRLParser = ParserT Sources ParserState
+type CRLParser = ParsecT Sources ParserState
 
 --
 -- Utility functions

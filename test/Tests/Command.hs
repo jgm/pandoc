@@ -31,7 +31,7 @@ A command test is a code block with the following format:
   contain "=> " followed by the exit status.
 
 -}
-module Tests.Command (runTest, tests)
+module Tests.Command (tests)
 where
 
 import Data.Maybe (fromMaybe)
@@ -76,21 +76,6 @@ pandocToEmulate False ('|':' ':'p':'a':'n':'d':'o':'c':cs) =
   "| " ++ "test-pandoc --emulate" ++ pandocToEmulate False cs
 pandocToEmulate _ (c:cs) = c : pandocToEmulate False cs
 pandocToEmulate _ [] = []
-
--- | Run a test, return True if test passed.
-runTest :: String    -- ^ Path to test executable
-        -> String    -- ^ Title of test
-        -> String    -- ^ Shell command
-        -> String    -- ^ Input text
-        -> String    -- ^ Expected output
-        -> TestTree
-runTest testExePath testname cmd inp norm = testCase testname $ do
-  (_ec, out) <- execTest testExePath cmd inp
-  result  <- if out == norm
-                then return TestPassed
-                else return $ TestFailed cmd "expected"
-                            $ getDiff (lines out) (lines norm)
-  assertBool (show result) (result == TestPassed)
 
 tests :: TestTree
 {-# NOINLINE tests #-}

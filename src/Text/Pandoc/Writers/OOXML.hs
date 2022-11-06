@@ -24,7 +24,7 @@ module Text.Pandoc.Writers.OOXML ( mknode
                                  ) where
 
 import Codec.Archive.Zip
-import Control.Monad.Reader
+import Control.Monad (mplus)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error
 import qualified Data.ByteString as B

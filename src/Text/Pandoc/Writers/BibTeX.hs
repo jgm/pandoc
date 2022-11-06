@@ -57,5 +57,3 @@ writeBibTeX' variant opts (Pandoc meta _) = do
     case writerTemplate opts of
       Nothing  -> main
       Just tpl -> renderTemplate tpl context
-
-

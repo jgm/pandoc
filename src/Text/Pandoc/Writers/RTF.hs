@@ -134,7 +134,7 @@ handleUnicode = T.concatMap $ \c ->
   where
     surrogate x = not (   (0x0000 <= ord x && ord x <= 0xd7ff)
                        || (0xe000 <= ord x && ord x <= 0xffff) )
-    enc x = "\\u" <> tshow (ord x) <> "?"
+    enc x = "\\u" <> tshow (ord x) <> " ?"
 
 -- | Escape special characters.
 escapeSpecial :: Text -> Text

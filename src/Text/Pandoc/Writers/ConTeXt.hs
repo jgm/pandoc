@@ -14,7 +14,9 @@
 Conversion of 'Pandoc' format into ConTeXt.
 -}
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
+import Control.Monad (liftM)
 import Control.Monad.State.Strict
+    ( StateT, MonadState(put, get), gets, modify, evalStateT )
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty ((:|)))
@@ -30,6 +32,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
@@ -309,9 +312,9 @@ tableToConTeXt (Ann.Table attr caption colspecs thead tbodies tfoot) = do
     ]
 
 setupCols :: [ColSpec] -> Doc Text
-setupCols = vcat . map toColSetup . zip [1::Int ..]
+setupCols = vcat . zipWith toColSetup [1::Int ..]
   where
-    toColSetup (i, (align, width)) =
+    toColSetup i (align, width) =
       let opts = filter (not . isEmpty)
                  [ case align of
                      AlignLeft    -> "align=right"
@@ -537,7 +540,7 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code _ str) | not ('{' `elemText` str || '}' `elemText` str) =
+inlineToConTeXt (Code _ str) | not (T.any (\c -> c == '{' || c == '}') str) =
   return $ "\\type" <> braces (literal str)
 inlineToConTeXt (Code _ str) = do
   opts <- gets stOptions

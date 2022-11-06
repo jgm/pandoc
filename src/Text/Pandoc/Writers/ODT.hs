@@ -13,6 +13,7 @@ Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Codec.Archive.Zip
+import Control.Monad
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as B
@@ -27,6 +28,7 @@ import System.FilePath (takeDirectory, takeExtension, (<.>))
 import Text.Collate.Lang (Lang (..), renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
+import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.ImageSize
@@ -34,7 +36,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
 import Text.DocLayout
-import Text.Pandoc.Shared (stringify, pandocVersion, tshow)
+import Text.Pandoc.Shared (stringify, tshow)
+import Text.Pandoc.Version (pandocVersionText)
 import Text.Pandoc.Writers.Shared (lookupMetaString, lookupMetaBlocks,
                                    fixDisplayMath, getLang,
                                    ensureValidXmlIdentifiers)
@@ -45,6 +48,7 @@ import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
 import Text.TeXMath
 import qualified Text.XML.Light as XL
+import Network.URI (parseRelativeReference, URI(uriPath))
 
 newtype ODTState = ODTState { stEntries :: [Entry]
                          }
@@ -59,9 +63,24 @@ writeODT :: PandocMonad m
 writeODT  opts doc =
   let initState = ODTState{ stEntries = []
                           }
-      doc' = ensureValidXmlIdentifiers doc
+      doc' = fixInternalLinks . ensureValidXmlIdentifiers $ doc
   in
     evalStateT (pandocToODT opts doc') initState
+
+-- | ODT internal links are evaluated relative to an imaginary folder
+-- structure that mirrors the zip structure.  The result is that relative
+-- links in the document need to start with `..`.  See #3524.
+fixInternalLinks :: Pandoc -> Pandoc
+fixInternalLinks = walk go
+ where
+  go (Link attr ils (src,tit)) =
+    Link attr ils (fixRel src,tit)
+  go x = x
+  fixRel uri =
+    case parseRelativeReference (T.unpack uri) of
+      Just u
+        | not (null (uriPath u)) -> tshow $ u{ uriPath = "../" <> uriPath u }
+      _ -> uri
 
 -- | Produce an ODT file from a Pandoc document.
 pandocToODT :: PandocMonad m
@@ -77,7 +96,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
        case writerReferenceDoc opts of
              Just f -> liftM toArchive $ lift $ P.readFileLazy f
              Nothing -> lift $ toArchive . B.fromStrict <$>
-                                P.readDataFile "reference.odt"
+                                readDataFile "reference.odt"
   -- handle formulas and pictures
   -- picEntriesRef <- P.newIORef ([] :: [Entry])
   doc' <- walkM (transformPicMath opts) $ walk fixDisplayMath doc
@@ -139,7 +158,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
            ,("xmlns:ooo","http://openoffice.org/2004/office")
            ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
            ,("office:version","1.2")] ( inTags True "office:meta" []
-                 ( metaTag "meta:generator" ("Pandoc/" <> pandocVersion)
+                 ( metaTag "meta:generator" ("Pandoc/" <> pandocVersionText)
                    $$
                    metaTag "dc:title" (stringify title)
                    $$

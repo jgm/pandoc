@@ -43,7 +43,7 @@ module Text.Pandoc.Writers.Powerpoint.Presentation ( documentToPresentation
                                                    , LinkTarget(..)
                                                    ) where
 
-
+import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.List (intercalate)

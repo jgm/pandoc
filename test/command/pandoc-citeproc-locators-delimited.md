@@ -100,7 +100,7 @@ Unbalanced curly } ends early[^18]
 
 [^6]: Subsequent, p. {(a)}.
 
-[^7]: Ibid-with-locator.
+[^7]: Ibid.
 
 [^8]: Ibid 123-35 numbers are suffix.
 

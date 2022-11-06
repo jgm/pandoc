@@ -22,6 +22,7 @@ module Text.Pandoc.Writers.JATS
   , writeJatsArticleAuthoring
   ) where
 import Control.Applicative ((<|>))
+import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)
@@ -41,6 +42,7 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Context(..), Val(..))
 import Text.Pandoc.Writers.JATS.References (referencesToJATS)
@@ -70,6 +72,7 @@ writeJatsArticleAuthoring = writeJats TagSetArticleAuthoring
 -- | Alias for @'writeJatsArchiving'@. This function exists for backwards
 -- compatibility, but will be deprecated in the future. Use
 -- @'writeJatsArchiving'@ instead.
+{-# DEPRECATED writeJATS "Use writeJatsArchiving instead" #-}
 writeJATS :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeJATS = writeJatsArchiving
 
@@ -135,8 +138,11 @@ docToJATS opts (Pandoc meta blocks) = do
                             formatTime defaultTimeLocale "%F" day)
                       ]
           Just x -> x
+  title' <- inlinesToJATS opts $ map fixLineBreak
+               (lookupMetaInlines "title" meta)
   let context = defField "body" main
               $ defField "back" back
+              $ resetField "title" title'
               $ resetField "date" date
               $ defField "mathml" (case writerHTMLMathMethod opts of
                                         MathML -> True
@@ -249,6 +255,12 @@ codeAttr opts (ident,classes,kvs) = (lang, attr)
                     "platforms", "position", "specific-use"]]
        lang  = languageFor opts classes
 
+-- <break/> is only allowed as a direct child of <td> or <title> or
+-- <article-title>
+fixLineBreak :: Inline -> Inline
+fixLineBreak LineBreak = RawInline (Format "jats") "<break/>"
+fixLineBreak x = x
+
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
 blockToJATS _ Null = return empty
@@ -257,7 +269,7 @@ blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
                | not (T.null id')]
   let otherAttrs = ["sec-type", "specific-use"]
   let attribs = idAttr ++ [(k,v) | (k,v) <- kvs, k `elem` otherAttrs]
-  title' <- inlinesToJATS opts ils
+  title' <- inlinesToJATS opts (map fixLineBreak ils)
   contents <- blocksToJATS opts xs
   return $ inTags True "sec" attribs $
       inTagsSimple "title" title' $$ contents
@@ -287,7 +299,7 @@ blockToJATS opts (Div (ident,_,kvs) bs) = do
                  "content-type", "orientation", "position"]]
   return $ inTags True "boxed-text" attr contents
 blockToJATS opts (Header _ _ title) = do
-  title' <- inlinesToJATS opts title
+  title' <- inlinesToJATS opts (map fixLineBreak title)
   return $ inTagsSimple "title" title'
 -- No Plain, everything needs to be in a block-level tag
 blockToJATS opts (Plain lst) = blockToJATS opts (Para lst)

@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE BangPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown
    Copyright   : Copyright (C) 2006-2022 John MacFarlane
@@ -20,8 +21,9 @@ module Text.Pandoc.Writers.Markdown (
   writeCommonMark,
   writeMarkua,
   writePlain) where
-import Control.Monad.Reader
-import Control.Monad.State.Strict
+import Control.Monad (foldM, zipWithM, MonadPlus(..), when)
+import Control.Monad.Reader ( asks, MonadReader(local) )
+import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
 import Data.List (intersperse, sortOn)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
@@ -29,6 +31,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
+import Data.Char (isSpace)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), isTagText, parseTags)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -309,7 +312,7 @@ classOrAttrsToMarkdown ("",[cls],[]) = literal cls
 classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parser Text ParserState ()
+olMarker :: Parsec Text ParserState ()
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&
@@ -396,7 +399,7 @@ blockToMarkdown' opts (Div attrs ils) = do
 blockToMarkdown' opts (Plain inlines) = do
   -- escape if para starts with ordered list marker
   variant <- asks envVariant
-  let escapeMarker = T.concatMap $ \x -> if x `elemText` ".()"
+  let escapeMarker = T.concatMap $ \x -> if T.any (== x) ".()"
                                          then T.pack ['\\', x]
                                          else T.singleton x
   let startsWithSpace (Space:_)     = True
@@ -448,6 +451,8 @@ blockToMarkdown' opts b@(RawBlock f str) = do
     Commonmark
       | f `elem` ["gfm", "commonmark", "commonmark_x", "markdown"]
          -> return $ literal str <> literal "\n"
+      | f `elem` ["html", "html5", "html4"]
+         -> return $ literal (removeBlankLinesInHTML str) <> literal "\n"
     Markdown
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"]
@@ -631,7 +636,7 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
                 (id,) <$> pipeTable opts (all null headers) aligns' widths'
                            rawHeaders rawRows
             | isEnabled Ext_raw_html opts -> fmap (id,) $
-                   literal <$>
+                   literal . removeBlankLinesInHTML <$>
                    writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [t])
             | otherwise -> return (id, literal "[TABLE]")
   return $ nst (tbl $$ caption'') $$ blankline
@@ -822,3 +827,12 @@ lineBreakToSpace :: Inline -> Inline
 lineBreakToSpace LineBreak = Space
 lineBreakToSpace SoftBreak = Space
 lineBreakToSpace x         = x
+
+removeBlankLinesInHTML :: Text -> Text
+removeBlankLinesInHTML = T.pack . go False . T.unpack
+  where go _ [] = []
+        go True ('\n':cs) = "&#10;" <> go False cs
+        go False ('\n':cs) = '\n' : go True cs
+        go !afternewline (!c:cs)
+          | isSpace c = c : go afternewline cs
+          | otherwise = c : go False cs
