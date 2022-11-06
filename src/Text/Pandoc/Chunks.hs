@@ -21,21 +21,22 @@ module Text.Pandoc.Chunks
   , ChunkedDoc(..)
   , PathTemplate(..)
   , splitIntoChunks
+  , toTOCTree
+  , SecInfo(..)
   ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (makeSections, stringify)
 import Text.Pandoc.Walk (Walkable(..))
 import Data.Text (Text)
 import Text.Printf (printf)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isNothing)
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.List (find)
 import Data.String (IsString)
 import GHC.Generics (Generic)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
-import Text.Pandoc.Writers.Shared (toTOCTree, SecInfo(..))
-import Data.Tree (Tree)
+import Data.Tree (Tree(..))
 
 -- | Split 'Pandoc' into 'Chunk's, e.g. for conversion into
 -- a set of HTML pages or EPUB chapters.
@@ -323,4 +324,43 @@ instance Walkable Block ChunkedDoc where
     chunks' <- walkM f (chunkedChunks doc)
     return $ doc{ chunkedMeta = meta'
                 , chunkedChunks = chunks' }
+
+-- | Data for a section in a hierarchical document.
+data SecInfo =
+  SecInfo
+  { secTitle :: [Inline]
+  , secNumber :: Maybe Text
+  , secId :: Text
+  , secPath :: Text
+  , secLevel :: Int
+  } deriving (Show, Ord, Eq)
+
+instance Walkable Inline SecInfo where
+  query f sec = query f (secTitle sec)
+  walk f sec = sec{ secTitle = walk f (secTitle sec) }
+  walkM f sec = do
+    st <- walkM f (secTitle sec)
+    return sec{ secTitle = st }
+
+-- | Create tree of sections with titles, links, and numbers,
+-- in a form that can be turned into a table of contents.
+-- Presupposes that the '[Block]' is the output of 'makeSections'.
+toTOCTree :: [Block] -> Tree SecInfo
+toTOCTree bs =
+  Node SecInfo{ secTitle = []
+              , secNumber = Nothing
+              , secId = ""
+              , secPath = ""
+              , secLevel = 0 } $ foldr go [] bs
+ where
+  go :: Block -> [Tree SecInfo] -> [Tree SecInfo]
+  go (Div (ident,_,_) (Header lev (_,classes,kvs) ils : subsecs))
+    | not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
+    = ((Node SecInfo{ secTitle = ils
+                    , secNumber = lookup "number" kvs
+                    , secId = ident
+                    , secPath = ""
+                    , secLevel = lev } (foldr go [] subsecs)) :)
+  go (Div _ [d@Div{}]) = go d -- #8402
+  go _ = id
 

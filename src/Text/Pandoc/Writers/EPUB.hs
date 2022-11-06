@@ -36,6 +36,7 @@ import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
 import Text.Pandoc.Writers.Shared (ensureValidXmlIdentifiers)
+import Data.Tree (Tree(..))
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocPure as P
 import Text.Pandoc.Data (readDataFile)
@@ -50,17 +51,19 @@ import Text.Pandoc.URI (urlEncode)
 import Text.Pandoc.Options (EPUBVersion (..), HTMLMathMethod (..),
                             ObfuscationMethod (NoObfuscation), WrapOption (..),
                             WriterOptions (..))
-import Text.Pandoc.Shared (makeSections, normalizeDate, renderTags',
+import Text.Pandoc.Shared (normalizeDate, renderTags',
                            stringify, uniqueIdent, tshow)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.UUID (getRandomUUID)
-import Text.Pandoc.Walk (query, walk, walkM)
+import Text.Pandoc.Walk (walk, walkM)
 import Text.Pandoc.Writers.HTML (writeHtmlStringForEPUB)
 import Text.Printf (printf)
 import Text.Pandoc.XML.Light
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (FromContext(lookupContext), Context(..),
                           ToContext(toVal), Val(..))
+import Text.Pandoc.Chunks (splitIntoChunks, Chunk(..), ChunkedDoc(..),
+                           SecInfo(..))
 
 -- A Chapter includes a list of blocks.
 newtype Chapter = Chapter [Block]
@@ -693,11 +696,14 @@ pandocToEPUB version opts doc = do
       navPointNode _ _ = return []
 
   -- Create the tocEntry from the metadata together with the sections and title.
-  tocEntry <- createTocEntry meta metadata plainTitle secs navPointNode
+  tocEntry <- createTocEntry meta metadata plainTitle (chunkedTOC chunkedDoc)
+               navPointNode
 
   -- Create the navEntry using the metadata, all of the various writer options,
   -- the CSS and HTML helpers, the document and toc title as well as the epub version and all of the sections
-  navEntry <- createNavEntry meta metadata opts' True vars cssvars writeHtml tocTitle version secs navPointNode
+  navEntry <- createNavEntry meta metadata opts' True vars cssvars
+                writeHtml tocTitle version (chunkedTOC chunkedDoc)
+                navPointNode
 
   -- mimetype
   mimetypeEntry <- mkEntry "mimetype" $
@@ -920,13 +926,14 @@ createChaptersAndReftable chapterHeaderLevel secs = (chapters, reftable)
                 chapters'
 
 createTocEntry :: PandocMonad m =>
-                          Meta
-                          -> EPUBMetadata
-                          -> Text
-                          -> [Block]
-                          -> ((Int -> [Inline] -> T.Text -> [Element] -> Element) -> Block -> StateT Int m [Element])
-                          -> StateT EPUBState m Entry
-createTocEntry meta metadata plainTitle secs navPointNode = do
+                  Meta
+               -> EPUBMetadata
+               -> Text
+               -> Tree SecInfo
+               -> ((Int -> [Inline] -> T.Text -> [Element] -> Element)
+                      -> Block -> StateT Int m [Element])
+               -> StateT EPUBState m Entry
+createTocEntry meta metadata plainTitle toctree navPointNode = do
   let navMapFormatter :: Int -> [Inline] -> T.Text -> [Element] -> Element
       navMapFormatter n tit src subs = unode "navPoint" !
                [("id", "navPoint-" <> tshow n)] $
@@ -978,11 +985,11 @@ createNavEntry :: PandocMonad m =>
                           -> (WriterOptions -> Pandoc -> m B8.ByteString)
                           -> Text
                           -> EPUBVersion
-                          -> [Block]
+                          -> Tree SecInfo
                           -> ((Int -> [Inline] -> T.Text -> [Element] -> Element) -> Block -> StateT Int m [Element])
                           -> StateT EPUBState m Entry
 createNavEntry meta metadata opts includeTitlePage
-               vars cssvars writeHtml tocTitle version secs navPointNode = do
+               vars cssvars writeHtml tocTitle version toctree navPointNode = do
   let navXhtmlFormatter :: Int -> [Inline] -> T.Text -> [Element] -> Element
       navXhtmlFormatter n tit src subs = unode "li" !
                                     [("id", "toc-li-" <> tshow n)] $

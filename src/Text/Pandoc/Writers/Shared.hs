@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -34,8 +35,6 @@ module Text.Pandoc.Writers.Shared (
                      , toSubscript
                      , toSuperscript
                      , toTableOfContents
-                     , toTOCTree
-                     , SecInfo(..)
                      , endsWithPlain
                      , toLegacyTable
                      , splitSentences
@@ -44,7 +43,6 @@ module Text.Pandoc.Writers.Shared (
 where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
-import Data.Maybe (isNothing)
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter)
@@ -59,11 +57,12 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (Walkable(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
+import Text.Pandoc.Chunks (toTOCTree, SecInfo(..))
 import Data.Tree
 
 -- | Create template Context from a 'Meta' and an association list
@@ -435,34 +434,6 @@ toTableOfContents opts =
   . toTOCTree
   . makeSections (writerNumberSections opts) Nothing
 
-data SecInfo =
-  SecInfo
-  { secTitle :: [Inline]
-  , secNumber :: Maybe Text
-  , secIdent :: Text
-  , secLevel :: Int
-  } deriving (Show, Ord, Eq)
-
--- | Create tree of sections with titles, links, and numbers,
--- in a form that can be turned into a table of contents.
--- Presupposes that the '[Block]' is the output of 'makeSections'.
-toTOCTree :: [Block] -> Tree SecInfo
-toTOCTree bs =
-  Node SecInfo{ secTitle = []
-              , secNumber = Nothing
-              , secIdent = ""
-              , secLevel = 0 } $ foldr go [] bs
- where
-  go :: Block -> [Tree SecInfo] -> [Tree SecInfo]
-  go (Div (ident,_,_) (Header lev (_,classes,kvs) ils : subsecs))
-    | not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
-    = ((Node SecInfo{ secTitle = ils
-                    , secNumber = lookup "number" kvs
-                    , secIdent = ident
-                    , secLevel = lev } (foldr go [] subsecs)) :)
-  go (Div _ [d@Div{}]) = go d -- #8402
-  go _ = id
-
 tocEntryToLink :: SecInfo -> [Inline]
 tocEntryToLink secinfo = headerLink
  where
@@ -473,12 +444,12 @@ tocEntryToLink secinfo = headerLink
   clean (Link _ xs _) = xs
   clean (Note _) = []
   clean x = [x]
-  ident = secIdent secinfo
+  ident = secId secinfo
   headerText = addNumber $ walk (concatMap clean) (secTitle secinfo)
   headerLink = if T.null ident
                   then headerText
                   else [Link ("toc-" <> ident, [], [])
-                         headerText ("#" <> ident, "")]
+                         headerText (secPath secinfo <> "#" <> ident, "")]
 
 tocToList :: Int -> Tree SecInfo -> Block
 tocToList tocDepth (Node _ subtrees)
