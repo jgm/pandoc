@@ -536,7 +536,8 @@ pandocToEPUB version opts doc = do
                                              (docTitle' meta) : blocks
 
   -- create the chapters and their reftable from the original options and the sections
-  let (chapters, reftable) = createChaptersAndReftable opts secs
+  let (chapters, reftable) =
+        createChaptersAndReftable (writerEpubChapterLevel opts) secs
 
   -- Create the chapter entries from the chapters.
   -- Also requires access to the extended writer options and context
@@ -831,11 +832,9 @@ createChapterEntries opts' vars cssvars writeHtml chapters = do
   zipWithM chapToEntry [1..] chapters
 
 -- | Splits the blocks into chapters and creates a corresponding reftable
-createChaptersAndReftable :: WriterOptions -> [Block] -> ([Chapter], [(Text, Text)])
-createChaptersAndReftable opts secs = (chapters, reftable)
+createChaptersAndReftable :: Int -> [Block] -> ([Chapter], [(Text, Text)])
+createChaptersAndReftable chapterHeaderLevel secs = (chapters, reftable)
   where
-    chapterHeaderLevel = writerEpubChapterLevel opts
-
     isChapterHeader :: Block -> Bool
     isChapterHeader (Div _ (Header n _ _:_)) = n <= chapterHeaderLevel
     isChapterHeader _ = False
