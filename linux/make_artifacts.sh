@@ -1,5 +1,7 @@
 set -e
 
+CABALOPTS=-f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' -j4
+
 MACHINE=$(uname -m)
 case "$MACHINE" in
   x86_64)  ARCHITECTURE=amd64;;
@@ -27,7 +29,8 @@ ghc --version
 
 cabal update
 cabal clean
-cabal build -f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' -j4 all
+cabal build $CABALOPTS all
+cabal test $CABALOPTS all
 for f in $(find dist-newstyle -name 'pandoc' -type f -perm /400); do cp $f $ARTIFACTS/; done
 
 # Confirm that we have static builds
