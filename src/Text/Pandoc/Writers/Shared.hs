@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -42,7 +43,6 @@ module Text.Pandoc.Writers.Shared (
 where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
-import Data.Maybe (fromMaybe, isNothing)
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter)
@@ -57,11 +57,13 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (Walkable(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
+import Text.Pandoc.Chunks (toTOCTree, SecInfo(..))
+import Data.Tree
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -427,35 +429,39 @@ toSubscript c
 toTableOfContents :: WriterOptions
                   -> [Block]
                   -> Block
-toTableOfContents opts bs =
-  BulletList $ filter (not . null)
-             $ map (sectionToListItem opts)
-             $ makeSections (writerNumberSections opts) Nothing bs
+toTableOfContents opts =
+  tocToList (writerTOCDepth opts)
+  . toTOCTree
+  . makeSections (writerNumberSections opts) Nothing
 
--- | Converts a section Div to a list item for a table of contents;
--- returns an empty list if the given block is not a section Div.
-sectionToListItem :: WriterOptions -> Block -> [Block]
-sectionToListItem opts (Div (ident,_,_)
-                         (Header lev (_,classes,kvs) ils : subsecs))
-  | lev <= writerTOCDepth opts
-  , not (isNothing (lookup "number" kvs) && "unlisted" `elem` classes)
-  = Plain headerLink : [BulletList listContents | not (null listContents)]
+tocEntryToLink :: SecInfo -> [Inline]
+tocEntryToLink secinfo = headerLink
  where
-   num = fromMaybe "" $ lookup "number" kvs
-   addNumber  = if T.null num
-                   then id
-                   else (Span ("",["toc-section-number"],[])
-                           [Str num] :) . (Space :)
-   clean (Link _ xs _) = xs
-   clean (Note _) = []
-   clean x = [x]
-   headerText' = addNumber $ walk (concatMap clean) ils
-   headerLink = if T.null ident
-                   then headerText'
-                   else [Link ("toc-" <> ident, [], []) headerText' ("#" <> ident, "")]
-   listContents = filter (not . null) $ map (sectionToListItem opts) subsecs
-sectionToListItem opts (Div _ [d@Div{}]) = sectionToListItem opts d -- #8402
-sectionToListItem _ _ = []
+  addNumber  = case secNumber secinfo of
+                 Just num -> (Span ("",["toc-section-number"],[])
+                               [Str num] :) . (Space :)
+                 Nothing -> id
+  clean (Link _ xs _) = xs
+  clean (Note _) = []
+  clean x = [x]
+  ident = secId secinfo
+  headerText = addNumber $ walk (concatMap clean) (secTitle secinfo)
+  headerLink = if T.null ident
+                  then headerText
+                  else [Link ("toc-" <> ident, [], [])
+                         headerText (secPath secinfo <> "#" <> ident, "")]
+
+tocToList :: Int -> Tree SecInfo -> Block
+tocToList tocDepth (Node _ subtrees)
+  = BulletList (toItems subtrees)
+ where
+  toItems = map go . filter isBelowTocDepth
+  isBelowTocDepth (Node sec _) = secLevel sec <= tocDepth
+  go (Node secinfo xs) =
+    Plain (tocEntryToLink secinfo) :
+      if null xs
+         then []
+         else [BulletList (toItems xs)]
 
 -- | Returns 'True' iff the list of blocks has a @'Plain'@ as its last
 -- element.
