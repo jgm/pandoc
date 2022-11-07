@@ -1,6 +1,6 @@
 set -e
 
-CABALOPTS=-f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' -j4
+CABALOPTS="-f-export-dynamic -fembed_data_files --enable-executable-static --ghc-options '-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread' -j4"
 
 MACHINE=$(uname -m)
 case "$MACHINE" in
