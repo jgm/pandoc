@@ -47,6 +47,7 @@ import Text.Pandoc.Format (parseFlavoredFormat, formatName)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import System.Exit
 import GHC.Generics (Generic)
+import Network.Wai.Middleware.Cors (simpleCors)
 
 data ServerOpts =
   ServerOpts
@@ -197,7 +198,7 @@ type API =
   "version" :> Get '[PlainText, JSON] Text
 
 app :: Application
-app = serve api server
+app = simpleCors $ serve api server
 
 api :: Proxy API
 api = Proxy

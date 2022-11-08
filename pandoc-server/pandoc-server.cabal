@@ -61,7 +61,8 @@ library
                  unicode-collation     >= 0.1.1    && < 0.2,
                  servant-server        >= 0.19     && < 0.20,
                  skylighting           >= 0.13     && < 0.14,
-                 wai                   >= 0.3
+                 wai                   >= 3.2      && < 3.3,
+                 wai-cors              >= 0.2.7    && < 0.3
 
   hs-source-dirs:  src
 
