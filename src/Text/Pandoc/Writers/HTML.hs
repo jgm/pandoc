@@ -48,7 +48,6 @@ import Text.DocLayout (render, literal, Doc)
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)
-import Text.Pandoc.CSS (cssAttributes)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtml4Block,
                  formatHtmlInline, highlight, styleToCss)
@@ -1268,13 +1267,6 @@ tableRowToHtml opts (TableRow tblpart attr rownum rowhead rowbody) = do
     rowHtml
     nl
 
-alignmentToString :: Alignment -> Maybe Text
-alignmentToString = \case
-  AlignLeft    -> Just "left"
-  AlignRight   -> Just "right"
-  AlignCenter  -> Just "center"
-  AlignDefault -> Nothing
-
 colspanAttrib :: ColSpan -> Attribute
 colspanAttrib = \case
   ColSpan 1 -> mempty
@@ -1310,12 +1302,12 @@ tableCellToHtml opts ctype colAlign (Cell attr align rowspan colspan item) = do
   let align' = case align of
         AlignDefault -> colAlign
         _            -> align
-  let kvs' = case alignmentToString align' of
+  let kvs' = case htmlAlignmentToString align' of
                Nothing ->
                  kvs
                Just alignStr ->
                  if html5
-                 then addStyle ("text-align", alignStr) kvs
+                 then htmlAddStyle ("text-align", alignStr) kvs
                  else case break ((== "align") . fst) kvs of
                    (_, []) -> ("align", alignStr) : kvs
                    (xs, _:rest) -> xs ++ ("align", alignStr) : rest
@@ -1327,23 +1319,6 @@ tableCellToHtml opts ctype colAlign (Cell attr align rowspan colspan item) = do
   return $ do
     tag' ! attribs $ contents
     nl
-
--- | Adds a key-value pair to the @style@ attribute.
-addStyle :: (Text, Text) -> [(Text, Text)] -> [(Text, Text)]
-addStyle (key, value) kvs =
-  let cssToStyle = T.intercalate " " . map (\(k, v) -> k <> ": " <> v <> ";")
-  in case break ((== "style") . fst) kvs of
-    (_, []) ->
-      -- no style attribute yet, add new one
-      ("style", cssToStyle [(key, value)]) : kvs
-    (xs, (_,cssStyles):rest) ->
-      -- modify the style attribute
-      xs ++ ("style", cssToStyle modifiedCssStyles) : rest
-      where
-        modifiedCssStyles =
-          case break ((== key) . fst) $ cssAttributes cssStyles of
-            (cssAttribs, []) -> (key, value) : cssAttribs
-            (pre, _:post)    -> pre ++ (key, value) : post
 
 toListItems :: [Html] -> [Html]
 toListItems items = map toListItem items ++ [nl]

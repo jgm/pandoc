@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Text.Pandoc.Writers.Shared
    Copyright   : Copyright (C) 2013-2022 John MacFarlane
@@ -23,6 +24,9 @@ module Text.Pandoc.Writers.Shared (
                      , defField
                      , getLang
                      , tagWithAttrs
+                     , htmlAddStyle
+                     , htmlAlignmentToString
+                     , htmlAttrs
                      , isDisplayMath
                      , fixDisplayMath
                      , unsmartify
@@ -53,6 +57,7 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Text (Text)
 import qualified Text.Pandoc.Builder as Builder
+import Text.Pandoc.CSS (cssAttributes)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.DocLayout
@@ -168,9 +173,12 @@ getLang opts meta =
 
 -- | Produce an HTML tag with the given pandoc attributes.
 tagWithAttrs :: HasChars a => Text -> Attr -> Doc a
-tagWithAttrs tag (ident,classes,kvs) = hsep
-  ["<" <> text (T.unpack tag)
-  ,if T.null ident
+tagWithAttrs tag attr = "<" <> text (T.unpack tag) <> (htmlAttrs attr) <> ">"
+
+-- | Produce HTML for the given pandoc attributes, to be used in HTML tags
+htmlAttrs :: HasChars a => Attr -> Doc a
+htmlAttrs (ident, classes, kvs) = addSpaceIfNotEmpty (hsep [
+  if T.null ident
       then empty
       else "id=" <> doubleQuotes (text $ T.unpack ident)
   ,if null classes
@@ -178,7 +186,35 @@ tagWithAttrs tag (ident,classes,kvs) = hsep
       else "class=" <> doubleQuotes (text $ T.unpack (T.unwords classes))
   ,hsep (map (\(k,v) -> text (T.unpack k) <> "=" <>
                 doubleQuotes (text $ T.unpack (escapeStringForXML v))) kvs)
-  ] <> ">"
+  ])
+
+addSpaceIfNotEmpty :: HasChars a => Doc a -> Doc a
+addSpaceIfNotEmpty f = if isEmpty f then f else " " <> f
+
+-- | Adds a key-value pair to the @style@ attribute.
+htmlAddStyle :: (Text, Text) -> [(Text, Text)] -> [(Text, Text)]
+htmlAddStyle (key, value) kvs =
+  let cssToStyle = T.intercalate " " . map (\(k, v) -> k <> ": " <> v <> ";")
+  in case break ((== "style") . fst) kvs of
+    (_, []) ->
+      -- no style attribute yet, add new one
+      ("style", cssToStyle [(key, value)]) : kvs
+    (xs, (_,cssStyles):rest) ->
+      -- modify the style attribute
+      xs ++ ("style", cssToStyle modifiedCssStyles) : rest
+      where
+        modifiedCssStyles =
+          case break ((== key) . fst) $ cssAttributes cssStyles of
+            (cssAttribs, []) -> (key, value) : cssAttribs
+            (pre, _:post)    -> pre ++ (key, value) : post
+
+-- | Get the html representation of an alignment key
+htmlAlignmentToString :: Alignment -> Maybe Text
+htmlAlignmentToString = \case
+  AlignLeft    -> Just "left"
+  AlignRight   -> Just "right"
+  AlignCenter  -> Just "center"
+  AlignDefault -> Nothing
 
 -- | Returns 'True' iff the argument is an inline 'Math' element of type
 -- 'DisplayMath'.
