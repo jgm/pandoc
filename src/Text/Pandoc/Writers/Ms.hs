@@ -176,7 +176,7 @@ blockToMs opts (Para [Image attr alt (src,_tit)])
                               doubleQuotes (literal (tshow (floor hp :: Int)))
                        _ -> empty
   capt <- splitSentences <$> inlineListToMs' opts alt
-  return $ nowrap (literal ".PSPIC -C " <>
+  return $ nowrap (literal ".PSPIC " <>
              doubleQuotes (literal (escapeStr opts src)) <>
              sizeAttrs) $$
            literal ".ce 1000" $$
