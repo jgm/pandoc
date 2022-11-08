@@ -1,145 +1,152 @@
 Simple table with caption:
 
-{|
+{| class="wikitable"
 |+ Demonstration of simple table syntax.
-!align="right"| Right
-! Left
-!align="center"| Center
+|-
+! style="text-align: right;"| Right
+! style="text-align: left;"| Left
+! style="text-align: center;"| Center
 ! Default
 |-
-|align="right"| 12
-| 12
-|align="center"| 12
+| style="text-align: right;"| 12
+| style="text-align: left;"| 12
+| style="text-align: center;"| 12
 | 12
 |-
-|align="right"| 123
-| 123
-|align="center"| 123
+| style="text-align: right;"| 123
+| style="text-align: left;"| 123
+| style="text-align: center;"| 123
 | 123
 |-
-|align="right"| 1
-| 1
-|align="center"| 1
+| style="text-align: right;"| 1
+| style="text-align: left;"| 1
+| style="text-align: center;"| 1
 | 1
 |}
 
 Simple table without caption:
 
-{|
-!align="right"| Right
-! Left
-!align="center"| Center
+{| class="wikitable"
+|-
+! style="text-align: right;"| Right
+! style="text-align: left;"| Left
+! style="text-align: center;"| Center
 ! Default
 |-
-|align="right"| 12
-| 12
-|align="center"| 12
+| style="text-align: right;"| 12
+| style="text-align: left;"| 12
+| style="text-align: center;"| 12
 | 12
 |-
-|align="right"| 123
-| 123
-|align="center"| 123
+| style="text-align: right;"| 123
+| style="text-align: left;"| 123
+| style="text-align: center;"| 123
 | 123
 |-
-|align="right"| 1
-| 1
-|align="center"| 1
+| style="text-align: right;"| 1
+| style="text-align: left;"| 1
+| style="text-align: center;"| 1
 | 1
 |}
 
 Simple table indented two spaces:
 
-{|
+{| class="wikitable"
 |+ Demonstration of simple table syntax.
-!align="right"| Right
-! Left
-!align="center"| Center
+|-
+! style="text-align: right;"| Right
+! style="text-align: left;"| Left
+! style="text-align: center;"| Center
 ! Default
 |-
-|align="right"| 12
-| 12
-|align="center"| 12
+| style="text-align: right;"| 12
+| style="text-align: left;"| 12
+| style="text-align: center;"| 12
 | 12
 |-
-|align="right"| 123
-| 123
-|align="center"| 123
+| style="text-align: right;"| 123
+| style="text-align: left;"| 123
+| style="text-align: center;"| 123
 | 123
 |-
-|align="right"| 1
-| 1
-|align="center"| 1
+| style="text-align: right;"| 1
+| style="text-align: left;"| 1
+| style="text-align: center;"| 1
 | 1
 |}
 
 Multiline table with caption:
 
-{|
+{| class="wikitable"
 |+ Here’s the caption. It may span multiple lines.
-!align="center" width="15%"| Centered Header
-!width="13%"| Left Aligned
-!align="right" width="16%"| Right Aligned
-!width="35%"| Default aligned
 |-
-|align="center"| First
-| row
-|align="right"| 12.0
-| Example of a row that spans multiple lines.
+! style="text-align: center;"| Centered Header
+! style="text-align: left;"| Left Aligned
+! style="text-align: right;"| Right Aligned
+! style="text-align: left;"| Default aligned
 |-
-|align="center"| Second
-| row
-|align="right"| 5.0
-| Here’s another one. Note the blank line between rows.
+| style="text-align: center;"| First
+| style="text-align: left;"| row
+| style="text-align: right;"| 12.0
+| style="text-align: left;"| Example of a row that spans multiple lines.
+|-
+| style="text-align: center;"| Second
+| style="text-align: left;"| row
+| style="text-align: right;"| 5.0
+| style="text-align: left;"| Here’s another one. Note the blank line between rows.
 |}
 
 Multiline table without caption:
 
-{|
-!align="center" width="15%"| Centered Header
-!width="13%"| Left Aligned
-!align="right" width="16%"| Right Aligned
-!width="35%"| Default aligned
+{| class="wikitable"
 |-
-|align="center"| First
-| row
-|align="right"| 12.0
-| Example of a row that spans multiple lines.
+! style="text-align: center;"| Centered Header
+! style="text-align: left;"| Left Aligned
+! style="text-align: right;"| Right Aligned
+! style="text-align: left;"| Default aligned
 |-
-|align="center"| Second
-| row
-|align="right"| 5.0
-| Here’s another one. Note the blank line between rows.
+| style="text-align: center;"| First
+| style="text-align: left;"| row
+| style="text-align: right;"| 12.0
+| style="text-align: left;"| Example of a row that spans multiple lines.
+|-
+| style="text-align: center;"| Second
+| style="text-align: left;"| row
+| style="text-align: right;"| 5.0
+| style="text-align: left;"| Here’s another one. Note the blank line between rows.
 |}
 
 Table without column headers:
 
-{|
-|align="right"| 12
-| 12
-|align="center"| 12
-|align="right"| 12
+{| class="wikitable"
 |-
-|align="right"| 123
-| 123
-|align="center"| 123
-|align="right"| 123
+| style="text-align: right;"| 12
+| style="text-align: left;"| 12
+| style="text-align: center;"| 12
+| style="text-align: right;"| 12
 |-
-|align="right"| 1
-| 1
-|align="center"| 1
-|align="right"| 1
+| style="text-align: right;"| 123
+| style="text-align: left;"| 123
+| style="text-align: center;"| 123
+| style="text-align: right;"| 123
+|-
+| style="text-align: right;"| 1
+| style="text-align: left;"| 1
+| style="text-align: center;"| 1
+| style="text-align: right;"| 1
 |}
 
 Multiline table without column headers:
 
-{|
-|align="center" width="15%"| First
-|width="13%"| row
-|align="right" width="16%"| 12.0
-|width="35%"| Example of a row that spans multiple lines.
+{| class="wikitable"
 |-
-|align="center"| Second
-| row
-|align="right"| 5.0
+| style="text-align: center;"| First
+| style="text-align: left;"| row
+| style="text-align: right;"| 12.0
+| Example of a row that spans multiple lines.
+|-
+| style="text-align: center;"| Second
+| style="text-align: left;"| row
+| style="text-align: right;"| 5.0
 | Here’s another one. Note the blank line between rows.
 |}

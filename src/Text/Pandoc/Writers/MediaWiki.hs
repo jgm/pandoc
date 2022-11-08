@@ -19,6 +19,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.List.NonEmpty (NonEmpty((:|)))
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
@@ -28,6 +29,7 @@ import Text.DocLayout (render, literal)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML (escapeStringForXML)
 
@@ -161,19 +163,8 @@ blockToMediaWiki (BlockQuote blocks) = do
   contents <- blockListToMediaWiki blocks
   return $ "<blockquote>" <> contents <> "</blockquote>"
 
-blockToMediaWiki (Table _ blkCapt specs thead tbody tfoot) = do
-  let (capt, aligns, widths, headers, rows') = toLegacyTable blkCapt specs thead tbody tfoot
-  caption <- if null capt
-                then return ""
-                else do
-                   c <- inlineListToMediaWiki capt
-                   return $ "|+ " <> trimr c <> "\n"
-  let headless = all null headers
-  let allrows = if headless then rows' else headers:rows'
-  tableBody <- T.intercalate "|-\n" `fmap`
-                mapM (tableRowToMediaWiki headless aligns widths)
-                     (zip [1..] allrows)
-  return $ "{|\n" <> caption <> tableBody <> "|}\n"
+blockToMediaWiki (Table attr capt colSpecs thead tbody tfoot) = do
+    tableToMediaWiki (Ann.toTable attr capt colSpecs thead tbody tfoot)
 
 blockToMediaWiki x@(BulletList items) = do
   tags <-
@@ -292,46 +283,77 @@ vcat = T.intercalate "\n"
 
 -- Auxiliary functions for tables:
 
-tableRowToMediaWiki :: PandocMonad m
-                    => Bool
-                    -> [Alignment]
-                    -> [Double]
-                    -> (Int, [[Block]])
-                    -> MediaWikiWriter m Text
-tableRowToMediaWiki headless alignments widths (rownum, cells) = do
-  cells' <- mapM (tableCellToMediaWiki headless rownum)
-          $ zip3 alignments widths cells
-  return $ T.unlines cells'
+tableToMediaWiki :: PandocMonad m => Ann.Table -> MediaWikiWriter m Text
+tableToMediaWiki (Ann.Table attr capt _ thead tbodies tfoot) = do
+    let (ident,classes,kvs) = attr
+    caption <- case capt of
+        Caption _ [] -> return mempty
+        Caption _ longCapt -> do
+            c <- blockListToMediaWiki longCapt
+            return [ "|+ " <> trimr c ]
+    head' <- tableHeadToMW thead
+    bodies' <- concat <$> mapM tableBodyToMW tbodies
+    foot' <- tableFootToMW tfoot
+    return $ T.unlines $ [
+            "{|" <> (render Nothing (htmlAttrs (ident, "wikitable":classes, kvs)))
+        ] <> caption <> head' <> bodies' <> foot' <> [
+            "|}"
+        ]
 
-tableCellToMediaWiki :: PandocMonad m
-                     => Bool
-                     -> Int
-                     -> (Alignment, Double, [Block])
-                     -> MediaWikiWriter m Text
-tableCellToMediaWiki headless rownum (alignment, width, bs) = do
-  contents <- blockListToMediaWiki bs
-  let marker = if rownum == 1 && not headless then "!" else "|"
-  let percent w = tshow (truncate (100*w) :: Integer) <> "%"
-  let attrs = ["align=" <> tshow (alignmentToText alignment) |
-                 alignment /= AlignDefault && alignment /= AlignLeft] <>
-              ["width=\"" <> percent width <> "\"" |
-                 width /= 0.0 && rownum == 1]
-  let attr = if null attrs
-                then ""
-                else T.unwords attrs <> "|"
-  let sep = case bs of
-                 [Plain _] -> " "
-                 [Para  _] -> " "
-                 []        -> ""
-                 _         -> "\n"
-  return $ marker <> attr <> sep <> trimr contents
+tableHeadToMW :: PandocMonad m => Ann.TableHead -> MediaWikiWriter m [Text]
+tableHeadToMW (Ann.TableHead _ rows) = headerRowsToMW rows
 
-alignmentToText :: Alignment -> Text
-alignmentToText alignment = case alignment of
-                                 AlignLeft    -> "left"
-                                 AlignRight   -> "right"
-                                 AlignCenter  -> "center"
-                                 AlignDefault -> "left"
+tableFootToMW :: PandocMonad m => Ann.TableFoot -> MediaWikiWriter m [Text]
+tableFootToMW (Ann.TableFoot _ rows) = headerRowsToMW rows
+
+tableBodyToMW :: PandocMonad m => Ann.TableBody -> MediaWikiWriter m [Text]
+tableBodyToMW (Ann.TableBody _ _ headerRows bodyRows) = do
+  headerRows' <- headerRowsToMW headerRows
+  bodyRows' <- bodyRowsToMW bodyRows
+  return $ headerRows' <> bodyRows'
+
+headerRowsToMW :: PandocMonad m => [Ann.HeaderRow] -> MediaWikiWriter m [Text]
+headerRowsToMW rows = (\x -> mconcat x) <$> mapM headerRowToMW rows
+
+headerRowToMW :: PandocMonad m => Ann.HeaderRow -> MediaWikiWriter m [Text]
+headerRowToMW (Ann.HeaderRow attr _ cells) = do
+  cells' <- (\x -> mconcat x) <$> mapM (cellToMW "!") cells
+  return $ ["|-" <> (render Nothing (htmlAttrs attr))] <> cells'
+
+bodyRowsToMW :: PandocMonad m => [Ann.BodyRow] -> MediaWikiWriter m [Text]
+bodyRowsToMW rows = (\x -> mconcat x) <$> mapM bodyRowToMW rows
+
+bodyRowToMW :: PandocMonad m => Ann.BodyRow -> MediaWikiWriter m [Text]
+bodyRowToMW (Ann.BodyRow attr _ headCells bodyCells) = do
+  headCells' <- (\x -> mconcat x) <$> mapM (cellToMW "!") headCells
+  bodyCells' <- (\x -> mconcat x) <$> mapM (cellToMW "|") bodyCells
+  return $ ["|-" <> (render Nothing (htmlAttrs attr))] <> headCells' <> bodyCells'
+
+cellToMW :: PandocMonad m => Text -> Ann.Cell -> MediaWikiWriter m [Text]
+cellToMW marker (Ann.Cell (colSpec :| _) _ (Cell attr align rowspan colspan content)) = do
+  content' <- blockListToMediaWiki content
+  let (ident,classes,keyVals) = attr
+
+  let align' = case align of
+        AlignDefault -> fst colSpec
+        _            -> align
+  let keyVals' = case (htmlAlignmentToString align') of
+                  Nothing -> keyVals
+                  Just alignStr -> htmlAddStyle ("text-align", alignStr) keyVals
+  let rowspan' = case rowspan of
+                  RowSpan 1 -> mempty
+                  RowSpan n -> [("rowspan", T.pack(show n))]
+  let colspan' = case colspan of
+                  ColSpan 1 -> mempty
+                  ColSpan n -> [("colspan", T.pack(show n))]
+  let attrs' = addPipeIfNotEmpty (render Nothing (htmlAttrs (ident, classes, rowspan' <> colspan' <> keyVals')))
+  return [marker <> attrs' <> addSpaceIfNotEmpty(content')]
+
+addPipeIfNotEmpty :: Text -> Text
+addPipeIfNotEmpty f = if T.null f then f else f <> "|"
+
+addSpaceIfNotEmpty :: Text -> Text
+addSpaceIfNotEmpty f = if T.null f then f else " " <> f
 
 imageToMediaWiki :: PandocMonad m => Attr -> MediaWikiWriter m Text
 imageToMediaWiki attr = do
