@@ -2910,6 +2910,9 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `links-as-notes`
 :   causes links to be printed as footnotes
 
+`urlstyle`
+:   style for URLs (e.g., tt, same)
+
 #### Front matter
 
 `lof`, `lot`
