@@ -89,7 +89,7 @@ applyFilters scrngin fenv filters args d = do
   applyFilter doc (LuaFilter f)  =
     withMessages f $ engineApplyFilter scrngin fenv args f doc
   applyFilter doc CiteprocFilter =
-    processCitations doc
+    withMessages "citeproc" $ processCitations doc
   withMessages f action = do
     verbosity <- getVerbosity
     when (verbosity == INFO) $ report $ RunningFilter f
