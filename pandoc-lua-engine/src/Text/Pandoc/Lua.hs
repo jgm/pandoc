@@ -13,8 +13,7 @@ Running pandoc Lua filters.
 module Text.Pandoc.Lua
   ( -- * High-level functions
     applyFilter
-  , readCustom
-  , writeCustom
+  , loadCustom
   -- * Low-level functions
   , Global(..)
   , setGlobals
@@ -30,8 +29,7 @@ import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Filter (applyFilter)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLua, runLuaNoEnv)
-import Text.Pandoc.Lua.Reader (readCustom)
-import Text.Pandoc.Lua.Writer (writeCustom)
+import Text.Pandoc.Lua.Custom (loadCustom)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Scripting (ScriptingEngine (..))
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -46,6 +44,5 @@ getEngine = do
   pure $ ScriptingEngine
     { engineName = maybe "Lua (unknown version)" UTF8.toText versionName
     , engineApplyFilter = applyFilter
-    , engineReadCustom = readCustom
-    , engineWriteCustom = writeCustom
+    , engineLoadCustom = loadCustom
     }

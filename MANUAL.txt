@@ -7094,8 +7094,8 @@ Lua script in place of the input or output format. For example:
     pandoc -f my_custom_markup_language.lua -t latex -s
 
 If the script is not found relative to the working directory,
-it will be sought in the `readers` or `writers` subdirectory
-of the user data directory (see `--data-dir`).
+it will be sought in the `custom` subdirectory of the user data
+directory (see `--data-dir`).
 
 A custom reader is a Lua script that defines one function,
 Reader, which takes a string as input and returns a Pandoc
