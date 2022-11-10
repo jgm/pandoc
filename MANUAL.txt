@@ -2641,6 +2641,9 @@ ODT or pptx.
 :   sets the CSS `line-height` property on the `html` element,
     which is preferred to be unitless.
 
+`maxwidth`
+:   sets the CSS `max-width` property (default is 32em).
+
 `backgroundcolor`
 :   sets the CSS `background-color` property on the `html` element.
 

@@ -1,14 +1,20 @@
 $if(document-css)$
 html {
-  line-height: $if(linestretch)$$linestretch$$else$1.5$endif$;
-  font-family: $if(mainfont)$$mainfont$$else$Georgia, serif$endif$;
-  font-size: $if(fontsize)$$fontsize$$else$20px$endif$;
+$if(mainfont)$
+  font-family: $mainfont$;
+$endif$
+$if(fontsize)$
+  font-size: $fontsize$;
+$endif$
+$if(linestretch)$
+  line-height: $linestretch$;
+$endif$
   color: $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
   background-color: $if(backgroundcolor)$$backgroundcolor$$else$#fdfdfd$endif$;
 }
 body {
   margin: 0 auto;
-  max-width: 36em;
+  max-width: $if(maxwidth)$$maxwidth$$else$36em$endif$;
   padding-left: $if(margin-left)$$margin-left$$else$50px$endif$;
   padding-right: $if(margin-right)$$margin-right$$else$50px$endif$;
   padding-top: $if(margin-top)$$margin-top$$else$50px$endif$;
@@ -21,7 +27,7 @@ body {
 @media (max-width: 600px) {
   body {
     font-size: 0.9em;
-    padding: 1em;
+    padding: 12px;
   }
   h1 {
     font-size: 1.8em;
