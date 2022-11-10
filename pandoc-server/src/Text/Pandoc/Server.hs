@@ -47,7 +47,8 @@ import Text.Pandoc.Format (parseFlavoredFormat, formatName)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import System.Exit
 import GHC.Generics (Generic)
-import Network.Wai.Middleware.Cors (simpleCors)
+import Network.Wai.Middleware.Cors ( cors,
+           simpleCorsResourcePolicy, CorsResourcePolicy(corsRequestHeaders) )
 
 data ServerOpts =
   ServerOpts
@@ -198,7 +199,14 @@ type API =
   "version" :> Get '[PlainText, JSON] Text
 
 app :: Application
-app = simpleCors $ serve api server
+app = corsWithContentType $ serve api server
+
+-- | Allow Content-Type header with values other then allowed by simpleCors.
+corsWithContentType :: Middleware
+corsWithContentType = cors (const $ Just policy)
+    where
+      policy = simpleCorsResourcePolicy
+        { corsRequestHeaders = ["Content-Type"] }
 
 api :: Proxy API
 api = Proxy
