@@ -1,0 +1,40 @@
+{| id="nordics" class="wikitable" source="wikipedia"
+|+ States belonging to the ''Nordics.''
+|-
+! style="text-align: center;"| Name
+! style="text-align: center;"| Capital
+! style="text-align: center;"| Population<br />
+(in 2018)
+! style="text-align: center;"| Area<br />
+(in km<sup>2</sup>)
+|- class="country"
+! style="text-align: center;"| Denmark
+| style="text-align: left;"| Copenhagen
+| style="text-align: left;"| 5,809,502
+| style="text-align: left;"| 43,094
+|- class="country"
+! style="text-align: center;"| Finland
+| style="text-align: left;"| Helsinki
+| style="text-align: left;"| 5,537,364
+| style="text-align: left;"| 338,145
+|- class="country"
+! style="text-align: center;"| Iceland
+| style="text-align: left;"| Reykjavik
+| style="text-align: left;"| 343,518
+| style="text-align: left;"| 103,000
+|- class="country"
+! style="text-align: center;"| Norway
+| style="text-align: left;"| Oslo
+| style="text-align: left;"| 5,372,191
+| style="text-align: left;"| 323,802
+|- class="country"
+! style="text-align: center;"| Sweden
+| style="text-align: left;"| Stockholm
+| style="text-align: left;"| 10,313,447
+| style="text-align: left;"| 450,295
+|- id="summary"
+! style="text-align: center;"| Total
+! style="text-align: left;"|
+! id="total-population" style="text-align: left;"| 27,376,022
+! id="total-area" style="text-align: left;"| 1,258,336
+|}
