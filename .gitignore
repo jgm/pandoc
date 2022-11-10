@@ -2,7 +2,6 @@
 /build-artifacts*
 /dist-newstyle
 /dist
-/.stack-work
 /ctags
 /LOG
 /TAGS
@@ -62,3 +61,4 @@
 *.dyn_hi
 *~
 .DS_Store
+.stack-work
