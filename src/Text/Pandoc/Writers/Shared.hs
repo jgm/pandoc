@@ -172,8 +172,8 @@ getLang opts meta =
                _                                 -> Nothing
 
 -- | Produce an HTML tag with the given pandoc attributes.
-tagWithAttrs :: HasChars a => Text -> Attr -> Doc a
-tagWithAttrs tag attr = "<" <> text (T.unpack tag) <> (htmlAttrs attr) <> ">"
+tagWithAttrs :: HasChars a => a -> Attr -> Doc a
+tagWithAttrs tag attr = "<" <> literal tag <> (htmlAttrs attr) <> ">"
 
 -- | Produce HTML for the given pandoc attributes, to be used in HTML tags
 htmlAttrs :: HasChars a => Attr -> Doc a
