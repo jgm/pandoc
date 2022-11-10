@@ -51,7 +51,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             fullDefaultsPath, OptInfo(..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
-import Text.Pandoc.Scripting (ScriptingEngine (..))
+import Text.Pandoc.Scripting (ScriptingEngine (..), customTemplate)
 import Text.Pandoc.Shared (safeStrRead)
 import Text.Printf
 import qualified Control.Exception as E
@@ -161,8 +161,8 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
                       getDefaultTemplate fmt
                     _ -> do
                       -- format looks like a filepath => custom writer
-                      (_, _, mt) <- engineWriteCustom engine (T.unpack fmt)
-                      case mt of
+                      components <- engineLoadCustom engine (T.unpack fmt)
+                      case customTemplate components of
                         Just t  -> pure t
                         Nothing -> E.throw $ PandocNoTemplateError fmt
       case templ of

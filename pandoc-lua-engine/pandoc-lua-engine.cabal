@@ -64,7 +64,8 @@ library
   import:              common-options
   hs-source-dirs:      src
   exposed-modules:     Text.Pandoc.Lua
-  other-modules:       Text.Pandoc.Lua.Filter
+  other-modules:       Text.Pandoc.Lua.Custom
+                     , Text.Pandoc.Lua.Filter
                      , Text.Pandoc.Lua.Global
                      , Text.Pandoc.Lua.Init
                      , Text.Pandoc.Lua.Marshal.CommonState
@@ -87,8 +88,6 @@ library
                      , Text.Pandoc.Lua.Module.Utils
                      , Text.Pandoc.Lua.Orphans
                      , Text.Pandoc.Lua.PandocLua
-                     , Text.Pandoc.Lua.Reader
-                     , Text.Pandoc.Lua.Writer
                      , Text.Pandoc.Lua.Writer.Classic
                      , Text.Pandoc.Lua.Writer.Scaffolding
 
