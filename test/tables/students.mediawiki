@@ -1,0 +1,30 @@
+{| id="students" class="wikitable" source="mdn"
+|+ List of Students
+|-
+! style="text-align: center;"| Student ID
+! style="text-align: center;"| Name
+|-
+! colspan="2" style="text-align: left;"| Computer Science
+|-
+| style="text-align: left;"| 3741255
+| style="text-align: left;"| Jones, Martha
+|-
+| style="text-align: left;"| 4077830
+| style="text-align: left;"| Pierce, Benjamin
+|-
+| style="text-align: left;"| 5151701
+| style="text-align: left;"| Kirk, James
+|-
+! colspan="2" style="text-align: left;"| Russian Literature
+|-
+| style="text-align: left;"| 3971244
+| style="text-align: left;"| Nim, Victor
+|-
+! colspan="2" style="text-align: left;"| Astrophysics
+|-
+| style="text-align: left;"| 4100332
+| style="text-align: left;"| Petrov, Alexandra
+|-
+| style="text-align: left;"| 4100332
+| style="text-align: left;"| Toyota, Hiroko
+|}

@@ -128,7 +128,10 @@ tests pandocPath =
     , fb2WriterTest' "testsuite" [] "testsuite.native" "writer.fb2"
     ]
   , testGroup "mediawiki"
-    [ testGroup "writer" $ writerTests' "mediawiki"
+    [ testGroup "writer" $ mconcat [
+      writerTests' "mediawiki"
+      , extWriterTests' "mediawiki"
+      ]
     , test' "reader" ["-r", "mediawiki", "-w", "native", "-s"]
       "mediawiki-reader.wiki" "mediawiki-reader.native"
     ]
