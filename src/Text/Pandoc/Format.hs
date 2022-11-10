@@ -73,6 +73,14 @@ getExtensionsConfig fmt = ExtensionsConfig
   , extsSupported = getAllExtensions fmt
   }
 
+instance Semigroup ExtensionsConfig where
+  ExtensionsConfig x1 y1 <> ExtensionsConfig x2 y2 =
+    ExtensionsConfig (x1 <> x2) (y1 <> y2)
+
+instance Monoid ExtensionsConfig where
+  mappend = (<>)
+  mempty = ExtensionsConfig mempty mempty
+
 -- | Apply the extension changes in the format spec to the extensions
 -- given in the format's extensions configuration. Throws an error in
 -- case of an unknown or unsupported extension.
