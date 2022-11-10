@@ -386,6 +386,8 @@ $endif$
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 $if(urlstyle)$
 \urlstyle{$urlstyle$}
+$else$
+\urlstyle{same}
 $endif$
 $if(links-as-notes)$
 % Make links footnotes instead of hotlinks:
