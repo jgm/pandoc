@@ -60,7 +60,7 @@ import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
 import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.PDF (makePDF)
-import Text.Pandoc.Scripting (ScriptingEngine (..))
+import Text.Pandoc.Scripting (ScriptingEngine (..), CustomComponents(..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
          headerShift, filterIpynbOutput, tshow)
@@ -168,8 +168,13 @@ convertWithOpts' scriptingEngine istty datadir opts = do
     if ".lua" `T.isSuffixOf` readerName
        then do
             let scriptPath = T.unpack readerNameBase
-            (r, extsConf) <- engineReadCustom scriptingEngine scriptPath
-            rexts         <- Format.applyExtensionsDiff extsConf flvrd
+            components <- engineLoadCustom scriptingEngine scriptPath
+            r <- case customReader components of
+                   Nothing -> throwError $ PandocAppError $
+                               readerName <> " does not contain a custom reader"
+                   Just r -> return r
+            let extsConf = fromMaybe mempty (customExtensions components)
+            rexts <- Format.applyExtensionsDiff extsConf flvrd
             return (r, rexts)
        else if optSandbox opts
                then case runPure (getReader flvrd) of

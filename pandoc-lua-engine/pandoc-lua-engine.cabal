@@ -86,8 +86,7 @@ library
                      , Text.Pandoc.Lua.Module.Utils
                      , Text.Pandoc.Lua.Orphans
                      , Text.Pandoc.Lua.PandocLua
-                     , Text.Pandoc.Lua.Reader
-                     , Text.Pandoc.Lua.Writer
+                     , Text.Pandoc.Lua.Custom
                      , Text.Pandoc.Lua.Writer.Classic
                      , Text.Pandoc.Lua.Writer.Scaffolding
 
