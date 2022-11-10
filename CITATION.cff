@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: Pandoc
+message: "If you use this software, please cite it as below."
+type: software
+url: "https://github.com/jgm/pandoc"
+authors:
+  - given-names: John
+    family-names: MacFarlane
+    email: jgm@berkeley.edu
+    orcid: 'https://orcid.org/0000-0003-2557-9090'
+  - given-names: Albert
+    family-names: Krewinkel
+    email: tarleb+github@moltkeplatz.de
+    orcid: '0000-0002-9455-0796'
+  - given-names: Jesse
+    family-names: Rosenthal
+    email: jrosenthal@jhu.edu
