@@ -69,6 +69,22 @@ escapeText opts = T.pack . go' . T.unpack
              _ -> '@':go cs
   go' cs = go cs
   go [] = []
+  go ['\\'] = ['\\','\\']
+  go ('-':'-':cs)
+    | isEnabled Ext_smart opts = '\\':'-':go('-':cs)
+  go ('.':'.':'.':cs)
+    | isEnabled Ext_smart opts = '\\':'.':'.':'.':go cs
+  go (c:'_':d:cs)
+    | isAlphaNum c
+    , isAlphaNum d =
+      if isEnabled Ext_intraword_underscores opts
+         then c:'_':go (d:cs)
+         else c:'\\':'_':go (d:cs)
+  go ('\\':c:cs)
+    | isEnabled Ext_raw_tex opts = '\\':'\\':go (c:cs)
+    | isAlphaNum c = '\\' : go (c:cs)
+    | otherwise = '\\':'\\': go cs
+  go ('!':'[':cs) = '\\':'!':'[': go cs
   go (c:cs) =
     case c of
        '[' -> '\\':c:go cs
@@ -76,11 +92,6 @@ escapeText opts = T.pack . go' . T.unpack
        '`' -> '\\':c:go cs
        '*' -> '\\':c:go cs
        '_' -> '\\':c:go cs
-       '\\' | isEnabled Ext_raw_tex opts -> '\\':c:go cs
-            | otherwise ->
-              case cs of -- don't escape \ if we don't have to:
-                d:_ | isAlphaNum d -> c:go cs
-                _ -> '\\':c:go cs
        '>' | isEnabled Ext_all_symbols_escapable opts -> '\\':'>':go cs
            | otherwise -> "&gt;" ++ go cs
        '<' | isEnabled Ext_all_symbols_escapable opts -> '\\':'<':go cs
@@ -92,20 +103,7 @@ escapeText opts = T.pack . go' . T.unpack
        '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':go cs
        '\'' | isEnabled Ext_smart opts -> '\\':'\'':go cs
        '"' | isEnabled Ext_smart opts -> '\\':'"':go cs
-       '-' | isEnabled Ext_smart opts ->
-              case cs of
-                   '-':_ -> '\\':'-':go cs
-                   _     -> '-':go cs
-       '.' | isEnabled Ext_smart opts ->
-              case cs of
-                   '.':'.':rest -> '\\':'.':'.':'.':go rest
-                   _            -> '.':go cs
-       _   -> case cs of
-                '_':x:xs
-                  | isEnabled Ext_intraword_underscores opts
-                  , isAlphaNum c
-                  , isAlphaNum x -> c : '_' : x : go xs
-                _                -> c : go cs
+       _   -> c : go cs
 
 -- Escape the escape character, as well as formatting pairs
 escapeMarkuaString :: Text -> Text
@@ -267,6 +265,11 @@ inlineListToMarkdown opts ils = do
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
           = liftM2 (<>) (inlineToMarkdown opts x)
               (go (RawInline (Format "html") "<!-- -->" : y : zs))
+        go (Str t : i : is)
+          | isLinkOrSpan i
+          , T.takeEnd 1 t == "!"
+          = do x <- inlineToMarkdown opts (Str (T.dropEnd 1 t))
+               ((x <> "\\!") <>) <$> go (i:is)
         go (i:is) = case i of
             Link {} -> case is of
                 -- If a link is followed by another link, or '[', '(' or ':'
@@ -294,13 +297,17 @@ inlineListToMarkdown opts ils = do
                 (RawInline _ (T.stripPrefix " [" -> Just _ )):_ -> unshortcutable
                 _                                               -> shortcutable
             _ -> shortcutable
-          where shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
-                unshortcutable = do
-                    iMark <- local
-                             (\env -> env { envRefShortcutable = False })
-                             (inlineToMarkdown opts i)
-                    fmap (iMark <>) (go is)
-                thead = fmap fst . T.uncons
+          where
+           shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
+           unshortcutable = do
+               iMark <- local
+                        (\env -> env { envRefShortcutable = False })
+                        (inlineToMarkdown opts i)
+               fmap (iMark <>) (go is)
+           thead = fmap fst . T.uncons
+        isLinkOrSpan Link{} = True
+        isLinkOrSpan Span{} = True
+        isLinkOrSpan _ = False
 
 -- Remove breaking spaces that might cause bad wraps.
 avoidBadWraps :: Bool -> Doc Text -> Doc Text
