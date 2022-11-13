@@ -699,7 +699,7 @@ codeBlockFenced = try $ do
               Just (elementId, classes, attrs) -> (elementId, maybe classes (: classes) languageId, attrs)))
   blankline
   contents <- T.intercalate "\n" <$>
-                 manyTill (gobbleAtMostSpaces indentLevel >> anyLine)
+                 manyTill (anyLine)
                           (try $ do
                             blockDelimiter (== c) (Just size)
                             blanklines)
