@@ -109,7 +109,7 @@ library
                      , hslua-module-version  >= 1.0.3   && < 1.1
                      , hslua-module-zip      >= 1.0.0   && < 1.1
                      , lpeg                  >= 1.0.1   && < 1.1
-                     , mtl                   >= 2.2     && < 2.3
+                     , mtl                   >= 2.2     && < 2.4
                      , pandoc                >= 3.0     && < 3.1
                      , pandoc-lua-marshal    >= 0.1.7   && < 0.2
                      , pandoc-types          >= 1.22.2  && < 1.23
