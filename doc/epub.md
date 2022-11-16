@@ -110,7 +110,7 @@ language: en-US
 ```
 
 See the [User's Guide](https://pandoc.org/MANUAL.html#epub-metadata) for more information
-above these fields.
+about these fields.
 
 Now run pandoc to make the ebook, using our title page and modified
 chapter files as sources:
