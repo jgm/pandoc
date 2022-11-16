@@ -87,12 +87,24 @@ isSpace SoftBreak = True
 isSpace _ = False
 
 stackInlines :: [Modifier Inlines] -> Inlines -> Inlines
-stackInlines [] ms = ms
-stackInlines (Modifier f : fs) ms =
-  if null ms
-  then stackInlines fs ms
-  else f $ stackInlines fs ms
-stackInlines (AttrModifier f attr : fs) ms = f attr $ stackInlines fs ms
+stackInlines = go . mergeClassSpans
+  where
+  go [] ms = ms
+  go (Modifier f : fs) ms =
+    if null ms
+    then go fs ms
+    else f $ go fs ms
+  go (AttrModifier f attr : fs) ms = f attr $ go fs ms
+
+
+mergeClassSpans :: [Modifier Inlines] -> [Modifier Inlines]
+mergeClassSpans ms = mergedClassSpans nonClassSpans
+  where
+  mergedClassSpans | null classes = id
+                   | otherwise = (AttrModifier spanWith ("", concat classes, []) :)
+  (classes, nonClassSpans) = foldr extractClassSpan ([], []) ms
+  extractClassSpan (AttrModifier _ ("", cs, [])) (cacc, ncacc) = (cs : cacc, ncacc)
+  extractClassSpan m (cacc, ncacc) = (cacc, m : ncacc)
 
 unstackInlines :: Inlines -> ([Modifier Inlines], Inlines)
 unstackInlines ms = case ilModifierAndInnards ms of

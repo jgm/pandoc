@@ -294,6 +294,9 @@ runStyleToTransform rPr' = do
                  | otherwise = isItalic rPr
       bold rPr | ctl = isBoldCTL rPr
                | otherwise = isBold rPr
+      styleswitch b yes no | b = yes
+                           | styles = no
+                           | otherwise = id
       go rPr
         | Just sn <- getStyleName <$> rParentStyle rPr
         , sn `elem` spansToKeep =
@@ -301,14 +304,14 @@ runStyleToTransform rPr' = do
             . go rPr{rParentStyle = Nothing}
         | styles, Just s <- rParentStyle rPr =
              spanWith (extraAttr s) . go rPr{rParentStyle = Nothing}
-        | Just True <- italic rPr =
-            emph . go rPr{isItalic = Nothing, isItalicCTL = Nothing}
-        | Just True <- bold rPr =
-            strong . go rPr{isBold = Nothing, isBoldCTL = Nothing}
-        | Just True <- isSmallCaps rPr =
-            smallcaps . go rPr{isSmallCaps = Nothing}
-        | Just True <- isStrike rPr =
-            strikeout . go rPr{isStrike = Nothing}
+        | Just b <- italic rPr =
+            styleswitch b emph noemph . go rPr{isItalic = Nothing, isItalicCTL = Nothing}
+        | Just b <- bold rPr =
+            styleswitch b strong nostrong . go rPr{isBold = Nothing, isBoldCTL = Nothing}
+        | Just b <- isSmallCaps rPr =
+            styleswitch b smallcaps nosmallcaps . go rPr{isSmallCaps = Nothing}
+        | Just b <- isStrike rPr =
+            styleswitch b strikeout nostrikeout . go rPr{isStrike = Nothing}
         | Just True <- isRTL rPr =
             spanWith ("",[],[("dir","rtl")]) . go rPr{isRTL = Nothing}
         | inBidi, Just False <- isRTL rPr =
@@ -319,8 +322,16 @@ runStyleToTransform rPr' = do
             subscript . go rPr{rVertAlign = Nothing}
         | Just "single" <- rUnderline rPr =
             Pandoc.underline . go rPr{rUnderline = Nothing}
+        | styles, Just "none" <- rUnderline rPr =
+            nounderline . go rPr{rUnderline = Nothing}
         | otherwise = id
   return $ go rPr'
+    where
+    noemph      = spanWith ("", ["no-emph"], [])
+    nostrong    = spanWith ("", ["no-strong"], [])
+    nosmallcaps = spanWith ("", ["no-smallcaps"], [])
+    nostrikeout = spanWith ("", ["no-strikeout"], [])
+    nounderline = spanWith ("", ["no-underline"], [])
 
 
 runToInlines :: PandocMonad m => Run -> DocxContext m Inlines
