@@ -87,6 +87,7 @@ data-files:
                  data/templates/default.asciidoctor
                  data/templates/default.haddock
                  data/templates/default.textile
+                 data/templates/default.t2t
                  data/templates/default.org
                  data/templates/default.epub2
                  data/templates/default.epub3
@@ -319,6 +320,7 @@ extra-source-files:
                  test/tables.texinfo
                  test/tables.rst
                  test/tables.rtf
+                 test/tables.t2t
                  test/tables.txt
                  test/tables.fb2
                  test/tables.muse
@@ -354,6 +356,7 @@ extra-source-files:
                  test/writer.rst
                  test/writer.icml
                  test/writer.rtf
+                 test/writer.t2t
                  test/writer.tei
                  test/writer.texinfo
                  test/writer.fb2
@@ -600,6 +603,7 @@ library
                    Text.Pandoc.Writers.Org,
                    Text.Pandoc.Writers.AsciiDoc,
                    Text.Pandoc.Writers.Textile,
+                   Text.Pandoc.Writers.Txt2Tags,
                    Text.Pandoc.Writers.MediaWiki,
                    Text.Pandoc.Writers.DokuWiki,
                    Text.Pandoc.Writers.XWiki,

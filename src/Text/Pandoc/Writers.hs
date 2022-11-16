@@ -71,6 +71,7 @@ module Text.Pandoc.Writers
     , writeTEI
     , writeTexinfo
     , writeTextile
+    , writeTxt2Tags
     , writeXWiki
     , writeZimWiki
     , getWriter
@@ -119,6 +120,7 @@ import Text.Pandoc.Writers.RTF
 import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
+import Text.Pandoc.Writers.Txt2Tags
 import Text.Pandoc.Writers.XWiki
 import Text.Pandoc.Writers.ZimWiki
 
@@ -175,6 +177,7 @@ writers = [
   ,("xwiki"        , TextWriter writeXWiki)
   ,("zimwiki"      , TextWriter writeZimWiki)
   ,("textile"      , TextWriter writeTextile)
+  ,("t2t"          , TextWriter writeTxt2Tags)
   ,("rtf"          , TextWriter writeRTF)
   ,("org"          , TextWriter writeOrg)
   ,("asciidoc"     , TextWriter writeAsciiDoc)
