@@ -50,7 +50,7 @@
 \makeatletter
 \def\fps@figure{htbp}
 \makeatother
-\usepackage[normalem]{ulem}
+\usepackage{soul}
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -704,7 +704,7 @@ So is \textbf{\emph{this}} word.
 This is code: \texttt{\textgreater{}}, \texttt{\$}, \texttt{\textbackslash{}},
 \texttt{\textbackslash{}\$}, \texttt{\textless{}html\textgreater{}}.
 
-\sout{This is \emph{strikeout}.}
+\st{This is \emph{strikeout}.}
 
 Superscripts: a\textsuperscript{bc}d a\textsuperscript{\emph{hello}}
 a\textsuperscript{hello~there}.

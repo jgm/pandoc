@@ -283,7 +283,7 @@ $if(svg)$
 $endif$
 $if(strikeout)$
 $-- also used for underline
-\usepackage[normalem]{ulem}
+\usepackage{soul}
 $endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
