@@ -744,6 +744,9 @@ writeInlines lst =
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: PandocMonad m => Inline -> RST m (Doc Text)
+inlineToRST (Span ("",["mark"],[]) ils) = do
+  contents <- writeInlines ils
+  return $ ":mark:`" <> contents <> "`"
 inlineToRST (Span (_,_,kvs) ils) = do
   contents <- writeInlines ils
   return $

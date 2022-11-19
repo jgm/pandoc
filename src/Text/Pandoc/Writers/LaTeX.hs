@@ -735,6 +735,9 @@ inlineListToLaTeX lst = hcat <$>
 inlineToLaTeX :: PandocMonad m
               => Inline    -- ^ Inline to convert
               -> LW m (Doc Text)
+inlineToLaTeX (Span ("",["mark"],[]) lst) = do
+  modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
+  inCmd "hl" <$> inlineListToLaTeX lst
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
   linkAnchor <- hypertarget False id' empty
   lang <- toLang $ lookup "lang" kvs

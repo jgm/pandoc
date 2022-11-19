@@ -85,6 +85,10 @@ escapeText opts = T.pack . go' . T.unpack
     | isAlphaNum c = '\\' : go (c:cs)
     | otherwise = '\\':'\\': go cs
   go ('!':'[':cs) = '\\':'!':'[': go cs
+  go ('=':'=':cs)
+    | isEnabled Ext_mark opts = '\\':'=':go ('=':cs)
+  go ('~':'~':cs)
+    | isEnabled Ext_strikeout opts = '\\':'~':go ('~':cs)
   go (c:cs) =
     case c of
        '[' -> '\\':c:go cs
@@ -98,8 +102,7 @@ escapeText opts = T.pack . go' . T.unpack
            | otherwise -> "&lt;" ++ go cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':go cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':go cs
-       '~' | isEnabled Ext_subscript opts ||
-             isEnabled Ext_strikeout opts -> '\\':'~':go cs
+       '~' | isEnabled Ext_subscript opts -> '\\':'~':go cs
        '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':go cs
        '\'' | isEnabled Ext_smart opts -> '\\':'\'':go cs
        '"' | isEnabled Ext_smart opts -> '\\':'"':go cs
@@ -344,6 +347,10 @@ inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
        Just emojiname | isEnabled Ext_emoji opts ->
             return $ ":" <> literal emojiname <> ":"
        _ -> inlineToMarkdown opts (Str s)
+inlineToMarkdown opts (Span ("",["mark"],[]) ils)
+  | isEnabled Ext_mark opts
+    = do contents <- inlineListToMarkdown opts ils
+         return $ "==" <> contents <> "=="
 inlineToMarkdown opts (Span attrs ils) = do
   variant <- asks envVariant
   contents <- inlineListToMarkdown opts ils

@@ -140,7 +140,7 @@ When using LaTeX, the following packages need to be available
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] (if the document
 contains images), [`hyperref`], [`xcolor`],
-[`ulem`], [`geometry`] (with the `geometry` variable set),
+[`soul`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  If `CJKmainfont` is set, [`xeCJK`]
 is needed.  The use of `xelatex` or `lualatex` as
@@ -191,7 +191,7 @@ footnotes in tables).
 [`polyglossia`]: https://ctan.org/pkg/polyglossia
 [`prince`]: https://www.princexml.com/
 [`setspace`]: https://ctan.org/pkg/setspace
-[`ulem`]: https://ctan.org/pkg/ulem
+[`soul`]: https://ctan.org/pkg/soul
 [`unicode-math`]: https://ctan.org/pkg/unicode-math
 [`upquote`]: https://ctan.org/pkg/upquote
 [`weasyprint`]: https://weasyprint.org
@@ -5576,6 +5576,13 @@ Note that relative paths in reference links and images will
 be rewritten relative to the file containing the link
 reference definition, not the file containing the reference link
 or image itself, if these differ.
+
+#### Extension: `mark` ####
+
+To highlight out a section of text, begin and end it with
+with `==`. Thus, for example,
+
+    This ==is deleted text.==
 
 #### Extension: `attributes` ####
 
