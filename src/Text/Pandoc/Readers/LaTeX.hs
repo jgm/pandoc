@@ -349,7 +349,6 @@ inlineCommands = M.unions
     , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
     , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
     , ("texttt", formatCode nullAttr <$> tok)
-    , ("sout", extractSpaces strikeout <$> tok)
     , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
     , ("textsuperscript", extractSpaces superscript <$> tok)
     , ("textsubscript", extractSpaces subscript <$> tok)
@@ -423,8 +422,11 @@ inlineCommands = M.unions
     -- include
     , ("input", rawInlineOr "input" $ include "input")
     -- soul package
+    , ("st", extractSpaces strikeout <$> tok)
     , ("ul", underline <$> tok)
+    , ("hl", extractSpaces (spanWith ("",["mark"],[])) <$> tok)
     -- ulem package
+    , ("sout", extractSpaces strikeout <$> tok)
     , ("uline", underline <$> tok)
     -- plain tex stuff that should just be passed through as raw tex
     , ("ifdim", ifdim)
