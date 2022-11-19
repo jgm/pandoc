@@ -1440,6 +1440,7 @@ renderRole contents fmt role attr = case role of
     "superscript" -> return $ B.superscript $ treatAsText contents
     "sub"  -> return $ B.subscript $ treatAsText contents
     "subscript"  -> return $ B.subscript $ treatAsText contents
+    "mark"  -> return $ B.spanWith ("",["mark"],[]) $ treatAsText contents
     "emphasis" -> return $ B.emph $ treatAsText contents
     "strong" -> return $ B.strong $ treatAsText contents
     "rfc-reference" -> return $ rfcLink contents
