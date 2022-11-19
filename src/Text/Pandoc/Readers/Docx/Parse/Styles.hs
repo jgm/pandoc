@@ -111,6 +111,7 @@ data RunStyle = RunStyle { isBold       :: Maybe Bool
                          , isStrike     :: Maybe Bool
                          , isRTL        :: Maybe Bool
                          , isForceCTL   :: Maybe Bool
+                         , rHighlight   :: Maybe Text
                          , rVertAlign   :: Maybe VertAlign
                          , rUnderline   :: Maybe Text
                          , rParentStyle :: Maybe CharStyle
@@ -140,6 +141,7 @@ defaultRunStyle = RunStyle { isBold = Nothing
                            , isStrike = Nothing
                            , isRTL = Nothing
                            , isForceCTL = Nothing
+                           , rHighlight = Nothing
                            , rVertAlign = Nothing
                            , rUnderline = Nothing
                            , rParentStyle = Nothing
@@ -275,6 +277,9 @@ elemToRunStyle ns element parentStyle
       , isStrike = checkOnOff ns rPr (elemName ns "w" "strike")
       , isRTL = checkOnOff ns rPr (elemName ns "w" "rtl")
       , isForceCTL = checkOnOff ns rPr (elemName ns "w" "cs")
+      , rHighlight =
+          findChildByName ns "w" "highlight" rPr >>=
+            findAttrByName ns "w" "val"
       , rVertAlign =
            findChildByName ns "w" "vertAlign" rPr >>=
            findAttrByName ns "w" "val" >>=

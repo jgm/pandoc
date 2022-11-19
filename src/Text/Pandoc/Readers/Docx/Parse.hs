@@ -313,6 +313,7 @@ leftBiasedMergeRunStyle a b = RunStyle
     , isStrike = isStrike a <|> isStrike b
     , isRTL = isRTL a <|> isRTL b
     , isForceCTL = isForceCTL a <|> isForceCTL b
+    , rHighlight = rHighlight a <|> rHighlight b
     , rVertAlign = rVertAlign a <|> rVertAlign b
     , rUnderline = rUnderline a <|> rUnderline b
     , rParentStyle = rParentStyle a
