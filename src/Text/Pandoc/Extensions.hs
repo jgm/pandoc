@@ -95,6 +95,7 @@ data Extension =
     | Ext_link_attributes         -- ^ link and image attributes
     | Ext_lists_without_preceding_blankline -- ^ Allow lists without preceding blank
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
+    | Ext_mark                -- ^ Enable ==mark== syntax to highlight text
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown iff
                                   --   container has attribute 'markdown'
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
@@ -485,6 +486,7 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_mmd_title_block
        , Ext_abbreviations
        , Ext_autolink_bare_uris
+       , Ext_mark
        , Ext_mmd_link_attributes
        , Ext_mmd_header_identifiers
        , Ext_compact_definition_lists
