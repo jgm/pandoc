@@ -771,8 +771,8 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
         else foldr inCmd contents cmds)
 inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
 inlineToLaTeX (Underline lst) = do
-  modify $ \st -> st{ stStrikeout = True } -- this gives us the ulem package
-  inCmd "uline" <$> inlineListToLaTeX lst
+  modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
+  inCmd "ul" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strikeout lst) = do
   -- we need to protect VERB in an mbox or we get an error
@@ -781,7 +781,7 @@ inlineToLaTeX (Strikeout lst) = do
   -- incorrect results if there is a space, see #5529
   contents <- inlineListToLaTeX $ walk (concatMap protectCode) lst
   modify $ \s -> s{ stStrikeout = True }
-  return $ inCmd "sout" contents
+  return $ inCmd "st" contents
 inlineToLaTeX (Superscript lst) =
   inCmd "textsuperscript" <$> inlineListToLaTeX lst
 inlineToLaTeX (Subscript lst) =
