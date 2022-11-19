@@ -1114,6 +1114,9 @@ inlineToOpenXML' _ (Str str) =
   map Elem <$> formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
+inlineToOpenXML' opts (Span ("",["mark"],[]) ils) =
+  withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
+    inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-block"],[]) ils) =
   inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-left-margin"],[]) ils) =
