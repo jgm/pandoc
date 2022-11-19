@@ -1509,6 +1509,7 @@ inline = do
      '!'     -> image
      '$'     -> math
      '~'     -> strikeout <|> subscript
+     '='     -> mark
      '<'     -> autoLink <|> spanHtml <|> rawHtmlInline <|> ltSign
      '\\'    -> math <|> escapedNewline <|> escapedChar <|> rawLaTeXInline'
      '@'     -> cite <|> exampleRef
@@ -1697,6 +1698,13 @@ strikeout = fmap B.strikeout <$>
     where strikeStart = string "~~" >> lookAhead nonspaceChar
                         >> notFollowedBy (char '~')
           strikeEnd   = try $ string "~~"
+
+mark :: PandocMonad m => MarkdownParser m (F Inlines)
+mark = fmap (B.spanWith ("",["mark"],[])) <$>
+ (guardEnabled Ext_mark >> inlinesBetween markStart markEnd)
+    where markStart = string "==" >> lookAhead nonspaceChar
+                        >> notFollowedBy (char '=')
+          markEnd   = try $ string "=="
 
 superscript :: PandocMonad m => MarkdownParser m (F Inlines)
 superscript = do
