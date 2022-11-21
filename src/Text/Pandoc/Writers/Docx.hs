@@ -1345,8 +1345,10 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
         (xpt,ypt) = desiredSizeInPoints opts attr
                (either (const def) id (imageSize opts img))
         -- 12700 emu = 1 pt
-        (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700)
-                                (pageWidth * 12700)
+        pageWidthPt = case dimension Width attr of
+                        Just (Percent a) -> pageWidth * (floor $ a * 127)
+                        _                -> pageWidth * 12700
+        (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) pageWidthPt
         cNvPicPr = mknode "pic:cNvPicPr" [] $
                          mknode "a:picLocks" [("noChangeArrowheads","1")
                                              ,("noChangeAspect","1")] ()
