@@ -97,7 +97,7 @@ library
                      , containers            >= 0.6.0.1 && < 0.7
                      , data-default          >= 0.4     && < 0.8
                      , doclayout             >= 0.4     && < 0.5
-                     , doctemplates          >= 0.10    && < 0.11
+                     , doctemplates          >= 0.11    && < 0.12
                      , exceptions            >= 0.8     && < 0.11
                      , hslua                 >= 2.2.1   && < 2.3
                      , hslua-aeson           >= 2.2.1   && < 2.3

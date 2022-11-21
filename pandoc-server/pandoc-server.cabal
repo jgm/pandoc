@@ -55,7 +55,7 @@ library
                  aeson                 >= 2.0      && < 2.2,
                  bytestring            >= 0.9      && < 0.12,
                  base64                >= 0.4      && < 0.5,
-                 doctemplates          >= 0.10     && < 0.11,
+                 doctemplates          >= 0.11     && < 0.12,
                  data-default          >= 0.4      && < 0.8,
                  text                  >= 1.1.1.0  && < 2.1,
                  unicode-collation     >= 0.1.1    && < 0.2,
