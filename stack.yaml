@@ -29,7 +29,7 @@ extra-deps:
 - lua-2.2.1
 - mime-types-0.1.1.0
 - doclayout-0.4
-- doctemplates-0.10.0.2
+- doctemplates-0.11
 - commonmark-extensions-0.2.3.3
 - texmath-0.12.5.4
 - git: https://github.com/jgm/citeproc
