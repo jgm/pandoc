@@ -924,7 +924,7 @@ blockCommands = M.fromList
    , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
    -- sectioning
    , ("part", section nullAttr (-1))
-   , ("part*", section nullAttr (-1))
+   , ("part*", section ("",["unnumbered"],[]) (-1))
    , ("chapter", section nullAttr 0)
    , ("chapter*", section ("",["unnumbered"],[]) 0)
    , ("section", section nullAttr 1)
