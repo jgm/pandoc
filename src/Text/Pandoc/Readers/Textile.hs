@@ -54,6 +54,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared (trim, tshow)
+import Text.Read (readMaybe)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: (PandocMonad m, ToSources a)
@@ -229,29 +230,58 @@ bulletListAtDepth depth = try $ B.bulletList  <$> many1 (bulletListItemAtDepth d
 -- | Bullet List Item of given depth, depth being the number of
 -- leading '*'
 bulletListItemAtDepth :: PandocMonad m => Int -> TextileParser m Blocks
-bulletListItemAtDepth = genericListItemAtDepth '*'
+bulletListItemAtDepth depth = try $ do
+  bulletListStartAtDepth depth
+  genericListItemContentsAtDepth depth
 
 -- | Ordered List of given depth, depth being the number of
 -- leading '#'
+-- The first Ordered List Item may have a start attribute
 orderedListAtDepth :: PandocMonad m => Int -> TextileParser m Blocks
 orderedListAtDepth depth = try $ do
-  items <- many1 (orderedListItemAtDepth depth)
-  return $ B.orderedList items
+  (startNum, firstItem) <- firstOrderedListItemAtDepth depth
+  moreItems <- many (orderedListItemAtDepth depth)
+  let listItems = firstItem : moreItems
+  return $ B.orderedListWith (startNum, DefaultStyle, DefaultDelim) listItems
+
+-- | The first Ordered List Item, which could have a start attribute
+firstOrderedListItemAtDepth :: PandocMonad m => Int
+                                             -> TextileParser m (Int, Blocks)
+firstOrderedListItemAtDepth depth = try $ do
+  startNum <- orderedListStartAtDepth depth
+  contents <- genericListItemContentsAtDepth depth
+  return (startNum, contents)
 
 -- | Ordered List Item of given depth, depth being the number of
 -- leading '#'
 orderedListItemAtDepth :: PandocMonad m => Int -> TextileParser m Blocks
-orderedListItemAtDepth = genericListItemAtDepth '#'
+orderedListItemAtDepth depth = try $ do
+  orderedListStartAtDepth depth
+  genericListItemContentsAtDepth depth
 
--- | Common implementation of list items
-genericListItemAtDepth :: PandocMonad m => Char -> Int -> TextileParser m Blocks
-genericListItemAtDepth c depth = try $ do
-  count depth (char c) >> attributes >> whitespace
+-- | Lists always start with a number of leading characters '#' or '*'
+-- Ordered list start characters '#' can be followed by the start attribute
+-- number, but bullet list characters '*' can not
+orderedListStartAtDepth :: PandocMonad m => Int -> TextileParser m Int
+orderedListStartAtDepth depth = count depth (char '#') >>
+  try orderedListStartAttr <* (attributes >> whitespace)
+
+bulletListStartAtDepth :: PandocMonad m => Int -> TextileParser m ()
+bulletListStartAtDepth depth =  () <$ (count depth (char '*') >>
+                                       attributes >> whitespace)
+
+-- | The leading characters and start attributes differ between ordered and
+-- unordered lists, but their contents have the same structure and can
+-- share a Parser
+genericListItemContentsAtDepth :: PandocMonad m => Int
+                                                -> TextileParser m Blocks
+genericListItemContentsAtDepth depth = do
   contents <- mconcat <$> many ((B.plain . mconcat <$> many1 inline) <|>
                                 try (newline >> codeBlockHtml))
   newline
   sublist <- option mempty (anyListAtDepth (depth + 1))
   return $ contents <> sublist
+
 
 -- | A definition list is a set of consecutive definition items
 definitionList :: PandocMonad m => TextileParser m Blocks
@@ -260,11 +290,16 @@ definitionList = try $ B.definitionList <$> many1 definitionListItem
 -- | List start character.
 listStart :: PandocMonad m => TextileParser m ()
 listStart = genericListStart '*'
-        <|> () <$ genericListStart '#'
+        <|> () <$ orderedListStart
         <|> () <$ definitionListStart
 
 genericListStart :: PandocMonad m => Char -> TextileParser m ()
 genericListStart c = () <$ try (many1 (char c) >> whitespace)
+
+orderedListStart :: PandocMonad m => TextileParser m ()
+orderedListStart = () <$ try (many1 (char '#') >>
+                              try orderedListStartAttr >>
+                              whitespace)
 
 basicDLStart :: PandocMonad m => TextileParser m ()
 basicDLStart = do
@@ -630,6 +665,13 @@ code2 :: PandocMonad m => TextileParser m Inlines
 code2 = do
   htmlTag (tagOpen (=="tt") null)
   B.code . T.pack <$> manyTill anyChar' (try $ htmlTag $ tagClose (=="tt"))
+
+orderedListStartAttr :: PandocMonad m => TextileParser m Int
+orderedListStartAttr = do
+  digits <- many digit
+  case readMaybe digits :: Maybe Int of
+    Nothing -> return 1
+    Just n  -> return n
 
 -- | Html / CSS attributes
 attributes :: PandocMonad m => TextileParser m Attr
