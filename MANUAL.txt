@@ -1282,28 +1282,28 @@ header when requesting a document from a URL:
     to your CSS (see `--css`):
 
         @font-face {
-        font-family: DejaVuSans;
-        font-style: normal;
-        font-weight: normal;
-        src:url("DejaVuSans-Regular.ttf");
+           font-family: DejaVuSans;
+           font-style: normal;
+           font-weight: normal;
+           src:url("../fonts/DejaVuSans-Regular.ttf");
         }
         @font-face {
-        font-family: DejaVuSans;
-        font-style: normal;
-        font-weight: bold;
-        src:url("DejaVuSans-Bold.ttf");
+           font-family: DejaVuSans;
+           font-style: normal;
+           font-weight: bold;
+           src:url("../fonts/DejaVuSans-Bold.ttf");
         }
         @font-face {
-        font-family: DejaVuSans;
-        font-style: italic;
-        font-weight: normal;
-        src:url("DejaVuSans-Oblique.ttf");
+           font-family: DejaVuSans;
+           font-style: italic;
+           font-weight: normal;
+           src:url("../fonts/DejaVuSans-Oblique.ttf");
         }
         @font-face {
-        font-family: DejaVuSans;
-        font-style: italic;
-        font-weight: bold;
-        src:url("DejaVuSans-BoldOblique.ttf");
+           font-family: DejaVuSans;
+           font-style: italic;
+           font-weight: bold;
+           src:url("../fonts/DejaVuSans-BoldOblique.ttf");
         }
         body { font-family: "DejaVuSans"; }
 
