@@ -647,7 +647,7 @@ header when requesting a document from a URL:
 
 :   Read metadata from the supplied YAML (or JSON) file. This
     option can be used with every input format, but string scalars
-    in the YAML file will always be parsed as Markdown. (If the
+    in the metadata file will always be parsed as Markdown. (If the
     input format is Markdown or a Markdown variant, then the
     same variant will be used to parse the metadata file;
     if it is a non-Markdown format, pandoc's default Markdown
