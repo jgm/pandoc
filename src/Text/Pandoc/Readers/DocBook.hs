@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {- |
@@ -1277,7 +1278,10 @@ parseInline (Elem e) =
         "ulink" -> innerInlines (link (attrValue "url" e) "")
         "link" -> do
              ils <- innerInlines id
-             let href = case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
+             let href = case findAttrBy
+                               (\case
+                                 QName "href" _ _ -> True
+                                 _ -> False) e of
                                Just h -> h
                                _      -> "#" <> attrValue "linkend" e
              let ils' = if ils == mempty then str href else ils
