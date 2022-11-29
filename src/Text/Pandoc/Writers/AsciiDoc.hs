@@ -40,7 +40,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
-
+import Text.Pandoc.Walk (walk)
 
 data WriterState = WriterState { defListMarker       :: Text
                                , orderedListLevel    :: Int
@@ -563,8 +563,12 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
 -- abs:  http://google.cod[Google]
 -- or my@email.com[email john]
-  let fixCommas = T.replace "," "&#44;"  -- see #8070
-  linktext <- fmap fixCommas <$> inlineListToAsciiDoc opts txt
+  let fixCommas (Str t) =
+        intersperse (RawInline (Format "asciidoc") "&#44;")
+          $ map Str $ T.splitOn "," t -- see #8070
+      fixCommas x = [x]
+
+  linktext <- inlineListToAsciiDoc opts $ walk (concatMap fixCommas) txt
   let isRelative = T.all (/= ':') src
   let needsPassthrough = "--" `T.isInfixOf` src
   let prefix = if isRelative
