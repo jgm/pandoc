@@ -212,7 +212,7 @@ blockToDocBook opts (Div (ident,classes,_) bs) = do
         admonitionTitle <- case mTitleBs of
                               Nothing -> return mempty
                               -- id will be attached to the admonition so let’s pass empty identAttrs.
-                              Just titleBs -> inTags False "title" [] <$> titleBs
+                              Just titleBs -> inTagsSimple "title" <$> titleBs
         admonitionBody <- handleDivBody [] bodyBs
         return (inTags True l identAttribs (admonitionTitle $$ admonitionBody))
     _ -> handleDivBody identAttribs bs
@@ -308,7 +308,7 @@ blockToDocBook opts (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   captionDoc <- if null caption
                    then return empty
-                   else inTagsIndented "title" <$>
+                   else inTagsSimple "title" <$>
                          inlinesToDocBook opts caption
   let tableType    = if isEmpty captionDoc then "informaltable" else "table"
       percent w    = tshow (truncate (100*w) :: Integer) <> "*"
@@ -442,11 +442,11 @@ inlineToDocBook opts (Image attr ils (src, tit)) = return $
   let titleDoc = if T.null tit
                    then empty
                    else inTagsIndented "objectinfo" $
-                        inTagsIndented "title" (literal $ escapeStringForXML tit)
+                        inTagsSimple "title" (literal $ escapeStringForXML tit)
       alt = if null ils
                then mempty
                else inTagsIndented "textobject" $
-                    inTags False "phrase" [] $ literal (stringify ils)
+                    inTagsSimple "phrase" $ literal (stringify ils)
   in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
       titleDoc $$ imageToDocBook opts attr src $$ alt
 inlineToDocBook opts (Note contents) =

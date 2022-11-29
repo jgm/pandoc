@@ -809,7 +809,7 @@ getMediaobject e = do
         case filterElements (named "imageobject") e of
           []  -> (mempty, mempty, nullAttr)
           (z:_) ->
-            let tit' = maybe "" (T.strip . strContent) $
+            let tit' = maybe "" strContent $
                          filterChild (named "objectinfo") z >>=
                          filterChild (named "title")
                 (imageUrl', attr') =
