@@ -804,24 +804,30 @@ getMediaobject :: PandocMonad m => Element -> DB m Inlines
 getMediaobject e = do
   figTitle <- gets dbFigureTitle
   ident <- gets dbFigureId
-  (imageUrl, attr) <-
-    case filterElements (named "imageobject") e of
-      []  -> return (mempty, nullAttr)
-      (z:_) -> case filterChild (named "imagedata") z of
-                    Nothing -> return (mempty, nullAttr)
-                    Just i  -> let atVal a = attrValue a i
-                                   w = case atVal "width" of
-                                         "" -> []
-                                         d  -> [("width", d)]
-                                   h = case atVal "depth" of
-                                         "" -> []
-                                         d  -> [("height", d)]
-                                   id' = case atVal "id" of
-                                           x | T.null x  -> ident
-                                             | otherwise -> x
-                                   cs = T.words $ atVal "role"
-                                   atr = (id', cs, w ++ h)
-                               in  return (atVal "fileref", atr)
+  let (imageUrl, tit, attr) =
+        case filterElements (named "imageobject") e of
+          []  -> (mempty, mempty, nullAttr)
+          (z:_) ->
+            let tit' = maybe "" (T.strip . strContent) $
+                         filterChild (named "objectinfo") z >>=
+                         filterChild (named "title")
+                (imageUrl', attr') =
+                  case filterChild (named "imagedata") z of
+                        Nothing -> (mempty, nullAttr)
+                        Just i  -> let atVal a = attrValue a i
+                                       w = case atVal "width" of
+                                             "" -> []
+                                             d  -> [("width", d)]
+                                       h = case atVal "depth" of
+                                             "" -> []
+                                             d  -> [("height", d)]
+                                       id' = case atVal "id" of
+                                               x | T.null x  -> ident
+                                                 | otherwise -> x
+                                       cs = T.words $ atVal "role"
+                                       atr = (id', cs, w ++ h)
+                                   in  (atVal "fileref", atr)
+            in  (imageUrl', tit', attr')
   let getCaption el = case filterChild (\x -> named "caption" x
                                             || named "textobject" x
                                             || named "alt" x) el of
@@ -829,8 +835,8 @@ getMediaobject e = do
                         Just z  -> mconcat <$>
                                          mapM parseInline (elContent z)
   let (capt, title) = if null figTitle
-                         then (getCaption e, "")
-                         else (return figTitle, "fig:")
+                         then (getCaption e, tit)
+                         else (return figTitle, "fig:" <> tit)
   fmap (imageWith attr imageUrl title) capt
 
 getBlocks :: PandocMonad m => Element -> DB m Blocks
