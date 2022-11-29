@@ -438,13 +438,17 @@ inlineToDocBook opts (Link attr txt (src, _))
                     then inTags False "link" $ ("xlink:href", src) : idAndRole attr
                     else inTags False "ulink" $ ("url", src) : idAndRole attr )
         <$> inlinesToDocBook opts txt
-inlineToDocBook opts (Image attr _ (src, tit)) = return $
+inlineToDocBook opts (Image attr ils (src, tit)) = return $
   let titleDoc = if T.null tit
                    then empty
                    else inTagsIndented "objectinfo" $
                         inTagsIndented "title" (literal $ escapeStringForXML tit)
+      alt = if null ils
+               then mempty
+               else inTagsIndented "textobject" $
+                    inTags False "phrase" [] $ literal (stringify ils)
   in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
-      titleDoc $$ imageToDocBook opts attr src
+      titleDoc $$ imageToDocBook opts attr src $$ alt
 inlineToDocBook opts (Note contents) =
   inTagsIndented "footnote" <$> blocksToDocBook opts contents
 
