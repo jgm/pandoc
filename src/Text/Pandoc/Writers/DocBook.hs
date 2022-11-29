@@ -447,8 +447,10 @@ inlineToDocBook opts (Image attr ils (src, tit)) = return $
                then mempty
                else inTagsIndented "textobject" $
                     inTagsSimple "phrase" $ literal (stringify ils)
-  in  inTagsIndented "inlinemediaobject" $ inTagsIndented "imageobject" $
-      titleDoc $$ imageToDocBook opts attr src $$ alt
+  in  inTagsIndented "inlinemediaobject" $
+        inTagsIndented "imageobject"
+          (titleDoc $$ imageToDocBook opts attr src)
+        $$ alt
 inlineToDocBook opts (Note contents) =
   inTagsIndented "footnote" <$> blocksToDocBook opts contents
 

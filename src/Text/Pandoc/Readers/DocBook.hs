@@ -833,7 +833,7 @@ getMediaobject e = do
                                             || named "textobject" x
                                             || named "alt" x) el of
                         Nothing -> return mempty
-                        Just z  -> mconcat <$>
+                        Just z  -> trimInlines . mconcat <$>
                                          mapM parseInline (elContent z)
   let (capt, title) = if null figTitle
                          then (getCaption e, tit)

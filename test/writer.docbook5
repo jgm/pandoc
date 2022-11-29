@@ -1332,10 +1332,10 @@ or here: &lt;http://example.com/&gt;
       Here is a movie <inlinemediaobject>
         <imageobject>
           <imagedata fileref="movie.jpg" />
-          <textobject>
-            <phrase>movie</phrase>
-          </textobject>
         </imageobject>
+        <textobject>
+          <phrase>movie</phrase>
+        </textobject>
       </inlinemediaobject> icon.
     </para>
   </section>
