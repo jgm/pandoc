@@ -1682,6 +1682,7 @@ isMathEnvironment s = "\\begin{" `T.isPrefixOf` s &&
                      , "multline"
                      , "multline*"
                      , "pmatrix"
+                     , "prooftree" -- bussproofs
                      , "smallmatrix"
                      , "split"
                      , "subarray"
