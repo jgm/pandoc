@@ -17,7 +17,7 @@ module Text.Pandoc.App.Input
 import Control.Monad ((>=>))
 import Control.Monad.Except (throwError, catchError)
 import Data.Text (Text)
-import Network.URI (URI (..), parseURI)
+import Network.URI (URI (..), parseURI, unEscapeString)
 import Text.Pandoc.Class ( PandocMonad, openURL
                          , readFileStrict, readStdinStrict, report)
 import Text.Pandoc.Definition (Pandoc (..), Attr, Block (..), Inline (..))
@@ -172,7 +172,7 @@ adjustLinksAndIds exts thisfile allfiles
   -- an internal link with the appropriate identifier
   fixURL :: Text -> Text
   fixURL u =
-    let (a,b) = T.break (== '#') u
+    let (a,b) = T.break (== '#') $ T.pack . unEscapeString . T.unpack $ u
         filepart = if T.null a
                       then toIdent thisfile
                       else toIdent a
