@@ -45,6 +45,7 @@ import qualified Text.Pandoc.Builder as B
 data GridCell
   = ContentCell Attr Alignment RowSpan ColSpan [Block]
   | ContinuationCell CellIndex
+  | UnassignedCell
   deriving (Show)
 
 -- | Row index in a table part.
@@ -103,7 +104,7 @@ data BuilderCell
 fromBuilderCell :: BuilderCell -> GridCell
 fromBuilderCell = \case
   FilledCell c -> c
-  FreeCell -> error "Found an unassigned cell. Please report this as a bug!"
+  FreeCell -> UnassignedCell
 
 rowsToPart :: Attr -> [B.Row] -> Part
 rowsToPart attr = \case
