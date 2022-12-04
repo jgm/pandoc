@@ -51,6 +51,7 @@ import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             fullDefaultsPath, OptInfo(..))
 import Text.Pandoc.Filter (Filter (..))
 import Text.Pandoc.Highlighting (highlightingStyles, lookupHighlightingStyle)
+import Text.Pandoc.Scripting (ScriptingEngine (..))
 import Text.Pandoc.Shared (safeStrRead)
 import Text.Printf
 import qualified Control.Exception as E
@@ -60,7 +61,6 @@ import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Scripting (ScriptingEngine(..))
 
 parseOptions :: [OptDescr (Opt -> ExceptT OptInfo IO Opt)]
              -> Opt -> IO (Either OptInfo Opt)
@@ -105,7 +105,7 @@ parseOptionsFromArgs options' defaults prg rawArgs = do
 -- | React to an 'OptInfo' by printing the requested information
 -- and exiting or (if there was a parsing error) raising an error.
 handleOptInfo :: ScriptingEngine -> OptInfo -> IO ()
-handleOptInfo _engine info = E.handle (handleError . Left) $ do
+handleOptInfo engine info = E.handle (handleError . Left) $ do
   case info of
     BashCompletion -> do
       datafiles <- getDataFileNames
@@ -152,9 +152,19 @@ handleOptInfo _engine info = E.handle (handleError . Left) $ do
       mapM_ (UTF8.hPutStrLn stdout . fst) highlightingStyles
     PrintDefaultTemplate mbout fmt -> do
       let write = maybe (UTF8.hPutStr stdout) (UTF8.writeFile) mbout
-      templ <- runIO $ do
-                 setUserDataDir Nothing
-                 getDefaultTemplate fmt
+
+      templ <- runIO $
+               case splitExtension (T.unpack fmt) of
+                    (_, "") -> do
+                      -- built-in format
+                      setUserDataDir Nothing
+                      getDefaultTemplate fmt
+                    _ -> do
+                      -- format looks like a filepath => custom writer
+                      (_, _, mt) <- engineWriteCustom engine (T.unpack fmt)
+                      case mt of
+                        Just t  -> pure t
+                        Nothing -> E.throw $ PandocNoTemplateError fmt
       case templ of
            Right t
              | T.null t -> -- e.g. for docx, odt, json:

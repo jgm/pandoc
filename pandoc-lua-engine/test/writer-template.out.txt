@@ -1,4 +1,3 @@
 <!-- start -->
-body goes here
-
+$body$
 <!-- stop -->

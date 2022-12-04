@@ -52,6 +52,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocCouldNotFindMetadataFileError Text
                  | PandocResourceNotFound Text
                  | PandocTemplateError Text
+                 | PandocNoTemplateError Text
                  | PandocAppError Text
                  | PandocEpubSubdirectoryError Text
                  | PandocMacroLoop Text
@@ -100,6 +101,7 @@ renderError e =
     PandocResourceNotFound fn ->
         "File " <> fn <> " not found in resource path"
     PandocTemplateError s -> "Error compiling template " <> s
+    PandocNoTemplateError fp -> "No template defined in " <> fp
     PandocAppError s -> s
     PandocEpubSubdirectoryError s ->
       "EPUB subdirectory name '" <> s <> "' contains illegal characters"
@@ -174,6 +176,7 @@ handleError (Left e) =
       PandocSyntaxMapError{} -> 67
       PandocFilterError{} -> 83
       PandocLuaError{} -> 84
+      PandocNoTemplateError{} -> 87
       PandocNoScriptingEngine -> 89
       PandocMacroLoop{} -> 91
       PandocUTF8DecodingError{} -> 92
