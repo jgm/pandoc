@@ -341,15 +341,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
           H.link ! A.rel "stylesheet" !
             A.href (toValue $ url <> "katex.min.css")
 
-        _ -> case lookupContext "mathml-script"
-                  (writerVariables opts) of
-                    Just s | not (stHtml5 st) ->
-                      H.script ! A.type_ "text/javascript"
-                        $ preEscapedString
-                          ("/*<![CDATA[*/\n" <> T.unpack s <>
-                          "/*]]>*/\n")
-                          | otherwise -> mempty
-                    Nothing -> mempty
+        _ -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
   let context :: Context Text
       context =   (if stHighlighting st
