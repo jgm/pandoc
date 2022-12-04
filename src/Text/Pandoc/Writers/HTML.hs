@@ -931,7 +931,9 @@ blockToHtmlInner opts (RawBlock f str) = do
      else if (f == Format "latex" || f == Format "tex") &&
              allowsMathEnvironments (writerHTMLMathMethod opts) &&
              isMathEnvironment str
-             then blockToHtml opts $ Plain [Math DisplayMath str]
+             then do
+               modify (\st -> st {stMath = True})
+               blockToHtml opts $ Plain [Math DisplayMath str]
              else do
                report $ BlockNotRendered (RawBlock f str)
                return mempty
@@ -1520,9 +1522,13 @@ inlineToHtml opts inline = do
            case istex of
              True
                | allowsMathEnvironments mm && isMathEnvironment str
-                 -> inlineToHtml opts $ Math DisplayMath str
+                 -> do
+                    modify (\st -> st {stMath = True})
+                    inlineToHtml opts $ Math DisplayMath str
                | allowsRef mm && isRef str
-                 -> inlineToHtml opts $ Math InlineMath str
+                 -> do
+                    modify (\st -> st {stMath = True})
+                    inlineToHtml opts $ Math InlineMath str
              _ -> do report $ InlineNotRendered inline
                      return mempty
     (Link attr txt (s,_)) | "mailto:" `T.isPrefixOf` s -> do
