@@ -107,6 +107,9 @@ optToOutputSettings scriptingEngine opts = do
     Format.parseFlavoredFormat writerName
 
   let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
+  let templateOrThrow = \case
+        Left  e -> throwError $ PandocTemplateError (T.pack e)
+        Right t -> pure t
   let processCustomTemplate getDefault =
         case optTemplate opts of
           _ | not standalone -> return Nothing
@@ -118,16 +121,18 @@ optToOutputSettings scriptingEngine opts = do
                         _  -> tp
             getTemplate tp'
               >>= runWithPartials . compileTemplate tp'
-              >>= (\case
-                      Left  e -> throwError $ PandocTemplateError (T.pack e)
-                      Right t -> return $ Just t)
+              >>= fmap Just . templateOrThrow
 
   (writer, writerExts, mtemplate) <-
     if "lua" `T.isSuffixOf` format
     then do
-      (w, extsConf, mt) <- engineWriteCustom scriptingEngine (T.unpack format)
+      let path = T.unpack format
+      (w, extsConf, mt) <- engineWriteCustom scriptingEngine path
       wexts <- Format.applyExtensionsDiff extsConf flvrd
-      templ <- processCustomTemplate mt
+      templ <- processCustomTemplate $ case mt of
+        Nothing -> throwError $ PandocNoTemplateError format
+        Just t  -> (runWithDefaultPartials $ compileTemplate path t) >>=
+                   templateOrThrow
       return (w, wexts, templ)
     else do
       tmpl <- processCustomTemplate (compileDefaultTemplate format)

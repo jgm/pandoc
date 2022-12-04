@@ -23,7 +23,6 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocNoScriptingEngine))
 import Text.Pandoc.Filter.Environment (Environment)
 import Text.Pandoc.Format (ExtensionsConfig)
-import Text.Pandoc.Templates (Template)
 import Text.Pandoc.Readers (Reader)
 import Text.Pandoc.Writers (Writer)
 
@@ -42,7 +41,7 @@ data ScriptingEngine = ScriptingEngine
 
   , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
                       => FilePath
-                      -> m (Writer m, ExtensionsConfig, m (Template Text))
+                      -> m (Writer m, ExtensionsConfig, Maybe Text)
     -- ^ Invoke the given script file to convert to any custom format.
   }
 

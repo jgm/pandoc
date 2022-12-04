@@ -31,15 +31,13 @@ import Text.Pandoc.Format (ExtensionsConfig (..))
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Init (runLuaWith)
 import Text.Pandoc.Lua.Marshal.Format (peekExtensionsConfig)
-import Text.Pandoc.Lua.Marshal.Template (peekTemplate)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
-import Text.Pandoc.Templates (Template)
 import Text.Pandoc.Writers (Writer (..))
 import qualified Text.Pandoc.Lua.Writer.Classic as Classic
 
 -- | Convert Pandoc to custom markup.
 writeCustom :: (PandocMonad m, MonadIO m)
-            => FilePath -> m (Writer m, ExtensionsConfig, m (Template Text))
+            => FilePath -> m (Writer m, ExtensionsConfig, Maybe Text)
 writeCustom luaFile = do
   luaState <- liftIO newGCManagedState
   luaFile' <- fromMaybe luaFile <$> findFileWithDataFallback "writers" luaFile
@@ -66,19 +64,15 @@ writeCustom luaFile = do
       TypeNil   -> ExtensionsConfig mempty mempty <$ pop 1
       _         -> forcePeek $ peekExtensionsConfig top `lastly` pop 1
 
-    -- Store template function in registry
-    let templateField = "Pandoc Writer Template"
-    rawgetglobal "Template" *> setfield registryindex templateField
+    mtemplate <- rawgetglobal "Template" >>= \case
+      TypeNil   -> pure Nothing
+      TypeFunction -> Just <$> do
+        callTrace 0 1
+        forcePeek $ peekText top `lastly` pop 1
+      _ -> Just <$> do
+        forcePeek $ peekText top `lastly` pop 1
 
-    let getTemplate = liftIO $ withGCManagedState @PandocError luaState $ do
-          getfield registryindex templateField >>= \case
-            TypeNil   -> failLua $ "No default template for writer; " <>
-                         "the global variable Template is undefined."
-            _ -> do
-              callTrace 0 1
-              forcePeek $ peekTemplate top `lastly` pop 1
-
-    let addProperties = (, extsConf, getTemplate)
+    let addProperties = (, extsConf, mtemplate)
 
     rawgetglobal "Writer" >>= \case
       TypeNil -> rawgetglobal "ByteStringWriter" >>= \case

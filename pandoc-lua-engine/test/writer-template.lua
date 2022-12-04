@@ -3,5 +3,5 @@ function Writer (doc, opts)
 end
 
 function Template ()
-  return pandoc.template.compile '<!-- start -->\n$body$\n<!-- stop -->\n'
+  return '<!-- start -->\n$body$\n<!-- stop -->\n'
 end
