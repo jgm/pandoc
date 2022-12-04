@@ -633,7 +633,9 @@ pandocToEPUB version opts doc = do
                              (n :: Int, fp) <- zip [1..] (map
                                (makeRelative epubSubdir . eRelativePath)
                                stylesheetEntries) ] ++
-             map chapterNode (cpgEntry ++ (tpEntry : chapterEntries)) ++
+             map chapterNode (cpgEntry ++
+                               [tpEntry | writerEpubTitlePage opts] ++
+                               chapterEntries) ++
              (case cpicEntry of
                     []    -> []
                     (x:_) -> [add_attrs
@@ -647,11 +649,12 @@ pandocToEPUB version opts doc = do
                     Nothing -> []
                     Just _ -> [ unode "itemref" !
                                 [("idref", "cover_xhtml")] $ () ]
-              ++ ((unode "itemref" ! [("idref", "title_page_xhtml")
+              ++ ([unode "itemref" ! [("idref", "title_page_xhtml")
                                      ,("linear",
                                          case lookupMeta "title" meta of
                                                Just _  -> "yes"
-                                               Nothing -> "no")] $ ()) :
+                                               Nothing -> "no")] $ ()
+                     | writerEpubTitlePage opts] ++
                   [unode "itemref" ! [("idref", "nav")] $ ()
                          | writerTableOfContents opts ] ++
                   map chapterRefNode chapterEntries)
@@ -677,7 +680,7 @@ pandocToEPUB version opts doc = do
 
   -- Create the navEntry using the metadata, all of the various writer options,
   -- the CSS and HTML helpers, the document and toc title as well as the epub version and all of the sections
-  navEntry <- createNavEntry opts' meta metadata True vars cssvars
+  navEntry <- createNavEntry opts' meta metadata vars cssvars
                 writeHtml tocTitle version (chunkedTOC chunkedDoc)
 
   -- mimetype
@@ -706,7 +709,8 @@ pandocToEPUB version opts doc = do
   -- construct archive
   let archive = foldr addEntryToArchive emptyArchive $
                  [mimetypeEntry, containerEntry, appleEntry,
-                  contentsEntry, tocEntry, navEntry, tpEntry] ++
+                  contentsEntry, tocEntry, navEntry] ++
+                  [tpEntry | writerEpubTitlePage opts] ++
                   stylesheetEntries ++ picEntries ++ cpicEntry ++
                   cpgEntry ++ chapterEntries ++ fontEntries
   return $ fromArchive archive
@@ -870,8 +874,7 @@ createTocEntry opts meta metadata plainTitle (Node _ secs) = do
                         Just img -> [unode "meta" ! [("name","cover"),
                                             ("content", toId img)] $ ()]
           , unode "docTitle" $ unode "text" plainTitle
-          , unode "navMap" $
-              tpNode : navMap
+          , unode "navMap" $ [tpNode | writerEpubTitlePage opts] ++ navMap
           ]
   mkEntry "toc.ncx" tocData
 
@@ -880,7 +883,6 @@ createNavEntry  :: PandocMonad m
                 => WriterOptions
                 -> Meta
                 -> EPUBMetadata
-                -> Bool
                 -> Context Text
                 -> (Bool -> Context Text)
                 -> (WriterOptions -> Pandoc -> m B8.ByteString)
@@ -888,7 +890,7 @@ createNavEntry  :: PandocMonad m
                 -> EPUBVersion
                 -> Tree SecInfo
                 -> StateT EPUBState m Entry
-createNavEntry opts meta metadata includeTitlePage
+createNavEntry opts meta metadata
                vars cssvars writeHtml tocTitle version (Node _ secs) = do
   let mkItem :: Tree SecInfo -> State Int (Maybe Element)
       mkItem (Node secinfo subsecs)
@@ -940,7 +942,7 @@ createNavEntry opts meta metadata includeTitlePage
                                                   "text/title_page.xhtml")
                                                ,("epub:type", "titlepage")] $
                                   ("Title Page" :: Text) ] |
-                                  includeTitlePage ] ++
+                                  writerEpubTitlePage opts ] ++
                               [ unode "li"
                                 [ unode "a" ! [("href", "text/cover.xhtml")
                                               ,("epub:type", "cover")] $

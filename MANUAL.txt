@@ -1250,6 +1250,11 @@ header when requesting a document from a URL:
     in a Markdown source document you can also specify `cover-image`
     in a YAML metadata block (see [EPUB Metadata], below).
 
+`--epub-title-page=true`|`false`
+
+:   Determines whether a the title page is included in the EPUB
+    (default is `true`).
+
 `--epub-metadata=`*FILE*
 
 :   Look in the specified XML file for metadata for the EPUB.
@@ -1953,6 +1958,10 @@ To include the built-in citeproc filter, use either `citeproc` or
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
 | --epub-cover-image cover.jpg     | epub-cover-image: cover.jpg       |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --epub-title-page=false          | epub-title-page: false            |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |

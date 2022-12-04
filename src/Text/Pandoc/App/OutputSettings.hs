@@ -239,6 +239,7 @@ optToOutputSettings scriptingEngine opts = do
         , writerEpubMetadata     = epubMetadata
         , writerEpubFonts        = optEpubFonts opts
         , writerEpubChapterLevel = optEpubChapterLevel opts
+        , writerEpubTitlePage    = optEpubTitlePage opts
         , writerTOCDepth         = optTOCDepth opts
         , writerReferenceDoc     = optReferenceDoc opts
         , writerSyntaxMap        = syntaxMap

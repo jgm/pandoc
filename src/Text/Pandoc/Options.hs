@@ -317,6 +317,7 @@ data WriterOptions = WriterOptions
   , writerEpubMetadata      :: Maybe Text -- ^ Metadata to include in EPUB
   , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
+  , writerEpubTitlePage     :: Bool           -- ^ Include title page in epub
   , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
@@ -353,6 +354,7 @@ instance Default WriterOptions where
                       , writerEpubMetadata     = Nothing
                       , writerEpubFonts        = []
                       , writerEpubChapterLevel = 1
+                      , writerEpubTitlePage    = True
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
                       , writerReferenceLocation = EndOfDocument

@@ -131,6 +131,7 @@ data Opt = Opt
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
     , optEpubChapterLevel      :: Int     -- ^ Header level at which to split chapters
     , optEpubCoverImage        :: Maybe FilePath -- ^ Cover image for epub
+    , optEpubTitlePage         :: Bool -- ^ INclude title page in EPUB
     , optTOCDepth              :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs              :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs            :: Bool    -- ^ Ignore command-line arguments
@@ -211,6 +212,7 @@ instance FromJSON Opt where
        <*> o .:? "epub-fonts" .!= optEpubFonts defaultOpts
        <*> o .:? "epub-chapter-level" .!= optEpubChapterLevel defaultOpts
        <*> o .:? "epub-cover-image"
+       <*> o .:? "epub-title-page" .!= optEpubTitlePage defaultOpts
        <*> o .:? "toc-depth" .!= optTOCDepth defaultOpts
        <*> o .:? "dump-args" .!= optDumpArgs defaultOpts
        <*> o .:? "ignore-args" .!= optIgnoreArgs defaultOpts
@@ -739,6 +741,7 @@ defaultOpts = Opt
     , optEpubFonts             = []
     , optEpubChapterLevel      = 1
     , optEpubCoverImage        = Nothing
+    , optEpubTitlePage         = True
     , optTOCDepth              = 3
     , optDumpArgs              = False
     , optIgnoreArgs            = False
