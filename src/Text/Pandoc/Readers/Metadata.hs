@@ -83,9 +83,11 @@ normalizeMetaValue pMetaValue x =
    -- `|` or `>` will.
    if "\n" `T.isSuffixOf` (T.dropWhileEnd isSpaceChar x) -- see #6823
       then parseFromString' pMetaValue (x <> "\n\n")
-      else parseFromString' asInlines (T.dropWhile isSpaceOrNlChar x)
-           -- see #8358
-  where asInlines = fmap b2i <$> pMetaValue
+      else try (parseFromString' asInlines x') -- see #8358
+           <|> -- see #8465
+           parseFromString' asInlines (x' <> "\n\n")
+  where x' = T.dropWhile isSpaceOrNlChar x
+        asInlines = fmap b2i <$> pMetaValue
         b2i (MetaBlocks bs) = MetaInlines (blocksToInlines bs)
         b2i y = y
         isSpaceChar ' '  = True
