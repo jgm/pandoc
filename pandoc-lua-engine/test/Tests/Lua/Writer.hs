@@ -16,9 +16,10 @@ import Text.Pandoc.Class (runIOorExplode, readFileStrict)
 import Text.Pandoc.Extensions (Extension (..))
 import Text.Pandoc.Format (ExtensionsDiff (..), FlavoredFormat (..),
                            applyExtensionsDiff)
-import Text.Pandoc.Lua (writeCustom)
+import Text.Pandoc.Lua (loadCustom)
 import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.Readers (readNative)
+import Text.Pandoc.Scripting (CustomComponents (..))
 import Text.Pandoc.Writers (Writer (ByteStringWriter, TextWriter))
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsString)
@@ -35,9 +36,9 @@ tests =
     (runIOorExplode $ do
         source <- UTF8.toText <$> readFileStrict "testsuite.native"
         doc <- readNative def source
-        txt <- writeCustom "sample.lua" >>= \case
-          (TextWriter f, _, _) -> f def doc
-          _            -> error "Expected a text writer"
+        txt <- customWriter <$> loadCustom "sample.lua" >>= \case
+          Just (TextWriter f) -> f def doc
+          _                   -> error "Expected a text writer"
         pure $ BL.fromStrict (UTF8.fromText txt))
 
   , goldenVsString "tables testsuite"
@@ -85,3 +86,10 @@ tests =
           _                        -> error "Expected a text writer"
       result @?= "smart extension is enabled;\ncitations extension is enabled\n"
   ]
+ where
+  writeCustom fp = do
+    components <- loadCustom fp
+    let exts = fromMaybe mempty (customExtensions components)
+    case customWriter components of
+      Nothing -> error "Expected a writer to be defined"
+      Just w  -> return (w, exts, customTemplate components)

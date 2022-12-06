@@ -13,8 +13,7 @@ Running pandoc Lua filters.
 module Text.Pandoc.Lua
   ( -- * High-level functions
     applyFilter
-  , readCustom
-  , writeCustom
+  , loadCustom
   -- * Low-level functions
   , Global(..)
   , setGlobals
