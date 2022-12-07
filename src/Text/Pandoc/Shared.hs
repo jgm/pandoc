@@ -847,7 +847,7 @@ defaultBlocksSeparator :: Inlines
 defaultBlocksSeparator =
   -- This is used in the pandoc.utils.blocks_to_inlines function. Docs
   -- there should be updated if this is changed.
-  B.space <> B.str "¶" <> B.space
+  B.str "\8233" -- PARAGRAPH SEPARATOR
 
 --
 -- Safe read

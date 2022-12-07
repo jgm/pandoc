@@ -3606,9 +3606,10 @@ Parameters:
 :   List of [Block](#type-block) elements to be flattened.
 
 `sep`
-:   List of [Inline](#type-inline) elements inserted as
-    separator between two consecutive blocks; defaults to `{
-    pandoc.Space(), pandoc.Str'¶', pandoc.Space()}`.
+:   List of [Inline](#type-inline) elements inserted as separator
+    between two consecutive blocks; defaults to
+    `{pandoc.Str'\u{2029}'}`, i.e., to the PARAGRAPH SEPARATOR
+    Unicode character.
 
 Returns:
 

@@ -13,8 +13,7 @@ return {
         pandoc.Para { pandoc.Emph { pandoc.Str 'Paragraph2' } }
       }
       local expected = {
-        pandoc.Str 'Paragraph1',
-        pandoc.Space(), pandoc.Str '¶', pandoc.Space(),
+        pandoc.Str 'Paragraph1\u{2029}',
         pandoc.Emph { pandoc.Str 'Paragraph2' }
       }
       assert.are_same(
