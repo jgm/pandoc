@@ -5173,7 +5173,7 @@ Returns
 `real_length (str)`
 
 Returns the real length of a string in a monospace font: 0 for a
-combining chaeracter, 1 for a regular character, 2 for an East
+combining character, 1 for a regular character, 2 for an East
 Asian wide character.
 
 Parameters
