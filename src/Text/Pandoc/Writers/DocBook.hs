@@ -14,7 +14,7 @@ Conversion of 'Pandoc' documents to DocBook XML.
 module Text.Pandoc.Writers.DocBook ( writeDocBook4, writeDocBook5 ) where
 import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
-import Data.Maybe (isNothing)
+import Data.Maybe (isNothing, maybeToList)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -169,7 +169,7 @@ blockToDocBook :: PandocMonad m => WriterOptions -> Block -> DB m (Doc Text)
 blockToDocBook _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
-blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,_,attrs) ils : xs)) = do
+blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils : xs)) = do
   version <- ask
   -- DocBook doesn't allow sections with no content, so insert some if needed
   let bs = if null xs
@@ -191,7 +191,8 @@ blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,_,attrs) ils : xs)) 
                  else []
 
       -- Populate miscAttr with Header.Attr.attributes, filtering out non-valid DocBook section attributes, id, and xml:id
-      miscAttr = filter (isSectionAttr version) attrs
+      -- Also enrich the role attribute with certain class tokens
+      miscAttr = enrichRole (filter (isSectionAttr version) attrs) classes      
       attribs = nsAttr <> idAttr <> miscAttr
   title' <- inlinesToDocBook opts ils
   contents <- blocksToDocBook opts bs
@@ -463,6 +464,14 @@ idAndRole (id',cls,_) = ident <> role
   where
     ident = [("id", id') | not (T.null id')]
     role  = [("role", T.unwords cls) | not (null cls)]
+
+-- Used in blockToDocBook for Header (section) to create or extend
+-- the role attribute with candidate class tokens
+enrichRole :: [(Text, Text)] -> [Text] -> [(Text, Text)]
+enrichRole mattrs cls = [("role",rolevals) | rolevals /= ""]<>(filter (\x -> (fst x) /= "role") mattrs)
+  where
+    rolevals = T.unwords((filter (`elem` cand) cls)<>(maybeToList(lookup "role" mattrs)))
+    cand = ["unnumbered"]
 
 isSectionAttr :: DocBookVersion -> (Text, Text) -> Bool
 isSectionAttr _ ("label",_) = True

@@ -387,31 +387,42 @@ tests = [ testGroup "inline elements"
           ]
           , testGroup "section attributes" $
             let
-              headers =  headerWith ("myid1",[],[("role","internal"),("xml:id","anotherid"),("dir","rtl")]) 1 "header1"
-                      <> headerWith ("myid2",[],[("invalidname","value"),("arch","linux"),("dir","invaliddir")]) 1 "header2"
+              headers =  headerWith ("myid1",["unnumbered","ignored"],[("role","internal"),("xml:id","anotherid"),("dir","rtl")]) 1 "header1"
+                      <> headerWith ("myid2",["unnumbered"],[("invalidname","value"),("arch","linux"),("dir","invaliddir")]) 1 "header2"
+                      <> headerWith ("myid3",["ignored"],[]) 1 "header3"
             in
             [ test docbook5 "sections with attributes (db5)" $
               headers =?>
-              unlines [ "<section xmlns=\"http://docbook.org/ns/docbook\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:id=\"myid1\" role=\"internal\" dir=\"rtl\">"
+              unlines [ "<section xmlns=\"http://docbook.org/ns/docbook\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:id=\"myid1\" role=\"unnumbered internal\" dir=\"rtl\">"
                       , "  <title>header1</title>"
                       , "  <para>"
                       , "  </para>"
                       , "</section>"
-                      , "<section xmlns=\"http://docbook.org/ns/docbook\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:id=\"myid2\">"
+                      , "<section xmlns=\"http://docbook.org/ns/docbook\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:id=\"myid2\" role=\"unnumbered\">"
                       , "  <title>header2</title>"
+                      , "  <para>"
+                      , "  </para>"
+                      , "</section>"
+                      , "<section xmlns=\"http://docbook.org/ns/docbook\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:id=\"myid3\">"
+                      , "  <title>header3</title>"
                       , "  <para>"
                       , "  </para>"
                       , "</section>"
                       ]
             , test docbook "sections with attributes (db4)" $
               headers =?>
-              unlines [ "<sect1 id=\"myid1\" role=\"internal\">"
+              unlines [ "<sect1 id=\"myid1\" role=\"unnumbered internal\">"
                       , "  <title>header1</title>"
                       , "  <para>"
                       , "  </para>"
                       , "</sect1>"
-                      , "<sect1 id=\"myid2\" arch=\"linux\">"
+                      , "<sect1 id=\"myid2\" role=\"unnumbered\" arch=\"linux\">"
                       , "  <title>header2</title>"
+                      , "  <para>"
+                      , "  </para>"
+                      , "</sect1>"
+                      , "<sect1 id=\"myid3\">"
+                      , "  <title>header3</title>"
                       , "  <para>"
                       , "  </para>"
                       , "</sect1>"
