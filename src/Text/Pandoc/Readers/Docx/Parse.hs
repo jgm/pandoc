@@ -242,7 +242,6 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl T.Text TblGrid TblLook [Row]
               | TblCaption ParagraphStyle [ParPart]
-              | OMathPara [Exp]
               deriving Show
 
 type TblGrid = [Integer]
@@ -333,6 +332,7 @@ data ParPart = PlainRun Run
              | Chart                                              -- placeholder for now
              | Diagram                                            -- placeholder for now
              | PlainOMath [Exp]
+             | OMathPara [Exp]
              | Field FieldInfo [ParPart]
              deriving Show
 
@@ -703,10 +703,12 @@ pStyleIndentation style = (getParStyleField indent . pStyle) style
 
 elemToBodyPart :: NameSpaces -> Element -> D BodyPart
 elemToBodyPart ns element
-  | isElem ns "w" "p" element
-  , (c:_) <- findChildrenByName ns "m" "oMathPara" element = do
-      expsLst <- eitherToD $ readOMML $ showElement c
-      return $ OMathPara expsLst
+  | isElem ns "m" "oMathPara" element = do
+      expsLst <- eitherToD $ readOMML $ showElement element
+      parstyle <- elemToParagraphStyle ns element
+                  <$> asks envParStyles
+                  <*> asks envNumbering
+      return $ Paragraph parstyle [OMathPara expsLst]
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
@@ -1000,6 +1002,9 @@ elemToParPart' ns element
 elemToParPart' ns element
   | isElem ns "m" "oMath" element =
     fmap (return . PlainOMath) (eitherToD $ readOMML $ showElement element)
+elemToParPart' ns element
+  | isElem ns "m" "oMathPara" element =
+    fmap (return . OMathPara) (eitherToD $ readOMML $ showElement element)
 elemToParPart' _ _ = throwError WrongElem
 
 elemToCommentStart :: NameSpaces -> Element -> D [ParPart]

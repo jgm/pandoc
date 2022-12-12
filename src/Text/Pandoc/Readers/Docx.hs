@@ -468,6 +468,8 @@ parPartToInlines' (ExternalHyperLink target children) = do
   return $ link target "" ils
 parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
+parPartToInlines' (OMathPara exps) =
+  return $ displayMath $ writeTeX exps
 parPartToInlines' (Field info children) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
@@ -793,8 +795,6 @@ bodyPartToBlocks (Tbl cap grid look parts) = do
                  (TableHead nullAttr headerCells)
                  [TableBody nullAttr 0 [] bodyCells]
                  (TableFoot nullAttr [])
-bodyPartToBlocks (OMathPara e) =
-  return $ para $ displayMath (writeTeX e)
 
 -- replace targets with generated anchors.
 rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline
