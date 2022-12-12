@@ -3583,6 +3583,36 @@ Usage:
 
 [WriterOptions]: #type-writeroptions
 
+# Module pandoc.cli
+
+Command line options and argument parsing.
+
+## Fields {#pandoc.cli-fields}
+
+### default\_options {#pandoc.cli.default_options}
+
+Default CLI options, using a JSON-like representation (table).
+
+## Functions
+
+### parse_options {#pandoc.cli.parse_options}
+
+`parse_options (args)`
+
+Parses command line arguments into pandoc options. Typically this
+function will be used in stand-alone pandoc Lua scripts, taking
+the list of arguments from the global `arg`.
+
+Parameters:
+
+`args`
+:   list of command line arguments ({string,...})
+
+Returns:
+
+-   parsed options, using their JSON-like representation. (table)
+
+
 # Module pandoc.utils
 
 This module exposes internal pandoc functions and utility

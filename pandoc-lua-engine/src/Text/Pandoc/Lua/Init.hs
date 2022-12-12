@@ -37,6 +37,7 @@ import qualified HsLua.Module.DocLayout as Module.Layout
 import qualified HsLua.Module.Path as Module.Path
 import qualified HsLua.Module.Text as Module.Text
 import qualified HsLua.Module.Zip as Module.Zip
+import qualified Text.Pandoc.Lua.Module.CLI as Pandoc.CLI
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
 import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
 import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
@@ -82,7 +83,8 @@ runLuaNoEnv action = do
 -- it must be handled separately.
 loadedModules :: [Module PandocError]
 loadedModules =
-  [ Pandoc.Format.documentedModule
+  [ Pandoc.CLI.documentedModule
+  , Pandoc.Format.documentedModule
   , Pandoc.MediaBag.documentedModule
   , Pandoc.Scaffolding.documentedModule
   , Pandoc.System.documentedModule
