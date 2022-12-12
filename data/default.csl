@@ -64,9 +64,6 @@
       <term name="in">em</term>
       <term name="at">em</term>
       <term name="by">por</term>
-      <!-- PUNCTUATION -->
-      <term name="open-quote">"</term>
-      <term name="close-quote">"</term>
     </terms>
   </locale>
   <macro name="secondary-contributors">
