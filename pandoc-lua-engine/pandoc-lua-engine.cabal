@@ -76,6 +76,7 @@ library
                      , Text.Pandoc.Lua.Marshal.Sources
                      , Text.Pandoc.Lua.Marshal.Template
                      , Text.Pandoc.Lua.Marshal.WriterOptions
+                     , Text.Pandoc.Lua.Module.CLI
                      , Text.Pandoc.Lua.Module.Format
                      , Text.Pandoc.Lua.Module.MediaBag
                      , Text.Pandoc.Lua.Module.Pandoc
