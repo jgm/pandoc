@@ -1841,11 +1841,15 @@ Pandoc
       , Space
       , Str "(1902):"
       ]
-  , Para
-      [ Image
-          ( "" , [] , [] )
-          [ Str "lalune" ]
-          ( "lalune.jpg" , "fig:Voyage dans la Lune" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [ Plain [ Str "lalune" ] ])
+      [ Plain
+          [ Image
+              ( "" , [] , [] )
+              [ Str "lalune" ]
+              ( "lalune.jpg" , "Voyage dans la Lune" )
+          ]
       ]
   , Para
       [ Str "Here"

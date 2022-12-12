@@ -21,6 +21,7 @@ import Data.Char (ord, isDigit)
 import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Maybe (isNothing, mapMaybe, catMaybes)
+import Data.Monoid (Any (Any, getAny))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
@@ -186,14 +187,6 @@ blockToConTeXt (Div attr@(_,"section":_,_)
   innerContents <- blockListToConTeXt xs
   return $ header' $$ innerContents $$ footer'
 blockToConTeXt (Plain lst) = inlineListToConTeXt lst
-blockToConTeXt (SimpleFigure attr txt (src, _)) = do
-      capt <- inlineListToConTeXt txt
-      img  <- inlineToConTeXt (Image attr txt (src, ""))
-      let (ident, _, _) = attr
-          label = if T.null ident
-                  then empty
-                  else "[]" <> brackets (literal $ toLabel ident)
-      return $ blankline $$ "\\placefigure" <> label <> braces capt <> img <> blankline
 blockToConTeXt (Para lst) = do
   contents <- inlineListToConTeXt lst
   return $ contents <> blankline
@@ -293,6 +286,24 @@ blockToConTeXt (Header level attr lst) =
   sectionHeader attr level lst NonSectionHeading
 blockToConTeXt (Table attr caption colspecs thead tbody tfoot) =
   tableToConTeXt (Ann.toTable attr caption colspecs thead tbody tfoot)
+blockToConTeXt (Figure (ident, _, _) (Caption cshort clong) body) = do
+  title   <- inlineListToConTeXt (blocksToInlines clong)
+  list    <- maybe (pure empty) inlineListToConTeXt cshort
+  content <- blockListToConTeXt body
+
+  let options =
+           ["reference=" <> literal (toLabel ident) | not (T.null ident)]
+        ++ ["title="     <> braces title | not (isEmpty title)]
+        ++ ["list="      <> braces list  | not (isEmpty list)]
+  let hasSubfigures = getAny $
+        query (Any . \case {Figure {} -> True; _ -> False}) body
+  return
+     $ "\\startplacefigure" <> brackets (mconcat $ intersperse "," options)
+    $$ (if hasSubfigures then "\\startfloatcombination" else empty)
+    $$ content
+    $$ (if hasSubfigures then "\\stopfloatcombination" else empty)
+    $$ "\\stopplacefigure"
+    $$ blankline
 
 tableToConTeXt :: PandocMonad m => Ann.Table -> WM m (Doc Text)
 tableToConTeXt (Ann.Table attr caption colspecs thead tbodies tfoot) = do

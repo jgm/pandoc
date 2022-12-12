@@ -214,7 +214,8 @@ addQed bs =
   qedSign = B.str "\xa0\x25FB"
 
 italicize :: Block -> Block
-italicize x@(Para [Image{}]) = x -- see #6925
+italicize x@(Para [Image{}])  = x -- see #6925
+italicize x@(Plain [Image{}]) = x -- ditto
 italicize (Para ils) = Para [Emph ils]
 italicize (Plain ils) = Plain [Emph ils]
 italicize x = x

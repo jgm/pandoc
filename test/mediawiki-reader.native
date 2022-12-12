@@ -290,57 +290,83 @@ Pandoc
           ( "Page#with_anchor" , "wikilink" )
       ]
   , Header 2 ( "images" , [] , [] ) [ Str "images" ]
-  , Para
-      [ Image
-          ( "" , [] , [] )
-          [ Str "caption" ]
-          ( "example.jpg" , "fig:caption" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [ Plain [ Str "caption" ] ])
+      [ Plain
+          [ Image ( "" , [] , [] ) [] ( "example.jpg" , "caption" ) ]
       ]
-  , Para
-      [ Image
-          ( "" , [] , [] )
-          [ Str "the"
-          , Space
-          , Emph [ Str "caption" ]
-          , Space
-          , Str "with"
-          , Space
-          , Link
+  , Figure
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain
+             [ Str "the"
+             , Space
+             , Emph [ Str "caption" ]
+             , Space
+             , Str "with"
+             , Space
+             , Link
+                 ( "" , [] , [] )
+                 [ Str "external" , Space , Str "link" ]
+                 ( "http://google.com" , "" )
+             ]
+         ])
+      [ Plain
+          [ Image
               ( "" , [] , [] )
-              [ Str "external" , Space , Str "link" ]
-              ( "http://google.com" , "" )
+              []
+              ( "example.jpg" , "the caption with external link" )
           ]
-          ( "example.jpg" , "fig:the caption with external link" )
       ]
-  , Para
-      [ Image
-          ( "" , [] , [ ( "width" , "30" ) , ( "height" , "40" ) ] )
-          [ Str "caption" ]
-          ( "example.jpg" , "fig:caption" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [ Plain [ Str "caption" ] ])
+      [ Plain
+          [ Image
+              ( "" , [] , [ ( "width" , "30" ) , ( "height" , "40" ) ] )
+              []
+              ( "example.jpg" , "caption" )
+          ]
       ]
-  , Para
-      [ Image
-          ( "" , [] , [ ( "width" , "30" ) ] )
-          [ Str "caption" ]
-          ( "example.jpg" , "fig:caption" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [ Plain [ Str "caption" ] ])
+      [ Plain
+          [ Image
+              ( "" , [] , [ ( "width" , "30" ) ] )
+              []
+              ( "example.jpg" , "caption" )
+          ]
       ]
-  , Para
-      [ Image
-          ( "" , [] , [ ( "width" , "30" ) ] )
-          [ Str "caption" ]
-          ( "example.jpg" , "fig:caption" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [ Plain [ Str "caption" ] ])
+      [ Plain
+          [ Image
+              ( "" , [] , [ ( "width" , "30" ) ] )
+              []
+              ( "example.jpg" , "caption" )
+          ]
       ]
-  , Para
-      [ Image
-          ( "" , [] , [] )
-          [ Str "example.jpg" ]
-          ( "example.jpg" , "fig:example.jpg" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [ Plain [ Str "example.jpg" ] ])
+      [ Plain
+          [ Image
+              ( "" , [] , [] ) [] ( "example.jpg" , "example.jpg" )
+          ]
       ]
-  , Para
-      [ Image
-          ( "" , [] , [] )
-          [ Str "example_es.jpg" ]
-          ( "example_es.jpg" , "fig:example_es.jpg" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [ Plain [ Str "example_es.jpg" ] ])
+      [ Plain
+          [ Image
+              ( "" , [] , [] )
+              []
+              ( "example_es.jpg" , "example_es.jpg" )
+          ]
       ]
   , Header 2 ( "lists" , [] , [] ) [ Str "lists" ]
   , BulletList

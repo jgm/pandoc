@@ -678,7 +678,7 @@ or here: <http://example.com/>
 From “Voyage dans la Lune” by Georges Melies (1902):
 
 [[lalune.jpg][Voyage dans la Lune]]
-
+lalune
 Here is a movie [[movie.jpg][movie]] icon.
 
 ----

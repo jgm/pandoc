@@ -677,8 +677,17 @@ h1(#images). Images
 
 From "Voyage dans la Lune" by Georges Melies (1902):
 
-!lalune.jpg(Voyage dans la Lune)!
+<figure>
+
+<figcaption>
+
 lalune
+
+</figcaption>
+
+!lalune.jpg(Voyage dans la Lune)!
+
+</figure>
 
 Here is a movie !movie.jpg(movie)! icon.
 

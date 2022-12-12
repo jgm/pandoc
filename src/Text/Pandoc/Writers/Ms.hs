@@ -303,7 +303,6 @@ blockToMs opts (Table _ blkCapt specs thead tbody tfoot) =
                then ""
                else ".nr LL \\n[LLold]") $$
            literal ".ad"
-
 blockToMs opts (BulletList items) = do
   contents <- mapM (bulletListItemToMs opts) items
   setFirstPara
@@ -319,6 +318,7 @@ blockToMs opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMs opts) items
   setFirstPara
   return (vcat contents)
+blockToMs opts (Figure attr _ body) = blockToMs opts $ Div attr body
 
 -- | Convert bullet list item (list of blocks) to ms.
 bulletListItemToMs :: PandocMonad m => WriterOptions -> [Block] -> MS m (Doc Text)

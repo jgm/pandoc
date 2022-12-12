@@ -1001,7 +1001,6 @@ From ``Voyage dans la Lune'' by Georges Melies (1902):
 @image{lalune,,,lalune,jpg}
 @caption{lalune}
 @end float
-
 Here is a movie @image{movie,,,movie,jpg} icon.
 
 @iftex

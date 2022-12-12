@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {- |
@@ -15,7 +16,7 @@ module Text.Pandoc.Writers.DocBook ( writeDocBook4, writeDocBook5 ) where
 import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
 import Data.Maybe (isNothing, maybeToList)
-import Data.Monoid (Any (..))
+import Data.Monoid (All (..), Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -192,7 +193,7 @@ blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils :
 
       -- Populate miscAttr with Header.Attr.attributes, filtering out non-valid DocBook section attributes, id, and xml:id
       -- Also enrich the role attribute with certain class tokens
-      miscAttr = enrichRole (filter (isSectionAttr version) attrs) classes      
+      miscAttr = enrichRole (filter (isSectionAttr version) attrs) classes
       attribs = nsAttr <> idAttr <> miscAttr
   title' <- inlinesToDocBook opts ils
   contents <- blocksToDocBook opts bs
@@ -234,18 +235,6 @@ blockToDocBook _ h@Header{} = do
   report $ BlockNotRendered h
   return empty
 blockToDocBook opts (Plain lst) = inlinesToDocBook opts lst
--- title beginning with fig: indicates that the image is a figure
-blockToDocBook opts (SimpleFigure attr txt (src, _)) = do
-  alt <- inlinesToDocBook opts txt
-  let capt = if null txt
-                then empty
-                else inTagsSimple "title" alt
-  return $ inTagsIndented "figure" $
-        capt $$
-        inTagsIndented "mediaobject" (
-           inTagsIndented "imageobject"
-             (imageToDocBook opts attr src) $$
-           inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToDocBook opts (Para lst)
   | hasLineBreaks lst = flush . nowrap . inTagsSimple "literallayout"
                         <$> inlinesToDocBook opts lst
@@ -324,6 +313,36 @@ blockToDocBook opts (Table _ blkCapt specs thead tbody tfoot) = do
   return $ inTagsIndented tableType $ captionDoc $$
         inTags True "tgroup" [("cols", tshow (length aligns))] (
          coltags $$ head' $$ body')
+blockToDocBook opts (Figure attr capt@(Caption _ caption) body) = do
+  -- TODO: probably better to handle nested figures as mediaobject
+  let isAcceptable = \case
+        Table {}  -> All False
+        Figure {} -> All False
+        _         -> All True
+  if not . getAll $ query isAcceptable body
+    -- Fallback to a div if the content cannot be included in a figure
+    then blockToDocBook opts $ figureDiv attr capt body
+    else do
+      title <- inlinesToDocBook opts (blocksToInlines caption)
+      let toMediaobject = \case
+            Plain [Image imgAttr inlns (src, _)] -> do
+              alt <- inlinesToDocBook opts inlns
+              pure $ inTagsIndented "mediaobject" (
+                inTagsIndented "imageobject"
+                (imageToDocBook opts imgAttr src) $$
+                if isEmpty alt
+                then empty
+                else inTagsSimple "textobject" (inTagsSimple "phrase" alt))
+            _ -> ask >>= \case
+                   DocBook4 -> pure mempty -- docbook4 requires media
+                   DocBook5 -> blocksToDocBook opts body
+      mediaobjects <- mapM toMediaobject body
+      return $
+        if isEmpty $ mconcat mediaobjects
+        then mempty -- figures must have at least some content
+        else inTagsIndented "figure" $
+             inTagsSimple "title" title $$
+             mconcat mediaobjects
 
 hasLineBreaks :: [Inline] -> Bool
 hasLineBreaks = getAny . query isLineBreak . walk removeNote

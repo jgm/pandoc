@@ -11,6 +11,10 @@ Conversion of table blocks to docx.
 -}
 module Text.Pandoc.Writers.Docx.Table
   ( tableToOpenXML
+  , rowToOpenXML
+  , OOXMLRow (..)
+  , OOXMLCell (..)
+  , RowType (..)
   ) where
 
 import Control.Monad.State.Strict ( modify, gets )

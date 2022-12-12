@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.AsciiDoc
@@ -29,6 +30,7 @@ import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
+import System.FilePath (dropExtension)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
@@ -152,10 +154,6 @@ blockToAsciiDoc opts (Div (id',"section":_,_)
 blockToAsciiDoc opts (Plain inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   return $ contents <> blankline
-blockToAsciiDoc opts (SimpleFigure attr alternate (src, tit))
-  -- image::images/logo.png[Company logo, title="blah"]
-  = (\args -> "image::" <> args <> blankline) <$>
-    imageArguments opts attr alternate src tit
 blockToAsciiDoc opts (Para inlines) = do
   contents <- inlineListToAsciiDoc opts inlines
   -- escape if para starts with ordered list marker
@@ -189,7 +187,23 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
   return $ identifier $$
            nowrap (text (replicate (level + 1) '=') <> space <> contents) <>
            blankline
-
+blockToAsciiDoc opts (Figure attr (Caption _ longcapt) body) = do
+  -- Images in figures all get rendered as individual block-level images
+  -- with the given caption. Non-image elements are rendered unchanged.
+  capt <- inlineListToAsciiDoc opts (blocksToInlines longcapt)
+  let renderFigElement = \case
+        Plain [Image imgAttr alternate (src, tit)] -> do
+          args <- imageArguments opts imgAttr alternate src tit
+          let figAttributes = case attr of
+                ("", _, _)    -> empty
+                (ident, _, _) -> literal $ "[#" <> ident <> "]"
+          -- .Figure caption
+          -- image::images/logo.png[Company logo, title="blah"]
+          return $ "." <> nowrap capt $$
+            figAttributes $$
+            "image::" <> args <> blankline
+        blk -> blockToAsciiDoc opts blk
+  vcat <$> mapM renderFigElement body
 blockToAsciiDoc _ (CodeBlock (_,classes,_) str) = return $ flush (
   if null classes
      then "...." $$ literal str $$ "...."
@@ -615,7 +629,7 @@ imageArguments :: PandocMonad m => WriterOptions ->
   ADW m (Doc Text)
 imageArguments opts attr altText src title = do
   let txt = if null altText || (altText == [Str ""])
-               then [Str "image"]
+               then [Str . T.pack . dropExtension $ T.unpack src]
                else altText
   linktext <- inlineListToAsciiDoc opts txt
   let linktitle = if T.null title

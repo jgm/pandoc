@@ -650,8 +650,11 @@ Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
 
 From “Voyage dans la Lune” by Georges Melies (1902):
 
-[[File:lalune.jpg|thumb|none|alt=Voyage dans la Lune|lalune]]
+<div class="figure">
 
+[[File:lalune.jpg|lalune]]
+
+</div>
 Here is a movie [[File:movie.jpg|movie]] icon.
 
 

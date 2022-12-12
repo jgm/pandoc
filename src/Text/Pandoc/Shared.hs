@@ -47,6 +47,7 @@ module Text.Pandoc.Shared (
                      compactify,
                      compactifyDL,
                      linesToPara,
+                     figureDiv,
                      makeSections,
                      uniqueIdent,
                      inlineListToIdentifier,
@@ -90,7 +91,8 @@ import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.List (find, intercalate, intersperse, sortOn, foldl', groupBy)
+import Data.List (find, foldl', groupBy, intercalate, intersperse,
+                  union, sortOn)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (Any (..))
@@ -427,6 +429,23 @@ combineLines = intercalate [LineBreak]
 linesToPara :: [[Inline]] -> Block
 linesToPara = Para . combineLines
 
+-- | Creates a Div block from figure components. The intended use is in
+-- writers of formats that do not have markup support for figures.
+--
+-- The resulting div is given the class @figure@ and contains the figure
+-- body and the figure caption. The latter is wrapped in a 'Div' of
+-- class @caption@, with the stringified @short-caption@ as attribute.
+figureDiv :: Attr -> Caption -> [Block] -> Block
+figureDiv (ident, classes, kv) (Caption shortcapt longcapt) body =
+  let divattr = ( ident
+              , ["figure"] `union` classes
+              , kv
+              )
+      captkv = maybe mempty (\s -> [("short-caption", stringify s)]) shortcapt
+      capt = [Div ("", ["caption"], captkv) longcapt | not (null longcapt)]
+  in Div divattr (body ++ capt)
+
+-- | Returns 'True' iff the given element is a 'Para'.
 isPara :: Block -> Bool
 isPara (Para _) = True
 isPara _        = False
@@ -830,6 +849,7 @@ blockToInlines (Table _ _ _ (TableHead _ hbd) bodies (TableFoot _ fbd)) =
     unTableBodies = concatMap unTableBody
 blockToInlines (Div _ blks) = blocksToInlines' blks
 blockToInlines Null = mempty
+blockToInlines (Figure _ _ body) = blocksToInlines' body
 
 blocksToInlinesWithSep :: Inlines -> [Block] -> Inlines
 blocksToInlinesWithSep sep =

@@ -25,12 +25,14 @@ data WriterState =
   , stInMinipage    :: Bool          -- ^ true if in minipage
   , stInHeading     :: Bool          -- ^ true if in a section heading
   , stInItem        :: Bool          -- ^ true if in \item[..]
+  , stInFigure      :: Bool          -- ^ true if in figure environment
   , stNotes         :: [Doc Text]    -- ^ notes in a minipage
   , stOLLevel       :: Int           -- ^ level of ordered list nesting
   , stOptions       :: WriterOptions -- ^ writer options, so they don't have to
                                      --   be parameter
   , stVerbInNote    :: Bool          -- ^ true if document has verbatim text in note
   , stTable         :: Bool          -- ^ true if document has a table
+  , stSubfigure     :: Bool          -- ^ true if document has subfigures
   , stMultiRow      :: Bool          -- ^ true if document has multirow cells
   , stStrikeout     :: Bool          -- ^ true if document has strikeout
   , stUrl           :: Bool          -- ^ true if document has visible URL link
@@ -58,11 +60,13 @@ startingState options =
   , stInHeading = False
   , stInMinipage = False
   , stInItem = False
+  , stInFigure = False
   , stNotes = []
   , stOLLevel = 1
   , stOptions = options
   , stVerbInNote = False
   , stTable = False
+  , stSubfigure = False
   , stMultiRow = False
   , stStrikeout = False
   , stUrl = False

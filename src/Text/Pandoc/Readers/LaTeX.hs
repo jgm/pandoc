@@ -33,6 +33,7 @@ import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Either (partitionEithers)
 import Skylighting (defaultSyntaxMap)
 import System.FilePath (addExtension, replaceExtension, takeExtension)
 import Text.Collate.Lang (renderLang)
@@ -1011,8 +1012,8 @@ environments = M.union (tableEnvironments blocks inline) $
    , ("letter", env "letter" letterContents)
    , ("minipage", env "minipage" $
           skipopts *> spaces *> optional braced *> spaces *> blocks)
-   , ("figure", env "figure" $ skipopts *> figure)
-   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure)
+   , ("figure", env "figure" $ skipopts *> figure')
+   , ("subfigure", env "subfigure" $ skipopts *> tok *> figure')
    , ("center", divWith ("", ["center"], []) <$> env "center" blocks)
    , ("quote", blockQuote <$> env "quote" blocks)
    , ("quotation", blockQuote <$> env "quotation" blocks)
@@ -1164,37 +1165,33 @@ letterContents = do
                   _ -> mempty
   return $ addr <> bs -- sig added by \closing
 
-figure :: PandocMonad m => LP m Blocks
-figure = try $ do
+figure' :: PandocMonad m => LP m Blocks
+figure' = try $ do
   resetCaption
-  blocks >>= addImageCaption
+  innerContent <- many $ try (Left <$> label) <|> (Right <$> block)
+  let content = walk go $ mconcat $ snd $ partitionEithers innerContent
+  st <- getState
+  let caption' = case sCaption st of
+                   Nothing   -> B.emptyCaption
+                   Just capt -> capt
+  let mblabel  = sLastLabel st
+  let attr     = case mblabel of
+                   Just lab -> (lab, [], [])
+                   Nothing  -> nullAttr
+  case mblabel of
+    Nothing   -> pure ()
+    Just lab  -> do
+      num <- getNextNumber sLastFigureNum
+      setState
+        st { sLastFigureNum = num
+           , sLabels = M.insert lab [Str (renderDottedNum num)] (sLabels st)
+           }
+  return $ B.figureWith attr caption' content
 
-addImageCaption :: PandocMonad m => Blocks -> LP m Blocks
-addImageCaption = walkM go
-  where go p@(Para [Image attr@(_, cls, kvs) _ (src, tit)])
-            | not ("fig:" `T.isPrefixOf` tit) = do
-          st <- getState
-          case sCaption st of
-            Nothing -> return p
-            Just (Caption _mbshort bs) -> do
-              let mblabel = sLastLabel st
-              let attr' = case mblabel of
-                            Just lab -> (lab, cls, kvs)
-                            Nothing  -> attr
-              case attr' of
-                   ("", _, _)    -> return ()
-                   (ident, _, _) -> do
-                      num <- getNextNumber sLastFigureNum
-                      setState
-                        st{ sLastFigureNum = num
-                          , sLabels = M.insert ident
-                                     [Str (renderDottedNum num)] (sLabels st) }
-
-              return $ SimpleFigure attr'
-                       (maybe id removeLabel mblabel
-                         (blocksToInlines bs))
-                       (src, tit)
-        go x = return x
+  where
+  -- Remove the `Image` caption b.c. it's on the `Figure`
+  go (Para [Image attr _ target]) = Plain [Image attr [] target]
+  go x = x
 
 coloredBlock :: PandocMonad m => Text -> LP m Blocks
 coloredBlock stylename = try $ do

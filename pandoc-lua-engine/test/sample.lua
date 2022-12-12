@@ -295,6 +295,12 @@ function CaptionedImage(src, tit, caption, attr)
   end
 end
 
+function Figure(caption, contents, attr)
+  return '<figure' .. attributes(attr) .. '>\n' .. contents ..
+    '\n<figcaption>' .. caption .. '</figcaption>\n' ..
+    '</figure>'
+end
+
 -- Caption is a string, aligns is an array of strings,
 -- widths is an array of floats, headers is an array of
 -- strings, rows is an array of arrays of strings.

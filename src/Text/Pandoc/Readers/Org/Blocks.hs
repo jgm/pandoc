@@ -489,15 +489,10 @@ figure = try $ do
        figKeyVals = blockAttrKeyValues figAttrs
        attr       = (figLabel, mempty, figKeyVals)
      in if isFigure
-           then (\c ->
-               B.simpleFigureWith
-                   attr c imgSrc (unstackFig figName)) <$> figCaption
+           then (\c -> B.figureWith attr (B.simpleCaption (B.plain c))
+                       (B.plain $ B.image imgSrc figName mempty))
+                <$> figCaption
            else B.para . B.imageWith attr imgSrc figName <$> figCaption
-   unstackFig :: Text -> Text
-   unstackFig figName =
-       if "fig:" `T.isPrefixOf` figName
-           then T.drop 4 figName
-           else figName
 
 -- | Succeeds if looking at the end of the current paragraph
 endOfParagraph :: Monad m => OrgParser m ()

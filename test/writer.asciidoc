@@ -622,6 +622,7 @@ or here: <http://example.com/>
 
 From ``Voyage dans la Lune'' by Georges Melies (1902):
 
+.lalune
 image::lalune.jpg[lalune,title="Voyage dans la Lune"]
 
 Here is a movie image:movie.jpg[movie] icon.

@@ -32,7 +32,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..),
            WriterOptions (writerTableOfContents, writerTemplate,
                           writerWrapText))
-import Text.Pandoc.Shared (linesToPara, removeFormatting, trimr)
+import Text.Pandoc.Shared (figureDiv, linesToPara, removeFormatting, trimr)
 import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
@@ -85,16 +85,6 @@ blockToZimWiki opts (Div _attrs bs) = do
   return $ contents <> "\n"
 
 blockToZimWiki opts (Plain inlines) = inlineListToZimWiki opts inlines
-
--- ZimWiki doesn't support captions - so combine together alt and caption into alt
-blockToZimWiki opts (SimpleFigure attr txt (src, tit)) = do
-  capt <- if null txt
-             then return ""
-             else (" " <>) `fmap` inlineListToZimWiki opts txt
-  let opt = if null txt
-               then ""
-               else "|" <> if T.null tit then capt else tit <> capt
-  return $ "{{" <> src <> imageDims opts attr <> opt <> "}}\n"
 
 blockToZimWiki opts (Para inlines) = do
   indent <- gets stIndent
@@ -179,6 +169,9 @@ blockToZimWiki opts (OrderedList _ items) = do
 blockToZimWiki opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToZimWiki opts) items
   return $ vcat contents
+
+blockToZimWiki opts (Figure attr capt body) = do
+  blockToZimWiki opts (figureDiv attr capt body)
 
 definitionListItemToZimWiki :: PandocMonad m
                             => WriterOptions

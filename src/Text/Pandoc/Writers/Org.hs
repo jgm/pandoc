@@ -123,12 +123,6 @@ blockToOrg (Div attr@(ident,_,_) bs) = do
      then return mempty
      else divToOrg attr bs
 blockToOrg (Plain inlines) = inlineListToOrg inlines
-blockToOrg (SimpleFigure attr txt (src, tit)) = do
-      capt <- if null txt
-              then return empty
-              else ("#+caption: " <>) `fmap` inlineListToOrg txt
-      img <- inlineToOrg (Image attr txt (src,tit))
-      return $ capt $$ img $$ blankline
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines
   return $ contents <> blankline
@@ -234,6 +228,18 @@ blockToOrg (OrderedList (start, _, delim) items) = do
 blockToOrg (DefinitionList items) = do
   contents <- mapM definitionListItemToOrg items
   return $ vcat contents $$ blankline
+blockToOrg (Figure (ident, _, _) caption body) = do
+  -- Represent the figure as content that can be internally linked from other
+  -- parts of the document.
+  capt <- case caption of
+            Caption _ []  -> pure empty
+            Caption _ cpt -> ("#+caption: " <>) <$>
+                             inlineListToOrg (blocksToInlines cpt)
+  contents <-  blockListToOrg body
+  let anchor = if T.null ident
+               then empty
+               else "<<" <> literal ident <> ">>"
+  return (capt $$ anchor $$ contents $$ blankline)
 
 -- | Convert bullet list item (list of blocks) to Org.
 bulletListItemToOrg :: PandocMonad m => [Block] -> Org m (Doc Text)

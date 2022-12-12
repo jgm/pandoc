@@ -1046,7 +1046,7 @@ para = try $ do
           [Image attr figCaption (src, tit)]
             | extensionEnabled Ext_implicit_figures exts
             , not (null figCaption) -> do
-                B.simpleFigureWith attr (B.fromList figCaption) src tit
+                implicitFigure attr (B.fromList figCaption) src tit
 
           _ -> constr inlns
 
@@ -1076,6 +1076,17 @@ para = try $ do
 
 plain :: PandocMonad m => MarkdownParser m (F Blocks)
 plain = fmap B.plain . trimInlinesF <$> inlines1
+
+implicitFigure :: Attr -> Inlines -> Text -> Text -> Blocks
+implicitFigure (ident, classes, attribs) capt url title =
+  let alt = case "alt" `lookup` attribs of
+              Just alt'       -> B.text alt'
+              _               -> capt
+      attribs' = filter ((/= "alt") . fst) attribs
+      figattr = (ident, mempty, mempty)
+      caption = B.simpleCaption $ B.plain capt
+      figbody = B.plain $ B.imageWith ("", classes, attribs') url title alt
+  in B.figureWith figattr caption figbody
 
 --
 -- raw html

@@ -537,6 +537,8 @@ blockToParagraphs (Div (_, classes, _) blks) = let
                    | otherwise -> Nothing
   addIncremental env = env { envInIncrementalDiv = incremental }
   in local addIncremental (concatMapM blockToParagraphs blks)
+blockToParagraphs (Figure attr capt blks) =
+  blockToParagraphs (Shared.figureDiv attr capt blks)
 blockToParagraphs blk = do
   addLogMessage $ BlockNotRendered blk
   return []
@@ -1041,6 +1043,7 @@ blockIsBlank
       DefinitionList ds -> all (uncurry (&&) . bimap (all inlineIsBlank) (all (all blockIsBlank))) ds
       Header _ _ ils -> all inlineIsBlank ils
       HorizontalRule -> True
+      Figure _ _ bls -> all blockIsBlank bls
       Table{} -> False
       Div _ bls -> all blockIsBlank bls
       Null -> True

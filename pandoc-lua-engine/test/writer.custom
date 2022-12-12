@@ -737,7 +737,8 @@ So is &lsquo;pine.&rsquo;</p>
 <p>From &ldquo;Voyage dans la Lune&rdquo; by Georges Melies (1902):</p>
 
 <figure>
-<img src="lalune.jpg" id="" alt="lalune"/><figcaption>lalune</figcaption>
+<img src="lalune.jpg" title="Voyage dans la Lune"/>
+<figcaption>lalune</figcaption>
 </figure>
 
 <p>Here is a movie <img src="movie.jpg" title=""/> icon.</p>

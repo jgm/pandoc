@@ -293,6 +293,9 @@ $if(numbersections)$
 $else$
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 $endif$
+$if(subfigure)$
+\usepackage{subcaption}
+$endif$
 $if(beamer)$
 $else$
 $if(block-headings)$

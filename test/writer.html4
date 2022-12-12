@@ -708,9 +708,9 @@ class="uri">http://example.com/</a></p>
 <hr />
 <h1 id="images">Images</h1>
 <p>From “Voyage dans la Lune” by Georges Melies (1902):</p>
-<div class="figure">
-<img src="lalune.jpg" title="Voyage dans la Lune" alt="" />
-<p class="caption">lalune</p>
+<div class="float">
+<img src="lalune.jpg" title="Voyage dans la Lune" alt="lalune" />
+<div class="figcaption">lalune</div>
 </div>
 <p>Here is a movie <img src="movie.jpg" alt="movie" /> icon.</p>
 <hr />

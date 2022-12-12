@@ -130,18 +130,6 @@ blockToTEI _ h@Header{} = do
 -- we use treat as Para to ensure that Plain text ends up contained by
 -- something:
 blockToTEI opts (Plain lst) = blockToTEI opts $ Para lst
--- title beginning with fig: indicates that the image is a figure
---blockToTEI opts (Para [Image attr txt (src,'f':'i':'g':':':_)]) =
---  let alt  = inlinesToTEI opts txt
---      capt = if null txt
---                then empty
---                else inTagsSimple "title" alt
---  in  inTagsIndented "figure" $
---        capt $$
---        (inTagsIndented "mediaobject" $
---           (inTagsIndented "imageobject"
---             (imageToTEI opts attr src)) $$
---           inTagsSimple "textobject" (inTagsSimple "phrase" alt))
 blockToTEI opts (Para lst) =
   inTags False "p" [] <$> inlinesToTEI opts lst
 blockToTEI opts (LineBlock lns) =
@@ -193,6 +181,8 @@ blockToTEI _ HorizontalRule = return $
   selfClosingTag "milestone" [("unit","undefined")
                              ,("type","separator")
                              ,("rendition","line")]
+blockToTEI opts (Figure attr capt bs) =
+  blockToTEI opts (figureDiv attr capt bs)
 
 -- TEI Tables
 -- TEI Simple's tables are composed of cells and rows; other

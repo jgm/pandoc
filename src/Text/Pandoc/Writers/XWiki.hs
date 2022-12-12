@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-
-Copyright (C) 2008-2017 John MacFarlane <jgm@berkeley.edu>
+Copyright (C) 2008-2023 John MacFarlane <jgm@berkeley.edu>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 {- |
    Module      : Text.Pandoc.Writers.XWiki
-   Copyright   : Copyright (C) 2008-2017 John MacFarlane
+   Copyright   : Copyright (C) 2008-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Derek Chen-Becker <dchenbecker@gmail.com>
@@ -134,6 +134,12 @@ blockToXWiki (DefinitionList items) = do
   lev <- asks listLevel
   contents <- local (\s -> s { listLevel = listLevel s <> ";" }) $ mapM definitionListItemToMediaWiki items
   return $ vcat contents <> if Text.null lev then "\n" else ""
+
+-- Create a group according to
+-- https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/?syntax=2.1&section=Groups
+blockToXWiki (Figure attr _ body) = do
+  content <- blockToXWiki $ Div attr body
+  return $ intercalate content ["(((\n", "\n)))"]
 
 -- TODO: support more features
 blockToXWiki (Table _ blkCapt specs thead tbody tfoot) = do

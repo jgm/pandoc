@@ -25,7 +25,7 @@ import Control.Monad (foldM, zipWithM, MonadPlus(..), when)
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
-import Data.List (intersperse, sortOn)
+import Data.List (intersperse, sortOn, union)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing)
@@ -427,14 +427,6 @@ blockToMarkdown' opts (Plain inlines) = do
                   _ -> inlines
   contents <- inlineListToMarkdown opts inlines'
   return $ contents <> cr
-blockToMarkdown' opts (SimpleFigure attr alt (src, tit))
-  | isEnabled Ext_raw_html opts &&
-    not (isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts) &&
-    attr /= nullAttr = -- use raw HTML
-    (<> blankline) . literal . T.strip <$>
-      writeHtml5String opts{ writerTemplate = Nothing }
-        (Pandoc nullMeta [SimpleFigure attr alt (src, tit)])
-  | otherwise = blockToMarkdown opts (Para [Image attr alt (src,tit)])
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
 blockToMarkdown' opts (LineBlock lns) =
@@ -677,6 +669,33 @@ blockToMarkdown' opts (OrderedList (start,sty,delim) items) = do
 blockToMarkdown' opts (DefinitionList items) = do
   contents <- inList $ mapM (definitionListItemToMarkdown opts) items
   return $ mconcat contents <> blankline
+blockToMarkdown' opts (Figure figattr capt body) = do
+  let combinedAttr imgattr = case imgattr of
+        ("", cls, kv) | (figid, [], []) <- figattr -> Just (figid, cls, kv)
+        _ -> Nothing
+  let combinedAlt alt = case capt of
+        Caption Nothing [] -> if null alt
+                              then Just [Str "image"]
+                              else Just alt
+        Caption Nothing [Plain captInlines]
+          | captInlines == alt -> Just captInlines
+        _ -> Nothing
+  case body of
+    [Plain [Image imgAttr alt (src, ttl)]]
+      | isEnabled Ext_implicit_figures opts
+      , Just descr    <- combinedAlt alt
+      , Just imgAttr' <- combinedAttr imgAttr
+      , isEnabled Ext_link_attributes opts || imgAttr' == nullAttr
+        -> do
+          -- use implicit figures if possible
+          let tgt' = (src, fromMaybe ttl $ T.stripPrefix "fig:" ttl)
+          contents <- inlineListToMarkdown opts [Image imgAttr' descr tgt']
+          return $ contents <> blankline
+    _ ->
+      -- fallback to raw html if possible or div otherwise
+      if isEnabled Ext_raw_html opts
+      then figureToMarkdown opts figattr capt body
+      else blockToMarkdown' opts $ figureDiv figattr capt body
 
 inList :: Monad m => MD m a -> MD m a
 inList p = local (\env -> env {envInList = True}) p
@@ -689,6 +708,22 @@ addMarkdownAttribute s =
               where attrs' = ("markdown","1"):[(x,y) | (x,y) <- attrs,
                                  x /= "markdown"]
        _ -> s
+
+-- | Converts a figure to Markdown by wrapping it in a div named `figure`.
+figureToMarkdown :: PandocMonad m
+                 => WriterOptions
+                 -> Attr
+                 -> Caption
+                 -> [Block]
+                 -> MD m (Doc Text)
+figureToMarkdown opts attr@(ident, classes, kvs) capt body
+  | isEnabled Ext_raw_html opts =
+      (<> blankline) . literal . T.strip <$>
+      writeHtml5String
+        opts{ writerTemplate = Nothing }
+        (Pandoc nullMeta [Figure attr capt body])
+  | otherwise = let attr' = (ident, ["figure"] `union` classes, kvs)
+                in blockToMarkdown' opts (Div attr' body)
 
 itemEndsWithTightList :: [Block] -> Bool
 itemEndsWithTightList bs =

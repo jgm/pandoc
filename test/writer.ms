@@ -954,9 +954,8 @@ Images
 .pdfhref M "images"
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
-.PP
 [IMAGE: lalune]
-.PP
+.LP
 Here is a movie [IMAGE: movie] icon.
 .HLINE
 .SH 1

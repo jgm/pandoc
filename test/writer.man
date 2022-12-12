@@ -714,8 +714,8 @@ or here: <http://example.com/>
 .SH Images
 .PP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
-.PP
 [IMAGE: lalune]
+lalune
 .PP
 Here is a movie [IMAGE: movie] icon.
 .PP
