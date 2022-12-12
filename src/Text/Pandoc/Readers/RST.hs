@@ -19,7 +19,7 @@ import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum)
-import Data.List (deleteFirstsBy, elemIndex, nub, sort, transpose)
+import Data.List (deleteFirstsBy, elemIndex, nub, partition, sort, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList, isJust)
 import Data.Sequence (ViewR (..), viewr)
@@ -730,8 +730,12 @@ directive' = do
         "figure" -> do
            (caption, legend) <- parseFromString' extractCaption body'
            let src = escapeURI $ trim top
-           return $ B.simpleFigureWith
-               (imgAttr "figclass") caption src "" <> legend
+           let (ident, cls, kvs) = imgAttr "class"
+           let (figclasskv, kvs') = partition ((== "figclass") . fst) kvs
+           let figattr = ("", concatMap (T.words . snd) figclasskv, [])
+           let capt = B.caption Nothing (B.plain caption <> legend)
+           return $ B.figureWith figattr capt $
+             B.plain (B.imageWith (ident, cls, kvs') src "" (B.text src))
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields

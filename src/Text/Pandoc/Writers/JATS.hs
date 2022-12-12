@@ -220,17 +220,6 @@ listItemToJATS opts mbmarker item = do
            maybe empty (inTagsSimple "label" . text . T.unpack) mbmarker
            $$ contents
 
-imageMimeType :: Text -> [(Text, Text)] -> (Text, Text)
-imageMimeType src kvs =
-  let mbMT = getMimeType (T.unpack src)
-      maintype = fromMaybe "image" $
-                  lookup "mimetype" kvs `mplus`
-                  (T.takeWhile (/='/') <$> mbMT)
-      subtype = fromMaybe "" $
-                  lookup "mime-subtype" kvs `mplus`
-                  (T.drop 1 . T.dropWhile (/='/') <$> mbMT)
-  in (maintype, subtype)
-
 languageFor :: WriterOptions -> [Text] -> Text
 languageFor opts classes =
   case langs of
@@ -301,35 +290,13 @@ blockToJATS opts (Div (ident,_,kvs) bs) = do
 blockToJATS opts (Header _ _ title) = do
   title' <- inlinesToJATS opts (map fixLineBreak title)
   return $ inTagsSimple "title" title'
+-- Special cases for bare images, which are rendered as graphics
+blockToJATS _opts (Plain [Image attr alt tgt]) =
+  return $ graphic attr alt tgt
+blockToJATS _opts (Para [Image attr alt tgt]) =
+  return $ graphic attr alt tgt
 -- No Plain, everything needs to be in a block-level tag
 blockToJATS opts (Plain lst) = blockToJATS opts (Para lst)
-blockToJATS opts (SimpleFigure (ident, _, kvs) txt (src, tit)) = do
-  alt <- inlinesToJATS opts txt
-  let (maintype, subtype) = imageMimeType src kvs
-  let capt = if null txt
-                then empty
-                else inTagsSimple "caption" $ inTagsSimple "p" alt
-  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["fig-type", "orientation",
-                                              "position", "specific-use"]]
-  let graphicattr = [("mimetype",maintype),
-                     ("mime-subtype",subtype),
-                     ("xlink:href",src),  -- do we need to URL escape this?
-                     ("xlink:title",tit)]
-  return $ inTags True "fig" attr $
-              capt $$ selfClosingTag "graphic" graphicattr
-blockToJATS _ (Para [Image (ident,_,kvs) _ (src, tit)]) = do
-  let (maintype, subtype) = imageMimeType src kvs
-  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
-             [("mimetype", maintype),
-              ("mime-subtype", subtype),
-              ("xlink:href", src)] ++
-             [("xlink:title", tit) | not (T.null tit)] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["baseline-shift",
-                        "content-type", "specific-use", "xlink:actuate",
-                        "xlink:href", "xlink:role", "xlink:show",
-                        "xlink:type"]]
-  return $ selfClosingTag "graphic" attr
 blockToJATS opts (Para lst) =
   inTagsSimple "p" <$> inlinesToJATS opts lst
 blockToJATS opts (LineBlock lns) =
@@ -385,6 +352,16 @@ blockToJATS _ b@(RawBlock f str)
 blockToJATS _ HorizontalRule = return empty -- not semantic
 blockToJATS opts (Table attr caption colspecs thead tbody tfoot) =
   tableToJATS opts (Ann.toTable attr caption colspecs thead tbody tfoot)
+blockToJATS opts (Figure (ident, _, kvs) caption body) = do
+  capt <- case caption of
+            Caption _ []  -> pure empty
+            Caption _ cpt -> inTagsSimple "caption" <$> blocksToJATS opts cpt
+  figbod <- blocksToJATS opts body
+  let figattr = [("id", escapeNCName ident) | not (T.null ident)] ++
+                [(k,v) | (k,v) <- kvs
+                       , k `elem` [ "fig-type", "orientation"
+                                  , "position", "specific-use"]]
+  return $ inTags True "fig" figattr $ capt $$ figbod
 
 -- | Convert a list of inline elements to JATS.
 inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m (Doc Text)
@@ -543,27 +520,40 @@ inlineToJATS opts (Link (ident,_,kvs) txt (src, tit)) = do
                                               "xlink:type"]]
   contents <- inlinesToJATS opts txt
   return $ inTags False "ext-link" attr contents
-inlineToJATS _ (Image (ident,_,kvs) _ (src, tit)) = do
+inlineToJATS _ (Image attr alt tgt) = do
+  return $ selfClosingTag "inline-graphic" (graphicAttr attr alt tgt)
+
+graphic :: Attr -> [Inline] -> Target -> (Doc Text)
+graphic attr alt tgt =
+  selfClosingTag "graphic" (graphicAttr attr alt tgt)
+
+graphicAttr :: Attr -> [Inline] -> Target -> [(Text, Text)]
+graphicAttr (ident, _, kvs) _alt (src, tit) =
+  let (maintype, subtype) = imageMimeType src kvs
+  in [("id", escapeNCName ident) | not (T.null ident)] ++
+     [ ("mimetype", maintype)
+     , ("mime-subtype", subtype)
+     , ("xlink:href", src)
+     ] ++
+     [("xlink:title", tit) | not (T.null tit)] ++
+     [(k,v) | (k,v) <- kvs
+            , k `elem` [ "baseline-shift", "content-type", "specific-use"
+                       , "xlink:actuate", "xlink:href", "xlink:role"
+                       , "xlink:show", "xlink:type"]
+            ]
+
+imageMimeType :: Text -> [(Text, Text)] -> (Text, Text)
+imageMimeType src kvs =
   let mbMT = getMimeType (T.unpack src)
-  let maintype = fromMaybe "image" $
+      maintype = fromMaybe "image" $
                   lookup "mimetype" kvs `mplus`
                   (T.takeWhile (/='/') <$> mbMT)
-  let subtype = fromMaybe "" $
+      subtype = fromMaybe "" $
                   lookup "mime-subtype" kvs `mplus`
                   (T.drop 1 . T.dropWhile (/='/') <$> mbMT)
-  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
-             [("mimetype", maintype),
-              ("mime-subtype", subtype),
-              ("xlink:href", src)] ++
-             [("xlink:title", tit) | not (T.null tit)] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["baseline-shift",
-                        "content-type", "specific-use", "xlink:actuate",
-                        "xlink:href", "xlink:role", "xlink:show",
-                        "xlink:type"]]
-  return $ selfClosingTag "inline-graphic" attr
+  in (maintype, subtype)
 
 isParaOrList :: Block -> Bool
-isParaOrList SimpleFigure{}   = False  -- implicit figures are not paragraphs
 isParaOrList Para{}           = True
 isParaOrList Plain{}          = True
 isParaOrList BulletList{}     = True

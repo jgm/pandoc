@@ -157,6 +157,12 @@ blockToCustom (CodeBlock attr str) =
 blockToCustom (BlockQuote blocks) =
   invoke "BlockQuote" (Stringify blocks)
 
+blockToCustom (Figure attr (Caption _ cbody) content) =
+  invoke "Figure"
+    (Stringify cbody)
+    (Stringify content)
+    (attrToMap attr)
+
 blockToCustom (Table _ blkCapt specs thead tbody tfoot) =
   let (capt, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
       aligns' = map show aligns

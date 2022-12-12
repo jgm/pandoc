@@ -16,3 +16,13 @@ source-repository-package
   type: git
   location: https://github.com/jgm/texmath
   tag: 1a77db688bd3285228299e5aeefc93d6c0d8c0b9
+
+source-repository-package
+  type: git
+  location: https://github.com/tarleb/pandoc-types
+  tag: f84b7359765a2798f22efe4e9457538cda7a8d4a
+
+source-repository-package
+  type: git
+  location: https://github.com/pandoc/pandoc-lua-marshal
+  tag: a2a97e2af78326ea7841101d4ef56e74426b66c4

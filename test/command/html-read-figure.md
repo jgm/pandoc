@@ -5,9 +5,11 @@
   <figcaption>bar</figcaption>
 </figure>
 ^D
-[ Para
-    [ Image
-        ( "" , [] , [] ) [ Str "bar" ] ( "foo.png" , "fig:voyage" )
+[ Figure
+    ( "" , [] , [] )
+    (Caption Nothing [ Plain [ Str "bar" ] ])
+    [ Plain
+        [ Image ( "" , [] , [] ) [] ( "foo.png" , "voyage" ) ]
     ]
 ]
 ```
@@ -19,9 +21,11 @@
   <img src="foo.png" title="voyage">
 </figure>
 ^D
-[ Para
-    [ Image
-        ( "" , [] , [] ) [ Str "bar" ] ( "foo.png" , "fig:voyage" )
+[ Figure
+    ( "" , [] , [] )
+    (Caption Nothing [ Plain [ Str "bar" ] ])
+    [ Plain
+        [ Image ( "" , [] , [] ) [] ( "foo.png" , "voyage" ) ]
     ]
 ]
 ```
@@ -32,8 +36,12 @@
   <img src="foo.png" title="voyage">
 </figure>
 ^D
-[ Para
-    [ Image ( "" , [] , [] ) [] ( "foo.png" , "fig:voyage" ) ]
+[ Figure
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ Plain
+        [ Image ( "" , [] , [] ) [] ( "foo.png" , "voyage" ) ]
+    ]
 ]
 ```
 
@@ -44,9 +52,11 @@
   <figcaption>bar</figcaption>
 </figure>
 ^D
-[ Para
-    [ Image
-        ( "" , [] , [] ) [ Str "bar" ] ( "foo.png" , "fig:voyage" )
+[ Figure
+    ( "" , [] , [] )
+    (Caption Nothing [ Plain [ Str "bar" ] ])
+    [ Para
+        [ Image ( "" , [] , [] ) [] ( "foo.png" , "voyage" ) ]
     ]
 ]
 ```
@@ -55,11 +65,17 @@
 % pandoc -f html -t native
 <figure><img src="foo.png" title="voyage" alt="this is ignored"><figcaption>bar <strong>baz</strong></figcaption></figure>
 ^D
-[ Para
-    [ Image
-        ( "" , [] , [] )
-        [ Str "bar" , Space , Strong [ Str "baz" ] ]
-        ( "foo.png" , "fig:voyage" )
+[ Figure
+    ( "" , [] , [] )
+    (Caption
+       Nothing
+       [ Plain [ Str "bar" , Space , Strong [ Str "baz" ] ] ])
+    [ Plain
+        [ Image
+            ( "" , [] , [] )
+            [ Str "this" , Space , Str "is" , Space , Str "ignored" ]
+            ( "foo.png" , "voyage" )
+        ]
     ]
 ]
 ```

@@ -930,7 +930,9 @@ or here: <http://example.com/>
 
 From \quotation{Voyage dans la Lune} by Georges Melies (1902):
 
-\placefigure{lalune}{\externalfigure[lalune.jpg]}
+\startplacefigure[title={lalune}]
+{\externalfigure[lalune.jpg]}
+\stopplacefigure
 
 Here is a movie {\externalfigure[movie.jpg]} icon.
 

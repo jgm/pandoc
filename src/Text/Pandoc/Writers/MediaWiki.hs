@@ -16,6 +16,7 @@ module Text.Pandoc.Writers.MediaWiki ( writeMediaWiki, highlightingLangs ) where
 import Control.Monad.Reader
 import Control.Monad.State.Strict
 import Data.Maybe (fromMaybe)
+import qualified Data.List as DL
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -201,6 +202,9 @@ blockToMediaWiki x@(DefinitionList items) = do
         lev <- asks listLevel
         contents <- local (\s -> s { listLevel = listLevel s <> ";" }) $ mapM definitionListItemToMediaWiki items
         return $ vcat contents <> if null lev then "\n" else ""
+
+blockToMediaWiki (Figure (ident, classes, kvs) _ body) =
+  blockToMediaWiki (Div (ident, ["figure"] `DL.union` classes, kvs) body)
 
 -- Auxiliary functions for lists:
 

@@ -3,6 +3,7 @@
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
@@ -33,6 +34,7 @@ import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
+import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
@@ -176,6 +178,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "numbersections" (writerNumberSections options) $
                   defField "lhs" (stLHS st) $
                   defField "graphics" (stGraphics st) $
+                  defField "subfigure" (stSubfigure st) $
                   defField "svg" (stSVG st) $
                   defField "has-chapters" (stHasChapters st) $
                   defField "has-frontmatter" (documentClass `elem` frontmatterClasses) $
@@ -366,21 +369,6 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   wrapNotes <$> wrapDiv (identifier,classes,kvs) result
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
-blockToLaTeX (SimpleFigure attr@(ident, _, _) txt (src, tit)) = do
-      (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True txt
-      lab <- labelFor ident
-      let caption = "\\caption" <> captForLof <> braces capt <> lab
-      img <- inlineToLaTeX (Image attr txt (src,tit))
-      innards <- hypertarget True ident $
-                   "\\centering" $$ img $$ caption <> cr
-      let figure = cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}"
-      st <- get
-      return $ (if stInMinipage st
-                 -- can't have figures in notes or minipage (here, table cell)
-                 -- http://www.tex.ac.uk/FAQ-ouparmd.html
-                then cr <> "\\begin{center}" $$ img $+$ capt $$
-                       "\\end{center}"
-                else figure) $$ footnotes
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- gets stBeamer
@@ -576,6 +564,58 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
+blockToLaTeX (Figure (ident, _, _) (Caption _ longCapt) body) = do
+  (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True
+                                              (blocksToInlines longCapt)
+  lab <- labelFor ident
+  let caption = "\\caption" <> captForLof <> braces capt <> lab
+
+  isSubfigure <- gets stInFigure
+  modify $ \st -> st{ stInFigure = True }
+  contents <- case body of
+    [b] -> blockToLaTeX b
+    bs  -> mconcat . intersperse (cr <> "\\hfill") <$>
+           mapM (toSubfigure (length bs)) bs
+  innards <- hypertarget True ident $
+    "\\centering" $$ contents $$ caption <> cr
+  modify $ \st ->
+    st{ stInFigure = isSubfigure
+      , stSubfigure = stSubfigure st || isSubfigure
+      }
+
+  let containsTable = getAny . (query $ \case
+        Table {}  -> Any True
+        _         -> Any False)
+  st <- get
+  return $ (case () of
+    _ | containsTable body ->
+          -- placing a longtable in a figure or center environment does
+          -- not make sense.
+          cr <> contents
+    _ | stInMinipage st ->
+          -- can't have figures in notes or minipage (here, table cell)
+          -- http://www.tex.ac.uk/FAQ-ouparmd.html
+          cr <> "\\begin{center}" $$ contents $+$ capt $$ "\\end{center}"
+    _ | isSubfigure ->
+          innards
+    _ ->  cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}")
+    $$ footnotes
+
+toSubfigure :: PandocMonad m => Int -> Block -> LW m (Doc Text)
+toSubfigure nsubfigs blk = do
+  contents <- blockToLaTeX blk
+  let linewidth = tshow @Double (0.9 / fromIntegral nsubfigs) <> "\\linewidth"
+  return $ cr <> case blk of
+    Figure {}    -> vcat
+                    [ "\\begin{subfigure}[t]" <> braces (literal linewidth)
+                    , contents
+                    , "\\end{subfigure}"
+                    ]
+    _            -> vcat
+                    [ "\\begin{minipage}[t]" <> braces (literal linewidth)
+                    , contents
+                    , "\\end{minipage}"
+                    ]
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =

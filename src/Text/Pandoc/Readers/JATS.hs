@@ -38,7 +38,6 @@ import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
-import qualified Data.Foldable as DF
 
 type JATS m = StateT JATSState m
 
@@ -232,29 +231,17 @@ parseBlock (Elem e) =
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
-         parseFigure =
-           -- if a simple caption and single graphic, we emit a standard
-           -- implicit figure.  otherwise, we emit a div with the contents
-           case filterChildren (named "graphic") e of
-                  [g] -> do
-                         capt <- case filterChild (named "caption") e of
-                                        Just t  -> mconcat .
-                                          intersperse linebreak <$>
-                                          mapM getInlines
-                                          (filterChildren (const True) t)
-                                        Nothing -> return mempty
+         parseFigure = do
+           capt <- case filterChild (named "caption") e of
+                     Just t  -> mconcat . intersperse linebreak <$>
+                                mapM getInlines (filterChildren (const True) t)
+                     Nothing -> return mempty
+           contents <- getBlocks e
 
-                         let figAttributes = DF.toList $
-                              ("alt", ) . strContent <$>
-                              filterChild (named "alt-text") e
-
-                         return $ simpleFigureWith
-                          (attrValue "id" e, [], figAttributes)
-                          capt
-                          (attrValue "href" g)
-                          (attrValue "title" g)
-
-                  _   -> divWith (attrValue "id" e, ["fig"], []) <$> getBlocks e
+           return $ figureWith
+             (attrValue "id" e, [], [])
+             (simpleCaption $ plain capt)
+             contents
          parseFootnoteGroup = do
            forM_ (filterChildren (named "fn") e) $ \fn -> do
              let id' = attrValue "id" fn

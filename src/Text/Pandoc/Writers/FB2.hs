@@ -37,8 +37,9 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, orderedListMarkers,
+import Text.Pandoc.Shared (blocksToInlines, capitalize, orderedListMarkers,
                            makeSections, tshow, stringify)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable,
                                    ensureValidXmlIdentifiers)
 import Data.Generics (everywhere, mkT)
@@ -299,11 +300,11 @@ mkitem mrk bs = do
 
 -- | Convert a block-level Pandoc's element to FictionBook XML representation.
 blockToXml :: PandocMonad m => Block -> FBM m [Content]
+blockToXml (Plain [img@Image {}]) = insertImage NormalImage img
 blockToXml (Plain ss) = cMapM toXml ss  -- FIXME: can lead to malformed FB2
+-- Special handling for singular images and display math elements
 blockToXml (Para [Math DisplayMath formula]) = insertMath NormalImage formula
--- title beginning with fig: indicates that the image is a figure
-blockToXml (SimpleFigure atr alt (src, tit)) =
-    insertImage NormalImage (Image atr alt (src,tit))
+blockToXml (Para [img@(Image {})]) = insertImage NormalImage img
 blockToXml (Para ss) = list . el "p" <$> cMapM toXml ss
 blockToXml (CodeBlock _ s) = return . spaceBeforeAfter .
                              map (el "p" . el "code") . T.lines $ s
@@ -361,6 +362,11 @@ blockToXml (Table _ blkCapt specs thead tbody tfoot) = do
       align_str AlignRight   = "right"
       align_str AlignDefault = "left"
 blockToXml Null = return []
+blockToXml (Figure _attr (Caption _ longcapt) body) =
+  let alt = blocksToInlines longcapt
+      addAlt (Image imgattr [] tgt) = Image imgattr alt tgt
+      addAlt inln                   = inln
+  in cMapM blockToXml (walk addAlt body)
 
 -- Replace plain text with paragraphs and add line break after paragraphs.
 -- It is used to convert plain text from tight list items to paragraphs.

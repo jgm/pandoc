@@ -312,10 +312,6 @@ blocksToICML opts style lst = do
 -- | Convert a Pandoc block element to ICML.
 blockToICML :: PandocMonad m => WriterOptions -> Style -> Block -> WS m (Doc Text)
 blockToICML opts style (Plain lst) = parStyle opts style "" lst
-blockToICML opts style (SimpleFigure attr txt (src, tit)) = do
-  figure  <- parStyle opts (figureName:style) "" [Image attr txt (src, tit)]
-  caption <- parStyle opts (imgCaptionName:style) "" txt
-  return $ intersperseBrs [figure, caption]
 blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) "" lst
 blockToICML opts style (LineBlock lns) =
   blockToICML opts style $ linesToPara lns
@@ -387,6 +383,16 @@ blockToICML opts style (Div (_ident, _, kvs) lst) =
   let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
   in  blocksToICML opts (dynamicStyle <> style) lst
 blockToICML _ _ Null = return empty
+blockToICML opts style (Figure attr capt@(Caption _ longcapt) body) =
+  case body of
+    [Plain [img@(Image {})]] -> do
+      figure  <- parStyle opts (figureName:style) "" [img]
+      caption <- parStyle opts (imgCaptionName:style) "" $
+                 blocksToInlines longcapt
+      return $ intersperseBrs [figure, caption]
+    _ -> -- fallback to rendering the figure as a Div
+      blockToICML opts style $ figureDiv attr capt body
+
 
 -- | Convert a list of lists of blocks to ICML list items.
 listItemsToICML :: PandocMonad m => WriterOptions -> Text -> Style -> Maybe ListAttributes -> [[Block]] -> WS m (Doc Text)

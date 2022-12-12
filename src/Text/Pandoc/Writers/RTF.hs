@@ -270,6 +270,8 @@ blockToRTF indent alignment (Table _ blkCapt specs thead tbody tfoot) = do
                 else tableRowToRTF True indent aligns sizes headers
   rows' <- T.concat <$> mapM (tableRowToRTF False indent aligns sizes) rows
   return $ header' <> rows' <> rtfPar indent 0 alignment caption'
+blockToRTF indent alignment (Figure attr capt body) =
+  blockToRTF indent alignment $ figureDiv attr capt body
 
 tableRowToRTF :: PandocMonad m
               => Bool -> Int -> [Alignment] -> [Double] -> [[Block]] -> m Text

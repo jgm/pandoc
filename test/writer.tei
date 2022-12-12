@@ -810,8 +810,9 @@ or here: &lt;http://example.com/&gt;
   <p><figure>
     <head>lalune</head>
     <graphic url="lalune.jpg" />
-    <figDesc>fig:Voyage dans la Lune</figDesc>
+    <figDesc>Voyage dans la Lune</figDesc>
   </figure></p>
+  <p>lalune</p>
   <p>Here is a movie <figure>
     <head>movie</head>
     <graphic url="movie.jpg" />

@@ -3,7 +3,7 @@
 
 Simple table with caption:
 
-@float
+@float Table
 @multitable {Right} {Left} {Center} {Default} 
 @headitem 
 Right
@@ -55,7 +55,7 @@ Right
 
 Simple table indented two spaces:
 
-@float
+@float Table
 @multitable {Right} {Left} {Center} {Default} 
 @headitem 
 Right
@@ -82,7 +82,7 @@ Right
 @end float
 Multiline table with caption:
 
-@float
+@float Table
 @multitable @columnfractions 0.15 0.14 0.16 0.35 
 @headitem 
 Centered Header

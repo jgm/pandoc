@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
    Copyright   : Copyright (C) 2012-2023 John MacFarlane
@@ -63,7 +64,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType, getMimeTypeDef)
 import Text.Pandoc.Options
 import Text.Pandoc.Writers.Docx.StyleMap
-import Text.Pandoc.Writers.Docx.Table
+import Text.Pandoc.Writers.Docx.Table as Table
 import Text.Pandoc.Writers.Docx.Types
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -890,38 +891,6 @@ blockToOpenXML' opts (Plain lst) = do
   if isInTable || isInList
      then withParaProp prop block
      else block
--- title beginning with fig: indicates that the image is a figure
-blockToOpenXML' opts (SimpleFigure attr@(imgident, _, _) alt (src, tit)) = do
-  setFirstPara
-  fignum <- gets stNextFigureNum
-  unless (null alt) $ modify $ \st -> st{ stNextFigureNum = fignum + 1 }
-  let refid = if T.null imgident
-                     then "ref_fig" <> tshow fignum
-                     else "ref_" <> imgident
-  figname <- translateTerm Term.Figure
-  prop <- pStyleM $
-        if null alt
-        then "Figure"
-        else "Captioned Figure"
-  paraProps <- local (\env -> env { envParaProperties = EnvProps (Just prop) [] <> envParaProperties env }) (getParaProps False)
-  contents <- inlinesToOpenXML opts [Image attr alt (src,tit)]
-  captionNode <- if null alt
-                    then return []
-                    else withParaPropM (pStyleM "Image Caption")
-                         $ blockToOpenXML opts
-                         $ Para
-                         $ if isEnabled Ext_native_numbering opts
-                              then Span (refid,[],[])
-                                          [Str (figname <> "\160"),
-                                           RawInline (Format "openxml")
-                                           ("<w:fldSimple w:instr=\"SEQ Figure"
-                                           <> " \\* ARABIC \"><w:r><w:t>"
-                                           <> tshow fignum
-                                           <> "</w:t></w:r></w:fldSimple>")] : Str ": " : alt
-                              else alt
-  return $
-    Elem (mknode "w:p" [] (map Elem paraProps ++ contents))
-    : captionNode
 blockToOpenXML' opts (Para lst)
   | null lst && not (isEnabled Ext_empty_paragraphs opts) = return []
   | otherwise = do
@@ -990,6 +959,99 @@ blockToOpenXML' opts (DefinitionList items) = do
   l <- concat `fmap` mapM (definitionListItemToOpenXML opts) items
   setFirstPara
   return l
+blockToOpenXML' opts (Figure (ident, _, _) (Caption _ longcapt) body) = do
+  setFirstPara
+  fignum <- gets stNextFigureNum
+  unless (null longcapt) $ modify $ \st -> st{ stNextFigureNum = fignum + 1 }
+  let refid = if T.null ident
+              then "ref_fig" <> tshow fignum
+              else "ref_" <> ident
+  figname <- translateTerm Term.Figure
+  prop <- pStyleM $
+    if null longcapt
+    then "Figure"
+    else "Captioned Figure"
+  paraProps <- local
+    (\env -> env { envParaProperties = EnvProps (Just prop) [] <>
+                                       envParaProperties env })
+    (getParaProps False)
+
+  -- Figure contents
+  let simpleImage x = do
+        imgXML <- inlineToOpenXML opts x
+        pure $ Elem (mknode "w:p" [] (map Elem paraProps ++ imgXML))
+  contentsNode <- case body of
+    [Plain [img@Image {}]] -> simpleImage img
+    [Para  [img@Image {}]] -> simpleImage img
+    _                      -> toFigureTable opts body
+  -- Caption
+  let imageCaption = withParaPropM (pStyleM "Image Caption")
+                   . blocksToOpenXML opts
+  let fstCaptionPara inlns = Para $
+        if not $ isEnabled Ext_native_numbering opts
+        then inlns
+        else let rawfld = RawInline (Format "openxml") $ mconcat
+                          [ "<w:fldSimple w:instr=\"SEQ Figure"
+                          , " \\* ARABIC \"><w:r><w:t>"
+                          , tshow fignum
+                          , "</w:t></w:r></w:fldSimple>"
+                          ]
+             in Span (refid,[],[]) [Str (figname <> "\160") , rawfld]
+                : Str ": " : inlns
+  captionNode <- case longcapt of
+    []              -> return []
+    (Para xs  : bs) -> imageCaption (fstCaptionPara xs : bs)
+    (Plain xs : bs) -> imageCaption (fstCaptionPara xs : bs)
+    _               -> imageCaption longcapt
+  return $ contentsNode : captionNode
+
+toFigureTable :: PandocMonad m
+              => WriterOptions -> [Block] -> WS m Content
+toFigureTable opts blks = do
+  modify $ \s -> s { stInTable = True }
+  let ncols = length blks
+  let textwidth = 7920  -- 5.5 in in twips       (1 twip == 1/20 pt)
+  let cellfrac = 1 / fromIntegral ncols
+  let colwidth = tshow @Integer $ floor (textwidth * cellfrac) -- twips
+  let gridCols = replicate ncols $ mknode "w:gridCol" [("w:w", colwidth)] ()
+  let scaleImage = \case
+        Image attr@(ident, classes, attribs) alt tgt ->
+          let dimWidth  = case dimension Width attr of
+                            Nothing -> Percent (cellfrac * 100)
+                            Just d  -> scaleDimension cellfrac d
+              dimHeight = scaleDimension cellfrac <$> dimension Height attr
+              attribs' = (tshow Width, tshow dimWidth) :
+                         (case dimHeight of
+                            Nothing -> id
+                            Just h  -> ((tshow Height, tshow h) :))
+                         [ (k, v) | (k, v) <- attribs
+                                  , k `notElem` ["width", "height"]
+                                  ]
+          in Image (ident, classes, attribs') alt tgt
+        x -> x
+  let blockToCell = Table.OOXMLCell nullAttr AlignCenter 1 1 . (:[])
+                  . walk scaleImage
+  tblBody <- Table.rowToOpenXML (blocksToOpenXML opts) .
+             Table.OOXMLRow Table.BodyRow nullAttr $
+             map blockToCell blks
+  let tbl = mknode "w:tbl" []
+        ( mknode "w:tblPr" []
+          ( mknode "w:tblStyle" [("w:val","FigureTable")] () :
+            mknode "w:tblW" [ ("w:type", "auto"), ("w:w", "0") ] () :
+            mknode "w:tblLook" [ ("w:firstRow", "0")
+                               , ("w:lastRow", "0")
+                               , ("w:firstColumn", "0")
+                               , ("w:lastColumn", "0")
+                               ] () :
+            mknode "w:jc" [("w:val","center")] () :
+            []
+          )
+          : mknode "w:tblGrid" [] gridCols
+          : [tblBody]
+        )
+  modify $ \s -> s { stInTable = False }
+  return $ Elem tbl
+
 
 definitionListItemToOpenXML  :: (PandocMonad m)
                              => WriterOptions -> ([Inline],[[Block]])

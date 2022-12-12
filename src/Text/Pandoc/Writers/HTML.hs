@@ -1,5 +1,6 @@
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -704,34 +705,6 @@ dimensionsToAttrList attr = go Width ++ go Height
                (Just x)         -> [("style", tshow dir <> ":" <> tshow x)]
                Nothing          -> []
 
-figure :: PandocMonad m
-       => WriterOptions -> Attr -> [Inline] -> (Text, Text)
-       -> StateT WriterState m Html
-figure opts attr@(_, _, attrList) txt (s,tit) = do
-  html5 <- gets stHtml5
-  -- Screen-readers will normally read the @alt@ text and the figure; we
-  -- want to avoid them reading the same text twice. With HTML5 we can
-  -- use aria-hidden for the caption; with HTML4, we use an empty
-  -- alt-text instead.
-  -- When the alt text differs from the caption both should be read.
-  let alt = if html5 then txt else [Str ""]
-  let tocapt = if html5
-                  then (H5.figcaption !) $
-                       if isJust (lookup "alt" attrList)
-                          then mempty
-                          else H5.customAttribute (textTag "aria-hidden")
-                                                  (toValue @Text "true")
-                  else H.p ! A.class_ "caption"
-  img <- inlineToHtml opts (Image attr alt (s,tit))
-  capt <- if null txt
-             then return mempty
-             else (nl <>) . tocapt <$> inlineListToHtml opts txt
-  let inner = mconcat [nl, img, capt, nl]
-  return $ if html5
-              then H5.figure inner
-              else H.div ! A.class_ "figure" $ inner
-
-
 adjustNumbers :: WriterOptions -> [Block] -> [Block]
 adjustNumbers opts doc =
   if all (==0) (writerNumberOffset opts)
@@ -754,23 +727,19 @@ adjustNumbers opts doc =
 blockToHtmlInner :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
 blockToHtmlInner _ Null = return mempty
 blockToHtmlInner opts (Plain lst) = inlineListToHtml opts lst
-blockToHtmlInner opts (Para [Image attr@(_,classes,_) txt (src,tit)])
-  | "r-stretch" `elem` classes = do
-  slideVariant <- gets stSlideVariant
-  case slideVariant of
-       RevealJsSlides ->
-         -- a "stretched" image in reveal.js must be a direct child
-         -- of the slide container
-         inlineToHtml opts (Image attr txt (src, tit))
-       _ -> figure opts attr txt (src, tit)
--- title beginning with fig: indicates that the image is a figure
-blockToHtmlInner opts (SimpleFigure attr caption (src, title)) =
-  figure opts attr caption (src, title)
 blockToHtmlInner opts (Para lst) = do
-  contents <- inlineListToHtml opts lst
-  case contents of
-       Empty _ | not (isEnabled Ext_empty_paragraphs opts) -> return mempty
-       _ -> return $ H.p contents
+  slideVariant <- gets stSlideVariant
+  case (slideVariant, lst) of
+    (RevealJsSlides, [Image attr@(_,classes,_) txt (src,tit)])
+      | "r-stretch" `elem` classes -> do
+          -- a "stretched" image in reveal.js must be a direct child
+          -- of the slide container
+          inlineToHtml opts (Image attr txt (src, tit))
+    _ -> do
+      contents <- inlineListToHtml opts lst
+      case contents of
+        Empty _ | not (isEnabled Ext_empty_paragraphs opts) -> return mempty
+        _ -> return $ H.p contents
 blockToHtmlInner opts (LineBlock lns) =
   if writerWrapText opts == WrapNone
   then blockToHtml opts $ linesToPara lns
@@ -1050,6 +1019,34 @@ blockToHtmlInner opts (DefinitionList lst) = do
   defList opts contents
 blockToHtmlInner opts (Table attr caption colspecs thead tbody tfoot) =
   tableToHtml opts (Ann.toTable attr caption colspecs thead tbody tfoot)
+blockToHtmlInner opts (Figure attrs (Caption _ captBody)  body) = do
+  html5 <- gets stHtml5
+
+  figAttrs <- attrsToHtml opts attrs
+  contents <- blockListToHtml opts body
+  figCaption <- if null captBody
+                then return mempty
+                else do
+                  captCont <- blockListToHtml opts captBody
+                  return . mconcat $
+                    if html5
+                    then let fcattr = if captionIsAlt captBody body
+                                      then H5.customAttribute
+                                           (textTag "aria-hidden")
+                                           (toValue @Text "true")
+                                      else mempty
+                         in [ H5.figcaption ! fcattr $ captCont, nl ]
+                    else [ (H.div ! A.class_ "figcaption") captCont, nl ]
+  return $
+    if html5
+    then foldl (!) H5.figure figAttrs $ mconcat [nl, contents, nl, figCaption]
+    else foldl (!) H.div (A.class_ "float" : figAttrs) $ mconcat
+           [nl, contents, nl, figCaption]
+ where
+  captionIsAlt capt [Plain [Image (_, _, kv) desc _]] =
+    let alt = fromMaybe (stringify desc) $ lookup "alt" kv
+    in stringify capt == alt
+  captionIsAlt _ _ = False
 
 -- | Convert Pandoc block element to HTML. All the legwork is done by
 -- 'blockToHtmlInner', this just takes care of emitting the notes after

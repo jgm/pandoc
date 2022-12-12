@@ -60,7 +60,7 @@ type OD m = StateT WriterState m
 data ReferenceType
   = HeaderRef
   | TableRef
-  | ImageRef
+  | FigureRef
 
 data WriterState =
     WriterState { stNotes          :: [Doc Text]
@@ -253,12 +253,11 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                         meta
   ((body, metadata),s) <- flip runStateT
         defaultWriterState $ do
-           let collectInlineIdent (Image (ident,_,_) _ _) = [(ident,ImageRef)]
-               collectInlineIdent _                       = []
            let collectBlockIdent (Header _ (ident,_,_) _)      = [(ident,HeaderRef)]
+               collectBlockIdent (Figure (ident,_,_) _ _ )     = [(ident,FigureRef)]
                collectBlockIdent (Table (ident,_,_) _ _ _ _ _) = [(ident,TableRef)]
                collectBlockIdent _                             = []
-           modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks ++ query collectInlineIdent blocks }
+           modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks }
            m <- metaToContext opts
                   (blocksToOpenDocument opts)
                   (fmap chomp . inlinesToOpenDocument opts)
@@ -377,7 +376,6 @@ blockToOpenDocument o = \case
     Plain          b -> if null b
                         then return empty
                         else inParagraphTags =<< inlinesToOpenDocument o b
-    SimpleFigure attr c (s, t) -> figure attr c s t
     Para           b -> if null b &&
                            not (isEnabled Ext_empty_paragraphs o)
                         then return empty
@@ -399,6 +397,7 @@ blockToOpenDocument o = \case
                         then return $ text $ T.unpack s
                         else empty <$ report (BlockNotRendered b)
     Null             -> return empty
+    Figure a capt b  -> figure a capt b
     where
       defList       b = do setInDefinitionList True
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
@@ -454,15 +453,18 @@ blockToOpenDocument o = \case
                           , ("table:style-name", name)
                           ] (vcat columns $$ th $$ vcat tr)
         return $ captionDoc $$ tableDoc
-      figure attr@(ident, _, _) caption source title | null caption =
-        withParagraphStyle o "Figure" [Para [Image attr caption (source,title)]]
-                                  | otherwise    = do
-        imageDoc <- withParagraphStyle o "FigureWithCaption" [Para [Image attr caption (source,title)]]
-        captionDoc <- inlinesToOpenDocument o caption >>=
-                         if isEnabled Ext_native_numbering o
-                            then numberedFigureCaption ident
-                            else unNumberedCaption "FigureCaption"
-        return $ imageDoc $$ captionDoc
+      figure (ident, _, _) (Caption _ longcapt) body =
+        case blocksToInlines longcapt of
+          [] ->
+            withParagraphStyle o "Figure" body
+          caption -> do
+            imageDoc <- withParagraphStyle o "FigureWithCaption" $
+                        map (\case {Plain i -> Para i; b -> b}) body
+            captionDoc <- inlinesToOpenDocument o caption >>=
+                          if isEnabled Ext_native_numbering o
+                          then numberedFigureCaption ident
+                          else unNumberedCaption "FigureCaption"
+            return $ imageDoc $$ captionDoc
 
 
 numberedTableCaption :: PandocMonad m => Text -> Doc Text -> OD m (Doc Text)
@@ -705,7 +707,7 @@ mkLink o identTypes s t d =
       linkOrReference = case maybeIdentAndType of
                           Just (ident, HeaderRef) -> bookmarkRef' ident
                           Just (ident, TableRef)  -> sequenceRef' ident
-                          Just (ident, ImageRef)  -> sequenceRef' ident
+                          Just (ident, FigureRef) -> sequenceRef' ident
                           _                       -> link
       in if isEnabled Ext_xrefs_name o || isEnabled Ext_xrefs_number o
             then linkOrReference

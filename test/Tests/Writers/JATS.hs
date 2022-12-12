@@ -88,7 +88,7 @@ tests =
         , "      <fig>"
         , "        <caption><p>caption</p></caption>"
         , "        <graphic mimetype=\"image\" mime-subtype=\"png\"" <>
-          " xlink:href=\"a.png\" xlink:title=\"\" />"
+          " xlink:href=\"a.png\" />"
         , "      </fig>"
         , "    </p>"
         , "  </list-item>"
