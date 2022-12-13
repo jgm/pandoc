@@ -42,6 +42,7 @@ import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
 import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
 import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
 import qualified Text.Pandoc.Lua.Module.Scaffolding as Pandoc.Scaffolding
+import qualified Text.Pandoc.Lua.Module.Structure as Pandoc.Structure
 import qualified Text.Pandoc.Lua.Module.System as Pandoc.System
 import qualified Text.Pandoc.Lua.Module.Template as Pandoc.Template
 import qualified Text.Pandoc.Lua.Module.Types as Pandoc.Types
@@ -87,6 +88,7 @@ loadedModules =
   , Pandoc.Format.documentedModule
   , Pandoc.MediaBag.documentedModule
   , Pandoc.Scaffolding.documentedModule
+  , Pandoc.Structure.documentedModule
   , Pandoc.System.documentedModule
   , Pandoc.Template.documentedModule
   , Pandoc.Types.documentedModule
