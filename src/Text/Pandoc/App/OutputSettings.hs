@@ -51,7 +51,6 @@ readUtf8File = fmap UTF8.toText . readFileStrict
 data OutputSettings m = OutputSettings
   { outputFormat :: T.Text
   , outputWriter :: Writer m
-  , outputWriterName :: T.Text
   , outputWriterOptions :: WriterOptions
   , outputPdfProgram :: Maybe String
   }
@@ -253,7 +252,6 @@ optToOutputSettings scriptingEngine opts = do
   return $ OutputSettings
     { outputFormat = format
     , outputWriter = writer
-    , outputWriterName = writerName
     , outputWriterOptions = writerOpts
     , outputPdfProgram = maybePdfProg
     }
