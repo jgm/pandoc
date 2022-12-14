@@ -184,16 +184,12 @@ convertWithOpts' scriptingEngine istty datadir opts = do
   let writerNameBase = T.takeWhile (\c -> c /= '+' && c /= '-') writerName
   let writerOptions = outputWriterOptions outputSettings
 
+  -- whether we are targeting PDF.
   let pdfOutput = isJust $ outputPdfProgram outputSettings
+  -- whether standalone output should be produced.
+  let bibOutput = format `elem` ["bibtex", "biblatex", "csljson"]
+  let standalone = isJust (writerTemplate writerOptions) || bibOutput
 
-  let bibOutput = writerNameBase == "bibtex" ||
-                  writerNameBase == "biblatex" ||
-                  writerNameBase == "csljson"
-
-  let standalone = optStandalone opts ||
-                   not (isTextFormat format) ||
-                   pdfOutput ||
-                   bibOutput
 
   when (pdfOutput && readerNameBase == "latex") $
     case optInputFiles opts of
