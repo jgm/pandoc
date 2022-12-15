@@ -24,7 +24,6 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Bifunctor (second)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
-import Text.DocLayout (realLength)
 import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe
@@ -35,6 +34,7 @@ import qualified Data.ByteString as BS
 import System.FilePath (addExtension, takeExtension, takeDirectory)
 import qualified System.FilePath.Windows as Windows
 import qualified System.FilePath.Posix as Posix
+import Text.DocLayout (realLength)
 import Text.HTML.TagSoup hiding (Row)
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
@@ -1516,7 +1516,7 @@ inline = do
      '_'     -> strongOrEmph
      '*'     -> strongOrEmph
      '^'     -> superscript <|> inlineNote -- in this order bc ^[link](/foo)^
-     '['     -> note <|> cite <|> bracketedSpan <|> link
+     '['     -> note <|> cite <|> bracketedSpan <|> wikilink <|> link
      '!'     -> image
      '$'     -> math
      '~'     -> strikeout <|> subscript
@@ -1830,6 +1830,21 @@ source = do
 
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
+
+wikilink :: PandocMonad m => MarkdownParser m (F Inlines)
+wikilink =
+  (guardEnabled Ext_wikilinks_title_after_pipe *> wikilink' swap) <|>
+  (guardEnabled Ext_wikilinks_title_before_pipe *> wikilink' id)
+  where
+    swap (a, b) = (b, a)
+    wikilink' order = try $ do
+      string "[["
+      notFollowedBy' (char '[')
+      raw <- many1TillChar (noneOf "\n\r\f\t") (try $ string "]]")
+      let (title, url) = case T.break (== '|') raw of
+            (before, "") -> (before, before)
+            (before, after) -> order (before, T.drop 1 after)
+      return . pure . B.link url "wikilink" $ B.str title
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do

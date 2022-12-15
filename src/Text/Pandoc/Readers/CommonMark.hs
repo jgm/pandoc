@@ -157,5 +157,9 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
          [ (footnoteSpec <>) | isEnabled Ext_footnotes opts ] ++
          [ (definitionListSpec <>) | isEnabled Ext_definition_lists opts ] ++
          [ (taskListSpec <>) | isEnabled Ext_task_lists opts ] ++
+         [ (wikilinksSpec TitleAfterPipe <>)
+           | isEnabled Ext_wikilinks_title_after_pipe opts ] ++
+         [ (wikilinksSpec TitleBeforePipe <>)
+           | isEnabled Ext_wikilinks_title_before_pipe opts ] ++
          [ (rebaseRelativePathsSpec <>)
            | isEnabled Ext_rebase_relative_paths opts ]

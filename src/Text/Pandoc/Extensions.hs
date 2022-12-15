@@ -135,6 +135,10 @@ data Extension =
     | Ext_tex_math_dollars    -- ^ TeX math between $..$ or $$..$$
     | Ext_tex_math_double_backslash  -- ^ TeX math btw \\(..\\) \\[..\\]
     | Ext_tex_math_single_backslash  -- ^ TeX math btw \(..\) \[..\]
+    | Ext_wikilinks_title_after_pipe -- ^ Support wikilinks of style
+                                     -- [[target|title]]
+    | Ext_wikilinks_title_before_pipe  -- ^ Support wikilinks of style
+                                       -- [[title|target]]
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
@@ -505,6 +509,8 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_literate_haskell
        , Ext_short_subsuperscripts
        , Ext_rebase_relative_paths
+       , Ext_wikilinks_title_after_pipe
+       , Ext_wikilinks_title_before_pipe
        ]
   getAll "markdown_strict"   = allMarkdownExtensions
   getAll "markdown_phpextra" = allMarkdownExtensions
@@ -557,6 +563,8 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_implicit_header_references
     , Ext_attributes
     , Ext_sourcepos
+    , Ext_wikilinks_title_after_pipe
+    , Ext_wikilinks_title_before_pipe
     , Ext_yaml_metadata_block
     , Ext_rebase_relative_paths
     ]

@@ -651,6 +651,9 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
                 case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
                       _       -> False
+  let useWikilink = tit == "wikilink" &&
+                    (isEnabled Ext_wikilinks_title_after_pipe opts ||
+                     isEnabled Ext_wikilinks_title_before_pipe opts)
   let useRefLinks = writerReferenceLinks opts && not useAuto
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
@@ -667,7 +670,14 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
       | otherwise ->  return $ result <> attrsToMarkua attributes
         where result = "[" <> linktext <> "](" <> (literal src) <> ")"
               attributes = addKeyValueToAttr attr ("title", tit)
-    _ | useAuto -> return $ "<" <> literal srcSuffix <> ">"
+    -- Use wikilinks where possible
+    _ | src == stringify txt && useWikilink ->
+        return $ "[[" <> literal (stringify txt) <> "]]"
+      | useAuto -> return $ "<" <> literal srcSuffix <> ">"
+      | useWikilink && isEnabled Ext_wikilinks_title_after_pipe opts -> return $
+        "[[" <> literal src <> "|" <> literal (stringify txt) <> "]]"
+      | useWikilink && isEnabled Ext_wikilinks_title_before_pipe opts -> return $
+        "[[" <> literal (stringify txt) <> "|" <> literal src <> "]]"
       | useRefLinks ->
            let first  = "[" <> linktext <> "]"
                second = if getKey linktext == getKey reftext
