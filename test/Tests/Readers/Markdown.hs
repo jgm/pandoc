@@ -34,8 +34,8 @@ markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension
                  Ext_compact_definition_lists pandocExtensions }
 
 markdownGH :: Text -> Pandoc
-markdownGH = purely $ readMarkdown def {
-                readerExtensions = githubMarkdownExtensions }
+markdownGH = purely $ readMarkdown def {readerExtensions = enableExtension
+                 Ext_wikilinks_title_before_pipe githubMarkdownExtensions }
 
 markdownMMD :: Text -> Pandoc
 markdownMMD = purely $ readMarkdown def {
@@ -308,6 +308,26 @@ tests = [ testGroup "inline code"
           , "no bare URI inside link" =:
             "[https://example.org(](url)" =?>
             para (link "url" "" (text "https://example.org("))
+          ]
+        , testGroup "Github wiki links"
+          [ test markdownGH "autolink" $
+            "[[https://example.org]]" =?>
+            para (link "https://example.org" "wikilink" (str "https://example.org"))
+          , test markdownGH "link with title" $
+            "[[title|https://example.org]]" =?>
+            para (link "https://example.org" "wikilink" (str "title"))
+          , test markdownGH "bad link with title" $
+            "[[title|random string]]" =?>
+            para (link "random string" "wikilink" (str "title"))
+          , test markdownGH "autolink not being a link" $
+            "[[Name of page]]" =?>
+            para (link "Name of page" "wikilink" (str "Name of page"))
+          , test markdownGH "autolink not being a link with a square bracket" $
+            "[[Name of ]page]]" =?>
+            para (link "Name of ]page" "wikilink" (str "Name of ]page"))
+          , test markdownGH "link with inline start should be a link" $
+            "[[t`i*t_le|https://example.org]]" =?>
+            para (link "https://example.org" "wikilink" (str "t`i*t_le"))
           ]
         , testGroup "Headers"
           [ "blank line before header" =:
