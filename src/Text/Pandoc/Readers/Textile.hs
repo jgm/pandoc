@@ -121,7 +121,8 @@ blockParsers = [ codeBlock
                , rawHtmlBlock
                , rawLaTeXBlock'
                , table
-               , maybeExplicitBlock "p" para
+               , explicitBlock "p" (para <|> pure (B.para mempty))
+               , para
                , mempty <$ blanklines
                ]
 
@@ -148,7 +149,7 @@ codeBlockTextile = try $ do
   char ' '
   let starts = ["p", "table", "bq", "bc", "pre", "h1", "h2", "h3",
                 "h4", "h5", "h6", "pre", "###", "notextile"]
-  let ender = choice $ map explicitBlockStart starts
+  let ender = () <$ choice (map explicitBlockStart starts)
   contents <- if extended
                  then do
                    f <- anyLine
@@ -436,25 +437,27 @@ ignorableRow = try $ do
   _ <- anyLine
   return ()
 
-explicitBlockStart :: PandocMonad m => Text -> TextileParser m ()
+explicitBlockStart :: PandocMonad m => Text -> TextileParser m Attr
 explicitBlockStart name = try $ do
   string (T.unpack name)
-  attributes
+  attr <- attributes
   char '.'
   optional whitespace
   optional endline
+  return attr
 
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
-maybeExplicitBlock :: PandocMonad m
-                   => Text  -- ^ block tag name
-                   -> TextileParser m Blocks -- ^ implicit block
-                   -> TextileParser m Blocks
-maybeExplicitBlock name blk = try $ do
-  optional $ explicitBlockStart name
-  blk
-
-
+explicitBlock :: PandocMonad m
+              => Text  -- ^ block tag name
+              -> TextileParser m Blocks -- ^ implicit block
+              -> TextileParser m Blocks
+explicitBlock name blk = try $ do
+  attr <- explicitBlockStart name
+  contents <- blk
+  return $ if attr == nullAttr
+              then contents
+              else B.divWith attr contents
 
 ----------
 -- Inlines

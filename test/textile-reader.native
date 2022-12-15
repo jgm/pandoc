@@ -1072,18 +1072,21 @@ Pandoc
           ( "" , [] , [ ( "style" , "color:red;" ) ] )
           [ Str "all" , Space , Str "kind" ]
       ]
-  , Para
-      [ Str "and"
-      , Space
-      , Str "paragraph"
-      , Space
-      , Str "attributes,"
-      , Space
-      , Str "and"
-      , Space
-      , Str "table"
-      , Space
-      , Str "attributes."
+  , Div
+      ( "" , [] , [ ( "style" , "color:green;" ) ] )
+      [ Para
+          [ Str "and"
+          , Space
+          , Str "paragraph"
+          , Space
+          , Str "attributes,"
+          , Space
+          , Str "and"
+          , Space
+          , Str "table"
+          , Space
+          , Str "attributes."
+          ]
       ]
   , Table
       ( "" , [] , [] )
