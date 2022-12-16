@@ -664,20 +664,18 @@ sectionHeader (ident,classes,kvs) hdrLevel lst secenv = do
   opts <- gets stOptions
   contents <- inlineListToConTeXt lst
   levelText <- sectionLevelToText opts (ident,classes,kvs) hdrLevel secenv
-  let ident' = if T.null ident
-               then empty
-               else "reference=" <> braces (literal (toLabel ident))
-  let contents' = if isEmpty contents
-                  then empty
-                  else "title=" <> braces contents
-  let options = if isEmpty keys || isEmpty levelText
-                then empty
-                else brackets keys
-        where keys = hcat $ intersperse "," $
-                     filter (not . isEmpty) [contents', ident']
+  let optsList = mconcat . filter (not . null) $
+        [ ["title=" <> braces contents | not (isEmpty contents)]
+        , ["reference=" <> braces (literal (toLabel ident)) | not (T.null ident)]
+        , ["number=no"          | "unnumbered" `elem` classes]
+        , ["incrementnumber=no" | "unnumbered" `elem` classes]
+        ]
   let starter = case secenv of
                   SectionHeading -> "\\start"
                   NonSectionHeading -> "\\"
+  let options = if null optsList || isEmpty levelText
+                then empty
+                else brackets $ hcat (intersperse "," optsList)
   return $ starter <> levelText <> options <> blankline
 
 -- | Craft the section footer
@@ -693,7 +691,7 @@ sectionLevelToText :: PandocMonad m
                    -> WM m (Doc Text)
 sectionLevelToText opts (_,classes,_) hdrLevel headingType = do
   let semanticSection shift = do
-        let (section, chapter) = if "unnumbered" `elem` classes
+        let (section, chapter) = if "unlisted" `elem` classes
                                  then (literal "subject", literal "title")
                                  else (literal "section", literal "chapter")
         return $ case hdrLevel + shift of
