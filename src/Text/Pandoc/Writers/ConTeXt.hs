@@ -690,8 +690,9 @@ sectionLevelToText :: PandocMonad m
                    => WriterOptions -> Attr -> Int -> HeadingType
                    -> WM m (Doc Text)
 sectionLevelToText opts (_,classes,_) hdrLevel headingType = do
+  let unlisted = "unlisted" `elem` classes
   let semanticSection shift = do
-        let (section, chapter) = if "unlisted" `elem` classes
+        let (section, chapter) = if unlisted
                                  then (literal "subject", literal "title")
                                  else (literal "section", literal "chapter")
         return $ case hdrLevel + shift of
@@ -705,10 +706,12 @@ sectionLevelToText opts (_,classes,_) hdrLevel headingType = do
     TopLevelPart    -> semanticSection (-2)
     TopLevelChapter -> semanticSection (-1)
     TopLevelSection -> semanticSection 0
-    TopLevelDefault -> return . literal $
-                       case headingType of
-                         SectionHeading    -> "sectionlevel"
-                         NonSectionHeading -> ""
+    TopLevelDefault -> if unlisted
+                       then semanticSection 0
+                       else return . literal $
+                            case headingType of
+                              SectionHeading    -> "sectionlevel"
+                              NonSectionHeading -> ""
 
 fromBCP47 :: PandocMonad m => Maybe Text -> WM m (Maybe Text)
 fromBCP47 mbs = fromBCP47' <$> toLang mbs
