@@ -15,13 +15,21 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , languages
                                 , languagesByExtension
                                 , highlight
+                                -- * Formats
+                                -- ** LaTeX
                                 , formatLaTeXInline
                                 , formatLaTeXBlock
                                 , styleToLaTeX
+                                -- ** HTML
                                 , formatHtmlInline
                                 , formatHtmlBlock
                                 , formatHtml4Block
                                 , styleToCss
+                                -- ** ConTeXt
+                                , formatConTeXtInline
+                                , formatConTeXtBlock
+                                , styleToConTeXt
+                                -- * Styles
                                 , pygments
                                 , espresso
                                 , zenburn

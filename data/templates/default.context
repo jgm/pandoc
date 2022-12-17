@@ -114,6 +114,9 @@ $endif$
 \setupxtable[foot][]
 \setupxtable[lastrow][bottomframe=on]
 
+$if(highlighting-commands)$
+$highlighting-commands$
+$endif$
 $if(csl-refs)$
 \definemeasure[cslhangindent][1.5em]
 \definenarrower[hangingreferences][left=\measure{cslhangindent}]
