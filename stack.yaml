@@ -9,8 +9,9 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
-- skylighting-core-0.13.1.2
-- skylighting-0.13.1.2
+- skylighting-core-0.13.2
+- skylighting-0.13.2
+- skylighting-format-context-0.1
 - skylighting-format-ansi-0.1
 - skylighting-format-latex-0.1
 - skylighting-format-blaze-html-0.1.1
