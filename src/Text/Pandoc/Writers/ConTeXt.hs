@@ -540,11 +540,16 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code _ str) | not (T.any (\c -> c == '{' || c == '}') str) =
-  return $ "\\type" <> braces (literal str)
-inlineToConTeXt (Code _ str) = do
-  opts <- gets stOptions
-  return $ "\\mono" <> braces (literal $ stringToConTeXt opts str)
+inlineToConTeXt (Code _ str) =
+  return . literal $
+    case typeDelim str of
+      Just (open, close) ->
+        "\\type" <> (open `T.cons` str) `T.snoc` close
+      Nothing ->
+        "\\type[escape=yes]{" <>
+        (T.replace "{" "/BTEX\\letteropenbrace /ETEX" .
+         T.replace "}" "/BTEX\\letterclosebrace /ETEX" $
+         str) `T.snoc` '}'
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quote" <> braces contents
@@ -712,6 +717,17 @@ sectionLevelToText opts (_,classes,_) hdrLevel headingType = do
                             case headingType of
                               SectionHeading    -> "sectionlevel"
                               NonSectionHeading -> ""
+
+-- | Finds a pair of symbols that can be used as delimiters.
+typeDelim :: Text -> Maybe (Char, Char)
+typeDelim t =
+  let delimChars = "{\"'`()-+=%,.:;"
+      go delims '}' = go delims '{'
+      go delims c = T.filter (/= c) delims
+  in case fmap fst . T.uncons $ T.foldl' go delimChars t of
+       Just '{' -> Just ('{', '}')
+       Just c   -> Just (c, c)
+       Nothing  -> Nothing
 
 fromBCP47 :: PandocMonad m => Maybe Text -> WM m (Maybe Text)
 fromBCP47 mbs = fromBCP47' <$> toLang mbs
