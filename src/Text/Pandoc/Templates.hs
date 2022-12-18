@@ -12,6 +12,22 @@
    Portability : portable
 
 Utility functions for working with pandoc templates.
+
+'WithDefaultPartials' and 'WithPartials' are Monad wrappers. Wrapping
+these around an instance of 'PandocMonad' gives different instances of
+'TemplateMonad', with different search behaviors when retrieving
+partials.
+
+To compile a template and limit partial search to pandoc’s data files,
+use @runWithDefaultPartials (compileTemplate ...)@.
+
+To compile a template and allow partials to be found locally (either on
+the file system or via HTTP, in the event that the main template has an
+absolute URL), ue @runWithPartials (compileTemplate ...)@.
+
+'getTemplate' seeks a template locally, or via HTTP if the template has
+an absolute URL, falling back to the data files if not found.
+
 -}
 
 module Text.Pandoc.Templates ( Template
