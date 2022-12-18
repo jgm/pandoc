@@ -55,7 +55,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Slides
-import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.Templates (renderTemplateM)
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
@@ -249,8 +249,9 @@ writeHtmlString' st opts d = do
                            Just (x:_) -> takeBaseName $ T.unpack x
                    report $ NoTitleElement fallback
                    return $ resetField "pagetitle" (literal fallback) context
-         return $ render colwidth $ renderTemplate tpl
-             (defField "body" (layoutMarkup body) context')
+         document <- either (throwError . PandocTemplateError) pure $
+            renderTemplateM tpl (defField "body" (layoutMarkup body) context')
+         return $ render colwidth document
 
 writeHtml' :: PandocMonad m => WriterState -> WriterOptions -> Pandoc -> m Html
 writeHtml' st opts d =

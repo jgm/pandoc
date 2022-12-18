@@ -19,13 +19,15 @@ module Text.Pandoc.Templates ( Template
                              , WithPartials(..)
                              , compileTemplate
                              , renderTemplate
+                             , renderTemplateM
                              , getTemplate
                              , getDefaultTemplate
                              , compileDefaultTemplate
                              ) where
 
 import System.FilePath ((<.>), (</>), takeFileName)
-import Text.DocTemplates (Template, TemplateMonad(..), compileTemplate, renderTemplate)
+import Text.DocTemplates (Template, TemplateMonad(..), compileTemplate, renderTemplate,
+                          renderTemplateM)
 import Text.Pandoc.Class.CommonState (CommonState(..))
 import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem,
                                       getCommonState, modifyCommonState)
