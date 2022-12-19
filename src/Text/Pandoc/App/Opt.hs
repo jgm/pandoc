@@ -184,16 +184,16 @@ instance FromJSON Opt where
        <$> o .:? "tab-stop" .!= optTabStop defaultOpts
        <*> o .:? "preserve-tabs" .!= optPreserveTabs defaultOpts
        <*> o .:? "standalone" .!= optStandalone defaultOpts
-       <*> o .:? "from"
-       <*> o .:? "to"
+       <*> o .:? "from" .!= optFrom defaultOpts
+       <*> o .:? "to" .!= optTo defaultOpts
        <*> o .:? "table-of-contents" .!= optTableOfContents defaultOpts
        <*> o .:? "shift-heading-level-by" .!= optShiftHeadingLevelBy defaultOpts
-       <*> o .:? "template"
+       <*> o .:? "template" .!= optTemplate defaultOpts
        <*> o .:? "variables" .!= optVariables defaultOpts
        <*> o .:? "metadata" .!= optMetadata defaultOpts
        <*> o .:? "metadata-files" .!= optMetadataFiles defaultOpts
-       <*> o .:? "output-file"
-       <*> o .:? "input-files"
+       <*> o .:? "output-file" .!= optOutputFile defaultOpts
+       <*> o .:? "input-files" .!= optInputFiles defaultOpts
        <*> o .:? "number-sections" .!= optNumberSections defaultOpts
        <*> o .:? "number-offset" .!= optNumberOffset defaultOpts
        <*> o .:? "section-divs" .!= optSectionDivs defaultOpts
@@ -201,24 +201,24 @@ instance FromJSON Opt where
        <*> o .:? "self-contained" .!= optSelfContained defaultOpts
        <*> o .:? "embed-resources" .!= optEmbedResources defaultOpts
        <*> o .:? "html-q-tags" .!= optHtmlQTags defaultOpts
-       <*> o .:? "highlight-style"
+       <*> o .:? "highlight-style" .!= optHighlightStyle defaultOpts
        <*> o .:? "syntax-definitions" .!= optSyntaxDefinitions defaultOpts
        <*> o .:? "top-level-division" .!= optTopLevelDivision defaultOpts
        <*> o .:? "html-math-method" .!= optHTMLMathMethod defaultOpts
-       <*> o .:? "abbreviations"
-       <*> o .:? "reference-doc"
+       <*> o .:? "abbreviations" .!= optAbbreviations defaultOpts
+       <*> o .:? "reference-doc" .!= optReferenceDoc defaultOpts
        <*> o .:? "epub-subdirectory" .!= optEpubSubdirectory defaultOpts
-       <*> o .:? "epub-metadata"
+       <*> o .:? "epub-metadata" .!= optEpubMetadata defaultOpts
        <*> o .:? "epub-fonts" .!= optEpubFonts defaultOpts
        <*> o .:? "epub-chapter-level" .!= optEpubChapterLevel defaultOpts
-       <*> o .:? "epub-cover-image"
+       <*> o .:? "epub-cover-image" .!= optEpubCoverImage defaultOpts
        <*> o .:? "epub-title-page" .!= optEpubTitlePage defaultOpts
        <*> o .:? "toc-depth" .!= optTOCDepth defaultOpts
        <*> o .:? "dump-args" .!= optDumpArgs defaultOpts
        <*> o .:? "ignore-args" .!= optIgnoreArgs defaultOpts
        <*> o .:? "verbosity" .!= optVerbosity defaultOpts
        <*> o .:? "trace" .!= optTrace defaultOpts
-       <*> o .:? "log-file"
+       <*> o .:? "log-file" .!= optLogFile defaultOpts
        <*> o .:? "fail-if-warnings" .!= optFailIfWarnings defaultOpts
        <*> o .:? "reference-links" .!= optReferenceLinks defaultOpts
        <*> o .:? "reference-location" .!= optReferenceLocation defaultOpts
@@ -229,17 +229,17 @@ instance FromJSON Opt where
        <*> o .:? "email-obfuscation" .!= optEmailObfuscation defaultOpts
        <*> o .:? "identifier-prefix" .!= optIdentifierPrefix defaultOpts
        <*> o .:? "indented-code-classes" .!= optIndentedCodeClasses defaultOpts
-       <*> o .:? "data-dir"
+       <*> o .:? "data-dir" .!= optDataDir defaultOpts
        <*> o .:? "cite-method" .!= optCiteMethod defaultOpts
        <*> o .:? "listings" .!= optListings defaultOpts
-       <*> o .:? "pdf-engine"
+       <*> o .:? "pdf-engine" .!= optPdfEngine defaultOpts
        <*> o .:? "pdf-engine-opts" .!= optPdfEngineOpts defaultOpts
-       <*> o .:? "slide-level"
+       <*> o .:? "slide-level" .!= optSlideLevel defaultOpts
        <*> o .:? "setext-headers" .!= optSetextHeaders defaultOpts
        <*> o .:? "list-tables" .!= optListTables defaultOpts
        <*> o .:? "ascii" .!= optAscii defaultOpts
        <*> o .:? "default-image-extension" .!= optDefaultImageExtension defaultOpts
-       <*> o .:? "extract-media"
+       <*> o .:? "extract-media" .!= optExtractMedia defaultOpts
        <*> o .:? "track-changes" .!= optTrackChanges defaultOpts
        <*> o .:? "file-scope" .!= optFileScope defaultOpts
        <*> o .:? "title-prefix" .!= optTitlePrefix defaultOpts
@@ -253,7 +253,7 @@ instance FromJSON Opt where
        <*> o .:? "no-check-certificate" .!= optNoCheckCertificate defaultOpts
        <*> o .:? "eol" .!= optEol defaultOpts
        <*> o .:? "strip-comments" .!= optStripComments defaultOpts
-       <*> o .:? "csl"
+       <*> o .:? "csl" .!= optCSL defaultOpts
        <*> o .:? "bibliography" .!= optBibliography defaultOpts
        <*> o .:? "citation-abbreviations"
        <*> o .:? "sandbox" .!= optSandbox defaultOpts
