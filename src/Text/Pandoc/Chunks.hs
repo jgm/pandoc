@@ -23,6 +23,7 @@ module Text.Pandoc.Chunks
   , PathTemplate(..)
   , splitIntoChunks
   , toTOCTree
+  , tocToList
   , SecInfo(..)
   ) where
 import Text.Pandoc.Definition
@@ -372,3 +373,31 @@ toTOCTree' =
                            secLevel = chunkLevel c }
      in Node secinfo (getNodes as) : getNodes bs
   getNodes [] = []
+
+-- | Creates a TOC link to the respective document section.
+tocEntryToLink :: SecInfo -> [Inline]
+tocEntryToLink secinfo = headerLink
+ where
+  addNumber  = case secNumber secinfo of
+                 Just num -> (Span ("",["toc-section-number"],[])
+                               [Str num] :) . (Space :)
+                 Nothing -> id
+  clean (Link _ xs _) = xs
+  clean (Note _) = []
+  clean x = [x]
+  ident = secId secinfo
+  headerText = addNumber $ walk (concatMap clean) (secTitle secinfo)
+  headerLink = if T.null ident
+                  then headerText
+                  else [Link ("toc-" <> ident, [], [])
+                         headerText (secPath secinfo <> "#" <> ident, "")]
+
+-- | Generate a table of contents of the given depth.
+tocToList :: Int -> Tree SecInfo -> Block
+tocToList tocDepth (Node _ subtrees)
+  = BulletList (toItems subtrees)
+ where
+  toItems = map go . filter isBelowTocDepth
+  isBelowTocDepth (Node sec _) = secLevel sec <= tocDepth
+  go (Node secinfo xs) =
+    Plain (tocEntryToLink secinfo) : [BulletList (toItems xs) | not (null xs)]

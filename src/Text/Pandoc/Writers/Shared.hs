@@ -67,8 +67,7 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
-import Text.Pandoc.Chunks (toTOCTree, SecInfo(..))
-import Data.Tree
+import Text.Pandoc.Chunks (tocToList, toTOCTree)
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -469,35 +468,6 @@ toTableOfContents opts =
   tocToList (writerTOCDepth opts)
   . toTOCTree
   . makeSections (writerNumberSections opts) Nothing
-
-tocEntryToLink :: SecInfo -> [Inline]
-tocEntryToLink secinfo = headerLink
- where
-  addNumber  = case secNumber secinfo of
-                 Just num -> (Span ("",["toc-section-number"],[])
-                               [Str num] :) . (Space :)
-                 Nothing -> id
-  clean (Link _ xs _) = xs
-  clean (Note _) = []
-  clean x = [x]
-  ident = secId secinfo
-  headerText = addNumber $ walk (concatMap clean) (secTitle secinfo)
-  headerLink = if T.null ident
-                  then headerText
-                  else [Link ("toc-" <> ident, [], [])
-                         headerText (secPath secinfo <> "#" <> ident, "")]
-
-tocToList :: Int -> Tree SecInfo -> Block
-tocToList tocDepth (Node _ subtrees)
-  = BulletList (toItems subtrees)
- where
-  toItems = map go . filter isBelowTocDepth
-  isBelowTocDepth (Node sec _) = secLevel sec <= tocDepth
-  go (Node secinfo xs) =
-    Plain (tocEntryToLink secinfo) :
-      if null xs
-         then []
-         else [BulletList (toItems xs)]
 
 -- | Returns 'True' iff the list of blocks has a @'Plain'@ as its last
 -- element.
