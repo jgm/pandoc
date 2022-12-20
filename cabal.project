@@ -10,3 +10,13 @@ source-repository-package
   type: git
   location: https://github.com/jgm/citeproc
   tag: cb54223919ecd327250f1b167e4e0c61473f402e
+
+source-repository-package
+  type: git
+  location: https://github.com/obsidiansystems/pandoc-types
+  tag: e57d3137776a64bb145d0c11d88255f86dc7420a
+
+source-repository-package
+  type: git
+  location: https://github.com/obsidiansystems/pandoc-lua-marshal
+  tag: 00730767bfe3e13dc067885d516e904cb0e6e9dd

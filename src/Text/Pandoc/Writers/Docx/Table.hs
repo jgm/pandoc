@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PatternSynonyms     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
 Module      : Text.Pandoc.Writers.Docx.Table
@@ -20,7 +21,7 @@ import Data.Array ( elems, (!), assocs, indices )
 import Data.Text (Text)
 import Text.Pandoc.Definition
     ( ColSpec,
-      Caption(Caption),
+      pattern Caption,
       Format(Format),
       Attr,
       Block(Para, Plain),
