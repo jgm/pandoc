@@ -3650,8 +3650,7 @@ Parameters:
 `sep`
 :   List of [Inline](#type-inline) elements inserted as separator
     between two consecutive blocks; defaults to
-    `{pandoc.Str'\u{2029}'}`, i.e., to the PARAGRAPH SEPARATOR
-    Unicode character.
+    `{pandoc.LineBreak()}`.
 
 Returns:
 

@@ -56,7 +56,7 @@ documentedModule = Module
               return $ B.toList (Shared.blocksToInlinesWithSep sep blks))
       <#> parameter (peekList peekBlock) "list of blocks"
             "blocks" ""
-      <#> opt (parameter (peekList peekInline) "list of inlines" "inline" "")
+      <#> opt (parameter (peekList peekInline) "Inlines" "sep" "")
       =#> functionResult pushInlines "list of inlines" ""
 
     , defun "citeproc"
