@@ -195,6 +195,13 @@ $if(zero-width-non-joiner)$
 \fi
 %% End of ZWNJ support
 $endif$
+%% Treat PARAGRAPH SEPARATOR like a space.
+\ifPDFTeX
+  \DeclareUnicodeCharacter{2029}{ }
+\else
+  \catcode`^^^^2029=\active
+  \protected\def ^^^^2029{ }
+\fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \IfFileExists{microtype.sty}{% use microtype if available
