@@ -10,7 +10,11 @@ ml: |-
 Pandoc
   Meta
     { unMeta =
-        fromList [ ( "ml" , MetaInlines [ Str "TEST\8233BLOCK" ] ) ]
+        fromList
+          [ ( "ml"
+            , MetaInlines [ Str "TEST" , LineBreak , Str "BLOCK" ]
+            )
+          ]
     }
   []
 ```
