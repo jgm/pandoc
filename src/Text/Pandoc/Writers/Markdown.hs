@@ -233,8 +233,14 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                                    mmdTitleBlock metadata
                                | otherwise -> empty
                         Nothing -> empty
+  let modifyTOC =
+        if isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts
+        then id
+        else walk $ \inln -> case inln of
+          Link _attr contents tgt -> Link nullAttr contents tgt
+          _                       -> inln
   toc <- if writerTableOfContents opts
-         then blockToMarkdown opts ( toTableOfContents opts blocks )
+         then blockToMarkdown opts . modifyTOC $ toTableOfContents opts blocks
          else return mempty
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts
