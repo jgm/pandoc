@@ -235,28 +235,28 @@ $endif$
 $if(parallaxBackgroundImage)$
 
         // Parallax background image
-        parallaxBackgroundImage: '$parallaxBackgroundImage$', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+        parallaxBackgroundImage: '$parallaxBackgroundImage/nowrap$', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
 $else$
 $if(background-image)$
 
        // Parallax background image
-       parallaxBackgroundImage: '$background-image$', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
+       parallaxBackgroundImage: '$background-image/nowrap$', // e.g. "'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg'"
 $endif$
 $endif$
 $if(parallaxBackgroundSize)$
 
         // Parallax background size
-        parallaxBackgroundSize: '$parallaxBackgroundSize$', // CSS syntax, e.g. "2100px 900px"
+        parallaxBackgroundSize: '$parallaxBackgroundSize/nowrap$', // CSS syntax, e.g. "2100px 900px"
 $endif$
 $if(parallaxBackgroundHorizontal)$
 
         // Amount to move parallax background (horizontal and vertical) on slide change
         // Number, e.g. 100
-        parallaxBackgroundHorizontal: $parallaxBackgroundHorizontal$,
+        parallaxBackgroundHorizontal: $parallaxBackgroundHorizontal/nowrap$,
 $endif$
 $if(parallaxBackgroundVertical)$
 
-        parallaxBackgroundVertical: $parallaxBackgroundVertical$,
+        parallaxBackgroundVertical: $parallaxBackgroundVertical/nowrap$,
 $endif$
 $if(width)$
 
