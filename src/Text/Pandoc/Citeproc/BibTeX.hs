@@ -146,6 +146,7 @@ writeBibtexString opts variant mblang ref =
            , "volumes"
            , "number"
            , "pages"
+           , "version"
            , "date"
            , "eventdate"
            , "urldate"
