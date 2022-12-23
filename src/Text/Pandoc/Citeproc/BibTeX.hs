@@ -121,7 +121,8 @@ writeBibtexString opts variant mblang ref =
       "treaty"            | variant == Biblatex -> "legal"
       "personal_communication" | variant == Biblatex -> "letter"
       "motion_picture"    | variant == Biblatex -> "movie"
-      "review"             | variant == Biblatex -> "review"
+      "review"            | variant == Biblatex -> "review"
+      "software"          | variant == Biblatex -> "software"
       _                   -> "misc"
 
   mbSubtype =
@@ -1249,7 +1250,7 @@ getTypeAndGenre = do
            "proceedings"         -> "book"
            "reference"           -> "book"
            "report"              -> "report"
-           "software"            -> "book"    -- no "software" type in CSL
+           "software"            -> "software"
            "suppbook"            -> "chapter"
            "suppcollection"      -> "chapter"
            "suppperiodical"
