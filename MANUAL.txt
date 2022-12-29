@@ -990,9 +990,9 @@ header when requesting a document from a URL:
 :   Use only ASCII characters in output. Currently supported for XML
     and HTML formats (which use entities instead of UTF-8 when this
     option is selected), CommonMark, gfm, and Markdown (which use
-    entities), roff ms (which use hexadecimal escapes), and to a
+    entities), roff man and ms (which use hexadecimal escapes), and to a
     limited degree LaTeX (which uses standard commands for accented
-    characters when possible). roff man output uses ASCII by default.
+    characters when possible).
 
 `--reference-links`
 

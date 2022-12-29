@@ -83,7 +83,9 @@ pandocToMan opts (Pandoc meta blocks) = do
        Just tpl -> renderTemplate tpl context
 
 escString :: WriterOptions -> Text -> Text
-escString _ = escapeString AsciiOnly -- for better portability
+escString opts = escapeString (if writerPreferAscii opts
+                                  then AsciiOnly
+                                  else AllowUTF8)
 
 -- | Return man representation of notes.
 notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m (Doc Text)
