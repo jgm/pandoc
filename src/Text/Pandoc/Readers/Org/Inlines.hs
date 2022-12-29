@@ -175,13 +175,12 @@ adjustCiteStyle sty cs = do
   cs' <- cs
   case cs' of
     [] -> return []
-    (d:ds)  -- TODO needs refinement
-      -> case sty of
-         TextStyle -> return $ d{ citationMode = AuthorInText
-                                , citationSuffix = dropWhile (== Space)
-                                    (citationSuffix d)} : ds
-         NoAuthorStyle -> return $ d{ citationMode = SuppressAuthor } : ds
-         _ -> return (d:ds)
+    ds -> case sty of
+         TextStyle -> return $ map (\d -> d{ citationMode = AuthorInText
+                                           , citationSuffix = dropWhile (== Space)
+                                             (citationSuffix d)}) ds
+         NoAuthorStyle -> return $ map (\d -> d{ citationMode = SuppressAuthor }) ds
+         _ -> return ds
 
 addPrefixToFirstItem :: (F Inlines) -> (F [Citation]) -> (F [Citation])
 addPrefixToFirstItem aff cs = do
