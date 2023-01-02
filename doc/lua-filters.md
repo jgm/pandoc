@@ -2418,6 +2418,18 @@ function Str (s)
 end
 ```
 
+### fromencoding {#text.fromencoding}
+
+`fromencoding(s, encoding)`
+
+Converts a string to UTF-8. The `encoding` parameter specifies the
+encoding of the input string. On Windows, that parameter defaults
+to the current ANSI code page; on other platforms the function
+will try to use the file system's encoding.
+
+See [`toencoding`](#text.toencoding) for more info on supported
+encodings.
+
 ### lower {#text.lower}
 
 `lower (s)`
@@ -2448,6 +2460,19 @@ Returns the length of a UTF-8 string.
 
 Returns a substring of a UTF-8 string, using Lua's string
 indexing rules.
+
+### toencoding {#text.toencoding}
+
+`toencoding(s, encoding)`
+
+Converts a UTF-8 string to a different encoding. The `encoding`
+parameter defaults to the current ANSI code page on Windows; on
+other platforms it will try to guess the file system's encoding.
+
+The set of known encodings is system dependent, but includes at
+least `UTF-8`, `UTF-16BE`, `UTF-16LE`, `UTF-32BE`, and `UTF-32LE`.
+Note that the default code page on Windows is available through
+`CP0`.
 
 # Module pandoc
 

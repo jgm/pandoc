@@ -23,6 +23,7 @@ extra-deps:
 - hslua-core-2.2.1
 - hslua-list-1.1.0
 - hslua-marshalling-2.2.1
+- hslua-module-text-1.0.3
 - hslua-module-version-1.0.3
 - hslua-module-zip-1.0.0
 - hslua-objectorientation-2.2.1
