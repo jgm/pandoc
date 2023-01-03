@@ -173,11 +173,15 @@ examples, see <https://github.com/pandoc/pandoc-action-example>.
 Pandoc can be run through [GitLab CI/CD].  For some
 examples, see <https://gitlab.com/pandoc/pandoc-ci-example>.
 
+## Nightly builds
+
+The Pandoc project has a Gitub Action to produce nightly builds. Binaries for linux/unix/macOS
+[are available](https://github.com/jgm/pandoc/actions/workflows/nightly.yml).
+
 ## Compiling from source
 
 If for some reason a binary package is not available for your
-platform, or if you want to hack on pandoc or use a non-released
-version, you can install from source.
+platform or if you want to hack on pandoc you can install from source.
 
 ### Getting the pandoc source code
 
