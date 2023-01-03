@@ -162,9 +162,10 @@ span.smallcaps{font-variant: small-caps;}
 
 /* This is the most compatible CSS, but it only allows two columns: */
 div.column{ display: inline-block; vertical-align: top; width: 50%; }
-/* If you can rely on CSS3 support, use this instead: */
+/* If you can rely on CSS3 support, use this instead:
 div.columns{display: flex; gap: min(4vw, 1.5em);}
 div.column{flex: auto; overflow-x: auto;}
+*/
 
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
