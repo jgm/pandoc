@@ -58,9 +58,9 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   head' <- do
     let mkHead = headToLaTeX blksToLaTeX colCount
     case (not $ isEmpty capt, not $ isEmptyHead thead) of
-      (False, False) -> return "\\toprule()"
+      (False, False) -> return "\\toprule\\noalign{}"
       (False, True)  -> mkHead thead
-      (True, False)  -> return (capt $$ "\\toprule()" $$ "\\endfirsthead")
+      (True, False)  -> return (capt $$ "\\toprule\\noalign{}" $$ "\\endfirsthead")
       (True, True)   -> do
         -- avoid duplicate notes in head and firsthead:
         firsthead <- mkHead thead
@@ -73,7 +73,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
            else do
              lastfoot <- mapM (rowToLaTeX blksToLaTeX colCount BodyCell) $
                               footRows tfoot
-             pure $ "\\midrule()" $$ vcat lastfoot
+             pure $ "\\midrule\\noalign{}" $$ vcat lastfoot
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
   return
@@ -83,7 +83,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
     $$ head'
     $$ "\\endhead"
     $$ foot'
-    $$ "\\bottomrule()"
+    $$ "\\bottomrule\\noalign{}"
     $$ "\\endlastfoot"
     $$ vcat rows'
     $$ "\\end{longtable}"
@@ -184,7 +184,7 @@ headToLaTeX blocksWriter colCount (Ann.TableHead _attr headerRows) = do
   rowsContents <-
     mapM (rowToLaTeX blocksWriter colCount HeaderCell . headerRowCells)
          headerRows
-  return ("\\toprule()" $$ vcat rowsContents $$ "\\midrule()")
+  return ("\\toprule\\noalign{}" $$ vcat rowsContents $$ "\\midrule\\noalign{}")
 
 -- | Converts a row of table cells into a LaTeX row.
 rowToLaTeX :: PandocMonad m
