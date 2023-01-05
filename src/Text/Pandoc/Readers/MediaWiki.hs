@@ -664,8 +664,7 @@ internalLink = try $ do
              -- [[Help:Contents|] -> "Contents"
              <|> return (B.text $ T.drop 1 $ T.dropWhile (/=':') pagename) )
   sym "]]"
-  linktrail <- B.text <$> manyChar letter
-  let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
+  let link = B.link (addUnderscores pagename) "wikilink" label
   if "Category:" `T.isPrefixOf` pagename
      then do
        updateState $ \st -> st{ mwCategoryLinks = link : mwCategoryLinks st }
