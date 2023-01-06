@@ -40,7 +40,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
-import System.Directory (doesDirectoryExist)
+import System.Directory (doesDirectoryExist, createDirectory)
+import Codec.Archive.Zip (toArchiveOrFail,
+                          extractFilesFromArchive, ZipOption(..))
 import System.Exit (exitSuccess)
 import System.FilePath ( takeBaseName, takeExtension)
 import System.IO (nativeNewline, stdout)
@@ -115,6 +117,16 @@ convertWithOpts scriptingEngine opts = do
       case output of
         TextOutput t    -> writerFn eol outputFile t
         BinaryOutput bs -> writeFnBinary outputFile bs
+        ZipOutput bs
+          | null (takeExtension outputFile) -> do
+             -- create directory and unzip
+             createDirectory outputFile -- will fail if directory exists
+             let zipopts = [OptRecursive, OptDestination outputFile] ++
+                           [OptVerbose | optVerbosity opts == INFO]
+             case toArchiveOrFail bs of
+               Right archive -> extractFilesFromArchive zipopts archive
+               Left e -> E.throwIO $ PandocShouldNeverHappenError $ T.pack e
+          | otherwise -> writeFnBinary outputFile bs
 
 convertWithOpts' :: (PandocMonad m, MonadIO m, MonadMask m)
                  => ScriptingEngine
@@ -300,7 +312,9 @@ convertWithOpts' scriptingEngine istty datadir opts = do
     createPngFallbacks (writerDpi writerOptions)
 
   output <- case writer of
-    ByteStringWriter f -> BinaryOutput <$> f writerOptions doc
+    ByteStringWriter f
+      | format == "chunkedhtml" -> ZipOutput <$> f writerOptions doc
+      | otherwise -> BinaryOutput <$> f writerOptions doc
     TextWriter f -> case outputPdfProgram outputSettings of
       Just pdfProg -> do
               res <- makePDF pdfProg (optPdfEngineOpts opts) f
@@ -322,7 +336,10 @@ convertWithOpts' scriptingEngine istty datadir opts = do
   reports <- getLog
   return (output, reports)
 
-data PandocOutput = TextOutput Text | BinaryOutput BL.ByteString
+data PandocOutput =
+      TextOutput Text
+    | BinaryOutput BL.ByteString
+    | ZipOutput BL.ByteString
   deriving (Show)
 
 type Transform = Pandoc -> Pandoc

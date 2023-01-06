@@ -106,7 +106,7 @@ optToOutputSettings scriptingEngine opts = do
   flvrd@(Format.FlavoredFormat format _extsDiff) <-
     Format.parseFlavoredFormat writerName
 
-  let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
+  let standalone = optStandalone opts || isBinaryFormat format || pdfOutput
   let templateOrThrow = \case
         Left  e -> throwError $ PandocTemplateError (T.pack e)
         Right t -> pure t
@@ -300,6 +300,6 @@ pdfWriterAndProg mWriter mEngine =
 
       isCustomWriter w = ".lua" `T.isSuffixOf` w
 
-isTextFormat :: T.Text -> Bool
-isTextFormat s =
-  s `notElem` ["odt","docx","epub2","epub3","epub","pptx","pdf"]
+isBinaryFormat :: T.Text -> Bool
+isBinaryFormat s =
+  s `elem` ["odt","docx","epub2","epub3","epub","pptx","pdf","chunkedhtml"]

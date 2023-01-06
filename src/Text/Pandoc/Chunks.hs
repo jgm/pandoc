@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -25,14 +26,13 @@ module Text.Pandoc.Chunks
   , SecInfo(..)
   ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (makeSections, stringify)
+import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier)
 import Text.Pandoc.Walk (Walkable(..))
 import Data.Text (Text)
 import Text.Printf (printf)
 import Data.Maybe (fromMaybe, isNothing)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.List (find)
 import Data.String (IsString)
 import GHC.Generics (Generic)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
@@ -47,64 +47,51 @@ splitIntoChunks :: PathTemplate -- ^ Template for filepath
                 -> Pandoc
                 -> ChunkedDoc
 splitIntoChunks pathTemplate numberSections mbBaseLevel
-                chunkLevel (Pandoc meta blocks) =
+                chunklev (Pandoc meta blocks) =
+   addNav .
    fixInternalReferences .
+   walk rmNavAttrs .
    (\chunks -> ChunkedDoc{ chunkedMeta = meta
                          , chunkedChunks = chunks
-                         , chunkedTOC = toTOCTree
-                              (concatMap chunkContents chunks) }) .
-   makeChunks chunkLevel pathTemplate .
-   addNavigation Nothing Nothing .
+                         , chunkedTOC = toTOCTree' chunks }) .
+   makeChunks chunklev pathTemplate meta .
    makeSections numberSections mbBaseLevel $ blocks
+
+-- | Add chunkNext, chunkPrev, chunkUp
+addNav :: ChunkedDoc -> ChunkedDoc
+addNav chunkedDoc =
+  chunkedDoc{ chunkedChunks =
+     addNext . addPrev . addUp $ chunkedChunks chunkedDoc }
+
+addUp :: [Chunk] -> [Chunk]
+addUp (c : d : ds)
+  | chunkLevel c < chunkLevel d
+    = c : addUp (d{ chunkUp = Just c } : ds)
+  | chunkLevel c == chunkLevel d
+    = c : addUp (d{ chunkUp = chunkUp c} : ds)
+addUp (c:cs) = c : addUp cs
+addUp [] = []
+
+addNext :: [Chunk] -> [Chunk]
+addNext cs = zipWith go cs (map Just (tail cs) ++ [Nothing])
+ where
+  go c nxt = c{ chunkNext = nxt }
+
+addPrev :: [Chunk] -> [Chunk]
+addPrev cs = zipWith go cs (Nothing : map Just cs)
+ where
+  go c prev = c{ chunkPrev = prev }
 
 -- | Fix internal references so they point to the path of the chunk.
 fixInternalReferences :: ChunkedDoc -> ChunkedDoc
-fixInternalReferences chunkedDoc =
-  walk rmNavAttrs $ walk fixInternalRefs $
-    chunkedDoc{ chunkedTOC = newTOC
-              , chunkedChunks = newChunks }
+fixInternalReferences chunkedDoc = walk fixInternalRefs chunkedDoc
  where
-  newTOC = fromMaybe (chunkedTOC chunkedDoc) $
-             traverse addSecPath (chunkedTOC chunkedDoc)
-
-  newChunks = map fixNav (chunkedChunks chunkedDoc)
-
-  fixNav chunk =
-    chunk{ chunkNext = chunkNext chunk >>= toNavLink
-         , chunkPrev = chunkPrev chunk >>= toNavLink
-         , chunkUp = chunkUp chunk >>= toNavLink
-         }
-
-  toNavLink id' =
-    case M.lookup id' refMap of
-      Nothing -> Just $ "#" <> id'
-      Just fp -> Just $ T.pack fp <> "#" <> id'
-
-  addSecPath :: SecInfo -> Maybe SecInfo
-  addSecPath secinfo =
-    case M.lookup (secId secinfo) refMap of
-      Nothing -> Just secinfo
-      Just fp -> Just $ secinfo{ secPath = T.pack fp }
-
-  -- Remove some attributes we added just to construct chunkNext etc.
-  rmNavAttrs :: Block -> Block
-  rmNavAttrs (Div (ident,classes,kvs) bs) =
-    Div (ident,classes,filter (not . isNavAttr) kvs) bs
-  rmNavAttrs b = b
-
-  isNavAttr :: (Text,Text) -> Bool
-  isNavAttr ("nav-prev",_) = True
-  isNavAttr ("nav-next",_) = True
-  isNavAttr ("nav-up",_)  = True
-  isNavAttr ("nav-path",_)  = True
-  isNavAttr _ = False
-
   fixInternalRefs :: Inline -> Inline
   fixInternalRefs il@(Link attr ils (src,tit))
     = case T.uncons src of
         Just ('#', ident) -> Link attr ils (src', tit)
           where src' = case M.lookup ident refMap of
-                         Just fp -> T.pack fp <> src
+                         Just chunk -> T.pack (chunkPath chunk) <> src
                          Nothing -> src
         _ -> il
   fixInternalRefs il = il
@@ -113,7 +100,7 @@ fixInternalReferences chunkedDoc =
 
   chunkToRefs chunk m =
     let idents = chunkId chunk : getIdents (chunkContents chunk)
-    in  foldr (\ident -> M.insert ident (chunkPath chunk)) m idents
+    in  foldr (\ident -> M.insert ident chunk) m idents
 
   getIdents bs = query getBlockIdent bs ++ query getInlineIdent bs
 
@@ -162,11 +149,11 @@ fixInternalReferences chunkedDoc =
   isHtmlFormat _ = False
 
 
-makeChunks :: Int -> PathTemplate -> [Block] -> [Chunk]
-makeChunks chunkLevel pathTemplate = secsToChunks 1
+makeChunks :: Int -> PathTemplate -> Meta -> [Block] -> [Chunk]
+makeChunks chunklev pathTemplate meta = secsToChunks 1
  where
   isChunkHeader :: Block -> Bool
-  isChunkHeader (Div (_,"section":_,_) (Header n _ _:_)) = n <= chunkLevel
+  isChunkHeader (Div (_,"section":_,_) (Header n _ _:_)) = n <= chunklev
   isChunkHeader _ = False
 
   secsToChunks :: Int -> [Block] -> [Chunk]
@@ -174,11 +161,11 @@ makeChunks chunkLevel pathTemplate = secsToChunks 1
     case break isChunkHeader bs of
       ([], []) -> []
       ([], (d@(Div attr@(_,"section":_,_) (h@(Header lvl _ _) : bs')) : rest))
-        | chunkLevel == lvl ->
+        | chunklev == lvl ->
           -- If the header is of the same level as chunks, create a chunk
           toChunk chunknum d :
             secsToChunks (chunknum + 1) rest
-        | chunkLevel > lvl ->
+        | chunklev > lvl ->
           case break isChunkHeader bs' of
             (xs, ys) -> toChunk chunknum (Div attr (h:xs)) :
                           secsToChunks (chunknum + 1) (ys ++ rest)
@@ -188,56 +175,55 @@ makeChunks chunkLevel pathTemplate = secsToChunks 1
 
   toChunk :: Int -> Block -> Chunk
   toChunk chunknum
-    (Div (divid,"section":classes,kvs) (h@(Header _ _ ils) : bs)) =
+    (Div (divid,"section":classes,kvs) (h@(Header lvl _ ils) : bs)) =
     Chunk
       { chunkHeading = ils
       , chunkId = divid
+      , chunkLevel = lvl
       , chunkNumber = chunknum
+      , chunkSectionNumber = secnum
       , chunkPath = chunkpath
-      , chunkUp = lookup "nav-up" kvs
-      , chunkPrev = lookup "nav-prev" kvs
-      , chunkNext = lookup "nav-next" kvs
+      , chunkUp = Nothing
+      , chunkNext = Nothing
+      , chunkPrev = Nothing
+      , chunkUnlisted = "unlisted" `elem` classes
       , chunkContents =
          [Div (divid,"section":classes,kvs') (h : bs)]
       }
      where kvs' = kvs ++ [("nav-path", T.pack chunkpath)]
+           secnum = lookup "number" kvs
            chunkpath = resolvePathTemplate pathTemplate chunknum
                         (stringify ils)
                         divid
-                        (fromMaybe "" (lookup "number" kvs))
+                        (fromMaybe "" secnum)
   toChunk chunknum (Div ("",["preamble"],[]) bs) =
     Chunk
-      { chunkHeading = []
-      , chunkId = ""
+      { chunkHeading = docTitle meta
+      , chunkId = inlineListToIdentifier mempty $ docTitle meta
+      , chunkLevel = 0
       , chunkNumber = chunknum
+      , chunkSectionNumber = Nothing
       , chunkPath = resolvePathTemplate pathTemplate chunknum
-                        "" "" ""
+                        (stringify (docTitle meta))
+                        (inlineListToIdentifier mempty (docTitle meta))
+                        "0"
       , chunkUp = Nothing
       , chunkPrev = Nothing
       , chunkNext = Nothing
+      , chunkUnlisted = False
       , chunkContents = bs
       }
   toChunk _ b = error $ "toChunk called on inappropriate block " <> show b
   -- should not happen
 
--- | Add nav-up, nav-prev, nav-next attributes to each section Div
--- in a document.
-addNavigation :: Maybe Text -> Maybe Text -> [Block] -> [Block]
-addNavigation mbUpId mbPrevId (Div (ident, "section":classes, kvs) bs : xs) =
-  Div (ident, "section":classes, kvs ++ navattrs) bs' :
-    addNavigation mbUpId (Just ident) xs
+
+-- Remove some attributes we added just to construct chunkNext etc.
+rmNavAttrs :: Block -> Block
+rmNavAttrs (Div (ident,classes,kvs) bs) =
+  Div (ident,classes,filter (not . isNavAttr) kvs) bs
  where
-  bs' = addNavigation (Just ident) Nothing bs
-  navattrs = maybe [] (\x -> [("nav-up", x)]) mbUpId
-          ++ maybe [] (\x -> [("nav-prev", x)]) mbPrevId
-          ++ maybe [] (\x -> [("nav-next", x)]) mbNextId
-  mbNextId = find isSectionDiv bs >>= extractId
-  isSectionDiv (Div (_,"section":_,_) _) = True
-  isSectionDiv _ = False
-  extractId (Div (id',_,_) _) = Just id'
-  extractId _ = Nothing
-addNavigation mbUpId mbPrevId (x:xs) = x : addNavigation mbUpId mbPrevId xs
-addNavigation _ _ [] = []
+  isNavAttr (k,_) = "nav-" `T.isPrefixOf` k
+rmNavAttrs b = b
 
 resolvePathTemplate :: PathTemplate
                     -> Int -- ^ Chunk number
@@ -272,14 +258,17 @@ data Chunk =
   Chunk
   { chunkHeading :: [Inline]
   , chunkId :: Text
+  , chunkLevel :: Int
   , chunkNumber :: Int
+  , chunkSectionNumber :: Maybe Text
   , chunkPath :: FilePath
-  , chunkUp :: Maybe Text
-  , chunkPrev :: Maybe Text
-  , chunkNext :: Maybe Text
+  , chunkUp :: Maybe Chunk
+  , chunkPrev :: Maybe Chunk
+  , chunkNext :: Maybe Chunk
+  , chunkUnlisted :: Bool
   , chunkContents :: [Block]
   }
-  deriving (Show, Read, Eq, Ord, Generic)
+  deriving (Show, Eq, Generic)
 
 instance Walkable Inline Chunk where
   query f chunk = query f (chunkContents chunk)
@@ -301,7 +290,7 @@ data ChunkedDoc =
   { chunkedMeta :: Meta
   , chunkedTOC :: Tree SecInfo
   , chunkedChunks :: [Chunk]
-  }
+  } deriving (Show, Eq, Generic)
 
 instance Walkable Inline ChunkedDoc where
   query f doc = query f (chunkedChunks doc) <> query f (chunkedMeta doc)
@@ -333,7 +322,7 @@ data SecInfo =
   , secId :: Text
   , secPath :: Text
   , secLevel :: Int
-  } deriving (Show, Ord, Eq)
+  } deriving (Show, Eq, Generic)
 
 instance Walkable Inline SecInfo where
   query f sec = query f (secTitle sec)
@@ -346,12 +335,12 @@ instance Walkable Inline SecInfo where
 -- in a form that can be turned into a table of contents.
 -- Presupposes that the '[Block]' is the output of 'makeSections'.
 toTOCTree :: [Block] -> Tree SecInfo
-toTOCTree bs =
+toTOCTree =
   Node SecInfo{ secTitle = []
               , secNumber = Nothing
               , secId = ""
               , secPath = ""
-              , secLevel = 0 } $ foldr go [] bs
+              , secLevel = 0 } . foldr go []
  where
   go :: Block -> [Tree SecInfo] -> [Tree SecInfo]
   go (Div (ident,_,_) (Header lev (_,classes,kvs) ils : subsecs))
@@ -364,3 +353,22 @@ toTOCTree bs =
   go (Div _ [d@Div{}]) = go d -- #8402
   go _ = id
 
+toTOCTree' :: [Chunk] -> Tree SecInfo
+toTOCTree' =
+  Node SecInfo{ secTitle = []
+              , secNumber = Nothing
+              , secId = ""
+              , secPath = ""
+              , secLevel = 0 } . getNodes . filter (not . skippable)
+ where
+  skippable c = isNothing (chunkSectionNumber c) && chunkUnlisted c
+  getNodes :: [Chunk] -> [Tree SecInfo]
+  getNodes (c:cs) =
+    let (as, bs) = span (\d -> chunkLevel d > chunkLevel c) cs
+        secinfo = SecInfo{ secTitle = chunkHeading c,
+                           secNumber = chunkSectionNumber c,
+                           secId = chunkId c,
+                           secPath = T.pack $ chunkPath c,
+                           secLevel = chunkLevel c }
+     in Node secinfo (getNodes as) : getNodes bs
+  getNodes [] = []
