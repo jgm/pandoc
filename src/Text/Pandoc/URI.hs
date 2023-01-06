@@ -20,7 +20,7 @@ import qualified Network.HTTP.Types as HTTP
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
 import qualified Data.Set as Set
-import Data.Char (isSpace)
+import Data.Char (isSpace, isAscii)
 import Network.URI (URI (uriScheme), parseURI, escapeURIString)
 
 urlEncode :: T.Text -> T.Text
@@ -90,7 +90,9 @@ schemes = Set.fromList
 -- | Check if the string is a valid URL with a IANA or frequently used but
 -- unofficial scheme (see @schemes@).
 isURI :: T.Text -> Bool
-isURI = maybe False hasKnownScheme . parseURI . T.unpack
+isURI =
+  -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
+  maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack
   where
     hasKnownScheme = (`Set.member` schemes) . T.toLower .
                      T.filter (/= ':') . T.pack . uriScheme
