@@ -51,6 +51,7 @@ data-files:
                  data/templates/styles.citations.html
                  data/templates/default.html4
                  data/templates/default.html5
+                 data/templates/default.chunkedhtml
                  data/templates/default.docbook4
                  data/templates/default.docbook5
                  data/templates/default.jats_archiving
@@ -584,6 +585,7 @@ library
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
+                   Text.Pandoc.Writers.ChunkedHTML,
                    Text.Pandoc.Writers.Ipynb,
                    Text.Pandoc.Writers.ICML,
                    Text.Pandoc.Writers.Jira,

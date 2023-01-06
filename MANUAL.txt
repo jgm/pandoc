@@ -287,6 +287,7 @@ header when requesting a document from a URL:
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
+    - `chunkedhtml` (zip archive of multiple linked HTML files)
     - `commonmark` ([CommonMark] Markdown)
     - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `context` ([ConTeXt])
@@ -358,7 +359,12 @@ header when requesting a document from a URL:
 
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*, even if a non-textual format
-    (`docx`, `odt`, `epub2`, `epub3`) is specified.
+    (`docx`, `odt`, `epub2`, `epub3`) is specified.  If the
+    output format is `chunkedhtml` and *FILE* has no extension,
+    then instead of producing a `.zip` file pandoc will create
+    a directory *FILE* and unpack the zip archive there
+    (unless *FILE* already exists, in which case an error
+    will be raised).
 
 `--data-dir=`*DIRECTORY*
 
@@ -6821,6 +6827,27 @@ The `document-css` variable may be set if the more opinionated
 styling of pandoc's default HTML templates is desired (and
 in that case the variables defined in [Variables for HTML] may
 be used to fine-tune the style).
+
+# Chunked HTML
+
+`pandoc -t chunkedhtml` will produce a zip archive of linked
+HTML files, one for each section of the original document.
+Internal links will automatically be adjusted to point to
+the right place, images linked to under the working directory
+will be incorporated, and navigation links will be added.
+In addition, a JSON file `sitemap.json` will be included
+describing the hierarchical structure of the files.
+
+If an output file without an extension is specified, then
+it will be interpreted as a directory and the zip archive
+will be automatically unpacked into it (unless it already
+exists, in which case an error will be raised).  Otherwise
+a `.zip` file will be produced.
+
+The navigation links can be customized by adjusting the
+template.  By default, a table of contents is included only
+on the top page. To include it on every page, set the
+`toc` variable manually.
 
 # Jupyter notebooks
 
