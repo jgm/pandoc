@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {- |
 Module      : Text.Pandoc.Scripting
-Copyright   : © 2022 Albert Krewinkel
+Copyright   : © 2022-2023 Albert Krewinkel
 License     : GPL-2.0-or-later
 Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 

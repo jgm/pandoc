@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {- |
 Module      : Text.Pandoc.Data.BakedIn
-Copyright   : Copyright (C) 2013-2022 John MacFarlane
+Copyright   : Copyright (C) 2013-2023 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley@edu>

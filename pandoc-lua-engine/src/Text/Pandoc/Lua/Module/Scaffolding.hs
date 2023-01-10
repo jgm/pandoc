@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Scaffolding
-   Copyright   : Copyright © 2022 Albert Krewinkel, John MacFarlane
+   Copyright   : Copyright © 2022-2023 Albert Krewinkel, John MacFarlane
    License     : GNU GPL, version 2 or above
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 

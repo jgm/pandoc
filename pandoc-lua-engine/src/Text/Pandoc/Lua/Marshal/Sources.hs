@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
 Module      : Text.Pandoc.Lua.Marshaling.Sources
-Copyright   : © 2021-2022 Albert Krewinkel
+Copyright   : © 2021-2023 Albert Krewinkel
 License     : GNU GPL, version 2 or above
 Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 

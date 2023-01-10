@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {- |
    Module      : Text.Pandoc.XML.Light.Types
-   Copyright   : Copyright (C) 2007 Galois, Inc., 2021-2022 John MacFarlane
+   Copyright   : Copyright (C) 2007 Galois, Inc., 2021-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>

@@ -4,7 +4,7 @@
 {-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc.Lua.Custom
-   Copyright   : © 2021-2022 Albert Krewinkel, John MacFarlane
+   Copyright   : © 2021-2023 Albert Krewinkel, John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 

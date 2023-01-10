@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.PandocLua
-   Copyright   : © 2020-2022 Albert Krewinkel
+   Copyright   : © 2020-2023 Albert Krewinkel
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
