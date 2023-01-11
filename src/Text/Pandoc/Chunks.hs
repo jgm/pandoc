@@ -36,8 +36,7 @@ import qualified Data.Text as T
 import Data.String (IsString)
 import GHC.Generics (Generic)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
-import Data.Tree (Tree(..), unfoldForest, unfoldTree)
-import Data.List (tails)
+import Data.Tree (Tree(..))
 
 -- | Split 'Pandoc' into 'Chunk's, e.g. for conversion into
 -- a set of HTML pages or EPUB chapters.
