@@ -355,23 +355,6 @@ With stack:
     pandoc +RTS -p -RTS [file]...
     less pandoc.prof
 
-Templates
----------
-
-The default templates live in `data/templates`, which is a git
-subtree linked to <https://github.com/jgm/pandoc-templates.git>.
-The purpose of maintaining a separate repository is to allow
-people to maintain variant templates as a fork.
-
-You can modify the templates and submit patches without worrying
-much about this: when these patches are merged, we will
-push them to the main templates repository by doing
-
-    git subtree push --prefix=data/templates templates master
-
-where `templates` is a remote pointing to the templates
-repository.
-
 The code
 --------
 
