@@ -269,7 +269,7 @@ data Chunk =
   , chunkUnlisted :: Bool
   , chunkContents :: [Block]
   }
-  deriving (Show, Eq, Ord, Generic)
+  deriving (Show, Eq, Generic)
 
 instance Walkable Inline Chunk where
   query f chunk = query f (chunkContents chunk)
@@ -291,7 +291,7 @@ data ChunkedDoc =
   { chunkedMeta :: Meta
   , chunkedTOC :: Tree SecInfo
   , chunkedChunks :: [Chunk]
-  } deriving (Show, Eq, Ord, Generic)
+  } deriving (Show, Eq, Generic)
 
 instance Walkable Inline ChunkedDoc where
   query f doc = query f (chunkedChunks doc) <> query f (chunkedMeta doc)
@@ -323,7 +323,7 @@ data SecInfo =
   , secId :: Text
   , secPath :: Text
   , secLevel :: Int
-  } deriving (Show, Ord, Eq, Generic)
+  } deriving (Show, Eq, Generic)
 
 instance Walkable Inline SecInfo where
   query f sec = query f (secTitle sec)
