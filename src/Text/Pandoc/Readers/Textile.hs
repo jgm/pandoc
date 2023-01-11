@@ -607,17 +607,21 @@ link = try $ do
   attr <- attributes
   name <- trimInlines . mconcat <$>
           withQuoteContext InDoubleQuote (many1Till inline (char '"'))
+  url <- linkUrl bracketed
+  let name' = if B.toList name == [Str "$"] then B.str url else name
+  return $ if attr == nullAttr
+              then B.link url "" name'
+              else B.spanWith attr $ B.link url "" name'
+
+linkUrl :: PandocMonad m => Bool -> TextileParser m Text
+linkUrl bracketed = do
   char ':'
   let stop = if bracketed
                 then char ']'
                 else lookAhead $ space <|> eof' <|>
                        try (oneOf "!.,;:*" *>
                               (space <|> newline <|> eof'))
-  url <- T.pack <$> many1Till nonspaceChar stop
-  let name' = if B.toList name == [Str "$"] then B.str url else name
-  return $ if attr == nullAttr
-              then B.link url "" name'
-              else B.spanWith attr $ B.link url "" name'
+  T.pack <$> many1Till nonspaceChar stop
 
 -- | image embedding
 image :: PandocMonad m => TextileParser m Inlines
@@ -630,7 +634,11 @@ image = try $ do
   src <- T.pack <$> many1 (noneOf " \t\n\r!(")
   alt <- fmap T.pack $ option "" $ try $ char '(' *> manyTill anyChar (char ')')
   char '!'
-  return $ B.imageWith attr src alt (B.str alt)
+  let img = B.imageWith attr src alt (B.str alt)
+  try (do -- image link
+         url <- linkUrl False
+         return (B.link url "" img))
+   <|> return img
 
 escapedInline :: PandocMonad m => TextileParser m Inlines
 escapedInline = escapedEqs <|> escapedTag
