@@ -13,7 +13,6 @@ Conversion of 'Pandoc' documents to ODT.
 -}
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Codec.Archive.Zip
-import Control.Monad
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict
 import qualified Data.ByteString.Lazy as B
