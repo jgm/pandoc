@@ -611,7 +611,7 @@ link = try $ do
   let stop = if bracketed
                 then char ']'
                 else lookAhead $ space <|> eof' <|>
-                       try (oneOf "!.,;:" *>
+                       try (oneOf "!.,;:*" *>
                               (space <|> newline <|> eof'))
   url <- T.pack <$> many1Till nonspaceChar stop
   let name' = if B.toList name == [Str "$"] then B.str url else name
