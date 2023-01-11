@@ -132,7 +132,7 @@ That's it!  The ebook, `progit.epub`, is ready to be uploaded to your reader.
 
 You can use the `--css` option to specify a CSS file
 for the book.  The default CSS is minimal and can be found
-[on GitHub](https://github.com/jgm/pandoc/blob/master/data/epub.css)
+[on GitHub](https://github.com/jgm/pandoc/blob/main/data/epub.css)
 or in the `epub.css` file in your data directory
 (see `--data-dir` in the [User's Guide]).
 

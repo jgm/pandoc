@@ -391,4 +391,4 @@ To run just the markdown benchmarks:
 [stack]: https://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [cabal-install]: https://hackage.haskell.org/package/cabal-install
 [Void]: https://voidlinux.org/
-[uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/master/macos/uninstall-pandoc.pl
+[uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/main/macos/uninstall-pandoc.pl
