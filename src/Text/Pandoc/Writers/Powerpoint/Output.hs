@@ -578,7 +578,8 @@ presentationToArchive opts meta pres = do
   distArchive <- toArchive . BL.fromStrict <$>
                         readDefaultDataFile "reference.pptx"
   refArchive <- case writerReferenceDoc opts of
-                     Just f  -> toArchive <$> P.readFileLazy f
+                     Just f  -> toArchive . BL.fromStrict . fst
+                                  <$> P.fetchItem (T.pack f)
                      Nothing -> toArchive . BL.fromStrict <$>
                         readDataFile "reference.pptx"
 

@@ -134,7 +134,8 @@ writeDocx opts doc = do
   P.setUserDataDir oldUserDataDir
   let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
-                     Just f  -> toArchive <$> P.readFileLazy f
+                     Just f  -> toArchive . BL.fromStrict . fst
+                                   <$> P.fetchItem (T.pack f)
                      Nothing -> toArchive . BL.fromStrict <$>
                           readDataFile "reference.docx"
 

@@ -94,7 +94,8 @@ pandocToODT opts doc@(Pandoc meta _) = do
   lang <- toLang (getLang opts meta)
   refArchive <-
        case writerReferenceDoc opts of
-             Just f -> liftM toArchive $ lift $ P.readFileLazy f
+             Just f -> lift $ toArchive . B.fromStrict . fst <$>
+                                (P.fetchItem (T.pack f))
              Nothing -> lift $ toArchive . B.fromStrict <$>
                                 readDataFile "reference.odt"
   -- handle formulas and pictures

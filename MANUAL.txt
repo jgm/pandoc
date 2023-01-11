@@ -1129,7 +1129,7 @@ header when requesting a document from a URL:
     user data directory (see `--data-dir`).  If it is not
     found there, sensible defaults will be used.
 
-`--reference-doc=`*FILE*
+`--reference-doc=`*FILE*|*URL*
 
 :   Use the specified file as a style reference in producing a
     docx or ODT file.
