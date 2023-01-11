@@ -28,6 +28,7 @@ extra-deps:
 - hslua-module-zip-1.0.0
 - hslua-objectorientation-2.2.1
 - hslua-packaging-2.2.1
+- jira-wiki-markup-1.5.0
 - lua-2.2.1
 - mime-types-0.1.1.0
 - doclayout-0.4

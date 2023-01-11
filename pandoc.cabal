@@ -494,7 +494,7 @@ library
                  http-client-tls       >= 0.2.4    && < 0.4,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,
-                 jira-wiki-markup      >= 1.4      && < 1.5,
+                 jira-wiki-markup      >= 1.5      && < 1.6,
                  mime-types            >= 0.1.1    && < 0.2,
                  mtl                   >= 2.2      && < 2.4,
                  network               >= 2.6,
