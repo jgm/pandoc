@@ -541,7 +541,7 @@ pandocToEPUB version opts doc = do
   let chunkedDoc = splitIntoChunks "ch%n.xhtml"
                      (writerNumberSections opts)
                      Nothing
-                     (writerEpubChapterLevel opts)
+                     (writerSplitLevel opts)
                      (Pandoc meta blocks')
 
 

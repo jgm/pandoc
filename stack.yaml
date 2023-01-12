@@ -23,6 +23,9 @@ extra-deps:
 - jira-wiki-markup-1.5.0
 - mime-types-0.1.1.0
 - doctemplates-0.11
+- commonmark-extensions-0.2.3.3
+- git: https://github.com/jgm/texmath
+  commit: 1a77db688bd3285228299e5aeefc93d6c0d8c0b9
 - git: https://github.com/jgm/citeproc
   commit: a8b7748537401d6c9749406a49df7008cea8c7f2
 

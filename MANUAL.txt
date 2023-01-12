@@ -1249,6 +1249,22 @@ header when requesting a document from a URL:
         in MS PowerPoint (pandoc will use the layouts with the names
         listed above).
 
+`--split-level=`*NUMBER*
+
+:   Specify the heading level at which to split an EPUB or
+    chunked HTML document into separate files. The default is to split
+    into chapters at level-1 headings. In the case of EPUB, this
+    option only affects the internal composition of the EPUB, not the way
+    chapters and sections are displayed to users. Some
+    readers may be slow if the chapter files are too large, so for large
+    documents with few level-1 headings, one might want to use a chapter
+    level of 2 or 3. For chunked HTML, this option determines
+    how much content goes in each "chunk."
+
+`--epub-chapter-level=`*NUMBER*
+
+:   *Deprecated synonym for `--split-level`.*
+
 `--epub-cover-image=`*FILE*
 
 :   Use the specified image as the EPUB cover.  It is recommended
@@ -1317,16 +1333,6 @@ header when requesting a document from a URL:
            src:url("../fonts/DejaVuSans-BoldOblique.ttf");
         }
         body { font-family: "DejaVuSans"; }
-
-`--epub-chapter-level=`*NUMBER*
-
-:   Specify the heading level at which to split the EPUB into separate
-    "chapter" files. The default is to split into chapters at level-1
-    headings. This option only affects the internal composition of the
-    EPUB, not the way chapters and sections are displayed to users. Some
-    readers may be slow if the chapter files are too large, so for large
-    documents with few level-1 headings, one might want to use a chapter
-    level of 2 or 3.
 
 `--epub-subdirectory=`*DIRNAME*
 
@@ -1981,7 +1987,7 @@ To include the built-in citeproc filter, use either `citeproc` or
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --epub-chapter-level 2           | epub-chapter-level: 2             |
+| --split-level 2                  | split-level: 2                    |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |

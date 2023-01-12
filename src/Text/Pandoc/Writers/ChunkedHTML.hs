@@ -57,7 +57,7 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   let chunkedDoc = splitIntoChunks "%s-%i.html"
                      True
                      (Just 1)
-                     (writerEpubChapterLevel opts)
+                     (writerSplitLevel opts)
                      (Pandoc meta blocks)
   let topChunk =
         Chunk
