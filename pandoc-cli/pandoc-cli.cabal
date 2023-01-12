@@ -12,9 +12,10 @@ stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
 tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
-                 GHC == 9.2.3
+                 GHC == 9.2.5, GHC == 9.4.4
 synopsis:        Conversion between documentation formats
-description:     Pandoc-cli provides a command-line executable that uses the                            pandoc library to convert between markup formats.
+description:     Pandoc-cli provides a command-line executable that uses the
+                 pandoc library to convert between markup formats.
 -- data-files:
 -- extra-source-files:
 source-repository head

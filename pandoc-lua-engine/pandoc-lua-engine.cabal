@@ -14,7 +14,8 @@ tested-with:         GHC == 8.6.5
                    , GHC == 8.8.4
                    , GHC == 8.10.7
                    , GHC == 9.0.2
-                   , GHC == 9.2.3
+                   , GHC == 9.2.5
+                   , GHC == 9.4.4
 synopsis:            Lua engine to power custom pandoc conversions
 description:         This package provides a pandoc scripting engine based on
                      Lua.
