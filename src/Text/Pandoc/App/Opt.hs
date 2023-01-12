@@ -126,10 +126,10 @@ data Opt = Opt
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
+    , optSplitLevel            :: Int     -- ^ Header level at which to split documents in epub and chunkedhtml
     , optEpubSubdirectory      :: String -- ^ EPUB subdir in OCF container
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
-    , optEpubChapterLevel      :: Int     -- ^ Header level at which to split chapters
     , optEpubCoverImage        :: Maybe FilePath -- ^ Cover image for epub
     , optEpubTitlePage         :: Bool -- ^ INclude title page in EPUB
     , optTOCDepth              :: Int     -- ^ Number of levels to include in TOC
@@ -207,10 +207,11 @@ instance FromJSON Opt where
        <*> o .:? "html-math-method" .!= optHTMLMathMethod defaultOpts
        <*> o .:? "abbreviations"
        <*> o .:? "reference-doc"
+       <*> ((o .:? "split-level") <|> (o .:? "epub-chapter-level"))
+             .!= optSplitLevel defaultOpts
        <*> o .:? "epub-subdirectory" .!= optEpubSubdirectory defaultOpts
        <*> o .:? "epub-metadata"
        <*> o .:? "epub-fonts" .!= optEpubFonts defaultOpts
-       <*> o .:? "epub-chapter-level" .!= optEpubChapterLevel defaultOpts
        <*> o .:? "epub-cover-image"
        <*> o .:? "epub-title-page" .!= optEpubTitlePage defaultOpts
        <*> o .:? "toc-depth" .!= optTOCDepth defaultOpts
@@ -559,7 +560,9 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optEpubFonts = optEpubFonts o <>
                                                map unpack x })
     "epub-chapter-level" ->
-      parseJSON v >>= \x -> return (\o -> o{ optEpubChapterLevel = x })
+      parseJSON v >>= \x -> return (\o -> o{ optSplitLevel = x })
+    "split-level" ->
+      parseJSON v >>= \x -> return (\o -> o{ optSplitLevel = x })
     "epub-cover-image" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optEpubCoverImage = unpack <$> x })
@@ -736,10 +739,10 @@ defaultOpts = Opt
     , optHTMLMathMethod        = PlainMath
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
+    , optSplitLevel            = 1
     , optEpubSubdirectory      = "EPUB"
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
-    , optEpubChapterLevel      = 1
     , optEpubCoverImage        = Nothing
     , optEpubTitlePage         = True
     , optTOCDepth              = 3

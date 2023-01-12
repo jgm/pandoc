@@ -297,6 +297,11 @@ the first one given is the default.
     See `pandoc(1)` under `--reference-doc` for details.
     The contents of the file must be included under `files`.
 
+`split-level` (integer, default 1)
+
+:   Heading level at which documents are split in EPUB or
+    chunked HTML.
+
 `epub-cover-image` (file path)
 
 :   Cover image for EPUB.
@@ -307,10 +312,6 @@ the first one given is the default.
 :   Path of file containing Dublin core XML elements to be used for
     EPUB metadata.  The contents of the file must be included
     under `files`.
-
-`epub-chapter-level` (integer, default 1)
-
-:   Heading level at which chapter splitting occurs in EPUBs.
 
 `epub-subdirectory` (string, default "EPUB")
 

@@ -20,8 +20,8 @@ return {
     test('email_obfuscation', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.email_obfuscation), 'string')
     end),
-    test('epub_chapter_level', function ()
-      assert.are_equal(type(PANDOC_WRITER_OPTIONS.epub_chapter_level), 'number')
+    test('split_level', function ()
+      assert.are_equal(type(PANDOC_WRITER_OPTIONS.split_level), 'number')
     end),
     test('epub_fonts', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.epub_fonts), 'table')
