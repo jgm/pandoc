@@ -34,7 +34,8 @@ extra-deps:
 - doclayout-0.4
 - doctemplates-0.11
 - commonmark-extensions-0.2.3.3
-- texmath-0.12.5.4
+- git: https://github.com/jgm/texmath
+  commit: 1a77db688bd3285228299e5aeefc93d6c0d8c0b9
 - git: https://github.com/jgm/citeproc
   commit: a8b7748537401d6c9749406a49df7008cea8c7f2
 
