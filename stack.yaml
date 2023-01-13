@@ -16,22 +16,12 @@ extra-deps:
 - skylighting-format-latex-0.1
 - skylighting-format-blaze-html-0.1.1
 - gridtables-0.1.0.0
-- hslua-2.2.1
-- hslua-aeson-2.2.1
 - hslua-cli-1.2.0
-- hslua-classes-2.2.0
-- hslua-core-2.2.1
 - hslua-list-1.1.0
-- hslua-marshalling-2.2.1
 - hslua-module-text-1.0.3
-- hslua-module-version-1.0.3
 - hslua-module-zip-1.0.0
-- hslua-objectorientation-2.2.1
-- hslua-packaging-2.2.1
 - jira-wiki-markup-1.5.0
-- lua-2.2.1
 - mime-types-0.1.1.0
-- doclayout-0.4
 - doctemplates-0.11
 - commonmark-extensions-0.2.3.3
 - git: https://github.com/jgm/texmath
@@ -41,6 +31,6 @@ extra-deps:
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-19.21
+resolver: lts-20.6
 nix:
   packages: [zlib]
