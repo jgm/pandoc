@@ -382,7 +382,6 @@ blockToICML opts style (Table attr blkCapt specs thead tbody tfoot) =
 blockToICML opts style (Div (_ident, _, kvs) lst) =
   let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
   in  blocksToICML opts (dynamicStyle <> style) lst
-blockToICML _ _ Null = return empty
 blockToICML opts style (Figure attr capt@(Caption _ longcapt) body) =
   case body of
     [Plain [img@(Image {})]] -> do

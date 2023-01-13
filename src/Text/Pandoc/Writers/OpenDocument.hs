@@ -396,7 +396,6 @@ blockToOpenDocument o = \case
     b@(RawBlock f s) -> if f == Format "opendocument"
                         then return $ text $ T.unpack s
                         else empty <$ report (BlockNotRendered b)
-    Null             -> return empty
     Figure a capt b  -> figure a capt b
     where
       defList       b = do setInDefinitionList True

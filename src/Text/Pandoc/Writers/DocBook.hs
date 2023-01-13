@@ -167,7 +167,6 @@ imageToDocBook _ attr src = selfClosingTag "imagedata" $
 
 -- | Convert a Pandoc block element to DocBook.
 blockToDocBook :: PandocMonad m => WriterOptions -> Block -> DB m (Doc Text)
-blockToDocBook _ Null = return empty
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
 blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils : xs)) = do

@@ -109,7 +109,6 @@ isRawFormat f =
 blockToOrg :: PandocMonad m
            => Block         -- ^ Block element
            -> Org m (Doc Text)
-blockToOrg Null = return empty
 blockToOrg (Div (_, ["cell", "code"], _) (CodeBlock attr t : bs)) = do
   -- ipynb code cell
   let (ident, classes, kvs) = attr

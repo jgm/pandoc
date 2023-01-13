@@ -547,7 +547,6 @@ makeSections numbering mbBaseLevel bs =
     xs' <- go xs
     rest' <- go rest
     return $ Div attr xs' : rest'
-  go (Null:xs) = go xs
   go (x:xs) = (x :) <$> go xs
   go [] = return []
 
@@ -848,7 +847,6 @@ blockToInlines (Table _ _ _ (TableHead _ hbd) bodies (TableFoot _ fbd)) =
     unTableBody (TableBody _ _ hd bd) = hd <> bd
     unTableBodies = concatMap unTableBody
 blockToInlines (Div _ blks) = blocksToInlines' blks
-blockToInlines Null = mempty
 blockToInlines (Figure _ _ body) = blocksToInlines' body
 
 blocksToInlinesWithSep :: Inlines -> [Block] -> Inlines

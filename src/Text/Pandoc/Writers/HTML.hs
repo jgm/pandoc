@@ -725,7 +725,6 @@ adjustNumbers opts doc =
    showSecNum = T.intercalate "." . map tshow
 
 blockToHtmlInner :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
-blockToHtmlInner _ Null = return mempty
 blockToHtmlInner opts (Plain lst) = inlineListToHtml opts lst
 blockToHtmlInner opts (Para lst) = do
   slideVariant <- gets stSlideVariant

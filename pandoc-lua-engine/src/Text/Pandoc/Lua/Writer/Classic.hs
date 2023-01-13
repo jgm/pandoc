@@ -131,8 +131,6 @@ blockToCustom :: forall e. LuaError e
               => Block         -- ^ Block element
               -> LuaE e String
 
-blockToCustom Null = return ""
-
 blockToCustom (Plain inlines) = invoke "Plain" (Stringify inlines)
 
 blockToCustom (Para [Image attr txt (src,tit)]) =

@@ -274,7 +274,6 @@ isListBlock _                  = False
 blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m (Doc Text)
-blockToLaTeX Null = return empty
 blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
              (Header _ _ ils : bs)) = do
   let blockname
