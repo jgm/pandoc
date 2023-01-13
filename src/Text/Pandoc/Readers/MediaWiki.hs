@@ -19,7 +19,7 @@ module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isSpace)
+import Data.Char (isAscii, isDigit, isLetter, isSpace)
 import qualified Data.Foldable as F
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -664,7 +664,7 @@ internalLink = try $ do
              -- [[Help:Contents|] -> "Contents"
              <|> return (B.text $ T.drop 1 $ T.dropWhile (/=':') pagename) )
   sym "]]"
-  linktrail <- B.text <$> manyChar letter
+  linktrail <- B.text <$> manyChar (satisfy (\c -> isAscii c && isLetter c)) 
   let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
   if "Category:" `T.isPrefixOf` pagename
      then do
