@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Shared
-   Copyright   : Copyright (C) 2014-2022 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -23,7 +23,6 @@ import qualified Data.Text as T
 import System.FilePath (isValid, takeExtension)
 import qualified System.FilePath.Posix as Posix
 import qualified System.FilePath.Windows as Windows
-import Text.Pandoc.Shared (elemText)
 
 -- | Check whether the given string looks like the path to of URL of an image.
 isImageFilename :: Text -> Bool
@@ -58,7 +57,7 @@ cleanLinkText s
     isUrl :: Text -> Bool
     isUrl cs =
       let (scheme, path) = T.break (== ':') cs
-      in T.all (\c -> isAlphaNum c || c `elemText` ".-") scheme
+      in T.all (\c -> isAlphaNum c || T.any (== c) ".-") scheme
          && not (T.null path)
 
 -- | Creates an key-value pair marking the original language name specified for

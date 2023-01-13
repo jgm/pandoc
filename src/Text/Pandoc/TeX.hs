@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {- |
    Module      : Text.Pandoc.TeX
-   Copyright   : Copyright (C) 2017-2022 John MacFarlane
+   Copyright   : Copyright (C) 2017-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -20,7 +20,7 @@ module Text.Pandoc.TeX ( Tok(..)
                        )
 where
 import Data.Text (Text)
-import Text.Parsec.Pos (SourcePos, sourceName)
+import Text.Parsec (SourcePos, sourceName)
 import Text.Pandoc.Sources
 import Data.List (groupBy)
 

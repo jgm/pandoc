@@ -14,7 +14,7 @@ return {
       }
       local expected = {
         pandoc.Str 'Paragraph1',
-        pandoc.Space(), pandoc.Str '¶', pandoc.Space(),
+        pandoc.LineBreak(),
         pandoc.Emph { pandoc.Str 'Paragraph2' }
       }
       assert.are_same(

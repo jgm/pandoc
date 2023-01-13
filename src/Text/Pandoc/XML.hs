@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.XML
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -21,6 +21,7 @@ module Text.Pandoc.XML ( escapeCharForXML,
                          toEntities,
                          toHtml5Entities,
                          fromEntities,
+                         lookupEntity,
                          html4Attributes,
                          html5Attributes,
                          rdfaAttributes ) where
@@ -28,11 +29,13 @@ module Text.Pandoc.XML ( escapeCharForXML,
 import Data.Char (isAscii, isSpace, ord, isLetter, isDigit)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.HTML.TagSoup.Entity (lookupEntity, htmlEntities)
+import Commonmark.Entity (lookupEntity)
+import Text.HTML.TagSoup.Entity (htmlEntities)
 import Text.DocLayout
+    ( ($$), char, hcat, nest, text, Doc, HasChars )
 import Text.Printf (printf)
 import qualified Data.Map as M
-import Data.String
+import Data.String ( IsString )
 import qualified Data.Set as Set
 
 -- | Escape one character as needed for XML.
@@ -117,8 +120,8 @@ html5EntityMap = foldr go mempty htmlEntities
                    (\new old -> if T.length new > T.length old
                                    then old
                                    else new) c ent' entmap
-             where ent' = T.takeWhile (/=';') (T.pack ent)
-           _   -> entmap
+                  where ent' = T.takeWhile (/=';') (T.pack ent)
+           _ -> entmap
 
 -- | Converts a string into an NCName, i.e., an XML name without colons.
 -- Disallowed characters are escaped using @ux%x@, where @%x@ is the
@@ -158,7 +161,7 @@ fromEntities t
                             Just (';',ys) -> ys
                             _ -> rest
                  ent' = T.drop 1 ent <> ";"
-              in case T.pack <$> lookupEntity (T.unpack ent') of
+              in case lookupEntity ent' of
                    Just c  -> c <> fromEntities rest'
                    Nothing  -> ent <> fromEntities rest
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -59,6 +60,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
 import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
 import Control.Applicative ((<|>))
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict
@@ -240,7 +242,6 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl T.Text TblGrid TblLook [Row]
               | TblCaption ParagraphStyle [ParPart]
-              | OMathPara [Exp]
               deriving Show
 
 type TblGrid = [Integer]
@@ -280,12 +281,12 @@ rowsToRowspans rows = let
       -> Maybe Integer -- Number of columns left below
       -> Maybe [(Int, Cell)] -- (rowspan so far, cell) for the row below this one
       -> [(Int, Cell)] -- (rowspan so far, cell) for this row
-    g cells _ Nothing = zip (repeat 1) cells
+    g cells _ Nothing = map (1,) cells
     g cells columnsLeftBelow (Just rowBelow) =
         case cells of
           [] -> []
           thisCell@(Cell thisGridSpan _ _) : restOfRow -> case rowBelow of
-            [] -> zip (repeat 1) cells
+            [] -> map (1,) cells
             (spanSoFarBelow, Cell gridSpanBelow vmerge _) : _ ->
               let spanSoFar = case vmerge of
                     Restart -> 1
@@ -311,6 +312,7 @@ leftBiasedMergeRunStyle a b = RunStyle
     , isStrike = isStrike a <|> isStrike b
     , isRTL = isRTL a <|> isRTL b
     , isForceCTL = isForceCTL a <|> isForceCTL b
+    , rHighlight = rHighlight a <|> rHighlight b
     , rVertAlign = rVertAlign a <|> rVertAlign b
     , rUnderline = rUnderline a <|> rUnderline b
     , rParentStyle = rParentStyle a
@@ -330,6 +332,7 @@ data ParPart = PlainRun Run
              | Chart                                              -- placeholder for now
              | Diagram                                            -- placeholder for now
              | PlainOMath [Exp]
+             | OMathPara [Exp]
              | Field FieldInfo [ParPart]
              deriving Show
 
@@ -700,10 +703,12 @@ pStyleIndentation style = (getParStyleField indent . pStyle) style
 
 elemToBodyPart :: NameSpaces -> Element -> D BodyPart
 elemToBodyPart ns element
-  | isElem ns "w" "p" element
-  , (c:_) <- findChildrenByName ns "m" "oMathPara" element = do
-      expsLst <- eitherToD $ readOMML $ showElement c
-      return $ OMathPara expsLst
+  | isElem ns "m" "oMathPara" element = do
+      expsLst <- eitherToD $ readOMML $ showElement element
+      parstyle <- elemToParagraphStyle ns element
+                  <$> asks envParStyles
+                  <*> asks envNumbering
+      return $ Paragraph parstyle [OMathPara expsLst]
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
@@ -997,6 +1002,9 @@ elemToParPart' ns element
 elemToParPart' ns element
   | isElem ns "m" "oMath" element =
     fmap (return . PlainOMath) (eitherToD $ readOMML $ showElement element)
+elemToParPart' ns element
+  | isElem ns "m" "oMathPara" element =
+    fmap (return . OMathPara) (eitherToD $ readOMML $ showElement element)
 elemToParPart' _ _ = throwError WrongElem
 
 elemToCommentStart :: NameSpaces -> Element -> D [ParPart]

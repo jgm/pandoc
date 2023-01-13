@@ -5,7 +5,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.PDF
-   Copyright   : Copyright (C) 2012-2022 John MacFarlane
+   Copyright   : Copyright (C) 2012-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -61,6 +61,7 @@ import Text.Pandoc.Class (fillMediaBag, getVerbosity,
                           readFileLazy, readFileStrict, fileExists,
                           report, extractMedia, PandocMonad)
 import Text.Pandoc.Logging
+import Text.DocTemplates ( FromContext(lookupContext) )
 
 #ifdef _WINDOWS
 changePathSeparators :: FilePath -> FilePath
@@ -89,8 +90,16 @@ makePDF program pdfargs writer opts doc =
       liftIO $ html2pdf verbosity program pdfargs source
     "pdfroff" -> do
       source <- writer opts doc
+      let paperargs =
+            case lookupContext "papersize" (writerVariables opts) of
+              Just s
+                | T.takeEnd 1 s == "l" -> ["-P-p" <>
+                                           T.unpack (T.dropEnd 1 s), "-P-l"]
+                | otherwise -> ["-P-p" <> T.unpack s]
+              Nothing -> []
       let args   = ["-ms", "-mpdfmark", "-mspdf",
-                    "-e", "-t", "-k", "-KUTF-8", "-i"] ++ pdfargs
+                    "-e", "-t", "-k", "-KUTF-8", "-i"] ++
+                    paperargs ++ pdfargs
       generic2pdf program args source
     baseProg -> do
       withTempDir "tex2pdf." $ \tmpdir' -> do

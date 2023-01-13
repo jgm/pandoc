@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.BibTeX
-   Copyright   : Copyright (C) 2020-2022 John MacFarlane
+   Copyright   : Copyright (C) 2020-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -23,6 +23,7 @@ where
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder (setMeta, cite, str)
+import Text.Pandoc.Parsing (fromParsecError)
 import Citeproc (Lang(..), parseLang)
 import Citeproc.Locale (getLocale)
 import Text.Pandoc.Error (PandocError(..))
@@ -63,7 +64,7 @@ readBibTeX' variant _opts t = do
                    Left _  -> throwError $ PandocCiteprocError e
                Right l -> return l
   case BibTeX.readBibtexString variant locale (const True) t of
-    Left e -> throwError $ PandocParsecError (toSources t) e
+    Left e -> throwError $ fromParsecError (toSources t) e
     Right refs -> return $ setMeta "references"
                               (map referenceToMetaValue refs)
                          . setMeta "nocite"

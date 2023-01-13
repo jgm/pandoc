@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Filter
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -27,7 +27,8 @@ import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (PandocFilterError))
 import Text.Pandoc.Filter.Environment (Environment (..))
 import Text.Pandoc.Process (pipeProcess)
-import Text.Pandoc.Shared (pandocVersionText, tshow)
+import Text.Pandoc.Version (pandocVersionText)
+import Text.Pandoc.Shared (tshow)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
 

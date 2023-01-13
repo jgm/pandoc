@@ -1358,6 +1358,9 @@ or here: &lt;http://example.com/&gt;
         <imageobject>
           <imagedata fileref="movie.jpg" />
         </imageobject>
+        <textobject>
+          <phrase>movie</phrase>
+        </textobject>
       </inlinemediaobject> icon.
     </para>
   </sect1>

@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {- |
    Module      : Text.Pandoc.Parsing
-   Copyright   : © 2006-2022 John MacFarlane
+   Copyright   : © 2006-2023 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -43,7 +43,8 @@ where
 
 import Control.Monad (guard, when)
 import Data.Text (Text)
-import Text.Parsec (ParsecT, SourcePos, Stream, getPosition, getState, updateState)
+import Text.Parsec (SourcePos, Stream, ParsecT,
+                     getPosition, getState, updateState)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Logging (LogMessage)
 import Text.Pandoc.Options
@@ -51,7 +52,6 @@ import Text.Pandoc.Options
   , ReaderOptions(readerExtensions)
   , extensionEnabled
   )
-import Text.Pandoc.Parsing.Types
 import Text.Pandoc.TeX (Macro)
 
 import qualified Data.Map as M
@@ -59,7 +59,7 @@ import qualified Data.Set as Set
 
 class HasReaderOptions st where
   extractReaderOptions :: st -> ReaderOptions
-  getOption            :: (Stream s m t) => (ReaderOptions -> b) -> ParserT s st m b
+  getOption            :: (Stream s m t) => (ReaderOptions -> b) -> ParsecT s st m b
   -- default
   getOption  f         = f . extractReaderOptions <$> getState
 
@@ -69,7 +69,7 @@ class HasQuoteContext st m where
 
 failIfInQuoteContext :: (HasQuoteContext st m, Stream s m t)
                      => QuoteContext
-                     -> ParserT s st m ()
+                     -> ParsecT s st m ()
 failIfInQuoteContext context = do
   context' <- getQuoteContext
   when (context' == context) $ Prelude.fail "already inside quotes"
@@ -97,34 +97,34 @@ class HasIncludeFiles st where
 
 -- | Add a log message.
 logMessage :: (Stream s m a, HasLogMessages st)
-           => LogMessage -> ParserT s st m ()
+           => LogMessage -> ParsecT s st m ()
 logMessage msg = updateState (addLogMessage msg)
 
 -- | Report all the accumulated log messages, according to verbosity level.
-reportLogMessages :: (PandocMonad m, HasLogMessages st) => ParserT s st m ()
+reportLogMessages :: (PandocMonad m, HasLogMessages st) => ParsecT s st m ()
 reportLogMessages = do
   msgs <- getLogMessages <$> getState
   mapM_ report msgs
 
 -- | Succeed only if the extension is enabled.
 guardEnabled :: (Stream s m a,  HasReaderOptions st)
-             => Extension -> ParserT s st m ()
+             => Extension -> ParsecT s st m ()
 guardEnabled ext =
   getOption readerExtensions >>= guard . extensionEnabled ext
 
 -- | Succeed only if the extension is disabled.
 guardDisabled :: (Stream s m a, HasReaderOptions st)
-              => Extension -> ParserT s st m ()
+              => Extension -> ParsecT s st m ()
 guardDisabled ext =
   getOption readerExtensions >>= guard . not . extensionEnabled ext
 
 -- | Update the position on which the last string ended.
 updateLastStrPos :: (Stream s m a, HasLastStrPosition st)
-                 => ParserT s st m ()
+                 => ParsecT s st m ()
 updateLastStrPos = getPosition >>= updateState . setLastStrPos . Just
 
 -- | Whether we are right after the end of a string.
-notAfterString :: (Stream s m a, HasLastStrPosition st) => ParserT s st m Bool
+notAfterString :: (Stream s m a, HasLastStrPosition st) => ParsecT s st m Bool
 notAfterString = do
   pos <- getPosition
   st  <- getState

@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {- |
 Module      : Text.Pandoc.Scripting
-Copyright   : © 2022 Albert Krewinkel
+Copyright   : © 2022-2023 Albert Krewinkel
 License     : GPL-2.0-or-later
 Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -11,6 +11,7 @@ Central data structure for scripting engines.
 -}
 module Text.Pandoc.Scripting
   ( ScriptingEngine (..)
+  , CustomComponents(..)
   , noEngine
   )
 where
@@ -26,6 +27,18 @@ import Text.Pandoc.Format (ExtensionsConfig)
 import Text.Pandoc.Readers (Reader)
 import Text.Pandoc.Writers (Writer)
 
+-- | A component of a custom reader/writer: a custom reader,
+-- a custom writer, a template for a custom writer, or a specification
+-- of the extensions used by a script and their default values.
+-- Note that a single script can contain all of these.
+data CustomComponents m =
+  CustomComponents
+  { customReader :: Maybe (Reader m)
+  , customWriter :: Maybe (Writer m)
+  , customTemplate :: Maybe Text
+  , customExtensions :: Maybe ExtensionsConfig
+  }
+
 -- | Structure to define a scripting engine.
 data ScriptingEngine = ScriptingEngine
   { engineName :: Text   -- ^ Name of the engine.
@@ -35,13 +48,9 @@ data ScriptingEngine = ScriptingEngine
                       -> Pandoc -> m Pandoc
     -- ^ Use the scripting engine to run a filter.
 
-  , engineReadCustom :: forall m. (PandocMonad m, MonadIO m)
-                     => FilePath -> m (Reader m, ExtensionsConfig)
-    -- ^ Function to parse input into a 'Pandoc' document.
-
-  , engineWriteCustom :: forall m. (PandocMonad m, MonadIO m)
-                      => FilePath -> m (Writer m, ExtensionsConfig)
-    -- ^ Invoke the given script file to convert to any custom format.
+  , engineLoadCustom :: forall m. (PandocMonad m, MonadIO m)
+                     => FilePath -> m (CustomComponents m)
+    -- ^ Function to load a custom reader/writer from a script.
   }
 
 noEngine :: ScriptingEngine
@@ -49,8 +58,6 @@ noEngine = ScriptingEngine
   { engineName = "none"
   , engineApplyFilter = \_env _args _fp _doc ->
       throwError PandocNoScriptingEngine
-  , engineReadCustom = \_fp ->
-      throwError PandocNoScriptingEngine
-  , engineWriteCustom = \_fp ->
+  , engineLoadCustom = \_fp ->
       throwError PandocNoScriptingEngine
   }

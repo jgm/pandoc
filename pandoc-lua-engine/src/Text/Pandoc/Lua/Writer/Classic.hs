@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Writer.Classic
-   Copyright   : Copyright (C) 2012-2022 John MacFarlane
+   Copyright   : Copyright (C) 2012-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -69,7 +69,7 @@ instance Pushable (Stringify MetaValue) where
   push (Stringify (MetaBlocks bs))   = Lua.push (Stringify bs)
 
 instance Pushable (Stringify Citation) where
-  push (Stringify cit) = flip pushAsTable cit
+  push (Stringify cit) = pushAsTable
     [ ("citationId", push . citationId)
     , ("citationPrefix",  push . Stringify . citationPrefix)
     , ("citationSuffix",  push . Stringify . citationSuffix)
@@ -77,6 +77,7 @@ instance Pushable (Stringify Citation) where
     , ("citationNoteNum", push . citationNoteNum)
     , ("citationHash",    push . citationHash)
     ]
+    cit
 
 -- | Key-value pair, pushed as a table with @a@ as the only key and @v@ as the
 -- associated value.

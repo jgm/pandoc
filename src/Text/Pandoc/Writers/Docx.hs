@@ -7,7 +7,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
-   Copyright   : Copyright (C) 2012-2022 John MacFarlane
+   Copyright   : Copyright (C) 2012-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -18,11 +18,22 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx ( writeDocx ) where
 import Codec.Archive.Zip
+    ( Archive(zEntries),
+      addEntryToArchive,
+      emptyArchive,
+      findEntryByPath,
+      fromArchive,
+      toArchive,
+      toEntry,
+      Entry(eRelativePath) )
 import Control.Applicative ((<|>))
+import Control.Monad (MonadPlus(mplus), unless, when)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
-import Control.Monad.State.Strict
+    ( asks, MonadReader(local), MonadTrans(lift), ReaderT(runReaderT) )
+import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
 import qualified Data.ByteString.Lazy as BL
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isSpace, isLetter)
 import Data.List (intercalate, isPrefixOf, isSuffixOf)
 import Data.String (fromString)
@@ -35,7 +46,6 @@ import qualified Data.Text.Lazy as TL
 import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
-import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Class (PandocMonad, report, toLang, getMediaBag)
 import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
@@ -64,7 +74,7 @@ import Text.TeXMath
 import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
-import Text.Collate.Lang (Lang(..))
+import Text.Collate.Lang (renderLang, Lang(..))
 
 squashProps :: EnvProps -> [Element]
 squashProps (EnvProps Nothing es) = es
@@ -124,7 +134,8 @@ writeDocx opts doc = do
   P.setUserDataDir oldUserDataDir
   let distArchive = toArchive $ BL.fromStrict res
   refArchive <- case writerReferenceDoc opts of
-                     Just f  -> toArchive <$> P.readFileLazy f
+                     Just f  -> toArchive . BL.fromStrict . fst
+                                   <$> P.fetchItem (T.pack f)
                      Nothing -> toArchive . BL.fromStrict <$>
                           readDataFile "reference.docx"
 
@@ -634,7 +645,7 @@ baseListId = 1000
 mkNumbering :: [ListMarker] -> [Element]
 mkNumbering lists =
   elts ++ zipWith mkNum lists [baseListId..(baseListId + length lists - 1)]
-    where elts = map mkAbstractNum (ordNub lists)
+    where elts = map mkAbstractNum (nubOrd lists)
 
 maxListLevel :: Int
 maxListLevel = 8
@@ -1104,6 +1115,9 @@ inlineToOpenXML' _ (Str str) =
   map Elem <$> formattedString str
 inlineToOpenXML' opts Space = inlineToOpenXML opts (Str " ")
 inlineToOpenXML' opts SoftBreak = inlineToOpenXML opts (Str " ")
+inlineToOpenXML' opts (Span ("",["mark"],[]) ils) =
+  withTextProp (mknode "w:highlight" [("w:val","yellow")] ()) $
+    inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-block"],[]) ils) =
   inlinesToOpenXML opts ils
 inlineToOpenXML' opts (Span ("",["csl-left-margin"],[]) ils) =
@@ -1332,8 +1346,10 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
         (xpt,ypt) = desiredSizeInPoints opts attr
                (either (const def) id (imageSize opts img))
         -- 12700 emu = 1 pt
-        (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700)
-                                (pageWidth * 12700)
+        pageWidthPt = case dimension Width attr of
+                        Just (Percent a) -> pageWidth * (floor $ a * 127)
+                        _                -> pageWidth * 12700
+        (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) pageWidthPt
         cNvPicPr = mknode "pic:cNvPicPr" [] $
                          mknode "a:picLocks" [("noChangeArrowheads","1")
                                              ,("noChangeAspect","1")] ()

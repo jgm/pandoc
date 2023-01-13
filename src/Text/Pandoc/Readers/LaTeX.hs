@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns          #-}
 {- |
    Module      : Text.Pandoc.Readers.LaTeX
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -24,6 +24,7 @@ module Text.Pandoc.Readers.LaTeX ( readLaTeX,
 import Control.Applicative (many, optional, (<|>))
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit, isLetter, isAlphaNum, toUpper, chr)
 import Data.Default
 import Data.List (intercalate)
@@ -40,7 +41,7 @@ import Text.Pandoc.Class (PandocPure, PandocMonad (..), getResourcePath,
                           readFileFromDirs, report,
                           setResourcePath, getZonedTime)
 import Data.Time (ZonedTime(..), LocalTime(..), showGregorian)
-import Text.Pandoc.Error (PandocError (PandocParseError, PandocParsecError))
+import Text.Pandoc.Error (PandocError (PandocParseError))
 import Text.Pandoc.Highlighting (languagesByExtension)
 import Text.Pandoc.ImageSize (numUnit, showFl)
 import Text.Pandoc.Logging
@@ -87,7 +88,7 @@ readLaTeX opts ltx = do
                (TokStream False (tokenizeSources sources))
   case parsed of
     Right result -> return result
-    Left e       -> throwError $ PandocParsecError sources e
+    Left e       -> throwError $ fromParsecError sources e
 
 parseLaTeX :: PandocMonad m => LP m Pandoc
 parseLaTeX = do
@@ -134,7 +135,7 @@ resolveRefs _ x = x
 
 
 rawLaTeXBlock :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-              => ParserT Sources s m Text
+              => ParsecT Sources s m Text
 rawLaTeXBlock = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
@@ -165,7 +166,7 @@ beginOrEndCommand = try $ do
                     (txt <> untokenize rawargs)
 
 rawLaTeXInline :: (PandocMonad m, HasMacros s, HasReaderOptions s)
-               => ParserT Sources s m Text
+               => ParsecT Sources s m Text
 rawLaTeXInline = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
@@ -179,7 +180,7 @@ rawLaTeXInline = do
   finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
   return $ raw <> T.pack finalbraces
 
-inlineCommand :: PandocMonad m => ParserT Sources ParserState m Inlines
+inlineCommand :: PandocMonad m => ParsecT Sources ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
@@ -301,7 +302,7 @@ inlineCommand' = try $ do
              else pure ""
   overlay <- option "" overlaySpecification
   let name' = name <> star <> overlay
-  let names = ordNub [name', name] -- check non-starred as fallback
+  let names = nubOrd [name', name] -- check non-starred as fallback
   let raw = do
        guard $ isInlineCommand name || not (isBlockCommand name)
        rawcommand <- getRawCommand name (cmd <> star)
@@ -315,7 +316,7 @@ tok = tokWith inline
 unescapeURL :: Text -> Text
 unescapeURL = T.concat . go . T.splitOn "\\"
   where
-    isEscapable c = c `elemText` "#$%&~_^\\{}"
+    isEscapable c = T.any (== c) "#$%&~_^\\{}"
     go (x:xs) = x : map unescapeInterior xs
     go []     = []
     unescapeInterior t
@@ -348,7 +349,6 @@ inlineCommands = M.unions
     , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
     , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
     , ("texttt", formatCode nullAttr <$> tok)
-    , ("sout", extractSpaces strikeout <$> tok)
     , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
     , ("textsuperscript", extractSpaces superscript <$> tok)
     , ("textsubscript", extractSpaces subscript <$> tok)
@@ -422,8 +422,11 @@ inlineCommands = M.unions
     -- include
     , ("input", rawInlineOr "input" $ include "input")
     -- soul package
+    , ("st", extractSpaces strikeout <$> tok)
     , ("ul", underline <$> tok)
+    , ("hl", extractSpaces (spanWith ("",["mark"],[])) <$> tok)
     -- ulem package
+    , ("sout", extractSpaces strikeout <$> tok)
     , ("uline", underline <$> tok)
     -- plain tex stuff that should just be passed through as raw tex
     , ("ifdim", ifdim)
@@ -669,7 +672,7 @@ opt = do
               (TokStream False toks)
   case parsed of
     Right result -> return result
-    Left e       -> throwError $ PandocParsecError (toSources toks) e
+    Left e       -> throwError $ fromParsecError (toSources toks) e
 
 -- block elements:
 
@@ -755,8 +758,11 @@ readFileFromTexinputs fp = do
   case M.lookup (T.pack fp) fileContentsMap of
     Just t -> return (Just t)
     Nothing -> do
-      dirs <- map T.unpack . splitTextBy (==':') . fromMaybe "."
-               <$> lookupEnv "TEXINPUTS"
+      dirs <- map (\t -> if T.null t
+                            then "."
+                            else T.unpack t)
+               . T.split (==':') . fromMaybe ""
+              <$> lookupEnv "TEXINPUTS"
       readFileFromDirs dirs fp
 
 ensureExtension :: (FilePath -> Bool) -> FilePath -> FilePath -> FilePath
@@ -840,7 +846,7 @@ blockCommand = try $ do
   guard $ name /= "begin" && name /= "end" && name /= "and"
   star <- option "" ("*" <$ symbol '*' <* sp)
   let name' = name <> star
-  let names = ordNub [name', name]
+  let names = nubOrd [name', name]
   let rawDefiniteBlock = do
         guard $ isBlockCommand name
         rawcontents <- getRawCommand name (txt <> star)
@@ -918,7 +924,7 @@ blockCommands = M.fromList
    , ("dedication", mempty <$ (skipopts *> tok >>= addMeta "dedication"))
    -- sectioning
    , ("part", section nullAttr (-1))
-   , ("part*", section nullAttr (-1))
+   , ("part*", section ("",["unnumbered"],[]) (-1))
    , ("chapter", section nullAttr 0)
    , ("chapter*", section ("",["unnumbered"],[]) 0)
    , ("section", section nullAttr 1)
@@ -1170,7 +1176,7 @@ addImageCaption = walkM go
           st <- getState
           case sCaption st of
             Nothing -> return p
-            Just figureCaption -> do
+            Just (Caption _mbshort bs) -> do
               let mblabel = sLastLabel st
               let attr' = case mblabel of
                             Just lab -> (lab, cls, kvs)
@@ -1185,7 +1191,8 @@ addImageCaption = walkM go
                                      [Str (renderDottedNum num)] (sLabels st) }
 
               return $ SimpleFigure attr'
-                       (maybe id removeLabel mblabel (B.toList figureCaption))
+                       (maybe id removeLabel mblabel
+                         (blocksToInlines bs))
                        (src, tit)
         go x = return x
 

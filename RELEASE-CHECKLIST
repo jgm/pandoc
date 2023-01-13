@@ -2,7 +2,7 @@
 [ ] make prerelease
 [ ] Finalize changelog
 [ ] Update AUTHORS (make authors LASTRELEASE=x.y.z)
-[ ] push release candidate branch rc/VERSION
+[ ] Run release candidate workflow manually on GitHub
 [ ] if it builds successfully, download artifacts
 [ ] run tools/build-arm.sh to create and download arm64 linux package
 [ ] Use 'make' in macos and windows artifacts to sign code

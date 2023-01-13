@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Parsing
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -32,7 +32,7 @@ import Text.Pandoc.Definition (Attr, Meta, Target, nullMeta)
 import Text.Pandoc.Logging (LogMessage)
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Parsing.Capabilities
-import Text.Pandoc.Parsing.Types
+import Text.Pandoc.Parsing.Future
 import Text.Pandoc.TeX (Macro)
 
 import qualified Data.Map as M
@@ -46,7 +46,6 @@ data ParserState = ParserState
   , stateQuoteContext    :: QuoteContext  -- ^ Inside quoted environment?
   , stateAllowLinks      :: Bool          -- ^ Allow parsing of links
   , stateAllowLineBreaks :: Bool          -- ^ Allow parsing of line breaks
-  , stateMaxNestingLevel :: Int           -- ^ Max # of nested Strong/Emph
   , stateLastStrPos      :: Maybe SourcePos -- ^ Position after last str parsed
   , stateKeys            :: KeyTable      -- ^ List of reference keys
   , stateHeaderKeys      :: KeyTable      -- ^ List of implicit header ref keys
@@ -141,7 +140,6 @@ defaultParserState = ParserState
   , stateQuoteContext    = NoQuote
   , stateAllowLinks      = True
   , stateAllowLineBreaks = True
-  , stateMaxNestingLevel = 6
   , stateLastStrPos      = Nothing
   , stateKeys            = M.empty
   , stateHeaderKeys      = M.empty

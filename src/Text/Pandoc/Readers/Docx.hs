@@ -59,8 +59,17 @@ module Text.Pandoc.Readers.Docx
        ) where
 
 import Codec.Archive.Zip
+import Control.Monad ( liftM, unless )
 import Control.Monad.Reader
+    ( asks,
+      MonadReader(local),
+      MonadTrans(lift),
+      ReaderT(runReaderT) )
 import Control.Monad.State.Strict
+    ( StateT,
+      gets,
+      modify,
+      evalStateT )
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
@@ -296,6 +305,8 @@ runStyleToTransform rPr' = do
             emph . go rPr{isItalic = Nothing, isItalicCTL = Nothing}
         | Just True <- bold rPr =
             strong . go rPr{isBold = Nothing, isBoldCTL = Nothing}
+        | Just _ <- rHighlight rPr =
+            spanWith ("",["mark"],[]) . go rPr{rHighlight = Nothing}
         | Just True <- isSmallCaps rPr =
             smallcaps . go rPr{isSmallCaps = Nothing}
         | Just True <- isStrike rPr =
@@ -457,6 +468,8 @@ parPartToInlines' (ExternalHyperLink target children) = do
   return $ link target "" ils
 parPartToInlines' (PlainOMath exps) =
   return $ math $ writeTeX exps
+parPartToInlines' (OMathPara exps) =
+  return $ displayMath $ writeTeX exps
 parPartToInlines' (Field info children) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
@@ -782,8 +795,6 @@ bodyPartToBlocks (Tbl cap grid look parts) = do
                  (TableHead nullAttr headerCells)
                  [TableBody nullAttr 0 [] bodyCells]
                  (TableFoot nullAttr [])
-bodyPartToBlocks (OMathPara e) =
-  return $ para $ displayMath (writeTeX e)
 
 -- replace targets with generated anchors.
 rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline

@@ -51,21 +51,22 @@ then only the `Writer` function will be used.
 
 ## Format extensions
 
-Custom writers can be built such that their behavior is
-controllable through format extensions, such as `smart`,
-`citations`, or `hard-line-breaks`. Supported extensions are those
-that are present as a key in the global `writer_extensions` table.
-Field of extensions by enabled default have the value `true`,
-while those that are supported but disabled have value `false`.
+Writers can be customized through format extensions, such as
+`smart`, `citations`, or `hard_line_breaks`. The global
+`Extensions` table indicates supported extensions with a
+key. Extensions enabled by default are assigned a true value,
+while those that are supported but disabled are assigned a false
+value.
 
 Example: A writer with the following global table supports the
-extensions `smart` and `citations`, with the former enabled and
-the latter disabled by default:
+extensions `smart`, `citations`, and `foobar`, with `smart` enabled and
+the others disabled by default:
 
 ``` lua
-writer_extensions = {
+Extensions = {
   smart = true,
   citations = false,
+  foobar = false
 }
 ```
 
@@ -82,6 +83,17 @@ function Writer (doc, opts)
   -- ...
 end
 ```
+
+## Default template
+
+The default template of a custom writer is defined by the return
+value of the global function `Template`. Pandoc uses the default
+template for rendering when the user has not specified a template,
+but invoked with the `-s`/`--standalone` flag.
+
+The `Template` global can be left undefined, in which case pandoc
+will throw an error when it would otherwise use the default
+template.
 
 ## Example: modified Markdown writer
 
@@ -106,9 +118,71 @@ function Writer (doc, opts)
   }
   return pandoc.write(doc:walk(filter), 'gfm', opts)
 end
+
+function Template ()
+  local template = pandoc.template
+  return template.compile(template.default 'gfm')
+end
 ```
 
 [Lua filters documentation]: https://pandoc.org/lua-filters.html
+
+## Reducing boilerplate with `pandoc.scaffolding.Writer`
+
+The `pandoc.scaffolding.Writer` structure is a custom writer scaffold
+that serves to avoid common boilerplate code when defining a custom
+writer. The object can be used as a function and allows to skip details
+like metadata and template handling, requiring only the render functions
+for each AST element type.
+
+The value of `pandoc.scaffolding.Writer` is a function that should
+usually be assigned to the global `Writer`:
+
+``` lua
+Writer = pandoc.scaffolding.Writer
+```
+
+The render functions for Block and Inline values can then be added
+to `Writer.Block` and `Writer.Inline`, respectively. The functions
+are passed the element and the WriterOptions.
+
+``` lua
+Writer.Inline.Str = function (str)
+  return str.text
+end
+Writer.Inline.SoftBreak = function (_, opts)
+  return opts.wrap_text == "wrap-preserve"
+    and cr
+    or space
+end
+Writer.Inline.LineBreak = cr
+
+Writer.Block.Para = function (para)
+  return {Writer.Inlines(para.content), pandoc.layout.blankline}
+end
+```
+
+The render functions must return a string, a pandoc.layout *Doc*
+element, or a list of such elements. In the latter case, the
+values are concatenated as if they were passed to
+`pandoc.layout.concat`. If the value does not depend on the input,
+a constant can be used as well.
+
+The tables `Writer.Block` and `Writer.Inline` can be used as
+functions; they apply the right render function for an element of
+the respective type. E.g., `Writer.Block(pandoc.Para 'x')` will
+delegate to the `Writer.Para` render function and will return the
+result of that call.
+
+Similarly, the functions `Writer.Blocks` and `Writer.Inlines` can
+be used to render lists of elements, and `Writer.Pandoc` renders
+the document's blocks.
+
+All predefined functions can be overwritten when needed.
+
+The resulting Writer uses the render functions to handle metadata
+values and converts them to template variables. The template is
+applied automatically if one is given.
 
 # Classic style
 
@@ -122,31 +196,6 @@ For example,
 function Para(s)
   return "<paragraph>" .. s .. "</paragraph>"
 end
-```
-
-The best way to go about creating a classic custom writer is to
-modify the example that comes with pandoc. To get the example,
-you can do
-
-```
-pandoc --print-default-data-file sample.lua > sample.lua
-```
-
-## A custom HTML writer
-
-`sample.lua` is a full-features HTML writer, with explanatory
-comments. To use it, just use the path to the custom writer as
-the writer name:
-
-```
-pandoc -t sample.lua myfile.md
-```
-
-`sample.lua` defines all the functions needed by any custom
-writer, so you can design your own custom writer by modifying
-the functions in `sample.lua` according to your needs.
-
-``` {.lua include="sample.lua"}
 ```
 
 ## Template variables

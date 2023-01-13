@@ -5,7 +5,7 @@
 {-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -24,12 +24,13 @@ module Text.Pandoc.Writers
     , writeBeamer
     , writeBibTeX
     , writeBibLaTeX
+    , writeChunkedHTML
     , writeCommonMark
     , writeConTeXt
     , writeCslJson
     , writeDZSlides
-    , writeDocbook4
-    , writeDocbook5
+    , writeDocBook4
+    , writeDocBook5
     , writeDocx
     , writeDokuWiki
     , writeEPUB2
@@ -88,10 +89,11 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.BibTeX
+import Text.Pandoc.Writers.ChunkedHTML
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.CslJson
-import Text.Pandoc.Writers.Docbook
+import Text.Pandoc.Writers.DocBook
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
 import Text.Pandoc.Writers.EPUB
@@ -147,9 +149,9 @@ writers = [
   ,("slideous"     , TextWriter writeSlideous)
   ,("dzslides"     , TextWriter writeDZSlides)
   ,("revealjs"     , TextWriter writeRevealJs)
-  ,("docbook"      , TextWriter writeDocbook5)
-  ,("docbook4"     , TextWriter writeDocbook4)
-  ,("docbook5"     , TextWriter writeDocbook5)
+  ,("docbook"      , TextWriter writeDocBook5)
+  ,("docbook4"     , TextWriter writeDocBook4)
+  ,("docbook5"     , TextWriter writeDocBook5)
   ,("jats"         , TextWriter writeJatsArchiving)
   ,("jats_articleauthoring", TextWriter writeJatsArticleAuthoring)
   ,("jats_publishing" , TextWriter writeJatsPublishing)
@@ -189,6 +191,7 @@ writers = [
   ,("bibtex"       , TextWriter writeBibTeX)
   ,("biblatex"     , TextWriter writeBibLaTeX)
   ,("markua"       , TextWriter writeMarkua)
+  ,("chunkedhtml"  , ByteStringWriter writeChunkedHTML)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).

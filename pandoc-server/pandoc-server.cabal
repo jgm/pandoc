@@ -12,7 +12,7 @@ stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
 tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
-                 GHC == 9.2.3
+                 GHC == 9.2.5, GHC == 9.4.4
 synopsis:        Pandoc document conversion as an HTTP servant-server
 description:     Pandoc-server provides pandoc's document conversion functions
                  in an HTTP server.
@@ -55,16 +55,16 @@ library
                  aeson                 >= 2.0      && < 2.2,
                  bytestring            >= 0.9      && < 0.12,
                  base64                >= 0.4      && < 0.5,
-                 doctemplates          >= 0.10     && < 0.11,
+                 doctemplates          >= 0.11     && < 0.12,
                  data-default          >= 0.4      && < 0.8,
                  text                  >= 1.1.1.0  && < 2.1,
                  unicode-collation     >= 0.1.1    && < 0.2,
                  servant-server        >= 0.19     && < 0.20,
                  skylighting           >= 0.13     && < 0.14,
-                 wai                   >= 0.3
+                 wai                   >= 3.2      && < 3.3,
+                 wai-cors              >= 0.2.7    && < 0.3
 
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc.Server
   buildable:       True
-

@@ -43,7 +43,7 @@ import Text.Pandoc.Parsing
       try,
       skipMany1,
       runParser,
-      Parser )
+      Parsec )
 import Control.Applicative ((<|>))
 import Control.Monad (void)
 import qualified Data.Map as M
@@ -122,7 +122,7 @@ doSIlist tok = do
              mconcat (intersperse (str "," <> space) (init xs)) <>
              text ", & " <> last xs
 
-parseNum :: Parser Text () Inlines
+parseNum :: Parsec Text () Inlines
 parseNum = (mconcat <$> many parseNumPart) <* eof
 
 minus :: Text
@@ -132,7 +132,7 @@ hyphenToMinus :: Inline -> Inline
 hyphenToMinus (Str t) = Str (T.replace "-" minus t)
 hyphenToMinus x = x
 
-parseNumPart :: Parser Text () Inlines
+parseNumPart :: Parsec Text () Inlines
 parseNumPart =
   parseDecimalNum <|>
   parseComma <|>
@@ -145,7 +145,7 @@ parseNumPart =
  where
   parseDecimalNum, parsePlusMinus, parsePM,
     parseComma, parseI, parseX,
-    parseExp, parseSpace :: Parser Text () Inlines
+    parseExp, parseSpace :: Parsec Text () Inlines
   parseDecimalNum = try $ do
     pref <- option mempty $ (mempty <$ char '+') <|> (minus <$ char '-')
     basenum' <- many1 (satisfy (\c -> isDigit c || c == '.'))

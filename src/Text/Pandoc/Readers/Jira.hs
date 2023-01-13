@@ -1,9 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Readers.Org
-   Copyright   : © 2019-2022 Albert Krewinkel
-   License     : GNU GPL, version 2 or above
+   Module      : Text.Pandoc.Readers.Jira
+   Copyright   : © 2019-2023 Albert Krewinkel
+   License     : GPL-2.0-or-later
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -12,8 +12,8 @@ Conversion of jira wiki formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Jira ( readJira ) where
 
 import Control.Monad.Except (throwError)
-import Data.Text (Text, append, pack, singleton, unpack)
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Data.Text (Text, append, pack, singleton)
+import Text.Pandoc.XML (lookupEntity)
 import Text.Jira.Parser (parse)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Builder hiding (cell)
@@ -137,9 +137,9 @@ jiraToPandocInlines = \case
   Jira.Styled style inlns -> fromStyle style $ fromInlines inlns
   where
     fromInlines  = foldMap jiraToPandocInlines
-    fromEntity e = case lookupEntity (unpack e ++ ";") of
+    fromEntity e = case lookupEntity (e <> ";") of
                      Nothing -> "&" `append` e `append` ";"
-                     Just cs -> pack cs
+                     Just t ->t
 
     fromStyle = \case
       Jira.Emphasis    -> emph

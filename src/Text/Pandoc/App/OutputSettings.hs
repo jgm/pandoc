@@ -1,11 +1,12 @@
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc.App
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -40,7 +41,8 @@ import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines, setVariable)
 import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
-import Text.Pandoc.Scripting (ScriptingEngine (engineWriteCustom))
+import Text.Pandoc.Scripting (ScriptingEngine (engineLoadCustom),
+                              CustomComponents(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 
 readUtf8File :: PandocMonad m => FilePath -> m T.Text
@@ -50,7 +52,6 @@ readUtf8File = fmap UTF8.toText . readFileStrict
 data OutputSettings m = OutputSettings
   { outputFormat :: T.Text
   , outputWriter :: Writer m
-  , outputWriterName :: T.Text
   , outputWriterOptions :: WriterOptions
   , outputPdfProgram :: Maybe String
   }
@@ -104,20 +105,51 @@ optToOutputSettings scriptingEngine opts = do
 
   flvrd@(Format.FlavoredFormat format _extsDiff) <-
     Format.parseFlavoredFormat writerName
-  (writer, writerExts) <-
+
+  let standalone = optStandalone opts || isBinaryFormat format || pdfOutput
+  let templateOrThrow = \case
+        Left  e -> throwError $ PandocTemplateError (T.pack e)
+        Right t -> pure t
+  let processCustomTemplate getDefault =
+        case optTemplate opts of
+          _ | not standalone -> return Nothing
+          Nothing -> Just <$> getDefault
+          Just tp -> do
+            -- strip off extensions
+            let tp' = case takeExtension tp of
+                        "" -> tp <.> T.unpack format
+                        _  -> tp
+            getTemplate tp'
+              >>= runWithPartials . compileTemplate tp'
+              >>= fmap Just . templateOrThrow
+
+  (writer, writerExts, mtemplate) <-
     if "lua" `T.isSuffixOf` format
     then do
-      (w, extsConf) <- engineWriteCustom scriptingEngine (T.unpack format)
-      wexts         <- Format.applyExtensionsDiff extsConf flvrd
-      return (w, wexts)
+      let path = T.unpack format
+      components <- engineLoadCustom scriptingEngine path
+      w <- case customWriter components of
+             Nothing -> throwError $ PandocAppError $
+                         format <> " does not contain a custom writer"
+             Just w -> return w
+      let extsConf = fromMaybe mempty $ customExtensions components
+      wexts <- Format.applyExtensionsDiff extsConf flvrd
+      templ <- processCustomTemplate $
+               case customTemplate components of
+                 Nothing -> throwError $ PandocNoTemplateError format
+                 Just t -> (runWithDefaultPartials $ compileTemplate path t) >>=
+                           templateOrThrow
+      return (w, wexts, templ)
     else do
+      tmpl <- processCustomTemplate (compileDefaultTemplate format)
       if optSandbox opts
       then case runPure (getWriter flvrd) of
-             Right (w, wexts) -> return (makeSandboxed w, wexts)
+             Right (w, wexts) -> return (makeSandboxed w, wexts, tmpl)
              Left e           -> throwError e
-      else getWriter flvrd
+      else do
+           (w, wexts) <- getWriter flvrd
+           return (w, wexts, tmpl)
 
-  let standalone = optStandalone opts || not (isTextFormat format) || pdfOutput
 
   let addSyntaxMap existingmap f = do
         res <- liftIO (parseSyntaxDefinition f)
@@ -160,6 +192,8 @@ optToOutputSettings scriptingEngine opts = do
     >>=
     setVariableM "outputfile" (T.pack outputFile)
     >>=
+    setVariableM "pandoc-version" pandocVersionText
+    >>=
     setFilesVariableM "include-before" (optIncludeBeforeBody opts)
     >>=
     setFilesVariableM "include-after" (optIncludeAfterBody opts)
@@ -170,8 +204,8 @@ optToOutputSettings scriptingEngine opts = do
     >>=
     maybe return (setVariableM "title-prefix") (optTitlePrefix opts)
     >>=
-    maybe return (setVariableM "epub-cover-image")
-                 (T.pack <$> optEpubCoverImage opts)
+    maybe return (setVariableM "epub-cover-image" . T.pack)
+                 (optEpubCoverImage opts)
     >>=
     setVariableM "curdir" (T.pack curdir)
     >>=
@@ -186,23 +220,8 @@ optToOutputSettings scriptingEngine opts = do
                       setVariableM "dzslides-core" dzcore vars
                   else return vars)
 
-  templ <- case optTemplate opts of
-                  _ | not standalone -> return Nothing
-                  Nothing ->
-                    let filename = T.pack . takeFileName . T.unpack
-                    in Just <$> compileDefaultTemplate (filename format)
-                  Just tp -> do
-                    -- strip off extensions
-                    let tp' = case takeExtension tp of
-                                   "" -> tp <.> T.unpack format
-                                   _  -> tp
-                    res <- getTemplate tp' >>= runWithPartials . compileTemplate tp'
-                    case res of
-                      Left  e -> throwError $ PandocTemplateError $ T.pack e
-                      Right t -> return $ Just t
-
   let writerOpts = def {
-          writerTemplate         = templ
+          writerTemplate         = mtemplate
         , writerVariables        = variables
         , writerTabStop          = optTabStop opts
         , writerTableOfContents  = optTableOfContents opts
@@ -230,7 +249,8 @@ optToOutputSettings scriptingEngine opts = do
         , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
         , writerEpubMetadata     = epubMetadata
         , writerEpubFonts        = optEpubFonts opts
-        , writerEpubChapterLevel = optEpubChapterLevel opts
+        , writerEpubTitlePage    = optEpubTitlePage opts
+        , writerSplitLevel       = optSplitLevel opts
         , writerTOCDepth         = optTOCDepth opts
         , writerReferenceDoc     = optReferenceDoc opts
         , writerSyntaxMap        = syntaxMap
@@ -239,7 +259,6 @@ optToOutputSettings scriptingEngine opts = do
   return $ OutputSettings
     { outputFormat = format
     , outputWriter = writer
-    , outputWriterName = writerName
     , outputWriterOptions = writerOpts
     , outputPdfProgram = maybePdfProg
     }
@@ -281,6 +300,6 @@ pdfWriterAndProg mWriter mEngine =
 
       isCustomWriter w = ".lua" `T.isSuffixOf` w
 
-isTextFormat :: T.Text -> Bool
-isTextFormat s =
-  s `notElem` ["odt","docx","epub2","epub3","epub","pptx","pdf"]
+isBinaryFormat :: T.Text -> Bool
+isBinaryFormat s =
+  s `elem` ["odt","docx","epub2","epub3","epub","pptx","pdf","chunkedhtml"]

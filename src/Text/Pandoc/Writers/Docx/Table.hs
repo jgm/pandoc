@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
 Module      : Text.Pandoc.Writers.Docx.Table
-Copyright   : Copyright (C) 2012-2022 John MacFarlane
+Copyright   : Copyright (C) 2012-2023 John MacFarlane
 License     : GNU GPL, version 2 or above
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -13,7 +13,9 @@ module Text.Pandoc.Writers.Docx.Table
   ( tableToOpenXML
   ) where
 
-import Control.Monad.State.Strict ( modify, gets, unless )
+import Control.Monad.State.Strict ( modify, gets )
+import Control.Monad ( unless , zipWithM )
+import Control.Monad.Except ( throwError )
 import Data.Array ( elems, (!), assocs, indices )
 import Data.Text (Text)
 import Text.Pandoc.Definition
@@ -41,6 +43,7 @@ import Control.Monad.Reader (asks)
 import Text.Pandoc.Shared ( tshow, stringify )
 import Text.Pandoc.Options (WriterOptions, isEnabled)
 import Text.Pandoc.Extensions (Extension(Ext_native_numbering))
+import Text.Pandoc.Error (PandocError(PandocSomeError))
 import Text.Printf (printf)
 import Text.Pandoc.Writers.GridTable
     ( rowArray,
@@ -179,8 +182,8 @@ cellGridToOpenXML :: PandocMonad m
 cellGridToOpenXML blocksToOpenXML rowType aligns part@(Part _ cellArray _) =
   if null (elems cellArray)
   then return mempty
-  else mapM (rowToOpenXML blocksToOpenXML) $
-       partToRows rowType aligns part
+  else partToRows rowType aligns part >>=
+       mapM (rowToOpenXML blocksToOpenXML)
 
 data OOXMLCell
   = OOXMLCell Attr Alignment RowSpan ColSpan [Block]
@@ -188,32 +191,33 @@ data OOXMLCell
 
 data OOXMLRow = OOXMLRow RowType Attr [OOXMLCell]
 
-partToRows :: RowType -> [Alignment] -> Part -> [OOXMLRow]
-partToRows rowType aligns part =
-  let
-    toOOXMLCell :: Alignment -> RowIndex -> ColIndex -> GridCell -> [OOXMLCell]
-    toOOXMLCell columnAlign ridx cidx = \case
-      ContentCell attr align rowspan colspan blocks ->
-        -- Respect non-default, cell specific alignment.
-        let align' = case align of
-              AlignDefault -> columnAlign
-              _            -> align
-        in [OOXMLCell attr align' rowspan colspan blocks]
-      ContinuationCell idx'@(ridx',cidx') | ridx /= ridx', cidx == cidx' ->
-        case (partCellArray part)!idx' of
-          (ContentCell _ _ _ colspan _) -> [OOXMLCellMerge colspan]
-          x -> error $ "Content cell expected, got, " ++ show x ++
-                       " at index " ++ show idx'
-      _ -> mempty
-    mkRow :: (RowIndex, Attr) -> OOXMLRow
-    mkRow (ridx, attr) = OOXMLRow rowType attr
-                       . mconcat
-                       . zipWith (\align -> uncurry $ toOOXMLCell align ridx)
-                                 aligns
-                       . assocs
-                       . rowArray ridx
-                       $ partCellArray part
-  in map mkRow $ assocs (partRowAttrs part)
+partToRows :: PandocMonad m
+           => RowType -> [Alignment] -> Part -> WS m [OOXMLRow]
+partToRows rowType aligns part = do
+  let toOOXMLCell :: PandocMonad m =>
+        Alignment -> RowIndex -> ColIndex -> GridCell -> WS m [OOXMLCell]
+      toOOXMLCell columnAlign ridx cidx = \case
+        UnassignedCell ->
+          throwError $ PandocSomeError "Encountered unassigned table cell"
+        ContentCell attr align rowspan colspan blocks -> do
+          -- Respect non-default, cell specific alignment.
+          let align' = case align of
+                AlignDefault -> columnAlign
+                _            -> align
+          return [OOXMLCell attr align' rowspan colspan blocks]
+        ContinuationCell idx'@(ridx',cidx') | ridx /= ridx', cidx == cidx' -> do
+          case (partCellArray part)!idx' of
+            (ContentCell _ _ _ colspan _) -> return [OOXMLCellMerge colspan]
+            x -> error $ "Content cell expected, got, " ++ show x ++
+                         " at index " ++ show idx'
+        _ -> return mempty
+  let mkRow :: PandocMonad m => (RowIndex, Attr) -> WS m OOXMLRow
+      mkRow (ridx, attr) = do
+        cs <- zipWithM (\align -> uncurry $ toOOXMLCell align ridx)
+                        aligns
+                        (assocs . rowArray ridx $ partCellArray part)
+        return $ OOXMLRow rowType attr . mconcat $ cs
+  mapM mkRow $ assocs (partRowAttrs part)
 
 rowToOpenXML :: PandocMonad m
              => ([Block] -> WS m [Content])

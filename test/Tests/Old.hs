@@ -1,6 +1,6 @@
 {- |
    Module      : Tests.Old
-   Copyright   : © 2006-2022 John MacFarlane
+   Copyright   : © 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -128,7 +128,10 @@ tests pandocPath =
     , fb2WriterTest' "testsuite" [] "testsuite.native" "writer.fb2"
     ]
   , testGroup "mediawiki"
-    [ testGroup "writer" $ writerTests' "mediawiki"
+    [ testGroup "writer" $ mconcat [
+      writerTests' "mediawiki"
+      , extWriterTests' "mediawiki"
+      ]
     , test' "reader" ["-r", "mediawiki", "-w", "native", "-s"]
       "mediawiki-reader.wiki" "mediawiki-reader.native"
     ]

@@ -47,25 +47,26 @@ jobs:
       matrix:
         versions:
           - ghc: '8.6.5'
-            cabal: '3.2'
+            cabal: 'latest'
             cabalopts: '-f-embed_data_files'
-            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '8.8.4'
-            cabal: '3.2'
-            cabalopts: '-f-server --enable-benchmarks'
-            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
+            cabal: 'latest'
+            cabalopts: '-f-lua -f-server --enable-benchmarks'
           - ghc: '8.10.7'
-            cabal: '3.2'
+            cabal: 'latest'
             cabalopts: ''
-            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
           - ghc: '9.0.2'
-            cabal: '3.4'
+            cabal: 'latest'
             cabalopts: ''
-            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
-          - ghc: '9.2.3'
-            cabal: '3.6'
+          - ghc: '9.2.5'
+            cabal: 'latest'
             cabalopts: ''
-            testopts: '--test-option=--hide-successes --test-option=--ansi-tricks=false'
+          - ghc: '9.4.4'
+            cabal: 'latest'
+            cabalopts: ''
+          - ghc: '9.4.4'
+            cabal: 'latest'
+            cabalopts: '--allow-newer --constrain "mtl >= 2.3.1"'
     steps:
     - uses: actions/checkout@v3
 
@@ -96,17 +97,13 @@ jobs:
           dist-newstyle
         key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
 
-    - name: Install dependencies
+    - name: Update cabal
       run: |
           cabal update
-          cabal build all ${{ matrix.versions.cabalopts }} --dependencies-only --enable-tests --disable-optimization
 
     - name: Build and test
       run: |
-          cabal build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization 2>&1 | tee build.log
-          # fail if warnings in local build
-          ! grep -q ": *[Ww]arning:\|: *error:" build.log || exit 1
-          cabal test all ${{ matrix.versions.cabalopts }} --disable-optimization ${{ matrix.versions.testopts }}
+          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
 
   windows:
 
@@ -127,7 +124,7 @@ jobs:
 
     # stack's local package dbs for the project and each package
     - name: Cache .stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: |
           .stack-work

@@ -1,12 +1,10 @@
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Extensions
-   Copyright   : Copyright (C) 2012-2022 John MacFarlane
+   Copyright   : Copyright (C) 2012-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -17,12 +15,15 @@ Data structures and functions for representing markup extensions.
 -}
 module Text.Pandoc.Extensions ( Extension(..)
                               , readExtension
+                              , showExtension
                               , Extensions
                               , emptyExtensions
                               , extensionsFromList
+                              , extensionsToList
                               , extensionEnabled
                               , enableExtension
                               , disableExtension
+                              , disableExtensions
                               , getDefaultExtensions
                               , getAllExtensions
                               , pandocExtensions
@@ -37,8 +38,8 @@ import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Text.Read (readMaybe)
-import Data.Aeson.TH (deriveJSON)
 import Data.Aeson
+import Data.List (sort)
 import qualified Data.Set as Set
 
 -- | Individually selectable syntax extensions.
@@ -95,6 +96,7 @@ data Extension =
     | Ext_link_attributes         -- ^ link and image attributes
     | Ext_lists_without_preceding_blankline -- ^ Allow lists without preceding blank
     | Ext_literate_haskell    -- ^ Enable literate Haskell conventions
+    | Ext_mark                -- ^ Enable ==mark== syntax to highlight text
     | Ext_markdown_attribute      -- ^ Interpret text inside HTML as markdown iff
                                   --   container has attribute 'markdown'
     | Ext_markdown_in_html_blocks -- ^ Interpret as markdown inside HTML blocks
@@ -135,9 +137,14 @@ data Extension =
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
-    deriving (Show, Read, Enum, Eq, Ord, Bounded, Data, Typeable, Generic)
+    | CustomExtension T.Text  -- ^ Custom extension
+    deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
-$(deriveJSON defaultOptions{ constructorTagModifier = drop 4 } ''Extension)
+instance FromJSON Extension where
+  parseJSON = withText "Extension" (pure . readExtension . T.unpack)
+
+instance ToJSON Extension where
+ toJSON = String . showExtension
 
 newtype Extensions = Extensions (Set.Set Extension)
   deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
@@ -152,17 +159,28 @@ instance FromJSON Extensions where
   parseJSON = fmap extensionsFromList . parseJSON
 
 instance ToJSON Extensions where
-  toJSON exts = toJSON $
-    [ext | ext <- [minBound..maxBound], extensionEnabled ext exts]
+  toJSON (Extensions exts) = toJSON exts
 
 -- | Reads a single extension from a string.
-readExtension :: String -> Maybe Extension
-readExtension name = case name of
-  "lhs" -> Just Ext_literate_haskell
-  _     -> readMaybe ("Ext_" ++ name)
+readExtension :: String -> Extension
+readExtension "lhs" = Ext_literate_haskell
+readExtension name =
+  case readMaybe ("Ext_" ++ name) of
+    Just ext -> ext
+    Nothing -> CustomExtension (T.pack name)
+
+-- | Show an extension in human-readable form.
+showExtension :: Extension -> T.Text
+showExtension ext =
+  case ext of
+    CustomExtension t -> t
+    _ -> T.drop 4 $ T.pack $ show ext
 
 extensionsFromList :: [Extension] -> Extensions
-extensionsFromList = foldr enableExtension emptyExtensions
+extensionsFromList = Extensions . Set.fromList
+
+extensionsToList :: Extensions -> [Extension]
+extensionsToList (Extensions extset) = sort $ Set.toList extset
 
 emptyExtensions :: Extensions
 emptyExtensions = Extensions mempty
@@ -175,6 +193,14 @@ enableExtension x (Extensions exts) = Extensions (Set.insert x exts)
 
 disableExtension :: Extension -> Extensions -> Extensions
 disableExtension x (Extensions exts) = Extensions (Set.delete x exts)
+
+-- | Removes the extensions in the second set from those in the first.
+disableExtensions :: Extensions  -- ^ base set
+                  -> Extensions  -- ^ extensions to remove
+                  -> Extensions
+disableExtensions (Extensions base) (Extensions remove) = Extensions $
+  -- keep only those extensions that are in `base` but not in `remove`.
+  base `Set.difference` remove
 
 -- | Extensions to be used with pandoc-flavored markdown.
 pandocExtensions :: Extensions
@@ -469,6 +495,7 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_mmd_title_block
        , Ext_abbreviations
        , Ext_autolink_bare_uris
+       , Ext_mark
        , Ext_mmd_link_attributes
        , Ext_mmd_header_identifiers
        , Ext_compact_definition_lists

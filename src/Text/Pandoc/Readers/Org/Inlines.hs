@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Inlines
-   Copyright   : Copyright (C) 2014-2022 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -796,8 +796,8 @@ notAfterForbiddenBorderChar = do
 subOrSuperExpr :: PandocMonad m => OrgParser m (F Inlines)
 subOrSuperExpr = try $
   simpleSubOrSuperText <|>
-  (choice [ charsInBalanced '{' '}' (noneOf "\n\r")
-          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (noneOf "\n\r")
+  (choice [ charsInBalanced '{' '}' (T.singleton <$> noneOf "\n\r")
+          , enclosing ('(', ')') <$> charsInBalanced '(' ')' (T.singleton <$> noneOf "\n\r")
           ] >>= parseFromString (mconcat <$> many inline))
  where enclosing (left, right) s = T.cons left $ T.snoc s right
 

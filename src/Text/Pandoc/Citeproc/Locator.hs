@@ -12,9 +12,8 @@ import Text.Pandoc.Citeproc.Util (splitStrWhen)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.List (foldl')
-import Text.Parsec
 import Text.Pandoc.Definition
-import Text.Pandoc.Parsing (romanNumeral)
+import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (stringify)
 import Control.Monad (mzero)
 import qualified Data.Map as M
@@ -170,7 +169,7 @@ pBalancedBraces braces p = try $ do
       isc c = stringify <$> pMatchChar [c] (== c)
 
       sur c c' m = try $ do
-          (d, mid) <- between (isc c) (isc c') (option (False, "") m)
+          (d, mid) <- isc c *> option (False, "") m <* isc c'
           return (d, T.cons c . flip T.snoc c' $  mid)
 
       flattened = concatMap (\(o, c) -> [o, c]) braces

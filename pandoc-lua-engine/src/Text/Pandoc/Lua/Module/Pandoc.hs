@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
-   Copyright   : Copyright © 2017-2022 Albert Krewinkel
+   Copyright   : Copyright © 2017-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -14,8 +14,7 @@
 Pandoc module for lua.
 -}
 module Text.Pandoc.Lua.Module.Pandoc
-  ( pushModule
-  , documentedModule
+  ( documentedModule
   ) where
 
 import Prelude hiding (read)
@@ -26,13 +25,14 @@ import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (Proxy))
-import HsLua hiding (pushModule)
+import HsLua
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Format (parseFlavoredFormat)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
+import Text.Pandoc.Lua.Marshal.Format (peekFlavoredFormat)
 import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
 import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
                                              , pushReaderOptions)
@@ -40,7 +40,7 @@ import Text.Pandoc.Lua.Marshal.Sources (peekSources)
 import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions
                                              , pushWriterOptions)
 import Text.Pandoc.Lua.Module.Utils (sha1)
-import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
+import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 import Text.Pandoc.Lua.Writer.Classic (runCustom)
 import Text.Pandoc.Options ( ReaderOptions (readerExtensions)
                            , WriterOptions (writerExtensions) )
@@ -55,13 +55,6 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
-
--- | Push the "pandoc" package to the Lua stack. Requires the `List`
--- module to be loadable.
-pushModule :: PandocLua NumResults
-pushModule = do
-  liftPandocLua $ Lua.pushModule documentedModule
-  return 1
 
 documentedModule :: Module PandocError
 documentedModule = Module
@@ -139,7 +132,7 @@ pushWithConstructorsSubtable constructors = do
     rawset (nth 3)
   pop 1 -- pop constructor table
 
-otherConstructors :: LuaError e => [DocumentedFunction e]
+otherConstructors :: [DocumentedFunction PandocError]
 otherConstructors =
   [ mkPandoc
   , mkMeta
@@ -208,9 +201,9 @@ functions =
 
   , defun "read"
     ### (\content mformatspec mreaderOptions -> unPandocLua $ do
+            flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
             let readerOpts = fromMaybe def mreaderOptions
-            formatSpec <- parseFlavoredFormat $ fromMaybe "markdown" mformatspec
-            getReader formatSpec >>= \case
+            getReader flvrd >>= \case
               (TextReader r, es)       ->
                  r readerOpts{readerExtensions = es}
                    (case content of
@@ -225,7 +218,8 @@ functions =
     <#> parameter (\idx -> (Left  <$> peekByteString idx)
                        <|> (Right <$> peekSources idx))
           "string|Sources" "content" "text to parse"
-    <#> opt (textParam "formatspec" "format and extensions")
+    <#> opt (parameter peekFlavoredFormat "string|table"
+                       "formatspec" "format and extensions")
     <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
              "reader options")
     =#> functionResult pushPandoc "Pandoc" "result document"
@@ -246,15 +240,16 @@ functions =
 
   , defun "write"
     ### (\doc mformatspec mwriterOpts -> unPandocLua $ do
+            flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
             let writerOpts = fromMaybe def mwriterOpts
-            formatSpec <- parseFlavoredFormat $ fromMaybe "html" mformatspec
-            getWriter formatSpec >>= \case
+            getWriter flvrd >>= \case
               (TextWriter w, es)      -> Right <$>
                 w writerOpts{ writerExtensions = es } doc
               (ByteStringWriter w, es) -> Left <$>
                 w writerOpts{ writerExtensions = es } doc)
     <#> parameter peekPandoc "Pandoc" "doc" "document to convert"
-    <#> opt (textParam "formatspec" "format and extensions")
+    <#> opt (parameter peekFlavoredFormat "string|table"
+                       "formatspec" "format and extensions")
     <#> opt (parameter peekWriterOptions "WriterOptions" "writer_options"
               "writer options")
     =#> functionResult (either pushLazyByteString pushText) "string"

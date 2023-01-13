@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {- |
    Module      : Main
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -16,7 +16,7 @@ module Main where
 import qualified Control.Exception as E
 import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
-                       , parseOptionsFromArgs )
+                       , parseOptionsFromArgs, handleOptInfo )
 import Text.Pandoc.Error (handleError)
 import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (exitSuccess)
@@ -24,7 +24,8 @@ import Data.Monoid (Any(..))
 import Control.Monad (when)
 import PandocCLI.Lua
 import PandocCLI.Server
-import Text.Pandoc.Shared (pandocVersion, defaultUserDataDir)
+import Text.Pandoc.Version (pandocVersion)
+import Text.Pandoc.Data (defaultUserDataDir)
 import Text.Pandoc.Scripting (ScriptingEngine(..))
 import Data.Version (showVersion)
 import qualified Data.Text as T
@@ -60,14 +61,16 @@ main = E.handle (handleError . Left) $ do
       case rawArgs of
         "lua" : args   -> runLuaInterpreter "pandoc lua" args
         "server": args -> runServer args
-        _              -> do
+        args           -> do
           engine <- getEngine
-          opts <- parseOptionsFromArgs options defaultOpts prg rawArgs
-          convertWithOpts engine opts
+          res <- parseOptionsFromArgs options defaultOpts prg args
+          case res of
+            Left e -> handleOptInfo engine e
+            Right opts -> convertWithOpts engine opts
 
 copyrightMessage :: String
 copyrightMessage =
- "Copyright (C) 2006-2022 John MacFarlane. Web:  https://pandoc.org\n"
+ "Copyright (C) 2006-2023 John MacFarlane. Web:  https://pandoc.org\n"
  ++
  "This is free software; see the source for copying conditions. There is no\n"
  ++

@@ -1,11 +1,8 @@
 version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
-SOURCEFILES?=$(shell git ls-tree -r master --name-only | grep "\.hs$$")
-PANDOCSOURCEFILES?=$(shell git ls-tree -r master --name-only src | grep "\.hs$$")
-BRANCH?=master
-ARCH=$(shell uname -m)
-DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.2.3
-COMMIT=$(shell git rev-parse --short HEAD)
+SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
+PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
+DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.4.4
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
@@ -16,24 +13,45 @@ else
 BASELINECMD=--baseline $(BASELINE)
 endif
 GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j4 +RTS -A8m -RTS
+CABALOPTS?=--disable-optimization
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 
-quick-cabal: quick-cabal-test ## tests and build executable
+all: test build ## build executable and run tests
+.PHONY: all
+
+build: ## build executable
 	cabal build \
 	  --ghc-options='$(GHCOPTS)' \
-	  --disable-optimization all
-.PHONY: quick-cabal
+	  $(CABALOPTS) pandoc-cli
+	@cabal list-bin $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
+.PHONY: build
+
+binpath: ## print path of built pandoc executable
+	@cabal list-bin $(CABALOPTS) pandoc-cli
+.PHONY: binpath
+
+ghcid: ## run ghcid
+	ghcid -c 'cabal repl pandoc'
+.PHONY: ghcid
+
+repl:  ## run cabal repl
+	cabal repl $(CABALOPTS) pandoc
+.PHONY: repl
+
+linecounts: ## print line counts for each module
+	@wc -l $(SOURCEFILES) | sort -n
+.PHONY: linecounts
 
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
-quick-cabal-test:  ## unoptimized build and run tests with cabal
-	cabal v2-test \
+test:  ## unoptimized build and run tests with cabal
+	cabal test \
 	  --ghc-options='$(GHCOPTS)' \
-	  --disable-optimization \
-	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
-.PHONY: quick-cabal-test
+	  $(CABALOPTS) \
+	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)" all
+.PHONY: test
 
 quick-stack: ## unoptimized build and tests with stack
 	stack install \
@@ -89,7 +107,7 @@ reformat: ## reformat with stylish-haskell
 .PHONY: reformat
 
 lint: ## run hlint
-	for f in $(SOURCEFILES); do echo $$f; hlint --refactor --refactor-options='-s -o -' $$f; done
+	hlint --report=hlint.html $(SOURCEFILES) || open hlint.html
 .PHONY: lint
 
 fix_spacing: ## fix trailing newlines and spaces
@@ -103,10 +121,14 @@ changes_github: ## copy this release's changes in gfm
 man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1 ## build man pages
 .PHONY: man
 
+latex-package-dependencies: ## print packages used by default latex template
+	pandoc lua tools=latex-package-dependencies.lua
+.PHONY: latex-package-dependencies
+
 coverage: ## code coverage information
-	cabal v2-test \
+	cabal test \
 	  --ghc-options='-fhpc $(GHCOPTS)' \
-	  --disable-optimization \
+	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
 	hpc markup --destdir=coverage test/test-pandoc.tix
 	open coverage/hpc_index.html
@@ -221,6 +243,17 @@ git-files.txt: .FORCE
 	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
 
 help: ## display this help
-	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-30s %s\n", $$1, $$2}'
+	@echo "Targets:"
+	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-16s %s\n", $$1, $$2}'
+	@echo
+	@echo "Environment variables with default values:"
+	@printf "%-16s%s\n" "CABALOPTS" "$(CABALOPTS)"
+	@printf "%-16s%s\n" "GHCOPTS" "$(GHCOPTS)"
+	@printf "%-16s%s\n" "TESTARGS" "$(TESTARGS)"
+	@printf "%-16s%s\n" "BASELINE" "$(BASELINE)"
+	@printf "%-16s%s\n" "REVISION" "$(REVISION)"
 .PHONY: help
 
+hie.yaml: ## regenerate hie.yaml
+	gen-hie > $@
+.PHONY: hie.yaml

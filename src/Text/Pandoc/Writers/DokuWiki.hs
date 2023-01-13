@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.DokuWiki
-   Copyright   : Copyright (C) 2008-2022 John MacFarlane
+   Copyright   : Copyright (C) 2008-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Clare Macrae <clare.macrae@googlemail.com>
@@ -34,9 +34,11 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
-import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents, writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (camelCaseToHyphenated, escapeURI, isURI, linesToPara,
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents,
+                            writerTemplate, writerWrapText))
+import Text.Pandoc.Shared (camelCaseToHyphenated, linesToPara,
                            removeFormatting, trimr, tshow)
+import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)

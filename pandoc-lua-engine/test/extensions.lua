@@ -6,7 +6,7 @@ function Writer (doc, opts)
   return output:format(status('smart'), status('citations'))
 end
 
-writer_extensions = {
+Extensions = {
   smart = true,
   citations = false,
 }

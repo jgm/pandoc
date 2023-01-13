@@ -3,7 +3,7 @@
 {-# LANGUAGE RankNTypes        #-}
 {- |
    Module      : Text.Pandoc.Lua
-   Copyright   : Copyright © 2017-2022 Albert Krewinkel
+   Copyright   : Copyright © 2017-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -36,9 +36,12 @@ import qualified HsLua.Aeson
 import qualified HsLua.Module.DocLayout as Module.Layout
 import qualified HsLua.Module.Path as Module.Path
 import qualified HsLua.Module.Text as Module.Text
+import qualified HsLua.Module.Zip as Module.Zip
+import qualified Text.Pandoc.Lua.Module.CLI as Pandoc.CLI
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
 import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
 import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
+import qualified Text.Pandoc.Lua.Module.Scaffolding as Pandoc.Scaffolding
 import qualified Text.Pandoc.Lua.Module.System as Pandoc.System
 import qualified Text.Pandoc.Lua.Module.Template as Pandoc.Template
 import qualified Text.Pandoc.Lua.Module.Types as Pandoc.Types
@@ -80,8 +83,10 @@ runLuaNoEnv action = do
 -- it must be handled separately.
 loadedModules :: [Module PandocError]
 loadedModules =
-  [ Pandoc.Format.documentedModule
+  [ Pandoc.CLI.documentedModule
+  , Pandoc.Format.documentedModule
   , Pandoc.MediaBag.documentedModule
+  , Pandoc.Scaffolding.documentedModule
   , Pandoc.System.documentedModule
   , Pandoc.Template.documentedModule
   , Pandoc.Types.documentedModule
@@ -89,6 +94,7 @@ loadedModules =
   , Module.Layout.documentedModule { moduleName = "pandoc.layout" }
   , Module.Path.documentedModule { moduleName = "pandoc.path" }
   , Module.Text.documentedModule
+  , Module.Zip.documentedModule { moduleName = "pandoc.zip" }
   ]
 
 -- | Initialize the lua state with all required values

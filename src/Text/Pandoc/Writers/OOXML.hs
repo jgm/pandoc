@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.OOXML
-   Copyright   : Copyright (C) 2012-2022 John MacFarlane
+   Copyright   : Copyright (C) 2012-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -24,7 +24,7 @@ module Text.Pandoc.Writers.OOXML ( mknode
                                  ) where
 
 import Codec.Archive.Zip
-import Control.Monad.Reader
+import Control.Monad (mplus)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error
 import qualified Data.ByteString as B

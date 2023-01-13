@@ -466,7 +466,7 @@ filter.
     `columns`
     :   number of columns in terminal; an integer.
 
-    default-image-extension`
+    `default-image-extension`
     :   default extension for images; a string.
 
     `extensions`

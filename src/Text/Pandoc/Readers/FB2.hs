@@ -34,7 +34,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Default
 import Data.Maybe
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, insertMedia, report)
 import Text.Pandoc.Error
@@ -88,7 +88,7 @@ removeHash t = case T.uncons t of
   _              -> t
 
 convertEntity :: Text -> Text
-convertEntity e = maybe (T.toUpper e) T.pack $ lookupEntity (T.unpack e)
+convertEntity e = fromMaybe (T.toUpper e) $ lookupEntity e
 
 parseInline :: PandocMonad m => Content -> FB2 m Inlines
 parseInline (Elem e) =

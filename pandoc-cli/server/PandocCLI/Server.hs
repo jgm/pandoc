@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Main
-   Copyright   : © 2006-2022 John MacFarlane
+   Copyright   : © 2006-2023 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
 
@@ -18,6 +18,7 @@ import Network.Wai.Middleware.Timeout (timeout)
 import Safe (readDef)
 import System.Environment (lookupEnv)
 import Text.Pandoc.Server (ServerOpts(..), parseServerOptsFromArgs, app)
+import System.IO (stderr, hPutStrLn)
 
 -- | Runs the CGI server.
 runCGI :: IO ()
@@ -29,4 +30,6 @@ runCGI = do
 runServer :: [String] -> IO ()
 runServer args = do
   sopts <- parseServerOptsFromArgs args
+  hPutStrLn stderr $
+    "Starting server on port " <> show (serverPort sopts) <> "..."
   Warp.run (serverPort sopts) (timeout (serverTimeout sopts) app)

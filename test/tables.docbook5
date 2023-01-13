@@ -2,9 +2,7 @@
   Simple table with caption:
 </para>
 <table>
-  <title>
-    Demonstration of simple table syntax.
-  </title>
+  <title>Demonstration of simple table syntax.</title>
   <tgroup cols="4">
     <colspec align="right" />
     <colspec align="left" />
@@ -147,9 +145,7 @@
   Simple table indented two spaces:
 </para>
 <table>
-  <title>
-    Demonstration of simple table syntax.
-  </title>
+  <title>Demonstration of simple table syntax.</title>
   <tgroup cols="4">
     <colspec align="right" />
     <colspec align="left" />
@@ -221,9 +217,7 @@
   Multiline table with caption:
 </para>
 <table>
-  <title>
-    Here’s the caption. It may span multiple lines.
-  </title>
+  <title>Here’s the caption. It may span multiple lines.</title>
   <tgroup cols="4">
     <colspec colwidth="15*" align="center" />
     <colspec colwidth="13*" align="left" />

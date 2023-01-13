@@ -1,0 +1,119 @@
+{| class="wikitable"
+|+ Data about the planets of our solar system.
+|-
+! colspan="2" style="text-align: center;"|
+! Name
+! style="text-align: right;"| Mass (10^24kg)
+! style="text-align: right;"| Diameter (km)
+! style="text-align: right;"| Density (kg/m^3)
+! style="text-align: right;"| Gravity (m/s^2)
+! style="text-align: right;"| Length of day (hours)
+! style="text-align: right;"| Distance from Sun (10^6km)
+! style="text-align: right;"| Mean temperature (C)
+! style="text-align: right;"| Number of moons
+! Notes
+|-
+! rowspan="4" colspan="2" style="text-align: center;"| Terrestrial planets
+! Mercury
+| style="text-align: right;"| 0.330
+| style="text-align: right;"| 4,879
+| style="text-align: right;"| 5427
+| style="text-align: right;"| 3.7
+| style="text-align: right;"| 4222.6
+| style="text-align: right;"| 57.9
+| style="text-align: right;"| 167
+| style="text-align: right;"| 0
+| Closest to the Sun
+|-
+! Venus
+| style="text-align: right;"| 4.87
+| style="text-align: right;"| 12,104
+| style="text-align: right;"| 5243
+| style="text-align: right;"| 8.9
+| style="text-align: right;"| 2802.0
+| style="text-align: right;"| 108.2
+| style="text-align: right;"| 464
+| style="text-align: right;"| 0
+|
+|-
+! Earth
+| style="text-align: right;"| 5.97
+| style="text-align: right;"| 12,756
+| style="text-align: right;"| 5514
+| style="text-align: right;"| 9.8
+| style="text-align: right;"| 24.0
+| style="text-align: right;"| 149.6
+| style="text-align: right;"| 15
+| style="text-align: right;"| 1
+| Our world
+|-
+! Mars
+| style="text-align: right;"| 0.642
+| style="text-align: right;"| 6,792
+| style="text-align: right;"| 3933
+| style="text-align: right;"| 3.7
+| style="text-align: right;"| 24.7
+| style="text-align: right;"| 227.9
+| style="text-align: right;"| -65
+| style="text-align: right;"| 2
+| The red planet
+|-
+! rowspan="4" style="text-align: center;"| Jovian planets
+! rowspan="2" style="text-align: center;"| Gas giants
+! Jupiter
+| style="text-align: right;"| 1898
+| style="text-align: right;"| 142,984
+| style="text-align: right;"| 1326
+| style="text-align: right;"| 23.1
+| style="text-align: right;"| 9.9
+| style="text-align: right;"| 778.6
+| style="text-align: right;"| -110
+| style="text-align: right;"| 67
+| The largest planet
+|-
+! Saturn
+| style="text-align: right;"| 568
+| style="text-align: right;"| 120,536
+| style="text-align: right;"| 687
+| style="text-align: right;"| 9.0
+| style="text-align: right;"| 10.7
+| style="text-align: right;"| 1433.5
+| style="text-align: right;"| -140
+| style="text-align: right;"| 62
+|
+|-
+! rowspan="2" style="text-align: center;"| Ice giants
+! Uranus
+| style="text-align: right;"| 86.8
+| style="text-align: right;"| 51,118
+| style="text-align: right;"| 1271
+| style="text-align: right;"| 8.7
+| style="text-align: right;"| 17.2
+| style="text-align: right;"| 2872.5
+| style="text-align: right;"| -195
+| style="text-align: right;"| 27
+|
+|-
+! Neptune
+| style="text-align: right;"| 102
+| style="text-align: right;"| 49,528
+| style="text-align: right;"| 1638
+| style="text-align: right;"| 11.0
+| style="text-align: right;"| 16.1
+| style="text-align: right;"| 4495.1
+| style="text-align: right;"| -200
+| style="text-align: right;"| 14
+|
+|-
+! colspan="2" style="text-align: center;"| Dwarf planets
+! Pluto
+| style="text-align: right;"| 0.0146
+| style="text-align: right;"| 2,370
+| style="text-align: right;"| 2095
+| style="text-align: right;"| 0.7
+| style="text-align: right;"| 153.3
+| style="text-align: right;"| 5906.4
+| style="text-align: right;"| -225
+| style="text-align: right;"| 5
+| Declassified as a planet in 2006.
+|}

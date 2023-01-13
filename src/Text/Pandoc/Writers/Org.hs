@@ -3,8 +3,8 @@
 {- |
    Module      : Text.Pandoc.Writers.Org
    Copyright   : © 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
-                   2010-2022 John MacFarlane <jgm@berkeley.edu>
-                   2016-2022 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+                   2010-2023 John MacFarlane <jgm@berkeley.edu>
+                   2016-2023 Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -16,7 +16,9 @@ Conversion of 'Pandoc' documents to Emacs Org-Mode.
 Org-Mode:  <http://orgmode.org>
 -}
 module Text.Pandoc.Writers.Org (writeOrg) where
+import Control.Monad (zipWithM)
 import Control.Monad.State.Strict
+    ( StateT, gets, modify, evalStateT )
 import Data.Char (isAlphaNum, isDigit)
 import Data.List (intersperse, partition, transpose)
 import Data.List.NonEmpty (nonEmpty)
@@ -29,6 +31,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorMap(..), LocatorInfo(..))
 import Text.Pandoc.Writers.Shared
@@ -513,8 +516,8 @@ orgPath src = case T.uncons src of
     isUrl :: Text -> Bool
     isUrl cs =
       let (scheme, path) = T.break (== ':') cs
-      in T.all (\c -> isAlphaNum c || c `elemText` ".-") scheme
-         && not (T.null path)
+       in T.all (\c -> isAlphaNum c || T.any (== c) ".-") scheme
+          && not (T.null path)
 
 -- | Translate from pandoc's programming language identifiers to those used by
 -- org-mode.

@@ -2418,6 +2418,18 @@ function Str (s)
 end
 ```
 
+### fromencoding {#text.fromencoding}
+
+`fromencoding(s, encoding)`
+
+Converts a string to UTF-8. The `encoding` parameter specifies the
+encoding of the input string. On Windows, that parameter defaults
+to the current ANSI code page; on other platforms the function
+will try to use the file system's encoding.
+
+See [`toencoding`](#text.toencoding) for more info on supported
+encodings.
+
 ### lower {#text.lower}
 
 `lower (s)`
@@ -2448,6 +2460,19 @@ Returns the length of a UTF-8 string.
 
 Returns a substring of a UTF-8 string, using Lua's string
 indexing rules.
+
+### toencoding {#text.toencoding}
+
+`toencoding(s, encoding)`
+
+Converts a UTF-8 string to a different encoding. The `encoding`
+parameter defaults to the current ANSI code page on Windows; on
+other platforms it will try to guess the file system's encoding.
+
+The set of known encodings is system dependent, but includes at
+least `UTF-8`, `UTF-16BE`, `UTF-16LE`, `UTF-32BE`, and `UTF-32LE`.
+Note that the default code page on Windows is available through
+`CP0`.
 
 # Module pandoc
 
@@ -3495,13 +3520,23 @@ reStructuredText, and Org, then these will be included in the
 resulting document. Any media elements are added to those
 retrieved from the other parsed input files.
 
+The `format` parameter defines the format flavor that will be
+parsed. This can be either a string, using `+` and `-` to enable
+and disable extensions, or a table with fields `format` (string)
+and `extensions` (table). The `extensions` table can be a list of
+all enabled extensions, or a table with extensions as keys and
+their activation status as values (`true` or `'enable'` to enable
+an extension, `false` or `'disable'` to disable it).
+
 Parameters:
 
 `markup`
 :   the markup to be parsed (string|Sources)
 
 `format`
-:   format specification, defaults to `"markdown"` (string)
+:   format specification; defaults to `"markdown"`. See the
+    description above for a complete description of this
+    parameter. (string|table)
 
 `reader_options`
 :   options passed to the reader; may be a ReaderOptions object or
@@ -3532,7 +3567,9 @@ Parameters:
 :   document to convert ([Pandoc](#type-pandoc))
 
 `format`
-:   format specification, defaults to `'html'` (string)
+:   format specification; defaults to `"html"`. See the
+    documentation of [`pandoc.read`](#pandoc.read) for a complete
+    description of this parameter. (string|table)
 
 `writer_options`
 :   options passed to the writer; may be a WriterOptions object
@@ -3583,6 +3620,36 @@ Usage:
 
 [WriterOptions]: #type-writeroptions
 
+# Module pandoc.cli
+
+Command line options and argument parsing.
+
+## Fields {#pandoc.cli-fields}
+
+### default\_options {#pandoc.cli.default_options}
+
+Default CLI options, using a JSON-like representation (table).
+
+## Functions
+
+### parse_options {#pandoc.cli.parse_options}
+
+`parse_options (args)`
+
+Parses command line arguments into pandoc options. Typically this
+function will be used in stand-alone pandoc Lua scripts, taking
+the list of arguments from the global `arg`.
+
+Parameters:
+
+`args`
+:   list of command line arguments ({string,...})
+
+Returns:
+
+-   parsed options, using their JSON-like representation. (table)
+
+
 # Module pandoc.utils
 
 This module exposes internal pandoc functions and utility
@@ -3606,9 +3673,9 @@ Parameters:
 :   List of [Block](#type-block) elements to be flattened.
 
 `sep`
-:   List of [Inline](#type-inline) elements inserted as
-    separator between two consecutive blocks; defaults to `{
-    pandoc.Space(), pandoc.Str'¶', pandoc.Space()}`.
+:   List of [Inline](#type-inline) elements inserted as separator
+    between two consecutive blocks; defaults to
+    `{pandoc.LineBreak()}`.
 
 Returns:
 
@@ -4270,6 +4337,47 @@ Parameters:
 
 `comp`
 :   Comparison function as described above.
+
+# Module pandoc.format
+
+Information about the formats supported by pandoc.
+
+## Functions {#pandoc.format-functions}
+
+### all_extensions {#pandoc.format.default_extensions}
+
+`all_extensions (format)`
+
+Returns the list of all valid extensions for a format. No
+distinction is made between input and output; an extension can
+have an effect when reading a format but not when writing it, or
+*vice versa*.
+
+Parameters:
+
+`format`
+:   format name (string)
+
+Returns:
+
+-   all extensions supported for `format` (FormatExtensions)
+
+### default_extensions {#pandoc.format.default_extensions}
+
+`default_extensions (format)`
+
+Returns the list of default extensions of the given format; this
+function does not check if the format is supported, it will return
+a fallback list of extensions even for unknown formats.
+
+Parameters:
+
+`format`
+:   format name (string)
+
+Returns:
+
+-   default extensions enabled for `format` (FormatExtensions)
 
 # Module pandoc.path
 
@@ -5131,7 +5239,7 @@ Returns
 `real_length (str)`
 
 Returns the real length of a string in a monospace font: 0 for a
-combining chaeracter, 1 for a regular character, 2 for an East
+combining character, 1 for a regular character, 2 for an East
 Asian wide character.
 
 Parameters
@@ -5166,6 +5274,19 @@ Returns
 -   column number (integer\|string)
 
 [Doc]: #type-doc
+
+# Module pandoc.scaffolding
+
+Scaffolding for custom writers.
+
+## Writer {#pandoc.scaffolding.writer}
+
+A structure to be used as a `Writer` function; the construct
+handles most of the boilerplate, expecting only render functions
+for all AST elements. See the documentation for custom writers for
+details.
+
+
 
 # Module pandoc.template
 
@@ -5281,3 +5402,148 @@ Parameters:
 Returns:
 
 -   A new [Version] object.
+
+# Module pandoc.zip
+
+Functions to create, modify, and extract files from zip archives.
+
+The module can be called as a function, in which case it behaves
+like the `zip` function described below.
+
+Zip options are optional; when defined, they must be a table with
+any of the following keys:
+
+  - `recursive`: recurse directories when set to `true`;
+  - `verbose`: print info messages to stdout;
+  - `destination`: the value specifies the directory in which to
+    extract;
+  - `location`: value is used as path name, defining where files
+    are placed.
+  - `preserve_symlinks`: Boolean value, controlling whether
+    symbolic links are preserved as such. This option is ignored
+    on Windows.
+
+## Functions
+
+### Archive {#pandoc.zip.Archive}
+
+`Archive (bytestring_or_entries)`
+
+Reads an *Archive* structure from a raw zip archive or a list of
+Entry items; throws an error if the given string cannot be decoded
+into an archive.
+
+*Since: 1.0.0*
+
+Parameters:
+
+bytestring_or_entries
+:    (string|{ZipEntry,...})
+
+Returns:
+
+ -   (ZipArchive)
+
+### Entry {#pandoc.zip.Entry}
+
+`Entry (path, contents[, modtime])`
+
+Generates a zip Entry from a filepath, the file's uncompressed
+content, and the file's modification time.
+
+*Since: 1.0.0*
+
+Parameters:
+
+path
+:   file path in archive (string)
+
+contents
+:   uncompressed contents (string)
+
+modtime
+:   modification time (integer)
+
+### read_entry {#pandoc.zip.read_entry}
+
+`read_entry (filepath, opts)`
+
+Generates a ZipEntry from a file or directory.
+
+*Since: 1.0.0*
+
+Parameters:
+
+filepath
+:    (string)
+
+opts
+:   zip options (table)
+
+Returns:
+
+ -  a new zip archive entry (ZipEntry)
+
+### zip {#pandoc.zip.zip}
+
+`zip (filepaths[, options])`
+
+Package and compress the given files into a new Archive.
+
+*Since: 1.0.0*
+
+Parameters:
+
+filepaths
+:    list of files from which the archive is created. ({string,...})
+
+options
+:   zip options (table)
+
+Returns:
+
+ -  a new archive (ZipArchive)
+
+## Types
+
+### Archive {#type-pandoc.zip.Archive}
+
+A zip archive with file entries.
+
+#### Fields
+
+`entries`
+:   files in this zip archive ({Entry,...})
+
+#### Methods
+
+`extract([opts])`
+:   Extract all files from this archive, creating directories as
+    needed. Note that the last-modified time is set correctly only
+    in POSIX, not in Windows. This function fails if encrypted
+    entries are present.
+
+    Use `archive:extract{destination = 'dir'}` to extract to
+    subdirectory `dir`.
+
+`bytestring()`
+:   Returns the raw binary string representation of the archive.
+
+### Entry {#type-pandoc.zip.Entry}
+
+File or directory entry in a zip archive.
+
+#### Fields
+
+`path`
+:   relative path, using `/` as separator
+
+`modtime`
+:   modification time (seconds since unix epoch)
+
+#### Methods
+
+`contents([password])`
+:   Get the uncompressed contents of a zip entry. If `password` is
+    given, then that password is used to decrypt the contents. An
+    error is throws if decrypting fails.

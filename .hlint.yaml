@@ -19,7 +19,7 @@
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use fmap"}  # specific for GHC 7.8 compat
 - ignore: {name: "Use isDigit"}
-
+- ignore: {name: "Use <&>"}
 - ignore:
     name: "Monad law, left identity"
     within: Text.Pandoc.App.OutputSettings

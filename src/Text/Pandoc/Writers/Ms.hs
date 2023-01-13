@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.Ms
-   Copyright   : Copyright (C) 2007-2022 John MacFarlane
+   Copyright   : Copyright (C) 2007-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -21,6 +21,9 @@ TODO:
 
 module Text.Pandoc.Writers.Ms ( writeMs ) where
 import Control.Monad.State.Strict
+    ( gets, modify, evalStateT )
+import Control.Monad ( MonadPlus(mplus), liftM, unless, forM )
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAscii, isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
 import Data.List.NonEmpty (nonEmpty)
@@ -76,7 +79,6 @@ pandocToMs opts (Pandoc meta blocks) = do
   let context = defField "body" main
               $ defField "has-inline-math" hasInlineMath
               $ defField "hyphenate" True
-              $ defField "pandoc-version" pandocVersionText
               $ defField "toc" (writerTableOfContents opts)
               $ defField "title-meta" titleMeta
               $ defField "author-meta" (T.intercalate "; " authorsMeta)
@@ -174,7 +176,7 @@ blockToMs opts (Para [Image attr alt (src,_tit)])
                               doubleQuotes (literal (tshow (floor hp :: Int)))
                        _ -> empty
   capt <- splitSentences <$> inlineListToMs' opts alt
-  return $ nowrap (literal ".PSPIC -C " <>
+  return $ nowrap (literal ".PSPIC " <>
              doubleQuotes (literal (escapeStr opts src)) <>
              sizeAttrs) $$
            literal ".ce 1000" $$
@@ -567,7 +569,7 @@ styleToMs sty = vcat $ colordefs <> map (toMacro sty) alltoktypes
         colordefs = map toColorDef allcolors
         toColorDef c = literal (".defcolor " <>
             hexColor c <> " rgb #" <> hexColor c)
-        allcolors = catMaybes $ ordNub $
+        allcolors = catMaybes $ nubOrd $
           [defaultColor sty, backgroundColor sty,
            lineNumberColor sty, lineNumberBackgroundColor sty] <>
            concatMap (colorsForToken. snd) (Map.toList (tokenStyles sty))

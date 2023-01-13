@@ -3,7 +3,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown.Inline
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -16,8 +16,11 @@ module Text.Pandoc.Writers.Markdown.Inline (
   attrsToMarkdown,
   attrsToMarkua
   ) where
+import Control.Monad (when, liftM2)
 import Control.Monad.Reader
+    ( asks, MonadReader(local) )
 import Control.Monad.State.Strict
+    ( MonadState(get), gets, modify )
 import Data.Char (isAlphaNum, isDigit)
 import Data.List (find, intersperse)
 import Data.List.NonEmpty (nonEmpty)
@@ -32,7 +35,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, blanklines, char, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
-import Text.Pandoc.URI (urlEncode)
+import Text.Pandoc.URI (urlEncode, escapeURI, isURI)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.HTML (writeHtml5String)
@@ -66,6 +69,26 @@ escapeText opts = T.pack . go' . T.unpack
              _ -> '@':go cs
   go' cs = go cs
   go [] = []
+  go ['\\'] = ['\\','\\']
+  go ('-':'-':cs)
+    | isEnabled Ext_smart opts = '\\':'-':go('-':cs)
+  go ('.':'.':'.':cs)
+    | isEnabled Ext_smart opts = '\\':'.':'.':'.':go cs
+  go (c:'_':d:cs)
+    | isAlphaNum c
+    , isAlphaNum d =
+      if isEnabled Ext_intraword_underscores opts
+         then c:'_':go (d:cs)
+         else c:'\\':'_':go (d:cs)
+  go ('\\':c:cs)
+    | isEnabled Ext_raw_tex opts = '\\':'\\':go (c:cs)
+    | isAlphaNum c = '\\' : go (c:cs)
+    | otherwise = '\\':'\\': go cs
+  go ('!':'[':cs) = '\\':'!':'[': go cs
+  go ('=':'=':cs)
+    | isEnabled Ext_mark opts = '\\':'=':go ('=':cs)
+  go ('~':'~':cs)
+    | isEnabled Ext_strikeout opts = '\\':'~':go ('~':cs)
   go (c:cs) =
     case c of
        '[' -> '\\':c:go cs
@@ -73,36 +96,17 @@ escapeText opts = T.pack . go' . T.unpack
        '`' -> '\\':c:go cs
        '*' -> '\\':c:go cs
        '_' -> '\\':c:go cs
-       '\\' | isEnabled Ext_raw_tex opts -> '\\':c:go cs
-            | otherwise ->
-              case cs of -- don't escape \ if we don't have to:
-                d:_ | isAlphaNum d -> c:go cs
-                _ -> '\\':c:go cs
        '>' | isEnabled Ext_all_symbols_escapable opts -> '\\':'>':go cs
            | otherwise -> "&gt;" ++ go cs
        '<' | isEnabled Ext_all_symbols_escapable opts -> '\\':'<':go cs
            | otherwise -> "&lt;" ++ go cs
        '|' | isEnabled Ext_pipe_tables opts -> '\\':'|':go cs
        '^' | isEnabled Ext_superscript opts -> '\\':'^':go cs
-       '~' | isEnabled Ext_subscript opts ||
-             isEnabled Ext_strikeout opts -> '\\':'~':go cs
+       '~' | isEnabled Ext_subscript opts -> '\\':'~':go cs
        '$' | isEnabled Ext_tex_math_dollars opts -> '\\':'$':go cs
        '\'' | isEnabled Ext_smart opts -> '\\':'\'':go cs
        '"' | isEnabled Ext_smart opts -> '\\':'"':go cs
-       '-' | isEnabled Ext_smart opts ->
-              case cs of
-                   '-':_ -> '\\':'-':go cs
-                   _     -> '-':go cs
-       '.' | isEnabled Ext_smart opts ->
-              case cs of
-                   '.':'.':rest -> '\\':'.':'.':'.':go rest
-                   _            -> '.':go cs
-       _   -> case cs of
-                '_':x:xs
-                  | isEnabled Ext_intraword_underscores opts
-                  , isAlphaNum c
-                  , isAlphaNum x -> c : '_' : x : go xs
-                _                -> c : go cs
+       _   -> c : go cs
 
 -- Escape the escape character, as well as formatting pairs
 escapeMarkuaString :: Text -> Text
@@ -264,6 +268,11 @@ inlineListToMarkdown opts ils = do
           | T.all isDigit (T.take 1 t) -- starts with digit -- see #7058
           = liftM2 (<>) (inlineToMarkdown opts x)
               (go (RawInline (Format "html") "<!-- -->" : y : zs))
+        go (Str t : i : is)
+          | isLinkOrSpan i
+          , T.takeEnd 1 t == "!"
+          = do x <- inlineToMarkdown opts (Str (T.dropEnd 1 t))
+               ((x <> "\\!") <>) <$> go (i:is)
         go (i:is) = case i of
             Link {} -> case is of
                 -- If a link is followed by another link, or '[', '(' or ':'
@@ -291,13 +300,17 @@ inlineListToMarkdown opts ils = do
                 (RawInline _ (T.stripPrefix " [" -> Just _ )):_ -> unshortcutable
                 _                                               -> shortcutable
             _ -> shortcutable
-          where shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
-                unshortcutable = do
-                    iMark <- local
-                             (\env -> env { envRefShortcutable = False })
-                             (inlineToMarkdown opts i)
-                    fmap (iMark <>) (go is)
-                thead = fmap fst . T.uncons
+          where
+           shortcutable = liftM2 (<>) (inlineToMarkdown opts i) (go is)
+           unshortcutable = do
+               iMark <- local
+                        (\env -> env { envRefShortcutable = False })
+                        (inlineToMarkdown opts i)
+               fmap (iMark <>) (go is)
+           thead = fmap fst . T.uncons
+        isLinkOrSpan Link{} = True
+        isLinkOrSpan Span{} = True
+        isLinkOrSpan _ = False
 
 -- Remove breaking spaces that might cause bad wraps.
 avoidBadWraps :: Bool -> Doc Text -> Doc Text
@@ -334,6 +347,10 @@ inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
        Just emojiname | isEnabled Ext_emoji opts ->
             return $ ":" <> literal emojiname <> ":"
        _ -> inlineToMarkdown opts (Str s)
+inlineToMarkdown opts (Span ("",["mark"],[]) ils)
+  | isEnabled Ext_mark opts
+    = do contents <- inlineListToMarkdown opts ils
+         return $ "==" <> contents <> "=="
 inlineToMarkdown opts (Span attrs ils) = do
   variant <- asks envVariant
   contents <- inlineListToMarkdown opts ils

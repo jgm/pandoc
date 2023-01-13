@@ -1,6 +1,6 @@
 {- |
    Module      : Text.Pandoc.CSV
-   Copyright   : Copyright (C) 2017-2022 John MacFarlane <jgm@berkeley.edu>
+   Copyright   : Copyright (C) 2017-2023 John MacFarlane <jgm@berkeley.edu>
    License     : GNU GPL, version 2 or above
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
@@ -19,8 +19,9 @@ module Text.Pandoc.CSV (
 import Control.Monad (unless, void, mzero)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Parsec
-import Text.Parsec.Text (Parser)
+import Text.Pandoc.Parsing hiding (escaped)
+
+type Parser = Parsec Text ()
 
 data CSVOptions = CSVOptions{
     csvDelim     :: Char

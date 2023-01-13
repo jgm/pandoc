@@ -6,7 +6,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {- |
    Module      : Text.Pandoc.Options
-   Copyright   : Copyright (C) 2012-2022 John MacFarlane
+   Copyright   : Copyright (C) 2012-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -316,7 +316,8 @@ data WriterOptions = WriterOptions
   , writerEpubSubdirectory  :: Text       -- ^ Subdir for epub in OCF
   , writerEpubMetadata      :: Maybe Text -- ^ Metadata to include in EPUB
   , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
-  , writerEpubChapterLevel  :: Int            -- ^ Header level for chapters (separate files)
+  , writerEpubTitlePage     :: Bool           -- ^ Include title page in epub
+  , writerSplitLevel        :: Int        -- ^ Header level at which to split EPUB or chunked HTML into separate files
   , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
@@ -352,7 +353,8 @@ instance Default WriterOptions where
                       , writerEpubSubdirectory = "EPUB"
                       , writerEpubMetadata     = Nothing
                       , writerEpubFonts        = []
-                      , writerEpubChapterLevel = 1
+                      , writerEpubTitlePage    = True
+                      , writerSplitLevel       = 1
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
                       , writerReferenceLocation = EndOfDocument

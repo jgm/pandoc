@@ -1,14 +1,20 @@
 $if(document-css)$
 html {
-  line-height: $if(linestretch)$$linestretch$$else$1.5$endif$;
-  font-family: $if(mainfont)$$mainfont$$else$Georgia, serif$endif$;
-  font-size: $if(fontsize)$$fontsize$$else$20px$endif$;
+$if(mainfont)$
+  font-family: $mainfont$;
+$endif$
+$if(fontsize)$
+  font-size: $fontsize$;
+$endif$
+$if(linestretch)$
+  line-height: $linestretch$;
+$endif$
   color: $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
   background-color: $if(backgroundcolor)$$backgroundcolor$$else$#fdfdfd$endif$;
 }
 body {
   margin: 0 auto;
-  max-width: 36em;
+  max-width: $if(maxwidth)$$maxwidth$$else$36em$endif$;
   padding-left: $if(margin-left)$$margin-left$$else$50px$endif$;
   padding-right: $if(margin-right)$$margin-right$$else$50px$endif$;
   padding-top: $if(margin-top)$$margin-top$$else$50px$endif$;
@@ -21,13 +27,16 @@ body {
 @media (max-width: 600px) {
   body {
     font-size: 0.9em;
-    padding: 1em;
+    padding: 12px;
   }
   h1 {
     font-size: 1.8em;
   }
 }
 @media print {
+  html {
+    background-color: $if(backgroundcolor)$$backgroundcolor$$else$white$endif$;
+  }
   body {
     background-color: transparent;
     color: black;
@@ -97,6 +106,7 @@ $if(monobackgroundcolor)$
 $endif$
   font-size: 85%;
   margin: 0;
+  hyphens: manual;
 }
 pre {
   margin: 1em 0;
@@ -175,33 +185,13 @@ ul.task-list li input[type="checkbox"] {
 $if(quotes)$
 q { quotes: "“" "”" "‘" "’"; }
 $endif$
-$if(highlighting-css)$
-$highlighting-css$
-$endif$
 $if(displaymath-css)$
 .display.math{display: block; text-align: center; margin: 0.5rem auto;}
 $endif$
-$if(csl-css)$
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-$if(csl-entry-spacing)$
-  margin-bottom: $csl-entry-spacing$;
+$if(highlighting-css)$
+/* CSS for syntax highlighting */
+$highlighting-css$
 $endif$
-}
-.hanging div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}
+$if(csl-css)$
+$styles.citations.html()$
 $endif$

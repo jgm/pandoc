@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.RST
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -14,8 +14,12 @@ Conversion of 'Pandoc' documents to reStructuredText.
 reStructuredText:  <http://docutils.sourceforge.net/rst.html>
 -}
 module Text.Pandoc.Writers.RST ( writeRST, flatten ) where
-import Control.Monad.State.Strict
-import Data.Char (isSpace)
+import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
+import Control.Monad (zipWithM, liftM)
+import Data.Char (isSpace, generalCategory, isAscii, isAlphaNum,
+                  GeneralCategory(
+                        ClosePunctuation, OpenPunctuation, InitialQuote,
+                         FinalQuote, DashPunctuation, OtherPunctuation))
 import Data.List (transpose, intersperse, foldl')
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe (fromMaybe)
@@ -29,6 +33,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk
@@ -160,25 +165,62 @@ pictToRST (label, (attr, src, _, mbtarget)) = do
 
 -- | Escape special characters for RST.
 escapeText :: WriterOptions -> Text -> Text
-escapeText o = T.pack . escapeString' True o . T.unpack -- This ought to be parser
-  where
-  escapeString' _ _  [] = []
-  escapeString' firstChar opts (c:cs) =
-    case c of
-         '\\' -> '\\':c:escapeString' False opts cs
-         _    | c `elemText` "`*_|" &&
-                (firstChar || null cs) -> '\\':c:escapeString' False opts cs
-         '\'' | isEnabled Ext_smart opts -> '\\':'\'':escapeString' False opts cs
-         '"'  | isEnabled Ext_smart opts -> '\\':'"':escapeString' False opts cs
-         '-'  | isEnabled Ext_smart opts ->
-                  case cs of
-                    '-':_ -> '\\':'-':escapeString' False opts cs
-                    _     -> '-':escapeString' False opts cs
-         '.'  | isEnabled Ext_smart opts ->
-                  case cs of
-                    '.':'.':rest -> '\\':'.':'.':'.':escapeString' False opts rest
-                    _            -> '.':escapeString' False opts cs
-         _ -> c : escapeString' False opts cs
+escapeText opts t =
+  if T.any isSpecial t
+     then T.pack . escapeString' True . T.unpack $ t
+     else t -- optimization
+ where
+  isSmart = isEnabled Ext_smart opts
+  isSpecial c = c == '\\' || c == '_' || c == '`' || c == '*' || c == '|'
+                || (isSmart && (c == '-' || c == '.' || c == '"' || c == '\''))
+  canFollowInlineMarkup c = c == '-' || c == '.' || c == ',' || c == ':'
+                    || c == ';' || c == '!' || c == '?' || c == '\''
+                    || c == '"' || c == ')' || c == ']' || c == '}'
+                    || c == '>' || isSpace c
+                    || (not (isAscii c) &&
+                        generalCategory c `elem`
+                        [OpenPunctuation, InitialQuote, FinalQuote,
+                         DashPunctuation, OtherPunctuation])
+  canPrecedeInlineMarkup c = c == '-' || c == ':' || c == '/' || c == '\''
+                     || c == '"' || c == '<' || c == '(' || c == '['
+                     || c == '{' || isSpace c
+                     || (not (isAscii c) &&
+                          generalCategory c `elem`
+                          [ClosePunctuation, InitialQuote, FinalQuote,
+                          DashPunctuation, OtherPunctuation])
+  escapeString' canStart cs =
+    case cs of
+      [] -> []
+      d:ds
+        | d == '\\'
+        -> '\\' : d : escapeString' False ds
+      '\'':ds
+        | isSmart
+        -> '\\' : '\'' : escapeString' True ds
+      '"':ds
+        | isSmart
+        -> '\\' : '"' : escapeString' True ds
+      '-':'-':ds
+        | isSmart
+        -> '\\' : '-' : escapeString' False ('-':ds)
+      '.':'.':'.':ds
+        | isSmart
+        -> '\\' : '.' : escapeString' False ('.':'.':ds)
+      [e]
+        | e == '*' || e == '_' || e == '|' || e == '`'
+        -> ['\\',e]
+      d:ds
+        | canPrecedeInlineMarkup d
+        -> d : escapeString' True ds
+      e:d:ds
+        | e == '*' || e == '_' || e == '|' || e == '`'
+        , (not canStart && canFollowInlineMarkup d)
+          || (canStart && not (isSpace d))
+        -> '\\' : e : escapeString' False (d:ds)
+      '_':d:ds
+        | not (isAlphaNum d)
+        -> '\\' : '_' : escapeString' False (d:ds)
+      d:ds -> d : escapeString' False ds
 
 titleToRST :: PandocMonad m => [Inline] -> [Inline] -> RST m (Doc Text)
 titleToRST [] _ = return empty
@@ -585,14 +627,14 @@ transformInlines =  insertBS .
         okAfterComplex SoftBreak = True
         okAfterComplex LineBreak = True
         okAfterComplex (Str (T.uncons -> Just (c,_)))
-          = isSpace c || c `elemText` "-.,:;!?\\/'\")]}>–—"
+          = isSpace c || T.any (== c) "-.,:;!?\\/'\")]}>–—"
         okAfterComplex _ = False
         okBeforeComplex :: Inline -> Bool
         okBeforeComplex Space = True
         okBeforeComplex SoftBreak = True
         okBeforeComplex LineBreak = True
         okBeforeComplex (Str (T.unsnoc -> Just (_,c)))
-                          = isSpace c || c `elemText` "-:/'\"<([{–—"
+          = isSpace c || T.any (== c) "-:/'\"<([{–—"
         okBeforeComplex _ = False
         isComplex :: Inline -> Bool
         isComplex (Emph _)        = True
@@ -702,6 +744,9 @@ writeInlines lst =
 
 -- | Convert Pandoc inline element to RST.
 inlineToRST :: PandocMonad m => Inline -> RST m (Doc Text)
+inlineToRST (Span ("",["mark"],[]) ils) = do
+  contents <- writeInlines ils
+  return $ ":mark:`" <> contents <> "`"
 inlineToRST (Span (_,_,kvs) ils) = do
   contents <- writeInlines ils
   return $
@@ -750,7 +795,7 @@ inlineToRST (Code _ str) = do
   -- we use :literal: when the code contains backticks, since
   -- :literal: allows backslash-escapes; see #3974
   return $
-    if '`' `elemText` str
+    if T.any (== '`') str
        then ":literal:`" <> literal (escapeText opts (trim str)) <> "`"
        else "``" <> literal (trim str) <> "``"
 inlineToRST (Str str) = do
@@ -763,7 +808,7 @@ inlineToRST (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
               then ":math:`" <> literal str <> "`"
-              else if '\n' `elemText` str
+              else if T.any (== '\n') str
                    then blankline $$ ".. math::" $$
                         blankline $$ nest 3 (literal str) $$ blankline
                    else blankline $$ (".. math:: " <> literal str) $$ blankline

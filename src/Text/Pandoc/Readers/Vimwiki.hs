@@ -70,19 +70,19 @@ import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
                                ListNumberStyle (..), Pandoc (..),
                                nullMeta)
 import Text.Pandoc.Options (ReaderOptions)
-import Text.Pandoc.Parsing (ParserState, ParserT, blanklines, emailAddress,
+import Text.Pandoc.Parsing (ParserState, ParsecT, blanklines, emailAddress,
                             many1Till, orderedListMarker, readWithM,
                             registerHeader, spaceChar, stateMeta,
                             stateOptions, uri, manyTillChar, manyChar, textStr,
                             many1Char, countChar, many1TillChar,
                             alphaNum, anyChar, char, newline, noneOf, oneOf,
-                            space, spaces, string)
+                            space, spaces, string, choice, eof, lookAhead,
+                            many1, many, manyTill, notFollowedBy,
+                            skipMany1, try, option,
+                            updateState, getState, (<|>))
 import Text.Pandoc.Sources (ToSources(..), Sources)
-import Text.Pandoc.Shared (splitTextBy, stringify, stripFirstAndLast,
-                           isURI, tshow)
-import Text.Parsec.Combinator (between, choice, eof, lookAhead, many1,
-                               manyTill, notFollowedBy, option, skipMany1)
-import Text.Parsec.Prim (getState, many, try, updateState, (<|>))
+import Text.Pandoc.Shared (splitTextBy, stringify, stripFirstAndLast, tshow)
+import Text.Pandoc.URI (isURI)
 
 readVimwiki :: (PandocMonad m, ToSources a)
             => ReaderOptions
@@ -95,7 +95,7 @@ readVimwiki opts s = do
        Left e       -> throwError e
        Right result -> return result
 
-type VwParser = ParserT Sources ParserState
+type VwParser = ParsecT Sources ParserState
 
 
 -- constants
@@ -345,8 +345,9 @@ blocksThenInline = try $ do
 
 listTodoMarker :: PandocMonad m => VwParser m Inlines
 listTodoMarker = try $ do
-  x <- between (many spaceChar >> char '[') (char ']' >> spaceChar)
-    (oneOf " .oOX")
+  x <- (many spaceChar >> char '[')
+       *> oneOf " .oOX"
+       <* (char ']' >> spaceChar)
   return $ makeListMarkerSpan x
 
 makeListMarkerSpan :: Char -> Inlines
@@ -506,7 +507,7 @@ bareURL = try $ do
 
 strong :: PandocMonad m => VwParser m Inlines
 strong = try $ do
-  s <- lookAhead $ between (char '*') (char '*') (many1 $ noneOf "*")
+  s <- lookAhead $ char '*' *> many1 (noneOf "*") <* char '*'
   guard $ (head s `notElem` spaceChars)
              && (last s `notElem` spaceChars)
   char '*'
@@ -520,7 +521,7 @@ makeId i = T.concat (stringify <$> toList i)
 
 emph :: PandocMonad m => VwParser m Inlines
 emph = try $ do
-  s <- lookAhead $ between (char '_') (char '_') (many1 $ noneOf "_")
+  s <- lookAhead $ char '_' *> many1 (noneOf "_") <* char '_'
   guard $ (head s `notElem` spaceChars)
           && (last s `notElem` spaceChars)
   char '_'

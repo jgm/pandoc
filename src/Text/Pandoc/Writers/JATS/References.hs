@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.JATS.References
-   Copyright   : © 2021-2022 Albert Krewinkel
+   Copyright   : © 2021-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb@zeitkraut.de>
@@ -147,13 +147,11 @@ fourDigits :: Int -> Text
 fourDigits n = T.takeEnd 4 $ "000" <> tshow n
 
 toNameElements :: Name -> Doc Text
-toNameElements name =
-  if not (isEmpty nameTags)
-  then inTags' "name" [] nameTags
-  else if nameLiteral name == Just "others"  -- indicates an "et al."
-       then "<etal/>"
-       else nameLiteral name `inNameTag` "string-name"
-    where
+toNameElements name
+  | not (isEmpty nameTags) = inTags' "name" [] nameTags
+  | nameLiteral name == Just "others" = "<etal/>"
+  | otherwise = nameLiteral name `inNameTag` "string-name"
+  where
       inNameTag mVal tag = case mVal of
         Nothing  -> empty
         Just val -> inTags' tag [] . literal $ escapeStringForXML val

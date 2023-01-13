@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 {- |
    Module      : Text.Pandoc.URI
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -16,13 +16,12 @@ module Text.Pandoc.URI ( urlEncode
                        , schemes
                        , uriPathToPath
                        ) where
-import Network.URI (URI (uriScheme), parseURI)
 import qualified Network.HTTP.Types as HTTP
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
 import qualified Data.Set as Set
-import Data.Char (isSpace)
-import Network.URI (escapeURIString)
+import Data.Char (isSpace, isAscii)
+import Network.URI (URI (uriScheme), parseURI, escapeURIString)
 
 urlEncode :: T.Text -> T.Text
 urlEncode = UTF8.toText . HTTP.urlEncode True . UTF8.fromText
@@ -91,7 +90,9 @@ schemes = Set.fromList
 -- | Check if the string is a valid URL with a IANA or frequently used but
 -- unofficial scheme (see @schemes@).
 isURI :: T.Text -> Bool
-isURI = maybe False hasKnownScheme . parseURI . T.unpack
+isURI =
+  -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
+  maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack
   where
     hasKnownScheme = (`Set.member` schemes) . T.toLower .
                      T.filter (/= ':') . T.pack . uriScheme

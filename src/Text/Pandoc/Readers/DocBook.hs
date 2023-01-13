@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 {- |
    Module      : Text.Pandoc.Readers.DocBook
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -13,7 +14,13 @@
 Conversion of DocBook XML to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
+import Control.Monad (MonadPlus(mplus))
 import Control.Monad.State.Strict
+    ( MonadTrans(lift),
+      StateT(runStateT),
+      MonadState(get),
+      gets,
+      modify )
 import Data.ByteString (ByteString)
 import Data.FileEmbed
 import Data.Char (isSpace, isLetter, chr)
@@ -31,7 +38,7 @@ import Data.Text.Encoding (decodeUtf8)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Control.Monad.Except (throwError)
-import Text.HTML.TagSoup.Entity (lookupEntity)
+import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -798,33 +805,39 @@ getMediaobject :: PandocMonad m => Element -> DB m Inlines
 getMediaobject e = do
   figTitle <- gets dbFigureTitle
   ident <- gets dbFigureId
-  (imageUrl, attr) <-
-    case filterElements (named "imageobject") e of
-      []  -> return (mempty, nullAttr)
-      (z:_) -> case filterChild (named "imagedata") z of
-                    Nothing -> return (mempty, nullAttr)
-                    Just i  -> let atVal a = attrValue a i
-                                   w = case atVal "width" of
-                                         "" -> []
-                                         d  -> [("width", d)]
-                                   h = case atVal "depth" of
-                                         "" -> []
-                                         d  -> [("height", d)]
-                                   id' = case atVal "id" of
-                                           x | T.null x  -> ident
-                                             | otherwise -> x
-                                   cs = T.words $ atVal "role"
-                                   atr = (id', cs, w ++ h)
-                               in  return (atVal "fileref", atr)
+  let (imageUrl, tit, attr) =
+        case filterElements (named "imageobject") e of
+          []  -> (mempty, mempty, nullAttr)
+          (z:_) ->
+            let tit' = maybe "" strContent $
+                         filterChild (named "objectinfo") z >>=
+                         filterChild (named "title")
+                (imageUrl', attr') =
+                  case filterChild (named "imagedata") z of
+                        Nothing -> (mempty, nullAttr)
+                        Just i  -> let atVal a = attrValue a i
+                                       w = case atVal "width" of
+                                             "" -> []
+                                             d  -> [("width", d)]
+                                       h = case atVal "depth" of
+                                             "" -> []
+                                             d  -> [("height", d)]
+                                       id' = case atVal "id" of
+                                               x | T.null x  -> ident
+                                                 | otherwise -> x
+                                       cs = T.words $ atVal "role"
+                                       atr = (id', cs, w ++ h)
+                                   in  (atVal "fileref", atr)
+            in  (imageUrl', tit', attr')
   let getCaption el = case filterChild (\x -> named "caption" x
                                             || named "textobject" x
                                             || named "alt" x) el of
                         Nothing -> return mempty
-                        Just z  -> mconcat <$>
+                        Just z  -> trimInlines . mconcat <$>
                                          mapM parseInline (elContent z)
   let (capt, title) = if null figTitle
-                         then (getCaption e, "")
-                         else (return figTitle, "fig:")
+                         then (getCaption e, tit)
+                         else (return figTitle, "fig:" <> tit)
   fmap (imageWith attr imageUrl title) capt
 
 getBlocks :: PandocMonad m => Element -> DB m Blocks
@@ -1166,7 +1179,7 @@ attrValueAsOptionalAttr n e = case attrValue n e of
 parseInline :: PandocMonad m => Content -> DB m Inlines
 parseInline (Text (CData _ s _)) = return $ text s
 parseInline (CRef ref) =
-  return $ text $ maybe (T.toUpper ref) T.pack $ lookupEntity (T.unpack ref)
+  return $ text $ fromMaybe (T.toUpper ref) $ lookupEntity ref
 parseInline (Elem e) =
   case qName (elName e) of
         "anchor" -> do
@@ -1265,7 +1278,10 @@ parseInline (Elem e) =
         "ulink" -> innerInlines (link (attrValue "url" e) "")
         "link" -> do
              ils <- innerInlines id
-             let href = case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
+             let href = case findAttrBy
+                               (\case
+                                 QName "href" _ _ -> True
+                                 _ -> False) e of
                                Just h -> h
                                _      -> "#" <> attrValue "linkend" e
              let ils' = if ils == mempty then str href else ils

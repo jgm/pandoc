@@ -1,8 +1,11 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+#ifdef EMBED_DATA_FILES
 {-# LANGUAGE TemplateHaskell #-}
+#endif
 {- |
 Module      : Text.Pandoc.Data
-Copyright   : Copyright (C) 2013-2022 John MacFarlane
+Copyright   : Copyright (C) 2013-2023 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -14,6 +17,7 @@ Access to pandoc's data files.
 module Text.Pandoc.Data ( readDefaultDataFile
                         , readDataFile
                         , getDataFileNames
+                        , defaultUserDataDir
                         ) where
 import Text.Pandoc.Class (PandocMonad(..), checkUserDataDir, getTimestamp,
                           getUserDataDir, getPOSIXTime)
@@ -25,12 +29,13 @@ import qualified Data.Text as T
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(..))
 import System.FilePath
+import System.Directory
+import qualified Control.Exception as E
 #ifdef EMBED_DATA_FILES
 import Text.Pandoc.Data.BakedIn (dataFiles)
 import Text.Pandoc.Shared (makeCanonical)
 #else
 import Paths_pandoc (getDataDir)
-import System.Directory (getDirectoryContents)
 #endif
 
 -- | Read file from from the default data files.
@@ -197,7 +202,7 @@ getDefaultReferencePptx = do
               ]
   let toLazy = BL.fromChunks . (:[])
   let pathToEntry path = do
-        epochtime <- floor . utcTimeToPOSIXSeconds <$> getCurrentTime
+        epochtime <- floor <$> getPOSIXTime
         contents <- toLazy <$> readDataFile ("pptx/" ++ path)
         return $ toEntry path epochtime contents
   datadir <- getUserDataDir
@@ -222,3 +227,21 @@ getDataFileNames = do
                       (getDataDir >>= getDirectoryContents)
 #endif
   return $ "reference.docx" : "reference.odt" : "reference.pptx" : allDataFiles
+
+-- | Return appropriate user data directory for platform.  We use
+-- XDG_DATA_HOME (or its default value), but for backwards compatibility,
+-- we fall back to the legacy user data directory ($HOME/.pandoc on *nix)
+-- if the XDG_DATA_HOME is missing and this exists.  If neither directory
+-- is present, we return the XDG data directory.  If the XDG data directory
+-- is not defined (e.g. because we are in an environment where $HOME is
+-- not defined), we return the empty string.
+defaultUserDataDir :: IO FilePath
+defaultUserDataDir = do
+  xdgDir <- E.catch (getXdgDirectory XdgData "pandoc")
+               (\(_ :: E.SomeException) -> return mempty)
+  legacyDir <- getAppUserDataDirectory "pandoc"
+  xdgExists <- doesDirectoryExist xdgDir
+  legacyDirExists <- doesDirectoryExist legacyDir
+  if not xdgExists && legacyDirExists
+     then return legacyDir
+     else return xdgDir

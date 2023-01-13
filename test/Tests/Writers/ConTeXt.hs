@@ -9,6 +9,7 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
+import qualified Data.Text as T
 
 context :: (ToPandoc a) => a -> String
 context = unpack . purely (writeConTeXt def) . toPandoc
@@ -44,16 +45,17 @@ infix 4 =:
 tests :: [TestTree]
 tests =
   [ testGroup "inline code"
-    [ "with '}'" =: code "}" =?> "\\mono{\\}}"
+    [ "with '}'" =: code "}" =?> "\\type\"}\""
     , "without '}'" =: code "]" =?> "\\type{]}"
     , "span with ID" =:
       spanWith ("city", [], []) "Berlin" =?>
       "\\reference[city]{}Berlin"
-    , testProperty "code property" $ \s -> null s || '\n' `elem` s ||
-            if '{' `elem` s || '}' `elem` s
-               then context' (code $ pack s) == "\\mono{" ++
-                         context' (str $ pack s) ++ "}"
-               else context' (code $ pack s) == "\\type{" ++ s ++ "}"
+    , testProperty "code property" $ \s ->
+        null s || '\n' `elem` s ||
+        case T.stripPrefix "\\type" (pack $ context' (code $ pack s))
+             >>= T.uncons of
+          Just (c, _) -> c `notElem` s
+          Nothing     -> False
     ]
   , testGroup "headers"
     [ "level 1" =:

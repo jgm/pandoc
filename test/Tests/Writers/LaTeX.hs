@@ -76,11 +76,11 @@ tests = [ testGroup "code blocks"
           [ "struck out and highlighted" =:
             strikeout (codeWith ("",["haskell"],[]) "foo" <> space
               <> str "bar") =?>
-            "\\sout{\\mbox{\\VERB|\\NormalTok{foo}|} bar}"
+            "\\st{\\mbox{\\VERB|\\NormalTok{foo}|} bar}"
           , "struck out and not highlighted" =:
             strikeout (code "foo" <> space
               <> str "bar") =?>
-            "\\sout{\\mbox{\\texttt{foo}} bar}"
+            "\\st{\\mbox{\\texttt{foo}} bar}"
           , "single quotes" =:
               code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
           , "backtick" =:

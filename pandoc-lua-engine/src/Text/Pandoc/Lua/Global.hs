@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Lua
-   Copyright   : Copyright © 2017-2022 Albert Krewinkel
+   Copyright   : Copyright © 2017-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -25,7 +25,7 @@ import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
 import Text.Pandoc.Lua.PandocLua ()
 import Text.Pandoc.Options (ReaderOptions, WriterOptions)
-import Text.Pandoc.Shared (pandocVersion)
+import Text.Pandoc.Version (pandocVersion)
 
 import qualified Data.Text as Text
 

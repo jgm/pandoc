@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.System
-   Copyright   : © 2019-2022 Albert Krewinkel
+   Copyright   : © 2019-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
-   Copyright   : © 2008-2022 John MacFarlane,
+   Copyright   : © 2008-2023 John MacFarlane,
                    2017-2019 Alex Ivkin
    License     : GNU GPL, version 2 or above
 
@@ -32,7 +32,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..),
            WriterOptions (writerTableOfContents, writerTemplate,
                           writerWrapText))
-import Text.Pandoc.Shared (escapeURI, isURI, linesToPara, removeFormatting, trimr)
+import Text.Pandoc.Shared (linesToPara, removeFormatting, trimr)
+import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
 

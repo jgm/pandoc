@@ -7,7 +7,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.HTML
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -30,9 +30,13 @@ module Text.Pandoc.Writers.HTML (
   tagWithAttributes
   ) where
 import Control.Monad.State.Strict
+    ( StateT, MonadState(get), gets, modify, evalStateT )
+import Control.Monad ( liftM, when, foldM, unless )
+import Control.Monad.Trans ( MonadTrans(lift) )
 import Data.Char (ord)
 import Data.List (intercalate, intersperse, partition, delete, (\\), foldl')
 import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.Containers.ListUtils (nubOrd)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -44,8 +48,6 @@ import Text.DocLayout (render, literal, Doc)
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
 import Text.Blaze.Html hiding (contents)
-import Text.Pandoc.Translations (Term(Abstract))
-import Text.Pandoc.CSS (cssAttributes)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtml4Block,
                  formatHtmlInline, highlight, styleToCss)
@@ -69,7 +71,7 @@ import Text.Blaze.Html.Renderer.Text (renderHtml)
 import qualified Text.Blaze.XHtml1.Transitional as H
 import qualified Text.Blaze.XHtml1.Transitional.Attributes as A
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
-import Text.Pandoc.Translations (translateTerm)
+import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.Class.PandocPure (runPure)
 import Text.Pandoc.Error
 import Text.Pandoc.Logging
@@ -339,15 +341,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
           H.link ! A.rel "stylesheet" !
             A.href (toValue $ url <> "katex.min.css")
 
-        _ -> case lookupContext "mathml-script"
-                  (writerVariables opts) of
-                    Just s | not (stHtml5 st) ->
-                      H.script ! A.type_ "text/javascript"
-                        $ preEscapedString
-                          ("/*<![CDATA[*/\n" <> T.unpack s <>
-                          "/*]]>*/\n")
-                          | otherwise -> mempty
-                    Nothing -> mempty
+        _ -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
   let context :: Context Text
       context =   (if stHighlighting st
@@ -830,7 +824,7 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
     res <- blockListToHtml opts innerSecs
     modify $ \st -> st{ stInSection = inSection }
     return res
-  let classes' = ordNub $
+  let classes' = nubOrd $
                   ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
@@ -929,7 +923,9 @@ blockToHtmlInner opts (RawBlock f str) = do
      else if (f == Format "latex" || f == Format "tex") &&
              allowsMathEnvironments (writerHTMLMathMethod opts) &&
              isMathEnvironment str
-             then blockToHtml opts $ Plain [Math DisplayMath str]
+             then do
+               modify (\st -> st {stMath = True})
+               blockToHtml opts $ Plain [Math DisplayMath str]
              else do
                report $ BlockNotRendered (RawBlock f str)
                return mempty
@@ -1265,13 +1261,6 @@ tableRowToHtml opts (TableRow tblpart attr rownum rowhead rowbody) = do
     rowHtml
     nl
 
-alignmentToString :: Alignment -> Maybe Text
-alignmentToString = \case
-  AlignLeft    -> Just "left"
-  AlignRight   -> Just "right"
-  AlignCenter  -> Just "center"
-  AlignDefault -> Nothing
-
 colspanAttrib :: ColSpan -> Attribute
 colspanAttrib = \case
   ColSpan 1 -> mempty
@@ -1307,12 +1296,12 @@ tableCellToHtml opts ctype colAlign (Cell attr align rowspan colspan item) = do
   let align' = case align of
         AlignDefault -> colAlign
         _            -> align
-  let kvs' = case alignmentToString align' of
+  let kvs' = case htmlAlignmentToString align' of
                Nothing ->
                  kvs
                Just alignStr ->
                  if html5
-                 then addStyle ("text-align", alignStr) kvs
+                 then htmlAddStyle ("text-align", alignStr) kvs
                  else case break ((== "align") . fst) kvs of
                    (_, []) -> ("align", alignStr) : kvs
                    (xs, _:rest) -> xs ++ ("align", alignStr) : rest
@@ -1324,23 +1313,6 @@ tableCellToHtml opts ctype colAlign (Cell attr align rowspan colspan item) = do
   return $ do
     tag' ! attribs $ contents
     nl
-
--- | Adds a key-value pair to the @style@ attribute.
-addStyle :: (Text, Text) -> [(Text, Text)] -> [(Text, Text)]
-addStyle (key, value) kvs =
-  let cssToStyle = T.intercalate " " . map (\(k, v) -> k <> ": " <> v <> ";")
-  in case break ((== "style") . fst) kvs of
-    (_, []) ->
-      -- no style attribute yet, add new one
-      ("style", cssToStyle [(key, value)]) : kvs
-    (xs, (_,cssStyles):rest) ->
-      -- modify the style attribute
-      xs ++ ("style", cssToStyle modifiedCssStyles) : rest
-      where
-        modifiedCssStyles =
-          case break ((== key) . fst) $ cssAttributes cssStyles of
-            (cssAttribs, []) -> (key, value) : cssAttribs
-            (pre, _:post)    -> pre ++ (key, value) : post
 
 toListItems :: [Html] -> [Html]
 toListItems items = map toListItem items ++ [nl]
@@ -1542,9 +1514,13 @@ inlineToHtml opts inline = do
            case istex of
              True
                | allowsMathEnvironments mm && isMathEnvironment str
-                 -> inlineToHtml opts $ Math DisplayMath str
+                 -> do
+                    modify (\st -> st {stMath = True})
+                    inlineToHtml opts $ Math DisplayMath str
                | allowsRef mm && isRef str
-                 -> inlineToHtml opts $ Math InlineMath str
+                 -> do
+                    modify (\st -> st {stMath = True})
+                    inlineToHtml opts $ Math InlineMath str
              _ -> do report $ InlineNotRendered inline
                      return mempty
     (Link attr txt (s,_)) | "mailto:" `T.isPrefixOf` s -> do
@@ -1704,6 +1680,7 @@ isMathEnvironment s = "\\begin{" `T.isPrefixOf` s &&
                      , "multline"
                      , "multline*"
                      , "pmatrix"
+                     , "prooftree" -- bussproofs
                      , "smallmatrix"
                      , "split"
                      , "subarray"

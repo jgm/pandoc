@@ -12,7 +12,7 @@ stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
 tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
-                 GHC == 9.2.3
+                 GHC == 9.2.5, GHC == 9.4.4
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another.  The formats it can handle include
@@ -48,8 +48,10 @@ description:     Pandoc is a Haskell library for converting from one markup
 data-files:
                  -- templates
                  data/templates/styles.html
+                 data/templates/styles.citations.html
                  data/templates/default.html4
                  data/templates/default.html5
+                 data/templates/default.chunkedhtml
                  data/templates/default.docbook4
                  data/templates/default.docbook5
                  data/templates/default.jats_archiving
@@ -179,8 +181,6 @@ data-files:
                  data/dzslides/template.html
                  -- default abbreviations file
                  data/abbreviations
-                 -- sample lua custom writer
-                 data/sample.lua
                  -- sample lua custom reader
                  data/creole.lua
                  -- lua init script
@@ -464,7 +464,7 @@ library
                  Glob                  >= 0.7      && < 0.11,
                  JuicyPixels           >= 3.1.6.1  && < 3.4,
                  SHA                   >= 1.6      && < 1.7,
-                 aeson                 >= 2.0      && < 2.2,
+                 aeson                 >= 2.0.1.0  && < 2.2,
                  aeson-pretty          >= 0.8.9    && < 0.9,
                  array                 >= 0.5      && < 0.6,
                  attoparsec            >= 0.12     && < 0.15,
@@ -483,7 +483,7 @@ library
                  deepseq               >= 1.3      && < 1.5,
                  directory             >= 1.2.3    && < 1.4,
                  doclayout             >= 0.4      && < 0.5,
-                 doctemplates          >= 0.10     && < 0.11,
+                 doctemplates          >= 0.11     && < 0.12,
                  base64                >= 0.4      && < 0.5,
                  emojis                >= 0.1      && < 0.2,
                  exceptions            >= 0.8      && < 0.11,
@@ -495,9 +495,9 @@ library
                  http-client-tls       >= 0.2.4    && < 0.4,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,
-                 jira-wiki-markup      >= 1.4      && < 1.5,
+                 jira-wiki-markup      >= 1.5      && < 1.6,
                  mime-types            >= 0.1.1    && < 0.2,
-                 mtl                   >= 2.2      && < 2.3,
+                 mtl                   >= 2.2      && < 2.4,
                  network               >= 2.6,
                  network-uri           >= 2.6      && < 2.8,
                  pandoc-types          >= 1.22.2   && < 1.23,
@@ -508,8 +508,8 @@ library
                  random                >= 1        && < 1.3,
                  safe                  >= 0.3.18   && < 0.4,
                  scientific            >= 0.3      && < 0.4,
-                 skylighting           >= 0.13     && < 0.14,
-                 skylighting-core      >= 0.13     && < 0.14,
+                 skylighting           >= 0.13.2   && < 0.14,
+                 skylighting-core      >= 0.13.2   && < 0.14,
                  split                 >= 0.2      && < 0.3,
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
@@ -570,7 +570,7 @@ library
                    Text.Pandoc.Readers.TikiWiki,
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
-                   Text.Pandoc.Readers.Odt,
+                   Text.Pandoc.Readers.ODT,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Readers.Man,
@@ -581,10 +581,11 @@ library
                    Text.Pandoc.Readers.RTF,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
-                   Text.Pandoc.Writers.Docbook,
+                   Text.Pandoc.Writers.DocBook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
                    Text.Pandoc.Writers.HTML,
+                   Text.Pandoc.Writers.ChunkedHTML,
                    Text.Pandoc.Writers.Ipynb,
                    Text.Pandoc.Writers.ICML,
                    Text.Pandoc.Writers.Jira,
@@ -635,7 +636,9 @@ library
                    Text.Pandoc.ImageSize,
                    Text.Pandoc.Class,
                    Text.Pandoc.Class.IO,
-                   Text.Pandoc.Citeproc
+                   Text.Pandoc.Citeproc,
+                   Text.Pandoc.Chunks,
+                   Text.Pandoc.Version
   other-modules:   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Input,
@@ -656,7 +659,7 @@ library
                    Text.Pandoc.Parsing.Math,
                    Text.Pandoc.Parsing.Smart,
                    Text.Pandoc.Parsing.State,
-                   Text.Pandoc.Parsing.Types,
+                   Text.Pandoc.Parsing.Future,
                    Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
                    Text.Pandoc.Readers.Docx.Parse,
@@ -675,17 +678,17 @@ library
                    Text.Pandoc.Readers.LaTeX.Parsing,
                    Text.Pandoc.Readers.LaTeX.SIunitx,
                    Text.Pandoc.Readers.LaTeX.Table,
-                   Text.Pandoc.Readers.Odt.Base,
-                   Text.Pandoc.Readers.Odt.Namespaces,
-                   Text.Pandoc.Readers.Odt.StyleReader,
-                   Text.Pandoc.Readers.Odt.ContentReader,
-                   Text.Pandoc.Readers.Odt.Generic.Fallible,
-                   Text.Pandoc.Readers.Odt.Generic.SetMap,
-                   Text.Pandoc.Readers.Odt.Generic.Utils,
-                   Text.Pandoc.Readers.Odt.Generic.Namespaces,
-                   Text.Pandoc.Readers.Odt.Generic.XMLConverter,
-                   Text.Pandoc.Readers.Odt.Arrows.State,
-                   Text.Pandoc.Readers.Odt.Arrows.Utils,
+                   Text.Pandoc.Readers.ODT.Base,
+                   Text.Pandoc.Readers.ODT.Namespaces,
+                   Text.Pandoc.Readers.ODT.StyleReader,
+                   Text.Pandoc.Readers.ODT.ContentReader,
+                   Text.Pandoc.Readers.ODT.Generic.Fallible,
+                   Text.Pandoc.Readers.ODT.Generic.SetMap,
+                   Text.Pandoc.Readers.ODT.Generic.Utils,
+                   Text.Pandoc.Readers.ODT.Generic.Namespaces,
+                   Text.Pandoc.Readers.ODT.Generic.XMLConverter,
+                   Text.Pandoc.Readers.ODT.Arrows.State,
+                   Text.Pandoc.Readers.ODT.Arrows.Utils,
                    Text.Pandoc.Readers.Org.BlockStarts,
                    Text.Pandoc.Readers.Org.Blocks,
                    Text.Pandoc.Readers.Org.DocumentTree,
@@ -748,9 +751,9 @@ test-suite test-pandoc
                   bytestring        >= 0.9     && < 0.12,
                   containers        >= 0.4.2.1 && < 0.7,
                   directory         >= 1.2.3   && < 1.4,
-                  doctemplates      >= 0.10    && < 0.11,
+                  doctemplates      >= 0.11    && < 0.12,
                   filepath          >= 1.1     && < 1.5,
-                  mtl               >= 2.2     && < 2.3,
+                  mtl               >= 2.2     && < 2.4,
                   pandoc-types      >= 1.22.2  && < 1.23,
                   process           >= 1.2.3   && < 1.7,
                   tasty             >= 0.11    && < 1.5,
@@ -787,7 +790,7 @@ test-suite test-pandoc
                   Tests.Readers.RST
                   Tests.Readers.RTF
                   Tests.Readers.Docx
-                  Tests.Readers.Odt
+                  Tests.Readers.ODT
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
                   Tests.Readers.Muse
@@ -797,7 +800,7 @@ test-suite test-pandoc
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
-                  Tests.Writers.Docbook
+                  Tests.Writers.DocBook
                   Tests.Writers.HTML
                   Tests.Writers.JATS
                   Tests.Writers.Jira
@@ -824,7 +827,7 @@ benchmark benchmark-pandoc
   hs-source-dirs:  benchmark
   build-depends:   bytestring,
                    tasty-bench >= 0.2     && <= 0.4,
-                   mtl         >= 2.2     && < 2.3,
+                   mtl         >= 2.2     && < 2.4,
                    text        >= 1.1.1.0 && < 2.1,
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:

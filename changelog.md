@@ -16,16 +16,46 @@
   * A new command-line option `--list-tables`, causes tables to be
     formatted as list tables in RST (#4564, with Francesco Occhipinti).
 
+  * New command line option: `--epub-title-page=true|false` allows
+    the EPUB title page to be omitted (#6097).
+
+  * Replace `--epub-chapter-level` with `--split-level`, which also
+    now affects the `chunkedhtml` format. `--epub-chapter-level`
+    will still function as a deprecated synonynm.
+    `epub-chapter-level` will also continue to work in defaults
+    files, ande `epub_chapter_level` will still work for Lua
+    marshalling.
+
+  * `--reference-doc` can now accept a URL argument (#8535) and
+    load a remote reference doc.
+
   * `--version` output no longer contains version info for dependent
     packages. Instead, it contains a "Features" line that indicates
     whether the binary was compiled with support for acting as a server,
     and for using Lua filters and Custom writers.
+
+  * A new option `--split-level` replaces `--epub-chapter-level`
+    and affects both EPUB and chunked HTML output.  `--epub-chapter-level`
+    will still work but is deprecated.
+
+  * Multiple input files with `--file-scope`: fix case where the links
+    are URL-encoded, e.g. with `%20` (#8467).
 
   * Produce error if `--csl` is used more than once (#8195, Prat).
 
   * Remove deprecated `--atx-headers` option.
 
   * Remove deprecated option `--strip-empty-paragraphs`.
+
+  * In `--verbose` mode add message when running citeproc (as with
+    other filters).
+
+  * Add new `mark` extension for highlighted text (#7743).
+
+  * pandoc-server:
+
+    + Add simple CORS support to pandoc-server (#8427).
+    + Print message to stderr when starting the server.
 
   * Add prefixes to identifiers with `--file-scope` (#6384).
     This change only affects the case where `--file-scope` is used
@@ -40,21 +70,84 @@
     identifier derived from the file path will be added around
     each file's content, so that links to files will still work.
 
+  * New output format: `chunkedhtml`. This creates a zip file
+    containing multiple HTML files, one for each section,
+    linked with "next," "previous," "up," and "top" links.
+    (If `-o` is used with an argument without an extension,
+    it is treated as a directory and the zip file is automatically
+    extracted there, unless it already exists.) The top page will
+    contain a table of contents if `--toc` is used.  The option
+    `--split-level` determines the level at which sections are
+    to be split.
+
+  * Changes in custom readers/writers:
+
+    + It is now possible to have a custom reader and a custom writer for
+      a format together in the same file.  The file may also define
+      a custom template for the writer.
+    + Pandoc now checks the folder `custom` in the user's data directory
+      for a matching script if it can't find one in the local directory.
+      Previously, the `readers` and `writers` data directories were
+      searched for custom readers and writers, respectively. Scripts in
+      those directories must be moved to the `custom` folder.
+    + Custom readers used to implement a fallback behavior that allowed to
+      consume just a string value as input to the `Reader` function. This
+      has been removed, the first argument is now always a list of
+      sources. Use `tostring` on that argument to get a string.
+
+  * New module Text.Pandoc.Writers.ChunkedHTML,
+    exporting `writeChunkedHtml` [API change].
+
+  * We now set the `pandoc-version` variable centrally rather
+    than in the writers.  One effect is the man writer now emits
+    a comment with the pandoc version.
+
   * Docx reader:
 
     + Mark unnumbered headings with class `unnumbered` (#8148,
       Albert Krewinkel). This change ensures good conversion
       results when converting with `--number-sections`.
+    + Support parsing of highlighted text.
+    + Fix handling of `oMathPara` in `w:p` with other content (#8483).
+
+  * ODT reader:
+
+    + Fix relative links. ODT adds a `../` to relative links
+      (see #3524); this needs to be removed when converting from ODT.
+    + Handle "section" elements (#8409).
+    + Rename Text.Pandoc.Readers.Odt -> Text.Pandoc.Readers.ODT,
+      for consistency with Writers.ODT. Rename `readOdt` -> `readODT`.
+      [API change]
+
+  * DocBook reader:
+
+    + Support href on link even in a fragment (#8437).
+      (We now just look for an `href` attribute without
+      worrying about the namespace.)
+    + Parse title from imageobject/objectinfo (#8437).
 
   * JATS reader:
 
     + Handle uri element in references (#8270).
+
+  * Ipynb reader:
+
+    + Add cell id to attachment filename when storing in MediaBag (#8415).
+      Otherwise attachments with the same name can overwrite each other.
 
   * LaTeX reader:
 
     + Skip parenthenized args of toprule, midrule, etc (#8242).
     + Handle `##` macro arguments properly (#8243).
     + Remove unused function `toksToString` in Parsing module.
+    + Support more `soul` commands, including `\hl`.
+    + Add `unnumbered` class for `\part*` (#8447)
+    + Fix `TEXINPUTS` handling (#8392). If `TEXINPUTS` ends with `:`,
+      then the system default `TEXINPUTS` is added.  We handle this by
+      just adding the working directory in this case.
+    + Parse short table caption (see jgm/pandoc-types#103).
+      This is not too useful yet, because writers don't do anything with
+      the short caption.
 
   * Mediawiki reader:
 
@@ -63,10 +156,23 @@
 
   * HTML reader:
 
-    + Fix regression for `<tt>` (#8330). It was no longer being parsed as Code
-      (Justin Wood).
+    + Fix regression for `<tt>` (#8330). It was no longer being parsed as
+      Code (Justin Wood).
 
-  * Markdown reader:
+  * RST reader:
+
+    + Support `mark` role for round-trip.
+
+  * Textile reader:
+
+    + Support linked images (#8541).
+    + Fix strong emph ending with link (#8540).
+    + Adding a Parser to look for ordered list start attribute numbers
+      if any (#2465, vkraven).
+    + Handle empty paragraphs (#8487). Also, if attributes are added
+      explicitly to a paragraph, put it in a Div with the attributes.
+
+   * Markdown reader:
 
     + Allow fenced code block "bare" language to be combined
       with attributes (#8174, Siphalor), e.g.
@@ -94,6 +200,7 @@
       an implicit reference `[Heading text][]` refers to the first one.
       Previously pandoc linked to the last one instead. This patch
       makes pandoc conform to the documented behavior.
+    + Parse highlighted text inside `==..==` if `mark` extension enabled.
 
   * Org reader:
 
@@ -109,6 +216,8 @@
       This field is not officially supported for BibTeX, but many styles
       can handle it (<https://www.bibtex.com/f/url-field/>),
       and others will ignore it.
+    + Support `software` type in biblatex <-> CSL conversions (#8504).
+    + Make sure `version` field comes through in biblatex (#8504).
 
   * BibTeX writer:
 
@@ -119,16 +228,52 @@
     + Pass through unknown languages in code blocks (#8278), instead
       of producing `begin_example`.
 
+  * EndNote reader:
+
+    + Better error when parsing EndNote references fails.
+
+  * DocBook writer:
+
+    + Rename Text.Pandoc.Writers.Docbook -> Text.Pandoc.Writers.DocBook.
+      Rename `writeDocbook` -> `writeDocBook`, for consistency with
+      the DocBook reader's naming. [API change]
+    + Fix position of textobject (#8437). It is a child of
+      `inlinemediaobject`, not `imageobject`.
+    + Add regression tests for #8437.
+    + Render image alt text using textobject element (#8437).
+    + Don't indent contents of title element.
+
+  * ConTeXt writer (Albert Krewinkel):
+
+    + Support syntax highlighting for code.
+    + Always use `\type` for inline code.
+      Inline codes that contained curly braces where previously rendered
+      with `\mono`; this led to unexpected results when the presentation
+      of `\type` was customized, as those changes would not have
+      been applied to code rendered with `\mono`.
+    + Add support for unlisted, unnumbered headings (#8486).
+
   * LaTeX writer:
 
     + Do not repeat caption on headless tables (Albert Krewinkel).
-      The caption of headless tables was repeated on each page that contained
-      part of the table. It is now made part of the "first head", i.e. the
-      table head that is printed only once.
-    + Add separator line between table's body and its foot (Albert Krewinkel).
+      The caption of headless tables was repeated on each page that 
+      contained part of the table. It is now made part of the
+      "first head", i.e. the table head that is printed only once.
+    + Add separator line between table's body and its foot
+      (Albert Krewinkel).
     + Ignore languages with no babel equivalent, instead of generating an
       invalid command in the preamble (#8325).
     + Use `\includesvg` for SVGs and include the `svg` package (#8334).
+    + Use `soul` instead of `ulem` for strikeout, underline (#8411).
+      This handles things like hyphenation, line breaks, and nonbreaking
+      spaces better.
+    + Use `\toprule\noalign{}` instead of `\toprule()` in tables,
+      and similarly for `\midrule` and `\bottomrule` (#8223).
+      This facilitates redefining `\toprule`, `\midrule`, and `\bottomrule`
+      without needing to gobble the ()s. (Those who redefine these macros
+      on the assumption that they will be followed by `()` may need to
+      change their definitions.)
+    + Support highlighted text for Span with class `mark`.
 
   * JATS writer:
 
@@ -145,6 +290,8 @@
 
     + Render tables as list tables when the `--list-tables` option is
       specified (`writerListTables`) (#4564, Francesco Occhipinti).
+    + Improve inline escaping rules (#8380).
+    + Use special `mark` role for Span with class `mark`.
 
   * Commonmark writer:
 
@@ -161,10 +308,39 @@
       we replace it with a span.
     + Replace deprecated aria roles for bibliography entries (#8354).
       `doc-biblioentry` -> `listitem`, `doc-bibliography` -> `list`.
+    + Remove obsolete stuff about mathml-script.
+      This was a shim we used to include for mathml support.
+      We don't do anything with this any more, so this is dead code.
+    + Include math links if there are raw commands or environments that
+      can be interpreted as math e.g. by MathJax (#8469).
+    + Add prooftree to list of math environments (#8462). This will cause
+      raw LaTeX prooftree environments to be rendered appropriately when
+      `--mathjax` is used.
 
   * HTML, Markdown writers: filter out empty class attributes (#8251).
     These should not be generated by any pandoc readers, but they
     might be produced programatically.
+
+  * Markdown writer:
+
+    + Avoid HTML fallbacks in the generated TOC (Albert Krewinkel, #8131).
+      The generated table of contents usually has IDs for each TOC link,
+      allowing to link back to specific parts of the TOC. However, this
+      leads to unidiomatic markup in formats like gfm, which do not support
+      attributes on links and hence fall back to HTML. The IDs on TOC items
+      are now removed in that case, leading to more aesthetic TOCs.
+    + Escape `!` before `[` (#8254).
+    + Support `mark` extension.
+
+  * AsciiDoc writer:
+
+    + In link text, only replace commas with entities when they're in
+      Str elements.  If a link contains an image, it may have attributes,
+      and the commas there should not be converted (see #8437, #8070).
+
+  * ODT writer:
+
+    + Fix relative links (#3524).
 
   * Docx writer:
 
@@ -178,24 +354,104 @@
       Similarly, for bidi languages, we need to adjust `w:bidi`
       rather than `w:val`. We treat `he` and `ar` as bidi languages,
       `zh`, `ja`, `ko` as East Asian languages.
+    + Support relative image widths (Albert Krewinkel).
+      Image widths given in percent are interpreted to be relative to
+      the text width. Previously, percent widths were taken relative to
+      the image's native size, inconsistently with other writers.
+    + Avoid using 'error' for unassigned table cells (#8468). Instead,
+      throw a regular pandoc error.
+    + Render a Span with class `mark` as highlighted. Currently
+      yellow is hardcoded.
+
+  * MediaWiki writer:
+
+    + Use the 'new' table structure, so that colspan and rowspan are
+      supported (Wout Gevaert).
+
+  * Man writer:
+
+    + Use UTF-8 by default for non-ascii characters (#8507).
+      Only use groff escapes if `--ascii` has been specified on the
+      command line (`writerPreferAscii`).
+
+  * ICML writer:
+
+    + Use Contents element for images with raw data instead of a link
+      with a data: uri (#8398).
+
+  * EPUB writer:
+
+    + Refactor to use Text.Pandoc.Chunks.
+    + Refactored and simplified code.
+    + Make title page optional (#6097).
 
   * Ms writer:
 
     + Properly format display equations (#8308).
+    + Remove -C option on PSPIC. Some old versions don't support this
+      option, and since it's the default it shouldn't be necessary.
 
   * XWiki writer:
 
     + Use template if it is specified (#8296). Previously
       templates were ignored.
 
-  * LaTeX template: set fonts after Beamer theme (Jeremie Knuesel).
-    Beamer themes such as metropolis and saintpetersburg change the default
-    fonts. This change gives precedence to the user font settings by moving
-    them after the loading of the Beamer theme.
+  * LaTeX template:
+
+    + Set fonts after Beamer theme (Jeremie Knuesel). Beamer themes
+      such as metropolis and saintpetersburg change the default
+      fonts. This change gives precedence to the user font settings
+      by moving them after the loading of the Beamer theme.
+    + Set `\babelfont` when `mainlang` and `lang` are specified and
+      `pdflatex` is not being used (#8538). This is needed for good
+      results in Arabic.
+    + Add variable `urlstyle` (#8429, Amar Al-Zubaidi). This is set to
+      `same` by default, so users should not experience any change.
+
+  * HTML template:
+
+    + Remove default font size, line height and font family in
+      default inline css (#8423). `mainfont`, `fontsize`,
+      and `linestretch` can still be used as before; the only difference
+      is that we no longer provide opinionated defaults.
+      This commit also adds a `maxwidth` variable that sets `max-width`;
+      if not set, 36em is used as a default.
+    + Add `code { hyphens: manual; }`.
+    + Use `styles.citations.html` partial in `styles.html`.
+    + Fix class name `hanging` -> `hanging-indent` in
+      `styles.citations.html`.
+
+  * EPUB CSS changes: Reduce the amount of inline CSS used for EPUBs
+    (#8379). Almost everything is now in the default EPUB CSS
+    (`data/epub.css`), which can be overridden either by
+    putting `epub.css` in the user data directory or by using
+    `--css` on the command line.  Inline styles are only used
+    for syntax highlighting (which depends on the style
+    specified, and is only included on pages with highlighted
+    code) and for bibliography formatting (which can depend on
+    the CSL style, and is only used in the page containing the
+    bibliography).
+
+    Note that, for compatibility with older readers, we don't
+    use flexbox to style `column/columns` divs by default, as
+    we do in HTML.  Instead, we use an older method which only
+    works when there are two `column` divs inside a `columns`
+    div.  If you need more than two columns and aren't worried
+    about support for older EPUB readers, you can modify the
+    default CSS (there is a comment in the CSS telling you what
+    to do).
+
+  * Reveal.js template: prevent line-wrapping of parallax options
+    (#8503, Albert Krewinkel).
 
   * reference.pptx: Remove unsupported element (#8342, #6338, Link Swanson).
     The default template contained text above the header, which can mislead
     users into thinking there is a way to put text there using pandoc.
+
+  * Text.Pandoc.Readers.Metadata:
+
+    + Fix metadata parsing corner case (#8465).
+    + Don't fail on inline metadata beginning with newline (#8358).
 
   * Text.Pandoc.App:
 
@@ -203,6 +459,24 @@
       (Albert Krewinkel).
     + Move initial input-to-Pandoc code to internal submodule (Albert
       Krewinkel).
+    + Change `parseOptionsFromArgs` and `parseOptions` (#8406)
+      They now return `Either OptInfo Opt`. [API change]
+    + Add `OptInfo` type [API change].
+    + Add `handleOptInfo` function.  This performs the IO actions for
+      things like `--version` that were previously done in
+      `parseOptionsFromArgs` [API change].
+    + Add argument for a `ScriptingEngine` [API change].
+    + Unify check for standalone output (Albert Krewinkel).
+
+  * Text.Pandoc.App.OutputSettings:
+
+    + Remove unused field `outputWriterName` in `OutputSettings`
+      [API change].
+
+  * Text.Pandoc.App.Opt:
+
+    + New `optEpubTitlePage` field on `Opts` [API change] (#6097).
+    + Remove `optEpubChapterLevel`, add `optSplitLevel` [API change].
 
   * Text.Pandoc.Citeproc:
 
@@ -211,13 +485,14 @@
     + CslJson: allow an object with `items` property in addition to
       an array of references. This is what is returned by e.g.
       `https://api.zotero.org/groups/904125/items?v=...&format=csljson`
-    + Require a digit for an implicit "page" locator inside explicit locator
-      syntax `{...}` (#8288). Previously a locator specified as `{}` would
-      be rendered as `p.` with nothing after it.
+    + Require a digit for an implicit "page" locator inside explicit
+      locator syntax `{...}` (#8288). Previously a locator specified as
+      `{}` would be rendered as `p.` with nothing after it.
     + Update `sub verbo` to `sub-verbo` (#8315). This is a change in
       the term's canonical name in citeproc. As a result of this change,
       `sub verbo` locators have not worked in pandoc since citeproc 0.7.
-    + Text.Pandoc.Citeproc.MetaValue: remove unused function `metaValueToPath`.
+    + Text.Pandoc.Citeproc.MetaValue: remove unused function
+      `metaValueToPath`.
     + Add internal module Text.Pandoc.Citeproc.Name (#8345). This exports
       `toName`, which previously had been part of T.P.Citeproc.BibTeX,
       and allows for cleaner module dependencies.
@@ -229,6 +504,11 @@
     `parseFlavoredFormat`. It now operates in
     a PandocMonad and is based on the updated types.
 
+  * Text.Pandoc.Sources:
+
+    + Add UpdateSourcePos instances for String and
+      strict and lazy ByteString [API change].
+
   * Text.Pandoc.Extensions:
 
     + Fix JSON decoding of Extensions (#8352, Albert Krewinkel).
@@ -236,12 +516,58 @@
     + Remove `parseFormatSpec` [API change]. This has been moved
       to Text.Pandoc.Format and renamed as `parseFlavoredFormat`
       (Albert Krewinkel).
+    + Simpler implementation of Extensions based on Set
+      (benchmarks show no performance penalty).
+    + Add `CustomExtension` constructor to `Extension` [API change].
+    + Remove `Bounded`, `Enum` instances for `Extension`.
+    + Add `extensionsToList` function.
+    + Revise `readExtension` so it can handle `CustomExtension`, and so
+      that it returns a Text rather than `Maybe Text`.
+    + Add `showExtension`.
+    + Add `Ext_mark` extension [API change].
+
+  * Text.Pandoc.PDF:
+
+    + Fix `papersize` on PDF generation via ms (#8403).
+      We need to set an option in pdfroff in addition to including
+      a macro in the ms file. With this fix, `-Vpapersize=a4` should be
+      sufficient to produce A4 PDF via ms.
+    + Change default background color of PDFs generated via HTML (#8422,
+      Marcin Serwin).
 
   * Text.Pandoc.MIME:
 
     + Base module on package `mime-types`, which
       is already a transitive dependency (#8277, Albert Krewinkel).
     + Remove deprecated overrides (#8292).
+
+  * Text.Pandoc.XML:
+
+    + Re-export `lookupEntity` from commonmark-hs [API change].
+
+  * Text.Pandoc.Parsing:
+
+    + Remove gratuitious renaming of Parsec types. We were exporting
+      Parser, ParserT as synonyms of Parsec, ParsecT.
+      There is no good reason for this and it can cause confusion.
+      Also, when possible, we replace imports of Text.Parsec with
+      Text.Pandoc.Parsing. The idea is to make it easier, at some point,
+      to switch to megaparsec or another parsing engine if we want to.
+      New (re-)exports: `Stream(..)`, `updatePosString`, `SourceName`,
+      `Parsec`, `ParsecT`. Removed exports: `Parser`, `ParserT`
+      [API change].
+    + Export `errorMessages`, `messageString` [API change].
+    + Export `fromParsecError`, which can be used to turn a parsec
+      ParseError into a regular PandocParseError (#8382) [API change].
+    + Remove `nested` [API change]. It was not being used, and in fact it
+      was a bad idea from the beginning, as it had no hope of solving
+      the problem it was introduced to solve.
+    + Change `characterReference`, `charsInBalanced`. `characterReference`
+      so they now return a Text (some named references don't correspond
+      to a single Char). Use the the `lookupEntity` function from
+      commonmark-hs instead of the slow one from tagsoup [API change].
+    + `charsInBalanced` now takes a Text parser rather than a Char parser
+      as argument [API change].
 
   * Text.Pandoc.Shared:
 
@@ -250,15 +576,42 @@
     + Remove deprecated `deLink`. [API change]
     + Deprecate `notElemText`.
     + Deprecate `makeMeta`.
-    + Rename `pandocVersion` to (exported) `pandocVersionText` and add a new
-      `pandocVersion` that returns `Version` instead of `Text` [API change].
-      This is consistent with the type used for `pandocTypesVersion`
-      and allows to use the value where a Version type is required.
+    + Remove `pandocVersion` (now available in Text.Pandoc.Version
+      as `pandocVersionText`).
+    + Remove `findM` [API change]. This was only used in one place, and
+      can be replaced with simpler code.
+    + Remove deprecated `makeMeta` [API change].
+    + Remove `ordNub` [API change]. This is just `nubOrd` from
+      Data.Containers.ListUtils.
+    + Remove `mapLeft` [API change]. This is just a synonym for
+      Bifunctor.first.
+    + Remove `elemText`, `notElemText` [API change].
+    + Drop export of `pandocVersion` and `pandocVersionText`,
+      which are now exported by Text.Pandoc.Version.
+    + Remove `escapeURI`, `isURI`. These are now exported by
+      Text.Pandoc.URI, and removing them from Shared helps make
+      the module structure more straightforward.
+    + Use LineBreak as default block sep in `blocksToInlines`.
+      (#8499, Albert Krewinkel). This change also affects the
+      `pandoc.utils.blocks_to_inlines` Lua function.
+    + `defaultUserDataDir` is no longer exported (it has been
+      moved to T.P.Data) [API change].
+
+  * Text.Pandoc.Writers.Shared:
+
+    + Export `htmlAddStyle`, `htmlAlignmentToString` and `htmlAttrs`
+      [API change] (Wout Gevaert).
+    + Use 'literal tag' instead of 'text (T.unpack tag)' in `tagWithAttrs`
+      (Wout Gevaert).
+    + `toTableOfContents`: handle nested Divs better (#8402).
 
   * Rename Text.Pandoc.Network.HTTP -> Text.Pandoc.URI.
     This is still an unexported internal module.
     Export `urlEncode`, `escapeURI`, `isURI`, `schemes`, `uriPathToPath`.
     Drop exports of `schemes` and `uriPathToPath`.
+
+  * Text.Pandoc.URI `isURI`: don't require non-ASCII characters to be
+    escaped (#8508).
 
   * Rename Text.Pandoc.Readers.LaTeX.Types -> Text.Pandoc.TeX (internal
     module).
@@ -267,6 +620,9 @@
 
     + WriterOptions now has a field `writerListTables`,
       specifying that list tables be used in RST output [API change].
+    + New `writerEpubTitlePage` field on `WriterOptions` (#6097)
+      [API change].
+    + Remove `writerEpubChapterLevel`, add `writerSplitLevel` [API change].
 
   * Text.Pandoc.App:
 
@@ -278,6 +634,12 @@
     + Export `applyJSONFilter` [API Change] (Albert Krewinkel).
     + Parameterize `applyFilters` over scripting engine [API change] (Albert
       Krewinkel).
+
+  * New exported module Text.Pandoc.Chunks [API change].  This
+    module provides functions to split Pandoc documents into
+    chunks to be rendered in separate files, e.g. one per
+    section.  Internal identifiers are rewritten appropriately to
+    point to the new locations (#6122).
 
   * Text.Pandoc.Readers:
 
@@ -299,17 +661,23 @@
       if the input format can still contain extensions. The same is true
       for `compileDefaultTemplate`, which calls `getDefaultTemplate`
       internally
-    + Use filename to search for default template of custom writers
-      (#8137, Albert Krewinkel). The default template of a custom writer
-      `/path/to/my-writer.lua` is expected in the
-      `templates/default.my-writer.lua` data file. Note that templates
-      are *not* applied automatically to the output of custom
-      writers; custom writer authors must ensure that the template is applied
-      if one is present in the writer options.
+    + Add Wrapper type documentation (#8490, William Rusnack).
+
 
   * New exported module Text.Pandoc.Scripting (Albert Krewinkel).
     The module contains the central data structure for scripting engines
     (e.g., Lua) [API change].
+
+    The whole scripting engine has been refactored (#8417, John MacFarlane
+    and Albert Krewinkel).
+
+    The new type `CustomComponents` is exported, and the
+    `ScriptEngine` fields are changed. Instead of separate fields for custom
+    readers and writers, we now have a single function that loads any number
+    of "components" from a script: these may be custom readers, custom
+    writers, templates for writers, or extension configs. (This supports
+    having a custom reader and a custom writer for a format
+    together in the same file.)
 
   * Text.Pandoc.Error:
 
@@ -318,24 +686,38 @@
     + Add new PandocError constructor `PandocFormatError` [API change]
       (Albert Krewinkel). The new error is used to report problems with
       input or output format specifications.
+    + Remove `PandocParsecError` constructor from `PandocError` (#8385).
+      Henceforth we just use `PandocParseError`.
+
+  * New module Text.Pandoc.Version, exporting `pandocVersionText`
+    and `pandocVersion` [API change].  `pandocVersion` returns a `Version`
+    instead of a `Text`, which is consistent with `pandocTypesVersion`.
+
+  * Text.Pandoc.Class:
+
+    + Make `getPOSIXTime`, `getZonedTime` sensitive to `SOURCE_DATE_EPOCH`
+      environment variable if set (#7093).  (`getTimestamp` was
+      already sensitive.)  This ensures that EPUB builds are reproducible.
+    + Text.Pandoc.Class no longer exports `readDataFile`,
+      `readDefaultDataFile`, `setTranslations`, and `translateTerm`
+      [API change].
+    + Text.Pandoc.Class now exports `checkUserDataDir` [API change].
 
   * Separate out Text.Pandoc.Data and Text.Pandoc.Translations from
     Text.Pandoc.Class (#8348). This makes Text.Pandoc.Class
     more self-contained.
 
     + Text.Pandoc.Data is now an exported module, providing `readDataFile`
-      and `readDefaultDataFile` (both formerly provided by Text.Pandoc.Class),
-      and also `getDataFileNames` (formerly unexported in
-      Text.Pandoc.App.CommandLineOptions). [API change]
+      and `readDefaultDataFile` (both formerly provided by
+      Text.Pandoc.Class), and also `getDataFileNames` (formerly
+      unexported in Text.Pandoc.App.CommandLineOptions)
+      and `defaultUSerDataDir` (formerly provided by
+      Text.Pandoc.Shared). [API change]
     + Text.Pandoc.Translations is now an exported module (along with
       Text.Pandoc.Translations.Types), providing `readTranslations`,
       `getTranslations`, `setTranslations`, `translateTerm`,
       `lookupTerm`, `readTranslations`, `Term(..)`, and `Translations` [API
       change].
-    + Text.Pandoc.Class no longer exports `readDataFile`,
-      `readDefaultDataFile`, `setTranslations`, and `translateTerm`
-      [API change].
-    + Text.Pandoc.Class now exports `checkUserDataDir` [API change].
 
   * Text.Pandoc now exports Text.Pandoc.Data and `setTranslations`
     and `translateTerm` {API change].
@@ -376,7 +758,8 @@
     + This module has been moved to a separate package,
       `pandoc-lua-engine`.
     + Export `applyFilter`, `readCustom`, and `writeCustom`.
-      No longer export the lower-level function `runFilterFile` [API change].
+      No longer export the lower-level function `runFilterFile` [API
+      change].
     + Change type of `applyFilter` [API Change] (Albert Krewinkel).
       The module Text.Pandoc.Filter.Lua has been merged into
       Text.Pandoc.Lua. The function `applyFilter` now has type
@@ -392,8 +775,8 @@
       that were previously in T.P.Readers.Custom and T.P.Writers.Custom.
     + Cleanup module dependencies, for a cleaner module dependency graph.
     + The `writeCustom` function has changed to return a Writer and
-      an ExtensionsConfig [API change].  This allows ByteString writers to be
-      defined.
+      an ExtensionsConfig [API change].  This allows ByteString writers
+      to be defined.
     + The `readCustom` function has changed to return a Reader and an
       ExtensionsConfig [API change].
 
@@ -407,6 +790,48 @@
     + Fix the behavior of Lua "Version" objects under equality
       comparisons (#8267).
     + Support running Lua with a GC-collected Lua state.
+    + Ensure that extensions marshaling is consistent.
+    + Produce more informative error messages for pandoc errors.
+      Errors are reported in Lua in the same words in which they would be
+      reported in the terminal.
+    + Add new module `pandoc.format`. The module provides functions to
+      query the set of extensions supported by formats and the set
+      of extension enabled per default.
+    + Add function `pandoc.template.apply`.
+    + Add function `pandoc.template.meta_to_context`.
+      The functions converts Meta values to template contexts; the intended
+      use is in combination with `pandoc.template.apply`.
+    + Allow Doc values in `WriterOptions.variables`.
+      The specialized peeker and pusher function for `Context Text` values
+      does not go via JSON, and thus keeps Doc values unchanged during
+      round-tripping.
+    + Fix rendering of Lua errors in Lua, so that the
+      `Error running Lua` message is not prepended multiple times.
+    + Add new module `pandoc.zip`.
+    + Allow strings in place of compiled templates (#8321).
+      This allows to use a string as parameter to `pandoc.template.apply`
+      and in the WriterOptions `template` field.
+    + Rename `reader_extensions`/`writer_extensions` globals as `Extensions`
+      (#8390).
+    + Add `pandoc.scaffolding.Writer` (#8377). This can be used to reduce
+      boilerplate in custom writers.
+    + Fix peeker for PandocError (Albert Krewinkel). String error messages
+      were incorrectly popped of the stack when retrieving a PandocError.
+    + Add functions `pandoc.text.toencoding`, `pandoc.text.fromencoding`
+      (#8512, Albert Krewinkel).
+    + Add `pandoc.cli` module. Allow processing of CLI options in Lua.
+    + Support `-D` CLI option for custom writers [API change].
+      A new error `PandocNoTemplateError` (code 87) is thrown if a template
+      is required but cannot be found.
+    + Allow table structure as format spec. This allows to pass structured
+      values as format specifiers to `pandoc.write` and `pandoc.read`.
+
+  * Custom writers:
+
+    + The global variables `PANDOC_DOCUMENT` and `PANDOC_WRITER_OPTIONS`
+      are no longer set when the writer script is loaded. Both variables
+      are still set in classic writers before the conversion is started,
+      so they can be used when they are wrapped in functions.
     + Deprecate classic custom writers.
     + Add function `pandoc.write_classic`. The function can be used to
       convert a classic writer into a new-style writer by setting it as
@@ -423,25 +848,6 @@
         return pandoc.write_classic(doc, opts)
       end
       ```
-    + Ensure that extensions marshaling is consistent.
-    + Produce more informative error messages for pandoc errors.
-      Errors are reported in Lua in the same words in which they would be
-      reported in the terminal.
-    + Add new module `pandoc.format`. The module provides functions to
-      query the set of extensions supported by formats and the set
-      of extension enabled per default.
-    + Add function `pandoc.template.apply`.
-    + Add function `pandoc.template.meta_to_context`.
-      The functions converts Meta values to template contexts; the intended
-      use is in combination with `pandoc.template.apply`.
-    + Allow Doc values in `WriterOptions.variables`.
-      The specialized peeker and pusher function for `Context Text` values
-      does not go via JSON, and thus keeps Doc values unchanged during
-      round-tripping.
-    + The global variables `PANDOC_DOCUMENT` and `PANDOC_WRITER_OPTIONS`
-      are no longer set when the writer script is loaded. Both variables
-      are still set in classic writers before the conversion is started,
-      so they can be used when they are wrapped in functions.
     + Support extensions in custom writers. Custom writers can define the
       extensions that they support via the global `writer_extensions`.
       The variable's value must be a table with all supported extensions
@@ -454,6 +860,18 @@
         sourcepos = false,
       }
       ```
+    + Custom writers can define a default template via a global `Template`
+      function; the data directory is no longer searched for a default
+      template. Writer authors can restore the old lookup behavior with
+      ``` lua
+      Template = function ()
+        local template
+        return template.compile(template.default(PANDOC_SCRIPT_FILE))
+      end
+      ```
+
+  * Custom readers:
+
     + Support extensions in custom readers.
       Custom readers, like writers, can define the set of supported
       extensions by setting a global. E.g.:
@@ -469,13 +887,35 @@
 
   * Require aeson >= 2.0.
 
+  * Use jira-wiki-markup 1.5.0 (#8511, Albert Krewinkel). Fixes issues with
+    icon-like sequences at the beginning of words.
+
+  * Use doctemplates 0.11, avoiding a transitive dependency on HsYAML.
+
+  * Use skylighting 0.13.1.2
+
+  * Allow mtl 2.3.1 (Alexander Batischev).
+
+  * Use latest skylighting-format-context.
+
+  * Allow building with mtl 2.3.
+
   * Remove `lua53` flag.  We now only support Lua 5.4.
 
   * Add hie.yaml for haskell language server.
 
+  * Add tools/latex-package-dependencies.lua.
+
+  * Update default CSL with latest `chicago-author-date.csl`.
+
+  * make_artifacts.sh: various small improvements.
+
+  * Remove sample.lua from data files (#8356).
+
   * Documentation:
 
-    + Deprecate `PANDOC_WRITER_OPTIONS` in custom writers (Albert Krewinkel).
+    + Deprecate `PANDOC_WRITER_OPTIONS` in custom writers (Albert 
+      Krewinkel).
     + Document `pandoc.write_classic` (Albert Krewinkel).
     + Document new table features (Albert Krewinkel).
     + Clarify what background-image does in reveal.js (#6450).
@@ -484,9 +924,23 @@
     + Update grid table documentation (#8346).
     + Add note about MathJax fonts to `--embed-resources`.
     + Use cabal's --package-env more (#8317, Artem Pelenitsyn).
-    + Modify Zerobrane instructions to use Lua 5.4 (#8353, Ian Max Andolina).
+    + Modify Zerobrane instructions to use Lua 5.4 (#8353, Ian Max
+      Andolina).
     + Fix documentation for highlight-style in `pandoc-server.md`.
     + Fix link to fedora package site (#8246, Akos Marton).
+    + Rephrase paragraph on format extensions (#8375, Ilona
+      Silverwood).
+    + Update README.template (#8496, Sven Wick).
+    + Fix a tiny typo in lua-filters.md (TomBen).
+    + Clarify that `--css` should be used with `-s`.
+    + Clarify font selection for pdf -t ms (#8421, nbehrnd).
+    + Clarify docs for `--metadata-file` (#8459).
+    + Fix typo in epub.md (Vladimir Alexiev).
+    + Add missing backtick in filters.md (R. N. West).
+    + `doc/lua-filters.md`: add documentation for `pandoc.format`
+      (Albert Krewinkel).
+    + Fix epub-embed-font documentation (#8455, Terence Eden).
+    + Removed obsolete Templates section in CONTRIBUTING.md.
 
   * Tests.Command: remove unused `runTest`.
 
@@ -516,24 +970,31 @@
   * Add `server` flag to pandoc-cli, allowing it to be compiled without
     server support.
 
-  * pandoc-cli: Allow building a binary without Lua support (Albert Krewinkel).
-    Disabling the `lua` cabal flag will result in a binary without Lua.
+  * pandoc-cli: Allow building a binary without Lua support (Albert 
+    Krewinkel). Disabling the `lua` cabal flag will result in a
+    binary without Lua.
 
   * Move `--version` handling to pandoc-cli. We need it here in order
     to print information about whether server and Lua support have been
-    copmiled in.
+    compiled in.
 
   * Move `nightly` flag from pandoc to pandoc-cli (#8339).
 
-  * Rewrite Makefile and add a number of convenient targets, for
-    coverage, weeder, module dependencies, prelease.
-    `make help` will print the targets.
+  * Makefile changes:
+
+    - `make help` will now print all the targets and what they do.
+    - Add targets: `coverage`, `weeder`, `moduledeps`, `prerelease`,
+      `ghcid`, `repl`, `linecounts`, `hie.yaml`, `binpath`.
+    - Note that you can `` alias pandoc=`make binpath` `` for
+      convenient local testing of a build.
+    - Rename `quick-cabal` -> `build`, `quick-test` -> `test`.
+    - Exclude tests from `SOURCEFILES`.
 
   * Factor out xml-light into an internal library.
 
+  * Add CITATION.cff (#8434).
+
   * Move trypandoc to a separate repository, jgm/trypandoc.
-
-
 
 ## pandoc 2.19.2 (2022-08-22)
 

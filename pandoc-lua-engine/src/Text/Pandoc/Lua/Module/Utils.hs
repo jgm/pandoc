@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
-   Copyright   : Copyright © 2017-2022 Albert Krewinkel
+   Copyright   : Copyright © 2017-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
@@ -56,7 +56,7 @@ documentedModule = Module
               return $ B.toList (Shared.blocksToInlinesWithSep sep blks))
       <#> parameter (peekList peekBlock) "list of blocks"
             "blocks" ""
-      <#> opt (parameter (peekList peekInline) "list of inlines" "inline" "")
+      <#> opt (parameter (peekList peekInline) "Inlines" "sep" "")
       =#> functionResult pushInlines "list of inlines" ""
 
     , defun "citeproc"

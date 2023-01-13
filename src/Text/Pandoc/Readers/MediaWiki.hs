@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.MediaWiki
-   Copyright   : Copyright (C) 2012-2022 John MacFarlane
+   Copyright   : Copyright (C) 2012-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -19,7 +19,7 @@ module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isDigit, isSpace)
+import Data.Char (isAscii, isDigit, isLetter, isSpace)
 import qualified Data.Foldable as F
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -34,7 +34,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Parsing hiding (nested, tableCaption)
+import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag, toAttr)
 import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
                            trim, splitTextBy, tshow, formatCode)
@@ -69,7 +69,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwInTT            :: Bool
                        }
 
-type MWParser m = ParserT Sources MWState m
+type MWParser m = ParsecT Sources MWState m
 
 instance HasReaderOptions MWState where
   extractReaderOptions = mwOptions
@@ -85,17 +85,6 @@ instance HasLogMessages MWState where
 --
 -- auxiliary functions
 --
-
--- This is used to prevent exponential blowups for things like:
--- ''a'''a''a'''a''a'''a''a'''a
-nested :: PandocMonad m => MWParser m a -> MWParser m a
-nested p = do
-  nestlevel <- mwMaxNestingLevel `fmap` getState
-  guard $ nestlevel > 0
-  updateState $ \st -> st{ mwMaxNestingLevel = mwMaxNestingLevel st - 1 }
-  res <- p
-  updateState $ \st -> st{ mwMaxNestingLevel = nestlevel }
-  return res
 
 specialChars :: [Char]
 specialChars = "'[]<=&*{}|\":\\"
@@ -675,7 +664,7 @@ internalLink = try $ do
              -- [[Help:Contents|] -> "Contents"
              <|> return (B.text $ T.drop 1 $ T.dropWhile (/=':') pagename) )
   sym "]]"
-  linktrail <- B.text <$> manyChar letter
+  linktrail <- B.text <$> manyChar (satisfy (\c -> isAscii c && isLetter c)) 
   let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
   if "Category:" `T.isPrefixOf` pagename
      then do
@@ -706,12 +695,12 @@ inlinesBetween start end =
   trimInlines . mconcat <$> try (start >> many1Till inline end)
 
 emph :: PandocMonad m => MWParser m Inlines
-emph = B.emph <$> nested (inlinesBetween start end)
+emph = B.emph <$> inlinesBetween start end
     where start = sym "''"
           end   = try $ notFollowedBy' (() <$ strong) >> sym "''"
 
 strong :: PandocMonad m => MWParser m Inlines
-strong = B.strong <$> nested (inlinesBetween start end)
+strong = B.strong <$> inlinesBetween start end
     where start = sym "'''"
           end   = sym "'''"
 
@@ -720,6 +709,6 @@ doubleQuotes = do
   guardEnabled Ext_smart
   inTT <- mwInTT <$> getState
   guard (not inTT)
-  B.doubleQuoted <$> nested (inlinesBetween openDoubleQuote closeDoubleQuote)
+  B.doubleQuoted <$> inlinesBetween openDoubleQuote closeDoubleQuote
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""

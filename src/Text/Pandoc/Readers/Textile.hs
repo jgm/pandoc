@@ -3,7 +3,7 @@
 {- |
    Module      : Text.Pandoc.Readers.Textile
    Copyright   : Copyright (C) 2010-2012 Paul Rivier
-                               2010-2022 John MacFarlane
+                               2010-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
@@ -54,6 +54,7 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
 import Text.Pandoc.Readers.LaTeX (rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared (trim, tshow)
+import Text.Read (readMaybe)
 
 -- | Parse a Textile text and return a Pandoc document.
 readTextile :: (PandocMonad m, ToSources a)
@@ -67,7 +68,7 @@ readTextile opts s = do
      Right result -> return result
      Left e       -> throwError e
 
-type TextileParser = ParserT Sources ParserState
+type TextileParser = ParsecT Sources ParserState
 
 -- | Generate a Pandoc ADT from a textile document
 parseTextile :: PandocMonad m => TextileParser m Pandoc
@@ -120,7 +121,8 @@ blockParsers = [ codeBlock
                , rawHtmlBlock
                , rawLaTeXBlock'
                , table
-               , maybeExplicitBlock "p" para
+               , explicitBlock "p" (para <|> pure (B.para mempty))
+               , para
                , mempty <$ blanklines
                ]
 
@@ -147,7 +149,7 @@ codeBlockTextile = try $ do
   char ' '
   let starts = ["p", "table", "bq", "bc", "pre", "h1", "h2", "h3",
                 "h4", "h5", "h6", "pre", "###", "notextile"]
-  let ender = choice $ map explicitBlockStart starts
+  let ender = () <$ choice (map explicitBlockStart starts)
   contents <- if extended
                  then do
                    f <- anyLine
@@ -229,29 +231,58 @@ bulletListAtDepth depth = try $ B.bulletList  <$> many1 (bulletListItemAtDepth d
 -- | Bullet List Item of given depth, depth being the number of
 -- leading '*'
 bulletListItemAtDepth :: PandocMonad m => Int -> TextileParser m Blocks
-bulletListItemAtDepth = genericListItemAtDepth '*'
+bulletListItemAtDepth depth = try $ do
+  bulletListStartAtDepth depth
+  genericListItemContentsAtDepth depth
 
 -- | Ordered List of given depth, depth being the number of
 -- leading '#'
+-- The first Ordered List Item may have a start attribute
 orderedListAtDepth :: PandocMonad m => Int -> TextileParser m Blocks
 orderedListAtDepth depth = try $ do
-  items <- many1 (orderedListItemAtDepth depth)
-  return $ B.orderedList items
+  (startNum, firstItem) <- firstOrderedListItemAtDepth depth
+  moreItems <- many (orderedListItemAtDepth depth)
+  let listItems = firstItem : moreItems
+  return $ B.orderedListWith (startNum, DefaultStyle, DefaultDelim) listItems
+
+-- | The first Ordered List Item, which could have a start attribute
+firstOrderedListItemAtDepth :: PandocMonad m => Int
+                                             -> TextileParser m (Int, Blocks)
+firstOrderedListItemAtDepth depth = try $ do
+  startNum <- orderedListStartAtDepth depth
+  contents <- genericListItemContentsAtDepth depth
+  return (startNum, contents)
 
 -- | Ordered List Item of given depth, depth being the number of
 -- leading '#'
 orderedListItemAtDepth :: PandocMonad m => Int -> TextileParser m Blocks
-orderedListItemAtDepth = genericListItemAtDepth '#'
+orderedListItemAtDepth depth = try $ do
+  orderedListStartAtDepth depth
+  genericListItemContentsAtDepth depth
 
--- | Common implementation of list items
-genericListItemAtDepth :: PandocMonad m => Char -> Int -> TextileParser m Blocks
-genericListItemAtDepth c depth = try $ do
-  count depth (char c) >> attributes >> whitespace
+-- | Lists always start with a number of leading characters '#' or '*'
+-- Ordered list start characters '#' can be followed by the start attribute
+-- number, but bullet list characters '*' can not
+orderedListStartAtDepth :: PandocMonad m => Int -> TextileParser m Int
+orderedListStartAtDepth depth = count depth (char '#') >>
+  try orderedListStartAttr <* (attributes >> whitespace)
+
+bulletListStartAtDepth :: PandocMonad m => Int -> TextileParser m ()
+bulletListStartAtDepth depth =  () <$ (count depth (char '*') >>
+                                       attributes >> whitespace)
+
+-- | The leading characters and start attributes differ between ordered and
+-- unordered lists, but their contents have the same structure and can
+-- share a Parser
+genericListItemContentsAtDepth :: PandocMonad m => Int
+                                                -> TextileParser m Blocks
+genericListItemContentsAtDepth depth = do
   contents <- mconcat <$> many ((B.plain . mconcat <$> many1 inline) <|>
                                 try (newline >> codeBlockHtml))
   newline
   sublist <- option mempty (anyListAtDepth (depth + 1))
   return $ contents <> sublist
+
 
 -- | A definition list is a set of consecutive definition items
 definitionList :: PandocMonad m => TextileParser m Blocks
@@ -260,11 +291,16 @@ definitionList = try $ B.definitionList <$> many1 definitionListItem
 -- | List start character.
 listStart :: PandocMonad m => TextileParser m ()
 listStart = genericListStart '*'
-        <|> () <$ genericListStart '#'
+        <|> () <$ orderedListStart
         <|> () <$ definitionListStart
 
 genericListStart :: PandocMonad m => Char -> TextileParser m ()
 genericListStart c = () <$ try (many1 (char c) >> whitespace)
+
+orderedListStart :: PandocMonad m => TextileParser m ()
+orderedListStart = () <$ try (many1 (char '#') >>
+                              try orderedListStartAttr >>
+                              whitespace)
 
 basicDLStart :: PandocMonad m => TextileParser m ()
 basicDLStart = do
@@ -401,25 +437,27 @@ ignorableRow = try $ do
   _ <- anyLine
   return ()
 
-explicitBlockStart :: PandocMonad m => Text -> TextileParser m ()
+explicitBlockStart :: PandocMonad m => Text -> TextileParser m Attr
 explicitBlockStart name = try $ do
   string (T.unpack name)
-  attributes
+  attr <- attributes
   char '.'
   optional whitespace
   optional endline
+  return attr
 
 -- | Blocks like 'p' and 'table' do not need explicit block tag.
 -- However, they can be used to set HTML/CSS attributes when needed.
-maybeExplicitBlock :: PandocMonad m
-                   => Text  -- ^ block tag name
-                   -> TextileParser m Blocks -- ^ implicit block
-                   -> TextileParser m Blocks
-maybeExplicitBlock name blk = try $ do
-  optional $ explicitBlockStart name
-  blk
-
-
+explicitBlock :: PandocMonad m
+              => Text  -- ^ block tag name
+              -> TextileParser m Blocks -- ^ implicit block
+              -> TextileParser m Blocks
+explicitBlock name blk = try $ do
+  attr <- explicitBlockStart name
+  contents <- blk
+  return $ if attr == nullAttr
+              then contents
+              else B.divWith attr contents
 
 ----------
 -- Inlines
@@ -445,7 +483,7 @@ inlineParsers = [ str
                 , link
                 , image
                 , mark
-                , B.str . T.singleton <$> characterReference
+                , B.str <$> characterReference
                 , smartPunctuation inline
                 , symbol
                 ]
@@ -569,17 +607,21 @@ link = try $ do
   attr <- attributes
   name <- trimInlines . mconcat <$>
           withQuoteContext InDoubleQuote (many1Till inline (char '"'))
-  char ':'
-  let stop = if bracketed
-                then char ']'
-                else lookAhead $ space <|> eof' <|>
-                       try (oneOf "!.,;:" *>
-                              (space <|> newline <|> eof'))
-  url <- T.pack <$> many1Till nonspaceChar stop
+  url <- linkUrl bracketed
   let name' = if B.toList name == [Str "$"] then B.str url else name
   return $ if attr == nullAttr
               then B.link url "" name'
               else B.spanWith attr $ B.link url "" name'
+
+linkUrl :: PandocMonad m => Bool -> TextileParser m Text
+linkUrl bracketed = do
+  char ':'
+  let stop = if bracketed
+                then char ']'
+                else lookAhead $ space <|> eof' <|>
+                       try (oneOf "!.,;:*" *>
+                              (space <|> newline <|> eof'))
+  T.pack <$> many1Till nonspaceChar stop
 
 -- | image embedding
 image :: PandocMonad m => TextileParser m Inlines
@@ -592,7 +634,11 @@ image = try $ do
   src <- T.pack <$> many1 (noneOf " \t\n\r!(")
   alt <- fmap T.pack $ option "" $ try $ char '(' *> manyTill anyChar (char ')')
   char '!'
-  return $ B.imageWith attr src alt (B.str alt)
+  let img = B.imageWith attr src alt (B.str alt)
+  try (do -- image link
+         url <- linkUrl False
+         return (B.link url "" img))
+   <|> return img
 
 escapedInline :: PandocMonad m => TextileParser m Inlines
 escapedInline = escapedEqs <|> escapedTag
@@ -630,6 +676,13 @@ code2 :: PandocMonad m => TextileParser m Inlines
 code2 = do
   htmlTag (tagOpen (=="tt") null)
   B.code . T.pack <$> manyTill anyChar' (try $ htmlTag $ tagClose (=="tt"))
+
+orderedListStartAttr :: PandocMonad m => TextileParser m Int
+orderedListStartAttr = do
+  digits <- many digit
+  case readMaybe digits :: Maybe Int of
+    Nothing -> return 1
+    Just n  -> return n
 
 -- | Html / CSS attributes
 attributes :: PandocMonad m => TextileParser m Attr
@@ -681,9 +734,9 @@ langAttr = do
 
 -- | Parses material surrounded by a parser.
 surrounded :: (PandocMonad m, Show t)
-           => ParserT Sources st m t   -- ^ surrounding parser
-           -> ParserT Sources st m a   -- ^ content parser (to be used repeatedly)
-           -> ParserT Sources st m [a]
+           => ParsecT Sources st m t   -- ^ surrounding parser
+           -> ParsecT Sources st m a   -- ^ content parser (to be used repeatedly)
+           -> ParsecT Sources st m [a]
 surrounded border =
   enclosed (border *> notFollowedBy (oneOf " \t\n\r")) (try border)
 
@@ -713,5 +766,5 @@ groupedInlineMarkup = try $ do
     char ']'
     return $ sp1 <> result <> sp2
 
-eof' :: Monad m => ParserT Sources s m Char
+eof' :: Monad m => ParsecT Sources s m Char
 eof' = '\n' <$ eof

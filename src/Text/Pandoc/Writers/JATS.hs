@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.JATS
-   Copyright   : 2017-2022 John MacFarlane
+   Copyright   : 2017-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -22,6 +22,7 @@ module Text.Pandoc.Writers.JATS
   , writeJatsArticleAuthoring
   ) where
 import Control.Applicative ((<|>))
+import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)
@@ -41,6 +42,7 @@ import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocTemplates (Context(..), Val(..))
 import Text.Pandoc.Writers.JATS.References (referencesToJATS)

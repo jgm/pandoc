@@ -17,7 +17,9 @@ into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Control.Monad.Except (catchError)
+import Control.Monad (liftM2)
 import Control.Monad.State.Strict
+    ( MonadTrans(lift), StateT(runStateT), MonadState(state, get, put) )
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
@@ -30,6 +32,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
@@ -620,6 +623,13 @@ imageICML opts style attr (src, _) = do
                    , selfClosingTag "PathPointType" [("Anchor", hw<>" -"<>hh),
                        ("LeftDirection", hw<>" -"<>hh), ("RightDirection", hw<>" -"<>hh)]
                    ]
+      img = if "data:" `Text.isPrefixOf` src' && "base64," `Text.isInfixOf` src'
+               then -- see #8398
+                  inTags True "Contents" [] $
+                    literal ("<![CDATA[" <>
+                             Text.drop 1 (Text.dropWhile (/=',') src') <> "]]>")
+               else selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
+
       image  = inTags True "Image"
                    [("Self","ue6"), ("ItemTransform", scale<>" -"<>hw<>" -"<>hh)]
                  $ vcat [
@@ -629,7 +639,7 @@ imageICML opts style attr (src, _) = do
                          , ("Right",  showFl $ ow*ow / imgWidth)
                          , ("Bottom", showFl $ oh*oh / imgHeight)]
                        ]
-                   , selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
+                   , img
                    ]
       doc    = inTags True "CharacterStyleRange" attrs
                  $ inTags True "Rectangle" [("Self","uec"), ("StrokeWeight", "0"),

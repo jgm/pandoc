@@ -9,30 +9,28 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
-- skylighting-core-0.13
-- skylighting-0.13
+- skylighting-core-0.13.2
+- skylighting-0.13.2
+- skylighting-format-context-0.1.0.1
 - skylighting-format-ansi-0.1
 - skylighting-format-latex-0.1
 - skylighting-format-blaze-html-0.1.1
 - gridtables-0.1.0.0
-- hslua-2.2.1
-- hslua-aeson-2.2.1
 - hslua-cli-1.2.0
-- hslua-classes-2.2.0
-- hslua-core-2.2.1
-- hslua-marshalling-2.2.1
-- hslua-module-version-1.0.3
-- hslua-objectorientation-2.2.1
-- hslua-packaging-2.2.1
-- lua-2.2.1
+- hslua-list-1.1.0
+- hslua-module-text-1.0.3
+- hslua-module-zip-1.0.0
+- jira-wiki-markup-1.5.0
 - mime-types-0.1.1.0
-- doclayout-0.4
-- doctemplates-0.10.0.2
-- citeproc-0.8.0.2
+- doctemplates-0.11
 - commonmark-extensions-0.2.3.3
-- texmath-0.12.5.4
+- git: https://github.com/jgm/texmath
+  commit: 1a77db688bd3285228299e5aeefc93d6c0d8c0b9
+- git: https://github.com/jgm/citeproc
+  commit: 4099185c5a82ef1f84b711c113d2744eeb794106
+
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-19.21
+resolver: lts-20.6
 nix:
   packages: [zlib]

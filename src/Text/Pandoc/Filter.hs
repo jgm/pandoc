@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Filter
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -89,7 +89,7 @@ applyFilters scrngin fenv filters args d = do
   applyFilter doc (LuaFilter f)  =
     withMessages f $ engineApplyFilter scrngin fenv args f doc
   applyFilter doc CiteprocFilter =
-    processCitations doc
+    withMessages "citeproc" $ processCitations doc
   withMessages f action = do
     verbosity <- getVerbosity
     when (verbosity == INFO) $ report $ RunningFilter f

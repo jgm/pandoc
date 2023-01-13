@@ -1,6 +1,6 @@
 {- |
    Module      : Text.Pandoc.Parsing
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -47,6 +47,7 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              mathDisplay,
                              withHorizDisplacement,
                              withRaw,
+                             fromParsecError,
                              escaped,
                              characterReference,
                              upperRoman,
@@ -104,10 +105,9 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              doubleCloseQuote,
                              ellipses,
                              dash,
-                             nested,
                              citeKey,
-                             Parser,
-                             ParserT,
+                             Parsec,
+                             ParsecT,
                              Future(..),
                              runF,
                              askF,
@@ -119,7 +119,7 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              extractIdClass,
                              insertIncludedFile,
                              -- * Re-exports from Text.Parsec
-                             Stream,
+                             Stream(..),
                              runParser,
                              runParserT,
                              parse,
@@ -154,6 +154,8 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              setState,
                              updateState,
                              SourcePos,
+                             SourceName,
+                             updatePosString,
                              getPosition,
                              setPosition,
                              sourceName,
@@ -168,13 +170,19 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              initialPos,
                              Line,
                              Column,
-                             ParseError
+                             ParseError,
+                             errorMessages,
+                             messageString
                              )
 where
 
 import Text.Pandoc.Sources
 import Text.Parsec
-    ( setSourceName,
+    ( Parsec,
+      ParsecT,
+      SourcePos,
+      SourceName,
+      setSourceName,
       Column,
       Line,
       incSourceLine,
@@ -221,9 +229,11 @@ import Text.Parsec
       runParserT,
       runParser,
       ParseError,
-      SourcePos,
       Stream(..) )
-import Text.Parsec.Pos (initialPos, newPos)
+import Text.Parsec.Error (
+      errorMessages,
+      messageString )
+import Text.Parsec.Pos (initialPos, newPos, updatePosString)
 import Text.Pandoc.Parsing.Capabilities
     ( guardDisabled,
       guardEnabled,
@@ -268,7 +278,6 @@ import Text.Pandoc.Parsing.General
       manyTillChar,
       manyUntil,
       manyUntilChar,
-      nested,
       nonspaceChar,
       notFollowedBy',
       oneOfStrings,
@@ -287,7 +296,8 @@ import Text.Pandoc.Parsing.General
       trimInlinesF,
       uri,
       withHorizDisplacement,
-      withRaw )
+      withRaw,
+      fromParsecError )
 import Text.Pandoc.Parsing.GridTable
     ( gridTableWith,
       gridTableWith',
@@ -329,5 +339,5 @@ import Text.Pandoc.Parsing.State
       ParserContext(..),
       ParserState(..),
       SubstTable )
-import Text.Pandoc.Parsing.Types
-    ( ParserT, askF, asksF, returnF, runF, Future(..), Parser )
+import Text.Pandoc.Parsing.Future
+    ( askF, asksF, returnF, runF, Future(..) )

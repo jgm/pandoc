@@ -46,7 +46,8 @@ import qualified Data.Map               as Map
 import           Data.Maybe
 import           Text.Pandoc.Parsing hiding ((<|>), many)
 import           Control.Applicative
-import           Control.Monad.RWS      hiding ((<>))
+import           Control.Monad ( guard, MonadPlus(..), void )
+import Control.Monad.RWS ( asks, RWST, gets, modify, evalRWST )
 import qualified Data.Sequence          as Seq
 import           Data.Char              (isAlphaNum, isDigit, isLetter,
                                          isUpper, toLower, toUpper,
@@ -120,7 +121,8 @@ writeBibtexString opts variant mblang ref =
       "treaty"            | variant == Biblatex -> "legal"
       "personal_communication" | variant == Biblatex -> "letter"
       "motion_picture"    | variant == Biblatex -> "movie"
-      "review"             | variant == Biblatex -> "review"
+      "review"            | variant == Biblatex -> "review"
+      "software"          | variant == Biblatex -> "software"
       _                   -> "misc"
 
   mbSubtype =
@@ -145,6 +147,7 @@ writeBibtexString opts variant mblang ref =
            , "volumes"
            , "number"
            , "pages"
+           , "version"
            , "date"
            , "eventdate"
            , "urldate"
@@ -348,7 +351,7 @@ defaultLang = Lang "en" Nothing (Just "US") [] [] []
 -- a map of bibtex "string" macros
 type StringMap = Map.Map Text Text
 
-type BibParser = Parser Sources (Lang, StringMap)
+type BibParser = Parsec Sources (Lang, StringMap)
 
 data Item = Item{ identifier :: Text
                 , sourcePos  :: SourcePos
@@ -832,7 +835,7 @@ bibString = do
   updateState (\(l,m) -> (l, Map.insert k v m))
   return ()
 
-take1WhileP :: Monad m => (Char -> Bool) -> ParserT Sources u m Text
+take1WhileP :: Monad m => (Char -> Bool) -> ParsecT Sources u m Text
 take1WhileP f = T.pack <$> many1 (satisfy f)
 
 inBraces :: BibParser Text
@@ -1247,7 +1250,7 @@ getTypeAndGenre = do
            "proceedings"         -> "book"
            "reference"           -> "book"
            "report"              -> "report"
-           "software"            -> "book"    -- no "software" type in CSL
+           "software"            -> "software"
            "suppbook"            -> "chapter"
            "suppcollection"      -> "chapter"
            "suppperiodical"

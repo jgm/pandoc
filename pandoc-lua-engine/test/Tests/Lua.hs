@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Tests.Lua
-   Copyright   : © 2017-2022 Albert Krewinkel
+   Copyright   : © 2017-2023 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
@@ -30,7 +30,7 @@ import Text.Pandoc.Definition (Attr, Block (BlockQuote, Div, Para), Pandoc,
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Lua (Global (..), applyFilter, runLua, setGlobals)
 import Text.Pandoc.Options (def)
-import Text.Pandoc.Shared (pandocVersionText)
+import Text.Pandoc.Version (pandocVersionText)
 
 import qualified Control.Monad.Catch as Catch
 import qualified Data.Text as T

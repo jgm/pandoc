@@ -19,7 +19,9 @@ The universal markup converter
 ------------------------------
 
 Pandoc is a [Haskell] library for converting from one markup format to
-another, and a command-line tool that uses this library.  It can convert *from*
+another, and a command-line tool that uses this library.
+
+It can convert *from*
 
 ::: {#input-formats}
 :::

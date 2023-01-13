@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -73,7 +73,7 @@ import Text.Pandoc.Generic
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Readers
-import Text.Pandoc.Shared (pandocVersion, pandocVersionText)
+import Text.Pandoc.Version (pandocVersion, pandocVersionText)
 import Text.Pandoc.Templates
 import Text.Pandoc.Translations (setTranslations, translateTerm)
 import Text.Pandoc.Writers

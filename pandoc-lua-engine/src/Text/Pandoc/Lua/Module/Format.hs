@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Format
-   Copyright   : © 2022 Albert Krewinkel
+   Copyright   : © 2022-2023 Albert Krewinkel
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -52,8 +52,8 @@ functions =
            "all extensions supported for `format`"
      #? T.unlines
         [ "Returns the list of all valid extensions for a format."
-        , "No distinction is made between input and output, and an"
-        , "extension have an effect when reading a format but not when"
+        , "No distinction is made between input and output; an extension"
+        , "can have an effect when reading a format but not when"
         , "writing it, or *vice versa*."
         ]
   ]

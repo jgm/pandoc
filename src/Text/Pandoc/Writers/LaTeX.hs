@@ -6,7 +6,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -20,6 +20,16 @@ module Text.Pandoc.Writers.LaTeX (
   , writeBeamer
   ) where
 import Control.Monad.State.Strict
+    ( MonadState(get, put),
+      gets,
+      modify,
+      evalStateT )
+import Control.Monad
+    ( MonadPlus(mplus),
+      liftM,
+      when,
+      unless )
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
@@ -37,6 +47,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Slides
 import Text.Pandoc.Walk (query, walk, walkM)
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
@@ -123,7 +134,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   docLangs <- catMaybes <$>
-      mapM (toLang . Just) (ordNub (query (extract "lang") blocks))
+      mapM (toLang . Just) (nubOrd (query (extract "lang") blocks))
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
                             mapMaybe (\(x,y) ->
@@ -283,8 +294,8 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
       hasCodeBlock _               = []
   let hasCode (Code _ _) = [True]
       hasCode _          = []
-  let classes = ordNub $ dclasses ++ hclasses
-  let kvs = ordNub $ dkvs ++ hkvs
+  let classes = nubOrd $ dclasses ++ hclasses
+  let kvs = nubOrd $ dkvs ++ hkvs
   let fragile = "fragile" `elem` classes ||
                 not (null $ query hasCodeBlock bs ++ query hasCode bs)
   let frameoptions = ["allowdisplaybreaks", "allowframebreaks", "fragile",
@@ -724,6 +735,9 @@ inlineListToLaTeX lst = hcat <$>
 inlineToLaTeX :: PandocMonad m
               => Inline    -- ^ Inline to convert
               -> LW m (Doc Text)
+inlineToLaTeX (Span ("",["mark"],[]) lst) = do
+  modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
+  inCmd "hl" <$> inlineListToLaTeX lst
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
   linkAnchor <- hypertarget False id' empty
   lang <- toLang $ lookup "lang" kvs
@@ -760,8 +774,8 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
         else foldr inCmd contents cmds)
 inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
 inlineToLaTeX (Underline lst) = do
-  modify $ \st -> st{ stStrikeout = True } -- this gives us the ulem package
-  inCmd "uline" <$> inlineListToLaTeX lst
+  modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
+  inCmd "ul" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strikeout lst) = do
   -- we need to protect VERB in an mbox or we get an error
@@ -770,7 +784,7 @@ inlineToLaTeX (Strikeout lst) = do
   -- incorrect results if there is a space, see #5529
   contents <- inlineListToLaTeX $ walk (concatMap protectCode) lst
   modify $ \s -> s{ stStrikeout = True }
-  return $ inCmd "sout" contents
+  return $ inCmd "st" contents
 inlineToLaTeX (Superscript lst) =
   inCmd "textsuperscript" <$> inlineListToLaTeX lst
 inlineToLaTeX (Subscript lst) =
@@ -961,7 +975,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
       optList = showDim Width <> showDim Height <>
                 maybe [] (\x -> ["page=" <> literal x]) (lookup "page" kvs) <>
                 maybe [] (\x -> ["trim=" <> literal x]) (lookup "trim" kvs) <>
-                maybe [] (\_ -> ["clip"]) (lookup "clip" kvs)
+                maybe [] (const ["clip"]) (lookup "clip" kvs)
       options = if null optList
                    then empty
                    else brackets $ mconcat (intersperse "," optList)

@@ -1,20 +1,20 @@
 \begin{longtable}[]{@{}cclrrrrrrrrl@{}}
 \caption{Data about the planets of our solar system.}\tabularnewline
-\toprule()
+\toprule\noalign{}
 \multicolumn{2}{@{}>{\centering\arraybackslash}p{(\columnwidth - 22\tabcolsep) * \real{0.0000} + 2\tabcolsep}}{%
 } & Name & Mass (10\^{}24kg) & Diameter (km) & Density (kg/m\^{}3) & Gravity
 (m/s\^{}2) & Length of day (hours) & Distance from Sun (10\^{}6km) & Mean
 temperature (C) & Number of moons & Notes \\
-\midrule()
+\midrule\noalign{}
 \endfirsthead
-\toprule()
+\toprule\noalign{}
 \multicolumn{2}{@{}>{\centering\arraybackslash}p{(\columnwidth - 22\tabcolsep) * \real{0.0000} + 2\tabcolsep}}{%
 } & Name & Mass (10\^{}24kg) & Diameter (km) & Density (kg/m\^{}3) & Gravity
 (m/s\^{}2) & Length of day (hours) & Distance from Sun (10\^{}6km) & Mean
 temperature (C) & Number of moons & Notes \\
-\midrule()
+\midrule\noalign{}
 \endhead
-\bottomrule()
+\bottomrule\noalign{}
 \endlastfoot
 \multicolumn{2}{@{}>{\centering\arraybackslash}p{(\columnwidth - 22\tabcolsep) * \real{0.0000} + 2\tabcolsep}}{%
 \multirow{4}{*}{Terrestrial planets}} & Mercury & 0.330 & 4,879 & 5427 & 3.7 &

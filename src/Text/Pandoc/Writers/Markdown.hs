@@ -5,7 +5,7 @@
 {-# LANGUAGE BangPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -21,8 +21,9 @@ module Text.Pandoc.Writers.Markdown (
   writeCommonMark,
   writeMarkua,
   writePlain) where
-import Control.Monad.Reader
-import Control.Monad.State.Strict
+import Control.Monad (foldM, zipWithM, MonadPlus(..), when)
+import Control.Monad.Reader ( asks, MonadReader(local) )
+import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
 import Data.List (intersperse, sortOn)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
@@ -232,8 +233,14 @@ pandocToMarkdown opts (Pandoc meta blocks) = do
                                    mmdTitleBlock metadata
                                | otherwise -> empty
                         Nothing -> empty
+  let modifyTOC =
+        if isEnabled Ext_link_attributes opts || isEnabled Ext_attributes opts
+        then id
+        else walk $ \inln -> case inln of
+          Link _attr contents tgt -> Link nullAttr contents tgt
+          _                       -> inln
   toc <- if writerTableOfContents opts
-         then blockToMarkdown opts ( toTableOfContents opts blocks )
+         then blockToMarkdown opts . modifyTOC $ toTableOfContents opts blocks
          else return mempty
   -- Strip off final 'references' header if markdown citations enabled
   let blocks' = if isEnabled Ext_citations opts
@@ -311,7 +318,7 @@ classOrAttrsToMarkdown ("",[cls],[]) = literal cls
 classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parser Text ParserState ()
+olMarker :: Parsec Text ParserState ()
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&
@@ -398,7 +405,7 @@ blockToMarkdown' opts (Div attrs ils) = do
 blockToMarkdown' opts (Plain inlines) = do
   -- escape if para starts with ordered list marker
   variant <- asks envVariant
-  let escapeMarker = T.concatMap $ \x -> if x `elemText` ".()"
+  let escapeMarker = T.concatMap $ \x -> if T.any (== x) ".()"
                                          then T.pack ['\\', x]
                                          else T.singleton x
   let startsWithSpace (Space:_)     = True

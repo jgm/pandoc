@@ -83,7 +83,7 @@ Pandoc
           , Image
               ( "" , [] , [] )
               [ Str "the" , Space , Str "moon" ]
-              ( "lalune.jpg" , "" )
+              ( "uid6-lalune.jpg" , "" )
           , Space
           , Str "will"
           , Space

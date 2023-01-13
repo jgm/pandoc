@@ -31,7 +31,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import Data.ByteString.Base64 (decodeBase64, encodeBase64)
 import Data.Default
-import Control.Monad (when, foldM)
+import Control.Monad (when, unless, foldM)
 import qualified Data.Set as Set
 import Skylighting (defaultSyntaxMap)
 import qualified Data.Map as M
@@ -47,6 +47,8 @@ import Text.Pandoc.Format (parseFlavoredFormat, formatName)
 import Text.Pandoc.SelfContained (makeSelfContained)
 import System.Exit
 import GHC.Generics (Generic)
+import Network.Wai.Middleware.Cors ( cors,
+           simpleCorsResourcePolicy, CorsResourcePolicy(corsRequestHeaders) )
 
 data ServerOpts =
   ServerOpts
@@ -79,14 +81,14 @@ cliOptions =
         prg <- getProgName
         let header = "Usage: " <> prg <> " [OPTION...]"
         putStrLn $ usageInfo header cliOptions
-        exitWith ExitSuccess))
+        exitSuccess))
       "help message"
 
   , Option ['v'] ["version"]
       (NoArg (\_ -> do
         prg <- getProgName
         putStrLn $ prg <> " " <> T.unpack pandocVersionText
-        exitWith ExitSuccess))
+        exitSuccess))
       "version info"
 
   ]
@@ -100,7 +102,7 @@ parseServerOptsFromArgs args = do
         E.throwIO $ PandocOptionError $ T.pack $
           concat es ++ unlines (map handleUnknownOpt unrecognizedOpts) ++
           ("Try --help for more information.")
-      when (not (null ns)) $
+      unless (null ns) $
         E.throwIO $ PandocOptionError $ T.pack $
                      "Unknown arguments: " <> unwords ns
       foldM (flip ($)) defaultServerOpts os
@@ -197,7 +199,14 @@ type API =
   "version" :> Get '[PlainText, JSON] Text
 
 app :: Application
-app = serve api server
+app = corsWithContentType $ serve api server
+
+-- | Allow Content-Type header with values other then allowed by simpleCors.
+corsWithContentType :: Middleware
+corsWithContentType = cors (const $ Just policy)
+    where
+      policy = simpleCorsResourcePolicy
+        { corsRequestHeaders = ["Content-Type"] }
 
 api :: Proxy API
 api = Proxy
@@ -235,13 +244,9 @@ server = convertBytes
   convertJSON params = handleErrJSON $
     runPure
       (convert'
-        (\t -> do
-            msgs <- getLog
-            return $ Succeeded t False (map toMessage msgs))
-        (\bs -> do
-            msgs <- getLog
-            return $ Succeeded (encodeBase64 (BL.toStrict bs)) True
-                               (map toMessage msgs))
+        (\t -> Succeeded t False . map toMessage <$> getLog)
+        (\bs -> Succeeded (encodeBase64 (BL.toStrict bs)) True
+                 . map toMessage <$> getLog)
         params)
 
   toMessage m = Message { verbosity = messageVerbosity m
@@ -327,7 +332,7 @@ server = convertBytes
              , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
              , writerEpubMetadata = T.pack <$> optEpubMetadata opts
              , writerEpubFonts = optEpubFonts opts
-             , writerEpubChapterLevel = optEpubChapterLevel opts
+             , writerSplitLevel = optSplitLevel opts
              , writerTOCDepth = optTOCDepth opts
              , writerReferenceDoc = optReferenceDoc opts
              , writerReferenceLocation = optReferenceLocation opts

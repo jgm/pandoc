@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
-   Copyright   : Copyright (C) 2007-2022 John MacFarlane
+   Copyright   : Copyright (C) 2007-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -14,22 +14,27 @@
 Conversion of 'Pandoc' format into ConTeXt.
 -}
 module Text.Pandoc.Writers.ConTeXt ( writeConTeXt ) where
+import Control.Monad (liftM, unless)
 import Control.Monad.State.Strict
+    ( StateT, MonadState(put, get), gets, modify, evalStateT )
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty ((:|)))
-import Data.Maybe (mapMaybe, catMaybes)
+import Data.Maybe (isNothing, mapMaybe, catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.Collate.Lang (Lang(..))
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
+import Text.Pandoc.Highlighting
+  (formatConTeXtBlock, formatConTeXtInline, highlight, styleToConTeXt)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
@@ -39,12 +44,14 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
 data WriterState =
-  WriterState { stNextRef          :: Int  -- number of next URL reference
-              , stOrderedListLevel :: Int  -- level of ordered list
-              , stOptions          :: WriterOptions -- writer options
-              , stHasCslRefs       :: Bool -- has CSL citations
-              , stCslHangingIndent :: Bool -- CSL hanging indent
-              }
+  WriterState
+  { stCslHangingIndent :: Bool -- CSL hanging indent
+  , stHasCslRefs       :: Bool -- has CSL citations
+  , stHighlighting     :: Bool -- has syntax-highlighted code blocks
+  , stNextRef          :: Int  -- number of next URL reference
+  , stOptions          :: WriterOptions -- writer options
+  , stOrderedListLevel :: Int  -- level of ordered list
+  }
 
 -- | Table type
 data Tabl = Xtb  -- ^ Extreme tables
@@ -60,12 +67,14 @@ orderedListStyles = cycle "narg"
 -- | Convert Pandoc to ConTeXt.
 writeConTeXt :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeConTeXt options document =
-  let defaultWriterState = WriterState { stNextRef = 1
-                                       , stOrderedListLevel = 0
-                                       , stOptions = options
-                                       , stHasCslRefs = False
-                                       , stCslHangingIndent = False
-                                       }
+  let defaultWriterState = WriterState
+        { stCslHangingIndent = False
+        , stHasCslRefs = False
+        , stHighlighting = False
+        , stNextRef = 1
+        , stOptions = options
+        , stOrderedListLevel = 0
+        }
   in evalStateT (pandocToConTeXt options document) defaultWriterState
 
 type WM = StateT WriterState
@@ -113,6 +122,10 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                           | all isDigit (d:ds) -> resetField "papersize"
                                                    (T.pack ('A':d:ds))
                         _                     -> id)
+                $ (case writerHighlightStyle options of
+                        Just sty | stHighlighting st ->
+                          defField "highlighting-commands" (styleToConTeXt sty)
+                        _ -> id)
                 $ (case T.toLower $ lookupMetaString "pdfa" meta of
                         "true" -> resetField "pdfa" (T.pack "1b:2005")
                         _                     -> id) metadata
@@ -194,9 +207,25 @@ blockToConTeXt (LineBlock lns) = do
 blockToConTeXt (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
-blockToConTeXt (CodeBlock _ str) =
-  return $ flush ("\\starttyping" <> cr <> literal str <> cr <> "\\stoptyping") $$ blankline
+blockToConTeXt (CodeBlock (_ident, classes, kv) str) = do
+  opts <- gets stOptions
+  let syntaxMap = writerSyntaxMap opts
+  let attr' = ("", classes, kv)
+  let unhighlighted = vcat ["\\starttyping", literal str, "\\stoptyping"]
+  let highlighted =
+        case highlight syntaxMap formatConTeXtBlock attr' str of
+          Left msg -> do
+            unless (T.null msg) $
+              report (CouldNotHighlight msg)
+            return unhighlighted
+          Right h  -> do
+            modify (\s -> s{ stHighlighting = True })
+            return (literal h)
   -- blankline because \stoptyping can't have anything after it, inc. '}'
+  ($$ blankline) . flush <$>
+    if null classes || isNothing (writerHighlightStyle opts)
+    then pure unhighlighted
+    else highlighted
 blockToConTeXt b@(RawBlock f str)
   | f == Format "context" || f == Format "tex" = return $ literal str <> blankline
   | otherwise = empty <$ report (BlockNotRendered b)
@@ -309,9 +338,9 @@ tableToConTeXt (Ann.Table attr caption colspecs thead tbodies tfoot) = do
     ]
 
 setupCols :: [ColSpec] -> Doc Text
-setupCols = vcat . map toColSetup . zip [1::Int ..]
+setupCols = vcat . zipWith toColSetup [1::Int ..]
   where
-    toColSetup (i, (align, width)) =
+    toColSetup i (align, width) =
       let opts = filter (not . isEmpty)
                  [ case align of
                      AlignLeft    -> "align=right"
@@ -537,11 +566,31 @@ inlineToConTeXt (Subscript lst) = do
 inlineToConTeXt (SmallCaps lst) = do
   contents <- inlineListToConTeXt lst
   return $ braces $ "\\sc " <> contents
-inlineToConTeXt (Code _ str) | not ('{' `elemText` str || '}' `elemText` str) =
-  return $ "\\type" <> braces (literal str)
-inlineToConTeXt (Code _ str) = do
+inlineToConTeXt (Code (_ident, classes, _kv) str) = do
+  let rawCode =
+        pure . literal $
+        case typeDelim str of
+          Just (open, close) ->
+            "\\type" <> (open `T.cons` str) `T.snoc` close
+          Nothing ->
+            "\\type[escape=yes]{" <>
+            (T.replace "{" "/BTEX\\letteropenbrace /ETEX" .
+             T.replace "}" "/BTEX\\letterclosebrace /ETEX" $
+             str) `T.snoc` '}'
   opts <- gets stOptions
-  return $ "\\mono" <> braces (literal $ stringToConTeXt opts str)
+  let syntaxMap = writerSyntaxMap opts
+  let attr' = ("", classes, [])
+  let highlightCode =
+        case highlight syntaxMap formatConTeXtInline attr' str of
+          Left msg -> do
+            unless (T.null msg) $ report (CouldNotHighlight msg)
+            rawCode
+          Right h -> do
+            modify (\st -> st{ stHighlighting = True })
+            return (text (T.unpack h))
+  if isNothing (writerHighlightStyle opts) || null classes
+    then rawCode
+    else highlightCode
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quote" <> braces contents
@@ -661,20 +710,18 @@ sectionHeader (ident,classes,kvs) hdrLevel lst secenv = do
   opts <- gets stOptions
   contents <- inlineListToConTeXt lst
   levelText <- sectionLevelToText opts (ident,classes,kvs) hdrLevel secenv
-  let ident' = if T.null ident
-               then empty
-               else "reference=" <> braces (literal (toLabel ident))
-  let contents' = if isEmpty contents
-                  then empty
-                  else "title=" <> braces contents
-  let options = if isEmpty keys || isEmpty levelText
-                then empty
-                else brackets keys
-        where keys = hcat $ intersperse "," $
-                     filter (not . isEmpty) [contents', ident']
+  let optsList = mconcat . filter (not . null) $
+        [ ["title=" <> braces contents | not (isEmpty contents)]
+        , ["reference=" <> braces (literal (toLabel ident)) | not (T.null ident)]
+        , ["number=no"          | "unnumbered" `elem` classes]
+        , ["incrementnumber=no" | "unnumbered" `elem` classes]
+        ]
   let starter = case secenv of
                   SectionHeading -> "\\start"
                   NonSectionHeading -> "\\"
+  let options = if null optsList || isEmpty levelText
+                then empty
+                else brackets $ hcat (intersperse "," optsList)
   return $ starter <> levelText <> options <> blankline
 
 -- | Craft the section footer
@@ -689,8 +736,9 @@ sectionLevelToText :: PandocMonad m
                    => WriterOptions -> Attr -> Int -> HeadingType
                    -> WM m (Doc Text)
 sectionLevelToText opts (_,classes,_) hdrLevel headingType = do
+  let unlisted = "unlisted" `elem` classes
   let semanticSection shift = do
-        let (section, chapter) = if "unnumbered" `elem` classes
+        let (section, chapter) = if unlisted
                                  then (literal "subject", literal "title")
                                  else (literal "section", literal "chapter")
         return $ case hdrLevel + shift of
@@ -704,10 +752,23 @@ sectionLevelToText opts (_,classes,_) hdrLevel headingType = do
     TopLevelPart    -> semanticSection (-2)
     TopLevelChapter -> semanticSection (-1)
     TopLevelSection -> semanticSection 0
-    TopLevelDefault -> return . literal $
-                       case headingType of
-                         SectionHeading    -> "sectionlevel"
-                         NonSectionHeading -> ""
+    TopLevelDefault -> if unlisted
+                       then semanticSection 0
+                       else return . literal $
+                            case headingType of
+                              SectionHeading    -> "sectionlevel"
+                              NonSectionHeading -> ""
+
+-- | Finds a pair of symbols that can be used as delimiters.
+typeDelim :: Text -> Maybe (Char, Char)
+typeDelim t =
+  let delimChars = "{\"'`()-+=%,.:;"
+      go delims '}' = go delims '{'
+      go delims c = T.filter (/= c) delims
+  in case fmap fst . T.uncons $ T.foldl' go delimChars t of
+       Just '{' -> Just ('{', '}')
+       Just c   -> Just (c, c)
+       Nothing  -> Nothing
 
 fromBCP47 :: PandocMonad m => Maybe Text -> WM m (Maybe Text)
 fromBCP47 mbs = fromBCP47' <$> toLang mbs

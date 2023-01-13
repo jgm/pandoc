@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.AsciiDoc
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -19,7 +19,9 @@ that it has omitted the construct.
 AsciiDoc:  <http://www.methods.co.nz/asciidoc/>
 -}
 module Text.Pandoc.Writers.AsciiDoc (writeAsciiDoc, writeAsciiDoctor) where
+import Control.Monad (foldM)
 import Control.Monad.State.Strict
+    ( StateT, MonadState(get), gets, modify, evalStateT )
 import Data.Char (isPunctuation, isSpace)
 import Data.List (delete, intercalate, intersperse)
 import Data.List.NonEmpty (NonEmpty(..))
@@ -35,9 +37,10 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Text.DocLayout
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
-
+import Text.Pandoc.Walk (walk)
 
 data WriterState = WriterState { defListMarker       :: Text
                                , orderedListLevel    :: Int
@@ -112,7 +115,7 @@ escapeString t
         escChar c   = T.singleton c
 
 -- | Ordered list start parser for use in Para below.
-olMarker :: Parser Text ParserState Char
+olMarker :: Parsec Text ParserState Char
 olMarker = do (start, style', delim) <- anyOrderedListMarker
               if delim == Period &&
                           (style' == UpperAlpha || (style' == UpperRoman &&
@@ -560,8 +563,12 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
 -- relative:  link:downloads/foo.zip[download foo.zip]
 -- abs:  http://google.cod[Google]
 -- or my@email.com[email john]
-  let fixCommas = T.replace "," "&#44;"  -- see #8070
-  linktext <- fmap fixCommas <$> inlineListToAsciiDoc opts txt
+  let fixCommas (Str t) =
+        intersperse (RawInline (Format "asciidoc") "&#44;")
+          $ map Str $ T.splitOn "," t -- see #8070
+      fixCommas x = [x]
+
+  linktext <- inlineListToAsciiDoc opts $ walk (concatMap fixCommas) txt
   let isRelative = T.all (/= ':') src
   let needsPassthrough = "--" `T.isInfixOf` src
   let prefix = if isRelative

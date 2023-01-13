@@ -8,7 +8,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {- |
    Module      : Text.Pandoc.Shared
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -22,13 +22,9 @@ module Text.Pandoc.Shared (
                      splitBy,
                      splitTextBy,
                      splitTextByIndices,
-                     ordNub,
-                     findM,
                      -- * Text processing
                      inquotes,
                      tshow,
-                     elemText,
-                     notElemText,
                      stripTrailingNewlines,
                      trim,
                      triml,
@@ -64,7 +60,6 @@ module Text.Pandoc.Shared (
                      taskListItemToAscii,
                      handleTaskListItem,
                      addMetaField,
-                     makeMeta,
                      eastAsianLineBreakFilter,
                      htmlSpanLikeElements,
                      filterIpynbOutput,
@@ -76,11 +71,6 @@ module Text.Pandoc.Shared (
                      makeCanonical,
                      collapseFilePath,
                      filteredFilesFromArchive,
-                     -- * URI handling
-                     escapeURI,
-                     isURI,
-                     -- * Error handling
-                     mapLeft,
                      -- * for squashing blocks
                      blocksToInlines,
                      blocksToInlines',
@@ -88,12 +78,7 @@ module Text.Pandoc.Shared (
                      defaultBlocksSeparator,
                      -- * Safe read
                      safeRead,
-                     safeStrRead,
-                     -- * User data directory
-                     defaultUserDataDir,
-                     -- * Version
-                     pandocVersion,
-                     pandocVersionText
+                     safeStrRead
                     ) where
 
 import Codec.Archive.Zip
@@ -101,11 +86,10 @@ import qualified Control.Exception as E
 import Control.Monad (MonadPlus (..), msum, unless)
 import qualified Control.Monad.State.Strict as S
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.Bifunctor as Bifunctor
+import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.Containers.ListUtils (nubOrd)
 import Data.List (find, intercalate, intersperse, sortOn, foldl', groupBy)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe, fromMaybe)
@@ -113,8 +97,6 @@ import Data.Monoid (Any (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
-import Data.Version (Version, showVersion)
-import Paths_pandoc (version)
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
@@ -129,15 +111,6 @@ import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
-import Text.Pandoc.URI (escapeURI, isURI)
-
--- | Version number of pandoc library.
-pandocVersion :: Version
-pandocVersion = version
-
--- | Text representation of the library's version number.
-pandocVersionText :: T.Text
-pandocVersionText = T.pack $ showVersion version
 
 --
 -- List processing
@@ -179,23 +152,6 @@ splitAt' n xs | n <= 0 = ([],xs)
 splitAt' n (x:xs)      = (x:ys,zs)
   where (ys,zs) = splitAt' (n - charWidth x) xs
 
--- | Remove duplicates from a list.
-ordNub :: (Ord a) => [a] -> [a]
-ordNub = nubOrd
-{-# INLINE ordNub #-}
-
--- | Returns the first element in a foldable structure for that the
--- monadic predicate holds true, and @Nothing@ if no such element
--- exists.
-findM :: forall m t a. (Monad m, Foldable t)
-      => (a -> m Bool) -> t a -> m (Maybe a)
-findM p = foldr go (pure Nothing)
-  where
-    go :: a -> m (Maybe a) -> m (Maybe a)
-    go x acc = do
-      b <- p x
-      if b then pure (Just x) else acc
-
 --
 -- Text processing
 --
@@ -207,15 +163,6 @@ inquotes txt = T.cons '\"' (T.snoc txt '\"')
 -- | Like @'show'@, but returns a 'T.Text' instead of a 'String'.
 tshow :: Show a => a -> T.Text
 tshow = T.pack . show
-
--- | @True@ exactly when the @Char@ appears in the @Text@.
-elemText :: Char -> T.Text -> Bool
-elemText c = T.any (== c)
-
-{-# DEPRECATED notElemText "Use T.all (/= c)" #-}
--- | @True@ exactly when the @Char@ does not appear in the @Text@.
-notElemText :: Char -> T.Text -> Bool
-notElemText c = T.all (/= c)
 
 -- | Strip trailing newlines from string.
 stripTrailingNewlines :: T.Text -> T.Text
@@ -588,7 +535,7 @@ makeSections numbering mbBaseLevel bs =
   combineAttr :: Attr -> Attr -> Attr
   combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
     (if T.null id1 then id2 else id1,
-     ordNub (classes1 ++ classes2),
+     nubOrd (classes1 ++ classes2),
      foldr (\(k,v) kvs -> case lookup k kvs of
                              Nothing -> (k,v):kvs
                              Just _  -> kvs) mempty (kvs1 ++ kvs2))
@@ -706,15 +653,6 @@ addMetaField key val (Meta meta) =
         tolist (MetaList ys) = ys
         tolist y             = [y]
 
-{-# DEPRECATED makeMeta "Use addMetaField directly" #-}
--- | Create 'Meta' from old-style title, authors, date.  This is
--- provided to ease the transition from the old API.
-makeMeta :: [Inline] -> [[Inline]] -> [Inline] -> Meta
-makeMeta title authors date =
-      addMetaField "title" (B.fromList title)
-    $ addMetaField "author" (map B.fromList authors)
-    $ addMetaField "date" (B.fromList date) nullMeta
-
 -- | Remove soft breaks between East Asian characters.
 eastAsianLineBreakFilter :: Pandoc -> Pandoc
 eastAsianLineBreakFilter = bottomUp go
@@ -826,13 +764,6 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
         go (_:as)    ".." = as
         go as        x    = x : as
 
---
--- Error reporting
---
-
-mapLeft :: (a -> b) -> Either a c -> Either b c
-mapLeft = Bifunctor.first
-
 -- | Remove intermediate "." and ".." directories from a path.
 --
 -- > collapseFilePath "./foo" == "foo"
@@ -916,7 +847,7 @@ defaultBlocksSeparator :: Inlines
 defaultBlocksSeparator =
   -- This is used in the pandoc.utils.blocks_to_inlines function. Docs
   -- there should be updated if this is changed.
-  B.space <> B.str "¶" <> B.space
+  B.linebreak
 
 --
 -- Safe read
@@ -930,24 +861,3 @@ safeStrRead s = case reads s of
                   (d,x):_
                     | all isSpace x -> return d
                   _                 -> mzero
---
--- User data directory
---
-
--- | Return appropriate user data directory for platform.  We use
--- XDG_DATA_HOME (or its default value), but for backwards compatibility,
--- we fall back to the legacy user data directory ($HOME/.pandoc on *nix)
--- if the XDG_DATA_HOME is missing and this exists.  If neither directory
--- is present, we return the XDG data directory.  If the XDG data directory
--- is not defined (e.g. because we are in an environment where $HOME is
--- not defined), we return the empty string.
-defaultUserDataDir :: IO FilePath
-defaultUserDataDir = do
-  xdgDir <- E.catch (getXdgDirectory XdgData "pandoc")
-               (\(_ :: E.SomeException) -> return mempty)
-  legacyDir <- getAppUserDataDirectory "pandoc"
-  xdgExists <- doesDirectoryExist xdgDir
-  legacyDirExists <- doesDirectoryExist legacyDir
-  if not xdgExists && legacyDirExists
-     then return legacyDir
-     else return xdgDir

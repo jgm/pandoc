@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX.Util
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -37,7 +37,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Extensions (Extension(Ext_smart))
 import Data.Char (isLetter, isSpace, isDigit, isAscii, ord, isAlphaNum)
 import Text.Printf (printf)
-import Text.Pandoc.Shared (safeRead, elemText)
+import Text.Pandoc.Shared (safeRead)
 import qualified Data.Text.Normalize as Normalize
 import Data.List (uncons)
 
@@ -50,7 +50,7 @@ data StringContext = TextString
 stringToLaTeX :: PandocMonad m => StringContext -> Text -> LW m Text
 stringToLaTeX context zs = do
   opts <- gets stOptions
-  when ('\x200c' `elemText` zs) $
+  when (T.any (== '\x200c') zs) $
     modify (\s -> s { stZwnj = True })
   return $ T.pack $
     foldr (go opts context) mempty $ T.unpack $
@@ -182,7 +182,7 @@ toLabel z = go `fmap` stringToLaTeX URLString z
  where
    go = T.concatMap $ \x -> case x of
      _ | (isLetter x || isDigit x) && isAscii x -> T.singleton x
-       | x `elemText` "_-+=:;." -> T.singleton x
+       | T.any (== x) "_-+=:;." -> T.singleton x
        | otherwise -> T.pack $ "ux" <> printf "%x" (ord x)
 
 -- | Puts contents into LaTeX command.

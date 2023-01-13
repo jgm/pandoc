@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.PandocLua
-   Copyright   : © 2020-2022 Albert Krewinkel
+   Copyright   : © 2020-2023 Albert Krewinkel
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 
@@ -88,9 +88,9 @@ instance PandocMonad PandocLua where
 -- | Retrieve a @'PandocError'@ from the Lua stack.
 popPandocError :: LuaE PandocError PandocError
 popPandocError = do
-  errResult <- runPeek $ peekPandocError top
+  errResult <- runPeek $ peekPandocError top `lastly` pop 1
   case resultToEither errResult of
-    Right x -> return x
+    Right x  -> return x
     Left err -> return $ PandocLuaError (T.pack err)
 
 -- | Conversions between Lua errors and 'PandocError' exceptions.

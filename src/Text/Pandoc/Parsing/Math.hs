@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
 Module      : Text.Pandoc.Parsing.Math
-Copyright   : © 2006-2022 John MacFarlane
+Copyright   : © 2006-2023 John MacFarlane
 License     : GPL-2.0-or-later
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -17,20 +17,19 @@ where
 
 import Control.Monad (mzero, when)
 import Data.Text (Text)
-import Text.Parsec ((<|>), Stream(..), notFollowedBy, skipMany, try)
+import Text.Parsec ((<|>), ParsecT, Stream(..), notFollowedBy, skipMany, try)
 import Text.Pandoc.Options
   ( Extension(Ext_tex_math_dollars, Ext_tex_math_single_backslash,
               Ext_tex_math_double_backslash) )
 import Text.Pandoc.Parsing.Capabilities (HasReaderOptions, guardEnabled)
 import Text.Pandoc.Parsing.General
-import Text.Pandoc.Parsing.Types (ParserT)
 import Text.Pandoc.Shared (trimMath)
 import Text.Pandoc.Sources
   (UpdateSourcePos, anyChar, char, digit, newline, satisfy, space, string)
 
 import qualified Data.Text as T
 
-mathInlineWith :: (Stream s m Char, UpdateSourcePos s Char)  => Text -> Text -> ParserT s st m Text
+mathInlineWith :: (Stream s m Char, UpdateSourcePos s Char)  => Text -> Text -> ParsecT s st m Text
 mathInlineWith op cl = try $ do
   textStr op
   when (op == "$") $ notFollowedBy space
@@ -51,10 +50,10 @@ mathInlineWith op cl = try $ do
   notFollowedBy digit  -- to prevent capture of $5
   return $ trimMath $ T.concat words'
  where
-  inBalancedBraces :: (Stream s m Char, UpdateSourcePos s Char) => Int -> Text -> ParserT s st m Text
+  inBalancedBraces :: (Stream s m Char, UpdateSourcePos s Char) => Int -> Text -> ParsecT s st m Text
   inBalancedBraces n = fmap T.pack . inBalancedBraces' n . T.unpack
 
-  inBalancedBraces' :: (Stream s m Char, UpdateSourcePos s Char) => Int -> String -> ParserT s st m String
+  inBalancedBraces' :: (Stream s m Char, UpdateSourcePos s Char) => Int -> String -> ParsecT s st m String
   inBalancedBraces' 0 "" = do
     c <- anyChar
     if c == '{'
@@ -71,14 +70,14 @@ mathInlineWith op cl = try $ do
          '{' -> inBalancedBraces' (numOpen + 1) (c:xs)
          _   -> inBalancedBraces' numOpen (c:xs)
 
-mathDisplayWith :: (Stream s m Char, UpdateSourcePos s Char) => Text -> Text -> ParserT s st m Text
+mathDisplayWith :: (Stream s m Char, UpdateSourcePos s Char) => Text -> Text -> ParsecT s st m Text
 mathDisplayWith op cl = try $ fmap T.pack $ do
   textStr op
   many1Till (satisfy (/= '\n') <|> (newline <* notFollowedBy' blankline))
             (try $ textStr cl)
 
 mathDisplay :: (HasReaderOptions st, Stream s m Char, UpdateSourcePos s Char)
-            => ParserT s st m Text
+            => ParsecT s st m Text
 mathDisplay =
       (guardEnabled Ext_tex_math_dollars >> mathDisplayWith "$$" "$$")
   <|> (guardEnabled Ext_tex_math_single_backslash >>
@@ -87,7 +86,7 @@ mathDisplay =
        mathDisplayWith "\\\\[" "\\\\]")
 
 mathInline :: (HasReaderOptions st, Stream s m Char, UpdateSourcePos s Char)
-           => ParserT s st m Text
+           => ParsecT s st m Text
 mathInline =
       (guardEnabled Ext_tex_math_dollars >> mathInlineWith "$" "$")
   <|> (guardEnabled Ext_tex_math_single_backslash >>

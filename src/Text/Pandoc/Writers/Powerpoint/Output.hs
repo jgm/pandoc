@@ -21,9 +21,12 @@ Text.Pandoc.Writers.Powerpoint.Presentation) to a zip archive.
 module Text.Pandoc.Writers.Powerpoint.Output ( presentationToArchive
                                              ) where
 
+import Control.Monad ( MonadPlus(mplus), foldM, unless )
 import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Reader
+    ( asks, MonadReader(local), ReaderT(runReaderT) )
 import Control.Monad.State
+    ( StateT, gets, modify, evalStateT )
 import Codec.Archive.Zip
 import Data.List (intercalate, stripPrefix, nub, union, isPrefixOf, intersperse)
 import Data.Bifunctor (bimap)
@@ -575,7 +578,8 @@ presentationToArchive opts meta pres = do
   distArchive <- toArchive . BL.fromStrict <$>
                         readDefaultDataFile "reference.pptx"
   refArchive <- case writerReferenceDoc opts of
-                     Just f  -> toArchive <$> P.readFileLazy f
+                     Just f  -> toArchive . BL.fromStrict . fst
+                                  <$> P.fetchItem (T.pack f)
                      Nothing -> toArchive . BL.fromStrict <$>
                         readDataFile "reference.pptx"
 

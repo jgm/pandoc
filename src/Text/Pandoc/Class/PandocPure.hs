@@ -29,8 +29,17 @@ module Text.Pandoc.Class.PandocPure
   ) where
 
 import Codec.Archive.Zip
+import Control.Monad.Trans ( MonadTrans(lift) )
 import Control.Monad.Except
+    ( ExceptT(..), MonadError(throwError), runExceptT )
 import Control.Monad.State.Strict
+    ( StateT(StateT),
+      State,
+      MonadState(put, get),
+      modify,
+      evalState,
+      evalStateT )
+import Control.Monad (foldM)
 import Data.Default
 import Data.Text (Text)
 import Data.Time (UTCTime)

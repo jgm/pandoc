@@ -7,7 +7,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.App.Opt
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -18,6 +18,7 @@ Options for pandoc when used as an app.
 -}
 module Text.Pandoc.App.Opt (
             Opt(..)
+          , OptInfo(..)
           , LineEnding (..)
           , IpynbOutput (..)
           , DefaultsState (..)
@@ -25,7 +26,9 @@ module Text.Pandoc.App.Opt (
           , applyDefaults
           , fullDefaultsPath
           ) where
-import Control.Monad.Except (MonadIO, liftIO, throwError, (>=>), foldM)
+import Control.Monad.Except (throwError)
+import Control.Monad.Trans (MonadIO, liftIO)
+import Control.Monad ((>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
 import System.FilePath ( addExtension, (</>), takeExtension, takeDirectory )
 import System.Directory ( canonicalizePath )
@@ -43,7 +46,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
-import Text.Pandoc.Shared (defaultUserDataDir, findM, ordNub)
+import Data.Containers.ListUtils (nubOrd)
+import Text.Pandoc.Data (defaultUserDataDir)
 import qualified Text.Pandoc.Parsing as P
 import Text.Pandoc.Readers.Metadata (yamlMap)
 import Text.Pandoc.Class.PandocPure
@@ -54,8 +58,8 @@ import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
-import Data.Aeson (defaultOptions, Options(..), Result(..), camelTo2,
-                   genericToJSON, fromJSON)
+import Data.Aeson (defaultOptions, Options(..), Result(..),
+                   genericToJSON, fromJSON, camelTo2)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
 import Data.Yaml
@@ -77,6 +81,22 @@ data IpynbOutput =
 
 $(deriveJSON
    defaultOptions{ fieldLabelModifier = map toLower . drop 11 } ''IpynbOutput)
+
+-- | Option parser results requesting informational output.
+data OptInfo =
+     BashCompletion
+   | ListInputFormats
+   | ListOutputFormats
+   | ListExtensions (Maybe Text)
+   | ListHighlightLanguages
+   | ListHighlightStyles
+   | PrintDefaultTemplate (Maybe FilePath) Text
+   | PrintDefaultDataFile (Maybe FilePath) Text
+   | PrintHighlightStyle (Maybe FilePath) Text
+   | VersionInfo
+   | Help
+   | OptError PandocError
+   deriving (Show, Generic)
 
 -- | Data structure for command line options.
 data Opt = Opt
@@ -106,11 +126,12 @@ data Opt = Opt
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
+    , optSplitLevel            :: Int     -- ^ Header level at which to split documents in epub and chunkedhtml
     , optEpubSubdirectory      :: String -- ^ EPUB subdir in OCF container
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
-    , optEpubChapterLevel      :: Int     -- ^ Header level at which to split chapters
     , optEpubCoverImage        :: Maybe FilePath -- ^ Cover image for epub
+    , optEpubTitlePage         :: Bool -- ^ INclude title page in EPUB
     , optTOCDepth              :: Int     -- ^ Number of levels to include in TOC
     , optDumpArgs              :: Bool    -- ^ Output command-line arguments
     , optIgnoreArgs            :: Bool    -- ^ Ignore command-line arguments
@@ -186,11 +207,13 @@ instance FromJSON Opt where
        <*> o .:? "html-math-method" .!= optHTMLMathMethod defaultOpts
        <*> o .:? "abbreviations"
        <*> o .:? "reference-doc"
+       <*> ((o .:? "split-level") <|> (o .:? "epub-chapter-level"))
+             .!= optSplitLevel defaultOpts
        <*> o .:? "epub-subdirectory" .!= optEpubSubdirectory defaultOpts
        <*> o .:? "epub-metadata"
        <*> o .:? "epub-fonts" .!= optEpubFonts defaultOpts
-       <*> o .:? "epub-chapter-level" .!= optEpubChapterLevel defaultOpts
        <*> o .:? "epub-cover-image"
+       <*> o .:? "epub-title-page" .!= optEpubTitlePage defaultOpts
        <*> o .:? "toc-depth" .!= optTOCDepth defaultOpts
        <*> o .:? "dump-args" .!= optDumpArgs defaultOpts
        <*> o .:? "ignore-args" .!= optIgnoreArgs defaultOpts
@@ -537,7 +560,9 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optEpubFonts = optEpubFonts o <>
                                                map unpack x })
     "epub-chapter-level" ->
-      parseJSON v >>= \x -> return (\o -> o{ optEpubChapterLevel = x })
+      parseJSON v >>= \x -> return (\o -> o{ optSplitLevel = x })
+    "split-level" ->
+      parseJSON v >>= \x -> return (\o -> o{ optSplitLevel = x })
     "epub-cover-image" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optEpubCoverImage = unpack <$> x })
@@ -714,11 +739,12 @@ defaultOpts = Opt
     , optHTMLMathMethod        = PlainMath
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
+    , optSplitLevel            = 1
     , optEpubSubdirectory      = "EPUB"
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []
-    , optEpubChapterLevel      = 1
     , optEpubCoverImage        = Nothing
+    , optEpubTitlePage         = True
     , optTOCDepth              = 3
     , optDumpArgs              = False
     , optIgnoreArgs            = False
@@ -800,7 +826,14 @@ fullDefaultsPath dataDir file = do
               else file
   defaultDataDir <- liftIO defaultUserDataDir
   let defaultFp = fromMaybe defaultDataDir dataDir </> "defaults" </> fp
-  fromMaybe fp <$> findM fileExists [fp, defaultFp]
+  fpExists <- fileExists fp
+  if fpExists
+     then return fp
+     else do
+       defaultFpExists <- fileExists defaultFp
+       if defaultFpExists
+          then return defaultFp
+          else return fp
 
 -- | In a list of lists, append another list in front of every list which
 -- starts with specific element.
@@ -815,4 +848,4 @@ expand ps ns n = concatMap (ext n ns) ps
 cyclic :: Ord a => [[a]] -> Bool
 cyclic = any hasDuplicate
   where
-    hasDuplicate xs = length (ordNub xs) /= length xs
+    hasDuplicate xs = length (nubOrd xs) /= length xs

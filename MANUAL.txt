@@ -140,7 +140,7 @@ When using LaTeX, the following packages need to be available
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] (if the document
 contains images), [`hyperref`], [`xcolor`],
-[`ulem`], [`geometry`] (with the `geometry` variable set),
+[`soul`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  If `CJKmainfont` is set, [`xeCJK`]
 is needed.  The use of `xelatex` or `lualatex` as
@@ -191,7 +191,7 @@ footnotes in tables).
 [`polyglossia`]: https://ctan.org/pkg/polyglossia
 [`prince`]: https://www.princexml.com/
 [`setspace`]: https://ctan.org/pkg/setspace
-[`ulem`]: https://ctan.org/pkg/ulem
+[`soul`]: https://ctan.org/pkg/soul
 [`unicode-math`]: https://ctan.org/pkg/unicode-math
 [`upquote`]: https://ctan.org/pkg/upquote
 [`weasyprint`]: https://weasyprint.org
@@ -287,6 +287,7 @@ header when requesting a document from a URL:
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
+    - `chunkedhtml` (zip archive of multiple linked HTML files)
     - `commonmark` ([CommonMark] Markdown)
     - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `context` ([ConTeXt])
@@ -358,7 +359,12 @@ header when requesting a document from a URL:
 
 :   Write output to *FILE* instead of *stdout*.  If *FILE* is
     `-`, output will go to *stdout*, even if a non-textual format
-    (`docx`, `odt`, `epub2`, `epub3`) is specified.
+    (`docx`, `odt`, `epub2`, `epub3`) is specified.  If the
+    output format is `chunkedhtml` and *FILE* has no extension,
+    then instead of producing a `.zip` file pandoc will create
+    a directory *FILE* and unpack the zip archive there
+    (unless *FILE* already exists, in which case an error
+    will be raised).
 
 `--data-dir=`*DIRECTORY*
 
@@ -647,7 +653,7 @@ header when requesting a document from a URL:
 
 :   Read metadata from the supplied YAML (or JSON) file. This
     option can be used with every input format, but string scalars
-    in the YAML file will always be parsed as Markdown. (If the
+    in the metadata file will always be parsed as Markdown. (If the
     input format is Markdown or a Markdown variant, then the
     same variant will be used to parse the metadata file;
     if it is a non-Markdown format, pandoc's default Markdown
@@ -990,9 +996,9 @@ header when requesting a document from a URL:
 :   Use only ASCII characters in output. Currently supported for XML
     and HTML formats (which use entities instead of UTF-8 when this
     option is selected), CommonMark, gfm, and Markdown (which use
-    entities), roff ms (which use hexadecimal escapes), and to a
+    entities), roff man and ms (which use hexadecimal escapes), and to a
     limited degree LaTeX (which uses standard commands for accented
-    characters when possible). roff man output uses ASCII by default.
+    characters when possible).
 
 `--reference-links`
 
@@ -1112,6 +1118,10 @@ header when requesting a document from a URL:
 
 :   Link to a CSS style sheet. This option can be used repeatedly to
     include multiple files. They will be included in the order specified.
+    This option only affects HTML (including HTML slide shows)
+    and EPUB output.  It should be used together with
+    `-s/--standalone`, because the link to the stylesheet goes
+    in the document header.
 
     A stylesheet is required for generating EPUB.  If none is
     provided using this option (or the `css` or `stylesheet`
@@ -1119,7 +1129,7 @@ header when requesting a document from a URL:
     user data directory (see `--data-dir`).  If it is not
     found there, sensible defaults will be used.
 
-`--reference-doc=`*FILE*
+`--reference-doc=`*FILE*|*URL*
 
 :   Use the specified file as a style reference in producing a
     docx or ODT file.
@@ -1239,12 +1249,33 @@ header when requesting a document from a URL:
         in MS PowerPoint (pandoc will use the layouts with the names
         listed above).
 
+`--split-level=`*NUMBER*
+
+:   Specify the heading level at which to split an EPUB or
+    chunked HTML document into separate files. The default is to split
+    into chapters at level-1 headings. In the case of EPUB, this
+    option only affects the internal composition of the EPUB, not the way
+    chapters and sections are displayed to users. Some
+    readers may be slow if the chapter files are too large, so for large
+    documents with few level-1 headings, one might want to use a chapter
+    level of 2 or 3. For chunked HTML, this option determines
+    how much content goes in each "chunk."
+
+`--epub-chapter-level=`*NUMBER*
+
+:   *Deprecated synonym for `--split-level`.*
+
 `--epub-cover-image=`*FILE*
 
 :   Use the specified image as the EPUB cover.  It is recommended
     that the image be less than 1000px in width and height. Note that
     in a Markdown source document you can also specify `cover-image`
     in a YAML metadata block (see [EPUB Metadata], below).
+
+`--epub-title-page=true`|`false`
+
+:   Determines whether a the title page is included in the EPUB
+    (default is `true`).
 
 `--epub-metadata=`*FILE*
 
@@ -1278,40 +1309,30 @@ header when requesting a document from a URL:
     to your CSS (see `--css`):
 
         @font-face {
-        font-family: DejaVuSans;
-        font-style: normal;
-        font-weight: normal;
-        src:url("DejaVuSans-Regular.ttf");
+           font-family: DejaVuSans;
+           font-style: normal;
+           font-weight: normal;
+           src:url("../fonts/DejaVuSans-Regular.ttf");
         }
         @font-face {
-        font-family: DejaVuSans;
-        font-style: normal;
-        font-weight: bold;
-        src:url("DejaVuSans-Bold.ttf");
+           font-family: DejaVuSans;
+           font-style: normal;
+           font-weight: bold;
+           src:url("../fonts/DejaVuSans-Bold.ttf");
         }
         @font-face {
-        font-family: DejaVuSans;
-        font-style: italic;
-        font-weight: normal;
-        src:url("DejaVuSans-Oblique.ttf");
+           font-family: DejaVuSans;
+           font-style: italic;
+           font-weight: normal;
+           src:url("../fonts/DejaVuSans-Oblique.ttf");
         }
         @font-face {
-        font-family: DejaVuSans;
-        font-style: italic;
-        font-weight: bold;
-        src:url("DejaVuSans-BoldOblique.ttf");
+           font-family: DejaVuSans;
+           font-style: italic;
+           font-weight: bold;
+           src:url("../fonts/DejaVuSans-BoldOblique.ttf");
         }
         body { font-family: "DejaVuSans"; }
-
-`--epub-chapter-level=`*NUMBER*
-
-:   Specify the heading level at which to split the EPUB into separate
-    "chapter" files. The default is to split into chapters at level-1
-    headings. This option only affects the internal composition of the
-    EPUB, not the way chapters and sections are displayed to users. Some
-    readers may be slow if the chapter files are too large, so for large
-    documents with few level-1 headings, one might want to use a chapter
-    level of 2 or 3.
 
 `--epub-subdirectory=`*DIRNAME*
 
@@ -1535,7 +1556,6 @@ Nonzero exit codes have the following meanings:
    62 PandocShouldNeverHappenError
    63 PandocSomeError
    64 PandocParseError
-   65 PandocParsecError
    66 PandocMakePDFError
    67 PandocSyntaxMapError
    83 PandocFilterError
@@ -1953,6 +1973,10 @@ To include the built-in citeproc filter, use either `citeproc` or
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
+| --epub-title-page=false          | epub-title-page: false            |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
 | --epub-metadata meta.xml         | epub-metadata: meta.xml           |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
@@ -1963,7 +1987,7 @@ To include the built-in citeproc filter, use either `citeproc` or
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --epub-chapter-level 2           | epub-chapter-level: 2             |
+| --split-level 2                  | split-level: 2                    |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
@@ -2638,6 +2662,9 @@ ODT or pptx.
 :   sets the CSS `line-height` property on the `html` element,
     which is preferred to be unitless.
 
+`maxwidth`
+:   sets the CSS `max-width` property (default is 32em).
+
 `backgroundcolor`
 :   sets the CSS `background-color` property on the `html` element.
 
@@ -2907,6 +2934,9 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `links-as-notes`
 :   causes links to be printed as footnotes
 
+`urlstyle`
+:   style for URLs (e.g., tt, same)
+
 #### Front matter
 
 `lof`, `lot`
@@ -3085,16 +3115,26 @@ The `--css` option also affects the output.
 ### Variables for ms
 
 `fontfamily`
-:    font family (e.g. `T` or `P`)
+:   `A` (Avant Garde), `B` (Bookman), `C` (Helvetica), `HN`
+    (Helvetica Narrow), `P` (Palatino), or `T` (Times New Roman).
+    This setting does not affect source code, which is always
+    displayed using monospace Courier. These built-in fonts are
+    limited in their coverage of characters. Additional fonts may
+    be installed using the script [`install-font.sh`] provided
+    by Peter Schaffter and documented in detail on [his web
+    site][ms-font-steps].
 
 `indent`
-:    paragraph indent (e.g. `2m`)
+:   paragraph indent (e.g. `2m`)
 
 `lineheight`
-:    line height (e.g. `12p`)
+:   line height (e.g. `12p`)
 
 `pointsize`
-:    point size (e.g. `10p`)
+:   point size (e.g. `10p`)
+
+[`install-font.sh`]: https://www.schaffter.ca/mom/bin/install-font.sh
+[ms-font-steps]: https://www.schaffter.ca/mom/momdoc/appendices.html#steps
 
 ### Variables set automatically
 
@@ -3154,6 +3194,9 @@ on the output format, and include the following:
 
 `curdir`
 :   working directory from which pandoc is run.
+
+`pandoc-version`
+:   pandoc version.
 
 `toc`
 :   non-null value if `--toc/--table-of-contents` was specified
@@ -5558,6 +5601,13 @@ be rewritten relative to the file containing the link
 reference definition, not the file containing the reference link
 or image itself, if these differ.
 
+#### Extension: `mark` ####
+
+To highlight out a section of text, begin and end it with
+with `==`. Thus, for example,
+
+    This ==is deleted text.==
+
 #### Extension: `attributes` ####
 
 Allows attributes to be attached to any inline or block-level
@@ -6784,6 +6834,27 @@ styling of pandoc's default HTML templates is desired (and
 in that case the variables defined in [Variables for HTML] may
 be used to fine-tune the style).
 
+# Chunked HTML
+
+`pandoc -t chunkedhtml` will produce a zip archive of linked
+HTML files, one for each section of the original document.
+Internal links will automatically be adjusted to point to
+the right place, images linked to under the working directory
+will be incorporated, and navigation links will be added.
+In addition, a JSON file `sitemap.json` will be included
+describing the hierarchical structure of the files.
+
+If an output file without an extension is specified, then
+it will be interpreted as a directory and the zip archive
+will be automatically unpacked into it (unless it already
+exists, in which case an error will be raised).  Otherwise
+a `.zip` file will be produced.
+
+The navigation links can be customized by adjusting the
+template.  By default, a table of contents is included only
+on the top page. To include it on every page, set the
+`toc` variable manually.
+
 # Jupyter notebooks
 
 When creating a [Jupyter notebook], pandoc will try to infer the
@@ -7056,8 +7127,8 @@ Lua script in place of the input or output format. For example:
     pandoc -f my_custom_markup_language.lua -t latex -s
 
 If the script is not found relative to the working directory,
-it will be sought in the `readers` or `writers` subdirectory
-of the user data directory (see `--data-dir`).
+it will be sought in the `custom` subdirectory of the user data
+directory (see `--data-dir`).
 
 A custom reader is a Lua script that defines one function,
 Reader, which takes a string as input and returns a Pandoc
@@ -7074,10 +7145,7 @@ second `options` parameter.
 
 A custom writer is a Lua script that defines a function
 that specifies how to render each element in a Pandoc AST.
-To see a documented example which you can modify according
-to your needs:
-
-    pandoc --print-default-data-file sample.lua
+See the [djot-writer.lua] for a full-featured example.
 
 Note that custom writers have no default template.  If you want
 to use `--standalone` with a custom writer, you will need to
@@ -7088,6 +7156,7 @@ subdirectory of your user data directory (see [Templates]).
 
 [Lua]: https://www.lua.org
 [lpeg]:  http://www.inf.puc-rio.br/~roberto/lpeg/
+[djot-writer.lua]: https://github.com/jgm/djot/blob/main/djot-writer.lua
 
 # Reproducible builds
 
@@ -7132,7 +7201,7 @@ However, there is no REPL yet, and the `-i` option has no effect.
 For full documentation, see the [pandoc-lua] man page.
 
 [lua standalone]: https://www.lua.org/manual/5.4/manual.html#7
-[pandoc-server]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-lua.md
+[pandoc-lua]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-lua.md
 
 # A note on security
 

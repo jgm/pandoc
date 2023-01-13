@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Sources
-   Copyright   : Copyright (C) 2021-2022 John MacFarlane
+   Copyright   : Copyright (C) 2021-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -46,6 +46,8 @@ import Text.Parsec (Stream(..), ParsecT)
 import Text.Parsec.Pos as P
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
 import Data.Char (isSpace, isLetter, isAlphaNum, isDigit, isHexDigit)
 import Data.String (IsString(..))
 import qualified Data.List.NonEmpty as NonEmpty
@@ -110,6 +112,15 @@ class UpdateSourcePos s c where
   updateSourcePos :: SourcePos -> c -> s -> SourcePos
 
 instance UpdateSourcePos Text Char where
+   updateSourcePos pos c _ = updatePosChar pos c
+
+instance UpdateSourcePos [Char] Char where
+   updateSourcePos pos c _ = updatePosChar pos c
+
+instance UpdateSourcePos BS.ByteString Char where
+   updateSourcePos pos c _ = updatePosChar pos c
+
+instance UpdateSourcePos BL.ByteString Char where
    updateSourcePos pos c _ = updatePosChar pos c
 
 instance UpdateSourcePos Sources Char where

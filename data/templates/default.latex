@@ -283,7 +283,7 @@ $if(svg)$
 $endif$
 $if(strikeout)$
 $-- also used for underline
-\usepackage[normalem]{ulem}
+\usepackage{soul}
 $endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
@@ -343,6 +343,12 @@ $if(lang)$
 \fi
 $if(babel-lang)$
 \babelprovide[main,import]{$babel-lang$}
+$if(mainfont)$
+\ifPDFTeX
+\else
+\babelfont[$babel-lang$]{rm}{$mainfont$}
+\fi
+$endif$
 $endif$
 $for(babel-otherlangs)$
 \babelprovide[import]{$babel-otherlangs$}
@@ -384,7 +390,7 @@ $if(csquotes)$
 $endif$
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same} % disable monospaced font for URLs
+\urlstyle{$if(urlstyle)$$urlstyle$$else$same$endif$}
 $if(links-as-notes)$
 % Make links footnotes instead of hotlinks:
 \DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}

@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Readers.Ipynb
-   Copyright   : Copyright (C) 2019-2022 John MacFarlane
+   Copyright   : Copyright (C) 2019-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -81,13 +81,13 @@ cellToBlocks opts lang c = do
                       Nothing -> mempty
                       Just (MimeAttachments m) -> M.toList m
   let ident = fromMaybe mempty $ cellId c
-  mapM_ addAttachment attachments
+  mapM_ (addAttachment (cellId c)) attachments
   case cellType c of
     Ipynb.Markdown -> do
       bs <- if isEnabled Ext_raw_markdown opts
                then return [RawBlock (Format "markdown") source]
                else do
-                 Pandoc _ bs <- walk fixImage <$> readMarkdown opts source
+                 Pandoc _ bs <- walk (fixImage (cellId c)) <$> readMarkdown opts source
                  return bs
       return $ B.divWith (ident,["cell","markdown"],kvs)
              $ B.fromList bs
@@ -121,14 +121,17 @@ cellToBlocks opts lang c = do
         <> outputBlocks
 
 -- Remove attachment: prefix from images...
-fixImage :: Inline -> Inline
-fixImage (Image attr lab (src,tit))
-  | "attachment:" `T.isPrefixOf` src = Image attr lab (T.drop 11 src, tit)
-fixImage x = x
+fixImage :: Maybe Text -> Inline -> Inline
+fixImage mbident (Image attr lab (src,tit))
+  | "attachment:" `T.isPrefixOf` src =
+     let src' = T.drop 11 src
+         qualifiedSrc = maybe src' (<> ("-" <> src')) mbident
+      in Image attr lab (qualifiedSrc, tit)
+fixImage _ x = x
 
-addAttachment :: PandocMonad m => (Text, MimeBundle) -> m ()
-addAttachment (fname, mimeBundle) = do
-  let fp = T.unpack fname
+addAttachment :: PandocMonad m => Maybe Text -> (Text, MimeBundle) -> m ()
+addAttachment mbident (fname, mimeBundle) = do
+  let fp = T.unpack $ maybe fname (<> ("-" <> fname)) mbident
   case M.toList (unMimeBundle mimeBundle) of
     (mimeType, BinaryData bs):_ ->
       insertMedia fp (Just mimeType) (BL.fromStrict bs)

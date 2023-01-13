@@ -2,7 +2,6 @@
 /build-artifacts*
 /dist-newstyle
 /dist
-/.stack-work
 /ctags
 /LOG
 /TAGS
@@ -17,6 +16,7 @@
 !.stylish-haskell.yaml
 !AUTHORS.md
 !BUGS
+!CITATION.cff
 !CONTRIBUTING.md
 !COPYING.md
 !COPYRIGHT
@@ -62,3 +62,4 @@
 *.dyn_hi
 *~
 .DS_Store
+.stack-work

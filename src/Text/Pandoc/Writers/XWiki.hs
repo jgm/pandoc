@@ -42,10 +42,10 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
+import Text.Pandoc.URI
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
-import Text.Pandoc.Writers.Shared (toLegacyTable)
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Writers.Shared (defField, metaToContext)
+import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
 import Text.DocLayout (render, literal)
 
 newtype WriterState = WriterState {

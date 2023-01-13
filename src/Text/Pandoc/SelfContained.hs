@@ -3,7 +3,7 @@
 {-# LANGUAGE TupleSections     #-}
 {- |
    Module      : Text.Pandoc.SelfContained
-   Copyright   : Copyright (C) 2011-2022 John MacFarlane
+   Copyright   : Copyright (C) 2011-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,9 +35,9 @@ import Text.Pandoc.MIME (MimeType)
 import Text.Pandoc.Shared (renderTags', trim, tshow)
 import Text.Pandoc.URI (isURI)
 import Text.Pandoc.UTF8 (toString, toText, fromText)
-import Text.Parsec (ParsecT, runParserT)
+import Text.Pandoc.Parsing (ParsecT, runParserT)
+import qualified Text.Pandoc.Parsing as P
 import Control.Monad.Except (throwError, catchError)
-import qualified Text.Parsec as P
 
 isOk :: Char -> Bool
 isOk c = isAscii c && isAlphaNum c

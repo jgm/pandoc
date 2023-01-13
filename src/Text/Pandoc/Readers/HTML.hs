@@ -5,7 +5,7 @@
 {-# LANGUAGE ViewPatterns          #-}
 {- |
    Module      : Text.Pandoc.Readers.HTML
-   Copyright   : Copyright (C) 2006-2022 John MacFarlane
+   Copyright   : Copyright (C) 2006-2023 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -63,10 +63,10 @@ import Text.Pandoc.Options (
     extensionEnabled)
 import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
-    addMetaField, blocksToInlines', escapeURI, extractSpaces,
+    addMetaField, blocksToInlines', extractSpaces,
     htmlSpanLikeElements, renderTags', safeRead, tshow, formatCode)
+import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Walk
-import Text.Parsec.Error
 import Text.TeXMath (readMathML, writeTeX)
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
@@ -1028,7 +1028,7 @@ isCommentTag = tagComment (const True)
 -- | Matches a stretch of HTML in balanced tags.
 htmlInBalanced :: Monad m
                => (Tag Text -> Bool)
-               -> ParserT Sources st m Text
+               -> ParsecT Sources st m Text
 htmlInBalanced f = try $ do
   lookAhead (char '<')
   sources <- getInput
@@ -1077,7 +1077,7 @@ hasTagWarning _                = False
 -- | Matches a tag meeting a certain condition.
 htmlTag :: (HasReaderOptions st, Monad m)
         => (Tag Text -> Bool)
-        -> ParserT Sources st m (Tag Text, Text)
+        -> ParsecT Sources st m (Tag Text, Text)
 htmlTag f = try $ do
   lookAhead (char '<')
   startpos <- getPosition

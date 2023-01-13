@@ -3,7 +3,7 @@
 {- |
 Module      : Text.Pandoc.Writers.FB2
 Copyright   : Copyright (C) 2011-2012 Sergey Astanin
-                            2012-2022 John MacFarlane
+                            2012-2023 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane
@@ -18,9 +18,9 @@ FictionBook is an XML-based e-book format. For more information see:
 -}
 module Text.Pandoc.Writers.FB2 (writeFB2)  where
 
-import Control.Monad (zipWithM)
+import Control.Monad (zipWithM, liftM)
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, liftM, modify)
+import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, modify)
 import Data.ByteString.Base64 (encodeBase64)
 import Data.Char (isAscii, isControl, isSpace)
 import Data.Either (lefts, rights)
@@ -28,7 +28,7 @@ import Data.List (intercalate)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Text.Pandoc.URI (urlEncode)
+import Text.Pandoc.URI (urlEncode, isURI)
 import Text.Pandoc.XML.Light as X
 
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
@@ -37,7 +37,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..), def)
-import Text.Pandoc.Shared (capitalize, isURI, orderedListMarkers,
+import Text.Pandoc.Shared (capitalize, orderedListMarkers,
                            makeSections, tshow, stringify)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable,
                                    ensureValidXmlIdentifiers)
