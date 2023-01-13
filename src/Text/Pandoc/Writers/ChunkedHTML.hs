@@ -24,7 +24,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions(..))
 import Text.Pandoc.Shared (stringify, tshow)
 import Text.Pandoc.Class (PandocMonad, getPOSIXTime, runPure,
-                          readFileLazy, insertMedia, getMediaBag)
+                          fetchItem, insertMedia, getMediaBag)
 import Text.Pandoc.MediaBag (mediaItems)
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Chunks (splitIntoChunks, Chunk(..), ChunkedDoc(..),
@@ -105,8 +105,8 @@ addMedia il@(Image _ _ (src,_))
   | fp <- normalise (T.unpack src)
   , isRelative fp
   , not (".." `isInfixOf` fp) = do
-  bs <- readFileLazy fp
-  insertMedia fp Nothing bs
+  (bs, mbMime) <- fetchItem (T.pack fp)
+  insertMedia fp mbMime (BL.fromStrict bs)
   return il
 addMedia il = return il
 
