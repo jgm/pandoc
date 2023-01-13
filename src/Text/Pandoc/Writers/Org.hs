@@ -20,20 +20,22 @@ import Control.Monad (zipWithM)
 import Control.Monad.State.Strict
     ( StateT, gets, modify, evalStateT )
 import Data.Char (isAlphaNum, isDigit)
-import Data.List (intersperse, partition, transpose)
+import Data.List (intersperse, partition, dropWhileEnd, transpose)
 import Data.List.NonEmpty (nonEmpty)
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Map as M
+import Text.DocLayout
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorMap(..), LocatorInfo(..))
+import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Shared
 
 data WriterState =
@@ -147,12 +149,28 @@ blockToOrg b@(RawBlock f str)
       return empty
 blockToOrg HorizontalRule = return $ blankline $$ "--------------" $$ blankline
 blockToOrg (Header level attr inlines) = do
-  contents <- inlineListToOrg inlines
-  let headerStr = text $ if level > 999 then " " else replicate level '*'
+  let tagName inline = case inline of
+        Span (_, _, kv) _ -> (:[]) <$> lookup "tag-name" kv
+        _                 -> Nothing
+  let (htext, tagsInlines) = break (isJust . tagName) inlines
+  contents <- inlineListToOrg $ dropWhileEnd (== Space) htext
+  columns  <- writerColumns <$> gets stOptions
+  let headerDoc = mconcat
+        [ text $ if level > 999 then " " else replicate level '*'
+        , literal " "
+        , contents
+        ]
+  let tags = case query tagName tagsInlines of
+               Nothing -> ""
+               Just ts -> T.cons ':' (T.intercalate ":" ts) `T.snoc` ':'
+  let tagsDoc = if T.null tags
+                then empty
+                else (<> literal tags) . text . (`replicate` ' ') . max 1 $
+                     columns - offset headerDoc - realLength tags
   let drawerStr = if attr == nullAttr
                   then empty
                   else cr <> propertiesDrawer attr
-  return $ headerStr <> " " <> contents <> drawerStr <> cr
+  return $ nowrap (headerDoc <> tagsDoc) <> drawerStr <> cr
 blockToOrg (CodeBlock (ident,classes,kvs) str) = do
   let name = if T.null ident
              then empty
