@@ -50,7 +50,7 @@ common common-executable
 library
   import:        common-options
   build-depends: pandoc                >= 3.0,
-                 pandoc-types          >= 1.22.2   && < 1.23,
+                 pandoc-types          >= 1.22     && < 1.24,
                  containers            >= 0.6.0.1  && < 0.7,
                  aeson                 >= 2.0      && < 2.2,
                  bytestring            >= 0.9      && < 0.12,

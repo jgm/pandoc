@@ -25,13 +25,17 @@ extra-deps:
 - doctemplates-0.11
 - commonmark-extensions-0.2.3.3
 - git: https://github.com/jgm/texmath
-  commit: 1a77db688bd3285228299e5aeefc93d6c0d8c0b9
+  commit: dab2be16b751e8ce7e6d9937029f10e06c3c80c3
 - git: https://github.com/jgm/citeproc
-  commit: 4099185c5a82ef1f84b711c113d2744eeb794106
+  commit: a73c7d1c00c993b8a20daf5a932afae16f889c83
 - git: https://github.com/jgm/pandoc-types
-  commit: 183af9d9f1066be974ac55fd23a4c985999d3ce8
+  commit: 6ac717718396bdca510cbdc6d211bbea408444cc
 - git: https://github.com/pandoc/pandoc-lua-marshal
   commit: a2a97e2af78326ea7841101d4ef56e74426b66c4
+- git: https://github.com/jgm/commonmark-hs
+  commit: d0f3097e55471aa640d76d0188ba707cbece71b1
+  subdirs: [commonmark-pandoc]
+
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-20.6
