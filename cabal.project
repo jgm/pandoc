@@ -19,8 +19,8 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/tarleb/pandoc-types
-  tag: f84b7359765a2798f22efe4e9457538cda7a8d4a
+  location: https://github.com/jgm/pandoc-types
+  tag: 2f2ffd5b1821b6d5f7774b97d515b86398033012
 
 source-repository-package
   type: git

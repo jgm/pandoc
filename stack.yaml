@@ -28,8 +28,8 @@ extra-deps:
   commit: 1a77db688bd3285228299e5aeefc93d6c0d8c0b9
 - git: https://github.com/jgm/citeproc
   commit: 4099185c5a82ef1f84b711c113d2744eeb794106
-- git: https://github.com/tarleb/pandoc-types
-  commit: f84b7359765a2798f22efe4e9457538cda7a8d4a
+- git: https://github.com/jgm/pandoc-types
+  commit: 2f2ffd5b1821b6d5f7774b97d515b86398033012
 - git: https://github.com/pandoc/pandoc-lua-marshal
   commit: a2a97e2af78326ea7841101d4ef56e74426b66c4
 ghc-options:
