@@ -80,6 +80,78 @@
     `--split-level` determines the level at which sections are
     to be split.
 
+  * Support complex figures (Albert Krewinkel, Aner Lucero).
+    There is now a dedicate Figure block constructor for
+    figures.  The old hack of representing a figure as
+    `Para [Image attr [..alt..] (source, "fig:title")]`
+    has been dropped.  Here is a summary of figure support
+    in different formats:
+
+    + Markdown reader: paragraphs containing just an image are treated as
+      figures if the `implicit_figures` extension is enabled. The identifier
+      is used as the figure's identifier and the image description is also
+      used as figure caption; all other attributes are treated as belonging
+      to the image.
+    + Markdown writer: figures are output as implicit figures if possible,
+      via HTML if the `raw_html` extension is enabled, and as Div elements
+      otherwise.
+    + HTML reader: `<figure>` elements are parsed as figures, with the
+      caption taken from the respective `<figcaption>` elements.
+    + HTML writer: the alt text is no longer constructed from the caption,
+      as was the case with implicit figures. This reduces duplication, but
+      comes at the risk of images that are missing alt texts. Authors should
+      take care to provide alt texts for all images. Some readers, most
+      notably the Markdown reader with the `implicit_figures` extension,
+      add a caption that's identical to the image description. The writer
+      checks for this and adds an `aria-hidden` attribute to the
+      `<figcaption>` element in that case.
+    + JATS reader: The `<fig>` and `<caption>` elements are parsed into
+      figure elements, even if the contents is more complex.
+    + JATS writer: The `<fig>` and `<caption>` elements are used write
+      figures.
+    + LaTeX reader: support for figures with non-image contents and for
+      subfigures.
+    + LaTeX writer: complex figures, e.g. with non-image contents and
+      subfigures, are supported. The `subfigure` template variable is set if
+      the document contains subfigures, triggering the conditional loading
+      of the *subcaption* package. Contants of figures that contain tables
+      are become unwrapped, as longtable environments are not allowed within
+      figures.
+    + DokuWiki, Haddock, Jira, Man, MediaWiki, Ms, Muse, PPTX, RTF, TEI,
+      ZimWiki writers: Figures are rendered like Div elements.
+    + Asciidoc writer: The figure contents is unwrapped; each image in the
+      the figure becomes a separate figure.
+    + Classic custom writers: Figures are passed to the global function
+      `Figure(caption, contents, attr)`, where `caption` and `contents` are
+      strings and `attr` is a table of key-value pairs.
+    + ConTeXt writer: Figures are wrapped in a "placefigure" environment
+      with `\startplacefigure`/`\endplacefigure`, adding the features
+      caption and listing title as properties. Subfigures are place in a
+      single row with the `\startfloatcombination` environment.
+    + DocBook writer: Uses `mediaobject` elements, unless the figure contains
+      subfigures or tables, in which case the figure content is unwrapped.
+    - Docx writer: figures with multiple content blocks are rendered as
+      tables with style `FigureTable`; like before, single-image figures are
+      still output as paragraphs with style `Figure` or `Captioned Figure`,
+      depending on whether a caption is attached.
+    + DokuWiki writer: Caption and "alt-text" are no longer combined. The
+      alt text of a figure will now be lost in the conversion.
+    + FB2 writer: The figure caption is added as alt text to the images in
+      the figure; pre-existing alt texts are kept.
+    + ICML writer: Only single-image figures are supported. The contents of
+      figures with additional elements gets unwrapped.
+    + OpenDocument writer: A separate paragraph is generated for each block
+      element in a figure, each with style `FigureWithCaption`. Behavior for
+      single-image figures therefore remains unchanged.
+    + Org writer: Only the first element in a figure is given a caption;
+      additional block elements in the figure are appended without any
+      caption being added.
+    + RST writer: Single-image figures are supported as before; the contents
+      of more complex images become nested in a container of type `float`.
+    + Texinfo writer: Figures are rendered as float with type `figure`.
+    + Textile writer: Figures are rendered with the help of HTML elements.
+    + XWiki: Figures are placed in a group.
+
   * Changes in custom readers/writers:
 
     + It is now possible to have a custom reader and a custom writer for
@@ -149,10 +221,18 @@
       This is not too useful yet, because writers don't do anything with
       the short caption.
 
-  * Mediawiki reader:
+  * MediaWiki reader:
 
     + Parse table cell with attributess, to support rowspan, colspan (#8231,
       Ruqi).
+    + Refine "blending" rules for MediaWiki links (#8525, Ruqi).
+      The rules for "blending" characters outside a link into the link are
+      described here: https://en.wikipedia.org/wiki/Help:Wikitext#Blend_link
+      These pose a problem for CJK languages, which generally don't have
+      spaces after links. However, it turns out that the blending behavior, as
+      implemented on Wikipedia, is (contrary to the documentation) only for
+      ASCII letters. This commit implements that restriction, which fixes
+      the problem for CJK.
 
   * HTML reader:
 
@@ -227,6 +307,8 @@
 
     + Pass through unknown languages in code blocks (#8278), instead
       of producing `begin_example`.
+    + Use span attributes `tag-name` in headers as tags (#8513, Albert
+      Krewinkel). This enables round-tripping of tags in Org headings.
 
   * EndNote reader:
 
@@ -242,6 +324,7 @@
     + Add regression tests for #8437.
     + Render image alt text using textobject element (#8437).
     + Don't indent contents of title element.
+    + Store "unnumbered" class in DocBook role attribute (#1402, lifeunleaded).
 
   * ConTeXt writer (Albert Krewinkel):
 
@@ -420,6 +503,10 @@
     + Use `styles.citations.html` partial in `styles.html`.
     + Fix class name `hanging` -> `hanging-indent` in
       `styles.citations.html`.
+    + Put Consolas before Lucida Console for code font (#8543).
+      This is to prevent Lucida Console from being used on Windows, where
+      it causes spacing issues in some applications, with boldface
+      glyphs wider than regular ones.
 
   * EPUB CSS changes: Reduce the amount of inline CSS used for EPUBs
     (#8379). Almost everything is now in the default EPUB CSS
@@ -596,6 +683,8 @@
       `pandoc.utils.blocks_to_inlines` Lua function.
     + `defaultUserDataDir` is no longer exported (it has been
       moved to T.P.Data) [API change].
+    + New function `figureDiv`, offering offers a standardized way
+      to convert a figure into a Div element (Albert Krewinkel) [API change].
 
   * Text.Pandoc.Writers.Shared:
 
@@ -884,6 +973,9 @@
 
   * Use latest versions of `commonmark-extensions`, `texmath`,
     `citeproc`, `gridtables`, and `skylighting`.
+
+  * Use pandoc-types 1.23.  This adds the `Figure` Block
+    consntructor and removes the `Null` Block constructor.
 
   * Require aeson >= 2.0.
 
