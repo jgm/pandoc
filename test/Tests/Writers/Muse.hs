@@ -430,7 +430,6 @@ tests = [ testGroup "block elements"
           , "div with bullet list" =:
             divWith nullAttr (bulletList [para "foo"]) =?>
             unlines [ " - foo" ] -- Making sure bullets are indented
-          -- Null is trivial
           ]
         , testGroup "inline elements"
           [ testGroup "string"

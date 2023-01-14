@@ -1183,17 +1183,6 @@ Fields:
 `tag`, `t`
 :   the literal `LineBlock` (string)
 
-### Null {#type-null}
-
-A null element; this element never produces any output in the
-target format.
-
-Values of this type can be created with the
-[`pandoc.Null`](#pandoc.null) constructor.
-
-`tag`, `t`
-:   the literal `Null` (string)
-
 ### OrderedList {#type-orderedlist}
 
 An ordered list.
@@ -2698,12 +2687,6 @@ Parameters:
 :   inline content
 
 Returns: [LineBlock] object
-
-### `Null ()` {#pandoc.null}
-
-Creates a null element.
-
-Returns: [Null] object
 
 ### `OrderedList (items[, listAttributes])` {#pandoc.orderedlist}
 
