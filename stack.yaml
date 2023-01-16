@@ -27,7 +27,7 @@ extra-deps:
 - git: https://github.com/jgm/texmath
   commit: dab2be16b751e8ce7e6d9937029f10e06c3c80c3
 - git: https://github.com/jgm/citeproc
-  commit: a73c7d1c00c993b8a20daf5a932afae16f889c83
+  commit: 58cfca8671a3f3eeb87d79ca4a98fdabb2830a3a
 - git: https://github.com/jgm/pandoc-types
   commit: 8c7bc6c66d22538711171b8cfd0e5f3d48de39fd
 - git: https://github.com/pandoc/pandoc-lua-marshal
