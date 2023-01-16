@@ -4179,6 +4179,26 @@ Usage:
     local diagram_url = "https://pandoc.org/diagram.jpg"
     local mt, contents = pandoc.mediabag.fetch(diagram_url)
 
+### write {#pandoc.mediabag.write}
+
+`write (dir[, fp])`
+
+Writes the contents of mediabag to the given target directory. If
+`fp` is given, then only the resource with the given name will be
+extracted. Omitting that parameter means that the whole mediabag
+gets extracted. An error is thrown if `fp` is given but cannot be
+found in the mediabag.
+
+Parameters:
+
+`dir`
+:   path of the target directory (string)
+
+`fp`
+:   canonical name (relative path) of resource (string)
+
+Since: *3.0*
+
 # Module pandoc.List
 
 This module defines pandoc's list type. It comes with useful
