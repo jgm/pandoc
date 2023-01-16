@@ -842,8 +842,7 @@ createTocEntry opts meta metadata plainTitle (Node _ secs) = do
                    [("id", "navPoint-" <> tshow n)] $
                       [ unode "navLabel" $ unode "text" title'
                       , unode "content" !
-                          [("src", "text/" <> secPath secinfo <>
-                                               "#" <> secId secinfo)] $ ()
+                          [("src", "text/" <> secPath secinfo)] $ ()
                       ] ++ subs
 
   let tpNode = unode "navPoint" !  [("id", "navPoint-0")] $
@@ -921,8 +920,7 @@ createNavEntry opts meta metadata
           return $ Just $ unode "li" !
                    [("id", "toc-li-" <> tshow n)] $
                       (unode "a" !
-                        [("href", "text/" <> secPath secinfo <>
-                                             "#" <> secId secinfo)]
+                        [("href", "text/" <> secPath secinfo)]
                         $ titElements)
                        : case subs of
                            [] -> []

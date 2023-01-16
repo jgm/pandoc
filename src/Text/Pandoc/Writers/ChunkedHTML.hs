@@ -28,7 +28,7 @@ import Text.Pandoc.Class (PandocMonad, getPOSIXTime, runPure,
 import Text.Pandoc.MediaBag (mediaItems)
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Chunks (splitIntoChunks, Chunk(..), ChunkedDoc(..),
-                           SecInfo(..))
+                           SecInfo(..), tocToList)
 import Data.Text (Text)
 import Data.Tree
 import qualified Data.Text as T
@@ -86,9 +86,8 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   let Node secinfo secs = chunkedTOC chunkedDoc
   let tocTree = Node secinfo{ secTitle = docTitle meta,
                               secPath = "index.html" } secs
-  let tocBlocks = buildTOC opts tocTree
   renderedTOC <- writeHtml5String opts{ writerTemplate = Nothing }
-                    (Pandoc nullMeta tocBlocks)
+                    (Pandoc nullMeta [buildTOC opts tocTree])
   let opts' = opts{ writerVariables =
                         defField "table-of-contents" renderedTOC
                       $ writerVariables opts }
@@ -110,22 +109,8 @@ addMedia il@(Image _ _ (src,_))
   return il
 addMedia il = return il
 
-buildTOC :: WriterOptions -> Tree SecInfo -> [Block]
-buildTOC opts tocTree = buildTOCPart tocTree
- where
-  buildTOCPart (Node secinfo subsecs) =
-    Plain [Link nullAttr
-            ((maybe [] (\num ->
-               if writerNumberSections opts
-                  then [Span ("",["toc-section-number"],[])
-                                  [Str num, Space]]
-                  else []) (secNumber secinfo))
-             ++ secTitle secinfo)
-            (secPath secinfo, "") | secLevel secinfo > 0] :
-    if null subsecs
-       then []
-       else [BulletList (map buildTOCPart $ filter aboveThreshold subsecs)]
-  aboveThreshold (Node sec _) = secLevel sec <= writerTOCDepth opts
+buildTOC :: WriterOptions -> Tree SecInfo -> Block
+buildTOC opts = tocToList (writerTOCDepth opts)
 
 chunkToEntry :: PandocMonad m
              => WriterOptions -> Meta -> Chunk -> Chunk -> m Entry

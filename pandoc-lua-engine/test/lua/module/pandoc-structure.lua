@@ -99,40 +99,40 @@ return {
     end),
     test('returns a toc for a chunked doc', function ()
       local doc = pandoc.Pandoc {
-        pandoc.Header(1, 'First'),
+        pandoc.Header(1, 'First', {id='first'}),
         pandoc.Para('A sentence placed below the first structure.'),
-        pandoc.Header(2, 'Subsection'),
+        pandoc.Header(2, 'Subsection', {id='subsection'}),
         pandoc.Para('Mauris ac felis vel velit tristique imperdiet.'),
-        pandoc.Header(1, 'Second'),
+        pandoc.Header(1, 'Second', {id='second'}),
         pandoc.Para('Integer placerat tristique nisl.')
       }
       local chunked = structure.split_into_chunks(doc, {chunk_level = 2})
       assert.are_equal(
         structure.table_of_contents(chunked),
         pandoc.BulletList{
-          {pandoc.Plain('First'),
-           pandoc.BulletList{{pandoc.Plain 'Subsection'}}
+          {pandoc.Plain({pandoc.Link('First', 'chunk-001', '', {id='toc-first'})}),
+           pandoc.BulletList{{pandoc.Plain({pandoc.Link('Subsection', 'chunk-002', '', {id='toc-subsection'})})}}
           },
-          {pandoc.Plain('Second')}
+          {pandoc.Plain({pandoc.Link('Second', 'chunk-003', '', {id='toc-second'})})}
         }
       )
     end),
     test('respects toc-depth option', function ()
       local doc = pandoc.Pandoc {
-        pandoc.Header(1, 'First'),
+        pandoc.Header(1, 'First', {id='first'}),
         pandoc.Para('A sentence placed below the first structure.'),
-        pandoc.Header(2, 'Subsection'),
+        pandoc.Header(2, 'Subsection', {id='subsection'}),
         pandoc.Para('Mauris ac felis vel velit tristique imperdiet.'),
-        pandoc.Header(1, 'Second'),
+        pandoc.Header(1, 'Second', {id='second'}),
         pandoc.Para('Integer placerat tristique nisl.')
       }
       local chunked = structure.split_into_chunks(doc)
       assert.are_equal(
+        structure.table_of_contents(chunked, {toc_depth = 1}),
         pandoc.BulletList{
-          {pandoc.Plain('First')},
-          {pandoc.Plain('Second')}
-        },
-        structure.table_of_contents(chunked, {toc_depth = 1})
+          {pandoc.Plain({pandoc.Link('First', 'chunk-001', '', {id='toc-first'})})},
+          {pandoc.Plain({pandoc.Link('Second', 'chunk-002', '', {id='toc-second'})})}
+        }
       )
     end),
   },
