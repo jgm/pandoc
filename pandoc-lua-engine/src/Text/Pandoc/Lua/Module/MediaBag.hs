@@ -14,11 +14,13 @@ module Text.Pandoc.Lua.Module.MediaBag
 
 import Prelude hiding (lookup)
 import Data.Maybe (fromMaybe)
+import Data.Version (makeVersion)
 import HsLua ( LuaE, DocumentedFunction, Module (..)
              , (<#>), (###), (=#>), (=?>), (#?), defun, functionResult
-             , opt, parameter, stringParam, textParam)
+             , opt, parameter, since, stringParam, textParam)
 import Text.Pandoc.Class ( CommonState (..), fetchItem, fillMediaBag
                          , getMediaBag, modifyCommonState, setMediaBag)
+import Text.Pandoc.Class.IO (writeMedia)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc, pushPandoc)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
@@ -27,6 +29,7 @@ import Text.Pandoc.Lua.PandocLua (unPandocLua)
 import Text.Pandoc.MIME (MimeType)
 
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
 import qualified HsLua as Lua
 import qualified Text.Pandoc.MediaBag as MB
 
@@ -47,6 +50,7 @@ documentedModule = Module
       , items
       , list
       , lookup
+      , write
       ]
   , moduleOperations = []
   }
@@ -140,3 +144,31 @@ fetch = defun "fetch"
           return 2)
   <#> textParam "src" "URI to fetch"
   =?> "Returns two string values: the fetched contents and the mimetype."
+
+-- | Extract the mediabag or just a single entry.
+write :: DocumentedFunction PandocError
+write = defun "write"
+  ### (\dir mfp -> do
+          mb <- unPandocLua getMediaBag
+          case mfp of
+            Nothing -> unPandocLua $ mapM_ (writeMedia dir) (MB.mediaItems mb)
+            Just fp -> do
+              case MB.lookupMedia fp mb of
+                Nothing   -> Lua.failLua ("Resource not in mediabag: " <> fp)
+                Just item -> unPandocLua $ do
+                  let triple = ( MB.mediaPath item
+                               , MB.mediaMimeType item
+                               , MB.mediaContents item
+                               )
+                  writeMedia dir triple)
+  <#> stringParam "dir" "path of the target directory"
+  <#> opt (stringParam "fp" "canonical name (relative path) of resource")
+  =#> []
+  #? T.unlines
+     [ "Writes the contents of  mediabag to the given target directory. If"
+     , "`fp` is given, then only the resource with the given name will be"
+     , "extracted. Omitting that parameter means that the whole mediabag"
+     , "gets extracted. An error is thrown if `fp` is given but cannot be"
+     , "found in the mediabag."
+     ]
+  `since` makeVersion [3, 0]
