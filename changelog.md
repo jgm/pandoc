@@ -335,6 +335,9 @@
       of `\type` was customized, as those changes would not have
       been applied to code rendered with `\mono`.
     + Add support for unlisted, unnumbered headings (#8486).
+    + Support `tagging` extension [API Change] (Albert Krewinkel). Paragraphs
+      are enclosed by `\bpar` and `\epar` commands, and `highlight` commands
+      are used for emphasis. This results in much better tagging in PDF output.
 
   * LaTeX writer:
 
@@ -414,6 +417,18 @@
       are now removed in that case, leading to more aesthetic TOCs.
     + Escape `!` before `[` (#8254).
     + Support `mark` extension.
+
+  * Markdown and CommonMark writers:
+
+    + Add support for wiki links [API change] (#2923, Albert Krewinkel) via
+      the extensions `wikilinks_title_after_pipe` and
+      `wikilinks_title_before_pipe`. The former enables links of style
+      `[[Name of page|Title]]` and the latter `[[Title|Name of page]]`.
+      Titles are optional in both variants, so this works for both:
+      `[[https://example.org]]`, `[[Name of page]]`. The writer is modified
+      to render links with title `wikilink` as a wikilink if a respective
+      extension is enabled. Pandoc will use `wikilinks_title_after_pipe` if
+      both extensions are enabled.
 
   * AsciiDoc writer:
 
@@ -584,6 +599,8 @@
       `toName`, which previously had been part of T.P.Citeproc.BibTeX,
       and allows for cleaner module dependencies.
 
+  * Export module `Text.Pandoc.Slides` [API Change] (Albert Krewinkel).
+
   * Add new module Text.Pandoc.Format [API change] (Albert Krewinkel).
     The module provides functions and types for format spec parsing and
     processing. The function `parseFormatSpec` was moved from
@@ -612,6 +629,10 @@
       that it returns a Text rather than `Maybe Text`.
     + Add `showExtension`.
     + Add `Ext_mark` extension [API change].
+    + Add `Ext_tagging` constructor [API change] (Albert Krewinkel).
+    + Add `Ext_wikilinks_title_after_pipe`, `Ext_wikilinks_title_before_pipe`
+      (Albert Krewinkel).
+
 
   * Text.Pandoc.PDF:
 
@@ -792,6 +813,9 @@
       [API change].
     + Text.Pandoc.Class now exports `checkUserDataDir` [API change].
 
+  * T.P.Class.IO: export function `writeMedia` [API change] (Albert Krewinkel).
+    This is useful for the `pandoc.mediabag` module.
+
   * Separate out Text.Pandoc.Data and Text.Pandoc.Translations from
     Text.Pandoc.Class (#8348). This makes Text.Pandoc.Class
     more self-contained.
@@ -914,6 +938,10 @@
       is required but cannot be found.
     + Allow table structure as format spec. This allows to pass structured
       values as format specifiers to `pandoc.write` and `pandoc.read`.
+    + Add function `pandoc.mediabag.write` (Albert Krewinkel).
+    + Add module `pandoc.structure` (Albert Krewinkel). The function
+      `make_sections` has been given a friendlier interface and moved to the
+      new module; the old `pandoc.utils.make_sections` has been deprecated.
 
   * Custom writers:
 
