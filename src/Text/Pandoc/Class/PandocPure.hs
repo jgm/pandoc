@@ -26,6 +26,7 @@ module Text.Pandoc.Class.PandocPure
   , addToFileTree
   , insertInFileTree
   , runPure
+  , runPureWithLogMessages
   ) where
 
 import Codec.Archive.Zip
@@ -38,7 +39,7 @@ import Control.Monad.State.Strict
       MonadState(put, get),
       modify,
       evalState,
-      evalStateT )
+      runStateT )
 import Control.Monad (foldM)
 import Data.Default
 import Data.Text (Text)
@@ -53,6 +54,7 @@ import System.Random (StdGen, split, mkStdGen)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error
+import Text.Pandoc.Logging (LogMessage)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
@@ -164,10 +166,18 @@ newtype PandocPure a = PandocPure {
 
 -- | Run a 'PandocPure' operation.
 runPure :: PandocPure a -> Either PandocError a
-runPure x = flip evalState def $
-            flip evalStateT def $
-            runExceptT $
-            unPandocPure x
+runPure = fmap fst . runPureWithLogMessages
+
+runPureWithLogMessages :: PandocPure a
+                       -> Either PandocError (a, [LogMessage])
+runPureWithLogMessages x = do
+  result <- resultOrError
+  return (result, stLog commonState)
+  where
+    (resultOrError, commonState) = flip evalState def $
+                                   flip runStateT def $
+                                   runExceptT $
+                                   unPandocPure x
 
 instance PandocMonad PandocPure where
   lookupEnv s = do
