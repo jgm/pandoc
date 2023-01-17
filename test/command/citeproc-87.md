@@ -15,7 +15,7 @@ references:
 Foo (Aristotele, s.d., 50: «Disse: "bar"»). «Disse: "baz"»
 ```
 
-The Quoted is passed to citeproc as a Span ("",["csl-quoted"],[])
+The Quoted is passed to citeproc as a Span `("",["csl-quoted"],[])`
 so that flipflopping and localization occur.
 ```
 % pandoc -C -t plain -Mlang=en

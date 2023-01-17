@@ -118,7 +118,7 @@ replaceNotes' noteTbl (RawInline (Format "noteref") ref) =
  where
   warnNotFound = do
     pos <- getPosition
-    logMessage $ ReferenceNotFound ref pos
+    logMessage $ ReferenceNotFound FootnoteRef ref pos
     pure (Note [])
 replaceNotes' _ x = pure x
 

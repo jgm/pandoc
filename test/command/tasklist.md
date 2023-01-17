@@ -16,7 +16,7 @@ tests adapted from <https://github.github.com/gfm/#task-list-items-extension->
 % pandoc
 - [x] foo
   - [ ] bar
-  - [x] baz
+  - [X] baz
 - [ ] bim
 ^D
 <ul class="task-list">

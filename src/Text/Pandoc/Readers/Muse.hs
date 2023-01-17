@@ -487,7 +487,7 @@ addNote :: PandocMonad m
 addNote ref pos content = do
   oldnotes <- museNotes <$> getState
   when (M.member ref oldnotes)
-    (logMessage $ DuplicateNoteReference ref pos)
+    (logMessage $ DuplicateReferenceDefinition FootnoteRef ref pos)
   updateState $ \s -> s{ museNotes = M.insert ref (pos, content) oldnotes }
 
 -- Amusewiki version of note

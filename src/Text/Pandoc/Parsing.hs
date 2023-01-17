@@ -93,8 +93,11 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              NoteTable',
                              KeyTable,
                              SubstTable,
+                             Located (..),
                              Key (..),
                              toKey,
+                             LogUnused (..),
+                             logReferenceIssues,
                              registerHeader,
                              smartPunctuation,
                              singleQuoteStart,
@@ -332,6 +335,7 @@ import Text.Pandoc.Parsing.State
     ( defaultParserState,
       toKey,
       HeaderType(..),
+      Located(..),
       Key(..),
       KeyTable,
       NoteTable,
@@ -341,3 +345,5 @@ import Text.Pandoc.Parsing.State
       SubstTable )
 import Text.Pandoc.Parsing.Future
     ( askF, asksF, returnF, runF, Future(..) )
+import Text.Pandoc.Parsing.References
+    ( LogUnused(..), logReferenceIssues )

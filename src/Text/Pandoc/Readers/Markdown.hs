@@ -28,6 +28,7 @@ import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
+import Data.Sequence (Seq((:<|)))
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
@@ -36,12 +37,11 @@ import qualified System.FilePath.Windows as Windows
 import qualified System.FilePath.Posix as Posix
 import Text.DocLayout (realLength)
 import Text.HTML.TagSoup hiding (Row)
-import Text.Pandoc.Builder (Blocks, Inlines)
+import Text.Pandoc.Builder (Blocks, Inlines, Many(..))
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), report)
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Emoji (emojiToInline)
-import Text.Pandoc.Error
 import Safe.Foldable (maximumBounded)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -84,10 +84,10 @@ yamlToMeta opts mbfp bstr = do
         oldPos <- getPosition
         setPosition $ initialPos (fromMaybe "" mbfp)
         meta <- yamlBsToMeta (fmap B.toMetaValue <$> parseBlocks) bstr
-        checkNotes
         setPosition oldPos
         st <- getState
         let result = runF meta st
+        logReferenceIssues LogUnused
         reportLogMessages
         return result
   parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
@@ -110,9 +110,9 @@ yamlToRefs idpred opts mbfp bstr = do
           Nothing -> return ()
           Just fp -> setPosition $ initialPos fp
         refs <- yamlBsToRefs (fmap B.toMetaValue <$> parseBlocks) idpred bstr
-        checkNotes
         st <- getState
         let result = runF refs st
+        logReferenceIssues DoNotLogUnused
         reportLogMessages
         return result
   parsed <- readWithM parser def{ stateOptions = opts } ("" :: Text)
@@ -320,26 +320,12 @@ parseMarkdown = do
   optional titleBlock
   blocks <- parseBlocks
   st <- getState
-  checkNotes
   let doc = runF (do Pandoc _ bs <- B.doc <$> blocks
                      meta <- stateMeta' st
                      return $ Pandoc meta bs) st
+  logReferenceIssues LogUnused
   reportLogMessages
   return doc
-
--- check for notes with no corresponding note references
-checkNotes :: PandocMonad m => MarkdownParser m ()
-checkNotes = do
-  st <- getState
-  let notesUsed = stateNoteRefs st
-  let notesDefined = M.keys (stateNotes' st)
-  mapM_ (\n -> unless (n `Set.member` notesUsed) $
-                case M.lookup n (stateNotes' st) of
-                   Just (pos, _) -> report (NoteDefinedButNotUsed n pos)
-                   Nothing -> throwError $
-                     PandocShouldNeverHappenError "note not found")
-         notesDefined
-
 
 referenceKey :: PandocMonad m => MarkdownParser m (F Blocks)
 referenceKey = try $ do
@@ -375,14 +361,17 @@ referenceKey = try $ do
   st <- getState
   let oldkeys = stateKeys st
   let key = toKey raw
+  -- don't allow defining references with empty keys
+  guard (key /= Key "")
   case M.lookup key oldkeys of
-    Just (t,a) | not (t == target && a == attr') ->
+    Just (Located _ (t,a)) | not (t == target && a == attr') ->
       -- We don't warn on two duplicate keys if the targets are also
       -- the same. This can happen naturally with --reference-location=block
       -- or section. See #3701.
-      logMessage $ DuplicateLinkReference raw pos
+      logMessage $ DuplicateReferenceDefinition LinkRef raw pos
     _ -> return ()
-  updateState $ \s -> s { stateKeys = M.insert key (target, attr') oldkeys }
+  let newLinkRef = Located pos (target, attr')
+  updateState $ \s -> s { stateKeys = M.insert key newLinkRef oldkeys}
   return $ return mempty
 
 referenceTitle :: PandocMonad m => MarkdownParser m Text
@@ -446,12 +435,8 @@ noteBlock = do
      let raw = T.unlines (first:rest) <> "\n"
      optional blanklines
      parsed <- parseFromString' parseBlocks raw
-     oldnotes <- stateNotes' <$> getState
-     case M.lookup ref oldnotes of
-       Just _  -> logMessage $ DuplicateNoteReference ref pos
-       Nothing -> return ()
-     updateState $ \s -> s { stateNotes' =
-       M.insert ref (pos, parsed) oldnotes,
+     updateState $ \s -> s { stateNotes' = M.insert ref (Located pos parsed)
+                                         $ stateNotes' s,
                              stateInNote = False }
      return mempty
 
@@ -508,6 +493,7 @@ atxChar = do
 
 atxHeader :: PandocMonad m => MarkdownParser m (F Blocks)
 atxHeader = try $ do
+  pos <- getPosition
   level <- fmap length (atxChar >>= many1 . char)
   notFollowedBy $ guardEnabled Ext_fancy_lists >>
                   (char '.' <|> char ')') -- this would be a list
@@ -523,7 +509,7 @@ atxHeader = try $ do
   attr <- atxClosing
   attr' <- registerHeader attr (runF text defaultParserState)
   guardDisabled Ext_implicit_header_references
-    <|> registerImplicitHeader raw attr'
+    <|> registerImplicitHeader pos raw attr'
   return $ B.headerWith attr' level <$> text
 
 atxClosing :: PandocMonad m => MarkdownParser m Attr
@@ -547,12 +533,13 @@ setextHeaderEnd = try $ do
 
 mmdHeaderIdentifier :: PandocMonad m => MarkdownParser m Attr
 mmdHeaderIdentifier = do
+  pos <- getPosition
   (_, raw) <- reference
   let raw' = trim $ stripFirstAndLast raw
   let ident = T.concat $ T.words $ T.toLower raw'
   let attr = (ident, [], [])
   guardDisabled Ext_implicit_header_references
-    <|> registerImplicitHeader raw' attr
+    <|> registerImplicitHeader pos raw' attr
   skipSpaces
   return attr
 
@@ -562,6 +549,7 @@ setextHeader = try $ do
   -- unless necessary -- it gives a significant performance boost.
   lookAhead $ anyLine >> many1 (oneOf setextHChars) >> blankline
   skipSpaces
+  pos <- getPosition
   (text, raw) <- withRaw $ do
     oldAllowLineBreaks <- stateAllowLineBreaks <$> getState
     updateState $ \st -> st{ stateAllowLineBreaks = False }
@@ -576,18 +564,19 @@ setextHeader = try $ do
   let level = fromMaybe 0 (elemIndex underlineChar setextHChars) + 1
   attr' <- registerHeader attr (runF text defaultParserState)
   guardDisabled Ext_implicit_header_references
-    <|> registerImplicitHeader raw attr'
+    <|> registerImplicitHeader pos raw attr'
   return $ B.headerWith attr' level <$> text
 
-registerImplicitHeader :: PandocMonad m => Text -> Attr -> MarkdownParser m ()
-registerImplicitHeader raw attr@(ident, _, _)
+registerImplicitHeader :: PandocMonad m => SourcePos -> Text -> Attr -> MarkdownParser m ()
+registerImplicitHeader pos raw attr@(ident, _, _)
   | T.null raw = return ()
   | otherwise = do
       let key = toKey $ "[" <> raw <> "]"
-      updateState $ \s ->  -- don't override existing headers
-        s { stateHeaderKeys = M.insertWith (\_new old -> old)
-                                     key (("#" <> ident,""), attr)
-                                     (stateHeaderKeys s) }
+          newHeader = Located pos (("#" <> ident,""), attr)
+      -- don't override existing headers
+      updateState $ \s -> s {
+        stateHeaderKeys = M.insertWith (\_new old -> old) key newHeader
+                        $ stateHeaderKeys s }
 
 --
 -- hrule block
@@ -939,10 +928,34 @@ listItem fourSpaceRule start = try $ do
   continuations <- many (listContinuation continuationIndent)
   -- parse the extracted block, which may contain various block elements:
   let raw = T.concat (first:continuations)
-  contents <- parseFromString' parseBlocks raw
-  updateState (\st -> st {stateParserContext = oldContext})
   exts <- getOption readerExtensions
-  return $ B.fromList . taskListItemFromAscii exts . B.toList <$> contents
+  let bodyParser | Ext_task_lists `extensionEnabled` exts = taskListItemBody
+                 | otherwise = parseBlocks
+  contents <- parseFromString' bodyParser raw
+  updateState (\st -> st {stateParserContext = oldContext})
+  return contents
+
+-- | Parse a list item potentially containing tasklist syntax
+-- (e.g. @[x]@) to using @U+2610 BALLOT BOX@ or @U+2612 BALLOT BOX
+-- WITH X@.
+taskListItemBody :: PandocMonad m => MarkdownParser m (F Blocks)
+taskListItemBody = do
+  taskPrefix <- try unchecked <|> try checked <|> return []
+  contents <- parseBlocks
+  return $ addCheckBox taskPrefix <$> contents
+  where
+    unchecked = do
+      char '[' >> spaceChar >> char ']' >> spaceChar
+      return [Str "☐", Space]
+    checked = do
+      char '[' >> (char 'x' <|> char 'X') >> char ']' >> spaceChar
+      return [Str "☒", Space]
+    addCheckBox [] blocks = blocks
+    addCheckBox taskPrefix blocks =
+      case unMany blocks of
+        (Plain is :<| xs) -> Many $ Plain (taskPrefix ++ is) :<| xs
+        (Para is :<| xs) -> Many $ Para (taskPrefix ++ is) :<| xs
+        xs -> Many $ Plain taskPrefix :<| xs
 
 orderedList :: PandocMonad m => MarkdownParser m (F Blocks)
 orderedList = try $ do
@@ -1848,12 +1861,14 @@ wikilink =
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
+  pos <- getPosition
   st <- getState
   guard $ stateAllowLinks st
   setState $ st{ stateAllowLinks = False }
   (lab,raw) <- reference
   setState $ st{ stateAllowLinks = True }
-  regLink B.linkWith lab <|> referenceLink B.linkWith (lab,raw)
+  regLink B.linkWith lab
+    <|> referenceLink NormalReferenceLinkContext pos B.linkWith (lab,raw)
 
 bracketedSpan :: PandocMonad m => MarkdownParser m (F Inlines)
 bracketedSpan = do
@@ -1903,12 +1918,17 @@ regLink constructor lab = try $ do
           guardEnabled Ext_link_attributes >> attributes
   return $ constructor attr src' tit <$> lab
 
+data ReferenceLinkContext = NormalReferenceLinkContext | CitationReferenceLinkContext
+  deriving (Eq)
+
 -- a link like [this][ref] or [this][] or [this]
 referenceLink :: PandocMonad m
-              => (Attr -> Text -> Text -> Inlines -> Inlines)
+              => ReferenceLinkContext
+              -> SourcePos
+              -> (Attr -> Text -> Text -> Inlines -> Inlines)
               -> (F Inlines, Text)
               -> MarkdownParser m (F Inlines)
-referenceLink constructor (lab, raw) = do
+referenceLink context pos constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
   (_,raw') <- option (mempty, "") $
       lookAhead (try (do guardEnabled Ext_citations
@@ -1920,11 +1940,18 @@ referenceLink constructor (lab, raw) = do
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let labIsRef = raw' == "" || raw' == "[]"
   let key = toKey $ if labIsRef then raw else raw'
+  -- don't allow empty key references
+  guard (key /= Key "")
   parsedRaw <- parseFromString' inlines raw'
   fallback  <- parseFromString' inlines $ dropBrackets raw
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
+  -- guard against spurious usage warnings in citations
+  unless (raw' == "" && context == CitationReferenceLinkContext) $
+    updateState $ \s -> s { stateKeyUsages = Located pos key : stateKeyUsages s }
   let makeFallback = do
+       -- fallback to plain text. logReferenceIssues will notice the
+       -- broken usage and warn about it.
        parsedRaw' <- parsedRaw
        fallback' <- fallback
        return $ B.str "[" <> fallback' <> B.str "]" <>
@@ -1933,15 +1960,16 @@ referenceLink constructor (lab, raw) = do
   return $ do
     keys <- asksF stateKeys
     case M.lookup key keys of
-       Nothing        ->
+       Nothing ->
          if implicitHeaderRefs
             then do
               headerKeys <- asksF stateHeaderKeys
               case M.lookup key headerKeys of
-                   Just ((src, tit), _) -> constructor nullAttr src tit <$> lab
-                   Nothing              -> makeFallback
+                   Just (Located _ ((src, tit), _)) ->
+                       constructor nullAttr src tit <$> lab
+                   Nothing -> makeFallback
             else makeFallback
-       Just ((src,tit), attr) ->
+       Just (Located _ ((src,tit), attr)) ->
            constructor attr src tit <$> lab
 
 dropBrackets :: Text -> Text
@@ -1994,6 +2022,7 @@ rebasePath pos path = do
 
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
+  pos <- getPosition
   char '!'
   (lab,raw) <- reference
   defaultExt <- getOption readerDefaultImageExtension
@@ -2002,20 +2031,21 @@ image = try $ do
             "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
                                             $ T.unpack defaultExt)
             _  -> B.imageWith attr' src
-  regLink constructor lab <|> referenceLink constructor (lab,raw)
+  regLink constructor lab
+    <|> referenceLink NormalReferenceLinkContext pos constructor (lab,raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
+  pos <- getPosition
   guardEnabled Ext_footnotes
   ref <- noteMarker
-  updateState $ \st -> st{ stateNoteRefs = Set.insert ref (stateNoteRefs st)
+  updateState $ \st -> st{ stateNoteUsages = (Located pos ref) : stateNoteUsages st
                          , stateNoteNumber = stateNoteNumber st + 1 }
   noteNum <- stateNoteNumber <$> getState
   return $ do
     notes <- asksF stateNotes'
     case M.lookup ref notes of
-        Nothing       -> return $ B.str $ "[^" <> ref <> "]"
-        Just (_pos, contents) -> do
+        Just (Located _ contents) -> do
           st <- askF
           -- process the note in a context that doesn't resolve
           -- notes, to avoid infinite looping with notes inside
@@ -2027,6 +2057,9 @@ note = try $ do
                 Cite (map addCitationNoteNum cs) ils
               adjustCite x = x
           return $ B.note $ walk adjustCite contents'
+        -- fallback to plain text. logReferenceIssues will notice the
+        -- broken usage and warn about it.
+        Nothing -> return $ B.str $ "[^" <> ref <> "]"
 
 inlineNote :: PandocMonad m => MarkdownParser m (F Inlines)
 inlineNote = do
@@ -2191,6 +2224,7 @@ textualCite = try $ do
                       , citationHash    = 0
                       }
   (do -- parse [braced] material after author-in-text cite
+      pos <- getPosition
       (cs, raw) <- withRaw $
                         (fmap (first:) <$> try (spnl *> normalCite))
                     <|> bareloc first
@@ -2198,7 +2232,7 @@ textualCite = try $ do
           spc | T.null spaces' = mempty
               | otherwise      = B.space
       lab <- parseFromString' inlines $ dropBrackets raw'
-      fallback <- referenceLink B.linkWith (lab,raw')
+      fallback <- referenceLink CitationReferenceLinkContext pos B.linkWith (lab,raw')
       -- undo any incrementing of stateNoteNumber from last step:
       updateState $ \st -> st{ stateNoteNumber = noteNum }
       return $ do

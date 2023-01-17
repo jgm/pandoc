@@ -16,6 +16,7 @@ and info messages.
 -}
 module Text.Pandoc.Logging (
     Verbosity(..)
+  , RefType(..)
   , LogMessage(..)
   , encodeLogMessages
   , showLogMessage
@@ -51,15 +52,17 @@ instance FromJSON Verbosity where
          _         -> mzero
   parseJSON _      =  mzero
 
+data RefType = FootnoteRef | LinkRef | SubstitutionRef
+  deriving (Show, Eq, Data, Ord, Typeable, Generic)
+
 data LogMessage =
     SkippedContent Text SourcePos
   | IgnoredElement Text
-  | DuplicateLinkReference Text SourcePos
-  | DuplicateNoteReference Text SourcePos
-  | NoteDefinedButNotUsed Text SourcePos
-  | DuplicateIdentifier Text SourcePos
-  | ReferenceNotFound Text SourcePos
+  | DuplicateReferenceDefinition RefType Text SourcePos
+  | UnusedReferenceDefinition RefType Text SourcePos
+  | ReferenceNotFound RefType Text SourcePos
   | CircularReference Text SourcePos
+  | DuplicateIdentifier Text SourcePos
   | UndefinedToggle Text SourcePos
   | ParsingUnescaped Text SourcePos
   | CouldNotLoadIncludeFile Text SourcePos
@@ -112,32 +115,30 @@ instance ToJSON LogMessage where
             "column" .= sourceColumn pos]
       IgnoredElement s ->
            ["contents" .= s]
-      DuplicateLinkReference s pos ->
-           ["contents" .= s,
+      DuplicateReferenceDefinition refType key pos ->
+           ["refType" .= toJSON (show refType),
+            "contents" .= key,
             "source" .= sourceName pos,
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
-      NoteDefinedButNotUsed s pos ->
-           ["key" .= s,
+      UnusedReferenceDefinition refType key pos ->
+           ["refType" .= toJSON (show refType),
+            "contents" .= key,
             "source" .= sourceName pos,
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
-      DuplicateNoteReference s pos ->
+      ReferenceNotFound refType key pos ->
+           ["refType" .= toJSON (show refType),
+            "contents" .= key,
+            "source" .= sourceName pos,
+            "line" .= toJSON (sourceLine pos),
+            "column" .= toJSON (sourceColumn pos)]
+      CircularReference s pos ->
            ["contents" .= s,
             "source" .= sourceName pos,
             "line" .= toJSON (sourceLine pos),
             "column" .= toJSON (sourceColumn pos)]
       DuplicateIdentifier s pos ->
-           ["contents" .= s,
-            "source" .= sourceName pos,
-            "line" .= toJSON (sourceLine pos),
-            "column" .= toJSON (sourceColumn pos)]
-      ReferenceNotFound s pos ->
-           ["contents" .= s,
-            "source" .= sourceName pos,
-            "line" .= toJSON (sourceLine pos),
-            "column" .= toJSON (sourceColumn pos)]
-      CircularReference s pos ->
            ["contents" .= s,
             "source" .= sourceName pos,
             "line" .= toJSON (sourceLine pos),
@@ -267,19 +268,37 @@ showLogMessage msg =
          "Skipped '" <> s <> "' at " <> showPos pos
        IgnoredElement s ->
          "Ignored element " <> s
-       DuplicateLinkReference s pos ->
-         "Duplicate link reference '" <> s <> "' at " <> showPos pos
-       DuplicateNoteReference s pos ->
-         "Duplicate note reference '" <> s <> "' at " <> showPos pos
-       NoteDefinedButNotUsed s pos ->
-         "Note with key '" <> s <> "' defined at " <> showPos pos <>
-           " but not used."
-       DuplicateIdentifier s pos ->
-         "Duplicate identifier '" <> s <> "' at " <> showPos pos
-       ReferenceNotFound s pos ->
-         "Reference not found for '" <> s <> "' at " <> showPos pos
+       DuplicateReferenceDefinition FootnoteRef key pos ->
+         "Duplicate note definitions with key '" <> key <>
+         "' at " <> showPos pos
+       DuplicateReferenceDefinition LinkRef key pos ->
+         "Duplicate link reference definitions with key '" <> key <>
+         "' at " <> showPos pos
+       DuplicateReferenceDefinition SubstitutionRef key pos ->
+         "Duplicate substitution definitions with key '" <> key <>
+         "' at " <> showPos pos
+       UnusedReferenceDefinition FootnoteRef key pos ->
+         "Note with key '" <> key <>
+         "' defined at " <> showPos pos <> " but not used."
+       UnusedReferenceDefinition LinkRef key pos ->
+         "Link reference with key '" <> key <>
+         "' defined at " <> showPos pos <> " but not used."
+       UnusedReferenceDefinition SubstitutionRef key pos ->
+         "Substiution definition with key '" <> key <>
+         "' defined at " <> showPos pos <> " but not used."
+       ReferenceNotFound FootnoteRef key pos ->
+         "Note reference not found for '" <> key <>
+         "' at " <> showPos pos
+       ReferenceNotFound LinkRef key pos ->
+         "Link reference not found for key '" <> key <>
+         "' at " <> showPos pos
+       ReferenceNotFound SubstitutionRef key pos ->
+         "Substitution reference not found for key '" <> key <>
+         "' at " <> showPos pos
        CircularReference s pos ->
          "Circular reference '" <> s <> "' at " <> showPos pos
+       DuplicateIdentifier s pos ->
+         "Duplicate identifier '" <> s <> "' at " <> showPos pos
        UndefinedToggle s pos ->
          "Undefined toggle '" <> s <> "' at " <> showPos pos
        ParsingUnescaped s pos ->
@@ -381,9 +400,8 @@ messageVerbosity msg =
   case msg of
        SkippedContent{}              -> INFO
        IgnoredElement{}              -> INFO
-       DuplicateLinkReference{}      -> WARNING
-       DuplicateNoteReference{}      -> WARNING
-       NoteDefinedButNotUsed{}       -> WARNING
+       DuplicateReferenceDefinition{}-> WARNING
+       UnusedReferenceDefinition{}   -> WARNING
        DuplicateIdentifier{}         -> WARNING
        ReferenceNotFound{}           -> WARNING
        CircularReference{}           -> WARNING

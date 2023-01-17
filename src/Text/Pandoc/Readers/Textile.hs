@@ -35,7 +35,7 @@ TODO : refactor common patterns across readers :
 
 
 module Text.Pandoc.Readers.Textile ( readTextile) where
-import Control.Monad (guard, liftM)
+import Control.Monad (guard, liftM, when)
 import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
 import Data.List (intersperse, transpose, foldl')
@@ -85,9 +85,14 @@ parseTextile = do
   setPosition startPos
   st' <- getState
   let reversedNotes = stateNotes st'
-  updateState $ \s -> s { stateNotes = reverse reversedNotes }
+  updateState $ \s -> s { stateNotes = reverse reversedNotes
+                        , stateNoteUsages = []
+                        , stateIsFirstPass = False }
   -- now parse it for real...
-  Pandoc nullMeta . B.toList <$> parseBlocks -- FIXME
+  result <- Pandoc nullMeta . B.toList <$> parseBlocks -- FIXME
+  logReferenceIssues LogUnused
+  reportLogMessages
+  return result
 
 noteMarker :: PandocMonad m => TextileParser m Text
 noteMarker = skipMany spaceChar >> string "fn" >> T.pack <$> manyTill digit (char '.')
@@ -99,10 +104,12 @@ noteBlock = try $ do
   optional blankline
   contents <- T.unlines <$> many1Till anyLine (blanklines <|> noteBlock)
   endPos <- getPosition
-  let newnote = (ref, contents <> "\n")
+  -- only record notes on the first pass, otherwise they will all be
+  -- reported as duplicates
   st <- getState
-  let oldnotes = stateNotes st
-  updateState $ \s -> s { stateNotes = newnote : oldnotes }
+  when (stateIsFirstPass st) $ do
+    let newNote = (ref, Located startPos (contents <> "\n"))
+    updateState $ \s -> s { stateNotes = newNote : stateNotes s }
   -- return blanks so line count isn't affected
   return $ T.replicate (sourceLine endPos - sourceLine startPos) "\n"
 
@@ -527,11 +534,15 @@ copy = do
 
 note :: PandocMonad m => TextileParser m Inlines
 note = try $ do
-  ref <- char '[' *> many1 digit <* char ']'
+  pos <- getPosition
+  ref <- T.pack <$> (char '[' *> many1 digit <* char ']')
   notes <- stateNotes <$> getState
-  case lookup (T.pack ref) notes of
-    Nothing  -> Prelude.fail "note not found"
-    Just raw -> B.note <$> parseFromString' parseBlocks raw
+  updateState $ \s -> s { stateNoteUsages = Located pos ref : stateNoteUsages s }
+  case lookup ref notes of
+    Just (Located _ raw) -> B.note <$> parseFromString' parseBlocks raw
+    -- fallback to plain text. logReferenceIssues will notice the
+    -- broken usage and warn about it.
+    Nothing  -> return $ B.str $ "[" <> ref <> "]"
 
 -- | Special chars
 markupChars :: [Char]

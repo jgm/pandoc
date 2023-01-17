@@ -57,7 +57,6 @@ module Text.Pandoc.Shared (
                      stripEmptyParagraphs,
                      onlySimpleTableCells,
                      isTightList,
-                     taskListItemFromAscii,
                      taskListItemToAscii,
                      handleTaskListItem,
                      addMetaField,
@@ -624,16 +623,6 @@ isTightList :: [[Block]] -> Bool
 isTightList = all (\item -> firstIsPlain item || null item)
   where firstIsPlain (Plain _ : _) = True
         firstIsPlain _             = False
-
--- | Convert a list item containing tasklist syntax (e.g. @[x]@)
--- to using @U+2610 BALLOT BOX@ or @U+2612 BALLOT BOX WITH X@.
-taskListItemFromAscii :: Extensions -> [Block] -> [Block]
-taskListItemFromAscii = handleTaskListItem fromMd
-  where
-    fromMd (Str "[" : Space : Str "]" : Space : is) = Str "☐" : Space : is
-    fromMd (Str "[x]"                 : Space : is) = Str "☒" : Space : is
-    fromMd (Str "[X]"                 : Space : is) = Str "☒" : Space : is
-    fromMd is = is
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
 -- or @U+2612 BALLOT BOX WITH X@ to tasklist syntax (e.g. @[x]@).

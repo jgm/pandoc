@@ -16,6 +16,7 @@ module Text.Pandoc.Parsing.State
   , HeaderType (..)
   , NoteTable
   , NoteTable'
+  , Located (..)
   , Key (..)
   , KeyTable
   , SubstTable
@@ -49,10 +50,11 @@ data ParserState = ParserState
   , stateLastStrPos      :: Maybe SourcePos -- ^ Position after last str parsed
   , stateKeys            :: KeyTable      -- ^ List of reference keys
   , stateHeaderKeys      :: KeyTable      -- ^ List of implicit header ref keys
+  , stateKeyUsages       :: [Located Key] -- ^ Link reference usages
   , stateSubstitutions   :: SubstTable    -- ^ List of substitution references
   , stateNotes           :: NoteTable     -- ^ List of notes (raw bodies)
   , stateNotes'          :: NoteTable'    -- ^ List of notes (parsed bodies)
-  , stateNoteRefs        :: Set.Set Text  -- ^ List of note references used
+  , stateNoteUsages      :: [Located Text] -- ^ Note reference usages
   , stateInNote          :: Bool          -- ^ True if parsing note contents
   , stateNoteNumber      :: Int           -- ^ Last note number for citations
   , stateMeta            :: Meta          -- ^ Document metadata
@@ -77,6 +79,7 @@ data ParserState = ParserState
   , stateContainers      :: [Text]        -- ^ parent include files
   , stateLogMessages     :: [LogMessage]  -- ^ log messages
   , stateMarkdownAttribute :: Bool        -- ^ True if in markdown=1 context
+  , stateIsFirstPass     :: Bool          -- ^ True if in first parse pass
   }
 
 instance Default ParserState where
@@ -143,10 +146,11 @@ defaultParserState = ParserState
   , stateLastStrPos      = Nothing
   , stateKeys            = M.empty
   , stateHeaderKeys      = M.empty
+  , stateKeyUsages       = []
   , stateSubstitutions   = M.empty
   , stateNotes           = []
   , stateNotes'          = M.empty
-  , stateNoteRefs        = Set.empty
+  , stateNoteUsages      = []
   , stateInNote          = False
   , stateNoteNumber      = 0
   , stateMeta            = nullMeta
@@ -166,12 +170,15 @@ defaultParserState = ParserState
   , stateContainers      = []
   , stateLogMessages     = []
   , stateMarkdownAttribute = False
+  , stateIsFirstPass     = True
   }
 
-type NoteTable = [(Text, Text)]
+--
+-- Types used to define reference definition tables and usage lists
+--
 
-type NoteTable' = M.Map Text (SourcePos, Future ParserState Blocks)
--- used in markdown reader
+data Located a = Located { location :: SourcePos, unLocated :: a }
+  deriving (Show, Eq, Ord)
 
 newtype Key = Key Text deriving (Show, Read, Eq, Ord)
 
@@ -184,6 +191,18 @@ toKey = Key . T.toLower . T.unwords . T.words . unbracket
           | otherwise
           = t
 
-type KeyTable = M.Map Key (Target, Attr)
+--
+-- Synonyms for footnote / link / substitution definition tables
+--
 
+-- | Map from footnote name to raw definition.
+type NoteTable = [(Text, Located Text)]
+
+-- | Map from footnote name to parsed content, used in markdown reader.
+type NoteTable' = M.Map Text (Located (Future ParserState Blocks))
+
+-- | Map from link reference key to link info.
+type KeyTable = M.Map Key (Located (Target, Attr))
+
+-- | Map from substitution key to content.
 type SubstTable = M.Map Key Inlines

@@ -1050,18 +1050,21 @@ mkAttr ident classes fields = (ident, classes, fields')
 
 noteBlock :: Monad m => RSTParser m Text
 noteBlock = try $ do
+  pos <- getPosition
   (ref, raw, replacement) <- noteBlock' noteMarker
-  updateState $ \s -> s { stateNotes = (ref, raw) : stateNotes s }
+  updateState $ \s -> s { stateNotes = (ref, Located pos raw) : stateNotes s }
   -- return blanks so line count isn't affected
   return replacement
 
 citationBlock :: Monad m => RSTParser m Text
 citationBlock = try $ do
+  pos <- getPosition
   (ref, raw, replacement) <- noteBlock' citationMarker
   updateState $ \s ->
      s { stateCitations = M.insert ref raw (stateCitations s),
-         stateKeys = M.insert (toKey ref) (("#" <> ref,""), ("",["citation"],[]))
-                               (stateKeys s) }
+         stateKeys = M.insert (toKey ref)
+                              (Located pos (("#" <> ref,""), ("",["citation"],[])))
+                              (stateKeys s) }
   -- return blanks so line count isn't affected
   return replacement
 
@@ -1161,24 +1164,26 @@ substKey = try $ do
              [Para ils] -> return $ B.fromList ils
              _          -> mzero
   let key = toKey $ stripFirstAndLast ref
-  updateState $ \s -> s{ stateSubstitutions =
-                          M.insert key il $ stateSubstitutions s }
+  updateState $ \s -> s{ stateSubstitutions = M.insert key il
+                                            $ stateSubstitutions s }
 
 anonymousKey :: Monad m => RSTParser m ()
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
+  pos <- getPosition
   src <- targetURI
   -- we need to ensure that the keys are ordered by occurrence in
   -- the document.
   numKeys <- M.size . stateKeys <$> getState
   let key = toKey $ "_" <> T.pack (show numKeys)
-  updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
+  updateState $ \s -> s { stateKeys = M.insert key (Located pos ((src,""), nullAttr)) $
                           stateKeys s }
 
-referenceNames :: PandocMonad m => RSTParser m [Text]
+referenceNames :: PandocMonad m => RSTParser m [Located Text]
 referenceNames = do
   let rn = try $ do
              string ".. _"
+             pos <- getPosition
              ref <- quotedReferenceName
                   <|> manyChar (  noneOf "\\:\n"
                               <|> try (char '\n' <*
@@ -1188,7 +1193,7 @@ referenceNames = do
                               <|> try (char ':' <* lookAhead alphaNum)
                                )
              char ':'
-             return ref
+             return $ Located pos ref
   first <- rn
   rest  <- many (try (blanklines *> rn))
   return (first:rest)
@@ -1201,17 +1206,18 @@ regularKey = try $ do
   refs <- referenceNames
   src <- targetURI
   guard $ not (T.null src)
-  let keys = map toKey refs
-  forM_ keys $ \key ->
-    updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
-                            stateKeys s }
+  forM_ refs $ \(Located pos key) -> do
+    let locatedRef = Located pos ((src,""), nullAttr)
+    updateState $ \s -> s { stateKeys = M.insert (toKey key) locatedRef
+                                      $ stateKeys s }
 
 anchorDef :: PandocMonad m => RSTParser m Text
 anchorDef = try $ do
   (refs, raw) <- withRaw $ try (referenceNames <* blanklines)
-  forM_ refs $ \rawkey ->
-    updateState $ \s -> s { stateKeys =
-       M.insert (toKey rawkey) (("#" <> rawkey,""), nullAttr) $ stateKeys s }
+  forM_ refs $ \(Located pos rawkey) -> do
+    let locatedRef = Located pos (("#" <> rawkey,""), nullAttr)
+    updateState $ \s -> s { stateKeys = M.insert (toKey rawkey) locatedRef
+                                      $ stateKeys s }
   -- keep this for 2nd round of parsing, where we'll add the divs (anchor)
   return raw
 
@@ -1220,12 +1226,12 @@ anchor = try $ do
   refs <- referenceNames
   blanklines
   b <- block
-  let addDiv ref = B.divWith (ref, [], [])
+  let addDiv (Located _ ref) = B.divWith (ref, [], [])
   let emptySpanWithId id' = Span (id',[],[]) []
   -- put identifier on next block:
   case B.toList b of
        [Header lev (_,classes,kvs) txt] ->
-         case reverse refs of
+         case reverse (map unLocated refs) of
               [] -> return b
               (r:rs) -> return $ B.singleton $
                            Header lev (r,classes,kvs)
@@ -1236,11 +1242,13 @@ anchor = try $ do
 
 headerBlock :: PandocMonad m => RSTParser m Text
 headerBlock = do
+  pos <- getPosition
   ((txt, _), raw) <- withRaw (doubleHeader' <|> singleHeader')
   (ident,_,_) <- registerHeader nullAttr txt
   let key = toKey (stringify txt)
-  updateState $ \s -> s { stateKeys = M.insert key (("#" <> ident,""), nullAttr)
-                          $ stateKeys s }
+      locatedRef = Located pos (("#" <> ident,""), nullAttr)
+  updateState $ \s -> s { stateKeys = M.insert key locatedRef
+                        $ stateKeys s }
   return raw
 
 
@@ -1598,10 +1606,11 @@ lookupKey oldkeys key = do
   case M.lookup key keyTable of
        Nothing  -> do
          let Key key' = key
-         logMessage $ ReferenceNotFound key' pos
+         logMessage $ ReferenceNotFound LinkRef key' pos
          return (("",""),nullAttr)
        -- check for keys of the form link_, which need to be resolved:
-       Just ((u, ""),_) | T.length u > 1, T.last u == '_', T.head u /= '#' -> do
+       Just (Located _ ((u, ""),_))
+         | T.length u > 1, T.last u == '_', T.head u /= '#' -> do
          let rawkey = T.init u
          let newkey = toKey rawkey
          if newkey `elem` oldkeys
@@ -1609,7 +1618,7 @@ lookupKey oldkeys key = do
               logMessage $ CircularReference rawkey pos
               return (("",""),nullAttr)
             else lookupKey (key:oldkeys) newkey
-       Just val -> return val
+       Just val -> return $ unLocated val
 
 autoURI :: Monad m => RSTParser m Inlines
 autoURI = do
@@ -1633,7 +1642,8 @@ subst = try $ do
   case M.lookup key substTable of
        Nothing     -> do
          pos <- getPosition
-         logMessage $ ReferenceNotFound (tshow key) pos
+         let Key rawKey = key
+         logMessage $ ReferenceNotFound SubstitutionRef rawKey pos
          return mempty
        Just target -> return target
 
@@ -1647,7 +1657,7 @@ note = try $ do
   case lookup ref notes of
     Nothing   -> do
       pos <- getPosition
-      logMessage $ ReferenceNotFound ref pos
+      logMessage $ ReferenceNotFound FootnoteRef ref pos
       return mempty
     Just raw  -> do
       -- We temporarily empty the note list while parsing the note,
@@ -1655,7 +1665,7 @@ note = try $ do
       -- Note references inside other notes are allowed in reST, but
       -- not yet in this implementation.
       updateState $ \st -> st{ stateNotes = [] }
-      contents <- parseFromString' parseBlocks raw
+      contents <- parseFromString' parseBlocks (unLocated raw)
       let newnotes = if ref == "*" || ref == "#" -- auto-numbered
                         -- delete the note so the next auto-numbered note
                         -- doesn't get the same contents:

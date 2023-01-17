@@ -1,5 +1,5 @@
 # Chapter two
 
-A spider: ![spider](spider.png)
+A spider: ![spider][refspider]
 
 [refspider]: spider.png
