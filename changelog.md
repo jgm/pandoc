@@ -978,7 +978,7 @@
     `citeproc`, `gridtables`, and `skylighting`.
 
   * Use pandoc-types 1.23.  This adds the `Figure` Block
-    consntructor and removes the `Null` Block constructor.
+    constructor and removes the `Null` Block constructor.
 
   * Require aeson >= 2.0.
 
@@ -987,7 +987,7 @@
 
   * Use doctemplates 0.11, avoiding a transitive dependency on HsYAML.
 
-  * Use skylighting 0.13.1.2
+  * Use skylighting 0.13.1.2.
 
   * Allow mtl 2.3.1 (Alexander Batischev).
 
