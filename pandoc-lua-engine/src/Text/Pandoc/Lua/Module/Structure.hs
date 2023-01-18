@@ -29,7 +29,8 @@ import Text.Pandoc.Lua.Marshal.AST ( peekBlocksFuzzy, peekPandoc
                                    , pushBlock, pushBlocks )
 import Text.Pandoc.Lua.Marshal.Chunks
 import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions )
-import Text.Pandoc.Options (WriterOptions (writerTOCDepth))
+import Text.Pandoc.Options (WriterOptions (writerTOCDepth,
+                                           writerNumberSections))
 import Text.Pandoc.Slides (getSlideLevel, prepSlides)
 import Text.Pandoc.Writers.Shared (toTableOfContents)
 import qualified Data.Text as T
@@ -168,7 +169,8 @@ table_of_contents = defun "table_of_contents"
           let writerOpts = fromMaybe def mwriterOpts
           in case tocSource of
                Left blks  -> toTableOfContents writerOpts blks
-               Right tree -> tocToList (writerTOCDepth writerOpts) tree
+               Right tree -> tocToList (writerNumberSections writerOpts)
+                                       (writerTOCDepth writerOpts) tree
       )
   <#> parameter peekTocSource "Blocks|Pandoc|ChunkedDoc" "toc_source"
         "list of command line arguments"

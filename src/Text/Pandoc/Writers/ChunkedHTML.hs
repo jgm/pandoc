@@ -110,7 +110,7 @@ addMedia il@(Image _ _ (src,_))
 addMedia il = return il
 
 buildTOC :: WriterOptions -> Tree SecInfo -> Block
-buildTOC opts = tocToList (writerTOCDepth opts)
+buildTOC opts = tocToList (writerNumberSections opts) (writerTOCDepth opts)
 
 chunkToEntry :: PandocMonad m
              => WriterOptions -> Meta -> Chunk -> Chunk -> m Entry

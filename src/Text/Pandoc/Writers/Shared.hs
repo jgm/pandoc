@@ -465,7 +465,7 @@ toTableOfContents :: WriterOptions
                   -> [Block]
                   -> Block
 toTableOfContents opts =
-  tocToList (writerTOCDepth opts)
+  tocToList (writerNumberSections opts) (writerTOCDepth opts)
   . toTOCTree
   . makeSections (writerNumberSections opts) Nothing
 

@@ -374,13 +374,14 @@ fixTOCTreePaths chunks = go ""
              (map (go fp') subtrees)
 
 -- | Creates a TOC link to the respective document section.
-tocEntryToLink :: SecInfo -> [Inline]
-tocEntryToLink secinfo = headerLink
+tocEntryToLink :: Bool -> SecInfo -> [Inline]
+tocEntryToLink includeNumbers secinfo = headerLink
  where
   addNumber  = case secNumber secinfo of
-                 Just num -> (Span ("",["toc-section-number"],[])
+                 Just num | includeNumbers
+                        -> (Span ("",["toc-section-number"],[])
                                [Str num] :) . (Space :)
-                 Nothing -> id
+                 _ -> id
   clean (Link _ xs _) = xs
   clean (Note _) = []
   clean x = [x]
@@ -398,13 +399,13 @@ tocEntryToLink secinfo = headerLink
                          headerText (anchor, "")]
 
 -- | Generate a table of contents of the given depth.
-tocToList :: Int -> Tree SecInfo -> Block
-tocToList tocDepth (Node _ subtrees) = BulletList (toItems subtrees)
+tocToList :: Bool -> Int -> Tree SecInfo -> Block
+tocToList includeNumbers tocDepth (Node _ subtrees) = BulletList (toItems subtrees)
  where
   toItems = map go . filter isBelowTocDepth
   isBelowTocDepth (Node sec _) = secLevel sec <= tocDepth
   go (Node secinfo xs) =
-    Plain (tocEntryToLink secinfo) :
+    Plain (tocEntryToLink includeNumbers secinfo) :
       case toItems xs of
         [] -> []
         ys -> [BulletList ys]
