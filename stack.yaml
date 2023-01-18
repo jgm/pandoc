@@ -16,17 +16,11 @@ extra-deps:
 - jira-wiki-markup-1.5.0
 - mime-types-0.1.1.0
 - doctemplates-0.11
-- git: https://github.com/jgm/texmath
-  commit: dab2be16b751e8ce7e6d9937029f10e06c3c80c3
-- git: https://github.com/jgm/citeproc
-  commit: 58cfca8671a3f3eeb87d79ca4a98fdabb2830a3a
-- git: https://github.com/jgm/pandoc-types
-  commit: 8c7bc6c66d22538711171b8cfd0e5f3d48de39fd
-- git: https://github.com/pandoc/pandoc-lua-marshal
-  commit: 01cbd2039e91b32d9fbcb4418bd80854973e8bb5
-- git: https://github.com/jgm/commonmark-hs
-  commit: d0f3097e55471aa640d76d0188ba707cbece71b1
-  subdirs: [commonmark-pandoc]
+- texmath-0.12.5.5
+- citeproc-0.8.1
+- pandoc-types-1.23
+- pandoc-lua-marshal-0.2
+- commonmark-pandoc-0.2.1.3
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
