@@ -9,21 +9,13 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
-- skylighting-core-0.13.2
-- skylighting-0.13.2
-- skylighting-format-context-0.1.0.1
-- skylighting-format-ansi-0.1
-- skylighting-format-latex-0.1
-- skylighting-format-blaze-html-0.1.1
 - gridtables-0.1.0.0
 - hslua-cli-1.2.0
 - hslua-list-1.1.0
-- hslua-module-text-1.0.3
 - hslua-module-zip-1.0.0
 - jira-wiki-markup-1.5.0
 - mime-types-0.1.1.0
 - doctemplates-0.11
-- commonmark-extensions-0.2.3.3
 - git: https://github.com/jgm/texmath
   commit: dab2be16b751e8ce7e6d9937029f10e06c3c80c3
 - git: https://github.com/jgm/citeproc
