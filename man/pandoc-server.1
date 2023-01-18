@@ -283,6 +283,9 @@ Reference doc to use in creating \f[V]docx\f[R] or \f[V]odt\f[R] or
 See \f[V]pandoc(1)\f[R] under \f[V]--reference-doc\f[R] for details.
 The contents of the file must be included under \f[V]files\f[R].
 .TP
+\f[V]split-level\f[R] (integer, default 1)
+Heading level at which documents are split in EPUB or chunked HTML.
+.TP
 \f[V]epub-cover-image\f[R] (file path)
 Cover image for EPUB.
 The contents of the file must be included under \f[V]files\f[R].
@@ -291,9 +294,6 @@ The contents of the file must be included under \f[V]files\f[R].
 Path of file containing Dublin core XML elements to be used for EPUB
 metadata.
 The contents of the file must be included under \f[V]files\f[R].
-.TP
-\f[V]epub-chapter-level\f[R] (integer, default 1)
-Heading level at which chapter splitting occurs in EPUBs.
 .TP
 \f[V]epub-subdirectory\f[R] (string, default \[lq]EPUB\[rq])
 Name of content subdirectory in the EPUB container.

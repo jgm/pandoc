@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "Pandoc User\[cq]s Guide" "" "August 22, 2022" "pandoc 3.0" ""
+.TH "Pandoc User\[cq]s Guide" "" "January 17, 2023" "pandoc 3.0" ""
 .hy
 .SH NAME
 pandoc - general markup converter
@@ -187,7 +187,7 @@ included with all recent versions of TeX Live): \f[V]amsfonts\f[R],
 \f[V]iftex\f[R], \f[V]listings\f[R] (if the \f[V]--listings\f[R] option
 is used), \f[V]fancyvrb\f[R], \f[V]longtable\f[R], \f[V]booktabs\f[R],
 \f[V]graphicx\f[R] (if the document contains images),
-\f[V]hyperref\f[R], \f[V]xcolor\f[R], \f[V]ulem\f[R], \f[V]geometry\f[R]
+\f[V]hyperref\f[R], \f[V]xcolor\f[R], \f[V]soul\f[R], \f[V]geometry\f[R]
 (with the \f[V]geometry\f[R] variable set), \f[V]setspace\f[R] (with
 \f[V]linestretch\f[R]), and \f[V]babel\f[R] (with \f[V]lang\f[R]).
 If \f[V]CJKmainfont\f[R] is set, \f[V]xeCJK\f[R] is needed.
@@ -345,6 +345,8 @@ Specify output format.
 .IP \[bu] 2
 \f[V]biblatex\f[R] (BibLaTeX bibliography)
 .IP \[bu] 2
+\f[V]chunkedhtml\f[R] (zip archive of multiple linked HTML files)
+.IP \[bu] 2
 \f[V]commonmark\f[R] (CommonMark Markdown)
 .IP \[bu] 2
 \f[V]commonmark_x\f[R] (CommonMark Markdown with extensions)
@@ -472,6 +474,11 @@ Write output to \f[I]FILE\f[R] instead of \f[I]stdout\f[R].
 If \f[I]FILE\f[R] is \f[V]-\f[R], output will go to \f[I]stdout\f[R],
 even if a non-textual format (\f[V]docx\f[R], \f[V]odt\f[R],
 \f[V]epub2\f[R], \f[V]epub3\f[R]) is specified.
+If the output format is \f[V]chunkedhtml\f[R] and \f[I]FILE\f[R] has no
+extension, then instead of producing a \f[V].zip\f[R] file pandoc will
+create a directory \f[I]FILE\f[R] and unpack the zip archive there
+(unless \f[I]FILE\f[R] already exists, in which case an error will be
+raised).
 .TP
 \f[V]--data-dir=\f[R]\f[I]DIRECTORY\f[R]
 Specify the user data directory to search for pandoc data files.
@@ -703,7 +710,7 @@ escaped when inserted into the template.
 \f[V]--metadata-file=\f[R]\f[I]FILE\f[R]
 Read metadata from the supplied YAML (or JSON) file.
 This option can be used with every input format, but string scalars in
-the YAML file will always be parsed as Markdown.
+the metadata file will always be parsed as Markdown.
 (If the input format is Markdown or a Markdown variant, then the same
 variant will be used to parse the metadata file; if it is a non-Markdown
 format, pandoc\[cq]s default Markdown extensions will be used.)
@@ -1023,8 +1030,9 @@ Elements with the attribute \f[V]data-external=\[dq]1\[dq]\f[R] will be
 left alone; the documents they link to will not be incorporated in the
 document.
 Limitation: resources that are loaded dynamically through JavaScript
-cannot be incorporated; as a result, some advanced features (e.g.\ zoom
-or speaker notes) may not work in an offline \[lq]self-contained\[rq]
+cannot be incorporated; as a result, fonts may be missing when
+\f[V]--mathjax\f[R] is used, and some advanced features (e.g.\ zoom or
+speaker notes) may not work in an offline \[lq]self-contained\[rq]
 \f[V]reveal.js\f[R] slide show.
 .TP
 \f[V]--html-q-tags\f[R]
@@ -1036,10 +1044,9 @@ enabled for the input format used.)
 Use only ASCII characters in output.
 Currently supported for XML and HTML formats (which use entities instead
 of UTF-8 when this option is selected), CommonMark, gfm, and Markdown
-(which use entities), roff ms (which use hexadecimal escapes), and to a
-limited degree LaTeX (which uses standard commands for accented
+(which use entities), roff man and ms (which use hexadecimal escapes),
+and to a limited degree LaTeX (which uses standard commands for accented
 characters when possible).
-roff man output uses ASCII by default.
 .TP
 \f[V]--reference-links\f[R]
 Use reference-style links, rather than inline links, in writing Markdown
@@ -1162,6 +1169,10 @@ Implies \f[V]--standalone\f[R].
 Link to a CSS style sheet.
 This option can be used repeatedly to include multiple files.
 They will be included in the order specified.
+This option only affects HTML (including HTML slide shows) and EPUB
+output.
+It should be used together with \f[V]-s/--standalone\f[R], because the
+link to the stylesheet goes in the document header.
 .RS
 .PP
 A stylesheet is required for generating EPUB.
@@ -1172,7 +1183,7 @@ If none is provided using this option (or the \f[V]css\f[R] or
 If it is not found there, sensible defaults will be used.
 .RE
 .TP
-\f[V]--reference-doc=\f[R]\f[I]FILE\f[R]
+\f[V]--reference-doc=\f[R]\f[I]FILE\f[R]|\f[I]URL\f[R]
 Use the specified file as a style reference in producing a docx or ODT
 file.
 .RS
@@ -1337,6 +1348,21 @@ will use the layouts with the names listed above).
 .RE
 .RE
 .TP
+\f[V]--split-level=\f[R]\f[I]NUMBER\f[R]
+Specify the heading level at which to split an EPUB or chunked HTML
+document into separate files.
+The default is to split into chapters at level-1 headings.
+In the case of EPUB, this option only affects the internal composition
+of the EPUB, not the way chapters and sections are displayed to users.
+Some readers may be slow if the chapter files are too large, so for
+large documents with few level-1 headings, one might want to use a
+chapter level of 2 or 3.
+For chunked HTML, this option determines how much content goes in each
+\[lq]chunk.\[rq]
+.TP
+\f[V]--epub-chapter-level=\f[R]\f[I]NUMBER\f[R]
+\f[I]Deprecated synonym for \f[VI]--split-level\f[I].\f[R]
+.TP
 \f[V]--epub-cover-image=\f[R]\f[I]FILE\f[R]
 Use the specified image as the EPUB cover.
 It is recommended that the image be less than 1000px in width and
@@ -1344,6 +1370,10 @@ height.
 Note that in a Markdown source document you can also specify
 \f[V]cover-image\f[R] in a YAML metadata block (see EPUB Metadata,
 below).
+.TP
+\f[V]--epub-title-page=true\f[R]|\f[V]false\f[R]
+Determines whether a the title page is included in the EPUB (default is
+\f[V]true\f[R]).
 .TP
 \f[V]--epub-metadata=\f[R]\f[I]FILE\f[R]
 Look in the specified XML file for metadata for the EPUB.
@@ -1386,43 +1416,33 @@ following to your CSS (see \f[V]--css\f[R]):
 .nf
 \f[C]
 \[at]font-face {
-font-family: DejaVuSans;
-font-style: normal;
-font-weight: normal;
-src:url(\[dq]DejaVuSans-Regular.ttf\[dq]);
+   font-family: DejaVuSans;
+   font-style: normal;
+   font-weight: normal;
+   src:url(\[dq]../fonts/DejaVuSans-Regular.ttf\[dq]);
 }
 \[at]font-face {
-font-family: DejaVuSans;
-font-style: normal;
-font-weight: bold;
-src:url(\[dq]DejaVuSans-Bold.ttf\[dq]);
+   font-family: DejaVuSans;
+   font-style: normal;
+   font-weight: bold;
+   src:url(\[dq]../fonts/DejaVuSans-Bold.ttf\[dq]);
 }
 \[at]font-face {
-font-family: DejaVuSans;
-font-style: italic;
-font-weight: normal;
-src:url(\[dq]DejaVuSans-Oblique.ttf\[dq]);
+   font-family: DejaVuSans;
+   font-style: italic;
+   font-weight: normal;
+   src:url(\[dq]../fonts/DejaVuSans-Oblique.ttf\[dq]);
 }
 \[at]font-face {
-font-family: DejaVuSans;
-font-style: italic;
-font-weight: bold;
-src:url(\[dq]DejaVuSans-BoldOblique.ttf\[dq]);
+   font-family: DejaVuSans;
+   font-style: italic;
+   font-weight: bold;
+   src:url(\[dq]../fonts/DejaVuSans-BoldOblique.ttf\[dq]);
 }
 body { font-family: \[dq]DejaVuSans\[dq]; }
 \f[R]
 .fi
 .RE
-.TP
-\f[V]--epub-chapter-level=\f[R]\f[I]NUMBER\f[R]
-Specify the heading level at which to split the EPUB into separate
-\[lq]chapter\[rq] files.
-The default is to split into chapters at level-1 headings.
-This option only affects the internal composition of the EPUB, not the
-way chapters and sections are displayed to users.
-Some readers may be slow if the chapter files are too large, so for
-large documents with few level-1 headings, one might want to use a
-chapter level of 2 or 3.
 .TP
 \f[V]--epub-subdirectory=\f[R]\f[I]DIRNAME\f[R]
 Specify the subdirectory in the OCF container that is to hold the
@@ -1661,7 +1681,6 @@ Nonzero exit codes have the following meanings:
       62 PandocShouldNeverHappenError
       63 PandocSomeError
       64 PandocParseError
-      65 PandocParsecError
       66 PandocMakePDFError
       67 PandocSyntaxMapError
       83 PandocFilterError
@@ -1977,6 +1996,8 @@ or \f[V]{type: citeproc}\f[R].
 
  --epub-cover-image cover.jpg      epub-cover-image: cover.jpg   
 
+ --epub-title-page=false           epub-title-page: false        
+
  --epub-metadata meta.xml          epub-metadata: meta.xml       
 
                                    epub-fonts:                   
@@ -1984,7 +2005,7 @@ or \f[V]{type: citeproc}\f[R].
                                      - headline.otf              
    --epub-embed-font headline.otf                                    
 
- --epub-chapter-level 2            epub-chapter-level: 2         
+ --split-level 2                   split-level: 2                
 
  --epub-subdirectory=\[dq]\[dq]            epub-subdirectory: \[aq]\[aq]         
 
@@ -2702,6 +2723,9 @@ elements and adds extra padding.
 sets the CSS \f[V]line-height\f[R] property on the \f[V]html\f[R]
 element, which is preferred to be unitless.
 .TP
+\f[V]maxwidth\f[R]
+sets the CSS \f[V]max-width\f[R] property (default is 32em).
+.TP
 \f[V]backgroundcolor\f[R]
 sets the CSS \f[V]background-color\f[R] property on the \f[V]html\f[R]
 element.
@@ -3011,6 +3035,7 @@ and links in table of contents, respectively: uses options allowed by
 .TP
 \f[V]links-as-notes\f[R]
 causes links to be printed as footnotes
+.TP
 \f[V]urlstyle\f[R]
 style for URLs (e.g., tt, same)
 .SS Front matter
@@ -3172,7 +3197,15 @@ section number in man pages
 .SS Variables for ms
 .TP
 \f[V]fontfamily\f[R]
-font family (e.g.\ \f[V]T\f[R] or \f[V]P\f[R])
+\f[V]A\f[R] (Avant Garde), \f[V]B\f[R] (Bookman), \f[V]C\f[R]
+(Helvetica), \f[V]HN\f[R] (Helvetica Narrow), \f[V]P\f[R] (Palatino), or
+\f[V]T\f[R] (Times New Roman).
+This setting does not affect source code, which is always displayed
+using monospace Courier.
+These built-in fonts are limited in their coverage of characters.
+Additional fonts may be installed using the script
+\f[V]install-font.sh\f[R] provided by Peter Schaffter and documented in
+detail on his web site.
 .TP
 \f[V]indent\f[R]
 paragraph indent (e.g.\ \f[V]2m\f[R])
@@ -3249,6 +3282,9 @@ If you need absolute paths, use e.g.\ \f[V]$curdir$/$sourcefile$\f[R].
 .TP
 \f[V]curdir\f[R]
 working directory from which pandoc is run.
+.TP
+\f[V]pandoc-version\f[R]
+pandoc version.
 .TP
 \f[V]toc\f[R]
 non-null value if \f[V]--toc/--table-of-contents\f[R] was specified
@@ -3653,6 +3689,14 @@ In the \f[V]context\f[R] output format this enables the use of Natural
 Tables (TABLE) instead of the default Extreme Tables (xtables).
 Natural tables allow more fine-grained global customization but come at
 a performance penalty compared to extreme tables.
+.SS Extension: \f[V]tagging\f[R]
+.PP
+Enabling this extension with \f[V]context\f[R] output will produce
+markup suitable for the production of tagged PDFs.
+This includes additional markers for paragraphs and alternative markup
+for emphasized text.
+The \f[V]emphasis-command\f[R] template variable is set if the extension
+is enabled.
 .SH PANDOC\[cq]S MARKDOWN
 .PP
 Pandoc understands an extended and slightly revised version of John
@@ -6233,6 +6277,17 @@ e.g., \f[V]#foo\f[R].
 Note that relative paths in reference links and images will be rewritten
 relative to the file containing the link reference definition, not the
 file containing the reference link or image itself, if these differ.
+.SS Extension: \f[V]mark\f[R]
+.PP
+To highlight out a section of text, begin and end it with with
+\f[V]==\f[R].
+Thus, for example,
+.IP
+.nf
+\f[C]
+This ==is deleted text.==
+\f[R]
+.fi
 .SS Extension: \f[V]attributes\f[R]
 .PP
 Allows attributes to be attached to any inline or block-level element
@@ -7680,6 +7735,25 @@ The \f[V]document-css\f[R] variable may be set if the more opinionated
 styling of pandoc\[cq]s default HTML templates is desired (and in that
 case the variables defined in Variables for HTML may be used to
 fine-tune the style).
+.SH CHUNKED HTML
+.PP
+\f[V]pandoc -t chunkedhtml\f[R] will produce a zip archive of linked
+HTML files, one for each section of the original document.
+Internal links will automatically be adjusted to point to the right
+place, images linked to under the working directory will be
+incorporated, and navigation links will be added.
+In addition, a JSON file \f[V]sitemap.json\f[R] will be included
+describing the hierarchical structure of the files.
+.PP
+If an output file without an extension is specified, then it will be
+interpreted as a directory and the zip archive will be automatically
+unpacked into it (unless it already exists, in which case an error will
+be raised).
+Otherwise a \f[V].zip\f[R] file will be produced.
+.PP
+The navigation links can be customized by adjusting the template.
+By default, a table of contents is included only on the top page.
+To include it on every page, set the \f[V]toc\f[R] variable manually.
 .SH JUPYTER NOTEBOOKS
 .PP
 When creating a Jupyter notebook, pandoc will try to infer the notebook
@@ -7986,8 +8060,8 @@ pandoc -f my_custom_markup_language.lua -t latex -s
 .fi
 .PP
 If the script is not found relative to the working directory, it will be
-sought in the \f[V]readers\f[R] or \f[V]writers\f[R] subdirectory of the
-user data directory (see \f[V]--data-dir\f[R]).
+sought in the \f[V]custom\f[R] subdirectory of the user data directory
+(see \f[V]--data-dir\f[R]).
 .PP
 A custom reader is a Lua script that defines one function, Reader, which
 takes a string as input and returns a Pandoc AST.
@@ -8008,14 +8082,7 @@ If you want your custom reader to have access to reader options
 .PP
 A custom writer is a Lua script that defines a function that specifies
 how to render each element in a Pandoc AST.
-To see a documented example which you can modify according to your
-needs:
-.IP
-.nf
-\f[C]
-pandoc --print-default-data-file sample.lua
-\f[R]
-.fi
+See the djot-writer.lua for a full-featured example.
 .PP
 Note that custom writers have no default template.
 If you want to use \f[V]--standalone\f[R] with a custom writer, you will
@@ -8037,6 +8104,88 @@ and the timestamp will be taken from it instead of the current time.
 Some document formats also include a unique identifier.
 For EPUB, this can be set explicitly by setting the \f[V]identifier\f[R]
 metadata field (see EPUB Metadata, above).
+.SH ACCESSIBLE PDFS AND PDF ARCHIVING STANDARDS
+.PP
+PDF is a flexible format, and using PDF in certain contexts requires
+additional conventions.
+For example, PDFs are not accessible by default, they define how
+characters are placed on a page but do not contain semantic information
+on the content by default.
+However, it is possible to generate accessible PDFs, which use tagging
+to add semantic information to the document.
+.PP
+Pandoc\[cq]s default method to generate PDF output is via LaTeX.
+Tagging support in LaTeX is in development and not readily available, so
+PDFs generated in this way will always be untagged and not accessible.
+Alternative engines must be used to generate accessible PDFs.
+.PP
+The PDF standards PDF/A and PDF/UA define further restrictions intended
+to optimize PDFs for archiving and accessibility.
+Tagging is commonly used in combination with these standards to ensure
+best results.
+.PP
+Note, however, that standard compliance depends on many things,
+including the colorspace of embedded images.
+Pandoc cannot check this, and external programs must be used to ensure
+that generated PDFs are in compliance.
+.SS ConTeXt
+.PP
+ConTeXt always produces tagged PDFs, but the quality depends on the
+input.
+The default ConTeXt markup generated by pandoc is optimized for
+readability and reuse, not tagging.
+Enable the \f[V]tagging\f[R] format extension to force markup that is
+optimized for tagging.
+This can be combined with the \f[V]pdfa\f[R] variable to generate
+standard-compliant PDFs.
+E.g.:
+.IP
+.nf
+\f[C]
+pandoc --to=context+tagging -V pdfa=3a
+\f[R]
+.fi
+.PP
+A recent \f[V]context\f[R] version should be used, as older versions
+contained a bug that lead to invalid PDF metadata.
+.SS WeasyPrint
+.PP
+The HTML-based engine WeasyPrint includes experimental support for PDF/A
+and PDF/UA since version 57.
+Tagged PDFs can created with
+.IP
+.nf
+\f[C]
+pandoc --pdf-engine=weasyprint \[rs]
+       --pdf-engine-opt=--pdf-variant=pdf/ua-1 ...
+\f[R]
+.fi
+.PP
+The feature is experimental and standard compliance should not be
+assumed.
+.SS Prince XML
+.PP
+The non-free HTML-to-PDf converter \f[V]prince\f[R] has extensive
+support for various PDF standards as well as tagging.
+E.g.:
+.IP
+.nf
+\f[C]
+pandoc --pdf-engine=prince \[rs]
+       --pdf-engine-opt=--tagged-pdf ...
+\f[R]
+.fi
+.PP
+See the prince documentation for more info.
+.SS Word Processors
+.PP
+Word processors like LibreOffice and MS Word can also be used to
+generate standardized and tagged PDF output.
+Pandoc does not support direct conversions via these tools.
+Pandoc can convert a document to a \f[V]docx\f[R] or \f[V]odt\f[R] file,
+which can then be opened and converted to PDF with the respective word
+processor.
+See the documentation for Word and LibreOffice.
 .SH RUNNING PANDOC AS A WEB SERVER
 .PP
 If you rename (or symlink) the pandoc executable to
@@ -8061,7 +8210,7 @@ The behavior is mostly identical to that of the standalone \f[V]lua\f[R]
 executable, version 5.4.
 However, there is no REPL yet, and the \f[V]-i\f[R] option has no
 effect.
-For full documentation, see the [pandoc-lua] man page.
+For full documentation, see the pandoc-lua man page.
 .SH A NOTE ON SECURITY
 .IP "1." 3
 Although pandoc itself will not create or modify any files other than
