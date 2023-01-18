@@ -163,4 +163,3 @@ addContextVars opts topChunk chunk context =
   formatHeading ch = SimpleVal . literal . either (const "") id . runPure $
     writeHtml5String opts{ writerTemplate = Nothing }
       (Pandoc nullMeta [Plain $ chunkHeading ch])
-
