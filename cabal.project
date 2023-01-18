@@ -31,4 +31,4 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/pandoc/pandoc-lua-marshal
-  tag: 76a568e98c424b1e35a80f26f5998136adbeb165
+  tag: 01cbd2039e91b32d9fbcb4418bd80854973e8bb5

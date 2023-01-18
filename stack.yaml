@@ -31,7 +31,7 @@ extra-deps:
 - git: https://github.com/jgm/pandoc-types
   commit: 8c7bc6c66d22538711171b8cfd0e5f3d48de39fd
 - git: https://github.com/pandoc/pandoc-lua-marshal
-  commit: 76a568e98c424b1e35a80f26f5998136adbeb165
+  commit: 01cbd2039e91b32d9fbcb4418bd80854973e8bb5
 - git: https://github.com/jgm/commonmark-hs
   commit: d0f3097e55471aa640d76d0188ba707cbece71b1
   subdirs: [commonmark-pandoc]
