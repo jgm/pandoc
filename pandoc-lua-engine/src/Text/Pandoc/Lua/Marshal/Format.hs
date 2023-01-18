@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE TupleSections        #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.Format
@@ -14,6 +15,7 @@ module Text.Pandoc.Lua.Marshal.Format
   ( peekExtensions
   , pushExtensions
   , peekExtensionsConfig
+  , pushExtensionsConfig
   , peekFlavoredFormat
   ) where
 
@@ -23,19 +25,24 @@ import Data.Maybe (fromMaybe)
 import HsLua
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Extensions
-  ( Extension, Extensions, extensionsFromList
-  , getDefaultExtensions, readExtension )
+  ( Extension, Extensions, extensionsFromList, extensionsToList
+  , getDefaultExtensions, readExtension, showExtension )
 import Text.Pandoc.Format
   ( ExtensionsConfig (..), ExtensionsDiff (..), FlavoredFormat (..)
   , diffExtensions, parseFlavoredFormat)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 
--- | Retrieves an 'Extensions' set from the Lua stack.
+-- | Retrieves a single 'Extension' from the Lua stack.
 peekExtension :: LuaError e => Peeker e Extension
 peekExtension idx = do
   extString <- peekString idx
   return $ readExtension extString
 {-# INLINE peekExtension #-}
+
+-- | Pushes an individual 'Extension' to the Lua stack.
+pushExtension :: LuaError e => Pusher e Extension
+pushExtension = pushText . showExtension
+{-# INLINE pushExtension #-}
 
 -- | Retrieves an 'Extensions' set from the Lua stack.
 peekExtensions :: LuaError e => Peeker e Extensions
@@ -61,6 +68,14 @@ peekExtensionsConfig idx = do
     { extsDefault   = extsToEnable diff
     , extsSupported = extsToEnable diff <> extsToDisable diff
     }
+
+-- | Pushes an 'ExtensionsConfig' value as a table with that maps
+-- extensions to their default enabled/disabled status.
+pushExtensionsConfig :: LuaError e => Pusher e ExtensionsConfig
+pushExtensionsConfig (ExtensionsConfig def supported) =
+  pushKeyValuePairs pushExtension pushBool $
+    map (,False) (extensionsToList supported) ++
+    map (,True)  (extensionsToList def)
 
 instance Peekable ExtensionsConfig where
   safepeek = peekExtensionsConfig

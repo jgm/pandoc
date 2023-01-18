@@ -31,4 +31,20 @@ return {
       assert.are_same(format.all_extensions('docx'), docx_default_exts)
     end),
   },
+
+  group 'extensions' {
+    test('org', function ()
+      local org_default_exts = {
+        ascii_identifiers = false,
+        auto_identifiers = true,
+        citations = true,
+        east_asian_line_breaks = false,
+        fancy_lists = false,
+        gfm_auto_identifiers = false,
+        smart = false,
+        task_lists = true,
+      }
+      assert.are_same(format.extensions 'org', org_default_exts)
+    end),
+  },
 }

@@ -4441,6 +4441,27 @@ Returns:
 
 -   default extensions enabled for `format` (FormatExtensions)
 
+### extensions {#pandoc.format.extensions}
+
+Returns the extension configuration for the given format.
+The configuration is represented as a table with all supported
+extensions as keys and their default status as value, with
+`true` indicating that the extension is enabled by default,
+while `false` marks a supported extension that's disabled.
+
+This function can be used to assign a value to the `Extensions`
+global in custom readers and writers.
+
+Parameters:
+
+`format`
+:   format identifier (string)
+
+Returns:
+
+-  extensions config
+
+
 # Module pandoc.path
 
 Module for file path manipulations.
