@@ -328,6 +328,7 @@ extra-source-files:
                  test/tables/*.html5
                  test/tables/*.latex
                  test/tables/*.native
+                 test/tables/*.mediawiki
                  test/tables/*.jats_archiving
                  test/testsuite.txt
                  test/writer.latex
