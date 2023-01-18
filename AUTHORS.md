@@ -29,7 +29,6 @@
 - Arata Mizuki
 - Arata Mizuki
 - Arfon Smith
-- Arfon Smith
 - Arlo O'Keeffe
 - Artem Pelenitsyn
 - Artyom Kazak
@@ -139,7 +138,7 @@
 - Ian Max Andolina
 - Igor Khorlo
 - Igor Pashev
-- Ilona
+- Ilona Silverwood
 - Ilya V. Portnov
 - Ivan Panchenko
 - Ivan Trubach
@@ -358,8 +357,6 @@
 - Zihang Chen
 - a-vrma
 - andrebauer
-- argent0
-- badumont
 - black-desk
 - blmage
 - bucklereed
@@ -367,7 +364,6 @@
 - chinapedia
 - cholonam
 - csforste
-- danse
 - d-dorazio
 - damon-sava-stanley
 - dbecher-ito
