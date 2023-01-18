@@ -98,7 +98,7 @@ jobs:
 
     - name: Create artifacts
       run: |
-          export VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
+          export VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $2;}')
           export ARTIFACTS=macos-release-candidate
           export RESOURCES=${ARTIFACTS}/Resources
           export ROOT=${ARTIFACTS}/pandoc
