@@ -2,16 +2,19 @@
 
 - Aaron Wolen
 - Agustín Martín Barbero
+- Akos Marton
 - Albert Krewinkel
 - Alex Ivkin
 - Alex Toldaiev
 - Alex Vong
+- Alexander Batischev
 - Alexander Kondratskiy
 - Alexander Krotov
 - Alexander Sulfrian
 - Alexander V Vershilov
 - Alexandre Franke
 - Alfred Wechselberger
+- Amar Al-Zubaidi
 - Amir Dekel
 - Amogh Rathore
 - Anabra
@@ -28,6 +31,7 @@
 - Arfon Smith
 - Arfon Smith
 - Arlo O'Keeffe
+- Artem Pelenitsyn
 - Artyom Kazak
 - B. Scott Michel
 - Bastien Dumont
@@ -135,6 +139,7 @@
 - Ian Max Andolina
 - Igor Khorlo
 - Igor Pashev
+- Ilona
 - Ilya V. Portnov
 - Ivan Panchenko
 - Ivan Trubach
@@ -161,6 +166,7 @@
 - Jens Getreu
 - Jens Petersen
 - Jesse Hathaway
+- Jeremie Knuesel
 - Jérémy Bobbio
 - Jeroen de Haas
 - Jerry Sky
@@ -184,6 +190,7 @@
 - Juliette Fourcot
 - Juliusz Gonera
 - Justin Bogner
+- Justin Wood
 - Karl Pettersson
 - Keiichiro Shikano
 - Kelsey Hightower
@@ -196,6 +203,7 @@
 - Leif Metcalf
 - Leonard Rosenthol
 - Lila
+- Link Swanson
 - Loïc Grobol
 - Lorenzo
 - Lucas Escot
@@ -203,6 +211,7 @@
 - Lucas V. R
 - Luke Plant
 - Marc Schreiber
+- Marcin Serwin
 - Mario Lang
 - Mark Szepieniec
 - Mark Wright
@@ -249,6 +258,7 @@
 - Ola Wolska
 - Ole Martin Ruud
 - Oliver Matthews
+- Olivier Benz
 - Ophir Lifshitz
 - Or Neeman
 - OvidiusCicero
@@ -264,9 +274,12 @@
 - Philip Pesca
 - Philippe Ombredanne
 - Phillip Alday
+- Pranesh Prakash
+- Prat
 - Prayag Verma
 - Puneeth Chaganti
 - Quinn
+- R. N. West
 - Ralf Stephan
 - Raniere Silva
 - Raymond Ehlers
@@ -274,6 +287,7 @@
 - Rowan Rodrik van der Molen
 - Roland Hieber
 - Roman Beránek
+- Ruqi
 - RyanGlScott
 - S.P.H
 - Salim B
@@ -292,13 +306,16 @@
 - Sidharth Kapur
 - Simon Hengel
 - Simon Schuster
+- Siphalor
 - Stefan Dresselhaus
 - Sukil Etxenike
 - Sukka
 - Sumit Sahrawat
+- Sven Wick
 - TEC
 - Tarik Graba
 - Tatiana Porras
+- Terence Eden
 - Thenaesh Elango
 - Thomas Hodgson
 - Thomas Weißschuh
@@ -308,6 +325,7 @@
 - Timothy Humphries
 - Tiziano Müller
 - Todd Sifleet
+- TomBen
 - Tom Leese
 - Tristan Stenner
 - Tristan de Cacqueray
@@ -323,12 +341,15 @@
 - Viktor Kronvall
 - Vincent
 - Vlad Hanciuta
+- Vladimir Alexiev
 - Waldir Pimenta
 - Wandmalfarbe
 - Wentao Han
 - Wikiwide
 - William Lupton
+- William Rusnack
 - Winnie Hellmann
+- Wout Gevaert
 - Xavier Olive
 - Yan Pashkovsky
 - YI
@@ -346,6 +367,7 @@
 - chinapedia
 - cholonam
 - csforste
+- danse
 - d-dorazio
 - damon-sava-stanley
 - dbecher-ito
@@ -355,12 +377,14 @@
 - infinity0x
 - jeongminkim-islab
 - kaizshang91
+- lifeunleaded
 - lux-lth
 - luz paz
 - lwolfsonkin
 - mbrackeantidot
 - mjfs
 - mt_caret
+- nbehrnd
 - niszet
 - nkalvi
 - nuew
@@ -383,6 +407,7 @@
 - thsutton
 - timo-a
 - vijayphoenix
+- vkraven
 - wiefling
 - willj-dev
 - wuffi
