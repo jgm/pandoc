@@ -161,6 +161,37 @@ of the citations by specifying an appropriate CSL bibliography
 style using `--csl`
 (see [the manual](https://pandoc.org/MANUAL.html#specifying-a-citation-style)).
 
+### How can I produce PDF/A with pandoc?
+
+The simplest approach is via ConTeXt:
+
+```
+pandoc --pdf-engine=context -V pdfa
+```
+
+Alternatively, `--pdf-engine=pdflatex` can be used with
+the following in `header-includes` in metadata (or included from
+a file using `--include-in-header`):
+
+```
+\usepackage[a-2u,mathxmp]{pdfx}
+\usepackage[pdfa]{hyperref}
+```
+
+Or `--pdf-engine=lualatex` can be used with the following:
+
+```
+\usepackage{hyperxmp}
+\hypersetup{pdfapart=3,pdfaconformance=B}
+\immediate\pdfobj stream attr{/N 3} file{sRGB.icc}
+\pdfcatalog{/OutputIntents [<<
+/Type /OutputIntent /S /GTS_PDFA1
+/DestOutputProfile \the\pdflastobj\space 0 R
+/OutputConditionIdentifier (sRGB) /Info (sRGB)
+>>]}
+```
+
+
 ### Pandoc adds column widths to pipe tables when any line is wider than the setting for `--columns`. How can I prevent this?
 
 Save this filter as `nowidths.lua` and then pass `--lua-filter
