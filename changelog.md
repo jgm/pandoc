@@ -1061,6 +1061,8 @@
       (Albert Krewinkel).
     + Fix epub-embed-font documentation (#8455, Terence Eden).
     + Removed obsolete Templates section in CONTRIBUTING.md.
+    + Add manual section on accessible PDFs, archiving standards
+      (#8312, Albert Krewinkel).
 
   * Tests.Command: remove unused `runTest`.
 
