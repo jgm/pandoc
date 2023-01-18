@@ -11,7 +11,7 @@ release](https://img.shields.io/github/release/jgm/pandoc.svg?label=current+rele
 release](https://img.shields.io/hackage/v/pandoc.svg?label=hackage)](https://hackage.haskell.org/package/pandoc)
 [![homebrew](https://img.shields.io/homebrew/v/pandoc.svg)](https://formulae.brew.sh/formula/pandoc)
 [![stackage LTS
-package](https://stackage.org/package/pandoc/badge/lts)](https://www.stackage.org/lts/package/pandoc-types)
+package](https://stackage.org/package/pandoc/badge/lts)](https://www.stackage.org/lts/package/pandoc)
 [![CI
 tests](https://github.com/jgm/pandoc/workflows/CI%20tests/badge.svg)](https://github.com/jgm/pandoc/actions)
 [![license](https://img.shields.io/badge/license-GPLv2+-lightgray.svg)](https://www.gnu.org/licenses/gpl.html)
@@ -22,7 +22,9 @@ groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https
 
 Pandoc is a [Haskell](https://haskell.org) library for converting from
 one markup format to another, and a command-line tool that uses this
-library. It can convert *from*
+library.
+
+It can convert *from*
 
 <div id="input-formats">
 
@@ -109,6 +111,7 @@ It can convert *to*
 - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
+- `chunkedhtml` (zip archive of multiple linked HTML files)
 - `commonmark` ([CommonMark](https://commonmark.org) Markdown)
 - `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
   extensions)
