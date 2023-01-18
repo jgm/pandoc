@@ -1,9 +1,11 @@
 # Revision history for pandoc
 
-## pandoc 3.0 (PROVISIONAL YYYY-MM-DD)
+## pandoc 3.0 (2023-01-18)
 
   * Split pandoc-server, pandoc-cli, and pandoc-lua-engine
-   into separate packages (#8309).
+    into separate packages (#8309). Note that installing
+    the `pandoc` package from Hackage will no longer give you the
+    `pandoc` executable; for that you need to install `pandoc-cli`.
 
   * Pandoc now behaves like a Lua interpreter when called as
     `pandoc-lua` or when `pandoc lua` is used (#8311, Albert Krewinkel).
@@ -46,10 +48,16 @@
   * Add new `mark` extension for highlighted text in Markdown,
     using `==` delimiters (#7743).
 
-  * pandoc-server:
-
-    + Add simple CORS support to pandoc-server (#8427).
-    + Print message to stderr when starting the server.
+  * Add new extensions `wikilinks_title_after_pipe` and
+    `wikilinks_title_before_pipe` for `commonmark` and `markdown`.
+    (#2923, Albert Krewinkel). The former enables links of style
+    `[[Name of page|Title]]` and the latter `[[Title|Name of
+    page]]`. Titles are optional in both variants, so this works
+    for both: `[[https://example.org]]`, `[[Name of page]]`. The
+    writer is modified to render links with title `wikilink` as
+    a wikilink if a respective extension is enabled. Pandoc will
+    use `wikilinks_title_after_pipe` if both extensions are
+    enabled.
 
   * Add prefixes to identifiers with `--file-scope` (#6384).
     This change only affects the case where `--file-scope` is used
@@ -169,6 +177,11 @@
     than in the writers.  One effect is the man writer now emits
     a comment with the pandoc version.
 
+  * pandoc-server:
+
+    + Add simple CORS support to pandoc-server (#8427).
+    + Print message to stderr when starting the server.
+
   * Docx reader:
 
     + Mark unnumbered headings with class `unnumbered` (#8148,
@@ -246,18 +259,6 @@
       if any (#2465, vkraven).
     + Handle empty paragraphs (#8487). Also, if attributes are added
       explicitly to a paragraph, put it in a Div with the attributes.
-
-  * Markdown and CommonMark writers and readers:
-
-    + Add support for wiki links (#2923, Albert Krewinkel) via
-      the extensions `wikilinks_title_after_pipe` and
-      `wikilinks_title_before_pipe`. The former enables links of style
-      `[[Name of page|Title]]` and the latter `[[Title|Name of page]]`.
-      Titles are optional in both variants, so this works for both:
-      `[[https://example.org]]`, `[[Name of page]]`. The writer is modified
-      to render links with title `wikilink` as a wikilink if a respective
-      extension is enabled. Pandoc will use `wikilinks_title_after_pipe` if
-      both extensions are enabled.
 
   * Markdown reader:
 
