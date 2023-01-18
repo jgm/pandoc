@@ -19,13 +19,6 @@
   * New command line option: `--epub-title-page=true|false` allows
     the EPUB title page to be omitted (#6097).
 
-  * Replace `--epub-chapter-level` with `--split-level`, which also
-    now affects the `chunkedhtml` format. `--epub-chapter-level`
-    will still function as a deprecated synonynm.
-    `epub-chapter-level` will also continue to work in defaults
-    files, ande `epub_chapter_level` will still work for Lua
-    marshalling.
-
   * `--reference-doc` can now accept a URL argument (#8535) and
     load a remote reference doc.
 
@@ -50,7 +43,8 @@
   * In `--verbose` mode add message when running citeproc (as with
     other filters).
 
-  * Add new `mark` extension for highlighted text (#7743).
+  * Add new `mark` extension for highlighted text in Markdown,
+    using `==` delimiters (#7743).
 
   * pandoc-server:
 
@@ -76,7 +70,8 @@
     (If `-o` is used with an argument without an extension,
     it is treated as a directory and the zip file is automatically
     extracted there, unless it already exists.) The top page will
-    contain a table of contents if `--toc` is used.  The option
+    contain a table of contents if `--toc` is used.  A
+    `sitemap.json` file is also included. The option
     `--split-level` determines the level at which sections are
     to be split.
 
@@ -252,7 +247,19 @@
     + Handle empty paragraphs (#8487). Also, if attributes are added
       explicitly to a paragraph, put it in a Div with the attributes.
 
-   * Markdown reader:
+  * Markdown and CommonMark writers and readers:
+
+    + Add support for wiki links (#2923, Albert Krewinkel) via
+      the extensions `wikilinks_title_after_pipe` and
+      `wikilinks_title_before_pipe`. The former enables links of style
+      `[[Name of page|Title]]` and the latter `[[Title|Name of page]]`.
+      Titles are optional in both variants, so this works for both:
+      `[[https://example.org]]`, `[[Name of page]]`. The writer is modified
+      to render links with title `wikilink` as a wikilink if a respective
+      extension is enabled. Pandoc will use `wikilinks_title_after_pipe` if
+      both extensions are enabled.
+
+  * Markdown reader:
 
     + Allow fenced code block "bare" language to be combined
       with attributes (#8174, Siphalor), e.g.
@@ -335,14 +342,14 @@
       of `\type` was customized, as those changes would not have
       been applied to code rendered with `\mono`.
     + Add support for unlisted, unnumbered headings (#8486).
-    + Support `tagging` extension [API Change] (Albert Krewinkel). Paragraphs
+    + Support `tagging` extension (Albert Krewinkel). Paragraphs
       are enclosed by `\bpar` and `\epar` commands, and `highlight` commands
       are used for emphasis. This results in much better tagging in PDF output.
 
   * LaTeX writer:
 
     + Do not repeat caption on headless tables (Albert Krewinkel).
-      The caption of headless tables was repeated on each page that 
+      The caption of headless tables was repeated on each page that
       contained part of the table. It is now made part of the
       "first head", i.e. the table head that is printed only once.
     + Add separator line between table's body and its foot
@@ -417,18 +424,6 @@
       are now removed in that case, leading to more aesthetic TOCs.
     + Escape `!` before `[` (#8254).
     + Support `mark` extension.
-
-  * Markdown and CommonMark writers:
-
-    + Add support for wiki links [API change] (#2923, Albert Krewinkel) via
-      the extensions `wikilinks_title_after_pipe` and
-      `wikilinks_title_before_pipe`. The former enables links of style
-      `[[Name of page|Title]]` and the latter `[[Title|Name of page]]`.
-      Titles are optional in both variants, so this works for both:
-      `[[https://example.org]]`, `[[Name of page]]`. The writer is modified
-      to render links with title `wikilink` as a wikilink if a respective
-      extension is enabled. Pandoc will use `wikilinks_title_after_pipe` if
-      both extensions are enabled.
 
   * AsciiDoc writer:
 
@@ -557,8 +552,6 @@
 
   * Text.Pandoc.App:
 
-    + Parameterize `convertWithOpts` over scripting engine [API Change]
-      (Albert Krewinkel).
     + Move initial input-to-Pandoc code to internal submodule (Albert
       Krewinkel).
     + Change `parseOptionsFromArgs` and `parseOptions` (#8406)
@@ -567,18 +560,15 @@
     + Add `handleOptInfo` function.  This performs the IO actions for
       things like `--version` that were previously done in
       `parseOptionsFromArgs` [API change].
-    + Add argument for a `ScriptingEngine` [API change].
+    + `convertWithOpts`: add argument for a `ScriptingEngine` [API change].
     + Unify check for standalone output (Albert Krewinkel).
+    + New `optEpubTitlePage` field on `Opt` [API change] (#6097).
+    + Remove `optEpubChapterLevel`, add `optSplitLevel` [API change].
+    + Export `IpynbOutput(..)` [API change].
 
   * Text.Pandoc.App.OutputSettings:
 
-    + Remove unused field `outputWriterName` in `OutputSettings`
-      [API change].
-
-  * Text.Pandoc.App.Opt:
-
-    + New `optEpubTitlePage` field on `Opts` [API change] (#6097).
-    + Remove `optEpubChapterLevel`, add `optSplitLevel` [API change].
+    + Remove unused field `outputWriterName` in `OutputSettings`.
 
   * Text.Pandoc.Citeproc:
 
@@ -627,12 +617,11 @@
     + Add `extensionsToList` function.
     + Revise `readExtension` so it can handle `CustomExtension`, and so
       that it returns a Text rather than `Maybe Text`.
-    + Add `showExtension`.
+    + Add `showExtension` [API change].
     + Add `Ext_mark` extension [API change].
     + Add `Ext_tagging` constructor [API change] (Albert Krewinkel).
     + Add `Ext_wikilinks_title_after_pipe`, `Ext_wikilinks_title_before_pipe`
-      (Albert Krewinkel).
-
+      [API change] (Albert Krewinkel).
 
   * Text.Pandoc.PDF:
 
@@ -734,10 +723,6 @@
       [API change].
     + Remove `writerEpubChapterLevel`, add `writerSplitLevel` [API change].
 
-  * Text.Pandoc.App:
-
-    + Export `IpynbOutput(..)` [API change].
-
   * Text.Pandoc.Filter:
 
     + Export `applyFilters` [API change].
@@ -773,21 +758,9 @@
       internally
     + Add Wrapper type documentation (#8490, William Rusnack).
 
-
   * New exported module Text.Pandoc.Scripting (Albert Krewinkel).
     The module contains the central data structure for scripting engines
     (e.g., Lua) [API change].
-
-    The whole scripting engine has been refactored (#8417, John MacFarlane
-    and Albert Krewinkel).
-
-    The new type `CustomComponents` is exported, and the
-    `ScriptEngine` fields are changed. Instead of separate fields for custom
-    readers and writers, we now have a single function that loads any number
-    of "components" from a script: these may be custom readers, custom
-    writers, templates for writers, or extension configs. (This supports
-    having a custom reader and a custom writer for a format
-    together in the same file.)
 
   * Text.Pandoc.Error:
 
@@ -796,6 +769,8 @@
     + Add new PandocError constructor `PandocFormatError` [API change]
       (Albert Krewinkel). The new error is used to report problems with
       input or output format specifications.
+    + Add new PandocError constructor `PandocNoTemplateError`
+      (Albert Krewinkel).
     + Remove `PandocParsecError` constructor from `PandocError` (#8385).
       Henceforth we just use `PandocParseError`.
 
@@ -933,7 +908,7 @@
     + Add functions `pandoc.text.toencoding`, `pandoc.text.fromencoding`
       (#8512, Albert Krewinkel).
     + Add `pandoc.cli` module. Allow processing of CLI options in Lua.
-    + Support `-D` CLI option for custom writers [API change].
+    + Support `-D` CLI option for custom writers.
       A new error `PandocNoTemplateError` (code 87) is thrown if a template
       is required but cannot be found.
     + Allow table structure as format spec. This allows to pass structured
@@ -1034,8 +1009,7 @@
 
   * Documentation:
 
-    + Deprecate `PANDOC_WRITER_OPTIONS` in custom writers (Albert 
-      Krewinkel).
+    + Deprecate `PANDOC_WRITER_OPTIONS` in custom writers (Albert Krewinkel).
     + Document `pandoc.write_classic` (Albert Krewinkel).
     + Document new table features (Albert Krewinkel).
     + Clarify what background-image does in reveal.js (#6450).
@@ -1044,12 +1018,10 @@
     + Update grid table documentation (#8346).
     + Add note about MathJax fonts to `--embed-resources`.
     + Use cabal's --package-env more (#8317, Artem Pelenitsyn).
-    + Modify Zerobrane instructions to use Lua 5.4 (#8353, Ian Max
-      Andolina).
+    + Modify Zerobrane instructions to use Lua 5.4 (#8353, Ian Max Andolina).
     + Fix documentation for highlight-style in `pandoc-server.md`.
     + Fix link to fedora package site (#8246, Akos Marton).
-    + Rephrase paragraph on format extensions (#8375, Ilona
-      Silverwood).
+    + Rephrase paragraph on format extensions (#8375, Ilona Silverwood).
     + Update README.template (#8496, Sven Wick).
     + Fix a tiny typo in lua-filters.md (TomBen).
     + Clarify that `--css` should be used with `-s`.
@@ -1061,8 +1033,8 @@
       (Albert Krewinkel).
     + Fix epub-embed-font documentation (#8455, Terence Eden).
     + Removed obsolete Templates section in CONTRIBUTING.md.
-    + Add manual section on accessible PDFs, archiving standards
-      (#8312, Albert Krewinkel).
+    + Add manual section on accessible PDFs, archiving standards (#8312,
+      Albert Krewinkel).
 
   * Tests.Command: remove unused `runTest`.
 
@@ -1092,7 +1064,7 @@
   * Add `server` flag to pandoc-cli, allowing it to be compiled without
     server support.
 
-  * pandoc-cli: Allow building a binary without Lua support (Albert 
+  * pandoc-cli: Allow building a binary without Lua support (Albert
     Krewinkel). Disabling the `lua` cabal flag will result in a
     binary without Lua.
 
