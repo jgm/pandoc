@@ -352,7 +352,8 @@ referenceKey = try $ do
   let sourceURL = fmap T.unwords $ many $ try $ do
                     skipMany spaceChar
                     notFollowedBy' referenceTitle
-                    notFollowedBy' $ guardEnabled Ext_link_attributes >> attributes
+                    notFollowedBy' $ guardEnabled Ext_link_attributes >>
+                                     attributes
                     notFollowedBy' $ guardEnabled Ext_mmd_link_attributes >>
                                      try (spnl <* keyValAttr)
                     notFollowedBy' (() <$ reference)
@@ -397,7 +398,7 @@ quotedTitle c = try $ do
   notFollowedBy spaces
   let pEnder = try $ char c >> notFollowedBy (satisfy isAlphaNum)
   let regChunk = many1Char (noneOf ['\\','\n','&',c]) <|> litChar
-  let nestedChunk = (\x -> T.singleton c <> x <> T.singleton c) <$> quotedTitle c
+  let nestedChunk = (\x -> (c `T.cons` x) `T.snoc` c) <$> quotedTitle c
   T.unwords . T.words . T.concat <$> manyTill (nestedChunk <|> regChunk) pEnder
 
 -- | PHP Markdown Extra style abbreviation key.  Currently
@@ -691,13 +692,17 @@ codeBlockFenced = try $ do
   rawattr <-
      (Left <$> (guardEnabled Ext_raw_attribute >> try rawAttribute))
     <|>
-     (Right <$> (do
-           languageId <- option Nothing (Just . toLanguageId <$> try (many1Char $ satisfy (\x -> x `notElem` ['`', '{', '}'] && not (isSpace x))))
-           skipMany spaceChar
-           maybeAttr <- option Nothing (Just <$> (guardEnabled Ext_fenced_code_attributes >> try attributes))
-           return $ case maybeAttr of
-              Nothing -> ("", maybeToList languageId, [])
-              Just (elementId, classes, attrs) -> (elementId, maybe classes (: classes) languageId, attrs)))
+     (Right <$> do
+         let pLangId = many1Char . satisfy $ \x ->
+               x `notElem` ['`', '{', '}'] && not (isSpace x)
+         mbLanguageId <- optionMaybe (toLanguageId <$> pLangId)
+         skipMany spaceChar
+         mbAttr <- optionMaybe
+                   (guardEnabled Ext_fenced_code_attributes *> try attributes)
+         return $ case mbAttr of
+           Nothing -> ("", maybeToList mbLanguageId, [])
+           Just (elementId, classes, attrs) ->
+             (elementId, (maybe id (:) mbLanguageId) classes, attrs))
   blankline
   contents <- T.intercalate "\n" <$>
                  manyTill (gobbleAtMostSpaces indentLevel >> anyLine)
@@ -1054,19 +1059,22 @@ para = try $ do
     $ try $ do
             newline
             (mempty <$ blanklines)
-              <|> (guardDisabled Ext_blank_before_blockquote >> () <$ lookAhead blockQuote)
-              <|> (guardEnabled Ext_backtick_code_blocks >> () <$ lookAhead codeBlockFenced)
-              <|> (guardDisabled Ext_blank_before_header >> () <$ lookAhead header)
-              <|> (guardEnabled Ext_lists_without_preceding_blankline >>
-                       -- Avoid creating a paragraph in a nested list.
-                       notFollowedBy' inList >>
-                       () <$ lookAhead listStart)
+              <|> (guardDisabled Ext_blank_before_blockquote
+                   <* lookAhead blockQuote)
+              <|> (guardEnabled Ext_backtick_code_blocks
+                   <* lookAhead codeBlockFenced)
+              <|> (guardDisabled Ext_blank_before_header
+                   <* lookAhead header)
+              <|> (guardEnabled Ext_lists_without_preceding_blankline
+                    -- Avoid creating a paragraph in a nested list.
+                    <* notFollowedBy' inList
+                    <* lookAhead listStart)
               <|> do guardEnabled Ext_native_divs
                      inHtmlBlock <- stateInHtmlBlock <$> getState
                      case inHtmlBlock of
-                          Just "div" -> () <$
-                                       lookAhead (htmlTag (~== TagClose ("div" :: Text)))
-                          _          -> mzero
+                       Just "div" -> () <$
+                         lookAhead (htmlTag (~== TagClose ("div" :: Text)))
+                       _          -> mzero
               <|> do guardEnabled Ext_fenced_divs
                      divLevel <- stateFencedDivLevel <$> getState
                      if divLevel > 0
@@ -1364,8 +1372,8 @@ multilineTableHeader headless = try $ do
                       []     -> []
                       (x:xs) -> reverse (x+1:xs)
   rawHeadsList <- if headless
-                     then fmap (map (:[]) . tail .
-                              splitTextByIndices (init indices')) $ lookAhead anyLine
+                     then map (:[]) . tail . splitTextByIndices (init indices')
+                          <$> lookAhead anyLine
                      else return $ transpose $ map
                            (tail . splitTextByIndices (init indices'))
                            rawContent
@@ -1410,13 +1418,15 @@ pipeTable = try $ do
   let lineWidths = map (sum . map realLength) (heads' : lines'')
   columns <- getOption readerColumns
   -- add numcols + 1 for the pipes themselves
-  let widths = if maximumBounded (sum seplengths : lineWidths) + (numcols + 1) > columns
+  let widths = if maximumBounded (sum seplengths : lineWidths) + (numcols + 1)
+                  > columns
                   then map (\len ->
                          fromIntegral len / fromIntegral (sum seplengths))
                          seplengths
                   else replicate (length aligns) 0.0
   (headCells :: F [Blocks]) <- sequence <$> mapM cellContents heads'
-  (rows :: F [[Blocks]]) <- sequence <$> mapM (fmap sequence . mapM cellContents) lines''
+  (rows :: F [[Blocks]]) <- sequence <$>
+                            mapM (fmap sequence . mapM cellContents) lines''
   return $
     toTableComponents' NormalizeHeader aligns widths <$> headCells <*> rows
 
@@ -1432,7 +1442,8 @@ pipeTableRow = try $ do
   skipMany spaceChar
   openPipe <- (True <$ char '|') <|> return False
   -- split into cells
-  let chunk = void (code <|> math <|> rawHtmlInline <|> escapedChar <|> rawLaTeXInline')
+  let chunk = void (code <|> math <|> rawHtmlInline <|>
+                    escapedChar <|> rawLaTeXInline')
        <|> void (noneOf "|\n\r")
   cells <- (snd <$> withRaw (many chunk)) `sepBy1` char '|'
   closePipe <- (True <$ char '|') <|> return False
@@ -1700,7 +1711,8 @@ inlinesBetween :: PandocMonad m
                -> MarkdownParser m (F Inlines)
 inlinesBetween start end =
   trimInlinesF . mconcat <$> try (start >> many1Till inner end)
-    where inner      = innerSpace <|> (notFollowedBy' (() <$ whitespace) >> inline)
+    where inner      = innerSpace <|>
+                       (notFollowedBy' (() <$ whitespace) >> inline)
           innerSpace = try $ whitespace <* notFollowedBy' end
 
 strikeout :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -1745,7 +1757,8 @@ subscript = do
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
 whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
-  where lb = spaceChar >> skipMany spaceChar >> option B.space (endline >> return B.linebreak)
+  where lb = spaceChar >> skipMany spaceChar
+                       >> option B.space (endline >> return B.linebreak)
         regsp = skipMany spaceChar >> return B.space
 
 nonEndline :: PandocMonad m => ParsecT Sources st m Char
@@ -2085,7 +2098,8 @@ divHtml = do
     updateState $ \st -> st{ stateInHtmlBlock = Just "div" }
     bls <- option "" (blankline >> option "" blanklines)
     contents <- mconcat <$>
-                many (notFollowedBy' (htmlTag (~== TagClose ("div" :: Text))) >> block)
+                many (notFollowedBy' (htmlTag (~== TagClose ("div" :: Text)))
+                      >> block)
     closed <- option False (True <$ htmlTag (~== TagClose ("div" :: Text)))
     if closed
        then do
