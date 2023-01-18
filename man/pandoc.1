@@ -8108,16 +8108,17 @@ metadata field (see EPUB Metadata, above).
 .PP
 PDF is a flexible format, and using PDF in certain contexts requires
 additional conventions.
-For example, PDFs are not accessible by default, they define how
+For example, PDFs are not accessible by default; they define how
 characters are placed on a page but do not contain semantic information
-on the content by default.
+on the content.
 However, it is possible to generate accessible PDFs, which use tagging
 to add semantic information to the document.
 .PP
-Pandoc\[cq]s default method to generate PDF output is via LaTeX.
+Pandoc defaults to LaTeX to generate PDF.
 Tagging support in LaTeX is in development and not readily available, so
 PDFs generated in this way will always be untagged and not accessible.
-Alternative engines must be used to generate accessible PDFs.
+This means that alternative engines must be used to generate accessible
+PDFs.
 .PP
 The PDF standards PDF/A and PDF/UA define further restrictions intended
 to optimize PDFs for archiving and accessibility.
@@ -8182,9 +8183,9 @@ See the prince documentation for more info.
 Word processors like LibreOffice and MS Word can also be used to
 generate standardized and tagged PDF output.
 Pandoc does not support direct conversions via these tools.
-Pandoc can convert a document to a \f[V]docx\f[R] or \f[V]odt\f[R] file,
-which can then be opened and converted to PDF with the respective word
-processor.
+However, pandoc can convert a document to a \f[V]docx\f[R] or
+\f[V]odt\f[R] file, which can then be opened and converted to PDF with
+the respective word processor.
 See the documentation for Word and LibreOffice.
 .SH RUNNING PANDOC AS A WEB SERVER
 .PP
