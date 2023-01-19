@@ -388,7 +388,7 @@ the following query parameters:
 
 It returns a JSON object with fields `html` and `version`.
 This endpoint is designed to support the
-[Babelmark]()https://babelmark.github.io website.
+[Babelmark](https://babelmark.github.io) website.
 
 # AUTHORS
 
