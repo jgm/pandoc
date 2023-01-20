@@ -20,7 +20,8 @@ tests adapted from <https://github.github.com/gfm/#task-list-items-extension->
 - [ ] bim
 ^D
 <ul class="task-list">
-<li><input type="checkbox" checked="" />foo<ul class="task-list">
+<li><input type="checkbox" checked="" />foo
+<ul class="task-list">
 <li><input type="checkbox" />bar</li>
 <li><input type="checkbox" checked="" />baz</li>
 </ul></li>
@@ -64,8 +65,8 @@ paragraph
 </ol>
 <p>paragraph</p>
 <ul class="task-list">
-<li><p><input type="checkbox" />list item with a</p><p>second
-paragraph</p></li>
+<li><p><input type="checkbox" />list item with a</p>
+<p>second paragraph</p></li>
 <li><p><input type="checkbox" checked="" />checked</p></li>
 </ul>
 ```

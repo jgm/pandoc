@@ -500,7 +500,9 @@ listItemToHtml opts bls
           checkbox' = H.input ! A.type_ "checkbox"
       isContents <- inlineListToHtml opts is
       bsContents <- blockListToHtml opts bs
-      return $ constr (checkbox >> isContents) >> bsContents
+      return $ constr (checkbox >> isContents) >>
+               (if null bs then mempty else nl) >>
+               bsContents
 
 -- | Construct table of contents from list of elements.
 tableOfContents :: PandocMonad m => WriterOptions -> [Block]
