@@ -58,13 +58,11 @@ make_deb() {
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
   cd /mnt
-  cp /mnt/man/pandoc.1 $DEST/share/man/man1/pandoc.1
-  gzip -9 $DEST/share/man/man1/pandoc.1
-  cp /mnt/man/pandoc-server.1 $DEST/share/man/man1/pandoc-server.1
-  gzip -9 $DEST/share/man/man1/pandoc-server.1
-  cp /mnt/man/pandoc-server.1 $DEST/share/man/man1/pandoc-lua.1
-  gzip -9 $DEST/share/man/man1/pandoc-lua.1
-
+  for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1
+  do
+    cp /mnt/man/$manpage $DEST/share/man/man1/$manpage
+    gzip -9 $DEST/share/man/man1/$manpage
+  done
   cp /mnt/COPYRIGHT $COPYRIGHT
   echo "" >> $COPYRIGHT
 
