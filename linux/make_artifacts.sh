@@ -90,7 +90,7 @@ make_tarball() {
   mkdir "$TARGET"
   mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1"
   cp /mnt/man/pandoc.1 /mnt/man/pandoc-server.1 /mnt/man/pandoc-lua.1 "$TARGET/share/man/man1"
-  gzip -9 "$TARGET/share/man/man1/*.1"
+  gzip -9 "$TARGET"/share/man/man1/*.1
   mv pandoc "$TARGET/bin"
   cd "$TARGET/bin"
   ln -s pandoc pandoc-server
