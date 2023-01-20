@@ -29,6 +29,7 @@ import Text.Pandoc.MediaBag (mediaItems)
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Chunks (splitIntoChunks, Chunk(..), ChunkedDoc(..),
                            SecInfo(..), tocToList)
+import Text.Pandoc.URI (isURI)
 import Data.Text (Text)
 import Data.Tree
 import qualified Data.Text as T
@@ -99,9 +100,12 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   return $ fromArchive archive
 
 
+-- We include in the zip only local media that is in the working directory
+-- or below.
 addMedia :: PandocMonad m => Inline -> m Inline
 addMedia il@(Image _ _ (src,_))
-  | fp <- normalise (T.unpack src)
+  | not (isURI src)
+  , fp <- normalise (T.unpack src)
   , isRelative fp
   , not (".." `isInfixOf` fp) = do
   (bs, mbMime) <- fetchItem (T.pack fp)
