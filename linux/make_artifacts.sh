@@ -23,8 +23,8 @@ ghc --version
 
 cabal update
 cabal clean
-cabal test "$CABALOPTS" --ghc-options="$GHCOPTS" all
-cabal install "$CABALOPTS" --ghc-options="$GHCOPTS" --install-method=copy --installdir="$ARTIFACTS" pandoc-cli
+cabal test $CABALOPTS --ghc-options="$GHCOPTS" all
+cabal install $CABALOPTS --ghc-options="$GHCOPTS" --install-method=copy --installdir="$ARTIFACTS" pandoc-cli
 
 # Confirm that we have static builds
 file "$ARTIFACTS/pandoc" | grep "statically linked"
