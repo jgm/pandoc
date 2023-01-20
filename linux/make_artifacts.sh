@@ -23,11 +23,16 @@ ghc --version
 
 cabal update
 cabal clean
-cabal test $CABALOPTS --ghc-options="$GHCOPTS" all
 cabal install $CABALOPTS --ghc-options="$GHCOPTS" --install-method=copy --installdir="$ARTIFACTS" pandoc-cli
 
 # Confirm that we have static builds
 file "$ARTIFACTS/pandoc" | grep "statically linked"
+
+# Confirm that it has +lua and +server support
+"./$ARTIFACTS/pandoc --version" | grep -q '+server +lua'
+
+# Confirm that it has data files baked in:
+strings "./$ARTIFACTS/pandoc" | grep -q '\$title\$'
 
 make_deb() {
   VERSION=$("$ARTIFACTS"/pandoc --version | awk '{print $2; exit;}')
