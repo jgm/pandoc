@@ -36,10 +36,10 @@ strip "$ARTIFACTS/pandoc"
 file "$ARTIFACTS/pandoc" | grep "statically linked"
 
 # Confirm that it has +lua and +server support
-"./$ARTIFACTS/pandoc --version" | grep -q '+server +lua'
+"$ARTIFACTS/pandoc --version" | grep -q '+server +lua'
 
 # Confirm that it has data files baked in:
-strings "./$ARTIFACTS/pandoc" | grep -q '\$title\$'
+strings "$ARTIFACTS/pandoc" | grep -q '\$title\$'
 
 make_deb() {
   VERSION=$("$ARTIFACTS"/pandoc --version | awk '{print $2; exit;}')
