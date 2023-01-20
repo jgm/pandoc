@@ -16,6 +16,8 @@ esac
 
 ARTIFACTS="${ARTIFACTS:-/artifacts}"
 
+ls -l "$ARTIFACTS"
+
 # build binaries
 
 cabal --version
