@@ -197,9 +197,6 @@ extra-source-files:
                  INSTALL.md, AUTHORS.md, README.md,
                  CONTRIBUTING.md, BUGS, changelog.md,
                  man/pandoc.1
-                 -- cabal and stack build plans
-                 cabal.project
-                 stack.yaml
                  -- files needed to build man page
                  man/manfilter.lua
                  man/pandoc.1.before
