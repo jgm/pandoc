@@ -497,7 +497,7 @@ listItemToHtml opts bls
       let checkbox  = if checked
                       then checkbox' ! A.checked ""
                       else checkbox'
-          checkbox' = H.input ! A.type_ "checkbox" ! A.disabled ""
+          checkbox' = H.input ! A.type_ "checkbox"
       isContents <- inlineListToHtml opts is
       bsContents <- blockListToHtml opts bs
       return $ constr (checkbox >> isContents) >> bsContents
