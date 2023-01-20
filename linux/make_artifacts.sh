@@ -16,8 +16,6 @@ esac
 
 ARTIFACTS="${ARTIFACTS:-/artifacts}"
 
-ls -l "$ARTIFACTS"
-
 # build binaries
 
 cabal --version
@@ -25,7 +23,14 @@ ghc --version
 
 cabal update
 cabal clean
-cabal install $CABALOPTS --ghc-options="$GHCOPTS" --install-method=copy --installdir="$ARTIFACTS" pandoc-cli
+cabal build $CABALOPTS --ghc-options="$GHCOPTS" all
+cabal test $CABALOPTS --ghc-options="$GHCOPTS" all
+
+# Copy executable to ARTIFACTS
+find dist-newstyle -name 'pandoc' -type f -perm /400 -exec cp {} "$ARTIFACTS"/ \;
+
+# Strip executable
+strip "$ARTIFACTS/pandoc"
 
 # Confirm that we have static builds
 file "$ARTIFACTS/pandoc" | grep "statically linked"
@@ -53,7 +58,6 @@ make_deb() {
   find "$DIST" -type d -exec chmod 755 {} \;
   cp "$ARTIFACTS/pandoc" "$DEST/bin/"
   cd "$DEST/bin"
-  strip pandoc
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
   cd /mnt
@@ -89,7 +93,6 @@ make_tarball() {
   gzip -9 "$TARGET/share/man/man1/*.1"
   mv pandoc "$TARGET/bin"
   cd "$TARGET/bin"
-  strip pandoc
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
   cd "$ARTIFACTS"
