@@ -43,6 +43,7 @@ module Text.Pandoc.Writers.Shared (
                      , toLegacyTable
                      , splitSentences
                      , ensureValidXmlIdentifiers
+                     , setupTranslations
                      )
 where
 import Safe (lastMay)
@@ -68,6 +69,10 @@ import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
 import Text.Pandoc.Chunks (tocToList, toTOCTree)
+import Text.Collate.Lang (Lang (..))
+import Text.Pandoc.Class (PandocMonad, toLang)
+import Text.Pandoc.Translations (setTranslations)
+import Data.Maybe (fromMaybe)
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -608,3 +613,12 @@ walkAttr f = walk goInline . walk goBlock
     Table (f attr) cap colspecs thead tbodies tfoot
   goBlock (Div attr bs) = Div (f attr) bs
   goBlock x = x
+
+-- | Set translations based on the `lang` in metadata.
+setupTranslations :: PandocMonad m => Meta -> m ()
+setupTranslations meta = do
+  let defLang = Lang "en" (Just "US") Nothing [] [] []
+  lang <- case lookupMetaString "lang" meta of
+            "" -> pure defLang
+            s  -> fromMaybe defLang <$> toLang (Just s)
+  setTranslations lang

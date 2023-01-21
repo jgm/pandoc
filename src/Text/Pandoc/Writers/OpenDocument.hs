@@ -21,14 +21,14 @@ import Data.Char (chr)
 import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (isNothing)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Collate.Lang (Lang (..), parseLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
-import Text.Pandoc.Translations (translateTerm, setTranslations)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
@@ -237,11 +237,7 @@ handleSpaces s = case T.uncons s of
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
-  let defLang = Lang "en" (Just "US") Nothing [] [] []
-  lang <- case lookupMetaString "lang" meta of
-            "" -> pure defLang
-            s  -> fromMaybe defLang <$> toLang (Just s)
-  setTranslations lang
+  setupTranslations meta
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing

@@ -259,7 +259,7 @@ writeHtml' st opts d =
        Just _ -> preEscapedText <$> writeHtmlString' st opts d
        Nothing
          | writerPreferAscii opts
-            -> preEscapedText <$> writeHtmlString' st opts d
+           -> preEscapedText <$> writeHtmlString' st opts d
          | otherwise -> do
             (body, _) <- evalStateT (pandocToHtml opts d) st
             return body
@@ -270,6 +270,7 @@ pandocToHtml :: PandocMonad m
              -> Pandoc
              -> StateT WriterState m (Html, Context Text)
 pandocToHtml opts (Pandoc meta blocks) = do
+  lift $ setupTranslations meta
   let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
   modify $ \st -> st{ stSlideLevel = slideLevel }
   metadata <- metaToContext opts
