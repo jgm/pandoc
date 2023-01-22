@@ -170,7 +170,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                           -> ByteStringReader $ \o t -> sandbox files (r o t)
 
   (reader, readerExts) <-
-    if ".lua" `T.isSuffixOf` readerName
+    if ".lua" `T.isSuffixOf` readerNameBase
        then do
             let scriptPath = T.unpack readerNameBase
             components <- engineLoadCustom scriptingEngine scriptPath
