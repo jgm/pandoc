@@ -420,7 +420,7 @@ tokenize = totoks
                            : totoks (incSourceColumn pos (2 + T.length t1)) t2
                         Nothing -> Tok pos Symbol "#"
                                   : Tok (incSourceColumn pos 1) Symbol "#"
-                                  : totoks (incSourceColumn pos 1) t2
+                                  : totoks (incSourceColumn pos 1) t3
              _ ->
                let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') rest
                in  case safeRead t1 of
