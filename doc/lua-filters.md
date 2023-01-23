@@ -4744,7 +4744,7 @@ Parameters:
 
 Returns:
 
--   [ChunkedDoc](#types-chunkeddoc)
+-   [ChunkedDoc](#type-chunkeddoc)
 
 ### table\_of\_contents {#pandoc.structure.table_of_contents}
 
