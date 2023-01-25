@@ -11,7 +11,7 @@ packages:
 extra-deps:
 - gridtables-0.1.0.0
 - hslua-cli-1.2.0
-- hslua-list-1.1.0
+- hslua-list-1.1.0.1
 - hslua-module-zip-1.0.0
 - jira-wiki-markup-1.5.0
 - mime-types-0.1.1.0
