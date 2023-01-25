@@ -1,5 +1,41 @@
 # Revision history for pandoc
 
+## pandoc 3.1 (2023-01-25)
+
+  * Fix use of extensions with custom readers (#8571).
+
+  * Text.Pandoc.Writers.Shared: export `setupTranslations` [API change].
+    Use this in HTML and OpenDocument writers, to ensure that
+    translations are set up properly even when we don't go through
+    `convertWithOpts`.
+
+  * LaTeX reader: fix regression in macro resolution for environments (#8573).
+
+  * Chunked HTML writer: Fix handling of images with absolute URLs (#8567).
+
+  * HTML writer:
+
+    + Don't omit newlines in task lists.
+    + Don't disable checkboxes in task lists (#8562).
+
+  * Fix man page copying in `linux/make_artifacts.sh` (#8566).
+    Previously we were copying the pandoc-server.1 pandoc page to pandoc-lua.1.
+
+  * pandoc.cabal: remove pandoc.cabal, stack.cabal from extra-source-files
+    (#8560). The problem is that if these are in extra-source-files, then they
+    get put in the tarball, and then anyone trying to build the source
+    from an unpacked tarball will run into the problem that cabal.project
+    and stack.yaml refer to pandoc-server, pandoc-lua-engine, and
+    pandoc-cli, which aren't in the tarball.
+
+  * Require texmath 0.12.6 for better MathML output.
+
+  * Fix typo in Lua filter documentation (Carlos Scheidegger).
+
+  * Fix formatting of link in pandoc-server.md (James Scott-Brown).
+
+  * Minor changelog fixups.
+
 ## pandoc 3.0 (2023-01-18)
 
   * Split pandoc-server, pandoc-cli, and pandoc-lua-engine
