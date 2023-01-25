@@ -18,6 +18,11 @@
     + Don't omit newlines in task lists.
     + Don't disable checkboxes in task lists (#8562).
 
+  * Ensure that automatically set variables `pandoc-version`, `outputfile`,
+    `title-prefix`, `epub-cover-image`, `curdir`, `dzslides-core` can be
+    overridden by `--variable` on the command line. Previously they would
+    create lists in the template Context, which is not desirable.
+
   * Fix man page copying in `linux/make_artifacts.sh` (#8566).
     Previously we were copying the pandoc-server.1 pandoc page to pandoc-lua.1.
 
