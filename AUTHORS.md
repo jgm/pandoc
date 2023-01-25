@@ -52,6 +52,7 @@
 - Caleb McDaniel
 - Caleb Mclennan
 - Calvin Beck
+- Carlos Scheidegger
 - Carlos Sosa
 - Carsten Allefeld
 - Castedo Ellerman
@@ -152,6 +153,7 @@
 - Jake Zimmerman
 - Jakob Voß
 - James Aspnes
+- James Scott-Brown
 - Jamie F. Olson
 - Jan Larres
 - Jan Schulz
