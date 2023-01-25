@@ -16,6 +16,14 @@ esac
 
 ARTIFACTS="${ARTIFACTS:-/artifacts}"
 
+# This is our sentinel that tells us when we're done.
+rm -f $ARTIFACTS/DONE
+
+clean_up() {
+  echo "All done!" > "$ARTIFACTS/DONE"
+}
+trap clean_up EXIT
+
 # build binaries
 
 cabal --version
