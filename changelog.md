@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.1 (2023-01-25)
+## pandoc 3.0.1 (2023-01-25)
 
   * Fix use of extensions with custom readers (#8571).
 
