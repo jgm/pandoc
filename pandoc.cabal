@@ -512,7 +512,7 @@ library
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.12.5.5 && < 0.13,
+                 texmath               >= 0.12.6   && < 0.13,
                  text                  >= 1.1.1.0  && < 2.1,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.14,
