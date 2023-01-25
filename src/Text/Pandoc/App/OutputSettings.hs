@@ -38,7 +38,7 @@ import System.IO (stdout)
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
-import Text.Pandoc.App.CommandLineOptions (engines, setVariable)
+import Text.Pandoc.App.CommandLineOptions (engines)
 import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
 import Text.Pandoc.Scripting (ScriptingEngine (engineLoadCustom),
@@ -163,8 +163,6 @@ optToOutputSettings scriptingEngine opts = do
   hlStyle <- traverse (lookupHighlightingStyle . T.unpack) $
                optHighlightStyle opts
 
-  let setVariableM k v = return . setVariable k v
-
   let setListVariableM _ [] ctx = return ctx
       setListVariableM k vs ctx = do
         let ctxMap = unContext ctx
@@ -262,6 +260,13 @@ optToOutputSettings scriptingEngine opts = do
     , outputWriterOptions = writerOpts
     , outputPdfProgram = maybePdfProg
     }
+
+-- | Set text value in text context unless it is already set.
+setVariableM :: Monad m
+             => T.Text -> T.Text -> Context T.Text -> m (Context T.Text)
+setVariableM key val (Context ctx) = return $ Context $ M.alter go key ctx
+  where go Nothing             = Just $ toVal val
+        go (Just x)            = Just x
 
 baseWriterName :: T.Text -> T.Text
 baseWriterName = T.takeWhile (\c -> c /= '+' && c /= '-')

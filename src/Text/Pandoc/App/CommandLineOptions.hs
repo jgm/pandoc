@@ -1062,7 +1062,8 @@ deprecatedOption o msg = do
        Right () -> return ()
        Left e   -> optError e
 
--- | Set text value in text context.
+-- | Set text value in text context.  Create list if it has a value already,
+-- or add to a list value.
 setVariable :: Text -> Text -> Context Text -> Context Text
 setVariable key val (Context ctx) = Context $ M.alter go key ctx
   where go Nothing             = Just $ toVal val
