@@ -16,7 +16,7 @@ extra-deps:
 - jira-wiki-markup-1.5.0
 - mime-types-0.1.1.0
 - doctemplates-0.11
-- texmath-0.12.5.5
+- texmath-0.12.6
 - citeproc-0.8.1
 - pandoc-types-1.23
 - pandoc-lua-marshal-0.2.0
