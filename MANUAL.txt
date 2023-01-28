@@ -4202,8 +4202,7 @@ definition:
 
 Note that space between items in a definition list is required.
 (A variant that loosens this requirement, but disallows "lazy"
-hard wrapping, can be activated with `compact_definition_lists`: see
-[Non-default extensions], below.)
+hard wrapping, can be activated with [Extension: `compact_definition_lists`])
 
 [^3]:  I have been influenced by the suggestions of [David
   Wheeler](https://justatheory.com/2009/02/modest-markdown-proposal/).
