@@ -618,7 +618,7 @@ linkUrl bracketed = do
   char ':'
   let stop = if bracketed
                 then char ']'
-                else lookAhead $ space <|> eof' <|>
+                else lookAhead $ space <|> eof' <|> oneOf "[]" <|>
                        try (oneOf "!.,;:*" *>
                               (space <|> newline <|> eof'))
   T.pack <$> many1Till nonspaceChar stop
