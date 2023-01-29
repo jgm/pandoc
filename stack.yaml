@@ -21,8 +21,9 @@ extra-deps:
 - pandoc-types-1.23
 - pandoc-lua-marshal-0.2.0
 - commonmark-pandoc-0.2.1.3
-- git: https://github.com/jgm/skylighting-core
+- git: https://github.com/jgm/skylighting
   commit: 356be9ee8b3c12f0523a85c00626ee13c155e336
+  subdirs: [skylighting-core]
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
