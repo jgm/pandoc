@@ -269,7 +269,7 @@ A note.[1]  Another note[2].
 fn1. The note
 is here!
 
-fn2. Other note.
+fn2^. Other note.
 
 h1. Comment blocks
 
