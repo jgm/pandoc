@@ -330,14 +330,14 @@ instance Read XslUnit where
 -- so I could not really easily calculate anything exact here even if I wanted.
 -- But I do not care about exactness right now, as I only use measures
 -- to determine if a paragraph is "indented" or not.
-estimateInMillimeter :: Int -> XslUnit -> Int
-estimateInMillimeter n XslUnitMM     = n
-estimateInMillimeter n XslUnitCM     = n * 10
-estimateInMillimeter n XslUnitInch   = n * 25    -- \*             25.4
-estimateInMillimeter n XslUnitPoints = n `div` 3 -- \*      1/72 * 25.4
-estimateInMillimeter n XslUnitPica   = n * 4     -- \* 12 * 1/72 * 25.4
-estimateInMillimeter n XslUnitPixel  = n `div`3  -- \*      1/72 * 25.4
-estimateInMillimeter n XslUnitEM     = n * 7     -- \* 16 * 1/72 * 25.4
+estimateInMillimeter :: Double -> XslUnit -> Int
+estimateInMillimeter n XslUnitMM     = round n
+estimateInMillimeter n XslUnitCM     = round $ n * 10
+estimateInMillimeter n XslUnitInch   = round $ n * 25.4
+estimateInMillimeter n XslUnitPoints = round $ n * (1/72) * 25.4
+estimateInMillimeter n XslUnitPica   = round $ n * 12 * (1/72) * 25.4
+estimateInMillimeter n XslUnitPixel  = round $ n * (1/72) * 25.4
+estimateInMillimeter n XslUnitEM     = round $ n * 16 * (1/72) * 25.4
 
 
 ----
