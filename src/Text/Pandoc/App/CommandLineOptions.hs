@@ -979,7 +979,7 @@ options =
     , Option "" ["print-highlight-style"]
                  (ReqArg
                   (\arg opts ->
-                    optInfo $ PrintDefaultDataFile (optOutputFile opts)
+                    optInfo $ PrintHighlightStyle (optOutputFile opts)
                                (T.pack arg))
                   "STYLE|FILE")
                  "" -- "Print default template for FORMAT"
