@@ -90,7 +90,10 @@ parseTextile = do
   Pandoc nullMeta . B.toList <$> parseBlocks -- FIXME
 
 noteMarker :: PandocMonad m => TextileParser m Text
-noteMarker = skipMany spaceChar >> string "fn" >> T.pack <$> manyTill digit (char '.')
+noteMarker = do
+  skipMany spaceChar
+  string "fn"
+  T.pack <$> manyTill digit (string "." <|> try (string "^."))
 
 noteBlock :: PandocMonad m => TextileParser m Text
 noteBlock = try $ do
