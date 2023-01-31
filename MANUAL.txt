@@ -1261,6 +1261,17 @@ header when requesting a document from a URL:
     level of 2 or 3. For chunked HTML, this option determines
     how much content goes in each "chunk."
 
+`--chunk-template=`*PATHTEMPLATE*
+
+:   Specify a template for the filenames in a `chunkedhtml` document.
+    In the template, `%n` will be replaced by the chunk number (padded
+    with leading 0s to 3 digits), `%s` with the section number of the chunk,
+    `%h` with the heading text (with formatting removed), `%i` with
+    the section identifier. For example, `%section-%s-%i.html` might
+    be resolved to `section-1.1-introduction.html`. The characters
+    `/` and `\` are not allowed in chunk templates and will be
+    ignored. The default is `%s-%i.html`.
+
 `--epub-chapter-level=`*NUMBER*
 
 :   *Deprecated synonym for `--split-level`.*

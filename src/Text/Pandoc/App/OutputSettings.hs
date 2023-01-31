@@ -35,6 +35,7 @@ import System.Directory (getCurrentDirectory)
 import System.Exit (exitSuccess)
 import System.FilePath
 import System.IO (stdout)
+import Text.Pandoc.Chunks (PathTemplate(..))
 import Text.Pandoc
 import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
@@ -249,6 +250,9 @@ optToOutputSettings scriptingEngine opts = do
         , writerEpubFonts        = optEpubFonts opts
         , writerEpubTitlePage    = optEpubTitlePage opts
         , writerSplitLevel       = optSplitLevel opts
+        , writerChunkTemplate    = maybe (PathTemplate "%s-%i.html")
+                                     PathTemplate
+                                     (optChunkTemplate opts)
         , writerTOCDepth         = optTOCDepth opts
         , writerReferenceDoc     = optReferenceDoc opts
         , writerSyntaxMap        = syntaxMap

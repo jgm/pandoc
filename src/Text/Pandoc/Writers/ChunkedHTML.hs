@@ -55,7 +55,7 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   epochtime <- floor <$> getPOSIXTime
   let toMediaEntry (fp, _mt, bs) = toEntry fp epochtime bs
   mediaEntries <- map toMediaEntry . mediaItems <$> getMediaBag
-  let chunkedDoc = splitIntoChunks "%s-%i.html"
+  let chunkedDoc = splitIntoChunks (writerChunkTemplate opts)
                      True
                      (Just 1)
                      (writerSplitLevel opts)

@@ -793,6 +793,13 @@ options =
                  "NUMBER")
                  "" -- "Header level at which to split documents in chunked HTML or EPUB"
 
+    , Option "" ["chunk-template"]
+                 (ReqArg
+                  (\arg opt ->
+                     return opt{ optChunkTemplate = Just (T.pack arg) })
+                 "PATHTEMPLATE")
+                 "" -- "Template for file paths in chunkedhtml"
+
     , Option "" ["epub-chapter-level"]
                  (ReqArg
                   (\arg opt -> do
