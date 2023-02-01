@@ -5,26 +5,26 @@ should print
 \iftrue
 should print
 \else
-should not print
+should not print A
 \fi
 \else
-should not print
+should not print B
 \fi
 
 \iffalse
-should not print
+should not print C
 \else
 \iftrue
 should print
 \else
-should not print
+should not print D
 \fi
 \fi
 
 \newif\ifepub
 
 \ifepub
-should not print
+should not print E
 \fi
 
 \epubtrue
@@ -32,13 +32,13 @@ should not print
 \ifepub
 should print
 \else
-should not print
+should not print F
 \fi
 
 \epubfalse
 
 \ifepub
-should not print
+should not print G
 \else
 should print
 \fi
