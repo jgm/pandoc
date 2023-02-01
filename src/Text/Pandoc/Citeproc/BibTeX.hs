@@ -915,8 +915,12 @@ entField = do
   spaces'
   char '='
   spaces'
-  let inQ = if k == "url" then inQuotesURL else inQuotes
-  let inB = if k == "url" then inBracesURL else inBraces
+  let inQ = if k == "url" || k == "doi"
+               then inQuotesURL
+               else inQuotes
+  let inB = if k == "url" || k == "doi"
+               then inBracesURL
+               else inBraces
   vs <- (expandString <|> inQ <|> inB <|> rawWord) `sepBy`
             try (spaces' >> char '#' >> spaces')
   spaces'
