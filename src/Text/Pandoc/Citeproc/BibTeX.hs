@@ -842,17 +842,6 @@ inBraces :: BibParser Text
 inBraces = do
   char '{'
   res <- manyTill
-         (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\' && c /= '%')
-        <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
-        <|> ("" <$ (char '%' >> anyLine))
-        <|> (braced <$> inBraces)
-         ) (char '}')
-  return $ T.concat res
-
-inBracesURL :: BibParser Text
-inBracesURL = do
-  char '{'
-  res <- manyTill
          (  take1WhileP (\c -> c /= '{' && c /= '}' && c /= '\\')
         <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
         <|> (braced <$> inBraces)
@@ -866,19 +855,10 @@ inQuotes :: BibParser Text
 inQuotes = do
   char '"'
   T.concat <$> manyTill
-             ( take1WhileP (\c -> c /= '{' && c /= '"' && c /= '\\' && c /= '%')
-               <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
-               <|> ("" <$ (char '%' >> anyLine))
-               <|> braced <$> inBraces
-            ) (char '"')
-
-inQuotesURL :: BibParser Text
-inQuotesURL = do
-  char '"'
-  T.concat <$> manyTill
              ( take1WhileP (\c -> c /= '{' && c /= '"' && c /= '\\')
                <|> (char '\\' >> T.cons '\\' . T.singleton <$> anyChar)
-             ) (char '"')
+               <|> braced <$> inBraces
+            ) (char '"')
 
 fieldName :: BibParser Text
 fieldName = resolveAlias . T.toLower
@@ -915,13 +895,7 @@ entField = do
   spaces'
   char '='
   spaces'
-  let inQ = if k == "url" || k == "doi"
-               then inQuotesURL
-               else inQuotes
-  let inB = if k == "url" || k == "doi"
-               then inBracesURL
-               else inBraces
-  vs <- (expandString <|> inQ <|> inB <|> rawWord) `sepBy`
+  vs <- (expandString <|> inQuotes <|> inBraces <|> rawWord) `sepBy`
             try (spaces' >> char '#' >> spaces')
   spaces'
   return (k, T.concat vs)
