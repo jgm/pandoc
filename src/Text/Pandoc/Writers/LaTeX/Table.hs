@@ -26,7 +26,7 @@ import Text.Pandoc.Definition
 import Text.DocLayout
   ( Doc, braces, cr, empty, hcat, hsep, isEmpty, literal, nest
   , text, vcat, ($$) )
-import Text.Pandoc.Shared (blocksToInlines, splitBy, tshow)
+import Text.Pandoc.Shared (splitBy, tshow)
 import Text.Pandoc.Walk (walk, query)
 import Data.Monoid (Any(..))
 import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
@@ -159,8 +159,7 @@ captionToLaTeX :: PandocMonad m
                -> Caption
                -> Text     -- ^ table identifier (label)
                -> LW m CaptionDocs
-captionToLaTeX inlnsToLaTeX (Caption _maybeShort longCaption) ident = do
-  let caption = blocksToInlines longCaption
+captionToLaTeX inlnsToLaTeX caption ident = do
   (captionText, captForLot, captNotes) <- getCaption inlnsToLaTeX False caption
   label <- labelFor ident
   return $ CaptionDocs

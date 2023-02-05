@@ -563,9 +563,8 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
-blockToLaTeX (Figure (ident, _, _) (Caption _ longCapt) body) = do
-  (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True
-                                              (blocksToInlines longCapt)
+blockToLaTeX (Figure (ident, _, _) captnode body) = do
+  (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
 
