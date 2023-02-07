@@ -452,7 +452,7 @@ AST elements not updated
     end
     ```
 
-Pattern behavior is locate dependent
+Pattern behavior is locale dependent
 :   The character classes in Lua's pattern library depend on the
     current locale: E.g., the character `©` will be treated as
     punctuation, and matched by the pattern `%p`, on CP-1252
@@ -4604,7 +4604,7 @@ presence of symlinks means `../b` may not reach `a/b` if it starts
 from `a/c`. For a worked example see [this blog
 post](https://neilmitchell.blogspot.co.uk/2015/10/filepaths-are-subtle-symlinks-are-hard.html).
 
-Set `unsafe` to a truthy value to a allow `..` in paths.
+Set `unsafe` to a truthy value to allow `..` in paths.
 
 Parameters:
 
