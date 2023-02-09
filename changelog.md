@@ -12,8 +12,8 @@
   * Text.Pandoc.Options: add `writerChunkTemplate` constructor to
     `WriterOptions` [API change].
 
-  * Text.Pandoc.Chunks: add Data, Typeable, Generic instances for
-    `PathTemplate` [API change].
+  * Text.Pandoc.Chunks: add Data, Typeable, Generic, ToJSON, FromJSON
+    instances for `PathTemplate` [API change].
 
   * Textile reader:
 
