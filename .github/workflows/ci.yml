@@ -74,6 +74,10 @@ jobs:
     - name: Install numa
       run: sudo apt-get install libnuma-dev
 
+    - name: Workaround runner image issue
+      # https://github.com/actions/runner-images/issues/7061
+      run: sudo chown -R $USER /usr/local/.ghcup
+
     - name: Install cabal/ghc
       run: |
         ghcup install ghc --set ${{ matrix.versions.ghc }}
