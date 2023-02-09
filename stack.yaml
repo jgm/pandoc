@@ -21,6 +21,8 @@ extra-deps:
 - pandoc-types-1.23
 - pandoc-lua-marshal-0.2.0
 - commonmark-pandoc-0.2.1.3
+- skylighting-0.13.2.1
+- skylighting-core-0.13.2.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
