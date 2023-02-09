@@ -126,14 +126,14 @@ jobs:
           C:\Users\runneradmin\AppData\Roaming\stack\
         key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('stack.yaml') }}
 
-    # stack's local package dbs for the project and each package
-    - name: Cache .stack-work
-      uses: actions/cache@v3
-      with:
-        path: |
-          .stack-work
-        key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}-${{ secrets.CACHE_VERSION }}
-        restore-keys: ${{ runner.os }}-stack-work-${{ secrets.CACHE_VERSION }}
+#   # stack's local package dbs for the project and each package
+#   - name: Cache .stack-work
+#     uses: actions/cache@v3
+#     with:
+#       path: |
+#         .stack-work
+#       key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}-${{ secrets.CACHE_VERSION }}
+#       restore-keys: ${{ runner.os }}-stack-work-${{ secrets.CACHE_VERSION }}
 
     - name: Install dependencies
       run: |
