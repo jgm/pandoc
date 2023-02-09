@@ -6,6 +6,7 @@
   style=,
   color=,
   contrastcolor=]
+\setupurl[style=]
 
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]
