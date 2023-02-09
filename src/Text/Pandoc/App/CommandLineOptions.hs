@@ -215,7 +215,7 @@ latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
 -- | Supported HTML PDF engines; the first item is used as default
 -- engine when going through HTML.
 htmlEngines :: [String]
-htmlEngines  = ["wkhtmltopdf", "weasyprint", "pagedjs-cli", "prince"]
+htmlEngines  = ["wkhtmltopdf", "weasyprint", "pagedjs-cli", "prince", "chromium"]
 
 engines :: [(Text, String)]
 engines = map ("html",) htmlEngines ++

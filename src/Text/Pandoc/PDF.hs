@@ -84,7 +84,7 @@ makePDF :: (PandocMonad m, MonadIO m, MonadMask m)
 makePDF program pdfargs writer opts doc =
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
-    prog | prog `elem` ["pagedjs-cli" ,"weasyprint", "prince"] -> do
+    prog | prog `elem` ["pagedjs-cli" ,"weasyprint", "prince", "chromium"] -> do
       source <- writer opts doc
       verbosity <- getVerbosity
       liftIO $ html2pdf verbosity program pdfargs source
@@ -447,9 +447,16 @@ html2pdf verbosity program args source =
       hClose h1
       hClose h2
       BS.writeFile file $ UTF8.fromText source
-      let pdfFileArgName = ["-o" | takeBaseName program `elem`
-                                   ["pagedjs-cli", "prince"]]
-      let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
+      let pdfFileArgName
+            | takeBaseName program `elem` ["pagedjs-cli", "prince"] = "-o "
+            | program `elem` ["chromium"]                           = "--print-to-pdf="
+            | otherwise                                             = ""
+          args2
+            | program `elem` ["chromium"] = "--headless" : args
+            | otherwise = args
+
+          programArgs   = args2 ++ [file] ++ [pdfFileArgName <> pdfFile]
+
       env' <- getEnvironment
       when (verbosity >= INFO) $
         UTF8.readFile file >>=
