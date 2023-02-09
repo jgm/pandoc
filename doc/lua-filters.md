@@ -2115,6 +2115,9 @@ Pandoc writer options
 
 Fields:
 
+`chunk_template`
+:   Template used to generate chunked HTML filenames (string)
+
 `cite_method`
 :   How to print cites -- one of 'citeproc', 'natbib', or
     'biblatex' (string)

@@ -55,7 +55,12 @@ typeWriterOptions = deftype "WriterOptions"
     <#> udparam typeWriterOptions "opts" "options to print in native format"
     =#> functionResult pushString "string" "Haskell representation"
   ]
-  [ property "cite_method"
+  [ property "chunk_template"
+    "Templates used to generate chunked HTML filenames (string)"
+    (pushViaJSON, writerChunkTemplate)
+    (peekViaJSON, \opts x -> opts{ writerChunkTemplate = x })
+
+  , property "cite_method"
     "How to print cites"
     (pushViaJSON, writerCiteMethod)
     (peekViaJSON, \opts x -> opts{ writerCiteMethod = x })

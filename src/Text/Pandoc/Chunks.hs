@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -27,9 +26,11 @@ module Text.Pandoc.Chunks
   , tocToList
   , SecInfo(..)
   ) where
+
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier)
 import Text.Pandoc.Walk (Walkable(..))
+import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
 import Text.Printf (printf)
 import Data.Maybe (fromMaybe, isNothing)
@@ -257,7 +258,7 @@ resolvePathTemplate (PathTemplate templ) chunknum headingText ident secnum =
 -- @"section-1.2-introduction.html"@.
 newtype PathTemplate =
   PathTemplate { unPathTemplate :: Text }
-  deriving (Show, IsString, Data, Typeable, Generic)
+  deriving (Show, IsString, Data, Typeable, Generic, ToJSON, FromJSON)
 
 -- | A part of a document (typically a chapter or section, or
 -- the part of a section before its subsections).
