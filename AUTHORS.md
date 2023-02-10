@@ -73,6 +73,7 @@
 - Craig S. Bosma
 - Damien Clochard
 - Daniel Bergey
+- Daniel Kessler
 - Daniel Maslowski
 - Daniel T. Staal
 - Daniele D'Orazio
@@ -216,6 +217,7 @@
 - Mario Lang
 - Mark Szepieniec
 - Mark Wright
+- Martin Joerg
 - Martin Linn
 - Masataka Ogawa
 - Masayoshi Takahashi
@@ -309,6 +311,7 @@
 - Simon Schuster
 - Siphalor
 - Stefan Dresselhaus
+- Stephen Altamirano
 - Sukil Etxenike
 - Sukka
 - Sumit Sahrawat
