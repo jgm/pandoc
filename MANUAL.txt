@@ -1342,7 +1342,7 @@ header when requesting a document from a URL:
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
     `tectonic`, `wkhtmltopdf`, `weasyprint`, `pagedjs-cli`,
-    `prince`, `context`, and `pdfroff`. If the engine is not in
+    `prince`, `context`, `pdfroff` and `chromium`. If the engine is not in
     your PATH, the full path of the engine may be specified here.
     If this option is not specified, pandoc uses the following
     defaults depending on the output format specified using
