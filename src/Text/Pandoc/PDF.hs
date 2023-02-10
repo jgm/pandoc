@@ -449,11 +449,11 @@ html2pdf verbosity program args source =
       BS.writeFile file $ UTF8.fromText source
       let pdfFileArgName
             | takeBaseName program `elem` ["pagedjs-cli", "prince"] = "-o "
-            | program `elem` ["chromium"]                           = "--print-to-pdf="
+            | takeBaseName program `elem` ["chromium"]              = "--print-to-pdf="
             | otherwise                                             = ""
           args2
-            | program `elem` ["chromium"] = "--headless" : args
-            | otherwise = args
+            | takeBaseName program `elem` ["chromium"] = "--headless" : args
+            | otherwise                                = args
 
           programArgs   = args2 ++ [file] ++ [pdfFileArgName <> pdfFile]
 
