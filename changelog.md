@@ -15,6 +15,10 @@
   * Text.Pandoc.Chunks: add Data, Typeable, Generic, ToJSON, FromJSON
     instances for `PathTemplate` [API change].
 
+  * Text.Pandoc.Citeproc: Fix bug in `metaValueToReference` (#8611).
+    This bug caused us to get some repeated content when converting
+    MetaBlock to Inlines.
+
   * Textile reader:
 
     + Support footnote backlinks (#8585, Stephen Altamirano).
@@ -26,6 +30,11 @@
     (Albert Krewinkel). Short captions are used by LaTeX when generating
     the list of figures or list of tables. Adding a short caption will
     now overwrite the full caption in these lists.
+
+  * Powerpoint writer: fix handling of simple figures (#8565,
+    Albert Krewinkel). This ensures that simple figures are displayed
+    in the same way as before the introduction of a dedicated `Figure`
+    constructor in the AST.
 
   * Improve handling of `%` in bib(la)tex parsing (#8597, #8595).
 
