@@ -4513,6 +4513,63 @@ Returns:
 
 -  extensions config
 
+# Module pandoc.json
+
+JSON module to work with JSON; based on the Aeson Haskell package.
+
+## Fields {#pandoc.json-fields}
+
+### null {#pandoc.json.null}
+
+Value used to represent the `null` JSON value. (userdata)
+
+## Functions {#pandoc.json-functions}
+
+### decode {#pandoc.json.decode}
+
+`decode (str[, pandoc_types])`
+
+Creates a Lua object from a JSON string. The function returns an
+[Inline], [Block], [Pandoc], [Inlines], or [Blocks] element if the
+input can be decoded into represent any of those types. Otherwise
+the default decoding is applied, using tables, booleans, numbers,
+and [null](#pandoc.json.null) to represent the JSON value.
+
+The special handling of AST elements can be disabled by setting
+`pandoc_types` to `false`.
+
+Parameters:
+
+`str`
+:   JSON string (string)
+
+`pandoc_types`
+:   whether to use pandoc types when possible. (boolean)
+
+Returns:
+
+-   decoded object (any)
+
+### encode {#pandoc.json.encode}
+
+`encode (object)`
+
+Encodes a Lua object as JSON string.
+
+If the object has a metamethod with name `__tojson`, then the
+result is that of a call to that method with `object` passed as
+the sole argument. The result of that call is expected to be a
+valid JSON string, but this not checked.
+
+Parameters:
+
+`object`
+:   object to convert (any)
+
+Returns:
+
+-   JSON encoding of the given object (string)
+
 
 # Module pandoc.path
 
