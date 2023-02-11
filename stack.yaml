@@ -19,7 +19,7 @@ extra-deps:
 - texmath-0.12.6
 - citeproc-0.8.1
 - pandoc-types-1.23
-- pandoc-lua-marshal-0.2.0
+- pandoc-lua-marshal-0.2.1
 - commonmark-pandoc-0.2.1.3
 - skylighting-0.13.2.1
 - skylighting-core-0.13.2.1
