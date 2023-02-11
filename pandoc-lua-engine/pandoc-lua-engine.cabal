@@ -81,6 +81,7 @@ library
                      , Text.Pandoc.Lua.Marshal.WriterOptions
                      , Text.Pandoc.Lua.Module.CLI
                      , Text.Pandoc.Lua.Module.Format
+                     , Text.Pandoc.Lua.Module.JSON
                      , Text.Pandoc.Lua.Module.MediaBag
                      , Text.Pandoc.Lua.Module.Pandoc
                      , Text.Pandoc.Lua.Module.Scaffolding
@@ -95,6 +96,7 @@ library
                      , Text.Pandoc.Lua.Writer.Scaffolding
 
   build-depends:       SHA                   >= 1.6     && < 1.7
+                     , aeson
                      , bytestring            >= 0.9     && < 0.12
                      , citeproc              >= 0.8     && < 0.9
                      , containers            >= 0.6.0.1 && < 0.7
