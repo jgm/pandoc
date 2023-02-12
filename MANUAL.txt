@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: February 8, 2023
+date: February 12, 2023
 ---
 
 # Synopsis
@@ -2950,7 +2950,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 :   causes links to be printed as footnotes
 
 `urlstyle`
-:   style for URLs (e.g., tt, same)
+:   style for URLs (e.g., `tt`, `rm`, `sf`, and, the default, `same`)
 
 #### Front matter
 
@@ -3075,6 +3075,10 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `toc`
 :   include table of contents (can also be set using
     `--toc/--table-of-contents`)
+    
+`urlstyle`
+:   typeface style for links without link text, e.g. `normal`, `bold`, `slanted`, `boldslanted`,
+    `type`, `cap`, `small`
 
 `whitespace`
 :   spacing between paragraphs, e.g. `none`, `small` (using
