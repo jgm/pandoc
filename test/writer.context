@@ -931,7 +931,7 @@ or here: <http://example.com/>
 
 From \quotation{Voyage dans la Lune} by Georges Melies (1902):
 
-\startplacefigure[title={lalune}]
+\startplacefigure[title={lalune},list={Voyage dans la Lune}]
 {\externalfigure[lalune.jpg]}
 \stopplacefigure
 

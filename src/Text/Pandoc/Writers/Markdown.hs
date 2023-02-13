@@ -672,21 +672,22 @@ blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
         ("", cls, kv) | (figid, [], []) <- figattr -> Just (figid, cls, kv)
         _ -> Nothing
-  let combinedAlt alt = case capt of
+  let combinedAlt alt title = case capt of
         Caption Nothing [] -> if null alt
                               then Just [Str "image"]
                               else Just alt
-        Caption Nothing [Plain captInlines]
-          | captInlines == alt -> Just captInlines
+        Caption short [Plain captInlines]
+          | captInlines == alt
+          , title == maybe "" stringify short -> Just captInlines
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
       | isEnabled Ext_implicit_figures opts
-      , Just descr    <- combinedAlt alt
+      , Just descr    <- combinedAlt alt ttl
       , Just imgAttr' <- combinedAttr imgAttr
       , isEnabled Ext_link_attributes opts || imgAttr' == nullAttr
         -> do
-          -- use implicit figures if possible
+          -- Lossless representation as implicit figure is possible
           let tgt' = (src, fromMaybe ttl $ T.stripPrefix "fig:" ttl)
           contents <- inlineListToMarkdown opts [Image imgAttr' descr tgt']
           return $ contents <> blankline
