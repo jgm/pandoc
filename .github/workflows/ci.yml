@@ -109,6 +109,39 @@ jobs:
       run: |
           cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
 
+  linux-stack:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+    - uses: actions/checkout@v3
+
+    # needed by memory
+    - name: Install numa
+      run: sudo apt-get install libnuma-dev
+
+    # declare/restore cached things
+    - name: Cache stack global package db
+      id:   stack-global
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.stack
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-global-${{ secrets.CACHE_VERSION }}
+
+    - name: Cache stack work
+      id:   stack-local
+      uses: actions/cache@v3
+      with:
+        path: |
+          .stack-work
+        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-local-${{ secrets.CACHE_VERSION }}
+
+    - name: Build and test
+      run: |
+          stack test --fast
+
   windows:
 
     runs-on: windows-2019
