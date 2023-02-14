@@ -118,32 +118,26 @@ jobs:
 
     # declare/restore cached things
 
-    - name: Cache stack global package db
-      id:   stack-global-package-db
+    - name: Cache cabal global package db
+      id:   cabal-global
       uses: actions/cache@v3
       with:
         path: |
-          C:\Users\runneradmin\AppData\Roaming\stack\
-        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('stack.yaml') }}
+          C:\Users\runneradmin\AppData\Roaming\cabal\
+        key: ${{ runner.os }}-appdata-roaming-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
-#   # stack's local package dbs for the project and each package
-#   - name: Cache .stack-work
-#     uses: actions/cache@v3
-#     with:
-#       path: |
-#         .stack-work
-#       key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}-${{ secrets.CACHE_VERSION }}
-#       restore-keys: ${{ runner.os }}-stack-work-${{ secrets.CACHE_VERSION }}
+    - name: Cache cabal work
+      id: cabal-local
+      uses: actions/cache@v3
+      with:
+        path: |
+          dist-newstyle
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Install dependencies
       run: |
-          stack update
-          stack install happy
-          stack test --dependencies-only --fast
-    - name: Build and test
-      shell: cmd
-      run: |
-          stack test --fast --test-arguments="--hide-successes --ansi-tricks=false"
+          cabal update
+          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
 
 # We no longer run the macos tests, to make CI faster.
 # macos:
