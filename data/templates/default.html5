@@ -27,6 +27,9 @@ $for(header-includes)$
   $header-includes$
 $endfor$
 $if(math)$
+$if(mathjax)$
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+$endif$
   $math$
 $endif$
   <!--[if lt IE 9]>
