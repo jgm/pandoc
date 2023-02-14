@@ -109,7 +109,7 @@ library
                      , hslua-core            >= 2.2.1   && < 2.3
                      , hslua-module-doclayout>= 1.0.4   && < 1.1
                      , hslua-module-path     >= 1.0.3   && < 1.1
-                     , hslua-module-system   >= 1.0     && < 1.1
+                     , hslua-module-system   >= 1.0.3   && < 1.1
                      , hslua-module-text     >= 1.0.3   && < 1.1
                      , hslua-module-version  >= 1.0.3   && < 1.1
                      , hslua-module-zip      >= 1.0.0   && < 1.1

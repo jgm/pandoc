@@ -4890,6 +4890,16 @@ The operating system on which the program is running.
 
 ## Functions
 
+### cputime {#pandoc.system.cputime}
+
+`cputime ()`
+
+Returns the number of picoseconds CPU time used by the current
+program. The precision of this result may vary in different
+versions and on different platforms.
+
+*Since*: 3.1.1
+
 ### environment {#pandoc.system.environment}
 
 `environment ()`
