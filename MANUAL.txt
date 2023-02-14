@@ -6097,22 +6097,6 @@ comma will be added if appropriate.)  Thus:
     frubulicious zoosnaps are quantical.  For a survey
     of the literature, see @baz [chap. 1].
 
-## Raw content in a style
-
-To include raw content in a prefix, suffix, delimiter, or term,
-surround it with these tags indicating the format:
-
-    {{jats}}&lt;ref&gt;{{/jats}}
-
-Without the tags, the string will be interpreted as a string
-and escaped in the output, rather than being passed through raw.
-
-This feature allows stylesheets to be customized to give
-different output for different output formats.  However,
-stylesheets customized in this way will not be usable
-by other CSL implementations.
-
-
 
 ## Placement of the bibliography
 
