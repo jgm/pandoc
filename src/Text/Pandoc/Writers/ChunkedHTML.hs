@@ -1,10 +1,4 @@
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.ChunkedHTML
    Copyright   : Copyright (C) 2023 John MacFarlane
