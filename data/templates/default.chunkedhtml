@@ -63,6 +63,9 @@ $endif$
 </span>
 </div>
 </nav>
+$if(top)$
+$-- only print title block if this is NOT the top page
+$else$
 $if(title)$
 <header id="title-block-header">
 <h1 class="title">$title$</h1>
@@ -80,6 +83,7 @@ $if(abstract)$
 <div class="abstract-title">$abstract-title$</div>
 $abstract$
 </div>
+$endif$
 $endif$
 </header>
 $endif$
