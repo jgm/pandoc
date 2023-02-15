@@ -1359,6 +1359,7 @@ parseInline (Elem e) =
                   "cmdsynopsis"  -> descendantContent "command" el
                   "funcsynopsis" -> descendantContent "function" el
                   "figure"       -> descendantContent "title" el
+                  "table"        -> descendantContent "title" el
                   _              -> qName (elName el) <> "_title"
           where
             xrefLabel = attrValue "xreflabel" el
