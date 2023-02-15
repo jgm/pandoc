@@ -168,6 +168,33 @@ Pandoc
             , Str "."
             ]
         ]
+      , [ Para
+            [ Str "A"
+            , Space
+            , Str "link"
+            , Space
+            , Str "to"
+            , Space
+            , Str "a"
+            , SoftBreak
+            , Str "table"
+            , Space
+            , Str "element:"
+            , Space
+            , Link
+                ( "" , [] , [] )
+                [ Str "Supported"
+                , Space
+                , Str "features"
+                , Space
+                , Str "by"
+                , Space
+                , Str "version"
+                ]
+                ( "#table01" , "" )
+            , Str "."
+            ]
+        ]
       ]
   , Header
       1
@@ -214,4 +241,61 @@ Pandoc
           ]
           ( "figures/pythag.png" , "fig:" )
       ]
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain
+             [ Str "Supported"
+             , Space
+             , Str "features"
+             , Space
+             , Str "by"
+             , Space
+             , Str "version"
+             ]
+         ])
+      [ ( AlignDefault , ColWidth 0.5 )
+      , ( AlignDefault , ColWidth 0.5 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Version" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "Feat" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Free" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "no" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
   ]

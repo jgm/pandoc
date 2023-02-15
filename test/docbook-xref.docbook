@@ -27,6 +27,9 @@ cross-reference text: <xref linkend="ch02"/>.
 <listitem><para>A link to a
 <sgmltag>figure</sgmltag> element: <xref linkend="fig01"/>.
 </para></listitem>
+<listitem><para>A link to a
+<sgmltag>table</sgmltag> element: <xref linkend="table01"/>.
+</para></listitem>
 </itemizedlist>
 </chapter>
 
@@ -76,6 +79,26 @@ cross-reference text: <xref linkend="ch02"/>.
   <textobject><phrase>An illustration of the Pythagorean Theorem</phrase></textobject>
 </mediaobject>
 </figure>
+
+<table id="table01" frame="all" rowsep="1" colsep="1">
+  <title>Supported features by version</title>
+  <tgroup cols="2">
+    <colspec colname="col_1" colwidth="50*"/>
+    <colspec colname="col_2" colwidth="50*"/>
+    <thead>
+      <row>
+        <entry>Version</entry>
+        <entry>Feat</entry>
+      </row>
+    </thead>
+    <tbody>
+      <row>
+        <entry>Free</entry>
+        <entry>no</entry>
+      </row>
+    </tbody>
+  </tgroup>
+</table>
 
 </chapter>
 </book>
