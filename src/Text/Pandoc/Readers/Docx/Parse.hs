@@ -810,7 +810,8 @@ expandDrawingId s = do
 
 getTitleAndAlt :: NameSpaces -> Element -> (T.Text, T.Text)
 getTitleAndAlt ns element =
-  let mbDocPr = findChildByName ns "wp" "inline" element >>=
+  let mbDocPr = (findChildByName ns "wp" "inline" element <|>   -- Word
+                 findChildByName ns "wp" "anchor" element) >>=  -- LibreOffice
                 findChildByName ns "wp" "docPr"
       title = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "title")
       alt = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "descr")
