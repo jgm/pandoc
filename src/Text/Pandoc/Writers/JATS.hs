@@ -351,11 +351,16 @@ blockToJATS _ b@(RawBlock f str)
 blockToJATS _ HorizontalRule = return empty -- not semantic
 blockToJATS opts (Table attr caption colspecs thead tbody tfoot) =
   tableToJATS opts (Ann.toTable attr caption colspecs thead tbody tfoot)
-blockToJATS opts (Figure (ident, _, kvs) caption body) = do
-  capt <- case caption of
-            Caption _ []  -> pure empty
-            Caption _ cpt -> inTagsSimple "caption" <$> blocksToJATS opts cpt
-  figbod <- blocksToJATS opts body
+blockToJATS opts (Figure (ident, _, kvs) (Caption _short longcapt) body) = do
+  -- Remove the alt text from images if it's the same as the caption text.
+  let unsetAltIfDupl = \case
+        Image attr alt tgt
+          | stringify alt == stringify longcapt -> Image attr [] tgt
+        inline -> inline
+  capt <- if null longcapt
+          then pure empty
+          else inTagsSimple "caption" <$> blocksToJATS opts longcapt
+  figbod <- blocksToJATS opts $ walk unsetAltIfDupl body
   let figattr = [("id", escapeNCName ident) | not (T.null ident)] ++
                 [(k,v) | (k,v) <- kvs
                        , k `elem` [ "fig-type", "orientation"
@@ -520,11 +525,17 @@ inlineToJATS opts (Link (ident,_,kvs) txt (src, tit)) = do
   contents <- inlinesToJATS opts txt
   return $ inTags False "ext-link" attr contents
 inlineToJATS _ (Image attr alt tgt) = do
-  return $ selfClosingTag "inline-graphic" (graphicAttr attr alt tgt)
+  let elattr = graphicAttr attr alt tgt
+  return $ case altToJATS alt of
+             Nothing -> selfClosingTag "inline-graphic" elattr
+             Just altTag -> inTags True "inline-graphic" elattr altTag
 
 graphic :: Attr -> [Inline] -> Target -> (Doc Text)
 graphic attr alt tgt =
-  selfClosingTag "graphic" (graphicAttr attr alt tgt)
+  let elattr = graphicAttr attr alt tgt
+  in case altToJATS alt of
+       Nothing -> selfClosingTag "graphic" elattr
+       Just altTag -> inTags True "graphic" elattr altTag
 
 graphicAttr :: Attr -> [Inline] -> Target -> [(Text, Text)]
 graphicAttr (ident, _, kvs) _alt (src, tit) =
@@ -540,6 +551,13 @@ graphicAttr (ident, _, kvs) _alt (src, tit) =
                        , "xlink:actuate", "xlink:href", "xlink:role"
                        , "xlink:show", "xlink:type"]
             ]
+
+altToJATS :: [Inline] -> Maybe (Doc Text)
+altToJATS alt =
+  if null alt
+  then Nothing
+  else Just . inTagsSimple "alt-text" .
+       hsep . map literal . T.words $ stringify alt
 
 imageMimeType :: Text -> [(Text, Text)] -> (Text, Text)
 imageMimeType src kvs =

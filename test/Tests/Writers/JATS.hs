@@ -134,7 +134,9 @@ tests =
     , "containing image" =:
       header 1 (image "imgs/foo.jpg" "" (text "Alt text")) =?>
       "<sec>\n\
-      \  <title><inline-graphic mimetype=\"image\" mime-subtype=\"jpeg\" xlink:href=\"imgs/foo.jpg\" /></title>\n\
+      \  <title><inline-graphic mimetype=\"image\" mime-subtype=\"jpeg\" xlink:href=\"imgs/foo.jpg\">\n\
+      \    <alt-text>Alt text</alt-text>\n\
+      \  </inline-graphic></title>\n\
       \</sec>"
     ]
 

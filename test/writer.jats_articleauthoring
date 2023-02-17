@@ -830,8 +830,9 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     <graphic mimetype="image" mime-subtype="jpeg" xlink:href="lalune.jpg" xlink:title="Voyage dans la Lune" />
   </fig>
   <p>Here is a movie
-  <inline-graphic mimetype="image" mime-subtype="jpeg" xlink:href="movie.jpg" />
-  icon.</p>
+  <inline-graphic mimetype="image" mime-subtype="jpeg" xlink:href="movie.jpg">
+    <alt-text>movie</alt-text>
+  </inline-graphic> icon.</p>
 </sec>
 <sec id="footnotes">
   <title>Footnotes</title>
