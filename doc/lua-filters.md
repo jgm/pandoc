@@ -3918,7 +3918,7 @@ Usage:
 
 `run_json_filter (doc, filter[, args])`
 
-Filter the given doc by passing it through the a JSON filter.
+Filter the given doc by passing it through a JSON filter.
 
 Parameters:
 
