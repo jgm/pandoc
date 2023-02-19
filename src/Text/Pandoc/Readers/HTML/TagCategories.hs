@@ -28,7 +28,7 @@ eitherBlockOrInline :: Set Text
 eitherBlockOrInline = fromList
   ["audio", "applet", "button", "iframe", "embed",
    "del", "ins", "progress", "map", "area", "noscript", "script",
-   "object", "svg", "video", "source"]
+   "object", "svg", "video", "source", "track"]
 
 blockHtmlTags :: Set Text
 blockHtmlTags = fromList
