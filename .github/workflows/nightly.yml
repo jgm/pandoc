@@ -66,6 +66,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    # pkg-config is now needed for some cabal builds
+    - name: Install pkg-config
+      run: brew install pkg-config
     - name: Install dependencies
       run: |
           cabal update
