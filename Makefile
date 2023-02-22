@@ -175,10 +175,11 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 	      --reference-location=section -t gfm $< -o $@
 
 doc/lua-filters.md: tools/update-lua-module-docs.lua  ## update lua-filters.md module docs
-	cabal run pandoc -- --standalone \
+	cabal run pandoc-cli -- \
+		--standalone \
 		--reference-links \
-		--lua-filter=$< \
 		--columns=66 \
+		--from=$< \
 		--output=$@ \
 		$@
 .PHONY: doc/lua-filters.md

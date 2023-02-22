@@ -79,7 +79,7 @@ repl = defun "repl"
           repl')
   <#> opt (parameter (typeChecked "table" istable pure) "table" "env"
            ("Extra environment; the global environment is merged into this" <>
-           "table."))
+           " table."))
   =?> T.unlines
       [ "The result(s) of the last evaluated input, or nothing if the last"
       , "input resulted in an error."
