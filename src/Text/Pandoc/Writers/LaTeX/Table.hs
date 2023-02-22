@@ -76,16 +76,28 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
              pure $ "\\midrule\\noalign{}" $$ vcat lastfoot
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
+  beamer <- gets stBeamer
   return
     $  "\\begin{longtable}[]" <>
           braces ("@{}" <> colDescriptors tbl <> "@{}")
           -- the @{} removes extra space at beginning and end
     $$ head'
     $$ "\\endhead"
-    $$ foot'
-    $$ "\\bottomrule\\noalign{}"
-    $$ "\\endlastfoot"
-    $$ vcat rows'
+    $$ vcat
+       -- Longtable is not able to detect pagebreaks in Beamer; this
+       -- causes problems with the placement of the footer, so make
+       -- footer and bottom rule part of the body when targeting Beamer.
+       -- See issue #8638.
+       (if beamer
+             then [ vcat rows'
+                  , foot'
+                  , "\\bottomrule\\noalign{}"
+                  ]
+             else [ foot'
+                  , "\\bottomrule\\noalign{}"
+                  , "\\endlastfoot"
+                  ,  vcat rows'
+                  ])
     $$ "\\end{longtable}"
     $$ captNotes
     $$ notes
