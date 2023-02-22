@@ -239,8 +239,9 @@ defaultUserDataDir :: IO FilePath
 defaultUserDataDir = do
   xdgDir <- E.catch (getXdgDirectory XdgData "pandoc")
                (\(_ :: E.SomeException) -> return mempty)
-  legacyDir <- getAppUserDataDirectory "pandoc"
   xdgExists <- doesDirectoryExist xdgDir
+  legacyDir <- E.catch (getAppUserDataDirectory "pandoc")
+                (\(_ :: E.SomeException) -> return mempty)
   legacyDirExists <- doesDirectoryExist legacyDir
   if not xdgExists && legacyDirExists
      then return legacyDir
