@@ -53,6 +53,7 @@ documentedModule = Module
       , write
       ]
   , moduleOperations = []
+  , moduleTypeInitializers = []
   }
 
 -- | Delete a single item from the media bag.

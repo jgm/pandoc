@@ -41,4 +41,5 @@ documentedModule = Module
       , setName "with_working_directory" with_wd
       ]
   , moduleOperations = []
+  , moduleTypeInitializers = []
   }

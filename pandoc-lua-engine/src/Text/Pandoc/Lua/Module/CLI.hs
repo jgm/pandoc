@@ -31,6 +31,7 @@ documentedModule = Module
   , moduleFields =
       [ Field
         { fieldName = "default_options"
+        , fieldType = "table"
         , fieldDescription = "Default CLI options, using a JSON-like " <>
           "representation."
         , fieldPushValue = pushViaJSON defaultOpts
@@ -50,6 +51,7 @@ documentedModule = Module
            ]
       ]
   , moduleOperations = []
+  , moduleTypeInitializers = []
   }
  where
   peekArgs idx =

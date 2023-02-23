@@ -30,6 +30,7 @@ documentedModule = Module
   , moduleFields = []
   , moduleOperations = []
   , moduleFunctions = functions
+  , moduleTypeInitializers = []
   }
 
 -- | Extension module functions.

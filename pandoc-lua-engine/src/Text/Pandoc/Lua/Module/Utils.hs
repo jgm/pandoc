@@ -49,6 +49,7 @@ documentedModule = Module
   , moduleDescription = "pandoc utility functions"
   , moduleFields = []
   , moduleOperations = []
+  , moduleTypeInitializers = []
   , moduleFunctions =
     [ defun "blocks_to_inlines"
       ### (\blks mSep -> do

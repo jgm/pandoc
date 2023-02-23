@@ -26,12 +26,14 @@ documentedModule = Module
   , moduleFields = [writerScaffolding]
   , moduleOperations = []
   , moduleFunctions = []
+  , moduleTypeInitializers = []
   }
 
 -- | Template module functions.
 writerScaffolding :: Field PandocError
 writerScaffolding = Field
   { fieldName = "Writer"
+  , fieldType = "table"
   , fieldDescription = T.unlines
     [ "An object to be used as a `Writer` function; the construct handles"
     , "most of the boilerplate, expecting only render functions for all"

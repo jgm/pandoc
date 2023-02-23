@@ -51,6 +51,7 @@ documentedModule = Module
       , table_of_contents
       ]
   , moduleOperations = []
+  , moduleTypeInitializers = []
   }
 
 make_sections :: LuaError e => DocumentedFunction e

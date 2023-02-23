@@ -74,12 +74,18 @@ documentedModule = Module
       , inlineConstructors
       , metaValueConstructors
       ]
+  , moduleTypeInitializers =
+    [ initType typePandoc
+    , initType typeBlock
+    , initType typeInline
+    ]
   }
 
 -- | Set of input formats accepted by @read@.
 readersField :: Field PandocError
 readersField = Field
   { fieldName = "readers"
+  , fieldType = "table"
   , fieldDescription = T.unlines
     [ "Set of formats that pandoc can parse. All keys in this table can"
     , "be used as the `format` value in `pandoc.read`."
@@ -92,6 +98,7 @@ readersField = Field
 writersField :: Field PandocError
 writersField = Field
   { fieldName = "writers"
+  , fieldType = "table"
   , fieldDescription = T.unlines
     [ "Set of formats that pandoc can generate. All keys in this table"
     , "can be used as the `format` value in `pandoc.write`."
@@ -104,6 +111,7 @@ writersField = Field
 inlineField :: Field PandocError
 inlineField = Field
   { fieldName = "Inline"
+  , fieldType = "table"
   , fieldDescription = "Inline constructors, nested under 'constructors'."
   -- the nesting happens for historical reasons and should probably be
   -- changed.
@@ -114,6 +122,7 @@ inlineField = Field
 blockField :: Field PandocError
 blockField = Field
   { fieldName = "Block"
+  , fieldType = "table"
   , fieldDescription = "Inline constructors, nested under 'constructors'."
   -- the nesting happens for historical reasons and should probably be
   -- changed.
@@ -176,6 +185,7 @@ stringConstants =
         ]
       toField s = Field
         { fieldName = T.pack s
+        , fieldType = "string"
         , fieldDescription = T.pack s
         , fieldPushValue = pushString s
         }

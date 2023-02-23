@@ -42,6 +42,7 @@ documentedModule = Module
   , moduleFields = fields
   , moduleFunctions = functions
   , moduleOperations = []
+  , moduleTypeInitializers = []
   }
 
 --
@@ -58,6 +59,7 @@ fields =
 null :: LuaError e => Field e
 null = Field
   { fieldName = "null"
+  , fieldType = "userdata"
   , fieldDescription = "Value used to represent the `null` JSON value."
   , fieldPushValue = pushValue Aeson.Null
   }

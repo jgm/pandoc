@@ -16,7 +16,7 @@ import HsLua.Module.DocLayout (peekDoc, pushDoc)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.AST (peekMeta, pushBlocks, pushInlines)
 import Text.Pandoc.Lua.Marshal.Context (peekContext, pushContext)
-import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
+import Text.Pandoc.Lua.Marshal.Template (typeTemplate, peekTemplate, pushTemplate)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Templates
@@ -35,6 +35,7 @@ documentedModule = Module
   , moduleFields = []
   , moduleOperations = []
   , moduleFunctions = functions
+  , moduleTypeInitializers = [initType typeTemplate]
   }
 
 -- | Template module functions.

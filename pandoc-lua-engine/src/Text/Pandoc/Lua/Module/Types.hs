@@ -39,4 +39,5 @@ documentedModule = Module
         =#> functionResult pushVersion "Version" "A new Version object."
       ]
   , moduleOperations = []
+  , moduleTypeInitializers = []
   }

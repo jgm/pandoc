@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc.Lua.Custom
    Copyright   : © 2021-2023 Albert Krewinkel, John MacFarlane
@@ -16,7 +15,6 @@ import Control.Monad ((<=<), (<$!>))
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe (fromMaybe)
 import HsLua as Lua hiding (Operation (Div))
-import HsLua.Core.Run (GCManagedState, newGCManagedState, withGCManagedState)
 import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
@@ -40,7 +38,7 @@ loadCustom luaFile = do
   either throw pure <=< runLuaWith luaState $ do
     let globals = [ PANDOC_SCRIPT_FILE luaFile ]
     setGlobals globals
-    dofileTrace luaFile' >>= \case
+    dofileTrace (Just luaFile') >>= \case
       OK -> pure ()
       _  -> throwErrorAsException
 
