@@ -6974,7 +6974,7 @@ hello
 ````
 
 If you include raw HTML or TeX in an output cell, use the
-[raw attribute][Extension: `fenced_attribute`], as shown
+[raw attribute](#extension-raw_attribute), as shown
 in the last cell of the example above.  Although pandoc can
 process "bare" raw HTML and TeX, the result is often
 interspersed raw elements and normal textual elements, and
