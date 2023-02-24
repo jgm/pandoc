@@ -217,4 +217,13 @@ function Table (tbl)
 end
 ```
 
+### How can I use pandoc to read Word files in the old .DOC format?
+
+Install `antiword` and use it to convert the doc to DocBook,
+which can be read by pandoc.
+
+```
+antiword -x db input.doc | pandoc -f docbook
+```
+
 :::
