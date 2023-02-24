@@ -1480,8 +1480,11 @@ renderRole contents fmt role attr = case role of
            removeSpace (x:xs) = x : map headSpace xs
            removeSpace []     = []
 
+-- single words consisting of alphanumerics plus isolated (no two adjacent)
+-- internal hyphens, underscores, periods, colons and plus signs;
+-- no whitespace or other characters are allowed
 roleName :: PandocMonad m => RSTParser m Text
-roleName = many1Char (letter <|> char '-')
+roleName = many1Char (alphaNum <|> try (oneOf "-_.:+" <* lookAhead alphaNum))
 
 roleMarker :: PandocMonad m => RSTParser m Text
 roleMarker = char ':' *> roleName <* char ':'
