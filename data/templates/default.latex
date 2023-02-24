@@ -176,6 +176,18 @@ $if(CJKmainfont)$
   \fi
 $endif$
 \fi
+$if(CJKsansfont)$
+  \ifXeTeX
+    \usepackage{xeCJK}
+    \setCJKsansfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKsansfont$}
+  \fi
+$endif$
+$if(CJKmonofont)$
+  \ifXeTeX
+    \usepackage{xeCJK}
+    \setCJKmonofont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmonofont$}
+  \fi
+$endif$
 $if(zero-width-non-joiner)$
 %% Support for zero-width non-joiner characters.
 \makeatletter
