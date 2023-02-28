@@ -108,7 +108,7 @@ parseAligns = try $ do
         spaces
         ds <- trim . untokenize <$> bracedOrToken
         spaces
-        spec <- braced
+        spec <- bracedOrToken
         case safeRead ds of
              Just n  -> do
                TokStream _ ts <- getInput
