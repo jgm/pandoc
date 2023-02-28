@@ -106,7 +106,7 @@ parseAligns = try $ do
   let starAlign = do -- '*{2}{r}' == 'rr', we just expand like a macro
         symbol '*'
         spaces
-        ds <- trim . untokenize <$> braced
+        ds <- trim . untokenize <$> bracedOrToken
         spaces
         spec <- braced
         case safeRead ds of
