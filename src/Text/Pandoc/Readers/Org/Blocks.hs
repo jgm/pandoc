@@ -685,7 +685,7 @@ tableRows = try $ many (tableAlignRow <|> tableHline <|> tableContentRow)
 
 tableContentRow :: PandocMonad m => OrgParser m OrgTableRow
 tableContentRow = try $
-  OrgContentRow . sequence <$> (tableStart *> many1Till tableContentCell newline)
+  OrgContentRow . sequence <$> (tableStart *> manyTill tableContentCell newline)
 
 tableContentCell :: PandocMonad m => OrgParser m (F Blocks)
 tableContentCell = try $
