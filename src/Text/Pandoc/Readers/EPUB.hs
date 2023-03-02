@@ -51,7 +51,8 @@ type Items = M.Map Text (FilePath, MimeType)
 readEPUB :: PandocMonad m => ReaderOptions -> BL.ByteString -> m Pandoc
 readEPUB opts bytes = case toArchiveOrFail bytes of
   Right archive -> archiveToEPUB opts archive
-  Left  _       -> throwError $ PandocParseError "Couldn't extract ePub file"
+  Left  e       -> throwError $ PandocParseError $
+                     "Couldn't extract ePub file: " <> T.pack e
 
 -- runEPUB :: Except PandocError a -> Either PandocError a
 -- runEPUB = runExcept
