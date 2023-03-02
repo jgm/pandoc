@@ -156,7 +156,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          C:\Users\runneradmin\AppData\Roaming\cabal\
+          ${{ env.APPDATA }}/cabal/store
         key: ${{ runner.os }}-appdata-roaming-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
