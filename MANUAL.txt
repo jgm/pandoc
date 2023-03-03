@@ -1480,9 +1480,8 @@ results only for basic math, usually you will want to use
 
 :   Convert TeX math to [MathML] (in `epub3`, `docbook4`,
     `docbook5`, `jats`, `html4` and `html5`).  This is the
-    default in `odt` output. Note that currently only Firefox
-    and Safari (and select e-book readers) natively support
-    MathML.
+    default in `odt` output. MathML is supported natively by
+    the main web browsers and select e-book readers.
 
 `--webtex`[`=`*URL*]
 
