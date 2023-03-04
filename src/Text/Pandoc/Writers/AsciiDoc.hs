@@ -109,12 +109,18 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
        Just tpl -> renderTemplate tpl context
 
 -- | Escape special characters for AsciiDoc.
-escapeString :: Text -> Text
-escapeString t
-  | T.any (== '{') t = T.concatMap escChar t
-  | otherwise        = t
-  where escChar '{' = "\\{"
-        escChar c   = T.singleton c
+escapeString :: PandocMonad m => Text -> ADW m (Doc Text)
+escapeString t = do
+  parentTableLevel <- gets tableNestingLevel
+  let needsEscape '{' = True
+      needsEscape '|' = parentTableLevel > 0
+      needsEscape _   = False
+  let escChar c | needsEscape c = "\\" <> T.singleton c
+                | otherwise     = T.singleton c
+  if T.any needsEscape t
+     then return $ literal $ T.concatMap escChar t
+     else return $ literal t
+
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parsec Text ParserState Char
@@ -538,7 +544,7 @@ inlineToAsciiDoc _ (Code _ str) = do
     if isAsciidoctor
        then text "`+" <> contents <> "+`"
        else text "`"  <> contents <> "`"
-inlineToAsciiDoc _ (Str str) = return $ literal $ escapeString str
+inlineToAsciiDoc _ (Str str) = escapeString str
 inlineToAsciiDoc _ (Math InlineMath str) = do
   isAsciidoctor <- gets asciidoctorVariant
   modify $ \st -> st{ hasMath = True }
