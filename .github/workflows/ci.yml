@@ -169,7 +169,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          %AppData%/cabal/store
+          C:\Users\runneradmin\AppData\cabal\store
         key: ${{ runner.os }}-appdata-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
