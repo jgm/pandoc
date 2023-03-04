@@ -142,6 +142,19 @@ jobs:
       run: |
           stack test --fast
 
+  linux-nix-cabal:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v19
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - run: |
+        nix-shell --run "cabal test --disable-optimization"
+
   windows:
 
     runs-on: windows-2019
