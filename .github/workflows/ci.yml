@@ -149,6 +149,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    # x=$x exports the envvar to GitHub Actions' scope.
+    - name: Set up environment variables
+      run: |
+        echo "APPDATA=$APPDATA" >> $GITHUB_ENV
+
     # declare/restore cached things
 
     - name: Cache cabal global package db
@@ -156,7 +161,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          %AppData%\Roaming\cabal\store
+          ${{ env.APPDATA }}/cabal/store
         key: ${{ runner.os }}-appdata-roaming-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
