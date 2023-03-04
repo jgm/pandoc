@@ -153,7 +153,7 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - run: |
-        nix-shell --run "cabal test --disable-optimization"
+        nix-shell --run "cabal update && cabal test --disable-optimization"
 
   windows:
 
