@@ -1,5 +1,108 @@
 # Revision history for pandoc
 
+## pandoc X.Y.Z (YYYY-MM-DD)
+
+  * EPUB reader: Give additional information in error if the epub
+    zip container can't be unpacked.
+
+  * TSV reader: don't gobble tabs as whitespace (#8661).
+
+  * Org reader: accept empty tables (#8659).
+
+  * LaTeX reader: fix multiplication syntax for tabular (#8658).
+    We recognized `*{6}{...}` but not `*6{...}` or `*6c`.
+
+  * Docx reader: parse image alt texts in LibreOffice generated files.
+    LibreOffice tags images slightly differently than Word; this change lets
+    the parses take that difference into account when looking for an image
+    description (alt text).
+
+  * DocBook reader: fix `<xref>` references to tables in DocBook files
+    (#8626, Pavol Otto).
+
+  * RST reader: align with spec in syntax for role names (#8653).
+    In particular, we now allow colons in row names.
+
+  * Add note on converting from .doc format to FAQs (#8654).
+
+  * Trap error in getAppUserDataDirectory (#8648).
+    This can raise an error if pandoc is run in a non-user environment.
+
+  * LaTeX writer: do not use longtable foot with Beamer (#8638, Albert
+    Krewinkel). The table foot is made part of the table body, as
+    otherwise it won't show up in the output. The root cause for
+    this is that longtable cannot detect page breaks in Beamer.
+    
+  * LaTeX template: Add CJKsansfont and CJKmonofont for XeLaTeX
+    (#8656, Yudong Jin). `CJKsansfont` and `CJKmonofont` will be
+    set for xelatex only if `CJKmainfont` is also provided.
+
+  * URL style in ConTeXt (#8612, Thomas Hodgson). Previously, a
+    URL like this would be in monospace text:
+    `\useURL[url1][https://example.com]`.  Now, it will match the
+    main text unless the `linkstyle` variable is set, which
+    controls the styling of all links.  Closes #8602.
+
+  * Asciidoc writer: Properly escape `|` in table cells (#8665).
+
+  * asciidoc{,tor} template: fix revision date when author is unset
+    (#8637, arcnmx). Revision line syntax is only valid in
+    combination with an author line, so the date attribute must be
+    set explicitly when the author is missing
+
+  * HTML writer: allow "track" element to be treated as block-level HTML
+    (#8629).
+
+  * Include needed polyfill when MathJaX is used (#8625).
+
+  * JATS writer: include alt-text in `<graphic>`,
+    `<inline-graphic>` elements (#8631, Albert Krewinkel).
+
+  * Chunked HTML writer:  Retain metadata in processing sections
+    for chunked HTML (#8620).  Previously we suppressed metadata
+    in all but the top page, in order to prevent the title block
+    from being printed on every page. This prevented use of
+    custom variables set by metadata fields.  This commit moves
+    to a better solution: a conditional in the default template
+    restricts the title block to the top page.
+
+  * Lua API:
+
+    + Add new function `pandoc.system.cputime` (Albert
+      Krewinkel).  The function returns the CPU time consumed by
+      pandoc and can be used to benchmark Lua computations.
+    + Add module `pandoc.json` to handle JSON encoding (#8605,
+      Albert Krewinkel).
+
+  * Use pandoc-lua-marshal 0.2.1 (Albert Krewinkel).
+    All major AST elements now have `__tojson` metamethods that return the
+    JSON representation of an element. This allows to JSON-encode these
+    elements with libraries that respect the `__tojson` metamethod,
+    including dkjson.
+
+  * Use latest zip-archive.  This allows pandoc to open certain
+    epubs that it could not open before.
+
+  * Use commonmark-extensions 0.2.3.4. This fixes some bugs involving
+    definition lists and inline formatting.
+
+  * Use latest skylighting-format-context
+
+  * MANUAL.txt:
+
+    + Document chunk-template in defaults file.
+    + Remove obsolete "raw content in a style" section.
+    + Revise documentation for `--mathml` to reflect support in all major
+      browsers (#8667).
+
+  * docs/custom-readers.md: Update JSON parsing example. The example now
+    uses the built-in `pandoc.json` library to parse the API output.
+
+  * doc/press.md: Add article on CiTO in J Cheminform by @egonw.
+
+  * doc/lua-filters.md: fix typo in `run_json_filter` (Morgan Willcock).
+
+
 ## pandoc 3.1 (2023-02-09)
 
   * Fix regression with `--print-highlight-style` option (#8586).
