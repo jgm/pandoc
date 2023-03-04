@@ -83,6 +83,8 @@ let
     unicode-transforms
     unix
     wai
+    wai-app-static
+    wai-cors
     wai-extra
     warp
     xml
