@@ -242,8 +242,10 @@
 - Michael Snoyman
 - Michael Thompson
 - Mike Tzou
+- Mikołaj Machowski
 - Milan Bracke
 - MinRK
+- Morgan Willcock
 - Morton Fox
 - Nathan Gass
 - Naveen
@@ -271,6 +273,7 @@
 - Paul Rivier
 - Paul Tilley
 - Paulo Tanimoto
+- Pavol Otto
 - Pete Ryland
 - Peter Fabinksi
 - Peter Wang
@@ -360,6 +363,7 @@
 - Yoan Blanc
 - Yuchen Pei
 - Zihang Chen
+- arcnmx
 - a-vrma
 - andrebauer
 - black-desk
