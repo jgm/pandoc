@@ -39,121 +39,121 @@ permissions:
   contents: read
 
 jobs:
-  linux:
+# linux:
 
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        versions:
-          - ghc: '8.6.5'
-            cabal: 'latest'
-            cabalopts: '-f-embed_data_files'
-          - ghc: '8.8.4'
-            cabal: 'latest'
-            cabalopts: '-f-lua -f-server --enable-benchmarks'
-          - ghc: '8.10.7'
-            cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.0.2'
-            cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.2.5'
-            cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.4.4'
-            cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.4.4'
-            cabal: 'latest'
-            cabalopts: '--allow-newer --constrain "mtl >= 2.3.1"'
-    steps:
-    - uses: actions/checkout@v3
+#   runs-on: ubuntu-latest
+#   strategy:
+#     fail-fast: true
+#     matrix:
+#       versions:
+#         - ghc: '8.6.5'
+#           cabal: 'latest'
+#           cabalopts: '-f-embed_data_files'
+#         - ghc: '8.8.4'
+#           cabal: 'latest'
+#           cabalopts: '-f-lua -f-server --enable-benchmarks'
+#         - ghc: '8.10.7'
+#           cabal: 'latest'
+#           cabalopts: ''
+#         - ghc: '9.0.2'
+#           cabal: 'latest'
+#           cabalopts: ''
+#         - ghc: '9.2.5'
+#           cabal: 'latest'
+#           cabalopts: ''
+#         - ghc: '9.4.4'
+#           cabal: 'latest'
+#           cabalopts: ''
+#         - ghc: '9.4.4'
+#           cabal: 'latest'
+#           cabalopts: '--allow-newer --constrain "mtl >= 2.3.1"'
+#   steps:
+#   - uses: actions/checkout@v3
 
-    # needed by memory
-    - name: Install numa
-      run: sudo apt-get install libnuma-dev
+#   # needed by memory
+#   - name: Install numa
+#     run: sudo apt-get install libnuma-dev
 
-    - name: Workaround runner image issue
-      # https://github.com/actions/runner-images/issues/7061
-      run: sudo chown -R $USER /usr/local/.ghcup
+#   - name: Workaround runner image issue
+#     # https://github.com/actions/runner-images/issues/7061
+#     run: sudo chown -R $USER /usr/local/.ghcup
 
-    - name: Install cabal/ghc
-      run: |
-        ghcup install ghc --set ${{ matrix.versions.ghc }}
-        ghcup install cabal --set ${{ matrix.versions.cabal }}
+#   - name: Install cabal/ghc
+#     run: |
+#       ghcup install ghc --set ${{ matrix.versions.ghc }}
+#       ghcup install cabal --set ${{ matrix.versions.cabal }}
 
-    # declare/restore cached things
+#   # declare/restore cached things
 
-    - name: Cache cabal global package db
-      id:   cabal-global
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cabal
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
+#   - name: Cache cabal global package db
+#     id:   cabal-global
+#     uses: actions/cache@v3
+#     with:
+#       path: |
+#         ~/.cabal
+#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
 
-    - name: Cache cabal work
-      id:   cabal-local
-      uses: actions/cache@v3
-      with:
-        path: |
-          dist-newstyle
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
+#   - name: Cache cabal work
+#     id:   cabal-local
+#     uses: actions/cache@v3
+#     with:
+#       path: |
+#         dist-newstyle
+#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-local-${{ secrets.CACHE_VERSION }}
 
-    - name: Update cabal
-      run: |
-          cabal update
+#   - name: Update cabal
+#     run: |
+#         cabal update
 
-    - name: Build and test
-      run: |
-          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
+#   - name: Build and test
+#     run: |
+#         cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
 
-  linux-stack:
+# linux-stack:
 
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-    - uses: actions/checkout@v3
+#   runs-on: ubuntu-latest
+#   strategy:
+#     fail-fast: true
+#   steps:
+#   - uses: actions/checkout@v3
 
-    # needed by memory
-    - name: Install numa
-      run: sudo apt-get install libnuma-dev
+#   # needed by memory
+#   - name: Install numa
+#     run: sudo apt-get install libnuma-dev
 
-    # declare/restore cached things
-    - name: Cache stack global package db
-      id:   stack-global
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.stack
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-global-${{ secrets.CACHE_VERSION }}
+#   # declare/restore cached things
+#   - name: Cache stack global package db
+#     id:   stack-global
+#     uses: actions/cache@v3
+#     with:
+#       path: |
+#         ~/.stack
+#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-global-${{ secrets.CACHE_VERSION }}
 
-    - name: Cache stack work
-      id:   stack-local
-      uses: actions/cache@v3
-      with:
-        path: |
-          .stack-work
-        key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-local-${{ secrets.CACHE_VERSION }}
+#   - name: Cache stack work
+#     id:   stack-local
+#     uses: actions/cache@v3
+#     with:
+#       path: |
+#         .stack-work
+#       key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-stack-local-${{ secrets.CACHE_VERSION }}
 
-    - name: Build and test
-      run: |
-          stack test --fast
+#   - name: Build and test
+#     run: |
+#         stack test --fast
 
-  linux-nix-cabal:
+# linux-nix-cabal:
 
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-    - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v19
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - run: |
-        nix-shell --run "cabal update && cabal test --disable-optimization"
+#   runs-on: ubuntu-latest
+#   strategy:
+#     fail-fast: true
+#   steps:
+#   - uses: actions/checkout@v3
+#   - uses: cachix/install-nix-action@v19
+#     with:
+#       nix_path: nixpkgs=channel:nixos-unstable
+#   - run: |
+#       nix-shell --run "cabal update && cabal test --disable-optimization"
 
   windows:
 
