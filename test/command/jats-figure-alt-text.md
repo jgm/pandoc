@@ -11,10 +11,7 @@
 [ Figure
     ( "fig-1" , [] , [] )
     (Caption Nothing [ Plain [ Str "bar" ] ])
-    [ Div
-        ( "" , [ "caption" ] , [] )
-        [ Header 6 ( "" , [] , [] ) [] , Para [ Str "bar" ] ]
-    , Plain [ Str "alternative-decription" ]
+    [ Plain [ Str "alternative-decription" ]
     , Para
         [ Image ( "" , [] , [] ) [ Str "baz" ] ( "foo.png" , "" ) ]
     ]

@@ -47,6 +47,7 @@ data JATSState = JATSState{ jatsSectionLevel :: Int
                           , jatsBook         :: Bool
                           , jatsFootnotes    :: Map.Map Text Blocks
                           , jatsContent      :: [Content]
+                          , jatsInFigure     :: Bool
                           } deriving Show
 
 instance Default JATSState where
@@ -55,7 +56,8 @@ instance Default JATSState where
                  , jatsMeta = mempty
                  , jatsBook = False
                  , jatsFootnotes = mempty
-                 , jatsContent = [] }
+                 , jatsContent = []
+                 , jatsInFigure = False }
 
 
 readJATS :: (PandocMonad m, ToSources a)
@@ -188,7 +190,11 @@ parseBlock (Elem e) =
                           <$> getBlocks e
         "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], [])
                           <$> getBlocks e
-        "caption" -> divWith (attrValue "id" e, ["caption"], []) <$> sect 6
+        "caption" -> do
+          inFigure <- gets jatsInFigure
+          if inFigure -- handled by parseFigure
+             then return mempty
+             else divWith (attrValue "id" e, ["caption"], []) <$> sect 6
         "fn-group" -> parseFootnoteGroup
         "ref-list" -> parseRefList e
         "?xml"  -> return mempty
@@ -232,12 +238,13 @@ parseBlock (Elem e) =
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
          parseFigure = do
+           modify $ \st -> st{ jatsInFigure = True }
            capt <- case filterChild (named "caption") e of
                      Just t  -> mconcat . intersperse linebreak <$>
                                 mapM getInlines (filterChildren (const True) t)
                      Nothing -> return mempty
            contents <- getBlocks e
-
+           modify $ \st -> st{ jatsInFigure = False }
            return $ figureWith
              (attrValue "id" e, [], [])
              (simpleCaption $ plain capt)
