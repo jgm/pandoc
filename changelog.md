@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc X.Y.Z (YYYY-MM-DD)
+## pandoc 3.1.1 (2023-03-05)
 
   * EPUB reader: Give additional information in error if the epub
     zip container can't be unpacked.
@@ -17,8 +17,13 @@
     the parses take that difference into account when looking for an image
     description (alt text).
 
-  * DocBook reader: fix `<xref>` references to tables in DocBook files
-    (#8626, Pavol Otto).
+  * DocBook reader:
+
+    + Fix `<xref>` references to tables in DocBook files
+      (#8626, Pavol Otto).
+    + Parse `figure` as a Figure element in the AST (#8668).
+
+  * JATS reader: avoid generating duplicate figure captions (#8669).
 
   * RST reader: align with spec in syntax for role names (#8653).
     In particular, we now allow colons in row names.
