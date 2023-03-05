@@ -228,18 +228,37 @@ Pandoc
   , Plain [ Str "int1" ]
   , Plain [ Str "int" ]
   , Plain [ Str "int2" ]
-  , Para
-      [ Image
-          ( "fig01" , [] , [] )
-          [ Str "The"
-          , Space
-          , Str "Pythagorean"
-          , Space
-          , Str "Theorem"
-          , Space
-          , Str "Illustrated"
+  , Figure
+      ( "fig01" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain
+             [ Str "The"
+             , Space
+             , Str "Pythagorean"
+             , Space
+             , Str "Theorem"
+             , Space
+             , Str "Illustrated"
+             ]
+         ])
+      [ Plain
+          [ Image
+              ( "" , [] , [] )
+              [ Str "An"
+              , Space
+              , Str "illustration"
+              , Space
+              , Str "of"
+              , Space
+              , Str "the"
+              , Space
+              , Str "Pythagorean"
+              , Space
+              , Str "Theorem"
+              ]
+              ( "figures/pythag.png" , "" )
           ]
-          ( "figures/pythag.png" , "fig:" )
       ]
   , Table
       ( "" , [] , [] )

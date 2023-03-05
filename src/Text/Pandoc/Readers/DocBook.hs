@@ -541,8 +541,6 @@ data DBState = DBState{ dbSectionLevel :: Int
                       , dbQuoteType    :: QuoteType
                       , dbMeta         :: Meta
                       , dbBook         :: Bool
-                      , dbFigureTitle  :: Inlines
-                      , dbFigureId     :: Text
                       , dbContent      :: [Content]
                       } deriving Show
 
@@ -551,8 +549,6 @@ instance Default DBState where
                , dbQuoteType = DoubleQuote
                , dbMeta = mempty
                , dbBook = False
-               , dbFigureTitle = mempty
-               , dbFigureId = mempty
                , dbContent = [] }
 
 
@@ -589,11 +585,15 @@ getFigure e = do
   tit <- case filterChild (named "title") e of
               Just t  -> getInlines t
               Nothing -> return mempty
-  let ident = attrValue "id" e
-  modify $ \st -> st{ dbFigureTitle = tit, dbFigureId = ident }
-  res <- getBlocks e
-  modify $ \st -> st{ dbFigureTitle = mempty, dbFigureId = mempty }
-  return res
+  contents <- getBlocks e
+  let contents' =
+        case toList contents of
+          [Para [img@Image{}]] -> plain (fromList [img])
+          _ -> contents
+  return $ figureWith
+             (attrValue "id" e, [], [])
+             (simpleCaption $ plain tit)
+             contents'
 
 -- convenience function to get an attribute value, defaulting to ""
 attrValue :: Text -> Element -> Text
@@ -803,8 +803,6 @@ addToStart toadd bs =
 -- A DocBook mediaobject is a wrapper around a set of alternative presentations
 getMediaobject :: PandocMonad m => Element -> DB m Inlines
 getMediaobject e = do
-  figTitle <- gets dbFigureTitle
-  ident <- gets dbFigureId
   let (imageUrl, tit, attr) =
         case filterElements (named "imageobject") e of
           []  -> (mempty, mempty, nullAttr)
@@ -822,23 +820,18 @@ getMediaobject e = do
                                        h = case atVal "depth" of
                                              "" -> []
                                              d  -> [("height", d)]
-                                       id' = case atVal "id" of
-                                               x | T.null x  -> ident
-                                                 | otherwise -> x
+                                       id' = atVal "id"
                                        cs = T.words $ atVal "role"
                                        atr = (id', cs, w ++ h)
                                    in  (atVal "fileref", atr)
             in  (imageUrl', tit', attr')
-  let getCaption el = case filterChild (\x -> named "caption" x
+  let capt = case filterChild (\x -> named "caption" x
                                             || named "textobject" x
-                                            || named "alt" x) el of
+                                            || named "alt" x) e of
                         Nothing -> return mempty
                         Just z  -> trimInlines . mconcat <$>
                                          mapM parseInline (elContent z)
-  let (capt, title) = if null figTitle
-                         then (getCaption e, tit)
-                         else (return figTitle, "fig:" <> tit)
-  fmap (imageWith attr imageUrl title) capt
+  fmap (imageWith attr imageUrl tit) capt
 
 getBlocks :: PandocMonad m => Element -> DB m Blocks
 getBlocks e =  mconcat <$>
