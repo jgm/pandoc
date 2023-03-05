@@ -182,6 +182,10 @@ jobs:
 
     - name: Install dependencies
       run: |
+          dir C:\Users\runneradmin
+          dir %APPDATA%
+          dir %APPDATA%\cabal
+          dir %APPDATA%\Roaming\cabal
           cabal update
           cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
 
