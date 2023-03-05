@@ -183,9 +183,8 @@ jobs:
     - name: Install dependencies
       run: |
           cabal update
-          dir C:\Users\runneradmin
-          dir C:\Users\runneradmin\cabal
-          dir C:\Users\runneradmin\Roaming\cabal
+          dir C:\cabal
+          dir C:\cabal\store
           cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
 
 # We no longer run the macos tests, to make CI faster.
