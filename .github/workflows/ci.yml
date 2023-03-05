@@ -162,14 +162,20 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Setup Haskell
+      id: setup-haskell
+      uses: actions/setup-haskell@v1.1
+      with:
+        ghc-version: 9.4.4
+        cabal-version: latest
+
     # declare/restore cached things
 
     - name: Cache cabal global package db
       id:   cabal-global
       uses: actions/cache@v3
       with:
-        path: |
-          C:\Users\runneradmin\AppData\cabal\store
+        path: ${{ steps.setup-haskell.outputs.cabal-store }}
         key: ${{ runner.os }}-appdata-cabal-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
