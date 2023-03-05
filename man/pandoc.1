@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "Pandoc User\[cq]s Guide" "" "February 8, 2023" "pandoc 3.1" ""
+.TH "Pandoc User\[cq]s Guide" "" "March 5, 2023" "pandoc 3.1.1" ""
 .hy
 .SH NAME
 pandoc - general markup converter
@@ -1593,8 +1593,8 @@ Convert TeX math to MathML (in \f[V]epub3\f[R], \f[V]docbook4\f[R],
 \f[V]docbook5\f[R], \f[V]jats\f[R], \f[V]html4\f[R] and
 \f[V]html5\f[R]).
 This is the default in \f[V]odt\f[R] output.
-Note that currently only Firefox and Safari (and select e-book readers)
-natively support MathML.
+MathML is supported natively by the main web browsers and select e-book
+readers.
 .TP
 \f[V]--webtex\f[R][\f[V]=\f[R]\f[I]URL\f[R]]
 Convert TeX formulas to \f[V]<img>\f[R] tags that link to an external
@@ -2019,6 +2019,8 @@ or \f[V]{type: citeproc}\f[R].
    --epub-embed-font headline.otf                                    
 
  --split-level 2                   split-level: 2                
+
+ --chunk-template=\[dq]%i.html\[dq]        chunk-template: \[dq]%i.html\[dq]     
 
  --epub-subdirectory=\[dq]\[dq]            epub-subdirectory: \[aq]\[aq]         
 
@@ -3000,7 +3002,7 @@ The standard classes allow 10pt, 11pt, and 12pt.
 To use another size, set \f[V]documentclass\f[R] to one of the
 KOMA-Script classes, such as \f[V]scrartcl\f[R] or \f[V]scrbook\f[R].
 .TP
-\f[V]mainfont\f[R], \f[V]sansfont\f[R], \f[V]monofont\f[R], \f[V]mathfont\f[R], \f[V]CJKmainfont\f[R]
+\f[V]mainfont\f[R], \f[V]sansfont\f[R], \f[V]monofont\f[R], \f[V]mathfont\f[R], \f[V]CJKmainfont\f[R], \f[V]CJKsansfont\f[R], \f[V]CJKmonofont\f[R]
 font families for use with \f[V]xelatex\f[R] or \f[V]lualatex\f[R]: take
 the name of any system font, using the \f[V]fontspec\f[R] package.
 \f[V]CJKmainfont\f[R] uses the \f[V]xecjk\f[R] package.
@@ -3050,7 +3052,8 @@ and links in table of contents, respectively: uses options allowed by
 causes links to be printed as footnotes
 .TP
 \f[V]urlstyle\f[R]
-style for URLs (e.g., tt, same)
+style for URLs (e.g., \f[V]tt\f[R], \f[V]rm\f[R], \f[V]sf\f[R], and, the
+default, \f[V]same\f[R])
 .SS Front matter
 .TP
 \f[V]lof\f[R], \f[V]lot\f[R]
@@ -3169,6 +3172,11 @@ left unspecified, \f[V]sRGB IEC61966-2.1\f[R] is used as default.
 \f[V]toc\f[R]
 include table of contents (can also be set using
 \f[V]--toc/--table-of-contents\f[R])
+.TP
+\f[V]urlstyle\f[R]
+typeface style for links without link text, e.g.\ \f[V]normal\f[R],
+\f[V]bold\f[R], \f[V]slanted\f[R], \f[V]boldslanted\f[R],
+\f[V]type\f[R], \f[V]cap\f[R], \f[V]small\f[R]
 .TP
 \f[V]whitespace\f[R]
 spacing between paragraphs, e.g.\ \f[V]none\f[R], \f[V]small\f[R] (using
@@ -6835,24 +6843,6 @@ frubulicious zoosnaps are quantical.  For a survey
 of the literature, see \[at]baz [chap. 1].
 \f[R]
 .fi
-.SS Raw content in a style
-.PP
-To include raw content in a prefix, suffix, delimiter, or term, surround
-it with these tags indicating the format:
-.IP
-.nf
-\f[C]
-{{jats}}&lt;ref&gt;{{/jats}}
-\f[R]
-.fi
-.PP
-Without the tags, the string will be interpreted as a string and escaped
-in the output, rather than being passed through raw.
-.PP
-This feature allows stylesheets to be customized to give different
-output for different output formats.
-However, stylesheets customized in this way will not be usable by other
-CSL implementations.
 .SS Placement of the bibliography
 .PP
 If the style calls for a list of works cited, it will be placed in a div
@@ -7879,9 +7869,8 @@ hello
 \f[R]
 .fi
 .PP
-If you include raw HTML or TeX in an output cell, use the [raw
-attribute][Extension: \f[V]fenced_attribute\f[R]], as shown in the last
-cell of the example above.
+If you include raw HTML or TeX in an output cell, use the raw attribute,
+as shown in the last cell of the example above.
 Although pandoc can process \[lq]bare\[rq] raw HTML and TeX, the result
 is often interspersed raw elements and normal textual elements, and in
 an output cell pandoc expects a single, connected raw block.
