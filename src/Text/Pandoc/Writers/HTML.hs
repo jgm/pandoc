@@ -82,7 +82,6 @@ import Text.TeXMath
 import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
 import Text.XML.Light.Output
-import Data.String (fromString)
 
 data WriterState = WriterState
     { stNotes        :: [Html]  -- ^ List of notes
@@ -299,7 +298,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
     if null (stNotes st)
       then return mempty
       else do
-        notes <- footnoteSection EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
+        notes <- footnoteSection EndOfDocument (reverse (stNotes st))
         modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
         return notes
   st <- get
@@ -524,8 +523,8 @@ tableOfContents opts sects = do
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
 footnoteSection ::
-  PandocMonad m => ReferenceLocation -> Int -> [Html] -> StateT WriterState m Html
-footnoteSection refLocation startCounter notes = do
+  PandocMonad m => ReferenceLocation -> [Html] -> StateT WriterState m Html
+footnoteSection refLocation notes = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
   let hrtag = if refLocation /= EndOfBlock
@@ -557,13 +556,7 @@ footnoteSection refLocation startCounter notes = do
          container $ do
            nl
            hrtag
-           -- Keep the previous output exactly the same if we don't
-           -- have multiple notes sections
-           if startCounter == 1
-             then H.ol $ mconcat notes >> nl
-             else H.ol ! A.start (fromString (show startCounter)) $
-                         mconcat notes >> nl
-           nl
+           mconcat notes >> nl
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: Text -> Maybe (Text, Text)
@@ -1072,7 +1065,7 @@ blockToHtml opts block = do
     then do
       notes <- if null (stNotes st)
         then return mempty
-        else footnoteSection (writerReferenceLocation opts) (stEmittedNotes st + 1) (reverse (stNotes st))
+        else footnoteSection (writerReferenceLocation opts) (reverse (stNotes st))
       modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
       return (doc <> notes)
     else return doc
@@ -1616,26 +1609,16 @@ blockListToNote opts ref blocks = do
   -- If last block is Para or Plain, include the backlink at the end of
   -- that block. Otherwise, insert a new Plain block with the backlink.
   let kvs = [("role","doc-backlink") | html5]
-  let backlink = [Link ("",["footnote-back"],kvs)
-                    [Str "↩"] ("#" <> "fnref" <> ref,"")]
-  let blocks'  = if null blocks
-                    then []
-                    else let lastBlock   = last blocks
-                             otherBlocks = init blocks
-                         in  case lastBlock of
-                                  Para [Image (_,cls,_) _ (_,tit)]
-                                      | "fig:" `T.isPrefixOf` tit
-                                        || "r-stretch" `elem` cls
-                                            -> otherBlocks ++ [lastBlock,
-                                                  Plain backlink]
-                                  Para lst  -> otherBlocks ++
-                                                 [Para (lst ++ backlink)]
-                                  Plain lst -> otherBlocks ++
-                                                 [Plain (lst ++ backlink)]
-                                  _         -> otherBlocks ++ [lastBlock,
-                                                 Plain backlink]
+  let backlink = [Link ("",["footnote-back"],kvs) [Str (ref <> ".")] ("#" <> "fnref" <> ref,""), Space]
+      blocks' = case blocks of
+              [] -> []
+              (firstBlock:otherBlocks) ->
+                case firstBlock of
+                  (Para lst) -> Para (backlink ++ lst) : otherBlocks
+                  (Plain lst) -> Plain (backlink ++ lst) : otherBlocks
+                  _ -> Plain backlink : blocks
   contents <- blockListToHtml opts blocks'
-  let noteItem = H.li ! prefixedId opts ("fn" <> ref) $ contents
+  let noteItem = H.div ! prefixedId opts ("fn" <> ref) $ contents
   epubVersion <- gets stEPUBVersion
   let noteItem' = case epubVersion of
                        Just EPUB3 -> noteItem !
