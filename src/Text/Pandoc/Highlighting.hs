@@ -180,6 +180,7 @@ langsList =
   ("modula2","Modula-2"),
   ("mupad","MuPAD"),
   ("nastran","NASTRAN"),
+  ("nix","nix"),
   ("oberon2","Oberon-2"),
   ("ocl","OCL"),
   ("octave","Octave"),
