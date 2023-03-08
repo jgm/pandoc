@@ -559,11 +559,12 @@ footnoteSection refLocation startCounter notes = do
            hrtag
            -- Keep the previous output exactly the same if we don't
            -- have multiple notes sections
-           if startCounter == 1
-             then H.ol $ mconcat notes >> nl
-             else H.ol ! A.start (fromString (show startCounter)) $
-                         mconcat notes >> nl
-           nl
+           case epubVersion of
+             Just _ -> mconcat notes
+             Nothing | startCounter == 1 ->
+               (H.ol (nl >> mconcat notes)) >> nl
+             Nothing -> (H.ol ! A.start (fromString (show startCounter)) $
+                         nl >> mconcat notes) >> nl
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: Text -> Maybe (Text, Text)
@@ -1612,36 +1613,51 @@ blockListToNote :: PandocMonad m
                 => WriterOptions -> Text -> [Block]
                 -> StateT WriterState m Html
 blockListToNote opts ref blocks = do
-  html5 <- gets stHtml5
-  -- If last block is Para or Plain, include the backlink at the end of
-  -- that block. Otherwise, insert a new Plain block with the backlink.
-  let kvs = [("role","doc-backlink") | html5]
-  let backlink = [Link ("",["footnote-back"],kvs)
-                    [Str "↩"] ("#" <> "fnref" <> ref,"")]
-  let blocks'  = if null blocks
-                    then []
-                    else let lastBlock   = last blocks
-                             otherBlocks = init blocks
-                         in  case lastBlock of
-                                  Para [Image (_,cls,_) _ (_,tit)]
-                                      | "fig:" `T.isPrefixOf` tit
-                                        || "r-stretch" `elem` cls
-                                            -> otherBlocks ++ [lastBlock,
-                                                  Plain backlink]
-                                  Para lst  -> otherBlocks ++
-                                                 [Para (lst ++ backlink)]
-                                  Plain lst -> otherBlocks ++
-                                                 [Plain (lst ++ backlink)]
-                                  _         -> otherBlocks ++ [lastBlock,
-                                                 Plain backlink]
-  contents <- blockListToHtml opts blocks'
-  let noteItem = H.li ! prefixedId opts ("fn" <> ref) $ contents
   epubVersion <- gets stEPUBVersion
-  let noteItem' = case epubVersion of
-                       Just EPUB3 -> noteItem !
-                                       customAttribute "epub:type" "footnote"
-                       _          -> noteItem
-  return $ nl >> noteItem'
+  html5 <- gets stHtml5
+  case epubVersion of
+    Nothing -> do -- web page
+      -- If last block is Para or Plain, include the backlink at the end of
+      -- that block. Otherwise, insert a new Plain block with the backlink.
+      let kvs = [("role","doc-backlink") | html5]
+      let backlink = [Link ("",["footnote-back"],kvs)
+                        [Str "↩"] ("#" <> "fnref" <> ref,"")]
+      let blocks'  = if null blocks
+                        then []
+                        else let lastBlock   = last blocks
+                                 otherBlocks = init blocks
+                             in  case lastBlock of
+                                      Para [Image (_,cls,_) _ (_,tit)]
+                                          | "fig:" `T.isPrefixOf` tit
+                                            || "r-stretch" `elem` cls
+                                                -> otherBlocks ++ [lastBlock,
+                                                      Plain backlink]
+                                      Para lst  -> otherBlocks ++
+                                                     [Para (lst ++ backlink)]
+                                      Plain lst -> otherBlocks ++
+                                                     [Plain (lst ++ backlink)]
+                                      _         -> otherBlocks ++ [lastBlock,
+                                                     Plain backlink]
+      contents <- blockListToHtml opts blocks'
+      let noteItem = H.li ! prefixedId opts ("fn" <> ref) $ contents
+      return $ noteItem >> nl
+    Just epubv -> do
+      let kvs = [("role","doc-backlink") | html5]
+      let backlink = Link ("",["footnote-back"],kvs)
+                        [Str ref] ("#" <> "fnref" <> ref,"")
+      let blocks' =
+           case blocks of
+             (Para ils : rest) ->
+                Para (backlink : Str "." : Space : ils) : rest
+             (Plain ils : rest) ->
+                Plain (backlink : Str "." : Space : ils) : rest
+             _ -> Para [backlink , Str "."] : blocks
+      contents <- blockListToHtml opts blocks'
+      let noteItem = (if epubv == EPUB3
+                         then H5.aside ! customAttribute "epub:type" "footnote"
+                         else H.div) ! prefixedId opts ("fn" <> ref)
+                      $ nl >> contents >> nl
+      return $ noteItem >> nl
 
 inDiv :: PandocMonad m=> Text -> Html -> StateT WriterState m Html
 inDiv cls x = do
