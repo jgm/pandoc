@@ -560,12 +560,11 @@ footnoteSection refLocation startCounter notes = do
            -- Keep the previous output exactly the same if we don't
            -- have multiple notes sections
            case epubVersion of
-             Just _ -> mconcat notes >> nl
+             Just _ -> mconcat notes
              Nothing | startCounter == 1 ->
-               H.ol $ mconcat notes >> nl
-             Nothing -> H.ol ! A.start (fromString (show startCounter)) $
-                         mconcat notes >> nl
-           nl
+               (H.ol (nl >> mconcat notes)) >> nl
+             Nothing -> (H.ol ! A.start (fromString (show startCounter)) $
+                         mconcat notes) >> nl
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: Text -> Maybe (Text, Text)
@@ -1641,7 +1640,7 @@ blockListToNote opts ref blocks = do
                                                      Plain backlink]
       contents <- blockListToHtml opts blocks'
       let noteItem = H.li ! prefixedId opts ("fn" <> ref) $ contents
-      return $ nl >> noteItem
+      return $ noteItem >> nl
     Just epubv -> do
       let kvs = [("role","doc-backlink") | html5]
       let backlink = Link ("",["footnote-back"],kvs)
@@ -1656,8 +1655,9 @@ blockListToNote opts ref blocks = do
       contents <- blockListToHtml opts blocks'
       let noteItem = (if epubv == EPUB3
                          then H5.aside ! customAttribute "epub:type" "footnote"
-                         else H.div) ! prefixedId opts ("fn" <> ref) $ contents
-      return $ nl >> noteItem
+                         else H.div) ! prefixedId opts ("fn" <> ref)
+                      $ nl >> contents >> nl
+      return $ noteItem >> nl
 
 inDiv :: PandocMonad m=> Text -> Html -> StateT WriterState m Html
 inDiv cls x = do
