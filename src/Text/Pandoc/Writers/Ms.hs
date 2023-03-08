@@ -162,25 +162,6 @@ blockToMs opts (Div (ident,cls,kvs) bs) = do
        return $ anchor $$ res
 blockToMs opts (Plain inlines) =
   splitSentences <$> inlineListToMs' opts inlines
-blockToMs opts (Para [Image attr alt (src,_tit)])
-  | let ext = takeExtension (T.unpack src) in (ext == ".ps" || ext == ".eps") = do
-  let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
-                   inPoints opts <$> dimension Height attr)
-  let sizeAttrs = case (mbW, mbH) of
-                       (Just wp, Nothing) -> space <> doubleQuotes
-                              (literal (tshow (floor wp :: Int) <> "p"))
-                       (Just wp, Just hp) -> space <> doubleQuotes
-                              (literal (tshow (floor wp :: Int) <> "p")) <>
-                              space <>
-                              doubleQuotes (literal (tshow (floor hp :: Int)))
-                       _ -> empty
-  capt <- splitSentences <$> inlineListToMs' opts alt
-  return $ nowrap (literal ".PSPIC " <>
-             doubleQuotes (literal (escapeStr opts src)) <>
-             sizeAttrs) $$
-           literal ".ce 1000" $$
-           capt $$
-           literal ".ce 0"
 blockToMs opts (Para inlines) = do
   firstPara <- gets stFirstPara
   resetFirstPara
@@ -317,7 +298,32 @@ blockToMs opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToMs opts) items
   setFirstPara
   return (vcat contents)
-blockToMs opts (Figure attr _ body) = blockToMs opts $ Div attr body
+blockToMs opts (Figure figattr (Caption _ caption) body) =
+  case body of
+    [Plain [ Image attr _alt (src, _tit) ]]
+     | let ext = takeExtension (T.unpack src)
+        in (ext == ".ps" || ext == ".eps")
+      -> do
+         let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
+                          inPoints opts <$> dimension Height attr)
+         let sizeAttrs = case (mbW, mbH) of
+                              (Just wp, Nothing) -> space <> doubleQuotes
+                                     (literal (tshow (floor wp :: Int) <> "p"))
+                              (Just wp, Just hp) -> space <> doubleQuotes
+                                     (literal (tshow (floor wp :: Int) <> "p"))
+                                     <> space <>
+                                     doubleQuotes
+                                      (literal (tshow (floor hp :: Int)))
+                              _ -> empty
+         capt <- blockToMs opts (Div figattr caption)
+         let captlines = height capt
+         return $ nowrap (literal ".PSPIC " <>
+                    doubleQuotes (literal (escapeStr opts src)) <>
+                    sizeAttrs) $$
+                  literal (".ce " <> tshow captlines) $$
+                  capt $$
+                  literal ".sp 1"
+    _ -> blockToMs opts $ Div figattr body
 
 -- | Convert bullet list item (list of blocks) to ms.
 bulletListItemToMs :: PandocMonad m => WriterOptions -> [Block] -> MS m (Doc Text)
