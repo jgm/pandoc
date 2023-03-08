@@ -564,7 +564,7 @@ footnoteSection refLocation startCounter notes = do
              Nothing | startCounter == 1 ->
                (H.ol (nl >> mconcat notes)) >> nl
              Nothing -> (H.ol ! A.start (fromString (show startCounter)) $
-                         mconcat notes) >> nl
+                         nl >> mconcat notes) >> nl
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: Text -> Maybe (Text, Text)
