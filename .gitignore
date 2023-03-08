@@ -7,6 +7,7 @@
 /TAGS
 /bench-*
 !.circleci/**
+!.envrc
 !.editorconfig
 !.gitattributes
 !.github/**
@@ -30,9 +31,11 @@
 !Setup.hs
 !cabal.project
 !changelog.md
-!default.nix
 !pandoc.cabal
 !hie.yaml
+!flake.nix
+!flake.lock
+!default.nix
 !release.nix
 !shell.nix
 !stack.yaml
