@@ -7,4 +7,5 @@ task:
   brew_script: brew install cabal-install
   script:
     - sh macos/make_macos_release.sh
-  artifacts: macos_release_candidate
+  artifacts:
+    path: macos_release_candidate
