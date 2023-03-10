@@ -1908,7 +1908,17 @@ Pandoc
       ]
   , Figure
       ( "" , [] , [] )
-      (Caption Nothing [ Plain [ Str "lalune" ] ])
+      (Caption
+         (Just
+            [ Str "Voyage"
+            , Space
+            , Str "dans"
+            , Space
+            , Str "la"
+            , Space
+            , Str "Lune"
+            ])
+         [ Plain [ Str "lalune" ] ])
       [ Plain
           [ Image
               ( "" , [] , [] )

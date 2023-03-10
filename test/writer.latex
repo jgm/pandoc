@@ -951,7 +951,7 @@ From ``Voyage dans la Lune'' by Georges Melies (1902):
 \begin{figure}
 \centering
 \includegraphics{lalune.jpg}
-\caption{lalune}
+\caption[Voyage dans la Lune]{lalune}
 \end{figure}
 
 Here is a movie \includegraphics{movie.jpg} icon.

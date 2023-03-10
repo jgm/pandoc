@@ -1092,7 +1092,9 @@ implicitFigure (ident, classes, attribs) capt url title =
               _               -> capt
       attribs' = filter ((/= "alt") . fst) attribs
       figattr = (ident, mempty, mempty)
-      caption = B.simpleCaption $ B.plain capt
+      caption = if T.null title
+                then B.simpleCaption $ B.plain capt
+                else B.caption (Just . B.toList $ B.text title) $ B.plain capt
       figbody = B.plain $ B.imageWith ("", classes, attribs') url title alt
   in B.figureWith figattr caption figbody
 
