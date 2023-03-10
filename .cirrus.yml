@@ -1,7 +1,6 @@
 task:
   name: MacOS
   trigger_type: manual
-  install_script: brew install cabal-install
   macos_instance:
     image: ghcr.io/cirruslabs/macos-monterey-base:latest
   brew_script: brew install cabal-install
