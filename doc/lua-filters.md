@@ -5743,137 +5743,173 @@ like the `zip` function described below.
 Zip options are optional; when defined, they must be a table with
 any of the following keys:
 
-  - `recursive`: recurse directories when set to `true`;
-  - `verbose`: print info messages to stdout;
-  - `destination`: the value specifies the directory in which to
+-   `recursive`: recurse directories when set to `true`;
+-   `verbose`: print info messages to stdout;
+-   `destination`: the value specifies the directory in which to
     extract;
-  - `location`: value is used as path name, defining where files
+-   `location`: value is used as path name, defining where files
     are placed.
-  - `preserve_symlinks`: Boolean value, controlling whether
+-   `preserve_symlinks`: Boolean value, controlling whether
     symbolic links are preserved as such. This option is ignored
     on Windows.
 
-## Functions
+## Functions {#pandoc.zip-functions}
 
 ### Archive {#pandoc.zip.Archive}
 
-`Archive (bytestring_or_entries)`
+`Archive ([bytestring_or_entries])`
 
 Reads an *Archive* structure from a raw zip archive or a list of
 Entry items; throws an error if the given string cannot be decoded
 into an archive.
 
-*Since: 1.0.0*
-
 Parameters:
 
-bytestring_or_entries
-:    (string|{ZipEntry,...})
+`bytestring_or_entries`
+:   binary archive data or list of entries; defaults to an empty
+    list ([string]{.builtin-lua-type}\|{[zip.Entry],\...})
 
 Returns:
 
- -   (ZipArchive)
+-   new Archive ([zip.Archive])
 
 ### Entry {#pandoc.zip.Entry}
 
 `Entry (path, contents[, modtime])`
 
-Generates a zip Entry from a filepath, the file's uncompressed
-content, and the file's modification time.
-
-*Since: 1.0.0*
+Generates a ZipEntry from a filepath, uncompressed content, and
+the file's modification time.
 
 Parameters:
 
-path
-:   file path in archive (string)
+`path`
+:   file path in archive ([string]{.builtin-lua-type})
 
-contents
-:   uncompressed contents (string)
+`contents`
+:   uncompressed contents ([string]{.builtin-lua-type})
 
-modtime
-:   modification time (integer)
+`modtime`
+:   modification time ([integer]{unknown-type="integer"})
+
+Returns:
+
+-   a new zip archive entry ([zip.Entry])
 
 ### read_entry {#pandoc.zip.read_entry}
 
-`read_entry (filepath, opts)`
+`read_entry (filepath[, opts])`
 
 Generates a ZipEntry from a file or directory.
 
-*Since: 1.0.0*
-
 Parameters:
 
-filepath
-:    (string)
+`filepath`
+:    ([string]{.builtin-lua-type})
 
-opts
-:   zip options (table)
+`opts`
+:   zip options ([table]{.builtin-lua-type})
 
 Returns:
 
- -  a new zip archive entry (ZipEntry)
+-   a new zip archive entry ([zip.Entry])
 
 ### zip {#pandoc.zip.zip}
 
-`zip (filepaths[, options])`
+`zip (filepaths[, opts])`
 
 Package and compress the given files into a new Archive.
 
-*Since: 1.0.0*
-
 Parameters:
 
-filepaths
-:    list of files from which the archive is created. ({string,...})
+`filepaths`
+:   list of files from which the archive is created.
+    ({[string]{.builtin-lua-type},\...})
 
-options
-:   zip options (table)
+`opts`
+:   zip options ([table]{.builtin-lua-type})
 
 Returns:
 
- -  a new archive (ZipArchive)
+-   a new archive ([zip.Archive])
 
-## Types
+## Types {#pandoc.zip-types}
 
-### Archive {#type-pandoc.zip.Archive}
+### zip.Archive {#type-pandoc.zip.Archive}
 
-A zip archive with file entries.
+#### Properties {#type-pandoc.zip.Archive-properties}
 
-#### Fields
+##### entries {#type-pandoc.zip.Archive.entries}
 
-`entries`
-:   files in this zip archive ({Entry,...})
-
-#### Methods
-
-`extract([opts])`
-:   Extract all files from this archive, creating directories as
-    needed. Note that the last-modified time is set correctly only
-    in POSIX, not in Windows. This function fails if encrypted
-    entries are present.
-
-    Use `archive:extract{destination = 'dir'}` to extract to
-    subdirectory `dir`.
-
-`bytestring()`
-:   Returns the raw binary string representation of the archive.
-
-### Entry {#type-pandoc.zip.Entry}
-
-File or directory entry in a zip archive.
-
-#### Fields
-
-`path`
-:   relative path, using `/` as separator
-
-`modtime`
-:   modification time (seconds since unix epoch)
+Files in this zip archive ({[zip.Entry],\...})
 
 #### Methods
 
-`contents([password])`
-:   Get the uncompressed contents of a zip entry. If `password` is
-    given, then that password is used to decrypt the contents. An
-    error is throws if decrypting fails.
+##### bytestring {#pandoc.zip.Archive.bytestring}
+
+`bytestring (self)`
+
+Returns the raw binary string representation of the archive.
+
+Parameters:
+
+`self`
+:    ([zip.Archive])
+
+Returns:
+
+-   bytes of the archive ([string]{.builtin-lua-type})
+
+##### extract {#pandoc.zip.Archive.extract}
+
+`extract (self[, opts])`
+
+Extract all files from this archive, creating directories as
+needed. Note that the last-modified time is set correctly only in
+POSIX, not in Windows. This function fails if encrypted entries
+are present.
+
+Parameters:
+
+`self`
+:    ([zip.Archive])
+
+`opts`
+:   zip options ([table]{.builtin-lua-type})
+
+### zip.Entry {#type-pandoc.zip.Entry}
+
+#### Properties {#type-pandoc.zip.Entry-properties}
+
+##### modtime {#type-pandoc.zip.Entry.modtime}
+
+Modification time (seconds since unix epoch)
+([integer]{unknown-type="integer"})
+
+##### path {#type-pandoc.zip.Entry.path}
+
+Relative path, using `/` as separator ([zip.Entry])
+
+#### Methods
+
+##### contents {#pandoc.zip.Entry.contents}
+
+`contents (self[, password])`
+
+Get the uncompressed contents of a zip entry. If `password` is
+given, then that password is used to decrypt the contents. An
+error is throws if decrypting fails.
+
+Parameters:
+
+`self`
+:    ([zip.Entry])
+
+`password`
+:   password for entry ([string]{.builtin-lua-type})
+
+Returns:
+
+-   binary contents ([string]{.builtin-lua-type})
+
+  [zip.Entry]: #type-pandoc.zip.Entry
+  [zip.Archive]: #type-pandoc.zip.Archive
