@@ -1,0 +1,9 @@
+task:
+  name: MacOS
+  install_script: brew install
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-monterey-base:latest
+  install_script: brew install cabal-install
+  script:
+    - cabal update
+    - cabal test

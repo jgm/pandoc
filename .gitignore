@@ -7,6 +7,7 @@
 /TAGS
 /bench-*
 !.circleci/**
+!.cirrus.yml
 !.envrc
 !.editorconfig
 !.gitattributes
