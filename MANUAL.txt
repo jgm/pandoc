@@ -2927,6 +2927,16 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
         - Numbers=Proportional
         ...
 
+`babelfonts`
+:    a map of Babel language names (e.g. `chinese`) to the font
+     to be used with the language:
+
+     ---
+     babelfonts:
+       chinese-hant: "Noto Serif CJK TC"
+       russian: "Noto Serif"
+     ...
+
 `microtypeoptions`
 :    options to pass to the microtype package
 
