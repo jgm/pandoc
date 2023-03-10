@@ -49,7 +49,14 @@ toBabel (Lang "la" _ _ vars _ _)
   | "x-classic" `elem` vars             = Just "classiclatin"
 toBabel (Lang "pt" _ (Just "BR") _ _ _) = Just "brazilian"
 toBabel (Lang "sl" _ _ _ _ _)           = Just "slovene"
-toBabel x                               = commonFromBcp47 x
+toBabel (Lang "zh" (Just "Hant") (Just "HK") _ _ _) = Just "chinese-hant-hk"
+toBabel (Lang "zh" (Just "Hant") (Just "MO") _ _ _) = Just "chinese-hant-mo"
+toBabel (Lang "zh" (Just "Hans") (Just "HK") _ _ _) = Just "chinese-hans-hk"
+toBabel (Lang "zh" (Just "Hans") (Just "MO") _ _ _) = Just "chinese-hans-mo"
+toBabel (Lang "zh" (Just "Hans") _ _ _ _) = Just "chinese-hans"
+toBabel (Lang "zh" (Just "Hant") _ _ _ _) = Just "chinese-hant"
+toBabel (Lang "zh" _ _ _ _ _)             = Just "chinese"
+toBabel x                                 = commonFromBcp47 x
 
 -- Takes a list of the constituents of a BCP47 language code
 -- and converts it to a string shared by Babel and Polyglossia.
