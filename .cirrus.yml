@@ -18,4 +18,4 @@ task:
     ls
     zip -r macos-release-candidate.zip macos-release-candidate
   artifacts:
-    path: macos_release_candidate.zip
+    path: macos-release-candidate.zip
