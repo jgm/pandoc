@@ -16,6 +16,6 @@ task:
   install_script: |
     sh macos/make_macos_release.sh
     ls
-    zip -r macos_release_candidate.zip macos_release_candidate
+    zip -r macos-release-candidate.zip macos-release-candidate
   artifacts:
     path: macos_release_candidate.zip
