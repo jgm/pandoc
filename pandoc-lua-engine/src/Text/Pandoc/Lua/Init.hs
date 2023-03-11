@@ -23,12 +23,15 @@ import Control.Monad.Trans (MonadIO (..))
 import Data.Maybe (catMaybes)
 import Data.Version (makeVersion)
 import HsLua as Lua hiding (status, try)
-import Text.Pandoc.Class (PandocMonad (..))
+import Text.Pandoc.Class (PandocMonad (..), report)
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
+import Text.Pandoc.Logging (LogMessage (ScriptingWarning))
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Marshal.List (newListMetatable, pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua (..), liftPandocLua)
+import Text.Parsec.Pos (newPos)
+import Text.Read (readMaybe)
 import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Lua.LPeg as LPeg
@@ -48,6 +51,7 @@ import qualified Text.Pandoc.Lua.Module.Template as Pandoc.Template
 import qualified Text.Pandoc.Lua.Module.Text as Pandoc.Text
 import qualified Text.Pandoc.Lua.Module.Types as Pandoc.Types
 import qualified Text.Pandoc.Lua.Module.Utils as Pandoc.Utils
+import qualified Text.Pandoc.UTF8 as UTF8
 
 -- | Run the Lua interpreter, using pandoc's default way of environment
 -- initialization.
@@ -112,6 +116,7 @@ loadedModules =
 initLuaState :: PandocLua ()
 initLuaState = do
   liftPandocLua Lua.openlibs
+  setWarnFunction
   initJsonMetatable
   initPandocModule
   installLpegSearcher
@@ -232,3 +237,18 @@ defaultGlobals = do
     , PANDOC_STATE commonState
     , PANDOC_VERSION
     ]
+
+setWarnFunction :: PandocLua ()
+setWarnFunction = liftPandocLua . setwarnf' $ \msg -> do
+  -- reporting levels:
+  -- 0: this hook,
+  -- 1: userdata wrapper function for the hook,
+  -- 2: warn,
+  -- 3: function calling warn.
+  where' 3
+  loc <- UTF8.toText <$> tostring' top
+  unPandocLua . report $ ScriptingWarning (UTF8.toText msg) (toSourcePos loc)
+ where
+   toSourcePos loc = (T.breakOnEnd ":" <$> T.stripSuffix ": " loc)
+     >>= (\(prfx, sfx) -> (,) <$> T.unsnoc prfx <*> readMaybe (T.unpack sfx))
+     >>= \((source, _), line) -> Just $ newPos (T.unpack source) line 1
