@@ -7,7 +7,7 @@ task:
   brew_script: brew install cabal-install
   cabal_store_cache:
     folder: ~/.cabal/store
-    fingerprint_script: cat pandoc.cabal
+    fingerprint_key: macos_2023_03_11
   deps_script:
     - cabal update
     - cabal build pandoc-cli -fembed_data_files -fserver -flua --dependencies-only
