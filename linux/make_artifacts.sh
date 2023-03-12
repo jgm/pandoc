@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+ROOT="$(pwd)"
 CABALOPTS="-f-export-dynamic -fembed_data_files --enable-executable-static -j4"
 GHCOPTS="-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread"
 
@@ -55,32 +56,31 @@ make_deb() {
   REVISION=${REVISION:-1}
   DEBVER=$VERSION-$REVISION
   BASE=pandoc-$DEBVER-$ARCHITECTURE
-  DIST=$HOME/$BASE
+  DIST=$ROOT/$BASE
   DEST=$DIST/usr
   COPYRIGHT=$DEST/share/doc/pandoc/copyright
 
-  cd $HOME
   mkdir -p "$DEST/bin"
   mkdir -p "$DEST/share/man/man1"
   mkdir -p "$DEST/share/doc/pandoc"
 
   find "$DIST" -type d -exec chmod 755 {} \;
   cp "$ARTIFACTS/pandoc" "$DEST/bin/"
-  cd "$DEST/bin"
+  pushdir "$DEST/bin"
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
-  cd $HOME
+  popdir
   for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1
   do
-    cp $HOME/man/$manpage "$DEST/share/man/man1/$manpage"
+    cp $ROOT/man/$manpage "$DEST/share/man/man1/$manpage"
     gzip -9 "$DEST/share/man/man1/$manpage"
   done
-  cp $HOME/COPYRIGHT "$COPYRIGHT"
+  cp $ROOT/COPYRIGHT "$COPYRIGHT"
   echo "" >> "$COPYRIGHT"
 
   INSTALLED_SIZE=$(du -k -s "$DEST" | awk '{print $1}')
   mkdir "$DIST/DEBIAN"
-  perl -pe "s/VERSION/$DEBVER/" $HOME/linux/control.in | \
+  perl -pe "s/VERSION/$DEBVER/" $ROOT/linux/control.in | \
     perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
     perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
     > "$DIST/DEBIAN/control"
@@ -94,20 +94,21 @@ make_deb() {
 # Make tarball for pandoc
 make_tarball() {
   TARGET=pandoc-$VERSION
-  cd "$ARTIFACTS"
+  pushdir "$ARTIFACTS"
   rm -rf "$TARGET"
   mkdir "$TARGET"
   mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1"
-  cp $HOME/man/pandoc.1 $HOME/man/pandoc-server.1 $HOME/man/pandoc-lua.1 "$TARGET/share/man/man1"
+  cp $ROOT/man/pandoc.1 $ROOT/man/pandoc-server.1 $ROOT/man/pandoc-lua.1 "$TARGET/share/man/man1"
   gzip -9 "$TARGET"/share/man/man1/*.1
   mv pandoc "$TARGET/bin"
-  cd "$TARGET/bin"
+  pushdir "$TARGET/bin"
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
-  cd "$ARTIFACTS"
+  popdir
 
   tar cvzf "$TARGET-linux-$ARCHITECTURE.tar.gz" "$TARGET"
   rm -r "$TARGET"
+  popdir
 }
 
 make_deb
