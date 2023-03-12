@@ -32,8 +32,11 @@ task:
     folder: ~/.cabal/store
     fingerprint_key: linux_arm64_2023_03_11
   build_script:
-    - ARTIFACTS=./linux/artifacts sh linux/make_artifacts.sh
+    - cabal update
+    - cabal install -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4 --ghc-options="-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread" pandoc-cli --install-method=copy --overwrite-policy=always --installdir=.
   upload_caches:
     - cabal_store
+  package_script:
+    - ARTIFACTS=./linux/artifacts sh linux/make_artifacts.sh
   artifacts:
     path: ./linux/artifacts/*

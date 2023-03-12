@@ -2,8 +2,6 @@
 set -e
 
 ROOT="$(pwd)"
-CABALOPTS="-f-export-dynamic -fembed_data_files --enable-executable-static -j4"
-GHCOPTS="-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread"
 
 MACHINE=$(uname -m)
 case "$MACHINE" in
@@ -26,18 +24,7 @@ clean_up() {
 }
 trap clean_up EXIT
 
-# build binaries
-
-cabal --version
-ghc --version
-
-cabal update
-cabal clean
-cabal build $CABALOPTS --ghc-options="$GHCOPTS" all
-cabal test $CABALOPTS --ghc-options="$GHCOPTS" all
-
-# Copy executable to ARTIFACTS
-find dist-newstyle -name 'pandoc' -type f -perm /400 -exec cp {} "$ARTIFACTS"/ \;
+cp pandoc "$ARTIFACTS/pandoc"
 
 # Strip executable
 strip "$ARTIFACTS/pandoc"
