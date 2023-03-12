@@ -28,13 +28,14 @@ task:
     cpu: 4
     memory: 12G
   env:
-    CABALOPTS: -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4 --ghc-options='-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread'
+    CABALOPTS: -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4
+    GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
   cabal_store_cache:
     folder: ~/.cabal/store
     fingerprint_key: linux_arm64_2023_03_11
   deps_script:
     - cabal update
-    - cabal build --dependencies-only $CABALOPTS pandoc-cli
+    - cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
   upload_caches:
     - cabal_store
   package_script:
