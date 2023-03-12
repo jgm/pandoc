@@ -41,6 +41,6 @@ task:
   upload_caches:
     - cabal_store
   package_script:
-    - sh linux/make_artifacts.sh
+    - bash linux/make_artifacts.sh
   release_candidate_artifacts:
     path: ./linux/artifacts/*
