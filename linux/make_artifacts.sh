@@ -30,7 +30,7 @@ clean_up() {
 trap clean_up EXIT
 
 echo "Copying and stripping pandoc binary"
-cp "$BINPATH/pandoc" "$ARTIFACTS/pandoc"
+cp "$BINPATH" "$ARTIFACTS/pandoc"
 strip "$ARTIFACTS/pandoc"
 
 echo "Checking that the binary is statically linked..."
