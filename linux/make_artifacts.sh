@@ -54,11 +54,11 @@ make_deb() {
   REVISION=${REVISION:-1}
   DEBVER=$VERSION-$REVISION
   BASE=pandoc-$DEBVER-$ARCHITECTURE
-  DIST=/mnt/$BASE
+  DIST=$HOME/$BASE
   DEST=$DIST/usr
   COPYRIGHT=$DEST/share/doc/pandoc/copyright
 
-  cd /mnt
+  cd $HOME
   mkdir -p "$DEST/bin"
   mkdir -p "$DEST/share/man/man1"
   mkdir -p "$DEST/share/doc/pandoc"
@@ -68,18 +68,18 @@ make_deb() {
   cd "$DEST/bin"
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
-  cd /mnt
+  cd $HOME
   for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1
   do
-    cp /mnt/man/$manpage "$DEST/share/man/man1/$manpage"
+    cp $HOME/man/$manpage "$DEST/share/man/man1/$manpage"
     gzip -9 "$DEST/share/man/man1/$manpage"
   done
-  cp /mnt/COPYRIGHT "$COPYRIGHT"
+  cp $HOME/COPYRIGHT "$COPYRIGHT"
   echo "" >> "$COPYRIGHT"
 
   INSTALLED_SIZE=$(du -k -s "$DEST" | awk '{print $1}')
   mkdir "$DIST/DEBIAN"
-  perl -pe "s/VERSION/$DEBVER/" /mnt/linux/control.in | \
+  perl -pe "s/VERSION/$DEBVER/" $HOME/linux/control.in | \
     perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
     perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
     > "$DIST/DEBIAN/control"
@@ -97,7 +97,7 @@ make_tarball() {
   rm -rf "$TARGET"
   mkdir "$TARGET"
   mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1"
-  cp /mnt/man/pandoc.1 /mnt/man/pandoc-server.1 /mnt/man/pandoc-lua.1 "$TARGET/share/man/man1"
+  cp $HOME/man/pandoc.1 $HOME/man/pandoc-server.1 $HOME/man/pandoc-lua.1 "$TARGET/share/man/man1"
   gzip -9 "$TARGET"/share/man/man1/*.1
   mv pandoc "$TARGET/bin"
   cd "$TARGET/bin"
