@@ -1,5 +1,5 @@
 task:
-  name: MacOS
+  name: macos_arm64
   trigger_type: manual
   timeout_in: 90m
   macos_instance:
@@ -19,3 +19,21 @@ task:
     zip -r macos-release-candidate.zip macos-release-candidate
   artifacts:
     path: macos-release-candidate.zip
+
+task:
+  name: linux_arm64
+  trigger_type: manual
+  timeout_in: 90m
+  arm_container:
+    image: registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.4.4
+    cpu: 4
+    memory: 12G
+  cabal_store_cache:
+    folder: ~/.cabal/store
+    fingerprint_key: linux_arm64_2023_03_11
+  build_script:
+    - ARTIFACTS=./linux/artifacts sh linux/make_artifacts.sh
+  upload_caches:
+    - cabal_store
+  artifacts:
+    path: ./linux/artifacts/*
