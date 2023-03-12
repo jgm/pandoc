@@ -21,7 +21,7 @@ mkdir -p $ARTIFACTS
 rm -f $ARTIFACTS/DONE
 
 clean_up() {
-  echo "All done!" > "$ARTIFACTS/DONE"
+  echo "Exiting with error..."
 }
 trap clean_up EXIT
 
@@ -29,14 +29,13 @@ echo "Copying and stripping pandoc binary"
 cp "$ROOT/pandoc" "$ARTIFACTS/pandoc"
 strip "$ARTIFACTS/pandoc"
 
-echo "Performing sanity checks on binary..."
-# Confirm that we have static builds
+echo "Checking that the binary is statically linked..."
 file "$ARTIFACTS/pandoc" | grep "statically linked"
 
-# Confirm that it has +lua and +server support
+echo "Checking that the binary has +lua and +server support..."
 "$ARTIFACTS/pandoc" --version | grep -q '+server +lua'
 
-# Confirm that it has data files baked in:
+echo "Checking that the binary has data files baked in..."
 strings "$ARTIFACTS/pandoc" | grep -q '\$title\$'
 
 make_deb() {
@@ -107,4 +106,5 @@ make_deb
 echo "Making tarball..."
 make_tarball
 
+echo "Finished!"
 exit 0

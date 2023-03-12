@@ -9,8 +9,9 @@ ME=$(whoami)
 
 # Build the pandoc binary and put it in .
 cabal update
-cabal install pandoc-cli -fembed_data_files -fserver -flua --installdir=. \
-    --install-method=copy --overwrite-policy=always
+cabal install pandoc-cli --reinstall \
+    -fembed_data_files -fserver -flua \
+    --installdir=. --install-method=copy --overwrite-policy=always
 echo "Built executable..."
 
 # Create directories
