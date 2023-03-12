@@ -13,7 +13,8 @@ case "$MACHINE" in
   *)       ARCHITECTURE=unknown;;
 esac
 
-ARTIFACTS="${ARTIFACTS:-/artifacts}"
+ARTIFACTS="$ROOT/linux/artifacts"
+echo "Creating $ARTIFACTS directory"
 mkdir -p $ARTIFACTS
 
 # This is our sentinel that tells us when we're done.
@@ -24,11 +25,11 @@ clean_up() {
 }
 trap clean_up EXIT
 
-cp pandoc "$ARTIFACTS/pandoc"
-
-# Strip executable
+echo "Copying and stripping pandoc binary"
+cp "$ROOT/pandoc" "$ARTIFACTS/pandoc"
 strip "$ARTIFACTS/pandoc"
 
+echo "Performing sanity checks on binary..."
 # Confirm that we have static builds
 file "$ARTIFACTS/pandoc" | grep "statically linked"
 
@@ -76,6 +77,7 @@ make_deb() {
   fakeroot dpkg-deb -Zgzip -z9 --build "$DIST"
   rm -rf "$DIST"
   cp "$BASE.deb" "$ARTIFACTS/"
+  echo "Created $BASE.deb"
 }
 
 # Make tarball for pandoc
@@ -94,11 +96,15 @@ make_tarball() {
   popdir
 
   tar cvzf "$TARGET-linux-$ARCHITECTURE.tar.gz" "$TARGET"
+  echo "Created $TARGET-linux-$ARCHITECTURE.tar.gz"
   rm -r "$TARGET"
   popdir
 }
 
+echo "Making debian package..."
 make_deb
+
+echo "Making tarball..."
 make_tarball
 
 exit 0
