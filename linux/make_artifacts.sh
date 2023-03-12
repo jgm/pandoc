@@ -57,10 +57,10 @@ make_deb() {
 
   find "$DIST" -type d -exec chmod 755 {} \;
   cp "$ARTIFACTS/pandoc" "$DEST/bin/"
-  pushdir "$DEST/bin"
+  pushd "$DEST/bin"
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
-  popdir
+  popd
   for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1
   do
     cp $WORK/man/$manpage "$DEST/share/man/man1/$manpage"
@@ -86,22 +86,22 @@ make_deb() {
 # Make tarball for pandoc
 make_tarball() {
   TARGET=pandoc-$VERSION
-  pushdir "$ARTIFACTS"
+  pushd "$ARTIFACTS"
   rm -rf "$TARGET"
   mkdir "$TARGET"
   mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1"
   cp $WORK/man/pandoc.1 $WORK/man/pandoc-server.1 $WORK/man/pandoc-lua.1 "$TARGET/share/man/man1"
   gzip -9 "$TARGET"/share/man/man1/*.1
   mv pandoc "$TARGET/bin"
-  pushdir "$TARGET/bin"
+  pushd "$TARGET/bin"
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
-  popdir
+  popd
 
   tar cvzf "$TARGET-linux-$ARCHITECTURE.tar.gz" "$TARGET"
   echo "Created $TARGET-linux-$ARCHITECTURE.tar.gz"
   rm -r "$TARGET"
-  popdir
+  popd
 }
 
 echo "Making debian package..."
