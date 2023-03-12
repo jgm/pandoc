@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
 
-ROOT="$(pwd)"
+cabal build $CABALOPTS pandoc-cli
+BINPATH=$(cabal 
+BINPATH=$(cabal list-bin $CABALOPTS pandoc-cli)
+echo "Built executable: $BINPATH"
+
+WORK="$(pwd)"
 
 MACHINE=$(uname -m)
 case "$MACHINE" in
@@ -13,7 +18,7 @@ case "$MACHINE" in
   *)       ARCHITECTURE=unknown;;
 esac
 
-ARTIFACTS="$ROOT/linux/artifacts"
+ARTIFACTS="$WORK/linux/artifacts"
 echo "Creating $ARTIFACTS directory"
 mkdir -p $ARTIFACTS
 
@@ -26,7 +31,7 @@ clean_up() {
 trap clean_up EXIT
 
 echo "Copying and stripping pandoc binary"
-cp "$ROOT/pandoc" "$ARTIFACTS/pandoc"
+cp "$BINPATH/pandoc" "$ARTIFACTS/pandoc"
 strip "$ARTIFACTS/pandoc"
 
 echo "Checking that the binary is statically linked..."
@@ -43,7 +48,7 @@ make_deb() {
   REVISION=${REVISION:-1}
   DEBVER=$VERSION-$REVISION
   BASE=pandoc-$DEBVER-$ARCHITECTURE
-  DIST=$ROOT/$BASE
+  DIST=$WORK/$BASE
   DEST=$DIST/usr
   COPYRIGHT=$DEST/share/doc/pandoc/copyright
 
@@ -59,15 +64,15 @@ make_deb() {
   popdir
   for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1
   do
-    cp $ROOT/man/$manpage "$DEST/share/man/man1/$manpage"
+    cp $WORK/man/$manpage "$DEST/share/man/man1/$manpage"
     gzip -9 "$DEST/share/man/man1/$manpage"
   done
-  cp $ROOT/COPYRIGHT "$COPYRIGHT"
+  cp $WORK/COPYRIGHT "$COPYRIGHT"
   echo "" >> "$COPYRIGHT"
 
   INSTALLED_SIZE=$(du -k -s "$DEST" | awk '{print $1}')
   mkdir "$DIST/DEBIAN"
-  perl -pe "s/VERSION/$DEBVER/" $ROOT/linux/control.in | \
+  perl -pe "s/VERSION/$DEBVER/" $WORK/linux/control.in | \
     perl -pe "s/ARCHITECTURE/$ARCHITECTURE/" | \
     perl -pe "s/INSTALLED_SIZE/$INSTALLED_SIZE/" \
     > "$DIST/DEBIAN/control"
@@ -86,7 +91,7 @@ make_tarball() {
   rm -rf "$TARGET"
   mkdir "$TARGET"
   mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1"
-  cp $ROOT/man/pandoc.1 $ROOT/man/pandoc-server.1 $ROOT/man/pandoc-lua.1 "$TARGET/share/man/man1"
+  cp $WORK/man/pandoc.1 $WORK/man/pandoc-server.1 $WORK/man/pandoc-lua.1 "$TARGET/share/man/man1"
   gzip -9 "$TARGET"/share/man/man1/*.1
   mv pandoc "$TARGET/bin"
   pushdir "$TARGET/bin"
