@@ -376,7 +376,7 @@ header when requesting a document from a URL:
     environment variable).  If that directory does not exist and
     `$HOME/.pandoc` exists, it will be used (for backwards compatibility).
     On Windows the default user data directory is
-    `C:\Users\USERNAME\AppData\Roaming\pandoc`.
+    `%APPDATA%\pandoc.
     You can find the default user data directory on your system by
     looking at the output of `pandoc --version`.
     Data files placed in this directory (for example, `reference.odt`,
