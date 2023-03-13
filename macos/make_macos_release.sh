@@ -1,14 +1,6 @@
 #!/bin/sh -e
 
 MACHINE=$(uname -m)
-case "$MACHINE" in
-  x86_64)  ARCHITECTURE=amd64;;
-  i686)    ARCHITECTURE=i386;;
-  i386)    ARCHITECTURE=i386;;
-  aarch64) ARCHITECTURE=arm64;;
-  armv6l | armv7l) ARCHITECTURE=armhf;;
-  *)       ARCHITECTURE=unknown;;
-esac
 
 VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $2;}')
 ARTIFACTS=macos-$MACHINE
@@ -46,7 +38,7 @@ cp man/pandoc-lua.1 "$DEST/share/man/man1/pandoc-lua.1"
 # Prepare distribution directory; after downloading, run 'make' to notarize
 echo "Preparing distribution directory..."
 chown -R "$ME:staff" "$ROOT"
-sed -e "s/PANDOCVERSION/$VERSION/" macos/distribution.xml.in > "$ARTIFACTS/distribution.xml"
+sed -e "s/PANDOCVERSION/$VERSION/; s/ARCHITECTURE/$MACHINE/;" macos/distribution.xml.in > "$ARTIFACTS/distribution.xml"
 cp macos/Makefile "$ARTIFACTS/"
 echo "$VERSION" > "$ARTIFACTS/version.txt"
 
