@@ -28,6 +28,7 @@ extra-deps:
 - hslua-typing-0.1.0
 - jira-wiki-markup-1.5.0
 - lua-2.3.0
+- lua-arbitrary-1.0.1.1
 - lpeg-1.0.4
 - mime-types-0.1.1.0
 - doctemplates-0.11
@@ -39,6 +40,8 @@ extra-deps:
 - skylighting-0.13.2.1
 - skylighting-core-0.13.2.1
 - skylighting-format-context-0.1.0.2
+- tasty-lua-1.1.0
+- tasty-hslua-1.1.0
 - zip-archive-0.4.3
 - commonmark-extensions-0.2.3.4
 
