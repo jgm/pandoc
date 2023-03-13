@@ -6,22 +6,6 @@ permissions:
   contents: read
 
 jobs:
-  linux:
-
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Create linux package
-      run: |
-          make debpkg
-          mkdir linux-release-candidate
-          cp linux/artifacts/*.deb linux-release-candidate/
-          cp linux/artifacts/*.tar.gz linux-release-candidate/
-    - uses: actions/upload-artifact@v3
-      with:
-        name: linux-release-candidate
-        path: linux-release-candidate
-
   windows:
 
     runs-on: windows-2019
@@ -96,5 +80,23 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: macos-release-candidate
-        path: macos-release-candidate
+        name: macos-amd64
+        path: macos-amd64
+
+# linux:
+
+#   runs-on: ubuntu-latest
+#   steps:
+#   - uses: actions/checkout@v3
+#   - name: Create linux package
+#     run: |
+#         make debpkg
+#         mkdir linux-release-candidate
+#         cp linux/artifacts/*.deb linux-release-candidate/
+#         cp linux/artifacts/*.tar.gz linux-release-candidate/
+#   - uses: actions/upload-artifact@v3
+#     with:
+#       name: linux-release-candidate
+#       path: linux-release-candidate
+
+
