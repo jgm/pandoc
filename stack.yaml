@@ -26,7 +26,7 @@ extra-deps:
 - hslua-objectorientation-2.3.0
 - hslua-packaging-2.3.0
 - hslua-typing-0.1.0
-- jira-wiki-markup-1.5.0
+- jira-wiki-markup-1.5.1
 - lua-2.3.0
 - lua-arbitrary-1.0.1.1
 - lpeg-1.0.4
