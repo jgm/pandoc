@@ -10,7 +10,8 @@ not possible or just not the case yet.
 Export options
 ==============
 
-The following export keywords are supported:
+The following export keywords are supported.
+Please note that for these to be exported (e.g. to markdown), you need to use the `-s` (standalone) command-line option.
 
 - AUTHOR: comma-separated list of author(s); fully supported.
 
