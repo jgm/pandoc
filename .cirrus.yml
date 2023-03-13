@@ -9,7 +9,7 @@ task:
     - brew install ghc cabal-install
   cabal_store_cache:
     folder: ~/.cabal/store
-    fingerprint_key: macos_2023_03_11
+    fingerprint_key: macos_2023_03_12
   deps_script:
     - cabal update
     - cabal build all -fembed_data_files -fserver -flua --dependencies-only
@@ -17,9 +17,8 @@ task:
     - cabal_store
   install_script: |
     sh macos/make_macos_release.sh
-    zip -r macos-release-candidate.zip macos-release-candidate
   artifacts:
-    path: macos-release-candidate.zip
+    path: macos-arm64/**
 
 task:
   name: linux_arm64
@@ -43,4 +42,28 @@ task:
   package_script:
     - bash linux/make_artifacts.sh
   release_candidate_artifacts:
-    path: ./linux/artifacts/*
+    path: ./linux-arm64/*
+
+task:
+  name: linux_amd64
+  trigger_type: manual
+  timeout_in: 90m
+  container:
+    image: registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.4.4
+    cpu: 4
+    memory: 12G
+  env:
+    CABALOPTS: -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4
+    GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
+  cabal_store_cache:
+    folder: ~/.cabal/store
+    fingerprint_key: linux_amd64_2023_03_12
+  deps_script:
+    - cabal update
+    - cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
+  upload_caches:
+    - cabal_store
+  package_script:
+    - bash linux/make_artifacts.sh
+  release_candidate_artifacts:
+    path: ./linux-amd64/*

@@ -1,7 +1,17 @@
 #!/bin/sh -e
 
+MACHINE=$(uname -m)
+case "$MACHINE" in
+  x86_64)  ARCHITECTURE=amd64;;
+  i686)    ARCHITECTURE=i386;;
+  i386)    ARCHITECTURE=i386;;
+  aarch64) ARCHITECTURE=arm64;;
+  armv6l | armv7l) ARCHITECTURE=armhf;;
+  *)       ARCHITECTURE=unknown;;
+esac
+
 VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $2;}')
-ARTIFACTS=macos-release-candidate
+ARTIFACTS=macos-$MACHINE
 RESOURCES=$ARTIFACTS/Resources
 ROOT=$ARTIFACTS/pandoc
 DEST=$ROOT/usr/local

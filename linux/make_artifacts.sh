@@ -17,17 +17,9 @@ case "$MACHINE" in
   *)       ARCHITECTURE=unknown;;
 esac
 
-ARTIFACTS="$WORK/linux/artifacts"
+ARTIFACTS="$WORK/linux-${ARCHITECTURE}"
 echo "Creating $ARTIFACTS directory"
 mkdir -p $ARTIFACTS
-
-# This is our sentinel that tells us when we're done.
-rm -f $ARTIFACTS/DONE
-
-clean_up() {
-  echo "Exiting with error..."
-}
-trap clean_up EXIT
 
 echo "Copying and stripping pandoc binary"
 cp "$BINPATH" "$ARTIFACTS/pandoc"
