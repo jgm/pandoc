@@ -677,7 +677,7 @@ blockToMarkdown' opts (Figure figattr capt body) = do
                               then Just [Str "image"]
                               else Just alt
         Caption Nothing [Plain captInlines]
-          | captInlines == alt -> Just captInlines
+          | captInlines == alt || null alt -> Just captInlines
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
