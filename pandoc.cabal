@@ -532,6 +532,7 @@ library
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
+                   Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.Data,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
@@ -639,7 +640,6 @@ library
                    Text.Pandoc.Chunks,
                    Text.Pandoc.Version
   other-modules:   Text.Pandoc.App.CommandLineOptions,
-                   Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Input,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
