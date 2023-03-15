@@ -1056,8 +1056,6 @@ blockToHtmlInner opts (Figure attrs (Caption _ captBody)  body) = do
 -- the block if necessary.
 blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
 blockToHtml opts block = do
-  -- Ignore inserted section divs -- they are not blocks as they came from
-  -- the document itself (at least not when coming from markdown)
   let isSection = case block of
         Div (_, classes, _) _ | "section" `elem` classes -> True
         _ -> False
