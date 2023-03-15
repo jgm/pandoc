@@ -1576,7 +1576,8 @@ inlineToHtml opts inline = do
                                             else alternate
                               in (tg $ H.a ! A.href (toValue s) $ toHtml linkTxt
                                  , [A5.controls ""] )
-                            normSrc = maybe (T.unpack s) uriPath (parseURIReference $ T.unpack s)
+                            s' = fromMaybe s $ T.stripSuffix ".gz" s
+                            normSrc = maybe (T.unpack s) uriPath (parseURIReference $ T.unpack s')
                             (tag, specAttrs) = case mediaCategory normSrc of
                               Just "image" -> imageTag
                               Just "video" -> mediaTag H5.video "Video"
