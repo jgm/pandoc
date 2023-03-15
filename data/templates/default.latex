@@ -365,8 +365,8 @@ $endif$
 $for(babel-otherlangs)$
 \babelprovide[import]{$babel-otherlangs$}
 $endfor$
-$for(babelfonts)$
-\babelfont[$babelfonts.language$]{rm}{$babelfonts.font$}
+$for(babelfonts/pairs)$
+\babelfont[$babelfonts.key$]{rm}{$babelfonts.value$}
 $endfor$
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
