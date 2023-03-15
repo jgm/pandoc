@@ -78,7 +78,7 @@ instance PandocMonad PandocLua where
 
   getCommonState = PandocLua $ do
     Lua.getglobal "PANDOC_STATE"
-    forcePeek $ peekCommonState Lua.top
+    forcePeek $ peekCommonState Lua.top `lastly` pop 1
   putCommonState cst = PandocLua $ do
     pushCommonState cst
     Lua.setglobal "PANDOC_STATE"

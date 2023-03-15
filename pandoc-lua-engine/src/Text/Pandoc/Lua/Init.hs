@@ -188,6 +188,7 @@ initLuaState = do
 initJsonMetatable :: PandocLua ()
 initJsonMetatable = liftPandocLua $ do
   newListMetatable HsLua.Aeson.jsonarray (pure ())
+  Lua.pop 1
 
 -- | Evaluate a @'PandocLua'@ computation, running all contained Lua
 -- operations.
