@@ -44,6 +44,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.4.4
     - name: Install dependencies
       run: |
           cabal update
