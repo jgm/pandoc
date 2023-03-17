@@ -3747,6 +3747,40 @@ Returns:
 
 -   parsed options, using their JSON-like representation. (table)
 
+### repl {#pandoc.cli.repl}
+
+`repl ([env])`
+
+Starts a read-eval-print loop (REPL). The function returns all
+values of the last evaluated input. Exit the REPL by pressing
+`ctrl-d` or `ctrl-c`; press `F1` to get a list of all key
+bindings.
+
+The REPL is started in the global namespace, unless the `env`
+parameter is specified. In that case, the global namespace is
+merged into the given table and the result is used as `_ENV` value
+for the repl.
+
+Specifically, local variables *cannot* be accessed, unless they
+are explicitly passed via the `env` parameter; e.g.
+
+    function Pandoc (doc)
+      -- start repl, allow to access the `doc` parameter
+      -- in the repl
+      return pandoc.cli.repl{ doc = doc }
+    end
+
+Parameters:
+
+`env`
+:   Extra environment; the global environment is merged into this
+    table. (table)
+
+Returns:
+
+The result(s) of the last evaluated input, or nothing if the last
+input resulted in an error.
+
 
 # Module pandoc.utils
 

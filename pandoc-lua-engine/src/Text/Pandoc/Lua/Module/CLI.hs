@@ -13,10 +13,8 @@ module Text.Pandoc.Lua.Module.CLI
   ) where
 
 import Control.Applicative ((<|>))
-import HsLua ( Field (..), Module (..), (###), (<#>), (=#>), (#?)
-             , defun, failLua, functionResult, liftIO, parameter, pop
-             , pushViaJSON, rawgeti, top)
-import HsLua.Marshalling (lastly, liftLua, peekList, peekString)
+import HsLua
+import HsLua.REPL (defaultConfig, replWithEnv, setup)
 import Text.Pandoc.App (defaultOpts, options, parseOptionsFromArgs)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua ()
@@ -49,6 +47,8 @@ documentedModule = Module
            , "Typically this function will be used in stand-alone pandoc Lua"
            , "scripts, taking the list of arguments from the global `arg`."
            ]
+
+      , repl
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []
@@ -64,3 +64,57 @@ documentedModule = Module
     \case
       Left e     -> failLua $ "Cannot process info option: " ++ show e
       Right opts -> pure opts
+
+-- | Starts a REPL.
+repl :: DocumentedFunction PandocError
+repl = defun "repl"
+  ### (\menvIdx -> do
+          let repl' = case menvIdx of
+                        Nothing -> replWithEnv Nothing
+                        Just envIdx -> do
+                          settop envIdx
+                          fillWithGlobals envIdx
+                          replWithEnv . Just =<< ref registryindex
+          setup defaultConfig
+          repl')
+  <#> opt (parameter (typeChecked "table" istable pure) "table" "env"
+           ("Extra environment; the global environment is merged into this" <>
+           "table."))
+  =?> T.unlines
+      [ "The result(s) of the last evaluated input, or nothing if the last"
+      , "input resulted in an error."
+      ]
+  #? T.unlines
+  [ "Starts a read-eval-print loop (REPL). The function returns all"
+  , "values of the last evaluated input. Exit the REPL by pressing"
+  , "`ctrl-d` or `ctrl-c`; press `F1` to get a list of all key"
+  , "bindings."
+  , ""
+  , "The REPL is started in the global namespace, unless the `env`"
+  , "parameter is specified. In that case, the global namespace is"
+  , "merged into the given table and the result is used as `_ENV` value"
+  , "for the repl."
+  , ""
+  , "Specifically, local variables *cannot* be accessed, unless they"
+  , "are explicitly passed via the `env` parameter; e.g."
+  , ""
+  , "    function Pandoc (doc)"
+  , "      -- start repl, allow to access the `doc` parameter"
+  , "      -- in the repl"
+  , "      return pandoc.cli.repl{ doc = doc }"
+  , "    end"
+  ]
+ where
+  fillWithGlobals idx = do
+    -- Copy all global values into the table
+    pushglobaltable
+    pushnil
+    let copyval = next (nth 2) >>= \case
+          False -> return ()
+          True -> do
+            pushvalue (nth 2)
+            insert (nth 2)
+            rawset idx
+            copyval
+    copyval
+    pop 1  -- global table
