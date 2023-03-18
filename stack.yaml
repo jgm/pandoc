@@ -13,9 +13,9 @@ extra-deps:
 - hslua-2.3.0
 - hslua-aeson-2.3.0.1
 - hslua-classes-2.3.0
-- hslua-cli-1.4.0
+- hslua-cli-1.4.0.1
 - hslua-core-2.3.0
-- hslua-list-1.1.0.1
+- hslua-list-1.1.1
 - hslua-marshalling-2.3.0
 - hslua-module-doclayout-1.1.0
 - hslua-module-path-1.1.0
@@ -25,7 +25,7 @@ extra-deps:
 - hslua-module-zip-1.1.0
 - hslua-objectorientation-2.3.0
 - hslua-packaging-2.3.0
-- hslua-repl-0.1.0
+- hslua-repl-0.1.1
 - hslua-typing-0.1.0
 - jira-wiki-markup-1.5.1
 - lua-2.3.0
