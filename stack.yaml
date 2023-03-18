@@ -13,7 +13,7 @@ extra-deps:
 - hslua-2.3.0
 - hslua-aeson-2.3.0.1
 - hslua-classes-2.3.0
-- hslua-cli-1.4.0.1
+- hslua-cli-1.4.1
 - hslua-core-2.3.1
 - hslua-list-1.1.1
 - hslua-marshalling-2.3.0

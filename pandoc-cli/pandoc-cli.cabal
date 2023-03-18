@@ -85,7 +85,7 @@ executable pandoc
     hs-source-dirs:  no-server
 
   if flag(lua)
-    build-depends:   hslua-cli         >= 1.4 && < 1.5,
+    build-depends:   hslua-cli         >= 1.4.1 && < 1.5,
                      pandoc-lua-engine >= 0.1 && < 0.2,
                      temporary         >= 1.1 && < 1.4
     hs-source-dirs:  lua
