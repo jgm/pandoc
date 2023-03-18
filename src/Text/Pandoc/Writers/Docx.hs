@@ -48,7 +48,7 @@ import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import Text.Pandoc.Class (PandocMonad, report, toLang, getMediaBag)
-import Text.Pandoc.Translations (translateTerm)
+import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -767,7 +767,15 @@ writeOpenXML opts (Pandoc meta blocks) = do
   date <- withParaPropM (pStyleM "Date") $ blocksToOpenXML opts [Para dat | not (null dat)]
   abstract <- if null abstract'
                  then return []
-                 else withParaPropM (pStyleM "Abstract") $ blocksToOpenXML opts abstract'
+                 else do
+                   abstractTitle <- translateTerm Abstract
+                   abstractTit <- withParaPropM (pStyleM "AbstractTitle") $
+                                   blocksToOpenXML opts
+                                     [Para [Str abstractTitle]]
+                   abstractContents <- withParaPropM (pStyleM "Abstract") $
+                                         blocksToOpenXML opts abstract'
+                   return $ abstractTit <> abstractContents
+
   let convertSpace (Str x : Space : Str y : xs) = Str (x <> " " <> y) : xs
       convertSpace (Str x : Str y : xs)         = Str (x <> y) : xs
       convertSpace xs                           = xs
