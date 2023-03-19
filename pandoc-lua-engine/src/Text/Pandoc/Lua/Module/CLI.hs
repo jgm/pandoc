@@ -13,6 +13,7 @@ module Text.Pandoc.Lua.Module.CLI
   ) where
 
 import Control.Applicative ((<|>))
+import Data.Version (makeVersion)
 import HsLua
 import HsLua.REPL (defaultConfig, replWithEnv, setup)
 import Text.Pandoc.App (defaultOpts, options, parseOptionsFromArgs)
@@ -47,8 +48,9 @@ documentedModule = Module
            , "Typically this function will be used in stand-alone pandoc Lua"
            , "scripts, taking the list of arguments from the global `arg`."
            ]
+        `since` makeVersion [3, 0]
 
-      , repl
+      , repl `since` makeVersion [3, 1, 2]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []

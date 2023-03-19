@@ -11,6 +11,7 @@ module Text.Pandoc.Lua.Module.Format
   ( documentedModule
   ) where
 
+import Data.Version (makeVersion)
 import HsLua
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Extensions (getAllExtensions, getDefaultExtensions)
@@ -46,6 +47,7 @@ functions =
         , "function does not check if the format is supported, it will return"
         , "a fallback list of extensions even for unknown formats."
         ]
+     `since` makeVersion [3,0]
 
   , defun "all_extensions"
      ### liftPure getAllExtensions
@@ -58,6 +60,7 @@ functions =
         , "can have an effect when reading a format but not when"
         , "writing it, or *vice versa*."
         ]
+     `since` makeVersion [3,0]
 
   , defun "extensions"
      ### liftPure getExtensionsConfig
@@ -73,4 +76,5 @@ functions =
         , "This function can be used to assign a value to the `Extensions`"
         , "global in custom readers and writers."
         ]
+     `since` makeVersion [3,0]
   ]

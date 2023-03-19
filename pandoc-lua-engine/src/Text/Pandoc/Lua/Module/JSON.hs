@@ -22,7 +22,7 @@ where
 import Prelude hiding (null)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Alt (..))
-import Data.Version (Version, makeVersion)
+import Data.Version (makeVersion)
 import HsLua.Aeson
 import HsLua.Core
 import HsLua.Marshalling
@@ -70,8 +70,8 @@ null = Field
 
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ decode
-  , encode
+  [ decode `since` makeVersion [3, 1, 1]
+  , encode `since` makeVersion [3, 1, 1]
   ]
 
 -- | Decode a JSON string into a Lua object.
@@ -102,7 +102,6 @@ decode = defun "decode"
      , "The special handling of AST elements can be disabled by setting"
      , "`pandoc_types` to `false`."
      ]
-  `since` initialVersion
 
 -- | Encode a Lua object as JSON.
 encode :: LuaError e => DocumentedFunction e
@@ -133,8 +132,3 @@ encode = defun "encode"
      , "the sole argument. The result of that call is expected to be a"
      , "valid JSON string, but this not checked."
      ]
-  `since` initialVersion
-
--- | First published version of this library.
-initialVersion :: Version
-initialVersion = makeVersion [1,0,0]

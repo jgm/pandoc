@@ -42,15 +42,15 @@ documentedModule = Module
   , moduleDescription = "mediabag access"
   , moduleFields = []
   , moduleFunctions =
-      [ delete
-      , empty
-      , fetch
-      , fill
-      , insert
-      , items
-      , list
-      , lookup
-      , write
+      [ delete  `since` makeVersion [2,7,3]
+      , empty   `since` makeVersion [2,7,3]
+      , fetch   `since` makeVersion [2,0]
+      , fill    `since` makeVersion [2,19]
+      , insert  `since` makeVersion [2,0]
+      , items   `since` makeVersion [2,7,3]
+      , list    `since` makeVersion [2,0]
+      , lookup  `since` makeVersion [2,0]
+      , write   `since` makeVersion [3,0]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []

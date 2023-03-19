@@ -159,6 +159,7 @@ local function render_function (doc, level, modulename)
     .. List{paramlist}
     .. List(#doc.results > 0 and {Para 'Returns:'} or {})
     .. render_results(doc.results)
+    .. Blocks(doc.since and {Para{Emph{'Since: ' .. doc.since}}} or {})
 end
 
 local function render_field (field, level, modulename)

@@ -21,6 +21,7 @@ import Control.Monad (forM, forM_, when)
 import Control.Monad.Catch (throwM, try)
 import Control.Monad.Trans (MonadIO (..))
 import Data.Maybe (catMaybes)
+import Data.Version (makeVersion)
 import HsLua as Lua hiding (status, try)
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Data (readDataFile)
@@ -95,10 +96,18 @@ loadedModules =
   , Pandoc.Types.documentedModule
   , Pandoc.Utils.documentedModule
   , Module.Layout.documentedModule { moduleName = "pandoc.layout" }
+    `allSince` [2,18]
   , Module.Path.documentedModule { moduleName = "pandoc.path" }
+    `allSince` [2,12]
   , Module.Text.documentedModule
+    `allSince` [2,0,3]
   , Module.Zip.documentedModule { moduleName = "pandoc.zip" }
+    `allSince` [3,0]
   ]
+ where
+  allSince mdl version = mdl
+    { moduleFunctions = map (`since` makeVersion version) $ moduleFunctions mdl
+    }
 
 -- | Initialize the lua state with all required values
 initLuaState :: PandocLua ()

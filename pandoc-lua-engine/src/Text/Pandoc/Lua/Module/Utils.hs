@@ -22,7 +22,7 @@ import Control.Monad ((<$!>))
 import Data.Data (showConstr, toConstr)
 import Data.Default (def)
 import Data.Maybe (fromMaybe)
-import Data.Version (Version)
+import Data.Version (Version, makeVersion)
 import HsLua as Lua
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Citeproc (getReferences, processCitations)
@@ -59,6 +59,7 @@ documentedModule = Module
             "blocks" ""
       <#> opt (parameter (peekList peekInline) "Inlines" "sep" "")
       =#> functionResult pushInlines "list of inlines" ""
+      `since` v[2,2,3]
 
     , defun "citeproc"
       ### unPandocLua . processCitations
@@ -69,12 +70,14 @@ documentedModule = Module
           , "rendered citations and adding a bibliography. "
           , "See the manual section on citation rendering for details."
           ]
+      `since` v[2,19,1]
 
     , defun "equals"
       ### equal
       <#> parameter pure "AST element" "elem1" ""
       <#> parameter pure "AST element" "elem2" ""
       =#> functionResult pushBool "boolean" "true iff elem1 == elem2"
+      `since` v[2,5]
 
     , defun "make_sections"
       ### liftPure3 Shared.makeSections
@@ -85,6 +88,7 @@ documentedModule = Module
             "blocks" "document blocks to process"
       =#> functionResult pushBlocks "list of Blocks"
             "processes blocks"
+      `since` v[2,8]
 
     , defun "normalize_date"
       ### liftPure Shared.normalizeDate
@@ -97,8 +101,10 @@ documentedModule = Module
       , "or equal to 1583, but MS Word only accepts dates starting 1601)."
       , "Returns nil instead of a string if the conversion failed."
       ]
+      `since` v [2,0,6]
 
     , sha1
+      `since` v [2,0,6]
 
     , defun "Version"
       ### liftPure (id @Version)
@@ -119,6 +125,7 @@ documentedModule = Module
          , "document (either with a genuine citation or with `nocite`) are "
          , "returned. URL variables are converted to links."
          ]
+      `since` v[2,17]
 
     , defun "run_json_filter"
       ### (\doc filterPath margs -> do
@@ -134,28 +141,33 @@ documentedModule = Module
       <#> opt (parameter (peekList peekString) "list of strings"
                "args" "arguments to pass to the filter")
       =#> functionResult pushPandoc "Pandoc" "filtered document"
+      `since` v[2,1,1]
 
     , defun "stringify"
       ### stringify
       <#> parameter pure "AST element" "elem" "some pandoc AST element"
       =#> functionResult pushText "string" "stringified element"
+      `since` v [2,0,6]
 
     , defun "from_simple_table"
       ### from_simple_table
       <#> parameter peekSimpleTable "SimpleTable" "simple_tbl" ""
       =?> "Simple table"
+      `since` v[2,11]
 
     , defun "to_roman_numeral"
       ### liftPure Shared.toRomanNumeral
       <#> parameter (peekIntegral @Int) "integer" "n" "number smaller than 4000"
       =#> functionResult pushText "string" "roman numeral"
       #? "Converts a number < 4000 to uppercase roman numeral."
+      `since` v[2,0,6]
 
     , defun "to_simple_table"
       ### to_simple_table
       <#> parameter peekTable "Block" "tbl" "a table"
       =#> functionResult pushSimpleTable "SimpleTable" "SimpleTable object"
       #? "Converts a table into an old/simple table."
+      `since` v[2,11]
 
     , defun "type"
       ### (\idx -> getmetafield idx "__name" >>= \case
@@ -163,12 +175,15 @@ documentedModule = Module
               _ -> ltype idx >>= typename)
       <#> parameter pure "any" "object" ""
       =#> functionResult pushByteString "string" "type of the given value"
-    #? ("Pandoc-friendly version of Lua's default `type` function, " <>
+      #? ("Pandoc-friendly version of Lua's default `type` function, " <>
         "returning the type of a value. If the argument has a " <>
         "string-valued metafield `__name`, then it gives that string. " <>
         "Otherwise it behaves just like the normal `type` function.")
+      `since` v[2,17]
     ]
   }
+ where
+  v = makeVersion
 
 -- | Documented Lua function to compute the hash of a string.
 sha1 :: DocumentedFunction e

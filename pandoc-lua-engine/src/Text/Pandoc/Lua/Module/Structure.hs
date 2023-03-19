@@ -15,11 +15,12 @@ module Text.Pandoc.Lua.Module.Structure
 import Control.Applicative ((<|>), optional)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
+import Data.Version (makeVersion)
 import HsLua ( DocumentedFunction, LuaError, Module (..), Peeker
              , (###), (<#>), (=#>), (#?)
              , defun, functionResult, getfield, isnil, lastly, liftLua
              , opt, liftPure, parameter , peekBool, peekIntegral
-             , peekFieldRaw, peekText, pop, pushIntegral, top )
+             , peekFieldRaw, peekText, pop, pushIntegral, since, top )
 import Text.Pandoc.Chunks ( ChunkedDoc (..), PathTemplate (..)
                           , tocToList, splitIntoChunks )
 import Text.Pandoc.Definition (Pandoc (..), Block)
@@ -45,10 +46,10 @@ documentedModule = Module
     "hierarchical sections and the table of contents."
   , moduleFields = []
   , moduleFunctions =
-      [ make_sections
-      , slide_level
-      , split_into_chunks
-      , table_of_contents
+      [ make_sections     `since` makeVersion [3,0]
+      , slide_level       `since` makeVersion [3,0]
+      , split_into_chunks `since` makeVersion [3,0]
+      , table_of_contents `since` makeVersion [3,0]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []
