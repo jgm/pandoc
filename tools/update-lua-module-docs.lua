@@ -48,7 +48,11 @@ local known_types = {
   Block = 'type-block',
   Blocks = 'type-blocks',
   ChunkedDoc = 'type-chunkeddoc',
+  Inline = 'type-inline',
+  Inlines = 'type-inlines',
   Pandoc = 'type-pandoc',
+  SimpleTable = 'type-simpletable',
+  Table = 'type-table',
   WriterOptions = 'type-writeroptions',
 }
 
