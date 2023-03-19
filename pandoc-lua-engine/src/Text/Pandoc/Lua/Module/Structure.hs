@@ -64,12 +64,13 @@ make_sections = defun "make_sections"
                        Just sl -> prepSlides sl blks
                        Nothing -> blks
          in pure $ Shared.makeSections numSects baseLevel blks')
-  <#> parameter peekBodyBlocks "Blocks" "blocks" "document blocks to process"
+  <#> parameter peekBodyBlocks "Blocks|Pandoc" "blocks"
+        "document blocks to process"
   <#> opt (parameter peekOpts "table" "opts" "options")
-  =#> functionResult pushBlocks "list of Blocks"
+  =#> functionResult pushBlocks "Blocks"
         "processed blocks"
   #? T.unlines
-     [ "Puts [Blocks] into a hierarchical structure: a list of sections"
+     [ "Puts [[Blocks]] into a hierarchical structure: a list of sections"
      , "(each a Div with class \"section\" and first element a Header)."
      , ""
      , "The optional `opts` argument can be a table; two settings are"
@@ -80,9 +81,18 @@ make_sections = defun "make_sections"
      , "shifted by the given value. Finally, an integer `slide_level`"
      , "value triggers the creation of slides at that heading level."
      , ""
-     , "Note that a [WriterOptions][] object can be passed as the opts"
+     , "Note that a [[WriterOptions]] object can be passed as the opts"
      , "table; this will set the `number_section` and `slide_level` values"
      , "to those defined on the command line."
+     , ""
+     , "Usage:"
+     , ""
+     , "    local blocks = {"
+     , "      pandoc.Header(2, pandoc.Str 'first'),"
+     , "      pandoc.Header(2, pandoc.Str 'second'),"
+     , "    }"
+     , "    local opts = PANDOC_WRITER_OPTIONS"
+     , "    local newblocks = pandoc.structure.make_sections(blocks, opts)"
      ]
   where
     defNumSec = False
@@ -101,7 +111,7 @@ make_sections = defun "make_sections"
 slide_level :: LuaError e => DocumentedFunction e
 slide_level = defun "slide_level"
   ### liftPure getSlideLevel
-  <#> parameter peekBodyBlocks "Pandoc|Blocks" "blocks" "document body"
+  <#> parameter peekBodyBlocks "Blocks|Pandoc" "blocks" "document body"
   =#> functionResult pushIntegral "integer" "slide level"
   #? T.unlines
   [ "Find level of header that starts slides (defined as the least"
@@ -121,7 +131,7 @@ split_into_chunks = defun "split_into_chunks"
   <#> opt (parameter peekSplitOpts "table" "opts" optionsDescr)
   =#> functionResult pushChunkedDoc "ChunkedDoc" ""
   #? T.unlines
-     [ "Converts a `Pandoc` document into a `ChunkedDoc`." ]
+     [ "Converts a [[Pandoc]] document into a [[ChunkedDoc]]." ]
  where
   defPathTmpl = PathTemplate "chunk-%n"
   defNumSects = False
@@ -136,7 +146,9 @@ split_into_chunks = defun "split_into_chunks"
     True  -> pure defaultValue
     False -> p idx'
   optionsDescr = T.unlines
-    [ "The following options are supported:"
+    [ "Splitting options."
+    , ""
+    , "The following options are supported:"
     , ""
     , "    `path_template`"
     , "    :   template used to generate the chunks' filepaths"

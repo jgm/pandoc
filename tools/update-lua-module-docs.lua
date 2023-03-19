@@ -37,14 +37,20 @@ local get = function (fieldname)
 end
 
 local function read_blocks (txt)
-  return read(txt, 'commonmark+smart').blocks
+  return read(txt, 'commonmark+smart+wikilinks_title_before_pipe').blocks
 end
 
 local function read_inlines (txt)
   return utils.blocks_to_inlines(read_blocks(txt))
 end
 
-local known_types = {}
+local known_types = {
+  Block = 'type-block',
+  Blocks = 'type-blocks',
+  ChunkedDoc = 'type-chunkeddoc',
+  Pandoc = 'type-pandoc',
+  WriterOptions = 'type-writeroptions',
+}
 
 local function render_typespec (typespec)
   if typespec.basic then
@@ -136,11 +142,11 @@ local function render_function (doc, level, modulename)
     List(doc.parameters):map(
       function (p)
         return {
-          {Code(p.name)},
-          append_inlines(
+          Inlines{Code(p.name)},
+          {append_inlines(
             read_blocks(p.description),
             type_to_inlines(p.type)
-          )
+          )}
         }
       end
     )
@@ -297,6 +303,17 @@ end
 function _G.Reader (inputs, opts)
   local blocks = foo(tostring(inputs), Blocks{}, 1)
   blocks = blocks:walk {
+    Link = function (link)
+      if link.title == 'wikilink' then
+        link.title = ''
+        if known_types[link.target] then
+          link.target = '#' .. known_types[link.target]
+        else
+          warn('Unknown type: ' .. link.target)
+        end
+        return link
+      end
+    end,
     Span = function (span)
       local unknown_type = span.attributes['unknown-type']
       if unknown_type and known_types[unknown_type] then
@@ -304,7 +321,7 @@ function _G.Reader (inputs, opts)
       elseif span.classes:includes 'builtin-lua-type' then
         return span.content  -- unwrap
       end
-    end
+    end,
   }
   return Pandoc(blocks)
 end
