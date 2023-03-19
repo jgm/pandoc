@@ -40,6 +40,7 @@ import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
 import Data.List (intersperse, transpose, foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
@@ -79,7 +80,7 @@ parseTextile = do
   -- docMinusKeys is the raw document with blanks where the keys/notes were...
   let firstPassParser = do
         pos <- getPosition
-        t <- noteBlock <|> lineClump
+        t <- noteBlock <|> referenceKey <|> lineClump
         return (pos, t)
   manyTill firstPassParser eof >>= setInput . Sources
   setPosition startPos
@@ -108,6 +109,27 @@ noteBlock = try $ do
   updateState $ \s -> s { stateNotes = newnote : oldnotes }
   -- return blanks so line count isn't affected
   return $ T.replicate (sourceLine endPos - sourceLine startPos) "\n"
+
+referenceKey :: PandocMonad m => TextileParser m Text
+referenceKey = try $ do
+  pos <- getPosition
+  char '['
+  refName <- T.pack <$> many1Till nonspaceChar (char ']')
+  refDestination <- T.pack <$> many1Till anyChar newline
+  st <- getState
+  let oldKeys = stateKeys st
+  let key = toKey refName
+  -- Textile doesn't support link titles on the reference
+  -- definition, so use the empty string
+  let target = (refDestination, "")
+  case M.lookup key oldKeys of
+    Just (t, _) | not (t == target) ->
+      -- similar to Markdown, only warn when the targets
+      -- for matching named references differ
+      logMessage $ DuplicateLinkReference refName pos
+    _ -> return ()
+  updateState $ \s -> s {stateKeys = M.insert key (target, nullAttr) oldKeys }
+  return "\n"
 
 -- | Parse document blocks
 parseBlocks :: PandocMonad m => TextileParser m Blocks
@@ -624,7 +646,11 @@ linkUrl bracketed = do
                 else lookAhead $ space <|> eof' <|> oneOf "[]" <|>
                        try (oneOf "!.,;:*" *>
                               (space <|> newline <|> eof'))
-  T.pack <$> many1Till nonspaceChar stop
+  rawLink <- T.pack <$> many1Till nonspaceChar stop
+  st <- getState
+  return $ case M.lookup (toKey rawLink) (stateKeys st) of
+    Nothing -> rawLink
+    Just ((src, _), _) -> src
 
 -- | image embedding
 image :: PandocMonad m => TextileParser m Inlines
