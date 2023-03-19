@@ -26,7 +26,7 @@ documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.format"
   , moduleDescription = T.unlines
-    [ "Pandoc formats and their extensions."
+    [ "Information about the formats supported by pandoc."
     ]
   , moduleFields = []
   , moduleOperations = []
@@ -37,19 +37,7 @@ documentedModule = Module
 -- | Extension module functions.
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ defun "default_extensions"
-     ### liftPure getDefaultExtensions
-     <#> parameter peekText "string" "format" "format name"
-     =#> functionResult pushExtensions "FormatExtensions"
-           "default extensions enabled for `format`"
-     #? T.unlines
-        [ "Returns the list of default extensions of the given format; this"
-        , "function does not check if the format is supported, it will return"
-        , "a fallback list of extensions even for unknown formats."
-        ]
-     `since` makeVersion [3,0]
-
-  , defun "all_extensions"
+  [ defun "all_extensions"
      ### liftPure getAllExtensions
      <#> parameter peekText "string" "format" "format name"
      =#> functionResult pushExtensions "FormatExtensions"
@@ -59,6 +47,18 @@ functions =
         , "No distinction is made between input and output; an extension"
         , "can have an effect when reading a format but not when"
         , "writing it, or *vice versa*."
+        ]
+     `since` makeVersion [3,0]
+
+  , defun "default_extensions"
+     ### liftPure getDefaultExtensions
+     <#> parameter peekText "string" "format" "format name"
+     =#> functionResult pushExtensions "FormatExtensions"
+           "default extensions enabled for `format`"
+     #? T.unlines
+        [ "Returns the list of default extensions of the given format; this"
+        , "function does not check if the format is supported, it will return"
+        , "a fallback list of extensions even for unknown formats."
         ]
      `since` makeVersion [3,0]
 

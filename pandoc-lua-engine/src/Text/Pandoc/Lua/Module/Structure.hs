@@ -42,7 +42,7 @@ documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.structure"
   , moduleDescription =
-    "Access to the higher-level document structure, including" <>
+    "Access to the higher-level document structure, including " <>
     "hierarchical sections and the table of contents."
   , moduleFields = []
   , moduleFunctions =

@@ -38,7 +38,8 @@ import qualified Data.Text as T
 documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.json"
-  , moduleDescription = "JSON module based on the Aeson Haskell package."
+  , moduleDescription = "JSON module to work with JSON; " <>
+                        "based on the Aeson Haskell package."
   , moduleFields = fields
   , moduleFunctions = functions
   , moduleOperations = []
@@ -59,7 +60,7 @@ fields =
 null :: LuaError e => Field e
 null = Field
   { fieldName = "null"
-  , fieldType = "userdata"
+  , fieldType = "light userdata"
   , fieldDescription = "Value used to represent the `null` JSON value."
   , fieldPushValue = pushValue Aeson.Null
   }
@@ -94,10 +95,10 @@ decode = defun "decode"
   =#> functionResult pure "any" "decoded object"
   #? T.unlines
      [ "Creates a Lua object from a JSON string. The function returns an"
-     , "[Inline], [Block], [Pandoc], [Inlines], or [Blocks] element if the"
-     , "input can be decoded into represent any of those types. Otherwise"
-     , "the default decoding is applied, using tables, booleans, numbers,"
-     , "and [null](#pandoc.json.null) to represent the JSON value."
+     , "[[Inline]], [[Block]], [[Pandoc]], [[Inlines]], or [[Blocks]] element"
+     , "if the input can be decoded into represent any of those types."
+     , "Otherwise the default decoding is applied, using tables, booleans,"
+     , "numbers, and [null](#pandoc.json.null) to represent the JSON value."
      , ""
      , "The special handling of AST elements can be disabled by setting"
      , "`pandoc_types` to `false`."
@@ -123,7 +124,7 @@ encode = defun "encode"
                 _ -> failLua
                      "Call to __tojson metamethod did not yield a string")
   <#> parameter pure "any" "object" "object to convert"
-  =#> functionResult pure "string" "JSON encoding of `object`"
+  =#> functionResult pure "string" "JSON encoding of the given `object`"
   #? T.unlines
      ["Encodes a Lua object as JSON string."
      , ""

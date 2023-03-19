@@ -1,5 +1,5 @@
-local ipairs, load, next, pairs, print, tostring, type =
-  ipairs, load, next, pairs, print, tostring, type
+local ipairs, load, next, pairs, print, tostring, type, warn =
+  ipairs, load, next, pairs, print, tostring, type, warn
 local string, table = string, table
 local _G, arg = _G, arg
 
