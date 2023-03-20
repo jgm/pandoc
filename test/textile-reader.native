@@ -753,9 +753,7 @@ Pandoc
       [ Str "A"
       , Space
       , Link
-          ( "" , [] , [] )
-          [ Str "link" ]
-          ( "ftp://example.com" , "" )
+          ( "" , [] , [] ) [ Str "link" ] ( "ftp://example.com" , "" )
       , Space
       , Str "to"
       , Space

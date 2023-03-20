@@ -50,6 +50,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
