@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
 Module      : Text.Pandoc.Lua.Module.JSON
@@ -107,24 +106,10 @@ decode = defun "decode"
 -- | Encode a Lua object as JSON.
 encode :: LuaError e => DocumentedFunction e
 encode = defun "encode"
-  ### (\idx -> do
-          -- ensure that there are no other objects on the stack.
-          settop (nthBottom 1)
-          getmetafield idx "__tojson" >>= \case
-            TypeNil -> do
-              -- No metamethod, use default encoder.
-              value <- forcePeek $ peekValue idx
-              pushLazyByteString $ Aeson.encode value
-            _ -> do
-              -- Try to use the field value as function
-              insert (nth 2)
-              call 1 1
-              ltype top >>= \case
-                TypeString -> pure ()
-                _ -> failLua
-                     "Call to __tojson metamethod did not yield a string")
-  <#> parameter pure "any" "object" "object to convert"
-  =#> functionResult pure "string" "JSON encoding of the given `object`"
+  ### liftPure Aeson.encode
+  <#> parameter peekValue "any" "object" "object to convert"
+  =#> functionResult pushLazyByteString "string"
+        "JSON encoding of the given `object`"
   #? T.unlines
      ["Encodes a Lua object as JSON string."
      , ""
