@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.System
    Copyright   : © 2019-2023 Albert Krewinkel
@@ -19,18 +20,19 @@ import HsLua
 import HsLua.Module.System
   ( arch, cputime, env, getwd, ls, mkdir, os, rmdir
   , with_env, with_tmpdir, with_wd)
+import qualified HsLua.Module.System as MSys
 
 -- | Push the pandoc.system module on the Lua stack.
-documentedModule :: LuaError e => Module e
+documentedModule :: forall e. LuaError e => Module e
 documentedModule = Module
   { moduleName = "pandoc.system"
-  , moduleDescription = "system functions"
+  , moduleDescription = moduleDescription @e MSys.documentedModule
   , moduleFields =
       [ arch
       , os
       ]
   , moduleFunctions =
-      [ cputime `since` makeVersion [3, 1, 1]
+      [ cputime                                        `since` v[3,1,1]
       , setName "environment" env                      `since` v[2,7,3]
       , setName "get_working_directory" getwd          `since` v[2,8]
       , setName "list_directory" ls                    `since` v[2,19]
