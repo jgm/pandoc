@@ -88,6 +88,7 @@ library
                      , Text.Pandoc.Lua.Module.Structure
                      , Text.Pandoc.Lua.Module.System
                      , Text.Pandoc.Lua.Module.Template
+                     , Text.Pandoc.Lua.Module.Text
                      , Text.Pandoc.Lua.Module.Types
                      , Text.Pandoc.Lua.Module.Utils
                      , Text.Pandoc.Lua.Orphans

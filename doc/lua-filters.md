@@ -3923,7 +3923,7 @@ Parameters:
 
 `args`
 :   list of arguments passed to the filter. Defaults to
-    `{FORMAT}`. ({[strings]{unknown-type="strings"},\...})
+    `{FORMAT}`. ({string,\...})
 
 Returns:
 

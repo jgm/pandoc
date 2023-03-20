@@ -35,7 +35,6 @@ import qualified Lua.LPeg as LPeg
 import qualified HsLua.Aeson
 import qualified HsLua.Module.DocLayout as Module.Layout
 import qualified HsLua.Module.Path as Module.Path
-import qualified HsLua.Module.Text as Module.Text
 import qualified HsLua.Module.Zip as Module.Zip
 import qualified Text.Pandoc.Lua.Module.CLI as Pandoc.CLI
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
@@ -46,6 +45,7 @@ import qualified Text.Pandoc.Lua.Module.Scaffolding as Pandoc.Scaffolding
 import qualified Text.Pandoc.Lua.Module.Structure as Pandoc.Structure
 import qualified Text.Pandoc.Lua.Module.System as Pandoc.System
 import qualified Text.Pandoc.Lua.Module.Template as Pandoc.Template
+import qualified Text.Pandoc.Lua.Module.Text as Pandoc.Text
 import qualified Text.Pandoc.Lua.Module.Types as Pandoc.Types
 import qualified Text.Pandoc.Lua.Module.Utils as Pandoc.Utils
 
@@ -93,14 +93,13 @@ loadedModules =
   , Pandoc.Structure.documentedModule
   , Pandoc.System.documentedModule
   , Pandoc.Template.documentedModule
+  , Pandoc.Text.documentedModule
   , Pandoc.Types.documentedModule
   , Pandoc.Utils.documentedModule
   , Module.Layout.documentedModule { moduleName = "pandoc.layout" }
     `allSince` [2,18]
   , Module.Path.documentedModule { moduleName = "pandoc.path" }
     `allSince` [2,12]
-  , Module.Text.documentedModule
-    `allSince` [2,0,3]
   , Module.Zip.documentedModule { moduleName = "pandoc.zip" }
     `allSince` [3,0]
   ]
@@ -126,6 +125,13 @@ initLuaState = do
     -- load modules and add them to the `pandoc` module table.
     forM_ loadedModules $ \mdl -> do
       registerModule mdl
+      -- pandoc.text must be require-able as 'text' for backwards compat.
+      when (moduleName mdl == "pandoc.text") $ do
+        getfield registryindex loaded
+        pushvalue (nth  2)
+        setfield (nth 2) "text"
+        pop 1 -- _LOADED
+      -- Shorten name, drop everything before the first dot (if any).
       let fieldname (Name mdlname) = Name .
             maybe mdlname snd . Char8.uncons . snd $
             Char8.break (== '.') mdlname
