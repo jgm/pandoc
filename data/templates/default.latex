@@ -292,7 +292,12 @@ $if(svg)$
 $endif$
 $if(strikeout)$
 $-- also used for underline
-\usepackage{soul}
+\ifLuaTeX
+  \usepackage{luacolor}
+  \usepackage[soul]{lua-ul}
+\else
+  \usepackage{soul}
+\fi
 $endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
