@@ -814,8 +814,7 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
                              stEmittedNotes = stEmittedNotes st' + length notes })
         return (res <> renderedNotes)
       else return res
-  let classes' = nubOrd $
-                  ["title-slide" | titleSlide] ++ ["slide" | slide] ++
+  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
                   ["level" <> tshow level | slide || writerSectionDivs opts ]
