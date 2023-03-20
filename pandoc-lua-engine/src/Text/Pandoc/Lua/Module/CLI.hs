@@ -105,6 +105,9 @@ repl = defun "repl"
   , "      -- in the repl"
   , "      return pandoc.cli.repl{ doc = doc }"
   , "    end"
+  , ""
+  , "**Note**: it seems that the function exists immediately on Windows,"
+  , "without prompting for user input."
   ]
  where
   fillWithGlobals idx = do
