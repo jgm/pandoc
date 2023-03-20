@@ -83,6 +83,7 @@ import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
 import Text.XML.Light.Output
 import Data.String (fromString)
+import Data.Containers.ListUtils (nubOrd)
 
 data WriterState = WriterState
     { stNotes        :: [Html]  -- ^ List of notes
@@ -685,7 +686,7 @@ attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
 attrsToHtml opts (id',classes',keyvals) = do
   attrs <- toAttrs keyvals
-  let classes'' = filter (not . T.null) classes'
+  let classes'' = nubOrd $ filter (not . T.null) classes'
   return $
     [prefixedId opts id' | not (T.null id')] ++
     [A.class_ (toValue $ T.unwords classes'') | not (null classes'')] ++ attrs
