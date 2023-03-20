@@ -83,7 +83,6 @@ import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
 import Text.XML.Light.Output
 import Data.String (fromString)
-import Data.Containers.ListUtils (nubOrd)
 
 data WriterState = WriterState
     { stNotes        :: [Html]  -- ^ List of notes
