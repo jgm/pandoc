@@ -3703,7 +3703,7 @@ are explicitly passed via the `env` parameter; e.g.
       return pandoc.cli.repl{ doc = doc }
     end
 
-**Note**: it seems that the function exists immediately on
+**Note**: it seems that the function exits immediately on
 Windows, without prompting for user input.
 
 Parameters:
