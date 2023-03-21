@@ -17,3 +17,7 @@ source-repository-package
   location: https://github.com/hslua/hslua
   tag: c500f19847982e11f3aff1c2077d31e5b109e2bb
   subdir: hslua-module-text
+source-repository-package
+  type: git
+  location: https://github.com/jgm/doclayout
+  tag: 3381903404167a9035d756fd90962ac3d7b85960
