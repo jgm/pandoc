@@ -15,7 +15,7 @@ import Data.Version (makeVersion)
 import HsLua
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Extensions (getAllExtensions, getDefaultExtensions)
-import Text.Pandoc.Format (getExtensionsConfig)
+import Text.Pandoc.Format (formatFromFilePaths, formatName, getExtensionsConfig)
 import Text.Pandoc.Lua.Marshal.Format (pushExtensions, pushExtensionsConfig)
 import Text.Pandoc.Lua.PandocLua ()
 
@@ -77,4 +77,13 @@ functions =
         , "global in custom readers and writers."
         ]
      `since` makeVersion [3,0]
+
+  , defun "from_path"
+      ### liftPure formatFromFilePaths
+      <#> parameter (choice [ fmap (:[]) . peekString, peekList peekString])
+            "string|{string,...}" "path" "file path, or list of paths"
+      =#> functionResult (maybe pushnil (pushText . formatName))
+            "string|nil"
+            "format determined by heuristic"
+      `since` makeVersion [3,1,2]
   ]

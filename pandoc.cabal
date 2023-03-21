@@ -532,7 +532,6 @@ library
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
-                   Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.Data,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
