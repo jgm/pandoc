@@ -44,11 +44,12 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
-import Text.Pandoc.Shared (safeRead, extractSpaces)
+import Text.Pandoc.Shared (safeRead, extractSpaces, headerShift)
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Map as M
 import Text.Pandoc.XML.Light
+import Text.Pandoc.Walk (query)
 
 {-
 
@@ -320,7 +321,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [x] para - A paragraph
 [ ] paramdef - Information about a function parameter in a programming language
 [x] parameter - A value or a symbolic reference to a value
-[ ] part - A division in a book
+[x] part - A division in a book
 [ ] partinfo - Meta-information for a Part
 [ ] partintro - An introduction to the contents of a part
 [ ] personblurb - A short description or note about a person
@@ -563,7 +564,14 @@ readDocBook _ inp = do
             docbookEntityMap
               (TL.fromStrict . handleInstructions . sourcesToText $ sources)
   (bs, st') <- flip runStateT (def{ dbContent = tree }) $ mapM parseBlock tree
-  return $ Pandoc (dbMeta st') (toList . mconcat $ bs)
+  let headerLevel (Header n _ _) = [n]
+      headerLevel _              = []
+  let bottomLevel = maybe 1 minimum $ nonEmpty $ query headerLevel bs
+  return $
+    -- handle the case where you have <part> or <chapter>
+    (if bottomLevel < 1
+        then headerShift (1 - bottomLevel)
+        else id) $ Pandoc (dbMeta st') $ toList $ mconcat bs
 
 -- We treat certain processing instructions by converting them to tags
 -- beginning "pi-".
@@ -746,6 +754,8 @@ blockTags = Set.fromList $
   , "mediaobject"
   , "orderedlist"
   , "para"
+  , "part"
+  , "partinfo"
   , "preface"
   , "procedure"
   , "programlisting"
@@ -882,6 +892,7 @@ parseBlock (Elem e) =
         "glosslist" -> definitionList <$>
                   mapM parseGlossEntry (filterChildren (named "glossentry") e)
         "chapter" -> modify (\st -> st{ dbBook = True}) >> sect 0
+        "part" -> modify (\st -> st{ dbBook = True}) >> sect (-1)
         "appendix" -> sect 0
         "preface" -> sect 0
         "bridgehead" -> para . strong <$> getInlines e
@@ -940,6 +951,7 @@ parseBlock (Elem e) =
         "sect4info" -> skip  -- keywords & other metadata
         "sect5info" -> skip  -- keywords & other metadata
         "chapterinfo" -> skip -- keywords & other metadata
+        "partinfo" -> skip -- keywords & other metadata
         "glossaryinfo" -> skip  -- keywords & other metadata
         "appendixinfo" -> skip  -- keywords & other metadata
         "bookinfo" -> addMetadataFromElement e
@@ -1342,6 +1354,7 @@ parseInline (Elem e) =
          xrefTitleByElem el
              | not (T.null xrefLabel) = xrefLabel
              | otherwise              = case qName (elName el) of
+                  "part"         -> descendantContent "title" el
                   "chapter"      -> descendantContent "title" el
                   "section"      -> descendantContent "title" el
                   "sect1"        -> descendantContent "title" el
