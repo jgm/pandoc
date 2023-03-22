@@ -1354,6 +1354,7 @@ parseInline (Elem e) =
          xrefTitleByElem el
              | not (T.null xrefLabel) = xrefLabel
              | otherwise              = case qName (elName el) of
+                  "book"         -> descendantContent "title" el
                   "part"         -> descendantContent "title" el
                   "chapter"      -> descendantContent "title" el
                   "section"      -> descendantContent "title" el
