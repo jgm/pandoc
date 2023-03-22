@@ -164,8 +164,8 @@ instance Default OrgParserState where
 defaultOrgParserState :: OrgParserState
 defaultOrgParserState = OrgParserState
   { orgStateAnchorIds = []
-  , orgStateEmphasisPreChars = "-\t ('\"{"
-  , orgStateEmphasisPostChars  = "-\t\n .,:!?;'\")}["
+  , orgStateEmphasisPreChars = "-\t ('\"{\x200B"
+  , orgStateEmphasisPostChars  = "-\t\n .,:!?;'\")}[\x200B"
   , orgStateEmphasisCharStack = []
   , orgStateEmphasisNewlines = Nothing
   , orgStateExportSettings = def
