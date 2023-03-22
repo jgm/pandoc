@@ -758,7 +758,7 @@ many1TillNOrLessNewlines n p end = try $
 
 -- | Chars not allowed at the (inner) border of emphasis
 emphasisForbiddenBorderChars :: [Char]
-emphasisForbiddenBorderChars = "\t\n\r "
+emphasisForbiddenBorderChars = "\t\n\r \x200B"
 
 -- | The maximum number of newlines within
 emphasisAllowedNewlines :: Int
