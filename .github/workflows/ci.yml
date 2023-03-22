@@ -5,6 +5,7 @@ on:
     branches:
     - '*'
     - '!rc/*'
+    - '!typst-writer'
     paths-ignore:
     - 'doc/*.md'
     - 'MANUAL.txt'

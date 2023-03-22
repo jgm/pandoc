@@ -25,6 +25,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - Documentation formats (GNU TexInfo, Haddock)
                  - Roff formats (man, ms)
                  - TeX formats (LaTeX, ConTeXt)
+                 - Typst
                  - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
                  - Outline formats (OPML)
                  - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML,
@@ -94,6 +95,7 @@ data-files:
                  data/templates/article.jats_publishing
                  data/templates/affiliations.jats
                  data/templates/default.markua
+                 data/templates/default.typst
                  -- translations
                  data/translations/*.yaml
                  -- entities
@@ -315,6 +317,7 @@ extra-source-files:
                  test/tables.asciidoctor
                  test/tables.haddock
                  test/tables.texinfo
+                 test/tables.typst
                  test/tables.rst
                  test/tables.rtf
                  test/tables.txt
@@ -345,6 +348,7 @@ extra-source-files:
                  test/writer.plain
                  test/writer.mediawiki
                  test/writer.textile
+                 test/writer.typst
                  test/writer.opendocument
                  test/writer.org
                  test/writer.asciidoc
@@ -589,6 +593,7 @@ library
                    Text.Pandoc.Writers.Jira,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
+                   Text.Pandoc.Writers.Typst,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,
                    Text.Pandoc.Writers.Man,

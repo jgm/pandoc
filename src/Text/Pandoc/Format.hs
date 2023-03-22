@@ -221,6 +221,7 @@ formatFromFilePath x =
     ".textile"  -> defFlavor "textile"
     ".tsv"      -> defFlavor "tsv"
     ".txt"      -> defFlavor "markdown"
+    ".typ"      -> defFlavor "typst"
     ".wiki"     -> defFlavor "mediawiki"
     ".xhtml"    -> defFlavor "html"
     ['.',y]     | y `elem` ['1'..'9'] -> defFlavor "man"
