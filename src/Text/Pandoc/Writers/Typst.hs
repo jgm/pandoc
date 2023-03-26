@@ -232,7 +232,7 @@ inlineToTypst inline =
               DisplayMath -> return $ "$ " <> literal r <> " $"
     Code (_,cls,_) code -> return $
       case cls of
-        (lang:_) -> "#raw(lang=" <> doubleQuoted lang <>
+        (lang:_) -> "#raw(lang:" <> doubleQuoted lang <>
                         ", " <> doubleQuoted code <> ")"
         _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
           | otherwise -> "`" <> literal code <> "`"
