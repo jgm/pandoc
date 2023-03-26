@@ -1,5 +1,143 @@
 # Revision history for pandoc
 
+## pandoc 3.1.2 (2023-03-26)
+
+  * Add a Lua REPL (Albert Krewinkel). This can be started
+    with `pandoc lua -i`.  It is also possible to instruct a filter to
+    open the REPL at a certain point, for debugging (see `pandoc.cli.repl`).
+
+  * Support `typst` as a `--pdf-engine`.
+
+  * Add typst writer (#8713).  New module Text.Pandoc.Writers.Typst,
+    exporting `writeTypst` [API change].
+
+  * Org reader:
+
+    + Allow zero width space as an escape character (#8716,
+      Christian Christiansen). Allow the character U+200B to be used as
+      an escape character as described in the Org-mode documentation
+      (<https://orgmode.org/manual/Escape-Character.html>).
+
+  * DocBook reader:
+
+    + Handle "book" for xref references (#8712, Andres Freund)
+      This also adds a test xref to book and part.
+    + Handle `<part>` (#8712).
+
+  * HTML reader:
+
+    + Fix behavior with `-native_spans-raw_html` (#8711). Previously with
+      this configuration, `<span>`s were not treated as inline elements at all.
+
+  * HTML writer:
+
+    + Avoid duplicate classes (#8705).
+    + Use img element instead of embed for `.svg.gz` and `.png.gz` etc. (#8699).
+    + HTML writer footnotes changes (#8695): when `--reference-location=section`
+      or `=block`, use an `aside` element for the notes rather than a `section`.
+      When `--reference-location=section`, include the `aside` element inside
+      the section element, rather than outside. (In slide shows, this option
+      causes footnotes on a slide to be displayed at the bottom of the slide.)
+
+  * EPUB writer:
+
+    + Use different structure for epub footnotes (#8676, see #8672, #5583).
+      Many EPUB readers are thrown off by pandoc's current footnote
+      output.  Both the ol and the fact that the footnote backlink is
+      at the end of the note seem to pose problems.
+      With this commit, we now create a list of aside (or div) elements,
+      instead of an ordered list. Each element begins with a note number
+      that is linked back to the note reference.  (So, the backlink occurs
+      at the beginning rather than the end.) Thanks to @Porges and @lewer.
+
+  * Docx writer:
+
+    + Include abstract title (#8702). Uses localized term for abstract.
+
+  * Markdown writer:
+
+    + Use implicit figures if there's a caption but no alt (#8689,
+      Albert Krewinkel).
+
+  * Jira reader (Albert Krewinkel):
+
+    + Add panel title as nested div (#8681).
+    + Require jira-wiki-markup 1.5.1 (#8680). This fixes a bug in the parser
+      that caused text between two exclamation marks to be parsed as an
+      image. The first `!` of image markup must now be followed by a
+      non-space character; otherwise, the enclosed text is parsed as
+      normal content.
+    
+  * Ms writer:
+
+    + Fix handling of Figure (#8660).
+
+  * ICML writer:
+
+    + Fix images with data (#8675). The Contents element
+      should be inside Properties.
+
+  * LaTeX writer:
+
+    + Add Chinese to Babel languages.
+    + Fix background image in Beamer when there are figure environments (#8671,
+      Martín Pozo).
+
+  * LaTeX template:
+
+    + Add `babelfonts` variable to default LaTeX template.
+      This allows specifying certain fonts to be used with
+      certain babel languages. Thanks to Frederik Elwert.
+    + Fix highlight/underline with lualatex (#8707). We need the lua-ul package
+      instead of soul, which doesn't work with lualatex.
+
+  * Lua (Albert Krewinkel):
+
+    + Add `pandoc.cli.repl` function
+    + Fix `json.encode` for nested AST elements. Ensures that objects with
+      nested AST elements can be encoded as JSON.
+    + Auto-generate docs for pandoc modules.
+    + Load text module as `pandoc.text`. This only affects the name in the
+      Lua-internal documentation. It is still possible to load the modules
+      via `require 'text'`, although this is deprecated.
+    + Move docs from module `text` to `pandoc.text`
+      The latter is easier to use and more consistent with the other modules.
+    + Keep the Lua stack clean A metatable used during initialization was
+      not properly removed from the stack. Likewise, accessing the
+      CommonState from Lua previously led to the pollution of the
+      Lua stack with a left-over value.
+    * Add function `pandoc.format.from_path`.
+    + Allow to get the JSON encoding of log messages.
+
+  * Text.Pandoc.Format: Add new function `formatFromFilePaths` [API change]
+    (#8710, Albert Krewinkel).
+
+  * The old Text.Pandoc.App.FormatHeuristics module has been removed.
+
+  * In `--version`, use Windows `%APPDATA%` variable to describe
+    user data dir (#8686, Pablo Rodríguez).
+
+  * Text.Pandoc.App.CommandLineOptions: don't lowercase arg to `--from`/`--read`
+    (Albert Krewinkel). This prevented users to use custom writers with
+    uppercase characters in their filenames. Format-normalization,
+    including lower-casing of format identifiers, happens during
+    format parsing.
+
+  * Documentation:
+
+    + Add `doc/nix.md`.
+    + Add `doc/extras.md`. This was formally in the website repo.
+    + `doc/lua-filters.md`: improve docs for `pandoc.zip`.
+
+  * Factor out `make_macos_release.sh` from the release candidate workflow.
+    Use cabal instead of stack to build the macos binary.
+
+  * Modify linux/make_artifacts.sh so it will work on cirrus.
+
+  * Switch to hslua-2.3
+
+  * Depend on latest releases of texmath, doclayout.
+
 ## pandoc 3.1.1 (2023-03-05)
 
   * EPUB reader: Give additional information in error if the epub
