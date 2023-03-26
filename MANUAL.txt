@@ -3145,6 +3145,27 @@ The `--css` option also affects the output.
 `section`
 :   section number in man pages
 
+### Variables for Typst
+
+`margin`
+:   A dictionary with the fields defined in the Typst documentation:
+    `x`, `y`, `top`, `bottom`, `left`, `right`.
+
+`papersize`
+:    Paper size: `a4`, `us-letter`, etc.
+
+`mainfont`
+:    Name of system font to use for the main font.
+
+`fontsize`
+:    Font size (e.g., `12pt`).
+
+`section-numbering`
+:    Schema to use for numbering sections, e.g. `1.A.1`.
+
+`columns`
+:    Number of columns for body text.
+
 ### Variables for ms
 
 `fontfamily`

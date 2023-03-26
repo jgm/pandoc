@@ -28,6 +28,12 @@ $endif$
 $if(date)$
   date: [$date$],
 $endif$
+$if(lang)$
+  lang: "$lang$",
+$endif$
+$if(region)$
+  region: "$region$",
+$endif$
 $if(abstract)$
   abstract: [$abstract$],
 $endif$

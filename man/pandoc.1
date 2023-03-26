@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "Pandoc User\[cq]s Guide" "" "March 26, 2023" "pandoc 3.1.1" ""
+.TH "Pandoc User\[cq]s Guide" "" "March 26, 2023" "pandoc 3.1.2" ""
 .hy
 .SH NAME
 pandoc - general markup converter
@@ -3235,6 +3235,27 @@ if \f[V]true\f[R] (the default), hyphenation will be used
 .TP
 \f[V]section\f[R]
 section number in man pages
+.SS Variables for Typst
+.TP
+\f[V]margin\f[R]
+A dictionary with the fields defined in the Typst documentation:
+\f[V]x\f[R], \f[V]y\f[R], \f[V]top\f[R], \f[V]bottom\f[R],
+\f[V]left\f[R], \f[V]right\f[R].
+.TP
+\f[V]papersize\f[R]
+Paper size: \f[V]a4\f[R], \f[V]us-letter\f[R], etc.
+.TP
+\f[V]mainfont\f[R]
+Name of system font to use for the main font.
+.TP
+\f[V]fontsize\f[R]
+Font size (e.g., \f[V]12pt\f[R]).
+.TP
+\f[V]section-numbering\f[R]
+Schema to use for numbering sections, e.g.\ \f[V]1.A.1\f[R].
+.TP
+\f[V]columns\f[R]
+Number of columns for body text.
 .SS Variables for ms
 .TP
 \f[V]fontfamily\f[R]

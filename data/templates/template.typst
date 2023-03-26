@@ -6,8 +6,9 @@
   cols: 1,
   margin: (x: 1.25in, y: 1.25in),
   paper: "us-letter",
-  lang: none,
-  font: none,
+  lang: "en",
+  region: "US",
+  font: (),
   fontsize: 11pt,
   sectionnumbering: none,
   doc,
@@ -18,18 +19,11 @@
     numbering: "1",
   )
   set par(justify: true)
-  if lang != none {
-    set text(lang: lang)
-  }
-  if font != none {
-    set text(font: font)
-  }
-  if fontsize != none {
-    set text(size: fontsize)
-  }
-  if sectionnumbering != none {
-    set heading(numbering: sectionnumbering)
-  }
+  set text(lang: lang,
+           region: region,
+           font: font,
+           size: fontsize)
+  set heading(numbering: sectionnumbering)
 
   if title != none {
     align(center)[#block(inset: 2em)[

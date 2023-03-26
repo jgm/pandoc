@@ -28,7 +28,7 @@ import Data.Text (Text)
 import Data.List (intercalate, intersperse)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
-import Text.Pandoc.Writers.Shared ( metaToContext, defField, setField,
+import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
                                     toLegacyTable, lookupMetaString )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers)
 import Text.Pandoc.Writers.Math (convertMath)
@@ -36,6 +36,7 @@ import qualified Text.TeXMath as TM
 import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
+import Text.Collate.Lang (Lang(..), parseLang)
 
 -- | Convert Pandoc to Typst.
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -73,7 +74,12 @@ pandocToTypst options (Pandoc meta blocks) = do
               $ defField "toc" (writerTableOfContents options)
               $ (case lookupMetaString "lang" meta of
                     "" -> id
-                    lang -> setField "lang" $ T.takeWhile (/='-') lang)
+                    lang ->
+                      case parseLang lang of
+                        Left _ -> id
+                        Right l ->
+                          resetField "lang" (langLanguage l) .
+                          maybe id (resetField "region") (langRegion l))
               $ (if writerNumberSections options
                     then defField "numbering" ("1.1.1.1.1" :: Text)
                     else id)
@@ -184,11 +190,11 @@ blockToTypst block =
       let lab = toLabel ident
       return $ "#figure(" <> nest 2 (brackets contents <> "," <> cr <>
                                      ("caption: [" $$ nest 2 caption $$ "]"))
-                          <> cr <> ")" <> lab <> blankline
+                          $$ ")" $$ lab $$ blankline
     Div (ident,_,_) blocks -> do
       let lab = toLabel ident
       contents <- blocksToTypst blocks
-      return $ lab <> contents
+      return $ lab $$ contents
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do
