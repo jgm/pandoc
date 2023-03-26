@@ -6,14 +6,3 @@ tests: True
 flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1,
              skylighting-format-context >= 0.1.0.2
-
-source-repository-package
-  type: git
-  location: https://github.com/hslua/hslua
-  tag: c500f19847982e11f3aff1c2077d31e5b109e2bb
-  subdir: hslua-module-system
-source-repository-package
-  type: git
-  location: https://github.com/hslua/hslua
-  tag: c500f19847982e11f3aff1c2077d31e5b109e2bb
-  subdir: hslua-module-text

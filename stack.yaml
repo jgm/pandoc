@@ -19,8 +19,8 @@ extra-deps:
 - hslua-marshalling-2.3.0
 - hslua-module-doclayout-1.1.0
 - hslua-module-path-1.1.0
-- hslua-module-system-1.1.0
-- hslua-module-text-1.1.0
+- hslua-module-system-1.1.0.1
+- hslua-module-text-1.1.0.1
 - hslua-module-version-1.1.0
 - hslua-module-zip-1.1.0
 - hslua-objectorientation-2.3.0
