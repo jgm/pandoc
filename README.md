@@ -198,6 +198,7 @@ It can convert *to*
 - `s5` ([S5](https://meyerweb.com/eric/tools/s5/) HTML and JavaScript
   slide show)
 - `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
+- `typst` ([typst](https://typst.app))
 - `xwiki` ([XWiki
   markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
 - `zimwiki` ([ZimWiki

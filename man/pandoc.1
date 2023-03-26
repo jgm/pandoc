@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "Pandoc User\[cq]s Guide" "" "March 5, 2023" "pandoc 3.1.1" ""
+.TH "Pandoc User\[cq]s Guide" "" "March 26, 2023" "pandoc 3.1.1" ""
 .hy
 .SH NAME
 pandoc - general markup converter
@@ -452,6 +452,8 @@ markup)
 .IP \[bu] 2
 \f[V]tei\f[R] (TEI Simple)
 .IP \[bu] 2
+\f[V]typst\f[R] (typst)
+.IP \[bu] 2
 \f[V]xwiki\f[R] (XWiki markup)
 .IP \[bu] 2
 \f[V]zimwiki\f[R] (ZimWiki markup)
@@ -491,7 +493,7 @@ variable).
 If that directory does not exist and \f[V]$HOME/.pandoc\f[R] exists, it
 will be used (for backwards compatibility).
 On Windows the default user data directory is
-\f[V]C:\[rs]Users\[rs]USERNAME\[rs]AppData\[rs]Roaming\[rs]pandoc\f[R].
+\f[V]%APPDATA%\[rs]pandoc\f[R].
 You can find the default user data directory on your system by looking
 at the output of \f[V]pandoc --version\f[R].
 Data files placed in this directory (for example,
@@ -1064,6 +1066,8 @@ Currently this option only affects the \f[V]markdown\f[R],
 \f[V]muse\f[R], \f[V]html\f[R], \f[V]epub\f[R], \f[V]slidy\f[R],
 \f[V]s5\f[R], \f[V]slideous\f[R], \f[V]dzslides\f[R], and
 \f[V]revealjs\f[R] writers.
+In slide formats, specifying \f[V]--reference-location=section\f[R] will
+cause notes to be rendered at the bottom of a slide.
 .TP
 \f[V]--markdown-headings=setext\f[R]|\f[V]atx\f[R]
 Specify whether to use ATX-style (\f[V]#\f[R]-prefixed) or Setext-style
@@ -1227,6 +1231,8 @@ Author
 Date
 .IP \[bu] 2
 Abstract
+.IP \[bu] 2
+AbstractTitle
 .IP \[bu] 2
 Bibliography
 .IP \[bu] 2
@@ -1477,7 +1483,8 @@ Use the specified engine when producing PDF output.
 Valid values are \f[V]pdflatex\f[R], \f[V]lualatex\f[R],
 \f[V]xelatex\f[R], \f[V]latexmk\f[R], \f[V]tectonic\f[R],
 \f[V]wkhtmltopdf\f[R], \f[V]weasyprint\f[R], \f[V]pagedjs-cli\f[R],
-\f[V]prince\f[R], \f[V]context\f[R], and \f[V]pdfroff\f[R].
+\f[V]prince\f[R], \f[V]context\f[R], \f[V]pdfroff\f[R], and
+\f[V]typst\f[R].
 If the engine is not in your PATH, the full path of the engine may be
 specified here.
 If this option is not specified, pandoc uses the following defaults
@@ -1495,6 +1502,8 @@ depending on the output format specified using \f[V]-t/--to\f[R]:
 print-css.rocks for a good introduction to PDF generation from HTML/CSS)
 .IP \[bu] 2
 \f[V]-t ms\f[R]: \f[V]pdfroff\f[R]
+.IP \[bu] 2
+\f[V]-t typst\f[R]: \f[V]typst\f[R]
 .RE
 .TP
 \f[V]--pdf-engine-opt=\f[R]\f[I]STRING\f[R]
@@ -3027,6 +3036,17 @@ mainfontoptions:
 \&...
 \f[R]
 .fi
+.RE
+.TP
+\f[V]babelfonts\f[R]
+a map of Babel language names (e.g.\ \f[V]chinese\f[R]) to the font to
+be used with the language:
+.RS
+.PP
+   *   *   *   *   *
+.PP
+babelfonts: chinese-hant: \[lq]Noto Serif CJK TC\[rq] russian: \[lq]Noto
+Serif\[rq] \&...
 .RE
 .TP
 \f[V]microtypeoptions\f[R]
