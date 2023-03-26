@@ -28,14 +28,14 @@ import Data.Text (Text)
 import Data.List (intercalate, intersperse)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
-import Text.Pandoc.Writers.Shared ( metaToContext, defField, toLegacyTable )
+import Text.Pandoc.Writers.Shared ( metaToContext, defField, setField,
+                                    toLegacyTable, lookupMetaString )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
 import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
-import Control.Monad (zipWithM)
 
 -- | Convert Pandoc to Typst.
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -66,11 +66,14 @@ pandocToTypst options (Pandoc meta blocks) = do
   let notes = vsep $ zipWith
                       (\(num :: Int) cont ->
                         "#endnote" <> parens (brackets (text (show num))
-                                   <> ", " <>  brackets (chomp cont)))
+                                   <> ", " <>  brackets (chomp cont <> cr)))
                       [1..] noteContents
   let context = defField "body" main
               $ defField "notes" notes
               $ defField "toc" (writerTableOfContents options)
+              $ (case lookupMetaString "lang" meta of
+                    "" -> id
+                    lang -> setField "lang" $ T.takeWhile (/='-') lang)
               $ (if writerNumberSections options
                     then defField "numbering" ("1.1.1.1.1" :: Text)
                     else id)
@@ -116,12 +119,27 @@ blockToTypst block =
     HorizontalRule ->
       return $ blankline <> "#horizontalrule" <> blankline
     OrderedList attribs items -> do
-      items' <- zipWithM (\marker item ->
-                            chomp <$> listItemToTypst 3 (literal marker) item)
-                    (orderedListMarkers attribs) items
-      return $ (if isTightList items
+      let addBlock = case attribs of
+                       (1, DefaultStyle, DefaultDelim) -> id
+                       (1, Decimal, Period) -> id
+                       (start, sty, delim) -> \x ->
+                              "#block[" $$
+                               ("#set enum" <>
+                                  parens (
+                                    "numbering: " <>
+                                    doubleQuoted
+                                      (head (orderedListMarkers
+                                             (1, sty, delim))) <>
+                                    ", start: " <>
+                                      text (show start) )) $$
+                               x $$
+                               "]"
+      items' <- mapM (fmap chomp . listItemToTypst 2 ("+ ")) items
+      return $ addBlock
+               (if isTightList items
                    then vcat items'
-                   else vsep items') $$ blankline
+                   else vsep items')
+              $$ blankline
     BulletList items -> do
       items' <- mapM (fmap chomp . listItemToTypst 2 "- ") items
       return $ (if isTightList items
@@ -208,9 +226,9 @@ inlineToTypst inline =
               DisplayMath -> return $ "$ " <> literal r <> " $"
     Code (_,cls,_) code -> return $
       case cls of
-        (lang:_) -> "#raw(lang=" <> doubleQuotes (literal lang) <>
-                        ", " <> doubleQuotes (literal code) <> ")"
-        _ | T.any (=='`') code -> "#raw(" <> doubleQuotes (literal code) <> ")"
+        (lang:_) -> "#raw(lang=" <> doubleQuoted lang <>
+                        ", " <> doubleQuoted code <> ")"
+        _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
           | otherwise -> "`" <> literal code <> "`"
     RawInline fmt str ->
       case fmt of
@@ -238,11 +256,11 @@ inlineToTypst inline =
          then return $ -- Note: this loses locators, prefix, suffix
               "#cite" <> parens
                 (mconcat $ intersperse ", " $
-                  map (doubleQuotes . literal . citationId) citations)
+                  map (doubleQuoted . citationId) citations)
          else inlinesToTypst inlines
     Link _attrs inlines (src,_tit) -> do
       contents <- inlinesToTypst inlines
-      return $ "#link" <> parens (doubleQuotes (literal src)) <>
+      return $ "#link" <> parens (doubleQuoted src) <>
                 if render Nothing contents == src
                    then mempty
                    else nowrap $ brackets contents
@@ -250,7 +268,7 @@ inlineToTypst inline =
       let width' = maybe mempty ((", width: " <>) . literal) $ lookup "width" kvs
       let height' = maybe mempty ((", height: " <>) . literal) $
                     lookup "height" kvs
-      return $ "#image(" <> doubleQuotes (literal src) <> width' <> height' <> ")"
+      return $ "#image(" <> doubleQuoted src <> width' <> height' <> ")"
     Note blocks -> do -- currently typst has no footnotes!
       -- TODO create endnotes with manual typesetting
       contents <- blocksToTypst blocks
@@ -291,3 +309,11 @@ toLabel ident =
   if T.null ident
      then mempty
      else "#label" <> parens (doubleQuotes (literal ident))
+
+doubleQuoted :: Text -> Doc Text
+doubleQuoted = doubleQuotes . literal . escape
+ where
+  escape = T.concatMap escapeChar
+  escapeChar '\\' = "\\\\"
+  escapeChar '"' = "\\\""
+  escapeChar c = T.singleton c

@@ -1,19 +1,4 @@
-#set page(
-  numbering: "1"
-)
-#set par(justify: true)
-#set text(
-)
-#set heading(
-)
-
-#align(center)[#block(inset: 2em)[
-  #text(weight: "bold", size: 18pt)[Pandoc Test Suite] \
-  John MacFarlane \
-  Anonymous \
-  July 17, 2006
-]]
-
+// Some definitions presupposed by pandoc's typst output.
 #let definition(term, ..defs) = [
   #strong(term) \
   #(defs.pos().join("\n"))
@@ -31,7 +16,93 @@
 #let endnote(num, contents) = [
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
+#let conf(
+  title: none,
+  authors: none,
+  date: none,
+  abstract: none,
+  cols: 1,
+  margin: (x: 1.25in, y: 1.25in),
+  paper: "us-letter",
+  lang: none,
+  font: none,
+  fontsize: 11pt,
+  sectionnumbering: none,
+  doc,
+) = {
+  set page(
+    paper: paper,
+    margin: margin,
+    numbering: "1",
+  )
+  set par(justify: true)
+  if lang != none {
+    set text(lang: lang)
+  }
+  if font != none {
+    set text(font: font)
+  }
+  if fontsize != none {
+    set text(size: fontsize)
+  }
+  if sectionnumbering != none {
+    set heading(numbering: sectionnumbering)
+  }
 
+  if title != none {
+    align(center)[#block(inset: 2em)[
+      #text(weight: "bold", size: 1.5em)[#title]
+    ]]
+  }
+
+  if authors != none {
+    let count = authors.len()
+    let ncols = calc.min(count, 3)
+    grid(
+      columns: (1fr,) * ncols,
+      row-gutter: 1.5em,
+      ..authors.map(author =>
+          align(center)[
+            #author.name \
+            #author.affiliation \
+            #author.email
+          ]
+      )
+    )
+  }
+
+  if date != none {
+    align(center)[#block(inset: 1em)[
+      #date
+    ]]
+  }
+
+  if abstract != none {
+    block(inset: 2em)[
+    #text(weight: "semibold")[Abstract] #h(1em) #abstract
+    ]
+  }
+
+  if cols == 1 {
+    doc
+  } else {
+    columns(cols, doc)
+  }
+}
+#show: doc => conf(
+  title: [Pandoc Test Suite],
+  authors: (
+    ( name: [John MacFarlane],
+      affiliation: [],
+      email: [] ),
+    ( name: [Anonymous],
+      affiliation: [],
+      email: [] ),
+    ),
+  date: [July 17, 2006],
+  cols: 1,
+  doc,
+)
 
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
@@ -97,8 +168,8 @@ sub status {
 
 A list:
 
-1. item one
-2. item two
++  item one
++  item two
 
 Nested block quotes:
 
@@ -191,41 +262,41 @@ Minuses loose:
 #label("ordered")
 Tight:
 
-1. First
-2. Second
-3. Third
++  First
++  Second
++  Third
 
 and:
 
-1. One
-2. Two
-3. Three
++  One
++  Two
++  Three
 
 Loose using tabs:
 
-1. First
++  First
 
-2. Second
++  Second
 
-3. Third
++  Third
 
 and using spaces:
 
-1. One
++  One
 
-2. Two
++  Two
 
-3. Three
++  Three
 
 Multiple paragraphs:
 
-1. Item 1, graf one.
++  Item 1, graf one.
 
-   Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
+  Item 1. graf two. The quick brown fox jumped over the lazy dog’s back.
 
-2. Item 2.
++  Item 2.
 
-3. Item 3.
++  Item 3.
 
 == Nested
 #label("nested")
@@ -235,24 +306,24 @@ Multiple paragraphs:
 
 Here’s another:
 
-1. First
-2. Second:
-   -  Fee
-   -  Fie
-   -  Foe
-3. Third
++  First
++  Second:
+  -  Fee
+  -  Fie
+  -  Foe
++  Third
 
 Same thing but with paragraphs:
 
-1. First
++  First
 
-2. Second:
++  Second:
 
-   -  Fee
-   -  Fie
-   -  Foe
+  -  Fee
+  -  Fie
+  -  Foe
 
-3. Third
++  Third
 
 == Tabs and spaces
 #label("tabs-and-spaces")
@@ -266,29 +337,50 @@ Same thing but with paragraphs:
 
 == Fancy list markers
 #label("fancy-list-markers")
-(2) begins with 2
+#block[
+#set enum(numbering: "(1)", start: 2)
++  begins with 2
 
-(3) and now 3
++  and now 3
 
-   with a continuation
+  with a continuation
 
-   iv. sublist with roman numerals, starting with 4
-   v. more items
-      (A) a subsublist
-      (B) a subsublist
+  #block[
+  #set enum(numbering: "i.", start: 4)
+  +  sublist with roman numerals, starting with 4
+  +  more items
+    #block[
+    #set enum(numbering: "(A)", start: 1)
+    +  a subsublist
+    +  a subsublist
+    ]
+  ]
+]
 
 Nesting:
 
-A. Upper Alpha
-   I. Upper Roman.
-      (6) Decimal start with 6
-         c) Lower alpha with paren
+#block[
+#set enum(numbering: "A.", start: 1)
++  Upper Alpha
+  #block[
+  #set enum(numbering: "I.", start: 1)
+  +  Upper Roman.
+    #block[
+    #set enum(numbering: "(1)", start: 6)
+    +  Decimal start with 6
+      #block[
+      #set enum(numbering: "a)", start: 3)
+      +  Lower alpha with paren
+      ]
+    ]
+  ]
+]
 
 Autonumbering:
 
-1. Autonumber.
-2. More.
-   1. Nested.
++  Autonumber.
++  More.
+  +  Nested.
 
 Should not be a list item:
 
@@ -380,8 +472,8 @@ Blank line after term, indented marker, alternate markers:
 
 #definition[orange][orange fruit
 
-1. sublist
-2. sublist
++  sublist
++  sublist
 
 ]
 
@@ -674,7 +766,7 @@ Here is an inline note.#super[3]
 Notes can go in quotes.#super[4]
 ]
 
-1. And in list items.#super[5]
++  And in list items.#super[5]
 
 This paragraph should not be part of the note, as it is not indented.
 
@@ -685,7 +777,8 @@ This paragraph should not be part of the note, as it is not indented.
 #v(3pt) // otherwise first note marker is swallowed, bug?
 
 #endnote([1], [Here is the footnote. It can go anywhere after the footnote
-reference. It need not be placed at the end of the document.])
+reference. It need not be placed at the end of the document.
+])
 
 #endnote([2], [Here’s the long note. This one contains multiple blocks.
 
@@ -697,13 +790,17 @@ list items).
 ```
 
 If you want, you can indent every line, but you can also be lazy and just indent
-the first line of each block.])
+the first line of each block.
+])
 
 #endnote([3], [This is #emph[easier] to type. Inline notes may contain
 #link("http://google.com")[links] and `]` verbatim characters, as well as
-\[bracketed text\].])
+\[bracketed text\].
+])
 
-#endnote([4], [In quote.])
+#endnote([4], [In quote.
+])
 
-#endnote([5], [In list.])
+#endnote([5], [In list.
+])
 ]

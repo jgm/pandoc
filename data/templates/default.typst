@@ -1,58 +1,54 @@
-#set page(
+$definitions.typst()$
+
+$if(template)$
+#import "$template$": conf
+$else$
+$template.typst()$
+$endif$
+
+#show: doc => conf(
+$if(title)$
+  title: [$title$],
+$endif$
+$if(author)$
+  authors: (
+$for(author)$
+$if(author.name)$
+    ( name: [$author.name$],
+      affiliation: [$author.affiliation$],
+      email: [$author.email$] ),
+$else$
+    ( name: [$author$],
+      affiliation: [],
+      email: [] ),
+$endif$
+$endfor$
+    ),
+$endif$
+$if(date)$
+  date: [$date$],
+$endif$
+$if(abstract)$
+  abstract: [$abstract$],
+$endif$
+$if(margin)$
+  margin: ($for(margin/pairs)$$margin.key$: $margin.value$,$endfor$),
+$endif$
 $if(papersize)$
   paper: "$papersize$",
 $endif$
-  numbering: "1"
-)
-#set par(justify: true)
-#set text(
-$if(lang)$
-  lang: "$lang$",
-$endif$
 $if(mainfont)$
-  font: "$mainfont$",
+  font: ("$mainfont$",),
 $endif$
 $if(fontsize)$
-  size: $fontsize$,
+  fontsize: $fontsize$,
 $endif$
+$if(section-numbering)$
+  sectionnumbering: "$section-numbering$",
+$endif$
+  cols: $if(columns)$$columns$$else$1$endif$,
+  doc,
 )
-#set heading(
-$if(numbering)$
-  numbering: "$numbering$"
-$endif$
-)
-
-#align(center)[#block(inset: 2em)[
-  #text(weight: "bold", size: 18pt)[$title$] \
-$for(author)$
-  $author$ \
-$endfor$
-$if(date)$
-  $date$
-$endif$
-]]
-
-#let definition(term, ..defs) = [
-  #strong(term) \
-  #(defs.pos().join("\n"))
-]
-
-#let blockquote(body) = [
-  #set text( size: 0.92em )
-  #block(inset: (left: 1.5em, top: 0.2em, bottom: 0.2em))[#body]
-]
-
-#let horizontalrule = [
-  #line(start: (25%,0%), end: (75%,0%))
-]
-
-#let endnote(num, contents) = [
-  #stack(dir: ltr, spacing: 3pt, super[#num], contents)
-]
-
-$if(columns)$
-#show: doc => columns($columns$, doc)
-$endif$
 
 $for(header-includes)$
 $header-includes$
@@ -71,6 +67,7 @@ $endif$
 
 $body$
 
+$if(notes)$
 #v(1em)
 #block[
 #horizontalrule
@@ -79,6 +76,7 @@ $body$
 
 $notes$
 ]
+$endif$
 $if(bibliographystyle)$
 
 #set bibliography(style: "$bibliographystyle$")

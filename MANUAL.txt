@@ -481,7 +481,7 @@ header when requesting a document from a URL:
 [OPML]: http://dev.opml.org/spec2.html
 [OpenDocument]: http://opendocument.xml.org
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
-[Textile]: https://www.promptworks.com/textile
+[Textile]: https://textile-lang.com
 [MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: https://zim-wiki.org/manual/Help/Wiki_Syntax.html
