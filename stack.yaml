@@ -33,7 +33,7 @@ extra-deps:
 - lpeg-1.0.4
 - mime-types-0.1.1.0
 - doctemplates-0.11
-- texmath-0.12.6
+- texmath-0.12.7
 - citeproc-0.8.1
 - pandoc-types-1.23
 - pandoc-lua-marshal-0.2.2
@@ -45,6 +45,7 @@ extra-deps:
 - tasty-hslua-1.1.0
 - zip-archive-0.4.3
 - commonmark-extensions-0.2.3.4
+- doclayout-0.4.0.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
