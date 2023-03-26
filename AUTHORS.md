@@ -17,9 +17,11 @@
 - Amar Al-Zubaidi
 - Amir Dekel
 - Amogh Rathore
+- Amy de Buitléir
 - Anabra
 - Anders Waldenborg
 - Andreas Lööw
+- Andres Freund
 - Andrew Dunning
 - Andy Morris
 - Aner Lucero
@@ -62,6 +64,7 @@
 - Charanjit Singh
 - Chris Black
 - Christian Conkle
+- Christian Christiansen
 - Christian Despres
 - Christoffer Ackelman
 - Christoffer Sawicki
@@ -219,6 +222,7 @@
 - Mark Wright
 - Martin Joerg
 - Martin Linn
+- Martín Pozo
 - Masataka Ogawa
 - Masayoshi Takahashi
 - Matej Kollar
