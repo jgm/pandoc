@@ -15,10 +15,12 @@ task:
     - cabal build all -fembed_data_files -fserver -flua --dependencies-only
   upload_caches:
     - cabal_store
-  install_script: |
-    sh macos/make_macos_release.sh
+  install_script:
+    - sh macos/make_macos_release.sh
+  zip_artifact_script:
+    - zip -r ./macos-arm64.zip ./macos-arm64
   artifacts:
-    path: macos-arm64/**
+    path: ./macos-arm64.zip
 
 task:
   name: linux_arm64
@@ -41,8 +43,10 @@ task:
     - cabal_store
   package_script:
     - bash linux/make_artifacts.sh
-  release_candidate_artifacts:
-    path: ./linux-arm64/*
+  zip_artifact_script:
+    - zip -r ./linux-arm64.zip ./linux-arm64
+  artifacts:
+    path: ./linux-arm64.zip
 
 task:
   name: linux_amd64
@@ -65,5 +69,7 @@ task:
     - cabal_store
   package_script:
     - bash linux/make_artifacts.sh
-  release_candidate_artifacts:
-    path: ./linux-amd64/*
+  zip_artifact_script:
+    - zip -r ./linux-amd64.zip ./linux-amd64
+  artifacts:
+    path: ./linux-arm64.zip
