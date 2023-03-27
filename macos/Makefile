@@ -1,5 +1,7 @@
+ARCHITECTURE=$(uname -m)
+
 VERSION=$(shell cat version.txt)
-BASE=pandoc-$(VERSION)
+BASE=pandoc-$(VERSION)-$(ARCHITECTURE)
 DEST=pandoc/usr/local
 ALL=$(BASE)-macOS.pkg $(BASE)-macOS.zip
 
