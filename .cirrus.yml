@@ -18,10 +18,8 @@ task:
     - cabal_store
   install_script:
     - sh macos/make_macos_release.sh
-  zip_artifact_script:
-    - zip -r ./macos-arm64.zip ./macos-arm64
   macos_arm64_artifacts:
-    path: ./macos-arm64.zip
+    path: ./macos-arm64/**
 
 task:
   name: linux_arm64
@@ -45,10 +43,8 @@ task:
     - cabal_store
   package_script:
     - bash linux/make_artifacts.sh
-  zip_artifact_script:
-    - tar cvzf ./linux-arm64.tar.gz ./linux-arm64
   linux_arm64_artifacts:
-    path: ./linux-arm64.tar.gz
+    path: ./linux-arm64/**
 
 task:
   name: linux_amd64
@@ -72,7 +68,5 @@ task:
     - cabal_store
   package_script:
     - bash linux/make_artifacts.sh
-  zip_artifact_script:
-    - tar cvzf ./linux-amd64.tar.gz ./linux-amd64
   linux_amd64_artifacts:
-    path: ./linux-amd64.tar.gz
+    path: ./linux-amd64/**
