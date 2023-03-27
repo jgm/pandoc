@@ -41,6 +41,7 @@ chown -R "$ME:staff" "$ROOT"
 sed -e "s/PANDOCVERSION/$VERSION/; s/ARCHITECTURE/$MACHINE/;" macos/distribution.xml.in > "$ARTIFACTS/distribution.xml"
 cp macos/Makefile "$ARTIFACTS/"
 echo "$VERSION" > "$ARTIFACTS/version.txt"
+echo "$MACHINE" > "$ARTIFACTS/architecture.txt"
 
 ls -R $ARTIFACTS
 echo "Finished..."
