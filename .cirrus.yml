@@ -20,6 +20,7 @@ task:
   zip_artifact_script:
     - zip -r ./macos-arm64.zip ./macos-arm64
   artifacts:
+    name: macos-arm64-zip
     path: ./macos-arm64.zip
 
 task:
@@ -44,9 +45,10 @@ task:
   package_script:
     - bash linux/make_artifacts.sh
   zip_artifact_script:
-    - zip -r ./linux-arm64.zip ./linux-arm64
+    - tar cvzf ./linux-arm64.tar.gz ./linux-arm64
   artifacts:
-    path: ./linux-arm64.zip
+    name: linux-arm64-tarball
+    path: ./linux-arm64.tar.gz
 
 task:
   name: linux_amd64
@@ -70,6 +72,7 @@ task:
   package_script:
     - bash linux/make_artifacts.sh
   zip_artifact_script:
-    - zip -r ./linux-amd64.zip ./linux-amd64
+    - tar cvzf ./linux-amd64.tar.gz ./linux-amd64
   artifacts:
-    path: ./linux-arm64.zip
+    name: linux-amd64-tarball
+    path: ./linux-amd64.tar.gz
