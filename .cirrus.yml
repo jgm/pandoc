@@ -1,5 +1,6 @@
 task:
   name: macos_arm64
+  alias: macos_arm64
   trigger_type: manual
   timeout_in: 90m
   macos_instance:
@@ -20,11 +21,11 @@ task:
   zip_artifact_script:
     - zip -r ./macos-arm64.zip ./macos-arm64
   artifacts:
-    name: macos-arm64-zip
     path: ./macos-arm64.zip
 
 task:
   name: linux_arm64
+  alias: linux_arm64
   trigger_type: manual
   timeout_in: 90m
   arm_container:
@@ -47,11 +48,11 @@ task:
   zip_artifact_script:
     - tar cvzf ./linux-arm64.tar.gz ./linux-arm64
   artifacts:
-    name: linux-arm64-tarball
     path: ./linux-arm64.tar.gz
 
 task:
   name: linux_amd64
+  alias: linux_amd64
   trigger_type: manual
   timeout_in: 90m
   container:
@@ -74,5 +75,4 @@ task:
   zip_artifact_script:
     - tar cvzf ./linux-amd64.tar.gz ./linux-amd64
   artifacts:
-    name: linux-amd64-tarball
     path: ./linux-amd64.tar.gz
