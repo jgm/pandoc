@@ -42,11 +42,17 @@ import Text.Collate.Lang (Lang(..), parseLang)
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTypst options document =
   evalStateT (pandocToTypst options document)
-    WriterState{ stOptions = options, stNotes = [] }
+    WriterState{ stOptions = options,
+                 stEscapeContext = NormalContext,
+                 stNotes = [] }
+
+data EscapeContext = NormalContext | TermContext
+  deriving (Show, Eq)
 
 data WriterState =
   WriterState {
     stOptions :: WriterOptions,
+    stEscapeContext :: EscapeContext,
     stNotes   :: [Doc Text]
   }
 
@@ -197,10 +203,12 @@ blockToTypst block =
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do
+  modify $ \st -> st{ stEscapeContext = TermContext }
   term' <- inlinesToTypst term
+  modify $ \st -> st{ stEscapeContext = NormalContext }
   defns' <- mapM blocksToTypst defns
-  return $ "#definition" <> brackets term' <> mconcat (map brackets defns')
-
+  return $ nowrap ("/ " <> term' <> ": " <> "#block[") $$
+            chomp (vcat defns') $$ "]"
 listItemToTypst :: PandocMonad m => Int -> Doc Text -> [Block] -> TW m (Doc Text)
 listItemToTypst ind marker blocks = do
   contents <- blocksToTypst blocks
@@ -212,7 +220,9 @@ inlinesToTypst ils = hcat <$> mapM inlineToTypst ils
 inlineToTypst :: PandocMonad m => Inline -> TW m (Doc Text)
 inlineToTypst inline =
   case inline of
-    Str txt -> return $ literal $ escapeTypst txt
+    Str txt -> do
+      context <- gets stEscapeContext
+      return $ literal $ escapeTypst context txt
     Space -> return space
     SoftBreak -> do
       wrapText <- gets $ writerWrapText . stOptions
@@ -284,8 +294,8 @@ inlineToTypst inline =
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = (s <>) . brackets <$> inlinesToTypst inlines
 
-escapeTypst :: Text -> Text
-escapeTypst t =
+escapeTypst :: EscapeContext -> Text -> Text
+escapeTypst context t =
   if T.any needsEscape t
      then T.concatMap escapeChar t
      else t
@@ -307,6 +317,7 @@ escapeTypst t =
     needsEscape '=' = True
     needsEscape '_' = True
     needsEscape '*' = True
+    needsEscape ':' = context == TermContext
     needsEscape _ = False
 
 toLabel :: Text -> Doc Text
