@@ -2,8 +2,8 @@ Simple table with caption:
 
 #align(center)[#table(
   columns: 4,
+  align: (col, row) => (right,left,center,auto,).at(col),
   inset: 6pt,
-  align: auto,
   [Right], [Left], [Center], [Default],
   [12],
   [12],
@@ -25,8 +25,8 @@ Simple table without caption:
 
 #align(center)[#table(
   columns: 4,
+  align: (col, row) => (right,left,center,auto,).at(col),
   inset: 6pt,
-  align: auto,
   [Right], [Left], [Center], [Default],
   [12],
   [12],
@@ -47,8 +47,8 @@ Simple table indented two spaces:
 
 #align(center)[#table(
   columns: 4,
+  align: (col, row) => (right,left,center,auto,).at(col),
   inset: 6pt,
-  align: auto,
   [Right], [Left], [Center], [Default],
   [12],
   [12],
@@ -70,8 +70,8 @@ Multiline table with caption:
 
 #align(center)[#table(
   columns: 4,
+  align: (col, row) => (center,left,right,left,).at(col),
   inset: 6pt,
-  align: auto,
   [Centered Header], [Left Aligned], [Right Aligned], [Default aligned],
   [First],
   [row],
@@ -89,8 +89,8 @@ Multiline table without caption:
 
 #align(center)[#table(
   columns: 4,
+  align: (col, row) => (center,left,right,left,).at(col),
   inset: 6pt,
-  align: auto,
   [Centered Header], [Left Aligned], [Right Aligned], [Default aligned],
   [First],
   [row],
@@ -107,8 +107,8 @@ Table without column headers:
 
 #align(center)[#table(
   columns: 4,
+  align: (col, row) => (right,left,center,right,).at(col),
   inset: 6pt,
-  align: auto,
   [12],
   [12],
   [12],
@@ -128,8 +128,8 @@ Multiline table without column headers:
 
 #align(center)[#table(
   columns: 4,
+  align: (col, row) => (center,left,right,auto,).at(col),
   inset: 6pt,
-  align: auto,
   [First],
   [row],
   [12.0],

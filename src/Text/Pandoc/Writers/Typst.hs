@@ -165,17 +165,16 @@ blockToTypst block =
                     captcontents <- inlinesToTypst caption
                     return $ "#align(center, " <> brackets captcontents <> ")"
       let lab = toLabel ident
-      -- TODO figure out how to specify alignment
-      -- let formatalign AlignLeft = "left"
-      --     formatalign AlignRight = "right"
-      --     formatalign AlignCenter = "center"
-      --     formatalign AlignDefault = "left"
-      -- let alignspecs = map formatalign aligns
+      let formatalign AlignLeft = "left,"
+          formatalign AlignRight = "right,"
+          formatalign AlignCenter = "center,"
+          formatalign AlignDefault = "auto,"
+      let alignarray = parens $ mconcat $ map formatalign aligns
       return $ "#align(center)[#table("
         $$ nest 2
            (  "columns: " <> text (show numcols) <> "," -- auto
+           $$ "align: (col, row) => " <> alignarray <> ".at(col),"
            $$ "inset: 6pt" <> ","
-           $$ "align: auto,"
            $$ hsep (map ((<>",") . brackets) headers')
            $$ vcat (map (\x -> brackets x <> ",") (concat rows'))
            )
