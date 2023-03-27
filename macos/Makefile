@@ -1,4 +1,4 @@
-ARCHITECTURE=$(uname -m)
+ARCHITECTURE=$(shell uname -m)
 
 VERSION=$(shell cat version.txt)
 BASE=pandoc-$(VERSION)-$(ARCHITECTURE)
