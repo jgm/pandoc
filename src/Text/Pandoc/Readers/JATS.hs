@@ -273,26 +273,27 @@ parseBlock (Elem e) =
                                            Just c -> filterChildren isColspec c
                                            _      -> filterChildren isColspec e'
                       let isRow x = named "row" x || named "tr" x
-                      headrows <- case filterChild (named "thead") e' of
-                                       Just h  -> case filterChild isRow h of
-                                                       Just x  -> parseRow x
-                                                       Nothing -> return []
-                                       Nothing -> return []
-                      bodyrows <- case filterChild (named "tbody") e' of
-                                       Just b  -> mapM parseRow
-                                                  $ filterChildren isRow b
-                                       Nothing -> mapM parseRow
-                                                  $ filterChildren isRow e'
+
+                      -- list of header cell elements
+                      let headRowElements = case filterChild (named "thead") e' of
+                                      Just h -> maybe [] parseElement (filterChild isRow h)
+                                      Nothing -> []
+                      -- list of list of body cell elements 
+                      let bodyRowElements = case filterChild (named "tbody") e' of
+                                      Just b -> map parseElement $ filterChildren isRow b
+                                      Nothing -> map parseElement $ filterChildren isRow e'
                       let toAlignment c = case findAttr (unqual "align") c of
                                                 Just "left"   -> AlignLeft
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
+                      let toColSpan element =  fromMaybe 1 $ safeRead $ fromMaybe "1" $ findAttr (unqual "colspan") element
+                      let toRowSpan element =  fromMaybe 1 $ safeRead $ fromMaybe "1" $ findAttr (unqual "rowspan") element
                       let toWidth c = do
                             w <- findAttr (unqual "colwidth") c
                             n <- safeRead $ "0" <> T.filter (\x -> isDigit x || x == '.') w
                             if n > 0 then Just n else Nothing
-                      let numrows = foldl' max 0 $ map length bodyrows
+                      let numrows = foldl' max 0 $ map length bodyRowElements
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
@@ -303,15 +304,25 @@ parseBlock (Elem e) =
                                                 Just ws' -> let tot = sum ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
-                      let toRow = Row nullAttr . map simpleCell
-                          toHeaderRow l = [toRow l | not (null l)]
+
+                      -- How do I parse an Element into Blocks?
+                      -- parseCell takes an element and returns a StateT JATSState Blocks, but I need it to return the unwrapped value
+                      let parseCell = parseMixed plain . elContent
+
+                      let elementToCell element = cell (toAlignment element) (RowSpan $ toRowSpan element) (ColSpan $ toColSpan element) <$> (parseCell element)
+                      let rowElementsToCells elements = mapM elementToCell elements
+                      let toRow = fmap (Row nullAttr) . rowElementsToCells
+                          toHeaderRow element = sequence $ [toRow element | not (null element)]
+
+                      parsedRow <- toHeaderRow headRowElements
+                      parsedRows <- mapM toRow bodyRowElements
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
-                                     (TableHead nullAttr $ toHeaderRow headrows)
-                                     [TableBody nullAttr 0 [] $ map toRow bodyrows]
+                                     (TableHead nullAttr parsedRow)
+                                     [TableBody nullAttr 0 [] parsedRows]
                                      (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
-         parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
+         parseElement = filterChildren isEntry
          sect n = do isbook <- gets jatsBook
                      let n' = if isbook || n == 0 then n + 1 else n
                      labelText <- case filterChild (named "label") e of
