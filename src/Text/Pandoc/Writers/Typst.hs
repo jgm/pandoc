@@ -146,14 +146,14 @@ blockToTypst block =
                                       text (show start) )) $$
                                x $$
                                "]"
-      items' <- mapM (fmap chomp . listItemToTypst 2 ("+ ")) items
+      items' <- mapM (fmap chomp . listItemToTypst 2 ("+")) items
       return $ addBlock
                (if isTightList items
                    then vcat items'
                    else vsep items')
               $$ blankline
     BulletList items -> do
-      items' <- mapM (fmap chomp . listItemToTypst 2 "- ") items
+      items' <- mapM (fmap chomp . listItemToTypst 2 "-") items
       return $ (if isTightList items
                    then vcat items'
                    else vsep items') $$ blankline
@@ -209,6 +209,7 @@ defListItemToTypst (term, defns) = do
   defns' <- mapM blocksToTypst defns
   return $ nowrap ("/ " <> term' <> ": " <> "#block[") $$
             chomp (vcat defns') $$ "]"
+
 listItemToTypst :: PandocMonad m => Int -> Doc Text -> [Block] -> TW m (Doc Text)
 listItemToTypst ind marker blocks = do
   contents <- blocksToTypst blocks
