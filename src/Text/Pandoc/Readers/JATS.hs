@@ -305,10 +305,7 @@ parseBlock (Elem e) =
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
 
-                      -- How do I parse an Element into Blocks?
-                      -- parseCell takes an element and returns a StateT JATSState Blocks, but I need it to return the unwrapped value
                       let parseCell = parseMixed plain . elContent
-
                       let elementToCell element = cell (toAlignment element) (RowSpan $ toRowSpan element) (ColSpan $ toColSpan element) <$> (parseCell element)
                       let rowElementsToCells elements = mapM elementToCell elements
                       let toRow = fmap (Row nullAttr) . rowElementsToCells
