@@ -501,7 +501,8 @@ listItemToHtml opts bls
           checkbox' = H.input ! A.type_ "checkbox"
       isContents <- inlineListToHtml opts is
       bsContents <- blockListToHtml opts bs
-      return $ constr (checkbox >> isContents) >>
+      return $ H.label $
+               constr (checkbox >> isContents) >>
                (if null bs then mempty else nl) >>
                bsContents
 
