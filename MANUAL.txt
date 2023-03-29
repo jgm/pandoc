@@ -7220,7 +7220,7 @@ subdirectory of your user data directory (see [Templates]).
 
 [Lua]: https://www.lua.org
 [lpeg]:  http://www.inf.puc-rio.br/~roberto/lpeg/
-[djot-writer.lua]: https://github.com/jgm/djot/blob/main/djot-writer.lua
+[djot-writer.lua]: https://github.com/jgm/djot.lua/blob/main/djot-writer.lua
 
 # Reproducible builds
 
