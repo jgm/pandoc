@@ -6,8 +6,8 @@ tests adapted from <https://github.github.com/gfm/#task-list-items-extension->
 - [x] bar
 ^D
 <ul class="task-list">
-<li><input type="checkbox" />foo</li>
-<li><input type="checkbox" checked="" />bar</li>
+<li><label><input type="checkbox" />foo</label></li>
+<li><label><input type="checkbox" checked="" />bar</label></li>
 </ul>
 ```
 
@@ -20,12 +20,12 @@ tests adapted from <https://github.github.com/gfm/#task-list-items-extension->
 - [ ] bim
 ^D
 <ul class="task-list">
-<li><input type="checkbox" checked="" />foo
+<li><label><input type="checkbox" checked="" />foo</label>
 <ul class="task-list">
-<li><input type="checkbox" />bar</li>
-<li><input type="checkbox" checked="" />baz</li>
+<li><label><input type="checkbox" />bar</label></li>
+<li><label><input type="checkbox" checked="" />baz</label></li>
 </ul></li>
-<li><input type="checkbox" />bim</li>
+<li><label><input type="checkbox" />bim</label></li>
 </ul>
 ```
 
@@ -53,21 +53,23 @@ paragraph
 - [x] checked
 ^D
 <ul>
-<li><input type="checkbox" />unchecked</li>
+<li><label><input type="checkbox" />unchecked</label></li>
 <li>plain item</li>
-<li><input type="checkbox" checked="" />checked</li>
+<li><label><input type="checkbox" checked="" />checked</label></li>
 </ul>
 <p>paragraph</p>
 <ol type="1">
-<li><input type="checkbox" />ordered unchecked</li>
+<li><label><input type="checkbox" />ordered unchecked</label></li>
 <li>[] plain item</li>
-<li><input type="checkbox" checked="" />ordered checked</li>
+<li><label><input type="checkbox" checked="" />ordered
+checked</label></li>
 </ol>
 <p>paragraph</p>
 <ul class="task-list">
-<li><p><input type="checkbox" />list item with a</p>
+<li><p><label><input type="checkbox" />list item with a</label></p>
 <p>second paragraph</p></li>
-<li><p><input type="checkbox" checked="" />checked</p></li>
+<li><p><label><input type="checkbox"
+checked="" />checked</label></p></li>
 </ul>
 ```
 
