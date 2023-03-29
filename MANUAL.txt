@@ -5877,6 +5877,22 @@ that follows. For example:
 or
 
     Oxygen is O~2.
+    
+#### Extension: `wikilinks_title_after_pipe` ####
+
+Pandoc supports multiple markdown wikilink syntaxes, regardless of
+whether the title is before or after the pipe. 
+
+Using `--from=markdown+wikilinks_title_after_pipe` results in
+```[[Wiki]]
+[[URL|title]]
+```
+
+while using `--from=markdown+wikilinks_title_before_pipe` results
+in
+```[[Wiki]]
+[[title|URL]]
+```
 
 ## Markdown variants
 
