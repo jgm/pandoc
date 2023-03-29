@@ -381,7 +381,9 @@ header when requesting a document from a URL:
     looking at the output of `pandoc --version`.
     Data files placed in this directory (for example, `reference.odt`,
     `reference.docx`, `epub.css`, `templates`) will override
-    pandoc's normal defaults.
+    pandoc's normal defaults.  (Note that the user data directory
+    is not created by pandoc, so you will need to create it yourself
+    if you want to make use of it.)
 
 `-d` *FILE*, `--defaults=`*FILE*
 
