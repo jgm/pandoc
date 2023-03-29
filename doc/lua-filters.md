@@ -5663,7 +5663,7 @@ Returns
 
 `render (doc[, colwidth])`
 
-Render a @\'Doc\'@. The text is reflowed on breakable spacesto
+Render a @\'Doc\'@. The text is reflowed on breakable spaces to
 match the given line length. Text is not reflowed if theline
 length parameter is omitted or nil.
 
