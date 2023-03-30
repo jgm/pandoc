@@ -33,7 +33,7 @@ extra-deps:
 - lpeg-1.0.4
 - mime-types-0.1.1.0
 - doctemplates-0.11
-- texmath-0.12.7
+- texmath-0.12.7.1
 - citeproc-0.8.1
 - pandoc-types-1.23
 - pandoc-lua-marshal-0.2.2
