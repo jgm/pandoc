@@ -5929,7 +5929,7 @@ citations and a bibliography in a number of styles.  Basic usage is
 
 To use this feature, you will need to have
 
-- a document containing citations (see [Extension: `citations`]);
+- a document containing citations (see [Citation syntax]);
 - a source of bibliographic data: either an external bibliography
   file or a list of `references` in the document's YAML metadata;
 - optionally, a [CSL] citation style.
