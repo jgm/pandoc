@@ -235,11 +235,10 @@ The easiest way to build pandoc from source is to use [stack][stack]:
     on linux/unix/macOS and in `%APPDATA%\cabal\bin` on Windows.
     Make sure this directory is in your path.
 
-    If you want to install a modified or development version
-    of pandoc instead, switch to the source directory and do
-    as above, but without the 'pandoc':
-
-        cabal install
+    If you want to install a modified or development version of
+    pandoc instead, switch to the source directory before running
+    the above command -- cabal will use the local code for all
+    projects mentioned in the `cabal.project`.
 
 4.  You should now be able to run `pandoc`:
 
