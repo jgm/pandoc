@@ -191,8 +191,11 @@ orgBlock = try $ do
       "quote"   -> parseBlockLines (fmap B.blockQuote)
       "verse"   -> verseBlock
       "src"     -> codeBlock blockAttrs
-      "abstract"-> metadataBlock
-      _         -> parseBlockLines $
+      _         ->
+        -- case-sensitive checks
+        case blkType of
+          "abstract" -> metadataBlock
+          _ -> parseBlockLines $
                    let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
                    in fmap $ B.divWith (ident, classes ++ [blkType], kv)
  where
