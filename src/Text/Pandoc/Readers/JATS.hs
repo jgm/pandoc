@@ -287,8 +287,10 @@ parseBlock (Elem e) =
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
-                      let toColSpan element =  fromMaybe 1 $ safeRead $ fromMaybe "1" $ findAttr (unqual "colspan") element
-                      let toRowSpan element =  fromMaybe 1 $ safeRead $ fromMaybe "1" $ findAttr (unqual "rowspan") element
+                      let toColSpan element = fromMaybe 1 $ 
+                            findAttr (unqual "colspan") element >>= safeRead
+                      let toRowSpan element =  fromMaybe 1 $ 
+                            findAttr (unqual "rowspan") element >>= safeRead
                       let toWidth c = do
                             w <- findAttr (unqual "colwidth") c
                             n <- safeRead $ "0" <> T.filter (\x -> isDigit x || x == '.') w
@@ -306,17 +308,21 @@ parseBlock (Elem e) =
                                                 Nothing  -> replicate numrows ColWidthDefault
 
                       let parseCell = parseMixed plain . elContent
-                      let elementToCell element = cell (toAlignment element) (RowSpan $ toRowSpan element) (ColSpan $ toColSpan element) <$> (parseCell element)
+                      let elementToCell element = cell
+                            (toAlignment element)
+                            (RowSpan $ toRowSpan element)
+                            (ColSpan $ toColSpan element) 
+                            <$> (parseCell element)
                       let rowElementsToCells elements = mapM elementToCell elements
                       let toRow = fmap (Row nullAttr) . rowElementsToCells
                           toHeaderRow element = sequence $ [toRow element | not (null element)]
 
-                      parsedRow <- toHeaderRow headRowElements
-                      parsedRows <- mapM toRow bodyRowElements
+                      headerRow <- toHeaderRow headRowElements
+                      bodyRows <- mapM toRow bodyRowElements
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
-                                     (TableHead nullAttr parsedRow)
-                                     [TableBody nullAttr 0 [] parsedRows]
+                                     (TableHead nullAttr headerRow)
+                                     [TableBody nullAttr 0 [] bodyRows]
                                      (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
