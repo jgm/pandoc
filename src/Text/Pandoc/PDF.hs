@@ -95,7 +95,8 @@ makePDF program pdfargs writer opts doc =
     "typst" -> do
       source <- writer opts doc
       verbosity <- getVerbosity
-      liftIO $ toPdfViaTempFile verbosity program pdfargs (:[]) source
+      liftIO $
+        toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) source
     "pdfroff" -> do
       source <- writer opts doc
       let paperargs =
