@@ -1150,6 +1150,50 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </tbody>
     </table>
   </sec>
+  <sec id="table-with-spans-and-alignments">
+    <title>Tables with spans and alignments</title>
+    <table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <thead>
+        <tr>
+            <td colspan="2">
+                <p>1</p>
+            </td>
+            <td align="right">
+                <p>2</p>
+            </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+        <td colspan="2">
+            <p>1</p>
+        </td>
+        <td align="left">
+            <p>2</p>
+        </td>
+        </tr>
+        <tr>
+        <td rowspan="2">
+            <p>4</p>
+        </td>
+        <td>
+            <p>5</p>
+        </td>
+        <td>
+            <p>6</p>
+        </td>
+        </tr>
+        <tr>
+        <td colspan="2">
+            <p>7</p>
+        </td>
+        </tr>
+      </tbody>
+    </table>
+  </sec>
   <sec id="empty-tables">
     <title>Empty Tables</title>
     <p>This section should be empty.</p>
