@@ -2681,7 +2681,7 @@ Parameters:
 
 Returns: [Div] object
 
-### `Figure (content[, caption[, attr]])` {#pandoc.div}
+### `Figure (content[, caption[, attr]])` {#pandoc.figure}
 
 Creates a [Figure][] element.
 
