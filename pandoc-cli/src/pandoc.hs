@@ -70,7 +70,7 @@ main = E.handle (handleError . Left) $ do
 
 copyrightMessage :: String
 copyrightMessage =
- "Copyright (C) 2006-2023 John MacFarlane. Web:  https://pandoc.org\n"
+ "Copyright (C) 2006-2023 John MacFarlane. Web: https://pandoc.org\n"
  ++
  "This is free software; see the source for copying conditions. There is no\n"
  ++
