@@ -1294,9 +1294,11 @@ parseInline (Elem e) =
              return $ linkWith attr href "" ils'
         "foreignphrase" -> innerInlines emph
         "emphasis" -> case attrValue "role" e of
+                             "bf"            -> innerInlines strong
                              "bold"          -> innerInlines strong
                              "strong"        -> innerInlines strong
                              "strikethrough" -> innerInlines strikeout
+                             "underline"     -> innerInlines underline
                              _               -> innerInlines emph
         "footnote" -> note . mconcat <$>
                          mapM parseBlock (elContent e)
