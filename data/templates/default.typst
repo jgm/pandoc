@@ -92,6 +92,7 @@ $if(notes)$
 $notes$
 ]
 $endif$
+$if(citations)$
 $if(bibliographystyle)$
 
 #set bibliography(style: "$bibliographystyle$")
@@ -100,6 +101,7 @@ $for(bibliography)$
 
 #bibliography("$bibliography$")
 $endfor$
+$endif$
 $for(include-after)$
 
 $include-after$

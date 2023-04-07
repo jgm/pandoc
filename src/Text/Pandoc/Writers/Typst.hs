@@ -78,6 +78,9 @@ pandocToTypst options (Pandoc meta blocks) = do
   let context = defField "body" main
               $ defField "notes" notes
               $ defField "toc" (writerTableOfContents options)
+              $ (if isEnabled Ext_citations options
+                    then defField "citations" True
+                    else id)
               $ (case lookupMetaString "lang" meta of
                     "" -> id
                     lang ->
