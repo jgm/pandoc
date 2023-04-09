@@ -87,6 +87,7 @@ import Data.String (fromString)
 data WriterState = WriterState
     { stNotes        :: [Html]  -- ^ List of notes
     , stEmittedNotes :: Int     -- ^ How many notes we've already pushed out to the HTML
+    , stEmittedNoteBlocks :: Int  -- ^ How many @\<div class=footnote>@ blocks we've already pushed out
     , stMath         :: Bool    -- ^ Math is used in document
     , stQuotes       :: Bool    -- ^ <q> tag is used
     , stHighlighting :: Bool    -- ^ Syntax highlighting is used
@@ -102,7 +103,11 @@ data WriterState = WriterState
     }
 
 defaultWriterState :: WriterState
-defaultWriterState = WriterState {stNotes= [], stEmittedNotes = 0, stMath = False, stQuotes = False,
+defaultWriterState = WriterState {stNotes= [],
+                                  stEmittedNotes = 0,
+                                  stEmittedNoteBlocks = 0,
+                                  stMath = False,
+                                  stQuotes = False,
                                   stHighlighting = False,
                                   stHtml5 = False,
                                   stEPUBVersion = Nothing,
@@ -530,6 +535,16 @@ footnoteSection opts refLocation startCounter notes = do
   let hrtag = if refLocation /= EndOfBlock
                  then (if html5 then H5.hr else H.hr) <> nl
                  else mempty
+  idName <- do
+    blockCount <- gets stEmittedNoteBlocks
+    modify $ \st -> st{ stEmittedNoteBlocks = blockCount + 1 }
+    return $
+      -- Keep the first note section's id undecorated to maintain a target for
+      -- old links which don't expect numbered sections, or for when the notes
+      -- are rendered all together at the end of the document.
+      if blockCount <= 0
+        then "footnotes"
+        else "footnotes-" <> show (blockCount + 1)
   let additionalClassName = case refLocation of
         EndOfBlock -> "footnotes-end-of-block"
         EndOfDocument -> "footnotes-end-of-document"
@@ -539,17 +554,17 @@ footnoteSection opts refLocation startCounter notes = do
   let container x
         | html5
         , epubVersion == Just EPUB3
-                = H5.section ! A.id "footnotes"
+                = H5.section ! A.id (fromString idName)
                              ! A.class_ className
                              ! customAttribute "epub:type" "footnotes" $ x
         | html5
         , refLocation == EndOfDocument
         -- Note: we need a section for a new slide in slide formats.
-                = H5.section ! A5.id "footnotes"
+                = H5.section ! A5.id (fromString idName)
                              ! A5.class_ className
                              ! A5.role "doc-endnotes"
                              $ x
-        | html5 = H5.aside   ! prefixedId opts "footnotes"
+        | html5 = H5.aside   ! prefixedId opts (fromString idName)
                              ! A5.class_ className
                              ! A5.role "doc-footnote"
                              $ x
