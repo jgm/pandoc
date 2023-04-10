@@ -3091,7 +3091,7 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `toc`
 :   include table of contents (can also be set using
     `--toc/--table-of-contents`)
-    
+
 `urlstyle`
 :   typeface style for links without link text, e.g. `normal`, `bold`, `slanted`, `boldslanted`,
     `type`, `cap`, `small`
@@ -5435,6 +5435,10 @@ Allow special fenced syntax for native `Div` blocks.  A Div
 starts with a fence containing at least three consecutive
 colons plus some attributes. The attributes may optionally
 be followed by another string of consecutive colons.
+
+Note:  the `commonmark` parser doesn't permit colons after
+the attributes.
+
 The attribute syntax is exactly as in fenced code blocks (see
 [Extension: `fenced_code_attributes`]).  As with fenced
 code blocks, one can use either attributes in curly braces
@@ -5877,11 +5881,11 @@ that follows. For example:
 or
 
     Oxygen is O~2.
-    
+
 #### Extension: `wikilinks_title_after_pipe` ####
 
 Pandoc supports multiple markdown wikilink syntaxes, regardless of
-whether the title is before or after the pipe. 
+whether the title is before or after the pipe.
 
 Using `--from=markdown+wikilinks_title_after_pipe` results in
 ```[[Wiki]]
