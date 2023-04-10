@@ -3091,7 +3091,7 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `toc`
 :   include table of contents (can also be set using
     `--toc/--table-of-contents`)
-    
+
 `urlstyle`
 :   typeface style for links without link text, e.g. `normal`, `bold`, `slanted`, `boldslanted`,
     `type`, `cap`, `small`
@@ -4167,6 +4167,8 @@ ordered list marker in place of a numeral:
 
     #. one
     #. two
+
+Note:  the `fancy_lists` extension doesn't work with `commonmark`.
 
 #### Extension: `startnum` ####
 
@@ -5877,11 +5879,11 @@ that follows. For example:
 or
 
     Oxygen is O~2.
-    
+
 #### Extension: `wikilinks_title_after_pipe` ####
 
 Pandoc supports multiple markdown wikilink syntaxes, regardless of
-whether the title is before or after the pipe. 
+whether the title is before or after the pipe.
 
 Using `--from=markdown+wikilinks_title_after_pipe` results in
 ```[[Wiki]]
