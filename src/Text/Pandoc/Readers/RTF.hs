@@ -541,7 +541,8 @@ processTok bs (Tok pos tok') = do
                                     TableRow (curCell : cs) : rs
                                   [] -> [TableRow [curCell]] -- shouldn't happen
                            , sCurrentCell = mempty }
-    ControlWord "intbl" _ -> bs <$ modifyGroup (\g -> g{ gInTable = True })
+    ControlWord "intbl" _ ->
+      emitBlocks bs <* modifyGroup (\g -> g{ gInTable = True })
     ControlWord "plain" _ -> bs <$ modifyGroup (const def)
     ControlWord "lquote" _ -> bs <$ addText "\x2018"
     ControlWord "rquote" _ -> bs <$ addText "\x2019"
