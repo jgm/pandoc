@@ -36,7 +36,7 @@ loadCustom luaFile = do
   luaFile' <- fromMaybe luaFile <$>
               findFileWithDataFallback "custom"  luaFile
   either throw pure <=< runLuaWith luaState $ do
-    let globals = [ PANDOC_SCRIPT_FILE luaFile ]
+    let globals = [ PANDOC_SCRIPT_FILE luaFile' ]
     setGlobals globals
     dofileTrace (Just luaFile') >>= \case
       OK -> pure ()
