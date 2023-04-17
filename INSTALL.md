@@ -43,8 +43,9 @@ Using multiple installation methods can result in two separate
 installations of pandoc; it is recommended to properly uninstall
 pandoc before switching to an alternative installation method.
 
-By default, Pandoc creates PDFs using LaTeX.
-We recommend installing it via [MiKTeX].
+By default, Pandoc creates PDFs using LaTeX.  We recommend
+installing it via [MiKTeX]. With the option `--pdf-engine`,
+you however can specify other programs for this task.
 
 ## macOS
 
@@ -81,6 +82,9 @@ and using the `tlmgr` tool to install additional packages
 as needed.  If you receive errors warning of fonts not found:
 
     tlmgr install collection-fontsrecommended
+
+With the option `--pdf-engine`, you however can specify other programs
+for this task.
 
 ## Linux
 
@@ -124,9 +128,10 @@ Note that most distros have the Haskell platform in their
 package repositories.  For example, on Debian/Ubuntu,
 you can install it with `apt-get install haskell-platform`.
 
-For PDF output, you'll need LaTeX.  We recommend installing
+By default, Pandoc creates PDFs using LaTeX.  We recommend installing
 [TeX Live](https://www.tug.org/texlive/) via your package
-manager.  (On Debian/Ubuntu, `apt-get install texlive`.)
+manager.  (On Debian/Ubuntu, `apt-get install texlive`.)  With the option
+`--pdf-engine`, you however can specify other programs for this task.
 
 ## Chrome OS
 
