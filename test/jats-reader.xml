@@ -1202,6 +1202,39 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </tbody>
     </table>
   </sec>
+  <sec id="table-with-footer">
+    <table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <tbody>
+        <tr>
+          <td>
+            <p>1</p>
+          </td>
+          <td>
+            <p>2</p>
+          </td>
+          <td>
+            <p>3</p>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>
+            <p>f1</p>
+          </td>
+          <td>
+            <p>f2</p>
+          </td>
+          <td>
+            <p>f3</p>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </sec>
   <sec id="empty-tables">
     <title>Empty Tables</title>
     <p>This section should be empty.</p>

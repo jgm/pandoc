@@ -308,6 +308,11 @@ parseBlock (Elem e) = do
                       let bodyRowElements = case filterChild (named "tbody") e' of
                                       Just b -> map parseElement $ filterChildren isRow b
                                       Nothing -> map parseElement $ filterChildren isRow e'
+
+                      -- list of foot cell elements
+                      let footRowElements = case filterChild (named "tfoot") e' of 
+                                      Just f -> maybe [] parseElement (filterChild isRow f)
+                                      Nothing -> []
                       let toAlignment c = case findAttr (unqual "align") c of
                                                 Just "left"   -> AlignLeft
                                                 Just "right"  -> AlignRight
@@ -332,7 +337,6 @@ parseBlock (Elem e) = do
                                                 Just ws' -> let tot = sum ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
-
                       let parseCell = parseMixed plain . elContent
                       let elementToCell element = cell
                             (toAlignment element)
@@ -341,15 +345,16 @@ parseBlock (Elem e) = do
                             <$> (parseCell element)
                       let rowElementsToCells elements = mapM elementToCell elements
                       let toRow = fmap (Row nullAttr) . rowElementsToCells
-                          toHeaderRow element = sequence $ [toRow element | not (null element)]
+                          toNotNullRow element = sequence $ [toRow element | not (null element)]
 
-                      headerRow <- toHeaderRow headRowElements
+                      headerRow <- toNotNullRow headRowElements
+                      footerRow <- toNotNullRow footRowElements
                       bodyRows <- mapM toRow bodyRowElements
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
                                      (TableHead nullAttr headerRow)
                                      [TableBody nullAttr 0 [] bodyRows]
-                                     (TableFoot nullAttr [])
+                                     (TableFoot nullAttr footerRow)
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
          wrapWithHeader n mBlocks = do
