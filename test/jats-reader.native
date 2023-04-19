@@ -2940,7 +2940,7 @@ Pandoc
              ( "" , [] , [] )
              [ Cell
                  ( "" , [] , [] )
-                 AlignDefault
+                 AlignRight
                  (RowSpan 1)
                  (ColSpan 1)
                  [ Para [ Str "f1" ] ]
@@ -2958,6 +2958,69 @@ Pandoc
                  [ Para [ Str "f3" ] ]
              ]
          ])
+  , Header 2 ( "table-with-multiple-bodies" , [] , [] ) []
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignLeft , ColWidthDefault )
+      , ( AlignLeft , ColWidthDefault )
+      , ( AlignLeft , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignRight
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "a1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "a2" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "a3" ] ]
+              ]
+          ]
+      , TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "b1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "b2" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "b3" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
   , Header
       2
       ( "empty-tables" , [] , [] )

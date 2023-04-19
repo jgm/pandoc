@@ -1222,7 +1222,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </tbody>
       <tfoot>
         <tr>
-          <td>
+          <td align="right">
             <p>f1</p>
           </td>
           <td>
@@ -1233,6 +1233,39 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tfoot>
+    </table>
+  </sec>
+  <sec id="table-with-multiple-bodies">
+    <table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <tbody>
+        <tr>
+          <td align="right">
+            <p>a1</p>
+          </td>
+          <td>
+            <p>a2</p>
+          </td>
+          <td>
+            <p>a3</p>
+          </td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td>
+            <p>b1</p>
+          </td>
+          <td>
+            <p>b2</p>
+          </td>
+          <td>
+            <p>b3</p>
+          </td>
+        </tr>
+      </tbody>
     </table>
   </sec>
   <sec id="empty-tables">
