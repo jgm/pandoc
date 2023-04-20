@@ -32,11 +32,11 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 
-import Control.Monad (foldM, guard, mplus, mzero, void)
+import Control.Monad (foldM, guard, mzero, void)
 import Data.Char (isSpace)
 import Data.Default (Default)
 import Data.Functor (($>))
-import Data.List (foldl')
+import Data.List (find, foldl')
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 import Data.List.NonEmpty (nonEmpty)
@@ -97,7 +97,6 @@ horizontalRule = return B.horizontalRule <$ try hline
 -- | Attributes that may be added to figures (like a name or caption).
 data BlockAttributes = BlockAttributes
   { blockAttrName      :: Maybe Text
-  , blockAttrLabel     :: Maybe Text
   , blockAttrCaption   :: Maybe (F Inlines)
   , blockAttrKeyValues :: [(Text, Text)]
   }
@@ -129,13 +128,11 @@ blockAttributes = try $ do
   guard $ all (isBlockAttr . fst) kv
   let caption = foldl' (appendValues "caption") Nothing kv
   let kvAttrs = foldl' (appendValues "attr_html") Nothing kv
-  let name    = lookup "name" kv
-  let label   = lookup "label" kv
+  let name    = snd <$> find ((`elem` ["name", "label"]) . fst) (reverse kv)
   caption' <- traverse (parseFromString inlines . (<> "\n")) caption
   kvAttrs' <- parseFromString keyValues . (<> "\n") $ fromMaybe mempty kvAttrs
   return BlockAttributes
            { blockAttrName = name
-           , blockAttrLabel = label
            , blockAttrCaption = caption'
            , blockAttrKeyValues = kvAttrs'
            }
@@ -191,8 +188,11 @@ orgBlock = try $ do
       "quote"   -> parseBlockLines (fmap B.blockQuote)
       "verse"   -> verseBlock
       "src"     -> codeBlock blockAttrs
-      "abstract"-> metadataBlock
-      _         -> parseBlockLines $
+      _         ->
+        -- case-sensitive checks
+        case blkType of
+          "abstract" -> metadataBlock
+          _ -> parseBlockLines $
                    let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
                    in fmap $ B.divWith (ident, classes ++ [blkType], kv)
  where
@@ -484,13 +484,12 @@ figure = try $ do
    imageBlock isFigure figAttrs imgSrc =
      let
        figName    = fromMaybe mempty $ blockAttrName figAttrs
-       figLabel   = fromMaybe mempty $ blockAttrLabel figAttrs
        figCaption = fromMaybe mempty $ blockAttrCaption figAttrs
        figKeyVals = blockAttrKeyValues figAttrs
-       attr       = (figLabel, mempty, figKeyVals)
+       attr       = (figName, mempty, figKeyVals)
      in if isFigure
            then (\c -> B.figureWith attr (B.simpleCaption (B.plain c))
-                       (B.plain $ B.image imgSrc figName mempty))
+                       (B.plain $ B.image imgSrc "" mempty))
                 <$> figCaption
            else B.para . B.imageWith attr imgSrc figName <$> figCaption
 
@@ -651,7 +650,7 @@ orgTable = try $ do
 
   let caption = fromMaybe mempty (blockAttrCaption blockAttrs)
   let orgTbl = normalizeTable <$> rowsToTable rows
-  let identMb = blockAttrName blockAttrs `mplus` blockAttrLabel blockAttrs
+  let identMb = blockAttrName blockAttrs
   let attr = (fromMaybe mempty identMb, [], blockAttrKeyValues blockAttrs)
   return $ orgToPandocTable attr <$> orgTbl <*> caption
 

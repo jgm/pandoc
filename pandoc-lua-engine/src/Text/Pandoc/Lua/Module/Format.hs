@@ -11,10 +11,11 @@ module Text.Pandoc.Lua.Module.Format
   ( documentedModule
   ) where
 
+import Data.Version (makeVersion)
 import HsLua
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Extensions (getAllExtensions, getDefaultExtensions)
-import Text.Pandoc.Format (getExtensionsConfig)
+import Text.Pandoc.Format (formatFromFilePaths, formatName, getExtensionsConfig)
 import Text.Pandoc.Lua.Marshal.Format (pushExtensions, pushExtensionsConfig)
 import Text.Pandoc.Lua.PandocLua ()
 
@@ -25,7 +26,7 @@ documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.format"
   , moduleDescription = T.unlines
-    [ "Pandoc formats and their extensions."
+    [ "Information about the formats supported by pandoc."
     ]
   , moduleFields = []
   , moduleOperations = []
@@ -36,18 +37,7 @@ documentedModule = Module
 -- | Extension module functions.
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ defun "default_extensions"
-     ### liftPure getDefaultExtensions
-     <#> parameter peekText "string" "format" "format name"
-     =#> functionResult pushExtensions "FormatExtensions"
-           "default extensions enabled for `format`"
-     #? T.unlines
-        [ "Returns the list of default extensions of the given format; this"
-        , "function does not check if the format is supported, it will return"
-        , "a fallback list of extensions even for unknown formats."
-        ]
-
-  , defun "all_extensions"
+  [ defun "all_extensions"
      ### liftPure getAllExtensions
      <#> parameter peekText "string" "format" "format name"
      =#> functionResult pushExtensions "FormatExtensions"
@@ -58,6 +48,19 @@ functions =
         , "can have an effect when reading a format but not when"
         , "writing it, or *vice versa*."
         ]
+     `since` makeVersion [3,0]
+
+  , defun "default_extensions"
+     ### liftPure getDefaultExtensions
+     <#> parameter peekText "string" "format" "format name"
+     =#> functionResult pushExtensions "FormatExtensions"
+           "default extensions enabled for `format`"
+     #? T.unlines
+        [ "Returns the list of default extensions of the given format; this"
+        , "function does not check if the format is supported, it will return"
+        , "a fallback list of extensions even for unknown formats."
+        ]
+     `since` makeVersion [3,0]
 
   , defun "extensions"
      ### liftPure getExtensionsConfig
@@ -73,4 +76,14 @@ functions =
         , "This function can be used to assign a value to the `Extensions`"
         , "global in custom readers and writers."
         ]
+     `since` makeVersion [3,0]
+
+  , defun "from_path"
+      ### liftPure formatFromFilePaths
+      <#> parameter (choice [ fmap (:[]) . peekString, peekList peekString])
+            "string|{string,...}" "path" "file path, or list of paths"
+      =#> functionResult (maybe pushnil (pushText . formatName))
+            "string|nil"
+            "format determined by heuristic"
+      `since` makeVersion [3,1,2]
   ]

@@ -1,6 +1,6 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
           "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
-<book><title>An Example Book</title>
+<book id='book01'><title>An Example Book</title>
 <chapter id="ch01"><title>XRef Samples</title>
 <para>
 This paragraph demonstrates several features of
@@ -30,6 +30,12 @@ cross-reference text: <xref linkend="ch02"/>.
 <listitem><para>A link to a
 <sgmltag>table</sgmltag> element: <xref linkend="table01"/>.
 </para></listitem>
+<listitem><para>A link to a
+<sgmltag>part</sgmltag> element: <xref linkend="part01"/>.
+</para></listitem>
+<listitem><para>A link to a
+<sgmltag>book</sgmltag> element: <xref linkend="book01"/>.
+</para></listitem>
 </itemizedlist>
 </chapter>
 
@@ -37,6 +43,9 @@ cross-reference text: <xref linkend="ch02"/>.
   <title>The Second Chapter</title>
   <para>Some content here</para>
 </chapter>
+
+<part id="part01">
+  <title>Later Part</title>
 
 <chapter id="ch03" xreflabel="Chapter the Third">
   <title>The Third Chapter</title>
@@ -101,4 +110,5 @@ cross-reference text: <xref linkend="ch02"/>.
 </table>
 
 </chapter>
+</part>
 </book>

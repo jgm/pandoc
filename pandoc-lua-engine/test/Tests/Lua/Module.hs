@@ -35,6 +35,8 @@ tests =
                   ("lua" </> "module" </> "pandoc-structure.lua")
   , testPandocLua "pandoc.template"
                   ("lua" </> "module" </> "pandoc-template.lua")
+  , testPandocLua "pandoc.text"
+                  ("lua" </> "module" </> "pandoc-text.lua")
   , testPandocLua "pandoc.types"
                   ("lua" </> "module" </> "pandoc-types.lua")
   , testPandocLua "pandoc.utils"

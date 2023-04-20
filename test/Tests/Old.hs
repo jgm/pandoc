@@ -193,6 +193,9 @@ tests pandocPath =
   , testGroup "ms"
     [ testGroup "writer" $ writerTests' "ms"
     ]
+  , testGroup "typst"
+    [ testGroup "writer" $ writerTests' "typst"
+    ]
   , testGroup "creole"
     [ test' "reader" ["-r", "creole", "-w", "native", "-s"]
       "creole-reader.txt" "creole-reader.native"

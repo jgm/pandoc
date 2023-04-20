@@ -813,18 +813,26 @@ pBdo = try $ do
     Nothing  -> contents
 
 pSpan :: PandocMonad m => TagParser m Inlines
-pSpan = try $ do
-  guardEnabled Ext_native_spans
-  TagOpen _ attr' <- lookAhead $ pSatisfy $ tagOpen (=="span") (const True)
-  let attr = toAttr attr'
-  contents <- pInTags "span" inline
-  let isSmallCaps = fontVariant == "small-caps" || "smallcaps" `elem` classes
-                    where styleAttr   = fromMaybe "" $ lookup "style" attr'
-                          fontVariant = fromMaybe "" $ pickStyleAttrProps ["font-variant"] styleAttr
-                          classes     = maybe []
-                                          T.words $ lookup "class" attr'
-  let tag = if isSmallCaps then B.smallcaps else B.spanWith attr
-  return $ tag contents
+pSpan = do
+  (TagOpen _ attr') <- lookAhead (pSatisfy $ tagOpen (=="span") (const True))
+  exts <- getOption readerExtensions
+  if extensionEnabled Ext_native_spans exts
+     then do
+       contents <- pInTags "span" inline
+       let attr = toAttr attr'
+       let classes = maybe [] T.words $ lookup "class" attr'
+       let styleAttr   = fromMaybe "" $ lookup "style" attr'
+       let fontVariant = fromMaybe "" $
+                          pickStyleAttrProps ["font-variant"] styleAttr
+       let isSmallCaps = fontVariant == "small-caps" ||
+                           "smallcaps" `elem` classes
+       let tag = if isSmallCaps then B.smallcaps else B.spanWith attr
+       return $ tag contents
+     else if extensionEnabled Ext_raw_html exts
+             then do
+               tag <- pSatisfy $ tagOpen (=="span") (const True)
+               return $ B.rawInline "html" $ renderTags' [tag]
+             else pInTags "span" inline -- just contents
 
 pRawHtmlInline :: PandocMonad m => TagParser m Inlines
 pRawHtmlInline = do

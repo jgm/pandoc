@@ -1,5 +1,6 @@
 task:
   name: macos_arm64
+  alias: macos_arm64
   trigger_type: manual
   timeout_in: 90m
   macos_instance:
@@ -15,17 +16,18 @@ task:
     - cabal build all -fembed_data_files -fserver -flua --dependencies-only
   upload_caches:
     - cabal_store
-  install_script: |
-    sh macos/make_macos_release.sh
-  artifacts:
-    path: macos-arm64/**
+  install_script:
+    - sh macos/make_macos_release.sh
+  macos_arm64_artifacts:
+    path: ./macos-arm64/**
 
 task:
   name: linux_arm64
+  alias: linux_arm64
   trigger_type: manual
   timeout_in: 90m
   arm_container:
-    image: glcr.b-data.ch/ghc/ghc-musl:9.4.4
+    image: glcr.b-data.ch/ghc/ghc-musl:9.4.5
     cpu: 4
     memory: 12G
   env:
@@ -41,15 +43,16 @@ task:
     - cabal_store
   package_script:
     - bash linux/make_artifacts.sh
-  release_candidate_artifacts:
-    path: ./linux-arm64/*
+  linux_arm64_artifacts:
+    path: ./linux-arm64/**
 
 task:
   name: linux_amd64
+  alias: linux_amd64
   trigger_type: manual
   timeout_in: 90m
   container:
-    image: glcr.b-data.ch/ghc/ghc-musl:9.4.4
+    image: glcr.b-data.ch/ghc/ghc-musl:9.4.5
     cpu: 4
     memory: 12G
   env:
@@ -65,5 +68,5 @@ task:
     - cabal_store
   package_script:
     - bash linux/make_artifacts.sh
-  release_candidate_artifacts:
-    path: ./linux-amd64/*
+  linux_amd64_artifacts:
+    path: ./linux-amd64/**

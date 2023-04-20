@@ -15,6 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.4.4
+
     - name: Install dependencies
       run: |
           ghc --version
@@ -40,6 +44,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.4.4
     - name: Install dependencies
       run: |
           cabal update
@@ -69,6 +76,9 @@ jobs:
     # pkg-config is now needed for some cabal builds
     - name: Install pkg-config
       run: brew install pkg-config
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.4.4
     - name: Install dependencies
       run: |
           cabal update

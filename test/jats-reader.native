@@ -2794,6 +2794,96 @@ Pandoc
       (TableFoot ( "" , [] , [] ) [])
   , Header
       2
+      ( "table-with-spans-and-alignments" , [] , [] )
+      [ Str "Tables"
+      , Space
+      , Str "with"
+      , Space
+      , Str "spans"
+      , Space
+      , Str "and"
+      , Space
+      , Str "alignments"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignLeft , ColWidthDefault )
+      , ( AlignLeft , ColWidthDefault )
+      , ( AlignLeft , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 2)
+                 [ Para [ Str "1" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignRight
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "2" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 2)
+                  [ Para [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignLeft
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "2" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 2)
+                  (ColSpan 1)
+                  [ Para [ Str "4" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "5" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "6" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 2)
+                  [ Para [ Str "7" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Header
+      2
       ( "empty-tables" , [] , [] )
       [ Str "Empty" , Space , Str "Tables" ]
   , Para

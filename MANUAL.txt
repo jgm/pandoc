@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: March 5, 2023
+date: March 26, 2023
 ---
 
 # Synopsis
@@ -342,6 +342,7 @@ header when requesting a document from a URL:
     - `revealjs` ([reveal.js] HTML5 + JavaScript slide show)
     - `s5` ([S5] HTML and JavaScript slide show)
     - `tei` ([TEI Simple])
+    - `typst` ([typst])
     - `xwiki` ([XWiki markup])
     - `zimwiki` ([ZimWiki markup])
     - the path of a custom Lua writer, see [Custom readers and writers] below
@@ -380,7 +381,9 @@ header when requesting a document from a URL:
     looking at the output of `pandoc --version`.
     Data files placed in this directory (for example, `reference.odt`,
     `reference.docx`, `epub.css`, `templates`) will override
-    pandoc's normal defaults.
+    pandoc's normal defaults.  (Note that the user data directory
+    is not created by pandoc, so you will need to create it yourself
+    if you want to make use of it.)
 
 `-d` *FILE*, `--defaults=`*FILE*
 
@@ -480,7 +483,7 @@ header when requesting a document from a URL:
 [OPML]: http://dev.opml.org/spec2.html
 [OpenDocument]: http://opendocument.xml.org
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
-[Textile]: https://www.promptworks.com/textile
+[Textile]: https://textile-lang.com
 [MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: https://zim-wiki.org/manual/Help/Wiki_Syntax.html
@@ -515,6 +518,7 @@ header when requesting a document from a URL:
 [BibLaTeX]: https://ctan.org/pkg/biblatex
 [Markua]: https://leanpub.com/markua/read
 [EndNote XML bibliography]: https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition
+[typst]: https://typst.app
 
 ## Reader options {.options}
 
@@ -1166,6 +1170,7 @@ header when requesting a document from a URL:
         - Author
         - Date
         - Abstract
+        - AbstractTitle
         - Bibliography
         - Heading 1
         - Heading 2
@@ -1366,7 +1371,7 @@ header when requesting a document from a URL:
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
     `tectonic`, `wkhtmltopdf`, `weasyprint`, `pagedjs-cli`,
-    `prince`, `context`, and `pdfroff`. If the engine is not in
+    `prince`, `context`, `pdfroff`, and `typst`. If the engine is not in
     your PATH, the full path of the engine may be specified here.
     If this option is not specified, pandoc uses the following
     defaults depending on the output format specified using
@@ -1380,6 +1385,7 @@ header when requesting a document from a URL:
         see [print-css.rocks](https://print-css.rocks) for a good
         introduction to PDF generation from HTML/CSS)
     - `-t ms`:  `pdfroff`
+    - `-t typst`: `typst`
 
 `--pdf-engine-opt=`*STRING*
 
@@ -3140,6 +3146,27 @@ The `--css` option also affects the output.
 
 `section`
 :   section number in man pages
+
+### Variables for Typst
+
+`margin`
+:   A dictionary with the fields defined in the Typst documentation:
+    `x`, `y`, `top`, `bottom`, `left`, `right`.
+
+`papersize`
+:    Paper size: `a4`, `us-letter`, etc.
+
+`mainfont`
+:    Name of system font to use for the main font.
+
+`fontsize`
+:    Font size (e.g., `12pt`).
+
+`section-numbering`
+:    Schema to use for numbering sections, e.g. `1.A.1`.
+
+`columns`
+:    Number of columns for body text.
 
 ### Variables for ms
 
@@ -5850,6 +5877,22 @@ that follows. For example:
 or
 
     Oxygen is O~2.
+    
+#### Extension: `wikilinks_title_after_pipe` ####
+
+Pandoc supports multiple markdown wikilink syntaxes, regardless of
+whether the title is before or after the pipe. 
+
+Using `--from=markdown+wikilinks_title_after_pipe` results in
+```[[Wiki]]
+[[URL|title]]
+```
+
+while using `--from=markdown+wikilinks_title_before_pipe` results
+in
+```[[Wiki]]
+[[title|URL]]
+```
 
 ## Markdown variants
 
@@ -5886,7 +5929,7 @@ citations and a bibliography in a number of styles.  Basic usage is
 
 To use this feature, you will need to have
 
-- a document containing citations (see [Extension: `citations`]);
+- a document containing citations (see [Citation syntax]);
 - a source of bibliographic data: either an external bibliography
   file or a list of `references` in the document's YAML metadata;
 - optionally, a [CSL] citation style.
@@ -7177,7 +7220,7 @@ subdirectory of your user data directory (see [Templates]).
 
 [Lua]: https://www.lua.org
 [lpeg]:  http://www.inf.puc-rio.br/~roberto/lpeg/
-[djot-writer.lua]: https://github.com/jgm/djot/blob/main/djot-writer.lua
+[djot-writer.lua]: https://github.com/jgm/djot.lua/blob/main/djot-writer.lua
 
 # Reproducible builds
 

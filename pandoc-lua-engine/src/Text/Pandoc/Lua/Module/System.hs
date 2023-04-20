@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.System
    Copyright   : © 2019-2023 Albert Krewinkel
@@ -19,27 +20,30 @@ import HsLua
 import HsLua.Module.System
   ( arch, cputime, env, getwd, ls, mkdir, os, rmdir
   , with_env, with_tmpdir, with_wd)
+import qualified HsLua.Module.System as MSys
 
 -- | Push the pandoc.system module on the Lua stack.
-documentedModule :: LuaError e => Module e
+documentedModule :: forall e. LuaError e => Module e
 documentedModule = Module
   { moduleName = "pandoc.system"
-  , moduleDescription = "system functions"
+  , moduleDescription = moduleDescription @e MSys.documentedModule
   , moduleFields =
       [ arch
       , os
       ]
   , moduleFunctions =
-      [ cputime `since` makeVersion [3, 1, 1]
-      , setName "environment" env
-      , setName "get_working_directory" getwd
-      , setName "list_directory" ls
-      , setName "make_directory" mkdir
-      , setName "remove_directory" rmdir
-      , setName "with_environment" with_env
-      , setName "with_temporary_directory" with_tmpdir
-      , setName "with_working_directory" with_wd
+      [ cputime                                        `since` v[3,1,1]
+      , setName "environment" env                      `since` v[2,7,3]
+      , setName "get_working_directory" getwd          `since` v[2,8]
+      , setName "list_directory" ls                    `since` v[2,19]
+      , setName "make_directory" mkdir                 `since` v[2,19]
+      , setName "remove_directory" rmdir               `since` v[2,19]
+      , setName "with_environment" with_env            `since` v[2,7,3]
+      , setName "with_temporary_directory" with_tmpdir `since` v[2,8]
+      , setName "with_working_directory" with_wd       `since` v[2,7,3]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []
   }
+ where
+  v = makeVersion

@@ -292,7 +292,12 @@ $if(svg)$
 $endif$
 $if(strikeout)$
 $-- also used for underline
-\usepackage{soul}
+\ifLuaTeX
+  \usepackage{luacolor}
+  \usepackage[soul]{lua-ul}
+\else
+  \usepackage{soul}
+\fi
 $endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
@@ -358,7 +363,7 @@ $if(babel-lang)$
 $if(mainfont)$
 \ifPDFTeX
 \else
-\babelfont[$babel-lang$]{rm}{$mainfont$}
+\babelfont{rm}[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$]{$mainfont$}
 \fi
 $endif$
 $endif$

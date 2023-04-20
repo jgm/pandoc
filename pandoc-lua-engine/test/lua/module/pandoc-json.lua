@@ -64,6 +64,12 @@ return {
         'string'
       )
     end),
+    test('Nested Inline', function ()
+      assert.are_equal(
+        json.encode({spc = pandoc.Space()}),
+        '{"spc":{"t":"Space"}}'
+      )
+    end)
   },
 
   group 'decode' {

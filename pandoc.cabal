@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc
-version:         3.1.1
+version:         3.1.2
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -25,6 +25,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - Documentation formats (GNU TexInfo, Haddock)
                  - Roff formats (man, ms)
                  - TeX formats (LaTeX, ConTeXt)
+                 - Typst
                  - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
                  - Outline formats (OPML)
                  - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML,
@@ -40,9 +41,9 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - PDF (via external programs such as pdflatex or wkhtmltopdf)
                  .
                  Pandoc can convert mathematical content in documents
-                 between TeX, MathML, Word equations, roff eqn, and plain text.
-                 It includes a powerful system for automatic citations
-                 and bibliographies, and it can be customized extensively
+                 between TeX, MathML, Word equations, roff eqn, typst,
+                 and plain text. It includes a powerful system for automatic
+                 citations and bibliographies, and it can be customized extensively
                  using templates, filters, and custom readers and writers
                  written in Lua.
 data-files:
@@ -94,6 +95,9 @@ data-files:
                  data/templates/article.jats_publishing
                  data/templates/affiliations.jats
                  data/templates/default.markua
+                 data/templates/default.typst
+                 data/templates/definitions.typst
+                 data/templates/template.typst
                  -- translations
                  data/translations/*.yaml
                  -- entities
@@ -315,6 +319,7 @@ extra-source-files:
                  test/tables.asciidoctor
                  test/tables.haddock
                  test/tables.texinfo
+                 test/tables.typst
                  test/tables.rst
                  test/tables.rtf
                  test/tables.txt
@@ -345,6 +350,7 @@ extra-source-files:
                  test/writer.plain
                  test/writer.mediawiki
                  test/writer.textile
+                 test/writer.typst
                  test/writer.opendocument
                  test/writer.org
                  test/writer.asciidoc
@@ -480,7 +486,7 @@ library
                  data-default          >= 0.4      && < 0.8,
                  deepseq               >= 1.3      && < 1.5,
                  directory             >= 1.2.3    && < 1.4,
-                 doclayout             >= 0.4      && < 0.5,
+                 doclayout             >= 0.4.0.1  && < 0.5,
                  doctemplates          >= 0.11     && < 0.12,
                  base64                >= 0.4      && < 0.5,
                  emojis                >= 0.1      && < 0.2,
@@ -512,7 +518,7 @@ library
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.12.6   && < 0.13,
+                 texmath               >= 0.12.7.1 && < 0.13,
                  text                  >= 1.1.1.0  && < 2.1,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.14,
@@ -532,7 +538,6 @@ library
 
   exposed-modules: Text.Pandoc,
                    Text.Pandoc.App,
-                   Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.Data,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
@@ -590,6 +595,7 @@ library
                    Text.Pandoc.Writers.Jira,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
+                   Text.Pandoc.Writers.Typst,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,
                    Text.Pandoc.Writers.Man,

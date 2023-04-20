@@ -26,8 +26,9 @@ tests =
                 , "#+name: ed"
                 , "[[file:edward.jpg]]"
                 ] =?>
-      figure (plainCaption "A courageous man.")
-             (plain $ image "edward.jpg" "ed" "")
+      figureWith ("ed", mempty, mempty)
+             (plainCaption "A courageous man.")
+             (plain $ image "edward.jpg" mempty "")
 
   , "Figure with no name" =:
       T.unlines [ "#+caption: I've been through the desert on this"
@@ -41,8 +42,9 @@ tests =
                 , "#+name: fig:redqueen"
                 , "[[./the-red-queen.jpg]]"
                 ] =?>
-      figure (plainCaption "Used as a metapher in evolutionary biology.")
-             (plain $ image "./the-red-queen.jpg" "fig:redqueen" "")
+      figureWith ("fig:redqueen", mempty, mempty)
+             (plainCaption "Used as a metapher in evolutionary biology.")
+             (plain $ image "./the-red-queen.jpg" mempty "")
 
   , "Figure with HTML attributes" =:
       T.unlines [ "#+caption: mah brain just explodid"
@@ -53,8 +55,8 @@ tests =
       let kv = [("style", "color: blue"), ("role", "button")]
           name = "lambdacat"
           capt = plain "mah brain just explodid"
-      in figureWith (mempty, mempty, kv) (simpleCaption capt)
-         (plain $ image "lambdacat.jpg" name "")
+      in figureWith (name, mempty, kv) (simpleCaption capt)
+         (plain $ image "lambdacat.jpg" mempty "")
 
   , "LaTeX attributes are ignored" =:
       T.unlines [ "#+caption: Attribute after caption"

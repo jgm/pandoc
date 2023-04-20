@@ -223,6 +223,7 @@ engines = map ("html",) htmlEngines ++
           map ("latex",) latexEngines ++
           map ("beamer",) latexEngines ++
           [ ("ms", "pdfroff")
+          , ("typst", "typst")
           , ("context", "context")
           ]
 
@@ -235,8 +236,7 @@ options :: [OptDescr (Opt -> ExceptT OptInfo IO Opt)]
 options =
     [ Option "fr" ["from","read"]
                  (ReqArg
-                  (\arg opt -> return opt { optFrom =
-                                              Just (T.toLower $ T.pack arg) })
+                  (\arg opt -> return opt { optFrom = Just $ T.pack arg })
                   "FORMAT")
                  ""
 

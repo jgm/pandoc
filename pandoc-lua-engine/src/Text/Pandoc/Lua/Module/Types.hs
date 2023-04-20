@@ -13,8 +13,9 @@ module Text.Pandoc.Lua.Module.Types
   ( documentedModule
   ) where
 
+import Data.Version (makeVersion)
 import HsLua ( Module (..), (###), (<#>), (=#>)
-             , defun, functionResult, parameter)
+             , defun, functionResult, parameter, since)
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua ()
@@ -37,6 +38,7 @@ documentedModule = Module
                        , "or a Version object"
                        ])
         =#> functionResult pushVersion "Version" "A new Version object."
+        `since` makeVersion [2,7,3]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []

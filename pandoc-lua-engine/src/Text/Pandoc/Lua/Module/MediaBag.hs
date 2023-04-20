@@ -39,18 +39,28 @@ import qualified Text.Pandoc.MediaBag as MB
 documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.mediabag"
-  , moduleDescription = "mediabag access"
+  , moduleDescription = T.unlines
+    [ "The `pandoc.mediabag` module allows accessing pandoc's media"
+    , "storage. The \"media bag\" is used when pandoc is called with the"
+    , "`--extract-media` or (for HTML only) `--embed-resources` option."
+    , ""
+    , "The module is loaded as part of module `pandoc` and can either"
+    , "be accessed via the `pandoc.mediabag` field, or explicitly"
+    , "required, e.g.:"
+    , ""
+    , "    local mb = require 'pandoc.mediabag'"
+    ]
   , moduleFields = []
   , moduleFunctions =
-      [ delete
-      , empty
-      , fetch
-      , fill
-      , insert
-      , items
-      , list
-      , lookup
-      , write
+      [ delete  `since` makeVersion [2,7,3]
+      , empty   `since` makeVersion [2,7,3]
+      , fetch   `since` makeVersion [2,0]
+      , fill    `since` makeVersion [2,19]
+      , insert  `since` makeVersion [2,0]
+      , items   `since` makeVersion [2,7,3]
+      , list    `since` makeVersion [2,0]
+      , lookup  `since` makeVersion [2,0]
+      , write   `since` makeVersion [3,0]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []
@@ -61,15 +71,18 @@ delete :: DocumentedFunction PandocError
 delete = defun "delete"
   ### (\fp -> unPandocLua $ modifyCommonState
               (\st -> st { stMediaBag = MB.deleteMedia fp (stMediaBag st) }))
-  <#> stringParam "filepath" "filename of item to delete"
+  <#> stringParam "filepath"
+      ("Filename of the item to deleted. The media bag will be " <>
+       "left unchanged if no entry with the given filename exists.")
   =#> []
-
+  #? "Removes a single entry from the media bag."
 
 -- | Delete all items from the media bag.
 empty :: DocumentedFunction PandocError
 empty = defun "empty"
   ### unPandocLua (modifyCommonState (\st -> st { stMediaBag = mempty }))
   =#> []
+  #? "Clear-out the media bag, deleting all items."
 
 -- | Fill the mediabag with all images in the document that aren't
 -- present yet.
@@ -82,7 +95,7 @@ fill = defun "fill"
   #? ("Fills the mediabag with the images in the given document.\n" <>
       "An image that cannot be retrieved will be replaced with a Span\n" <>
       "of class \"image\" that contains the image description.\n" <>
-      "" <>
+      "\n" <>
       "Images for which the mediabag already contains an item will\n" <>
       "not be processed again.")
 
@@ -93,40 +106,108 @@ insert = defun "insert"
           mb <- getMediaBag
           setMediaBag $ MB.insertMedia fp mmime contents mb
           return (Lua.NumResults 0))
-  <#> stringParam "filepath" "item file path"
-  <#> opt (textParam "mimetype" "the item's MIME type")
-  <#> parameter Lua.peekLazyByteString "string" "contents" "binary contents"
+  <#> stringParam "filepath" "filename and path relative to the output folder."
+  <#> opt (textParam "mimetype"
+           "the item's MIME type; omit if unknown or unavailable.")
+  <#> parameter Lua.peekLazyByteString "string" "contents"
+        "the binary contents of the file."
   =#> []
+  #? T.unlines
+  [ "Adds a new entry to pandoc's media bag. Replaces any existing"
+  , "media bag entry the same `filepath`."
+  , ""
+  , "Usage:"
+  , ""
+  , "    local fp = 'media/hello.txt'"
+  , "    local mt = 'text/plain'"
+  , "    local contents = 'Hello, World!'"
+  , "    pandoc.mediabag.insert(fp, mt, contents)"
+  ]
 
 -- | Returns iterator values to be used with a Lua @for@ loop.
 items :: DocumentedFunction PandocError
 items = defun "items"
   ### (do
-          mb <-unPandocLua getMediaBag
+          mb <- unPandocLua getMediaBag
           let pushItem (fp, mimetype, contents) = do
                 Lua.pushString fp
                 Lua.pushText mimetype
                 Lua.pushByteString $ BL.toStrict contents
                 return (Lua.NumResults 3)
           Lua.pushIterator pushItem (MB.mediaItems mb))
-  =?> "Iterator triple"
+  =?> T.unlines
+  [ "Iterator triple:"
+  , ""
+  , "-   The iterator function; must be called with the iterator"
+  , "    state and the current iterator value."
+  , "-   Iterator state -- an opaque value to be passed to the"
+  , "    iterator function."
+  , "-   Initial iterator value."
+  ]
+  #? T.unlines
+  [ "Returns an iterator triple to be used with Lua's generic `for`"
+  , "statement. The iterator returns the filepath, MIME type, and"
+  , "content of a media bag item on each invocation. Items are"
+  , "processed one-by-one to avoid excessive memory use."
+  , ""
+  , "This function should be used only when full access to all items,"
+  , "including their contents, is required. For all other cases,"
+  , "[`list`](#pandoc.mediabag.list) should be preferred."
+  , ""
+  , "Usage:"
+  , ""
+  , "    for fp, mt, contents in pandoc.mediabag.items() do"
+  , "      -- print(fp, mt, contents)"
+  , "    end"
+  ]
 
 -- | Function to lookup a value in the mediabag.
 lookup :: DocumentedFunction PandocError
 lookup = defun "lookup"
-  ### (\fp -> unPandocLua (MB.lookupMedia fp <$> getMediaBag) >>= \case
-          Nothing   -> 1 <$ Lua.pushnil
-          Just item -> 2 <$ do
-            Lua.pushText $ MB.mediaMimeType item
-            Lua.pushLazyByteString $ MB.mediaContents item)
-  <#> stringParam "filepath" "path of item to lookup"
-  =?> "MIME type and contents"
+  ### (\fp -> unPandocLua (MB.lookupMedia fp <$> getMediaBag))
+  <#> stringParam "filepath" "name of the file to look up."
+  =#> mconcat
+      [ functionResult
+          (maybe Lua.pushnil (Lua.pushText . MB.mediaMimeType))
+          "string"
+          "The entry's MIME type, or nil if the file was not found."
+      , functionResult
+          (maybe Lua.pushnil (Lua.pushLazyByteString . MB.mediaContents))
+          "string"
+          "Contents of the file, or nil if the file was not found."
+      ]
+  #? T.unlines
+  [ "Lookup a media item in the media bag, and return its MIME type"
+  , "and contents."
+  , ""
+  , "Usage:"
+  , ""
+  , "    local filename = 'media/diagram.png'"
+  , "    local mt, contents = pandoc.mediabag.lookup(filename)"
+  ]
 
 -- | Function listing all mediabag items.
 list :: DocumentedFunction PandocError
 list = defun "list"
   ### (unPandocLua (MB.mediaDirectory <$> getMediaBag))
-  =#> functionResult (pushPandocList pushEntry) "table" "list of entry triples"
+  =#> functionResult (pushPandocList pushEntry) "table"
+        ("A list of elements summarizing each entry in the media\n" <>
+         "bag. The summary item contains the keys `path`, `type`, and\n" <>
+         "`length`, giving the filepath, MIME type, and length of\n" <>
+         "contents in bytes, respectively.")
+  #? T.unlines
+  [ "Get a summary of the current media bag contents."
+  , ""
+  , "Usage:"
+  , ""
+  , "    -- calculate the size of the media bag."
+  , "    local mb_items = pandoc.mediabag.list()"
+  , "    local sum = 0"
+  , "    for i = 1, #mb_items do"
+  , "        sum = sum + mb_items[i].length"
+  , "    end"
+  , "    print(sum)"
+  ]
  where
   pushEntry :: (FilePath, MimeType, Int) -> LuaE PandocError ()
   pushEntry (fp, mimeType, contentLength) = do
@@ -138,13 +219,29 @@ list = defun "list"
 -- | Lua function to retrieve a new item.
 fetch :: DocumentedFunction PandocError
 fetch = defun "fetch"
-  ### (\src -> do
-          (bs, mimeType) <- unPandocLua $ fetchItem src
-          Lua.pushText $ fromMaybe "" mimeType
-          Lua.pushByteString bs
-          return 2)
-  <#> textParam "src" "URI to fetch"
-  =?> "Returns two string values: the fetched contents and the mimetype."
+  ### (unPandocLua . fetchItem)
+  <#> textParam "source" "path to a resource; either a local file path or URI"
+  =#> ( functionResult (Lua.pushText . fromMaybe "" . snd) "string"
+        "The entry's MIME type, or `nil` if the file was not found."
+        <>
+        functionResult (Lua.pushByteString . fst) "string"
+        "Contents of the file, or `nil` if the file was not found."
+      )
+  #? T.unlines
+  [ "Fetches the given source from a URL or local file. Returns two"
+  , "values: the contents of the file and the MIME type (or an empty"
+  , "string)."
+  , ""
+  , "The function will first try to retrieve `source` from the"
+  , "mediabag; if that fails, it will try to download it or read it"
+  , "from the local file system while respecting pandoc's \"resource"
+  , "path\" setting."
+  , ""
+  , "Usage:"
+  , ""
+  , "    local diagram_url = 'https://pandoc.org/diagram.jpg'"
+  , "    local mt, contents = pandoc.mediabag.fetch(diagram_url)"
+  ]
 
 -- | Extract the mediabag or just a single entry.
 write :: DocumentedFunction PandocError

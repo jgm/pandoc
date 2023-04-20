@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
 Module      : Text.Pandoc.Lua.Module.JSON
@@ -22,7 +21,7 @@ where
 import Prelude hiding (null)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Alt (..))
-import Data.Version (Version, makeVersion)
+import Data.Version (makeVersion)
 import HsLua.Aeson
 import HsLua.Core
 import HsLua.Marshalling
@@ -38,7 +37,8 @@ import qualified Data.Text as T
 documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.json"
-  , moduleDescription = "JSON module based on the Aeson Haskell package."
+  , moduleDescription = "JSON module to work with JSON; " <>
+                        "based on the Aeson Haskell package."
   , moduleFields = fields
   , moduleFunctions = functions
   , moduleOperations = []
@@ -59,7 +59,7 @@ fields =
 null :: LuaError e => Field e
 null = Field
   { fieldName = "null"
-  , fieldType = "userdata"
+  , fieldType = "light userdata"
   , fieldDescription = "Value used to represent the `null` JSON value."
   , fieldPushValue = pushValue Aeson.Null
   }
@@ -70,8 +70,8 @@ null = Field
 
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ decode
-  , encode
+  [ decode `since` makeVersion [3, 1, 1]
+  , encode `since` makeVersion [3, 1, 1]
   ]
 
 -- | Decode a JSON string into a Lua object.
@@ -94,37 +94,22 @@ decode = defun "decode"
   =#> functionResult pure "any" "decoded object"
   #? T.unlines
      [ "Creates a Lua object from a JSON string. The function returns an"
-     , "[Inline], [Block], [Pandoc], [Inlines], or [Blocks] element if the"
-     , "input can be decoded into represent any of those types. Otherwise"
-     , "the default decoding is applied, using tables, booleans, numbers,"
-     , "and [null](#pandoc.json.null) to represent the JSON value."
+     , "[[Inline]], [[Block]], [[Pandoc]], [[Inlines]], or [[Blocks]] element"
+     , "if the input can be decoded into represent any of those types."
+     , "Otherwise the default decoding is applied, using tables, booleans,"
+     , "numbers, and [null](#pandoc.json.null) to represent the JSON value."
      , ""
      , "The special handling of AST elements can be disabled by setting"
      , "`pandoc_types` to `false`."
      ]
-  `since` initialVersion
 
 -- | Encode a Lua object as JSON.
 encode :: LuaError e => DocumentedFunction e
 encode = defun "encode"
-  ### (\idx -> do
-          -- ensure that there are no other objects on the stack.
-          settop (nthBottom 1)
-          getmetafield idx "__tojson" >>= \case
-            TypeNil -> do
-              -- No metamethod, use default encoder.
-              value <- forcePeek $ peekValue idx
-              pushLazyByteString $ Aeson.encode value
-            _ -> do
-              -- Try to use the field value as function
-              insert (nth 2)
-              call 1 1
-              ltype top >>= \case
-                TypeString -> pure ()
-                _ -> failLua
-                     "Call to __tojson metamethod did not yield a string")
-  <#> parameter pure "any" "object" "object to convert"
-  =#> functionResult pure "string" "JSON encoding of `object`"
+  ### liftPure Aeson.encode
+  <#> parameter peekValue "any" "object" "object to convert"
+  =#> functionResult pushLazyByteString "string"
+        "JSON encoding of the given `object`"
   #? T.unlines
      ["Encodes a Lua object as JSON string."
      , ""
@@ -133,8 +118,3 @@ encode = defun "encode"
      , "the sole argument. The result of that call is expected to be a"
      , "valid JSON string, but this not checked."
      ]
-  `since` initialVersion
-
--- | First published version of this library.
-initialVersion :: Version
-initialVersion = makeVersion [1,0,0]

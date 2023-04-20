@@ -37,10 +37,10 @@ import System.FilePath
 import System.IO (stdout)
 import Text.Pandoc.Chunks (PathTemplate(..))
 import Text.Pandoc
-import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..))
 import Text.Pandoc.App.CommandLineOptions (engines)
-import qualified Text.Pandoc.Format as Format
+import Text.Pandoc.Format (FlavoredFormat (..), applyExtensionsDiff,
+                           parseFlavoredFormat, formatFromFilePaths)
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
 import Text.Pandoc.Scripting (ScriptingEngine (engineLoadCustom),
                               CustomComponents(..))
@@ -72,24 +72,26 @@ optToOutputSettings scriptingEngine opts = do
 
   let pdfOutput = map toLower (takeExtension outputFile) == ".pdf" ||
                   optTo opts == Just "pdf"
-  (writerName, maybePdfProg) <-
+  let defaultOutput = "html"
+  defaultOutputFlavor <- parseFlavoredFormat defaultOutput
+  (flvrd@(FlavoredFormat format _extsDiff), maybePdfProg) <-
     if pdfOutput
-       then liftIO $ pdfWriterAndProg
-               (case optTo opts of
-                  Just "pdf" -> Nothing
-                  x          -> x)
-               (optPdfEngine opts)
+       then do
+         outflavor <- case optTo opts of
+                        Just x | x /= "pdf" -> Just <$> parseFlavoredFormat x
+                        _ -> pure Nothing
+         liftIO $ pdfWriterAndProg outflavor (optPdfEngine opts)
        else case optTo opts of
-              Just f -> return (f, Nothing)
+              Just f -> (, Nothing) <$> parseFlavoredFormat f
               Nothing
-               | outputFile == "-" -> return ("html", Nothing)
-               | otherwise ->
-                     case formatFromFilePaths [outputFile] of
-                           Nothing -> do
-                             report $ CouldNotDeduceFormat
-                                [T.pack $ takeExtension outputFile] "html"
-                             return ("html", Nothing)
-                           Just f  -> return (f, Nothing)
+               | outputFile == "-" ->
+                   return (defaultOutputFlavor, Nothing)
+               | otherwise -> case formatFromFilePaths [outputFile] of
+                   Nothing -> do
+                     report $ CouldNotDeduceFormat
+                       [T.pack $ takeExtension outputFile] defaultOutput
+                     return (defaultOutputFlavor,Nothing)
+                   Just f  -> return (f, Nothing)
 
   let makeSandboxed pureWriter =
           let files = maybe id (:) (optReferenceDoc opts) .
@@ -103,9 +105,6 @@ optToOutputSettings scriptingEngine opts = do
                  TextWriter w -> TextWriter $ \o d -> sandbox files (w o d)
                  ByteStringWriter w ->
                    ByteStringWriter $ \o d -> sandbox files (w o d)
-
-  flvrd@(Format.FlavoredFormat format _extsDiff) <-
-    Format.parseFlavoredFormat writerName
 
   let standalone = optStandalone opts || isBinaryFormat format || pdfOutput
   let templateOrThrow = \case
@@ -134,7 +133,7 @@ optToOutputSettings scriptingEngine opts = do
                          format <> " does not contain a custom writer"
              Just w -> return w
       let extsConf = fromMaybe mempty $ customExtensions components
-      wexts <- Format.applyExtensionsDiff extsConf flvrd
+      wexts <- applyExtensionsDiff extsConf flvrd
       templ <- processCustomTemplate $
                case customTemplate components of
                  Nothing -> throwError $ PandocNoTemplateError format
@@ -272,18 +271,16 @@ setVariableM key val (Context ctx) = return $ Context $ M.alter go key ctx
   where go Nothing             = Just $ toVal val
         go (Just x)            = Just x
 
-baseWriterName :: T.Text -> T.Text
-baseWriterName = T.takeWhile (\c -> c /= '+' && c /= '-')
-
-pdfWriterAndProg :: Maybe T.Text              -- ^ user-specified writer name
+pdfWriterAndProg :: Maybe FlavoredFormat      -- ^ user-specified format
                  -> Maybe String              -- ^ user-specified pdf-engine
-                 -> IO (T.Text, Maybe String) -- ^ IO (writerName, maybePdfEngineProg)
+                 -> IO (FlavoredFormat, Maybe String) -- ^ format, pdf-engine
 pdfWriterAndProg mWriter mEngine =
   case go mWriter mEngine of
       Right (writ, prog) -> return (writ, Just prog)
       Left err           -> liftIO $ E.throwIO $ PandocAppError err
     where
-      go Nothing Nothing       = Right ("latex", "pdflatex")
+      go Nothing Nothing       = Right
+                                 (FlavoredFormat "latex" mempty, "pdflatex")
       go (Just writer) Nothing = (writer,) <$> engineForWriter writer
       go Nothing (Just engine) = (,engine) <$> writerForEngine (takeBaseName engine)
       go (Just writer) (Just engine) | isCustomWriter writer =
@@ -291,23 +288,25 @@ pdfWriterAndProg mWriter mEngine =
            -- what they are doing.
            Right (writer, engine)
       go (Just writer) (Just engine) =
-           case find (== (baseWriterName writer, takeBaseName engine)) engines of
+           case find (== (formatName writer, takeBaseName engine)) engines of
                 Just _  -> Right (writer, engine)
                 Nothing -> Left $ "pdf-engine " <> T.pack engine <>
-                           " is not compatible with output format " <> writer
+                           " is not compatible with output format " <>
+                           formatName writer
 
       writerForEngine eng = case [f | (f,e) <- engines, e == eng] of
-                                 fmt : _ -> Right fmt
+                                 fmt : _ -> Right (FlavoredFormat fmt mempty)
                                  []      -> Left $
                                    "pdf-engine " <> T.pack eng <> " not known"
 
-      engineForWriter "pdf" = Left "pdf writer"
-      engineForWriter w = case [e | (f,e) <- engines, f == baseWriterName w] of
+      engineForWriter (FlavoredFormat "pdf" _) = Left "pdf writer"
+      engineForWriter w = case [e | (f,e) <- engines, f == formatName w] of
                                 eng : _ -> Right eng
                                 []      -> Left $
-                                   "cannot produce pdf output from " <> w
+                                   "cannot produce pdf output from " <>
+                                   formatName w
 
-      isCustomWriter w = ".lua" `T.isSuffixOf` w
+      isCustomWriter w = ".lua" `T.isSuffixOf` formatName w
 
 isBinaryFormat :: T.Text -> Bool
 isBinaryFormat s =

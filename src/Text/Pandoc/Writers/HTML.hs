@@ -501,7 +501,7 @@ listItemToHtml opts bls
           checkbox' = H.input ! A.type_ "checkbox"
       isContents <- inlineListToHtml opts is
       bsContents <- blockListToHtml opts bs
-      return $ constr (checkbox >> isContents) >>
+      return $ constr (H.label (checkbox >> isContents)) >>
                (if null bs then mempty else nl) >>
                bsContents
 
@@ -685,7 +685,7 @@ attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
 attrsToHtml opts (id',classes',keyvals) = do
   attrs <- toAttrs keyvals
-  let classes'' = filter (not . T.null) classes'
+  let classes'' = nubOrd $ filter (not . T.null) classes'
   return $
     [prefixedId opts id' | not (T.null id')] ++
     [A.class_ (toValue $ T.unwords classes'') | not (null classes'')] ++ attrs
@@ -814,8 +814,7 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
                              stEmittedNotes = stEmittedNotes st' + length notes })
         return (res <> renderedNotes)
       else return res
-  let classes' = nubOrd $
-                  ["title-slide" | titleSlide] ++ ["slide" | slide] ++
+  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
                   ["level" <> tshow level | slide || writerSectionDivs opts ]

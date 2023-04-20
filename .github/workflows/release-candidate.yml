@@ -74,6 +74,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install ghc and cabal
+      run: |
+        ghcup install ghc --set 9.4
+        ghcup install cabal --set 3.10
+
     - name: Create release
       run: |
         sh macos/make_macos_release.sh
