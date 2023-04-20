@@ -1801,7 +1801,7 @@ Fields:
 List of [Inline] elements, with the same methods as a generic
 [List](#type-list). It is usually not necessary to create values
 of this type in user scripts, as pandoc can convert other types
-into Blocks wherever a value of this type is expected:
+into Inlines wherever a value of this type is expected:
 
 -   lists of [Inline] (or Inline-like) values are used directly;
 -   single [Inline] values are converted into a list containing
