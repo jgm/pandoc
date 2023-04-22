@@ -2179,7 +2179,7 @@ The styles may also be mixed in the same template, but the
 opening and closing delimiter must match in each case.  The
 opening delimiter may be followed by one or more spaces
 or tabs, which will be ignored. The closing delimiter may
-be followed by one or more spaces or tabs, which will be
+be preceded by one or more spaces or tabs, which will be
 ignored.
 
 To include a literal `$` in the document, use `$$`.
