@@ -37,7 +37,7 @@ without SVG support), [Python] (to use Pandoc filters), and
 Or, you can install pandoc using
 [winget](https://github.com/microsoft/winget-pkgs):
 
-    winget install pandoc
+    winget install --source winget --exact --id JohnMacFarlane.Pandoc
 
 Using multiple installation methods can result in two separate
 installations of pandoc; it is recommended to properly uninstall
