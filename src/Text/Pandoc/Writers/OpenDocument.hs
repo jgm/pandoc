@@ -255,7 +255,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                collectBlockIdent _                             = []
            modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks }
            m <- metaToContext opts
-                  (blocksToOpenDocument opts)
+                  (inlinesToOpenDocument opts . blocksToInlines)
                   (fmap chomp . inlinesToOpenDocument opts)
                   meta'
            b <- blocksToOpenDocument opts blocks
