@@ -65,5 +65,6 @@
 *.dyn_o
 *.dyn_hi
 *~
+.*sw?
 .DS_Store
 .stack-work
