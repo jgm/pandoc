@@ -113,7 +113,6 @@ pandocToODT opts doc@(Pandoc meta _) = do
                         Just m   -> selfClosingTag "manifest:file-entry"
                                      [("manifest:media-type", m)
                                      ,("manifest:full-path", T.pack fp)
-                                     ,("manifest:version", "1.3")
                                      ]
   let files = [ ent | ent <- filesInArchive archive,
                              not ("META-INF" `isPrefixOf` ent) ]
@@ -127,7 +126,8 @@ pandocToODT opts doc@(Pandoc meta _) = do
             [("xmlns:manifest","urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")
             ,("manifest:version","1.3")] ( selfClosingTag "manifest:file-entry"
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
-                 ,("manifest:full-path","/")]
+                 ,("manifest:full-path","/")
+                 ,("manifest:version", "1.3")]
                 $$ vcat ( map toFileEntry files )
                 $$ vcat ( map toFileEntry formulas )
               )
