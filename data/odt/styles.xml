@@ -27,7 +27,7 @@ xmlns:officeooo="http://openoffice.org/2009/office"
 xmlns:tableooo="http://openoffice.org/2009/table"
 xmlns:drawooo="http://openoffice.org/2010/draw"
 xmlns:calcext="urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0"
-xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2">
+xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
   <office:font-face-decls>
     <style:font-face style:name="StarSymbol"
     svg:font-family="StarSymbol" />

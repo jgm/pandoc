@@ -6,7 +6,7 @@
     xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0"
     xmlns:ooo="http://openoffice.org/2004/office"
     xmlns:grddl="http://www.w3.org/2003/g/data-view#"
-    office:version="1.2">
+    office:version="1.3">
   <office:meta>
     <meta:document-statistic
       meta:table-count="0" meta:image-count="0" meta:object-count="0"
