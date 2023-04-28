@@ -125,7 +125,6 @@ getDefaultReferenceODT = do
                "meta.xml",
                "settings.xml",
                "Configurations2/accelerator/current.xml",
-               "Thumbnails/thumbnail.png",
                "META-INF/manifest.xml"]
   let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
                             contents <- (BL.fromChunks . (:[])) `fmap`
