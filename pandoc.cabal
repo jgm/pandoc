@@ -126,7 +126,6 @@ data-files:
                  data/odt/content.xml
                  data/odt/meta.xml
                  data/odt/settings.xml
-                 data/odt/Configurations2/accelerator/current.xml
                  data/odt/META-INF/manifest.xml
                  -- source files for reference.pptx
                  data/pptx/_rels/.rels
