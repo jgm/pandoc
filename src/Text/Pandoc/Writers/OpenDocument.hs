@@ -516,9 +516,9 @@ tableRowToOpenDocument :: PandocMonad m
                        => WriterOptions -> [Text] -> Ann.BodyRow
                        -> OD m (Doc Text)
 tableRowToOpenDocument o ns r =
-    let (Ann.BodyRow _ _ _ c ) = r
+    let (Ann.BodyRow _ _ rowheaders cs) = r
     in inTagsIndented "table:table-row" . vcat <$>
-    mapM (tableItemToOpenDocument o "TableRowCell") (zip ns c)
+    mapM (tableItemToOpenDocument o "TableRowCell") (zip ns (rowheaders ++ cs))
 
 colspanAttrib :: ColSpan -> [(Text, Text)]
 colspanAttrib cs =
