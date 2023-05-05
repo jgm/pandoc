@@ -4168,7 +4168,7 @@ ordered list marker in place of a numeral:
     #. one
     #. two
 
-Note:  the `fancy_lists` extension doesn't work with `commonmark`.
+Note:  the '`#`' ordered list marker doesn't work with `commonmark`.
 
 #### Extension: `startnum` ####
 
