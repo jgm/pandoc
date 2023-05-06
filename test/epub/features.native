@@ -1184,7 +1184,7 @@
         , Plain
             [ Math
                 DisplayMath
-                "c = \\overset{\\text{complex\\ number}}{\\overbrace{\\underset{\\text{real}}{\\underbrace{\\mspace{20mu} a\\mspace{20mu}}} + \\underset{\\text{imaginary}}{\\underbrace{\\quad b{\\mathbb{i}}\\quad}}}}"
+                "c = \\overset{\\text{complex number}}{\\overbrace{\\underset{\\text{real}}{\\underbrace{\\mspace{20mu} a\\mspace{20mu}}} + \\underset{\\text{imaginary}}{\\underbrace{\\quad b{\\mathbb{i}}\\quad}}}}"
             ]
         , Para
             [ Str "The"
