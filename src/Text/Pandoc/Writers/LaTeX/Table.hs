@@ -356,7 +356,7 @@ multicolumnDescriptor align
   (ColumnCount numcols)
   (Ann.ColNumber colnum) =
   let toWidth = \case
-        ColWidthDefault -> 0
+        ColWidthDefault -> (1 / fromIntegral numcols)
         ColWidth x      -> x
       colspan = length colWidths
       width = sum $ NonEmpty.map toWidth colWidths
