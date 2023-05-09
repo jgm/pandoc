@@ -110,7 +110,7 @@ tests = [ testGroup "inlines"
           , docxTest
             "blockquotes"
             def
-            "docx/block_quotes_parse_indent.native"
+            "docx/block_quotes.native"
             "docx/golden/block_quotes.docx"
           , docxTest
             "tables"
