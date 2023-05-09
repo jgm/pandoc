@@ -69,6 +69,14 @@
   <p>Here's one with a bullet. * criminey.</p>
   <p>There should be a hard line break<break />here.</p>
 </sec>
+<sec id="statements">
+  <title> Statements </title>
+  <statement>
+    <label> A label for a statment</label>
+    <title> CAP TITLE </title>
+    <p> Some text to make this regular </p>
+  </statement>
+</sec>
 <sec id="block-quotes">
   <title>Block Quotes</title>
   <p>E-mail style:</p>

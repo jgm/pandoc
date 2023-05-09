@@ -226,6 +226,37 @@ Pandoc
       , LineBreak
       , Str "here."
       ]
+  , Header 1 ( "statements" , [] , [] ) [ Str "Statements" ]
+  , Header
+      2
+      ( "" , [] , [] )
+      [ Str "A"
+      , Space
+      , Str "label"
+      , Space
+      , Str "for"
+      , Space
+      , Str "a"
+      , Space
+      , Str "statment."
+      , Space
+      , Str "CAP"
+      , Space
+      , Str "TITLE"
+      ]
+  , Para
+      [ Str "Some"
+      , Space
+      , Str "text"
+      , Space
+      , Str "to"
+      , Space
+      , Str "make"
+      , Space
+      , Str "this"
+      , Space
+      , Str "regular"
+      ]
   , Header
       1
       ( "block-quotes" , [] , [] )
