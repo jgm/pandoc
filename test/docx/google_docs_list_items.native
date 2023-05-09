@@ -1,0 +1,62 @@
+[ Para
+    [ Str "Hello," , Space , Str "some" , Space , Str "lists" ]
+, BulletList
+    [ [ Para
+        [ Str "This"
+        , Space
+        , Str "is"
+        , Space
+        , Str "a"
+        , Space
+        , Str "list"
+        , Space
+        , Str "item"
+        ]
+          
+      ]
+    , [ Para
+        [ Str "This"
+        , Space
+        , Str "is"
+        , Space
+        , Str "another"
+        , Space
+        , Str "item"
+        ]
+      , BulletList
+          [ [ Para
+                [ Str "This"
+                , Space
+                , Str "is"
+                , Space
+                , Str "a"
+                , Space
+                , Str "subitem"
+                ]
+            , BulletList
+                [ [ Para
+                        [ Str "Subitem"
+                        , Space
+                        , Str "on"
+                        , Space
+                        , Str "a"
+                        , Space
+                        , Str "subitem"
+                        ]
+                      ]
+                ]
+            ]
+          ]
+      ]
+    , [ Para
+        [ Str "Back"
+        , Space
+        , Str "to"
+        , Space
+        , Str "normal"
+        , Space
+        , Str "level"
+        ]
+      ]
+    ]
+]

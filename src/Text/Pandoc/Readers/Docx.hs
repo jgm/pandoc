@@ -104,6 +104,7 @@ import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
 import Text.Pandoc.Readers.EndNote (readEndNoteXMLCitation)
 import Text.Pandoc.Sources (toSources)
+import Text.Pandoc.Readers.Docx.Parse.Styles (ParStyle(..))
 
 readDocx :: PandocMonad m
          => ReaderOptions
@@ -246,6 +247,11 @@ isBlockQuote =
   isInheritedFromStyles [
     "Quote", "Block Text", "Block Quote", "Block Quotation", "Intense Quote"
     ]
+
+hasNumInfo :: ParStyle -> Bool
+hasNumInfo parStyle = case numInfo parStyle of
+  Just _  -> True
+  Nothing -> False
 
 runElemToInlines :: RunElem -> Inlines
 runElemToInlines (TextRun s)   = text s
@@ -640,7 +646,7 @@ parStyleToTransform extStylesEnabled parStyle@(getStyleName -> styleName)
       divWith ("", [normalizeToClassName styleName], [])
   | otherwise =
       (if extStylesEnabled then divWith (extraAttr parStyle) else id)
-      . (if isBlockQuote parStyle then blockQuote else id)
+       . (if hasNumInfo parStyle then id else (if isBlockQuote parStyle then blockQuote else id))
 
 -- The relative indent is the indentation minus the indentation of the parent style.
 -- This tells us whether this paragraph in particular was indented more and thus

@@ -318,6 +318,10 @@ tests = [ testGroup "document"
             "docx/block_quotes.docx"
             "docx/block_quotes_parse_indent.native"
           , testCompare
+            "Google Docs Lists (parsing List elements not as block quote)"
+            "docx/google_docs_list_items.docx"
+            "docx/google_docs_list_items.native"
+          , testCompare
             "blockquotes (parsing indent relative to the indent of the parent style as blockquote)"
             "docx/relative_indentation_blockquotes.docx"
             "docx/relative_indentation_blockquotes.native"
