@@ -63,6 +63,7 @@ pandocToMs opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  title <- chomp <$> inlineListToMs' opts (lookupMetaInlines "title" meta)
   metadata <- metaToContext opts
               (blockListToMs opts)
               (fmap chomp . inlineListToMs' opts)
@@ -82,7 +83,8 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ defField "toc" (writerTableOfContents opts)
               $ defField "title-meta" titleMeta
               $ defField "author-meta" (T.intercalate "; " authorsMeta)
-              $ defField "highlighting-macros" highlightingMacros metadata
+              $ defField "highlighting-macros" highlightingMacros
+              $ resetField "title" title metadata
   return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
