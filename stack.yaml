@@ -46,7 +46,7 @@ extra-deps:
 - commonmark-extensions-0.2.3.4
 - doclayout-0.4.0.1
 - git: https://github.com/jgm/texmath
-  commit: 7a15b2ced617d62a12e1af04487733bf1f8a6d32
+  commit: 6f22675a2fec126cfe8aed87af19aae4e55e5eb1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
