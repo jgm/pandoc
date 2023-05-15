@@ -170,19 +170,7 @@ parseBlock (Elem e) = do
         "code" -> codeBlockWithLang
         "preformat" -> codeBlockWithLang
         "disp-quote" -> parseWithHeader (sectionLevel+1) parseBlockquote
-        "list" ->  parseWithHeader (sectionLevel+1)
-          ( case attrValue "list-type" e of
-              "bullet" -> bulletList <$> listitems
-              listType -> do
-                let start =
-                      fromMaybe 1 $
-                        ( filterElement (named "list-item") e
-                            >>= filterElement (named "label")
-                        )
-                          >>= safeRead . textContent
-                orderedListWith (start, parseListStyleType listType, DefaultDelim)
-                  <$> listitems
-          )
+        "list" ->  parseWithHeader (sectionLevel+1) parseList
         "def-list" -> parseWithHeader (sectionLevel+1) (definitionList <$> deflistitems)
         "sec" -> parseBlockWithHeader
         "abstract" -> parseBlockWithHeader
@@ -254,6 +242,18 @@ parseBlock (Elem e) = do
                                               mapM parseInline (elContent z)
             contents <- getBlocks e
             return $ blockQuote (contents <> attrib)
+         parseList = do
+            case attrValue "list-type" e of
+              "bullet" -> bulletList <$> listitems
+              listType -> do
+                let start =
+                      fromMaybe 1 $
+                        ( filterElement (named "list-item") e
+                            >>= filterElement (named "label")
+                        )
+                          >>= safeRead . textContent
+                orderedListWith (start, parseListStyleType listType, DefaultDelim)
+                  <$> listitems
          parseListStyleType "roman-lower" = LowerRoman
          parseListStyleType "roman-upper" = UpperRoman
          parseListStyleType "alpha-lower" = LowerAlpha
