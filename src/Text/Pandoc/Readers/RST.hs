@@ -299,6 +299,7 @@ rawDirective top fields body = do
                        (t) <>
                          "\n")]  -- see #7436
       currentDir <- takeDirectory . sourceName <$> getPosition
+      -- need to parse as RAW blocks here
       return insertIncludedFile parseBlocks toStream [currentDir] file
     -- else read the body as a raw block
     Nothing -> return $ B.rawBlock (trim top) (stripTrailingNewlines body)
