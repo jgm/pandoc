@@ -4489,7 +4489,7 @@ Cells can span multiple columns or rows:
     | Temperature +-------+----------+
     | 1961-1990   | mean  | 14 °C    |
     |             +-------+----------+
-    |             | min   | 56.7 °C  |
+    |             | max   | 56.7 °C  |
     +-------------+-------+----------+
 
 A table header may contain more than one row:
