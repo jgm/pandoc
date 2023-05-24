@@ -202,4 +202,18 @@ tests =
                     , ("city", "Zürich")
                     ]
       in codeBlockWith ( "", ["c"], params) "code body\n"
+
+  , "Header args with quotes" =:
+     T.unlines [ "#+begin_src haskell :exports \"both\" :tangle \"main.hs\""
+               , "main :: IO ()"
+               , "main = putStrLn \"Hello, World!\""
+               , "#+end_src"
+               ] =?>
+     let params  = [ ("org-language", "haskell")
+                   , ("exports", "both")
+                   , ("tangle", "main.hs")
+                   ]
+     in codeBlockWith ("", ["haskell"], params)
+        "main :: IO ()\nmain = putStrLn \"Hello, World!\"\n"
+
   ]
