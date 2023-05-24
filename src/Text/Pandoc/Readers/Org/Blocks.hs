@@ -415,7 +415,7 @@ blockOption = try $ do
   return (argKey, paramValue)
 
 orgParamValue :: Monad m => OrgParser m Text
-orgParamValue = try $ fmap T.pack $
+orgParamValue = try $ fmap (stripQuotes . T.pack) $
   skipSpaces
     *> notFollowedBy orgArgKey
     *> noneOf "\n\r" `many1Till` endOfValue
@@ -423,6 +423,9 @@ orgParamValue = try $ fmap T.pack $
  where
   endOfValue = lookAhead $  try (skipSpaces <* oneOf "\n\r")
                         <|> try (skipSpaces1 <* orgArgKey)
+
+  stripQuotes :: Text -> Text
+  stripQuotes = T.dropAround (== '\"')
 
 
 --
