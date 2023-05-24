@@ -209,11 +209,21 @@ tests =
                , "main = putStrLn \"Hello, World!\""
                , "#+end_src"
                ] =?>
-     let params  = [ ("org-language", "haskell")
-                   , ("exports", "both")
+     let params  = [ ("exports", "both")
                    , ("tangle", "main.hs")
                    ]
      in codeBlockWith ("", ["haskell"], params)
         "main :: IO ()\nmain = putStrLn \"Hello, World!\"\n"
 
+  , "Header args with colon" =:
+     T.unlines [ "#+begin_src haskell :exports \"both\" :session \"my :session\""
+               , "main :: IO ()"
+               , "main = putStrLn \"Hello, World!\""
+               , "#+end_src"
+               ] =?>
+     let params  = [ ("exports", "both")
+                   , ("session", "my :session")
+                   ]
+     in codeBlockWith ("", ["haskell"], params)
+        "main :: IO ()\nmain = putStrLn \"Hello, World!\"\n"
   ]
