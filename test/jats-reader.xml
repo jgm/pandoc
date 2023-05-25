@@ -961,6 +961,17 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
+            <p>r1a</p>
+          </th>
+          <th>
+            <p>r1b</p>
+          </th>
+          <th>
+            <p>r1c</p>
+          </th>
+        </tr>
+        <tr>
+          <th>
             <p>X</p>
           </th>
           <th>
@@ -1230,6 +1241,17 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
           <td>
             <p>f3</p>
+          </td>
+        </tr>
+        <tr>
+          <td align="right">
+            <p>f4</p>
+          </td>
+          <td>
+            <p>f5</p>
+          </td>
+          <td>
+            <p>f6</p>
           </td>
         </tr>
       </tfoot>
