@@ -301,21 +301,19 @@ parseBlock (Elem e) = do
                                            _      -> filterChildren isColspec e'
                       let isRow x = named "row" x || named "tr" x
 
-                      -- list of header cell elements
-                      let headRowElements = case filterChild (named "thead") e' of
-                                      Just h -> maybe [] parseElement (filterChild isRow h)
-                                      Nothing -> []
-                      let bodyRowElements bodyElement = 
-                            map parseElement $ filterChildren isRow bodyElement
+                      let parseRows elementWithRows =
+                            map parseElement $ filterChildren isRow elementWithRows
 
                       -- list of list of body cell elements 
-                      let multipleBodyRowElements = 
-                            map bodyRowElements $ filterChildren (named "tbody") e'
+                      let multipleBodyRowElements =
+                            map parseRows $ filterChildren (named "tbody") e'
+
+                      -- list of list header cell elements
+                      let headRowElements = maybe [] parseRows (filterChild (named "thead") e')
 
                       -- list of foot cell elements
-                      let footRowElements = case filterChild (named "tfoot") e' of
-                                      Just f -> maybe [] parseElement (filterChild isRow f)
-                                      Nothing -> []
+                      let footRowElements = maybe [] parseRows (filterChild (named "tfoot") e')
+                      
                       let toAlignment c = case findAttr (unqual "align") c of
                                                 Just "left"   -> AlignLeft
                                                 Just "right"  -> AlignRight
@@ -350,17 +348,16 @@ parseBlock (Elem e) = do
                       let rowElementsToCells elements = mapM elementToCell elements
                       let toRow = fmap (Row nullAttr) . rowElementsToCells
                           toRows elements = mapM toRow elements
-                          toNotNullRow element = sequence $ [toRow element | not (null element)]
 
-                      headerRow <- toNotNullRow headRowElements
-                      footerRow <- toNotNullRow footRowElements
+                      headerRows <- toRows headRowElements
+                      footerRows <- toRows footRowElements
                       bodyRows <- mapM toRows multipleBodyRowElements
 
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
-                                     (TableHead nullAttr headerRow)
+                                     (TableHead nullAttr headerRows)
                                      (map (TableBody nullAttr 0 []) bodyRows)
-                                     (TableFoot nullAttr footerRow)
+                                     (TableFoot nullAttr footerRows)
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
          wrapWithHeader n mBlocks = do
