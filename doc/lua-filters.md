@@ -112,7 +112,10 @@ getting the respective element as input.
 The return value of a filter function must be one of the
 following:
 
--   nil: this means that the object should remain unchanged.
+-   nil or not returning anything: this means that the object
+    should not be replaced. The object may be modified by
+    the filter and the changes will be preserved.
+    Equivalent to returning the object itself.
 -   a pandoc object: this must be of the same type as the input
     and will replace the original object.
 -   a list of pandoc objects: these will replace the original
