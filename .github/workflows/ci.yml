@@ -147,7 +147,7 @@ jobs:
       fail-fast: true
     steps:
     - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v20
+    - uses: cachix/install-nix-action@v21
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - run: |
