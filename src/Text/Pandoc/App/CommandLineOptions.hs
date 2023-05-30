@@ -536,8 +536,9 @@ options =
                  "" -- "Make slide shows include all the needed js and css (deprecated)"
 
     , Option "" ["embed-resources"]
-                 (NoArg
-                  (\opt -> return opt { optEmbedResources = True }))
+                 (OptArg
+                  (\arg opt -> return opt { optEmbedResources = maybe True (\argStr -> argStr == "true") arg })
+                  "STRING")
                  "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["request-header"]
