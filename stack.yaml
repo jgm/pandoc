@@ -45,8 +45,10 @@ extra-deps:
 - zip-archive-0.4.3
 - commonmark-extensions-0.2.3.4
 - doclayout-0.4.0.1
-- git: https://github.com/jgm/texmath
-  commit: 6f22675a2fec126cfe8aed87af19aae4e55e5eb1
+- texmath-0.12.8
+- typst-symbols-0.1.0.1
+- git: https://github.com/jgm/typst-hs
+  commit: 60edd07bcaf34af9aff8d51ae3d188b9dd6f4d98
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
