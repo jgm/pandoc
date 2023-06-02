@@ -376,7 +376,7 @@ To run just the markdown benchmarks:
 [MiKTeX]: https://miktex.org/
 [librsvg]: https://wiki.gnome.org/Projects/LibRsvg
 [Python]: https://www.python.org
-[NetBSD]: https://pkgsrc.se/wip/pandoc
+[NetBSD]: https://pkgsrc.se/converters/pandoc
 [NixOS]: https://nixos.org/nixos/packages.html
 [Slackware]: https://www.slackbuilds.org/result/?search=pandoc&sv=
 [Ubuntu]: https://packages.ubuntu.com/pandoc
