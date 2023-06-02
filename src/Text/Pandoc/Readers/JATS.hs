@@ -163,15 +163,15 @@ parseBlock (Text (CData _ s _)) = if T.all isSpace s
 parseBlock (CRef x) = return $ plain $ str $ T.toUpper x
 parseBlock (Elem e) = do
   sectionLevel <- gets jatsSectionLevel 
-  let parseBlockWithHeader = parseWithHeader (sectionLevel+1) (getBlocks e)
+  let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e)
 
   case qName (elName e) of
         "p" -> parseMixed para (elContent e)
         "code" -> codeBlockWithLang
         "preformat" -> codeBlockWithLang
-        "disp-quote" -> parseWithHeader (sectionLevel+1) parseBlockquote
-        "list" ->  parseWithHeader (sectionLevel+1) parseList
-        "def-list" -> parseWithHeader (sectionLevel+1) (definitionList <$> deflistitems)
+        "disp-quote" -> wrapWithHeader (sectionLevel+1) parseBlockquote
+        "list" ->  wrapWithHeader (sectionLevel+1) parseList
+        "def-list" -> wrapWithHeader (sectionLevel+1) (definitionList <$> deflistitems)
         "sec" -> parseBlockWithHeader
         "abstract" -> parseBlockWithHeader
         "ack" -> parseBlockWithHeader
@@ -213,7 +213,7 @@ parseBlock (Elem e) = do
           inFigure <- gets jatsInFigure
           if inFigure -- handled by parseFigure
              then return mempty
-             else divWith (attrValue "id" e, ["caption"], []) <$> parseWithHeader 6 (getBlocks e)
+             else divWith (attrValue "id" e, ["caption"], []) <$> wrapWithHeader 6 (getBlocks e)
         "fn-group" -> parseFootnoteGroup
         "ref-list" -> parseRefList e
         "?xml"  -> return mempty
@@ -352,7 +352,7 @@ parseBlock (Elem e) = do
                                      (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
-         parseWithHeader n mBlocks = do 
+         wrapWithHeader n mBlocks = do 
                             isbook <- gets jatsBook
                             let n' = if isbook || n == 0 then n + 1 else n
                             labelText <- case filterChild (named "label") e of
