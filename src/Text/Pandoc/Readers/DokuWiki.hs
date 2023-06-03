@@ -389,7 +389,11 @@ image = try $ parseLink fromRaw "{{" "}}"
         parameterList = T.splitOn "&" $ T.drop 1 parameters
         linkOnly = "linkonly" `elem` parameterList
         (width, height) = maybe (Nothing, Nothing) parseWidthHeight (F.find isWidthHeightParameter parameterList)
-        attributes = catMaybes [fmap ("width",) width, fmap ("height",) height]
+        attributes = catMaybes [
+                fmap ("width",) width,
+                fmap ("height",) height,
+                fmap ("query",) (if T.null parameters then Nothing else Just parameters)
+            ]
         defaultDescription = B.str $ urlToText path'
 
 -- * Block parsers
