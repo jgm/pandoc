@@ -597,6 +597,7 @@ read_span         = matchingElement NsText "span"
                                         , read_line_break
                                         , read_tab
                                         , read_link
+                                        , read_frame
                                         , read_note
                                         , read_citation
                                         , read_bookmark
