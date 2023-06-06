@@ -20,14 +20,15 @@ import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
 import Data.Text (Text)
 import Text.Parsec
-    ( ParsecT, getInput, getState, setInput, tokenPrim )
+    ( ParsecT, getInput, setInput, tokenPrim )
 import Typst.Types
     ( Identifier, Content(Elt), FromVal(..), Val(VNone) )
+import Text.Pandoc.Class.PandocMonad ( PandocMonad, report )
+import Text.Pandoc.Logging (LogMessage(..))
 
+type P m a = ParsecT [Content] () m a
 
-type P m a = ParsecT [Content] (Text -> m ()) m a
-
-pTok :: Monad m => (Content -> Bool) -> P m Content
+pTok :: PandocMonad m => (Content -> Bool) -> P m Content
 pTok f = tokenPrim show showPos match
   where
     showPos _oldpos (Elt _ (Just pos) _) _ = pos
@@ -35,12 +36,10 @@ pTok f = tokenPrim show showPos match
     match x | f x = Just x
     match _ = Nothing
 
-warn :: Monad m => Text -> P m ()
-warn msg = do
-  warn' <- getState
-  lift $ warn' msg
+warn :: PandocMonad m => Text -> P m ()
+warn msg = lift $ report $ IgnoredElement msg
 
-pWithContents :: Monad m => P m a -> Seq Content -> P m a
+pWithContents :: PandocMonad m => P m a -> Seq Content -> P m a
 pWithContents pa cs = do
   inp <- getInput
   setInput $ F.toList cs

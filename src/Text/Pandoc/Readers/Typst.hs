@@ -27,7 +27,6 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Typst ( parseTypst, evaluateTypst )
 import Text.Pandoc.Error (PandocError(..))
-import Text.Pandoc.Logging (LogMessage(..))
 import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void)
 import qualified Data.Foldable as F
@@ -59,37 +58,25 @@ readTypst _opts inp = do
         _ -> ""
   case parseTypst inputName (sourcesToText sources) of
     Left e -> throwError $ PandocParseError $ T.pack $ show e
-    Right parsed -> do
-      result <- evaluateTypst readFileStrict inputName parsed >>=
+    Right parsed ->
+      evaluateTypst readFileStrict inputName parsed >>=
                   either (throwError . PandocParseError . T.pack . show) pure >>=
-                  contentToPandoc (report . IgnoredElement)
-      case result of
-        Left e -> throwError $ PandocParseError $ T.pack $ show e
-        Right pdoc -> pure pdoc
+                  runParserT pPandoc () inputName . F.toList >>=
+                  either (throwError . PandocParseError . T.pack . show) pure
 
--- | Convert a sequence of content elements to a Pandoc document.
-contentToPandoc ::
-  Monad m =>
-  -- | Function to issue warnings
-  (Text -> m ()) ->
-  -- | Contents to convert
-  Seq Content ->
-  m (Either ParseError B.Pandoc)
-contentToPandoc warn' = runParserT pPandoc warn' "" . F.toList
-
-pPandoc :: Monad m => P m B.Pandoc
+pPandoc :: PandocMonad m => P m B.Pandoc
 pPandoc = B.doc <$> pBlocks
 
-pBlocks :: Monad m => P m B.Blocks
+pBlocks :: PandocMonad m => P m B.Blocks
 pBlocks = mconcat <$> many pBlock
 
-pBlock :: Monad m => P m B.Blocks
+pBlock :: PandocMonad m => P m B.Blocks
 pBlock = pPara <|> pBlockElt
 
-pBlockElt :: Monad m => P m B.Blocks
+pBlockElt :: PandocMonad m => P m B.Blocks
 pBlockElt = pTok isBlock >>= handleBlock
 
-pSpace :: Monad m => P m Content
+pSpace :: PandocMonad m => P m Content
 pSpace = pTok
       ( \case
           Txt t | T.all (== ' ') t -> True
@@ -97,7 +84,7 @@ pSpace = pTok
       )
 
 
-pLab :: Monad m => P m Text
+pLab :: PandocMonad m => P m Text
 pLab = try $ do
   optional pSpace
   Lab t <- pTok
@@ -107,7 +94,7 @@ pLab = try $ do
        )
   pure t
 
-handleBlock :: Monad m => Content -> P m B.Blocks
+handleBlock :: PandocMonad m => Content -> P m B.Blocks
 handleBlock tok = do
   -- check for following label
   mbident <- option Nothing $ Just <$> pLab
@@ -320,11 +307,11 @@ handleBlock tok = do
       warn ("Skipping unknown block element " <> tname)
       pure mempty
 
-pPara :: Monad m => P m B.Blocks
+pPara :: PandocMonad m => P m B.Blocks
 pPara =
   B.para . B.trimInlines . mconcat <$> (many1 pInline <* optional pParBreak)
 
-pParBreak :: Monad m => P m ()
+pParBreak :: PandocMonad m => P m ()
 pParBreak =
   void $
     pTok
@@ -383,7 +370,7 @@ isBlock (Elt name _ fields) =
     "yaml" -> True
     _ -> False
 
-pWithContents :: Monad m => P m a -> Seq Content -> P m a
+pWithContents :: PandocMonad m => P m a -> Seq Content -> P m a
 pWithContents pa cs = do
   inp <- getInput
   setInput $ F.toList cs
@@ -391,13 +378,13 @@ pWithContents pa cs = do
   setInput inp
   pure res
 
-pInlines :: Monad m => P m B.Inlines
+pInlines :: PandocMonad m => P m B.Inlines
 pInlines = mconcat <$> many pInline
 
-pInline :: Monad m => P m B.Inlines
+pInline :: PandocMonad m => P m B.Inlines
 pInline = pTok isInline >>= handleInline
 
-handleInline :: Monad m => Content -> P m B.Inlines
+handleInline :: PandocMonad m => Content -> P m B.Inlines
 handleInline tok =
   case tok of
     Txt t -> pure $ B.text t

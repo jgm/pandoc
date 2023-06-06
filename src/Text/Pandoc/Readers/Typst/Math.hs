@@ -3,8 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Text.Pandoc.Readers.Typst.Math
-  ( contentToMath,
-    pMathMany,
+  ( pMathMany
   )
 where
 
@@ -18,7 +17,8 @@ import qualified Data.Sequence as Seq
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Vector as V
-import Text.Parsec
+import Text.Pandoc.Parsing ( many )
+import Text.Pandoc.Class ( PandocMonad )
 import Text.TeXMath.Types
   ( Alignment (..),
     Exp (..),
@@ -33,16 +33,6 @@ import Typst.Types
 
 -- import Debug.Trace
 
--- | Convert a sequence of content elements to a TeXMath expression.
-contentToMath ::
-  Monad m =>
-  -- | Function to issue warnings
-  (Text -> m ()) ->
-  -- | Contents to convert
-  Seq Content ->
-  m (Either ParseError [Exp])
-contentToMath warn' cs = runParserT (pMathMany cs) warn' "" mempty
-
 withGroup :: [Exp] -> Exp
 withGroup [x] = x
 withGroup xs = EGrouped xs
@@ -50,7 +40,7 @@ withGroup xs = EGrouped xs
 data AttachmentStyle = Limits | Scripts
   deriving (Eq, Show)
 
-getAttachmentStyle :: Monad m => M.Map Identifier Val -> P m (Maybe AttachmentStyle)
+getAttachmentStyle :: PandocMonad m => M.Map Identifier Val -> P m (Maybe AttachmentStyle)
 getAttachmentStyle fields = do
   (base :: Seq Content) <- getField "base" fields
   case base of
@@ -58,10 +48,10 @@ getAttachmentStyle fields = do
     [Elt "scripts" _ _] -> pure $ Just Scripts
     _ -> pure Nothing
 
-pMath :: Monad m => P m Exp
+pMath :: PandocMonad m => P m Exp
 pMath = pTok (const True) >>= handleMath
 
-handleMath :: Monad m => Content -> P m Exp
+handleMath :: PandocMonad m => Content -> P m Exp
 handleMath tok =
   case tok of
     Lab t -> do
@@ -329,7 +319,7 @@ handleMath tok =
       warn ("Ignoring unsupported " <> name)
       pMathGrouped body
 
-arrayDelims :: Monad m => M.Map Identifier Val -> P m (Text, Text)
+arrayDelims :: PandocMonad m => M.Map Identifier Val -> P m (Text, Text)
 arrayDelims fields = do
   (mbdelim :: Maybe Text) <- getField "delim" fields
   pure $ case mbdelim of
@@ -340,7 +330,7 @@ arrayDelims fields = do
     Just "||" -> ("\8741", "\8741")
     _ -> ("(", ")")
 
-pMathMany :: Monad m => Seq Content -> P m [Exp]
+pMathMany :: PandocMonad m => Seq Content -> P m [Exp]
 pMathMany cs = do
   -- check for "alignpoint" and "linebreak" elements
   -- and use an array structure for alignment
@@ -354,7 +344,7 @@ pMathMany cs = do
       let cols = take numcols $ AlignRight : cycle [AlignLeft, AlignRight]
       pure [EArray cols rows]
 
-pMathGrouped :: Monad m => Seq Content -> P m Exp
+pMathGrouped :: PandocMonad m => Seq Content -> P m Exp
 pMathGrouped = fmap withGroup . pMathMany
 
 splitOnLinebreaks :: Seq Content -> [Seq Content]
