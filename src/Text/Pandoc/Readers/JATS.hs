@@ -161,23 +161,42 @@ parseBlock (Text (CData _ s _)) = if T.all isSpace s
                                      then return mempty
                                      else return $ plain $ trimInlines $ text s
 parseBlock (CRef x) = return $ plain $ str $ T.toUpper x
-parseBlock (Elem e) =
+parseBlock (Elem e) = do
+  sectionLevel <- gets jatsSectionLevel 
+  let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e)
+
   case qName (elName e) of
         "p" -> parseMixed para (elContent e)
         "code" -> codeBlockWithLang
         "preformat" -> codeBlockWithLang
-        "disp-quote" -> parseBlockquote
-        "list" -> case attrValue "list-type" e of
-                    "bullet" -> bulletList <$> listitems
-                    listType -> do
-                      let start = fromMaybe 1 $
-                                  (filterElement (named "list-item") e
-                                               >>= filterElement (named "label"))
-                                   >>= safeRead . textContent
-                      orderedListWith (start, parseListStyleType listType, DefaultDelim)
-                        <$> listitems
-        "def-list" -> definitionList <$> deflistitems
-        "sec" -> gets jatsSectionLevel >>= sect . (+1)
+        "disp-quote" -> wrapWithHeader (sectionLevel+1) parseBlockquote
+        "list" ->  wrapWithHeader (sectionLevel+1) parseList
+        "def-list" -> wrapWithHeader (sectionLevel+1) (definitionList <$> deflistitems)
+        "sec" -> parseBlockWithHeader
+        "abstract" -> parseBlockWithHeader
+        "ack" -> parseBlockWithHeader
+        "answer" -> parseBlockWithHeader
+        "answer-set" -> parseBlockWithHeader
+        "app" -> parseBlockWithHeader
+        "app-group" -> parseBlockWithHeader
+        "author-comment" -> parseBlockWithHeader
+        "author-notes" -> parseBlockWithHeader
+        "back" -> parseBlockWithHeader
+        "bio" -> parseBlockWithHeader
+        "explanation" -> parseBlockWithHeader
+        "glossary" -> parseBlockWithHeader
+        "kwd-group" -> parseBlockWithHeader
+        "list-item" -> parseBlockWithHeader
+        "notes" -> parseBlockWithHeader
+        "option" -> parseBlockWithHeader
+        "question" -> parseBlockWithHeader
+        "question-preamble" -> parseBlockWithHeader
+        "question-wrap-group" -> parseBlockWithHeader
+        "statement" -> parseBlockWithHeader
+        "supplement" -> parseBlockWithHeader
+        "table-wrap-foot" -> parseBlockWithHeader
+        "trans-abstract" -> parseBlockWithHeader
+        "verse-group" -> parseBlockWithHeader
         "graphic" -> para <$> getGraphic Nothing e
         "journal-meta" -> parseMetadata e
         "article-meta" -> parseMetadata e
@@ -194,7 +213,7 @@ parseBlock (Elem e) =
           inFigure <- gets jatsInFigure
           if inFigure -- handled by parseFigure
              then return mempty
-             else divWith (attrValue "id" e, ["caption"], []) <$> sect 6
+             else divWith (attrValue "id" e, ["caption"], []) <$> wrapWithHeader 6 (getBlocks e)
         "fn-group" -> parseFootnoteGroup
         "ref-list" -> parseRefList e
         "?xml"  -> return mempty
@@ -223,6 +242,18 @@ parseBlock (Elem e) =
                                               mapM parseInline (elContent z)
             contents <- getBlocks e
             return $ blockQuote (contents <> attrib)
+         parseList = do
+            case attrValue "list-type" e of
+              "bullet" -> bulletList <$> listitems
+              listType -> do
+                let start =
+                      fromMaybe 1 $
+                        ( filterElement (named "list-item") e
+                            >>= filterElement (named "label")
+                        )
+                          >>= safeRead . textContent
+                orderedListWith (start, parseListStyleType listType, DefaultDelim)
+                  <$> listitems
          parseListStyleType "roman-lower" = LowerRoman
          parseListStyleType "roman-upper" = UpperRoman
          parseListStyleType "alpha-lower" = LowerAlpha
@@ -321,24 +352,23 @@ parseBlock (Elem e) =
                                      (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
-         sect n = do isbook <- gets jatsBook
-                     let n' = if isbook || n == 0 then n + 1 else n
-                     labelText <- case filterChild (named "label") e of
-                                    Just t -> (<> ("." <> space)) <$>
-                                              getInlines t
-                                    Nothing -> return mempty
-                     headerText <- case filterChild (named "title") e `mplus`
-                                        (filterChild (named "info") e >>=
-                                            filterChild (named "title")) of
-                                      Just t  -> (labelText <>) <$>
-                                                  getInlines t
-                                      Nothing -> return mempty
-                     oldN <- gets jatsSectionLevel
-                     modify $ \st -> st{ jatsSectionLevel = n }
-                     b <- getBlocks e
-                     let ident = attrValue "id" e
-                     modify $ \st -> st{ jatsSectionLevel = oldN }
-                     return $ headerWith (ident,[],[]) n' headerText <> b
+         wrapWithHeader n mBlocks = do 
+                      isBook <- gets jatsBook
+                      let n' = if isBook || n == 0 then n + 1 else n
+                      headerText <- case filterChild (named "title") e `mplus`
+                                          (filterChild (named "info") e >>=
+                                              filterChild (named "title")) of
+                                        Just t  -> getInlines t
+                                        Nothing -> return mempty
+                      oldN <- gets jatsSectionLevel
+                      modify $ \st -> st{ jatsSectionLevel = n }
+                      blocks <- mBlocks
+                      let ident = attrValue "id" e
+                      modify $ \st -> st{ jatsSectionLevel = oldN }
+                      return $ (if 
+                        headerText == mempty 
+                      then mempty 
+                      else headerWith (ident,[],[]) n' headerText) <> blocks
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
 getInlines e' = trimInlines . mconcat <$>
