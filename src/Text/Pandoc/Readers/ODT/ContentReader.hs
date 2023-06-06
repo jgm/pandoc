@@ -793,6 +793,7 @@ read_table_cell   :: ElementMatcher [Blocks]
 read_table_cell    = matchingElement NsTable "table-cell"
                      $ liftA (compactify.(:[]))
                      $ matchChildContent' [ read_paragraph
+                                          , read_list
                                           ]
 
 ----------------------
