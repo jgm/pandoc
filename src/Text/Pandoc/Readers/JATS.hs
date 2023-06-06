@@ -353,27 +353,22 @@ parseBlock (Elem e) = do
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
          wrapWithHeader n mBlocks = do 
-                            isbook <- gets jatsBook
-                            let n' = if isbook || n == 0 then n + 1 else n
-                            labelText <- case filterChild (named "label") e of
-                                            Just t -> (<> ("." <> space)) <$>
-                                                      getInlines t
-                                            Nothing -> return mempty
-                            headerText <- case filterChild (named "title") e `mplus`
-                                                (filterChild (named "info") e >>=
-                                                    filterChild (named "title")) of
-                                              Just t  -> (labelText <>) <$>
-                                                          getInlines t
-                                              Nothing -> return labelText
-                            oldN <- gets jatsSectionLevel
-                            modify $ \st -> st{ jatsSectionLevel = n }
-                            blocks <- mBlocks
-                            let ident = attrValue "id" e
-                            modify $ \st -> st{ jatsSectionLevel = oldN }
-                            return $ (if 
-                              headerText == mempty 
-                            then mempty 
-                            else headerWith (ident,[],[]) n' headerText) <> blocks
+                      isBook <- gets jatsBook
+                      let n' = if isBook || n == 0 then n + 1 else n
+                      headerText <- case filterChild (named "title") e `mplus`
+                                          (filterChild (named "info") e >>=
+                                              filterChild (named "title")) of
+                                        Just t  -> getInlines t
+                                        Nothing -> return mempty
+                      oldN <- gets jatsSectionLevel
+                      modify $ \st -> st{ jatsSectionLevel = n }
+                      blocks <- mBlocks
+                      let ident = attrValue "id" e
+                      modify $ \st -> st{ jatsSectionLevel = oldN }
+                      return $ (if 
+                        headerText == mempty 
+                      then mempty 
+                      else headerWith (ident,[],[]) n' headerText) <> blocks
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
 getInlines e' = trimInlines . mconcat <$>
