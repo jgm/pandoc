@@ -46,6 +46,7 @@ extra-deps:
 - commonmark-extensions-0.2.3.4
 - doclayout-0.4.0.1
 - texmath-0.12.8
+- typst-symbols-0.1.0.1
 - git: https://github.com/jgm/typst-hs
   commit: 27f9c6516ca68793727a6d18d17f387fe736c045
 
