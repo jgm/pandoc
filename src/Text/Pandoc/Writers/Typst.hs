@@ -1,11 +1,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Typst
    Copyright   : Copyright (C) 2023 John MacFarlane
