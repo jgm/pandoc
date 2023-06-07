@@ -162,7 +162,7 @@ parseBlock (Text (CData _ s _)) = if T.all isSpace s
                                      else return $ plain $ trimInlines $ text s
 parseBlock (CRef x) = return $ plain $ str $ T.toUpper x
 parseBlock (Elem e) = do
-  sectionLevel <- gets jatsSectionLevel 
+  sectionLevel <- gets jatsSectionLevel
   let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e)
 
   case qName (elName e) of
@@ -304,7 +304,7 @@ parseBlock (Elem e) = do
                       let headRowElements = case filterChild (named "thead") e' of
                                       Just h -> maybe [] parseElement (filterChild isRow h)
                                       Nothing -> []
-                      -- list of list of body cell elements 
+                      -- list of list of body cell elements
                       let bodyRowElements = case filterChild (named "tbody") e' of
                                       Just b -> map parseElement $ filterChildren isRow b
                                       Nothing -> map parseElement $ filterChildren isRow e'
@@ -313,9 +313,9 @@ parseBlock (Elem e) = do
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
-                      let toColSpan element = fromMaybe 1 $ 
+                      let toColSpan element = fromMaybe 1 $
                             findAttr (unqual "colspan") element >>= safeRead
-                      let toRowSpan element =  fromMaybe 1 $ 
+                      let toRowSpan element =  fromMaybe 1 $
                             findAttr (unqual "rowspan") element >>= safeRead
                       let toWidth c = do
                             w <- findAttr (unqual "colwidth") c
@@ -337,7 +337,7 @@ parseBlock (Elem e) = do
                       let elementToCell element = cell
                             (toAlignment element)
                             (RowSpan $ toRowSpan element)
-                            (ColSpan $ toColSpan element) 
+                            (ColSpan $ toColSpan element)
                             <$> (parseCell element)
                       let rowElementsToCells elements = mapM elementToCell elements
                       let toRow = fmap (Row nullAttr) . rowElementsToCells
@@ -352,7 +352,7 @@ parseBlock (Elem e) = do
                                      (TableFoot nullAttr [])
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
-         wrapWithHeader n mBlocks = do 
+         wrapWithHeader n mBlocks = do
                       isBook <- gets jatsBook
                       let n' = if isBook || n == 0 then n + 1 else n
                       headerText <- case filterChild (named "title") e `mplus`
@@ -365,9 +365,9 @@ parseBlock (Elem e) = do
                       blocks <- mBlocks
                       let ident = attrValue "id" e
                       modify $ \st -> st{ jatsSectionLevel = oldN }
-                      return $ (if 
-                        headerText == mempty 
-                      then mempty 
+                      return $ (if
+                        headerText == mempty
+                      then mempty
                       else headerWith (ident,[],[]) n' headerText) <> blocks
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
