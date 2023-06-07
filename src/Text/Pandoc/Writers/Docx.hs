@@ -124,6 +124,7 @@ writeDocx :: (PandocMonad m)
           -> m BL.ByteString
 writeDocx opts doc = do
   let Pandoc meta blocks = walk fixDisplayMath doc
+  setupTranslations meta
   let blocks' = makeSections True Nothing blocks
   let doc' = Pandoc meta blocks'
 
