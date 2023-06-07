@@ -90,11 +90,12 @@ It can convert *from*
 - `rst`
   ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
 - `t2t` ([txt2tags](https://txt2tags.org))
-- `textile` ([Textile](https://www.promptworks.com/textile))
+- `textile` ([Textile](https://textile-lang.com))
 - `tikiwiki` ([TikiWiki
   markup](https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax))
 - `twiki` ([TWiki
   markup](https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
+- `typst` ([typst](https://typst.app))
 - `vimwiki` ([Vimwiki](https://vimwiki.github.io))
 - the path of a custom Lua reader, see [Custom readers and
   writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
@@ -186,7 +187,7 @@ It can convert *to*
 - `rtf` ([Rich Text
   Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
 - `texinfo` ([GNU Texinfo](https://www.gnu.org/software/texinfo/))
-- `textile` ([Textile](https://www.promptworks.com/textile))
+- `textile` ([Textile](https://textile-lang.com))
 - `slideous` ([Slideous](https://goessner.net/articles/slideous/) HTML
   and JavaScript slide show)
 - `slidy` ([Slidy](https://www.w3.org/Talks/Tools/Slidy2/) HTML and
