@@ -769,7 +769,11 @@ writeOpenXML opts (Pandoc meta blocks) = do
   abstract <- if null abstract'
                  then return []
                  else do
-                   abstractTitle <- translateTerm Abstract
+                   abstractTitle <- case lookupMeta "abstract-title" meta of
+                       Just (MetaBlocks bs)   -> pure $ stringify bs
+                       Just (MetaInlines ils) -> pure $ stringify ils
+                       Just (MetaString s)    -> pure s
+                       _                      -> translateTerm Abstract
                    abstractTit <- withParaPropM (pStyleM "AbstractTitle") $
                                    blocksToOpenXML opts
                                      [Para [Str abstractTitle]]
