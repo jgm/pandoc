@@ -21,6 +21,7 @@
 - Anabra
 - Anders Waldenborg
 - Andreas Lööw
+- Andreas Scherer
 - Andres Freund
 - Andrew Dunning
 - Andy Morris
@@ -62,6 +63,7 @@
 - Cédric Couralet
 - Cezary Drożak
 - Charanjit Singh
+- Charlotte Koch
 - Chris Black
 - Christian Conkle
 - Christian Christiansen
@@ -117,6 +119,7 @@
 - Francesco Mazzoli
 - Francesco Occhipinti
 - François Gannaz
+- Frank Seifferth
 - Frederik Elwert
 - Freiric Barral
 - Freirich Raabe
@@ -230,6 +233,7 @@
 - Mathias Walter
 - Mathieu Boespflug
 - Mathieu Duponchelle
+- Matt Dodson
 - Matthew Doty
 - Matthew Eddey
 - Matthew Pickering
@@ -244,6 +248,7 @@
 - Michael Peyton Jones
 - Michael Reed
 - Michael Snoyman
+- Michael Stahl
 - Michael Thompson
 - Mike Tzou
 - Mikołaj Machowski
@@ -262,6 +267,7 @@
 - Nikolay Yakimov
 - Nils Carlson
 - Nixon Enraght-Moony
+- Noah Malmed
 - Nokome Bentley
 - OCzarnecki
 - Ola Wolska
@@ -318,6 +324,7 @@
 - Simon Schuster
 - Siphalor
 - Stefan Dresselhaus
+- Stephan Meijer
 - Stephen Altamirano
 - Sukil Etxenike
 - Sukka
@@ -338,6 +345,7 @@
 - Todd Sifleet
 - TomBen
 - Tom Leese
+- Toni Dietze
 - Tristan Stenner
 - Tristan de Cacqueray
 - Tuong Nguyen Manh
@@ -400,6 +408,7 @@
 - obcat
 - oltolm
 - oquechy
+- perro tuerto
 - qerub
 - quasicomputational
 - ricnorr
@@ -407,6 +416,7 @@
 - roblabla
 - rodja.trappe
 - rski
+- sdhoward
 - shreevatsa.public
 - takahashim
 - taotieren
@@ -414,9 +424,11 @@
 - tgkokk
 - the-solipsist
 - thsutton
+- thron7
 - timo-a
 - vijayphoenix
 - vkraven
+- wgevaert
 - wiefling
 - willj-dev
 - wuffi
