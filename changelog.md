@@ -1,5 +1,189 @@
 # Revision history for pandoc
 
+## pandoc 3.1.3 (2023-06-07)
+
+  * New output format: `typst`.
+
+  * New module: Text.Pandoc.Readers.Typst [API change].
+
+  * DocBook reader:
+
+    + Support more emphasis roles (Albert Krewinkel).
+      The role "bf" is taken to indicate "bold face", i.e.,
+      "strongly emphasized" text, while "underline" leads to
+      underlined text.
+
+  * JATS reader:
+
+    + Improve title and label parsing in the JATS reader (#8718,
+      Noah Malmed.)
+    + Add rowspan, colspan and alignment to cells in jats table
+      reader (#8408, Noah Malmed)
+
+  * Org reader (Albert Krewinkel):
+
+    + Require abstract environment to use lowercase.
+    + Treat `#+NAME` as synonym for `#+LABEL` (#8578).
+
+  * ODT reader:
+
+    + Allow lists in table cells (#8892).
+    + Allow frames inside spans (#8886).
+
+  * RST reader:
+
+    + Fix sorting on anonymous keys (#8877). This fixes a link
+      resolution bug bug affecting RST documents with anonymous links.
+
+  * HTML reader:
+
+    + Fix iframe with data URI of an image (#8856).
+      In this case we don't want to try to parse the data at the URL.
+      Instead, create an image inside a div.
+
+  * RTF reader:
+
+    + Fix bug in table parsing (#8767). In certain cases, text before a
+      table was being incorporated into the table itself.
+
+  * Docx reader:
+
+    + Introduce support for Intense Quote (Stephan Meijer).
+
+  * Markdown reader:
+
+    + Disallow escaping of `~` and `"` in `markdown_strict` (#8777,
+      Albert Krewinkel). This matches the behavior of the legacy
+      `Markdown.pl` as well as what is described in the manual.
+
+  * LaTeX reader: ignore args to column type in `\multicolumn` (#8789).
+
+  * HTML writer:
+
+    + Use first paragraph in task item as checkbox label (#8729, Albert
+      Krewinkel).
+
+  * Ms writer:
+
+    + Coerce titles to inlines (#8835). Block-level formatting is not
+      allowed inside `.TL`.
+
+  * LaTeX writer:
+
+    + Fix width for multicolumn simple table (#8831).
+
+  * Jira writer:
+
+    + Use first code block class as highlighting language (#8814, Albert
+      Krewinkel). The writer no longer searches the list of
+      classes for a known programming language but always uses
+      the first class in that list as the language identifier.
+
+  * OpenDocument writer:
+
+    + Handle row header column cells as header cells (#8764, Michael Stahl).
+    + Fix invalid `text:p` inside `text:p` from meta (#8256).
+
+  * ODT writer:
+
+    + Don't add settings.xml (Michael Stahl). This will cause defaults
+      to be used, which is what we want.
+    + Don't add unnecessary Configurations2 directory (Michael Stahl).
+    + Don't add thumbnail (Michael Stahl).
+    + Put `manifest.version` on directory file-entry (Michael Stahl).
+      See ODF 1.3 part 2, 4.16.14.1.
+    + Stop validator complaints by producing ODF 1.3 (Michael Stahl).
+
+  * MediaWiki writer:
+
+    + Remove links from inside links in mediawiki writer (#8739,
+      Wout Gevaert).
+
+  * Typst writer:
+
+     + Omit bibliography if `citations` not enabled (#8763).
+      With this change, the typst writer will omit the `#bibliography`
+      command when `citations` is not enabled.  (If you want to use
+      pandoc's own `--citeproc`, you should combine it with
+      `-t typst-citations` to disable native typst citations.
+    + Use `<..>` for labels, create internal links.
+    + Use `#footnote` for notes (#8893).
+    + Fix alignment issue in lists.  It's an aesthetic issue
+      only; the first line had an extra space indent after the
+      list marker.
+
+  * Commonmark writer:
+
+    + Use shortcut reference links: commonmark supports these.
+
+  * EPUB template: add `lang` attribute to `<html>` (Gabriel Lewertoski).
+
+  * Template styles.html: fix task-list styling in reveal.js
+    (#8731, Albert Krewinkel).
+
+  * LaTeX template: Fix `\babelfont` (#8728).
+
+  * Text.Pandoc.Parsing:
+
+    + Remove unnecessary 'spaces' in `parseFromString`.
+
+  * Text.Pandoc.ImageSize: Drop BOM at start of SVG if present.
+    Otherwise our code can fail to determine image size.
+
+  * Lua subsystem:
+
+    + Fix value of PANDOC_SCRIPT_FILE for custom readers & writers
+      (#8781, Albert Krewinkel). The value did not hold the actual
+      file path for scripts in the *custom* folder of the datadir.
+
+  * Fix YAML in translation files for `cs` and `pl` (#8787).
+
+  * Fix pdf output via typst (#8754).  One must now use `typst
+    compile` rather than `typst`.
+
+  * MANUAL.txt:
+
+    + Added note that the user will need to create the user data
+      dir (#8727).
+    + Add `wikilinks` to non-default extensions (Ilona).
+    + Update link to custom djot writer (Albert Krewinkel).
+    + Better link to citation syntax.
+    + Fix typo (sdhoward).
+    + Note that `#` fancy list markers don't work with commonmark (#8772,
+      William Lupton).
+    + Add commonmark `fenced_div` note (#8773, William Lupton).
+    + Move highlighting documentation, with minor adjustments
+      (William Lupton).
+    + Fix inaccurate statement about spaces and tabs in template
+      syntax
+      (Frank Seifferth).
+
+  * Update documentation for org-mode (Christian Christiansen, #8716).
+
+  * doc/lua-filter.md:
+
+    + Fix typos (#8734, perro tuerto).
+    + Fix anchor (Toni Dietze).
+    + Use full field name in example (#8857, Matt Dodson).
+    + Fix copy-paste error (#8798, thron7).
+
+  * CONTRIBUTING.md: update info on ghc versions.
+
+  * INSTALL.md:
+
+    + Fix cabal install instructions (Albert Krewinkel).
+    + Use more relevant link to NetBSD/pkgsrc entry (Charlotte Koch).
+    + Fix Windows install instructions for winget (#8799).
+
+  * Tests: Rename test/docx/block_quotes_parse_indent.native for
+    consistency (Stephan Meijer).
+
+  * Add `tls` constraint on cabal.project. This is needed to
+    avoid problems caused by the transition to `crypton`.
+
+  * Require texmath 0.12.8.
+
+
 ## pandoc 3.1.2 (2023-03-26)
 
   * Add a Lua REPL (Albert Krewinkel). This can be started
