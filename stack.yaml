@@ -47,8 +47,7 @@ extra-deps:
 - doclayout-0.4.0.1
 - texmath-0.12.8
 - typst-symbols-0.1.0.1
-- git: https://github.com/jgm/typst-hs
-  commit: 60edd07bcaf34af9aff8d51ae3d188b9dd6f4d98
+- typst-0.1.0.0
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
