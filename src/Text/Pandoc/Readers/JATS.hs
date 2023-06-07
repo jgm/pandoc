@@ -448,8 +448,12 @@ getContrib x = do
 parseRefList :: PandocMonad m => Element -> JATS m Blocks
 parseRefList e = do
   refs <- mapM parseRef $ filterChildren (named "ref") e
+  let mbtitle = filterChild (named "title") e
+  title <- case mbtitle of
+    Nothing -> pure mempty
+    Just te -> header 1 <$> parseInline (Elem te)
   addMeta "references" refs
-  return mempty
+  return $ title <> divWith ("refs",[],[]) mempty
 
 parseRef :: PandocMonad m
          => Element -> JATS m (Map.Map Text MetaValue)
