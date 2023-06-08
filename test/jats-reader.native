@@ -2919,7 +2919,10 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , Header 2 ( "table-with-footer" , [] , [] ) []
+  , Header
+      2
+      ( "table-with-footer" , [] , [] )
+      [ Str "Table" , Space , Str "with" , Space , Str "footer" ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])
@@ -3000,7 +3003,17 @@ Pandoc
                  [ Para [ Str "f6" ] ]
              ]
          ])
-  , Header 2 ( "table-with-multiple-bodies" , [] , [] ) []
+  , Header
+      2
+      ( "table-with-multiple-bodies" , [] , [] )
+      [ Str "Table"
+      , Space
+      , Str "With"
+      , Space
+      , Str "Multiple"
+      , Space
+      , Str "Bodies"
+      ]
   , Table
       ( "" , [] , [] )
       (Caption Nothing [])

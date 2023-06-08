@@ -1214,6 +1214,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     </table>
   </sec>
   <sec id="table-with-footer">
+    <title>Table with footer</title>
     <table>
       <col align="left" />
       <col align="left" />
@@ -1258,6 +1259,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
     </table>
   </sec>
   <sec id="table-with-multiple-bodies">
+    <title>Table With Multiple Bodies</title>
     <table>
       <col align="left" />
       <col align="left" />
