@@ -697,6 +697,7 @@ highlightingLangs = Set.fromList [
   "ex",
   "exs",
   "ezhil",
+  "f#",
   "factor",
   "fan",
   "fancy",
