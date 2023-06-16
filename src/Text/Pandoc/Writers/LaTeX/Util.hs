@@ -104,7 +104,7 @@ stringToLaTeX context zs = do
          '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
          '$' | not isUrl -> emits "\\$"
          '%' -> emits "\\%"
-         '&' -> emits "\\&"
+         '&' | not isUrl -> emits "\\&"
          '_' | not isUrl -> emits "\\_"
          '#' -> emits "\\#"
          '-' | not isUrl -> case xs of
