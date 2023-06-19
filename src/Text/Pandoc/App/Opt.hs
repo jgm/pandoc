@@ -570,6 +570,8 @@ doOpt (k,v) = do
     "epub-cover-image" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optEpubCoverImage = unpack <$> x })
+    "epub-title-page" ->
+      parseJSON v >>= \x -> return (\o -> o{ optEpubTitlePage = x })
     "toc-depth" ->
       parseJSON v >>= \x -> return (\o -> o{ optTOCDepth = x })
     "dump-args" ->
