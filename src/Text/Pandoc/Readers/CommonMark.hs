@@ -71,6 +71,13 @@ readCommonMark opts s
     let toks = concatMap sourceToToks (unSources sources)
     readCommonMarkBody opts sources toks
 
+makeFigures :: Block -> Block
+makeFigures (Para [Image (ident,classes,kvs) alt (src,tit)]) =
+  Figure (ident,[],[])
+    (Caption Nothing [Plain alt])
+    [Plain [Image ("",classes,kvs) alt (src,tit)]]
+makeFigures b = b
+
 sourceToToks :: (SourcePos, Text) -> [Tok]
 sourceToToks (pos, s) = map adjust $ tokenize (sourceName pos) s
  where
@@ -91,6 +98,9 @@ metaValueParser opts = do
 
 readCommonMarkBody :: PandocMonad m => ReaderOptions -> Sources -> [Tok] -> m Pandoc
 readCommonMarkBody opts s toks =
+  (if isEnabled Ext_implicit_figures opts
+      then walk makeFigures
+      else id) .
   (if readerStripComments opts
       then walk stripBlockComments . walk stripInlineComments
       else id) <$>
