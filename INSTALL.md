@@ -361,9 +361,9 @@ To run just the markdown benchmarks:
     cabal bench --benchmark-options='markdown'
 
 
-[Arch]: https://www.archlinux.org/packages/community/x86_64/pandoc/
+[Arch]: https://archlinux.org/packages/?q=pandoc
 [Cabal User's Guide]: https://cabal.readthedocs.io/
-[Debian]: https://packages.debian.org/pandoc
+[Debian]: https://packages.debian.org/search?keywords=pandoc
 [Fedora]: https://packages.fedoraproject.org/pkgs/pandoc/pandoc/
 [FreeBSD ports]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
@@ -377,9 +377,9 @@ To run just the markdown benchmarks:
 [librsvg]: https://wiki.gnome.org/Projects/LibRsvg
 [Python]: https://www.python.org
 [NetBSD]: https://pkgsrc.se/converters/pandoc
-[NixOS]: https://nixos.org/nixos/packages.html
+[NixOS]: https://search.nixos.org/packages?query=pandoc
 [Slackware]: https://www.slackbuilds.org/result/?search=pandoc&sv=
-[Ubuntu]: https://packages.ubuntu.com/pandoc
+[Ubuntu]: https://packages.ubuntu.com/search?keywords=pandoc
 [download page]: https://github.com/jgm/pandoc/releases/latest
 [gentoo]: https://packages.gentoo.org/package/app-text/pandoc
 [haskell repository]: https://wiki.archlinux.org/index.php/Haskell_Package_Guidelines#.5Bhaskell.5D
@@ -387,5 +387,5 @@ To run just the markdown benchmarks:
 [source tarball]: https://hackage.haskell.org/package/pandoc
 [stack]: https://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [cabal-install]: https://hackage.haskell.org/package/cabal-install
-[Void]: https://voidlinux.org/
+[Void]: https://voidlinux.org/packages/?arch=x86_64&q=pandoc
 [uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/main/macos/uninstall-pandoc.pl
