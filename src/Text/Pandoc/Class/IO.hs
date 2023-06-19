@@ -226,6 +226,7 @@ writeMedia dir (fp, _mt, bs) = do
   -- we normalize to get proper path separators for the platform
   let fullpath = normalise $ dir </> unEscapeString fp
   liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
+  report $ Extracting (T.pack fullpath)
   logIOError $ BL.writeFile fullpath bs
 
 -- | If the given Inline element is an image with a @src@ path equal to
