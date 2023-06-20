@@ -50,7 +50,7 @@ import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (mkManagerSettings)
 import Network.HTTP.Types.Header ( hContentType )
 import Network.Socket (withSocketsDo)
-import Network.URI (unEscapeString)
+import Network.URI (URI(..), parseURI)
 import System.Directory (createDirectoryIfMissing)
 import System.Environment (getEnv)
 import System.FilePath ((</>), takeDirectory, normalise)
@@ -122,11 +122,11 @@ newUniqueHash = hashUnique <$> liftIO Data.Unique.newUnique
 
 openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType)
 openURL u
- | Just u'' <- T.stripPrefix "data:" u = do
-     let mime     = T.takeWhile (/=',') u''
-     let contents = UTF8.fromString $
-                     unEscapeString $ T.unpack $ T.drop 1 $ T.dropWhile (/=',') u''
-     return (decodeBase64Lenient contents, Just mime)
+ | Just (URI{ uriScheme = "data:",
+              uriPath = upath }) <- parseURI (T.unpack u) = do
+     let (mime, rest) = break (== '.') upath
+     let contents = UTF8.fromString $ drop 1 rest
+     return (decodeBase64Lenient contents, Just (T.pack mime))
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
@@ -224,7 +224,7 @@ writeMedia :: (PandocMonad m, MonadIO m)
            -> m ()
 writeMedia dir (fp, _mt, bs) = do
   -- we normalize to get proper path separators for the platform
-  let fullpath = normalise $ dir </> unEscapeString fp
+  let fullpath = normalise $ dir </> fp
   liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
   report $ Extracting (T.pack fullpath)
   logIOError $ BL.writeFile fullpath bs
