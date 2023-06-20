@@ -40,6 +40,9 @@ import System.FilePath (isRelative, normalise)
 import Data.List (isInfixOf)
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Builder (setMeta)
+import Text.Pandoc.Templates (compileTemplate, WithDefaultPartials(..))
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Error
 
 -- | Splits document into HTML chunks, dividing them by section,
 -- and returns a zip archive of a folder of files.
@@ -82,10 +85,19 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   let Node secinfo secs = chunkedTOC chunkedDoc
   let tocTree = Node secinfo{ secTitle = docTitle meta,
                               secPath = "index.html" } secs
+  let tree = buildTOC opts tocTree
   renderedTOC <- writeHtml5String opts{ writerTemplate = Nothing }
-                    (Pandoc nullMeta [buildTOC opts tocTree])
+                    (Pandoc nullMeta [tree])
+  -- see #8915 -- we need to set the math variable in the top chunk:
+  res <- runWithDefaultPartials $ compileTemplate "mathvar" "$math$"
+  mathVar <- case res of
+    Left e   -> throwError $ PandocTemplateError (T.pack e)
+    Right t  -> return t
+  tocMathVariable <- writeHtml5String opts{ writerTemplate = Just mathVar }
+                    (Pandoc nullMeta [tree])
   let opts' = opts{ writerVariables =
                         defField "table-of-contents" renderedTOC
+                      . defField "math" tocMathVariable
                       $ writerVariables opts }
   entries <- mapM (chunkToEntry opts' meta topChunk) (topChunk : chunks)
   let sitemap = toEntry "sitemap.json" epochtime
