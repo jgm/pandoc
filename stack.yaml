@@ -48,6 +48,7 @@ extra-deps:
 - texmath-0.12.8
 - typst-symbols-0.1.0.1
 - typst-0.1.0.0
+- crypton-connection-0.3.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
