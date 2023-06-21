@@ -10,7 +10,7 @@ Create custom outputs with pandoc's embedded Lua engine.
 
 ## Introduction
 
-With Lua filters, you can write Pandoc filters  without any
+With Lua filters, you can write Pandoc filters without any
 external dependencies. Besides the simpler set-up, Lua filters are
 generally faster and can access utility functions to manipulate
 document elements. 
@@ -75,7 +75,6 @@ written in compiled Haskell (`smallcaps`) and interpreted Python
 
 As you can see, the Lua filter avoids the substantial overhead
 associated with marshaling to and from JSON over a pipe.
-
 
 # Lua filter structure
 
