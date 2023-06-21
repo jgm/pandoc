@@ -12,6 +12,7 @@ extra-deps:
 - hslua-cli-1.4.1
 - hslua-module-zip-1.1.0
 - hslua-typing-0.1.0
+- hslua-repl-0.1.1
 - skylighting-0.13.3
 - skylighting-core-0.13.3
 - typst-0.1.0.0
