@@ -2,7 +2,6 @@ packages: .
           pandoc-lua-engine
           pandoc-server
           pandoc-cli
-constraints: tls < 1.7
 tests: True
 flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1,

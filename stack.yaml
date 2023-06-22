@@ -16,6 +16,13 @@ extra-deps:
 - skylighting-0.13.3
 - skylighting-core-0.13.3
 - typst-0.1.0.0
+- tls-1.7.0
+- crypton-0.32
+- crypton-connection-0.3.1
+- crypton-x509-1.7.6
+- crypton-x509-store-1.6.9
+- crypton-x509-system-1.6.7
+- crypton-x509-validation-1.6.12
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
