@@ -5,7 +5,7 @@ author: John MacFarlane
 
 This is a curated list of some of the most useful third-party
 software that extends pandoc's capabilities.  For a more
-complete list, see the [Pandoc Extras wiki page]( https://github.com/jgm/pandoc/wiki/Pandoc-Extras).
+complete list, see the [Pandoc Extras wiki page](https://github.com/jgm/pandoc/wiki/Pandoc-Extras).
 
 
 ### GUI
@@ -66,14 +66,24 @@ complete list, see the [Pandoc Extras wiki page]( https://github.com/jgm/pandoc/
 
 ### Academic publishing workflows
 
+  - [Quarto](https://quarto.org/) is an open-source scientific and technical publishing system
+    to make reproducible, production quality 
+    articles, presentations, websites, blogs, and books.
+    It supports equations, citations, crossrefs, figure panels, callouts, advanced layout, etc.
   - [Manubot](https://manubot.org) is a workflow and set of tools for the next
     generation of scholarly publishing, including citation support and
     support for multiple output formats.
+    It's especially suited for papers with a very large set of authors.
+  - [pandoc-ext](https://github.com/pandoc-ext) includes goodies such as
+    putting the Abstract into a section,
+    multiple bibliographies,
+    support the Citation Typing Ontology (CiTO), etc.
   - [Pandoc Scholar](https://github.com/pandoc-scholar/pandoc-scholar) is a
     set of utilities to make publishing of scientific articles as simple and
     pleasant as possible. It simplifies setting authors' metadata in
     YAML blocks, allows to add semantic annotation to citations, and
-    only requires the programs pandoc and make.
+    only requires the programs `pandoc` and `make`.
+    Please note that it is no longer maintained and refers to `Quarto` and `pandoc-ext`
 
 ### Containers
 
