@@ -37,6 +37,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Network.URI (URI (..), parseURI, isURI)
+import Data.List (isInfixOf)
 
 data MediaItem =
   MediaItem
@@ -56,11 +57,11 @@ instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)
 
 -- | We represent paths with /, in normalized form.  Percent-encoding
--- is resolved.
+-- is not resolved.
 canonicalize :: FilePath -> Text
 canonicalize fp
   | isURI fp = T.pack fp
-  | otherwise = T.replace "\\" "/" . T.pack . normalise . unEscapeString $ fp
+  | otherwise = T.replace "\\" "/" . T.pack . normalise $ fp
 
 -- | Delete a media item from a 'MediaBag', or do nothing if no item corresponds
 -- to the given path.
@@ -83,12 +84,12 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
                              , mediaContents = contents
                              , mediaMimeType = mt }
         fp' = canonicalize fp
-        fp'' = T.unpack fp'
+        fp'' = unEscapeString $ T.unpack fp'
         uri = parseURI fp
         newpath = if Posix.isRelative fp''
                        && Windows.isRelative fp''
                        && isNothing uri
-                       && not (".." `T.isInfixOf` fp')
+                       && not (".." `isInfixOf` fp'')
                      then fp''
                      else showDigest (sha1 contents) <> "." <> ext
         fallback = case takeExtension fp'' of
