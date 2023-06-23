@@ -124,7 +124,7 @@ openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType
 openURL u
  | Just (URI{ uriScheme = "data:",
               uriPath = upath }) <- parseURI (T.unpack u) = do
-     let (mime, rest) = break (== '.') upath
+     let (mime, rest) = break (== ',') upath
      let contents = UTF8.fromString $ drop 1 rest
      return (decodeBase64Lenient contents, Just (T.pack mime))
  | otherwise = do
