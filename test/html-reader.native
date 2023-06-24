@@ -2262,7 +2262,7 @@ Pandoc
          ])
       [ TableBody
           ( "" , [] , [] )
-          (RowHeadColumns 1)
+          (RowHeadColumns 0)
           []
           [ Row
               ( "" , [] , [] )
@@ -2284,6 +2284,105 @@ Pandoc
                   (RowSpan 1)
                   (ColSpan 1)
                   [ Plain [ Str "3" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 3)
+                  [ Plain [ Str "Details" ] ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "4" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "5" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "6" ] ]
+             ]
+         ])
+  , HorizontalRule
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "X" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Y" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "Z" ] ]
+              ]
+          ]
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "1" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "2" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "3" ] ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 3)
+                  [ Plain [ Str "Details" ] ]
               ]
           ]
       ]
