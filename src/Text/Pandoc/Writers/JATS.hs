@@ -100,7 +100,7 @@ docToJATS opts (Pandoc meta blocks') = do
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
-  let blocks = makeSections False (Just startLvl) blocks'
+  let blocks = makeSections (writerNumberSections opts) (Just startLvl) blocks'
   let splitBackBlocks b@(Div ("refs",_,_) _) (fs, bs) = (fs, b:bs)
       splitBackBlocks (Div (ident,("section":_),_)
                                [ Header lev (_,hcls,hkvs) hils
@@ -257,14 +257,21 @@ fixLineBreak x = x
 
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
-blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
+blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl (_,_,hkvs) ils : xs)) = do
   let idAttr = [ ("id", writerIdentifierPrefix opts <> escapeNCName id')
                | not (T.null id')]
   let otherAttrs = ["sec-type", "specific-use"]
   let attribs = idAttr ++ [(k,v) | (k,v) <- kvs, k `elem` otherAttrs]
   title' <- inlinesToJATS opts (map fixLineBreak ils)
+  let label = if writerNumberSections opts
+                 then
+                   case lookup "number" hkvs of
+                     Just num -> inTagsSimple "label" (literal num)
+                     Nothing -> mempty
+                 else mempty
   contents <- blocksToJATS opts xs
   return $ inTags True "sec" attribs $
+      label $$
       inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
 blockToJATS opts (Div (ident,_,_) [Para lst]) | "ref-" `T.isPrefixOf` ident =
