@@ -1,6 +1,7 @@
 # Contributors
 
 - Aaron Wolen
+- Adelar da Silva Queiróz
 - Agustín Martín Barbero
 - Akos Marton
 - Albert Krewinkel
@@ -269,6 +270,7 @@
 - Nixon Enraght-Moony
 - Noah Malmed
 - Nokome Bentley
+- Norwid Behrnd
 - OCzarnecki
 - Ola Wolska
 - Ole Martin Ruud
@@ -284,6 +286,7 @@
 - Paul Tilley
 - Paulo Tanimoto
 - Pavol Otto
+- Per Christian Gaustad
 - Pete Ryland
 - Peter Fabinksi
 - Peter Wang
@@ -389,7 +392,9 @@
 - damon-sava-stanley
 - dbecher-ito
 - ebiim
+- ech0
 - favonia
+- harabat
 - hseg
 - infinity0x
 - jeongminkim-islab
