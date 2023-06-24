@@ -304,7 +304,7 @@ parseBlock (Elem e) = do
                       let parseRows elementWithRows =
                             map parseElement $ filterChildren isRow elementWithRows
 
-                      -- list of list of body cell elements 
+                      -- list of list of body cell elements
                       let multipleBodyRowElements =
                             map parseRows $ filterChildren (named "tbody") e'
 
@@ -313,7 +313,7 @@ parseBlock (Elem e) = do
 
                       -- list of foot cell elements
                       let footRowElements = maybe [] parseRows (filterChild (named "tfoot") e')
-                      
+
                       let toAlignment c = case findAttr (unqual "align") c of
                                                 Just "left"   -> AlignLeft
                                                 Just "right"  -> AlignRight
