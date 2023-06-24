@@ -1,5 +1,87 @@
 # Revision history for pandoc
 
+## pandoc 3.1.4 (2023-06-24)
+
+  * Fix a security vulnerability in MediaBag and T.P.Class.IO.writeMedia.
+    This vulnerability, discovered by Entroy C, allows users to write
+    arbitrary files to any location by feeding pandoc a specially crafted
+    URL in an image element.  The vulnerability is serious for anyone
+    using pandoc to process untrusted input.  The vulnerability does
+    not affect pandoc when run with the `--sandbox` flag.
+
+  * Allow `epub-title-page` to be used in defaults files (#8908).
+
+  * Issue `Extracting` info message (in `--verbose` mode) when using
+    `--extract-media` or extracting media temporarily in PDF production.
+
+  * HTML reader: Update TableBody RowHeadColumns caculation (#8634,
+    Ruqi). This change sets RowHeadColumns to the minimum value of each row,
+    which gives better results in cases where rows have different numbers
+    of leading th tags.
+
+  * Dokuwiki reader: retain image query parameters as attributes (#8887, echo0).
+
+  * Textile reader: Add support for link references (#8706, Stephen Altamirano).
+    Textile supports what it calls "link alias", which are analogous to
+    Markdown's reference-style links.
+
+  * LaTeX reader: support alt text on images (#8743, Albert Krewinkel).
+
+  * Commonmark reader: Make `implicit_figures` work again.
+    Support for this (introduced in #6350) disappeared when we made an
+    architectural change.
+
+  * JATS reader:
+
+    + Add footer and multiple body parsing to table reader (#8765, Noah Malmed).
+    + Parse references title from ref-list (#8365).
+
+  * JATS writer:
+
+     + Make `--number-sections` work.
+     + Include title in ref-list (#8364). Previously the reference title ended
+       up in a separate section at the back of the body instead of in the ref-list
+       in the back matter.
+
+  * Mediawiki writer: allow highlighting to work for F# language
+    (Adelar da Silva Queiróz).
+
+  * LaTeX writer: Fix escaping of `&` in `\href` and `\url` (#8903).
+
+  * Docx writer:
+
+    + Fix localization of "Abstract" title (#8702).
+    + Allow `abstract-title` to be specified in docx metadata (#8794).
+
+  * ChunkedHTML writer: Make math work in top-level page (#8915).
+
+  * Text.Pandoc.Logging: add new log message type `ScriptingWarning`
+    [API change] (Albert Krewinkel).
+
+  * Lua: report warnings from Lua scripts (Albert Krewinkel).
+    Lua's warning system is plugged into pandoc's reporting architecture.
+    Warnings that are raised with the Lua `warn` function are now reported
+    together with other messages.
+
+  * Use crypton-connection instead of connection (#8896, Felix Yan).
+    Follows the change introduced in tls 1.7.0.
+
+  * Bump versions for skylighting-core, skylighting.
+
+  * Include lua/module/sample.svg in cabal extra-source-files (Felix Yan).
+
+  * Add Nynorsk (New Norwegian) translations (Per Christian Gaustad).
+
+  * Add tests for `fillMediaBag`/`extractMedia`.
+
+  * INSTALL.md:
+
+    + Mention alternatives to LaTeX to generate PDF (Norwid Behrnd).
+    + Update Linux install links (harabat).
+
+  * pandoc-extras.md: add to "Academic publishing workflows" (#8696,
+    Vladimir Alexiev).
+
 ## pandoc 3.1.3 (2023-06-07)
 
   * New output format: `typst`.
