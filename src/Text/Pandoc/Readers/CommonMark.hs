@@ -33,8 +33,7 @@ import Data.Typeable
 import Text.Pandoc.Parsing (runParserT, getInput, getPosition,
                             runF, defaultParserState, option, many1, anyChar,
                             Sources(..), ToSources(..), ParsecT, Future,
-                            sourceName, sourceLine, incSourceLine,
-                            fromParsecError)
+                            incSourceLine, fromParsecError)
 import Text.Pandoc.Walk (walk)
 import qualified Data.Text as T
 import qualified Data.Attoparsec.Text as A

@@ -22,6 +22,7 @@ extra-deps:
 - crypton-x509-system-1.6.7
 - crypton-x509-validation-1.6.12
 - http-client-tls-0.3.6.2
+- commonmark-0.2.3
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
