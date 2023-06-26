@@ -17,6 +17,8 @@ let
     blaze-markup
     bytestring
     case-insensitive
+    cassava
+    commonmark
     citeproc
     commonmark
     commonmark-extensions
@@ -49,9 +51,12 @@ let
     jira-wiki-markup
     JuicyPixels
     lpeg
+    mime-types
     mtl
     network
     network-uri
+    Only
+    ordered-containers
     pandoc-lua-marshal
     pandoc-types
     parsec
@@ -59,6 +64,7 @@ let
     pretty-show
     process
     random
+    regex-tdfa
     safe
     scientific
     servant-server
