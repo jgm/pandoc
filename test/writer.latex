@@ -734,7 +734,7 @@ a\^{}b c\^{}d, a\textasciitilde b c\textasciitilde d.
 `He said, ``I want to go.''\,' Were you alive in the 70's?
 
 Here is some quoted `\texttt{code}' and a
-``\href{http://example.com/?foo=1\&bar=2}{quoted link}''.
+``\href{http://example.com/?foo=1&bar=2}{quoted link}''.
 
 Some dashes: one---two --- three---four --- five.
 
@@ -908,19 +908,19 @@ Foo \href{/url/}{biz}.
 \hypertarget{with-ampersands}{%
 \subsection{With ampersands}\label{with-ampersands}}
 
-Here's a \href{http://example.com/?foo=1\&bar=2}{link with an ampersand in the
+Here's a \href{http://example.com/?foo=1&bar=2}{link with an ampersand in the
 URL}.
 
 Here's a link with an amersand in the link text: \href{http://att.com/}{AT\&T}.
 
-Here's an \href{/script?foo=1\&bar=2}{inline link}.
+Here's an \href{/script?foo=1&bar=2}{inline link}.
 
-Here's an \href{/script?foo=1\&bar=2}{inline link in pointy braces}.
+Here's an \href{/script?foo=1&bar=2}{inline link in pointy braces}.
 
 \hypertarget{autolinks}{%
 \subsection{Autolinks}\label{autolinks}}
 
-With an ampersand: \url{http://example.com/?foo=1\&bar=2}
+With an ampersand: \url{http://example.com/?foo=1&bar=2}
 
 \begin{itemize}
 \tightlist

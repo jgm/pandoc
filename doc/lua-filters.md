@@ -42,7 +42,7 @@ to small caps:
 return {
   {
     Strong = function (elem)
-      return pandoc.SmallCaps(elem.c)
+      return pandoc.SmallCaps(elem.content)
     end,
   }
 }
@@ -52,7 +52,7 @@ or equivalently,
 
 ``` lua
 function Strong(elem)
-  return pandoc.SmallCaps(elem.c)
+  return pandoc.SmallCaps(elem.content)
 end
 ```
 

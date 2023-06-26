@@ -100,7 +100,6 @@ let
   nixPackages = [
     pkgs.zlib
     ghc
-    pkgs.gdb
     haskellPackages.ghcid
     haskellPackages.haskell-language-server
     haskellPackages.cabal2nix

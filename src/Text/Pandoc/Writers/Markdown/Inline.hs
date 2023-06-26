@@ -657,7 +657,8 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
   let useRefLinks = writerReferenceLinks opts && not useAuto
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
-                            isEnabled Ext_shortcut_reference_links opts
+                             (variant == Commonmark ||
+                              isEnabled Ext_shortcut_reference_links opts)
   reftext <- if useRefLinks
                 then literal <$> getReference attr linktext (src, tit)
                 else return mempty

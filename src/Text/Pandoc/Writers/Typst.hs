@@ -1,11 +1,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Typst
    Copyright   : Copyright (C) 2023 John MacFarlane
@@ -43,8 +38,7 @@ writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTypst options document =
   evalStateT (pandocToTypst options document)
     WriterState{ stOptions = options,
-                 stEscapeContext = NormalContext,
-                 stNotes = [] }
+                 stEscapeContext = NormalContext }
 
 data EscapeContext = NormalContext | TermContext
   deriving (Show, Eq)
@@ -52,9 +46,7 @@ data EscapeContext = NormalContext | TermContext
 data WriterState =
   WriterState {
     stOptions :: WriterOptions,
-    stEscapeContext :: EscapeContext,
-    stNotes   :: [Doc Text]
-  }
+    stEscapeContext :: EscapeContext }
 
 type TW m = StateT WriterState m
 
@@ -69,14 +61,7 @@ pandocToTypst options (Pandoc meta blocks) = do
               (fmap chomp . inlinesToTypst)
               meta
   main <- blocksToTypst blocks
-  noteContents <- reverse <$> gets stNotes
-  let notes = vsep $ zipWith
-                      (\(num :: Int) cont ->
-                        "#endnote" <> parens (brackets (text (show num))
-                                   <> ", " <>  brackets (chomp cont <> cr)))
-                      [1..] noteContents
   let context = defField "body" main
-              $ defField "notes" notes
               $ defField "toc" (writerTableOfContents options)
               $ (if isEnabled Ext_citations options
                     then defField "citations" True
@@ -291,12 +276,9 @@ inlineToTypst inline =
       let height' = maybe mempty ((", height: " <>) . literal) $
                     lookup "height" kvs
       return $ "#image(" <> doubleQuoted src <> width' <> height' <> ")"
-    Note blocks -> do -- currently typst has no footnotes!
-      -- TODO create endnotes with manual typesetting
+    Note blocks -> do
       contents <- blocksToTypst blocks
-      modify $ \st -> st{ stNotes = contents : stNotes st }
-      num <- text . show . length <$> gets stNotes
-      return $ "#super" <> brackets num
+      return $ "#footnote" <> brackets (chomp contents)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = (s <>) . brackets <$> inlinesToTypst inlines

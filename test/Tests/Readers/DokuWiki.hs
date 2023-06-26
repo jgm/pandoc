@@ -167,10 +167,10 @@ tests = [ testGroup "inlines"
               para (imageWith ("", ["align-center"], []) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
             , "Image with width" =:
               "{{wiki:dokuwiki-128.png?50}}" =?>
-              para (imageWith ("", [], [("width", "50")]) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
+              para (imageWith ("", [], [("width", "50"), ("query", "?50")]) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
             , "Image with width and height" =:
               "{{wiki:dokuwiki-128.png?nocache&50x100}}" =?>
-              para (imageWith ("", [], [("width", "50"), ("height", "100")]) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
+              para (imageWith ("", [], [("width", "50"), ("height", "100"), ("query", "?nocache&50x100")]) "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))
             , "Linkonly" =:
               "{{wiki:dokuwiki-128.png?linkonly}}" =?>
               para (link "/wiki/dokuwiki-128.png" "" (str "dokuwiki-128.png"))

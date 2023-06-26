@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: March 26, 2023
+date: June 24, 2023
 ---
 
 # Synopsis
@@ -268,6 +268,7 @@ header when requesting a document from a URL:
     - `textile` ([Textile])
     - `tikiwiki` ([TikiWiki markup])
     - `twiki` ([TWiki markup])
+    - `typst` ([typst])
     - `vimwiki` ([Vimwiki])
     - the path of a custom Lua reader, see [Custom readers and writers] below
     :::
@@ -2179,7 +2180,7 @@ The styles may also be mixed in the same template, but the
 opening and closing delimiter must match in each case.  The
 opening delimiter may be followed by one or more spaces
 or tabs, which will be ignored. The closing delimiter may
-be followed by one or more spaces or tabs, which will be
+be preceded by one or more spaces or tabs, which will be
 ignored.
 
 To include a literal `$` in the document, use `$$`.
@@ -2565,7 +2566,7 @@ Currently the following pipes are predefined:
     documents
 
 `abstract-title`
-:   title of abstract, currently used only in HTML and EPUB.
+:   title of abstract, currently used only in HTML, EPUB, and docx.
     This will be set automatically to a localized value,
     depending on `lang`, but can be manually overridden.
 
@@ -3091,7 +3092,7 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `toc`
 :   include table of contents (can also be set using
     `--toc/--table-of-contents`)
-    
+
 `urlstyle`
 :   typeface style for links without link text, e.g. `normal`, `bold`, `slanted`, `boldslanted`,
     `type`, `cap`, `small`
@@ -4168,6 +4169,8 @@ ordered list marker in place of a numeral:
     #. one
     #. two
 
+Note:  the '`#`' ordered list marker doesn't work with `commonmark`.
+
 #### Extension: `startnum` ####
 
 Pandoc also pays attention to the type of list marker used, and to the
@@ -4487,7 +4490,7 @@ Cells can span multiple columns or rows:
     | Temperature +-------+----------+
     | 1961-1990   | mean  | 14 °C    |
     |             +-------+----------+
-    |             | min   | 56.7 °C  |
+    |             | max   | 56.7 °C  |
     +-------------+-------+----------+
 
 A table header may contain more than one row:
@@ -4880,18 +4883,6 @@ just part of a word, use `*`:
 
     feas*ible*, not feas*able*.
 
-### Highlighting ###
-
-To highlight text, use the `mark` class:
-
-    [Mark]{.mark}
-
-Or, without the `bracketed_spans` extension (but with `native_spans`):
-
-    <span class="mark">Mark</span>
-
-This will work in html output.
-
 ### Strikeout ###
 
 #### Extension: `strikeout` ####
@@ -4977,6 +4968,18 @@ For compatibility with other Markdown flavors, CSS is also supported:
     <span style="font-variant:small-caps;">Small caps</span>
 
 This will work in all output formats that support small caps.
+
+### Highlighting ###
+
+To highlight text, use the `mark` class:
+
+    [Mark]{.mark}
+
+Or, without the `bracketed_spans` extension (but with `native_spans`):
+
+    <span class="mark">Mark</span>
+
+This will work in all output formats that support highlighting.
 
 
 ## Math
@@ -5435,6 +5438,10 @@ Allow special fenced syntax for native `Div` blocks.  A Div
 starts with a fence containing at least three consecutive
 colons plus some attributes. The attributes may optionally
 be followed by another string of consecutive colons.
+
+Note:  the `commonmark` parser doesn't permit colons after
+the attributes.
+
 The attribute syntax is exactly as in fenced code blocks (see
 [Extension: `fenced_code_attributes`]).  As with fenced
 code blocks, one can use either attributes in curly braces
@@ -5877,11 +5884,11 @@ that follows. For example:
 or
 
     Oxygen is O~2.
-    
+
 #### Extension: `wikilinks_title_after_pipe` ####
 
 Pandoc supports multiple markdown wikilink syntaxes, regardless of
-whether the title is before or after the pipe. 
+whether the title is before or after the pipe.
 
 Using `--from=markdown+wikilinks_title_after_pipe` results in
 ```[[Wiki]]

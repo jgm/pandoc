@@ -18,7 +18,6 @@ JIRA:
 module Text.Pandoc.Writers.Jira ( writeJira ) where
 import Control.Monad.Reader (ReaderT, ask, asks, runReaderT)
 import Control.Monad.State.Strict (StateT, evalStateT, gets, modify)
-import Data.Foldable (find)
 import Data.Text (Text)
 import Text.Jira.Parser (plainText)
 import Text.Jira.Printer (prettyBlocks, prettyInlines)
@@ -133,9 +132,9 @@ toJiraCode :: PandocMonad m
            -> JiraConverter m [Jira.Block]
 toJiraCode (ident, classes, _attribs) code = do
   return . addAnchor ident . singleton $
-    case find (\c -> T.toLower c `elem` knownLanguages) classes of
-      Nothing -> Jira.NoFormat mempty code
-      Just l  -> Jira.Code (Jira.Language l) mempty code
+    case classes of
+      []  -> Jira.NoFormat mempty code
+      l:_ -> Jira.Code (Jira.Language l) mempty code
 
 -- | Prepends an anchor with the given identifier.
 addAnchor :: Text -> [Jira.Block] -> [Jira.Block]
@@ -328,12 +327,3 @@ registerNotes contents = do
   modify $ \s -> s { stNotes = thisnote : curNotes }
   return . singleton . Jira.Str $
     "[" <> T.pack (show newnum) <> "]"
-
--- | Language codes recognized by jira
-knownLanguages :: [Text]
-knownLanguages =
-  [ "actionscript", "ada", "applescript", "bash", "c", "c#", "c++"
-  , "css", "erlang", "go", "groovy", "haskell", "html", "java", "javascript"
-  , "json", "lua", "nyan", "objc", "perl", "php", "python", "r", "ruby"
-  , "scala", "sql", "swift", "visualbasic", "xml", "yaml"
-  ]

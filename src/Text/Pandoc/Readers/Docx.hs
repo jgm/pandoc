@@ -23,7 +23,7 @@ implemented, [-] means partially implemented):
 
   - [X] Para
   - [X] CodeBlock (styled with `SourceCode`)
-  - [X] BlockQuote (styled with `Quote`, `BlockQuote`, or, optionally,
+  - [X] BlockQuote (styled with `Quote`, `BlockQuote`, `Intense Quote` or, optionally,
         indented)
   - [X] OrderedList
   - [X] BulletList
@@ -244,7 +244,7 @@ isCodeDiv = hasStylesInheritedFrom ["Source Code", "SourceCode", "source_code"]
 isBlockQuote :: ParStyle -> Bool
 isBlockQuote =
   isInheritedFromStyles [
-    "Quote", "Block Text", "Block Quote", "Block Quotation"
+    "Quote", "Block Text", "Block Quote", "Block Quotation", "Intense Quote"
     ]
 
 runElemToInlines :: RunElem -> Inlines

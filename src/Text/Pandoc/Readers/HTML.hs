@@ -476,11 +476,18 @@ pIframe = try $ do
   if T.null url
      then ignore $ renderTags' [tag, TagClose "iframe"]
      else catchError
-       (do (bs, _) <- openURL url
-           let inp = UTF8.toText bs
-           opts <- readerOpts <$> getState
-           Pandoc _ contents <- readHtml opts inp
-           return $ B.divWith ("",["iframe"],[]) $ B.fromList contents)
+       (do (bs, mbMime) <- openURL url
+           case mbMime of
+             Just mt
+               | "text/html" `T.isPrefixOf` mt -> do
+                    let inp = UTF8.toText bs
+                    opts <- readerOpts <$> getState
+                    Pandoc _ contents <- readHtml opts inp
+                    return $ B.divWith ("",["iframe"],[]) $ B.fromList contents
+               | "image/" `T.isPrefixOf` mt -> do
+                    return $ B.divWith ("",["iframe"],[]) $
+                      B.plain $ B.image url "" mempty
+             _ -> return $ B.divWith ("",["iframe"],[("src", url)]) $ mempty)
        (\e -> do
          logMessage $ CouldNotFetchResource url (renderError e)
          ignore $ renderTags' [tag, TagClose "iframe"])

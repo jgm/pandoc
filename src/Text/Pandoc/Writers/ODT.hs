@@ -113,7 +113,6 @@ pandocToODT opts doc@(Pandoc meta _) = do
                         Just m   -> selfClosingTag "manifest:file-entry"
                                      [("manifest:media-type", m)
                                      ,("manifest:full-path", T.pack fp)
-                                     ,("manifest:version", "1.2")
                                      ]
   let files = [ ent | ent <- filesInArchive archive,
                              not ("META-INF" `isPrefixOf` ent) ]
@@ -125,9 +124,10 @@ pandocToODT opts doc@(Pandoc meta _) = do
         $$
          inTags True "manifest:manifest"
             [("xmlns:manifest","urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")
-            ,("manifest:version","1.2")] ( selfClosingTag "manifest:file-entry"
+            ,("manifest:version","1.3")] ( selfClosingTag "manifest:file-entry"
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
-                 ,("manifest:full-path","/")]
+                 ,("manifest:full-path","/")
+                 ,("manifest:version", "1.3")]
                 $$ vcat ( map toFileEntry files )
                 $$ vcat ( map toFileEntry formulas )
               )
@@ -157,7 +157,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
            ,("xmlns:meta","urn:oasis:names:tc:opendocument:xmlns:meta:1.0")
            ,("xmlns:ooo","http://openoffice.org/2004/office")
            ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
-           ,("office:version","1.2")] ( inTags True "office:meta" []
+           ,("office:version","1.3")] ( inTags True "office:meta" []
                  ( metaTag "meta:generator" ("Pandoc/" <> pandocVersionText)
                    $$
                    metaTag "dc:title" (stringify title)
@@ -297,7 +297,7 @@ documentSettings isTextMode = fromStringLazy $ render Nothing
       ,("xmlns:xlink","http://www.w3.org/1999/xlink")
       ,("xmlns:config","urn:oasis:names:tc:opendocument:xmlns:config:1.0")
       ,("xmlns:ooo","http://openoffice.org/2004/office")
-      ,("office:version","1.2")] (
+      ,("office:version","1.3")] (
        inTagsSimple "office:settings" $
          inTags False "config:config-item-set"
            [("config:name", "ooo:configuration-settings")] $

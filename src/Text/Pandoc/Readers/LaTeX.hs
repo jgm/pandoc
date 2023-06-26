@@ -213,7 +213,7 @@ mkImage options (T.unpack -> src) = do
    let kvs = map replaceTextwidth
              $ filter (\(k,_) -> k `elem` ["width", "height"]) options
    let attr = ("",[], kvs)
-   let alt = str "image"
+   let alt = maybe (str "image") str $ lookup "alt" options
    defaultExt <- getOption readerDefaultImageExtension
    let exts' = [".pdf", ".png", ".jpg", ".mps", ".jpeg", ".jbig2", ".jb2"]
    let exts  = exts' ++ map (map toUpper) exts'
@@ -1171,9 +1171,7 @@ figure' = try $ do
   innerContent <- many $ try (Left <$> label) <|> (Right <$> block)
   let content = walk go $ mconcat $ snd $ partitionEithers innerContent
   st <- getState
-  let caption' = case sCaption st of
-                   Nothing   -> B.emptyCaption
-                   Just capt -> capt
+  let caption' = fromMaybe B.emptyCaption $ sCaption st
   let mblabel  = sLastLabel st
   let attr     = case mblabel of
                    Just lab -> (lab, [], [])
@@ -1190,7 +1188,7 @@ figure' = try $ do
 
   where
   -- Remove the `Image` caption b.c. it's on the `Figure`
-  go (Para [Image attr _ target]) = Plain [Image attr [] target]
+  go (Para [Image attr [Str "image"] target]) = Plain [Image attr [] target]
   go x = x
 
 coloredBlock :: PandocMonad m => Text -> LP m Blocks

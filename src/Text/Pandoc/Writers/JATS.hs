@@ -26,7 +26,6 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)
-import Data.List (partition)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
@@ -94,27 +93,33 @@ writeJats tagSet opts d = do
 
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
-docToJATS opts (Pandoc meta blocks) = do
-  let isBackBlock (Div ("refs",_,_) _) = True
-      isBackBlock _                    = False
-  let (backblocks, bodyblocks) = partition isBackBlock blocks
+docToJATS opts (Pandoc meta blocks') = do
   -- The numbering here follows LaTeX's internal numbering
   let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
-  let fromBlocks = blocksToJATS opts . makeSections False (Just startLvl)
+  let blocks = makeSections (writerNumberSections opts) (Just startLvl) blocks'
+  let splitBackBlocks b@(Div ("refs",_,_) _) (fs, bs) = (fs, b:bs)
+      splitBackBlocks (Div (ident,("section":_),_)
+                               [ Header lev (_,hcls,hkvs) hils
+                               , (Div rattrs@("refs",_,_) rs)
+                               ]) (fs, bs)
+                       = (fs, Div rattrs
+                               (Header lev (ident,hcls,hkvs) hils : rs) : bs)
+      splitBackBlocks b (fs, bs) = (b:fs, bs)
+  let (bodyblocks, backblocks) = foldr splitBackBlocks ([],[]) blocks
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   metadata <- metaToContext opts
-                 fromBlocks
+                 (blocksToJATS opts)
                  (fmap chomp . inlinesToJATS opts)
                  meta
-  main <- fromBlocks bodyblocks
+  main <- blocksToJATS opts bodyblocks
   notes <- gets (reverse . map snd . jatsNotes)
-  backs <- fromBlocks backblocks
+  backs <- blocksToJATS opts backblocks
   tagSet <- asks jatsTagSet
   -- In the "Article Authoring" tag set, occurrence of fn-group elements
   -- is restricted to table footers. Footnotes have to be placed inline.
@@ -252,14 +257,21 @@ fixLineBreak x = x
 
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
-blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
+blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl (_,_,hkvs) ils : xs)) = do
   let idAttr = [ ("id", writerIdentifierPrefix opts <> escapeNCName id')
                | not (T.null id')]
   let otherAttrs = ["sec-type", "specific-use"]
   let attribs = idAttr ++ [(k,v) | (k,v) <- kvs, k `elem` otherAttrs]
   title' <- inlinesToJATS opts (map fixLineBreak ils)
+  let label = if writerNumberSections opts
+                 then
+                   case lookup "number" hkvs of
+                     Just num -> inTagsSimple "label" (literal num)
+                     Nothing -> mempty
+                 else mempty
   contents <- blocksToJATS opts xs
   return $ inTags True "sec" attribs $
+      label $$
       inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
 blockToJATS opts (Div (ident,_,_) [Para lst]) | "ref-" `T.isPrefixOf` ident =

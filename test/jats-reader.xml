@@ -69,6 +69,14 @@
   <p>Here's one with a bullet. * criminey.</p>
   <p>There should be a hard line break<break />here.</p>
 </sec>
+<sec id="statements">
+  <title> Statements </title>
+  <statement>
+    <label> A label for a statment</label>
+    <title> CAP TITLE </title>
+    <p> Some text to make this regular </p>
+  </statement>
+</sec>
 <sec id="block-quotes">
   <title>Block Quotes</title>
   <p>E-mail style:</p>
@@ -953,6 +961,17 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <thead>
         <tr>
           <th>
+            <p>r1a</p>
+          </th>
+          <th>
+            <p>r1b</p>
+          </th>
+          <th>
+            <p>r1c</p>
+          </th>
+        </tr>
+        <tr>
+          <th>
             <p>X</p>
           </th>
           <th>
@@ -1190,6 +1209,85 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
         <td colspan="2">
             <p>7</p>
         </td>
+        </tr>
+      </tbody>
+    </table>
+  </sec>
+  <sec id="table-with-footer">
+    <title>Table with footer</title>
+    <table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <tbody>
+        <tr>
+          <td>
+            <p>1</p>
+          </td>
+          <td>
+            <p>2</p>
+          </td>
+          <td>
+            <p>3</p>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td align="right">
+            <p>f1</p>
+          </td>
+          <td>
+            <p>f2</p>
+          </td>
+          <td>
+            <p>f3</p>
+          </td>
+        </tr>
+        <tr>
+          <td align="right">
+            <p>f4</p>
+          </td>
+          <td>
+            <p>f5</p>
+          </td>
+          <td>
+            <p>f6</p>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </sec>
+  <sec id="table-with-multiple-bodies">
+    <title>Table With Multiple Bodies</title>
+    <table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <tbody>
+        <tr>
+          <td align="right">
+            <p>a1</p>
+          </td>
+          <td>
+            <p>a2</p>
+          </td>
+          <td>
+            <p>a3</p>
+          </td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td>
+            <p>b1</p>
+          </td>
+          <td>
+            <p>b2</p>
+          </td>
+          <td>
+            <p>b3</p>
+          </td>
         </tr>
       </tbody>
     </table>

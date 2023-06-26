@@ -1,47 +1,47 @@
 {
   description = "Pandoc development";
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    haskell-flake.url = "github:srid/haskell-flake";
-    nixpkgs-140774-workaround.url = "github:srid/nixpkgs-140774-workaround";
-  };
 
-  outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = nixpkgs.lib.systems.flakeExposed;
-      imports = [
-        inputs.haskell-flake.flakeModule
-      ];
-      perSystem = { self', system, lib, config, pkgs, ... }: {
-        haskellProjects.main = {
-          imports = [
-            inputs.nixpkgs-140774-workaround.haskellFlakeProjectModules.default
-          ];
-          overrides = self: super: { };
-          devShell = {
-            tools = hp: {
-              inherit (hp)
-                hlint
-                ormolu
-                weeder
-                stylish-haskell
-                ghcid;
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs.flake-utils.url = "github:numtide/flake-utils";
+
+  outputs = inputs:
+    let
+      overlay = final: prev: {
+        haskell = prev.haskell // {
+          packageOverrides = hfinal: hprev:
+            prev.haskell.packageOverrides hfinal hprev // {
+              pandoc = hfinal.callCabal2nix "pandoc" ./. { };
             };
-            hlsCheck.enable = true;
-          };
-          packages = {
-            pandoc.root = ./.;
-            pandoc-cli.root = ./pandoc-cli;
-            pandoc-server.root = ./pandoc-server;
-            pandoc-lua-engine.root = ./pandoc-lua-engine;
-          };
         };
-
-        # Default package.
-        packages.default = self'.packages.pandoc;
-
-        devShells.default = self'.devShells.main;
+        pandoc = final.haskell.lib.compose.justStaticExecutables final.haskellPackages.pandoc;
       };
-    };
+      perSystem = system:
+        let
+          pkgs = import inputs.nixpkgs { inherit system; overlays = [ overlay ]; };
+          hspkgs = pkgs.haskellPackages;
+        in
+        {
+          devShell = hspkgs.shellFor {
+            withHoogle = true;
+            packages = p : [
+              p.pandoc
+            ];
+            buildInputs = [
+              hspkgs.cabal-install
+              hspkgs.haskell-language-server
+              hspkgs.hlint
+              hspkgs.ghcid
+              hspkgs.ormolu
+              hspkgs.stylish-haskell
+              hspkgs.weeder
+              hspkgs.servant-server
+              hspkgs.hslua
+              pkgs.bashInteractive
+            ];
+          };
+          defaultPackage = pkgs.pandoc;
+        };
+    in
+    { inherit overlay; } //
+      inputs.flake-utils.lib.eachDefaultSystem perSystem;
 }

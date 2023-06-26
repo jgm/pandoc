@@ -20,15 +20,15 @@ Name
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{1.0000} + 2\tabcolsep}@{}}{%
+\multicolumn{2}{@{}l@{}}{%
 Computer Science} \\
 3741255 & Jones, Martha \\
 4077830 & Pierce, Benjamin \\
 5151701 & Kirk, James \\
-\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{1.0000} + 2\tabcolsep}@{}}{%
+\multicolumn{2}{@{}l@{}}{%
 Russian Literature} \\
 3971244 & Nim, Victor \\
-\multicolumn{2}{@{}>{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{1.0000} + 2\tabcolsep}@{}}{%
+\multicolumn{2}{@{}l@{}}{%
 Astrophysics} \\
 4100332 & Petrov, Alexandra \\
 4100332 & Toyota, Hiroko \\

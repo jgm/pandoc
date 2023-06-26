@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                pandoc-lua-engine
-version:             0.2
+version:             0.2.1
 build-type:          Simple
 license:             GPL-2.0-or-later
 license-file:        COPYING.md
@@ -27,6 +27,7 @@ extra-source-files:  README.md
                    , test/lua/*.lua
                    , test/lua/module/*.lua
                    , test/lua/module/partial.test
+                   , test/lua/module/sample.svg
                    , test/lua/module/tiny.epub
                    , test/sample.lua
                    , test/tables.custom

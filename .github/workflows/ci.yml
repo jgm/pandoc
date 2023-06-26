@@ -47,12 +47,6 @@ jobs:
       fail-fast: true
       matrix:
         versions:
-          - ghc: '8.6'
-            cabal: 'latest'
-            cabalopts: '-f-embed_data_files'
-          - ghc: '8.8'
-            cabal: 'latest'
-            cabalopts: '-f-lua -f-server --enable-benchmarks'
           - ghc: '8.10'
             cabal: 'latest'
             cabalopts: ''
@@ -147,7 +141,7 @@ jobs:
       fail-fast: true
     steps:
     - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v20
+    - uses: cachix/install-nix-action@v22
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - run: |

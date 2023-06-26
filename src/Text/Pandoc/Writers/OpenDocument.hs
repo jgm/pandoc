@@ -255,7 +255,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                collectBlockIdent _                             = []
            modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks }
            m <- metaToContext opts
-                  (blocksToOpenDocument opts)
+                  (inlinesToOpenDocument opts . blocksToInlines)
                   (fmap chomp . inlinesToOpenDocument opts)
                   meta'
            b <- blocksToOpenDocument opts blocks
@@ -442,7 +442,7 @@ blockToOpenDocument o = \case
                                 then numberedTableCaption ident
                                 else unNumberedCaption "TableCaption"
         th <- colHeadsToOpenDocument o (map fst paraHStyles) thead
-        tr <- mapM (tableBodyToOpenDocument o (map fst paraStyles)) tbodies
+        tr <- mapM (tableBodyToOpenDocument o (map fst paraHStyles) (map fst paraStyles)) tbodies
         let tableDoc = inTags True "table:table" [
                             ("table:name"      , name)
                           , ("table:style-name", name)
@@ -506,19 +506,21 @@ colHeadsToOpenDocument o ns (Ann.TableHead _ hs) =
         vcat <$> mapM (tableItemToOpenDocument o "TableHeaderRowCell") (zip ns c)
 
 tableBodyToOpenDocument:: PandocMonad m
-                       => WriterOptions -> [Text] -> Ann.TableBody
+                       => WriterOptions -> [Text] -> [Text] -> Ann.TableBody
                        -> OD m (Doc Text)
-tableBodyToOpenDocument o ns tb =
+tableBodyToOpenDocument o headns bodyns tb =
     let (Ann.TableBody _ _ _ r) = tb
-    in vcat <$> mapM (tableRowToOpenDocument o ns) r
+    in vcat <$> mapM (tableRowToOpenDocument o headns bodyns) r
 
 tableRowToOpenDocument :: PandocMonad m
-                       => WriterOptions -> [Text] -> Ann.BodyRow
+                       => WriterOptions -> [Text] -> [Text] -> Ann.BodyRow
                        -> OD m (Doc Text)
-tableRowToOpenDocument o ns r =
-    let (Ann.BodyRow _ _ _ c ) = r
+
+tableRowToOpenDocument o headns bodyns r =
+    let (Ann.BodyRow _ _ rowheaders cs) = r
     in inTagsIndented "table:table-row" . vcat <$>
-    mapM (tableItemToOpenDocument o "TableRowCell") (zip ns c)
+    mapM (tableItemToOpenDocument o "TableRowCell")
+        ((zip headns rowheaders) ++ (zip (drop (length rowheaders) bodyns) cs))
 
 colspanAttrib :: ColSpan -> [(Text, Text)]
 colspanAttrib cs =
