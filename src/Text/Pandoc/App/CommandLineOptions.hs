@@ -293,18 +293,30 @@ options =
                 ""
 
     , Option "" ["file-scope"]
-                 (NoArg
-                  (\opt -> return opt { optFileScope = True }))
+                 (OptArg
+                  (\arg opt -> 
+                    case readBoolFromOptArg arg of 
+                        Just boolValue -> return opt { optFileScope = boolValue }
+                        Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Parse input files before combining"
 
     , Option "" ["sandbox"]
-                 (NoArg
-                  (\opt -> return opt { optSandbox = True }))
+                 (OptArg
+                  (\arg opt -> 
+                       case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optSandbox = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  ""
 
     , Option "s" ["standalone"]
-                 (NoArg
-                  (\opt -> return opt { optStandalone = True }))
+                 (OptArg
+                  (\arg opt -> 
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optStandalone = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Include needed header and footer on output"
 
     , Option "" ["template"]
@@ -337,13 +349,21 @@ options =
                  "" -- "Option for wrapping text in output"
 
     , Option "" ["ascii"]
-                 (NoArg
-                  (\opt -> return opt { optAscii = True }))
+                 (OptArg
+                  (\arg opt -> 
+                       case readBoolFromOptArg arg of 
+                          Just boolValue -> return opt { optAscii = boolValue }
+                          Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  ""  -- "Prefer ASCII output"
 
     , Option "" ["toc", "table-of-contents"]
-                (NoArg
-                 (\opt -> return opt { optTableOfContents = True }))
+                (OptArg
+                 (\arg opt -> 
+                      case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optTableOfContents = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                 "[true|false]")
                "" -- "Include table of contents"
 
     , Option "" ["toc-depth"]
@@ -486,8 +506,12 @@ options =
                  "" -- "Length of line in characters"
 
     , Option "p" ["preserve-tabs"]
-                 (NoArg
-                  (\opt -> return opt { optPreserveTabs = True }))
+                 (OptArg
+                  (\arg opt -> 
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optPreserveTabs = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Preserve tabs instead of converting to spaces"
 
     , Option "" ["tab-stop"]
@@ -529,16 +553,22 @@ options =
                  "" -- "Path of custom reference doc"
 
     , Option "" ["self-contained"]
-                 (NoArg
-                  (\opt -> do
+                 (OptArg
+                  (\arg opt -> do
                     deprecatedOption "--self-contained" "use --embed-resources --standalone"
-                    return opt { optSelfContained = True }))
+                    case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optSelfContained = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                    "[true|false]")
                  "" -- "Make slide shows include all the needed js and css (deprecated)"
 
-    , Option "" ["embed-resources"]
+    , Option "" ["embed-resources"] -- maybe True (\argStr -> argStr == "true") arg
                  (OptArg
-                  (\arg opt -> return opt { optEmbedResources = maybe True (\argStr -> argStr == "true") arg })
-                  "STRING")
+                  (\arg opt -> 
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optEmbedResources =  boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["request-header"]
@@ -551,8 +581,12 @@ options =
                  ""
 
     , Option "" ["no-check-certificate"]
-                (NoArg
-                 (\opt -> return opt { optNoCheckCertificate = True }))
+                (OptArg
+                 (\arg opt -> 
+                       case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optNoCheckCertificate = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                 "[true|false]")
                 "" -- "Disable certificate validation"
 
     , Option "" ["abbreviations"]
@@ -628,13 +662,21 @@ options =
                  "" -- "Accepting or reject MS Word track-changes.""
 
     , Option "" ["strip-comments"]
-                (NoArg
-                 (\opt -> return opt { optStripComments = True }))
+                (OptArg
+                 (\arg opt -> 
+                      case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optStripComments = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                 "[true|false]")
                "" -- "Strip HTML comments"
 
     , Option "" ["reference-links"]
-                 (NoArg
-                  (\opt -> return opt { optReferenceLinks = True } ))
+                 (OptArg
+                  (\arg opt ->  
+                      case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optReferenceLinks = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Use reference links in parsing HTML"
 
     , Option "" ["reference-location"]
@@ -665,19 +707,30 @@ options =
                   ""
 
     , Option "" ["list-tables"]
-                 (NoArg
-                  (\opt -> do
-                    return opt { optListTables = True } ))
+                 (OptArg
+                  (\arg opt ->  
+                        case readBoolFromOptArg arg of 
+                            Just boolValue -> return opt { optListTables = boolValue }
+                            Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Use list tables for RST"
 
     , Option "" ["listings"]
-                 (NoArg
-                  (\opt -> return opt { optListings = True }))
+                 (OptArg
+                  (\arg opt -> 
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optListings = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Use listings package for LaTeX code blocks"
 
     , Option "i" ["incremental"]
-                 (NoArg
-                  (\opt -> return opt { optIncremental = True }))
+                 (OptArg
+                  (\arg opt -> 
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optIncremental = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Make list items display incrementally in Slidy/Slideous/S5"
 
     , Option "" ["slide-level"]
@@ -692,14 +745,21 @@ options =
                  "" -- "Force header level for slides"
 
     , Option "" ["section-divs"]
-                 (NoArg
-                  (\opt -> return opt { optSectionDivs = True }))
+                 (OptArg
+                  (\arg opt -> 
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optSectionDivs = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Put sections in div tags in HTML"
 
     , Option "" ["html-q-tags"]
-                 (NoArg
-                  (\opt ->
-                     return opt { optHtmlQTags = True }))
+                 (OptArg
+                  (\arg opt -> 
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optHtmlQTags = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Use <q> tags for quotes in HTML"
 
     , Option "" ["email-obfuscation"]
@@ -909,18 +969,30 @@ options =
                  "" -- "Use gladtex for HTML math"
 
     , Option "" ["trace"]
-                 (NoArg
-                  (\opt -> return opt { optTrace = True }))
+                 (OptArg
+                  (\arg opt ->
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optTrace = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Turn on diagnostic tracing in readers."
 
     , Option "" ["dump-args"]
-                 (NoArg
-                  (\opt -> return opt { optDumpArgs = True }))
+                 (OptArg
+                  (\arg opt ->
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optDumpArgs = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Print output filename and arguments to stdout."
 
     , Option "" ["ignore-args"]
-                 (NoArg
-                  (\opt -> return opt { optIgnoreArgs = True }))
+                 (OptArg
+                  (\arg opt ->
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optIgnoreArgs = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Ignore command-line arguments."
 
     , Option "" ["verbose"]
@@ -934,8 +1006,12 @@ options =
                  "" -- "Suppress warnings."
 
     , Option "" ["fail-if-warnings"]
-                 (NoArg
-                  (\opt -> return opt { optFailIfWarnings = True }))
+                 (OptArg
+                  (\arg opt ->
+                        case readBoolFromOptArg arg of 
+                           Just boolValue -> return opt { optFailIfWarnings = boolValue }
+                           Nothing -> optError $ PandocOptionError "value must be either true or false")
+                  "[true|false]")
                  "" -- "Exit with error status if there were  warnings."
 
     , Option "" ["log"]
@@ -1098,6 +1174,13 @@ readMetaValue s
   | s == "False" = MetaBool False
   | s == "FALSE" = MetaBool False
   | otherwise    = MetaString $ T.pack s
+
+readBoolFromOptArg :: Maybe String -> Maybe Bool
+readBoolFromOptArg arg = case arg of 
+   Nothing      -> return True
+   Just "true"  -> return True
+   Just "false" -> return False
+   _            -> Nothing
 
 -- On Windows with ghc 8.6+, we need to rewrite paths
 -- beginning with \\ to \\?\UNC\. -- See #5127.
