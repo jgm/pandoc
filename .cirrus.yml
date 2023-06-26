@@ -27,7 +27,7 @@ task:
   trigger_type: manual
   timeout_in: 90m
   arm_container:
-    image: glcr.b-data.ch/ghc/ghc-musl:9.4.5
+    image: glcr.b-data.ch/ghc/ghc-musl:9.6.2
     cpu: 4
     memory: 12G
   env:
@@ -52,7 +52,7 @@ task:
   trigger_type: manual
   timeout_in: 90m
   container:
-    image: glcr.b-data.ch/ghc/ghc-musl:9.4.5
+    image: glcr.b-data.ch/ghc/ghc-musl:9.6.2
     cpu: 4
     memory: 12G
   env:
