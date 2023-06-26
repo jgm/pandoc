@@ -144,10 +144,9 @@ jobs:
       fail-fast: true
     steps:
     - uses: actions/checkout@v3
-    - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@v4
-    - name: Run the Magic Nix Cache
-      uses: DeterminateSystems/magic-nix-cache-action@v1
+    - uses: cachix/install-nix-action@v22
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
     - run: |
         nix-shell --run "cabal update && cabal test --disable-optimization"
 
