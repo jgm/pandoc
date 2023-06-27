@@ -162,7 +162,7 @@ jobs:
           dist-newstyle
         key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
     - run: |
-        nix-shell --run "cabal update && cabal test --disable-optimization"
+        nix-shell --run "cabal update && cabal test --enable-tests --disable-optimization --ghc-options=-Werror all"
 
   windows:
 
