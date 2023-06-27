@@ -412,7 +412,7 @@ withPaths (p:ps) action fp =
 -- with source position.
 toTextM :: PandocMonad m => FilePath -> B.ByteString -> m T.Text
 toTextM fp bs =
-  case TSE.decodeUtf8' . dropBOM $ bs of
+  case TSE.decodeUtf8' . filterCRs . dropBOM $ bs of
     Left (TSE.DecodeError _ (Just w)) ->
       case B.elemIndex w bs of
         Just offset ->
@@ -425,6 +425,7 @@ toTextM fp bs =
      if "\xEF\xBB\xBF" `B.isPrefixOf` bs'
         then B.drop 3 bs'
         else bs'
+   filterCRs = B.filter (/=13)
 
 -- | Returns @fp@ if the file exists in the current directory; otherwise
 -- searches for the data file relative to @/subdir/@. Returns @Nothing@
