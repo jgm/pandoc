@@ -84,7 +84,6 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Debug.Trace
 import qualified Text.Pandoc.MediaBag as MB
-import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text.Encoding as TSE
 import qualified Data.Text.Encoding.Error as TSE
 
