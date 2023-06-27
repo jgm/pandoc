@@ -18,7 +18,7 @@ import Control.Monad ((>=>))
 import Control.Monad.Except (throwError, catchError)
 import Data.Text (Text)
 import Network.URI (URI (..), parseURI, unEscapeString)
-import Text.Pandoc.Class ( PandocMonad, openURL
+import Text.Pandoc.Class ( PandocMonad, openURL, toTextM
                          , readFileStrict, readStdinStrict, report)
 import Text.Pandoc.Definition (Pandoc (..), Attr, Block (..), Inline (..))
 import Text.Pandoc.Error (PandocError (..))
@@ -26,15 +26,13 @@ import Text.Pandoc.Logging (LogMessage (..))
 import Text.Pandoc.MIME (getCharset, MimeType)
 import Text.Pandoc.Options (Extensions, ReaderOptions (..))
 import Text.Pandoc.Readers (Reader (..))
-import Text.Pandoc.Shared (tabFilter, textToIdentifier, tshow)
+import Text.Pandoc.Shared (tabFilter, textToIdentifier)
 import Text.Pandoc.URI (uriPathToPath)
 import Text.Pandoc.Walk (walk)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TSE
-import qualified Data.Text.Encoding.Error as TSE
 
 -- | Settings specifying how and which input should be processed.
 data InputParameters m = InputParameters
@@ -97,21 +95,6 @@ readSource src =
                  readFileStrict (uriPathToPath $ T.pack $ uriPath u)
     _       -> (,Nothing) <$> readFileStrict src
 
-utf8ToText :: PandocMonad m => FilePath -> BS.ByteString -> m Text
-utf8ToText fp bs =
-  case TSE.decodeUtf8' . dropBOM $ bs of
-    Left (TSE.DecodeError _ (Just w)) ->
-      case BS.elemIndex w bs of
-        Just offset -> throwError $ PandocUTF8DecodingError (T.pack fp) offset w
-        Nothing -> throwError $ PandocUTF8DecodingError (T.pack fp) 0 w
-    Left e -> throwError $ PandocAppError (tshow e)
-    Right t -> return t
- where
-   dropBOM bs' =
-     if "\xEF\xBB\xBF" `BS.isPrefixOf` bs'
-        then BS.drop 3 bs'
-        else bs'
-
 inputToText :: PandocMonad m
             => (Text -> Text)
             -> (FilePath, (BS.ByteString, Maybe MimeType))
@@ -119,11 +102,11 @@ inputToText :: PandocMonad m
 inputToText convTabs (fp, (bs,mt)) =
   (fp,) . convTabs . T.filter (/='\r') <$>
   case mt >>= getCharset of
-    Just "UTF-8"      -> utf8ToText fp bs
+    Just "UTF-8"      -> toTextM fp bs
     Just "ISO-8859-1" -> return $ T.pack $ B8.unpack bs
     Just charset      -> throwError $ PandocUnsupportedCharsetError charset
     Nothing           -> catchError
-                           (utf8ToText fp bs)
+                           (toTextM fp bs)
                            (\case
                               PandocUTF8DecodingError{} -> do
                                 report $ NotUTF8Encoded

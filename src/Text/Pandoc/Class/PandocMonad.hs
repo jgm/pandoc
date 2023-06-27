@@ -47,6 +47,7 @@ module Text.Pandoc.Class.PandocMonad
   , setResourcePath
   , getResourcePath
   , readMetadataFile
+  , toTextM
   , fillMediaBag
   , toLang
   , makeCanonical
@@ -74,7 +75,7 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, MediaItem(..))
-import Text.Pandoc.Shared (safeRead, makeCanonical)
+import Text.Pandoc.Shared (safeRead, makeCanonical, tshow)
 import Text.Pandoc.URI (uriPathToPath)
 import Text.Pandoc.Walk (walkM)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
@@ -84,6 +85,8 @@ import qualified Data.Text as T
 import qualified Debug.Trace
 import qualified Text.Pandoc.MediaBag as MB
 import qualified Text.Pandoc.UTF8 as UTF8
+import qualified Data.Text.Encoding as TSE
+import qualified Data.Text.Encoding.Error as TSE
 
 -- | The PandocMonad typeclass contains all the potentially
 -- IO-related functions used in pandoc's readers and writers.
@@ -402,6 +405,26 @@ withPaths [] _ fp = throwError $ PandocResourceNotFound $ T.pack fp
 withPaths (p:ps) action fp =
   catchError ((p </> fp,) <$> action (p </> fp))
              (\_ -> withPaths ps action fp)
+
+-- | A variant of Text.Pandoc.UTF8.toText that takes a FilePath
+-- as well as the file's contents as parameter, and traps UTF8
+-- decoding errors so it can issue a more informative PandocUTF8DecodingError
+-- with source position.
+toTextM :: PandocMonad m => FilePath -> B.ByteString -> m T.Text
+toTextM fp bs =
+  case TSE.decodeUtf8' . dropBOM $ bs of
+    Left (TSE.DecodeError _ (Just w)) ->
+      case B.elemIndex w bs of
+        Just offset ->
+          throwError $ PandocUTF8DecodingError (T.pack fp) offset w
+        Nothing -> throwError $ PandocUTF8DecodingError (T.pack fp) 0 w
+    Left e -> throwError $ PandocAppError (tshow e)
+    Right t -> return t
+ where
+   dropBOM bs' =
+     if "\xEF\xBB\xBF" `B.isPrefixOf` bs'
+        then B.drop 3 bs'
+        else bs'
 
 -- | Returns @fp@ if the file exists in the current directory; otherwise
 -- searches for the data file relative to @/subdir/@. Returns @Nothing@
