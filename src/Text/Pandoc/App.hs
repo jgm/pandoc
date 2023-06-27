@@ -366,10 +366,11 @@ configureCommonState datadir opts = do
 -- only affect the Markdown reader.
 readAbbreviations :: PandocMonad m => Maybe FilePath -> m (Set.Set Text)
 readAbbreviations mbfilepath =
-  Set.fromList . filter (not . T.null) . T.lines . UTF8.toText <$>
-  case mbfilepath of
+  (case mbfilepath of
     Nothing -> readDataFile "abbreviations"
-    Just f  -> readFileStrict f
+    Just f  -> readFileStrict f)
+    >>= fmap (Set.fromList . filter (not . T.null) . T.lines) .
+         toTextM (fromMaybe mempty mbfilepath)
 
 createPngFallbacks :: (PandocMonad m, MonadIO m) => Int -> m ()
 createPngFallbacks dpi = do

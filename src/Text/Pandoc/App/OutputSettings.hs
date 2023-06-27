@@ -47,7 +47,7 @@ import Text.Pandoc.Scripting (ScriptingEngine (engineLoadCustom),
 import qualified Text.Pandoc.UTF8 as UTF8
 
 readUtf8File :: PandocMonad m => FilePath -> m T.Text
-readUtf8File = fmap UTF8.toText . readFileStrict
+readUtf8File fp = readFileStrict fp >>= toTextM fp
 
 -- | Settings specifying how document output should be produced.
 data OutputSettings m = OutputSettings
@@ -174,7 +174,7 @@ optToOutputSettings scriptingEngine opts = do
                          (ListVal $ v : map toVal vs) ctxMap
               Nothing -> M.insert k (toVal vs) ctxMap
 
-  let getTextContents fp = UTF8.toText . fst <$> fetchItem (T.pack fp)
+  let getTextContents fp = (fst <$> fetchItem (T.pack fp)) >>= toTextM fp
 
   let setFilesVariableM k fps ctx = do
         xs <- mapM getTextContents fps
@@ -209,8 +209,9 @@ optToOutputSettings scriptingEngine opts = do
     >>=
     (\vars ->  if format == "dzslides"
                   then do
-                      dztempl <- UTF8.toText <$> readDataFile
-                                   ("dzslides" </> "template.html")
+                      dztempl <-
+                        let fp = "dzslides" </> "template.html"
+                         in readDataFile fp >>= toTextM fp
                       let dzline = "<!-- {{{{ dzslides core"
                       let dzcore = T.unlines
                                  $ dropWhile (not . (dzline `T.isPrefixOf`))

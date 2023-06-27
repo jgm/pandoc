@@ -24,7 +24,7 @@ import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Class (PandocMonad(..), getResourcePath, getUserDataDir,
-                          fetchItem, report, setResourcePath)
+                          fetchItem, report, setResourcePath, toTextM)
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Extensions (pandocExtensions)
@@ -32,7 +32,6 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options (ReaderOptions(..))
 import Text.Pandoc.Shared (stringify, tshow)
 import Data.Containers.ListUtils (nubOrd)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (query, walk, walkM)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError, throwError)
@@ -143,7 +142,8 @@ getStyle (Pandoc meta _) = do
 
   let getCslDefault = readDataFile "default.csl"
 
-  cslContents <- UTF8.toText <$> maybe getCslDefault (getFile ".csl") cslfile
+  cslContents <- maybe getCslDefault (getFile ".csl") cslfile >>=
+                   toTextM (maybe mempty T.unpack cslfile)
 
   let abbrevFile = lookupMeta "citation-abbreviations" meta >>= metaValueToText
 
@@ -161,8 +161,8 @@ getStyle (Pandoc meta _) = do
   let getParentStyle url = do
         -- first, try to retrieve the style locally, then use HTTP.
         let basename = T.takeWhileEnd (/='/') url
-        UTF8.toText <$>
-          catchError (getFile ".csl" basename) (\_ -> fst <$> fetchItem url)
+        catchError (getFile ".csl" basename) (\_ -> fst <$> fetchItem url)
+          >>= toTextM (T.unpack url)
 
   styleRes <- Citeproc.parseStyle getParentStyle cslContents
   case styleRes of
@@ -254,13 +254,14 @@ getRefs :: PandocMonad m
 getRefs locale format idpred mbfp raw = do
   let err' = throwError .
              PandocBibliographyError (fromMaybe mempty mbfp)
+  let fp = maybe mempty T.unpack mbfp
   case format of
     Format_bibtex ->
-      either (err' . tshow) return .
-        readBibtexString Bibtex locale idpred . UTF8.toText $ raw
+      toTextM fp raw >>=
+        either (err' . tshow) return . readBibtexString Bibtex locale idpred
     Format_biblatex ->
-      either (err' . tshow) return .
-        readBibtexString Biblatex locale idpred . UTF8.toText $ raw
+      toTextM fp raw >>=
+      either (err' . tshow) return . readBibtexString Biblatex locale idpred
     Format_json ->
       either (err' . T.pack)
              (return . filter (idpred . unItemId . referenceId)) .
@@ -272,7 +273,7 @@ getRefs locale format idpred mbfp raw = do
               raw
       return $ mapMaybe metaValueToReference rs
     Format_ris -> do
-      Pandoc meta _ <- readRIS def (UTF8.toText raw)
+      Pandoc meta _ <- toTextM fp raw >>= readRIS def
       case lookupMeta "references" meta of
         Just (MetaList rs) -> return $ mapMaybe metaValueToReference rs
         _ -> return []
