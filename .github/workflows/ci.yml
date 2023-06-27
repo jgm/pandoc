@@ -147,6 +147,20 @@ jobs:
     - uses: cachix/install-nix-action@v22
       with:
         nix_path: nixpkgs=channel:nixos-unstable
+    - name: Cache cabal global package db
+      id:   cabal-global
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cabal
+        key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
+    - name: Cache cabal work
+      id:   cabal-local
+      uses: actions/cache@v3
+      with:
+        path: |
+          dist-newstyle
+        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
     - run: |
         nix-shell --run "cabal update && cabal test --disable-optimization"
 
