@@ -274,7 +274,7 @@ getZonedTime = do
 readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m (Maybe T.Text)
 readFileFromDirs [] _ = return Nothing
 readFileFromDirs (d:ds) f = catchError
-    (Just . T.pack . UTF8.toStringLazy <$> readFileLazy (d </> f))
+    (Just <$> (readFileStrict (d </> f) >>= toTextM (d </> f)))
     (\_ -> readFileFromDirs ds f)
 
 -- | Convert BCP47 string to a Lang, issuing warning
