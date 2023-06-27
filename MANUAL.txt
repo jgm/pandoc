@@ -1096,8 +1096,9 @@ header when requesting a document from a URL:
 
 :   Wrap sections in `<section>` tags (or `<div>` tags for `html4`),
     and attach identifiers to the enclosing `<section>` (or `<div>`)
-    rather than the heading itself. See
-    [Heading identifiers], below.
+    rather than the heading itself (see
+    [Heading identifiers], below). This option only affects
+    HTML output (and does not affect HTML slide formats).
 
 `--email-obfuscation=none`|`javascript`|`references`
 
