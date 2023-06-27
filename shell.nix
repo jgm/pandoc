@@ -37,8 +37,8 @@ let
     Glob
     gridtables
     haddock-library
-    hslua
     hslua-aeson
+    hslua-list
     hslua-module-doclayout
     hslua-module-path
     hslua-module-system
@@ -50,6 +50,9 @@ let
     ipynb
     jira-wiki-markup
     JuicyPixels
+    lpeg
+    lua
+    lua-arbitrary
     lpeg
     mime-types
     mtl
@@ -71,6 +74,10 @@ let
     SHA
     skylighting
     skylighting-core
+    skylighting-format-latex
+    skylighting-format-context
+    skylighting-format-blaze-html
+    skylighting-format-ansi
     split
     syb
     tagsoup
