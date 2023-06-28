@@ -12,7 +12,7 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j4 +RTS -A8m -RTS
+GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j +RTS -A8m -RTS
 CABALOPTS?=--disable-optimization -f-export-dynamic
 WEBSITE=../../web/pandoc.org
 REVISION?=1
@@ -59,7 +59,7 @@ quick-stack: ## unoptimized build and tests with stack
 	  --system-ghc --flag 'pandoc:embed_data_files' \
 	  --fast \
 	  --test \
-	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
+	  --test-arguments='-j --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
 prerelease: README.md fix_spacing check-cabal check-stack checkdocs man uncommitted_changes ## prerelease checks
