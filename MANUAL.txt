@@ -415,7 +415,7 @@ header when requesting a document from a URL:
 
 :   Suppress warning messages.
 
-`--fail-if-warnings`
+`--fail-if-warnings[=true|false]`
 
 :   Exit with error status if there are any warnings.
 
@@ -559,7 +559,7 @@ header when requesting a document from a URL:
     require different kinds of images.  Currently this option only affects
     the Markdown and LaTeX readers.
 
-`--file-scope`
+`--file-scope[=true|false]`
 
 :   Parse each file individually before combining for multifile
     documents. This will allow footnotes in different files with the
@@ -670,7 +670,7 @@ header when requesting a document from a URL:
     for first in the working directory, and then in the `metadata`
     subdirectory of the user data directory (see `--data-dir`).
 
-`-p`, `--preserve-tabs`
+`-p`, `--preserve-tabs[=true|false]`
 
 :   Preserve tabs instead of converting them to spaces. (By default, pandoc
     converts tabs to spaces before parsing its input.)  Note that this will
@@ -723,7 +723,7 @@ header when requesting a document from a URL:
     space, and the period will not produce sentence-ending space
     in formats like LaTeX.  The strings may not contain spaces.
 
-`--trace`
+`--trace[=true|false]`
 
 :   Print diagnostic output tracing parser progress to stderr.
     This option is intended for use by developers in diagnosing
@@ -763,7 +763,7 @@ header when requesting a document from a URL:
     document in standalone mode. If no *VAL* is specified, the
     key will be given the value `true`.
 
-`--sandbox`
+`--sandbox[=true|false]`
 
 :   Run pandoc in a sandbox, limiting IO operations in readers
     and writers to reading the files specified on the command line.
@@ -837,7 +837,7 @@ header when requesting a document from a URL:
     in the generated source code (see `--wrap`).  It also affects
     calculation of column widths for plain text tables (see [Tables] below).
 
-`--toc`, `--table-of-contents`
+`--toc[=true|false]`, `--table-of-contents[=true|false]`
 
 :   Include an automatically generated table of contents (or, in
     the case of `latex`, `context`, `docx`, `odt`,
@@ -858,7 +858,7 @@ header when requesting a document from a URL:
     of contents.  The default is 3 (which means that level-1, 2, and 3
     headings will be listed in the contents).
 
-`--strip-comments`
+`--strip-comments[=true|false]`
 
 :   Strip out HTML comments in the Markdown or Textile source,
     rather than passing them on to Markdown, Textile or HTML
@@ -956,7 +956,7 @@ header when requesting a document from a URL:
     downloaded). If you're behind a proxy, you also need to set
     the environment variable `http_proxy` to `http://...`.
 
-`--no-check-certificate`
+`--no-check-certificate[=true|false]`
 
 :   Disable the certificate verification to allow access to
     unsecure HTTP resources (for example when the certificate
@@ -964,11 +964,11 @@ header when requesting a document from a URL:
 
 ## Options affecting specific writers {.options}
 
-`--self-contained`
+`--self-contained[=true|false]`
 
 :   *Deprecated synonym for `--embed-resources --standalone`.*
 
-`--embed-resources`
+`--embed-resources[=true|false]`
 
 :   Produce a standalone HTML file with no external dependencies, using
     `data:` URIs to incorporate the contents of linked scripts, stylesheets,
@@ -989,13 +989,13 @@ header when requesting a document from a URL:
     advanced features (e.g.  zoom or speaker notes) may not work
     in an offline "self-contained" `reveal.js` slide show.
 
-`--html-q-tags`
+`--html-q-tags[=true|false]`
 
 :   Use `<q>` tags for quotes in HTML.  (This option only has an
     effect if the `smart` extension is enabled for the input
     format used.)
 
-`--ascii`
+`--ascii[=true|false]`
 
 :   Use only ASCII characters in output. Currently supported for XML
     and HTML formats (which use entities instead of UTF-8 when this
@@ -1004,7 +1004,7 @@ header when requesting a document from a URL:
     limited degree LaTeX (which uses standard commands for accented
     characters when possible).
 
-`--reference-links`
+`--reference-links[=true|false]`
 
 :   Use reference-style links, rather than inline links, in writing Markdown
     or reStructuredText.  By default inline links are used.  The
@@ -1030,7 +1030,7 @@ header when requesting a document from a URL:
     ATX-style headings are always used for levels 3+.
     This option also affects Markdown cells in `ipynb` output.
 
-`--list-tables`
+`--list-tables[=true|false]`
 
 :   Render tables as list tables in RST output.
 
@@ -1068,14 +1068,14 @@ header when requesting a document from a URL:
     be numbered "1.5", specify `--number-offset=1,4`.
     Offsets are 0 by default.  Implies `--number-sections`.
 
-`--listings`
+`--listings[=true|false]`
 
 :   Use the [`listings`] package for LaTeX code blocks. The package
     does not support multi-byte encoding for source code. To handle UTF-8
     you would need to use a custom template. This issue is fully
     documented here: [Encoding issue with the listings package].
 
-`-i`, `--incremental`
+`-i`, `--incremental[=true|false]`
 
 :   Make list items in slide shows display incrementally (one by one).
     The default is for lists to be displayed all at once.
@@ -1092,7 +1092,7 @@ header when requesting a document from a URL:
     explicitly, the slide level will be set automatically based on
     the contents of the document; see [Structuring the slide show].
 
-`--section-divs`
+`--section-divs[=true|false]`
 
 :   Wrap sections in `<section>` tags (or `<div>` tags for `html4`),
     and attach identifiers to the enclosing `<section>` (or `<div>`)
@@ -1528,7 +1528,7 @@ results only for basic math, usually you will want to use
 
 ## Options for wrapper scripts {.options}
 
-`--dump-args`
+`--dump-args[=true|false]`
 
 :   Print information about command-line arguments to *stdout*, then exit.
     This option is intended primarily for use in wrapper scripts.
@@ -1539,7 +1539,7 @@ results only for basic math, usually you will want to use
     pandoc options and their arguments, but do include any options appearing
     after a `--` separator at the end of the line.
 
-`--ignore-args`
+`--ignore-args[=true|false]`
 
 :   Ignore command-line arguments (for use in wrapper scripts).
     Regular pandoc options are not ignored.  Thus, for example,

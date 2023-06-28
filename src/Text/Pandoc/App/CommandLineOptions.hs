@@ -297,7 +297,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optFileScope = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Parse input files before combining"
 
     , Option "" ["sandbox"]
@@ -305,7 +305,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optSandbox = boolValue })
-                  "[true|false]")
+                  "true|false")
                  ""
 
     , Option "s" ["standalone"]
@@ -313,7 +313,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optStandalone = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Include needed header and footer on output"
 
     , Option "" ["template"]
@@ -350,7 +350,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optAscii = boolValue })
-                  "[true|false]")
+                  "true|false")
                  ""  -- "Prefer ASCII output"
 
     , Option "" ["toc", "table-of-contents"]
@@ -358,7 +358,7 @@ options =
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optTableOfContents = boolValue })
-                 "[true|false]")
+                 "true|false")
                "" -- "Include table of contents"
 
     , Option "" ["toc-depth"]
@@ -505,7 +505,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optPreserveTabs = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Preserve tabs instead of converting to spaces"
 
     , Option "" ["tab-stop"]
@@ -552,7 +552,7 @@ options =
                         deprecatedOption "--self-contained" "use --embed-resources --standalone"
                         boolValue <- readBoolFromOptArg arg
                         return opt { optSelfContained = boolValue })
-                    "[true|false]")
+                    "true|false")
                  "" -- "Make slide shows include all the needed js and css (deprecated)"
 
     , Option "" ["embed-resources"] -- maybe True (\argStr -> argStr == "true") arg
@@ -560,7 +560,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optEmbedResources =  boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Make slide shows include all the needed js and css"
 
     , Option "" ["request-header"]
@@ -577,7 +577,7 @@ options =
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optNoCheckCertificate = boolValue })
-                 "[true|false]")
+                 "true|false")
                 "" -- "Disable certificate validation"
 
     , Option "" ["abbreviations"]
@@ -657,7 +657,7 @@ options =
                  (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optStripComments = boolValue })
-                 "[true|false]")
+                 "true|false")
                "" -- "Strip HTML comments"
 
     , Option "" ["reference-links"]
@@ -665,7 +665,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optReferenceLinks = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Use reference links in parsing HTML"
 
     , Option "" ["reference-location"]
@@ -700,7 +700,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optListTables = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Use list tables for RST"
 
     , Option "" ["listings"]
@@ -708,7 +708,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optListings = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Use listings package for LaTeX code blocks"
 
     , Option "i" ["incremental"]
@@ -716,7 +716,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optIncremental = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Make list items display incrementally in Slidy/Slideous/S5"
 
     , Option "" ["slide-level"]
@@ -735,7 +735,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optSectionDivs = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Put sections in div tags in HTML"
 
     , Option "" ["html-q-tags"]
@@ -743,7 +743,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optHtmlQTags = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Use <q> tags for quotes in HTML"
 
     , Option "" ["email-obfuscation"]
@@ -957,7 +957,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optTrace = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Turn on diagnostic tracing in readers."
 
     , Option "" ["dump-args"]
@@ -965,7 +965,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optDumpArgs = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Print output filename and arguments to stdout."
 
     , Option "" ["ignore-args"]
@@ -973,7 +973,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optIgnoreArgs = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Ignore command-line arguments."
 
     , Option "" ["verbose"]
@@ -991,7 +991,7 @@ options =
                   (\arg opt -> do
                         boolValue <- readBoolFromOptArg arg
                         return opt { optFailIfWarnings = boolValue })
-                  "[true|false]")
+                  "true|false")
                  "" -- "Exit with error status if there were  warnings."
 
     , Option "" ["log"]
