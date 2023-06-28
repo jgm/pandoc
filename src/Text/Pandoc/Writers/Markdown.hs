@@ -313,9 +313,9 @@ noteToMarkdown opts num blocks = do
 
 -- | (Code) blocks with a single class and no attributes can just use it
 -- standalone, no need to bother with curly braces.
-classOrAttrsToMarkdown :: Attr -> Doc Text
-classOrAttrsToMarkdown ("",[cls],[]) = literal cls
-classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
+classOrAttrsToMarkdown :: WriterOptions -> Attr -> Doc Text
+classOrAttrsToMarkdown _ ("",[cls],[]) = literal cls
+classOrAttrsToMarkdown opts attrs = attrsToMarkdown opts attrs
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parsec Text ParserState ()
@@ -383,8 +383,8 @@ blockToMarkdown' opts (Div attrs ils) = do
            | isEnabled Ext_fenced_divs opts &&
              attrs /= nullAttr ->
                 let attrsToMd = if variant == Commonmark
-                                then attrsToMarkdown
-                                else classOrAttrsToMarkdown
+                                then attrsToMarkdown opts
+                                else classOrAttrsToMarkdown opts
                 in nowrap (literal ":::" <+> attrsToMd attrs) $$
                    chomp contents $$
                    literal ":::" <> blankline
@@ -493,10 +493,10 @@ blockToMarkdown' opts (Header level attr inlines) = do
                                  && id' == autoId -> empty
                    (id',_,_)   | isEnabled Ext_mmd_header_identifiers opts ->
                                     space <> brackets (literal id')
-                   _ | variant == Markua -> attrsToMarkua attr
+                   _ | variant == Markua -> attrsToMarkua opts attr
                      | isEnabled Ext_header_attributes opts ||
                        isEnabled Ext_attributes opts ->
-                                    space <> attrsToMarkdown attr
+                                    space <> attrsToMarkdown opts attr
                      | otherwise -> empty
   contents <- inlineListToMarkdown opts $
                  -- ensure no newlines; see #3736
@@ -546,7 +546,7 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
           backticks <> attrs <> cr <> literal str <> cr <> backticks <> blankline
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> literal str <> cr <> tildes <> blankline
-     _ | variant == Markua -> blankline <> attrsToMarkua attribs <> cr <> backticks <> cr <>
+     _ | variant == Markua -> blankline <> attrsToMarkua opts attribs <> cr <> backticks <> cr <>
                                 literal str <> cr <> backticks <> cr <> blankline
        | otherwise -> nest (writerTabStop opts) (literal str) <> blankline
    where
@@ -560,7 +560,7 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
      tildes = endline '~'
      attrs  = if isEnabled Ext_fenced_code_attributes opts ||
                  isEnabled Ext_attributes opts
-                 then nowrap $ " " <> classOrAttrsToMarkdown attribs
+                 then nowrap $ " " <> classOrAttrsToMarkdown opts attribs
                  else case attribs of
                             (_,cls:_,_) -> " " <> literal cls
                             _             -> empty
