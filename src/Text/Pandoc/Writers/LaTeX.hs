@@ -151,6 +151,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                           Nothing | null docLangs -> Nothing
                                   | otherwise     -> Just "en"
   -- we need a default here since lang is used in template conditionals
+  let otherLangs = [l | l <- docLangs, mblang /= Just l]
 
   let dirs = query (extract "dir") blocks
 
@@ -225,7 +226,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
         $ maybe id (\l -> defField "babel-lang"
                       (literal l)) (mblang >>= toBabel)
         $ defField "babel-otherlangs"
-             (map literal $ mapMaybe toBabel docLangs)
+             (map literal $ mapMaybe toBabel otherLangs)
         $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
