@@ -11,3 +11,6 @@ source-repository-package
   type: git
   location: https://github.com/jgm/pandoc-types
   tag: 2b68c905e75c65e66eaa4635e4c1bd6aabd6302f
+
+-- when time for a release:
+-- Release new skylighting, skylighting-core and depend on them
