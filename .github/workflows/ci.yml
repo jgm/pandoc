@@ -85,7 +85,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          $XDG_STATE_HOME/cabal
+          ~/.local/state/cabal
         key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
@@ -152,7 +152,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          $XDG_STATE_HOME/cabal
+          ~/.local/state/cabal
         key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
     - name: Cache cabal work
       id:   cabal-local
