@@ -1156,7 +1156,7 @@ readMetaValue s
   | otherwise    = MetaString $ T.pack s
 
 readBoolFromOptArg ::  Maybe String -> ExceptT OptInfo IO Bool
-readBoolFromOptArg optArg = maybe (return True) readBoolFromArg optArg
+readBoolFromOptArg = maybe (return True) readBoolFromArg
     where readBoolFromArg arg = case toLower <$> arg of
             "true"  -> return True
             "false" -> return False
