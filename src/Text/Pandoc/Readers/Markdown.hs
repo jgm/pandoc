@@ -1908,10 +1908,10 @@ regLink :: PandocMonad m
         -> F Inlines
         -> MarkdownParser m (F Inlines)
 regLink constructor lab = try $ do
-  (src, tit) <- source
+  (!src, !tit) <- source
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   pos <- getPosition
-  let src' = if rebase then rebasePath pos src else src
+  let !src' = if rebase then rebasePath pos src else src
   attr <- option nullAttr $
           guardEnabled Ext_link_attributes >> attributes
   return $ constructor attr src' tit <$> lab
