@@ -107,8 +107,8 @@ instance HasMeta JATSState where
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
   where blocktags = S.fromList (paragraphLevel ++ lists ++ mathML ++ other) \\ S.fromList inlinetags
-        paragraphLevel = ["address", "array", "boxed-text", "chem-struct-wrap",
-            "code", "fig", "fig-group", "graphic", "media", "preformat",
+        paragraphLevel = ["address", "answer", "answer-set", "array", "boxed-text", "chem-struct-wrap",
+            "code", "explanation", "fig", "fig-group", "graphic", "media", "preformat", "question", "question-wrap-group"
             "supplementary-material", "table-wrap", "table-wrap-group",
             "alternatives", "disp-formula", "disp-formula-group"]
         lists = ["def-list", "list"]
@@ -363,9 +363,7 @@ parseBlock (Elem e) = do
          wrapWithHeader n mBlocks = do
                       isBook <- gets jatsBook
                       let n' = if isBook || n == 0 then n + 1 else n
-                      headerText <- case filterChild (named "title") e `mplus`
-                                          (filterChild (named "info") e >>=
-                                              filterChild (named "title")) of
+                      headerText <- case filterChild (named "title") e of
                                         Just t  -> getInlines t
                                         Nothing -> return mempty
                       oldN <- gets jatsSectionLevel
