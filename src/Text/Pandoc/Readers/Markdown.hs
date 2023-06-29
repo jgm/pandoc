@@ -1912,8 +1912,7 @@ regLink constructor lab = try $ do
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   pos <- getPosition
   let !src' = if rebase then rebasePath pos src else src
-  attr <- option nullAttr $
-          guardEnabled Ext_link_attributes >> attributes
+  !attr <- option nullAttr $ guardEnabled Ext_link_attributes >> attributes
   return $ constructor attr src' tit <$> lab
 
 -- a link like [this][ref] or [this][] or [this]
@@ -1923,7 +1922,7 @@ referenceLink :: PandocMonad m
               -> MarkdownParser m (F Inlines)
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
-  (_,raw') <- option (mempty, "") $
+  (_,!raw') <- option (mempty, "") $
       lookAhead (try (do guardEnabled Ext_citations
                          guardDisabled Ext_spaced_reference_links <|> spnl
                          normalCite
@@ -1931,8 +1930,8 @@ referenceLink constructor (lab, raw) = do
       <|>
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
-  let labIsRef = raw' == "" || raw' == "[]"
-  let key = toKey $ if labIsRef then raw else raw'
+  let !labIsRef = raw' == "" || raw' == "[]"
+  let !key = toKey $ if labIsRef then raw else raw'
   parsedRaw <- parseFromString' inlines raw'
   fallback  <- parseFromString' inlines $ dropBrackets raw
   implicitHeaderRefs <- option False $
@@ -2056,25 +2055,24 @@ rawLaTeXInline' :: PandocMonad m => MarkdownParser m (F Inlines)
 rawLaTeXInline' = do
   guardEnabled Ext_raw_tex
   notFollowedBy' rawConTeXtEnvironment
-  try $ do
-    s <- rawLaTeXInline
-    return $ return $ B.rawInline "tex" s -- "tex" because it might be context
+  !s <- rawLaTeXInline
+  return $ return $ B.rawInline "tex" s -- "tex" because it might be context
 
 rawConTeXtEnvironment :: PandocMonad m => ParsecT Sources st m Text
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
                <|> many1Char letter
-  contents <- manyTill (rawConTeXtEnvironment <|> countChar 1 anyChar)
+  !contents <- manyTill (rawConTeXtEnvironment <|> countChar 1 anyChar)
                        (try $ string "\\stop" >> textStr completion)
-  return $ "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
+  return $! "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
 
 inBrackets :: PandocMonad m => ParsecT Sources st m Char -> ParsecT Sources st m Text
 inBrackets parser = do
   char '['
   contents <- manyChar parser
   char ']'
-  return $ "[" <> contents <> "]"
+  return $! "[" <> contents <> "]"
 
 spanHtml :: PandocMonad m => MarkdownParser m (F Inlines)
 spanHtml = do
@@ -2155,15 +2153,12 @@ rawHtmlInline = do
 
 -- Emoji
 
-emojiChars :: [Char]
-emojiChars = ['a'..'z'] ++ ['0'..'9'] ++ ['_','+','-']
-
 emoji :: PandocMonad m => MarkdownParser m (F Inlines)
 emoji = do
   guardEnabled Ext_emoji
   try $ do
     char ':'
-    emojikey <- many1Char (oneOf emojiChars)
+    emojikey <- many1Char (alphaNum <|> oneOf "_+-")
     char ':'
     case emojiToInline emojikey of
       Just i -> return (return $ B.singleton i)
