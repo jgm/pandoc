@@ -28,4 +28,6 @@ ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-21.0
 nix:
-  packages: [zlib]
+  packages:
+  - pkg-config
+  - zlib
