@@ -28,7 +28,7 @@ import Text.TeXMath.Types
   )
 import Text.TeXMath.Unicode.ToTeX (getSymbolType)
 import Text.Pandoc.Readers.Typst.Parsing
-    ( P, pTok, warn, pWithContents, getField, chunks )
+    ( P, pTok, ignored, pWithContents, getField, chunks )
 import Typst.Types
 
 -- import Debug.Trace
@@ -55,7 +55,7 @@ handleMath :: PandocMonad m => Content -> P m Exp
 handleMath tok =
   case tok of
     Lab t -> do
-      warn ("skipping label " <> t)
+      ignored ("label " <> t)
       pure (EGrouped [])
     Txt t
       | T.any isDigit t -> pure $ ENumber t
@@ -312,11 +312,27 @@ handleMath tok =
     Elt "table" pos fields -> handleMath (Elt "grid" pos fields)
     Elt "link" _ fields -> do
       body <- getField "body" fields
-      warn "Hyperlinks not supported in math"
+      ignored "hyperlink in math"
       pMathGrouped body
+    Elt "math.display" _ fields -> do
+      content <- getField "content" fields
+      ignored "display"
+      pMathGrouped content
+    Elt "math.inline" _ fields -> do
+      content <- getField "content" fields
+      ignored "inline"
+      pMathGrouped content
+    Elt "math.script" _ fields -> do
+      content <- getField "content" fields
+      ignored "script"
+      pMathGrouped content
+    Elt "math.sscript" _ fields -> do
+      content <- getField "content" fields
+      ignored "sscript"
+      pMathGrouped content
     Elt (Identifier name) _ fields -> do
       body <- getField "body" fields `mplus` pure mempty
-      warn ("Ignoring unsupported " <> name)
+      ignored name
       pMathGrouped body
 
 arrayDelims :: PandocMonad m => M.Map Identifier Val -> P m (Text, Text)
