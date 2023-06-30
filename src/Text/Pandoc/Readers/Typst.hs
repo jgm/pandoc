@@ -59,7 +59,7 @@ readTypst _opts inp = do
   case parseTypst inputName (sourcesToText sources) of
     Left e -> throwError $ PandocParseError $ T.pack $ show e
     Right parsed ->
-      evaluateTypst readFileStrict inputName parsed >>=
+      evaluateTypst readFileStrict getCurrentTime inputName parsed >>=
                   either (throwError . PandocParseError . T.pack . show) pure >>=
                   runParserT pPandoc () inputName . F.toList >>=
                   either (throwError . PandocParseError . T.pack . show) pure
