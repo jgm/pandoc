@@ -22,7 +22,7 @@ extra-deps:
 - crypton-x509-validation-1.6.12
 - http-client-tls-0.3.6.2
 - commonmark-0.2.3
-- typst-symbols-0.2.0.0
+- typst-symbols-0.1.1
 - git: https://github.com/jgm/typst-hs
   commit: affadabd5742ebbe3a54f43a114e4c222b2057aa
 - git: https://github.com/jgm/pandoc-types
