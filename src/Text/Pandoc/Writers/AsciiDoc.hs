@@ -517,7 +517,7 @@ inlineToAsciiDoc opts (Strong lst) = do
   return $ marker <> contents <> marker
 inlineToAsciiDoc opts (Strikeout lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "[line-through]*" <> contents <> "*"
+  return $ "[line-through]#" <> contents <> "#"
 inlineToAsciiDoc opts (Superscript lst) = do
   contents <- inlineListToAsciiDoc opts lst
   return $ "^" <> contents <> "^"
