@@ -268,7 +268,7 @@ inlineToTypst inline =
                    Just ('#', ident) -> "<" <> literal ident <> ">"
                    _ -> doubleQuoted src
       return $ "#link" <> parens dest <>
-                if render Nothing contents == src
+                if inlines == [Str src]
                    then mempty
                    else nowrap $ brackets contents
     Image (_,_,kvs) _inlines (src,_tit) -> do

@@ -737,8 +737,7 @@ Here’s an #link("/script?foo=1&bar=2")[inline link in pointy braces].
 
 == Autolinks
 <autolinks>
-With an ampersand:
-#link("http://example.com/?foo=1&bar=2")[http://example.com/?foo\=1&bar\=2]
+With an ampersand: #link("http://example.com/?foo=1&bar=2")
 
 - In a list?
 - #link("http://example.com/")
