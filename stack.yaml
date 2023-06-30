@@ -23,6 +23,11 @@ extra-deps:
 - crypton-x509-validation-1.6.12
 - http-client-tls-0.3.6.2
 - commonmark-0.2.3
+- git: https://github.com/jgm/typst-hs
+  commit: affadabd5742ebbe3a54f43a114e4c222b2057aa
+- git: https://github.com/jgm/pandoc-types
+  commit: 2b68c905e75c65e66eaa4635e4c1bd6aabd6302f
+
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
