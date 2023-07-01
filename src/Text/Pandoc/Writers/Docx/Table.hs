@@ -32,7 +32,7 @@ import Text.Pandoc.Definition
       Alignment(..),
       RowSpan(..),
       ColSpan(..),
-      ColWidth(ColWidth) )
+      ColWidth(..) )
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.Writers.Docx.Types
@@ -109,6 +109,7 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
   let (gridCols, tblWattr) = tableLayout (elems colspecs)
   listLevel <- asks envListLevel
   let indent = (listLevel + 1) * 720
+  let hasWidths = not $ all ((== ColWidthDefault) . snd) colspecs
   let tbl = mknode "w:tbl" []
         ( mknode "w:tblPr" []
           ( mknode "w:tblStyle" [("w:val","Table")] () :
@@ -124,6 +125,7 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
             mknode "w:jc" [("w:val","start")] ()
             : [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
                 | indent > 0 ] ++
+            [ mknode "w:tblLayout" [("w:type", "fixed")] () | hasWidths ] ++
             [ mknode "w:tblCaption" [("w:val", captionStr)] ()
             | not (T.null captionStr) ]
           )
