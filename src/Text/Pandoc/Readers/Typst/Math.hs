@@ -28,7 +28,7 @@ import Text.TeXMath.Types
   )
 import Text.TeXMath.Unicode.ToTeX (getSymbolType)
 import Text.Pandoc.Readers.Typst.Parsing
-    ( P, pTok, warn, pWithContents, getField, chunks )
+    ( P, pTok, ignored, pWithContents, getField, chunks )
 import Typst.Types
 
 -- import Debug.Trace
@@ -37,15 +37,24 @@ withGroup :: [Exp] -> Exp
 withGroup [x] = x
 withGroup xs = EGrouped xs
 
-data AttachmentStyle = Limits | Scripts
+data AttachmentStyle = Limits | LimitsDisplay | Scripts
   deriving (Eq, Show)
 
 getAttachmentStyle :: PandocMonad m => M.Map Identifier Val -> P m (Maybe AttachmentStyle)
 getAttachmentStyle fields = do
   (base :: Seq Content) <- getField "base" fields
   case base of
-    [Elt "limits" _ _] -> pure $ Just Limits
-    [Elt "scripts" _ _] -> pure $ Just Scripts
+    [Elt "math.op" _ fs] -> do
+      limits <- getField "limits" fs
+      if limits == VBoolean True
+         then pure $ Just Limits
+         else pure Nothing
+    [Elt "math.limits" _ fs] -> do
+      inl <- getField "inline" fs
+      if inl == VBoolean False
+         then pure $ Just LimitsDisplay
+         else pure $ Just Limits
+    [Elt "math.scripts" _ _] -> pure $ Just Scripts
     _ -> pure Nothing
 
 pMath :: PandocMonad m => P m Exp
@@ -55,7 +64,7 @@ handleMath :: PandocMonad m => Content -> P m Exp
 handleMath tok =
   case tok of
     Lab t -> do
-      warn ("skipping label " <> t)
+      ignored ("label " <> t)
       pure (EGrouped [])
     Txt t
       | T.any isDigit t -> pure $ ENumber t
@@ -86,7 +95,6 @@ handleMath tok =
             _ -> acc
       pure $ EOver False base acc'
     Elt "math.attach" _ fields -> do
-      attachmentStyle <- getAttachmentStyle fields
       base <- getField "base" fields >>= pMathGrouped
       t' <- getField "t" fields
       b' <- getField "b" fields
@@ -94,7 +102,12 @@ handleMath tok =
       tl' <- getField "tl" fields
       br' <- getField "br" fields
       bl' <- getField "bl" fields
-      let limits = attachmentStyle == Just Limits
+      attachmentStyle <- getAttachmentStyle fields
+      let limits = case attachmentStyle of
+                     Just Limits -> True
+                     Just LimitsDisplay -> True
+                     _ -> False
+      let convertible = attachmentStyle == Just LimitsDisplay
       let (mbt, mbtr) =
             case (t', tr') of
               (Just top, Just topright) -> (Just top, Just topright)
@@ -133,9 +146,10 @@ handleMath tok =
 
       suffix <- case (mbt, mbb) of
         (Nothing, Nothing) -> pure base'
-        (Nothing, Just bot) -> EUnder False base' <$> pMathGrouped bot
-        (Just top, Nothing) -> EOver False base' <$> pMathGrouped top
-        (Just top, Just bot) -> EUnderover False base' <$> pMathGrouped bot <*> pMathGrouped top
+        (Nothing, Just bot) -> EUnder convertible base' <$> pMathGrouped bot
+        (Just top, Nothing) -> EOver convertible base' <$> pMathGrouped top
+        (Just top, Just bot) -> EUnderover convertible base'
+                                  <$> pMathGrouped bot <*> pMathGrouped top
 
       addPrefix suffix
     Elt "math.serif" _ fields ->
@@ -312,11 +326,27 @@ handleMath tok =
     Elt "table" pos fields -> handleMath (Elt "grid" pos fields)
     Elt "link" _ fields -> do
       body <- getField "body" fields
-      warn "Hyperlinks not supported in math"
+      ignored "hyperlink in math"
       pMathGrouped body
+    Elt "math.display" _ fields -> do
+      content <- getField "content" fields
+      ignored "display"
+      pMathGrouped content
+    Elt "math.inline" _ fields -> do
+      content <- getField "content" fields
+      ignored "inline"
+      pMathGrouped content
+    Elt "math.script" _ fields -> do
+      content <- getField "content" fields
+      ignored "script"
+      pMathGrouped content
+    Elt "math.sscript" _ fields -> do
+      content <- getField "content" fields
+      ignored "sscript"
+      pMathGrouped content
     Elt (Identifier name) _ fields -> do
       body <- getField "body" fields `mplus` pure mempty
-      warn ("Ignoring unsupported " <> name)
+      ignored name
       pMathGrouped body
 
 arrayDelims :: PandocMonad m => M.Map Identifier Val -> P m (Text, Text)

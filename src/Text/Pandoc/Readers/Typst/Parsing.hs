@@ -7,7 +7,7 @@ module Text.Pandoc.Readers.Typst.Parsing
   ( P,
     pTok,
     pWithContents,
-    warn,
+    ignored,
     getField,
     chunks,
   )
@@ -36,8 +36,8 @@ pTok f = tokenPrim show showPos match
     match x | f x = Just x
     match _ = Nothing
 
-warn :: PandocMonad m => Text -> P m ()
-warn msg = lift $ report $ IgnoredElement msg
+ignored :: PandocMonad m => Text -> P m ()
+ignored msg = lift $ report $ IgnoredElement msg
 
 pWithContents :: PandocMonad m => P m a -> Seq Content -> P m a
 pWithContents pa cs = do

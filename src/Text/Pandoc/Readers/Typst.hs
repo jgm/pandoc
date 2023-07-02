@@ -43,7 +43,7 @@ import Text.Parsec
 import Text.TeXMath (writeTeX)
 import Text.TeXMath.Shared (getSpaceChars)
 import Text.Pandoc.Readers.Typst.Math (pMathMany)
-import Text.Pandoc.Readers.Typst.Parsing (pTok, warn, chunks, getField, P)
+import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, chunks, getField, P)
 import Typst.Methods (applyPureFunction, formatNumber)
 import Typst.Types
 
@@ -59,7 +59,7 @@ readTypst _opts inp = do
   case parseTypst inputName (sourcesToText sources) of
     Left e -> throwError $ PandocParseError $ T.pack $ show e
     Right parsed ->
-      evaluateTypst readFileStrict inputName parsed >>=
+      evaluateTypst readFileStrict getCurrentTime inputName parsed >>=
                   either (throwError . PandocParseError . T.pack . show) pure >>=
                   runParserT pPandoc () inputName . F.toList >>=
                   either (throwError . PandocParseError . T.pack . show) pure
@@ -165,7 +165,7 @@ handleBlock tok = do
       B.divWith (fromMaybe "" mbident, [], [])
         <$> (getField "body" fields >>= pWithContents pBlocks)
     Elt "place" pos fields -> do
-      warn "Ignoring parameters of place"
+      ignored "parameters of place"
       handleBlock (Elt "block" pos fields)
     Elt "columns" _ fields -> do
       (cnt :: Integer) <- getField "count" fields
@@ -304,7 +304,7 @@ handleBlock tok = do
     Elt "footnote.entry" _ fields ->
       getField "body" fields >>= pWithContents pBlocks
     Elt (Identifier tname) _ _ -> do
-      warn ("Skipping unknown block element " <> tname)
+      ignored ("unknown block element " <> tname)
       pure mempty
 
 pPara :: PandocMonad m => P m B.Blocks
@@ -456,7 +456,7 @@ handleInline tok =
         VString t -> pure t
         VLabel t -> pure $ "#" <> t
         VDict _ -> do
-          warn "Unable to link to location, linking to #"
+          ignored "link to location, linking to #"
           pure "#"
         _ -> fail $ "Expected string or label for dest"
       body <- getField "body" fields
@@ -512,7 +512,7 @@ handleInline tok =
       | "math." `T.isPrefixOf` tname ->
           B.math . writeTeX <$> pMathMany (Seq.singleton tok)
     Elt (Identifier tname) _ _ -> do
-      warn ("Skipping unknown inline element " <> tname)
+      ignored ("unknown inline element " <> tname)
       pure mempty
 
 modString :: (Text -> Text) -> B.Inline -> B.Inline
