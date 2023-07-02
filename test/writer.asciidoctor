@@ -426,7 +426,7 @@ So is *_this_* word.
 
 This is code: `+>+`, `+$+`, `+\+`, `+\$+`, `+<html>+`.
 
-[line-through]*This is _strikeout_.*
+[line-through]#This is _strikeout_.#
 
 Superscripts: a^bc^d a^_hello_^ a^hello there^.
 
