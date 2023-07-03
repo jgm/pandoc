@@ -87,10 +87,10 @@ $if(bibliographystyle)$
 
 #set bibliography(style: "$bibliographystyle$")
 $endif$
-$for(bibliography)$
+$if(bibliography)$
 
-#bibliography("$bibliography$")
-$endfor$
+#bibliography($for(bibliography)$"$bibliography$"$sep$,$endfor$)
+$endif$
 $endif$
 $for(include-after)$
 
