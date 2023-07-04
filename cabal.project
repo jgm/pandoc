@@ -15,6 +15,6 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/typst-hs
-  tag: f9027872b185867416f3bd994698a199e2906c4c
+  tag: c143852966f38b8582e84d0be3f10a25d1acc75c
 -- when time for a release:
 -- Release new skylighting, skylighting-core and depend on them
