@@ -47,7 +47,6 @@ import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, chunks, getField, P)
 import Typst.Methods (applyPureFunction, formatNumber)
 import Typst.Types
 
-
 -- | Read Typst from an input string and return a Pandoc document.
 readTypst :: (PandocMonad m, ToSources a)
            => ReaderOptions -> a -> m Pandoc
@@ -58,8 +57,13 @@ readTypst _opts inp = do
         _ -> ""
   case parseTypst inputName (sourcesToText sources) of
     Left e -> throwError $ PandocParseError $ T.pack $ show e
-    Right parsed ->
-      evaluateTypst readFileStrict getCurrentTime inputName parsed >>=
+    Right parsed -> do
+      let ops = Operations {
+                  loadBytes = readFileStrict,
+                  currentUTCTime = getCurrentTime,
+                  lookupEnvVar = fmap (fmap T.unpack) . lookupEnv . T.pack,
+                  checkExistence = fileExists }
+      evaluateTypst ops inputName parsed >>=
                   either (throwError . PandocParseError . T.pack . show) pure >>=
                   runParserT pPandoc () inputName . F.toList >>=
                   either (throwError . PandocParseError . T.pack . show) pure
