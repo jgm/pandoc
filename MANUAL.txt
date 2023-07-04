@@ -4151,7 +4151,7 @@ capital letter with a period, by at least two spaces.[^2]
 [^2]:  The point of this rule is to ensure that normal paragraphs
     starting with people's initials, like
 
-        B. Russell was an English philosopher.
+        B. Russell was a Welsh philosopher.
 
     do not get treated as list items.
 
