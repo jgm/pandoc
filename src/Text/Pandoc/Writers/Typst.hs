@@ -91,10 +91,15 @@ blockToTypst block =
   case block of
     Plain inlines -> inlinesToTypst inlines
     Para inlines -> ($$ blankline) <$> inlinesToTypst inlines
-    Header level (ident,_,_) inlines -> do
+    Header level (ident,cls,_) inlines -> do
       contents <- inlinesToTypst inlines
       let lab = toLabel ident
-      return $ literal (T.replicate level "=") <> space <> contents <> cr <> lab
+      return $
+        if "unlisted" `elem` cls
+           then literal "#heading(outlined: false)" <> brackets contents <>
+                 cr <> lab
+           else literal (T.replicate level "=") <> space <> contents <>
+                 cr <> lab
     RawBlock fmt str ->
       case fmt of
         Format "typst" -> return $ literal str
