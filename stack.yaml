@@ -24,7 +24,7 @@ extra-deps:
 - commonmark-0.2.3
 - typst-symbols-0.1.1
 - git: https://github.com/jgm/typst-hs
-  commit: 89cf27e66360cc23ca02150a19df26266be7c833
+  commit: 98d422d94d0a986a1c4b375a95b337ea9e868d37
 - git: https://github.com/jgm/pandoc-types
   commit: 2b68c905e75c65e66eaa4635e4c1bd6aabd6302f
 
