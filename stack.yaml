@@ -23,6 +23,7 @@ extra-deps:
 - http-client-tls-0.3.6.2
 - commonmark-0.2.3
 - typst-symbols-0.1.2
+- toml-parser-1.1.1.0
 - git: https://github.com/jgm/typst-hs
   commit: f9027872b185867416f3bd994698a199e2906c4c
 - git: https://github.com/jgm/pandoc-types
