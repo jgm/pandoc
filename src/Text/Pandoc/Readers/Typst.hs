@@ -44,7 +44,7 @@ import Text.TeXMath (writeTeX)
 import Text.TeXMath.Shared (getSpaceChars)
 import Text.Pandoc.Readers.Typst.Math (pMathMany)
 import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, chunks, getField, P)
-import Typst.Methods (applyPureFunction, formatNumber)
+import Typst.Methods (formatNumber, applyPureFunction)
 import Typst.Types
 
 -- import Debug.Trace
@@ -309,12 +309,6 @@ handleBlock tok = do
       pure $ B.plain . B.text . mconcat . map toNum $ V.toList nums
     Elt "footnote.entry" _ fields ->
       getField "body" fields >>= pWithContents pBlocks
-    Elt "style" _ fields -> do
-      Function f <- getField "func" fields
-      case applyPureFunction (Function f) [VStyles] of
-        Success (VContent cs) -> pWithContents pBlocks cs
-        Success x -> pure $ B.para $ B.text $ repr x
-        Failure e -> fail e
     Elt (Identifier tname) _ _ -> do
       ignored ("unknown block element " <> tname)
       pure mempty
@@ -335,7 +329,6 @@ pParBreak =
 isInline :: Content -> Bool
 isInline (Lab {}) = True
 isInline (Txt {}) = True
-isInline (Elt "style" _ _) = True -- can be block or inline
 isInline (Elt "place" _ _) = True -- can be block or inline
 isInline (Elt "align" _ _) = True -- can be block or inline
 isInline x = not (isBlock x)
@@ -383,7 +376,6 @@ isBlock (Elt name _ fields) =
     "v" -> True
     "xml" -> True
     "yaml" -> True
-    "style" -> True
     _ -> False
 
 pWithContents :: PandocMonad m => P m a -> Seq Content -> P m a
@@ -515,12 +507,6 @@ handleInline tok =
               LExact x LPt -> toRational x / 12
               _ -> 1 / 3 -- guess!
       pure $ B.text $ getSpaceChars em
-    Elt "style" _ fields -> do
-      Function f <- getField "func" fields
-      case applyPureFunction (Function f) [VStyles] of
-        Success (VContent cs) -> pWithContents pInlines cs
-        Success x -> pure $ B.text $ repr x
-        Failure e -> fail e
     Elt "place" _pos fields -> do
       ignored "parameters of place"
       getField "body" fields >>= pWithContents pInlines
