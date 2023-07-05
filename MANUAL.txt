@@ -284,7 +284,9 @@ header when requesting a document from a URL:
 :   Specify output format.  *FORMAT* can be:
 
     ::: {#output-formats}
-    - `asciidoc` ([AsciiDoc]) or `asciidoctor` ([AsciiDoctor])
+    - `asciidoc` (modern [AsciiDoc] as interpreted by [AsciiDoctor])
+    - `asciidoc_legacy` ([AsciiDoc] as interpreted by [`asciidoc-py`]).
+    - `asciidoctor` (deprecated synonym for `asciidoc`)
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
@@ -503,6 +505,7 @@ header when requesting a document from a URL:
 [Emacs Org mode]: https://orgmode.org
 [AsciiDoc]: https://www.methods.co.nz/asciidoc/
 [AsciiDoctor]: https://asciidoctor.org/
+[`asciidoc-py`]: https://github.com/asciidoc-py/asciidoc-py
 [DZSlides]: https://paulrouget.com/dzslides/
 [Word docx]: https://en.wikipedia.org/wiki/Office_Open_XML
 [PDF]: https://www.adobe.com/pdf/
@@ -5017,11 +5020,9 @@ reStructuredText
   ~ It will be rendered using an [interpreted text role `:math:`].
 
 AsciiDoc
-  ~ For AsciiDoc output format (`-t asciidoc`) it will appear verbatim
-    surrounded by `latexmath:[$...$]` (for inline math) or
-    `[latexmath]++++\[...\]+++` (for display math).
-    For AsciiDoctor output format (`-t asciidoctor`) the LaTeX delimiters
-    (`$..$` and `\[..\]`) are omitted.
+  ~ For AsciiDoc output math will appear verbatim surrounded by
+    `latexmath:[...]`. For `asciidoc_legacy` the bracketed
+    material will also include inline or display math delimiters.
 
 Texinfo
   ~ It will be rendered inside a `@math` command.

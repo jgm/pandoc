@@ -178,7 +178,7 @@ tests pandocPath =
         "tikiwiki-reader.tikiwiki" "tikiwiki-reader.native" ]
   , testGroup "other writers" $ map (\f -> testGroup f $ writerTests' f)
     [ "opendocument" , "context" , "texinfo", "icml", "tei"
-    , "man" , "plain" , "asciidoc", "asciidoctor"
+    , "man" , "plain" , "asciidoc", "asciidoc_legacy"
     , "xwiki", "zimwiki"
     ]
   , testGroup "writers-lang-and-dir"

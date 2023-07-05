@@ -86,7 +86,6 @@ data-files:
                  data/templates/default.revealjs
                  data/templates/default.dzslides
                  data/templates/default.asciidoc
-                 data/templates/default.asciidoctor
                  data/templates/default.haddock
                  data/templates/default.textile
                  data/templates/default.org
@@ -313,7 +312,7 @@ extra-source-files:
                  test/tables.opendocument
                  test/tables.org
                  test/tables.asciidoc
-                 test/tables.asciidoctor
+                 test/tables.asciidoc_legacy
                  test/tables.haddock
                  test/tables.texinfo
                  test/tables.typst
@@ -351,7 +350,7 @@ extra-source-files:
                  test/writer.opendocument
                  test/writer.org
                  test/writer.asciidoc
-                 test/writer.asciidoctor
+                 test/writer.asciidoc_legacy
                  test/writer.haddock
                  test/writer.rst
                  test/writer.icml

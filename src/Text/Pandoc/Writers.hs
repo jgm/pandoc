@@ -20,6 +20,7 @@ module Text.Pandoc.Writers
       Writer(..)
     , writers
     , writeAsciiDoc
+    , writeAsciiDocLegacy
     , writeAsciiDoctor
     , writeBeamer
     , writeBibTeX
@@ -183,7 +184,8 @@ writers = [
   ,("rtf"          , TextWriter writeRTF)
   ,("org"          , TextWriter writeOrg)
   ,("asciidoc"     , TextWriter writeAsciiDoc)
-  ,("asciidoctor"  , TextWriter writeAsciiDoctor)
+  ,("asciidoctor"  , TextWriter writeAsciiDoc)
+  ,("asciidoc_legacy" , TextWriter writeAsciiDocLegacy)
   ,("haddock"      , TextWriter writeHaddock)
   ,("commonmark"   , TextWriter writeCommonMark)
   ,("commonmark_x" , TextWriter writeCommonMark)

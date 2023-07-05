@@ -93,6 +93,9 @@ optToOutputSettings scriptingEngine opts = do
                      return (defaultOutputFlavor,Nothing)
                    Just f  -> return (f, Nothing)
 
+  when (format == "asciidoctor") $ do
+    report $ Deprecated "asciidoctor" "use asciidoc instead"
+
   let makeSandboxed pureWriter =
           let files = maybe id (:) (optReferenceDoc opts) .
                       maybe id (:) (optEpubMetadata opts) .

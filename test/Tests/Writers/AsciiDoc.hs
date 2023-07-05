@@ -12,7 +12,7 @@ asciidoc :: (ToPandoc a) => a -> String
 asciidoc = unpack . purely (writeAsciiDoc def) . toPandoc
 
 asciidoctor :: (ToPandoc a) => a -> String
-asciidoctor = unpack . purely (writeAsciiDoctor def) . toPandoc
+asciidoctor = unpack . purely (writeAsciiDoc def) . toPandoc
 
 testAsciidoc :: (ToString a, ToPandoc a)
              => String
