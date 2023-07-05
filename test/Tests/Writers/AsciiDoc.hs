@@ -9,7 +9,7 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 asciidoc :: (ToPandoc a) => a -> String
-asciidoc = unpack . purely (writeAsciiDoc def) . toPandoc
+asciidoc = unpack . purely (writeAsciiDocLegacy def) . toPandoc
 
 asciidoctor :: (ToPandoc a) => a -> String
 asciidoctor = unpack . purely (writeAsciiDoc def) . toPandoc
