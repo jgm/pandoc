@@ -47,6 +47,8 @@ import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, chunks, getField, P)
 import Typst.Methods (applyPureFunction, formatNumber)
 import Typst.Types
 
+-- import Debug.Trace
+
 -- | Read Typst from an input string and return a Pandoc document.
 readTypst :: (PandocMonad m, ToSources a)
            => ReaderOptions -> a -> m Pandoc
@@ -168,9 +170,9 @@ handleBlock tok = do
     Elt "block" _ fields ->
       B.divWith (fromMaybe "" mbident, [], [])
         <$> (getField "body" fields >>= pWithContents pBlocks)
-    Elt "place" pos fields -> do
+    Elt "place" _pos fields -> do
       ignored "parameters of place"
-      handleBlock (Elt "block" pos fields)
+      getField "body" fields >>= pWithContents pBlocks
     Elt "columns" _ fields -> do
       (cnt :: Integer) <- getField "count" fields
       B.divWith ("", ["columns-flow"], [("count", T.pack (show cnt))])
@@ -307,6 +309,12 @@ handleBlock tok = do
       pure $ B.plain . B.text . mconcat . map toNum $ V.toList nums
     Elt "footnote.entry" _ fields ->
       getField "body" fields >>= pWithContents pBlocks
+    Elt "style" _ fields -> do
+      Function f <- getField "func" fields
+      case applyPureFunction (Function f) [VStyles] of
+        Success (VContent cs) -> pWithContents pBlocks cs
+        Success x -> pure $ B.para $ B.text $ repr x
+        Failure e -> fail e
     Elt (Identifier tname) _ _ -> do
       ignored ("unknown block element " <> tname)
       pure mempty
@@ -327,6 +335,9 @@ pParBreak =
 isInline :: Content -> Bool
 isInline (Lab {}) = True
 isInline (Txt {}) = True
+isInline (Elt "style" _ _) = True -- can be block or inline
+isInline (Elt "place" _ _) = True -- can be block or inline
+isInline (Elt "align" _ _) = True -- can be block or inline
 isInline x = not (isBlock x)
 
 isBlock :: Content -> Bool
@@ -372,13 +383,15 @@ isBlock (Elt name _ fields) =
     "v" -> True
     "xml" -> True
     "yaml" -> True
+    "style" -> True
     _ -> False
 
 pWithContents :: PandocMonad m => P m a -> Seq Content -> P m a
-pWithContents pa cs = do
+pWithContents pa cs = try $ do
   inp <- getInput
   setInput $ F.toList cs
   res <- pa
+  eof
   setInput inp
   pure res
 
@@ -386,7 +399,7 @@ pInlines :: PandocMonad m => P m B.Inlines
 pInlines = mconcat <$> many pInline
 
 pInline :: PandocMonad m => P m B.Inlines
-pInline = pTok isInline >>= handleInline
+pInline = try $ pTok isInline >>= handleInline
 
 handleInline :: PandocMonad m => Content -> P m B.Inlines
 handleInline tok =
@@ -508,6 +521,13 @@ handleInline tok =
         Success (VContent cs) -> pWithContents pInlines cs
         Success x -> pure $ B.text $ repr x
         Failure e -> fail e
+    Elt "place" _pos fields -> do
+      ignored "parameters of place"
+      getField "body" fields >>= pWithContents pInlines
+    Elt "align" _ fields -> do
+      alignment <- getField "alignment" fields
+      B.spanWith ("", [], [("align", repr alignment)])
+        <$> (getField "body" fields >>= pWithContents pInlines)
     Elt "math.equation" _ fields -> do
       body <- getField "body" fields
       display <- getField "block" fields
