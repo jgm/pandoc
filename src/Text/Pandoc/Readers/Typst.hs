@@ -107,6 +107,11 @@ handleBlock tok = do
   case tok of
     Txt {} -> fail "pBlockElt encountered Txt"
     Lab {} -> pure mempty
+    Elt "text" _ fields -> do
+      body <- getField "body" fields
+      -- sometimes text elements include para breaks
+      notFollowedBy $ void $ pWithContents pInlines body
+      pWithContents pBlocks body
     Elt "heading" _ fields -> do
       body <- getField "body" fields
       lev <- getField "level" fields <|> pure 1
@@ -331,6 +336,7 @@ isInline (Lab {}) = True
 isInline (Txt {}) = True
 isInline (Elt "place" _ _) = True -- can be block or inline
 isInline (Elt "align" _ _) = True -- can be block or inline
+isInline (Elt "text" _ _) = True -- can be block or inline
 isInline x = not (isBlock x)
 
 isBlock :: Content -> Bool
@@ -338,6 +344,7 @@ isBlock (Txt {}) = False
 isBlock (Lab {}) = True
 isBlock (Elt name _ fields) =
   case name of
+    "text" -> True -- can be block or inline
     "align" -> True
     "bibliography" -> True
     "block" -> True
