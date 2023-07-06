@@ -273,6 +273,8 @@ extra-source-files:
                  test/media/rId25.jpg
                  test/media/rId26.jpg
                  test/media/rId27.jpg
+                 test/typst-reader.typ
+                 test/undergradmath.typ
                  test/latex-reader.latex
                  test/textile-reader.textile
                  test/markdown-reader-more.txt

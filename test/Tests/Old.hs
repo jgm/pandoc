@@ -195,7 +195,12 @@ tests pandocPath =
     ]
   , testGroup "typst"
     [ testGroup "writer" $ writerTests' "typst"
+    , testGroup "reader"
+       [ test' "typst-reader" ["-r", "typst", "-w", "native", "-s"]
+          "typst-reader.typ" "typst-reader.native"
+       ]
     ]
+
   , testGroup "creole"
     [ test' "reader" ["-r", "creole", "-w", "native", "-s"]
       "creole-reader.txt" "creole-reader.native"
