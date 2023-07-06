@@ -217,7 +217,7 @@ blockHandlers = M.fromList
           children)
   ,("terms.item", \_ fields -> getField "body" fields >>= pWithContents pBlocks)
   ,("raw", \mbident fields -> do
-      txt <- getField "text" fields
+      txt <- T.filter (/= '\r') <$> getField "text" fields
       mblang <- getField "lang" fields
       let attr = (fromMaybe "" mbident, maybe [] (\l -> [l]) mblang, [])
       pure $ B.codeBlockWith attr txt)
@@ -387,7 +387,7 @@ inlineHandlers = M.fromList
       case mbweight of
         Just "bold" -> B.strong <$> pWithContents pInlines body
         _ -> pWithContents pInlines body)
-  ,("raw", \_ fields -> B.code <$> getField "text" fields)
+  ,("raw", \_ fields -> B.code . T.filter (/= '\r') <$> getField "text" fields)
   ,("footnote", \_ fields ->
       B.note <$> (getField "body" fields >>= pWithContents pBlocks))
   ,("cite", \_ fields -> do
