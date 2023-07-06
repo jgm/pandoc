@@ -28,7 +28,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Typst ( parseTypst, evaluateTypst )
 import Text.Pandoc.Error (PandocError(..))
-import Text.Pandoc.Shared (tshow)
+import Text.Pandoc.Shared (tshow, blocksToInlines)
 import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void, mzero)
 import qualified Data.Foldable as F
@@ -451,7 +451,9 @@ inlineHandlers = M.fromList
                     if "tel:" `T.isPrefixOf` src
                       then T.drop 4 src
                       else src
-          else pWithContents pInlines body
+          else pWithContents pInlines body <|>
+               pWithContents
+                (B.fromList . blocksToInlines . B.toList <$> pBlocks) body
       pure $ B.link src "" description)
   ,("image", \_ fields -> do
       path <- getField "path" fields
