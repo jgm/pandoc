@@ -107,8 +107,12 @@ It can convert *to*
 
 <div id="output-formats">
 
-- `asciidoc` ([AsciiDoc](https://www.methods.co.nz/asciidoc/)) or
-  `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
+- `asciidoc` (modern [AsciiDoc](https://www.methods.co.nz/asciidoc/) as
+  interpreted by [AsciiDoctor](https://asciidoctor.org/))
+- `asciidoc_legacy` ([AsciiDoc](https://www.methods.co.nz/asciidoc/) as
+  interpreted by
+  [`asciidoc-py`](https://github.com/asciidoc-py/asciidoc-py)).
+- `asciidoctor` (deprecated synonym for `asciidoc`)
 - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
