@@ -25,7 +25,7 @@ extra-deps:
 - typst-symbols-0.1.2
 - toml-parser-1.1.1.0
 - git: https://github.com/jgm/typst-hs
-  commit: a6de1c30f163be0f5cb9e3543fdf5977217da0ae
+  commit: 74cc25961afd03f9d6aeb8b8ef8e4631c94ca0e9
 - git: https://github.com/jgm/pandoc-types
   commit: 2b68c905e75c65e66eaa4635e4c1bd6aabd6302f
 
