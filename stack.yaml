@@ -12,8 +12,6 @@ extra-deps:
 - hslua-cli-1.4.1
 - hslua-module-zip-1.1.0
 - hslua-repl-0.1.1
-- skylighting-0.13.3
-- skylighting-core-0.13.3
 - tls-1.7.0
 - crypton-connection-0.3.1
 - crypton-x509-1.7.6
