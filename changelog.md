@@ -73,6 +73,7 @@
 
   * LaTeX writer:
 
+    + Fix babel name for `fa` (should be `persian`).
     + Prevent babel language from being imported twice (#8925).
 
   * Text.Pandoc.Class:
