@@ -1,5 +1,104 @@
 # Revision history for pandoc
 
+## pandoc 3.1.5 (2023-07-07)
+
+  * Allow all boolean flags to take an optional `true` or `false` value
+    (#8788, Sam S. Almahri). The default is true if no value is specified,
+    so this is fully backwards-compatible.
+
+  * Support `--id-prefix` for markdown output (#8878)
+
+  * Markdown reader:
+
+    + Add strictness annotations to fix a memory leak (#8762).
+
+  * Typst reader:
+
+    + Use typst-hs 0.3.0.0, which is more robust, fixes many bugs, and
+      targets typst 0.6.
+    + Package loading is now supported, as long as the package has been
+      cached or is local.
+    + Rewrite Typst reader in a way that makes it easier to extend.
+    + Filter out CR in raw.
+    + Handle block content for link element.
+    + Handle block-level content in text element.
+    + Handle style, align, place in inline contexts too.
+    + Improve info message for skipped elements.
+
+  * Add typst reader tests (#8942).
+
+  * MediaWiki reader:
+
+    + Revise treatment of "link trail." Previously we only included ASCII
+      letters. That is correct for English but not for, e.g., Spanish (see
+      comment in #8525). A safer approach is to include all letters except
+      those in the CJK unified ideograph ranges.
+
+  * AsciiDoc writer:
+
+    + Make modern AsciiDoc the target for `asciidoc` (#8936).
+      The AsciiDoc community now regards the dialect parsed by `asciidoctor`
+      as the official AsciiDoc syntax, so it should be the target of our
+      `asciidoc` format. The `asciidoc` output format now behaves like
+      `asciidoctor` used to. `asciidoctor` is a deprecated synonynm. For
+      the old `asciidoc` behavior (targeting the Python script),
+      use `asciidoc_legacy`. The templates have been consolidated. Instead of
+      separate `default.asciidoctor` and `default.asciidoc` templates, there
+      is just `default.asciidoc`.
+    + Text.Pandoc.Writers.AsciiDoc API changes:
+      - `writeAsciiDoc` now behaves like `writeAsciiDoctor` used to.
+      - `writeAsciiDoctor` is now a deprecated synonym for `writeAsciiDoc`.
+      - New exported function `writeAsciiDocLegacy` behaves like
+        `writeAsciDoc` used to.
+    + Update line-through for asciidoc writer to custom inline style (#8933,
+      Kevin Broch).
+
+  * Typst writer:
+
+    + Support `unlisted` class in headings (#8941).
+    + Consolidate bibliography files into one `#bibliography` command (#8937).
+    + Improve handling of autolinks (#8931).
+
+  * Docx writer:
+
+    + Make relative widths work in tables. This didn't work before because we
+      were missing an attribute that tells Word to used fixed widths rather
+      than computing optimal ones.
+
+  * DokuWiki writer: fix lists with Div elements (#8920).
+    The DokuWiki writer doesn't render Divs specially, so their presence in
+    a list (e.g. because of custom-styles) need not prevent a regular
+    DokuWiki list from being used. (Falling back to raw HTML in this case is
+    pointless because no new information is given.)
+
+  * LaTeX writer:
+
+    + Prevent babel language from being imported twice (#8925).
+
+  * Text.Pandoc.Class:
+
+    + Add `toTextM` [API change]. This is like `Text.Pandoc.UTF8.toText`,
+      except:
+
+      - it takes a file path as first argument, in addition to
+        bytestring contents
+      - it raises an informative error with source position if
+        the contents are not UTF8-encoded
+
+    This replaces `utf8ToText` whenever we have the filename and are
+    in a PandocMonad instance. This will lead to more informative error
+    messages for UTF8-encoding, indicating the file path and byte offset
+    where the error occurs (#8884).
+
+  * Remove invalid term "Subject" from Turkish translations (#8921).
+
+  * stack.yaml: add pkg-config to nix packages (#8927, pacien).
+
+  * Allow aeson 2.2.
+
+  * MANUAL: Add clarification on --section-divs. Closes #8882.
+
+
 ## pandoc 3.1.4 (2023-06-24)
 
   * Fix a security vulnerability in MediaBag and T.P.Class.IO.writeMedia.
@@ -7,7 +106,7 @@
     arbitrary files to any location by feeding pandoc a specially crafted
     URL in an image element.  The vulnerability is serious for anyone
     using pandoc to process untrusted input.  The vulnerability does
-    not affect pandoc when run with the `--sandbox` flag.
+    not affect pandoc when run with the `--sandbox` flag. [CVE-2023-35936]
 
   * Allow `epub-title-page` to be used in defaults files (#8908).
 
