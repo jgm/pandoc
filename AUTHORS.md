@@ -203,6 +203,7 @@
 - Karl Pettersson
 - Keiichiro Shikano
 - Kelsey Hightower
+- Kevin Broch
 - Kolen Cheung
 - Konstantin Zudov
 - Kristof Bastiaensen
@@ -310,6 +311,7 @@
 - RyanGlScott
 - S.P.H
 - Salim B
+- Sam S. Almahri
 - Samuel Tardieu
 - Saumel Lemmenmeier
 - Sascha Wilde
@@ -413,6 +415,7 @@
 - obcat
 - oltolm
 - oquechy
+- pacien
 - perro tuerto
 - qerub
 - quasicomputational
