@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "Pandoc User\[cq]s Guide" "" "June 24, 2023" "pandoc 3.1.4" ""
+.TH "Pandoc User\[cq]s Guide" "" "July 07, 2023" "pandoc 3.1.5" ""
 .hy
 .SH NAME
 pandoc - general markup converter
@@ -339,7 +339,12 @@ Specify output format.
 \f[I]FORMAT\f[R] can be:
 .RS
 .IP \[bu] 2
-\f[V]asciidoc\f[R] (AsciiDoc) or \f[V]asciidoctor\f[R] (AsciiDoctor)
+\f[V]asciidoc\f[R] (modern AsciiDoc as interpreted by AsciiDoctor)
+.IP \[bu] 2
+\f[V]asciidoc_legacy\f[R] (AsciiDoc as interpreted by
+\f[V]asciidoc-py\f[R]).
+.IP \[bu] 2
+\f[V]asciidoctor\f[R] (deprecated synonym for \f[V]asciidoc\f[R])
 .IP \[bu] 2
 \f[V]beamer\f[R] (LaTeX beamer slide show)
 .IP \[bu] 2
@@ -537,7 +542,7 @@ Give verbose debugging output.
 \f[V]--quiet\f[R]
 Suppress warning messages.
 .TP
-\f[V]--fail-if-warnings\f[R]
+\f[V]--fail-if-warnings[=true|false]\f[R]
 Exit with error status if there are any warnings.
 .TP
 \f[V]--log=\f[R]\f[I]FILE\f[R]
@@ -605,7 +610,7 @@ This allows you to use the same source for formats that require
 different kinds of images.
 Currently this option only affects the Markdown and LaTeX readers.
 .TP
-\f[V]--file-scope\f[R]
+\f[V]--file-scope[=true|false]\f[R]
 Parse each file individually before combining for multifile documents.
 This will allow footnotes in different files with the same identifiers
 to work as expected.
@@ -729,7 +734,7 @@ The file will be searched for first in the working directory, and then
 in the \f[V]metadata\f[R] subdirectory of the user data directory (see
 \f[V]--data-dir\f[R]).
 .TP
-\f[V]-p\f[R], \f[V]--preserve-tabs\f[R]
+\f[V]-p\f[R], \f[V]--preserve-tabs[=true|false]\f[R]
 Preserve tabs instead of converting them to spaces.
 (By default, pandoc converts tabs to spaces before parsing its input.)
 Note that this will only affect tabs in literal code spans and code
@@ -782,7 +787,7 @@ Strings found in this list will be followed by a nonbreaking space, and
 the period will not produce sentence-ending space in formats like LaTeX.
 The strings may not contain spaces.
 .TP
-\f[V]--trace\f[R]
+\f[V]--trace[=true|false]\f[R]
 Print diagnostic output tracing parser progress to stderr.
 This option is intended for use by developers in diagnosing performance
 issues.
@@ -816,7 +821,7 @@ rendering the document in standalone mode.
 If no \f[I]VAL\f[R] is specified, the key will be given the value
 \f[V]true\f[R].
 .TP
-\f[V]--sandbox\f[R]
+\f[V]--sandbox[=true|false]\f[R]
 Run pandoc in a sandbox, limiting IO operations in readers and writers
 to reading the files specified on the command line.
 Note that this option does not limit IO operations by filters or in the
@@ -891,7 +896,7 @@ This affects text wrapping in the generated source code (see
 It also affects calculation of column widths for plain text tables (see
 Tables below).
 .TP
-\f[V]--toc\f[R], \f[V]--table-of-contents\f[R]
+\f[V]--toc[=true|false]\f[R], \f[V]--table-of-contents[=true|false]\f[R]
 Include an automatically generated table of contents (or, in the case of
 \f[V]latex\f[R], \f[V]context\f[R], \f[V]docx\f[R], \f[V]odt\f[R],
 \f[V]opendocument\f[R], \f[V]rst\f[R], or \f[V]ms\f[R], an instruction
@@ -913,7 +918,7 @@ contents.
 The default is 3 (which means that level-1, 2, and 3 headings will be
 listed in the contents).
 .TP
-\f[V]--strip-comments\f[R]
+\f[V]--strip-comments[=true|false]\f[R]
 Strip out HTML comments in the Markdown or Textile source, rather than
 passing them on to Markdown, Textile or HTML output as raw HTML.
 This does not apply to HTML comments inside raw HTML blocks when the
@@ -1007,17 +1012,17 @@ line, or when resources used in a document must be downloaded).
 If you\[cq]re behind a proxy, you also need to set the environment
 variable \f[V]http_proxy\f[R] to \f[V]http://...\f[R].
 .TP
-\f[V]--no-check-certificate\f[R]
+\f[V]--no-check-certificate[=true|false]\f[R]
 Disable the certificate verification to allow access to unsecure HTTP
 resources (for example when the certificate is no longer valid or self
 signed).
 .SS Options affecting specific writers
 .TP
-\f[V]--self-contained\f[R]
+\f[V]--self-contained[=true|false]\f[R]
 \f[I]Deprecated synonym for
 \f[VI]--embed-resources --standalone\f[I].\f[R]
 .TP
-\f[V]--embed-resources\f[R]
+\f[V]--embed-resources[=true|false]\f[R]
 Produce a standalone HTML file with no external dependencies, using
 \f[V]data:\f[R] URIs to incorporate the contents of linked scripts,
 stylesheets, images, and videos.
@@ -1041,12 +1046,12 @@ cannot be incorporated; as a result, fonts may be missing when
 speaker notes) may not work in an offline \[lq]self-contained\[rq]
 \f[V]reveal.js\f[R] slide show.
 .TP
-\f[V]--html-q-tags\f[R]
+\f[V]--html-q-tags[=true|false]\f[R]
 Use \f[V]<q>\f[R] tags for quotes in HTML.
 (This option only has an effect if the \f[V]smart\f[R] extension is
 enabled for the input format used.)
 .TP
-\f[V]--ascii\f[R]
+\f[V]--ascii[=true|false]\f[R]
 Use only ASCII characters in output.
 Currently supported for XML and HTML formats (which use entities instead
 of UTF-8 when this option is selected), CommonMark, gfm, and Markdown
@@ -1054,7 +1059,7 @@ of UTF-8 when this option is selected), CommonMark, gfm, and Markdown
 and to a limited degree LaTeX (which uses standard commands for accented
 characters when possible).
 .TP
-\f[V]--reference-links\f[R]
+\f[V]--reference-links[=true|false]\f[R]
 Use reference-style links, rather than inline links, in writing Markdown
 or reStructuredText.
 By default inline links are used.
@@ -1080,7 +1085,7 @@ Specify whether to use ATX-style (\f[V]#\f[R]-prefixed) or Setext-style
 ATX-style headings are always used for levels 3+.
 This option also affects Markdown cells in \f[V]ipynb\f[R] output.
 .TP
-\f[V]--list-tables\f[R]
+\f[V]--list-tables[=true|false]\f[R]
 Render tables as list tables in RST output.
 .TP
 \f[V]--top-level-division=default\f[R]|\f[V]section\f[R]|\f[V]chapter\f[R]|\f[V]part\f[R]
@@ -1119,14 +1124,14 @@ numbered \[lq]1.5\[rq], specify \f[V]--number-offset=1,4\f[R].
 Offsets are 0 by default.
 Implies \f[V]--number-sections\f[R].
 .TP
-\f[V]--listings\f[R]
+\f[V]--listings[=true|false]\f[R]
 Use the \f[V]listings\f[R] package for LaTeX code blocks.
 The package does not support multi-byte encoding for source code.
 To handle UTF-8 you would need to use a custom template.
 This issue is fully documented here: Encoding issue with the listings
 package.
 .TP
-\f[V]-i\f[R], \f[V]--incremental\f[R]
+\f[V]-i\f[R], \f[V]--incremental[=true|false]\f[R]
 Make list items in slide shows display incrementally (one by one).
 The default is for lists to be displayed all at once.
 .TP
@@ -1145,11 +1150,13 @@ If a slide level is not specified explicitly, the slide level will be
 set automatically based on the contents of the document; see Structuring
 the slide show.
 .TP
-\f[V]--section-divs\f[R]
+\f[V]--section-divs[=true|false]\f[R]
 Wrap sections in \f[V]<section>\f[R] tags (or \f[V]<div>\f[R] tags for
 \f[V]html4\f[R]), and attach identifiers to the enclosing
-\f[V]<section>\f[R] (or \f[V]<div>\f[R]) rather than the heading itself.
-See Heading identifiers, below.
+\f[V]<section>\f[R] (or \f[V]<div>\f[R]) rather than the heading itself
+(see Heading identifiers, below).
+This option only affects HTML output (and does not affect HTML slide
+formats).
 .TP
 \f[V]--email-obfuscation=none\f[R]|\f[V]javascript\f[R]|\f[V]references\f[R]
 Specify a method for obfuscating \f[V]mailto:\f[R] links in HTML
@@ -1646,7 +1653,7 @@ gladtex -d image_dir myfile.htex
 .RE
 .SS Options for wrapper scripts
 .TP
-\f[V]--dump-args\f[R]
+\f[V]--dump-args[=true|false]\f[R]
 Print information about command-line arguments to \f[I]stdout\f[R], then
 exit.
 This option is intended primarily for use in wrapper scripts.
@@ -1659,7 +1666,7 @@ These do not include regular pandoc options and their arguments, but do
 include any options appearing after a \f[V]--\f[R] separator at the end
 of the line.
 .TP
-\f[V]--ignore-args\f[R]
+\f[V]--ignore-args[=true|false]\f[R]
 Ignore command-line arguments (for use in wrapper scripts).
 Regular pandoc options are not ignored.
 Thus, for example,
@@ -5531,11 +5538,10 @@ reStructuredText
 It will be rendered using an interpreted text role \f[V]:math:\f[R].
 .TP
 AsciiDoc
-For AsciiDoc output format (\f[V]-t asciidoc\f[R]) it will appear
-verbatim surrounded by \f[V]latexmath:[$...$]\f[R] (for inline math) or
-\f[V][latexmath]++++\[rs][...\[rs]]+++\f[R] (for display math).
-For AsciiDoctor output format (\f[V]-t asciidoctor\f[R]) the LaTeX
-delimiters (\f[V]$..$\f[R] and \f[V]\[rs][..\[rs]]\f[R]) are omitted.
+For AsciiDoc output math will appear verbatim surrounded by
+\f[V]latexmath:[...]\f[R].
+For \f[V]asciidoc_legacy\f[R] the bracketed material will also include
+inline or display math delimiters.
 .TP
 Texinfo
 It will be rendered inside a \f[V]\[at]math\f[R] command.
