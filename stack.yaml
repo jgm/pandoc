@@ -27,9 +27,7 @@ extra-deps:
 - pandoc-types-1.23.0.1
 - skylighting-core-0.13.4
 - skylighting-0.13.4
-- git: https://github.com/jgm/typst-hs
-  commit: 74cc25961afd03f9d6aeb8b8ef8e4631c94ca0e9
-
+- typst-0.3.0.0
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
