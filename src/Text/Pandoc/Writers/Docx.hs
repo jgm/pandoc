@@ -506,6 +506,7 @@ writeDocx opts doc = do
   -- we do, however, copy some settings over from reference
   let settingsPath = "word/settings.xml"
       settingsList = [ "zoom"
+                     , "mirrorMargins"
                      , "embedSystemFonts"
                      , "doNotTrackMoves"
                      , "defaultTabStop"
