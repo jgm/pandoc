@@ -206,6 +206,7 @@ extra-source-files:
                  test/*.native
                  test/command/*.md
                  test/command/*.csl
+                 test/command/*.svg
                  test/command/biblio.bib
                  test/command/averroes.bib
                  test/command/A.txt
@@ -235,10 +236,6 @@ extra-source-files:
                  test/command/5700-metadata-file-1.yml
                  test/command/5700-metadata-file-2.yml
                  test/command/abbrevs
-                 test/command/SVG_logo-without-xml-declaration.svg
-                 test/command/SVG_logo.svg
-                 test/command/corrupt.svg
-                 test/command/inkscape-cube.svg
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
                  test/command/bar.tex
