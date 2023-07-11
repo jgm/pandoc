@@ -38,8 +38,7 @@ task:
     fingerprint_key: linux_arm64_2023_03_11
   deps_script:
     - cabal update
-    - cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
-    - cabal freeze && cat cabal.project.freeze
+    - cabal build -v --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
   upload_caches:
     - cabal_store
   package_script:
