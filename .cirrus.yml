@@ -39,6 +39,7 @@ task:
   deps_script:
     - cabal update
     - cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
+    - cabal freeze && cat cabal.project.freeze
   upload_caches:
     - cabal_store
   package_script:
