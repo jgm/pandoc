@@ -43,7 +43,7 @@ Pandoc
       ]
   , Para
       [ Math
-          InlineMath
+          DisplayMath
           "F_{n} = \\left\\lfloor {\\frac{1}{\\sqrt{5}}\\phi^{n}} \\right\\rceil,\\quad\\phi = \\frac{1 + \\sqrt{5}}{2}"
       ]
   , Para []
@@ -658,7 +658,7 @@ Pandoc
           , Str "."
           ]
       , Para
-          [ Math InlineMath "\\mathcal{ABCDEFGHIJKLMNOPQRSTUVWXYZ}" ]
+          [ Math DisplayMath "\\mathcal{ABCDEFGHIJKLMNOPQRSTUVWXYZ}" ]
       , Para
           [ Str "Getting"
           , Space
@@ -3818,7 +3818,7 @@ Pandoc
           ]
       , Para
           [ Math
-              InlineMath
+              DisplayMath
               "\\sum_{j = 0}^{3}j^{2}\\qquad\\int_{x = 0}^{3}x^{2}dx"
           ]
       , Para
@@ -4133,7 +4133,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\left. \\left\\lbrack \\sum_{k = 0}^{n}e^{k^{2}} \\right\\rbrack \\right."
                               ]
                           ]
@@ -4200,7 +4200,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\left\\langle i,2^{2^{i}} \\right\\rangle"
                               ]
                           ]
@@ -4277,7 +4277,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\left( \\frac{1}{n^{\\alpha}} \\right)"
                               ]
                           ]
@@ -4299,7 +4299,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath "(\\frac{1}{n^{\\alpha}})"
+                                  DisplayMath "(\\frac{1}{n^{\\alpha}})"
                               ]
                           ]
                       , Cell
@@ -4363,7 +4363,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\left. \\frac{df}{dx} \\right|_{x_{0}}"
                               ]
                           ]
@@ -4433,7 +4433,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\begin{pmatrix}\na & b \\\\\nc & d\n\\end{pmatrix}"
                               ]
                           ]
@@ -4579,7 +4579,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "f_{n} = \\begin{cases}\na & \\text{if }n = 0 \\\\\nr \\cdot f_{n - 1} & \\text{else }\n\\end{cases}"
                               ]
                           ]
@@ -4790,7 +4790,7 @@ Pandoc
                           (RowSpan 1)
                           (ColSpan 1)
                           [ Para
-                              [ Math InlineMath "S = k \\cdot \\lg W" ]
+                              [ Math DisplayMath "S = k \\cdot \\lg W" ]
                           ]
                       , Cell
                           ( "" , [] , [] )
@@ -4840,7 +4840,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\begin{array}{r}\n\\sin(x) = x - \\frac{x^{3}}{3!} \\\\\n + \\frac{x^{5}}{5!} - \\cdots\n\\end{array}"
                               ]
                           ]
@@ -4889,7 +4889,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\begin{aligned}\n\\nabla \\cdot \\mathbf{D} & = \\rho \\\\\n\\nabla \\cdot \\mathbf{B} & = 0\n\\end{aligned}"
                               ]
                           ]
@@ -5042,7 +5042,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\lim\\limits_{h \\rightarrow 0}\\frac{f(x + h) - f(x)}{h}"
                               ]
                           ]
@@ -5065,7 +5065,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\int x^{2}dx = x^{3}/3 + C"
                               ]
                           ]
@@ -5088,7 +5088,7 @@ Pandoc
                           (ColSpan 1)
                           [ Para
                               [ Math
-                                  InlineMath
+                                  DisplayMath
                                   "\\nabla = \\mathbf{i}\\frac{d}{dx} + \\mathbf{j}\\frac{d}{dy} + \\mathbf{k}\\frac{d}{dz}"
                               ]
                           ]
@@ -5304,7 +5304,7 @@ Pandoc
           ]
       , Para
           [ Math
-              InlineMath
+              DisplayMath
               "\\frac{1}{\\sqrt{2\\sigma^{2}\\pi}}e^{- \\frac{(x - \\mu)^{2}}{2\\sigma^{2}}}"
           ]
       , Para

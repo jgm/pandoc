@@ -95,7 +95,8 @@ pInline = try $ do
     Txt t -> pure $ B.text t
     Lab name -> pure $ B.spanWith (name, [], []) mempty
     Elt (Identifier tname) _ _
-      | "math." `T.isPrefixOf` tname ->
+      | "math." `T.isPrefixOf` tname
+      , tname /= "math.equation" ->
           B.math . writeTeX <$> pMathMany (Seq.singleton res)
     Elt name@(Identifier tname) pos fields ->
       case M.lookup name inlineHandlers of
