@@ -38,10 +38,11 @@ task:
     fingerprint_key: linux_arm64_2023_03_11
   deps_script:
     - cabal update
-    - cabal build -v --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
+    - cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
   upload_caches:
     - cabal_store
   package_script:
+    - cabal freeze && cat cabal.project.freeze
     - bash linux/make_artifacts.sh
   linux_arm64_artifacts:
     path: ./linux-arm64/**
