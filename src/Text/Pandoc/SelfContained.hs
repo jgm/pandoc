@@ -181,7 +181,11 @@ convertTags (t@(TagOpen tagname as):ts)
                 case res of
                   AlreadyDataURI enc -> return $ Right (x, enc)
                   Fetched ("image/svg+xml", bs) -> do
-                    let hash = T.pack (showDigest (sha1 (L.fromStrict bs)))
+                    -- we filter CR in the hash to ensure that Windows
+                    -- and non-Windows tests agree:
+                    let hash = T.pack (showDigest
+                                        (sha1 (L.fromStrict
+                                           (B.filter (/='\r') bs))))
                     return $ Left (hash, parseTags (toText bs))
                   Fetched (mt,bs) -> return $ Right (x, makeDataURI (mt,bs))
                   CouldNotFetch _ -> return $ Right (x, y)
