@@ -10,6 +10,7 @@ on:
     - 'doc/*.md'
     - 'MANUAL.txt'
     - '*.md'
+    - '.cirrus.yml'
     - 'RELEASE_CHECKLIST'
     - 'BUGS'
     - 'README.template'
