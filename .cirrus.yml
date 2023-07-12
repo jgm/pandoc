@@ -32,7 +32,7 @@ task:
     memory: 12G
   env:
     CABALOPTS: |
-      --constrain "text == 2.0.2" -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j
+      --constrain 'text == 2.0.2' -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j
     GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
   cabal_store_cache:
     folder: ~/.local/cabal/state
@@ -59,7 +59,7 @@ task:
     memory: 12G
   env:
     CABALOPTS: |
-      --constrain "text -simdutf" --constrain "text == 2.0.2" -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j
+      --constrain 'text -simdutf' --constrain 'text == 2.0.2' -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j
     GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
   cabal_store_cache:
     folder: ~/.local/cabal/state
