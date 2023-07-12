@@ -750,12 +750,9 @@ blockToHtmlInner opts (Para lst) = do
       case contents of
         Empty _ | not (isEnabled Ext_empty_paragraphs opts) -> return mempty
         _ -> return $ H.p contents
-blockToHtmlInner opts (LineBlock lns) =
-  if writerWrapText opts == WrapNone
-  then blockToHtml opts $ linesToPara lns
-  else do
-    htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
-    return $ H.div ! A.class_ "line-block" $ htmlLines
+blockToHtmlInner opts (LineBlock lns) = do
+  htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
+  return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
                    (Header level
                      hattr@(hident,hclasses,hkvs) ils : xs)) = do
