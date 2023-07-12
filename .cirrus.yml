@@ -57,7 +57,7 @@ task:
     cpu: 4
     memory: 12G
   env:
-    CABALOPTS: -f-simdutf -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4
+    CABALOPTS: -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4
     GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
   cabal_store_cache:
     folder: ~/.cabal/store
