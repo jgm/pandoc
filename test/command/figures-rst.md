@@ -6,5 +6,8 @@ Figure float with caption at the figure level.
 
 ^D
 .. figure:: foo.png
+   name: fig-id
    :alt: fig:
+
+   Caption
 ```

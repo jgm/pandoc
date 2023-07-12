@@ -262,21 +262,6 @@ blockToRST (Div (ident,classes,_kvs) bs) = do
            nest 3 contents $$
            blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
-blockToRST (Para [Image attr txt (src, _)]) = do
-  description <- inlineListToRST txt
-  dims <- imageDimsToRST attr
-  let fig = "image:: " <> literal src
-      alt | null txt = empty
-          | otherwise = ":alt: " <> description
-      capt = empty
-      (_,cls,_) = attr
-      classes = case cls of
-                   []               -> empty
-                   ["align-right"]  -> ":align: right"
-                   ["align-left"]   -> ":align: left"
-                   ["align-center"] -> ":align: center"
-                   _ -> ":class: " <> literal (T.unwords cls)
-  return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
 blockToRST (Para inlines)
   | LineBreak `elem` inlines =
       linesToLineBlock $ splitBy (==LineBreak) inlines
@@ -394,13 +379,21 @@ blockToRST (DefinitionList items) = do
   -- ensure that sublists have preceding blank line
   return $ blankline $$ vcat contents $$ blankline
 
-blockToRST (Figure (ident, classes, _) _ body) = do
+blockToRST (Figure (ident, classes, _kvs)
+             (Caption _ longCapt) body) = do
   let figure attr txt (src, tit) = do
         description <- inlineListToRST txt
+        capt <- blockListToRST longCapt
         dims <- imageDimsToRST attr
-        let fig = "figure:: " <> literal src
-            alt = ":alt: " <> if T.null tit then description else literal tit
-            capt = description
+        let fig = "figure::" <+> literal src
+            alt = if null txt
+                     then if T.null tit
+                              then empty
+                              else ":alt:" <+> literal tit
+                     else ":alt:" <+> description
+            name = if T.null ident
+                      then empty
+                      else "name:" <+> literal ident
             (_,cls,_) = attr
             align = case cls of
                       []               -> empty
@@ -408,7 +401,7 @@ blockToRST (Figure (ident, classes, _) _ body) = do
                       ["align-left"]   -> ":align: left"
                       ["align-center"] -> ":align: center"
                       _ -> ":figclass: " <> literal (T.unwords cls)
-        return $ hang 3 ".. " (fig $$ alt $$ align $$ dims $+$ capt)
+        return $ hang 3 ".. " (fig $$ name $$ alt $$ align $$ dims $+$ capt)
               $$ blankline
   case body of
     [Para  [Image attr txt tgt]] -> figure attr txt tgt
