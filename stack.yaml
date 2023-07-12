@@ -27,6 +27,7 @@ extra-deps:
 - skylighting-0.13.4
 - typst-0.3.0.0
 - xml-conduit-1.9.1.3
+- commonmark-extensions-0.2.3.5
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
