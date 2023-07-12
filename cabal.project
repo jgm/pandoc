@@ -4,5 +4,13 @@ packages: .
           pandoc-cli
 tests: True
 flags: +embed_data_files
+package text
+  flags: -simdutf
 constraints: skylighting-format-blaze-html >= 0.1.1,
              skylighting-format-context >= 0.1.0.2
+
+source-repository-package
+  type: git
+  location:  https://github.com/haskell/text
+  tag: e815d4d
+

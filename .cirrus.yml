@@ -66,7 +66,7 @@ task:
     fingerprint_key: linux_amd64_2023_03_12
   deps_script:
     - cabal update
-    - cabal build --dependencies-only --constraint="text -simdutf" $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
+    - cabal build --dependencies-only $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
   upload_caches:
     - cabal_store
   package_script:
