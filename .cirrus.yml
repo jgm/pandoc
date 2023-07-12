@@ -9,7 +9,7 @@ task:
     - brew update
     - brew install ghc cabal-install
   cabal_store_cache:
-    folder: ~/.cabal/store
+    folder: ~/.local/cabal/state
     fingerprint_key: macos_2023_03_12
   deps_script:
     - cabal update
@@ -35,7 +35,7 @@ task:
       --constrain "text == 2.0.2 -simdutf" -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j
     GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
   cabal_store_cache:
-    folder: ~/.cabal/store
+    folder: ~/.local/cabal/state
     fingerprint_key: linux_arm64_2023_03_11
   deps_script:
     - cabal update
@@ -62,7 +62,7 @@ task:
       --constrain "text == 2.0.2 -simdutf" -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j
     GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
   cabal_store_cache:
-    folder: ~/.cabal/store
+    folder: ~/.local/cabal/state
     fingerprint_key: linux_amd64_2023_03_12
   deps_script:
     - cabal update
