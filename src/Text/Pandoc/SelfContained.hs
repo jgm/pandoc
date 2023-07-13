@@ -151,6 +151,10 @@ convertTags (t@(TagOpen tagname as):ts)
        case svgContents of
          [] -> return $ TagOpen tagname attrs : rest
          ((hash, tags) : _) -> do
+             -- drop "</img>" if present
+             let rest' = case rest of
+                           TagClose tn : xs | tn == tagname ->  xs
+                           _ -> rest
              svgmap <- gets svgMap
              case M.lookup hash svgmap of
                Just svgid -> do
@@ -159,7 +163,9 @@ convertTags (t@(TagOpen tagname as):ts)
                                  else attrs
                  return $ TagOpen "svg" attrs' :
                           TagOpen "use" [("href", "#" <> svgid)] :
-                          TagClose "use" : rest
+                          TagClose "use" :
+                          TagClose "svg" :
+                          rest'
                Nothing ->
                   case dropWhile (not . isTagOpenName "svg") tags of
                     TagOpen "svg" svgattrs : tags' -> do
@@ -172,7 +178,7 @@ convertTags (t@(TagOpen tagname as):ts)
                                  in (newid, ("id", newid) :
                                              filter (\(k,_) -> k /= "id") attrs')
                       modify $ \st -> st{ svgMap = M.insert hash svgId (svgMap st) }
-                      return $ (TagOpen "svg" attrs'' : tags') ++ rest
+                      return $ TagOpen "svg" attrs'' : tags' ++ rest'
                     _ -> return $ TagOpen tagname attrs : rest
   where processAttribute (x,y) =
            if isSourceAttribute tagname (x,y)
@@ -186,12 +192,21 @@ convertTags (t@(TagOpen tagname as):ts)
                     let hash = T.pack (showDigest
                                         (sha1 (L.fromStrict
                                            (B.filter (/='\r') bs))))
-                    return $ Left (hash, parseTags (toText bs))
+                    return $ Left (hash, getSvgTags (toText bs))
                   Fetched (mt,bs) -> return $ Right (x, makeDataURI (mt,bs))
                   CouldNotFetch _ -> return $ Right (x, y)
               else return $ Right (x,y)
 
 convertTags (t:ts) = (t:) <$> convertTags ts
+
+-- we want to drop spaces, <?xml>, and comments before <svg>
+-- and anything after </svg>:
+getSvgTags :: T.Text -> [Tag T.Text]
+getSvgTags t =
+  case takeWhile (not . isTagCloseName "svg") .
+       dropWhile (not . isTagOpenName "svg") $ parseTags t of
+    [] -> []
+    xs -> xs ++ [TagClose "svg"]
 
 combineSvgAttrs :: [(T.Text, T.Text)] -> [(T.Text, T.Text)] -> [(T.Text, T.Text)]
 combineSvgAttrs svgAttrs imgAttrs =
