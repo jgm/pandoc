@@ -915,10 +915,9 @@ elemToParPart' ns element
   , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
   , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
   = let (title, alt) = getTitleAndAlt ns drawingElem
-        a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawings = map (\el ->
-                        ((findElement (QName "blip" (Just a_ns) (Just "a")) el
-                          >>= findAttrByName ns "r" "embed"), el)) picElems
+                        ((findBlip el >>= findAttrByName ns "r" "embed"), el))
+                       picElems
     in mapM (\case
                 (Just s, el) -> do
                   (fp, bs) <- expandDrawingId s
@@ -1040,10 +1039,9 @@ childElemToRun ns element
   , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
   , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) element
   = let (title, alt) = getTitleAndAlt ns element
-        a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawings = map (\el ->
-                         ((findElement (QName "blip" (Just a_ns) (Just "a")) el
-                             >>= findAttrByName ns "r" "embed"), el)) picElems
+                         ((findBlip el >>= findAttrByName ns "r" "embed"), el))
+                   picElems
     in mapM (\case
                 (Just s, el) -> do
                   (fp, bs) <- expandDrawingId s
@@ -1236,3 +1234,11 @@ elemToRunElems _ _ = throwError WrongElem
 
 setFont :: Maybe Font -> ReaderEnv -> ReaderEnv
 setFont f s = s{envFont = f}
+
+findBlip :: Element -> Maybe Element
+findBlip el = do
+  blip <- findElement (QName "blip" (Just a_ns) (Just "a")) el
+  -- return svg if present:
+  filterElementName (\(QName tag _ _) -> tag == "svgBlip") el `mplus` pure blip
+ where
+  a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
