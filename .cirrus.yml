@@ -59,7 +59,7 @@ task:
     memory: 12G
   env:
     CABALOPTS: |
-      -f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j
+      -f-export-dynamic -fembed_data_files -fserver -f-lua --enable-executable-static -j
     GHCOPTS: -j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread
   cabal_store_cache:
     folder: ~/.local/cabal/state
