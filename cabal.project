@@ -1,8 +1,7 @@
 packages: .
-          pandoc-server
           pandoc-cli
 tests: True
-flags: +embed_data_files
+flags: +embed_data_files -lua -server
 package text
   flags: -simdutf
 constraints: skylighting-format-blaze-html >= 0.1.1,
