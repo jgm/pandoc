@@ -295,7 +295,7 @@ options =
     , Option "" ["file-scope"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--file-scope" arg
                         return opt { optFileScope = boolValue })
                   "true|false")
                  "" -- "Parse input files before combining"
@@ -303,7 +303,7 @@ options =
     , Option "" ["sandbox"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--sandbox" arg
                         return opt { optSandbox = boolValue })
                   "true|false")
                  ""
@@ -311,7 +311,7 @@ options =
     , Option "s" ["standalone"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--standalone/-s" arg
                         return opt { optStandalone = boolValue })
                   "true|false")
                  "" -- "Include needed header and footer on output"
@@ -348,7 +348,7 @@ options =
     , Option "" ["ascii"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--ascii" arg
                         return opt { optAscii = boolValue })
                   "true|false")
                  ""  -- "Prefer ASCII output"
@@ -356,7 +356,7 @@ options =
     , Option "" ["toc", "table-of-contents"]
                 (OptArg
                  (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--toc/--table-of-contents" arg
                         return opt { optTableOfContents = boolValue })
                  "true|false")
                "" -- "Include table of contents"
@@ -368,7 +368,7 @@ options =
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
                            _ -> optError $ PandocOptionError
-                                "TOC level must be a number 1-6")
+                                "argument of --toc-depth must be a number 1-6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
 
@@ -384,7 +384,7 @@ options =
                            Just ns -> return opt { optNumberOffset = ns,
                                                    optNumberSections = True }
                            _      -> optError $ PandocOptionError
-                                       "could not parse number-offset")
+                                       "could not parse argument of --number-offset")
                  "NUMBERS")
                  "" -- "Starting number for sections, subsections, etc."
 
@@ -401,7 +401,7 @@ options =
                         "default" -> return opt{ optTopLevelDivision =
                                         TopLevelDefault }
                         _ -> optError $ PandocOptionError $
-                                "Top-level division must be " <>
+                                "argument of --top-level division must be " <>
                                 "section,  chapter, part, or default" )
                    "section|chapter|part")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
@@ -473,7 +473,7 @@ options =
                     case safeStrRead arg of
                          Just t | t > 0 -> return opt { optDpi = t }
                          _              -> optError $ PandocOptionError
-                                        "dpi must be a number greater than 0")
+                                        "argument of --dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
 
@@ -486,7 +486,7 @@ options =
                       "native" -> return opt { optEol = Native }
                       -- mac-syntax (cr) is not supported in ghc-base.
                       _      -> optError $ PandocOptionError
-                                "--eol must be crlf, lf, or native")
+                                "argument of --eol must be crlf, lf, or native")
                   "crlf|lf|native")
                  "" -- "EOL (default OS-dependent)"
 
@@ -496,14 +496,14 @@ options =
                       case safeStrRead arg of
                            Just t | t > 0 -> return opt { optColumns = t }
                            _              -> optError $ PandocOptionError
-                                   "columns must be a number greater than 0")
+                                   "argument of --columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
 
     , Option "p" ["preserve-tabs"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--preserve-tables/-p" arg
                         return opt { optPreserveTabs = boolValue })
                   "true|false")
                  "" -- "Preserve tabs instead of converting to spaces"
@@ -514,7 +514,7 @@ options =
                       case safeStrRead arg of
                            Just t | t > 0 -> return opt { optTabStop = t }
                            _              -> optError $ PandocOptionError
-                                  "tab-stop must be a number greater than 0")
+                                  "argument of --tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
 
@@ -526,7 +526,7 @@ options =
                         then return opt { optPdfEngine = Just arg }
                         else optError $
                               PandocOptionError $ T.pack $
-                              "pdf-engine must be one of "
+                              "argument of --pdf-engine must be one of "
                                ++ intercalate ", " pdfEngines)
                   "PROGRAM")
                  "" -- "Name of program to use in generating PDF"
@@ -550,7 +550,7 @@ options =
                  (OptArg
                   (\arg opt -> do
                         deprecatedOption "--self-contained" "use --embed-resources --standalone"
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--self-contained" arg
                         return opt { optSelfContained = boolValue })
                     "true|false")
                  "" -- "Make slide shows include all the needed js and css (deprecated)"
@@ -558,7 +558,7 @@ options =
     , Option "" ["embed-resources"] -- maybe True (\argStr -> argStr == "true") arg
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--embed-resources" arg
                         return opt { optEmbedResources =  boolValue })
                   "true|false")
                  "" -- "Make slide shows include all the needed js and css"
@@ -575,7 +575,7 @@ options =
     , Option "" ["no-check-certificate"]
                 (OptArg
                  (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--no-check-certificate" arg
                         return opt { optNoCheckCertificate = boolValue })
                  "true|false")
                 "" -- "Disable certificate validation"
@@ -622,7 +622,7 @@ options =
                            Just t ->
                                return opt{ optShiftHeadingLevelBy = t }
                            _              -> optError $ PandocOptionError
-                                               "shift-heading-level-by takes an integer argument")
+                                               "argument of --shift-heading-level-by must be an integer")
                   "NUMBER")
                  "" -- "Shift heading level"
 
@@ -635,7 +635,7 @@ options =
                            Just t | t > 0 && t < 6 ->
                                return opt{ optShiftHeadingLevelBy = t - 1 }
                            _              -> optError $ PandocOptionError
-                                               "base-header-level must be 1-5")
+                                               "argument of --base-header-level must be 1-5")
                   "NUMBER")
                  "" -- "Headers base level"
 
@@ -647,7 +647,7 @@ options =
                             "reject" -> return RejectChanges
                             "all"    -> return AllChanges
                             _        -> optError $ PandocOptionError $ T.pack
-                               ("Unknown option for track-changes: " ++ arg)
+                               "argument of --track-changes must be accept, reject, or all"
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
                  "" -- "Accepting or reject MS Word track-changes.""
@@ -655,7 +655,7 @@ options =
     , Option "" ["strip-comments"]
                 (OptArg
                  (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--strip-comments" arg
                         return opt { optStripComments = boolValue })
                  "true|false")
                "" -- "Strip HTML comments"
@@ -663,7 +663,7 @@ options =
     , Option "" ["reference-links"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--reference-links" arg
                         return opt { optReferenceLinks = boolValue })
                   "true|false")
                  "" -- "Use reference links in parsing HTML"
@@ -676,7 +676,7 @@ options =
                             "section"  -> return EndOfSection
                             "document" -> return EndOfDocument
                             _        -> optError $ PandocOptionError $ T.pack
-                               ("Unknown option for reference-location: " ++ arg)
+                               "argument of --reference-location must be block, section, or document"
                      return opt { optReferenceLocation = action })
                   "block|section|document")
                  "" -- "Accepting or reject MS Word track-changes.""
@@ -688,8 +688,7 @@ options =
                         "setext" -> pure True
                         "atx" -> pure False
                         _ -> optError $ PandocOptionError $ T.pack
-                          ("Unknown markdown heading format: " ++ arg ++
-                            ". Expecting atx or setext")
+                          "argument of --markdown-headings must be setext or atx"
                       pure opt { optSetextHeaders = headingFormat }
                     )
                   "setext|atx")
@@ -698,7 +697,7 @@ options =
     , Option "" ["list-tables"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--list-tables" arg
                         return opt { optListTables = boolValue })
                   "true|false")
                  "" -- "Use list tables for RST"
@@ -706,7 +705,7 @@ options =
     , Option "" ["listings"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--listings" arg
                         return opt { optListings = boolValue })
                   "true|false")
                  "" -- "Use listings package for LaTeX code blocks"
@@ -714,7 +713,7 @@ options =
     , Option "i" ["incremental"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--incremental/-i" arg
                         return opt { optIncremental = boolValue })
                   "true|false")
                  "" -- "Make list items display incrementally in Slidy/Slideous/S5"
@@ -726,14 +725,14 @@ options =
                            Just t | t >= 0 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
                            _      -> optError $ PandocOptionError
-                                    "slide level must be a number between 0 and 6")
+                                    "argument of --slide-level must be a number between 0 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
 
     , Option "" ["section-divs"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--section-divs" arg
                         return opt { optSectionDivs = boolValue })
                   "true|false")
                  "" -- "Put sections in div tags in HTML"
@@ -741,7 +740,7 @@ options =
     , Option "" ["html-q-tags"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--html-q-tags" arg
                         return opt { optHtmlQTags = boolValue })
                   "true|false")
                  "" -- "Use <q> tags for quotes in HTML"
@@ -754,7 +753,7 @@ options =
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
                             _            -> optError $ PandocOptionError $ T.pack
-                               ("Unknown obfuscation method: " ++ arg)
+                               "argument of --email-obfuscation must be references, javascript, or none"
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
                  "" -- "Method for obfuscating email in HTML"
@@ -834,7 +833,7 @@ options =
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSplitLevel = t }
                            _      -> optError $ PandocOptionError
-                                    "split level must be a number between 1 and 6")
+                                    "argument of --split-level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split documents in chunked HTML or EPUB"
 
@@ -854,7 +853,7 @@ options =
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSplitLevel = t }
                            _      -> optError $ PandocOptionError
-                                    "split level must be a number between 1 and 6")
+                                    "argument of --epub-chapter-level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split documents in chunked HTML or EPUB"
 
@@ -866,7 +865,7 @@ options =
                       "best" -> return opt{ optIpynbOutput = IpynbOutputBest }
                       "none" -> return opt{ optIpynbOutput = IpynbOutputNone }
                       _ -> optError $ PandocOptionError
-                             "ipynb-output must be all, none, or best")
+                             "argument of --ipynb-output must be all, none, or best")
                  "all|none|best")
                  "" -- "Starting number for sections, subsections, etc."
 
@@ -890,7 +889,7 @@ options =
                   (\arg opt -> do
                     case lookupMeta (T.pack "csl") $ optMetadata opt of
                       Just _ -> optError $ PandocOptionError
-                                   "Only one CSL file can be specified."
+                                   "--csl option can only be used once"
                       Nothing -> return opt{ optMetadata = addMeta "csl" (normalizePath arg) $
                       optMetadata opt })
                    "FILE")
@@ -955,7 +954,7 @@ options =
     , Option "" ["trace"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--trace" arg
                         return opt { optTrace = boolValue })
                   "true|false")
                  "" -- "Turn on diagnostic tracing in readers."
@@ -963,7 +962,7 @@ options =
     , Option "" ["dump-args"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--dump-args" arg
                         return opt { optDumpArgs = boolValue })
                   "true|false")
                  "" -- "Print output filename and arguments to stdout."
@@ -971,7 +970,7 @@ options =
     , Option "" ["ignore-args"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--ignore-args" arg
                         return opt { optIgnoreArgs = boolValue })
                   "true|false")
                  "" -- "Ignore command-line arguments."
@@ -989,7 +988,7 @@ options =
     , Option "" ["fail-if-warnings"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg arg
+                        boolValue <- readBoolFromOptArg "--fail-if-warnings" arg
                         return opt { optFailIfWarnings = boolValue })
                   "true|false")
                  "" -- "Exit with error status if there were  warnings."
@@ -1155,12 +1154,13 @@ readMetaValue s
   | s == "FALSE" = MetaBool False
   | otherwise    = MetaString $ T.pack s
 
-readBoolFromOptArg ::  Maybe String -> ExceptT OptInfo IO Bool
-readBoolFromOptArg = maybe (return True) readBoolFromArg
+readBoolFromOptArg ::  Text -> Maybe String -> ExceptT OptInfo IO Bool
+readBoolFromOptArg opt = maybe (return True) readBoolFromArg
     where readBoolFromArg arg = case toLower <$> arg of
             "true"  -> return True
             "false" -> return False
-            _       -> optError $ PandocOptionError "value must be either true or false"
+            _       -> optError $ PandocOptionError $
+                        "argument of " <> opt <> " must be either true or false"
 
 -- On Windows with ghc 8.6+, we need to rewrite paths
 -- beginning with \\ to \\?\UNC\. -- See #5127.
