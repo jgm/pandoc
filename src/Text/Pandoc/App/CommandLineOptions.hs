@@ -368,7 +368,7 @@ options =
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optTOCDepth = t }
                            _ -> optError $ PandocOptionError
-                                "argument of --toc-depth must be a number 1-6")
+                                "Argument of" --toc-depth must be a number 1-6")
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
 
@@ -401,7 +401,7 @@ options =
                         "default" -> return opt{ optTopLevelDivision =
                                         TopLevelDefault }
                         _ -> optError $ PandocOptionError $
-                                "argument of --top-level division must be " <>
+                                "Argument of" --top-level division must be " <>
                                 "section,  chapter, part, or default" )
                    "section|chapter|part")
                  "" -- "Use top-level division type in LaTeX, ConTeXt, DocBook"
@@ -473,7 +473,7 @@ options =
                     case safeStrRead arg of
                          Just t | t > 0 -> return opt { optDpi = t }
                          _              -> optError $ PandocOptionError
-                                        "argument of --dpi must be a number greater than 0")
+                                        "Argument of" --dpi must be a number greater than 0")
                   "NUMBER")
                  "" -- "Dpi (default 96)"
 
@@ -486,7 +486,7 @@ options =
                       "native" -> return opt { optEol = Native }
                       -- mac-syntax (cr) is not supported in ghc-base.
                       _      -> optError $ PandocOptionError
-                                "argument of --eol must be crlf, lf, or native")
+                                "Argument of" --eol must be crlf, lf, or native")
                   "crlf|lf|native")
                  "" -- "EOL (default OS-dependent)"
 
@@ -496,7 +496,7 @@ options =
                       case safeStrRead arg of
                            Just t | t > 0 -> return opt { optColumns = t }
                            _              -> optError $ PandocOptionError
-                                   "argument of --columns must be a number greater than 0")
+                                   "Argument of" --columns must be a number greater than 0")
                  "NUMBER")
                  "" -- "Length of line in characters"
 
@@ -514,7 +514,7 @@ options =
                       case safeStrRead arg of
                            Just t | t > 0 -> return opt { optTabStop = t }
                            _              -> optError $ PandocOptionError
-                                  "argument of --tab-stop must be a number greater than 0")
+                                  "Argument of" --tab-stop must be a number greater than 0")
                   "NUMBER")
                  "" -- "Tab stop (default 4)"
 
@@ -526,7 +526,7 @@ options =
                         then return opt { optPdfEngine = Just arg }
                         else optError $
                               PandocOptionError $ T.pack $
-                              "argument of --pdf-engine must be one of "
+                              "Argument of" --pdf-engine must be one of "
                                ++ intercalate ", " pdfEngines)
                   "PROGRAM")
                  "" -- "Name of program to use in generating PDF"
@@ -622,7 +622,7 @@ options =
                            Just t ->
                                return opt{ optShiftHeadingLevelBy = t }
                            _              -> optError $ PandocOptionError
-                                               "argument of --shift-heading-level-by must be an integer")
+                                               "Argument of" --shift-heading-level-by must be an integer")
                   "NUMBER")
                  "" -- "Shift heading level"
 
@@ -635,7 +635,7 @@ options =
                            Just t | t > 0 && t < 6 ->
                                return opt{ optShiftHeadingLevelBy = t - 1 }
                            _              -> optError $ PandocOptionError
-                                               "argument of --base-header-level must be 1-5")
+                                               "Argument of" --base-header-level must be 1-5")
                   "NUMBER")
                  "" -- "Headers base level"
 
@@ -647,7 +647,7 @@ options =
                             "reject" -> return RejectChanges
                             "all"    -> return AllChanges
                             _        -> optError $ PandocOptionError $ T.pack
-                               "argument of --track-changes must be accept, reject, or all"
+                               "Argument of" --track-changes must be accept, reject, or all"
                      return opt { optTrackChanges = action })
                   "accept|reject|all")
                  "" -- "Accepting or reject MS Word track-changes.""
@@ -676,7 +676,7 @@ options =
                             "section"  -> return EndOfSection
                             "document" -> return EndOfDocument
                             _        -> optError $ PandocOptionError $ T.pack
-                               "argument of --reference-location must be block, section, or document"
+                               "Argument of" --reference-location must be block, section, or document"
                      return opt { optReferenceLocation = action })
                   "block|section|document")
                  "" -- "Accepting or reject MS Word track-changes.""
@@ -688,7 +688,7 @@ options =
                         "setext" -> pure True
                         "atx" -> pure False
                         _ -> optError $ PandocOptionError $ T.pack
-                          "argument of --markdown-headings must be setext or atx"
+                          "Argument of" --markdown-headings must be setext or atx"
                       pure opt { optSetextHeaders = headingFormat }
                     )
                   "setext|atx")
@@ -725,7 +725,7 @@ options =
                            Just t | t >= 0 && t <= 6 ->
                                     return opt { optSlideLevel = Just t }
                            _      -> optError $ PandocOptionError
-                                    "argument of --slide-level must be a number between 0 and 6")
+                                    "Argument of" --slide-level must be a number between 0 and 6")
                  "NUMBER")
                  "" -- "Force header level for slides"
 
@@ -753,7 +753,7 @@ options =
                             "javascript" -> return JavascriptObfuscation
                             "none"       -> return NoObfuscation
                             _            -> optError $ PandocOptionError $ T.pack
-                               "argument of --email-obfuscation must be references, javascript, or none"
+                               "Argument of" --email-obfuscation must be references, javascript, or none"
                      return opt { optEmailObfuscation = method })
                   "none|javascript|references")
                  "" -- "Method for obfuscating email in HTML"
@@ -829,7 +829,7 @@ options =
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSplitLevel = t }
                            _      -> optError $ PandocOptionError
-                                    "argument of --split-level must be a number between 1 and 6")
+                                    "Argument of" --split-level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split documents in chunked HTML or EPUB"
 
@@ -849,7 +849,7 @@ options =
                            Just t | t >= 1 && t <= 6 ->
                                     return opt { optSplitLevel = t }
                            _      -> optError $ PandocOptionError
-                                    "argument of --epub-chapter-level must be a number between 1 and 6")
+                                    "Argument of" --epub-chapter-level must be a number between 1 and 6")
                  "NUMBER")
                  "" -- "Header level at which to split documents in chunked HTML or EPUB"
 
@@ -861,7 +861,7 @@ options =
                       "best" -> return opt{ optIpynbOutput = IpynbOutputBest }
                       "none" -> return opt{ optIpynbOutput = IpynbOutputNone }
                       _ -> optError $ PandocOptionError
-                             "argument of --ipynb-output must be all, none, or best")
+                             "Argument of" --ipynb-output must be all, none, or best")
                  "all|none|best")
                  "" -- "Starting number for sections, subsections, etc."
 
@@ -1156,7 +1156,7 @@ readBoolFromOptArg opt = maybe (return True) readBoolFromArg
             "true"  -> return True
             "false" -> return False
             _       -> optError $ PandocOptionError $
-                        "argument of " <> opt <> " must be either true or false"
+                        "Argument of" " <> opt <> " must be either true or false"
 
 -- On Windows with ghc 8.6+, we need to rewrite paths
 -- beginning with \\ to \\?\UNC\. -- See #5127.
