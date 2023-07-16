@@ -800,14 +800,10 @@ options =
                  "" -- "Path of epub cover image"
 
     , Option "" ["epub-title-page"]
-                 (ReqArg
-                  (\arg opt ->
-                    case arg of
-                      "true" -> return opt{ optEpubTitlePage = True }
-                      "false" -> return opt{ optEpubTitlePage = False }
-                      _ -> optError $ PandocOptionError $
-                                "Argument to --epub-title-page must be " <>
-                                "true or false" )
+                 (OptArg
+                  (\arg opt -> do
+                     boolValue <- readBoolFromOptArg "--epub-title-page" arg
+                     return opt{ optEpubTitlePage = boolValue })
                  "true|false")
                  ""
 
