@@ -108,28 +108,14 @@ isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
   where blocktags = S.fromList (paragraphLevel ++ lists ++ mathML ++ other) \\ S.fromList inlinetags
         paragraphLevel = ["address", "answer", "answer-set", "array", "boxed-text", "chem-struct-wrap",
-            "code", "explanation", "fig", "fig-group", "graphic", "media", "preformat", "question", "question-wrap-group"
+            "code", "explanation", "fig", "fig-group", "graphic", "media", "preformat", "question", "question-wrap", "question-wrap-group"
             "supplementary-material", "table-wrap", "table-wrap-group",
             "alternatives", "disp-formula", "disp-formula-group"]
         lists = ["def-list", "list"]
         mathML = ["tex-math", "mml:math"]
         other = ["p", "related-article", "related-object", "ack", "disp-quote",
             "speech", "statement", "verse-group", "x"]
-        inlinetags = ["email", "ext-link", "uri", "inline-supplementary-material",
-            "related-article", "related-object", "hr", "bold", "fixed-case",
-            "italic", "monospace", "overline", "overline-start", "overline-end",
-            "roman", "sans-serif", "sc", "strike", "underline", "underline-start",
-            "underline-end", "ruby", "alternatives", "inline-graphic", "private-char",
-            "chem-struct", "inline-formula", "tex-math", "mml:math", "abbrev",
-            "milestone-end", "milestone-start", "named-content", "styled-content",
-            "fn", "target", "xref", "sub", "sup", "x", "address", "array",
-            "boxed-text", "chem-struct-wrap", "code", "fig", "fig-group", "graphic",
-            "media", "preformat", "supplementary-material", "table-wrap",
-            "table-wrap-group", "disp-formula", "disp-formula-group",
-            "citation-alternatives", "element-citation", "mixed-citation",
-            "nlm-citation", "award-id", "funding-source", "open-access",
-            "def-list", "list", "ack", "disp-quote", "speech", "statement",
-            "verse-group"]
+        inlinetags = ["alternatives", "tex-math", "mml:math", "x"]
 isBlockElement _ = False
 
 -- Trim leading and trailing newline characters
