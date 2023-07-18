@@ -15,20 +15,28 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            stack_opts: '-j4 +RTS -A256m -RTS --flag pandoc:embed_data_files --flag pandoc-cli:lua --flag pandoc-cli:server'
+            cabal_opts: '-fembed_data_files -fserver -flua'
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install ghc
+      run: |
+        # We use ghc 9.2 because of #8955
+        ghcup install ghc --set 9.2
+        ghcup install cabal --set 3.10
+
     - name: Install dependencies
       run: |
-          stack update
-          stack build ${{ matrix.versions.stack_opts }} --dependencies-only pandoc
+          cabal update
+          cabal build ${{ matrix.versions.cabal_opts }} --dependencies-only pandoc-cli
+
     - name: Create windows package
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          stack build  ${{ matrix.versions.stack_opts }} pandoc-cli
-          for /f "tokens=1-2 delims= " %%a in ('stack exec pandoc -- --version') do (
+          cabal build ${{ matrix.versions.cabal_opts }} pandoc-cli
+          @set BINPATH=('cabal list-bin ${{ matrix.versions.cabal-opts }} pandoc-cli')
+          for /f "tokens=1-2 delims= " %%a in ("%BINPATH% --version") do (
             @set VERSION=%%b
             goto :next
             )
@@ -41,9 +49,9 @@ jobs:
           @set WINDOWS=%CD%\windows
           @set RELEASE=%WINDOWS%\pandoc-%VERSION%
           mkdir %RELEASE%
-          forfiles /P .\.stack-work\install /M pandoc.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%RELEASE%%"
-          stack exec pandoc -- -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
-          stack exec pandoc -- -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
+          copy %BINPATH% %RELEASE%
+          %BINPATH% -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
+          %BINPATH% -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
           copy %RELEASE%\COPYING.rtf %WINDOWS%
           copy COPYRIGHT %RELEASE%\COPYRIGHT.txt
           cd windows
