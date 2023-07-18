@@ -503,7 +503,7 @@ options =
     , Option "p" ["preserve-tabs"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg "--preserve-tables/-p" arg
+                        boolValue <- readBoolFromOptArg "--preserve-tabs/-p" arg
                         return opt { optPreserveTabs = boolValue })
                   "true|false")
                  "" -- "Preserve tabs instead of converting to spaces"
