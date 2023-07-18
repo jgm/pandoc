@@ -35,7 +35,8 @@ jobs:
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
           cabal build ${{ matrix.versions.cabal_opts }} pandoc-cli
-          for /f "delims=" %%a in ('cabal list-bin ${{ matrix.versions.cabal-opts }} pandoc-cli') do set BINPATH=%%a
+          for /f "delims=" %%a in ('cabal list-bin ${{ matrix.versions.cabal_opts }} pandoc-cli') do set BINPATH=%%a
+          echo BINPATH is %BINPATH%
           for /f "tokens=1-2 delims= " %%a in ("%BINPATH% --version") do (
             @set VERSION=%%b
             goto :next
