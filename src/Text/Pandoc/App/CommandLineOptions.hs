@@ -59,13 +59,14 @@ import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
 import qualified Data.Map as M
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
 parseOptions :: [OptDescr (Opt -> ExceptT OptInfo IO Opt)]
              -> Opt -> IO (Either OptInfo Opt)
 parseOptions options' defaults = do
-  rawArgs <- map UTF8.decodeArg <$> liftIO getArgs
+  rawArgs <- liftIO getArgs
   prg <- liftIO getProgName
   parseOptionsFromArgs options' defaults prg rawArgs
 
@@ -74,7 +75,7 @@ parseOptionsFromArgs
   -> Opt -> String -> [String] -> IO (Either OptInfo Opt)
 parseOptionsFromArgs options' defaults prg rawArgs = do
   let (actions, args, unrecognizedOpts, errors) =
-           getOpt' Permute options' (map UTF8.decodeArg rawArgs)
+           getOpt' Permute options' (preprocessArgs rawArgs)
 
   let unknownOptionErrors =
        foldr (handleUnrecognizedOption . takeWhile (/= '=')) []
@@ -229,6 +230,37 @@ engines = map ("html",) htmlEngines ++
 
 pdfEngines :: [String]
 pdfEngines = nubOrd $ map snd engines
+
+-- For motivation see #8956.  We want to allow things like `-si` without
+-- causing the `i` to be parsed as an optional boolean argument of `-s`.
+-- This is for backwards compatibility given the addition of optional
+-- boolean arguments in #8879.
+preprocessArgs :: [String] -> [String]
+preprocessArgs [] = []
+preprocessArgs ("--":xs) = "--" : xs -- a bare '--' ends option parsing
+preprocessArgs (('-':c:d:cs):xs)
+  | isShortBooleanOpt c
+  , isShortOpt d = splitArg (c:d:cs) ++ preprocessArgs xs
+preprocessArgs (x:xs) = x : preprocessArgs xs
+
+isShortBooleanOpt :: Char -> Bool
+isShortBooleanOpt = (`Set.member` shortBooleanOpts)
+ where
+  shortBooleanOpts =
+     Set.fromList [c | Option [c] _ (OptArg _ "true|false") _ <- options]
+
+isShortOpt :: Char -> Bool
+isShortOpt = (`Set.member` shortOpts)
+ where
+  shortOpts = Set.fromList $ concat [cs | Option cs _ _ _ <- options]
+
+splitArg :: String -> [String]
+splitArg (c:d:cs)
+  | isShortBooleanOpt c
+  , isShortOpt d
+  = ['-',c] : splitArg (d:cs)
+splitArg (c:cs) = ['-':c:cs]
+splitArg [] = []
 
 -- | A list of functions, each transforming the options data structure
 --   in response to a command-line option.
