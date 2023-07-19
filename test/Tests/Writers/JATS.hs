@@ -40,7 +40,6 @@ tests :: [TestTree]
 tests =
   [ testGroup "inline code"
     [ "basic" =: code "@&" =?> "<p><monospace>@&amp;</monospace></p>"
-    , "lang" =: codeWith ("", ["c"], []) "@&" =?> "<p><code language=\"c\">@&amp;</code></p>"
     ]
   , testGroup "block code"
     [ "basic" =: codeBlock "@&" =?> "<preformat>@&amp;</preformat>"

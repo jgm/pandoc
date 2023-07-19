@@ -419,9 +419,8 @@ inlineToJATS opts (Quoted DoubleQuote lst) = do
   contents <- inlinesToJATS opts lst
   return $ char '“' <> contents <> char '”'
 inlineToJATS opts (Code a str) =
-  return $ inTags False tag attr $ literal (escapeStringForXML str)
-    where (lang, attr) = codeAttr opts a
-          tag          = if T.null lang then "monospace" else "code"
+  return $ inTags False "monospace" attr $ literal (escapeStringForXML str)
+    where (_lang, attr) = codeAttr opts a
 inlineToJATS _ il@(RawInline f x)
   | f == "jats" = return $ literal x
   | otherwise   = do
