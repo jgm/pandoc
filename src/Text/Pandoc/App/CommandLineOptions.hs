@@ -238,7 +238,15 @@ pdfEngines = nubOrd $ map snd engines
 preprocessArgs :: [String] -> [String]
 preprocessArgs [] = []
 preprocessArgs ("--":xs) = "--" : xs -- a bare '--' ends option parsing
+-- note that -strue is interpreted as -strue while
+-- -stmarkdown is interpreted as -s -tmarkdown
 preprocessArgs (('-':c:d:cs):xs)
+  | isShortBooleanOpt c
+  , case toLower <$> (d:cs) of
+      "true" -> True
+      "false" -> True
+      _ -> False
+    = ('-':c:d:cs) : preprocessArgs xs
   | isShortBooleanOpt c
   , isShortOpt d = splitArg (c:d:cs) ++ preprocessArgs xs
 preprocessArgs (x:xs) = x : preprocessArgs xs
