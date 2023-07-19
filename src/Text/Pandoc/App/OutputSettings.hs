@@ -143,15 +143,17 @@ optToOutputSettings scriptingEngine opts = do
                  Just t -> (runWithDefaultPartials $ compileTemplate path t) >>=
                            templateOrThrow
       return (w, wexts, templ)
-    else do
-      tmpl <- processCustomTemplate (compileDefaultTemplate format)
+    else
       if optSandbox opts
-      then case runPure (getWriter flvrd) of
+      then do
+        tmpl <- processCustomTemplate (compileDefaultTemplate format)
+        case runPure (getWriter flvrd) of
              Right (w, wexts) -> return (makeSandboxed w, wexts, tmpl)
              Left e           -> throwError e
       else do
-           (w, wexts) <- getWriter flvrd
-           return (w, wexts, tmpl)
+        (w, wexts) <- getWriter flvrd
+        tmpl <- processCustomTemplate (compileDefaultTemplate format)
+        return (w, wexts, tmpl)
 
 
   let addSyntaxMap existingmap f = do
