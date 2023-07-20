@@ -90,16 +90,17 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
                        && Windows.isRelative fp''
                        && isNothing uri
                        && not (".." `isInfixOf` fp'')
+                       && '%' `notElem` fp''
                      then fp''
-                     else showDigest (sha1 contents) <> "." <> ext
+                     else showDigest (sha1 contents) <> ext
         fallback = case takeExtension fp'' of
                         ".gz" -> getMimeTypeDef $ dropExtension fp''
                         _     -> getMimeTypeDef fp''
         mt = fromMaybe fallback mbMime
         path = maybe fp'' (unEscapeString . uriPath) uri
         ext = case takeExtension path of
-                '.':e -> e
-                _ -> maybe "" T.unpack $ extensionFromMimeType mt
+                '.':e | '%' `notElem` e -> '.':e
+                _ -> maybe "" (\x -> '.':T.unpack x) $ extensionFromMimeType mt
 
 -- | Lookup a media item in a 'MediaBag', returning mime type and contents.
 lookupMedia :: FilePath

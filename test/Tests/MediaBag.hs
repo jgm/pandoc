@@ -20,7 +20,7 @@ tests = [
         let d = B.doc $
                   B.para (B.image "../../test/lalune.jpg" "" mempty) <>
                   B.para (B.image "moon.jpg" "" mempty) <>
-                  B.para (B.image "data://image/png;base64,cHJpbnQgImhlbGxvIgo=;.lua+%2f%2e%2e%2f%2e%2e%2fa%2elua" "" mempty) <>
+                  B.para (B.image "data:image/png;base64,cHJpbnQgImhlbGxvIgo=;.lua+%2f%2e%2e%2f%2e%2e%2fa%2elua" "" mempty) <>
                   B.para (B.image "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" "" mempty)
         runIOorExplode $ do
           fillMediaBag d
@@ -35,4 +35,14 @@ tests = [
           (exists3 && not exists4)
         exists5 <- doesFileExist ("foo" </> "d5fceb6532643d0d84ffe09c40c481ecdf59e15a.gif")
         assertBool "data uri with gif is not properly decoded" exists5
+        -- double-encoded version:
+        let e = B.doc $
+                  B.para (B.image "data:image/png;base64,cHJpbnQgInB3bmVkIgo=;.lua+%252f%252e%252e%252f%252e%252e%252fb%252elua" "" mempty)
+        runIOorExplode $ do
+          fillMediaBag e
+          extractMedia "bar" e
+        exists6 <- doesFileExist ("bar" </> "772ceca21a2751863ec46cb23db0e7fc35b9cff8.png")
+        exists7 <- doesFileExist "b.lua"
+        assertBool "data uri with double-encoded malicious payload gets written outside of destination dir"
+          (exists6 && not exists7)
   ]

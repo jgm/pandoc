@@ -224,6 +224,8 @@ writeMedia :: (PandocMonad m, MonadIO m)
            -> m ()
 writeMedia dir (fp, _mt, bs) = do
   -- we normalize to get proper path separators for the platform
+  -- we unescape URI encoding, but given how insertMedia
+  -- is written, we shouldn't have any % in a canonical media name...
   let fullpath = normalise $ dir </> unEscapeString fp
   liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
   report $ Extracting (T.pack fullpath)
