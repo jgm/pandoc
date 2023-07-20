@@ -21,13 +21,13 @@ extra-deps:
 - http-client-tls-0.3.6.2
 - commonmark-0.2.3
 - typst-symbols-0.1.2
-- toml-parser-1.1.1.0
+- toml-parser-1.2.1.0
 - pandoc-types-1.23.0.1
 - skylighting-0.13.4
 - xml-conduit-1.9.1.3
 - commonmark-extensions-0.2.3.5
 - git: https://github.com/jgm/typst-hs
-  commit: aa72087f21ee6dd2d906df8c3fd55af0778c0c13
+  commit: eeff6c1367b7ed8e249be58ce4e1d4ee2f0953ff
 - git: https://github.com/jgm/skylighting
   commit: 2d3fe8a9aa18df60b8dc30af0f9e303320747ea6
   subdirs: [skylighting-core]
