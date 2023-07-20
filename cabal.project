@@ -6,3 +6,14 @@ tests: True
 flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1,
              skylighting-format-context >= 0.1.0.2
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/typst-hs
+  tag: aa72087f21ee6dd2d906df8c3fd55af0778c0c13
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/skylighting
+  subdir: skylighting-core
+  tag: 2d3fe8a9aa18df60b8dc30af0f9e303320747ea6
