@@ -26,11 +26,9 @@ extra-deps:
 - skylighting-0.13.4
 - xml-conduit-1.9.1.3
 - commonmark-extensions-0.2.3.5
-- git: https://github.com/jgm/typst-hs
-  commit: eeff6c1367b7ed8e249be58ce4e1d4ee2f0953ff
-- git: https://github.com/jgm/skylighting
-  commit: 2d3fe8a9aa18df60b8dc30af0f9e303320747ea6
-  subdirs: [skylighting-core]
+- typst-0.3.1.0
+- skylighting-core-0.13.4.1
+- suylighting-0.13.4.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
