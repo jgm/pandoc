@@ -23,7 +23,6 @@ extra-deps:
 - typst-symbols-0.1.2
 - toml-parser-1.2.1.0
 - pandoc-types-1.23.0.1
-- skylighting-0.13.4
 - xml-conduit-1.9.1.3
 - commonmark-extensions-0.2.3.5
 - typst-0.3.1.0
