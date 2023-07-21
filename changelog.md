@@ -1,5 +1,82 @@
 # Revision history for pandoc
 
+## pandoc 3.1.6 (2023-07-20)
+
+  * Fix new variant of the vulnerability in CVE-2023-35936.
+    Guilhem Moulin noticed that the fix to CVE-2023-35936 was incomplete.
+    An attacker could get around it by double-encoding the malicious
+    extension to create or override arbitrary files.
+
+  * `--embed-resources`: Use inline SVG instead of data uris for SVG
+    images in HTML5 (#8948). Note that SelfContained does not have
+    access to the writer name, so we check for HTML5 by determining
+    whether the document starts with `<DOCTYPE! html>`. This means
+    that inline SVG won't be used when generating document fragments.
+
+  * Fix regression on short boolean arguments (#8956).
+    In 3.1.5 boolean arguments were allowed an optional argument
+    (`true|false`).  This created a regression for uses of fused
+    short arguments, e.g. `-somyfile.html`, which was equivalent
+    to `-s -omyfile.html`, but now raised an error because
+    pandoc attempted to parse `o` as a boolean `true` or `false`.
+    This change allows the fused short arguments to be used again.
+    Note that `-strue` will be interpreted as `-s` with an
+    argument `true`, not as `-s -t -rue`.  It is best to
+    use long option names with the optional boolean values,
+    to avoid confusion.
+
+  * Make `--epub-title-page`'s argument optional. It takes a boolean
+    argument, and now that all of our boolean flags take such an
+    argument, we can make this one optional for consistency.
+
+  * Improve errors for illegal output formats. Previously if you did
+    `pandoc -s -t bbb`, it would give you an error about the missing
+    `bbb` template instead of saying that `bbb` is not a
+    supported output format.
+
+  * Improve errors for incorrect command-line option values (#8879).
+    Always give the name of the relevant argument.
+
+  * Fix typo on error message for incorrect `--preserve-tabs` argument.
+    Thanks @fsoedjede
+
+  * Docx reader: use SVG version of image if present (#7244).
+    Previously the backup PNG was exported even if an SVG was
+    present, but the SVG should be preferred.
+
+  * Typst reader: fix regression in recognition of display math (#8949).
+    The last release caused all math to be parsed as inline math.
+
+  * JATS writer: don't use `<code>` for inline code (#8889).
+    It is intended for block-level code.
+
+  * HTML writer: don't make line blocks sensitive to `--wrap` (#8952).
+
+  * RST writer: fix figure handling (#8930, #8871).
+    This fixes a number of regressions from pandoc 2.x.
+    Properly handle caption, alt attribute in figures.
+    No longer treat a paragraph with a single image in it as a figure
+    (we have a dedicated Figure element now).
+
+  * Docx writer: Copy "mirror margins" property from reference.docx (#8946).
+
+  * Text.Pandoc.UTF8: Deprecate `decodeArg` which is now a no-op.
+    This was needed for old base versions which we no longer support.
+
+  * Use released skylighting, typst.
+
+  * Allow latest commonmark-extensions. This allows entities in wikilinks.
+
+  * Switch back to using ghc 9.2 for linux and Windows binary releases
+    (#8947, #8955). With ghc 9.4+, we were getting AVX instructions
+    in the amd64 binary, which aren't supported on older hardware.
+    For maximum compatibility we switch back to ghc 9.2, which doesn't
+    cause the problem. (As documented, ghc should not be emiting these
+    instructions, so we aren't clear on the diagnosis, but the cure
+    has been tested.)
+
+  * Change Windows release build to use cabal instead of stack.
+
 ## pandoc 3.1.5 (2023-07-07)
 
   * Allow all boolean flags to take an optional `true` or `false` value
