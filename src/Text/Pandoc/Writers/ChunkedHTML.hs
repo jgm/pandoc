@@ -94,7 +94,7 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
     Left e   -> throwError $ PandocTemplateError (T.pack e)
     Right t  -> return t
   tocMathVariable <- writeHtml5String opts{ writerTemplate = Just mathVar }
-                    (Pandoc nullMeta [tree])
+                    (Pandoc meta (tree:blocks))
   let opts' = opts{ writerVariables =
                         defField "table-of-contents" renderedTOC
                       . defField "math" tocMathVariable
