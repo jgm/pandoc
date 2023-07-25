@@ -19,19 +19,8 @@ The universal markup converter
 ------------------------------
 
 Pandoc is a [Haskell] library for converting from one markup format to
-another, and a command-line tool that uses this library.
-
-It can convert *from*
-
-::: {#input-formats}
-:::
-
-It can convert *to*
-
-::: {#output-formats}
-:::
-
-Pandoc can also produce PDF output via LaTeX, Groff ms, or HTML.
+another, and a command-line tool that uses this library. It can also 
+produce PDF output via LaTeX, Groff ms, or HTML.
 
 Pandoc's enhanced version of Markdown includes syntax for tables,
 definition lists, metadata blocks, footnotes, citations, math,
@@ -57,6 +46,9 @@ model.  While conversions from pandoc's Markdown to all formats aspire
 to be perfect, conversions from formats more expressive than pandoc's
 Markdown can be expected to be lossy.
 
+List of formats
+----------
+The lists of formats that can be converted from or to can be found [here](FORMATS.md).
 
 Installing
 ----------
