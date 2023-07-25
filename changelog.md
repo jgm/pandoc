@@ -2,7 +2,7 @@
 
 ## pandoc 3.1.6 (2023-07-20)
 
-  * Fix new variant of the vulnerability in CVE-2023-35936.
+  * Fix CVE-2023-38745, a variant of the vulnerability in CVE-2023-35936.
     Guilhem Moulin noticed that the fix to CVE-2023-35936 was incomplete.
     An attacker could get around it by double-encoding the malicious
     extension to create or override arbitrary files.
