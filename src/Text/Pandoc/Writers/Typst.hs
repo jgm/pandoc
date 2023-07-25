@@ -290,6 +290,7 @@ textstyle s inlines = (s <>) . brackets <$> inlinesToTypst inlines
 
 escapeTypst :: EscapeContext -> Text -> Text
 escapeTypst context t =
+  T.replace "//" "\\/\\/" $
   if T.any needsEscape t
      then T.concatMap escapeChar t
      else t
