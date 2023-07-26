@@ -23,7 +23,7 @@ import Data.ByteString.Base64 (encodeBase64)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
-import Data.Char (isAlphaNum, isAscii)
+import Data.Char (isAlphaNum, isAscii, isDigit)
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Network.URI (escapeURIString)
 import System.FilePath (takeDirectory, takeExtension, (</>))
@@ -189,9 +189,9 @@ convertTags (t@(TagOpen tagname as):ts)
                   Fetched ("image/svg+xml", bs) -> do
                     -- we filter CR in the hash to ensure that Windows
                     -- and non-Windows tests agree:
-                    let hash = T.pack (showDigest
-                                        (sha1 (L.fromStrict
-                                           (B.filter (/='\r') bs))))
+                    let hash = T.pack $ take 20 $ showDigest $
+                                        sha1 $ L.fromStrict
+                                             $ B.filter (/='\r') bs
                     return $ Left (hash, getSvgTags (toText bs))
                   Fetched (mt,bs) -> return $ Right (x, makeDataURI (mt,bs))
                   CouldNotFetch _ -> return $ Right (x, y)
@@ -214,13 +214,26 @@ combineSvgAttrs svgAttrs imgAttrs =
     (Nothing, Just h, Just w) -> -- calculate viewBox
       combinedAttrs ++ [("viewBox", T.unwords ["0", "0", tshow w, tshow h])]
     (Just (llx,lly,urx,ury), Nothing, Nothing) -> -- calculate width, height
-      combinedAttrs ++
-        [ ("width", tshow (floor urx - floor llx :: Int))
-        , ("height", tshow (floor ury - floor lly :: Int)) ]
+        combinedAttrs ++
+        [ ("width", tshow (floor urx - floor llx :: Int)) |
+            isNothing (lookup "width" combinedAttrs) ] ++
+        [ ("height", tshow (floor ury - floor lly :: Int)) |
+            isNothing (lookup "height" combinedAttrs) ]
     _ -> combinedAttrs
  where
   combinedAttrs = imgAttrs ++
-    [(k,v) | (k,v) <- svgAttrs, isNothing (lookup k imgAttrs)]
+    [(k,v') | (k,v) <- svgAttrs
+            , v' <- fixAttr k v
+            , isNothing (lookup k imgAttrs)
+            , k `notElem` ["xmlns", "xmlns:xlink", "version"]]
+  fixAttr k v =
+    if k == "width" || k == "height"
+       then if T.all isDigit v
+               then [v]
+               else case T.stripSuffix "px" v of
+                      Just v' | T.all isDigit v' -> [v']
+                      _ -> []
+       else [v]
   parseViewBox t =
     case map (safeRead . addZero) $ T.words t of
       [Just llx, Just lly, Just urx, Just ury] -> Just (llx, lly, urx, ury)
