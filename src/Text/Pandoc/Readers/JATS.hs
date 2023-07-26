@@ -637,9 +637,6 @@ inlineFormula constructor e = do
                             filterChildren isMathML whereToLook
             return . mconcat . take 1 . map constructor $ texMaths ++ mathMLs
 
--- Needs to cater to situations where other elements are also included?
--- Reaches here if disp-formula/formula or disp-formula/alternatives/formula
--- Does not handle captions, for example   
 blockFormula ::  PandocMonad m => (Text->Inlines) -> Element -> JATS m Blocks
 blockFormula constructor e = do
             let whereToLook = fromMaybe e $ filterElement (named "alternatives") e
