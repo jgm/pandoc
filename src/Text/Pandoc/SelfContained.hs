@@ -213,11 +213,11 @@ combineSvgAttrs svgAttrs imgAttrs =
   case (mbViewBox, mbHeight, mbWidth) of
     (Nothing, Just h, Just w) -> -- calculate viewBox
       combinedAttrs ++ [("viewBox", T.unwords ["0", "0", tshow w, tshow h])]
-    (Just (llx,lly,urx,ury), Nothing, Nothing) -> -- calculate width, height
+    (Just (_minx,_miny,width,height), Nothing, Nothing) ->
         combinedAttrs ++
-        [ ("width", tshow (floor urx - floor llx :: Int)) |
+        [ ("width", tshow (floor width :: Int)) |
             isNothing (lookup "width" combinedAttrs) ] ++
-        [ ("height", tshow (floor ury - floor lly :: Int)) |
+        [ ("height", tshow (floor height :: Int)) |
             isNothing (lookup "height" combinedAttrs) ]
     _ -> combinedAttrs
  where
