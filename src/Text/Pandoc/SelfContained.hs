@@ -215,12 +215,15 @@ combineSvgAttrs svgAttrs imgAttrs =
       combinedAttrs ++ [("viewBox", T.unwords ["0", "0", tshow w, tshow h])]
     (Just (_minx,_miny,width,height), Nothing, Nothing) ->
         combinedAttrs ++
-        [ ("width", tshow (floor width :: Int)) |
+        [ ("width", dropPointZero (tshow width)) |
             isNothing (lookup "width" combinedAttrs) ] ++
-        [ ("height", tshow (floor height :: Int)) |
+        [ ("height", dropPointZero (tshow height)) |
             isNothing (lookup "height" combinedAttrs) ]
     _ -> combinedAttrs
  where
+  dropPointZero t = case T.stripSuffix ".0" t of
+                       Nothing -> t
+                       Just t' -> t'
   combinedAttrs = imgAttrs ++
     [(k,v') | (k,v) <- svgAttrs
             , v' <- fixAttr k v
