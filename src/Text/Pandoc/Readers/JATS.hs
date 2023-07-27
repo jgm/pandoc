@@ -221,7 +221,8 @@ parseBlock (Elem e) = do
                             else getBlocks e
         "disp-formula" -> if hasFormulaChild e
                             then blockFormula displayMath e
-                            else getBlocks e
+                            else divWith (attrValue "id" e, ["disp-formula"], []) 
+                                    <$> getBlocks e
         "?xml"  -> return mempty
         _       -> getBlocks e
    where parseMixed container conts = do
