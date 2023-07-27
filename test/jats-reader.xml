@@ -67,7 +67,7 @@
   <p>Here's a regular paragraph.</p>
   <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</p>
   <p>Here's one with a bullet. * criminey.</p>
-  <p>There should be a hard line break<break />here.</p>
+  <p>There should be a <bold>hard line break<break /></bold>here.</p>
 </sec>
 <sec id="statements">
   <title> Statements </title>
@@ -289,8 +289,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </list-item>
     </list>
     <p>List styles:</p>
-    <list list-type="order"></list>
-    <list list-type="roman-lower"></list>
+    <list list-type="order">
+      <list-item><p>one</p></list-item><x>,</x>
+      <list-item><p>two</p></list-item><x>,</x>
+      <list-item><p>three</p></list-item>
+    </list>
+    <list list-type="roman-lower">
+      <list-item><p>one</p></list-item><x>,</x>
+      <list-item><p>two</p></list-item><x>,</x>
+      <list-item><p>three</p></list-item>
+    </list>
   </sec>
   <sec id="nested">
     <title>Nested</title>
@@ -406,7 +414,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </def-item>
       <def-item>
         <term>
-          Cello<break />Violoncello
+          Cello<bold><break /></bold>Violoncello
         </term>
         <def>
           <p>Low-voiced stringed instrument.</p>
@@ -419,20 +427,20 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <title>Inline Markup</title>
   <p>This is <italic>emphasized</italic>, and so <italic>is
     this</italic>.</p>
-  <p>This is <bold role="strong">strong</bold>, and so
-    <bold role="strong">is this</bold>.</p>
-  <p>Empty <bold role="strong"></bold> and <italic></italic>.</p>
+  <p>This is <bold>strong</bold>, and so
+    <bold>is this</bold>.</p>
+  <p>Empty <bold></bold> and <italic></italic>.</p>
   <p>An
     <italic><ext-link ext-link-type="uri" xlink:href="/url">emphasized
     link</ext-link></italic>.</p>
-  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
-  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
-  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
-  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
   <p>This is code: <monospace>&gt;</monospace>, <monospace>$</monospace>,
     <monospace>\</monospace>, <monospace>\$</monospace>,
     <monospace>&lt;html&gt;</monospace>.</p>
-  <p>This is <sc role="smallcaps">small caps</sc>.</p>
+  <p>This is <sc>small caps</sc>.</p>
   <p>These are all underlined: foo and bar.</p>
   <p>These are all strikethrough: <strike>foo</strike>,
     <strike>bar</strike>, and <strike>baz</strike>.</p>
@@ -660,7 +668,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <title>Tables</title>
   <sec id="tables-with-headers">
     <title>Tables with Headers</title>
-    <table>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -701,8 +709,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -743,8 +751,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -785,8 +793,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -827,8 +835,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -869,8 +877,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -911,8 +919,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -953,8 +961,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1006,8 +1014,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col width="33*" align="left" />
       <col width="33*" align="left" />
       <col width="33*" align="left" />
@@ -1048,11 +1056,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
+    </table></table-wrap>
   </sec>
   <sec id="tables-without-headers">
     <title>Tables without Headers</title>
-    <table>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1080,8 +1088,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1109,8 +1117,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1138,8 +1146,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1167,11 +1175,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
+    </table></table-wrap>
   </sec>
   <sec id="table-with-spans-and-alignments">
     <title>Tables with spans and alignments</title>
-    <table>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1211,27 +1219,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
         </td>
         </tr>
       </tbody>
-    </table>
+    </table></table-wrap>
   </sec>
   <sec id="table-with-footer">
     <title>Table with footer</title>
-    <table>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
-      <tbody>
-        <tr>
-          <td>
-            <p>1</p>
-          </td>
-          <td>
-            <p>2</p>
-          </td>
-          <td>
-            <p>3</p>
-          </td>
-        </tr>
-      </tbody>
       <tfoot>
         <tr>
           <td align="right">
@@ -1256,11 +1251,24 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tfoot>
-    </table>
+      <tbody>
+        <tr>
+          <td>
+            <p>1</p>
+          </td>
+          <td>
+            <p>2</p>
+          </td>
+          <td>
+            <p>3</p>
+          </td>
+        </tr>
+      </tbody>
+    </table></table-wrap>
   </sec>
   <sec id="table-with-multiple-bodies">
     <title>Table With Multiple Bodies</title>
-    <table>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1290,7 +1298,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
+    </table></table-wrap>
   </sec>
   <sec id="empty-tables">
     <title>Empty Tables</title>
@@ -1299,5 +1307,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
 </sec>
 </body>
 <back>
+  <ref-list>
+    <title>References</title>
+    <ref id="ref_1"><note><p>This is reference 1</p></note></ref>
+    <ref id="ref_longnote"><note><p>This is a long note</p></note></ref>
+  </ref-list>
+  <ref-list>
+    <title>Notes</title>
+    <ref id="note_1"><note><p>This is note 1</p></note></ref>
+    <ref id="note_longnote"><note><p>This is another long note</p></note></ref>
+  </ref-list>
 </back>
 </article>
