@@ -15,7 +15,7 @@ Conversion of JATS XML to 'Pandoc' document.
 
 module Text.Pandoc.Readers.JATS ( readJATS ) where
 import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
-import Control.Monad (forM_,  when, unless, MonadPlus(mplus))
+import Control.Monad (forM_,  when, unless)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(..))
 import Data.Char (isDigit, isSpace)

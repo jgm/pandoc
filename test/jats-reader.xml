@@ -131,6 +131,96 @@
     </disp-quote>
   </disp-quote>
   <p>And a following paragraph.</p>
+  <p>
+     Here is a block quote inside a paragraph. Start of a paragraph is here, and the quote is below:
+      <disp-quote>
+        <p>My block quote</p>
+      </disp-quote>
+     End of a paragraph
+  </p>
+</sec>
+<sec id="formulae">
+  <title>Formulae</title>
+  <sec id="inline-formulae">
+    <title>Inline formulae with <italic>inline-formula</italic></title>
+    <p><bold>Inside a paragraph</bold>, should be natively coded inside the paragraph, and show inline:</p>
+    <p>Einstein showed that <inline-formula><alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></inline-formula>.
+      This formula is important because…</p>
+  </sec>
+  <sec id="disp-formulae">
+    <title>Block formulae with <italic>disp-formula</italic></title>
+    <p><bold>Inside a paragraph</bold>, should be natively coded inside the pragraph, but show as block:</p>
+    <p>Einstein showed that <disp-formula><alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></disp-formula>.
+      This formula is important because…</p>
+    <p><bold>Outside a pararaph</bold>, should show as block:</p>
+    <p>Einstein showed that </p>
+    <disp-formula><alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></disp-formula>
+    <p>This formula is important because…</p>
+  </sec>
+  <sec id="no-formula-wrapper">
+    <title>Without a formula wrapper</title>
+    <p><bold>Inside a pragraph</bold>, should show inline:</p>
+    <p>Einstein showed that <alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives>.
+      This formula is important because…</p>
+    <p><bold>Outside a paragraph</bold>, should show as block:</p>
+    <p>Einstein showed that </p>
+    <alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives>
+    <p>This formula is important because…</p>
+  </sec>
+  <sec id="misc-formulae">
+    <title>Formulae with miscelaneus elements</title>
+    <p>Regardless of whether or not they are inside a paragraph, should be wrapped in a div, and displayed in a block:</p>
+    <p><bold>Inside a paragraph:</bold></p>
+    <p>Einstein showed that 
+      <disp-formula>
+        <abstract>
+          <p>Abstract text</p>
+        </abstract>
+        <graphic xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660">
+          <alt-text>Alternative text 1</alt-text>
+          <caption><p>Google doodle from 14 March 2003</p></caption>
+        </graphic>
+        <alternatives>
+          <tex-math><![CDATA[e=mc^2]]></tex-math>
+          <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math>
+          <graphic xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660">
+            <alt-text>Alternative text 2</alt-text>
+            <caption><p>Google doodle from 14 March 2003</p></caption>
+          </graphic>
+        </alternatives>
+      </disp-formula>.
+      This formula is important because…</p>
+    <p><bold>Outside of a paragraph:</bold></p>
+    <p>Paragraph before: Einstein showed that </p>
+    <disp-formula>
+      <abstract>
+        <p>Abstract text</p>
+      </abstract>
+      <graphic xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660">
+        <alt-text>Alternative text 1</alt-text>
+        <caption><p>Google doodle from 14 March 2003</p></caption>
+      </graphic>
+      <alternatives>
+        <tex-math><![CDATA[e=mc^2]]></tex-math>
+        <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math>
+        <graphic xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660">
+          <alt-text>Alternative text 2</alt-text>
+          <caption><p>Google doodle from 14 March 2003</p></caption>
+        </graphic>
+      </alternatives>
+    </disp-formula>
+    <p>This formula is important because…</p>
+  </sec>
 </sec>
 <sec id="code-blocks">
   <title>Code Blocks</title>
@@ -421,6 +511,23 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
         </def>
       </def-item>
     </def-list>
+  </sec>
+  <sec id="list-inside-paragraph">
+    <title>List inside a paragraph</title>
+    <p>
+      Start of a paragraph.
+      <list list-type="bullet">
+        <list-item>
+          <label>&#8226;</label>
+          <p>Red</p>
+        </list-item>
+        <list-item>
+          <label>&#8226;</label>
+          <p>Blue</p>
+        </list-item>
+      </list>
+      End of paragraph.
+    </p>
   </sec>
 </sec>
 <sec id="inline-markup">
