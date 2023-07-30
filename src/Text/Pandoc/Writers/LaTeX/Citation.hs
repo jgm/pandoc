@@ -24,12 +24,16 @@ import Text.DocLayout (Doc, brackets, empty, (<+>), text, isEmpty, literal,
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.LaTeX.Types ( LW )
 
+data CitationPackage = Biblatex
+                     | Natbib
+                       deriving (Eq, Show)
+
 citationsToNatbib :: PandocMonad m
                   => ([Inline] -> LW m (Doc Text))
                   -> [Citation]
                   -> LW m (Doc Text)
 citationsToNatbib inlineListToLaTeX [one]
-  = citeCommand inlineListToLaTeX c p s k
+  = citeCommand Natbib inlineListToLaTeX c p s k
   where
     Citation { citationId = k
              , citationPrefix = p
@@ -44,7 +48,7 @@ citationsToNatbib inlineListToLaTeX [one]
 
 citationsToNatbib inlineListToLaTeX cits
   | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
-  = citeCommand inlineListToLaTeX "citep" p s ks
+  = citeCommand Natbib inlineListToLaTeX "citep" p s ks
   where
      noPrefix  = all (null . citationPrefix)
      noSuffix  = all (null . citationSuffix)
@@ -57,7 +61,8 @@ citationsToNatbib inlineListToLaTeX cits
 
 citationsToNatbib inlineListToLaTeX (c:cs)
   | citationMode c == AuthorInText = do
-     author <- citeCommand inlineListToLaTeX "citeauthor" [] [] (citationId c)
+     author <- citeCommand Natbib inlineListToLaTeX
+                  "citeauthor" [] [] (citationId c)
      cits   <- citationsToNatbib inlineListToLaTeX
                   (c { citationMode = SuppressAuthor } : cs)
      return $ author <+> cits
@@ -66,7 +71,7 @@ citationsToNatbib inlineListToLaTeX cits = do
   cits' <- mapM convertOne cits
   return $ text "\\citetext{" <> foldl' combineTwo empty cits' <> text "}"
   where
-    citeCommand' = citeCommand inlineListToLaTeX
+    citeCommand' = citeCommand Natbib inlineListToLaTeX
     combineTwo a b | isEmpty a = b
                    | otherwise = a <> text "; " <> b
     convertOne Citation { citationId = k
@@ -80,14 +85,15 @@ citationsToNatbib inlineListToLaTeX cits = do
                NormalCitation -> citeCommand' "citealp"  p s k
 
 citeCommand :: PandocMonad m
-            => ([Inline] -> LW m (Doc Text))
+            => CitationPackage
+            -> ([Inline] -> LW m (Doc Text))
             -> Text
             -> [Inline]
             -> [Inline]
             -> Text
             -> LW m (Doc Text)
-citeCommand inlineListToLaTeX c p s k = do
-  args <- citeArguments inlineListToLaTeX p s k
+citeCommand package inlineListToLaTeX c p s k = do
+  args <- citeArguments package inlineListToLaTeX p s k
   return $ literal ("\\" <> c) <> args
 
 type Prefix = [Inline]
@@ -96,16 +102,17 @@ type CiteId = Text
 data CiteGroup = CiteGroup Prefix Suffix [CiteId]
 
 citeArgumentsList :: PandocMonad m
-              => ([Inline] -> LW m (Doc Text))
+              => CitationPackage
+              -> ([Inline] -> LW m (Doc Text))
               -> CiteGroup
               -> LW m (Doc Text)
-citeArgumentsList _inlineListToLaTeX (CiteGroup _ _ []) = return empty
-citeArgumentsList inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
+citeArgumentsList _package _inlineListToLaTeX (CiteGroup _ _ []) = return empty
+citeArgumentsList package inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
       pdoc <- inlineListToLaTeX pfxs
       sdoc <- inlineListToLaTeX sfxs'
       return $ optargs pdoc sdoc <>
               braces (literal (T.intercalate "," (reverse ids)))
-      where sfxs' = stripLocatorBraces $ case sfxs of
+      where sfxs' = handleLocatorBraces $ case sfxs of
                 (Str t : r) -> case T.uncons t of
                   Just (x, xs)
                     | T.null xs
@@ -117,15 +124,19 @@ citeArgumentsList inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
                  (True, True ) -> empty
                  (True, False) -> brackets sdoc
                  (_   , _    ) -> brackets pdoc <> brackets sdoc
+            handleLocatorBraces = case package of
+                Biblatex -> pnfmtLocatorBraces
+                Natbib   -> stripLocatorBraces
 
 citeArguments :: PandocMonad m
-              => ([Inline] -> LW m (Doc Text))
+              => CitationPackage
+              -> ([Inline] -> LW m (Doc Text))
               -> [Inline]
               -> [Inline]
               -> Text
               -> LW m (Doc Text)
-citeArguments inlineListToLaTeX p s k =
-  citeArgumentsList inlineListToLaTeX (CiteGroup p s [k])
+citeArguments package inlineListToLaTeX p s k =
+  citeArgumentsList package inlineListToLaTeX (CiteGroup p s [k])
 
 -- strip off {} used to define locator in pandoc-citeproc; see #5722
 stripLocatorBraces :: [Inline] -> [Inline]
@@ -133,11 +144,25 @@ stripLocatorBraces = walk go
   where go (Str xs) = Str $ T.filter (\c -> c /= '{' && c /= '}') xs
         go x        = x
 
+-- Biblatex has \pnfmt, which is equivalent to pandoc-citeproc locator braces
+pnfmtLocatorBraces :: [Inline] -> [Inline]
+pnfmtLocatorBraces [] = []
+pnfmtLocatorBraces [x] = addPnfmt x
+pnfmtLocatorBraces (x:xs) = addPnfmt x ++ pnfmtLocatorBraces xs
+addPnfmt :: Inline -> [Inline]
+addPnfmt (Str x) | T.filter (\c -> c == '{' || c == '}') x == "{}"
+  = [Str pre, raw "\\pnfmt{", Str num, raw "}", Str post]
+    where raw = RawInline (Format "latex")
+          (pre,rest)  = T.break (== '{') x
+          (num,rest') = T.break (== '}') $ T.drop 1 rest
+          post = T.drop 1 rest'
+addPnfmt x = [x]
+
 citationsToBiblatex :: PandocMonad m
                     => ([Inline] -> LW m (Doc Text))
                     -> [Citation] -> LW m (Doc Text)
 citationsToBiblatex inlineListToLaTeX [one]
-  = citeCommand inlineListToLaTeX cmd p s k
+  = citeCommand Biblatex inlineListToLaTeX cmd p s k
     where
        Citation { citationId = k
                 , citationPrefix = p
@@ -165,7 +190,7 @@ citationsToBiblatex inlineListToLaTeX (c:cs)
                     AuthorInText   -> "\\textcites"
                     NormalCitation -> "\\autocites"
 
-      groups <- mapM (citeArgumentsList inlineListToLaTeX)
+      groups <- mapM (citeArgumentsList Biblatex inlineListToLaTeX)
                      (reverse (foldl' grouper [] (c:cs)))
 
       return $ text cmd <> mconcat groups
