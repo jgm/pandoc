@@ -259,6 +259,9 @@ elementToBeamer slideLevel (Div (ident,"section":dclasses,dkvs)
               [Div (_,"notes":_,_) _] ->  -- see #7857, don't create frame
                     -- just for speaker notes after section heading
                     Div (ident,"section":dclasses,dkvs) xs
+                    -- See #8118 and #4317, don't create frame to change mode
+              [RawBlock (Format "latex") str] | "\\mode<presentation>" `T.isInfixOf` str ->
+                    Div (ident,"section":dclasses,dkvs) xs
               _  -> Div (ident,"section":dclasses,dkvs)
                      (h : Div ("","slide":dclasses,dkvs) (h:titleBs) : slideBs)
   | otherwise
