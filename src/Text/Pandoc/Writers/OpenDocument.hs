@@ -594,6 +594,8 @@ inlineToOpenDocument o ils
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"
      | otherwise  -> return space
+    Span ("", ["mark"], []) xs ->
+      withTextStyle Highlight $ inlinesToOpenDocument o xs
     Span attr xs  -> mkSpan attr xs
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
@@ -864,6 +866,7 @@ data TextStyle = Italic
                | Sup
                | SmallC
                | Pre
+               | Highlight
                | Language Lang
                deriving ( Eq,Ord )
 
@@ -884,6 +887,7 @@ textStyleAttr m = \case
   Sub    -> Map.insert "style:text-position" "sub 58%" m
   Sup    -> Map.insert "style:text-position" "super 58%" m
   SmallC -> Map.insert "fo:font-variant" "small-caps" m
+  Highlight -> Map.insert "fo:background-color" "#ffff38" m
   Pre    -> Map.insert "style:font-name" "Courier New" .
             Map.insert "style:font-name-asian" "Courier New" .
             Map.insert "style:font-name-complex" "Courier New" $ m
