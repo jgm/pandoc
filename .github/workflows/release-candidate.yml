@@ -21,8 +21,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install ghc
       run: |
-        # We use ghc 9.2 because of #8955
-        ghcup install ghc --set 9.2
+        ghcup install ghc --set 9.6
         ghcup install cabal --set 3.10
 
     - name: Install dependencies
@@ -85,7 +84,7 @@ jobs:
 
     - name: Install ghc and cabal
       run: |
-        ghcup install ghc --set 9.4
+        ghcup install ghc --set 9.6
         ghcup install cabal --set 3.10
 
     - name: Create release
