@@ -196,7 +196,7 @@ Or `--pdf-engine=lualatex` can be used with the following:
 
 Save this filter as `nowidths.lua` and then pass `--lua-filter
 nowidths.lua` as an additional option to pandoc.
-(See [issue](https://github.com/jgm/pandoc/issues/8139).)
+(See [issue 8139](https://github.com/jgm/pandoc/issues/8139).)
 
 ``` lua
 -- Unset the width attribute of HTML colspecs in tables
