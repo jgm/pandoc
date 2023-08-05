@@ -393,7 +393,9 @@ blockToOpenDocument o = \case
       if isNothing (writerHighlightStyle o)
          then unhighlighted s
          else case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
-                Right h  -> flush . vcat <$> mapM inPreformattedTags h
+                Right h  -> return $ flush . vcat $ map (inTags True "text:p"
+                                          [("text:style-name",
+                                            "Preformatted_20_Text")] . hcat) h
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
                   unhighlighted s
@@ -642,7 +644,8 @@ inlineToOpenDocument o ils
     Note        l  -> mkNote l
     where
       unhighlighted s = inlinedCode $ preformatted s
-      inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
+      inlinedCode s = return $ inTags False "text:span"
+                                 [("text:style-name", "Source_Text")] s
       mkImg (_, _, kvs) s _ = do
                id' <- gets stImageId
                modify (\st -> st{ stImageId = id' + 1 })
@@ -922,21 +925,22 @@ withLangFromAttr (_,_,kvs) action =
                 action
 
 styleToOpenDocument :: Style -> Doc Text
-styleToOpenDocument style = vcat (parStyle : map toStyle alltoktypes)
+styleToOpenDocument style = vcat (map toStyle alltoktypes)
   where alltoktypes = enumFromTo KeywordTok NormalTok
         toStyle toktype = inTags True "style:style" [("style:name", tshow toktype),
                                                      ("style:family", "text")] $
                              selfClosingTag "style:text-properties"
-                                (tokColor toktype ++ tokBgColor toktype)
+                               (tokColor toktype ++ tokBgColor toktype ++
+                                 [("fo:font-style", "italic") |
+                                    tokFeature tokenItalic toktype ] ++
+                                 [("fo:font-weight", "bold") |
+                                    tokFeature tokenBold toktype ] ++
+                                 [("style:text-underline-style", "solid") |
+                                    tokFeature tokenUnderline toktype ])
         tokStyles = tokenStyles style
-        tokFeatures f toktype = maybe False f $ M.lookup toktype tokStyles
+        tokFeature f toktype = maybe False f $ M.lookup toktype tokStyles
         tokColor toktype = maybe [] (\c -> [("fo:color", T.pack (fromColor c))])
                          $ (tokenColor =<< M.lookup toktype tokStyles)
                            `mplus` defaultColor style
         tokBgColor toktype = maybe [] (\c -> [("fo:background-color", T.pack (fromColor c))])
                          $ (tokenBackground =<< M.lookup toktype tokStyles)
-                           `mplus` backgroundColor style
-        parStyle = inTags True "w:style" [("style:name", "SourceCode"),
-                                          ("style:family", "paragraph"),
-                                          ("style:class", "text")] mempty
-

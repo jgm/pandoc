@@ -250,14 +250,16 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
       fo:font-size="10pt" style:font-name-asian="Courier New"
       style:font-size-asian="10pt"
       style:font-name-complex="Courier New"
-      style:font-size-complex="10pt" />
+      style:font-size-complex="10pt"
+      fo:language="zxx" />
     </style:style>
     <style:style style:name="Source_Text" style:family="text">
       <style:text-properties style:font-name="Courier New"
       fo:font-size="10pt" style:font-name-asian="Courier New"
       style:font-size-asian="10pt"
       style:font-name-complex="Courier New"
-      style:font-size-complex="10pt" />
+      style:font-size-complex="10pt"
+      fo:language="zxx" />
     </style:style>
     <style:style style:name="Definition_20_Term"
     style:display-name="Definition Term" style:family="paragraph"
