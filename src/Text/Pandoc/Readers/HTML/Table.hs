@@ -191,12 +191,10 @@ pTableBody block = try $ do
   optional $ pSatisfy (matchTagClose "tbody")
   guard $ isJust mbattribs || not (null bodyheads && null rows)
   let attribs = fromMaybe [] mbattribs
-  return $ TableBody (toAttr attribs) (getMin rowheads) bodyheads rows
+  return $ TableBody (toAttr attribs) (foldr max 0 rowheads) bodyheads rows
   where
     getAttribs (TagOpen _ attribs) = attribs
     getAttribs _ = []
-    getMin [] = 0
-    getMin (x:xs) = foldr min x xs
 
 -- | Parses a simple HTML table
 pTable :: PandocMonad m
