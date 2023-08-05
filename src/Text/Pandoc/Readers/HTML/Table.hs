@@ -193,7 +193,12 @@ pTableBody block = try $ do
   optional $ pSatisfy (matchTagClose "tbody")
   guard $ isJust mbattribs || not (null bodyheads && null rows)
   let attribs = fromMaybe [] mbattribs
-  return $ TableBody (toAttr attribs) (foldr max 0 rowheads) bodyheads rows
+  -- we only set row head columns if all rows agree;
+  -- if some rows have headings but others not, we use 0; see #8984, #8634:
+  let rowHeadCols = case rowheads of
+                      (x:xs) | all (== x) xs -> x
+                      _ -> 0
+  return $ TableBody (toAttr attribs) rowHeadCols bodyheads rows
   where
     getAttribs (TagOpen _ attribs) = attribs
     getAttribs _ = []
