@@ -133,7 +133,9 @@ pRow block = try $ do
   TagOpen _ attribs <- pSatisfy (matchTagOpen "tr" []) <* skipMany pBlank
   cells <- many (pCell block BodyCell <|> pCell block HeaderCell)
   TagClose _ <- pSatisfy (matchTagClose "tr")
-  return ( RowHeadColumns $ length (takeWhile ((== HeaderCell) . fst) cells)
+  return ( RowHeadColumns $ foldr (\(_, Cell _ _ _ (ColSpan colspan) _) ->
+                                     (+ colspan)) 0
+                            (takeWhile ((== HeaderCell) . fst) cells)
          , Row (toAttr attribs) $ map snd cells
          )
 
