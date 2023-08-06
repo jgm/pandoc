@@ -91,6 +91,7 @@
 - Denis Maier
 - Derek Chen-Becker
 - Diego Balseiro
+- Diogo Almiro
 - Dimitri Sabadie
 - Dimitris Apostolou
 - Dmitry Pogodin
