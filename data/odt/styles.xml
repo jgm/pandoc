@@ -261,6 +261,9 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
       style:font-size-complex="10pt"
       fo:language="zxx" />
     </style:style>
+    <style:style style:name="Highlighted" style:family="text">
+      <style:text-properties fo:background-color="#ffff38" />
+    </style:style>
     <style:style style:name="Definition_20_Term"
     style:display-name="Definition Term" style:family="paragraph"
     style:parent-style-name="Standard"

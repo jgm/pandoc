@@ -14,8 +14,8 @@
 
     + Implement syntax highlighting for inline and block code (#6710).
     + Support highlighted text in ODT/OpenDocument writers for Span
-      with class `mark` (#8960). A better fix would use a named style
-      so colors could be adjusted.
+      with class `mark` (#8960). The color can be adjusted by
+      modifying the Highlighted style.
 
   * Typst writer: escape `//` so it doesn't get interpreted as a comment
     (#8966).
