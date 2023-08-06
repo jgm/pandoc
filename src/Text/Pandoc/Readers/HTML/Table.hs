@@ -15,10 +15,12 @@ HTML table parser.
 -}
 module Text.Pandoc.Readers.HTML.Table (pTable) where
 
+import qualified Data.Vector as V
 import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe, isJust)
 import Data.Either (lefts, rights)
 import Data.List.NonEmpty (nonEmpty)
+import Data.List (foldl')
 import Data.Text (Text)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks)
@@ -123,21 +125,18 @@ pCell block celltype = try $ do
 toStyleString :: [(Text, Text)] -> Text
 toStyleString = T.intercalate "; " . map (\(k, v) -> k <> ": " <> v)
 
--- | Parses a normal table row; returns the row together with the number
--- of header cells at the beginning of the row.
+-- | Parses a normal table row; returns the row and the number
+-- of cells at the beginning that are header cells.
 pRow :: PandocMonad m
      => TagParser m Blocks
-     -> TagParser m (RowHeadColumns, B.Row)
+     -> TagParser m (Int, B.Row)
 pRow block = try $ do
   skipMany pBlank
   TagOpen _ attribs <- pSatisfy (matchTagOpen "tr" []) <* skipMany pBlank
   cells <- many (pCell block BodyCell <|> pCell block HeaderCell)
   TagClose _ <- pSatisfy (matchTagClose "tr")
-  return ( RowHeadColumns $ foldr (\(_, Cell _ _ _ (ColSpan colspan) _) ->
-                                     (+ colspan)) 0
-                            (takeWhile ((== HeaderCell) . fst) cells)
-         , Row (toAttr attribs) $ map snd cells
-         )
+  let numheadcells = length $ takeWhile (\(ct,_) -> ct == HeaderCell) cells
+  return (numheadcells, Row (toAttr attribs) $ map snd cells)
 
 -- | Parses a header row, i.e., a row which containing nothing but
 -- @<th>@ elements.
@@ -146,7 +145,7 @@ pHeaderRow :: PandocMonad m
            -> TagParser m B.Row
 pHeaderRow block = try $ do
   skipMany pBlank
-  let pThs = map snd <$> many (pCell block HeaderCell)
+  let pThs = many (snd <$> pCell block HeaderCell)
   let mkRow (attribs, cells) = Row (toAttr attribs) cells
   mkRow <$> pInTagWithAttribs TagsRequired "tr" pThs
 
@@ -176,7 +175,7 @@ pTableFoot :: PandocMonad m
 pTableFoot block = try $ do
   skipMany pBlank
   TagOpen _ attribs <- pSatisfy (matchTagOpen "tfoot" []) <* skipMany pBlank
-  rows <- many (fmap snd $ pRow block <* skipMany pBlank)
+  rows <- many $ snd <$> (pRow block <* skipMany pBlank)
   optional $ pSatisfy (matchTagClose "tfoot")
   return $ TableFoot (toAttr attribs) rows
 
@@ -189,16 +188,31 @@ pTableBody block = try $ do
   mbattribs <- option Nothing $ Just . getAttribs <$>
                  pSatisfy (matchTagOpen "tbody" []) <* skipMany pBlank
   bodyheads <- many (pHeaderRow block)
-  (rowheads, rows) <- unzip <$> many (pRow block <* skipMany pBlank)
+  rows <- many (pRow block <* skipMany pBlank)
   optional $ pSatisfy (matchTagClose "tbody")
   guard $ isJust mbattribs || not (null bodyheads && null rows)
   let attribs = fromMaybe [] mbattribs
   -- we only set row head columns if all rows agree;
   -- if some rows have headings but others not, we use 0; see #8984, #8634:
-  let rowHeadCols = case rowheads of
-                      (x:xs) | all (== x) xs -> x
-                      _ -> 0
-  return $ TableBody (toAttr attribs) rowHeadCols bodyheads rows
+  let numrows = length rows
+  let adjustRowHeadColsForCell currentrow headcolsv
+                    (Cell _ _ (RowSpan rowspan) (ColSpan colspan) _) =
+        V.imap (\i x -> if i >= currentrow &&
+                           i < currentrow + rowspan
+                           then x + colspan
+                           else x) headcolsv
+  let adjustRowHeadCols
+        headcolsv
+        (currentrow, (numheads, Row _ cells)) =
+          foldl' (adjustRowHeadColsForCell currentrow) headcolsv
+            (take numheads cells)
+  let headcols = foldl' adjustRowHeadCols
+                         (V.replicate numrows (0 :: Int))
+                         (zip [(0 :: Int)..] rows)
+  let rowHeadCols = case V.uncons headcols of
+                       Just (x, v) | all (== x) v -> RowHeadColumns x
+                       _ -> RowHeadColumns 0
+  return $ TableBody (toAttr attribs) rowHeadCols bodyheads (map snd rows)
   where
     getAttribs (TagOpen _ attribs) = attribs
     getAttribs _ = []
