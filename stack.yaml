@@ -27,8 +27,7 @@ extra-deps:
 - typst-0.3.1.0
 - skylighting-core-0.13.4.1
 - skylighting-0.13.4.1
-- git: https://github.com/jgm/pandoc-types
-  commit: 6f2a868a83642d24a76f998e7b720a53a88868f5
+- pandoc-types-1.23.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-21.0
