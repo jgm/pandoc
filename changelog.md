@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.1.6.1 (PROVISIONAL)
+## pandoc 3.1.6.1 (2023-08-11)
 
  * HTML reader: properly calculate RowHeadColumns (#8984). This fixes a
    bug in the calculation of the number of header columns in table row.
