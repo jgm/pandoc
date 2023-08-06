@@ -1,5 +1,55 @@
 # Revision history for pandoc
 
+## pandoc 3.1.6.1 (PROVISIONAL)
+
+ * HTML reader: properly calculate RowHeadColumns (#8984). This fixes a
+   bug in the calculation of the number of header columns in table row.
+   It also changes the algorithm for determining the table body's
+   RowHeadColumns based on the numbers of head columns in each row.
+   Previously we used the max, and #8634 switched to the min, which
+   led to bad results. Now we only set RowHeadColumns to a non-zero value
+   if *all* rows have the same number of head columns.
+
+  * OpenDocument writer:
+
+    + Implement syntax highlighting for inline and block code (#6710).
+    + Support highlighted text in ODT/OpenDocument writers for Span
+      with class `mark` (#8960). A better fix would use a named style
+      so colors could be adjusted.
+
+  * Typst writer: escape `//` so it doesn't get interpreted as a comment
+    (#8966).
+
+  * ChunkedHTML writer: Fix regression including MathJax script (#8967).
+    The fix for #8620 caused the script to be included when the table of
+    contents but not the body text of a page contains math.  But it broke the
+    case where the table of contents doesn't contain math but the page does.
+    This patch fixes the issue.
+
+  * Text.Pandoc.SelfContained:
+
+    + Retain attributes in SVG tag when referring to another
+      SVG's content using `<use>` (#8969).
+    + Allow units in width and height for SVG. Units are optional but allowed.
+    + Don't coerce calculated SVG dimensions to Int.
+    + fix calculation of SVG width and height. We were computing width and
+      height from viewBox incorrectly (#8969).
+    + Add clause for SVG to default CSS for HTML (#8969).
+    + Ensure that width and height attributes don't get specified
+      twice is both the img tag and the svg include them (#8965).
+    + Omit unnecessary attributes xmlns, xmlns:xlink, and version on
+      SVG element (#8965).
+    + Use 20 character rather than 40 character hashes for generated IDs
+      (#8965).
+
+  * Use pandoc-types 1.23.1. This fixes a regression with toJSONFilter (#8976),
+    which in 1.23.0.1 no longer worked on pure values of type `a -> [a]`.
+
+  * Use ghc 9.6 for release builds (#8947).
+
+  * Fix some links in FAQs (Diogo Almiro).
+
+
 ## pandoc 3.1.6 (2023-07-20)
 
   * Fix CVE-2023-38745, a variant of the vulnerability in CVE-2023-35936.
