@@ -29,6 +29,7 @@ import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState(..))
 import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
 import Text.Pandoc.Highlighting (toListingsLanguage)
 import Text.DocLayout
+import Network.URI (escapeURIString)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize (showFl)
 import Control.Monad.State.Strict (gets, modify)
@@ -91,6 +92,13 @@ stringToLaTeX context zs = do
             '\'':_ -> cs <> "\\," <> xs -- add thin space
             _      -> cs <> xs
     in case x of
+         '\\'| isUrl -> emitc '/' -- NB. / works as path sep even on Windows
+         c | isUrl ->
+             if c `elem` ['{', '}', '|', '^', '~', '[', ']', '`']
+                then emits (escapeURIString (const False) [c])
+                else emitc c
+         '{' -> emits "\\{"
+         '}' -> emits "\\}"
          '?' | ligatures ->  -- avoid ?` ligature
            case xs of
              '`':_ -> emits "?{}"
@@ -99,27 +107,24 @@ stringToLaTeX context zs = do
            case xs of
              '`':_ -> emits "!{}"
              _     -> emitc x
-         '{' -> emits "\\{"
-         '}' -> emits "\\}"
          '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
-         '$' | not isUrl -> emits "\\$"
+         '$' -> emits "\\$"
          '%' -> emits "\\%"
-         '&' | not isUrl -> emits "\\&"
-         '_' | not isUrl -> emits "\\_"
+         '&' -> emits "\\&"
+         '_' -> emits "\\_"
          '#' -> emits "\\#"
-         '-' | not isUrl -> case xs of
+         '-' -> case xs of
                      -- prevent adjacent hyphens from forming ligatures
                      ('-':_) -> emits "-\\/"
                      _       -> emitc '-'
-         '~' | not isUrl -> emitcseq "\\textasciitilde"
+         '~' -> emitcseq "\\textasciitilde"
          '^' -> emits "\\^{}"
-         '\\'| isUrl     -> emitc '/' -- NB. / works as path sep even on Windows
-             | otherwise -> emitcseq "\\textbackslash"
-         '|' | not isUrl -> emitcseq "\\textbar"
-         '<' -> emitcseq "\\textless"
-         '>' -> emitcseq "\\textgreater"
-         '[' -> emits "{[}"  -- to avoid interpretation as
-         ']' -> emits "{]}"  -- optional arguments
+         '\\' -> emitcseq "\\textbackslash"
+         '|'  -> emitcseq "\\textbar"
+         '<'  -> emitcseq "\\textless"
+         '>'  -> emitcseq "\\textgreater"
+         '['  -> emits "{[}"  -- to avoid interpretation as
+         ']'  -> emits "{]}"  -- optional arguments
          '\'' -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
