@@ -189,10 +189,12 @@ blockToTypst block =
       return $ "#figure(" <> nest 2 (brackets contents <> "," <> cr <>
                                      ("caption: [" $$ nest 2 caption $$ "]"))
                           $$ ")" $$ lab $$ blankline
+    Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
+      blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
     Div (ident,_,_) blocks -> do
       let lab = toLabel ident
       contents <- blocksToTypst blocks
-      return $ lab $$ contents
+      return $ "#block[" $$ contents $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do

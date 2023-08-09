@@ -497,20 +497,32 @@ orange fruit
 <html-blocks>
 Simple block on one line:
 
+#block[
 foo
+]
 And nested without indentation:
 
+#block[
+#block[
+#block[
 foo
 
+]
+]
+#block[
 bar
+]
+]
 Interpreted markdown in a table:
 
 This is #emph[emphasized]
 And this is #strong[strong]
 Here’s a simple block:
 
+#block[
 foo
 
+]
 This should be a code block, though:
 
 ```
@@ -527,7 +539,13 @@ As should this:
 
 Now, nested:
 
+#block[
+#block[
+#block[
 foo
+]
+]
+]
 This should just be an HTML comment:
 
 Multiline:
