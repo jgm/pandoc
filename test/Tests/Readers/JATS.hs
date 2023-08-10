@@ -27,7 +27,6 @@ jats = purely $ readJATS def
 tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ test jats "basic" $ "<p>\n  <monospace>@&amp;</monospace>\n</p>" =?> para (code "@&")
-          , test jats "lang" $ "<p>\n  <code language=\"c\">@&amp;</code>\n</p>" =?> para (codeWith ("", ["c"], []) "@&")
           ]
         , testGroup "block code"
           [ test jats "basic" $ "<preformat>@&amp;</preformat>" =?> codeBlock "@&"
