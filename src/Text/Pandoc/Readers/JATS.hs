@@ -645,7 +645,7 @@ blockFormula constructor e = do
                             filterChildren (named  "tex-math") whereToLook
                 mathMLs = map mathML $
                             filterChildren isMathML whereToLook
-            return . lineBlock . take 1 . map constructor $ texMaths ++ mathMLs
+            return . para . head . take 1 . map constructor $ texMaths ++ mathMLs
 
 mathML :: Element -> Text 
 mathML x =  

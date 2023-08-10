@@ -564,7 +564,7 @@ Pandoc
       ]
   , Div
       ( "" , [ "disp-formula" ] , [] )
-      [ LineBlock [ [ Math DisplayMath "e=mc^2" ] ] ]
+      [ Para [ Math DisplayMath "e=mc^2" ] ]
   , Para
       [ Str "This"
       , Space
@@ -643,7 +643,7 @@ Pandoc
       , Space
       , Str "that"
       ]
-  , LineBlock [ [ Math DisplayMath "e=mc^2" ] ]
+  , Para [ Math DisplayMath "e=mc^2" ]
   , Para
       [ Str "This"
       , Space
@@ -736,7 +736,7 @@ Pandoc
               , ""
               )
           ]
-      , LineBlock [ [ Math DisplayMath "e=mc^2" ] ]
+      , Para [ Math DisplayMath "e=mc^2" ]
       ]
   , Para
       [ Str "."
@@ -784,7 +784,7 @@ Pandoc
               , ""
               )
           ]
-      , LineBlock [ [ Math DisplayMath "e=mc^2" ] ]
+      , Para [ Math DisplayMath "e=mc^2" ]
       ]
   , Para
       [ Str "This"
