@@ -215,6 +215,7 @@ langsList =
   ("tex","TeX"),
   ("latex","TeX"),
   ("vbscript","VBScript"),
+  ("verse","Verse"),
   ("verilog","Verilog"),
   ("vhdl","VHDL"),
   ("vrml","VRML"),
