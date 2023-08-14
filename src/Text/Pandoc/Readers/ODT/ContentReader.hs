@@ -474,13 +474,6 @@ getListConstructor ListLevelStyle{..} startNum =
     toListNumberDelim (Just "(") (Just ")") = TwoParens
     toListNumberDelim     _          _      = DefaultDelim
 
---
-listStartingNumber :: Bool  -> Int -> Maybe ListLevelStyle -> Int
-listStartingNumber continueNumbering listContinuationStartCounter mListLevelStyle
-    | continueNumbering                = listContinuationStartCounter + 1
-    | isJust mListLevelStyle           = listItemStart (fromJust mListLevelStyle)
-    | otherwise                        = 1
-
 -- | Determines which style to use for a list, which level to use of that
 -- style, and which type of list to create as a result of this information.
 -- Then prepares the state for eventual child lists and constructs the list from
@@ -534,16 +527,20 @@ constructList reader = proc x -> do
             Nothing             -> defaultOrderedListConstructor -<< x
         Nothing                 -> defaultOrderedListConstructor -<< x
   where
+    listStartingNumber continueNumbering listContinuationStartCounter mListLevelStyle
+      | continueNumbering                = listContinuationStartCounter
+      | isJust mListLevelStyle           = listItemStart (fromJust mListLevelStyle)
+      | otherwise                        = 1
     constructOrderedList startNum listLevel listItemCount =
           reader
       >>> modifyExtraState (shiftListLevel (-1))
-      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount - 1))
+      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount))
       >>> arr (orderedListWith (startNum, DefaultStyle, DefaultDelim))
     constructListWith listLevelStyle startNum listLevel listItemCount =
           reader
       >>> getListConstructor listLevelStyle startNum
       ^>> modifyExtraState (shiftListLevel (-1))
-      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount - 1))
+      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount))
 
 --------------------------------------------------------------------------------
 -- Readers
