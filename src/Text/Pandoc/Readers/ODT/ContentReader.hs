@@ -535,7 +535,7 @@ constructList reader = proc x -> do
           reader
       >>> modifyExtraState (shiftListLevel (-1))
       >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount))
-      >>> arr (orderedListWith (startNum, DefaultStyle, DefaultDelim))
+      >>^ orderedListWith (startNum, DefaultStyle, DefaultDelim)
     constructListWith listLevelStyle startNum listLevel listItemCount =
           reader
       >>> getListConstructor listLevelStyle startNum
