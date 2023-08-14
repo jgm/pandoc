@@ -78,7 +78,7 @@ data ReaderState
                    -- | Keeps track of the previous list start counters,
                    -- so whenever a new list want to continue numbering,
                    -- we know what number to start from.
-                 , previousListStartCounters :: M.Map ListLevel Int
+                 , listContinuationStartCounters :: M.Map ListLevel Int
                    -- | Lists may provide their own style, but they don't have
                    -- to. If they do not, the style of a parent list may be used
                    -- or even a default list style from the paragraph style.
@@ -112,9 +112,9 @@ modifyListLevel :: (ListLevel -> ListLevel) -> (ReaderState -> ReaderState)
 modifyListLevel f state = state { currentListLevel = f (currentListLevel state) }
 
 --
-modifyPreviousListStartCounter :: ListLevel -> Int -> (ReaderState -> ReaderState)
-modifyPreviousListStartCounter listLevel count state = 
-    state { previousListStartCounters = M.insert listLevel count (previousListStartCounters state) }
+modifyListContinuationStartCounter :: ListLevel -> Int -> (ReaderState -> ReaderState)
+modifyListContinuationStartCounter listLevel count state =
+    state { listContinuationStartCounters = M.insert listLevel count (listContinuationStartCounters state) }
 
 --
 shiftListLevel :: ListLevel -> (ReaderState -> ReaderState)
@@ -207,14 +207,14 @@ getCurrentListLevel :: ODTReaderSafe _x ListLevel
 getCurrentListLevel = getExtraState >>^ currentListLevel
 
 --
-getPreviousListStartCounters :: ODTReaderSafe _x (M.Map ListLevel Int)
-getPreviousListStartCounters = getExtraState >>^ previousListStartCounters
+getListContinuationStartCounters :: ODTReaderSafe _x (M.Map ListLevel Int)
+getListContinuationStartCounters = getExtraState >>^ listContinuationStartCounters
 
 
 --
 getPreviousListStartCounter :: ODTReaderSafe ListLevel Int
 getPreviousListStartCounter = proc listLevel -> do
-    counts <- getPreviousListStartCounters -< ()
+    counts <- getListContinuationStartCounters -< ()
     returnA -< M.findWithDefault 0 listLevel counts
 
 --
@@ -475,9 +475,9 @@ getListConstructor ListLevelStyle{..} startNum =
     toListNumberDelim     _          _      = DefaultDelim
 
 --
-startingNumber :: Bool  -> Int -> Maybe ListLevelStyle -> Int
-startingNumber continueNumbering prevStartCounter mListLevelStyle
-    | continueNumbering                = prevStartCounter + 1
+listStartingNumber :: Bool  -> Int -> Maybe ListLevelStyle -> Int
+listStartingNumber continueNumbering listContinuationStartCounter mListLevelStyle
+    | continueNumbering                = listContinuationStartCounter + 1
     | isJust mListLevelStyle           = listItemStart (fromJust mListLevelStyle)
     | otherwise                        = 1
 
@@ -492,18 +492,18 @@ startingNumber continueNumbering prevStartCounter mListLevelStyle
 -- If anything goes wrong, a default ordered-list-constructor is used.
 constructList :: ODTReaderSafe x [Blocks] -> ODTReaderSafe x Blocks
 constructList reader = proc x -> do
-  modifyExtraState (shiftListLevel 1)                    -< ()
-  listLevel      <- getCurrentListLevel                  -< ()
-  prevStart      <- getPreviousListStartCounter          -< listLevel
-  fStyleName     <- findAttr NsText "style-name"         -< ()
-  fContNumbering <- findAttr NsText "continue-numbering" -< ()
-  listItemCount  <- reader >>^ length                    -< x
+  modifyExtraState (shiftListLevel 1)                                  -< ()
+  listLevel                    <- getCurrentListLevel                  -< ()
+  listContinuationStartCounter <- getPreviousListStartCounter          -< listLevel
+  fStyleName                   <- findAttr NsText "style-name"         -< ()
+  fContNumbering               <- findAttr NsText "continue-numbering" -< ()
+  listItemCount                <- reader >>^ length                    -< x
 
   let continueNumbering = case fContNumbering of
                             Right "true" -> True
                             _            -> False
 
-  let startNumForListLevelStyle = startingNumber continueNumbering prevStart
+  let startNumForListLevelStyle = listStartingNumber continueNumbering listContinuationStartCounter
   let defaultOrderedListConstructor = constructOrderedList (startNumForListLevelStyle Nothing) listLevel listItemCount
 
   case fStyleName of
@@ -537,13 +537,13 @@ constructList reader = proc x -> do
     constructOrderedList startNum listLevel listItemCount =
           reader
       >>> modifyExtraState (shiftListLevel (-1))
-      >>> modifyExtraState (modifyPreviousListStartCounter listLevel (startNum + listItemCount - 1))
+      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount - 1))
       >>> arr (orderedListWith (startNum, DefaultStyle, DefaultDelim))
     constructListWith listLevelStyle startNum listLevel listItemCount =
           reader
       >>> getListConstructor listLevelStyle startNum
       ^>> modifyExtraState (shiftListLevel (-1))
-      >>> modifyExtraState (modifyPreviousListStartCounter listLevel (startNum + listItemCount - 1))
+      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount - 1))
 
 --------------------------------------------------------------------------------
 -- Readers
