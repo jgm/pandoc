@@ -86,6 +86,27 @@ as needed.  If you receive errors warning of fonts not found:
 With the option `--pdf-engine`, you however can specify other programs
 for this task.
 
+## Video Demo Installation
+Video demo showing users how to install Pandoc using homebrew.  Follow the link:
+https://media.oregonstate.edu/media/t/1_fosky3xp 
+
+## Screenshot Installation Instructions 
+
+### Step 1
+Open a new terminal window.
+
+![App Screenshot](INSTALL-IMAGES/step-1.png)
+
+### Step 2
+Type in the following command “brew install pandoc” to install pandoc using Homebrew.
+
+![App Screenshot](INSTALL-IMAGES/step-2.png)
+
+### Step 3
+Confirm by running “pandoc -v” to check what version was installed.  After checking version, you are all set and ready to start converting files!
+
+![App Screenshot](INSTALL-IMAGES/step-3.png)
+
 ## Linux
 
 Check whether the pandoc version in your package manager is
