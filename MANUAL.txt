@@ -42,6 +42,10 @@ Markdown can be expected to be lossy.
 
 ## Using pandoc
 
+-Video Walkthrough
+Video showcasing how to perform basic examples of file conversions.  Follow the link below:
+https://media.oregonstate.edu/media/t/1_deokouyp 
+
 If no *input-files* are specified, input is read from *stdin*.
 Output goes to *stdout* by default. For output to a file,
 use the `-o` option:
