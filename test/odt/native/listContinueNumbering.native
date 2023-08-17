@@ -1,10 +1,8 @@
 [ OrderedList
     ( 1 , Decimal , Period )
-    [ [ BlockQuote
-          [ Para
-              [ Str "Some" , Space , Str "text" , Space , Str "(1.)" ]
-          ]
-      ]
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(1.)" ]
+        ]
     ]
 , Para []
 , Para
@@ -19,16 +17,12 @@
 , Para []
 , OrderedList
     ( 2 , Decimal , Period )
-    [ [ BlockQuote
-          [ Para
-              [ Str "Some" , Space , Str "text" , Space , Str "(2.)" ]
-          ]
-      ]
-    , [ BlockQuote
-          [ Para
-              [ Str "Some" , Space , Str "text" , Space , Str "(3.)" ]
-          ]
-      ]
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(2.)" ]
+        ]
+    , [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(3.)" ]
+        ]
     ]
 , Para []
 , Para
@@ -43,11 +37,9 @@
 , Para []
 , OrderedList
     ( 4 , Decimal , Period )
-    [ [ BlockQuote
-          [ Para
-              [ Str "Some" , Space , Str "text" , Space , Str "(4.)" ]
-          ]
-      ]
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(4.)" ]
+        ]
     ]
 , Para []
 , Para
@@ -70,11 +62,9 @@
 , Para []
 , OrderedList
     ( 1 , Decimal , Period )
-    [ [ BlockQuote
-          [ Para
-              [ Str "Some" , Space , Str "text" , Space , Str "(1.)" ]
-          ]
-      ]
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(1.)" ]
+        ]
     ]
 , Para []
 , Para
@@ -89,15 +79,11 @@
 , Para []
 , OrderedList
     ( 2 , Decimal , Period )
-    [ [ BlockQuote
-          [ Para
-              [ Str "Some" , Space , Str "text" , Space , Str "(2.)" ]
-          ]
-      ]
-    , [ BlockQuote
-          [ Para
-              [ Str "Some" , Space , Str "text" , Space , Str "(3.)" ]
-          ]
-      ]
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(2.)" ]
+        ]
+    , [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(3.)" ]
+        ]
     ]
 ]
