@@ -115,7 +115,7 @@ commentLineStart = try $
   skipSpaces <* string "#" <* lookAhead (oneOf " \n")
 
 exampleLineStart :: Monad m => OrgParser m ()
-exampleLineStart = () <$ try (skipSpaces *> string ": ")
+exampleLineStart = () <$ try (skipSpaces *> char ':' *> (void (char ' ') <|> lookAhead eol))
 
 noteMarker :: Monad m => OrgParser m Text
 noteMarker = try $ do
