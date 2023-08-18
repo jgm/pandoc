@@ -7,3 +7,7 @@ flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1,
              skylighting-format-context >= 0.1.0.2
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath
+  tag: 0a7b5a58e1969d93e18ff7d39f8375098e21300b
