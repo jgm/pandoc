@@ -5,7 +5,9 @@ packages: .
 tests: True
 flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1,
-             skylighting-format-context >= 0.1.0.2
+             skylighting-format-context >= 0.1.0.2,
+             typst-symbols == 0.1.2
+-- for typst 0.6 support; remove this constraint when we support typst 0.7
 
 source-repository-package
   type: git
