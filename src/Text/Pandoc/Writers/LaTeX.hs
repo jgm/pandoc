@@ -734,12 +734,11 @@ sectionHeader classes ident level lst = do
                   else empty
   lab <- labelFor ident
   let star = if unnumbered then text "*" else empty
-  let stuffing = star <> optional <> contents
-  stuffing' <- hypertarget True ident $
-                  text ('\\':sectionType) <> stuffing <> lab
+  let title = star <> optional <> contents
   return $ if level' > 5
               then txt
-              else prefix $$ stuffing'
+              else prefix
+                   $$ text ('\\':sectionType) <> title <> lab
                    $$ if unnumbered && not unlisted
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
@@ -960,7 +959,7 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
      Just ('#', ident) -> do
         contents <- inlineListToLaTeX txt
         lab <- toLabel ident
-        return $ text "\\protect\\hyperlink" <> braces (literal lab) <> braces contents
+        return $ text "\\hyperref" <> brackets (literal lab) <> braces contents
      _ -> case txt of
           [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
                do modify $ \s -> s{ stUrl = True }
