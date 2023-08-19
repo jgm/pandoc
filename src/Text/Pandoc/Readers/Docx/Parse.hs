@@ -86,13 +86,15 @@ import Text.Pandoc.XML.Light
       strContent,
       showElement,
       findAttr,
+      filterChild,
       filterChildrenName,
       filterElementName,
+      lookupAttrBy,
       parseXMLElement,
       elChildren,
       QName(QName, qName),
       Content(Elem),
-      Element(elContent, elName),
+      Element(..),
       findElements )
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
@@ -725,7 +727,25 @@ elemToBodyPart ns element
       parstyle <- elemToParagraphStyle ns element
                   <$> asks envParStyles
                   <*> asks envNumbering
-      parparts' <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
+
+      let hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
+
+      let isTableNumberElt el@(Element name attribs _ _) =
+           (qName name == "fldSimple" &&
+             case lookupAttrBy ((== "instr") . qName) attribs of
+               Nothing -> False
+               Just instr -> "Table" `elem` T.words instr) ||
+           (qName name == "instrText" && "Table" `elem` T.words (strContent el))
+
+      let isTable = hasCaptionStyle &&
+                      isJust (filterChild isTableNumberElt element)
+
+      let stripOffLabel = dropWhile (not . isTableNumberElt)
+
+      let children = (if isTable
+                          then stripOffLabel
+                          else id) $ elChildren element
+      parparts' <- mconcat <$> mapD (elemToParPart ns) children
       fldCharState <- gets stateFldCharState
       modify $ \st -> st {stateFldCharState = emptyFldCharContents fldCharState}
       -- Word uses list enumeration for numbered headings, so we only
@@ -734,21 +754,9 @@ elemToBodyPart ns element
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
                     mkListItem parstyle numId lvl parparts
-        _ -> let
-          hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
-
-          hasSimpleTableField = fromMaybe False $ do
-            fldSimple <- findChildByName ns "w" "fldSimple" element
-            instr <- findAttrByName ns "w" "instr" fldSimple
-            pure ("Table" `elem` T.words instr)
-
-          hasComplexTableField = fromMaybe False $ do
-            instrText <- findElementByName ns "w" "instrText" element
-            pure ("Table" `elem` T.words (strContent instrText))
-
-          in if hasCaptionStyle && (hasSimpleTableField || hasComplexTableField)
-            then return $ TblCaption parstyle parparts
-            else return $ Paragraph parstyle parparts
+        _ -> if isTable
+                then return $ TblCaption parstyle parparts
+                else return $ Paragraph parstyle parparts
 
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
