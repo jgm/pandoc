@@ -298,8 +298,10 @@ escapeTypst context t =
      else t
   where
     escapeChar c
+      | c == '\160' = "~"
       | needsEscape c = "\\" <> T.singleton c
       | otherwise = T.singleton c
+    needsEscape '\160' = True
     needsEscape '[' = True
     needsEscape ']' = True
     needsEscape '#' = True
@@ -314,6 +316,7 @@ escapeTypst context t =
     needsEscape '=' = True
     needsEscape '_' = True
     needsEscape '*' = True
+    needsEscape '~' = True
     needsEscape ':' = context == TermContext
     needsEscape _ = False
 
