@@ -107,8 +107,8 @@ instance HasMeta JATSState where
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = case qName (elName e) of
             "disp-formula" -> if onlyOneChild e
-                                  then if hasFormulaChild e 
-                                          then False 
+                                  then if hasFormulaChild e
+                                          then False
                                           else case filterChild (named "alternatives") e of
                                             Just a -> if hasFormulaChild a then False else True
                                             Nothing -> True
@@ -125,10 +125,10 @@ isBlockElement (Elem e) = case qName (elName e) of
         formulae = ["tex-math", "mml:math"]
         other = ["p", "related-article", "related-object", "ack", "disp-quote",
             "speech", "statement", "verse-group", "x"]
-        canBeInline = ["tex-math", "mml:math", "related-object", "x"] 
+        canBeInline = ["tex-math", "mml:math", "related-object", "x"]
         onlyOneChild x = length (allChildren x) == 1
         allChildren x = filterChildren (const True) x
-        
+
 isBlockElement _ = False
 
 -- Trim leading and trailing newline characters
@@ -221,7 +221,7 @@ parseBlock (Elem e) = do
                             else getBlocks e
         "disp-formula" -> if hasFormulaChild e
                             then blockFormula displayMath e
-                            else divWith (attrValue "id" e, ["disp-formula"], []) 
+                            else divWith (attrValue "id" e, ["disp-formula"], [])
                                     <$> getBlocks e
         "?xml"  -> return mempty
         _       -> getBlocks e
@@ -647,8 +647,8 @@ blockFormula constructor e = do
                             filterChildren isMathML whereToLook
             return . para . head . take 1 . map constructor $ texMaths ++ mathMLs
 
-mathML :: Element -> Text 
-mathML x =  
+mathML :: Element -> Text
+mathML x =
           case readMathML . showElement $ everywhere (mkT removePrefix) x of
                 Left _ -> mempty
                 Right m -> writeTeX m
