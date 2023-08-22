@@ -19,11 +19,10 @@ extra-deps:
 - crypton-x509-system-1.6.7
 - crypton-x509-validation-1.6.12
 - http-client-tls-0.3.6.2
-- typst-symbols-0.1.2
+- typst-symbols-0.1.4
 - toml-parser-1.3.0.0
-- typst-0.3.1.0
-- git: https://github.com/jgm/texmath
-  commit: 0a7b5a58e1969d93e18ff7d39f8375098e21300b
+- typst-0.3.2.0
+- texmath-0.12.8.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

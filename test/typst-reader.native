@@ -1926,7 +1926,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\Sigma^{*}"
+                                  [ Math InlineMath "\\Sigma^{\\ast}"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "Sigma^*"
                                   ]
@@ -2909,7 +2909,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "< <"
+                                  [ Math InlineMath "\\ll"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "<<"
                                   , Str ","
@@ -2928,7 +2928,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\cong"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "tilde.eqq"
+                                  , Code ( "" , [] , [] ) "tilde.equiv"
                                   ]
                               ]
                           ]
@@ -2940,7 +2940,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "*"
+                                  [ Math InlineMath "\\ast"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "*"
                                   , Str ","
@@ -2960,7 +2960,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "> >"
+                                  [ Math InlineMath "\\gg"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) ">>"
                                   , Str ","
@@ -2980,7 +2980,7 @@ Pandoc
                                   [ Math InlineMath "\\ncong"
                                   , Str "\8192"
                                   , Code
-                                      ( "" , [] , [] ) "tilde.eqq.not"
+                                      ( "" , [] , [] ) "tilde.equiv.not"
                                   ]
                               ]
                           ]
@@ -3106,7 +3106,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\equiv"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "ident"
+                                  , Code ( "" , [] , [] ) "equiv"
                                   ]
                               ]
                           ]
@@ -3519,7 +3519,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "| \\rightarrow"
+                                  [ Math InlineMath "\\mapsto"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "|->"
                                   , Str ","
@@ -3624,7 +3624,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\leftarrow >"
+                                  [ Math InlineMath "\\leftrightarrow"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "<->"
                                   , Str ","
@@ -5130,7 +5130,7 @@ Pandoc
           , Space
           , Str "from"
           , Space
-          , Code ( "" , [] , [] ) "ident"
+          , Code ( "" , [] , [] ) "equiv"
           , Space
           , Str "and"
           , Space
