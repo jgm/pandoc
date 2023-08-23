@@ -39,6 +39,7 @@ import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Safe (headMay)
+import Text.Megaparsec.Char.Lexer (decimal)
 
 type JATS m = StateT JATSState m
 
@@ -166,6 +167,8 @@ parseBlock (Elem e) = do
   let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e)
 
   case qName (elName e) of
+        "book" -> modify $ \st -> st{ jatsBook = True }
+        "book-part-wrapper" -> modify $ \st -> st{ jatsBook = True }
         "p" -> parseMixed para (elContent e)
         "code" -> codeBlockWithLang
         "preformat" -> codeBlockWithLang
@@ -201,6 +204,7 @@ parseBlock (Elem e) = do
         "journal-meta" -> parseMetadata e
         "article-meta" -> parseMetadata e
         "custom-meta" -> parseMetadata e
+        "book-meta" -> parseMetadata e
         "title" -> return mempty -- processed by header
         "label" -> return mempty -- processed by header
         "table" -> parseTable
@@ -368,9 +372,13 @@ parseBlock (Elem e) = do
          parseElement = filterChildren isEntry
          wrapWithHeader n mBlocks = do
                       isBook <- gets jatsBook
-                      let n' = if isBook || n == 0 then n + 1 else n
+                      case (filterChild (named “title”) e >>= attrValue “display-as”) of
+	                      Just l -> let n’ = decimal l
+	                      Nothing -> let n' = if isBook || n == 0 then n + 1 else n
                       headerText <- case filterChild (named "title") e of
-                                        Just t  -> getInlines t
+                                        Just t  -> case maybeAttrValue "supress" of 
+                                          Just s -> if s == "no" then getInlines t else return mempty 
+                                          Nothing -> getInlines t
                                         Nothing -> return mempty
                       oldN <- gets jatsSectionLevel
                       modify $ \st -> st{ jatsSectionLevel = n }
@@ -388,15 +396,16 @@ getInlines e' = trimInlines . mconcat <$>
 
 parseMetadata :: PandocMonad m => Element -> JATS m Blocks
 parseMetadata e = do
-  getTitle e
-  getAuthors e
+  isBook <- gets jatsBook
+  if isBook then getBookTitle e else getArticleTitle e 
+  if isBook then getBookAuthors e else getArticleAuthors e
   getAffiliations e
   getAbstract e
   getPubDate e
   return mempty
 
-getTitle :: PandocMonad m => Element -> JATS m ()
-getTitle e = do
+getArticleTitle :: PandocMonad m => Element -> JATS m ()
+getArticleTitle e = do
   tit <-  case filterElement (named "article-title") e of
                Just s  -> getInlines s
                Nothing -> return mempty
@@ -407,11 +416,35 @@ getTitle e = do
   when (tit /= mempty) $ addMeta "title" tit
   when (subtit /= mempty) $ addMeta "subtitle" subtit
 
-getAuthors :: PandocMonad m => Element -> JATS m ()
-getAuthors e = do
+getArticleAuthors :: PandocMonad m => Element -> JATS m ()
+getArticleAuthors e = do
   authors <- mapM getContrib $ filterElements
               (\x -> named "contrib" x &&
                      attrValue "contrib-type" x == "author") e
+  authorNotes <- mapM getInlines $ filterElements (named "author-notes") e
+  let authors' = case (reverse authors, authorNotes) of
+                   ([], _)    -> []
+                   (_, [])    -> authors
+                   (a:as, ns) -> reverse as ++ [a <> mconcat ns]
+  unless (null authors) $ addMeta "author" authors'
+
+getBookTitle :: PandocMonad m => Element -> JATS m ()
+getBookTitle e = do
+  tit <-  case (filterElement (named "book-title-group") e >>= filterElement (named "title")) of
+               Just s  -> getInlines s
+               Nothing -> return mempty
+  subtit <-  case (filterElement (named "book-title-group") e >>= filterElement (named "subtitle")) of
+               Just s  -> (text ": " <>) <$>
+                           getInlines s
+               Nothing -> return mempty
+  when (tit /= mempty) $ addMeta "title" tit
+  when (subtit /= mempty) $ addMeta "subtitle" subtit
+
+getBookAuthors :: PandocMonad m => Element -> JATS m ()
+getBookAuthors e = do
+  authors <- mapM getContrib $ filterElements
+              ( filterElements (named "contrib-group") e >>= (\x -> named "contrib" x &&
+                     attrValue "contrib-type" x == "author"))
   authorNotes <- mapM getInlines $ filterElements (named "author-notes") e
   let authors' = case (reverse authors, authorNotes) of
                    ([], _)    -> []
@@ -556,6 +589,7 @@ parseInline (Elem e) =
   case qName (elName e) of
         "italic" -> innerInlines emph
         "bold" -> innerInlines strong
+        "serif" -> innerInlines serif
         "strike" -> innerInlines strikeout
         "sub" -> innerInlines subscript
         "sup" -> innerInlines superscript
