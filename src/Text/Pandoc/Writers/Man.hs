@@ -75,7 +75,6 @@ pandocToMan opts (Pandoc meta blocks) = do
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
-              $ defField "hyphenate" True
                 metadata
   return $ render colwidth $
     case writerTemplate opts of
