@@ -254,7 +254,13 @@ blockListToMan :: PandocMonad m
                -> [Block]       -- ^ List of block elements
                -> StateT WriterState m (Doc Text)
 blockListToMan opts blocks =
-  vcat <$> mapM (blockToMan opts) blocks
+  vcat <$> mapM (blockToMan opts) (go blocks)
+ where
+   -- Avoid .PP right after .SH; this is a no-op in groff man and mandoc
+   -- but may cause unwanted extra space in some renderers (see #9020)
+   go [] = []
+   go (h@Header{} : Para ils : rest) = h : Plain ils : go rest
+   go (x : xs) = x : go xs
 
 -- | Convert list of Pandoc inline elements to man.
 inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m (Doc Text)

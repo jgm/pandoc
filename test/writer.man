@@ -12,15 +12,12 @@ Most of them are adapted from John Gruber\[cq]s markdown test suite.
 .SH Level 1
 .SS Level 2 with \f[I]emphasis\f[R]
 .SS Level 3
-.PP
 with no blank line
 .SS Level 2
-.PP
 with no blank line
 .PP
    *   *   *   *   *
 .SH Paragraphs
-.PP
 Here\[cq]s a regular paragraph.
 .PP
 In Markdown 1.0.0 and earlier.
@@ -40,7 +37,6 @@ here.
 .PP
    *   *   *   *   *
 .SH Block Quotes
-.PP
 E-mail style:
 .RS
 .PP
@@ -80,7 +76,6 @@ And a following paragraph.
 .PP
    *   *   *   *   *
 .SH Code Blocks
-.PP
 Code:
 .IP
 .EX
@@ -104,7 +99,6 @@ These should not be escaped:  \[rs]$ \[rs]\[rs] \[rs]> \[rs][ \[rs]{
    *   *   *   *   *
 .SH Lists
 .SS Unordered
-.PP
 Asterisks tight:
 .IP \[bu] 2
 asterisk 1
@@ -153,7 +147,6 @@ Minus 2
 .IP \[bu] 2
 Minus 3
 .SS Ordered
-.PP
 Tight:
 .IP "1." 3
 First
@@ -308,7 +301,6 @@ Williams
 .PP
    *   *   *   *   *
 .SH Definition Lists
-.PP
 Tight using spaces:
 .TP
 apple
@@ -399,7 +391,6 @@ sublist
 sublist
 .RE
 .SH HTML Blocks
-.PP
 Simple block on one line:
 foo
 .PP
@@ -455,7 +446,6 @@ Hr\[cq]s:
 .PP
    *   *   *   *   *
 .SH Inline Markup
-.PP
 This is \f[I]emphasized\f[R], and so \f[I]is this\f[R].
 .PP
 This is \f[B]strong\f[R], and so \f[B]is this\f[R].
@@ -484,7 +474,6 @@ a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
 .PP
    *   *   *   *   *
 .SH Smart quotes, ellipses, dashes
-.PP
 \[lq]Hello,\[rq] said the spider.
 \[lq]`Shelob' is my name.\[rq]
 .PP
@@ -542,7 +531,6 @@ Here\[cq]s a LaTeX table:
 .PP
    *   *   *   *   *
 .SH Special Characters
-.PP
 Here is some unicode:
 .IP \[bu] 2
 I hat: Î
@@ -600,7 +588,6 @@ Minus: -
    *   *   *   *   *
 .SH Links
 .SS Explicit
-.PP
 Just a URL.
 .PP
 URL and title.
@@ -619,7 +606,6 @@ Email link (mailto:nobody@nowhere.net)
 .PP
 Empty.
 .SS Reference
-.PP
 Foo bar.
 .PP
 With embedded [brackets].
@@ -642,7 +628,6 @@ Foo bar.
 .PP
 Foo biz.
 .SS With ampersands
-.PP
 Here\[cq]s a link with an ampersand in the
 URL (http://example.com/?foo=1&bar=2).
 .PP
@@ -652,7 +637,6 @@ Here\[cq]s an inline link.
 .PP
 Here\[cq]s an inline link in pointy braces.
 .SS Autolinks
-.PP
 With an ampersand: <http://example.com/?foo=1&bar=2>
 .IP \[bu] 2
 In a list?
@@ -675,7 +659,6 @@ or here: <http://example.com/>
 .PP
    *   *   *   *   *
 .SH Images
-.PP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
 [IMAGE: lalune]
 lalune
@@ -684,7 +667,6 @@ Here is a movie [IMAGE: movie] icon.
 .PP
    *   *   *   *   *
 .SH Footnotes
-.PP
 Here is a footnote reference,[1] and another.[2] This should \f[I]not\f[R] be a
 footnote reference, because it contains a space.[\[ha]my note] Here is an inline
 note.[3]
