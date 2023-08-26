@@ -1,17 +1,3 @@
-.\" Define V font for inline verbatim, using C font in formats
-.\" that render this, and otherwise B font.
-.ie "\f[CB]x\f[]"x" \{\
-. ftr V B
-. ftr VI BI
-. ftr VB B
-. ftr VBI BI
-.\}
-.el \{\
-. ftr V CR
-. ftr VI CI
-. ftr VB CB
-. ftr VBI CBI
-.\}
 .TH "Pandoc Test Suite" "" "July 17, 2006" "" ""
 .PP
 This is a set of tests for pandoc.
@@ -65,13 +51,11 @@ It is pretty short.
 .PP
 Code in a block quote:
 .IP
-.nf
-\f[C]
+.EX
 sub status {
     print \[dq]working\[dq];
 }
-\f[R]
-.fi
+.EE
 .PP
 A list:
 .IP "1." 3
@@ -99,8 +83,7 @@ And a following paragraph.
 .PP
 Code:
 .IP
-.nf
-\f[C]
+.EX
 ---- (should be four hyphens)
 
 sub status {
@@ -108,18 +91,15 @@ sub status {
 }
 
 this code block is indented by one tab
-\f[R]
-.fi
+.EE
 .PP
 And:
 .IP
-.nf
-\f[C]
+.EX
     this code block is indented by two tabs
 
 These should not be escaped:  \[rs]$ \[rs]\[rs] \[rs]> \[rs][ \[rs]{
-\f[R]
-.fi
+.EE
 .PP
    *   *   *   *   *
 .SH Lists
@@ -375,11 +355,9 @@ contains seeds, crisp, pleasant to taste
 orange fruit
 .RS
 .IP
-.nf
-\f[C]
+.EX
 { orange code block }
-\f[R]
-.fi
+.EE
 .RS
 .PP
 orange block quote
@@ -440,21 +418,17 @@ foo
 .PP
 This should be a code block, though:
 .IP
-.nf
-\f[C]
+.EX
 <div>
     foo
 </div>
-\f[R]
-.fi
+.EE
 .PP
 As should this:
 .IP
-.nf
-\f[C]
+.EX
 <div>foo</div>
-\f[R]
-.fi
+.EE
 .PP
 Now, nested:
 foo
@@ -465,21 +439,17 @@ Multiline:
 .PP
 Code block:
 .IP
-.nf
-\f[C]
+.EX
 <!-- Comment -->
-\f[R]
-.fi
+.EE
 .PP
 Just plain comment, with trailing spaces on the line:
 .PP
 Code:
 .IP
-.nf
-\f[C]
+.EX
 <hr />
-\f[R]
-.fi
+.EE
 .PP
 Hr\[cq]s:
 .PP
@@ -500,8 +470,8 @@ So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
 So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-This is code: \f[V]>\f[R], \f[V]$\f[R], \f[V]\[rs]\f[R], \f[V]\[rs]$\f[R],
-\f[V]<html>\f[R].
+This is code: \f[CR]>\f[R], \f[CR]$\f[R], \f[CR]\[rs]\f[R], \f[CR]\[rs]$\f[R],
+\f[CR]<html>\f[R].
 .PP
 [STRIKEOUT:This is \f[I]strikeout\f[R].]
 .PP
@@ -525,7 +495,7 @@ So is `pine.'
 .PP
 `He said, \[lq]I want to go.\[rq]' Were you alive in the 70\[cq]s?
 .PP
-Here is some quoted `\f[V]code\f[R]' and a \[lq]quoted
+Here is some quoted `\f[CR]code\f[R]' and a \[lq]quoted
 link (http://example.com/?foo=1&bar=2)\[rq].
 .PP
 Some dashes: one\[em]two \[em] three\[em]four \[em] five.
@@ -558,7 +528,7 @@ Here\[cq]s one that has a line break in it:
 .PP
 These shouldn\[cq]t be math:
 .IP \[bu] 2
-To get the famous equation, write \f[V]$e = mc\[ha]2$\f[R].
+To get the famous equation, write \f[CR]$e = mc\[ha]2$\f[R].
 .IP \[bu] 2
 $22,000 is a \f[I]lot\f[R] of money.
 So is $34,000.
@@ -566,7 +536,7 @@ So is $34,000.
 .IP \[bu] 2
 Shoes ($20) and socks ($5).
 .IP \[bu] 2
-Escaped \f[V]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
+Escaped \f[CR]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
 .PP
 Here\[cq]s a LaTeX table:
 .PP
@@ -664,11 +634,9 @@ Indented thrice.
 .PP
 This should [not][] be a link.
 .IP
-.nf
-\f[C]
+.EX
 [not]: /url
-\f[R]
-.fi
+.EE
 .PP
 Foo bar.
 .PP
@@ -699,13 +667,11 @@ An e-mail address: <nobody@nowhere.net>
 Blockquoted: <http://example.com/>
 .RE
 .PP
-Auto-links should not occur here: \f[V]<http://example.com/>\f[R]
+Auto-links should not occur here: \f[CR]<http://example.com/>\f[R]
 .IP
-.nf
-\f[C]
+.EX
 or here: <http://example.com/>
-\f[R]
-.fi
+.EE
 .PP
    *   *   *   *   *
 .SH Images
@@ -744,18 +710,16 @@ This one contains multiple blocks.
 Subsequent blocks are indented to show that they belong to the footnote (as with
 list items).
 .IP
-.nf
-\f[C]
+.EX
   { <code> }
-\f[R]
-.fi
+.EE
 .PP
 If you want, you can indent every line, but you can also be lazy and just indent
 the first line of each block.
 .SS [3]
 .PP
 This is \f[I]easier\f[R] to type.
-Inline notes may contain links (http://google.com) and \f[V]]\f[R] verbatim
+Inline notes may contain links (http://google.com) and \f[CR]]\f[R] verbatim
 characters, as well as [bracketed text].
 .SS [4]
 .PP

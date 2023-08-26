@@ -112,9 +112,11 @@ fontChange = do
                        fromMaybe False (Map.lookup 'B' features)] ++
                 ['I' | fromMaybe False $ Map.lookup 'I' features]
   return $
-    if null filling
-       then text "\\f[R]"
-       else text $ "\\f[" ++ filling ++ "]"
+    case filling of
+      [] -> text "\\f[R]"
+      -- see #9020. C is not a font, use CR.
+      ['C'] -> text "\\f[CR]"
+      _ -> text $ "\\f[" ++ filling ++ "]"
 
 withFontFeature :: (HasChars a, IsString a, PandocMonad m)
                 => Char -> MS m (Doc a) -> MS m (Doc a)

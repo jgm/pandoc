@@ -131,14 +131,12 @@ blockToMan opts (Header level _ inlines) = do
   return $ nowrap $ literal heading <> contents
 blockToMan opts (CodeBlock _ str) = return $
   literal ".IP" $$
-  literal ".nf" $$
-  literal "\\f[C]" $$
+  literal ".EX" $$
   ((case T.uncons str of
     Just ('.',_) -> literal "\\&"
     _            -> mempty) <>
    literal (escString opts str)) $$
-  literal "\\f[R]" $$
-  literal ".fi"
+  literal ".EE"
 blockToMan opts (BlockQuote blocks) = do
   contents <- blockListToMan opts blocks
   return $ literal ".RS" $$ contents $$ literal ".RE"
@@ -291,8 +289,7 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan opts (Code _ str) =
-  -- note that the V font is specially defined in the default man template
-  withFontFeature 'V' (return (literal $ escString opts str))
+  withFontFeature 'C' (return (literal $ escString opts str))
 inlineToMan opts (Str str@(T.uncons -> Just ('.',_))) =
   return $ afterBreak "\\&" <> literal (escString opts str)
 inlineToMan opts (Str str) = return $ literal $ escString opts str
