@@ -281,11 +281,9 @@ blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
         | "example" `elem` dclasses = "exampleblock"
         | "alert" `elem` dclasses = "alertblock"
         | otherwise = "block"
-  ref <- toLabel identifier
-  let anchor = if T.null identifier
-                  then empty
-                  else cr <> "\\protect\\hypertarget" <>
-                       braces (literal ref) <> braces empty
+  anchor <- if T.null identifier
+               then pure empty
+               else (cr <>) <$> hypertarget identifier
   title' <- inlineListToLaTeX ils
   contents <- blockListToLaTeX bs
   wrapDiv attr $ ("\\begin" <> braces blockname <> braces title' <> anchor) $$
@@ -318,11 +316,9 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
   slideTitle <- if ils == [Str "\0"] -- marker for hrule
                    then return empty
                    else braces <$> inlineListToLaTeX ils
-  ref <- toLabel identifier
-  let slideAnchor = if T.null identifier
-                       then empty
-                       else cr <> "\\protect\\hypertarget" <>
-                            braces (literal ref) <> braces empty
+  slideAnchor <- if T.null identifier
+                    then pure empty
+                    else (cr <>) <$> hypertarget identifier
   contents <- blockListToLaTeX bs >>= wrapDiv (identifier,classes,kvs)
   return $ ("\\begin{frame}" <> options <> slideTitle <> slideAnchor) $$
              contents $$ "\\end{frame}"
@@ -354,16 +350,8 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                           $+$ "\\end{CSLReferences}"
                else blockListToLaTeX bs
   modify $ \st -> st{ stIncremental = oldIncremental }
-  linkAnchor' <- hypertarget True identifier empty
-  -- see #2704 for the motivation for adding \leavevmode
-  -- and #7078 for \vadjust pre
-  let linkAnchor =
-        case bs of
-          Para _ : _
-            | not (isEmpty linkAnchor')
-              -> "\\leavevmode\\vadjust pre{" <> linkAnchor' <> "}%"
-          _ -> linkAnchor'
-      wrapNotes txt = if beamer && "notes" `elem` classes
+  linkAnchor <- hypertarget identifier
+  let wrapNotes txt = if beamer && "notes" `elem` classes
                          then "\\note" <> braces txt -- speaker notes
                          else linkAnchor $$ txt
   wrapNotes <$> wrapDiv (identifier,classes,kvs) result
@@ -396,12 +384,10 @@ blockToLaTeX (BlockQuote lst) = do
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
-  lab <- labelFor identifier
   inNote <- stInNote <$> get
-  linkAnchor' <- hypertarget True identifier lab
-  let linkAnchor = if isEmpty linkAnchor'
-                      then empty
-                      else linkAnchor' <> "%"
+  linkAnchor <- if T.null identifier
+                   then pure empty
+                   else ((<> cr) . (<> "%")) <$> hypertarget identifier
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
         return $ flush (linkAnchor $$ "\\begin{code}" $$ literal str $$
@@ -575,8 +561,8 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
     [b] -> blockToLaTeX b
     bs  -> mconcat . intersperse (cr <> "\\hfill") <$>
            mapM (toSubfigure (length bs)) bs
-  innards <- hypertarget True ident $
-    "\\centering" $$ contents $$ caption <> cr
+  target <- hypertarget ident
+  let innards = target $$ "\\centering" $$ contents $$ caption <> cr
   modify $ \st ->
     st{ stInFigure = isSubfigure
       , stSubfigure = stSubfigure st || isSubfigure
@@ -777,7 +763,7 @@ inlineToLaTeX (Span ("",["mark"],[]) lst) = do
   modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
   inCmd "hl" <$> inlineListToLaTeX lst
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
-  linkAnchor <- hypertarget False id' empty
+  linkAnchor <- hypertarget id'
   lang <- toLang $ lookup "lang" kvs
   let classToCmd "csl-no-emph" = Just "textup"
       classToCmd "csl-no-strong" = Just "textnormal"
@@ -806,7 +792,7 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
         else id) $
     (if T.null id'
         then empty
-        else "\\protect" <> linkAnchor) <>
+        else linkAnchor) <>
     (if null cmds
         then braces contents
         else foldr inCmd contents cmds)
@@ -959,7 +945,11 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
      Just ('#', ident) -> do
         contents <- inlineListToLaTeX txt
         lab <- toLabel ident
-        return $ text "\\hyperref" <> brackets (literal lab) <> braces contents
+        beamer <- gets stBeamer
+        return $
+          if beamer
+             then text "\\hyperlink" <> braces (literal lab) <> braces contents
+             else text "\\hyperref" <> brackets (literal lab) <> braces contents
      _ -> case txt of
           [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
                do modify $ \s -> s{ stUrl = True }
@@ -979,8 +969,8 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
      >>= (if T.null id'
              then return
              else \x -> do
-               linkAnchor <- hypertarget False id' x
-               return ("\\protect" <> linkAnchor))
+               linkAnchor <- hypertarget id'
+               return (linkAnchor <> x))
 inlineToLaTeX il@(Image _ _ (src, _))
   | Just _ <- T.stripPrefix "data:" src = do
       report $ InlineNotRendered il

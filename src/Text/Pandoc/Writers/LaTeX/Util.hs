@@ -254,15 +254,11 @@ wrapDiv (_,classes,kvs) t = do
                        Nothing  -> txt
   return $ wrapColumns . wrapColumn . wrapDir . wrapLang $ t
 
-hypertarget :: PandocMonad m => Bool -> Text -> Doc Text -> LW m (Doc Text)
-hypertarget _ "" x    = return x
-hypertarget addnewline ident x = do
-  ref <- literal `fmap` toLabel ident
-  return $ text "\\hypertarget"
-              <> braces ref
-              <> braces ((if addnewline && not (isEmpty x)
-                             then "%" <> cr
-                             else empty) <> x)
+hypertarget :: PandocMonad m => Text -> LW m (Doc Text)
+hypertarget "" = return mempty
+hypertarget ident = do
+  label <- labelFor ident
+  return $ text "\\phantomsection" <> label
 
 labelFor :: PandocMonad m => Text -> LW m (Doc Text)
 labelFor ""    = return empty
