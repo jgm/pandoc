@@ -242,7 +242,7 @@ parseBlock (Elem e) = do
            return $ codeBlockWith (attrValue "id" e, classes', [])
                   $ trimNl $ strContentRecursive e
          parseBlockquote = do
-            attrib <- case filterChild (named "attribution") e of
+            attrib <- case filterChild (named "attrib") e of
                              Nothing  -> return mempty
                              Just z   -> para . (str "— " <>) . mconcat
                                          <$>
