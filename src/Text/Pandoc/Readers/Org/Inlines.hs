@@ -892,7 +892,8 @@ macro = try $ do
       updateState $ \s -> s { orgStateMacroDepth = recursionDepth }
       return res
  where
-  argument = manyChar $ notFollowedBy eoa *> noneOf ","
+  argument = manyChar $ notFollowedBy eoa *> (escapedComma <|> noneOf ",")
+  escapedComma = try $ char '\\' *> oneOf ",\\"
   eoa = string ")}}}"
 
 smart :: PandocMonad m => OrgParser m (F Inlines)
