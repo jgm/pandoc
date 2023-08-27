@@ -339,22 +339,30 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                then do
                  modify $ \st -> st{ stHasCslRefs = True }
                  inner <- blockListToLaTeX bs
-                 return $ "\\begin{CSLReferences}" <>
-                          (if "hanging-indent" `elem` classes
-                              then braces "1"
-                              else braces "0") <>
-                          (case lookup "entry-spacing" kvs of
-                             Nothing -> braces "0"
-                             Just s  -> braces (literal s))
+                 return $ (if "hanging-indent" `notElem` classes
+                               then "\\setlength{\\cslhangindent}{0em}"
+                               else mempty)
+                          $$ ("\\setlength{\\cslentryspacing}" <> braces
+                               (case lookup "entry-spacing" kvs of
+                                  Nothing -> "0em"
+                                  Just s  -> (literal s <> "\\baselineskip")))
+                          $$ "\\begin{CSLReferences}"
                           $$ inner
                           $+$ "\\end{CSLReferences}"
                else blockListToLaTeX bs
   modify $ \st -> st{ stIncremental = oldIncremental }
-  linkAnchor <- hypertarget identifier
-  let wrapNotes txt = if beamer && "notes" `elem` classes
-                         then "\\note" <> braces txt -- speaker notes
-                         else linkAnchor $$ txt
-  wrapNotes <$> wrapDiv (identifier,classes,kvs) result
+  let wrap txt
+       | beamer && "notes" `elem` classes
+         = pure ("\\note" <> braces txt) -- speaker notes
+       | "ref-" `T.isPrefixOf` identifier
+         = do
+             lab <- toLabel identifier
+             pure $ ("\\bibitem" <> brackets "\\citeproctext"
+                      <> braces (literal lab)) $$ txt
+         | otherwise = do
+             linkAnchor <- hypertarget identifier
+             pure $ linkAnchor $$ txt
+  wrapDiv (identifier,classes,kvs) result >>= wrap
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
 -- . . . indicates pause in beamer slides
@@ -816,12 +824,14 @@ inlineToLaTeX (Subscript lst) =
 inlineToLaTeX (SmallCaps lst) =
   inCmd "textsc"<$> inlineListToLaTeX lst
 inlineToLaTeX (Cite cits lst) = do
-  st <- get
-  let opts = stOptions st
-  case writerCiteMethod opts of
-     Natbib   -> citationsToNatbib inlineListToLaTeX cits
-     Biblatex -> citationsToBiblatex inlineListToLaTeX cits
-     _        -> inlineListToLaTeX lst
+  opts <- gets stOptions
+  modify $ \st -> st{ stInCite = True }
+  res <- case writerCiteMethod opts of
+           Natbib   -> citationsToNatbib inlineListToLaTeX cits
+           Biblatex -> citationsToBiblatex inlineListToLaTeX cits
+           _        -> inlineListToLaTeX lst
+  modify $ \st -> st{ stInCite = False }
+  pure res
 
 inlineToLaTeX (Code (_,classes,kvs) str) = do
   opts <- gets stOptions
@@ -945,11 +955,14 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
      Just ('#', ident) -> do
         contents <- inlineListToLaTeX txt
         lab <- toLabel ident
+        inCite <- gets stInCite
         beamer <- gets stBeamer
         return $
-          if beamer
-             then text "\\hyperlink" <> braces (literal lab) <> braces contents
-             else text "\\hyperref" <> brackets (literal lab) <> braces contents
+          if inCite && "#ref-" `T.isPrefixOf` src
+             then "\\citeproc" <> braces (literal lab) <> braces contents
+             else if beamer
+                     then "\\hyperlink" <> braces (literal lab) <> braces contents
+                     else "\\hyperref" <> brackets (literal lab) <> braces contents
      _ -> case txt of
           [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
                do modify $ \s -> s{ stUrl = True }
