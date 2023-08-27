@@ -205,6 +205,7 @@ parseBlock (Elem e) = do
         "article-meta" -> parseMetadata e
         "custom-meta" -> parseMetadata e
         "book-meta" -> parseMetadata e
+        "book-part-meta" ->parseMetadata e
         "title" -> return mempty -- processed by header
         "label" -> return mempty -- processed by header
         "table" -> parseTable
@@ -227,6 +228,10 @@ parseBlock (Elem e) = do
                             then blockFormula displayMath e
                             else divWith (attrValue "id" e, ["disp-formula"], [])
                                     <$> getBlocks e
+        "index" -> parseBlockWithHeader
+        "index-group" -> parseBlockWithHeader
+        "toc" -> parseBlockWithHeader
+        "toc-group" -> parseBlockWithHeader
         "?xml"  -> return mempty
         _       -> getBlocks e
    where parseMixed container conts = do
