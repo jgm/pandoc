@@ -25,6 +25,7 @@ extra-deps:
 - texmath-0.12.8.1
 - skylighting-core-0.14
 - skylighting-0.14
+- skylighting-format-blaze-html-0.1.1.1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-21.7
