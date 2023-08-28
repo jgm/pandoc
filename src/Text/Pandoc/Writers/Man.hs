@@ -75,7 +75,6 @@ pandocToMan opts (Pandoc meta blocks) = do
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
-              $ defField "hyphenate" True
                 metadata
   return $ render colwidth $
     case writerTemplate opts of
@@ -132,14 +131,12 @@ blockToMan opts (Header level _ inlines) = do
   return $ nowrap $ literal heading <> contents
 blockToMan opts (CodeBlock _ str) = return $
   literal ".IP" $$
-  literal ".nf" $$
-  literal "\\f[C]" $$
+  literal ".EX" $$
   ((case T.uncons str of
     Just ('.',_) -> literal "\\&"
     _            -> mempty) <>
    literal (escString opts str)) $$
-  literal "\\f[R]" $$
-  literal ".fi"
+  literal ".EE"
 blockToMan opts (BlockQuote blocks) = do
   contents <- blockListToMan opts blocks
   return $ literal ".RS" $$ contents $$ literal ".RE"
@@ -257,7 +254,13 @@ blockListToMan :: PandocMonad m
                -> [Block]       -- ^ List of block elements
                -> StateT WriterState m (Doc Text)
 blockListToMan opts blocks =
-  vcat <$> mapM (blockToMan opts) blocks
+  vcat <$> mapM (blockToMan opts) (go blocks)
+ where
+   -- Avoid .PP right after .SH; this is a no-op in groff man and mandoc
+   -- but may cause unwanted extra space in some renderers (see #9020)
+   go [] = []
+   go (h@Header{} : Para ils : rest) = h : Plain ils : go rest
+   go (x : xs) = x : go xs
 
 -- | Convert list of Pandoc inline elements to man.
 inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m (Doc Text)
@@ -292,8 +295,7 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan opts (Code _ str) =
-  -- note that the V font is specially defined in the default man template
-  withFontFeature 'V' (return (literal $ escString opts str))
+  withFontFeature 'C' (return (literal $ escString opts str))
 inlineToMan opts (Str str@(T.uncons -> Just ('.',_))) =
   return $ afterBreak "\\&" <> literal (escString opts str)
 inlineToMan opts (Str str) = return $ literal $ escString opts str

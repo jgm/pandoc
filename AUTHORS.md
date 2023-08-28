@@ -157,6 +157,7 @@
 - Jaap de Jong
 - J. B. Rainsberger
 - J. Lewis Muir
+- Jackson Schuster
 - Jaehwang Jung
 - Jaime Marquínez Ferrándiz
 - Jake Zimmerman
@@ -195,6 +196,7 @@
 - José de Mattos Neto
 - Josef Svenningsson
 - Joseph C. Sible
+- Julia Diaz
 - Julien Cretel
 - Julien Dutant
 - Juliette Fourcot

@@ -93,9 +93,13 @@ stringToLaTeX context zs = do
             _      -> cs <> xs
     in case x of
          '\\'| isUrl -> emitc '/' -- NB. / works as path sep even on Windows
+         '#' | isUrl -> emits "\\#" -- see #9014
+         '%' | isUrl -> emits "\\%" -- see #9014
          c | isUrl ->
              if c `elem` ['{', '}', '|', '^', '~', '[', ']', '`']
-                then emits (escapeURIString (const False) [c])
+                then do
+                  emitc '\\'  -- escape the % see #9014
+                  emits (escapeURIString (const False) [c])
                 else emitc c
          '{' -> emits "\\{"
          '}' -> emits "\\}"
@@ -250,15 +254,11 @@ wrapDiv (_,classes,kvs) t = do
                        Nothing  -> txt
   return $ wrapColumns . wrapColumn . wrapDir . wrapLang $ t
 
-hypertarget :: PandocMonad m => Bool -> Text -> Doc Text -> LW m (Doc Text)
-hypertarget _ "" x    = return x
-hypertarget addnewline ident x = do
-  ref <- literal `fmap` toLabel ident
-  return $ text "\\hypertarget"
-              <> braces ref
-              <> braces ((if addnewline && not (isEmpty x)
-                             then "%" <> cr
-                             else empty) <> x)
+hypertarget :: PandocMonad m => Text -> LW m (Doc Text)
+hypertarget "" = return mempty
+hypertarget ident = do
+  label <- labelFor ident
+  return $ text "\\phantomsection" <> label
 
 labelFor :: PandocMonad m => Text -> LW m (Doc Text)
 labelFor ""    = return empty

@@ -1,5 +1,47 @@
 # Revision history for pandoc
 
+## pandoc 3.1.6.2 (2023-08-22)
+
+  * Org reader: allow example lines to end immediately after the colon
+    (Brian Leung).
+
+  * Docx reader:
+
+    + Omit "Table NN" from caption (#9002).
+    + Avoid spurious block quotes in list items (#8836).
+
+  * JATS reader: Fix display of block elements (#8889, Julia Diaz).
+    A number of block elements, like disp-quote, list, and disp-formula, were
+    always treated as inlines if appearing inside paragraphs, even if their
+    usage granted a separate block.
+
+  * HTML reader: avoid duplicate id on header and div (#8991).
+
+  * Typst writer:
+
+    + Use `~` for nonbreaking space, and escape literal `~` (#9010).
+    + Put the label in right place for Div, use `#block` (#8991).
+      Previously we were putting the label at the beginning of
+      the Div's contents, but according to the documentation such a
+      label gets attached to the *preceding* element.  We now use an
+      explicit `#block` and add the label at the end.
+
+  * LaTeX writer:
+
+    + Improve escaping of URIs in href, url (#8992).
+    + Improve internal links and targets (#8744). We no longer
+      wrap section headings in a `\hypertarget`. This is unnecessary
+      (hyperref creates an anchor based on the label) and it interferes with
+      tagging. In addition, we now use `\hyperref` rather than `\hyperlink`
+      for internal links. Currently `\hypertarget` is still being used for
+      link anchors not on headings. Thanks to @u-fischer.
+
+  * HTML format templates (style.html): Fix typo in clause for svg
+    (Jackson Schuster).
+
+  * Use lastest texmath, typst-symbols, typst. Targets typst 0.7.
+
+
 ## pandoc 3.1.6.1 (2023-08-11)
 
  * HTML reader: properly calculate RowHeadColumns (#8984). This fixes a

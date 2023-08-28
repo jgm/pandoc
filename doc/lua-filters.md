@@ -607,7 +607,7 @@ If the contents of file `occupations.md` is
 ``` markdown
 ---
 name: Samuel Q. Smith
-occupation: Professor of Phrenology
+occupation: Professor of Oenology
 ---
 
 Name
@@ -628,7 +628,7 @@ will output:
 <dd><p><span>Samuel Q. Smith</span></p>
 </dd>
 <dt>Occupation</dt>
-<dd><p><span>Professor of Phrenology</span></p>
+<dd><p><span>Professor of Oenology</span></p>
 </dd>
 </dl>
 ```

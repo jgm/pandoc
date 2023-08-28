@@ -253,11 +253,11 @@ Just type them!
   cell($>$, [`>`, `gt`]), cell($ell$, `ell`), cell($minus.plus$, `minus.plus`),
   cell($>=$, [`>=`, `gt.eq`]), cell($parallel$, `parallel`), cell($times$, `times`),
   cell($!=$, [`!=`, `eq.not`]), cell($45 degree$, `45 degree`), cell($div$, `div`),
-  cell($<<$, [`<<`, `lt.double`]), cell($tilde.eqq$, `tilde.eqq`), cell($*$, [`*`, `ast`]),
-  cell($>>$, [`>>`, `gt.double`]), cell($tilde.eqq.not$, `tilde.eqq.not`), cell($divides$, `divides`),
+  cell($<<$, [`<<`, `lt.double`]), cell($tilde.equiv$, `tilde.equiv`), cell($*$, [`*`, `ast`]),
+  cell($>>$, [`>>`, `gt.double`]), cell($tilde.equiv.not$, `tilde.equiv.not`), cell($divides$, `divides`),
   cell($approx$, `approx`), cell($tilde$, `tilde`), cell($divides.not$, `divides.not`),
   cell($\u{224D}$, [`\u{224D}` @tricky]), cell($tilde.eq$, `tilde.eq`), cell($n!$, `n!`),
-  cell($ident$, `ident`), cell($tilde.not$, `tilde.not`), cell($diff$, `diff`),
+  cell($equiv$, `equiv`), cell($tilde.not$, `tilde.not`), cell($diff$, `diff`),
   cell($prec$, `prec`), cell($plus.circle$, `plus.circle`), cell($nabla$, `nabla`),
   cell($prec.eq$, `prec.eq`), cell($minus.circle$, `minus.cirle`), cell($planck.reduce$, `planck.reduce`),
   cell($succ$, `succ`), cell($dot.circle$, `dot.circle`), cell($circle.stroked.tiny$, `circle.stroked.tiny`),
@@ -464,7 +464,7 @@ The last three here are display style.
 ))
 
 = Discrete mathematics examples
-For modulo, there is a symbol $ident$ from `ident` and a text operator $mod$ from `mod`.
+For modulo, there is a symbol $equiv$ from `equiv` and a text operator $mod$ from `mod`.
 
 For combinations the binomial symbol $binom(n, k)$ is from `binom(n, k)`.
 This resizes to be bigger in a display.
