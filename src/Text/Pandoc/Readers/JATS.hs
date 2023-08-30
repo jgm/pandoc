@@ -499,6 +499,25 @@ getContrib x = do
           then return $ given <> family
           else return $ given <> space <> family
 
+getPermissions :: PandocMonad m => Element -> JATS m ()
+getPermissions e = do
+  statement <-  case filterElement (named "copyright-statement") e of
+               Just s  -> getInlines s
+               Nothing -> return mempty
+  year <-  case filterElement (named "copyright-year") e of
+               Just s  -> getInlines s
+               Nothing -> return mempty
+  holder <-  case filterElement (named "copyright-holder") e of
+               Just s  -> getInlines s
+               Nothing -> return mempty
+  license <-  case filterElement (named "license") e of
+               Just s  -> getBlocks s
+               Nothing -> return mempty
+  when (statement /= mempty) $ addMeta "copyright-statement" statement
+  when (year /= mempty) $ addMeta "copyright-year" year
+  when (holder /= mempty) $ addMeta "copyright-holder" holder
+  when (license /= mempty) $ addMeta "license" license
+
 parseRefList :: PandocMonad m => Element -> JATS m Blocks
 parseRefList e = do
   refs <- mapM parseRef $ filterChildren (named "ref") e
