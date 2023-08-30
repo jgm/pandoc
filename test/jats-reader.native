@@ -8,6 +8,30 @@ Pandoc
                 , MetaInlines [ Str "Anonymous" ]
                 ]
             )
+          , ( "copyright"
+            , MetaMap
+                (fromList
+                   [ ( "holder" , MetaString "MacFarlane et al" )
+                   , ( "statement"
+                     , MetaString "\169 2023, MacFarlane et al"
+                     )
+                   , ( "year" , MetaString "2023" )
+                   ])
+            )
+          , ( "license"
+            , MetaMap
+                (fromList
+                   [ ( "link"
+                     , MetaString
+                         "https://creativecommons.org/licenses/by/4.0/"
+                     )
+                   , ( "text"
+                     , MetaString
+                         "This document is distributed under a Creative Commons Attribution 4.0 International license."
+                     )
+                   , ( "type" , MetaString "open-access" )
+                   ])
+            )
           , ( "references"
             , MetaList
                 [ MetaMap (fromList [ ( "id" , MetaString "note_1" ) ])

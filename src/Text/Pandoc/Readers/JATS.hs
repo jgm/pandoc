@@ -446,6 +446,47 @@ getPubDate e =
           addMeta "date" $ text $ T.intercalate "-" $ catMaybes [yr, mon, day]
     Nothing -> pure ()
 
+getPermissions :: PandocMonad m => Element -> JATS m ()
+getPermissions e = do
+  copyright <- getCopyright e
+  license <-  case filterElement (named "license") e of
+               Just s  -> getLicense s
+               Nothing -> return mempty
+  when (copyright /= mempty) $ addMeta "copyright" copyright
+  when (license /= mempty) $ addMeta "license" license
+
+getCopyright :: PandocMonad m => Element -> JATS m (Map.Map Text MetaValue)
+getCopyright e = do
+  let holder = metaElement e "copyright-holder" "holder"
+  let statement = metaElement e "copyright-statement" "statement"
+  let year = metaElement e "copyright-year" "year"
+  return $ Map.fromList (catMaybes $ [holder, statement, year])
+
+getLicense :: PandocMonad m => Element -> JATS m (Map.Map Text MetaValue)
+getLicense e = do
+  let licenseType = metaAttribute e "license-type" "type"
+  let licenseLink = metaElementAliRef e "link"
+  let licenseText = metaElement e "license-p" "text"
+  return $ Map.fromList (catMaybes $ [licenseType, licenseLink, licenseText])
+  
+metaElement :: Element -> Text -> Text -> Maybe (Text, MetaValue)
+metaElement e child key =
+  case filterElement (named child) e of
+    Just content -> Just (key, toMetaValue $ strContent content)
+    Nothing -> Nothing
+
+metaElementAliRef :: Element -> Text -> Maybe (Text, MetaValue)
+metaElementAliRef e key =      
+  case filterElement isAliLicenseRef e of
+    Just content -> Just (key, toMetaValue $ strContent content)
+    Nothing -> Nothing
+
+metaAttribute :: Element -> Text -> Text -> Maybe (Text, MetaValue)
+metaAttribute e attr key =
+  case maybeAttrValue attr e of
+    Just content -> Just (key, toMetaValue content)
+    Nothing -> Nothing
+
 getContrib :: PandocMonad m => Element -> JATS m Inlines
 getContrib x = do
   given <- maybe (return mempty) getInlines
@@ -457,25 +498,6 @@ getContrib x = do
      else if given == mempty || family == mempty
           then return $ given <> family
           else return $ given <> space <> family
-
-getPermissions :: PandocMonad m => Element -> JATS m ()
-getPermissions e = do
-  statement <-  case filterElement (named "copyright-statement") e of
-               Just s  -> getInlines s
-               Nothing -> return mempty
-  year <-  case filterElement (named "copyright-year") e of
-               Just s  -> getInlines s
-               Nothing -> return mempty
-  holder <-  case filterElement (named "copyright-holder") e of
-               Just s  -> getInlines s
-               Nothing -> return mempty
-  license <-  case filterElement (named "license") e of
-               Just s  -> getBlocks s
-               Nothing -> return mempty
-  when (statement /= mempty) $ addMeta "copyright-statement" statement
-  when (year /= mempty) $ addMeta "copyright-year" year
-  when (holder /= mempty) $ addMeta "copyright-holder" holder
-  when (license /= mempty) $ addMeta "license" license
 
 parseRefList :: PandocMonad m => Element -> JATS m Blocks
 parseRefList e = do
@@ -684,3 +706,8 @@ formulaChildren x = filterChildren isMathML x ++ filterChildren (named "tex-math
 
 hasFormulaChild :: Element -> Bool
 hasFormulaChild x = length (formulaChildren x) > 0
+
+isAliLicenseRef :: Element -> Bool
+isAliLicenseRef x = qName (elName x) == "license_ref" &&
+                      qURI  (elName x) ==
+                                      Just "http://www.niso.org/schemas/ali/1.0/"
