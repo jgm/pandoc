@@ -358,7 +358,7 @@
   * New module: Text.Pandoc.Readers.Typst [API change].
 
   * DocBook reader:
->
+
     + Support more emphasis roles (Albert Krewinkel).
       The role "bf" is taken to indicate "bold face", i.e.,
       "strongly emphasized" text, while "underline" leads to
@@ -24742,7 +24742,7 @@
     and LaTeX readers.  This allows great simplification of the writers
     and more accurate smart quotes, dashes, and ellipses.  DocBook can
     now use `<quote>`.  The '--smart' option now toggles an option in
-    the parser state rather than a writer option.  SeNew Tabveral new kinds
+    the parser state rather than a writer option.  Several new kinds
     of inline elements have been added: Quoted, Ellipses, Apostrophe,
     EmDash, EnDash.
 
