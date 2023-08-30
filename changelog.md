@@ -163,7 +163,7 @@
     (#8947, #8955). With ghc 9.4+, we were getting AVX instructions
     in the amd64 binary, which aren't supported on older hardware.
     For maximum compatibility we switch back to ghc 9.2, which doesn't
-    cause the problem. (As documented, ghc should not be emiting these
+    cause the problem. (As documented, ghc should not be emitting these
     instructions, so we aren't clear on the diagnosis, but the cure
     has been tested.)
 
@@ -209,7 +209,7 @@
       The AsciiDoc community now regards the dialect parsed by `asciidoctor`
       as the official AsciiDoc syntax, so it should be the target of our
       `asciidoc` format. The `asciidoc` output format now behaves like
-      `asciidoctor` used to. `asciidoctor` is a deprecated synonynm. For
+      `asciidoctor` used to. `asciidoctor` is a deprecated synonym. For
       the old `asciidoc` behavior (targeting the Python script),
       use `asciidoc_legacy`. The templates have been consolidated. Instead of
       separate `default.asciidoctor` and `default.asciidoc` templates, there
@@ -3808,7 +3808,7 @@
 
     + Implement siunitx v3 commands (#7614).
       We support `\unit`, `\qty`, `\qtyrange`, and `\qtylist`
-      as synonynms of `\si`, `\SI`, `\SIrange`, and `\SIlist`.
+      as synonyms of `\si`, `\SI`, `\SIrange`, and `\SIlist`.
     + Properly handle `\^` followed by group closing (#7615).
     + Recognize that `\vadjust` sometimes takes "pre" (#7531).
     + Ignore (and gobble parameters of) CSLReferences environment (#7531).
@@ -9880,7 +9880,7 @@
       not have a `startFrom` attribute; with a blank value, the
       writers can produce extra whitespace.
     + Removed superfluous `sourceCode` class on code blocks (#5047).
-    + Handle `sourcecode` directive as synonynm for `code` (#5204).
+    + Handle `sourcecode` directive as synonym for `code` (#5204).
 
   * Markdown reader:
 
