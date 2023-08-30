@@ -1931,15 +1931,20 @@ referenceLink constructor (lab, raw) = do
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let !labIsRef = raw' == "" || raw' == "[]"
-  let !key = toKey $ if labIsRef then raw else raw'
+  let (rawprefix, rawsuffix) =
+        case T.uncons raw of
+          Just ('!', x) -> ("!", x)
+          _ -> ("", raw)
+  let !key = toKey $ if labIsRef then rawsuffix else raw'
   parsedRaw <- parseFromString' inlines raw'
-  fallback  <- parseFromString' inlines $ dropBrackets raw
+  fallback  <- parseFromString' inlines $ dropBrackets rawsuffix
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
   let makeFallback = do
        parsedRaw' <- parsedRaw
        fallback' <- fallback
-       return $ B.str "[" <> fallback' <> B.str "]" <>
+       return $ rawprefix <>
+                B.str "[" <> fallback' <> B.str "]" <>
                 (if sp && not (T.null raw) then B.space else mempty) <>
                 parsedRaw'
   return $ do
@@ -2014,7 +2019,7 @@ image = try $ do
             "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
                                             $ T.unpack defaultExt)
             _  -> B.imageWith attr' src
-  regLink constructor lab <|> referenceLink constructor (lab,raw)
+  regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
