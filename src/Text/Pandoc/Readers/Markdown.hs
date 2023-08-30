@@ -1931,20 +1931,23 @@ referenceLink constructor (lab, raw) = do
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let !labIsRef = raw' == "" || raw' == "[]"
-  let (rawprefix, rawsuffix) =
+  let (exclam, rawsuffix) =
         case T.uncons raw of
-          Just ('!', x) -> ("!", x)
-          _ -> ("", raw)
+          Just ('!', rest) -> (True, rest)
+          _ -> (False, raw)
   let !key = toKey $ if labIsRef then rawsuffix else raw'
   parsedRaw <- parseFromString' inlines raw'
-  fallback  <- parseFromString' inlines $ dropBrackets rawsuffix
+  fallback  <- parseFromString' inlines $ if exclam
+                                             then rawsuffix
+                                             else dropBrackets rawsuffix
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
   let makeFallback = do
        parsedRaw' <- parsedRaw
        fallback' <- fallback
-       return $ rawprefix <>
-                B.str "[" <> fallback' <> B.str "]" <>
+       return $ (if exclam
+                    then "!" <> fallback'
+                    else B.str "[" <> fallback' <> B.str "]") <>
                 (if sp && not (T.null raw) then B.space else mempty) <>
                 parsedRaw'
   return $ do
