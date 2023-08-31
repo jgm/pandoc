@@ -855,7 +855,6 @@ orderedList = try $ do
   (indent, attr) <- lookAhead orderedListStart
   fmap (B.orderedListWith attr . compactify) . sequence
     <$> many1 (listItem ((fst <$> orderedListStart) `indented` indent))
-  where fst3 (x,_,_) = x
 
 definitionListItem :: PandocMonad m
                    => OrgParser m Int
