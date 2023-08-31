@@ -1,5 +1,81 @@
 # Revision history for pandoc
 
+## pandoc 3.1.7 (2023-08-31)
+
+  * Org reader:
+
+    + Don't parse alphabetical lists unless the `fancy_lists` extension is
+      enabled (#9042).
+    + Allow escaping commas in macro arguments (Amneesh Singh).
+
+  * JATS reader:
+
+    + Support for `<permissions>` metadata (#9037, Julia Diaz).
+      metadata objects with multiple fields are created, matching the
+      structure in JATS.
+    + Correct name of JATS element `attrib`.
+
+  * Markdown reader:
+
+    + Support images with wikilink syntax, e.g. `![[foo|bar]]`, when
+      one of the `wikilinks` extension is enabled (#8853).
+    + Allow a citation or reference link to be parsed after a `!` (#8254).
+    + Fix dropped `!` before nonexistent reference (#9038).
+
+  * LaTeX writer:
+
+    + Fix regression in escaping URLs (#9043).
+    + Use `\cite` and `\bibitem` to link up citations, even with citeproc.
+      (#9031). This will give us better accessibility; when tagging is
+      enabled, the citation can be linked to the bibliography entry.
+      This changes some of the details of the layout and the default
+      template. We now make `CSLReferences` a special enumitem list
+      that will contain `\bibitem`s. Internal links inside citations to
+      ids beginning in `ref-` are creating using `\cite` instead of
+      `\hyperref`.
+    + Use `\phantomsection` and `\label` instead of `\hypertarget` (#9022).
+    + Use `\hyperref` for LaTeX internal links, `\hyperlink` for
+      beamer (since `\hyperref` doesn't seem to work) (#9022).
+    + Backslash-escape `%` and `#` in URLs (#9014).
+
+  * JATS writer:
+
+    + Fix placement of ref-list when no title is specified for the
+      reference section (#9017). (In this case we place it in `back`
+      with an empty title.)
+
+  * Man writer:
+
+    + Avoid a `.PP` right after a section heading (#9020).
+      This is at best a no-op (in groff man and mandoc) and at worst
+      (in some formatters) may create extra whitespace.
+    + We revert the fanciness introduced in #7506, which employs a
+      custom font name `V` and a macro that makes this act like boldface
+      in a terminal and monospace in other formats.  Unfortunately,
+      this code uses a mechanism that is not portable (and does not
+      work in mandoc) (#9020).
+    + Instead of using `V` for inline code, we simply use `CR`.
+      Note that `\f[CR]` is emitted instead of plain `\f[C]`,
+      because there is no `C` font in man.  (This produces warnings
+      in recent versions of groff, #9020.)
+    + For code blocks, we now use the `.EX` and `.EE` macros,
+      together with `.IP` for spacing and indentation.  This gives
+      more standard code that can be better interpreted e.g. by mandoc
+      (#9020).
+
+  * Man template: don't emit `.hy`, regardless of setting of
+    `hyphenate` variable (#9020).
+
+  * LaTeX template: special redefinition of `\st` for CJK (#9019).
+    soul's version raises on error on CJK text.
+
+  * Use latest skylighting-format-blaze-html (#7248).
+    This works around a longstanding iOS Safari bug that caused long
+    lines to be displayed in a different font size in highlighted code.
+
+  * Allow skylighting 0.14 (and require it in pandoc core).
+
+
 ## pandoc 3.1.6.2 (2023-08-22)
 
   * Org reader: allow example lines to end immediately after the colon
