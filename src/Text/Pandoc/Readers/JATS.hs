@@ -468,7 +468,7 @@ getLicense e = do
   let licenseLink = metaElementAliRef e "link"
   let licenseText = metaElement e "license-p" "text"
   return $ Map.fromList (catMaybes $ [licenseType, licenseLink, licenseText])
-  
+
 metaElement :: Element -> Text -> Text -> Maybe (Text, MetaValue)
 metaElement e child key =
   case filterElement (named child) e of
@@ -476,7 +476,7 @@ metaElement e child key =
     Nothing -> Nothing
 
 metaElementAliRef :: Element -> Text -> Maybe (Text, MetaValue)
-metaElementAliRef e key =      
+metaElementAliRef e key =
   case filterElement isAliLicenseRef e of
     Just content -> Just (key, toMetaValue $ strContent content)
     Nothing -> Nothing
