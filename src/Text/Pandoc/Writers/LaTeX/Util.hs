@@ -29,7 +29,6 @@ import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState(..))
 import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
 import Text.Pandoc.Highlighting (toListingsLanguage)
 import Text.DocLayout
-import Network.URI (escapeURIString)
 import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize (showFl)
 import Control.Monad.State.Strict (gets, modify)
@@ -92,15 +91,19 @@ stringToLaTeX context zs = do
             '\'':_ -> cs <> "\\," <> xs -- add thin space
             _      -> cs <> xs
     in case x of
-         '\\'| isUrl -> emitc '/' -- NB. / works as path sep even on Windows
-         '#' | isUrl -> emits "\\#" -- see #9014
-         '%' | isUrl -> emits "\\%" -- see #9014
-         c | isUrl ->
-             if c `elem` ['{', '}', '|', '^', '~', '[', ']', '`']
-                then do
-                  emitc '\\'  -- escape the % see #9014
-                  emits (escapeURIString (const False) [c])
-                else emitc c
+         _ | isUrl ->
+           case x of
+             '\\' -> emitc '/' -- NB / works as path sep even on Windows
+             '#' -> emits "\\#" -- #9014
+             '%' -> emits "\\%" -- #9014
+             '{' -> emits "\\%7B"
+             '}' -> emits "\\%7D"
+             '|' -> emits "\\%7C"
+             '^' -> emits "\\%5E"
+             '[' -> emits "\\%5B"
+             ']' -> emits "\\%5D"
+             '`' -> emits "\\%60"
+             _ -> emitc x
          '{' -> emits "\\{"
          '}' -> emits "\\}"
          '?' | ligatures ->  -- avoid ?` ligature
