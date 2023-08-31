@@ -147,6 +147,8 @@ debpkg: ## create linux package
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \
 		   -e REVISION=$(REVISION) \
+       -e GHCOPTS="-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread" \
+       -e CABALOPTS="-f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4" \
 		   -w /mnt \
 		   --memory=0 \
 		   --rm \
