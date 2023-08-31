@@ -75,6 +75,7 @@
 
   * Allow skylighting 0.14 (and require it in pandoc core).
 
+  * Allow text 2.1.
 
 ## pandoc 3.1.6.2 (2023-08-22)
 
