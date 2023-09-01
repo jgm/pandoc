@@ -169,6 +169,18 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--variable footer="pandoc $(version)" \
 		-o $@
 
+man/%.1: doc/%.md
+	pandoc $< -f markdown -t man -s \
+		--lua-filter man/manfilter.lua \
+		--metadata author="" \
+    --variable section="1" \
+    --variable title="$(basename $(notdir $@))" \
+    --variable header='Pandoc User\[cq]s Guide' \
+		--variable footer="pandoc $(version)" \
+    --include-after-body man/pandoc.1.after \
+		-o $@
+
+
 man/pandoc-%.1: doc/pandoc-%.md
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
