@@ -163,6 +163,9 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--include-before-body man/pandoc.1.before \
 		--include-after-body man/pandoc.1.after \
 		--metadata author="" \
+    --variable section="1" \
+    --variable title="pandoc" \
+    --variable header='Pandoc User\[cq]s Guide' \
 		--variable footer="pandoc $(version)" \
 		-o $@
 
