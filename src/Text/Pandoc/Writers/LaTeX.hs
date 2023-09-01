@@ -569,8 +569,7 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
     [b] -> blockToLaTeX b
     bs  -> mconcat . intersperse (cr <> "\\hfill") <$>
            mapM (toSubfigure (length bs)) bs
-  target <- hypertarget ident
-  let innards = target $$ "\\centering" $$ contents $$ caption <> cr
+  let innards = "\\centering" $$ contents $$ caption <> cr
   modify $ \st ->
     st{ stInFigure = isSubfigure
       , stSubfigure = stSubfigure st || isSubfigure
