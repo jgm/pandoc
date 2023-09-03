@@ -339,8 +339,10 @@ $if(csl-refs)$
 \NewDocumentCommand\citeproctext{}{}
 \NewDocumentCommand\citeproc{mm}{%
   \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
-% avoid brackets around text for \cite:
 \makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
  \def\@biblabel#1{}
  \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
 \makeatother
