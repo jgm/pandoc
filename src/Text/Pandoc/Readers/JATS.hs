@@ -39,6 +39,7 @@ import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Safe (headMay)
+import Text.Printf (printf)
 
 type JATS m = StateT JATSState m
 
@@ -437,15 +438,27 @@ getAbstract e =
 getPubDate :: PandocMonad m => Element -> JATS m ()
 getPubDate e =
   case filterElement (named "pub-date") e of
-    Just d -> do
-      case maybeAttrValue "iso-8601-date" d of
-        Just isod -> addMeta "date" (text isod)
-        Nothing -> do
-          let yr = strContent <$> filterElement (named "year") d
-          let mon = strContent <$> filterElement (named "month") d
-          let day = strContent <$> filterElement (named "day") d
-          addMeta "date" $ text $ T.intercalate "-" $ catMaybes [yr, mon, day]
+    Just d -> getDate d >>= addMeta "date" . text
     Nothing -> pure ()
+
+-- extract a structured date and create an ISO-8901 string date from it
+getDate :: PandocMonad m => Element -> JATS m Text
+getDate e =
+  case maybeAttrValue "iso-8601-date" e of
+    Just isod -> pure isod
+    Nothing -> do
+      let extractDate :: Element -> Maybe Int
+          extractDate = safeRead . strContent
+      let yr = filterElement (named "year") e >>= extractDate
+      let mon = filterElement (named "month") e >>= extractDate
+      let day = filterElement (named "day") e >>= extractDate
+      let stringDate = strContent <$> filterElement (named "string-date") e
+      pure $
+        case (yr, mon, day) of
+          (Just y, Just m, Just d) -> T.pack $ printf "%04d-%02d-%02d" y m d
+          (Just y, Just m, Nothing) -> T.pack $ printf "%04d-%02d" y m
+          (Just y, Nothing, Nothing) -> T.pack $ printf "%04d" y
+          _ -> fromMaybe mempty stringDate
 
 getPermissions :: PandocMonad m => Element -> JATS m ()
 getPermissions e = do
