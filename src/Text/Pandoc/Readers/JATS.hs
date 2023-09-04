@@ -201,6 +201,7 @@ parseBlock (Elem e) = do
         "journal-meta" -> parseMetadata e
         "article-meta" -> parseMetadata e
         "custom-meta" -> parseMetadata e
+        "processing-meta" -> return mempty
         "title" -> return mempty -- processed by header
         "label" -> return mempty -- processed by header
         "table" -> parseTable
