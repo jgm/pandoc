@@ -350,15 +350,19 @@ $if(csl-refs)$
 \setlength{\cslhangindent}{1.5em}
 \newlength{\csllabelwidth}
 \setlength{\csllabelwidth}{3em}
-\newlength{\cslentryspacing}
-\setlength{\cslentryspacing}{0em}
-\usepackage{enumitem}
-\newlist{CSLReferences}{itemize}{1}
-\setlist[CSLReferences]{label={},
-  leftmargin=\cslhangindent,
-  itemindent=-1\cslhangindent,
-  parsep=\parskip,
-  itemsep=\cslentryspacing}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
 \usepackage{calc}
 \newcommand{\CSLBlock}[1]{\hfill\break#1\hfill\break}
 \newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
