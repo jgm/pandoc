@@ -28,7 +28,7 @@ Some text.[^1]
 
 Some text.[^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-OCLC_i1099 .csl-entry}
 OCLC. "WorldCat." Accessed September 19, 2014.
 <https://www.worldcat.org/>.

@@ -83,7 +83,7 @@ With some markup (*see* [Doe 2005, 32](#ref-item1)).
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item1 .csl-entry}
 Doe, John. 2005. *First Book*. Cambridge: Cambridge University Press.
 :::

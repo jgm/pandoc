@@ -345,9 +345,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                                     then "1"
                                     else "0")
                             <> braces
-                               (case lookup "entry-spacing" kvs of
-                                  Nothing -> "0"
-                                  Just s  -> literal s))
+                               (maybe "1" literal (lookup "entry-spacing" kvs)))
                           $$ inner
                           $+$ "\\end{CSLReferences}"
                else blockListToLaTeX bs

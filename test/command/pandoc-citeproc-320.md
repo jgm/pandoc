@@ -138,7 +138,7 @@ n.d.; Madison, n.d.; McAllister, n.d.; McAuley, n.d.; McMillan, n.d.).
 Foo (Sainte-Beuve, n.d.; Saint-Gaudens, n.d.; Saint-Saëns, n.d.; San
 Martin, n.d.; St. Denis, n.d.; St. Laurent, n.d.).
 
-::: {#refs .references .csl-bib-body .hanging-indent line-spacing="2"}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0" line-spacing="2"}
 ::: {#ref-itemA2 .csl-entry}
 ben Yaakov, D. (n.d.).
 :::

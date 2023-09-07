@@ -13,7 +13,7 @@ references:
 "Essays Presented to N.R. Ker (On Art)" (n.d.); "*Test:* An Experiment:
 An Abridgement" (n.d.)
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-test .csl-entry}
 "Essays Presented to N.R. Ker (On Art)." n.d.
 :::

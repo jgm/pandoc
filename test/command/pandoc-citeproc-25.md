@@ -22,7 +22,7 @@ Foo (Author 1998).
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item1 .csl-entry}
 Author, Al. 1998. "Foo Bar Baz: Bazbaz Foo."
 :::

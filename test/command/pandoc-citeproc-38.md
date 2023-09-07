@@ -21,7 +21,7 @@ references:
 ^D
 Doe, Doe, and Roe (2007)
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-a .csl-entry}
 Doe, Ann, Ben Doe, and Ron Roe. 2007. "Title."
 :::
