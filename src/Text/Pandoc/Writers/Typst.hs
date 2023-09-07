@@ -189,10 +189,12 @@ blockToTypst block =
       return $ "#figure(" <> nest 2 (brackets contents <> "," <> cr <>
                                      ("caption: [" $$ nest 2 caption $$ "]"))
                           $$ ")" $$ lab $$ blankline
+    Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
+      blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
     Div (ident,_,_) blocks -> do
       let lab = toLabel ident
       contents <- blocksToTypst blocks
-      return $ lab $$ contents
+      return $ "#block[" $$ contents $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do
@@ -296,8 +298,10 @@ escapeTypst context t =
      else t
   where
     escapeChar c
+      | c == '\160' = "~"
       | needsEscape c = "\\" <> T.singleton c
       | otherwise = T.singleton c
+    needsEscape '\160' = True
     needsEscape '[' = True
     needsEscape ']' = True
     needsEscape '#' = True
@@ -312,6 +316,7 @@ escapeTypst context t =
     needsEscape '=' = True
     needsEscape '_' = True
     needsEscape '*' = True
+    needsEscape '~' = True
     needsEscape ':' = context == TermContext
     needsEscape _ = False
 

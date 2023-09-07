@@ -91,6 +91,21 @@ stringToLaTeX context zs = do
             '\'':_ -> cs <> "\\," <> xs -- add thin space
             _      -> cs <> xs
     in case x of
+         _ | isUrl ->
+           case x of
+             '\\' -> emitc '/' -- NB / works as path sep even on Windows
+             '#' -> emits "\\#" -- #9014
+             '%' -> emits "\\%" -- #9014
+             '{' -> emits "\\%7B"
+             '}' -> emits "\\%7D"
+             '|' -> emits "\\%7C"
+             '^' -> emits "\\%5E"
+             '[' -> emits "\\%5B"
+             ']' -> emits "\\%5D"
+             '`' -> emits "\\%60"
+             _ -> emitc x
+         '{' -> emits "\\{"
+         '}' -> emits "\\}"
          '?' | ligatures ->  -- avoid ?` ligature
            case xs of
              '`':_ -> emits "?{}"
@@ -99,27 +114,24 @@ stringToLaTeX context zs = do
            case xs of
              '`':_ -> emits "!{}"
              _     -> emitc x
-         '{' -> emits "\\{"
-         '}' -> emits "\\}"
          '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
-         '$' | not isUrl -> emits "\\$"
+         '$' -> emits "\\$"
          '%' -> emits "\\%"
-         '&' | not isUrl -> emits "\\&"
-         '_' | not isUrl -> emits "\\_"
+         '&' -> emits "\\&"
+         '_' -> emits "\\_"
          '#' -> emits "\\#"
-         '-' | not isUrl -> case xs of
+         '-' -> case xs of
                      -- prevent adjacent hyphens from forming ligatures
                      ('-':_) -> emits "-\\/"
                      _       -> emitc '-'
-         '~' | not isUrl -> emitcseq "\\textasciitilde"
+         '~' -> emitcseq "\\textasciitilde"
          '^' -> emits "\\^{}"
-         '\\'| isUrl     -> emitc '/' -- NB. / works as path sep even on Windows
-             | otherwise -> emitcseq "\\textbackslash"
-         '|' | not isUrl -> emitcseq "\\textbar"
-         '<' -> emitcseq "\\textless"
-         '>' -> emitcseq "\\textgreater"
-         '[' -> emits "{[}"  -- to avoid interpretation as
-         ']' -> emits "{]}"  -- optional arguments
+         '\\' -> emitcseq "\\textbackslash"
+         '|'  -> emitcseq "\\textbar"
+         '<'  -> emitcseq "\\textless"
+         '>'  -> emitcseq "\\textgreater"
+         '['  -> emits "{[}"  -- to avoid interpretation as
+         ']'  -> emits "{]}"  -- optional arguments
          '\'' -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
@@ -245,15 +257,11 @@ wrapDiv (_,classes,kvs) t = do
                        Nothing  -> txt
   return $ wrapColumns . wrapColumn . wrapDir . wrapLang $ t
 
-hypertarget :: PandocMonad m => Bool -> Text -> Doc Text -> LW m (Doc Text)
-hypertarget _ "" x    = return x
-hypertarget addnewline ident x = do
-  ref <- literal `fmap` toLabel ident
-  return $ text "\\hypertarget"
-              <> braces ref
-              <> braces ((if addnewline && not (isEmpty x)
-                             then "%" <> cr
-                             else empty) <> x)
+hypertarget :: PandocMonad m => Text -> LW m (Doc Text)
+hypertarget "" = return mempty
+hypertarget ident = do
+  label <- labelFor ident
+  return $ text "\\phantomsection" <> label
 
 labelFor :: PandocMonad m => Text -> LW m (Doc Text)
 labelFor ""    = return empty

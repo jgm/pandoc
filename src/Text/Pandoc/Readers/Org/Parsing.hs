@@ -29,6 +29,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , orgArgWordChar
   , orgTagWord
   , orgTagWordChar
+  , orgAnchor
   -- * Re-exports from Text.Pandoc.Parser
   , ParserContext (..)
   , textStr
@@ -216,3 +217,16 @@ orgTagWord = many1Char orgTagWordChar
 
 orgTagWordChar :: Monad m => OrgParser m Char
 orgTagWordChar = alphaNum <|> oneOf "@%#_"
+
+orgAnchor :: Monad m => OrgParser m Text
+orgAnchor = try $ do
+  string "<<"
+  anchorId <- many1Char (noneOf "\t\n\r<>\"' ")
+  string ">>"
+  skipSpaces
+  recordAnchorId anchorId
+  return anchorId
+
+recordAnchorId :: Monad m => Text -> OrgParser m ()
+recordAnchorId i = updateState $ \s ->
+  s{ orgStateAnchorIds = i : orgStateAnchorIds s }

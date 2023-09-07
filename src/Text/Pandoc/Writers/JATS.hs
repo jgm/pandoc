@@ -91,6 +91,15 @@ writeJats tagSet opts d = do
   runReaderT (evalStateT (docToJATS opts d) initialState)
              environment
 
+-- see #9017 for motivation
+ensureReferenceHeader :: [Block] -> [Block]
+ensureReferenceHeader [] = []
+ensureReferenceHeader (h@(Header{}):refs@(Div ("refs",_,_) _) : xs) =
+  h:refs:xs
+ensureReferenceHeader (refs@(Div ("refs",_,_) _) : xs) =
+  Header 1 nullAttr mempty : refs : xs
+ensureReferenceHeader (x:xs) = x :ensureReferenceHeader xs
+
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
 docToJATS opts (Pandoc meta blocks') = do
@@ -100,7 +109,8 @@ docToJATS opts (Pandoc meta blocks') = do
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
-  let blocks = makeSections (writerNumberSections opts) (Just startLvl) blocks'
+  let blocks = makeSections (writerNumberSections opts) (Just startLvl)
+                  $ ensureReferenceHeader blocks'
   let splitBackBlocks b@(Div ("refs",_,_) _) (fs, bs) = (fs, b:bs)
       splitBackBlocks (Div (ident,("section":_),_)
                                [ Header lev (_,hcls,hkvs) hils

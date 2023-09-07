@@ -382,7 +382,7 @@ Autonumbering:
 
 Should not be a list item:
 
-M.A. 2007
+M.A.~2007
 
 B. Williams
 
@@ -497,20 +497,32 @@ orange fruit
 <html-blocks>
 Simple block on one line:
 
+#block[
 foo
+]
 And nested without indentation:
 
+#block[
+#block[
+#block[
 foo
 
+]
+]
+#block[
 bar
+]
+]
 Interpreted markdown in a table:
 
 This is #emph[emphasized]
 And this is #strong[strong]
 Here’s a simple block:
 
+#block[
 foo
 
+]
 This should be a code block, though:
 
 ```
@@ -527,7 +539,13 @@ As should this:
 
 Now, nested:
 
+#block[
+#block[
+#block[
 foo
+]
+]
+]
 This should just be an HTML comment:
 
 Multiline:
@@ -570,12 +588,12 @@ This is code: `>`, `$`, `\`, `\$`, `<html>`.
 
 #strike[This is #emph[strikeout].]
 
-Superscripts: a#super[bc]d a#super[#emph[hello]] a#super[hello there].
+Superscripts: a#super[bc]d a#super[#emph[hello]] a#super[hello~there].
 
-Subscripts: H#sub[2]O, H#sub[23]O, H#sub[many of them]O.
+Subscripts: H#sub[2]O, H#sub[23]O, H#sub[many~of~them]O.
 
 These should not be superscripts or subscripts, because of the unescaped spaces:
-a^b c^d, a~b c~d.
+a^b c^d, a\~b c\~d.
 
 #horizontalrule
 

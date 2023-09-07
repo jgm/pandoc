@@ -69,6 +69,7 @@ import Text.Pandoc.Shared (
 import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Walk
 import Text.TeXMath (readMathML, writeTeX)
+import qualified Data.Sequence as Seq
 
 -- | Convert HTML-formatted string to 'Pandoc' document.
 readHtml :: (PandocMonad m, ToSources a)
@@ -459,13 +460,18 @@ pDiv = try $ do
   TagOpen tag attr' <- lookAhead $ pSatisfy $ tagOpen isDivLike (const True)
   let (ident, classes, kvs) = toAttr attr'
   contents <- pInTags tag block
+  let contents' = case B.unMany contents of
+                    Header lev (hident,hclasses,hkvs) ils Seq.:<| rest
+                        | hident == ident ->
+                          B.Many $ Header lev ("",hclasses,hkvs) ils Seq.<| rest
+                    _ -> contents
   let classes' = if tag == "section"
                     then "section":classes
                     else classes
       kvs' = if tag == "main" && isNothing (lookup "role" kvs)
                then ("role", "main"):kvs
                else kvs
-  return $ B.divWith (ident, classes', kvs') contents
+  return $ B.divWith (ident, classes', kvs') contents'
 
 pIframe :: PandocMonad m => TagParser m Blocks
 pIframe = try $ do

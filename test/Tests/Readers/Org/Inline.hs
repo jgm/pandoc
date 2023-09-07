@@ -393,6 +393,11 @@ tests =
                 , "{{{HELLO()}}}"
                 ] =?>
       para "Foo Bar"
+  , "Macro called with an escaped comma" =:
+      T.unlines [ "#+MACRO: HELLO Foo $1"
+                , "{{{HELLO(moin\\, niom)}}}"
+                ] =?>
+      para "Foo moin, niom"
 
   , testGroup "Citations" Citation.tests
   , testGroup "Footnotes" Note.tests

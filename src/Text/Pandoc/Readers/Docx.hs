@@ -624,10 +624,10 @@ extraAttr s = ("", [], [("custom-style", fromStyleName $ getStyleName s)])
 
 paragraphStyleToTransform :: PandocMonad m => ParagraphStyle -> DocxContext m (Blocks -> Blocks)
 paragraphStyleToTransform pPr =
-  let stylenames = map getStyleName (pStyle pPr)
-      transform = if (`elem` listParagraphStyles) `any` stylenames || relativeIndent pPr <= 0
-                  then id
-                  else blockQuote
+  let transform = if relativeIndent pPr > 0 && not (numbered pPr) &&
+                        not (any ((`elem` listParagraphStyles) . getStyleName) (pStyle pPr))
+                  then blockQuote
+                  else id
   in do
     extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
     return $ foldr (\parStyle transform' ->

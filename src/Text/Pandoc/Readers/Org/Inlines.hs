@@ -42,10 +42,6 @@ import qualified Data.Text as T
 --
 -- Functions acting on the parser state
 --
-recordAnchorId :: PandocMonad m => Text -> OrgParser m ()
-recordAnchorId i = updateState $ \s ->
-  s{ orgStateAnchorIds = i : orgStateAnchorIds s }
-
 pushToInlineCharStack :: PandocMonad m => Char -> OrgParser m ()
 pushToInlineCharStack c = updateState $ \s ->
   s{ orgStateEmphasisCharStack = c:orgStateEmphasisCharStack s }
@@ -513,15 +509,9 @@ internalLink link title = do
 -- @anchor-id@ contains spaces, we are more restrictive in what is accepted as
 -- an anchor.
 anchor :: PandocMonad m => OrgParser m (F Inlines)
-anchor =  try $ do
-  anchorId <- parseAnchor
-  recordAnchorId anchorId
+anchor =  do
+  anchorId <- orgAnchor
   returnF $ B.spanWith (solidify anchorId, [], []) mempty
- where
-       parseAnchor = string "<<"
-                     *> many1Char (noneOf "\t\n\r<>\"' ")
-                     <* string ">>"
-                     <* skipSpaces
 
 -- | Replace every char but [a-zA-Z0-9_.-:] with a hyphen '-'.  This mirrors
 -- the org function @org-export-solidify-link-text@.
@@ -892,7 +882,8 @@ macro = try $ do
       updateState $ \s -> s { orgStateMacroDepth = recursionDepth }
       return res
  where
-  argument = manyChar $ notFollowedBy eoa *> noneOf ","
+  argument = manyChar $ notFollowedBy eoa *> (escapedComma <|> noneOf ",")
+  escapedComma = try $ char '\\' *> oneOf ",\\"
   eoa = string ")}}}"
 
 smart :: PandocMonad m => OrgParser m (F Inlines)

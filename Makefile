@@ -147,6 +147,8 @@ debpkg: ## create linux package
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \
 		   -e REVISION=$(REVISION) \
+       -e GHCOPTS="-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread" \
+       -e CABALOPTS="-f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4" \
 		   -w /mnt \
 		   --memory=0 \
 		   --rm \
@@ -161,8 +163,23 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--include-before-body man/pandoc.1.before \
 		--include-after-body man/pandoc.1.after \
 		--metadata author="" \
+    --variable section="1" \
+    --variable title="pandoc" \
+    --variable header='Pandoc User\[cq]s Guide' \
 		--variable footer="pandoc $(version)" \
 		-o $@
+
+man/%.1: doc/%.md
+	pandoc $< -f markdown -t man -s \
+		--lua-filter man/manfilter.lua \
+		--metadata author="" \
+    --variable section="1" \
+    --variable title="$(basename $(notdir $@))" \
+    --variable header='Pandoc User\[cq]s Guide' \
+		--variable footer="pandoc $(version)" \
+    --include-after-body man/pandoc.1.after \
+		-o $@
+
 
 man/pandoc-%.1: doc/pandoc-%.md
 	pandoc $< -f markdown -t man -s \

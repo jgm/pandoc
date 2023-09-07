@@ -50,7 +50,7 @@ tests = [ testGroup "code blocks"
         , testGroup "definition lists"
           [ "with internal link" =: definitionList [(link "#go" "" (str "testing"),
              [plain (text "hi there")])] =?>
-            "\\begin{description}\n\\tightlist\n\\item[{\\protect\\hyperlink{go}{testing}}]\nhi there\n\\end{description}"
+            "\\begin{description}\n\\tightlist\n\\item[{\\hyperref[go]{testing}}]\nhi there\n\\end{description}"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
@@ -60,7 +60,7 @@ tests = [ testGroup "code blocks"
           [ "unnumbered header" =:
             headerWith ("foo",["unnumbered"],[]) 1
               (text "Header 1" <> note (plain $ text "note")) =?>
-            "\\hypertarget{foo}{%\n\\section*{\\texorpdfstring{Header 1\\footnote{note}}{Header 1}}\\label{foo}}\n\\addcontentsline{toc}{section}{Header 1}\n"
+            "\\section*{\\texorpdfstring{Header 1\\footnote{note}}{Header 1}}\\label{foo}\n\\addcontentsline{toc}{section}{Header 1}\n"
           , "in list item" =:
             bulletList [header 2 (text "foo")] =?>
             "\\begin{itemize}\n\\item ~\n  \\subsection{foo}\n\\end{itemize}"

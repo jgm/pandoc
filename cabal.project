@@ -4,6 +4,10 @@ packages: .
           pandoc-cli
 tests: True
 flags: +embed_data_files
-constraints: skylighting-format-blaze-html >= 0.1.1,
+constraints: skylighting-format-blaze-html >= 0.1.1.1,
              skylighting-format-context >= 0.1.0.2
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath
+  tag: be603d75ef10fb66691496ad2b35aa102e985c7d

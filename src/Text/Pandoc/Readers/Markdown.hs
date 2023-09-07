@@ -1527,7 +1527,7 @@ inline = do
      '_'     -> strongOrEmph
      '*'     -> strongOrEmph
      '^'     -> superscript <|> inlineNote -- in this order bc ^[link](/foo)^
-     '['     -> note <|> cite <|> bracketedSpan <|> wikilink <|> link
+     '['     -> note <|> cite <|> bracketedSpan <|> wikilink B.linkWith <|> link
      '!'     -> image
      '$'     -> math
      '~'     -> strikeout <|> subscript
@@ -1844,8 +1844,10 @@ source = do
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
 
-wikilink :: PandocMonad m => MarkdownParser m (F Inlines)
-wikilink =
+wikilink :: PandocMonad m
+  => (Attr -> Text -> Text -> Inlines -> Inlines)
+  -> MarkdownParser m (F Inlines)
+wikilink constructor =
   (guardEnabled Ext_wikilinks_title_after_pipe *> wikilink' swap) <|>
   (guardEnabled Ext_wikilinks_title_before_pipe *> wikilink' id)
   where
@@ -1857,7 +1859,7 @@ wikilink =
       let (title, url) = case T.break (== '|') raw of
             (before, "") -> (before, before)
             (before, after) -> order (before, T.drop 1 after)
-      return . pure . B.link url "wikilink" $ B.str title
+      return . pure . constructor nullAttr url "wikilink" $ B.str title
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
@@ -1931,15 +1933,23 @@ referenceLink constructor (lab, raw) = do
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
   let !labIsRef = raw' == "" || raw' == "[]"
-  let !key = toKey $ if labIsRef then raw else raw'
+  let (exclam, rawsuffix) =
+        case T.uncons raw of
+          Just ('!', rest) -> (True, rest)
+          _ -> (False, raw)
+  let !key = toKey $ if labIsRef then rawsuffix else raw'
   parsedRaw <- parseFromString' inlines raw'
-  fallback  <- parseFromString' inlines $ dropBrackets raw
+  fallback  <- parseFromString' inlines $ if exclam
+                                             then rawsuffix
+                                             else dropBrackets rawsuffix
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
   let makeFallback = do
        parsedRaw' <- parsedRaw
        fallback' <- fallback
-       return $ B.str "[" <> fallback' <> B.str "]" <>
+       return $ (if exclam
+                    then "!" <> fallback'
+                    else B.str "[" <> fallback' <> B.str "]") <>
                 (if sp && not (T.null raw) then B.space else mempty) <>
                 parsedRaw'
   return $ do
@@ -2007,14 +2017,15 @@ rebasePath pos path = do
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
   char '!'
-  (lab,raw) <- reference
-  defaultExt <- getOption readerDefaultImageExtension
-  let constructor attr' src =
-         case takeExtension (T.unpack src) of
-            "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                            $ T.unpack defaultExt)
-            _  -> B.imageWith attr' src
-  regLink constructor lab <|> referenceLink constructor (lab,raw)
+  wikilink B.imageWith <|>
+    do (lab,raw) <- reference
+       defaultExt <- getOption readerDefaultImageExtension
+       let constructor attr' src =
+              case takeExtension (T.unpack src) of
+                 "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                                 $ T.unpack defaultExt)
+                 _  -> B.imageWith attr' src
+       regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do

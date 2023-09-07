@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: August 11, 2023
+date: August 31, 2023
 ---
 
 # Synopsis
@@ -3145,9 +3145,6 @@ The `--css` option also affects the output.
 
 `header`
 :   header in man pages
-
-`hyphenate`
-:   if `true` (the default), hyphenation will be used
 
 `section`
 :   section number in man pages

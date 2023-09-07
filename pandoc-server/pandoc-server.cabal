@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc-server
-version:         0.1.0.2
+version:         0.1.0.3
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -57,10 +57,10 @@ library
                  base64                >= 0.4      && < 0.5,
                  doctemplates          >= 0.11     && < 0.12,
                  data-default          >= 0.4      && < 0.8,
-                 text                  >= 1.1.1.0  && < 2.1,
+                 text                  >= 1.1.1.0  && < 2.2,
                  unicode-collation     >= 0.1.1    && < 0.2,
                  servant-server        >= 0.19     && < 0.21,
-                 skylighting           >= 0.13     && < 0.14,
+                 skylighting           >= 0.13     && < 0.15,
                  wai                   >= 3.2      && < 3.3,
                  wai-cors              >= 0.2.7    && < 0.3
 
