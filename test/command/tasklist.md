@@ -103,3 +103,16 @@ round trip:
 -   [ ] foo
 -   [x] bar
 ```
+
+```
+% pandoc -f html -t html
+<ul class="task-list">
+<li><label><input type="checkbox" />foo</label></li>
+<li><label><input type="checkbox" checked="" />bar</label></li>
+</ul>
+^D
+<ul class="task-list">
+<li><label><input type="checkbox" />foo</label></li>
+<li><label><input type="checkbox" checked="" />bar</label></li>
+</ul>
+```

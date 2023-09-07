@@ -342,7 +342,24 @@ pListItem = do
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
   maybe id addId (lookup "id" attr) <$>
-    pInTags "li" block
+    pInTags "li" (pCheckBox <|> block)
+  where 
+    pCheckBox :: PandocMonad m => TagParser m Blocks
+    pCheckBox = try $ do
+      trace "pCheckBox!!!"
+      pInTag TagsRequired "label" pInput
+      where
+        pInput :: PandocMonad m => TagParser m Blocks
+        pInput = do
+              TagOpen _ attr' <- lookAhead $ pSatisfy $ matchTagOpen "input" [("type","checkbox")]
+              let attr = toStringAttr attr'
+              let isChecked = isJust $ lookup "checked" attr
+              _ <- pSelfClosing (== "input") (const True)
+              bs <- inline
+              return $ if isChecked
+                        then B.Many . Seq.singleton $ B.Plain ([B.Str "\9746", B.Space ] <> B.toList bs)
+                        else B.Many . Seq.singleton $ B.Plain ([B.Str "\9744", B.Space ] <> B.toList bs)
+
 
 -- | Parses a list item just like 'pListItem', but allows sublists outside of
 -- @li@ tags to be treated as items.
