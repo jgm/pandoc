@@ -356,7 +356,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       then defField "csl-css" True .
                            (case stCslEntrySpacing st of
                               Nothing -> id
-                              Just 0  -> id
                               Just n  ->
                                 defField "csl-entry-spacing"
                                   (literal $ tshow n <> "em"))
