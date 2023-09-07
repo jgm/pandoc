@@ -351,11 +351,10 @@ pListItem = do
           TagOpen _ attr' <- lookAhead $ pSatisfy $ matchTagOpen "input" [("type","checkbox")]
           let attr = toStringAttr attr'
           let isChecked = isJust $ lookup "checked" attr
+          let escapeSequence = B.Str $ if isChecked then "\9746" else "\9744"
           _ <- pSelfClosing (== "input") (const True)
           bs <- inline
-          return $ if isChecked
-                    then B.Many . Seq.singleton $ B.Plain ([B.Str "\9746", B.Space ] <> B.toList bs)
-                    else B.Many . Seq.singleton $ B.Plain ([B.Str "\9744", B.Space ] <> B.toList bs)
+          return $ B.Many . Seq.singleton $ B.Plain ([escapeSequence, B.Space ] <> B.toList bs)
 
 
 -- | Parses a list item just like 'pListItem', but allows sublists outside of
