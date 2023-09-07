@@ -217,7 +217,7 @@
     <choose>
       <if variable="title" match="none">
         <choose>
-          <if type="personal_communication" match="none">
+          <if type="personal_communication speech thesis" match="none">
             <text variable="genre" text-case="capitalize-first"/>
           </if>
         </choose>
