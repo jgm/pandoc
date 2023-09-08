@@ -341,20 +341,20 @@ pListItem = do
                            (Plain ils:xs) -> B.fromList (Plain
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
-  maybe id addId (lookup "id" attr) <$>
-    pInTags "li" (pLabel' <|> block)
-  where 
-    pLabel' :: PandocMonad m => TagParser m Blocks
-    pLabel' = try $ pInTag TagsRequired "label" pInput'
-    pInput' :: PandocMonad m => TagParser m Blocks
-    pInput' = do
-          TagOpen _ attr' <- lookAhead $ pSatisfy $ matchTagOpen "input" [("type","checkbox")]
-          let attr = toStringAttr attr'
-          let isChecked = isJust $ lookup "checked" attr
-          let escapeSequence = B.Str $ if isChecked then "\9746" else "\9744"
-          _ <- pSelfClosing (== "input") (const True)
-          bs <- inline
-          return $ B.Many . Seq.singleton $ B.Plain ([escapeSequence, B.Space ] <> B.toList bs)
+  maybe id addId (lookup "id" attr) <$> 
+    pInTags "li" (blockWithPotentialCheckbox)
+  where
+    blockWithPotentialCheckbox :: PandocMonad m => TagParser m Blocks
+    blockWithPotentialCheckbox = let p = (<>) <$> parseCheckbox <*> inline
+          in B.plain . trimInlines . mconcat <$> many1 (try p <|> inline)
+    parseCheckbox :: PandocMonad m => TagParser m Inlines
+    parseCheckbox = do
+      TagOpen _ attr' <- pSatisfy $ matchTagOpen "input" [("type","checkbox")]
+      TagClose _ <- pSatisfy (matchTagClose "input")
+      let attr = toStringAttr attr'
+      let isChecked = isJust $ lookup "checked" attr
+      let escapeSequence = B.str $ if isChecked then "\9746" else "\9744"
+      return $ escapeSequence <> B.space
 
 
 -- | Parses a list item just like 'pListItem', but allows sublists outside of
