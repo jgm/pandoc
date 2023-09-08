@@ -25,8 +25,7 @@ extra-deps:
 - skylighting-core-0.14
 - skylighting-0.14
 - skylighting-format-blaze-html-0.1.1.1
-- git: https://github.com/jgm/texmath
-  commit: be603d75ef10fb66691496ad2b35aa102e985c7d
+- texmath-0.12.8.2
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
