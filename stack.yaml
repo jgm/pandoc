@@ -12,7 +12,6 @@ extra-deps:
 - hslua-cli-1.4.1
 - hslua-module-zip-1.1.0
 - hslua-repl-0.1.1
-- tls-1.8.0
 - crypton-connection-0.3.1
 - crypton-x509-1.7.6
 - crypton-x509-store-1.6.9
