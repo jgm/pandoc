@@ -342,19 +342,16 @@ pListItem = do
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
   maybe id addId (lookup "id" attr) <$> 
-    pInTags "li" (blockWithPotentialCheckbox)
-  where
-    blockWithPotentialCheckbox :: PandocMonad m => TagParser m Blocks
-    blockWithPotentialCheckbox = let p = (<>) <$> parseCheckbox <*> inline
-          in B.plain . trimInlines . mconcat <$> many1 (try p <|> inline)
-    parseCheckbox :: PandocMonad m => TagParser m Inlines
-    parseCheckbox = do
-      TagOpen _ attr' <- pSatisfy $ matchTagOpen "input" [("type","checkbox")]
-      TagClose _ <- pSatisfy (matchTagClose "input")
-      let attr = toStringAttr attr'
-      let isChecked = isJust $ lookup "checked" attr
-      let escapeSequence = B.str $ if isChecked then "\9746" else "\9744"
-      return $ escapeSequence <> B.space
+    pInTags "li" block
+
+pCheckbox :: PandocMonad m => TagParser m Inlines
+pCheckbox = do
+  TagOpen _ attr' <- pSatisfy $ matchTagOpen "input" [("type","checkbox")]
+  TagClose _ <- pSatisfy (matchTagClose "input")
+  let attr = toStringAttr attr'
+  let isChecked = isJust $ lookup "checked" attr
+  let escapeSequence = B.str $ if isChecked then "\9746" else "\9744"
+  return $ escapeSequence <> B.space
 
 
 -- | Parses a list item just like 'pListItem', but allows sublists outside of
@@ -686,6 +683,9 @@ inline = pTagText <|> do
         "var" -> pCodeWithClass "var" "variable"
         "span" -> pSpan
         "math" -> pMath False
+        "input" 
+          | Just x <- lookup "type" attr,
+            x == "checkbox" -> pCheckbox
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath

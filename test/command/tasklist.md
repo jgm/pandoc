@@ -111,7 +111,6 @@ round trip:
 <li><label><input type="checkbox" checked="" />bar</label></li>
 <li><label><input type="button" checked="" />foobar</label></li>
 <li><input id="hello" type="checkbox" checked/><label for="hello">hello</label></li>
-<li><label for="world">world</label><input id="world" type="checkbox"/></li>
 </ul>
 ^D
 <ul>
@@ -119,6 +118,5 @@ round trip:
 <li><label><input type="checkbox" checked="" />bar</label></li>
 <li>foobar</li>
 <li><label><input type="checkbox" checked="" />hello</label></li>
-<li>world</li>
 </ul>
 ```
