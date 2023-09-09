@@ -1,5 +1,54 @@
 # Revision history for pandoc
 
+## pandoc 3.1.8 (2023-09-08)
+
+  * JATS reader:
+
+    + Ignore `<processing-meta>` element (#9057, Julia Diaz).
+    + Fix conversion of date to ISO 8601 format (#8865).
+
+  * LaTeX template:
+
+    + Add code allow `\cite` to break across lines (#9050).
+    + Fix regression with CSL `display="block"` (#7363).
+      This restores the line break before the block.
+    + Rewrite `CSLReferences` environment to avoid depending on
+	  `enumitem`, which plays badly with beamer.  Instead we use
+	  a regular list environment. Thanks to @jpcirrus for the
+	  concept (#9053).
+    + Restore the pre-3.1.7 format of the `CSLReferences`
+      environment, which again has two parameters. The first
+      determines whether a hanging indent is used (1 = yes, 0 = no),
+      and the second is the entry line spacing (0 = none).
+    + Add a strut to avoid inconsistencies in spacing (#9058).
+    - Remove a break at the end of `CSLRightInline` to avoid
+      inconsistencies in spacing. It shouldn't be necessary
+      because the paragraph should extend to the right margin (#9058).
+
+  * LaTeX writer:
+
+    + Fix regression with figure labels (#9045). In 3.1.7, pandoc
+      added two labels to LaTeX figure environments, one with a
+      phantomsection.
+    + Fix default citeproc entry-spacing. According to the CSL manual,
+      the default entry spacing is 1. We were treating it as 0 (#9058).
+
+  * HTML writer:
+
+    + Use the ID prefix in the ID for the footnotes section (#9044,
+      Benjamin Esham).
+    + Fix CSL entry-spacing default (#9058).
+
+  * Text.Pandoc.Citeproc:  always include an `entry-spacing` attribute
+    in the Div if the bibliography element contains an entry-spacing
+    attribute (previously we omitted it when it was 0) (#9058).
+
+  * Clean up pandoc's own man pages by regenerating with pandoc 3.1.7.
+
+  * pandoc-lua-engine: bump lower bound for pandoc (#9046).
+
+  * Depend on texmath 0.12.8.2, fixing binom in typst writer (#9063).
+
 ## pandoc 3.1.7 (2023-08-31)
 
   * Org reader:
