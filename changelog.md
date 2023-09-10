@@ -13,9 +13,9 @@
     + Fix regression with CSL `display="block"` (#7363).
       This restores the line break before the block.
     + Rewrite `CSLReferences` environment to avoid depending on
-	  `enumitem`, which plays badly with beamer.  Instead we use
-	  a regular list environment. Thanks to @jpcirrus for the
-	  concept (#9053).
+      `enumitem`, which plays badly with beamer.  Instead we use
+      a regular list environment. Thanks to @jpcirrus for the
+      concept (#9053).
     + Restore the pre-3.1.7 format of the `CSLReferences`
       environment, which again has two parameters. The first
       determines whether a hanging indent is used (1 = yes, 0 = no),
