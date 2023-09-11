@@ -145,7 +145,7 @@ jobs:
       fail-fast: true
     steps:
     - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v22
+    - uses: cachix/install-nix-action@v23
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - name: Cache cabal global package db
