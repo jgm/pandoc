@@ -129,6 +129,10 @@ setInChapter = local (\s -> s {inChapter = True})
 setInPlain :: PandocMonad m => HTMLParser m s a -> HTMLParser m s a
 setInPlain = local (\s -> s {inPlain = True})
 
+-- Some items should be handled differently when in a list item tag, e.g. checkbox
+setInListItem :: PandocMonad m => HTMLParser m s a -> HTMLParser m s a
+setInListItem = local (\s -> s {inListItem = True})
+
 pHtml :: PandocMonad m => TagParser m Blocks
 pHtml = do
   (TagOpen "html" attr) <- lookAhead pAny
@@ -334,7 +338,7 @@ pBulletList = try $ do
   return $ B.bulletList $ map (fixPlains True) items
 
 pListItem :: PandocMonad m => TagParser m Blocks
-pListItem = do
+pListItem = setInListItem $ do
   TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "li" [])
   let attr = toStringAttr attr'
   let addId ident bs = case B.toList bs of
@@ -685,7 +689,7 @@ inline = pTagText <|> do
         "math" -> pMath False
         "input" 
           | Just x <- lookup "type" attr,
-            x == "checkbox" -> pCheckbox
+            x == "checkbox" -> asks inListItem >>= guard >> pCheckbox
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath
