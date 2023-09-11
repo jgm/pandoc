@@ -13,7 +13,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install ghc
       run: |
@@ -43,7 +43,7 @@ jobs:
     runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.4.4
@@ -72,7 +72,7 @@ jobs:
     runs-on: macos-11
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     # pkg-config is now needed for some cabal builds
     - name: Install pkg-config
       run: brew install pkg-config

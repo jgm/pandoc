@@ -8,7 +8,7 @@ jobs:
   check-commit-msg-length:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Check commit message length
       run: |
         # Get last commit messages
