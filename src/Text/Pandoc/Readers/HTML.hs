@@ -345,7 +345,7 @@ pListItem = setInListItem $ do
                            (Plain ils:xs) -> B.fromList (Plain
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
-  maybe id addId (lookup "id" attr) <$> 
+  maybe id addId (lookup "id" attr) <$>
     pInTags "li" block
 
 pCheckbox :: PandocMonad m => TagParser m Inlines
@@ -688,8 +688,8 @@ inline = pTagText <|> do
         "span" -> pSpan
         "math" -> pMath False
         "input" 
-          | Just x <- lookup "type" attr,
-            x == "checkbox" -> asks inListItem >>= guard >> pCheckbox
+          | lookup "type" attr == Just "checkbox" 
+          -> asks inListItem >>= guard >> pCheckbox
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath
