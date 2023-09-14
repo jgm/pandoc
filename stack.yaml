@@ -24,7 +24,7 @@ extra-deps:
 - skylighting-core-0.14
 - skylighting-0.14
 - skylighting-format-blaze-html-0.1.1.1
-- texmath-0.12.8.2
+- texmath-0.12.8.3
 - tls-1.9.0
 
 ghc-options:
