@@ -2256,7 +2256,10 @@ normalCite = try $ do
   citations <- citeList
   spnl
   char ']'
-  notFollowedBy (oneOf "{([")  -- not a link or a bracketed span
+  -- not a link or a bracketed span
+  notFollowedBy (try (void source) <|>
+                  (guardEnabled Ext_bracketed_spans *> void attributes) <|>
+                  void reference)
   return citations
 
 suffix :: PandocMonad m => MarkdownParser m (F Inlines)
