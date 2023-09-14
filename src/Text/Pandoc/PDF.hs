@@ -108,6 +108,7 @@ makePDF program pdfargs writer opts doc =
               Nothing -> []
       let args   = ["-ms", "-mpdfmark", "-mspdf",
                     "-e", "-t", "-k", "-KUTF-8", "-i"] ++
+                   ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
                     paperargs ++ pdfargs
       generic2pdf program args source
     baseProg -> do
