@@ -10,6 +10,12 @@
         haskell = prev.haskell // {
           packageOverrides = hfinal: hprev:
             prev.haskell.packageOverrides hfinal hprev // {
+              crypton-connection = final.fetchFromGitHub {
+                owner = "kazu-yamamoto";
+                repo = "crypton-connection";
+                rev = "5c064b911e7327a4d399fd9dd057663d0d0fb256";
+                sha256 = "00j1nf9glbz0cnzd84vp08j9ybzjbm3b6gcamlqxxcjb31kllz4b";
+              };
               pandoc = hfinal.callCabal2nix "pandoc" ./. { };
             };
         };
