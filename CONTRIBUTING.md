@@ -428,6 +428,17 @@ If you've written a useful pandoc [lua filter](lua-filters.html),
 you may want to consider submitting a pull request to the
 [lua-filters repository](https://github.com/pandoc/lua-filters).
 
+Dev Containers
+--------------
+
+A [Development Container] (or Dev Container for short) allows you to use a
+container as a full‑featured development environment.
+
+You can run Dev Containers locally/remotely (with VS Code), or create a
+[Codespace] for a branch in a repository to develop online.
+
+For further information, see [Pandoc's Dev Containers wiki page].
+
 [open issues]: https://github.com/jgm/pandoc/issues
 [closed issues]: https://github.com/jgm/pandoc/issues?q=is%3Aissue+is%3Aclosed
 [latest released version]: https://github.com/jgm/pandoc/releases/latest
@@ -457,3 +468,6 @@ you may want to consider submitting a pull request to the
 [status:more-discussion-needed]: https://github.com/jgm/pandoc/labels/status:more-discussion-needed
 [status:more-info-needed]: https://github.com/jgm/pandoc/labels/status:more-info-needed
 [stack]: https://github.com/commercialhaskell/stack
+[Development Container]: https://containers.dev
+[Codespace]: https://github.com/features/codespaces
+[Pandoc's Dev Containers wiki page]: https://github.com/jgm/pandoc/wiki/Dev-Containers

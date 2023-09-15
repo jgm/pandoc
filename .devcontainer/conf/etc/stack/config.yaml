@@ -1,0 +1,4 @@
+# Use only the GHC available on the PATH
+system-ghc: true
+# Do not automatically install GHC when necessary
+install-ghc: false

@@ -1,0 +1,68 @@
+{
+  "name": "Default (for use with Stack)",
+  "build": {
+    "dockerfile": "GHC.Dockerfile",
+    "args": {
+      "GHC_VERSION": "9.4.5",
+      "HLS_VERSION": "2.1.0.0",
+      "STACK_VERSION": "2.11.1",
+      "USE_ZSH_FOR_ROOT": "unset-to-use-ash",
+      "SET_LANG": "C.UTF-8",
+      "SET_TZ": ""
+    }
+  },
+
+  "onCreateCommand": "onCreateCommand.sh",
+  "postCreateCommand": "cabal update",
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true,
+      "upgradePackages": false,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "eamodio.gitlens@11.7.0",
+        "editorconfig.editorconfig",
+        "exiasr.hadolint",
+        "GitHub.vscode-pull-request-github",
+        "haskell.haskell",
+        "mhutchie.git-graph",
+        "ms-vscode.makefile-tools",
+        "mutantdino.resourcemonitor",
+        "timonwong.shellcheck"
+      ],
+      "settings": {
+        "gitlens.showWelcomeOnInstall": false,
+        "gitlens.showWhatsNewAfterUpgrades": false,
+        "haskell.manageHLS": "PATH",
+        "resmon.show.battery": false,
+        "resmon.show.cpufreq": false
+      }
+    }
+  },
+
+  // Set 'remoteUser' to 'root' to connect as root instead.
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=pandoc-default-home-vscode,target=/home/vscode,type=volume"
+    // "source=${localWorkspaceFolder}/.devcontainer/bind-mounts/pandoc-default-home-vscode,target=/home/vscode,type=bind"
+  ],
+
+  // "remoteUser": "root",
+  // "mounts": [
+  //   "source=pandoc-default-root,target=/root,type=volume"
+  //   // "source=${localWorkspaceFolder}/.devcontainer/bind-mounts/pandoc-default-root,target=/root,type=bind"
+  // ],
+
+  // Pip: Install packages to the user site
+  "remoteEnv": {
+    "PIP_USER": "1"
+  }
+}
