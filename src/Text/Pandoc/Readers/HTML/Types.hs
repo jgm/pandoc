@@ -60,6 +60,7 @@ data HTMLLocal = HTMLLocal
   { quoteContext :: QuoteContext
   , inChapter    :: Bool -- ^ Set if in chapter section
   , inPlain      :: Bool -- ^ Set if in pPlain
+  , inListItem   :: Bool -- ^ Set if in <li> tag
   }
 
 
@@ -91,7 +92,7 @@ instance HasMeta HTMLState where
   deleteMeta s st = st {parserState = deleteMeta s $ parserState st}
 
 instance Default HTMLLocal where
-  def = HTMLLocal NoQuote False False
+  def = HTMLLocal NoQuote False False False
 
 instance HasLastStrPosition HTMLState where
   setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}

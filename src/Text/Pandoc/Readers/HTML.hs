@@ -129,6 +129,10 @@ setInChapter = local (\s -> s {inChapter = True})
 setInPlain :: PandocMonad m => HTMLParser m s a -> HTMLParser m s a
 setInPlain = local (\s -> s {inPlain = True})
 
+-- Some items should be handled differently when in a list item tag, e.g. checkbox
+setInListItem :: PandocMonad m => HTMLParser m s a -> HTMLParser m s a
+setInListItem = local (\s -> s {inListItem = True})
+
 pHtml :: PandocMonad m => TagParser m Blocks
 pHtml = do
   (TagOpen "html" attr) <- lookAhead pAny
@@ -334,7 +338,7 @@ pBulletList = try $ do
   return $ B.bulletList $ map (fixPlains True) items
 
 pListItem :: PandocMonad m => TagParser m Blocks
-pListItem = do
+pListItem = setInListItem $ do
   TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "li" [])
   let attr = toStringAttr attr'
   let addId ident bs = case B.toList bs of
@@ -343,6 +347,16 @@ pListItem = do
                            _ -> B.divWith (ident, [], []) bs
   maybe id addId (lookup "id" attr) <$>
     pInTags "li" block
+
+pCheckbox :: PandocMonad m => TagParser m Inlines
+pCheckbox = do
+  TagOpen _ attr' <- pSatisfy $ matchTagOpen "input" [("type","checkbox")]
+  TagClose _ <- pSatisfy (matchTagClose "input")
+  let attr = toStringAttr attr'
+  let isChecked = isJust $ lookup "checked" attr
+  let escapeSequence = B.str $ if isChecked then "\9746" else "\9744"
+  return $ escapeSequence <> B.space
+
 
 -- | Parses a list item just like 'pListItem', but allows sublists outside of
 -- @li@ tags to be treated as items.
@@ -673,6 +687,9 @@ inline = pTagText <|> do
         "var" -> pCodeWithClass "var" "variable"
         "span" -> pSpan
         "math" -> pMath False
+        "input" 
+          | lookup "type" attr == Just "checkbox" 
+          -> asks inListItem >>= guard >> pCheckbox
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath
