@@ -124,7 +124,7 @@ docToJATS opts (Pandoc meta blocks') = do
                     then Just $ writerColumns opts
                     else Nothing
   metadata <- metaToContext opts
-                 (blocksToJATS opts)
+                 (blocksToJATS opts . makeSections False (Just startLvl))
                  (fmap chomp . inlinesToJATS opts)
                  meta
   main <- blocksToJATS opts bodyblocks
