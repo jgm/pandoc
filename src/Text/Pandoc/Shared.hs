@@ -38,6 +38,7 @@ module Text.Pandoc.Shared (
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
+                     addPandocAttributes,
                      orderedListMarkers,
                      extractSpaces,
                      removeFormatting,
@@ -113,6 +114,9 @@ import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
+-- for addPandocAttributes:
+import Commonmark.Pandoc (Cm(..))
+import Commonmark (HasAttributes(..))
 
 --
 -- List processing
@@ -287,6 +291,14 @@ normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
 --
 -- Pandoc block and inline list processing
 --
+
+-- | Add key-value attributes to a pandoc element. If the element
+-- does not have a slot for attributes, create an enclosing Span
+-- (for Inlines) or Div (for Blocks).  Note that both 'Cm () Inlines'
+-- and 'Cm () Blocks' are instances of 'HasAttributes'.
+addPandocAttributes
+  :: forall b . HasAttributes (Cm () b) => [(T.Text, T.Text)] -> b -> b
+addPandocAttributes kvs bs = unCm . addAttributes kvs $ (Cm bs :: Cm () b)
 
 -- | Generate infinite lazy list of markers for an ordered list,
 -- depending on list attributes.
