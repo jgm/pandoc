@@ -2,14 +2,7 @@
 @page {
   margin: 10px;
 }
-html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  vertical-align: baseline;
-}
-ol, ul, li, dl, dt, dd {
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video, ol, ul, li, dl, dt, dd {
   margin: 0;
   padding: 0;
   border: 0;
@@ -28,60 +21,42 @@ p {
   widows: 2;
   orphans: 2;
 }
-a {
-  color: #1a1a1a;
-}
-a:visited {
+a, a:visited {
   color: #1a1a1a;
 }
 img {
   max-width: 100%;
 }
 h1 {
-  text-indent: 0;
-  text-align: left;
   margin: 3em 0 0 0;
   font-size: 2em;
-  font-weight: bold;
   page-break-before: always;
   line-height: 150%;
 }
 h2 {
-  text-indent: 0;
-  text-align: left;
   margin: 1.5em 0 0 0;
   font-size: 1.5em;
-  font-weight: bold;
   line-height: 135%;
 }
 h3 {
-  text-indent: 0;
-  text-align: left;
   margin: 1.3em 0 0 0;
   font-size: 1.3em;
-  font-weight: bold;
 }
 h4 {
-  text-indent: 0;
-  text-align: left;
   margin: 1.2em 0 0 0;
   font-size: 1.2em;
-  font-weight: bold;
 }
 h5 {
-  text-indent: 0;
-  text-align: left;
   margin: 1.1em 0 0 0;
   font-size: 1.1em;
-  font-weight: bold;
 }
 h5 {
-  text-indent: 0;
-  text-align: left;
   font-size: 1em;
-  font-weight: bold;
 }
 h1, h2, h3, h4, h5, h6 {
+  text-indent: 0;
+  text-align: left;
+  font-weight: bold;
   page-break-after: avoid;
   page-break-inside: avoid;
 }
@@ -135,12 +110,11 @@ tbody {
   border-top: 1px solid #1a1a1a;
   border-bottom: 1px solid #1a1a1a;
 }
-th {
-  border-top: 1px solid #1a1a1a;
+th, td {
   padding: 0.25em 0.5em 0.25em 0.5em;
 }
-td {
-  padding: 0.125em 0.5em 0.25em 0.5em;
+th {
+  border-top: 1px solid #1a1a1a;
 }
 header {
   margin-bottom: 4em;
