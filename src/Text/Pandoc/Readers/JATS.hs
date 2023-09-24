@@ -232,6 +232,7 @@ parseBlock (Elem e) = do
         "index-group" -> parseBlockWithHeader
         "toc" -> parseBlockWithHeader
         "toc-group" -> parseBlockWithHeader
+        "legend" -> parseBlockWithHeader
         "?xml"  -> return mempty
         _       -> getBlocks e
    where parseMixed container conts = do
