@@ -279,10 +279,17 @@ inlineToTypst inline =
                    then mempty
                    else nowrap $ brackets contents
     Image (_,_,kvs) _inlines (src,_tit) -> do
-      let width' = maybe mempty ((", width: " <>) . literal) $ lookup "width" kvs
-      let height' = maybe mempty ((", height: " <>) . literal) $
-                    lookup "height" kvs
-      return $ "#image(" <> doubleQuoted src <> width' <> height' <> ")"
+      let widthV = lookup "width" kvs
+      let heightV = lookup "height" kvs
+      let boxOpen = case (widthV, heightV) of
+                      (Nothing, Nothing) -> ""
+                      _ -> "box("
+      let boxClose = case (widthV, heightV) of
+                      (Nothing, Nothing) -> ""
+                      _ -> ")"
+      let width' = maybe mempty ((", width: " <>) . literal) $ widthV
+      let height' = maybe mempty ((", height: " <>) . literal) $ heightV
+      return $ "#" <> boxOpen <> "image(" <> doubleQuoted src <> width' <> height' <> ")" <> boxClose
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents)
