@@ -281,12 +281,9 @@ inlineToTypst inline =
     Image (_,_,kvs) _inlines (src,_tit) -> do
       let widthV = lookup "width" kvs
       let heightV = lookup "height" kvs
-      let boxOpen = case (widthV, heightV) of
-                      (Nothing, Nothing) -> ""
-                      _ -> "box("
-      let boxClose = case (widthV, heightV) of
-                      (Nothing, Nothing) -> ""
-                      _ -> ")"
+      let (boxOpen, boxClose) = case (widthV, heightV) of
+                                  (Nothing, Nothing) -> mempty
+                                  _  -> ("box(", ")")
       let width' = maybe mempty ((", width: " <>) . literal) $ widthV
       let height' = maybe mempty ((", height: " <>) . literal) $ heightV
       return $ "#" <> boxOpen <> "image(" <> doubleQuoted src <> width' <> height' <> ")" <> boxClose
