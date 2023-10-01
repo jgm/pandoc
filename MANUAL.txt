@@ -1755,8 +1755,8 @@ those in another file included with a `defaults:` entry.
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --filter pandoc-citeproc \       | filters:                          |
-|  --lua-filter count-words.lua \  |   - pandoc-citeproc               |
+| --citeproc \                     | filters:                          |
+|  --lua-filter count-words.lua \  |   - citeproc                      |
 |  --filter special.lua            |   - count-words.lua               |
 |                                  |   - type: json                    |
 |                                  |     path: special.lua             |
@@ -2076,7 +2076,7 @@ you should also set 'citeproc: true'.
 
 If you need control over when the citeproc processing is done relative
 to other filters, you should instead use `citeproc` in the list
-of `filters` (see above).
+of `filters` (see [Reader options](#reader-options-1)).
 
 ## Math rendering in HTML
 
