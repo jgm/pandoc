@@ -1,7 +1,7 @@
 {
   "name": "GHC 9.2 (recommended)",
   "build": {
-    "dockerfile": "../GHC.Dockerfile",
+    "dockerfile": "../GHC-legacy.Dockerfile",
     "context": "..",
     "args": {
       "GHC_VERSION": "9.2",

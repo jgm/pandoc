@@ -6,7 +6,7 @@ ARG STACK_VERSION
 ARG HLS_GHC_VERSION=${HLS_VERSION:+$GHC_VERSION}
 ARG HLS_SFX=/${HLS_GHC_VERSION:-all}/hls:${HLS_VERSION:-none}
 
-ARG STACK_VERSION_OVERRIDE=${STACK_VERSION}
+ARG STACK_VERSION_OVERRIDE=${STACK_VERSION:-none}
 
 FROM ${BUILD_ON_IMAGE}:${GHC_VERSION} as files
 
@@ -19,6 +19,8 @@ COPY scripts /files
 RUN find /files -type d -exec chmod 755 {} \; \
   && find /files -type f -exec chmod 644 {} \; \
   && find /files/usr/local/bin -type f -exec chmod 755 {} \;
+
+FROM glcr.b-data.ch/commercialhaskell/ssi:${STACK_VERSION_OVERRIDE} as ssi
 
 FROM ${BUILD_ON_IMAGE}${HLS_SFX} as hls
 
@@ -86,6 +88,8 @@ RUN if [ -n "$USE_ZSH_FOR_ROOT" ]; then \
   fi
 
 ## Copy binaries as late as possible to avoid cache busting
+## Install Stack
+COPY --from=ssi /usr/local /usr/local
 ## Install HLS
 COPY --from=hls /usr/local /usr/local
 ## Install HLint
@@ -96,23 +100,13 @@ COPY --from=sci --chown=root:root /bin/shellcheck /usr/local/bin
 ARG HLS_VERSION
 ARG STACK_VERSION
 
-ARG STACK_VERSION_OVERRIDE
+ARG STACK_VERSION_OVERRIDE=${STACK_VERSION}
 
 ENV HLS_VERSION=${HLS_VERSION} \
     STACK_VERSION=${STACK_VERSION_OVERRIDE:-$STACK_VERSION}
 
-RUN if [ -n "$STACK_VERSION_OVERRIDE" ]; then \
-    ## Install Stack
-    cd /tmp || exit ;\
-    curl -sSLO https://github.com/commercialhaskell/stack/releases/download/v"$STACK_VERSION"/stack-"$STACK_VERSION"-linux-"$(uname -m)".tar.gz; \
-    curl -sSLO https://github.com/commercialhaskell/stack/releases/download/v"$STACK_VERSION"/stack-"$STACK_VERSION"-linux-"$(uname -m)".tar.gz.sha256; \
-    sha256sum -cs stack-"$STACK_VERSION"-linux-"$(uname -m)".tar.gz.sha256; \
-    tar -xzf stack-"$STACK_VERSION"-linux-"$(uname -m)".tar.gz; \
-    if dpkg --compare-versions "${GHC_VERSION%.*}" le "9.2"; then \
-      mv -f stack-"$STACK_VERSION"-linux-"$(uname -m)"/stack /usr/bin/stack; \
-    else \
-      mv -f stack-"$STACK_VERSION"-linux-"$(uname -m)"/stack /usr/local/bin/stack; \
-    fi; \
-    ## Clean up
-    rm -rf /tmp/*; \
+RUN if dpkg --compare-versions "${GHC_VERSION%.*}" le "9.2"; then \
+    if [ -f /usr/local/bin/stack ]; then \
+      mv -f /usr/local/bin/stack /usr/bin/; \
+    fi \
   fi

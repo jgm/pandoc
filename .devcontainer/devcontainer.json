@@ -5,7 +5,7 @@
     "args": {
       "GHC_VERSION": "9.4.5",
       "HLS_VERSION": "2.1.0.0",
-      "STACK_VERSION": "2.11.1",
+      "STACK_VERSION": "2.13.1",
       "USE_ZSH_FOR_ROOT": "unset-to-use-ash",
       "SET_LANG": "C.UTF-8",
       "SET_TZ": ""

@@ -17,6 +17,7 @@
 !/scripts/usr/local/bin/*.sh
 
 !/devcontainer.json
+!/GHC-legacy.Dockerfile
 !/GHC.Dockerfile
 !/LICENSE
 !/README.md
