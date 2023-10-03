@@ -2020,11 +2020,13 @@ image = try $ do
   wikilink B.imageWith <|>
     do (lab,raw) <- reference
        defaultExt <- getOption readerDefaultImageExtension
-       let constructor attr' src =
-              case takeExtension (T.unpack src) of
-                 "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                                 $ T.unpack defaultExt)
-                 _  -> B.imageWith attr' src
+       let constructor attr' src
+             | "data:" `T.isPrefixOf` src = B.imageWith attr' src  -- see #9118
+             | otherwise =
+                case takeExtension (T.unpack src) of
+                   "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                                   $ T.unpack defaultExt)
+                   _  -> B.imageWith attr' src
        regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
