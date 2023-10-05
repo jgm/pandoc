@@ -485,7 +485,10 @@ So is `pine.'
 `He said, \[lq]I want to go.\[rq]' Were you alive in the 70\[cq]s?
 .PP
 Here is some quoted `\f[CR]code\f[R]' and a \[lq]quoted
-link (http://example.com/?foo=1&bar=2)\[rq].
+link
+.UR http://example.com/?foo=1&bar=2
+.UE \c
+\[rq].
 .PP
 Some dashes: one\[em]two \[em] three\[em]four \[em] five.
 .PP
@@ -629,26 +632,40 @@ Foo bar.
 Foo biz.
 .SS With ampersands
 Here\[cq]s a link with an ampersand in the
-URL (http://example.com/?foo=1&bar=2).
+URL
+.UR http://example.com/?foo=1&bar=2
+.UE \c
+.
 .PP
-Here\[cq]s a link with an amersand in the link text: AT&T (http://att.com/).
+Here\[cq]s a link with an amersand in the link text:
+.UR http://att.com/
+AT&T
+.UE \c
+.
 .PP
 Here\[cq]s an inline link.
 .PP
 Here\[cq]s an inline link in pointy braces.
 .SS Autolinks
-With an ampersand: <http://example.com/?foo=1&bar=2>
+With an ampersand:
+.UR http://example.com/?foo=1&bar=2
+.UE
 .IP \[bu] 2
 In a list?
 .IP \[bu] 2
-<http://example.com/>
+.UR http://example.com/
+.UE \c
 .IP \[bu] 2
 It should.
 .PP
-An e-mail address: <nobody@nowhere.net>
+An e-mail address:
+.MT nobody@nowhere.net
+.ME \c
 .RS
 .PP
-Blockquoted: <http://example.com/>
+Blockquoted:
+.UR http://example.com/
+.UE \c
 .RE
 .PP
 Auto-links should not occur here: \f[CR]<http://example.com/>\f[R]
@@ -701,7 +718,10 @@ the first line of each block.
 .SS [3]
 .PP
 This is \f[I]easier\f[R] to type.
-Inline notes may contain links (http://google.com) and \f[CR]]\f[R] verbatim
+Inline notes may contain links
+.UR http://google.com
+.UE \c
+ and \f[CR]]\f[R] verbatim
 characters, as well as [bracketed text].
 .SS [4]
 .PP
