@@ -436,8 +436,7 @@ Should not be a list item:
 .PP
 M.A.\ 2007
 .PP
-B.
-Williams
+B. Williams
 .HLINE
 .SH 1
 Definition Lists

@@ -565,12 +565,16 @@ splitSentences = go . toList
   isSentenceEnding t =
     case T.unsnoc t of
       Just (t',c)
-        | c == '.' || c == '!' || c == '?' -> True
+        | c == '.' || c == '!' || c == '?'
+        , not (isInitial t') -> True
         | c == ')' || c == ']' || c == '"' || c == '\x201D' ->
            case T.unsnoc t' of
-             Just (_,d) -> d == '.' || d == '!' || d == '?'
+             Just (t'',d) -> d == '.' || d == '!' || d == '?' &&
+                             not (isInitial t'')
              _ -> False
       _ -> False
+   where
+    isInitial x = T.length x == 1 && T.all isUpper x
 
 -- | Ensure that all identifiers start with a letter,
 -- and modify internal links accordingly. (Yes, XML allows an
