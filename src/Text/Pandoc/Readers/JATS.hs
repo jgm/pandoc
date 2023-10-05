@@ -164,7 +164,8 @@ parseBlock (Text (CData _ s _)) = if T.all isSpace s
 parseBlock (CRef x) = return $ plain $ str $ T.toUpper x
 parseBlock (Elem e) = do
   sectionLevel <- gets jatsSectionLevel
-  let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e)
+  let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e) (getHeaderText e)
+  let parseNamedBookPartWithHeader title = wrapWithHeader (sectionLevel+1) (getBlocks e) title
 
   case qName (elName e) of
         "book" -> modify $ \st -> st{ jatsBook = True }
@@ -229,10 +230,16 @@ parseBlock (Elem e) = do
                             else divWith (attrValue "id" e, ["disp-formula"], [])
                                     <$> getBlocks e
         "index" -> parseBlockWithHeader
+        "index-div" -> parseBlockWithHeader
         "index-group" -> parseBlockWithHeader
         "toc" -> parseBlockWithHeader
+        "toc-div" -> parseBlockWithHeader
+        "toc-entry" -> parseBlockWithHeader
         "toc-group" -> parseBlockWithHeader
         "legend" -> parseBlockWithHeader
+        "dedication" -> parseNamedBookPartWithHeader "Dedication"
+        "foreword" -> parseNamedBookPartWithHeader "Foreword"
+        "preface" -> parseNamedBookPartWithHeader "Preface"
         "?xml"  -> return mempty
         _       -> getBlocks e
    where parseMixed container conts = do
@@ -376,16 +383,11 @@ parseBlock (Elem e) = do
                                      (TableFoot nullAttr footerRows)
          isEntry x  = named "entry" x || named "td" x || named "th" x
          parseElement = filterChildren isEntry
-         wrapWithHeader n mBlocks = do
+         wrapWithHeader n mBlocks headerText = do
                       isBook <- gets jatsBook
                       case (filterChild (named “title”) e >>= attrValue “display-as”) of
 	                      Just l -> let n’ = decimal l
 	                      Nothing -> let n' = if isBook || n == 0 then n + 1 else n
-                      headerText <- case filterChild (named "title") e of
-                                        Just t  -> case maybeAttrValue "supress" of 
-                                          Just s -> if s == "no" then getInlines t else return mempty 
-                                          Nothing -> getInlines t
-                                        Nothing -> return mempty
                       oldN <- gets jatsSectionLevel
                       modify $ \st -> st{ jatsSectionLevel = n }
                       blocks <- mBlocks
@@ -395,6 +397,15 @@ parseBlock (Elem e) = do
                         headerText == mempty
                       then mempty
                       else headerWith (ident,[],[]) n' headerText) <> blocks
+          getHeaderText e = case filterChild (named "title") e of
+                              Just t  -> case maybeAttrValue "supress" of 
+                                Just s -> if s == "no" 
+                                  then case filterChild (named "subtitle") e of 
+                                    Just sub -> (getInlines t) <> (text ": " <>) <$> getInlines sub
+                                    Nothing -> getInlines t 
+                                  else return mempty 
+                                Nothing -> getInlines t
+                              Nothing -> return mempty
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
 getInlines e' = trimInlines . mconcat <$>
