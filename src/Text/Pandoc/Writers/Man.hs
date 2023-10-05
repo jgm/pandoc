@@ -311,8 +311,8 @@ inlineToMan _ il@(RawInline f str)
       return empty
 inlineToMan _ LineBreak = return $
   cr <> literal ".PD 0" $$ literal ".P" $$ literal ".PD" <> cr
-inlineToMan _ SoftBreak = return space
-inlineToMan _ Space = return space
+inlineToMan _ SoftBreak = return $ afterBreak "\\" <> space
+inlineToMan _ Space = return $ afterBreak "\\" <> space
 inlineToMan opts (Link _ txt (src, _))
   | not (isURI src) = inlineListToMan opts txt -- skip relative links
   | otherwise       = do
@@ -323,7 +323,7 @@ inlineToMan opts (Link _ txt (src, _))
   let (start, end) = if "mailto:" `T.isPrefixOf` src
                         then (".MT", ".ME")
                         else (".UR", ".UE")
-  return $ cr
+  return $ "\\c" <> cr -- \c avoids extra space
         $$ (start <+> literal srcSuffix)
         $$ linktext
         $$ (end <+> "\\c" <> cr)  -- \c avoids space after
