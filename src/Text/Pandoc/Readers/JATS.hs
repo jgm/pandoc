@@ -39,7 +39,7 @@ import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Safe (headMay)
-import Text.Megaparsec.Char.Lexer (decimal)
+import Data.Text.Read (lex)
 
 type JATS m = StateT JATSState m
 
@@ -386,7 +386,7 @@ parseBlock (Elem e) = do
          wrapWithHeader n mBlocks headerText = do
                       isBook <- gets jatsBook
                       case (filterChild (named “title”) e >>= attrValue “display-as”) of
-	                      Just l -> let n’ = decimal l
+	                      Just l -> let n’ = lex l
 	                      Nothing -> let n' = if isBook || n == 0 then n + 1 else n
                       oldN <- gets jatsSectionLevel
                       modify $ \st -> st{ jatsSectionLevel = n }
