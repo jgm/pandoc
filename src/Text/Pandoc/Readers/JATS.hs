@@ -142,12 +142,18 @@ trimNl = T.dropAround (== '\n')
 getGraphic :: PandocMonad m
            => Maybe (Inlines, Text) -> Element -> JATS m Inlines
 getGraphic mbfigdata e = do
-  let atVal a = attrValue a e
+  let atVal a = fromMaybe "" $ findAttr (QName a (Just "http://www.w3.org/1999/xlink") Nothing) e
+  let href = case findAttr (QName "href" (Just "http://www.w3.org/1999/xlink") Nothing) e of
+                               Just h -> h
+                               _      -> "#" <> attrValue "rid" e
+  let isCaption x = named "title" x || named "caption" x
+  caption <- case filterChild isCaption e of
+                                    Just t  -> getInlines t
+                                    Nothing -> return mempty
       (ident, title, capt) =
          case mbfigdata of
            Just (capt', i) -> (i, "fig:" <> atVal "title", capt')
-           Nothing        -> (atVal "id", atVal "title",
-                              text (atVal "alt-text"))
+           Nothing        -> (atVal "id", atVal "title", caption)
       attr = (ident, T.words $ atVal "role", [])
       imageUrl = atVal "href"
   return $ imageWith attr imageUrl title capt
