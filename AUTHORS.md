@@ -17,6 +17,7 @@
 - Alfred Wechselberger
 - Amar Al-Zubaidi
 - Amir Dekel
+- Amneesh Singh
 - Amogh Rathore
 - Amy de Buitléir
 - Anabra
@@ -43,6 +44,7 @@
 - Ben Steinberg
 - Beni Cherniavsky-Paskin
 - Benjamin Bray
+- Benjamin Esham
 - Benjamin Wuethrich
 - Benoit Schweblin
 - Benson Muite

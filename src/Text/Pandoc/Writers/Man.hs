@@ -311,18 +311,22 @@ inlineToMan _ il@(RawInline f str)
       return empty
 inlineToMan _ LineBreak = return $
   cr <> literal ".PD 0" $$ literal ".P" $$ literal ".PD" <> cr
-inlineToMan _ SoftBreak = return space
-inlineToMan _ Space = return space
+inlineToMan _ SoftBreak = return $ afterBreak "\\" <> space
+inlineToMan _ Space = return $ afterBreak "\\" <> space
 inlineToMan opts (Link _ txt (src, _))
   | not (isURI src) = inlineListToMan opts txt -- skip relative links
   | otherwise       = do
-  linktext <- inlineListToMan opts txt
   let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
-  return $ case txt of
-           [Str s]
-             | escapeURI s == srcSuffix ->
-                                 char '<' <> literal srcSuffix <> char '>'
-           _                  -> linktext <> literal " (" <> literal src <> char ')'
+  linktext <- case txt of
+                [Str s] | escapeURI s == srcSuffix -> pure mempty
+                _ -> inlineListToMan opts txt
+  let (start, end) = if "mailto:" `T.isPrefixOf` src
+                        then (".MT", ".ME")
+                        else (".UR", ".UE")
+  return $ "\\c" <> cr -- \c avoids extra space
+        $$ (start <+> literal srcSuffix)
+        $$ linktext
+        $$ (end <+> "\\c" <> cr)  -- \c avoids space after
 inlineToMan opts (Image attr alternate (source, tit)) = do
   let txt = if null alternate || (alternate == [Str ""]) ||
                (alternate == [Str source]) -- to prevent autolinks

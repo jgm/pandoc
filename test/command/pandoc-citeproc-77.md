@@ -39,7 +39,7 @@ references:
 ^D
 [^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item4 .csl-entry}
 Bennett, Frank G., Jr., n.d.
 :::

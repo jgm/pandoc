@@ -29,6 +29,7 @@ import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Parsing (lowerAlpha, upperAlpha)
+import Text.Pandoc.Extensions
 import Data.Functor (($>))
 
 -- | Horizontal Line (five -- dashes or more)
@@ -69,8 +70,7 @@ listCounterCookie = try $
   <* char ']'
   <* (skipSpaces <|> lookAhead eol)
   where parseNum = (safeRead =<< many1Char digit)
-                   <|> snd <$> lowerAlpha
-                   <|> snd <$> upperAlpha
+                   <|> snd <$> (lowerAlpha <|> upperAlpha)
 
 bulletListStart :: Monad m => OrgParser m Int
 bulletListStart = try $ do
@@ -87,20 +87,27 @@ eol = void (char '\n')
 orderedListStart :: Monad m => OrgParser m (Int, ListAttributes)
 orderedListStart = try $ do
   ind <- length <$> many spaceChar
+  fancy <- option False $ True <$ guardEnabled Ext_fancy_lists
+  -- Ordered list markers allowed in org-mode
+  let styles = (many1Char digit $> (if fancy
+                                       then Decimal
+                                       else DefaultStyle))
+               : if fancy
+                    then [ fst <$> lowerAlpha
+                         , fst <$> upperAlpha ]
+                    else []
+  let delims = [ char '.' $> (if fancy
+                                 then Period
+                                 else DefaultDelim)
+               , char ')' $> (if fancy
+                                 then OneParen
+                                 else DefaultDelim)
+               ]
   style <- choice styles
   delim <- choice delims
   skipSpaces1 <|> lookAhead eol
   start <- option 1 listCounterCookie
   return (ind + 1, (start, style, delim))
-  -- Ordered list markers allowed in org-mode
-  where
-    styles = [ many1Char digit $> Decimal
-             , fst <$> lowerAlpha
-             , fst <$> upperAlpha
-             ]
-    delims = [ char '.' $> Period
-             , char ')' $> OneParen
-             ]
 
 drawerStart :: Monad m => OrgParser m Text
 drawerStart = try $ skipSpaces *> drawerName <* skipSpaces <* newline

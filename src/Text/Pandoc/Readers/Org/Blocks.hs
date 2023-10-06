@@ -853,11 +853,8 @@ indented indentedMarker minIndent = try $ do
 orderedList :: PandocMonad m => OrgParser m (F Blocks)
 orderedList = try $ do
   (indent, attr) <- lookAhead orderedListStart
-  attr' <- option (fst3 attr, DefaultStyle, DefaultDelim) $
-           guardEnabled Ext_fancy_lists $> attr
-  fmap (B.orderedListWith attr' . compactify) . sequence
+  fmap (B.orderedListWith attr . compactify) . sequence
     <$> many1 (listItem ((fst <$> orderedListStart) `indented` indent))
-  where fst3 (x,_,_) = x
 
 definitionListItem :: PandocMonad m
                    => OrgParser m Int

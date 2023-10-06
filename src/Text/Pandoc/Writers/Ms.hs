@@ -302,24 +302,17 @@ blockToMs opts (DefinitionList items) = do
   return (vcat contents)
 blockToMs opts (Figure figattr (Caption _ caption) body) =
   case body of
-    [Plain [ Image attr _alt (src, _tit) ]]
-     | let ext = takeExtension (T.unpack src)
-        in (ext == ".ps" || ext == ".eps")
-      -> do
-         let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
-                          inPoints opts <$> dimension Height attr)
-         let sizeAttrs = case (mbW, mbH) of
-                              (Just wp, Nothing) -> space <> doubleQuotes
-                                     (literal (tshow (floor wp :: Int) <> "p"))
-                              (Just wp, Just hp) -> space <> doubleQuotes
-                                     (literal (tshow (floor wp :: Int) <> "p"))
-                                     <> space <>
-                                     doubleQuotes
-                                      (literal (tshow (floor hp :: Int)))
-                              _ -> empty
-         capt <- blockToMs opts (Div figattr caption)
-         let captlines = height capt
-         return $ nowrap (literal ".PSPIC " <>
+    [Plain [ Image attr _alt (src, _tit) ]] -> do
+       let ext = takeExtension (T.unpack src)
+       let sizeAttrs = getSizeAttrs opts attr
+       capt <- blockToMs opts (Div figattr caption)
+       let captlines = height capt
+       let cmd = case ext of
+                   ".ps" -> ".PSPIC"
+                   ".eps" -> ".PSPIC"
+                   ".pdf" -> ".PDFPIC"
+                   _ -> "\\\" .IMAGE"
+       return $ nowrap (literal cmd <+>
                     doubleQuotes (literal (escapeStr opts src)) <>
                     sizeAttrs) $$
                   literal (".ce " <> tshow captlines) $$
@@ -497,10 +490,20 @@ inlineToMs opts (Link _ txt (src, _)) = do
        doubleQuotes (literal (escapeUri src)) <> literal " -A " <>
        doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
        literal " -- " <> doubleQuotes (nowrap contents) <> cr <> literal "\\&"
-inlineToMs opts (Image _ alternate (_, _)) =
-  return $ char '[' <> literal "IMAGE: " <>
-           literal (escapeStr opts (stringify alternate))
-             <> char ']'
+inlineToMs opts (Image attr alternate (src, _)) = do
+  let desc = literal "[IMAGE: " <>
+             literal (escapeStr opts (stringify alternate)) <> char ']'
+  let sizeAttrs = getSizeAttrs opts attr
+  let ext = takeExtension (T.unpack src)
+  let cmd = case ext of
+             ".ps" -> ".PSPIC"
+             ".eps" -> ".PSPIC"
+             ".pdf" -> ".PDFPIC"
+             _ -> ""
+  return $ cr <> nowrap
+    (if T.null cmd
+        then desc <> " \\\" " <> doubleQuotes (literal src) <> sizeAttrs
+        else literal cmd <+> doubleQuotes (literal src) <> sizeAttrs) <> cr
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
   return $ literal "\\**"
@@ -638,3 +641,18 @@ toAscii = T.concatMap
               Nothing -> "_u" <> tshow (ord c) <> "_"
               Just '/' -> "_u" <> tshow (ord c) <> "_" -- see #4515
               Just c' -> T.singleton c')
+
+getSizeAttrs :: WriterOptions -> Attr -> Doc Text
+getSizeAttrs opts attr =
+  case (mbW, mbH) of
+     (Just wp, Nothing) -> space <> doubleQuotes
+            (literal (tshow (floor wp :: Int) <> "p"))
+     (Just wp, Just hp) -> space <> doubleQuotes
+            (literal (tshow (floor wp :: Int) <> "p"))
+            <> space <>
+            doubleQuotes
+             (literal (tshow (floor hp :: Int) <> "p"))
+     _ -> empty
+ where
+  mbW = inPoints opts <$> dimension Width attr
+  mbH = inPoints opts <$> dimension Height attr

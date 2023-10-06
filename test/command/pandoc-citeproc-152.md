@@ -49,7 +49,7 @@ I have two citations ("Communities," 2011; "Geek Feminism," 2013).
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent line-spacing="2"}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0" line-spacing="2"}
 ::: {#ref-Feminism2011ces .csl-entry}
 Communities. (2011, August 14). In *Geek Feminism*. Retrieved from
 <http://geekfeminism.wikia.com/wiki/Category:Communities>

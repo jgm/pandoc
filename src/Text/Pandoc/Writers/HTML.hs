@@ -299,7 +299,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
     if null (stNotes st)
       then return mempty
       else do
-        notes <- footnoteSection EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
+        notes <- footnoteSection opts EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
         modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
         return notes
   st <- get
@@ -356,7 +356,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       then defField "csl-css" True .
                            (case stCslEntrySpacing st of
                               Nothing -> id
-                              Just 0  -> id
                               Just n  ->
                                 defField "csl-entry-spacing"
                                   (literal $ tshow n <> "em"))
@@ -524,8 +523,8 @@ tableOfContents opts sects = do
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
 footnoteSection ::
-  PandocMonad m => ReferenceLocation -> Int -> [Html] -> StateT WriterState m Html
-footnoteSection refLocation startCounter notes = do
+  PandocMonad m => WriterOptions -> ReferenceLocation -> Int -> [Html] -> StateT WriterState m Html
+footnoteSection opts refLocation startCounter notes = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
   let hrtag = if refLocation /= EndOfBlock
@@ -550,7 +549,7 @@ footnoteSection refLocation startCounter notes = do
                              ! A5.class_ className
                              ! A5.role "doc-endnotes"
                              $ x
-        | html5 = H5.aside   ! A5.id "footnotes"
+        | html5 = H5.aside   ! prefixedId opts "footnotes"
                              ! A5.class_ className
                              ! A5.role "doc-endnotes"
                              $ x
@@ -805,7 +804,7 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
     if emitNotes
       then do
         st <- get
-        renderedNotes <- footnoteSection (writerReferenceLocation opts)
+        renderedNotes <- footnoteSection opts (writerReferenceLocation opts)
                            (stEmittedNotes st + 1) (reverse notes)
         modify (\st' -> st'{ stNotes = mempty,
                              stEmittedNotes = stEmittedNotes st' + length notes })
@@ -1084,7 +1083,8 @@ blockToHtml opts block = do
     then do
       notes <- if null (stNotes st)
         then return mempty
-        else footnoteSection (writerReferenceLocation opts) (stEmittedNotes st + 1) (reverse (stNotes st))
+        else footnoteSection opts (writerReferenceLocation opts)
+                             (stEmittedNotes st + 1) (reverse (stNotes st))
       modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
       return (doc <> notes)
     else return doc
@@ -1731,11 +1731,20 @@ intrinsicEventsHTML4 =
   [ "onclick", "ondblclick", "onmousedown", "onmouseup", "onmouseover"
   , "onmouseout", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
 
+
+-- | Check to see if Format is valid HTML 
 isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
 isRawHtml f = do
   html5 <- gets stHtml5
   return $ f == Format "html" ||
-           ((html5 && f == Format "html5") || f == Format "html4")
+           ((html5 && f == Format "html5") || f == Format "html4") ||
+           isSlideVariant f
+
+-- | Check to see if Format matches with an HTML slide variant
+isSlideVariant :: Format -> Bool
+isSlideVariant f = f `elem` [Format "s5", Format "slidy", Format "slideous", 
+                             Format "dzslides", Format "revealjs"]
+
 
 -- We need to remove links from link text, because an <a> element is
 -- not allowed inside another <a> element.

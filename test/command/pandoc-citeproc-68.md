@@ -36,7 +36,7 @@ a citation [@goering:1992william, pp. 141-42].
 prose commentary[^2] \... and finally a note starting with a
 citation.[^3]
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-goering:1992william .csl-entry}
 Goering, Joseph. *William de Montibus (c. 1140--1213): The Schools and
 the Literature of Pastoral Care*. Studies and Texts 108. Toronto:

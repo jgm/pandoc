@@ -122,7 +122,7 @@ Doe (2006b) -- article-newspaper YM
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item2a .csl-entry}
 Doe, John. 2006a. "Title." The Web Site. October--November 2006.
 <http://www.example.com>.

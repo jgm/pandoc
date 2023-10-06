@@ -2,6 +2,9 @@
 <!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN"
                   "JATS-archivearticle1.dtd">
 <article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<processing-meta base-tagset="archiving" mathml-version="3.0" table-model="xhtml" tagset-family="jats">
+    <restricted-by>pmc</restricted-by>
+</processing-meta>
 <front>
 <journal-meta>
 <journal-title-group>
@@ -27,6 +30,15 @@
     </name>
   </contrib>
 </contrib-group>
+<permissions>
+        <copyright-statement>© 2023, MacFarlane et al</copyright-statement>
+        <copyright-year>2023</copyright-year>
+        <copyright-holder>MacFarlane et al</copyright-holder>
+        <license license-type="open-access">
+          <ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/">https://creativecommons.org/licenses/by/4.0/</ali:license_ref>
+          <license-p>This document is distributed under a Creative Commons Attribution 4.0 International license.</license-p>
+        </license>
+      </permissions>
 </article-meta>
 </front>
 <body>

@@ -1,6 +1,6 @@
 cabal-version:       2.4
 name:                pandoc-lua-engine
-version:             0.2.1.1
+version:             0.2.1.2
 build-type:          Simple
 license:             GPL-2.0-or-later
 license-file:        COPYING.md
@@ -114,13 +114,13 @@ library
                      , hslua-module-version  >= 1.1     && < 1.2
                      , hslua-module-zip      >= 1.1     && < 1.2
                      , hslua-repl            >= 0.1.1   && < 0.2
-                     , lpeg                  >= 1.0.4   && < 1.1
+                     , lpeg                  >= 1.1     && < 1.2
                      , mtl                   >= 2.2     && < 2.4
-                     , pandoc                >= 3.1.2   && < 3.2
+                     , pandoc                >= 3.1.4   && < 3.2
                      , pandoc-lua-marshal    >= 0.2.2   && < 0.3
                      , pandoc-types          >= 1.22    && < 1.24
                      , parsec                >= 3.1     && < 3.2
-                     , text                  >= 1.1.1   && < 2.1
+                     , text                  >= 1.1.1   && < 2.2
 
 
 test-suite test-pandoc-lua-engine
@@ -141,7 +141,7 @@ test-suite test-pandoc-lua-engine
                      , tasty-golden
                      , tasty-hunit
                      , tasty-lua             >= 1.1     && < 1.2
-                     , text                  >= 1.1.1   && < 2.1
+                     , text                  >= 1.1.1   && < 2.2
   other-modules:       Tests.Lua
                      , Tests.Lua.Module
                      , Tests.Lua.Reader

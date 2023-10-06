@@ -1,5 +1,131 @@
 # Revision history for pandoc
 
+## pandoc 3.1.8 (2023-09-08)
+
+  * JATS reader:
+
+    + Ignore `<processing-meta>` element (#9057, Julia Diaz).
+    + Fix conversion of date to ISO 8601 format (#8865).
+
+  * LaTeX template:
+
+    + Add code allow `\cite` to break across lines (#9050).
+    + Fix regression with CSL `display="block"` (#7363).
+      This restores the line break before the block.
+    + Rewrite `CSLReferences` environment to avoid depending on
+      `enumitem`, which plays badly with beamer.  Instead we use
+      a regular list environment. Thanks to @jpcirrus for the
+      concept (#9053).
+    + Restore the pre-3.1.7 format of the `CSLReferences`
+      environment, which again has two parameters. The first
+      determines whether a hanging indent is used (1 = yes, 0 = no),
+      and the second is the entry line spacing (0 = none).
+    + Add a strut to avoid inconsistencies in spacing (#9058).
+    - Remove a break at the end of `CSLRightInline` to avoid
+      inconsistencies in spacing. It shouldn't be necessary
+      because the paragraph should extend to the right margin (#9058).
+
+  * LaTeX writer:
+
+    + Fix regression with figure labels (#9045). In 3.1.7, pandoc
+      added two labels to LaTeX figure environments, one with a
+      phantomsection.
+    + Fix default citeproc entry-spacing. According to the CSL manual,
+      the default entry spacing is 1. We were treating it as 0 (#9058).
+
+  * HTML writer:
+
+    + Use the ID prefix in the ID for the footnotes section (#9044,
+      Benjamin Esham).
+    + Fix CSL entry-spacing default (#9058).
+
+  * Text.Pandoc.Citeproc:  always include an `entry-spacing` attribute
+    in the Div if the bibliography element contains an entry-spacing
+    attribute (previously we omitted it when it was 0) (#9058).
+
+  * Clean up pandoc's own man pages by regenerating with pandoc 3.1.7.
+
+  * pandoc-lua-engine: bump lower bound for pandoc (#9046).
+
+  * Depend on texmath 0.12.8.2, fixing binom in typst writer (#9063).
+
+## pandoc 3.1.7 (2023-08-31)
+
+  * Org reader:
+
+    + Don't parse alphabetical lists unless the `fancy_lists` extension is
+      enabled (#9042).
+    + Allow escaping commas in macro arguments (Amneesh Singh).
+
+  * JATS reader:
+
+    + Support for `<permissions>` metadata (#9037, Julia Diaz).
+      metadata objects with multiple fields are created, matching the
+      structure in JATS.
+    + Correct name of JATS element `attrib`.
+
+  * Markdown reader:
+
+    + Support images with wikilink syntax, e.g. `![[foo|bar]]`, when
+      one of the `wikilinks` extension is enabled (#8853).
+    + Allow a citation or reference link to be parsed after a `!` (#8254).
+    + Fix dropped `!` before nonexistent reference (#9038).
+
+  * LaTeX writer:
+
+    + Fix regression in escaping URLs (#9043).
+    + Use `\cite` and `\bibitem` to link up citations, even with citeproc.
+      (#9031). This will give us better accessibility; when tagging is
+      enabled, the citation can be linked to the bibliography entry.
+      This changes some of the details of the layout and the default
+      template. We now make `CSLReferences` a special enumitem list
+      that will contain `\bibitem`s. Internal links inside citations to
+      ids beginning in `ref-` are creating using `\cite` instead of
+      `\hyperref`.
+    + Use `\phantomsection` and `\label` instead of `\hypertarget` (#9022).
+    + Use `\hyperref` for LaTeX internal links, `\hyperlink` for
+      beamer (since `\hyperref` doesn't seem to work) (#9022).
+    + Backslash-escape `%` and `#` in URLs (#9014).
+
+  * JATS writer:
+
+    + Fix placement of ref-list when no title is specified for the
+      reference section (#9017). (In this case we place it in `back`
+      with an empty title.)
+
+  * Man writer:
+
+    + Avoid a `.PP` right after a section heading (#9020).
+      This is at best a no-op (in groff man and mandoc) and at worst
+      (in some formatters) may create extra whitespace.
+    + We revert the fanciness introduced in #7506, which employs a
+      custom font name `V` and a macro that makes this act like boldface
+      in a terminal and monospace in other formats.  Unfortunately,
+      this code uses a mechanism that is not portable (and does not
+      work in mandoc) (#9020).
+    + Instead of using `V` for inline code, we simply use `CR`.
+      Note that `\f[CR]` is emitted instead of plain `\f[C]`,
+      because there is no `C` font in man.  (This produces warnings
+      in recent versions of groff, #9020.)
+    + For code blocks, we now use the `.EX` and `.EE` macros,
+      together with `.IP` for spacing and indentation.  This gives
+      more standard code that can be better interpreted e.g. by mandoc
+      (#9020).
+
+  * Man template: don't emit `.hy`, regardless of setting of
+    `hyphenate` variable (#9020).
+
+  * LaTeX template: special redefinition of `\st` for CJK (#9019).
+    soul's version raises on error on CJK text.
+
+  * Use latest skylighting-format-blaze-html (#7248).
+    This works around a longstanding iOS Safari bug that caused long
+    lines to be displayed in a different font size in highlighted code.
+
+  * Allow skylighting 0.14 (and require it in pandoc core).
+
+  * Allow text 2.1.
+
 ## pandoc 3.1.6.2 (2023-08-22)
 
   * Org reader: allow example lines to end immediately after the colon
@@ -163,7 +289,7 @@
     (#8947, #8955). With ghc 9.4+, we were getting AVX instructions
     in the amd64 binary, which aren't supported on older hardware.
     For maximum compatibility we switch back to ghc 9.2, which doesn't
-    cause the problem. (As documented, ghc should not be emiting these
+    cause the problem. (As documented, ghc should not be emitting these
     instructions, so we aren't clear on the diagnosis, but the cure
     has been tested.)
 
@@ -209,7 +335,7 @@
       The AsciiDoc community now regards the dialect parsed by `asciidoctor`
       as the official AsciiDoc syntax, so it should be the target of our
       `asciidoc` format. The `asciidoc` output format now behaves like
-      `asciidoctor` used to. `asciidoctor` is a deprecated synonynm. For
+      `asciidoctor` used to. `asciidoctor` is a deprecated synonym. For
       the old `asciidoc` behavior (targeting the Python script),
       use `asciidoc_legacy`. The templates have been consolidated. Instead of
       separate `default.asciidoctor` and `default.asciidoc` templates, there
@@ -3808,7 +3934,7 @@
 
     + Implement siunitx v3 commands (#7614).
       We support `\unit`, `\qty`, `\qtyrange`, and `\qtylist`
-      as synonynms of `\si`, `\SI`, `\SIrange`, and `\SIlist`.
+      as synonyms of `\si`, `\SI`, `\SIrange`, and `\SIlist`.
     + Properly handle `\^` followed by group closing (#7615).
     + Recognize that `\vadjust` sometimes takes "pre" (#7531).
     + Ignore (and gobble parameters of) CSLReferences environment (#7531).
@@ -9880,7 +10006,7 @@
       not have a `startFrom` attribute; with a blank value, the
       writers can produce extra whitespace.
     + Removed superfluous `sourceCode` class on code blocks (#5047).
-    + Handle `sourcecode` directive as synonynm for `code` (#5204).
+    + Handle `sourcecode` directive as synonym for `code` (#5204).
 
   * Markdown reader:
 

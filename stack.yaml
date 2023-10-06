@@ -12,7 +12,7 @@ extra-deps:
 - hslua-cli-1.4.1
 - hslua-module-zip-1.1.0
 - hslua-repl-0.1.1
-- tls-1.8.0
+- lpeg-1.1.0
 - crypton-connection-0.3.1
 - crypton-x509-1.7.6
 - crypton-x509-store-1.6.9
@@ -22,10 +22,13 @@ extra-deps:
 - typst-symbols-0.1.4
 - toml-parser-1.3.0.0
 - typst-0.3.2.0
-- texmath-0.12.8.1
 - skylighting-core-0.14
 - skylighting-0.14
 - skylighting-format-blaze-html-0.1.1.1
+- texmath-0.12.8.3
+- tls-1.9.0
+- commonmark-extensions-0.2.3.6
+
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-21.7

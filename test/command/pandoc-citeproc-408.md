@@ -27,7 +27,7 @@ references:
 ^D
 (Smith and Smith 2019; Smith 2019)
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-smith1 .csl-entry}
 Smith, Mary. 2019. "Foo."
 :::

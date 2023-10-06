@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+cabal update
+cabal clean
 cabal build $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli
 BINPATH=$(cabal list-bin $CABALOPTS --ghc-options="$GHCOPTS" pandoc-cli)
 echo "Built executable: $BINPATH"
