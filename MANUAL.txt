@@ -1422,8 +1422,9 @@ header when requesting a document from a URL:
     The citation processing transformation may be applied before
     or after filters or Lua filters (see `--filter`,
     `--lua-filter`): these transformations are applied in the
-    order they appear on the command line.  For more
-    information, see the section on [Citations].
+    order they appear on the command line. **Note:** for `typst`
+    output you must pass `--to typst-citations` for citeproc
+    to work. For more information, see the section on [Citations].
 
 `--bibliography=`*FILE*
 
