@@ -142,8 +142,8 @@ getGraphic :: PandocMonad m
            => Maybe (Inlines, Text) -> Element -> JATS m Inlines
 getGraphic mbfigdata e = do
   let atVal a = attrValue a e
-  let altText = filterElement (named "alt-text") e of
-    Just alt = alt
+  let altText = case filterElement (named "alt-text") e of
+    Just alt = textContent alt
     Nothing = mempty
       (ident, title, capt) =
          case mbfigdata of
