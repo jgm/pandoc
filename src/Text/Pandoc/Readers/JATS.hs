@@ -142,11 +142,13 @@ getGraphic :: PandocMonad m
            => Maybe (Inlines, Text) -> Element -> JATS m Inlines
 getGraphic mbfigdata e = do
   let atVal a = attrValue a e
+  let altText = filterElement (named "alt-text") e of
+    Just alt = alt
+    Nothing = mempty
       (ident, title, capt) =
          case mbfigdata of
            Just (capt', i) -> (i, "fig:" <> atVal "title", capt')
-           Nothing        -> (atVal "id", atVal "title",
-                              text (atVal "alt-text"))
+           Nothing        -> (atVal "id", atVal "title", altText)
       attr = (ident, T.words $ atVal "role", [])
       imageUrl = atVal "href"
   return $ imageWith attr imageUrl title capt
