@@ -553,6 +553,7 @@ $body$
 $if(has-frontmatter)$
 \backmatter
 $endif$
+$if(suppress-bibliography)$$else$
 $if(natbib)$
 $if(bibliography)$
 $if(biblio-title)$
@@ -583,6 +584,7 @@ $else$
 \printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
 $endif$
 
+$endif$
 $endif$
 $for(include-after)$
 $include-after$
