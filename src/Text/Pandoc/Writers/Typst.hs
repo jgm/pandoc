@@ -98,7 +98,8 @@ blockToTypst block =
         if "unlisted" `elem` cls
            then literal "#heading(outlined: false)" <> brackets contents <>
                  cr <> lab
-           else literal (T.replicate level "=") <> space <> contents <>
+           else nowrap
+                 (literal (T.replicate level "=") <> space <> contents) <>
                  cr <> lab
     RawBlock fmt str ->
       case fmt of
