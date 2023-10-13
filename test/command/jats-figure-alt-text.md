@@ -9,6 +9,7 @@
     <alt-text>baz</alt-text> 
   <graphic>
 </fig>
+
 ^D
 [ Figure
     ( "fig-1" , [] , [] )
@@ -18,3 +19,4 @@
         [ Image ( "" , [] , [] ) [ Str "baz" ] ( "foo.png" , "" ) ]
     ]
 ]
+```

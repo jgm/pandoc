@@ -845,6 +845,12 @@ Pandoc
       , Space
       , Str "because\8230"
       ]
+  , Figure
+      ( "fig-1" , [] , [] )
+      (Caption Nothing [ Plain [ Str "bar" ] ])
+      [ Plain [ Str "alternative-decription" ]
+      , Para [ Image ( "" , [] , [] ) [] ( "foo.png" , "" ) ]
+      ]
   , Header
       1
       ( "code-blocks" , [] , [] )
