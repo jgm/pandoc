@@ -745,6 +745,8 @@ Pandoc
   , Para
       [ Str "Einstein"
       , Space
+      , Str "definitely"
+      , Space
       , Str "showed"
       , Space
       , Str "that"
@@ -821,11 +823,14 @@ Pandoc
       [ Para [ Str "Abstract" , Space , Str "text" ]
       , Para
           [ Image
-              ( "" , [] , [] )
-              []
-              ( "https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
-              , ""
-              )
+              ( "graphic003" , [] , [] )
+              [ Str "Alternative"
+              , Space
+              , Str "text"
+              , Space
+              , Str "1"
+              ]
+              ( "Title 3" , "" )
           ]
       , Para [ Math DisplayMath "e=mc^2" ]
       ]
@@ -1343,6 +1348,17 @@ Pandoc
       , Space
       , Strikeout [ Str "baz" ]
       , Str "."
+      ]
+  , Para
+      [ Str "These"
+      , Space
+      , Str "are"
+      , Space
+      , Str "serif:"
+      , Space
+      , Str "hola"
+      , Space
+      , Str "amigos"
       ]
   , Header
       1
