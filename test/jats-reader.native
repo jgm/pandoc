@@ -1355,17 +1355,6 @@ Pandoc
       , Strikeout [ Str "baz" ]
       , Str "."
       ]
-  , Para
-      [ Str "These"
-      , Space
-      , Str "are"
-      , Space
-      , Str "serif:"
-      , Space
-      , Str "hola"
-      , Space
-      , Str "amigos"
-      ]
   , Header
       1
       ( "smart-quotes-ellipses-dashes" , [] , [] )

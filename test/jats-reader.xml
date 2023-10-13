@@ -583,7 +583,6 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <p>These are all underlined: foo and bar.</p>
   <p>These are all strikethrough: <strike>foo</strike>,
     <strike>bar</strike>, and <strike>baz</strike>.</p>
-  <p>These are serif: <serif>hola amigos</serif></p>
 </sec>
 <sec id="smart-quotes-ellipses-dashes">
   <title>Smart quotes, ellipses, dashes</title>
