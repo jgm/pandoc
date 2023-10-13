@@ -7,7 +7,7 @@
   <alt-text>alternative-decription</alt-text>
   <graphic xlink:href="foo.png">
     <alt-text>baz</alt-text> 
-  <graphic>
+  </graphic>
 </fig>
 
 ^D
