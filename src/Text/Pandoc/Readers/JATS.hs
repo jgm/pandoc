@@ -138,20 +138,16 @@ trimNl = T.dropAround (== '\n')
 
 -- function that is used by both graphic (in parseBlock)
 -- and inline-graphic (in parseInline)
-getGraphic :: PandocMonad m
-           => Maybe (Inlines, Text) -> Element -> JATS m Inlines
-getGraphic mbfigdata e = do
+getGraphic :: PandocMonad m => Element -> JATS m Inlines
+getGraphic e = do
   let atVal a = attrValue a e
   let altText = case filterElement (named "alt-text") e of
-    Just alt = textContent alt
-    Nothing = mempty
-      (ident, title, capt) =
-         case mbfigdata of
-           Just (capt', i) -> (i, "fig:" <> atVal "title", capt')
-           Nothing        -> (atVal "id", atVal "title", altText)
+         Just alt -> textContent alt
+         Nothing -> mempty
+      (ident, title, altText') = (atVal "id", atVal "title", text altText)
       attr = (ident, T.words $ atVal "role", [])
       imageUrl = atVal "href"
-  return $ imageWith attr imageUrl title capt
+  return $ imageWith attr imageUrl title altText'
 
 getBlocks :: PandocMonad m => Element -> JATS m Blocks
 getBlocks e =  mconcat <$>
@@ -200,7 +196,7 @@ parseBlock (Elem e) = do
         "table-wrap-foot" -> parseBlockWithHeader
         "trans-abstract" -> parseBlockWithHeader
         "verse-group" -> parseBlockWithHeader
-        "graphic" -> para <$> getGraphic Nothing e
+        "graphic" -> para <$> getGraphic e
         "journal-meta" -> parseMetadata e
         "article-meta" -> parseMetadata e
         "custom-meta" -> parseMetadata e
@@ -624,7 +620,7 @@ parseInline (Elem e) =
         "code" -> codeWithLang
         "monospace" -> codeWithLang
 
-        "inline-graphic" -> getGraphic Nothing e
+        "inline-graphic" -> getGraphic e
         "disp-quote" -> do
             qt <- gets jatsQuoteType
             let qt' = if qt == SingleQuote then DoubleQuote else SingleQuote

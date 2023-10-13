@@ -198,9 +198,14 @@
         <abstract>
           <p>Abstract text</p>
         </abstract>
-        <graphic xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660">
-          <alt-text>Alternative text 1</alt-text>
-          <caption><p>Google doodle from 14 March 2003</p></caption>
+       <graphic id="graphic001"
+        xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+        xlink:title="This is the title of the graphic"
+        xlink:role="This is the role of the graphic">
+          <alt-text>Alternative text of the graphic</alt-text>
+          <caption>
+            <title>This is the title of the caption</title>
+            <p>Google doodle from 14 March 2003</p></caption>
         </graphic>
         <alternatives>
           <tex-math><![CDATA[e=mc^2]]></tex-math>
