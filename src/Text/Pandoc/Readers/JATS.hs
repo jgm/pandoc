@@ -229,6 +229,14 @@ parseBlock (Elem e) = do
                             then blockFormula displayMath e
                             else divWith (attrValue "id" e, ["disp-formula"], [])
                                     <$> getBlocks e
+        "index" -> parseBlockWithHeader
+        "index-div" -> parseBlockWithHeader
+        "index-group" -> parseBlockWithHeader
+        "toc" -> parseBlockWithHeader
+        "toc-div" -> parseBlockWithHeader
+        "toc-entry" -> parseBlockWithHeader
+        "toc-group" -> parseBlockWithHeader
+        "legend" -> parseBlockWithHeader
         "?xml"  -> return mempty
         _       -> getBlocks e
    where parseMixed container conts = do
