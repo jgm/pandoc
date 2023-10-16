@@ -206,7 +206,8 @@ parseBlock (Elem e) = do
         "custom-meta" -> parseMetadata e
         "processing-meta" -> return mempty
         "book-meta" -> parseMetadata e
-        "book-part-meta" ->parseMetadata e
+        "book-part-meta" -> parseMetadata e
+        "collection-meta" -> parseMetadata e 
         "title" -> return mempty -- processed by header
         "label" -> return mempty -- processed by header
         "table" -> parseTable
@@ -397,7 +398,7 @@ parseBlock (Elem e) = do
                                        Nothing -> do
                                            let name = qName (elName e)
                                            if (name == "dedication" || name == "foreword" || name == "preface") 
-                                             then return $ str $ T.toUpper name
+                                             then return $ str $ T.toTitle name
                                              else return mempty
                       oldN <- gets jatsSectionLevel
                       modify $ \st -> st{ jatsSectionLevel = n }
