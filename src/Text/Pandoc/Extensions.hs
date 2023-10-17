@@ -408,8 +408,6 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   , Ext_strikeout
   , Ext_task_lists
   , Ext_emoji
-  , Ext_pipe_tables
-  , Ext_raw_html
   , Ext_smart
   , Ext_tex_math_dollars
   , Ext_superscript
