@@ -745,6 +745,8 @@ Pandoc
   , Para
       [ Str "Einstein"
       , Space
+      , Str "definitely"
+      , Space
       , Str "showed"
       , Space
       , Str "that"
@@ -754,10 +756,29 @@ Pandoc
       [ Para [ Str "Abstract" , Space , Str "text" ]
       , Para
           [ Image
-              ( "" , [] , [] )
-              []
+              ( "graphic001"
+              , [ "This"
+                , "is"
+                , "the"
+                , "role"
+                , "of"
+                , "the"
+                , "graphic"
+                ]
+              , []
+              )
+              [ Str "Alternative"
+              , Space
+              , Str "text"
+              , Space
+              , Str "of"
+              , Space
+              , Str "the"
+              , Space
+              , Str "graphic"
+              ]
               ( "https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
-              , ""
+              , "This is the title of the graphic"
               )
           ]
       , Para [ Math DisplayMath "e=mc^2" ]
@@ -802,11 +823,14 @@ Pandoc
       [ Para [ Str "Abstract" , Space , Str "text" ]
       , Para
           [ Image
-              ( "" , [] , [] )
-              []
-              ( "https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
-              , ""
-              )
+              ( "graphic003" , [] , [] )
+              [ Str "Alternative"
+              , Space
+              , Str "text"
+              , Space
+              , Str "1"
+              ]
+              ( "Title 3" , "" )
           ]
       , Para [ Math DisplayMath "e=mc^2" ]
       ]
@@ -820,6 +844,12 @@ Pandoc
       , Str "important"
       , Space
       , Str "because\8230"
+      ]
+  , Figure
+      ( "fig-1" , [] , [] )
+      (Caption Nothing [ Plain [ Str "bar" ] ])
+      [ Plain [ Str "alternative-decription" ]
+      , Para [ Image ( "" , [] , [] ) [] ( "foo.png" , "" ) ]
       ]
   , Header
       1
