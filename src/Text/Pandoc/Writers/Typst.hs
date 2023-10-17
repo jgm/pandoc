@@ -305,6 +305,7 @@ escapeTypst context t =
     needsEscape '\160' = True
     needsEscape '[' = True
     needsEscape ']' = True
+    needsEscape '(' = True -- see #9137
     needsEscape '#' = True
     needsEscape '<' = True
     needsEscape '>' = True

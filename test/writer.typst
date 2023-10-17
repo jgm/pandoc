@@ -633,9 +633,9 @@ Ellipses…and…and….
 These shouldn’t be math:
 
 - To get the famous equation, write `$e = mc^2$`.
-- \$22,000 is a #emph[lot] of money. So is \$34,000. (It worked if "lot" is
+- \$22,000 is a #emph[lot] of money. So is \$34,000. \(It worked if "lot" is
   emphasized.)
-- Shoes (\$20) and socks (\$5).
+- Shoes \(\$20) and socks \(\$5).
 - Escaped `$`: \$73 #emph[this should be emphasized] 23\$.
 
 Here’s a LaTeX table:
@@ -678,7 +678,7 @@ Left bracket: \[
 
 Right bracket: \]
 
-Left paren: (
+Left paren: \(
 
 Right paren: )
 
@@ -777,7 +777,7 @@ or here: <http://example.com/>
 
 = Images
 <images>
-From "Voyage dans la Lune" by Georges Melies (1902):
+From "Voyage dans la Lune" by Georges Melies \(1902):
 
 #figure([#image("lalune.jpg")],
   caption: [
@@ -795,8 +795,8 @@ Here is a footnote reference,#footnote[Here is the footnote. It can go anywhere
 after the footnote reference. It need not be placed at the end of the document.]
 and another.#footnote[Here’s the long note. This one contains multiple blocks.
 
-Subsequent blocks are indented to show that they belong to the footnote (as with
-list items).
+Subsequent blocks are indented to show that they belong to the footnote \(as
+with list items).
 
 ```
   { <code> }
