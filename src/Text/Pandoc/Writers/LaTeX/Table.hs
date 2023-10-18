@@ -358,7 +358,8 @@ cellToLaTeX blockListToLaTeX isSimpleTable colCount celltype annotatedCell = do
                        (RowSpan 1) -> x
                        (RowSpan n) -> let nrows = literal (tshow n)
                                       in "\\multirow" <> braces nrows
-                                         <> braces "*" <> braces x
+                                         <> braces "=" -- width of column
+                                         <> braces x
   return . inMultiColumn . inMultiRow $ result
 
 -- | Returns the width of a cell spanning @n@ columns.
