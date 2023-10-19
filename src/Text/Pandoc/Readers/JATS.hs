@@ -206,8 +206,6 @@ parseBlock (Elem e) = do
         "custom-meta" -> parseMetadata e
         "processing-meta" -> return mempty
         "book-meta" -> parseMetadata e
-        --"book-part-meta" -> parseMetadata e
-        "collection-meta" -> parseMetadata e 
         "title" -> return mempty -- processed by header
         "label" -> return mempty -- processed by header
         "table" -> parseTable
