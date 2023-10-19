@@ -206,7 +206,7 @@ parseBlock (Elem e) = do
         "custom-meta" -> parseMetadata e
         "processing-meta" -> return mempty
         "book-meta" -> parseMetadata e
-        "book-part-meta" -> parseMetadata e
+        --"book-part-meta" -> parseMetadata e
         "collection-meta" -> parseMetadata e 
         "title" -> return mempty -- processed by header
         "label" -> return mempty -- processed by header
@@ -233,10 +233,12 @@ parseBlock (Elem e) = do
         "index" -> parseBlockWithHeader
         "index-div" -> parseBlockWithHeader
         "index-group" -> parseBlockWithHeader
+        "index-title-group" -> return mempty -- handled by index and index-div
         "toc" -> parseBlockWithHeader
         "toc-div" -> parseBlockWithHeader
         "toc-entry" -> parseBlockWithHeader
         "toc-group" -> parseBlockWithHeader
+        "toc-title-group" -> return mempty -- handled by toc 
         "legend" -> parseBlockWithHeader
         "dedication" -> parseBlockWithHeader
         "foreword" -> parseBlockWithHeader
@@ -399,7 +401,11 @@ parseBlock (Elem e) = do
                                            let name = qName (elName e)
                                            if (name == "dedication" || name == "foreword" || name == "preface") 
                                              then return $ str $ T.toTitle name
-                                             else return mempty
+                                             else case filterChild (named "index-title-group") e >>= filterChild (named "title") of
+                                                     Just i -> getInlines i
+                                                     Nothing -> case filterChild (named "toc-title-group") e >>= filterChild (named "title") of
+                                                                   Just t -> getInlines t
+                                                                   Nothing -> return mempty
                       oldN <- gets jatsSectionLevel
                       modify $ \st -> st{ jatsSectionLevel = n }
                       blocks <- mBlocks
