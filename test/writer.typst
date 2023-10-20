@@ -779,13 +779,13 @@ or here: <http://example.com/>
 <images>
 From "Voyage dans la Lune" by Georges Melies \(1902):
 
-#figure([#image("lalune.jpg")],
+#figure([#box(width: 150.0pt, image("lalune.jpg"))],
   caption: [
     lalune
   ]
 )
 
-Here is a movie #image("movie.jpg") icon.
+Here is a movie #box(width: 20.0pt, image("movie.jpg")) icon.
 
 #horizontalrule
 

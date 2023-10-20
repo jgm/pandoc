@@ -17,7 +17,8 @@ module Text.Pandoc.Writers.Typst (
     writeTypst
   ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Class.PandocMonad ( PandocMonad )
+import Text.Pandoc.Class ( PandocMonad, fetchItem )
+import Text.Pandoc.ImageSize (imageSize, sizeInPoints)
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled )
 import Data.Text (Text)
 import Data.List (intercalate, intersperse)
@@ -30,6 +31,7 @@ import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
 import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
+import Control.Monad.Except (catchError)
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Collate.Lang (Lang(..), parseLang)
 
@@ -280,10 +282,31 @@ inlineToTypst inline =
                    then mempty
                    else nowrap $ brackets contents
     Image (_,_,kvs) _inlines (src,_tit) -> do
-      let width' = maybe mempty ((", width: " <>) . literal) $ lookup "width" kvs
-      let height' = maybe mempty ((", height: " <>) . literal) $
-                    lookup "height" kvs
-      return $ "#image(" <> doubleQuoted src <> width' <> height' <> ")"
+      opts <- gets stOptions
+      let mbHeight = lookup "height" kvs
+      let mdWidth = lookup "width" kvs
+      let coreImage = "image" <>
+              parens (doubleQuoted src <>
+                 maybe mempty (\w -> ", width: " <> literal w) mdWidth <>
+                 maybe mempty (\h -> ", height: " <> literal h) mbHeight)
+      -- see #9104; we need a box or the image is treated as block-level:
+      case (mdWidth, mbHeight) of
+        (Nothing, Nothing) -> do
+          realWidth <- catchError
+                  (do (bs, _mt) <- fetchItem src
+                      case imageSize opts bs of
+                        Right x -> pure $ Just $ T.pack $
+                                      show (fst (sizeInPoints x)) <> "pt"
+                        Left _ -> pure Nothing)
+                    (\_ -> pure Nothing)
+          case realWidth of
+            Just w -> return $ "#box" <>
+                        parens ("width: " <> literal w <> ", " <> coreImage)
+            Nothing -> return $ "#" <> coreImage
+        (Just w, _) -> return $ "#box" <>
+                        parens ("width: " <> literal w <> ", " <> coreImage)
+        (_, Just h) -> return $ "#box" <>
+                        parens ("height: " <> literal h <> ", " <> coreImage)
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents)
