@@ -282,24 +282,27 @@ inlineToTypst inline =
                    then mempty
                    else nowrap $ brackets contents
     Image (_,_,kvs) _inlines (src,_tit) -> do
-      opts <-  gets stOptions
-      let height' = lookup "height" kvs
-      width' <- case lookup "width" kvs of
-        Just w -> pure $ Just w
-        Nothing -> catchError
-          (do (bs, _mt) <- fetchItem src
-              case imageSize opts bs of
-                Right x -> pure $ Just $ T.pack $
-                              show (fst (sizeInPoints x)) <> "pt"
-                Left _ -> pure Nothing)
-            (\_ -> pure Nothing)
+      opts <- gets stOptions
+      let mbHeight = lookup "height" kvs
+      let mdWidth = lookup "width" kvs
       let coreImage = "image" <>
               parens (doubleQuoted src <>
-                      maybe mempty (\w -> ", width: " <> literal w) width' <>
-                      maybe mempty (\h -> ", height: " <> literal h) height')
-      case (width', height') of
-        (Nothing, Nothing) -> return $ "#" <> coreImage
-        -- see #9104; we need a box or the image is treated as block-level:
+                 maybe mempty (\w -> ", width: " <> literal w) mdWidth <>
+                 maybe mempty (\h -> ", height: " <> literal h) mbHeight)
+      -- see #9104; we need a box or the image is treated as block-level:
+      case (mdWidth, mbHeight) of
+        (Nothing, Nothing) -> do
+          realWidth <- catchError
+                  (do (bs, _mt) <- fetchItem src
+                      case imageSize opts bs of
+                        Right x -> pure $ Just $ T.pack $
+                                      show (fst (sizeInPoints x)) <> "pt"
+                        Left _ -> pure Nothing)
+                    (\_ -> pure Nothing)
+          case realWidth of
+            Just w -> return $ "#box" <>
+                        parens ("width: " <> literal w <> ", " <> coreImage)
+            Nothing -> return $ "#" <> coreImage
         (Just w, _) -> return $ "#box" <>
                         parens ("width: " <> literal w <> ", " <> coreImage)
         (_, Just h) -> return $ "#box" <>
