@@ -297,11 +297,13 @@ inlineToTypst inline =
               parens (doubleQuoted src <>
                       maybe mempty (\w -> ", width: " <> literal w) width' <>
                       maybe mempty (\h -> ", height: " <> literal h) height')
-      case width' of
-        Nothing -> return $ "#" <> coreImage
+      case (width', height') of
+        (Nothing, Nothing) -> return $ "#" <> coreImage
         -- see #9104; we need a box or the image is treated as block-level:
-        Just w -> return $ "#box" <>
-                     parens ("width: " <> literal w <> ", " <> coreImage)
+        (Just w, _) -> return $ "#box" <>
+                        parens ("width: " <> literal w <> ", " <> coreImage)
+        (_, Just h) -> return $ "#box" <>
+                        parens ("height: " <> literal h <> ", " <> coreImage)
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents)
