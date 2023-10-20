@@ -142,12 +142,6 @@ isHruleChar _   = False
 setextHChars :: [Char]
 setextHChars = "=-"
 
-isBlank :: Char -> Bool
-isBlank ' '  = True
-isBlank '\t' = True
-isBlank '\n' = True
-isBlank _    = False
-
 --
 -- auxiliary functions
 --
@@ -416,7 +410,9 @@ abbrevKey = do
     return $ return mempty
 
 noteMarker :: PandocMonad m => MarkdownParser m Text
-noteMarker = string "[^" >> many1TillChar (satisfy $ not . isBlank) (char ']')
+noteMarker = string "[^" >>
+  many1TillChar (satisfy (`notElem` ['\r','\n','\t',' ','^','[',']']))
+                (char ']')
 
 rawLine :: PandocMonad m => MarkdownParser m Text
 rawLine = try $ do
@@ -1815,7 +1811,7 @@ endline = try $ do
 -- a reference label for a link
 reference :: PandocMonad m => MarkdownParser m (F Inlines, Text)
 reference = do
-  guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
+  guardDisabled Ext_footnotes <|> notFollowedBy' noteMarker
   withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
 
 parenthesizedChars :: PandocMonad m => MarkdownParser m Text

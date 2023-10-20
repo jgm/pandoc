@@ -5509,9 +5509,9 @@ Pandoc's Markdown allows footnotes, using the following syntax:
     isn't indented.
 
 The identifiers in footnote references may not contain spaces, tabs,
-or newlines.  These identifiers are used only to correlate the
-footnote reference with the note itself; in the output, footnotes
-will be numbered sequentially.
+newlines, or the characters `^`, `[`, or `]`. These identifiers
+are used only to correlate the footnote reference with the note
+itself; in the output, footnotes will be numbered sequentially.
 
 The footnotes themselves need not be placed at the end of the
 document.  They may appear anywhere except inside other block elements
