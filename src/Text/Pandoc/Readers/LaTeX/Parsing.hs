@@ -983,6 +983,18 @@ getRawCommand name txt = do
              void (manyTill anyTok braced) <|>
                 void (satisfyTok isPreTok) -- see #7531
            _ | isFontSizeCommand name -> return ()
+             | name `elem` ["hfil", "hfill", "vfil", "vfill",
+                            "hfilneg", "vfilneg"] -> return ()
+             | name `elem` ["hskip", "vskip", "mskip"] -> do
+                 dimenarg
+                 skipMany $ try $ do
+                   sp
+                   satisfyTok $
+                     \case
+                       Tok _ Word "plus" -> True
+                       Tok _ Word "minus" -> True
+                       _ -> False
+                   dimenarg
              | otherwise -> do
                skipopts
                option "" (try dimenarg)
