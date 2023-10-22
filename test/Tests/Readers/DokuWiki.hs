@@ -71,10 +71,11 @@ tests = [ testGroup "inlines"
             para (strikeout "deleted")
           , "Inline code" =:
             "foo <code java>public static void main</code> bar" =?>
-            para (text "foo " <> codeWith ("", ["java"], []) "public static void main" <> text " bar")
+            para (text "foo") <> codeBlockWith ("", ["java"], []) "public static void main"
+              <> para (text "bar")
           , "Inline file" =:
             "foo <file></code></file> bar" =?>
-            para (text "foo " <> code "</code>" <> text " bar")
+            para (text "foo") <> codeBlock "</code>" <> para (text "bar")
           , "Inline HTML" =:
             "<html>\nThis is some <span style=\"color:red;font-size:150%;\">inline HTML</span>\n</html>" =?>
             para (rawInline "html" "\nThis is some <span style=\"color:red;font-size:150%;\">inline HTML</span>\n")
@@ -245,7 +246,7 @@ tests = [ testGroup "inlines"
                       ] =?>
             orderedList [ plain "first item"
                         , plain ("second item with linebreak" <> linebreak <> " second line")
-                        , plain ("third item with code: " <> code "some code\ncomes here\n")
+                        , plain "third item with code: " <> codeBlock "some code\ncomes here\n"
                         , plain "fourth item"
                         ]
           ]

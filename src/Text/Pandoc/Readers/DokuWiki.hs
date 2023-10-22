@@ -105,8 +105,6 @@ inline'' = br
       <|> superscript
       <|> deleted
       <|> footnote
-      <|> inlineCode
-      <|> inlineFile
       <|> inlineRaw
       <|> math
       <|> autoLink
@@ -193,12 +191,6 @@ deleted = try $ B.strikeout <$> between (string "<del>") (try $ string "</del>")
 footnote :: PandocMonad m => DWParser m B.Inlines
 footnote = try $ B.note . B.para <$> between (string "((") (try $ string "))") nestedInlines
 
-inlineCode :: PandocMonad m => DWParser m B.Inlines
-inlineCode = codeTag B.codeWith "code"
-
-inlineFile :: PandocMonad m => DWParser m B.Inlines
-inlineFile = codeTag B.codeWith "file"
-
 inlineRaw :: PandocMonad m => DWParser m B.Inlines
 inlineRaw = try $ do
   char '<'
@@ -247,7 +239,7 @@ str :: PandocMonad m => DWParser m B.Inlines
 str = B.str <$> (many1Char alphaNum <|> characterReference)
 
 symbol :: PandocMonad m => DWParser m B.Inlines
-symbol = B.str <$> countChar 1 nonspaceChar
+symbol = B.str <$> (notFollowedBy' blockCode *> countChar 1 nonspaceChar)
 
 link :: PandocMonad m => DWParser m B.Inlines
 link = try $ do
@@ -414,7 +406,6 @@ blockElements = horizontalLine
             <|> indentedCode
             <|> quote
             <|> blockCode
-            <|> blockFile
             <|> blockRaw
             <|> table
 
@@ -448,8 +439,10 @@ parseList prefix marker =
   many1 ((<>) <$> item <*> fmap mconcat (many continuation))
   where
     continuation = try $ list ("  " <> prefix)
-    item = try $ textStr prefix *> char marker *> char ' ' *> itemContents
-    itemContents = B.plain . mconcat <$> many1Till inline' eol
+    item = try $ textStr prefix *> char marker *> char ' ' *>
+                   (mconcat <$> many1 itemContents <* eol)
+    itemContents = (B.plain . mconcat <$> many1 inline') <|>
+                   blockCode
 
 indentedCode :: PandocMonad m => DWParser m B.Blocks
 indentedCode = try $ B.codeBlock . T.unlines <$> many1 indentedLine
@@ -533,10 +526,8 @@ tableCell = try $ (second (B.plain . B.trimInlines . mconcat)) <$> cellContent
 
 
 blockCode :: PandocMonad m => DWParser m B.Blocks
-blockCode = codeTag B.codeBlockWith "code"
-
-blockFile :: PandocMonad m => DWParser m B.Blocks
-blockFile = codeTag B.codeBlockWith "file"
+blockCode = codeTag B.codeBlockWith "code" <|>
+            codeTag B.codeBlockWith "file"
 
 para :: PandocMonad m => DWParser m B.Blocks
 para = result . mconcat <$> many1Till inline endOfParaElement
@@ -544,7 +535,8 @@ para = result . mconcat <$> many1Till inline endOfParaElement
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
-   newBlockElement  = try $ blankline >> void blockElements
+   newBlockElement  = try (blankline >> void blockElements)
+                       <|> lookAhead (void blockCode)
    result content   = if F.all (==Space) content
                       then mempty
                       else B.para $ B.trimInlines content
