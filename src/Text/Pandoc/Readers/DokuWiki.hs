@@ -222,6 +222,7 @@ autoLink = try $ do
   state <- getState
   guard $ stateAllowLinks state
   (text, url) <- uri
+  guard $ not $ T.isInfixOf "%%//%%" text  -- see #9153
   guard $ checkLink (T.last url)
   return $ makeLink (text, url)
   where
