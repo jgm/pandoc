@@ -3405,6 +3405,7 @@ Emojis are replaced by their names.
 ## Math Input
 
 The extensions [`tex_math_dollars`](#extension-tex_math_dollars),
+[`tex_math_gfm`](#extension-tex_math_gfm),
 [`tex_math_single_backslash`](#extension-tex_math_single_backslash), and
 [`tex_math_double_backslash`](#extension-tex_math_double_backslash)
 are described in the section about Pandoc's Markdown.
@@ -5765,6 +5766,19 @@ Asian wide characters and other characters.
 #### Extension: `emoji` ####
 
 Parses textual emojis like `:smile:` as Unicode emoticons.
+
+#### Extension: `tex_math_gfm` ####
+
+Supports two GitHub-specific formats for math.
+Inline math: ``$`e=mc^2`$``.
+
+Display math:
+
+````
+``` math
+e=mc^2
+```
+````
 
 #### Extension: `tex_math_single_backslash` ####
 
