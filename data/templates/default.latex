@@ -553,7 +553,6 @@ $body$
 $if(has-frontmatter)$
 \backmatter
 $endif$
-$if(suppress-bibliography)$$else$
 $if(natbib)$
 $if(bibliography)$
 $if(biblio-title)$
@@ -574,6 +573,7 @@ $endif$
 
 $endif$
 $endif$
+$if(suppress-bibliography)$$else$
 $if(biblatex)$
 $if(beamer)$
 \begin{frame}[allowframebreaks]{$biblio-title$}
