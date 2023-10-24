@@ -573,7 +573,8 @@ $endif$
 
 $endif$
 $endif$
-$if(suppress-bibliography)$$else$
+$if(suppress-bibliography)$
+$else$
 $if(biblatex)$
 $if(beamer)$
 \begin{frame}[allowframebreaks]{$biblio-title$}
