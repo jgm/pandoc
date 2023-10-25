@@ -157,9 +157,13 @@ writeICML opts doc = do
        Just tpl -> renderTemplate tpl context
 
 -- | Auxiliary functions for parStylesToDoc and charStylesToDoc.
-contains :: Text -> (Text, (Text, Text)) -> [(Text, Text)]
-contains s rule =
-  [snd rule | fst rule `Text.isInfixOf` s]
+contains :: Text -> (Text, (Text, Text)) -> [(Text, Text)] -> [(Text, Text)]
+contains s (t, (k,v)) attrs =
+  if t `Text.isInfixOf` s
+     then case lookup k attrs of -- avoid duplicates, #9158
+            Nothing -> (k, v) : attrs
+            Just _ -> attrs
+     else attrs
 
 -- | The monospaced font to use as default.
 monospacedFont :: Doc Text
@@ -183,7 +187,7 @@ parStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ blockStyles st
   where
     makeStyle s =
       let countSubStrs sub str = length $ Text.breakOnAll sub str
-          attrs = concatMap (contains s) [
+          attrs = foldr (contains s) [] [
                                (defListTermName, ("BulletsAndNumberingListType", "BulletList"))
                              , (defListTermName, ("FontStyle", "Bold"))
                              , (tableHeaderName, ("FontStyle", "Bold"))
@@ -248,7 +252,7 @@ charStylesToDoc :: WriterState -> Doc Text
 charStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ inlineStyles st
   where
     makeStyle s =
-      let attrs = concatMap (contains s) [
+      let attrs = foldr (contains s) [] [
                                (strikeoutName,   ("StrikeThru", "true"))
                              , (superscriptName, ("Position", "Superscript"))
                              , (subscriptName,   ("Position", "Subscript"))
