@@ -12,13 +12,7 @@
     			<sec sec-type="miscinfo">
      				<title>The NCBI Handbook</title>
      				<p>Bioinformatics consists of a computational approach
-      				to biomedical information management and analysis. It is
-      				being used increasingly as a component of research within
-      				both academic and industrial settings and is becoming
-      				integrated into both undergraduate and postgraduate
-      				curricula. The new generation of biology graduates is
-      				emerging with experience in using bioinformatics resources
-      				and, in some cases, programming skills.</p>
+      				to biomedical information management and analysis.</p>
     			</sec>
    			</named-book-part-body>
   		</front-matter-part>
@@ -35,8 +29,7 @@
     			<sec id="bid.3">
      				<title>History</title>
      				<p>Initially, GenBank was built and maintained at Los Alamos 
-      				National Laboratory. In the early 1990s, this responsibility 
-      				was awarded to NCBI through congressional mandate.</p>
+      				National Laboratory.</p>
     			</sec>
    			</body>
    			<back>
@@ -82,10 +75,7 @@
   		<ack id="bid.394">
    		<title>Acknowledgments</title>
    		<p>We gratefully acknowledge the work of Vladimir Soussov,
-    	as well as the entire NCBI Entrez team, especially Grisha
-    	Starchenko, Vladimir Sirotinin, Alexey Iskhakov, Anton
-    	Golikov, and Pramod Paranthaman. We thank Jim Ostell for
-    	guidance, ...</p>
+    	as well as the entire NCBI Entrez team...</p>
   		</ack>
  	</book-back>
 </book>
@@ -118,98 +108,6 @@
     , Str "and"
     , Space
     , Str "analysis."
-    , Space
-    , Str "It"
-    , Space
-    , Str "is"
-    , SoftBreak
-    , Str "being"
-    , Space
-    , Str "used"
-    , Space
-    , Str "increasingly"
-    , Space
-    , Str "as"
-    , Space
-    , Str "a"
-    , Space
-    , Str "component"
-    , Space
-    , Str "of"
-    , Space
-    , Str "research"
-    , Space
-    , Str "within"
-    , SoftBreak
-    , Str "both"
-    , Space
-    , Str "academic"
-    , Space
-    , Str "and"
-    , Space
-    , Str "industrial"
-    , Space
-    , Str "settings"
-    , Space
-    , Str "and"
-    , Space
-    , Str "is"
-    , Space
-    , Str "becoming"
-    , SoftBreak
-    , Str "integrated"
-    , Space
-    , Str "into"
-    , Space
-    , Str "both"
-    , Space
-    , Str "undergraduate"
-    , Space
-    , Str "and"
-    , Space
-    , Str "postgraduate"
-    , SoftBreak
-    , Str "curricula."
-    , Space
-    , Str "The"
-    , Space
-    , Str "new"
-    , Space
-    , Str "generation"
-    , Space
-    , Str "of"
-    , Space
-    , Str "biology"
-    , Space
-    , Str "graduates"
-    , Space
-    , Str "is"
-    , SoftBreak
-    , Str "emerging"
-    , Space
-    , Str "with"
-    , Space
-    , Str "experience"
-    , Space
-    , Str "in"
-    , Space
-    , Str "using"
-    , Space
-    , Str "bioinformatics"
-    , Space
-    , Str "resources"
-    , SoftBreak
-    , Str "and,"
-    , Space
-    , Str "in"
-    , Space
-    , Str "some"
-    , Space
-    , Str "cases,"
-    , Space
-    , Str "programming"
-    , Space
-    , Str "skills."
     ]
 , Header 2 ( "bid.3" , [] , [] ) [ Str "History" ]
 , Para
@@ -234,32 +132,6 @@
     , Str "National"
     , Space
     , Str "Laboratory."
-    , Space
-    , Str "In"
-    , Space
-    , Str "the"
-    , Space
-    , Str "early"
-    , Space
-    , Str "1990s,"
-    , Space
-    , Str "this"
-    , Space
-    , Str "responsibility"
-    , SoftBreak
-    , Str "was"
-    , Space
-    , Str "awarded"
-    , Space
-    , Str "to"
-    , Space
-    , Str "NCBI"
-    , Space
-    , Str "through"
-    , Space
-    , Str "congressional"
-    , Space
-    , Str "mandate."
     ]
 , Header
     2
@@ -308,45 +180,7 @@
     , Space
     , Str "Entrez"
     , Space
-    , Str "team,"
-    , Space
-    , Str "especially"
-    , Space
-    , Str "Grisha"
-    , SoftBreak
-    , Str "Starchenko,"
-    , Space
-    , Str "Vladimir"
-    , Space
-    , Str "Sirotinin,"
-    , Space
-    , Str "Alexey"
-    , Space
-    , Str "Iskhakov,"
-    , Space
-    , Str "Anton"
-    , SoftBreak
-    , Str "Golikov,"
-    , Space
-    , Str "and"
-    , Space
-    , Str "Pramod"
-    , Space
-    , Str "Paranthaman."
-    , Space
-    , Str "We"
-    , Space
-    , Str "thank"
-    , Space
-    , Str "Jim"
-    , Space
-    , Str "Ostell"
-    , Space
-    , Str "for"
-    , SoftBreak
-    , Str "guidance,"
-    , Space
-    , Str "..."
+    , Str "team..."
     ]
 ]
 ```

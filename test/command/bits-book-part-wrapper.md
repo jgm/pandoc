@@ -14,8 +14,7 @@
  
   <abstract>
    <p>The <italic>Balisage Series on Markup Technologies</italic> 
-    is an occasional series that includes the proceedings of 
-    conferences, symposia, and other markup-related events.</p>
+    is an occasional series...</p>
   </abstract>
  </collection-meta>
 
@@ -26,9 +25,7 @@
   </book-title-group>
  
   <abstract>
-   <p>Balisage is a peer-reviewed conference designed to meet 
-    the needs of markup theoreticians and practitioners who are 
-    pushing the boundaries ...</p></abstract>
+   <p>Balisage is a peer-reviewed conference...</p></abstract>
  
  </book-meta>
 
@@ -43,8 +40,7 @@
     			<sec id="bid.3">
      				<title>History</title>
      				<p>Initially, GenBank was built and maintained at Los Alamos 
-      				National Laboratory. In the early 1990s, this responsibility 
-      				was awarded to NCBI through congressional mandate.</p>
+      				National Laboratory.</p>
     			</sec>
    			</body>
    			<back>
@@ -108,29 +104,7 @@
     , Space
     , Str "occasional"
     , Space
-    , Str "series"
-    , Space
-    , Str "that"
-    , Space
-    , Str "includes"
-    , Space
-    , Str "the"
-    , Space
-    , Str "proceedings"
-    , Space
-    , Str "of"
-    , SoftBreak
-    , Str "conferences,"
-    , Space
-    , Str "symposia,"
-    , Space
-    , Str "and"
-    , Space
-    , Str "other"
-    , Space
-    , Str "markup-related"
-    , Space
-    , Str "events."
+    , Str "series..."
     ]
 , Header 2 ( "bid.3" , [] , [] ) [ Str "History" ]
 , Para
@@ -155,32 +129,6 @@
     , Str "National"
     , Space
     , Str "Laboratory."
-    , Space
-    , Str "In"
-    , Space
-    , Str "the"
-    , Space
-    , Str "early"
-    , Space
-    , Str "1990s,"
-    , Space
-    , Str "this"
-    , Space
-    , Str "responsibility"
-    , SoftBreak
-    , Str "was"
-    , Space
-    , Str "awarded"
-    , Space
-    , Str "to"
-    , Space
-    , Str "NCBI"
-    , Space
-    , Str "through"
-    , Space
-    , Str "congressional"
-    , Space
-    , Str "mandate."
     ]
 , Header
     2
