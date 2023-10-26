@@ -227,6 +227,7 @@ header when requesting a document from a URL:
     ::: {#input-formats}
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
+    - `bits` ([BITS] XML, alias for `jats`)
     - `commonmark` ([CommonMark] Markdown)
     - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `creole` ([Creole 1.0])
@@ -480,6 +481,7 @@ header when requesting a document from a URL:
 [Rich Text Format]: https://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: https://docbook.org
 [JATS]: https://jats.nlm.nih.gov
+[BITS]: https://jats.nlm.nih.gov/extensions/bits/
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
 [txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub

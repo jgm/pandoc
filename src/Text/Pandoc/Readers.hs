@@ -140,6 +140,7 @@ readers = [("native"       , TextReader readNative)
           ,("org"          , TextReader readOrg)
           ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
           ,("html"         , TextReader readHtml)
+          ,("bits"         , TextReader readJATS)
           ,("jats"         , TextReader readJATS)
           ,("jira"         , TextReader readJira)
           ,("latex"        , TextReader readLaTeX)
