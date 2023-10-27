@@ -1,5 +1,179 @@
 # Revision history for pandoc
 
+## pandoc 3.1.9 (2023-10-27)
+
+  * Make `reference-section-title` work with `jats+element_citations`
+    (#9021).
+
+  * Add `bits` as synonym of `jats` as input format.
+
+  * JATS reader:
+
+    + Modify JATS reader to handle BITS too (#9138, Julia Diaz).
+      Add provision for title-group, book, book-part-wrapper, book-meta,
+      book-part-meta, book-title, book-title-group, index, toc, legend,
+      title, collection-meta
+    + Fix handling of alt-text (#9130, Julia Diaz). Previously we were
+      looking for an attribute that doesn't exist in JATS; alt-text is
+      provided by a child element.
+
+  * CommonMark reader:
+
+    + Handle `Ext_tex_math_gfm` (#9121). Parse GFM-specific math
+      constructions when `tex_math_gfm` enabled.
+
+  * DokuWiki reader:
+
+    + Allow autolinks to be avoided using e.g. `https:%%//%%...` (#9153).
+    + Parse `<code>` and `<file>` as block-level code (#9154).
+      Previously we treated them as inline code in some contexts,
+      but that is not how DokuWiki works.
+
+  * LaTeX reader:
+
+    + Better handle spacing commands `\hfill`, `\vfill`, `\hskip`,
+      `\vskip`, etc. (#9150).
+    + Fix incorrect abbreviation for astronomical unit (#9125,
+      Michael McClurg).
+
+  * Markdown reader:
+
+    + Fix blindspot with superscript in links (#8981).
+      Previously `[^super^](#ref)` wasn't parsed as a link, due to
+      code that was meant to prevent footnote markers from being
+      recognized as reference links.  This commit tightens up that
+      code to avoid this bad effect. We have also added a new
+      restriction on footnote labels: they cannot contain the characters
+      `^`, `[`, or `]`. Though this is technically a breaking change, we
+      suspect that the impact will be minimal, as it's very unlikely
+      people would be using these characters in their note labels.
+    + Don't apply `--default-image-extension` to data URIs (#9118).
+    + More accurate check that a normalCite is not a link,
+      bracketed span, or reference (#9080).
+
+  * HTML reader:
+
+    + Allow th to close td and vice versa (#9090).
+    + Parse task lists using input elements (#9047, Seth Speaks).
+
+  * Creole reader:
+
+    + Handle empty cells correctly (#9141, Sascha Wilde).
+
+  * Org writer:
+
+    + Escape literal `*`, `|`, `#` at beginning of line with ZWS (#9159).
+
+  * ICML writer:
+
+    + Prevent doubled attributes (#9158).
+
+  * Powerpoint writer:
+
+    + Fix a corruption error caused when the document used both a
+      regular png and a png in a data URI (#9113). (Similarly for any
+      other image format.) The problem was that duplicate entries in
+      `[Content Types].xml` were being created, one for the mime type
+      `image/png`, one for `image/png;base64`.
+
+  * LaTeX writer:
+
+    + Fix rowspans in tables so they use the width of
+      the column (`=` as the width parameter) (#9140).
+    + Don't treat table as "simple" if they have col widths.
+      This should help fix a problem wherein some grid tables with
+      colspans were overly wide (#9140).
+    + Fix uneven indents in line block output (#9088).
+
+  * JATS writer: fix 3.1.4 regression in handling block-level metadata
+    (#9092).
+
+  * Ms writer: improvements in image handling (#4475).
+
+    + PDFPIC is now used for PDF images in figures.
+    + Inline images that are postscript or PDF are rendered using
+      PSPIC or PDFPIC. This isn't ideal, because they will still be
+      rendered as if in a separate paragraph, but it's probably
+      better than just printing the image name.
+    + Units are included in height.
+
+  * HTML writer:
+
+    + If raw format is an HTML side deck format, emit it (James J Balamuta).
+
+  * Typst writer:
+
+    + Add `#box` around image to make it inline. (#9104)
+      An `#image` by itself in typst is a block-level element.
+      To force images to be inline (as they are in pandoc), we need
+      to add a box with an explicit width. When a width is not given
+      in image attributes, we compute one from the image itself, when
+      possible.
+    + Don't allow long heading to wrap (#9132).
+    + Escape `(` (#9137). If unescaped `(` occurs in
+      certain contexts, it can be parsed as function application.
+
+  * Man writer:
+
+    + Fix some spacing issues around links (#9120).
+      We need to use `\c` before a `.UR` or `.MT`, to avoid
+      an extra space, and also after.  To ensure that a space
+      at the beginning of the following line doesn't get swallowed
+      up, we escape it with `\`.
+    + Use UR, MT macros for URLs, emails (#9120).
+
+  * Text.Pandoc.Extensions:
+
+    + Add `Ext_tex_math_gfm` constructor to Extension (#9121).
+      [API change]. This handles two GitHub-specific syntaxes for math.
+      This is now default for `gfm`, in addition to `tex_math_dollars`.
+    + Remove duplicates for `Ext_raw_html` and `Ext_pipe_tables`
+      in some of the lists (Tim Stewart).
+
+  * Text.Pandoc.Metadata: Add helpful message on some metadata
+    YAML errors (#9155).
+
+  * Text.Pandoc.Shared:
+
+    + `splitSentences`: don't split after initials.
+      This improves the man and ms writer output, preventing
+      sentence breaks after initials.
+    + Add `addPandocAttributes` function [API change].
+      This is meant to simplify addition of attributes to Pandoc
+      elements: for elements that don't have a slot for attributes, an
+      enclosing Div or Span is added to hold the attributes.
+
+  * MANUAL.txt:
+
+    + Clarify that formatting can't cross line boundaries
+      in line blocks (#9119).
+    + Fix legacy option for citation (#8737, 3w36zj6)
+
+  * Update `et` translations (priiduonu).
+
+  * Updated `no` translations (Stephan Daus).
+    Renamed no.yaml (macrolanguage Norwegian) to nb.yaml (Norwegian Bokmål).
+    Created soft symbolic link from no.yaml pointing to nb.yaml.
+
+  * Lua subsystem: Use the newest LPeg version (lpeg-1.1.*) (#9107,
+    Albert Krewinkel).
+
+  * Default `epub.css`: Apply style to h6, format styles, and
+    combine identical styles under shared selectors (samuel-weinhardt).
+
+  * Update nix flake with dependencies (piq9117).
+
+  * LaTeX template: fix `\CSLBlock` vertical space (John Purnell).
+
+  * Allow tasty 1.5 and Diff 0.5.
+
+  * Require commonmark-extensions 0.2.4, commonmark 0.2.4.
+
+  * Require texmath 0.12.8.4. This should improve math in
+    powerpoint, fixing empty boxes around roots in some cases.
+
+  * Require typst 0.3.2.1
+
 ## pandoc 3.1.8 (2023-09-08)
 
   * JATS reader:
