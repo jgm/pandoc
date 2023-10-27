@@ -163,7 +163,7 @@ parseBlock (CRef x) = return $ plain $ str $ T.toUpper x
 parseBlock (Elem e) = do
   sectionLevel <- gets jatsSectionLevel
   let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e)
-  
+
   case qName (elName e) of
         "book" -> parseBook
         "book-part-wrapper" -> parseBook
@@ -234,7 +234,7 @@ parseBlock (Elem e) = do
         "toc-div" -> parseBlockWithHeader
         "toc-entry" -> parseBlockWithHeader
         "toc-group" -> parseBlockWithHeader
-        "toc-title-group" -> return mempty -- handled by toc 
+        "toc-title-group" -> return mempty -- handled by toc
         "legend" -> parseBlockWithHeader
         "dedication" -> parseBlockWithHeader
         "foreword" -> parseBlockWithHeader
@@ -385,17 +385,17 @@ parseBlock (Elem e) = do
          wrapWithHeader n mBlocks = do
                       isBook <- gets jatsBook
                       let n' = case (filterChild (named "title") e >>= maybeAttrValue "display-as") of
-                                  Just t -> read $ T.unpack t 
-                                  Nothing -> if isBook || n == 0 then n + 1 else n  
+                                  Just t -> read $ T.unpack t
+                                  Nothing -> if isBook || n == 0 then n + 1 else n
                       headerText <- case filterChild (named "title") e of
                                        Just t  -> case maybeAttrValue "supress" t of
-                                                     Just s -> if s == "no" 
-                                                                 then getInlines t 
+                                                     Just s -> if s == "no"
+                                                                 then getInlines t
                                                                  else return mempty
                                                      Nothing -> getInlines t
                                        Nothing -> do
                                            let name = qName (elName e)
-                                           if (name == "dedication" || name == "foreword" || name == "preface") 
+                                           if (name == "dedication" || name == "foreword" || name == "preface")
                                              then return $ str $ T.toTitle name
                                              else case filterChild (named "index-title-group") e >>= filterChild (named "title") of
                                                      Just i -> getInlines i
@@ -407,10 +407,10 @@ parseBlock (Elem e) = do
                       blocks <- mBlocks
                       let ident = attrValue "id" e
                       modify $ \st -> st{ jatsSectionLevel = oldN }
-                      return $ (if headerText == mempty 
-                                  then mempty 
+                      return $ (if headerText == mempty
+                                  then mempty
                                   else headerWith (ident,[],[]) n' headerText) <> blocks
-         parseBook = do 
+         parseBook = do
            modify $ \st -> st{ jatsBook = True }
            getBlocks e
 
@@ -421,7 +421,7 @@ getInlines e' = trimInlines . mconcat <$>
 parseMetadata :: PandocMonad m => Element -> JATS m Blocks
 parseMetadata e = do
   isBook <- gets jatsBook
-  if isBook then getBookTitle e else getArticleTitle e 
+  if isBook then getBookTitle e else getArticleTitle e
   if isBook then getBookAuthors e else getArticleAuthors e
   getAffiliations e
   getAbstract e

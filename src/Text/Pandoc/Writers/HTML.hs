@@ -1732,7 +1732,7 @@ intrinsicEventsHTML4 =
   , "onmouseout", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
 
 
--- | Check to see if Format is valid HTML 
+-- | Check to see if Format is valid HTML
 isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
 isRawHtml f = do
   html5 <- gets stHtml5
@@ -1742,7 +1742,7 @@ isRawHtml f = do
 
 -- | Check to see if Format matches with an HTML slide variant
 isSlideVariant :: Format -> Bool
-isSlideVariant f = f `elem` [Format "s5", Format "slidy", Format "slideous", 
+isSlideVariant f = f `elem` [Format "s5", Format "slidy", Format "slideous",
                              Format "dzslides", Format "revealjs"]
 
 

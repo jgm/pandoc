@@ -687,8 +687,8 @@ inline = pTagText <|> do
         "var" -> pCodeWithClass "var" "variable"
         "span" -> pSpan
         "math" -> pMath False
-        "input" 
-          | lookup "type" attr == Just "checkbox" 
+        "input"
+          | lookup "type" attr == Just "checkbox"
           -> asks inListItem >>= guard >> pCheckbox
         "script"
           | Just x <- lookup "type" attr
