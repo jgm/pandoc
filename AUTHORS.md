@@ -157,6 +157,7 @@
 - Ivar de Bruin
 - Ivo Clarysse
 - Jaap de Jong
+- James J Balamuta
 - J. B. Rainsberger
 - J. Lewis Muir
 - Jackson Schuster
@@ -190,6 +191,7 @@
 - John Luke Bentley
 - John MacFarlane
 - John Muccigrosso
+- John Purnell
 - Jonas Scholl
 - Jonas Smedegaard
 - Jonathan Daugherty
@@ -252,6 +254,7 @@
 - Michael Beaumont
 - Michael Chladek
 - Michael Hoffmann
+- Michael McClurg
 - Michael Peyton Jones
 - Michael Reed
 - Michael Snoyman
@@ -324,6 +327,7 @@
 - Sebastian Talmon
 - Sergei Trofimovich
 - Sergey Astanin
+- Seth Speaks
 - Shahbaz Youssefi
 - Shaun Attfield
 - Shim Myeongseob
@@ -334,6 +338,7 @@
 - Simon Schuster
 - Siphalor
 - Stefan Dresselhaus
+- Stephan Daus
 - Stephan Meijer
 - Stephen Altamirano
 - Sukil Etxenike
@@ -348,6 +353,7 @@
 - Thomas Hodgson
 - Thomas Weißschuh
 - Tim Lin
+- Tim Stewart
 - Tim Wisotzki
 - Timm Albers
 - Timothy Humphries
@@ -385,6 +391,7 @@
 - Yoan Blanc
 - Yuchen Pei
 - Zihang Chen
+- 3w36zj6
 - arcnmx
 - a-vrma
 - andrebauer
@@ -422,6 +429,8 @@
 - oquechy
 - pacien
 - perro tuerto
+- piq9117
+- priiduonu
 - qerub
 - quasicomputational
 - ricnorr
@@ -429,6 +438,7 @@
 - roblabla
 - rodja.trappe
 - rski
+- samuel-weinhardt
 - sdhoward
 - shreevatsa.public
 - takahashim
