@@ -33,6 +33,14 @@ a, a:visited {
 img {
   max-width: 100%;
 }
+sup {
+  vertical-align: super;
+  font-size: smaller;
+}
+sub {
+  vertical-align: sub;
+  font-size: smaller;
+}
 h1 {
   margin: 3em 0 0 0;
   font-size: 2em;
