@@ -633,9 +633,13 @@ onlySimpleTableCells = all isSimpleCell . concat
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool
-isTightList = all (\item -> firstIsPlain item || null item)
-  where firstIsPlain (Plain _ : _) = True
-        firstIsPlain _             = False
+isTightList = all isPlainItem
+  where
+    isPlainItem [] = True
+    isPlainItem (Plain _ : _) = True
+    isPlainItem [BulletList xs] = isTightList xs
+    isPlainItem [OrderedList _ xs] = isTightList xs
+    isPlainItem _ = False
 
 -- | Convert a list item containing tasklist syntax (e.g. @[x]@)
 -- to using @U+2610 BALLOT BOX@ or @U+2612 BALLOT BOX WITH X@.
