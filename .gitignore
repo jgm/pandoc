@@ -40,7 +40,7 @@
 !release.nix
 !shell.nix
 !stack.yaml
-!weeder.dhall
+!weeder.toml
 !app/**
 !benchmark/**
 !citeproc/**
