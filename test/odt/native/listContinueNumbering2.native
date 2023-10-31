@@ -1,0 +1,107 @@
+[ OrderedList
+    ( 1 , Decimal , Period )
+    [ [ BlockQuote [ Para [ Str "Top" , Space , Str "one" ] ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ BlockQuote
+                [ Para
+                    [ Str "Sub"
+                    , Space
+                    , Str "item"
+                    , Space
+                    , Str "1.a"
+                    ]
+                ]
+            ]
+          , [ BlockQuote
+                [ Para
+                    [ Str "Sub"
+                    , Space
+                    , Str "item"
+                    , Space
+                    , Str "1.b"
+                    ]
+                ]
+            ]
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "text"
+    , Space
+    , Str "in"
+    , Space
+    , Str "between."
+    ]
+, Para []
+, OrderedList
+    ( 2 , Decimal , Period )
+    [ [ BlockQuote [ Para [ Str "Top" , Space , Str "two" ] ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ BlockQuote
+                [ Para
+                    [ Str "Sub"
+                    , Space
+                    , Str "item"
+                    , Space
+                    , Str "2.a"
+                    ]
+                ]
+            ]
+          , [ BlockQuote
+                [ Para
+                    [ Str "Sub"
+                    , Space
+                    , Str "item"
+                    , Space
+                    , Str "2.b"
+                    ]
+                ]
+            ]
+          ]
+      ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "text"
+    , Space
+    , Str "in"
+    , Space
+    , Str "between."
+    ]
+, Para []
+, OrderedList
+    ( 3 , Decimal , Period )
+    [ [ BlockQuote [ Para [ Str "Top" , Space , Str "three" ] ]
+      , OrderedList
+          ( 1 , LowerAlpha , Period )
+          [ [ BlockQuote
+                [ Para
+                    [ Str "Sub"
+                    , Space
+                    , Str "item"
+                    , Space
+                    , Str "3.a"
+                    ]
+                ]
+            ]
+          , [ BlockQuote
+                [ Para
+                    [ Str "Sub"
+                    , Space
+                    , Str "item"
+                    , Space
+                    , Str "3.b"
+                    ]
+                ]
+            ]
+          ]
+      ]
+    ]
+]
