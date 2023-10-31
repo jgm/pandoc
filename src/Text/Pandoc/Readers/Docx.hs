@@ -73,7 +73,7 @@ import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
-import Data.List (delete, intersect, foldl')
+import Data.List (partition, delete, intersect, foldl')
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -177,7 +177,13 @@ metaStyles = M.fromList [ ("Title", "title")
                         , ("Abstract", "abstract")]
 
 sepBodyParts :: [BodyPart] -> ([BodyPart], [BodyPart])
-sepBodyParts = span (\bp -> isMetaPar bp || isEmptyPar bp)
+sepBodyParts bps = (metaWithoutEmpty, nonMetaFirst ++ emptyPars ++ nonMetaLast)
+  where
+    (nonMetaFirst, rest) = break isMetaOrEmpty bps
+    (meta, nonMetaLast) = span isMetaOrEmpty rest
+    isMetaOrEmpty bp = isMetaPar bp || isEmptyPar bp
+
+    (metaWithoutEmpty, emptyPars) = partition (not . isEmptyPar) meta
 
 isMetaPar :: BodyPart -> Bool
 isMetaPar (Paragraph pPr _) =
