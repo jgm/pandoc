@@ -76,8 +76,10 @@ data ReaderState
                    -- | Keeps track of the current depth in nested lists
                  , currentListLevel :: ListLevel
                    -- | Keeps track of the previous list start counters,
-                   -- so whenever a new list wants to continue numbering,
+                   -- so whenever a new list continues numbering,
                    -- we know what number to start from.
+                   -- If  list does not continue numbering, the counter
+                   -- is being reset.
                  , listContinuationStartCounters :: M.Map ListLevel Int
                    -- | Lists may provide their own style, but they don't have
                    -- to. If they do not, the style of a parent list may be used
