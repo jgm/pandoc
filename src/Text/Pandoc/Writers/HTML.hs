@@ -356,7 +356,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       then defField "csl-css" True .
                            (case stCslEntrySpacing st of
                               Nothing -> id
-                              Just 0  -> id
                               Just n  ->
                                 defField "csl-entry-spacing"
                                   (literal $ tshow n <> "em"))
@@ -1732,11 +1731,20 @@ intrinsicEventsHTML4 =
   [ "onclick", "ondblclick", "onmousedown", "onmouseup", "onmouseover"
   , "onmouseout", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
 
+
+-- | Check to see if Format is valid HTML
 isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
 isRawHtml f = do
   html5 <- gets stHtml5
   return $ f == Format "html" ||
-           ((html5 && f == Format "html5") || f == Format "html4")
+           ((html5 && f == Format "html5") || f == Format "html4") ||
+           isSlideVariant f
+
+-- | Check to see if Format matches with an HTML slide variant
+isSlideVariant :: Format -> Bool
+isSlideVariant f = f `elem` [Format "s5", Format "slidy", Format "slideous",
+                             Format "dzslides", Format "revealjs"]
+
 
 -- We need to remove links from link text, because an <a> element is
 -- not allowed inside another <a> element.

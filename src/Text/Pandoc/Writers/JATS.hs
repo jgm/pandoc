@@ -124,7 +124,7 @@ docToJATS opts (Pandoc meta blocks') = do
                     then Just $ writerColumns opts
                     else Nothing
   metadata <- metaToContext opts
-                 (blocksToJATS opts)
+                 (blocksToJATS opts . makeSections False (Just startLvl))
                  (fmap chomp . inlinesToJATS opts)
                  meta
   main <- blocksToJATS opts bodyblocks
@@ -292,7 +292,13 @@ blockToJATS opts (Div ("refs",_,_) xs) = do
   refs <- asks jatsReferences
   contents <- if null refs
               then blocksToJATS opts xs
-              else referencesToJATS opts refs
+              else do
+                titleElement <- case xs of
+                  (Header _ _ title:_) ->
+                    inTagsSimple "title" <$> inlinesToJATS opts title
+                  _ -> return mempty
+                elementRefs <- referencesToJATS opts refs
+                return $ titleElement $$ elementRefs
   return $ inTagsIndented "ref-list" contents
 blockToJATS opts (Div (ident,[cls],kvs) bs) | cls `elem` ["fig", "caption", "table-wrap"] = do
   contents <- blocksToJATS opts bs

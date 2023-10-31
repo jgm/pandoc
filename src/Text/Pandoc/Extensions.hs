@@ -133,6 +133,7 @@ data Extension =
     | Ext_task_lists          -- ^ Parse certain list items as task list items
     | Ext_table_captions      -- ^ Pandoc-style table captions
     | Ext_tex_math_dollars    -- ^ TeX math between $..$ or $$..$$
+    | Ext_tex_math_gfm        -- ^ Additional TeX math style used in GFM
     | Ext_tex_math_double_backslash  -- ^ TeX math btw \\(..\\) \\[..\\]
     | Ext_tex_math_single_backslash  -- ^ TeX math btw \(..\) \[..\]
     | Ext_wikilinks_title_after_pipe -- ^ Support wikilinks of style
@@ -398,6 +399,7 @@ getDefaultExtensions "gfm"             = extensionsFromList
   , Ext_yaml_metadata_block
   , Ext_footnotes
   , Ext_tex_math_dollars
+  , Ext_tex_math_gfm
   ]
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
@@ -408,8 +410,6 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   , Ext_strikeout
   , Ext_task_lists
   , Ext_emoji
-  , Ext_pipe_tables
-  , Ext_raw_html
   , Ext_smart
   , Ext_tex_math_dollars
   , Ext_superscript
@@ -553,6 +553,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_hard_line_breaks
     , Ext_smart
     , Ext_tex_math_dollars
+    , Ext_tex_math_gfm
     , Ext_superscript
     , Ext_subscript
     , Ext_definition_lists

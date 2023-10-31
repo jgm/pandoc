@@ -436,8 +436,7 @@ Should not be a list item:
 .PP
 M.A.\ 2007
 .PP
-B.
-Williams
+B. Williams
 .HLINE
 .SH 1
 Definition Lists
@@ -952,9 +951,14 @@ Images
 .pdfhref M "images"
 .LP
 From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
-[IMAGE: lalune]
+\" .IMAGE "lalune.jpg"
+.ce 1
+lalune
+.sp 1
 .LP
-Here is a movie [IMAGE: movie] icon.
+Here is a movie
+[IMAGE: movie] \" "movie.jpg"
+icon.
 .HLINE
 .SH 1
 Footnotes

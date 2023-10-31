@@ -87,7 +87,7 @@ processCitations (Pandoc meta bs) = do
                 "csl-bib-body" :
                 ["hanging-indent" | styleHangingIndent sopts]
   let refkvs = (case styleEntrySpacing sopts of
-                   Just es | es > 0 -> (("entry-spacing",T.pack $ show es):)
+                   Just es -> (("entry-spacing",T.pack $ show es):)
                    _ -> id) .
                (case styleLineSpacing sopts of
                    Just ls | ls > 1 -> (("line-spacing",T.pack $ show ls):)

@@ -100,6 +100,9 @@ readCommonMarkBody opts s toks =
   (if isEnabled Ext_implicit_figures opts
       then walk makeFigures
       else id) .
+  (if isEnabled Ext_tex_math_gfm opts
+      then walk handleGfmMath
+      else id) .
   (if readerStripComments opts
       then walk stripBlockComments . walk stripInlineComments
       else id) <$>
@@ -110,6 +113,21 @@ readCommonMarkBody opts s toks =
      else case runIdentity (parseCommonmarkWith (specFor opts) toks) of
             Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
+
+handleGfmMath :: Block -> Block
+handleGfmMath (CodeBlock ("",["math"],[]) raw) = Para [Math DisplayMath raw]
+handleGfmMath x = walk handleGfmMathInline x
+
+handleGfmMathInline :: Inline -> Inline
+handleGfmMathInline (Math InlineMath math') =
+  let (ticks, rest) = T.span (== '`') math'
+  in  if T.null ticks
+         then Math InlineMath math'
+         else case T.stripSuffix ticks rest of
+                Just middle | not (T.null middle) && (T.last middle /= '`')
+                             -> Math InlineMath middle
+                _ -> Math InlineMath math'
+handleGfmMathInline x = x
 
 stripBlockComments :: Block -> Block
 stripBlockComments (RawBlock (B.Format "html") s) =

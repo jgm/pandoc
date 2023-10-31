@@ -923,7 +923,12 @@ registerMedia fp caption = do
   let mediaInfo = MediaInfo { mInfoFilePath = fp
                             , mInfoLocalId = maxLocalId + 1
                             , mInfoGlobalId = newGlobalId
-                            , mInfoMimeType = mbMt
+                            , mInfoMimeType =
+                                case mbMt of
+                                  -- see #9113
+                                  Just t | ";base64" `T.isSuffixOf` t
+                                     -> T.stripSuffix ";base64" t
+                                  x -> x
                             , mInfoExt = imgExt
                             , mInfoCaption = (not . null) caption
                             }

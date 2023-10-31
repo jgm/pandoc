@@ -142,12 +142,6 @@ isHruleChar _   = False
 setextHChars :: [Char]
 setextHChars = "=-"
 
-isBlank :: Char -> Bool
-isBlank ' '  = True
-isBlank '\t' = True
-isBlank '\n' = True
-isBlank _    = False
-
 --
 -- auxiliary functions
 --
@@ -416,7 +410,9 @@ abbrevKey = do
     return $ return mempty
 
 noteMarker :: PandocMonad m => MarkdownParser m Text
-noteMarker = string "[^" >> many1TillChar (satisfy $ not . isBlank) (char ']')
+noteMarker = string "[^" >>
+  many1TillChar (satisfy (`notElem` ['\r','\n','\t',' ','^','[',']']))
+                (char ']')
 
 rawLine :: PandocMonad m => MarkdownParser m Text
 rawLine = try $ do
@@ -1815,7 +1811,7 @@ endline = try $ do
 -- a reference label for a link
 reference :: PandocMonad m => MarkdownParser m (F Inlines, Text)
 reference = do
-  guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
+  guardDisabled Ext_footnotes <|> notFollowedBy' noteMarker
   withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
 
 parenthesizedChars :: PandocMonad m => MarkdownParser m Text
@@ -2020,11 +2016,13 @@ image = try $ do
   wikilink B.imageWith <|>
     do (lab,raw) <- reference
        defaultExt <- getOption readerDefaultImageExtension
-       let constructor attr' src =
-              case takeExtension (T.unpack src) of
-                 "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                                 $ T.unpack defaultExt)
-                 _  -> B.imageWith attr' src
+       let constructor attr' src
+             | "data:" `T.isPrefixOf` src = B.imageWith attr' src  -- see #9118
+             | otherwise =
+                case takeExtension (T.unpack src) of
+                   "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                                   $ T.unpack defaultExt)
+                   _  -> B.imageWith attr' src
        regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -2256,7 +2254,10 @@ normalCite = try $ do
   citations <- citeList
   spnl
   char ']'
-  notFollowedBy (oneOf "{([")  -- not a link or a bracketed span
+  -- not a link or a bracketed span
+  notFollowedBy (try (void source) <|>
+                  (guardEnabled Ext_bracketed_spans *> void attributes) <|>
+                  void reference)
   return citations
 
 suffix :: PandocMonad m => MarkdownParser m (F Inlines)

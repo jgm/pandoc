@@ -92,7 +92,7 @@ chronological order is maintained, regardless of the added abbreviation.
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-doe .csl-entry}
 Doe, A. 2000a. *Title*.
 :::

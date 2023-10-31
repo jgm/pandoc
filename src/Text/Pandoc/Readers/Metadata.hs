@@ -31,7 +31,6 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.Parsing hiding (tableWith, parse)
-
 import qualified Text.Pandoc.UTF8 as UTF8
 
 yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
@@ -45,8 +44,12 @@ yamlBsToMeta pMetaValue bstr = do
        Right [Null] -> return . return $ mempty
        Right _  -> Prelude.fail "expected YAML object"
        Left err' -> do
-         throwError $ PandocParseError
-                    $ T.pack $ Yaml.prettyPrintParseException err'
+         let msg = T.pack $ Yaml.prettyPrintParseException err'
+         throwError $ PandocParseError $
+           if "did not find expected key" `T.isInfixOf` msg
+              then msg <>
+                   "\nConsider enclosing the entire field in 'single quotes'"
+              else msg
 
 -- Returns filtered list of references.
 yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
@@ -69,9 +72,8 @@ yamlBsToRefs pMetaValue idpred bstr =
                  mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
            _ -> return $ return []
        Right _ -> return . return $ []
-       Left err' -> do
-         throwError $ PandocParseError
-                    $ T.pack $ Yaml.prettyPrintParseException err'
+       Left err' -> throwError $ PandocParseError
+                               $ T.pack $ Yaml.prettyPrintParseException err'
 
 normalizeMetaValue :: (PandocMonad m, HasLastStrPosition st)
                    => ParsecT Sources st m (Future st MetaValue)

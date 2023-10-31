@@ -47,11 +47,13 @@ tableToLaTeX :: PandocMonad m
 tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   let (Ann.Table (ident, _, _) caption specs thead tbodies tfoot) = tbl
   CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption ident
-  let isSimpleTable = all (all isSimpleCell) $ mconcat
-                      [ headRows thead
-                      , concatMap bodyRows tbodies
-                      , footRows tfoot
-                      ]
+  let isSimpleTable =
+        all ((== ColWidthDefault) . snd) specs &&
+        all (all isSimpleCell)
+          (mconcat [ headRows thead
+                   , concatMap bodyRows tbodies
+                   , footRows tfoot
+                   ])
   let removeNote (Note _) = Span ("", [], []) []
       removeNote x        = x
   let colCount = ColumnCount $ length specs
@@ -111,12 +113,14 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
 isSimpleCell :: Ann.Cell -> Bool
 isSimpleCell (Ann.Cell _ _ (Cell _attr _align _rowspan _colspan blocks)) =
   case blocks of
-    [Para _]  -> True
-    [Plain _] -> True
+    [Para _]  -> not (hasLineBreak blocks)
+    [Plain _] -> not (hasLineBreak blocks)
     []        -> True
     _         -> False
-
-
+  where
+    hasLineBreak = getAny . query isLineBreak
+    isLineBreak LineBreak = Any True
+    isLineBreak _         = Any False
 
 -- | Total number of columns in a table.
 newtype ColumnCount = ColumnCount Int
@@ -354,7 +358,8 @@ cellToLaTeX blockListToLaTeX isSimpleTable colCount celltype annotatedCell = do
                        (RowSpan 1) -> x
                        (RowSpan n) -> let nrows = literal (tshow n)
                                       in "\\multirow" <> braces nrows
-                                         <> braces "*" <> braces x
+                                         <> braces "=" -- width of column
+                                         <> braces x
   return . inMultiColumn . inMultiRow $ result
 
 -- | Returns the width of a cell spanning @n@ columns.

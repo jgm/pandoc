@@ -30,6 +30,8 @@ It can convert *from*
 
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
+- `bits` ([BITS](https://jats.nlm.nih.gov/extensions/bits/) XML, alias
+  for `jats`)
 - `commonmark` ([CommonMark](https://commonmark.org) Markdown)
 - `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
   extensions)

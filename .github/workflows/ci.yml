@@ -64,7 +64,7 @@ jobs:
             cabal: 'latest'
             cabalopts: ''
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # needed by memory
     - name: Install numa
@@ -111,7 +111,7 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # needed by memory
     - name: Install numa
@@ -144,8 +144,8 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-    - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v22
+    - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v23
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - name: Cache cabal global package db
@@ -170,7 +170,7 @@ jobs:
     runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install ghc
       run: |
@@ -211,7 +211,7 @@ jobs:
 #           cabal: '3.2'
 
 #   steps:
-#   - uses: actions/checkout@v3
+#   - uses: actions/checkout@v4
 
 #   - name: Install cabal/ghc
 #     run: |

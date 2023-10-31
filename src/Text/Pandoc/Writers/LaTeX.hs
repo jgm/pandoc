@@ -345,9 +345,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                                     then "1"
                                     else "0")
                             <> braces
-                               (case lookup "entry-spacing" kvs of
-                                  Nothing -> "0"
-                                  Just s  -> literal s))
+                               (maybe "1" literal (lookup "entry-spacing" kvs)))
                           $$ inner
                           $+$ "\\end{CSLReferences}"
                else blockListToLaTeX bs
@@ -746,16 +744,13 @@ inlineListToLaTeX :: PandocMonad m
 inlineListToLaTeX lst = hcat <$>
   mapM inlineToLaTeX (fixLineInitialSpaces . fixInitialLineBreaks $ lst)
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
-    -- so we turn nbsps after hard breaks to \hspace commands.
-    -- this is mostly used in verse.
+    -- so we insert a strut: this is mostly used in verse.
  where fixLineInitialSpaces [] = []
        fixLineInitialSpaces (LineBreak : Str s : xs)
          | Just ('\160', _) <- T.uncons s
-         = LineBreak : fixNbsps s <> fixLineInitialSpaces xs
+         = LineBreak : RawInline "latex" "\\strut " : Str s
+            : fixLineInitialSpaces xs
        fixLineInitialSpaces (x:xs) = x : fixLineInitialSpaces xs
-       fixNbsps s = let (ys,zs) = T.span (=='\160') s
-                    in  replicate (T.length ys) hspace <> [Str zs]
-       hspace = RawInline "latex" "\\hspace*{0.333em}"
        -- We need \hfill\break for a line break at the start
        -- of a paragraph. See #5591.
        fixInitialLineBreaks (LineBreak:xs) =

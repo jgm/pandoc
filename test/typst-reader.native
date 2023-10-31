@@ -3710,7 +3710,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\8668"
+                                  [ Math InlineMath "\\rightsquigarrow"
                                   , Str "\8192"
                                   , Code
                                       ( "" , [] , [] ) "arrow.squiggly"

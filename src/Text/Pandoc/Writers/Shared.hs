@@ -50,7 +50,7 @@ import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
-import Data.Char (chr, ord, isSpace, isLetter)
+import Data.Char (chr, ord, isSpace, isLetter, isUpper)
 import Data.List (groupBy, intersperse, transpose, foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Text.Conversions (FromText(..))
@@ -552,10 +552,10 @@ splitSentences :: Doc Text -> Doc Text
 splitSentences = go . toList
  where
   go [] = mempty
-  go (Text len t : BreakingSpace : xs) =
-     if isSentenceEnding t
-        then Text len t <> NewLine <> go xs
-        else Text len t <> BreakingSpace <> go xs
+  go (Text len t : AfterBreak _ : BreakingSpace : xs)
+    | isSentenceEnding t = Text len t <> NewLine <> go xs
+  go (Text len t : BreakingSpace : xs)
+    | isSentenceEnding t = Text len t <> NewLine <> go xs
   go (x:xs) = x <> go xs
 
   toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
@@ -565,12 +565,16 @@ splitSentences = go . toList
   isSentenceEnding t =
     case T.unsnoc t of
       Just (t',c)
-        | c == '.' || c == '!' || c == '?' -> True
+        | c == '.' || c == '!' || c == '?'
+        , not (isInitial t') -> True
         | c == ')' || c == ']' || c == '"' || c == '\x201D' ->
            case T.unsnoc t' of
-             Just (_,d) -> d == '.' || d == '!' || d == '?'
+             Just (t'',d) -> d == '.' || d == '!' || d == '?' &&
+                             not (isInitial t'')
              _ -> False
       _ -> False
+   where
+    isInitial x = T.length x == 1 && T.all isUpper x
 
 -- | Ensure that all identifiers start with a letter,
 -- and modify internal links accordingly. (Yes, XML allows an

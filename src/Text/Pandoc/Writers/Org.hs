@@ -90,16 +90,19 @@ noteToOrg num note = do
   return $ hang (length marker) (text marker) contents
 
 -- | Escape special characters for Org.
-escapeString :: Text -> Text
+escapeString :: Text -> Doc Text
 escapeString t
-  | T.all (\c -> c < '\x2013' || c > '\x2026') t = t
-  | otherwise = T.concatMap escChar t
+  | T.all isAlphaNum t = literal t
+  | otherwise = mconcat $ map escChar (T.unpack t)
   where
    escChar '\x2013' = "--"
    escChar '\x2014' = "---"
    escChar '\x2019' = "'"
    escChar '\x2026' = "..."
-   escChar c        = T.singleton c
+   escChar c
+     -- escape special chars with ZERO WIDTH SPACE as org manual suggests
+     | c == '*' || c == '#' || c == '|' = afterBreak "\x200B" <> char c
+     | otherwise = char c
 
 isRawFormat :: Format -> Bool
 isRawFormat f =
@@ -489,7 +492,7 @@ inlineToOrg (Cite cs lst) = do
        return $ "[cite" <> sty <> ":" <> citeItems <> "]"
      else inlineListToOrg lst
 inlineToOrg (Code _ str) = return $ "=" <> literal str <> "="
-inlineToOrg (Str str) = return . literal $ escapeString str
+inlineToOrg (Str str) = return $ escapeString str
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath
