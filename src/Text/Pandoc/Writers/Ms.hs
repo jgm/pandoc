@@ -313,7 +313,7 @@ blockToMs opts (Figure figattr (Caption _ caption) body) =
                    ".pdf" -> ".PDFPIC"
                    _ -> "\\\" .IMAGE"
        return $ nowrap (literal cmd <+>
-                    doubleQuotes (literal (escapeStr opts src)) <>
+                    doubleQuotes (literal src) <>
                     sizeAttrs) $$
                   literal (".ce " <> tshow captlines) $$
                   capt $$
