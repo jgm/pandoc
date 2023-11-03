@@ -23,7 +23,7 @@ Here\[cq]s a regular paragraph.
 In Markdown 1.0.0 and earlier.
 Version 8.
 This line turns into a list item.
-Because a hard-wrapped line in the middle of a paragraph looked like a list
+Because a hard\-wrapped line in the middle of a paragraph looked like a list
 item.
 .PP
 Here\[cq]s one with a bullet.
@@ -37,7 +37,7 @@ here.
 .PP
    *   *   *   *   *
 .SH Block Quotes
-E-mail style:
+E\-mail style:
 .RS
 .PP
 This is a block quote.
@@ -79,7 +79,7 @@ And a following paragraph.
 Code:
 .IP
 .EX
----- (should be four hyphens)
+\-\-\-\- (should be four hyphens)
 
 sub status {
     print \[dq]working\[dq];
@@ -430,7 +430,7 @@ Multiline:
 Code block:
 .IP
 .EX
-<!-- Comment -->
+<!\-\- Comment \-\->
 .EE
 .PP
 Just plain comment, with trailing spaces on the line:
@@ -507,11 +507,11 @@ Ellipses\&...and\&...and\&....
 .IP \[bu] 2
 223
 .IP \[bu] 2
-\f[I]p\f[R]-Tree
+\f[I]p\f[R]\-Tree
 .IP \[bu] 2
 Here\[cq]s some display math:
 .RS
-$$\[rs]frac{d}{dx}f(x)=\[rs]lim_{h\[rs]to 0}\[rs]frac{f(x+h)-f(x)}{h}$$
+$$\[rs]frac{d}{dx}f(x)=\[rs]lim_{h\[rs]to 0}\[rs]frac{f(x+h)\-f(x)}{h}$$
 .RE
 .IP \[bu] 2
 Here\[cq]s one that has a line break in it:
@@ -575,7 +575,7 @@ Left paren: (
 .PP
 Right paren: )
 .PP
-Greater-than: >
+Greater\-than: >
 .PP
 Hash: #
 .PP
@@ -585,7 +585,7 @@ Bang: !
 .PP
 Plus: +
 .PP
-Minus: -
+Minus: \-
 .PP
    *   *   *   *   *
 .SH Links
@@ -661,7 +661,7 @@ In a list?
 .IP \[bu] 2
 It should.
 .PP
-An e-mail address: \c
+An e\-mail address: \c
 .MT nobody@nowhere.net
 .ME \c
 .RS
@@ -671,7 +671,7 @@ Blockquoted: \c
 .UE \c
 .RE
 .PP
-Auto-links should not occur here: \f[CR]<http://example.com/>\f[R]
+Auto\-links should not occur here: \f[CR]<http://example.com/>\f[R]
 .IP
 .EX
 or here: <http://example.com/>

@@ -34,6 +34,7 @@ standardEscapes =
   , ('`', "\\[ga]")
   , ('^', "\\[ha]")
   , ('~', "\\[ti]")
+  , ('-', "\\-")
   , ('\\', "\\[rs]")
   , ('@', "\\[at]") -- because we use @ as a table and math delimiter
   , ('\x2026', "\\&...")  -- because u2026 doesn't render on tty
