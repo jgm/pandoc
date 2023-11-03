@@ -139,7 +139,7 @@ When using LaTeX, the following packages need to be available
 [`iftex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
 [`booktabs`], [`graphicx`] (if the document
-contains images), [`hyperref`], [`xcolor`],
+contains images), [`bookmark`], [`xcolor`],
 [`soul`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  If `CJKmainfont` is set, [`xeCJK`]
@@ -157,9 +157,8 @@ output quality if present, but pandoc does not require them to
 be present: [`upquote`] (for straight quotes in verbatim
 environments), [`microtype`] (for better spacing adjustments),
 [`parskip`] (for better inter-paragraph spaces), [`xurl`] (for
-better line breaks in URLs), [`bookmark`] (for better PDF
-bookmarks), and [`footnotehyper`] or [`footnote`] (to allow
-footnotes in tables).
+better line breaks in URLs), and [`footnotehyper`] or
+[`footnote`] (to allow footnotes in tables).
 
 [TeX Live]: https://www.tug.org/texlive/
 [`amsfonts`]: https://ctan.org/pkg/amsfonts

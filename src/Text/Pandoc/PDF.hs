@@ -267,7 +267,7 @@ tex2pdf :: (PandocMonad m, MonadIO m)
 tex2pdf program args tmpDir source = do
   let numruns | takeBaseName program == "latexmk"        = 1
               | "\\tableofcontents" `T.isInfixOf` source = 3  -- to get page numbers
-              | otherwise                                = 2  -- 1 run won't give you PDF bookmarks
+              | otherwise                                = 1
   (exit, log', mbPdf) <- runTeXProgram program args numruns tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
