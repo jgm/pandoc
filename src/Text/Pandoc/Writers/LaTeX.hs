@@ -799,7 +799,20 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
     (if null cmds
         then braces contents
         else foldr inCmd contents cmds)
-inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
+inlineToLaTeX (Emph lst)
+    | any isNote lst = case break isNote lst of
+                        (nonNote, []) ->
+                          inCmd "emph" <$> inlineListToLaTeX nonNote
+                        (nonNote, note:rest) -> do
+                          nonNoteDoc <- inCmd "emph" <$> inlineListToLaTeX nonNote
+                          noteDoc <- inlineListToLaTeX [note]
+                          restDoc <- inlineListToLaTeX [Emph rest]
+                          return (nonNoteDoc <> noteDoc <> restDoc)
+    | otherwise      = inCmd "emph" <$> inlineListToLaTeX lst
+    where
+      isNote :: Inline -> Bool
+      isNote (Note _) = True
+      isNote _        = False
 inlineToLaTeX (Underline lst) = do
   modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
   inCmd "ul" <$> inlineListToLaTeX lst
