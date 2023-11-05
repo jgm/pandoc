@@ -186,11 +186,14 @@ sepBodyParts = span seperator
 
 isVisualBodyPart :: BodyPart -> Bool
 isVisualBodyPart (Paragraph _ []) = False
-isVisualBodyPart (Paragraph _ parts) = all isVisualParPart parts
+isVisualBodyPart (Paragraph _ pps) = isVisualParParts pps
 isVisualBodyPart _ = False
 
+isVisualParParts :: [ParPart] -> Bool
+isVisualParParts = all isVisualParPart
+
 isVisualParPart :: ParPart -> Bool
-isVisualParPart (Field _ pps) = all isVisualParPart pps
+isVisualParPart (Field _ pps) = isVisualParParts pps
 isVisualParPart (PlainRun run) = isVisualRun run
 isVisualParPart Drawing{} = True
 isVisualParPart Chart = True
