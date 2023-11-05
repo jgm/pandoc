@@ -177,7 +177,33 @@ metaStyles = M.fromList [ ("Title", "title")
                         , ("Abstract", "abstract")]
 
 sepBodyParts :: [BodyPart] -> ([BodyPart], [BodyPart])
-sepBodyParts = span (\bp -> isMetaPar bp || isEmptyPar bp)
+sepBodyParts = span seperator
+  where
+    -- | Meta is either empty, specifically has a meta style, but never is exclusively
+    -- containing visuals.
+    seperator :: BodyPart -> Bool
+    seperator par = isEmptyPar par || (isMetaPar par && not (isVisualBodyPart par))
+
+isVisualBodyPart :: BodyPart -> Bool
+isVisualBodyPart (Paragraph _ []) = False
+isVisualBodyPart (Paragraph _ parts) = all isVisualParPart parts
+isVisualBodyPart _ = False
+
+isVisualParPart :: ParPart -> Bool
+isVisualParPart (Field _ pps) = all isVisualParPart pps
+isVisualParPart (PlainRun run) = isVisualRun run
+isVisualParPart Drawing{} = True
+isVisualParPart Chart = True
+isVisualParPart Diagram = True
+isVisualParPart PlainOMath{} = True
+isVisualParPart OMathPara{} = True
+isVisualParPart _ = False
+
+isVisualRun :: Run -> Bool
+isVisualRun InlineDrawing{} = True
+isVisualRun InlineDiagram{} = True
+isVisualRun InlineChart{} = True
+isVisualRun _ = False
 
 isMetaPar :: BodyPart -> Bool
 isMetaPar (Paragraph pPr _) =
