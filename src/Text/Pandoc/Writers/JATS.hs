@@ -113,11 +113,13 @@ docToJATS opts (Pandoc meta blocks') = do
                   $ ensureReferenceHeader blocks'
   let splitBackBlocks b@(Div ("refs",_,_) _) (fs, bs) = (fs, b:bs)
       splitBackBlocks (Div (ident,("section":_),_)
-                               [ Header lev (_,hcls,hkvs) hils
-                               , (Div rattrs@("refs",_,_) rs)
-                               ]) (fs, bs)
-                       = (fs, Div rattrs
-                               (Header lev (ident,hcls,hkvs) hils : rs) : bs)
+                               ( Header lev (_,hcls,hkvs) hils
+                               : (Div rattrs@("refs",_,_) rs)
+                               : rest
+                               )) (fs, bs)
+                       = (fs ++ rest,
+                            Div rattrs
+                             (Header lev (ident,hcls,hkvs) hils : rs) : bs)
       splitBackBlocks b (fs, bs) = (b:fs, bs)
   let (bodyblocks, backblocks) = foldr splitBackBlocks ([],[]) blocks
   let colwidth = if writerWrapText opts == WrapAuto

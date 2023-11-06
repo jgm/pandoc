@@ -76,7 +76,9 @@ processCitations (Pandoc meta bs) = do
   let citations = getCitations locale otherIdsMap $ Pandoc meta' bs
 
 
-  let linkCites = maybe False truish $ lookupMeta "link-citations" meta
+  let linkCites = maybe False truish (lookupMeta "link-citations" meta) &&
+                  -- don't link citations if no bibliography to link to:
+             not (maybe False truish (lookupMeta "suppress-bibliography" meta))
   let linkBib = maybe True truish $ lookupMeta "link-bibliography" meta
   let opts = defaultCiteprocOptions{ linkCitations = linkCites
                                    , linkBibliography = linkBib }
@@ -479,9 +481,9 @@ isYesValue _ = False
 insertRefs :: [(Text,Text)] -> [Text] -> [Block] -> Pandoc -> Pandoc
 insertRefs _ _ [] d = d
 insertRefs refkvs refclasses refs (Pandoc meta bs) =
-  if isRefRemove meta
-     then Pandoc meta bs
-     else case runState (walkM go (Pandoc meta bs)) False of
+  case lookupMeta "suppress-bibliography" meta of
+    Just x | truish x -> Pandoc meta bs
+    _ -> case runState (walkM go (Pandoc meta bs)) False of
                (d', True) -> d'
                (Pandoc meta' bs', False)
                  -> Pandoc meta' $
@@ -516,10 +518,6 @@ refTitle meta =
     Just (MetaBlocks [Plain ils]) -> Just ils
     Just (MetaBlocks [Para ils])  -> Just ils
     _                             -> Nothing
-
-isRefRemove :: Meta -> Bool
-isRefRemove meta =
-  maybe False truish $ lookupMeta "suppress-bibliography" meta
 
 legacyDateRanges :: Reference Inlines -> Reference Inlines
 legacyDateRanges ref =

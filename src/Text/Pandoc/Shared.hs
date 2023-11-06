@@ -50,6 +50,7 @@ module Text.Pandoc.Shared (
                      linesToPara,
                      figureDiv,
                      makeSections,
+                     combineAttr,
                      uniqueIdent,
                      inlineListToIdentifier,
                      textToIdentifier,
@@ -562,13 +563,15 @@ makeSections numbering mbBaseLevel bs =
   go (x:xs) = (x :) <$> go xs
   go [] = return []
 
-  combineAttr :: Attr -> Attr -> Attr
-  combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
-    (if T.null id1 then id2 else id1,
-     nubOrd (classes1 ++ classes2),
-     foldr (\(k,v) kvs -> case lookup k kvs of
-                             Nothing -> (k,v):kvs
-                             Just _  -> kvs) mempty (kvs1 ++ kvs2))
+-- | Combine two 'Attr'. Classes are concatenated.  For the id and key-value
+-- attributes, the first one takes precedence in case of duplicates.
+combineAttr :: Attr -> Attr -> Attr
+combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
+  (if T.null id1 then id2 else id1,
+   nubOrd (classes1 ++ classes2),
+   foldr (\(k,v) kvs -> case lookup k kvs of
+                           Nothing -> (k,v):kvs
+                           Just _  -> kvs) kvs1 kvs2)
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)  = l <= level
