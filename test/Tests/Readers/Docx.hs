@@ -507,7 +507,7 @@ tests = [ testGroup "document"
             "docx/metadata.docx"
             "docx/metadata.native"
           , testCompareWithOpts def{readerStandalone=True}
-            "stop recording metadata with normal text"
+            "recording metadata after normal text only if author"
             "docx/metadata_after_normal.docx"
             "docx/metadata_after_normal.native"
           ]

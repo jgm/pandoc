@@ -169,36 +169,54 @@ spansToKeep = []
 divsToKeep :: [ParaStyleName]
 divsToKeep = ["Definition", "Definition Term"]
 
+multiMetaStyles :: M.Map ParaStyleName T.Text
+multiMetaStyles = M.fromList [ ("Author", "author") ]
+
+-- | Meta Styles where just the first single instance is kept.
+singleMetaStyles :: M.Map ParaStyleName T.Text
+singleMetaStyles = M.fromList [ ("Title", "title")
+                              , ("Subtitle", "subtitle")
+                              , ("Date", "date")
+                              , ("Abstract", "abstract")]
+
 metaStyles :: M.Map ParaStyleName T.Text
-metaStyles = M.fromList [ ("Title", "title")
-                        , ("Subtitle", "subtitle")
-                        , ("Author", "author")
-                        , ("Date", "date")
-                        , ("Abstract", "abstract")]
+metaStyles = M.union singleMetaStyles multiMetaStyles
 
 sepBodyParts :: [BodyPart] -> ([BodyPart], [BodyPart])
-sepBodyParts bps = (metaWithoutEmpty, nonMetaFirst ++ emptyPars ++ nonMetaLast)
+sepBodyParts bps = (multiMetas ++ singleMetas, restWithoutRelevantMeta)
   where
-    (nonMetaFirst, rest) = break isMetaOrEmpty bps
-    (meta, nonMetaLast) = span isMetaOrEmpty rest
-    isMetaOrEmpty bp = isMetaPar bp || isEmptyPar bp
+    -- extract all metas from bps only based on metaStyles
+    (multiMetas, restWithoutMulti) = partition isMultiMetaPar bps
 
-    (metaWithoutEmpty, emptyPars) = partition (not . isEmptyPar) meta
+    -- extract the first of every in singleMetaStyles and add to singleMetas, remaining elements to rest
+    (singleMetas, restWithoutRelevantMeta) = foldr extractSingle ([], restWithoutMulti) (M.keys singleMetaStyles)
 
-isMetaPar :: BodyPart -> Bool
-isMetaPar (Paragraph pPr _) =
-  not $ null $ intersect (getStyleNames $ pStyle pPr) (M.keys metaStyles)
-isMetaPar _ = False
+    extractSingle :: ParaStyleName -> ([BodyPart], [BodyPart]) -> ([BodyPart], [BodyPart])
+    extractSingle styleName (accSingleMetas, remainingBPs) =
+      let (found, rest) = extractFirst (isSingleMetaPar styleName) remainingBPs
+      in (maybeToList found ++ accSingleMetas, rest)
 
-isEmptyPar :: BodyPart -> Bool
-isEmptyPar (Paragraph _ parParts) =
-  all isEmptyParPart parParts
-  where
-    isEmptyParPart (PlainRun (Run _ runElems)) = all isEmptyElem runElems
-    isEmptyParPart _                           = False
-    isEmptyElem (TextRun s) = trim s == ""
-    isEmptyElem _           = True
-isEmptyPar _ = False
+    maybeToList :: Maybe a -> [a]
+    maybeToList Nothing = []
+    maybeToList (Just x) = [x]
+
+    isSingleMetaPar :: ParaStyleName -> BodyPart -> Bool
+    isSingleMetaPar styleName (Paragraph pPr _) =
+      styleName `elem` getStyleNames (pStyle pPr)
+    isSingleMetaPar _ _ = False
+
+    extractFirst :: (a -> Bool) -> [a] -> (Maybe a, [a])
+    extractFirst _ []     = (Nothing, [])
+    extractFirst predicate (x:xs)
+        | predicate x    = (Just x, xs)
+        | otherwise = let (found, rest) = extractFirst predicate xs
+                      in (found, x : rest)
+
+
+isMultiMetaPar :: BodyPart -> Bool
+isMultiMetaPar (Paragraph pPr _) =
+  not $ null $ intersect (getStyleNames $ pStyle pPr) (M.keys multiMetaStyles)
+isMultiMetaPar _ = False
 
 bodyPartsToMeta' :: PandocMonad m => [BodyPart] -> DocxContext m (M.Map T.Text MetaValue)
 bodyPartsToMeta' [] = return M.empty
