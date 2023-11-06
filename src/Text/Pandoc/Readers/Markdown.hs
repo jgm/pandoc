@@ -1928,6 +1928,7 @@ referenceLink constructor (lab, raw) = do
       <|>
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
+  !attr <- option nullAttr $ guardEnabled Ext_link_attributes >> attributes
   let !labIsRef = raw' == "" || raw' == "[]"
   let (exclam, rawsuffix) =
         case T.uncons raw of
@@ -1956,11 +1957,11 @@ referenceLink constructor (lab, raw) = do
             then do
               headerKeys <- asksF stateHeaderKeys
               case M.lookup key headerKeys of
-                   Just ((src, tit), _) -> constructor nullAttr src tit <$> lab
+                   Just ((src, tit), _) -> constructor attr src tit <$> lab
                    Nothing              -> makeFallback
             else makeFallback
-       Just ((src,tit), attr) ->
-           constructor attr src tit <$> lab
+       Just ((src,tit), defattr) ->
+           constructor (combineAttr attr defattr) src tit <$> lab
 
 dropBrackets :: Text -> Text
 dropBrackets = dropRB . dropLB
