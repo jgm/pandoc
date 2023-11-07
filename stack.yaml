@@ -29,7 +29,7 @@ extra-deps:
 - commonmark-0.2.4
 - commonmark-extensions-0.2.4
 - git: https://github.com/jgm/typst-hs
-  commit: 145bab9a576d7eb2f44878f554d43d5d4ac436d9
+  commit: 71c24946e098ce8af0b8de4004711e4ee732f2d0
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
