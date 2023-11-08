@@ -127,6 +127,41 @@ convertWithOpts scriptingEngine opts = do
                Left e -> E.throwIO $ PandocShouldNeverHappenError $ T.pack e
           | otherwise -> writeFnBinary outputFile bs
 
+isolateBigNote :: ([Inline] -> Inline) -> [Inline] -> [Inline]
+isolateBigNote constructor xs
+  | any isBigNote xs = let (before, after) = break isBigNote xs
+              in case after of
+                   (noteInline:rest) -> constructor before : noteInline : isolateBigNote constructor rest
+                   _ -> error "break should always return a non-empty 'after' when 'any isNote xs' is True."
+  | otherwise = [constructor xs]
+  where
+    isBigNote :: Inline -> Bool
+    isBigNote (Note blocks) = countParas blocks > 1
+      where
+        countParas :: [Block] -> Int
+        countParas = length . filter isPara
+
+        isPara :: Block -> Bool
+        isPara (Para _) = True
+        isPara _        = False
+    isBigNote _ = False
+
+liftBigNotes :: [Inline] -> [Inline]
+liftBigNotes [] = []
+liftBigNotes (x:xs) =
+    case x of
+        Emph inner    -> isolateBigNote Emph (liftBigNotes inner) ++ liftBigNotes xs
+        Strong inner  -> isolateBigNote Strong (liftBigNotes inner) ++ liftBigNotes xs
+        _             -> x : liftBigNotes xs
+
+liftBigNotesInBody :: Pandoc -> Pandoc
+liftBigNotesInBody (Pandoc meta bs) = Pandoc meta (fmap liftBigNotesInBlock bs)
+  where
+    liftBigNotesInBlock :: Block -> Block
+    liftBigNotesInBlock (Para xs)  = Para (liftBigNotes xs)
+    liftBigNotesInBlock (Plain xs) = Plain (liftBigNotes xs)
+    liftBigNotesInBlock others     = others
+
 convertWithOpts' :: (PandocMonad m, MonadIO m, MonadMask m)
                  => ScriptingEngine
                  -> Bool

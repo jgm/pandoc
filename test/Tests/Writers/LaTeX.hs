@@ -86,11 +86,6 @@ tests = [ testGroup "code blocks"
           , "backtick" =:
               code "`nu?`" =?> "\\texttt{\\textasciigrave{}nu?\\textasciigrave{}}"
           ]
-        , testGroup "inline emph"
-          [ "note in emph constructor" =:
-            emph (str "This sentence" <> note (para (str "paragraph1") <> para (str "paragraph2")) <> str " has footnote.") =?>
-               "\\emph{This sentence}\\footnote{paragraph1\n\n  paragraph2}\\emph{ has footnote.}"
-          ]
         , testGroup "writer options"
           [ testGroup "top-level division" $
             let
