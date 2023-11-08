@@ -276,7 +276,8 @@ convertWithOpts' scriptingEngine istty datadir opts = do
   metadataFromFile <- getMetadataFromFiles readerNameBase readerOpts
                          (optMetadataFiles opts)
 
-  let transforms = (case optShiftHeadingLevelBy opts of
+  let transforms = (liftBigNotesInBody :) .
+                   (case optShiftHeadingLevelBy opts of
                         0             -> id
                         x             -> (headerShift x :)) .
                    (if extensionEnabled Ext_east_asian_line_breaks
