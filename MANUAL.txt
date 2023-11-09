@@ -2048,18 +2048,15 @@ To include the built-in citeproc filter, use either `citeproc` or
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --bibliography logic.bib         | metadata:                         |
-|                                  |   bibliography: logic.bib         |
+| --bibliography logic.bib         | bibliography: logic.bib           |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --csl ieee.csl                   | metadata:                         |
-|                                  |   csl: ieee.csl                   |
+| --csl ieee.csl                   | csl: ieee.csl                     |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --citation-abbreviations ab.json | metadata:                         |
-|                                  |   citation-abbreviations: ab.json |
+| --citation-abbreviations ab.json | citation-abbreviations: ab.json   |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
