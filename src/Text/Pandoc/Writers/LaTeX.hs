@@ -65,10 +65,37 @@ import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
 import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
+isolateBigNotes :: ([Inline] -> Inline) -> [Inline] -> [Inline]
+isolateBigNotes constructor xs =
+  let (before, after) = break isBigNote xs
+  in case after of
+       (noteInline:rest) -> constructor before :
+                            noteInline :
+                            isolateBigNotes constructor rest
+       [] -> [constructor xs]
+  where
+    isBigNote :: Inline -> Bool
+    isBigNote (Note [Plain _]) = False  -- A small note
+    isBigNote (Note [Para _]) =  False  -- A small note
+    isBigNote (Note _) = True  -- A big note
+    isBigNote _ = False  -- Not a note
+
+raiseBigNotes :: [Inline] -> [Inline]
+raiseBigNotes (Emph inner : xs)
+  = isolateBigNotes Emph (raiseBigNotes inner) ++ raiseBigNotes xs
+raiseBigNotes (Strong inner : xs)
+  = isolateBigNotes Strong (raiseBigNotes inner) ++ raiseBigNotes xs
+raiseBigNotes (Underline inner : xs)
+  = isolateBigNotes Underline (raiseBigNotes inner) ++ raiseBigNotes xs
+raiseBigNotes (Strikeout inner : xs)
+  = isolateBigNotes Strikeout (raiseBigNotes inner) ++ raiseBigNotes xs
+raiseBigNotes (x : xs)          = x : raiseBigNotes xs
+raiseBigNotes [] = []
+
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeLaTeX options document =
-  evalStateT (pandocToLaTeX options document) $
+  evalStateT (pandocToLaTeX options (walk raiseBigNotes document)) $
     startingState options
 
 -- | Convert Pandoc to LaTeX Beamer.
