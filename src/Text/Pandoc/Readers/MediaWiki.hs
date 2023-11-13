@@ -245,7 +245,9 @@ parseAttrs = many1 parseAttr
 parseAttr :: PandocMonad m => MWParser m (Text, Text)
 parseAttr = try $ do
   skipMany spaceChar
-  k <- many1Char letter
+  kFirst <- letter
+  kRest <- many (alphaNum <|> oneOf "_-:.")
+  let k = T.pack (kFirst : kRest)
   skipMany spaceChar
   char '='
   skipMany spaceChar
