@@ -4031,6 +4031,9 @@ This syntax is borrowed from [reStructuredText].
 
 ## Lists
 
+Note: the `commonmark` parser doesn't require blank lines before
+lists.
+
 ### Bullet lists ###
 
 A bullet list is a list of bulleted list items.  A bulleted list
