@@ -334,19 +334,23 @@ pBulletList = try $ do
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
   skipMany nonItem
-  items <- manyTill (pListItem' nonItem) (pCloses "ul")
+  items <- manyTill (pListItem nonItem) (pCloses "ul")
   return $ B.bulletList $ map (fixPlains True) items
 
-pListItem :: PandocMonad m => TagParser m Blocks
-pListItem = setInListItem $ do
+pListItem :: PandocMonad m => TagParser m a -> TagParser m Blocks
+pListItem nonItem = setInListItem $ do
   TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "li" [])
   let attr = toStringAttr attr'
   let addId ident bs = case B.toList bs of
                            (Plain ils:xs) -> B.fromList (Plain
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
-  maybe id addId (lookup "id" attr) <$>
-    pInTags "li" block
+  item <- pInTags "li" block
+  skipMany nonItem
+  orphans <- many (do notFollowedBy (pSatisfy (matchTagOpen "li" []))
+                      notFollowedBy (pSatisfy isTagClose)
+                      block) -- e.g. <ul>, see #9187
+  return $ maybe id addId (lookup "id" attr) $ item <> mconcat orphans
 
 pCheckbox :: PandocMonad m => TagParser m Inlines
 pCheckbox = do
@@ -357,12 +361,6 @@ pCheckbox = do
   let escapeSequence = B.str $ if isChecked then "\9746" else "\9744"
   return $ escapeSequence <> B.space
 
-
--- | Parses a list item just like 'pListItem', but allows sublists outside of
--- @li@ tags to be treated as items.
-pListItem' :: PandocMonad m => TagParser m a -> TagParser m Blocks
-pListItem' nonItem = (pListItem <|> pBulletList <|> pOrderedList)
-  <* skipMany nonItem
 
 parseListStyleType :: Text -> ListNumberStyle
 parseListStyleType "lower-roman" = LowerRoman
@@ -404,7 +402,7 @@ pOrderedList = try $ do
        _ <- manyTill (eFootnote <|> pBlank) (pCloses "ol")
        return mempty
      else do
-       items <- manyTill (pListItem' nonItem) (pCloses "ol")
+       items <- manyTill (pListItem nonItem) (pCloses "ol")
        return $ B.orderedListWith (start, style, DefaultDelim) $
                 map (fixPlains True) items
 
