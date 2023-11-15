@@ -21,7 +21,7 @@ import Text.Pandoc.Class ( PandocMonad, fetchItem )
 import Text.Pandoc.ImageSize (imageSize, sizeInPoints)
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled )
 import Data.Text (Text)
-import Data.List (intercalate, intersperse)
+import Data.List (intercalate)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
@@ -266,11 +266,10 @@ inlineToTypst inline =
       return $ q <> contents <> q
     Cite citations inlines -> do
       opts <-  gets stOptions
+      let toCite cite = "#cite" <> parens (toLabel (citationId cite))
       if isEnabled Ext_citations opts
-         then return $ -- Note: this loses locators, prefix, suffix
-              "#cite" <> parens
-                (mconcat $ intersperse ", " $
-                  map (doubleQuoted . citationId) citations)
+         -- Note: this loses locators, prefix, suffix
+         then return $ mconcat $ map toCite citations
          else inlinesToTypst inlines
     Link _attrs inlines (src,_tit) -> do
       contents <- inlinesToTypst inlines
