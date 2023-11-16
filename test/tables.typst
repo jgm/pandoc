@@ -1,6 +1,7 @@
 Simple table with caption:
 
-#align(center)[#table(
+#figure(
+align(center)[#table(
   columns: 4,
   align: (col, row) => (right,left,center,auto,).at(col),
   inset: 6pt,
@@ -17,13 +18,14 @@ Simple table with caption:
   [1],
   [1],
   [1],
+)]
+, caption: [Demonstration of simple table syntax.]
 )
-#align(center, [Demonstration of simple table syntax.])
-]
 
 Simple table without caption:
 
-#align(center)[#table(
+#figure(
+align(center)[#table(
   columns: 4,
   align: (col, row) => (right,left,center,auto,).at(col),
   inset: 6pt,
@@ -40,12 +42,13 @@ Simple table without caption:
   [1],
   [1],
   [1],
+)]
 )
-]
 
 Simple table indented two spaces:
 
-#align(center)[#table(
+#figure(
+align(center)[#table(
   columns: 4,
   align: (col, row) => (right,left,center,auto,).at(col),
   inset: 6pt,
@@ -62,13 +65,14 @@ Simple table indented two spaces:
   [1],
   [1],
   [1],
+)]
+, caption: [Demonstration of simple table syntax.]
 )
-#align(center, [Demonstration of simple table syntax.])
-]
 
 Multiline table with caption:
 
-#align(center)[#table(
+#figure(
+align(center)[#table(
   columns: 4,
   align: (col, row) => (center,left,right,left,).at(col),
   inset: 6pt,
@@ -81,13 +85,14 @@ Multiline table with caption:
   [row],
   [5.0],
   [Here’s another one. Note the blank line between rows.],
+)]
+, caption: [Here’s the caption. It may span multiple lines.]
 )
-#align(center, [Here’s the caption. It may span multiple lines.])
-]
 
 Multiline table without caption:
 
-#align(center)[#table(
+#figure(
+align(center)[#table(
   columns: 4,
   align: (col, row) => (center,left,right,left,).at(col),
   inset: 6pt,
@@ -100,12 +105,13 @@ Multiline table without caption:
   [row],
   [5.0],
   [Here’s another one. Note the blank line between rows.],
+)]
 )
-]
 
 Table without column headers:
 
-#align(center)[#table(
+#figure(
+align(center)[#table(
   columns: 4,
   align: (col, row) => (right,left,center,right,).at(col),
   inset: 6pt,
@@ -121,12 +127,13 @@ Table without column headers:
   [1],
   [1],
   [1],
+)]
 )
-]
 
 Multiline table without column headers:
 
-#align(center)[#table(
+#figure(
+align(center)[#table(
   columns: 4,
   align: (col, row) => (center,left,right,auto,).at(col),
   inset: 6pt,
@@ -138,5 +145,5 @@ Multiline table without column headers:
   [row],
   [5.0],
   [Here’s another one. Note the blank line between rows.],
+)]
 )
-]

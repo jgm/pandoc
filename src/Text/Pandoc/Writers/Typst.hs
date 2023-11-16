@@ -165,14 +165,15 @@ blockToTypst block =
                   then return mempty
                   else do
                     captcontents <- inlinesToTypst caption
-                    return $ "#align(center, " <> brackets captcontents <> ")"
+                    return $ ", caption: " <> brackets captcontents
       let lab = toLabel ident
       let formatalign AlignLeft = "left,"
           formatalign AlignRight = "right,"
           formatalign AlignCenter = "center,"
           formatalign AlignDefault = "auto,"
       let alignarray = parens $ mconcat $ map formatalign aligns
-      return $ "#align(center)[#table("
+      return $ "#figure(" $$
+        "align(center)[#table("
         $$ nest 2
            (  "columns: " <> text (show numcols) <> "," -- auto
            $$ "align: (col, row) => " <> alignarray <> ".at(col),"
@@ -180,10 +181,10 @@ blockToTypst block =
            $$ hsep (map ((<>",") . brackets) headers')
            $$ vcat (map (\x -> brackets x <> ",") (concat rows'))
            )
-        $$ ")"
+        $$ ")]"
         $$ capt'
+        $$ ")"
         $$ lab
-        $$ "]"
         $$ blankline
     Figure (ident,_,_) (Caption _mbshort capt) blocks -> do
       caption <- blocksToTypst capt
