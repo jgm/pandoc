@@ -124,9 +124,13 @@ openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType
 openURL u
  | Just (URI{ uriScheme = "data:",
               uriPath = upath }) <- parseURI (T.unpack u) = do
-     let (mime, rest) = break (== ',') $ unEscapeString upath
+     let (mimespec, rest) = break (== ',') $ unEscapeString upath
      let contents = UTF8.fromString $ drop 1 rest
-     return (decodeBase64Lenient contents, Just (T.pack mime))
+     case break (== ';') (filter (/= ' ') mimespec) of
+       (mime, ";base64") ->
+         return (decodeBase64Lenient contents, Just (T.pack mime))
+       (mime, _) ->
+         return (contents, Just (T.pack mime))
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
