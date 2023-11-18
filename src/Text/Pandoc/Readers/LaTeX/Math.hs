@@ -11,7 +11,8 @@ module Text.Pandoc.Readers.LaTeX.Math
   , proof
   )
 where
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, mapMaybe, listToMaybe)
+import Data.List (foldl')
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder as B
 import qualified Data.Sequence as Seq
@@ -140,6 +141,16 @@ newtheorem inline = do
                             M.insert name spec tmap }
   return mempty
 
+extractLabelFromBlock :: Block -> Maybe Text
+extractLabelFromBlock (Para inlines) = extractLabel Nothing inlines
+  where
+    extractLabel = foldl' go
+    go :: Maybe Text -> Inline -> Maybe Text
+    go (Just t) _ = Just t
+    go Nothing (Span (_, _, attrs) _) = lookup "label" attrs
+    go Nothing _ = Nothing
+extractLabelFromBlock _ = Nothing
+
 theoremEnvironment :: PandocMonad m
                    => LP m Blocks -> LP m Inlines -> Text -> LP m Blocks
 theoremEnvironment blocks opt name = do
@@ -150,7 +161,7 @@ theoremEnvironment blocks opt name = do
     Just tspec -> do
        optTitle <- option mempty $ (\x -> space <> "(" <> x <> ")") <$> opt
        bs <- env name blocks
-       mblabel <- sLastLabel <$> getState
+       let mblabel = listToMaybe $ mapMaybe extractLabelFromBlock (toList bs)
 
        number <-
          if theoremNumber tspec
