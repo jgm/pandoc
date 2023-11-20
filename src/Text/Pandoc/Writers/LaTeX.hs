@@ -61,7 +61,8 @@ import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
 import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        toLabel, inCmd,
                                        wrapDiv, hypertarget, labelFor,
-                                       getListingsLanguage, mbBraced)
+                                       getListingsLanguage, mbBraced,
+                                       generateOverlay)
 import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
@@ -275,8 +276,9 @@ isListBlock _                  = False
 blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m (Doc Text)
-blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
+blockToLaTeX (Div attr@(identifier,"block":dclasses,kvs)
              (Header _ _ ils : bs)) = do
+  overlay <- generateOverlay kvs
   let blockname
         | "example" `elem` dclasses = "exampleblock"
         | "alert" `elem` dclasses = "alertblock"
@@ -286,8 +288,9 @@ blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
                else (cr <>) <$> hypertarget identifier
   title' <- inlineListToLaTeX ils
   contents <- blockListToLaTeX bs
-  wrapDiv attr $ ("\\begin" <> braces blockname <> braces title' <> anchor) $$
-                 contents $$ "\\end" <> braces blockname
+  wrapDiv attr $
+    ("\\begin" <> overlay <>braces blockname <> braces title' <> anchor) $$
+      contents $$ "\\end" <> braces blockname
 blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
                (Header _ (_,hclasses,hkvs) ils : bs)) = do
   -- note: [fragile] is required or verbatim breaks
@@ -330,6 +333,7 @@ blockToLaTeX (Div (identifier@(T.uncons -> Just (_,_)),dclasses,dkvs)
 blockToLaTeX (Div (identifier,classes,kvs) bs) = do
   beamer <- gets stBeamer
   oldIncremental <- gets stIncremental
+  overlay <- generateOverlay kvs
   if beamer && "incremental" `elem` classes
      then modify $ \st -> st{ stIncremental = True }
      else when (beamer && "nonincremental" `elem` classes) $
@@ -339,7 +343,7 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                then do
                  modify $ \st -> st{ stHasCslRefs = True }
                  inner <- blockListToLaTeX bs
-                 return $ ("\\begin{CSLReferences}"
+                 return $ ("\\begin" <> overlay <> "{CSLReferences}"
                             <> braces
                                 (if "hanging-indent" `elem` classes
                                     then "1"
@@ -395,17 +399,19 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   linkAnchor <- if T.null identifier
                    then pure empty
                    else ((<> cr) . (<> "%")) <$> hypertarget identifier
+  overlay <- generateOverlay keyvalAttr
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
-        return $ flush (linkAnchor $$ "\\begin{code}" $$ literal str $$
-                            "\\end{code}") $$ cr
+        return $ flush (linkAnchor $$ "\\begin" <> overlay <> "{code}" $$
+                  literal str $$ "\\end{code}") $$ cr
   let rawCodeBlock = do
         env <- if inNote
                   then modify (\s -> s{ stVerbInNote = True }) >>
                        return "Verbatim"
                   else return "verbatim"
-        return $ flush (linkAnchor $$ literal ("\\begin{" <> env <> "}") $$
-                 literal str $$ literal ("\\end{" <> env <> "}")) <> cr
+        return $ flush (linkAnchor $$
+            literal "\\begin" <> overlay <> "{" <> literal env <> "}" $$
+            literal str $$ literal ("\\end{" <> env <> "}")) <> cr
   let listingsCodeBlock = do
         st <- get
         ref <- toLabel identifier
@@ -432,9 +438,12 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                 | null params = empty
                 | otherwise   = brackets $ hcat (intersperse ", "
                       (map literal params))
-        return $ flush ("\\begin{lstlisting}" <> printParams $$ literal str $$
-                 "\\end{lstlisting}") $$ cr
+        return $ flush ("\\begin" <> overlay <> "{lstlisting}" <> printParams $$
+                literal str $$ "\\end{lstlisting}") $$ cr
   let highlightedCodeBlock =
+        (if overlay /= ""
+          then (\doc -> literal "\\only" <> overlay <> braces doc)
+          else id) <$>
         case highlight (writerSyntaxMap opts)
                  formatLaTeXBlock ("",classes ++ ["default"],keyvalAttr) str of
                Left msg -> do
@@ -557,9 +566,10 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
-blockToLaTeX (Figure (ident, _, _) captnode body) = do
+blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
   (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
+  overlay <- generateOverlay kvs
   let caption = "\\caption" <> captForLof <> braces capt <> lab
 
   isSubfigure <- gets stInFigure
@@ -586,10 +596,12 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
     _ | stInMinipage st ->
           -- can't have figures in notes or minipage (here, table cell)
           -- http://www.tex.ac.uk/FAQ-ouparmd.html
-          cr <> "\\begin{center}" $$ contents $+$ capt $$ "\\end{center}"
+          cr <> "\\begin" <> overlay <> "{center}" $$
+            contents $+$ capt $$ "\\end{center}"
     _ | isSubfigure ->
           innards
-    _ ->  cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}")
+    _ ->  cr <> "\\begin" <> overlay <> "{figure}" $$
+            innards $$ "\\end{figure}")
     $$ footnotes
 
 toSubfigure :: PandocMonad m => Int -> Block -> LW m (Doc Text)
@@ -832,6 +844,7 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading
   inItem <- gets stInItem
+  overlay <- generateOverlay kvs
   let listingsCode = do
         let listingsopts = (case getListingsLanguage classes of
                                 Just l  -> (("language", mbBraced l):)
@@ -866,13 +879,17 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
         -- (defined in the default template) so that we don't have
         -- to change the way we escape characters depending on whether
         -- the lstinline is inside another command.  See #1629:
-        return $ literal $ "\\passthrough{\\lstinline" <>
-                        listingsopt <> T.singleton chr <> str' <> T.singleton chr <> "}"
-  let rawCode = liftM (literal . (\s -> "\\texttt{" <> escapeSpaces s <> "}"))
-                 $ stringToLaTeX CodeString str
-                where escapeSpaces = T.concatMap
-                         (\c -> if c == ' ' then "\\ " else T.singleton c)
+        return $ literal "\\passthrough" <> overlay <> literal ("{\\lstinline" <>
+                        listingsopt <> T.singleton chr <> str' <> T.singleton chr <> "}")
+  let rawCode = liftM
+        (\s -> literal "\\texttt" <> overlay <> literal("{" <> escapeSpaces s <> "}"))
+                $ stringToLaTeX CodeString str
+          where escapeSpaces = T.concatMap
+                    (\c -> if c == ' ' then "\\ " else T.singleton c)
   let highlightCode =
+        (if overlay /= ""
+          then (\doc -> literal "\\only" <> overlay <> braces doc)
+          else id) <$>
         case highlight (writerSyntaxMap opts)
                  formatLaTeXInline ("",classes,[]) str of
                Left msg -> do
@@ -945,34 +962,38 @@ inlineToLaTeX SoftBreak = do
        WrapNone     -> return space
        WrapPreserve -> return cr
 inlineToLaTeX Space = return space
-inlineToLaTeX (Link (id',_,_) txt (src,_)) =
+inlineToLaTeX (Link (id',_,kvs) txt (src,_)) =
    (case T.uncons src of
      Just ('#', ident) -> do
         contents <- inlineListToLaTeX txt
         lab <- toLabel ident
         inCite <- gets stInCite
         beamer <- gets stBeamer
+        overlay <- generateOverlay kvs
         return $
           if inCite && "#ref-" `T.isPrefixOf` src
-             then "\\citeproc" <> braces (literal lab) <> braces contents
+             then "\\citeproc" <> overlay <> braces (literal lab) <> braces contents
              else if beamer
-                     then "\\hyperlink" <> braces (literal lab) <> braces contents
-                     else "\\hyperref" <> brackets (literal lab) <> braces contents
+                     then "\\hyperlink" <> overlay <> braces (literal lab) <> braces contents
+                     else "\\hyperref" <> overlay <> brackets (literal lab) <> braces contents
      _ -> case txt of
           [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
                do modify $ \s -> s{ stUrl = True }
                   src' <- stringToLaTeX URLString (escapeURI src)
-                  return $ literal $ "\\url{" <> src' <> "}"
+                  overlay <- generateOverlay kvs
+                  return $ literal "\\url" <> overlay <> literal ("{" <> src' <> "}")
           [Str x] | Just rest <- T.stripPrefix "mailto:" src,
                     unEscapeString (T.unpack x) == unEscapeString (T.unpack rest) -> -- email autolink
                do modify $ \s -> s{ stUrl = True }
                   src' <- stringToLaTeX URLString (escapeURI src)
+                  overlay <- generateOverlay kvs
                   contents <- inlineListToLaTeX txt
-                  return $ "\\href" <> braces (literal src') <>
+                  return $ "\\href" <> overlay <> braces (literal src') <>
                      braces ("\\nolinkurl" <> braces contents)
           _ -> do contents <- inlineListToLaTeX txt
                   src' <- stringToLaTeX URLString (escapeURI src)
-                  return $ literal ("\\href{" <> src' <> "}{") <>
+                  overlay <- generateOverlay kvs
+                  return $ literal "\\href" <> overlay <> literal ("{" <> src' <> "}{") <>
                            contents <> char '}')
      >>= (if T.null id'
              then return
@@ -989,6 +1010,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True
                   , stSVG = stSVG s || isSVG }
   opts <- gets stOptions
+  overlay <- generateOverlay kvs
   let showDim dir = let d = text (show dir) <> "="
                     in case dimension dir attr of
                          Just (Pixel a)   ->
@@ -1023,7 +1045,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   return $
     (if inHeading then "\\protect" else "") <>
       (if isSVG then "\\includesvg" else "\\includegraphics") <>
-    options <> braces (literal source'')
+    overlay <> options <> braces (literal source'')
 inlineToLaTeX (Note contents) = do
   setEmptyLine False
   externalNotes <- gets stExternalNotes

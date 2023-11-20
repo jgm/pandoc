@@ -34,7 +34,7 @@ import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
   ( LW, WriterState (stBeamer, stExternalNotes, stInMinipage, stMultiRow
                     , stNotes, stTable) )
-import Text.Pandoc.Writers.LaTeX.Util (labelFor)
+import Text.Pandoc.Writers.LaTeX.Util (labelFor,generateOverlay)
 import Text.Printf (printf)
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
@@ -45,8 +45,9 @@ tableToLaTeX :: PandocMonad m
              -> Ann.Table
              -> LW m (Doc Text)
 tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
-  let (Ann.Table (ident, _, _) caption specs thead tbodies tfoot) = tbl
+  let (Ann.Table (ident, _, kvs) caption specs thead tbodies tfoot) = tbl
   CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption ident
+  overlay <- generateOverlay kvs
   let isSimpleTable =
         all ((== ColWidthDefault) . snd) specs &&
         all (all isSimpleCell)
@@ -86,7 +87,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   notes <- notesToLaTeX <$> gets stNotes
   beamer <- gets stBeamer
   return
-    $  "\\begin{longtable}[]" <>
+    $  "\\begin" <> overlay <> "{longtable}[]" <>
           braces ("@{}" <> colDescriptors isSimpleTable tbl <> "@{}")
           -- the @{} removes extra space at beginning and end
     $$ head'

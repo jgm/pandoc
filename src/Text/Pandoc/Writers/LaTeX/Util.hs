@@ -18,6 +18,7 @@ module Text.Pandoc.Writers.LaTeX.Util (
   , labelFor
   , getListingsLanguage
   , mbBraced
+  , generateOverlay
   )
 where
 
@@ -278,3 +279,16 @@ mbBraced :: Text -> Text
 mbBraced x = if not (T.all isAlphaNum x)
                 then "{" <> x <> "}"
                 else x
+
+-- Generate a beamer overlay specification (possibly empty)
+--  from the attributes of a Pandoc element
+-- Generates nothing outside beamer-mode
+-- e.g. ![My picture](pic.jpg){on=4-} generates "<4->"
+-- e.g. ![My picture](pic.jpg) generates ""
+generateOverlay :: (PandocMonad m) => [(Text,Text)] -> LW m (Doc Text)
+generateOverlay attrs = do
+  beamer <- gets stBeamer
+  return $
+    case (beamer, lookup "on" attrs) of
+      (True, Just overlay) -> "<" <> literal overlay <> ">" 
+      _ -> ""
