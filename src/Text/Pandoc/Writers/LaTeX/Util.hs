@@ -260,8 +260,14 @@ wrapDiv (_,classes,kvs) t = do
 hypertarget :: PandocMonad m => Text -> LW m (Doc Text)
 hypertarget "" = return mempty
 hypertarget ident = do
-  label <- labelFor ident
-  return $ text "\\phantomsection" <> label
+  inHeading <- gets stInHeading
+  if inHeading
+     then do -- see #9209 (these cases should be rare)
+      ref <- literal <$> toLabel ident
+      return $ text "\\protect\\hypertarget" <> braces ref <> "{}"
+     else do
+      label <- labelFor ident
+      return $ text "\\phantomsection" <> label
 
 labelFor :: PandocMonad m => Text -> LW m (Doc Text)
 labelFor ""    = return empty
