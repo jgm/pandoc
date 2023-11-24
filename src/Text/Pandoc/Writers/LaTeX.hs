@@ -275,7 +275,14 @@ isListBlock _                  = False
 blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m (Doc Text)
-blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
+blockToLaTeX b = blockToLaTeX' b >>= wrapInOverlayIfNeeded (blockAttr b)
+
+-- Helper function used by blockToLatex
+--  (does not wrap in beamer overlay)
+blockToLaTeX' :: PandocMonad m
+             => Block     -- ^ Block to convert
+             -> LW m (Doc Text)
+blockToLaTeX' (Div attr@(identifier,"block":dclasses,_)
              (Header _ _ ils : bs)) = do
   let blockname
         | "example" `elem` dclasses = "exampleblock"
@@ -288,7 +295,7 @@ blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
   contents <- blockListToLaTeX bs
   wrapDiv attr $ ("\\begin" <> braces blockname <> braces title' <> anchor) $$
                  contents $$ "\\end" <> braces blockname
-blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
+blockToLaTeX' (Div (identifier,"slide":dclasses,dkvs)
                (Header _ (_,hclasses,hkvs) ils : bs)) = do
   -- note: [fragile] is required or verbatim breaks
   let hasCodeBlock (CodeBlock _ _) = [True]
@@ -322,12 +329,12 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
   contents <- blockListToLaTeX bs >>= wrapDiv (identifier,classes,kvs)
   return $ ("\\begin{frame}" <> options <> slideTitle <> slideAnchor) $$
              contents $$ "\\end{frame}"
-blockToLaTeX (Div (identifier@(T.uncons -> Just (_,_)),dclasses,dkvs)
+blockToLaTeX' (Div (identifier@(T.uncons -> Just (_,_)),dclasses,dkvs)
                (Header lvl ("",hclasses,hkvs) ils : bs)) =
   -- move identifier from div to header
   blockToLaTeX (Div ("",dclasses,dkvs)
                (Header lvl (identifier,hclasses,hkvs) ils : bs))
-blockToLaTeX (Div (identifier,classes,kvs) bs) = do
+blockToLaTeX' (Div (identifier,classes,kvs) bs) = do
   beamer <- gets stBeamer
   oldIncremental <- gets stIncremental
   if beamer && "incremental" `elem` classes
@@ -362,19 +369,19 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
              linkAnchor <- hypertarget identifier
              pure $ linkAnchor $$ txt
   wrapDiv (identifier,classes,kvs) result >>= wrap
-blockToLaTeX (Plain lst) =
+blockToLaTeX' (Plain lst) =
   inlineListToLaTeX lst
 -- . . . indicates pause in beamer slides
-blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
+blockToLaTeX' (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- gets stBeamer
   if beamer
      then blockToLaTeX (RawBlock "latex" "\\pause")
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
-blockToLaTeX (Para lst) =
+blockToLaTeX' (Para lst) =
   inlineListToLaTeX lst
-blockToLaTeX (LineBlock lns) =
+blockToLaTeX' (LineBlock lns) =
   blockToLaTeX $ linesToPara lns
-blockToLaTeX (BlockQuote lst) = do
+blockToLaTeX' (BlockQuote lst) = do
   beamer <- gets stBeamer
   case lst of
        [b] | beamer && isListBlock b -> do
@@ -389,7 +396,7 @@ blockToLaTeX (BlockQuote lst) = do
          contents <- blockListToLaTeX lst
          modify (\s -> s{stInQuote = oldInQuote})
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
-blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
+blockToLaTeX' (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   inNote <- stInNote <$> get
   linkAnchor <- if T.null identifier
@@ -458,7 +465,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
        | not inNote
        , "\\end{verbatim}" `T.isInfixOf` str -> highlightedCodeBlock
        | otherwise                           -> rawCodeBlock
-blockToLaTeX b@(RawBlock f x) = do
+blockToLaTeX' b@(RawBlock f x) = do
   beamer <- gets stBeamer
   if f == Format "latex" || f == Format "tex" ||
        (f == Format "beamer" && beamer)
@@ -466,8 +473,8 @@ blockToLaTeX b@(RawBlock f x) = do
      else do
        report $ BlockNotRendered b
        return empty
-blockToLaTeX (BulletList []) = return empty  -- otherwise latex error
-blockToLaTeX (BulletList lst) = do
+blockToLaTeX' (BulletList []) = return empty  -- otherwise latex error
+blockToLaTeX' (BulletList lst) = do
   incremental <- gets stIncremental
   isFirstInDefinition <- gets stIsFirstInDefinition
   beamer <- gets stBeamer
@@ -482,8 +489,8 @@ blockToLaTeX (BulletList lst) = do
              (if isFirstInDefinition then "\\item[]" else mempty) $$
              vcat items $$
              "\\end{itemize}"
-blockToLaTeX (OrderedList _ []) = return empty -- otherwise latex error
-blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
+blockToLaTeX' (OrderedList _ []) = return empty -- otherwise latex error
+blockToLaTeX' (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
   let inc = if stBeamer st && stIncremental st then "[<+->]" else ""
   let oldlevel = stOLLevel st
@@ -535,8 +542,8 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
          $$ (if isFirstInDefinition then "\\item[]" else mempty)
          $$ vcat items
          $$ "\\end{enumerate}"
-blockToLaTeX (DefinitionList []) = return empty
-blockToLaTeX (DefinitionList lst) = do
+blockToLaTeX' (DefinitionList []) = return empty
+blockToLaTeX' (DefinitionList lst) = do
   incremental <- gets stIncremental
   beamer <- gets stBeamer
   let inc = if beamer && incremental then "[<+->]" else ""
@@ -546,18 +553,18 @@ blockToLaTeX (DefinitionList lst) = do
                    else empty
   return $ text ("\\begin{description}" <> inc) $$ spacing $$ vcat items $$
                "\\end{description}"
-blockToLaTeX HorizontalRule =
+blockToLaTeX' HorizontalRule =
             return
   "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}"
-blockToLaTeX (Header level (id',classes,_) lst) = do
+blockToLaTeX' (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = True}
   hdr <- sectionHeader classes id' level lst
   modify $ \s -> s{stInHeading = False}
   return hdr
-blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
+blockToLaTeX' (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
-blockToLaTeX (Figure (ident, _, _) captnode body) = do
+blockToLaTeX' (Figure (ident, _, _) captnode body) = do
   (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
@@ -762,10 +769,19 @@ inlineListToLaTeX lst = hcat <$>
 inlineToLaTeX :: PandocMonad m
               => Inline    -- ^ Inline to convert
               -> LW m (Doc Text)
-inlineToLaTeX (Span ("",["mark"],[]) lst) = do
+inlineToLaTeX i = inlineToLaTeX' i >>= wrapInOverlayIfNeeded (inlineAttr i)
+
+
+-- Helper function used by inlineToLaTeX
+-- (does not wrap in beamer overlay)
+inlineToLaTeX' :: PandocMonad m
+              => Inline    -- ^ Inline to convert
+              -> LW m (Doc Text)
+
+inlineToLaTeX' (Span ("",["mark"],[]) lst) = do
   modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
   inCmd "hl" <$> inlineListToLaTeX lst
-inlineToLaTeX (Span (id',classes,kvs) ils) = do
+inlineToLaTeX' (Span (id',classes,kvs) ils) = do
   linkAnchor <- hypertarget id'
   lang <- toLang $ lookup "lang" kvs
   let classToCmd "csl-no-emph" = Just "textup"
@@ -799,12 +815,12 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
     (if null cmds
         then braces contents
         else foldr inCmd contents cmds)
-inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
-inlineToLaTeX (Underline lst) = do
+inlineToLaTeX' (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
+inlineToLaTeX' (Underline lst) = do
   modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
   inCmd "ul" <$> inlineListToLaTeX lst
-inlineToLaTeX (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
-inlineToLaTeX (Strikeout lst) = do
+inlineToLaTeX' (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
+inlineToLaTeX' (Strikeout lst) = do
   -- we need to protect VERB in an mbox or we get an error
   -- see #1294
   -- with regular texttt we don't get an error, but we get
@@ -812,13 +828,13 @@ inlineToLaTeX (Strikeout lst) = do
   contents <- inlineListToLaTeX $ walk (concatMap protectCode) lst
   modify $ \s -> s{ stStrikeout = True }
   return $ inCmd "st" contents
-inlineToLaTeX (Superscript lst) =
+inlineToLaTeX' (Superscript lst) =
   inCmd "textsuperscript" <$> inlineListToLaTeX lst
-inlineToLaTeX (Subscript lst) =
+inlineToLaTeX' (Subscript lst) =
   inCmd "textsubscript" <$> inlineListToLaTeX lst
-inlineToLaTeX (SmallCaps lst) =
+inlineToLaTeX' (SmallCaps lst) =
   inCmd "textsc"<$> inlineListToLaTeX lst
-inlineToLaTeX (Cite cits lst) = do
+inlineToLaTeX' (Cite cits lst) = do
   opts <- gets stOptions
   modify $ \st -> st{ stInCite = True }
   res <- case writerCiteMethod opts of
@@ -828,7 +844,7 @@ inlineToLaTeX (Cite cits lst) = do
   modify $ \st -> st{ stInCite = False }
   pure res
 
-inlineToLaTeX (Code (_,classes,kvs) str) = do
+inlineToLaTeX' (Code (_,classes,kvs) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading
   inItem <- gets stInItem
@@ -886,7 +902,7 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
        | isJust (writerHighlightStyle opts) && not (null classes)
                               -> highlightCode
        | otherwise            -> rawCode
-inlineToLaTeX (Quoted qt lst) = do
+inlineToLaTeX' (Quoted qt lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
   opts <- gets stOptions
@@ -915,16 +931,16 @@ inlineToLaTeX (Quoted qt lst) = do
       isQuoted (Span _ (x:_)) = isQuoted x
       isQuoted (Quoted _ _)   = True
       isQuoted _              = False
-inlineToLaTeX (Str str) = do
+inlineToLaTeX' (Str str) = do
   setEmptyLine False
   liftM literal $ stringToLaTeX TextString str
-inlineToLaTeX (Math InlineMath str) = do
+inlineToLaTeX' (Math InlineMath str) = do
   setEmptyLine False
   return $ "\\(" <> literal (handleMathComment str) <> "\\)"
-inlineToLaTeX (Math DisplayMath str) = do
+inlineToLaTeX' (Math DisplayMath str) = do
   setEmptyLine False
   return $ "\\[" <> literal (handleMathComment str) <> "\\]"
-inlineToLaTeX il@(RawInline f str) = do
+inlineToLaTeX' il@(RawInline f str) = do
   beamer <- gets stBeamer
   if f == Format "latex" || f == Format "tex" ||
         (f == Format "beamer" && beamer)
@@ -934,18 +950,18 @@ inlineToLaTeX il@(RawInline f str) = do
      else do
        report $ InlineNotRendered il
        return empty
-inlineToLaTeX LineBreak = do
+inlineToLaTeX' LineBreak = do
   emptyLine <- gets stEmptyLine
   setEmptyLine True
   return $ (if emptyLine then "\\strut " else "") <> "\\\\" <> cr
-inlineToLaTeX SoftBreak = do
+inlineToLaTeX' SoftBreak = do
   wrapText <- gets (writerWrapText . stOptions)
   case wrapText of
        WrapAuto     -> return space
        WrapNone     -> return space
        WrapPreserve -> return cr
-inlineToLaTeX Space = return space
-inlineToLaTeX (Link (id',_,_) txt (src,_)) =
+inlineToLaTeX' Space = return space
+inlineToLaTeX' (Link (id',_,_) txt (src,_)) =
    (case T.uncons src of
      Just ('#', ident) -> do
         contents <- inlineListToLaTeX txt
@@ -979,11 +995,11 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
              else \x -> do
                linkAnchor <- hypertarget id'
                return (linkAnchor <> x))
-inlineToLaTeX il@(Image _ _ (src, _))
+inlineToLaTeX' il@(Image _ _ (src, _))
   | Just _ <- T.stripPrefix "data:" src = do
       report $ InlineNotRendered il
       return empty
-inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
+inlineToLaTeX' (Image attr@(_,_,kvs) _ (source, _)) = do
   setEmptyLine False
   let isSVG = ".svg" `T.isSuffixOf` source || ".SVG" `T.isSuffixOf` source
   modify $ \s -> s{ stGraphics = True
@@ -1024,7 +1040,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
     (if inHeading then "\\protect" else "") <>
       (if isSVG then "\\includesvg" else "\\includegraphics") <>
     options <> braces (literal source'')
-inlineToLaTeX (Note contents) = do
+inlineToLaTeX' (Note contents) = do
   setEmptyLine False
   externalNotes <- gets stExternalNotes
   modify (\s -> s{stInNote = True, stExternalNotes = True})
@@ -1081,3 +1097,48 @@ extractInline _ _               = []
 -- Look up a key in an attribute and give a list of its values
 lookKey :: Text -> Attr -> [Text]
 lookKey key (_,_,kvs) =  maybe [] T.words $ lookup key kvs
+
+-- Get the top-level attributes of block elements
+blockAttr :: Block -> Attr
+blockAttr (CodeBlock a _) = a
+blockAttr (Header _ a _) = a
+blockAttr (Table a _ _ _ _ _) = a
+blockAttr (Figure a _ _) = a
+blockAttr (Div a _) = a
+blockAttr _ = mempty -- other blocks carry no 'Attr' at the top level
+
+-- Get the top-level attributes of inline elements
+inlineAttr :: Inline -> Attr
+inlineAttr (Code a _) = a
+inlineAttr (Link a _ _) = a
+inlineAttr (Image a _ _) = a
+inlineAttr (Span a _) = a
+inlineAttr _ = mempty -- other inlines carry no 'Attr' at the top level
+
+-- Which attribute key is used to request a beamer overlay
+overlayAttrKey :: Text
+overlayAttrKey = "only"
+
+-- Generate beamer overlay spec. from attrbute list
+generateOverlay :: PandocMonad m => Attr -> LW m (Maybe (Doc Text))
+generateOverlay a = case lookKey overlayAttrKey a of
+    [] -> return Nothing
+    (_:v2:_) -> do
+      report $ DuplicateAttribute overlayAttrKey v2
+      return Nothing
+    [v] -> do
+      beamer <- gets stBeamer
+      if beamer
+      then return . Just . literal $ "<" <> v <> ">"
+      else return Nothing
+
+-- Given an element's attributes, wrap its generated LaTeX in an onlyenv if required. 
+wrapInOverlayIfNeeded :: PandocMonad m => Attr -> Doc Text -> LW m (Doc Text)
+wrapInOverlayIfNeeded a txt = generateOverlay a >>= \case
+  Nothing -> pure txt
+  (Just overlay) -> pure . mconcat $ 
+    [ "\\begin{onlyenv}"
+    , overlay
+    , txt
+    , "\\end{onlyenv}"
+    ]
