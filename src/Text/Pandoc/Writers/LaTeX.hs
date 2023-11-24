@@ -31,6 +31,7 @@ import Control.Monad
       when,
       unless )
 import Data.Containers.ListUtils (nubOrd)
+import Data.Bool (bool)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
@@ -275,7 +276,7 @@ isListBlock _                  = False
 blockToLaTeX :: PandocMonad m
              => Block     -- ^ Block to convert
              -> LW m (Doc Text)
-blockToLaTeX b = blockToLaTeX' b >>= wrapInOverlayIfNeeded (blockAttr b)
+blockToLaTeX b = wrapInOverlays (blockAttr b) <*> blockToLaTeX' b
 
 -- Helper function used by blockToLatex
 --  (does not wrap in beamer overlay)
@@ -769,8 +770,7 @@ inlineListToLaTeX lst = hcat <$>
 inlineToLaTeX :: PandocMonad m
               => Inline    -- ^ Inline to convert
               -> LW m (Doc Text)
-inlineToLaTeX i = inlineToLaTeX' i >>= wrapInOverlayIfNeeded (inlineAttr i)
-
+inlineToLaTeX i = wrapInOverlays (inlineAttr i) <*> inlineToLaTeX' i
 
 -- Helper function used by inlineToLaTeX
 -- (does not wrap in beamer overlay)
@@ -1115,30 +1115,24 @@ inlineAttr (Image a _ _) = a
 inlineAttr (Span a _) = a
 inlineAttr _ = mempty -- other inlines carry no 'Attr' at the top level
 
--- Which attribute key is used to request a beamer overlay
-overlayAttrKey :: Text
-overlayAttrKey = "only"
+-- Given an element's attributes, wrap its generated LaTeX
+--  in beamer overlay environments,
+--  one environment per attribute requesting an overlay
+wrapInOverlays' :: Attr -> Doc Text -> Doc Text
+wrapInOverlays' (_,_,kvs) doc =
+  foldr -- earlier overlays go outside later ones
+    (\(envtype,overlay) latex -> mconcat
+      [ "\\begin{",literal envtype,"env}<",literal overlay,">"
+      , latex
+      , "\\end{",literal envtype,"env}"
+      ])
+    doc
+    -- Not all attributes generate overlays
+    (filter ((`elem` ["only","visible","uncover","invisible"]) . fst) kvs)
+-- The list of beamer overlay environments comes from the beamer 3.70 user guide,
+-- https://mirrors.rit.edu/CTAN/macros/latex/contrib/beamer/doc/beameruserguide.pdf#page=83
+-- altenv is not supported since it takes arguments 
 
--- Generate beamer overlay spec. from attrbute list
-generateOverlay :: PandocMonad m => Attr -> LW m (Maybe (Doc Text))
-generateOverlay a = case lookKey overlayAttrKey a of
-    [] -> return Nothing
-    (_:v2:_) -> do
-      report $ DuplicateAttribute overlayAttrKey v2
-      return Nothing
-    [v] -> do
-      beamer <- gets stBeamer
-      if beamer
-      then return . Just . literal $ "<" <> v <> ">"
-      else return Nothing
-
--- Given an element's attributes, wrap its generated LaTeX in an onlyenv if required. 
-wrapInOverlayIfNeeded :: PandocMonad m => Attr -> Doc Text -> LW m (Doc Text)
-wrapInOverlayIfNeeded a txt = generateOverlay a >>= \case
-  Nothing -> pure txt
-  (Just overlay) -> pure . mconcat $ 
-    [ "\\begin{onlyenv}"
-    , overlay
-    , txt
-    , "\\end{onlyenv}"
-    ]
+-- Like wrapInOverlays', but does nothing ouside beamer-mode
+wrapInOverlays :: PandocMonad m => Attr -> LW m (Doc Text -> Doc Text)
+wrapInOverlays a = bool id (wrapInOverlays' a) <$> gets stBeamer
