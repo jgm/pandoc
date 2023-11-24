@@ -12,6 +12,9 @@ import Text.Pandoc.Builder
 latex :: (ToPandoc a) => a -> String
 latex = latexWithOpts def
 
+beamer :: (ToPandoc a) => a -> String
+beamer = beamerWithOpts def
+
 latexListing :: (ToPandoc a) => a -> String
 latexListing = latexWithOpts def{ writerListings = True }
 
@@ -173,5 +176,25 @@ tests = [ testGroup "code blocks"
                       , "\\addcontentsline{toc}{paragraph}{header6}"
                       ]
             ]
+          ]
+        , testGroup "beamer overlays"
+          [ test beamer "code block" $ codeBlockWith ("",[],[("only","2")]) "hi" =?>
+            unlines
+              [ "\\begin{frame}[fragile]"
+              , "\\begin{onlyenv}<2>\\begin{verbatim}"
+              , "hi"
+              , "\\end{verbatim}"
+              , "\\end{onlyenv}"
+              , "\\end{frame}"
+              ]
+          , test beamer "code block, nested overlays" $ codeBlockWith ("",[],[("only","1-3"),("invisible","2")]) "hi" =?>
+            unlines
+              [ "\\begin{frame}[fragile]"
+              , "\\begin{onlyenv}<1-3>\\begin{invisibleenv}<2>\\begin{verbatim}"
+              , "hi"
+              , "\\end{verbatim}"
+              , "\\end{invisibleenv}\\end{onlyenv}"
+              , "\\end{frame}"
+              ]
           ]
         ]
