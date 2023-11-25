@@ -159,9 +159,14 @@ convertTags (t@(TagOpen tagname as):ts)
              svgmap <- gets svgMap
              case M.lookup hash svgmap of
                Just (svgid, svgattrs) -> do
-                 let attrs' = combineSvgAttrs svgattrs attrs
+                 let attrs' = [(k,v) | (k,v) <- combineSvgAttrs svgattrs attrs
+                                     , k /= "id"
+                                     , k /= "width"
+                                     , k /= "height"]
                  return $ TagOpen "svg" attrs' :
-                          TagOpen "use" [("href", "#" <> svgid)] :
+                          TagOpen "use" [("href", "#" <> svgid),
+                                         ("width", "100%"),
+                                         ("height", "100%")] :
                           TagClose "use" :
                           TagClose "svg" :
                           rest'
@@ -172,10 +177,22 @@ convertTags (t@(TagOpen tagname as):ts)
                       let svgid = case lookup "id" attrs' of
                                      Just id' -> id'
                                      Nothing -> "svg_" <> hash
-                      let attrs'' = [(k,v) | (k,v) <- attrs', k /= "id"]
+                      let attrs'' = ("id", svgid) :
+                                    [(k,v) | (k,v) <- attrs', k /= "id"]
                       modify $ \st ->
                         st{ svgMap = M.insert hash (svgid, attrs'') (svgMap st) }
-                      return $ TagOpen "svg" attrs'' : tags' ++ rest'
+                      let addIdPrefix ("id", x) = ("id", svgid <> "_" <> x)
+                          addIdPrefix (k, x)
+                           | k == "xlink:href" || k == "href" =
+                            case T.uncons x of
+                              Just ('#', x') -> (k, "#" <> svgid <> "_" <> x')
+                              _ -> (k, x)
+                          addIdPrefix kv = kv
+                      let ensureUniqueId (TagOpen tname ats) =
+                            TagOpen tname (map addIdPrefix ats)
+                          ensureUniqueId x = x
+                      return $ TagOpen "svg" attrs'' :
+                                 map ensureUniqueId tags' ++ rest'
                     _ -> return $ TagOpen tagname attrs : rest
   where processAttribute (x,y) =
            if isSourceAttribute tagname (x,y)
