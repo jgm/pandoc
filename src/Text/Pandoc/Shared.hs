@@ -777,7 +777,8 @@ formatCode attr = B.fromList . walk fmt . B.toList
 renderTags' :: [Tag T.Text] -> T.Text
 renderTags' = renderTagsOptions
                renderOptions{ optMinimize = matchTags ["hr", "br", "img",
-                                                       "meta", "link", "col", "use"]
+                                                       "meta", "link", "col",
+                                                       "use", "path"]
                             , optRawTag   = matchTags ["script", "style"] }
               where matchTags tags = flip elem tags . T.toLower
 
