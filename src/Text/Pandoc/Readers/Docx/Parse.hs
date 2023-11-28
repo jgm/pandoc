@@ -950,16 +950,6 @@ elemToParPart ns element = do
     _ -> elemToParPart' ns element
 
 elemToParPart' :: NameSpaces -> Element -> D [ParPart]
--- Shape Format
-elemToParPart' ns element
-  | isElem ns "w" "r" element
-  , Just alternateContentElem <- findChildByName ns "mc" "AlternateContent" element
-  , Just fallbackElem <- findChildByName ns "mc" "Fallback" alternateContentElem
-  , Just pictElem <- findChildByName ns "w" "pict" fallbackElem
-  , Just shapeElem <- findChildByName ns "v" "shape" pictElem
-  , Just textboxElem <- findChildByName ns "v" "textbox" shapeElem
-  , Just textboxContentElem <- findChildByName ns "w" "txbxContent" textboxElem
-  = concatMapM (elemToParPart' ns) (elChildren textboxContentElem)
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
