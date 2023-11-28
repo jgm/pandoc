@@ -79,7 +79,7 @@ import Text.Pandoc.Shared (filteredFilesFromArchive, safeRead)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.TeXMath (Exp)
 import Text.TeXMath.Readers.OMML (readOMML)
-import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, textToFont)
+import Text.Pandoc.Readers.Docx.Symbols (symbolMap, Font(..), textToFont)
 import Text.Pandoc.XML.Light
     ( filterChild,
       findElement,
@@ -1200,32 +1200,34 @@ elemToRunElem ns element
     case font of
       Nothing -> return $ TextRun str
       Just f  -> return . TextRun $
-                  T.map (\x -> fromMaybe x . getUnicode f . lowerFromPrivate $ x) str
+                   T.map (\c -> fromMaybe c (getFontChar f c)) str
   | isElem ns "w" "br" element = return LnBrk
   | isElem ns "w" "tab" element = return Tab
   | isElem ns "w" "softHyphen" element = return SoftHyphen
   | isElem ns "w" "noBreakHyphen" element = return NoBreakHyphen
   | isElem ns "w" "sym" element = return (getSymChar ns element)
   | otherwise = throwError WrongElem
-  where
-    lowerFromPrivate (ord -> c)
-      | c >= ord '\xF000' = chr $ c - ord '\xF000'
-      | otherwise = chr c
 
 -- The char attribute is a hex string
 getSymChar :: NameSpaces -> Element -> RunElem
 getSymChar ns element
-  | Just s <- lowerFromPrivate <$> getCodepoint
+  | Just s <- getCodepoint
   , Just font <- getFont =
     case readLitChar ("\\x" ++ T.unpack s) of
-         [(char, _)] -> TextRun . maybe "" T.singleton $ getUnicode font char
-         _           -> TextRun ""
+         [(ch, _)] ->
+              TextRun $ T.singleton $ fromMaybe ch $ getFontChar font ch
+         _ -> TextRun ""
   where
     getCodepoint = findAttrByName ns "w" "char" element
-    getFont = textToFont =<< findAttrByName ns "w" "font" element
-    lowerFromPrivate t | "F" `T.isPrefixOf` t = "0" <> T.drop 1 t
-                       | otherwise             = t
+    getFont = findAttrByName ns "w" "font" element >>= textToFont
 getSymChar _ _ = TextRun ""
+
+getFontChar :: Font -> Char -> Maybe Char
+getFontChar font ch = chr <$> M.lookup (font, point) symbolMap
+ where
+   point  -- sometimes F000 is added to put char in private range:
+      | ch >= '\xF000' = ord ch - 0xF000
+      | otherwise = ord ch
 
 elemToRunElems :: NameSpaces -> Element -> D [RunElem]
 elemToRunElems ns element
@@ -1234,9 +1236,9 @@ elemToRunElems ns element
        let qualName = elemName ns "w"
        let font = do
                     fontElem <- findElement (qualName "rFonts") element
-                    textToFont =<<
-                       foldr ((<|>) . (flip findAttr fontElem . qualName))
+                    foldr ((<|>) . (flip findAttr fontElem . qualName))
                          Nothing ["ascii", "hAnsi"]
+                      >>= textToFont
        local (setFont font) (mapD (elemToRunElem ns) (elChildren element))
 elemToRunElems _ _ = throwError WrongElem
 
