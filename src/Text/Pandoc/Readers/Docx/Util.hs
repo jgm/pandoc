@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Readers.Docx.StyleMaps
+   Module      : Text.Pandoc.Readers.Docx.Util
    Copyright   : © 2014-2020 Jesse Rosenthal <jrosenthal@jhu.edu>,
                    2014-2023 John MacFarlane <jgm@berkeley.edu>,
                    2015 Nikolay Yakimov <root@livid.pp.ru>
