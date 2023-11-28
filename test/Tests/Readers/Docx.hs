@@ -235,6 +235,10 @@ tests = [ testGroup "document"
             "collapse overlapping targets (anchor spans)"
             "docx/overlapping_targets.docx"
             "docx/overlapping_targets.native"
+          , testCompare
+            "text in shape format"
+            "docx/text_in_shape_format.docx"
+            "docx/text_in_shape_format.native"
           ]
         , testGroup "blocks"
           [ testCompare

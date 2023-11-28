@@ -21,12 +21,14 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , findChildrenByName
                                       , findElementByName
                                       , findAttrByName
+                                      , extractChildren
                                       ) where
 
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.XML.Light
 import qualified Data.Map as M
+import Data.List (partition)
 
 type NameSpaces = M.Map Text Text
 
@@ -67,3 +69,23 @@ findAttrByName :: NameSpaces -> Text -> Text -> Element -> Maybe Text
 findAttrByName ns pref name el =
   let ns' = ns <> elemToNameSpaces el
   in  findAttr (elemName ns' pref name) el
+
+
+-- | Removes child elements that satisfy a given condition.
+-- Returns the modified element and the list of removed children.
+extractChildren :: Element -> (Element -> Bool) -> Maybe (Element, [Element])
+extractChildren el condition
+  | null removedChildren = Nothing  -- No children removed, return Nothing
+  | otherwise = Just (modifiedElement, removedChildren)  -- Children removed, return Just
+  where
+    -- Separate the children based on the condition
+    (removedChildren, keptChildren) = partition condition (onlyElems' $ elContent el)
+
+    -- Helper function to filter only Element types from Content
+    onlyElems' :: [Content] -> [Element]
+    onlyElems' = foldr (\c acc -> case c of
+                                   Elem e -> e : acc
+                                   _      -> acc) []
+
+    -- Reconstruct the element with the kept children
+    modifiedElement = el { elContent = map Elem keptChildren }

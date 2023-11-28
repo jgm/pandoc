@@ -148,13 +148,46 @@ mapD f xs =
   in
    concatMapM handler xs
 
+isAltContentRun :: NameSpaces -> Element -> Bool
+isAltContentRun ns element
+  | isElem ns "w" "r" element
+  , Just _altContentElem <- findChildByName ns "mc" "AlternateContent" element
+  = True
+  | otherwise
+  = False
+
+-- Elements such as <w:shape> are not always preferred
+-- to be unwrapped. Only if they are part of an AlternateContent
+-- element, they should be unwrapped.
+-- This strategy prevents VML images breaking.
+unwrapAlternateContentElement :: NameSpaces -> Element -> [Element]
+unwrapAlternateContentElement ns element
+  | isElem ns "mc" "AlternateContent" element
+  || isElem ns "mc" "Fallback" element
+  || isElem ns "w" "pict" element
+  || isElem ns "v" "group" element
+  || isElem ns "v" "rect" element
+  || isElem ns "v" "roundrect" element
+  || isElem ns "v" "shape" element
+  || isElem ns "v" "textbox" element
+  || isElem ns "w" "txbxContent" element
+  = concatMap (unwrapAlternateContentElement ns) (elChildren element)
+  | otherwise
+  = unwrapElement ns element
+
 unwrapElement :: NameSpaces -> Element -> [Element]
 unwrapElement ns element
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
   = concatMap (unwrapElement ns) (elChildren sdtContent)
+  | isElem ns "w" "r" element
+  , Just alternateContentElem <- findChildByName ns "mc" "AlternateContent" element
+  = unwrapAlternateContentElement ns alternateContentElem
   | isElem ns "w" "smartTag" element
   = concatMap (unwrapElement ns) (elChildren element)
+  | isElem ns "w" "p" element
+  , Just (modified, altContentRuns) <- extractChildren element (isAltContentRun ns)
+  = (unwrapElement ns modified) ++ concatMap (unwrapElement ns) altContentRuns
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
 
@@ -917,6 +950,16 @@ elemToParPart ns element = do
     _ -> elemToParPart' ns element
 
 elemToParPart' :: NameSpaces -> Element -> D [ParPart]
+-- Shape Format
+elemToParPart' ns element
+  | isElem ns "w" "r" element
+  , Just alternateContentElem <- findChildByName ns "mc" "AlternateContent" element
+  , Just fallbackElem <- findChildByName ns "mc" "Fallback" alternateContentElem
+  , Just pictElem <- findChildByName ns "w" "pict" fallbackElem
+  , Just shapeElem <- findChildByName ns "v" "shape" pictElem
+  , Just textboxElem <- findChildByName ns "v" "textbox" shapeElem
+  , Just textboxContentElem <- findChildByName ns "w" "txbxContent" textboxElem
+  = concatMapM (elemToParPart' ns) (elChildren textboxContentElem)
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
