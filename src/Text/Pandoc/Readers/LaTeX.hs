@@ -61,7 +61,8 @@ import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Macro (macroDef)
 import Text.Pandoc.Readers.LaTeX.Lang (inlineLanguageCommands,
                                        enquoteCommands,
-                                       babelLangToBCP47, setDefaultLanguage)
+                                       babelLangToBCP47,
+                                       setDefaultLanguage)
 import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
 import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
                                          nameCommands, charCommands,
@@ -1045,7 +1046,23 @@ environments = M.union (tableEnvironments blocks inline) $
    , ("togglefalse", braced >>= setToggle False)
    , ("iftoggle", try $ ifToggle >> block)
    , ("CSLReferences", braced >> braced >> env "CSLReferences" blocks)
+   , ("otherlanguage", env "otherlanguage" otherlanguageEnv)
    ]
+
+otherlanguageEnv :: PandocMonad m => LP m Blocks
+otherlanguageEnv = do
+  skipopts
+  babelLang <- untokenize <$> braced
+  case babelLangToBCP47 babelLang of
+    Just lang -> divWith ("", [], [("lang", renderLang lang)]) <$> blocks
+    Nothing -> blocks
+
+langEnvironment :: PandocMonad m => Text -> LP m Blocks
+langEnvironment name =
+  case babelLangToBCP47 name of
+    Just lang ->
+      env name (divWith ("", [], [("lang", renderLang lang)]) <$> blocks)
+    Nothing -> mzero -- fall through to raw environment
 
 filecontents :: PandocMonad m => LP m Blocks
 filecontents = try $ do
@@ -1064,6 +1081,7 @@ environment = try $ do
   controlSeq "begin"
   name <- untokenize <$> braced
   M.findWithDefault mzero name environments <|>
+    langEnvironment name <|>
     theoremEnvironment blocks opt name <|>
     if M.member name (inlineEnvironments
                        :: M.Map Text (LP PandocPure Inlines))
