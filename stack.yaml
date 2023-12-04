@@ -21,8 +21,8 @@ extra-deps:
 - http-client-tls-0.3.6.3
 - typst-symbols-0.1.4
 - toml-parser-1.3.0.0
-- skylighting-core-0.14
-- skylighting-0.14
+- skylighting-core-0.14.1
+- skylighting-0.14.1
 - skylighting-format-blaze-html-0.1.1.1
 - texmath-0.12.8.4
 - tls-1.9.0
