@@ -11,3 +11,15 @@ source-repository-package
   type: git
   location: https://github.com/jgm/typst-hs
   tag: 2a92d6b61b077ad6eaff857f45aa50004658082e
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/skylighting
+  subdir: skylighting-core
+  tag: 1f5c4df30b8690f444f76b0e7b3f942fed495e80
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/skylighting
+  subdir: skylighting
+  tag: 1f5c4df30b8690f444f76b0e7b3f942fed495e80
