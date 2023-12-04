@@ -285,10 +285,7 @@ inlineToTypst inline =
       opts <- gets stOptions
       let mbHeight = lookup "height" kvs
       let mdWidth = lookup "width" kvs
-      let coreImage = "image" <>
-              parens (doubleQuoted src <>
-                 maybe mempty (\w -> ", width: " <> literal w) mdWidth <>
-                 maybe mempty (\h -> ", height: " <> literal h) mbHeight)
+      let coreImage = "image" <> parens (doubleQuoted src)
       -- see #9104; we need a box or the image is treated as block-level:
       case (mdWidth, mbHeight) of
         (Nothing, Nothing) -> do
