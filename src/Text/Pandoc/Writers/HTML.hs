@@ -544,14 +544,14 @@ footnoteSection opts refLocation startCounter notes = do
                              ! customAttribute "epub:type" "footnotes" $ x
         | html5
         , refLocation == EndOfDocument
-        , slideVariant == RevealJsSlides -- need a section for a new slide:
+        -- Note: we need a section for a new slide in slide formats.
                 = H5.section ! A5.id "footnotes"
                              ! A5.class_ className
                              ! A5.role "doc-endnotes"
                              $ x
         | html5 = H5.aside   ! prefixedId opts "footnotes"
                              ! A5.class_ className
-                             ! A5.role "doc-endnotes"
+                             ! A5.role "doc-footnote"
                              $ x
         | slideVariant /= NoSlides = H.div ! A.class_ "footnotes slide" $ x
         | otherwise = H.div ! A.class_ className $ x

@@ -740,7 +740,7 @@ role="doc-noteref"><sup>4</sup></a></p>
 role="doc-noteref"><sup>5</sup></a></li>
 </ol>
 <p>This paragraph should not be part of the note, as it is not indented.</p>
-<aside id="footnotes" class="footnotes footnotes-end-of-document"
+<section id="footnotes" class="footnotes footnotes-end-of-document"
 role="doc-endnotes">
 <hr />
 <ol>
@@ -763,6 +763,6 @@ role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p>In list.<a href="#fnref5" class="footnote-back"
 role="doc-backlink">↩︎</a></p></li>
 </ol>
-</aside>
+</section>
 </body>
 </html>
