@@ -11,13 +11,13 @@ source-repository-package
   type: git
   location: https://github.com/jgm/commonmark-hs
   subdir: commonmark-extensions
-  tag: e687c1a409403911e3b8430df32d3ce6fffaaa1f
+  tag: 8c21778ac18a51b4362cc6e573ddcf554463cf5a
 
 source-repository-package
   type: git
   location: https://github.com/jgm/commonmark-hs
   subdir: commonmark-pandoc
-  tag: e687c1a409403911e3b8430df32d3ce6fffaaa1f
+  tag: 8c21778ac18a51b4362cc6e573ddcf554463cf5a
 
 source-repository-package
   type: git
