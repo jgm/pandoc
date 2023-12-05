@@ -45,6 +45,7 @@ import qualified Data.Set as Set
 -- | Individually selectable syntax extensions.
 data Extension =
       Ext_abbreviations       -- ^ PHP markdown extra abbreviation definitions
+    | Ext_alerts              -- ^ Special block quotes become alerts
     | Ext_all_symbols_escapable  -- ^ Make all non-alphanumerics escapable
     | Ext_amuse -- ^ Enable Text::Amuse extensions to Emacs Muse markup
     | Ext_angle_brackets_escapable  -- ^ Make < and > escapable
@@ -308,6 +309,8 @@ githubMarkdownExtensions = extensionsFromList
   , Ext_emoji
   , Ext_fenced_code_blocks
   , Ext_backtick_code_blocks
+  , Ext_footnotes
+  , Ext_alerts
   ]
 
 -- | Extensions to be used with multimarkdown.
@@ -400,6 +403,7 @@ getDefaultExtensions "gfm"             = extensionsFromList
   , Ext_footnotes
   , Ext_tex_math_dollars
   , Ext_tex_math_gfm
+  , Ext_alerts
   ]
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
@@ -422,6 +426,7 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   , Ext_raw_attribute
   , Ext_implicit_header_references
   , Ext_attributes
+  , Ext_alerts
   , Ext_yaml_metadata_block
   ]
 getDefaultExtensions "org"             = extensionsFromList
@@ -549,6 +554,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_task_lists
     , Ext_emoji
     , Ext_raw_html
+    , Ext_alerts
     , Ext_implicit_figures
     , Ext_hard_line_breaks
     , Ext_smart

@@ -368,39 +368,54 @@ blockToMarkdown' :: PandocMonad m
                  => WriterOptions -- ^ Options
                  -> Block         -- ^ Block element
                  -> MD m (Doc Text)
-blockToMarkdown' opts (Div attrs ils) = do
-  contents <- blockListToMarkdown opts ils
-  variant <- asks envVariant
-  return $
-     case () of
-         _ | variant == Markua ->
-                   case () of
-                        () | "blurb" `elem` classes' -> prefixed "B> " contents <> blankline
-                           | "aside" `elem` classes' -> prefixed "A> " contents <> blankline
-                           -- necessary to enable option to create a bibliography
-                           | (take 3 (T.unpack id')) == "ref" -> contents <> blankline
-                           | otherwise -> contents <> blankline
-           | isEnabled Ext_fenced_divs opts &&
-             attrs /= nullAttr ->
-                let attrsToMd = if variant == Commonmark
-                                then attrsToMarkdown opts
-                                else classOrAttrsToMarkdown opts
-                in nowrap (literal ":::" <+> attrsToMd attrs) $$
-                   chomp contents $$
-                   literal ":::" <> blankline
-           | isEnabled Ext_native_divs opts ||
-             (isEnabled Ext_raw_html opts &&
-              (variant == Commonmark ||
-               isEnabled Ext_markdown_in_html_blocks opts)) ->
-                tagWithAttrs "div" attrs <> blankline <>
-                contents <> blankline <> "</div>" <> blankline
-           | isEnabled Ext_raw_html opts &&
-             isEnabled Ext_markdown_attribute opts ->
-                tagWithAttrs "div" attrs' <> blankline <>
-                contents <> blankline <> "</div>" <> blankline
-           | otherwise -> contents <> blankline
-       where (id',classes',kvs') = attrs
-             attrs' = (id',classes',("markdown","1"):kvs')
+blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
+  | isEnabled Ext_alerts opts
+  , "alert" `elem` classes
+  , (Div ("", ["alert-title"], []) _ : Para ils : bs') <- bs
+   = blockToMarkdown' opts $ BlockQuote $
+       (Para (RawInline (Format "markdown") (case () of
+         _ | "alert-note" `elem` classes -> "[!NOTE]\n"
+         _ | "alert-tip" `elem` classes -> "[!TIP]\n"
+         _ | "alert-warning" `elem` classes -> "[!WARNING]\n"
+         _ | "alert-caution" `elem` classes -> "[!CAUTION]\n"
+         _ | "alert-important" `elem` classes -> "[!IMPORTANT]\n"
+           | otherwise -> "[!NOTE]\n") : ils)) : bs'
+  | otherwise = do
+    contents <- blockListToMarkdown opts bs
+    variant <- asks envVariant
+    return $
+       case () of
+           _ | variant == Markua ->
+                 case () of
+                      () | "blurb" `elem` classes'
+                           -> prefixed "B> " contents <> blankline
+                         | "aside" `elem` classes'
+                           -> prefixed "A> " contents <> blankline
+                         -- necessary to enable option to create a bibliography
+                         | (take 3 (T.unpack id')) == "ref"
+                           -> contents <> blankline
+                         | otherwise -> contents <> blankline
+             | isEnabled Ext_fenced_divs opts &&
+               attrs /= nullAttr ->
+                  let attrsToMd = if variant == Commonmark
+                                  then attrsToMarkdown opts
+                                  else classOrAttrsToMarkdown opts
+                  in nowrap (literal ":::" <+> attrsToMd attrs) $$
+                     chomp contents $$
+                     literal ":::" <> blankline
+             | isEnabled Ext_native_divs opts ||
+               (isEnabled Ext_raw_html opts &&
+                (variant == Commonmark ||
+                 isEnabled Ext_markdown_in_html_blocks opts)) ->
+                  tagWithAttrs "div" attrs <> blankline <>
+                  contents <> blankline <> "</div>" <> blankline
+             | isEnabled Ext_raw_html opts &&
+               isEnabled Ext_markdown_attribute opts ->
+                  tagWithAttrs "div" attrs' <> blankline <>
+                  contents <> blankline <> "</div>" <> blankline
+             | otherwise -> contents <> blankline
+         where (id',classes',kvs') = attrs
+               attrs' = (id',classes',("markdown","1"):kvs')
 blockToMarkdown' opts (Plain inlines) = do
   -- escape if para starts with ordered list marker
   variant <- asks envVariant

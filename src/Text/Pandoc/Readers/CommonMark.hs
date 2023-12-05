@@ -169,6 +169,7 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
          [ (bracketedSpanSpec <>) | isEnabled Ext_bracketed_spans opts ] ++
          [ (rawAttributeSpec <>) | isEnabled Ext_raw_attribute opts ] ++
          [ (attributesSpec <>) | isEnabled Ext_attributes opts ] ++
+         [ (alertSpec <>) | isEnabled Ext_alerts opts ] ++
          [ (<> pipeTableSpec) | isEnabled Ext_pipe_tables opts ] ++
             -- see #6739
          [ (autolinkSpec <>) | isEnabled Ext_autolink_bare_uris opts ] ++

@@ -5822,6 +5822,15 @@ Note that the pandoc document model does not support
 abbreviations, so if this extension is enabled, abbreviation keys are
 simply skipped (as opposed to being parsed as paragraphs).
 
+#### Extension: `alerts` ####
+
+Supports [GitHub-style markdown alerts], like
+
+    > [!INFO]
+    > This is an informational message.
+
+  [GitHub-style markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
+
 #### Extension: `autolink_bare_uris` ####
 
 Makes all absolute URIs into links, even when not surrounded by
