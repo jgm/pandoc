@@ -31,7 +31,7 @@ extra-deps:
   commit: 2a92d6b61b077ad6eaff857f45aa50004658082e
 - git: https://github.com/jgm/commonmark-hs
   subdirs: [commonmark-extensions, commonmark-pandoc]
-  commit:  f93cdaf1f13dfb9ae5a315d60a4b72ae9fc3112e
+  commit: e687c1a409403911e3b8430df32d3ce6fffaaa1f
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
