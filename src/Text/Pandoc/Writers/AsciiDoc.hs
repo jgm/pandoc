@@ -354,7 +354,9 @@ blockToAsciiDoc opts (Div (ident,classes,_) bs) = do
                      case bs of
                        (Div (_,["title"],_) ts : rest) -> (ts, rest)
                        _ -> ([], bs)
-             admonitionTitle <- if null titleBs
+             admonitionTitle <- if null titleBs ||
+                                   -- If title matches class, omit
+                                   (T.toLower (T.strip (stringify titleBs))) == l
                                    then return mempty
                                    else ("." <>) <$>
                                          blockListToAsciiDoc opts titleBs

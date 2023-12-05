@@ -370,16 +370,17 @@ blockToMarkdown' :: PandocMonad m
                  -> MD m (Doc Text)
 blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
   | isEnabled Ext_alerts opts
-  , "alert" `elem` classes
-  , (Div ("", ["alert-title"], []) _ : Para ils : bs') <- bs
+  , (cls:_) <- classes
+  , cls `elem` ["note", "tip", "warning", "caution", "important"]
+  , (Div ("", ["title"], []) _ : Para ils : bs') <- bs
    = blockToMarkdown' opts $ BlockQuote $
-       (Para (RawInline (Format "markdown") (case () of
-         _ | "alert-note" `elem` classes -> "[!NOTE]\n"
-         _ | "alert-tip" `elem` classes -> "[!TIP]\n"
-         _ | "alert-warning" `elem` classes -> "[!WARNING]\n"
-         _ | "alert-caution" `elem` classes -> "[!CAUTION]\n"
-         _ | "alert-important" `elem` classes -> "[!IMPORTANT]\n"
-           | otherwise -> "[!NOTE]\n") : ils)) : bs'
+       (Para (RawInline (Format "markdown") (case cls of
+         "note" -> "[!NOTE]\n"
+         "tip" -> "[!TIP]\n"
+         "warning" -> "[!WARNING]\n"
+         "caution" -> "[!CAUTION]\n"
+         "important" -> "[!IMPORTANT]\n"
+         _ -> "[!NOTE]\n") : ils)) : bs'
   | otherwise = do
     contents <- blockListToMarkdown opts bs
     variant <- asks envVariant
