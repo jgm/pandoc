@@ -21,16 +21,16 @@ module Text.Pandoc.Writers.FB2 (writeFB2)  where
 import Control.Monad (zipWithM, liftM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.State.Strict (StateT, evalStateT, get, gets, lift, modify)
-import Data.ByteString.Base64 (encodeBase64)
+import Data.ByteString.Base64 (encode)
 import Data.Char (isAscii, isControl, isSpace)
 import Data.Either (lefts, rights)
 import Data.List (intercalate)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Encoding as TE
 import Text.Pandoc.URI (urlEncode, isURI)
 import Text.Pandoc.XML.Light as X
-
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Definition
@@ -237,7 +237,7 @@ fetchImage href link = do
                                report $ CouldNotDetermineMimeType link
                                return Nothing
                              Just mime -> return $ Just (mime,
-                                                        encodeBase64 bs))
+                                                      TE.decodeUtf8 $ encode bs))
                     (\e ->
                        do report $ CouldNotFetchResource link (tshow e)
                           return Nothing)

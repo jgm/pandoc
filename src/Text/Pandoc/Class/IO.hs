@@ -37,7 +37,7 @@ module Text.Pandoc.Class.IO
 
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.ByteString.Base64 (decodeBase64Lenient)
+import Data.ByteString.Base64 (decodeLenient)
 import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
@@ -128,7 +128,7 @@ openURL u
      let contents = UTF8.fromString $ drop 1 rest
      case break (== ';') (filter (/= ' ') mimespec) of
        (mime, ";base64") ->
-         return (decodeBase64Lenient contents, Just (T.pack mime))
+         return (decodeLenient contents, Just (T.pack mime))
        (mime, _) ->
          return (contents, Just (T.pack mime))
  | otherwise = do
