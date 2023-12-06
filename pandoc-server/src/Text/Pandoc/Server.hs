@@ -29,7 +29,7 @@ import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
-import Data.ByteString.Base64 (decodeBase64, encodeBase64)
+import qualified Data.ByteString.Base64 as Base64 (decodeLenient, encode)
 import Data.Default
 import Control.Monad (when, unless, foldM)
 import qualified Data.Set as Set
@@ -111,15 +111,11 @@ newtype Blob = Blob BL.ByteString
   deriving (Show, Eq)
 
 instance ToJSON Blob where
-  toJSON (Blob bs) = toJSON (encodeBase64 $ BL.toStrict bs)
+  toJSON (Blob bs) = toJSON (UTF8.toText . Base64.encode $ BL.toStrict bs)
 
 instance FromJSON Blob where
- parseJSON = withText "Blob" $ \t -> do
-   let inp = UTF8.fromText t
-   case decodeBase64 inp of
-        Right bs -> return $ Blob $ BL.fromStrict bs
-        Left _ -> -- treat as regular text
-                    return $ Blob $ BL.fromStrict inp
+ parseJSON = withText "Blob" $
+   pure . Blob . BL.fromStrict . Base64.decodeLenient . UTF8.fromText
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
@@ -236,7 +232,8 @@ server = convertBytes
   --    handleErr =<< liftIO (runIO (convert' params))
   -- will allow the IO operations.
   convertText params = handleErr $
-    runPure (convert' return (return . encodeBase64 . BL.toStrict) params)
+    runPure (convert' return (return . UTF8.toText .
+                               Base64.encode . BL.toStrict) params)
 
   convertBytes params = handleErr $
     runPure (convert' (return . UTF8.fromText) (return . BL.toStrict) params)
@@ -245,7 +242,7 @@ server = convertBytes
     runPure
       (convert'
         (\t -> Succeeded t False . map toMessage <$> getLog)
-        (\bs -> Succeeded (encodeBase64 (BL.toStrict bs)) True
+        (\bs -> Succeeded (UTF8.toText $ Base64.encode (BL.toStrict bs)) True
                  . map toMessage <$> getLog)
         params)
 
@@ -341,11 +338,9 @@ server = convertBytes
 
     let reader = case readerSpec of
                 TextReader r -> r readeropts
-                ByteStringReader r -> \t -> do
-                  let eitherbs = decodeBase64 $ UTF8.fromText t
-                  case eitherbs of
-                    Left errt -> throwError $ PandocSomeError errt
-                    Right bs -> r readeropts $ BL.fromStrict bs
+                ByteStringReader r ->
+                  r readeropts . BL.fromStrict . Base64.decodeLenient
+                    . UTF8.fromText
 
     let writer d@(Pandoc meta _) = do
           case lookupMetaString "lang" meta of
