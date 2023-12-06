@@ -48,7 +48,7 @@ import Data.Time.Clock.POSIX
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import Text.Pandoc.Class (PandocMonad, report, toLang, getMediaBag)
-import Text.Pandoc.Translations (translateTerm)
+import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -124,6 +124,7 @@ writeDocx :: (PandocMonad m)
           -> m BL.ByteString
 writeDocx opts doc = do
   let Pandoc meta blocks = walk fixDisplayMath doc
+  setupTranslations meta
   let blocks' = makeSections True Nothing blocks
   let doc' = Pandoc meta blocks'
 
@@ -505,6 +506,7 @@ writeDocx opts doc = do
   -- we do, however, copy some settings over from reference
   let settingsPath = "word/settings.xml"
       settingsList = [ "zoom"
+                     , "mirrorMargins"
                      , "embedSystemFonts"
                      , "doNotTrackMoves"
                      , "defaultTabStop"
@@ -767,7 +769,19 @@ writeOpenXML opts (Pandoc meta blocks) = do
   date <- withParaPropM (pStyleM "Date") $ blocksToOpenXML opts [Para dat | not (null dat)]
   abstract <- if null abstract'
                  then return []
-                 else withParaPropM (pStyleM "Abstract") $ blocksToOpenXML opts abstract'
+                 else do
+                   abstractTitle <- case lookupMeta "abstract-title" meta of
+                       Just (MetaBlocks bs)   -> pure $ stringify bs
+                       Just (MetaInlines ils) -> pure $ stringify ils
+                       Just (MetaString s)    -> pure s
+                       _                      -> translateTerm Abstract
+                   abstractTit <- withParaPropM (pStyleM "AbstractTitle") $
+                                   blocksToOpenXML opts
+                                     [Para [Str abstractTitle]]
+                   abstractContents <- withParaPropM (pStyleM "Abstract") $
+                                         blocksToOpenXML opts abstract'
+                   return $ abstractTit <> abstractContents
+
   let convertSpace (Str x : Space : Str y : xs) = Str (x <> " " <> y) : xs
       convertSpace (Str x : Str y : xs)         = Str (x <> y) : xs
       convertSpace xs                           = xs

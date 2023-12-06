@@ -102,7 +102,8 @@ blockToDokuWiki :: PandocMonad m
 
 blockToDokuWiki opts (Div _attrs bs) = do
   contents <- blockListToDokuWiki opts bs
-  return $ contents <> "\n"
+  indent <- asks stIndent
+  return $ contents <> if T.null indent then "\n" else ""
 
 blockToDokuWiki opts (Plain inlines) =
   inlineListToDokuWiki opts inlines
@@ -310,6 +311,8 @@ isSimpleList x =
 isSimpleListItem :: [Block] -> Bool
 isSimpleListItem []  = True
 isSimpleListItem [x, CodeBlock{}] | isPlainOrPara x = True
+isSimpleListItem (Div _ bs : ys) = -- see #8920
+  isSimpleListItem bs && all isSimpleList ys
 isSimpleListItem (x:ys) | isPlainOrPara x = all isSimpleList ys
 isSimpleListItem _ = False
 

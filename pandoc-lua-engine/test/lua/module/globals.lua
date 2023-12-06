@@ -8,6 +8,9 @@ local assert = tasty.assert
 -- WriterOptions and its components. UPDATE THE DOCS if anything changes.
 return {
   group 'PANDOC_WRITER_OPTIONS' {
+    test('chunk_template', function ()
+      assert.are_equal(type(PANDOC_WRITER_OPTIONS.chunk_template), 'string')
+    end),
     test('cite_method', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.cite_method), 'string')
     end),

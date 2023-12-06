@@ -19,7 +19,7 @@ module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isAscii, isDigit, isLetter, isSpace)
+import Data.Char (isDigit, isLetter, isSpace)
 import qualified Data.Foldable as F
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -245,7 +245,9 @@ parseAttrs = many1 parseAttr
 parseAttr :: PandocMonad m => MWParser m (Text, Text)
 parseAttr = try $ do
   skipMany spaceChar
-  k <- many1Char letter
+  kFirst <- letter
+  kRest <- many (alphaNum <|> oneOf "_-:.")
+  let k = T.pack (kFirst : kRest)
   skipMany spaceChar
   char '='
   skipMany spaceChar
@@ -664,13 +666,31 @@ internalLink = try $ do
              -- [[Help:Contents|] -> "Contents"
              <|> return (B.text $ T.drop 1 $ T.dropWhile (/=':') pagename) )
   sym "]]"
-  linktrail <- B.text <$> manyChar (satisfy (\c -> isAscii c && isLetter c)) 
+  -- see #8525:
+  linktrail <- B.text <$> manyChar (satisfy (\c -> isLetter c && not (isCJK c)))
   let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
   if "Category:" `T.isPrefixOf` pagename
      then do
        updateState $ \st -> st{ mwCategoryLinks = link : mwCategoryLinks st }
        return mempty
      else return link
+
+isCJK :: Char -> Bool
+isCJK c =
+  (c >= '\x3400' && c <= '\x4DBF') ||
+  (c >= '\x4E00' && c <= '\x9FFF') ||
+  (c >= '\x20000' && c <= '\x2A6DF') ||
+  (c >= '\x2A700' && c <= '\x2B73F') ||
+  (c >= '\x2B740' && c <= '\x2B81F') ||
+  (c >= '\x2B820' && c <= '\x2CEAF') ||
+  (c >= '\x2CEB0' && c <= '\x2EBEF') ||
+  (c >= '\x30000' && c <= '\x3134F') ||
+  (c >= '\x31350' && c <= '\x323AF') ||
+  (c >= '\xF900' && c <= '\xFAFF') ||
+  (c >= '\x2F800' && c <= '\x2FA1F') ||
+  (c >= '\x2F00' && c <= '\x2FDF') ||
+  (c >= '\x2E80' && c <= '\x2EFF') ||
+  (c >= '\x3000' && c <= '\x303F')
 
 externalLink :: PandocMonad m => MWParser m Inlines
 externalLink = try $ do

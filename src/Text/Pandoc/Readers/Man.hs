@@ -406,7 +406,16 @@ parseHeader = do
   return $ header lvl contents
 
 parseBlockQuote :: PandocMonad m => ManParser m Blocks
-parseBlockQuote = blockQuote <$> continuation
+parseBlockQuote = blockQuote <$>
+   (  (mmacro "RS" *> (mconcat <$> manyTill parseBlock (endmacro "RE")))
+  <|> parseIndentedParagraphs
+   )
+ where
+  parseIndentedParagraphs = try $ do
+    bareIP
+    first <- parsePara <|> parseCodeBlock
+    rest <- many $ try (memptyLine *> (parsePara <|> parseCodeBlock))
+    pure (first <> mconcat rest)
 
 data ListType = Ordered ListAttributes
               | Bullet
@@ -457,10 +466,8 @@ parseList = try $ do
 
 continuation :: PandocMonad m => ManParser m Blocks
 continuation =
-      mconcat <$> (mmacro "RS" *> manyTill parseBlock (endmacro "RE"))
-  <|> mconcat <$> many1 (  try (bareIP *> parsePara)
-                       <|> try (bareIP *> parseCodeBlock)
-                        )
+      (mmacro "RS" *> (mconcat <$> manyTill parseBlock (endmacro "RE")))
+  <|> try ((memptyLine <|> bareIP) *> (parsePara <|> parseCodeBlock))
 
 definitionListItem :: PandocMonad m
                    => ManParser m (Inlines, [Blocks])
@@ -473,11 +480,10 @@ definitionListItem = try $ do
                  mmacro "TQ"
                  parseInline
   skipMany memptyLine
-  inls <- option mempty parseInlines
-  skipMany memptyLine
-  continuations <- mconcat <$> many continuation
+  firstBlock <- parseBlock
+  otherBlocks <- mconcat <$> many continuation
   return ( mconcat (intersperse B.linebreak (term:moreterms))
-         , [para inls <> continuations])
+         , [firstBlock <> otherBlocks])
 
 parseDefinitionList :: PandocMonad m => ManParser m Blocks
 parseDefinitionList = definitionList <$> many1 definitionListItem

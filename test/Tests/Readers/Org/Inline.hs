@@ -120,12 +120,13 @@ tests =
       para (spcSep [ "//", "**", "__", "<>", "==", "~~", "$$" ])
 
   , "Adherence to Org's rules for markup borders" =:
-      "/t/& a/ / ./r/ (*l*) /e/! /b/." =?>
+      "/t/& a/ / ./r/ (*l*) /e/! ze\x200b/r/\x200bo /b/." =?>
       para (spcSep [ emph $ "t/&" <> space <> "a"
                    , "/"
                    , "./r/"
                    , "(" <> strong "l" <> ")"
                    , emph "e" <> "!"
+                   , "ze\x200b" <> emph "r" <> "\x200bo"
                    , emph "b" <> "."
                    ])
 
@@ -136,6 +137,10 @@ tests =
   , "Spaces are forbidden border chars" =:
       "/nada /" =?>
       para "/nada /"
+
+  , "Zero width spaces are forbidden border chars" =:
+      "/emph\x200b/asis" =?>
+      para "/emph\x200b/asis"
 
   , "Markup should work properly after a blank line" =:
     T.unlines ["foo", "", "/bar/"] =?>
@@ -388,6 +393,11 @@ tests =
                 , "{{{HELLO()}}}"
                 ] =?>
       para "Foo Bar"
+  , "Macro called with an escaped comma" =:
+      T.unlines [ "#+MACRO: HELLO Foo $1"
+                , "{{{HELLO(moin\\, niom)}}}"
+                ] =?>
+      para "Foo moin, niom"
 
   , testGroup "Citations" Citation.tests
   , testGroup "Footnotes" Note.tests

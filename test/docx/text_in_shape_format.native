@@ -1,0 +1,33 @@
+[ Para
+    [ Str "Last"
+    , Space
+    , Str "update:"
+    , Space
+    , Str "May"
+    , Space
+    , Str "1,"
+    , Space
+    , Str "2017"
+    ]
+, Para
+    [ Str "U"
+    , Str "sing"
+    , Space
+    , Str "Microsoft"
+    , Space
+    , Str "Word"
+    , Space
+    , Str "2007/2010"
+    , LineBreak
+    , Str "for"
+    , Space
+    , Str "Writing"
+    , Space
+    , Str "Technical"
+    , Space
+    , Str "Documents"
+    ]
+, Para [ Str "Valter" , Space , Str "Kiisk" ]
+, Para [ Str "Institute" , Space , Str "of" , Space , Str "Physics," , Space , Str "University" , Space , Str "of" , Space , Str "Tartu" ]
+, Para []
+]

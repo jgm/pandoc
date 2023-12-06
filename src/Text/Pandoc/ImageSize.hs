@@ -97,6 +97,12 @@ removeExtra0s s = case T.dropWhileEnd (=='0') s of
   (T.unsnoc -> Just (xs, '.')) -> xs
   xs                           -> xs
 
+dropBOM :: ByteString -> ByteString
+dropBOM bs =
+ if "\xEF\xBB\xBF" `B.isPrefixOf` bs
+    then B.drop 3 bs
+    else bs
+
 imageType :: ByteString -> Maybe ImageType
 imageType img = case B.take 4 img of
                      "\x89\x50\x4e\x47" -> return Png
@@ -116,7 +122,9 @@ imageType img = case B.take 4 img of
                      "\x01\x00\x00\x00"
                        | B.take 4 (B.drop 40 img) == " EMF"
                                         -> return Emf
-                     _                  -> mzero
+                     "\xEF\xBB\xBF<" -- BOM before svg
+                          -> imageType (B.drop 3 img)
+                     _ -> mzero
 
 findSvgTag :: ByteString -> Bool
 findSvgTag img = "<svg" `B.isInfixOf` img || "<SVG" `B.isInfixOf` img
@@ -333,7 +341,7 @@ getSize img =
 svgSize :: WriterOptions -> ByteString -> Maybe ImageSize
 svgSize opts img = do
   doc <- either (const mzero) return $ parseXMLElement
-                                     $ TL.fromStrict $ UTF8.toText img
+                                     $ TL.fromStrict $ UTF8.toText $ dropBOM img
   let viewboxSize = do
         vb <- findAttrBy (== QName "viewBox" Nothing Nothing) doc
         [_,_,w,h] <- mapM safeRead (T.words vb)

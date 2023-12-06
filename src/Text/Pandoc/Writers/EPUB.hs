@@ -251,7 +251,6 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
   | name == "description" = md { epubDescription = Just $ strContent e }
   | name == "type" = md { epubType = Just $ strContent e }
   | name == "format" = md { epubFormat = Just $ strContent e }
-  | name == "type" = md { epubType = Just $ strContent e }
   | name == "publisher" = md { epubPublisher = Just $ strContent e }
   | name == "source" = md { epubSource = Just $ strContent e }
   | name == "relation" = md { epubRelation = Just $ strContent e }

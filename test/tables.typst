@@ -1,0 +1,149 @@
+Simple table with caption:
+
+#figure(
+align(center)[#table(
+  columns: 4,
+  align: (col, row) => (right,left,center,auto,).at(col),
+  inset: 6pt,
+  [Right], [Left], [Center], [Default],
+  [12],
+  [12],
+  [12],
+  [12],
+  [123],
+  [123],
+  [123],
+  [123],
+  [1],
+  [1],
+  [1],
+  [1],
+)]
+, caption: [Demonstration of simple table syntax.]
+)
+
+Simple table without caption:
+
+#figure(
+align(center)[#table(
+  columns: 4,
+  align: (col, row) => (right,left,center,auto,).at(col),
+  inset: 6pt,
+  [Right], [Left], [Center], [Default],
+  [12],
+  [12],
+  [12],
+  [12],
+  [123],
+  [123],
+  [123],
+  [123],
+  [1],
+  [1],
+  [1],
+  [1],
+)]
+)
+
+Simple table indented two spaces:
+
+#figure(
+align(center)[#table(
+  columns: 4,
+  align: (col, row) => (right,left,center,auto,).at(col),
+  inset: 6pt,
+  [Right], [Left], [Center], [Default],
+  [12],
+  [12],
+  [12],
+  [12],
+  [123],
+  [123],
+  [123],
+  [123],
+  [1],
+  [1],
+  [1],
+  [1],
+)]
+, caption: [Demonstration of simple table syntax.]
+)
+
+Multiline table with caption:
+
+#figure(
+align(center)[#table(
+  columns: 4,
+  align: (col, row) => (center,left,right,left,).at(col),
+  inset: 6pt,
+  [Centered Header], [Left Aligned], [Right Aligned], [Default aligned],
+  [First],
+  [row],
+  [12.0],
+  [Example of a row that spans multiple lines.],
+  [Second],
+  [row],
+  [5.0],
+  [Here’s another one. Note the blank line between rows.],
+)]
+, caption: [Here’s the caption. It may span multiple lines.]
+)
+
+Multiline table without caption:
+
+#figure(
+align(center)[#table(
+  columns: 4,
+  align: (col, row) => (center,left,right,left,).at(col),
+  inset: 6pt,
+  [Centered Header], [Left Aligned], [Right Aligned], [Default aligned],
+  [First],
+  [row],
+  [12.0],
+  [Example of a row that spans multiple lines.],
+  [Second],
+  [row],
+  [5.0],
+  [Here’s another one. Note the blank line between rows.],
+)]
+)
+
+Table without column headers:
+
+#figure(
+align(center)[#table(
+  columns: 4,
+  align: (col, row) => (right,left,center,right,).at(col),
+  inset: 6pt,
+  [12],
+  [12],
+  [12],
+  [12],
+  [123],
+  [123],
+  [123],
+  [123],
+  [1],
+  [1],
+  [1],
+  [1],
+)]
+)
+
+Multiline table without column headers:
+
+#figure(
+align(center)[#table(
+  columns: 4,
+  align: (col, row) => (center,left,right,auto,).at(col),
+  inset: 6pt,
+  [First],
+  [row],
+  [12.0],
+  [Example of a row that spans multiple lines.],
+  [Second],
+  [row],
+  [5.0],
+  [Here’s another one. Note the blank line between rows.],
+)]
+)

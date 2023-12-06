@@ -26,6 +26,7 @@ data WriterState =
   , stInHeading     :: Bool          -- ^ true if in a section heading
   , stInItem        :: Bool          -- ^ true if in \item[..]
   , stInFigure      :: Bool          -- ^ true if in figure environment
+  , stInCite        :: Bool          -- ^ true if in a Cite
   , stNotes         :: [Doc Text]    -- ^ notes in a minipage
   , stOLLevel       :: Int           -- ^ level of ordered list nesting
   , stOptions       :: WriterOptions -- ^ writer options, so they don't have to
@@ -61,6 +62,7 @@ startingState options =
   , stInMinipage = False
   , stInItem = False
   , stInFigure = False
+  , stInCite = False
   , stNotes = []
   , stOLLevel = 1
   , stOptions = options

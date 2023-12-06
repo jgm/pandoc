@@ -157,9 +157,13 @@ writeICML opts doc = do
        Just tpl -> renderTemplate tpl context
 
 -- | Auxiliary functions for parStylesToDoc and charStylesToDoc.
-contains :: Text -> (Text, (Text, Text)) -> [(Text, Text)]
-contains s rule =
-  [snd rule | fst rule `Text.isInfixOf` s]
+contains :: Text -> (Text, (Text, Text)) -> [(Text, Text)] -> [(Text, Text)]
+contains s (t, (k,v)) attrs =
+  if t `Text.isInfixOf` s
+     then case lookup k attrs of -- avoid duplicates, #9158
+            Nothing -> (k, v) : attrs
+            Just _ -> attrs
+     else attrs
 
 -- | The monospaced font to use as default.
 monospacedFont :: Doc Text
@@ -183,7 +187,7 @@ parStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ blockStyles st
   where
     makeStyle s =
       let countSubStrs sub str = length $ Text.breakOnAll sub str
-          attrs = concatMap (contains s) [
+          attrs = foldr (contains s) [] [
                                (defListTermName, ("BulletsAndNumberingListType", "BulletList"))
                              , (defListTermName, ("FontStyle", "Bold"))
                              , (tableHeaderName, ("FontStyle", "Bold"))
@@ -248,7 +252,7 @@ charStylesToDoc :: WriterState -> Doc Text
 charStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ inlineStyles st
   where
     makeStyle s =
-      let attrs = concatMap (contains s) [
+      let attrs = foldr (contains s) [] [
                                (strikeoutName,   ("StrikeThru", "true"))
                              , (superscriptName, ("Position", "Superscript"))
                              , (subscriptName,   ("Position", "Subscript"))
@@ -628,13 +632,19 @@ imageICML opts style attr (src, _) = do
                    , selfClosingTag "PathPointType" [("Anchor", hw<>" -"<>hh),
                        ("LeftDirection", hw<>" -"<>hh), ("RightDirection", hw<>" -"<>hh)]
                    ]
-      img = if "data:" `Text.isPrefixOf` src' && "base64," `Text.isInfixOf` src'
+
+      isdata = "data:" `Text.isPrefixOf` src' && "base64," `Text.isInfixOf` src'
+      contents =
+            if isdata
                then -- see #8398
                   inTags True "Contents" [] $
-                    literal ("<![CDATA[" <>
-                             Text.drop 1 (Text.dropWhile (/=',') src') <> "]]>")
-               else selfClosingTag "Link" [("Self", "ueb"), ("LinkResourceURI", src')]
-
+                    literal ("<![CDATA[" <> Text.replace "%20" ""
+                            (Text.drop 1 (Text.dropWhile (/=',') src')) <> "]]>")
+               else mempty
+      link = if isdata
+                then mempty
+                else  selfClosingTag "Link" [("Self", "ueb"),
+                                             ("LinkResourceURI", src')]
       image  = inTags True "Image"
                    [("Self","ue6"), ("ItemTransform", scale<>" -"<>hw<>" -"<>hh)]
                  $ vcat [
@@ -643,8 +653,9 @@ imageICML opts style attr (src, _) = do
                        , selfClosingTag "GraphicBounds" [("Left","0"), ("Top","0")
                          , ("Right",  showFl $ ow*ow / imgWidth)
                          , ("Bottom", showFl $ oh*oh / imgHeight)]
+                       , contents
                        ]
-                   , img
+                   , link
                    ]
       doc    = inTags True "CharacterStyleRange" attrs
                  $ inTags True "Rectangle" [("Self","uec"), ("StrokeWeight", "0"),

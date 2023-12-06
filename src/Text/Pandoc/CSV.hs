@@ -80,7 +80,10 @@ pCSVUnquotedCell opts = T.pack <$>
 pCSVDelim :: CSVOptions -> Parser ()
 pCSVDelim opts = do
   char (csvDelim opts)
-  unless (csvKeepSpace opts) $ skipMany (oneOf " \t")
+  let sp = case csvDelim opts of
+              '\t' -> char ' '
+              _    -> oneOf " \t"
+  unless (csvKeepSpace opts) $ skipMany sp
 
 endline :: Parser ()
 endline = do

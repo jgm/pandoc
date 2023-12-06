@@ -116,7 +116,7 @@ and saving in a format from which pandoc can convert directly.
 No.  You can get by with a relatively small TeX installation,
 for example, by starting with MacTeX's Basic TeX distribution
 and using the `tlmgr` tool to install a few packages required by pandoc
-(see https://pandoc.org/MANUAL.html#creating-a-pdf).
+(see [the manual](https://pandoc.org/MANUAL.html#creating-a-pdf)).
 
 Or, you can produce PDFs via HTML and `wkhtmltopdf`,
 or via groff ms and `pdfroff`.  (These don't produce as nice
@@ -161,11 +161,42 @@ of the citations by specifying an appropriate CSL bibliography
 style using `--csl`
 (see [the manual](https://pandoc.org/MANUAL.html#specifying-a-citation-style)).
 
+### How can I produce PDF/A with pandoc?
+
+The simplest approach is via ConTeXt:
+
+```
+pandoc --pdf-engine=context -V pdfa
+```
+
+Alternatively, `--pdf-engine=pdflatex` can be used with
+the following in `header-includes` in metadata (or included from
+a file using `--include-in-header`):
+
+```
+\usepackage[a-2u,mathxmp]{pdfx}
+\usepackage[pdfa]{hyperref}
+```
+
+Or `--pdf-engine=lualatex` can be used with the following:
+
+```
+\usepackage{hyperxmp}
+\hypersetup{pdfapart=3,pdfaconformance=B}
+\immediate\pdfobj stream attr{/N 3} file{sRGB.icc}
+\pdfcatalog{/OutputIntents [<<
+/Type /OutputIntent /S /GTS_PDFA1
+/DestOutputProfile \the\pdflastobj\space 0 R
+/OutputConditionIdentifier (sRGB) /Info (sRGB)
+>>]}
+```
+
+
 ### Pandoc adds column widths to pipe tables when any line is wider than the setting for `--columns`. How can I prevent this?
 
 Save this filter as `nowidths.lua` and then pass `--lua-filter
 nowidths.lua` as an additional option to pandoc.
-(See <https://github.com/jgm/pandoc/issues/8139>.)
+(See [issue 8139](https://github.com/jgm/pandoc/issues/8139).)
 
 ``` lua
 -- Unset the width attribute of HTML colspecs in tables
@@ -184,6 +215,15 @@ function Table (tbl)
   end
   return tbl
 end
+```
+
+### How can I use pandoc to read Word files in the old .DOC format?
+
+Install `antiword` and use it to convert the doc to DocBook,
+which can be read by pandoc.
+
+```
+antiword -x db input.doc | pandoc -f docbook
 ```
 
 :::

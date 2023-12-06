@@ -28,6 +28,7 @@ import Data.Data (Data)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Typeable (Typeable)
+import Network.URI (unEscapeString)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
 import qualified System.FilePath.Windows as Windows
@@ -35,7 +36,8 @@ import Text.Pandoc.MIME (MimeType, getMimeTypeDef, extensionFromMimeType)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Digest.Pure.SHA (sha1, showDigest)
-import Network.URI (URI (..), parseURI)
+import Network.URI (URI (..), parseURI, isURI)
+import Data.List (isInfixOf)
 
 data MediaItem =
   MediaItem
@@ -54,9 +56,12 @@ newtype MediaBag = MediaBag (M.Map Text MediaItem)
 instance Show MediaBag where
   show bag = "MediaBag " ++ show (mediaDirectory bag)
 
--- | We represent paths with /, in normalized form.
+-- | We represent paths with /, in normalized form.  Percent-encoding
+-- is not resolved.
 canonicalize :: FilePath -> Text
-canonicalize = T.replace "\\" "/" . T.pack . normalise
+canonicalize fp
+  | isURI fp = T.pack fp
+  | otherwise = T.replace "\\" "/" . T.pack . normalise $ fp
 
 -- | Delete a media item from a 'MediaBag', or do nothing if no item corresponds
 -- to the given path.
@@ -79,22 +84,23 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
                              , mediaContents = contents
                              , mediaMimeType = mt }
         fp' = canonicalize fp
+        fp'' = unEscapeString $ T.unpack fp'
         uri = parseURI fp
-        newpath = if Posix.isRelative fp
-                       && Windows.isRelative fp
+        newpath = if Posix.isRelative fp''
+                       && Windows.isRelative fp''
                        && isNothing uri
-                       && ".." `notElem` splitDirectories fp
-                     then T.unpack fp'
-                     else showDigest (sha1 contents) <> "." <> ext
-        fallback = case takeExtension fp of
-                        ".gz" -> getMimeTypeDef $ dropExtension fp
-                        _     -> getMimeTypeDef fp
+                       && not (".." `isInfixOf` fp'')
+                       && '%' `notElem` fp''
+                     then fp''
+                     else showDigest (sha1 contents) <> ext
+        fallback = case takeExtension fp'' of
+                        ".gz" -> getMimeTypeDef $ dropExtension fp''
+                        _     -> getMimeTypeDef fp''
         mt = fromMaybe fallback mbMime
-        path = maybe fp uriPath uri
+        path = maybe fp'' (unEscapeString . uriPath) uri
         ext = case takeExtension path of
-                '.':e -> e
-                _ -> maybe "" T.unpack $ extensionFromMimeType mt
-
+                '.':e | '%' `notElem` e -> '.':e
+                _ -> maybe "" (\x -> '.':T.unpack x) $ extensionFromMimeType mt
 
 -- | Lookup a media item in a 'MediaBag', returning mime type and contents.
 lookupMedia :: FilePath

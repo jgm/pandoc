@@ -3,8 +3,10 @@
 [ ] Finalize changelog
 [ ] Update AUTHORS (make authors LASTRELEASE=x.y.z)
 [ ] Run release candidate workflow manually on GitHub
-[ ] if it builds successfully, download artifacts
-[ ] run tools/build-arm.sh to create and download arm64 linux package
+[ ] Run release candidate workflows manually on cirrus-ci.com
+[ ] if it builds successfully, download artifacts from GitHub, cirrus-ci.com
+    (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
+    from cirrus)
 [ ] Use 'make' in macos and windows artifacts to sign code
 [ ] make update-website
 [ ] Tag release in git:

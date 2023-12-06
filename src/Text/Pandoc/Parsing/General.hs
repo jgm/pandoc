@@ -421,7 +421,6 @@ parseFromString parser str = do
   setInput $ toSources str
   setPosition $ initialPos $ sourceName oldPos <> "_chunk"
   result <- parser
-  spaces
   setInput oldInput
   setPosition oldPos
   return result

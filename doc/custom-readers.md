@@ -78,13 +78,12 @@ ensuring backwards compatibility.
 
 # Bytestring readers
 
-Pandoc expects text input to be UTF-8 encoded. However, formats
-like docx, odt, epub, etc. are not text but binary formats. To
-read them, pandoc supports `ByteStringReader` functions. These
-functions work just like the `Reader` function that process text
-input, but instead of a list of sources, `ByteStringReader`
-functions are passed a bytestring, i.e., a string that contains
-the binary input.
+In order to read binary formats, including docx, odt, and epub,
+pandoc supports the `ByteStringReader` function. A
+`ByteStringReader` function is similar to the `Reader` function
+that processes text input. Instead of a list of sources, the
+ByteStringReader function is passed a bytestring, i.e., a string
+that contains the binary input.
 
 ``` lua
 -- read input as epub
@@ -458,16 +457,18 @@ This custom reader consumes the JSON output of
 a document containing the current top articles on the
 Haskell subreddit.
 
-It assumes that the `luajson` library is available.  (It can be
-installed using `luarocks install luajson`---but be sure you are
-installing it for Lua 5.3, which is the version packaged with
-pandoc.)
+It assumes that the `pandoc.json` library is available, which
+ships with pandoc versions after (not including) 3.1. It's still
+possible to use this with older pandoc version by using a
+different JSON library. E.g., `luajson` can be installed using
+`luarocks install luajson`---but be sure you are installing it for
+Lua 5.4, which is the version packaged with pandoc.
 
 
 ```lua
 -- consumes the output of https://www.reddit.com/r/haskell.json
 
-local json = require'json'  -- luajson must be available
+local json = require 'pandoc.json'
 
 local function read_inlines(raw)
   local doc = pandoc.read(raw, "commonmark")

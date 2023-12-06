@@ -6,6 +6,11 @@ Here are some books, articles, and blogs that discuss pandoc:
 
 - [Pandoc](http://en.wikipedia.org/wiki/Pandoc) on Wikipedia.
 
+- Egon Willighagen, [Two years of explicit CiTO
+  annotations](https://doi.org/10.1186/s13321-023-00683-2).
+  Journal of Cheminformatics 15, 14 (2023). doi:
+  10.1186/s13321-023-00683-2.
+
 - Albert Krewinkel, Juanjo Bazán, and Afron M. Smith,
   ["JATS from Markdown: Developer friendly single-source
   scholarly

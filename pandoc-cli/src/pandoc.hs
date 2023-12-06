@@ -18,7 +18,6 @@ import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
                        , parseOptionsFromArgs, handleOptInfo )
 import Text.Pandoc.Error (handleError)
-import qualified Text.Pandoc.UTF8 as UTF8
 import System.Exit (exitSuccess)
 import Data.Monoid (Any(..))
 import Control.Monad (when)
@@ -48,7 +47,7 @@ versionSuffix = ""
 main :: IO ()
 main = E.handle (handleError . Left) $ do
   prg <- getProgName
-  rawArgs <- map UTF8.decodeArg <$> getArgs
+  rawArgs <- getArgs
   let hasVersion = getAny $ foldMap
          (\s -> Any (s == "-v" || s == "--version"))
          (takeWhile (/= "--") rawArgs)
@@ -70,7 +69,7 @@ main = E.handle (handleError . Left) $ do
 
 copyrightMessage :: String
 copyrightMessage =
- "Copyright (C) 2006-2023 John MacFarlane. Web:  https://pandoc.org\n"
+ "Copyright (C) 2006-2023 John MacFarlane. Web: https://pandoc.org\n"
  ++
  "This is free software; see the source for copying conditions. There is no\n"
  ++

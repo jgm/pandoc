@@ -146,7 +146,8 @@ testMediaBag name odtFile = buildTest $ testMediaBagIO name odtFile
 
 
 namesOfTestsComparingToMarkdown :: [ String ]
-namesOfTestsComparingToMarkdown  = [ "bold"
+namesOfTestsComparingToMarkdown  = [ "blockquote2"
+                                   , "bold"
 --                                 , "citation"
                                    , "endnote"
                                    , "externalLink"
@@ -168,6 +169,8 @@ namesOfTestsComparingToNative   = [ "blockquote"
                                   , "imageIndex"
                                   , "imageWithCaption"
                                   , "inlinedCode"
+                                  , "listContinueNumbering"
+                                  , "listContinueNumbering2"
                                   , "orderedListMixed"
                                   , "orderedListRoman"
                                   , "orderedListSimple"

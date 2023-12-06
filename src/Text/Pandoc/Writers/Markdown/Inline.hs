@@ -113,11 +113,11 @@ escapeMarkuaString :: Text -> Text
 escapeMarkuaString s = foldr (uncurry T.replace) s [("--","~-~-"),
                         ("**","~*~*"),("//","~/~/"),("^^","~^~^"),(",,","~,~,")]
 
-attrsToMarkdown :: Attr -> Doc Text
-attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
+attrsToMarkdown :: WriterOptions -> Attr -> Doc Text
+attrsToMarkdown opts attribs = braces $ hsep [attribId, attribClasses, attribKeys]
         where attribId = case attribs of
                                 ("",_,_) -> empty
-                                (i,_,_)  -> "#" <> escAttr i
+                                (i,_,_)  -> "#" <> escAttr (writerIdentifierPrefix opts <> i)
               attribClasses = case attribs of
                                 (_,[],_) -> empty
                                 (_,cs,_) -> hsep $
@@ -134,13 +134,13 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
               escAttrChar '\\' = literal "\\\\"
               escAttrChar c    = literal $ T.singleton c
 
-attrsToMarkua:: Attr -> Doc Text
-attrsToMarkua attributes
+attrsToMarkua:: WriterOptions -> Attr -> Doc Text
+attrsToMarkua opts attributes
      | null list = empty
      | otherwise = braces $ intercalateDocText list
         where attrId = case attributes of
                         ("",_,_) -> []
-                        (i,_,_)  -> [literal $ "id: " <> i]
+                        (i,_,_)  -> [literal $ "id: " <> writerIdentifierPrefix opts <> i]
               -- all non explicit (key,value) attributes besides id are getting
               -- a default class key to be Markua conform
               attrClasses = case attributes of
@@ -184,7 +184,7 @@ linkAttributes :: WriterOptions -> Attr -> Doc Text
 linkAttributes opts attr =
   if (isEnabled Ext_link_attributes opts ||
         isEnabled Ext_attributes opts) && attr /= nullAttr
-     then attrsToMarkdown attr
+     then attrsToMarkdown opts attr
      else empty
 
 getKey :: Doc Text -> Key
@@ -361,11 +361,11 @@ inlineToMarkdown opts (Span attrs ils) = do
              _ -> id
          $ case variant of
                 PlainText -> contents
-                Markua -> "`" <> contents <> "`" <> attrsToMarkua attrs
+                Markua -> "`" <> contents <> "`" <> attrsToMarkua opts attrs
                 _     | attrs == nullAttr -> contents
                       | isEnabled Ext_bracketed_spans opts ->
                         let attrs' = if attrs /= nullAttr
-                                        then attrsToMarkdown attrs
+                                        then attrsToMarkdown opts attrs
                                         else empty
                         in "[" <> contents <> "]" <> attrs'
                       | isEnabled Ext_raw_html opts ||
@@ -483,9 +483,9 @@ inlineToMarkdown opts (Code attr str) = do
   let attrsEnabled = isEnabled Ext_inline_code_attributes opts ||
                      isEnabled Ext_attributes opts
   let attrs = case variant of
-                       Markua -> attrsToMarkua attr
+                       Markua -> attrsToMarkua opts attr
                        _   -> if attrsEnabled && attr /= nullAttr
-                                        then attrsToMarkdown attr
+                                        then attrsToMarkdown opts attr
                                         else empty
   case variant of
      PlainText -> return $ literal str
@@ -529,7 +529,7 @@ inlineToMarkdown opts (Math DisplayMath str) = do
   variant <- asks envVariant
   case () of
     _ | variant == Markua -> do
-        let attributes = attrsToMarkua (addKeyValueToAttr ("",[],[])
+        let attributes = attrsToMarkua opts (addKeyValueToAttr ("",[],[])
                                                         ("format", "latex"))
         return $ blankline <> attributes <> cr <> literal "```" <> cr
             <> literal str <> cr <> literal "```" <> blankline
@@ -657,7 +657,8 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
   let useRefLinks = writerReferenceLinks opts && not useAuto
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
-                            isEnabled Ext_shortcut_reference_links opts
+                             (variant == Commonmark ||
+                              isEnabled Ext_shortcut_reference_links opts)
   reftext <- if useRefLinks
                 then literal <$> getReference attr linktext (src, tit)
                 else return mempty
@@ -666,8 +667,8 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
       | useAuto -> return $ literal srcSuffix
       | otherwise -> return linktext
     Markua
-      | T.null tit -> return $ result <> attrsToMarkua attr
-      | otherwise ->  return $ result <> attrsToMarkua attributes
+      | T.null tit -> return $ result <> attrsToMarkua opts attr
+      | otherwise ->  return $ result <> attrsToMarkua opts attributes
         where result = "[" <> linktext <> "](" <> (literal src) <> ")"
               attributes = addKeyValueToAttr attr ("title", tit)
     -- Use wikilinks where possible
@@ -709,7 +710,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
                else alternate
   linkPart <- inlineToMarkdown opts (Link attr txt (source, tit))
   alt <- inlineListToMarkdown opts alternate
-  let attributes | variant == Markua = attrsToMarkua $
+  let attributes | variant == Markua = attrsToMarkua opts $
             addKeyValueToAttr (addKeyValueToAttr attr ("title", tit))
             ("alt", render (Just (writerColumns opts)) alt)
                  | otherwise = empty

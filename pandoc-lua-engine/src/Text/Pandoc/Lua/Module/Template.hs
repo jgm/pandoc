@@ -11,12 +11,13 @@ module Text.Pandoc.Lua.Module.Template
   ( documentedModule
   ) where
 
+import Data.Version (makeVersion)
 import HsLua
 import HsLua.Module.DocLayout (peekDoc, pushDoc)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.AST (peekMeta, pushBlocks, pushInlines)
 import Text.Pandoc.Lua.Marshal.Context (peekContext, pushContext)
-import Text.Pandoc.Lua.Marshal.Template (peekTemplate, pushTemplate)
+import Text.Pandoc.Lua.Marshal.Template (typeTemplate, peekTemplate, pushTemplate)
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Templates
@@ -35,6 +36,7 @@ documentedModule = Module
   , moduleFields = []
   , moduleOperations = []
   , moduleFunctions = functions
+  , moduleTypeInitializers = [initType typeTemplate]
   }
 
 -- | Template module functions.
@@ -52,6 +54,7 @@ functions =
      , "table as values, where the table can be either be a list of the"
      , "aforementioned types, or a nested context."
      ]
+    `since` makeVersion [3,0]
 
   , defun "compile"
      ### (\template mfilepath -> unPandocLua $
@@ -63,6 +66,7 @@ functions =
      <#> opt (stringParam "templ_path" "template path")
      =#> functionResult (either failLua pushTemplate) "pandoc Template"
            "compiled template"
+    `since` makeVersion [2,17]
 
   , defun "default"
      ### (\mformat -> unPandocLua $ do
@@ -75,6 +79,7 @@ functions =
               "writer for which the template should be returned.")
      =#> functionResult pushText "string"
            "string representation of the writer's default template"
+    `since` makeVersion [2,17]
 
   , defun "meta_to_context"
      ### (\meta blockWriterIdx inlineWriterIdx -> unPandocLua $ do
@@ -100,4 +105,5 @@ functions =
      , "data, using the given functions to convert [Blocks] and [Inlines]"
      , "to [Doc] values."
      ]
+    `since` makeVersion [3,0]
   ]

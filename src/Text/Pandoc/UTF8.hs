@@ -140,5 +140,6 @@ fromStringLazy = fromTextLazy . TL.pack
 encodePath :: FilePath -> FilePath
 encodePath = id
 
+{-# DEPRECATED decodeArg "decodeArg is now a no-op" #-}
 decodeArg :: String -> String
 decodeArg = id

@@ -749,6 +749,33 @@ Pandoc
       , Space
       , Str "spaces."
       ]
+  , Para
+      [ Str "A"
+      , Space
+      , Link
+          ( "" , [] , [] ) [ Str "link" ] ( "ftp://example.com" , "" )
+      , Space
+      , Str "to"
+      , Space
+      , Str "a"
+      , Space
+      , Str "named"
+      , Space
+      , Str "target"
+      ]
+  , Para
+      [ Str "A"
+      , Space
+      , Link ( "" , [] , [] ) [ Str "link" ] ( "missing" , "" )
+      , Space
+      , Str "to"
+      , Space
+      , Str "a"
+      , Space
+      , Str "missing"
+      , Space
+      , Str "target"
+      ]
   , Header 1 ( "tables" , [] , [] ) [ Str "Tables" ]
   , Para
       [ Str "Textile"

@@ -99,6 +99,24 @@
       <w:jc w:val="center" />
     </w:pPr>
   </w:style>
+  <w:style w:type="paragraph" w:customStyle="1" w:styleId="AbstractTitle">
+    <w:name w:val="Abstract Title" />
+    <w:basedOn w:val="Normal" />
+    <w:next w:val="Abstract" />
+    <w:qFormat />
+    <w:pPr>
+      <w:keepNext />
+      <w:keepLines />
+      <w:jc w:val="center" />
+      <w:spacing w:before="300" w:after="0" />
+    </w:pPr>
+    <w:rPr>
+      <w:sz w:val="20" />
+      <w:szCs w:val="20" />
+      <w:b />
+      <w:color w:val="345A8A" />>
+    </w:rPr>
+  </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="Abstract">
     <w:name w:val="Abstract" />
     <w:basedOn w:val="Normal" />
@@ -107,7 +125,7 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
-      <w:spacing w:before="300" w:after="300" />
+      <w:spacing w:before="100" w:after="300" />
     </w:pPr>
     <w:rPr>
       <w:sz w:val="20" />

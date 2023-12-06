@@ -122,7 +122,7 @@ references:
 ---
 
 ^D
-::: {#refs .references .csl-bib-body .hanging-indent line-spacing="2"}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0" line-spacing="2"}
 ::: {#ref-Y .csl-entry}
 NN. (1950). Date: Year.
 :::

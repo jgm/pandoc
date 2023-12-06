@@ -33,8 +33,7 @@ import Data.Typeable
 import Text.Pandoc.Parsing (runParserT, getInput, getPosition,
                             runF, defaultParserState, option, many1, anyChar,
                             Sources(..), ToSources(..), ParsecT, Future,
-                            sourceName, sourceLine, incSourceLine,
-                            fromParsecError)
+                            incSourceLine, fromParsecError)
 import Text.Pandoc.Walk (walk)
 import qualified Data.Text as T
 import qualified Data.Attoparsec.Text as A
@@ -71,6 +70,13 @@ readCommonMark opts s
     let toks = concatMap sourceToToks (unSources sources)
     readCommonMarkBody opts sources toks
 
+makeFigures :: Block -> Block
+makeFigures (Para [Image (ident,classes,kvs) alt (src,tit)]) =
+  Figure (ident,[],[])
+    (Caption Nothing [Plain alt])
+    [Plain [Image ("",classes,kvs) alt (src,tit)]]
+makeFigures b = b
+
 sourceToToks :: (SourcePos, Text) -> [Tok]
 sourceToToks (pos, s) = map adjust $ tokenize (sourceName pos) s
  where
@@ -91,6 +97,12 @@ metaValueParser opts = do
 
 readCommonMarkBody :: PandocMonad m => ReaderOptions -> Sources -> [Tok] -> m Pandoc
 readCommonMarkBody opts s toks =
+  (if isEnabled Ext_implicit_figures opts
+      then walk makeFigures
+      else id) .
+  (if isEnabled Ext_tex_math_gfm opts
+      then walk handleGfmMath
+      else id) .
   (if readerStripComments opts
       then walk stripBlockComments . walk stripInlineComments
       else id) <$>
@@ -101,6 +113,21 @@ readCommonMarkBody opts s toks =
      else case runIdentity (parseCommonmarkWith (specFor opts) toks) of
             Left err -> throwError $ fromParsecError s err
             Right (Cm bls :: Cm () Blocks) -> return $ B.doc bls
+
+handleGfmMath :: Block -> Block
+handleGfmMath (CodeBlock ("",["math"],[]) raw) = Para [Math DisplayMath raw]
+handleGfmMath x = walk handleGfmMathInline x
+
+handleGfmMathInline :: Inline -> Inline
+handleGfmMathInline (Math InlineMath math') =
+  let (ticks, rest) = T.span (== '`') math'
+  in  if T.null ticks
+         then Math InlineMath math'
+         else case T.stripSuffix ticks rest of
+                Just middle | not (T.null middle) && (T.last middle /= '`')
+                             -> Math InlineMath middle
+                _ -> Math InlineMath math'
+handleGfmMathInline x = x
 
 stripBlockComments :: Block -> Block
 stripBlockComments (RawBlock (B.Format "html") s) =
@@ -142,6 +169,7 @@ specFor opts = foldr ($) defaultSyntaxSpec exts
          [ (bracketedSpanSpec <>) | isEnabled Ext_bracketed_spans opts ] ++
          [ (rawAttributeSpec <>) | isEnabled Ext_raw_attribute opts ] ++
          [ (attributesSpec <>) | isEnabled Ext_attributes opts ] ++
+         [ (alertSpec <>) | isEnabled Ext_alerts opts ] ++
          [ (<> pipeTableSpec) | isEnabled Ext_pipe_tables opts ] ++
             -- see #6739
          [ (autolinkSpec <>) | isEnabled Ext_autolink_bare_uris opts ] ++

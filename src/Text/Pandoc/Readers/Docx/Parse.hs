@@ -79,20 +79,22 @@ import Text.Pandoc.Shared (filteredFilesFromArchive, safeRead)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.TeXMath (Exp)
 import Text.TeXMath.Readers.OMML (readOMML)
-import Text.TeXMath.Unicode.Fonts (Font (..), getUnicode, textToFont)
+import Text.Pandoc.Readers.Docx.Symbols (symbolMap, Font(..), textToFont)
 import Text.Pandoc.XML.Light
     ( filterChild,
       findElement,
       strContent,
       showElement,
       findAttr,
+      filterChild,
       filterChildrenName,
       filterElementName,
+      lookupAttrBy,
       parseXMLElement,
       elChildren,
       QName(QName, qName),
       Content(Elem),
-      Element(elContent, elName),
+      Element(..),
       findElements )
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
@@ -146,13 +148,46 @@ mapD f xs =
   in
    concatMapM handler xs
 
+isAltContentRun :: NameSpaces -> Element -> Bool
+isAltContentRun ns element
+  | isElem ns "w" "r" element
+  , Just _altContentElem <- findChildByName ns "mc" "AlternateContent" element
+  = True
+  | otherwise
+  = False
+
+-- Elements such as <w:shape> are not always preferred
+-- to be unwrapped. Only if they are part of an AlternateContent
+-- element, they should be unwrapped.
+-- This strategy prevents VML images breaking.
+unwrapAlternateContentElement :: NameSpaces -> Element -> [Element]
+unwrapAlternateContentElement ns element
+  | isElem ns "mc" "AlternateContent" element
+  || isElem ns "mc" "Fallback" element
+  || isElem ns "w" "pict" element
+  || isElem ns "v" "group" element
+  || isElem ns "v" "rect" element
+  || isElem ns "v" "roundrect" element
+  || isElem ns "v" "shape" element
+  || isElem ns "v" "textbox" element
+  || isElem ns "w" "txbxContent" element
+  = concatMap (unwrapAlternateContentElement ns) (elChildren element)
+  | otherwise
+  = unwrapElement ns element
+
 unwrapElement :: NameSpaces -> Element -> [Element]
 unwrapElement ns element
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
   = concatMap (unwrapElement ns) (elChildren sdtContent)
+  | isElem ns "w" "r" element
+  , Just alternateContentElem <- findChildByName ns "mc" "AlternateContent" element
+  = unwrapAlternateContentElement ns alternateContentElem
   | isElem ns "w" "smartTag" element
   = concatMap (unwrapElement ns) (elChildren element)
+  | isElem ns "w" "p" element
+  , Just (modified, altContentRuns) <- extractChildren element (isAltContentRun ns)
+  = (unwrapElement ns modified) ++ concatMap (unwrapElement ns) altContentRuns
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
 
@@ -725,7 +760,25 @@ elemToBodyPart ns element
       parstyle <- elemToParagraphStyle ns element
                   <$> asks envParStyles
                   <*> asks envNumbering
-      parparts' <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
+
+      let hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
+
+      let isTableNumberElt el@(Element name attribs _ _) =
+           (qName name == "fldSimple" &&
+             case lookupAttrBy ((== "instr") . qName) attribs of
+               Nothing -> False
+               Just instr -> "Table" `elem` T.words instr) ||
+           (qName name == "instrText" && "Table" `elem` T.words (strContent el))
+
+      let isTable = hasCaptionStyle &&
+                      isJust (filterChild isTableNumberElt element)
+
+      let stripOffLabel = dropWhile (not . isTableNumberElt)
+
+      let children = (if isTable
+                          then stripOffLabel
+                          else id) $ elChildren element
+      parparts' <- mconcat <$> mapD (elemToParPart ns) children
       fldCharState <- gets stateFldCharState
       modify $ \st -> st {stateFldCharState = emptyFldCharContents fldCharState}
       -- Word uses list enumeration for numbered headings, so we only
@@ -734,21 +787,9 @@ elemToBodyPart ns element
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
                     mkListItem parstyle numId lvl parparts
-        _ -> let
-          hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
-
-          hasSimpleTableField = fromMaybe False $ do
-            fldSimple <- findChildByName ns "w" "fldSimple" element
-            instr <- findAttrByName ns "w" "instr" fldSimple
-            pure ("Table" `elem` T.words instr)
-
-          hasComplexTableField = fromMaybe False $ do
-            instrText <- findElementByName ns "w" "instrText" element
-            pure ("Table" `elem` T.words (strContent instrText))
-
-          in if hasCaptionStyle && (hasSimpleTableField || hasComplexTableField)
-            then return $ TblCaption parstyle parparts
-            else return $ Paragraph parstyle parparts
+        _ -> if isTable
+                then return $ TblCaption parstyle parparts
+                else return $ Paragraph parstyle parparts
 
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
@@ -810,7 +851,8 @@ expandDrawingId s = do
 
 getTitleAndAlt :: NameSpaces -> Element -> (T.Text, T.Text)
 getTitleAndAlt ns element =
-  let mbDocPr = findChildByName ns "wp" "inline" element >>=
+  let mbDocPr = (findChildByName ns "wp" "inline" element <|>   -- Word
+                 findChildByName ns "wp" "anchor" element) >>=  -- LibreOffice
                 findChildByName ns "wp" "docPr"
       title = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "title")
       alt = fromMaybe "" (mbDocPr >>= findAttrByName ns "" "descr")
@@ -914,10 +956,9 @@ elemToParPart' ns element
   , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
   , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
   = let (title, alt) = getTitleAndAlt ns drawingElem
-        a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawings = map (\el ->
-                        ((findElement (QName "blip" (Just a_ns) (Just "a")) el
-                          >>= findAttrByName ns "r" "embed"), el)) picElems
+                        ((findBlip el >>= findAttrByName ns "r" "embed"), el))
+                       picElems
     in mapM (\case
                 (Just s, el) -> do
                   (fp, bs) <- expandDrawingId s
@@ -1039,10 +1080,9 @@ childElemToRun ns element
   , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
   , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) element
   = let (title, alt) = getTitleAndAlt ns element
-        a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
         drawings = map (\el ->
-                         ((findElement (QName "blip" (Just a_ns) (Just "a")) el
-                             >>= findAttrByName ns "r" "embed"), el)) picElems
+                         ((findBlip el >>= findAttrByName ns "r" "embed"), el))
+                   picElems
     in mapM (\case
                 (Just s, el) -> do
                   (fp, bs) <- expandDrawingId s
@@ -1193,32 +1233,34 @@ elemToRunElem ns element
     case font of
       Nothing -> return $ TextRun str
       Just f  -> return . TextRun $
-                  T.map (\x -> fromMaybe x . getUnicode f . lowerFromPrivate $ x) str
+                   T.map (\c -> fromMaybe c (getFontChar f c)) str
   | isElem ns "w" "br" element = return LnBrk
   | isElem ns "w" "tab" element = return Tab
   | isElem ns "w" "softHyphen" element = return SoftHyphen
   | isElem ns "w" "noBreakHyphen" element = return NoBreakHyphen
   | isElem ns "w" "sym" element = return (getSymChar ns element)
   | otherwise = throwError WrongElem
-  where
-    lowerFromPrivate (ord -> c)
-      | c >= ord '\xF000' = chr $ c - ord '\xF000'
-      | otherwise = chr c
 
 -- The char attribute is a hex string
 getSymChar :: NameSpaces -> Element -> RunElem
 getSymChar ns element
-  | Just s <- lowerFromPrivate <$> getCodepoint
+  | Just s <- getCodepoint
   , Just font <- getFont =
     case readLitChar ("\\x" ++ T.unpack s) of
-         [(char, _)] -> TextRun . maybe "" T.singleton $ getUnicode font char
-         _           -> TextRun ""
+         [(ch, _)] ->
+              TextRun $ T.singleton $ fromMaybe ch $ getFontChar font ch
+         _ -> TextRun ""
   where
     getCodepoint = findAttrByName ns "w" "char" element
-    getFont = textToFont =<< findAttrByName ns "w" "font" element
-    lowerFromPrivate t | "F" `T.isPrefixOf` t = "0" <> T.drop 1 t
-                       | otherwise             = t
+    getFont = findAttrByName ns "w" "font" element >>= textToFont
 getSymChar _ _ = TextRun ""
+
+getFontChar :: Font -> Char -> Maybe Char
+getFontChar font ch = chr <$> M.lookup (font, point) symbolMap
+ where
+   point  -- sometimes F000 is added to put char in private range:
+      | ch >= '\xF000' = ord ch - 0xF000
+      | otherwise = ord ch
 
 elemToRunElems :: NameSpaces -> Element -> D [RunElem]
 elemToRunElems ns element
@@ -1227,11 +1269,19 @@ elemToRunElems ns element
        let qualName = elemName ns "w"
        let font = do
                     fontElem <- findElement (qualName "rFonts") element
-                    textToFont =<<
-                       foldr ((<|>) . (flip findAttr fontElem . qualName))
+                    foldr ((<|>) . (flip findAttr fontElem . qualName))
                          Nothing ["ascii", "hAnsi"]
+                      >>= textToFont
        local (setFont font) (mapD (elemToRunElem ns) (elChildren element))
 elemToRunElems _ _ = throwError WrongElem
 
 setFont :: Maybe Font -> ReaderEnv -> ReaderEnv
 setFont f s = s{envFont = f}
+
+findBlip :: Element -> Maybe Element
+findBlip el = do
+  blip <- findElement (QName "blip" (Just a_ns) (Just "a")) el
+  -- return svg if present:
+  filterElementName (\(QName tag _ _) -> tag == "svgBlip") el `mplus` pure blip
+ where
+  a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"

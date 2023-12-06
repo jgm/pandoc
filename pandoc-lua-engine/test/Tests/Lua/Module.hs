@@ -25,6 +25,8 @@ tests =
                   ("lua" </> "module" </> "pandoc-list.lua")
   , testPandocLua "pandoc.format"
                   ("lua" </> "module" </> "pandoc-format.lua")
+  , testPandocLua "pandoc.json"
+                  ("lua" </> "module" </> "pandoc-json.lua")
   , testPandocLua "pandoc.mediabag"
                   ("lua" </> "module" </> "pandoc-mediabag.lua")
   , testPandocLua "pandoc.path"
@@ -33,6 +35,8 @@ tests =
                   ("lua" </> "module" </> "pandoc-structure.lua")
   , testPandocLua "pandoc.template"
                   ("lua" </> "module" </> "pandoc-template.lua")
+  , testPandocLua "pandoc.text"
+                  ("lua" </> "module" </> "pandoc-text.lua")
   , testPandocLua "pandoc.types"
                   ("lua" </> "module" </> "pandoc-types.lua")
   , testPandocLua "pandoc.utils"

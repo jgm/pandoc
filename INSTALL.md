@@ -37,14 +37,15 @@ without SVG support), [Python] (to use Pandoc filters), and
 Or, you can install pandoc using
 [winget](https://github.com/microsoft/winget-pkgs):
 
-    winget install pandoc
+    winget install --source winget --exact --id JohnMacFarlane.Pandoc
 
 Using multiple installation methods can result in two separate
 installations of pandoc; it is recommended to properly uninstall
 pandoc before switching to an alternative installation method.
 
-By default, Pandoc creates PDFs using LaTeX.
-We recommend installing it via [MiKTeX].
+By default, Pandoc creates PDFs using LaTeX.  We recommend
+installing it via [MiKTeX]. With the option `--pdf-engine`,
+you however can specify other programs for this task.
 
 ## macOS
 
@@ -81,6 +82,9 @@ and using the `tlmgr` tool to install additional packages
 as needed.  If you receive errors warning of fonts not found:
 
     tlmgr install collection-fontsrecommended
+
+With the option `--pdf-engine`, you however can specify other programs
+for this task.
 
 ## Linux
 
@@ -124,9 +128,10 @@ Note that most distros have the Haskell platform in their
 package repositories.  For example, on Debian/Ubuntu,
 you can install it with `apt-get install haskell-platform`.
 
-For PDF output, you'll need LaTeX.  We recommend installing
+By default, Pandoc creates PDFs using LaTeX.  We recommend installing
 [TeX Live](https://www.tug.org/texlive/) via your package
-manager.  (On Debian/Ubuntu, `apt-get install texlive`.)
+manager.  (On Debian/Ubuntu, `apt-get install texlive`.)  With the option
+`--pdf-engine`, you however can specify other programs for this task.
 
 ## Chrome OS
 
@@ -205,10 +210,9 @@ The easiest way to build pandoc from source is to use [stack][stack]:
 
 1.  Install [stack][stack]. Note that Pandoc requires stack >= 1.7.0.
 
-2.  Change to the pandoc source directory and issue the following commands:
-
+2.
         stack setup
-        stack install
+        stack install pandoc-cli
 
     `stack setup` will automatically download the ghc compiler
     if you don't have it.  `stack install` will install the
@@ -228,7 +232,7 @@ The easiest way to build pandoc from source is to use [stack][stack]:
 
 3.  Use `cabal` to install pandoc and its dependencies:
 
-        cabal install pandoc
+        cabal install pandoc-cli
 
     This procedure will install the released version of pandoc,
     which will be downloaded automatically from HackageDB.
@@ -236,11 +240,10 @@ The easiest way to build pandoc from source is to use [stack][stack]:
     on linux/unix/macOS and in `%APPDATA%\cabal\bin` on Windows.
     Make sure this directory is in your path.
 
-    If you want to install a modified or development version
-    of pandoc instead, switch to the source directory and do
-    as above, but without the 'pandoc':
-
-        cabal install
+    If you want to install a modified or development version of
+    pandoc instead, switch to the source directory before running
+    the above command -- cabal will use the local code for all
+    projects mentioned in the `cabal.project`.
 
 4.  You should now be able to run `pandoc`:
 
@@ -325,7 +328,6 @@ test`.
 To run particular tests (pattern-matching on their names), use
 the `-p` option:
 
-    cabal install pandoc --enable-tests
     cabal test --test-options='-p markdown'
 
 Or with stack:
@@ -364,9 +366,9 @@ To run just the markdown benchmarks:
     cabal bench --benchmark-options='markdown'
 
 
-[Arch]: https://www.archlinux.org/packages/community/x86_64/pandoc/
+[Arch]: https://archlinux.org/packages/?q=pandoc
 [Cabal User's Guide]: https://cabal.readthedocs.io/
-[Debian]: https://packages.debian.org/pandoc
+[Debian]: https://packages.debian.org/search?keywords=pandoc
 [Fedora]: https://packages.fedoraproject.org/pkgs/pandoc/pandoc/
 [FreeBSD ports]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
@@ -379,10 +381,10 @@ To run just the markdown benchmarks:
 [MiKTeX]: https://miktex.org/
 [librsvg]: https://wiki.gnome.org/Projects/LibRsvg
 [Python]: https://www.python.org
-[NetBSD]: https://pkgsrc.se/wip/pandoc
-[NixOS]: https://nixos.org/nixos/packages.html
+[NetBSD]: https://pkgsrc.se/converters/pandoc
+[NixOS]: https://search.nixos.org/packages?query=pandoc
 [Slackware]: https://www.slackbuilds.org/result/?search=pandoc&sv=
-[Ubuntu]: https://packages.ubuntu.com/pandoc
+[Ubuntu]: https://packages.ubuntu.com/search?keywords=pandoc
 [download page]: https://github.com/jgm/pandoc/releases/latest
 [gentoo]: https://packages.gentoo.org/package/app-text/pandoc
 [haskell repository]: https://wiki.archlinux.org/index.php/Haskell_Package_Guidelines#.5Bhaskell.5D
@@ -390,5 +392,5 @@ To run just the markdown benchmarks:
 [source tarball]: https://hackage.haskell.org/package/pandoc
 [stack]: https://docs.haskellstack.org/en/stable/install_and_upgrade.html
 [cabal-install]: https://hackage.haskell.org/package/cabal-install
-[Void]: https://voidlinux.org/
+[Void]: https://voidlinux.org/packages/?arch=x86_64&q=pandoc
 [uninstaller]: https://raw.githubusercontent.com/jgm/pandoc/main/macos/uninstall-pandoc.pl

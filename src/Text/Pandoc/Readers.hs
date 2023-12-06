@@ -60,6 +60,7 @@ module Text.Pandoc.Readers
   , readEndNoteXML
   , readRIS
   , readRTF
+  , readTypst
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
@@ -109,6 +110,7 @@ import Text.Pandoc.Readers.BibTeX
 import Text.Pandoc.Readers.EndNote
 import Text.Pandoc.Readers.RIS
 import Text.Pandoc.Readers.RTF
+import Text.Pandoc.Readers.Typst
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
@@ -138,6 +140,7 @@ readers = [("native"       , TextReader readNative)
           ,("org"          , TextReader readOrg)
           ,("textile"      , TextReader readTextile) -- TODO : textile+lhs
           ,("html"         , TextReader readHtml)
+          ,("bits"         , TextReader readJATS)
           ,("jats"         , TextReader readJATS)
           ,("jira"         , TextReader readJira)
           ,("latex"        , TextReader readLaTeX)
@@ -160,6 +163,7 @@ readers = [("native"       , TextReader readNative)
           ,("endnotexml"   , TextReader readEndNoteXML)
           ,("ris"          , TextReader readRIS)
           ,("rtf"          , TextReader readRTF)
+          ,("typst"        , TextReader readTypst)
            ]
 
 -- | Retrieve reader, extensions based on format spec (format+extensions).

@@ -12,6 +12,7 @@ Conversion of jira wiki formatted plain text to 'Pandoc' document.
 module Text.Pandoc.Readers.Jira ( readJira ) where
 
 import Control.Monad.Except (throwError)
+import Data.List (partition)
 import Data.Text (Text, append, pack, singleton)
 import Text.Pandoc.XML (lookupEntity)
 import Text.Jira.Parser (parse)
@@ -76,7 +77,16 @@ toPandocCodeBlocks langMay params txt =
 -- | Create a pandoc @'Div'@ from a panel.
 toPandocDiv :: [Jira.Parameter] -> [Jira.Block] -> Blocks
 toPandocDiv params =
-  divWith ("", ["panel"], map paramToPair params) . foldMap jiraToPandocBlocks
+  let (titles, params') = partition ((== "title") . Jira.parameterKey) params
+      addTitle = case titles of
+        [] ->
+          id
+        (title:_) -> \blks ->
+          (divWith ("", ["panelheader"], []) . plain . strong $
+           text (Jira.parameterValue title)) <> blks
+  in divWith ("", ["panel"], map paramToPair params')
+     . addTitle
+     . foldMap jiraToPandocBlocks
 
 paramToPair :: Jira.Parameter -> (Text, Text)
 paramToPair (Jira.Parameter key value) = (key, value)

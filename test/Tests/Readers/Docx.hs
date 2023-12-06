@@ -235,6 +235,10 @@ tests = [ testGroup "document"
             "collapse overlapping targets (anchor spans)"
             "docx/overlapping_targets.docx"
             "docx/overlapping_targets.native"
+          , testCompare
+            "text in shape format"
+            "docx/text_in_shape_format.docx"
+            "docx/text_in_shape_format.native"
           ]
         , testGroup "blocks"
           [ testCompare
@@ -316,7 +320,7 @@ tests = [ testGroup "document"
           , testCompare
             "blockquotes (parsing indent as blockquote)"
             "docx/block_quotes.docx"
-            "docx/block_quotes_parse_indent.native"
+            "docx/block_quotes.native"
           , testCompare
             "blockquotes (parsing indent relative to the indent of the parent style as blockquote)"
             "docx/relative_indentation_blockquotes.docx"

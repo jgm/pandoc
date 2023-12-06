@@ -6,22 +6,6 @@ permissions:
   contents: read
 
 jobs:
-  linux:
-
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Create linux package
-      run: |
-          make debpkg
-          mkdir linux-release-candidate
-          cp linux/artifacts/*.deb linux-release-candidate/
-          cp linux/artifacts/*.tar.gz linux-release-candidate/
-    - uses: actions/upload-artifact@v3
-      with:
-        name: linux-release-candidate
-        path: linux-release-candidate
-
   windows:
 
     runs-on: windows-2019
@@ -31,20 +15,28 @@ jobs:
         versions:
           - osarch: "windows-x86_64"
             arch: "x64"
-            stack_opts: '-j4 +RTS -A256m -RTS --flag pandoc:embed_data_files --flag pandoc-cli:lua --flag pandoc-cli:server'
+            cabal_opts: '-fembed_data_files -fserver -flua'
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.6
+        ghcup install cabal --set 3.10
+
     - name: Install dependencies
       run: |
-          stack update
-          stack build ${{ matrix.versions.stack_opts }} --dependencies-only pandoc
+          cabal update
+          cabal build ${{ matrix.versions.cabal_opts }} --dependencies-only pandoc-cli
+
     - name: Create windows package
       shell: cmd
       run: |
           for /f %%a in ('powershell -Command "Get-Date -format yyyy-MM-dd"') do set THEDATE=%%a
-          stack build  ${{ matrix.versions.stack_opts }} pandoc-cli
-          for /f "tokens=1-2 delims= " %%a in ('stack exec pandoc -- --version') do (
+          cabal build ${{ matrix.versions.cabal_opts }} pandoc-cli
+          for /f "delims=" %%a in ('cabal list-bin ${{ matrix.versions.cabal_opts }} pandoc-cli') do set BINPATH=%%a
+          echo BINPATH is %BINPATH%
+          for /f "tokens=1-2 delims= " %%a in ('cabal run ${{ matrix.versions.cabal_opts }} pandoc-cli -- --version') do (
             @set VERSION=%%b
             goto :next
             )
@@ -57,9 +49,9 @@ jobs:
           @set WINDOWS=%CD%\windows
           @set RELEASE=%WINDOWS%\pandoc-%VERSION%
           mkdir %RELEASE%
-          forfiles /P .\.stack-work\install /M pandoc.exe /S /C "cmd /C echo @path && echo %%WINDOWS%% && copy @path %%RELEASE%%"
-          stack exec pandoc -- -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
-          stack exec pandoc -- -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
+          copy %BINPATH% %RELEASE%
+          %BINPATH% -s --toc MANUAL.txt -o %RELEASE%\MANUAL.html
+          %BINPATH% -s COPYING.md -t rtf -o %RELEASE%\COPYING.rtf
           copy %RELEASE%\COPYING.rtf %WINDOWS%
           copy COPYRIGHT %RELEASE%\COPYRIGHT.txt
           cd windows
@@ -90,37 +82,34 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build executable
+    - name: Install ghc and cabal
       run: |
-          stack --no-terminal setup
-          stack --no-terminal update
-          stack --no-terminal install --ghc-options='-j4 +RTS -A256m -RTS -split-sections'
+        ghcup install ghc --set 9.6
+        ghcup install cabal --set 3.10
 
-    - name: Create artifacts
+    - name: Create release
       run: |
-          export VERSION=$(grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
-          export ARTIFACTS=macos-release-candidate
-          export RESOURCES=${ARTIFACTS}/Resources
-          export ROOT=${ARTIFACTS}/pandoc
-          export DEST=${ROOT}/usr/local
-          export ME=$(whoami)
-          export BASE=pandoc-$VERSION
-          mkdir -p ${ARTIFACTS}
-          mkdir -p ${RESOURCES}
-          mkdir -p ${DEST}/bin
-          mkdir -p ${DEST}/share/man/man1
-          cp ~/.local/bin/pandoc ${DEST}/bin/
-          strip ${DEST}/bin/pandoc
-          cp man/pandoc.1 ${DEST}/share/man/man1/pandoc.1
-          cp man/pandoc-server.1 ${DEST}/share/man/man1/pandoc-server.1
-          cp man/pandoc-lua.1 ${DEST}/share/man/man1/pandoc-lua.1
-          ~/.local/bin/pandoc -s COPYING.md -Vpagetitle=License -o ${RESOURCES}/license.html
-          chown -R $ME:staff ${ROOT}
-          sed -e "s/PANDOCVERSION/${VERSION}/" macos/distribution.xml.in > ${ARTIFACTS}/distribution.xml
-          cp macos/Makefile ${ARTIFACTS}/
-          echo ${VERSION} > ${ARTIFACTS}/version.txt
+        sh macos/make_macos_release.sh
 
     - uses: actions/upload-artifact@v3
       with:
-        name: macos-release-candidate
-        path: macos-release-candidate
+        name: macos-x86_64
+        path: macos-x86_64
+
+# linux:
+
+#   runs-on: ubuntu-latest
+#   steps:
+#   - uses: actions/checkout@v3
+#   - name: Create linux package
+#     run: |
+#         make debpkg
+#         mkdir linux-release-candidate
+#         cp linux/artifacts/*.deb linux-release-candidate/
+#         cp linux/artifacts/*.tar.gz linux-release-candidate/
+#   - uses: actions/upload-artifact@v3
+#     with:
+#       name: linux-release-candidate
+#       path: linux-release-candidate
+
+

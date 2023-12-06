@@ -10,6 +10,7 @@ Definition
     2. list
 ^D
 \begin{description}
+\tightlist
 \item[Definition]
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -53,6 +54,7 @@ Definition
     - list
 ^D
 \begin{description}
+\tightlist
 \item[Definition]
 \begin{itemize}
 \tightlist

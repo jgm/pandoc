@@ -55,6 +55,7 @@ extensionFromMimeType "image/tiff" = Just "tiff"
 extensionFromMimeType "image/jpeg" = Just "jpg"
 extensionFromMimeType "application/xml" = Just "xml"
 extensionFromMimeType "application/ogg" = Just "ogg"
+extensionFromMimeType "image/svg+xml" = Just "svg" -- avoid svgz
 extensionFromMimeType mimetype =
   M.lookup (T.takeWhile (/=';') mimetype) reverseMimeTypes
   -- note:  we just look up the basic mime type, dropping the content-encoding etc.

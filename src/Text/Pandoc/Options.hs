@@ -45,6 +45,7 @@ import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.DocTemplates (Context(..), Template)
 import Text.Pandoc.Extensions
+import Text.Pandoc.Chunks (PathTemplate)
 import Text.Pandoc.Highlighting (Style, pygments)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Data.Aeson.TH (deriveJSON)
@@ -318,6 +319,7 @@ data WriterOptions = WriterOptions
   , writerEpubFonts         :: [FilePath] -- ^ Paths to fonts to embed
   , writerEpubTitlePage     :: Bool           -- ^ Include title page in epub
   , writerSplitLevel        :: Int        -- ^ Header level at which to split EPUB or chunked HTML into separate files
+  , writerChunkTemplate     :: PathTemplate  -- ^ Template for filenames in chunked HTML
   , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
@@ -355,6 +357,7 @@ instance Default WriterOptions where
                       , writerEpubFonts        = []
                       , writerEpubTitlePage    = True
                       , writerSplitLevel       = 1
+                      , writerChunkTemplate    = "%s-%i.html"
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
                       , writerReferenceLocation = EndOfDocument

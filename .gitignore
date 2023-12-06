@@ -7,6 +7,8 @@
 /TAGS
 /bench-*
 !.circleci/**
+!.cirrus.yml
+!.envrc
 !.editorconfig
 !.gitattributes
 !.github/**
@@ -30,13 +32,15 @@
 !Setup.hs
 !cabal.project
 !changelog.md
-!default.nix
 !pandoc.cabal
 !hie.yaml
+!flake.nix
+!flake.lock
+!default.nix
 !release.nix
 !shell.nix
 !stack.yaml
-!weeder.dhall
+!weeder.toml
 !app/**
 !benchmark/**
 !citeproc/**
@@ -61,5 +65,6 @@
 *.dyn_o
 *.dyn_hi
 *~
+.*sw?
 .DS_Store
 .stack-work

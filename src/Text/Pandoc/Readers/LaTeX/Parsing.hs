@@ -420,7 +420,7 @@ tokenize = totoks
                            : totoks (incSourceColumn pos (2 + T.length t1)) t2
                         Nothing -> Tok pos Symbol "#"
                                   : Tok (incSourceColumn pos 1) Symbol "#"
-                                  : totoks (incSourceColumn pos 1) t2
+                                  : totoks (incSourceColumn pos 1) t3
              _ ->
                let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') rest
                in  case safeRead t1 of
@@ -983,6 +983,18 @@ getRawCommand name txt = do
              void (manyTill anyTok braced) <|>
                 void (satisfyTok isPreTok) -- see #7531
            _ | isFontSizeCommand name -> return ()
+             | name `elem` ["hfil", "hfill", "vfil", "vfill",
+                            "hfilneg", "vfilneg"] -> return ()
+             | name `elem` ["hskip", "vskip", "mskip"] -> do
+                 dimenarg
+                 skipMany $ try $ do
+                   sp
+                   satisfyTok $
+                     \case
+                       Tok _ Word "plus" -> True
+                       Tok _ Word "minus" -> True
+                       _ -> False
+                   dimenarg
              | otherwise -> do
                skipopts
                option "" (try dimenarg)

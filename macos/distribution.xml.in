@@ -8,7 +8,7 @@
     <!-- <welcome    file="welcome.html"    mime-type="text/html" /> -->
     <license    file="license.html"    mime-type="text/html" />
     <!-- <conclusion file="conclusion.html" mime-type="text/html" /> -->
-    <options hostArchitectures="x86_64" />
+    <options hostArchitectures="ARCHITECTURE" />
     <!-- List all component packages -->
     <pkg-ref id="net.johnmacfarlane.pandoc"
              version="PANDOCVERSION"

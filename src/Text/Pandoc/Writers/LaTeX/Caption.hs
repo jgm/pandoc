@@ -25,14 +25,20 @@ import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
   ( LW, WriterState (stExternalNotes, stNotes) )
 
+
+-- | Produces the components of a LaTeX 'caption' command. Returns a triple
+-- containing the caption text, the short caption for the list of
+-- figures/tables, and the footnote definitions.
 getCaption :: PandocMonad m
-           => ([Inline] -> LW m (Doc Text))
-           -> Bool -> [Inline]
+           => ([Inline] -> LW m (Doc Text)) -- ^ inlines converter
+           -> Bool                          -- ^ whether to extract notes
+           -> Caption
            -> LW m (Doc Text, Doc Text, Doc Text)
-getCaption inlineListToLaTeX externalNotes txt = do
+getCaption inlineListToLaTeX externalNotes (Caption maybeShort long) = do
+  let long' = blocksToInlines long
   oldExternalNotes <- gets stExternalNotes
   modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
-  capt <- inlineListToLaTeX txt
+  capt <- inlineListToLaTeX long'
   footnotes <- if externalNotes
                   then notesToLaTeX <$> gets stNotes
                   else return empty
@@ -41,7 +47,10 @@ getCaption inlineListToLaTeX externalNotes txt = do
   let getNote (Note _) = Any True
       getNote _        = Any False
   let hasNotes = getAny . query getNote
-  captForLof <- if hasNotes txt
-                   then brackets <$> inlineListToLaTeX (walk deNote txt)
-                   else return empty
+  let toShortCapt = fmap brackets . inlineListToLaTeX . walk deNote
+  captForLof <- case maybeShort of
+                  Nothing -> if hasNotes long'
+                             then toShortCapt long'
+                             else return empty
+                  Just short -> toShortCapt short
   return (capt, captForLof, footnotes)

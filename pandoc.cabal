@@ -1,18 +1,18 @@
 cabal-version:   2.4
 name:            pandoc
-version:         3.0
+version:         3.1.9
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
-copyright:       (c) 2006-2022 John MacFarlane
+copyright:       (c) 2006-2023 John MacFarlane
 author:          John MacFarlane <jgm@berkeley.edu>
 maintainer:      John MacFarlane <jgm@berkeley.edu>
 bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
-tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
-                 GHC == 9.2.5, GHC == 9.4.4
+tested-with:     GHC == 8.10.7, GHC == 9.0.2,
+                 GHC == 9.2.5, GHC == 9.4.4, GHC == 9.6.1
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another.  The formats it can handle include
@@ -25,6 +25,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - Documentation formats (GNU TexInfo, Haddock)
                  - Roff formats (man, ms)
                  - TeX formats (LaTeX, ConTeXt)
+                 - Typst
                  - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
                  - Outline formats (OPML)
                  - Bibliography formats (BibTeX, BibLaTeX, CSL JSON, CSL YAML,
@@ -40,9 +41,9 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - PDF (via external programs such as pdflatex or wkhtmltopdf)
                  .
                  Pandoc can convert mathematical content in documents
-                 between TeX, MathML, Word equations, roff eqn, and plain text.
-                 It includes a powerful system for automatic citations
-                 and bibliographies, and it can be customized extensively
+                 between TeX, MathML, Word equations, roff eqn, typst,
+                 and plain text. It includes a powerful system for automatic
+                 citations and bibliographies, and it can be customized extensively
                  using templates, filters, and custom readers and writers
                  written in Lua.
 data-files:
@@ -85,7 +86,6 @@ data-files:
                  data/templates/default.revealjs
                  data/templates/default.dzslides
                  data/templates/default.asciidoc
-                 data/templates/default.asciidoctor
                  data/templates/default.haddock
                  data/templates/default.textile
                  data/templates/default.org
@@ -94,6 +94,9 @@ data-files:
                  data/templates/article.jats_publishing
                  data/templates/affiliations.jats
                  data/templates/default.markua
+                 data/templates/default.typst
+                 data/templates/definitions.typst
+                 data/templates/template.typst
                  -- translations
                  data/translations/*.yaml
                  -- entities
@@ -121,9 +124,6 @@ data-files:
                  data/odt/styles.xml
                  data/odt/content.xml
                  data/odt/meta.xml
-                 data/odt/settings.xml
-                 data/odt/Configurations2/accelerator/current.xml
-                 data/odt/Thumbnails/thumbnail.png
                  data/odt/META-INF/manifest.xml
                  -- source files for reference.pptx
                  data/pptx/_rels/.rels
@@ -197,9 +197,6 @@ extra-source-files:
                  INSTALL.md, AUTHORS.md, README.md,
                  CONTRIBUTING.md, BUGS, changelog.md,
                  man/pandoc.1
-                 -- cabal and stack build plans
-                 cabal.project
-                 stack.yaml
                  -- files needed to build man page
                  man/manfilter.lua
                  man/pandoc.1.before
@@ -209,6 +206,8 @@ extra-source-files:
                  test/*.native
                  test/command/*.md
                  test/command/*.csl
+                 test/command/*.svg
+                 test/command/9002.docx
                  test/command/biblio.bib
                  test/command/averroes.bib
                  test/command/A.txt
@@ -238,10 +237,6 @@ extra-source-files:
                  test/command/5700-metadata-file-1.yml
                  test/command/5700-metadata-file-2.yml
                  test/command/abbrevs
-                 test/command/SVG_logo-without-xml-declaration.svg
-                 test/command/SVG_logo.svg
-                 test/command/corrupt.svg
-                 test/command/inkscape-cube.svg
                  test/command/sub-file-chapter-1.tex
                  test/command/sub-file-chapter-2.tex
                  test/command/bar.tex
@@ -276,6 +271,8 @@ extra-source-files:
                  test/media/rId25.jpg
                  test/media/rId26.jpg
                  test/media/rId27.jpg
+                 test/typst-reader.typ
+                 test/undergradmath.typ
                  test/latex-reader.latex
                  test/textile-reader.textile
                  test/markdown-reader-more.txt
@@ -315,9 +312,10 @@ extra-source-files:
                  test/tables.opendocument
                  test/tables.org
                  test/tables.asciidoc
-                 test/tables.asciidoctor
+                 test/tables.asciidoc_legacy
                  test/tables.haddock
                  test/tables.texinfo
+                 test/tables.typst
                  test/tables.rst
                  test/tables.rtf
                  test/tables.txt
@@ -328,6 +326,7 @@ extra-source-files:
                  test/tables/*.html5
                  test/tables/*.latex
                  test/tables/*.native
+                 test/tables/*.mediawiki
                  test/tables/*.jats_archiving
                  test/testsuite.txt
                  test/writer.latex
@@ -347,10 +346,11 @@ extra-source-files:
                  test/writer.plain
                  test/writer.mediawiki
                  test/writer.textile
+                 test/writer.typst
                  test/writer.opendocument
                  test/writer.org
                  test/writer.asciidoc
-                 test/writer.asciidoctor
+                 test/writer.asciidoc_legacy
                  test/writer.haddock
                  test/writer.rst
                  test/writer.icml
@@ -450,7 +450,7 @@ library xml-light
                  xml-conduit           >= 1.9.1.1  && < 1.10,
                  xml-types             >= 0.3      && < 0.4,
                  containers            >= 0.6.0.1  && < 0.7,
-                 text                  >= 1.1.1.0  && < 2.1
+                 text                  >= 1.1.1.0  && < 2.2
 
   hs-source-dirs:  xml-light
   exposed-modules: Text.Pandoc.XML.Light,
@@ -464,27 +464,27 @@ library
                  Glob                  >= 0.7      && < 0.11,
                  JuicyPixels           >= 3.1.6.1  && < 3.4,
                  SHA                   >= 1.6      && < 1.7,
-                 aeson                 >= 2.0.1.0  && < 2.2,
+                 aeson                 >= 2.0.1.0  && < 2.3,
                  aeson-pretty          >= 0.8.9    && < 0.9,
                  array                 >= 0.5      && < 0.6,
                  attoparsec            >= 0.12     && < 0.15,
+                 base64-bytestring     >= 0.1      && < 1.3,
                  binary                >= 0.7      && < 0.11,
                  blaze-html            >= 0.9      && < 0.10,
                  blaze-markup          >= 0.8      && < 0.9,
-                 bytestring            >= 0.9      && < 0.12,
+                 bytestring            >= 0.9      && < 0.13,
                  case-insensitive      >= 1.2      && < 1.3,
-                 citeproc              >= 0.8.0.2  && < 0.9,
-                 commonmark            >= 0.2.2    && < 0.3,
-                 commonmark-extensions >= 0.2.3.3  && < 0.3,
-                 commonmark-pandoc     >= 0.2.1.2  && < 0.3,
-                 connection            >= 0.3.1,
+                 citeproc              >= 0.8.1    && < 0.9,
+                 commonmark            >= 0.2.4    && < 0.3,
+                 commonmark-extensions >= 0.2.4    && < 0.3,
+                 commonmark-pandoc     >= 0.2.1.3  && < 0.3,
                  containers            >= 0.6.0.1  && < 0.7,
+                 crypton-connection    >= 0.3.1    && < 0.4,
                  data-default          >= 0.4      && < 0.8,
-                 deepseq               >= 1.3      && < 1.5,
+                 deepseq               >= 1.3      && < 1.6,
                  directory             >= 1.2.3    && < 1.4,
-                 doclayout             >= 0.4      && < 0.5,
+                 doclayout             >= 0.4.0.1  && < 0.5,
                  doctemplates          >= 0.11     && < 0.12,
-                 base64                >= 0.4      && < 0.5,
                  emojis                >= 0.1      && < 0.2,
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
@@ -495,12 +495,12 @@ library
                  http-client-tls       >= 0.2.4    && < 0.4,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,
-                 jira-wiki-markup      >= 1.5      && < 1.6,
+                 jira-wiki-markup      >= 1.5.1    && < 1.6,
                  mime-types            >= 0.1.1    && < 0.2,
                  mtl                   >= 2.2      && < 2.4,
-                 network               >= 2.6,
+                 network               >= 2.6      && < 3.2,
                  network-uri           >= 2.6      && < 2.8,
-                 pandoc-types          >= 1.23     && < 1.24,
+                 pandoc-types          >= 1.23.1   && < 1.24,
                  parsec                >= 3.1      && < 3.2,
                  pretty                >= 1.1      && < 1.2,
                  pretty-show           >= 1.10     && < 1.11,
@@ -508,22 +508,24 @@ library
                  random                >= 1        && < 1.3,
                  safe                  >= 0.3.18   && < 0.4,
                  scientific            >= 0.3      && < 0.4,
-                 skylighting           >= 0.13.2   && < 0.14,
-                 skylighting-core      >= 0.13.2   && < 0.14,
+                 skylighting           >= 0.14.1   && < 0.15,
+                 skylighting-core      >= 0.14.1   && < 0.15,
                  split                 >= 0.2      && < 0.3,
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.12.5.4 && < 0.12.6,
-                 text                  >= 1.1.1.0  && < 2.1,
+                 texmath               >= 0.12.8.4 && < 0.13,
+                 text                  >= 1.1.1.0  && < 2.2,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.14,
                  unicode-collation     >= 0.1.1    && < 0.2,
                  unicode-transforms    >= 0.3      && < 0.5,
                  yaml                  >= 0.11     && < 0.12,
-                 zip-archive           >= 0.2.3.4  && < 0.5,
+                 zip-archive           >= 0.4.3    && < 0.5,
                  zlib                  >= 0.5      && < 0.7,
-                 xml                   >= 1.3.12   && < 1.4
+                 xml                   >= 1.3.12   && < 1.4,
+                 typst                 >= 0.3.2.1  && < 0.3.3,
+                 vector                >= 0.12     && < 0.14
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
@@ -579,6 +581,7 @@ library
                    Text.Pandoc.Readers.Ipynb,
                    Text.Pandoc.Readers.CSV,
                    Text.Pandoc.Readers.RTF,
+                   Text.Pandoc.Readers.Typst,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.DocBook,
@@ -591,6 +594,7 @@ library
                    Text.Pandoc.Writers.Jira,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
+                   Text.Pandoc.Writers.Typst,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,
                    Text.Pandoc.Writers.Man,
@@ -641,7 +645,6 @@ library
                    Text.Pandoc.Chunks,
                    Text.Pandoc.Version
   other-modules:   Text.Pandoc.App.CommandLineOptions,
-                   Text.Pandoc.App.FormatHeuristics,
                    Text.Pandoc.App.Input,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
@@ -667,6 +670,7 @@ library
                    Text.Pandoc.Readers.Docx.Parse,
                    Text.Pandoc.Readers.Docx.Parse.Styles,
                    Text.Pandoc.Readers.Docx.Util,
+                   Text.Pandoc.Readers.Docx.Symbols,
                    Text.Pandoc.Readers.Docx.Fields,
                    Text.Pandoc.Readers.HTML.Parsing,
                    Text.Pandoc.Readers.HTML.Table,
@@ -680,6 +684,8 @@ library
                    Text.Pandoc.Readers.LaTeX.Parsing,
                    Text.Pandoc.Readers.LaTeX.SIunitx,
                    Text.Pandoc.Readers.LaTeX.Table,
+                   Text.Pandoc.Readers.Typst.Parsing,
+                   Text.Pandoc.Readers.Typst.Math,
                    Text.Pandoc.Readers.ODT.Base,
                    Text.Pandoc.Readers.ODT.Namespaces,
                    Text.Pandoc.Readers.ODT.StyleReader,
@@ -747,28 +753,30 @@ test-suite test-pandoc
   main-is:        test-pandoc.hs
   hs-source-dirs: test
   build-depends:  pandoc,
-                  Diff              >= 0.2     && < 0.5,
+                  Diff              >= 0.2     && < 0.6,
                   Glob              >= 0.7     && < 0.11,
-                  bytestring        >= 0.9     && < 0.12,
+                  bytestring        >= 0.9     && < 0.13,
                   containers        >= 0.4.2.1 && < 0.7,
                   directory         >= 1.2.3   && < 1.4,
                   doctemplates      >= 0.11    && < 0.12,
                   filepath          >= 1.1     && < 1.5,
                   mtl               >= 2.2     && < 2.4,
-                  pandoc-types      >= 1.23    && < 1.24,
+                  pandoc-types      >= 1.23.1  && < 1.24,
                   process           >= 1.2.3   && < 1.7,
-                  tasty             >= 0.11    && < 1.5,
+                  tasty             >= 0.11    && < 1.6,
                   tasty-golden      >= 2.3     && < 2.4,
                   tasty-hunit       >= 0.9     && < 0.11,
                   tasty-quickcheck  >= 0.8     && < 0.11,
-                  text              >= 1.1.1.0 && < 2.1,
+                  text              >= 1.1.1.0 && < 2.2,
+                  temporary         >= 1.1     && < 1.4,
                   time              >= 1.5     && < 1.14,
                   xml               >= 1.3.12  && < 1.4,
-                  zip-archive       >= 0.2.3.4 && < 0.5
+                  zip-archive       >= 0.4.3   && < 0.5
   other-modules:  Tests.Old
                   Tests.Command
                   Tests.Helpers
                   Tests.Shared
+                  Tests.MediaBag
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.JATS
@@ -829,7 +837,7 @@ benchmark benchmark-pandoc
   build-depends:   bytestring,
                    tasty-bench >= 0.2     && <= 0.4,
                    mtl         >= 2.2     && < 2.4,
-                   text        >= 1.1.1.0 && < 2.1,
+                   text        >= 1.1.1.0 && < 2.2,
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:
   ghc-options:     -rtsopts -with-rtsopts=-A8m -threaded

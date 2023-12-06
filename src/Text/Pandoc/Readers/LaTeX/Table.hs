@@ -106,9 +106,9 @@ parseAligns = try $ do
   let starAlign = do -- '*{2}{r}' == 'rr', we just expand like a macro
         symbol '*'
         spaces
-        ds <- trim . untokenize <$> braced
+        ds <- trim . untokenize <$> bracedOrToken
         spaces
-        spec <- braced
+        spec <- bracedOrToken
         case safeRead ds of
              Just n  -> do
                TokStream _ ts <- getInput
@@ -189,7 +189,7 @@ cellAlignment :: PandocMonad m => LP m Alignment
 cellAlignment = skipMany (symbol '|') *> alignment <* skipMany (symbol '|')
   where
     alignment = do
-      c <- untoken <$> singleChar
+      c <- untoken <$> singleChar <* optional braced -- ignore args
       return $ case c of
         "l" -> AlignLeft
         "r" -> AlignRight

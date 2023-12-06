@@ -85,9 +85,18 @@ makePDF program pdfargs writer opts doc =
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
     prog | prog `elem` ["pagedjs-cli" ,"weasyprint", "prince"] -> do
+      let mkOutArgs f =
+            if program `elem` ["pagedjs-cli", "prince"]
+               then ["-o", f]
+               else [f]
       source <- writer opts doc
       verbosity <- getVerbosity
-      liftIO $ html2pdf verbosity program pdfargs source
+      liftIO $ toPdfViaTempFile verbosity program pdfargs mkOutArgs source
+    "typst" -> do
+      source <- writer opts doc
+      verbosity <- getVerbosity
+      liftIO $
+        toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) source
     "pdfroff" -> do
       source <- writer opts doc
       let paperargs =
@@ -99,6 +108,7 @@ makePDF program pdfargs writer opts doc =
               Nothing -> []
       let args   = ["-ms", "-mpdfmark", "-mspdf",
                     "-e", "-t", "-k", "-KUTF-8", "-i"] ++
+                   ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
                     paperargs ++ pdfargs
       generic2pdf program args source
     baseProg -> do
@@ -174,7 +184,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                  -- see #6474
   source <- writer opts doc
   verbosity <- getVerbosity
-  liftIO $ html2pdf verbosity program args source
+  liftIO $ toPdfViaTempFile verbosity program args (:[]) source
 
 handleImages :: (PandocMonad m, MonadIO m)
              => WriterOptions
@@ -257,7 +267,7 @@ tex2pdf :: (PandocMonad m, MonadIO m)
 tex2pdf program args tmpDir source = do
   let numruns | takeBaseName program == "latexmk"        = 1
               | "\\tableofcontents" `T.isInfixOf` source = 3  -- to get page numbers
-              | otherwise                                = 2  -- 1 run won't give you PDF bookmarks
+              | otherwise                                = 1
   (exit, log', mbPdf) <- runTeXProgram program args numruns tmpDir source
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
@@ -432,24 +442,20 @@ generic2pdf program args source = do
              ExitFailure _ -> Left out
              ExitSuccess   -> Right out
 
-
-html2pdf  :: Verbosity    -- ^ Verbosity level
-          -> String       -- ^ Program (wkhtmltopdf, weasyprint, prince, or path)
+toPdfViaTempFile  ::
+             Verbosity    -- ^ Verbosity level
+          -> String       -- ^ Program (program name or path)
           -> [String]     -- ^ Args to program
-          -> Text         -- ^ HTML5 source
+          -> (String -> [String]) -- ^ Construct args for output file
+          -> Text         -- ^ Source
           -> IO (Either ByteString ByteString)
-html2pdf verbosity program args source =
-  -- write HTML to temp file so we don't have to rewrite
-  -- all links in `a`, `img`, `style`, `script`, etc. tags,
-  -- and piping to weasyprint didn't work on Windows either.
-  withTempFile "." "html2pdf.html" $ \file h1 ->
-    withTempFile "." "html2pdf.pdf" $ \pdfFile h2 -> do
+toPdfViaTempFile verbosity program args mkOutArgs source =
+  withTempFile "." "toPdfViaTempFile.html" $ \file h1 ->
+    withTempFile "." "toPdfViaTempFile.pdf" $ \pdfFile h2 -> do
       hClose h1
       hClose h2
       BS.writeFile file $ UTF8.fromText source
-      let pdfFileArgName = ["-o" | takeBaseName program `elem`
-                                   ["pagedjs-cli", "prince"]]
-      let programArgs = args ++ [file] ++ pdfFileArgName ++ [pdfFile]
+      let programArgs = args ++ [file] ++ mkOutArgs pdfFile
       env' <- getEnvironment
       when (verbosity >= INFO) $
         UTF8.readFile file >>=

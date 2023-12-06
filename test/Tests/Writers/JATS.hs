@@ -40,7 +40,6 @@ tests :: [TestTree]
 tests =
   [ testGroup "inline code"
     [ "basic" =: code "@&" =?> "<p><monospace>@&amp;</monospace></p>"
-    , "lang" =: codeWith ("", ["c"], []) "@&" =?> "<p><code language=\"c\">@&amp;</code></p>"
     ]
   , testGroup "block code"
     [ "basic" =: codeBlock "@&" =?> "<preformat>@&amp;</preformat>"
@@ -134,7 +133,9 @@ tests =
     , "containing image" =:
       header 1 (image "imgs/foo.jpg" "" (text "Alt text")) =?>
       "<sec>\n\
-      \  <title><inline-graphic mimetype=\"image\" mime-subtype=\"jpeg\" xlink:href=\"imgs/foo.jpg\" /></title>\n\
+      \  <title><inline-graphic mimetype=\"image\" mime-subtype=\"jpeg\" xlink:href=\"imgs/foo.jpg\">\n\
+      \    <alt-text>Alt text</alt-text>\n\
+      \  </inline-graphic></title>\n\
       \</sec>"
     ]
 

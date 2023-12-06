@@ -43,13 +43,14 @@ module Text.Pandoc.Writers.Shared (
                      , toLegacyTable
                      , splitSentences
                      , ensureValidXmlIdentifiers
+                     , setupTranslations
                      )
 where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad (zipWithM)
 import Data.Aeson (ToJSON (..), encode)
-import Data.Char (chr, ord, isSpace, isLetter)
+import Data.Char (chr, ord, isSpace, isLetter, isUpper)
 import Data.List (groupBy, intersperse, transpose, foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Text.Conversions (FromText(..))
@@ -68,6 +69,10 @@ import Text.Pandoc.XML (escapeStringForXML)
 import Text.DocTemplates (Context(..), Val(..), TemplateTarget,
                           ToContext(..), FromContext(..))
 import Text.Pandoc.Chunks (tocToList, toTOCTree)
+import Text.Collate.Lang (Lang (..))
+import Text.Pandoc.Class (PandocMonad, toLang)
+import Text.Pandoc.Translations (setTranslations)
+import Data.Maybe (fromMaybe)
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -465,7 +470,7 @@ toTableOfContents :: WriterOptions
                   -> [Block]
                   -> Block
 toTableOfContents opts =
-  tocToList (writerTOCDepth opts)
+  tocToList (writerNumberSections opts) (writerTOCDepth opts)
   . toTOCTree
   . makeSections (writerNumberSections opts) Nothing
 
@@ -547,10 +552,10 @@ splitSentences :: Doc Text -> Doc Text
 splitSentences = go . toList
  where
   go [] = mempty
-  go (Text len t : BreakingSpace : xs) =
-     if isSentenceEnding t
-        then Text len t <> NewLine <> go xs
-        else Text len t <> BreakingSpace <> go xs
+  go (Text len t : AfterBreak _ : BreakingSpace : xs)
+    | isSentenceEnding t = Text len t <> NewLine <> go xs
+  go (Text len t : BreakingSpace : xs)
+    | isSentenceEnding t = Text len t <> NewLine <> go xs
   go (x:xs) = x <> go xs
 
   toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
@@ -560,12 +565,16 @@ splitSentences = go . toList
   isSentenceEnding t =
     case T.unsnoc t of
       Just (t',c)
-        | c == '.' || c == '!' || c == '?' -> True
+        | c == '.' || c == '!' || c == '?'
+        , not (isInitial t') -> True
         | c == ')' || c == ']' || c == '"' || c == '\x201D' ->
            case T.unsnoc t' of
-             Just (_,d) -> d == '.' || d == '!' || d == '?'
+             Just (t'',d) -> d == '.' || d == '!' || d == '?' &&
+                             not (isInitial t'')
              _ -> False
       _ -> False
+   where
+    isInitial x = T.length x == 1 && T.all isUpper x
 
 -- | Ensure that all identifiers start with a letter,
 -- and modify internal links accordingly. (Yes, XML allows an
@@ -608,3 +617,12 @@ walkAttr f = walk goInline . walk goBlock
     Table (f attr) cap colspecs thead tbodies tfoot
   goBlock (Div attr bs) = Div (f attr) bs
   goBlock x = x
+
+-- | Set translations based on the `lang` in metadata.
+setupTranslations :: PandocMonad m => Meta -> m ()
+setupTranslations meta = do
+  let defLang = Lang "en" (Just "US") Nothing [] [] []
+  lang <- case lookupMetaString "lang" meta of
+            "" -> pure defLang
+            s  -> fromMaybe defLang <$> toLang (Just s)
+  setTranslations lang

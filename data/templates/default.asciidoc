@@ -2,9 +2,11 @@ $if(titleblock)$
 = $title$
 $if(author)$
 $for(author)$$author$$sep$; $endfor$
-$endif$
 $if(date)$
 $date$
+$endif$
+$elseif(date)$
+:revdate: $date$
 $endif$
 $if(keywords)$
 :keywords: $for(keywords)$$keywords$$sep$, $endfor$
@@ -14,6 +16,9 @@ $if(lang)$
 $endif$
 $if(toc)$
 :toc:
+$endif$
+$if(math)$
+:stem: latexmath
 $endif$
 
 $endif$

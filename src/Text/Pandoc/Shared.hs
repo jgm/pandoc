@@ -38,6 +38,7 @@ module Text.Pandoc.Shared (
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
+                     addPandocAttributes,
                      orderedListMarkers,
                      extractSpaces,
                      removeFormatting,
@@ -49,6 +50,7 @@ module Text.Pandoc.Shared (
                      linesToPara,
                      figureDiv,
                      makeSections,
+                     combineAttr,
                      uniqueIdent,
                      inlineListToIdentifier,
                      textToIdentifier,
@@ -112,6 +114,9 @@ import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
 import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
+-- for addPandocAttributes:
+import Commonmark.Pandoc (Cm(..))
+import Commonmark (HasAttributes(..))
 
 --
 -- List processing
@@ -286,6 +291,14 @@ normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
 --
 -- Pandoc block and inline list processing
 --
+
+-- | Add key-value attributes to a pandoc element. If the element
+-- does not have a slot for attributes, create an enclosing Span
+-- (for Inlines) or Div (for Blocks).  Note that both 'Cm () Inlines'
+-- and 'Cm () Blocks' are instances of 'HasAttributes'.
+addPandocAttributes
+  :: forall b . HasAttributes (Cm () b) => [(T.Text, T.Text)] -> b -> b
+addPandocAttributes kvs bs = unCm . addAttributes kvs $ (Cm bs :: Cm () b)
 
 -- | Generate infinite lazy list of markers for an ordered list,
 -- depending on list attributes.
@@ -549,13 +562,15 @@ makeSections numbering mbBaseLevel bs =
   go (x:xs) = (x :) <$> go xs
   go [] = return []
 
-  combineAttr :: Attr -> Attr -> Attr
-  combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
-    (if T.null id1 then id2 else id1,
-     nubOrd (classes1 ++ classes2),
-     foldr (\(k,v) kvs -> case lookup k kvs of
-                             Nothing -> (k,v):kvs
-                             Just _  -> kvs) mempty (kvs1 ++ kvs2))
+-- | Combine two 'Attr'. Classes are concatenated.  For the id and key-value
+-- attributes, the first one takes precedence in case of duplicates.
+combineAttr :: Attr -> Attr -> Attr
+combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
+  (if T.null id1 then id2 else id1,
+   nubOrd (classes1 ++ classes2),
+   foldr (\(k,v) kvs -> case lookup k kvs of
+                           Nothing -> (k,v):kvs
+                           Just _  -> kvs) kvs1 kvs2)
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)  = l <= level
@@ -620,9 +635,13 @@ onlySimpleTableCells = all isSimpleCell . concat
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool
-isTightList = all (\item -> firstIsPlain item || null item)
-  where firstIsPlain (Plain _ : _) = True
-        firstIsPlain _             = False
+isTightList = all isPlainItem
+  where
+    isPlainItem [] = True
+    isPlainItem (Plain _ : _) = True
+    isPlainItem [BulletList xs] = isTightList xs
+    isPlainItem [OrderedList _ xs] = isTightList xs
+    isPlainItem _ = False
 
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
 -- or @U+2612 BALLOT BOX WITH X@ to tasklist syntax (e.g. @[x]@).
@@ -747,7 +766,8 @@ formatCode attr = B.fromList . walk fmt . B.toList
 renderTags' :: [Tag T.Text] -> T.Text
 renderTags' = renderTagsOptions
                renderOptions{ optMinimize = matchTags ["hr", "br", "img",
-                                                       "meta", "link", "col"]
+                                                       "meta", "link", "col",
+                                                       "use", "path", "rect"]
                             , optRawTag   = matchTags ["script", "style"] }
               where matchTags tags = flip elem tags . T.toLower
 

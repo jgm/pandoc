@@ -15,7 +15,7 @@ Conversion of JATS XML to 'Pandoc' document.
 
 module Text.Pandoc.Readers.JATS ( readJATS ) where
 import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
-import Control.Monad (forM_,  when, unless, MonadPlus(mplus))
+import Control.Monad (forM_,  when, unless)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Error (PandocError(..))
 import Data.Char (isDigit, isSpace)
@@ -38,6 +38,8 @@ import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Set as S (fromList, member)
 import Data.Set ((\\))
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
+import Safe (headMay)
+import Text.Printf (printf)
 
 type JATS m = StateT JATSState m
 
@@ -47,6 +49,7 @@ data JATSState = JATSState{ jatsSectionLevel :: Int
                           , jatsBook         :: Bool
                           , jatsFootnotes    :: Map.Map Text Blocks
                           , jatsContent      :: [Content]
+                          , jatsInFigure     :: Bool
                           } deriving Show
 
 instance Default JATSState where
@@ -55,7 +58,8 @@ instance Default JATSState where
                  , jatsMeta = mempty
                  , jatsBook = False
                  , jatsFootnotes = mempty
-                 , jatsContent = [] }
+                 , jatsContent = []
+                 , jatsInFigure = False }
 
 
 readJATS :: (PandocMonad m, ToSources a)
@@ -102,31 +106,30 @@ instance HasMeta JATSState where
   deleteMeta field s = s {jatsMeta = deleteMeta field (jatsMeta s)}
 
 isBlockElement :: Content -> Bool
-isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
-  where blocktags = S.fromList (paragraphLevel ++ lists ++ mathML ++ other) \\ S.fromList inlinetags
-        paragraphLevel = ["address", "array", "boxed-text", "chem-struct-wrap",
-            "code", "fig", "fig-group", "graphic", "media", "preformat",
+isBlockElement (Elem e) = case qName (elName e) of
+            "disp-formula" -> if onlyOneChild e
+                                  then if hasFormulaChild e
+                                          then False
+                                          else case filterChild (named "alternatives") e of
+                                            Just a -> if hasFormulaChild a then False else True
+                                            Nothing -> True
+                                  else True
+            "alternatives" -> if hasFormulaChild e then False else True
+            _ -> qName (elName e) `S.member` blocktags
+
+  where blocktags = S.fromList (paragraphLevel ++ lists ++ formulae ++ other) \\ S.fromList canBeInline
+        paragraphLevel = ["address", "answer", "answer-set", "array", "boxed-text", "chem-struct-wrap",
+            "code", "explanation", "fig", "fig-group", "graphic", "media", "preformat", "question", "question-wrap", "question-wrap-group",
             "supplementary-material", "table-wrap", "table-wrap-group",
             "alternatives", "disp-formula", "disp-formula-group"]
         lists = ["def-list", "list"]
-        mathML = ["tex-math", "mml:math"]
+        formulae = ["tex-math", "mml:math"]
         other = ["p", "related-article", "related-object", "ack", "disp-quote",
             "speech", "statement", "verse-group", "x"]
-        inlinetags = ["email", "ext-link", "uri", "inline-supplementary-material",
-            "related-article", "related-object", "hr", "bold", "fixed-case",
-            "italic", "monospace", "overline", "overline-start", "overline-end",
-            "roman", "sans-serif", "sc", "strike", "underline", "underline-start",
-            "underline-end", "ruby", "alternatives", "inline-graphic", "private-char",
-            "chem-struct", "inline-formula", "tex-math", "mml:math", "abbrev",
-            "milestone-end", "milestone-start", "named-content", "styled-content",
-            "fn", "target", "xref", "sub", "sup", "x", "address", "array",
-            "boxed-text", "chem-struct-wrap", "code", "fig", "fig-group", "graphic",
-            "media", "preformat", "supplementary-material", "table-wrap",
-            "table-wrap-group", "disp-formula", "disp-formula-group",
-            "citation-alternatives", "element-citation", "mixed-citation",
-            "nlm-citation", "award-id", "funding-source", "open-access",
-            "def-list", "list", "ack", "disp-quote", "speech", "statement",
-            "verse-group"]
+        canBeInline = ["tex-math", "mml:math", "related-object", "x"]
+        onlyOneChild x = length (allChildren x) == 1
+        allChildren x = filterChildren (const True) x
+
 isBlockElement _ = False
 
 -- Trim leading and trailing newline characters
@@ -135,18 +138,16 @@ trimNl = T.dropAround (== '\n')
 
 -- function that is used by both graphic (in parseBlock)
 -- and inline-graphic (in parseInline)
-getGraphic :: PandocMonad m
-           => Maybe (Inlines, Text) -> Element -> JATS m Inlines
-getGraphic mbfigdata e = do
+getGraphic :: PandocMonad m => Element -> JATS m Inlines
+getGraphic e = do
   let atVal a = attrValue a e
-      (ident, title, capt) =
-         case mbfigdata of
-           Just (capt', i) -> (i, "fig:" <> atVal "title", capt')
-           Nothing        -> (atVal "id", atVal "title",
-                              text (atVal "alt-text"))
+  let altText = case filterElement (named "alt-text") e of
+         Just alt -> textContent alt
+         Nothing -> mempty
+      (ident, title, altText') = (atVal "id", atVal "title", text altText)
       attr = (ident, T.words $ atVal "role", [])
       imageUrl = atVal "href"
-  return $ imageWith attr imageUrl title capt
+  return $ imageWith attr imageUrl title altText'
 
 getBlocks :: PandocMonad m => Element -> JATS m Blocks
 getBlocks e =  mconcat <$>
@@ -159,27 +160,50 @@ parseBlock (Text (CData _ s _)) = if T.all isSpace s
                                      then return mempty
                                      else return $ plain $ trimInlines $ text s
 parseBlock (CRef x) = return $ plain $ str $ T.toUpper x
-parseBlock (Elem e) =
+parseBlock (Elem e) = do
+  sectionLevel <- gets jatsSectionLevel
+  let parseBlockWithHeader = wrapWithHeader (sectionLevel+1) (getBlocks e)
+
   case qName (elName e) of
+        "book" -> parseBook
+        "book-part-wrapper" -> parseBook
         "p" -> parseMixed para (elContent e)
         "code" -> codeBlockWithLang
         "preformat" -> codeBlockWithLang
-        "disp-quote" -> parseBlockquote
-        "list" -> case attrValue "list-type" e of
-                    "bullet" -> bulletList <$> listitems
-                    listType -> do
-                      let start = fromMaybe 1 $
-                                  (filterElement (named "list-item") e
-                                               >>= filterElement (named "label"))
-                                   >>= safeRead . textContent
-                      orderedListWith (start, parseListStyleType listType, DefaultDelim)
-                        <$> listitems
-        "def-list" -> definitionList <$> deflistitems
-        "sec" -> gets jatsSectionLevel >>= sect . (+1)
-        "graphic" -> para <$> getGraphic Nothing e
+        "disp-quote" -> wrapWithHeader (sectionLevel+1) parseBlockquote
+        "list" ->  wrapWithHeader (sectionLevel+1) parseList
+        "def-list" -> wrapWithHeader (sectionLevel+1) (definitionList <$> deflistitems)
+        "sec" -> parseBlockWithHeader
+        "abstract" -> parseBlockWithHeader
+        "ack" -> parseBlockWithHeader
+        "answer" -> parseBlockWithHeader
+        "answer-set" -> parseBlockWithHeader
+        "app" -> parseBlockWithHeader
+        "app-group" -> parseBlockWithHeader
+        "author-comment" -> parseBlockWithHeader
+        "author-notes" -> parseBlockWithHeader
+        "back" -> parseBlockWithHeader
+        "bio" -> parseBlockWithHeader
+        "explanation" -> parseBlockWithHeader
+        "glossary" -> parseBlockWithHeader
+        "kwd-group" -> parseBlockWithHeader
+        "list-item" -> parseBlockWithHeader
+        "notes" -> parseBlockWithHeader
+        "option" -> parseBlockWithHeader
+        "question" -> parseBlockWithHeader
+        "question-preamble" -> parseBlockWithHeader
+        "question-wrap-group" -> parseBlockWithHeader
+        "statement" -> parseBlockWithHeader
+        "supplement" -> parseBlockWithHeader
+        "table-wrap-foot" -> parseBlockWithHeader
+        "trans-abstract" -> parseBlockWithHeader
+        "verse-group" -> parseBlockWithHeader
+        "graphic" -> para <$> getGraphic e
         "journal-meta" -> parseMetadata e
         "article-meta" -> parseMetadata e
         "custom-meta" -> parseMetadata e
+        "processing-meta" -> return mempty
+        "book-meta" -> parseMetadata e
         "title" -> return mempty -- processed by header
         "label" -> return mempty -- processed by header
         "table" -> parseTable
@@ -188,9 +212,33 @@ parseBlock (Elem e) =
                           <$> getBlocks e
         "table-wrap" -> divWith (attrValue "id" e, ["table-wrap"], [])
                           <$> getBlocks e
-        "caption" -> divWith (attrValue "id" e, ["caption"], []) <$> sect 6
+        "caption" -> do
+          inFigure <- gets jatsInFigure
+          if inFigure -- handled by parseFigure
+             then return mempty
+             else divWith (attrValue "id" e, ["caption"], []) <$> wrapWithHeader 6 (getBlocks e)
         "fn-group" -> parseFootnoteGroup
         "ref-list" -> parseRefList e
+        "alternatives" -> if hasFormulaChild e
+                            then blockFormula displayMath e
+                            else getBlocks e
+        "disp-formula" -> if hasFormulaChild e
+                            then blockFormula displayMath e
+                            else divWith (attrValue "id" e, ["disp-formula"], [])
+                                    <$> getBlocks e
+        "index" -> parseBlockWithHeader
+        "index-div" -> parseBlockWithHeader
+        "index-group" -> parseBlockWithHeader
+        "index-title-group" -> return mempty -- handled by index and index-div
+        "toc" -> parseBlockWithHeader
+        "toc-div" -> parseBlockWithHeader
+        "toc-entry" -> parseBlockWithHeader
+        "toc-group" -> parseBlockWithHeader
+        "toc-title-group" -> return mempty -- handled by toc
+        "legend" -> parseBlockWithHeader
+        "dedication" -> parseBlockWithHeader
+        "foreword" -> parseBlockWithHeader
+        "preface" -> parseBlockWithHeader
         "?xml"  -> return mempty
         _       -> getBlocks e
    where parseMixed container conts = do
@@ -210,13 +258,25 @@ parseBlock (Elem e) =
            return $ codeBlockWith (attrValue "id" e, classes', [])
                   $ trimNl $ strContentRecursive e
          parseBlockquote = do
-            attrib <- case filterChild (named "attribution") e of
+            attrib <- case filterChild (named "attrib") e of
                              Nothing  -> return mempty
                              Just z   -> para . (str "— " <>) . mconcat
                                          <$>
                                               mapM parseInline (elContent z)
             contents <- getBlocks e
             return $ blockQuote (contents <> attrib)
+         parseList = do
+            case attrValue "list-type" e of
+              "bullet" -> bulletList <$> listitems
+              listType -> do
+                let start =
+                      fromMaybe 1 $
+                        ( filterElement (named "list-item") e
+                            >>= filterElement (named "label")
+                        )
+                          >>= safeRead . textContent
+                orderedListWith (start, parseListStyleType listType, DefaultDelim)
+                  <$> listitems
          parseListStyleType "roman-lower" = LowerRoman
          parseListStyleType "roman-upper" = UpperRoman
          parseListStyleType "alpha-lower" = LowerAlpha
@@ -232,12 +292,13 @@ parseBlock (Elem e) =
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
          parseFigure = do
+           modify $ \st -> st{ jatsInFigure = True }
            capt <- case filterChild (named "caption") e of
                      Just t  -> mconcat . intersperse linebreak <$>
                                 mapM getInlines (filterChildren (const True) t)
                      Nothing -> return mempty
            contents <- getBlocks e
-
+           modify $ \st -> st{ jatsInFigure = False }
            return $ figureWith
              (attrValue "id" e, [], [])
              (simpleCaption $ plain capt)
@@ -261,26 +322,35 @@ parseBlock (Elem e) =
                                            Just c -> filterChildren isColspec c
                                            _      -> filterChildren isColspec e'
                       let isRow x = named "row" x || named "tr" x
-                      headrows <- case filterChild (named "thead") e' of
-                                       Just h  -> case filterChild isRow h of
-                                                       Just x  -> parseRow x
-                                                       Nothing -> return []
-                                       Nothing -> return []
-                      bodyrows <- case filterChild (named "tbody") e' of
-                                       Just b  -> mapM parseRow
-                                                  $ filterChildren isRow b
-                                       Nothing -> mapM parseRow
-                                                  $ filterChildren isRow e'
+
+                      let parseRows elementWithRows =
+                            map parseElement $ filterChildren isRow elementWithRows
+
+                      -- list of list of body cell elements
+                      let multipleBodyRowElements =
+                            map parseRows $ filterChildren (named "tbody") e'
+
+                      -- list of list header cell elements
+                      let headRowElements = maybe [] parseRows (filterChild (named "thead") e')
+
+                      -- list of foot cell elements
+                      let footRowElements = maybe [] parseRows (filterChild (named "tfoot") e')
+
                       let toAlignment c = case findAttr (unqual "align") c of
                                                 Just "left"   -> AlignLeft
                                                 Just "right"  -> AlignRight
                                                 Just "center" -> AlignCenter
                                                 _             -> AlignDefault
+                      let toColSpan element = fromMaybe 1 $
+                            findAttr (unqual "colspan") element >>= safeRead
+                      let toRowSpan element =  fromMaybe 1 $
+                            findAttr (unqual "rowspan") element >>= safeRead
                       let toWidth c = do
                             w <- findAttr (unqual "colwidth") c
                             n <- safeRead $ "0" <> T.filter (\x -> isDigit x || x == '.') w
                             if n > 0 then Just n else Nothing
-                      let numrows = foldl' max 0 $ map length bodyrows
+                      let firstBody = fromMaybe [] (headMay multipleBodyRowElements)
+                      let numrows = foldl' max 0 $ map length firstBody
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
@@ -291,33 +361,58 @@ parseBlock (Elem e) =
                                                 Just ws' -> let tot = sum ws'
                                                             in  ColWidth . (/ tot) <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
-                      let toRow = Row nullAttr . map simpleCell
-                          toHeaderRow l = [toRow l | not (null l)]
+                      let parseCell = parseMixed plain . elContent
+                      let elementToCell element = cell
+                            (toAlignment element)
+                            (RowSpan $ toRowSpan element)
+                            (ColSpan $ toColSpan element)
+                            <$> (parseCell element)
+                      let rowElementsToCells elements = mapM elementToCell elements
+                      let toRow = fmap (Row nullAttr) . rowElementsToCells
+                          toRows elements = mapM toRow elements
+
+                      headerRows <- toRows headRowElements
+                      footerRows <- toRows footRowElements
+                      bodyRows <- mapM toRows multipleBodyRowElements
+
                       return $ table (simpleCaption $ plain capt)
                                      (zip aligns widths)
-                                     (TableHead nullAttr $ toHeaderRow headrows)
-                                     [TableBody nullAttr 0 [] $ map toRow bodyrows]
-                                     (TableFoot nullAttr [])
+                                     (TableHead nullAttr headerRows)
+                                     (map (TableBody nullAttr 0 []) bodyRows)
+                                     (TableFoot nullAttr footerRows)
          isEntry x  = named "entry" x || named "td" x || named "th" x
-         parseRow = mapM (parseMixed plain . elContent) . filterChildren isEntry
-         sect n = do isbook <- gets jatsBook
-                     let n' = if isbook || n == 0 then n + 1 else n
-                     labelText <- case filterChild (named "label") e of
-                                    Just t -> (<> ("." <> space)) <$>
-                                              getInlines t
-                                    Nothing -> return mempty
-                     headerText <- case filterChild (named "title") e `mplus`
-                                        (filterChild (named "info") e >>=
-                                            filterChild (named "title")) of
-                                      Just t  -> (labelText <>) <$>
-                                                  getInlines t
-                                      Nothing -> return mempty
-                     oldN <- gets jatsSectionLevel
-                     modify $ \st -> st{ jatsSectionLevel = n }
-                     b <- getBlocks e
-                     let ident = attrValue "id" e
-                     modify $ \st -> st{ jatsSectionLevel = oldN }
-                     return $ headerWith (ident,[],[]) n' headerText <> b
+         parseElement = filterChildren isEntry
+         wrapWithHeader n mBlocks = do
+                      isBook <- gets jatsBook
+                      let n' = case (filterChild (named "title") e >>= maybeAttrValue "display-as") of
+                                  Just t -> read $ T.unpack t
+                                  Nothing -> if isBook || n == 0 then n + 1 else n
+                      headerText <- case filterChild (named "title") e of
+                                       Just t  -> case maybeAttrValue "supress" t of
+                                                     Just s -> if s == "no"
+                                                                 then getInlines t
+                                                                 else return mempty
+                                                     Nothing -> getInlines t
+                                       Nothing -> do
+                                           let name = qName (elName e)
+                                           if (name == "dedication" || name == "foreword" || name == "preface")
+                                             then return $ str $ T.toTitle name
+                                             else case filterChild (named "index-title-group") e >>= filterChild (named "title") of
+                                                     Just i -> getInlines i
+                                                     Nothing -> case filterChild (named "toc-title-group") e >>= filterChild (named "title") of
+                                                                   Just t -> getInlines t
+                                                                   Nothing -> return mempty
+                      oldN <- gets jatsSectionLevel
+                      modify $ \st -> st{ jatsSectionLevel = n }
+                      blocks <- mBlocks
+                      let ident = attrValue "id" e
+                      modify $ \st -> st{ jatsSectionLevel = oldN }
+                      return $ (if headerText == mempty
+                                  then mempty
+                                  else headerWith (ident,[],[]) n' headerText) <> blocks
+         parseBook = do
+           modify $ \st -> st{ jatsBook = True }
+           getBlocks e
 
 getInlines :: PandocMonad m => Element -> JATS m Inlines
 getInlines e' = trimInlines . mconcat <$>
@@ -325,15 +420,17 @@ getInlines e' = trimInlines . mconcat <$>
 
 parseMetadata :: PandocMonad m => Element -> JATS m Blocks
 parseMetadata e = do
-  getTitle e
-  getAuthors e
+  isBook <- gets jatsBook
+  if isBook then getBookTitle e else getArticleTitle e
+  if isBook then getBookAuthors e else getArticleAuthors e
   getAffiliations e
   getAbstract e
   getPubDate e
+  getPermissions e
   return mempty
 
-getTitle :: PandocMonad m => Element -> JATS m ()
-getTitle e = do
+getArticleTitle :: PandocMonad m => Element -> JATS m ()
+getArticleTitle e = do
   tit <-  case filterElement (named "article-title") e of
                Just s  -> getInlines s
                Nothing -> return mempty
@@ -344,11 +441,36 @@ getTitle e = do
   when (tit /= mempty) $ addMeta "title" tit
   when (subtit /= mempty) $ addMeta "subtitle" subtit
 
-getAuthors :: PandocMonad m => Element -> JATS m ()
-getAuthors e = do
+
+getBookTitle :: PandocMonad m => Element -> JATS m ()
+getBookTitle e = do
+  tit <-  case (filterElement (named "book-title-group") e >>= filterElement (named "book-title")) of
+               Just s  -> getInlines s
+               Nothing -> return mempty
+  subtit <-  case (filterElement (named "book-title-group") e >>= filterElement (named "subtitle")) of
+               Just s  -> (text ": " <>) <$>
+                           getInlines s
+               Nothing -> return mempty
+  when (tit /= mempty) $ addMeta "title" tit
+  when (subtit /= mempty) $ addMeta "subtitle" subtit
+
+getArticleAuthors :: PandocMonad m => Element -> JATS m ()
+getArticleAuthors e = do
   authors <- mapM getContrib $ filterElements
               (\x -> named "contrib" x &&
                      attrValue "contrib-type" x == "author") e
+  authorNotes <- mapM getInlines $ filterElements (named "author-notes") e
+  let authors' = case (reverse authors, authorNotes) of
+                   ([], _)    -> []
+                   (_, [])    -> authors
+                   (a:as, ns) -> reverse as ++ [a <> mconcat ns]
+  unless (null authors) $ addMeta "author" authors'
+
+getBookAuthors :: PandocMonad m => Element -> JATS m ()
+getBookAuthors e = do
+  authors <- mapM getContrib $ filterElements (\x -> named "contrib-group" x) e
+              >>= filterElements (\x -> named "contrib" x &&
+                     attrValue "contrib-type" x == "author")
   authorNotes <- mapM getInlines $ filterElements (named "author-notes") e
   let authors' = case (reverse authors, authorNotes) of
                    ([], _)    -> []
@@ -372,15 +494,68 @@ getAbstract e =
 getPubDate :: PandocMonad m => Element -> JATS m ()
 getPubDate e =
   case filterElement (named "pub-date") e of
-    Just d -> do
-      case maybeAttrValue "iso-8601-date" d of
-        Just isod -> addMeta "date" (text isod)
-        Nothing -> do
-          let yr = strContent <$> filterElement (named "year") d
-          let mon = strContent <$> filterElement (named "month") d
-          let day = strContent <$> filterElement (named "day") d
-          addMeta "date" $ text $ T.intercalate "-" $ catMaybes [yr, mon, day]
+    Just d -> getDate d >>= addMeta "date" . text
     Nothing -> pure ()
+
+-- extract a structured date and create an ISO-8901 string date from it
+getDate :: PandocMonad m => Element -> JATS m Text
+getDate e =
+  case maybeAttrValue "iso-8601-date" e of
+    Just isod -> pure isod
+    Nothing -> do
+      let extractDate :: Element -> Maybe Int
+          extractDate = safeRead . strContent
+      let yr = filterElement (named "year") e >>= extractDate
+      let mon = filterElement (named "month") e >>= extractDate
+      let day = filterElement (named "day") e >>= extractDate
+      let stringDate = strContent <$> filterElement (named "string-date") e
+      pure $
+        case (yr, mon, day) of
+          (Just y, Just m, Just d) -> T.pack $ printf "%04d-%02d-%02d" y m d
+          (Just y, Just m, Nothing) -> T.pack $ printf "%04d-%02d" y m
+          (Just y, Nothing, Nothing) -> T.pack $ printf "%04d" y
+          _ -> fromMaybe mempty stringDate
+
+getPermissions :: PandocMonad m => Element -> JATS m ()
+getPermissions e = do
+  copyright <- getCopyright e
+  license <-  case filterElement (named "license") e of
+               Just s  -> getLicense s
+               Nothing -> return mempty
+  when (copyright /= mempty) $ addMeta "copyright" copyright
+  when (license /= mempty) $ addMeta "license" license
+
+getCopyright :: PandocMonad m => Element -> JATS m (Map.Map Text MetaValue)
+getCopyright e = do
+  let holder = metaElement e "copyright-holder" "holder"
+  let statement = metaElement e "copyright-statement" "statement"
+  let year = metaElement e "copyright-year" "year"
+  return $ Map.fromList (catMaybes $ [holder, statement, year])
+
+getLicense :: PandocMonad m => Element -> JATS m (Map.Map Text MetaValue)
+getLicense e = do
+  let licenseType = metaAttribute e "license-type" "type"
+  let licenseLink = metaElementAliRef e "link"
+  let licenseText = metaElement e "license-p" "text"
+  return $ Map.fromList (catMaybes $ [licenseType, licenseLink, licenseText])
+
+metaElement :: Element -> Text -> Text -> Maybe (Text, MetaValue)
+metaElement e child key =
+  case filterElement (named child) e of
+    Just content -> Just (key, toMetaValue $ strContent content)
+    Nothing -> Nothing
+
+metaElementAliRef :: Element -> Text -> Maybe (Text, MetaValue)
+metaElementAliRef e key =
+  case filterElement isAliLicenseRef e of
+    Just content -> Just (key, toMetaValue $ strContent content)
+    Nothing -> Nothing
+
+metaAttribute :: Element -> Text -> Text -> Maybe (Text, MetaValue)
+metaAttribute e attr key =
+  case maybeAttrValue attr e of
+    Just content -> Just (key, toMetaValue content)
+    Nothing -> Nothing
 
 getContrib :: PandocMonad m => Element -> JATS m Inlines
 getContrib x = do
@@ -397,8 +572,12 @@ getContrib x = do
 parseRefList :: PandocMonad m => Element -> JATS m Blocks
 parseRefList e = do
   refs <- mapM parseRef $ filterChildren (named "ref") e
+  let mbtitle = filterChild (named "title") e
+  title <- case mbtitle of
+    Nothing -> pure mempty
+    Just te -> header 1 <$> parseInline (Elem te)
   addMeta "references" refs
-  return mempty
+  return $ title <> divWith ("refs",[],[]) mempty
 
 parseRef :: PandocMonad m
          => Element -> JATS m (Map.Map Text MetaValue)
@@ -499,7 +678,7 @@ parseInline (Elem e) =
         "code" -> codeWithLang
         "monospace" -> codeWithLang
 
-        "inline-graphic" -> getGraphic Nothing e
+        "inline-graphic" -> getGraphic e
         "disp-quote" -> do
             qt <- gets jatsQuoteType
             let qt' = if qt == SingleQuote then DoubleQuote else SingleQuote
@@ -539,8 +718,11 @@ parseInline (Elem e) =
              let attr = (attrValue "id" e, [], [])
              return $ linkWith attr href title ils'
 
-        "disp-formula" -> formula displayMath
-        "inline-formula" -> formula math
+        "alternatives" -> if hasFormulaChild e
+                            then inlineFormula math e
+                            else innerInlines id
+        "disp-formula" -> inlineFormula displayMath e
+        "inline-formula" -> inlineFormula math e
         "math" | qURI (elName e) == Just "http://www.w3.org/1998/Math/MathML"
                    -> return . math $ mathML e
         "tex-math" -> return . math $ textContent e
@@ -553,11 +735,14 @@ parseInline (Elem e) =
         _          -> innerInlines id
    where innerInlines f = extractSpaces f . mconcat <$>
                           mapM parseInline (elContent e)
-         mathML x =
-            case readMathML . showElement $ everywhere (mkT removePrefix) x of
-                Left _ -> mempty
-                Right m -> writeTeX m
-         formula constructor = do
+         codeWithLang = do
+           let classes' = case attrValue "language" e of
+                               "" -> []
+                               l  -> [l]
+           return $ codeWith (attrValue "id" e,classes',[]) $ strContentRecursive e
+
+inlineFormula ::  PandocMonad m => (Text->Inlines) -> Element -> JATS m Inlines
+inlineFormula constructor e = do
             let whereToLook = fromMaybe e $ filterElement (named "alternatives") e
                 texMaths = map textContent $
                             filterChildren (named  "tex-math") whereToLook
@@ -565,12 +750,34 @@ parseInline (Elem e) =
                             filterChildren isMathML whereToLook
             return . mconcat . take 1 . map constructor $ texMaths ++ mathMLs
 
-         isMathML x = qName (elName x) == "math" &&
+blockFormula ::  PandocMonad m => (Text->Inlines) -> Element -> JATS m Blocks
+blockFormula constructor e = do
+            let whereToLook = fromMaybe e $ filterElement (named "alternatives") e
+                texMaths = map textContent $
+                            filterChildren (named  "tex-math") whereToLook
+                mathMLs = map mathML $
+                            filterChildren isMathML whereToLook
+            return . para . head . take 1 . map constructor $ texMaths ++ mathMLs
+
+mathML :: Element -> Text
+mathML x =
+          case readMathML . showElement $ everywhere (mkT removePrefix) x of
+                Left _ -> mempty
+                Right m -> writeTeX m
+          where removePrefix elname = elname { qPrefix = Nothing }
+
+isMathML :: Element -> Bool
+isMathML x = qName (elName x) == "math" &&
                       qURI  (elName x) ==
                                       Just "http://www.w3.org/1998/Math/MathML"
-         removePrefix elname = elname { qPrefix = Nothing }
-         codeWithLang = do
-           let classes' = case attrValue "language" e of
-                               "" -> []
-                               l  -> [l]
-           return $ codeWith (attrValue "id" e,classes',[]) $ strContentRecursive e
+
+formulaChildren :: Element -> [Element]
+formulaChildren x = filterChildren isMathML x ++ filterChildren (named "tex-math") x
+
+hasFormulaChild :: Element -> Bool
+hasFormulaChild x = length (formulaChildren x) > 0
+
+isAliLicenseRef :: Element -> Bool
+isAliLicenseRef x = qName (elName x) == "license_ref" &&
+                      qURI  (elName x) ==
+                                      Just "http://www.niso.org/schemas/ali/1.0/"

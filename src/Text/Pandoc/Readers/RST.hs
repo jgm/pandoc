@@ -25,6 +25,7 @@ import Data.Maybe (fromMaybe, maybeToList, isJust)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Text.Printf (printf)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, getTimestamp)
@@ -1167,7 +1168,7 @@ substKey = try $ do
   updateState $ \s -> s{ stateSubstitutions = M.insert key il
                                             $ stateSubstitutions s }
 
-anonymousKey :: Monad m => RSTParser m ()
+anonymousKey :: PandocMonad m => RSTParser m ()
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
   pos <- getPosition
@@ -1175,7 +1176,7 @@ anonymousKey = try $ do
   -- we need to ensure that the keys are ordered by occurrence in
   -- the document.
   numKeys <- M.size . stateKeys <$> getState
-  let key = toKey $ "_" <> T.pack (show numKeys)
+  let key = toKey $ "_" <> T.pack (printf "%04d" numKeys)
   updateState $ \s -> s { stateKeys = M.insert key (Located pos ((src,""), nullAttr)) $
                           stateKeys s }
 
@@ -1488,8 +1489,11 @@ renderRole contents fmt role attr = case role of
            removeSpace (x:xs) = x : map headSpace xs
            removeSpace []     = []
 
+-- single words consisting of alphanumerics plus isolated (no two adjacent)
+-- internal hyphens, underscores, periods, colons and plus signs;
+-- no whitespace or other characters are allowed
 roleName :: PandocMonad m => RSTParser m Text
-roleName = many1Char (letter <|> char '-')
+roleName = many1Char (alphaNum <|> try (oneOf "-_.:+" <* lookAhead alphaNum))
 
 roleMarker :: PandocMonad m => RSTParser m Text
 roleMarker = char ':' *> roleName <* char ':'

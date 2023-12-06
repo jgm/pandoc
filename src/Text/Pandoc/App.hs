@@ -51,7 +51,6 @@ import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MediaBag (mediaItems)
 import Text.Pandoc.Image (svgToPng)
-import Text.Pandoc.App.FormatHeuristics (formatFromFilePaths)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..), OptInfo(..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
@@ -142,20 +141,20 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                      Just xs | not (optIgnoreArgs opts) -> xs
                      _ -> ["-"]
 
+  let defFlavor fmt = Format.FlavoredFormat fmt mempty
   -- assign reader and writer based on options and filenames
-  readerName <- case optFrom opts of
-                     Just f  -> return f
-                     Nothing -> case formatFromFilePaths sources of
-                         Just f' -> return f'
-                         Nothing | sources == ["-"] -> return "markdown"
-                                 | any (isURI . T.pack) sources -> return "html"
-                                 | otherwise -> do
-                           report $ CouldNotDeduceFormat
-                               (map (T.pack . takeExtension) sources) "markdown"
-                           return "markdown"
-
   flvrd@(Format.FlavoredFormat readerNameBase _extsDiff) <-
-    Format.parseFlavoredFormat readerName
+    case optFrom opts of
+      Just f  -> Format.parseFlavoredFormat f
+      Nothing -> case Format.formatFromFilePaths sources of
+        Just f' -> return f'
+        Nothing | sources == ["-"] -> return $ defFlavor "markdown"
+                | any (isURI . T.pack) sources -> return $ defFlavor "html"
+                | otherwise -> do
+                    report $ CouldNotDeduceFormat
+                      (map (T.pack . takeExtension) sources) "markdown"
+                    return $ defFlavor "markdown"
+
   let makeSandboxed pureReader =
         let files = maybe id (:) (optReferenceDoc opts) .
                     maybe id (:) (optEpubMetadata opts) .
@@ -170,13 +169,13 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                           -> ByteStringReader $ \o t -> sandbox files (r o t)
 
   (reader, readerExts) <-
-    if ".lua" `T.isSuffixOf` readerName
+    if ".lua" `T.isSuffixOf` readerNameBase
        then do
             let scriptPath = T.unpack readerNameBase
             components <- engineLoadCustom scriptingEngine scriptPath
             r <- case customReader components of
                    Nothing -> throwError $ PandocAppError $
-                               readerName <> " does not contain a custom reader"
+                               readerNameBase <> " does not contain a custom reader"
                    Just r -> return r
             let extsConf = fromMaybe mempty (customExtensions components)
             rexts <- Format.applyExtensionsDiff extsConf flvrd
@@ -367,10 +366,11 @@ configureCommonState datadir opts = do
 -- only affect the Markdown reader.
 readAbbreviations :: PandocMonad m => Maybe FilePath -> m (Set.Set Text)
 readAbbreviations mbfilepath =
-  Set.fromList . filter (not . T.null) . T.lines . UTF8.toText <$>
-  case mbfilepath of
+  (case mbfilepath of
     Nothing -> readDataFile "abbreviations"
-    Just f  -> readFileStrict f
+    Just f  -> readFileStrict f)
+    >>= fmap (Set.fromList . filter (not . T.null) . T.lines) .
+         toTextM (fromMaybe mempty mbfilepath)
 
 createPngFallbacks :: (PandocMonad m, MonadIO m) => Int -> m ()
 createPngFallbacks dpi = do

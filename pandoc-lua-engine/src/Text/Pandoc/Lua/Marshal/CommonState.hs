@@ -19,6 +19,7 @@ import HsLua
 import Text.Pandoc.Class (CommonState (..))
 import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
+import qualified Data.Aeson as Aeson
 
 -- | Lua type used for the @CommonState@ object.
 typeCommonState :: LuaError e => DocumentedType e CommonState
@@ -64,5 +65,9 @@ typeLogMessage = deftype "pandoc LogMessage"
       ### liftPure showLogMessage
       <#> udparam typeLogMessage "msg" "object"
       =#> functionResult pushText "string" "stringified log message"
+  , operation (CustomOperation "__tojson") $ lambda
+      ### liftPure Aeson.encode
+      <#> udparam typeLogMessage "msg" "object"
+      =#> functionResult pushLazyByteString "string" "JSON encoded object"
   ]
   mempty -- no members

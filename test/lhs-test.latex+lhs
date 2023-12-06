@@ -48,7 +48,7 @@
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
@@ -60,8 +60,7 @@
 
 \begin{document}
 
-\hypertarget{lhs-test}{%
-\section{lhs test}\label{lhs-test}}
+\section{lhs test}\label{lhs-test}
 
 \texttt{unsplit} is an arrow that takes a pair of values and combines them to
 return a single value:

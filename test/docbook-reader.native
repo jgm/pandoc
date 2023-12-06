@@ -1565,11 +1565,37 @@ Pandoc
       , Space
       , Str "(1902):"
       ]
-  , Para
-      [ Image
-          ( "" , [] , [] )
-          [ Str "lalune" , Space , Str "fig" , Space , Str "caption" ]
-          ( "lalune.jpg" , "fig:" )
+  , Figure
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain
+             [ Str "lalune"
+             , Space
+             , Str "fig"
+             , Space
+             , Str "caption"
+             ]
+         ])
+      [ Plain
+          [ Image
+              ( "" , [] , [] )
+              [ Str "lalune"
+              , Space
+              , Str "alt"
+              , Space
+              , Str "text"
+              , Space
+              , Str "shadowed"
+              , Space
+              , Str "by"
+              , Space
+              , Str "fig"
+              , Space
+              , Str "caption"
+              ]
+              ( "lalune.jpg" , "" )
+          ]
       ]
   , Para
       [ Str "Here"

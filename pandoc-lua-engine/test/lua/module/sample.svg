@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="-35 -35 70 70">
+  <title>Single-Source-Publishing Logo</title>
+  <defs>
+    <g id="doc">
+      <!-- document shape -->
+      <polygon points="-10,-31.53 -10,-3.25 0,0 10,-3.25 10,-23.53 2,-31.53" />
+      <!-- the "fold" triangle -->
+      <polygon points="2,-23.53 2,-31.53 10,-23.53" fill-opacity="90%" />
+    </g>
+  </defs>
+
+  <g transform="rotate(30)">
+    <!-- colored docs -->
+    <g fill-opacity="75%">
+      <use href="#doc" fill="#ffce54" transform="rotate(000)" />
+      <use href="#doc" fill="#ed5564" transform="rotate(072)" />
+      <use href="#doc" fill="#ac92eb" transform="rotate(144)" />
+      <use href="#doc" fill="#4fc1e8" transform="rotate(216)" />
+      <use href="#doc" fill="#a0d568" transform="rotate(288)" />
+    </g>
+
+    <!-- Add blackish border -->
+    <g stroke="#555555"
+       stroke-width="0.5"
+       stroke-linejoin="round"
+       fill="none">
+      <use href="#doc" transform="rotate(000)" />
+      <use href="#doc" transform="rotate(072)" />
+      <use href="#doc" transform="rotate(144)" />
+      <use href="#doc" transform="rotate(216)" />
+      <use href="#doc" transform="rotate(288)" />
+    </g>
+  </g>
+</svg>

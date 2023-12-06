@@ -9,8 +9,7 @@ where
 import Citeproc.Types
 import Text.Pandoc.Definition
 import Text.Pandoc.Builder as B
-import Text.Pandoc.Walk (query)
-import Text.Pandoc.Shared (stringify)
+import Text.Pandoc.Shared (stringify, blocksToInlines')
 import Data.Maybe
 import Safe
 import qualified Data.Set as Set
@@ -126,7 +125,7 @@ metaValueToVal k v
     case v of
       MetaString t -> TextVal t
       MetaInlines ils -> FancyVal (B.fromList ils)
-      MetaBlocks bs   -> FancyVal (B.fromList $ query id bs)
+      MetaBlocks bs   -> FancyVal (blocksToInlines' bs)
       MetaBool b   -> TextVal (if b then "true" else "false")
       MetaList _   -> TextVal mempty
       MetaMap  _   -> TextVal mempty

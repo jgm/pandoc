@@ -151,6 +151,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                           Nothing | null docLangs -> Nothing
                                   | otherwise     -> Just "en"
   -- we need a default here since lang is used in template conditionals
+  let otherLangs = [l | l <- docLangs, mblang /= Just l]
 
   let dirs = query (extract "dir") blocks
 
@@ -225,7 +226,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
         $ maybe id (\l -> defField "babel-lang"
                       (literal l)) (mblang >>= toBabel)
         $ defField "babel-otherlangs"
-             (map literal $ mapMaybe toBabel docLangs)
+             (map literal $ mapMaybe toBabel otherLangs)
         $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
@@ -280,11 +281,9 @@ blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
         | "example" `elem` dclasses = "exampleblock"
         | "alert" `elem` dclasses = "alertblock"
         | otherwise = "block"
-  ref <- toLabel identifier
-  let anchor = if T.null identifier
-                  then empty
-                  else cr <> "\\protect\\hypertarget" <>
-                       braces (literal ref) <> braces empty
+  anchor <- if T.null identifier
+               then pure empty
+               else (cr <>) <$> hypertarget identifier
   title' <- inlineListToLaTeX ils
   contents <- blockListToLaTeX bs
   wrapDiv attr $ ("\\begin" <> braces blockname <> braces title' <> anchor) $$
@@ -317,11 +316,9 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
   slideTitle <- if ils == [Str "\0"] -- marker for hrule
                    then return empty
                    else braces <$> inlineListToLaTeX ils
-  ref <- toLabel identifier
-  let slideAnchor = if T.null identifier
-                       then empty
-                       else cr <> "\\protect\\hypertarget" <>
-                            braces (literal ref) <> braces empty
+  slideAnchor <- if T.null identifier
+                    then pure empty
+                    else (cr <>) <$> hypertarget identifier
   contents <- blockListToLaTeX bs >>= wrapDiv (identifier,classes,kvs)
   return $ ("\\begin{frame}" <> options <> slideTitle <> slideAnchor) $$
              contents $$ "\\end{frame}"
@@ -342,30 +339,29 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
                then do
                  modify $ \st -> st{ stHasCslRefs = True }
                  inner <- blockListToLaTeX bs
-                 return $ "\\begin{CSLReferences}" <>
-                          (if "hanging-indent" `elem` classes
-                              then braces "1"
-                              else braces "0") <>
-                          (case lookup "entry-spacing" kvs of
-                             Nothing -> braces "0"
-                             Just s  -> braces (literal s))
+                 return $ ("\\begin{CSLReferences}"
+                            <> braces
+                                (if "hanging-indent" `elem` classes
+                                    then "1"
+                                    else "0")
+                            <> braces
+                               (maybe "1" literal (lookup "entry-spacing" kvs)))
                           $$ inner
                           $+$ "\\end{CSLReferences}"
                else blockListToLaTeX bs
   modify $ \st -> st{ stIncremental = oldIncremental }
-  linkAnchor' <- hypertarget True identifier empty
-  -- see #2704 for the motivation for adding \leavevmode
-  -- and #7078 for \vadjust pre
-  let linkAnchor =
-        case bs of
-          Para _ : _
-            | not (isEmpty linkAnchor')
-              -> "\\leavevmode\\vadjust pre{" <> linkAnchor' <> "}%"
-          _ -> linkAnchor'
-      wrapNotes txt = if beamer && "notes" `elem` classes
-                         then "\\note" <> braces txt -- speaker notes
-                         else linkAnchor $$ txt
-  wrapNotes <$> wrapDiv (identifier,classes,kvs) result
+  let wrap txt
+       | beamer && "notes" `elem` classes
+         = pure ("\\note" <> braces txt) -- speaker notes
+       | "ref-" `T.isPrefixOf` identifier
+         = do
+             lab <- toLabel identifier
+             pure $ ("\\bibitem" <> brackets "\\citeproctext"
+                      <> braces (literal lab)) $$ txt
+         | otherwise = do
+             linkAnchor <- hypertarget identifier
+             pure $ linkAnchor $$ txt
+  wrapDiv (identifier,classes,kvs) result >>= wrap
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
 -- . . . indicates pause in beamer slides
@@ -395,12 +391,10 @@ blockToLaTeX (BlockQuote lst) = do
          return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
-  lab <- labelFor identifier
   inNote <- stInNote <$> get
-  linkAnchor' <- hypertarget True identifier lab
-  let linkAnchor = if isEmpty linkAnchor'
-                      then empty
-                      else linkAnchor' <> "%"
+  linkAnchor <- if T.null identifier
+                   then pure empty
+                   else ((<> cr) . (<> "%")) <$> hypertarget identifier
   let lhsCodeBlock = do
         modify $ \s -> s{ stLHS = True }
         return $ flush (linkAnchor $$ "\\begin{code}" $$ literal str $$
@@ -563,9 +557,8 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
-blockToLaTeX (Figure (ident, _, _) (Caption _ longCapt) body) = do
-  (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True
-                                              (blocksToInlines longCapt)
+blockToLaTeX (Figure (ident, _, _) captnode body) = do
+  (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
 
@@ -575,8 +568,7 @@ blockToLaTeX (Figure (ident, _, _) (Caption _ longCapt) body) = do
     [b] -> blockToLaTeX b
     bs  -> mconcat . intersperse (cr <> "\\hfill") <$>
            mapM (toSubfigure (length bs)) bs
-  innards <- hypertarget True ident $
-    "\\centering" $$ contents $$ caption <> cr
+  let innards = "\\centering" $$ contents $$ caption <> cr
   modify $ \st ->
     st{ stInFigure = isSubfigure
       , stSubfigure = stSubfigure st || isSubfigure
@@ -734,12 +726,11 @@ sectionHeader classes ident level lst = do
                   else empty
   lab <- labelFor ident
   let star = if unnumbered then text "*" else empty
-  let stuffing = star <> optional <> contents
-  stuffing' <- hypertarget True ident $
-                  text ('\\':sectionType) <> stuffing <> lab
+  let title = star <> optional <> contents
   return $ if level' > 5
               then txt
-              else prefix $$ stuffing'
+              else prefix
+                   $$ text ('\\':sectionType) <> title <> lab
                    $$ if unnumbered && not unlisted
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
@@ -753,16 +744,13 @@ inlineListToLaTeX :: PandocMonad m
 inlineListToLaTeX lst = hcat <$>
   mapM inlineToLaTeX (fixLineInitialSpaces . fixInitialLineBreaks $ lst)
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
-    -- so we turn nbsps after hard breaks to \hspace commands.
-    -- this is mostly used in verse.
+    -- so we insert a strut: this is mostly used in verse.
  where fixLineInitialSpaces [] = []
        fixLineInitialSpaces (LineBreak : Str s : xs)
          | Just ('\160', _) <- T.uncons s
-         = LineBreak : fixNbsps s <> fixLineInitialSpaces xs
+         = LineBreak : RawInline "latex" "\\strut " : Str s
+            : fixLineInitialSpaces xs
        fixLineInitialSpaces (x:xs) = x : fixLineInitialSpaces xs
-       fixNbsps s = let (ys,zs) = T.span (=='\160') s
-                    in  replicate (T.length ys) hspace <> [Str zs]
-       hspace = RawInline "latex" "\\hspace*{0.333em}"
        -- We need \hfill\break for a line break at the start
        -- of a paragraph. See #5591.
        fixInitialLineBreaks (LineBreak:xs) =
@@ -778,7 +766,7 @@ inlineToLaTeX (Span ("",["mark"],[]) lst) = do
   modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
   inCmd "hl" <$> inlineListToLaTeX lst
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
-  linkAnchor <- hypertarget False id' empty
+  linkAnchor <- hypertarget id'
   lang <- toLang $ lookup "lang" kvs
   let classToCmd "csl-no-emph" = Just "textup"
       classToCmd "csl-no-strong" = Just "textnormal"
@@ -807,7 +795,7 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
         else id) $
     (if T.null id'
         then empty
-        else "\\protect" <> linkAnchor) <>
+        else linkAnchor) <>
     (if null cmds
         then braces contents
         else foldr inCmd contents cmds)
@@ -831,12 +819,14 @@ inlineToLaTeX (Subscript lst) =
 inlineToLaTeX (SmallCaps lst) =
   inCmd "textsc"<$> inlineListToLaTeX lst
 inlineToLaTeX (Cite cits lst) = do
-  st <- get
-  let opts = stOptions st
-  case writerCiteMethod opts of
-     Natbib   -> citationsToNatbib inlineListToLaTeX cits
-     Biblatex -> citationsToBiblatex inlineListToLaTeX cits
-     _        -> inlineListToLaTeX lst
+  opts <- gets stOptions
+  modify $ \st -> st{ stInCite = True }
+  res <- case writerCiteMethod opts of
+           Natbib   -> citationsToNatbib inlineListToLaTeX cits
+           Biblatex -> citationsToBiblatex inlineListToLaTeX cits
+           _        -> inlineListToLaTeX lst
+  modify $ \st -> st{ stInCite = False }
+  pure res
 
 inlineToLaTeX (Code (_,classes,kvs) str) = do
   opts <- gets stOptions
@@ -960,7 +950,14 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
      Just ('#', ident) -> do
         contents <- inlineListToLaTeX txt
         lab <- toLabel ident
-        return $ text "\\protect\\hyperlink" <> braces (literal lab) <> braces contents
+        inCite <- gets stInCite
+        beamer <- gets stBeamer
+        return $
+          if inCite && "#ref-" `T.isPrefixOf` src
+             then "\\citeproc" <> braces (literal lab) <> braces contents
+             else if beamer
+                     then "\\hyperlink" <> braces (literal lab) <> braces contents
+                     else "\\hyperref" <> brackets (literal lab) <> braces contents
      _ -> case txt of
           [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
                do modify $ \s -> s{ stUrl = True }
@@ -980,8 +977,8 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
      >>= (if T.null id'
              then return
              else \x -> do
-               linkAnchor <- hypertarget False id' x
-               return ("\\protect" <> linkAnchor))
+               linkAnchor <- hypertarget id'
+               return (linkAnchor <> x))
 inlineToLaTeX il@(Image _ _ (src, _))
   | Just _ <- T.stripPrefix "data:" src = do
       report $ InlineNotRendered il

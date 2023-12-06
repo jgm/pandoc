@@ -19,7 +19,7 @@ Foo [@item1].
 ^D
 Foo.[^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item1 .csl-entry}
 Author, Ann. "Title." *Journal*, 2011.
 :::

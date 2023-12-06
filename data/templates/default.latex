@@ -33,6 +33,9 @@ $if(background-image)$
 \usebackgroundtemplate{%
   \includegraphics[width=\paperwidth]{$background-image$}%
 }
+% In beamer background-image does not work well when other images are used, so this is the workaround
+\pgfdeclareimage[width=\paperwidth,height=\paperheight]{background}{$background-image$}
+\usebackgroundtemplate{\pgfuseimage{background}}
 $endif$
 \usepackage{pgfpages}
 \setbeamertemplate{caption}[numbered]
@@ -162,6 +165,12 @@ $if(CJKmainfont)$
   \ifXeTeX
     \usepackage{xeCJK}
     \setCJKmainfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmainfont$}
+    $if(CJKsansfont)$
+      \setCJKsansfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKsansfont$}
+    $endif$
+    $if(CJKmonofont)$
+      \setCJKmonofont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmonofont$}
+    $endif$
   \fi
 $endif$
 $if(luatexjapresetoptions)$
@@ -283,7 +292,19 @@ $if(svg)$
 $endif$
 $if(strikeout)$
 $-- also used for underline
-\usepackage{soul}
+\ifLuaTeX
+  \usepackage{luacolor}
+  \usepackage[soul]{lua-ul}
+\else
+  \usepackage{soul}
+$if(CJKmainfont)$
+  \ifXeTeX
+    % soul's \st doesn't work for CJK:
+    \usepackage{xeCJKfntef}
+    \renewcommand{\st}[1]{\sout{#1}}
+  \fi
+$endif$
+\fi
 $endif$
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
@@ -314,28 +335,38 @@ $if(pagestyle)$
 \pagestyle{$pagestyle$}
 $endif$
 $if(csl-refs)$
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
 \newlength{\cslhangindent}
 \setlength{\cslhangindent}{1.5em}
 \newlength{\csllabelwidth}
 \setlength{\csllabelwidth}{3em}
-\newlength{\cslentryspacingunit} % times entry-spacing
-\setlength{\cslentryspacingunit}{\parskip}
-\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
- {% don't indent paragraphs
-  \setlength{\parindent}{0pt}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
   % turn on hanging indent if param 1 is 1
   \ifodd #1
-  \let\oldpar\par
-  \def\par{\hangindent=\cslhangindent\oldpar}
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
   \fi
   % set entry spacing
-  \setlength{\parskip}{#2\cslentryspacingunit}
- }%
- {}
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
 \usepackage{calc}
-\newcommand{\CSLBlock}[1]{#1\hfill\break}
-\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
-\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 $endif$
 $if(lang)$
@@ -349,12 +380,15 @@ $if(babel-lang)$
 $if(mainfont)$
 \ifPDFTeX
 \else
-\babelfont[$babel-lang$]{rm}{$mainfont$}
+\babelfont{rm}[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$]{$mainfont$}
 \fi
 $endif$
 $endif$
 $for(babel-otherlangs)$
 \babelprovide[import]{$babel-otherlangs$}
+$endfor$
+$for(babelfonts/pairs)$
+\babelfont[$babelfonts.key$]{rm}{$babelfonts.value$}
 $endfor$
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
@@ -391,7 +425,7 @@ $endif$
 $if(csquotes)$
 \usepackage{csquotes}
 $endif$
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{$if(urlstyle)$$urlstyle$$else$same$endif$}
 $if(links-as-notes)$

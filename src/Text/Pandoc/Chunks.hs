@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {- |
    Module      : Text.Pandoc.Chunks
@@ -26,9 +26,11 @@ module Text.Pandoc.Chunks
   , tocToList
   , SecInfo(..)
   ) where
+
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier)
 import Text.Pandoc.Walk (Walkable(..))
+import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
 import Text.Printf (printf)
 import Data.Maybe (fromMaybe, isNothing)
@@ -38,6 +40,8 @@ import Data.String (IsString)
 import GHC.Generics (Generic)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Data.Tree (Tree(..))
+import Data.Data (Data)
+import Data.Typeable (Typeable)
 
 -- | Split 'Pandoc' into 'Chunk's, e.g. for conversion into
 -- a set of HTML pages or EPUB chapters.
@@ -236,6 +240,7 @@ resolvePathTemplate :: PathTemplate
                     -> FilePath
 resolvePathTemplate (PathTemplate templ) chunknum headingText ident secnum =
   T.unpack .
+  T.filter (\c -> c /= '/' && c /= '\\') .
   T.replace "%n" (T.pack $ printf "%03d" chunknum) .
   T.replace "%s" secnum .
   T.replace "%h" headingText .
@@ -253,7 +258,7 @@ resolvePathTemplate (PathTemplate templ) chunknum headingText ident secnum =
 -- @"section-1.2-introduction.html"@.
 newtype PathTemplate =
   PathTemplate { unPathTemplate :: Text }
-  deriving (Show, IsString)
+  deriving (Show, IsString, Data, Typeable, Generic, ToJSON, FromJSON)
 
 -- | A part of a document (typically a chapter or section, or
 -- the part of a section before its subsections).
@@ -374,13 +379,14 @@ fixTOCTreePaths chunks = go ""
              (map (go fp') subtrees)
 
 -- | Creates a TOC link to the respective document section.
-tocEntryToLink :: SecInfo -> [Inline]
-tocEntryToLink secinfo = headerLink
+tocEntryToLink :: Bool -> SecInfo -> [Inline]
+tocEntryToLink includeNumbers secinfo = headerLink
  where
   addNumber  = case secNumber secinfo of
-                 Just num -> (Span ("",["toc-section-number"],[])
+                 Just num | includeNumbers
+                        -> (Span ("",["toc-section-number"],[])
                                [Str num] :) . (Space :)
-                 Nothing -> id
+                 _ -> id
   clean (Link _ xs _) = xs
   clean (Note _) = []
   clean x = [x]
@@ -398,13 +404,13 @@ tocEntryToLink secinfo = headerLink
                          headerText (anchor, "")]
 
 -- | Generate a table of contents of the given depth.
-tocToList :: Int -> Tree SecInfo -> Block
-tocToList tocDepth (Node _ subtrees) = BulletList (toItems subtrees)
+tocToList :: Bool -> Int -> Tree SecInfo -> Block
+tocToList includeNumbers tocDepth (Node _ subtrees) = BulletList (toItems subtrees)
  where
   toItems = map go . filter isBelowTocDepth
   isBelowTocDepth (Node sec _) = secLevel sec <= tocDepth
   go (Node secinfo xs) =
-    Plain (tocEntryToLink secinfo) :
+    Plain (tocEntryToLink includeNumbers secinfo) :
       case toItems xs of
         [] -> []
         ys -> [BulletList ys]

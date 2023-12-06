@@ -784,7 +784,7 @@ Images
 From “Voyage dans la Lune” by Georges Melies (1902):
 
 .. figure:: lalune.jpg
-   :alt: Voyage dans la Lune
+   :alt: lalune
 
    lalune
 

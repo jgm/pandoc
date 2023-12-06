@@ -18,8 +18,10 @@ Furthermore, the globals `PANDOC_VERSION`, `PANDOC_STATE`, and
 `PANDOC_API_VERSION` are set at startup.
 
 If no script argument is given, then the script is assumed to be
-passed in via *stdin*. Interactive mode is not supported at this
-time.
+passed in via *stdin*. When called without arguments, `pandoc-lua`
+behaves as `pandoc-lua -v -i` when the standard input (`stdin`) is
+a terminal, and as `pandoc-lua -` otherwise. On Windows the
+program will always behave as if it was connected to a terminal.
 
 When called without the option `-E`, the interpreter checks for an
 environment variable `LUA_INIT` before running any argument. If
@@ -41,7 +43,7 @@ the string itself.
 :   Show version information.
 
 `-i`
-:   Not supported yet; print a warning to that effect.
+:   Enter interactive mode after running *script*.
 
 `-E`
 :   Ignore environment variables. This is not fully implemented
@@ -51,9 +53,23 @@ the string itself.
 `-W`
 :   Turn warnings on.
 
+# INTERACTIVE MODE
+
+In interactive mode, the Lua interpreter repeatedly prompts and
+waits for a line. After reading a line, Lua first tries to
+interpret the line as an expression. If it succeeds, it prints its
+value. Otherwise, it interprets the line as a statement. If you
+write an incomplete statement, the interpreter waits for its
+completion by issuing a different prompt.
+
+Exit the interactive mode by pressing `Ctrl-D` or `Ctrl-C`, or by
+typing `os.exit()`. The *Isocline* library is used for line
+editing. Press `F1` to get a list of available keybindings; the
+`ctrl` key is abbreviated as `^` in that list.
+
 # AUTHORS
 
-Copyright 2022 John MacFarlane (jgm@berkeley.edu) and
+Copyright 2023 John MacFarlane (jgm@berkeley.edu) and
 contributors. Released under the [GPL], version 2 or later. This
 software carries no warranty of any kind. (See COPYRIGHT for full
 copyright and warranty notices.)

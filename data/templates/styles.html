@@ -62,6 +62,10 @@ a:visited {
 img {
   max-width: 100%;
 }
+svg {
+  height: auto;
+  max-width: 100%;
+}
 h1, h2, h3, h4, h5, h6 {
   margin-top: 1.4em;
 }
@@ -176,8 +180,11 @@ span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
 div.column{flex: auto; overflow-x: auto;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-ul.task-list{list-style: none;}
+/* The extra [class] is a hack that increases specificity enough to
+   override a similar rule in reveal.js */
+ul.task-list[class]{list-style: none;}
 ul.task-list li input[type="checkbox"] {
+  font-size: inherit;
   width: 0.8em;
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;

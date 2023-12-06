@@ -27,7 +27,6 @@ jats = purely $ readJATS def
 tests :: [TestTree]
 tests = [ testGroup "inline code"
           [ test jats "basic" $ "<p>\n  <monospace>@&amp;</monospace>\n</p>" =?> para (code "@&")
-          , test jats "lang" $ "<p>\n  <code language=\"c\">@&amp;</code>\n</p>" =?> para (codeWith ("", ["c"], []) "@&")
           ]
         , testGroup "block code"
           [ test jats "basic" $ "<preformat>@&amp;</preformat>" =?> codeBlock "@&"
@@ -36,6 +35,42 @@ tests = [ testGroup "inline code"
         , testGroup "images"
           [ test jats "basic" $ "<graphic mimetype=\"image\" mime-subtype=\"\" xlink:href=\"/url\" xlink:title=\"title\" />"
             =?> para (image "/url" "title" mempty)
+            , test jats "alt-text" $ 
+                          "<graphic id=\"graphic001\"\n\
+                          \ xlink:href=\"https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660\"\n\
+                          \ xlink:title=\"This is the title of the graphic\"\n\
+                          \ xlink:role=\"This is the role of the graphic\">\n\
+                          \ <alt-text>Alternative text of the graphic</alt-text>\n\
+                          \ <caption>\n\
+                          \ <title>This is the title of the caption</title>\n\
+                          \ <p>Google doodle from 14 March 2003</p></caption>\n\
+                          \ </graphic>"
+            =?> Para [ Image
+              ( "graphic001"
+              , [ "This"
+                , "is"
+                , "the"
+                , "role"
+                , "of"
+                , "the"
+                , "graphic"
+                ]
+              , []
+              )
+              [ Str "Alternative"
+              , Space
+              , Str "text"
+              , Space
+              , Str "of"
+              , Space
+              , Str "the"
+              , Space
+              , Str "graphic"
+              ]
+              ( "https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+              , "This is the title of the graphic"
+              )
+              ]
           ]
         , test jats "bullet list" $
                             "<list list-type=\"bullet\">\n\

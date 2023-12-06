@@ -183,6 +183,10 @@ Automatic linking to "$":http://www.example.com.
 
 A link["with brackets":http://www.example.com]and no spaces.
 
+A "link":link-target to a named target
+
+A "link":missing to a missing target
+
 h1. Tables
 
 Textile allows tables with and without headers :
@@ -269,7 +273,7 @@ A note.[1]  Another note[2].
 fn1. The note
 is here!
 
-fn2. Other note.
+fn2^. Other note.
 
 h1. Comment blocks
 
@@ -277,3 +281,5 @@ h1. Comment blocks
 is here.
 
 not a comment.
+
+[link-target]ftp://example.com

@@ -34,7 +34,7 @@ import Text.Pandoc.Error (PandocError (PandocFilterError, PandocLuaError))
 runFilterFile :: FilePath -> Pandoc -> LuaE PandocError Pandoc
 runFilterFile filterPath doc = do
   oldtop <- gettop
-  stat <- dofileTrace filterPath
+  stat <- dofileTrace (Just filterPath)
   if stat /= Lua.OK
     then throwErrorAsException
     else do

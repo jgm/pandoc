@@ -11,7 +11,7 @@ release](https://img.shields.io/github/release/jgm/pandoc.svg?label=current+rele
 release](https://img.shields.io/hackage/v/pandoc.svg?label=hackage)](https://hackage.haskell.org/package/pandoc)
 [![homebrew](https://img.shields.io/homebrew/v/pandoc.svg)](https://formulae.brew.sh/formula/pandoc)
 [![stackage LTS
-package](https://stackage.org/package/pandoc/badge/lts)](https://www.stackage.org/lts/package/pandoc-types)
+package](https://stackage.org/package/pandoc/badge/lts)](https://www.stackage.org/lts/package/pandoc)
 [![CI
 tests](https://github.com/jgm/pandoc/workflows/CI%20tests/badge.svg)](https://github.com/jgm/pandoc/actions)
 [![license](https://img.shields.io/badge/license-GPLv2+-lightgray.svg)](https://www.gnu.org/licenses/gpl.html)
@@ -22,12 +22,16 @@ groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https
 
 Pandoc is a [Haskell](https://haskell.org) library for converting from
 one markup format to another, and a command-line tool that uses this
-library. It can convert *from*
+library.
+
+It can convert *from*
 
 <div id="input-formats">
 
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
+- `bits` ([BITS](https://jats.nlm.nih.gov/extensions/bits/) XML, alias
+  for `jats`)
 - `commonmark` ([CommonMark](https://commonmark.org) Markdown)
 - `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
   extensions)
@@ -88,11 +92,12 @@ library. It can convert *from*
 - `rst`
   ([reStructuredText](https://docutils.sourceforge.io/docs/ref/rst/introduction.html))
 - `t2t` ([txt2tags](https://txt2tags.org))
-- `textile` ([Textile](https://www.promptworks.com/textile))
+- `textile` ([Textile](https://textile-lang.com))
 - `tikiwiki` ([TikiWiki
   markup](https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax))
 - `twiki` ([TWiki
   markup](https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
+- `typst` ([typst](https://typst.app))
 - `vimwiki` ([Vimwiki](https://vimwiki.github.io))
 - the path of a custom Lua reader, see [Custom readers and
   writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
@@ -104,11 +109,16 @@ It can convert *to*
 
 <div id="output-formats">
 
-- `asciidoc` ([AsciiDoc](https://www.methods.co.nz/asciidoc/)) or
-  `asciidoctor` ([AsciiDoctor](https://asciidoctor.org/))
+- `asciidoc` (modern [AsciiDoc](https://www.methods.co.nz/asciidoc/) as
+  interpreted by [AsciiDoctor](https://asciidoctor.org/))
+- `asciidoc_legacy` ([AsciiDoc](https://www.methods.co.nz/asciidoc/) as
+  interpreted by
+  [`asciidoc-py`](https://github.com/asciidoc-py/asciidoc-py)).
+- `asciidoctor` (deprecated synonym for `asciidoc`)
 - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
+- `chunkedhtml` (zip archive of multiple linked HTML files)
 - `commonmark` ([CommonMark](https://commonmark.org) Markdown)
 - `commonmark_x` ([CommonMark](https://commonmark.org) Markdown with
   extensions)
@@ -183,7 +193,7 @@ It can convert *to*
 - `rtf` ([Rich Text
   Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
 - `texinfo` ([GNU Texinfo](https://www.gnu.org/software/texinfo/))
-- `textile` ([Textile](https://www.promptworks.com/textile))
+- `textile` ([Textile](https://textile-lang.com))
 - `slideous` ([Slideous](https://goessner.net/articles/slideous/) HTML
   and JavaScript slide show)
 - `slidy` ([Slidy](https://www.w3.org/Talks/Tools/Slidy2/) HTML and
@@ -195,6 +205,7 @@ It can convert *to*
 - `s5` ([S5](https://meyerweb.com/eric/tools/s5/) HTML and JavaScript
   slide show)
 - `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
+- `typst` ([typst](https://typst.app))
 - `xwiki` ([XWiki
   markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
 - `zimwiki` ([ZimWiki
@@ -252,7 +263,7 @@ opening a new issue.
 
 ## License
 
-© 2006-2022 John MacFarlane (jgm@berkeley.edu). Released under the
+© 2006-2023 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html "GNU General Public License"),
 version 2 or greater. This software carries no warranty of any kind.
 (See COPYRIGHT for full copyright and warranty notices.)

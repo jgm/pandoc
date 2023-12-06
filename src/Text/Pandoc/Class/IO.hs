@@ -32,11 +32,12 @@ module Text.Pandoc.Class.IO
   , readFileStrict
   , readStdinStrict
   , extractMedia
+  , writeMedia
  ) where
 
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.ByteString.Base64 (decodeBase64Lenient)
+import Data.ByteString.Base64 (decodeLenient)
 import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
@@ -49,7 +50,7 @@ import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (mkManagerSettings)
 import Network.HTTP.Types.Header ( hContentType )
 import Network.Socket (withSocketsDo)
-import Network.URI (unEscapeString)
+import Network.URI (URI(..), parseURI, unEscapeString)
 import System.Directory (createDirectoryIfMissing)
 import System.Environment (getEnv)
 import System.FilePath ((</>), takeDirectory, normalise)
@@ -121,11 +122,15 @@ newUniqueHash = hashUnique <$> liftIO Data.Unique.newUnique
 
 openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType)
 openURL u
- | Just u'' <- T.stripPrefix "data:" u = do
-     let mime     = T.takeWhile (/=',') u''
-     let contents = UTF8.fromString $
-                     unEscapeString $ T.unpack $ T.drop 1 $ T.dropWhile (/=',') u''
-     return (decodeBase64Lenient contents, Just mime)
+ | Just (URI{ uriScheme = "data:",
+              uriPath = upath }) <- parseURI (T.unpack u) = do
+     let (mimespec, rest) = break (== ',') $ unEscapeString upath
+     let contents = UTF8.fromString $ drop 1 rest
+     case break (== ';') (filter (/= ' ') mimespec) of
+       (mime, ";base64") ->
+         return (decodeLenient contents, Just (T.pack mime))
+       (mime, _) ->
+         return (contents, Just (T.pack mime))
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
@@ -223,8 +228,11 @@ writeMedia :: (PandocMonad m, MonadIO m)
            -> m ()
 writeMedia dir (fp, _mt, bs) = do
   -- we normalize to get proper path separators for the platform
+  -- we unescape URI encoding, but given how insertMedia
+  -- is written, we shouldn't have any % in a canonical media name...
   let fullpath = normalise $ dir </> unEscapeString fp
   liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
+  report $ Extracting (T.pack fullpath)
   logIOError $ BL.writeFile fullpath bs
 
 -- | If the given Inline element is an image with a @src@ path equal to

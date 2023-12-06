@@ -15,7 +15,8 @@ Conversion of 'Pandoc' documents to DocBook XML.
 module Text.Pandoc.Writers.DocBook ( writeDocBook4, writeDocBook5 ) where
 import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
-import Data.Maybe (isNothing, maybeToList)
+import Data.List (nub, partition)
+import Data.Maybe (isNothing)
 import Data.Monoid (All (..), Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -133,13 +134,15 @@ plainToPara x         = x
 -- | Convert a list of pairs of terms and definitions into a list of
 -- DocBook varlistentrys.
 deflistItemsToDocBook :: PandocMonad m
-                      => WriterOptions -> [([Inline],[[Block]])] -> DB m (Doc Text)
+                      => WriterOptions -> [([Inline],[[Block]])]
+                      -> DB m (Doc Text)
 deflistItemsToDocBook opts items =
   vcat <$> mapM (uncurry (deflistItemToDocBook opts)) items
 
 -- | Convert a term and a list of blocks into a DocBook varlistentry.
 deflistItemToDocBook :: PandocMonad m
-                     => WriterOptions -> [Inline] -> [[Block]] -> DB m (Doc Text)
+                     => WriterOptions -> [Inline] -> [[Block]]
+                     -> DB m (Doc Text)
 deflistItemToDocBook opts term defs = do
   term' <- inlinesToDocBook opts term
   def' <- blocksToDocBook opts $ concatMap (map plainToPara) defs
@@ -148,11 +151,13 @@ deflistItemToDocBook opts term defs = do
       inTagsIndented "listitem" def'
 
 -- | Convert a list of lists of blocks to a list of DocBook list items.
-listItemsToDocBook :: PandocMonad m => WriterOptions -> [[Block]] -> DB m (Doc Text)
+listItemsToDocBook :: PandocMonad m
+                   => WriterOptions -> [[Block]] -> DB m (Doc Text)
 listItemsToDocBook opts items = vcat <$> mapM (listItemToDocBook opts) items
 
 -- | Convert a list of blocks into a DocBook list item.
-listItemToDocBook :: PandocMonad m => WriterOptions -> [Block] -> DB m (Doc Text)
+listItemToDocBook :: PandocMonad m
+                  => WriterOptions -> [Block] -> DB m (Doc Text)
 listItemToDocBook opts item =
   inTagsIndented "listitem" <$> blocksToDocBook opts (map plainToPara item)
 
@@ -187,7 +192,8 @@ blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils :
       nsAttr = if version == DocBook5 && lvl == getStartLvl opts && isNothing (writerTemplate opts)
       -- Though, DocBook 4 does not support namespaces and
       -- standalone documents will include them in the template.
-                 then [("xmlns", "http://docbook.org/ns/docbook"),("xmlns:xlink", "http://www.w3.org/1999/xlink")]
+                 then [("xmlns", "http://docbook.org/ns/docbook")
+                      ,("xmlns:xlink", "http://www.w3.org/1999/xlink")]
                  else []
 
       -- Populate miscAttr with Header.Attr.attributes, filtering out non-valid DocBook section attributes, id, and xml:id
@@ -288,13 +294,15 @@ blockToDocBook _ b@(RawBlock f str)
                      version <- ask
                      if version == DocBook5
                         then return empty -- No html in DocBook5
-                        else return $ literal str -- allow html for backwards compatibility
+                        else return $ literal str -- allow html for backwards
+                                                  -- compatibility
   | otherwise      = do
       report $ BlockNotRendered b
       return empty
 blockToDocBook _ HorizontalRule = return empty -- not semantic
 blockToDocBook opts (Table _ blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  let (caption, aligns, widths, headers, rows) =
+        toLegacyTable blkCapt specs thead tbody tfoot
   captionDoc <- if null caption
                    then return empty
                    else inTagsSimple "title" <$>
@@ -452,7 +460,8 @@ inlineToDocBook opts (Link attr txt (src, _))
       (if "#" `T.isPrefixOf` src
             then let tag = if null txt then "xref" else "link"
                  in  inTags False tag $
-                     ("linkend", writerIdentifierPrefix opts <> T.drop 1 src) : idAndRole attr
+                     ("linkend", writerIdentifierPrefix opts <> T.drop 1 src) :
+                     idAndRole attr
             else if version == DocBook5
                     then inTags False "link" $ ("xlink:href", src) : idAndRole attr
                     else inTags False "ulink" $ ("url", src) : idAndRole attr )
@@ -486,9 +495,10 @@ idAndRole (id',cls,_) = ident <> role
 -- Used in blockToDocBook for Header (section) to create or extend
 -- the role attribute with candidate class tokens
 enrichRole :: [(Text, Text)] -> [Text] -> [(Text, Text)]
-enrichRole mattrs cls = [("role",rolevals) | rolevals /= ""]<>(filter (\x -> (fst x) /= "role") mattrs)
+enrichRole mattrs cls = [("role", T.unwords roles) | roles /= []] <> nonRole
   where
-    rolevals = T.unwords((filter (`elem` cand) cls)<>(maybeToList(lookup "role" mattrs)))
+    (roleAttr, nonRole) = partition (\(key, _v) -> key == "role") mattrs
+    roles = nub $ filter (`elem` cand) cls <> map snd roleAttr
     cand = ["unnumbered"]
 
 isSectionAttr :: DocBookVersion -> (Text, Text) -> Bool

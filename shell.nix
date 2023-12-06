@@ -17,6 +17,8 @@ let
     blaze-markup
     bytestring
     case-insensitive
+    cassava
+    commonmark
     citeproc
     commonmark
     commonmark-extensions
@@ -35,8 +37,8 @@ let
     Glob
     gridtables
     haddock-library
-    hslua
     hslua-aeson
+    hslua-list
     hslua-module-doclayout
     hslua-module-path
     hslua-module-system
@@ -49,9 +51,15 @@ let
     jira-wiki-markup
     JuicyPixels
     lpeg
+    lua
+    lua-arbitrary
+    lpeg
+    mime-types
     mtl
     network
     network-uri
+    Only
+    ordered-containers
     pandoc-lua-marshal
     pandoc-types
     parsec
@@ -59,12 +67,17 @@ let
     pretty-show
     process
     random
+    regex-tdfa
     safe
     scientific
     servant-server
     SHA
     skylighting
     skylighting-core
+    skylighting-format-latex
+    skylighting-format-context
+    skylighting-format-blaze-html
+    skylighting-format-ansi
     split
     syb
     tagsoup
@@ -83,6 +96,8 @@ let
     unicode-transforms
     unix
     wai
+    wai-app-static
+    wai-cors
     wai-extra
     warp
     xml
@@ -98,7 +113,6 @@ let
   nixPackages = [
     pkgs.zlib
     ghc
-    pkgs.gdb
     haskellPackages.ghcid
     haskellPackages.haskell-language-server
     haskellPackages.cabal2nix

@@ -539,7 +539,12 @@ blockToParagraphs (Div (_, classes, _) blks) = let
   in local addIncremental (concatMapM blockToParagraphs blks)
 blockToParagraphs (Figure attr capt blks) =
   blockToParagraphs (Shared.figureDiv attr capt blks)
-blockToParagraphs blk = do
+blockToParagraphs hr@HorizontalRule = notRendered hr
+blockToParagraphs tbl@Table{} = notRendered tbl
+
+-- | Report that a block cannot be rendered.
+notRendered :: Block -> Pres [Paragraph]
+notRendered blk = do
   addLogMessage $ BlockNotRendered blk
   return []
 
@@ -594,6 +599,7 @@ blockToShape (Para (il:_))  | Link _ (il':_) target <- il
       withAttr attr .
       Pic def{picPropLink = Just $ ExternalTarget target} (T.unpack url) title
       <$> inlinesToParElems ils
+blockToShape (Figure _figattr _caption [b]) = blockToShape b
 blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, algn, _, hdrCells, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlinesToParElems caption

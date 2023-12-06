@@ -2,7 +2,7 @@ version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
-DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.4.4
+DOCKERIMAGE=glcr.b-data.ch/ghc/ghc-musl:9.6
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
@@ -12,8 +12,8 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j4 +RTS -A8m -RTS
-CABALOPTS?=--disable-optimization
+GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j +RTS -A8m -RTS
+CABALOPTS?=--disable-optimization -f-export-dynamic
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
@@ -59,7 +59,7 @@ quick-stack: ## unoptimized build and tests with stack
 	  --system-ghc --flag 'pandoc:embed_data_files' \
 	  --fast \
 	  --test \
-	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
+	  --test-arguments='-j --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
 prerelease: README.md fix_spacing check-cabal check-stack checkdocs man uncommitted_changes ## prerelease checks
@@ -147,6 +147,8 @@ debpkg: ## create linux package
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \
 		   -e REVISION=$(REVISION) \
+       -e GHCOPTS="-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread" \
+       -e CABALOPTS="-f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4" \
 		   -w /mnt \
 		   --memory=0 \
 		   --rm \
@@ -161,8 +163,23 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--include-before-body man/pandoc.1.before \
 		--include-after-body man/pandoc.1.after \
 		--metadata author="" \
+    --variable section="1" \
+    --variable title="pandoc" \
+    --variable header='Pandoc User\[cq]s Guide' \
 		--variable footer="pandoc $(version)" \
 		-o $@
+
+man/%.1: doc/%.md
+	pandoc $< -f markdown -t man -s \
+		--lua-filter man/manfilter.lua \
+		--metadata author="" \
+    --variable section="1" \
+    --variable title="$(basename $(notdir $@))" \
+    --variable header='Pandoc User\[cq]s Guide' \
+		--variable footer="pandoc $(version)" \
+    --include-after-body man/pandoc.1.after \
+		-o $@
+
 
 man/pandoc-%.1: doc/pandoc-%.md
 	pandoc $< -f markdown -t man -s \
@@ -175,10 +192,11 @@ README.md: README.template MANUAL.txt tools/update-readme.lua
 	      --reference-location=section -t gfm $< -o $@
 
 doc/lua-filters.md: tools/update-lua-module-docs.lua  ## update lua-filters.md module docs
-	cabal run pandoc -- --standalone \
+	cabal run pandoc-cli -- \
+		--standalone \
 		--reference-links \
-		--lua-filter=$< \
 		--columns=66 \
+		--from=$< \
 		--output=$@ \
 		$@
 .PHONY: doc/lua-filters.md

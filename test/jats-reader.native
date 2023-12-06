@@ -8,6 +8,37 @@ Pandoc
                 , MetaInlines [ Str "Anonymous" ]
                 ]
             )
+          , ( "copyright"
+            , MetaMap
+                (fromList
+                   [ ( "holder" , MetaString "MacFarlane et al" )
+                   , ( "statement"
+                     , MetaString "\169 2023, MacFarlane et al"
+                     )
+                   , ( "year" , MetaString "2023" )
+                   ])
+            )
+          , ( "license"
+            , MetaMap
+                (fromList
+                   [ ( "link"
+                     , MetaString
+                         "https://creativecommons.org/licenses/by/4.0/"
+                     )
+                   , ( "text"
+                     , MetaString
+                         "This document is distributed under a Creative Commons Attribution 4.0 International license."
+                     )
+                   , ( "type" , MetaString "open-access" )
+                   ])
+            )
+          , ( "references"
+            , MetaList
+                [ MetaMap (fromList [ ( "id" , MetaString "note_1" ) ])
+                , MetaMap
+                    (fromList [ ( "id" , MetaString "note_longnote" ) ])
+                ]
+            )
           , ( "title"
             , MetaInlines
                 [ Str "Pandoc"
@@ -218,13 +249,31 @@ Pandoc
       , Space
       , Str "a"
       , Space
-      , Str "hard"
-      , Space
-      , Str "line"
-      , Space
-      , Str "break"
-      , LineBreak
+      , Strong
+          [ Str "hard"
+          , Space
+          , Str "line"
+          , Space
+          , Str "break"
+          , LineBreak
+          ]
       , Str "here."
+      ]
+  , Header 1 ( "statements" , [] , [] ) [ Str "Statements" ]
+  , Header
+      2 ( "" , [] , [] ) [ Str "CAP" , Space , Str "TITLE" ]
+  , Para
+      [ Str "Some"
+      , Space
+      , Str "text"
+      , Space
+      , Str "to"
+      , Space
+      , Str "make"
+      , Space
+      , Str "this"
+      , Space
+      , Str "regular"
       ]
   , Header
       1
@@ -349,6 +398,458 @@ Pandoc
       , Str "following"
       , Space
       , Str "paragraph."
+      ]
+  , Para
+      [ Str "Here"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "block"
+      , Space
+      , Str "quote"
+      , Space
+      , Str "inside"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph."
+      , Space
+      , Str "Start"
+      , Space
+      , Str "of"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph"
+      , Space
+      , Str "is"
+      , Space
+      , Str "here,"
+      , Space
+      , Str "and"
+      , Space
+      , Str "the"
+      , Space
+      , Str "quote"
+      , Space
+      , Str "is"
+      , Space
+      , Str "below:"
+      ]
+  , BlockQuote
+      [ Para
+          [ Str "My" , Space , Str "block" , Space , Str "quote" ]
+      ]
+  , Para
+      [ Str "End"
+      , Space
+      , Str "of"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph"
+      ]
+  , Header 1 ( "formulae" , [] , [] ) [ Str "Formulae" ]
+  , Header
+      2
+      ( "inline-formulae" , [] , [] )
+      [ Str "Inline"
+      , Space
+      , Str "formulae"
+      , Space
+      , Str "with"
+      , Space
+      , Emph [ Str "inline-formula" ]
+      ]
+  , Para
+      [ Strong
+          [ Str "Inside" , Space , Str "a" , Space , Str "paragraph" ]
+      , Str ","
+      , Space
+      , Str "should"
+      , Space
+      , Str "be"
+      , Space
+      , Str "natively"
+      , Space
+      , Str "coded"
+      , Space
+      , Str "inside"
+      , Space
+      , Str "the"
+      , Space
+      , Str "paragraph,"
+      , Space
+      , Str "and"
+      , Space
+      , Str "show"
+      , Space
+      , Str "inline:"
+      ]
+  , Para
+      [ Str "Einstein"
+      , Space
+      , Str "showed"
+      , Space
+      , Str "that"
+      , Space
+      , Math InlineMath "e=mc^2"
+      , Str "."
+      , SoftBreak
+      , Str "This"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "is"
+      , Space
+      , Str "important"
+      , Space
+      , Str "because\8230"
+      ]
+  , Header
+      2
+      ( "disp-formulae" , [] , [] )
+      [ Str "Block"
+      , Space
+      , Str "formulae"
+      , Space
+      , Str "with"
+      , Space
+      , Emph [ Str "disp-formula" ]
+      ]
+  , Para
+      [ Strong
+          [ Str "Inside" , Space , Str "a" , Space , Str "paragraph" ]
+      , Str ","
+      , Space
+      , Str "should"
+      , Space
+      , Str "be"
+      , Space
+      , Str "natively"
+      , Space
+      , Str "coded"
+      , Space
+      , Str "inside"
+      , Space
+      , Str "the"
+      , Space
+      , Str "pragraph,"
+      , Space
+      , Str "but"
+      , Space
+      , Str "show"
+      , Space
+      , Str "as"
+      , Space
+      , Str "block:"
+      ]
+  , Para
+      [ Str "Einstein"
+      , Space
+      , Str "showed"
+      , Space
+      , Str "that"
+      , Space
+      , Math DisplayMath "e=mc^2"
+      , Str "."
+      , SoftBreak
+      , Str "This"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "is"
+      , Space
+      , Str "important"
+      , Space
+      , Str "because\8230"
+      ]
+  , Para
+      [ Strong
+          [ Str "Outside" , Space , Str "a" , Space , Str "pararaph" ]
+      , Str ","
+      , Space
+      , Str "should"
+      , Space
+      , Str "show"
+      , Space
+      , Str "as"
+      , Space
+      , Str "block:"
+      ]
+  , Para
+      [ Str "Einstein"
+      , Space
+      , Str "showed"
+      , Space
+      , Str "that"
+      ]
+  , Div
+      ( "" , [ "disp-formula" ] , [] )
+      [ Para [ Math DisplayMath "e=mc^2" ] ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "is"
+      , Space
+      , Str "important"
+      , Space
+      , Str "because\8230"
+      ]
+  , Header
+      2
+      ( "no-formula-wrapper" , [] , [] )
+      [ Str "Without"
+      , Space
+      , Str "a"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "wrapper"
+      ]
+  , Para
+      [ Strong
+          [ Str "Inside" , Space , Str "a" , Space , Str "pragraph" ]
+      , Str ","
+      , Space
+      , Str "should"
+      , Space
+      , Str "show"
+      , Space
+      , Str "inline:"
+      ]
+  , Para
+      [ Str "Einstein"
+      , Space
+      , Str "showed"
+      , Space
+      , Str "that"
+      , Space
+      , Math InlineMath "e=mc^2"
+      , Str "."
+      , SoftBreak
+      , Str "This"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "is"
+      , Space
+      , Str "important"
+      , Space
+      , Str "because\8230"
+      ]
+  , Para
+      [ Strong
+          [ Str "Outside"
+          , Space
+          , Str "a"
+          , Space
+          , Str "paragraph"
+          ]
+      , Str ","
+      , Space
+      , Str "should"
+      , Space
+      , Str "show"
+      , Space
+      , Str "as"
+      , Space
+      , Str "block:"
+      ]
+  , Para
+      [ Str "Einstein"
+      , Space
+      , Str "showed"
+      , Space
+      , Str "that"
+      ]
+  , Para [ Math DisplayMath "e=mc^2" ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "is"
+      , Space
+      , Str "important"
+      , Space
+      , Str "because\8230"
+      ]
+  , Header
+      2
+      ( "misc-formulae" , [] , [] )
+      [ Str "Formulae"
+      , Space
+      , Str "with"
+      , Space
+      , Str "miscelaneus"
+      , Space
+      , Str "elements"
+      ]
+  , Para
+      [ Str "Regardless"
+      , Space
+      , Str "of"
+      , Space
+      , Str "whether"
+      , Space
+      , Str "or"
+      , Space
+      , Str "not"
+      , Space
+      , Str "they"
+      , Space
+      , Str "are"
+      , Space
+      , Str "inside"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph,"
+      , Space
+      , Str "should"
+      , Space
+      , Str "be"
+      , Space
+      , Str "wrapped"
+      , Space
+      , Str "in"
+      , Space
+      , Str "a"
+      , Space
+      , Str "div,"
+      , Space
+      , Str "and"
+      , Space
+      , Str "displayed"
+      , Space
+      , Str "in"
+      , Space
+      , Str "a"
+      , Space
+      , Str "block:"
+      ]
+  , Para
+      [ Strong
+          [ Str "Inside"
+          , Space
+          , Str "a"
+          , Space
+          , Str "paragraph:"
+          ]
+      ]
+  , Para
+      [ Str "Einstein"
+      , Space
+      , Str "definitely"
+      , Space
+      , Str "showed"
+      , Space
+      , Str "that"
+      ]
+  , Div
+      ( "" , [ "disp-formula" ] , [] )
+      [ Para [ Str "Abstract" , Space , Str "text" ]
+      , Para
+          [ Image
+              ( "graphic001"
+              , [ "This"
+                , "is"
+                , "the"
+                , "role"
+                , "of"
+                , "the"
+                , "graphic"
+                ]
+              , []
+              )
+              [ Str "Alternative"
+              , Space
+              , Str "text"
+              , Space
+              , Str "of"
+              , Space
+              , Str "the"
+              , Space
+              , Str "graphic"
+              ]
+              ( "https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+              , "This is the title of the graphic"
+              )
+          ]
+      , Para [ Math DisplayMath "e=mc^2" ]
+      ]
+  , Para
+      [ Str "."
+      , SoftBreak
+      , Str "This"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "is"
+      , Space
+      , Str "important"
+      , Space
+      , Str "because\8230"
+      ]
+  , Para
+      [ Strong
+          [ Str "Outside"
+          , Space
+          , Str "of"
+          , Space
+          , Str "a"
+          , Space
+          , Str "paragraph:"
+          ]
+      ]
+  , Para
+      [ Str "Paragraph"
+      , Space
+      , Str "before:"
+      , Space
+      , Str "Einstein"
+      , Space
+      , Str "showed"
+      , Space
+      , Str "that"
+      ]
+  , Div
+      ( "" , [ "disp-formula" ] , [] )
+      [ Para [ Str "Abstract" , Space , Str "text" ]
+      , Para
+          [ Image
+              ( "graphic003" , [] , [] )
+              [ Str "Alternative"
+              , Space
+              , Str "text"
+              , Space
+              , Str "1"
+              ]
+              ( "Title 3" , "" )
+          ]
+      , Para [ Math DisplayMath "e=mc^2" ]
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "formula"
+      , Space
+      , Str "is"
+      , Space
+      , Str "important"
+      , Space
+      , Str "because\8230"
+      ]
+  , Figure
+      ( "fig-1" , [] , [] )
+      (Caption Nothing [ Plain [ Str "bar" ] ])
+      [ Plain [ Str "alternative-decription" ]
+      , Para [ Image ( "" , [] , [] ) [] ( "foo.png" , "" ) ]
       ]
   , Header
       1
@@ -477,8 +978,18 @@ Pandoc
       , [ Para [ Str "Item" , Space , Str "3." ] ]
       ]
   , Para [ Str "List" , Space , Str "styles:" ]
-  , OrderedList ( 1 , DefaultStyle , DefaultDelim ) []
-  , OrderedList ( 1 , LowerRoman , DefaultDelim ) []
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "one" ] ]
+      , [ Para [ Str "two" ] ]
+      , [ Para [ Str "three" ] ]
+      ]
+  , OrderedList
+      ( 1 , LowerRoman , DefaultDelim )
+      [ [ Para [ Str "one" ] ]
+      , [ Para [ Str "two" ] ]
+      , [ Para [ Str "three" ] ]
+      ]
   , Header 2 ( "nested" , [] , [] ) [ Str "Nested" ]
   , BulletList
       [ [ Para [ Str "Tab" ]
@@ -637,7 +1148,10 @@ Pandoc
             ]
           ]
         )
-      , ( [ Str "Cello" , LineBreak , Str "Violoncello" ]
+      , ( [ Str "Cello"
+          , Strong [ LineBreak ]
+          , Str "Violoncello"
+          ]
         , [ [ Para
                 [ Str "Low-voiced"
                 , Space
@@ -649,6 +1163,30 @@ Pandoc
           ]
         )
       ]
+  , Header
+      2
+      ( "list-inside-paragraph" , [] , [] )
+      [ Str "List"
+      , Space
+      , Str "inside"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph"
+      ]
+  , Para
+      [ Str "Start"
+      , Space
+      , Str "of"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph."
+      ]
+  , BulletList
+      [ [ Para [ Str "Red" ] ] , [ Para [ Str "Blue" ] ] ]
+  , Para
+      [ Str "End" , Space , Str "of" , Space , Str "paragraph." ]
   , Header
       1
       ( "inline-markup" , [] , [] )
@@ -1835,726 +2373,774 @@ Pandoc
       , Space
       , Str "Headers"
       ]
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "r1a" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "r1b" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "r1c" ] ]
+                 ]
+             , Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead
-         ( "" , [] , [] )
-         [ Row
-             ( "" , [] , [] )
-             [ Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "X" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Y" ] ]
-             , Cell
-                 ( "" , [] , [] )
-                 AlignDefault
-                 (RowSpan 1)
-                 (ColSpan 1)
-                 [ Para [ Str "Z" ] ]
-             ]
-         ])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "X" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Y" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "Z" ] ]
+                 ]
+             ])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
   , Header
       2
       ( "tables-without-headers" , [] , [] )
@@ -2564,234 +3150,502 @@ Pandoc
       , Space
       , Str "Headers"
       ]
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead ( "" , [] , [] ) [])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead ( "" , [] , [] ) [])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead ( "" , [] , [] ) [])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
-  , Table
-      ( "" , [] , [] )
-      (Caption Nothing [])
-      [ ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      , ( AlignLeft , ColWidthDefault )
-      ]
-      (TableHead ( "" , [] , [] ) [])
-      [ TableBody
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
           ( "" , [] , [] )
-          (RowHeadColumns 0)
-          []
-          [ Row
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
               ( "" , [] , [] )
-              [ Cell
+              (RowHeadColumns 0)
+              []
+              [ Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "1" ] ]
-              , Cell
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              , Row
                   ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "2" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "5" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Para [ Str "6" ] ]
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
               ]
           ]
+          (TableFoot ( "" , [] , [] ) [])
       ]
-      (TableFoot ( "" , [] , [] ) [])
+  , Header
+      2
+      ( "table-with-spans-and-alignments" , [] , [] )
+      [ Str "Tables"
+      , Space
+      , Str "with"
+      , Space
+      , Str "spans"
+      , Space
+      , Str "and"
+      , Space
+      , Str "alignments"
+      ]
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 2)
+                     [ Para [ Str "1" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignRight
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "2" ] ]
+                 ]
+             ])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 2)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignLeft
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 2)
+                      (ColSpan 1)
+                      [ Para [ Str "4" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "6" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 2)
+                      [ Para [ Str "7" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
+  , Header
+      2
+      ( "table-with-footer" , [] , [] )
+      [ Str "Table" , Space , Str "with" , Space , Str "footer" ]
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot
+             ( "" , [] , [] )
+             [ Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignRight
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "f1" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "f2" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "f3" ] ]
+                 ]
+             , Row
+                 ( "" , [] , [] )
+                 [ Cell
+                     ( "" , [] , [] )
+                     AlignRight
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "f4" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "f5" ] ]
+                 , Cell
+                     ( "" , [] , [] )
+                     AlignDefault
+                     (RowSpan 1)
+                     (ColSpan 1)
+                     [ Para [ Str "f6" ] ]
+                 ]
+             ])
+      ]
+  , Header
+      2
+      ( "table-with-multiple-bodies" , [] , [] )
+      [ Str "Table"
+      , Space
+      , Str "With"
+      , Space
+      , Str "Multiple"
+      , Space
+      , Str "Bodies"
+      ]
+  , Div
+      ( "" , [ "table-wrap" ] , [] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          , ( AlignLeft , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignRight
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "a1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "a2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "a3" ] ]
+                  ]
+              ]
+          , TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "b1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "b2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "b3" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
   , Header
       2
       ( "empty-tables" , [] , [] )
@@ -2807,4 +3661,8 @@ Pandoc
       , Space
       , Str "empty."
       ]
+  , Header 1 ( "" , [] , [] ) [ Str "References" ]
+  , Div ( "refs" , [] , [] ) []
+  , Header 1 ( "" , [] , [] ) [ Str "Notes" ]
+  , Div ( "refs" , [] , [] ) []
   ]

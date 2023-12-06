@@ -75,7 +75,6 @@ pandocToMan opts (Pandoc meta blocks) = do
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
-              $ defField "hyphenate" True
                 metadata
   return $ render colwidth $
     case writerTemplate opts of
@@ -132,14 +131,12 @@ blockToMan opts (Header level _ inlines) = do
   return $ nowrap $ literal heading <> contents
 blockToMan opts (CodeBlock _ str) = return $
   literal ".IP" $$
-  literal ".nf" $$
-  literal "\\f[C]" $$
+  literal ".EX" $$
   ((case T.uncons str of
     Just ('.',_) -> literal "\\&"
     _            -> mempty) <>
    literal (escString opts str)) $$
-  literal "\\f[R]" $$
-  literal ".fi"
+  literal ".EE"
 blockToMan opts (BlockQuote blocks) = do
   contents <- blockListToMan opts blocks
   return $ literal ".RS" $$ contents $$ literal ".RE"
@@ -257,7 +254,13 @@ blockListToMan :: PandocMonad m
                -> [Block]       -- ^ List of block elements
                -> StateT WriterState m (Doc Text)
 blockListToMan opts blocks =
-  vcat <$> mapM (blockToMan opts) blocks
+  vcat <$> mapM (blockToMan opts) (go blocks)
+ where
+   -- Avoid .PP right after .SH; this is a no-op in groff man and mandoc
+   -- but may cause unwanted extra space in some renderers (see #9020)
+   go [] = []
+   go (h@Header{} : Para ils : rest) = h : Plain ils : go rest
+   go (x : xs) = x : go xs
 
 -- | Convert list of Pandoc inline elements to man.
 inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m (Doc Text)
@@ -292,8 +295,7 @@ inlineToMan opts (Quoted DoubleQuote lst) = do
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan opts (Code _ str) =
-  -- note that the V font is specially defined in the default man template
-  withFontFeature 'V' (return (literal $ escString opts str))
+  withFontFeature 'C' (return (literal $ escString opts str))
 inlineToMan opts (Str str@(T.uncons -> Just ('.',_))) =
   return $ afterBreak "\\&" <> literal (escString opts str)
 inlineToMan opts (Str str) = return $ literal $ escString opts str
@@ -309,18 +311,22 @@ inlineToMan _ il@(RawInline f str)
       return empty
 inlineToMan _ LineBreak = return $
   cr <> literal ".PD 0" $$ literal ".P" $$ literal ".PD" <> cr
-inlineToMan _ SoftBreak = return space
-inlineToMan _ Space = return space
+inlineToMan _ SoftBreak = return $ afterBreak "\\" <> space
+inlineToMan _ Space = return $ afterBreak "\\" <> space
 inlineToMan opts (Link _ txt (src, _))
   | not (isURI src) = inlineListToMan opts txt -- skip relative links
   | otherwise       = do
-  linktext <- inlineListToMan opts txt
   let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
-  return $ case txt of
-           [Str s]
-             | escapeURI s == srcSuffix ->
-                                 char '<' <> literal srcSuffix <> char '>'
-           _                  -> linktext <> literal " (" <> literal src <> char ')'
+  linktext <- case txt of
+                [Str s] | escapeURI s == srcSuffix -> pure mempty
+                _ -> inlineListToMan opts txt
+  let (start, end) = if "mailto:" `T.isPrefixOf` src
+                        then (".MT", ".ME")
+                        else (".UR", ".UE")
+  return $ "\\c" <> cr -- \c avoids extra space
+        $$ (start <+> literal srcSuffix)
+        $$ linktext
+        $$ (end <+> "\\c" <> cr)  -- \c avoids space after
 inlineToMan opts (Image attr alternate (source, tit)) = do
   let txt = if null alternate || (alternate == [Str ""]) ||
                (alternate == [Str source]) -- to prevent autolinks

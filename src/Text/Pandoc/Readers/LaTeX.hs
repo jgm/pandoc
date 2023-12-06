@@ -61,7 +61,8 @@ import Text.Pandoc.Readers.LaTeX.Table (tableEnvironments)
 import Text.Pandoc.Readers.LaTeX.Macro (macroDef)
 import Text.Pandoc.Readers.LaTeX.Lang (inlineLanguageCommands,
                                        enquoteCommands,
-                                       babelLangToBCP47, setDefaultLanguage)
+                                       babelLangToBCP47,
+                                       setDefaultLanguage)
 import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
 import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
                                          nameCommands, charCommands,
@@ -213,7 +214,7 @@ mkImage options (T.unpack -> src) = do
    let kvs = map replaceTextwidth
              $ filter (\(k,_) -> k `elem` ["width", "height"]) options
    let attr = ("",[], kvs)
-   let alt = str "image"
+   let alt = maybe (str "image") str $ lookup "alt" options
    defaultExt <- getOption readerDefaultImageExtension
    let exts' = [".pdf", ".png", ".jpg", ".mps", ".jpeg", ".jbig2", ".jb2"]
    let exts  = exts' ++ map (map toUpper) exts'
@@ -1045,7 +1046,23 @@ environments = M.union (tableEnvironments blocks inline) $
    , ("togglefalse", braced >>= setToggle False)
    , ("iftoggle", try $ ifToggle >> block)
    , ("CSLReferences", braced >> braced >> env "CSLReferences" blocks)
+   , ("otherlanguage", env "otherlanguage" otherlanguageEnv)
    ]
+
+otherlanguageEnv :: PandocMonad m => LP m Blocks
+otherlanguageEnv = do
+  skipopts
+  babelLang <- untokenize <$> braced
+  case babelLangToBCP47 babelLang of
+    Just lang -> divWith ("", [], [("lang", renderLang lang)]) <$> blocks
+    Nothing -> blocks
+
+langEnvironment :: PandocMonad m => Text -> LP m Blocks
+langEnvironment name =
+  case babelLangToBCP47 name of
+    Just lang ->
+      env name (divWith ("", [], [("lang", renderLang lang)]) <$> blocks)
+    Nothing -> mzero -- fall through to raw environment
 
 filecontents :: PandocMonad m => LP m Blocks
 filecontents = try $ do
@@ -1064,6 +1081,7 @@ environment = try $ do
   controlSeq "begin"
   name <- untokenize <$> braced
   M.findWithDefault mzero name environments <|>
+    langEnvironment name <|>
     theoremEnvironment blocks opt name <|>
     if M.member name (inlineEnvironments
                        :: M.Map Text (LP PandocPure Inlines))
@@ -1171,9 +1189,7 @@ figure' = try $ do
   innerContent <- many $ try (Left <$> label) <|> (Right <$> block)
   let content = walk go $ mconcat $ snd $ partitionEithers innerContent
   st <- getState
-  let caption' = case sCaption st of
-                   Nothing   -> B.emptyCaption
-                   Just capt -> capt
+  let caption' = fromMaybe B.emptyCaption $ sCaption st
   let mblabel  = sLastLabel st
   let attr     = case mblabel of
                    Just lab -> (lab, [], [])
@@ -1190,7 +1206,7 @@ figure' = try $ do
 
   where
   -- Remove the `Image` caption b.c. it's on the `Figure`
-  go (Para [Image attr _ target]) = Plain [Image attr [] target]
+  go (Para [Image attr [Str "image"] target]) = Plain [Image attr [] target]
   go x = x
 
 coloredBlock :: PandocMonad m => Text -> LP m Blocks

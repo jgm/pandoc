@@ -64,7 +64,7 @@
   \newenvironment{RTL}{\beginR}{\endR}
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
@@ -77,8 +77,7 @@
 
 \begin{document}
 
-\hypertarget{empty-divs-and-spans}{%
-\section{Empty Divs and Spans}\label{empty-divs-and-spans}}
+\section{Empty Divs and Spans}\label{empty-divs-and-spans}
 
 Some text and
 
@@ -88,8 +87,7 @@ and more text.
 
 Next paragraph with a {span} and a word-thatincludesa{span}right?
 
-\hypertarget{directionality}{%
-\section{Directionality}\label{directionality}}
+\section{Directionality}\label{directionality}
 
 Some text and
 
@@ -106,8 +104,7 @@ and a ltr div. with a \RL{rtl span}.
 Next paragraph with a \RL{rtl span} and a
 word-that-includesa\LR{ltrspan}right?
 
-\hypertarget{languages}{%
-\section{Languages}\label{languages}}
+\section{Languages}\label{languages}
 
 Some text and
 
@@ -125,8 +122,7 @@ span}right?
 
 Some \foreignlanguage{spanish}{Spanish text}.
 
-\hypertarget{combined}{%
-\section{Combined}\label{combined}}
+\section{Combined}\label{combined}
 
 Some text and
 

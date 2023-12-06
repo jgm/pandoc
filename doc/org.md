@@ -10,7 +10,10 @@ not possible or just not the case yet.
 Export options
 ==============
 
-The following export keywords are supported:
+The following export keywords are supported. (Because they
+populate metadata fields, they will not generally affect the
+output unless you use the `-s/--standalone` option to generate
+a standalone document with metadata.)
 
 - AUTHOR: comma-separated list of author(s); fully supported.
 
@@ -205,8 +208,8 @@ the variable `org-emphasis-regexp-components`. A variable like
 this doesn't fit well with pandoc's model. Instead, it is
 possible to use special lines to change these values:
 
-    #+pandoc-emphasis-pre: "-\t ('\"{"
-    #+pandoc-emphasis-post: "-\t\n .,:!?;'\")}["
+    #+pandoc-emphasis-pre: "-\t ('\"{\x200B"
+    #+pandoc-emphasis-post: "-\t\n .,:!?;'\")}[\x200B"
 
 The above describes the default values of these variables. The
 arguments must be valid (Haskell) strings. If interpretation of

@@ -259,7 +259,7 @@ writeHtml' st opts d =
        Just _ -> preEscapedText <$> writeHtmlString' st opts d
        Nothing
          | writerPreferAscii opts
-            -> preEscapedText <$> writeHtmlString' st opts d
+           -> preEscapedText <$> writeHtmlString' st opts d
          | otherwise -> do
             (body, _) <- evalStateT (pandocToHtml opts d) st
             return body
@@ -270,6 +270,7 @@ pandocToHtml :: PandocMonad m
              -> Pandoc
              -> StateT WriterState m (Html, Context Text)
 pandocToHtml opts (Pandoc meta blocks) = do
+  lift $ setupTranslations meta
   let slideLevel = fromMaybe (getSlideLevel blocks) $ writerSlideLevel opts
   modify $ \st -> st{ stSlideLevel = slideLevel }
   metadata <- metaToContext opts
@@ -298,7 +299,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
     if null (stNotes st)
       then return mempty
       else do
-        notes <- footnoteSection EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
+        notes <- footnoteSection opts EndOfDocument (stEmittedNotes st + 1) (reverse (stNotes st))
         modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
         return notes
   st <- get
@@ -355,7 +356,6 @@ pandocToHtml opts (Pandoc meta blocks) = do
                       then defField "csl-css" True .
                            (case stCslEntrySpacing st of
                               Nothing -> id
-                              Just 0  -> id
                               Just n  ->
                                 defField "csl-entry-spacing"
                                   (literal $ tshow n <> "em"))
@@ -497,10 +497,12 @@ listItemToHtml opts bls
       let checkbox  = if checked
                       then checkbox' ! A.checked ""
                       else checkbox'
-          checkbox' = H.input ! A.type_ "checkbox" ! A.disabled ""
+          checkbox' = H.input ! A.type_ "checkbox"
       isContents <- inlineListToHtml opts is
       bsContents <- blockListToHtml opts bs
-      return $ constr (checkbox >> isContents) >> bsContents
+      return $ constr (H.label (checkbox >> isContents)) >>
+               (if null bs then mempty else nl) >>
+               bsContents
 
 -- | Construct table of contents from list of elements.
 tableOfContents :: PandocMonad m => WriterOptions -> [Block]
@@ -521,8 +523,8 @@ tableOfContents opts sects = do
 -- | Convert list of Note blocks to a footnote <div>.
 -- Assumes notes are sorted.
 footnoteSection ::
-  PandocMonad m => ReferenceLocation -> Int -> [Html] -> StateT WriterState m Html
-footnoteSection refLocation startCounter notes = do
+  PandocMonad m => WriterOptions -> ReferenceLocation -> Int -> [Html] -> StateT WriterState m Html
+footnoteSection opts refLocation startCounter notes = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
   let hrtag = if refLocation /= EndOfBlock
@@ -540,9 +542,16 @@ footnoteSection refLocation startCounter notes = do
                 = H5.section ! A.id "footnotes"
                              ! A.class_ className
                              ! customAttribute "epub:type" "footnotes" $ x
-        | html5 = H5.section ! A5.id "footnotes"
+        | html5
+        , refLocation == EndOfDocument
+        -- Note: we need a section for a new slide in slide formats.
+                = H5.section ! A5.id "footnotes"
                              ! A5.class_ className
                              ! A5.role "doc-endnotes"
+                             $ x
+        | html5 = H5.aside   ! prefixedId opts "footnotes"
+                             ! A5.class_ className
+                             ! A5.role "doc-footnote"
                              $ x
         | slideVariant /= NoSlides = H.div ! A.class_ "footnotes slide" $ x
         | otherwise = H.div ! A.class_ className $ x
@@ -556,11 +565,12 @@ footnoteSection refLocation startCounter notes = do
            hrtag
            -- Keep the previous output exactly the same if we don't
            -- have multiple notes sections
-           if startCounter == 1
-             then H.ol $ mconcat notes >> nl
-             else H.ol ! A.start (fromString (show startCounter)) $
-                         mconcat notes >> nl
-           nl
+           case epubVersion of
+             Just _ -> mconcat notes
+             Nothing | startCounter == 1 ->
+               (H.ol (nl >> mconcat notes)) >> nl
+             Nothing -> (H.ol ! A.start (fromString (show startCounter)) $
+                         nl >> mconcat notes) >> nl
 
 -- | Parse a mailto link; return Just (name, domain) or Nothing.
 parseMailto :: Text -> Maybe (Text, Text)
@@ -674,7 +684,7 @@ attrsToHtml :: PandocMonad m
             => WriterOptions -> Attr -> StateT WriterState m [Attribute]
 attrsToHtml opts (id',classes',keyvals) = do
   attrs <- toAttrs keyvals
-  let classes'' = filter (not . T.null) classes'
+  let classes'' = nubOrd $ filter (not . T.null) classes'
   return $
     [prefixedId opts id' | not (T.null id')] ++
     [A.class_ (toValue $ T.unwords classes'') | not (null classes'')] ++ attrs
@@ -739,12 +749,9 @@ blockToHtmlInner opts (Para lst) = do
       case contents of
         Empty _ | not (isEnabled Ext_empty_paragraphs opts) -> return mempty
         _ -> return $ H.p contents
-blockToHtmlInner opts (LineBlock lns) =
-  if writerWrapText opts == WrapNone
-  then blockToHtml opts $ linesToPara lns
-  else do
-    htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
-    return $ H.div ! A.class_ "line-block" $ htmlLines
+blockToHtmlInner opts (LineBlock lns) = do
+  htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
+  return $ H.div ! A.class_ "line-block" $ htmlLines
 blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
                    (Header level
                      hattr@(hident,hclasses,hkvs) ils : xs)) = do
@@ -791,9 +798,19 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
     modify $ \st -> st{ stInSection = True }
     res <- blockListToHtml opts innerSecs
     modify $ \st -> st{ stInSection = inSection }
-    return res
-  let classes' = nubOrd $
-                  ["title-slide" | titleSlide] ++ ["slide" | slide] ++
+    notes <- gets stNotes
+    let emitNotes = writerReferenceLocation opts == EndOfSection &&
+                     not (null notes)
+    if emitNotes
+      then do
+        st <- get
+        renderedNotes <- footnoteSection opts (writerReferenceLocation opts)
+                           (stEmittedNotes st + 1) (reverse notes)
+        modify (\st' -> st'{ stNotes = mempty,
+                             stEmittedNotes = stEmittedNotes st' + length notes })
+        return (res <> renderedNotes)
+      else return res
+  let classes' = ["title-slide" | titleSlide] ++ ["slide" | slide] ++
                   ["section" | (slide || writerSectionDivs opts) &&
                                not html5 ] ++
                   ["level" <> tshow level | slide || writerSectionDivs opts ]
@@ -1052,8 +1069,6 @@ blockToHtmlInner opts (Figure attrs (Caption _ captBody)  body) = do
 -- the block if necessary.
 blockToHtml :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
 blockToHtml opts block = do
-  -- Ignore inserted section divs -- they are not blocks as they came from
-  -- the document itself (at least not when coming from markdown)
   let isSection = case block of
         Div (_, classes, _) _ | "section" `elem` classes -> True
         _ -> False
@@ -1063,13 +1078,13 @@ blockToHtml opts block = do
   doc <- blockToHtmlInner opts block
   st <- get
   let emitNotes =
-        (writerReferenceLocation opts == EndOfBlock && stBlockLevel st == 1) ||
-        (writerReferenceLocation opts == EndOfSection && isSection)
+        writerReferenceLocation opts == EndOfBlock && stBlockLevel st == 1
   res <- if emitNotes
     then do
       notes <- if null (stNotes st)
         then return mempty
-        else footnoteSection (writerReferenceLocation opts) (stEmittedNotes st + 1) (reverse (stNotes st))
+        else footnoteSection opts (writerReferenceLocation opts)
+                             (stEmittedNotes st + 1) (reverse (stNotes st))
       modify (\st' -> st'{ stNotes = mempty, stEmittedNotes = stEmittedNotes st' + length (stNotes st') })
       return (doc <> notes)
     else return doc
@@ -1557,7 +1572,8 @@ inlineToHtml opts inline = do
                                             else alternate
                               in (tg $ H.a ! A.href (toValue s) $ toHtml linkTxt
                                  , [A5.controls ""] )
-                            normSrc = maybe (T.unpack s) uriPath (parseURIReference $ T.unpack s)
+                            s' = fromMaybe s $ T.stripSuffix ".gz" s
+                            normSrc = maybe (T.unpack s) uriPath (parseURIReference $ T.unpack s')
                             (tag, specAttrs) = case mediaCategory normSrc of
                               Just "image" -> imageTag
                               Just "video" -> mediaTag H5.video "Video"
@@ -1609,36 +1625,51 @@ blockListToNote :: PandocMonad m
                 => WriterOptions -> Text -> [Block]
                 -> StateT WriterState m Html
 blockListToNote opts ref blocks = do
-  html5 <- gets stHtml5
-  -- If last block is Para or Plain, include the backlink at the end of
-  -- that block. Otherwise, insert a new Plain block with the backlink.
-  let kvs = [("role","doc-backlink") | html5]
-  let backlink = [Link ("",["footnote-back"],kvs)
-                    [Str "↩"] ("#" <> "fnref" <> ref,"")]
-  let blocks'  = if null blocks
-                    then []
-                    else let lastBlock   = last blocks
-                             otherBlocks = init blocks
-                         in  case lastBlock of
-                                  Para [Image (_,cls,_) _ (_,tit)]
-                                      | "fig:" `T.isPrefixOf` tit
-                                        || "r-stretch" `elem` cls
-                                            -> otherBlocks ++ [lastBlock,
-                                                  Plain backlink]
-                                  Para lst  -> otherBlocks ++
-                                                 [Para (lst ++ backlink)]
-                                  Plain lst -> otherBlocks ++
-                                                 [Plain (lst ++ backlink)]
-                                  _         -> otherBlocks ++ [lastBlock,
-                                                 Plain backlink]
-  contents <- blockListToHtml opts blocks'
-  let noteItem = H.li ! prefixedId opts ("fn" <> ref) $ contents
   epubVersion <- gets stEPUBVersion
-  let noteItem' = case epubVersion of
-                       Just EPUB3 -> noteItem !
-                                       customAttribute "epub:type" "footnote"
-                       _          -> noteItem
-  return $ nl >> noteItem'
+  html5 <- gets stHtml5
+  case epubVersion of
+    Nothing -> do -- web page
+      -- If last block is Para or Plain, include the backlink at the end of
+      -- that block. Otherwise, insert a new Plain block with the backlink.
+      let kvs = [("role","doc-backlink") | html5]
+      let backlink = [Link ("",["footnote-back"],kvs)
+                        [Str "↩"] ("#" <> "fnref" <> ref,"")]
+      let blocks'  = if null blocks
+                        then []
+                        else let lastBlock   = last blocks
+                                 otherBlocks = init blocks
+                             in  case lastBlock of
+                                      Para [Image (_,cls,_) _ (_,tit)]
+                                          | "fig:" `T.isPrefixOf` tit
+                                            || "r-stretch" `elem` cls
+                                                -> otherBlocks ++ [lastBlock,
+                                                      Plain backlink]
+                                      Para lst  -> otherBlocks ++
+                                                     [Para (lst ++ backlink)]
+                                      Plain lst -> otherBlocks ++
+                                                     [Plain (lst ++ backlink)]
+                                      _         -> otherBlocks ++ [lastBlock,
+                                                     Plain backlink]
+      contents <- blockListToHtml opts blocks'
+      let noteItem = H.li ! prefixedId opts ("fn" <> ref) $ contents
+      return $ noteItem >> nl
+    Just epubv -> do
+      let kvs = [("role","doc-backlink") | html5]
+      let backlink = Link ("",["footnote-back"],kvs)
+                        [Str ref] ("#" <> "fnref" <> ref,"")
+      let blocks' =
+           case blocks of
+             (Para ils : rest) ->
+                Para (backlink : Str "." : Space : ils) : rest
+             (Plain ils : rest) ->
+                Plain (backlink : Str "." : Space : ils) : rest
+             _ -> Para [backlink , Str "."] : blocks
+      contents <- blockListToHtml opts blocks'
+      let noteItem = (if epubv == EPUB3
+                         then H5.aside ! customAttribute "epub:type" "footnote"
+                         else H.div) ! prefixedId opts ("fn" <> ref)
+                      $ nl >> contents >> nl
+      return $ noteItem >> nl
 
 inDiv :: PandocMonad m=> Text -> Html -> StateT WriterState m Html
 inDiv cls x = do
@@ -1700,11 +1731,20 @@ intrinsicEventsHTML4 =
   [ "onclick", "ondblclick", "onmousedown", "onmouseup", "onmouseover"
   , "onmouseout", "onmouseout", "onkeypress", "onkeydown", "onkeyup"]
 
+
+-- | Check to see if Format is valid HTML
 isRawHtml :: PandocMonad m => Format -> StateT WriterState m Bool
 isRawHtml f = do
   html5 <- gets stHtml5
   return $ f == Format "html" ||
-           ((html5 && f == Format "html5") || f == Format "html4")
+           ((html5 && f == Format "html5") || f == Format "html4") ||
+           isSlideVariant f
+
+-- | Check to see if Format matches with an HTML slide variant
+isSlideVariant :: Format -> Bool
+isSlideVariant f = f `elem` [Format "s5", Format "slidy", Format "slideous",
+                             Format "dzslides", Format "revealjs"]
+
 
 -- We need to remove links from link text, because an <a> element is
 -- not allowed inside another <a> element.

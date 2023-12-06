@@ -15,20 +15,20 @@ Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Arrow ((***), (>>>))
-import Control.Monad (unless, liftM)
+import Control.Monad (unless, liftM, MonadPlus(mplus))
 import Control.Monad.State.Strict ( StateT(..), modify, gets, lift )
 import Data.Char (chr)
 import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (isNothing)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Collate.Lang (Lang (..), parseLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
-import Text.Pandoc.Translations (translateTerm, setTranslations)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
@@ -45,6 +45,7 @@ import Text.Pandoc.XML
 import Text.Printf (printf)
 import Text.Pandoc.Highlighting (highlight)
 import Skylighting
+import qualified Data.Map as M
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -237,11 +238,7 @@ handleSpaces s = case T.uncons s of
 -- | Convert Pandoc document to string in OpenDocument format.
 writeOpenDocument :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeOpenDocument opts (Pandoc meta blocks) = do
-  let defLang = Lang "en" (Just "US") Nothing [] [] []
-  lang <- case lookupMetaString "lang" meta of
-            "" -> pure defLang
-            s  -> fromMaybe defLang <$> toLang (Just s)
-  setTranslations lang
+  setupTranslations meta
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
@@ -259,7 +256,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                collectBlockIdent _                             = []
            modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks }
            m <- metaToContext opts
-                  (blocksToOpenDocument opts)
+                  (inlinesToOpenDocument opts . blocksToInlines)
                   (fmap chomp . inlinesToOpenDocument opts)
                   meta'
            b <- blocksToOpenDocument opts blocks
@@ -271,9 +268,11 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                           [("style:name", "L" <> tshow n)] (vcat l)
   let listStyles  = map listStyle (stListStyles s)
   let automaticStyles = vcat $ reverse $ styles ++ listStyles
+  let highlightingStyles = maybe mempty styleToOpenDocument (writerHighlightStyle opts)
   let context = defField "body" body
               . defField "toc" (writerTableOfContents opts)
               . defField "toc-depth" (tshow $ writerTOCDepth opts)
+              . defField "highlighting-styles" highlightingStyles
               . defField "automatic-styles" automaticStyles
               $ metadata
   return $ render colwidth $
@@ -289,10 +288,10 @@ withParagraphStyle  o s (b:bs)
     where go i = (<>) i <$>  withParagraphStyle o s bs
 withParagraphStyle _ _ [] = return empty
 
-inPreformattedTags :: PandocMonad m => Text -> OD m (Doc Text)
+inPreformattedTags :: PandocMonad m => [Doc Text] -> OD m (Doc Text)
 inPreformattedTags s = do
   n <- paraStyle [("style:parent-style-name","Preformatted_20_Text")]
-  return . inParagraphTagsWithStyle ("P" <> tshow n) . handleSpaces $ s
+  return $ inParagraphTagsWithStyle ("P" <> tshow n) $ hcat s
 
 orderedListToOpenDocument :: PandocMonad m
                           => WriterOptions -> Int -> [[Block]] -> OD m (Doc Text)
@@ -389,7 +388,17 @@ blockToOpenDocument o = \case
     DefinitionList b -> setFirstPara >> defList b
     BulletList     b -> setFirstPara >> bulletListToOpenDocument o b
     OrderedList  a b -> setFirstPara >> orderedList a b
-    CodeBlock    _ s -> setFirstPara >> preformatted s
+    CodeBlock attrs s -> do
+      setFirstPara
+      if isNothing (writerHighlightStyle o)
+         then unhighlighted s
+         else case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
+                Right h  -> return $ flush . vcat $ map (inTags True "text:p"
+                                          [("text:style-name",
+                                            "Preformatted_20_Text")] . hcat) h
+                Left msg -> do
+                  unless (T.null msg) $ report $ CouldNotHighlight msg
+                  unhighlighted s
     Table a bc s th tb tf -> setFirstPara >> table (Ann.toTable a bc s th tb tf)
     HorizontalRule   -> setFirstPara >> return (selfClosingTag "text:p"
                          [ ("text:style-name", "Horizontal_20_Line") ])
@@ -402,7 +411,8 @@ blockToOpenDocument o = \case
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
                            setInDefinitionList False
                            return r
-      preformatted  s = flush . vcat <$> mapM (inPreformattedTags . escapeStringForXML) (T.lines s)
+      unhighlighted s = flush . vcat <$>
+            (mapM (inPreformattedTags . (:[])) (map preformatted (T.lines s)))
       mkDiv    attr s = do
         let (ident,_,kvs) = attr
             i = withLangFromAttr attr $
@@ -446,7 +456,7 @@ blockToOpenDocument o = \case
                                 then numberedTableCaption ident
                                 else unNumberedCaption "TableCaption"
         th <- colHeadsToOpenDocument o (map fst paraHStyles) thead
-        tr <- mapM (tableBodyToOpenDocument o (map fst paraStyles)) tbodies
+        tr <- mapM (tableBodyToOpenDocument o (map fst paraHStyles) (map fst paraStyles)) tbodies
         let tableDoc = inTags True "table:table" [
                             ("table:name"      , name)
                           , ("table:style-name", name)
@@ -510,19 +520,21 @@ colHeadsToOpenDocument o ns (Ann.TableHead _ hs) =
         vcat <$> mapM (tableItemToOpenDocument o "TableHeaderRowCell") (zip ns c)
 
 tableBodyToOpenDocument:: PandocMonad m
-                       => WriterOptions -> [Text] -> Ann.TableBody
+                       => WriterOptions -> [Text] -> [Text] -> Ann.TableBody
                        -> OD m (Doc Text)
-tableBodyToOpenDocument o ns tb =
+tableBodyToOpenDocument o headns bodyns tb =
     let (Ann.TableBody _ _ _ r) = tb
-    in vcat <$> mapM (tableRowToOpenDocument o ns) r
+    in vcat <$> mapM (tableRowToOpenDocument o headns bodyns) r
 
 tableRowToOpenDocument :: PandocMonad m
-                       => WriterOptions -> [Text] -> Ann.BodyRow
+                       => WriterOptions -> [Text] -> [Text] -> Ann.BodyRow
                        -> OD m (Doc Text)
-tableRowToOpenDocument o ns r =
-    let (Ann.BodyRow _ _ _ c ) = r
+
+tableRowToOpenDocument o headns bodyns r =
+    let (Ann.BodyRow _ _ rowheaders cs) = r
     in inTagsIndented "table:table-row" . vcat <$>
-    mapM (tableItemToOpenDocument o "TableRowCell") (zip ns c)
+    mapM (tableItemToOpenDocument o "TableRowCell")
+        ((zip headns rowheaders) ++ (zip (drop (length rowheaders) bodyns) cs))
 
 colspanAttrib :: ColSpan -> [(Text, Text)]
 colspanAttrib cs =
@@ -596,6 +608,9 @@ inlineToOpenDocument o ils
      | writerWrapText o == WrapPreserve
                   -> return $ preformatted "\n"
      | otherwise  -> return space
+    Span ("", ["mark"], []) xs ->
+      inTags False "text:span" [("text:style-name","Highlighted")] <$>
+        inlinesToOpenDocument o xs
     Span attr xs  -> mkSpan attr xs
     LineBreak     -> return $ selfClosingTag "text:line-break" []
     Str         s -> return $ handleSpaces $ escapeStringForXML s
@@ -611,7 +626,7 @@ inlineToOpenDocument o ils
       then unhighlighted s
       else case highlight (writerSyntaxMap o)
                   formatOpenDocument attrs s of
-                Right h  -> return $ mconcat $ mconcat h
+                Right h  -> inlinedCode $ mconcat $ mconcat h
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
                   unhighlighted s
@@ -629,14 +644,9 @@ inlineToOpenDocument o ils
     Image attr _ (s,t) -> mkImg attr s t
     Note        l  -> mkNote l
     where
-      formatOpenDocument :: FormatOptions -> [SourceLine] -> [[Doc Text]]
-      formatOpenDocument _fmtOpts = map (map toHlTok)
-      toHlTok :: Token -> Doc Text
-      toHlTok (toktype,tok) =
-        inTags False "text:span" [("text:style-name", T.pack $ show toktype)] $ preformatted tok
       unhighlighted s = inlinedCode $ preformatted s
-      preformatted s = handleSpaces $ escapeStringForXML s
-      inlinedCode s = return $ inTags False "text:span" [("text:style-name", "Source_Text")] s
+      inlinedCode s = return $ inTags False "text:span"
+                                 [("text:style-name", "Source_Text")] s
       mkImg (_, _, kvs) s _ = do
                id' <- gets stImageId
                modify (\st -> st{ stImageId = id' + 1 })
@@ -672,6 +682,15 @@ inlineToOpenDocument o ils
         nn <- footNote <$> withParagraphStyle o "Footnote" l
         addNote nn
         return nn
+
+formatOpenDocument :: FormatOptions -> [SourceLine] -> [[Doc Text]]
+formatOpenDocument _fmtOpts = map (map toHlTok)
+toHlTok :: Token -> Doc Text
+toHlTok (toktype,tok) =
+  inTags False "text:span" [("text:style-name", T.pack $ show toktype)] $ preformatted tok
+
+preformatted :: Text -> Doc Text
+preformatted s = handleSpaces $ escapeStringForXML s
 
 mkLink :: WriterOptions -> [(Text,ReferenceType)] -> Text -> Text -> Doc Text -> Doc Text
 mkLink o identTypes s t d =
@@ -903,3 +922,24 @@ withLangFromAttr (_,_,kvs) action =
               Left _ -> do
                 report $ InvalidLang l
                 action
+
+styleToOpenDocument :: Style -> Doc Text
+styleToOpenDocument style = vcat (map toStyle alltoktypes)
+  where alltoktypes = enumFromTo KeywordTok NormalTok
+        toStyle toktype = inTags True "style:style" [("style:name", tshow toktype),
+                                                     ("style:family", "text")] $
+                             selfClosingTag "style:text-properties"
+                               (tokColor toktype ++ tokBgColor toktype ++
+                                 [("fo:font-style", "italic") |
+                                    tokFeature tokenItalic toktype ] ++
+                                 [("fo:font-weight", "bold") |
+                                    tokFeature tokenBold toktype ] ++
+                                 [("style:text-underline-style", "solid") |
+                                    tokFeature tokenUnderline toktype ])
+        tokStyles = tokenStyles style
+        tokFeature f toktype = maybe False f $ M.lookup toktype tokStyles
+        tokColor toktype = maybe [] (\c -> [("fo:color", T.pack (fromColor c))])
+                         $ (tokenColor =<< M.lookup toktype tokStyles)
+                           `mplus` defaultColor style
+        tokBgColor toktype = maybe [] (\c -> [("fo:background-color", T.pack (fromColor c))])
+                         $ (tokenBackground =<< M.lookup toktype tokStyles)

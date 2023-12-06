@@ -16,17 +16,22 @@ module Text.Pandoc.Format
   , parseFlavoredFormat
   , applyExtensionsDiff
   , getExtensionsConfig
+  , formatFromFilePaths
   ) where
 
 import Control.Monad.Except (throwError)
+import Data.Char (toLower)
+import Data.Foldable (asum)
 import Data.List (foldl')
-import System.FilePath (splitExtension)
+import System.FilePath (splitExtension, takeExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Extensions
-  ( Extensions
+  ( Extension (Ext_literate_haskell)
+  , Extensions
   , disableExtensions
   , enableExtension
+  , extensionsFromList
   , extensionsToList
   , getAllExtensions
   , getDefaultExtensions
@@ -148,3 +153,82 @@ pExtensionsDiff = foldl' (flip ($)) mempty <$> many extMod
                                           extsToEnable extsDiff}
           _   -> extsDiff{extsToDisable = enableExtension ext $
                                           extsToDisable extsDiff}
+
+-- | Determines default format based on file extensions; uses the format
+-- of the first extension that's associated with a format.
+--
+-- Examples:
+--
+-- > formatFromFilePaths ["text.unknown", "no-extension"]
+-- Nothing
+--
+-- > formatFromFilePaths ["my.md", "other.rst"]
+-- Just "markdown"
+formatFromFilePaths :: [FilePath] -> (Maybe FlavoredFormat)
+formatFromFilePaths = asum . map formatFromFilePath
+
+-- | Determines format based on file extension.
+formatFromFilePath :: FilePath -> Maybe FlavoredFormat
+formatFromFilePath x =
+  case takeExtension (map toLower x) of
+    ".Rmd"      -> defFlavor "markdown"
+    ".adoc"     -> defFlavor "asciidoc"
+    ".asciidoc" -> defFlavor "asciidoc"
+    ".bib"      -> defFlavor "biblatex"
+    ".context"  -> defFlavor "context"
+    ".csv"      -> defFlavor "csv"
+    ".ctx"      -> defFlavor "context"
+    ".db"       -> defFlavor "docbook"
+    ".doc"      -> defFlavor "doc"  -- so we get an "unknown reader" error
+    ".docx"     -> defFlavor "docx"
+    ".dokuwiki" -> defFlavor "dokuwiki"
+    ".epub"     -> defFlavor "epub"
+    ".fb2"      -> defFlavor "fb2"
+    ".htm"      -> defFlavor "html"
+    ".html"     -> defFlavor "html"
+    ".icml"     -> defFlavor "icml"
+    ".ipynb"    -> defFlavor "ipynb"
+    ".json"     -> defFlavor "json"
+    ".latex"    -> defFlavor "latex"
+    ".lhs"      -> defFlavor "markdown" `withExtension` Ext_literate_haskell
+    ".ltx"      -> defFlavor "latex"
+    ".markdown" -> defFlavor "markdown"
+    ".markua"   -> defFlavor "markua"
+    ".md"       -> defFlavor "markdown"
+    ".mdown"    -> defFlavor "markdown"
+    ".mdwn"     -> defFlavor "markdown"
+    ".mkd"      -> defFlavor "markdown"
+    ".mkdn"     -> defFlavor "markdown"
+    ".ms"       -> defFlavor "ms"
+    ".muse"     -> defFlavor "muse"
+    ".native"   -> defFlavor "native"
+    ".odt"      -> defFlavor "odt"
+    ".opml"     -> defFlavor "opml"
+    ".org"      -> defFlavor "org"
+    ".pdf"      -> defFlavor "pdf"  -- so we get an "unknown reader" error
+    ".pptx"     -> defFlavor "pptx"
+    ".ris"      -> defFlavor "ris"
+    ".roff"     -> defFlavor "ms"
+    ".rst"      -> defFlavor "rst"
+    ".rtf"      -> defFlavor "rtf"
+    ".s5"       -> defFlavor "s5"
+    ".t2t"      -> defFlavor "t2t"
+    ".tei"      -> defFlavor "tei"
+    ".tex"      -> defFlavor "latex"
+    ".texi"     -> defFlavor "texinfo"
+    ".texinfo"  -> defFlavor "texinfo"
+    ".text"     -> defFlavor "markdown"
+    ".textile"  -> defFlavor "textile"
+    ".tsv"      -> defFlavor "tsv"
+    ".typ"      -> defFlavor "typst"
+    ".txt"      -> defFlavor "markdown"
+    ".typ"      -> defFlavor "typst"
+    ".wiki"     -> defFlavor "mediawiki"
+    ".xhtml"    -> defFlavor "html"
+    ['.',y]     | y `elem` ['1'..'9'] -> defFlavor "man"
+    _           -> Nothing
+ where
+  defFlavor f = Just (FlavoredFormat f mempty)
+  withExtension Nothing _ = Nothing
+  withExtension (Just (FlavoredFormat f ed)) ext = Just $
+    FlavoredFormat f (ed <> ExtensionsDiff (extensionsFromList [ext]) mempty)

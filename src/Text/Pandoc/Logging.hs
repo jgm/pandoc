@@ -82,6 +82,7 @@ data LogMessage =
   | Fetching Text
   | Extracting Text
   | LoadedResource FilePath FilePath
+  | ScriptingWarning Text (Maybe SourcePos)
   | NoTitleElement Text
   | NoLangSpecified
   | InvalidLang Text
@@ -201,6 +202,14 @@ instance ToJSON LogMessage where
       LoadedResource orig found ->
            ["for"  .= orig
            ,"from" .= found]
+      ScriptingWarning msg mbpos ->
+           ["message" .= msg] <>
+           case mbpos of
+             Nothing  -> []
+             Just pos -> ["source" .= sourceName pos
+                         ,"line" .= toJSON (sourceLine pos)
+                         ,"column" .= toJSON (sourceColumn pos)
+                         ]
       NoTitleElement fallback ->
            ["fallback" .= fallback]
       NoLangSpecified -> []
@@ -341,6 +350,9 @@ showLogMessage msg =
          "Extracting " <> fp <> "..."
        LoadedResource orig found ->
          "Loaded " <> Text.pack orig <> " from " <> Text.pack found
+       ScriptingWarning s mbpos ->
+         "Scripting warning" <>
+         maybe "" (\pos -> " at " <> showPos pos) mbpos  <> ": " <> s
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" <>
          "Defaulting to '" <> fallback <> "' as the title.\n" <>
@@ -426,6 +438,7 @@ messageVerbosity msg =
        Fetching{}                    -> INFO
        Extracting{}                  -> INFO
        LoadedResource{}              -> INFO
+       ScriptingWarning{}            -> WARNING
        NoTitleElement{}              -> WARNING
        NoLangSpecified               -> INFO
        InvalidLang{}                 -> WARNING

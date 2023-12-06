@@ -409,7 +409,7 @@ siUnitMap = M.fromList
   , ("arcmin", str "′")
   , ("arcminute", str "′")
   , ("arcsecond", str "″")
-  , ("astronomicalunit", str "ua")
+  , ("astronomicalunit", str "au")
   , ("atomicmassunit", str "u")
   , ("bar", str "bar")
   , ("barn", str "b")

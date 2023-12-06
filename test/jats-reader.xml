@@ -2,6 +2,9 @@
 <!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN"
                   "JATS-archivearticle1.dtd">
 <article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<processing-meta base-tagset="archiving" mathml-version="3.0" table-model="xhtml" tagset-family="jats">
+    <restricted-by>pmc</restricted-by>
+</processing-meta>
 <front>
 <journal-meta>
 <journal-title-group>
@@ -27,6 +30,15 @@
     </name>
   </contrib>
 </contrib-group>
+<permissions>
+        <copyright-statement>© 2023, MacFarlane et al</copyright-statement>
+        <copyright-year>2023</copyright-year>
+        <copyright-holder>MacFarlane et al</copyright-holder>
+        <license license-type="open-access">
+          <ali:license_ref xmlns:ali="http://www.niso.org/schemas/ali/1.0/">https://creativecommons.org/licenses/by/4.0/</ali:license_ref>
+          <license-p>This document is distributed under a Creative Commons Attribution 4.0 International license.</license-p>
+        </license>
+      </permissions>
 </article-meta>
 </front>
 <body>
@@ -67,7 +79,15 @@
   <p>Here's a regular paragraph.</p>
   <p>In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item. Because a hard-wrapped line in the middle of a paragraph looked like a list item.</p>
   <p>Here's one with a bullet. * criminey.</p>
-  <p>There should be a hard line break<break />here.</p>
+  <p>There should be a <bold>hard line break<break /></bold>here.</p>
+</sec>
+<sec id="statements">
+  <title> Statements </title>
+  <statement>
+    <label> A label for a statment</label>
+    <title> CAP TITLE </title>
+    <p> Some text to make this regular </p>
+  </statement>
 </sec>
 <sec id="block-quotes">
   <title>Block Quotes</title>
@@ -123,6 +143,116 @@
     </disp-quote>
   </disp-quote>
   <p>And a following paragraph.</p>
+  <p>
+     Here is a block quote inside a paragraph. Start of a paragraph is here, and the quote is below:
+      <disp-quote>
+        <p>My block quote</p>
+      </disp-quote>
+     End of a paragraph
+  </p>
+</sec>
+<sec id="formulae">
+  <title>Formulae</title>
+  <sec id="inline-formulae">
+    <title>Inline formulae with <italic>inline-formula</italic></title>
+    <p><bold>Inside a paragraph</bold>, should be natively coded inside the paragraph, and show inline:</p>
+    <p>Einstein showed that <inline-formula><alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></inline-formula>.
+      This formula is important because…</p>
+  </sec>
+  <sec id="disp-formulae">
+    <title>Block formulae with <italic>disp-formula</italic></title>
+    <p><bold>Inside a paragraph</bold>, should be natively coded inside the pragraph, but show as block:</p>
+    <p>Einstein showed that <disp-formula><alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></disp-formula>.
+      This formula is important because…</p>
+    <p><bold>Outside a pararaph</bold>, should show as block:</p>
+    <p>Einstein showed that </p>
+    <disp-formula><alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></disp-formula>
+    <p>This formula is important because…</p>
+  </sec>
+  <sec id="no-formula-wrapper">
+    <title>Without a formula wrapper</title>
+    <p><bold>Inside a pragraph</bold>, should show inline:</p>
+    <p>Einstein showed that <alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives>.
+      This formula is important because…</p>
+    <p><bold>Outside a paragraph</bold>, should show as block:</p>
+    <p>Einstein showed that </p>
+    <alternatives>
+      <tex-math><![CDATA[e=mc^2]]></tex-math>
+      <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives>
+    <p>This formula is important because…</p>
+  </sec>
+  <sec id="misc-formulae">
+    <title>Formulae with miscelaneus elements</title>
+    <p>Regardless of whether or not they are inside a paragraph, should be wrapped in a div, and displayed in a block:</p>
+    <p><bold>Inside a paragraph:</bold></p>
+    <p>Einstein definitely showed that 
+      <disp-formula>
+        <abstract>
+          <p>Abstract text</p>
+        </abstract>
+        <graphic id="graphic001"
+        xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+        xlink:title="This is the title of the graphic"
+        xlink:role="This is the role of the graphic">
+          <alt-text>Alternative text of the graphic</alt-text>
+          <caption>
+            <title>This is the title of the caption</title>
+            <p>Google doodle from 14 March 2003</p></caption>
+        </graphic>
+        <alternatives>
+          <tex-math><![CDATA[e=mc^2]]></tex-math>
+          <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math>
+          <graphic id="graphic001"
+          xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+          xlink:title="Title 2">
+            <alt-text>Alternative text 2</alt-text>
+            <caption><p>Google doodle from 14 March 2003</p></caption>
+          </graphic>
+        </alternatives>
+      </disp-formula>.
+      This formula is important because…</p>
+    <p><bold>Outside of a paragraph:</bold></p>
+    <p>Paragraph before: Einstein showed that </p>
+    <disp-formula>
+      <abstract>
+        <p>Abstract text</p>
+      </abstract>
+      <graphic id="graphic003"
+      xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+      xlink:href="Title 3">
+        <alt-text>Alternative text 1</alt-text>
+        <caption><p>Google doodle from 14 March 2003</p></caption>
+      </graphic>
+      <alternatives>
+        <tex-math><![CDATA[e=mc^2]]></tex-math>
+        <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math>
+        <graphic id="graphic004"
+        xlink:href="https://lh3.googleusercontent.com/dB7iirJ3ncQaVMBGE2YX-WCeoAVIChb6NAzoFcKCFChMsrixJvD7ZRbvcaC-ceXEzXYaoH4K5vaoRDsUyBHFkpIDPnsn3bnzovbvi0a2Gg=s660"
+        xlink:href="Title 4">
+          <alt-text>Alternative text 2</alt-text>
+          <caption><p>Google doodle from 14 March 2003</p></caption>
+        </graphic>
+      </alternatives>
+    </disp-formula>
+    <p>This formula is important because…</p>
+  </sec>
+</sec>
+<sec id="figures">
+  <fig id="fig-1">
+    <caption>
+      <p>bar</p>
+    </caption>
+    <alt-text>alternative-decription</alt-text>
+    <graphic xlink:href="foo.png" xlink:alt-text="baz" />
+  </fig>
 </sec>
 <sec id="code-blocks">
   <title>Code Blocks</title>
@@ -281,8 +411,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </list-item>
     </list>
     <p>List styles:</p>
-    <list list-type="order"></list>
-    <list list-type="roman-lower"></list>
+    <list list-type="order">
+      <list-item><p>one</p></list-item><x>,</x>
+      <list-item><p>two</p></list-item><x>,</x>
+      <list-item><p>three</p></list-item>
+    </list>
+    <list list-type="roman-lower">
+      <list-item><p>one</p></list-item><x>,</x>
+      <list-item><p>two</p></list-item><x>,</x>
+      <list-item><p>three</p></list-item>
+    </list>
   </sec>
   <sec id="nested">
     <title>Nested</title>
@@ -398,7 +536,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </def-item>
       <def-item>
         <term>
-          Cello<break />Violoncello
+          Cello<bold><break /></bold>Violoncello
         </term>
         <def>
           <p>Low-voiced stringed instrument.</p>
@@ -406,25 +544,42 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       </def-item>
     </def-list>
   </sec>
+  <sec id="list-inside-paragraph">
+    <title>List inside a paragraph</title>
+    <p>
+      Start of a paragraph.
+      <list list-type="bullet">
+        <list-item>
+          <label>&#8226;</label>
+          <p>Red</p>
+        </list-item>
+        <list-item>
+          <label>&#8226;</label>
+          <p>Blue</p>
+        </list-item>
+      </list>
+      End of paragraph.
+    </p>
+  </sec>
 </sec>
 <sec id="inline-markup">
   <title>Inline Markup</title>
   <p>This is <italic>emphasized</italic>, and so <italic>is
     this</italic>.</p>
-  <p>This is <bold role="strong">strong</bold>, and so
-    <bold role="strong">is this</bold>.</p>
-  <p>Empty <bold role="strong"></bold> and <italic></italic>.</p>
+  <p>This is <bold>strong</bold>, and so
+    <bold>is this</bold>.</p>
+  <p>Empty <bold></bold> and <italic></italic>.</p>
   <p>An
     <italic><ext-link ext-link-type="uri" xlink:href="/url">emphasized
     link</ext-link></italic>.</p>
-  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
-  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
-  <p><bold role="strong"><italic>This is strong and em.</italic></bold></p>
-  <p>So is <bold role="strong"><italic>this</italic></bold> word.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
+  <p><bold><italic>This is strong and em.</italic></bold></p>
+  <p>So is <bold><italic>this</italic></bold> word.</p>
   <p>This is code: <monospace>&gt;</monospace>, <monospace>$</monospace>,
     <monospace>\</monospace>, <monospace>\$</monospace>,
     <monospace>&lt;html&gt;</monospace>.</p>
-  <p>This is <sc role="smallcaps">small caps</sc>.</p>
+  <p>This is <sc>small caps</sc>.</p>
   <p>These are all underlined: foo and bar.</p>
   <p>These are all strikethrough: <strike>foo</strike>,
     <strike>bar</strike>, and <strike>baz</strike>.</p>
@@ -652,7 +807,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
   <title>Tables</title>
   <sec id="tables-with-headers">
     <title>Tables with Headers</title>
-    <table>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -693,8 +848,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -735,8 +890,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -777,8 +932,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -819,8 +974,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -861,8 +1016,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -903,8 +1058,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -945,12 +1100,23 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
       <thead>
+        <tr>
+          <th>
+            <p>r1a</p>
+          </th>
+          <th>
+            <p>r1b</p>
+          </th>
+          <th>
+            <p>r1c</p>
+          </th>
+        </tr>
         <tr>
           <th>
             <p>X</p>
@@ -987,8 +1153,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col width="33*" align="left" />
       <col width="33*" align="left" />
       <col width="33*" align="left" />
@@ -1029,11 +1195,11 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
+    </table></table-wrap>
   </sec>
   <sec id="tables-without-headers">
     <title>Tables without Headers</title>
-    <table>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1061,8 +1227,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1090,8 +1256,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1119,8 +1285,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
-    <table>
+    </table></table-wrap>
+    <table-wrap><table>
       <col align="left" />
       <col align="left" />
       <col align="left" />
@@ -1148,7 +1314,130 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
           </td>
         </tr>
       </tbody>
-    </table>
+    </table></table-wrap>
+  </sec>
+  <sec id="table-with-spans-and-alignments">
+    <title>Tables with spans and alignments</title>
+    <table-wrap><table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <thead>
+        <tr>
+            <td colspan="2">
+                <p>1</p>
+            </td>
+            <td align="right">
+                <p>2</p>
+            </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+        <td colspan="2">
+            <p>1</p>
+        </td>
+        <td align="left">
+            <p>2</p>
+        </td>
+        </tr>
+        <tr>
+        <td rowspan="2">
+            <p>4</p>
+        </td>
+        <td>
+            <p>5</p>
+        </td>
+        <td>
+            <p>6</p>
+        </td>
+        </tr>
+        <tr>
+        <td colspan="2">
+            <p>7</p>
+        </td>
+        </tr>
+      </tbody>
+    </table></table-wrap>
+  </sec>
+  <sec id="table-with-footer">
+    <title>Table with footer</title>
+    <table-wrap><table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <tfoot>
+        <tr>
+          <td align="right">
+            <p>f1</p>
+          </td>
+          <td>
+            <p>f2</p>
+          </td>
+          <td>
+            <p>f3</p>
+          </td>
+        </tr>
+        <tr>
+          <td align="right">
+            <p>f4</p>
+          </td>
+          <td>
+            <p>f5</p>
+          </td>
+          <td>
+            <p>f6</p>
+          </td>
+        </tr>
+      </tfoot>
+      <tbody>
+        <tr>
+          <td>
+            <p>1</p>
+          </td>
+          <td>
+            <p>2</p>
+          </td>
+          <td>
+            <p>3</p>
+          </td>
+        </tr>
+      </tbody>
+    </table></table-wrap>
+  </sec>
+  <sec id="table-with-multiple-bodies">
+    <title>Table With Multiple Bodies</title>
+    <table-wrap><table>
+      <col align="left" />
+      <col align="left" />
+      <col align="left" />
+      <tbody>
+        <tr>
+          <td align="right">
+            <p>a1</p>
+          </td>
+          <td>
+            <p>a2</p>
+          </td>
+          <td>
+            <p>a3</p>
+          </td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <td>
+            <p>b1</p>
+          </td>
+          <td>
+            <p>b2</p>
+          </td>
+          <td>
+            <p>b3</p>
+          </td>
+        </tr>
+      </tbody>
+    </table></table-wrap>
   </sec>
   <sec id="empty-tables">
     <title>Empty Tables</title>
@@ -1157,5 +1446,15 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
 </sec>
 </body>
 <back>
+  <ref-list>
+    <title>References</title>
+    <ref id="ref_1"><note><p>This is reference 1</p></note></ref>
+    <ref id="ref_longnote"><note><p>This is a long note</p></note></ref>
+  </ref-list>
+  <ref-list>
+    <title>Notes</title>
+    <ref id="note_1"><note><p>This is note 1</p></note></ref>
+    <ref id="note_longnote"><note><p>This is another long note</p></note></ref>
+  </ref-list>
 </back>
 </article>

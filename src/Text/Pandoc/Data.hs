@@ -123,9 +123,6 @@ getDefaultReferenceODT = do
                "styles.xml",
                "content.xml",
                "meta.xml",
-               "settings.xml",
-               "Configurations2/accelerator/current.xml",
-               "Thumbnails/thumbnail.png",
                "META-INF/manifest.xml"]
   let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
                             contents <- (BL.fromChunks . (:[])) `fmap`
@@ -239,8 +236,9 @@ defaultUserDataDir :: IO FilePath
 defaultUserDataDir = do
   xdgDir <- E.catch (getXdgDirectory XdgData "pandoc")
                (\(_ :: E.SomeException) -> return mempty)
-  legacyDir <- getAppUserDataDirectory "pandoc"
   xdgExists <- doesDirectoryExist xdgDir
+  legacyDir <- E.catch (getAppUserDataDirectory "pandoc")
+                (\(_ :: E.SomeException) -> return mempty)
   legacyDirExists <- doesDirectoryExist legacyDir
   if not xdgExists && legacyDirExists
      then return legacyDir

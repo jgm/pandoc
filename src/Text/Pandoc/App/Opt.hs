@@ -127,6 +127,7 @@ data Opt = Opt
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
     , optReferenceDoc          :: Maybe FilePath -- ^ Path of reference doc
     , optSplitLevel            :: Int     -- ^ Header level at which to split documents in epub and chunkedhtml
+    , optChunkTemplate         :: Maybe Text -- ^ Template to use for chunk filenames
     , optEpubSubdirectory      :: String -- ^ EPUB subdir in OCF container
     , optEpubMetadata          :: Maybe FilePath   -- ^ EPUB metadata
     , optEpubFonts             :: [FilePath] -- ^ EPUB fonts to embed
@@ -209,6 +210,7 @@ instance FromJSON Opt where
        <*> o .:? "reference-doc"
        <*> ((o .:? "split-level") <|> (o .:? "epub-chapter-level"))
              .!= optSplitLevel defaultOpts
+       <*> o .:? "chunk-template"
        <*> o .:? "epub-subdirectory" .!= optEpubSubdirectory defaultOpts
        <*> o .:? "epub-metadata"
        <*> o .:? "epub-fonts" .!= optEpubFonts defaultOpts
@@ -563,9 +565,13 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optSplitLevel = x })
     "split-level" ->
       parseJSON v >>= \x -> return (\o -> o{ optSplitLevel = x })
+    "chunk-template" ->
+      parseJSON v >>= \x -> return (\o -> o{ optChunkTemplate = Just x })
     "epub-cover-image" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optEpubCoverImage = unpack <$> x })
+    "epub-title-page" ->
+      parseJSON v >>= \x -> return (\o -> o{ optEpubTitlePage = x })
     "toc-depth" ->
       parseJSON v >>= \x -> return (\o -> o{ optTOCDepth = x })
     "dump-args" ->
@@ -740,6 +746,7 @@ defaultOpts = Opt
     , optAbbreviations         = Nothing
     , optReferenceDoc          = Nothing
     , optSplitLevel            = 1
+    , optChunkTemplate         = Nothing
     , optEpubSubdirectory      = "EPUB"
     , optEpubMetadata          = Nothing
     , optEpubFonts             = []

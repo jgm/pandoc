@@ -1,10 +1,4 @@
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE MultiWayIf          #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.ChunkedHTML
    Copyright   : Copyright (C) 2023 John MacFarlane
@@ -29,6 +23,7 @@ import Text.Pandoc.MediaBag (mediaItems)
 import qualified Data.ByteString.Lazy as BL
 import Text.Pandoc.Chunks (splitIntoChunks, Chunk(..), ChunkedDoc(..),
                            SecInfo(..), tocToList)
+import Text.Pandoc.URI (isURI)
 import Data.Text (Text)
 import Data.Tree
 import qualified Data.Text as T
@@ -44,6 +39,10 @@ import Data.Aeson (toJSON, encode)
 import System.FilePath (isRelative, normalise)
 import Data.List (isInfixOf)
 import Text.Pandoc.Walk (walkM)
+import Text.Pandoc.Builder (setMeta)
+import Text.Pandoc.Templates (compileTemplate, WithDefaultPartials(..))
+import Control.Monad.Except (throwError)
+import Text.Pandoc.Error
 
 -- | Splits document into HTML chunks, dividing them by section,
 -- and returns a zip archive of a folder of files.
@@ -54,7 +53,7 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   epochtime <- floor <$> getPOSIXTime
   let toMediaEntry (fp, _mt, bs) = toEntry fp epochtime bs
   mediaEntries <- map toMediaEntry . mediaItems <$> getMediaBag
-  let chunkedDoc = splitIntoChunks "%s-%i.html"
+  let chunkedDoc = splitIntoChunks (writerChunkTemplate opts)
                      True
                      (Just 1)
                      (writerSplitLevel opts)
@@ -86,10 +85,19 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   let Node secinfo secs = chunkedTOC chunkedDoc
   let tocTree = Node secinfo{ secTitle = docTitle meta,
                               secPath = "index.html" } secs
+  let tree = buildTOC opts tocTree
   renderedTOC <- writeHtml5String opts{ writerTemplate = Nothing }
-                    (Pandoc nullMeta [buildTOC opts tocTree])
+                    (Pandoc nullMeta [tree])
+  -- see #8915 -- we need to set the math variable in the top chunk:
+  res <- runWithDefaultPartials $ compileTemplate "mathvar" "$math$"
+  mathVar <- case res of
+    Left e   -> throwError $ PandocTemplateError (T.pack e)
+    Right t  -> return t
+  tocMathVariable <- writeHtml5String opts{ writerTemplate = Just mathVar }
+                    (Pandoc meta (tree:blocks))
   let opts' = opts{ writerVariables =
                         defField "table-of-contents" renderedTOC
+                      . defField "math" tocMathVariable
                       $ writerVariables opts }
   entries <- mapM (chunkToEntry opts' meta topChunk) (topChunk : chunks)
   let sitemap = toEntry "sitemap.json" epochtime
@@ -99,9 +107,12 @@ writeChunkedHTML opts (Pandoc meta blocks) = do
   return $ fromArchive archive
 
 
+-- We include in the zip only local media that is in the working directory
+-- or below.
 addMedia :: PandocMonad m => Inline -> m Inline
 addMedia il@(Image _ _ (src,_))
-  | fp <- normalise (T.unpack src)
+  | not (isURI src)
+  , fp <- normalise (T.unpack src)
   , isRelative fp
   , not (".." `isInfixOf` fp) = do
   (bs, mbMime) <- fetchItem (T.pack fp)
@@ -110,7 +121,7 @@ addMedia il@(Image _ _ (src,_))
 addMedia il = return il
 
 buildTOC :: WriterOptions -> Tree SecInfo -> Block
-buildTOC opts = tocToList (writerTOCDepth opts)
+buildTOC opts = tocToList (writerNumberSections opts) (writerTOCDepth opts)
 
 chunkToEntry :: PandocMonad m
              => WriterOptions -> Meta -> Chunk -> Chunk -> m Entry
@@ -122,10 +133,7 @@ chunkToEntry opts meta topChunk chunk = do
  where
   opts' = opts{ writerVariables =
                   addContextVars opts' topChunk chunk $ writerVariables opts }
-  meta' = if chunk == topChunk
-             then meta
-             else Meta $ M.fromList [("pagetitle", MetaString
-                                     (stringify $ chunkHeading chunk))]
+  meta' = setMeta "pagetitle" (MetaString (stringify $ chunkHeading chunk)) meta
   blocks = chunkContents chunk
 
 tocTreeToContext :: Tree SecInfo -> Context Text
@@ -163,4 +171,3 @@ addContextVars opts topChunk chunk context =
   formatHeading ch = SimpleVal . literal . either (const "") id . runPure $
     writeHtml5String opts{ writerTemplate = Nothing }
       (Pandoc nullMeta [Plain $ chunkHeading ch])
-

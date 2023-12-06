@@ -178,7 +178,7 @@ tests pandocPath =
         "tikiwiki-reader.tikiwiki" "tikiwiki-reader.native" ]
   , testGroup "other writers" $ map (\f -> testGroup f $ writerTests' f)
     [ "opendocument" , "context" , "texinfo", "icml", "tei"
-    , "man" , "plain" , "asciidoc", "asciidoctor"
+    , "man" , "plain" , "asciidoc", "asciidoc_legacy"
     , "xwiki", "zimwiki"
     ]
   , testGroup "writers-lang-and-dir"
@@ -193,6 +193,14 @@ tests pandocPath =
   , testGroup "ms"
     [ testGroup "writer" $ writerTests' "ms"
     ]
+  , testGroup "typst"
+    [ testGroup "writer" $ writerTests' "typst"
+    , testGroup "reader"
+       [ test' "typst-reader" ["-r", "typst", "-w", "native", "-s"]
+          "typst-reader.typ" "typst-reader.native"
+       ]
+    ]
+
   , testGroup "creole"
     [ test' "reader" ["-r", "creole", "-w", "native", "-s"]
       "creole-reader.txt" "creole-reader.native"

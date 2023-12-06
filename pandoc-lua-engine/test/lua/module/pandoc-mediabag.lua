@@ -49,6 +49,30 @@ return {
     end),
   },
 
+  group 'fetch' {
+    test('populates media bag', function ()
+      local filename = 'lua/module/sample.svg'
+      local mime, contents = mediabag.fetch(filename)
+      assert.are_equal(mime, 'image/svg+xml')
+      assert.are_equal(contents:sub(1,5), '<?xml')
+      mediabag.empty() -- clean up
+    end),
+  },
+
+  group 'fill' {
+    test('populates media bag', function ()
+      local filename = 'lua/module/sample.svg'
+      local doc = pandoc.Pandoc {
+        pandoc.Image('testing', filename)
+      }
+      mediabag.fill(doc)
+      local mime, contents = mediabag.lookup(filename)
+      assert.are_equal(mime, 'image/svg+xml')
+      assert.are_equal(contents:sub(1,5), '<?xml')
+      mediabag.empty() -- clean up
+    end),
+  },
+
   group 'items' {
     test('iterates over all items', function ()
       local input_items = {
@@ -68,5 +92,16 @@ return {
       assert.are_same(seen_items, input_items)
       mediabag.empty() -- clean up
     end)
-  }
+  },
+
+  group 'lookup' {
+    test('returns MIME type and contents', function ()
+      mediabag.insert('test.html', 'text/html', '<aside>Who cares?</aside>')
+      local mime, contents = mediabag.lookup('test.html')
+      assert.are_equal(mime, 'text/html')
+      assert.are_equal(contents, '<aside>Who cares?</aside>')
+      mediabag.empty() -- clean up
+    end),
+  },
+
 }

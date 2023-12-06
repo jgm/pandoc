@@ -1,0 +1,89 @@
+[ OrderedList
+    ( 1 , Decimal , Period )
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(1.)" ]
+        ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "text"
+    , Space
+    , Str "in"
+    , Space
+    , Str "between."
+    ]
+, Para []
+, OrderedList
+    ( 2 , Decimal , Period )
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(2.)" ]
+        ]
+    , [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(3.)" ]
+        ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "text"
+    , Space
+    , Str "in"
+    , Space
+    , Str "between."
+    ]
+, Para []
+, OrderedList
+    ( 4 , Decimal , Period )
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(4.)" ]
+        ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "text"
+    , Space
+    , Str "before"
+    , Space
+    , Str "starting"
+    , Space
+    , Str "new"
+    , Space
+    , Str "list"
+    , Space
+    , Str "from"
+    , Space
+    , Str "1."
+    ]
+, Para []
+, OrderedList
+    ( 1 , Decimal , Period )
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(1.)" ]
+        ]
+    ]
+, Para []
+, Para
+    [ Str "Some"
+    , Space
+    , Str "text"
+    , Space
+    , Str "in"
+    , Space
+    , Str "between."
+    ]
+, Para []
+, OrderedList
+    ( 2 , Decimal , Period )
+    [ [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(2.)" ]
+        ]
+    , [ Plain
+            [ Str "Some" , Space , Str "text" , Space , Str "(3.)" ]
+        ]
+    ]
+]

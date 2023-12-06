@@ -23,6 +23,7 @@ $endif$
   style=$linkstyle$,
   color=$linkcolor$,
   contrastcolor=$linkcontrastcolor$]
+\setupurl[style=$urlstyle$]
 
 % make chapter, section bookmarks visible when opening document
 \placebookmarks[chapter, section, subsection, subsubsection, subsubsubsection, subsubsubsubsection][chapter, section]

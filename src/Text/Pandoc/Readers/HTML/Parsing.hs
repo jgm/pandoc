@@ -104,6 +104,8 @@ pCloses tagtype = try $ do
   t <- lookAhead $ pSatisfy $ \tag -> isTagClose tag || isTagOpen tag
   case t of
        (TagClose t') | t' == tagtype -> void pAny
+       (TagClose "th") | tagtype == "td" -> void pAny -- see #9090
+       (TagClose "td") | tagtype == "th" -> void pAny
        (TagOpen t' _) | t' `closes` tagtype -> return ()
        (TagClose "ul") | tagtype == "li" -> return ()
        (TagClose "ol") | tagtype == "li" -> return ()
