@@ -27,3 +27,29 @@
 A tip.
 ====
 ```
+
+```
+% pandoc -f gfm -t docbook
+> [!TIP]
+> A tip.
+^D
+<tip>
+  <title>Tip</title>
+  <para>
+    A tip.
+  </para>
+</tip>
+```
+
+```
+% pandoc -f docbook -t gfm
+<tip>
+  <title>Tip</title>
+  <para>
+    A tip.
+  </para>
+</tip>
+^D
+> [!TIP]
+> A tip.
+```
