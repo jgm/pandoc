@@ -26,7 +26,7 @@ import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
                                     toLegacyTable, lookupMetaString )
-import Text.Pandoc.Shared (isTightList, orderedListMarkers)
+import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
 import Text.DocLayout
@@ -76,6 +76,7 @@ pandocToTypst options (Pandoc meta blocks) = do
                         Right l ->
                           resetField "lang" (langLanguage l) .
                           maybe id (resetField "region") (langRegion l))
+              $ defField "toc-depth" (tshow $ writerTOCDepth options)
               $ (if writerNumberSections options
                     then defField "numbering" ("1.1.1.1.1" :: Text)
                     else id)

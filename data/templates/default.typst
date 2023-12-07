@@ -76,7 +76,7 @@ $endfor$
 $if(toc)$
 #outline(
   title: auto,
-  depth: none
+  depth: $toc-depth$
 );
 $endif$
 
