@@ -307,10 +307,13 @@ writeDocx opts doc = do
                         | e <- zEntries refArchive
                         , "word/media/" `isPrefixOf` eRelativePath e ]
 
-  let defaultnodes = [mknode "Default"
-              [("Extension","xml"),("ContentType","application/xml")] (),
-             mknode "Default"
-              [("Extension","rels"),("ContentType","application/vnd.openxmlformats-package.relationships+xml")] ()]
+  let mkDefaultNode (ext, mt) =
+        mknode "Default" [("Extension",ext),("ContentType",mt)] ()
+  let defaultnodes = map mkDefaultNode
+        [("xml", "application/xml"),
+         ("rels", "application/vnd.openxmlformats-package.relationships+xml"),
+         ("odttf",
+           "application/vnd.openxmlformats-officedocument.obfuscatedFont")]
   let contentTypesDoc = mknode "Types" [("xmlns","http://schemas.openxmlformats.org/package/2006/content-types")] $ defaultnodes ++ overrides
   let contentTypesEntry = toEntry "[Content_Types].xml" epochtime
         $ renderXml contentTypesDoc
@@ -538,6 +541,11 @@ writeDocx opts doc = do
   docPropsAppEntry <- entryFromArchive refArchive "docProps/app.xml"
   themeEntry <- entryFromArchive refArchive "word/theme/theme1.xml"
   fontTableEntry <- entryFromArchive refArchive "word/fontTable.xml"
+  let fontTableRelsEntries = maybeToList $
+       findEntryByPath "word/_rels/fontTable.xml.rels" refArchive
+  let fontEntries = [entry | entry <- zEntries refArchive
+                           , "word/fonts/" `isPrefixOf` (eRelativePath entry)]
+                        -- or parse fontTable.xml.rels?
   webSettingsEntry <- entryFromArchive refArchive "word/webSettings.xml"
   headerFooterEntries <- mapM (entryFromArchive refArchive . ("word/" ++)) $
                          mapMaybe (fmap T.unpack . extractTarget)
@@ -557,7 +565,9 @@ writeDocx opts doc = do
                   commentsEntry :
                   docPropsEntry : docPropsAppEntry : customPropsEntry :
                   themeEntry :
-                  fontTableEntry : settingsEntry : webSettingsEntry :
+                  settingsEntry : webSettingsEntry :
+                  fontTableEntry :
+                  fontTableRelsEntries ++ fontEntries ++
                   imageEntries ++ headerFooterEntries ++
                   miscRelEntries ++ otherMediaEntries
   return $ fromArchive archive
