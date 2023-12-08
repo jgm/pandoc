@@ -621,14 +621,14 @@ Ellipses…and…and….
 = LaTeX
 <latex>
 -
-- $2 plus 2 eq 4$
+- $2 + 2 = 4$
 - $x in y$
 - $alpha and omega$
 - $223$
 - $p$-Tree
 - Here’s some display math:
-  $ frac(d, d x) f lr((x)) eq lim_(h arrow.r 0) frac(f lr((x plus h)) minus f lr((x)), h) $
-- Here’s one that has a line break in it: $alpha plus omega times x^2$.
+  $ frac(d, d x) f lr((x)) = lim_(h arrow.r 0) frac(f lr((x + h)) - f lr((x)), h) $
+- Here’s one that has a line break in it: $alpha + omega times x^2$.
 
 These shouldn’t be math:
 
