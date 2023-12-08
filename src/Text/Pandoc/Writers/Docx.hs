@@ -940,7 +940,11 @@ blockToOpenXML' _ b@(RawBlock format str)
       report $ BlockNotRendered b
       return []
 blockToOpenXML' opts (BlockQuote blocks) = do
-  p <- withParaPropM (pStyleM "Block Text")
+  inNote <- asks envInNote
+  p <- withParaPropM (pStyleM
+                       (if inNote
+                           then "Footnote Block Text"
+                           else "Block Text"))
        $ blocksToOpenXML opts blocks
   setFirstPara
   return p
@@ -1361,9 +1365,10 @@ inlineToOpenXML' opts (Note bs) = do
 
   contents <- local (\env -> env{ envListLevel = -1
                                 , envParaProperties = mempty
-                                , envTextProperties = mempty })
-              (withParaPropM (pStyleM "Footnote Text") $ blocksToOpenXML opts
-                $ insertNoteRef bs)
+                                , envTextProperties = mempty
+                                , envInNote = True })
+              (withParaPropM (pStyleM "Footnote Text") $
+               blocksToOpenXML opts $ insertNoteRef bs)
   let newnote = mknode "w:footnote" [("w:id", notenum)] contents
   modify $ \s -> s{ stFootnotes = newnote : notes }
   return [ Elem $ mknode "w:r" []

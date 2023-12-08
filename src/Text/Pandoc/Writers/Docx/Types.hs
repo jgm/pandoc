@@ -81,6 +81,7 @@ data WriterEnv = WriterEnv
   , envListLevel      :: Int
   , envListNumId      :: Int
   , envInDel          :: Bool
+  , envInNote         :: Bool
   , envChangesAuthor  :: Text
   , envChangesDate    :: Text
   , envPrintWidth     :: Integer
@@ -95,6 +96,7 @@ defaultWriterEnv = WriterEnv
   , envListLevel = -1
   , envListNumId = 1
   , envInDel = False
+  , envInNote = False
   , envChangesAuthor  = "unknown"
   , envChangesDate    = "1969-12-31T19:00:00Z"
   , envPrintWidth     = 1

@@ -348,6 +348,18 @@
     <w:unhideWhenUsed />
     <w:qFormat />
   </w:style>
+  <w:style w:type="paragraph" w:styleId="FootnoteBlockText">
+    <w:name w:val="Footnote Block Text" />
+    <w:basedOn w:val="Footnote Text" />
+    <w:next w:val="Footnote Text" />
+    <w:uiPriority w:val="9" />
+    <w:unhideWhenUsed />
+    <w:qFormat />
+    <w:pPr>
+      <w:spacing w:before="100" w:after="100" />
+      <w:ind w:firstLine="0" w:left="480" w:right="480" />
+    </w:pPr>
+  </w:style>
   <w:style w:type="character" w:default="1" w:styleId="DefaultParagraphFont">
     <w:name w:val="Default Paragraph Font" />
     <w:semiHidden />

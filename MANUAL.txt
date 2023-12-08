@@ -1187,7 +1187,8 @@ header when requesting a document from a URL:
         - Heading 7
         - Heading 8
         - Heading 9
-        - Block Text
+        - Block Text [for block quotes]
+        - Footnote Block Text [for block quotes in footnotes]
         - Source Code
         - Footnote Text
         - Definition Term
