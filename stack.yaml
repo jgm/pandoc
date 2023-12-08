@@ -24,7 +24,6 @@ extra-deps:
 - skylighting-core-0.14.1
 - skylighting-0.14.1
 - skylighting-format-blaze-html-0.1.1.1
-- texmath-0.12.8.4
 - tls-1.9.0
 - commonmark-0.2.4
 - git: https://github.com/jgm/typst-hs
@@ -32,6 +31,8 @@ extra-deps:
 - git: https://github.com/jgm/commonmark-hs
   subdirs: [commonmark-extensions, commonmark-pandoc]
   commit: 0c4807c92b94b1b5ac0f0845daac276ab9d3495f
+- git: https://github.com/jgm/texmath
+  commit: 1e7d46f62f6107e86ae34baddc1e5a8a5cd92fc2
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
