@@ -1,3 +1,5 @@
+[ ] bump version number for pandoc and pandoc-cli
+[ ] sync pandoc version in pandoc-cli
 [ ] update MANUAL.txt date
 [ ] make prerelease
 [ ] Finalize changelog
@@ -11,12 +13,13 @@
 [ ] make update-website
 [ ] Tag release in git:
     - use X.Y for pandoc
-    - if needed: pandoc-cli-X.Y
+    - pandoc-cli-X.Y
     - if needed: pandoc-server-X.Y
     - if needed: pandoc-lua-engine-X.Y
-[ ] Upload packages to hackage if changed:
+[ ] Upload packages to Hackage:
     - pandoc
     - pandoc-cli
+    and if changed:
     - pandoc-server
     - pandoc-lua-engine
 [ ] make pandoc-templates
