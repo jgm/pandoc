@@ -64,6 +64,7 @@ import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        getListingsLanguage, mbBraced)
 import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+-- Work around problems with notes inside emphasis (see #8982)
 
 isolateBigNotes :: ([Inline] -> Inline) -> [Inline] -> [Inline]
 isolateBigNotes constructor xs =
