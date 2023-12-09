@@ -400,18 +400,20 @@ inlineHandlers = M.fromList
   ,("footnote", \_ fields ->
       B.note <$> (getField "body" fields >>= pWithContents pBlocks))
   ,("cite", \_ fields -> do
-      keys <- V.toList <$> getField "keys" fields
-      let toCitation key =
+      key <- getField "key" fields
+      (form :: Text) <- getField "form" fields <|> pure "normal"
+      let citation =
             B.Citation
               { B.citationId = key,
                 B.citationPrefix = mempty,
                 B.citationSuffix = mempty,
-                B.citationMode = B.NormalCitation,
+                B.citationMode = case form of
+                                    "year" -> B.SuppressAuthor
+                                    _ -> B.NormalCitation,
                 B.citationNoteNum = 0,
                 B.citationHash = 0
               }
-      let citations = map toCitation keys
-      pure $ B.cite citations (B.text $ "[" <> T.intercalate "," keys <> "]"))
+      pure $ B.cite [citation] (B.text $ "[" <> key <> "]"))
   ,("lower", \_ fields -> do
       body <- getField "text" fields
       walk (modString T.toLower) <$> pWithContents pInlines body)
