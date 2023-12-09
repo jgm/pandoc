@@ -196,11 +196,6 @@ extra-source-files:
                  -- documentation
                  INSTALL.md, AUTHORS.md, README.md,
                  CONTRIBUTING.md, BUGS, changelog.md,
-                 man/pandoc.1
-                 -- files needed to build man page
-                 man/manfilter.lua
-                 man/pandoc.1.before
-                 man/pandoc.1.after
                  -- tests
                  test/bodybg.gif
                  test/*.native

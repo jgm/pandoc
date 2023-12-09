@@ -118,7 +118,7 @@ changes_github: ## copy this release's changes in gfm
 	pandoc --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 .PHONY: changes_github
 
-man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1 ## build man pages
+man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pandoc-lua.1 ## build man pages
 .PHONY: man
 
 latex-package-dependencies: ## print packages used by default latex template
@@ -157,7 +157,7 @@ debpkg: ## create linux package
 		   /mnt/linux/make_artifacts.sh
 .PHONY: debpkg
 
-man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
+pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--include-before-body man/pandoc.1.before \
@@ -169,7 +169,7 @@ man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--variable footer="pandoc $(version)" \
 		-o $@
 
-man/%.1: doc/%.md
+pandoc-cli/man/%.1: doc/%.md
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--metadata author="" \
@@ -180,12 +180,6 @@ man/%.1: doc/%.md
     --include-after-body man/pandoc.1.after \
 		-o $@
 
-
-man/pandoc-%.1: doc/pandoc-%.md
-	pandoc $< -f markdown -t man -s \
-		--lua-filter man/manfilter.lua \
-		--variable footer="pandoc-$* $(version)" \
-		-o $@
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
 	pandoc --lua-filter tools/update-readme.lua \

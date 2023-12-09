@@ -17,7 +17,10 @@ synopsis:        Conversion between documentation formats
 description:     Pandoc-cli provides a command-line executable that uses the
                  pandoc library to convert between markup formats.
 -- data-files:
--- extra-source-files:
+extra-source-files:
+                 man/pandoc.1
+                 man/pandoc-lua.1
+                 man/pandoc-server.1
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
