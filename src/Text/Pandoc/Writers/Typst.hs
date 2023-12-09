@@ -268,10 +268,14 @@ inlineToTypst inline =
       return $ q <> contents <> q
     Cite citations inlines -> do
       opts <-  gets stOptions
-      let toCite cite = "#cite" <> parens (toLabel (citationId cite))
+      let toCite cite = do
+            suppl <- case citationSuffix cite of
+                       [] -> pure mempty
+                       suff -> brackets <$> inlinesToTypst suff
+            pure $ "#cite" <> parens (toLabel (citationId cite)) <> suppl
       if isEnabled Ext_citations opts
-         -- Note: this loses locators, prefix, suffix
-         then return $ mconcat $ map toCite citations
+         -- Note: this loses prefix
+         then mconcat <$> mapM toCite citations
          else inlinesToTypst inlines
     Link _attrs inlines (src,_tit) -> do
       contents <- inlinesToTypst inlines
