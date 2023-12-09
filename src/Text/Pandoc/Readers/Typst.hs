@@ -400,7 +400,7 @@ inlineHandlers = M.fromList
   ,("footnote", \_ fields ->
       B.note <$> (getField "body" fields >>= pWithContents pBlocks))
   ,("cite", \_ fields -> do
-      key <- getField "key" fields
+      VLabel key <- getField "key" fields
       (form :: Text) <- getField "form" fields <|> pure "normal"
       let citation =
             B.Citation
