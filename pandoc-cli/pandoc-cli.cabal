@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc-cli
-version:         0.1.1.1
+version:         3.1.9
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -68,7 +68,9 @@ executable pandoc
   hs-source-dirs:  src
   main-is:         pandoc.hs
   buildable:       True
-  build-depends:   pandoc >= 3.0,
+  -- Note: we always link to an exact version of pandoc, with the
+  -- same version as this package:
+  build-depends:   pandoc == 3.1.9,
                    text
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server
@@ -87,7 +89,7 @@ executable pandoc
 
   if flag(lua)
     build-depends:   hslua-cli         >= 1.4.1 && < 1.5,
-                     pandoc-lua-engine >= 0.2 && < 0.3,
+                     pandoc-lua-engine >= 0.2.1 && < 0.3,
                      temporary         >= 1.1 && < 1.4
     hs-source-dirs:  lua
   else
