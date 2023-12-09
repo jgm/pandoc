@@ -43,9 +43,12 @@ description:     Pandoc is a Haskell library for converting from one markup
                  Pandoc can convert mathematical content in documents
                  between TeX, MathML, Word equations, roff eqn, typst,
                  and plain text. It includes a powerful system for automatic
-                 citations and bibliographies, and it can be customized extensively
-                 using templates, filters, and custom readers and writers
-                 written in Lua.
+                 citations and bibliographies, and it can be customized
+                 extensively using templates, filters, and custom readers
+                 and writers written in Lua.
+                 .
+                 For the pandoc command-line program, see the
+                 @pandoc-cli@ package.
 data-files:
                  -- templates
                  data/templates/styles.html
