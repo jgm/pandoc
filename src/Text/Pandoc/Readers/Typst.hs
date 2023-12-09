@@ -30,7 +30,7 @@ import Typst ( parseTypst, evaluateTypst )
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Shared (tshow, blocksToInlines)
 import Control.Monad.Except (throwError)
-import Control.Monad (MonadPlus (mplus), void, mzero)
+import Control.Monad (MonadPlus (mplus), void, mzero, guard)
 import qualified Data.Foldable as F
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe)
@@ -170,6 +170,14 @@ blockHandlers = M.fromList
       lev <- getField "level" fields <|> pure 1
       B.headerWith (fromMaybe "" mbident,[],[]) lev
          <$> pWithContents pInlines body)
+  ,("quote", \_ fields -> do
+      getField "block" fields >>= guard
+      body <- getField "body" fields >>= pWithContents pBlocks
+      attribution <-
+        ((\x -> B.para ("\x2104\xa0" <> x)) <$>
+          (getField "attribution" fields >>= pWithContents pInlines))
+        <|> pure mempty
+      pure $ B.blockQuote $ body <> attribution)
   ,("list", \_ fields -> do
       children <- V.toList <$> getField "children" fields
       B.bulletList <$> mapM (pWithContents pBlocks) children)
@@ -431,6 +439,10 @@ inlineHandlers = M.fromList
   ,("underline", \_ fields -> do
       body <- getField "body" fields
       B.underline <$> pWithContents pInlines body)
+  ,("quote", \_ fields -> do
+      (getField "block" fields <|> pure False) >>= guard . not
+      body <- getField "body" fields >>= pWithContents pInlines
+      pure $ B.doubleQuoted body)
   ,("link", \_ fields -> do
       dest <- getField "dest" fields
       src <- case dest of
