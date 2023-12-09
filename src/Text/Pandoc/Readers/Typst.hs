@@ -510,7 +510,8 @@ inlineHandlers = M.fromList
 
 pPara :: PandocMonad m => P m B.Blocks
 pPara =
-  B.para . B.trimInlines . mconcat <$> (many1 pInline <* optional pParBreak)
+  B.para . B.trimInlines . collapseAdjacentCites . mconcat
+    <$> (many1 pInline <* optional pParBreak)
 
 pParBreak :: PandocMonad m => P m ()
 pParBreak =
@@ -531,7 +532,17 @@ pWithContents pa cs = try $ do
   pure res
 
 pInlines :: PandocMonad m => P m B.Inlines
-pInlines = mconcat <$> many pInline
+pInlines =
+  collapseAdjacentCites . mconcat <$> many pInline
+
+collapseAdjacentCites :: B.Inlines -> B.Inlines
+collapseAdjacentCites = B.fromList . foldr go [] . B.toList
+ where
+   go (Cite cs1 ils1) (Cite cs2 ils2 : xs) =
+     Cite (cs1 ++ cs2) (ils1 <> ils2) : xs
+   go (Cite cs1 ils1) (Space : Cite cs2 ils2 : xs) =
+     Cite (cs1 ++ cs2) (ils1 <> ils2) : xs
+   go x xs = x:xs
 
 modString :: (Text -> Text) -> B.Inline -> B.Inline
 modString f (B.Str t) = B.Str (f t)
