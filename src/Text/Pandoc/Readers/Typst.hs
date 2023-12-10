@@ -72,10 +72,10 @@ readTypst _opts inp = do
       res <- evaluateTypst ops inputName parsed
       case res of
         Left e -> throwError $ PandocParseError $ tshow e
-        Right cs -> do
-          let labs = findLabels cs
+        Right content -> do
+          let labs = findLabels [content]
           runParserT pPandoc defaultPState{ sLabels = labs }
-            inputName (F.toList cs) >>=
+            inputName [content] >>=
               either (throwError . PandocParseError . T.pack . show) pure
 
 pBlockElt :: PandocMonad m => P m B.Blocks
@@ -128,7 +128,36 @@ pInline = try $ do
             Just handler -> handler Nothing fields
 
 pPandoc :: PandocMonad m => P m B.Pandoc
-pPandoc = B.doc <$> pBlocks
+pPandoc = do
+  Elt "document" _ fields <- pTok isDocument
+  bs <- getField "body" fields >>= pWithContents pBlocks
+  title <- (getField "title" fields >>= pWithContents pInlines) <|>
+              pure mempty
+  authors <- (getField "author" fields >>=
+                          mapM (pWithContents pInlines) . V.toList) <|>
+             ((:[]) <$> (getField "author" fields >>=
+                           (\x -> guard (not (null x)) *>
+                             pWithContents pInlines x))) <|>
+              pure []
+  date <- (getField "date" fields >>= pWithContents pInlines) <|>
+              pure mempty
+  keywords <- (getField "keywords" fields >>=
+                 mapM (pWithContents pInlines) . V.toList)
+                <|> pure []
+  pure $
+    (if title == mempty
+        then id
+        else B.setMeta "title" title) .
+    (if null authors
+        then id
+        else B.setMeta "author" authors) .
+    (if null date
+        then id
+        else B.setMeta "date" date) .
+    (if null keywords
+        then id
+        else B.setMeta "keywords" keywords) $
+    B.doc bs
 
 pBlocks :: PandocMonad m => P m B.Blocks
 pBlocks = mconcat <$> many pBlock
@@ -151,6 +180,10 @@ pLab = try $ do
            _ -> False
        )
   pure t
+
+isDocument :: Content -> Bool
+isDocument (Elt "document" _ _) = True
+isDocument _ = False
 
 isBlock :: Content -> Bool
 isBlock (Elt "raw" _ fields) = M.lookup "block" fields == Just (VBoolean True)

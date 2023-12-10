@@ -27,7 +27,7 @@ extra-deps:
 - tls-1.9.0
 - commonmark-0.2.4
 - git: https://github.com/jgm/typst-hs
-  commit: 94747f802831b05b5c28bba0bd7a7a30217bda8d
+  commit: c909bd7f012044834ef06fbeda4626dcaee90abd
 - git: https://github.com/jgm/commonmark-hs
   subdirs: [commonmark-extensions, commonmark-pandoc]
   commit: 0c4807c92b94b1b5ac0f0845daac276ab9d3495f
