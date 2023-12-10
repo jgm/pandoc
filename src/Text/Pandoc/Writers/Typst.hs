@@ -124,7 +124,7 @@ blockToTypst block =
       return $ contents <> blankline
     BlockQuote blocks -> do
       contents <- blocksToTypst blocks
-      return $ "#blockquote[" $$ chomp contents $$ "]" $$ blankline
+      return $ "#quote(block: true)[" $$ chomp contents $$ "]" $$ blankline
     HorizontalRule ->
       return $ blankline <> "#horizontalrule" <> blankline
     OrderedList attribs items -> do
