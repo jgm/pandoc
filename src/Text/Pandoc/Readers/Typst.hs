@@ -521,6 +521,7 @@ inlineHandlers = M.fromList
       alignment <- getField "alignment" fields
       B.spanWith ("", [], [("align", repr alignment)])
         <$> (getField "body" fields >>= pWithContents pInlines))
+  ,("sys.version", \_ fields -> pure $ B.text "typst-hs")
   ,("math.equation", \_ fields -> do
       body <- getField "body" fields
       display <- getField "block" fields
