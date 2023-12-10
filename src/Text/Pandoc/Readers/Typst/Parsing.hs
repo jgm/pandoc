@@ -26,7 +26,8 @@ import Typst.Types
 import Text.Pandoc.Class.PandocMonad ( PandocMonad, report )
 import Text.Pandoc.Logging (LogMessage(..))
 
-type P m a = ParsecT [Content] () m a
+type P m a = ParsecT [Content] [Text] m a
+-- state tracks a list of labels in the document
 
 pTok :: PandocMonad m => (Content -> Bool) -> P m Content
 pTok f = tokenPrim show showPos match
