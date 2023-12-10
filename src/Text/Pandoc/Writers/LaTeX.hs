@@ -64,8 +64,8 @@ import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        getListingsLanguage, mbBraced)
 import Text.Pandoc.Writers.Shared
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
--- Work around problems with notes inside emphasis (see #8982)
 
+-- Work around problems with notes inside emphasis (see #8982)
 isolateBigNotes :: ([Inline] -> Inline) -> [Inline] -> [Inline]
 isolateBigNotes constructor xs =
   let (before, after) = break isBigNote xs
@@ -74,12 +74,12 @@ isolateBigNotes constructor xs =
                             noteInline :
                             isolateBigNotes constructor rest
        [] -> [constructor xs]
-  where
-    isBigNote :: Inline -> Bool
-    isBigNote (Note [Plain _]) = False  -- A small note
-    isBigNote (Note [Para _]) =  False  -- A small note
-    isBigNote (Note _) = True  -- A big note
-    isBigNote _ = False  -- Not a note
+
+isBigNote :: Inline -> Bool
+isBigNote (Note [Plain _]) = False  -- A small note
+isBigNote (Note [Para _]) =  False  -- A small note
+isBigNote (Note _) = True  -- A big note
+isBigNote _ = False  -- Not a note
 
 raiseBigNotes :: [Inline] -> [Inline]
 raiseBigNotes (Emph inner : xs)
@@ -95,9 +95,13 @@ raiseBigNotes [] = []
 
 -- | Convert Pandoc to LaTeX.
 writeLaTeX :: PandocMonad m => WriterOptions -> Pandoc -> m Text
-writeLaTeX options document =
-  evalStateT (pandocToLaTeX options (walk raiseBigNotes document)) $
-    startingState options
+writeLaTeX options document = do
+  let Any hasBigNotes =
+       query (\il -> if isBigNote il then Any True else Any False) document
+  let document' = if hasBigNotes
+                     then walk raiseBigNotes document
+                     else document
+  evalStateT (pandocToLaTeX options document') $ startingState options
 
 -- | Convert Pandoc to LaTeX Beamer.
 writeBeamer :: PandocMonad m => WriterOptions -> Pandoc -> m Text
