@@ -5,6 +5,8 @@
 
 module Text.Pandoc.Readers.Typst.Parsing
   ( P,
+    PState(..),
+    defaultPState,
     pTok,
     pWithContents,
     ignored,
@@ -12,6 +14,7 @@ module Text.Pandoc.Readers.Typst.Parsing
     chunks,
   )
 where
+import qualified Text.Pandoc.Builder as B
 import Control.Monad (MonadPlus)
 import Control.Monad.Reader (lift)
 import qualified Data.Foldable as F
@@ -26,7 +29,24 @@ import Typst.Types
 import Text.Pandoc.Class.PandocMonad ( PandocMonad, report )
 import Text.Pandoc.Logging (LogMessage(..))
 
-type P m a = ParsecT [Content] [Text] m a
+data PState = PState
+     { sLabels :: [Text]
+     , sTitle :: B.Inlines
+     , sAuthors :: [B.Inlines]
+     , sDate :: B.Inlines
+     , sKeywords :: [Text] }
+     deriving (Show)
+
+defaultPState :: PState
+defaultPState =
+  PState
+  { sLabels = []
+  , sTitle = mempty
+  , sAuthors = []
+  , sDate = mempty
+  , sKeywords = [] }
+
+type P m a = ParsecT [Content] PState m a
 -- state tracks a list of labels in the document
 
 pTok :: PandocMonad m => (Content -> Bool) -> P m Content
