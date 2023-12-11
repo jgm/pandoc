@@ -28,9 +28,9 @@ extra-deps:
 - commonmark-0.2.4
 - texmath-0.12.8.5
 - typst-0.4
-- git: https://github.com/jgm/commonmark-hs
-  subdirs: [commonmark-extensions, commonmark-pandoc]
-  commit: 0c4807c92b94b1b5ac0f0845daac276ab9d3495f
+- commonmark-0.2.4.1
+- commonmark-extensions-0.2.5
+- commonmark-pandoc-0.2.2
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
