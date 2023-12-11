@@ -25,7 +25,6 @@ extra-deps:
 - skylighting-0.14.1
 - skylighting-format-blaze-html-0.1.1.1
 - tls-1.9.0
-- commonmark-0.2.4
 - texmath-0.12.8.5
 - typst-0.4
 - commonmark-0.2.4.1
