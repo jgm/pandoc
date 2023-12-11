@@ -1,6 +1,7 @@
 #let conf(
   title: none,
-  authors: none,
+  authors: (),
+  keywords: (),
   date: none,
   abstract: none,
   cols: 1,
@@ -13,6 +14,11 @@
   sectionnumbering: none,
   doc,
 ) = {
+  set document(
+    title: title,
+    author: authors.map(author => author.name),
+    keywords: keywords,
+  )
   set page(
     paper: paper,
     margin: margin,
@@ -31,7 +37,7 @@
     ]]
   }
 
-  if authors != none {
+  if authors != none and authors != [] {
     let count = authors.len()
     let ncols = calc.min(count, 3)
     grid(
