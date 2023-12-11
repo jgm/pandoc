@@ -26,8 +26,7 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.1.1
 - tls-1.9.0
 - commonmark-0.2.4
-- git: https://github.com/jgm/typst-hs
-  commit: c909bd7f012044834ef06fbeda4626dcaee90abd
+- typst-0.4
 - git: https://github.com/jgm/commonmark-hs
   subdirs: [commonmark-extensions, commonmark-pandoc]
   commit: 0c4807c92b94b1b5ac0f0845daac276ab9d3495f

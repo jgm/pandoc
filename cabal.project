@@ -25,7 +25,3 @@ source-repository-package
   subdir: commonmark-pandoc
   tag: 0c4807c92b94b1b5ac0f0845daac276ab9d3495f
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/typst-hs
-  tag: c909bd7f012044834ef06fbeda4626dcaee90abd
