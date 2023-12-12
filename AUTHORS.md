@@ -145,6 +145,7 @@
 - Henrik Tramberend
 - Henry de Valence
 - Herwig Stuetz
+- Hikaru Ibayashi
 - Hos Es
 - Hubert Plociniczak
 - Ian Max Andolina
