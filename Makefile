@@ -95,8 +95,9 @@ check-cabal: git-files.txt sdist-files.txt
 
 check-version-sync:
 	@echo "Checking for match between pandoc and pandoc-cli versions"
-	@echo "$(version), $(pandoc-cli-version)"
-	@[ $(version) == $(pandoc-cli-version) ]
+	[ $(version) == $(pandoc-cli-version) ]
+	@echo "Checking that pandoc-cli depends on this version of pandoc"
+	grep 'pandoc == $(version)' pandoc-cli/pandoc-cli.cabal
 .PHONY: check-version-sync
 
 check-changelog:
