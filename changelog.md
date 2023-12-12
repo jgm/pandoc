@@ -1,5 +1,190 @@
 # Revision history for pandoc
 
+## pandoc 3.1.10 (2023-12-12)
+
+  * Link pandoc-cli version to pandoc version. Henceforth pandoc-cli's
+    version will be synchronized with pandoc's, and pandoc-cli will
+    depend on an exact pandoc version. This will avoid confusion by
+    ensuring that `cabal install pandoc-cli-X.Y.Z` installs pandoc
+    version X.Y.Z. It will make things more straightforward for
+    upstream packagers (see #9232). This scheme does not follow the
+    Haskell PVP, but that should cause no harm, because this package
+    does not expose a library.
+
+  * Add `alerts` markdown extension. This enables GitHub style markdown
+    alerts as a commonmark extension. This extension is now default for
+    `gfm`. It can't be used with `markdown`, only with `commonmark` and
+    variants.
+
+  * Markdown reader:
+
+    + Preserve newlines in math instead of changing to spaces.
+      Otherwise we can get unwanted results if there's
+      a `%` comment (#9193).
+    + Make attributes work with reference links (#9171).
+
+  * HTML reader:
+
+    + Improve handling of invalidly nested sublists (#9187, cf. #8150).
+
+  * MediaWiki reader:
+
+    + Allow attribute keys with hyphens (#9178).
+
+  * ODT reader:
+
+    + Support attr `text:continue-numbering` (#8979, Stephan Meijer).
+
+  * Typst reader:
+
+    + Allow references (e.g. `@foo`) to become citations
+      if there is no corresponding label in the document.
+    + Collapse adjacent `cite` elements.
+    + Handle supplements in `cite`.
+    + Change `cite` (only one key allowed, a label) (typst 0.9 breaking change).
+    + Support `quote` element (typst 0.9).
+
+  * LaTeX reader:
+
+    + Handle otherlanguage environment and language-name environments like
+    `\begin{french}...\end{french}` (#9202).
+    + Fix theorem label parsing (#8872, Hikaru Ibayashi).
+
+  * Docx reader:
+
+    + Unwrap content of shaped textboxes (Stephan Meijer, #9214).
+    + Improve handling of `w:sym` (#9220). We now look up symbols in symbol
+      fonts using the table defined at Text.Pandoc.Readers.Docx.Symbols.
+    + Add unexported module Text.Pandoc.Readers.Docx.Symbols. This gives us a
+      table to use to resolve characters included in docx via `w:sym` element.
+
+  * Man reader:
+
+    + Properly handle `.sp` macro inside lists and block quotes (#9201).
+
+  * LaTeX writer:
+
+    + Fix bug with big footnotes inside emphasis (#8982, Hikaru Ibayashi).
+    + Handle identifiers inside heading contents. `\phantomsection` can't
+      be used in this case, so we need `\hypertarget` (#9209).
+
+  * LaTeX template:
+
+    + Include `bookmark` package unconditionally. This package
+      produces better PDF bookmarks than `hyperref` and does it on the
+      first pass.
+
+  * Typst writer:
+
+    + Use `quote` for block quotes.
+    + Support `--toc-depth` as in other writers (#9242).
+    + Put inline image dimensions on enclosing box, not image (#9104).
+    + Better handling of tables with captions (#9194).
+      We now put these in a figure with a caption argument.
+    + Update typst writer to typst 0.9 citation format (#9188).
+
+  * Typst template:
+
+    + Remove custom definition of `blockquote` in default template.
+      (We now use built-in `quote`.)
+    + Support table of contents.
+    + Support csl (#9186, Ian Max Andolina). Typst now supports CSL for its
+      native citation engine, so pandoc should use a specified `csl`
+      style in the template, falling back to `bibliographystyle` if
+      `csl` is not specified.
+
+  * Docx writer:
+
+    + Use different style for block quotes in notes (#9243).
+      Using "Footnote Block Text" for the style name, so it can be
+      given a different font size if footnotes are.
+    + Allow embedded fonts to be used in reference.docx (#6728).
+
+  * HTML5 writer:
+
+    + To conform to validator's expectations, `doc-footnote` role is used
+      with `aside` and `doc-endnotes` with `section`.
+    + `aside` is used only for notes at ends of sections or blocks;
+      if all the notes come at the end of the document, `section` is
+      used so we can have the `doc-endnotes` role.
+
+  * JATS writer:
+
+    + Handle case where there is material after refs div (#9166). Previously in
+      such cases the references were not being moved to back matter.
+
+  * Ms writer:
+
+    + Don't do normal escapes in filename arguments for PSPIC etc.
+
+  * T.P.RoffChar: escape `-` as `\-`. The `groff_man (7)` man page indicates
+    that `-` characters will be treated as typographic hyphens and are not
+    appropriate for cases where the output should be copy-pasteable as an
+    ASCII hyphen-minus character.  (E.g. in command line options.)
+    However, until a recent update groff man did not actually do this;
+    it treated `-` and `\-` the same.  With the new update (1.23.0)
+    the two are distinguished (see https://lwn.net/Articles/947941/
+    for background), so now it is important that pandoc escape `-`.
+
+  * Text.Pandoc.Extension: add `Ext_alerts` constructor [API change].
+
+  * Text.Pandoc.PDF: We now default to running LaTeX only
+    once in producing a PDF (instead of twice). This is made possible by the
+    shift to the `bookmark` package, which does not require a second pass for
+    PDF bookmarks. If a table of contents is present, we still have to run
+    three times to get the page numbers, and if beamer is used we still do a
+    minimum of two runs.
+
+  * Text.Pandoc.Shared:
+
+    + `renderTags'`: use minimized tag for `rect`.
+    + Allow svg `path` element to be minimized.
+    + Export `combineAttr` [API change].
+    + Improve `isTightList` so that it recognizes an item containing only a list
+      which is itself tight as potentially an item in a tight list (#9161).
+
+  * Text.Pandoc.MIME: Ensure we use `.svg` not `.svgz` as extension
+    for `image/svg+xml` mime type. This fixes issues with embedded
+    SVG images in docx output, among other things (#9195).
+
+  * Text.Pandoc.Class: `openURL` improvements for data uris.
+    Only treat data URI as `base64` if ';base64' is specified.
+    Otherwise treat as UTF-8 (not 100% reliable but should cover most
+    other cases). Strip off `;base64` (or `;charset=...` or whatever)
+    from mime type (#9195).
+
+  * Text.Pandoc.SelfContained: Improve treatment of embedded SVGs
+    (#9206, #8948).
+
+    + Ensure unique ids for elements by prefixing SVG id.
+    + Ensure SVG `id` attribute except when `use` element is used.
+    + Remove `width`, `height` attributes from svg element when `use`
+      element is used. Instead, add `width` and `height` 100% to the
+      `use` element. This seems to get the sizing right.
+
+  * Text.Pandoc.Citeproc: Don't link citations if
+    `suppress-bibliography` specified, for there will be nothing to
+    link to (#9163).
+
+  * epub.css: add styling for sup and sub (#9160).
+
+  * Switch from `base64` to `base64-bytestring` (#9233).
+
+  * Use newest versions of commonmark, commonmark-extensions,
+    commonmark-pandoc, texmath, typst, skylighting, skylighting-core.
+
+  * Benchmark: use standalone documents for reader tests.
+    Otherwise typst reader benchmark fails. Note: this means that we are now
+    parsing longer documents, so bench results on readers won't be comparable
+    to before.
+
+  * MANUAL.txt: update defaults file docs for bibliography fields (#9173).
+    Recommend using top-level `bibliography` `csl`, etc. instead
+    of a nested `metadata` field. Reason: `${USERDATA}` and `${HOME}`
+    are only expanded in these contexts, not in `metadata`.
+
+  * Move man pages to pandoc-cli package (#9245).
+
 ## pandoc 3.1.9 (2023-10-27)
 
   * Make `reference-section-title` work with `jats+element_citations`
