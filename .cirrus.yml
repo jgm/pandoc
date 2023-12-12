@@ -8,6 +8,8 @@ task:
   brew_script:
     - brew update
     - brew install ghc@9.6 cabal-install
+  env:
+    PATH: /opt/homebrew/opt/ghc@9.6/bin:${PATH}
   cabal_store_cache:
     folder: ~/.cabal/store
     fingerprint_key: macos_2023_03_12
