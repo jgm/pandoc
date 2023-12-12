@@ -7,7 +7,7 @@ task:
     image: ghcr.io/cirruslabs/macos-monterey-base:latest
   brew_script:
     - brew update
-    - brew install ghc cabal-install
+    - brew install ghc@9.6 cabal-install
   cabal_store_cache:
     folder: ~/.cabal/store
     fingerprint_key: macos_2023_03_12
