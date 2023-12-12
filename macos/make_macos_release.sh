@@ -30,9 +30,9 @@ strip "$DEST/bin/pandoc"
 
 # Copy man pages and license
 echo "Copying manuals and license..."
-cp man/pandoc.1 "$DEST/share/man/man1/pandoc.1"
-cp man/pandoc-server.1 "$DEST/share/man/man1/pandoc-server.1"
-cp man/pandoc-lua.1 "$DEST/share/man/man1/pandoc-lua.1"
+cp pandoc-cli/man/pandoc.1 "$DEST/share/man/man1/pandoc.1"
+cp pandoc-cli/man/pandoc-server.1 "$DEST/share/man/man1/pandoc-server.1"
+cp pandoc-cli/man/pandoc-lua.1 "$DEST/share/man/man1/pandoc-lua.1"
 "$BINPATH" -s COPYING.md -Vpagetitle=License -o "$RESOURCES/license.html"
 
 # Prepare distribution directory; after downloading, run 'make' to notarize

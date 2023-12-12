@@ -57,7 +57,7 @@ make_deb() {
   popd
   for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1
   do
-    cp $WORK/man/$manpage "$DEST/share/man/man1/$manpage"
+    cp "$WORK/pandoc-cli/man/$manpage" "$DEST/share/man/man1/$manpage"
     gzip -9 "$DEST/share/man/man1/$manpage"
   done
   cp $WORK/COPYRIGHT "$COPYRIGHT"
@@ -84,7 +84,7 @@ make_tarball() {
   rm -rf "$TARGET"
   mkdir "$TARGET"
   mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1"
-  cp $WORK/man/pandoc.1 $WORK/man/pandoc-server.1 $WORK/man/pandoc-lua.1 "$TARGET/share/man/man1"
+  cp $WORK/pandoc-cli/man/pandoc.1 $WORK/pandoc-cli/man/pandoc-server.1 $WORK/pandoc-cli/man/pandoc-lua.1 "$TARGET/share/man/man1"
   gzip -9 "$TARGET"/share/man/man1/*.1
   mv pandoc "$TARGET/bin"
   pushd "$TARGET/bin"
