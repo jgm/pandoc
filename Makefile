@@ -1,4 +1,5 @@
 version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
+pandoc-cli-version?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
 pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
@@ -62,7 +63,7 @@ quick-stack: ## unoptimized build and tests with stack
 	  --test-arguments='-j --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
-prerelease: README.md fix_spacing check-cabal check-stack checkdocs man uncommitted_changes ## prerelease checks
+prerelease: README.md fix_spacing check-cabal check-stack checkdocs man check-version-sync check-changelog check-manversion uncommitted_changes ## prerelease checks
 .PHONY: prerelease
 
 uncommitted_changes:
@@ -91,6 +92,24 @@ check-cabal: git-files.txt sdist-files.txt
 	! grep 'git:' cabal.project # use only released versions
 
 .PHONY: check-cabal
+
+check-version-sync:
+	@echo "Checking for match between pandoc and pandoc-cli versions"
+	@echo "$(version), $(pandoc-cli-version)"
+	@[ $(version) == $(pandoc-cli-version) ]
+.PHONY: check-version-sync
+
+check-changelog:
+	@echo "Checking for changelog entry for this version"
+	grep '## pandoc $(version) (\d\d\d\d-\d\d-\d\d)' changelog.md
+.PHONY: check-changelog
+
+check-manversion:
+	@echo "Checking version number in man pages"
+	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc.1"
+	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-server.1"
+	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-lua.1"
+.PHONY: check-manversion
 
 checkdocs:
 	@echo "Checking for tabs in manual."
@@ -157,7 +176,7 @@ debpkg: ## create linux package
 		   /mnt/linux/make_artifacts.sh
 .PHONY: debpkg
 
-pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
+pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pandoc.cabal
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--include-before-body man/pandoc.1.before \
@@ -169,7 +188,7 @@ pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
 		--variable footer="pandoc $(version)" \
 		-o $@
 
-pandoc-cli/man/%.1: doc/%.md
+pandoc-cli/man/%.1: doc/%.md pandoc.cabal
 	pandoc $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--metadata author="" \
