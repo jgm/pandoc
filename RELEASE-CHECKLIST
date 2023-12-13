@@ -1,12 +1,12 @@
-[ ] bump version number for pandoc and pandoc-cli
-[ ] sync pandoc version in pandoc-cli
-[ ] update MANUAL.txt date
-[ ] make prerelease
+[ ] Bump version number for pandoc and pandoc-cli
+[ ] Sync pandoc version in pandoc-cli
+[ ] Update MANUAL.txt date
 [ ] Finalize changelog
+[ ] make prerelease
 [ ] Update AUTHORS (make authors LASTRELEASE=x.y.z)
 [ ] Run release candidate workflow manually on GitHub
 [ ] Run release candidate workflows manually on cirrus-ci.com
-[ ] if it builds successfully, download artifacts from GitHub, cirrus-ci.com
+[ ] If it builds successfully, download artifacts from GitHub, cirrus-ci.com
     (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
     from cirrus)
 [ ] Use 'make' in macos and windows artifacts to sign code
@@ -28,7 +28,7 @@
     git push
     git push --tags
 [ ] Add release on github (use 'make changes_github' and upload files)
-[ ] copy deb to server, install it
-[ ] if needed, sh tools/build-and-upload-api-docs.sh
+[ ] Copy deb to server, install it
+[ ] If needed, sh tools/build-and-upload-api-docs.sh
 [ ] Announce on pandoc-announce, pandoc-discuss
 
