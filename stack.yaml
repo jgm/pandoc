@@ -26,10 +26,11 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.1.1
 - tls-1.9.0
 - texmath-0.12.8.6
-- typst-0.4
 - commonmark-0.2.4.1
 - commonmark-extensions-0.2.5.1
 - commonmark-pandoc-0.2.2
+- git: https://github.com/jgm/typst-hs
+  commit: 7d58244b105274688f99d7b0e9a7112510a34f73
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
