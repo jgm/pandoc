@@ -243,8 +243,9 @@ inlineToTypst inline =
     Code (_,cls,_) code -> return $
       case cls of
         (lang:_) -> "#raw(lang:" <> doubleQuoted lang <>
-                        ", " <> doubleQuoted code <> ")"
+                        ", " <> doubleQuoted code <> ")" <> endCode
         _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
+                                     <> endCode
           | otherwise -> "`" <> literal code <> "`"
     RawInline fmt str ->
       case fmt of
@@ -273,6 +274,7 @@ inlineToTypst inline =
                        [] -> pure mempty
                        suff -> brackets <$> inlinesToTypst suff
             pure $ "#cite" <> parens (toLabel (citationId cite)) <> suppl
+                      <> endCode
       if isEnabled Ext_citations opts
          -- Note: this loses prefix
          then mconcat <$> mapM toCite citations
@@ -283,9 +285,9 @@ inlineToTypst inline =
                    Just ('#', ident) -> "<" <> literal ident <> ">"
                    _ -> doubleQuoted src
       return $ "#link" <> parens dest <>
-                if inlines == [Str src]
-                   then mempty
-                   else nowrap $ brackets contents
+                (if inlines == [Str src]
+                    then mempty
+                    else nowrap $ brackets contents) <> endCode
     Image (_,_,kvs) _inlines (src,_tit) -> do
       opts <- gets stOptions
       let mbHeight = lookup "height" kvs
@@ -304,17 +306,21 @@ inlineToTypst inline =
           case realWidth of
             Just w -> return $ "#box" <>
                         parens ("width: " <> literal w <> ", " <> coreImage)
-            Nothing -> return $ "#" <> coreImage
+                        <> endCode
+            Nothing -> return $ "#" <> coreImage <> endCode
         (Just w, _) -> return $ "#box" <>
                         parens ("width: " <> literal w <> ", " <> coreImage)
+                        <> endCode
         (_, Just h) -> return $ "#box" <>
                         parens ("height: " <> literal h <> ", " <> coreImage)
+                        <> endCode
     Note blocks -> do
       contents <- blocksToTypst blocks
-      return $ "#footnote" <> brackets (chomp contents)
+      return $ "#footnote" <> brackets (chomp contents) <> endCode
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
-textstyle s inlines = (s <>) . brackets <$> inlinesToTypst inlines
+textstyle s inlines =
+  (<> endCode) . (s <>) . brackets <$> inlinesToTypst inlines
 
 escapeTypst :: EscapeContext -> Text -> Text
 escapeTypst context t =
@@ -360,3 +366,6 @@ doubleQuoted = doubleQuotes . literal . escape
   escapeChar '\\' = "\\\\"
   escapeChar '"' = "\\\""
   escapeChar c = T.singleton c
+
+endCode :: Doc Text
+endCode = beforeNonBlank ";"
