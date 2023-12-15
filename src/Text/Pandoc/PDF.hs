@@ -264,25 +264,47 @@ tex2pdf :: (PandocMonad m, MonadIO m)
         -> FilePath                        -- ^ temp directory for output
         -> Text                            -- ^ tex source
         -> m (Either ByteString ByteString)
-tex2pdf program args tmpDir source = do
-  let numruns | takeBaseName program == "latexmk"        = 1
-              | "\\tableofcontents" `T.isInfixOf` source = 3  -- to get page numbers
-              | otherwise                                = 1
-  (exit, log', mbPdf) <- runTeXProgram program args numruns tmpDir source
-  case (exit, mbPdf) of
-       (ExitFailure _, _)      -> do
-          let logmsg = extractMsg log'
-          let extramsg =
-                case logmsg of
-                     x | "! Package inputenc Error" `BC.isPrefixOf` x
-                           && program /= "xelatex"
-                       -> "\nTry running pandoc with --pdf-engine=xelatex."
-                     _ -> ""
-          return $ Left $ logmsg <> extramsg
-       (ExitSuccess, Nothing)  -> return $ Left ""
-       (ExitSuccess, Just pdf) -> do
-          missingCharacterWarnings log'
-          return $ Right pdf
+tex2pdf program args tmpDir' source = do
+  let isOutdirArg x = "-outdir=" `isPrefixOf` x ||
+                      "-output-directory=" `isPrefixOf` x
+  let tmpDir =
+        case find isOutdirArg args of
+          Just x  -> drop 1 $ dropWhile (/='=') x
+          Nothing -> tmpDir'
+  liftIO $ createDirectoryIfMissing True tmpDir
+  let file = tmpDir ++ "/input.tex"  -- note: tmpDir has / path separators
+  liftIO $ BS.writeFile file $ UTF8.fromText source
+  go tmpDir (1 :: Int)
+ where
+   go tmpDir runNumber = do
+    (exit, log', mbPdf) <- runTeXProgram program args tmpDir
+    case (exit, mbPdf) of
+         (ExitFailure _, _)      -> do
+            let logmsg = extractMsg log'
+            let extramsg =
+                  case logmsg of
+                       x | "! Package inputenc Error" `BC.isPrefixOf` x
+                             && program /= "xelatex"
+                         -> "\nTry running pandoc with --pdf-engine=xelatex."
+                       _ -> ""
+            return $ Left $ logmsg <> extramsg
+         (ExitSuccess, Nothing)  -> return $ Left ""
+         (ExitSuccess, Just pdf) -> do
+            -- parse log to see if we need to rerun LaTeX
+            rerun <- checkForRerun log'
+            if rerun && runNumber < 3  -- max 3 runs
+               then do
+                 verbosity <- getVerbosity
+                 when (verbosity >= INFO) $ liftIO $
+                   -- TODO use report for verbose messages!
+                   UTF8.hPutStrLn stderr "Rerunning LaTeX to resolve references"
+                 go tmpDir (runNumber + 1)
+               else do
+                 missingCharacterWarnings log'
+                 return $ Right pdf
+   checkForRerun log' = pure $ any isRerunWarning $ BC.lines log'
+   isRerunWarning ln = BC.isPrefixOf "LaTeX Warning:" ln &&
+                       BS.isInfixOf "Rerun to" (BL.toStrict ln)
 
 missingCharacterWarnings :: PandocMonad m => ByteString -> m ()
 missingCharacterWarnings log' = do
@@ -374,22 +396,13 @@ getResultingPDF logFile pdfFile = do
               Nothing -> return Nothing
     return (log', pdf)
 
--- Run a TeX program on an input bytestring and return (exit code,
--- contents of stdout, contents of produced PDF if any).  Rerun
--- a fixed number of times to resolve references.
+-- Run a TeX program once in a temp directory (on input.tex) and return (exit code,
+-- contents of stdout, contents of produced PDF if any).
 runTeXProgram :: (PandocMonad m, MonadIO m)
-              => String -> [String] -> Int -> FilePath
-              -> Text -> m (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram program args numRuns tmpDir' source = do
-    let isOutdirArg x = "-outdir=" `isPrefixOf` x ||
-                        "-output-directory=" `isPrefixOf` x
-    let tmpDir =
-          case find isOutdirArg args of
-            Just x  -> drop 1 $ dropWhile (/='=') x
-            Nothing -> tmpDir'
-    liftIO $ createDirectoryIfMissing True tmpDir
-    let file = tmpDir ++ "/input.tex"  -- note: tmpDir has / path separators
-    liftIO $ BS.writeFile file $ UTF8.fromText source
+              => String -> [String] -> FilePath
+              -> m (ExitCode, ByteString, Maybe ByteString)
+runTeXProgram program args tmpDir = do
+    let file = tmpDir ++ "/input.tex"
     let isLatexMk = takeBaseName program == "latexmk"
         programArgs | isLatexMk = ["-interaction=batchmode", "-halt-on-error", "-pdf",
                                    "-quiet", "-outdir=" ++ tmpDir] ++ args ++ [file]
@@ -407,22 +420,16 @@ runTeXProgram program args numRuns tmpDir' source = do
     when (verbosity >= INFO) $ liftIO $
         UTF8.readFile file >>=
          showVerboseInfo (Just tmpDir) program programArgs env''
-    let runTeX runNumber = do
-          (exit, out) <- liftIO $ E.catch
-            (pipeProcess (Just env'') program programArgs BL.empty)
-            (handlePDFProgramNotFound program)
-          when (verbosity >= INFO) $ liftIO $ do
-            UTF8.hPutStrLn stderr $ "[makePDF] Run #" <> tshow runNumber
-            BL.hPutStr stderr out
-            UTF8.hPutStr stderr "\n"
-          if runNumber < numRuns
-             then runTeX (runNumber + 1)
-             else do
-               let logFile = replaceExtension file ".log"
-               let pdfFile = replaceExtension file ".pdf"
-               (log', pdf) <- getResultingPDF (Just logFile) pdfFile
-               return (exit, fromMaybe out log', pdf)
-    runTeX 1
+    (exit, out) <- liftIO $ E.catch
+      (pipeProcess (Just env'') program programArgs BL.empty)
+      (handlePDFProgramNotFound program)
+    when (verbosity >= INFO) $ liftIO $ do
+      BL.hPutStr stderr out
+      UTF8.hPutStr stderr "\n"
+    let logFile = replaceExtension file ".log"
+    let pdfFile = replaceExtension file ".pdf"
+    (log', pdf) <- getResultingPDF (Just logFile) pdfFile
+    return (exit, fromMaybe out log', pdf)
 
 generic2pdf :: (PandocMonad m, MonadIO m)
             => String
