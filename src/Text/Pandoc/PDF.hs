@@ -19,6 +19,7 @@ module Text.Pandoc.PDF ( makePDF ) where
 import qualified Codec.Picture as JP
 import qualified Control.Exception as E
 import Control.Monad.Trans (MonadIO (..))
+import Control.Monad (foldM_)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BL
@@ -38,7 +39,7 @@ import System.IO (hClose)
 import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
                        withTempFile)
 import qualified System.IO.Error as IE
-import Text.DocLayout (literal)
+import Text.DocLayout (literal, render, hsep)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
@@ -286,13 +287,14 @@ tex2pdf program args tmpDir' source = do
           return $ Left $ logmsg <> extramsg
        (ExitSuccess, Nothing)  -> return $ Left ""
        (ExitSuccess, Just pdf) -> do
+          latexWarnings log'
           missingCharacterWarnings log'
           return $ Right pdf
 
 missingCharacterWarnings :: PandocMonad m => ByteString -> m ()
 missingCharacterWarnings log' = do
   let ls = BC.lines log'
-  let isMissingCharacterWarning = BC.isPrefixOf "Missing character: "
+  let isMissingCharacterWarning = BC.isPrefixOf "Missing character:"
   let toCodePoint c
         | isAscii c   = T.singleton c
         | otherwise   = T.pack $ c : " (U+" ++ printf "%04X" (ord c) ++ ")"
@@ -302,6 +304,20 @@ missingCharacterWarnings log' = do
                  , isMissingCharacterWarning l
                  ]
   mapM_ (report . MissingCharacter) warnings
+
+latexWarnings :: PandocMonad m => ByteString -> m ()
+latexWarnings log' = foldM_ go Nothing (BC.lines log')
+ where
+   go Nothing ln
+     | BC.isPrefixOf "LaTeX Warning:" ln =
+       pure $ Just ln
+     | otherwise = pure Nothing
+   go (Just msg) ln
+     | ln == "" = do -- emit report and reset accumulator
+         report $ MakePDFWarning $ render (Just 60) $
+            hsep $ map literal $ T.words $ UTF8.toText $ BC.toStrict msg
+         pure Nothing
+     | otherwise = pure $ Just (msg <> ln)
 
 -- parsing output
 

@@ -100,6 +100,7 @@ data LogMessage =
   | DuplicateAttribute Text Text
   | NotUTF8Encoded FilePath
   | MakePDFInfo Text Text
+  | MakePDFWarning Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -257,6 +258,8 @@ instance ToJSON LogMessage where
       MakePDFInfo description contents ->
            ["description" .= description
            ,"contents" .= contents]
+      MakePDFWarning message ->
+           ["message" .= message]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -396,6 +399,7 @@ showLogMessage msg =
           if Text.null contents
              then mempty
              else "\n" <> contents
+       MakePDFWarning message -> "[makePDF] " <> message
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -450,3 +454,4 @@ messageVerbosity msg =
        DuplicateAttribute{}          -> WARNING
        NotUTF8Encoded{}              -> WARNING
        MakePDFInfo{}                 -> INFO
+       MakePDFWarning{}              -> WARNING
