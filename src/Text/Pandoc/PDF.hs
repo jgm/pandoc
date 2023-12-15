@@ -274,37 +274,21 @@ tex2pdf program args tmpDir' source = do
   liftIO $ createDirectoryIfMissing True tmpDir
   let file = tmpDir ++ "/input.tex"  -- note: tmpDir has / path separators
   liftIO $ BS.writeFile file $ UTF8.fromText source
-  go tmpDir (1 :: Int)
- where
-   go tmpDir runNumber = do
-    (exit, log', mbPdf) <- runTeXProgram program args tmpDir
-    case (exit, mbPdf) of
-         (ExitFailure _, _)      -> do
-            let logmsg = extractMsg log'
-            let extramsg =
-                  case logmsg of
-                       x | "! Package inputenc Error" `BC.isPrefixOf` x
-                             && program /= "xelatex"
-                         -> "\nTry running pandoc with --pdf-engine=xelatex."
-                       _ -> ""
-            return $ Left $ logmsg <> extramsg
-         (ExitSuccess, Nothing)  -> return $ Left ""
-         (ExitSuccess, Just pdf) -> do
-            -- parse log to see if we need to rerun LaTeX
-            rerun <- checkForRerun log'
-            if rerun && runNumber < 3  -- max 3 runs
-               then do
-                 verbosity <- getVerbosity
-                 when (verbosity >= INFO) $ liftIO $
-                   -- TODO use report for verbose messages!
-                   UTF8.hPutStrLn stderr "Rerunning LaTeX to resolve references"
-                 go tmpDir (runNumber + 1)
-               else do
-                 missingCharacterWarnings log'
-                 return $ Right pdf
-   checkForRerun log' = pure $ any isRerunWarning $ BC.lines log'
-   isRerunWarning ln = BC.isPrefixOf "LaTeX Warning:" ln &&
-                       BS.isInfixOf "Rerun to" (BL.toStrict ln)
+  (exit, log', mbPdf) <- runTeXProgram program args tmpDir
+  case (exit, mbPdf) of
+       (ExitFailure _, _)      -> do
+          let logmsg = extractMsg log'
+          let extramsg =
+                case logmsg of
+                     x | "! Package inputenc Error" `BC.isPrefixOf` x
+                           && program /= "xelatex"
+                       -> "\nTry running pandoc with --pdf-engine=xelatex."
+                     _ -> ""
+          return $ Left $ logmsg <> extramsg
+       (ExitSuccess, Nothing)  -> return $ Left ""
+       (ExitSuccess, Just pdf) -> do
+          missingCharacterWarnings log'
+          return $ Right pdf
 
 missingCharacterWarnings :: PandocMonad m => ByteString -> m ()
 missingCharacterWarnings log' = do
@@ -420,16 +404,36 @@ runTeXProgram program args tmpDir = do
     when (verbosity >= INFO) $ liftIO $
         UTF8.readFile file >>=
          showVerboseInfo (Just tmpDir) program programArgs env''
-    (exit, out) <- liftIO $ E.catch
-      (pipeProcess (Just env'') program programArgs BL.empty)
-      (handlePDFProgramNotFound program)
-    when (verbosity >= INFO) $ liftIO $ do
-      BL.hPutStr stderr out
-      UTF8.hPutStr stderr "\n"
-    let logFile = replaceExtension file ".log"
-    let pdfFile = replaceExtension file ".pdf"
-    (log', pdf) <- getResultingPDF (Just logFile) pdfFile
-    return (exit, fromMaybe out log', pdf)
+    go file env'' programArgs (1 :: Int)
+ where
+   go file env'' programArgs runNumber = do
+     verbosity <- getVerbosity
+     when (verbosity >= INFO) $ liftIO $ UTF8.hPutStrLn stderr $
+                                    "[makePDF] run " <> tshow runNumber
+     (exit, out) <- liftIO $ E.catch
+       (pipeProcess (Just env'') program programArgs BL.empty)
+       (handlePDFProgramNotFound program)
+     when (verbosity >= INFO) $ liftIO $ do
+       BL.hPutStr stderr out
+       UTF8.hPutStr stderr "\n"
+     -- parse log to see if we need to rerun LaTeX
+     let logFile = replaceExtension file ".log"
+     logExists <- fileExists logFile
+     logContents <- if logExists
+                       then readFileLazy logFile
+                       else return mempty
+     needsRerun <- checkForRerun logContents
+     if needsRerun && runNumber < 3
+        then go file env'' programArgs (runNumber + 1)
+        else do
+          let pdfFile = replaceExtension file ".pdf"
+          (log', pdf) <- getResultingPDF (Just logFile) pdfFile
+          return (exit, fromMaybe out log', pdf)
+
+   checkForRerun log' = pure $ any isRerunWarning $ BC.lines log'
+
+   isRerunWarning ln = BC.isPrefixOf "LaTeX Warning:" ln &&
+                       BS.isInfixOf "Rerun to" (BL.toStrict ln)
 
 generic2pdf :: (PandocMonad m, MonadIO m)
             => String
