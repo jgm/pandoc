@@ -18,7 +18,6 @@ module Text.Pandoc.PDF ( makePDF ) where
 
 import qualified Codec.Picture as JP
 import qualified Control.Exception as E
-import Control.Monad (when)
 import Control.Monad.Trans (MonadIO (..))
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
@@ -35,7 +34,7 @@ import System.Directory
 import System.Environment
 import System.Exit (ExitCode (..))
 import System.FilePath
-import System.IO (stderr, hClose)
+import System.IO (hClose)
 import System.IO.Temp (withSystemTempDirectory, withTempDirectory,
                        withTempFile)
 import qualified System.IO.Error as IE
@@ -57,9 +56,9 @@ import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
-import Text.Pandoc.Class (fillMediaBag, getVerbosity,
+import Text.Pandoc.Class (fillMediaBag, getVerbosity, setVerbosity,
                           readFileLazy, readFileStrict, fileExists,
-                          report, extractMedia, PandocMonad)
+                          report, extractMedia, PandocMonad, runIOorExplode)
 import Text.Pandoc.Logging
 import Text.DocTemplates ( FromContext(lookupContext) )
 
@@ -340,17 +339,11 @@ runTectonic program args' tmpDir' source = do
     let sourceBL = BL.fromStrict $ UTF8.fromText source
     let programArgs = ["--outdir", tmpDir] ++ args ++ ["-"]
     env <- liftIO getEnvironment
-    verbosity <- getVerbosity
-    when (verbosity >= INFO) $ liftIO $
-      showVerboseInfo (Just tmpDir) program programArgs env
-         (utf8ToText sourceBL)
+    showVerboseInfo (Just tmpDir) program programArgs env (utf8ToText sourceBL)
     (exit, out) <- liftIO $ E.catch
       (pipeProcess (Just env) program programArgs sourceBL)
       (handlePDFProgramNotFound program)
-    when (verbosity >= INFO) $ liftIO $ do
-      UTF8.hPutStrLn stderr "[makePDF] Running"
-      BL.hPutStr stderr out
-      UTF8.hPutStr stderr "\n"
+    report $ MakePDFInfo "tectonic output" (UTF8.toText $ BL.toStrict out)
     let pdfFile = tmpDir ++ "/texput.pdf"
     (_, pdf) <- getResultingPDF Nothing pdfFile
     return (exit, out, pdf)
@@ -400,22 +393,16 @@ runTeXProgram program args tmpDir = do
                 ("TEXMFOUTPUT", tmpDir) :
                   [(k,v) | (k,v) <- env'
                          , k /= "TEXINPUTS" && k /= "TEXMFOUTPUT"]
-    verbosity <- getVerbosity
-    when (verbosity >= INFO) $ liftIO $
-        UTF8.readFile file >>=
-         showVerboseInfo (Just tmpDir) program programArgs env''
+    liftIO (UTF8.readFile file) >>=
+      showVerboseInfo (Just tmpDir) program programArgs env''
     go file env'' programArgs (1 :: Int)
  where
    go file env'' programArgs runNumber = do
-     verbosity <- getVerbosity
-     when (verbosity >= INFO) $ liftIO $ UTF8.hPutStrLn stderr $
-                                    "[makePDF] run " <> tshow runNumber
+     report $ MakePDFInfo ("LaTeX run number " <> tshow runNumber) mempty
      (exit, out) <- liftIO $ E.catch
        (pipeProcess (Just env'') program programArgs BL.empty)
        (handlePDFProgramNotFound program)
-     when (verbosity >= INFO) $ liftIO $ do
-       BL.hPutStr stderr out
-       UTF8.hPutStr stderr "\n"
+     report $ MakePDFInfo "LaTeX output" (UTF8.toText $ BL.toStrict out)
      -- parse log to see if we need to rerun LaTeX
      let logFile = replaceExtension file ".log"
      logExists <- fileExists logFile
@@ -425,7 +412,7 @@ runTeXProgram program args tmpDir = do
      needsRerun <- checkForRerun logContents
      if needsRerun && runNumber < 3
         then go file env'' programArgs (runNumber + 1)
-        else do
+       else do
           let pdfFile = replaceExtension file ".pdf"
           (log', pdf) <- getResultingPDF (Just logFile) pdfFile
           return (exit, fromMaybe out log', pdf)
@@ -442,9 +429,7 @@ generic2pdf :: (PandocMonad m, MonadIO m)
             -> m (Either ByteString ByteString)
 generic2pdf program args source = do
   env' <- liftIO getEnvironment
-  verbosity <- getVerbosity
-  when (verbosity >= INFO) $
-    liftIO $ showVerboseInfo Nothing program args env' source
+  showVerboseInfo Nothing program args env' source
   (exit, out) <- liftIO $ E.catch
     (pipeProcess (Just env') program args
                      (BL.fromStrict $ UTF8.fromText source))
@@ -468,15 +453,16 @@ toPdfViaTempFile verbosity program args mkOutArgs source =
       BS.writeFile file $ UTF8.fromText source
       let programArgs = args ++ [file] ++ mkOutArgs pdfFile
       env' <- getEnvironment
-      when (verbosity >= INFO) $
-        UTF8.readFile file >>=
-          showVerboseInfo Nothing program programArgs env'
+      fileContents <- UTF8.readFile file
+      runIOorExplode $ do
+        setVerbosity verbosity
+        showVerboseInfo Nothing program programArgs env' fileContents
       (exit, out) <- E.catch
         (pipeProcess (Just env') program programArgs BL.empty)
         (handlePDFProgramNotFound program)
-      when (verbosity >= INFO) $ do
-        BL.hPutStr stderr out
-        UTF8.hPutStr stderr "\n"
+      runIOorExplode $ do
+        setVerbosity verbosity
+        report $ MakePDFInfo "pdf-engine output" (UTF8.toText $ BL.toStrict out)
       pdfExists <- doesFileExist pdfFile
       mbPdf <- if pdfExists
                 -- We read PDF as a strict bytestring to make sure that the
@@ -496,21 +482,20 @@ context2pdf :: (PandocMonad m, MonadIO m)
             -> Text         -- ^ ConTeXt source
             -> m (Either ByteString ByteString)
 context2pdf program pdfargs tmpDir source = do
+  let file = "input.tex"
+  let programArgs = "--batchmode" : pdfargs ++ [file]
+  env' <- liftIO getEnvironment
   verbosity <- getVerbosity
+  liftIO $ BS.writeFile (tmpDir </> file) $ UTF8.fromText source
+  liftIO (UTF8.readFile (tmpDir </> file)) >>=
+    showVerboseInfo (Just tmpDir) program programArgs env'
   liftIO $ inDirectory tmpDir $ do
-    let file = "input.tex"
-    BS.writeFile file $ UTF8.fromText source
-    let programArgs = "--batchmode" : pdfargs ++ [file]
-    env' <- getEnvironment
-    when (verbosity >= INFO) $ liftIO $
-      UTF8.readFile file >>=
-        showVerboseInfo (Just tmpDir) program programArgs env'
     (exit, out) <- E.catch
       (pipeProcess (Just env') program programArgs BL.empty)
       (handlePDFProgramNotFound program)
-    when (verbosity >= INFO) $ do
-      BL.hPutStr stderr out
-      UTF8.hPutStr stderr "\n"
+    runIOorExplode $ do
+      setVerbosity verbosity
+      report $ MakePDFInfo "ConTeXt run output" (UTF8.toText $ BL.toStrict out)
     let pdfFile = replaceExtension file ".pdf"
     pdfExists <- doesFileExist pdfFile
     mbPdf <- if pdfExists
@@ -527,23 +512,19 @@ context2pdf program pdfargs tmpDir source = do
          (ExitSuccess, Just pdf) -> return $ Right pdf
 
 
-showVerboseInfo :: Maybe FilePath
+showVerboseInfo :: PandocMonad m
+                => Maybe FilePath
                 -> String
                 -> [String]
                 -> [(String, String)]
                 -> Text
-                -> IO ()
+                -> m ()
 showVerboseInfo mbTmpDir program programArgs env source = do
   case mbTmpDir of
-    Just tmpDir -> do
-      UTF8.hPutStrLn stderr "[makePDF] temp dir:"
-      UTF8.hPutStrLn stderr (T.pack tmpDir)
+    Just tmpDir -> report $ MakePDFInfo "Temp dir:" (T.pack tmpDir)
     Nothing -> return ()
-  UTF8.hPutStrLn stderr "[makePDF] Command line:"
-  UTF8.hPutStrLn stderr $
-       T.pack program <> " " <> T.pack (unwords (map show programArgs))
-  UTF8.hPutStr stderr "\n"
-  UTF8.hPutStrLn stderr "[makePDF] Relevant environment variables:"
+  report $ MakePDFInfo "Command line:"
+           (T.pack program <> " " <> T.pack (unwords (map show programArgs)))
   -- we filter out irrelevant stuff to avoid leaking passwords and keys!
   let isRelevant ("PATH",_) = True
       isRelevant ("TMPDIR",_) = True
@@ -556,10 +537,9 @@ showVerboseInfo mbTmpDir program programArgs env source = do
       isRelevant ("TEXINPUTS",_) = True
       isRelevant ("TEXMFOUTPUT",_) = True
       isRelevant _ = False
-  mapM_ (UTF8.hPutStrLn stderr . tshow) (filter isRelevant env)
-  UTF8.hPutStr stderr "\n"
-  UTF8.hPutStrLn stderr "[makePDF] Source:"
-  UTF8.hPutStrLn stderr source
+  report $ MakePDFInfo "Relevant environment variables:"
+             (T.intercalate "\n" $ map tshow $ filter isRelevant env)
+  report $ MakePDFInfo "Source:" source
 
 handlePDFProgramNotFound :: String -> IE.IOError -> IO a
 handlePDFProgramNotFound program e
