@@ -1,5 +1,48 @@
 # Revision history for pandoc
 
+## pandoc 3.1.11 (2023-12-15)
+
+  * Typst writer:
+
+    + Emit `;` after typst code, unless followed by space (#9252).
+      Otherwise there's the potential that the typst code will swallow
+      up a following character.
+
+  * Text.Pandoc.Logging:
+
+    + Add `MakePDFWarning` constructor to LogMessage [API change].
+    + Add `MakePDFInfo` constructor to LogMessage [API change].
+
+  * Text.Pandoc.PDF:
+
+    + LaTeX warnings are passed on to the user as warnings.
+    + Use `report` with `MakePDFWarning` and `MakePDFInfo` to relay
+      verbose information and warnings, instead of writing directly
+      to stderr.
+    + Parse logs to determine whether additional runs needed, instead of
+      running a fixed number of times (#9255). (The number of times
+      that was appropriate given pandoc's default templates didn't
+      always work for custom templates, and thus pandoc 3.1.10's
+      change in the number of runs led to some regressions in PDF
+      production.)
+
+  * Makefile: in `make prelease`, add checks that pandoc-cli and
+    pandoc have the same version, that pandoc-cli depends on this
+    exact version of pandoc, that there is an entry for this version
+    in the changelog, and that the version numbers in the
+    generated man pages are correct.
+
+  * Regenerate man pages with pandoc 3.1.10. This properly escapes hyphens
+    and fixes version numbers in man pages for `pandoc-server` and
+    `pandoc-lua`.
+
+  * Depend on texmath 0.12.8.6. This omits unneeded `lr`s in typst
+    math output.
+
+  * Depend on typst 0.5. This allows the typst reader to support
+    multiline strings, the version type, and the `as`
+    keyword with `import`.
+
 ## pandoc 3.1.10 (2023-12-12)
 
   * Link pandoc-cli version to pandoc version. Henceforth pandoc-cli's
