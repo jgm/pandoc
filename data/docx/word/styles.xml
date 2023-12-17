@@ -107,8 +107,8 @@
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
-      <w:jc w:val="center" />
       <w:spacing w:before="300" w:after="0" />
+      <w:jc w:val="center" />
     </w:pPr>
     <w:rPr>
       <w:sz w:val="20" />
