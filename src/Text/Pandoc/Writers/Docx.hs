@@ -753,7 +753,7 @@ mkNum marker numid =
 mkAbstractNum :: ListMarker -> Element
 mkAbstractNum marker =
   mknode "w:abstractNum" [("w:abstractNumId",listMarkerToId marker)]
-    $ mknode "w:nsid" [("w:val", "A" <> listMarkerToId marker)] ()
+    $ mknode "w:nsid" [("w:val", T.justifyRight 8 '0' ("A" <> listMarkerToId marker))] ()
     : mknode "w:multiLevelType" [("w:val","multilevel")] ()
     : map (mkLvl marker)
       [0..maxListLevel]
