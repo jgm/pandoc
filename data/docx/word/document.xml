@@ -265,7 +265,6 @@ Table caption.
     <w:tbl>
       <w:tblPr>
         <w:tblStyle w:val="Table" />
-        <w:tblW w:type="pct" w:w="0.0" />
         <w:tblLook w:firstRow="1" />
         <w:tblCaption w:val="Table caption." />
       </w:tblPr>
