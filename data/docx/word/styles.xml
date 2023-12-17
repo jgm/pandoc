@@ -24,10 +24,10 @@
     <w:name w:val="Body Text" />
     <w:basedOn w:val="Normal" />
     <w:link w:val="BodyTextChar" />
+    <w:qFormat />
     <w:pPr>
       <w:spacing w:before="180" w:after="180" />
     </w:pPr>
-    <w:qFormat />
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="FirstParagraph">
     <w:name w:val="First Paragraph" />
