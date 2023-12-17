@@ -52,7 +52,6 @@ Date
     </w:p>
     <w:p>
       <w:pPr>
-        <w:pStyle w:val="Compact" />
         <w:pStyle w:val="Abstract" />
       </w:pPr>
       <w:r>
