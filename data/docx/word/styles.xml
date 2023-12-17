@@ -114,7 +114,7 @@
       <w:sz w:val="20" />
       <w:szCs w:val="20" />
       <w:b />
-      <w:color w:val="345A8A" />>
+      <w:color w:val="345A8A" />
     </w:rPr>
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="Abstract">
