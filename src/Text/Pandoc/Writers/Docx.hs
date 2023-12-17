@@ -1074,7 +1074,7 @@ toFigureTable opts blks = do
             []
           )
           : mknode "w:tblGrid" [] gridCols
-          : [tblBody]
+          : (maybeToList tblBody)
         )
   modify $ \s -> s { stInTable = False }
   return $ Elem tbl

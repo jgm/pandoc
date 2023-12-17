@@ -22,6 +22,7 @@ import Control.Monad ( unless , zipWithM )
 import Control.Monad.Except ( throwError )
 import Data.Array ( elems, (!), assocs, indices )
 import Data.Text (Text)
+import Data.Maybe (catMaybes)
 import Text.Pandoc.Definition
     ( ColSpec,
       Caption(Caption),
@@ -189,7 +190,7 @@ cellGridToOpenXML blocksToOpenXML rowType aligns part@(Part _ cellArray _) =
   if null (elems cellArray)
   then return mempty
   else partToRows rowType aligns part >>=
-       mapM (rowToOpenXML blocksToOpenXML)
+       fmap catMaybes . mapM (rowToOpenXML blocksToOpenXML)
 
 data OOXMLCell
   = OOXMLCell Attr Alignment RowSpan ColSpan [Block]
@@ -228,15 +229,17 @@ partToRows rowType aligns part = do
 rowToOpenXML :: PandocMonad m
              => ([Block] -> WS m [Content])
              -> OOXMLRow
-             -> WS m Element
-rowToOpenXML blocksToOpenXML (OOXMLRow rowType _attr cells) = do
-  xmlcells <- mapM (ooxmlCellToOpenXML blocksToOpenXML) cells
-  let addTrPr = case rowType of
-        HeadRow -> (mknode "w:trPr" []
-                    [mknode "w:tblHeader" [("w:val", "true")] ()] :)
-        BodyRow -> id
-        FootRow -> id
-  return $ mknode "w:tr" [] (addTrPr xmlcells)
+             -> WS m (Maybe Element)
+rowToOpenXML blocksToOpenXML (OOXMLRow rowType _attr cells)
+  | null cells = return Nothing
+  | otherwise = do
+    xmlcells <- mapM (ooxmlCellToOpenXML blocksToOpenXML) cells
+    let addTrPr = case rowType of
+          HeadRow -> (mknode "w:trPr" []
+                      [mknode "w:tblHeader" [("w:val", "true")] ()] :)
+          BodyRow -> id
+          FootRow -> id
+    return $ Just $ mknode "w:tr" [] (addTrPr xmlcells)
 
 ooxmlCellToOpenXML :: PandocMonad m
                    => ([Block] -> WS m [Content])
