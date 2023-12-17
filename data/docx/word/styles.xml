@@ -389,10 +389,10 @@
         <w:jc w:val="left"/>
       </w:trPr>
       <w:tcPr>
-        <w:vAlign w:val="bottom"/>
         <w:tcBorders>
           <w:bottom w:val="single"/>
         </w:tcBorders>
+        <w:vAlign w:val="bottom"/>
       </w:tcPr>
     </w:tblStylePr>
   </w:style>
