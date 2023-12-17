@@ -220,8 +220,8 @@
     </w:pPr>
     <w:rPr>
       <w:rFonts w:asciiTheme="majorHAnsi" w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi" w:cstheme="majorBidi" />
-      <w:i />
       <w:bCs />
+      <w:i />
       <w:color w:val="4F81BD" w:themeColor="accent1" />
       <w:sz w:val="24" />
       <w:szCs w:val="24" />
