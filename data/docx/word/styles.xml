@@ -111,10 +111,10 @@
       <w:jc w:val="center" />
     </w:pPr>
     <w:rPr>
-      <w:sz w:val="20" />
-      <w:szCs w:val="20" />
       <w:b />
       <w:color w:val="345A8A" />
+      <w:sz w:val="20" />
+      <w:szCs w:val="20" />
     </w:rPr>
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="Abstract">
