@@ -45,6 +45,11 @@ compareXML (Elem goodElem) (Elem myElem) =
      (Comparison { mine = sort (elAttribs myElem)
                  , good = sort (elAttribs goodElem)
                  })))
+  <|> (if length (elContent myElem) == length (elContent goodElem)
+   then Nothing
+   else Just
+    (ElemChildrenDiffer
+      (Comparison { mine = elContent myElem, good = elContent goodElem})))
   <|> asum (zipWith compareXML (elContent myElem) (elContent goodElem))
 compareXML (Text goodCData) (Text myCData) =
   (if cdVerbatim myCData == cdVerbatim goodCData
@@ -60,6 +65,7 @@ compareXML g m = Just (OtherContentsDiffer (Comparison {mine = m, good = g}))
 data XMLDifference
   = ElemNamesDiffer (Comparison QName)
   | ElemAttributesDiffer (Comparison [Attr])
+  | ElemChildrenDiffer (Comparison [Content])
   | CDatasDiffer (Comparison CData)
   | CRefsDiffer (Comparison String)
   | OtherContentsDiffer (Comparison Content)
