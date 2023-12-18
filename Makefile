@@ -1,6 +1,5 @@
 version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 pandoc-cli-version?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
-pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
 SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
 DOCKERIMAGE=glcr.b-data.ch/ghc/ghc-musl:9.6
@@ -18,6 +17,7 @@ CABALOPTS?=--disable-optimization -f-export-dynamic
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
+pandoc=$(shell cabal list-bin $(CABALOPTS) pandoc-cli)
 
 all: test build ## build executable and run tests
 .PHONY: all
@@ -135,14 +135,14 @@ fix_spacing: ## fix trailing newlines and spaces
 .PHONY: fix_spacing
 
 changes_github: ## copy this release's changes in gfm
-	pandoc --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
+	$(pandoc) --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 .PHONY: changes_github
 
 man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pandoc-lua.1 ## build man pages
 .PHONY: man
 
 latex-package-dependencies: ## print packages used by default latex template
-	pandoc lua tools=latex-package-dependencies.lua
+	$(pandoc) lua tools=latex-package-dependencies.lua
 .PHONY: latex-package-dependencies
 
 coverage: ## code coverage information
@@ -178,7 +178,7 @@ debpkg: ## create linux package
 .PHONY: debpkg
 
 pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pandoc.cabal
-	pandoc $< -f markdown -t man -s \
+	$(pandoc) $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--include-before-body man/pandoc.1.before \
 		--include-after-body man/pandoc.1.after \
@@ -190,7 +190,7 @@ pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pando
 		-o $@
 
 pandoc-cli/man/%.1: doc/%.md pandoc.cabal
-	pandoc $< -f markdown -t man -s \
+	$(pandoc) $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--metadata author="" \
     --variable section="1" \
@@ -202,7 +202,7 @@ pandoc-cli/man/%.1: doc/%.md pandoc.cabal
 
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
-	pandoc --lua-filter tools/update-readme.lua \
+	$(pandoc) --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
 doc/lua-filters.md: tools/update-lua-module-docs.lua  ## update lua-filters.md module docs
@@ -245,7 +245,7 @@ validate-docx-golden-tests: ## validate docx golden tests against schema
 validate-epub: ## generate an epub and validate it with epubcheck
 	which epubcheck || exit 1
 	tmp=$$(mktemp -d) && \
-	pandoc test/epub/features.native -Mtitle="Features" --resource-path test/epub -o $$tmp/file.epub --number-sections --toc --quiet && \
+	$(pandoc) test/epub/features.native -Mtitle="Features" --resource-path test/epub -o $$tmp/file.epub --number-sections --toc --quiet && \
 	echo $$tmp/file.epub && \
 	epubcheck $$tmp/file.epub
 
