@@ -60,7 +60,7 @@ quick-stack: ## unoptimized build and tests with stack
 	  --system-ghc --flag 'pandoc:embed_data_files' \
 	  --fast \
 	  --test \
-	  --test-arguments='-j --hide-successes --ansi-tricks=false $(TESTARGS)'
+	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
 prerelease: README.md fix_spacing check-cabal check-stack checkdocs man check-version-sync check-changelog check-manversion uncommitted_changes ## prerelease checks
