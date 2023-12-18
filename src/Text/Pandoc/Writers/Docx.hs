@@ -679,14 +679,14 @@ styleToOpenXml sm style =
                              [ mknode "w:name" [("w:val", tshow toktype)] ()
                              , mknode "w:basedOn" [("w:val","VerbatimChar")] ()
                              , mknode "w:rPr" [] $
-                               [ mknode "w:color" [("w:val", tokCol toktype)] ()
-                                 | tokCol toktype /= "auto" ] ++
-                               [ mknode "w:shd" [("w:val","clear")
-                                                ,("w:fill",tokBg toktype)] ()
-                                 | tokBg toktype /= "auto" ] ++
                                [ mknode "w:b" [] () | tokFeature tokenBold toktype ] ++
                                [ mknode "w:i" [] () | tokFeature tokenItalic toktype ] ++
-                               [ mknode "w:u" [] () | tokFeature tokenUnderline toktype ]
+                               [ mknode "w:color" [("w:val", tokCol toktype)] ()
+                                 | tokCol toktype /= "auto" ] ++
+                               [ mknode "w:u" [] () | tokFeature tokenUnderline toktype ] ++
+                               [ mknode "w:shd" [("w:val","clear")
+                                                ,("w:fill",tokBg toktype)] ()
+                                 | tokBg toktype /= "auto" ]
                              ]
         tokStyles = tokenStyles style
         tokFeature f toktype = maybe False f $ M.lookup toktype tokStyles
