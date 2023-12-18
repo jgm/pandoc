@@ -1364,12 +1364,12 @@ inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
               langmod $ inlinesToOpenXML opts ils
   wrapBookmark ident contents
 inlineToOpenXML' opts (Strong lst) =
-  withTextProp (mknode "w:b" [] ()) $
   withTextProp (mknode "w:bCs" [] ()) $ -- needed for LTR, #6911
+  withTextProp (mknode "w:b" [] ()) $
   inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Emph lst) =
-  withTextProp (mknode "w:i" [] ()) $
   withTextProp (mknode "w:iCs" [] ()) $  -- needed for LTR, #6911
+  withTextProp (mknode "w:i" [] ()) $
   inlinesToOpenXML opts lst
 inlineToOpenXML' opts (Underline lst) =
   withTextProp (mknode "w:u" [("w:val","single")] ()) $
