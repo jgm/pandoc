@@ -242,6 +242,15 @@ validate-docx-golden-tests: ## validate docx golden tests against schema
 	sh ./tools/validate-docx.sh test/docx/golden/*.docx
 .PHONY: validate-docx-golden-tests
 
+validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
+	which dotnet || ("dotnet is required" && exit 1)
+	which json_reformat || ("json_reformat is required" && exit 1)
+	test -d ./OOXML-Validator || \
+		(git clone https://github.com/mikeebowen/OOXML-Validator.git \
+		&& cd OOXML-Validator && dotnet build --configuration=Release)
+	dotnet run --configuration=Release --no-build --no-restore --project OOXML-Validator/OOXMLValidatorCLI -- test/docx/golden -r | json_reformat
+.PHONY: validate-docx-golden-tests2
+
 validate-epub: ## generate an epub and validate it with epubcheck
 	which epubcheck || exit 1
 	tmp=$$(mktemp -d) && \
