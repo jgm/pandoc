@@ -28,7 +28,7 @@ import Codec.Archive.Zip
       toEntry,
       Entry(eRelativePath) )
 import Control.Applicative ((<|>))
-import Control.Monad (MonadPlus(mplus), unless, when)
+import Control.Monad (MonadPlus(mplus), unless, when, foldM)
 import Control.Monad.Except (catchError, throwError)
 import Control.Monad.Reader
     ( asks, MonadReader(local), MonadTrans(lift), ReaderT(runReaderT) )
@@ -508,30 +508,105 @@ writeDocx opts doc = do
   -- adds references to footnotes or endnotes we don't have...
   -- we do, however, copy some settings over from reference
   let settingsPath = "word/settings.xml"
-      settingsList = [ "zoom"
-                     , "mirrorMargins"
+
+  settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime
+                      -- note: these must go in the following order:
+                     [ "writeProtection"
+                     , "view"
+                     , "zoom"
+                     , "removePersonalInformation"
+                     , "removeDateAndTime"
+                     , "doNotDisplayPageBoundaries"
+                     , "displayBackgroundShape"
+                     , "printPostScriptOverText"
+                     , "printFractionalCharacterWidth"
+                     , "printFormsData"
+                     , "embedTrueTypeFonts"
                      , "embedSystemFonts"
+                     , "saveSubsetFonts"
+                     , "saveFormsData"
+                     , "mirrorMargins"
+                     , "alignBordersAndEdges"
+                     , "bordersDoNotSurroundHeader"
+                     , "bordersDoNotSurroundFooter"
+                     , "gutterAtTop"
+                     , "hideSpellingErrors"
+                     , "hideGrammaticalErrors"
+                     , "activeWritingStyle"
+                     , "proofState"
+                     , "formsDesign"
+                     , "attachedTemplate"
+                     , "linkStyles"
+                     , "stylePaneFormatFilter"
+                     , "stylePaneSortMethod"
+                     , "documentType"
+                     , "mailMerge"
+                     , "revisionView"
+                     , "trackRevisions"
                      , "doNotTrackMoves"
+                     , "doNotTrackFormatting"
+                     , "documentProtection"
+                     , "autoFormatOverride"
+                     , "styleLockTheme"
+                     , "styleLockQFSet"
                      , "defaultTabStop"
+                     , "autoHyphenation"
+                     , "consecutiveHyphenLimit"
+                     , "hyphenationZone"
+                     , "doNotHyphenateCaps"
+                     , "showEnvelope"
+                     , "summaryLength"
+                     , "clickAndTypeStyle"
+                     , "defaultTableStyle"
+                     , "evenAndOddHeaders"
+                     , "bookFoldRevPrinting"
+                     , "bookFoldPrinting"
+                     , "bookFoldPrintingSheets"
                      , "drawingGridHorizontalSpacing"
                      , "drawingGridVerticalSpacing"
                      , "displayHorizontalDrawingGridEvery"
                      , "displayVerticalDrawingGridEvery"
+                     , "doNotUseMarginsForDrawingGridOrigin"
+                     , "drawingGridHorizontalOrigin"
+                     , "drawingGridVerticalOrigin"
+                     , "doNotShadeFormData"
+                     , "noPunctuationKerning"
                      , "characterSpacingControl"
+                     , "printTwoOnOne"
+                     , "strictFirstAndLastChars"
+                     , "noLineBreaksAfter"
+                     , "noLineBreaksBefore"
                      , "savePreviewPicture"
-                     , "mathPr"
-                     , "themeFontLang"
-                     , "decimalSymbol"
-                     , "listSeparator"
-                     , "autoHyphenation"
-                     , "consecutiveHyphenLimit"
-                     , "hyphenationZone"
-                     , "doNotHyphenateCap"
-                     , "evenAndOddHeaders"
-                     , "proofState"
+                     , "doNotValidateAgainstSchema"
+                     , "saveInvalidXml"
+                     , "ignoreMixedContent"
+                     , "alwaysShowPlaceholderText"
+                     , "doNotDemarcateInvalidXml"
+                     , "saveXmlDataOnly"
+                     , "useXSLTWhenSaving"
+                     , "saveThroughXslt"
+                     , "showXMLTags"
+                     , "alwaysMergeEmptyNamespace"
+                     , "updateFields"
+                     , "hdrShapeDefaults"
+                     , "footnotePr"
+                     , "endnotePr"
                      , "compat"
-                     ]
-  settingsEntry <- copyChildren refArchive distArchive settingsPath epochtime settingsList
+                     , "docVars"
+                     , "rsids"
+                     , "attachedSchema"
+                     , "themeFontLang"
+                     , "clrSchemeMapping"
+                     , "doNotIncludeSubdocsInStats"
+                     , "doNotAutoCompressPictures"
+                     , "forceUpgrade"
+                     , "captions"
+                     , "readModeInkLockDown"
+                     , "smartTagType"
+                     , "shapeDefaults"
+                     , "doNotEmbedSmartTags"
+                     , "decimalSymbol"
+                     , "listSeparator" ]
 
   let entryFromArchive arch path =
          maybe (throwError $ PandocSomeError
@@ -639,17 +714,17 @@ copyChildren :: (PandocMonad m)
 copyChildren refArchive distArchive path timestamp elNames = do
   ref  <- parseXml refArchive distArchive path
   dist <- parseXml distArchive distArchive path
-  let elsToCopy =
-        map cleanElem $ filterChildrenName (\e -> qName e `elem` elNames) ref
-  let elsToKeep =
-        [e | Elem e <- elContent dist, not (any (hasSameNameAs e) elsToCopy)]
-  return $ toEntry path timestamp $ renderXml dist{
-      elContent = map Elem elsToKeep ++ map Elem elsToCopy
-    }
+  els <- foldM (addEl ref dist) [] (reverse elNames)
+  return $ toEntry path timestamp
+         $ renderXml dist{ elContent = map cleanElem els }
   where
-    hasSameNameAs (Element {elName = n1}) (Element {elName = n2}) =
-      qName n1 == qName n2
-    cleanElem el@Element{elName=name} = el{elName=name{qURI=Nothing}}
+    addEl ref dist els name =
+      case filterChildName (hasName name) ref `mplus`
+             filterChildName (hasName name) dist of
+        Just el -> pure (el : els)
+        Nothing -> pure els
+    hasName name = (== name) . qName
+    cleanElem el@Element{elName=name} = Elem el{elName=name{qURI=Nothing}}
 
 -- this is the lowest number used for a list numId
 baseListId :: Int
