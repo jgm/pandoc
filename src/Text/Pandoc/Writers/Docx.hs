@@ -885,8 +885,8 @@ writeOpenXML opts (Pandoc meta blocks) = do
               , mknode "w:r" []
                 [ mknode "w:rPr" []
                   [ mknode "w:rStyle" [("w:val", "CommentReference")] ()
-                  , mknode "w:annotationRef" [] ()
                   ]
+                  , mknode "w:annotationRef" [] ()
                 ]
               ] ++ annotation
             ]
