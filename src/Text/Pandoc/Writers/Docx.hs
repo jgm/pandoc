@@ -1246,7 +1246,7 @@ getParaProps displayMathPara = do
   let listPr = [mknode "w:numPr" []
                 [ mknode "w:ilvl" [("w:val",tshow listLevel)] ()
                 , mknode "w:numId" [("w:val",tshow numid')] () ] | listLevel >= 0 && not displayMathPara]
-  return $ case listPr ++ squashProps props of
+  return $ case squashProps (EnvProps Nothing listPr <> props) of
                 [] -> []
                 ps -> [mknode "w:pPr" [] ps]
 
