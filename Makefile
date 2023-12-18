@@ -235,6 +235,13 @@ update-website: ## update website and upload
 	make -C $(WEBSITE) upload
 .PHONY: update-website
 
+validate-docx-golden-tests: ## validate docx golden tests against schema
+	which xmllint || ("xmllint is required" && exit 1)
+	test -d ./docx-validator || \
+		git clone https://github.com/devoidfury/docx-validator
+	cd docx-validator && for f in ../test/docx/golden/*.docx; do ./validate $$f || exit 1 ; done
+.PHONY: validate-docx-golden-tests
+
 modules.csv: $(PANDOCSOURCEFILES)
 	@rg '^import.*Text\.Pandoc\.' --with-filename $^ \
 		| rg -v 'Text\.Pandoc\.(Definition|Builder|Walk|Generic)' \
