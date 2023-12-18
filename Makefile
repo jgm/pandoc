@@ -239,7 +239,7 @@ validate-docx-golden-tests: ## validate docx golden tests against schema
 	which xmllint || ("xmllint is required" && exit 1)
 	test -d ./docx-validator || \
 		git clone https://github.com/devoidfury/docx-validator
-	cd docx-validator && for f in ../test/docx/golden/*.docx; do ./validate $$f || exit 1 ; done
+	sh ./tools/validate-docx.sh test/docx/golden/*.docx
 .PHONY: validate-docx-golden-tests
 
 validate-epub: ## generate an epub and validate it with epubcheck
