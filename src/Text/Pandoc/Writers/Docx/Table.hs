@@ -115,7 +115,7 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
         ( mknode "w:tblPr" []
           ( [ mknode "w:tblStyle" [("w:val","Table")] (),
               mknode "w:tblW" tblWattr (),
-              mknode "w:jc" [("w:val","start")] () ] ++
+              mknode "w:jc" [("w:val","left")] () ] ++
             [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
                 | indent > 0 ] ++
             [ mknode "w:tblLayout" [("w:type", "fixed")] () | hasWidths ] ++
