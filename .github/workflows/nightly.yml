@@ -33,7 +33,7 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nightly-linux
         path: nightly-linux
@@ -62,7 +62,7 @@ jobs:
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nightly-windows
         path: nightly-windows
@@ -91,7 +91,7 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nightly-macos
         path: nightly-macos
