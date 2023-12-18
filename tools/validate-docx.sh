@@ -10,11 +10,11 @@ for file in "$@"; do
   echo "*** Checking $file"
   rm -rf "$tmpdir"
   unzip -q -o -j "$file" -d "$tmpdir"
-  for i in comments document fontTable footnotes numbering settings styles theme1 webSettings; do
-    xmllint --format "$tmpdir/${i}.xml" > "$tmpdir/${i}-pretty.xml"
+  for i in "$tmpdir"/*.xml; do
+    xmllint --format "${i}" > "${i}.pretty.xml"
   done
   XSD="./docx-validator/schemas/microsoft/wml-2010.xsd"
-  for i in "$tmpdir"/*-pretty.xml; do
+  for i in "$tmpdir"/*.pretty.xml; do
     xmllint -noout -nonet \
       -schema "${XSD}" \
       "${i}" 2>&1 || file_errors=$((file_errors + 1))
