@@ -9,7 +9,7 @@ for file in "$@"; do
   file_errors=0
   echo "*** Checking $file"
   rm -rf "$tmpdir"
-  unzip -q -o -j "$file" -d "$tmpdir"
+  unzip -q -o -j "$file" "word/*.xml" "word/_rels/*.xml" -d "$tmpdir"
   for i in "$tmpdir"/*.xml; do
     xmllint --format "${i}" > "${i}.pretty.xml"
   done
