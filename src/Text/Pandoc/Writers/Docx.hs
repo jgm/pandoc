@@ -1138,18 +1138,17 @@ toFigureTable opts blks = do
              map blockToCell blks
   let tbl = mknode "w:tbl" []
         ( mknode "w:tblPr" []
-          ( mknode "w:tblStyle" [("w:val","FigureTable")] () :
-            mknode "w:tblW" [ ("w:type", "auto"), ("w:w", "0") ] () :
+          [ mknode "w:tblStyle" [("w:val","FigureTable")] (),
+            mknode "w:tblW" [ ("w:type", "auto"), ("w:w", "0") ] (),
+            mknode "w:jc" [("w:val","center")] (),
             mknode "w:tblLook" [ ("w:firstRow", "0")
                                , ("w:lastRow", "0")
                                , ("w:firstColumn", "0")
                                , ("w:lastColumn", "0")
-                               ] () :
-            mknode "w:jc" [("w:val","center")] () :
-            []
-          )
+                               ] ()
+          ]
           : mknode "w:tblGrid" [] gridCols
-          : (maybeToList tblBody)
+          : maybeToList tblBody
         )
   modify $ \s -> s { stInTable = False }
   return $ Elem tbl

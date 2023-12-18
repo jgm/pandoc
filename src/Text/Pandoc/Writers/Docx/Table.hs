@@ -113,20 +113,20 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
   let hasWidths = not $ all ((== ColWidthDefault) . snd) colspecs
   let tbl = mknode "w:tbl" []
         ( mknode "w:tblPr" []
-          ( mknode "w:tblStyle" [("w:val","Table")] () :
-            mknode "w:tblW" tblWattr () :
-            mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
-                               ,("w:lastRow",if hasFooter then "1" else "0")
-                               ,("w:firstColumn","0")
-                               ,("w:lastColumn","0")
-                               ,("w:noHBand","0")
-                               ,("w:noVBand","0")
-                               ,("w:val", T.pack $ printf "%04x" tblLookVal)
-                               ] () :
-            mknode "w:jc" [("w:val","start")] ()
-            : [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
+          ( [ mknode "w:tblStyle" [("w:val","Table")] (),
+              mknode "w:tblW" tblWattr (),
+              mknode "w:jc" [("w:val","start")] () ] ++
+            [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
                 | indent > 0 ] ++
             [ mknode "w:tblLayout" [("w:type", "fixed")] () | hasWidths ] ++
+            [ mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
+                                 ,("w:lastRow",if hasFooter then "1" else "0")
+                                 ,("w:firstColumn","0")
+                                 ,("w:lastColumn","0")
+                                 ,("w:noHBand","0")
+                                 ,("w:noVBand","0")
+                                 ,("w:val", T.pack $ printf "%04x" tblLookVal)
+                                 ] () ] ++
             [ mknode "w:tblCaption" [("w:val", captionStr)] ()
             | not (T.null captionStr) ]
           )
