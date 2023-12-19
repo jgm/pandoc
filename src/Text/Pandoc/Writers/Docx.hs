@@ -590,7 +590,6 @@ writeDocx opts doc = do
                      , "updateFields"
                      , "hdrShapeDefaults"
                      , "footnotePr"
-                     , "endnotePr"
                      , "compat"
                      , "docVars"
                      , "rsids"
