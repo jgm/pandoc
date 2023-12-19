@@ -238,7 +238,8 @@ update-website: ## update website and upload
 validate-docx-golden-tests: ## validate docx golden tests against schema
 	which xmllint || ("xmllint is required" && exit 1)
 	test -d ./docx-validator || \
-		git clone https://github.com/devoidfury/docx-validator
+		(git clone https://github.com/devoidfury/docx-validator && \
+		cd docx-validator && patch -p1 <../wml.xsd.patch)
 	sh ./tools/validate-docx.sh test/docx/golden/*.docx
 .PHONY: validate-docx-golden-tests
 
