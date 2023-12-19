@@ -11,6 +11,7 @@ import Text.Pandoc.Options
   ( WriterOptions (writerIncremental, writerTopLevelDivision)
   , TopLevelDivision (..)
   )
+import Citeproc.Types (Lang)
 
 -- | LaTeX writer type. The type constructor @m@ will typically be an
 -- instance of PandocMonad.
@@ -50,6 +51,7 @@ data WriterState =
   , stEmptyLine     :: Bool          -- ^ true if no content on line
   , stHasCslRefs    :: Bool          -- ^ has a Div with class refs
   , stIsFirstInDefinition :: Bool    -- ^ first block in a defn list
+  , stLang          :: Maybe Lang    -- ^ lang specified in metadata
   }
 
 startingState :: WriterOptions -> WriterState
@@ -88,4 +90,5 @@ startingState options =
   , stEmptyLine = True
   , stHasCslRefs = False
   , stIsFirstInDefinition = False
+  , stLang = Nothing
   }

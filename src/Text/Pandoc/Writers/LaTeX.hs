@@ -127,6 +127,13 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
+  docLangs <- catMaybes <$>
+      mapM (toLang . Just) (nubOrd (query (extract "lang") blocks))
+  mblang <- toLang $ case getLang options meta of
+                          Just l -> Just l
+                          Nothing | null docLangs -> Nothing
+                                  | otherwise     -> Just "en"
+  modify $ \s -> s{ stLang = mblang }
   metadata <- metaToContext options
               blockListToLaTeX
               (fmap chomp . inlineListToLaTeX)
@@ -167,8 +174,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
-  docLangs <- catMaybes <$>
-      mapM (toLang . Just) (nubOrd (query (extract "lang") blocks))
+  -- we need a default here since lang is used in template conditionals
+  let otherLangs = [l | l <- docLangs, mblang /= Just l]
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
                             mapMaybe (\(x,y) ->
@@ -178,12 +185,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                               ,("tmargin","margin-top")
                               ,("bmargin","margin-bottom")
                               ]
-  mblang <- toLang $ case getLang options meta of
-                          Just l -> Just l
-                          Nothing | null docLangs -> Nothing
-                                  | otherwise     -> Just "en"
-  -- we need a default here since lang is used in template conditionals
-  let otherLangs = [l | l <- docLangs, mblang /= Just l]
 
   let dirs = query (extract "dir") blocks
 

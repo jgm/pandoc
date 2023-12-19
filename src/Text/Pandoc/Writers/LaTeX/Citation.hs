@@ -15,6 +15,8 @@ module Text.Pandoc.Writers.LaTeX.Citation
 
 import Data.Text (Text)
 import Data.Char (isPunctuation)
+import Control.Monad.State (gets)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
@@ -22,7 +24,11 @@ import Data.List (foldl')
 import Text.DocLayout (Doc, brackets, empty, (<+>), text, isEmpty, literal,
                        braces)
 import Text.Pandoc.Walk
-import Text.Pandoc.Writers.LaTeX.Types ( LW )
+import Text.Pandoc.Writers.LaTeX.Types ( LW, WriterState(stLang) )
+import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorInfo(..),
+                                     toLocatorMap)
+import Citeproc.Types (Lang(..))
+import Citeproc.Locale (getLocale)
 
 citationsToNatbib :: PandocMonad m
                   => ([Inline] -> LW m (Doc Text))
@@ -101,11 +107,9 @@ citeArgumentsList :: PandocMonad m
               -> LW m (Doc Text)
 citeArgumentsList _inlineListToLaTeX (CiteGroup _ _ []) = return empty
 citeArgumentsList inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
-      pdoc <- inlineListToLaTeX pfxs
-      sdoc <- inlineListToLaTeX sfxs'
-      return $ optargs pdoc sdoc <>
-              braces (literal (T.intercalate "," (reverse ids)))
-      where sfxs' = stripLocatorBraces $ case sfxs of
+      mblang <- gets stLang
+      let sfxs' = removePageLabel mblang $
+              stripLocatorBraces $ case sfxs of
                 (Str t : r) -> case T.uncons t of
                   Just (x, xs)
                     | T.null xs
@@ -113,10 +117,14 @@ citeArgumentsList inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
                     | isPunctuation x -> Str xs : r
                   _ -> sfxs
                 _   -> sfxs
-            optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
+          optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
                  (True, True ) -> empty
                  (True, False) -> brackets sdoc
                  (_   , _    ) -> brackets pdoc <> brackets sdoc
+      pdoc <- inlineListToLaTeX pfxs
+      sdoc <- inlineListToLaTeX sfxs'
+      return $ optargs pdoc sdoc <>
+              braces (literal (T.intercalate "," (reverse ids)))
 
 citeArguments :: PandocMonad m
               => ([Inline] -> LW m (Doc Text))
@@ -180,3 +188,17 @@ citationsToBiblatex inlineListToLaTeX (c:cs)
                cid = citationId cit
 
 citationsToBiblatex _ _ = return empty
+
+-- | In natbib and biblatex, the label p. or pp. can be
+-- omitted; ranges will be treated as page ranges by default.
+-- See #9275.
+removePageLabel :: Maybe Lang -> [Inline] -> [Inline]
+removePageLabel mblang ils =
+  case mbLocinfo of
+    Just locinfo | locatorLabel locinfo == "page"
+      -> Str (locatorLoc locinfo) : ils'
+    _ -> ils
+ where
+   (mbLocinfo, ils') = parseLocator (toLocatorMap locale) ils
+   lang = fromMaybe (Lang "en" Nothing (Just "US") [] [] []) mblang
+   locale = either mempty id $ getLocale lang
