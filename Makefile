@@ -249,7 +249,7 @@ validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
 	test -d ./OOXML-Validator || \
 		(git clone https://github.com/mikeebowen/OOXML-Validator.git \
 		&& cd OOXML-Validator && dotnet build --configuration=Release)
-	dotnet run --configuration=Release --no-build --no-restore --project OOXML-Validator/OOXMLValidatorCLI -- test/docx/golden -r | json_reformat
+	sh ./tools/validate-docx2.sh test/docx/golden/
 .PHONY: validate-docx-golden-tests2
 
 validate-epub: ## generate an epub and validate it with epubcheck
