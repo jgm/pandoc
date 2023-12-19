@@ -110,7 +110,7 @@ hyperlink = do
   many space
   string "HYPERLINK"
   spaces
-  farg <- fieldArgument
+  farg <- option "" $ notFollowedBy (char '\\') *> fieldArgument
   switches <- spaces *> many hyperlinkSwitch
   let url = case switches of
               ("\\l", s) : _ -> farg <> "#" <> s
