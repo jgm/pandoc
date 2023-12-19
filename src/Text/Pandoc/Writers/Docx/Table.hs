@@ -236,7 +236,7 @@ rowToOpenXML blocksToOpenXML (OOXMLRow rowType _attr cells)
     xmlcells <- mapM (ooxmlCellToOpenXML blocksToOpenXML) cells
     let addTrPr = case rowType of
           HeadRow -> (mknode "w:trPr" []
-                      [mknode "w:tblHeader" [("w:val", "true")] ()] :)
+                      [mknode "w:tblHeader" [("w:val", "on")] ()] :)
           BodyRow -> id
           FootRow -> id
     return $ Just $ mknode "w:tr" [] (addTrPr xmlcells)
