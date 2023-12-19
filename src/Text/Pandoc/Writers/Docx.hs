@@ -36,7 +36,8 @@ import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
 import qualified Data.ByteString.Lazy as BL
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isSpace, isLetter)
-import Data.List (intercalate, isPrefixOf, isSuffixOf)
+import Data.List (intercalate, isPrefixOf, isSuffixOf, sortBy)
+import Data.Ord (comparing)
 import Data.String (fromString)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList, isJust)
@@ -77,9 +78,63 @@ import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
 import Text.Collate.Lang (renderLang, Lang(..))
 
+-- from wml.xsd EG_RPrBase
+rPrTagOrder :: M.Map Text Int
+rPrTagOrder =
+  M.fromList
+  (zip [ "rStyle"
+    , "rFonts"
+    , "b"
+    , "bCs"
+    , "i"
+    , "iCs"
+    , "caps"
+    , "smallCaps"
+    , "strike"
+    , "dstrike"
+    , "outline"
+    , "shadow"
+    , "emboss"
+    , "imprint"
+    , "noProof"
+    , "snapToGrid"
+    , "vanish"
+    , "webHidden"
+    , "color"
+    , "spacing"
+    , "w"
+    , "kern"
+    , "position"
+    , "sz"
+    , "szCs"
+    , "highlight"
+    , "u"
+    , "effect"
+    , "bdr"
+    , "shd"
+    , "fitText"
+    , "vertAlign"
+    , "rtl"
+    , "cs"
+    , "em"
+    , "lang"
+    , "eastAsianLayout"
+    , "specVanish"
+    , "oMath"
+    ] [0..])
+
+sortSquashed :: [Element] -> [Element]
+sortSquashed l =
+  sortBy (comparing tagIndex) l
+  where
+    tagIndex :: Element -> Int
+    tagIndex el =
+      fromMaybe 0 (M.lookup tag rPrTagOrder)
+      where tag = (qName . elName) el
+
 squashProps :: EnvProps -> [Element]
-squashProps (EnvProps Nothing es) = es
-squashProps (EnvProps (Just e) es) = e : es
+squashProps (EnvProps Nothing es) = sortSquashed es
+squashProps (EnvProps (Just e) es) = sortSquashed (e : es)
 
 renumIdMap :: Int -> [Element] -> M.Map Text Text
 renumIdMap _ [] = M.empty
