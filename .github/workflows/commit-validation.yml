@@ -15,23 +15,25 @@ jobs:
       with:
         result-encoding: json
         script: |
-          var longlines = [];
+          var longlines = 0;
           const commits = ${{ toJSON(github.event.commits) }}
           for (const commit of commits) {
-            if (/^.{79}/.test(commit.message)) {
-              longlines.push(commit.sha)
+            for (const line of commit.message.split('\n')) {
+              if (line.length > 78) {
+                 longlines += 1;
+                 console.log("Overlong line:\n" + line);
+              }
             }
           }
           return longlines
     - name: Get result
       run: |
-        result="${{steps.check-commit-msg-length.outputs.result}}"
-        if [[ $result = "" ]]; then
+        result=${{steps.check-commit-msg-length.outputs.result}}
+        if [[ $result -eq 0 ]]; then
           echo "Ok"
           exit 0
         else
-          echo "Commit messages for these commits contain lines > 78 characters:"
-          echo $result
+          echo "Commit messages contain $result lines longer than 78 characters."
+          echo "See under 'Check commit message length' for a list of the lines."
           exit 1
         fi
-
