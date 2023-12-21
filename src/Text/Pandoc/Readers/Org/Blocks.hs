@@ -26,7 +26,7 @@ import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkText, isImageFilename,
                                        originalLang, translateLang, exportsCode)
 
-import Text.Pandoc.Builder (Blocks, Inlines)
+import Text.Pandoc.Builder (Blocks, Inlines, Many(..))
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
@@ -41,6 +41,7 @@ import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 import Data.List.NonEmpty (nonEmpty)
 import System.FilePath
+import qualified Data.Foldable as F
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Walk as Walk
@@ -631,38 +632,46 @@ data OrgTable = OrgTable
   }
 
 table :: PandocMonad m => OrgParser m (F Blocks)
-table = do
-  withTables <- getExportSetting exportWithTables
-  tbl <- gridTableWith blocks <|> orgTable
-  return $ if withTables then tbl else mempty
-
--- | A normal org table
-orgTable :: PandocMonad m => OrgParser m (F Blocks)
-orgTable = try $ do
+table = try $ do
   -- don't allow a table on the first line of a list item; org requires that
   -- tables start at first non-space character on the line
   let isFirstInListItem st = orgStateParserContext st == ListItemState &&
                              isNothing (orgStateLastPreCharPos st)
   guard . not . isFirstInListItem =<< getState
   blockAttrs <- blockAttributes
+  let identMb = blockAttrName blockAttrs
+  tbl <- gridTableWith blocks <|> orgTable
+  withTables <- getExportSetting exportWithTables
+  return $ if withTables
+              then do
+                xs <- unMany <$> tbl
+                case F.toList xs of
+                  [Table _ _ cs th tb tf] -> do
+                    capt <- case blockAttrCaption blockAttrs of
+                              Nothing -> pure $ Caption Nothing []
+                              Just ils -> do
+                                ils' <- ils
+                                pure $ B.simpleCaption . B.plain $ ils'
+                    let attr = (fromMaybe mempty identMb, [],
+                                 blockAttrKeyValues blockAttrs)
+                    pure $ B.tableWith attr capt cs th tb tf
+                  _ -> tbl   -- should not happen
+              else mempty
+
+-- | A normal org table
+orgTable :: PandocMonad m => OrgParser m (F Blocks)
+orgTable = do
   lookAhead tableStart
   rows <- tableRows
-
-  let caption = fromMaybe mempty (blockAttrCaption blockAttrs)
   let orgTbl = normalizeTable <$> rowsToTable rows
-  let identMb = blockAttrName blockAttrs
-  let attr = (fromMaybe mempty identMb, [], blockAttrKeyValues blockAttrs)
-  return $ orgToPandocTable attr <$> orgTbl <*> caption
+  return $ orgToPandocTable <$> orgTbl
 
-orgToPandocTable :: Attr
-                 -> OrgTable
-                 -> Inlines
-                 -> Blocks
-orgToPandocTable attr (OrgTable colProps heads lns) caption =
+orgToPandocTable :: OrgTable -> Blocks
+orgToPandocTable (OrgTable colProps heads lns) =
   let totalWidth = if any (isJust . columnRelWidth) colProps
                    then Just . sum $ map (fromMaybe 1 . columnRelWidth) colProps
                    else Nothing
-  in B.tableWith attr (B.simpleCaption $ B.plain caption)
+  in B.tableWith nullAttr (Caption Nothing mempty)
                  (map (convertColProp totalWidth) colProps)
                  (TableHead nullAttr $ toHeaderRow heads)
                  [TableBody nullAttr 0 [] $ map toRow lns]
