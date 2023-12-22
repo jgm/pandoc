@@ -28,7 +28,8 @@ module Text.Pandoc.Chunks
   ) where
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier)
+import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier,
+                           tshow)
 import Text.Pandoc.Walk (Walkable(..))
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
@@ -204,22 +205,26 @@ makeChunks chunklev pathTemplate meta = secsToChunks 1
                         divid
                         (fromMaybe "" secnum)
   toChunk chunknum (Div ("",["preamble"],[]) bs) =
-    Chunk
+      Chunk
       { chunkHeading = docTitle meta
-      , chunkId = inlineListToIdentifier mempty $ docTitle meta
+      , chunkId = chunkid
       , chunkLevel = 0
       , chunkNumber = chunknum
       , chunkSectionNumber = Nothing
-      , chunkPath = resolvePathTemplate pathTemplate chunknum
-                        (stringify (docTitle meta))
-                        (inlineListToIdentifier mempty (docTitle meta))
-                        "0"
+      , chunkPath = chunkpath
       , chunkUp = Nothing
       , chunkPrev = Nothing
       , chunkNext = Nothing
       , chunkUnlisted = False
       , chunkContents = bs
       }
+    where
+      chunkpath = resolvePathTemplate pathTemplate chunknum
+                        (stringify (docTitle meta))
+                        chunkid
+                        "0"
+      chunkid = inlineListToIdentifier mempty (docTitle meta) <>
+                      "-" <> tshow chunknum
   toChunk _ b = error $ "toChunk called on inappropriate block " <> show b
   -- should not happen
 
