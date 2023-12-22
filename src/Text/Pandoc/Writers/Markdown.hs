@@ -590,16 +590,19 @@ blockToMarkdown' opts (BlockQuote blocks) = do
         | otherwise            = "> "
   contents <- blockListToMarkdown opts blocks
   return $ prefixed leader contents <> blankline
-blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
+blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   let numcols = maximum (length aligns :| length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
-  let caption''
+  let caption'' = if T.null ident
+                     then caption'
+                     else caption' <+> attrsToMarkdown opts (ident,[],[])
+  let caption'''
         | null caption = blankline
         | isEnabled Ext_table_captions opts
-        = blankline $$ (": " <> caption') $$ blankline
-        | otherwise = blankline $$ caption' $$ blankline
+        = blankline $$ (": " <> caption'') $$ blankline
+        | otherwise = blankline $$ caption'' $$ blankline
   let hasSimpleCells = onlySimpleTableCells $ headers : rows
   let isSimple = hasSimpleCells && all (==0) widths
   let isPlainBlock (Plain _) = True
@@ -652,7 +655,7 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
                    literal . removeBlankLinesInHTML <$>
                    writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [t])
             | otherwise -> return (id, literal "[TABLE]")
-  return $ nst (tbl $$ caption'') $$ blankline
+  return $ nst (tbl $$ caption''') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ (if isTightList items then vcat else vsep)
