@@ -64,6 +64,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType, getMimeTypeDef)
 import Text.Pandoc.Options
+import Text.Pandoc.Readers.Docx.Parse (extractTarget)
 import Text.Pandoc.Writers.Docx.StyleMap
 import Text.Pandoc.Writers.Docx.Table as Table
 import Text.Pandoc.Writers.Docx.Types
@@ -309,8 +310,6 @@ writeDocx opts doc = do
   let isFooterNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
   let headers = filterElements isHeaderNode parsedRels
   let footers = filterElements isFooterNode parsedRels
-
-  let extractTarget = findAttr (QName "Target" Nothing Nothing)
 
   -- we create [Content_Types].xml and word/_rels/document.xml.rels
   -- from scratch rather than reading from reference.docx,
