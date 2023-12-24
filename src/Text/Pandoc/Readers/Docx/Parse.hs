@@ -56,6 +56,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , constructBogusParStyleData
                                       , leftBiasedMergeRunStyle
                                       , rowsToRowspans
+                                      , extractTarget
                                       ) where
 import Text.Pandoc.Readers.Docx.Parse.Styles
 import Codec.Archive.Zip
@@ -537,6 +538,10 @@ relElemToRelationship fp relType element | qName (elName element) == "Relationsh
            T.stripPrefix frontOfFp $ T.dropWhile (== '/') target
     return $ Relationship relType relId target'
 relElemToRelationship _ _ _ = Nothing
+
+extractTarget :: Element -> Maybe Target
+extractTarget element = do (Relationship _ _ target) <- relElemToRelationship "word/" InDocument element
+                           return target
 
 filePathToRelationships :: Archive -> FilePath -> FilePath ->  [Relationship]
 filePathToRelationships ar docXmlPath fp
