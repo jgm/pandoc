@@ -425,18 +425,23 @@ runTeXProgram program args tmpDir = do
      logContents <- if logExists
                        then readFileLazy logFile
                        else return mempty
-     needsRerun <- checkForRerun logContents
-     if needsRerun && runNumber < 3
-        then go file env'' programArgs (runNumber + 1)
+     let rerunWarnings = checkForRerun logContents
+     if not (null rerunWarnings) && runNumber < 3
+        then do
+          report $ MakePDFInfo "Rerun needed"
+                    (T.intercalate "\n"
+                      (map (UTF8.toText . BC.toStrict) rerunWarnings))
+          go file env'' programArgs (runNumber + 1)
        else do
           let pdfFile = replaceExtension file ".pdf"
           (log', pdf) <- getResultingPDF (Just logFile) pdfFile
           return (exit, fromMaybe out log', pdf)
 
-   checkForRerun log' = pure $ any isRerunWarning $ BC.lines log'
+   checkForRerun log' = filter isRerunWarning $ BC.lines log'
 
-   isRerunWarning ln = BC.isPrefixOf "LaTeX Warning:" ln &&
-                       BS.isInfixOf "Rerun to" (BL.toStrict ln)
+   isRerunWarning ln =
+     let ln' = BL.toStrict ln
+       in BS.isInfixOf "Warning:" ln' && BS.isInfixOf "Rerun" ln'
 
 generic2pdf :: (PandocMonad m, MonadIO m)
             => String
