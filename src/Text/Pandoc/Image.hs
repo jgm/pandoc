@@ -18,18 +18,22 @@ import Data.Text (Text)
 import Text.Pandoc.Shared (tshow)
 import qualified Control.Exception as E
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import Text.Pandoc.Class.PandocMonad
+import qualified Data.Text as T
 
 -- | Convert svg image to png. rsvg-convert
 -- is used and must be available on the path.
-svgToPng :: MonadIO m
+svgToPng :: (PandocMonad m, MonadIO m)
          => Int           -- ^ DPI
          -> L.ByteString  -- ^ Input image as bytestring
          -> m (Either Text L.ByteString)
 svgToPng dpi bs = do
   let dpi' = show dpi
+  let args = ["-f","png","-a","--dpi-x",dpi',"--dpi-y",dpi']
+  trace (T.intercalate " " $ map T.pack $ "rsvg-convert" : args)
   liftIO $ E.catch
        (do (exit, out) <- pipeProcess Nothing "rsvg-convert"
-                          ["-f","png","-a","--dpi-x",dpi',"--dpi-y",dpi']
+                          args
                           bs
            return $ if exit == ExitSuccess
               then Right out
