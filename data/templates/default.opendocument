@@ -3,9 +3,6 @@
   <office:font-face-decls>
     <style:font-face style:name="Courier New" style:font-family-generic="modern" style:font-pitch="fixed" svg:font-family="'Courier New'" />
   </office:font-face-decls>
-  <office:styles>
-    $highlighting-styles$
-  </office:styles>
   <office:automatic-styles>
     $automatic-styles$
   </office:automatic-styles>

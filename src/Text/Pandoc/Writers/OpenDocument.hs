@@ -15,7 +15,7 @@ Conversion of 'Pandoc' documents to OpenDocument XML.
 -}
 module Text.Pandoc.Writers.OpenDocument ( writeOpenDocument ) where
 import Control.Arrow ((***), (>>>))
-import Control.Monad (unless, liftM, MonadPlus(mplus))
+import Control.Monad (unless, liftM)
 import Control.Monad.State.Strict ( StateT(..), modify, gets, lift )
 import Data.Char (chr)
 import Data.Foldable (find)
@@ -44,8 +44,7 @@ import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import Text.Pandoc.XML
 import Text.Printf (printf)
 import Text.Pandoc.Highlighting (highlight)
-import Skylighting
-import qualified Data.Map as M
+import Skylighting (FormatOptions(..), SourceLine, Token)
 
 -- | Auxiliary function to convert Plain block to Para.
 plainToPara :: Block -> Block
@@ -268,11 +267,9 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                           [("style:name", "L" <> tshow n)] (vcat l)
   let listStyles  = map listStyle (stListStyles s)
   let automaticStyles = vcat $ reverse $ styles ++ listStyles
-  let highlightingStyles = maybe mempty styleToOpenDocument (writerHighlightStyle opts)
   let context = defField "body" body
               . defField "toc" (writerTableOfContents opts)
               . defField "toc-depth" (tshow $ writerTOCDepth opts)
-              . defField "highlighting-styles" highlightingStyles
               . defField "automatic-styles" automaticStyles
               $ metadata
   return $ render colwidth $
@@ -923,23 +920,3 @@ withLangFromAttr (_,_,kvs) action =
                 report $ InvalidLang l
                 action
 
-styleToOpenDocument :: Style -> Doc Text
-styleToOpenDocument style = vcat (map toStyle alltoktypes)
-  where alltoktypes = enumFromTo KeywordTok NormalTok
-        toStyle toktype = inTags True "style:style" [("style:name", tshow toktype),
-                                                     ("style:family", "text")] $
-                             selfClosingTag "style:text-properties"
-                               (tokColor toktype ++ tokBgColor toktype ++
-                                 [("fo:font-style", "italic") |
-                                    tokFeature tokenItalic toktype ] ++
-                                 [("fo:font-weight", "bold") |
-                                    tokFeature tokenBold toktype ] ++
-                                 [("style:text-underline-style", "solid") |
-                                    tokFeature tokenUnderline toktype ])
-        tokStyles = tokenStyles style
-        tokFeature f toktype = maybe False f $ M.lookup toktype tokStyles
-        tokColor toktype = maybe [] (\c -> [("fo:color", T.pack (fromColor c))])
-                         $ (tokenColor =<< M.lookup toktype tokStyles)
-                           `mplus` defaultColor style
-        tokBgColor toktype = maybe [] (\c -> [("fo:background-color", T.pack (fromColor c))])
-                         $ (tokenBackground =<< M.lookup toktype tokStyles)
