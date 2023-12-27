@@ -14,7 +14,8 @@ Conversion of 'Pandoc' documents to ODT.
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Codec.Archive.Zip
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict (StateT, evalStateT, gets, modify, lift)
+import Control.Monad (MonadPlus(mplus))
 import qualified Data.ByteString.Lazy as B
 import Data.Maybe (fromMaybe)
 import Data.Generics (everywhere', mkT)
@@ -48,7 +49,6 @@ import Text.Pandoc.XML.Light
 import Text.TeXMath
 import qualified Text.XML.Light as XL
 import Network.URI (parseRelativeReference, URI(uriPath))
-import Control.Monad (MonadPlus(mplus))
 import Skylighting
 
 newtype ODTState = ODTState { stEntries :: [Entry]
