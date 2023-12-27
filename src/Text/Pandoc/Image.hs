@@ -10,7 +10,7 @@ Portability : portable
 
 Functions for converting images.
 -}
-module Text.Pandoc.Image ( svgToPng ) where
+module Text.Pandoc.Image ( svgToPngIO ) where
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as L
 import System.Exit
@@ -20,16 +20,20 @@ import qualified Control.Exception as E
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Text.Pandoc.Class.PandocMonad
 import qualified Data.Text as T
+import Text.Printf (printf)
 
 -- | Convert svg image to png. rsvg-convert
 -- is used and must be available on the path.
-svgToPng :: (PandocMonad m, MonadIO m)
+svgToPngIO :: (PandocMonad m, MonadIO m)
          => Int           -- ^ DPI
+         -> Maybe Double        -- ^ width in Points
+         -> Maybe Double        -- ^ height in Points
          -> L.ByteString  -- ^ Input image as bytestring
          -> m (Either Text L.ByteString)
-svgToPng dpi bs = do
+svgToPngIO dpi widthPt heightPt bs = do
   let dpi' = show dpi
   let args = ["-f","png","-a","--dpi-x",dpi',"--dpi-y",dpi']
+        ++ pt "width" widthPt ++ pt "height" heightPt
   trace (T.intercalate " " $ map T.pack $ "rsvg-convert" : args)
   liftIO $ E.catch
        (do (exit, out) <- pipeProcess Nothing "rsvg-convert"
@@ -40,3 +44,4 @@ svgToPng dpi bs = do
               else Left "conversion from SVG failed")
        (\(e :: E.SomeException) -> return $ Left $
            "check that rsvg-convert is in path.\n" <> tshow e)
+  where pt name = maybe [] $ \points -> ["--" <> name, printf "%.6fpt" points]

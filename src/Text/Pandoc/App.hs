@@ -50,7 +50,6 @@ import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.MediaBag (mediaItems)
-import Text.Pandoc.Image (svgToPng)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..), OptInfo(..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
@@ -372,14 +371,14 @@ readAbbreviations mbfilepath =
     >>= fmap (Set.fromList . filter (not . T.null) . T.lines) .
          toTextM (fromMaybe mempty mbfilepath)
 
-createPngFallbacks :: (PandocMonad m, MonadIO m) => Int -> m ()
+createPngFallbacks :: (PandocMonad m) => Int -> m ()
 createPngFallbacks dpi = do
   -- create fallback pngs for svgs
   items <- mediaItems <$> getMediaBag
   forM_ items $ \(fp, mt, bs) ->
     case T.takeWhile (/=';') mt of
       "image/svg+xml" -> do
-        res <- svgToPng dpi bs
+        res <- svgToPng (dpi, Nothing, Nothing, bs)
         case res of
           Right bs' -> do
             let fp' = fp <> ".png"
