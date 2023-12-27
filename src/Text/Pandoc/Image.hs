@@ -10,7 +10,7 @@ Portability : portable
 
 Functions for converting images.
 -}
-module Text.Pandoc.Image ( svgToPngIO ) where
+module Text.Pandoc.Image ( createPngFallback, svgToPngIO ) where
 import Text.Pandoc.Process (pipeProcess)
 import qualified Data.ByteString.Lazy as L
 import System.Exit
@@ -20,6 +20,9 @@ import qualified Control.Exception as E
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Text.Pandoc.Class.PandocMonad
 import qualified Data.Text as T
+import Text.Pandoc.Logging (LogMessage(CouldNotConvertImage))
+import Data.ByteString.Lazy (ByteString)
+import Text.Pandoc.MediaBag (MediaItem, lookupMedia)
 import Text.Printf (printf)
 
 -- | Convert svg image to png. rsvg-convert
@@ -45,3 +48,15 @@ svgToPngIO dpi widthPt heightPt bs = do
        (\(e :: E.SomeException) -> return $ Left $
            "check that rsvg-convert is in path.\n" <> tshow e)
   where pt name = maybe [] $ \points -> ["--" <> name, printf "%.6fpt" points]
+
+createPngFallback :: (PandocMonad m) => Int -> (Double, Double) -> FilePath -> ByteString -> m (Maybe MediaItem)
+createPngFallback dpi (xPt, yPt) fp bs = do
+  -- create fallback pngs for svgs
+  res <- svgToPng dpi (Just xPt) (Just yPt) bs
+  case res of
+    Right bs' -> do
+      insertMedia fp (Just "image/png") bs'
+      lookupMedia fp <$> getMediaBag
+    Left e -> do
+      report $ CouldNotConvertImage (T.pack fp) (tshow e)
+      return Nothing
