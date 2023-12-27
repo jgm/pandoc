@@ -613,7 +613,7 @@ imageICML opts style attr (src, _) = do
                report $ CouldNotFetchResource src $ tshow e
                return def)
   let (ow, oh) = sizeInPoints imgS
-      (imgWidth, imgHeight) = desiredSizeInPoints opts attr imgS
+      (imgWidth, imgHeight) = desiredSizeInPoints opts attr Nothing imgS
       hw = showFl $ ow / 2
       hh = showFl $ oh / 2
       scale = showFl (imgWidth / ow) <> " 0 0 " <> showFl (imgHeight / oh)
