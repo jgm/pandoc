@@ -16,12 +16,8 @@ jobs:
         result-encoding: json
         script: |
           var longlines = 0;
-          const commits = [];
-          if (github.event.pull_request) {
-            commits = ${{ toJSON(github.event.pull_request.commits) }};
-          } else {
-            commits = ${{ toJSON(github.event.commits) }};
-          }
+          const pr = ${{ toJSON(github.event.pull_request) }};
+          const commits = (pr && pr.commits) || ${{ toJSON(github.event.commits) }};
           for (const commit of commits) {
             for (const line of commit.message.split('\n')) {
               if (line.length > 78) {
