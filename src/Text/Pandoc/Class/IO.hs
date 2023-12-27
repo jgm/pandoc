@@ -174,8 +174,8 @@ readStdinStrict = liftIOError (const B.getContents) "stdin"
 
 -- | Runs an image conversion step, returning an error on failure.
 -- Not available when sandboxed.
-svgToPng :: (PandocMonad m, MonadIO m) => (Int, Maybe Double, Maybe Double, BL.ByteString) -> m (Either T.Text BL.ByteString)
-svgToPng (dpi, xPt, yPt, bs) = svgToPngIO dpi xPt yPt bs
+svgToPng :: (PandocMonad m, MonadIO m) => Int -> Maybe Double -> Maybe Double -> BL.ByteString -> m (Either T.Text BL.ByteString)
+svgToPng = svgToPngIO
 
 -- | Return a list of paths that match a glob, relative to the working
 -- directory. See 'System.FilePath.Glob' for the glob syntax.

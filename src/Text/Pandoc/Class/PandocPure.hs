@@ -206,7 +206,7 @@ instance PandocMonad PandocPure where
 
   readStdinStrict = getsPureState stStdin
   
-  svgToPng _ = return $ Left "SVG conversion not available in PandocPure"
+  svgToPng _ _ _ _ = return $ Left "SVG conversion not available in PandocPure"
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
