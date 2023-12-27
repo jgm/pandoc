@@ -36,8 +36,7 @@ import Control.Monad.State.Strict ( StateT(runStateT), gets, modify )
 import qualified Data.ByteString.Lazy as BL
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isSpace, isLetter)
-import Data.List (intercalate, isPrefixOf, isSuffixOf, sortBy)
-import Data.Ord (comparing)
+import Data.List (intercalate, isPrefixOf, isSuffixOf, sortOn)
 import Data.String (fromString)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, mapMaybe, maybeToList, isJust)
@@ -126,7 +125,7 @@ rPrTagOrder =
 
 sortSquashed :: [Element] -> [Element]
 sortSquashed l =
-  sortBy (comparing tagIndex) l
+  sortOn tagIndex l
   where
     tagIndex :: Element -> Int
     tagIndex el =
@@ -1564,7 +1563,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
                (either (const def) id (imageSize opts img))
         -- 12700 emu = 1 pt
         pageWidthPt = case dimension Width attr of
-                        Just (Percent a) -> pageWidth * (floor $ a * 127)
+                        Just (Percent a) -> pageWidth * floor (a * 127)
                         _                -> pageWidth * 12700
         (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) pageWidthPt
         cNvPicPr = mknode "pic:cNvPicPr" [] $
