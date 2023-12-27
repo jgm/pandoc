@@ -52,7 +52,7 @@ svgToPngIO dpi widthPt heightPt bs = do
 createPngFallback :: (PandocMonad m) => Int -> (Double, Double) -> FilePath -> ByteString -> m (Maybe MediaItem)
 createPngFallback dpi (xPt, yPt) fp bs = do
   -- create fallback pngs for svgs
-  res <- svgToPng (dpi, Just xPt, Just yPt, bs)
+  res <- svgToPng dpi (Just xPt) (Just yPt) bs
   case res of
     Right bs' -> do
       insertMedia fp (Just "image/png") bs'
