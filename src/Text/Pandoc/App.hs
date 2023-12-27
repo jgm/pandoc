@@ -28,7 +28,7 @@ module Text.Pandoc.App (
           , applyFilters
           ) where
 import qualified Control.Exception as E
-import Control.Monad ( (>=>), when, forM, forM_ )
+import Control.Monad ( (>=>), when, forM )
 import Control.Monad.Trans ( MonadIO(..) )
 import Control.Monad.Catch ( MonadMask )
 import Control.Monad.Except (throwError)
@@ -49,7 +49,6 @@ import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
-import Text.Pandoc.MediaBag (mediaItems)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..), OptInfo(..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
@@ -64,7 +63,7 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..), CustomComponents(..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (eastAsianLineBreakFilter,
-         headerShift, filterIpynbOutput, tshow)
+         headerShift, filterIpynbOutput)
 import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
@@ -306,9 +305,6 @@ convertWithOpts' scriptingEngine istty datadir opts = do
             >=> maybe return extractMedia (optExtractMedia opts)
             )
 
-  when (format == "docx" && not (optSandbox opts)) $ do
-    createPngFallbacks (writerDpi writerOptions)
-
   output <- case writer of
     ByteStringWriter f
       | format == "chunkedhtml" -> ZipOutput <$> f writerOptions doc
@@ -370,21 +366,6 @@ readAbbreviations mbfilepath =
     Just f  -> readFileStrict f)
     >>= fmap (Set.fromList . filter (not . T.null) . T.lines) .
          toTextM (fromMaybe mempty mbfilepath)
-
-createPngFallbacks :: (PandocMonad m) => Int -> m ()
-createPngFallbacks dpi = do
-  -- create fallback pngs for svgs
-  items <- mediaItems <$> getMediaBag
-  forM_ items $ \(fp, mt, bs) ->
-    case T.takeWhile (/=';') mt of
-      "image/svg+xml" -> do
-        res <- svgToPng (dpi, Nothing, Nothing, bs)
-        case res of
-          Right bs' -> do
-            let fp' = fp <> ".png"
-            insertMedia fp' (Just "image/png") bs'
-          Left e -> report $ CouldNotConvertImage (T.pack fp) (tshow e)
-      _ -> return ()
 
 getMetadataFromFiles :: PandocMonad m
                      => Text -> ReaderOptions -> [FilePath] -> m Meta

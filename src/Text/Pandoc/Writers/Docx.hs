@@ -77,6 +77,9 @@ import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
 import Text.Collate.Lang (renderLang, Lang(..))
+import Text.Pandoc.Image (createPngFallback)
+import Data.ByteString (ByteString)
+import Text.Printf (printf)
 
 -- from wml.xsd EG_RPrBase
 rPrTagOrder :: M.Map Text Int
@@ -1321,6 +1324,15 @@ formattedRun els = do
   props <- getTextProps
   return [ mknode "w:r" [] $ props ++ els ]
 
+getOrCreateFallback :: PandocMonad m => Int -> (Integer, Integer) -> FilePath -> ByteString -> m (Maybe MediaItem)
+getOrCreateFallback dpi (xemu, yemu) src' img = do
+  mediabag <- getMediaBag
+  let src = printf "%s_%d_%d.png" src' xemu yemu
+  let xyPt = (fromIntegral xemu / 12700.0, fromIntegral yemu / 12700.0)
+  case lookupMedia src mediabag of
+    Just item -> return $ Just item
+    Nothing -> createPngFallback dpi xyPt src $ BL.fromStrict img
+
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
 inlineToOpenXML opts il = withDirection $ inlineToOpenXML' opts il
@@ -1522,17 +1534,26 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
   imgs <- gets stImages
   let
     stImage = M.lookup (T.unpack src) imgs
-    generateImgElt (ident, _fp, mt, img) = do
+    generateImgElt (ident, fp, mt, img) = do
       docprid <- getUniqueId
       nvpicprid <- getUniqueId
+      let
+        (xpt,ypt) = desiredSizeInPoints opts attr
+               (either (const def) id (imageSize opts img))
+        -- 12700 emu = 1 pt
+        pageWidthPt = case dimension Width attr of
+                        Just (Percent a) -> pageWidth * floor (a * 127)
+                        _                -> pageWidth * 12700
+        (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) pageWidthPt
       (blipAttrs, blipContents) <-
         case T.takeWhile (/=';') <$> mt of
           Just "image/svg+xml" -> do
             -- get fallback png
-            mediabag <- getMediaBag
+            fallback <- getOrCreateFallback (writerDpi opts) (xemu, yemu) fp img
             mbFallback <-
-              case lookupMedia (T.unpack (src <> ".png")) mediabag of
+              case fallback of
                 Just item -> do
+                  P.trace $ "Found fallback " <> tshow (mediaPath item)
                   id' <- T.unpack . ("rId" <>) <$> getUniqueId
                   let fp' = "media/" <> id' <> ".png"
                   let imgdata = (id',
@@ -1559,13 +1580,6 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
                     [extLst])
           _ -> return ([("r:embed", T.pack ident)], [])
       let
-        (xpt,ypt) = desiredSizeInPoints opts attr
-               (either (const def) id (imageSize opts img))
-        -- 12700 emu = 1 pt
-        pageWidthPt = case dimension Width attr of
-                        Just (Percent a) -> pageWidth * floor (a * 127)
-                        _                -> pageWidth * 12700
-        (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) pageWidthPt
         cNvPicPr = mknode "pic:cNvPicPr" [] $
                          mknode "a:picLocks" [("noChangeArrowheads","1")
                                              ,("noChangeAspect","1")] ()
