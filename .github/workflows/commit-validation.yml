@@ -1,5 +1,5 @@
 name: commit-validation
-on: [ push, pull_request ]
+on: [ pull_request ]
 
 permissions:
   contents: read
@@ -16,7 +16,7 @@ jobs:
         result-encoding: json
         script: |
           var longlines = 0;
-          const commits = ${{ toJSON(github.event.commits) }}
+          const commits = ${{ toJSON(github.event.pull_request.commits) }}
           for (const commit of commits) {
             for (const line of commit.message.split('\n')) {
               if (line.length > 78) {
