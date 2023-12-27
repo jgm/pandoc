@@ -928,7 +928,7 @@ inlineToOpenXML' opts (Link _ txt (src,_)) = do
               return i
   return [ Elem $ mknode "w:hyperlink" [("r:id",id')] contents ]
 inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
-  pageWidth <- asks envPrintWidth
+  pageWidth <- asks envPrintWidth -- in Points
   imgs <- gets stImages
   let
     stImage = M.lookup (T.unpack src) imgs
@@ -936,7 +936,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
       docprid <- getUniqueId
       nvpicprid <- getUniqueId
       let
-        (xpt,ypt) = desiredSizeInPoints opts attr
+        (xpt,ypt) = desiredSizeInPoints opts attr (Just pageWidth)
                (either (const def) id (imageSize opts img))
         -- 12700 emu = 1 pt
         pageWidthPt = case dimension Width attr of
