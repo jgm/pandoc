@@ -503,7 +503,7 @@ listItem c = try $ do
 -- * next list item
 -- which seems to be valid mediawiki.
 listChunk :: PandocMonad m => MWParser m Text
-listChunk = template <|> countChar 1 anyChar
+listChunk = template <|> (snd <$> withRaw math) <|> countChar 1 anyChar
 
 listItem' :: PandocMonad m => Char -> MWParser m Blocks
 listItem' c = try $ do
