@@ -502,6 +502,7 @@ listItem c = try $ do
 -- }}
 -- * next list item
 -- which seems to be valid mediawiki.
+-- Also multiline math: see #9293.
 listChunk :: PandocMonad m => MWParser m Text
 listChunk = template <|> (snd <$> withRaw math) <|> countChar 1 anyChar
 
