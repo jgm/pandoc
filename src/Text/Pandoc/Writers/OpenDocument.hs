@@ -919,4 +919,3 @@ withLangFromAttr (_,_,kvs) action =
               Left _ -> do
                 report $ InvalidLang l
                 action
-
