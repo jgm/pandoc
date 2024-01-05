@@ -1,5 +1,75 @@
 # Revision history for pandoc
 
+## pandoc 3.1.11.1 (2023-01-05)
+
+  * Docx reader:
+
+    + Fix HYPERLINK with only switch and no argument (#9246).
+
+  * Org reader:
+
+    + Parse caption and label for grid tables (#9279).
+
+  * MediaWiki reader:
+
+    + Handle multiline math in list items (#9293).
+
+  * OPML writer:
+
+    + Respect `--wrap` options & `--columns` in contents of notes (#9297).
+
+  * ODT/OpenDocument writers:
+
+    + Properly handle highlighting styles (#9287). These styles were
+      going into an `office:styles` element in `content.xml`, but this
+      is invalid. Instead they must go in `styles.xml`. The variable
+      `highlighting-styles` no longer has any effect on the default
+      opendocument template, and highlighting styles are not included
+      in `opendocument` output.
+
+  * Markdown writer:
+
+    + Add table identifier at end of caption if present (#9279).
+
+  * Text.Pandoc.PDF:
+
+    + Expand list of environment variables to display in verbose output
+      (#9303).
+    + Ensure that we find all the LaTeX warnings requiring a rerun (#9284).
+      This should fix a regression from 3.1.9 that led to incorrect
+      alignments in tables (and possibly other issues).
+
+  * Docx writer:
+
+    + Ensure that pandoc's output validates (Edwin Török, #9273, #9269,
+      John MacFarlane, #9265, #9266, #9264).
+    + Don't emit empty table rows, which seem to cause problems for
+      Word (#9224).
+
+  * LaTeX writer:
+
+    + Omit superfluous page locator label when used with `--natbib` or
+      `--biblatex` (#9275). These will treat a bare number as a
+      page locator, and they will be able to localize it. Note that the
+      recognition of the locator label is locale-sensitive; if `lang` is
+      `de`, then `S. 33` is a page reference, and `p. 33` is not!
+
+  * Text.Pandoc.Chunks: Fine tune `makeChunks` (#9281).
+
+    + Ensure that chunks not based on sections (those with the
+      "preamble" class) get unique identifiers, by appending chunk number.
+    + This will also ensure that they get unique path names when
+      the path is generated from the identifier.
+
+  * Default HTML5 template: remove html5shiv (and support for IE < 9).
+
+  * Makefile:
+
+    + Fix `make quick-stack`: `j` was expecting a number (Edwin Török).
+    + Run built pandoc (instead of pandoc in path).
+    + Add `validate-epub` target, using `epubcheck` to test the golden files.
+    + Add `validate-docx-golden-tests` target.
+
 ## pandoc 3.1.11 (2023-12-15)
 
   * Typst writer:
