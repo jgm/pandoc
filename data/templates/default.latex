@@ -297,6 +297,15 @@ $-- also used for underline
   \usepackage[soul]{lua-ul}
 \else
   \usepackage{soul}
+$if(beamer)$
+  \makeatletter
+  \let\HL\hl
+  \renewcommand\hl{% fix for beamer highlighting
+    \let\set@color\beamerorig@set@color
+    \let\reset@color\beamerorig@reset@color
+    \HL}
+  \makeatother
+$endif$
 $if(CJKmainfont)$
   \ifXeTeX
     % soul's \st doesn't work for CJK:
