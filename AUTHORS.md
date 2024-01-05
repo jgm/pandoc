@@ -99,6 +99,7 @@
 - Dmitry Pogodin
 - Dmitry Volodin
 - Douglas Calvert
+- Edwin Török
 - Eigil Rischel
 - Elliot Bobrow
 - Emanuel Evans
