@@ -30,7 +30,7 @@ build: ## build executable
 .PHONY: build
 
 binpath: ## print path of built pandoc executable
-	@cabal list-bin $(CABALOPTS) pandoc-cli
+	@cabal list-bin $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
 .PHONY: binpath
 
 ghcid: ## run ghcid
