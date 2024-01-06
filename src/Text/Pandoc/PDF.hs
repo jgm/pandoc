@@ -426,7 +426,7 @@ runTeXProgram program args tmpDir = do
                        then readFileLazy logFile
                        else return mempty
      let rerunWarnings = checkForRerun logContents
-     if not (null rerunWarnings) && runNumber < 3
+     if not (null rerunWarnings) && runNumber < 4
         then do
           report $ MakePDFInfo "Rerun needed"
                     (T.intercalate "\n"
