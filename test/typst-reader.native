@@ -1674,7 +1674,7 @@ Pandoc
           , Space
           , Str "or"
           , Space
-          , Math InlineMath "\\underset{\175}{A}"
+          , Math InlineMath "\\overline{A}"
           , Space
           , Str "with"
           , Space
@@ -2042,7 +2042,7 @@ Pandoc
           , Space
           , Str "produces"
           , Space
-          , Math InlineMath "\\underset{\175}{x + y}"
+          , Math InlineMath "\\overline{x + y}"
           , Str ","
           , Space
           , Str "and"

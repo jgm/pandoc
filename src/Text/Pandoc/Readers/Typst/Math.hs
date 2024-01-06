@@ -175,7 +175,7 @@ handleMath tok =
         <$> (getField "body" fields >>= pMathGrouped)
         <*> pure (ESymbol TUnder "_")
     Elt "math.overline" _ fields ->
-      EUnder False
+      EOver False
         <$> (getField "body" fields >>= pMathGrouped)
         <*> pure (ESymbol TOver "\175")
     Elt "math.underbrace" _ fields -> do
