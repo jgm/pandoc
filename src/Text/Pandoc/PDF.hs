@@ -411,9 +411,10 @@ runTeXProgram program args tmpDir = do
                          , k /= "TEXINPUTS" && k /= "TEXMFOUTPUT"]
     liftIO (UTF8.readFile file) >>=
       showVerboseInfo (Just tmpDir) program programArgs env''
-    go file env'' programArgs (1 :: Int)
+    go file env'' programArgs (1 :: Int) Nothing
  where
-   go file env'' programArgs runNumber = do
+   go file env'' programArgs runNumber oldTocHash = do
+     let maxruns = 4 -- stop if warnings present after 4 runs
      report $ MakePDFInfo ("LaTeX run number " <> tshow runNumber) mempty
      (exit, out) <- liftIO $ E.catch
        (pipeProcess (Just env'') program programArgs BL.empty)
@@ -426,12 +427,23 @@ runTeXProgram program args tmpDir = do
                        then readFileLazy logFile
                        else return mempty
      let rerunWarnings = checkForRerun logContents
-     if not (null rerunWarnings) && runNumber < 4
+     tocHash <- do
+       let tocFile = replaceExtension file ".toc"
+       tocFileExists <- fileExists tocFile
+       if tocFileExists
+          then do
+            tocContents <- readFileLazy tocFile
+            pure $ Just $! sha1 tocContents
+          else pure Nothing
+     -- compare hash of toc to former hash to see if it changed (#9295)
+     let rerunWarnings' = rerunWarnings ++
+                           ["TOC changed" | tocHash /= oldTocHash ]
+     if not (null rerunWarnings') && runNumber < maxruns
         then do
           report $ MakePDFInfo "Rerun needed"
                     (T.intercalate "\n"
-                      (map (UTF8.toText . BC.toStrict) rerunWarnings))
-          go file env'' programArgs (runNumber + 1)
+                      (map (UTF8.toText . BC.toStrict) rerunWarnings'))
+          go file env'' programArgs (runNumber + 1) tocHash
        else do
           let pdfFile = replaceExtension file ".pdf"
           (log', pdf) <- getResultingPDF (Just logFile) pdfFile
