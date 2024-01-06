@@ -312,8 +312,8 @@ to get the pandoc manual page.  All of this information is also
 in the User's Guide.
 
 If you get stuck, you can always ask questions on the
-[pandoc-discuss](https://groups.google.com/group/pandoc-discuss)
-mailing list.  But be sure to check the [FAQs](https://pandoc.org/faqs.html) first,
-and search through the mailing list to see if your question has
+[discussion forum](https://github.com/jgm/pandoc/discussions).
+But be sure to check the [FAQs](https://pandoc.org/faqs.html) first,
+and search through the forum to see if your question has
 been answered before.
 
