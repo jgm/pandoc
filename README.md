@@ -15,8 +15,6 @@ package](https://stackage.org/package/pandoc/badge/lts)](https://www.stackage.or
 [![CI
 tests](https://github.com/jgm/pandoc/workflows/CI%20tests/badge.svg)](https://github.com/jgm/pandoc/actions)
 [![license](https://img.shields.io/badge/license-GPLv2+-lightgray.svg)](https://www.gnu.org/licenses/gpl.html)
-[![pandoc-discuss on google
-groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https://groups.google.com/forum/#!forum/pandoc-discuss)
 
 ## The universal markup converter
 
