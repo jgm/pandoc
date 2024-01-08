@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.1.11.1 (2023-01-05)
+## pandoc 3.1.11.1 (2024-01-05)
 
   * Docx reader:
 
