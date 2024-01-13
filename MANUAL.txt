@@ -233,6 +233,7 @@ header when requesting a document from a URL:
     - `csljson` ([CSL JSON] bibliography)
     - `csv` ([CSV] table)
     - `tsv` ([TSV] table)
+    - `djot` ([Djot markup])
     - `docbook` ([DocBook])
     - `docx` ([Word docx])
     - `dokuwiki` ([DokuWiki markup])
@@ -295,6 +296,7 @@ header when requesting a document from a URL:
     - `commonmark_x` ([CommonMark] Markdown with extensions)
     - `context` ([ConTeXt])
     - `csljson` ([CSL JSON] bibliography)
+    - `djot` ([Djot markup])
     - `docbook` or `docbook4` ([DocBook] 4)
     - `docbook5` (DocBook 5)
     - `docx` ([Word docx])
@@ -479,6 +481,7 @@ header when requesting a document from a URL:
 [ConTeXt]: https://www.contextgarden.net/
 [Rich Text Format]: https://en.wikipedia.org/wiki/Rich_Text_Format
 [DocBook]: https://docbook.org
+[Djot markup]: https://djot.net
 [JATS]: https://jats.nlm.nih.gov
 [BITS]: https://jats.nlm.nih.gov/extensions/bits/
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all

@@ -271,6 +271,7 @@ extra-source-files:
                  test/media/rId27.jpg
                  test/typst-reader.typ
                  test/undergradmath.typ
+                 test/djot-reader.latex
                  test/latex-reader.latex
                  test/textile-reader.textile
                  test/markdown-reader-more.txt
@@ -293,6 +294,7 @@ extra-source-files:
                  test/tables.jats_articleauthoring
                  test/tables.jats_publishing
                  test/tables.jira
+                 test/tables.djot
                  test/tables.dokuwiki
                  test/tables.zimwiki
                  test/tables.icml
@@ -329,6 +331,7 @@ extra-source-files:
                  test/testsuite.txt
                  test/writer.latex
                  test/writer.context
+                 test/writer.djot
                  test/writer.docbook4
                  test/writer.docbook5
                  test/writer.jats_archiving
@@ -523,7 +526,8 @@ library
                  zlib                  >= 0.5      && < 0.8,
                  xml                   >= 1.3.12   && < 1.4,
                  typst                 >= 0.5      && < 0.5.1,
-                 vector                >= 0.12     && < 0.14
+                 vector                >= 0.12     && < 0.14,
+                 djot                  >= 0.1      && < 0.2
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
@@ -580,6 +584,7 @@ library
                    Text.Pandoc.Readers.CSV,
                    Text.Pandoc.Readers.RTF,
                    Text.Pandoc.Readers.Typst,
+                   Text.Pandoc.Readers.Djot,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.DocBook,
@@ -592,6 +597,7 @@ library
                    Text.Pandoc.Writers.Jira,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
+                   Text.Pandoc.Writers.Djot,
                    Text.Pandoc.Writers.Typst,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,

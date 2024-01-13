@@ -654,4 +654,5 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_smart ]
   getAll "typst"           = extensionsFromList [Ext_citations]
+  getAll "djot"            = extensionsFromList [Ext_sourcepos]
   getAll _                 = mempty

@@ -179,6 +179,7 @@ formatFromFilePath x =
     ".csv"      -> defFlavor "csv"
     ".ctx"      -> defFlavor "context"
     ".db"       -> defFlavor "docbook"
+    ".dj"       -> defFlavor "djot"
     ".doc"      -> defFlavor "doc"  -- so we get an "unknown reader" error
     ".docx"     -> defFlavor "docx"
     ".dokuwiki" -> defFlavor "dokuwiki"

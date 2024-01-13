@@ -30,6 +30,7 @@ module Text.Pandoc.Writers
     , writeConTeXt
     , writeCslJson
     , writeDZSlides
+    , writeDjot
     , writeDocBook4
     , writeDocBook5
     , writeDocx
@@ -95,6 +96,7 @@ import Text.Pandoc.Writers.ChunkedHTML
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.CslJson
+import Text.Pandoc.Writers.Djot
 import Text.Pandoc.Writers.DocBook
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
@@ -197,6 +199,7 @@ writers = [
   ,("biblatex"     , TextWriter writeBibLaTeX)
   ,("markua"       , TextWriter writeMarkua)
   ,("chunkedhtml"  , ByteStringWriter writeChunkedHTML)
+  ,("djot"         , TextWriter writeDjot)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).

@@ -83,6 +83,11 @@ tests pandocPath =
     , test' "reader" ["-r", "textile", "-w", "native", "-s"]
       "textile-reader.textile" "textile-reader.native"
     ]
+  , testGroup "djot"
+    [ testGroup "writer" $ writerTests' "djot"
+    , test' "reader" ["-f", "djot", "-t" ,"native", "-s"]
+       "djot-reader.djot" "djot-reader.native"
+    ]
   , testGroup "docbook"
     [ testGroup "writer" $ writerTests' "docbook4"
     , test' "reader" ["-r", "docbook", "-w", "native", "-s"]
