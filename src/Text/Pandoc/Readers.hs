@@ -50,6 +50,7 @@ module Text.Pandoc.Readers
   , readTxt2Tags
   , readEPUB
   , readMuse
+  , readMan
   , readFB2
   , readIpynb
   , readCSV
