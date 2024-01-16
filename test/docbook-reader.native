@@ -2927,21 +2927,26 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
-  , BulletList
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para [ Str "A" , Space , Str "Step" ] ]
       , [ Para [ Str "Another" , Space , Str "Step" ]
-        , Para
-            [ Str "Substeps"
-            , Space
-            , Str "can"
-            , Space
-            , Str "be"
-            , Space
-            , Str "nested"
-            , Space
-            , Str "indefinitely"
-            , Space
-            , Str "deep."
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Para
+                  [ Str "Substeps"
+                  , Space
+                  , Str "can"
+                  , Space
+                  , Str "be"
+                  , Space
+                  , Str "nested"
+                  , Space
+                  , Str "indefinitely"
+                  , Space
+                  , Str "deep."
+                  ]
+              ]
             ]
         ]
       , [ Para

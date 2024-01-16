@@ -933,7 +933,8 @@ parseBlock (Elem e) =
           orderedListWith (start,listStyle,DefaultDelim) . handleCompact
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems
-        "procedure" -> bulletList <$> steps
+        "procedure" -> orderedList <$> steps
+        "substeps" -> orderedList <$> steps
         "figure" -> getFigure e
         "informalfigure" -> getFigure e
         "mediaobject" -> para <$> getMediaobject e
