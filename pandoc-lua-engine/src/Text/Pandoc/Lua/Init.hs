@@ -41,6 +41,7 @@ import qualified HsLua.Module.Path as Module.Path
 import qualified HsLua.Module.Zip as Module.Zip
 import qualified Text.Pandoc.Lua.Module.CLI as Pandoc.CLI
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
+import qualified Text.Pandoc.Lua.Module.Image as Pandoc.Image
 import qualified Text.Pandoc.Lua.Module.JSON as Pandoc.JSON
 import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
 import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
@@ -91,6 +92,7 @@ loadedModules :: [Module PandocError]
 loadedModules =
   [ Pandoc.CLI.documentedModule
   , Pandoc.Format.documentedModule
+  , Pandoc.Image.documentedModule
   , Pandoc.JSON.documentedModule
   , Pandoc.MediaBag.documentedModule
   , Pandoc.Scaffolding.documentedModule

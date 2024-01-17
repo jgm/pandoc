@@ -74,6 +74,7 @@ library
                      , Text.Pandoc.Lua.Marshal.CommonState
                      , Text.Pandoc.Lua.Marshal.Context
                      , Text.Pandoc.Lua.Marshal.Format
+                     , Text.Pandoc.Lua.Marshal.ImageSize
                      , Text.Pandoc.Lua.Marshal.PandocError
                      , Text.Pandoc.Lua.Marshal.ReaderOptions
                      , Text.Pandoc.Lua.Marshal.Reference
@@ -82,6 +83,7 @@ library
                      , Text.Pandoc.Lua.Marshal.WriterOptions
                      , Text.Pandoc.Lua.Module.CLI
                      , Text.Pandoc.Lua.Module.Format
+                     , Text.Pandoc.Lua.Module.Image
                      , Text.Pandoc.Lua.Module.JSON
                      , Text.Pandoc.Lua.Module.MediaBag
                      , Text.Pandoc.Lua.Module.Pandoc
