@@ -50,7 +50,9 @@ pipeTable opts headless aligns widths rawHeaders rawRows = do
                       not (all (== 0) widths) &&
                       maxwidth + (numcols + 1) > colwidth
                       then map
-                            (floor . (* fromIntegral (colwidth - (numcols +1))))
+                            (max 0 .
+                              floor .
+                                (* fromIntegral (colwidth - (numcols +1))))
                             widths
                       else contentWidths
   let torow cs = nowrap $ literal "|" <>
