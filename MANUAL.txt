@@ -2938,6 +2938,17 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
         - Numbers=Proportional
         ...
 
+`mainfontfallback`, `sansfontfallback`, `monofontfallback`
+:   fonts to try if a glyph isn't found in `mainfont`, `sansfont`, or `monofont`
+    respectively. These can be lists.  The font name must be followed by a colon
+    and optionally a set of options, for example:
+
+        mainfontfallback:
+          - "FreeSans:"
+          - "NotoColorEmoji:mode=harf"
+
+    Font fallbacks currently only work with `--pdf-engine=lualatex`.
+
 `babelfonts`
 :    a map of Babel language names (e.g. `chinese`) to the font
      to be used with the language:
