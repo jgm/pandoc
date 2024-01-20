@@ -137,12 +137,14 @@ colDescriptors isSimpleTable
                        then replicate (length specs)
                             (1 / fromIntegral (length specs))
                        else map toRelWidth widths
-  in if defaultWidthsOnly && isSimpleTable
-     then hcat $ map (literal . colAlign) aligns
-     else (cr <>) . nest 2 . vcat . map literal $
-          zipWith (toColDescriptor (length specs))
-                  aligns
-                  relativeWidths
+  in if null aligns
+        then "l"  -- #9350, table needs at least one column spec
+        else if defaultWidthsOnly && isSimpleTable
+                then hcat $ map (literal . colAlign) aligns
+                else (cr <>) . nest 2 . vcat . map literal $
+                     zipWith (toColDescriptor (length specs))
+                             aligns
+                             relativeWidths
   where
     toColDescriptor :: Int -> Alignment -> Double -> Text
     toColDescriptor numcols align width =
