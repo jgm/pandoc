@@ -22,11 +22,13 @@ import Text.Pandoc.Lua.Init (runLuaWith)
 import Text.Pandoc.Lua.Marshal.Format (peekExtensionsConfig)
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
+import Text.Pandoc.Lua.PandocLua (unPandocLua)
 import Text.Pandoc.Readers (Reader (..))
 import Text.Pandoc.Sources (ToSources(..))
 import Text.Pandoc.Scripting (CustomComponents (..))
 import Text.Pandoc.Writers (Writer (..))
 import qualified Text.Pandoc.Lua.Writer.Classic as Classic
+import qualified Text.Pandoc.Class as PandocMonad
 
 -- | Convert custom markup to Pandoc.
 loadCustom :: (PandocMonad m, MonadIO m)
@@ -80,15 +82,21 @@ loadCustom luaFile = do
           pure $
             if docType /= TypeFunction
             then Nothing
-            else Just . TextWriter $ \opts doc ->
+            else Just . TextWriter $ \opts doc -> do
+              -- See TextWriter below for why the state is updated
+              st <- PandocMonad.getCommonState
               liftIO $ withGCManagedState luaState $
-              Classic.runCustom @PandocError opts doc
+                unPandocLua (PandocMonad.putCommonState st) >>
+                Classic.runCustom @PandocError opts doc
         _ -> Just <$!> do
           -- Binary writer. Writer function is on top of the stack.
           setfield registryindex writerField
-          pure $ ByteStringWriter $ \opts doc ->
+          pure $ ByteStringWriter $ \opts doc -> do
+            -- See TextWriter below for why the state is updated
+            st <- PandocMonad.getCommonState
             -- Call writer with document and writer options as arguments.
             liftIO $ withGCManagedState luaState $ do
+              unPandocLua (PandocMonad.putCommonState st)
               getfield registryindex writerField
               push doc
               pushWriterOptions opts
@@ -97,8 +105,13 @@ loadCustom luaFile = do
       _ -> Just <$!> do
         -- New-type text writer. Writer function is on top of the stack.
         setfield registryindex writerField
-        pure $ TextWriter $ \opts doc ->
+        pure $ TextWriter $ \opts doc -> do
+          -- The CommonState might have changed since the Lua file was
+          -- loaded. That's why the state must be updated when the
+          -- writer is run. (#9229)
+          st <- PandocMonad.getCommonState
           liftIO $ withGCManagedState luaState $ do
+            unPandocLua (PandocMonad.putCommonState st)
             getfield registryindex writerField
             push doc
             pushWriterOptions opts
