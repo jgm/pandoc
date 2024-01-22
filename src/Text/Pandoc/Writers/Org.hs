@@ -194,7 +194,15 @@ blockToOrg (CodeBlock (ident,classes,kvs) str) = do
   let (beg, end) = case lang of
         Nothing -> ("#+begin_example" <> numberlines, "#+end_example")
         Just x  -> ("#+begin_src " <> x <> numberlines <> args, "#+end_src")
-  return $ name $$ literal beg $$ literal str $$ literal end $$ blankline
+  -- escape special lines
+  let escape_line line =
+        let (spaces, code) = T.span (\c -> c == ' ' || c == '\t') line
+        in spaces <>
+           (if T.isPrefixOf "#+" code || T.isPrefixOf "*" code
+            then T.cons ',' code
+            else code)
+  let escaped = T.unlines . map escape_line . T.lines $ str
+  return $ name $$ literal beg $$ literal escaped $$ literal end $$ blankline
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+begin_quote" $$
