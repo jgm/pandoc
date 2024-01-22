@@ -83,7 +83,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.local/state/cabal
@@ -91,7 +91,7 @@ jobs:
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           dist-newstyle
@@ -120,7 +120,7 @@ jobs:
     # declare/restore cached things
     - name: Cache stack global package db
       id:   stack-global
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.stack
@@ -128,7 +128,7 @@ jobs:
 
     - name: Cache stack work
       id:   stack-local
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           .stack-work
@@ -150,14 +150,14 @@ jobs:
         nix_path: nixpkgs=channel:nixos-unstable
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.local/state/cabal
         key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           dist-newstyle
@@ -180,7 +180,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           C:\cabal\store
@@ -188,7 +188,7 @@ jobs:
 
     - name: Cache cabal work
       id: cabal-local
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           dist-newstyle
@@ -222,7 +222,7 @@ jobs:
 
 #   - name: Cache cabal global package db
 #     id:   cabal-global
-#     uses: actions/cache@v3
+#     uses: actions/cache@v4
 #     with:
 #       path: |
 #         ~/.cabal
@@ -230,7 +230,7 @@ jobs:
 
 #   - name: Cache cabal work
 #     id:   cabal-local
-#     uses: actions/cache@v3
+#     uses: actions/cache@v4
 #     with:
 #       path: |
 #         dist-newstyle
