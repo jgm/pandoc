@@ -446,6 +446,9 @@ inlineToTexinfo (Subscript lst) = do
 inlineToTexinfo (SmallCaps lst) =
   inCmd "sc" <$> inlineListToTexinfo lst
 
+inlineToTexinfo (Code (_, cls , _) str) | T.pack "variable" `elem` cls  =
+  return $ literal $ "@code{@var{" <> stringToTexinfo str <> "}}"
+
 inlineToTexinfo (Code _ str) =
   return $ literal $ "@code{" <> stringToTexinfo str <> "}"
 
