@@ -273,7 +273,7 @@ inlineToTypst inline =
             suppl <- case citationSuffix cite of
                        [] -> pure mempty
                        suff -> brackets <$> inlinesToTypst suff
-            pure $ "#cite" <> parens (toLabel (citationId cite)) <> suppl
+            pure $ literal ("@" <> citationId cite) <> suppl
                       <> endCode
       if isEnabled Ext_citations opts
          -- Note: this loses prefix
