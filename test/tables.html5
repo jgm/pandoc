@@ -2,7 +2,7 @@
 <table>
 <caption>Demonstration of simple table syntax.</caption>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: right;">Right</th>
 <th style="text-align: left;">Left</th>
 <th style="text-align: center;">Center</th>
@@ -10,19 +10,19 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">12</td>
 <td style="text-align: left;">12</td>
 <td style="text-align: center;">12</td>
 <td>12</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: right;">123</td>
 <td style="text-align: left;">123</td>
 <td style="text-align: center;">123</td>
 <td>123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">1</td>
 <td style="text-align: center;">1</td>
@@ -33,7 +33,7 @@
 <p>Simple table without caption:</p>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: right;">Right</th>
 <th style="text-align: left;">Left</th>
 <th style="text-align: center;">Center</th>
@@ -41,19 +41,19 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">12</td>
 <td style="text-align: left;">12</td>
 <td style="text-align: center;">12</td>
 <td>12</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: right;">123</td>
 <td style="text-align: left;">123</td>
 <td style="text-align: center;">123</td>
 <td>123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">1</td>
 <td style="text-align: center;">1</td>
@@ -65,7 +65,7 @@
 <table>
 <caption>Demonstration of simple table syntax.</caption>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: right;">Right</th>
 <th style="text-align: left;">Left</th>
 <th style="text-align: center;">Center</th>
@@ -73,19 +73,19 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">12</td>
 <td style="text-align: left;">12</td>
 <td style="text-align: center;">12</td>
 <td>12</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: right;">123</td>
 <td style="text-align: left;">123</td>
 <td style="text-align: center;">123</td>
 <td>123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">1</td>
 <td style="text-align: center;">1</td>
@@ -103,7 +103,7 @@
 <col style="width: 35%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: center;">Centered Header</th>
 <th style="text-align: left;">Left Aligned</th>
 <th style="text-align: right;">Right Aligned</th>
@@ -111,13 +111,13 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: center;">First</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">12.0</td>
 <td style="text-align: left;">Example of a row that spans multiple lines.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: center;">Second</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">5.0</td>
@@ -135,7 +135,7 @@ rows.</td>
 <col style="width: 35%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: center;">Centered Header</th>
 <th style="text-align: left;">Left Aligned</th>
 <th style="text-align: right;">Right Aligned</th>
@@ -143,13 +143,13 @@ rows.</td>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: center;">First</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">12.0</td>
 <td style="text-align: left;">Example of a row that spans multiple lines.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: center;">Second</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">5.0</td>
@@ -161,19 +161,19 @@ rows.</td>
 <p>Table without column headers:</p>
 <table>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">12</td>
 <td style="text-align: left;">12</td>
 <td style="text-align: center;">12</td>
 <td style="text-align: right;">12</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: right;">123</td>
 <td style="text-align: left;">123</td>
 <td style="text-align: center;">123</td>
 <td style="text-align: right;">123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">1</td>
 <td style="text-align: center;">1</td>
@@ -190,13 +190,13 @@ rows.</td>
 <col style="width: 35%" />
 </colgroup>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: center;">First</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">12.0</td>
 <td>Example of a row that spans multiple lines.</td>
 </tr>
-<tr class="even">
+<tr>
 <td style="text-align: center;">Second</td>
 <td style="text-align: left;">row</td>
 <td style="text-align: right;">5.0</td>
