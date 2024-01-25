@@ -775,7 +775,8 @@ inlineListToLaTeX :: PandocMonad m
                   => [Inline]  -- ^ Inlines to convert
                   -> LW m (Doc Text)
 inlineListToLaTeX lst = hcat <$>
-  mapM inlineToLaTeX (fixLineInitialSpaces . fixInitialLineBreaks $ lst)
+  mapM inlineToLaTeX
+    (addKerns . fixLineInitialSpaces . fixInitialLineBreaks $ lst)
     -- nonbreaking spaces (~) in LaTeX don't work after line breaks,
     -- so we insert a strut: this is mostly used in verse.
  where fixLineInitialSpaces [] = []
@@ -790,6 +791,21 @@ inlineListToLaTeX lst = hcat <$>
          RawInline (Format "latex") "\\hfill\\break\n" :
            fixInitialLineBreaks xs
        fixInitialLineBreaks xs = xs
+       addKerns [] = []
+       addKerns (Str s : q@Quoted{} : rest)
+         | isQuote (T.takeEnd 1 s) =
+           Str s : RawInline (Format "latex") "\\," : addKerns (q:rest)
+       addKerns (q@Quoted{} : Str s : rest)
+         | isQuote (T.take 1 s) =
+           q : RawInline (Format "latex") "\\," : addKerns (Str s : rest)
+       addKerns (x:xs) = x : addKerns xs
+       isQuote "\"" = True
+       isQuote "'" = True
+       isQuote "\x2018" = True
+       isQuote "\x2019" = True
+       isQuote "\x201C" = True
+       isQuote "\x201D" = True
+       isQuote _ = False
 
 -- | Convert inline element to LaTeX
 inlineToLaTeX :: PandocMonad m
@@ -928,13 +944,21 @@ inlineToLaTeX (Quoted qt lst) = do
                DoubleQuote -> "\\enquote" <> braces contents
                SingleQuote -> "\\enquote*" <> braces contents
      else do
-       let s1 = if not (null lst) && isQuoted (head lst)
-                   then "\\,"
-                   else empty
-       let s2 = if not (null lst) && isQuoted (last lst)
-                   then "\\,"
-                   else empty
-       let inner = s1 <> contents <> s2
+       let endsWithQuote xs =
+             case reverse xs of
+                   Quoted{}:_ -> True
+                   Span _ ys : _ -> endsWithQuote ys
+                   Str s:_ -> T.takeEnd 1 s == "'"
+                   _ -> False
+       let beginsWithQuote xs =
+             case xs of
+                   Quoted{}:_ -> True
+                   Span _ ys : _ -> beginsWithQuote ys
+                   Str s:_ -> T.take 1 s == "`"
+                   _ -> False
+       let inner = (if beginsWithQuote lst then "\\," else mempty)
+                    <> contents
+                    <> (if endsWithQuote lst then "\\," else mempty)
        return $ case qt of
                 DoubleQuote ->
                    if isEnabled Ext_smart opts
@@ -944,10 +968,6 @@ inlineToLaTeX (Quoted qt lst) = do
                    if isEnabled Ext_smart opts
                       then char '`' <> inner <> char '\''
                       else char '\x2018' <> inner <> char '\x2019'
-    where
-      isQuoted (Span _ (x:_)) = isQuoted x
-      isQuoted (Quoted _ _)   = True
-      isQuoted _              = False
 inlineToLaTeX (Str str) = do
   setEmptyLine False
   liftM literal $ stringToLaTeX TextString str
