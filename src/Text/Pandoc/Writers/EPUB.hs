@@ -614,6 +614,7 @@ pandocToEPUB version opts doc = do
                              EPUB2 -> "2.0"
                              EPUB3 -> "3.0")
            ,("xmlns","http://www.idpf.org/2007/opf")
+           ,("xml:lang", epubLanguage metadata)
            ,("unique-identifier","epub-id-1")
            ] ++
            [("prefix","ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/") | version == EPUB3]) $
