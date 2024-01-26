@@ -59,7 +59,7 @@ $endif$
 
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
 
-% Set up font fallbacks
+$-- set up font fallbacks
 $for(mainfontfallback)$
 \definefallbackfamily[mainface][rm][$mainfontfallback$][range=0x0000-0xFFFF, check=yes, force=no]
 $endfor$
