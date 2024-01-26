@@ -6844,6 +6844,25 @@ The following fields are recognized:
   ~ Either `ltr` or `rtl`. Specifies the `page-progression-direction`
     attribute for the [`spine` element].
 
+`accessModes`
+  ~ An array of strings ([schema][accessibility schema]).
+    Defaults to `["textual"]`.
+
+`accessibilityHazards`
+  ~ An array of strings ([schema][accessibility schema]).
+    Defaults to `["none"]`.
+
+`accessibilityFeatures`
+  ~ An array of strings ([schema][accessibility schema]).
+    Defaults to
+
+        - "alternativeText"
+        - "ARIA"
+        - "MathML"
+        - "readingOrder"
+        - "structuralNavigation"
+        - "tableOfContents"
+
 `ibooks`
   ~ iBooks-specific metadata, with the following fields:
 
@@ -6854,6 +6873,7 @@ The following fields are recognized:
     - `binding`: `true`|`false` (default `true`)
     - `scroll-axis`: `vertical`|`horizontal`|`default`
 
+[accessibility schema]:  https://kb.daisy.org/publishing/docs/metadata/schema.org/index.html
 [MARC relators]: https://loc.gov/marc/relators/relaterm.html
 [reserved authority value]: https://idpf.github.io/epub-registries/authorities/
 [`spine` element]: http://idpf.org/epub/301/spec/epub-publications.html#sec-spine-elem

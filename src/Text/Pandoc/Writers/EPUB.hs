@@ -100,6 +100,9 @@ data EPUBMetadata = EPUBMetadata{
   , epubPageDirection       :: Maybe ProgressionDirection
   , epubIbooksFields        :: [(Text, Text)]
   , epubCalibreFields       :: [(Text, Text)]
+  , epubAccessModes         :: [Text] -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessMode.html
+  , epubAccessibilityFeatures :: [Text]  -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessibilityFeature.html
+  , epubAccessibilityHazards :: [Text] -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessibilityHazard.html
   } deriving Show
 
 data Date = Date{
@@ -261,16 +264,15 @@ addMetadataFromXML e@(Element (QName name _ (Just "dc")) attrs _ _) md
   | otherwise = md
   where getAttr n = lookupAttr (opfName n) attrs
 addMetadataFromXML e@(Element (QName "meta" _ _) attrs _ _) md =
-  case getAttr "property" of
+  case getAttr "property" `mplus` getAttr "name" of
        Just s | "ibooks:" `T.isPrefixOf` s ->
                 md{ epubIbooksFields = (T.drop 7 s, strContent e) :
                        epubIbooksFields md }
-       _ -> case getAttr "name" of
-                 Just s | "calibre:" `T.isPrefixOf` s ->
+              | "calibre:" `T.isPrefixOf` s ->
                    md{ epubCalibreFields =
                          (T.drop 8 s, fromMaybe "" $ getAttr "content") :
                           epubCalibreFields md }
-                 _ -> md
+       _ -> md
   where getAttr n = lookupAttr (unqual n) attrs
 addMetadataFromXML _ md = md
 
@@ -359,6 +361,9 @@ metadataFromMeta opts meta = EPUBMetadata{
     , epubPageDirection        = pageDirection
     , epubIbooksFields         = ibooksFields
     , epubCalibreFields        = calibreFields
+    , epubAccessModes          = accessModes
+    , epubAccessibilityFeatures = accessibilityFeatures
+    , epubAccessibilityHazards = accessibilityHazards
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
@@ -402,6 +407,19 @@ metadataFromMeta opts meta = EPUBMetadata{
                             Just (MetaMap mp)
                                -> M.toList $ M.map metaValueToString mp
                             _  -> []
+        accessModes = case lookupMeta "accessModes" meta of
+                         Just (MetaList xs) -> map metaValueToString xs
+                         _ -> ["textual"]
+        accessibilityFeatures =
+                      case lookupMeta "accessibilityFeatures" meta of
+                         Just (MetaList xs) -> map metaValueToString xs
+                         _ -> ["alternativeText","ARIA","MathML",
+                               "readingOrder", "structuralNavigation",
+                               "tableOfContents"]
+        accessibilityHazards =
+                       case lookupMeta "accessibilityHazards" meta of
+                         Just (MetaList xs) -> map metaValueToString xs
+                         _ -> ["none"]
 
 -- | Produce an EPUB2 file from a Pandoc document.
 writeEPUB2 :: PandocMonad m
@@ -982,6 +1000,9 @@ metadataElement version md currentTime =
                   ++ publisherNodes ++ sourceNodes ++ relationNodes
                   ++ coverageNodes ++ rightsNodes ++ coverImageNodes
                   ++ modifiedNodes ++ belongsToCollectionNodes
+                  ++ accessModeNodes ++ accessibilityFeatureNodes
+                  ++ accessibilityHazardNodes
+        metaprop = if version == EPUB2 then "name" else "property"
         withIds base f = concat . zipWith f (map (\x -> base <>
                                                         T.cons '-' (tshow x))
                          ([1..] :: [Int]))
@@ -997,9 +1018,9 @@ metadataElement version md currentTime =
                                  (x:_) -> [dcNode "date" ! [("id","epub-date")]
                                             $ dateText x]
         ibooksNodes = map ibooksNode (epubIbooksFields md)
-        ibooksNode (k, v) = unode "meta" ! [("property", "ibooks:" <> k)] $ v
+        ibooksNode (k, v) = unode "meta" ! [(metaprop, "ibooks:" <> k)] $ v
         calibreNodes = map calibreNode (epubCalibreFields md)
-        calibreNode (k, v) = unode "meta" ! [("name", "calibre:" <> k),
+        calibreNode (k, v) = unode "meta" ! [(metaprop, "calibre:" <> k),
                                              ("content", v)] $ ()
         languageNodes = [dcTag "language" $ epubLanguage md]
         creatorNodes = withIds "epub-creator" (toCreatorNode "creator") $
@@ -1016,20 +1037,26 @@ metadataElement version md currentTime =
         coverageNodes = maybe [] (dcTag' "coverage") $ epubCoverage md
         rightsNodes = maybe [] (dcTag' "rights") $ epubRights md
         coverImageNodes = maybe []
-            (\img -> [unode "meta" !  [("name","cover"),
+            (\img -> [unode "meta" !  [(metaprop,"cover"),
                                        ("content",toId img)] $ ()])
             $ epubCoverImage md
-        modifiedNodes = [ unode "meta" ! [("property", "dcterms:modified")] $
+        modifiedNodes = [ unode "meta" ! [(metaprop, "dcterms:modified")] $
                showDateTimeISO8601 currentTime | version == EPUB3 ]
         belongsToCollectionNodes =
             maybe []
-                (\belongsToCollection -> (unode "meta" !  [("property", "belongs-to-collection"), ("id", "epub-collection-1")] $ belongsToCollection )
+                (\belongsToCollection -> (unode "meta" !  [(metaprop, "belongs-to-collection"), ("id", "epub-collection-1")] $ belongsToCollection )
                 :
-                [unode "meta" !  [("refines", "#epub-collection-1"), ("property", "collection-type")] $ ("series" :: Text) ])
+                [unode "meta" !  [("refines", "#epub-collection-1"), (metaprop, "collection-type")] $ ("series" :: Text) ])
                 (epubBelongsToCollection md)++
             maybe []
-                (\groupPosition -> [unode "meta" !  [("refines", "#epub-collection-1"), ("property", "group-position")] $ groupPosition ])
+                (\groupPosition -> [unode "meta" !  [("refines", "#epub-collection-1"), (metaprop, "group-position")] $ groupPosition ])
                 (epubGroupPosition md)
+        schemanode k v = unode "meta" ! [(metaprop, "schema:" <> k)] $ v
+        accessModeNodes = map (schemanode "accessMode") (epubAccessModes md)
+        accessibilityFeatureNodes = map (schemanode "accessibilityFeature")
+            (epubAccessibilityFeatures md)
+        accessibilityHazardNodes = map (schemanode "accessibilityHazard")
+            (epubAccessibilityHazards md)
         dcTag n s = unode ("dc:" <> n) s
         dcTag' n s = [dcTag n s]
         toIdentifierNode id' (Identifier txt scheme)
@@ -1039,7 +1066,7 @@ metadataElement version md currentTime =
           | otherwise = (dcNode "identifier" ! [("id",id')] $ txt) :
               maybe [] ((\x -> [unode "meta" !
                                 [ ("refines","#" <> id')
-                                , ("property","identifier-type")
+                                , (metaprop,"identifier-type")
                                 , ("scheme","onix:codelist5")
                                 ]
                                 $ x
@@ -1054,10 +1081,10 @@ metadataElement version md currentTime =
                (creatorRole creator >>= toRelator)) $ creatorText creator]
           | otherwise = [dcNode s ! [("id",id')] $ creatorText creator] ++
               maybe [] (\x -> [unode "meta" !
-                   [("refines","#" <> id'),("property","file-as")] $ x])
+                   [("refines","#" <> id'),(metaprop,"file-as")] $ x])
                    (creatorFileAs creator) ++
               maybe [] (\x -> [unode "meta" !
-                   [("refines","#" <> id'),("property","role"),
+                   [("refines","#" <> id'),(metaprop,"role"),
                      ("scheme","marc:relators")] $ x])
                    (creatorRole creator >>= toRelator)
         toTitleNode id' title
@@ -1069,10 +1096,10 @@ metadataElement version md currentTime =
           | otherwise = [dcNode "title" ! [("id",id')] $ titleText title]
               ++
               maybe [] (\x -> [unode "meta" !
-                   [("refines","#" <> id'),("property","file-as")] $ x])
+                   [("refines","#" <> id'),(metaprop,"file-as")] $ x])
                    (titleFileAs title) ++
               maybe [] (\x -> [unode "meta" !
-                   [("refines","#" <> id'),("property","title-type")] $ x])
+                   [("refines","#" <> id'),(metaprop,"title-type")] $ x])
                    (titleType title)
         toDateNode id' date = [dcNode "date" !
              (("id",id') :
@@ -1083,9 +1110,9 @@ metadataElement version md currentTime =
             [("id",id')] $ subjectText subject]
           | otherwise = (dcNode "subject" ! [("id",id')] $ subjectText subject)
             : maybe [] (\x -> (unode "meta" !
-                    [("refines", "#" <> id'),("property","authority")] $ x) :
+                    [("refines", "#" <> id'),(metaprop,"authority")] $ x) :
                     maybe [] (\y -> [unode "meta" !
-                         [("refines", "#" <> id'),("property","term")] $ y])
+                         [("refines", "#" <> id'),(metaprop,"term")] $ y])
                          (subjectTerm subject))
                     (subjectAuthority subject)
         schemeToOnix :: Text -> Text
