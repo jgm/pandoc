@@ -1605,7 +1605,7 @@ inlineToHtml opts inline = do
                                              else H.sup)
                                        $ toHtml ref
                         return $ case epubVersion of
-                                      Just EPUB3 -> link ! customAttribute "epub:type" "noteref"
+                                      Just EPUB3 -> link ! customAttribute "epub:type" "noteref" ! customAttribute "role" "doc-noteref"
                                       _ | html5  -> link ! A5.role "doc-noteref"
                                       _          -> link
     (Cite cits il)-> do contents <- inlineListToHtml opts
@@ -1668,7 +1668,7 @@ blockListToNote opts ref blocks = do
              _ -> Para [backlink , Str "."] : blocks
       contents <- blockListToHtml opts blocks'
       let noteItem = (if epubv == EPUB3
-                         then H5.aside ! customAttribute "epub:type" "footnote"
+                         then H5.aside ! customAttribute "epub:type" "footnote" ! customAttribute "role" "doc-footnote"
                          else H.div) ! prefixedId opts ("fn" <> ref)
                       $ nl >> contents >> nl
       return $ noteItem >> nl

@@ -948,7 +948,7 @@ createNavEntry opts meta metadata
   let tocBlocks = evalState (catMaybes <$> mapM mkItem secs) 1
   let navBlocks = [RawBlock (Format "html")
                   $ showElement $ -- prettyprinting introduces bad spaces
-                   unode navtag ! ([("epub:type","toc") | version == EPUB3] ++
+                   unode navtag ! ([("epub:type","toc"), ("role", "doc-toc") | version == EPUB3] ++
                                    [("id","toc")]) $
                     [ unode "h1" ! [("id","toc-title")] $ tocTitle
                     , unode "ol" ! [("class","toc")] $ tocBlocks ]]
