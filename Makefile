@@ -259,7 +259,7 @@ validate-epub: ## generate an epub and validate it with epubcheck and ace
 	$(pandoc) test/epub/wasteland.native -Mtitle="The Wasteland" --resource-path test/epub -o $$tmp/file.epub --number-sections --toc --quiet && \
 	echo $$tmp/file.epub && \
 	epubcheck $$tmp/file.epub && \
-	ace $$tmp/file.epub
+	ace $$tmp/file.epub -o ace --force
 
 modules.csv: $(PANDOCSOURCEFILES)
 	@rg '^import.*Text\.Pandoc\.' --with-filename $^ \
