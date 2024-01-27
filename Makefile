@@ -256,7 +256,7 @@ validate-epub: ## generate an epub and validate it with epubcheck and ace
 	which epubcheck || exit 1
 	which ace || exit 1
 	tmp=$$(mktemp -d) && \
-	$(pandoc) test/epub/features.native -Mtitle="Features" --resource-path test/epub -o $$tmp/file.epub --number-sections --toc --quiet && \
+	$(pandoc) test/epub/wasteland.native -Mtitle="The Wasteland" --resource-path test/epub -o $$tmp/file.epub --number-sections --toc --quiet && \
 	echo $$tmp/file.epub && \
 	epubcheck $$tmp/file.epub && \
 	ace $$tmp/file.epub

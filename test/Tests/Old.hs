@@ -163,11 +163,11 @@ tests pandocPath =
     [ test' "reader" ["-r", "t2t", "-w", "native", "-s"]
         "txt2tags.t2t" "txt2tags.native" ]
   , testGroup "epub" [
-      test' "features" ["-r", "epub", "-w", "native"]
+      test' "features" ["-r", "epub", "-w", "native", "-s"]
         "epub/features.epub" "epub/features.native"
-    , test' "wasteland" ["-r", "epub", "-w", "native"]
+    , test' "wasteland" ["-r", "epub", "-w", "native", "-s"]
         "epub/wasteland.epub" "epub/wasteland.native"
-    , test' "formatting" ["-r", "epub", "-w", "native"]
+    , test' "formatting" ["-r", "epub", "-w", "native", "-s"]
         "epub/formatting.epub" "epub/formatting.native"
     ]
   , testGroup "twiki"
