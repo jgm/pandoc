@@ -6857,8 +6857,6 @@ The following fields are recognized:
     Defaults to
 
         - "alternativeText"
-        - "ARIA"
-        - "MathML"
         - "readingOrder"
         - "structuralNavigation"
         - "tableOfContents"

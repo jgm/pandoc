@@ -413,9 +413,8 @@ metadataFromMeta opts meta = EPUBMetadata{
         accessibilityFeatures =
                       case lookupMeta "accessibilityFeatures" meta of
                          Just (MetaList xs) -> map metaValueToString xs
-                         _ -> ["alternativeText","ARIA","MathML",
-                               "readingOrder", "structuralNavigation",
-                               "tableOfContents"]
+                         _ -> ["alternativeText", "readingOrder",
+                               "structuralNavigation", "tableOfContents"]
         accessibilityHazards =
                        case lookupMeta "accessibilityHazards" meta of
                          Just (MetaList xs) -> map metaValueToString xs
