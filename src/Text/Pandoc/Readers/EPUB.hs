@@ -239,7 +239,7 @@ fixAttrs s (ident, cs, kvs) =
 
 addHash :: FilePath -> Text -> Text
 addHash _ ""    = ""
-addHash s ident = T.pack (takeFileName s) <> "#" <> ident
+addHash s ident = T.pack (takeFileName s) <> "_" <> ident
 
 removeEPUBAttrs :: [(Text, Text)] -> [(Text, Text)]
 removeEPUBAttrs kvs = filter (not . isEPUBAttr) kvs

@@ -563,10 +563,10 @@
     ( "" , [ "section" ] , [] )
     [ Header
         2
-        ( "content-mathml-001.xhtml#mathml" , [] , [] )
+        ( "content-mathml-001.xhtml_mathml" , [] , [] )
         [ Str "MathML" ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-010"
+        ( "content-mathml-001.xhtml_mathml-010"
         , [ "section" , "ctest" ]
         , []
         )
@@ -640,7 +640,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-020"
+        ( "content-mathml-001.xhtml_mathml-020"
         , [ "section" , "otest" ]
         , []
         )
@@ -766,7 +766,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-021"
+        ( "content-mathml-001.xhtml_mathml-021"
         , [ "section" , "otest" ]
         , []
         )
@@ -894,7 +894,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-022"
+        ( "content-mathml-001.xhtml_mathml-022"
         , [ "section" , "otest" ]
         , []
         )
@@ -1012,7 +1012,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-023"
+        ( "content-mathml-001.xhtml_mathml-023"
         , [ "section" , "otest" ]
         , []
         )
@@ -1132,7 +1132,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-024"
+        ( "content-mathml-001.xhtml_mathml-024"
         , [ "section" , "ctest" ]
         , []
         )
@@ -1207,7 +1207,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-025"
+        ( "content-mathml-001.xhtml_mathml-025"
         , [ "section" , "ctest" ]
         , []
         )
@@ -1312,7 +1312,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-026"
+        ( "content-mathml-001.xhtml_mathml-026"
         , [ "section" , "ctest" ]
         , []
         )
@@ -1379,7 +1379,7 @@
             ]
         ]
     , Div
-        ( "content-mathml-001.xhtml#mathml-027"
+        ( "content-mathml-001.xhtml_mathml-027"
         , [ "section" , "ctest" ]
         , []
         )
@@ -1478,14 +1478,14 @@
     ]
 , Para [ Span ( "content-switch-001.xhtml" , [] , [] ) [] ]
 , Div
-    ( "content-switch-001.xhtml#epub-switch"
+    ( "content-switch-001.xhtml_epub-switch"
     , [ "section" ]
     , []
     )
     [ Header
         3 ( "" , [] , [] ) [ Code ( "" , [] , [] ) "epub:switch" ]
     , Div
-        ( "content-switch-001.xhtml#switch-010"
+        ( "content-switch-001.xhtml_switch-010"
         , [ "section" , "ctest" ]
         , []
         )
@@ -1582,7 +1582,7 @@
             ]
         ]
     , Div
-        ( "content-switch-001.xhtml#switch-020"
+        ( "content-switch-001.xhtml_switch-020"
         , [ "section" , "otest" ]
         , []
         )

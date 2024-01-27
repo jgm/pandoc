@@ -558,7 +558,7 @@
     ]
 , Para [ Span ( "styling-xhtml-001.xhtml" , [] , [] ) [] ]
 , Div
-    ( "styling-xhtml-001.xhtml#epub-css" , [ "section" ] , [] )
+    ( "styling-xhtml-001.xhtml_epub-css" , [ "section" ] , [] )
     [ Header
         1
         ( "" , [] , [] )
@@ -583,7 +583,7 @@
     ]
 , Para [ Span ( "styling-xhtml-003.xhtml" , [] , [] ) [] ]
 , Div
-    ( "styling-xhtml-003.xhtml#style-110"
+    ( "styling-xhtml-003.xhtml_style-110"
     , [ "section" , "ctest" ]
     , []
     )
@@ -1900,13 +1900,13 @@
     ]
 , Para [ Span ( "styling-xhtml-002.xhtml" , [] , [] ) [] ]
 , Div
-    ( "styling-xhtml-002.xhtml#style-lists"
+    ( "styling-xhtml-002.xhtml_style-lists"
     , [ "section" ]
     , []
     )
     [ Header 2 ( "" , [] , [] ) [ Str "Lists" ]
     , Div
-        ( "styling-xhtml-002.xhtml#style-list-style-type"
+        ( "styling-xhtml-002.xhtml_style-list-style-type"
         , [ "section" ]
         , []
         )
@@ -1920,7 +1920,7 @@
             , Str "property"
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-009"
+            ( "styling-xhtml-002.xhtml_style-009"
             , [ "section" , "ctest" ]
             , []
             )
@@ -1999,7 +1999,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-010"
+            ( "styling-xhtml-002.xhtml_style-010"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2071,7 +2071,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-011"
+            ( "styling-xhtml-002.xhtml_style-011"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2143,7 +2143,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-012"
+            ( "styling-xhtml-002.xhtml_style-012"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2215,7 +2215,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-013"
+            ( "styling-xhtml-002.xhtml_style-013"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2294,7 +2294,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-014"
+            ( "styling-xhtml-002.xhtml_style-014"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2373,7 +2373,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-015"
+            ( "styling-xhtml-002.xhtml_style-015"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2452,7 +2452,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-016"
+            ( "styling-xhtml-002.xhtml_style-016"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2531,7 +2531,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-017"
+            ( "styling-xhtml-002.xhtml_style-017"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2610,7 +2610,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-018"
+            ( "styling-xhtml-002.xhtml_style-018"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2689,7 +2689,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-019"
+            ( "styling-xhtml-002.xhtml_style-019"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2768,7 +2768,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-020"
+            ( "styling-xhtml-002.xhtml_style-020"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2847,7 +2847,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-021"
+            ( "styling-xhtml-002.xhtml_style-021"
             , [ "section" , "ctest" ]
             , []
             )
@@ -2926,7 +2926,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-022"
+            ( "styling-xhtml-002.xhtml_style-022"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3005,7 +3005,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-023"
+            ( "styling-xhtml-002.xhtml_style-023"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3084,7 +3084,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-024"
+            ( "styling-xhtml-002.xhtml_style-024"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3163,7 +3163,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-025"
+            ( "styling-xhtml-002.xhtml_style-025"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3242,7 +3242,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-026"
+            ( "styling-xhtml-002.xhtml_style-026"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3321,7 +3321,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-027"
+            ( "styling-xhtml-002.xhtml_style-027"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3400,7 +3400,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-028"
+            ( "styling-xhtml-002.xhtml_style-028"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3479,7 +3479,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-029"
+            ( "styling-xhtml-002.xhtml_style-029"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3553,7 +3553,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-002.xhtml#style-list-style"
+        ( "styling-xhtml-002.xhtml_style-list-style"
         , [ "section" ]
         , []
         )
@@ -3567,7 +3567,7 @@
             , Str "property"
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-030"
+            ( "styling-xhtml-002.xhtml_style-030"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3650,7 +3650,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-002.xhtml#style-list-style-position"
+        ( "styling-xhtml-002.xhtml_style-list-style-position"
         , [ "section" ]
         , []
         )
@@ -3664,7 +3664,7 @@
             , Str "property"
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-040"
+            ( "styling-xhtml-002.xhtml_style-040"
             , [ "section" , "ctest" ]
             , []
             )
@@ -3963,7 +3963,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-041"
+            ( "styling-xhtml-002.xhtml_style-041"
             , [ "section" , "ctest" ]
             , []
             )
@@ -4269,7 +4269,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-002.xhtml#style-list-start"
+        ( "styling-xhtml-002.xhtml_style-list-start"
         , [ "section" ]
         , []
         )
@@ -4285,7 +4285,7 @@
             , Str "attribute"
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-050"
+            ( "styling-xhtml-002.xhtml_style-050"
             , [ "section" , "ctest" ]
             , []
             )
@@ -4364,7 +4364,7 @@
                 ]
             ]
         , Div
-            ( "styling-xhtml-002.xhtml#style-051"
+            ( "styling-xhtml-002.xhtml_style-051"
             , [ "section" , "ctest" ]
             , []
             )
@@ -4448,7 +4448,7 @@
     ]
 , Para [ Span ( "styling-xhtml-004.xhtml" , [] , [] ) [] ]
 , Div
-    ( "styling-xhtml-004.xhtml#style-media-rules"
+    ( "styling-xhtml-004.xhtml_style-media-rules"
     , [ "section" ]
     , []
     )
@@ -4457,7 +4457,7 @@
         ( "" , [] , [] )
         [ Code ( "" , [] , [] ) "@media" , Space , Str "Rules" ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-210"
+        ( "styling-xhtml-004.xhtml_style-210"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4513,7 +4513,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-211"
+        ( "styling-xhtml-004.xhtml_style-211"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4569,7 +4569,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-212"
+        ( "styling-xhtml-004.xhtml_style-212"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4625,7 +4625,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-213"
+        ( "styling-xhtml-004.xhtml_style-213"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4681,7 +4681,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-220"
+        ( "styling-xhtml-004.xhtml_style-220"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4765,7 +4765,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-221"
+        ( "styling-xhtml-004.xhtml_style-221"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4849,7 +4849,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-230"
+        ( "styling-xhtml-004.xhtml_style-230"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4905,7 +4905,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-231"
+        ( "styling-xhtml-004.xhtml_style-231"
         , [ "section" , "ctest" ]
         , []
         )
@@ -4961,7 +4961,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-240"
+        ( "styling-xhtml-004.xhtml_style-240"
         , [ "section" , "ctest" ]
         , []
         )
@@ -5017,7 +5017,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-004.xhtml#style-241"
+        ( "styling-xhtml-004.xhtml_style-241"
         , [ "section" , "ctest" ]
         , []
         )
@@ -5075,7 +5075,7 @@
     ]
 , Para [ Span ( "styling-xhtml-005.xhtml" , [] , [] ) [] ]
 , Div
-    ( "styling-xhtml-005.xhtml#style-text-xform"
+    ( "styling-xhtml-005.xhtml_style-text-xform"
     , [ "section" ]
     , []
     )
@@ -5089,7 +5089,7 @@
         , Str "property"
         ]
     , Div
-        ( "styling-xhtml-005.xhtml#style-310"
+        ( "styling-xhtml-005.xhtml_style-310"
         , [ "section" , "ctest" ]
         , []
         )
@@ -5287,7 +5287,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-005.xhtml#style-311"
+        ( "styling-xhtml-005.xhtml_style-311"
         , [ "section" , "ctest" ]
         , []
         )
@@ -5499,7 +5499,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-005.xhtml#style-312"
+        ( "styling-xhtml-005.xhtml_style-312"
         , [ "section" , "ctest" ]
         , []
         )
@@ -5699,7 +5699,7 @@
     ]
 , Para [ Span ( "styling-xhtml-006.xhtml" , [] , [] ) [] ]
 , Div
-    ( "styling-xhtml-006.xhtml#style-ruby"
+    ( "styling-xhtml-006.xhtml_style-ruby"
     , [ "section" ]
     , []
     )
@@ -5713,7 +5713,7 @@
         , Str "property"
         ]
     , Div
-        ( "styling-xhtml-006.xhtml#style-410"
+        ( "styling-xhtml-006.xhtml_style-410"
         , [ "section" , "ctest" ]
         , []
         )
@@ -5804,7 +5804,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-006.xhtml#style-411"
+        ( "styling-xhtml-006.xhtml_style-411"
         , [ "section" , "ctest" ]
         , []
         )
@@ -5897,7 +5897,7 @@
             ]
         ]
     , Div
-        ( "styling-xhtml-006.xhtml#style-412"
+        ( "styling-xhtml-006.xhtml_style-412"
         , [ "section" , "ctest" ]
         , []
         )
