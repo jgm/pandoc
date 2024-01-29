@@ -223,7 +223,7 @@ inlineToTypst inline =
   case inline of
     Str txt -> do
       context <- gets stEscapeContext
-      return $ literal $ escapeTypst context txt
+      return $ escapeTypst context txt
     Space -> return space
     SoftBreak -> do
       wrapText <- gets $ writerWrapText . stOptions
@@ -322,12 +322,17 @@ textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines =
   (<> endCode) . (s <>) . brackets <$> inlinesToTypst inlines
 
-escapeTypst :: EscapeContext -> Text -> Text
+escapeTypst :: EscapeContext -> Text -> Doc Text
 escapeTypst context t =
-  T.replace "//" "\\/\\/" $
-  if T.any needsEscape t
-     then T.concatMap escapeChar t
-     else t
+  (case T.uncons t of
+    Just (c, _)
+      | needsEscapeAtLineStart c
+        -> afterBreak "\\"
+    _ -> mempty) <>
+  (literal (T.replace "//" "\\/\\/"
+    (if T.any needsEscape t
+        then T.concatMap escapeChar t
+        else t)))
   where
     escapeChar c
       | c == '\160' = "~"
@@ -336,7 +341,6 @@ escapeTypst context t =
     needsEscape '\160' = True
     needsEscape '[' = True
     needsEscape ']' = True
-    needsEscape '(' = True -- see #9137
     needsEscape '#' = True
     needsEscape '<' = True
     needsEscape '>' = True
@@ -346,12 +350,16 @@ escapeTypst context t =
     needsEscape '\'' = True
     needsEscape '"' = True
     needsEscape '`' = True
-    needsEscape '=' = True
     needsEscape '_' = True
     needsEscape '*' = True
     needsEscape '~' = True
     needsEscape ':' = context == TermContext
     needsEscape _ = False
+    needsEscapeAtLineStart '/' = True
+    needsEscapeAtLineStart '+' = True
+    needsEscapeAtLineStart '-' = True
+    needsEscapeAtLineStart '=' = True
+    needsEscapeAtLineStart _ = False
 
 toLabel :: Text -> Doc Text
 toLabel ident =
