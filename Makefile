@@ -19,14 +19,13 @@ REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 pandoc=$(shell cabal list-bin $(CABALOPTS) pandoc-cli)
 
-all: test build ## build executable and run tests
+all: build test binpath ## build executable and run tests
 .PHONY: all
 
 build: ## build executable
 	cabal build \
 	  --ghc-options='$(GHCOPTS)' \
 	  $(CABALOPTS) pandoc-cli
-	@cabal list-bin $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
 .PHONY: build
 
 binpath: ## print path of built pandoc executable
