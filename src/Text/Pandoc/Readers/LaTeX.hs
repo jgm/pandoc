@@ -207,11 +207,13 @@ doLHSverb =
 
 mkImage :: PandocMonad m => [(Text, Text)] -> Text -> LP m Inlines
 mkImage options (T.unpack -> src) = do
-   let replaceTextwidth (k,v) =
+   let replaceRelative (k,v) =
          case numUnit v of
               Just (num, "\\textwidth") -> (k, showFl (num * 100) <> "%")
+              Just (num, "\\linewidth") -> (k, showFl (num * 100) <> "%")
+              Just (num, "\\textheight") -> (k, showFl (num * 100) <> "%")
               _                         -> (k, v)
-   let kvs = map replaceTextwidth
+   let kvs = map replaceRelative
              $ filter (\(k,_) -> k `elem` ["width", "height"]) options
    let attr = ("",[], kvs)
    let alt = maybe (str "image") str $ lookup "alt" options
