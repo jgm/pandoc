@@ -22,6 +22,7 @@ import Text.Pandoc.ImageSize (imageSize, sizeInPoints)
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled )
 import Data.Text (Text)
 import Data.List (intercalate)
+import Network.URI (unEscapeString)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
@@ -34,6 +35,7 @@ import Text.DocTemplates (renderTemplate)
 import Control.Monad.Except (catchError)
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Collate.Lang (Lang(..), parseLang)
+import Data.Char (isAlphaNum)
 
 -- | Convert Pandoc to Typst.
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -282,7 +284,7 @@ inlineToTypst inline =
     Link _attrs inlines (src,_tit) -> do
       contents <- inlinesToTypst inlines
       let dest = case T.uncons src of
-                   Just ('#', ident) -> "<" <> literal ident <> ">"
+                   Just ('#', ident) -> toLabel ident
                    _ -> doubleQuoted src
       return $ "#link" <> parens dest <>
                 (if inlines == [Str src]
@@ -365,7 +367,12 @@ toLabel :: Text -> Doc Text
 toLabel ident =
   if T.null ident
      then mempty
-     else "<" <> literal ident <> ">"
+     else "<" <> text (fixLabel (unEscapeString . T.unpack $ ident)) <> ">"
+ where
+   fixLabel = map (\c -> if isAlphaNum c ||
+                                c == '_' || c == '-' || c == '.' || c == ':'
+                              then c
+                              else '-')
 
 doubleQuoted :: Text -> Doc Text
 doubleQuoted = doubleQuotes . literal . escape
