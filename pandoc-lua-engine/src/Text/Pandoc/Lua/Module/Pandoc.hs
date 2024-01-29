@@ -20,11 +20,12 @@ module Text.Pandoc.Lua.Module.Pandoc
 import Prelude hiding (read)
 import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
-import Control.Monad.Catch (catch, throwM)
+import Control.Monad.Catch (catch, handle, throwM)
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (Proxy))
+import Data.Text.Encoding.Error (UnicodeException)
 import HsLua
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Definition
@@ -210,7 +211,8 @@ functions =
     =?> "output string, or error triple"
 
   , defun "read"
-    ### (\content mformatspec mreaderOptions -> unPandocLua $ do
+    ### (\content mformatspec mreaderOptions ->
+          handle (failLua . show @UnicodeException) . unPandocLua $ do
             flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
             let readerOpts = fromMaybe def mreaderOptions
             getReader flvrd >>= \case
