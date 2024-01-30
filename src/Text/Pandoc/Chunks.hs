@@ -30,7 +30,7 @@ module Text.Pandoc.Chunks
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier,
                            tshow)
-import Text.Pandoc.Walk (Walkable(..))
+import Text.Pandoc.Walk (Walkable(..), query)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
 import Text.Printf (printf)
@@ -371,15 +371,20 @@ toTOCTree =
 fixTOCTreePaths :: [Chunk] -> Tree SecInfo -> Tree SecInfo
 fixTOCTreePaths chunks = go ""
  where
-  idMap = foldr (\chunk -> M.insert (chunkId chunk) (chunkPath chunk))
+  idMap = foldr (\chunk m ->
+                   let ids = filter (not . T.null)
+                               (chunkId chunk :
+                                  query getIds (chunkContents chunk))
+                    in foldr (\i -> M.insert i (chunkPath chunk)) m ids)
                 mempty chunks
+  getIds :: Block -> [Text]
+  getIds (Div (i,"section":_,_) _) = [i]
+  getIds _ = []
   go :: FilePath -> Tree SecInfo -> Tree SecInfo
   go fp (Node secinfo subtrees) =
     let newpath = M.lookup (secId secinfo) idMap
         fp' = fromMaybe fp newpath
-        fragment = case newpath of
-                     Nothing -> "#" <> secId secinfo
-                     Just _  -> "" -- link to top of file
+        fragment = "#" <> secId secinfo
      in Node secinfo{ secPath = T.pack fp' <> fragment }
              (map (go fp') subtrees)
 
