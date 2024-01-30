@@ -29,7 +29,7 @@ module Text.Pandoc.Chunks
 
 import Text.Pandoc.Definition
 import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier,
-                           tshow)
+                           tshow, uniqueIdent)
 import Text.Pandoc.Walk (Walkable(..), query)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
@@ -43,6 +43,8 @@ import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Data.Tree (Tree(..))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
+import qualified Data.Set as Set
+import Control.Monad.State
 
 -- | Split 'Pandoc' into 'Chunk's, e.g. for conversion into
 -- a set of HTML pages or EPUB chapters.
@@ -63,7 +65,23 @@ splitIntoChunks pathTemplate numberSections mbBaseLevel
  where
   tocTree = fixTOCTreePaths chunks $ toTOCTree sections
   chunks = makeChunks chunklev pathTemplate meta $ sections
-  sections = makeSections numberSections mbBaseLevel $ blocks
+  sections = ensureIds $ makeSections numberSections mbBaseLevel blocks
+
+-- The TOC won't work if we don't have unique identifiers for all sections.
+ensureIds :: [Block] -> [Block]
+ensureIds bs = evalState (walkM go bs) mempty
+ where
+   go :: Block -> State (Set.Set Text) Block
+   go b@(Div (ident,"section":cls,kvs) bs'@(Header _ _ ils : _))
+     | T.null ident
+       = do ids <- get
+            let newid = uniqueIdent mempty ils ids
+            modify $ Set.insert newid
+            pure $ Div (newid,"section":cls,kvs) bs'
+     | otherwise
+       = do modify $ Set.insert ident
+            pure b
+   go b = pure b
 
 -- | Add chunkNext, chunkPrev, chunkUp
 addNav :: ChunkedDoc -> ChunkedDoc
