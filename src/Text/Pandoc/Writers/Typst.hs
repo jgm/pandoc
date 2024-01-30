@@ -293,7 +293,8 @@ inlineToTypst inline =
       opts <- gets stOptions
       let mbHeight = lookup "height" kvs
       let mdWidth = lookup "width" kvs
-      let coreImage = "image" <> parens (doubleQuoted src)
+      let src' = T.pack $ unEscapeString $ T.unpack src -- #9389
+      let coreImage = "image" <> parens (doubleQuoted src')
       -- see #9104; we need a box or the image is treated as block-level:
       case (mdWidth, mbHeight) of
         (Nothing, Nothing) -> do
