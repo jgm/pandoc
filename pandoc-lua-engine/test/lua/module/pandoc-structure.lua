@@ -110,10 +110,10 @@ return {
       assert.are_equal(
         structure.table_of_contents(chunked),
         pandoc.BulletList{
-          {pandoc.Plain({pandoc.Link('First', 'chunk-001', '', {id='toc-first'})}),
-           pandoc.BulletList{{pandoc.Plain({pandoc.Link('Subsection', 'chunk-002', '', {id='toc-subsection'})})}}
+          {pandoc.Plain({pandoc.Link('First', 'chunk-001#first', '', {id='toc-first'})}),
+           pandoc.BulletList{{pandoc.Plain({pandoc.Link('Subsection', 'chunk-002#subsection', '', {id='toc-subsection'})})}}
           },
-          {pandoc.Plain({pandoc.Link('Second', 'chunk-003', '', {id='toc-second'})})}
+          {pandoc.Plain({pandoc.Link('Second', 'chunk-003#second', '', {id='toc-second'})})}
         }
       )
     end),
@@ -130,8 +130,8 @@ return {
       assert.are_equal(
         structure.table_of_contents(chunked, {toc_depth = 1}),
         pandoc.BulletList{
-          {pandoc.Plain({pandoc.Link('First', 'chunk-001', '', {id='toc-first'})})},
-          {pandoc.Plain({pandoc.Link('Second', 'chunk-002', '', {id='toc-second'})})}
+          {pandoc.Plain({pandoc.Link('First', 'chunk-001#first', '', {id='toc-first'})})},
+          {pandoc.Plain({pandoc.Link('Second', 'chunk-002#second', '', {id='toc-second'})})}
         }
       )
     end),
