@@ -62,7 +62,7 @@ quick-stack: ## unoptimized build and tests with stack
 	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
-prerelease: README.md fix_spacing check-cabal check-stack checkdocs man check-version-sync check-changelog check-manversion uncommitted_changes ## prerelease checks
+prerelease: validate-epub README.md fix_spacing check-cabal check-stack checkdocs man check-version-sync check-changelog check-manversion uncommitted_changes ## prerelease checks
 .PHONY: prerelease
 
 uncommitted_changes:
