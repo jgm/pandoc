@@ -1411,19 +1411,19 @@ getDefaultTableStyle = do
   return $ findAttr (QName "def" Nothing Nothing) tblStyleLst
 
 graphicToElement :: PandocMonad m => Integer -> Graphic -> P m Element
-graphicToElement tableWidth (Tbl tblPr hdrCells rows) = do
-  let colWidths = if null hdrCells
-                  then case rows of
-                         r : _ | not (null r) -> replicate (length r) $
+graphicToElement tableWidth (Tbl widths tblPr hdrCells rows) = do
+  let totalWidth = sum widths
+  let colWidths = if any (== 0.0) widths
+                  then if null hdrCells
+                      then case rows of
+                         r@(_:_) : _ -> replicate (length r) $
                                                  tableWidth `div` toInteger (length r)
-                         -- satisfy the compiler. This is the same as
-                         -- saying that rows is empty, but the compiler
-                         -- won't understand that `[]` exhausts the
-                         -- alternatives.
-                         _ -> []
-                  else replicate (length hdrCells) $
-                       tableWidth `div` toInteger (length hdrCells)
-
+                         []: _ -> []
+                         [] -> []
+                      else replicate (length hdrCells) $
+                           tableWidth `div` toInteger (length hdrCells)
+                  else map (\w -> round $ w / totalWidth * fromIntegral tableWidth) widths
+  
   let cellToOpenXML paras =
         do elements <- mapM paragraphToElement paras
            let elements' = if null elements
