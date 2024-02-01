@@ -101,8 +101,10 @@ data EPUBMetadata = EPUBMetadata{
   , epubIbooksFields        :: [(Text, Text)]
   , epubCalibreFields       :: [(Text, Text)]
   , epubAccessModes         :: [Text] -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessMode.html
+  , epubAccessModeSufficient :: [Text] -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessModeSufficient.html
   , epubAccessibilityFeatures :: [Text]  -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessibilityFeature.html
   , epubAccessibilityHazards :: [Text] -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessibilityHazard.html
+  , epubAccessibilitySummary :: Maybe Text -- https://kb.daisy.org/publishing/docs/metadata/schema.org/accessibilitySummary.html
   } deriving Show
 
 data Date = Date{
@@ -362,8 +364,10 @@ metadataFromMeta opts meta = EPUBMetadata{
     , epubIbooksFields         = ibooksFields
     , epubCalibreFields        = calibreFields
     , epubAccessModes          = accessModes
+    , epubAccessModeSufficient = accessModeSufficient
     , epubAccessibilityFeatures = accessibilityFeatures
     , epubAccessibilityHazards = accessibilityHazards
+    , epubAccessibilitySummary = accessibilitySummary
     }
   where identifiers = getIdentifier meta
         titles = getTitle meta
@@ -410,6 +414,9 @@ metadataFromMeta opts meta = EPUBMetadata{
         accessModes = case lookupMeta "accessModes" meta of
                          Just (MetaList xs) -> map metaValueToString xs
                          _ -> ["textual"]
+        accessModeSufficient = case lookupMeta "accessModeSufficient" meta of
+                         Just (MetaList xs) -> map metaValueToString xs
+                         _ -> ["textual"]
         accessibilityFeatures =
                       case lookupMeta "accessibilityFeatures" meta of
                          Just (MetaList xs) -> map metaValueToString xs
@@ -419,6 +426,7 @@ metadataFromMeta opts meta = EPUBMetadata{
                        case lookupMeta "accessibilityHazards" meta of
                          Just (MetaList xs) -> map metaValueToString xs
                          _ -> ["none"]
+        accessibilitySummary = metaValueToString <$> lookupMeta "accessibilitySummary" meta
 
 -- | Produce an EPUB2 file from a Pandoc document.
 writeEPUB2 :: PandocMonad m
@@ -1000,8 +1008,8 @@ metadataElement version md currentTime =
                   ++ publisherNodes ++ sourceNodes ++ relationNodes
                   ++ coverageNodes ++ rightsNodes ++ coverImageNodes
                   ++ modifiedNodes ++ belongsToCollectionNodes
-                  ++ accessModeNodes ++ accessibilityFeatureNodes
-                  ++ accessibilityHazardNodes
+                  ++ accessModeNodes ++ accessModeSufficientNodes ++ accessibilityFeatureNodes
+                  ++ accessibilityHazardNodes ++ accessibilitySummaryNodes
         metaprop = if version == EPUB2 then "name" else "property"
         withIds base f = concat . zipWith f (map (\x -> base <>
                                                         T.cons '-' (tshow x))
@@ -1053,10 +1061,13 @@ metadataElement version md currentTime =
                 (epubGroupPosition md)
         schemanode k v = unode "meta" ! [(metaprop, "schema:" <> k)] $ v
         accessModeNodes = map (schemanode "accessMode") (epubAccessModes md)
+        accessModeSufficient = map (schemanode "accessModeSufficient") (epubAccessModeSufficient md)
         accessibilityFeatureNodes = map (schemanode "accessibilityFeature")
             (epubAccessibilityFeatures md)
         accessibilityHazardNodes = map (schemanode "accessibilityHazard")
             (epubAccessibilityHazards md)
+        accessibilitySummaryNode = schemanode "accessibilitySummary" <$> epubAccessibilitySummary md
+        
         dcTag n s = unode ("dc:" <> n) s
         dcTag' n s = [dcTag n s]
         toIdentifierNode id' (Identifier txt scheme)
