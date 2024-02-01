@@ -1061,12 +1061,12 @@ metadataElement version md currentTime =
                 (epubGroupPosition md)
         schemanode k v = unode "meta" ! [(metaprop, "schema:" <> k)] $ v
         accessModeNodes = map (schemanode "accessMode") (epubAccessModes md)
-        accessModeSufficient = map (schemanode "accessModeSufficient") (epubAccessModeSufficient md)
+        accessModeSufficientNodes = map (schemanode "accessModeSufficient") (epubAccessModeSufficient md)
         accessibilityFeatureNodes = map (schemanode "accessibilityFeature")
             (epubAccessibilityFeatures md)
         accessibilityHazardNodes = map (schemanode "accessibilityHazard")
             (epubAccessibilityHazards md)
-        accessibilitySummaryNode = schemanode "accessibilitySummary" <$> epubAccessibilitySummary md
+        accessibilitySummaryNodes = schemanode "accessibilitySummary" <$> epubAccessibilitySummary md
         
         dcTag n s = unode ("dc:" <> n) s
         dcTag' n s = [dcTag n s]
