@@ -1413,8 +1413,6 @@ getDefaultTableStyle = do
 graphicToElement :: PandocMonad m => Integer -> Graphic -> P m Element
 graphicToElement tableWidth (Tbl widths tblPr hdrCells rows) = do
   let totalWidth = sum widths
-  P.report $ PowerpointTemplateWarning $ T.pack ("tableWidth: " ++ show tableWidth)
-  P.report $ PowerpointTemplateWarning $ T.pack ("colWidthsold: " ++ show widths)
   let colWidths = if any (== 0.0) widths
                   then if null hdrCells
                       then case rows of
