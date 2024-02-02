@@ -833,7 +833,7 @@ header when requesting a document from a URL:
     where there are nonsemantic newlines in the source, there
     will be nonsemantic newlines in the output as well).
     In `ipynb` output, this option affects wrapping of the
-    contents of markdown cells.
+    contents of Markdown cells.
 
 `--columns=`*NUMBER*
 
@@ -3286,13 +3286,13 @@ to the format name and disabled by adding `-EXTENSION`. For example,
 enabled, while `--from markdown-footnotes-pipe_tables` is pandoc's
 Markdown without footnotes or pipe tables.
 
-The markdown reader and writer make by far the most use of extensions.
+The Markdown reader and writer make by far the most use of extensions.
 Extensions only used by them are therefore covered in the
 section [Pandoc's Markdown] below (see [Markdown variants] for
 `commonmark` and `gfm`). In the following, extensions that also work
 for other formats are covered.
 
-Note that markdown extensions added to the `ipynb` format
+Note that Markdown extensions added to the `ipynb` format
 affect Markdown cells in Jupyter notebooks (as do command-line
 options like `--markdown-headings`).
 
@@ -3444,7 +3444,7 @@ their respective sections of [Pandoc's Markdown]:
   :  `textile`, `commonmark`
 
   Note: as applied to `ipynb`, `raw_html` and `raw_tex` affect not
-  only raw TeX in markdown cells, but data with mime type
+  only raw TeX in Markdown cells, but data with mime type
   `text/html` in output cells.  Since the `ipynb` reader attempts
   to preserve the richest possible outputs when several options
   are given, you will get best results if you disable `raw_html`
@@ -3607,7 +3607,7 @@ extensions to Emacs Muse markup.
 In the `ipynb` input format, this causes Markdown cells
 to be included as raw Markdown blocks (allowing lossless
 round-tripping) rather than being parsed.  Use this only
-when you are targeting `ipynb` or a markdown-based
+when you are targeting `ipynb` or a Markdown-based
 output format.
 
 #### Extension: `citations` {#org-citations}
@@ -4583,7 +4583,7 @@ legal (though ugly) pipe table:
 
 The cells of pipe tables cannot contain block elements like paragraphs
 and lists, and cannot span multiple lines.  If any line of the
-markdown source is longer than the column width (see `--columns`),
+Markdown source is longer than the column width (see `--columns`),
 then the table will take up the full text width and the cell
 contents will wrap, with the relative cell widths determined by
 the number of dashes in the line separating the table header
@@ -4715,7 +4715,7 @@ with your Markdown files:
 Just be sure that the YAML file begins with `---` and ends with `---` or
 `...`. Alternatively, you can use the `--metadata-file` option. Using
 that approach however, you cannot reference content (like footnotes)
-from the main markdown input document.
+from the main Markdown input document.
 
 Metadata will be taken from the fields of the YAML object and added to any
 existing document metadata.  Metadata can contain lists and objects (nested
@@ -4801,7 +4801,7 @@ Raw content to include in the document's header may be specified
 using `header-includes`; however, it is important to mark up
 this content as raw code for a particular output format, using
 the [`raw_attribute` extension](#extension-raw_attribute), or it
-will be interpreted as markdown. For example:
+will be interpreted as Markdown. For example:
 
     header-includes:
     - |
@@ -5439,7 +5439,7 @@ For example:
 
 Using the `native_divs` and `native_spans` extensions
 (see [above][Extension: `native_divs`]), HTML syntax can
-be used as part of markdown to create native `Div` and `Span`
+be used as part of Markdown to create native `Div` and `Span`
 elements in the pandoc AST (as opposed to raw HTML).
 However, there is also nicer syntax available:
 
@@ -5836,12 +5836,12 @@ simply skipped (as opposed to being parsed as paragraphs).
 
 #### Extension: `alerts` ####
 
-Supports [GitHub-style markdown alerts], like
+Supports [GitHub-style Markdown alerts], like
 
     > [!INFO]
     > This is an informational message.
 
-  [GitHub-style markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
+  [GitHub-style Markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
 
 #### Extension: `autolink_bare_uris` ####
 
@@ -5850,18 +5850,18 @@ pointy braces `<...>`.
 
 #### Extension: `mmd_link_attributes` ####
 
-Parses multimarkdown style key-value attributes on link
+Parses MultiMarkdown-style key-value attributes on link
 and image references. This extension should not be confused with the
 [`link_attributes`](#extension-link_attributes) extension.
 
-    This is a reference ![image][ref] with multimarkdown attributes.
+    This is a reference ![image][ref] with MultiMarkdown attributes.
 
     [ref]: https://path.to/image "Image title" width=20px height=30px
            id=myId class="myClass1 myClass2"
 
 #### Extension: `mmd_header_identifiers` ####
 
-Parses multimarkdown style heading identifiers (in square brackets,
+Parses MultiMarkdown-style heading identifiers (in square brackets,
 after the heading but before any trailing `#`s in an ATX heading).
 
 #### Extension: `compact_definition_lists` ####
@@ -5908,7 +5908,7 @@ Div or Span element with a `data-pos` attribute.
 
 #### Extension: `short_subsuperscripts` ####
 
-Parse multimarkdown style subscripts and superscripts, which start with
+Parse MultiMarkdown-style subscripts and superscripts, which start with
 a '~' or '^' character, respectively, and include the alphanumeric sequence
 that follows. For example:
 
@@ -5920,7 +5920,7 @@ or
 
 #### Extension: `wikilinks_title_after_pipe` ####
 
-Pandoc supports multiple markdown wikilink syntaxes, regardless of
+Pandoc supports multiple Markdown wikilink syntaxes, regardless of
 whether the title is before or after the pipe.
 
 Using `--from=markdown+wikilinks_title_after_pipe` results in
@@ -6167,7 +6167,7 @@ example:
 
 Pandoc's citation processing is designed to allow you to
 move between author-date, numerical, and note styles without
-modifying the markdown source.  When you're using a note
+modifying the Markdown source.  When you're using a note
 style, avoid inserting footnotes manually. Instead, insert
 citations just as you would in an author-date style---for
 example,
@@ -6887,7 +6887,7 @@ The following fields are recognized:
 
 For `epub3` output, you can mark up the heading that corresponds to an EPUB
 chapter using the [`epub:type` attribute][epub-type]. For example, to set
-the attribute to the value `prologue`, use this markdown:
+the attribute to the value `prologue`, use this Markdown:
 
     # My chapter {epub:type=prologue}
 
