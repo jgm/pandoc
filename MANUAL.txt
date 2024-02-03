@@ -2940,8 +2940,8 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
 `mainfontfallback`, `sansfontfallback`, `monofontfallback`
 :   fonts to try if a glyph isn't found in `mainfont`, `sansfont`, or `monofont`
-    respectively. These are lists.  The syntax for the font names depends on the
-    PDF engine used, e.g. for `--pdf-engine=lualatex`:
+    respectively. These are lists. The font name must be followed by a colon
+    and optionally a set of options, for example:
 
         ---
         mainfontfallback:
@@ -2949,13 +2949,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
           - "NotoColorEmoji:mode=harf"
         ...
 
-    Font fallbacks currently only work with `lualatex`[^lltx-ff-notes]
-    or `context`[^cntx-ff-notes]
-
-[^lltx-ff-notes]: Use `\fontspec`-compatible font name syntax, and also set `mainfont` YAML metadata.
-
-[^cntx-ff-notes]: Use `\definefallbackfamily`-compatible font name syntax.
-    [Emoji fonts are unsupported.](https://github.com/jgm/pandoc/pull/9361#issuecomment-1910564364)
+    Font fallbacks currently only work with `lualatex`.
 
 `babelfonts`
 :    a map of Babel language names (e.g. `chinese`) to the font
@@ -3072,6 +3066,11 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `mainfont`, `sansfont`, `monofont`, `mathfont`
 :   font families: take the name of any system font (see
     [ConTeXt Font Switching])
+
+`mainfontfallback`, `sansfontfallback`, `monofontfallback`
+:   list of fonts to try, in order, if a glyph is not found in the
+    main font. Use `\definefallbackfamily`-compatible font name syntax.
+    Emoji fonts are unsupported.
 
 `margin-left`, `margin-right`, `margin-top`, `margin-bottom`
 :   sets margins, if `layout` is not used (otherwise `layout`
