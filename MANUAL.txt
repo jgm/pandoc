@@ -2940,14 +2940,22 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
 `mainfontfallback`, `sansfontfallback`, `monofontfallback`
 :   fonts to try if a glyph isn't found in `mainfont`, `sansfont`, or `monofont`
-    respectively. These can be lists.  The font name must be followed by a colon
-    and optionally a set of options, for example:
+    respectively. These are lists.  The syntax for the font names depends on the
+    PDF engine used, e.g. for `--pdf-engine=lualatex`:
 
+        ---
         mainfontfallback:
           - "FreeSans:"
           - "NotoColorEmoji:mode=harf"
+        ...
 
-    Font fallbacks currently only work with `--pdf-engine=lualatex`.
+    Font fallbacks currently only work with `lualatex`[^lltx-ff-notes]
+    or `context`[^cntx-ff-notes]
+
+[^lltx-ff-notes]: Use `\fontspec`-compatible font name syntax, and also set `mainfont` YAML metadata.
+
+[^cntx-ff-notes]: Use `\definefallbackfamily`-compatible font name syntax.
+    [Emoji fonts are unsupported.](https://github.com/jgm/pandoc/pull/9361#issuecomment-1910564364)
 
 `babelfonts`
 :    a map of Babel language names (e.g. `chinese`) to the font

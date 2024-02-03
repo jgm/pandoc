@@ -59,6 +59,16 @@ $endif$
 
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
 
+$-- set up font fallbacks
+$for(mainfontfallback)$
+\definefallbackfamily[mainface][rm][$mainfontfallback$][range=0x0000-0xFFFF, check=yes, force=no]
+$endfor$
+$for(sansfontfallback)$
+\definefallbackfamily[mainface][ss][$sansfontfallback$][range=0x0000-0xFFFF, check=yes, force=no]
+$endfor$
+$for(monofontfallback)$
+\definefallbackfamily[mainface][tt][$monofontfallback$][range=0x0000-0xFFFF, check=yes, force=no]
+$endfor$
 \definefallbackfamily[mainface][rm][CMU Serif][preset=range:greek, force=yes]
 \definefontfamily[mainface][rm][$if(mainfont)$$mainfont$$else$Latin Modern Roman$endif$]
 \definefontfamily[mainface][mm][$if(mathfont)$$mathfont$$else$Latin Modern Math$endif$]
