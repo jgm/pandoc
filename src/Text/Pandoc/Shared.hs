@@ -516,15 +516,12 @@ makeSections numbering mbBaseLevel bs =
   go (Header level (ident,classes,kvs) title':xs) = do
     (mbLevel, lastnum) <- S.get
     let level' = fromMaybe level mbLevel
-    let lastnum' = take level' lastnum
-    let newnum =
-          if level' > 0
-             then case length lastnum' of
-                      x | "unnumbered" `elem` classes -> []
-                        | x >= level' -> init lastnum' ++ [last lastnum' + 1]
-                        | otherwise -> lastnum ++
-                             replicate (level' - length lastnum - 1) 0 ++ [1]
-             else []
+    let adjustNum lev numComponent
+          | lev < level' = numComponent
+          | lev == level' = numComponent + 1
+          | otherwise = 0
+    let newnum = zipWith adjustNum [(fromMaybe 1 mbBaseLevel)..level']
+                    (lastnum ++ repeat 0)
     unless (null newnum) $ S.modify $ \(mbl, _) -> (mbl, newnum)
     let (sectionContents, rest) = break (headerLtEq level) xs
     S.modify $ \(_, ln) -> (fmap (+ 1) mbLevel, ln)
