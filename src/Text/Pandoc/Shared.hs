@@ -96,8 +96,9 @@ import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
 import Data.List (find, foldl', groupBy, intercalate, intersperse,
                   union, sortOn)
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, fromMaybe)
-import Data.Monoid (Any (..))
+import Data.Maybe (mapMaybe)
+import Data.Monoid (Any (..) )
+import Data.Semigroup (Min (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
@@ -507,26 +508,28 @@ textToIdentifier exts =
 -- element a Header).  If the 'numbering' parameter is True, Header
 -- numbers are added via the number attribute on the header.
 -- If the baseLevel parameter is Just n, Header levels are
--- adjusted to be gapless starting at level n.
+-- adjusted so that the lowest header level is n.
+-- (There may still be gaps in header level if the author leaves them.)
 makeSections :: Bool -> Maybe Int -> [Block] -> [Block]
 makeSections numbering mbBaseLevel bs =
-  S.evalState (go bs) (mbBaseLevel, [])
+  S.evalState (go bs) []
  where
-  go :: [Block] -> S.State (Maybe Int, [Int]) [Block]
+  getLevel (Header level _ _) = Min level
+  getLevel _ = Min 99
+  minLevel = getMin $ query getLevel bs
+  go :: [Block] -> S.State [Int] [Block]
   go (Header level (ident,classes,kvs) title':xs) = do
-    (mbLevel, lastnum) <- S.get
-    let level' = fromMaybe level mbLevel
+    lastnum <- S.get
+    let level' = maybe level (\n -> n + level - minLevel) mbBaseLevel
     let adjustNum lev numComponent
-          | lev < level' = numComponent
-          | lev == level' = numComponent + 1
+          | lev < level = numComponent
+          | lev == level = numComponent + 1
           | otherwise = 0
-    let newnum = zipWith adjustNum [(fromMaybe 1 mbBaseLevel)..level']
+    let newnum = zipWith adjustNum [minLevel..level]
                     (lastnum ++ repeat 0)
-    unless (null newnum) $ S.modify $ \(mbl, _) -> (mbl, newnum)
+    unless (null newnum) $ S.put newnum
     let (sectionContents, rest) = break (headerLtEq level) xs
-    S.modify $ \(_, ln) -> (fmap (+ 1) mbLevel, ln)
     sectionContents' <- go sectionContents
-    S.modify $ \(_, ln) -> (mbLevel, ln)
     rest' <- go rest
     let kvs' = -- don't touch number if already present
                case lookup "number" kvs of

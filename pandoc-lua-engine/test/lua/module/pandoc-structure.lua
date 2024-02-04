@@ -48,7 +48,7 @@ return {
       assert.are_equal('Div', hblks[1].t)
       assert.are_equal('Header', hblks[1].content[1].t)
       assert.are_equal('1',   hblks[1].content[1].attributes['number'])
-      assert.are_equal('1.1', hblks[1].content[3].attributes['number'])
+      assert.are_equal('1.0.1', hblks[1].content[3].attributes['number'])
     end)
   },
 

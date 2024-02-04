@@ -721,17 +721,22 @@ adjustNumbers opts doc =
      then doc
      else walk go doc
   where
-   go (Div (ident,"section":classes,kvs) lst) =
-     Div (ident,"section":classes,map fixnum kvs) lst
+   go (Div (ident,"section":classes,kvs) lst@(Header level _ _ : _)) =
+     Div (ident,"section":classes,map (fixnum level) kvs) lst
    go (Header level (ident,classes,kvs) lst) =
-     Header level (ident,classes,map fixnum kvs) lst
+     Header level (ident,classes,map (fixnum level) kvs) lst
    go x = x
-   fixnum ("number",num) = ("number",
+   fixnum level ("number",num) = ("number",
                                showSecNum $ zipWith (+)
                                (writerNumberOffset opts ++ repeat 0)
-                               (map (fromMaybe 0 . safeRead) $
+                               (padTo level $
+                                map (fromMaybe 0 . safeRead) $
                                 T.split (=='.') num))
-   fixnum x = x
+   fixnum _ x = x
+   padTo n xs =
+     case n - length xs of
+       x | x > 0 -> replicate x 0 ++ xs
+         | otherwise -> xs
    showSecNum = T.intercalate "." . map tshow
 
 blockToHtmlInner :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
