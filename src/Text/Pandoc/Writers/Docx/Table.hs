@@ -114,8 +114,8 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
   let tbl = mknode "w:tbl" []
         ( mknode "w:tblPr" []
           ( [ mknode "w:tblStyle" [("w:val","Table")] (),
-              mknode "w:tblW" tblWattr (),
-              mknode "w:jc" [("w:val","left")] () ] ++
+              mknode "w:tblW" tblWattr () ] ++
+            [ mknode "w:jc" [("w:val","left")] () | indent > 0 ] ++
             [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
                 | indent > 0 ] ++
             [ mknode "w:tblLayout" [("w:type", "fixed")] () | hasWidths ] ++
