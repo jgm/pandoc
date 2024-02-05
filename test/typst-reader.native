@@ -4045,7 +4045,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math
                                       InlineMath
-                                      "\\left. \\parallel{} \\right.\\parallel"
+                                      "\\left\\| {} \\right\\|"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "norm(\"\")"
                                   ]

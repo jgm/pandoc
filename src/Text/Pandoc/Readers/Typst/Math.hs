@@ -229,7 +229,7 @@ handleMath tok =
       pure $ EDelimited "\8968" "\8969" [Right body]
     Elt "math.norm" _ fields -> do
       body <- getField "body" fields >>= pMathGrouped
-      pure $ EDelimited "\8741" "\8741" [Right body]
+      pure $ EDelimited "\8214" "\8214" [Right body]
     Elt "math.round" _ fields -> do
       body <- getField "body" fields >>= pMathGrouped
       pure $ EDelimited "\8970" "\8969" [Right body]
