@@ -4,11 +4,13 @@ on:
     paths:
       - test/docx/golden/*.docx
       - tools/validate-docx.sh
+      - tools/validate-docx2.sh
       - .github/workflows/docx-validation.yaml
   pull_request:
     paths:
       - test/docx/golden/*.docx
       - tools/validate-docx.sh
+      - tools/validate-docx2.sh
       - .github/workflows/docx-validation.yaml
 
 permissions:
