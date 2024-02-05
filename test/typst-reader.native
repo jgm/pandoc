@@ -1847,8 +1847,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math
-                                      InlineMath "\\overset{\\cdot}{a}"
+                                  [ Math InlineMath "\\dot{a}"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "dot(a)"
                                   ]
@@ -1862,8 +1861,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math
-                                      InlineMath "\\overset{\\sim}{a}"
+                                  [ Math InlineMath "\\widetilde{a}"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "tilde(a)"
                                   ]
@@ -1895,7 +1893,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\overset{\168}{a}"
+                                  [ Math InlineMath "\\ddot{a}"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "diaer(a)"
                                   ]

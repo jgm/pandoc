@@ -31,8 +31,6 @@ import Text.Pandoc.Readers.Typst.Parsing
     ( P, pTok, ignored, pWithContents, getField, chunks )
 import Typst.Types
 
--- import Debug.Trace
-
 withGroup :: [Exp] -> Exp
 withGroup [x] = x
 withGroup xs = EGrouped xs
@@ -91,6 +89,9 @@ handleMath tok =
       base <- getField "base" fields >>= pMathGrouped
       acc <- getField "accent" fields >>= pMathGrouped
       let acc' = case acc of
+            ESymbol _ "\8901" -> ESymbol Accent "\775" -- \dot
+            ESymbol _ "\168" -> ESymbol Accent "\776" -- \ddot
+            ESymbol _ "\8764" -> ESymbol Accent "\771" -- \tilde
             ESymbol _ t -> ESymbol Accent t
             _ -> acc
       pure $ EOver False base acc'
