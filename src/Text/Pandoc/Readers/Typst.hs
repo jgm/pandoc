@@ -503,8 +503,8 @@ inlineHandlers = M.fromList
       B.underline <$> pWithContents pInlines body)
   ,("quote", \_ fields -> do
       (getField "block" fields <|> pure False) >>= guard . not
-      body <- getField "body" fields >>= pWithContents pInlines
-      pure $ B.doubleQuoted body)
+      body <- getInlineBody fields >>= pWithContents pInlines
+      pure $ B.doubleQuoted $ B.trimInlines body)
   ,("link", \_ fields -> do
       dest <- getField "dest" fields
       src <- case dest of
@@ -568,6 +568,19 @@ inlineHandlers = M.fromList
       display <- getField "block" fields
       (if display then B.displayMath else B.math) . writeTeX <$> pMathMany body)
   ]
+
+getInlineBody :: PandocMonad m => M.Map Identifier Val -> P m (Seq Content)
+getInlineBody fields =
+  parbreaksToLinebreaks <$> getField "body" fields
+
+parbreaksToLinebreaks :: Seq Content -> Seq Content
+parbreaksToLinebreaks =
+  fmap go . Seq.dropWhileL isParbreak . Seq.dropWhileR isParbreak
+ where
+   go (Elt "parbreak" pos _) = Elt "linebreak" pos mempty
+   go x = x
+   isParbreak (Elt "parbreak" _ _) = True
+   isParbreak _ = False
 
 pPara :: PandocMonad m => P m B.Blocks
 pPara =
