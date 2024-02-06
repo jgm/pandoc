@@ -951,6 +951,9 @@ header when requesting a document from a URL:
     those that come earlier, so
     `--resource-path foo:bar --resource-path baz:bim` is
     equivalent to `--resource-path baz:bim:foo:bar`.
+    Note: `--resource-path` is only used when Pandoc itself 
+    tries to find images.  E.g., when generating TeX, 
+    `--resource-path` does nothing.
 
 `--request-header=`*NAME*`:`*VAL*
 
