@@ -31,8 +31,8 @@ extra-deps:
 - git: https://github.com/jgm/typst-hs
   commit: abfe46fd48ae3610c6522c3dbb1d84a2b2fafb74
 - git: https://github.com/jgm/commonmark-hs
-  subdirs: [commonmark-pandoc]
-  commit: d681657a8b1ff9c7d0120356fbce079d325eada4
+  subdirs: [commonmark-pandoc, commonmark-extensions]
+  commit: f0b96532e36f31f47cc34602ecac694ffde8a27a
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
