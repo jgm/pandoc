@@ -654,7 +654,7 @@ imageOption = try $ char '|' *> opt
       <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
 addUnderscores :: Text -> Text
-addUnderscores = T.intercalate "_" . splitTextBy sep
+addUnderscores = T.intercalate "_" . splitTextBy sep . T.strip
   where
     sep c = isSpace c || c == '_'
 
