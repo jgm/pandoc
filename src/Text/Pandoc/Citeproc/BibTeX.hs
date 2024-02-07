@@ -147,6 +147,7 @@ writeBibtexString opts variant mblang ref =
            , "volumes"
            , "number"
            , "pages"
+           , "pagetotal"
            , "version"
            , "date"
            , "eventdate"
@@ -327,6 +328,8 @@ writeBibtexString opts variant mblang ref =
   getContentsFor "year"  = getVariable "issued" >>= getYear
   getContentsFor "month"  = getVariable "issued" >>= getMonth
   getContentsFor "pages"  = getVariable "page" >>= toLaTeX . valToInlines
+  getContentsFor "pagetotal" = getVariable "number-of-pages"
+                                  >>= toLaTeX . valToInlines
   getContentsFor "langid"  = getVariable "language" >>= toLaTeX . valToInlines
   getContentsFor "number" = (getVariable "number"
                          <|> getVariable "collection-number"
