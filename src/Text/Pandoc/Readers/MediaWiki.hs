@@ -618,15 +618,16 @@ endline = () <$ try (newline <*
                      notFollowedBy' header <*
                      notFollowedBy anyListStart)
 
-imageIdentifiers :: PandocMonad m => [MWParser m ()]
-imageIdentifiers = [sym (identifier <> ":") | identifier <- identifiers]
-    where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier",
-                         "Bild"]
+imageIdentifier :: PandocMonad m => MWParser m ()
+imageIdentifier = try $ do
+  ident <- T.pack <$> many1Till letter (char ':')
+  guard $ T.toLower ident `elem`
+            ["file", "image", "archivo", "datei", "fichier", "bild"]
 
 image :: PandocMonad m => MWParser m Inlines
 image = try $ do
   sym "[["
-  choice imageIdentifiers
+  imageIdentifier
   fname <- addUnderscores <$> many1Char (noneOf "|]")
   _ <- many imageOption
   dims <- try (char '|' *> sepBy (manyChar digit) (char 'x') <* string "px")
