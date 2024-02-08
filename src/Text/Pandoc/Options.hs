@@ -28,6 +28,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , WriterOptions (..)
                            , TrackChanges (..)
                            , ReferenceLocation (..)
+                           , NoteStyle (..)
                            , def
                            , isEnabled
                            , defaultMathJaxURL
@@ -286,6 +287,23 @@ instance ToJSON ReferenceLocation where
    toJSON EndOfSection = "end-of-section"
    toJSON EndOfDocument = "end-of-document"
 
+-- | Style for printing note indicators in HTML output
+data NoteStyle = SupTag             -- Numbers in @<sup>@ tag
+               | UnicodeSuperscript -- Unicode superscript number characters
+               deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance FromJSON NoteStyle where
+  parseJSON v =
+    case v of
+      String "sup-tag" -> return SupTag
+      String "unicode-superscript" -> return UnicodeSuperscript
+      _ -> fail $ "Unknown note style " <> toStringLazy (encode v)
+
+instance ToJSON NoteStyle where
+  toJSON SupTag = "sup-tag"
+  toJSON UnicodeSuperscript = "unicode-superscript"
+
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerTemplate          :: Maybe (Template Text) -- ^ Template to use
@@ -325,6 +343,7 @@ data WriterOptions = WriterOptions
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   , writerSyntaxMap         :: SyntaxMap
   , writerPreferAscii       :: Bool           -- ^ Prefer ASCII representations of characters when possible
+  , writerNoteStyle         :: NoteStyle -- ^ How to print note marks in HTML
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -363,6 +382,7 @@ instance Default WriterOptions where
                       , writerReferenceLocation = EndOfDocument
                       , writerSyntaxMap        = defaultSyntaxMap
                       , writerPreferAscii      = False
+                      , writerNoteStyle        = SupTag
                       }
 
 instance HasSyntaxExtensions WriterOptions where

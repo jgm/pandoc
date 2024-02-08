@@ -34,7 +34,7 @@ import Control.Monad.State.Strict
     ( StateT, MonadState(get), gets, modify, evalStateT )
 import Control.Monad ( liftM, when, foldM, unless )
 import Control.Monad.Trans ( MonadTrans(lift) )
-import Data.Char (ord)
+import Data.Char (ord, isDigit, digitToInt)
 import Data.List (intercalate, intersperse, partition, delete, (\\), foldl')
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Containers.ListUtils (nubOrd)
@@ -132,6 +132,15 @@ strToHtml t
     go h txt | T.length txt == 1 && T.all needsVariationSelector txt
            = h <> preEscapedString (T.unpack txt <> "\xFE0E")
     go h txt = h <> toHtml txt
+
+digitsToUnicodeSuperscript :: Text -> Text
+digitsToUnicodeSuperscript =
+  let superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+      go x
+        -- By construction, digitToInt and the list index cannot fail
+        | isDigit x = superscripts !! (digitToInt x)
+        | otherwise = x
+  in T.map go
 
 -- See #5469: this prevents iOS from substituting emojis.
 needsVariationSelector :: Char -> Bool
@@ -1596,6 +1605,11 @@ inlineToHtml opts inline = do
                         let ref = tshow number
                         htmlContents <- blockListToNote opts ref contents
                         epubVersion <- gets stEPUBVersion
+                        let style = writerNoteStyle opts
+                        let (noteMark, noteTag) = case style of
+                                         _ | isJust epubVersion -> (ref, id)
+                                         SupTag                 -> (ref, H.sup)
+                                         UnicodeSuperscript     -> (digitsToUnicodeSuperscript ref, id)
                         -- push contents onto front of notes
                         modify $ \st -> st {stNotes = htmlContents:notes}
                         slideVariant <- gets stSlideVariant
@@ -1605,10 +1619,8 @@ inlineToHtml opts inline = do
                                          writerIdentifierPrefix opts <> "fn" <> ref)
                                        ! A.class_ "footnote-ref"
                                        ! prefixedId opts ("fnref" <> ref)
-                                       $ (if isJust epubVersion
-                                             then id
-                                             else H.sup)
-                                       $ toHtml ref
+                                       $ noteTag
+                                       $ toHtml noteMark
                         return $ case epubVersion of
                                       Just EPUB3 -> link ! customAttribute "epub:type" "noteref" ! customAttribute "role" "doc-noteref"
                                       _ | html5  -> link ! A5.role "doc-noteref"

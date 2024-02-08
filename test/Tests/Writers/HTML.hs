@@ -207,6 +207,27 @@ tests =
           , "</div>"
           , "</div>"
           ]
+      , test (htmlWithOpts def{writerNoteStyle=UnicodeSuperscript})
+        "using Unicode superscript marks" $
+        noteTestDoc =?>
+        T.unlines
+          [ "<h1>Page title</h1>"
+          , "<h2>First section</h2>"
+          , "<p>This is a footnote.<a href=\"#fn1\" class=\"footnote-ref\" id=\"fnref1\">¹</a> And this is a <a href=\"https://www.google.com\">link</a>.</p>"
+          , "<blockquote>"
+          , "<p>A note inside a block quote.<a href=\"#fn2\" class=\"footnote-ref\" id=\"fnref2\">²</a></p>"
+          , "<p>A second paragraph.</p>"
+          , "</blockquote>"
+          , "<h2>Second section</h2>"
+          , "<p>Some more text.</p>"
+          , "<div class=\"footnotes footnotes-end-of-document\">"
+          , "<hr />"
+          , "<ol>"
+          , "<li id=\"fn1\"><p>Down here.<a href=\"#fnref1\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "<li id=\"fn2\"><p>The second note.<a href=\"#fnref2\" class=\"footnote-back\">↩︎</a></p></li>"
+          , "</ol>"
+          , "</div>"
+          ]
       ]
   ]
   where

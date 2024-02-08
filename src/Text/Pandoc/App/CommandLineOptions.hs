@@ -785,6 +785,18 @@ options =
                   "true|false")
                  "" -- "Use <q> tags for quotes in HTML"
 
+    , Option "" ["note-style"]
+                 (ReqArg
+                  (\arg opt -> do
+                     style <- case arg of
+                                "sup-tag"             -> return SupTag
+                                "unicode-superscript" -> return UnicodeSuperscript
+                                _                     -> optError $ PandocOptionError $ T.pack
+                                    "Argument of --note-style must be sup-tag or unicode-superscript"
+                     return opt {optNoteStyle = style })
+                  "sup-tag|unicode-superscript")
+                 "" -- "How to print note marks in HTML"
+
     , Option "" ["email-obfuscation"]
                  (ReqArg
                   (\arg opt -> do
