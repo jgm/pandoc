@@ -185,6 +185,10 @@ convertTags (t@(TagOpen tagname as):ts)
                             case T.uncons x of
                               Just ('#', x') -> (k, "#" <> svgid <> "_" <> x')
                               _ -> (k, x)
+                          addIdPrefix ("clip-path", x) = ("clip-path",
+                            case T.stripPrefix "url(#" x of
+                              Just x' -> "url(#" <> svgid <> "_" <> x'
+                              Nothing -> x)
                           addIdPrefix kv = kv
                       let ensureUniqueId (TagOpen tname ats) =
                             TagOpen tname (map addIdPrefix ats)
