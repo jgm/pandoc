@@ -537,7 +537,7 @@ blockToParagraphs (Div (_, classes, _) blks) = let
                    | otherwise -> Nothing
   addIncremental env = env { envInIncrementalDiv = incremental }
   in local addIncremental (concatMapM blockToParagraphs blks)
-blockToParagraphs (Figure attr capt blks) =
+blockToParagraphs (Figure attr capt blks) = -- This never seems to be used:
   blockToParagraphs (Shared.figureDiv attr capt blks)
 blockToParagraphs hr@HorizontalRule = notRendered hr
 blockToParagraphs tbl@Table{} = notRendered tbl
@@ -649,6 +649,7 @@ plainOrPara _ = Nothing
 notText :: Block -> Bool
 notText block | startsWithImage block = True
 notText Table{} = True
+notText Figure{} = True
 notText _ = False
 
 startsWithImage :: Block -> Bool
