@@ -160,9 +160,7 @@ convertTags (t@(TagOpen tagname as):ts)
              case M.lookup hash svgmap of
                Just (svgid, svgattrs) -> do
                  let attrs' = [(k,v) | (k,v) <- combineSvgAttrs svgattrs attrs
-                                     , k /= "id"
-                                     , k /= "width"
-                                     , k /= "height"]
+                                     , k /= "id"]
                  return $ TagOpen "svg" attrs' :
                           TagOpen "use" [("href", "#" <> svgid),
                                          ("width", "100%"),
