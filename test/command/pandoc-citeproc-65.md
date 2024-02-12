@@ -28,11 +28,11 @@ references:
 ^D
 (Stotz 1996--2004)
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-stotz:1996handbuch .csl-entry}
 Stotz, Peter. 1996--2004. *Handbuch zur lateinischen Sprache des
 Mittelalters*. 5 vols. Handbuch der Altertumswissenschaft 2.5. Munich:
 Beck.
 :::
-:::
+::::
 ```

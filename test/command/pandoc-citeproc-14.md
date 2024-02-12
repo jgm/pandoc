@@ -56,7 +56,7 @@ Foo (Pelikan 1971b, 1:12). Bar (Pelikan 1971c, 1:12). Baz (Pelikan
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-CTv1c2 .csl-entry}
 Pelikan, Jaroslav. 1971a. "Chapter Two." In *The Christian Tradition: A
 History of the Development of Doctrine*, 1:34--56. Chicago: University
@@ -73,5 +73,5 @@ of Doctrine*. Chicago: University of Chicago Press.
 *The Christian Tradition: A History of the Development of Doctrine*.
 Vol. 1. Chicago: University of Chicago Press.
 :::
-:::
+::::::
 ```

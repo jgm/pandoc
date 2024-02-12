@@ -23,12 +23,12 @@ references:
 ^D
 [^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-lestrange2017 .csl-entry}
 L'Estrange, Michael, and Stephen Merchant. "2017 Independent
 Intelligence Review," July 18, 2017.
 :::
-:::
+::::
 
 [^1]: Michael L'Estrange and Stephen Merchant, "2017 Independent
     Intelligence Review," July 18, 2017.

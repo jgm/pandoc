@@ -27,7 +27,7 @@ references:
 ^D
 (Roe, 2007; Zoe, 2009; see for comparison Doe, 2007: 3)
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+:::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-doe .csl-entry}
 Doe (2007).
 :::
@@ -39,5 +39,5 @@ Roe (2007).
 ::: {#ref-zoe .csl-entry}
 Zoe (2009).
 :::
-:::
+::::::
 ```

@@ -56,7 +56,7 @@ references:
 ^D
 (Thorndike 1955; Dinkova-Bruun 2009)
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-bruun:2009samuel .csl-entry}
 Dinkova-Bruun, Greti. 2009. "Samuel Presbyter and the Glosses to His
 Versification of Psalm 1: An Anti-Church Invective?" In *Florilegium
@@ -69,5 +69,5 @@ Internationale des Instituts d'Études Médiévales.
 ::: {#ref-thorndike:1955unde .csl-entry}
 Thorndike, Lynn. 1955. "Unde versus." *Traditio* 11: 163--93.
 :::
-:::
+:::::
 ```

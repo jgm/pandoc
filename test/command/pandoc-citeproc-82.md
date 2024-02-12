@@ -28,12 +28,12 @@ Some text.[^1]
 
 Some text.[^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-OCLC_i1099 .csl-entry}
 OCLC. "WorldCat." Accessed September 19, 2014.
 <https://www.worldcat.org/>.
 :::
-:::
+::::
 
 [^1]: Comment regarding text, supported by citation (OCLC, "WorldCat").
 ```

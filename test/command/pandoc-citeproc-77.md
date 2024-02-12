@@ -39,7 +39,7 @@ references:
 ^D
 [^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item4 .csl-entry}
 Bennett, Frank G., Jr., n.d.
 :::
@@ -59,7 +59,7 @@ Gogh, Vincent van, n.d.
 ::: {#ref-item3 .csl-entry}
 Humboldt, Alexander von, n.d.
 :::
-:::
+::::::::
 
 [^1]: John Doe III, n.d.; Vincent van Gogh, n.d.; Alexander von
     Humboldt, n.d.; Frank G. Bennett, Jr., n.d.; Ezekiel Dumboldt III,

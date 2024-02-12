@@ -84,7 +84,7 @@ With some markup *see* [\[1, p. 32\]](#ref-item1).
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body entry-spacing="0"}
+:::::: {#refs .references .csl-bib-body entry-spacing="0"}
 ::: {#ref-item1 .csl-entry}
 [\[1\] ]{.csl-left-margin}[J. Doe, *First book*. Cambridge: Cambridge
 University Press, 2005.]{.csl-right-inline}
@@ -100,7 +100,7 @@ Studies*, vol. 6, pp. 33--34, 2006.]{.csl-right-inline}
 *Third book*, S. Smith, Ed. Oxford: Oxford University Press,
 2007.]{.csl-right-inline}
 :::
-:::
+::::::
 
 [^1]: [\[3, p. 12\]](#ref-пункт3) and a citation without locators
     [\[3\]](#ref-пункт3).

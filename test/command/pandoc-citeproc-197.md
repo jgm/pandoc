@@ -21,11 +21,11 @@ This is a test [@test].
 ^D
 This is a test.[^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-test .csl-entry}
 Abelard, Peter, ed. *Test*. Oxford: Clarendon Press, 1989.
 :::
-:::
+::::
 
 [^1]: Peter Abelard, ed., *Test* (Oxford: Clarendon Press, 1989).
 ```

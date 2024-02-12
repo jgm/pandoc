@@ -51,7 +51,7 @@ Foo [@item1; @item2; @item3; @item4; @item5; @item6; @item7; @item8].
 Foo (al-ʾUdhrī, n.d.; al-ʿUdhrī, n.d.; al-\'Udhrī, n.d.; al-'Udhrī,
 n.d.a, n.d.b; Uch, n.d.; Uebel, n.d.; Zzz, n.d.).
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item6 .csl-entry}
 Uch, Ann. n.d.
 :::
@@ -83,5 +83,5 @@ Uebel, Joe. n.d.
 ::: {#ref-item8 .csl-entry}
 Zzz, Zoe. n.d.
 :::
-:::
+:::::::::::
 ```

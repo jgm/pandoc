@@ -122,7 +122,7 @@ Doe (2006b) -- article-newspaper YM
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item2a .csl-entry}
 Doe, John. 2006a. "Title." The Web Site. October--November 2006.
 <http://www.example.com>.
@@ -152,5 +152,5 @@ Doe, John. 2006a. "Title." The Web Site. October--November 2006.
 ---------. 2006--2007. "Title." The Web Site. December 31, 2006--January
 1, 2007. <http://www.example.com>.
 :::
-:::
+:::::::::
 ```

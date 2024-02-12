@@ -44,7 +44,7 @@ references:
 ^D
 Author (1998c), Author (1998d), Author (1998a), Author (1998b)
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item3 .csl-entry}
 Author, Al. 1998a. "Foo Bar Baz: A Bazbaz Bar Foo."
 :::
@@ -60,5 +60,5 @@ Author, Al. 1998a. "Foo Bar Baz: A Bazbaz Bar Foo."
 ::: {#ref-item2 .csl-entry}
 ---------. 1998d. "Foo Bar Baz: The Bazbaz Bar Foo."
 :::
-:::
+:::::::
 ```

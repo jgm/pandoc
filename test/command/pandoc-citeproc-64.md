@@ -7,7 +7,7 @@ nocite: '[@*]'
 ---
 
 ^D
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item1 .csl-entry}
 Doe, John. 2005. *First Book*. Cambridge: Cambridge University Press.
 :::
@@ -20,5 +20,5 @@ Doe, John. 2005. *First Book*. Cambridge: Cambridge University Press.
 Doe, John, and Jenny Roe. 2007. "Why Water Is Wet." In *Third Book*,
 edited by Sam Smith. Oxford: Oxford University Press.
 :::
-:::
+::::::
 ```

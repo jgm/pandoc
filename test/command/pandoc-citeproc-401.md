@@ -43,7 +43,7 @@ Haslanger [-@haslanger2012SocialConstructionDebunking; @haslanger2012FeminismMet
 ^D
 Haslanger (\[2003\] 2012, \[2000\] 2012) says...
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-haslanger2012FeminismMetaphysicsNegotiating .csl-entry}
 Haslanger, Sally. (2000) 2012. "Feminism in Metaphysics: Negotiating the
 Natural." In *Resisting Reality: Social Construction and Social
@@ -55,5 +55,5 @@ Critique*, 139--57. Oxford: Oxford University Press.
 In *Resisting Reality: Social Construction and Social Critique*,
 113--38. Oxford: Oxford University Press.
 :::
-:::
+:::::
 ```

@@ -14,7 +14,7 @@ Averroes (1982); Averroes (1892); Averroes (1869)
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0" line-spacing="2"}
+:::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0" line-spacing="2"}
 ::: {#ref-averroes/hercz .csl-entry}
 Averroes. (1869). *Drei Abhandlungen über die Conjunction des separaten
 Intellects mit dem Menschen: Von Averroes (Vater und Sohn), aus dem
@@ -34,5 +34,5 @@ the active intellect by Ibn Rushd with the commentary of Moses Narboni*.
 (K. P. Bland, Ed. & Trans.). New York: Jewish Theological Seminary of
 America.
 :::
-:::
+::::::
 ```

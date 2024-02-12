@@ -22,10 +22,10 @@ Bonjour[@bazin_cybernetique_1954] !
 ^D
 Bonjour(Bazin 1954) !
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-bazin_cybernetique_1954 .csl-entry}
 Bazin, André. 1954. « La Cybernétique d'André Cayatte ». *Cahiers du
 cinéma*, nᵒ 36 (juin): 22‑27.
 :::
-:::
+::::
 ```

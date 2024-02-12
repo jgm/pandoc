@@ -81,7 +81,7 @@ With some markup.[^14]
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item2 .csl-entry}
 Doe, John. "Article." *Journal of Generic Studies* 6 (2006): 33--34.
 :::
@@ -94,7 +94,7 @@ Doe, John. "Article." *Journal of Generic Studies* 6 (2006): 33--34.
 Doe, John, and Jenny Roe. "Why Water Is Wet." In *Third Book*, edited by
 Sam Smith. Oxford: Oxford University Press, 2007.
 :::
-:::
+::::::
 
 [^1]: [**Nonexistent?**](#ref-nonexistent)
 

@@ -17,11 +17,11 @@ references:
 ^D
 Friedrich Nietzsche (ed.)[^1]
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-Nie72 .csl-entry}
 Nietzsche, Friedrich (ed.), *Die geburt*, 1872.
 :::
-:::
+::::
 
 [^1]: *Die geburt*, 1872.
 ```

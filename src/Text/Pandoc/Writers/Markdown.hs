@@ -401,9 +401,12 @@ blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
                   let attrsToMd = if variant == Commonmark
                                   then attrsToMarkdown opts
                                   else classOrAttrsToMarkdown opts
-                  in nowrap (literal ":::" <+> attrsToMd attrs) $$
+                      divNesting = computeDivNestingLevel bs
+                      numcolons = 3 + divNesting
+                      colons = literal $ T.replicate numcolons ":"
+                  in nowrap (colons <+> attrsToMd attrs) $$
                      chomp contents $$
-                     literal ":::" <> blankline
+                     colons <> blankline
              | isEnabled Ext_native_divs opts ||
                (isEnabled Ext_raw_html opts &&
                 (variant == Commonmark ||
@@ -895,3 +898,9 @@ removeBlankLinesInHTML = T.pack . go False . T.unpack
         go !afternewline (!c:cs)
           | isSpace c = c : go afternewline cs
           | otherwise = c : go False cs
+
+computeDivNestingLevel :: [Block] -> Int
+computeDivNestingLevel = foldr go 0
+ where
+   go (Div _ bls') n = max (n + 1) (foldr go (n + 1) bls')
+   go _ n = n

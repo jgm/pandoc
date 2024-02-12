@@ -13,9 +13,9 @@ references:
 ^D
 ([Doe, n.d.](#ref-doe))
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-doe .csl-entry}
 Doe. n.d. "Title."
 :::
-:::
+::::
 ```

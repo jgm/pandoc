@@ -35,9 +35,9 @@ Foo (Doe 2011).
 
 > Doe, Jane. 2011. "A Title." *A Magazine*, January--February.
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item1 .csl-entry}
 Doe, Jane. 2011. "A Title." *A Magazine*, January--February 2011.
 :::
-:::
+::::
 ```

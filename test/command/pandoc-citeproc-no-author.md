@@ -45,7 +45,7 @@ references:
 *Magazine* (2012a, 3), *Magazine* (2012b), *Magazine* (2012c),
 *Magazine* (2012d), *Newspaper* (2012a), *Newspaper* (2012b)
 
-::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item1 .csl-entry}
 *Magazine*. 2012a. "Title A," 2012.
 :::
@@ -69,5 +69,5 @@ references:
 ::: {#ref-item6 .csl-entry}
 ---------. 2012b. "Title F," 2012.
 :::
-:::
+:::::::::
 ```

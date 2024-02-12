@@ -26,11 +26,11 @@ references:
 ^D
 ^\[1\]^
 
-::: {#refs .references .csl-bib-body entry-spacing="0" line-spacing="2"}
+:::: {#refs .references .csl-bib-body entry-spacing="0" line-spacing="2"}
 ::: {#ref-ding_metallic_2012 .csl-entry}
 [\[1\] ]{.csl-left-margin}[[K. Ding, C. Z. Ning, *Light Sci. Appl.*
 **2012**, *1*,
 e20](https://doi.org/10.1038/lsa.2012.20).]{.csl-right-inline}
 :::
-:::
+::::
 ```
