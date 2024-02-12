@@ -31,6 +31,7 @@ import Text.Pandoc.Walk (query)
 import Text.Pandoc.Readers.Roff  -- TODO explicit imports
 import qualified Text.Pandoc.Parsing as P
 import qualified Data.Foldable as Foldable
+import Text.Pandoc.Shared (extractSpaces)
 
 data ManState = ManState { readerOptions   :: ReaderOptions
                          , metadata        :: Meta
@@ -241,12 +242,12 @@ linePartsToInlines = go False
     | otherwise = text s <> go mono xs
   go mono (Font fs: xs)
     | litals > 0 && litals >= lbolds && litals >= lmonos
-       = emph (go mono (Font fs{ fontItalic = False } :
+       = extractSpaces emph (go mono (Font fs{ fontItalic = False } :
                    map (adjustFontSpec (\s -> s{ fontItalic = False }))
                    itals)) <>
             go mono italsrest
     | lbolds > 0 && lbolds >= lmonos
-       = strong (go mono (Font fs{ fontBold = False } :
+       = extractSpaces strong (go mono (Font fs{ fontBold = False } :
               map (adjustFontSpec (\s -> s{ fontBold = False }))
               bolds)) <>
             go mono boldsrest
@@ -305,12 +306,12 @@ handleInlineMacro mname args _pos =
     "RI" -> parseAlternatingFonts [id, emph] args
     "BR" -> parseAlternatingFonts [strong, id] args
     "RB" -> parseAlternatingFonts [id, strong] args
-    "SY" -> return $ strong $ mconcat $ intersperse B.space
+    "SY" -> return $ extractSpaces strong $ mconcat $ intersperse B.space
                    $ map linePartsToInlines args
     "YS" -> return mempty
     "OP" -> case args of
               (x:ys) -> return $ B.space <> str "[" <> B.space <>
-                         mconcat (strong (linePartsToInlines x) :
+                         mconcat (extractSpaces strong (linePartsToInlines x) :
                            map ((B.space <>) . linePartsToInlines) ys)
                          <> B.space <> str "]"
               []     -> return mempty
@@ -319,16 +320,18 @@ handleInlineMacro mname args _pos =
 parseBold :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseBold [] = do
   TextLine lparts <- mline
-  return $ strong $ linePartsToInlines lparts
+  return $ extractSpaces strong $ linePartsToInlines lparts
 parseBold args = return $
-  strong $ mconcat $ intersperse B.space $ map linePartsToInlines args
+  extractSpaces strong $
+  mconcat $ intersperse B.space $ map linePartsToInlines args
 
 parseItalic :: PandocMonad m => [Arg] -> ManParser m Inlines
 parseItalic [] = do
   TextLine lparts <- mline
-  return $ emph $ linePartsToInlines lparts
+  return $ extractSpaces emph $ linePartsToInlines lparts
 parseItalic args = return $
-  emph $ mconcat $ intersperse B.space $ map linePartsToInlines args
+  extractSpaces emph $
+  mconcat $ intersperse B.space $ map linePartsToInlines args
 
 parseAlternatingFonts :: [Inlines -> Inlines]
                       -> [Arg]
