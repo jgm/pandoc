@@ -275,15 +275,23 @@ inlineToTypst inline =
          -- Note: this loses prefix
          then mconcat <$> mapM toCite citations
          else inlinesToTypst inlines
-    Link _attrs inlines (src,_tit) -> do
-      contents <- inlinesToTypst inlines
-      let dest = case T.uncons src of
-                   Just ('#', ident) -> toLabel ArgumentLabel ident
-                   _ -> doubleQuoted src
-      return $ "#link" <> parens dest <>
-                (if inlines == [Str src]
-                    then mempty
-                    else nowrap $ brackets contents) <> endCode
+    Link (_,_,kvs) inlines (src,_tit) -> do
+      case lookup "reference-type" kvs of
+        Just "ref"
+          | Just ('#', ident) <- T.uncons src
+          -> if T.all isIdentChar ident
+                then pure $ literal $ "@" <> ident
+                else pure $ "#ref" <> parens (toLabel ArgumentLabel ident)
+                            <> endCode
+        _ -> do
+          contents <- inlinesToTypst inlines
+          let dest = case T.uncons src of
+                       Just ('#', ident) -> toLabel ArgumentLabel ident
+                       _ -> doubleQuoted src
+          pure $ "#link" <> parens dest <>
+                    (if inlines == [Str src]
+                          then mempty
+                          else nowrap $ brackets contents) <> endCode
     Image (_,_,kvs) _inlines (src,_tit) -> do
       opts <- gets stOptions
       let mbHeight = lookup "height" kvs
