@@ -271,11 +271,6 @@ inlineToTypst inline =
       return $ q <> contents <> q
     Cite citations inlines -> do
       opts <-  gets stOptions
-      let toCite cite = do
-            suppl <- case citationSuffix cite of
-                       [] -> pure mempty
-                       suff -> brackets <$> inlinesToTypst suff
-            pure $ toLabel CiteLabel (citationId cite) <> suppl <> endCode
       if isEnabled Ext_citations opts
          -- Note: this loses prefix
          then mconcat <$> mapM toCite citations
@@ -364,25 +359,51 @@ escapeTypst context t =
     needsEscapeAtLineStart _ = False
 
 data LabelType =
-  FreestandingLabel | ArgumentLabel | CiteLabel
+    FreestandingLabel
+  | ArgumentLabel
   deriving (Show, Eq)
 
 toLabel :: LabelType -> Text -> Doc Text
 toLabel labelType ident
   | T.null ident = mempty
   | T.all isIdentChar ident'
-    = case labelType of
-        CiteLabel -> "@" <> literal ident'
-        _ -> "<" <> literal ident' <> ">"
+    = "<" <> literal ident' <> ">"
   | otherwise
      = case labelType of
-          CiteLabel -> "#cite" <>
-             parens ("label" <> parens (doubleQuoted ident'))
           FreestandingLabel -> "#label" <> parens (doubleQuoted ident')
           ArgumentLabel -> "label" <> parens (doubleQuoted ident')
  where
    ident' = T.pack $ unEscapeString $ T.unpack ident
-   isIdentChar c = isAlphaNum c || c == '_' || c == '-' || c == '.' || c == ':'
+
+isIdentChar :: Char -> Bool
+isIdentChar c = isAlphaNum c || c == '_' || c == '-' || c == '.' || c == ':'
+
+toCite :: PandocMonad m => Citation -> TW m (Doc Text)
+toCite cite = do
+  let ident' = T.pack $ unEscapeString $ T.unpack $ citationId cite
+  -- typst inserts comma and we get a doubled one if supplement contains it:
+  let eatComma (Str "," : Space : xs) = xs
+      eatComma xs = xs
+  if citationMode cite == NormalCitation && T.all isIdentChar ident'
+     then do
+       suppl <- case citationSuffix cite of
+                  [] -> pure mempty
+                  suff -> (<> endCode) . brackets
+                            <$> inlinesToTypst (eatComma suff)
+       pure $ "@" <> literal ident' <> suppl
+     else do
+       let label = if T.all isIdentChar ident'
+                      then "<" <> literal ident' <> ">"
+                      else "label" <> parens (doubleQuoted ident')
+       let form = case citationMode cite of
+                     NormalCitation -> mempty
+                     SuppressAuthor -> ", form: \"year\""
+                     AuthorInText -> ", form: \"prose\""
+       suppl <- case citationSuffix cite of
+                  [] -> pure mempty
+                  suff -> (", supplement: " <>) . brackets
+                             <$> inlinesToTypst (eatComma suff)
+       pure $ "#cite" <> parens (label <> form <> suppl) <> endCode
 
 doubleQuoted :: Text -> Doc Text
 doubleQuoted = doubleQuotes . literal . escape
