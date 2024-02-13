@@ -338,6 +338,7 @@ refCommands = M.fromList
   [ ("label", rawInlineOr "label" dolabel)
   , ("ref", rawInlineOr "ref" $ doref "ref")
   , ("cref", rawInlineOr "cref" $ doref "ref")       -- from cleveref.sty
+  , ("Cref", rawInlineOr "Cref" $ doref "ref")       -- from cleveref.sty
   , ("vref", rawInlineOr "vref" $ doref "ref+page")  -- from varioref.sty
   , ("eqref", rawInlineOr "eqref" $ doref "eqref")   -- from amsmath.sty
   , ("autoref", rawInlineOr "autoref" $ doref "autoref") -- from hyperref.sty
