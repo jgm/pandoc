@@ -404,7 +404,13 @@ blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
      then blockToLaTeX (RawBlock "latex" "\\pause")
      else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
-  inlineListToLaTeX lst
+  if null lst
+     then do
+       opts <- gets stOptions
+       if isEnabled Ext_empty_paragraphs opts
+          then pure "\\hfill\\par"
+          else pure mempty
+     else inlineListToLaTeX lst
 blockToLaTeX (LineBlock lns) =
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do

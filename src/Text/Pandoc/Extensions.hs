@@ -612,6 +612,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_raw_tex
     , Ext_task_lists
     , Ext_literate_haskell
+    , Ext_empty_paragraphs
     ]
   getAll "beamer"          = getAll "latex"
   getAll "context"         = autoIdExtensions <>

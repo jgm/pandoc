@@ -3549,7 +3549,7 @@ input formats
 :  `docx`, `html`
 
 output formats
-:  `docx`, `odt`, `opendocument`, `html`
+:  `docx`, `odt`, `opendocument`, `html`, `latex`
 
 #### Extension: `native_numbering` ####
 
