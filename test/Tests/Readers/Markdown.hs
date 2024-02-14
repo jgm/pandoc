@@ -321,10 +321,10 @@ tests = [ testGroup "inline code"
             para (link "random string" "wikilink" (str "title"))
           , test markdownGH "autolink not being a link" $
             "[[Name of page]]" =?>
-            para (link "Name of page" "wikilink" (str "Name of page"))
+            para (link "Name of page" "wikilink" (text "Name of page"))
           , test markdownGH "autolink not being a link with a square bracket" $
             "[[Name of ]page]]" =?>
-            para (link "Name of ]page" "wikilink" (str "Name of ]page"))
+            para (link "Name of ]page" "wikilink" (text "Name of ]page"))
           , test markdownGH "link with inline start should be a link" $
             "[[t`i*t_le|https://example.org]]" =?>
             para (link "https://example.org" "wikilink" (str "t`i*t_le"))

@@ -1843,19 +1843,20 @@ linkTitle = quotedTitle '"' <|> quotedTitle '\''
 wikilink :: PandocMonad m
   => (Attr -> Text -> Text -> Inlines -> Inlines)
   -> MarkdownParser m (F Inlines)
-wikilink constructor =
-  (guardEnabled Ext_wikilinks_title_after_pipe *> wikilink' swap) <|>
-  (guardEnabled Ext_wikilinks_title_before_pipe *> wikilink' id)
-  where
-    swap (a, b) = (b, a)
-    wikilink' order = try $ do
-      string "[["
-      notFollowedBy' (char '[')
-      raw <- many1TillChar (noneOf "\n\r\f\t") (try $ string "]]")
-      let (title, url) = case T.break (== '|') raw of
-            (before, "") -> (before, before)
-            (before, after) -> order (before, T.drop 1 after)
-      return . pure . constructor nullAttr url "wikilink" $ B.str title
+wikilink constructor = do
+  titleAfter <-
+    (True <$ guardEnabled Ext_wikilinks_title_after_pipe) <|>
+    (False <$ guardEnabled Ext_wikilinks_title_before_pipe)
+  string "[[" *> notFollowedBy' (char '[')
+  raw <- many1TillChar anyChar (try $ string "]]")
+  let (title, url) = case T.break (== '|') raw of
+        (before, "") -> (before, before)
+        (before, after)
+          | titleAfter -> (T.drop 1 after, before)
+          | otherwise -> (before, T.drop 1 after)
+  guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+  return . pure . constructor nullAttr url "wikilink" $
+     B.text $ fromEntities title
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
