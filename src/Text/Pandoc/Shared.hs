@@ -300,7 +300,9 @@ normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
 -- and 'Cm () Blocks' are instances of 'HasAttributes'.
 addPandocAttributes
   :: forall b . HasAttributes (Cm () b) => [(T.Text, T.Text)] -> b -> b
-addPandocAttributes kvs bs = unCm . addAttributes kvs $ (Cm bs :: Cm () b)
+addPandocAttributes [] bs = bs
+addPandocAttributes kvs bs =
+  unCm . addAttributes (("wrapper","1"):kvs) $ (Cm bs :: Cm () b)
 
 -- | Generate infinite lazy list of markers for an ordered list,
 -- depending on list attributes.
