@@ -271,7 +271,7 @@ extra-source-files:
                  test/media/rId27.jpg
                  test/typst-reader.typ
                  test/undergradmath.typ
-                 test/djot-reader.latex
+                 test/djot-reader.djot
                  test/latex-reader.latex
                  test/textile-reader.textile
                  test/markdown-reader-more.txt
