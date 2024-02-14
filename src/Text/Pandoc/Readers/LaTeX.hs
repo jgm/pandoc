@@ -114,9 +114,9 @@ parseLaTeX = do
 
 resolveRefs :: M.Map Text [Inline] -> Inline -> Inline
 resolveRefs labels x@(Link (ident,classes,kvs) _ _) =
-  case (lookup "reference-type" kvs,
+  case (T.takeWhile (/='+') <$> lookup "reference-type" kvs,
         lookup "reference" kvs) of
-        (Just "ref", Just lab) ->
+        (Just "ref", Just lab) -> -- TODO special treatment of ref+label
           case M.lookup lab labels of
                Just txt -> Link (ident,classes,kvs) txt ("#" <> lab, "")
                Nothing  -> x

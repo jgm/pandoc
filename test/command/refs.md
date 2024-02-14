@@ -28,7 +28,7 @@ Figure \cref{fig:1}
     , Link
         ( ""
         , []
-        , [ ( "reference-type" , "ref" )
+        , [ ( "reference-type" , "ref+label" )
           , ( "reference" , "fig:1" )
           ]
         )
@@ -48,7 +48,7 @@ Figure \vref{fig:1}
     , Link
         ( ""
         , []
-        , [ ( "reference-type" , "ref+page" )
+        , [ ( "reference-type" , "ref" )
           , ( "reference" , "fig:1" )
           ]
         )
@@ -66,7 +66,7 @@ Figure \vref{fig:1}
     [ Link
         ( ""
         , []
-        , [ ( "reference-type" , "autoref" )
+        , [ ( "reference-type" , "ref+label" )
           , ( "reference" , "fig:flowchart" )
           ]
         )
