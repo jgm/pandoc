@@ -1,5 +1,228 @@
 # Revision history for pandoc
 
+## pandoc 3.1.12 (2024-02-14)
+
+  * Add `djot` as input and output format. Djot is a light markup syntax
+    (https://djot.net).
+
+    + New module Text.Pandoc.Readers.Djot [API change]. The function
+      `readDjot` is also exported by Text.Pandoc.Readers.
+    + New module Text.Pandoc.Writers.Djot [API change]. The function
+      `writeDjot` is also exported by Text.Pandoc.Writers.
+
+  * DocBook reader:
+
+    + Better handling of `<procedure>` and `<substeps>` (#9341):
+      `<procedure>` now gets parsed as an ordered list, and
+      `<substeps>` as a sublist.
+
+  * Man reader:
+
+    + Move spaces outside of emph/strong (#9445).
+
+  * MediaWiki reader:
+
+    + Don't make leading blanks underscores in image links (#9425).
+    + Allow lowercase `image:` (#9424).
+
+  * BibTeX reader:
+
+    + Support "pagetotal" in converting BibLaTeX.
+
+  * Markdown reader:
+
+    + Fix wikilinks extension to allow newlines in titles (#9454).
+
+  * EPUB reader:
+
+    + Don't put `#` characters in identifiers.
+
+  * LaTeX reader:
+
+    + Improve treatment of `\cref`, `\Cref` (#7463). Use the
+      reference-type `ref+label` and `ref+Label`. Also, associate with
+      `\vref` `ref` instead of `ref+page`.
+    + Limited support for `\Cref` (#7463).
+    + Generate relative widths for `\linewidth`, `\textheight` (#9388).
+
+  * Typst reader:
+
+    + Fix handling of `\overline` (#9294). Due to a typo, it was being
+      incorrectly rendered as an `\underset`.
+    + Improve handling of inline `#quote` (#9413).
+    + Fix handling of `dot()`, `tilde()`, `ddot()` (jgm/typst-hs#38).
+    + Fix character used for `norm` (jgm/typst-hs#38).
+
+  * Typst writer:
+
+    + Use reference form (e.g. `@jones2000[p. 30]`) for citations when
+      possible.
+    + Use `#ref` or `@` for links with `reference-type="ref"` (#7463).
+      This attribute is added to LaTeX `\cref`, for example.
+    + Improve citation support (#9452). Emit `form: "prose"` or `form: "year"`
+      qualifiers if the citation is author-in-text or suppress-author.
+      Strip initial comma from suffix, since typst will add an extra one.
+    + Unescape URI escapes in image paths (#9389).
+    + Handle labels and citaiton ids with spaces and other special
+      characters (#9387). In these cases, we produce an
+      explicit `label()` rather than using `<>` or `@`.
+    + Avoid producing illegal labels (#9387).
+    + Avoid unnecessary escapes (#9386).
+
+  * LaTeX writer:
+
+    + Make writer sensitive to `empty_paragraphs` extension (#9443).
+    + Fix beamer highlighting (mh4ckt3mh4ckt1c4s).
+    + Create valid table even when table is empty (#9350).
+    + Set font fallback for babel main font (Max Heller).
+    + Add some kerns where needed between quotes (#9371).
+
+  * HTML writer:
+
+    + Add suffix to multiple footnote section ids, so they are
+      unique (Sam May). This is necessary when `--reference-location`
+      is `block` or `section`.
+
+  * EPUB writer:
+
+    + Add ARA roles for accessibility (#9378, Iacobus1983).
+      Footnote references are given role "doc-noteref", footnote text
+      gets "doc-footnote", and nav gets "doc-toc".
+    + Ensure that an alt attribute is always added (#9354).
+      This seems to be required by iBooks; even an empty alt attribute
+      will satisfy it.
+    + Add `xml:lang` to package element (#9372).
+    + Add accessibility metadata to EPUB metadata (#9372, #9400,
+      Iacobus1983 and John MacFarlane). Reasonable default values are
+      used to ensure that pandoc's EPUBs conform to the EU
+      Accessibilty Act requirements, but values can be overridden
+      using metadata.
+
+  * Docx writer:
+
+    + Restore ability to center-justify table (#9393). The fix to
+      #5947 caused all tables to be left indented. This was necessary
+      to avoid extra indentation in table cells when a table appeared
+      in a list item. This change makes the changes conditional, so
+      that they only affect tables in list items.
+
+  * Man writer:
+
+    + Fix bug with long URLs (#9458). URLs with more than 68 characters didn't
+      display properly because of wrapping.
+    + Support (limited) syntax highlighting in code blocks (#9446).
+      Currently only boldface and italics are supported. The
+      `monochrome` style might be of use for those generating man
+      pages.
+
+  * Org writer:
+
+    + Escape special lines in code blocks (#9218, Albert Krewinkel).
+
+  * Markdown writer:
+
+    + Use different width fences for nested divs (#9450). Outer divs
+      have longer fences. This aids clarity for the reader, making it
+      easier to see where the div ends. It also makes the output
+      compatible with some other implementations, e.g. micromark,
+      which require different-width fences for nesting.
+    + Fix output for pipe tables with a huge number
+      of columns (#9346). Previously we got invalid pipe tables when the
+      number of table columns exceeded the setting of `--columns`.
+
+  * Powerpoint writer:
+
+    + Fix regression in layout for slides with figures (#9442).
+    + Use internal column widths in pptx writer tables (#5706,
+      Tomas Dahlqvist). The table writer used to only divide all
+      available width evenly for all columns. In this update the code
+      uses the incoming widths if they are available. If they are not
+      set the earlier even distribution is used. Some of the golden
+      templates are adjusted slightly because of different rounding when
+      using the new calculation model.
+
+  * Custom writers:
+
+    + Fix handling of common state (#9229, Albert Krewinkel).
+      The CommonState (`PANDOC_STATE` in Lua) may change between the time that
+      a custom writer script is first loaded and when the writer is run.
+      However, the writer was always using the initial state, which led to
+      problems, e.g. when the mediabag was updated in a filter, as those
+      updates where not visible to the writer. The state is now updated
+      right before the writer function runs.
+
+  * Text.Pandoc.SelfContained:
+
+    + Fix id replacements in SVGs with clipping paths (#9420).
+      This fixes `--embed-resources` when SVGs have `clip-path` attributes.
+    + Fix size of duplicated SVGs with `--embed-resources` (#9439).
+
+  * ConTeXt template: support font fallback (#9361, Lawrence Chonavel).
+
+  * Text.Pandoc.Shared:
+
+    + `addPandocAttributes`: use `wrapper` attribute, not `wrap`, for
+      Divs and Spans added as wrappers to hold attributes on elements
+      that do not accept them.
+    + `makeSections` behavior changes:
+      - When the optional base level parameter is provided, we no
+        longer ensure that the sequence of heading levels is gapless
+        (#9398). Instead, we set the lowest heading level to
+        the specified base level, and adjust the others accordingly. If
+        an author wants to skip a level, e.g. from level 1 to level 3,
+        they can do that. In general, the heading levels specified
+        in the source document are preserved; `makeSections` only
+        puts them into a hierarchical structure.
+      - Section numbers are now assigned so that the top level
+        gets `1`, no matter what heading level is used (#5071). So, even
+        if the top heading level is 2, numbers will be `1`, `2`, etc.
+        rather than `0.1`, `0.2`, as in the past.
+      - We revert to the old behavior when the `--number-offset` option
+        is used. So, for example, if a document begins with a level-3
+        heading, and `--number-offset=1,2` is used, the top-level section
+        numbers will be `1.2.1`, `1.2.2`, etc. This is mainly for
+        backwards-compatibility.
+    + `makeSections`: more elegant code for section number calculation.
+
+  * Text.Pandoc.Chunks:
+
+    + Autogenerate unique ids for sections missing them (#9383).
+      This is needed for TOC generation to work properly. We can't
+      create TOC links if there are no ids. This fixes some EPUB validation
+      issues we've been getting since switching over to Chunks for chunking.
+    + Improve `fixTOCTreePaths`. We weren't adding ids for section headings
+      that don't head a chunk, but these headings are needed for a TOC.
+
+  * Lua: catch encoding error in `pandoc.read` (#9385, Albert Krewinkel).
+    Fixed a bug that could lead to an un-catchable error and program
+    termination when `pandoc.read` was called with invalid UTF-8 input.
+
+  * LaTeX template: support font fallback (lawcho).  This support is
+    LuaLaTeX-specific.  See MANUAL.txt for documentation.
+
+  * Text.Pandoc.Readers: Add `readMan` to exports (George Stagg).
+
+  * Text.Pandoc.PDF:
+
+    + Reliably detect when TOC has changed (#9295). Sometimes the TOC
+      changes but there are no warnings: this happens when no labels
+      are present. In this case we must rerun LaTeX. So we now take
+      the SHA1 hash of the TOC file and rerun LaTeX if it changes
+      between runs.
+     + Increase maximum number of LaTeX runs to 4 (#9299). On some documents,
+      4 runs are needed (e.g. when a LastPage reference is used).
+
+  * MANUAL.txt:
+
+    + Harmonize spelling of Markdown and MultiMarkdown (#9402, Salim B).
+    + Add `<pre>` to list of exceptions for `markdown_in_html_blocks`
+      extension (#9305).
+    + Add clarification to docs for `--resource-path` (#9417).
+
+  * Makefile: Validate generated EPUB as part of prerelease checks.
+
+  * Add validation for docx golden files to CI (Edwin Török).
+
 ## pandoc 3.1.11.1 (2024-01-05)
 
   * Docx reader:
