@@ -133,7 +133,9 @@
 - Gabor Pali
 - Gabriel Lewertowski
 - Gavin Beatty
+- George Stagg
 - Georgi Lyubenov
+- Gokul Rajiv
 - Gottfried Haider
 - Greg Maslov
 - Greg Rundlett
@@ -149,6 +151,7 @@
 - Hikaru Ibayashi
 - Hos Es
 - Hubert Plociniczak
+- Iacobus1983
 - Ian Max Andolina
 - Igor Khorlo
 - Igor Pashev
@@ -219,6 +222,7 @@
 - Krystof Beuermann
 - Lars-Dominik Braun
 - Laurent P. René de Cotret
+- Lawrence Chonavel
 - Leif Metcalf
 - Leonard Rosenthol
 - Lila
@@ -251,6 +255,7 @@
 - Matthias C. M. Troffaes
 - Mauro Bieg
 - Max Bolingbroke
+- Max Heller
 - Max Rydahl Andersen
 - Merijn Verstraaten
 - Michael Beaumont
@@ -322,6 +327,7 @@
 - S.P.H
 - Salim B
 - Sam S. Almahri
+- Sam May
 - Samuel Tardieu
 - Saumel Lemmenmeier
 - Sascha Wilde
@@ -361,6 +367,7 @@
 - Timothy Humphries
 - Tiziano Müller
 - Todd Sifleet
+- Tomas Dahlqvist
 - TomBen
 - Tom Leese
 - Toni Dietze
@@ -415,11 +422,13 @@
 - infinity0x
 - jeongminkim-islab
 - kaizshang91
+- lawcho
 - lifeunleaded
 - lux-lth
 - luz paz
 - lwolfsonkin
 - mbrackeantidot
+- mh4ckt3mh4ckt1c4s
 - mjfs
 - mt_caret
 - nbehrnd
