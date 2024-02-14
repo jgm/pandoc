@@ -7126,8 +7126,9 @@ prevent tabs from being turned to spaces.
 Pandoc will automatically highlight syntax in [fenced code blocks] that
 are marked with a language name.  The Haskell library [skylighting] is
 used for highlighting. Currently highlighting is supported only for
-HTML, EPUB, Docx, Ms, and LaTeX/PDF output. To see a list of language names
-that pandoc will recognize, type `pandoc --list-highlight-languages`.
+HTML, EPUB, Docx, Ms, Man, and LaTeX/PDF output. To see a list
+of language names that pandoc will recognize, type `pandoc
+--list-highlight-languages`.
 
 The color scheme can be selected using the `--highlight-style` option.
 The default color scheme is `pygments`, which imitates the default color
