@@ -33,7 +33,7 @@ import Text.Pandoc.Shared (isTightList, tshow, stringify, onlySimpleTableCells,
 import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 
-import Control.Monad.State
+import Control.Monad.State (StateT(..), gets, modify)
 import Control.Monad (zipWithM, when)
 import Data.Maybe (fromMaybe)
 import qualified Djot.AST as D
