@@ -332,7 +332,7 @@ inlineToMan opts (Link _ txt (src, _))
                         then (".MT", ".ME")
                         else (".UR", ".UE")
   return $ "\\c" <> cr -- \c avoids extra space
-        $$ (start <+> literal srcSuffix)
+        $$ nowrap (start <+> literal srcSuffix)
         $$ linktext
         $$ (end <+> "\\c" <> cr)  -- \c avoids space after
 inlineToMan opts (Image attr alternate (source, tit)) = do
