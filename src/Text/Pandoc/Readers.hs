@@ -62,6 +62,7 @@ module Text.Pandoc.Readers
   , readRIS
   , readRTF
   , readTypst
+  , readDjot
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
