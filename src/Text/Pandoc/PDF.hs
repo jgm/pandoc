@@ -264,17 +264,16 @@ tex2pdf :: (PandocMonad m, MonadIO m)
         -> FilePath                        -- ^ temp directory for output
         -> Text                            -- ^ tex source
         -> m (Either ByteString ByteString)
-tex2pdf program args tmpDir' source = do
+tex2pdf program args tmpDir source = do
   let isOutdirArg x = "-outdir=" `isPrefixOf` x ||
                       "-output-directory=" `isPrefixOf` x
-  let tmpDir =
+  let outDir =
         case find isOutdirArg args of
           Just x  -> drop 1 $ dropWhile (/='=') x
-          Nothing -> tmpDir'
-  liftIO $ createDirectoryIfMissing True tmpDir
+          Nothing -> tmpDir
   let file = tmpDir ++ "/input.tex"  -- note: tmpDir has / path separators
   liftIO $ BS.writeFile file $ UTF8.fromText source
-  (exit, log', mbPdf) <- runTeXProgram program args tmpDir
+  (exit, log', mbPdf) <- runTeXProgram program args tmpDir outDir
   case (exit, mbPdf) of
        (ExitFailure _, _)      -> do
           let logmsg = extractMsg log'
@@ -392,28 +391,31 @@ getResultingPDF logFile pdfFile = do
 -- Run a TeX program once in a temp directory (on input.tex) and return (exit code,
 -- contents of stdout, contents of produced PDF if any).
 runTeXProgram :: (PandocMonad m, MonadIO m)
-              => String -> [String] -> FilePath
+              => String -> [String] -> FilePath -> FilePath
               -> m (ExitCode, ByteString, Maybe ByteString)
-runTeXProgram program args tmpDir = do
-    let file = tmpDir ++ "/input.tex"
+runTeXProgram program args tmpDir outDir = do
     let isLatexMk = takeBaseName program == "latexmk"
-        programArgs | isLatexMk = ["-interaction=batchmode", "-halt-on-error", "-pdf",
-                                   "-quiet", "-outdir=" ++ tmpDir] ++ args ++ [file]
-                    | otherwise = ["-halt-on-error", "-interaction", "nonstopmode",
-                                   "-output-directory", tmpDir] ++ args ++ [file]
+        programArgs | isLatexMk =
+                      ["-interaction=batchmode", "-halt-on-error", "-pdf",
+                       "-quiet", "-outdir=" ++ outDir] ++ args ++ [file]
+                    | otherwise =
+                      ["-halt-on-error", "-interaction", "nonstopmode",
+                       "-output-directory", outDir] ++ args ++ [file]
     env' <- liftIO getEnvironment
     let sep = [searchPathSeparator]
     let texinputs = maybe (tmpDir ++ sep) ((tmpDir ++ sep) ++)
           $ lookup "TEXINPUTS" env'
     let env'' = ("TEXINPUTS", texinputs) :
-                ("TEXMFOUTPUT", tmpDir) :
+                ("TEXMFOUTPUT", outDir) :
                   [(k,v) | (k,v) <- env'
                          , k /= "TEXINPUTS" && k /= "TEXMFOUTPUT"]
     liftIO (UTF8.readFile file) >>=
       showVerboseInfo (Just tmpDir) program programArgs env''
-    go file env'' programArgs (1 :: Int) Nothing
+    go env'' programArgs (1 :: Int) Nothing
  where
-   go file env'' programArgs runNumber oldTocHash = do
+   file = tmpDir ++ "/input.tex"
+   outfile = outDir ++ "/input.pdf"
+   go env'' programArgs runNumber oldTocHash = do
      let maxruns = 4 -- stop if warnings present after 4 runs
      report $ MakePDFInfo ("LaTeX run number " <> tshow runNumber) mempty
      (exit, out) <- liftIO $ E.catch
@@ -443,10 +445,9 @@ runTeXProgram program args tmpDir = do
           report $ MakePDFInfo "Rerun needed"
                     (T.intercalate "\n"
                       (map (UTF8.toText . BC.toStrict) rerunWarnings'))
-          go file env'' programArgs (runNumber + 1) tocHash
+          go env'' programArgs (runNumber + 1) tocHash
        else do
-          let pdfFile = replaceExtension file ".pdf"
-          (log', pdf) <- getResultingPDF (Just logFile) pdfFile
+          (log', pdf) <- getResultingPDF (Just logFile) outfile
           return (exit, fromMaybe out log', pdf)
 
    checkForRerun log' = filter isRerunWarning $ BC.lines log'
