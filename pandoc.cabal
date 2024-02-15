@@ -19,7 +19,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  .
                  - light markup formats (many variants of Markdown,
                    reStructuredText, AsciiDoc, Org-mode, Muse, Textile,
-                   txt2tags)
+                   txt2tags, djot)
                  - HTML formats (HTML 4 and 5)
                  - Ebook formats (EPUB v2 and v3, FB2)
                  - Documentation formats (GNU TexInfo, Haddock)
