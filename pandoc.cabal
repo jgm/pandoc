@@ -56,6 +56,7 @@ data-files:
                  data/templates/default.html4
                  data/templates/default.html5
                  data/templates/default.chunkedhtml
+                 data/templates/default.djot
                  data/templates/default.docbook4
                  data/templates/default.docbook5
                  data/templates/default.jats_archiving
