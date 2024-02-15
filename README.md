@@ -15,6 +15,8 @@ package](https://stackage.org/package/pandoc/badge/lts)](https://www.stackage.or
 [![CI
 tests](https://github.com/jgm/pandoc/workflows/CI%20tests/badge.svg)](https://github.com/jgm/pandoc/actions)
 [![license](https://img.shields.io/badge/license-GPLv2+-lightgray.svg)](https://www.gnu.org/licenses/gpl.html)
+[![pandoc-discuss on google
+groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https://groups.google.com/forum/#!forum/pandoc-discuss)
 
 ## The universal markup converter
 
@@ -41,6 +43,7 @@ It can convert *from*
 - `tsv`
   ([TSV](https://www.iana.org/assignments/media-types/text/tab-separated-values)
   table)
+- `djot` ([Djot markup](https://djot.net))
 - `docbook` ([DocBook](https://docbook.org))
 - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
 - `dokuwiki` ([DokuWiki markup](https://www.dokuwiki.org/dokuwiki))
@@ -124,6 +127,7 @@ It can convert *to*
 - `csljson` ([CSL
   JSON](https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html)
   bibliography)
+- `djot` ([Djot markup](https://djot.net))
 - `docbook` or `docbook4` ([DocBook](https://docbook.org) 4)
 - `docbook5` (DocBook 5)
 - `docx` ([Word docx](https://en.wikipedia.org/wiki/Office_Open_XML))
