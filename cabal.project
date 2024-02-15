@@ -7,7 +7,3 @@ flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1.1,
              skylighting-format-context >= 0.1.0.2
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/djoths
-  tag: 3d53e40442d22726430b6a89bfb7fba92cd99a91
