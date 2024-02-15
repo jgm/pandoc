@@ -26,11 +26,10 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.1.1
 - tls-1.9.0
 - texmath-0.12.8.6
-- commonmark-0.2.5
+- commonmark-0.2.5.1
+- commonmark-extensions-0.2.5.2
+- commonmark-pandoc-0.2.2.1
 - typst-0.5.0.1
-- git: https://github.com/jgm/commonmark-hs
-  subdirs: [commonmark-pandoc, commonmark-extensions]
-  commit: f0b96532e36f31f47cc34602ecac694ffde8a27a
 - git: https://github.com/jgm/djoths
   commit: 3d53e40442d22726430b6a89bfb7fba92cd99a91
 
