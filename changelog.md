@@ -27,11 +27,11 @@
 
   * BibTeX reader:
 
-    + Support "pagetotal" in converting BibLaTeX.
+    + Support `pagetotal` in converting BibLaTeX.
 
   * Markdown reader:
 
-    + Fix wikilinks extension to allow newlines in titles (#9454).
+    + Fix wikilinks extensions to allow newlines in titles (#9454).
 
   * EPUB reader:
 
@@ -64,8 +64,8 @@
       Strip initial comma from suffix, since typst will add an extra one.
     + Unescape URI escapes in image paths (#9389).
     + Handle labels and citaiton ids with spaces and other special
-      characters (#9387). In these cases, we produce an
-      explicit `label()` rather than using `<>` or `@`.
+      characters (#9387). In these cases, we produce an explicit `label()`
+      rather than using `<>` or `@`.
     + Avoid producing illegal labels (#9387).
     + Avoid unnecessary escapes (#9386).
 
@@ -88,15 +88,13 @@
     + Add ARA roles for accessibility (#9378, Iacobus1983).
       Footnote references are given role "doc-noteref", footnote text
       gets "doc-footnote", and nav gets "doc-toc".
-    + Ensure that an alt attribute is always added (#9354).
-      This seems to be required by iBooks; even an empty alt attribute
-      will satisfy it.
+    + Ensure that an alt attribute is always added (#9354). This seems to
+      be required by iBooks; even an empty alt attribute will satisfy it.
     + Add `xml:lang` to package element (#9372).
     + Add accessibility metadata to EPUB metadata (#9372, #9400,
       Iacobus1983 and John MacFarlane). Reasonable default values are
-      used to ensure that pandoc's EPUBs conform to the EU
-      Accessibilty Act requirements, but values can be overridden
-      using metadata.
+      used to ensure that pandoc's EPUBs conform to the EU Accessibilty Act
+      requirements, but values can be overridden using metadata.
 
   * Docx writer:
 
@@ -111,9 +109,8 @@
     + Fix bug with long URLs (#9458). URLs with more than 68 characters didn't
       display properly because of wrapping.
     + Support (limited) syntax highlighting in code blocks (#9446).
-      Currently only boldface and italics are supported. The
-      `monochrome` style might be of use for those generating man
-      pages.
+      Currently only boldface and italics are supported. The `monochrome`
+      style might be of use for those generating man pages.
 
   * Org writer:
 
@@ -206,14 +203,12 @@
 
     + Reliably detect when TOC has changed (#9295). Sometimes the TOC
       changes but there are no warnings: this happens when no labels
-      are present. In this case we must rerun LaTeX. So we now take
-      the SHA1 hash of the TOC file and rerun LaTeX if it changes
-      between runs.
+      are present. In this case we must rerun LaTeX. So we now take the
+      SHA1 hash of the TOC file and rerun LaTeX if it changes between runs.
     + Increase maximum number of LaTeX runs to 4 (#9299). On some documents,
       4 runs are needed (e.g. when a LastPage reference is used).
-    + Avoid `readFileLazy`, on theory that lazy IO is
-      responsible for the improperly cleaned-up temp directories
-      on Windows (#9460).
+    + Avoid `readFileLazy`, which caused improperly cleaned-up
+      temp directories on Windows (#9460).
 
   * MANUAL.txt:
 
