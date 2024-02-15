@@ -209,8 +209,11 @@
       are present. In this case we must rerun LaTeX. So we now take
       the SHA1 hash of the TOC file and rerun LaTeX if it changes
       between runs.
-     + Increase maximum number of LaTeX runs to 4 (#9299). On some documents,
+    + Increase maximum number of LaTeX runs to 4 (#9299). On some documents,
       4 runs are needed (e.g. when a LastPage reference is used).
+    + Avoid `readFileLazy`, on theory that lazy IO is
+      responsible for the improperly cleaned-up temp directories
+      on Windows (#9460).
 
   * MANUAL.txt:
 
