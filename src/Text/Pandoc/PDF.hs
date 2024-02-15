@@ -58,7 +58,7 @@ import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
 import Text.Pandoc.Class (fillMediaBag, getVerbosity, setVerbosity,
-                          readFileLazy, readFileStrict, fileExists,
+                          readFileStrict, fileExists,
                           report, extractMedia, PandocMonad, runIOorExplode)
 import Text.Pandoc.Logging
 import Text.DocTemplates ( FromContext(lookupContext) )
@@ -384,7 +384,7 @@ getResultingPDF logFile pdfFile = do
               Just logFile' -> do
                 logExists <- fileExists logFile'
                 if logExists
-                  then Just <$> readFileLazy logFile'
+                  then Just . BL.fromStrict <$> readFileStrict logFile'
                   else return Nothing
               Nothing -> return Nothing
     return (log', pdf)
@@ -424,7 +424,7 @@ runTeXProgram program args tmpDir = do
      let logFile = replaceExtension file ".log"
      logExists <- fileExists logFile
      logContents <- if logExists
-                       then readFileLazy logFile
+                       then BL.fromStrict <$> readFileStrict logFile
                        else return mempty
      let rerunWarnings = checkForRerun logContents
      tocHash <- do
@@ -432,7 +432,7 @@ runTeXProgram program args tmpDir = do
        tocFileExists <- fileExists tocFile
        if tocFileExists
           then do
-            tocContents <- readFileLazy tocFile
+            tocContents <- BL.fromStrict <$> readFileStrict tocFile
             pure $ Just $! sha1 tocContents
           else pure Nothing
      -- compare hash of toc to former hash to see if it changed (#9295)
