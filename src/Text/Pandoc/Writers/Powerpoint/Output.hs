@@ -1423,7 +1423,7 @@ graphicToElement tableWidth (Tbl widths tblPr hdrCells rows) = do
                       else replicate (length hdrCells) $
                            tableWidth `div` toInteger (length hdrCells)
                   else map (\w -> round $ w / totalWidth * fromIntegral tableWidth) widths
-  
+
   let cellToOpenXML paras =
         do elements <- mapM paragraphToElement paras
            let elements' = if null elements

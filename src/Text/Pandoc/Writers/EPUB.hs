@@ -1067,7 +1067,7 @@ metadataElement version md currentTime =
         accessibilityHazardNodes = map (schemanode "accessibilityHazard")
             (epubAccessibilityHazards md)
         accessibilitySummaryNodes = maybe [] (\summary -> [schemanode "accessibilitySummary" summary]) $ epubAccessibilitySummary md
-        
+
         dcTag n s = unode ("dc:" <> n) s
         dcTag' n s = [dcTag n s]
         toIdentifierNode id' (Identifier txt scheme)
