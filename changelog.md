@@ -10,6 +10,12 @@
     + New module Text.Pandoc.Writers.Djot [API change]. The function
       `writeDjot` is also exported by Text.Pandoc.Writers.
 
+  * `--number-sections` now uses the first digit for the number of
+    the top-level section, no matter what its level. So if the top-level
+    section is level-2, numbers will be `1`, `2`, etc. rather than
+    `0.1`, `0.2`, as in the past (#5071). For some backwards compatibility,
+    we revert to the old behavior when the `--number-offset` option is used.
+
   * DocBook reader:
 
     + Better handling of `<procedure>` and `<substeps>` (#9341):
@@ -170,16 +176,9 @@
         they can do that. In general, the heading levels specified
         in the source document are preserved; `makeSections` only
         puts them into a hierarchical structure.
-      - Section numbers are now assigned so that the top level
-        gets `1`, no matter what heading level is used (#5071). So, even
-        if the top heading level is 2, numbers will be `1`, `2`, etc.
-        rather than `0.1`, `0.2`, as in the past.
-      - We revert to the old behavior when the `--number-offset` option
-        is used. So, for example, if a document begins with a level-3
-        heading, and `--number-offset=1,2` is used, the top-level section
-        numbers will be `1.2.1`, `1.2.2`, etc. This is mainly for
-        backwards-compatibility.
-    + `makeSections`: more elegant code for section number calculation.
+      - Section numbers are now assigned differently, as described above
+        under `--number-sections` changes (#5071).
+    + Improve `makeSections` code for section number calculation.
 
   * Text.Pandoc.Chunks:
 
