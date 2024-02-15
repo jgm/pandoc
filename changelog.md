@@ -196,7 +196,7 @@
   * LaTeX template: support font fallback (lawcho).  This support is
     LuaLaTeX-specific.  See MANUAL.txt for documentation.
 
-  * Text.Pandoc.Readers: Add `readMan` to exports (George Stagg).
+  * Text.Pandoc.Readers: Add `readMan` to exports [API change] (George Stagg).
 
   * Text.Pandoc.PDF:
 
