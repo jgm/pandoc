@@ -1054,7 +1054,8 @@ createCaption contentShapeDimensions paraElements = do
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
   return
     ( 1
-    ,  mknode "p:sp" [] [ mknode "p:nvSpPr" []
+    ,  surroundWithMathAlternate $
+       mknode "p:sp" [] [ mknode "p:nvSpPr" []
                           [ mknode "p:cNvPr" [("id","1"), ("name","TextBox 3")] ()
                           , mknode "p:cNvSpPr" [("txBox", "1")] ()
                           , mknode "p:nvPr" [] ()
@@ -1353,7 +1354,7 @@ shapeToElements layout (GraphicFrame tbls cptn) = map (bimap Just Elem) <$>
   graphicFrameToElements layout tbls cptn
 shapeToElements _ (RawOOXMLShape str) = return
   [(Nothing, Text (CData CDataRaw str Nothing))]
-shapeToElements layout shp = do
+shapeToElements layout shp@(TextBox _) = do
   (shapeId, element) <- shapeToElement layout shp
   return [(shapeId, Elem element)]
 
@@ -1538,7 +1539,9 @@ nonBodyTextToElement layout phTypes paraElements
       let txBody = mknode "p:txBody" [] $
                    [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <>
                    [element]
-      return (Just shapeIdNum, replaceNamedChildren ns "p" "txBody" [txBody] sp)
+      return (Just shapeIdNum,
+              surroundWithMathAlternate $
+                replaceNamedChildren ns "p" "txBody" [txBody] sp)
   -- XXX: TODO
   | otherwise = return (Nothing, mknode "p:sp" [] ())
 
@@ -2008,6 +2011,7 @@ speakerNotesBody paras = do
   let txBody = mknode "p:txBody" [] $
                [mknode "a:bodyPr" [] (), mknode "a:lstStyle" [] ()] <> elements
   return $
+    surroundWithMathAlternate $
     mknode "p:sp" []
     [ mknode "p:nvSpPr" []
       [ mknode "p:cNvPr" [ ("id", "3")
