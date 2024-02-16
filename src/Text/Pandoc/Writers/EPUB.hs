@@ -638,10 +638,9 @@ pandocToEPUB version opts doc = do
           ([("version", case version of
                              EPUB2 -> "2.0"
                              EPUB3 -> "3.0")
-           ,("xmlns","http://www.idpf.org/2007/opf")
-           ,("xml:lang", epubLanguage metadata)
-           ,("unique-identifier","epub-id-1")
-           ] ++
+           ,("xmlns","http://www.idpf.org/2007/opf")] ++
+           [("xml:lang", epubLanguage metadata) | version == EPUB3] ++
+           [("unique-identifier","epub-id-1")] ++
            [("prefix","ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/") | version == EPUB3]) $
           [ metadataElement version metadata currentTime
           , unode "manifest" $
@@ -1008,8 +1007,13 @@ metadataElement version md currentTime =
                   ++ publisherNodes ++ sourceNodes ++ relationNodes
                   ++ coverageNodes ++ rightsNodes ++ coverImageNodes
                   ++ modifiedNodes ++ belongsToCollectionNodes
-                  ++ accessModeNodes ++ accessModeSufficientNodes ++ accessibilityFeatureNodes
-                  ++ accessibilityHazardNodes ++ accessibilitySummaryNodes
+                  ++ case version of
+                       EPUB2 -> []
+                       EPUB3 -> accessModeNodes ++
+                                accessModeSufficientNodes ++
+                                accessibilityFeatureNodes ++
+                                accessibilityHazardNodes ++
+                                accessibilitySummaryNodes
         metaprop = if version == EPUB2 then "name" else "property"
         withIds base f = concat . zipWith f (map (\x -> base <>
                                                         T.cons '-' (tshow x))
