@@ -179,17 +179,21 @@ convertTags (t@(TagOpen tagname as):ts)
                                     [(k,v) | (k,v) <- attrs', k /= "id"]
                       modify $ \st ->
                         st{ svgMap = M.insert hash (svgid, attrs'') (svgMap st) }
+                      let fixUrl x =
+                            case T.breakOn "url(#" x of
+                              (_,"") -> x
+                              (before, after) -> before <>
+                                  "url(#" <> svgid <> "_" <> T.drop 5 after
                       let addIdPrefix ("id", x) = ("id", svgid <> "_" <> x)
                           addIdPrefix (k, x)
                            | k == "xlink:href" || k == "href" =
                             case T.uncons x of
                               Just ('#', x') -> (k, "#" <> svgid <> "_" <> x')
                               _ -> (k, x)
-                          addIdPrefix ("clip-path", x) = ("clip-path",
-                            case T.stripPrefix "url(#" x of
-                              Just x' -> "url(#" <> svgid <> "_" <> x'
-                              Nothing -> x)
-                          addIdPrefix kv = kv
+                          -- this clause handles things like
+                          -- style="fill:url(#radialGradient46);stroke:none",
+                          -- adding the svg id prefix to the anchor:
+                          addIdPrefix (k, x) = (k, fixUrl x)
                       let ensureUniqueId (TagOpen tname ats) =
                             TagOpen tname (map addIdPrefix ats)
                           ensureUniqueId x = x
