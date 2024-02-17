@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc-cli
-version:         3.1.12
+version:         3.1.12.1
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -70,7 +70,7 @@ executable pandoc
   buildable:       True
   -- Note: we always link to an exact version of pandoc, with the
   -- same version as this package:
-  build-depends:   pandoc == 3.1.12,
+  build-depends:   pandoc == 3.1.12.1,
                    text
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server

@@ -1,5 +1,21 @@
 # Revision history for pandoc
 
+## pandoc 3.1.12.1 (2024-02-17)
+
+  * EPUB writer: omit EPUBv3-specific accessibility features on epub2
+    (#9469). Fixes a regression in 3.1.12.
+
+  * More fixes for SVG ids with `--self-contained` (#9467).
+    This generalizes the fix to #9420 so it applies to things like
+    `style="fill(url(#..."` and should fix problems with SVGs including
+    gradients.
+
+  * Powerpoint writer: properly handle math in headings and tables (#9465).
+    This ensures that paragraphs containing math are wrapped in
+    a `mc:AlternateContent` node as required.
+
+  * Makefile: make validate-epub check v2 output too.
+
 ## pandoc 3.1.12 (2024-02-14)
 
   * Add `djot` as input and output format. Djot is a light markup syntax
