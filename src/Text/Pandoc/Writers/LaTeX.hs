@@ -175,7 +175,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   -- we need a default here since lang is used in template conditionals
-  let otherLangs = [l | l <- docLangs, mblang /= Just l]
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
                             mapMaybe (\(x,y) ->
@@ -251,15 +250,18 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                           -> resetField "papersize" ("a" <> ds)
                       _   -> id)
                   metadata
+  let babelLang = mblang >>= toBabel
   let context' =
           -- note: lang is used in some conditionals in the template,
           -- so we need to set it if we have any babel/polyglossia:
           maybe id (\l -> defField "lang"
                       (literal $ renderLang l)) mblang
         $ maybe id (\l -> defField "babel-lang"
-                      (literal l)) (mblang >>= toBabel)
+                      (literal l)) babelLang
         $ defField "babel-otherlangs"
-             (map literal $ mapMaybe toBabel otherLangs)
+             (map literal
+               (nubOrd . catMaybes . filter (/= babelLang)
+                $ map toBabel docLangs))
         $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
