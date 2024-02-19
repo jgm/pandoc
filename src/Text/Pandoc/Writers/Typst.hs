@@ -218,6 +218,9 @@ listItemToTypst ind marker blocks = do
   return $ hang ind (marker <> space) contents
 
 inlinesToTypst :: PandocMonad m => [Inline] -> TW m (Doc Text)
+inlinesToTypst ils@(Str t : _) -- need to escape - in '[-]' #9478
+  | Just (c, _) <- T.uncons t
+  , needsEscapeAtLineStart c = ("\\" <>) . hcat <$> mapM inlineToTypst ils
 inlinesToTypst ils = hcat <$> mapM inlineToTypst ils
 
 inlineToTypst :: PandocMonad m => Inline -> TW m (Doc Text)
@@ -360,11 +363,13 @@ escapeTypst context t =
     needsEscape '~' = True
     needsEscape ':' = context == TermContext
     needsEscape _ = False
-    needsEscapeAtLineStart '/' = True
-    needsEscapeAtLineStart '+' = True
-    needsEscapeAtLineStart '-' = True
-    needsEscapeAtLineStart '=' = True
-    needsEscapeAtLineStart _ = False
+
+needsEscapeAtLineStart :: Char -> Bool
+needsEscapeAtLineStart '/' = True
+needsEscapeAtLineStart '+' = True
+needsEscapeAtLineStart '-' = True
+needsEscapeAtLineStart '=' = True
+needsEscapeAtLineStart _ = False
 
 data LabelType =
     FreestandingLabel
