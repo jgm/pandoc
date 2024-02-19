@@ -1847,16 +1847,17 @@ wikilink constructor = do
   titleAfter <-
     (True <$ guardEnabled Ext_wikilinks_title_after_pipe) <|>
     (False <$ guardEnabled Ext_wikilinks_title_before_pipe)
-  string "[[" *> notFollowedBy' (char '[')
-  raw <- many1TillChar anyChar (try $ string "]]")
-  let (title, url) = case T.break (== '|') raw of
-        (before, "") -> (before, before)
-        (before, after)
-          | titleAfter -> (T.drop 1 after, before)
-          | otherwise -> (before, T.drop 1 after)
-  guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
-  return . pure . constructor nullAttr url "wikilink" $
-     B.text $ fromEntities title
+  try $ do
+    string "[[" *> notFollowedBy' (char '[')
+    raw <- many1TillChar anyChar (try $ string "]]")
+    let (title, url) = case T.break (== '|') raw of
+          (before, "") -> (before, before)
+          (before, after)
+            | titleAfter -> (T.drop 1 after, before)
+            | otherwise -> (before, T.drop 1 after)
+    guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+    return . pure . constructor nullAttr url "wikilink" $
+       B.text $ fromEntities title
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
