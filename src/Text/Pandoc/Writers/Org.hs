@@ -206,7 +206,7 @@ blockToOrg (CodeBlock (ident,classes,kvs) str) = do
 blockToOrg (BlockQuote blocks) = do
   contents <- blockListToOrg blocks
   return $ blankline $$ "#+begin_quote" $$
-           contents $$ "#+end_quote" $$ blankline
+           chomp contents $$ "#+end_quote" $$ blankline
 blockToOrg (Table _ blkCapt specs thead tbody tfoot) =  do
   let (caption', _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption'' <- inlineListToOrg caption'

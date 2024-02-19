@@ -75,7 +75,6 @@ E-mail style:
 
 #+begin_quote
 This is a block quote. It is pretty short.
-
 #+end_quote
 
 #+begin_quote
@@ -96,14 +95,11 @@ Nested block quotes:
 
 #+begin_quote
 nested
-
 #+end_quote
 
 #+begin_quote
 nested
-
 #+end_quote
-
 #+end_quote
 
 This should not be a block quote: 2 > 1.
@@ -345,7 +341,6 @@ Multiple blocks with italics:
 
   #+begin_quote
   orange block quote
-
   #+end_quote
 
 Multiple definitions, tight:
@@ -753,7 +748,6 @@ An e-mail address: [[mailto:nobody@nowhere.net][nobody@nowhere.net]]
 
 #+begin_quote
 Blockquoted: [[http://example.com/]]
-
 #+end_quote
 
 Auto-links should not occur here: =<http://example.com/>=
@@ -787,7 +781,6 @@ note.[fn:3]
 
 #+begin_quote
 Notes can go in quotes.[fn:4]
-
 #+end_quote
 
 1. And in list items.[fn:5]
