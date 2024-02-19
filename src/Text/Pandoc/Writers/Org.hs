@@ -352,6 +352,7 @@ data DivBlockType
                              --   key-value pairs.
   | UnwrappedWithAnchor Text -- ^ Not mapped to other type, only
                              --   identifier is retained (if any).
+  deriving (Show)
 
 -- | Gives the most suitable method to render a list of blocks
 -- with attributes.
@@ -368,23 +369,39 @@ divBlockType (ident, classes, kvs)
   = UnwrappedWithAnchor ident
  where
   isGreaterBlockClass :: Text -> Bool
-  isGreaterBlockClass = (`elem` ["center", "quote"]) . T.toLower
+  isGreaterBlockClass t = case T.toLower t of
+                            "center" -> True
+                            "quote" -> True
+                            x -> isAdmonition x
+
+isAdmonition :: Text -> Bool
+isAdmonition "warning" = True
+isAdmonition "important" = True
+isAdmonition "tip" = True
+isAdmonition "note" = True
+isAdmonition "caution" = True
+isAdmonition _ = False
 
 -- | Converts a Div to an org-mode element.
 divToOrg :: PandocMonad m
          => Attr -> [Block] -> Org m (Doc Text)
 divToOrg attr bs = do
-  contents <- blockListToOrg bs
   case divBlockType attr of
-    GreaterBlock blockName attr' ->
+    GreaterBlock blockName attr' -> do
       -- Write as greater block. The ID, if present, is added via
       -- the #+name keyword; other classes and key-value pairs
       -- are kept as #+attr_html attributes.
-      return $ blankline $$ attrHtml attr'
+      contents <- case bs of
+                    (Div ("",["title"],[]) _ : bs')
+                      | isAdmonition blockName -> blockListToOrg bs'
+                    _ -> blockListToOrg bs
+      return $ blankline
+            $$ attrHtml attr'
             $$ "#+begin_" <> literal blockName
-            $$ contents
+            $$ chomp contents
             $$ "#+end_" <> literal blockName $$ blankline
     Drawer drawerName (_,_,kvs) -> do
+      contents <- blockListToOrg bs
       -- Write as drawer. Only key-value pairs are retained.
       let keys = vcat $ map (\(k,v) ->
                                ":" <> literal k <> ":"
@@ -394,6 +411,7 @@ divToOrg attr bs = do
             $$ contents $$ blankline
             $$ text ":END:" $$ blankline
     UnwrappedWithAnchor ident -> do
+      contents <- blockListToOrg bs
       -- Unwrap the div. All attributes are discarded, except for
       -- the identifier, which is added as an anchor before the
       -- div contents.
@@ -408,9 +426,13 @@ attrHtml (ident, classes, kvs) =
   let
     name = if T.null ident then mempty else "#+name: " <> literal ident <> cr
     keyword = "#+attr_html"
-    classKv = ("class", T.unwords classes)
-    kvStrings = map (\(k,v) -> ":" <> k <> " " <> v) (classKv:kvs)
-  in name <> keyword <> ": " <> literal (T.unwords kvStrings) <> cr
+    addClassKv = if null classes
+                    then id
+                    else (("class", T.unwords classes):)
+    kvStrings = map (\(k,v) -> ":" <> k <> " " <> v) (addClassKv kvs)
+  in name <> if null kvStrings
+                then mempty
+                else keyword <> ": " <> literal (T.unwords kvStrings) <> cr
 
 -- | Convert list of Pandoc block elements to Org.
 blockListToOrg :: PandocMonad m

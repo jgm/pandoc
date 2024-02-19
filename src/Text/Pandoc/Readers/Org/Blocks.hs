@@ -180,16 +180,21 @@ orgBlock = try $ do
   blkType <- blockHeaderStart
   ($ blkType) $
     case T.toLower blkType of
-      "export"  -> exportBlock
-      "comment" -> rawBlockLines (const mempty)
-      "html"    -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "latex"   -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "ascii"   -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "example" -> exampleBlock blockAttrs
-      "quote"   -> parseBlockLines (fmap B.blockQuote)
-      "verse"   -> verseBlock
-      "src"     -> codeBlock blockAttrs
-      _         ->
+      "export"    -> exportBlock
+      "comment"   -> rawBlockLines (const mempty)
+      "html"      -> rawBlockLines (return . B.rawBlock (lowercase blkType))
+      "latex"     -> rawBlockLines (return . B.rawBlock (lowercase blkType))
+      "ascii"     -> rawBlockLines (return . B.rawBlock (lowercase blkType))
+      "example"   -> exampleBlock blockAttrs
+      "quote"     -> parseBlockLines (fmap B.blockQuote)
+      "verse"     -> verseBlock
+      "src"       -> codeBlock blockAttrs
+      "note"      -> admonitionBlock "note" blockAttrs
+      "warning"   -> admonitionBlock "warning" blockAttrs
+      "tip"       -> admonitionBlock "tip" blockAttrs
+      "caution"   -> admonitionBlock "caution" blockAttrs
+      "important" -> admonitionBlock "important" blockAttrs
+      _           ->
         -- case-sensitive checks
         case blkType of
           "abstract" -> metadataBlock
@@ -202,6 +207,16 @@ orgBlock = try $ do
 
    lowercase :: Text -> Text
    lowercase = T.toLower
+
+admonitionBlock :: PandocMonad m
+                => Text -> BlockAttributes -> Text -> OrgParser m (F Blocks)
+admonitionBlock blockType blockAttrs rawtext = do
+  bls <- parseBlockLines id rawtext
+  let id' = fromMaybe mempty $ blockAttrName blockAttrs
+  pure $ fmap
+    (B.divWith (id', [blockType], []) .
+     (B.divWith ("", ["title"], []) (B.para (B.str (T.toTitle blockType))) <>))
+    bls
 
 exampleBlock :: PandocMonad m => BlockAttributes -> Text -> OrgParser m (F Blocks)
 exampleBlock blockAttrs _label = do
