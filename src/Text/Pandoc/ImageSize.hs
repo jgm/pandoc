@@ -166,8 +166,8 @@ sizeInPoints s = (pxXf * 72 / dpiXf, pxYf * 72 / dpiYf)
 -- | Calculate (height, width) in points, considering the desired dimensions in the
 -- attribute, while falling back on the image file's dpi metadata if no dimensions
 -- are specified in the attribute (or only dimensions in percentages).
-desiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> (Double, Double)
-desiredSizeInPoints opts attr s =
+desiredSizeInPoints :: WriterOptions -> Attr -> Maybe Integer -> ImageSize -> (Double, Double)
+desiredSizeInPoints opts attr pageWidthPoints' s =
   case (getDim Width, getDim Height) of
     (Just w, Just h)   -> (w, h)
     (Just w, Nothing)  -> (w, w / ratio)
@@ -176,7 +176,11 @@ desiredSizeInPoints opts attr s =
   where
     ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
     getDim dir = case dimension dir attr of
-                   Just (Percent _) -> Nothing
+                   Just (Percent a) ->
+                     case (dir, pageWidthPoints') of
+                     (Width, Just pageWidthPoints) ->
+                       Just $ fromIntegral pageWidthPoints * a
+                     _ -> Nothing
                    Just dim         -> Just $ inPoints opts dim
                    Nothing          -> Nothing
 

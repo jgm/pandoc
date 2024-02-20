@@ -31,6 +31,7 @@ module Text.Pandoc.Class.IO
   , readFileLazy
   , readFileStrict
   , readStdinStrict
+  , svgToPng
   , extractMedia
   , writeMedia
  ) where
@@ -80,6 +81,7 @@ import qualified System.Environment as Env
 import qualified System.FilePath.Glob
 import qualified System.Random
 import qualified Text.Pandoc.UTF8 as UTF8
+import Text.Pandoc.Image (svgToPngIO)
 #ifndef EMBED_DATA_FILES
 import qualified Paths_pandoc as Paths
 #endif
@@ -168,6 +170,11 @@ readFileStrict s = liftIOError B.readFile s
 -- an error on failure.
 readStdinStrict :: (PandocMonad m, MonadIO m) => m B.ByteString
 readStdinStrict = liftIOError (const B.getContents) "stdin"
+
+-- | Runs an image conversion step, returning an error on failure.
+-- Not available when sandboxed.
+svgToPng :: (PandocMonad m, MonadIO m) => Int -> Maybe Double -> Maybe Double -> BL.ByteString -> m (Either T.Text BL.ByteString)
+svgToPng = svgToPngIO
 
 -- | Return a list of paths that match a glob, relative to the working
 -- directory. See 'System.FilePath.Glob' for the glob syntax.

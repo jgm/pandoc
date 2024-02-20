@@ -116,6 +116,9 @@ class (Functor m, Applicative m, Monad m, MonadError PandocError m)
   -- | Read the contents of stdin as a strict ByteString, raising
   -- an error on failure.
   readStdinStrict :: m B.ByteString
+  -- | Converts an SVG to a PNG (dpiX, widthPoints, heightPoints, svgBlob)
+  -- Not called when sandboxed.
+  svgToPng :: Int -> Maybe Double -> Maybe Double -> BL.ByteString -> m (Either T.Text BL.ByteString)
   -- | Return a list of paths that match a glob, relative to
   -- the working directory.  See 'System.FilePath.Glob' for
   -- the glob syntax.
@@ -505,6 +508,7 @@ instance (MonadTrans t, PandocMonad m, Functor (t m),
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
   readStdinStrict = lift readStdinStrict
+  svgToPng dpi width height bs = lift $ svgToPng dpi width height bs
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
@@ -523,6 +527,7 @@ instance {-# OVERLAPS #-} PandocMonad m => PandocMonad (ParsecT s st m) where
   readFileLazy = lift . readFileLazy
   readFileStrict = lift . readFileStrict
   readStdinStrict = lift readStdinStrict
+  svgToPng dpi width height bs = lift $ svgToPng dpi width height bs
   glob = lift . glob
   fileExists = lift . fileExists
   getDataFileName = lift . getDataFileName
