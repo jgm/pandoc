@@ -137,13 +137,12 @@ openURL u
      disableCertificateValidation <- getsCommonState stNoCheckCertificate
      report $ Fetching u
      res <- liftIO $ E.try $ withSocketsDo $ do
-       let parseReq = parseRequest
        proxy <- tryIOError (getEnv "http_proxy")
        let addProxy' x = case proxy of
                             Left _ -> return x
-                            Right pr -> parseReq pr >>= \r ->
+                            Right pr -> parseRequest pr >>= \r ->
                                 return (addProxy (host r) (port r) x)
-       req <- parseReq (unpack u) >>= addProxy'
+       req <- parseRequest (unpack u) >>= addProxy'
        let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
        let tlsSimple = TLSSettingsSimple disableCertificateValidation False False
        let tlsManagerSettings = mkManagerSettings tlsSimple  Nothing
