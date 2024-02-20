@@ -42,7 +42,9 @@ import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
 import Data.Unique (hashUnique)
-import Network.Connection (TLSSettings (TLSSettingsSimple))
+import Network.Connection (TLSSettings(..))
+import qualified Network.TLS as TLS
+import qualified Network.TLS.Extra as TLS
 import Network.HTTP.Client
        (httpLbs, responseBody, responseHeaders,
         Request(port, host, requestHeaders), parseRequest, newManager)
@@ -69,6 +71,7 @@ import Text.Pandoc.MediaBag (MediaBag, MediaItem(..), lookupMedia, mediaItems)
 import Text.Pandoc.Walk (walk)
 import qualified Control.Exception as E
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text as T
@@ -80,6 +83,8 @@ import qualified System.Environment as Env
 import qualified System.FilePath.Glob
 import qualified System.Random
 import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Default (def)
+import System.X509 (getSystemCertificateStore)
 #ifndef EMBED_DATA_FILES
 import qualified Paths_pandoc as Paths
 #endif
@@ -144,8 +149,25 @@ openURL u
                                 return (addProxy (host r) (port r) x)
        req <- parseRequest (unpack u) >>= addProxy'
        let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
-       let tlsSimple = TLSSettingsSimple disableCertificateValidation False False
-       let tlsManagerSettings = mkManagerSettings tlsSimple  Nothing
+       certificateStore <- getSystemCertificateStore
+       let tlsSettings = TLSSettings $
+              (TLS.defaultParamsClient (show $ host req')
+                                       (B8.pack $ show $ port req'))
+                 { TLS.clientSupported = def{ TLS.supportedCiphers =
+                                              TLS.ciphersuite_default
+                                            , TLS.supportedExtendedMainSecret =
+                                               TLS.AllowEMS }
+                 , TLS.clientShared = def
+                     { TLS.sharedCAStore = certificateStore
+                     , TLS.sharedValidationCache =
+                         if disableCertificateValidation
+                            then TLS.ValidationCache
+                                  (\_ _ _ -> return TLS.ValidationCachePass)
+                                  (\_ _ _ -> return ())
+                            else def
+                     }
+                 }
+       let tlsManagerSettings = mkManagerSettings tlsSettings  Nothing
        resp <- newManager tlsManagerSettings >>= httpLbs req'
        return (B.concat $ toChunks $ responseBody resp,
                UTF8.toText `fmap` lookup hContentType (responseHeaders resp))

@@ -528,7 +528,9 @@ library
                  xml                   >= 1.3.12   && < 1.4,
                  typst                 >= 0.5.0.1  && < 0.5.1,
                  vector                >= 0.12     && < 0.14,
-                 djot                  >= 0.1      && < 0.2
+                 djot                  >= 0.1      && < 0.2,
+                 tls                   >= 1.9.0    && < 2.1,
+                 crypton-x509-system   >= 1.6.7    && < 1.7
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
