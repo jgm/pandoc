@@ -15,6 +15,7 @@ extra-deps:
 - commonmark-extensions-0.2.5.2
 - commonmark-pandoc-0.2.2.1
 - typst-0.5.0.1
+- tls-2.0.1
 - git: https://github.com/jgm/djoths
   commit: 970390f4e8d1650378c826d293482ddf710c58a9
 ghc-options:
