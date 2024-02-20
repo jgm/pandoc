@@ -23,7 +23,7 @@ import HsLua.Packaging
 import Text.Pandoc.Error (PandocError (PandocLuaError), renderError)
 
 import qualified HsLua as Lua
-import qualified Text.Pandoc.UTF8 as UTF8
+import qualified HsLua.Core.Utf8 as UTF8
 
 -- | Lua userdata type definition for PandocError.
 typePandocError :: LuaError e => DocumentedType e PandocError
