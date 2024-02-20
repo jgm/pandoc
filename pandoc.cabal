@@ -529,7 +529,7 @@ library
                  typst                 >= 0.5.0.1  && < 0.5.1,
                  vector                >= 0.12     && < 0.14,
                  djot                  >= 0.1      && < 0.2,
-                 tls                   >= 1.9.0    && < 2.1,
+                 tls                   >= 2.0.1    && < 2.1,
                  crypton-x509-system   >= 1.6.7    && < 1.7
 
   if !os(windows)
