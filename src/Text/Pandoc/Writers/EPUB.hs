@@ -1050,7 +1050,8 @@ metadataElement version md currentTime =
         rightsNodes = maybe [] (dcTag' "rights") $ epubRights md
         coverImageNodes = maybe []
             (\img -> [unode "meta" !  [(metaprop,"cover"),
-                                       ("content",toId img)] $ ()])
+                                       ("content",toId img)] $ ()
+                        | version == EPUB2])
             $ epubCoverImage md
         modifiedNodes = [ unode "meta" ! [(metaprop, "dcterms:modified")] $
                showDateTimeISO8601 currentTime | version == EPUB3 ]
