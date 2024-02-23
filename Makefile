@@ -257,7 +257,7 @@ validate-epub: ## generate an epub and validate it with epubcheck and ace
 	tmp=$$(mktemp -d) && \
   for epubver in 2 3; do \
     file=$$tmp/ver$$epubver.epub ; \
-	  $(pandoc) test/epub/wasteland.epub -Mtitle="The Wasteland" --resource-path test/epub -t epub$$epubver -o $$file --number-sections --toc --quiet && \
+	  $(pandoc) test/epub/wasteland.epub --epub-cover=test/lalune.jpg -Mtitle="The Wasteland" --resource-path test/epub -t epub$$epubver -o $$file --number-sections --toc --quiet && \
 	  echo $$file && \
 	  epubcheck $$file || exit 1 ; \
   done && \
