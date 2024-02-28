@@ -17,6 +17,10 @@ extra-deps:
 - tls-2.0.1
 - git: https://github.com/jgm/djoths
   commit: 970390f4e8d1650378c826d293482ddf710c58a9
+- git: https://github.com/jgm/skylighting
+  commit: 15682b2aeeac3a0f28601a12f281afe4c7bfbce4
+  subdirs: [skylighting-format-blaze-html]
+
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-22.11
