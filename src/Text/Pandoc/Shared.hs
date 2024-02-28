@@ -529,7 +529,7 @@ makeSections numbering mbBaseLevel bs =
           | otherwise = 0
     let newnum = zipWith adjustNum [minLevel..level]
                     (lastnum ++ repeat 0)
-    unless (null newnum) $ S.put newnum
+    unless (null newnum || "unnumbered" `elem` classes) $ S.put newnum
     let (sectionContents, rest) = break (headerLtEq level) xs
     sectionContents' <- go sectionContents
     rest' <- go rest
