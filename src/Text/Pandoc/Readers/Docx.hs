@@ -762,9 +762,9 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
 bodyPartToBlocks (TblCaption _ _) =
-  return $ para mempty -- collected separately
+  return mempty
 bodyPartToBlocks (Tbl _ _ _ []) =
-  return $ para mempty
+  return mempty
 bodyPartToBlocks (Tbl cap grid look parts) = do
   captions <- gets docxTableCaptions
   fullCaption <- case captions of
