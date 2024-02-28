@@ -793,9 +793,8 @@ elemToBodyPart ns element
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
                     mkListItem parstyle numId lvl parparts
-        _ -> if isTable
-                then return $ TblCaption parstyle parparts
-                else return $ Paragraph parstyle parparts
+        _ -> return $ (if hasCaptionStyle then TblCaption else Paragraph)
+                      parstyle parparts
 
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do

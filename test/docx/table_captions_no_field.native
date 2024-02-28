@@ -1,7 +1,6 @@
 [Para [Str "See",Space,Str "Table",Space,Str "5.1."]
-,Para [Str "Table",Space,Str "5.1"]
-,Table ("",[],[]) (Caption Nothing
- [])
+,Table ("",[],[])
+ (Caption Nothing [ Para [ Str "Table" , Space , Str "5.1" ] ])
  [(AlignDefault,ColWidth 0.7605739372523825)
  ,(AlignDefault,ColWidth 0.11971303137380876)
  ,(AlignDefault,ColWidth 0.11971303137380876)]
