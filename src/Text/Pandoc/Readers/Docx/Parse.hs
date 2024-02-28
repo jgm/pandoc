@@ -766,7 +766,8 @@ elemToBodyPart ns element
                   <$> asks envParStyles
                   <*> asks envNumbering
 
-      let hasCaptionStyle = elem "Caption" (pStyleId <$> pStyle parstyle)
+      let hasCaptionStyle =
+            any ((== "caption") . pStyleName) (pStyle parstyle)
 
       let isTableNumberElt el@(Element name attribs _ _) =
            (qName name == "fldSimple" &&
