@@ -146,13 +146,7 @@ convertTags (t@(TagOpen tagname as):ts)
   | any (isSourceAttribute tagname) as
      = do
        as' <- mapM processAttribute as
-       let rawattrs = rights as'
-       let attrs = case lookup "alt" rawattrs of
-                     Nothing -> rawattrs
-                     Just alt -> -- see #9525
-                        case lookup "aria-label" rawattrs of
-                          Nothing -> ("aria-label", alt) : rawattrs
-                          Just _ -> rawattrs
+       let attrs = addRole "img" $ addAriaLabel $ rights as'
        let svgContents = lefts as'
        rest <- convertTags ts
        case svgContents of
@@ -224,6 +218,20 @@ convertTags (t@(TagOpen tagname as):ts)
               else return $ Right (x,y)
 
 convertTags (t:ts) = (t:) <$> convertTags ts
+
+addRole :: T.Text -> [(T.Text, T.Text)] -> [(T.Text, T.Text)]
+addRole role attrs =
+  case lookup "role" attrs of
+    Nothing -> ("role", role) : attrs
+    Just _ -> attrs
+
+addAriaLabel :: [(T.Text, T.Text)] -> [(T.Text, T.Text)]
+addAriaLabel attrs =
+  case lookup "aria-label" attrs of
+    Just _ -> attrs
+    Nothing -> case lookup "alt" attrs of
+                 Just alt -> ("aria-label", alt) : attrs
+                 Nothing -> attrs
 
 -- we want to drop spaces, <?xml>, and comments before <svg>
 -- and anything after </svg>:
