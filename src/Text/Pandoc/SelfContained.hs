@@ -146,7 +146,10 @@ convertTags (t@(TagOpen tagname as):ts)
   | any (isSourceAttribute tagname) as
      = do
        as' <- mapM processAttribute as
-       let attrs = rights as'
+       let rawattrs = rights as'
+       let attrs = case lookup "role" rawattrs of
+                      Nothing -> ("role", "img") : rawattrs -- see #9525
+                      Just _ -> rawattrs
        let svgContents = lefts as'
        rest <- convertTags ts
        case svgContents of
@@ -162,12 +165,13 @@ convertTags (t@(TagOpen tagname as):ts)
                  let attrs' = [(k,v) | (k,v) <- combineSvgAttrs svgattrs attrs
                                      , k /= "id"]
                  return $ TagOpen "svg" attrs' :
-                          TagOpen "use" [("href", "#" <> svgid),
-                                         ("width", "100%"),
-                                         ("height", "100%")] :
-                          TagClose "use" :
-                          TagClose "svg" :
-                          rest'
+                          addTitle attrs'
+                          [ TagOpen "use" [("href", "#" <> svgid),
+                                           ("width", "100%"),
+                                           ("height", "100%")]
+                          , TagClose "use"
+                          , TagClose "svg"
+                          ] ++ rest'
                Nothing ->
                   case dropWhile (not . isTagOpenName "svg") tags of
                     TagOpen "svg" svgattrs : tags' -> do
@@ -198,7 +202,8 @@ convertTags (t@(TagOpen tagname as):ts)
                             TagOpen tname (map addIdPrefix ats)
                           ensureUniqueId x = x
                       return $ TagOpen "svg" attrs'' :
-                                 map ensureUniqueId tags' ++ rest'
+                                 addTitle attrs'' (map ensureUniqueId tags') ++
+                                 rest'
                     _ -> return $ TagOpen tagname attrs : rest
   where processAttribute (x,y) =
            if isSourceAttribute tagname (x,y)
@@ -218,6 +223,18 @@ convertTags (t@(TagOpen tagname as):ts)
               else return $ Right (x,y)
 
 convertTags (t:ts) = (t:) <$> convertTags ts
+
+-- add a title element to the svg if attributes include 'alt' and
+-- the svg doesn't already have a title element. Motivation: see #9525,
+-- as of 2024 screen readers don't notice the alt text on the svg element.
+addTitle :: [(T.Text, T.Text)] -> [Tag T.Text] -> [Tag T.Text]
+addTitle attrs tags =
+  case lookup "alt" attrs of
+    Nothing -> tags
+    Just alt
+      | any (~== (TagOpen "title" [] :: Tag T.Text)) tags -> tags
+      | otherwise ->
+          TagOpen "title" [] : TagText alt : TagClose "title" : tags
 
 -- we want to drop spaces, <?xml>, and comments before <svg>
 -- and anything after </svg>:
