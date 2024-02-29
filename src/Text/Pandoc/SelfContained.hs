@@ -146,7 +146,13 @@ convertTags (t@(TagOpen tagname as):ts)
   | any (isSourceAttribute tagname) as
      = do
        as' <- mapM processAttribute as
-       let attrs = rights as'
+       let rawattrs = rights as'
+       let attrs = case lookup "alt" rawattrs of
+                     Nothing -> rawattrs
+                     Just alt -> -- see #9525
+                        case lookup "aria-label" rawattrs of
+                          Nothing -> ("aria-label", alt) : rawattrs
+                          Just _ -> rawattrs
        let svgContents = lefts as'
        rest <- convertTags ts
        case svgContents of
