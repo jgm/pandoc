@@ -643,7 +643,8 @@ writeDocx opts doc = do
                      , "alwaysMergeEmptyNamespace"
                      , "updateFields"
                      , "hdrShapeDefaults"
-                     , "footnotePr"
+                     -- , "footnotePr" -- this can cause problems, see #9522
+                     -- , "endnotePr"
                      , "compat"
                      , "docVars"
                      , "rsids"
