@@ -16,8 +16,7 @@ extra-deps:
 - typst-0.5.0.1
 - tls-2.0.1
 - skylighting-format-blaze-html-0.1.1.2
-- git: https://github.com/jgm/djoths
-  commit: 970390f4e8d1650378c826d293482ddf710c58a9
+- djot-0.1.1.0
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
