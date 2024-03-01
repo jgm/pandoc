@@ -28,7 +28,7 @@ $for(header-includes)$
 $endfor$
 $if(math)$
 $if(mathjax)$
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
 $endif$
   $math$
 $endif$
