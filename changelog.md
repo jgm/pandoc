@@ -1,5 +1,68 @@
 # Revision history for pandoc
 
+## pandoc 3.1.12.2 (2024-02-29)
+
+  * Docx reader:
+
+    + Ensure that table captions are counted (#9518).
+    + Detect caption by style name not id (#9518).
+      The styleId can change depending on the localization.
+    + Avoid emitting empty paragraph where caption was.
+
+  * Markdown reader: fix regression in link parsing with wikilinks extensions
+    (#9481).  This fixes a regression introduced in 3.1.12.
+
+  * Org reader/writer: support admonitions (#9475).
+
+  * Org writer: omit extra blank line at end of quote block.
+
+  * Typst writer: ensure that `-`, `+`, etc. are escaped at beginning of block
+    (#9478). Our recent relaxing of escaping (#9386) caused problems for
+    things like emphasized `-` characters that were rendered using
+    `#strong[-]#`.  This now gets rendered as `#strong[\-]`.
+
+  * LaTeX writer: fix bug when a language is specified in two different ways
+    (#9472). If you used `lang: de-DE` but then had a span or div with
+    `lang=de`, the preamble would try to load `ngerman` twice, leading
+    to an error. This fix ensures that a language is only loaded once.
+
+  * Docx writer: Don't copy over `footnotePr` in `settings.xml`
+    from reference.docx (#9522).
+
+  * EPUB writer: omit EPUB2-specific meta tag on EPUB3 (#9493).
+    This caused a validation failure in epubs with cover images.
+
+  * Lua: avoid crashing when an error message is not valid UTF-8 (Albert
+    Krewinkel).
+
+  * Text.Pandoc.SelfContained:
+
+    + Add `role="img"` to svgs.
+    + Add `aria-label` to svg elements with `alt` text if present.
+      Screen readers ignore `alt` attributes on svg elements but do
+      pay attention to `aria-label` (#9525).
+
+  * Text.Pandoc.Shared: Fix regression in section numbering in
+    `makeSections` (#9516). Starting with pandoc 3.1.12, unnumbered
+    sections incremented the section number.
+
+  * Text.Pandoc.Class: fix `openUrl` TLS negotiation (#9483).
+    With the release of TLS 2.0.0, the TLS library started requiring
+    Extended Main Secret for the TLS handshake. This caused problems
+    connecting to zotero's server and others that do not support TLS 1.3.
+    This commit relaxes this requirement.
+
+  * Depend on djot 0.1.1.0 (fixes rendering on multiline block attributes).
+
+  * Use new releases of skylighting-format-blaze-html (#9520).
+    Fixes auto-wrapping of long source lines in HTML print media.
+
+  * Use new commonmark-extensions (fixes issue with the
+    `rebase_relative_paths` extension when used with commonmark/gfm.
+
+  * Makefile: improve epub-validation target (#9493).
+    Use `--epub-cover-image` to catch issues that only arise with that.
+
 ## pandoc 3.1.12.1 (2024-02-17)
 
   * EPUB writer: omit EPUBv3-specific accessibility features on epub2
