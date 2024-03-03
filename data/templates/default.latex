@@ -354,14 +354,29 @@ $if(beamer)$
 $else$
 $if(block-headings)$
 % Make \paragraph and \subparagraph free-standing
-\ifx\paragraph\undefined\else
-  \let\oldparagraph\paragraph
-  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
-\fi
-\ifx\subparagraph\undefined\else
-  \let\oldsubparagraph\subparagraph
-  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
-\fi
+\let\oldparagraph\paragraph
+\let\oldsubparagraph\subparagraph
+
+\makeatletter
+
+\renewcommand{\paragraph}{
+  \@ifstar
+    \xxxParagraphStar
+    \xxxParagraphNoStar
+}
+\renewcommand{\subparagraph}{
+  \@ifstar
+    \xxxSubParagraphStar
+    \xxxSubParagraphNoStar
+}
+
+\newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+\newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+
+\newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+\newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+
+\makeatother
 $endif$
 $endif$
 $if(pagestyle)$
