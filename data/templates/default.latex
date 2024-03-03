@@ -354,28 +354,27 @@ $if(beamer)$
 $else$
 $if(block-headings)$
 % Make \paragraph and \subparagraph free-standing
-\let\oldparagraph\paragraph
-\let\oldsubparagraph\subparagraph
-
 \makeatletter
-
-\renewcommand{\paragraph}{
-  \@ifstar
-    \xxxParagraphStar
-    \xxxParagraphNoStar
-}
-\renewcommand{\subparagraph}{
-  \@ifstar
-    \xxxSubParagraphStar
-    \xxxSubParagraphNoStar
-}
-
-\newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
-\newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
-
-\newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
-\newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
-
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
 \makeatother
 $endif$
 $endif$
