@@ -16,7 +16,7 @@ extra-deps:
 - typst-0.5.0.1
 - tls-2.0.1
 - skylighting-format-blaze-html-0.1.1.2
-- djot-0.1.1.0
+- djot-0.1.1.1
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
