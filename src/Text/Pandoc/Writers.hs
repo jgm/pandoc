@@ -19,6 +19,7 @@ module Text.Pandoc.Writers
     -- * Writers: converting /from/ Pandoc format
       Writer(..)
     , writers
+    , writeANSI
     , writeAsciiDoc
     , writeAsciiDocLegacy
     , writeAsciiDoctor
@@ -90,6 +91,7 @@ import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
+import Text.Pandoc.Writers.ANSI
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.BibTeX
 import Text.Pandoc.Writers.ChunkedHTML
@@ -200,6 +202,7 @@ writers = [
   ,("markua"       , TextWriter writeMarkua)
   ,("chunkedhtml"  , ByteStringWriter writeChunkedHTML)
   ,("djot"         , TextWriter writeDjot)
+  ,("ansi"         , TextWriter writeANSI)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
