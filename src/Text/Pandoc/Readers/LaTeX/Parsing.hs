@@ -490,7 +490,11 @@ parseFromToks parser toks = do
   case toks of
      Tok pos _ _ : _ -> setPosition pos
      _ -> return ()
-  result <- disablingWithRaw parser
+  -- we ignore existing raw tokens maps (see #9517)
+  oldRawTokens <- sRawTokens <$> getState
+  updateState $ \st -> st{ sRawTokens = mempty }
+  result <- parser
+  updateState $ \st -> st{ sRawTokens = oldRawTokens }
   setInput oldInput
   setPosition oldpos
   return result
