@@ -17,8 +17,10 @@ extra-deps:
 - tls-2.0.1
 - skylighting-format-blaze-html-0.1.1.2
 - djot-0.1.1.1
+- zip-archive-0.4.3.1
 - git: https://github.com/jgm/texmath
   commit: 85d7c9aaa19c9cc5f53f1cd56384cf89bef83ca4
+
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-22.11
