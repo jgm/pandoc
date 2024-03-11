@@ -10,8 +10,8 @@ packages:
 - 'pandoc-server'
 extra-deps:
 - lpeg-1.1.0
-- commonmark-0.2.5.1
-- commonmark-extensions-0.2.5.3
+- commonmark-0.2.6
+- commonmark-extensions-0.2.5.4
 - commonmark-pandoc-0.2.2.1
 - typst-0.5.0.1
 - tls-2.0.1
