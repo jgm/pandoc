@@ -724,19 +724,3 @@ makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
   go x         = x
-
-toSubscriptInline :: Inline -> Maybe Inline
-toSubscriptInline Space = Just Space
-toSubscriptInline (Span attr ils) = Span attr <$> traverse toSubscriptInline ils
-toSubscriptInline (Str s) = Str . T.pack <$> traverse toSubscript (T.unpack s)
-toSubscriptInline LineBreak = Just LineBreak
-toSubscriptInline SoftBreak = Just SoftBreak
-toSubscriptInline _ = Nothing
-
-toSuperscriptInline :: Inline -> Maybe Inline
-toSuperscriptInline Space = Just Space
-toSuperscriptInline (Span attr ils) = Span attr <$> traverse toSuperscriptInline ils
-toSuperscriptInline (Str s) = Str . T.pack <$> traverse toSuperscript (T.unpack s)
-toSuperscriptInline LineBreak = Just LineBreak
-toSuperscriptInline SoftBreak = Just SoftBreak
-toSuperscriptInline _ = Nothing
