@@ -29,6 +29,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , formatConTeXtInline
                                 , formatConTeXtBlock
                                 , styleToConTeXt
+                                , formatANSI
                                 -- * Styles
                                 , pygments
                                 , espresso
