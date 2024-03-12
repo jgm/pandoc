@@ -41,7 +41,7 @@ import Text.Pandoc.Highlighting
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.DocLayout
+import Text.DocLayout hiding (Color)
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
