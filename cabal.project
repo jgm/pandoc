@@ -16,3 +16,5 @@ source-repository-package
   type: git
   location: https://github.com/jgm/doclayout
   tag: af6563972de73ead9f37de44ccca1c86b09a7cec
+
+-- skylighting also has updates and needs a new release
