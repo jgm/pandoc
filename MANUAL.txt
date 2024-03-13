@@ -516,7 +516,7 @@ header when requesting a document from a URL:
 [reveal.js]: https://revealjs.com/
 [FictionBook2]: http://www.fictionbook.org/index.php/Eng:XML_Schema_Fictionbook_2.1
 [Jupyter notebook]: https://nbformat.readthedocs.io/en/latest/
-[InDesign ICML]: https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf
+[InDesign ICML]: https://manualzz.com/doc/9627253/adobe-indesign-cs6-idml-cookbook
 [TEI Simple]: https://github.com/TEIC/TEI-Simple
 [Muse]: https://amusewiki.org/library/manual
 [PowerPoint]: https://en.wikipedia.org/wiki/Microsoft_PowerPoint
