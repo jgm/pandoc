@@ -123,6 +123,7 @@ Pandoc
               [ [ Plain [ Str "item one" ] ]
               , [ Plain [ Str "item two" ] ]
               ]
+          , Para [ Str "Nested block quotes:" ]
           , BlockQuote [ Para [ Str "nested" ] ]
           , BlockQuote [ Para [ Str "nested" ] ]
           ]
@@ -151,22 +152,37 @@ Pandoc
           [ Header 2 ( "" , [] , [] ) [ Str "Unordered" ]
           , Para [ Str "Asterisks tight:" ]
           , BulletList
+              [ [ Plain [ Str "asterisk 1" ] ]
+              , [ Plain [ Str "asterisk 2" ] ]
+              , [ Plain [ Str "asterisk 3" ] ]
+              ]
+          , Para [ Str "Asterisks loose:" ]
+          , BulletList
               [ [ Para [ Str "asterisk 1" ] ]
               , [ Para [ Str "asterisk 2" ] ]
               , [ Para [ Str "asterisk 3" ] ]
-              , [ Para [ Str "asterisk 1" ] ]
-              , [ Para [ Str "asterisk 2" ] ]
-              , [ Para [ Str "asterisk 3" ] ]
-              , [ Para [ Str "Plus 1" ] ]
+              ]
+          , Para [ Str "Pluses tight:" ]
+          , BulletList
+              [ [ Plain [ Str "Plus 1" ] ]
+              , [ Plain [ Str "Plus 2" ] ]
+              , [ Plain [ Str "Plus 3" ] ]
+              ]
+          , Para [ Str "Pluses loose:" ]
+          , BulletList
+              [ [ Para [ Str "Plus 1" ] ]
               , [ Para [ Str "Plus 2" ] ]
               , [ Para [ Str "Plus 3" ] ]
-              , [ Para [ Str "Plus 1" ] ]
-              , [ Para [ Str "Plus 2" ] ]
-              , [ Para [ Str "Plus 3" ] ]
-              , [ Para [ Str "Minus 1" ] ]
-              , [ Para [ Str "Minus 2" ] ]
-              , [ Para [ Str "Minus 3" ] ]
-              , [ Para [ Str "Minus 1" ] ]
+              ]
+          , Para [ Str "Minuses tight:" ]
+          , BulletList
+              [ [ Plain [ Str "Minus 1" ] ]
+              , [ Plain [ Str "Minus 2" ] ]
+              , [ Plain [ Str "Minus 3" ] ]
+              ]
+          , Para [ Str "Minuses loose:" ]
+          , BulletList
+              [ [ Para [ Str "Minus 1" ] ]
               , [ Para [ Str "Minus 2" ] ]
               , [ Para [ Str "Minus 3" ] ]
               ]
@@ -177,19 +193,35 @@ Pandoc
           , Para [ Str "Tight:" ]
           , OrderedList
               ( 1 , Decimal , Period )
+              [ [ Plain [ Str "First" ] ]
+              , [ Plain [ Str "Second" ] ]
+              , [ Plain [ Str "Third" ] ]
+              ]
+          , Para [ Str "and:" ]
+          , OrderedList
+              ( 1 , Decimal , Period )
+              [ [ Plain [ Str "One" ] ]
+              , [ Plain [ Str "Two" ] ]
+              , [ Plain [ Str "Three" ] ]
+              ]
+          , Para [ Str "Loose using tabs:" ]
+          , OrderedList
+              ( 1 , Decimal , Period )
               [ [ Para [ Str "First" ] ]
               , [ Para [ Str "Second" ] ]
               , [ Para [ Str "Third" ] ]
-              , [ Para [ Str "One" ] ]
+              ]
+          , Para [ Str "and using spaces:" ]
+          , OrderedList
+              ( 1 , Decimal , Period )
+              [ [ Para [ Str "One" ] ]
               , [ Para [ Str "Two" ] ]
               , [ Para [ Str "Three" ] ]
-              , [ Para [ Str "First" ] ]
-              , [ Para [ Str "Second" ] ]
-              , [ Para [ Str "Third" ] ]
-              , [ Para [ Str "One" ] ]
-              , [ Para [ Str "Two" ] ]
-              , [ Para [ Str "Three" ] ]
-              , [ Para [ Str "Item 1, graf one." ]
+              ]
+          , Para [ Str "Multiple paragraphs:" ]
+          , OrderedList
+              ( 1 , Decimal , Period )
+              [ [ Para [ Str "Item 1, graf one." ]
                 , Para
                     [ Str
                         "Item 1. graf two. The quick brown fox jumped over the lazy dog\8217s back."
@@ -211,18 +243,23 @@ Pandoc
                     ]
                 ]
               ]
+          , Para [ Str "Here\8217s another:" ]
           , OrderedList
               ( 1 , Decimal , Period )
-              [ [ Para [ Str "First" ] ]
-              , [ Para [ Str "Second:" ]
+              [ [ Plain [ Str "First" ] ]
+              , [ Plain [ Str "Second:" ]
                 , BulletList
                     [ [ Plain [ Str "Fee" ] ]
                     , [ Plain [ Str "Fie" ] ]
                     , [ Plain [ Str "Foe" ] ]
                     ]
                 ]
-              , [ Para [ Str "Third" ] ]
-              , [ Para [ Str "First" ] ]
+              , [ Plain [ Str "Third" ] ]
+              ]
+          , Para [ Str "Same thing but with paragraphs:" ]
+          , OrderedList
+              ( 1 , Decimal , Period )
+              [ [ Para [ Str "First" ] ]
               , [ Para [ Str "Second:" ]
                 , BulletList
                     [ [ Plain [ Str "Fee" ] ]
@@ -287,6 +324,7 @@ Pandoc
                     ]
                 ]
               ]
+          , Para [ Str "Nesting:" ]
           , OrderedList
               ( 1 , UpperAlpha , Period )
               [ [ Plain [ Str "Upper Alpha" ]
@@ -308,6 +346,7 @@ Pandoc
                     ]
                 ]
               ]
+          , Para [ Str "Autonumbering:" ]
           , OrderedList
               ( 1 , Decimal , Period )
               [ [ Plain [ Str "Autonumber." ] ]
@@ -317,6 +356,8 @@ Pandoc
                     [ [ Plain [ Str "Nested." ] ] ]
                 ]
               ]
+          , Para [ Str "Should not be a list item:" ]
+          , Para [ Str "M.A.\160\&2007" ]
           , OrderedList
               ( 2 , UpperAlpha , Period )
               [ [ Plain [ Str "Williams" ] ] ]
@@ -331,16 +372,33 @@ Pandoc
       [ Header 1 ( "" , [] , [] ) [ Str "Definition Lists" ]
       , Para [ Str "Tight using spaces:" ]
       , DefinitionList
+          [ ( [ Str "apple" ] , [ [ Plain [ Str "red fruit" ] ] ] )
+          , ( [ Str "orange" ]
+            , [ [ Plain [ Str "orange fruit" ] ] ]
+            )
+          , ( [ Str "banana" ]
+            , [ [ Plain [ Str "yellow fruit" ] ] ]
+            )
+          ]
+      , Para [ Str "Tight using tabs:" ]
+      , DefinitionList
+          [ ( [ Str "apple" ] , [ [ Plain [ Str "red fruit" ] ] ] )
+          , ( [ Str "orange" ]
+            , [ [ Plain [ Str "orange fruit" ] ] ]
+            )
+          , ( [ Str "banana" ]
+            , [ [ Plain [ Str "yellow fruit" ] ] ]
+            )
+          ]
+      , Para [ Str "Loose:" ]
+      , DefinitionList
           [ ( [ Str "apple" ] , [ [ Para [ Str "red fruit" ] ] ] )
           , ( [ Str "orange" ] , [ [ Para [ Str "orange fruit" ] ] ] )
           , ( [ Str "banana" ] , [ [ Para [ Str "yellow fruit" ] ] ] )
-          , ( [ Str "apple" ] , [ [ Para [ Str "red fruit" ] ] ] )
-          , ( [ Str "orange" ] , [ [ Para [ Str "orange fruit" ] ] ] )
-          , ( [ Str "banana" ] , [ [ Para [ Str "yellow fruit" ] ] ] )
-          , ( [ Str "apple" ] , [ [ Para [ Str "red fruit" ] ] ] )
-          , ( [ Str "orange" ] , [ [ Para [ Str "orange fruit" ] ] ] )
-          , ( [ Str "banana" ] , [ [ Para [ Str "yellow fruit" ] ] ] )
-          , ( [ Emph [ Str "apple" ] ]
+          ]
+      , Para [ Str "Multiple blocks with italics:" ]
+      , DefinitionList
+          [ ( [ Emph [ Str "apple" ] ]
             , [ [ Para [ Str "red fruit" ]
                 , Para
                     [ Str "contains seeds, crisp, pleasant to taste" ]
@@ -364,13 +422,22 @@ Pandoc
           , ( [ Str "orange" ]
             , [ [ Para [ Str "orange fruit" ] , Para [ Str "bank" ] ] ]
             )
-          , ( [ Str "apple" ]
+          ]
+      , Para [ Str "Multiple definitions, loose:" ]
+      , DefinitionList
+          [ ( [ Str "apple" ]
             , [ [ Para [ Str "red fruit" ] , Para [ Str "computer" ] ] ]
             )
           , ( [ Str "orange" ]
             , [ [ Para [ Str "orange fruit" ] , Para [ Str "bank" ] ] ]
             )
-          , ( [ Str "apple" ]
+          ]
+      , Para
+          [ Str
+              "Blank line after term, indented marker, alternate markers:"
+          ]
+      , DefinitionList
+          [ ( [ Str "apple" ]
             , [ [ Para [ Str "red fruit" ] , Para [ Str "computer" ] ] ]
             )
           , ( [ Str "orange" ]
@@ -582,12 +649,12 @@ Pandoc
       [ Header 1 ( "" , [] , [] ) [ Str "LaTeX" ]
       , BulletList
           [ []
-          , [ Para [ Math InlineMath "2+2=4" ] ]
-          , [ Para [ Math InlineMath "x \\in y" ] ]
-          , [ Para [ Math InlineMath "\\alpha \\wedge \\omega" ] ]
-          , [ Para [ Math InlineMath "223" ] ]
-          , [ Para [ Math InlineMath "p" , Str "-Tree" ] ]
-          , [ Para
+          , [ Plain [ Math InlineMath "2+2=4" ] ]
+          , [ Plain [ Math InlineMath "x \\in y" ] ]
+          , [ Plain [ Math InlineMath "\\alpha \\wedge \\omega" ] ]
+          , [ Plain [ Math InlineMath "223" ] ]
+          , [ Plain [ Math InlineMath "p" , Str "-Tree" ] ]
+          , [ Plain
                 [ Str "Here\8217s some display math:"
                 , SoftBreak
                 , Math
@@ -595,19 +662,22 @@ Pandoc
                     "\\frac{d}{dx}f(x)=\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}"
                 ]
             ]
-          , [ Para
+          , [ Plain
                 [ Str "Here\8217s one that has a line break in it: "
                 , Math InlineMath "\\alpha + \\omega \\times x^2"
                 , Str "."
                 ]
             ]
-          , [ Para
+          ]
+      , Para [ Str "These shouldn\8217t be math:" ]
+      , BulletList
+          [ [ Plain
                 [ Str "To get the famous equation, write "
                 , Code ( "" , [] , [] ) "$e = mc^2$"
                 , Str "."
                 ]
             ]
-          , [ Para
+          , [ Plain
                 [ Str "$22,000 is a "
                 , Emph [ Str "lot" ]
                 , Str " of money. So is $34,000. (It worked if "
@@ -617,8 +687,8 @@ Pandoc
                 , Str "emphasized.)"
                 ]
             ]
-          , [ Para [ Str "Shoes ($20) and socks ($5)." ] ]
-          , [ Para
+          , [ Plain [ Str "Shoes ($20) and socks ($5)." ] ]
+          , [ Plain
                 [ Str "Escaped "
                 , Code ( "" , [] , [] ) "$"
                 , Str ": $73 "
@@ -627,6 +697,7 @@ Pandoc
                 ]
             ]
           ]
+      , Para [ Str "Here\8217s a LaTeX table:" ]
       , HorizontalRule
       ]
   , Div
@@ -643,6 +714,27 @@ Pandoc
           , [ Plain [ Str "set membership: \8712" ] ]
           , [ Plain [ Str "copyright: \169" ] ]
           ]
+      , Para [ Str "AT&T has an ampersand in their name." ]
+      , Para [ Str "AT&T is another way to write it." ]
+      , Para [ Str "This & that." ]
+      , Para [ Str "4 < 5." ]
+      , Para [ Str "6 > 5." ]
+      , Para [ Str "Backslash: \\" ]
+      , Para [ Str "Backtick: `" ]
+      , Para [ Str "Asterisk: *" ]
+      , Para [ Str "Underscore: _" ]
+      , Para [ Str "Left brace: {" ]
+      , Para [ Str "Right brace: }" ]
+      , Para [ Str "Left bracket: [" ]
+      , Para [ Str "Right bracket: ]" ]
+      , Para [ Str "Left paren: (" ]
+      , Para [ Str "Right paren: )" ]
+      , Para [ Str "Greater-than: >" ]
+      , Para [ Str "Hash: #" ]
+      , Para [ Str "Period: ." ]
+      , Para [ Str "Bang: !" ]
+      , Para [ Str "Plus: +" ]
+      , Para [ Str "Minus: -" ]
       , HorizontalRule
       ]
   , Div
@@ -858,6 +950,13 @@ Pandoc
                 ]
               , [ Plain [ Str "It should." ] ]
               ]
+          , Para
+              [ Str "An e-mail address: "
+              , Link
+                  ( "" , [ "email" ] , [] )
+                  [ Str "nobody@nowhere.net" ]
+                  ( "mailto:nobody@nowhere.net" , "" )
+              ]
           , BlockQuote
               [ Para
                   [ Str "Blockquoted: "
@@ -981,6 +1080,10 @@ Pandoc
                 , Note [ Para [ Str "In list." ] ]
                 ]
             ]
+          ]
+      , Para
+          [ Str
+              "This paragraph should not be part of the note, as it is not indented."
           ]
       ]
   ]
