@@ -7,15 +7,3 @@ flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1.2,
              skylighting-format-context >= 0.1.0.2
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/texmath
-  tag: 85d7c9aaa19c9cc5f53f1cd56384cf89bef83ca4
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/doclayout
-  tag: af6563972de73ead9f37de44ccca1c86b09a7cec
-
--- skylighting also has updates and needs a new release
--- typst-hs has updates and needs a new release
