@@ -417,6 +417,7 @@ noteMarker = string "[^" >>
 rawLine :: PandocMonad m => MarkdownParser m Text
 rawLine = try $ do
   notFollowedBy blankline
+  notFollowedByDivCloser
   notFollowedBy' $ try $ skipNonindentSpaces >> noteMarker
   optional indentSpaces
   anyLine
