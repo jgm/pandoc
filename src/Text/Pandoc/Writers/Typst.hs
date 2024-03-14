@@ -175,26 +175,38 @@ blockToTypst block =
           formatalign AlignCenter = "center,"
           formatalign AlignDefault = "auto,"
       let alignarray = parens $ mconcat $ map formatalign aligns
-      return $ "#figure(" $$
-        "align(center)[#table("
-        $$ nest 2
-           (  "columns: " <> text (show numcols) <> "," -- auto
-           $$ "align: (col, row) => " <> alignarray <> ".at(col),"
-           $$ "inset: 6pt" <> ","
-           $$ hsep (map ((<>",") . brackets) headers')
-           $$ vcat (map (\x -> brackets x <> ",") (concat rows'))
-           )
-        $$ ")]"
-        $$ capt'
-        $$ ")"
+      return $
+        "#figure("
+        $$
+        nest 2
+         ("align(center)[#table("
+          $$ nest 2
+             (  "columns: " <> text (show numcols) <> "," -- auto
+             $$ "align: (col, row) => " <> alignarray <> ".at(col),"
+             $$ "inset: 6pt" <> ","
+             $$ hsep (map ((<>",") . brackets) headers')
+             $$ vcat (map (\x -> brackets x <> ",") (concat rows'))
+             )
+          $$ ")]"
+          $$ capt'
+          $$ ", kind: table"
+          $$ ")")
         $$ lab
         $$ blankline
     Figure (ident,_,_) (Caption _mbshort capt) blocks -> do
       caption <- blocksToTypst capt
       contents <- blocksToTypst blocks
       let lab = toLabel FreestandingLabel ident
-      return $ "#figure(" <> nest 2 (brackets contents <> "," <> cr <>
-                                     ("caption: [" $$ nest 2 caption $$ "]"))
+      let kind = case blocks of
+                   Table{}:_ -> "table"
+                   CodeBlock{}:_ -> "code"
+                   _ -> "auto"
+      return $ "#figure(" <> nest 2 ((brackets contents <> ",")
+                                     $$
+                                     ("caption: [" $$ nest 2 caption $$ "],")
+                                     $$
+                                     "kind: " <> literal kind
+                                    )
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)

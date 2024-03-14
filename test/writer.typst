@@ -783,7 +783,8 @@ From "Voyage dans la Lune" by Georges Melies (1902):
 #figure([#box(width: 150.0pt, image("lalune.jpg"));],
   caption: [
     lalune
-  ]
+  ],
+  kind: auto
 )
 
 Here is a movie #box(width: 20.0pt, image("movie.jpg")) icon.
