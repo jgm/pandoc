@@ -1,5 +1,43 @@
 # Revision history for pandoc
 
+## pandoc 3.1.12.3 (2024-03-14)
+
+  * Markdown reader: Fix bug with footnotes at end of fenced div (#9576).
+
+  * LaTeX reader:
+
+    + Improve tokenization of `@` (#9555). Make tokenization sensitive to
+      `\makeatletter`/`\makeatother`. Previously we just always treated
+      `@` as a letter.  This led to bad results, e.g. with the sequence `\@`.
+      E.g., `a\@ b` would parse as "ab" and `a\@b` as "a".
+    + Make `withRaw` work inside `parseFromToks` (#9517).
+      This is needed for raw environments to work inside table cells.
+
+  * Typst writer: add 'kind' parameter to figures (#9574).
+
+  * LaTeX template: Fix block headings support for unnumbered paragraphs
+    (#9542, #6018, Oliver Fabel).
+
+  * HTML templates: Replace polyfill provider (#2384, @SukkaW).
+    Replace polyfill.io with cdnjs.cloudflare.com/polyfill.
+    polyfill.io has been acquired by Funnull, and the service has
+    become unstable.
+
+  * Korean translations: delete colon in translation for 'to'.
+    This was invalid YAML, and not desired anyway, since a colon
+    is added.
+
+  * Use latest commonmark, commonmark-extensions.
+    This fixes a 3.12 regression in parsing of commonmark/gfm autolinks
+    (jgm/commonmark-hs#151).
+
+  * Depend on djot 0.1.1.2, which fixes a serious parsing bug affecting
+    regular paragraphs after lists.
+
+  * Depend on latest skylighting, skylighting-core, typst-hs, texmath.
+
+  * MANUAL.txt: Change broken link to IDML cookbook (#9563).
+
 ## pandoc 3.1.12.2 (2024-02-29)
 
   * Docx reader:
