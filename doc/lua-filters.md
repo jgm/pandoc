@@ -1824,7 +1824,7 @@ values:
 
 Applies a Lua filter to the Inlines list. Just as for
 full-document filters, the order in which elements are handled
-are are Inline → Inlines → Block → Blocks. The filter is applied
+are Inline → Inlines → Block → Blocks. The filter is applied
 to all list items *and* to the list itself. Returns a (deep)
 copy on which the filter has been applied: the original list is
 left untouched.
