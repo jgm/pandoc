@@ -38,7 +38,7 @@ import Text.Pandoc.Shared (makeCanonical)
 import Paths_pandoc (getDataDir)
 #endif
 
--- | Read file from from the default data files.
+-- | Read file from the default data files.
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString
 readDefaultDataFile "reference.docx" =
   B.concat . BL.toChunks . fromArchive <$> getDefaultReferenceDocx
