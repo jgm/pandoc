@@ -150,7 +150,7 @@ It can convert *to*
   markup](https://www.w3.org/TR/html-polyglot/))
 - `html4` ([XHTML](https://www.w3.org/TR/xhtml1/) 1.0 Transitional)
 - `icml` ([InDesign
-  ICML](https://wwwimages.adobe.com/www.adobe.com/content/dam/acom/en/devnet/indesign/sdk/cs6/idml/idml-cookbook.pdf))
+  ICML](https://manualzz.com/doc/9627253/adobe-indesign-cs6-idml-cookbook))
 - `ipynb` ([Jupyter
   notebook](https://nbformat.readthedocs.io/en/latest/))
 - `jats_archiving` ([JATS](https://jats.nlm.nih.gov) XML, Archiving and
