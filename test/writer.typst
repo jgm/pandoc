@@ -15,6 +15,10 @@
     .join()
 }
 
+#set table(
+  inset: 6pt
+)
+
 #let conf(
   title: none,
   authors: (),
