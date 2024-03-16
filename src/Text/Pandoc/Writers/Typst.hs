@@ -183,7 +183,6 @@ blockToTypst block =
           $$ nest 2
              (  "columns: " <> text (show numcols) <> "," -- auto
              $$ "align: (col, row) => " <> alignarray <> ".at(col),"
-             $$ "inset: 6pt" <> ","
              $$ hsep (map ((<>",") . brackets) headers')
              $$ vcat (map (\x -> brackets x <> ",") (concat rows'))
              )
