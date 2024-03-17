@@ -200,17 +200,9 @@ blockToTypst block =
                        -> pure $ mkImage False src kvs
                      _ -> brackets <$> blocksToTypst blocks
       let lab = toLabel FreestandingLabel ident
-      let kind = case blocks of
-                   Table{}:_ -> "kind: table"
-                   CodeBlock{}:_ -> "kind: code"
-                   Para [Image{}]:_ -> "kind: image"
-                   Plain [Image{}]:_ -> "kind: image"
-                   _ -> mempty
       return $ "#figure(" <> nest 2 ((contents <> ",")
                                      $$
-                                     ("caption: [" $$ nest 2 caption $$ "],")
-                                     $$
-                                     kind
+                                     ("caption: [" $$ nest 2 caption $$ "]")
                                     )
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->

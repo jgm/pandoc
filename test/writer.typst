@@ -787,8 +787,7 @@ From "Voyage dans la Lune" by Georges Melies (1902):
 #figure(image("lalune.jpg"),
   caption: [
     lalune
-  ],
-  kind: image
+  ]
 )
 
 Here is a movie #box(image("movie.jpg")) icon.
