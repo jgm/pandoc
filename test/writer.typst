@@ -784,7 +784,7 @@ or here: <http://example.com/>
 <images>
 From "Voyage dans la Lune" by Georges Melies (1902):
 
-#figure([#box(image("lalune.jpg"))],
+#figure(image("lalune.jpg"),
   caption: [
     lalune
   ],

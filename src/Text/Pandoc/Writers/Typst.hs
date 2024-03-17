@@ -192,13 +192,19 @@ blockToTypst block =
         $$ blankline
     Figure (ident,_,_) (Caption _mbshort capt) blocks -> do
       caption <- blocksToTypst capt
-      contents <- blocksToTypst blocks
+      contents <- case blocks of
+                     -- don't need #box around block-level image
+                     [Para [Image (_,_,kvs) _ (src, _)]]
+                       -> pure $ mkImage False src kvs
+                     [Plain [Image (_,_,kvs) _ (src, _)]]
+                       -> pure $ mkImage False src kvs
+                     _ -> brackets <$> blocksToTypst blocks
       let lab = toLabel FreestandingLabel ident
       let kind = case blocks of
                    Table{}:_ -> "table"
                    CodeBlock{}:_ -> "code"
                    _ -> "auto"
-      return $ "#figure(" <> nest 2 ((brackets contents <> ",")
+      return $ "#figure(" <> nest 2 ((contents <> ",")
                                      $$
                                      ("caption: [" $$ nest 2 caption $$ "],")
                                      $$
@@ -304,19 +310,24 @@ inlineToTypst inline =
                     (if inlines == [Str src]
                           then mempty
                           else nowrap $ brackets contents) <> endCode
-    Image (_,_,kvs) _inlines (src,_tit) -> do
-      let src' = T.pack $ unEscapeString $ T.unpack src -- #9389
-      let toDimAttr k =
-             case lookup k kvs of
-               Just v -> ", " <> literal k <> ": " <> literal v
-               Nothing -> mempty
-      let dimAttrs = mconcat $ map toDimAttr ["height", "width"]
-      pure $ "#box" <> -- see #9104; need box or image is treated as block-level
-               parens ("image" <>
-                  parens (doubleQuoted src' <> dimAttrs))
+    Image (_,_,kvs) _inlines (src,_tit) -> pure $ mkImage True src kvs
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents) <> endCode
+
+-- see #9104; need box or image is treated as block-level
+mkImage :: Bool -> Text -> [(Text, Text)] -> Doc Text
+mkImage useBox src kvs
+  | useBox = "#box" <> parens coreImage
+  | otherwise = coreImage
+ where
+  src' = T.pack $ unEscapeString $ T.unpack src -- #9389
+  toDimAttr k =
+     case lookup k kvs of
+       Just v -> ", " <> literal k <> ": " <> literal v
+       Nothing -> mempty
+  dimAttrs = mconcat $ map toDimAttr ["height", "width"]
+  coreImage = "image" <> parens (doubleQuoted src' <> dimAttrs)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines =
