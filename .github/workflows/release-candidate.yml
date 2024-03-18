@@ -57,7 +57,7 @@ jobs:
           cd windows
           echo Creating msi...
           dir
-          @set WIXBIN="c:\Program Files (x86)\WiX Toolset v3.11\bin"
+          @set WIXBIN="c:\Program Files (x86)\WiX Toolset v3.14\bin"
           @set WORKDIR=%CD%
           echo Running candle...
           %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%RELEASE% *.wxs -out wixobj\
