@@ -97,13 +97,18 @@ blockToTypst block =
     Header level (ident,cls,_) inlines -> do
       contents <- inlinesToTypst inlines
       let lab = toLabel FreestandingLabel ident
+      let headingAttrs =
+            ["outlined: false" | "unlisted" `elem` cls] ++
+            ["numbering: none" | "unnumbered" `elem` cls]
       return $
-        if "unlisted" `elem` cls
-           then literal "#heading(outlined: false)" <> brackets contents <>
-                 cr <> lab
-           else nowrap
+        if null headingAttrs
+           then nowrap
                  (literal (T.replicate level "=") <> space <> contents) <>
                  cr <> lab
+           else literal "#heading" <>
+                  parens (literal (T.intercalate ", "
+                              ("level: " <> tshow level : headingAttrs))) <>
+                  brackets contents <> cr <> lab
     RawBlock fmt str ->
       case fmt of
         Format "typst" -> return $ literal str
