@@ -87,11 +87,12 @@ parseAligns = try $ do
   let alignPrefix = symbol '>' >> braced
   let alignSuffix = symbol '<' >> braced
   let colWidth = try $ do
-        symbol '{'
-        ds <- trim . untokenize <$> manyTill anyTok (controlSeq "linewidth")
-        spaces
-        symbol '}'
-        return $ safeRead ds
+        ts <- braced
+        let isLinewidth (Tok _ (CtrlSeq "linewidth") _) = True
+            isLinewidth _ = False
+        case break isLinewidth ts of
+          (ds, _:_) -> return $ safeRead $ trim $ untokenize ds
+          _ -> return Nothing
   let alignSpec = do
         pref <- option [] alignPrefix
         spaces
