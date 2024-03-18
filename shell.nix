@@ -23,7 +23,7 @@ let
     commonmark
     commonmark-extensions
     commonmark-pandoc
-    connection
+#    connection
     containers
     data-default
     deepseq
@@ -38,7 +38,7 @@ let
     gridtables
     haddock-library
     hslua-aeson
-    hslua-list
+#    hslua-list
     hslua-module-doclayout
     hslua-module-path
     hslua-module-system
@@ -75,9 +75,9 @@ let
     skylighting
     skylighting-core
     skylighting-format-latex
-    skylighting-format-context
+# skylighting-format-context
     skylighting-format-blaze-html
-    skylighting-format-ansi
+# skylighting-format-ansi
     split
     syb
     tagsoup
