@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.1.12.3 (2024-03-14)
+## pandoc 3.1.12.3 (2024-03-17)
 
   * Markdown reader: Fix bug with footnotes at end of fenced div (#9576).
 
@@ -12,8 +12,22 @@
       E.g., `a\@ b` would parse as "ab" and `a\@b` as "a".
     + Make `withRaw` work inside `parseFromToks` (#9517).
       This is needed for raw environments to work inside table cells.
+    + Better handling of table colwidths (#9579). Previously the parser just
+      failed if the column width specified in `p{}` wasn't a multiple of
+      `\linewidth`. This led to cases where content was skipped.
 
-  * Typst writer: add 'kind' parameter to figures (#9574).
+  * Typst writer:
+
+    + Add 'kind' parameter to figures with tables (#9574).
+    + Avoid unnecessary box around image in figure (#9236).
+    + Omit width/height in images unless explicitly specified (#9236).
+      Previously we computed width/heigth for images that didn't have
+      size information, because otherwise typst would expand the image
+      to fit page width. This typst behavior has changed in 0.11.
+      This change fixes a bug in which images would sometimes overflow
+      page margins, depending on their intrinsic size.
+    + Don't add hard-coded `inset` to tables (#9580). Instead, set this
+      globally in the default template, allowing it to be customized.
 
   * LaTeX template: Fix block headings support for unnumbered paragraphs
     (#9542, #6018, Oliver Fabel).
@@ -31,7 +45,7 @@
     This fixes a 3.12 regression in parsing of commonmark/gfm autolinks
     (jgm/commonmark-hs#151).
 
-  * Depend on djot 0.1.1.2, which fixes a serious parsing bug affecting
+  * Depend on djot 0.1.1.3, which fixes a serious parsing bug affecting
     regular paragraphs after lists.
 
   * Depend on latest skylighting, skylighting-core, typst-hs, texmath.
