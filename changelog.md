@@ -32,7 +32,7 @@
   * LaTeX template: Fix block headings support for unnumbered paragraphs
     (#9542, #6018, Oliver Fabel).
 
-  * HTML templates: Replace polyfill provider (#2384, @SukkaW).
+  * HTML templates: Replace polyfill provider (#9537, @SukkaW).
     Replace polyfill.io with cdnjs.cloudflare.com/polyfill.
     polyfill.io has been acquired by Funnull, and the service has
     become unstable.
