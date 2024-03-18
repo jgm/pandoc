@@ -25,7 +25,8 @@ import Network.URI (unEscapeString)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
-                                    toLegacyTable, lookupMetaString )
+                                    toLegacyTable, lookupMetaString,
+                                    isOrderedListMarker )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
@@ -232,9 +233,6 @@ listItemToTypst ind marker blocks = do
   return $ hang ind (marker <> space) contents
 
 inlinesToTypst :: PandocMonad m => [Inline] -> TW m (Doc Text)
-inlinesToTypst ils@(Str t : _) -- need to escape - in '[-]' #9478
-  | Just (c, _) <- T.uncons t
-  , needsEscapeAtLineStart c = ("\\" <>) . hcat <$> mapM inlineToTypst ils
 inlinesToTypst ils = hcat <$> mapM inlineToTypst ils
 
 inlineToTypst :: PandocMonad m => Inline -> TW m (Doc Text)
@@ -330,7 +328,15 @@ mkImage useBox src kvs
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines =
-  (<> endCode) . (s <>) . brackets <$> inlinesToTypst inlines
+  (<> endCode) . (s <>) . brackets . addEscape <$> inlinesToTypst inlines
+ where
+   addEscape =
+     case inlines of
+       (Str t : _)
+         | isOrderedListMarker t -> ("\\" <>)
+         | Just (c, _) <- T.uncons t
+         , needsEscapeAtLineStart c -> ("\\" <>)
+       _ -> id
 
 escapeTypst :: EscapeContext -> Text -> Doc Text
 escapeTypst context t =
