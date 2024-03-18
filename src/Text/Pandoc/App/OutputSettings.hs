@@ -262,6 +262,7 @@ optToOutputSettings scriptingEngine opts = do
         , writerReferenceDoc     = optReferenceDoc opts
         , writerSyntaxMap        = syntaxMap
         , writerPreferAscii      = optAscii opts
+        , writerNoteStyle        = optNoteStyle opts
         }
   return $ OutputSettings
     { outputFormat = format
