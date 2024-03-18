@@ -44,11 +44,13 @@ module Text.Pandoc.Writers.Shared (
                      , splitSentences
                      , ensureValidXmlIdentifiers
                      , setupTranslations
+                     , isOrderedListMarker
                      )
 where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad (zipWithM)
+import Data.Either (isRight)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter, isUpper)
 import Data.List (groupBy, intersperse, transpose, foldl')
@@ -61,6 +63,8 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.CSS (cssAttributes)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import Text.Pandoc.Parsing (runParser, eof, defaultParserState,
+                            anyOrderedListMarker)
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
 import Text.Pandoc.Walk (Walkable(..))
@@ -626,3 +630,9 @@ setupTranslations meta = do
             "" -> pure defLang
             s  -> fromMaybe defLang <$> toLang (Just s)
   setTranslations lang
+
+-- True if the string would count as a Markdown ordered list marker.
+isOrderedListMarker :: Text -> Bool
+isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
+              isRight (runParser (anyOrderedListMarker >> eof)
+                       defaultParserState "" xs)

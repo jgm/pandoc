@@ -332,14 +332,6 @@ avoidBadWraps inListItem = go . toList
   toList (Concat a b) = a : toList b
   toList x = [x]
 
-isOrderedListMarker :: Text -> Bool
-isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
-              isRight (runParser (anyOrderedListMarker >> eof)
-                       defaultParserState "" xs)
- where
-  isRight (Right _) = True
-  isRight (Left  _) = False
-
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m (Doc Text)
 inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
