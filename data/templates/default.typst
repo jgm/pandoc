@@ -10,7 +10,8 @@ $definitions.typst()$
 }
 
 #set table(
-  inset: 6pt
+  inset: 6pt,
+  stroke: none
 )
 
 $if(template)$
