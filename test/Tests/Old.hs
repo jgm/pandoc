@@ -264,7 +264,7 @@ lhsWriterTests pandocPath format
     ]
   where
     t n f = test pandocPath
-             n ["--wrap=preserve", "-r", "native", "-s",
+             n ["--wrap=preserve", "-r", "native",
               "--markdown-headings=setext", "-w", f]
              "lhs-test.native" ("lhs-test" <.> f)
 
