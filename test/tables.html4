@@ -2,7 +2,7 @@
 <table>
 <caption>Demonstration of simple table syntax.</caption>
 <thead>
-<tr class="header">
+<tr>
 <th align="right">Right</th>
 <th align="left">Left</th>
 <th align="center">Center</th>
@@ -10,19 +10,19 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="right">12</td>
 <td align="left">12</td>
 <td align="center">12</td>
 <td>12</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="right">123</td>
 <td align="left">123</td>
 <td align="center">123</td>
 <td>123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="right">1</td>
 <td align="left">1</td>
 <td align="center">1</td>
@@ -33,7 +33,7 @@
 <p>Simple table without caption:</p>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th align="right">Right</th>
 <th align="left">Left</th>
 <th align="center">Center</th>
@@ -41,19 +41,19 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="right">12</td>
 <td align="left">12</td>
 <td align="center">12</td>
 <td>12</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="right">123</td>
 <td align="left">123</td>
 <td align="center">123</td>
 <td>123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="right">1</td>
 <td align="left">1</td>
 <td align="center">1</td>
@@ -65,7 +65,7 @@
 <table>
 <caption>Demonstration of simple table syntax.</caption>
 <thead>
-<tr class="header">
+<tr>
 <th align="right">Right</th>
 <th align="left">Left</th>
 <th align="center">Center</th>
@@ -73,19 +73,19 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="right">12</td>
 <td align="left">12</td>
 <td align="center">12</td>
 <td>12</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="right">123</td>
 <td align="left">123</td>
 <td align="center">123</td>
 <td>123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="right">1</td>
 <td align="left">1</td>
 <td align="center">1</td>
@@ -103,7 +103,7 @@
 <col width="35%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th align="center">Centered Header</th>
 <th align="left">Left Aligned</th>
 <th align="right">Right Aligned</th>
@@ -111,13 +111,13 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="center">First</td>
 <td align="left">row</td>
 <td align="right">12.0</td>
 <td align="left">Example of a row that spans multiple lines.</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="center">Second</td>
 <td align="left">row</td>
 <td align="right">5.0</td>
@@ -134,7 +134,7 @@
 <col width="35%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th align="center">Centered Header</th>
 <th align="left">Left Aligned</th>
 <th align="right">Right Aligned</th>
@@ -142,13 +142,13 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="center">First</td>
 <td align="left">row</td>
 <td align="right">12.0</td>
 <td align="left">Example of a row that spans multiple lines.</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="center">Second</td>
 <td align="left">row</td>
 <td align="right">5.0</td>
@@ -159,19 +159,19 @@
 <p>Table without column headers:</p>
 <table>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="right">12</td>
 <td align="left">12</td>
 <td align="center">12</td>
 <td align="right">12</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="right">123</td>
 <td align="left">123</td>
 <td align="center">123</td>
 <td align="right">123</td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="right">1</td>
 <td align="left">1</td>
 <td align="center">1</td>
@@ -188,13 +188,13 @@
 <col width="35%" />
 </colgroup>
 <tbody>
-<tr class="odd">
+<tr>
 <td align="center">First</td>
 <td align="left">row</td>
 <td align="right">12.0</td>
 <td>Example of a row that spans multiple lines.</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="center">Second</td>
 <td align="left">row</td>
 <td align="right">5.0</td>

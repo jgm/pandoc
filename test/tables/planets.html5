@@ -1,7 +1,7 @@
 <table>
 <caption><p>Data about the planets of our solar system.</p></caption>
 <thead>
-<tr class="header">
+<tr>
 <th colspan="2" style="text-align: center;"></th>
 <th>Name</th>
 <th style="text-align: right;">Mass (10^24kg)</th>
@@ -16,7 +16,7 @@
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <th colspan="2" rowspan="4" style="text-align: center;">Terrestrial planets</th>
 <th>Mercury</th>
 <td style="text-align: right;">0.330</td>
@@ -29,7 +29,7 @@
 <td style="text-align: right;">0</td>
 <td>Closest to the Sun</td>
 </tr>
-<tr class="even">
+<tr>
 <th>Venus</th>
 <td style="text-align: right;">4.87</td>
 <td style="text-align: right;">12,104</td>
@@ -41,7 +41,7 @@
 <td style="text-align: right;">0</td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr>
 <th>Earth</th>
 <td style="text-align: right;">5.97</td>
 <td style="text-align: right;">12,756</td>
@@ -53,7 +53,7 @@
 <td style="text-align: right;">1</td>
 <td>Our world</td>
 </tr>
-<tr class="even">
+<tr>
 <th>Mars</th>
 <td style="text-align: right;">0.642</td>
 <td style="text-align: right;">6,792</td>
@@ -65,7 +65,7 @@
 <td style="text-align: right;">2</td>
 <td>The red planet</td>
 </tr>
-<tr class="odd">
+<tr>
 <th rowspan="4" style="text-align: center;">Jovian planets</th>
 <th rowspan="2" style="text-align: center;">Gas giants</th>
 <th>Jupiter</th>
@@ -79,7 +79,7 @@
 <td style="text-align: right;">67</td>
 <td>The largest planet</td>
 </tr>
-<tr class="even">
+<tr>
 <th>Saturn</th>
 <td style="text-align: right;">568</td>
 <td style="text-align: right;">120,536</td>
@@ -91,7 +91,7 @@
 <td style="text-align: right;">62</td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr>
 <th rowspan="2" style="text-align: center;">Ice giants</th>
 <th>Uranus</th>
 <td style="text-align: right;">86.8</td>
@@ -104,7 +104,7 @@
 <td style="text-align: right;">27</td>
 <td></td>
 </tr>
-<tr class="even">
+<tr>
 <th>Neptune</th>
 <td style="text-align: right;">102</td>
 <td style="text-align: right;">49,528</td>
@@ -116,7 +116,7 @@
 <td style="text-align: right;">14</td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr>
 <th colspan="2" style="text-align: center;">Dwarf planets</th>
 <th>Pluto</th>
 <td style="text-align: right;">0.0146</td>
