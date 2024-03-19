@@ -1108,8 +1108,9 @@ parseBlock (Elem e) =
            -- the title: docbook references are ambiguous on that, and some implementations of admonitions
            -- (e.g. asciidoctor) just use an icon in all cases. To be conservative, we don't
            -- include the label and leave it to styling.
-           title <- case filterChild (named "title") e of
-                        Just t  -> divWith ("", ["title"], []) . plain <$> getInlines t
+           title <- divWith ("", ["title"], []) . plain <$>
+                    case filterChild (named "title") e of
+                        Just t  -> getInlines t
                         Nothing -> return mempty
            -- this will ignore the title element if it is present
            b <- getBlocks e
