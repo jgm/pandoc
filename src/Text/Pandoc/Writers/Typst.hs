@@ -174,7 +174,7 @@ blockToTypst block =
       let (aligns, widths) = unzip colspecs
       let commaSep = hcat . intersperse ", "
       let toPercentage (ColWidth w) =
-            literal $ T.dropWhileEnd (\c -> c == '0' || c == '.')
+            literal $ (T.dropWhileEnd (== '.') . T.dropWhileEnd (== '0'))
                          (T.pack (printf "%0.2f" (w * 100))) <> "%"
           toPercentage ColWidthDefault = literal "auto"
       let columns = if all (== ColWidthDefault) widths
