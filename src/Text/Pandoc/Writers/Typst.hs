@@ -20,12 +20,12 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Class ( PandocMonad)
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled )
 import Data.Text (Text)
-import Data.List (intercalate)
+import Data.List (intercalate, intersperse)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
-                                    toLegacyTable, lookupMetaString,
+                                    lookupMetaString,
                                     isOrderedListMarker )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
 import Text.Pandoc.Writers.Math (convertMath)
@@ -34,6 +34,7 @@ import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Collate.Lang (Lang(..), parseLang)
+import Text.Printf (printf)
 import Data.Char (isAlphaNum)
 
 -- | Convert Pandoc to Typst.
@@ -162,33 +163,80 @@ blockToTypst block =
                    else vsep items') $$ blankline
     DefinitionList items ->
       ($$ blankline) . vsep <$> mapM defListItemToTypst items
-    Table (ident,_,_) blkCapt colspecs thead tbodies tfoot -> do
-      let (caption, aligns, _, headers, rows) =
-            toLegacyTable blkCapt colspecs thead tbodies tfoot
-      let numcols = length aligns
-      headers' <- mapM blocksToTypst headers
-      rows' <- mapM (mapM blocksToTypst) rows
+    Table (ident,_,_) (Caption _ caption) colspecs thead tbodies tfoot -> do
+      let lab = toLabel FreestandingLabel ident
       capt' <- if null caption
                   then return mempty
                   else do
-                    captcontents <- inlinesToTypst caption
+                    captcontents <- blocksToTypst caption
                     return $ ", caption: " <> brackets captcontents
-      let lab = toLabel FreestandingLabel ident
+      let numcols = length colspecs
+      let (aligns, widths) = unzip colspecs
+      let commaSep = hcat . intersperse ", "
+      let toPercentage (ColWidth w) =
+            literal $ (T.dropWhileEnd (== '.') . T.dropWhileEnd (== '0'))
+                         (T.pack (printf "%0.2f" (w * 100))) <> "%"
+          toPercentage ColWidthDefault = literal "auto"
+      let columns = if all (== ColWidthDefault) widths
+                       then literal $ tshow numcols
+                       else parens (commaSep (map toPercentage widths))
       let formatalign AlignLeft = "left,"
           formatalign AlignRight = "right,"
           formatalign AlignCenter = "center,"
           formatalign AlignDefault = "auto,"
       let alignarray = parens $ mconcat $ map formatalign aligns
+      let fromCell (Cell _attr alignment rowspan colspan bs) = do
+            let cellattrs =
+                  (case alignment of
+                     AlignDefault -> []
+                     AlignLeft -> [ "align: left" ]
+                     AlignRight -> [ "align: right" ]
+                     AlignCenter -> [ "align: center" ]) ++
+                  (case rowspan of
+                     RowSpan 1 -> []
+                     RowSpan n -> [ "rowspan: " <> tshow n ]) ++
+                  (case colspan of
+                     ColSpan 1 -> []
+                     ColSpan n -> [ "colspan: " <> tshow n ])
+            cellContents <- blocksToTypst bs
+            pure $ if null cellattrs
+                      then brackets cellContents
+                      else "table.cell" <>
+                            parens
+                             (literal (T.intercalate ", " cellattrs)) <>
+                            brackets cellContents
+      let fromRow (Row _ cs) =
+            (<> ",") . commaSep <$> mapM fromCell cs
+      let fromHead (TableHead _attr headRows) =
+            if null headRows
+               then pure mempty
+               else (($$ "table.hline(),") .
+                      (<> ",") . ("table.header" <>) . parens . nest 2 . vcat)
+                      <$> mapM fromRow headRows
+      let fromFoot (TableFoot _attr footRows) =
+            if null footRows
+               then pure mempty
+               else (("table.hline()," $$) .
+                      (<> ",") . ("table.footer" <>) . parens . nest 2 . vcat)
+                      <$> mapM fromRow footRows
+      let fromTableBody (TableBody _attr _rowHeadCols headRows bodyRows) = do
+            hrows <- mapM fromRow headRows
+            brows <- mapM fromRow bodyRows
+            pure $ vcat (hrows ++ ["table.hline()," | not (null hrows)] ++ brows)
+      header <- fromHead thead
+      footer <- fromFoot tfoot
+      body <- vcat <$> mapM fromTableBody tbodies
       return $
         "#figure("
         $$
         nest 2
          ("align(center)[#table("
           $$ nest 2
-             (  "columns: " <> text (show numcols) <> "," -- auto
-             $$ "align: (col, row) => " <> alignarray <> ".at(col),"
-             $$ hsep (map ((<>",") . brackets) headers')
-             $$ vcat (map (\x -> brackets x <> ",") (concat rows'))
+             (  "columns: " <> columns <> ","
+             $$ "align: " <> alignarray <> ","
+             $$ header
+             $$ body
+             $$ footer
              )
           $$ ")]"
           $$ capt'

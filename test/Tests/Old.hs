@@ -199,7 +199,7 @@ tests pandocPath =
     [ testGroup "writer" $ writerTests' "ms"
     ]
   , testGroup "typst"
-    [ testGroup "writer" $ writerTests' "typst"
+    [ testGroup "writer" $ writerTests' "typst" ++ extWriterTests' "typst"
     , testGroup "reader"
        [ test' "typst-reader" ["-r", "typst", "-w", "native", "-s"]
           "typst-reader.typ" "typst-reader.native"

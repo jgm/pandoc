@@ -1,0 +1,26 @@
+#figure(
+  align(center)[#table(
+    columns: (50%, 50%),
+    align: (left,left,),
+    table.header(table.cell(align: center)[Student
+      ID], table.cell(align: center)[Name],),
+    table.hline(),
+    table.cell(colspan: 2)[Computer Science],
+    table.hline(),
+    [3741255], [Jones, Martha],
+    [4077830], [Pierce, Benjamin],
+    [5151701], [Kirk, James],
+    table.cell(colspan: 2)[Russian Literature],
+    table.hline(),
+    [3971244], [Nim, Victor],
+    table.cell(colspan: 2)[Astrophysics],
+    table.hline(),
+    [4100332], [Petrov, Alexandra],
+    [4100332], [Toyota, Hiroko],
+  )]
+  , caption: [List of Students
+
+  ]
+  , kind: table
+  )
+<students>
