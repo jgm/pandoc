@@ -326,6 +326,7 @@ extra-source-files:
                  test/tables/*.html4
                  test/tables/*.html5
                  test/tables/*.latex
+                 test/tables/*.typst
                  test/tables/*.native
                  test/tables/*.mediawiki
                  test/tables/*.jats_archiving
