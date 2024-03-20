@@ -16,7 +16,8 @@
 }
 
 #set table(
-  inset: 6pt
+  inset: 6pt,
+  stroke: none
 )
 
 #let conf(
