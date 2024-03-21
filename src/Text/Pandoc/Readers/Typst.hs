@@ -30,7 +30,7 @@ import Typst ( parseTypst, evaluateTypst )
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Shared (tshow, blocksToInlines)
 import Control.Monad.Except (throwError)
-import Control.Monad (MonadPlus (mplus), void, guard)
+import Control.Monad (MonadPlus (mplus), void, guard, foldM)
 import qualified Data.Foldable as F
 import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe)
@@ -39,7 +39,7 @@ import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Vector as V
+-- import qualified Data.Vector as V
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Walk
 import Text.Parsec
@@ -50,6 +50,7 @@ import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, chunks, getField, P,
                                           PState(..), defaultPState)
 import Typst.Methods (formatNumber, applyPureFunction)
 import Typst.Types
+import qualified Data.Vector as V
 
 -- import Debug.Trace
 
@@ -564,7 +565,7 @@ findLabels = foldr go []
 parseTable :: PandocMonad m
            => Text -> Maybe Text -> M.Map Identifier Val -> P m B.Blocks
 parseTable _kind mbident fields = do
-  children <- getField "children" fields >>= mapM (pWithContents pBlocks) . V.toList
+  children <- V.toList <$> getField "children" fields
   (columns :: Val) <- getField "columns" fields
   let toWidth (VFraction f) = Just (floor $ 1000 * f)
       toWidth _ = Nothing
@@ -613,18 +614,25 @@ parseTable _kind mbident fields = do
           [0 .. (fromIntegral numcols - 1)]
       _ -> pure $ replicate numcols B.AlignDefault
   let colspecs = zip (aligns ++ repeat B.AlignDefault) widths
-  let rows =
-        map (B.Row B.nullAttr) $
-          chunks numcols $
-            map
-              ( B.Cell
-                  B.nullAttr
-                  B.AlignDefault
-                  (B.RowSpan 1)
-                  (B.ColSpan 1)
-                  . B.toList
-              )
-              children
+  let breakIntoRows = chunks numcols -- TODO
+  let toCell cells contents = do
+        case contents of
+          [Elt (Identifier "cell") _pos _fields] -> do -- TODO
+            bs <- B.toList <$> (getField "body" fields >>= pWithContents pBlocks)
+            pure $
+              B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs
+              : cells
+          [Elt (Identifier "table.vline") _pos _fields] -> pure cells
+          [Elt (Identifier "table.hline") _pos _fields] -> pure cells
+          [Elt (Identifier "grid.vline") _pos _fields] -> pure cells
+          [Elt (Identifier "grid.hline") _pos _fields] -> pure cells
+          _ -> do
+            bs <- B.toList <$> pWithContents pBlocks contents
+            pure $
+              B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs
+              : cells
+  rows <- map (B.Row B.nullAttr) . breakIntoRows . reverse
+              <$> foldM toCell [] children
   pure $
     B.tableWith
       (fromMaybe "" mbident, [], [])
@@ -633,3 +641,4 @@ parseTable _kind mbident fields = do
       (B.TableHead B.nullAttr [])
       [B.TableBody B.nullAttr 0 [] rows]
       (B.TableFoot B.nullAttr [])
+
