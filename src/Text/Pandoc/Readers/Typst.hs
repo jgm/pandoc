@@ -39,7 +39,6 @@ import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
--- import qualified Data.Vector as V
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Walk
 import Text.Parsec
@@ -331,8 +330,8 @@ blockHandlers = M.fromList
         B.divWith ("", [], [("stack", repr (VDirection dir))]) $
           mconcat $
             map (B.divWith ("", [], [])) children)
-  ,("grid", \mbident fields -> parseTable "grid" mbident fields)
-  ,("table", \mbident fields -> parseTable "table" mbident fields)
+  ,("grid", \mbident fields -> parseTable mbident fields)
+  ,("table", \mbident fields -> parseTable mbident fields)
   ,("figure", \mbident fields -> do
       body <- getField "body" fields >>= pWithContents pBlocks
       (mbCaption :: Maybe (Seq Content)) <- getField "caption" fields
@@ -563,8 +562,8 @@ findLabels = foldr go []
    go' _ = id
 
 parseTable :: PandocMonad m
-           => Text -> Maybe Text -> M.Map Identifier Val -> P m B.Blocks
-parseTable _kind mbident fields = do
+           => Maybe Text -> M.Map Identifier Val -> P m B.Blocks
+parseTable mbident fields = do
   children <- V.toList <$> getField "children" fields
   (columns :: Val) <- getField "columns" fields
   let toWidth (VFraction f) = Just (floor $ 1000 * f)
@@ -617,15 +616,26 @@ parseTable _kind mbident fields = do
   let breakIntoRows = chunks numcols -- TODO
   let toCell cells contents = do
         case contents of
-          [Elt (Identifier "cell") _pos _fields] -> do -- TODO
-            bs <- B.toList <$> (getField "body" fields >>= pWithContents pBlocks)
+          [Elt (Identifier "grid.cell") _pos fs] -> do
+            bs <- B.toList <$> (getField "body" fs >>= pWithContents pBlocks)
+            rowspan <- getField "rowspan" fs <|> pure 1
+            colspan <- getField "colspan" fs <|> pure 1
+            align' <- (toAlign <$> getField "align" fs) <|> pure B.AlignDefault
             pure $
-              B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs
+              B.Cell B.nullAttr align' (B.RowSpan rowspan) (B.ColSpan colspan) bs
               : cells
-          [Elt (Identifier "table.vline") _pos _fields] -> pure cells
-          [Elt (Identifier "table.hline") _pos _fields] -> pure cells
-          [Elt (Identifier "grid.vline") _pos _fields] -> pure cells
-          [Elt (Identifier "grid.hline") _pos _fields] -> pure cells
+          [Elt (Identifier "table.cell") pos fs] ->
+            toCell cells [Elt (Identifier "grid.cell") pos fs]
+          [Elt (Identifier "table.vline") _pos _fs] -> pure cells
+          [Elt (Identifier "table.hline") _pos _fs] -> pure cells
+          [Elt (Identifier "grid.vline") _pos _fs] -> pure cells
+          [Elt (Identifier "grid.hline") _pos _fs] -> pure cells
+          [Elt (Identifier "table.header") _pos fs] ->
+            -- TODO make this a header
+            getField "children" fs >>= foldM toCell cells . V.toList
+          [Elt (Identifier "table.footer") _pos fs] ->
+            -- TODO make this a footer
+            getField "children" fs >>= foldM toCell cells . V.toList
           _ -> do
             bs <- B.toList <$> pWithContents pBlocks contents
             pure $
