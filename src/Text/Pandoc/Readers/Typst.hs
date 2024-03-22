@@ -45,7 +45,7 @@ import Text.Parsec
 import Text.TeXMath (writeTeX)
 import Text.TeXMath.Shared (getSpaceChars)
 import Text.Pandoc.Readers.Typst.Math (pMathMany)
-import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, chunks, getField, P,
+import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, getField, P,
                                           PState(..), defaultPState)
 import Typst.Methods (formatNumber, applyPureFunction)
 import Typst.Types
@@ -613,11 +613,31 @@ parseTable mbident fields = do
           [0 .. (fromIntegral numcols - 1)]
       _ -> pure $ replicate numcols B.AlignDefault
   let colspecs = zip (aligns ++ repeat B.AlignDefault) widths
-  let breakIntoRows = chunks numcols -- TODO
-  let addCell tableSection cell tableData =
-        case bodyRows tableData of
-          [] -> tableData{ bodyRows = [[cell]] }
-          (x:xs) -> tableData { bodyRows = ((cell:x) : xs) }
+  let breakIntoRows = map reverse . reverse . snd . fromMaybe ([],[]) .
+                       M.lookup TBody . unTableData
+  let addCell' cell Nothing = addCell' cell (Just ([], []))
+      addCell' cell@(B.Cell _ _ (B.RowSpan rowspan) (B.ColSpan colspan) _)
+       (Just (freecols, revrows))  =
+        let freecols' =
+              case (rowspan + 1) - length freecols of
+                n | n < 0 -> freecols
+                  | otherwise -> freecols ++ replicate n numcols
+        in case freecols' of
+             [] -> -- should not happen
+                   error "empty freecols'"
+             x:xs
+               | colspan <= x -- there is room on current row
+                 -> let (as, bs) = splitAt rowspan (x:xs)
+                    in  Just
+                        (map (\z -> z - colspan) as ++ bs,
+                           case revrows of
+                             [] -> [[cell]]
+                             r:rs -> (cell:r):rs)
+               | otherwise ->
+                    let (as, bs) = splitAt rowspan xs
+                    in  Just (map (\z -> z - colspan) as ++ bs, [cell]:revrows)
+  let addCell tableSection cell (TableData tdata) =
+        TableData (M.alter (addCell' cell) tableSection tdata)
   let toCell tableSection tableData contents = do
         case contents of
           [Elt (Identifier "grid.cell") _pos fs] -> do
@@ -647,8 +667,8 @@ parseTable mbident fields = do
             pure $ addCell tableSection
               (B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs)
               tableData
-  rows <- map (B.Row B.nullAttr) . breakIntoRows . reverse . head . bodyRows
-              <$> foldM (toCell TBody) (TableData [] [] [] [] [] []) children
+  rows <- map (B.Row B.nullAttr) . breakIntoRows
+              <$> foldM (toCell TBody) (TableData mempty) children
   pure $
     B.tableWith
       (fromMaybe "" mbident, [], [])
@@ -659,16 +679,13 @@ parseTable mbident fields = do
       (B.TableFoot B.nullAttr [])
 
 data TableSection = THeader | TBody | TFooter
-  deriving (Show)
+  deriving (Show, Ord, Eq)
 
-data TableData =
-  TableData
-  -- the rows and Cells are in reverse order
-  { headerRows :: [[Cell]]
-  , bodyRows :: [[Cell]]
-  , footerRows :: [[Cell]]
-  , headerSpaces :: [Int] -- number of columns space in row:
-  , bodySpaces :: [Int] -- head of list is for current row, tail for future rows
-  , footerSpaces :: [Int]
-  }
+newtype TableData =
+  TableData { unTableData :: M.Map TableSection ([Int], [[Cell]]) }
   deriving (Show)
+  -- for each table section, we have a pair
+  -- the first element indicates the number of column spaces left
+  -- in [currentLine, nextLine, lineAfter, etc.]
+  -- the second element is a list of rows, in reverse order,
+  -- each of which is a list of cells, in reverse order
