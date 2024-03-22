@@ -614,35 +614,41 @@ parseTable mbident fields = do
       _ -> pure $ replicate numcols B.AlignDefault
   let colspecs = zip (aligns ++ repeat B.AlignDefault) widths
   let breakIntoRows = chunks numcols -- TODO
-  let toCell cells contents = do
+  let addCell tableSection cell tableData =
+        case bodyRows tableData of
+          [] -> tableData{ bodyRows = [[cell]] }
+          (x:xs) -> tableData { bodyRows = ((cell:x) : xs) }
+  let toCell tableSection tableData contents = do
         case contents of
           [Elt (Identifier "grid.cell") _pos fs] -> do
             bs <- B.toList <$> (getField "body" fs >>= pWithContents pBlocks)
             rowspan <- getField "rowspan" fs <|> pure 1
             colspan <- getField "colspan" fs <|> pure 1
             align' <- (toAlign <$> getField "align" fs) <|> pure B.AlignDefault
-            pure $
-              B.Cell B.nullAttr align' (B.RowSpan rowspan) (B.ColSpan colspan) bs
-              : cells
+            pure $ addCell tableSection
+              (B.Cell B.nullAttr align' (B.RowSpan rowspan)
+                (B.ColSpan colspan) bs) tableData
           [Elt (Identifier "table.cell") pos fs] ->
-            toCell cells [Elt (Identifier "grid.cell") pos fs]
-          [Elt (Identifier "table.vline") _pos _fs] -> pure cells
-          [Elt (Identifier "table.hline") _pos _fs] -> pure cells
-          [Elt (Identifier "grid.vline") _pos _fs] -> pure cells
-          [Elt (Identifier "grid.hline") _pos _fs] -> pure cells
+            toCell tableSection tableData [Elt (Identifier "grid.cell") pos fs]
+          [Elt (Identifier "table.vline") _pos _fs] -> pure tableData
+          [Elt (Identifier "table.hline") _pos _fs] -> pure tableData
+          [Elt (Identifier "grid.vline") _pos _fs] -> pure tableData
+          [Elt (Identifier "grid.hline") _pos _fs] -> pure tableData
           [Elt (Identifier "table.header") _pos fs] ->
             -- TODO make this a header
-            getField "children" fs >>= foldM toCell cells . V.toList
+            getField "children" fs >>=
+              foldM (toCell THeader) tableData . V.toList
           [Elt (Identifier "table.footer") _pos fs] ->
             -- TODO make this a footer
-            getField "children" fs >>= foldM toCell cells . V.toList
+            getField "children" fs >>=
+              foldM (toCell TFooter) tableData . V.toList
           _ -> do
             bs <- B.toList <$> pWithContents pBlocks contents
-            pure $
-              B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs
-              : cells
-  rows <- map (B.Row B.nullAttr) . breakIntoRows . reverse
-              <$> foldM toCell [] children
+            pure $ addCell tableSection
+              (B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs)
+              tableData
+  rows <- map (B.Row B.nullAttr) . breakIntoRows . reverse . head . bodyRows
+              <$> foldM (toCell TBody) (TableData [] [] [] [] [] []) children
   pure $
     B.tableWith
       (fromMaybe "" mbident, [], [])
@@ -652,3 +658,17 @@ parseTable mbident fields = do
       [B.TableBody B.nullAttr 0 [] rows]
       (B.TableFoot B.nullAttr [])
 
+data TableSection = THeader | TBody | TFooter
+  deriving (Show)
+
+data TableData =
+  TableData
+  -- the rows and Cells are in reverse order
+  { headerRows :: [[Cell]]
+  , bodyRows :: [[Cell]]
+  , footerRows :: [[Cell]]
+  , headerSpaces :: [Int] -- number of columns space in row:
+  , bodySpaces :: [Int] -- head of list is for current row, tail for future rows
+  , footerSpaces :: [Int]
+  }
+  deriving (Show)
