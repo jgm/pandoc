@@ -868,7 +868,10 @@ inlineToLaTeX (Strikeout lst) = do
   -- incorrect results if there is a space, see #5529
   contents <- inlineListToLaTeX $ walk (concatMap protectCode) lst
   modify $ \s -> s{ stStrikeout = True }
-  return $ inCmd "st" contents
+  -- soul doesn't like \(..\) delimiters, so we change these to $ (#9597):
+  let fixMath = T.replace "\\(" "$" . T.replace "\\)" "$" .
+                T.replace "\\[" "$$" . T.replace "\\]" "$$"
+  return $ inCmd "st" $ fixMath <$> contents
 inlineToLaTeX (Superscript lst) =
   inCmd "textsuperscript" <$> inlineListToLaTeX lst
 inlineToLaTeX (Subscript lst) =
