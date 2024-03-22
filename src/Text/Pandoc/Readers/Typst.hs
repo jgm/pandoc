@@ -578,9 +578,11 @@ parseTable mbident fields = do
               else
                 map
                   ( \case
-                      Just x -> B.ColWidth (fromIntegral x / fromIntegral totwidth)
+                      Just x ->
+                        B.ColWidth (fromIntegral x / fromIntegral totwidth)
                       Nothing ->
-                        B.ColWidth (fromIntegral avgwidth / fromIntegral totwidth)
+                        B.ColWidth
+                        (fromIntegral avgwidth / fromIntegral totwidth)
                   )
                   xs
   widths <- case columns of
@@ -653,11 +655,9 @@ parseTable mbident fields = do
           [Elt (Identifier "grid.vline") _pos _fs] -> pure tableData
           [Elt (Identifier "grid.hline") _pos _fs] -> pure tableData
           [Elt (Identifier "table.header") _pos fs] ->
-            -- TODO make this a header
             getField "children" fs >>=
               foldM (toCell THeader) tableData . V.toList
           [Elt (Identifier "table.footer") _pos fs] ->
-            -- TODO make this a footer
             getField "children" fs >>=
               foldM (toCell TFooter) tableData . V.toList
           _ -> do
