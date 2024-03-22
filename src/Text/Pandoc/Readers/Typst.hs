@@ -45,7 +45,7 @@ import Text.Parsec
 import Text.TeXMath (writeTeX)
 import Text.TeXMath.Shared (getSpaceChars)
 import Text.Pandoc.Readers.Typst.Math (pMathMany)
-import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, chunks, getField, P,
+import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, getField, P,
                                           PState(..), defaultPState)
 import Typst.Methods (formatNumber, applyPureFunction)
 import Typst.Types
@@ -613,42 +613,82 @@ parseTable mbident fields = do
           [0 .. (fromIntegral numcols - 1)]
       _ -> pure $ replicate numcols B.AlignDefault
   let colspecs = zip (aligns ++ repeat B.AlignDefault) widths
-  let breakIntoRows = chunks numcols -- TODO
-  let toCell cells contents = do
+  let addCell' cell Nothing = addCell' cell (Just ([], []))
+      addCell' cell@(B.Cell _ _ (B.RowSpan rowspan) (B.ColSpan colspan) _)
+       (Just (freecols, revrows))  =
+        let freecols' =
+              case (rowspan + 1) - length freecols of
+                n | n < 0 -> freecols
+                  | otherwise -> freecols ++ replicate n numcols
+        in case freecols' of
+             [] -> -- should not happen
+                   error "empty freecols'"
+             x:xs
+               | colspan <= x -- there is room on current row
+                 -> let (as, bs) = splitAt rowspan (x:xs)
+                    in  Just
+                        (map (\z -> z - colspan) as ++ bs,
+                           case revrows of
+                             [] -> [[cell]]
+                             r:rs -> (cell:r):rs)
+               | otherwise ->
+                    let (as, bs) = splitAt rowspan xs
+                    in  Just (map (\z -> z - colspan) as ++ bs, [cell]:revrows)
+  let addCell tableSection cell (TableData tdata) =
+        TableData (M.alter (addCell' cell) tableSection tdata)
+  let toCell tableSection tableData contents = do
         case contents of
           [Elt (Identifier "grid.cell") _pos fs] -> do
             bs <- B.toList <$> (getField "body" fs >>= pWithContents pBlocks)
             rowspan <- getField "rowspan" fs <|> pure 1
             colspan <- getField "colspan" fs <|> pure 1
             align' <- (toAlign <$> getField "align" fs) <|> pure B.AlignDefault
-            pure $
-              B.Cell B.nullAttr align' (B.RowSpan rowspan) (B.ColSpan colspan) bs
-              : cells
+            pure $ addCell tableSection
+              (B.Cell B.nullAttr align' (B.RowSpan rowspan)
+                (B.ColSpan colspan) bs) tableData
           [Elt (Identifier "table.cell") pos fs] ->
-            toCell cells [Elt (Identifier "grid.cell") pos fs]
-          [Elt (Identifier "table.vline") _pos _fs] -> pure cells
-          [Elt (Identifier "table.hline") _pos _fs] -> pure cells
-          [Elt (Identifier "grid.vline") _pos _fs] -> pure cells
-          [Elt (Identifier "grid.hline") _pos _fs] -> pure cells
+            toCell tableSection tableData [Elt (Identifier "grid.cell") pos fs]
+          [Elt (Identifier "table.vline") _pos _fs] -> pure tableData
+          [Elt (Identifier "table.hline") _pos _fs] -> pure tableData
+          [Elt (Identifier "grid.vline") _pos _fs] -> pure tableData
+          [Elt (Identifier "grid.hline") _pos _fs] -> pure tableData
           [Elt (Identifier "table.header") _pos fs] ->
             -- TODO make this a header
-            getField "children" fs >>= foldM toCell cells . V.toList
+            getField "children" fs >>=
+              foldM (toCell THeader) tableData . V.toList
           [Elt (Identifier "table.footer") _pos fs] ->
             -- TODO make this a footer
-            getField "children" fs >>= foldM toCell cells . V.toList
+            getField "children" fs >>=
+              foldM (toCell TFooter) tableData . V.toList
           _ -> do
             bs <- B.toList <$> pWithContents pBlocks contents
-            pure $
-              B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs
-              : cells
-  rows <- map (B.Row B.nullAttr) . breakIntoRows . reverse
-              <$> foldM toCell [] children
+            pure $ addCell tableSection
+              (B.Cell B.nullAttr B.AlignDefault (B.RowSpan 1) (B.ColSpan 1) bs)
+              tableData
+  tableData <- foldM (toCell TBody) (TableData mempty) children
+  let getRows tablePart = map (B.Row B.nullAttr . reverse)
+                          . maybe [] (reverse . snd)
+                          . M.lookup tablePart . unTableData
+  let headRows = getRows THeader tableData
+  let bodyRows = getRows TBody tableData
+  let footRows = getRows TFooter tableData
   pure $
     B.tableWith
       (fromMaybe "" mbident, [], [])
       (B.Caption mempty mempty)
       colspecs
-      (B.TableHead B.nullAttr [])
-      [B.TableBody B.nullAttr 0 [] rows]
-      (B.TableFoot B.nullAttr [])
+      (B.TableHead B.nullAttr headRows)
+      [B.TableBody B.nullAttr 0 [] bodyRows]
+      (B.TableFoot B.nullAttr footRows)
 
+data TableSection = THeader | TBody | TFooter
+  deriving (Show, Ord, Eq)
+
+newtype TableData =
+  TableData { unTableData :: M.Map TableSection ([Int], [[Cell]]) }
+  deriving (Show)
+  -- for each table section, we have a pair
+  -- the first element indicates the number of column spaces left
+  -- in [currentLine, nextLine, lineAfter, etc.]
+  -- the second element is a list of rows, in reverse order,
+  -- each of which is a list of cells, in reverse order
