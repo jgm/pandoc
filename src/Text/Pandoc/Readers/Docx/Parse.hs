@@ -282,11 +282,11 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
 
 type TblGrid = [Integer]
 
-newtype TblLook = TblLook {firstRowFormatting::Bool}
+newtype TblLook = TblLook {firstRowFormatting::Bool, firstColumnFormatting::Bool}
               deriving Show
 
 defaultTblLook :: TblLook
-defaultTblLook = TblLook{firstRowFormatting = False}
+defaultTblLook = TblLook{firstRowFormatting = False, firstColumnFormatting = False}
 
 data Row = Row TblHeader [Cell] deriving Show
 
@@ -685,8 +685,15 @@ elemToTblLook ns element | isElem ns "w" "tblLook" element =
           Nothing -> case val of
             Just bitMask -> testBitMask bitMask 0x020
             Nothing      -> False
+      firstColumnFmt =
+        case firstColumn of
+          Just "1" -> True
+          Just  _  -> False
+          Nothing -> case val of
+            Just bitMask -> testBitMask bitMask 0x020
+            Nothing      -> False
   in
-   return TblLook{firstRowFormatting = firstRowFmt}
+   return TblLook{firstRowFormatting = firstRowFmt, firstColumnFormatting = firstColumnFmt}
 elemToTblLook _ _ = throwError WrongElem
 
 elemToRow :: NameSpaces -> Element -> D Row
