@@ -33,7 +33,7 @@ import Text.Pandoc.Definition
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.DocLayout
+import Text.DocLayout hiding (link)
 import Text.Pandoc.Shared (linesToPara, tshow, blocksToInlines)
 import Text.Pandoc.Templates (renderTemplate)
 import qualified Text.Pandoc.Translations as Term (Term(Figure, Table))
