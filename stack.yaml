@@ -21,6 +21,8 @@ extra-deps:
 - citeproc-0.8.1.1
 - djot-0.1.2.1
 - typst-0.5.0.5
+- git: https://github.com/jgm/doclayout
+  commit: fc29e457456b66d7e8d7fcd98170ddef51bef4f4
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
