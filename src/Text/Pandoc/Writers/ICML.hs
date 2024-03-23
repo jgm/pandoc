@@ -30,7 +30,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.DocLayout
+import Text.DocLayout hiding (link)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Templates (renderTemplate)
