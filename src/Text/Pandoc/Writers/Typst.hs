@@ -325,7 +325,7 @@ inlineToTypst inline =
     SmallCaps inlines -> textstyle "#smallcaps" inlines
     Span (ident,_,_) inlines -> do
       let lab = toLabel FreestandingLabel ident
-      (lab $$) <$> inlinesToTypst inlines
+      (<> lab) <$> inlinesToTypst inlines
     Quoted quoteType inlines -> do
       let q = case quoteType of
                    DoubleQuote -> literal "\""
