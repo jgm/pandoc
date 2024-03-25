@@ -30,8 +30,8 @@ import qualified Data.Text as T
 import Data.Text.Lazy (toStrict)
 import qualified Text.DocLayout as D
 
-fleuron :: D.HasChars a => D.Doc a
-fleuron = D.literal "─── ☙ ───"
+hr :: D.HasChars a => D.Doc a
+hr = D.literal $ D.replicateChar 20 '─'
 
 data WriterState = WriterState {
     stNotes     :: [D.Doc Text]        -- Footnotes
@@ -73,7 +73,7 @@ pandocToANSI opts (Pandoc meta blocks) = do
   let notemark x = D.literal (tshow (x :: Int) <> ".") <+> D.space
   let marks = take (length notes) $ map notemark [1..]
   let hangWidth = foldr (max . D.offset) 0 marks
-  let notepretty | not (null notes) = D.cblock width fleuron $+$ hangMarks hangWidth marks notes
+  let notepretty | not (null notes) = D.cblock width hr $+$ hangMarks hangWidth marks notes
                  | otherwise = D.empty
   let main = D.nest 4 $ body $+$ notepretty
   let context = defField "body" main
@@ -84,7 +84,7 @@ pandocToANSI opts (Pandoc meta blocks) = do
          Just tpl -> toStrict $ D.renderANSI (Just width) $ renderTemplate tpl context
 
 titleBlock :: Int -> Context Text -> D.Doc Text
-titleBlock width meta = if null most then D.empty else D.cblock width $ most $+$ fleuron
+titleBlock width meta = if null most then D.empty else D.cblock width $ most $+$ hr
   where
     title = D.bold (fromMaybe D.empty $ getField "title" meta)
     subtitle = fromMaybe D.empty $ getField "subtitle" meta
@@ -119,7 +119,7 @@ blockToANSI _ b@(RawBlock _ _) = do
     report $ BlockNotRendered b
     return D.empty
 
-blockToANSI _ HorizontalRule = return $ D.blankline $$ fleuron $$ D.blankline
+blockToANSI _ HorizontalRule = return $ D.blankline $$ hr $$ D.blankline
 
 blockToANSI opts (Header level _ inlines) = do
   contents <- inlineListToANSI opts inlines
