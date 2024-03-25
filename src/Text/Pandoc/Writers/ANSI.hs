@@ -268,7 +268,7 @@ inlineToANSI _ Space = return D.space
 
 inlineToANSI opts (Link (_, _, _) txt (src, _)) = do
   label <- inlineListToANSI opts txt
-  return $ D.fg D.cyan $ D.link src label
+  return $ D.underlined $ D.fg D.cyan $ D.link src label
 
 inlineToANSI opts (Image _ alt _) = do
   alt' <- inlineListToANSI opts alt
