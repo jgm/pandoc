@@ -80,7 +80,7 @@ pandocToANSI opts (Pandoc meta blocks) = do
   let hangWidth = foldr (max . D.offset) 0 marks
   let notepretty | not (null notes) = D.cblock width hr $+$ hangMarks hangWidth marks notes
                  | otherwise = D.empty
-  let main = D.nest 4 $ body $+$ notepretty
+  let main = body $+$ notepretty
   let context = defField "body" main
               $ defField "titleblock" title metadata
   return $
