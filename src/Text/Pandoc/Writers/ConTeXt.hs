@@ -707,7 +707,7 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
              if isURI src
                 then src
                 else T.pack $ unEscapeString $ T.unpack src
-  return $ braces $ "\\externalfigure" <> brackets (literal src') <> dims <> clas
+  return $ braces $ "\\externalfigure" <> brackets (literal src') <> clas <> dims
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
