@@ -24,6 +24,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
+import qualified Text.Pandoc.Translations as L
 import Text.Pandoc.Writers.Math(texMathToInlines)
 import Text.Pandoc.Writers.Shared
 import qualified Data.Text as T
@@ -37,6 +38,8 @@ data WriterState = WriterState {
     stNotes     :: [D.Doc Text]        -- Footnotes
   , stColumns   :: Int         -- Width of the rendered text block
   , stInner     :: Bool    -- Are we at the document's top-level or in a nested construct?
+  , stNextFigureNum :: Int
+  , stInFigure :: Bool
   }
 
 type TW = StateT WriterState
@@ -56,7 +59,9 @@ writeANSI opts document =
   evalStateT (pandocToANSI opts document)
             WriterState { stNotes = [],
                           stColumns = (writerColumns opts),
-                          stInner = False
+                          stInner = False,
+                          stNextFigureNum = 1,
+                          stInFigure = False
                         }
 
 -- | Return ANSI-styled verison of document
@@ -180,11 +185,20 @@ blockToANSI opts (DefinitionList items) = do
 
 blockToANSI opts (Figure _ (Caption _ caption)  body) = do
   let captionInlines = blocksToInlines caption
+  figTerm <- L.translateTerm L.Figure
+  num <- gets stNextFigureNum
+  figState <- gets stInFigure
+  modify $ \s -> s{stNextFigureNum = num + 1}
+  let label = D.literal figTerm <+> D.literal (tshow num)
   captionMarkup <- if null captionInlines
-                      then return D.empty
-                      else inlineListToANSI opts (blocksToInlines caption)
-  contents <- blockListToANSI opts  body
-  return $ captionMarkup <> contents <> D.blankline
+                      then return (D.italic label)
+                      else do
+                        cap <- inlineListToANSI opts (blocksToInlines caption)
+                        return $ (D.italic (label <> D.literal ":")) <+> cap
+  modify $ \s -> s{stInFigure = True}
+  contents <- blockListToANSI opts body
+  modify $ \s -> s{stInFigure = figState}
+  return $ contents $$ captionMarkup
 
 -- Auxiliary functions for lists:
 
@@ -249,7 +263,7 @@ inlineToANSI opts (Cite _  lst) = inlineListToANSI opts lst
 -- Making a judgment call here that for ANSI-formatted output
 -- intended for reading, we want to reflow inline Code on spaces
 inlineToANSI _ (Code _ str) =
-  return $ D.bg D.white $ D.fg D.magenta $ D.hcat flow
+  return $ D.bg D.white $ D.fg D.red $ " " <> D.hcat flow <> " "
     where flow = intersperse D.space (D.literal <$> T.words str)
 
 inlineToANSI _ (Str str) = return $ D.literal str
@@ -271,8 +285,11 @@ inlineToANSI opts (Link (_, _, _) txt (src, _)) = do
   return $ D.underlined $ D.fg D.cyan $ D.link src label
 
 inlineToANSI opts (Image _ alt _) = do
-  alt' <- inlineListToANSI opts alt
-  return $ "image: " <> alt'
+  infig <- gets stInFigure
+  if not infig then do
+    alt' <- inlineListToANSI opts alt
+    return $ D.brackets $ "image: " <> alt'
+  else return $ D.brackets "image"
 
 -- by construction, we should never be lacking in superscript characters
 -- for the footnote number, but we'll fall back to square brackets anyway
