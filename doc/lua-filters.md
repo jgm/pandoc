@@ -4053,11 +4053,16 @@ argument has a string-valued metafield `__name`, then it returns
 that string. Otherwise it behaves just like the normal `type`
 function.
 
-Usage: -- Prints one of 'string', 'boolean', 'Inlines', 'Blocks',
--- 'table', and 'nil', corresponding to the Haskell constructors
--- MetaString, MetaBool, MetaInlines, MetaBlocks, MetaMap, -- and
-an unset value, respectively. function Meta (meta) print('type of
-metavalue `author`:', pandoc.utils.type(meta.author)) end
+Usage: 
+
+    -- Prints one of 'string', 'boolean', 'Inlines', 'Blocks',
+    -- 'table', and 'nil', corresponding to the Haskell constructors
+    -- MetaString, MetaBool, MetaInlines, MetaBlocks, MetaMap, 
+    -- and an unset value, respectively. 
+    
+    function Meta (meta) 
+      print('type of metavalue `author`:', pandoc.utils.type(meta.author))
+    end
 
 Parameters:
 
