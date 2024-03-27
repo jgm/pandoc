@@ -88,6 +88,18 @@ pandocToTypst options (Pandoc meta blocks) = do
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
 
+pickTypstAttrs :: [(Text, Text)] -> [(Text, Text)]
+pickTypstAttrs = filter (T.isPrefixOf "typst:element:" . fst)
+
+pickTypstTextAttrs :: [(Text, Text)] -> [(Text, Text)]
+pickTypstTextAttrs = filter (T.isPrefixOf "typst:text:" . fst)
+
+formatAttrs :: [(Text, Text)] -> [Text]
+formatAttrs =
+  map (\(k,v) -> let prop = T.splitOn (T.pack ":") k !! 2 in
+        prop <> ": " <> v)
+
+
 blocksToTypst :: PandocMonad m => [Block] -> TW m (Doc Text)
 blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
 
@@ -163,7 +175,7 @@ blockToTypst block =
                    else vsep items') $$ blankline
     DefinitionList items ->
       ($$ blankline) . vsep <$> mapM defListItemToTypst items
-    Table (ident,_,_) (Caption _ caption) colspecs thead tbodies tfoot -> do
+    Table (ident,_,tabkvs) (Caption _ caption) colspecs thead tbodies tfoot -> do
       let lab = toLabel FreestandingLabel ident
       capt' <- if null caption
                   then return mempty
@@ -185,7 +197,8 @@ blockToTypst block =
           formatalign AlignCenter = "center,"
           formatalign AlignDefault = "auto,"
       let alignarray = parens $ mconcat $ map formatalign aligns
-      let fromCell (Cell _attr alignment rowspan colspan bs) = do
+
+      let fromCell (Cell (_,_,kvs) alignment rowspan colspan bs) = do
             let cellattrs =
                   (case alignment of
                      AlignDefault -> []
@@ -197,7 +210,8 @@ blockToTypst block =
                      RowSpan n -> [ "rowspan: " <> tshow n ]) ++
                   (case colspan of
                      ColSpan 1 -> []
-                     ColSpan n -> [ "colspan: " <> tshow n ])
+                     ColSpan n -> [ "colspan: " <> tshow n ]) ++
+                  formatAttrs (pickTypstAttrs kvs)
             cellContents <- blocksToTypst bs
             pure $ if null cellattrs
                       then brackets cellContents
@@ -223,6 +237,10 @@ blockToTypst block =
             hrows <- mapM fromRow headRows
             brows <- mapM fromRow bodyRows
             pure $ vcat (hrows ++ ["table.hline()," | not (null hrows)] ++ brows)
+      let (textstart, textend) =
+            (case formatAttrs $ pickTypstTextAttrs tabkvs of
+              [] -> ("", "")
+              tkvs -> ("#text" <> parens (literal (T.intercalate ", " tkvs)) <> "[", "]"))
       header <- fromHead thead
       footer <- fromFoot tfoot
       body <- vcat <$> mapM fromTableBody tbodies
@@ -230,7 +248,7 @@ blockToTypst block =
         "#figure("
         $$
         nest 2
-         ("align(center)[#table("
+         ("align(center)[" <> textstart <> "#table("
           $$ nest 2
              (  "columns: " <> columns <> ","
              $$ "align: " <> alignarray <> ","
@@ -238,7 +256,7 @@ blockToTypst block =
              $$ body
              $$ footer
              )
-          $$ ")]"
+          $$ ")]" <> textend
           $$ capt'
           $$ ", kind: table"
           $$ ")")
@@ -261,10 +279,13 @@ blockToTypst block =
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
-    Div (ident,_,_) blocks -> do
+    Div (ident,_,kvs) blocks -> do
       let lab = toLabel FreestandingLabel ident
+      let props = case formatAttrs $ pickTypstAttrs kvs of
+                    [] -> ""
+                    tkvs -> parens $ literal (T.intercalate ", " tkvs)
       contents <- blocksToTypst blocks
-      return $ "#block[" $$ contents $$ ("]" <+> lab)
+      return $ "#block" <> props <> "[" $$ contents $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do
@@ -323,9 +344,13 @@ inlineToTypst inline =
     Superscript inlines -> textstyle "#super" inlines
     Subscript inlines -> textstyle "#sub" inlines
     SmallCaps inlines -> textstyle "#smallcaps" inlines
-    Span (ident,_,_) inlines -> do
+    Span (ident,_,kvs) inlines -> do
       let lab = toLabel FreestandingLabel ident
-      (<> lab) <$> inlinesToTypst inlines
+      case formatAttrs $ pickTypstTextAttrs kvs of
+        [] -> (<> lab) <$> inlinesToTypst inlines
+        tkvs -> do 
+          contents <- inlinesToTypst inlines
+          return $ "#text" <> parens (literal (T.intercalate ", " tkvs)) <> "[" <> contents <> "]" <> lab
     Quoted quoteType inlines -> do
       let q = case quoteType of
                    DoubleQuote -> literal "\""
