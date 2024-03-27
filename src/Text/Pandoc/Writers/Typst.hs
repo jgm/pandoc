@@ -21,6 +21,7 @@ import Text.Pandoc.Class ( PandocMonad)
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled )
 import Data.Text (Text)
 import Data.List (intercalate, intersperse)
+import Data.Bifunctor (first, second)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
@@ -87,6 +88,37 @@ pandocToTypst options (Pandoc meta blocks) = do
     case writerTemplate options of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
+
+pickTypstAttrs :: [(Text, Text)] -> ([(Text, Text)],[(Text, Text)])
+pickTypstAttrs = foldr go ([],[])
+  where
+    go (k,v) =
+      case T.splitOn ":" k of
+        "typst":"text":x:[] -> second ((x,v):)
+        "typst":x:[] -> first ((x,v):)
+        _ -> id
+
+formatTypstProp :: (Text, Text) -> Text
+formatTypstProp (k,v) = k <> ": " <> v
+
+toTypstPropsListSep :: [(Text, Text)] -> Doc Text
+toTypstPropsListSep = hsep . intersperse "," . (map $ literal . formatTypstProp)
+
+toTypstPropsListTerm :: [(Text, Text)] -> Doc Text
+toTypstPropsListTerm [] = ""
+toTypstPropsListTerm typstAttrs = toTypstPropsListSep typstAttrs <> ","
+
+toTypstPropsListParens :: [(Text, Text)] -> Doc Text
+toTypstPropsListParens [] = ""
+toTypstPropsListParens typstAttrs = parens $ toTypstPropsListSep typstAttrs
+
+toTypstTextElement :: [(Text, Text)] -> Doc Text -> Doc Text
+toTypstTextElement [] content = content
+toTypstTextElement typstTextAttrs content = "#text" <> toTypstPropsListParens typstTextAttrs <> brackets content
+
+toTypstSetText :: [(Text, Text)] -> Doc Text
+toTypstSetText [] = ""
+toTypstSetText typstTextAttrs = "#set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; " -- newline?
 
 blocksToTypst :: PandocMonad m => [Block] -> TW m (Doc Text)
 blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
@@ -163,7 +195,7 @@ blockToTypst block =
                    else vsep items') $$ blankline
     DefinitionList items ->
       ($$ blankline) . vsep <$> mapM defListItemToTypst items
-    Table (ident,_,_) (Caption _ caption) colspecs thead tbodies tfoot -> do
+    Table (ident,_,tabkvs) (Caption _ caption) colspecs thead tbodies tfoot -> do
       let lab = toLabel FreestandingLabel ident
       capt' <- if null caption
                   then return mempty
@@ -185,26 +217,40 @@ blockToTypst block =
           formatalign AlignCenter = "center,"
           formatalign AlignDefault = "auto,"
       let alignarray = parens $ mconcat $ map formatalign aligns
-      let fromCell (Cell _attr alignment rowspan colspan bs) = do
-            let cellattrs =
+
+      let fromCell (Cell (_,_,kvs) alignment rowspan colspan bs) = do
+            let (typstAttrs, typstTextAttrs) = pickTypstAttrs kvs
+            let valign =
+                  (case lookup "typst:align" typstAttrs of
+                    Just va -> [va]
+                    _ -> [])
+            let typstAttrs2 = filter ((/="typst:align") . fst) typstAttrs
+            let halign =
                   (case alignment of
-                     AlignDefault -> []
-                     AlignLeft -> [ "align: left" ]
-                     AlignRight -> [ "align: right" ]
-                     AlignCenter -> [ "align: center" ]) ++
+                    AlignDefault -> []
+                    AlignLeft -> [ "left" ]
+                    AlignRight -> [ "right" ]
+                    AlignCenter -> [ "center" ])
+            let cellaligns = valign ++ halign
+            let cellattrs =
+                  (case cellaligns of
+                    [] -> []
+                    _ -> [ "align: " <> T.intercalate " + " cellaligns ]) ++
                   (case rowspan of
                      RowSpan 1 -> []
                      RowSpan n -> [ "rowspan: " <> tshow n ]) ++
                   (case colspan of
                      ColSpan 1 -> []
-                     ColSpan n -> [ "colspan: " <> tshow n ])
+                     ColSpan n -> [ "colspan: " <> tshow n ]) ++
+                  map formatTypstProp typstAttrs2
             cellContents <- blocksToTypst bs
+            let contents2 = brackets (toTypstSetText typstTextAttrs <> cellContents)
             pure $ if null cellattrs
-                      then brackets cellContents
+                      then contents2
                       else "table.cell" <>
                             parens
                              (literal (T.intercalate ", " cellattrs)) <>
-                            brackets cellContents
+                            contents2
       let fromRow (Row _ cs) =
             (<> ",") . commaSep <$> mapM fromCell cs
       let fromHead (TableHead _attr headRows) =
@@ -223,6 +269,7 @@ blockToTypst block =
             hrows <- mapM fromRow headRows
             brows <- mapM fromRow bodyRows
             pure $ vcat (hrows ++ ["table.hline()," | not (null hrows)] ++ brows)
+      let (typstAttrs, typstTextAttrs) = pickTypstAttrs tabkvs
       header <- fromHead thead
       footer <- fromFoot tfoot
       body <- vcat <$> mapM fromTableBody tbodies
@@ -230,15 +277,16 @@ blockToTypst block =
         "#figure("
         $$
         nest 2
-         ("align(center)[#table("
+         ("align(center)[" <> toTypstTextElement typstTextAttrs ("#table("
           $$ nest 2
              (  "columns: " <> columns <> ","
              $$ "align: " <> alignarray <> ","
+             $$ toTypstPropsListTerm typstAttrs
              $$ header
              $$ body
              $$ footer
              )
-          $$ ")]"
+          $$ ")]")
           $$ capt'
           $$ ", kind: table"
           $$ ")")
@@ -261,10 +309,13 @@ blockToTypst block =
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
-    Div (ident,_,_) blocks -> do
+    Div (ident,_,kvs) blocks -> do
       let lab = toLabel FreestandingLabel ident
+      let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
       contents <- blocksToTypst blocks
-      return $ "#block[" $$ contents $$ ("]" <+> lab)
+      return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
+        $$ toTypstSetText typstTextAttrs <> contents
+        $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do
@@ -323,9 +374,14 @@ inlineToTypst inline =
     Superscript inlines -> textstyle "#super" inlines
     Subscript inlines -> textstyle "#sub" inlines
     SmallCaps inlines -> textstyle "#smallcaps" inlines
-    Span (ident,_,_) inlines -> do
+    Span (ident,_,kvs) inlines -> do
       let lab = toLabel FreestandingLabel ident
-      (<> lab) <$> inlinesToTypst inlines
+      let (_, typstTextAttrs) = pickTypstAttrs kvs
+      case typstTextAttrs of
+        [] -> (<> lab) <$> inlinesToTypst inlines
+        _ -> do
+          contents <- inlinesToTypst inlines
+          return $ toTypstTextElement typstTextAttrs contents <> lab
     Quoted quoteType inlines -> do
       let q = case quoteType of
                    DoubleQuote -> literal "\""
