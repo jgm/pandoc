@@ -129,13 +129,12 @@ blockToANSI _ HorizontalRule = return $ D.blankline $$ hr $$ D.blankline
 blockToANSI opts (Header level _ inlines) = do
   contents <- inlineListToANSI opts inlines
   inner <- gets stInner
-  return $ header inner level contents $$ D.blankline where
-    header False 1 = (D.flush .  D.bold)
-    header True 1 = (D.underlined . D.bold)
-    header False 2 = ((<> D.literal "  ") . D.bold)
-    header True 2 = D.bold
-    header _ 3 = D.italic
-    header _ _ = id
+  return $ color inner (header level contents) $$ D.blankline where
+    header 1 d = fmap T.toUpper (D.bold d)
+    header 2 d = D.bold d
+    header _ d = D.italic d
+    color False = D.fg D.green
+    color True = id
 
 -- The approach to code blocks and highlighting here is a best-effort with
 -- existing tools, and can easily produce results that aren't quite right. Using
