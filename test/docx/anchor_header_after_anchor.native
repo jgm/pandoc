@@ -1,0 +1,6 @@
+[Para [Link ("",[],[]) [Str "A",Space,Str "link",Space,Str "to",Space,Str "the",Space,Str "bookmark"] ("#referenced-title" , "")]
+,Para [Strong [Str "Accomplices:"]]
+,Para [Str "There",Space,Str "are",Space,Str "bookmarks",Space,Str "around",Space,Str "here."]
+,Para []
+,Header 1 ("referenced-title",[],[]) [Str "Referenced" ,Space ,Str "title"]
+,Para [Str "Content"]]
