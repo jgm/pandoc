@@ -439,11 +439,10 @@ parPartToInlines' (BookMark _ anchor) =
     -- avoid an extra pass.
     immedPrevAnchor <- gets docxImmedPrevAnchor
     case immedPrevAnchor of
-      Just prevAnchor -> do
-        unless inHdrBool
-          (modify $ \s -> s { docxAnchorMap = M.insert anchor prevAnchor anchorMap})
+      Just prevAnchor | not inHdrBool -> do
+        (modify $ \s -> s { docxAnchorMap = M.insert anchor prevAnchor anchorMap})
         return mempty
-      Nothing -> do
+      _ -> do
         exts <- asks (readerExtensions . docxOptions)
         let newAnchor =
               if not inHdrBool && anchor `elem` M.elems anchorMap
