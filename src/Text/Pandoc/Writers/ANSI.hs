@@ -73,7 +73,8 @@ pandocToANSI opts (Pandoc meta blocks) = do
                  (inlineListToANSI opts) meta
   width <- gets stColumns
   let title = titleBlock width metadata
-  body <- blockListToANSI opts blocks
+  let blocks' = makeSections (writerNumberSections opts) Nothing blocks
+  body <- blockListToANSI opts blocks'
   notes <- gets $ reverse . stNotes
   let notemark x = D.literal (tshow (x :: Int) <> ".") <+> D.space
   let marks = take (length notes) $ map notemark [1..]
@@ -126,13 +127,17 @@ blockToANSI _ b@(RawBlock _ _) = do
 
 blockToANSI _ HorizontalRule = return $ D.blankline $$ hr $$ D.blankline
 
-blockToANSI opts (Header level _ inlines) = do
+blockToANSI opts (Header level (_, classes, kvs) inlines) = do
   contents <- inlineListToANSI opts inlines
   inner <- gets stInner
-  return $ color inner (header level contents) $$ D.blankline where
-    header 1 d = fmap T.toUpper (D.bold d)
-    header 2 d = D.bold d
-    header _ d = D.italic d
+  let secnum = fromMaybe mempty $ lookup "number" kvs
+  let doNumber = writerNumberSections opts && not (T.null secnum) && "unnumbered" `notElem` classes
+  let number | doNumber = D.hang (D.realLength secnum + 1) (header level (D.literal secnum) <> D.space)
+             | otherwise = id
+  return $ number (color inner (header level contents)) $$ D.blankline where
+    header 1 = (fmap T.toUpper) . D.bold
+    header 2 = D.bold
+    header _ = D.italic
     color False = D.fg D.green
     color True = id
 
