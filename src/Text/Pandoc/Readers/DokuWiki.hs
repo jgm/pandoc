@@ -300,8 +300,11 @@ parseLink :: PandocMonad m
 parseLink f l r = f
   <$  textStr l
   <*> many1TillChar anyChar (lookAhead (void (char '|') <|> try (void $ textStr r)))
-  <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ textStr r)))
-  <*  textStr r
+  <*> ( (char '|' *> optionMaybe (B.trimInlines . B.text . T.pack <$>
+                       many1Till anyChar (lookAhead (try (textStr r)))))
+       <|> pure Nothing
+      )
+  <* textStr r
 
 -- | Split Interwiki link into left and right part
 -- | Return Nothing if it is not Interwiki link
