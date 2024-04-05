@@ -268,7 +268,7 @@ enabling the `fancy_lists` extension.
 
 When `fancy_lists` is enabled, Pandoc will also parse list
 markers starting with one lowercase or uppercase alphabetical
-character, like `a.` and `D)`. Countrary to the use of this
+character, like `a.` and `D)`. Contrary to the use of this
 extension in markdown, roman numerals or the `#` placeholder
 can't be used as markers as they are not allowed in Org-mode.
 
