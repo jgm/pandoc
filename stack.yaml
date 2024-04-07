@@ -22,10 +22,8 @@ extra-deps:
 - zip-archive-0.4.3.1
 - toml-parser-2.0.0.0
 - typst-symbols-0.1.6
-- git: https://github.com/jgm/typst-hs
-  commit: 926d1c60c80cc9f205e31b7f070835665c2817dd
-- git: https://github.com/jgm/texmath
-  commit: 66e747472d87b2379f4224dd8efb5950e3aef966
+- typst-0.5.0.3
+- texmath-0.12.8.8
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
