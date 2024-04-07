@@ -1,5 +1,75 @@
 # Revision history for pandoc
 
+## pandoc 3.1.13 (2024-04-07)
+
+  * Org reader:
+
+    + Fix treatment of `id` property under heading (#9639).
+
+  * DocBook reader:
+
+    + Add empty title to admonition div if not present (#9569).
+      This allows admonition elements (e.g. `<note>`) to work with
+      `gfm` admonitions even if the `<title>` is not present.
+
+  * DokuWiki reader:
+
+    + Link text cannot contain formatting (e.g., `//` is not italics) (#9630).
+    + An explicitly empty link text (`[[url|]]`) works the same as an omitted
+      link text (#9632).
+
+  * Typst reader:
+
+    + Support Typst 0.11 table features: col/rowspans, table head
+      and foot (#9588).
+    + Parse cell col/rowspans.
+
+  * CSLJson writer:
+
+    + Put `$` or `$$` around math in `csljson` output (#9616).
+
+  * ConTeXt writer:
+
+    + Fix options order with `\externalfigure`. The dimensions should
+      come before the class if both are present.
+
+  * Typst writer:
+
+    + Put label after Span, not before. Labels get applied to preceding markup
+      item.
+    + Support Typst 0.11 table features (#9588): colspans, rowspans,
+      cell alignment overrides, relative column widths,
+      header and footer, multiple table bodies with intermediate headers.
+      Row heads are not yet supported.
+    + The default typst template has been modified so that tables
+      don't have lines by default. As is standard with pandoc, we only
+      add a line under a header or over a footer. However, a different
+      default stroke pattern can easily be added in a template.
+    + More reliable escaping in inline `[..]` contexts (#9586). For example,
+      we need to escape `[\1. April]` or it will be treated as an ordered list.
+    + Handle `unnumbered` on headings (#9585).
+
+  * LaTeX writer:
+
+    + Fix math inside strikeout (#9597).
+
+  * Text.Pandoc.Writers.Shared:
+
+    + Export `isOrderedListMarker` [API change].
+
+  * Change lhs tests so they don't use `--standalone`.
+    This will avoid test failures due to minor changes in
+    skylighting versions, e.g. #9589.
+
+  * Use latest texmath, typst.
+
+  * Require pandoc-lua-marshal 0.2.6 (#9613, Albert Krewinkel).
+    Fixes an issue arising when the value of `content` properties
+    on *BlockQuote*, *Figure*, and *Div* elements was an empty list.
+
+  * Update lua-filters.md (#9611, Carlos Scheidegger).
+
+
 ## pandoc 3.1.12.3 (2024-03-17)
 
   * Markdown reader: Fix bug with footnotes at end of fenced div (#9576).
