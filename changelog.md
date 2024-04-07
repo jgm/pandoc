@@ -31,7 +31,7 @@
   * ConTeXt writer:
 
     + Fix options order with `\externalfigure`. The dimensions should
-      come before the class if both are present.
+      come after the class if both are present.
 
   * Typst writer:
 
