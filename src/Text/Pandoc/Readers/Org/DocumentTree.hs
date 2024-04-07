@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.Org.DocumentTree
   ) where
 
 import Control.Arrow ((***), first)
-import Control.Monad (guard)
+import Control.Monad (guard, mplus)
 import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
@@ -317,10 +317,12 @@ propertiesToAttr properties =
   let
     toTextPair = fromKey *** fromValue
     customIdKey = toPropertyKey "custom_id"
+    idKey = toPropertyKey "id"
     classKey    = toPropertyKey "class"
     unnumberedKey = toPropertyKey "unnumbered"
-    specialProperties = [customIdKey, classKey, unnumberedKey]
-    id'  = maybe mempty fromValue . lookup customIdKey $ properties
+    specialProperties = [customIdKey, idKey, classKey, unnumberedKey]
+    id'  = maybe mempty fromValue $
+              (lookup customIdKey properties `mplus` lookup idKey properties)
     cls  = maybe mempty fromValue . lookup classKey    $ properties
     kvs' = map toTextPair . filter ((`notElem` specialProperties) . fst)
            $ properties
