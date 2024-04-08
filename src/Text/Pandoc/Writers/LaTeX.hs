@@ -821,7 +821,7 @@ inlineToLaTeX :: PandocMonad m
               -> LW m (Doc Text)
 inlineToLaTeX (Span ("",["mark"],[]) lst) = do
   modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
-  inCmd "hl" <$> inlineListToLaTeX lst
+  inCmd "hl" <$> inSoulCommand (inlineListToLaTeX lst)
 inlineToLaTeX (Span (id',classes,kvs) ils) = do
   linkAnchor <- hypertarget id'
   lang <- toLang $ lookup "lang" kvs
@@ -859,19 +859,11 @@ inlineToLaTeX (Span (id',classes,kvs) ils) = do
 inlineToLaTeX (Emph lst) = inCmd "emph" <$> inlineListToLaTeX lst
 inlineToLaTeX (Underline lst) = do
   modify $ \st -> st{ stStrikeout = True } -- this gives us the soul package
-  inCmd "ul" <$> inlineListToLaTeX lst
+  inCmd "ul" <$> inSoulCommand (inlineListToLaTeX lst)
 inlineToLaTeX (Strong lst) = inCmd "textbf" <$> inlineListToLaTeX lst
 inlineToLaTeX (Strikeout lst) = do
-  -- we need to protect VERB in an mbox or we get an error
-  -- see #1294
-  -- with regular texttt we don't get an error, but we get
-  -- incorrect results if there is a space, see #5529
-  contents <- inlineListToLaTeX $ walk (concatMap protectCode) lst
   modify $ \s -> s{ stStrikeout = True }
-  -- soul doesn't like \(..\) delimiters, so we change these to $ (#9597):
-  let fixMath = T.replace "\\(" "$" . T.replace "\\)" "$" .
-                T.replace "\\[" "$$" . T.replace "\\]" "$$"
-  return $ inCmd "st" $ fixMath <$> contents
+  inCmd "st" <$> inSoulCommand (inlineListToLaTeX lst)
 inlineToLaTeX (Superscript lst) =
   inCmd "textsuperscript" <$> inlineListToLaTeX lst
 inlineToLaTeX (Subscript lst) =
@@ -892,6 +884,7 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   opts <- gets stOptions
   inHeading <- gets stInHeading
   inItem <- gets stInItem
+  inSoul <- gets stInSoulCommand
   let listingsCode = do
         let listingsopts = (case getListingsLanguage classes of
                                 Just l  -> (("language", mbBraced l):)
@@ -940,7 +933,12 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
                  rawCode
                Right h -> modify (\st -> st{ stHighlighting = True }) >>
                           return (text (T.unpack h))
-  case () of
+  -- for soul commands we need to protect VERB in an mbox or we get an error
+  -- (see #1294). with regular texttt we don't get an error, but we get
+  -- incorrect results if there is a space (see #5529).
+  let inMbox x = "\\mbox" <> braces x
+  (if inSoul then inMbox else id) <$>
+   case () of
      _ | inHeading || inItem  -> rawCode  -- see #5574
        | writerListings opts  -> listingsCode
        | isJust (writerHighlightStyle opts) && not (null classes)
@@ -984,10 +982,20 @@ inlineToLaTeX (Str str) = do
   liftM literal $ stringToLaTeX TextString str
 inlineToLaTeX (Math InlineMath str) = do
   setEmptyLine False
-  return $ "\\(" <> literal (handleMathComment str) <> "\\)"
+  inSoul <- gets stInSoulCommand
+  let contents = literal (handleMathComment str)
+  return $
+    if inSoul -- #9597
+       then "$" <> contents <> "$"
+       else "\\(" <> contents <> "\\)"
 inlineToLaTeX (Math DisplayMath str) = do
   setEmptyLine False
-  return $ "\\[" <> literal (handleMathComment str) <> "\\]"
+  inSoul <- gets stInSoulCommand
+  let contents = literal (handleMathComment str)
+  return $
+    if inSoul -- # 9597
+       then "$$" <> contents <> "$$"
+       else "\\[" <> contents <> "\\]"
 inlineToLaTeX il@(RawInline f str) = do
   beamer <- gets stBeamer
   if f == Format "latex" || f == Format "tex" ||
@@ -1121,11 +1129,6 @@ handleMathComment s =
           _              -> s <> "\n"
         _                -> s
 
-protectCode :: Inline -> [Inline]
-protectCode x@(Code _ _) = [ltx "\\mbox{" , x , ltx "}"]
-  where ltx = RawInline (Format "latex")
-protectCode x = [x]
-
 setEmptyLine :: PandocMonad m => Bool -> LW m ()
 setEmptyLine b = modify $ \st -> st{ stEmptyLine = b }
 
@@ -1145,3 +1148,13 @@ extractInline _ _               = []
 -- Look up a key in an attribute and give a list of its values
 lookKey :: Text -> Attr -> [Text]
 lookKey key (_,_,kvs) =  maybe [] T.words $ lookup key kvs
+
+-- soul doesn't like \(..\) delimiters, so we change these to $ (#9597)
+-- when processing their contents.
+inSoulCommand :: PandocMonad m => LW m a -> LW m a
+inSoulCommand pa = do
+  oldInSoulCommand <- gets stInSoulCommand
+  modify $ \st -> st{ stInSoulCommand = True }
+  result <- pa
+  modify $ \st -> st{ stInSoulCommand = oldInSoulCommand }
+  pure result
