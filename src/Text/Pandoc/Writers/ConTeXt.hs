@@ -587,7 +587,7 @@ inlineToConTeXt :: PandocMonad m
                 -> WM m (Doc Text)
 inlineToConTeXt (Emph lst)      = highlightInlines "emph"      "\\em" lst
 inlineToConTeXt (Strong lst)    = highlightInlines "strong"    "\\bf" lst
-inlineToConTeXt (SmallCaps lst) = highlightInlines "smallcaps" "\\sc" lst
+inlineToConTeXt (SmallCaps lst) = highlightInlines "smallcaps" "\\setsmallcaps" lst
 inlineToConTeXt (Underline lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\underbar" <> braces contents
