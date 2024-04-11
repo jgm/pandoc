@@ -101,6 +101,7 @@ data LogMessage =
   | NotUTF8Encoded FilePath
   | MakePDFInfo Text Text
   | MakePDFWarning Text
+  | UnclosedDiv SourcePos SourcePos
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -260,6 +261,16 @@ instance ToJSON LogMessage where
            ,"contents" .= contents]
       MakePDFWarning message ->
            ["message" .= message]
+      UnclosedDiv openpos closepos ->
+           ["openpos" .= object
+             [ "source" .= sourceName openpos,
+               "line" .= toJSON (sourceLine openpos),
+               "column" .= toJSON (sourceColumn openpos)]
+           ,"closepos" .= object
+             [ "source" .= sourceName closepos,
+               "line" .= toJSON (sourceLine closepos),
+               "column" .= toJSON (sourceColumn closepos)]
+           ]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -400,6 +411,8 @@ showLogMessage msg =
              then mempty
              else "\n" <> contents
        MakePDFWarning message -> "[makePDF] " <> message
+       UnclosedDiv openpos closepos -> "Div at " <> showPos openpos <>
+          " unclosed at " <> showPos closepos <> ", closing implicitly."
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -455,3 +468,4 @@ messageVerbosity msg =
        NotUTF8Encoded{}              -> WARNING
        MakePDFInfo{}                 -> INFO
        MakePDFWarning{}              -> WARNING
+       UnclosedDiv{}                 -> WARNING
