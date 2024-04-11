@@ -449,7 +449,7 @@ tests = [ testGroup "inline code"
                   <>
                   codeBlockWith ("",["haskell"],[]) "b"
                   <>
-                  rawBlock "html" "<div>\n\n"
+                  divWith ("",[],[]) mempty
           ]
 -- the round-trip properties frequently fail
 --        , testGroup "round trip"

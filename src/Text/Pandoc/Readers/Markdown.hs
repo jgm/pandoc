@@ -2102,30 +2102,29 @@ divHtml :: PandocMonad m => MarkdownParser m (F Blocks)
 divHtml = do
   guardEnabled Ext_native_divs
   try $ do
-    (TagOpen _ attrs, rawtag) <- htmlTag (~== TagOpen ("div" :: Text) [])
+    openpos <- getPosition
+    (TagOpen _ attrs, _) <- htmlTag (~== TagOpen ("div" :: Text) [])
     -- we set stateInHtmlBlock so that closing tags that can be either block
     -- or inline will not be parsed as inline tags
     oldInHtmlBlock <- stateInHtmlBlock <$> getState
     updateState $ \st -> st{ stateInHtmlBlock = Just "div" }
-    bls <- option "" (blankline >> option "" blanklines)
+    optional blanklines
     contents <- mconcat <$>
                 many (notFollowedBy' (htmlTag (~== TagClose ("div" :: Text)))
                       >> block)
-    closed <- option False (True <$ htmlTag (~== TagClose ("div" :: Text)))
-    if closed
-       then do
-         updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
-         let ident = fromMaybe "" $ lookup "id" attrs
-         let classes = maybe [] T.words $ lookup "class" attrs
-         let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-         return $ B.divWith (ident, classes, keyvals) <$> contents
-       else -- avoid backtracing
-         return $ return (B.rawBlock "html" (rawtag <> bls)) <> contents
+    void (htmlTag (~== TagClose ("div" :: Text))) <|>
+       (getPosition >>= report . UnclosedDiv openpos)
+    let ident = fromMaybe "" $ lookup "id" attrs
+    let classes = maybe [] T.words $ lookup "class" attrs
+    let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
+    updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
+    return $ B.divWith (ident, classes, keyvals) <$> contents
 
 divFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 divFenced = do
   guardEnabled Ext_fenced_divs
   try $ do
+    openpos <- getPosition
     string ":::"
     skipMany (char ':')
     skipMany spaceChar
@@ -2135,7 +2134,8 @@ divFenced = do
     blankline
     updateState $ \st ->
       st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
-    bs <- mconcat <$> manyTill block divFenceEnd
+    bs <- mconcat <$> many (notFollowedBy divFenceEnd >> block)
+    divFenceEnd <|> (getPosition >>= report . UnclosedDiv openpos)
     updateState $ \st ->
       st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
     return $ B.divWith attribs <$> bs
