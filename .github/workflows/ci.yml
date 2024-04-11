@@ -198,6 +198,8 @@ jobs:
       run: |
           cabal update
           cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
+          D:\a\pandoc\pandoc\dist-newstyle\build\x86_64-windows\ghc-9.4.4\pandoc-3.1.13\t\test-pandoc\noopt\build\test-pandoc\test-pandoc.exe --version
+          D:\a\pandoc\pandoc\dist-newstyle\build\x86_64-windows\ghc-9.4.4\pandoc-3.1.13\t\test-pandoc\noopt\build\test-pandoc\test-pandoc.exe README.md
 
 # We no longer run the macos tests, to make CI faster.
 # macos:
