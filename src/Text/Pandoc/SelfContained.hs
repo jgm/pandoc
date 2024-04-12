@@ -258,10 +258,12 @@ combineSvgAttrs svgAttrs imgAttrs =
   dropPointZero t = case T.stripSuffix ".0" t of
                        Nothing -> t
                        Just t' -> t'
-  combinedAttrs = imgAttrs ++
+  combinedAttrs = concat [
+    imgAttrs,
     [(k, v) | (k, v) <- svgAttrs
             , isNothing (lookup k imgAttrs)
-            , k `notElem` ["xmlns", "xmlns:xlink", "version"]]
+            , k `notElem` ["xmlns", "xmlns:xlink", "version"]],
+    mergedClasses]
   parseViewBox t =
     case map (safeRead . addZero) $ T.words t of
       [Just llx, Just lly, Just urx, Just ury] -> Just (llx, lly, urx, ury)
@@ -274,6 +276,12 @@ combineSvgAttrs svgAttrs imgAttrs =
         lookup "viewBox" svgAttrs >>= parseViewBox
   (mbHeight :: Maybe Int) = lookup "height" combinedAttrs >>= safeRead
   (mbWidth :: Maybe Int) = lookup "width" combinedAttrs >>= safeRead
+  -- https://github.com/jgm/pandoc/issues/9652
+  imgClasses = lookup "class" imgAttrs
+  svgClasses = lookup "class" svgAttrs
+  mergedClasses = case (imgClasses, svgClasses) of
+                    (Just c1, Just c2) -> [("class", c1 <> " " <> c2)]
+                    _ -> []
 
 cssURLs :: PandocMonad m
         => FilePath -> ByteString -> m ByteString
