@@ -7199,8 +7199,8 @@ would style the two contained lines with the `Poetry` paragraph style.
 
 Styles will be defined in the output file as inheriting
 from normal text (docx) or Default Paragraph Style (odt), if the 
-styles are not yet in your reference.docx. If they are already defined, 
-pandoc will not alter the definition.
+styles are not yet in your [reference doc]{#option--reference-doc}. 
+If they are already defined, pandoc will not alter the definition.
 
 This feature allows for greatest customization in conjunction with
 [pandoc filters]. If you want all paragraphs after block quotes to be
