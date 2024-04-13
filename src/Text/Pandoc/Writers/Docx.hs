@@ -820,28 +820,31 @@ mkLvl marker lvl =
     [ mknode "w:numFmt" [("w:val",fmt)] ()
     , mknode "w:lvlText" [("w:val", lvltxt)] ()
     , mknode "w:lvlJc" [("w:val","left")] ()
-    , mknode "w:pPr" []
-      [ mknode "w:ind" [ ("w:left",tshow $ lvl * step + step)
-                       , ("w:hanging",tshow (hang :: Int))
+    , mknode "w:pPr" [] $
+        mknode "w:ind" [ ("w:left",tshow $ lvl * step + step)
+                       , ("w:hanging",tshow hang)
                        ] ()
-      ]
+        : maybe []
+           (\font -> [ mknode "w:rFonts" [ ("w:ascii", font)
+                                         , ("w:hAnsi", font)
+                                         , ("w:cs", font)
+                                         , ("w:hint", "default") ] () ]) mbfont
     ]
-    where (fmt, lvltxt, start) =
+    where (fmt, lvltxt, mbfont, start) =
             case marker of
-                 NoMarker             -> ("bullet"," ","1")
-                 BulletMarker         -> ("bullet",bulletFor lvl,"1")
+                 NoMarker             -> ("bullet"," ", Nothing, "1")
+                 BulletMarker         -> bulletFor lvl
                  NumberMarker st de n -> (styleFor st lvl
                                          ,patternFor de ("%" <> tshow (lvl + 1))
+                                         ,Nothing
                                          ,tshow n)
           step = 720
-          hang = 480
-          bulletFor 0 = "\x2022"  -- filled circle
-          bulletFor 1 = "\x2013"  -- en dash
-          bulletFor 2 = "\x2022"  -- hyphen bullet
-          bulletFor 3 = "\x2013"
-          bulletFor 4 = "\x2022"
-          bulletFor 5 = "\x2013"
-          bulletFor x = bulletFor (x `mod` 6)
+          hang :: Int
+          hang = 360
+          bulletFor 0 = ("bullet", "\xf0b7", Just "Symbol", "1") -- filled circle
+          bulletFor 1 = ("bullet", "o", Just "Courier New", "1") -- open o
+          bulletFor 2 = ("bullet", "\xf0a7", Just "Wingdings", "1")  -- closed box
+          bulletFor x = bulletFor (x `mod` 3)
           styleFor UpperAlpha _   = "upperLetter"
           styleFor LowerAlpha _   = "lowerLetter"
           styleFor UpperRoman _   = "upperRoman"
