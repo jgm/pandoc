@@ -7165,16 +7165,16 @@ To disable highlighting, use the `--no-highlight` option.
 
 # Custom Styles
 
-Custom styles can be used in the docx and ICML formats.
+Custom styles can be used in the docx, odt and ICML formats.
 
 ## Output
 
-By default, pandoc's docx and ICML output applies a predefined set of styles
-for blocks such as paragraphs and block quotes, and uses largely default
-formatting (italics, bold) for inlines. This will work for most
-purposes, especially alongside a `reference.docx` file. However, if you
-need to apply your own styles to blocks, or match a preexisting set of
-styles, pandoc allows you to define custom styles for blocks and text
+By default, pandoc's odt, docx and ICML output applies a predefined set of 
+styles for blocks such as paragraphs and block quotes, and uses largely 
+default formatting (italics, bold) for inlines. This will work for most
+purposes, especially alongside a [reference doc]{#option--reference-doc} file. 
+However, if you need to apply your own styles to blocks, or match a preexisting 
+set of styles, pandoc allows you to define custom styles for blocks and text
 using `div`s and `span`s, respectively.
 
 If you define a `div` or `span` with the attribute `custom-style`,
@@ -7185,7 +7185,7 @@ the `bracketed_spans` syntax,
 
     [Get out]{custom-style="Emphatically"}, he said.
 
-would produce a docx file with "Get out" styled with character
+would produce a file with "Get out" styled with character
 style `Emphatically`. Similarly, using the `fenced_divs` syntax,
 
     Dickinson starts the poem simply:
@@ -7197,9 +7197,10 @@ style `Emphatically`. Similarly, using the `fenced_divs` syntax,
 
 would style the two contained lines with the `Poetry` paragraph style.
 
-For docx output, styles will be defined in the output file as inheriting
-from normal text, if the styles are not yet in your reference.docx.
-If they are already defined, pandoc will not alter the definition.
+Styles will be defined in the output file as inheriting
+from normal text (docx) or Default Paragraph Style (odt), if the 
+styles are not yet in your reference.docx. If they are already defined, 
+pandoc will not alter the definition.
 
 This feature allows for greatest customization in conjunction with
 [pandoc filters]. If you want all paragraphs after block quotes to be
@@ -7209,7 +7210,7 @@ want all italics to be transformed to the `Emphasis` character style
 transform all italicized inlines to inlines within an `Emphasis`
 custom-style `span`.
 
-For docx output, you don't need to enable any extensions for
+For docx or odt output, you don't need to enable any extensions for
 custom styles to work.
 
 [pandoc filters]: https://pandoc.org/filters.html
