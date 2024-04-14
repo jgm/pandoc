@@ -660,8 +660,12 @@ inlineToOpenDocument o ils
                                                  , ("xlink:show"   , "embed" )
                                                  , ("xlink:actuate", "onLoad")]
       mkSpan attr xs =  do
-        let (ident,_,_) = attr
-            i = withLangFromAttr attr (inlinesToOpenDocument o xs)
+        let (ident,_,kvs) = attr
+            i = maybe id (\sty ->
+                           fmap (inTags False "text:span"
+                                  [ ("text:style-name", sty) ]))
+                  (lookup "custom-style" kvs) .
+                 withLangFromAttr attr $ inlinesToOpenDocument o xs
             mkBookmarkedSpan b =
               if isEmpty b
                 then selfClosingBookmark ident
