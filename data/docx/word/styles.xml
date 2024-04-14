@@ -403,15 +403,7 @@
       w:themeTint="D8" />
     </w:rPr>
   </w:style>
-  <w:style w:type="character" w:default="1"
-  w:styleId="DefaultParagraphFont">
-    <w:name w:val="Default Paragraph Font" />
-    <w:uiPriority w:val="1" />
-    <w:semiHidden />
-    <w:unhideWhenUsed />
-  </w:style>
-  <w:style w:type="character" w:customStyle="1"
-  w:styleId="Heading1Char">
+  <w:style w:type="character" w:customStyle="1" w:styleId="Heading1Char">
     <w:name w:val="Heading 1 Char" />
     <w:basedOn w:val="DefaultParagraphFont" />
     <w:link w:val="Heading1" />
