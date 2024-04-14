@@ -824,12 +824,13 @@ mkLvl marker lvl =
         mknode "w:ind" [ ("w:left",tshow $ lvl * step + step)
                        , ("w:hanging",tshow hang)
                        ] ()
-        : maybe []
-           (\font -> [ mknode "w:rFonts" [ ("w:ascii", font)
-                                         , ("w:hAnsi", font)
-                                         , ("w:cs", font)
-                                         , ("w:hint", "default") ] () ]) mbfont
-    ]
+    ] ++
+    maybe [] (\font ->
+                [ mknode "w:rPr" []
+                  [ mknode "w:rFonts" [ ("w:ascii", font)
+                                      , ("w:hAnsi", font)
+                                      , ("w:cs", font)
+                                      , ("w:hint", "default") ] () ]]) mbfont
     where (fmt, lvltxt, mbfont, start) =
             case marker of
                  NoMarker             -> ("bullet"," ", Nothing, "1")
