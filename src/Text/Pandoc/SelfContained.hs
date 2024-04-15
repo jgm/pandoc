@@ -258,10 +258,13 @@ combineSvgAttrs svgAttrs imgAttrs =
   dropPointZero t = case T.stripSuffix ".0" t of
                        Nothing -> t
                        Just t' -> t'
-  combinedAttrs = imgAttrs ++
+  combinedAttrs =
+    [(k, v) | (k, v) <- imgAttrs
+            , k /= "class"] ++
     [(k, v) | (k, v) <- svgAttrs
             , isNothing (lookup k imgAttrs)
-            , k `notElem` ["xmlns", "xmlns:xlink", "version"]]
+            , k `notElem` ["xmlns", "xmlns:xlink", "version", "class"]] ++
+    mergedClasses
   parseViewBox t =
     case map (safeRead . addZero) $ T.words t of
       [Just llx, Just lly, Just urx, Just ury] -> Just (llx, lly, urx, ury)
@@ -274,6 +277,9 @@ combineSvgAttrs svgAttrs imgAttrs =
         lookup "viewBox" svgAttrs >>= parseViewBox
   (mbHeight :: Maybe Int) = lookup "height" combinedAttrs >>= safeRead
   (mbWidth :: Maybe Int) = lookup "width" combinedAttrs >>= safeRead
+  mergedClasses = case (lookup "class" imgAttrs, lookup "class" svgAttrs) of
+                    (Just c1, Just c2) -> [("class", c1 <> " " <> c2)]
+                    _ -> []
 
 cssURLs :: PandocMonad m
         => FilePath -> ByteString -> m ByteString
