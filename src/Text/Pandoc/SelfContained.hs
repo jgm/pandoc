@@ -258,7 +258,9 @@ combineSvgAttrs svgAttrs imgAttrs =
   dropPointZero t = case T.stripSuffix ".0" t of
                        Nothing -> t
                        Just t' -> t'
-  combinedAttrs = imgAttrs ++
+  combinedAttrs =
+    [(k, v) | (k, v) <- imgAttrs
+            , k /= "class"] ++
     [(k, v) | (k, v) <- svgAttrs
             , isNothing (lookup k imgAttrs)
             , k `notElem` ["xmlns", "xmlns:xlink", "version", "class"]] ++
@@ -275,7 +277,6 @@ combineSvgAttrs svgAttrs imgAttrs =
         lookup "viewBox" svgAttrs >>= parseViewBox
   (mbHeight :: Maybe Int) = lookup "height" combinedAttrs >>= safeRead
   (mbWidth :: Maybe Int) = lookup "width" combinedAttrs >>= safeRead
-  -- https://github.com/jgm/pandoc/issues/9652
   mergedClasses = case (lookup "class" imgAttrs, lookup "class" svgAttrs) of
                     (Just c1, Just c2) -> [("class", c1 <> " " <> c2)]
                     _ -> []
