@@ -123,6 +123,23 @@ foo
 ```
 % pandoc -f html -t typst
 <table>
+  <tr><td>A</td><td typst:align="horizon" align="center">B</td></tr>
+</table>
+^D
+#figure(
+  align(center)[#table(
+    columns: 2,
+    align: (auto,center,),
+    [A], table.cell(align: horizon + center)[B],
+  )]
+  , kind: table
+  )
+```
+
+
+```
+% pandoc -f html -t typst
+<table>
   <tr><td>A</td><td>B</td></tr>
 </table>
 ^D

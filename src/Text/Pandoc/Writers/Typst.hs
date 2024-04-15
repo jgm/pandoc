@@ -221,10 +221,10 @@ blockToTypst block =
       let fromCell (Cell (_,_,kvs) alignment rowspan colspan bs) = do
             let (typstAttrs, typstTextAttrs) = pickTypstAttrs kvs
             let valign =
-                  (case lookup "typst:align" typstAttrs of
+                  (case lookup "align" typstAttrs of
                     Just va -> [va]
                     _ -> [])
-            let typstAttrs2 = filter ((/="typst:align") . fst) typstAttrs
+            let typstAttrs2 = filter ((/="align") . fst) typstAttrs
             let halign =
                   (case alignment of
                     AlignDefault -> []
