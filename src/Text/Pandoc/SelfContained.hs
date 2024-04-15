@@ -258,10 +258,11 @@ combineSvgAttrs svgAttrs imgAttrs =
   dropPointZero t = case T.stripSuffix ".0" t of
                        Nothing -> t
                        Just t' -> t'
-  combinedAttrs = replaceMaybe mergedClasses $ imgAttrs ++
+  combinedAttrs = imgAttrs ++
     [(k, v) | (k, v) <- svgAttrs
             , isNothing (lookup k imgAttrs)
-            , k `notElem` ["xmlns", "xmlns:xlink", "version"]]
+            , k `notElem` ["xmlns", "xmlns:xlink", "version", "class"]] ++
+    mergedClasses
   parseViewBox t =
     case map (safeRead . addZero) $ T.words t of
       [Just llx, Just lly, Just urx, Just ury] -> Just (llx, lly, urx, ury)
@@ -276,11 +277,8 @@ combineSvgAttrs svgAttrs imgAttrs =
   (mbWidth :: Maybe Int) = lookup "width" combinedAttrs >>= safeRead
   -- https://github.com/jgm/pandoc/issues/9652
   mergedClasses = case (lookup "class" imgAttrs, lookup "class" svgAttrs) of
-                    (Just c1, Just c2) -> Just ("class", c1 <> " " <> c2)
-                    _ -> Nothing
-  replaceMaybe :: Eq a => Maybe (a, b) -> [(a, b)] -> [(a, b)]
-  replaceMaybe Nothing = id
-  replaceMaybe (Just x) = map (\pair@(a, _) -> if a == fst x then x else pair)
+                    (Just c1, Just c2) -> [("class", c1 <> " " <> c2)]
+                    _ -> []
 
 cssURLs :: PandocMonad m
         => FilePath -> ByteString -> m ByteString
