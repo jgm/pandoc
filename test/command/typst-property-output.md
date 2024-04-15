@@ -63,11 +63,11 @@ foo
 </table>
 ^D
 #figure(
-  align(center)[#text(fill: orange)[#table(
+  align(center)[#set text(fill: orange); #table(
     columns: 2,
     align: (auto,auto,),
     [A], [B],
-  )]]
+  )]
   , kind: table
   )
 ```

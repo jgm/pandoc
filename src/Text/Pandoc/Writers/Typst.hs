@@ -277,7 +277,7 @@ blockToTypst block =
         "#figure("
         $$
         nest 2
-         ("align(center)[" <> toTypstTextElement typstTextAttrs ("#table("
+         ("align(center)[" <> toTypstSetText typstTextAttrs <> "#table("
           $$ nest 2
              (  "columns: " <> columns <> ","
              $$ "align: " <> alignarray <> ","
@@ -286,7 +286,7 @@ blockToTypst block =
              $$ body
              $$ footer
              )
-          $$ ")]")
+          $$ ")]"
           $$ capt'
           $$ ", kind: table"
           $$ ")")
