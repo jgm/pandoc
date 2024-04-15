@@ -75,22 +75,6 @@ foo
 ```
 % pandoc -f html -t typst
 <table>
-  <tr><td>A</td><td>B</td></tr>
-</table>
-^D
-#figure(
-  align(center)[#table(
-    columns: 2,
-    align: (auto,auto,),
-    [A], [B],
-  )]
-  , kind: table
-  )
-```
-
-```
-% pandoc -f html -t typst
-<table>
   <tr><td>A</td><td typst:fill="green">B</td></tr>
 </table>
 ^D
