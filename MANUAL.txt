@@ -2234,8 +2234,23 @@ A conditional begins with `if(variable)` (enclosed in
 matched delimiters) and ends with `endif` (enclosed in matched
 delimiters).  It may optionally contain an `else` (enclosed in
 matched delimiters).  The `if` section is used if
-`variable` has a non-empty value, otherwise the `else`
-section is used (if present).  Examples:
+`variable` has a true value, otherwise the `else`
+section is used (if present).  The following values count
+as true:
+
+- any map
+- any array containing at least one true value
+- any nonempty string
+- boolean True
+
+Note that in YAML metadata (and metadata specified on the
+command line using `-M/--metadata`), unquoted `true` and `false` will be
+interpreted as Boolean values. But a variable specified on the
+command line using `-V/--variable` will always be given a string
+value. Hence a conditional `if(foo)` will be triggered if you
+use `-V foo=false`, but not if you use `-M foo=false`.
+
+Examples:
 
 ```
 $if(foo)$bar$endif$
