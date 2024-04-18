@@ -29,6 +29,8 @@ tests =
                   ("lua" </> "module" </> "pandoc-image.lua")
   , testPandocLua "pandoc.json"
                   ("lua" </> "module" </> "pandoc-json.lua")
+  , testPandocLua "pandoc.log"
+                  ("lua" </> "module" </> "pandoc-log.lua")
   , testPandocLua "pandoc.mediabag"
                   ("lua" </> "module" </> "pandoc-mediabag.lua")
   , testPandocLua "pandoc.path"
