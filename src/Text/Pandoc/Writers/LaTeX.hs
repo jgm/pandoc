@@ -1087,6 +1087,9 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
                                   [d <> "\\textheight"]
                                 _ -> []
       optList = showDim Width <> showDim Height <>
+                (case (dimension Height attr, dimension Width attr) of
+                  (Just _, Just _) -> []
+                  _ -> ["keepaspectratio"]) <>
                 maybe [] (\x -> ["page=" <> literal x]) (lookup "page" kvs) <>
                 maybe [] (\x -> ["trim=" <> literal x]) (lookup "trim" kvs) <>
                 maybe [] (const ["clip"]) (lookup "clip" kvs)
@@ -1100,8 +1103,11 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   inHeading <- gets stInHeading
   return $
     (if inHeading then "\\protect" else "") <>
-      (if isSVG then "\\includesvg" else "\\includegraphics") <>
-    options <> braces (literal source'')
+    (case dimension Width attr `mplus` dimension Height attr of
+       Just _ -> id
+       Nothing -> ("\\pandocbounded" <>) . braces)
+      ((if isSVG then "\\includesvg" else "\\includegraphics") <>
+        options <> braces (literal source''))
 inlineToLaTeX (Note contents) = do
   setEmptyLine False
   externalNotes <- gets stExternalNotes

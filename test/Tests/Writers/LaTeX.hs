@@ -70,7 +70,7 @@ tests = [ testGroup "code blocks"
             "\\begin{description}\n\\item[foo] ~ \n\\subsection{bar}\n\nbaz\n\\end{description}"
           , "containing image" =:
             header 1 (image "imgs/foo.jpg" "" (text "Alt text")) =?>
-            "\\section{\\texorpdfstring{\\protect\\includegraphics{imgs/foo.jpg}}{Alt text}}"
+            "\\section{\\texorpdfstring{\\protect\\pandocbounded{\\includegraphics[keepaspectratio]{imgs/foo.jpg}}}{Alt text}}"
           ]
         , testGroup "inline code"
           [ "struck out and highlighted" =:
