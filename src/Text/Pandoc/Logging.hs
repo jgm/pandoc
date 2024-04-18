@@ -79,6 +79,7 @@ data LogMessage =
   | Fetching Text
   | Extracting Text
   | LoadedResource FilePath FilePath
+  | ScriptingInfo Text (Maybe SourcePos)
   | ScriptingWarning Text (Maybe SourcePos)
   | NoTitleElement Text
   | NoLangSpecified
@@ -204,6 +205,14 @@ instance ToJSON LogMessage where
       LoadedResource orig found ->
            ["for"  .= orig
            ,"from" .= found]
+      ScriptingInfo msg mbpos ->
+           ["message" .= msg] <>
+           case mbpos of
+             Nothing  -> []
+             Just pos -> ["source" .= sourceName pos
+                         ,"line" .= toJSON (sourceLine pos)
+                         ,"column" .= toJSON (sourceColumn pos)
+                         ]
       ScriptingWarning msg mbpos ->
            ["message" .= msg] <>
            case mbpos of
@@ -349,6 +358,9 @@ showLogMessage msg =
          "Extracting " <> fp <> "..."
        LoadedResource orig found ->
          "Loaded " <> Text.pack orig <> " from " <> Text.pack found
+       ScriptingInfo s mbpos ->
+         "Scripting info" <>
+         maybe "" (\pos -> " at " <> showPos pos) mbpos  <> ": " <> s
        ScriptingWarning s mbpos ->
          "Scripting warning" <>
          maybe "" (\pos -> " at " <> showPos pos) mbpos  <> ": " <> s
@@ -446,6 +458,7 @@ messageVerbosity msg =
        Fetching{}                    -> INFO
        Extracting{}                  -> INFO
        LoadedResource{}              -> INFO
+       ScriptingInfo{}               -> INFO
        ScriptingWarning{}            -> WARNING
        NoTitleElement{}              -> WARNING
        NoLangSpecified               -> INFO
