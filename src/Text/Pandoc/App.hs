@@ -297,8 +297,8 @@ convertWithOpts' scriptingEngine istty datadir opts = do
           >>= ( return . adjustMetadata (metadataFromFile <>)
             >=> return . adjustMetadata (<> optMetadata opts)
             >=> return . adjustMetadata (<> cslMetadata)
-            >=> applyTransforms transforms
             >=> applyFilters scriptingEngine filterEnv filters [T.unpack format]
+            >=> applyTransforms transforms
             >=> (if not (optSandbox opts) &&
                     (isJust (optExtractMedia opts)
                      || format == "docx") -- for fallback pngs
