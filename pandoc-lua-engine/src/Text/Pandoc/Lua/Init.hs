@@ -30,8 +30,7 @@ import Text.Pandoc.Logging (LogMessage (ScriptingWarning))
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
 import Text.Pandoc.Lua.Marshal.List (newListMetatable, pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua (..), liftPandocLua)
-import Text.Parsec.Pos (newPos)
-import Text.Read (readMaybe)
+import Text.Pandoc.Lua.SourcePos (luaSourcePos)
 import qualified Data.ByteString.Char8 as Char8
 import qualified Data.Text as T
 import qualified Lua.LPeg as LPeg
@@ -43,6 +42,7 @@ import qualified Text.Pandoc.Lua.Module.CLI as Pandoc.CLI
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
 import qualified Text.Pandoc.Lua.Module.Image as Pandoc.Image
 import qualified Text.Pandoc.Lua.Module.JSON as Pandoc.JSON
+import qualified Text.Pandoc.Lua.Module.Log as Pandoc.Log
 import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
 import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
 import qualified Text.Pandoc.Lua.Module.Scaffolding as Pandoc.Scaffolding
@@ -94,6 +94,7 @@ loadedModules =
   , Pandoc.Format.documentedModule
   , Pandoc.Image.documentedModule
   , Pandoc.JSON.documentedModule
+  , Pandoc.Log.documentedModule
   , Pandoc.MediaBag.documentedModule
   , Pandoc.Scaffolding.documentedModule
   , Pandoc.Structure.documentedModule
@@ -247,10 +248,5 @@ setWarnFunction = liftPandocLua . setwarnf' $ \msg -> do
   -- 1: userdata wrapper function for the hook,
   -- 2: warn,
   -- 3: function calling warn.
-  where' 3
-  loc <- UTF8.toText <$> tostring' top
-  unPandocLua . report $ ScriptingWarning (UTF8.toText msg) (toSourcePos loc)
- where
-   toSourcePos loc = (T.breakOnEnd ":" <$> T.stripSuffix ": " loc)
-     >>= (\(prfx, sfx) -> (,) <$> T.unsnoc prfx <*> readMaybe (T.unpack sfx))
-     >>= \((source, _), line) -> Just $ newPos (T.unpack source) line 1
+  pos <- luaSourcePos 3
+  unPandocLua . report $ ScriptingWarning (UTF8.toText msg) pos

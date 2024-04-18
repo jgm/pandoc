@@ -17,9 +17,8 @@ module Text.Pandoc.Lua.Marshal.CommonState
 
 import HsLua
 import Text.Pandoc.Class (CommonState (..))
-import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
-import qualified Data.Aeson as Aeson
+import Text.Pandoc.Lua.Marshal.LogMessage (pushLogMessage)
 
 -- | Lua type used for the @CommonState@ object.
 typeCommonState :: LuaError e => DocumentedType e CommonState
@@ -31,7 +30,7 @@ typeCommonState = deftype "pandoc CommonState" []
       (maybe pushnil pushString, stOutputFile)
 
   , readonly "log" "list of log messages"
-      (pushPandocList (pushUD typeLogMessage), stLog)
+      (pushPandocList pushLogMessage, stLog)
 
   , readonly "request_headers" "headers to add for HTTP requests"
       (pushPandocList (pushPair pushText pushText), stRequestHeaders)
@@ -58,16 +57,3 @@ peekCommonState = peekUD typeCommonState
 
 pushCommonState :: LuaError e => Pusher e CommonState
 pushCommonState = pushUD typeCommonState
-
-typeLogMessage :: LuaError e => DocumentedType e LogMessage
-typeLogMessage = deftype "pandoc LogMessage"
-  [ operation Index $ defun "__tostring"
-      ### liftPure showLogMessage
-      <#> udparam typeLogMessage "msg" "object"
-      =#> functionResult pushText "string" "stringified log message"
-  , operation (CustomOperation "__tojson") $ lambda
-      ### liftPure Aeson.encode
-      <#> udparam typeLogMessage "msg" "object"
-      =#> functionResult pushLazyByteString "string" "JSON encoded object"
-  ]
-  mempty -- no members
