@@ -122,17 +122,12 @@ inputToLazyByteString (_, (bs,_)) = BL.fromStrict bs
 
 adjustLinksAndIds :: Extensions -> Text -> [Text] -> Pandoc -> Pandoc
 adjustLinksAndIds exts thisfile allfiles
-  | length allfiles > 1 = addDiv . walk fixInline . walk fixBlock
+  | length allfiles > 1 = walk fixInline . walk fixBlock
   | otherwise           = id
  where
   toIdent :: Text -> Text
   toIdent = textToIdentifier exts . T.intercalate "__" .
             T.split (\c -> c == '/' || c == '\\')
-
-  addDiv :: Pandoc -> Pandoc
-  addDiv (Pandoc m bs)
-    | T.null thisfile = Pandoc m bs
-    | otherwise = Pandoc m [Div (toIdent thisfile,[],[]) bs]
 
   fixBlock :: Block -> Block
   fixBlock (CodeBlock attr t) = CodeBlock (fixAttrs attr) t
