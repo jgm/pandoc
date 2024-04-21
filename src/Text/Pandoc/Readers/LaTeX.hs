@@ -533,9 +533,9 @@ ifToggle :: PandocMonad m => LP m ()
 ifToggle = do
   name <- braced
   spaces
-  yes <- braced
+  yes <- withVerbatimMode braced
   spaces
-  no <- braced
+  no <- withVerbatimMode braced
   toggles <- sToggles <$> getState
   TokStream _ inp <- getInput
   let name' = untokenize name
@@ -551,8 +551,8 @@ ifstrequal :: (PandocMonad m, Monoid a) => LP m a
 ifstrequal = do
   str1 <- tok
   str2 <- tok
-  ifequal <- braced
-  ifnotequal <- braced
+  ifequal <- withVerbatimMode braced
+  ifnotequal <- withVerbatimMode braced
   TokStream _ ts <- getInput
   if str1 == str2
      then setInput $ TokStream False (ifequal ++ ts)
