@@ -956,41 +956,54 @@ processFontTable = snd . foldl' go (0, mempty)
 
 ansiWords :: Maybe Int -> [Word8] -> [Char]
 ansiWords mbCodePage ws =
-  map (ansiToChar mbCodePage) ws
-
-ansiToChar :: Maybe Int -> Word8 -> Char
-ansiToChar mbCodePage i = chr $
   case mbCodePage of
-    _ -> case i of
-           128 -> 8364
-           130 -> 8218
-           131 -> 402
-           132 -> 8222
-           133 -> 8230
-           134 -> 8224
-           135 -> 8225
-           136 -> 710
-           137 -> 8240
-           138 -> 352
-           139 -> 8249
-           140 -> 338
-           142 -> 381
-           145 -> 8216
-           146 -> 8217
-           147 -> 8220
-           148 -> 8221
-           149 -> 8226
-           150 -> 8211
-           151 -> 8212
-           152 -> 732
-           153 -> 8482
-           154 -> 353
-           155 -> 8250
-           156 -> 339
-           158 -> 382
-           159 -> 376
-           173 -> 0xAD
-           _ -> fromIntegral i
+    Just 932 -> map cp932ToChar $ cp932Split ws
+    _ -> map defaultAnsiWordToChar ws
+
+cp932ToChar :: Word16 -> Char
+cp932ToChar i = chr $ fromIntegral i  -- TODO
+-- to properly implement this we'll need the full lookup table
+-- https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT
+
+cp932Split :: [Word8] -> [Word16]
+cp932Split [] = []
+cp932Split (i:j:is)
+  | (i >= 0x81 && i <= 0x9F) || i >= 0xE0
+  = fromIntegral ((i * 0xFF) + j) : cp932Split is
+cp932Split (i:is) = fromIntegral i : cp932Split is
+
+defaultAnsiWordToChar :: Word8 -> Char
+defaultAnsiWordToChar i =
+  case i of
+    128 -> '\8364'
+    130 -> '\8218'
+    131 -> '\402'
+    132 -> '\8222'
+    133 -> '\8230'
+    134 -> '\8224'
+    135 -> '\8225'
+    136 -> '\710'
+    137 -> '\8240'
+    138 -> '\352'
+    139 -> '\8249'
+    140 -> '\338'
+    142 -> '\381'
+    145 -> '\8216'
+    146 -> '\8217'
+    147 -> '\8220'
+    148 -> '\8221'
+    149 -> '\8226'
+    150 -> '\8211'
+    151 -> '\8212'
+    152 -> '\732'
+    153 -> '\8482'
+    154 -> '\353'
+    155 -> '\8250'
+    156 -> '\339'
+    158 -> '\382'
+    159 -> '\376'
+    173 -> '\xAD'
+    _ -> chr (fromIntegral i)
 
 macToChar :: Word8 -> Char
 macToChar i = chr $
