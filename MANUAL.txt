@@ -7180,11 +7180,11 @@ Custom styles can be used in the docx, odt and ICML formats.
 
 ## Output
 
-By default, pandoc's odt, docx and ICML output applies a predefined set of 
-styles for blocks such as paragraphs and block quotes, and uses largely 
+By default, pandoc's odt, docx and ICML output applies a predefined set of
+styles for blocks such as paragraphs and block quotes, and uses largely
 default formatting (italics, bold) for inlines. This will work for most
-purposes, especially alongside a [reference doc]{#option--reference-doc} file. 
-However, if you need to apply your own styles to blocks, or match a preexisting 
+purposes, especially alongside a [reference doc]{#option--reference-doc} file.
+However, if you need to apply your own styles to blocks, or match a preexisting
 set of styles, pandoc allows you to define custom styles for blocks and text
 using `div`s and `span`s, respectively.
 
@@ -7209,8 +7209,8 @@ style `Emphatically`. Similarly, using the `fenced_divs` syntax,
 would style the two contained lines with the `Poetry` paragraph style.
 
 Styles will be defined in the output file as inheriting
-from normal text (docx) or Default Paragraph Style (odt), if the 
-styles are not yet in your [reference doc]{#option--reference-doc}. 
+from normal text (docx) or Default Paragraph Style (odt), if the
+styles are not yet in your [reference doc]{#option--reference-doc}.
 If they are already defined, pandoc will not alter the definition.
 
 This feature allows for greatest customization in conjunction with
