@@ -40,7 +40,7 @@ import Safe (lastMay, initSafe, headDef)
 import Data.Encoding (decodeLazyByteStringExplicit)
 import Data.Encoding.CP932 (CP932)
 
-import Debug.Trace
+-- import Debug.Trace
 
 -- TODO:
 -- [ ] more complex table features
@@ -959,7 +959,7 @@ processFontTable = snd . foldl' go (0, mempty)
 
 ansiWords :: Maybe Int -> [Word8] -> [Char]
 ansiWords mbCodePage ws =
-  case traceShowId mbCodePage of
+  case mbCodePage of
     Just 932 -> case decodeLazyByteStringExplicit (undefined :: CP932)
                   (BL.pack ws) of
                   Left _ -> "\xFFFD"
