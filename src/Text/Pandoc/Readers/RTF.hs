@@ -55,7 +55,7 @@ readRTF opts s = do
        Left e  -> throwError e
        Right d -> return d
 
-data CharSet = ANSI | Mac | Pc | Pca
+data CharSet = ANSI (Maybe Int) | Mac | Pc | Pca
   deriving (Show, Eq)
 
 -- first index is the list (or override) id, second is the list level
@@ -79,7 +79,7 @@ data RTFState = RTFState  { sOptions     :: ReaderOptions
 
 instance Default RTFState where
  def = RTFState { sOptions = def
-                , sCharSet = ANSI
+                , sCharSet = ANSI Nothing
                 , sGroupStack = []
                 , sListStack = []
                 , sCurrentCell = mempty
@@ -217,7 +217,7 @@ data TokContents =
   | ControlSymbol !Char
   | UnformattedText !Text
   | BinData !BL.ByteString
-  | HexVal !Word8
+  | HexVals [Word8]
   | Grouped [Tok]
   deriving (Show, Eq)
 
@@ -229,7 +229,7 @@ tok = do
   controlThing = do
     char '\\' *>
       ( controlWord
-     <|> (HexVal <$> hexVal)
+     <|> (HexVals <$> many1 hexVal)
      <|> (ControlSymbol <$> anyChar) )
   controlWord = do
     name <- letterSequence
@@ -423,7 +423,7 @@ processTok :: PandocMonad m => Blocks -> Tok -> RTFParser m Blocks
 processTok bs (Tok pos tok') = do
   setPosition pos
   case tok' of
-    HexVal{} -> return ()
+    HexVals{} -> return ()
     UnformattedText{} -> return ()
     _ -> updateState $ \s -> s{ sEatChars = 0 }
   case tok' of
@@ -498,19 +498,23 @@ processTok bs (Tok pos tok') = do
              addText (T.drop n t)
           | otherwise -> do
              updateState $ \s -> s{ sEatChars = n - T.length t }
-    HexVal n -> bs <$ do
+    HexVals ws -> bs <$ do
       eatChars <- sEatChars <$> getState
-      if eatChars == 0
-         then do
-           charset <- sCharSet <$> getState
-           case charset of
-             ANSI -> addText (T.singleton $ ansiToChar n)
-             Mac  -> addText (T.singleton $ macToChar n)
-             Pc   -> addText (T.singleton $ pcToChar n)
-             Pca  -> addText (T.singleton $ pcaToChar n)
-         else updateState $ \s -> s{ sEatChars = eatChars - 1 }
+      let ws' = drop eatChars ws
+      updateState $ \s -> s{ sEatChars = if null ws'
+                                            then eatChars - length ws
+                                            else 0 }
+      charset <- sCharSet <$> getState
+      addText $ T.pack $
+        case charset of
+             ANSI mbCodePage -> ansiWords mbCodePage ws'
+             Mac  -> map macToChar ws'
+             Pc   -> map pcToChar ws'
+             Pca  -> map pcaToChar ws'
     ControlWord "ansi" _ -> bs <$
-      updateState (\s -> s{ sCharSet = ANSI })
+      updateState (\s -> s{ sCharSet = ANSI Nothing })
+    ControlWord "ansicpg" mbCodePage -> bs <$
+      updateState (\s -> s{ sCharSet = ANSI mbCodePage })
     ControlWord "mac" _ -> bs <$
       updateState (\s -> s{ sCharSet = Mac })
     ControlWord "pc" _ -> bs <$
@@ -950,39 +954,43 @@ processFontTable = snd . foldl' go (0, mempty)
      (Grouped ts) -> foldl' go (fontnum, tbl) ts
      _ -> (fontnum, tbl)
 
+ansiWords :: Maybe Int -> [Word8] -> [Char]
+ansiWords mbCodePage ws =
+  map (ansiToChar mbCodePage) ws
 
-ansiToChar :: Word8 -> Char
-ansiToChar i = chr $
-  case i of
-    128 -> 8364
-    130 -> 8218
-    131 -> 402
-    132 -> 8222
-    133 -> 8230
-    134 -> 8224
-    135 -> 8225
-    136 -> 710
-    137 -> 8240
-    138 -> 352
-    139 -> 8249
-    140 -> 338
-    142 -> 381
-    145 -> 8216
-    146 -> 8217
-    147 -> 8220
-    148 -> 8221
-    149 -> 8226
-    150 -> 8211
-    151 -> 8212
-    152 -> 732
-    153 -> 8482
-    154 -> 353
-    155 -> 8250
-    156 -> 339
-    158 -> 382
-    159 -> 376
-    173 -> 0xAD
-    _ -> fromIntegral i
+ansiToChar :: Maybe Int -> Word8 -> Char
+ansiToChar mbCodePage i = chr $
+  case mbCodePage of
+    _ -> case i of
+           128 -> 8364
+           130 -> 8218
+           131 -> 402
+           132 -> 8222
+           133 -> 8230
+           134 -> 8224
+           135 -> 8225
+           136 -> 710
+           137 -> 8240
+           138 -> 352
+           139 -> 8249
+           140 -> 338
+           142 -> 381
+           145 -> 8216
+           146 -> 8217
+           147 -> 8220
+           148 -> 8221
+           149 -> 8226
+           150 -> 8211
+           151 -> 8212
+           152 -> 732
+           153 -> 8482
+           154 -> 353
+           155 -> 8250
+           156 -> 339
+           158 -> 382
+           159 -> 376
+           173 -> 0xAD
+           _ -> fromIntegral i
 
 macToChar :: Word8 -> Char
 macToChar i = chr $
