@@ -439,7 +439,7 @@ messageVerbosity msg =
        ParsingUnescaped{}            -> INFO
        InlineNotRendered{}           -> INFO
        BlockNotRendered{}            -> INFO
-       DocxParserWarning{}           -> INFO
+       DocxParserWarning{}           -> WARNING
        PowerpointTemplateWarning{}   -> WARNING
        IgnoredIOError{}              -> WARNING
        CouldNotFetchResource{}       -> WARNING
