@@ -37,10 +37,7 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Safe (lastMay, initSafe, headDef)
-import Data.Encoding (decodeLazyByteStringExplicit)
-import Data.Encoding.CP932 (CP932)
-
-import Debug.Trace
+-- import Debug.Trace
 
 -- TODO:
 -- [ ] more complex table features
@@ -959,12 +956,21 @@ processFontTable = snd . foldl' go (0, mempty)
 
 ansiWords :: Maybe Int -> [Word8] -> [Char]
 ansiWords mbCodePage ws =
-  case traceShowId mbCodePage of
-    Just 932 -> case decodeLazyByteStringExplicit (undefined :: CP932)
-                  (BL.pack ws) of
-                  Left _ -> "\xFFFD"
-                  Right cs -> cs
+  case mbCodePage of
+    Just 932 -> map cp932ToChar $ cp932Split ws
     _ -> map defaultAnsiWordToChar ws
+
+cp932ToChar :: Word16 -> Char
+cp932ToChar i = chr $ fromIntegral i  -- TODO
+-- to properly implement this we'll need the full lookup table
+-- https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT
+
+cp932Split :: [Word8] -> [Word16]
+cp932Split [] = []
+cp932Split (i:j:is)
+  | (i >= 0x81 && i <= 0x9F) || i >= 0xE0
+  = fromIntegral ((i * 0xFF) + j) : cp932Split is
+cp932Split (i:is) = fromIntegral i : cp932Split is
 
 defaultAnsiWordToChar :: Word8 -> Char
 defaultAnsiWordToChar i =
