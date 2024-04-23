@@ -27,10 +27,11 @@ import qualified Data.Text as T
 import qualified Data.Text.Read as TR
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), insertMedia)
+import Text.Pandoc.Class (PandocMonad (..), insertMedia, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
+import Text.Pandoc.Logging (LogMessage(UnsupportedCodePage))
 import Text.Pandoc.Shared (tshow)
 import Data.Char (isAlphaNum, chr, isAscii, isLetter, isSpace, ord)
 import qualified Data.ByteString.Lazy as BL
@@ -55,7 +56,7 @@ readRTF opts s = do
        Left e  -> throwError e
        Right d -> return d
 
-data CharSet = ANSI (Maybe Int) | Mac | Pc | Pca
+data CharSet = ANSI | Mac | Pc | Pca
   deriving (Show, Eq)
 
 -- first index is the list (or override) id, second is the list level
@@ -79,7 +80,7 @@ data RTFState = RTFState  { sOptions     :: ReaderOptions
 
 instance Default RTFState where
  def = RTFState { sOptions = def
-                , sCharSet = ANSI Nothing
+                , sCharSet = ANSI
                 , sGroupStack = []
                 , sListStack = []
                 , sCurrentCell = mempty
@@ -505,16 +506,15 @@ processTok bs (Tok pos tok') = do
                                             then eatChars - length ws
                                             else 0 }
       charset <- sCharSet <$> getState
-      addText $ T.pack $
-        case charset of
-             ANSI mbCodePage -> ansiWords mbCodePage ws'
-             Mac  -> map macToChar ws'
-             Pc   -> map pcToChar ws'
-             Pca  -> map pcaToChar ws'
+      case charset of
+        ANSI -> addText $ T.pack $ map defaultAnsiWordToChar ws'
+        Mac  -> addText $ T.pack $ map macToChar ws'
+        Pc   -> addText $ T.pack $ map pcToChar ws'
+        Pca  -> addText $ T.pack $ map pcaToChar ws'
     ControlWord "ansi" _ -> bs <$
-      updateState (\s -> s{ sCharSet = ANSI Nothing })
-    ControlWord "ansicpg" mbCodePage -> bs <$
-      updateState (\s -> s{ sCharSet = ANSI mbCodePage })
+      updateState (\s -> s{ sCharSet = ANSI })
+    ControlWord "ansicpg" (Just cpg) | cpg /= 1252 -> bs <$
+      report (UnsupportedCodePage cpg)
     ControlWord "mac" _ -> bs <$
       updateState (\s -> s{ sCharSet = Mac })
     ControlWord "pc" _ -> bs <$
@@ -953,24 +953,6 @@ processFontTable = snd . foldl' go (0, mempty)
      (ControlWord "fbidi" _) -> (fontnum, IntMap.insert fontnum Bidi tbl)
      (Grouped ts) -> foldl' go (fontnum, tbl) ts
      _ -> (fontnum, tbl)
-
-ansiWords :: Maybe Int -> [Word8] -> [Char]
-ansiWords mbCodePage ws =
-  case mbCodePage of
-    Just 932 -> map cp932ToChar $ cp932Split ws
-    _ -> map defaultAnsiWordToChar ws
-
-cp932ToChar :: Word16 -> Char
-cp932ToChar i = chr $ fromIntegral i  -- TODO
--- to properly implement this we'll need the full lookup table
--- https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT
-
-cp932Split :: [Word8] -> [Word16]
-cp932Split [] = []
-cp932Split (i:j:is)
-  | (i >= 0x81 && i <= 0x9F) || i >= 0xE0
-  = fromIntegral ((i * 0xFF) + j) : cp932Split is
-cp932Split (i:is) = fromIntegral i : cp932Split is
 
 defaultAnsiWordToChar :: Word8 -> Char
 defaultAnsiWordToChar i =
