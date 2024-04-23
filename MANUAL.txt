@@ -555,7 +555,7 @@ header when requesting a document from a URL:
 
 `--indented-code-classes=`*CLASSES*
 
-:   Specify classes to use for indented code blocks--for example,
+:   Specify classes to use for indented code blocks -- for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.
 
@@ -6197,7 +6197,7 @@ Pandoc's citation processing is designed to allow you to
 move between author-date, numerical, and note styles without
 modifying the Markdown source.  When you're using a note
 style, avoid inserting footnotes manually. Instead, insert
-citations just as you would in an author-date style---for
+citations just as you would in an author-date style -- for
 example,
 
     Blah blah [@foo, p. 33].
