@@ -97,6 +97,8 @@ inlineEnvironments = M.fromList [
   , ("align*", mathEnvWith id (Just "aligned") "align*")
   , ("alignat", mathEnvWith id (Just "aligned") "alignat")
   , ("alignat*", mathEnvWith id (Just "aligned") "alignat*")
+  , ("flalign", mathEnvWith id (Just "aligned") "flalign")
+  , ("flalign*", mathEnvWith id (Just "aligned") "flalign*")
   , ("dmath", mathEnvWith id Nothing "dmath")
   , ("dmath*", mathEnvWith id Nothing "dmath*")
   , ("dgroup", mathEnvWith id (Just "aligned") "dgroup")
