@@ -555,7 +555,7 @@ header when requesting a document from a URL:
 
 `--indented-code-classes=`*CLASSES*
 
-:   Specify classes to use for indented code blocks -- for example,
+:   Specify classes to use for indented code blocks---for example,
     `perl,numberLines` or `haskell`. Multiple classes may be separated
     by spaces or commas.
 
@@ -3702,7 +3702,7 @@ easy to read:
 
 > A Markdown-formatted document should be publishable as-is, as plain
 > text, without looking like it's been marked up with tags or formatting
-> instructions.
+> instructions.\
 > -- [John Gruber](https://daringfireball.net/projects/markdown/syntax#philosophy)
 
 This principle has guided pandoc's decisions in finding syntax for
@@ -4695,8 +4695,8 @@ All three metadata fields may contain standard inline formatting
 
 Title blocks will always be parsed, but they will affect the output only
 when the `--standalone` (`-s`) option is chosen. In HTML output, titles
-will appear twice: once in the document head -- this is the title that
-will appear at the top of the window in a browser -- and once at the
+will appear twice: once in the document head---this is the title that
+will appear at the top of the window in a browser---and once at the
 beginning of the document body. The title in the document head can have
 an optional prefix attached (`--title-prefix` or `-T` option). The title
 in the body appears as an H1 element with class "title", so it can be
@@ -6197,7 +6197,7 @@ Pandoc's citation processing is designed to allow you to
 move between author-date, numerical, and note styles without
 modifying the Markdown source.  When you're using a note
 style, avoid inserting footnotes manually. Instead, insert
-citations just as you would in an author-date style -- for
+citations just as you would in an author-date style---for
 example,
 
     Blah blah [@foo, p. 33].
@@ -6317,12 +6317,12 @@ A few other metadata fields affect bibliography formatting:
     syntax (after `-u-`) may be used to specify options for
     collation (sorting) more precisely. Here are some examples:
 
-    - `zh-u-co-pinyin` -- Chinese with the Pinyin collation.
-    - `es-u-co-trad` -- Spanish with the traditional collation
+    - `zh-u-co-pinyin`---Chinese with the Pinyin collation.
+    - `es-u-co-trad`---Spanish with the traditional collation
       (with `Ch` sorting after `C`).
-    - `fr-u-kb` -- French with "backwards" accent sorting
+    - `fr-u-kb`---French with "backwards" accent sorting
       (with `coté` sorting after `côte`).
-    - `en-US-u-kf-upper` -- English with uppercase letters sorting
+    - `en-US-u-kf-upper`---English with uppercase letters sorting
        before lower (default is lower before upper).
 
 `notes-after-punctuation`
