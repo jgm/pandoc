@@ -474,8 +474,7 @@ blockToMarkdown' opts b@(RawBlock f str) = do
                   "markdown_mmd", "markdown_strict"]
          -> return $ literal str <> literal "\n"
     Markua -> renderEmpty
-    _ | isEnabled Ext_raw_attribute opts -> rawAttribBlock
-      | f `elem` ["html", "html5", "html4"]
+    _ | f `elem` ["html", "html5", "html4"]
       , isEnabled Ext_markdown_attribute opts
          -> return $ literal (addMarkdownAttribute str) <> literal "\n"
       | f `elem` ["html", "html5", "html4"]
@@ -484,6 +483,7 @@ blockToMarkdown' opts b@(RawBlock f str) = do
       | f `elem` ["latex", "tex"]
       , isEnabled Ext_raw_tex opts
          -> return $ literal str <> literal "\n"
+      | isEnabled Ext_raw_attribute opts -> rawAttribBlock
     _ -> renderEmpty
 blockToMarkdown' opts HorizontalRule = do
   variant <- asks envVariant
