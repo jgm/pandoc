@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx
@@ -92,7 +93,7 @@ import Text.Pandoc.Readers.Docx.Parse as Docx
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.TeXMath (writeTeX)
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Error
@@ -103,7 +104,6 @@ import qualified Data.Text.Lazy as TL
 import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Citeproc.MetaValue (referenceToMetaValue)
 import Text.Pandoc.Readers.EndNote (readEndNoteXMLCitation)
-import Text.Pandoc.Sources (toSources)
 
 readDocx :: PandocMonad m
          => ReaderOptions
@@ -477,10 +477,16 @@ parPartToInlines' (Field info children) =
       formattedCite <- smushInlines <$> mapM parPartToInlines' children
       opts <- asks docxOptions
       if isEnabled Ext_citations opts
-         then do
-           citation <- readEndNoteXMLCitation (toSources t)
-           cs <- handleCitation citation
-           return $ cite cs formattedCite
+         then catchError
+              (do citation <- readEndNoteXMLCitation t
+                  cs <- handleCitation citation
+                  return $ cite cs formattedCite)
+              (\case
+                  PandocXMLError _ msg -> do
+                    P.report $ DocxParserWarning
+                             ("Cannot parse EndNote citation: " <> msg)
+                    return formattedCite
+                  e -> throwError e)
          else return formattedCite
     CslCitation t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children

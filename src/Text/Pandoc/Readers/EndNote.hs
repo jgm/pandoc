@@ -72,10 +72,10 @@ readEndNoteXML _opts inp = do
     B.doc mempty
 
 readEndNoteXMLCitation :: PandocMonad m
-                    => Sources -> m (Citeproc.Citation Text)
-readEndNoteXMLCitation sources = do
+                    => Text -> m (Citeproc.Citation Text)
+readEndNoteXMLCitation xml = do
   tree <- either (throwError . PandocXMLError "EndNote references") return $
-              parseXMLElement (TL.fromStrict . sourcesToText $ sources)
+              parseXMLElement (TL.fromStrict xml)
   unless (qName (elName tree) == "EndNote") $
     throwError $ PandocXMLError "EndNote references" "Expected EndNote element"
   let items = map toCitationItem $ filterElementsName (name "Cite") tree
