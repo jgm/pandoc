@@ -6317,12 +6317,12 @@ A few other metadata fields affect bibliography formatting:
     syntax (after `-u-`) may be used to specify options for
     collation (sorting) more precisely. Here are some examples:
 
-    - `zh-u-co-pinyin`---Chinese with the Pinyin collation.
-    - `es-u-co-trad`---Spanish with the traditional collation
+    - `zh-u-co-pinyin`: Chinese with the Pinyin collation.
+    - `es-u-co-trad`: Spanish with the traditional collation
       (with `Ch` sorting after `C`).
-    - `fr-u-kb`---French with "backwards" accent sorting
+    - `fr-u-kb`: French with "backwards" accent sorting
       (with `coté` sorting after `côte`).
-    - `en-US-u-kf-upper`---English with uppercase letters sorting
+    - `en-US-u-kf-upper`: English with uppercase letters sorting
        before lower (default is lower before upper).
 
 `notes-after-punctuation`
