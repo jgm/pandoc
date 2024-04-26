@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP                 #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -199,7 +198,6 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
       UTF8.hPutStrLn stdout
        $ T.pack
        $ prg ++ " " ++ T.unpack pandocVersionText ++
-         compileInfo ++
          "\nUser data directory: " ++ defaultDatadir ++
          ('\n':copyrightMessage)
     Help -> do
@@ -1107,13 +1105,6 @@ copyrightMessage = intercalate "\n" [
  "Copyright (C) 2006-2023 John MacFarlane. Web:  https://pandoc.org",
  "This is free software; see the source for copying conditions. There is no",
  "warranty, not even for merchantability or fitness for a particular purpose." ]
-
-compileInfo :: String
-compileInfo =
-  "\nCompiled with pandoc-types " ++ VERSION_pandoc_types ++
-  ", texmath " ++ VERSION_texmath ++ ", skylighting " ++
-  VERSION_skylighting ++ ",\nciteproc " ++ VERSION_citeproc ++
-  ", ipynb " ++ VERSION_ipynb
 
 handleUnrecognizedOption :: String -> [String] -> [String]
 handleUnrecognizedOption "--smart" =
