@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-|
 Module      : Text.Pandoc.Lua.Module.JSON
-Copyright   : © 2022-2023 Albert Krewinkel
+Copyright   : © 2022-2024 Albert Krewinkel
 License     : MIT
 Maintainer  : Albert Krewinkel <albert@hslua.org>
 

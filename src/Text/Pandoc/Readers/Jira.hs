@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Jira
-   Copyright   : © 2019-2023 Albert Krewinkel
+   Copyright   : © 2019-2024 Albert Krewinkel
    License     : GPL-2.0-or-later
 
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
