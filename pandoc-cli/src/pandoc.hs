@@ -23,6 +23,7 @@ import Data.Monoid (Any(..))
 import Control.Monad (when)
 import PandocCLI.Lua
 import PandocCLI.Server
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Version (pandocVersion)
 import Text.Pandoc.Data (defaultUserDataDir)
 import Text.Pandoc.Scripting (ScriptingEngine(..))
@@ -94,7 +95,7 @@ versionInfo = do
   progname <- getProgName
   defaultDatadir <- defaultUserDataDir
   scriptingEngine <- getEngine
-  putStr $ unlines
+  UTF8.putStr $ T.unlines $ map T.pack
    [ progname ++ " " ++ showVersion pandocVersion ++ versionSuffix
    , flagSettings
    , "Scripting engine: " ++ T.unpack (engineName scriptingEngine)
