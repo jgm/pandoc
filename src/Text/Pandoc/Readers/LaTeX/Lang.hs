@@ -226,6 +226,7 @@ babelLangToBCP47 s =
        "ngerman" -> Just $ Lang "de" Nothing (Just "DE") [] [] []
        "lowersorbian" -> Just $ Lang "dsb" Nothing Nothing [] [] []
        "uppersorbian" -> Just $ Lang "hsb" Nothing Nothing [] [] []
+       "polytonicgreek" -> Just $ Lang "el" Nothing Nothing ["polyton"] [] []
        "polutonikogreek" -> Just $ Lang "el" Nothing Nothing ["polyton"] [] []
        "slovene" -> Just $ simpleLang "sl"
        "australian" -> Just $ Lang "en" Nothing (Just "AU") [] [] []

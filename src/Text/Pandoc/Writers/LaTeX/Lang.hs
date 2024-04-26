@@ -33,7 +33,7 @@ toBabel (Lang "de" _ _ vars _ _)
   | otherwise                           = Just "ngerman"
 toBabel (Lang "dsb" _ _ _ _ _)          = Just "lowersorbian"
 toBabel (Lang "el" _ _ vars _ _)
-  | "polyton" `elem` vars               = Just "polutonikogreek"
+  | "polyton" `elem` vars               = Just "polytonicgreek"
 toBabel (Lang "en" _ (Just "AU") _ _ _) = Just "australian"
 toBabel (Lang "en" _ (Just "CA") _ _ _) = Just "canadian"
 toBabel (Lang "en" _ (Just "GB") _ _ _) = Just "british"
