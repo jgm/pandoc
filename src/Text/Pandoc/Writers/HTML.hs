@@ -889,7 +889,7 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
                  | "nonincremental" `elem` classes -> opts{ writerIncremental = False }
                  | otherwise -> opts
       -- we remove "incremental" and "nonincremental" if we're in a
-      -- slide presentaiton format.
+      -- slide presentation format.
       classes' = case slideVariant of
         NoSlides -> classes
         _ -> filter (\k -> k /= "incremental" && k /= "nonincremental") classes
