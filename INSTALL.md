@@ -90,7 +90,7 @@ for this task.
 
 Check whether the pandoc version in your package manager is
 not outdated. Pandoc is in the [Debian], [Ubuntu], [Slackware],
-[Arch], [Fedora], [NiXOS], [openSUSE], [gentoo] and [Void] repositories.
+[Arch], [Fedora], [NixOS], [openSUSE], [gentoo] and [Void] repositories.
 
 To get the latest release, we provide a binary package for amd64
 architecture on the **[download page]**.
@@ -148,7 +148,7 @@ device you are using.
 
 ## BSD
 
-Pandoc is in the [NetBSD] and [FreeBSD ports] repositories.
+Pandoc is in the [NetBSD], [FreeBSD], and [OpenBSD ports] repositories.
 
 ## Docker
 
@@ -370,12 +370,13 @@ To run just the markdown benchmarks:
 [Cabal User's Guide]: https://cabal.readthedocs.io/
 [Debian]: https://packages.debian.org/search?keywords=pandoc
 [Fedora]: https://packages.fedoraproject.org/pkgs/pandoc/pandoc/
-[FreeBSD ports]: https://www.freshports.org/textproc/hs-pandoc/
+[FreeBSD]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
 [GitLab CI/CD]: https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/
 [Haskell platform]: https://hackage.haskell.org/platform/
 [MacPorts]: https://trac.macports.org/browser/trunk/dports/textproc/pandoc/Portfile
 [MacTeX]: https://tug.org/mactex/
+[OpenBSD ports]: https://cvsweb.openbsd.org/ports/textproc/pandoc/
 [BasicTeX]: https://www.tug.org/mactex/morepackages.html
 [LaTeX]: https://www.latex-project.org
 [MiKTeX]: https://miktex.org/
