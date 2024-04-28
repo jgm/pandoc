@@ -324,7 +324,7 @@ defListItemToTypst (term, defns) = do
   modify $ \st -> st{ stEscapeContext = NormalContext }
   defns' <- mapM blocksToTypst defns
   return $ nowrap ("/ " <> term' <> ": " <> "#block[") $$
-            chomp (vcat defns') $$ "]"
+            chomp (vsep defns') $$ "]"
 
 listItemToTypst :: PandocMonad m => Int -> Doc Text -> [Block] -> TW m (Doc Text)
 listItemToTypst ind marker blocks = do

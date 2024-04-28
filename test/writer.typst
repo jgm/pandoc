@@ -462,11 +462,13 @@ Multiple definitions, tight:
 
 / apple: #block[
 red fruit
+
 computer
 ]
 
 / orange: #block[
 orange fruit
+
 bank
 ]
 
