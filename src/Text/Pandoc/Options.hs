@@ -376,7 +376,7 @@ defaultMathJaxURL :: Text
 defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
 
 defaultKaTeXURL :: Text
-defaultKaTeXURL = "https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/"
+defaultKaTeXURL = "https://cdn.jsdelivr.net/npm/katex@latest/dist/"
 
 -- Update documentation in doc/filters.md if this is changed.
 $(deriveJSON defaultOptions{ fieldLabelModifier =
