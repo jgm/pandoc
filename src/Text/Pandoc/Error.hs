@@ -136,7 +136,8 @@ renderError e =
          _     -> ""
     PandocUnsupportedExtensionError ext f ->
       "The extension " <> ext <> " is not supported " <>
-      "for " <> f
+      "for " <> f <> ".\nUse --list-extensions=" <> f <> " to " <>
+      "list supported extensions."
     PandocCiteprocError e' ->
       prettyCiteprocError e'
     PandocBibliographyError fp msg ->
