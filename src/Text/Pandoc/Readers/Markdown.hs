@@ -189,12 +189,15 @@ litChar = T.singleton <$> escapedChar'
        <|> T.singleton <$> noneOf "\n"
        <|> try (newline >> notFollowedBy blankline >> return " ")
 
--- | Parse a sequence of inline elements between square brackets,
--- including inlines between balanced pairs of square brackets.
-inlinesInBalancedBrackets :: PandocMonad m => MarkdownParser m (F Inlines)
-inlinesInBalancedBrackets =
+-- | Parse a sequence of elements between square brackets,
+-- including between balanced pairs of square brackets.
+-- Skip brackets in standard inline escapes, code, raw HTML or LaTeX.
+inBalancedBrackets :: PandocMonad m
+                   => MarkdownParser m (F a)
+                   -> MarkdownParser m (F a)
+inBalancedBrackets innerParser =
   try $ char '[' >> withRaw (go 1) >>=
-          parseFromString inlines . stripBracket . snd
+          parseFromString innerParser . stripBracket . snd
   where stripBracket t = case T.unsnoc t of
           Just (t', ']') -> t'
           _              -> t
@@ -1813,7 +1816,7 @@ endline = try $ do
 reference :: PandocMonad m => MarkdownParser m (F Inlines, Text)
 reference = do
   guardDisabled Ext_footnotes <|> notFollowedBy' noteMarker
-  withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
+  withRaw $ trimInlinesF <$> inBalancedBrackets inlines
 
 parenthesizedChars :: PandocMonad m => MarkdownParser m Text
 parenthesizedChars = do
@@ -2060,7 +2063,7 @@ inlineNote = do
     char '^'
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
-    contents <- inlinesInBalancedBrackets
+    contents <- inBalancedBrackets inlines
     updateState $ \st -> st{ stateInNote = False }
     return $ B.note . B.para <$> contents
 
