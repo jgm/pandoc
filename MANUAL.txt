@@ -2809,6 +2809,9 @@ These variables change the appearance of PDF slides using [`beamer`].
 `titlegraphic`
 :   image for title slide
 
+`titlegraphicoptions`
+:   options for title slide image
+
 ### Variables for PowerPoint
 
 These variables control the visual aspects of a slide show that
