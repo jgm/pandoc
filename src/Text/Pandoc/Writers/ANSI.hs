@@ -142,20 +142,22 @@ blockToANSI opts (Header level (_, classes, kvs) inlines) = do
     color True = id
 
 -- The approach to code blocks and highlighting here is a best-effort with
--- existing tools, and can easily produce results that aren't quite right. Using
--- line numbers together with certain highlight styles interacts poorly with
--- the "nest" combinator being applied to the whole document. The Skylighting
--- formatANSI function produces fully-rendered results; a more ambitious
--- approach here could process SourceLines into a Doc Text.
-blockToANSI opts (CodeBlock attr str) =
-  case writerHighlightStyle opts of
-    Nothing -> return $ D.literal str
+-- existing tools. The Skylighting formatANSI function produces fully-rendered
+-- results, and its line numbers are followed by a tab character, which can
+-- produce less-than-ideal results depending on your terminal's tab stops. (See
+-- tabs(1)). A more ambitious approach here could process SourceLines into a
+-- Doc Text.
+blockToANSI opts (CodeBlock attr str) = do
+  inner <- case writerHighlightStyle opts of
+    Nothing -> return $ defaultStyle str
     Just s -> do
       let fmt o = formatANSI o s
           result = highlight (writerSyntaxMap opts) fmt attr str
       return $ case result of
-        Left _ -> D.literal str
+        Left _ -> defaultStyle str
         Right f -> D.literal f
+  return $ D.nest 4 inner
+  where defaultStyle = (D.fg D.red) . D.literal
 
 blockToANSI opts (BlockQuote blocks) = do
   contents <- withFewerColumns 2 $ blockListToANSI opts blocks
