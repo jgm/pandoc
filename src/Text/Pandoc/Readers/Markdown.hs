@@ -2256,11 +2256,7 @@ bareloc c = try $ do
 
 normalCite :: PandocMonad m => MarkdownParser m (F [Citation])
 normalCite = try $ do
-  char '['
-  spnl
-  citations <- citeList
-  spnl
-  char ']'
+  citations <- inBalancedBrackets (spnl *> citeList <* spnl)
   -- not a link or a bracketed span
   notFollowedBy (try (void source) <|>
                   (guardEnabled Ext_bracketed_spans *> void attributes) <|>
@@ -2271,8 +2267,9 @@ suffix :: PandocMonad m => MarkdownParser m (F Inlines)
 suffix = try $ do
   hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
   spnl
-  rest <- trimInlinesF . mconcat <$> many (notFollowedBy (oneOf ";]") >> inline)
-  return $ if hasSpace
+  ils <- many (notFollowedBy (oneOf ";]") >> inline)
+  let rest = trimInlinesF (mconcat ils)
+  return $ if hasSpace && not (null ils)
               then (B.space <>) <$> rest
               else rest
 
