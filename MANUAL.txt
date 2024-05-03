@@ -4338,13 +4338,26 @@ document:
 The label can be any string of alphanumeric characters, underscores,
 or hyphens.
 
-Note:  continuation paragraphs in example lists must always
+Continuation paragraphs in example lists must always
 be indented four spaces, regardless of the length of the
 list marker.  That is, example lists always behave as if the
 `four_space_rule` extension is set.  This is because example
 labels tend to be long, and indenting content to the
 first non-space character after the label would be awkward.
 
+You can repeat an earlier numbered example by re-using its label:
+
+    (@foo) Sample sentence.
+
+    Intervening text...
+
+    This theory can explain the case we saw earlier (repeated):
+
+    (@foo) Sample sentence.
+
+This only works reliably, though, if the repeated item is in a list
+by itself, because each numbered example list will be numbered
+continuously from its starting number.
 
 ### Ending a list ###
 

@@ -119,13 +119,17 @@ exampleNum = do
                                   cs <- many1 alphaNum
                                   return (c:cs)))
   st <- getState
-  let num = stateNextExample st
-  let newlabels = if T.null lab
-                     then stateExamples st
-                     else M.insert lab num $ stateExamples st
-  updateState $ \s -> s{ stateNextExample = num + 1
-                       , stateExamples    = newlabels }
-  return (Example, num)
+  case M.lookup lab (stateExamples st) of
+    Nothing -> do -- new label
+      let num = stateNextExample st
+      let newlabels = if T.null lab
+                         then stateExamples st
+                         else M.insert lab num $ stateExamples st
+      updateState $ \s -> s{ stateNextExample = num + 1
+                           , stateExamples    = newlabels }
+      return (Example, num)
+    Just num -> -- reuse existing label
+      return (Example, num)
 
 -- | Parses a '#' returns (DefaultStyle, 1).
 defaultNum :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s st m (ListNumberStyle, Int)
