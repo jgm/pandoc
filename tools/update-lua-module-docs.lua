@@ -1,3 +1,7 @@
+--- Generate documentation for a pandoc Lua module.
+-- Copyright: © 2022-2024 Albert Krewinkel
+-- License: MIT
+
 local ipairs, load, next, pairs, print, tostring, type, warn =
   ipairs, load, next, pairs, print, tostring, type, warn
 local string, table = string, table
@@ -14,6 +18,9 @@ local function documentation (value)
   return registry['HsLua docs'][value]
 end
 
+--- Creates an iterator triple that will return values sorted by key names.
+-- @param tbl  table with string keys
+-- @return iterator triple to be used in a `for` loop.
 local function sorted (tbl)
   local keys = {}
   for key in pairs(tbl) do
@@ -32,18 +39,21 @@ local function sorted (tbl)
   return iter, nil, nil
 end
 
-local get = function (fieldname)
-  return function (obj) return obj[fieldname] end
-end
-
+--- Parses text to a list of Block values.
+-- @param txt  string value
+-- @return {Block,...}
 local function read_blocks (txt)
   return read(txt, 'commonmark+smart+wikilinks_title_before_pipe').blocks
 end
 
+--- Parses text to a list of Inline values.
+-- @param txt  string value
+-- @return {Inline,...}
 local function read_inlines (txt)
   return utils.blocks_to_inlines(read_blocks(txt))
 end
 
+--- Map of all known data types to a heading ID. Used to create hyperlinks.
 local known_types = {
   Block = 'type-block',
   Blocks = 'type-blocks',
@@ -74,21 +84,20 @@ local function render_typespec (typespec)
       result:extend(tspec)
     end
     return result
+  elseif typespec.any then
+    return Inlines('any')
   end
   warn("falling back to string representation for type " .. tostring(typespec))
   return Inlines(tostring(typespec))
 end
 
+--- Render a type marker.
+-- E.g., the type of a parameter.
 local function type_to_inlines (typeobj)
-  if typeobj == nil then
-    return Inlines 'any'
-  end
-
-  -- Types starting with a capital letter are pandoc types, so we can
-  -- link them.
-  return Inlines ' (' .. render_typespec(typeobj) .. Inlines ')'
+  return Inlines ' ('  .. render_typespec(typeobj) .. Inlines ')'
 end
 
+--- Append inlines to the last block if possible, or append a new Plain.
 local function append_inlines (blocks, inlines)
   local last = blocks[#blocks]
   if last and (last.t == 'Plain' or last.t == 'Para') then
@@ -99,6 +108,12 @@ local function append_inlines (blocks, inlines)
   return blocks
 end
 
+--- Returns a list of function arguments.
+--
+-- The parameters are comma-separated; optional arguments are put in brackets.
+--
+-- @param parameters  list of function parameters
+-- @return string
 local function argslist (parameters)
   local required = List{}
   local optional = List{}
@@ -119,6 +134,9 @@ local function argslist (parameters)
     table.concat(optional, '[, ') .. string.rep(']', #optional)
 end
 
+--- Generates rendered documentation for the return values of a function.
+-- @param results     list of function results
+-- @return {Block,...}
 local function render_results (results)
   if type(results) == 'string' then
     return read_blocks(results)
@@ -138,6 +156,12 @@ local function render_results (results)
   end
 end
 
+--- Renders function documentation.
+--
+-- @param doc         documentation object
+-- @param level       the current heading level in the document
+-- @param modulename  name of the module that contains this function
+-- @return Documentation rendered as list of Blocks
 local function render_function (doc, level, modulename)
   local name = doc.name
   level = level or 1
@@ -167,12 +191,24 @@ local function render_function (doc, level, modulename)
     .. Blocks(doc.since and {Para{Emph{'Since: ' .. doc.since}}} or {})
 end
 
+--- Renders documentation of a module field.
+--
+-- @param field       field documentation object
+-- @param level       the current heading level in the document
+-- @param modulename  name of the module that contains this function
+-- @return {Block,...}
 local function render_field (field, level, modulename)
   local id = modulename and modulename .. '.' .. field.name or ''
   return Blocks{Header(level, field.name, {id})} ..
     {Plain(read_inlines(field.description) .. type_to_inlines(field.type))}
 end
 
+--- Renders documentation of a data type associated with a module.
+--
+-- @param name        data type name
+-- @param level       the current heading level in the document
+-- @param modulename  name of the module that contains this function
+-- @return {Block,...}
 local function render_type (name, level, modulename)
   -- We just want the modulename prefix, as the type names should already
   -- contain the module name to some extend.
@@ -214,6 +250,10 @@ local function render_type (name, level, modulename)
     methods
 end
 
+--- Renders module documentation.
+--
+-- @param doc         documentation object of the module
+-- @return {Block,...}
 local function render_module (doc)
   local fields = Blocks{}
   if #doc.fields > 0 then
@@ -248,23 +288,6 @@ local function render_module (doc)
     typedocs
 end
 
-local function get_module_name(header)
-  return stringify(header):match 'Module pandoc%.([%w]*)'
-end
-
---- Set of modules for which documentation should be generated.
-local handled_modules = {
-  layout = true
-}
-
--- Generate docs for the given module
-if arg and arg[1] then
-  local module_name = arg[1]
-  local object = _ENV[module_name]
-  local blocks = render_module(documentation(object))
-  print(write(Pandoc(blocks), 'markdown'))
-end
-
 local autogen_start =
   '\n<!%-%- BEGIN: AUTOGENERATED CONTENT for module ([a-z%.]+) %-%->'
 local autogen_end =
@@ -272,18 +295,23 @@ local autogen_end =
 local reflinks_marker =
   '<!%-%- BEGIN: GENERATED REFERENCE LINKS %-%->\n'
 
+--- Create a raw Markdown block.
+-- @param str  Markdown text
+-- @return Block
 local rawmd = function (str)
   return RawBlock('markdown', str)
 end
 
-local function foo (input, blocks, start)
+--- Generate documentation for content marked for auto-generation.
+-- Skips all other contents and includes it as raw Markdown.
+local function process_document (input, blocks, start)
   local mstart, mstop, module_name = input:find(autogen_start, start)
   if mstart and mstop and module_name then
     print('Generating docs for module ' .. module_name)
     blocks:insert(rawmd(input:sub(start, mstop)))
     local object = _ENV[module_name] or _ENV[module_name:gsub('^pandoc%.', '')]
     blocks:extend(render_module(documentation(object)))
-    return foo(input, blocks, input:find(autogen_end, mstop) or -1)
+    return process_document(input, blocks, input:find(autogen_end, mstop) or -1)
   else
     local reflinks_start, reflinks_stop = input:find(reflinks_marker, start)
     blocks:insert(rawmd(input:sub(start, reflinks_stop)))
@@ -292,7 +320,7 @@ local function foo (input, blocks, start)
 end
 
 function _G.Reader (inputs, opts)
-  local blocks = foo(tostring(inputs), Blocks{}, 1)
+  local blocks = process_document(tostring(inputs), Blocks{}, 1)
   blocks = blocks:walk {
     Link = function (link)
       if link.title == 'wikilink' then
@@ -315,4 +343,17 @@ function _G.Reader (inputs, opts)
     end,
   }
   return Pandoc(blocks)
+end
+
+-- For usage as a standalone script.
+-- E.g.
+--
+--     pandoc lua module-docs.lua
+--
+-- Generate Markdown docs for the given module and writes them to stdout.
+if arg and arg[1] then
+  local module_name = arg[1]
+  local object = _ENV[module_name]
+  local blocks = render_module(documentation(object))
+  print(write(Pandoc(blocks), 'markdown'))
 end
