@@ -6278,7 +6278,7 @@ Returns:
 
 Files in this zip archive ({[zip.Entry],\...})
 
-#### Methods
+#### Methods {#type-pandoc.zip.Archive-methods}
 
 ##### bytestring {#pandoc.zip.Archive.bytestring}
 
@@ -6325,7 +6325,7 @@ Modification time (seconds since unix epoch)
 
 Relative path, using `/` as separator ([zip.Entry])
 
-#### Methods
+#### Methods {#type-pandoc.zip.Entry-methods}
 
 ##### contents {#pandoc.zip.Entry.contents}
 

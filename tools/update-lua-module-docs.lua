@@ -1,17 +1,28 @@
 --- Generate documentation for a pandoc Lua module.
 -- Copyright: © 2022-2024 Albert Krewinkel
 -- License: MIT
+--
+-- This script can be used as either a custom reader, or as a standalone
+-- pandoc Lua script. In the latter case, it expects a module name as
+-- argument.
 
-local ipairs, load, next, pairs, print, tostring, type, warn =
-  ipairs, load, next, pairs, print, tostring, type, warn
+local ipairs, next, pairs, print, tostring, type, warn =
+  ipairs, next, pairs, print, tostring, type, warn
 local string, table = string, table
-local _G, arg = _G, arg
+local utils = require 'pandoc.utils'
+local read, write = pandoc.read, pandoc.write
+local Pandoc = pandoc.Pandoc
+local Blocks, Inlines, List = pandoc.Blocks, pandoc.Inlines, pandoc.List
+local Code, Emph, Link, Span, Str =
+  pandoc.Code, pandoc.Emph, pandoc.Link, pandoc.Span, pandoc.Str
+local BulletList, DefinitionList, Header, Para, Plain, RawBlock =
+  pandoc.BulletList, pandoc.DefinitionList, pandoc.Header, pandoc.Para,
+  pandoc.Plain, pandoc.RawBlock
 
 local registry = debug.getregistry()
 
-_ENV = pandoc
-
-local stringify = utils.stringify
+--- Table containing all known modules
+local modules = pandoc
 
 --- Retrieves the documentation object for the given value.
 local function documentation (value)
@@ -28,7 +39,7 @@ local function sorted (tbl)
   end
   table.sort(keys)
   local i = 0
-  local iter = function (state, ctrl)
+  local iter = function (_state, ctrl)
     if i > 0 and ctrl == nil then
       return nil
     else
@@ -117,7 +128,7 @@ end
 local function argslist (parameters)
   local required = List{}
   local optional = List{}
-  for i, param in ipairs(parameters) do
+  for _, param in ipairs(parameters) do
     if param.optional then
       optional:insert(param.name)
     else
@@ -221,6 +232,7 @@ local function render_type (name, level, modulename)
   local properties = Blocks{}
   if next(metatable.docs.properties) then
     local propattr = {'type-' .. id .. '-properties'}
+    local attr
     properties:insert(Header(level + 1, "Properties", propattr))
     for propname, prop in sorted(metatable.docs.properties) do
       attr = {'type-' .. nameprefix .. '.' .. name .. '.' .. propname}
@@ -235,8 +247,8 @@ local function render_type (name, level, modulename)
   local methods = Blocks{}
   if next(metatable.methods) then
     local attr = {'type-' .. id .. '-methods'}
-    methods:insert(Header(level + 1, "Methods", mattr))
-    for name, method in sorted(metatable.methods) do
+    methods:insert(Header(level + 1, "Methods", attr))
+    for _, method in sorted(metatable.methods) do
       -- attr = {'type-' .. modulename .. '.' .. name .. '.' .. name}
       -- methods:insert(Header(level + 2, name, attr))
       methods:extend(render_function(documentation(method), level+2, id))
@@ -258,7 +270,7 @@ local function render_module (doc)
   local fields = Blocks{}
   if #doc.fields > 0 then
     fields:insert(Header(2, 'Fields', {doc.name .. '-' .. 'fields'}))
-    for i, fld in ipairs(doc.fields) do
+    for _, fld in ipairs(doc.fields) do
       fields:extend(render_field(fld, 3, doc.name))
     end
   end
@@ -266,7 +278,7 @@ local function render_module (doc)
   local functions = Blocks{}
   if #doc.functions > 0 then
     functions:insert(Header(2, 'Functions', {doc.name .. '-' .. 'functions'}))
-    for i, fun in ipairs(doc.functions) do
+    for _, fun in ipairs(doc.functions) do
       functions:extend(render_function(fun, 3, doc.name))
     end
   end
@@ -275,7 +287,7 @@ local function render_module (doc)
   local types = type(doc.types) == 'function' and doc.types() or {}
   if #types > 0 then
     typedocs:insert(Header(2, 'Types', {doc.name .. '-' .. 'types'}))
-    for i, ty in ipairs(types) do
+    for _, ty in ipairs(types) do
       typedocs:extend(render_type(ty, 3, doc.name))
     end
   end
@@ -309,17 +321,19 @@ local function process_document (input, blocks, start)
   if mstart and mstop and module_name then
     print('Generating docs for module ' .. module_name)
     blocks:insert(rawmd(input:sub(start, mstop)))
-    local object = _ENV[module_name] or _ENV[module_name:gsub('^pandoc%.', '')]
+    local object = modules[module_name] or modules[module_name:gsub('^pandoc%.', '')]
     blocks:extend(render_module(documentation(object)))
     return process_document(input, blocks, input:find(autogen_end, mstop) or -1)
   else
-    local reflinks_start, reflinks_stop = input:find(reflinks_marker, start)
+    local reflinks_stop = select(2, input:find(reflinks_marker, start))
     blocks:insert(rawmd(input:sub(start, reflinks_stop)))
     return blocks
   end
 end
 
-function _G.Reader (inputs, opts)
+--- Custom reader function
+-- Processes all markers for auto-generated contents, ignores the rest.
+function Reader (inputs)
   local blocks = process_document(tostring(inputs), Blocks{}, 1)
   blocks = blocks:walk {
     Link = function (link)
@@ -353,7 +367,7 @@ end
 -- Generate Markdown docs for the given module and writes them to stdout.
 if arg and arg[1] then
   local module_name = arg[1]
-  local object = _ENV[module_name]
+  local object = modules[module_name]
   local blocks = render_module(documentation(object))
   print(write(Pandoc(blocks), 'markdown'))
 end
