@@ -54,6 +54,7 @@ local known_types = {
   SimpleTable = 'type-simpletable',
   Table = 'type-table',
   WriterOptions = 'type-writeroptions',
+  Version = 'type-version',
 }
 
 local function render_typespec (typespec)
@@ -254,21 +255,6 @@ end
 --- Set of modules for which documentation should be generated.
 local handled_modules = {
   layout = true
-}
-
-local modules = {
-  -- 'cli',
-  -- 'utils',
-  -- 'mediabag',
-  -- 'format',
-  -- 'path',
-  -- 'structure',
-  -- 'system',
-  -- 'layout',
-  -- 'scaffolding',
-  -- 'template',
-  -- 'types',
-  'zip',
 }
 
 -- Generate docs for the given module

@@ -30,14 +30,14 @@ documentedModule = Module
   , moduleFunctions =
       [ defun "Version"
         ### return
-        <#> parameter peekVersionFuzzy "string|integer|{integer,...}|Version"
+        <#> parameter peekVersionFuzzy "string|number|{integer,...}|Version"
               "version_specifier"
-              (mconcat [ "either a version string like `'2.7.3'`, "
-                       , "a single integer like `2`, "
-                       , "list of integers like `{2,7,3}`, "
-                       , "or a Version object"
+              (mconcat [ "A version string like `'2.7.3'`, "
+                       , "a Lua number like `2.0`, "
+                       , "a list of integers like `{2,7,3}`, "
+                       , "or a Version object."
                        ])
-        =#> functionResult pushVersion "Version" "A new Version object."
+        =#> functionResult pushVersion "Version" "New Version object."
         `since` makeVersion [2,7,3]
       ]
   , moduleOperations = []
