@@ -13,6 +13,7 @@ extra-deps:
 - commonmark-0.2.6
 - commonmark-extensions-0.2.5.4
 - commonmark-pandoc-0.2.2.1
+- hslua-module-zip-1.1.2
 - pandoc-lua-marshal-0.2.6
 - tls-2.0.2
 - skylighting-format-blaze-html-0.1.1.2
