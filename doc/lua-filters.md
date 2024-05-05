@@ -6355,7 +6355,7 @@ Returns:
 `symlink (self)`
 
 Returns the target if the Entry represents a symbolic link, and
-`nil` otherwise.
+`nil` otherwise. Always returns `nil` on Windows.
 
 Parameters:
 
