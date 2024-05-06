@@ -119,7 +119,7 @@ library
                      , lpeg                  >= 1.1     && < 1.2
                      , mtl                   >= 2.2     && < 2.4
                      , pandoc                >= 3.1.4   && < 3.2
-                     , pandoc-lua-marshal    >= 0.2.6   && < 0.3
+                     , pandoc-lua-marshal    >= 0.2.7   && < 0.3
                      , pandoc-types          >= 1.22    && < 1.24
                      , parsec                >= 3.1     && < 3.2
                      , text                  >= 1.1.1   && < 2.2
