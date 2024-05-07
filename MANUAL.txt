@@ -138,14 +138,17 @@ When using LaTeX, the following packages need to be available
 [`amsfonts`], [`amsmath`], [`lm`], [`unicode-math`],
 [`iftex`], [`listings`] (if the
 `--listings` option is used), [`fancyvrb`], [`longtable`],
-[`booktabs`], [`graphicx`] (if the document
+[`booktabs`], [`multirow`] (if the document contains a table with
+cells that cross multiple rows), [`graphicx`] (if the document
 contains images), [`bookmark`], [`xcolor`],
 [`soul`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  If `CJKmainfont` is set, [`xeCJK`]
-is needed.  The use of `xelatex` or `lualatex` as
-the PDF engine requires [`fontspec`].  `lualatex` uses
-[`selnolig`]. `xelatex` uses [`bidi`] (with the `dir` variable set).
+is needed. [`framed`] is required if code is highlighted in a
+scheme that use a colored background. The use of `xelatex` or
+`lualatex` as the PDF engine requires [`fontspec`]. `lualatex`
+uses [`selnolig`] and [`lua-ul`]. `xelatex` uses [`bidi`] (with
+the `dir` variable set).
 If the `mathspec` variable is set, `xelatex` will use [`mathspec`]
 instead of [`unicode-math`].  The [`upquote`] and [`microtype`]
 packages are used if available, and [`csquotes`] will be used
@@ -175,13 +178,14 @@ better line breaks in URLs), and [`footnotehyper`] or
 [`fontspec`]: https://ctan.org/pkg/fontspec
 [`footnote`]: https://ctan.org/pkg/footnote
 [`footnotehyper`]: https://ctan.org/pkg/footnotehyper
+[`framed`]: https://ctan.org/pkg/framed
 [`geometry`]: https://ctan.org/pkg/geometry
 [`graphicx`]: https://ctan.org/pkg/graphicx
-[`grffile`]: https://ctan.org/pkg/grffile
 [`hyperref`]: https://ctan.org/pkg/hyperref
 [`iftex`]: https://ctan.org/pkg/iftex
 [`listings`]: https://ctan.org/pkg/listings
 [`lm`]: https://ctan.org/pkg/lm
+[`lua-ul`]: https://ctan.org/pkg/lua-ul
 [`longtable`]: https://ctan.org/pkg/longtable
 [`mathspec`]: https://ctan.org/pkg/mathspec
 [`microtype`]: https://ctan.org/pkg/microtype
