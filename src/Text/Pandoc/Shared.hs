@@ -55,7 +55,6 @@ module Text.Pandoc.Shared (
                      inlineListToIdentifier,
                      textToIdentifier,
                      isHeaderBlock,
-                     headerShift,
                      stripEmptyParagraphs,
                      onlySimpleTableCells,
                      isTightList,
@@ -63,9 +62,7 @@ module Text.Pandoc.Shared (
                      taskListItemToAscii,
                      handleTaskListItem,
                      addMetaField,
-                     eastAsianLineBreakFilter,
                      htmlSpanLikeElements,
-                     filterIpynbOutput,
                      formatCode,
                      -- * TagSoup HTML handling
                      renderTags',
@@ -93,8 +90,7 @@ import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.List (find, foldl', groupBy, intercalate, intersperse,
-                  union, sortOn)
+import Data.List (find, foldl', groupBy, intercalate, intersperse, union)
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import Data.Monoid (Any (..) )
@@ -113,7 +109,6 @@ import Data.Time
 import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
-import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
 -- for addPandocAttributes:
@@ -600,21 +595,6 @@ isHeaderBlock :: Block -> Bool
 isHeaderBlock Header{} = True
 isHeaderBlock _        = False
 
--- | Shift header levels up or down.
-headerShift :: Int -> Pandoc -> Pandoc
-headerShift n (Pandoc meta (Header m _ ils : bs))
-  | n < 0
-  , m + n == 0 = headerShift n $
-                 B.setTitle (B.fromList ils) $ Pandoc meta bs
-headerShift n (Pandoc meta bs) = Pandoc meta (walk shift bs)
-
- where
-   shift :: Block -> Block
-   shift (Header level attr inner)
-     | level + n > 0  = Header (level + n) attr inner
-     | otherwise      = Para inner
-   shift x            = x
-
 -- | Remove empty paragraphs.
 stripEmptyParagraphs :: Pandoc -> Pandoc
 stripEmptyParagraphs = walk go
@@ -692,64 +672,10 @@ addMetaField key val (Meta meta) =
         tolist (MetaList ys) = ys
         tolist y             = [y]
 
--- | Remove soft breaks between East Asian characters.
-eastAsianLineBreakFilter :: Pandoc -> Pandoc
-eastAsianLineBreakFilter = bottomUp go
-  where go (x:SoftBreak:y:zs)
-          | Just (_, b) <- T.unsnoc $ stringify x
-          , Just (c, _) <- T.uncons $ stringify y
-          , charWidth b == 2
-          , charWidth c == 2
-          = x:y:zs
-          | otherwise
-          = x:SoftBreak:y:zs
-        go xs
-          = xs
-
 -- | Set of HTML elements that are represented as Span with a class equal as
 -- the element tag itself.
 htmlSpanLikeElements :: Set.Set T.Text
 htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn"]
-
--- | Process ipynb output cells.  If mode is Nothing,
--- remove all output.  If mode is Just format, select
--- best output for the format.  If format is not ipynb,
--- strip out ANSI escape sequences from CodeBlocks (see #5633).
-filterIpynbOutput :: Maybe Format -> Pandoc -> Pandoc
-filterIpynbOutput mode = walk go
-  where go (Div (ident, "output":os, kvs) bs) =
-          case mode of
-            Nothing  -> Div (ident, "output":os, kvs) []
-            -- "best" for ipynb includes all formats:
-            Just fmt
-              | fmt == Format "ipynb"
-                          -> Div (ident, "output":os, kvs) bs
-              | otherwise -> Div (ident, "output":os, kvs) $
-                              walk removeANSI $
-                              take 1 $ sortOn rank bs
-                 where
-                  rank (RawBlock (Format "html") _)
-                    | fmt == Format "html" = 1 :: Int
-                    | fmt == Format "markdown" = 3
-                    | otherwise = 4
-                  rank (RawBlock (Format "latex") _)
-                    | fmt == Format "latex" = 1
-                    | fmt == Format "markdown" = 3
-                    | otherwise = 4
-                  rank (RawBlock f _)
-                    | fmt == f = 1
-                    | otherwise = 4
-                  rank (Para [Image{}]) = 2
-                  rank _ = 3
-                  removeANSI (CodeBlock attr code) =
-                    CodeBlock attr (removeANSIEscapes code)
-                  removeANSI x = x
-                  removeANSIEscapes t
-                    | Just cs <- T.stripPrefix "\x1b[" t =
-                        removeANSIEscapes $ T.drop 1 $ T.dropWhile (/='m') cs
-                    | Just (c, cs) <- T.uncons t = T.cons c $ removeANSIEscapes cs
-                    | otherwise = ""
-        go x = x
 
 -- | Reformat 'Inlines' as code, putting the stringlike parts in 'Code'
 -- elements while bringing other inline formatting outside.

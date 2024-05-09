@@ -44,8 +44,9 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
-import Text.Pandoc.Shared (safeRead, extractSpaces, headerShift)
+import Text.Pandoc.Shared (safeRead, extractSpaces)
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
+import Text.Pandoc.Transforms (headerShift)
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Map as M
 import Text.Pandoc.XML.Light
