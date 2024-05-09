@@ -17,18 +17,18 @@ module Text.Pandoc.App.Input
 import Control.Monad ((>=>))
 import Control.Monad.Except (throwError, catchError)
 import Data.Text (Text)
-import Network.URI (URI (..), parseURI, unEscapeString)
+import Network.URI (URI (..), parseURI)
+import Text.Pandoc.Transforms (adjustLinksAndIds)
 import Text.Pandoc.Class ( PandocMonad, openURL, toTextM
                          , readFileStrict, readStdinStrict, report)
-import Text.Pandoc.Definition (Pandoc (..), Attr, Block (..), Inline (..))
+import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Logging (LogMessage (..))
 import Text.Pandoc.MIME (getCharset, MimeType)
-import Text.Pandoc.Options (Extensions, ReaderOptions (..))
+import Text.Pandoc.Options (ReaderOptions (..))
 import Text.Pandoc.Readers (Reader (..))
-import Text.Pandoc.Shared (tabFilter, textToIdentifier)
+import Text.Pandoc.Shared (tabFilter)
 import Text.Pandoc.URI (uriPathToPath)
-import Text.Pandoc.Walk (walk)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
@@ -119,52 +119,3 @@ inputToText convTabs (fp, (bs,mt)) =
 inputToLazyByteString :: (FilePath, (BS.ByteString, Maybe MimeType))
                       -> BL.ByteString
 inputToLazyByteString (_, (bs,_)) = BL.fromStrict bs
-
-adjustLinksAndIds :: Extensions -> Text -> [Text] -> Pandoc -> Pandoc
-adjustLinksAndIds exts thisfile allfiles
-  | length allfiles > 1 = walk fixInline . walk fixBlock
-  | otherwise           = id
- where
-  toIdent :: Text -> Text
-  toIdent = textToIdentifier exts . T.intercalate "__" .
-            T.split (\c -> c == '/' || c == '\\')
-
-  fixBlock :: Block -> Block
-  fixBlock (CodeBlock attr t) = CodeBlock (fixAttrs attr) t
-  fixBlock (Header lev attr ils) = Header lev (fixAttrs attr) ils
-  fixBlock (Table attr cap cols th tbs tf) =
-     Table (fixAttrs attr) cap cols th tbs tf
-  fixBlock (Div attr bs) = Div (fixAttrs attr) bs
-  fixBlock x = x
-
-  -- add thisfile as prefix of identifier
-  fixAttrs :: Attr -> Attr
-  fixAttrs (i,cs,kvs)
-    | T.null i = (i,cs,kvs)
-    | otherwise =
-        (T.intercalate "__"
-          (filter (not . T.null) [toIdent thisfile, i]),
-        cs, kvs)
-
-  -- if URL begins with file from allfiles, convert to
-  -- an internal link with the appropriate identifier
-  fixURL :: Text -> Text
-  fixURL u =
-    let (a,b) = T.break (== '#') $ T.pack . unEscapeString . T.unpack $ u
-        filepart = if T.null a
-                      then toIdent thisfile
-                      else toIdent a
-        fragpart = T.dropWhile (== '#') b
-     in if T.null a || a `elem` allfiles
-           then "#" <> T.intercalate "__"
-                         (filter (not . T.null) [filepart, fragpart])
-           else u
-
-  fixInline :: Inline -> Inline
-  fixInline (Code attr t) = Code (fixAttrs attr) t
-  fixInline (Link attr ils (url,tit)) =
-    Link (fixAttrs attr) ils (fixURL url,tit)
-  fixInline (Image attr ils (url,tit)) =
-    Image (fixAttrs attr) ils (fixURL url,tit)
-  fixInline (Span attr ils) = Span (fixAttrs attr) ils
-  fixInline x = x

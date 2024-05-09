@@ -39,12 +39,13 @@ import Text.Collate.Lang (Lang (..), parseLang)
 import System.Console.GetOpt
 import System.Environment (getProgName)
 import qualified Control.Exception as E
-import Text.Pandoc.Shared (safeStrRead, headerShift, filterIpynbOutput,
-                           eastAsianLineBreakFilter)
+import Text.Pandoc.Shared (safeStrRead)
 import Text.Pandoc.App ( IpynbOutput (..), Opt(..), defaultOpts )
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Format (parseFlavoredFormat, formatName)
 import Text.Pandoc.SelfContained (makeSelfContained)
+import Text.Pandoc.Transforms (headerShift, filterIpynbOutput,
+                               eastAsianLineBreakFilter)
 import System.Exit
 import GHC.Generics (Generic)
 import Network.Wai.Middleware.Cors ( cors,

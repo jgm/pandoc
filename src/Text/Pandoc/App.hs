@@ -57,6 +57,8 @@ import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
                                            options, handleOptInfo)
 import Text.Pandoc.App.Input (InputParameters (..), readInput)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings)
+import Text.Pandoc.Transforms (applyTransforms, filterIpynbOutput,
+                               headerShift, eastAsianLineBreakFilter)
 import Text.Collate.Lang (Lang (..), parseLang)
 import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
                            applyFilters)
@@ -64,8 +66,7 @@ import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..), CustomComponents(..))
 import Text.Pandoc.SelfContained (makeSelfContained)
-import Text.Pandoc.Shared (eastAsianLineBreakFilter,
-         headerShift, filterIpynbOutput, tshow)
+import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
@@ -341,8 +342,6 @@ data PandocOutput =
     | ZipOutput BL.ByteString
   deriving (Show)
 
-type Transform = Pandoc -> Pandoc
-
 -- | Configure the common state
 configureCommonState :: PandocMonad m => Maybe FilePath -> Opt -> m ()
 configureCommonState datadir opts = do
@@ -411,11 +410,6 @@ isTextFormat s = s `notElem` ["odt","docx","epub2","epub3","epub","pptx"]
 
 adjustMetadata :: (Meta -> Meta) -> Pandoc -> Pandoc
 adjustMetadata f (Pandoc meta bs) = Pandoc (f meta) bs
-
--- Transformations of a Pandoc document post-parsing:
-
-applyTransforms :: Monad m => [Transform] -> Pandoc -> m Pandoc
-applyTransforms transforms d = return $ foldr ($) d transforms
 
 writeFnBinary :: FilePath -> BL.ByteString -> IO ()
 writeFnBinary "-" = BL.putStr
