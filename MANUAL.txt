@@ -2919,6 +2919,10 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `beamerarticle`
 :   produce an article from Beamer slides
 
+`handout`
+:   produce a handout version of Beamer slides (with overlays condensed
+    into single slides)
+
 #### Fonts
 
 `fontenc`
