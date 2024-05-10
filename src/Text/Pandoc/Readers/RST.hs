@@ -634,7 +634,7 @@ directive' = do
       name = trim $ fromMaybe "" (lookup "name" fields)
       classes = T.words $ maybe "" trim (lookup "class" fields)
       keyvals = [(k, trim v) | (k, v) <- fields, k /= "name", k /= "class"]
-      imgAttr cl = (name, classes ++ alignClasses, widthAttr ++ heightAttr)
+      imgAttr cl = (name, classes, alignClasses, widthAttr ++ heightAttr)
         where
           alignClasses = T.words $ maybe "" trim (lookup cl fields) <>
                           maybe "" (\x -> "align-" <> trim x)
@@ -731,16 +731,18 @@ directive' = do
         "figure" -> do
            (caption, legend) <- parseFromString' extractCaption body'
            let src = escapeURI $ trim top
-           let (ident, cls, kvs) = imgAttr "class"
-           let (figclasskv, kvs') = partition ((== "figclass") . fst) kvs
-           let figattr = ("", concatMap (T.words . snd) figclasskv, [])
+           let (imgident, imgcls, aligncls, imgkvs) = imgAttr "class"
+           let (figclasskv, _) = partition ((== "figclass") . fst) keyvals
+           let figcls = concatMap (T.words . snd) figclasskv
+           let figattr = ("", figcls ++ aligncls, [])
            let capt = B.caption Nothing (B.plain caption <> legend)
            return $ B.figureWith figattr capt $
-             B.plain (B.imageWith (ident, cls, kvs') src "" (B.text src))
+             B.plain (B.imageWith (imgident, imgcls, imgkvs) src "" (B.text src))
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields
-           let attr = imgAttr "class"
+           let attr = (ident, cls ++ align, dims) where
+                 (ident, cls, align, dims) = imgAttr "class"
            return $ B.para
                   $ case lookup "target" fields of
                           Just t  -> B.link (escapeURI $ trim t) ""
