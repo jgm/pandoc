@@ -56,7 +56,6 @@ module Text.Pandoc.Shared (
                      inlineListToIdentifier,
                      textToIdentifier,
                      isHeaderBlock,
-                     stripEmptyParagraphs,
                      onlySimpleTableCells,
                      isTightList,
                      taskListItemFromAscii,
@@ -607,14 +606,6 @@ uniqueIdent exts title' usedIdents =
 isHeaderBlock :: Block -> Bool
 isHeaderBlock Header{} = True
 isHeaderBlock _        = False
-
--- | Remove empty paragraphs.
-stripEmptyParagraphs :: Pandoc -> Pandoc
-stripEmptyParagraphs = walk go
-  where go :: [Block] -> [Block]
-        go = filter (not . isEmptyParagraph)
-        isEmptyParagraph (Para []) = True
-        isEmptyParagraph _         = False
 
 -- | Detect if table rows contain only cells consisting of a single
 -- paragraph that has no @LineBreak@.
