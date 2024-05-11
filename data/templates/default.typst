@@ -24,6 +24,9 @@ $endif$
 $if(title)$
   title: [$title$],
 $endif$
+$if(subtitle)$
+  subtitle: [$subtitle$],
+$endif$
 $if(author)$
   authors: (
 $for(author)$
