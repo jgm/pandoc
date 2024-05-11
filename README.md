@@ -83,7 +83,8 @@ It can convert *from*
 - `man` ([roff man](https://man.cx/groff_man(7)))
 - `muse` ([Muse](https://amusewiki.org/library/manual))
 - `native` (native Haskell)
-- `odt` ([ODT](https://en.wikipedia.org/wiki/OpenDocument))
+- `odt` ([OpenOffice text
+  document](https://en.wikipedia.org/wiki/OpenDocument))
 - `opml` ([OPML](http://dev.opml.org/spec2.html))
 - `org` ([Emacs Org mode](https://orgmode.org))
 - `ris` ([RIS](https://en.wikipedia.org/wiki/RIS_(file_format))
