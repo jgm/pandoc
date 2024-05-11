@@ -17,5 +17,3 @@ source-repository-package
   location: https://github.com/jgm/djoths
   tag: 52882f88e4904eabc940e635595dad1008064be0
 
--- also will need new skylighting, skylighting-core releases
-
