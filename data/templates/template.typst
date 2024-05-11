@@ -1,5 +1,6 @@
 #let conf(
   title: none,
+  subtitle: none,
   authors: (),
   keywords: (),
   date: none,
