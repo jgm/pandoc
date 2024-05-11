@@ -104,7 +104,6 @@
 }
 #show: doc => conf(
   title: [Pandoc Test Suite],
-  subtitle: [A set of tests for Pandoc],
   authors: (
     ( name: "John MacFarlane",
       affiliation: "",
