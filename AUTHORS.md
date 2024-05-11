@@ -137,6 +137,7 @@
 - George Stagg
 - Georgi Lyubenov
 - Gokul Rajiv
+- Gordon Woodhull
 - Gottfried Haider
 - Greg Maslov
 - Greg Rundlett
@@ -172,6 +173,7 @@
 - Jake Zimmerman
 - Jakob Voß
 - James Aspnes
+- James P. Ascher
 - James Scott-Brown
 - Jamie F. Olson
 - Jan Larres
@@ -225,6 +227,7 @@
 - Laurent P. René de Cotret
 - Lawrence Chonavel
 - Leif Metcalf
+- Leo Heitmann Ruiz
 - Leonard Rosenthol
 - Lila
 - Link Swanson
@@ -419,6 +422,7 @@
 - ebiim
 - ech0
 - favonia
+- guqicun
 - harabat
 - hseg
 - infinity0x
@@ -429,6 +433,7 @@
 - lux-lth
 - luz paz
 - lwolfsonkin
+- mbracke
 - mbrackeantidot
 - mh4ckt3mh4ckt1c4s
 - mjfs
