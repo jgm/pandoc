@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.2 (2024-MM-DD)
+## pandoc 3.2 (2024-05-11)
 
   * Change to `--file-scope` behavior (#8741): previously a Div with an
     identifier derived from the filename would be added around the contents
@@ -33,12 +33,14 @@
 
   * RST reader:
 
-    + Fix `figclass` and `align` annotations for figures (#7473, Gokul Rajiv).
+    + Fix `figclass` and `align` annotations for figures (#7473, Gokul
+      Rajiv).
 
   * LaTeX writer:
 
     + Use `polytonicgreek` instead of `polutonikogreek` with babel (#9698).
-      `polutonikogreek` is outdated. Also recognize both in the LaTeX reader.
+      `polutonikogreek` is outdated. Also recognize both in the LaTeX
+      reader.
     + Improve treatment of math inside soul commands (#1294, #5529).
       soul commands (`ul`, `hl`, `st`) are very fragile and the math
       must be handled specially.
@@ -50,7 +52,8 @@
       these as Math elements with an `aligned` environment. Semantically
       it's not exactly the same, but better than falling back to raw LaTeX.
 
-  * LaTeX template: add `titlegraphicoptions` variable (#9207, Guilhem Saurel).
+  * LaTeX template: add `titlegraphicoptions` variable (#9207, Guilhem
+    Saurel).
 
   * Docx reader:
 
@@ -60,7 +63,8 @@
 
   * RTF reader:
 
-    + Don't try to handle non-default code pages (#9683). Emit a warning instead.
+    + Don't try to handle non-default code pages (#9683). Emit a warning
+      instead.
 
   * OpenDocument writer:
 
@@ -68,9 +72,10 @@
 
   * Typst writer:
 
-    + Add blank line in definition lists with multiple definitions (see #9704).
-    + Property output (#9648, Gordon Woodhull). The Typst writer will pass on
-      specially marked attributes as raw Typst parameters on selected
+    + Add blank line in definition lists with multiple definitions (see
+      #9704).
+    + Property output (#9648, Gordon Woodhull). The Typst writer will pass
+      on specially marked attributes as raw Typst parameters on selected
       elements. This allows extensive customization using filters.
       A separate document (`doc/typst-property-output.md`) has been added
       that provides extensive documentation and examples of the use of
@@ -78,15 +83,17 @@
 
   * Markdown writer:
 
-    + Don't try to align columns in pipe tables with lines greater than COLUMNS.
-      The alignment just reduces readibility when the lines soft wrap.
+    + Don't try to align columns in pipe tables with lines greater than
+      COLUMNS. The alignment just reduces readibility when the lines
+      soft wrap.
     + Don't use `raw_attribute` syntax for raw blocks, unless there is no
       other option (see #9677).  Macros in a `raw_attribute` block don't
       get interpreted when it is read again by pandoc's markdown reader.
 
   * ConTeXt writer:
 
-    + Replace depreciated `\sc` with `\setsmallcaps` (#9518, James P. Ascher).
+    + Replace depreciated `\sc` with `\setsmallcaps` (#9518, James P.
+      Ascher).
 
   * Docx writer:
 
@@ -177,8 +184,8 @@
 
   * Fix some typos in code comments (#9638, guqicun).
 
-  * Command tests: include regular PATH after directory with the test executable
-    (ensures that DLLs will be found on Windows).
+  * Command tests: include regular PATH after directory with the test
+    executable (ensures that DLLs will be found on Windows).
 
   * MANUAL.txt:
 
