@@ -1,5 +1,199 @@
 # Revision history for pandoc
 
+## pandoc 3.2 (2024-MM-DD)
+
+  * Change to `--file-scope` behavior (#8741): previously a Div with an
+    identifier derived from the filename would be added around the contents
+    of each file. This caused problems for "chunking" files into chapters,
+    e.g. in EPUB. We no longer add the surrounding Div. This cooperates
+    better with chunking. Note, however, that if you have relied on the old
+    behavior to link to the beginning of the contents of a file using
+    its filename as identifier, that will no longer work.
+
+  * Markdown reader:
+
+    + Allow repeated labels in numbered example lists.
+      Previously if you tried to use the same label as an earlier
+      example list item, you'd get a new number, not the old one,
+      and references to the label would go to the second occurrence.
+      Now an existing label will be reused, and no new number will
+      be generated.  Caveat:  this only works reliably when the
+      re-used example list item occurs by itself in a list, or
+      occurs in a list of previously used example list items that
+      occur in exactly the same order as previously.
+    + Fix `normalCite` so it doesn't consume past a closing `]` boundary
+      (#9710).  This was causing an exponential performance bug on long
+      lists of links containing potential emphasis characters.
+    + Generalize `inlinesInBalancedBrackets` to `inBalancedBrackets`,
+      with a parameter for the inner parser.
+    + Auto-close unclosed divs (#9635). This applies to both fenced and
+      HTML-ish varieties. Otherwise we face an exponential performance
+      problem with backtracking. A warning is issued when a div is
+      implicitly closed.
+
+  * RST reader:
+
+    + Fix `figclass` and `align` annotations for figures (#7473, Gokul Rajiv).
+
+  * LaTeX writer:
+
+    + Use `polytonicgreek` instead of `polutonikogreek` with babel (#9698).
+      `polutonikogreek` is outdated. Also recognize both in the LaTeX reader.
+    + Improve treatment of math inside soul commands (#1294, #5529).
+      soul commands (`ul`, `hl`, `st`) are very fragile and the math
+      must be handled specially.
+
+  * LaTeX reader:
+
+    + Fix over-eager macro expansion in conditionals (#9676).
+    + Parse `flalign`, `flalign*` math environments (#9679). We parse
+      these as Math elements with an `aligned` environment. Semantically
+      it's not exactly the same, but better than falling back to raw LaTeX.
+
+  * LaTeX template: add `titlegraphicoptions` variable (#9207, Guilhem Saurel).
+
+  * Docx reader:
+
+    + Issue warning rather than error when we can't parse EndNote citations
+      (see #8433).
+    + Fix anchor in header after anchor (#9626, mbracke).
+
+  * RTF reader:
+
+    + Don't try to handle non-default code pages (#9683). Emit a warning instead.
+
+  * OpenDocument writer:
+
+    + Implement custom-style for spans (#9657).
+
+  * Typst writer:
+
+    + Add blank line in definition lists with multiple definitions (see #9704).
+    + Property output (#9648, Gordon Woodhull). The Typst writer will pass on
+      specially marked attributes as raw Typst parameters on selected
+      elements. This allows extensive customization using filters.
+      A separate document (`doc/typst-property-output.md`) has been added
+      that provides extensive documentation and examples of the use of
+      this feature.
+
+  * Markdown writer:
+
+    + Don't try to align columns in pipe tables with lines greater than COLUMNS.
+      The alignment just reduces readibility when the lines soft wrap.
+    + Don't use `raw_attribute` syntax for raw blocks, unless there is no
+      other option (see #9677).  Macros in a `raw_attribute` block don't
+      get interpreted when it is read again by pandoc's markdown reader.
+
+  * ConTeXt writer:
+
+    + Replace depreciated `\sc` with `\setsmallcaps` (#9518, James P. Ascher).
+
+  * Docx writer:
+
+    + Use conventional styles/indents for Word bullet lists (#7280).
+
+  * `reference.docx`:
+
+    + Use current standard Word theme (#7280). This includes using the
+      sans-serif font Aptos instead of the serif font Cambria, and
+      default colors for headings.
+    + Remove duplicate `DefaultParagraphFont` in `styles.xml`.
+
+  * New module Text.Pandoc.Transforms [API change] (Albert Krewinkel).
+    This module exports the following functions which were formerly
+    exported from Tetx.Pnadoc.Shared: `headerShift`,
+    `filterIpynbOutput`, `eastAsianLineBreakFilter`, as well as some
+    functions that were previously not exported.
+
+  * Text.Pandoc.Shared:
+
+    + `headerShift`, `filterIpynbOutput`, and `eastAsianLineBreakFilter`
+      are no longer exported from this module; they are now exported
+      from Text.Pandoc.Transforms (Albert Krewinkel).
+
+  * Text.Pandoc.Error:
+
+    + Improve reporting of unsupported extensions errors (#9247, Albert
+      Krewinkel).
+
+  * Text.Pandoc.App:
+
+    + Move "transforms" after filters (#9664). This will mean that
+      `--shift-heading-level-by` affects a heading added by
+      `reference-section-title`.
+
+  * Text.Pandoc.App.CommandLineOptions:
+
+    + Simplify output for `OptVersion`. Omit the information about versions
+      of dependencies. We no longer emit version info at this level anyway;
+      `pandoc-cli` intercepts and handles `--version`. This code would
+      only be called if someone used the pandoc library function
+      `handleWithOptInfo` in their own program.
+
+  * Text.Pandoc.ImageSize:
+
+    + Export `ImageSize` datatype.
+
+  * Text.Pandoc.SelfContained:
+
+    + Merge class attribute when both img and svg specify it (#9652,
+      Carlos Scheidegger).
+
+  * Text.Pandoc.Logging:
+
+    + Add `ScriptingInfo` constructor for `LogMessage` [API change]
+      (Albert Krewinkel).
+    + Make `DocxParserWarning` a WARNING, not INFO. [API change].
+    + Add `UnsupportedCodePage` constructor to `LogMessage` [API change].
+    + Add `UnclosedDiv` constructor for `LogMessage` [API change].
+
+  * Lua subsystem (Albert Krewinkel:
+
+    + Add a `pandoc.log` module.
+    + Uupdate to pandoc-lua-marshal version 0.2.7 (#8916).
+      This fixes counterintuitive behavior of the `content` property on
+      BulletList and OrderedList items. Unmarshalling of that field now
+      matches the behavior of the constructor.
+    + Use newest zip module. This adds a `symlink` function to Entry objects,
+      allowing to check if an entry represents a symbolic link.
+    + Improve `pandoc.json.decode` docs.
+    + Update and fix docs for `pandoc.types.Version` and `pandoc.utils.type`.
+    + Add new module `pandoc.image` The module provides basic querying
+      functions for image properties.
+    + Bump pandoc-lua-engine to 0.2.1.4.
+
+  * Use latest KaTeX CDN asset (#9707, Salim B).
+
+  * `pandoc-cli`: ensure UTF8 when emitting version info.
+
+  * tools/update-lua-module-docs.lua: improve script-internal docs, cleanup
+    (Albert Krewinkel).
+
+  * Allow network 3.2.
+
+  * Use latest versions of texmath, djot, skylighting-core, skylighting.
+
+  * Fix command test for #9652.
+
+  * Fix some typos in code comments (#9638, guqicun).
+
+  * Command tests: include regular PATH after directory with the test executable
+    (ensures that DLLs will be found on Windows).
+
+  * MANUAL.txt:
+
+    + Document `handout` variable for beamer (#9742).
+    + Document formats affected by `--slide-level` (#9745).
+    + Update the list of required LaTeX packages (#9728, Albert Krewinkel).
+    + Use more descriptive link text for ODT (#9673).
+    + Add clarification about `toc-title` in `docx`, `pptx` (#9645).
+    + Better document truthiness for conditionals (#9661).
+    + Mention that `custom-style` works with ODT (Ian Max Andolina).
+    + Harmonize typographic dashes (#9688, Salim B). Standardize on `---`
+      with no space.
+
+  * INSTALL.md: Minor tweaks (#9705, Leo Heitmann Ruiz).
+
 ## pandoc 3.1.13 (2024-04-07)
 
   * Org reader:
