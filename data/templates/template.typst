@@ -33,17 +33,13 @@
   set heading(numbering: sectionnumbering)
 
   if title != none {
-    if subtitle != none {
-       align(center)[#block(inset: 2em)[
-        #text(weight: "bold", size: 1.5em)[#title]
-        #parbreak()
-        #text(weight: "bold", size: 1.25em)[#subtitle]
-      ]]
-    } else {
-      align(center)[#block(inset: 2em)[
-        #text(weight: "bold", size: 1.5em)[#title]
-      ]]
-    }
+    align(center)[#block(inset: 2em)[
+      #text(weight: "bold", size: 1.5em)[#title]
+      #(if subtitle != none {
+        parbreak()
+        text(weight: "bold", size: 1.25em)[#subtitle]
+      })
+    ]]
   }
 
   if authors != none and authors != [] {
