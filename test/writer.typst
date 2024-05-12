@@ -22,6 +22,7 @@
 
 #let conf(
   title: none,
+  subtitle: none,
   authors: (),
   keywords: (),
   date: none,
@@ -56,6 +57,10 @@
   if title != none {
     align(center)[#block(inset: 2em)[
       #text(weight: "bold", size: 1.5em)[#title]
+      #(if subtitle != none {
+        parbreak()
+        text(weight: "bold", size: 1.25em)[#subtitle]
+      })
     ]]
   }
 
