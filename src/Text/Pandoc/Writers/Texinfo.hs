@@ -12,7 +12,7 @@
 Conversion of 'Pandoc' format into Texinfo.
 -}
 module Text.Pandoc.Writers.Texinfo ( writeTexinfo ) where
-import Control.Monad (zipWithM)
+import Control.Monad (zipWithM, unless)
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
     ( StateT, MonadState(get), gets, modify, evalStateT )
@@ -20,7 +20,6 @@ import Data.Char (chr, ord, isAlphaNum)
 import Data.List (maximumBy, transpose, foldl')
 import Data.List.NonEmpty (nonEmpty)
 import Data.Ord (comparing)
-import qualified Data.Set as Set
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -28,7 +27,7 @@ import Network.URI (unEscapeString)
 import System.FilePath
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
-import Text.Pandoc.Walk (query)
+import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
@@ -43,8 +42,8 @@ import Text.Printf (printf)
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
               , stContext     :: Context
-              , stIdentifiers :: Set.Set Text -- header ids used already
-              , stHeadings    :: M.Map Text [Inline] -- header ids and texts
+              , stNodes       :: M.Map Text Int -- maps node to number of duplicates
+              , stHeadings    :: M.Map Text Text -- header ids to node texts
               , stOptions     :: WriterOptions -- writer options
               }
 
@@ -75,21 +74,34 @@ writeTexinfo options document =
   evalStateT (pandocToTexinfo options $ wrapTop document)
   WriterState { stStrikeout = False,
                 stContext = NormalContext,
-                stIdentifiers = Set.empty,
-                stHeadings = query extractHeadings document,
+                stNodes = mempty,
+                stHeadings = mempty,
                 stOptions = options}
-
-extractHeadings :: Block -> M.Map Text [Inline]
-extractHeadings (Header _ (ident,_,_) ils) = M.singleton ident ils
-extractHeadings _ = mempty
 
 -- | Add a "Top" node around the document, needed by Texinfo.
 wrapTop :: Pandoc -> Pandoc
 wrapTop (Pandoc meta blocks) =
   Pandoc meta (Header 0 nullAttr (docTitle meta) : blocks)
 
+addNodeText :: PandocMonad m => Block -> TI m Block
+addNodeText (Header lev (ident,_,_) ils) | lev >= 1 && lev <= 4 = do
+  node <- render Nothing <$> withContext NodeContext (inlineListToTexinfo ils)
+  nodes <- gets stNodes
+  node' <- case M.lookup node nodes of
+                Just i -> do
+                  modify $ \st -> st{ stNodes = M.adjust (+ 1) node nodes }
+                  pure $ node <> " " <> tshow i
+                Nothing -> do
+                  modify $ \st -> st{ stNodes = M.insert node 1 nodes }
+                  pure node
+  unless (T.null ident) $
+    modify $ \st -> st{ stHeadings = M.insert ident node' (stHeadings st) }
+  pure $ Header lev (ident,[],[("node", node')]) ils
+addNodeText x = pure  x
+
 pandocToTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> TI m Text
-pandocToTexinfo options (Pandoc meta blocks) = do
+pandocToTexinfo options (Pandoc meta blocks') = do
+  blocks <- walkM addNodeText blocks'
   let titlePage = not $ all null
                       $ docTitle meta : docDate meta : docAuthors meta
   let colwidth = if writerWrapText options == WrapAuto
@@ -220,20 +232,11 @@ blockToTexinfo (Header 0 _ lst) = do
   return $ text "@node Top" $$
            text "@top " <> txt <> blankline
 
-blockToTexinfo (Header level (ident,_,_) lst)
-  | level < 1 || level > 4 = blockToTexinfo (Para lst)
-  | otherwise = do
-    node <- withContext NodeContext $ inlineListToTexinfo lst
+blockToTexinfo (Header level (_,_,[("node",node)]) lst) = do
     txt <- inlineListToTexinfo lst
-    idsUsed <- gets stIdentifiers
-    opts <- gets stOptions
-    let id' = if T.null ident
-                 then uniqueIdent (writerExtensions opts) lst idsUsed
-                 else T.filter (not . disallowedInNode) ident
-    modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
     sec <- seccmd level
     return $ if (level > 0) && (level <= 4)
-                then blankline <> text "@node " <> node $$
+                then blankline <> text "@node " <> literal node $$
                      literal sec <> txt
                 else txt
     where
@@ -243,6 +246,9 @@ blockToTexinfo (Header level (ident,_,_) lst)
       seccmd 3 = return "@subsection "
       seccmd 4 = return "@subsubsection "
       seccmd _ = throwError $ PandocSomeError "illegal seccmd level"
+
+-- non-node header:
+blockToTexinfo (Header _ _ lst) = blockToTexinfo (Para lst)
 
 blockToTexinfo (Table _ blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, heads, rows) = toLegacyTable blkCapt specs thead tbody tfoot
@@ -499,7 +505,7 @@ inlineToTexinfo (Link _ txt (src, _))
       target <- case M.lookup ident headings of
                   Nothing -> literal <$> stringToTexinfo
                                     (T.filter (not . disallowedInNode) src)
-                  Just ils -> withContext NodeContext $ inlineListToTexinfo ils
+                  Just node -> pure $ literal node
       contents <- withContext NodeContext $ inlineListToTexinfo txt
       return $ text "@ref"
         <> braces (target <> if contents == target
