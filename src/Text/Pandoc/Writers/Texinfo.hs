@@ -206,13 +206,13 @@ blockToTexinfo (Header level (ident,_,_) lst)
     opts <- gets stOptions
     let id' = if T.null ident
                  then uniqueIdent (writerExtensions opts) lst idsUsed
-                 else ident
+                 else T.filter (not . disallowedInNode) ident
     modify $ \st -> st{ stIdentifiers = Set.insert id' idsUsed }
     sec <- seccmd level
     return $ if (level > 0) && (level <= 4)
                 then blankline <> text "@node " <> node $$
                      literal sec <> txt $$
-                     text "@anchor" <> braces (literal $ "#" <> id')
+                     text "@anchor" <> braces (literal ("#" <> id'))
                 else txt
     where
       seccmd :: PandocMonad m => Int -> TI m Text
@@ -482,9 +482,9 @@ inlineToTexinfo Space = return space
 
 inlineToTexinfo (Link _ txt (src, _))
   | Just ('#', _) <- T.uncons src = do
+      let target = stringToTexinfo $ T.filter (not . disallowedInNode) src
       contents <- escapeCommas $ inlineListToTexinfo txt
-      return $ text "@ref" <>
-        braces (literal (stringToTexinfo src) <> text "," <> contents)
+      return $ text "@ref" <> braces (literal target <> text ",," <> contents)
   | otherwise = case txt of
       [Str x] | escapeURI x == src ->  -- autolink
                   return $ literal $ "@url{" <> x <> "}"
