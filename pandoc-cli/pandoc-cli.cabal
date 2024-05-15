@@ -79,7 +79,7 @@ executable pandoc
     build-depends:  template-haskell,
                     time
   if flag(server)
-    build-depends:   pandoc-server >= 0.1 && < 0.2,
+    build-depends:   pandoc-server >= 0.1.0.6 && < 0.2,
                      wai-extra >= 3.0.24,
                      warp,
                      safe
