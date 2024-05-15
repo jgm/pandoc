@@ -234,8 +234,7 @@ blockToTexinfo (Header level (ident,_,_) lst)
     sec <- seccmd level
     return $ if (level > 0) && (level <= 4)
                 then blankline <> text "@node " <> node $$
-                     literal sec <> txt $$
-                     text "@anchor" <> braces (literal ("#" <> id'))
+                     literal sec <> txt
                 else txt
     where
       seccmd :: PandocMonad m => Int -> TI m Text
