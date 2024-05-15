@@ -21,12 +21,14 @@ import Data.List (maximumBy, transpose, foldl')
 import Data.List.NonEmpty (nonEmpty)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import System.FilePath
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
+import Text.Pandoc.Walk (query)
 import Text.Pandoc.Error
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
@@ -42,6 +44,7 @@ data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
               , stEscapeComma :: Bool -- in a context where we need @comma
               , stIdentifiers :: Set.Set Text -- header ids used already
+              , stHeadings    :: M.Map Text [Inline] -- header ids and texts
               , stOptions     :: WriterOptions -- writer options
               }
 
@@ -57,7 +60,13 @@ writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTexinfo options document =
   evalStateT (pandocToTexinfo options $ wrapTop document)
   WriterState { stStrikeout = False, stEscapeComma = False,
-                stIdentifiers = Set.empty, stOptions = options}
+                stIdentifiers = Set.empty,
+                stHeadings = query extractHeadings document,
+                stOptions = options}
+
+extractHeadings :: Block -> M.Map Text [Inline]
+extractHeadings (Header _ (ident,_,_) ils) = M.singleton ident ils
+extractHeadings _ = mempty
 
 -- | Add a "Top" node around the document, needed by Texinfo.
 wrapTop :: Pandoc -> Pandoc
@@ -481,10 +490,17 @@ inlineToTexinfo SoftBreak = do
 inlineToTexinfo Space = return space
 
 inlineToTexinfo (Link _ txt (src, _))
-  | Just ('#', _) <- T.uncons src = do
-      let target = stringToTexinfo $ T.filter (not . disallowedInNode) src
+  | Just ('#', ident) <- T.uncons src = do
+      headings <- gets stHeadings
+      target <- case M.lookup ident headings of
+                  Nothing -> pure $ literal $ stringToTexinfo $
+                                    T.filter (not . disallowedInNode) src
+                  Just ils -> inlineListForNode ils
       contents <- escapeCommas $ inlineListToTexinfo txt
-      return $ text "@ref" <> braces (literal target <> text ",," <> contents)
+      return $ text "@ref"
+        <> braces (target <> if contents == target
+                                then mempty
+                                else text ",," <> contents)
   | otherwise = case txt of
       [Str x] | escapeURI x == src ->  -- autolink
                   return $ literal $ "@url{" <> x <> "}"
