@@ -51,18 +51,18 @@ markdown test suite.
 @anchor{#headers}
 
 @menu
-* Level 2 with an embedded link::
+* Level 2 with an @uref{/url,embedded link}::
 @end menu
 
-@node Level 2 with an embedded link
+@node Level 2 with an @uref{/url,embedded link}
 @section Level 2 with an @uref{/url,embedded link}
 @anchor{#level-2-with-an-embedded-link}
 
 @menu
-* Level 3 with emphasis::
+* Level 3 with @emph{emphasis}::
 @end menu
 
-@node Level 3 with emphasis
+@node Level 3 with @emph{emphasis}
 @subsection Level 3 with @emph{emphasis}
 @anchor{#level-3-with-emphasis}
 
@@ -80,11 +80,11 @@ Level 5
 @anchor{#level-1}
 
 @menu
-* Level 2 with emphasis::
+* Level 2 with @emph{emphasis}::
 * Level 2::
 @end menu
 
-@node Level 2 with emphasis
+@node Level 2 with @emph{emphasis}
 @section Level 2 with @emph{emphasis}
 @anchor{#level-2-with-emphasis}
 
@@ -974,7 +974,7 @@ In a list?
 It should.
 @end itemize
 
-An e-mail address: @uref{mailto:nobody@@nowhere.net,nobody@@nowhere.net}
+An e-mail address: @uref{mailto:nobody@@nowhere.net,nobody@@nowherenet}
 
 @quotation
 Blockquoted: @url{http://example.com/}

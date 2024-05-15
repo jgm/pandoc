@@ -42,11 +42,25 @@ import Text.Printf (printf)
 
 data WriterState =
   WriterState { stStrikeout   :: Bool  -- document contains strikeout
-              , stEscapeComma :: Bool -- in a context where we need @comma
+              , stContext     :: Context
               , stIdentifiers :: Set.Set Text -- header ids used already
               , stHeadings    :: M.Map Text [Inline] -- header ids and texts
               , stOptions     :: WriterOptions -- writer options
               }
+
+data Context = NormalContext | NodeContext
+  deriving (Eq, Show)
+
+withContext :: PandocMonad m => Context -> TI m a -> TI m a
+withContext context pa = do
+  oldContext <- gets stContext
+  modify $ \s -> s{ stContext = context }
+  res <- pa
+  modify $ \s -> s{ stContext = oldContext }
+  pure res
+
+disallowedInNode :: Char -> Bool
+disallowedInNode c = c `elem` ['.',':',',','(',')']
 
 {- TODO:
  - internal cross references a la HTML
@@ -59,7 +73,8 @@ type TI m = StateT WriterState m
 writeTexinfo :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTexinfo options document =
   evalStateT (pandocToTexinfo options $ wrapTop document)
-  WriterState { stStrikeout = False, stEscapeComma = False,
+  WriterState { stStrikeout = False,
+                stContext = NormalContext,
                 stIdentifiers = Set.empty,
                 stHeadings = query extractHeadings document,
                 stOptions = options}
@@ -96,27 +111,26 @@ pandocToTexinfo options (Pandoc meta blocks) = do
        Just tpl -> renderTemplate tpl context
 
 -- | Escape things as needed for Texinfo.
-stringToTexinfo :: Text -> Text
+stringToTexinfo :: PandocMonad m => Text -> TI m Text
 stringToTexinfo t
-  | T.all isAlphaNum t = t
-  | otherwise = T.concatMap escChar t
-  where escChar '{'      = "@{"
-        escChar '}'      = "@}"
-        escChar '@'      = "@@"
-        escChar '\160'   = "@ "
-        escChar '\x2014' = "---"
-        escChar '\x2013' = "--"
-        escChar '\x2026' = "@dots{}"
-        escChar '\x2019' = "'"
-        escChar c        = T.singleton c
-
-escapeCommas :: PandocMonad m => TI m (Doc Text) -> TI m (Doc Text)
-escapeCommas parser = do
-  oldEscapeComma <- gets stEscapeComma
-  modify $ \st -> st{ stEscapeComma = True }
-  res <- parser
-  modify $ \st -> st{ stEscapeComma = oldEscapeComma }
-  return res
+  | T.all isAlphaNum t = pure t
+  | otherwise = do
+      context <- gets stContext
+      let escChar '{'      = "@{"
+          escChar '}'      = "@}"
+          escChar '@'      = "@@"
+          escChar '\160'   = "@ "
+          escChar '\x2014' = "---"
+          escChar '\x2013' = "--"
+          escChar '\x2026' = "@dots{}"
+          escChar '\x2019' = "'"
+          escChar ',' | context == NodeContext = ""
+          escChar ':' | context == NodeContext = ""
+          escChar '.' | context == NodeContext = ""
+          escChar '(' | context == NodeContext = ""
+          escChar ')' | context == NodeContext = ""
+          escChar c        = T.singleton c
+      pure $ T.concatMap escChar t
 
 -- | Puts contents into Texinfo command.
 inCmd :: Text -> Doc Text -> Doc Text
@@ -209,7 +223,7 @@ blockToTexinfo (Header 0 _ lst) = do
 blockToTexinfo (Header level (ident,_,_) lst)
   | level < 1 || level > 4 = blockToTexinfo (Para lst)
   | otherwise = do
-    node <- inlineListForNode lst
+    node <- withContext NodeContext $ inlineListToTexinfo lst
     txt <- inlineListToTexinfo lst
     idsUsed <- gets stIdentifiers
     opts <- gets stOptions
@@ -378,7 +392,7 @@ makeMenuLine :: PandocMonad m
              => Block
              -> TI m (Doc Text)
 makeMenuLine (Header _ _ lst) = do
-  txt <- inlineListForNode lst
+  txt <- withContext NodeContext $ inlineListToTexinfo lst
   return $ text "* " <> txt <> text "::"
 makeMenuLine _ = throwError $ PandocSomeError "makeMenuLine called with non-Header block"
 
@@ -409,17 +423,6 @@ inlineListToTexinfo :: PandocMonad m
                     => [Inline]  -- ^ Inlines to convert
                     -> TI m (Doc Text)
 inlineListToTexinfo lst = hcat <$> mapM inlineToTexinfo lst
-
--- | Convert list of inline elements to Texinfo acceptable for a node name.
-inlineListForNode :: PandocMonad m
-                  => [Inline]  -- ^ Inlines to convert
-                  -> TI m (Doc Text)
-inlineListForNode = return . literal . stringToTexinfo .
-                    T.filter (not . disallowedInNode) . stringify
-
--- periods, commas, colons, and parentheses are disallowed in node names
-disallowedInNode :: Char -> Bool
-disallowedInNode c = c `elem` (".,:()" :: String)
 
 -- | Convert inline element to Texinfo
 inlineToTexinfo :: PandocMonad m
@@ -455,11 +458,13 @@ inlineToTexinfo (Subscript lst) = do
 inlineToTexinfo (SmallCaps lst) =
   inCmd "sc" <$> inlineListToTexinfo lst
 
-inlineToTexinfo (Code (_, cls , _) str) | T.pack "variable" `elem` cls  =
-  return $ literal $ "@code{@var{" <> stringToTexinfo str <> "}}"
+inlineToTexinfo (Code (_, cls , _) str) | T.pack "variable" `elem` cls  = do
+  code <- stringToTexinfo str
+  return $ literal $ "@code{@var{" <> code <> "}}"
 
-inlineToTexinfo (Code _ str) =
-  return $ literal $ "@code{" <> stringToTexinfo str <> "}"
+inlineToTexinfo (Code _ str) = do
+  code <- stringToTexinfo str
+  return $ literal $ "@code{" <> code <> "}"
 
 inlineToTexinfo (Quoted SingleQuote lst) = do
   contents <- inlineListToTexinfo lst
@@ -471,7 +476,7 @@ inlineToTexinfo (Quoted DoubleQuote lst) = do
 
 inlineToTexinfo (Cite _ lst) =
   inlineListToTexinfo lst
-inlineToTexinfo (Str str) = return $ literal (stringToTexinfo str)
+inlineToTexinfo (Str str) = literal <$> stringToTexinfo str
 inlineToTexinfo (Math _ str) = return $ inCmd "math" $ literal str
 inlineToTexinfo il@(RawInline f str)
   | f == "latex" || f == "tex" =
@@ -493,10 +498,10 @@ inlineToTexinfo (Link _ txt (src, _))
   | Just ('#', ident) <- T.uncons src = do
       headings <- gets stHeadings
       target <- case M.lookup ident headings of
-                  Nothing -> pure $ literal $ stringToTexinfo $
-                                    T.filter (not . disallowedInNode) src
-                  Just ils -> inlineListForNode ils
-      contents <- escapeCommas $ inlineListToTexinfo txt
+                  Nothing -> literal <$> stringToTexinfo
+                                    (T.filter (not . disallowedInNode) src)
+                  Just ils -> withContext NodeContext $ inlineListToTexinfo ils
+      contents <- withContext NodeContext $ inlineListToTexinfo txt
       return $ text "@ref"
         <> braces (target <> if contents == target
                                 then mempty
@@ -505,13 +510,13 @@ inlineToTexinfo (Link _ txt (src, _))
       [Str x] | escapeURI x == src ->  -- autolink
                   return $ literal $ "@url{" <> x <> "}"
       _ -> do
-        contents <- escapeCommas $ inlineListToTexinfo txt
-        let src1 = stringToTexinfo src
+        contents <- withContext NodeContext $ inlineListToTexinfo txt
+        src1 <- stringToTexinfo src
         return $ literal ("@uref{" <> src1 <> ",") <> contents <>
                  char '}'
 
 inlineToTexinfo (Image attr alternate (source, _)) = do
-  content <- escapeCommas $ inlineListToTexinfo alternate
+  content <- withContext NodeContext $ inlineListToTexinfo alternate
   opts <- gets stOptions
   let showDim dim = case dimension dim attr of
                       (Just (Pixel a))   -> showInInch opts (Pixel a) <> "in"
