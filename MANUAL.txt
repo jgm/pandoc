@@ -2683,7 +2683,7 @@ ODT or pptx.
 :   Enables inclusion of most of the [CSS] in the `styles.html`
     [partial](#partials) (have a look with
     `pandoc --print-default-data-file=templates/styles.html`).
-    Unless you use [`--css`](#option--css), this variable
+    Unless you use `--css`, this variable
     is set to `true` by default. You can disable it with
     e.g. `pandoc -M document-css=false`.
 
@@ -2746,9 +2746,9 @@ To override or extend some [CSS] for just one document, include for example:
 ### Variables for HTML math
 
 `classoption`
-:   when using [KaTeX](#option--katex), you can render display
-math equations flush left using [YAML metadata](#layout) or with
-`-M classoption=fleqn`.
+:   when using `--katex`, you can render display math equations
+    flush left using [YAML metadata](#layout) or with `-M
+    classoption=fleqn`.
 
 ### Variables for HTML slides
 
@@ -6729,7 +6729,7 @@ used either in the YAML metadata block or as a command-line variable to get the 
 Note that for reveal.js, the `background-image` will be used as
 a `parallaxBackgroundImage` (see below).
 
-For pptx, you can use a [reference doc](#option--reference-doc) in which
+For pptx, you can use a `--reference-doc` in which
 background images have been set on the [relevant
 layouts](#powerpoint-layout-choice).
 
@@ -6770,7 +6770,7 @@ reveal.js, use the `title-slide-attributes` variable in the YAML metadata block.
 It must contain a map of attribute names and values. (Note that the `data-`
 prefix is required here, as it isn’t added automatically.)
 
-For pptx, pass a [reference doc](#option--reference-doc) with the background
+For pptx, pass a `--reference-doc` with the background
 image set on the “Title Slide” layout.
 
 ### Example (reveal.js)
