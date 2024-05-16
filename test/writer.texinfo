@@ -1,4 +1,6 @@
-\input texinfo
+\input texinfo  @c -*-texinfo-*-
+@settitle Pandoc Test Suite
+
 @documentencoding UTF-8
 
 @macro textstrikeout{text}
