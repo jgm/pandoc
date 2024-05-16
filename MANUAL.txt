@@ -3198,6 +3198,15 @@ The `--css` option also affects the output.
 `section`
 :   section number in man pages
 
+### Variables for Texinfo
+
+`version`
+:   version of software (used in title and title page)
+
+`filename`
+:   name of info file to be generated (defaults to a name based on the
+    texi filename)
+
 ### Variables for Typst
 
 `margin`

@@ -1,4 +1,11 @@
-\input texinfo
+\input texinfo  @c -*-texinfo-*-
+$if(filename)$
+@setfilename $filename$
+$endif$
+$if(title)$
+@settitle $title$$if(version)$ $version$$endif$
+$endif$
+
 @documentencoding UTF-8
 $for(header-includes)$
 $header-includes$
@@ -16,6 +23,9 @@ $endif$
 $if(titlepage)$
 @titlepage
 @title $title$
+$if(version)$
+@subtitle $version$
+$endif$
 $for(author)$
 @author $author$
 $endfor$
