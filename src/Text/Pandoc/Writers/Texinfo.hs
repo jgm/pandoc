@@ -90,7 +90,7 @@ addNodeText (Header lev (ident,_,_) ils) | lev >= 1 && lev <= 4 = do
   node' <- case M.lookup node nodes of
                 Just i -> do
                   modify $ \st -> st{ stNodes = M.adjust (+ 1) node nodes }
-                  pure $ node <> " " <> tshow i
+                  pure $ node <> " " <> tshow (i + 1)
                 Nothing -> do
                   modify $ \st -> st{ stNodes = M.insert node 1 nodes }
                   pure node
@@ -387,19 +387,23 @@ collectNodes :: Int -> [Block] -> [Block]
 collectNodes _ [] = []
 collectNodes level (x:xs) =
   case x of
-    (Header hl _ _) | hl < level -> []
-                    | hl == level -> x : collectNodes level xs
-                    | otherwise -> collectNodes level xs
+    (Header hl _ _)
+      | hl < level -> []
+      | hl == level -> x : collectNodes level xs
+      | otherwise -> collectNodes level xs
     _ ->
       collectNodes level xs
 
 makeMenuLine :: PandocMonad m
              => Block
              -> TI m (Doc Text)
-makeMenuLine (Header _ _ lst) = do
+makeMenuLine (Header _ (_,_,[("node", node)]) lst) = do
   txt <- withContext NodeContext $ inlineListToTexinfo lst
-  return $ text "* " <> txt <> text "::"
-makeMenuLine _ = throwError $ PandocSomeError "makeMenuLine called with non-Header block"
+  pure $ nowrap $ text "* " <>
+    if render Nothing txt == node
+       then literal node <> "::"
+       else txt <> ": " <> literal node <> "."
+makeMenuLine _ = throwError $ PandocSomeError "makeMenuLine called with non-node"
 
 listItemToTexinfo :: PandocMonad m
                   => [Block]
