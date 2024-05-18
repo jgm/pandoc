@@ -85,7 +85,7 @@
   </w:style>
   <w:style w:type="paragraph" w:styleId="Subtitle">
     <w:name w:val="Subtitle" />
-    <w:basedOn w:val="Normal" />
+    <w:basedOn w:val="Title" />
     <w:next w:val="BodyText" />
     <w:link w:val="SubtitleChar" />
     <w:uiPriority w:val="11" />
@@ -99,8 +99,6 @@
     <w:rPr>
       <w:rFonts w:eastAsiaTheme="majorEastAsia"
       w:cstheme="majorBidi" />
-      <w:color w:val="595959" w:themeColor="text1"
-      w:themeTint="A6" />
       <w:spacing w:val="15" />
       <w:sz w:val="28" />
       <w:szCs w:val="28" />
@@ -156,7 +154,6 @@
     </w:pPr>
     <w:rPr>
       <w:b />
-      <w:color w:val="345A8A" />
       <w:sz w:val="20" />
       <w:szCs w:val="20" />
     </w:rPr>
