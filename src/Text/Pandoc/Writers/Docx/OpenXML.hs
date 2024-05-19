@@ -28,8 +28,8 @@ import Data.Ord (comparing)
 import Data.String (fromString)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing, maybeToList, isJust)
-import Control.Monad.State
-import Control.Monad.Reader
+import Control.Monad.State ( gets, modify, MonadTrans(lift) )
+import Control.Monad.Reader ( asks, MonadReader(local) )
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
