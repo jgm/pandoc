@@ -47,6 +47,7 @@ import Text.Pandoc.Class (PandocMonad, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.Data (readDataFile, readDefaultDataFile)
 import Data.Time
+import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
 import Text.Pandoc.MIME (getMimeTypeDef)
@@ -192,10 +193,64 @@ writeDocx opts doc = do
         , envPrintWidth = maybe 420 (`quot` 20) pgContentWidth
         }
 
+  parsedRels <- parseXml refArchive distArchive "word/_rels/document.xml.rels"
+  let isHeaderNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
+  let isFooterNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
+  let headers = filterElements isHeaderNode parsedRels
+  let footers = filterElements isFooterNode parsedRels
+  -- word/_rels/document.xml.rels
+  let toBaseRel (url', id', target') = mknode "Relationship"
+                                          [("Type",url')
+                                          ,("Id",id')
+                                          ,("Target",target')] ()
+  let baserels' = map toBaseRel
+                    [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
+                      "rId1",
+                      "numbering.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
+                      "rId2",
+                      "styles.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings",
+                      "rId3",
+                      "settings.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings",
+                      "rId4",
+                      "webSettings.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable",
+                      "rId5",
+                      "fontTable.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
+                      "rId6",
+                      "theme/theme1.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
+                      "rId7",
+                      "footnotes.xml")
+                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
+                      "rId8",
+                      "comments.xml")
+                    ]
+
+  let idMap = renumIdMap (length baserels' + 1) (headers ++ footers)
+
+  -- adjust contents to add sectPr from reference.docx
+  let sectpr = case mbsectpr of
+        Just sectpr' -> let cs = renumIds
+                                 (\q -> qName q == "id" && qPrefix q == Just "r")
+                                 idMap
+                                 (elChildren sectpr')
+                        in Just . ppElement $
+                             add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
+        Nothing      -> Nothing
+
 
   ((contents, footnotes, comments), st) <- runStateT
                          (runReaderT
-                          (writeOpenXML opts{writerWrapText = WrapNone} doc')
+                          (writeOpenXML opts{ writerWrapText = WrapNone
+                                            , writerVariables =
+                                                (maybe id (setField "sectpr") sectpr)
+                                                (writerVariables opts)
+                                                }
+                                        doc')
                           env)
                          initialSt
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
@@ -217,13 +272,7 @@ writeDocx opts doc = do
             ,("xmlns:wp","http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")]
 
 
-  parsedRels <- parseXml refArchive distArchive "word/_rels/document.xml.rels"
-  let isHeaderNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
-  let isFooterNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
-  let headers = filterElements isHeaderNode parsedRels
-  let footers = filterElements isFooterNode parsedRels
-
-  -- we create [Content_Types].xml and word/_rels/document.xml.rels
+ -- we create [Content_Types].xml and word/_rels/document.xml.rels
   -- from scratch rather than reading from reference.docx,
   -- because Word sometimes changes these files when a reference.docx is modified,
   -- e.g. deleting the reference to footnotes.xml or removing default entries
@@ -284,39 +333,7 @@ writeDocx opts doc = do
   let contentTypesEntry = toEntry "[Content_Types].xml" epochtime
         $ renderXml contentTypesDoc
 
-  -- word/_rels/document.xml.rels
-  let toBaseRel (url', id', target') = mknode "Relationship"
-                                          [("Type",url')
-                                          ,("Id",id')
-                                          ,("Target",target')] ()
-  let baserels' = map toBaseRel
-                    [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
-                      "rId1",
-                      "numbering.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
-                      "rId2",
-                      "styles.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings",
-                      "rId3",
-                      "settings.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings",
-                      "rId4",
-                      "webSettings.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable",
-                      "rId5",
-                      "fontTable.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
-                      "rId6",
-                      "theme/theme1.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
-                      "rId7",
-                      "footnotes.xml")
-                    ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
-                      "rId8",
-                      "comments.xml")
-                    ]
 
-  let idMap = renumIdMap (length baserels' + 1) (headers ++ footers)
   let renumHeaders = renumIds (\q -> qName q == "Id") idMap headers
   let renumFooters = renumIds (\q -> qName q == "Id") idMap footers
   let baserels = baserels' ++ renumHeaders ++ renumFooters
@@ -328,27 +345,11 @@ writeDocx opts doc = do
   let relEntry = toEntry "word/_rels/document.xml.rels" epochtime
         $ renderXml reldoc
 
-
-  -- adjust contents to add sectPr from reference.docx
-  let sectpr = case mbsectpr of
-        Just sectpr' -> let cs = renumIds
-                                 (\q -> qName q == "id" && qPrefix q == Just "r")
-                                 idMap
-                                 (elChildren sectpr')
-                        in
-                         add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
-        Nothing      -> mknode "w:sectPr" [] ()
-
   -- let sectpr = fromMaybe (mknode "w:sectPr" [] ()) mbsectpr'
-  let contents' = contents ++ [Elem sectpr]
-  let docContents = mknode "w:document" stdAttributes
-                    $ mknode "w:body" [] contents'
-
-
+  let contents' = BL.fromStrict $ UTF8.fromText contents
 
   -- word/document.xml
-  let contentEntry = toEntry "word/document.xml" epochtime
-                     $ renderXml docContents
+  let contentEntry = toEntry "word/document.xml" epochtime contents'
 
   -- footnotes
   let notes = mknode "w:footnotes" stdAttributes footnotes

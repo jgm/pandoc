@@ -36,6 +36,7 @@ import Data.Text (Text)
 import qualified Data.Text.Lazy as TL
 import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
+import Text.DocLayout (hcat, vcat, literal, render)
 import Text.Pandoc.Class (PandocMonad, report, getMediaBag)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
@@ -45,6 +46,7 @@ import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
 import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
+import Text.Pandoc.Templates (compileDefaultTemplate, renderTemplate)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
@@ -167,43 +169,29 @@ makeTOC opts = do
       ])
     ]] -- w:sdt
 
--- | Convert Pandoc document to two lists of
--- OpenXML elements (the main document and footnotes).
-writeOpenXML :: (PandocMonad m)
+-- | Convert Pandoc document to rendered document contents plus two lists of
+-- OpenXML elements (footnotes and comments).
+writeOpenXML :: PandocMonad m
              => WriterOptions -> Pandoc
-             -> WS m ([Content], [Element], [Element])
+             -> WS m (Text, [Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
-  let tit = docTitle meta
-  let auths = docAuthors meta
-  let dat = docDate meta
-  let abstract' = lookupMetaBlocks "abstract" meta
-  let subtitle' = lookupMetaInlines "subtitle" meta
+  setupTranslations meta
   let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
-  title <- withParaPropM (pStyleM "Title") $ blocksToOpenXML opts [Para tit | not (null tit)]
-  subtitle <- withParaPropM (pStyleM "Subtitle") $ blocksToOpenXML opts [Para subtitle' | not (null subtitle')]
-  authors <- withParaPropM (pStyleM "Author") $ blocksToOpenXML opts $
-       map Para auths
-  date <- withParaPropM (pStyleM "Date") $ blocksToOpenXML opts [Para dat | not (null dat)]
-  abstract <- if null abstract'
-                 then return []
-                 else do
-                   abstractTitle <- case lookupMeta "abstract-title" meta of
-                       Just (MetaBlocks bs)   -> pure $ stringify bs
-                       Just (MetaInlines ils) -> pure $ stringify ils
-                       Just (MetaString s)    -> pure s
-                       _                      -> translateTerm Abstract
-                   abstractTit <- withParaPropM (pStyleM "AbstractTitle") $
-                                   blocksToOpenXML opts
-                                     [Para [Str abstractTitle]]
-                   abstractContents <- withParaPropM (pStyleM "Abstract") $
-                                         blocksToOpenXML opts abstract'
-                   return $ abstractTit <> abstractContents
+  abstractTitle <- case lookupMeta "abstract-title" meta of
+      Just (MetaBlocks bs)   -> pure $ stringify bs
+      Just (MetaInlines ils) -> pure $ stringify ils
+      Just (MetaString s)    -> pure s
+      _                      -> translateTerm Abstract
+  abstract <- case lookupMetaBlocks "abstract" meta of
+                 [] -> return []
+                 xs -> withParaPropM (pStyleM "Abstract") $ blocksToOpenXML opts xs
 
   let convertSpace (Str x : Space : Str y : xs) = Str (x <> " " <> y) : xs
       convertSpace (Str x : Str y : xs)         = Str (x <> y) : xs
       convertSpace xs                           = xs
   let blocks' = bottomUp convertSpace blocks
   doc' <- setFirstPara >> blocksToOpenXML opts blocks'
+  let body = vcat $ map (literal . showContent) doc'
   notes' <- gets (reverse . stFootnotes)
   comments <- gets (reverse . stComments)
   let toComment (kvs, ils) = do
@@ -226,8 +214,20 @@ writeOpenXML opts (Pandoc meta blocks) = do
   toc <- if includeTOC
             then makeTOC opts
             else return []
-  let meta' = title ++ subtitle ++ authors ++ date ++ abstract ++ map Elem toc
-  return (meta' ++ doc', notes', comments')
+  metadata <- metaToContext opts
+                 (fmap (vcat . map (literal . showContent)) . blocksToOpenXML opts)
+                 (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
+                 meta
+  let context = defField "body" body
+              . defField "toc"
+                   (vcat (map (literal . showElement) toc))
+              . defField "abstract"
+                   (vcat (map (literal . showContent) abstract))
+              . defField "abstract-title" abstractTitle
+              $ metadata
+  tpl <- maybe (lift $ compileDefaultTemplate "openxml") pure $ writerTemplate opts
+  let rendered = render Nothing $ renderTemplate tpl context
+  return (rendered, notes', comments')
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Content]

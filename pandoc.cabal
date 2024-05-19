@@ -64,6 +64,7 @@ data-files:
                  data/templates/default.jats_publishing
                  data/templates/default.tei
                  data/templates/default.opendocument
+                 data/templates/default.openxml
                  data/templates/default.icml
                  data/templates/default.opml
                  data/templates/default.latex
