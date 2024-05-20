@@ -203,7 +203,7 @@ blockToTypst block =
                   else do
                     captcontents <- blocksToTypst caption
                     return $ ", caption: " <> brackets captcontents
-      let typstFigureKind = literal (", kind: " <> fromMaybe "table" (lookup "typst-figure-kind" tabkvs))
+      let typstFigureKind = literal (", kind: " <> fromMaybe "table" (lookup "typst:figure:kind" tabkvs))
       let numcols = length colspecs
       let (aligns, widths) = unzip colspecs
       let commaSep = hcat . intersperse ", "
@@ -285,7 +285,7 @@ blockToTypst block =
                 $$ footer
             )
             $$ ")"
-      return $ case Data.List.find (== "typst-no-figure") tabclasses of
+      return $ case Data.List.find (== "typst:no-figure") tabclasses of
         Just _ -> table
         Nothing -> "#figure("
             $$
