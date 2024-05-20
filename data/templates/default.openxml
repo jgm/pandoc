@@ -34,19 +34,14 @@ $if(date)$
     </w:p>
 $endif$
 $if(abstract)$
+$if(abstract-title)$
     <w:p>
       <w:pPr>
         <w:pStyle w:val="AbstractTitle" />
       </w:pPr>
-      $if(abstract-title)$
-      $abstract-title$
-      $else$
-      <w:r>
-        <w:t xml:space="preserve">Abstract
-        </w:t>
-      </w:r>
-      $endif$
+      <w:r><w:t xml:space="preserve">$abstract-title$</w:t></w:r>
     </w:p>
+$endif$
     $abstract$
 $endif$
 $for(include-before)$
