@@ -119,10 +119,7 @@ function Writer (doc, opts)
   return pandoc.write(doc:walk(filter), 'gfm', opts)
 end
 
-function Template ()
-  local template = pandoc.template
-  return template.compile(template.default 'gfm')
-end
+Template = pandoc.template.default 'gfm'
 ```
 
 [Lua filters documentation]: https://pandoc.org/lua-filters.html
