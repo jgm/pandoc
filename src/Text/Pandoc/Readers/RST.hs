@@ -15,10 +15,12 @@ Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
 import Control.Arrow (second)
-import Control.Monad (forM_, guard, liftM, mplus, mzero, when)
+import Control.Monad (forM_, guard, liftM, mplus, mzero, when, unless)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
-import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum)
+import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
+                  GeneralCategory(OpenPunctuation, InitialQuote, FinalQuote,
+                                  DashPunctuation, OtherSymbol))
 import Data.List (deleteFirstsBy, elemIndex, nub, partition, sort, transpose)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, maybeToList, isJust)
@@ -1391,17 +1393,24 @@ hyphens = do
   -- don't want to treat endline after hyphen or dash as a space
   return $ B.str result
 
-escapedChar :: Monad m => ParsecT Sources st m Inlines
+escapedChar :: Monad m => RSTParser m Inlines
 escapedChar = do c <- escaped anyChar
+                 unless (canPrecedeOpener c) $ updateLastStrPos
                  return $ if c == ' ' || c == '\n' || c == '\r'
                              -- '\ ' is null in RST
                              then mempty
                              else B.str $ T.singleton c
 
+canPrecedeOpener :: Char -> Bool
+canPrecedeOpener c =
+  generalCategory c `elem`
+   [OpenPunctuation, InitialQuote, FinalQuote, DashPunctuation, OtherSymbol]
+
 symbol :: Monad m => RSTParser m Inlines
 symbol = do
-  result <- oneOf specialChars
-  return $ B.str $ T.singleton result
+  c <- oneOf specialChars
+  unless (canPrecedeOpener c) $ updateLastStrPos
+  return $ B.str $ T.singleton c
 
 -- parses inline code, between codeStart and codeEnd
 code :: Monad m => RSTParser m Inlines
