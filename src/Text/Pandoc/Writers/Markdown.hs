@@ -466,9 +466,9 @@ blockToMarkdown' opts b@(RawBlock f str) = do
       | f == "plain" -> return $ literal str <> literal "\n"
     Commonmark
       | f `elem` ["gfm", "commonmark", "commonmark_x", "markdown"]
-         -> return $ literal str <> literal "\n"
+         -> return $ literal str $$ blankline
       | f `elem` ["html", "html5", "html4"]
-         -> return $ literal (removeBlankLinesInHTML str) <> literal "\n"
+         -> return $ literal (removeBlankLinesInHTML str) $$ blankline
     Markdown
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"]
