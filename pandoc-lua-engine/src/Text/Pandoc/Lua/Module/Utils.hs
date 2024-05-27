@@ -29,6 +29,7 @@ import Text.Pandoc.Citeproc (getReferences, processCitations)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Filter (applyJSONFilter)
+import Text.Pandoc.Lua.Filter (runFilterFile)
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Reference
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
@@ -60,6 +61,7 @@ documentedModule = Module
     , from_simple_table `since` v[2,11]
     , make_sections     `since` v[2,8]
     , references        `since` v[2,17]
+    , run_lua_filter    `since` v[3,2,1]
     , run_json_filter   `since` v[2,1,1]
     , normalize_date    `since` v[2,0,6]
     , sha1              `since` v[2,0,6]
@@ -246,6 +248,18 @@ references = defun "references"
   , "    end"
   ]
 
+-- | Run a filter from a file.
+run_lua_filter :: DocumentedFunction PandocError
+run_lua_filter = defun "run_filter_filter"
+  ### (flip runFilterFile)
+  <#> parameter peekPandoc "Pandoc" "doc" "the Pandoc document to filter"
+  <#> parameter peekString "string" "filter" "filepath of the filter to run"
+  =#> functionResult pushPandoc "Pandoc" "filtered document"
+  #? ( "Filter the given doc by passing it through a Lua filter." <>
+       "\n\nThe filter will be run in the current Lua process."
+     )
+
+-- | Process the document with a JSON filter.
 run_json_filter :: DocumentedFunction PandocError
 run_json_filter = defun "run_json_filter"
   ### (\doc filterPath margs -> do
