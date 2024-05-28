@@ -203,7 +203,8 @@ Pandoc
               [ Underline
                   [ Link
                       ( "" , [] , [] )
-                      [ Strong
+                      [ SoftBreak
+                      , Strong
                           [ Str "Typst"
                           , Space
                           , Str "Math"
@@ -212,6 +213,7 @@ Pandoc
                           , Space
                           , Str "Undergrads"
                           ]
+                      , SoftBreak
                       ]
                       ( "https://github.com/johanvx/typst-undergradmath"
                       , ""

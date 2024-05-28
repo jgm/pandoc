@@ -539,7 +539,8 @@ pWithContents pa cs = try $ do
 
 pInlines :: PandocMonad m => P m B.Inlines
 pInlines =
-  collapseAdjacentCites . mconcat <$> many pInline
+  mappend <$> (collapseAdjacentCites . mconcat <$> many pInline)
+          <*> ((B.softbreak <$ pParBreak) <|> pure mempty)
 
 collapseAdjacentCites :: B.Inlines -> B.Inlines
 collapseAdjacentCites = B.fromList . foldr go [] . B.toList
