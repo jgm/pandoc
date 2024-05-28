@@ -3910,9 +3910,9 @@ Returns:
 
 *Since: 2.17*
 
-### run_filter_filter {#pandoc.utils.run_filter_filter}
+### run_lua_filter {#pandoc.utils.run_lua_filter}
 
-`run_filter_filter (doc, filter)`
+`run_lua_filter (doc, filter)`
 
 Filter the given doc by passing it through a Lua filter.
 

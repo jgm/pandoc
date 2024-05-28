@@ -250,7 +250,7 @@ references = defun "references"
 
 -- | Run a filter from a file.
 run_lua_filter :: DocumentedFunction PandocError
-run_lua_filter = defun "run_filter_filter"
+run_lua_filter = defun "run_lua_filter"
   ### (flip runFilterFile)
   <#> parameter peekPandoc "Pandoc" "doc" "the Pandoc document to filter"
   <#> parameter peekString "string" "filter" "filepath of the filter to run"
