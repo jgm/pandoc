@@ -328,17 +328,20 @@ eTOC = try $ do
 pBulletList :: PandocMonad m => TagParser m Blocks
 pBulletList = try $ do
   pSatisfy (matchTagOpen "ul" [])
-  let nonItem = pSatisfy (\t ->
-                  not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
-                  not (matchTagClose "ul" t))
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
-  skipMany nonItem
-  items <- manyTill (pListItem nonItem) (pCloses "ul")
-  return $ B.bulletList $ map (fixPlains True) items
+  skipMany pBlank
+  orphans <- many (do notFollowedBy (pSatisfy (matchTagOpen "li" []))
+                      notFollowedBy (pSatisfy isTagClose)
+                      block) -- e.g. <ul>, see #9187
+  items <- manyTill pListItem (pCloses "ul")
+  let items' = case orphans of
+                 [] -> items
+                 xs -> mconcat xs : items
+  return $ B.bulletList $ map (fixPlains True) items'
 
-pListItem :: PandocMonad m => TagParser m a -> TagParser m Blocks
-pListItem nonItem = setInListItem $ do
+pListItem :: PandocMonad m => TagParser m Blocks
+pListItem = setInListItem $ do
   TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "li" [])
   let attr = toStringAttr attr'
   let addId ident bs = case B.toList bs of
@@ -346,10 +349,11 @@ pListItem nonItem = setInListItem $ do
                                 [Span (ident, [], []) ils] : xs)
                            _ -> B.divWith (ident, [], []) bs
   item <- pInTags "li" block
-  skipMany nonItem
+  skipMany pBlank
   orphans <- many (do notFollowedBy (pSatisfy (matchTagOpen "li" []))
                       notFollowedBy (pSatisfy isTagClose)
                       block) -- e.g. <ul>, see #9187
+  skipMany pBlank
   return $ maybe id addId (lookup "id" attr) $ item <> mconcat orphans
 
 pCheckbox :: PandocMonad m => TagParser m Inlines
@@ -391,20 +395,23 @@ pOrderedList = try $ do
         where
           pickListStyle = pickStyleAttrProps ["list-style-type", "list-style"]
 
-  let nonItem = pSatisfy (\t ->
-                  not (tagOpen (`elem` ["li","ol","ul","dl"]) (const True) t) &&
-                  not (matchTagClose "ol" t))
   -- note: if they have an <ol> or <ul> not in scope of a <li>,
   -- treat it as a list item, though it's not valid xhtml...
-  skipMany nonItem
+  skipMany pBlank
+  orphans <- many (do notFollowedBy (pSatisfy (matchTagOpen "li" []))
+                      notFollowedBy (pSatisfy isTagClose)
+                      block) -- e.g. <ul>, see #9187
   if isNoteList
      then do
        _ <- manyTill (eFootnote <|> pBlank) (pCloses "ol")
        return mempty
      else do
-       items <- manyTill (pListItem nonItem) (pCloses "ol")
+       items <- manyTill pListItem (pCloses "ol")
+       let items' = case orphans of
+                      [] -> items
+                      xs -> mconcat xs : items
        return $ B.orderedListWith (start, style, DefaultDelim) $
-                map (fixPlains True) items
+                map (fixPlains True) items'
 
 pDefinitionList :: PandocMonad m => TagParser m Blocks
 pDefinitionList = try $ do
