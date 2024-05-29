@@ -438,7 +438,7 @@ blockToOpenXML' opts (Figure (ident, _, _) (Caption _ longcapt) body) = do
     (Para xs  : bs) -> imageCaption (fstCaptionPara xs : bs)
     (Plain xs : bs) -> imageCaption (fstCaptionPara xs : bs)
     _               -> imageCaption longcapt
-  return $ contentsNode : captionNode
+  wrapBookmark ident $ contentsNode : captionNode
 
 toFigureTable :: PandocMonad m
               => WriterOptions -> [Block] -> WS m Content
