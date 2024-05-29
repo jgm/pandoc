@@ -739,6 +739,7 @@ library
                    Text.Pandoc.Writers.Blaze,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
+                   Text.Pandoc.Char,
                    Text.Pandoc.TeX,
                    Text.Pandoc.URI,
                    Text.Pandoc.CSS,

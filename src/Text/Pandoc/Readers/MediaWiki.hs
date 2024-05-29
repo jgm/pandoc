@@ -38,6 +38,7 @@ import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag, toAttr)
 import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
                            trim, splitTextBy, tshow, formatCode)
+import Text.Pandoc.Char (isCJK)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -676,23 +677,6 @@ internalLink = try $ do
        updateState $ \st -> st{ mwCategoryLinks = link : mwCategoryLinks st }
        return mempty
      else return link
-
-isCJK :: Char -> Bool
-isCJK c =
-  (c >= '\x3400' && c <= '\x4DBF') ||
-  (c >= '\x4E00' && c <= '\x9FFF') ||
-  (c >= '\x20000' && c <= '\x2A6DF') ||
-  (c >= '\x2A700' && c <= '\x2B73F') ||
-  (c >= '\x2B740' && c <= '\x2B81F') ||
-  (c >= '\x2B820' && c <= '\x2CEAF') ||
-  (c >= '\x2CEB0' && c <= '\x2EBEF') ||
-  (c >= '\x30000' && c <= '\x3134F') ||
-  (c >= '\x31350' && c <= '\x323AF') ||
-  (c >= '\xF900' && c <= '\xFAFF') ||
-  (c >= '\x2F800' && c <= '\x2FA1F') ||
-  (c >= '\x2F00' && c <= '\x2FDF') ||
-  (c >= '\x2E80' && c <= '\x2EFF') ||
-  (c >= '\x3000' && c <= '\x303F')
 
 externalLink :: PandocMonad m => MWParser m Inlines
 externalLink = try $ do
