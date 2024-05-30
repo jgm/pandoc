@@ -1,3 +1,14 @@
+#let content-to-string(content) = {
+  if content.has("text") {
+    content.text
+  } else if content.has("children") {
+    content.children.map(to-string).join("")
+  } else if content.has("body") {
+    content-to-string(content.body)
+  } else if content == [ ] {
+    " "
+  }
+}
 #let conf(
   title: none,
   subtitle: none,
@@ -17,7 +28,7 @@
 ) = {
   set document(
     title: title,
-    author: authors.map(author => author.name),
+    author: authors.map(author => content-to-string(author.name)),
     keywords: keywords,
   )
   set page(

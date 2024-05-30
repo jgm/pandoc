@@ -31,11 +31,11 @@ $if(author)$
   authors: (
 $for(author)$
 $if(author.name)$
-    ( name: "$author.name$",
-      affiliation: "$author.affiliation$",
-      email: "$author.email$" ),
+    ( name: [$author.name$],
+      affiliation: [$author.affiliation$],
+      email: [$author.email$] ),
 $else$
-    ( name: "$author$",
+    ( name: [$author$],
       affiliation: "",
       email: "" ),
 $endif$
@@ -46,7 +46,7 @@ $if(keywords)$
   keywords: ($for(keywords)$$keyword$$sep$,$endfor$),
 $endif$
 $if(date)$
-  date: "$date$",
+  date: [$date$],
 $endif$
 $if(lang)$
   lang: "$lang$",
