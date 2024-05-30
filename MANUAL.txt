@@ -5909,8 +5909,8 @@ simply skipped (as opposed to being parsed as paragraphs).
 
 Supports [GitHub-style Markdown alerts], like
 
-    > [!INFO]
-    > This is an informational message.
+    > [!TIP]
+    > Helpful advice for doing things better or more easily.
 
   [GitHub-style Markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
 
