@@ -47,7 +47,6 @@ $if(pdfa)$
    profile={$if(pdfaiccprofile)$$for(pdfaiccprofile)$$pdfaiccprofile$$sep$,$endfor$$else$sRGB.icc$endif$},
    intent=$if(pdfaintent)$$pdfaintent$$else$sRGB IEC61966-2.1$endif$]
 $endif$
-\setupbackend[export=yes]
 \setupstructure[state=start,method=auto]
 
 % use microtypography
