@@ -183,9 +183,22 @@ writeOpenXML opts (Pandoc meta blocks) = do
       Just (MetaInlines ils) -> pure $ stringify ils
       Just (MetaString s)    -> pure s
       _                      -> translateTerm Abstract
-  abstract <- case lookupMetaBlocks "abstract" meta of
-                 [] -> return []
-                 xs -> withParaPropM (pStyleM "Abstract") $ blocksToOpenXML opts xs
+  abstract <-
+    case lookupMetaBlocks "abstract" meta of
+      [] -> return mempty
+      xs -> vcat . map (literal . showContent) <$>
+              withParaPropM (pStyleM "Abstract") (blocksToOpenXML opts xs)
+
+  let toInlineMeta field = hcat . map (literal . showContent) <$>
+         inlinesToOpenXML opts (lookupMetaInlines field meta)
+
+  title <- toInlineMeta "title"
+  subtitle <- toInlineMeta "subtitle"
+  date <- toInlineMeta "date"
+
+  author <- mapM
+             (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
+             (docAuthors meta)
 
   let convertSpace (Str x : Space : Str y : xs) = Str (x <> " " <> y) : xs
       convertSpace (Str x : Str y : xs)         = Str (x <> y) : xs
@@ -219,12 +232,15 @@ writeOpenXML opts (Pandoc meta blocks) = do
                  (fmap (vcat . map (literal . showContent)) . blocksToOpenXML opts)
                  (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
                  meta
-  let context = defField "body" body
-              . defField "toc"
+  let context = resetField "body" body
+              . resetField "toc"
                    (vcat (map (literal . showElement) toc))
-              . defField "abstract"
-                   (vcat (map (literal . showContent) abstract))
-              . defField "abstract-title" abstractTitle
+              . resetField "title" title
+              . resetField "subtitle" subtitle
+              . resetField "author" author
+              . resetField "date" date
+              . resetField "abstract-title" abstractTitle
+              . resetField "abstract" abstract
               $ metadata
   tpl <- maybe (lift $ compileDefaultTemplate "openxml") pure $ writerTemplate opts
   let rendered = render Nothing $ renderTemplate tpl context
