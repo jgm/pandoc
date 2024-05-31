@@ -96,6 +96,14 @@ The following Pandoc AST elements are currently supported. More may be supported
 
   : The table is wrapped in a Typst [text element](https://typst.app/docs/reference/text/text/) with `prop` as one of its parameters.
 
+  `typst:no-figure`
+
+  : By default, Pandoc will wrap the table in a Typst [figure element](https://typst.app/docs/reference/model/figure/). If this attribute is set, only the table element itself will be emitted. This avoids Typst's crossreference counter of kind `table` from being incremented.
+
+  `typst:figure:kind`
+
+  : If this attribute is set, Pandoc will wrap the table in a Typst [figure element](https://typst.app/docs/reference/model/figure/) with the specified `kind` attribute. This is useful for tables that should be cross-referenced as something other than `Table ...` in the document. Typst will use the `kind` attribute to increment the corresponding counter: `raw` and `image`.
+
 - Table [Cell](https://pandoc.org/lua-filters.html#type-cell)
 
   `typst:prop`
