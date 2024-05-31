@@ -16,3 +16,8 @@ source-repository-package
   type: git
   location: https://github.com/jgm/djoths
   tag: 7f912e3ee593a86e3d179e8f3e1898a93171fb99
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/citeproc
+  tag: 76f7f134f3ba7c0aebe84d4f24c424021da3844e
