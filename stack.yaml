@@ -19,13 +19,14 @@ extra-deps:
 - skylighting-format-blaze-html-0.1.1.2
 - skylighting-core-0.14.1.2
 - skylighting-0.14.1.2
-- djot-0.1.2
 - zip-archive-0.4.3.2
 - toml-parser-2.0.0.0
 - typst-symbols-0.1.6
-- typst-0.5.0.3
 - texmath-0.12.8.9
-
+- git: https://github.com/jgm/typst-hs
+  commit: dfe0367b248419c3555044705fa79a52b9c20089
+- git: https://github.com/jgm/djoths
+  commit: 7f912e3ee593a86e3d179e8f3e1898a93171fb99
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-22.11
