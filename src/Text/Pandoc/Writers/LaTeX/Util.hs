@@ -235,7 +235,7 @@ wrapDiv (_,classes,kvs) t = do
                                w = maybe "0.48" fromPct (lookup "width" kvs)
                            in  inCmd "begin" "column" <>
                                valign <>
-                               braces (literal w <> "\\textwidth")
+                               braces (literal w <> "\\linewidth")
                                $$ contents
                                $$ inCmd "end" "column"
                     else id

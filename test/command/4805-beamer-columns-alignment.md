@@ -19,18 +19,18 @@
 ^D
 \begin{frame}
 \begin{columns}[T]
-\begin{column}[c]{0.48\textwidth}
+\begin{column}[c]{0.48\linewidth}
 \end{column}
 
-\begin{column}[b]{0.48\textwidth}
+\begin{column}[b]{0.48\linewidth}
 \end{column}
 \end{columns}
 
 \begin{columns}[b,onlytextwidth]
-\begin{column}[T]{0.48\textwidth}
+\begin{column}[T]{0.48\linewidth}
 \end{column}
 
-\begin{column}[t]{0.48\textwidth}
+\begin{column}[t]{0.48\linewidth}
 \end{column}
 \end{columns}
 

@@ -149,7 +149,7 @@ colDescriptors isSimpleTable
     toColDescriptor :: Int -> Alignment -> Double -> Text
     toColDescriptor numcols align width =
       T.pack $ printf
-      ">{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.4f}}"
+      ">{%s\\arraybackslash}p{(\\linewidth - %d\\tabcolsep) * \\real{%0.4f}}"
       (T.unpack (alignCommand align))
       ((numcols - 1) * 2)
       width
@@ -391,7 +391,7 @@ multicolumnDescriptor isSimpleTable
               (T.unpack (colAlign align))
               (if colnum + colspan >= numcols then skipColSep else "")
 
-        else printf "%s>{%s\\arraybackslash}p{(\\columnwidth - %d\\tabcolsep) * \\real{%0.4f} + %d\\tabcolsep}%s"
+        else printf "%s>{%s\\arraybackslash}p{(\\linewidth - %d\\tabcolsep) * \\real{%0.4f} + %d\\tabcolsep}%s"
               (if colnum == 0 then skipColSep else "")
               (T.unpack (alignCommand align))
               (2 * (numcols - 1))

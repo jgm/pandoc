@@ -1068,7 +1068,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
                          Just (Percent a) ->
                            [d <> literal (showFl (a / 100)) <>
                              case dir of
-                                Width  -> "\\textwidth"
+                                Width  -> "\\linewidth"
                                 Height -> "\\textheight"
                            ]
                          Just dim         ->
@@ -1076,7 +1076,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
                          Nothing          ->
                            case dir of
                                 Width | isJust (dimension Height attr) ->
-                                  [d <> "\\textwidth"]
+                                  [d <> "\\linewidth"]
                                 Height | isJust (dimension Width attr) ->
                                   [d <> "\\textheight"]
                                 _ -> []
