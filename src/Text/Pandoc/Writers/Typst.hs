@@ -20,7 +20,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Class ( PandocMonad)
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled )
 import Data.Text (Text)
-import Data.List (intercalate, intersperse, find)
+import Data.List (intercalate, intersperse)
 import Data.Bifunctor (first, second)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
@@ -285,9 +285,9 @@ blockToTypst block =
                 $$ footer
             )
             $$ ")"
-      return $ case Data.List.find (== "typst:no-figure") tabclasses of
-        Just _ -> table
-        Nothing -> "#figure("
+      return $ if "typst:no-figure" `elem` tabclasses
+        then table
+        else "#figure("
             $$
             nest 2
             ("align(center)[" <> table <> "]"
