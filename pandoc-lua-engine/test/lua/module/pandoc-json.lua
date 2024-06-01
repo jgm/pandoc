@@ -1,6 +1,7 @@
 --
 -- Tests for the system module
 --
+local pandoc = require 'pandoc'
 local json = require 'pandoc.json'
 local tasty = require 'tasty'
 
@@ -33,18 +34,25 @@ return {
       local obj = setmetatable(
         {title = 23},
         {
-          __tojson = function (obj)
+          __tojson = function (_)
             return '"Nichts ist so wie es scheint"'
           end
         }
       )
       assert.are_same(json.encode(obj), [["Nichts ist so wie es scheint"]])
     end),
-    test('Inline (Space)', function ()
+    test('pandoc.List', function ()
+      local list = pandoc.List {'foo', 'bar', 'baz'}
       assert.are_equal(
-        json.encode(pandoc.Space()),
-        '{"t":"Space"}'
+        json.encode(list),
+        '["foo","bar","baz"]'
       )
+    end),
+    test('Inline (Space)', function ()
+           assert.are_equal(
+             json.encode(pandoc.Space()),
+             '{"t":"Space"}'
+           )
     end),
     test('Block (HorizontalRule)', function ()
       assert.are_equal(
@@ -84,6 +92,9 @@ return {
     end),
     test('object', function ()
       assert.are_same(json.decode '{"a":5}', {a = 5})
+    end),
+    test('list of strings', function ()
+      assert.are_equal(json.decode '["foo", "bar"]', pandoc.List{"foo", "bar"})
     end),
     test('Inline (Space)', function ()
       assert.are_equal(json.decode '{"t":"Space"}', pandoc.Space())

@@ -28,7 +28,7 @@ import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Logging (LogMessage (ScriptingWarning))
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Marshal.List (newListMetatable, pushListModule)
+import Text.Pandoc.Lua.Marshal.List (pushPandocList, pushListModule)
 import Text.Pandoc.Lua.PandocLua (PandocLua (..), liftPandocLua)
 import Text.Pandoc.Lua.SourcePos (luaSourcePos)
 import qualified Data.ByteString.Char8 as Char8
@@ -120,8 +120,8 @@ initLuaState :: PandocLua ()
 initLuaState = do
   liftPandocLua Lua.openlibs
   setWarnFunction
-  initJsonMetatable
   initPandocModule
+  initJsonMetatable
   installLpegSearcher
   setGlobalModules
   loadInitScript "init.lua"
@@ -210,7 +210,9 @@ initLuaState = do
 -- from/via JSON arrays.
 initJsonMetatable :: PandocLua ()
 initJsonMetatable = liftPandocLua $ do
-  newListMetatable HsLua.Aeson.jsonarray (pure ())
+  pushPandocList (const pushnil) []
+  getmetatable top
+  setfield registryindex HsLua.Aeson.jsonarray
   Lua.pop 1
 
 -- | Evaluate a @'PandocLua'@ computation, running all contained Lua
