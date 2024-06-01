@@ -759,8 +759,25 @@ elemToBodyPart ns element
     parparts <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
     case pHeading parstyle of
       Nothing -> mkListItem parstyle numId lvl parparts
-      Just _  -> do
-        return $ Paragraph parstyle parparts
+      Just _  -> return $ Paragraph parstyle parparts
+elemToBodyPart ns element
+  | isElem ns "w" "p" element
+  , [Elem ppr] <- elContent element
+  , isElem ns "w" "pPr" ppr
+  , [Elem pbdr] <- elContent ppr
+  , isElem ns "w" "pBdr" pbdr
+    = return HRule
+      -- for this style of horizontal rule, see
+      -- https://support.microsoft.com/en-us/office/insert-a-horizontal-line-9bf172f6-5908-4791-9bb9-2c952197b1a9
+elemToBodyPart ns element -- pandoc-style horizontal rule
+  | isElem ns "w" "p" element
+  , [Elem r] <- elContent element
+  , isElem ns "w" "r" r
+  , [Elem pict] <- elContent r
+  , isElem ns "w" "pict" pict
+  , [Elem rect] <- elContent pict
+  , isElem ns "v" "rect" rect
+    = return HRule
 elemToBodyPart ns element
   | isElem ns "w" "p" element = do
       parstyle <- elemToParagraphStyle ns element
