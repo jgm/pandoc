@@ -278,6 +278,7 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl T.Text TblGrid TblLook [Row]
               | TblCaption ParagraphStyle [ParPart]
+              | HRule
               deriving Show
 
 type TblGrid = [Integer]

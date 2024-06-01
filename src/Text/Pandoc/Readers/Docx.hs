@@ -800,6 +800,7 @@ bodyPartToBlocks (Tbl cap grid look parts) = do
                  (TableHead nullAttr headerCells)
                  [TableBody nullAttr 0 [] bodyCells]
                  (TableFoot nullAttr [])
+bodyPartToBlocks HRule = pure Pandoc.horizontalRule
 
 -- replace targets with generated anchors.
 rewriteLink' :: PandocMonad m => Inline -> DocxContext m Inline
