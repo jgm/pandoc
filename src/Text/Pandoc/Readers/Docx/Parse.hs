@@ -257,7 +257,7 @@ data ChangeInfo = ChangeInfo ChangeId Author (Maybe ChangeDate)
 data TrackedChange = TrackedChange ChangeType ChangeInfo
                    deriving Show
 
-data Justification = JustifyBoth | JustifyRight | JustifyCenter
+data Justification = JustifyBoth | JustifyLeft | JustifyRight | JustifyCenter
   deriving (Show, Eq)
 
 data ParagraphStyle = ParagraphStyle { pStyle        :: [ParStyle]
@@ -733,6 +733,7 @@ elemToCell ns element | isElem ns "w" "tc" element =
                   Paragraph pstyle _ : _ ->
                     case justification pstyle of
                       Just JustifyBoth -> AlignLeft
+                      Just JustifyLeft -> AlignLeft
                       Just JustifyRight -> AlignRight
                       Just JustifyCenter -> AlignCenter
                       Nothing -> AlignDefault
@@ -1237,6 +1238,7 @@ elemToParagraphStyle ns element sty numbering
             Nothing -> Nothing
             Just "both" -> Just JustifyBoth
             Just "center" -> Just JustifyCenter
+            Just "left" -> Just JustifyLeft
             Just "right" -> Just JustifyRight
             _ -> Nothing
       , indentation =

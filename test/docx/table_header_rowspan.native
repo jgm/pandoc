@@ -1,6 +1,6 @@
 [Table ("",[],[]) (Caption Nothing
  [])
- [(AlignDefault,ColWidth 0.30701754385964913)
+ [(AlignLeft,ColWidth 0.30701754385964913)
  ,(AlignDefault,ColWidth 0.1364522417153996)
  ,(AlignDefault,ColWidth 0.10009746588693957)
  ,(AlignDefault,ColWidth 9.707602339181287e-2)
@@ -32,7 +32,7 @@
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []
   [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -49,7 +49,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -66,7 +66,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -83,7 +83,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -100,7 +100,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -117,7 +117,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -134,7 +134,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -151,7 +151,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
@@ -168,7 +168,7 @@
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "8"]]]
   ,Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignLeft (RowSpan 1) (ColSpan 1)
     [Plain [Str "1"]]
    ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
     [Plain [Str "2"]]
