@@ -359,7 +359,7 @@ leftBiasedMergeRunStyle a b = RunStyle
 type Extent = Maybe (Double, Double)
 
 data ParPart = PlainRun Run
-             | ChangedRuns TrackedChange [Run]
+             | ChangedRuns TrackedChange [ParPart]
              | CommentStart CommentId Author (Maybe CommentDate) [BodyPart]
              | CommentEnd CommentId
              | BookMark BookMarkId Anchor
@@ -1027,7 +1027,7 @@ elemToParPart' ns element
     return $ map PlainRun runs
 elemToParPart' ns element
   | Just change <- getTrackedChange ns element = do
-      runs <- mconcat <$> mapD (elemToRun ns) (elChildren element)
+      runs <- mconcat <$> mapD (elemToParPart' ns) (elChildren element)
       return [ChangedRuns change runs]
 elemToParPart' ns element
   | isElem ns "w" "bookmarkStart" element
