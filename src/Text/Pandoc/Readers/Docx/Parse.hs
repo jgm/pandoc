@@ -31,11 +31,13 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , RunStyle(..)
                                       , VertAlign(..)
                                       , ParIndentation(..)
+                                      , Justification(..)
                                       , ParagraphStyle(..)
                                       , ParStyle
                                       , CharStyle(cStyleData)
                                       , Row(..)
                                       , TblHeader(..)
+                                      , Align(..)
                                       , Cell(..)
                                       , VMerge(..)
                                       , TrackedChange(..)
@@ -255,22 +257,27 @@ data ChangeInfo = ChangeInfo ChangeId Author (Maybe ChangeDate)
 data TrackedChange = TrackedChange ChangeType ChangeInfo
                    deriving Show
 
-data ParagraphStyle = ParagraphStyle { pStyle      :: [ParStyle]
-                                     , indentation :: Maybe ParIndentation
-                                     , numbered    :: Bool
-                                     , dropCap     :: Bool
-                                     , pChange     :: Maybe TrackedChange
-                                     , pBidi       :: Maybe Bool
+data Justification = JustifyBoth | JustifyRight | JustifyCenter
+  deriving (Show, Eq)
+
+data ParagraphStyle = ParagraphStyle { pStyle        :: [ParStyle]
+                                     , indentation   :: Maybe ParIndentation
+                                     , justification :: Maybe Justification
+                                     , numbered      :: Bool
+                                     , dropCap       :: Bool
+                                     , pChange       :: Maybe TrackedChange
+                                     , pBidi         :: Maybe Bool
                                      }
                       deriving Show
 
 defaultParagraphStyle :: ParagraphStyle
 defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , indentation = Nothing
-                                       , numbered    = False
-                                       , dropCap     = False
-                                       , pChange     = Nothing
-                                       , pBidi       = Just False
+                                       , justification = Nothing
+                                       , numbered = False
+                                       , dropCap = False
+                                       , pChange = Nothing
+                                       , pBidi = Just False
                                        }
 
 
@@ -293,7 +300,10 @@ data Row = Row TblHeader [Cell] deriving Show
 
 data TblHeader = HasTblHeader | NoTblHeader deriving (Show, Eq)
 
-data Cell = Cell GridSpan VMerge [BodyPart]
+data Align = AlignDefault | AlignLeft | AlignRight | AlignCenter
+  deriving (Show, Eq)
+
+data Cell = Cell Align GridSpan VMerge [BodyPart]
             deriving Show
 
 type GridSpan = Integer
@@ -306,7 +316,7 @@ data VMerge = Continue
 
 rowsToRowspans :: [Row] -> [[(Int, Cell)]]
 rowsToRowspans rows = let
-  removeMergedCells = fmap (filter (\(_, Cell _ vmerge _) -> vmerge == Restart))
+  removeMergedCells = fmap (filter (\(_, Cell _ _ vmerge _) -> vmerge == Restart))
   in removeMergedCells (foldr f [] rows)
   where
     f :: Row -> [[(Int, Cell)]] -> [[(Int, Cell)]]
@@ -322,9 +332,9 @@ rowsToRowspans rows = let
     g cells columnsLeftBelow (Just rowBelow) =
         case cells of
           [] -> []
-          thisCell@(Cell thisGridSpan _ _) : restOfRow -> case rowBelow of
+          thisCell@(Cell _ thisGridSpan _ _) : restOfRow -> case rowBelow of
             [] -> map (1,) cells
-            (spanSoFarBelow, Cell gridSpanBelow vmerge _) : _ ->
+            (spanSoFarBelow, Cell _ gridSpanBelow vmerge _) : _ ->
               let spanSoFar = case vmerge of
                     Restart -> 1
                     Continue -> 1 + spanSoFarBelow
@@ -334,7 +344,7 @@ rowsToRowspans rows = let
 
     dropColumns :: Integer -> [(a, Cell)] -> (Integer, [(a, Cell)])
     dropColumns n [] = (n, [])
-    dropColumns n cells@((_, Cell gridSpan _ _) : otherCells) =
+    dropColumns n cells@((_, Cell _ gridSpan _ _) : otherCells) =
       if n < gridSpan
       then (gridSpan - n, cells)
       else dropColumns (n - gridSpan) otherCells
@@ -719,7 +729,15 @@ elemToCell ns element | isElem ns "w" "tc" element =
                          "restart" -> Just Restart
                          _ -> Nothing
     cellContents <- mapD (elemToBodyPart ns) (elChildren element)
-    return $ Cell (fromMaybe 1 gridSpan) vMerge cellContents
+    let align = case cellContents of -- take alignment from first paragraph
+                  Paragraph pstyle _ : _ ->
+                    case justification pstyle of
+                      Just JustifyBoth -> AlignLeft
+                      Just JustifyRight -> AlignRight
+                      Just JustifyCenter -> AlignCenter
+                      Nothing -> AlignDefault
+                  _ -> AlignDefault
+    return $ Cell align (fromMaybe 1 gridSpan) vMerge cellContents
 elemToCell _ _ = throwError WrongElem
 
 testBitMask :: Text -> Int -> Bool
@@ -1214,6 +1232,13 @@ elemToParagraphStyle ns element sty numbering
       , numbered = case getNumInfo ns element of
           Just (numId, lvl) -> isJust $ lookupLevel numId lvl numbering
           Nothing -> isJust $ getParStyleField numInfo pStyle'
+      , justification =
+          case findChildByName ns "w" "jc" pPr >>= findAttrByName ns "w" "val" of
+            Nothing -> Nothing
+            Just "both" -> Just JustifyBoth
+            Just "center" -> Just JustifyCenter
+            Just "right" -> Just JustifyRight
+            _ -> Nothing
       , indentation =
           getIndentation ns element
       , dropCap =

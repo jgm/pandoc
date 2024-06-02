@@ -590,10 +590,11 @@ singleParaToPlain blks
 singleParaToPlain blks = blks
 
 cellToCell :: PandocMonad m => RowSpan -> Docx.Cell -> DocxContext m Pandoc.Cell
-cellToCell rowSpan (Docx.Cell gridSpan _ bps) = do
+cellToCell rowSpan (Docx.Cell align gridSpan _ bps) = do
   blks <- smushBlocks <$> mapM bodyPartToBlocks bps
   let blks' = singleParaToPlain $ fromList $ blocksToDefinitions $ blocksToBullets $ toList blks
-  return (cell AlignDefault rowSpan (ColSpan (fromIntegral gridSpan)) blks')
+  return (cell (convertAlign align)
+          rowSpan (ColSpan (fromIntegral gridSpan)) blks')
 
 rowsToRows :: PandocMonad m => [Docx.Row] -> DocxContext m [Pandoc.Row]
 rowsToRows rows = do
@@ -613,7 +614,7 @@ splitHeaderRows hasFirstRowFormatting rs = bimap reverse reverse $ fst
       | otherwise
         = ((headerRows, r : bodyRows), False)
 
-    isContinuationCell (Docx.Cell _ vm _) = vm == Docx.Continue
+    isContinuationCell (Docx.Cell _ _ vm _) = vm == Docx.Continue
 
 
 -- like trimInlines, but also take out linebreaks
@@ -783,15 +784,17 @@ bodyPartToBlocks (Tbl cap grid look parts) = do
 
   let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
       rowLength :: Docx.Row -> Int
-      rowLength (Docx.Row _ c) = sum (fmap (\(Docx.Cell gridSpan _ _) -> fromIntegral gridSpan) c)
+      rowLength (Docx.Row _ c) = sum (fmap (\(Docx.Cell _ gridSpan _ _) -> fromIntegral gridSpan) c)
 
   headerCells <- rowsToRows hdr
   bodyCells <- rowsToRows rows
 
-      -- Horizontal column alignment goes to the default at the moment. Getting
-      -- it might be difficult, since there doesn't seem to be a column entity
-      -- in docx.
-  let alignments = replicate width AlignDefault
+      -- Horizontal column alignment is taken from the first row's cells.
+  let getAlignment (Docx.Cell al colspan _ _) = replicate (fromIntegral colspan)
+                   $ convertAlign al
+      alignments = case rows of
+                     [] -> replicate width Pandoc.AlignDefault
+                     Docx.Row _ cs : _ -> concatMap getAlignment cs
       totalWidth = sum grid
       widths = (\w -> ColWidth (fromInteger w / fromInteger totalWidth)) <$> grid
 
@@ -862,3 +865,10 @@ docxToOutput opts (Docx (Document _ body)) =
 addAuthorAndDate :: T.Text -> Maybe T.Text -> [(T.Text, T.Text)]
 addAuthorAndDate author mdate =
   ("author", author) : maybe [] (\date -> [("date", date)]) mdate
+
+convertAlign :: Docx.Align -> Pandoc.Alignment
+convertAlign al = case al of
+                       Docx.AlignDefault -> Pandoc.AlignDefault
+                       Docx.AlignLeft -> Pandoc.AlignLeft
+                       Docx.AlignCenter -> Pandoc.AlignCenter
+                       Docx.AlignRight -> Pandoc.AlignRight
