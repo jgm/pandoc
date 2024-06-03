@@ -28,7 +28,7 @@ extra-deps:
 - git: https://github.com/jgm/djoths
   commit: 7f912e3ee593a86e3d179e8f3e1898a93171fb99
 - git: https://github.com/jgm/citeproc
-  commit: 76f7f134f3ba7c0aebe84d4f24c424021da3844e
+  commit: c7d81a376f434e90e1ef5724316042dfa4e21ef0
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules

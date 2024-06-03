@@ -20,4 +20,4 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/citeproc
-  tag: 76f7f134f3ba7c0aebe84d4f24c424021da3844e
+  tag: c7d81a376f434e90e1ef5724316042dfa4e21ef0
