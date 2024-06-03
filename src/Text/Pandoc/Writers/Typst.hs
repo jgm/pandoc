@@ -37,6 +37,7 @@ import Text.Pandoc.Extensions (Extension(..))
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
 import Data.Char (isAlphaNum)
+import Data.Maybe (fromMaybe)
 
 -- | Convert Pandoc to Typst.
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -195,13 +196,14 @@ blockToTypst block =
                    else vsep items') $$ blankline
     DefinitionList items ->
       ($$ blankline) . vsep <$> mapM defListItemToTypst items
-    Table (ident,_,tabkvs) (Caption _ caption) colspecs thead tbodies tfoot -> do
+    Table (ident,tabclasses,tabkvs) (Caption _ caption) colspecs thead tbodies tfoot -> do
       let lab = toLabel FreestandingLabel ident
       capt' <- if null caption
                   then return mempty
                   else do
                     captcontents <- blocksToTypst caption
                     return $ ", caption: " <> brackets captcontents
+      let typstFigureKind = literal (", kind: " <> fromMaybe "table" (lookup "typst:figure:kind" tabkvs))
       let numcols = length colspecs
       let (aligns, widths) = unzip colspecs
       let commaSep = hcat . intersperse ", "
@@ -273,25 +275,27 @@ blockToTypst block =
       header <- fromHead thead
       footer <- fromFoot tfoot
       body <- vcat <$> mapM fromTableBody tbodies
-      return $
-        "#figure("
-        $$
-        nest 2
-         ("align(center)[" <> toTypstSetText typstTextAttrs <> "#table("
-          $$ nest 2
-             (  "columns: " <> columns <> ","
-             $$ "align: " <> alignarray <> ","
-             $$ toTypstPropsListTerm typstAttrs
-             $$ header
-             $$ body
-             $$ footer
-             )
-          $$ ")]"
-          $$ capt'
-          $$ ", kind: table"
-          $$ ")")
-        $$ lab
-        $$ blankline
+      let table = toTypstSetText typstTextAttrs <> "#table("
+            $$ nest 2
+                (  "columns: " <> columns <> ","
+                $$ "align: " <> alignarray <> ","
+                $$ toTypstPropsListTerm typstAttrs
+                $$ header
+                $$ body
+                $$ footer
+            )
+            $$ ")"
+      return $ if "typst:no-figure" `elem` tabclasses
+        then table
+        else "#figure("
+            $$
+            nest 2
+            ("align(center)[" <> table <> "]"
+              $$ capt'
+              $$ typstFigureKind
+              $$ ")")
+            $$ lab
+          $$ blankline
     Figure (ident,_,_) (Caption _mbshort capt) blocks -> do
       caption <- blocksToTypst capt
       contents <- case blocks of
