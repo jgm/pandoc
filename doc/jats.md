@@ -394,6 +394,12 @@ Metadata Values
 :   The article title. Added to the document's front matter via the
     [`<article-title>`][elem:article-title] element.
 
+`supplementary-material`
+:   Supplementary metadata. Added to the document's front matter
+    via the [`<supplementary-material>`][elem:supplementary-material]
+    element.  Only available with `jats_articlepublishing`.
+
+
 Required Metadata
 -----------------
 
@@ -433,6 +439,7 @@ Required metadata values:
 [elem:article-id]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-id.html
 [elem:article-meta]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html
 [elem:article-title]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-title.html
+[elem:supplementary-material]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/supplementary-material.html
 [elem:copyright-holder]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-holder.html
 [elem:copyright-statement]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-statement.html
 [elem:copyright-year]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-year.html
