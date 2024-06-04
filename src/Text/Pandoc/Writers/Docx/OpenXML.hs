@@ -25,6 +25,7 @@ import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (isLetter)
+import Data.Bifunctor (first)
 import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
@@ -390,20 +391,9 @@ blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) = do
   wrapBookmark tableId content
 blockToOpenXML' opts el
   | BulletList lst <- el
-  = if isTaskList lst
-        then addOpenXMLList $
-             map (\bs ->
-              case bs of
-                (Plain (Str "\9744":Space:ils):xs)
-                 -> (Just (CheckboxMarker False),Plain ils : xs)
-                (Para (Str "\9744":Space:ils):xs)
-                 -> (Just (CheckboxMarker False),Plain ils : xs)
-                (Plain (Str "\9746":Space:ils):xs)
-                 -> (Just (CheckboxMarker True),Para ils : xs)
-                (Para (Str "\9746":Space:ils):xs)
-                 -> (Just (CheckboxMarker True),Para ils : xs)
-                _ -> (Just BulletMarker,bs)) lst
-        else addOpenXMLList $ zip (Just BulletMarker : repeat Nothing) lst
+  = case mapM toTaskListItem lst of
+      Just items -> addOpenXMLList (map (first (Just . CheckboxMarker)) items)
+      Nothing -> addOpenXMLList $ zip (Just BulletMarker : repeat Nothing) lst
   | OrderedList (start, numstyle, numdelim) lst <- el
   = addOpenXMLList $
     zip (Just (NumberMarker numstyle numdelim start) : repeat Nothing) lst

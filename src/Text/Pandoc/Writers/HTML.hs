@@ -484,12 +484,11 @@ defList opts items = toList H.dl opts (items ++ [nl])
 
 listItemToHtml :: PandocMonad m
                => WriterOptions -> [Block] -> StateT WriterState m Html
-listItemToHtml opts bls
-  | Plain (Str "☐":Space:is) : bs <- bls = taskListItem False id  is bs
-  | Plain (Str "☒":Space:is) : bs <- bls = taskListItem True  id  is bs
-  | Para  (Str "☐":Space:is) : bs <- bls = taskListItem False H.p is bs
-  | Para  (Str "☒":Space:is) : bs <- bls = taskListItem True  H.p is bs
-  | otherwise = blockListToHtml opts bls
+listItemToHtml opts bls =
+  case toTaskListItem bls of
+    Just (checked, (Para is:bs)) -> taskListItem checked H.p is bs
+    Just (checked, (Plain is:bs)) -> taskListItem checked id is bs
+    _ -> blockListToHtml opts bls
   where
     taskListItem checked constr is bs = do
       let checkbox  = if checked
@@ -1012,7 +1011,7 @@ blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
               _ -> H.p  contents'
 blockToHtmlInner opts (BulletList lst) = do
   contents <- mapM (listItemToHtml opts) lst
-  (if isTaskList lst then (! A.class_ "task-list") else id) <$>
+  (if isJust (mapM toTaskListItem lst) then (! A.class_ "task-list") else id) <$>
     unordList opts contents
 blockToHtmlInner opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (listItemToHtml opts) lst

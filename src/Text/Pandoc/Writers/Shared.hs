@@ -45,12 +45,12 @@ module Text.Pandoc.Writers.Shared (
                      , ensureValidXmlIdentifiers
                      , setupTranslations
                      , isOrderedListMarker
-                     , isTaskList
+                     , toTaskListItem
                      )
 where
 import Safe (lastMay)
 import qualified Data.ByteString.Lazy as BL
-import Control.Monad (zipWithM)
+import Control.Monad (zipWithM, MonadPlus, mzero)
 import Data.Either (isRight)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter, isUpper)
@@ -638,13 +638,9 @@ isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
               isRight (runParser (anyOrderedListMarker >> eof)
                        defaultParserState "" xs)
 
-isTaskListItem :: [Block] -> Bool
-isTaskListItem (Plain (Str "☐":Space:_):_) = True
-isTaskListItem (Plain (Str "☒":Space:_):_) = True
-isTaskListItem (Para  (Str "☐":Space:_):_) = True
-isTaskListItem (Para  (Str "☒":Space:_):_) = True
-isTaskListItem _                           = False
-
-isTaskList :: [[Block]] -> Bool
-isTaskList [] = False
-isTaskList items = all isTaskListItem items
+toTaskListItem :: MonadPlus m => [Block] -> m (Bool, [Block])
+toTaskListItem (Plain (Str "☐":Space:ils):xs) = pure (False, Plain ils:xs)
+toTaskListItem (Plain (Str "☒":Space:ils):xs) = pure (True, Plain ils:xs)
+toTaskListItem (Para  (Str "☐":Space:ils):xs) = pure (False, Para ils:xs)
+toTaskListItem (Para  (Str "☒":Space:ils):xs) = pure (True, Para ils:xs)
+toTaskListItem _                              = mzero
