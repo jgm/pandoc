@@ -45,6 +45,7 @@ module Text.Pandoc.Writers.Shared (
                      , ensureValidXmlIdentifiers
                      , setupTranslations
                      , isOrderedListMarker
+                     , isTaskList
                      )
 where
 import Safe (lastMay)
@@ -636,3 +637,14 @@ isOrderedListMarker :: Text -> Bool
 isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
               isRight (runParser (anyOrderedListMarker >> eof)
                        defaultParserState "" xs)
+
+isTaskListItem :: [Block] -> Bool
+isTaskListItem (Plain (Str "☐":Space:_):_) = True
+isTaskListItem (Plain (Str "☒":Space:_):_) = True
+isTaskListItem (Para  (Str "☐":Space:_):_) = True
+isTaskListItem (Para  (Str "☒":Space:_):_) = True
+isTaskListItem _                           = False
+
+isTaskList :: [[Block]] -> Bool
+isTaskList [] = False
+isTaskList items = all isTaskListItem items

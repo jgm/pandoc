@@ -482,13 +482,6 @@ defList :: PandocMonad m
         => WriterOptions -> [Html] -> StateT WriterState m Html
 defList opts items = toList H.dl opts (items ++ [nl])
 
-isTaskListItem :: [Block] -> Bool
-isTaskListItem (Plain (Str "☐":Space:_):_) = True
-isTaskListItem (Plain (Str "☒":Space:_):_) = True
-isTaskListItem (Para  (Str "☐":Space:_):_) = True
-isTaskListItem (Para  (Str "☒":Space:_):_) = True
-isTaskListItem _                           = False
-
 listItemToHtml :: PandocMonad m
                => WriterOptions -> [Block] -> StateT WriterState m Html
 listItemToHtml opts bls
@@ -1019,8 +1012,7 @@ blockToHtmlInner opts (Header level (ident,classes,kvs) lst) = do
               _ -> H.p  contents'
 blockToHtmlInner opts (BulletList lst) = do
   contents <- mapM (listItemToHtml opts) lst
-  let isTaskList = not (null lst) && all isTaskListItem lst
-  (if isTaskList then (! A.class_ "task-list") else id) <$>
+  (if isTaskList lst then (! A.class_ "task-list") else id) <$>
     unordList opts contents
 blockToHtmlInner opts (OrderedList (startnum, numstyle, _) lst) = do
   contents <- mapM (listItemToHtml opts) lst
