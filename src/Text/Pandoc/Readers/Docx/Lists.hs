@@ -21,7 +21,7 @@ import Data.List
 import Data.Maybe
 import Data.String (fromString)
 import qualified Data.Text as T
-import Text.Pandoc.Generic (bottomUp)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Docx.Parse (ParaStyleName)
 import Text.Pandoc.Shared (trim, safeRead)
@@ -153,7 +153,7 @@ singleItemHeaderToHeader blk                            = blk
 blocksToBullets :: [Block] -> [Block]
 blocksToBullets blks =
   map singleItemHeaderToHeader $
-  bottomUp removeListDivs $ flatToBullets (handleListParagraphs blks)
+  walk removeListDivs $ flatToBullets (handleListParagraphs blks)
 
 plainParaInlines :: Block -> [Inline]
 plainParaInlines (Plain ils) = ils
