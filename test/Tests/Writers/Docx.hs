@@ -98,6 +98,11 @@ tests = [ testGroup "inlines"
             "docx/definition_list.native"
             "docx/golden/definition_list.docx"
           , docxTest
+            "task lists"
+            def
+            "docx/task_list.native"
+            "docx/golden/task_list.docx"
+          , docxTest
             "footnotes and endnotes"
             def
             "docx/notes.native"

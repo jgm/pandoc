@@ -40,12 +40,15 @@ import qualified Data.Text as T
 
 data ListMarker = NoMarker
                 | BulletMarker
+                | CheckboxMarker Bool
                 | NumberMarker ListNumberStyle ListNumberDelim Int
                 deriving (Show, Read, Eq, Ord)
 
 listMarkerToId :: ListMarker -> Text
 listMarkerToId NoMarker = "990"
 listMarkerToId BulletMarker = "991"
+listMarkerToId (CheckboxMarker False) = "992"
+listMarkerToId (CheckboxMarker True) = "993"
 listMarkerToId (NumberMarker sty delim n) = T.pack $
   '9' : '9' : styNum : delimNum : show n
   where styNum = case sty of

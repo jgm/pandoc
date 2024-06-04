@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
@@ -45,7 +46,6 @@ import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
 import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
-import Text.Pandoc.Generic
 import Text.Pandoc.Highlighting (highlight)
 import Text.Pandoc.Templates (compileDefaultTemplate, renderTemplate)
 import Text.Pandoc.ImageSize
@@ -200,11 +200,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
              (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
              (docAuthors meta)
 
-  let convertSpace (Str x : Space : Str y : xs) = Str (x <> " " <> y) : xs
-      convertSpace (Str x : Str y : xs)         = Str (x <> y) : xs
-      convertSpace xs                           = xs
-  let blocks' = bottomUp convertSpace blocks
-  doc' <- setFirstPara >> blocksToOpenXML opts blocks'
+  doc' <- setFirstPara >> blocksToOpenXML opts blocks
   let body = vcat $ map (literal . showContent) doc'
   notes' <- gets (reverse . stFootnotes)
   comments <- gets (reverse . stComments)
@@ -393,17 +389,38 @@ blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) = do
   let (tableId, _, _) = attr
   wrapBookmark tableId content
 blockToOpenXML' opts el
-  | BulletList lst <- el = addOpenXMLList BulletMarker lst
+  | BulletList lst <- el
+  = if isTaskList lst
+        then addOpenXMLList $
+             map (\bs ->
+              case bs of
+                (Plain (Str "\9744":Space:ils):xs)
+                 -> (Just (CheckboxMarker False),Plain ils : xs)
+                (Para (Str "\9744":Space:ils):xs)
+                 -> (Just (CheckboxMarker False),Plain ils : xs)
+                (Plain (Str "\9746":Space:ils):xs)
+                 -> (Just (CheckboxMarker True),Para ils : xs)
+                (Para (Str "\9746":Space:ils):xs)
+                 -> (Just (CheckboxMarker True),Para ils : xs)
+                _ -> (Just BulletMarker,bs)) lst
+        else addOpenXMLList $ zip (Just BulletMarker : repeat Nothing) lst
   | OrderedList (start, numstyle, numdelim) lst <- el
-  = addOpenXMLList (NumberMarker numstyle numdelim start) lst
+  = addOpenXMLList $
+    zip (Just (NumberMarker numstyle numdelim start) : repeat Nothing) lst
   where
-    addOpenXMLList marker lst = do
-      addList marker
-      numid  <- getNumId
-      exampleid <- case marker of
-                        NumberMarker Example _ _ -> gets stExampleId
+    addOpenXMLList items = do
+      exampleid <- case items of
+                        (Just (NumberMarker Example _ _),_) : _ -> gets stExampleId
                         _ -> return Nothing
-      l <- asList $ concat `fmap` mapM (listItemToOpenXML opts $ fromMaybe numid exampleid) lst
+      l <- asList $ mconcat <$>
+              mapM (\(mbmarker, bs) -> do
+                      numid <- case mbmarker of
+                        Nothing -> getNumId
+                        Just marker -> do
+                          addList marker
+                          getNumId
+                      listItemToOpenXML opts (fromMaybe numid exampleid) bs)
+              items
       setFirstPara
       return l
 blockToOpenXML' opts (DefinitionList items) = do
@@ -552,7 +569,7 @@ listItemToOpenXML opts numid bs = do
 
 -- | Convert a list of inline elements to OpenXML.
 inlinesToOpenXML :: PandocMonad m => WriterOptions -> [Inline] -> WS m [Content]
-inlinesToOpenXML opts lst = concat `fmap` mapM (inlineToOpenXML opts) lst
+inlinesToOpenXML opts lst = concat `fmap` mapM (inlineToOpenXML opts) (convertSpace lst)
 
 withNumId :: (PandocMonad m) => Int -> WS m a -> WS m a
 withNumId numid = local $ \env -> env{ envListNumId = numid }
@@ -1006,3 +1023,8 @@ toBookmarkName s
 maxListLevel :: Int
 maxListLevel = 8
 
+convertSpace :: [Inline] -> [Inline]
+convertSpace (Str x : Space : Str y : xs) = convertSpace (Str (x <> " " <> y) : xs)
+convertSpace (Str x : Str y : xs)         = convertSpace (Str (x <> y) : xs)
+convertSpace (x:xs)                       = x : convertSpace xs
+convertSpace []                           = []

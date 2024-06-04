@@ -709,6 +709,7 @@ mkNum marker numid =
    : case marker of
        NoMarker     -> []
        BulletMarker -> []
+       CheckboxMarker _ -> []
        NumberMarker _ _ start ->
           map (\lvl -> mknode "w:lvlOverride" [("w:ilvl",tshow (lvl :: Int))]
               $ mknode "w:startOverride" [("w:val",tshow start)] ())
@@ -725,8 +726,9 @@ mkAbstractNum marker =
 mkLvl :: ListMarker -> Int -> Element
 mkLvl marker lvl =
   mknode "w:lvl" [("w:ilvl",tshow lvl)] $
-    [ mknode "w:start" [("w:val",start)] ()
-      | marker /= NoMarker && marker /= BulletMarker ] ++
+    (case marker of
+        NumberMarker{} -> [mknode "w:start" [("w:val",start)] ()]
+        _ -> []) ++
     [ mknode "w:numFmt" [("w:val",fmt)] ()
     , mknode "w:lvlText" [("w:val", lvltxt)] ()
     , mknode "w:lvlJc" [("w:val","left")] ()
@@ -745,6 +747,8 @@ mkLvl marker lvl =
             case marker of
                  NoMarker             -> ("bullet"," ", Nothing, "1")
                  BulletMarker         -> bulletFor lvl
+                 CheckboxMarker False -> ("bullet","\9744", Nothing, "1")
+                 CheckboxMarker True  -> ("bullet","\9746", Nothing, "1")
                  NumberMarker st de n -> (styleFor st lvl
                                          ,patternFor de ("%" <> tshow (lvl + 1))
                                          ,Nothing

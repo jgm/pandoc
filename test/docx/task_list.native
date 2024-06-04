@@ -1,0 +1,40 @@
+[ BulletList
+    [ [ Para [ Str "\9744" , Space , Str "Unchecked" ] ]
+    , [ Para [ Str "\9746" , Space , Str "Checked" ]
+      , Para
+          [ Str "with"
+          , Space
+          , Str "continuation"
+          , Space
+          , Str "paragraph"
+          ]
+      ]
+    , [ Para [ Str "\9744" , Space , Str "Unchecked" ]
+      , BulletList
+          [ [ Plain
+                [ Str "\9746"
+                , Space
+                , Str "Checked"
+                , Space
+                , Str "sublist"
+                ]
+            , BulletList
+                [ [ Plain
+                      [ Str "\9744"
+                      , Space
+                      , Str "Unchecked"
+                      , Space
+                      , Str "subsublist"
+                      ]
+                  , OrderedList
+                      ( 1 , Decimal , Period )
+                      [ [ Plain [ Str "Numbered" , Space , Str "child" ]
+                        ]
+                      ]
+                  ]
+                ]
+            ]
+          ]
+      ]
+    ]
+]
