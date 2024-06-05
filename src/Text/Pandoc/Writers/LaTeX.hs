@@ -513,7 +513,7 @@ blockToLaTeX (BulletList lst) = do
   isFirstInDefinition <- gets stIsFirstInDefinition
   beamer <- gets stBeamer
   let inc = if beamer && incremental then "[<+->]" else ""
-  items <- mapM listItemToLaTeX lst
+  items <- mapM (listItemToLaTeX False) lst
   let spacing = if isTightList lst
                    then text "\\tightlist"
                    else empty
@@ -530,7 +530,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   let oldlevel = stOLLevel st
   isFirstInDefinition <- gets stIsFirstInDefinition
   put $ st {stOLLevel = oldlevel + 1}
-  items <- mapM listItemToLaTeX lst
+  items <- mapM (listItemToLaTeX True) lst
   modify (\s -> s {stOLLevel = oldlevel})
   let beamer = stBeamer st
   let tostyle x = case numstyle of
@@ -653,27 +653,27 @@ blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
 blockListToLaTeX lst =
   vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
 
-listItemToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
-listItemToLaTeX lst
+listItemToLaTeX :: PandocMonad m => Bool -> [Block] -> LW m (Doc Text)
+listItemToLaTeX isOrdered lst
   -- we need to put some text before a header if it's the first
   -- element in an item. This will look ugly in LaTeX regardless, but
   -- this will keep the typesetter from throwing an error.
   | (Header{} :_) <- lst =
     (text "\\item ~" $$) . nest 2 <$> blockListToLaTeX lst
-  | Plain (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
-  | Plain (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
-  | Para  (Str "☐":Space:is) : bs <- lst = taskListItem False is bs
-  | Para  (Str "☒":Space:is) : bs <- lst = taskListItem True  is bs
+  | not isOrdered
+  , Just (checked, bs) <- toTaskListItem lst
+   = taskListItem checked bs
   | otherwise = (text "\\item" $$) . nest 2 <$> blockListToLaTeX lst
   where
-    taskListItem checked is bs = do
+    taskListItem checked bs = do
       let checkbox  = if checked
                       then "$\\boxtimes$"
                       else "$\\square$"
-      isContents <- inlineListToLaTeX is
-      bsContents <- blockListToLaTeX bs
-      return $ "\\item" <> brackets checkbox
-        $$ nest 2 (isContents $+$ bsContents)
+      let bs' = case bs of
+                  Plain ils : xs -> Para ils : xs
+                  _ -> bs
+      bsContents <- blockListToLaTeX bs'
+      return $ "\\item" <> brackets checkbox $$ nest 2 bsContents
 
 defListItemToLaTeX :: PandocMonad m => ([Inline], [[Block]]) -> LW m (Doc Text)
 defListItemToLaTeX (term, defs) = do
