@@ -549,9 +549,9 @@ listItemToOpenXML opts numid bs = do
   -- list. Otherwise the outer bullet will disappear.
   let bs' = case bs of
                  [] -> []
-                 first:rest -> if isListBlock first
-                               then Plain [Str ""]:first:rest
-                               else first:rest
+                 x:xs -> if isListBlock x
+                               then Plain [Str ""]:x:xs
+                               else x:xs
   modify $ \st -> st{ stNumIdUsed = False }
   contents <- withNumId numid $ blocksToOpenXML opts bs'
   modify $ \st -> st{ stInList = oldInList }
