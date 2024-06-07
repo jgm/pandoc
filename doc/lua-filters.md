@@ -3912,7 +3912,7 @@ Returns:
 
 ### run_lua_filter {#pandoc.utils.run_lua_filter}
 
-`run_lua_filter (doc, filter)`
+`run_lua_filter (doc, filter[, env])`
 
 Filter the given doc by passing it through a Lua filter.
 
@@ -3925,6 +3925,9 @@ Parameters:
 
 `filter`
 :   filepath of the filter to run (string)
+
+`env`
+:   environment to load and run the filter in (table)
 
 Returns:
 

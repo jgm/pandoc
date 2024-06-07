@@ -1,5 +1,7 @@
 local tasty = require 'tasty'
+local pandoc = require 'pandoc'
 local utils = require 'pandoc.utils'
+local io = require 'io'
 
 local assert = tasty.assert
 local test = tasty.test_case
@@ -124,6 +126,48 @@ return {
       )
       local doc = pandoc.Pandoc({}, {nocite = nocite, references = {ref}})
       assert.are_same({ref}, pandoc.utils.references(doc))
+    end)
+  },
+
+  group 'run_lua_filter' {
+    test('runs a filter', function ()
+      local doc = pandoc.Pandoc("indivisible words")
+      pandoc.system.with_temporary_directory('lua-filter', function (dir)
+        local filter_path = pandoc.path.join{dir, 'test.lua'}
+        local filter = 'function Space() return " " end'
+        local fh = io.open(filter_path, 'wb')
+        fh:write(filter)
+        fh:close()
+        assert.are_equal(
+          utils.run_lua_filter(doc, filter_path),
+          pandoc.Pandoc(
+            pandoc.Plain(pandoc.Inlines{"indivisible", " ", "words"})
+          )
+        )
+      end)
+    end),
+    test("doesn't change the local environment by default", function ()
+      pandoc.system.with_temporary_directory('lua-filter', function (dir)
+        local filter_path = pandoc.path.join{dir, 'test.lua'}
+        local foo
+        local filter = 'foo = 42'
+        local fh = io.open(filter_path, 'wb')
+        fh:write(filter)
+        fh:close()
+        utils.run_lua_filter(pandoc.Pandoc{}, filter_path)
+        assert.is_nil(foo)
+      end)
+    end),
+    test("accepts an environment in which the filter is executed", function ()
+      pandoc.system.with_temporary_directory('lua-filter', function (dir)
+        local filter_path = pandoc.path.join{dir, 'test.lua'}
+        local filter = 'foo = 42'
+        local fh = io.open(filter_path, 'wb')
+        fh:write(filter)
+        fh:close()
+        utils.run_lua_filter(pandoc.Pandoc{}, filter_path, _ENV)
+        assert.are_equal(_ENV.foo, 42)
+      end)
     end)
   },
 

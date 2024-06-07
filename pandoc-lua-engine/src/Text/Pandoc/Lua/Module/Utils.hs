@@ -29,7 +29,7 @@ import Text.Pandoc.Citeproc (getReferences, processCitations)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Filter (applyJSONFilter)
-import Text.Pandoc.Lua.Filter (runFilterFile)
+import Text.Pandoc.Lua.Filter (runFilterFile')
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Reference
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
@@ -251,13 +251,35 @@ references = defun "references"
 -- | Run a filter from a file.
 run_lua_filter :: DocumentedFunction PandocError
 run_lua_filter = defun "run_lua_filter"
-  ### (flip runFilterFile)
+  ### (\doc fp mbenv -> do
+         envIdx <- maybe copyOfGlobalTable pure mbenv
+         runFilterFile' envIdx fp doc)
   <#> parameter peekPandoc "Pandoc" "doc" "the Pandoc document to filter"
   <#> parameter peekString "string" "filter" "filepath of the filter to run"
+  <#> opt (parameter (typeChecked "table" istable pure) "table" "env"
+            "environment to load and run the filter in")
   =#> functionResult pushPandoc "Pandoc" "filtered document"
   #? ( "Filter the given doc by passing it through a Lua filter." <>
-       "\n\nThe filter will be run in the current Lua process."
+       "\n\nThe filter will be run in the current Lua process." <>
+       "\n"
      )
+  `since` makeVersion [3,2,1]
+  where
+    copynext :: LuaError e => StackIndex -> LuaE e StackIndex
+    copynext to =
+      Lua.next (nth 2) >>= \case
+        False -> pure to
+        True -> do
+          pushvalue (nth 2)
+          insert (nth 2)
+          rawset to
+          copynext to
+    copyOfGlobalTable :: LuaError e => LuaE e StackIndex
+    copyOfGlobalTable = do
+      newtable
+      pushglobaltable
+      pushnil
+      (copynext =<< absindex (nth 3)) <* pop 1 -- pop source table
 
 -- | Process the document with a JSON filter.
 run_json_filter :: DocumentedFunction PandocError
