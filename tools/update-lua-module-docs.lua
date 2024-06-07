@@ -68,12 +68,15 @@ end
 local known_types = {
   Block = 'type-block',
   Blocks = 'type-blocks',
+  Doc = 'type-doc',
   ChunkedDoc = 'type-chunkeddoc',
   Inline = 'type-inline',
   Inlines = 'type-inlines',
+  Meta = 'type-meta',
   Pandoc = 'type-pandoc',
   SimpleTable = 'type-simpletable',
   Table = 'type-table',
+  Template = 'type-template',
   WriterOptions = 'type-writeroptions',
   Version = 'type-version',
 }
@@ -221,6 +224,12 @@ end
 -- @param modulename  name of the module that contains this function
 -- @return {Block,...}
 local function render_type (name, level, modulename)
+  -- FIXME: SPECIAL CASE
+  -- Ignore Template type in `pandoc.template` module, as the automatic
+  -- content doesn't describe it yet.
+  if name == 'pandoc Template' then
+    return {}
+  end
   -- We just want the modulename prefix, as the type names should already
   -- contain the module name to some extend.
   local nameprefix = modulename and
@@ -285,11 +294,11 @@ local function render_module (doc)
 
   local typedocs = Blocks{}
   local types = type(doc.types) == 'function' and doc.types() or {}
-  if #types > 0 then
-    typedocs:insert(Header(2, 'Types', {doc.name .. '-' .. 'types'}))
-    for _, ty in ipairs(types) do
-      typedocs:extend(render_type(ty, 3, doc.name))
-    end
+  for _, ty in ipairs(types) do
+    typedocs:extend(render_type(ty, 3, doc.name))
+  end
+  if #typedocs > 0 then
+    typedocs:insert(1, Header(2, 'Types', {doc.name .. '-' .. 'types'}))
   end
 
   return Blocks{

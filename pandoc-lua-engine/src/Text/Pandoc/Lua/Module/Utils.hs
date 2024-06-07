@@ -263,7 +263,6 @@ run_lua_filter = defun "run_lua_filter"
        "\n\nThe filter will be run in the current Lua process." <>
        "\n"
      )
-  `since` makeVersion [3,2,1]
   where
     copynext :: LuaError e => StackIndex -> LuaE e StackIndex
     copynext to =

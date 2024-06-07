@@ -31,7 +31,7 @@ documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.template"
   , moduleDescription = T.unlines
-    [ "Lua functions for pandoc templates."
+    [ "Handle pandoc templates."
     ]
   , moduleFields = []
   , moduleOperations = []
@@ -50,7 +50,7 @@ functions =
      #? T.unlines
      [ "Applies a context with variable assignments to a template,"
      , "returning the rendered template. The `context` parameter must be a"
-     , "table with variable names as keys and [Doc], string, boolean, or"
+     , "table with variable names as keys and [[Doc]], string, boolean, or"
      , "table as values, where the table can be either be a list of the"
      , "aforementioned types, or a nested context."
      ]
@@ -63,9 +63,22 @@ functions =
              Nothing -> runWithDefaultPartials
                         (compileTemplate "templates/default" template))
      <#> parameter peekText "string" "template" "template string"
-     <#> opt (stringParam "templ_path" "template path")
-     =#> functionResult (either failLua pushTemplate) "pandoc Template"
+     <#> opt (stringParam "templates_path"
+              ("parameter to determine a default path and extension for " <>
+               "partials; uses the data files templates path by default."))
+     =#> functionResult (either failLua pushTemplate) "Template"
            "compiled template"
+     #? T.unlines
+     [ "Compiles a template string into a [[Template]] object usable by"
+     , "pandoc."
+     , ""
+     , "If the `templates_path` parameter is specified, then it should be the"
+     , "file path associated with the template. It is used when checking"
+     , "for partials. Partials will be taken only from the default data"
+     , "files if this parameter is omitted."
+     , ""
+     , "An error is raised if compilation fails."
+     ]
     `since` makeVersion [2,17]
 
   , defun "default"
@@ -76,9 +89,14 @@ functions =
            format <- maybe getFORMAT pure mformat
            getDefaultTemplate format)
      <#> opt (textParam "writer"
-              "writer for which the template should be returned.")
+              ("name of the writer for which the template should be " <>
+               "retrieved; defaults to the global `FORMAT`."))
      =#> functionResult pushText "string"
-           "string representation of the writer's default template"
+           "raw template"
+    #? T.unlines
+    [ "Returns the default template for a given writer as a string. An"
+    , "error is thrown if no such template can be found."
+    ]
     `since` makeVersion [2,17]
 
   , defun "meta_to_context"
@@ -96,14 +114,14 @@ functions =
              metaToContext' blockWriter inlineWriter meta)
      <#> parameter peekMeta "Meta" "meta" "document metadata"
      <#> parameter pure "function" "blocks_writer"
-           "converter from Blocks to Doc values"
+           "converter from [[Blocks]] to [[Doc]] values"
      <#> parameter pure "function" "inlines_writer"
-           "converter from Inlines to Doc values"
+           "converter from [[Inlines]] to [[Doc]] values"
      =#> functionResult pushContext "table" "template context"
      #? T.unlines
-     [ "Creates template context from the document's [Meta]{#type-meta}"
-     , "data, using the given functions to convert [Blocks] and [Inlines]"
-     , "to [Doc] values."
+     [ "Creates template context from the document's [[Meta]] data, using the"
+     , "given functions to convert [[Blocks]] and [[Inlines]] to [[Doc]]"
+     , "values."
      ]
     `since` makeVersion [3,0]
   ]
