@@ -21,7 +21,7 @@ import Text.Pandoc.Lua.Marshal.Template (typeTemplate, peekTemplate, pushTemplat
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua), liftPandocLua)
 import Text.Pandoc.Writers.Shared (metaToContext')
 import Text.Pandoc.Templates
-  ( compileTemplate, getDefaultTemplate, renderTemplate
+  ( compileTemplate, getDefaultTemplate, getTemplate, renderTemplate
   , runWithPartials, runWithDefaultPartials )
 
 import qualified Data.Text as T
@@ -91,13 +91,26 @@ functions =
      <#> opt (textParam "writer"
               ("name of the writer for which the template should be " <>
                "retrieved; defaults to the global `FORMAT`."))
-     =#> functionResult pushText "string"
-           "raw template"
+     =#> functionResult pushText "string" "raw template"
     #? T.unlines
     [ "Returns the default template for a given writer as a string. An"
     , "error is thrown if no such template can be found."
     ]
     `since` makeVersion [2,17]
+
+  , defun "get"
+     ### (unPandocLua . getTemplate)
+     <#> stringParam "filename" "name of the template"
+     =#> textResult "content of template file"
+     #? T.unlines
+     [ "Retrieve text for a template."
+     , ""
+     , "This function first checks the resource paths for a file of this"
+     , "name; if none is found, the `templates` directory in the user data"
+     , "directory is checked.  Returns the content of the file, or throws"
+     , "an error if no file is found."
+     ]
+    `since` makeVersion [3,2,1]
 
   , defun "meta_to_context"
      ### (\meta blockWriterIdx inlineWriterIdx -> unPandocLua $ do

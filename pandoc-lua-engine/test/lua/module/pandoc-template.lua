@@ -1,4 +1,5 @@
 local tasty = require 'tasty'
+local pandoc = require 'pandoc'
 local template = require 'pandoc.template'
 
 local assert = tasty.assert
@@ -24,8 +25,25 @@ return {
       )
     end),
     test('fails on unknown format', function ()
+           local success, msg = pcall(function ()
+               return pandoc.utils.type(template.default 'nosuchformat')
+           end)
+           assert.is_falsy(success)
+    end),
+                  },
+  group 'get' {
+    test('is function', function ()
+           assert.are_equal(type(template.get), 'function')
+    end),
+    test('searches the template data directory', function ()
+      assert.are_equal(
+        template.default 'html5',
+        template.get 'default.html5'
+      )
+    end),
+    test('fails on non-existent file', function ()
       local success, msg = pcall(function ()
-          return pandoc.utils.type(template.default 'nosuchformat')
+        return pandoc.utils.type(template.get 'nosuchfile.nope')
       end)
       assert.is_falsy(success)
     end),
