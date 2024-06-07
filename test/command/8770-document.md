@@ -32,13 +32,13 @@ role="doc-noteref"><sup>2</sup></a></caption>
 <col style="width: 16%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th style="text-align: center;">Fruit<a href="#fn3" class="footnote-ref"
 id="fnref3" role="doc-noteref"><sup>3</sup></a></th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td style="text-align: center;">Bans<a href="#fn4" class="footnote-ref"
 id="fnref4" role="doc-noteref"><sup>4</sup></a></td>
 </tr>

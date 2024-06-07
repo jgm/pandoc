@@ -1269,7 +1269,7 @@ tableRowToHtml opts (TableRow tblpart attr rownum rowhead rowbody) = do
                    _     -> BodyCell
   headcells <- mapM (cellToHtml opts HeaderCell) rowhead
   bodycells <- mapM (cellToHtml opts celltype) rowbody
-  rowHtml <- addAttrs opts attr' $ H.tr $ do
+  rowHtml <- addAttrs opts attr $ H.tr $ do
     nl
     mconcat headcells
     mconcat bodycells
