@@ -147,5 +147,11 @@ return {
     test('has property "verbosity"', function ()
       assert.are_equal(type(PANDOC_STATE.verbosity), 'string')
     end),
+    test('can be deleted without breaking PandocLua monad functions', function()
+      local state = PANDOC_STATE
+      PANDOC_STATE = nil
+      assert.is_nil(pandoc.mediabag.lookup('does-not-exist'))
+      PANDOC_STATE = state
+    end),
   },
 }
