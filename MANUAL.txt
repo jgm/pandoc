@@ -1024,7 +1024,7 @@ header when requesting a document from a URL:
     limited degree LaTeX (which uses standard commands for accented
     characters when possible).
 
-[`--reference-links[=true|false]`]{#option--reference-doc}
+`--reference-links[=true|false]`
 
 :   Use reference-style links, rather than inline links, in writing Markdown
     or reStructuredText.  By default inline links are used.  The
@@ -1158,7 +1158,7 @@ header when requesting a document from a URL:
     user data directory (see `--data-dir`).  If it is not
     found there, sensible defaults will be used.
 
-`--reference-doc=`*FILE*|*URL*
+[`--reference-doc=`*FILE*|*URL*]{#option--reference-doc}
 
 :   Use the specified file as a style reference in producing a
     docx or ODT file.
