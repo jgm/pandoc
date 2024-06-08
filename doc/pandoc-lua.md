@@ -74,7 +74,7 @@ contributors. Released under the [GPL], version 2 or later. This
 software carries no warranty of any kind. (See COPYRIGHT for full
 copyright and warranty notices.)
 
-Lua: Copyright 1994-2022 Lua.org, PUC-Rio.
+Lua: Copyright 1994-2023 Lua.org, PUC-Rio.
 
 [GPL]: https://www.gnu.org/copyleft/gpl.html "GNU General Public License"
 

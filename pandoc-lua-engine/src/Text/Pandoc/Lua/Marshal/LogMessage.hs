@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshal.LogMessage
-   Copyright   : © 2017-2023 Albert Krewinkel
+   Copyright   : © 2017-2024 Albert Krewinkel
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
 

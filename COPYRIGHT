@@ -177,7 +177,7 @@ Released under the Do What the Fuck You Want To Public License.
 ------------------------------------------------------------------------
 Pandoc embeds a Lua interpreter (via hslua).
 
-Copyright © 1994–2022 Lua.org, PUC-Rio.
+Copyright © 1994--2023 Lua.org, PUC-Rio.
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

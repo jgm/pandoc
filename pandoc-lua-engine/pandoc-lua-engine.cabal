@@ -4,7 +4,7 @@ version:             0.2.1.5
 build-type:          Simple
 license:             GPL-2.0-or-later
 license-file:        COPYING.md
-copyright:           © 2006-2022 John MacFarlane, 2017-2022 Albert Krewinkel
+copyright:           © 2006-2024 John MacFarlane, 2017-2024 Albert Krewinkel
 author:              John MacFarlane, Albert Krewinkel
 maintainer:          Albert Krewinkel <albert@hslua.org>
 bug-reports:         https://github.com/jgm/pandoc/issues

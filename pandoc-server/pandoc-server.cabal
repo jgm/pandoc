@@ -4,7 +4,7 @@ version:         0.1.0.6
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
-copyright:       (c) 2006-2022 John MacFarlane
+copyright:       (c) 2006-2024 John MacFarlane
 author:          John MacFarlane <jgm@berkeley.edu>
 maintainer:      John MacFarlane <jgm@berkeley.edu>
 bug-reports:     https://github.com/jgm/pandoc/issues
