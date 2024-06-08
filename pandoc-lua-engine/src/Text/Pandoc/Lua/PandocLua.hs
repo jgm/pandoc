@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -11,7 +12,7 @@
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
-PandocMonad instance which allows execution of Lua operations and which
+PandocMonad instance that allows execution of Lua operations; it
 uses Lua to handle state.
 -}
 module Text.Pandoc.Lua.PandocLua
@@ -22,6 +23,7 @@ module Text.Pandoc.Lua.PandocLua
 import Control.Monad.Catch (MonadCatch, MonadMask, MonadThrow)
 import Control.Monad.Except (MonadError (catchError, throwError))
 import Control.Monad.IO.Class (MonadIO)
+import Data.Default (def)
 import HsLua as Lua
 import Text.Pandoc.Class (PandocMonad (..))
 import Text.Pandoc.Error (PandocError (..))
@@ -77,8 +79,13 @@ instance PandocMonad PandocLua where
   getModificationTime = IO.getModificationTime
 
   getCommonState = PandocLua $ do
-    Lua.getfield registryindex "PANDOC_STATE"
-    forcePeek $ peekCommonState Lua.top `lastly` pop 1
+    -- initialize with the default value if is hadn't been initialized yet.
+    Lua.getfield registryindex "PANDOC_STATE" >>= \case
+      TypeNil -> do
+        pop 1 -- pop nil
+        unPandocLua $ putCommonState def
+        return def
+      _       -> forcePeek $ peekCommonState Lua.top `lastly` pop 1
   putCommonState cst = PandocLua $ do
     pushCommonState cst
     Lua.pushvalue Lua.top

@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshal.CommonState
@@ -13,8 +14,10 @@ module Text.Pandoc.Lua.Marshal.CommonState
   ( typeCommonState
   , peekCommonState
   , pushCommonState
+  , peekCommonStateFromTable
   ) where
 
+import Data.Default (def)
 import HsLua
 import Text.Pandoc.Class (CommonState (..))
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
@@ -57,3 +60,31 @@ peekCommonState = peekUD typeCommonState
 
 pushCommonState :: LuaError e => Pusher e CommonState
 pushCommonState = pushUD typeCommonState
+
+peekCommonStateFromTable :: LuaError e => Peeker e CommonState
+peekCommonStateFromTable idx = do
+  absidx <- liftLua $ absindex idx
+  let setnext st = do
+        liftLua (next absidx) >>= \case
+          False -> pure st
+          True -> do
+            prop <- peekName (nth 2)
+            case lookup prop setters of
+              Just setter -> setnext =<< setter top st `lastly` pop 1
+              Nothing -> failPeek ("Unknown field " <> fromName prop)
+                         `lastly` pop 1
+  liftLua pushnil
+  setnext def
+
+setters :: LuaError e
+        => [ (Name, StackIndex -> CommonState -> Peek e CommonState)]
+setters =
+  [ ("input_files", mkS (peekList peekString) (\st x -> st{stInputFiles = x}))
+  , ("output_file", mkS (peekNilOr peekString) (\st x -> st{stOutputFile = x}))
+  , ("request_headers", mkS (peekList (peekPair peekText peekText))
+                            (\st x -> st{ stRequestHeaders = x }))
+  , ("user_data_dir", mkS (peekNilOr peekString) (\st x -> st{stUserDataDir = x}))
+  , ("trace", mkS peekBool (\st x -> st{stTrace = x}))
+  ]
+  where
+    mkS peekX setValue idx' st = setValue st <$> peekX idx'

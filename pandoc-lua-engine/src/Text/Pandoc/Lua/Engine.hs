@@ -17,15 +17,16 @@ import Control.Exception (throw)
 import Control.Monad ((>=>))
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import HsLua.Core (getglobal, openlibs, run, top, tostring)
-import Text.Pandoc.Class (PandocMonad)
+import Text.Pandoc.Class (PandocMonad (getCommonState))
 import Text.Pandoc.Definition (Pandoc)
 import Text.Pandoc.Filter (Environment (..))
 import Text.Pandoc.Error (PandocError (PandocFilterError, PandocLuaError))
 import Text.Pandoc.Lua.Custom (loadCustom)
 import Text.Pandoc.Lua.Filter (runFilterFile)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Run (runLua)
+import Text.Pandoc.Lua.Init (userInit)
 import Text.Pandoc.Lua.Orphans ()
+import Text.Pandoc.Lua.Run (runLua)
 import Text.Pandoc.Scripting (ScriptingEngine (..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
@@ -60,7 +61,9 @@ applyFilter fenv args fp doc = do
                 , PANDOC_WRITER_OPTIONS (envWriterOptions fenv)
                 , PANDOC_SCRIPT_FILE fp
                 ]
+  st <- getCommonState
   runLua >=> forceResult fp $ do
+    userInit st
     setGlobals globals
     runFilterFile fp doc
 
