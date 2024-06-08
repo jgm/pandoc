@@ -1263,7 +1263,7 @@ tableRowToHtml :: PandocMonad m
                => WriterOptions
                -> TableRow
                -> StateT WriterState m Html
-tableRowToHtml opts (TableRow tblpart attr rownum rowhead rowbody) = do
+tableRowToHtml opts (TableRow tblpart attr _rownum rowhead rowbody) = do
   let celltype = case tblpart of
                    Thead -> HeaderCell
                    _     -> BodyCell
