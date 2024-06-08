@@ -71,6 +71,7 @@ library
                      , Text.Pandoc.Lua.Filter
                      , Text.Pandoc.Lua.Global
                      , Text.Pandoc.Lua.Init
+                     , Text.Pandoc.Lua.Module
                      , Text.Pandoc.Lua.Marshal.Chunks
                      , Text.Pandoc.Lua.Marshal.CommonState
                      , Text.Pandoc.Lua.Marshal.Context
@@ -99,6 +100,7 @@ library
                      , Text.Pandoc.Lua.Module.Utils
                      , Text.Pandoc.Lua.Orphans
                      , Text.Pandoc.Lua.PandocLua
+                     , Text.Pandoc.Lua.Run
                      , Text.Pandoc.Lua.SourcePos
                      , Text.Pandoc.Lua.Writer.Classic
                      , Text.Pandoc.Lua.Writer.Scaffolding

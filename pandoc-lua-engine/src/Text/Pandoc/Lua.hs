@@ -21,8 +21,8 @@ module Text.Pandoc.Lua
   , getEngine
   ) where
 
+import Text.Pandoc.Lua.Custom (loadCustom)
 import Text.Pandoc.Lua.Engine (getEngine, applyFilter)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
-import Text.Pandoc.Lua.Init (runLua, runLuaNoEnv)
-import Text.Pandoc.Lua.Custom (loadCustom)
+import Text.Pandoc.Lua.Run (runLua, runLuaNoEnv)
 import Text.Pandoc.Lua.Orphans ()
