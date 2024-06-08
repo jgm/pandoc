@@ -107,5 +107,45 @@ return {
     test('wrap_text', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.wrap_text), 'string')
     end),
-  }
+  },
+
+  group 'PANDOC_STATE' {
+    test('is a userdata object', function ()
+      assert.are_equal(type(PANDOC_STATE), 'userdata')
+    end),
+    test('has property "input_files"', function ()
+      assert.are_equal(type(PANDOC_STATE.input_files), 'table')
+    end),
+    test('has optional property "output_file"', function ()
+      -- property may be nil
+      if PANDOC_STATE.output_file then
+        assert.are_equal(type(PANDOC_STATE.output_file), 'string')
+      end
+    end),
+    test('has property "log"', function ()
+      assert.are_equal(type(PANDOC_STATE.log), 'table')
+    end),
+    test('has property "request_headers"', function ()
+      assert.are_equal(type(PANDOC_STATE.request_headers), 'table')
+    end),
+    test('has property "resource_path"', function ()
+      assert.are_equal(type(PANDOC_STATE.resource_path), 'table')
+    end),
+    test('has optional property "source_url"', function ()
+      if PANDOC_STATE.source_url then
+        assert.are_equal(type(PANDOC_STATE.source_url), 'string')
+      end
+    end),
+    test('has property "trace"', function ()
+      assert.are_equal(type(PANDOC_STATE.trace), 'boolean')
+    end),
+    test('has optional property "user_data_dir"', function ()
+      if PANDOC_STATE.user_data_dir then
+        assert.are_equal(type(PANDOC_STATE.user_data_dir), 'string')
+      end
+    end),
+    test('has property "verbosity"', function ()
+      assert.are_equal(type(PANDOC_STATE.verbosity), 'string')
+    end),
+  },
 }
