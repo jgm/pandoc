@@ -467,6 +467,11 @@ fillMediaBag d = walkM handleImage d
               return $ Image attr lab (src, tit))
           (\e ->
               case e of
+                PandocIOError text err -> do
+                  report $ CouldNotFetchResource text . T.pack $
+                            (show err ++ "\nReplacing image with description.")
+                  -- emit alt text
+                  return $ replacementSpan attr src tit lab
                 PandocResourceNotFound _ -> do
                   report $ CouldNotFetchResource src
                             "replacing image with description"
