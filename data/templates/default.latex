@@ -571,7 +571,8 @@ $if(beamer)$
 $if(toc-title)$
   \frametitle{$toc-title$}
 $endif$
-  \tableofcontents[hideallsubsections]
+  \setcounter{tocdepth}{$toc-depth$}
+  \tableofcontents
 \end{frame}
 $else$
 {
