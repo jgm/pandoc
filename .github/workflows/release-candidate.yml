@@ -100,7 +100,7 @@ jobs:
 
 #   runs-on: ubuntu-latest
 #   steps:
-#   - uses: actions/checkout@v3
+#   - uses: actions/checkout@v4
 #   - name: Create linux package
 #     run: |
 #         make debpkg
@@ -111,5 +111,3 @@ jobs:
 #     with:
 #       name: linux-release-candidate
 #       path: linux-release-candidate
-
-
