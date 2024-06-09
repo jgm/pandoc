@@ -264,6 +264,11 @@ local function render_type (name, level, modulename)
     end
   end
 
+  if name == 'Doc' then
+    local header_id = 'type-' .. nameprefix .. '.' .. name
+    return {Header(level, name, {header_id})} ..
+      Blocks{Para {"See the description ", Link("above", "#type-doc"), "."}}
+  end
   local header_id = 'type-' .. nameprefix .. '.' .. name
   known_types[name] = header_id
   return {Header(level, name, {header_id})} ..
