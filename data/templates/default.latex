@@ -446,7 +446,7 @@ $header-includes$
 $endfor$
 $if(babel-lang)$
 \ifLuaTeX
-  \usepackage[$babel-lang$]{selnolig}  % disable illegal ligatures
+  \usepackage[$babel-lang$$for(babel-otherlangs)$,$babel-otherlangs$$endfor$]{selnolig}  % disable illegal ligatures
 \fi
 $endif$
 $if(dir)$
