@@ -145,7 +145,11 @@ convertTags (t@(TagOpen "link" as):ts) =
 convertTags (t@(TagOpen tagname as):ts)
   | any (isSourceAttribute tagname) as
      = do
-       as' <- mapM processAttribute as
+       let inlineSvgs = tagname == "img" &&
+                        case T.words <$> lookup "class" as of
+                          Nothing -> False
+                          Just cs -> "inline-svg" `elem` cs
+       as' <- mapM (processAttribute inlineSvgs) as
        let attrs = addRole "img" $ addAriaLabel $ rights as'
        let svgContents = lefts as'
        rest <- convertTags ts
@@ -200,13 +204,13 @@ convertTags (t@(TagOpen tagname as):ts)
                       return $ TagOpen "svg" attrs'' :
                                  map ensureUniqueId tags' ++ rest'
                     _ -> return $ TagOpen tagname attrs : rest
-  where processAttribute (x,y) =
+  where processAttribute inlineSvgs (x,y) =
            if isSourceAttribute tagname (x,y)
               then do
                 res <- getData (fromAttrib "type" t) y
                 case res of
                   AlreadyDataURI enc -> return $ Right (x, enc)
-                  Fetched ("image/svg+xml", bs) -> do
+                  Fetched ("image/svg+xml", bs) | inlineSvgs -> do
                     -- we filter CR in the hash to ensure that Windows
                     -- and non-Windows tests agree:
                     let hash = T.pack $ take 20 $ showDigest $

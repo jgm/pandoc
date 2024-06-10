@@ -1009,6 +1009,13 @@ header when requesting a document from a URL:
     advanced features (e.g.  zoom or speaker notes) may not work
     in an offline "self-contained" `reveal.js` slide show.
 
+    For SVG images, `img` tags with `data:` URIs are used,
+    unless the image has the class `inline-svg`, in which case
+    an inline SVG element is inserted. This approach is
+    recommended when there are many occurrences of the same
+    SVG in a document, as `<use>` elements will be used to
+    reduce duplication.
+
 `--html-q-tags[=true|false]`
 
 :   Use `<q>` tags for quotes in HTML.  (This option only has an
