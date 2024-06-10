@@ -23,6 +23,9 @@ $endif$
 $if(aspectratio)$
   aspectratio=$aspectratio$,
 $endif$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
 $endif$
 $for(classoption)$
   $classoption$$sep$,
