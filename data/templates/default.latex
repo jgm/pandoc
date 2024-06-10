@@ -444,9 +444,11 @@ $endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
+$if(babel-lang)$
 \ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
+  \usepackage[$babel-lang$]{selnolig}  % disable illegal ligatures
 \fi
+$endif$
 $if(dir)$
 \ifPDFTeX
   \TeXXeTstate=1
