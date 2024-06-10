@@ -52,8 +52,11 @@ makeDataURI :: (MimeType, ByteString) -> T.Text
 makeDataURI (mime, raw) =
   if textual
      then "data:" <> mime' <> "," <> T.pack (escapeURIString isOk (toString raw))
-     else "data:" <> mime' <> ";base64," <> toText (encode raw)
+     else "data:" <> mime' <> ";base64," <> toText (encode raw')
   where textual = "text/" `T.isPrefixOf` mime
+        raw' = if "+xml" `T.isSuffixOf` mime
+                  then B.filter (/= '\r') raw  -- strip off CRs
+                  else raw
         mime' = if textual && T.any (== ';') mime
                    then mime <> ";charset=utf-8"
                    else mime  -- mime type already has charset
