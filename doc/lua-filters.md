@@ -5866,7 +5866,7 @@ Parameters:
 
 Returns:
 
--   rendered doc ([Doc])
+-   rendered doc (string)
 
 *Since: 2.18*
 
