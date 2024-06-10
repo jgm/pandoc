@@ -2287,6 +2287,25 @@ lines are equivalent:
 test = pandoc.layout.quotes(pandoc.layout.literal 'this')
 test = pandoc.layout.quotes('this')
 ```
+### Operators {#type-doc-operators}
+
+#### `..` {#type-doc.__concat}
+
+Concatenate two `Doc` elements.
+
+#### `+` {#type-doc.__add}
+
+Concatenate two `Doc`s, inserting a reflowable space between them.
+
+#### `/` {#type-doc.__div}
+
+If `a` and `b` are `Doc` elements, then `a / b` puts `a` above `b`.
+
+#### `//` {#type-doc.__idiv}
+
+If `a` and `b` are `Doc` elements, then `a // b` puts `a` above
+`b`, inserting a blank line between them.
+
 
 ## List {#type-list}
 
