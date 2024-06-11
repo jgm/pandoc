@@ -55,7 +55,7 @@
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
 \ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
+  \usepackage[english,german]{selnolig} % disable illegal ligatures
 \fi
 \ifPDFTeX
   \TeXXeTstate=1

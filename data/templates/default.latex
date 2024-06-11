@@ -443,13 +443,15 @@ $endfor$
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
+$if(selnolig-langs)$
+\ifLuaTeX
+  \usepackage[$for(selnolig-langs)$$it$$sep$,$endfor$]{selnolig} % disable illegal ligatures
+\fi
+$endif$
 $endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
 $if(dir)$
 \ifPDFTeX
   \TeXXeTstate=1
