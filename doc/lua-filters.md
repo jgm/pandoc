@@ -2942,28 +2942,6 @@ Parameters:
 
 Returns: [Math](#type-math) object
 
-### `DisplayMath (text)` {#pandoc.displaymath}
-
-Creates a math element of type "DisplayMath" (DEPRECATED).
-
-Parameters:
-
-`text`
-:   Math content
-
-Returns: [Math](#type-math) object
-
-### `InlineMath (text)` {#pandoc.inlinemath}
-
-Creates a math element of type "InlineMath" (DEPRECATED).
-
-Parameters:
-
-`text`
-:   Math content
-
-Returns: [Math](#type-math) object
-
 ### `Note (content)` {#pandoc.note}
 
 Creates a Note inline element
@@ -2989,28 +2967,6 @@ Parameters:
 :   inline content
 
 Returns: [Quoted](#type-quoted) object
-
-### `SingleQuoted (content)` {#pandoc.singlequoted}
-
-Creates a single-quoted inline element (DEPRECATED).
-
-Parameters:
-
-`content`
-:   inline content
-
-Returns: [Quoted](#type-quoted)
-
-### `DoubleQuoted (content)` {#pandoc.doublequoted}
-
-Creates a single-quoted inline element (DEPRECATED).
-
-Parameters:
-
-`content`
-:   inline content
-
-Returns: [Quoted](#type-quoted)
 
 ### `RawInline (format, text)` {#pandoc.rawinline}
 
@@ -3341,6 +3297,34 @@ Usage:
 :   Default citation style is used.
 
     See also: [Citation](#type-citation)
+
+[`DisplayMath`]{#pandoc.displaymath}
+
+:   Math style identifier, marking that the formula should be show
+    in "display" style, i.e., on a separate line.
+
+    See also: [Math](#type-math)
+
+[`InlineMath`]{#pandoc.inlinemath}
+
+:   Math style identifier, marking that the formula should be show
+    inline.
+
+    See also: [Math](#type-math)
+
+[`SingleQuote`]{#pandoc.singlequote}
+
+:   Quote type used with [Quoted](#type-quoted), indicating
+    that the string is enclosed in *single* quotes.
+
+    See also: [Quoted](#type-quoted)
+
+[`DoubleQuote`]{#pandoc.doublequote}
+
+:   Quote type used with [Quoted](#type-quoted), indicating
+    that the string is enclosed in *double* quotes.
+
+    See also: [Quoted](#type-quoted)
 
 [`AlignLeft`]{#pandoc.alignleft}
 
