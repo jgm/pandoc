@@ -665,7 +665,7 @@ normalizeToClassName = T.map go . fromStyleName
              | otherwise = c
 
 bodyPartToTableCaption :: PandocMonad m => BodyPart -> DocxContext m (Maybe Blocks)
-bodyPartToTableCaption (TblCaption pPr parparts) =
+bodyPartToTableCaption (Capt pPr parparts) =
   Just <$> bodyPartToBlocks (Paragraph pPr parparts)
 bodyPartToTableCaption _ = pure Nothing
 
@@ -767,7 +767,7 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
-bodyPartToBlocks (TblCaption _ _) =
+bodyPartToBlocks (Capt _ _) =
   return mempty
 bodyPartToBlocks (Tbl _ _ _ []) =
   return mempty

@@ -284,7 +284,7 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
 data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl T.Text TblGrid TblLook [Row]
-              | TblCaption ParagraphStyle [ParPart]
+              | Capt ParagraphStyle [ParPart]
               | HRule
               deriving Show
 
@@ -830,7 +830,7 @@ elemToBodyPart ns element
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
                     mkListItem parstyle numId lvl parparts
-        _ -> return $ (if hasCaptionStyle then TblCaption else Paragraph)
+        _ -> return $ (if hasCaptionStyle then Capt else Paragraph)
                       parstyle parparts
 
 elemToBodyPart ns element
