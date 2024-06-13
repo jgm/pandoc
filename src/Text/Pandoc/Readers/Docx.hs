@@ -78,7 +78,7 @@ import Data.List (delete, intersect, foldl')
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
-import Data.Maybe (catMaybes, isJust, fromMaybe, mapMaybe)
+import Data.Maybe (isJust, fromMaybe, mapMaybe)
 import Data.Sequence (ViewL (..), viewl)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -132,7 +132,6 @@ data DState = DState { docxAnchorMap :: M.Map T.Text T.Text
                      -- restarting
                      , docxListState :: M.Map (T.Text, T.Text) Integer
                      , docxPrevPara  :: Inlines
-                     , docxTableCaptions :: [Blocks]
                      , docxReferences :: M.Map ItemId (Reference Inlines)
                      }
 
@@ -145,7 +144,6 @@ instance Default DState where
                , docxDropCap   = mempty
                , docxListState = M.empty
                , docxPrevPara  = mempty
-               , docxTableCaptions = []
                , docxReferences = mempty
                }
 
@@ -664,11 +662,6 @@ normalizeToClassName = T.map go . fromStyleName
   where go c | isSpace c = '-'
              | otherwise = c
 
-bodyPartToTableCaption :: PandocMonad m => BodyPart -> DocxContext m (Maybe Blocks)
-bodyPartToTableCaption (Capt pPr parparts) =
-  Just <$> bodyPartToBlocks (Paragraph pPr parparts)
-bodyPartToTableCaption _ = pure Nothing
-
 bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
 bodyPartToBlocks (Paragraph pPr parparts)
   | Just True <- pBidi pPr = do
@@ -767,17 +760,22 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
-bodyPartToBlocks (Capt _ _) =
-  return mempty
+bodyPartToBlocks (Captioned parstyle parparts bpart) = do
+  bs <- bodyPartToBlocks bpart
+  captContents <- bodyPartToBlocks (Paragraph parstyle parparts)
+  let capt = Caption Nothing (toList captContents)
+  case toList bs of
+    [Table attr _cap colspecs thead tbodies tfoot]
+      -> pure $ singleton $ Table attr capt colspecs thead tbodies tfoot
+    [Figure attr _cap blks]
+      -> pure $ singleton $ Figure attr capt blks
+    [Para im@[Image{}]]
+      -> pure $ singleton $ Figure nullAttr capt [Plain im]
+    _ -> pure captContents
 bodyPartToBlocks (Tbl _ _ _ []) =
   return mempty
 bodyPartToBlocks (Tbl cap grid look parts) = do
-  captions <- gets docxTableCaptions
-  fullCaption <- case captions of
-    c : cs -> do
-      modify (\s -> s { docxTableCaptions = cs })
-      return c
-    [] -> return $ if T.null cap then mempty else plain (text cap)
+  let fullCaption = if T.null cap then mempty else plain (text cap)
   let shortCaption = if T.null cap then Nothing else Just (toList (text cap))
       cap' = caption shortCaption fullCaption
       (hdr, rows) = splitHeaderRows (firstRowFormatting look) parts
@@ -840,11 +838,9 @@ bodyToOutput :: PandocMonad m => Body -> DocxContext m (Meta, [Block])
 bodyToOutput (Body bps) = do
   let (metabps, blkbps) = sepBodyParts bps
   meta <- bodyPartsToMeta metabps
-  captions <- catMaybes <$> mapM bodyPartToTableCaption blkbps
   let isNumberedPara (Paragraph pPr _) = numbered pPr
       isNumberedPara _                 = False
   modify (\s -> s { docxNumberedHeadings = any isNumberedPara blkbps })
-  modify (\s -> s { docxTableCaptions = captions })
   blks <- smushBlocks <$> mapM bodyPartToBlocks blkbps
   blks' <- rewriteLinks $ blocksToDefinitions $ blocksToBullets $ toList blks
   blks'' <- removeOrphanAnchors blks'

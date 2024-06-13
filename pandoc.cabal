@@ -207,6 +207,8 @@ extra-source-files:
                  test/command/*.md
                  test/command/*.csl
                  test/command/*.svg
+                 test/command/9391.docx
+                 test/command/9358.docx
                  test/command/9002.docx
                  test/command/biblio.bib
                  test/command/averroes.bib

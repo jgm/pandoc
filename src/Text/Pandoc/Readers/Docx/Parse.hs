@@ -1,4 +1,3 @@
-{-# LANGUAGE ViewPatterns      #-}
 {-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -267,6 +266,7 @@ data ParagraphStyle = ParagraphStyle { pStyle        :: [ParStyle]
                                      , dropCap       :: Bool
                                      , pChange       :: Maybe TrackedChange
                                      , pBidi         :: Maybe Bool
+                                     , pKeepNext     :: Bool
                                      }
                       deriving Show
 
@@ -278,13 +278,14 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
                                        , dropCap = False
                                        , pChange = Nothing
                                        , pBidi = Just False
+                                       , pKeepNext = False
                                        }
 
 
 data BodyPart = Paragraph ParagraphStyle [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl T.Text TblGrid TblLook [Row]
-              | Capt ParagraphStyle [ParPart]
+              | Captioned ParagraphStyle [ParPart] BodyPart
               | HRule
               deriving Show
 
@@ -472,7 +473,7 @@ archiveToDocument zf = do
 
 elemToBody :: NameSpaces -> Element -> D Body
 elemToBody ns element | isElem ns "w" "body" element =
-  fmap Body (mapD (elemToBodyPart ns) (elChildren element))
+  Body . addCaptioned <$> mapD (elemToBodyPart ns) (elChildren element)
 elemToBody _ _ = throwError WrongElem
 
 archiveToStyles :: Archive -> (CharStyleMap, ParStyleMap)
@@ -761,6 +762,24 @@ mkListItem parstyle numId lvl parparts = do
 pStyleIndentation :: ParagraphStyle -> Maybe ParIndentation
 pStyleIndentation style = (getParStyleField indent . pStyle) style
 
+addCaptioned :: [BodyPart] -> [BodyPart]
+addCaptioned [] = []
+addCaptioned (Paragraph parstyle parparts : x : xs)
+  | hasCaptionStyle parstyle
+  , isCaptionable x
+    = Captioned parstyle parparts x : addCaptioned xs
+addCaptioned (x : Paragraph parstyle parparts : xs)
+  | hasCaptionStyle parstyle
+  , not (pKeepNext parstyle)
+  , isCaptionable x
+    = Captioned parstyle parparts x : addCaptioned xs
+addCaptioned (x:xs) = x : addCaptioned xs
+
+isCaptionable :: BodyPart -> Bool
+isCaptionable (Paragraph _ [Drawing{}]) = True
+isCaptionable (Tbl{}) = True
+isCaptionable _ = False
+
 elemToBodyPart :: NameSpaces -> Element -> D BodyPart
 elemToBodyPart ns element
   | isElem ns "m" "oMathPara" element = do
@@ -803,35 +822,21 @@ elemToBodyPart ns element
                   <$> asks envParStyles
                   <*> asks envNumbering
 
-      let hasCaptionStyle =
-            any ((== "caption") . pStyleName) (pStyle parstyle)
+      let children =
+            (if hasCaptionStyle parstyle
+                then stripCaptionLabel
+                else id) (elChildren element)
 
-      let isTableNumberElt el@(Element name attribs _ _) =
-           (qName name == "fldSimple" &&
-             case lookupAttrBy ((== "instr") . qName) attribs of
-               Nothing -> False
-               Just instr -> "Table" `elem` T.words instr) ||
-           (qName name == "instrText" && "Table" `elem` T.words (strContent el))
-
-      let isTable = hasCaptionStyle &&
-                      isJust (filterChild isTableNumberElt element)
-
-      let stripOffLabel = dropWhile (not . isTableNumberElt)
-
-      let children = (if isTable
-                          then stripOffLabel
-                          else id) $ elChildren element
       parparts' <- mconcat <$> mapD (elemToParPart ns) children
       fldCharState <- gets stateFldCharState
       modify $ \st -> st {stateFldCharState = emptyFldCharContents fldCharState}
       -- Word uses list enumeration for numbered headings, so we only
       -- want to infer a list from the styles if it is NOT a heading.
-      let parparts = parparts' ++ (openFldCharsToParParts fldCharState)
+      let parparts = parparts' ++ openFldCharsToParParts fldCharState
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
                     mkListItem parstyle numId lvl parparts
-        _ -> return $ (if hasCaptionStyle then Capt else Paragraph)
-                      parstyle parparts
+        _ -> return $ Paragraph parstyle parparts
 
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
@@ -1259,6 +1264,7 @@ elemToParagraphStyle ns element sty numbering
                                   ) >>=
                       getTrackedChange ns
       , pBidi = checkOnOff ns pPr (elemName ns "w" "bidi")
+      , pKeepNext = isJust $ findChildByName ns "w" "keepNext" pPr
       }
   | otherwise = defaultParagraphStyle
 
@@ -1335,3 +1341,27 @@ findBlip el = do
   filterElementName (\(QName tag _ _) -> tag == "svgBlip") el `mplus` pure blip
  where
   a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
+
+hasCaptionStyle :: ParagraphStyle -> Bool
+hasCaptionStyle parstyle = any (isCaptionStyleName . pStyleName) (pStyle parstyle)
+ where -- note that these are case insensitive:
+   isCaptionStyleName "caption" = True
+   isCaptionStyleName "table caption" = True
+   isCaptionStyleName "image caption" = True
+   isCaptionStyleName _ = False
+
+stripCaptionLabel :: [Element] -> [Element]
+stripCaptionLabel els =
+  if any isNumberElt els
+     then dropWhile (not . isNumberElt) els
+     else els
+  where
+    isNumberElt el@(Element name attribs _ _) =
+       (qName name == "fldSimple" &&
+             case lookupAttrBy ((== "instr") . qName) attribs of
+               Nothing -> False
+               Just instr -> "Table" `elem` T.words instr ||
+                             "Figure" `elem` T.words instr) ||
+       (qName name == "instrText" &&
+          let ws = T.words (strContent el)
+          in  ("Table" `elem` ws || "Figure" `elem` ws))
