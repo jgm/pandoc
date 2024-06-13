@@ -716,7 +716,10 @@ blockToMarkdown' opts (Figure figattr capt body) = do
       -- fallback to raw html if possible or div otherwise
       if isEnabled Ext_raw_html opts
       then figureToMarkdown opts figattr capt body
-      else blockToMarkdown' opts $ figureDiv figattr capt body
+      else if (isEnabled Ext_fenced_divs opts || isEnabled Ext_native_divs opts) ||
+                  not (isEnabled Ext_implicit_figures opts)
+              then blockToMarkdown' opts $ figureDiv figattr capt body
+              else blockListToMarkdown opts body
 
 inList :: Monad m => MD m a -> MD m a
 inList p = local (\env -> env {envInList = True}) p
