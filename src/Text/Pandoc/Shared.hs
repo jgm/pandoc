@@ -98,6 +98,7 @@ import Data.Semigroup (Min (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import qualified Text.Emoji as Emoji
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
@@ -464,7 +465,7 @@ isPara _        = False
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: Extensions -> [Inline] -> T.Text
 inlineListToIdentifier exts =
-  textToIdentifier exts . stringify . walk unEmojify
+  textToIdentifier exts . stringify . unEmojify
   where
     unEmojify :: [Inline] -> [Inline]
     unEmojify
@@ -472,7 +473,10 @@ inlineListToIdentifier exts =
         extensionEnabled Ext_ascii_identifiers exts = walk unEmoji
       | otherwise = id
     unEmoji (Span ("",["emoji"],[("data-emoji",ename)]) _) = Str ename
+    unEmoji (Str t) = Str (Emoji.replaceEmojis emojisToAliases t)
     unEmoji x = x
+    emojisToAliases t [] = t
+    emojisToAliases _ (a:_) = a
 
 -- | Convert string to plain text identifier.
 textToIdentifier :: Extensions -> T.Text -> T.Text
