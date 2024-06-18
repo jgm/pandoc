@@ -685,9 +685,12 @@ escapedTag = B.str . T.pack <$>
 
 -- | Any special symbol defined in wordBoundaries
 symbol :: PandocMonad m => TextileParser m Inlines
-symbol = B.str . T.singleton <$> (notFollowedBy newline *>
-                                  notFollowedBy rawHtmlBlock *>
-                                  oneOf wordBoundaries)
+symbol = do
+  c <- notFollowedBy newline *>
+         notFollowedBy rawHtmlBlock *>
+         oneOf wordBoundaries
+  updateLastStrPos
+  pure $ B.str . T.singleton $ c
 
 -- | Inline code
 code :: PandocMonad m => TextileParser m Inlines
