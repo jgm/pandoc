@@ -491,7 +491,7 @@ library
                  directory             >= 1.2.3    && < 1.4,
                  doclayout             >= 0.4.0.1  && < 0.5,
                  doctemplates          >= 0.11     && < 0.12,
-                 emojis                >= 0.1.4    && < 0.2,
+                 emojis                >= 0.1.4.1  && < 0.2,
                  exceptions            >= 0.8      && < 0.11,
                  file-embed            >= 0.0      && < 0.1,
                  filepath              >= 1.1      && < 1.6,
