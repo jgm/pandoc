@@ -6681,6 +6681,8 @@ containers with class `column` and a `width` attribute:
     :::
     ::::::::::::::
 
+Note: Specifying column widths does not currently work for PowerPoint.
+
 ### Additional columns attributes in beamer
 
 The div containers with classes `columns` and `column` can optionally have
