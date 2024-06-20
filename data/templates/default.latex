@@ -534,6 +534,9 @@ $endif$
 $endif$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 \date{$date$}
+$if(publishers)$
+\publishers{$publishers$}
+$endif$
 $if(beamer)$
 $if(institute)$
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
