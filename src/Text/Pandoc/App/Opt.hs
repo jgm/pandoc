@@ -42,7 +42,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
                             ReferenceLocation (EndOfDocument),
                             ObfuscationMethod (NoObfuscation),
-                            CiteMethod (Citeproc))
+                            CiteMethod (Citeproc), NoteStyle (SupTag))
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
@@ -120,6 +120,7 @@ data Opt = Opt
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline (deprecated)
     , optEmbedResources        :: Bool    -- ^ Make HTML accessible offline
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
+    , optNoteStyle             :: NoteStyle -- ^ How to print note marks in HTML
     , optHighlightStyle        :: Maybe Text -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
@@ -202,6 +203,7 @@ instance FromJSON Opt where
        <*> o .:? "self-contained" .!= optSelfContained defaultOpts
        <*> o .:? "embed-resources" .!= optEmbedResources defaultOpts
        <*> o .:? "html-q-tags" .!= optHtmlQTags defaultOpts
+       <*> o .:? "note-style" .!= optNoteStyle defaultOpts
        <*> o .:? "highlight-style"
        <*> o .:? "syntax-definitions" .!= optSyntaxDefinitions defaultOpts
        <*> o .:? "top-level-division" .!= optTopLevelDivision defaultOpts
@@ -528,6 +530,8 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optEmbedResources = x })
     "html-q-tags" ->
       parseJSON v >>= \x -> return (\o -> o{ optHtmlQTags = x })
+    "note-style" ->
+      parseJSON v >>= \x -> return (\o -> o{ optNoteStyle = x })
     "highlight-style" ->
       parseJSON v >>= \x -> return (\o -> o{ optHighlightStyle = x })
     "syntax-definition" ->
@@ -739,6 +743,7 @@ defaultOpts = Opt
     , optSelfContained         = False
     , optEmbedResources        = False
     , optHtmlQTags             = False
+    , optNoteStyle             = SupTag
     , optHighlightStyle        = Just "pygments"
     , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
