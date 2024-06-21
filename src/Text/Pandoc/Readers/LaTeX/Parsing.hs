@@ -885,7 +885,12 @@ dimenarg = try $ do
   optional sp
   ch  <- option False $ True <$ symbol '='
   minus <- option "" $ "-" <$ symbol '-'
-  Tok _ _ s1 <- satisfyTok isWordTok
+  s1 <- option ""
+        (do Tok _ _ s1 <- satisfyTok isWordTok
+            guard (case T.uncons s1 of
+                     Just (c,_) -> isDigit c
+                     Nothing -> False)
+            pure s1)
   s2 <- option "" $ try $ do
           symbol '.'
           Tok _ _ t <-  satisfyTok isWordTok
