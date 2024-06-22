@@ -750,6 +750,7 @@ directive' = do
                           Just t  -> B.link (escapeURI $ trim t) ""
                                      $ B.imageWith attr src "" alt
                           Nothing -> B.imageWith attr src "" alt
+        "bibliography" -> pure $ B.divWith ("refs",[],[]) mempty
         "class" -> do
             let attrs = (name, T.words (trim top), map (second trimr) fields)
             --  directive content or the first immediately following element
@@ -1304,8 +1305,7 @@ simpleTableRow indices = do
 
 simpleTableSplitLine :: [Int] -> Text -> [Text]
 simpleTableSplitLine indices line =
-  map trimr
-  $ tail $ splitTextByIndices (init indices) line
+  map trimr $ drop 1 $ splitTextByIndices (init indices) line
 
 simpleTableHeader :: PandocMonad m
                   => Bool  -- ^ Headerless table
@@ -1471,7 +1471,10 @@ renderRole contents fmt role attr = case role of
     "code" -> return $ B.codeWith attr contents
     "span" -> return $ B.spanWith attr $ treatAsText contents
     "raw" -> return $ B.rawInline (fromMaybe "" fmt) contents
-    custom -> do
+    custom
+     | Just citeType <- T.stripPrefix "cite" custom
+       -> cite citeType contents
+     | otherwise -> do
         customRoles <- stateRstCustomRoles <$> getState
         case M.lookup custom customRoles of
             Just (newRole, newFmt, newAttr) ->
@@ -1491,6 +1494,40 @@ renderRole contents fmt role attr = case role of
      where headSpace t = fromMaybe t $ T.stripPrefix " " t
            removeSpace (x:xs) = x : map headSpace xs
            removeSpace []     = []
+
+cite :: PandocMonad m => Text -> Text -> RSTParser m Inlines
+cite citeType rawcite = do
+  let citations =
+        case map parseCite (T.splitOn "," rawcite) of
+                (c:cs)
+                  | citeType == ":t" || citeType == ":ct"
+                     -> c{ citationMode = AuthorInText } : cs
+                  | citeType == ":year" || citeType == ":yearpar"
+                     -> c{ citationMode = SuppressAuthor } : cs
+                cs -> cs
+  pure $ B.cite citations (B.str rawcite)
+
+parseCite :: Text -> Citation
+parseCite t =
+  let (_, pref, suff, ident) = T.foldl go (ParseStart, "", "", "") t
+  in  Citation{citationId = ident
+              ,citationPrefix = B.toList $ B.text pref
+              ,citationSuffix = B.toList $ B.text suff
+              ,citationMode = NormalCitation
+              ,citationNoteNum = 0
+              ,citationHash = 0}
+ where
+   go (ParseStart, p, s, i) '{' = (ParsePrefix, p, s, i)
+   go (ParseStart, p, s, i) c = (ParseId, p, s, T.snoc i c)
+   go (ParsePrefix, p, s, i) '}' = (ParseId, p, s, i)
+   go (ParsePrefix, p, s, i) c = (ParsePrefix, T.snoc p c, s, i)
+   go (ParseId, p, s, i) '{' = (ParseSuffix, p, s, i)
+   go (ParseId, p, s, i) c = (ParseId, p, s, T.snoc i c)
+   go (ParseSuffix, p, s, i) '}' = (ParseSuffix, p, s, i)
+   go (ParseSuffix, p, s, i) c = (ParseSuffix, p, T.snoc s c, i)
+
+data ParseCiteState = ParseStart | ParsePrefix | ParseSuffix | ParseId
+  deriving (Show)
 
 -- single words consisting of alphanumerics plus isolated (no two adjacent)
 -- internal hyphens, underscores, periods, colons and plus signs;
