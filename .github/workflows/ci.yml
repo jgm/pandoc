@@ -202,7 +202,7 @@ jobs:
 # We no longer run the macos tests, to make CI faster.
 # macos:
 
-#   runs-on: macos-11
+#   runs-on: macos-12
 #   strategy:
 #     fail-fast: true
 #     matrix:
