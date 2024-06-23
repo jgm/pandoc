@@ -24,7 +24,7 @@ import Control.Monad (when, unless)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import qualified Data.ByteString.Lazy as BL
-import Data.Char (isLetter)
+import Data.Char (isLetter, isSpace)
 import Data.Bifunctor (first)
 import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
@@ -64,7 +64,7 @@ import Text.Pandoc.Writers.Shared
 import Text.TeXMath
 import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
-import Data.List (sortBy, intercalate)
+import Data.List (sortBy, intercalate, groupBy)
 
 -- from wml.xsd EG_RPrBase
 rPrTagOrder :: M.Map Text Int
@@ -612,23 +612,37 @@ formattedString str =
       [w] -> formattedString' w
       ws  -> do
          sh <- formattedRun [mknode "w:softHyphen" [] ()]
-         intercalate sh <$> mapM formattedString' ws
+         intercalate [sh] <$> mapM formattedString' ws
 
 formattedString' :: PandocMonad m => Text -> WS m [Element]
 formattedString' str = do
   inDel <- asks envInDel
-  let addFontProp
-       | T.any isCJK str
-          = withTextProp (mknode "w:rFonts" [("w:hint","eastAsia")] ())
-       | otherwise = id
-  addFontProp $
-    formattedRun [ mktnode (if inDel then "w:delText" else "w:t")
-                   [("xml:space","preserve")] (stripInvalidChars str) ]
+  let mkrun s =
+        (if T.any isCJK s
+            then withTextProp (mknode "w:rFonts" [("w:hint","eastAsia")] ())
+            else id) $ formattedRun
+                       [ mktnode (if inDel then "w:delText" else "w:t")
+                          [("xml:space","preserve")] $ s ]
+  mapM mkrun $ breakIntoChunks $ stripInvalidChars str
 
-formattedRun :: PandocMonad m => [Element] -> WS m [Element]
+-- For motivation see #9817.
+breakIntoChunks :: Text -> [Text]
+breakIntoChunks t
+  | T.null t = []
+  | T.any isCJK t
+    = let cs = T.groupBy (\c d -> (isSpace c && isSpace d) ||
+                                  not (isSpace c || isSpace d)) t
+          css = groupBy (\x y -> not (T.any isCJK x || T.any isCJK y)
+                                  || (T.all isSpace x && not (T.any isCJK y))
+                                  || (T.all isSpace y && not (T.any isCJK x)))
+                        cs
+       in map mconcat css
+  | otherwise = [t]
+
+formattedRun :: PandocMonad m => [Element] -> WS m Element
 formattedRun els = do
   props <- getTextProps
-  return [ mknode "w:r" [] $ props ++ els ]
+  return $ mknode "w:r" [] $ props ++ els
 
 -- | Convert an inline element to OpenXML.
 inlineToOpenXML :: PandocMonad m => WriterOptions -> Inline -> WS m [Content]
