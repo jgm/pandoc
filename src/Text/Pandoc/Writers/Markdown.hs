@@ -592,7 +592,7 @@ blockToMarkdown' opts (BlockQuote blocks) = do
         | variant == PlainText = "  "
         | otherwise            = "> "
   contents <- blockListToMarkdown opts blocks
-  return $ prefixed leader contents <> blankline
+  return $ text leader <> prefixed leader contents <> blankline
 blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   let numcols = maximum (length aligns :| length widths :
