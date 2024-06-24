@@ -22,8 +22,3 @@ source-repository-package
   location: https://github.com/jgm/citeproc
   tag: c7d81a376f434e90e1ef5724316042dfa4e21ef0
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/skylighting
-  subdir: skylighting-core
-  tag: d9fa7093e16b8e4581d719eb8849fd9ea2c3ea0b
