@@ -480,7 +480,7 @@ library
                  blaze-markup          >= 0.8      && < 0.9,
                  bytestring            >= 0.9      && < 0.13,
                  case-insensitive      >= 1.2      && < 1.3,
-                 citeproc              >= 0.8.1    && < 0.9,
+                 citeproc              >= 0.8.1.1  && < 0.9,
                  commonmark            >= 0.2.6    && < 0.3,
                  commonmark-extensions >= 0.2.5.5  && < 0.3,
                  commonmark-pandoc     >= 0.2.2.1  && < 0.3,
