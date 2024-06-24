@@ -55,20 +55,6 @@
 
     + Don't let spans begin right after a symbol (#9878).
 
-  * Texinfo writer:
-
-    + Ensure proper escaping in all node/link contexts.
-    + Target node rather than anchor when possible in internal links.
-    + Remove illegal characters from internal link anchors (#6177).
-    + Use two commas not one in `@ref`.
-    + Don't add anchors to headings. We don't need them, now that we
-      make internal links use the node.
-    + Avoid duplicate node names.
-    + Improve menus. Properly handle the case where the node name is
-      different from the descriptive title.
-
-  * Texinfo template: add variables for filename and version.
-
   * Typst reader:
 
     + Fix an incomplete pattern match (#9807).
@@ -83,21 +69,6 @@
 
   * Docx writer:
 
-    + Omit `jc` attribute on table cells with AlignDefault (#5662).
-    + Better formatting for task lists. Task lists are now properly
-      formatted, with no bullet (#5198).
-    + Replace an expensive generic traverse to remove Space elements,
-      for better performance.
-    + The new OpenXML template had spaces for metadata that need
-      to be filled with OpenXML fragments with the proper shape.
-      This patch ensures that everything is the right shape.
-    + Wrap figures with `id` in a bookmark (#8662).
-    + Add eastAsia font hints to `w:r` (#9817). We do this when the text
-      in the run contains any CJK characters. This ensures that ambiguous
-      code points (e.g. quotation marks) will be represented as "wide"
-      characters when together with CJK characters.
-    + Clean up Abstract Title and Subtitle in default reference docx.
-      Center Subtitle, remove color.
     + Allow OpenXML templates to be used with `docx` (#8338, #9069, #7256,
       #2928). The `--reference-doc` option allows customization of styles in
       docx output, but it does not allow one to adjust the content of the output
@@ -110,19 +81,29 @@
       The included files must be OpenXML fragments suitable for
       inclusion in the document body.
     + New unexported module Text.Pandoc.Writers.Docx.OpenXML.
+    + Omit `jc` attribute on table cells with AlignDefault (#5662).
+    + Better formatting for task lists. Task lists are now properly
+      formatted, with no bullet (#5198).
+    + Replace an expensive generic traverse to remove Space elements,
+      for better performance.
+    + Wrap figures with `id` in a bookmark (#8662).
+    + Add eastAsia font hints to `w:r` (#9817). We do this when the text
+      in the run contains any CJK characters. This ensures that ambiguous
+      code points (e.g. quotation marks) will be represented as "wide"
+      characters when together with CJK characters.
+    + Clean up Abstract Title and Subtitle in default reference docx.
+      Center Subtitle, remove color.
 
   * HTML writer:
 
     + Ensure URI escaping needed for `html4` (#9905).
       Unicode characters need not be escaped for html5, and still won't be.
-
     + Don't emit unnecessary classes in HTML tables (#9325, Thomas Soeiro).
       Pandoc used to emit a `header` class on the `tr` element that forms
       the table header. This is no longer needed, because `head > tr` will
       do the same thing. Similarly, pandoc used to emit `even` and `odd`
       classes on `tr`s, allowing striped styling.  This is no longer needed,
       because one can use e.g. `tbody tr:nth-child(2n)`.
-
       Compatibility warning:  users who relied on these classes to style
       tables may need to adjust their CSS.
 
@@ -180,6 +161,20 @@
     + Don't print extra caption when using `implicit_figures`.
     + Ensure blank line after HTML blocks in commonmark-based formats (#9792).
     + Fix bug rendering block quotes in lists (#9908).
+
+  * Texinfo writer:
+
+    + Ensure proper escaping in all node/link contexts.
+    + Target node rather than anchor when possible in internal links.
+    + Remove illegal characters from internal link anchors (#6177).
+    + Use two commas not one in `@ref`.
+    + Don't add anchors to headings. We don't need them, now that we
+      make internal links use the node.
+    + Avoid duplicate node names.
+    + Improve menus. Properly handle the case where the node name is
+      different from the descriptive title.
+
+  * Texinfo template: add variables for filename and version.
 
   * Typst writer:
 
