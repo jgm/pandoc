@@ -73,9 +73,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    # pkg-config is now needed for some cabal builds
-    - name: Install pkg-config
-      run: brew install pkg-config
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.4.4
