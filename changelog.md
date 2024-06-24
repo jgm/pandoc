@@ -1,5 +1,293 @@
 # Revision history for pandoc
 
+## pandoc 3.2.1 (2024-06-24)
+
+  * Fix `gfm_auto_identifiers` to replace emojis with their aliases,
+    as documented (#9876).
+
+  * CSV reader:
+
+    + Turn line breaks into LineBreaks not SoftBreaks (#9797).
+
+  * Docx reader:
+
+    + Support task lists (#8211).
+    + Fix a small bug in parsing delimiters in numbered lists,
+      which led to the default delimiter being used wrongly in some cases.
+    + Improve handling of captions.
+      - Turn captioned images into Figure elements. Closes #9391.
+      - Improve the logic for associating elements with captions (#9358).
+      - Ensure that captions that can't be associated with an
+        element aren't just silently dropped (#9610).
+    + Support HorizontalRule. We support both pandoc-style and the style
+      described on a Microsoft support page, an empty paragraph with
+      a bottom border (#6285).
+    + React to `"left"` value on `jc` attribute.
+    + Handle column and cell alignments (#8551). We take the column alignments
+      from the first body row.
+    + Fix a bug that caused comments inside insertions or deletions
+      to be ignored (#9833).
+
+  * HTML reader:
+
+    + Better handle non-`li` elements in `ul` and `ol` (#9809).
+      For example, a `p` after a closed `li` will be incorporated into
+      the previous `li`. This mirrors what browsers do with this
+      invalid HTML.
+
+  * LaTeX reader:
+
+    + Fix parsing of dimensions beginning with `.`, e.g. `\kern.1pt` (#9902).
+
+  * Markdown reader:
+
+    + Allow author-only textual citations (#7219). E.g. `-@reese2002`
+      outside of brackets.
+
+  * RST reader:
+
+    + Tighten up rules for when emphasis can start (#9805).
+    + Support `:cite:` role with citeproc (#9904). A subset of the
+      functionality of the sphinxcontrib-bibtex extension to Sphinx
+      is supported.
+
+  * Textile reader:
+
+    + Don't let spans begin right after a symbol (#9878).
+
+  * Texinfo writer:
+
+    + Ensure proper escaping in all node/link contexts.
+    + Target node rather than anchor when possible in internal links.
+    + Remove illegal characters from internal link anchors (#6177).
+    + Use two commas not one in `@ref`.
+    + Don't add anchors to headings. We don't need them, now that we
+      make internal links use the node.
+    + Avoid duplicate node names.
+    + Improve menus. Properly handle the case where the node name is
+      different from the descriptive title.
+
+  * Texinfo template: add variables for filename and version.
+
+  * Typst reader:
+
+    + Fix an incomplete pattern match (#9807).
+    + Handle inline bodies ending in a parbreak. E.g.
+      ```
+      `#strong[
+      test
+      ]
+      ```
+
+  * ConTeXt template: remove `\setupbackend[export=yes]` (#9820).
+
+  * Docx writer:
+
+    + Omit `jc` attribute on table cells with AlignDefault (#5662).
+    + Better formatting for task lists. Task lists are now properly
+      formatted, with no bullet (#5198).
+    + Replace an expensive generic traverse to remove Space elements,
+      for better performance.
+    + The new OpenXML template had spaces for metadata that need
+      to be filled with OpenXML fragments with the proper shape.
+      This patch ensures that everything is the right shape.
+    + Wrap figures with `id` in a bookmark (#8662).
+    + Add eastAsia font hints to `w:r` (#9817). We do this when the text
+      in the run contains any CJK characters. This ensures that ambiguous
+      code points (e.g. quotation marks) will be represented as "wide"
+      characters when together with CJK characters.
+    + Clean up Abstract Title and Subtitle in default reference docx.
+      Center Subtitle, remove color.
+    + Allow OpenXML templates to be used with `docx` (#8338, #9069, #7256,
+      #2928). The `--reference-doc` option allows customization of styles in
+      docx output, but it does not allow one to adjust the content of the output
+      (e.g., changing the order in which metadata, the table of contents,
+      and the body of the document are displayed), or adding boilerplate
+      text before or after the document body.  For these changes, one can
+      now use `--template` with an OpenXML template.  (See the default
+      `openxml` template for a sample.) `--include-before-body` and
+      `--include-after-body` can also now be used with `docx` output.
+      The included files must be OpenXML fragments suitable for
+      inclusion in the document body.
+    + New unexported module Text.Pandoc.Writers.Docx.OpenXML.
+
+  * HTML writer:
+
+    + Ensure URI escaping needed for `html4` (#9905).
+      Unicode characters need not be escaped for html5, and still won't be.
+
+    + Don't emit unnecessary classes in HTML tables (#9325, Thomas Soeiro).
+      Pandoc used to emit a `header` class on the `tr` element that forms
+      the table header. This is no longer needed, because `head > tr` will
+      do the same thing. Similarly, pandoc used to emit `even` and `odd`
+      classes on `tr`s, allowing striped styling.  This is no longer needed,
+      because one can use e.g. `tbody tr:nth-child(2n)`.
+
+      Compatibility warning:  users who relied on these classes to style
+      tables may need to adjust their CSS.
+
+  * JATS writer:
+
+    + Support `supplementary-material` in metadata for `jats_articlepublishing`
+      (#9818).
+
+  * LaTeX writer:
+
+    + New method for ensuring images don't overflow (#9660).
+      Previously we relied on graphicx internals and made global
+      changes to Gin to force images to be resized if they exceed
+      textwidth.  This approach is brittle and caused problems
+      with `\includesvg` (see #9660). The new approach uses a new macro
+      `\pandocbounded` that is now defined in the LaTeX template.
+      (Thanks here to Falk Hanisch in https://github.com/mrpiggi/svg/issues/60.)
+      The LaTeX writer has been changed to enclose `\includegraphics`
+      and `\includesvg` commands in this macro when they don't explicitly
+      specify a width or height. In addition, the writer now adds
+      `keepaspectratio` to the `\includegraphics` or `\includesvg`
+      options if `height` is specified without width, or vice versa.
+      Previously, this was set in the preamble as a global option.
+      Users should attend to the following compatibility issues:
+      - If custom templates are used with the new LaTeX writer, they will have
+        to be updated to include the new `\pandocbounded` macro, or an error
+        will be raised because of the undefined macro.
+      - Documents that specify explicit dimensions for an image may render
+        differently, if the dimensions are greater than the line width or
+        page height. Previously pandoc would shrink these images to fit,
+        but the new behavior takes the specified dimensions literally.
+        In addition, pandoc previously always enforced `keepaspectratio`,
+        even when width and height were both specified, so images with
+        width and height specified that do not conform to their intrinsic
+        aspect ratio will appear differently.
+    + Task lists must be unordered (#9185).
+    + Specify language option for `selnolig` and only include it if
+      `english` or `german` is used (#9863). (This includes changes to the
+      LaTeX template.) This should restore proper ligature suppression when
+      lualatex is used.
+    + Fix `--toc-depth` with beamer output (#9861). Previously only top-level
+      sections were ever included in the TOC, regardless of the setting of
+      `--toc-depth`.
+    + Use `\linewidth` instead of `\columnwidth` or `\textwidth`
+      for resizing figures, table cells, etc. in LaTeX (#9775).
+      `\linewidth`, unlike the others, is sensitive to indented environments
+      like lists.
+
+  * LaTeX template: put `babel-lang` in options to beamer (#9868).
+    This is required to make beamer use proper localized terms for
+    things like "Section."
+
+  * Markdown writer:
+
+    + Don't print extra caption when using `implicit_figures`.
+    + Ensure blank line after HTML blocks in commonmark-based formats (#9792).
+    + Fix bug rendering block quotes in lists (#9908).
+
+  * Typst writer:
+
+    + Support '.typst:no-figure' and 'typst:figure:kind=kind' attributes
+      (#9778, Carlos Scheidegger). This extends support for fine-grained
+      properties in Typst. If the `typst:no-figure` class is present on a
+      Table, the table will not be placed in a figure. If the
+      `typst:figure:kind` attribute is present, its value will be used
+      for the figure's `kind` (#9777). These features are documented in
+      `doc/typst-property-output.md`.
+
+  * Typst template:
+
+    + Add subtitle (#9747, Mickaël Canouil).
+    + Use content rather than string for title, author, date, email (#9823).
+      This allows formatting in title, author, date, and email fields.
+      Since the PDF metadata requires a string, and typst only
+      converts the title to a string (not the authors), we use
+
+  * Textile writer:
+
+    + Get rid of header, odd, even classes on `tr` (#9376).
+
+  * Text.Pandoc.Class:
+
+    + `fillMediaBag`: Convert IOErrors to warnings when fetching absolute
+       paths (#9859, Albert Krewinkel).  This will allow many conversions that
+       would have failed with an error to succeed (albeit without images or
+       other needed resources).
+
+  * Text.Pandoc.ImageSize:
+
+    + Don't prefer exif width/height when they conflict with image
+      width/height (#9871).  That was a mistaken call in #6936.
+      Usually when these values disagree, it is because the image
+      has been resized by a tool that leaves the original exif values
+      the same, so the width/height metadata are more likely to be
+      correct that exif width/height.
+
+  * Text.Pandoc.SelfContained:
+
+    + Strip CRs from XML before base64 encoding for data URI
+      (so tests can work on Windows).
+    + Only create `<svg>` elements for SVG images when the image has
+      the class `inline-svg`. Otherwise just use a `data` URI as we do
+      with other images (#9787).
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + Split Init module into more modules. The module has grown unwieldy and
+      is therefore split into three internal Haskell modules, `Init`,
+      `Module`, and `Run`.
+    + Add function `pandoc.utils.run_lua_filter` (#9803).
+    + Add function `pandoc.template.get` (#9854, co-authored by Carsten Gips).
+      The function allows to specify a template with the same argument value
+      that would be used with the `--template` command line parameter.
+    + Keep CommonState object in the registry. The state is an internal
+      value and should be treated as such. The `PANDOC_STATE` global is
+      merely a copy; unsetting the global no longer breaks the Lua engine.
+    + Allow passing an environment to `run_lua_filter`.
+      The default is now to use a *copy* of the global environment when running
+      a filter; this ensures better separation when `run_lua_filter` is used
+      multiple times. A custom environment can be specified via the
+      optional third parameter.
+    + Set `pandoc.List` as default metatable for JSON lists (#9834).
+      Lists created by `pandoc.json.decode` now behave like lists generated
+      via `pandoc.List`. This also ensures that `pandoc.List` tables are
+      encoded as JSON arrays when passed to `pandoc.json.encode`.
+
+  * Text.Pandoc.Writers.Shared: export `toTaskListItem` [API change].
+
+  * Add unexported module Text.Pandoc.Char. This exports `isCJK`.
+    Use this instead of locally defined `isCJK` in T.P.Readers.MediaWiki.
+
+  * MANUAL.txt:
+
+    + Remove false claim that Lua mode does not support `-i` (#9757,
+      Ian Max Andolina).
+    + Use level-3 headings for extensions (to avoid gaps).
+    + Add anchor for tagging extension.
+    + Remove explicit referencess to generate anchors.
+      These will be linkified automatically.
+    + Fixed links to `option--reference-doc`.
+    + Add a note that column widths aren't supported in pptx for Divs
+      with class `columns` (#9890).
+    + Fix alerts example (#9826, Ian Max Andolina).
+    + Fix markup of `babelfonts` example code (Albert Krewinkel).
+
+  * `doc/custom-writers.md`:
+
+    + Fix usage of Template in example (Albert Krewinkel).
+    + Document the separator arg of `Writer.Blocks` (Albert Krewinkel).
+
+  * `doc/lua-filters.md` (Albert Krewinkel):
+
+    + Fix outdated documentation for math and quoting functions and fields.
+    + Autogenerate docs for module `pandoc.template` and `pandoc.layout`.
+    + Document operators of the "Doc" type.
+
+  * pandoc-lua-engine: depend on pandoc >= 3.2 (see #9755).
+
+  * Allow crypton-connection 0.4, time 1.14.
+
+  * Allow tasty-quickcheck 0.11.
+
+  * Use latest emojis, skylighting, skylighting-core, citeproc, djot,
+    commonmark-extensions, typst-hs
+
 ## pandoc 3.2 (2024-05-11)
 
   * Change to `--file-scope` behavior (#8741): previously a Div with an
