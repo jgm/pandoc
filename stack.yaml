@@ -20,8 +20,7 @@ extra-deps:
 - skylighting-0.14.2
 - citeproc-0.8.1.1
 - djot-0.1.2.1
-- git: https://github.com/jgm/typst-hs
-  commit: dfe0367b248419c3555044705fa79a52b9c20089
+- typst-0.5.0.4
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
