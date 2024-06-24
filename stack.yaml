@@ -16,6 +16,8 @@ extra-deps:
 - texmath-0.12.8.9
 - emojis-0.1.4.1
 - commonmark-extensions-0.2.5.5
+- skylighting-core-0.14.2
+- skylighting-0.14.2
 - git: https://github.com/jgm/typst-hs
   commit: dfe0367b248419c3555044705fa79a52b9c20089
 - git: https://github.com/jgm/djoths
