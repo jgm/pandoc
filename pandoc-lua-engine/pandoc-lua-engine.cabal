@@ -124,7 +124,7 @@ library
                      , hslua-repl            >= 0.1.1   && < 0.2
                      , lpeg                  >= 1.1     && < 1.2
                      , mtl                   >= 2.2     && < 2.4
-                     , pandoc                >= 3.2     && < 3.3
+                     , pandoc                >= 3.2.1   && < 3.3
                      , pandoc-lua-marshal    >= 0.2.7   && < 0.3
                      , pandoc-types          >= 1.22    && < 1.24
                      , parsec                >= 3.1     && < 3.2
