@@ -779,7 +779,7 @@ test-suite test-pandoc
                   tasty             >= 0.11    && < 1.6,
                   tasty-golden      >= 2.3     && < 2.4,
                   tasty-hunit       >= 0.9     && < 0.11,
-                  tasty-quickcheck  >= 0.8     && < 0.11,
+                  tasty-quickcheck  >= 0.8     && < 0.12,
                   text              >= 1.1.1.0 && < 2.2,
                   temporary         >= 1.1     && < 1.4,
                   time              >= 1.5     && < 1.15,
