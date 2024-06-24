@@ -271,6 +271,7 @@
 - Michael Snoyman
 - Michael Stahl
 - Michael Thompson
+- Mickaël Canouil
 - Mike Tzou
 - Mikołaj Machowski
 - Milan Bracke
@@ -364,6 +365,7 @@
 - Terence Eden
 - Thenaesh Elango
 - Thomas Hodgson
+- Thomas Soeiro
 - Thomas Weißschuh
 - Tim Lin
 - Tim Stewart
