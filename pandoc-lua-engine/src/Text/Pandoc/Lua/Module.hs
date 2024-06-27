@@ -13,8 +13,7 @@ module Text.Pandoc.Lua.Module
   ( initModules
   ) where
 
-import Control.Monad (forM, forM_, when)
-import Data.Maybe (catMaybes)
+import Control.Monad (forM_, when)
 import Data.Version (makeVersion)
 import HsLua as Lua
 import Text.Pandoc.Error (PandocError)
@@ -111,37 +110,25 @@ setGlobalModules = liftPandocLua $ do
         [ ("lpeg", LPeg.luaopen_lpeg_ptr)  -- must be loaded first
         , ("re", LPeg.luaopen_re_ptr)      -- re depends on lpeg
         ]
-  loadedBuiltInModules <- fmap catMaybes . forM globalModules $
+  forM_ globalModules $
     \(pkgname, luaopen) -> do
       Lua.pushcfunction luaopen
-      usedBuiltIn <- Lua.pcall 0 1 Nothing >>= \case
+      Lua.pcall 0 1 Nothing >>= \case
         OK -> do               -- all good, loading succeeded
           -- register as loaded module so later modules can rely on this
           Lua.getfield Lua.registryindex Lua.loaded
           Lua.pushvalue (Lua.nth 2)
           Lua.setfield (Lua.nth 2) pkgname
           Lua.pop 1  -- pop _LOADED
-          return True
         _  -> do               -- built-in library failed, load system lib
           Lua.pop 1  -- ignore error message
           -- Try loading via the normal package loading mechanism.
           Lua.getglobal "require"
           Lua.pushName pkgname
           Lua.call 1 1  -- Throws an exception if loading failed again!
-          return False
 
       -- Module on top of stack. Register as global
       Lua.setglobal pkgname
-      return $ if usedBuiltIn then Just pkgname else Nothing
-
-  -- Remove module entry from _LOADED table in registry if we used a
-  -- built-in library. This ensures that later calls to @require@ will
-  -- prefer the shared library, if any.
-  forM_ loadedBuiltInModules $ \pkgname -> do
-    Lua.getfield Lua.registryindex Lua.loaded
-    Lua.pushnil
-    Lua.setfield (Lua.nth 2) pkgname
-    Lua.pop 1  -- registry
 
 installLpegSearcher :: PandocLua ()
 installLpegSearcher = liftPandocLua $ do
