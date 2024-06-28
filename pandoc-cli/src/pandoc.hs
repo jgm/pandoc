@@ -20,7 +20,6 @@ import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
 import Text.Pandoc.Error (handleError)
 import System.Exit (exitSuccess)
 import Data.Monoid (Any(..))
-import Control.Monad (when)
 import PandocCLI.Lua
 import PandocCLI.Server
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -52,16 +51,16 @@ main = E.handle (handleError . Left) $ do
   let hasVersion = getAny $ foldMap
          (\s -> Any (s == "-v" || s == "--version"))
          (takeWhile (/= "--") rawArgs)
-  when hasVersion versionInfo
+  let versionOr action = if hasVersion then versionInfo else action
   case prg of
-    "pandoc-server.cgi" -> runCGI
-    "pandoc-server"     -> runServer rawArgs
+    "pandoc-server.cgi" -> versionOr runCGI
+    "pandoc-server"     -> versionOr $ runServer rawArgs
     "pandoc-lua"        -> runLuaInterpreter prg rawArgs
     _ ->
       case rawArgs of
         "lua" : args   -> runLuaInterpreter "pandoc lua" args
-        "server": args -> runServer args
-        args           -> do
+        "server": args -> versionOr $ runServer args
+        args           -> versionOr $ do
           engine <- getEngine
           res <- parseOptionsFromArgs options defaultOpts prg args
           case res of
