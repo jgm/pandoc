@@ -41,8 +41,10 @@ runLuaInterpreter progName args = do
   where
     runStandaloneWithHistory histfile =  do
       let settings = Settings
-            { settingsVersionInfo = "\nEmbedded in pandoc " <>
-                                    pandocVersionText
+            { settingsVersionInfo =
+              "\nEmbedded in pandoc " <>
+              pandocVersionText <>
+              "  Copyright (C) 2006-2024 John MacFarlane"
             , settingsRunner = runner
             , settingsHistory = Just histfile
             }
