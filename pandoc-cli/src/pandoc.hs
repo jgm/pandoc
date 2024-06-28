@@ -56,6 +56,7 @@ main = E.handle (handleError . Left) $ do
     "pandoc-server.cgi" -> versionOr runCGI
     "pandoc-server"     -> versionOr $ runServer rawArgs
     "pandoc-lua"        -> runLuaInterpreter prg rawArgs
+    ('l':'u':'a':_)     -> runLuaInterpreter prg rawArgs
     _ ->
       case rawArgs of
         "lua" : args   -> runLuaInterpreter "pandoc lua" args
