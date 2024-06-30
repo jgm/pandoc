@@ -601,6 +601,14 @@ options =
                   "true|false")
                  "" -- "Make slide shows include all the needed js and css"
 
+    , Option "" ["link-images"] -- maybe True (\argStr -> argStr == "true") arg
+                 (OptArg
+                  (\arg opt -> do
+                        boolValue <- readBoolFromOptArg "--link-images" arg
+                        return opt { optLinkImages =  boolValue })
+                  "true|false")
+                 "" -- "Link images in ODT rather than embedding them"
+
     , Option "" ["request-header"]
                  (ReqArg
                   (\arg opt -> do

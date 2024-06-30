@@ -325,6 +325,7 @@ data WriterOptions = WriterOptions
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
   , writerSyntaxMap         :: SyntaxMap
   , writerPreferAscii       :: Bool           -- ^ Prefer ASCII representations of characters when possible
+  , writerLinkImages        :: Bool           -- ^ Use links rather than embedding ODT images
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -363,6 +364,7 @@ instance Default WriterOptions where
                       , writerReferenceLocation = EndOfDocument
                       , writerSyntaxMap        = defaultSyntaxMap
                       , writerPreferAscii      = False
+                      , writerLinkImages       = False
                       }
 
 instance HasSyntaxExtensions WriterOptions where

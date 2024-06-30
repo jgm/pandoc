@@ -24,7 +24,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Time
-import System.FilePath (takeDirectory, takeExtension, (<.>))
+import System.FilePath (takeDirectory, takeExtension, (<.>), (</>), isAbsolute)
 import Text.Collate.Lang (Lang (..), renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -48,7 +48,7 @@ import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
 import Text.TeXMath
 import qualified Text.XML.Light as XL
-import Network.URI (parseRelativeReference, URI(uriPath))
+import Network.URI (parseRelativeReference, URI(uriPath), isURI)
 import Skylighting
 
 newtype ODTState = ODTState { stEntries :: [Entry]
@@ -272,15 +272,23 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
                               Just dim         -> Just $ Inch $ inInch opts dim
                               Nothing          -> Nothing
        let  newattr = (id', cls, dims)
-       entries <- gets stEntries
-       let extension = maybe (takeExtension $ takeWhile (/='?') $ T.unpack src) T.unpack
-                           (mbMimeType >>= extensionFromMimeType)
-       let newsrc = "Pictures/" ++ show (length entries) <.> extension
-       let toLazy = B.fromChunks . (:[])
-       epochtime <- floor `fmap` lift P.getPOSIXTime
-       let entry = toEntry newsrc epochtime $ toLazy img
-       modify $ \st -> st{ stEntries = entry : entries }
-       return $ Image newattr lab (T.pack newsrc, t))
+       src' <- if writerLinkImages opts
+                  then
+                    case T.unpack src of
+                      s | isURI s -> return src
+                        | isAbsolute s -> return src
+                        | otherwise -> return $ T.pack $ ".." </> s
+                  else do
+                    entries <- gets stEntries
+                    let extension = maybe (takeExtension $ takeWhile (/='?') $ T.unpack src) T.unpack
+                                        (mbMimeType >>= extensionFromMimeType)
+                    let newsrc = "Pictures/" ++ show (length entries) <.> extension
+                    let toLazy = B.fromChunks . (:[])
+                    epochtime <- floor `fmap` lift P.getPOSIXTime
+                    let entry = toEntry newsrc epochtime $ toLazy img
+                    modify $ \st -> st{ stEntries = entry : entries }
+                    return $ T.pack newsrc
+       return $ Image newattr lab (src', t))
    (\e -> do
        report $ CouldNotFetchResource src $ T.pack (show e)
        return $ Emph lab)

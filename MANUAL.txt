@@ -1016,6 +1016,11 @@ header when requesting a document from a URL:
     SVG in a document, as `<use>` elements will be used to
     reduce duplication.
 
+`--link-images[=true|false]`
+
+:   Include links to images instead of embedding the images in ODT.
+    (This option currently only affects ODT output.)
+
 `--html-q-tags[=true|false]`
 
 :   Use `<q>` tags for quotes in HTML.  (This option only has an

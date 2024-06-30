@@ -119,6 +119,7 @@ data Opt = Opt
     , optIncremental           :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline (deprecated)
     , optEmbedResources        :: Bool    -- ^ Make HTML accessible offline
+    , optLinkImages            :: Bool    -- ^ Link ODT images rather than embedding
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
     , optHighlightStyle        :: Maybe Text -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
@@ -201,6 +202,7 @@ instance FromJSON Opt where
        <*> o .:? "incremental" .!= optIncremental defaultOpts
        <*> o .:? "self-contained" .!= optSelfContained defaultOpts
        <*> o .:? "embed-resources" .!= optEmbedResources defaultOpts
+       <*> o .:? "link-images" .!= optLinkImages defaultOpts
        <*> o .:? "html-q-tags" .!= optHtmlQTags defaultOpts
        <*> o .:? "highlight-style"
        <*> o .:? "syntax-definitions" .!= optSyntaxDefinitions defaultOpts
@@ -526,6 +528,8 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optSelfContained = x })
     "embed-resources" ->
       parseJSON v >>= \x -> return (\o -> o{ optEmbedResources = x })
+    "link-images" ->
+      parseJSON v >>= \x -> return (\o -> o{ optLinkImages = x })
     "html-q-tags" ->
       parseJSON v >>= \x -> return (\o -> o{ optHtmlQTags = x })
     "highlight-style" ->
@@ -738,6 +742,7 @@ defaultOpts = Opt
     , optIncremental           = False
     , optSelfContained         = False
     , optEmbedResources        = False
+    , optLinkImages            = False
     , optHtmlQTags             = False
     , optHighlightStyle        = Just "pygments"
     , optSyntaxDefinitions     = []
