@@ -161,7 +161,7 @@ writeDocx opts doc = do
           setattr _ _ x      = x
 
           isEastAsianLang Lang{ langLanguage = lang } =
-             lang == "zh" || lang == "jp" || lang == "ko"
+             lang == "zh" || lang == "ja" || lang == "ko"
           isBidiLang Lang{ langLanguage = lang } =
              lang == "he" || lang == "ar"
 

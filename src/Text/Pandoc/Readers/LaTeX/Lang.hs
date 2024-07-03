@@ -171,7 +171,7 @@ polyglossiaLangToBCP47 = M.fromList
   , ("indonesian", \_ -> simpleLang "id")
   , ("icelandic", \_ -> simpleLang "is")
   , ("italian", \_ -> simpleLang "it")
-  , ("japanese", \_ -> simpleLang "jp")
+  , ("japanese", \_ -> simpleLang "ja")
   , ("khmer", \_ -> simpleLang "km")
   , ("kurmanji", \_ -> simpleLang "kmr")
   , ("kannada", \_ -> simpleLang "kn")
