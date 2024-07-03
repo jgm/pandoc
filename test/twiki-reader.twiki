@@ -93,6 +93,12 @@ With two paragraphs.
 </blockquote>
 Nother paragraph.
 
+---+ internal links
+
+MySimplePage
+
+My23Page23
+
 ---+ external links
 
 [[http://google.com][<i>Google</i> search engine]]

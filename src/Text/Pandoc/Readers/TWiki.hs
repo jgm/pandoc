@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, isDigit, isUpperCase, isLowerCase, isLetter)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -469,7 +469,7 @@ link = try $ do
   st <- getState
   guard $ stateAllowLinks st
   setState $ st{ stateAllowLinks = False }
-  (url, title, content) <- linkText
+  (url, title, content) <- linkText <|> simpleWikiLink
   setState $ st{ stateAllowLinks = True }
   return $ B.link url title content
 
@@ -483,3 +483,15 @@ linkText = do
   where
     linkContent      = char '[' >> many1Till anyChar (char ']') >>= parseLinkContent . T.pack
     parseLinkContent = parseFromString' $ many1 inline
+
+simpleWikiLink :: PandocMonad m => TWParser m (Text, Text, B.Inlines)
+simpleWikiLink = do
+  w <- wikiWord
+  return (w, "wikilink", B.str w)
+ where
+   wikiWord = do
+     cs <- many1 $ satisfy (\x -> isLetter x && isUpperCase x)
+     ds <- many1 $ satisfy (\x -> isDigit x || (isLetter x && isLowerCase x))
+     es <- many1 $ satisfy (\x -> isLetter x && isUpperCase x)
+     fs <- many $ satisfy isAlphaNum
+     return $ T.pack $ cs ++ ds ++ es ++ fs

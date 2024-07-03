@@ -149,6 +149,22 @@ Pandoc
   , Para [ Str "Nother" , Space , Str "paragraph." ]
   , Header
       1
+      ( "internal-links" , [] , [] )
+      [ Str "internal" , Space , Str "links" ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "MySimplePage" ]
+          ( "MySimplePage" , "wikilink" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "My23Page23" ]
+          ( "My23Page23" , "wikilink" )
+      ]
+  , Header
+      1
       ( "external-links" , [] , [] )
       [ Str "external" , Space , Str "links" ]
   , Para
