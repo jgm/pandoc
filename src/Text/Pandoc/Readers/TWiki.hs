@@ -222,9 +222,11 @@ table = try $ do
                               (TableHead nullAttr $ toHeaderRow heads)
                               [TableBody nullAttr 0 [] $ map toRow rows]
                               (TableFoot nullAttr [])
-    align rows      = replicate (columCount rows) (AlignDefault, ColWidthDefault)
-    columns rows    = replicate (columCount rows) mempty
-    columCount rows = length $ head rows
+    align rows      = replicate (columnCount rows)
+                         (AlignDefault, ColWidthDefault)
+    columns rows    = replicate (columnCount rows) mempty
+    columnCount (r:_) = length r
+    columnCount []  = 0
     toRow           = Row nullAttr . map B.simpleCell
     toHeaderRow l = [toRow l | not (null l)]
 
