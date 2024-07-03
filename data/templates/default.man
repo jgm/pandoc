@@ -8,7 +8,7 @@ $endif$
 $if(adjusting)$
 .ad $adjusting$
 $endif$
-.TH "$title/nowrap$" "$section/nowrap$" "$date/nowrap$" "$footer/nowrap$" "$header/nowrap$"
+.TH "$title/nowrap$" "$section/nowrap$" "$date/nowrap$" "$footer/nowrap$"$if(header)$ "$header/nowrap$"$endif$
 $for(header-includes)$
 $header-includes$
 $endfor$
