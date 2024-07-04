@@ -1,57 +1,196 @@
 {
   "nodes": {
-    "flake-utils": {
-      "inputs": {
-        "systems": "systems"
-      },
+    "citeproc": {
+      "flake": false,
       "locked": {
-        "lastModified": 1681202837,
-        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
+        "lastModified": 1719250720,
+        "narHash": "sha256-aX1KgFPwnIeXaNp5Lvv92kcH5VKJxgV0cJctOslC9X4=",
+        "owner": "jgm",
+        "repo": "citeproc",
+        "rev": "1f7e44461f66226ef9a5ac7b921ca8194de018d2",
         "type": "github"
       },
       "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
+        "owner": "jgm",
+        "ref": "0.8.1.1",
+        "repo": "citeproc",
+        "type": "github"
+      }
+    },
+    "commonmark-hs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1718676311,
+        "narHash": "sha256-kynnO6b1iWt89smA8CT1y1KM+mQyTJWQOa3QXme42Y4=",
+        "owner": "jgm",
+        "repo": "commonmark-hs",
+        "rev": "e3747fd282c806cd2f8e83226e85f1b83ee889c3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jgm",
+        "ref": "master",
+        "repo": "commonmark-hs",
+        "type": "github"
+      }
+    },
+    "djot": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1719250929,
+        "narHash": "sha256-BhbRaLVN1we9LT0CAgqhLcfqtrpCJKrHMqs42eJ48NI=",
+        "owner": "jgm",
+        "repo": "djoths",
+        "rev": "fee9d20d28bc591600c778aae0d4789721a88b7b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jgm",
+        "ref": "0.1.2.1",
+        "repo": "djoths",
+        "type": "github"
+      }
+    },
+    "emojis": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1718672116,
+        "narHash": "sha256-HEfX3wtqDmvOtCvuKGUdnU06FMkszuPrgmrrN+5aB/k=",
+        "owner": "jgm",
+        "repo": "emojis",
+        "rev": "a6d541378effde9bbb5ebae2ad8795153aaee40e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jgm",
+        "ref": "0.1.4.1",
+        "repo": "emojis",
+        "type": "github"
+      }
+    },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": "nixpkgs-lib"
+      },
+      "locked": {
+        "lastModified": 1719994518,
+        "narHash": "sha256-pQMhCCHyQGRzdfAkdJ4cIWiw+JNuWsTX7f0ZYSyz0VY=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "9227223f6d922fee3c7b190b2cc238a99527bbb7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "haskell-flake": {
+      "locked": {
+        "lastModified": 1720020158,
+        "narHash": "sha256-MtatlRdAy7eWdgZI8JgW/OmY/aqF+SvRucqlsLHzX80=",
+        "owner": "srid",
+        "repo": "haskell-flake",
+        "rev": "64bd0f328e5a424b65aafdde3901b64f4f390b0f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "srid",
+        "repo": "haskell-flake",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1683594133,
-        "narHash": "sha256-iUhLhEAgOCnexSGDsYT2ouydis09uDoNzM7UC685XGE=",
-        "owner": "NixOS",
+        "lastModified": 1720058333,
+        "narHash": "sha256-gM2RCi5XkxmcsZ44pUkKIYBiBMfZ6u7MdcZcykmccrs=",
+        "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "8d447c5626cfefb9b129d5b30103344377fe09bc",
+        "rev": "6842b061970bf96965d66fcc86a28e1f719aae95",
         "type": "github"
       },
       "original": {
-        "owner": "NixOS",
+        "owner": "nixos",
         "ref": "nixpkgs-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
-    "root": {
-      "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+    "nixpkgs-lib": {
+      "locked": {
+        "lastModified": 1719876945,
+        "narHash": "sha256-Fm2rDDs86sHy0/1jxTOKB1118Q0O3Uc7EC0iXvXKpbI=",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/5daf0514482af3f97abaefc78a6606365c9108e2.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/5daf0514482af3f97abaefc78a6606365c9108e2.tar.gz"
       }
     },
-    "systems": {
+    "root": {
+      "inputs": {
+        "citeproc": "citeproc",
+        "commonmark-hs": "commonmark-hs",
+        "djot": "djot",
+        "emojis": "emojis",
+        "flake-parts": "flake-parts",
+        "haskell-flake": "haskell-flake",
+        "nixpkgs": "nixpkgs",
+        "skylighting": "skylighting",
+        "typst-hs": "typst-hs",
+        "typst-symbols": "typst-symbols"
+      }
+    },
+    "skylighting": {
+      "flake": false,
       "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
-        "owner": "nix-systems",
-        "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "lastModified": 1719207821,
+        "narHash": "sha256-QlObt8FVk8ZtEVS5SWA3iTbNjpTxRHCQVLIaEoEocsA=",
+        "owner": "jgm",
+        "repo": "skylighting",
+        "rev": "97f6539395c19b927f423b556043656c39e55622",
         "type": "github"
       },
       "original": {
-        "owner": "nix-systems",
-        "repo": "default",
+        "owner": "jgm",
+        "ref": "0.14.2",
+        "repo": "skylighting",
+        "type": "github"
+      }
+    },
+    "typst-hs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1719678004,
+        "narHash": "sha256-75ReSRGiM9EY+xkdfH4I0ufyb6uJN8yCoJkJAex+MZo=",
+        "owner": "jgm",
+        "repo": "typst-hs",
+        "rev": "7e0e80548aae9f3d3059f0dae333e93c8d67f290",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jgm",
+        "ref": "main",
+        "repo": "typst-hs",
+        "type": "github"
+      }
+    },
+    "typst-symbols": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1710699100,
+        "narHash": "sha256-nX4KCjQsR5E35z2Dl/BykD1OcwkWj2F6FNvUJ4c0oHM=",
+        "owner": "jgm",
+        "repo": "typst-symbols",
+        "rev": "0e6f7a082bf76977a2bb0a76024e1cf9f9986837",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jgm",
+        "ref": "0.1.6",
+        "repo": "typst-symbols",
         "type": "github"
       }
     }

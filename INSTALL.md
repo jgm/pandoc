@@ -178,6 +178,16 @@ examples, see <https://github.com/pandoc/pandoc-action-example>.
 Pandoc can be run through [GitLab CI/CD].  For some
 examples, see <https://gitlab.com/pandoc/pandoc-ci-example>.
 
+## Nix
+
+Pandoc can be built and run using Nix. First, [install Nix](https://nixos.asia/en/install), and then:
+
+```sh
+nix run github:jgm/pandoc
+```
+
+To learn about basic Nix commands, see [this introduction](https://nixos.asia/en/nix-first).
+
 ## Compiling from source
 
 If for some reason a binary package is not available for your
