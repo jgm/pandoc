@@ -1,8 +1,10 @@
 Abstract: Përmbledhja
 Appendix: Shtesa
 Bibliography: Bibliografia
+Cc: Kopja
 Chapter: Kapitulli
-Contents: Përmbajta
+Contents: Përmbajtja
+Encl: Lidhja
 Figure: Figura
 Glossary: Përhasja e Fjalëve
 Index: Indeksi
@@ -16,3 +18,4 @@ References: Referencat
 See: shiko
 SeeAlso: shiko dhe
 Table: Tabela
+To: Për
