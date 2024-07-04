@@ -3,9 +3,10 @@ Appendix: Приложение
 Bibliography: Литература
 Cc: исх.
 Chapter: Глава
-Contents: Оглавление
+Contents: Содержание
 Encl: вкл.
 Figure: Рис.
+Glossary: Словарь терминов
 Index: Предметный указатель
 ListOfFigures: Список иллюстраций
 ListOfTables: Список таблиц
@@ -15,6 +16,6 @@ Preface: Предисловие
 Proof: Доказательство
 References: Список литературы
 See: см.
-SeeAlso: см. также
+SeeAlso: см. также
 Table: Таблица
 To: вх.
