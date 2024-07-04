@@ -234,6 +234,10 @@ update-website: ## update website and upload
 	make -C $(WEBSITE) upload
 .PHONY: update-website
 
+update-translations: ## update data/translations from Babel and Polyglossia
+	python tools/update-translations.py
+.PHONY: update-translations
+
 validate-docx-golden-tests: ## validate docx golden tests against schema
 	which xmllint || ("xmllint is required" && exit 1)
 	test -d ./docx-validator || \
