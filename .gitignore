@@ -68,3 +68,5 @@
 .*sw?
 .DS_Store
 .stack-work
+/.direnv
+/result
