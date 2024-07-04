@@ -3680,7 +3680,7 @@ round-tripping) rather than being parsed.  Use this only
 when you are targeting `ipynb` or a Markdown-based
 output format.
 
-### Extension: `citations` {#org-citations}
+### Extension: `citations` (org) {#org-citations}
 
 When the `citations` extension is enabled in `org`,
 org-cite and org-ref style citations will be parsed as
@@ -3689,12 +3689,14 @@ native pandoc citations.
   [org-cite]: https://orgmode.org/manual/Citations.html
   [org-ref]:  https://github.com/jkitchin/org-ref
 
+### Extension: `citations` (docx) {#docx-citations}
+
 When `citations` is enabled in `docx`, citations inserted
 by Zotero or Mendeley or EndNote plugins will be parsed as native
 pandoc citations.  (Otherwise, the formatted citations generated
 by the bibliographic software will be parsed as regular text.)
 
-### Extension: `fancy_lists` {#org-fancy-lists}
+### Extension: `fancy_lists` (org) {#org-fancy-lists}
 
 Some aspects of [Pandoc's Markdown fancy lists](#extension-fancy_lists) are also
 accepted in `org` input, mimicking the option `org-list-allow-alphabetical` in
