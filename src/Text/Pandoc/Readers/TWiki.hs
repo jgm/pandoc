@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isAlphaNum, isDigit, isUpperCase, isLowerCase, isLetter)
+import Data.Char (isAlphaNum, isDigit, isUpper, isLower, isLetter)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -490,8 +490,8 @@ simpleWikiLink = do
   return (w, "wikilink", B.str w)
  where
    wikiWord = do
-     cs <- many1 $ satisfy (\x -> isLetter x && isUpperCase x)
-     ds <- many1 $ satisfy (\x -> isDigit x || (isLetter x && isLowerCase x))
-     es <- many1 $ satisfy (\x -> isLetter x && isUpperCase x)
+     cs <- many1 $ satisfy (\x -> isLetter x && isUpper x)
+     ds <- many1 $ satisfy (\x -> isDigit x || (isLetter x && isLower x))
+     es <- many1 $ satisfy (\x -> isLetter x && isUpper x)
      fs <- many $ satisfy isAlphaNum
      return $ T.pack $ cs ++ ds ++ es ++ fs
