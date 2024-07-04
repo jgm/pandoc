@@ -757,7 +757,9 @@ blockFormula constructor e = do
                             filterChildren (named  "tex-math") whereToLook
                 mathMLs = map mathML $
                             filterChildren isMathML whereToLook
-            return . para . head . take 1 . map constructor $ texMaths ++ mathMLs
+            case texMaths ++ mathMLs of
+              [] -> return mempty
+              (m:_) -> return $ para (constructor m)
 
 mathML :: Element -> Text
 mathML x =
