@@ -365,6 +365,8 @@ blockHandlers = M.fromList
       pure $ B.plain . B.text . mconcat . map toNum $ V.toList nums)
   ,("footnote.entry", \_ fields ->
       getField "body" fields >>= pWithContents pBlocks)
+  ,("pad", \_ fields ->  -- ignore paddingy
+      getField "body" fields >>= pWithContents pBlocks)
   ]
 
 inlineHandlers :: PandocMonad m =>
@@ -499,6 +501,8 @@ inlineHandlers = M.fromList
       body <- getField "body" fields
       display <- getField "block" fields
       (if display then B.displayMath else B.math) . writeTeX <$> pMathMany body)
+  ,("pad", \_ fields ->  -- ignore paddingy
+      getField "body" fields >>= pWithContents pInlines)
   ]
 
 getInlineBody :: PandocMonad m => M.Map Identifier Val -> P m (Seq Content)
