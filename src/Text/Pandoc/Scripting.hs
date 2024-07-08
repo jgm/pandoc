@@ -5,7 +5,7 @@
 Module      : Text.Pandoc.Scripting
 Copyright   : © 2022-2024 Albert Krewinkel
 License     : GPL-2.0-or-later
-Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Central data structure for scripting engines.
 -}

@@ -5,7 +5,7 @@ Module      : Text.Pandoc.Lua.Filter
 Copyright   : © 2012-2024 John MacFarlane,
               © 2017-2024 Albert Krewinkel
 License     : GPL-2.0-or-later
-Maintainer  : Albert Krewinkel <pandoc@tarleb.com>
+Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Types and functions for running Lua filters.
 -}

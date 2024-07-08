@@ -9,7 +9,7 @@
    Module      : Text.Pandoc.Lua.PandocLua
    Copyright   : © 2020-2024 Albert Krewinkel
    License     : GPL-2.0-or-later
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 PandocMonad instance which allows execution of Lua operations and which
 uses Lua to handle state.

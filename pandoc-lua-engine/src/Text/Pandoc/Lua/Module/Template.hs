@@ -3,7 +3,7 @@
    Module      : Text.Pandoc.Lua.Module.Template
    Copyright   : Copyright © 2022-2024 Albert Krewinkel, John MacFarlane
    License     : GNU GPL, version 2 or above
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Lua module to handle pandoc templates.
 -}

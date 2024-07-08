@@ -4,7 +4,7 @@
 Module      : Tests.Lua.Writer
 Copyright   : © 2019-2024 Albert Krewinkel
 License     : GNU GPL, version 2 or above
-Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Tests for custom Lua writers.
 -}

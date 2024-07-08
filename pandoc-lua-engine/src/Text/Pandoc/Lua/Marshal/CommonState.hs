@@ -4,7 +4,7 @@
    Copyright   : © 2012-2024 John MacFarlane
                  © 2017-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
 
 Instances to marshal (push) and unmarshal (peek) the common state.

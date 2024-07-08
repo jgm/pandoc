@@ -4,7 +4,7 @@
 Module      : Text.Pandoc.Lua.Module.JSON
 Copyright   : © 2022-2024 Albert Krewinkel
 License     : MIT
-Maintainer  : Albert Krewinkel <albert@hslua.org>
+Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Lua module to work with JSON.
 -}

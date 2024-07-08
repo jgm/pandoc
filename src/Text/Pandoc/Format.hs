@@ -4,7 +4,7 @@
    Module      : Text.Pandoc.Format
    Copyright   : © 2022-2024 Albert Krewinkel
    License     : GPL-2.0-or-later
-   Maintainer  : Albert Krewinkel <pandoc@tarleb.com>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Handling of format specifiers for input and output.
 -}

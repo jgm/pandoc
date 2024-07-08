@@ -4,7 +4,7 @@
    Module      : Text.Pandoc.Lua.Marshal.Chunks
    Copyright   : © 2022 Albert Krewinkel
    License     : GPL-2.0-or-later
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Marshaling chunks, i.e., pandoc subdocuments.
 -}

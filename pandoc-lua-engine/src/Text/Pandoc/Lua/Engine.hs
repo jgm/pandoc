@@ -4,7 +4,7 @@
    Module      : Text.Pandoc.Lua.Engine
    Copyright   : Copyright © 2017-2024 Albert Krewinkel
    License     : GPL-2.0-or-later
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@zeitkraut.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Running pandoc Lua filters.
 -}

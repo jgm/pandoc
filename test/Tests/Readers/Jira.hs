@@ -5,7 +5,7 @@
    Copyright   : © 2019-2024 Albert Krewinel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb@zeitkraut.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
    Portability : portable
 

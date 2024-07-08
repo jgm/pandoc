@@ -3,7 +3,7 @@
 Module      : Text.Pandoc.Lua.Module.Text
 Copyright   : © 2023 Albert Krewinkel
 License     : MIT
-Maintainer  : Albert Krewinkel <albert@hslua.org>
+Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Lua module to work with UTF-8 strings.
 -}
