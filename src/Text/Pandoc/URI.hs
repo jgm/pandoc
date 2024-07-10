@@ -84,7 +84,7 @@ schemes = Set.fromList
   , "xmlrpc.beep", "xmlrpc.beeps", "xmpp", "xri", "ymsgr", "z39.50", "z39.50r"
   , "z39.50s"
   -- Unofficial schemes
-  , "doi", "isbn", "javascript", "pmid"
+  , "doi", "gemini", "isbn", "javascript", "pmid"
   ]
 
 -- | Check if the string is a valid URL with a IANA or frequently used but
