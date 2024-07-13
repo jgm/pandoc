@@ -23,6 +23,9 @@ return {
     test('email_obfuscation', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.email_obfuscation), 'string')
     end),
+    test('embed_resources', function ()
+      assert.are_equal(type(PANDOC_WRITER_OPTIONS.embed_resources), 'boolean')
+    end),
     test('split_level', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.split_level), 'number')
     end),

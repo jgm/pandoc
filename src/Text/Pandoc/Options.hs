@@ -326,6 +326,7 @@ data WriterOptions = WriterOptions
   , writerSyntaxMap         :: SyntaxMap
   , writerPreferAscii       :: Bool           -- ^ Prefer ASCII representations of characters when possible
   , writerLinkImages        :: Bool           -- ^ Use links rather than embedding ODT images
+  , writerEmbedResources    :: Bool           -- ^ Embed resources in HTML
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -365,6 +366,7 @@ instance Default WriterOptions where
                       , writerSyntaxMap        = defaultSyntaxMap
                       , writerPreferAscii      = False
                       , writerLinkImages       = False
+                      , writerEmbedResources   = False
                       }
 
 instance HasSyntaxExtensions WriterOptions where
