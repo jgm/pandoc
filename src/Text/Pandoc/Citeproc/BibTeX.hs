@@ -206,7 +206,7 @@ writeBibtexString opts variant mblang ref =
 
   renderName name =
     case nameLiteral name of
-      Just t  -> B.text t
+      Just t  -> B.spanWith ("",[],[]) $ B.text t
       Nothing -> spacedMaybes
                   [ nameNonDroppingParticle name
                   , nameFamily name
