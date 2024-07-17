@@ -510,6 +510,13 @@ parPartToInlines' (Field info children) =
          else smushInlines <$> mapM parPartToInlines' children
     _ -> smushInlines <$> mapM parPartToInlines' children
 
+-- Helper function to convert CitationItemType to CitationMode
+convertCitationMode :: Citeproc.CitationItemType -> CitationMode
+convertCitationMode itemType = case itemType of
+                                 Citeproc.NormalCite -> NormalCitation
+                                 Citeproc.SuppressAuthor -> SuppressAuthor
+                                 Citeproc.AuthorOnly -> AuthorInText
+
 -- Turn a 'Citeproc.Citation' into a list of 'Text.Pandoc.Definition.Citation',
 -- and store the embedded bibliographic data in state.
 handleCitation :: PandocMonad m
@@ -526,7 +533,7 @@ handleCitation citation = do
                          <> x <> " ")
                      (Citeproc.citationItemLocator item)
                     <> fromMaybe mempty (Citeproc.citationItemSuffix item)
-                , citationMode = NormalCitation -- TODO for now
+                , citationMode = convertCitationMode (Citeproc.citationItemType item)
                 , citationNoteNum = 0
                 , citationHash = 0 }
   let items = Citeproc.citationItems citation
