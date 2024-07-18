@@ -628,6 +628,8 @@ $endif$
 
 $endif$
 $endif$
+$if(suppress-bibliography)$
+$else$
 $if(biblatex)$
 $if(beamer)$
 \begin{frame}[allowframebreaks]{$biblio-title$}
@@ -638,6 +640,7 @@ $else$
 \printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
 $endif$
 
+$endif$
 $endif$
 $for(include-after)$
 $include-after$
