@@ -44,6 +44,7 @@ import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.UTF8 (fromTextLazy)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (highlight)
@@ -170,6 +171,56 @@ makeTOC opts = do
       ])
     ]] -- w:sdt
 
+makeLOF :: (PandocMonad m) => WriterOptions -> WS m [Element]
+makeLOF opts = do
+  let lofCmd = "TOC \\h \\z \\t \"Image Caption\" \\c" :: Text
+  lofTitle <- B.toList <$> B.text <$> translateTerm Term.ListOfFigures
+  title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lofTitle])
+  return
+    [mknode "w:sdt" [] [
+      mknode "w:sdtPr" [] (
+        mknode "w:docPartObj" []
+          [mknode "w:docPartGallery" [("w:val","List of Figures")] (),
+          mknode "w:docPartUnique" [] ()]
+         -- w:docPartObj
+      ), -- w:sdtPr
+      mknode "w:sdtContent" [] (title ++ [ Elem $
+        mknode "w:p" [] (
+          mknode "w:r" [] [
+            mknode "w:fldChar" [("w:fldCharType","begin"),("w:dirty","true")] (),
+            mknode "w:instrText" [("xml:space","preserve")] lofCmd,
+            mknode "w:fldChar" [("w:fldCharType","separate")] (),
+            mknode "w:fldChar" [("w:fldCharType","end")] ()
+          ] -- w:r
+        ) -- w:p
+      ]) -- w:sdtContent
+    ]] -- w:sdt
+
+makeLOT :: (PandocMonad m) => WriterOptions -> WS m [Element]
+makeLOT opts = do
+  let lotCmd = "TOC \\h \\z \\t \"Table Caption\" \\c" :: Text
+  lotTitle <- B.toList <$> B.text <$> translateTerm Term.ListOfTables
+  title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lotTitle])
+  return
+    [mknode "w:sdt" [] [
+      mknode "w:sdtPr" [] (
+        mknode "w:docPartObj" []
+          [mknode "w:docPartGallery" [("w:val","List of Tables")] (),
+          mknode "w:docPartUnique" [] ()]
+         -- w:docPartObj
+      ), -- w:sdtPr
+      mknode "w:sdtContent" [] (title ++ [ Elem $
+        mknode "w:p" [] (
+          mknode "w:r" [] [
+            mknode "w:fldChar" [("w:fldCharType","begin"),("w:dirty","true")] (),
+            mknode "w:instrText" [("xml:space","preserve")] lotCmd,
+            mknode "w:fldChar" [("w:fldCharType","separate")] (),
+            mknode "w:fldChar" [("w:fldCharType","end")] ()
+          ] -- w:r
+        ) -- w:p
+      ]) -- w:sdtContent
+    ]] -- w:sdt
+
 -- | Convert Pandoc document to rendered document contents plus two lists of
 -- OpenXML elements (footnotes and comments).
 writeOpenXML :: PandocMonad m
@@ -178,6 +229,8 @@ writeOpenXML :: PandocMonad m
 writeOpenXML opts (Pandoc meta blocks) = do
   setupTranslations meta
   let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
+  let includeLOF = writerListOfFigures opts || lookupMetaBool "lof" meta
+  let includeLOT = writerListOfTables opts || lookupMetaBool "lot" meta
   abstractTitle <- case lookupMeta "abstract-title" meta of
       Just (MetaBlocks bs)   -> pure $ stringify bs
       Just (MetaInlines ils) -> pure $ stringify ils
@@ -224,6 +277,12 @@ writeOpenXML opts (Pandoc meta blocks) = do
   toc <- if includeTOC
             then makeTOC opts
             else return []
+  lof <- if includeLOF
+            then makeLOF opts
+            else return []
+  lot <- if includeLOT
+            then makeLOT opts
+            else return []
   metadata <- metaToContext opts
                  (fmap (vcat . map (literal . showContent)) . blocksToOpenXML opts)
                  (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
@@ -231,6 +290,10 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let context = resetField "body" body
               . resetField "toc"
                    (vcat (map (literal . showElement) toc))
+              . resetField "lof"
+                   (vcat (map (literal . showElement) lof))
+              . resetField "lot"
+                   (vcat (map (literal . showElement) lot))
               . resetField "title" title
               . resetField "subtitle" subtitle
               . resetField "author" author

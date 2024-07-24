@@ -107,6 +107,8 @@ data Opt = Opt
     , optFrom                  :: Maybe Text  -- ^ Reader format
     , optTo                    :: Maybe Text  -- ^ Writer format
     , optTableOfContents       :: Bool    -- ^ Include table of contents
+    , optListOfFigures         :: Bool    -- ^ Include list of figures
+    , optListOfTables          :: Bool    -- ^ Include list of tables
     , optShiftHeadingLevelBy   :: Int     -- ^ Shift heading level by
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: Context Text    -- ^ Template variables to set
@@ -192,6 +194,8 @@ instance FromJSON Opt where
        <*> o .:? "from"
        <*> o .:? "to"
        <*> o .:? "table-of-contents" .!= optTableOfContents defaultOpts
+       <*> o .:? "list-of-figures" .!= optListOfFigures defaultOpts
+       <*> o .:? "list-of-tables" .!= optListOfTables defaultOpts
        <*> o .:? "shift-heading-level-by" .!= optShiftHeadingLevelBy defaultOpts
        <*> o .:? "template"
        <*> o .:? "variables" .!= optVariables defaultOpts
@@ -480,6 +484,14 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optTableOfContents = x })
     "toc" ->
       parseJSON v >>= \x -> return (\o -> o{ optTableOfContents = x })
+    "list-of-figures" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfFigures = x })
+    "lof" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfFigures = x })
+    "list-of-tables" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfTables = x })
+    "lot" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfTables = x })
     "from" ->
       parseJSON v >>= \x -> return (\o -> o{ optFrom = x })
     "reader" ->
@@ -744,6 +756,8 @@ defaultOpts = Opt
     , optFrom                  = Nothing
     , optTo                    = Nothing
     , optTableOfContents       = False
+    , optListOfFigures         = False
+    , optListOfTables          = False
     , optShiftHeadingLevelBy   = 0
     , optTemplate              = Nothing
     , optVariables             = mempty

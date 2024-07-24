@@ -194,6 +194,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                     $ lookupMetaInlines "nocite" meta
 
   let context  =  defField "toc" (writerTableOfContents options) $
+                  defField "lof" (writerListOfFigures options) $
+                  defField "lot" (writerListOfTables options) $
                   defField "toc-depth" (tshow
                                         (writerTOCDepth options -
                                               if stHasChapters st

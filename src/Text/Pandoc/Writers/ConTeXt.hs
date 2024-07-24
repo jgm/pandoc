@@ -104,6 +104,8 @@ pandocToConTeXt options (Pandoc meta blocks) = do
   mblang <- fromBCP47 (getLang options meta)
   st <- get
   let context =   defField "toc" (writerTableOfContents options)
+                $ defField "lof" (writerListOfFigures options)
+                $ defField "lot" (writerListOfTables options)
                 $ defField "placelist"
                    (mconcat . intersperse ("," :: Doc Text) $
                      take (writerTOCDepth options +

@@ -50,6 +50,12 @@ $endfor$
 $if(toc)$
     $toc$
 $endif$
+$if(lof)$
+    $lof$
+$endif$
+$if(lot)$
+    $lot$
+$endif$
     $body$
 $for(include-after)$
     $include-after$
