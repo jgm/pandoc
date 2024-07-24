@@ -292,6 +292,8 @@ data WriterOptions = WriterOptions
   , writerVariables         :: Context Text -- ^ Variables to set in template
   , writerTabStop           :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents   :: Bool   -- ^ Include table of contents
+  , writerListOfFigures     :: Bool   -- ^ Include list of figures
+  , writerListOfTables      :: Bool   -- ^ Include list of tables
   , writerIncremental       :: Bool   -- ^ True if lists should be incremental
   , writerHTMLMathMethod    :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerNumberSections    :: Bool   -- ^ Number sections in LaTeX
@@ -333,6 +335,8 @@ instance Default WriterOptions where
                       , writerVariables        = mempty
                       , writerTabStop          = 4
                       , writerTableOfContents  = False
+                      , writerListOfFigures    = False
+                      , writerListOfTables     = False
                       , writerIncremental      = False
                       , writerHTMLMathMethod   = PlainMath
                       , writerNumberSections   = False
