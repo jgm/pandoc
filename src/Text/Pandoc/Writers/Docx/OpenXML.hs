@@ -231,6 +231,8 @@ writeOpenXML :: PandocMonad m
 writeOpenXML opts (Pandoc meta blocks) = do
   setupTranslations meta
   let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
+  let includeLOF = writerListOfFigures opts || lookupMetaBool "lof" meta
+  let includeLOT = writerListOfTables opts || lookupMetaBool "lot" meta
   abstractTitle <- case lookupMeta "abstract-title" meta of
       Just (MetaBlocks bs)   -> pure $ stringify bs
       Just (MetaInlines ils) -> pure $ stringify ils
@@ -277,6 +279,12 @@ writeOpenXML opts (Pandoc meta blocks) = do
   toc <- if includeTOC
             then makeTOC opts
             else return []
+  lof <- if includeLOF
+            then makeLOF opts
+            else return []
+  lot <- if includeLOT
+            then makeLOT opts
+            else return []
   metadata <- metaToContext opts
                  (fmap (vcat . map (literal . showContent)) . blocksToOpenXML opts)
                  (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
@@ -284,6 +292,10 @@ writeOpenXML opts (Pandoc meta blocks) = do
   let context = resetField "body" body
               . resetField "toc"
                    (vcat (map (literal . showElement) toc))
+              . resetField "lof"
+                   (vcat (map (literal . showElement) lof))
+              . resetField "lot"
+                   (vcat (map (literal . showElement) lot))
               . resetField "title" title
               . resetField "subtitle" subtitle
               . resetField "author" author
