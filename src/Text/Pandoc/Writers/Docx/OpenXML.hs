@@ -171,6 +171,58 @@ makeTOC opts = do
       ])
     ]] -- w:sdt
 
+makeLOF:: (PandocMonad m) => WriterOptions -> WS m [Element]
+makeLOF opts = do
+  let lofCmd = "TOC \\h \\z \\t \"Image Caption\" \\c"
+  lofTitle <- gets stLofTitle
+  -- Create a separate style for LOF Heading?
+  title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lofTitle])
+  return
+    [mknode "w:sdt" [] [
+      mknode "w:sdtPr" [] (
+        mknode "w:docPartObj" []
+          [mknode "w:docPartGallery" [("w:val","List of Figures")] (),
+          mknode "w:docPartUnique" [] ()]
+         -- w:docPartObj
+      ), -- w:sdtPr
+      mknode "w:sdtContent" [] (title ++ [ Elem $
+        mknode "w:p" [] (
+          mknode "w:r" [] [
+            mknode "w:fldChar" [("w:fldCharType","begin"),("w:dirty","true")] (),
+            mknode "w:instrText" [("xml:space","preserve")] lofCmd,
+            mknode "w:fldChar" [("w:fldCharType","separate")] (),
+            mknode "w:fldChar" [("w:fldCharType","end")] ()
+          ] -- w:r
+        ) -- w:p
+      ]) -- w:sdtContent
+    ]] -- w:sdt
+
+makeLOT:: (PandocMonad m) => WriterOptions -> WS m [Element]
+makeLOT opts = do
+  let lotCmd = "TOC \\h \\z \\t \"Table Caption\" \\c"
+  lotTitle <- gets stLotTitle
+  -- Create a separate style for LOT Heading?
+  title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lotTitle])
+  return
+    [mknode "w:sdt" [] [
+      mknode "w:sdtPr" [] (
+        mknode "w:docPartObj" []
+          [mknode "w:docPartGallery" [("w:val","List of Tables")] (),
+          mknode "w:docPartUnique" [] ()]
+         -- w:docPartObj
+      ), -- w:sdtPr
+      mknode "w:sdtContent" [] (title ++ [ Elem $
+        mknode "w:p" [] (
+          mknode "w:r" [] [
+            mknode "w:fldChar" [("w:fldCharType","begin"),("w:dirty","true")] (),
+            mknode "w:instrText" [("xml:space","preserve")] lotCmd,
+            mknode "w:fldChar" [("w:fldCharType","separate")] (),
+            mknode "w:fldChar" [("w:fldCharType","end")] ()
+          ] -- w:r
+        ) -- w:p
+      ]) -- w:sdtContent
+    ]] -- w:sdt
+
 -- | Convert Pandoc document to rendered document contents plus two lists of
 -- OpenXML elements (footnotes and comments).
 writeOpenXML :: PandocMonad m
