@@ -175,9 +175,19 @@ writeDocx opts doc = do
                    [] -> stTocTitle defaultWriterState
                    ls -> ls
 
+  let lofTitle = case lookupMetaInlines "lof-title" meta of
+                   [] -> stLofTitle defaultWriterState
+                   ls -> ls
+
+  let lotTitle = case lookupMetaInlines "lot-title" meta of
+                   [] -> stLotTitle defaultWriterState
+                   ls -> ls
+
   let initialSt = defaultWriterState {
           stStyleMaps  = styleMaps
         , stTocTitle   = tocTitle
+        , stLofTitle   = lofTitle
+        , stLotTitle   = lotTitle
         , stCurId      = 20
         }
 

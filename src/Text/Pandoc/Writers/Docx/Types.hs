@@ -124,6 +124,8 @@ data WriterState = WriterState{
        , stInTable        :: Bool
        , stInList         :: Bool
        , stTocTitle       :: [Inline]
+       , stLofTitle       :: [Inline]
+       , stLotTitle       :: [Inline]
        , stDynamicParaProps :: Set.Set ParaStyleName
        , stDynamicTextProps :: Set.Set CharStyleName
        , stCurId          :: Int
@@ -148,6 +150,8 @@ defaultWriterState = WriterState{
       , stInTable        = False
       , stInList         = False
       , stTocTitle       = [Str "Table of Contents"]
+      , stLofTitle       = [Str "List of Figures"]
+      , stLotTitle       = [Str "List of Tables"]
       , stDynamicParaProps = Set.empty
       , stDynamicTextProps = Set.empty
       , stCurId          = 20
