@@ -171,9 +171,9 @@ makeTOC opts = do
       ])
     ]] -- w:sdt
 
-makeLOF:: (PandocMonad m) => WriterOptions -> WS m [Element]
+makeLOF :: (PandocMonad m) => WriterOptions -> WS m [Element]
 makeLOF opts = do
-  let lofCmd = "TOC \\h \\z \\t \"Image Caption\" \\c"
+  let lofCmd = "TOC \\h \\z \\t \"Image Caption\" \\c" :: Text
   lofTitle <- gets stLofTitle
   -- Create a separate style for LOF Heading?
   title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lofTitle])
@@ -197,9 +197,9 @@ makeLOF opts = do
       ]) -- w:sdtContent
     ]] -- w:sdt
 
-makeLOT:: (PandocMonad m) => WriterOptions -> WS m [Element]
+makeLOT :: (PandocMonad m) => WriterOptions -> WS m [Element]
 makeLOT opts = do
-  let lotCmd = "TOC \\h \\z \\t \"Table Caption\" \\c"
+  let lotCmd = "TOC \\h \\z \\t \"Table Caption\" \\c" :: Text
   lotTitle <- gets stLotTitle
   -- Create a separate style for LOT Heading?
   title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lotTitle])
