@@ -25,7 +25,6 @@ import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (isLetter, isSpace)
-import Data.Bifunctor (first)
 import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
@@ -391,26 +390,21 @@ blockToOpenXML' opts (Table attr caption colspecs thead tbodies tfoot) = do
   wrapBookmark tableId content
 blockToOpenXML' opts el
   | BulletList lst <- el
-  = case mapM toTaskListItem lst of
-      Just items -> addOpenXMLList (map (first (Just . CheckboxMarker)) items)
-      Nothing -> addOpenXMLList $ zip (Just BulletMarker : repeat Nothing) lst
+    = case mapM toTaskListItem lst of
+      Just items -> mconcat <$>
+        mapM (\(checked, bs) -> addOpenXMLList (CheckboxMarker checked) [bs]) items
+      Nothing -> addOpenXMLList BulletMarker lst
   | OrderedList (start, numstyle, numdelim) lst <- el
-  = addOpenXMLList $
-    zip (Just (NumberMarker numstyle numdelim start) : repeat Nothing) lst
+    = addOpenXMLList (NumberMarker numstyle numdelim start) lst
   where
-    addOpenXMLList items = do
-      exampleid <- case items of
-                        (Just (NumberMarker Example _ _),_) : _ -> gets stExampleId
-                        _ -> return Nothing
-      l <- asList $ mconcat <$>
-              mapM (\(mbmarker, bs) -> do
-                      numid <- case mbmarker of
-                        Nothing -> getNumId
-                        Just marker -> do
-                          addList marker
-                          getNumId
-                      listItemToOpenXML opts (fromMaybe numid exampleid) bs)
-              items
+    addOpenXMLList marker items = do
+      addList marker
+      numid <- getNumId
+      exampleid <- case marker of
+                     NumberMarker Example _ _ -> gets stExampleId
+                     _ -> return Nothing
+      l <- asList $ concat <$>
+             mapM (listItemToOpenXML opts $ fromMaybe numid exampleid) items
       setFirstPara
       return l
 blockToOpenXML' opts (DefinitionList items) = do

@@ -103,6 +103,11 @@ tests = [ testGroup "inlines"
             "docx/task_list.native"
             "docx/golden/task_list.docx"
           , docxTest
+            "issue 9994"
+            def
+            "docx/lists_9994.native"
+            "docx/golden/lists_9994.docx"
+          , docxTest
             "footnotes and endnotes"
             def
             "docx/notes.native"
