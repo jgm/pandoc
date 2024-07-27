@@ -428,10 +428,12 @@ processTok bs (Tok pos tok') = do
     UnformattedText{} -> return ()
     _ -> updateState $ \s -> s{ sEatChars = 0 }
   case tok' of
-    Grouped (Tok _ (ControlSymbol '*') : toks) ->
-      bs <$ (do oldTextContent <- sTextContent <$> getState
-                processTok mempty (Tok pos (Grouped toks))
-                updateState $ \st -> st{ sTextContent = oldTextContent })
+    Grouped (Tok _ (ControlSymbol '*') : toks@(firsttok:_)) ->
+      case firsttok of
+        Tok _ (ControlWord "shppict" _) -> inGroup (foldM processTok bs toks)
+        _ -> bs <$ (do oldTextContent <- sTextContent <$> getState
+                       processTok mempty (Tok pos (Grouped toks))
+                       updateState $ \st -> st{ sTextContent = oldTextContent })
     Grouped (Tok _ (ControlWord "fonttbl" _) : toks) -> inGroup $ do
       updateState $ \s -> s{ sFontTable = processFontTable toks }
       pure bs
