@@ -1082,7 +1082,7 @@ header when requesting a document from a URL:
     headings to become `\part{..}`, while second-level headings
     remain as their default type.
 
-`-N`, `--number-sections`
+`-N`, `--number-sections=[true|false]`
 
 :   Number section headings in LaTeX, ConTeXt, HTML, Docx, ms, or EPUB
     output.  By default, sections are not numbered.  Sections with class

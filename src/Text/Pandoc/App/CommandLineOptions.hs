@@ -411,8 +411,11 @@ options =
                  "" -- "Number of levels to include in TOC"
 
     , Option "N" ["number-sections"]
-                 (NoArg
-                  (\opt -> return opt { optNumberSections = True }))
+                  (OptArg
+                   (\arg opt -> do
+                        boolValue <- readBoolFromOptArg "--number-sections/-N" arg
+                        return opt { optNumberSections = boolValue })
+                  "true|false")
                  "" -- "Number sections"
 
     , Option "" ["number-offset"]
