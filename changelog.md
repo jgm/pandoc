@@ -1,5 +1,109 @@
 # Revision history for pandoc
 
+## pandoc 3.3 (2024-07-28)
+
+  * New cli option: `--link-images`.  This causes images to be linked
+    rather than embedded in ODT.
+
+  * Allow `--number-sections` to take an optional `true|false` argument.
+
+  * RTF reader:
+
+    + Handle `\*\shppict` without dropping image (#10025).
+
+  * TWiki Reader:
+
+    + Recognize WikiWords as internal links (#9941).
+    + Avoid partial function.
+
+  * Typst reader:
+
+    + Ignore 'pad' and just parse its body (#9958).
+    + Use typst 0.5.0.5. Fixes parsing of equations like `$1.$`.
+
+  * Docx writer:
+
+    + Fix regression with nested lists (#9994). The bug affects e.g.
+      ordered lists with bullet sublists; after the sublist the top-level
+      list reverts to bullets instead of being properly numbered.
+      This is a regression introduced in version 3.2.1.
+
+  * BibTeX writer:
+
+    + Ensure that "literal" names are enclosed in braces (#9987).
+
+  * Man writer:
+
+    + Use default middle header when metadata does not include `header`
+      (#9943).  This change causes pandoc to omit the middle
+      header parameter when `header` is not set, rather than
+      emitting `""`.  The parameter is optional and man will use
+      a default based on the section if it is not specified.
+
+  * HTML templates: don't load polyfill (#9918).
+    This was added in a period when MathJaX required polyfill.
+    MathJaX no longer recommends this and polyfill should no
+    longer be necessary on any reasonably modern browser.
+
+  * Translations:
+
+    + Add `ua.yaml` (Jens Oehlschlägel).
+    + Add a script (`tools/update-translations.py`) and Makefile
+      target (`update-translations`) to update translation data
+      automatically from babel and polyglossia upstream
+      (Stephen Huan).
+    + Use this script to update language data, increasing the number
+      of languages we cover (Stephen Huan).  Fix a few small bugs in
+      existing translations.
+
+  * Fix some mistakes with Japanese language code (#9938).
+    In several places we were mistakenly assuming that the BCP 47 code for
+    Japanese language was `jp`.  It is `ja`.
+
+  * Text.Pandoc.Options:
+
+    + New field in WriterOptions: `writerLinkImages` [API change] (#9815).
+
+  * Text.Pandoc.App.Opt:
+
+    + New field in Opt: `optLinkImages` [API change] (#9815).
+
+  * Lua subsystem:
+
+    + Keep `lpeg` and `re` as "loaded" modules (Albert Krewinkel).
+      The modules `lpeg` and `re` are now treated as if they had been
+      loaded with `require`. Previously the modules were only assigned
+      to global values, but could be loaded again via `require`,
+      thereby allowing to use a system-wide installation. However, this
+      proved to be confusing.
+
+      The old behavior can be restored by adding the following lines to
+      the top of Lua scripts, or to the `init.lua` in the data dir.
+
+          debug.registry()['_LOADED'].lpeg = nil
+          debug.registry()['_LOADED'].re = nil
+
+  * `pandoc-cli`: Include pandoc copyright in Lua version info (Albert
+    Krewinkel).
+
+  * `pandoc-cli`: Refer printing of version info to the Lua interpreter
+    (Albert Krewinkel). The Lua interpreter no longer terminates when
+    called with `-v` or `--version` arguments, thus improving
+    compatibility with the default `lua` interpreter program.
+
+  * Avoid partial functions in JATS reader, DocBook writer, Haddock reader.
+
+  * Allow tls 2.1.x.
+
+  * MANUAL.txt:
+
+    + Make documentation of extensions clearer (#9060).
+    + Fix section level for two Extensions entries.
+
+  * lua-filters.md: Partially autogenerate docs for module `pandoc`
+    (Albert Krewinkel). The documentation system isn't powerful enough to
+    generate the full documentation automatically.
+
 ## pandoc 3.2.1 (2024-06-24)
 
   * Fix `gfm_auto_identifiers` to replace emojis with their aliases,
