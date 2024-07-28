@@ -11,7 +11,8 @@ On linux or OSX:
 
 In Windows Powershell:
 
-    gci -r -i *.txt |foreach{$rtf=$_.directoryname+"\"+$_.basename+".rtf";pandoc -f markdown -s $_.name -o $rtf}
+    gci -r -i *.txt
+    |foreach{$rtf=$_.directoryname+"\"+$_.basename+".rtf";pandoc -f markdown -s $_.fullname -o $rtf}
 
 ## I used pandoc to convert a document to ICML (or OPML or RTF), and when I try to open it I'm told it's invalid.  What have I done wrong?
 
