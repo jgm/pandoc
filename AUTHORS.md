@@ -187,6 +187,7 @@
 - Jeff Runningen
 - Jens Getreu
 - Jens Petersen
+- Jens Oehlschlägel
 - Jesse Hathaway
 - Jeremie Knuesel
 - Jérémy Bobbio
@@ -355,6 +356,7 @@
 - Stephan Daus
 - Stephan Meijer
 - Stephen Altamirano
+- Stephen Huan
 - Sukil Etxenike
 - Sukka
 - Sumit Sahrawat
