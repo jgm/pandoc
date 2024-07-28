@@ -10,7 +10,7 @@ packages:
 - 'pandoc-server'
 extra-deps:
 - lpeg-1.1.0
-- tls-2.1.0
+- tls-2.0.6
 - toml-parser-2.0.1.0
 - typst-symbols-0.1.6
 - texmath-0.12.8.9
