@@ -3686,11 +3686,19 @@ round-tripping) rather than being parsed.  Use this only
 when you are targeting `ipynb` or a Markdown-based
 output format.
 
+### Extension: `citations` (typst) {#typst-citations}
+
+When the `citations` extension is enabled in `typst`
+(as it is by default), `typst` citations will
+be parsed as native pandoc citations, and native
+pandoc citations will be rendered as `typst` citations.
+
 ### Extension: `citations` (org) {#org-citations}
 
 When the `citations` extension is enabled in `org`,
 org-cite and org-ref style citations will be parsed as
-native pandoc citations.
+native pandoc citations, and org-cite citations will
+be used to render native pandoc citations.
 
   [org-cite]: https://orgmode.org/manual/Citations.html
   [org-ref]:  https://github.com/jkitchin/org-ref
