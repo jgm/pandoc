@@ -511,7 +511,7 @@ header when requesting a document from a URL:
 [GNU Texinfo]: https://www.gnu.org/software/texinfo/
 [RIS]: https://en.wikipedia.org/wiki/RIS_(file_format)
 [Emacs Org mode]: https://orgmode.org
-[AsciiDoc]: https://www.methods.co.nz/asciidoc/
+[AsciiDoc]: https://asciidoc.org/
 [AsciiDoctor]: https://asciidoctor.org/
 [`asciidoc-py`]: https://github.com/asciidoc-py/asciidoc-py
 [DZSlides]: https://paulrouget.com/dzslides/
