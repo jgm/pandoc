@@ -99,7 +99,7 @@ addUp (c:cs) = c : addUp cs
 addUp [] = []
 
 addNext :: [Chunk] -> [Chunk]
-addNext cs = zipWith go cs (map Just (tail cs) ++ [Nothing])
+addNext cs = zipWith go cs (map Just (drop 1 cs) ++ [Nothing])
  where
   go c nxt = c{ chunkNext = nxt }
 
