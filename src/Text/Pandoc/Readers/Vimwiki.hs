@@ -249,14 +249,13 @@ syntax _ = []
 
 nameValue :: Text -> Maybe (Text, Text)
 nameValue s =
-  let t = splitTextBy (== '=') s in
-    if length t /= 2
-      then Nothing
-      else let (a, b) = (head t, last t) in
-             if (T.length b < 2) || ((T.head b, T.last b) /= ('"', '"'))
-               then Nothing
-               else Just (a, stripFirstAndLast b)
-
+  case splitTextBy (== '=') s of
+    [a,b]
+      | T.length b >= 2
+      , "\"" `T.isPrefixOf` b
+      , "\"" `T.isSuffixOf` b
+      -> Just (a, stripFirstAndLast b)
+    _ -> Nothing
 
 displayMath :: PandocMonad m => VwParser m Blocks
 displayMath = try $ do
@@ -291,8 +290,8 @@ mathTagLaTeX s = case s of
 
 mixedList :: PandocMonad m => VwParser m Blocks
 mixedList = try $ do
-  (bl, _) <- mixedList' (-1)
-  return $ head bl
+  ((bl:_), _) <- mixedList' (-1)
+  return bl
 
 mixedList' :: PandocMonad m => Int -> VwParser m ([Blocks], Int)
 mixedList' prevInd = do
@@ -407,8 +406,8 @@ table1 = try $ do
 -- headerless table
 table2 :: PandocMonad m => VwParser m ([Blocks], [[Blocks]])
 table2 = try $ do
-  trs <- many1 tableRow
-  return (replicate (length $ head trs) mempty, trs)
+  trs@(firstrow:_) <- many1 tableRow
+  return (replicate (length firstrow) mempty, trs)
 
 tableHeaderSeparator :: PandocMonad m => VwParser m ()
 tableHeaderSeparator = try $ do
@@ -507,26 +506,27 @@ bareURL = try $ do
 
 strong :: PandocMonad m => VwParser m Inlines
 strong = try $ do
-  s <- lookAhead $ char '*' *> many1 (noneOf "*") <* char '*'
-  guard $ (head s `notElem` spaceChars)
-             && (last s `notElem` spaceChars)
   char '*'
-  contents <- mconcat <$>manyTill inline' (char '*'
-    >> notFollowedBy alphaNum)
-  return $ B.spanWith (makeId contents, [], []) mempty
-    <> B.strong contents
+  notFollowedBy (oneOf spaceChars)
+  contents <- mconcat <$> many1Till inline'
+                           (try (char '*' *> notFollowedBy alphaNum))
+  guard $ case reverse (toList contents) of
+             Space:_ -> False
+             _ -> True
+  return $ B.spanWith (makeId contents, [], []) mempty <> B.strong contents
 
 makeId :: Inlines -> Text
 makeId i = T.concat (stringify <$> toList i)
 
 emph :: PandocMonad m => VwParser m Inlines
 emph = try $ do
-  s <- lookAhead $ char '_' *> many1 (noneOf "_") <* char '_'
-  guard $ (head s `notElem` spaceChars)
-          && (last s `notElem` spaceChars)
   char '_'
-  contents <- mconcat <$>manyTill inline' (char '_'
-    >> notFollowedBy alphaNum)
+  notFollowedBy (oneOf spaceChars)
+  contents <- mconcat <$> many1Till inline'
+                           (try (char '_' *> notFollowedBy alphaNum))
+  guard $ case reverse (toList contents) of
+             Space:_ -> False
+             _ -> True
   return $ B.emph contents
 
 strikeout :: PandocMonad m => VwParser m Inlines
@@ -601,8 +601,8 @@ procLink' :: Text -> Text
 procLink' s
   | T.take 6 s == "local:" = "file" <> T.drop 5 s
   | T.take 6 s == "diary:" = "diary/" <> T.drop 6 s
-  | or ((`T.isPrefixOf` s) <$> [ "http:", "https:", "ftp:", "file:", "mailto:",
-                              "news:", "telnet:" ])
+  | any (`T.isPrefixOf` s) [ "http:", "https:", "ftp:", "file:", "mailto:",
+                             "news:", "telnet:" ]
                              = s
   | s == ""                  = ""
   | T.last s == '/'          = s
@@ -624,8 +624,9 @@ tag = try $ do
   char ':'
   s <- manyTillChar (noneOf spaceChars) (try (char ':' >> lookAhead space))
   guard $ not $ "::" `T.isInfixOf` (":" <> s <> ":")
-  let ss = splitTextBy (==':') s
-  return $ mconcat $ makeTagSpan' (head ss):(makeTagSpan <$> tail ss)
+  case splitTextBy (==':') s of
+    [] -> fail "tag doesn't contain :"
+    (x:xs) -> return $ mconcat $ makeTagSpan' x : (makeTagSpan <$> xs)
 
 todoMark :: PandocMonad m => VwParser m Inlines
 todoMark = try $ do
