@@ -144,7 +144,8 @@ contains images), [`bookmark`], [`xcolor`],
 [`soul`], [`geometry`] (with the `geometry` variable set),
 [`setspace`] (with `linestretch`), and
 [`babel`] (with `lang`).  If `CJKmainfont` is set, [`xeCJK`]
-is needed. [`framed`] is required if code is highlighted in a
+is needed if `xelatex` is used, else [`luatexja`] is needed if
+`lualatex` is used. [`framed`] is required if code is highlighted in a
 scheme that use a colored background. The use of `xelatex` or
 `lualatex` as the PDF engine requires [`fontspec`]. `lualatex`
 uses [`selnolig`] and [`lua-ul`]. `xelatex` uses [`bidi`] (with
@@ -186,6 +187,7 @@ better line breaks in URLs), and [`footnotehyper`] or
 [`listings`]: https://ctan.org/pkg/listings
 [`lm`]: https://ctan.org/pkg/lm
 [`lua-ul`]: https://ctan.org/pkg/lua-ul
+[`luatexja`]: https://ctan.org/pkg/luatexja
 [`longtable`]: https://ctan.org/pkg/longtable
 [`mathspec`]: https://ctan.org/pkg/mathspec
 [`microtype`]: https://ctan.org/pkg/microtype
@@ -2980,9 +2982,10 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `mainfont`, `sansfont`, `monofont`, `mathfont`, `CJKmainfont`, `CJKsansfont`, `CJKmonofont`
 :   font families for use with `xelatex` or
     `lualatex`: take the name of any system font, using the
-    [`fontspec`] package.  `CJKmainfont` uses the [`xecjk`] package.
+    [`fontspec`] package.  `CJKmainfont` uses the [`xecjk`] package if `xelatex` is used,
+    or the [`luatexja`] package if `lualatex` is used.
 
-`mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`
+`mainfontoptions`, `sansfontoptions`, `monofontoptions`, `mathfontoptions`, `CJKoptions`, `luatexjapresetoptions`
 :   options to use with `mainfont`, `sansfont`, `monofont`, `mathfont`,
     `CJKmainfont` in `xelatex` and `lualatex`.  Allow for any
     choices available through [`fontspec`]; repeat for multiple
