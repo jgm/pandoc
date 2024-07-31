@@ -174,8 +174,7 @@ makeTOC opts = do
 makeLOF :: (PandocMonad m) => WriterOptions -> WS m [Element]
 makeLOF opts = do
   let lofCmd = "TOC \\h \\z \\t \"Image Caption\" \\c" :: Text
-  lofTitle <- gets stLofTitle
-  -- Create a separate style for LOF Heading?
+  lofTitle <- T.text <$> translateTerm Term.ListOfFigures
   title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lofTitle])
   return
     [mknode "w:sdt" [] [
@@ -200,8 +199,7 @@ makeLOF opts = do
 makeLOT :: (PandocMonad m) => WriterOptions -> WS m [Element]
 makeLOT opts = do
   let lotCmd = "TOC \\h \\z \\t \"Table Caption\" \\c" :: Text
-  lotTitle <- gets stLotTitle
-  -- Create a separate style for LOT Heading?
+  lotTitle <- T.text <$> translateTerm Term.ListOfTables
   title <- withParaPropM (pStyleM "TOC Heading") (blocksToOpenXML opts [Para lotTitle])
   return
     [mknode "w:sdt" [] [
