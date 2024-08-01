@@ -204,7 +204,10 @@ blockToAsciiDoc opts (Header level (ident,_,_) inlines) = do
 blockToAsciiDoc opts (Figure attr (Caption _ longcapt) body) = do
   -- Images in figures all get rendered as individual block-level images
   -- with the given caption. Non-image elements are rendered unchanged.
-  capt <- inlineListToAsciiDoc opts (blocksToInlines longcapt)
+  capt <- if null longcapt
+             then pure mempty
+             else ("." <>) . nowrap <$>
+                   inlineListToAsciiDoc opts (blocksToInlines longcapt)
   let renderFigElement = \case
         Plain [Image imgAttr alternate (src, tit)] -> do
           args <- imageArguments opts imgAttr alternate src tit
@@ -213,7 +216,8 @@ blockToAsciiDoc opts (Figure attr (Caption _ longcapt) body) = do
                 (ident, _, _) -> literal $ "[#" <> ident <> "]"
           -- .Figure caption
           -- image::images/logo.png[Company logo, title="blah"]
-          return $ "." <> nowrap capt $$
+          return $
+            capt $$
             figAttributes $$
             "image::" <> args <> blankline
         blk -> blockToAsciiDoc opts blk
