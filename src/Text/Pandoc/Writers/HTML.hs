@@ -678,7 +678,8 @@ toAttrs kvs = do
   addAttr html5 mbEpubVersion x y
     | T.null x = id  -- see #7546
     | html5
-      = if x `Set.member` (html5Attributes <> rdfaAttributes)
+      = if (x `Set.member` (html5Attributes <> rdfaAttributes)
+            && x /= "label") -- #10048
              || T.any (== ':') x -- e.g. epub: namespace
              || "data-" `T.isPrefixOf` x
              || "aria-" `T.isPrefixOf` x
