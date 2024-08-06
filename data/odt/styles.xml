@@ -148,6 +148,9 @@ xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.3">
       style:font-size-complex="12pt"
       style:font-style-complex="italic" />
     </style:style>
+    <style:style style:name="TableCaption" style:family="paragraph"
+    style:parent-style-name="Caption" style:class="extra">
+    </style:style>
     <style:style style:name="Table" style:family="paragraph"
     style:parent-style-name="Caption" style:class="extra">
     </style:style>
