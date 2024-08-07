@@ -104,7 +104,7 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
               (blockListToAsciiDoc opts)
               (fmap chomp . inlineListToAsciiDoc opts)
               meta
-  main <- blockListToAsciiDoc opts $ makeSections False (Just 1) blocks
+  main <- blockListToAsciiDoc opts $ makeSections False Nothing blocks
   st <- get
   let context  = defField "body" main
                $ defField "toc"
