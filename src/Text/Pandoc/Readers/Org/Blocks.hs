@@ -33,6 +33,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Shared (compactify, compactifyDL, safeRead)
 
 import Control.Monad (foldM, guard, mzero, void)
+import Data.Bifunctor (bimap)
 import Data.Char (isSpace)
 import Data.Default (Default)
 import Data.Functor (($>))
@@ -243,15 +244,20 @@ parseBlockLines f blockType = ignHeaders *> (f <$> parsedBlockContent)
 rawBlockContent :: Monad m => Text -> OrgParser m Text
 rawBlockContent blockType = try $ do
   blkLines <- manyTill rawLine blockEnder
-  tabLen <- getOption readerTabStop
+  tabStop <- getOption readerTabStop
   trimP <- orgStateTrimLeadBlkIndent <$> getState
-  let stripIndent strs = map (T.drop (shortestIndent strs)) strs
-  (T.unlines
-   . (if trimP
-      then stripIndent . map (tabsToSpaces tabLen)
-      else id)
-   . map commaEscaped
-   $ blkLines)
+  -- split lines into indentation/contents tuples
+  let splitLines = map (T.span (\c -> c == ' ' || c == '\t')) blkLines
+  let countSpaces = T.foldr (\case {'\t' -> (tabStop +); _ -> (1 +)}) 0
+  let shortestIndent = foldr (min . countSpaces . fst) maxBound
+                     . filter (not . T.null . snd) -- ignore empty lines
+                     $ splitLines
+  let tabsToSpaces = T.replace "\t" (T.replicate tabStop " ")
+  let reIndent = if trimP
+                 then (T.drop shortestIndent . tabsToSpaces)
+                 else id
+
+  T.unlines (map (uncurry T.append . bimap reIndent commaEscaped) splitLines)
    <$ updateState (\s -> s { orgStateTrimLeadBlkIndent = True })
  where
    rawLine :: Monad m => OrgParser m Text
@@ -260,24 +266,11 @@ rawBlockContent blockType = try $ do
    blockEnder :: Monad m => OrgParser m ()
    blockEnder = try $ skipSpaces <* stringAnyCase ("#+end_" <> blockType)
 
-   shortestIndent :: [Text] -> Int
-   shortestIndent = foldr (min . T.length . T.takeWhile isSpace) maxBound
-                    . filter (not . T.null)
-
-   tabsToSpaces :: Int -> Text -> Text
-   tabsToSpaces tabStop t =
-     let (ind, suff) = T.span (\c -> c == ' ' || c == '\t') t
-         tabNum      = T.length $ T.filter (== '\n') ind
-         spaceNum    = T.length ind - tabNum
-     in  T.replicate (spaceNum + tabStop * tabNum) " " <> suff
-
-   commaEscaped t =
-     let (ind, suff) = T.span (\c -> c == ' ' || c == '\t') t
-     in  case T.uncons suff of
-           Just (',', cs)
-             | "*"  <- T.take 1 cs -> ind <> cs
-             | "#+" <- T.take 2 cs -> ind <> cs
-           _                       -> t
+   commaEscaped suff = case T.uncons suff of
+     Just (',', cs)
+       | "*"  <- T.take 1 cs -> cs
+       | "#+" <- T.take 2 cs -> cs
+     _                       -> suff
 
 -- | Read but ignore all remaining block headers.
 ignHeaders :: Monad m => OrgParser m ()
