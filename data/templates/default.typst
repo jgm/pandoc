@@ -20,6 +20,10 @@ $else$
 $template.typst()$
 $endif$
 
+$for(header-includes)$
+$header-includes$
+
+$endfor$
 #show: doc => conf(
 $if(title)$
   title: [$title$],
@@ -76,10 +80,6 @@ $endif$
   doc,
 )
 
-$for(header-includes)$
-$header-includes$
-
-$endfor$
 $for(include-before)$
 $include-before$
 
