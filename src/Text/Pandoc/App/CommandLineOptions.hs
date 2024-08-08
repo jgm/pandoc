@@ -410,6 +410,22 @@ options =
                  "NUMBER")
                  "" -- "Number of levels to include in TOC"
 
+    , Option "" ["lof", "list-of-figures"]
+                (OptArg
+                 (\arg opt -> do
+                        boolValue <- readBoolFromOptArg "--lof/--list-of-figures" arg
+                        return opt { optListOfFigures = boolValue })
+                 "true|false")
+               "" -- "Include list of figures"
+
+    , Option "" ["lot", "list-of-tables"]
+                (OptArg
+                 (\arg opt -> do
+                        boolValue <- readBoolFromOptArg "--lot/--list-of-tables" arg
+                        return opt { optListOfTables = boolValue })
+                 "true|false")
+               "" -- "Include list of tables"
+
     , Option "N" ["number-sections"]
                   (OptArg
                    (\arg opt -> do
