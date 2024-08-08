@@ -245,10 +245,12 @@ rawBlockContent blockType = try $ do
   blkLines <- manyTill rawLine blockEnder
   tabLen <- getOption readerTabStop
   trimP <- orgStateTrimLeadBlkIndent <$> getState
-  let stripIndent strs = if trimP then map (T.drop (shortestIndent strs)) strs else strs
+  let stripIndent strs = map (T.drop (shortestIndent strs)) strs
   (T.unlines
-   . stripIndent
-   . map (tabsToSpaces tabLen . commaEscaped)
+   . (if trimP
+      then stripIndent . map (tabsToSpaces tabLen)
+      else id)
+   . map commaEscaped
    $ blkLines)
    <$ updateState (\s -> s { orgStateTrimLeadBlkIndent = True })
  where
