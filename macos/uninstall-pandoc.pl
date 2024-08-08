@@ -41,7 +41,7 @@ die "Pandoc not installed.\n" if !( defined($volume) );
 my @pkg_files = `pkgutil --volume '$volume' --only-files --files '$pkg_id'`;
 @pkg_files = map { chomp; File::Spec->rel2abs($_, $volume) } @pkg_files;
 
-# Confirm uninistall with the user.
+# Confirm uninstall with the user.
 print "The following files will be deleted:\n\n";
 print join("\n", @pkg_files);
 print "\n\n";

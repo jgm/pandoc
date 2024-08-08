@@ -35,7 +35,7 @@ import Data.Text.Lazy.Builder (Builder, singleton, fromText, toLazyText)
 import Text.Pandoc.XML.Light.Types
 
 --
--- duplicates functinos from Text.XML.Output
+-- duplicates functions from Text.XML.Output
 --
 
 -- | The XML 1.0 header
