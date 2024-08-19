@@ -7,8 +7,10 @@ The simplest way to get the latest pandoc release is to use the installer.
   Download the latest installer
 </a>
 
-For alternative ways to install pandoc, see below
-under the heading for your operating system.
+For alternative ways to install pandoc, see below under the heading for
+your operating system. In cases where a statically linked executable is
+installed, the pandoc binary from this package cannot use lua filters that
+require external lua modules written in C.
 
 ## Windows
 
@@ -38,6 +40,18 @@ Or, you can install pandoc using
 [winget](https://github.com/microsoft/winget-pkgs):
 
     winget install --source winget --exact --id JohnMacFarlane.Pandoc
+
+Or, you can install pandoc using a [Conda
+forge](https://anaconda.org/conda-forge/pandoc) tool, like
+[`conda`](https://conda.pydata.org/docs/intro.html),
+[`[micro]mamba`](https://mamba.readthedocs.io/en/latest/index.html) or
+[`pixi`](https://prefix.dev). Conda forge contains multiple LaTeX and other
+packages (including `pandoc-citeproc`, `pandoc-plot`, `rsvg-convert` via
+`librsvg` etc.). Note this is a statically-linked executable:
+
+    conda install -c conda-forge pandoc
+    pixi global install pandoc
+    micromamba install pandoc
 
 Using multiple installation methods can result in two separate
 installations of pandoc; it is recommended to properly uninstall
@@ -70,6 +84,18 @@ Note: On unsupported versions of macOS (more than three releases old),
 Homebrew installs from source, which takes additional time and disk space
 for the `ghc` compiler and dependent Haskell libraries.
 
+Or, you can install pandoc using a [Conda
+forge](https://anaconda.org/conda-forge/pandoc) tool, like
+[`conda`](https://conda.pydata.org/docs/intro.html),
+[`[micro]mamba`](https://mamba.readthedocs.io/en/latest/index.html) or
+[`pixi`](https://prefix.dev). Conda forge contains multiple LaTeX and other
+packages (including `pandoc-citeproc`, `pandoc-plot`, `rsvg-convert` via
+`librsvg` etc.). Note this is a statically-linked executable:
+
+    conda install -c conda-forge pandoc
+    pixi global install pandoc
+    micromamba install pandoc
+
 We also provide a zip file containing the binaries and man
 pages, for those who prefer not to use the installer.  Simply
 unzip the file and move the binaries and man pages to
@@ -97,9 +123,7 @@ architecture on the **[download page]**.
 
 The executable is statically linked and
 has no dynamic dependencies or dependencies on external
-data files.  Note:  because of the static
-linking, the pandoc binary from this package cannot use lua
-filters that require external lua modules written in C.
+data files.
 
 Both a tarball and a deb installer are provided.  To install the deb:
 
@@ -121,6 +145,18 @@ For Pandoc versions before 2.0, which don't provide
 a tarball, try instead
 
     ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $DEST
+
+Or, you can install pandoc using a [Conda
+forge](https://anaconda.org/conda-forge/pandoc) tool, like
+[`conda`](https://conda.pydata.org/docs/intro.html),
+[`[micro]mamba`](https://mamba.readthedocs.io/en/latest/index.html) or
+[`pixi`](https://prefix.dev). Conda forge contains multiple LaTeX and other
+packages (including `pandoc-citeproc`, `pandoc-plot`, `rsvg-convert` via
+`librsvg` etc.). Note this is a statically-linked executable:
+
+    conda install -c conda-forge pandoc
+    pixi global install pandoc
+    micromamba install pandoc
 
 You can also install from source, using the
 instructions below under [Compiling from source].
