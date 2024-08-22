@@ -86,9 +86,12 @@ task:
     memory: 12G
   os: windows
   cpu: arm64
-  shell_script:
-    - Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-    - .cirrus/build_pandoc_package.ps1
+  env:
+    CIRRUS_SHELL: powershell
+  windows_task:
+    install_script:
+      - Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+      - .cirrus/build_pandoc_package.ps1
   windows_arm64_artifacts:
     path: ./window_arm64/*
 
