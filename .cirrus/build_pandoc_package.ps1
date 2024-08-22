@@ -1,3 +1,4 @@
+Write-Output [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
 choco install -y ghc
 choco install -y wixtoolset
 choco install -y 7zip.install
