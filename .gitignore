@@ -8,6 +8,7 @@
 /bench-*
 !.circleci/**
 !.cirrus.yml
+!.cirrus
 !.envrc
 !.editorconfig
 !.gitattributes

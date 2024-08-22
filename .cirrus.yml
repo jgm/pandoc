@@ -74,3 +74,17 @@ task:
     - bash linux/make_artifacts.sh
   linux_amd64_artifacts:
     path: ./linux-amd64/**
+
+task:
+  name: windows_arm64
+  alias: windows_arm64
+  trigger_type: manual
+  timeout_in: 90m
+  os: windows
+  cpu: arm64
+  shell_script:
+    - Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+    - .cirrus/build_pandoc_package.ps1
+  windows_arm64_artifacts:
+    path: ./window_arm64/*
+
