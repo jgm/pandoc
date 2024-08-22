@@ -5740,7 +5740,7 @@ author-in-text style inside notes when using a note style.
 
 [CSL user documentation]: https://citationstyles.org/authors/
 [CSL]: https://docs.citationstyles.org/en/stable/specification.html
-[CSL markup specs]: https://docs.citationstyles.org/en/1.0/release-notes.html#rich-text-markup-within-fields
+[CSL markup specs]: https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html#html-like-formatting-tags
 [Chicago Manual of Style]: https://chicagomanualofstyle.org
 [Citation Style Language]: https://citationstyles.org
 [Zotero Style Repository]: https://www.zotero.org/styles
