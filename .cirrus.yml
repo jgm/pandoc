@@ -80,6 +80,10 @@ task:
   alias: windows_arm64
   trigger_type: manual
   timeout_in: 90m
+  windows_container:
+    image: cirrusci/windowsservercore:2019
+    cpu: 4
+    memory: 12G
   os: windows
   cpu: arm64
   shell_script:
