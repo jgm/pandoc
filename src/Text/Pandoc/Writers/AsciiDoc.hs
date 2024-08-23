@@ -34,6 +34,7 @@ import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
+import Network.URI (parseURI, URI(uriScheme))
 import System.FilePath (dropExtension)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
@@ -603,9 +604,13 @@ inlineToAsciiDoc opts (Link _ txt (src, _tit)) = do
       fixCommas x = [x]
 
   linktext <- inlineListToAsciiDoc opts $ walk (concatMap fixCommas) txt
-  let isRelative = T.all (/= ':') src
+  let needsLinkPrefix = case parseURI (T.unpack src) of
+                          Just u -> uriScheme u `notElem` ["http:","https:",
+                                                           "ftp:", "irc:",
+                                                            "mailto:"]
+                          _ -> True
   let needsPassthrough = "--" `T.isInfixOf` src
-  let prefix = if isRelative
+  let prefix = if needsLinkPrefix
                   then text "link:"
                   else empty
   let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
