@@ -5,8 +5,8 @@ local text = require('text')
 function Header(el)
     if el.level == 1 then
       return pandoc.walk_block(el, {
-        Str = function(el)
-            return pandoc.Str(text.upper(el.text))
+        Str = function(str_el)
+            return pandoc.Str(text.upper(str_el.text))
         end })
     end
 end
@@ -17,11 +17,11 @@ function Table(el)
   local rendered = pandoc.write(pandoc.Pandoc({el}), "plain")
   local adjusted = rendered  -- tame grid table lines
                      :gsub("%+([=:][=:]+)",
-                       function(s)
-                         return " " .. string.rep("-", #s - 1)
+                       function(str)
+                         return " " .. string.rep("-", #str - 1)
                        end)
                      :gsub("(%+[-:][-:]+)",
-                       function(s)
+                       function(_str)
                          return ""
                        end)
                      :gsub("%+\n","\n")
@@ -39,6 +39,6 @@ function Link(el)
 end
 
 -- remove notes
-function Note(el)
+function Note(_el)
     return {}
 end

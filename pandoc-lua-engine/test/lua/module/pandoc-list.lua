@@ -7,7 +7,7 @@ local group = tasty.test_group
 
 return {
   group 'List as function' {
-    test('equivalent to List:new', function (x)
+    test('equivalent to List:new', function ()
       local new = List:new {'ramen'}
       local list = List {'ramen'}
       assert.are_same(new, list)
@@ -109,7 +109,7 @@ return {
     end),
     test('leaves original list unchanged', function ()
       local primes = List:new {2, 3, 5, 7}
-      local squares = primes:map(function (x) return x^2 end)
+      local _ = primes:map(function (x) return x^2 end)
       assert.are_same({2, 3, 5, 7}, primes)
     end)
   },

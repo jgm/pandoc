@@ -2,9 +2,7 @@
 -- http://www.wikicreole.org/wiki/CheatSheet
 
 -- For better performance we put these functions in local variables:
-local P, S, R, Cf, Cc, Ct, V, Cs, Cg, Cb, B, C, Cmt =
-  lpeg.P, lpeg.S, lpeg.R, lpeg.Cf, lpeg.Cc, lpeg.Ct, lpeg.V,
-  lpeg.Cs, lpeg.Cg, lpeg.Cb, lpeg.B, lpeg.C, lpeg.Cmt
+local P, S, Cc, Ct, V, C = lpeg.P, lpeg.S, lpeg.Cc, lpeg.Ct, lpeg.V, lpeg.C
 
 local whitespacechar = S(" \t\r\n")
 local specialchar = S("/*~[]\\{}|")
@@ -185,6 +183,6 @@ local grammar = P{ "Doc",
          / pandoc.Strong ;
 }
 
-function Reader(input, reader_options)
+function Reader(input, _reader_options)
   return lpeg.match(grammar, tostring(input))
 end

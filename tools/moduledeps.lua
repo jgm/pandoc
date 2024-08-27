@@ -35,11 +35,11 @@ end
 
 local transitive = {}
 
-function prind(ind, s)
+local function prind(ind, s)
   io.write(string.rep(" ",ind) .. s .. "\n")
 end
 
-function add_transitive_deps(mod)
+local function add_transitive_deps(mod)
   if transitive[mod] then
     return
   end
@@ -53,7 +53,7 @@ function add_transitive_deps(mod)
   end
 end
 
-function print_direct_deps(mod, ind)
+local function print_direct_deps(mod, ind)
   ind = ind or 0
   prind(ind, mod)
   for dep,_ in pairs(dependencies[mod]) do

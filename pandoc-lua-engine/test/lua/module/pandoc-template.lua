@@ -25,7 +25,7 @@ return {
       )
     end),
     test('fails on unknown format', function ()
-           local success, msg = pcall(function ()
+           local success, _ = pcall(function ()
                return pandoc.utils.type(template.default 'nosuchformat')
            end)
            assert.is_falsy(success)
@@ -42,7 +42,7 @@ return {
       )
     end),
     test('fails on non-existent file', function ()
-      local success, msg = pcall(function ()
+      local success, _ = pcall(function ()
         return pandoc.utils.type(template.get 'nosuchfile.nope')
       end)
       assert.is_falsy(success)
