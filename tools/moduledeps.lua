@@ -14,12 +14,12 @@ end
 
 if not (mode == "tree" or mode == "transitive") then
   io.write("Usage: lua moduledeps (tree|transitive) modulename\n")
-  io.exit(1)
+  os.exit(1)
 end
 
 if #roots == 0 then
   io.write("Usage: lua moduledeps modulename+\n")
-  io.exit(1)
+  os.exit(1)
 end
 
 for line in lines do

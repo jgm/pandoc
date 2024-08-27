@@ -116,18 +116,18 @@ return {
 
   group 'new' {
     test('make table usable as list', function ()
-      local test = List:new{1, 1, 2, 3, 5}
+      local out = List:new{1, 1, 2, 3, 5}
       assert.are_same(
         {1, 1, 4, 9, 25},
-        test:map(function (x) return x^2 end)
+        out:map(function (x) return x^2 end)
       )
     end),
     test('return empty list if no argument is given', function ()
        assert.are_same({}, List:new())
     end),
     test('metatable of result is pandoc.List', function ()
-      local test = List:new{5}
-      assert.are_equal(List, getmetatable(test))
+      local out = List:new{5}
+      assert.are_equal(List, getmetatable(out))
     end)
   },
 

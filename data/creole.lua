@@ -52,7 +52,7 @@ local function ListItem(lev, ch)
 end
 
 -- Grammar
-G = P{ "Doc",
+local grammar = P{ "Doc",
   Doc = Ct(V"Block"^0)
       / pandoc.Pandoc ;
   Block = blankline^0
@@ -186,5 +186,5 @@ G = P{ "Doc",
 }
 
 function Reader(input, reader_options)
-  return lpeg.match(G, tostring(input))
+  return lpeg.match(grammar, tostring(input))
 end

@@ -280,9 +280,9 @@ local function render_type (name, level, modulename)
   if next(metatable.methods) then
     local attr = {'type-' .. id .. '-methods'}
     methods:insert(Header(level + 1, "Methods", attr))
-    for _, method in sorted(metatable.methods) do
-      -- attr = {'type-' .. modulename .. '.' .. name .. '.' .. name}
-      -- methods:insert(Header(level + 2, name, attr))
+    for propname, method in sorted(metatable.methods) do
+      -- attr = {'type-' .. modulename .. '.' .. name .. '.' .. propname}
+      -- methods:insert(Header(level + 2, propname, attr))
       methods:extend(render_function(documentation(method), level+2, id))
     end
   end
