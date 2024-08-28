@@ -7,8 +7,14 @@ The simplest way to get the latest pandoc release is to use the installer.
   Download the latest installer
 </a>
 
-For alternative ways to install pandoc, see below
-under the heading for your operating system.
+For alternative ways to install pandoc, see below under the heading for
+your operating system. 
+
+**Note**: the statically linked Pandoc binaries provided by us (or those
+available on Conda Forge) have a limitation. They are unable to utilise Lua
+filters that rely on Lua modules written in C. If you require the
+functionality offered by these filters, please consider an alternative
+method of installation. 
 
 ## Windows
 
@@ -33,11 +39,13 @@ without SVG support), [Python] (to use Pandoc filters), and
 [MiKTeX] (to typeset PDFs with [LaTeX]):
 
     choco install rsvg-convert python miktex
-    
+
 Or, you can install pandoc using
 [winget](https://github.com/microsoft/winget-pkgs):
 
     winget install --source winget --exact --id JohnMacFarlane.Pandoc
+
+Or, you can install Pandoc using [Conda forge].
 
 Using multiple installation methods can result in two separate
 installations of pandoc; it is recommended to properly uninstall
@@ -70,6 +78,8 @@ Note: On unsupported versions of macOS (more than three releases old),
 Homebrew installs from source, which takes additional time and disk space
 for the `ghc` compiler and dependent Haskell libraries.
 
+Or, you can install Pandoc using [Conda forge].
+
 We also provide a zip file containing the binaries and man
 pages, for those who prefer not to use the installer.  Simply
 unzip the file and move the binaries and man pages to
@@ -97,9 +107,7 @@ architecture on the **[download page]**.
 
 The executable is statically linked and
 has no dynamic dependencies or dependencies on external
-data files.  Note:  because of the static
-linking, the pandoc binary from this package cannot use lua
-filters that require external lua modules written in C.
+data files.
 
 Both a tarball and a deb installer are provided.  To install the deb:
 
@@ -121,6 +129,8 @@ For Pandoc versions before 2.0, which don't provide
 a tarball, try instead
 
     ar p $DEB data.tar.gz | tar xvz --strip-components 2 -C $DEST
+
+Or, you can install Pandoc using [Conda forge].
 
 You can also install from source, using the
 instructions below under [Compiling from source].
@@ -149,6 +159,21 @@ device you are using.
 ## BSD
 
 Pandoc is in the [NetBSD], [FreeBSD], and [OpenBSD ports] repositories.
+
+## Conda Forge
+
+You can install Pandoc using a [Conda
+Forge](https://anaconda.org/conda-forge/pandoc) tool, like
+[Conda](https://conda.pydata.org/docs/intro.html),
+[[Micro]Mamba](https://mamba.readthedocs.io/en/latest/index.html) or
+[Pixi](https://prefix.dev). Conda forge also includes multiple LaTeX and
+other relevant packages for Pandoc (including `pandoc-citeproc`,
+`pandoc-plot`, `rsvg-convert` via `librsvg` etc.). **Note:** conda forge
+installs a statically-linked executable.
+
+    conda install -c conda-forge pandoc
+    pixi global install pandoc
+    micromamba install pandoc
 
 ## Docker
 
