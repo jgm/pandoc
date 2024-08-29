@@ -884,12 +884,6 @@ csvTableDirective top fields rawcsv = do
        Left e  ->
          throwError $ fromParsecError (toSources rawcsv') e
        Right rawrows -> do
-         let singleParaToPlain bs =
-               case B.toList bs of
-                 [Para ils] -> B.fromList [Plain ils]
-                 _          -> bs
-         let parseCell t = singleParaToPlain
-                <$> parseFromString' parseBlocks (t <> "\n\n")
          let parseRow = mapM parseCell
          rows <- mapM parseRow rawrows
          let (headerRow,bodyRows,numOfCols) =
@@ -917,6 +911,17 @@ csvTableDirective top fields rawcsv = do
                           (TableHead nullAttr $ toHeaderRow headerRow)
                           [TableBody nullAttr 0 [] $ map toRow bodyRows]
                           (TableFoot nullAttr [])
+
+singleParaToPlain :: Blocks -> Blocks
+singleParaToPlain bs =
+  case B.toList bs of
+    [Para ils] -> B.fromList [Plain ils]
+    _          -> bs
+
+parseCell :: PandocMonad m => Text -> RSTParser m Blocks
+parseCell t = singleParaToPlain
+   <$> parseFromString' parseBlocks (t <> "\n\n")
+
 
 -- TODO:
 --  - Only supports :format: fields with a single format for :raw: roles,
@@ -1285,23 +1290,24 @@ simpleTableFooter = try $ simpleTableSep '=' >> blanklines
 simpleTableRawLine :: Monad m => [Int] -> RSTParser m [Text]
 simpleTableRawLine indices = simpleTableSplitLine indices <$> anyLine
 
-simpleTableRawLineWithEmptyCell :: Monad m => [Int] -> RSTParser m [Text]
-simpleTableRawLineWithEmptyCell indices = try $ do
+simpleTableRawLineWithInitialEmptyCell :: Monad m => [Int] -> RSTParser m [Text]
+simpleTableRawLineWithInitialEmptyCell indices = try $ do
   cs <- simpleTableRawLine indices
   let isEmptyCell = T.all (\c -> c == ' ' || c == '\t')
-  guard $ any isEmptyCell cs
-  return cs
+  case cs of
+    c:_ | isEmptyCell c -> return cs
+    _ -> mzero
 
 -- Parse a table row and return a list of blocks (columns).
 simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [Blocks]
 simpleTableRow indices = do
   notFollowedBy' simpleTableFooter
   firstLine <- simpleTableRawLine indices
-  conLines  <- many $ simpleTableRawLineWithEmptyCell indices
+  conLines  <- many $ simpleTableRawLineWithInitialEmptyCell indices
   let cols = map T.unlines . transpose $ firstLine : conLines ++
                                   [replicate (length indices) ""
                                     | not (null conLines)]
-  mapM (parseFromString' parseBlocks) cols
+  mapM parseCell cols
 
 simpleTableSplitLine :: [Int] -> Text -> [Text]
 simpleTableSplitLine indices line =
