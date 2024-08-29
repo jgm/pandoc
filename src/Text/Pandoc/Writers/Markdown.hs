@@ -610,7 +610,7 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let isSimple = hasSimpleCells && all (==0) widths
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
-  let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
+  let hasBlocks = not (all (all (all isPlainBlock)) $ headers:rows)
   let padRow r = case numcols - length r of
                        x | x > 0 -> r ++ replicate x empty
                          | otherwise -> r
@@ -620,45 +620,51 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let widths' = case numcols - length widths of
                      x | x > 0 -> widths ++ replicate x 0.0
                        | otherwise -> widths
-  (nst,tbl) <-
-     case True of
-          _ | isSimple &&
-              isEnabled Ext_simple_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (nest 2,) <$> pandocTable opts False (all null headers)
-                                aligns' widths' rawHeaders rawRows
-            | isSimple &&
-              isEnabled Ext_pipe_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (id,) <$> pipeTable opts (all null headers) aligns' widths'
-                            rawHeaders rawRows
-            | not hasBlocks &&
-              isEnabled Ext_multiline_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (nest 2,) <$> pandocTable opts True (all null headers)
-                                aligns' widths' rawHeaders rawRows
-            | isEnabled Ext_grid_tables opts &&
-               writerColumns opts >= 8 * numcols -> (id,) <$>
-                gridTable opts blockListToMarkdown
-                  (all null headers) aligns' widths' headers rows
-            | hasSimpleCells &&
-              isEnabled Ext_pipe_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (id,) <$> pipeTable opts (all null headers) aligns' widths'
-                           rawHeaders rawRows
-            | isEnabled Ext_raw_html opts -> fmap (id,) $
-                   literal . removeBlankLinesInHTML <$>
-                   writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [t])
-            | otherwise -> return (id, literal "[TABLE]")
-  return $ nst (tbl $$ caption''') $$ blankline
+  case True of
+     _ | isSimple &&
+         isEnabled Ext_simple_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pandocTable opts False (all null headers)
+                      aligns' widths' rawHeaders rawRows
+           return $ nest 2 (tbl $$ caption''') $$ blankline
+       | isSimple &&
+         isEnabled Ext_pipe_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pipeTable opts (all null headers) aligns' widths'
+                     rawHeaders rawRows
+           return $ (tbl $$ caption''') $$ blankline
+       | not hasBlocks &&
+         isEnabled Ext_multiline_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pandocTable opts True (all null headers)
+                     aligns' widths' rawHeaders rawRows
+           return $ nest 2 (tbl $$ caption''') $$ blankline
+       | isEnabled Ext_grid_tables opts &&
+          writerColumns opts >= 8 * numcols -> do
+           tbl <- gridTable opts blockListToMarkdown
+             (all null headers) aligns' widths' headers rows
+           return $ (tbl $$ caption''') $$ blankline
+       | hasSimpleCells &&
+         isEnabled Ext_pipe_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pipeTable opts (all null headers) aligns' widths'
+                    rawHeaders rawRows
+           return $ (tbl $$ caption''') $$ blankline
+       | isEnabled Ext_raw_html opts -> do -- HTML fallback
+           tbl <- literal . removeBlankLinesInHTML <$>
+                     writeHtml5String opts{ writerTemplate = Nothing }
+                     (Pandoc nullMeta [t])
+           return $ tbl $$ blankline  -- caption is in the HTML table
+       | otherwise
+         -> return $ (literal "[TABLE]" $$ caption''') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ (if isTightList items then vcat else vsep)
