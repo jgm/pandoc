@@ -1007,7 +1007,7 @@ skipSameFileToks = do
     skipMany $ infile (sourceName pos)
 
 environments :: PandocMonad m => M.Map Text (LP m Blocks)
-environments = M.union (tableEnvironments blocks inline) $
+environments = M.union (tableEnvironments block inline) $
    M.fromList
    [ ("document", env "document" blocks <* skipMany anyTok)
    , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))

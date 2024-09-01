@@ -25,17 +25,19 @@ tableEnvironments :: PandocMonad m
                   => LP m Blocks
                   -> LP m Inlines
                   -> M.Map Text (LP m Blocks)
-tableEnvironments blocks inline =
+tableEnvironments block inline =
   M.fromList
   [ ("longtable",  env "longtable" $
           resetCaption *>
-            simpTable blocks inline "longtable" False >>= addTableCaption)
+            simpTable block inline "longtable" False >>= addTableCaption)
   , ("table",  env "table" $
           skipopts *> resetCaption *> blocks >>= addTableCaption)
-  , ("tabular*", env "tabular*" $ simpTable blocks inline "tabular*" True)
-  , ("tabularx", env "tabularx" $ simpTable blocks inline "tabularx" True)
-  , ("tabular", env "tabular"  $ simpTable blocks inline "tabular" False)
+  , ("tabular*", env "tabular*" $ simpTable block inline "tabular*" True)
+  , ("tabularx", env "tabularx" $ simpTable block inline "tabularx" True)
+  , ("tabular", env "tabular"  $ simpTable block inline "tabular" False)
   ]
+ where
+   blocks = mconcat <$> many block
 
 hline :: PandocMonad m => LP m ()
 hline = try $ do
@@ -137,7 +139,7 @@ parseTableRow :: PandocMonad m
               -> Text   -- ^ table environment name
               -> [([Tok], [Tok])] -- ^ pref/suffixes
               -> LP m Row
-parseTableRow blocks inline envname prefsufs = do
+parseTableRow block inline envname prefsufs = do
   notFollowedBy (spaces *> end_ envname)
   -- contexts that can contain & that is not colsep:
   let canContainAmp (Tok _ (CtrlSeq "begin") _) = True
@@ -150,9 +152,12 @@ parseTableRow blocks inline envname prefsufs = do
         contents <- mconcat <$>
             many ( snd <$> withRaw
                      ((lookAhead (controlSeq "parbox") >>
-                       void blocks) -- #5711
+                       void block) -- #5711
                       <|>
                       (lookAhead (satisfyTok canContainAmp) >> void inline)
+                      <|>
+                      (lookAhead (controlSeq "begin") >>
+                       void block) -- #4746
                       <|>
                       (lookAhead (symbol '$') >> void inline))
                   <|>
@@ -164,16 +169,16 @@ parseTableRow blocks inline envname prefsufs = do
         option [] (count 1 amp)
         return $ map (setpos prefpos) pref ++ contents ++ map (setpos suffpos) suff
   rawcells <- mapM celltoks prefsufs
-  cells <- mapM (parseFromToks (parseTableCell blocks)) rawcells
+  cells <- mapM (parseFromToks (parseTableCell block)) rawcells
   spaces
   return $ Row nullAttr cells
 
 parseTableCell :: PandocMonad m => LP m Blocks -> LP m Cell
-parseTableCell blocks = do
+parseTableCell block = do
   spaces
   updateState $ \st -> st{ sInTableCell = True }
-  cell' <-   multicolumnCell blocks
-         <|> multirowCell blocks
+  cell' <-   multicolumnCell block
+         <|> multirowCell block
          <|> parseSimpleCell
          <|> parseEmptyCell
   updateState $ \st -> st{ sInTableCell = False }
@@ -183,7 +188,7 @@ parseTableCell blocks = do
     -- The parsing of empty cells is important in LaTeX, especially when dealing
     -- with multirow/multicolumn. See #6603.
     parseEmptyCell = spaces $> emptyCell
-    parseSimpleCell = simpleCell <$> (plainify <$> blocks)
+    parseSimpleCell = simpleCell <$> (plainify . mconcat <$> many block)
 
 
 cellAlignment :: PandocMonad m => LP m Alignment
@@ -204,7 +209,7 @@ plainify bs = case toList bs of
                 _          -> bs
 
 multirowCell :: PandocMonad m => LP m Blocks -> LP m Cell
-multirowCell blocks = controlSeq "multirow" >> do
+multirowCell block = controlSeq "multirow" >> do
   -- Full prototype for \multirow macro is:
   --     \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
   -- However, everything except `nrows` and `text` make
@@ -214,16 +219,16 @@ multirowCell blocks = controlSeq "multirow" >> do
   _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- bigstrut-related
   _ <- symbol '{' *> manyTill anyTok (symbol '}')             -- Cell width
   _ <- optional $ symbol '[' *> manyTill anyTok (symbol ']')  -- Length used for fine-tuning
-  content <- symbol '{' *> (plainify <$> blocks) <* symbol '}'
+  content <- symbol '{' *> (plainify . mconcat <$> many block) <* symbol '}'
   return $ cell AlignDefault (RowSpan nrows) (ColSpan 1) content
 
 multicolumnCell :: PandocMonad m => LP m Blocks -> LP m Cell
-multicolumnCell blocks = controlSeq "multicolumn" >> do
+multicolumnCell block = controlSeq "multicolumn" >> do
   span' <- fmap (fromMaybe 1 . safeRead . untokenize) braced
   alignment <- symbol '{' *> cellAlignment <* symbol '}'
 
   let singleCell = do
-        content <- plainify <$> blocks
+        content <- plainify . mconcat <$> many block
         return $ cell alignment (RowSpan 1) (ColSpan span') content
 
   -- Two possible contents: either a \multirow cell, or content.
@@ -231,7 +236,7 @@ multicolumnCell blocks = controlSeq "multicolumn" >> do
   -- Note that a \multirow cell can be nested in a \multicolumn,
   -- but not the other way around. See #6603
   let nestedCell = do
-        (Cell _ _ (RowSpan rs) _ bs) <- multirowCell blocks
+        (Cell _ _ (RowSpan rs) _ bs) <- multirowCell block
         return $ cell
                   alignment
                   (RowSpan rs)
@@ -320,7 +325,7 @@ simpTable :: PandocMonad m
           -> Text
           -> Bool
           -> LP m Blocks
-simpTable blocks inline envname hasWidthParameter = try $ do
+simpTable block inline envname hasWidthParameter = try $ do
   when hasWidthParameter $ () <$ tokWith inline
   skipopts
   colspecs <- parseAligns
@@ -334,10 +339,10 @@ simpTable blocks inline envname hasWidthParameter = try $ do
   skipMany hline
   spaces
   header' <- option [] . try . fmap (:[]) $
-             parseTableRow blocks inline envname prefsufs <*
+             parseTableRow block inline envname prefsufs <*
                lbreak <* many1 hline
   spaces
-  rows <- sepEndBy (parseTableRow blocks inline envname prefsufs)
+  rows <- sepEndBy (parseTableRow block inline envname prefsufs)
                     (lbreak <* optional (skipMany hline))
   spaces
   optional $ controlSeq "caption" *> setCaption inline
