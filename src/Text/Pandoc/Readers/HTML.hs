@@ -906,15 +906,33 @@ pMath inCase = try $ do
   let attr = toStringAttr attr'
   unless inCase $
     guard (maybe True (== mathMLNamespace) (lookup "xmlns" attr))
+  let isDisplay = case lookup "display" attr of
+                     Just "block" -> True
+                     _ -> False
   contents <- manyTill pAny (pSatisfy (matchTagClose "math"))
-  case mathMLToTeXMath (renderTags $
-          [open] <> contents <> [TagClose "math"]) of
-       Left _   -> return $ B.spanWith ("",["math"],attr) $ B.text $
-                             innerText contents
-       Right "" -> return mempty
-       Right x  -> return $ case lookup "display" attr of
-                                 Just "block" -> B.displayMath x
-                                 _            -> B.math x
+  -- KaTeX and others include original TeX in annotation tag;
+  -- just use this if present rather than parsing MathML:
+  case extractTeXAnnotation contents of
+    Just x -> return $ if isDisplay
+                          then B.displayMath x
+                          else B.math x
+    Nothing ->
+      case mathMLToTeXMath (renderTags $
+              [open] <> contents <> [TagClose "math"]) of
+           Left _   -> return $ B.spanWith ("",["math"],attr) $ B.text $
+                                 innerText contents
+           Right "" -> return mempty
+           Right x  -> return $ if isDisplay
+                                   then B.displayMath x
+                                   else B.math x
+
+extractTeXAnnotation :: [Tag Text] -> Maybe Text
+extractTeXAnnotation [] = Nothing
+extractTeXAnnotation (TagOpen "annotation" [("encoding","application/x-tex")]
+                       : ts) =
+  Just $ innerText $ takeWhile (~/= TagClose ("annotation" :: Text)) ts
+extractTeXAnnotation (_:ts) = extractTeXAnnotation ts
+
 
 pInlinesInTags :: PandocMonad m => Text -> (Inlines -> Inlines)
                -> TagParser m Inlines
