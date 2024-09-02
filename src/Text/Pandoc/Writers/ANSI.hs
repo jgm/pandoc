@@ -12,6 +12,7 @@ Conversion of 'Pandoc' documents to Ansi terminal output.
 -}
 module Text.Pandoc.Writers.ANSI ( writeANSI ) where
 import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
+import Control.Monad (foldM)
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -32,7 +33,10 @@ import Data.Text.Lazy (toStrict)
 import qualified Text.DocLayout as D
 
 hr :: D.HasChars a => D.Doc a
-hr = D.literal $ D.replicateChar 20 '─'
+hr = rule 20
+
+rule :: D.HasChars a => Int -> D.Doc a
+rule n = D.literal $ D.replicateChar n '─'
 
 data WriterState = WriterState {
     stNotes     :: [D.Doc Text]        -- Footnotes
@@ -40,6 +44,8 @@ data WriterState = WriterState {
   , stInner     :: Bool    -- Are we at the document's top-level or in a nested construct?
   , stNextFigureNum :: Int
   , stInFigure :: Bool
+  , stNextTableNum :: Int
+  , stInTable :: Bool
   }
 
 type TW = StateT WriterState
@@ -61,7 +67,9 @@ writeANSI opts document =
                           stColumns = (writerColumns opts),
                           stInner = False,
                           stNextFigureNum = 1,
-                          stInFigure = False
+                          stInFigure = False,
+                          stNextTableNum = 1,
+                          stInTable = False
                         }
 
 -- | Return ANSI-styled verison of document
@@ -148,23 +156,77 @@ blockToANSI opts (Header level (_, classes, kvs) inlines) = do
 -- tabs(1)). A more ambitious approach here could process SourceLines into a
 -- Doc Text.
 blockToANSI opts (CodeBlock attr str) = do
-  inner <- case writerHighlightStyle opts of
-    Nothing -> return $ defaultStyle str
-    Just s -> do
+  table <- gets stInTable
+  inner <- case (table, writerHighlightStyle opts) of
+    (_, Nothing) -> return $ defaultStyle str
+    (True, _) -> return $ defaultStyle str
+    (False, Just s) -> do
       let fmt o = formatANSI o s
           result = highlight (writerSyntaxMap opts) fmt attr str
       return $ case result of
         Left _ -> defaultStyle str
         Right f -> D.literal f
-  return $ D.nest 4 inner
+  return $ nest table inner
   where defaultStyle = (D.fg D.red) . D.literal
+        nest False = D.nest 4
+        nest True = id
 
 blockToANSI opts (BlockQuote blocks) = do
   contents <- withFewerColumns 2 $ blockListToANSI opts blocks
   return ( D.prefixed "│ " contents $$ D.blankline)
 
-blockToANSI _ Table{} = do
-  return $ D.literal "[TABLE]"
+-- TODO: Row spans don't work
+blockToANSI opts (Table _ (Caption _ caption) colSpecs (TableHead _ thead) tbody (TableFoot _ tfoot)) = do
+  let captionInlines = blocksToInlines caption
+  tableTerm <- L.translateTerm L.Table
+  num <- gets stNextTableNum
+  modify $ \s -> s{stNextTableNum = num + 1}
+  let label = D.literal tableTerm <+> D.literal (tshow num)
+  captionMarkup <- if null captionInlines
+                      then return (D.italic label)
+                      else do
+                        cap <- inlineListToANSI opts (blocksToInlines caption)
+                        return $ (D.italic (label <> D.literal ":")) <+> cap
+  wasTable <- gets stInTable
+  modify $ \s -> s{stInTable = True}
+  let tw = writerColumns opts
+  let ncol = length colSpecs
+  let inWidths = map snd colSpecs
+  let spaceForColumns = tw - ncol + 1  -- reserve a 1-char gutter between tcols
+  let claimWidth ColWidthDefault = 0
+      claimWidth (ColWidth n) = floor (n * fromIntegral spaceForColumns)
+  let usedSpace = sum (map claimWidth inWidths)
+  let remaining = spaceForColumns - usedSpace
+  let defWidth = remaining `div` length (filter (== ColWidthDefault) inWidths)
+  let maxWidth ColWidthDefault = defWidth
+      maxWidth k = claimWidth k
+  let widths = map maxWidth inWidths
+  let decor = [D.hsep $ map rule widths]
+  head' <- mapM (goRow widths . unRow) thead
+  body' <- mapM (goRow widths . unRow) (unBodies tbody)
+  foot' <- mapM (goRow widths . unRow) tfoot
+  modify $ \s -> s{stInTable = wasTable}
+  return $ D.vcat (head' <> decor <> body' <> decor <> foot') $$ captionMarkup
+  where
+    unRow (Row _ cs) = cs
+    unBody (TableBody _ _ hd bd) = hd <> bd
+    unBodies = concatMap unBody
+    goRow ws cs = do
+      (d, _) <- foldM goCell ([], ws) cs
+      return $ D.hcat $ intersperse (D.vfill " ") $ reverse d
+    goCell (r, ws) (Cell _ aln _ (ColSpan cspan) inner) = do
+      let (ws', render) = next ws aln cspan
+      innerDoc <- blockListToANSI opts inner
+      return ((render innerDoc):r, ws')
+    tcell AlignLeft    = D.lblock
+    tcell AlignRight   = D.rblock
+    tcell AlignCenter  = D.cblock
+    tcell AlignDefault = D.lblock
+    next ws aln cspan =
+      let (this, ws') = splitAt cspan ws
+          w = sum this + cspan - 1
+          cell = (tcell aln) w
+       in (ws', cell)
 
 blockToANSI opts (BulletList items) = do
   contents <- withFewerColumns 2 $ mapM (blockListToANSI opts) items
