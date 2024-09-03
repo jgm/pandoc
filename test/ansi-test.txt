@@ -94,6 +94,8 @@ East Asian characters have double width
 |魚|fish|
 +--+----+
 
+This is inline code: `x >>= y ++ 3`.
+
 ```
 code block
    >>> ## ``
@@ -117,5 +119,4 @@ More text.
 **boldface text**, [underlined text]{.underline}, *emphasized text*.
 
 [small caps]{.smallcaps}
-
 

@@ -89,6 +89,8 @@ East Asian characters have double width
 魚 fish
 ── ────
 
+This is inline code: [22m[23m[31m[47m[24m[29m x >>= y ++ 3 [0m.
+
     [22m[23m[31m[49m[24m[29mcode block[0m
     [22m[23m[31m[49m[24m[29m   >>> ## ``[0m
 
