@@ -291,6 +291,7 @@ header when requesting a document from a URL:
 :   Specify output format.  *FORMAT* can be:
 
     ::: {#output-formats}
+    - `ansi` (text with [ANSI escape codes], for terminal viewing)
     - `asciidoc` (modern [AsciiDoc] as interpreted by [AsciiDoctor])
     - `asciidoc_legacy` ([AsciiDoc] as interpreted by [`asciidoc-py`]).
     - `asciidoctor` (deprecated synonym for `asciidoc`)
@@ -468,6 +469,7 @@ header when requesting a document from a URL:
 
 :   Show usage message.
 
+[ANSI escape codes]: https://en.wikipedia.org/wiki/ANSI_escape_code
 [Markdown]: https://daringfireball.net/projects/markdown/
 [CommonMark]: https://commonmark.org
 [PHP Markdown Extra]: https://michelf.ca/projects/php-markdown/extra/
