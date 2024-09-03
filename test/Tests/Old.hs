@@ -242,6 +242,10 @@ tests pandocPath =
       "ipynb/rank.ipynb" "ipynb/rank.out.html"
     ]
   , testGroup "markua" [ testGroup "writer" $ writerTests' "markua"]
+  , testGroup "ansi"
+      [ test' "ansi" ["-f", "markdown", "-t", "ansi"]
+        "ansi-test.txt" "ansi-test.ansi"
+      ]
   ]
  where
     test'           = test pandocPath

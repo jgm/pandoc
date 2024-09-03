@@ -334,6 +334,7 @@ extra-source-files:
                  test/tables/*.mediawiki
                  test/tables/*.jats_archiving
                  test/testsuite.txt
+                 test/ansi-test.txt
                  test/writer.latex
                  test/writer.context
                  test/writer.djot
