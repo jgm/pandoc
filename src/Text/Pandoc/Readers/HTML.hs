@@ -85,7 +85,7 @@ readHtml opts inp = do
         meta <- stateMeta . parserState <$> getState
         bs' <- replaceNotes (B.toList blocks)
         reportLogMessages
-        return $ Pandoc meta bs'
+        return $ Pandoc meta $ extractMain bs'
       getError (errorMessages -> ms) = case ms of
                                          []    -> ""
                                          (m:_) -> messageString m
@@ -97,6 +97,20 @@ readHtml opts inp = do
   case result of
     Right doc -> return doc
     Left  err -> throwError $ PandocParseError $ T.pack $ getError err
+
+-- Extract contents of main element if exactly one is present; otherwise
+-- return all blocks.
+extractMain :: [Block] -> [Block]
+extractMain bs =
+  case query getMain bs of
+    [] -> bs
+    [Div ("",[],_) bs'] -> bs'
+    bs' -> bs'
+ where
+   getMain :: Block -> [Block]
+   getMain b@(Div (_,_,kvs) _)
+     | Just "main" <- lookup "role" kvs = [b]
+   getMain _ = []
 
 -- Strip namespace prefixes on tags (not attributes)
 stripPrefixes :: [Tag Text] -> [Tag Text]
