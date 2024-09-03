@@ -1419,7 +1419,7 @@ header when requesting a document from a URL:
     - `-t latex` or none: `pdflatex` (other options: `xelatex`, `lualatex`,
         `tectonic`, `latexmk`)
     - `-t context`: `context`
-    - `-t html`:  `wkhtmltopdf` (other options: `prince`, `weasyprint`,
+    - `-t html`:  `weasyprint` (other options: `prince`, `wkhtmltopdf`,
         `pagedjs-cli`;
         see [print-css.rocks](https://print-css.rocks) for a good
         introduction to PDF generation from HTML/CSS)
