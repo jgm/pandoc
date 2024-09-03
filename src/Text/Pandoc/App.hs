@@ -67,7 +67,6 @@ import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..), CustomComponents(..))
 import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (tshow)
-import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -150,7 +149,6 @@ convertWithOpts' scriptingEngine istty datadir opts = do
       Nothing -> case Format.formatFromFilePaths sources of
         Just f' -> return f'
         Nothing | sources == ["-"] -> return $ defFlavor "markdown"
-                | any (isURI . T.pack) sources -> return $ defFlavor "html"
                 | otherwise -> do
                     report $ CouldNotDeduceFormat
                       (map (T.pack . takeExtension) sources) "markdown"
