@@ -25,7 +25,6 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
-import qualified Text.Pandoc.Translations as L
 import Text.Pandoc.Writers.Math(texMathToInlines)
 import Text.Pandoc.Writers.Shared
 import qualified Data.Text as T
@@ -44,7 +43,6 @@ data WriterState = WriterState {
   , stInner     :: Bool    -- Are we at the document's top-level or in a nested construct?
   , stNextFigureNum :: Int
   , stInFigure :: Bool
-  , stNextTableNum :: Int
   , stInTable :: Bool
   }
 
@@ -68,7 +66,6 @@ writeANSI opts document =
                           stInner = False,
                           stNextFigureNum = 1,
                           stInFigure = False,
-                          stNextTableNum = 1,
                           stInTable = False
                         }
 
@@ -178,15 +175,10 @@ blockToANSI opts (BlockQuote blocks) = do
 -- TODO: Row spans don't work
 blockToANSI opts (Table _ (Caption _ caption) colSpecs (TableHead _ thead) tbody (TableFoot _ tfoot)) = do
   let captionInlines = blocksToInlines caption
-  tableTerm <- L.translateTerm L.Table
-  num <- gets stNextTableNum
-  modify $ \s -> s{stNextTableNum = num + 1}
-  let label = D.literal tableTerm <+> D.literal (tshow num)
-  captionMarkup <- if null captionInlines
-                      then return (D.italic label)
-                      else do
-                        cap <- inlineListToANSI opts (blocksToInlines caption)
-                        return $ (D.italic (label <> D.literal ":")) <+> cap
+  captionMarkup <-
+    if null captionInlines
+       then return mempty
+       else D.nest 2 <$> inlineListToANSI opts (blocksToInlines caption)
   wasTable <- gets stInTable
   modify $ \s -> s{stInTable = True}
   let tw = writerColumns opts
@@ -206,7 +198,7 @@ blockToANSI opts (Table _ (Caption _ caption) colSpecs (TableHead _ thead) tbody
   body' <- mapM (goRow widths . unRow) (unBodies tbody)
   foot' <- mapM (goRow widths . unRow) tfoot
   modify $ \s -> s{stInTable = wasTable}
-  return $ D.vcat (head' <> decor <> body' <> decor <> foot') $$ captionMarkup
+  return $ D.vcat (head' <> decor <> body' <> decor <> foot') $+$ captionMarkup
   where
     unRow (Row _ cs) = cs
     unBody (TableBody _ _ hd bd) = hd <> bd
@@ -253,20 +245,15 @@ blockToANSI opts (DefinitionList items) = do
 
 blockToANSI opts (Figure _ (Caption _ caption)  body) = do
   let captionInlines = blocksToInlines caption
-  figTerm <- L.translateTerm L.Figure
-  num <- gets stNextFigureNum
   figState <- gets stInFigure
-  modify $ \s -> s{stNextFigureNum = num + 1}
-  let label = D.literal figTerm <+> D.literal (tshow num)
-  captionMarkup <- if null captionInlines
-                      then return (D.italic label)
-                      else do
-                        cap <- inlineListToANSI opts (blocksToInlines caption)
-                        return $ (D.italic (label <> D.literal ":")) <+> cap
+  captionMarkup <-
+    if null captionInlines
+       then return mempty
+       else D.nest 2 <$> inlineListToANSI opts (blocksToInlines caption)
   modify $ \s -> s{stInFigure = True}
   contents <- blockListToANSI opts body
   modify $ \s -> s{stInFigure = figState}
-  return $ contents $$ captionMarkup
+  return $ contents $+$ captionMarkup
 
 -- Auxiliary functions for lists:
 
