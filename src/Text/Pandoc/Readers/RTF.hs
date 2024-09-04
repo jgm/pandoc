@@ -431,9 +431,20 @@ processTok bs (Tok pos tok') = do
     Grouped (Tok _ (ControlSymbol '*') : toks@(firsttok:_)) ->
       case firsttok of
         Tok _ (ControlWord "shppict" _) -> inGroup (foldM processTok bs toks)
+        Tok _ (ControlWord "shpinst" _) -> inGroup (foldM processTok bs toks)
         _ -> bs <$ (do oldTextContent <- sTextContent <$> getState
                        processTok mempty (Tok pos (Grouped toks))
                        updateState $ \st -> st{ sTextContent = oldTextContent })
+    Grouped (Tok _ (ControlWord "shp" _) : toks) ->
+      inGroup (foldM processTok bs toks)
+    Grouped [ Tok _ (ControlWord "sp" _)
+            , Tok _ (Grouped [Tok _ (ControlWord "sn" _),
+                      Tok _ (UnformattedText sn)])
+            , Tok _ (Grouped (Tok _ (ControlWord "sv" _) : svtoks))
+            ] ->
+      case sn of
+        "pib" -> inGroup (foldM processTok bs svtoks)
+        _ -> pure bs
     Grouped (Tok _ (ControlWord "fonttbl" _) : toks) -> inGroup $ do
       updateState $ \s -> s{ sFontTable = processFontTable toks }
       pure bs
