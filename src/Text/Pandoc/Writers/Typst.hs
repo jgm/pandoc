@@ -517,8 +517,7 @@ toCite cite = do
      then do
        suppl <- case citationSuffix cite of
                   [] -> pure mempty
-                  suff -> (<> endCode) . brackets
-                            <$> inlinesToTypst (eatComma suff)
+                  suff -> brackets <$> inlinesToTypst (eatComma suff)
        pure $ "@" <> literal ident' <> suppl
      else do
        let label = if T.all isIdentChar ident'
