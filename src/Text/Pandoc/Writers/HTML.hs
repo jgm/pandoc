@@ -1621,7 +1621,7 @@ inlineToHtml opts inline = do
                                       _          -> link
     (Cite cits il)-> do contents <- inlineListToHtml opts
                                       (if html5
-                                          then walk addRoleToLink il
+                                          then walk addBibliorefRole il
                                           else il)
                         let citationIds = T.unwords $ map citationId cits
                         let result = H.span ! A.class_ "citation" $ contents
@@ -1629,10 +1629,11 @@ inlineToHtml opts inline = do
                                     then result ! customAttribute "data-cites" (toValue citationIds)
                                     else result
 
-addRoleToLink :: Inline -> Inline
-addRoleToLink (Link (id',classes,kvs) ils (src,tit)) =
+addBibliorefRole :: Inline -> Inline
+addBibliorefRole (Link (id',classes,kvs) ils (src,tit))
+   | "#ref-" `T.isPrefixOf` src =
   Link (id',classes,("role","doc-biblioref"):kvs) ils (src,tit)
-addRoleToLink x = x
+addBibliorefRole x = x
 
 blockListToNote :: PandocMonad m
                 => WriterOptions -> Text -> [Block]
