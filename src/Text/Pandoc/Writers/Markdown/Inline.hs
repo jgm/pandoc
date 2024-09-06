@@ -506,7 +506,9 @@ inlineToMarkdown opts (Math InlineMath str) = do
             let str' = T.strip str
              in inlineToMarkdown opts
                   (Image nullAttr [Str str'] (url <> urlEncode str', str'))
-          _ | isEnabled Ext_tex_math_dollars opts ->
+          _ | isEnabled Ext_tex_math_gfm opts ->
+                return $ "$`" <> literal str <> "`$"
+            | isEnabled Ext_tex_math_dollars opts ->
                 return $ "$" <> literal str <> "$"
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\(" <> literal str <> "\\)"
@@ -531,7 +533,10 @@ inlineToMarkdown opts (Math DisplayMath str) = do
              in (\x -> blankline <> x <> blankline) `fmap`
                  inlineToMarkdown opts (Image nullAttr [Str str']
                         (url <> urlEncode str', str'))
-          _ | isEnabled Ext_tex_math_dollars opts ->
+          _ | isEnabled Ext_tex_math_gfm opts ->
+                return $ cr <> literal "``` math"
+                            <> literal str <> literal "```" <> cr
+            | isEnabled Ext_tex_math_dollars opts ->
                 return $ "$$" <> literal str <> "$$"
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\[" <> literal str <> "\\]"
