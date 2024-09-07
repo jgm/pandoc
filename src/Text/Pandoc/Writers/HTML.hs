@@ -446,6 +446,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "slideous-url" ("slideous" :: Doc Text) .
                   defField "revealjs-url" ("https://unpkg.com/reveal.js@^4/" :: Doc Text) $
                   defField "s5-url" ("s5/default" :: Doc Text) .
+                  defField "table-caption-below"
+                     (writerTableCaptionPosition opts == CaptionBelow) .
                   defField "html5" (stHtml5 st) $
                   metadata
   return (thebody, context)
@@ -1056,24 +1058,26 @@ blockToHtmlInner opts (Figure attrs (Caption _ captBody)  body) = do
 
   figAttrs <- attrsToHtml opts attrs
   contents <- blockListToHtml opts body
-  figCaption <- if null captBody
-                then return mempty
-                else do
-                  captCont <- blockListToHtml opts captBody
-                  return . mconcat $
+  captCont <- blockListToHtml opts captBody
+  let figCaption = mconcat $
                     if html5
                     then let fcattr = if captionIsAlt captBody body
                                       then H5.customAttribute
                                            (textTag "aria-hidden")
                                            (toValue @Text "true")
                                       else mempty
-                         in [ H5.figcaption ! fcattr $ captCont, nl ]
-                    else [ (H.div ! A.class_ "figcaption") captCont, nl ]
+                         in [ H5.figcaption ! fcattr $ captCont ]
+                    else [ (H.div ! A.class_ "figcaption") captCont ]
+  let innards = mconcat $
+                if null captBody
+                   then [nl, contents, nl]
+                   else case writerFigureCaptionPosition opts of
+                         CaptionAbove -> [nl, figCaption, nl, contents, nl]
+                         CaptionBelow -> [nl, contents, nl, figCaption, nl]
   return $
     if html5
-    then foldl (!) H5.figure figAttrs $ mconcat [nl, contents, nl, figCaption]
-    else foldl (!) H.div (A.class_ "float" : figAttrs) $ mconcat
-           [nl, contents, nl, figCaption]
+    then foldl (!) H5.figure figAttrs innards
+    else foldl (!) H.div (A.class_ "float" : figAttrs) innards
  where
   captionIsAlt capt [Plain [Image (_, _, kv) desc _]] =
     let alt = fromMaybe (stringify desc) $ lookup "alt" kv

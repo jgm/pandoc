@@ -605,6 +605,7 @@ blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
 blockToLaTeX (Figure (ident, _, _) captnode body) = do
+  opts <- gets stOptions
   (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
@@ -615,7 +616,10 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
     [b] -> blockToLaTeX b
     bs  -> mconcat . intersperse (cr <> "\\hfill") <$>
            mapM (toSubfigure (length bs)) bs
-  let innards = "\\centering" $$ contents $$ caption <> cr
+  let innards = "\\centering" $$
+                (case writerFigureCaptionPosition opts of
+                  CaptionBelow -> contents $$ caption
+                  CaptionAbove -> caption $$ contents) <> cr
   modify $ \st ->
     st{ stInFigure = isSubfigure
       , stSubfigure = stSubfigure st || isSubfigure

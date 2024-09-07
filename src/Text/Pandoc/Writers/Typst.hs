@@ -18,7 +18,8 @@ module Text.Pandoc.Writers.Typst (
   ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Class ( PandocMonad)
-import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled )
+import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled,
+                             CaptionPosition(..) )
 import Data.Text (Text)
 import Data.List (intercalate, intersperse)
 import Data.Bifunctor (first, second)
@@ -67,6 +68,9 @@ pandocToTypst options (Pandoc meta blocks) = do
               (fmap chomp . inlinesToTypst)
               meta
   main <- blocksToTypst blocks
+  let toPosition :: CaptionPosition -> Text
+      toPosition CaptionAbove = "top"
+      toPosition CaptionBelow = "bottom"
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents options)
               $ (if isEnabled Ext_citations options
@@ -81,6 +85,10 @@ pandocToTypst options (Pandoc meta blocks) = do
                           resetField "lang" (langLanguage l) .
                           maybe id (resetField "region") (langRegion l))
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
+              $ defField "figure-caption-position"
+                   (toPosition $ writerFigureCaptionPosition options)
+              $ defField "table-caption-position"
+                   (toPosition $ writerTableCaptionPosition options)
               $ (if writerNumberSections options
                     then defField "numbering" ("1.1.1.1.1" :: Text)
                     else id)

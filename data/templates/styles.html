@@ -144,7 +144,12 @@ table {
   font-variant-numeric: lining-nums tabular-nums;
 }
 table caption {
+$if(table-caption-below)$
+  caption-side: bottom;
+  margin-top: 0.75em;
+$else$
   margin-bottom: 0.75em;
+$endif$
 }
 tbody {
   margin-top: 0.5em;

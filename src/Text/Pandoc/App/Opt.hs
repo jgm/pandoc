@@ -41,6 +41,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
                             WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
                             ReferenceLocation (EndOfDocument),
+                            CaptionPosition (..),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
@@ -143,6 +144,8 @@ data Opt = Opt
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
     , optReferenceLocation     :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
+    , optFigureCaptionPosition :: CaptionPosition -- ^ position for figure caption
+    , optTableCaptionPosition  :: CaptionPosition -- ^ position for table caption
     , optDpi                   :: Int     -- ^ Dpi
     , optWrap                  :: WrapOption  -- ^ Options for wrapping text
     , optColumns               :: Int     -- ^ Line length in characters
@@ -227,6 +230,8 @@ instance FromJSON Opt where
        <*> o .:? "fail-if-warnings" .!= optFailIfWarnings defaultOpts
        <*> o .:? "reference-links" .!= optReferenceLinks defaultOpts
        <*> o .:? "reference-location" .!= optReferenceLocation defaultOpts
+       <*> o .:? "figure-caption-position" .!= optFigureCaptionPosition defaultOpts
+       <*> o .:? "table-caption-position" .!= optTableCaptionPosition defaultOpts
        <*> o .:? "dpi" .!= optDpi defaultOpts
        <*> o .:? "wrap" .!= optWrap defaultOpts
        <*> o .:? "columns" .!= optColumns defaultOpts
@@ -594,6 +599,10 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optReferenceLinks = x })
     "reference-location" ->
       parseJSON v >>= \x -> return (\o -> o{ optReferenceLocation = x })
+    "figure-caption-position" ->
+      parseJSON v >>= \x -> return (\o -> o{ optFigureCaptionPosition = x })
+    "table-caption-position" ->
+      parseJSON v >>= \x -> return (\o -> o{ optTableCaptionPosition = x })
     "dpi" ->
       parseJSON v >>= \x -> return (\o -> o{ optDpi = x })
     "wrap" ->
@@ -766,6 +775,8 @@ defaultOpts = Opt
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
     , optReferenceLocation     = EndOfDocument
+    , optFigureCaptionPosition = CaptionBelow
+    , optTableCaptionPosition  = CaptionAbove
     , optDpi                   = 96
     , optWrap                  = WrapAuto
     , optColumns               = 72

@@ -728,7 +728,31 @@ options =
                                "Argument of --reference-location must be block, section, or document"
                      return opt { optReferenceLocation = action })
                   "block|section|document")
-                 "" -- "Accepting or reject MS Word track-changes.""
+                 "" -- "Specify where reference links and footnotes go"
+
+    , Option "" ["figure-caption-position"]
+                 (ReqArg
+                  (\arg opt -> do
+                     pos <- case arg of
+                            "above"  -> return CaptionAbove
+                            "below"  -> return CaptionBelow
+                            _        -> optError $ PandocOptionError $ T.pack
+                               "Argument of --figure-caption-position must be above or below"
+                     return opt { optFigureCaptionPosition = pos })
+                  "above|below")
+                 "" -- "Specify where figure captions go"
+
+    , Option "" ["table-caption-position"]
+                 (ReqArg
+                  (\arg opt -> do
+                     pos <- case arg of
+                            "above"  -> return CaptionAbove
+                            "below"  -> return CaptionBelow
+                            _        -> optError $ PandocOptionError $ T.pack
+                               "Argument of --table-caption-position must be above or below"
+                     return opt { optTableCaptionPosition = pos })
+                  "above|below")
+                 "" -- "Specify where table captions go"
 
     , Option "" ["markdown-headings"]
                   (ReqArg
