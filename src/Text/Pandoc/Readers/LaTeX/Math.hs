@@ -70,7 +70,6 @@ mathEnvWith f innerEnv name = f . mathDisplay . inner <$> mathEnv name
 
 mathEnv :: PandocMonad m => Text -> LP m Text
 mathEnv name = do
-  skipopts
   optional blankline
   res <- manyTill anyTok (end_ name)
   return $ stripTrailingNewlines $ untokenize res
