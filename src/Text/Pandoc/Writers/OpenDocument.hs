@@ -396,13 +396,14 @@ blockToOpenDocument o = \case
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
                   unhighlighted s
-    Table a bc s th tb tf -> setFirstPara >> table (Ann.toTable a bc s th tb tf)
+    Table a bc s th tb tf -> setFirstPara >>
+                              table o (Ann.toTable a bc s th tb tf)
     HorizontalRule   -> setFirstPara >> return (selfClosingTag "text:p"
                          [ ("text:style-name", "Horizontal_20_Line") ])
     b@(RawBlock f s) -> if f == Format "opendocument"
                         then return $ text $ T.unpack s
                         else empty <$ report (BlockNotRendered b)
-    Figure a capt b  -> figure a capt b
+    Figure a capt b  -> figure o a capt b
     where
       defList       b = do setInDefinitionList True
                            r <- vcat  <$> mapM (deflistItemToOpenDocument o) b
@@ -427,8 +428,9 @@ blockToOpenDocument o = \case
       orderedList a b = do (ln,pn) <- newOrderedListStyle (isTightList b) a
                            inTags True "text:list" [ ("text:style-name", "L" <> tshow ln)]
                                       <$> orderedListToOpenDocument o pn b
-      table :: PandocMonad m => Ann.Table -> OD m (Doc Text)
-      table (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies _) = do
+      table :: PandocMonad m => WriterOptions -> Ann.Table -> OD m (Doc Text)
+      table opts
+          (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies _) = do
         tn <- length <$> gets stTableStyles
         pn <- length <$> gets stParaStyles
         let  genIds      = map chr [65..]
@@ -458,8 +460,11 @@ blockToOpenDocument o = \case
                             ("table:name"      , name)
                           , ("table:style-name", name)
                           ] (vcat columns $$ th $$ vcat tr)
-        return $ captionDoc $$ tableDoc
-      figure (ident, _, _) (Caption _ longcapt) body =
+        return $
+          case writerTableCaptionPosition opts of
+            CaptionAbove -> captionDoc $$ tableDoc
+            CaptionBelow -> tableDoc $$ captionDoc
+      figure opts (ident, _, _) (Caption _ longcapt) body =
         case blocksToInlines longcapt of
           [] ->
             withParagraphStyle o "Figure" body
@@ -470,7 +475,10 @@ blockToOpenDocument o = \case
                           if isEnabled Ext_native_numbering o
                           then numberedFigureCaption ident
                           else unNumberedCaption "FigureCaption"
-            return $ imageDoc $$ captionDoc
+            return $
+              case writerFigureCaptionPosition opts of
+                CaptionAbove -> captionDoc $$ imageDoc
+                CaptionBelow -> imageDoc $$ captionDoc
 
 
 numberedTableCaption :: PandocMonad m => Text -> Doc Text -> OD m (Doc Text)

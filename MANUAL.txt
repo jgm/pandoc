@@ -1058,6 +1058,18 @@ header when requesting a document from a URL:
     specifying `--reference-location=section` will cause notes
     to be rendered at the bottom of a slide.
 
+`--figure-caption-position=above`|`below`
+
+:   Specify whether figure captions go above or below figures
+    (default is `below`).  This option only affects HTML,
+    LaTeX, Docx, ODT, and Typst output.
+
+`--table-caption-position=above`|`below`
+
+:   Specify whether table captions go above or below tables
+    (default is `above`).  This option only affects HTML,
+    LaTeX, Docx, ODT, and Typst output.
+
 `--markdown-headings=setext`|`atx`
 
 :   Specify whether to use ATX-style (`#`-prefixed) or

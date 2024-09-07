@@ -33,11 +33,12 @@ import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
   ( LW, WriterState (stBeamer, stExternalNotes, stInMinipage, stMultiRow
-                    , stNotes, stTable) )
+                    , stNotes, stTable, stOptions) )
 import Text.Pandoc.Writers.LaTeX.Util (labelFor)
 import Text.Printf (printf)
 import qualified Text.Pandoc.Builder as B
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+import Text.Pandoc.Options (CaptionPosition(..), WriterOptions(..))
 
 tableToLaTeX :: PandocMonad m
              => ([Inline] -> LW m (Doc Text))
@@ -45,8 +46,13 @@ tableToLaTeX :: PandocMonad m
              -> Ann.Table
              -> LW m (Doc Text)
 tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
+  opts <- gets stOptions
   let (Ann.Table (ident, _, _) caption specs thead tbodies tfoot) = tbl
   CaptionDocs capt captNotes <- captionToLaTeX inlnsToLaTeX caption ident
+  let hasTopCaption = not (isEmpty capt) &&
+                        writerTableCaptionPosition opts == CaptionAbove
+  let hasBottomCaption = not (isEmpty capt) &&
+                          writerTableCaptionPosition opts == CaptionBelow
   let isSimpleTable =
         all ((== ColWidthDefault) . snd) specs &&
         all (all isSimpleCell)
@@ -64,24 +70,31 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   -- duplicate the header rows for this.
   head' <- do
     let mkHead = headToLaTeX blksToLaTeX isSimpleTable colCount
-    case (not $ isEmpty capt, not $ isEmptyHead thead) of
-      (False, False) -> return "\\toprule\\noalign{}"
-      (False, True)  -> mkHead thead
-      (True, False)  -> return (capt $$ "\\toprule\\noalign{}" $$ "\\endfirsthead")
-      (True, True)   -> do
+    case (hasTopCaption, isEmptyHead thead) of
+      (False, True) -> return "\\toprule\\noalign{}"
+      (False, False)  -> mkHead thead
+      (True, True)  -> return (capt <> "\\tabularnewline"
+                                $$ "\\toprule\\noalign{}"
+                                $$ "\\endfirsthead")
+      (True, False)   -> do
         -- avoid duplicate notes in head and firsthead:
         firsthead <- mkHead thead
         repeated  <- mkHead (walk removeNote thead)
-        return $ capt $$ firsthead $$ "\\endfirsthead" $$ repeated
+        return $ capt <> "\\tabularnewline"
+                 $$ firsthead
+                 $$ "\\endfirsthead"
+                 $$ repeated
   rows' <- mapM (rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell) $
                 mconcat (map bodyRows tbodies)
-  foot' <- if isEmptyFoot tfoot
-           then pure empty
-           else do
-             lastfoot <- mapM
-                (rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell) $
-                footRows tfoot
-             pure $ "\\midrule\\noalign{}" $$ vcat lastfoot
+  lastfoot <- mapM (rowToLaTeX blksToLaTeX isSimpleTable colCount BodyCell) $
+                    footRows tfoot
+  let foot' = (if isEmptyFoot tfoot
+                  then mempty
+                  else "\\midrule\\noalign{}" $$ vcat lastfoot)
+              $$ "\\bottomrule\\noalign{}"
+              $$ (if hasBottomCaption
+                     then "\\tabularnewline" $$ capt
+                     else mempty)
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
   beamer <- gets stBeamer
@@ -99,10 +112,8 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
        (if beamer
              then [ vcat rows'
                   , foot'
-                  , "\\bottomrule\\noalign{}"
                   ]
              else [ foot'
-                  , "\\bottomrule\\noalign{}"
                   , "\\endlastfoot"
                   ,  vcat rows'
                   ])
@@ -192,7 +203,6 @@ captionToLaTeX inlnsToLaTeX caption ident = do
                        else "\\caption" <> captForLot <>
                             braces captionText
                             <> label
-                            <> "\\tabularnewline"
     }
 
 type BlocksWriter m = [Block] -> LW m (Doc Text)

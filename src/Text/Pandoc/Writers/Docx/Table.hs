@@ -46,7 +46,7 @@ import Text.Pandoc.Writers.Docx.Types
       withParaPropM )
 import Control.Monad.Reader (asks)
 import Text.Pandoc.Shared ( tshow, stringify )
-import Text.Pandoc.Options (WriterOptions, isEnabled)
+import Text.Pandoc.Options (WriterOptions(..), isEnabled, CaptionPosition(..))
 import Text.Pandoc.Extensions (Extension(Ext_native_numbering))
 import Text.Pandoc.Error (PandocError(PandocSomeError))
 import Text.Printf (printf)
@@ -134,7 +134,10 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
           : head' ++ mconcat bodies ++ foot'
         )
   modify $ \s -> s { stInTable = False }
-  return $ captionXml ++ [Elem tbl]
+  return $
+    case writerTableCaptionPosition opts of
+      CaptionAbove -> captionXml ++ [Elem tbl]
+      CaptionBelow -> Elem tbl : captionXml
 
 addLabel :: Text -> Text -> Int -> [Block] -> [Block]
 addLabel tableid tablename tablenum bs =
