@@ -1990,6 +1990,14 @@ To include the built-in citeproc filter, use either `citeproc` or
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
+| --figure-caption-position=above  | figure-caption-position: above    |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --table-caption-position=below   | table-caption-position: below     |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
 | --markdown-headings atx          | markdown-headings: atx            |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
