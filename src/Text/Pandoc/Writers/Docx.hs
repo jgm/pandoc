@@ -94,7 +94,8 @@ writeDocx :: (PandocMonad m)
 writeDocx opts doc = do
   let Pandoc meta blocks = walk fixDisplayMath doc
   setupTranslations meta
-  let blocks' = makeSections True Nothing blocks
+  let blocks' = makeSectionsWithOffsets (writerNumberOffset opts)
+                   True Nothing blocks
   let doc' = Pandoc meta blocks'
 
   username <- P.lookupEnv "USERNAME"
