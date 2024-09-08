@@ -138,9 +138,9 @@ blockToTEI opts (BlockQuote blocks) =
 blockToTEI opts (CodeBlock (_,classes,_) str) =
   return $ literal ("<ab type='codeblock " <> lang <> "'>") <> cr <>
      flush (literal (escapeStringForXML str) <> cr <> text "</ab>")
-    where lang  = if null langs
-                     then ""
-                     else escapeStringForXML (head langs)
+    where lang  = case langs of
+                    [] -> ""
+                    (l:_) -> escapeStringForXML l
           syntaxMap = writerSyntaxMap opts
           isLang l    = T.toLower l `elem` map T.toLower (languages syntaxMap)
           langsFrom s = if isLang s

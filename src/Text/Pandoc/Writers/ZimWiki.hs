@@ -128,7 +128,9 @@ blockToZimWiki opts (Table _ blkCapt specs thead tbody tfoot) = do
                       c <- inlineListToZimWiki opts capt
                       return $ "" <> c <> "\n"
   headers' <- if all null headers
-                 then zipWithM (tableItemToZimWiki opts) aligns (head rows)
+                 then case rows of
+                        [] -> pure mempty
+                        (r:_) -> zipWithM (tableItemToZimWiki opts) aligns r
                  else mapM (inlineListToZimWiki opts . removeFormatting)headers  -- emphasis, links etc. are not allowed in table headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
   let widths = map (maybe 0 maximum . nonEmpty . map T.length) $

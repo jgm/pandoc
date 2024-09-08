@@ -1170,7 +1170,7 @@ elemToRun ns element
   | isElem ns "w" "r" element
   , Just altCont <- findChildByName ns "mc" "AlternateContent" element =
     do let choices = findChildrenByName ns "mc" "Choice" altCont
-           choiceChildren = map head $ filter (not . null) $ map elChildren choices
+           choiceChildren = concatMap (take 1 . elChildren) choices
        outputs <- mapD (childElemToRun ns) choiceChildren
        case outputs of
          r : _ -> return r

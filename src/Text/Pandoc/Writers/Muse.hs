@@ -719,7 +719,11 @@ inlineToMuse (Span (anchor,names,kvs) inlines) = do
                      then mempty
                      else literal ("#" <> anchor) <> space
   modify $ \st -> st { stUseTags = False }
-  return $ anchorDoc <> (if null inlines && not (T.null anchor)
-                         then mempty
-                         else (if null names then (if hasDir then contents' else "<class>" <> contents' <> "</class>")
-                               else "<class name=\"" <> literal (head names) <> "\">" <> contents' <> "</class>"))
+  return $ anchorDoc <>
+   if null inlines && not (T.null anchor)
+      then mempty
+      else case names of
+             [] | hasDir -> contents'
+                | otherwise -> "<class>" <> contents' <> "</class>"
+             (n:_) -> "<class name=\"" <> literal n <> "\">" <>
+                         contents' <> "</class>"

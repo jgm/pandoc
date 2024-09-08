@@ -30,6 +30,7 @@ import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorInfo(..),
                                      toLocatorMap)
 import Citeproc.Types (Lang(..))
 import Citeproc.Locale (getLocale)
+import Safe (headMay, lastMay)
 
 citationsToNatbib :: PandocMonad m
                   => ([Inline] -> LW m (Doc Text))
@@ -59,10 +60,8 @@ citationsToNatbib inlineListToLaTeX cits
      noInnerSuffix [_]    = True
      noInnerSuffix (x:xs) = null (citationSuffix x) && noInnerSuffix xs
      ismode m  = all ((==) m  . citationMode)
-     p         = citationPrefix  $
-                 head cits
-     s         = citationSuffix  $
-                 last cits
+     p         = maybe mempty citationPrefix $ headMay cits
+     s         = maybe mempty citationSuffix $ lastMay cits
      ks        = T.intercalate ", " $ map citationId cits
 
 citationsToNatbib inlineListToLaTeX (c:cs)

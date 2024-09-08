@@ -696,9 +696,9 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
       dims = if null dimList
                 then empty
                 else brackets $ mconcat (intersperse "," dimList)
-      clas = if null cls
-                then empty
-                else brackets $ literal $ toLabel $ head cls
+      clas = case cls of
+               [] -> empty
+               (cl:_) -> brackets $ literal $ toLabel cl
       -- Use / for path separators on Windows; see #4918
       fixPathSeparators = T.map $ \c -> case c of
                                           '\\' -> '/'

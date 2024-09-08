@@ -185,8 +185,9 @@ blockToTypst block =
                                   parens (
                                     "numbering: " <>
                                     doubleQuoted
-                                      (head (orderedListMarkers
-                                             (1, sty, delim))) <>
+                                     (case orderedListMarkers (1, sty, delim) of
+                                          (m:_) -> m
+                                          [] -> "1.") <>
                                     ", start: " <>
                                       text (show start) )) $$
                                x $$
