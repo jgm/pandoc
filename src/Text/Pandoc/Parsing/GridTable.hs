@@ -248,4 +248,4 @@ widthsFromIndices numColumns' indices =
                    then fromIntegral totLength
                    else fromIntegral numColumns
       fracs = map (\l -> fromIntegral l / quotient) lengths in
-  tail fracs
+  drop 1 fracs

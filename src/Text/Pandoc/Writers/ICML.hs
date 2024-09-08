@@ -435,7 +435,7 @@ listItemToICML opts style isFirst attribs item =
            let insertTab (Para lst) = blockToICML opts (subListParName:style) $ Para $ Str "\t":lst
                insertTab block      = blockToICML opts style block
            f <- blockToICML opts stl' $ head item
-           r <- mapM insertTab $ tail item
+           r <- mapM insertTab $ drop 1 item
            return $ intersperseBrs (f : r)
          else blocksToICML opts stl' item
 

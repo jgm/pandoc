@@ -50,11 +50,14 @@ citationsToNatbib inlineListToLaTeX [one]
              NormalCitation -> "citep"
 
 citationsToNatbib inlineListToLaTeX cits
-  | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
+  | noInnerPrefix cits && noInnerSuffix cits && ismode NormalCitation cits
   = citeCommand inlineListToLaTeX "citep" p s ks
   where
-     noPrefix  = all (null . citationPrefix)
-     noSuffix  = all (null . citationSuffix)
+     noInnerPrefix []     = True
+     noInnerPrefix (_:xs) = all (null . citationPrefix) xs
+     noInnerSuffix []     = True
+     noInnerSuffix [_]    = True
+     noInnerSuffix (x:xs) = null (citationSuffix x) && noInnerSuffix xs
      ismode m  = all ((==) m  . citationMode)
      p         = citationPrefix  $
                  head cits

@@ -483,7 +483,7 @@ table = do
   rows <- tableRows
   let firstRow = fromMaybe [] . Safe.headMay $ rows
   let (headerRow, body) = if firstSeparator == '^'
-                            then (firstRow, tail rows)
+                            then (firstRow, drop 1 rows)
                             else ([], rows)
   -- Since Pandoc only has column level alignment, we have to make an arbitrary
   -- choice of how to reconcile potentially different alignments in the row.

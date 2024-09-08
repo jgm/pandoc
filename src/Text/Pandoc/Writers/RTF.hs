@@ -281,8 +281,9 @@ tableRowToRTF header indent aligns sizes' cols = do
                  else sizes'
   columns <- T.concat <$>
      zipWithM (tableItemToRTF indent) aligns cols
-  let rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
-                                (0 :: Integer) sizes
+  let rightEdges = drop 1 $
+                    scanl (\sofar new -> sofar + floor (new * totalTwips))
+                          (0 :: Integer) sizes
   let cellDefs = map (\edge -> (if header
                                    then "\\clbrdrb\\brdrs"
                                    else "") <> "\\cellx" <> tshow edge)
