@@ -1105,7 +1105,7 @@ header when requesting a document from a URL:
     `--number-offset` only directly affects the number of the
     first section heading in a document; subsequent numbers
     increment in the normal way. Implies `--number-sections`.
-    Currently this feature only affects HTML output.
+    Currently this feature only affects HTML and Docx output.
 
 `--listings[=true|false]`
 
