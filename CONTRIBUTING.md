@@ -428,6 +428,8 @@ Adding a new command-line option
 To add a new command-line option, you'll need to make changes in several
 places:
 
+- `MANUAL.txt` -- documentation for new option, both in the list
+  of options and in the section on defaults files.
 - `Text.Pandoc.App.Opt` -- new constructor for Opt and default
   value
 - `Text.Pandoc.App.CommandLineOptions` -- the option parser
