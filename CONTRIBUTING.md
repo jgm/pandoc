@@ -422,6 +422,27 @@ The library is structured as follows:
   - `Text.Pandoc.UUID` contains functions for generating UUIDs.
   - `Text.Pandoc.XML` contains functions for formatting XML.
 
+Adding a new command-line option
+--------------------------------
+
+To add a new command-line option, you'll need to make changes in several
+places:
+
+- `Text.Pandoc.App.Opt` -- new constructor for Opt and default
+  value
+- `Text.Pandoc.App.CommandLineOptions` -- the option parser
+- `Text.Pandoc.App` or `Text.Pandoc.App.OutputSettings` --
+  handle the new option
+- possibly in pandoc-server: `Text.Pandoc.Server` -- handle the
+  new option
+
+If your change requires a new field for ReaderOptions or
+WriterOptions, you'll also need to
+
+- `Text.Pandoc.Options` -- type change and default value
+- in pandoc-lua-engine: Text.Pandoc.Lua.Marshal.WriterOptions
+  and/or Text.Pandoc.Lua.Marshal.ReaderOptions
+
 Lua filters
 -----------
 
