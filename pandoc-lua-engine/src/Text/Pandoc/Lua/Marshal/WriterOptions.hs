@@ -95,6 +95,11 @@ typeWriterOptions = deftype "WriterOptions"
     (pushPandocList pushString, writerEpubFonts)
     (peekList peekString, \opts x -> opts{ writerEpubFonts = x })
 
+  , property "epub_title_page"
+    "Determines whether a title page is included in EPUB"
+    (pushBool, writerEpubTitlePage)
+    (peekBool, \opts x -> opts{ writerEpubTitlePage = x })
+
   , property "epub_metadata"
     "Metadata to include in EPUB"
     (maybe pushnil pushText, writerEpubMetadata)
@@ -194,6 +199,11 @@ typeWriterOptions = deftype "WriterOptions"
     "Use setext headers for levels 1-2 in markdown"
     (pushBool, writerSetextHeaders)
     (peekBool, \opts x -> opts{ writerSetextHeaders = x })
+
+  , property "list_tables"
+    "Render tables using list tables in RST output"
+    (pushBool, writerListTables)
+    (peekBool, \opts x -> opts{ writerListTables = x })
 
   , property "slide_level"
     "Force header level of slides"
