@@ -1107,14 +1107,17 @@ header when requesting a document from a URL:
 
 `--number-offset=`*NUMBER*[`,`*NUMBER*`,`*...*]
 
-:   Offset for section headings in HTML output (ignored in other
-    output formats).  The first number is added to the section number for
-    top-level headings, the second for second-level headings, and so on.
-    So, for example, if you want the first top-level heading in your
-    document to be numbered "6", specify `--number-offset=5`.
-    If your document starts with a level-2 heading which you want to
-    be numbered "1.5", specify `--number-offset=1,4`.
-    Offsets are 0 by default.  Implies `--number-sections`.
+:   Offsets for section heading numbers. The first number is added
+    to the section number for level-1 headings, the second for
+    level-2 headings, and so on. So, for example, if you
+    want the first level-1 heading in your document to be
+    numbered "6" instead of "1", specify `--number-offset=5`.
+    If your document starts with a level-2 heading which you want
+    to be numbered "1.5", specify `--number-offset=1,4`.
+    `--number-offset` only directly affects the number of the
+    first section heading in a document; subsequent numbers
+    increment in the normal way. Implies `--number-sections`.
+    Currently this feature only affects HTML output.
 
 `--listings[=true|false]`
 

@@ -50,6 +50,7 @@ module Text.Pandoc.Shared (
                      linesToPara,
                      figureDiv,
                      makeSections,
+                     makeSectionsWithOffsets,
                      combineAttr,
                      uniqueIdent,
                      inlineListToIdentifier,
@@ -512,12 +513,20 @@ textToIdentifier exts =
 -- adjusted so that the lowest header level is n.
 -- (There may still be gaps in header level if the author leaves them.)
 makeSections :: Bool -> Maybe Int -> [Block] -> [Block]
-makeSections numbering mbBaseLevel bs =
-  S.evalState (go bs) []
+makeSections = makeSectionsWithOffsets []
+
+-- | Like 'makeSections', but with a parameter for number offsets
+-- (a list of 'Int's, the first of which is added to the level 1
+-- section number, the second to the level 2, and so on).
+makeSectionsWithOffsets :: [Int] -> Bool -> Maybe Int -> [Block] -> [Block]
+makeSectionsWithOffsets numoffsets numbering mbBaseLevel bs =
+  S.evalState (go bs) numoffsets
  where
   getLevel (Header level _ _) = Min level
   getLevel _ = Min 99
-  minLevel = getMin $ query getLevel bs
+  minLevel = if null numoffsets || all (== 0) numoffsets
+                then getMin $ query getLevel bs
+                else 1 -- see #5071, for backwards compatibility
   go :: [Block] -> S.State [Int] [Block]
   go (Header level (ident,classes,kvs) title':xs) = do
     lastnum <- S.get

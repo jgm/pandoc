@@ -289,8 +289,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
                           lookupMetaString "description" meta
   slideVariant <- gets stSlideVariant
   abstractTitle <- translateTerm Abstract
-  let sects = adjustNumbers opts $
-              makeSections (writerNumberSections opts) Nothing $
+  let sects = makeSectionsWithOffsets
+                (writerNumberOffset opts) (writerNumberSections opts) Nothing $
               if slideVariant == NoSlides
                  then blocks
                  else prepSlides slideLevel blocks
@@ -728,30 +728,6 @@ dimensionsToAttrList attr = go Width ++ go Height
                (Just (Pixel a)) -> [(tshow dir, tshow a)]
                (Just x)         -> [("style", tshow dir <> ":" <> tshow x)]
                Nothing          -> []
-
-adjustNumbers :: WriterOptions -> [Block] -> [Block]
-adjustNumbers opts doc =
-  if all (==0) (writerNumberOffset opts)
-     then doc
-     else walk go doc
-  where
-   go (Div (ident,"section":classes,kvs) lst@(Header level _ _ : _)) =
-     Div (ident,"section":classes,map (fixnum level) kvs) lst
-   go (Header level (ident,classes,kvs) lst) =
-     Header level (ident,classes,map (fixnum level) kvs) lst
-   go x = x
-   fixnum level ("number",num) = ("number",
-                               showSecNum $ zipWith (+)
-                               (writerNumberOffset opts ++ repeat 0)
-                               (padTo level $
-                                map (fromMaybe 0 . safeRead) $
-                                T.split (=='.') num))
-   fixnum _ x = x
-   padTo n xs =
-     case n - length xs of
-       x | x > 0 -> replicate x 0 ++ xs
-         | otherwise -> xs
-   showSecNum = T.intercalate "." . map tshow
 
 blockToHtmlInner :: PandocMonad m => WriterOptions -> Block -> StateT WriterState m Html
 blockToHtmlInner opts (Plain lst) = inlineListToHtml opts lst
