@@ -294,7 +294,7 @@ blockHandlers = M.fromList
       pure $ B.codeBlockWith attr txt)
   ,("parbreak", \_ _ -> pure mempty)
   ,("block", \mbident fields ->
-      B.divWith (fromMaybe "" mbident, [], [])
+      maybe id (\ident -> B.divWith (ident, [], [])) mbident
         <$> (getField "body" fields >>= pWithContents pBlocks))
   ,("place", \_ fields -> do
       ignored "parameters of place"
@@ -503,6 +503,9 @@ inlineHandlers = M.fromList
       (if display then B.displayMath else B.math) . writeTeX <$> pMathMany body)
   ,("pad", \_ fields ->  -- ignore paddingy
       getField "body" fields >>= pWithContents pInlines)
+  ,("block", \mbident fields ->
+      maybe id (\ident -> B.spanWith (ident, [], [])) mbident
+        <$> (getField "body" fields >>= pWithContents pInlines))
   ]
 
 getInlineBody :: PandocMonad m => M.Map Identifier Val -> P m (Seq Content)

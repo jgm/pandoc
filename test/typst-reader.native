@@ -4980,13 +4980,10 @@ Pandoc
                           AlignDefault
                           (RowSpan 1)
                           (ColSpan 1)
-                          [ Div
-                              ( "" , [] , [] )
-                              [ Para
-                                  [ Math
-                                      InlineMath
-                                      "f:{\\mathbb{R}} \\rightarrow {\\mathbb{R}}"
-                                  ]
+                          [ Para
+                              [ Math
+                                  InlineMath
+                                  "f:{\\mathbb{R}} \\rightarrow {\\mathbb{R}}"
                               ]
                           ]
                       , Cell
@@ -5004,13 +5001,8 @@ Pandoc
                           AlignDefault
                           (RowSpan 1)
                           (ColSpan 1)
-                          [ Div
-                              ( "" , [] , [] )
-                              [ Para
-                                  [ Math
-                                      InlineMath
-                                      "9.8\\ \\text{ m/s}^{2}"
-                                  ]
+                          [ Para
+                              [ Math InlineMath "9.8\\ \\text{ m/s}^{2}"
                               ]
                           ]
                       , Cell
@@ -5018,18 +5010,14 @@ Pandoc
                           AlignDefault
                           (RowSpan 1)
                           (ColSpan 1)
-                          [ Div
-                              ( "" , [] , [] )
-                              [ Para
-                                  [ Code
-                                      ( "" , [] , [] )
-                                      "\"9.8\" \"m/s\"^2"
-                                  , Space
-                                  , Link
-                                      ( "" , [ "ref" ] , [] )
-                                      [ Str "[tricky]" ]
-                                      ( "#tricky" , "" )
-                                  ]
+                          [ Para
+                              [ Code
+                                  ( "" , [] , [] ) "\"9.8\" \"m/s\"^2"
+                              , Space
+                              , Link
+                                  ( "" , [ "ref" ] , [] )
+                                  [ Str "[tricky]" ]
+                                  ( "#tricky" , "" )
                               ]
                           ]
                       ]
@@ -5238,13 +5226,10 @@ Pandoc
                           AlignDefault
                           (RowSpan 1)
                           (ColSpan 1)
-                          [ Div
-                              ( "" , [] , [] )
-                              [ Para
-                                  [ Math
-                                      InlineMath
-                                      "\\sigma^{2} = \\sqrt{{\\sum(x_{i} - \\mu)}^{2}/N}"
-                                  ]
+                          [ Para
+                              [ Math
+                                  InlineMath
+                                  "\\sigma^{2} = \\sqrt{{\\sum(x_{i} - \\mu)}^{2}/N}"
                               ]
                           ]
                       , Cell
@@ -5264,13 +5249,10 @@ Pandoc
                           AlignDefault
                           (RowSpan 1)
                           (ColSpan 1)
-                          [ Div
-                              ( "" , [] , [] )
-                              [ Para
-                                  [ Math
-                                      InlineMath
-                                      "E(X) = \\mu_{X} = \\sum(x_{i} - P\\left( x_{i} \\right))"
-                                  ]
+                          [ Para
+                              [ Math
+                                  InlineMath
+                                  "E(X) = \\mu_{X} = \\sum(x_{i} - P\\left( x_{i} \\right))"
                               ]
                           ]
                       , Cell
@@ -5366,29 +5348,26 @@ Pandoc
           , Str "."
           ]
       , Para []
-      , Div
-          ( "" , [] , [] )
-          [ HorizontalRule
-          , Para
-              [ Str "johanvx"
-              , Space
-              , Str "("
-              , Underline
+      , HorizontalRule
+      , Para
+          [ Str "johanvx"
+          , Space
+          , Str "("
+          , Underline
+              [ Underline
                   [ Underline
-                      [ Underline
-                          [ Link
-                              ( "" , [] , [] )
-                              [ Str "https://github.com/johanvx" ]
-                              ( "https://github.com/johanvx" , "" )
-                          ]
+                      [ Link
+                          ( "" , [] , [] )
+                          [ Str "https://github.com/johanvx" ]
+                          ( "https://github.com/johanvx" , "" )
                       ]
                   ]
-              , Str ")"
-              , Space
-              , Str "\8202\8193"
-              , Space
-              , Str "2023-05-22"
               ]
+          , Str ")"
+          , Space
+          , Str "\8202\8193"
+          , Space
+          , Str "2023-05-22"
           ]
       ]
   ]
