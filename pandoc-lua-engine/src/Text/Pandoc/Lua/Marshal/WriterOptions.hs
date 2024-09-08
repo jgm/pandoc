@@ -120,6 +120,11 @@ typeWriterOptions = deftype "WriterOptions"
     (pushViaJSON, writerHTMLMathMethod)
     (peekViaJSON, \opts x -> opts{ writerHTMLMathMethod = x })
 
+  , property "link_images"
+    "Include links to images instead of embedding in ODT"
+    (pushBool, writerLinkImages)
+    (peekBool, \opts x -> opts{ writerLinkImages = x })
+
   , property "html_q_tags"
     "Use @<q>@ tags for quotes in HTML"
     (pushBool, writerHtmlQTags)

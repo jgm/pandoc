@@ -302,8 +302,8 @@ server = convertBytes
                         , readerStripComments = optStripComments opts
                         }
 
-    let writeropts =
-          def{ writerExtensions = writerExts
+    let writeropts = def
+             { writerExtensions = writerExts
              , writerTabStop = optTabStop opts
              , writerWrapText = optWrap opts
              , writerColumns = optColumns opts
@@ -337,6 +337,7 @@ server = convertBytes
              , writerFigureCaptionPosition = optFigureCaptionPosition opts
              , writerTableCaptionPosition = optTableCaptionPosition opts
              , writerPreferAscii = optAscii opts
+             , writerLinkImages = optLinkImages opts
              }
 
     let reader = case readerSpec of
