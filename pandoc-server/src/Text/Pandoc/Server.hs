@@ -334,6 +334,8 @@ server = convertBytes
              , writerTOCDepth = optTOCDepth opts
              , writerReferenceDoc = optReferenceDoc opts
              , writerReferenceLocation = optReferenceLocation opts
+             , writerFigureCaptionPosition = optFigureCaptionPosition opts
+             , writerTableCaptionPosition = optTableCaptionPosition opts
              , writerPreferAscii = optAscii opts
              }
 
