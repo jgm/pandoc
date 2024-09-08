@@ -170,6 +170,16 @@ typeWriterOptions = deftype "WriterOptions"
     (pushViaJSON, writerReferenceLocation)
     (peekViaJSON, \opts x -> opts{ writerReferenceLocation = x })
 
+  , property "figure_caption_position"
+    "Location of caption relative to the figure"
+    (pushViaJSON, writerFigureCaptionPosition)
+    (peekViaJSON, \opts x -> opts{ writerFigureCaptionPosition = x })
+
+  , property "table_caption_position"
+    "Location of caption relative to the table"
+    (pushViaJSON, writerTableCaptionPosition)
+    (peekViaJSON, \opts x -> opts{ writerTableCaptionPosition = x })
+
   , property "section_divs"
     "Put sections in div tags in HTML"
     (pushBool, writerSectionDivs)
