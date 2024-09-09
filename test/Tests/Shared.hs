@@ -51,7 +51,8 @@ makeSectionsIsIdempotent d =
    in d' == makeSections False Nothing d'
 
 givesTOC :: String -> (Blocks, Blocks) -> TestTree
-givesTOC desc (blocks, toc) = test (toTableOfContents def) desc (toList blocks, head . toList $ toc)
+givesTOC desc (blocks, toc) =
+  test (singleton . toTableOfContents def) desc (toList blocks, toc)
 
 linkId :: T.Text -> T.Text -> T.Text -> Inlines -> Inlines
 linkId lId = linkWith (lId,[],[])
