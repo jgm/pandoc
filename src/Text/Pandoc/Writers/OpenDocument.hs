@@ -305,7 +305,10 @@ orderedItemToOpenDocument  o n bs = vcat <$> mapM go bs
        go b                 = blockToOpenDocument o b
        newLevel a l = do
          nn <- length <$> gets stParaStyles
-         ls <- head   <$> gets stListStyles
+         liststyles <- gets stListStyles
+         let ls = case liststyles of
+                    [] -> (1,[])  -- should never happen
+                    (s:_) -> s
          modify $ \s -> s { stListStyles = orderedListLevelStyle a ls :
                                  drop 1 (stListStyles s) }
          inTagsIndented "text:list" <$> orderedListToOpenDocument o nn l
