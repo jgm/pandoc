@@ -128,7 +128,7 @@ createStartState :: (NameSpaceID nsID)
                     -> XMLConverterState nsID extraState
 createStartState element extraState =
   XMLConverterState
-       { parentElements    = NonEmpty.singleton element
+       { parentElements    = element :| []
        , namespacePrefixes = M.empty
        , namespaceIRIs     = getInitialIRImap
        , moreState         = extraState
@@ -565,7 +565,7 @@ jumpBack               = tryModifyState (popElement >>> maybeToChoice)
 -- accessible to the converter.
 switchingTheStack      :: XMLConverter nsID moreState a b
                        -> XMLConverter nsID moreState (a, XML.Element) b
-switchingTheStack a    =     second ( NonEmpty.singleton ^>> swapStack )
+switchingTheStack a    =     second ( (:| []) ^>> swapStack )
                          >>> first  a
                          >>> second swapStack
                          >>^ fst
