@@ -29,9 +29,7 @@ extra-deps:
   commit: 7099b90314618e7f73226426be0b46cc3a940aa0
 - git: https://github.com/jgm/typst-hs
   commit: d9fe63674114abd15cfb4d41bcfd0096d33babed
-
--- TODO update skylighting/skylighting-core
-
+# TODO update skylighting/skylighting-core
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-22.24
