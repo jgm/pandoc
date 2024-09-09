@@ -210,14 +210,14 @@ tests = [ testGroup "inline code"
           <> [ "lists with newlines and indent in backticks" =:
                T.intercalate ("\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
                =?> let (_, _, f) = head lsts
-                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ head lis' : zipWith (\i (_, lt, _) -> lt <> i) (tail lis') (tail lsts)]
+                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ head lis' : zipWith (\i (_, lt, _) -> lt <> i) (drop 1 lis') (drop 1 lsts)]
              | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
           <> [ "lists with blank lines and indent in backticks" =:
                T.intercalate ("\n\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
                <> "\n"
                =?> let (_, _, f) = head lsts
-                   in f . pure $ (para . text $ head lis) <> bldLsts para (tail lsts) (tail lis)
+                   in f . pure $ (para . text $ head lis) <> bldLsts para (drop 1 lsts) (drop 1 lis)
              | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
         , testGroup "emph and strong"
