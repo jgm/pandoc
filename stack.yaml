@@ -23,8 +23,6 @@ extra-deps:
 - typst-0.5.0.5
 - doclayout-0.5
 - doctemplates-0.11.0.1
-- git: https://github.com/jgm/hslua-module-doclayout
-  commit: 5c9996bd981a93ada6aba4efb69837601a4565bd
 - git: https://github.com/jgm/texmath
   commit: 7099b90314618e7f73226426be0b46cc3a940aa0
 - git: https://github.com/jgm/typst-hs

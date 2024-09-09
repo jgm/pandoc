@@ -19,8 +19,3 @@ source-repository-package
 
 -- TODO update skylighting/skylighting-core
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/hslua-module-doclayout
-  tag: 5c9996bd981a93ada6aba4efb69837601a4565bd
-
