@@ -19,7 +19,3 @@ source-repository-package
 
 -- TODO update skylighting/skylighting-core
 
-source-repository-package
- type: git
- location: https://github.com/jgm/doclayout
- tag: fc29e457456b66d7e8d7fcd98170ddef51bef4f4
