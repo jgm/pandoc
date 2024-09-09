@@ -208,17 +208,17 @@ tests = [ testGroup "inline code"
              | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
           <> [ "lists with newlines and indent in backticks" =:
-               T.intercalate ("\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
-               =?> let (_, _, f) = head lsts
-                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ head lis' : zipWith (\i (_, lt, _) -> lt <> i) (drop 1 lis') (drop 1 lsts)]
-             | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
+               T.intercalate ("\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis (l:ls))
+               =?> let (_, _, f) = l
+                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ "text" : zipWith (\i (_, lt, _) -> lt <> i) (drop 1 lis') ls]
+             | (l:ls) <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
           <> [ "lists with blank lines and indent in backticks" =:
-               T.intercalate ("\n\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
+               T.intercalate ("\n\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis (l:ls))
                <> "\n"
-               =?> let (_, _, f) = head lsts
-                   in f . pure $ (para . text $ head lis) <> bldLsts para (drop 1 lsts) (drop 1 lis)
-             | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
+               =?> let (_, _, f) = l
+                   in f . pure $ (para . text $ "`text") <> bldLsts para ls (drop 1 lis)
+             | (l:ls) <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
         , testGroup "emph and strong"
           [ "two strongs in emph" =:
