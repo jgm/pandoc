@@ -21,6 +21,7 @@ extra-deps:
 - djot-0.1.2.1
 - doclayout-0.5
 - doctemplates-0.11.0.1
+- hslua-module-doclayout-1.1.1.2
 - git: https://github.com/jgm/texmath
   commit: 7099b90314618e7f73226426be0b46cc3a940aa0
 - git: https://github.com/jgm/typst-hs
