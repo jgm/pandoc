@@ -15,8 +15,8 @@ extra-deps:
 - typst-symbols-0.1.6
 - emojis-0.1.4.1
 - commonmark-extensions-0.2.5.5
-- skylighting-core-0.14.2
-- skylighting-0.14.2
+- skylighting-core-0.14.3
+- skylighting-0.14.3
 - citeproc-0.8.1.1
 - djot-0.1.2.1
 - doclayout-0.5
@@ -24,7 +24,6 @@ extra-deps:
 - hslua-module-doclayout-1.1.1.2
 - texmath-0.12.8.10
 - typst-0.6
-# TODO update skylighting/skylighting-core
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-22.24

@@ -7,5 +7,3 @@ flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1.2,
              skylighting-format-context >= 0.1.0.2
 
--- TODO update skylighting/skylighting-core
-
