@@ -113,6 +113,7 @@
 - Erik Rask
 - Ethan Riley
 - Étienne Bersac
+- Evan Silberman
 - Even Brenden
 - Ezwal
 - Fabián Heredia Montiel
@@ -203,6 +204,7 @@
 - John Purnell
 - Jonas Scholl
 - Jonas Smedegaard
+- Jonathan
 - Jonathan Daugherty
 - Jonathan Dönszelmann
 - Jose Luis Duran
@@ -305,6 +307,7 @@
 - Owen McGrath
 - Pablo Rodríguez
 - Pascal Wagler
+- Pau RE
 - Paul Rivier
 - Paul Tilley
 - Paulo Tanimoto
@@ -340,6 +343,7 @@
 - Sascha Wilde
 - Scott Morrison
 - Sebastian Talmon
+- Sebbones
 - Sergei Trofimovich
 - Sergey Astanin
 - Seth Speaks
@@ -382,6 +386,7 @@
 - Toni Dietze
 - Tristan Stenner
 - Tristan de Cacqueray
+- Tristano Ajmone
 - Tuong Nguyen Manh
 - Uli Köhler
 - Urs Liska
@@ -419,6 +424,7 @@
 - bumper314
 - chinapedia
 - cholonam
+- closeobserve
 - csforste
 - d-dorazio
 - damon-sava-stanley
@@ -468,6 +474,7 @@
 - tecosaur
 - tgkokk
 - the-solipsist
+- thomjur
 - thsutton
 - thron7
 - timo-a
