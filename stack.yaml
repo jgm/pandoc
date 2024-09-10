@@ -21,6 +21,8 @@ extra-deps:
 - doctemplates-0.11.0.1
 - texmath-0.12.8.10
 - typst-0.6
+# even though the resolver has this version, we need the Hackage revision:
+- hslua-module-doclayout-1.1.1.2
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-22.33
