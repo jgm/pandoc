@@ -1,5 +1,212 @@
 # Revision history for pandoc
 
+## pandoc 3.4 (2024-09-09)
+
+  * New output format: `ansi` (for formatted console output) (Evan Silberman).
+    Most Pandoc elements are supported and printed in a reasonable way, if
+    not always ideally. This version does no detection of terminal
+    capabilities, nor does it fall back to different output styles for
+    less-capable terminals.
+
+  * Add command line options `--table-caption-position` and
+    `--figure-caption-position`. These allow the user to specify whether
+    to put captions above or below tables and figures, respectively.
+    The following output formats are supported: HTML (and related such
+    as EPUB), LaTeX (and Beamer), Docx, ODT/OpenDocument, Typst.
+
+  * Change default `--pdf-engine` via HTML to WeasyPrint (#10142).
+    `wkhtmltopdf` is deprecated.  `weasyprint` is the easiest-to-install,
+    maintained alternative.  For better results, one might prefer
+    `pagedjs-cli`.
+
+  * Org reader:
+
+    + Fix parsing of src blocks with an `-i` flag (#10071, Albert Krewinkel).
+      Tabs are now preserved in the contents of *src* blocks if the the block
+      has the `-i` flag.
+
+  * RTF reader:
+
+    + Handle images inside `shp` contexts (#10145).
+
+  * RST reader:
+
+   + Improve simple table support (#10093). Multiline rows occur
+     only when the *first* cell is empty; we were previously treating
+    lines with *any* empty cell as row continuations. In addition, we
+    no longer wrap multiline cells in Para if they can be represented
+    as Plain. This is consistent with docutils behavior.
+
+  * LaTeX reader:
+
+    + Math environments don't have bracketed options (#10160).
+    + Parse nested tabular environments (#4746).
+
+  * Typst reader:
+
+    + Change how "block" elements are handled. Previously they were
+      always parsed as divs.  But actually they can occur in some "inline"
+      contexts.  Now we first try to parse them as inlines, and only as
+      blocks if that fails.  A surrounding Div or Span element is added
+      only if there is an identifier.
+
+  * HTML reader:
+
+    + Only parse main element's contents (if present) (#10140).
+      If main has an id or class, we include a div with that id or class;
+      otherwise just the contents.
+    + Read TeX annotation in MathML content if present (#9971).
+    + Better handle KaTeX-generated math (#9971). KaTeX emits the mathml
+      followed by a span with an HTML fallback. Previously pandoc was
+      converting both.  We now ignore the HTML fallback span, marked
+      with class `katex-html`.
+
+  * New module: Text.Pandoc.Writers.ANSI [API change] (Evan Silberman).
+
+  * Docx writer:
+
+    + Add "SuppressAuthor" and "AuthorOnly" to citationMode
+      when `+citations` is used (thomjur).
+    + Support `custom-style` attribute for docx table (Sebbones).
+    + Support `--number-offsets`.
+    + Make table/figure rendering sensitive to caption position settings.
+
+  * OpenDocument writer:
+
+    + Make table/figure rendering sensitive to caption position settings.
+
+  * Typst writer/template:
+
+    + Implement figure caption positions by triggering a show rule in
+      the default template, which determines caption positions for
+      figures and tables globally.
+    + Don't include trailing semicolon after `@` style citations with suffixes
+      (#10148).
+    + Template: move header-includes before show doc (#9996, Gordon Woodhull).
+
+  * LaTeX writer:
+
+    + Make table/figure rendering sensitive to caption position settings (#5116).
+    + Preserve locator labels with `--natbib` (#10057).
+
+  * HTML writer/template:
+
+    + Make `<figcaption>` placement sensitive to caption position
+      settings. For tables, `<caption>` must be the first element, and
+      positioning is determined by CSS, for here we set a variable
+      which the default template is sensitive to.
+    + Use `makeSectionsWithOffsets` for `writerNumberOffsets`,
+      instead of the old, inefficient code.
+    + Don't add doc-biblioref role to every link in a citation;
+      only to links to the bibliography (#10156).
+    + Add `data-` when rendering `label` attribute (#10048).
+
+  * Markdown writer:
+
+    + Avoid emitting markdown caption if table has fallen back to raw HTML,
+      which will then contain a `<caption>` tag (#10094).
+    + Make math sensitive to `tex_math_gfm` extension (#9121).
+      This means that in GFM output, the "new style" math will be used
+      by default, e.g.
+
+          $`x=y`$
+
+          ```math
+          x = y
+          ```
+
+      To defeat this and get the older behavior, namely
+
+          $x=y$
+
+          $$x=y$$
+
+      one could use `-t gfm-tex_math_gfm`.
+
+  * AsciiDoc writer:
+
+    + Add `link:` prefix when needed (#10105). AsciiDoc requires it
+      except for `http`, `https`, `irc`, `mailto`, `ftp` schemes (#10105).
+    + Preserve original base level (#10062). We used to normalize so
+      that the base level is always 1, but asciidoc no longer seems
+      to care about that, and the behavior creates difficulties when
+      we are converting fragments.
+    + Don't emit empty figure caption (#10047).
+
+  * ODT writer:
+
+    + Add TableCaption to styles.xml (#10058, Ian Max Andolina).
+
+  * LaTeX template:
+
+    + Fix wrong beamer color in (sub)section page (Jonathan).
+
+  * Text.Pandoc.Options:
+
+    + Add `CaptionPosition` and new `WriterOptions` fields
+      `writerFigureCaptionPosition` and `writerTableCaptionPosition`
+      [API change].
+
+  * Text.Pandoc.Opt:
+
+    + Change default for optNumberOffset to `[]`. This behaves the same as
+      `[0,0,0,0,0]`.
+    + Add `Opt` fields `optFigureCaptionPosition` and
+      `optTableCaptionPosition` [API change].
+
+  * Text.Pandoc.Format: change `formatFromFilePaths` so that it is
+    smarter about URLs.  URLs are parsed, and we take the format from
+    the path component, if present (#10141). This means that
+    `https://emacs.org/` will be treated as HTML, while
+    `https://emacs.org/sample.org` will be treated as Org.
+
+  * Text.Pandoc.URI:
+
+    + Add unofficial `gemini:` to list of URI schemes (Pau RE).
+
+  * Text.Pandoc.Shared:
+
+    + Add `makeSectionsWithOffsets` [API change].
+    + Remove `stripEmptyParagraphs [API change] (Albert Krewinkel).
+      This function is no longer used.
+
+  * Text.Pandoc.Highlighting: Expose `formatANSI` [API change]
+    (Evan Silberman).
+
+  * Text.Pandoc.Writers.Shared: export `to{Sub,Super}scriptInline`
+    [API change] (Evan Silberman).
+
+  * Remove use of partial functions (e.g. `head`) in code.
+
+  * Use latest skylighting-core, skylighting, doclayout, texmath, typst.
+
+  * pandoc-lua-engine: Add accessors for several writer options, including
+    some that were added in previous releases.
+
+  * pandoc-server: Initialize some missing fields in WriterOptions:
+    `writerEpubTitlePage`, `writerChunkTemplate`, `writerListTables`,
+    `writerFigureCaptionPosition`, `writerTableCaptionPosition`.
+
+  * CONTRIBUTING.md: Summarize steps for adding a new cli option.
+
+  * MANUAL.txt:
+
+    + Clarify that the `--number-offset` option should only
+      directly affect numbering of the first section heading in
+      a document; subsequent headings will increment normally.
+    + Fix asciidoc link (#10039).
+    + Fix CSL Docs broken link (#10100, Tristano Ajmone).
+    + Document the use of `luatexja` when CJKmainfont is used with lualatex
+      (#3873, Kolen Cheung).
+    + Add a `citations` (typst) section to the manual (#9127).
+    + Clarify that `citations` affects both input and output for `org`.
+    + Add note on `--citeproc` that you may need to disable `citations`
+      extension on the output format (e.g., `-t markdown-citations`) to
+      see the rendered citation (#9127, #10012).
+
+  * INSTALL.md — reorganise info on static binaries and add conda-forge
+    install options (#10098, #10069, Ian Max Andolina).
+
 ## pandoc 3.3 (2024-07-28)
 
   * New cli option: `--link-images`.  This causes images to be linked
