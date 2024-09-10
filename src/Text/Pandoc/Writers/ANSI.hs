@@ -134,17 +134,14 @@ blockToANSI _ HorizontalRule = return $ D.blankline $$ hr $$ D.blankline
 
 blockToANSI opts (Header level (_, classes, kvs) inlines) = do
   contents <- inlineListToANSI opts inlines
-  inner <- gets stInner
   let secnum = fromMaybe mempty $ lookup "number" kvs
   let doNumber = writerNumberSections opts && not (T.null secnum) && "unnumbered" `notElem` classes
   let number | doNumber = D.hang (D.realLength secnum + 1) (header level (D.literal secnum) <> D.space)
              | otherwise = id
-  return $ number (color inner (header level contents)) $$ D.blankline where
+  return $ number (header level contents) $$ D.blankline where
     header 1 = (fmap T.toUpper) . D.bold
     header 2 = D.bold
     header _ = D.italic
-    color False = D.fg D.green
-    color True = id
 
 -- The approach to code blocks and highlighting here is a best-effort with
 -- existing tools. The Skylighting formatANSI function produces fully-rendered
