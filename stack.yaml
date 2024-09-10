@@ -22,10 +22,8 @@ extra-deps:
 - doclayout-0.5
 - doctemplates-0.11.0.1
 - hslua-module-doclayout-1.1.1.2
-- git: https://github.com/jgm/texmath
-  commit: 7099b90314618e7f73226426be0b46cc3a940aa0
-- git: https://github.com/jgm/typst-hs
-  commit: d9fe63674114abd15cfb4d41bcfd0096d33babed
+- texmath-0.12.8.10
+- typst-0.6
 # TODO update skylighting/skylighting-core
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
