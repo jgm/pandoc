@@ -11,6 +11,7 @@ packages:
 extra-deps:
 - lpeg-1.1.0
 - tls-2.1.0
+- crypton-connection-0.4.1
 - toml-parser-2.0.1.0
 - typst-symbols-0.1.6
 - skylighting-core-0.14.3
