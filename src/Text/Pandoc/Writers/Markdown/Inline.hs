@@ -534,8 +534,9 @@ inlineToMarkdown opts (Math DisplayMath str) = do
                  inlineToMarkdown opts (Image nullAttr [Str str']
                         (url <> urlEncode str', str'))
           _ | isEnabled Ext_tex_math_gfm opts ->
-                return $ cr <> literal "``` math"
-                            <> literal str <> literal "```" <> cr
+                return $ cr <> (literal "``` math"
+                             $$ literal str
+                             $$ literal "```") <> cr
             | isEnabled Ext_tex_math_dollars opts ->
                 return $ "$$" <> literal str <> "$$"
             | isEnabled Ext_tex_math_single_backslash opts ->
