@@ -96,6 +96,7 @@ data-files:
                  data/templates/default.org
                  data/templates/default.epub2
                  data/templates/default.epub3
+                 data/templates/default.ansi
                  data/templates/article.jats_publishing
                  data/templates/affiliations.jats
                  data/templates/default.markua
@@ -370,6 +371,7 @@ extra-source-files:
                  test/writer.zimwiki
                  test/writer.xwiki
                  test/writer.muse
+                 test/ansi-test.ansi
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
                  test/dokuwiki_inline_formatting.dokuwiki
