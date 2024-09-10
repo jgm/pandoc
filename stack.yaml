@@ -18,7 +18,6 @@ extra-deps:
 - djot-0.1.2.1
 - doclayout-0.5
 - doctemplates-0.11.0.1
-- hslua-module-doclayout-1.1.1.2
 - texmath-0.12.8.10
 - typst-0.6
 ghc-options:
