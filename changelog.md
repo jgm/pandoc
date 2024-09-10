@@ -61,12 +61,15 @@
       converting both.  We now ignore the HTML fallback span, marked
       with class `katex-html`.
 
+  * Docx reader:
+
+    + Add "SuppressAuthor" and "AuthorOnly" to citationMode
+      when `+citations` is used (thomjur).
+
   * New module: Text.Pandoc.Writers.ANSI [API change] (Evan Silberman).
 
   * Docx writer:
 
-    + Add "SuppressAuthor" and "AuthorOnly" to citationMode
-      when `+citations` is used (thomjur).
     + Support `custom-style` attribute for docx table (Sebbones).
     + Support `--number-offsets`.
     + Make table/figure rendering sensitive to caption position settings.
