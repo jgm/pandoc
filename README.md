@@ -111,10 +111,12 @@ It can convert *to*
 
 <div id="output-formats">
 
-- `asciidoc` (modern [AsciiDoc](https://www.methods.co.nz/asciidoc/) as
-  interpreted by [AsciiDoctor](https://asciidoctor.org/))
-- `asciidoc_legacy` ([AsciiDoc](https://www.methods.co.nz/asciidoc/) as
-  interpreted by
+- `ansi` (text with [ANSI escape
+  codes](https://en.wikipedia.org/wiki/ANSI_escape_code), for terminal
+  viewing)
+- `asciidoc` (modern [AsciiDoc](https://asciidoc.org/) as interpreted by
+  [AsciiDoctor](https://asciidoctor.org/))
+- `asciidoc_legacy` ([AsciiDoc](https://asciidoc.org/) as interpreted by
   [`asciidoc-py`](https://github.com/asciidoc-py/asciidoc-py)).
 - `asciidoctor` (deprecated synonym for `asciidoc`)
 - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
