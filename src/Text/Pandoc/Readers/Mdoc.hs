@@ -79,9 +79,7 @@ readWithMTokens parser state input =
 parseMdoc :: PandocMonad m => MdocParser m Pandoc
 parseMdoc = do
   optional parsePrologue
-  trace "hasdf"
   bs <- many parseBlock <* eof
-  trace "DFDF"
   meta <- metadata <$> getState
   let (Pandoc _ blocks) = B.doc $ mconcat bs
   return $ Pandoc meta blocks
@@ -237,7 +235,7 @@ parsePara :: PandocMonad m => MdocParser m Blocks
 parsePara = B.para . B.trimInlines <$> parseInlines
 
 parseBlock :: PandocMonad m => MdocParser m Blocks
-parseBlock = trace "DFDF" >> choice [ -- parseList
+parseBlock = choice [ -- parseList
                     -- , parseDefinitionList
                     parseHeader
                     , parseNameSection
