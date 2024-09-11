@@ -64,6 +64,7 @@ data DelimSide = Open | Middle | Close deriving (Show, Eq)
 data MdocToken = Str T.Text SourcePos
                | Macro T.Text SourcePos
                | Lit T.Text SourcePos
+               | Blank SourcePos
                | Delim DelimSide T.Text SourcePos
                | Tbl [TableOption] [TableRow] SourcePos
                | Eol
@@ -74,6 +75,7 @@ toString (Str x _) = x
 toString (Macro x _) = x
 toString (Lit x _) = x
 toString (Delim _ x _) = x
+toString Blank{} = mempty
 toString Tbl{} = mempty
 toString Eol = mempty
 
@@ -332,7 +334,9 @@ lexTextLine = do
   guard $ sourceColumn pos == 1
   t <- mconcat <$> many anyText
   eofline
-  return $ singleTok $ Str t pos
+  if T.null $ T.strip t
+     then return $ singleTok $ Blank pos
+     else return $ singleTok $ Str t pos
 
 lexControlLine :: PandocMonad m => RoffLexer m MdocTokens
 lexControlLine = do
