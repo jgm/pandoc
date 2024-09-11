@@ -101,9 +101,6 @@ eofline = do
   void newline <|> eof
   return Eol
 
-spacetab :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s u m Char
-spacetab = char ' ' <|> char '\t'
-
 characterCodeMap :: M.Map T.Text Char
 characterCodeMap =
   M.fromList $ map (\(x,y) -> (y,x)) characterCodes
@@ -273,7 +270,7 @@ argText :: PandocMonad m => RoffLexer m T.Text
 argText = mconcat <$> many1 (escape <|> regularText)
 
 spaceTabChar :: PandocMonad m => RoffLexer m T.Text
-spaceTabChar = T.singleton <$> spacetab
+spaceTabChar = T.singleton <$> spaceChar
 
 quotedArg :: PandocMonad m => RoffLexer m T.Text
 quotedArg = do
