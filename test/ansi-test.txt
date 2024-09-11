@@ -120,3 +120,4 @@ More text.
 
 [small caps]{.smallcaps}
 
+We see a log~10~ reduction in 2^9^ seconds.
