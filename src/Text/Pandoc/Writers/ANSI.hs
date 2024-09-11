@@ -296,7 +296,7 @@ inlineToANSI opts (Superscript lst) = do
     Nothing -> inlineListToANSI opts lst >>= return . D.parens
 
 inlineToANSI opts (Subscript lst) = do
-  case traverse toSuperscriptInline lst of
+  case traverse toSubscriptInline lst of
     Just xs -> inlineListToANSI opts xs
     Nothing -> inlineListToANSI opts lst >>= return . D.parens
 
