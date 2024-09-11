@@ -94,6 +94,7 @@ msatisfy predic = P.tokenPrim show nextPos testTok
     nextPos _ _ (Macro _ pos':_) = pos'
     nextPos _ _ (Lit _ pos':_) = pos'
     nextPos _ _ (Str _ pos':_) = pos'
+    nextPos _ _ (Delim _ _ pos':_) = pos'
     nextPos _ _ (Tbl _ _ pos':_) = pos'
     nextPos a _ (Eol{}:x:xs) = nextPos a x xs
     nextPos pos _ [Eol] = pos
@@ -106,6 +107,11 @@ macro name = msatisfy t where
 
 emptyMacro :: PandocMonad m => T.Text -> MdocParser m MdocToken
 emptyMacro n = macro n <* eol
+
+delim :: PandocMonad m => DelimSide -> MdocParser m MdocToken
+delim side = msatisfy t where
+  t (Delim s _ _) = side == s
+  t _ = False
 
 str :: PandocMonad m => MdocParser m MdocToken
 str = msatisfy t where
@@ -194,15 +200,29 @@ parseLit = do
   (Lit txt _) <- lit
   return $ B.str txt
 
+parseDelim :: PandocMonad m => DelimSide -> MdocParser m Inlines
+parseDelim pos = do
+  (Delim _ txt _) <- delim pos
+  return $ B.str txt
+
+litsToText :: PandocMonad m => MdocParser m Inlines
+litsToText = do
+  ls <- many lit
+  let strs = map (B.str . toString) ls
+  return $ mconcat $ intersperse B.space strs
+
 simpleInline :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 simpleInline nm xform = do
   macro nm
-  -- inlines <- mconcat <$> many1 parseLit
-  return $ xform $ B.text "go nuts"
+  openDelim <- mconcat <$> many (parseDelim Open)
+  inlines <- litsToText
+  closeDelim <- mconcat <$> many (parseDelim Close)
+  return $ openDelim <> xform inlines <> closeDelim
+
 
 -- Sy: callable, parsed, >0 arguments
 parseSy :: PandocMonad m => MdocParser m Inlines
-parseSy = trace "SSS" >> simpleInline "Sy" B.strong
+parseSy = simpleInline "Sy" B.strong
 
 parseInlineMacro :: PandocMonad m => MdocParser m Inlines
 parseInlineMacro = choice [ parseSy ]

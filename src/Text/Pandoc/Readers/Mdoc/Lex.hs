@@ -16,7 +16,9 @@ Tokenizer for roff formats (man, ms).
 module Text.Pandoc.Readers.Mdoc.Lex
   ( MdocToken(..)
   , MdocTokens(..)
+  , DelimSide(..)
   , lexMdoc
+  , toString
   )
 where
 
@@ -57,11 +59,23 @@ data CellFormat =
 
 type TableRow = ([CellFormat], [MdocTokens])
 
+data DelimSide = Open | Middle | Close deriving (Show, Eq)
+
 data MdocToken = Str T.Text SourcePos
                | Macro T.Text SourcePos
                | Lit T.Text SourcePos
+               | Delim DelimSide T.Text SourcePos
                | Tbl [TableOption] [TableRow] SourcePos
+               | Eol
                deriving Show
+
+toString :: MdocToken -> T.Text
+toString (Str x _) = x
+toString (Macro x _) = x
+toString (Lit x _) = x
+toString (Delim _ x _) = x
+toString Tbl{} = mempty
+toString Eol = mempty
 
 newtype MdocTokens = MdocTokens { unRoffTokens :: Seq.Seq MdocToken }
         deriving (Show, Semigroup, Monoid)
@@ -82,8 +96,10 @@ type RoffLexer m = ParsecT Sources RoffState m
 -- Lexer: T.Text -> RoffToken
 --
 
-eofline :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s u m ()
-eofline = void newline <|> eof
+eofline :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s u m MdocToken
+eofline = do
+  void newline <|> eof
+  return Eol
 
 spacetab :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s u m Char
 spacetab = char ' ' <|> char '\t'
@@ -297,18 +313,25 @@ lexMacro = do
     isMacroChar '%' = True
     isMacroChar x = isAlphaNum x
 
+lexDelim :: PandocMonad m => RoffLexer m MdocToken
+lexDelim = do
+  pos <- getPosition
+  t <- Delim Open <$> oneOfStrings ["(", "["] <|> Delim Close <$> oneOfStrings [".", ",", ":", ";", ")", "]", "?", "!"]
+  return $ t pos
+
 lexLit :: PandocMonad m => RoffLexer m MdocToken
 lexLit = do
   pos <- getPosition
-  t <- mconcat <$> many (argText <|> quotedArg)
+  t <- argText <|> quotedArg
+  guard $ not $ T.null t
   return $ Lit t pos
 
 lexTextLine :: PandocMonad m => RoffLexer m MdocTokens
 lexTextLine = do
   pos <- getPosition
   guard $ sourceColumn pos == 1
-  notFollowedBy $ char '.'
   t <- mconcat <$> many anyText
+  eofline
   return $ singleTok $ Str t pos
 
 lexControlLine :: PandocMonad m => RoffLexer m MdocTokens
@@ -317,15 +340,16 @@ lexControlLine = do
   guard $ sourceColumn pos == 1
   char '.'
   m <- lexMacro
-  wds <- sepBy (lexLit) spacetab
-  eofline
-  return $ MdocTokens $ Seq.singleton m <> Seq.fromList wds
+  wds <- sepBy (lexDelim <|> lexLit) spacetab
+  skipSpaces
+  e <- eofline
+  return $ MdocTokens $ Seq.fromList $ (m:wds) <> [e]
 
 -- | Tokenize a string as a sequence of roff tokens.
 lexMdoc :: PandocMonad m => SourcePos -> T.Text -> m MdocTokens
 lexMdoc pos txt = do
   eithertokens <- readWithM (do setPosition pos
-                                mconcat <$> many mdocToken) def txt
+                                mconcat <$> manyTill mdocToken eof) def txt
   case eithertokens of
     Left e       -> throwError e
     Right tokenz -> return tokenz
