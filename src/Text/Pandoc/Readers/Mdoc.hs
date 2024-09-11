@@ -179,7 +179,6 @@ parseNameSection = do
   macro "Nd"
   desc <- argsToInlines
   modifyState $ \s -> s{progName = mplus (progName s) (Just pname)}
-  skipMany (msatisfy (const True))
   return $ B.para $ B.code pname <> B.space <> "—" <> B.space <> desc
 
 parseSynopsisSection :: PandocMonad m => MdocParser m Blocks
