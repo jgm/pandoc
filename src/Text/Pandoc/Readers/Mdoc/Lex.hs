@@ -314,6 +314,7 @@ lexDelim :: PandocMonad m => RoffLexer m MdocToken
 lexDelim = do
   pos <- getPosition
   t <- Delim Open <$> oneOfStrings ["(", "["] <|> Delim Close <$> oneOfStrings [".", ",", ":", ";", ")", "]", "?", "!"]
+  skipSpaces
   return $ t pos
 
 lexLit :: PandocMonad m => RoffLexer m MdocToken
@@ -321,6 +322,7 @@ lexLit = do
   pos <- getPosition
   t <- argText <|> quotedArg
   guard $ not $ T.null t
+  skipSpaces
   return $ Lit t pos
 
 lexTextLine :: PandocMonad m => RoffLexer m MdocTokens
@@ -337,9 +339,7 @@ lexControlLine = do
   guard $ sourceColumn pos == 1
   char '.'
   m <- lexMacro
-  wds <- sepBy (lexDelim <|> lexLit) spacetab
-  skipSpaces
-  e <- eofline
+  (wds, e) <- manyUntil (lexDelim <|> lexLit) eofline
   return $ MdocTokens $ Seq.fromList $ (m:wds) <> [e]
 
 -- | Tokenize a string as a sequence of roff tokens.
