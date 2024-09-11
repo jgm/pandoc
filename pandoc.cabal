@@ -547,6 +547,7 @@ library
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
+                   Text.Pandoc.Readers.Roff,
                    Text.Pandoc.App,
                    Text.Pandoc.Data,
                    Text.Pandoc.Options,
@@ -588,6 +589,8 @@ library
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Readers.Man,
+                   Text.Pandoc.Readers.Mdoc,
+                   Text.Pandoc.Readers.Mdoc.Lex,
                    Text.Pandoc.Readers.FB2,
                    Text.Pandoc.Readers.DokuWiki,
                    Text.Pandoc.Readers.Ipynb,
@@ -722,7 +725,6 @@ library
                    Text.Pandoc.Readers.Org.Parsing,
                    Text.Pandoc.Readers.Org.Shared,
                    Text.Pandoc.Readers.Metadata,
-                   Text.Pandoc.Readers.Roff,
                    Text.Pandoc.Writers.Docx.OpenXML,
                    Text.Pandoc.Writers.Docx.StyleMap,
                    Text.Pandoc.Writers.Docx.Table,
@@ -858,3 +860,8 @@ benchmark benchmark-pandoc
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:
   ghc-options:     -rtsopts -with-rtsopts=-A8m -threaded
+
+executable lexroff
+  import:  common-executable
+  main-is: lexroff.hs
+  build-depends: pandoc, text
