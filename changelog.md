@@ -31,11 +31,11 @@
 
   * RST reader:
 
-   + Improve simple table support (#10093). Multiline rows occur
-     only when the *first* cell is empty; we were previously treating
-    lines with *any* empty cell as row continuations. In addition, we
-    no longer wrap multiline cells in Para if they can be represented
-    as Plain. This is consistent with docutils behavior.
+    + Improve simple table support (#10093). Multiline rows occur
+      only when the *first* cell is empty; we were previously treating
+      lines with *any* empty cell as row continuations. In addition, we
+      no longer wrap multiline cells in Para if they can be represented
+      as Plain. This is consistent with docutils behavior.
 
   * LaTeX reader:
 
