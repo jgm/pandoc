@@ -7,3 +7,9 @@ flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1.2,
              skylighting-format-context >= 0.1.0.2
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/commonmark-hs
+  subdir: commonmark
+  tag: ff9fe5736d2b8eb65e148e9c4a2a95b3d96eefd6
+
