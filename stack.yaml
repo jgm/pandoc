@@ -16,7 +16,6 @@ extra-deps:
 - typst-symbols-0.1.6
 - skylighting-core-0.14.3
 - skylighting-0.14.3
-- djot-0.1.2.1
 - doclayout-0.5
 - doctemplates-0.11.0.1
 - texmath-0.12.8.10
