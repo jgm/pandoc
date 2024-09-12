@@ -93,6 +93,7 @@ msatisfy predic = P.tokenPrim show nextPos testTok
     nextPos _ _ (Lit _ pos':_) = pos'
     nextPos _ _ (Str _ pos':_) = pos'
     nextPos _ _ (Delim _ _ pos':_) = pos'
+    nextPos _ _ (Blank pos':_) = pos'
     nextPos _ _ (Tbl _ _ pos':_) = pos'
     nextPos a _ (Eol{}:x:xs) = nextPos a x xs
     nextPos pos _ [Eol] = pos
@@ -130,6 +131,11 @@ arg = msatisfy t where
 literal :: PandocMonad m => T.Text -> MdocParser m MdocToken
 literal n = msatisfy t where
   t (Lit n' _) = n == n'
+  t _ = False
+
+blank :: PandocMonad m => MdocParser m MdocToken
+blank = msatisfy t where
+  t Blank{} = True
   t _ = False
 
 eol :: PandocMonad m => MdocParser m ()
@@ -233,6 +239,9 @@ parseInlines = mconcat <$> many1 parseInline
 parsePara :: PandocMonad m => MdocParser m Blocks
 parsePara = B.para . B.trimInlines <$> parseInlines
 
+skipBlanks :: PandocMonad m => MdocParser m Blocks
+skipBlanks = many1 blank *> mempty
+
 parseBlock :: PandocMonad m => MdocParser m Blocks
 parseBlock = choice [ -- parseList
                     -- , parseDefinitionList
@@ -242,6 +251,7 @@ parseBlock = choice [ -- parseList
                     , parsePara
                     -- , parseTable
                     --, parseCodeBlock
+                    , skipBlanks
                     -- , parseBlockQuote
                     -- , parseNewParagraph
                     -- , skipUnknownMacro
