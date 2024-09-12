@@ -26,6 +26,8 @@ extra-deps:
 - git: https://github.com/jgm/commonmark-hs
   subdirs: [commonmark]
   commit: ff9fe5736d2b8eb65e148e9c4a2a95b3d96eefd6
+- git: https://github.com/jgm/djoths
+  commit: 1da0c094a4bdfd67ce195b1c338075a6dcd1f3a4
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
