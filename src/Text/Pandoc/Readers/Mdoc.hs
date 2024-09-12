@@ -267,6 +267,22 @@ parsePara = do
   optional (emptyMacro "Pp")
   B.para . B.trimInlines <$> parseInlines
 
+-- CodeBlocks can't contain any other markup, but mdoc
+-- still interprets control lines within .Bd -literal
+-- blocks. Just ignoring this for now and failing if
+-- we get any control lines inside a Bd literal
+parseCodeBlock :: PandocMonad m => MdocParser m Blocks
+parseCodeBlock = do
+  macro "Bd" -- TODO will need to hoist
+  literal "-literal"
+  optional (literal "-offset" *> lit)
+  optional (literal "-compact")
+  eol
+  l <- T.unlines . map toString <$> many (str <|> blank)
+  emptyMacro "Ed"
+  return $ B.codeBlock l
+
+
 skipBlanks :: PandocMonad m => MdocParser m Blocks
 skipBlanks = many1 blank *> mempty
 
@@ -278,7 +294,7 @@ parseBlock = choice [ -- parseList
                     , parseSynopsisSection
                     , parsePara
                     -- , parseTable
-                    --, parseCodeBlock
+                    , parseCodeBlock
                     , skipBlanks
                     -- , parseBlockQuote
                     -- , parseNewParagraph
