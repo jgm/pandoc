@@ -143,6 +143,16 @@ eol = void $ msatisfy t where
   t Eol{} = True
   t _ = False
 
+inlineContextEnd :: PandocMonad m => MdocParser m ()
+inlineContextEnd = eof <|> (void . lookAhead $ msatisfy t) where
+  t Eol{} = True
+  t Macro{} = True
+  t Str{} = True -- shouldn't be lexed
+  t Tbl{} = True -- shouldn't be lexed
+  t Blank{} = True -- shouldn't be lexed
+  t Lit{} = False
+  t Delim{} = False
+
 argsToInlines :: PandocMonad m => MdocParser m Inlines
 argsToInlines = do
   ls <- manyTill arg eol
@@ -213,34 +223,49 @@ parseDelim pos = do
 
 litsToText :: PandocMonad m => MdocParser m Inlines
 litsToText = do
-  ls <- many lit
+  ls <- many1 lit
   let strs = map (B.str . toString) ls
   return $ mconcat $ intersperse B.space strs
 
 simpleInline :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 simpleInline nm xform = do
   macro nm
-  openDelim <- mconcat <$> many (parseDelim Open)
-  inlines <- litsToText
-  closeDelim <- mconcat <$> many (parseDelim Close)
-  return $ openDelim <> xform inlines <> closeDelim
+  segs <- manyTill segment inlineContextEnd
+  return $ mconcat $ intersperse B.space segs
+ where
+   segment = do
+      openDelim <- mconcat <$> many (parseDelim Open)
+      inlines <- option mempty litsToText
+      closeDelim <- mconcat <$> many (parseDelim Close)
+      let xform' x = if null x then mempty else xform x
+      return $ openDelim <> xform' inlines <> closeDelim
 
 
 -- Sy: callable, parsed, >0 arguments
+-- mandoc -T html formats Sy with a <b> tag, since it's not really
+-- semantically <strong>, but Strong is our best option in Pandoc
 parseSy :: PandocMonad m => MdocParser m Inlines
 parseSy = simpleInline "Sy" B.strong
 
-parseInlineMacro :: PandocMonad m => MdocParser m Inlines
-parseInlineMacro = choice [ parseSy ]
+parseEm :: PandocMonad m => MdocParser m Inlines
+parseEm = simpleInline "Em" B.emph
 
+parseInlineMacro :: PandocMonad m => MdocParser m Inlines
+parseInlineMacro = choice [ parseSy, parseEm ]
+
+-- TODO this doesn't handle inline macros being interrupted
+-- by other ones yet, but the lexer doesn't handle it yet
+-- either
 parseInline :: PandocMonad m => MdocParser m Inlines
 parseInline = parseStr <|> (parseInlineMacro <* eol)
 
 parseInlines :: PandocMonad m => MdocParser m Inlines
-parseInlines = mconcat <$> many1 parseInline
+parseInlines = mconcat . intersperse B.space <$> many1 parseInline
 
 parsePara :: PandocMonad m => MdocParser m Blocks
-parsePara = B.para . B.trimInlines <$> parseInlines
+parsePara = do
+  optional (emptyMacro "Pp")
+  B.para . B.trimInlines <$> parseInlines
 
 skipBlanks :: PandocMonad m => MdocParser m Blocks
 skipBlanks = many1 blank *> mempty
