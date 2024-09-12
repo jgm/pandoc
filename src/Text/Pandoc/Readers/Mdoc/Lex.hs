@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
 {- |
    Module      : Text.Pandoc.Readers.Mdoc.Lex
    Copyright   : Copyright (C) 2018-2020 Yan Pashkovsky and John MacFarlane
@@ -22,15 +21,12 @@ module Text.Pandoc.Readers.Mdoc.Lex
   )
 where
 
-import Safe (lastDef)
 import Control.Monad (void, mzero, mplus, guard)
 import Control.Monad.Except (throwError)
-import Text.Pandoc.Class.PandocMonad
-       (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isLower, toLower, toUpper, chr, isAscii, isAlphaNum)
+import Text.Pandoc.Class.PandocMonad (PandocMonad(..), report)
+import Data.Char (chr, isAscii, isAlphaNum)
 import Data.Default (Default)
 import qualified Data.Map as M
-import Data.List (intercalate)
 import qualified Data.Text as T
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
@@ -38,7 +34,6 @@ import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
 import qualified Data.Sequence as Seq
-import qualified Data.Foldable as Foldable
 import qualified Data.Text.Normalize as Normalize
 
 -- import Debug.Trace (traceShowId)
