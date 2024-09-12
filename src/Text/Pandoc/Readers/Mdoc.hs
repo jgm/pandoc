@@ -232,6 +232,14 @@ litsToText = do
   let strs = map (B.str . toString) ls
   return $ mconcat $ intersperse B.space strs
 
+delimitedArgs :: PandocMonad m => MdocParser m x -> MdocParser m (Inlines, x, Inlines)
+delimitedArgs p = do
+    openDelim <- mconcat <$> many (parseDelim Open)
+    inlines <- p
+    closeDelim <- mconcat <$> many (parseDelim Close)
+    return (openDelim, inlines, closeDelim)
+
+-- TODO extract further?
 simpleInline :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 simpleInline nm xform = do
   macro nm
@@ -239,9 +247,7 @@ simpleInline nm xform = do
   return $ mconcat $ intersperse B.space segs
  where
    segment = do
-      openDelim <- mconcat <$> many (parseDelim Open)
-      inlines <- option mempty litsToText
-      closeDelim <- mconcat <$> many (parseDelim Close)
+      (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
       let xform' x = if null x then mempty else xform x
       return $ openDelim <> xform' inlines <> closeDelim
 
@@ -255,8 +261,22 @@ parseSy = simpleInline "Sy" B.strong
 parseEm :: PandocMonad m => MdocParser m Inlines
 parseEm = simpleInline "Em" B.emph
 
+-- Xr
+parseXr :: PandocMonad m => MdocParser m Inlines
+parseXr = do
+  macro "Xr"
+  (open, (name, section), close) <- delimitedArgs f
+  let ref = name <> "(" <> section <> ")"
+  return $ open <> B.spanWith attr (B.str ref) <> close
+    where
+      f = do
+        n <- lit <?> "Xr manual name"
+        s <- lit <?> "Xr manual section"
+        return (toString n, toString s)
+      attr = (mempty, ["Xr"], mempty)
+
 parseInlineMacro :: PandocMonad m => MdocParser m Inlines
-parseInlineMacro = choice [ parseSy, parseEm ]
+parseInlineMacro = choice [ parseSy, parseEm, parseXr ]
 
 -- TODO this doesn't handle inline macros being interrupted
 -- by other ones yet, but the lexer doesn't handle it yet
