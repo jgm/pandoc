@@ -30,6 +30,11 @@ import qualified Text.Pandoc.Parsing as P
 import qualified Data.Foldable as Foldable
 import Text.Pandoc.Shared (stringify)
 
+  {- As a general principle, if mandoc -T lint issues a WARNING admonition
+     or worse about a construct, I consider it fair game for this reader to
+     do something different than what mandoc does with it, including bailing
+     out instead of recovering. -}
+
 data MdocSection
   = ShName
   | ShSynopsis
