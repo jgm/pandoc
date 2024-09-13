@@ -23,8 +23,8 @@ extra-deps:
 # even though the resolver has this version, we need the Hackage revision:
 - hslua-module-doclayout-1.1.1.2
 - git: https://github.com/jgm/commonmark-hs
-  subdirs: [commonmark]
-  commit: ff9fe5736d2b8eb65e148e9c4a2a95b3d96eefd6
+  subdirs: [commonmark, commonmark-pandoc]
+  commit: 7130ce27089b47588f64946263defc05fd72ab29
 - git: https://github.com/jgm/djoths
   commit: 8582cdc763716489f5d0f7f5cd250199adcccd17
 

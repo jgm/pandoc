@@ -1,10 +1,7 @@
 Pandoc
   Meta { unMeta = fromList [] }
   [ Div
-      ( "Pandoc-Test-Suite"
-      , [ "section" ]
-      , [ ( "wrapper" , "1" ) ]
-      )
+      ( "Pandoc-Test-Suite" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Pandoc Test Suite" ]
       , Para
           [ Str "John MacFarlane" , SoftBreak , Str "Anonymous" ]
@@ -18,13 +15,10 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "headers" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "headers" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Headers" ]
       , Div
-          ( "level-2-with-an-embedded-link"
-          , [ "section" ]
-          , [ ( "wrapper" , "1" ) ]
-          )
+          ( "level-2-with-an-embedded-link" , [ "section" ] , [] )
           [ Header
               2
               ( "" , [] , [] )
@@ -35,57 +29,45 @@ Pandoc
                   ( "/url" , "" )
               ]
           , Div
-              ( "level-3-with-emphasis"
-              , [ "section" ]
-              , [ ( "wrapper" , "1" ) ]
-              )
+              ( "level-3-with-emphasis" , [ "section" ] , [] )
               [ Header
                   3
                   ( "" , [] , [] )
                   [ Str "Level 3 with " , Emph [ Str "emphasis" ] ]
               , Div
-                  ( "level-4"
-                  , [ "section" ]
-                  , [ ( "wrapper" , "1" ) ]
-                  )
+                  ( "level-4" , [ "section" ] , [] )
                   [ Header 4 ( "" , [] , [] ) [ Str "Level 4" ]
                   , Div
-                      ( "level-5"
-                      , [ "section" ]
-                      , [ ( "wrapper" , "1" ) ]
-                      )
+                      ( "level-5" , [ "section" ] , [] )
                       [ Header 5 ( "" , [] , [] ) [ Str "Level 5" ] ]
                   ]
               ]
           ]
       ]
   , Div
-      ( "level-1" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "level-1" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Level 1" ]
       , Div
-          ( "level-2-with-emphasis"
-          , [ "section" ]
-          , [ ( "wrapper" , "1" ) ]
-          )
+          ( "level-2-with-emphasis" , [ "section" ] , [] )
           [ Header
               2
               ( "" , [] , [] )
               [ Str "Level 2 with " , Emph [ Str "emphasis" ] ]
           , Div
-              ( "level-3" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+              ( "level-3" , [ "section" ] , [] )
               [ Header 3 ( "" , [] , [] ) [ Str "Level 3" ]
               , Para [ Str "with no blank line" ]
               ]
           ]
       , Div
-          ( "level-2" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+          ( "level-2" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Level 2" ]
           , Para [ Str "with no blank line" ]
           , HorizontalRule
           ]
       ]
   , Div
-      ( "paragraphs" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "paragraphs" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Paragraphs" ]
       , Para [ Str "Here\8217s a regular paragraph." ]
       , Para
@@ -106,7 +88,7 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "block-quotes" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "block-quotes" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Block Quotes" ]
       , Para [ Str "E-mail style:" ]
       , BlockQuote
@@ -132,7 +114,7 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "code-blocks" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "code-blocks" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Code Blocks" ]
       , Para [ Str "Code:" ]
       , CodeBlock
@@ -145,10 +127,10 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "lists" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "lists" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Lists" ]
       , Div
-          ( "unordered" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+          ( "unordered" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Unordered" ]
           , Para [ Str "Asterisks tight:" ]
           , BulletList
@@ -188,7 +170,7 @@ Pandoc
               ]
           ]
       , Div
-          ( "ordered" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+          ( "ordered" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Ordered" ]
           , Para [ Str "Tight:" ]
           , OrderedList
@@ -232,7 +214,7 @@ Pandoc
               ]
           ]
       , Div
-          ( "nested" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+          ( "nested" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Nested" ]
           , BulletList
               [ [ Plain [ Str "Tab" ]
@@ -271,10 +253,7 @@ Pandoc
               ]
           ]
       , Div
-          ( "tabs-and-spaces"
-          , [ "section" ]
-          , [ ( "wrapper" , "1" ) ]
-          )
+          ( "tabs-and-spaces" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Tabs and spaces" ]
           , BulletList
               [ [ Para [ Str "this is a list item indented with tabs" ]
@@ -297,10 +276,7 @@ Pandoc
               ]
           ]
       , Div
-          ( "fancy-list-markers"
-          , [ "section" ]
-          , [ ( "wrapper" , "1" ) ]
-          )
+          ( "fancy-list-markers" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Fancy list markers" ]
           , OrderedList
               ( 2 , Decimal , TwoParens )
@@ -365,10 +341,7 @@ Pandoc
           ]
       ]
   , Div
-      ( "definition-lists"
-      , [ "section" ]
-      , [ ( "wrapper" , "1" ) ]
-      )
+      ( "definition-lists" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Definition Lists" ]
       , Para [ Str "Tight using spaces:" ]
       , DefinitionList
@@ -409,11 +382,11 @@ Pandoc
             , [ [ Para [ Str "orange fruit" ]
                 , CodeBlock
                     ( "" , [ "" ] , [] ) "{ orange code block }\n"
+                , BlockQuote [ Para [ Str "orange block quote" ] ]
                 ]
               ]
             )
           ]
-      , BlockQuote [ Para [ Str "orange block quote" ] ]
       , Para [ Str "Multiple definitions, tight:" ]
       , DefinitionList
           [ ( [ Str "apple" ]
@@ -453,7 +426,7 @@ Pandoc
           ]
       ]
   , Div
-      ( "html-blocks" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "html-blocks" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "HTML Blocks" ]
       , Para [ Str "Simple block on one line:" ]
       , Div ( "" , [] , [] ) [ Para [ Str "foo" ] ]
@@ -495,10 +468,7 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "inline-markup"
-      , [ "section" ]
-      , [ ( "wrapper" , "1" ) ]
-      )
+      ( "inline-markup" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Inline Markup" ]
       , Para
           [ Str "This is "
@@ -580,10 +550,7 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "smart-quotes-ellipses-dashes"
-      , [ "section" ]
-      , [ ( "wrapper" , "1" ) ]
-      )
+      ( "smart-quotes-ellipses-dashes" , [ "section" ] , [] )
       [ Header
           1 ( "" , [] , [] ) [ Str "Smart quotes, ellipses, dashes" ]
       , Para
@@ -645,7 +612,7 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "latex" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "latex" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "LaTeX" ]
       , BulletList
           [ []
@@ -701,10 +668,7 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "special-characters"
-      , [ "section" ]
-      , [ ( "wrapper" , "1" ) ]
-      )
+      ( "special-characters" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Special Characters" ]
       , Para [ Str "Here is some unicode:" ]
       , BulletList
@@ -738,10 +702,10 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "links" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "links" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Links" ]
       , Div
-          ( "explicit" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+          ( "explicit" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Explicit" ]
           , Para
               [ Str "Just a "
@@ -750,9 +714,16 @@ Pandoc
               ]
           , Para
               [ Link
+                  ( "" , [] , [ ( "title" , "title" ) ] )
+                  [ Str "URL and title" ]
+                  ( "/url/" , "" )
+              , Str "."
+              ]
+          , Para
+              [ Link
                   ( ""
                   , []
-                  , [ ( "wrapper" , "1" ) , ( "title" , "title" ) ]
+                  , [ ( "title" , "title preceded by two spaces" ) ]
                   )
                   [ Str "URL and title" ]
                   ( "/url/" , "" )
@@ -762,9 +733,7 @@ Pandoc
               [ Link
                   ( ""
                   , []
-                  , [ ( "wrapper" , "1" )
-                    , ( "title" , "title preceded by two spaces" )
-                    ]
+                  , [ ( "title" , "title preceded by a tab" ) ]
                   )
                   [ Str "URL and title" ]
                   ( "/url/" , "" )
@@ -774,21 +743,7 @@ Pandoc
               [ Link
                   ( ""
                   , []
-                  , [ ( "wrapper" , "1" )
-                    , ( "title" , "title preceded by a tab" )
-                    ]
-                  )
-                  [ Str "URL and title" ]
-                  ( "/url/" , "" )
-              , Str "."
-              ]
-          , Para
-              [ Link
-                  ( ""
-                  , []
-                  , [ ( "wrapper" , "1" )
-                    , ( "title" , "title with \"quotes\" in it" )
-                    ]
+                  , [ ( "title" , "title with \"quotes\" in it" ) ]
                   )
                   [ Str "URL and title" ]
                   ( "/url/" , "" )
@@ -797,9 +752,7 @@ Pandoc
               [ Link
                   ( ""
                   , []
-                  , [ ( "wrapper" , "1" )
-                    , ( "title" , "title with single quotes" )
-                    ]
+                  , [ ( "title" , "title with single quotes" ) ]
                   )
                   [ Str "URL and title" ]
                   ( "/url/" , "" )
@@ -822,7 +775,7 @@ Pandoc
               ]
           ]
       , Div
-          ( "reference" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+          ( "reference" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Reference" ]
           , Para
               [ Str "Foo "
@@ -863,9 +816,7 @@ Pandoc
               , Link
                   ( ""
                   , []
-                  , [ ( "wrapper" , "1" )
-                    , ( "title" , "Title with \"quotes\" inside" )
-                    ]
+                  , [ ( "title" , "Title with \"quotes\" inside" ) ]
                   )
                   [ Str "bar" ]
                   ( "/url/" , "" )
@@ -876,9 +827,7 @@ Pandoc
               , Link
                   ( ""
                   , []
-                  , [ ( "wrapper" , "1" )
-                    , ( "title" , "Title with \"quote\" inside" )
-                    ]
+                  , [ ( "title" , "Title with \"quote\" inside" ) ]
                   )
                   [ Str "biz" ]
                   ( "/url/" , "" )
@@ -886,10 +835,7 @@ Pandoc
               ]
           ]
       , Div
-          ( "with-ampersands"
-          , [ "section" ]
-          , [ ( "wrapper" , "1" ) ]
-          )
+          ( "with-ampersands" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "With ampersands" ]
           , Para
               [ Str "Here\8217s a "
@@ -904,10 +850,7 @@ Pandoc
                   "Here\8217s a link with an amersand in the link text:"
               , SoftBreak
               , Link
-                  ( ""
-                  , []
-                  , [ ( "wrapper" , "1" ) , ( "title" , "AT&T" ) ]
-                  )
+                  ( "" , [] , [ ( "title" , "AT&T" ) ] )
                   [ Str "AT&T" ]
                   ( "http://att.com/" , "" )
               , Str "."
@@ -930,7 +873,7 @@ Pandoc
               ]
           ]
       , Div
-          ( "autolinks" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+          ( "autolinks" , [ "section" ] , [] )
           [ Header 2 ( "" , [] , [] ) [ Str "Autolinks" ]
           , Para
               [ Str "With an ampersand: "
@@ -976,7 +919,7 @@ Pandoc
           ]
       ]
   , Div
-      ( "images" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "images" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Images" ]
       , Para
           [ Str "From "
@@ -987,18 +930,11 @@ Pandoc
           ( "" , [] , [] )
           [ Para
               [ Image
-                  ( ""
-                  , []
-                  , [ ( "wrapper" , "1" )
-                    , ( "title" , "Voyage dans la Lune" )
-                    ]
-                  )
+                  ( "" , [] , [ ( "title" , "Voyage dans la Lune" ) ] )
                   [ Str "lalune" ]
                   ( "lalune.jpg" , "" )
               ]
-          , Div
-              ( "" , [ "caption" ] , [ ( "wrapper" , "1" ) ] )
-              [ Para [ Str "lalune" ] ]
+          , Div ( "" , [ "caption" ] , [] ) [ Para [ Str "lalune" ] ]
           ]
       , Para
           [ Str "Here is a movie "
@@ -1009,7 +945,7 @@ Pandoc
       , HorizontalRule
       ]
   , Div
-      ( "footnotes" , [ "section" ] , [ ( "wrapper" , "1" ) ] )
+      ( "footnotes" , [ "section" ] , [] )
       [ Header 1 ( "" , [] , [] ) [ Str "Footnotes" ]
       , Para
           [ Str "Here is a footnote reference,"

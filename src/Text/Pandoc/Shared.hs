@@ -298,7 +298,7 @@ addPandocAttributes
   :: forall b . HasAttributes (Cm () b) => [(T.Text, T.Text)] -> b -> b
 addPandocAttributes [] bs = bs
 addPandocAttributes kvs bs =
-  unCm . addAttributes (("wrapper","1"):kvs) $ (Cm bs :: Cm () b)
+  unCm . addAttributes kvs $ (Cm bs :: Cm () b)
 
 -- | Generate infinite lazy list of markers for an ordered list,
 -- depending on list attributes.
