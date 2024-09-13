@@ -9,7 +9,7 @@
    Stability   : WIP
    Portability : portable
 
-Conversion of man to 'Pandoc' document.
+Conversion of mdoc to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.Mdoc (readMdoc) where
 

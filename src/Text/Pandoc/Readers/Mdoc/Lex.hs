@@ -13,7 +13,7 @@
    Stability   : WIP
    Portability : portable
 
-Tokenizer for roff formats (man, ms).
+Tokenizer for mdoc format
 -}
 module Text.Pandoc.Readers.Mdoc.Lex
   ( MdocToken(..)
