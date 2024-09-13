@@ -1406,6 +1406,75 @@ or here: &lt;http://example.com/&gt;
     </tgroup>
   </table>
   <para>
+    Table with attributes
+  </para>
+  <table xml:id="mytableid1" class="mytableclass1 mytableclass2" tabstyle="mytabstyle1">
+    <title>
+      Attribute table caption
+    </title>
+    <tgroup>
+      <thead>
+	<th>
+	  <para>
+	    header cell 1
+	  </para>
+	</th>
+	<th>
+	  <para>
+	    header cell 2
+	  </para>
+	</th>
+      </thead>
+      <tbody>
+	<tr>
+	  <td>
+	    <para>
+	      body cell 1
+	    </para>
+	  </td>
+	  <td>
+	    <para>
+	      body cell 2
+	    </para>
+	  </td>
+	</tr>
+      </tbody>
+    </tgroup>
+  </table>
+  <para>
+    Table with attributes, without caption
+  </para>
+  <informaltable xml:id="mytableid2" class="mytableclass3 mytableclass4" tabstyle="mytabstyle2">
+    <tgroup>
+      <thead>
+	<th>
+	  <para>
+	    header cell 1
+	  </para>
+	</th>
+	<th>
+	  <para>
+	    header cell 2
+	  </para>
+	</th>
+      </thead>
+      <tbody>
+	<tr>
+	  <td>
+	    <para>
+	      body cell 1
+	    </para>
+	  </td>
+	  <td>
+	    <para>
+	      body cell 2
+	    </para>
+	  </td>
+	</tr>
+      </tbody>
+    </tgroup>
+  </informaltable>
+  <para>
     Multiline table without caption:
   </para>
   <informaltable>

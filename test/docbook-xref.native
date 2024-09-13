@@ -310,7 +310,7 @@ Pandoc
           ]
       ]
   , Table
-      ( "" , [] , [] )
+      ( "table01" , [] , [] )
       (Caption
          Nothing
          [ Plain

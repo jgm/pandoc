@@ -2561,6 +2561,125 @@ Pandoc
       ]
       (TableFoot ( "" , [] , [] ) [])
   , Para
+      [ Str "Table"
+      , Space
+      , Str "with"
+      , Space
+      , Str "attributes"
+      ]
+  , Table
+      ( "mytableid1"
+      , [ "mytableclass1" , "mytableclass2" ]
+      , [ ( "custom-style" , "mytabstyle1" ) ]
+      )
+      (Caption
+         Nothing
+         [ Plain
+             [ Str "Attribute"
+             , Space
+             , Str "table"
+             , Space
+             , Str "caption"
+             ]
+         ])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "body"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "1"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "body"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "Table"
+      , Space
+      , Str "with"
+      , Space
+      , Str "attributes,"
+      , Space
+      , Str "without"
+      , Space
+      , Str "caption"
+      ]
+  , Table
+      ( "mytableid2"
+      , [ "mytableclass3" , "mytableclass4" ]
+      , [ ( "custom-style" , "mytabstyle2" ) ]
+      )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "body"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "1"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "body"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Para
       [ Str "Multiline"
       , Space
       , Str "table"

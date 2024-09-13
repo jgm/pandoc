@@ -1022,6 +1022,11 @@ parseBlock (Elem e) =
                      items' <- mapM getBlocks items
                      return (mconcat $ intersperse (str "; ") terms', items')
          parseTable = do
+                      let elId = attrValue "id" e
+                      let attrs = case attrValue "tabstyle" e of
+                                    "" -> []
+                                    x  -> [("custom-style", x)]
+                      let classes = T.words $ attrValue "class" e
                       let isCaption x = named "title" x || named "caption" x
                       capt <- case filterChild isCaption e of
                                     Just t  -> getInlines t
@@ -1075,7 +1080,8 @@ parseBlock (Elem e) =
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr
                           toHeaderRow l = [toRow l | not (null l)]
-                      return $ table (simpleCaption $ plain capt)
+                      return $ tableWith (elId,classes,attrs)
+                                     (simpleCaption $ plain capt)
                                      (zip aligns widths)
                                      (TableHead nullAttr $ toHeaderRow headrows)
                                      [TableBody nullAttr 0 [] $ map toRow bodyrows]
