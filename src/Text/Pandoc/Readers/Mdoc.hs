@@ -248,18 +248,36 @@ simpleInline nm xform = do
  where
    segment = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
-      let xform' x = if null x then mempty else xform x
-      return $ openDelim <> xform' inlines <> closeDelim
+      return $ openDelim <> xform inlines <> closeDelim
 
+eliminateEmpty :: (Inlines -> Inlines) -> Inlines -> Inlines
+eliminateEmpty x y = if null y then mempty else x y
+
+cls :: T.Text -> B.Attr
+cls x = (mempty, [x], mempty)
 
 -- Sy: callable, parsed, >0 arguments
 -- mandoc -T html formats Sy with a <b> tag, since it's not really
 -- semantically <strong>, but Strong is our best option in Pandoc
 parseSy :: PandocMonad m => MdocParser m Inlines
-parseSy = simpleInline "Sy" B.strong
+parseSy = simpleInline "Sy" (eliminateEmpty B.strong)
 
 parseEm :: PandocMonad m => MdocParser m Inlines
-parseEm = simpleInline "Em" B.emph
+parseEm = simpleInline "Em" (eliminateEmpty B.emph)
+
+parseNm :: PandocMonad m => MdocParser m Inlines
+parseNm = do
+  mnm <- (progName <$> getState)
+  case mnm of
+    Nothing -> do
+      (_, nm, _) <- lookAhead $ delimitedArgs $ option mempty litsToText
+      guard $ not (null nm)
+      simpleInline "Nm" ok
+    Just nm -> simpleInline "Nm" $ \x ->
+      if null x
+         then B.codeWith (cls "Nm") nm
+         else ok x
+  where ok = B.codeWith (cls "Nm") . stringify
 
 -- Xr
 parseXr :: PandocMonad m => MdocParser m Inlines
@@ -267,16 +285,15 @@ parseXr = do
   macro "Xr"
   (open, (name, section), close) <- delimitedArgs f
   let ref = name <> "(" <> section <> ")"
-  return $ open <> B.spanWith attr (B.str ref) <> close
+  return $ open <> B.spanWith (cls "Xr") (B.str ref) <> close
     where
       f = do
         n <- lit <?> "Xr manual name"
         s <- lit <?> "Xr manual section"
         return (toString n, toString s)
-      attr = (mempty, ["Xr"], mempty)
 
 parseInlineMacro :: PandocMonad m => MdocParser m Inlines
-parseInlineMacro = choice [ parseSy, parseEm, parseXr ]
+parseInlineMacro = choice [ parseSy, parseEm, parseNm, parseXr ]
 
 -- TODO this doesn't handle inline macros being interrupted
 -- by other ones yet, but the lexer doesn't handle it yet
