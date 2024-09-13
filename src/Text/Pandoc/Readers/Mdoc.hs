@@ -295,11 +295,8 @@ parseXr = do
 parseInlineMacro :: PandocMonad m => MdocParser m Inlines
 parseInlineMacro = choice [ parseSy, parseEm, parseNm, parseXr ]
 
--- TODO this doesn't handle inline macros being interrupted
--- by other ones yet, but the lexer doesn't handle it yet
--- either
 parseInline :: PandocMonad m => MdocParser m Inlines
-parseInline = parseStr <|> (parseInlineMacro <* eol)
+parseInline = parseStr <|> mconcat <$> (many1Till (parseInlineMacro <|> litsToText) eol)
 
 parseInlines :: PandocMonad m => MdocParser m Inlines
 parseInlines = mconcat . intersperse B.space <$> many1 parseInline
