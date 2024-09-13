@@ -298,12 +298,13 @@ parseInlineMacro = choice [ parseSy, parseEm, parseNm, parseXr ]
 parseInline :: PandocMonad m => MdocParser m Inlines
 parseInline = parseStr <|> mconcat <$> (many1Till (parseInlineMacro <|> litsToText) eol)
 
+-- TODO probably need some kind of fold to deal with Ns
 parseInlines :: PandocMonad m => MdocParser m Inlines
 parseInlines = mconcat . intersperse B.space <$> many1 parseInline
 
 parsePara :: PandocMonad m => MdocParser m Blocks
 parsePara = do
-  optional (emptyMacro "Pp")
+  optional (emptyMacro "Pp" <|> emptyMacro "Lp")  -- Lp: deprecated synonym for Pp
   B.para . B.trimInlines <$> parseInlines
 
 -- CodeBlocks can't contain any other markup, but mdoc
