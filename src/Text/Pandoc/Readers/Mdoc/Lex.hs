@@ -33,6 +33,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.Roff.Escape
+import Text.Pandoc.Readers.Mdoc.Macros
 import qualified Data.Sequence as Seq
 
 -- import Debug.Trace (traceShowId)
@@ -154,6 +155,12 @@ lexMacro = do
     isMacroChar '%' = True
     isMacroChar x = isAlphaNum x
 
+lexCallableMacro :: PandocMonad m => Lexer m MdocToken
+lexCallableMacro = do
+  m@(Macro name _) <- lexMacro
+  guard $ isCallableMacro name
+  return m
+
 lexDelim :: PandocMonad m => Lexer m MdocToken
 lexDelim = do
   pos <- getPosition
@@ -185,9 +192,13 @@ lexControlLine = do
   pos <- getPosition
   guard $ sourceColumn pos == 1
   char '.'
-  m <- lexMacro
-  (wds, e) <- manyUntil (try lexDelim <|> lexLit) eofline
+  m@(Macro name _) <- lexMacro
+  let parsed = isParsedMacro name
+  (wds, e) <- manyUntil (l parsed) eofline
   return $ MdocTokens $ Seq.fromList $ (m:wds) <> [e]
+    where
+      l True = try lexDelim <|> try lexCallableMacro <|> lexLit
+      l False = try lexDelim <|> lexLit
 
 -- | Tokenize a string as a sequence of roff tokens.
 lexMdoc :: PandocMonad m => SourcePos -> T.Text -> m MdocTokens
