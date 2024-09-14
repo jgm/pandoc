@@ -252,6 +252,12 @@ simpleInline nm xform = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
       return $ openDelim <> xform inlines <> closeDelim
 
+lineEnclosure :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
+lineEnclosure nm xform = do
+  macro nm
+  inner <-  many1 (parseInlineMacro <|> litsToText)
+  return $ (xform . mconcat . intersperse B.space) inner
+
 eliminateEmpty :: (Inlines -> Inlines) -> Inlines -> Inlines
 eliminateEmpty x y = if null y then mempty else x y
 
@@ -266,6 +272,27 @@ parseSy = simpleInline "Sy" (eliminateEmpty B.strong)
 
 parseEm :: PandocMonad m => MdocParser m Inlines
 parseEm = simpleInline "Em" (eliminateEmpty B.emph)
+
+parseQl :: PandocMonad m => MdocParser m Inlines
+parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
+
+parseDq :: PandocMonad m => MdocParser m Inlines
+parseDq = lineEnclosure "Dq" B.doubleQuoted
+
+parseSq :: PandocMonad m => MdocParser m Inlines
+parseSq = lineEnclosure "Sq" B.singleQuoted
+
+parsePq :: PandocMonad m => MdocParser m Inlines
+parsePq = lineEnclosure "Pq" $ \x -> "(" <> x <> ")"
+
+parseBq :: PandocMonad m => MdocParser m Inlines
+parseBq = lineEnclosure "Bq" $ \x -> "[" <> x <> "]"
+
+parseBrq :: PandocMonad m => MdocParser m Inlines
+parseBrq = lineEnclosure "Brq" $ \x -> "{" <> x <> "}"
+
+parseAq :: PandocMonad m => MdocParser m Inlines
+parseAq = lineEnclosure "Aq" $ \x -> "⟨" <> x <> "⟩"
 
 parseNm :: PandocMonad m => MdocParser m Inlines
 parseNm = do
@@ -294,15 +321,32 @@ parseXr = do
         s <- lit <?> "Xr manual section"
         return (toString n, toString s)
 
+-- TODO should possibly rename this function b/c some of these are
+-- Mdoc block partial-implicit macros. Unclear if this distinction
+-- is going to be relevant.
 parseInlineMacro :: PandocMonad m => MdocParser m Inlines
-parseInlineMacro = choice [ parseSy, parseEm, parseNm, parseXr ]
+parseInlineMacro =
+  choice
+    [ parseSy,
+      parseEm,
+      parseNm,
+      parseXr,
+      parseQl,
+      parseSq,
+      parseDq,
+      parsePq,
+      parseBq,
+      parseBrq,
+      parseAq
+    ]
 
-parseInline :: PandocMonad m => MdocParser m Inlines
-parseInline = parseStr <|> mconcat <$> (many1Till (parseInlineMacro <|> litsToText) eol)
+parseInline :: PandocMonad m => MdocParser m [Inlines]
+parseInline = (parseStr >>= return . (:[])) <|> (many1Till (parseInlineMacro <|> litsToText) eol)
+
 
 -- TODO probably need some kind of fold to deal with Ns
 parseInlines :: PandocMonad m => MdocParser m Inlines
-parseInlines = mconcat . intersperse B.space <$> many1 parseInline
+parseInlines = mconcat . intersperse B.space . mconcat <$> many1 parseInline
 
 parsePara :: PandocMonad m => MdocParser m Blocks
 parsePara = do
