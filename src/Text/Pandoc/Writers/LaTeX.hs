@@ -375,8 +375,9 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
      then modify $ \st -> st{ stIncremental = True }
      else when (beamer && "nonincremental" `elem` classes) $
              modify $ \st -> st { stIncremental = False }
-  result <- if identifier == "refs" || -- <- for backwards compatibility
-               "csl-bib-body" `elem` classes
+  result <- if (identifier == "refs" || -- <- for backwards compatibility
+                "csl-bib-body" `elem` classes) &&
+               (not (null bs))
                then do
                  modify $ \st -> st{ stHasCslRefs = True }
                  inner <- blockListToLaTeX bs
