@@ -38,6 +38,7 @@ import Text.Pandoc.Shared (stringify)
 data MdocSection
   = ShName
   | ShSynopsis
+  | ShAuthors
   | ShOther
   deriving (Show, Eq)
 
@@ -179,6 +180,7 @@ parsePrologue = do
 shToSectionMode :: T.Text -> MdocSection
 shToSectionMode "NAME" = ShName
 shToSectionMode "SYNOPSIS" = ShSynopsis
+shToSectionMode "AUTHORS" = ShAuthors
 shToSectionMode _ = ShOther
 
 parseHeader :: PandocMonad m => MdocParser m Blocks
