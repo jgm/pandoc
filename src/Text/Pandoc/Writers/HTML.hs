@@ -49,6 +49,7 @@ import Numeric (showHex)
 import Text.DocLayout (render, literal, Doc)
 import Text.Blaze.Internal (MarkupM (Empty), customLeaf, customParent)
 import Text.DocTemplates (FromContext (lookupContext), Context (..))
+import qualified Text.DocTemplates.Internal as DT
 import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtml4Block,
@@ -240,21 +241,23 @@ writeHtmlString' st opts d = do
            Just cols -> render (Just cols) $ layoutMarkup body
        Just tpl -> do
          -- warn if empty lang
-         when (isNothing (getField "lang" context :: Maybe Text)) $
+         when (isNothing (getField "lang" context :: Maybe Text) &&
+               hasVariable "lang" tpl) $
            report NoLangSpecified
-         -- check for empty pagetitle
          (context' :: Context Text) <-
+            -- check for empty pagetitle
             case getField "pagetitle" context of
                  Just (s :: Text) | not (T.null s) -> return context
-                 _ -> do
-                   let fallback = T.pack $
-                         case lookupContext "sourcefile"
-                                   (writerVariables opts) of
-                           Nothing    -> "Untitled"
-                           Just []    -> "Untitled"
-                           Just (x:_) -> takeBaseName $ T.unpack x
-                   report $ NoTitleElement fallback
-                   return $ resetField "pagetitle" (literal fallback) context
+                 _ | hasVariable "pagetitle" tpl -> do
+                       let fallback = T.pack $
+                             case lookupContext "sourcefile"
+                                       (writerVariables opts) of
+                               Nothing    -> "Untitled"
+                               Just []    -> "Untitled"
+                               Just (x:_) -> takeBaseName $ T.unpack x
+                       report $ NoTitleElement fallback
+                       return $ resetField "pagetitle" (literal fallback) context
+                   | otherwise -> return context
          return $ render colwidth $ renderTemplate tpl
              (defField "body" (layoutMarkup body) context')
 
@@ -1753,3 +1756,16 @@ toURI isHtml5 t = if isHtml5 then t else escapeURI t
  where
    escapeURI = T.pack . escapeURIString (not . needsEscaping) . T.unpack
    needsEscaping c = isSpace c || T.any (== c) "<>|\"{}[]^`" || not (isAscii c)
+
+hasVariable :: Text -> DT.Template a -> Bool
+hasVariable var = checkVar
+ where
+   matches v' = T.intercalate "." (DT.varParts v') == var
+   checkVar (DT.Interpolate v) = matches v
+   checkVar (DT.Conditional v t1 t2) = matches v || checkVar t1 || checkVar t2
+   checkVar (DT.Iterate v t1 t2) = matches v || checkVar t1 || checkVar t2
+   checkVar (DT.Nested t) = checkVar t
+   checkVar (DT.Partial _ t) = checkVar t
+   checkVar (DT.Concat t1 t2) = checkVar t1 || checkVar t2
+   checkVar (DT.Literal _) = False
+   checkVar DT.Empty = False
