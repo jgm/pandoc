@@ -322,6 +322,12 @@ parsePq = lineEnclosure "Pq" $ \x -> "(" <> x <> ")"
 parseBq :: PandocMonad m => MdocParser m Inlines
 parseBq = lineEnclosure "Bq" $ \x -> "[" <> x <> "]"
 
+-- For our purposes this probably behaves identically to Bq
+-- in most circumstances but I might need to do something
+-- special with it in SYNOPSIS
+parseOp :: PandocMonad m => MdocParser m Inlines
+parseOp = lineEnclosure "Op" $ \x -> "[" <> x <> "]"
+
 parseBrq :: PandocMonad m => MdocParser m Inlines
 parseBrq = lineEnclosure "Brq" $ \x -> "{" <> x <> "}"
 
@@ -366,6 +372,7 @@ parseInlineMacro =
       parseNm,
       parseXr,
       parseQl,
+      parseOp,
       parseSq,
       parseDq,
       parseQq,
