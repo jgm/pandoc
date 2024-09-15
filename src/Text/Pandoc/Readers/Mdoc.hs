@@ -234,6 +234,16 @@ litsToText = do
   let strs = map (B.str . toString) ls
   return $ spacify strs
 
+litsAndDelimsToText :: PandocMonad m => MdocParser m Inlines
+litsAndDelimsToText = do
+  ods <- mconcat <$> many (parseDelim Open)
+  ls <- many lit
+  cds <- mconcat <$> if null ods && null ls
+                        then many1 (parseDelim Close)
+                        else many (parseDelim Close)
+  let strs = map (B.str . toString) ls
+  return $ ods <> spacify strs <> cds
+
 delimitedArgs :: PandocMonad m => MdocParser m x -> MdocParser m (Inlines, x, Inlines)
 delimitedArgs p = do
     openDelim <- mconcat <$> many (parseDelim Open)
@@ -255,11 +265,26 @@ simpleInline nm xform = do
 lineEnclosure :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 lineEnclosure nm xform = do
   macro nm
-  inner <-  many1 (parseInlineMacro <|> litsToText)
-  return $ (xform . mconcat . intersperse B.space) inner
+  --- XXX wtf
+  (first, further, finally) <- delimitedArgs
+    (manyTill
+      (parseInlineMacro <|> (try (litsAndDelimsToText <* notFollowedBy eol))
+        <|> litsToText) (lookAhead (many (delim Close) *> eol)))
+  return $ first <> xform (spacify further) <> finally
 
 spacify :: [Inlines] -> Inlines
 spacify = mconcat . intersperse B.space
+
+{- Compatibility note: mandoc permits, and doesn't warn on, "vertical" macros
+ (Pp, Bl/El, Bd/Ed) inside of "horizontal" block partial-explicit quotations
+like Do/Dc. However there are no OpenBSD manual pages that employ such markup
+and it doesn't look right when rendered. We don't attempt to consume anything
+but pandoc inlines inside of these multiline enclosures. -}
+multilineEnclosure :: PandocMonad m => T.Text -> T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
+multilineEnclosure op cl xform = do
+  macro op
+  (first, further, finally) <- delimitedArgs (manyTill parseInlines (macro cl))
+  return $ first <> xform (spacify further) <> finally
 
 eliminateEmpty :: (Inlines -> Inlines) -> Inlines -> Inlines
 eliminateEmpty x y = if null y then mempty else x y
@@ -281,6 +306,9 @@ parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
 
 parseDq :: PandocMonad m => MdocParser m Inlines
 parseDq = lineEnclosure "Dq" B.doubleQuoted
+
+parseDo :: PandocMonad m => MdocParser m Inlines
+parseDo = ptrace $ multilineEnclosure "Do" "Dc" B.doubleQuoted
 
 parseSq :: PandocMonad m => MdocParser m Inlines
 parseSq = lineEnclosure "Sq" B.singleQuoted
@@ -343,16 +371,18 @@ parseInlineMacro =
       parsePq,
       parseBq,
       parseBrq,
-      parseAq
+      parseAq,
+      parseDo
     ]
 
-parseInline :: PandocMonad m => MdocParser m [Inlines]
-parseInline = (parseStr >>= return . (:[])) <|> (many1Till (parseInlineMacro <|> litsToText) eol)
+parseInline :: PandocMonad m => MdocParser m Inlines
+parseInline = parseStr  <|>
+  ((parseInlineMacro <|> litsAndDelimsToText) <* optional eol)
 
 
 -- TODO probably need some kind of fold to deal with Ns
 parseInlines :: PandocMonad m => MdocParser m Inlines
-parseInlines = mconcat . intersperse B.space . mconcat <$> many1 parseInline
+parseInlines = spacify <$> many1 parseInline
 
 parsePara :: PandocMonad m => MdocParser m Blocks
 parsePara = do
