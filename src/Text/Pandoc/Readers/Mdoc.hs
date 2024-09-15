@@ -361,6 +361,9 @@ parseXr = do
         s <- lit <?> "Xr manual section"
         return (toString n, toString s)
 
+parseNs :: PandocMonad m => MdocParser m Inlines
+parseNs = macro "Ns" >> return (B.rawInline "mdoc" "Ns")
+
 -- TODO should possibly rename this function b/c some of these are
 -- Mdoc block partial-implicit macros. Unclear if this distinction
 -- is going to be relevant.
@@ -380,7 +383,8 @@ parseInlineMacro =
       parseBq,
       parseBrq,
       parseAq,
-      parseDo
+      parseDo,
+      parseNs
     ]
 
 parseInline :: PandocMonad m => MdocParser m Inlines
