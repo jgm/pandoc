@@ -423,14 +423,14 @@ runTeXProgram program args tmpDir outDir = do
        (handlePDFProgramNotFound program)
      report $ MakePDFInfo "LaTeX output" (UTF8.toText $ BL.toStrict out)
      -- parse log to see if we need to rerun LaTeX
-     let logFile = replaceExtension file ".log"
+     let logFile = replaceExtension outfile ".log"
      logExists <- fileExists logFile
      logContents <- if logExists
                        then BL.fromStrict <$> readFileStrict logFile
                        else return mempty
      let rerunWarnings = checkForRerun logContents
      tocHash <- do
-       let tocFile = replaceExtension file ".toc"
+       let tocFile = replaceExtension outfile ".toc"
        tocFileExists <- fileExists tocFile
        if tocFileExists
           then do
