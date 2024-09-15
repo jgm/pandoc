@@ -368,6 +368,7 @@ parseInlineMacro =
       parseQl,
       parseSq,
       parseDq,
+      parseQq,
       parsePq,
       parseBq,
       parseBrq,
