@@ -163,7 +163,7 @@ argsToInlines :: PandocMonad m => MdocParser m Inlines
 argsToInlines = do
   ls <- manyTill arg eol
   let strs = map (B.str . toString) ls
-  return $ mconcat $ intersperse B.space strs
+  return $ spacify strs
 
 parsePrologue :: PandocMonad m => MdocParser m ()
 parsePrologue = do
@@ -232,7 +232,7 @@ litsToText :: PandocMonad m => MdocParser m Inlines
 litsToText = do
   ls <- many1 lit
   let strs = map (B.str . toString) ls
-  return $ mconcat $ intersperse B.space strs
+  return $ spacify strs
 
 delimitedArgs :: PandocMonad m => MdocParser m x -> MdocParser m (Inlines, x, Inlines)
 delimitedArgs p = do
@@ -246,7 +246,7 @@ simpleInline :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m 
 simpleInline nm xform = do
   macro nm
   segs <- manyTill segment inlineContextEnd
-  return $ mconcat $ intersperse B.space segs
+  return $ spacify segs
  where
    segment = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
@@ -257,6 +257,9 @@ lineEnclosure nm xform = do
   macro nm
   inner <-  many1 (parseInlineMacro <|> litsToText)
   return $ (xform . mconcat . intersperse B.space) inner
+
+spacify :: [Inlines] -> Inlines
+spacify = mconcat . intersperse B.space
 
 eliminateEmpty :: (Inlines -> Inlines) -> Inlines -> Inlines
 eliminateEmpty x y = if null y then mempty else x y
