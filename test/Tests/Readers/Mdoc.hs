@@ -57,7 +57,7 @@ tests = [
         ".Bo Po hi Pc Bc" =?>
         para ("[(hi)]")
     ]
-  , testGroup "inlines"
+  , testGroup "simple inlines"
     [ "Sy" =:
         ".Sy hello world" =?>
         para (strong "hello world")
@@ -70,6 +70,17 @@ tests = [
     , "multiple" =:
         ".Sy hello Em world" =?>
         para (strong "hello" <> space <> emph "world")
+    ]
+  , testGroup "links"
+    [ "basic" =:
+        ".Lk href name" =?>
+        para (link "href" "" "name")
+    , "complicated" =:
+        ".Lk , ( href name )" =?>
+        para ("," <> space <> "(" <> link "href" "" "name" <> ")")
+    , "unnamed" =:
+        ".Lk href" =?>
+        para (link "href" "" "href")
     ]
   , testGroup "Ns macro"
     [ "at the beginning of a macro line (mandoc delta)" =:

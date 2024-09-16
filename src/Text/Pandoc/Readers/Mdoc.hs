@@ -149,15 +149,18 @@ eol = void $ msatisfy t where
   t Eol{} = True
   t _ = False
 
+newControlContext :: MdocToken -> Bool
+newControlContext Eol{} = True
+newControlContext Macro{} = True
+newControlContext Str{} = True
+newControlContext Tbl{} = True
+newControlContext Blank{} = True
+newControlContext Lit{} = False
+newControlContext Delim{} = False
+
+
 inlineContextEnd :: PandocMonad m => MdocParser m ()
-inlineContextEnd = eof <|> (void . lookAhead $ msatisfy t) where
-  t Eol{} = True
-  t Macro{} = True
-  t Str{} = True -- shouldn't be lexed
-  t Tbl{} = True -- shouldn't be lexed
-  t Blank{} = True -- shouldn't be lexed
-  t Lit{} = False
-  t Delim{} = False
+inlineContextEnd = eof <|> (void . lookAhead $ msatisfy newControlContext)
 
 argsToInlines :: PandocMonad m => MdocParser m Inlines
 argsToInlines = do
@@ -237,18 +240,31 @@ litsAndDelimsToText = do
   let strs = map (B.str . toString) ls
   return $ o <> spacify strs <> c
 
-delimitedArgs :: PandocMonad m => MdocParser m x -> MdocParser m (Inlines, x, Inlines)
-delimitedArgs p = do
+openingDelimiters :: PandocMonad m => MdocParser m Inlines
+openingDelimiters = do
     openDelim <- mconcat <$> many (parseDelim Open)
-    omids <- spacify <$> many (parseDelim Middle)
+    omids <- pipes
     let omid | null omids = mempty
              | otherwise = omids <> B.space
-    inlines <- p
-    cmids <- spacify <$> many (parseDelim Middle)
+    return $ openDelim <> omid
+
+pipes :: PandocMonad m => MdocParser m Inlines
+pipes = spacify <$> many (parseDelim Middle)
+
+closingDelimiters :: PandocMonad m => MdocParser m Inlines
+closingDelimiters = do
+    cmids <- pipes
     let cmid | null cmids = mempty
              | otherwise = B.space <> cmids
     closeDelim <- mconcat <$> many (parseDelim Close)
-    return (openDelim <> omid, inlines, cmid <> closeDelim)
+    return $ cmid <> closeDelim
+
+delimitedArgs :: PandocMonad m => MdocParser m x -> MdocParser m (Inlines, x, Inlines)
+delimitedArgs p = do
+    openDelim <- openingDelimiters
+    inlines <- p
+    closeDelim <- closingDelimiters
+    return (openDelim, inlines, closeDelim)
 
 -- TODO extract further?
 simpleInline :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
@@ -409,6 +425,33 @@ parseXr = do
         s <- lit <?> "Xr manual section"
         return (toString n, toString s)
 
+parseLk :: PandocMonad m => MdocParser m Inlines
+parseLk = do
+  macro "Lk"
+  openClose <- closingDelimiters
+  openOpen <- openingDelimiters
+  url <- toString <$> lit
+  inner <- spacify <$> many segment
+  close <- closingDelimiters
+  let label | null inner = B.str url
+            | otherwise = inner
+  return $ open openClose openOpen <> B.link url "" label <> close
+  where
+    open a b
+      | null a = b
+      | null b = a
+      | otherwise = a <> B.space <> b
+    end = msatisfy newControlContext
+    segment = do
+      a <- openingDelimiters
+      m <- option mempty litsToText
+      z <-
+        try (closingDelimiters <* notFollowedBy end)
+          <|> option mempty pipes
+      guard $ not $ all null [a, m, z]
+      return $ a <> m <> z
+
+
 parseNs :: PandocMonad m => MdocParser m Inlines
 parseNs = macro "Ns" >> return noSpace
 
@@ -420,6 +463,7 @@ parseInlineMacro =
   choice
     [ parseSy,
       parseEm,
+      parseLk,
       parseNo,
       parseNm,
       parseXr,
