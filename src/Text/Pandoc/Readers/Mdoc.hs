@@ -344,7 +344,7 @@ parseQq :: PandocMonad m => MdocParser m Inlines
 parseQq = lineEnclosure "Qq" $ \x -> "\"" <> x <> "\""
 
 parseQo :: PandocMonad m => MdocParser m Inlines
-parseQo =  multilineEnclosure "Qo" "Qc" $ \x -> "\"" <> x <> "\""
+parseQo = multilineEnclosure "Qo" "Qc" $ \x -> "\"" <> x <> "\""
 
 parsePq :: PandocMonad m => MdocParser m Inlines
 parsePq = lineEnclosure "Pq" $ \x -> "(" <> x <> ")"
