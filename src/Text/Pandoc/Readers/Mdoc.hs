@@ -232,20 +232,23 @@ litsToText = do
 
 litsAndDelimsToText :: PandocMonad m => MdocParser m Inlines
 litsAndDelimsToText = do
-  ods <- mconcat <$> many (parseDelim Open)
-  ls <- many lit
-  cds <- mconcat <$> if null ods && null ls
-                        then many1 (parseDelim Close)
-                        else many (parseDelim Close)
+  (o, ls, c) <- delimitedArgs $ many lit
+  guard $ not (null o && null ls && null c)
   let strs = map (B.str . toString) ls
-  return $ ods <> spacify strs <> cds
+  return $ o <> spacify strs <> c
 
 delimitedArgs :: PandocMonad m => MdocParser m x -> MdocParser m (Inlines, x, Inlines)
 delimitedArgs p = do
     openDelim <- mconcat <$> many (parseDelim Open)
+    omids <- spacify <$> many (parseDelim Middle)
+    let omid | null omids = mempty
+             | otherwise = omids <> B.space
     inlines <- p
+    cmids <- spacify <$> many (parseDelim Middle)
+    let cmid | null cmids = mempty
+             | otherwise = B.space <> cmids
     closeDelim <- mconcat <$> many (parseDelim Close)
-    return (openDelim, inlines, closeDelim)
+    return (openDelim <> omid, inlines, cmid <> closeDelim)
 
 -- TODO extract further?
 simpleInline :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines

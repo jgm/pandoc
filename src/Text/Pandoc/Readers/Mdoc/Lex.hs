@@ -171,11 +171,14 @@ lexCallableMacro = do
   guard $ isCallableMacro name
   return $ Macro name pos
 
-lexDelim :: PandocMonad m => Lexer m MdocToken
+lexDelim :: (PandocMonad m) => Lexer m MdocToken
 lexDelim = do
   pos <- getPosition
   q <- optionMaybe quoteChar
-  t <- Delim Open <$> oneOfStrings ["(", "["] <|> Delim Close <$> oneOfStrings [".", ",", ":", ";", ")", "]", "?", "!"]
+  t <-
+    Delim Open <$> oneOfStrings ["(", "["]
+      <|> Delim Close <$> oneOfStrings [".", ",", ":", ";", ")", "]", "?", "!"]
+      <|> Delim Middle <$> textStr "|"
   when (isJust q) (void quoteChar)
   eof <|> void (lookAhead (spaceChar <|> newline))
   skipSpaces

@@ -107,7 +107,7 @@ tests = [
     [ testGroup "leading punctuation"
       [ "open paren"           =: ".Em ( b"     =?> para ("(" <> emph "b")
       , "open square bracket"  =: ".Em \"[\" b" =?> para ("[" <> emph "b")
-      -- , "pipe"                 =: ".Em | b"     =?> para ("|" <> space <> emph "b")
+      , "pipe"                 =: ".Em | b"     =?> para ("|" <> space <> emph "b")
       , "period"               =: ".Em . b"     =?> para ("." <> space <> emph "b")
       , "comma"                =: ".Em , b"     =?> para ("," <> space <> emph "b")
       , "semicolon"            =: ".Em ; b"     =?> para (";" <> space <> emph "b")
@@ -120,7 +120,7 @@ tests = [
     , testGroup "trailing punctuation"
       [ "open paren"           =: ".Em a ("     =?> para (emph "a" <> space <> "(")
       , "open square bracket"  =: ".Em a ["     =?> para (emph "a" <> space <> "[")
-      -- , "pipe"  =: ".Em a |"     =?> para (emph "a" <> space <> "|")
+      , "pipe"                 =: ".Em a |"     =?> para (emph "a" <> space <> "|")
       , "period"               =: ".Em a ."     =?> para (emph "a" <> ".")
       , "comma"                =: ".Em a ,"     =?> para (emph "a" <> ",")
       , "semicolon"            =: ".Em a ;"     =?> para (emph "a" <> ";")
