@@ -146,22 +146,30 @@ quoteChar = T.singleton <$> char '"'
 mdocToken :: PandocMonad m => Lexer m MdocTokens
 mdocToken = lexComment <|> lexControlLine <|> lexTextLine
 
-lexMacro :: PandocMonad m => Lexer m MdocToken
-lexMacro = do
-  pos <- getPosition
-  name <- many1Char (satisfy isMacroChar)
-  eof <|> void (lookAhead (spaceChar <|> newline))
-  skipSpaces
-  return $ Macro name pos
+lexMacroName :: PandocMonad m => Lexer m T.Text
+lexMacroName = many1Char (satisfy isMacroChar)
   where
     isMacroChar '%' = True
     isMacroChar x = isAlphaNum x
 
+lexMacro :: PandocMonad m => Lexer m MdocToken
+lexMacro = do
+  pos <- getPosition
+  name <- lexMacroName
+  eof <|> void (lookAhead (spaceChar <|> newline))
+  skipSpaces
+  return $ Macro name pos
+
 lexCallableMacro :: PandocMonad m => Lexer m MdocToken
 lexCallableMacro = do
-  m@(Macro name _) <- lexMacro
+  pos <- getPosition
+  q <- optionMaybe quoteChar
+  name <- lexMacroName
+  when (isJust q) (void quoteChar)
+  eof <|> void (lookAhead (spaceChar <|> newline))
+  skipSpaces
   guard $ isCallableMacro name
-  return m
+  return $ Macro name pos
 
 lexDelim :: PandocMonad m => Lexer m MdocToken
 lexDelim = do
