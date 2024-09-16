@@ -219,11 +219,6 @@ parseStr = do
   (Str txt _) <- str
   return $ B.str txt
 
-parseLit :: PandocMonad m => MdocParser m Inlines
-parseLit = do
-  (Lit txt _) <- lit
-  return $ B.str txt
-
 parseDelim :: PandocMonad m => DelimSide -> MdocParser m Inlines
 parseDelim pos = do
   (Delim _ txt _) <- delim pos
