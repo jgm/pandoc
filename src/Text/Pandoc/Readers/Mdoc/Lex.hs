@@ -124,7 +124,7 @@ spaceTabChar = T.singleton <$> spaceChar
 quotedArg :: PandocMonad m => Lexer m T.Text
 quotedArg = do
   quoteChar
-  t <- mconcat <$> many (escape <|> regularText <|> innerQuote <|> spaceTabChar)
+  t <- mconcat <$> many (try innerQuote <|> escape <|> regularText <|> spaceTabChar)
   quoteChar
   notFollowedBy quoteChar
   return t
