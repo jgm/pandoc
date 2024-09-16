@@ -272,8 +272,28 @@ lineEnclosure nm xform = do
         <|> litsToText) (lookAhead (many (delim Close) *> eol)))
   return $ first <> xform (spacify further) <> finally
 
+noSpace :: Inlines
+noSpace = B.rawInline "mdoc" "Ns"
+
+data SpacifyState = SpacifyState { accum :: [Inlines], prev :: Inlines, ns :: Bool }
+instance Default SpacifyState where def = SpacifyState [] mempty False
+
+foldNoSpaces :: [Inlines] -> [Inlines]
+foldNoSpaces xs = (finalize . foldl go def) xs
+  where
+    go :: SpacifyState -> Inlines -> SpacifyState
+    go s x
+      | ns s && x == noSpace = s
+      | ns s                 = s{prev = prev s <> x, ns = False}
+      |         x == noSpace = s{ns = True}
+      | null (prev s)        = s{prev = x}
+      | otherwise            = s{accum = accum s <> [prev s], prev = x}
+    finalize s
+      | null (prev s) = accum s
+      | otherwise     = accum s <> [prev s]
+
 spacify :: [Inlines] -> Inlines
-spacify = mconcat . intersperse B.space
+spacify = mconcat . intersperse B.space . foldNoSpaces
 
 {- Compatibility note: mandoc permits, and doesn't warn on, "vertical" macros
  (Pp, Bl/El, Bd/Ed) inside of "horizontal" block partial-explicit quotations
@@ -362,7 +382,7 @@ parseXr = do
         return (toString n, toString s)
 
 parseNs :: PandocMonad m => MdocParser m Inlines
-parseNs = macro "Ns" >> return (B.rawInline "mdoc" "Ns")
+parseNs = macro "Ns" >> return noSpace
 
 -- TODO should possibly rename this function b/c some of these are
 -- Mdoc block partial-implicit macros. Unclear if this distinction
