@@ -308,7 +308,9 @@ resolveVarsInOpt :: forall m. (PandocMonad m, MonadIO m)
                  => Opt -> StateT DefaultsState m Opt
 resolveVarsInOpt
     opt@Opt
-    { optTemplate              = oTemplate
+    { optTo                    = oTo
+    , optFrom                  = oFrom
+    , optTemplate              = oTemplate
     , optMetadataFiles         = oMetadataFiles
     , optOutputFile            = oOutputFile
     , optInputFiles            = oInputFiles
@@ -334,6 +336,8 @@ resolveVarsInOpt
     , optHighlightStyle        = oHighlightStyle
     }
   = do
+      oTo' <- mapM (fmap T.pack . resolveVars . T.unpack) oTo
+      oFrom' <- mapM (fmap T.pack . resolveVars . T.unpack) oFrom
       oTemplate' <- mapM resolveVars oTemplate
       oMetadataFiles' <- mapM resolveVars oMetadataFiles
       oOutputFile' <- mapM resolveVars oOutputFile
@@ -358,7 +362,9 @@ resolveVarsInOpt
       oCitationAbbreviations' <- mapM resolveVars oCitationAbbreviations
       oPdfEngine' <- mapM resolveVars oPdfEngine
       oHighlightStyle' <- mapM (fmap T.pack . resolveVars . T.unpack) oHighlightStyle
-      return opt{ optTemplate              = oTemplate'
+      return opt{ optTo                    = oTo'
+                , optFrom                  = oFrom'
+                , optTemplate              = oTemplate'
                 , optMetadataFiles         = oMetadataFiles'
                 , optOutputFile            = oOutputFile'
                 , optInputFiles            = oInputFiles'
