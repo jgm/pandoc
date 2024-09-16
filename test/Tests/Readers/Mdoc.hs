@@ -39,6 +39,9 @@ tests = [
     , "Sq" =:
         ".Sq hello world" =?>
         para (singleQuoted "hello world")
+    , "empty" =:
+        ".Dq" =?>
+        para (doubleQuoted mempty)
     ]
   , testGroup "inlines"
     [ "Sy" =:
@@ -54,7 +57,7 @@ tests = [
   , testGroup "Ns macro"
     [ "at the beginning of a macro line (mandoc delta)" =:
         T.unlines [".Op before", ".Ns Op after"] =?>
-        para "[before][after]"
+        para "[before][after]"  -- mandoc: warning + "[before] [after]"
     , "after a block closing macro" =:
         T.unlines [".Oo before", ".Oc Ns Op after"] =?>
         para "[before][after]"
@@ -63,7 +66,7 @@ tests = [
         para "[before][after]"
     , "before closing punctuation" =:
         ".Oo before Oc Ns : Op after" =?>
-        para "[before]: [after]"
+        para "[before]: [after]"  -- mandoc: warning
     , "after closing punctuation" =:
         ".Oo before Oc : Ns Op after" =?>
         para "[before]:[after]"
@@ -82,5 +85,33 @@ tests = [
     , "closing punctuation" =:
         ".No no \"Ns\" ns \")\" No no" =?>
         para ("nons)" <> space <> "no")
+    ]
+  , testGroup "inline punctuation"
+    [ testGroup "leading punctuation"
+      [ "open paren"           =: ".Em ( b"     =?> para ("(" <> emph "b")
+      , "open square bracket"  =: ".Em \"[\" b" =?> para ("[" <> emph "b")
+      -- , "pipe"                 =: ".Em | b"     =?> para ("|" <> space <> emph "b")
+      , "period"               =: ".Em . b"     =?> para ("." <> space <> emph "b")
+      , "comma"                =: ".Em , b"     =?> para ("," <> space <> emph "b")
+      , "semicolon"            =: ".Em ; b"     =?> para (";" <> space <> emph "b")
+      , "colon"                =: ".Em : b"     =?> para (":" <> space <> emph "b")
+      , "question mark"        =: ".Em ? b"     =?> para ("?" <> space <> emph "b")
+      , "exclamation"          =: ".Em ! b"     =?> para ("!" <> space <> emph "b")
+      , "close paren"          =: ".Em ) b"     =?> para (")" <> space <> emph "b")
+      , "close square bracket" =: ".Em \"]\" b" =?> para ("]" <> space <> emph "b")
+      ]
+    , testGroup "trailing punctuation"
+      [ "open paren"           =: ".Em a ("     =?> para (emph "a" <> space <> "(")
+      , "open square bracket"  =: ".Em a ["     =?> para (emph "a" <> space <> "[")
+      -- , "pipe"  =: ".Em a |"     =?> para (emph "a" <> space <> "|")
+      , "period"               =: ".Em a ."     =?> para (emph "a" <> ".")
+      , "comma"                =: ".Em a ,"     =?> para (emph "a" <> ",")
+      , "semicolon"            =: ".Em a ;"     =?> para (emph "a" <> ";")
+      , "colon"                =: ".Em a :"     =?> para (emph "a" <> ":")
+      , "question mark"        =: ".Em a ?"     =?> para (emph "a" <> "?")
+      , "exclamation"          =: ".Em a !"     =?> para (emph "a" <> "!")
+      , "close parens"         =: ".Em a \")\"" =?> para (emph "a" <> ")")
+      , "close square bracket" =: ".Em a ]"     =?> para (emph "a" <> "]")
+      ]
     ]
   ]
