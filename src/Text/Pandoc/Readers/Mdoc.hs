@@ -185,8 +185,9 @@ shToSectionMode _ = ShOther
 
 parseHeader :: PandocMonad m => MdocParser m Blocks
 parseHeader = do
-  (Macro m _) <- macro "Sh" <|> macro "Ss"
-  txt <- argsToInlines
+  (Macro m _) <- lookAhead $ macro "Sh" <|> macro "Ss"
+  txt <- lineEnclosure m id
+  eol
   let lvl = if m == "Sh" then 1 else 2
   when (lvl == 1) $ modifyState $ \s -> s{currentSection = (shToSectionMode . stringify) txt}
   return $ B.header lvl txt
