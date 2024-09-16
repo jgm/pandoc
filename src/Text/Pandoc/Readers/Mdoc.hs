@@ -304,8 +304,13 @@ but pandoc inlines inside of these multiline enclosures. -}
 multilineEnclosure :: PandocMonad m => T.Text -> T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 multilineEnclosure op cl xform = do
   macro op
-  (first, further, finally) <- delimitedArgs (manyTill parseInlines (macro cl))
-  return $ first <> xform (spacify further) <> finally
+  openDelim <- mconcat <$> many (parseDelim Open)
+  optional eol
+  contents <- many parseInline
+  (macro cl <?> show cl)
+  closeDelim <- mconcat <$> many (parseDelim Close)
+  optional eol
+  return $ openDelim <> xform (spacify contents) <> closeDelim
 
 eliminateEmpty :: (Inlines -> Inlines) -> Inlines -> Inlines
 eliminateEmpty x y = if null y then mempty else x y

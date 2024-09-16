@@ -42,11 +42,28 @@ tests = [
     , "empty" =:
         ".Dq" =?>
         para (doubleQuoted mempty)
+    , "nested" =:
+        ".Dq Pq hello world" =?>
+        para (doubleQuoted "(hello world)")
+    , "with inlines" =:
+        ".Dq hello Sy world ." =?>
+        para (doubleQuoted ("hello" <> space <> strong "world" <> "."))
+    ]
+  , testGroup "multiline enclosures"
+    [ "nested multiline" =:
+        T.unlines [".Bo", ".Po", "hi", ".Pc", ".Bc"] =?>
+        para ("[(hi)]")
+    , "nested on one line" =:
+        ".Bo Po hi Pc Bc" =?>
+        para ("[(hi)]")
     ]
   , testGroup "inlines"
     [ "Sy" =:
         ".Sy hello world" =?>
         para (strong "hello world")
+    , "Em" =:
+        ".Em hello world" =?>
+        para (emph "hello world")
     , "delimiters" =:
         ".Sy ( hello world )" =?>
         para (mconcat ["(", strong "hello world", ")"])
