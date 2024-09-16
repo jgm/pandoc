@@ -130,5 +130,18 @@ tests = [
       , "close parens"         =: ".Em a \")\"" =?> para (emph "a" <> ")")
       , "close square bracket" =: ".Em a ]"     =?> para (emph "a" <> "]")
       ]
+    , testGroup "middle punctuation"
+      [ "open paren"           =: ".Em a ( b"     =?> para (mconcat [emph "a", space, "(", emph "b"])
+      , "open square bracket"  =: ".Em a [ b"     =?> para (mconcat [emph "a", space, "[", emph "b"])
+      , "pipe"                 =: ".Em a \"|\" b" =?> para (mconcat [emph "a", space, "|", space, emph "b"])
+      , "period"               =: ".Em a . b"     =?> para (mconcat [emph "a", ".", space, emph "b"])
+      , "comma"                =: ".Em a , b"     =?> para (mconcat [emph "a", ",", space, emph "b"])
+      , "semicolon"            =: ".Em a ; b"     =?> para (mconcat [emph "a", ";", space, emph "b"])
+      , "colon"                =: ".Em a \":\" b" =?> para (mconcat [emph "a", ":", space, emph "b"])
+      , "question mark"        =: ".Em a ? b"     =?> para (mconcat [emph "a", "?", space, emph "b"])
+      , "exclamation"          =: ".Em a ! b"     =?> para (mconcat [emph "a", "!", space, emph "b"])
+      , "close paren"          =: ".Em a ) b"     =?> para (mconcat [emph "a", ")", space, emph "b"])
+      , "close square bracket" =: ".Em a ] b"     =?> para (mconcat [emph "a", "]", space, emph "b"])
+      ]
     ]
   ]
