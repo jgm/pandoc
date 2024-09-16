@@ -270,7 +270,7 @@ lineEnclosure nm xform = do
   (first, further, finally) <- delimitedArgs
     (manyTill
       (parseInlineMacro <|> (try (litsAndDelimsToText <* notFollowedBy eol))
-        <|> litsToText) (lookAhead (many (delim Close) *> eol)))
+        <|> litsToText) (lookAhead (many (macro "Ns" <|> delim Close) *> eol)))
   return $ first <> xform (spacify further) <> finally
 
 noSpace :: Inlines
