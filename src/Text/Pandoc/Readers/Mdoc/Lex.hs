@@ -24,11 +24,12 @@ module Text.Pandoc.Readers.Mdoc.Lex
   )
 where
 
-import Control.Monad (void, guard)
+import Control.Monad (void, guard, when)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class.PandocMonad (PandocMonad(..))
 import Data.Char (isAlphaNum)
 import Data.Default (Default)
+import Data.Maybe (isJust)
 import qualified Data.Text as T
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
@@ -165,7 +166,9 @@ lexCallableMacro = do
 lexDelim :: PandocMonad m => Lexer m MdocToken
 lexDelim = do
   pos <- getPosition
+  q <- optionMaybe quoteChar
   t <- Delim Open <$> oneOfStrings ["(", "["] <|> Delim Close <$> oneOfStrings [".", ",", ":", ";", ")", "]", "?", "!"]
+  when (isJust q) (void quoteChar)
   eof <|> void (lookAhead (spaceChar <|> newline))
   skipSpaces
   return $ t pos
