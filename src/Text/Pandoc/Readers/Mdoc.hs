@@ -322,6 +322,9 @@ parseSy = simpleInline "Sy" (eliminateEmpty B.strong)
 parseEm :: PandocMonad m => MdocParser m Inlines
 parseEm = simpleInline "Em" (eliminateEmpty B.emph)
 
+parseNo :: PandocMonad m => MdocParser m Inlines
+parseNo = simpleInline "No" (eliminateEmpty id)
+
 parseQl :: PandocMonad m => MdocParser m Inlines
 parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
 
@@ -396,6 +399,7 @@ parseInlineMacro =
   choice
     [ parseSy,
       parseEm,
+      parseNo,
       parseNm,
       parseXr,
       parseQl,
