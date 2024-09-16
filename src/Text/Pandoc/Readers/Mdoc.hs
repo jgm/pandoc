@@ -337,14 +337,26 @@ parseDo =  multilineEnclosure "Do" "Dc" B.doubleQuoted
 parseSq :: PandocMonad m => MdocParser m Inlines
 parseSq = lineEnclosure "Sq" B.singleQuoted
 
+parseSo :: PandocMonad m => MdocParser m Inlines
+parseSo =  multilineEnclosure "So" "Sc" B.singleQuoted
+
 parseQq :: PandocMonad m => MdocParser m Inlines
 parseQq = lineEnclosure "Qq" $ \x -> "\"" <> x <> "\""
+
+parseQo :: PandocMonad m => MdocParser m Inlines
+parseQo =  multilineEnclosure "Qo" "Qc" $ \x -> "\"" <> x <> "\""
 
 parsePq :: PandocMonad m => MdocParser m Inlines
 parsePq = lineEnclosure "Pq" $ \x -> "(" <> x <> ")"
 
+parsePo :: PandocMonad m => MdocParser m Inlines
+parsePo = multilineEnclosure "Po" "Pc" $ \x -> "(" <> x <> ")"
+
 parseBq :: PandocMonad m => MdocParser m Inlines
 parseBq = lineEnclosure "Bq" $ \x -> "[" <> x <> "]"
+
+parseBo :: PandocMonad m => MdocParser m Inlines
+parseBo = multilineEnclosure "Bo" "Bc" $ \x -> "[" <> x <> "]"
 
 -- For our purposes this probably behaves identically to Bq
 -- in most circumstances but I might need to do something
@@ -358,8 +370,14 @@ parseOo =  multilineEnclosure "Oo" "Oc" $ \x -> "[" <> x <> "]"
 parseBrq :: PandocMonad m => MdocParser m Inlines
 parseBrq = lineEnclosure "Brq" $ \x -> "{" <> x <> "}"
 
+parseBro :: PandocMonad m => MdocParser m Inlines
+parseBro = multilineEnclosure "Bro" "Brc" $ \x -> "{" <> x <> "}"
+
 parseAq :: PandocMonad m => MdocParser m Inlines
 parseAq = lineEnclosure "Aq" $ \x -> "⟨" <> x <> "⟩"
+
+parseAo :: PandocMonad m => MdocParser m Inlines
+parseAo = multilineEnclosure "Ao" "Ac" $ \x -> "⟨" <> x <> "⟩"
 
 parseNm :: PandocMonad m => MdocParser m Inlines
 parseNm = do
@@ -411,7 +429,13 @@ parseInlineMacro =
       parseBq,
       parseBrq,
       parseAq,
+      parseSo,
       parseDo,
+      parseQo,
+      parsePo,
+      parseBo,
+      parseBro,
+      parseAo,
       parseOo,
       parseNs
     ]
