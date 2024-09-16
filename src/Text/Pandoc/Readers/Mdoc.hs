@@ -328,7 +328,7 @@ parseDq :: PandocMonad m => MdocParser m Inlines
 parseDq = lineEnclosure "Dq" B.doubleQuoted
 
 parseDo :: PandocMonad m => MdocParser m Inlines
-parseDo = ptrace $ multilineEnclosure "Do" "Dc" B.doubleQuoted
+parseDo =  multilineEnclosure "Do" "Dc" B.doubleQuoted
 
 parseSq :: PandocMonad m => MdocParser m Inlines
 parseSq = lineEnclosure "Sq" B.singleQuoted
