@@ -61,11 +61,26 @@ tests = [
     , "in the middle of a macro line" =:
         ".Oo before Oc Ns Op after" =?>
         para "[before][after]"
+    , "before closing punctuation" =:
+        ".Oo before Oc Ns : Op after" =?>
+        para "[before]: [after]"
+    , "after closing punctuation" =:
+        ".Oo before Oc : Ns Op after" =?>
+        para "[before]:[after]"
     , "at the end of a macro line" =:
         T.unlines [".Oo before Oc Ns", ".Op after"] =?>
         para "[before][after]"
     , "at the end of a partial-implicit line" =:
         T.unlines [".Op before Ns", ".Op after"] =?>
         para "[before][after]"
+    , "normal words" =:
+        ".No no Ns ns No no" =?>
+        para ("nons" <> space <> "no")
+    , "opening punctuation" =:
+        ".No no Ns \"(\" ns No no" =?>
+        para ("no(ns" <> space <> "no")
+    , "closing punctuation" =:
+        ".No no \"Ns\" ns \")\" No no" =?>
+        para ("nons)" <> space <> "no")
     ]
   ]
