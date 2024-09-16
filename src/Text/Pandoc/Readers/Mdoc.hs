@@ -349,6 +349,9 @@ parseBq = lineEnclosure "Bq" $ \x -> "[" <> x <> "]"
 parseOp :: PandocMonad m => MdocParser m Inlines
 parseOp = lineEnclosure "Op" $ \x -> "[" <> x <> "]"
 
+parseOo :: PandocMonad m => MdocParser m Inlines
+parseOo =  multilineEnclosure "Oo" "Oc" $ \x -> "[" <> x <> "]"
+
 parseBrq :: PandocMonad m => MdocParser m Inlines
 parseBrq = lineEnclosure "Brq" $ \x -> "{" <> x <> "}"
 
@@ -405,6 +408,7 @@ parseInlineMacro =
       parseBrq,
       parseAq,
       parseDo,
+      parseOo,
       parseNs
     ]
 
