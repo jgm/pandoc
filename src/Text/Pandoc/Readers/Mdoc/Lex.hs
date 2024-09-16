@@ -149,6 +149,7 @@ lexMacro :: PandocMonad m => Lexer m MdocToken
 lexMacro = do
   pos <- getPosition
   name <- many1Char (satisfy isMacroChar)
+  eof <|> void (lookAhead (spaceChar <|> newline))
   skipSpaces
   return $ Macro name pos
   where
