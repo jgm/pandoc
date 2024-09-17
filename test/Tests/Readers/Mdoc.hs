@@ -64,6 +64,10 @@ tests = [
     , "Em" =:
         ".Em hello world" =?>
         para (emph "hello world")
+    , "Mt" =:
+        ".Mt a@example.org , b@example.org" =?>
+        para ((link "mailto:a@example.org" "" "a@example.org") <>
+               "," <> space <> (link "mailto:b@example.org" "" "b@example.org"))
     , "delimiters" =:
         ".Sy ( hello world )" =?>
         para (mconcat ["(", strong "hello world", ")"])

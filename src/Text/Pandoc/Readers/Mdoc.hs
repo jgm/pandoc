@@ -344,6 +344,14 @@ parseEm = simpleInline "Em" (eliminateEmpty B.emph)
 parseNo :: PandocMonad m => MdocParser m Inlines
 parseNo = simpleInline "No" (eliminateEmpty id)
 
+-- I'm not sure why mandoc inserts a ~ when Mt is missing an argument,
+-- but it does, and it doesn't issue a warning, so that quirk is
+-- retained.
+parseMt :: PandocMonad m => MdocParser m Inlines
+parseMt = simpleInline "Mt" mailto
+  where mailto x | null x = B.link ("mailto:~") "" "~"
+                 | otherwise = B.link ("mailto:" <> stringify x) "" x
+
 parseQl :: PandocMonad m => MdocParser m Inlines
 parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
 
@@ -464,6 +472,7 @@ parseInlineMacro =
     [ parseSy,
       parseEm,
       parseLk,
+      parseMt,
       parseNo,
       parseNm,
       parseXr,
