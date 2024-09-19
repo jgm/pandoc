@@ -16,6 +16,7 @@ case "$MACHINE" in
   i386)    ARCHITECTURE=i386;;
   aarch64) ARCHITECTURE=arm64;;
   armv6l | armv7l) ARCHITECTURE=armhf;;
+  riscv64) ARCHITECTURE=riscv64;;
   *)       ARCHITECTURE=unknown;;
 esac
 
