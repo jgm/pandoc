@@ -30,6 +30,9 @@ infix 4 =:
      => String -> (Text, c) -> TestTree
 (=:) = test mdoc
 
+cls :: Text -> Attr
+cls x = (mempty, [x], mempty)
+
 tests :: [TestTree]
 tests = [
   testGroup "one-line enclosures"
@@ -39,6 +42,9 @@ tests = [
     , "Sq" =:
         ".Sq hello world" =?>
         para (singleQuoted "hello world")
+    , "Ev" =:
+        ".Ev HELLO_WORLD ," =?>
+        para (codeWith (cls "Ev") "HELLO_WORLD" <> ",")
     , "empty" =:
         ".Dq" =?>
         para (doubleQuoted mempty)
@@ -73,13 +79,30 @@ tests = [
         para "(hello, world!)"
     , "empty Pa with closing punctuation" =:
         ".Pa ) z" =?>
-        para (spanWith (mempty, ["Pa"], mempty) "~" <> ")" <> space <> spanWith (mempty, ["Pa"], mempty) "z")
+        para (spanWith (cls "Pa") "~" <> ")" <> space <> spanWith (mempty, ["Pa"], mempty) "z")
     , "delimiters" =:
         ".Sy ( hello world )" =?>
         para (mconcat ["(", strong "hello world", ")"])
     , "multiple" =:
         ".Sy hello Em world" =?>
         para (strong "hello" <> space <> emph "world")
+    ]
+  , testGroup "Fl"
+    [ "simple" =:
+        ".Fl w" =?>
+        para (codeWith (cls "Fl") "-w")
+    , "multiple" =:
+        ".Fl W all" =?>
+        para (codeWith (cls "Fl") "-W" <> space <> codeWith (cls "Fl") "-all")
+    , "GNU" =:
+        ".Fl -help" =?>
+        para (codeWith (cls "Fl") "--help")
+    , "GNU escaped" =:
+        ".Fl \\-help" =?>
+        para (codeWith (cls "Fl") "--help")
+    , "punctuation" =:
+        ".Op Fl a | b" =?>
+        para ("[" <> codeWith (cls "Fl") "-a" <> " | " <> codeWith (cls "Fl") "-b" <> "]")
     ]
   , testGroup "links"
     [ "basic" =:

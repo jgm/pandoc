@@ -227,14 +227,19 @@ parseDelim pos = do
   (Delim _ txt _) <- delim pos
   return $ B.str txt
 
-litsToText :: PandocMonad m => MdocParser m Inlines
+litsToText :: PandocMonad m => MdocParser m [T.Text]
 litsToText = do
+  ls <- many1 lit
+  return $ map toString ls
+
+litsToInlines :: PandocMonad m => MdocParser m Inlines
+litsToInlines = do
   ls <- many1 lit
   let strs = map (B.str . toString) ls
   return $ spacify strs
 
-litsAndDelimsToText :: PandocMonad m => MdocParser m Inlines
-litsAndDelimsToText = do
+litsAndDelimsToInlines :: PandocMonad m => MdocParser m Inlines
+litsAndDelimsToInlines = do
   (o, ls, c) <- delimitedArgs $ many lit
   guard $ not (null o && null ls && null c)
   let strs = map (B.str . toString) ls
@@ -274,6 +279,16 @@ simpleInline nm xform = do
   return $ spacify segs
  where
    segment = do
+      (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToInlines
+      return $ openDelim <> xform inlines <> closeDelim
+
+argsInline :: PandocMonad m => T.Text -> ([T.Text] -> Inlines) -> MdocParser m Inlines
+argsInline nm xform = do
+  macro nm
+  segs <- manyTill segment inlineContextEnd
+  return $ spacify segs
+ where
+   segment = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
       return $ openDelim <> xform inlines <> closeDelim
 
@@ -283,8 +298,8 @@ lineEnclosure nm xform = do
   --- XXX wtf
   (first, further, finally) <- delimitedArgs
     (manyTill
-      (parseInlineMacro <|> (try (litsAndDelimsToText <* notFollowedBy eol))
-        <|> litsToText) (lookAhead (many (macro "Ns" <|> delim Close) *> eol)))
+      (parseInlineMacro <|> (try (litsAndDelimsToInlines <* notFollowedBy eol))
+        <|> litsToInlines) (lookAhead (many (macro "Ns" <|> delim Close) *> eol)))
   return $ first <> xform (spacify further) <> finally
 
 noSpace :: Inlines
@@ -344,6 +359,9 @@ parseEm = simpleInline "Em" (eliminateEmpty B.emph)
 parseNo :: PandocMonad m => MdocParser m Inlines
 parseNo = simpleInline "No" (eliminateEmpty id)
 
+parseEv :: PandocMonad m => MdocParser m Inlines
+parseEv = simpleInline "Ev" (eliminateEmpty (B.codeWith (cls "Ev") . stringify))
+
 -- I'm not sure why mandoc inserts a ~ when Mt is missing an argument,
 -- but it does, and it doesn't issue a warning, so that quirk is
 -- retained.
@@ -356,6 +374,14 @@ parsePa :: PandocMonad m => MdocParser m Inlines
 parsePa = simpleInline "Pa" p
   where p x | null x = B.spanWith (cls "Pa") "~"
             | otherwise = B.spanWith (cls "Pa") x
+
+parseFl :: PandocMonad m => MdocParser m Inlines
+parseFl = argsInline "Fl" (spacify . fl . flags)
+  where fl = map $ B.codeWith (cls "Fl")
+        flags = map ("-" <>)
+
+parseCm :: PandocMonad m => MdocParser m Inlines
+parseCm = simpleInline "Cm" $ B.codeWith (cls "Cm") . stringify
 
 parseQl :: PandocMonad m => MdocParser m Inlines
 parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
@@ -416,7 +442,7 @@ parseNm = do
   mnm <- (progName <$> getState)
   case mnm of
     Nothing -> do
-      (_, nm, _) <- lookAhead $ delimitedArgs $ option mempty litsToText
+      (_, nm, _) <- lookAhead $ delimitedArgs $ option mempty litsToInlines
       guard $ not (null nm)
       simpleInline "Nm" ok
     Just nm -> simpleInline "Nm" $ \x ->
@@ -438,6 +464,7 @@ parseXr = do
         s <- lit <?> "Xr manual section"
         return (toString n, toString s)
 
+-- TODO: can I rewrite this with argsInline?
 parseLk :: PandocMonad m => MdocParser m Inlines
 parseLk = do
   macro "Lk"
@@ -457,7 +484,7 @@ parseLk = do
     end = msatisfy newControlContext
     segment = do
       a <- openingDelimiters
-      m <- option mempty litsToText
+      m <- option mempty litsToInlines
       z <-
         try (closingDelimiters <* notFollowedBy end)
           <|> option mempty pipes
@@ -477,8 +504,11 @@ parseInlineMacro =
     [ parseSy,
       parseEm,
       parseLk,
+      parseEv,
       parseMt,
       parsePa,
+      parseFl,
+      parseCm,
       parseNo,
       parseNm,
       parseXr,
@@ -504,7 +534,7 @@ parseInlineMacro =
 
 parseInline :: PandocMonad m => MdocParser m Inlines
 parseInline = parseStr  <|>
-  ((parseInlineMacro <|> litsAndDelimsToText) <* optional eol)
+  ((parseInlineMacro <|> litsAndDelimsToInlines) <* optional eol)
 
 
 -- TODO probably need some kind of fold to deal with Ns
