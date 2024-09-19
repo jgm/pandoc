@@ -42,9 +42,6 @@ tests = [
     , "Sq" =:
         ".Sq hello world" =?>
         para (singleQuoted "hello world")
-    , "Ev" =:
-        ".Ev HELLO_WORLD ," =?>
-        para (codeWith (cls "Ev") "HELLO_WORLD" <> ",")
     , "empty" =:
         ".Dq" =?>
         para (doubleQuoted mempty)
@@ -70,6 +67,9 @@ tests = [
     , "Em" =:
         ".Em hello world" =?>
         para (emph "hello world")
+    , "Ev" =:
+        ".Ev HELLO_WORLD ," =?>
+        para (codeWith (cls "Ev") "HELLO_WORLD" <> ",")
     , "Mt" =:
         ".Mt a@example.org , b@example.org" =?>
         para ((link "mailto:a@example.org" "" "a@example.org") <>
