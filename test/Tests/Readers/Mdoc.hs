@@ -71,6 +71,9 @@ tests = [
     , "No" =:
         ".No ( hello , world ! )" =?>
         para "(hello, world!)"
+    , "empty Pa with closing punctuation" =:
+        ".Pa ) z" =?>
+        para (spanWith (mempty, ["Pa"], mempty) "~" <> ")" <> space <> spanWith (mempty, ["Pa"], mempty) "z")
     , "delimiters" =:
         ".Sy ( hello world )" =?>
         para (mconcat ["(", strong "hello world", ")"])

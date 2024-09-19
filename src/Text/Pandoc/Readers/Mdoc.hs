@@ -352,6 +352,11 @@ parseMt = simpleInline "Mt" mailto
   where mailto x | null x = B.link ("mailto:~") "" "~"
                  | otherwise = B.link ("mailto:" <> stringify x) "" x
 
+parsePa :: PandocMonad m => MdocParser m Inlines
+parsePa = simpleInline "Pa" p
+  where p x | null x = B.spanWith (cls "Pa") "~"
+            | otherwise = B.spanWith (cls "Pa") x
+
 parseQl :: PandocMonad m => MdocParser m Inlines
 parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
 
@@ -473,6 +478,7 @@ parseInlineMacro =
       parseEm,
       parseLk,
       parseMt,
+      parsePa,
       parseNo,
       parseNm,
       parseXr,
