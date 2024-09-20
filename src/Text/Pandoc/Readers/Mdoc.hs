@@ -347,7 +347,6 @@ eliminateEmpty x y = if null y then mempty else x y
 cls :: T.Text -> B.Attr
 cls x = (mempty, [x], mempty)
 
--- Sy: callable, parsed, >0 arguments
 -- mandoc -T html formats Sy with a <b> tag, since it's not really
 -- semantically <strong>, but Strong is our best option in Pandoc
 parseSy :: PandocMonad m => MdocParser m Inlines
@@ -470,7 +469,6 @@ parseNm = do
          else ok x
   where ok = B.codeWith (cls "Nm") . stringify
 
--- Xr
 parseXr :: PandocMonad m => MdocParser m Inlines
 parseXr = do
   macro "Xr"
