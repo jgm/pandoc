@@ -94,6 +94,12 @@ tests = [
     , "multiple" =:
         ".Fl W all" =?>
         para (codeWith (cls "Fl") "-W" <> space <> codeWith (cls "Fl") "-all")
+    , "empty with following macro" =:
+        ".Fl Cm x" =?>
+        para (codeWith (cls "Fl") "-" <> codeWith (cls "Cm") "x")
+    , "following Ns" =:
+        ".Fl W Ns Cm all" =?>
+        para (codeWith (cls "Fl") "-W" <> codeWith (cls "Cm") "all")
     , "GNU" =:
         ".Fl -help" =?>
         para (codeWith (cls "Fl") "--help")
@@ -103,6 +109,18 @@ tests = [
     , "punctuation" =:
         ".Op Fl a | b" =?>
         para ("[" <> codeWith (cls "Fl") "-a" <> " | " <> codeWith (cls "Fl") "-b" <> "]")
+    , "middle close paren" =:
+        ".Fl a ) z" =?>
+        para (codeWith (cls "Fl") "-a" <> ") " <> codeWith (cls "Fl") "-z")
+    , "empty with close paren" =:
+        ".Fl ) z" =?>
+        para (codeWith (cls "Fl") "-" <> ") " <> codeWith (cls "Fl") "-z")
+    , "empty with pipe" =:
+        ".Fl | z" =?>
+        para (codeWith (cls "Fl") "-" <> " | " <> codeWith (cls "Fl") "-z")
+    , "empty with parens" =:
+        ".Fl ( )" =?>
+        para ("(" <> codeWith (cls "Fl") "-" <> ")")
     ]
   , testGroup "links"
     [ "basic" =:

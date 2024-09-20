@@ -14,6 +14,7 @@ Conversion of mdoc to 'Pandoc' document.
 module Text.Pandoc.Readers.Mdoc (readMdoc) where
 
 import Data.Default (Default)
+import Data.Functor (($>))
 import Control.Monad (mplus, guard, void, when)
 import Control.Monad.Except (throwError)
 import Data.List (intersperse)
@@ -108,6 +109,11 @@ msatisfy predic = P.tokenPrim show nextPos testTok
 macro :: PandocMonad m => T.Text -> MdocParser m MdocToken
 macro name = msatisfy t where
   t (Macro n _) = n == name
+  t _ = False
+
+anyMacro :: PandocMonad m => MdocParser m MdocToken
+anyMacro = msatisfy t where
+  t (Macro _ _) = True
   t _ = False
 
 emptyMacro :: PandocMonad m => T.Text -> MdocParser m MdocToken
@@ -282,15 +288,6 @@ simpleInline nm xform = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToInlines
       return $ openDelim <> xform inlines <> closeDelim
 
-argsInline :: PandocMonad m => T.Text -> ([T.Text] -> Inlines) -> MdocParser m Inlines
-argsInline nm xform = do
-  macro nm
-  segs <- manyTill segment inlineContextEnd
-  return $ spacify segs
- where
-   segment = do
-      (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
-      return $ openDelim <> xform inlines <> closeDelim
 
 lineEnclosure :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 lineEnclosure nm xform = do
@@ -376,9 +373,28 @@ parsePa = simpleInline "Pa" p
             | otherwise = B.spanWith (cls "Pa") x
 
 parseFl :: PandocMonad m => MdocParser m Inlines
-parseFl = argsInline "Fl" (spacify . fl . flags)
-  where fl = map $ B.codeWith (cls "Fl")
-        flags = map ("-" <>)
+parseFl = do
+  macro "Fl"
+  start <- option mempty (emptyWithDelim <|> emptyWithMacro <|> emptyEmpty)
+  segs <- manyTill segment inlineContextEnd
+  return $ spacify ([start] <> segs)
+ where
+   emptyWithDelim = do
+     lookAhead $ many1 (delim Middle <|> delim Close)
+     ds <- closingDelimiters
+     return $ fl "-" <> ds
+   emptyWithMacro = do
+     lookAhead anyMacro
+     rest <- parseInlines
+     return $ fl "-" <> rest
+   emptyEmpty = lookAhead eol $> fl "-"
+   segment = do
+      (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
+      return $ openDelim <> (spacify . (map fl) . flags) inlines <> closeDelim
+   fl = B.codeWith (cls "Fl")
+   flags [] = ["-"]
+   flags xs = map ("-" <>) xs
+
 
 parseCm :: PandocMonad m => MdocParser m Inlines
 parseCm = simpleInline "Cm" $ B.codeWith (cls "Cm") . stringify
