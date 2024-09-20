@@ -232,5 +232,10 @@ $if(back)$
 $back$
 $endif$
 </back>
+$if(floats-group)$
+<floats-group>
+$floats-group$
+</floats-group>
+$endif$
 </article>
 
