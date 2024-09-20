@@ -502,7 +502,6 @@ parseXr = do
         s <- lit <?> "Xr manual section"
         return (toString n, toString s)
 
--- TODO: can I rewrite this with argsInline?
 parseLk :: PandocMonad m => MdocParser m Inlines
 parseLk = do
   macro "Lk"
