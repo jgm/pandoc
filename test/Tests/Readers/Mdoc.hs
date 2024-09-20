@@ -106,6 +106,9 @@ tests = [
     , "GNU escaped" =:
         ".Fl \\-help" =?>
         para (codeWith (cls "Fl") "--help")
+    , "GNU Fl Fl" =:
+        ".Fl Fl help" =?>
+        para (codeWith (cls "Fl") "--help")
     , "punctuation" =:
         ".Op Fl a | b" =?>
         para ("[" <> codeWith (cls "Fl") "-a" <> " | " <> codeWith (cls "Fl") "-b" <> "]")

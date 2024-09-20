@@ -376,7 +376,7 @@ parsePa = simpleInline "Pa" p
 parseFl :: PandocMonad m => MdocParser m Inlines
 parseFl = do
   macro "Fl"
-  start <- option mempty (emptyWithDelim <|> emptyWithMacro <|> emptyEmpty)
+  start <- option mempty (emptyWithDelim <|> flfl <|> emptyWithMacro <|> emptyEmpty)
   segs <- manyTill segment inlineContextEnd
   return $ spacify ([start] <> segs)
  where
@@ -384,6 +384,11 @@ parseFl = do
      lookAhead $ many1 (delim Middle <|> delim Close)
      ds <- closingDelimiters
      return $ fl "-" <> ds
+   flfl = do
+     lookAhead (macro "Fl")
+     x:xs <- B.toList <$> parseFl
+     let xx = B.codeWith (cls "Fl") $ "-" <> stringify x
+     return $ xx <> B.fromList xs
    emptyWithMacro = do
      lookAhead anyMacro
      rest <- parseInlines
