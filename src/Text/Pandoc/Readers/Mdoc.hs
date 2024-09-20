@@ -288,6 +288,9 @@ simpleInline nm xform = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToInlines
       return $ openDelim <> xform inlines <> closeDelim
 
+codeLikeInline :: PandocMonad m => T.Text -> MdocParser m Inlines
+codeLikeInline nm = do
+  simpleInline nm (eliminateEmpty (B.codeWith (cls nm) . stringify))
 
 lineEnclosure :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 lineEnclosure nm xform = do
@@ -357,7 +360,7 @@ parseNo :: PandocMonad m => MdocParser m Inlines
 parseNo = simpleInline "No" (eliminateEmpty id)
 
 parseEv :: PandocMonad m => MdocParser m Inlines
-parseEv = simpleInline "Ev" (eliminateEmpty (B.codeWith (cls "Ev") . stringify))
+parseEv = codeLikeInline "Ev"
 
 -- I'm not sure why mandoc inserts a ~ when Mt is missing an argument,
 -- but it does, and it doesn't issue a warning, so that quirk is
@@ -397,7 +400,7 @@ parseFl = do
 
 
 parseCm :: PandocMonad m => MdocParser m Inlines
-parseCm = simpleInline "Cm" $ B.codeWith (cls "Cm") . stringify
+parseCm = codeLikeInline "Cm"
 
 parseQl :: PandocMonad m => MdocParser m Inlines
 parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
