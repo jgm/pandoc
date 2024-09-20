@@ -289,8 +289,7 @@ simpleInline nm xform = do
       return $ openDelim <> xform inlines <> closeDelim
 
 codeLikeInline :: PandocMonad m => T.Text -> MdocParser m Inlines
-codeLikeInline nm = do
-  simpleInline nm (eliminateEmpty (B.codeWith (cls nm) . stringify))
+codeLikeInline nm = simpleInline nm (eliminateEmpty (B.codeWith (cls nm) . stringify))
 
 lineEnclosure :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 lineEnclosure nm xform = do
