@@ -291,6 +291,9 @@ simpleInline nm xform = do
 codeLikeInline :: PandocMonad m => T.Text -> MdocParser m Inlines
 codeLikeInline nm = simpleInline nm (eliminateEmpty (B.codeWith (cls nm) . stringify))
 
+spanLikeInline :: PandocMonad m => T.Text -> MdocParser m Inlines
+spanLikeInline nm = simpleInline nm (eliminateEmpty (B.spanWith (cls nm)))
+
 lineEnclosure :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m Inlines
 lineEnclosure nm xform = do
   macro nm
@@ -360,6 +363,12 @@ parseNo = simpleInline "No" (eliminateEmpty id)
 parseEv :: PandocMonad m => MdocParser m Inlines
 parseEv = codeLikeInline "Ev"
 
+parseAd :: PandocMonad m => MdocParser m Inlines
+parseAd = spanLikeInline "Ad"
+
+parseMs :: PandocMonad m => MdocParser m Inlines
+parseMs = spanLikeInline "Ms"
+
 -- I'm not sure why mandoc inserts a ~ when Mt is missing an argument,
 -- but it does, and it doesn't issue a warning, so that quirk is
 -- retained.
@@ -409,6 +418,9 @@ parseAr = simpleInline "Ar" ar
 
 parseCm :: PandocMonad m => MdocParser m Inlines
 parseCm = codeLikeInline "Cm"
+
+parseIc :: PandocMonad m => MdocParser m Inlines
+parseIc = codeLikeInline "Ic"
 
 parseQl :: PandocMonad m => MdocParser m Inlines
 parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
@@ -535,6 +547,9 @@ parseInlineMacro =
       parsePa,
       parseFl,
       parseCm,
+      parseIc,
+      parseAd,
+      parseMs,
       parseAr,
       parseNo,
       parseNm,
