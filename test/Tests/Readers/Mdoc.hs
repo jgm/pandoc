@@ -70,6 +70,9 @@ tests = [
     , "Ev" =:
         ".Ev HELLO_WORLD ," =?>
         para (codeWith (cls "Ev") "HELLO_WORLD" <> ",")
+    , "Ar" =:
+        ".Ar ) z" =?>
+        para (codeWith (cls "variable") "file ..." <> ") " <> codeWith (cls "variable") "z")
     , "Mt" =:
         ".Mt a@example.org , b@example.org" =?>
         para ((link "mailto:a@example.org" "" "a@example.org") <>

@@ -401,6 +401,11 @@ parseFl = do
    flags [] = ["-"]
    flags xs = map ("-" <>) xs
 
+parseAr :: PandocMonad m => MdocParser m Inlines
+parseAr = simpleInline "Ar" ar
+  where ar x | null x = B.codeWith (cls "variable") "file ..."
+             | otherwise = B.codeWith (cls "variable") $ stringify x
+
 
 parseCm :: PandocMonad m => MdocParser m Inlines
 parseCm = codeLikeInline "Cm"
@@ -530,6 +535,7 @@ parseInlineMacro =
       parsePa,
       parseFl,
       parseCm,
+      parseAr,
       parseNo,
       parseNm,
       parseXr,
