@@ -91,8 +91,10 @@ submodules =
   , Pandoc.Text.documentedModule
   , Pandoc.Types.documentedModule
   , Pandoc.Utils.documentedModule
-  , Module.Layout.documentedModule { moduleName = "pandoc.layout" }
-    `allSince` [2,18]
+  , ((Module.Layout.documentedModule { moduleName = "pandoc.layout" }
+      `allSince` [2,18])
+     `functionsSince` ["bold", "italic", "underlined", "strikeout", "fg", "bg"])
+    [3, 4, 1]
   , Module.Path.documentedModule { moduleName = "pandoc.path" }
     `allSince` [2,12]
   , Module.Zip.documentedModule { moduleName = "pandoc.zip" }
@@ -101,6 +103,12 @@ submodules =
  where
   allSince mdl version = mdl
     { moduleFunctions = map (`since` makeVersion version) $ moduleFunctions mdl
+    }
+  functionsSince mdl fns version = mdl
+    { moduleFunctions = map (\fn ->
+                               if (functionName fn) `elem` fns
+                               then fn `since` makeVersion version
+                               else fn) $ moduleFunctions mdl
     }
 
 -- | Load all global modules and set them to their global variables.
