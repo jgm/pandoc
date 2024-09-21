@@ -14,7 +14,7 @@ DokuWiki:  <https://www.dokuwiki.org/dokuwiki>
 -}
 
 {-
-    [ ] Implement nested blockquotes (currently only ever does one level)
+    [x] Implement nested blockquotes (currently only ever does one level)
     [x] Implement alignment of text in tables
     [ ] Implement comments
     [ ] Work through the Dokuwiki spec, and check I've not missed anything out
@@ -32,12 +32,12 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
+import Text.Pandoc.Extensions
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options (WrapOption (..), WriterOptions (writerTableOfContents,
-                            writerTemplate, writerWrapText))
-import Text.Pandoc.Shared (camelCaseToHyphenated, figureDiv, linesToPara,
-                           removeFormatting, trimr, tshow)
+                            writerTemplate, writerWrapText), isEnabled)
+import Text.Pandoc.Shared (figureDiv, linesToPara, removeFormatting, trimr)
 import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
@@ -50,8 +50,8 @@ data WriterState = WriterState {
 
 data WriterEnvironment = WriterEnvironment {
     stIndent      :: Text          -- Indent after the marker at the beginning of list items
-  , stUseTags     :: Bool            -- True if we should use HTML tags because we're in a complex list
   , stBackSlashLB :: Bool     -- True if we should produce formatted strings with newlines (as in a table cell)
+  , stBlockQuoteLevel :: Int   -- Block quote level
   }
 
 instance Default WriterState where
@@ -59,8 +59,8 @@ instance Default WriterState where
 
 instance Default WriterEnvironment where
   def = WriterEnvironment { stIndent = ""
-                          , stUseTags = False
-                          , stBackSlashLB = False }
+                          , stBackSlashLB = False
+                          , stBlockQuoteLevel = 0 }
 
 type DokuWiki m = ReaderT WriterEnvironment (StateT WriterState m)
 
@@ -109,21 +109,23 @@ blockToDokuWiki opts (Plain inlines) =
   inlineListToDokuWiki opts inlines
 
 blockToDokuWiki opts (Para inlines) = do
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
   indent <- asks stIndent
-  useTags <- asks stUseTags
   contents <- inlineListToDokuWiki opts inlines
-  return $ if useTags
-              then "<HTML><p></HTML>" <> contents <> "<HTML></p></HTML>"
-              else contents <> if T.null indent then "\n" else ""
+  return $ bqPrefix <> contents <> if T.null indent then "\n" else ""
 
 blockToDokuWiki opts (LineBlock lns) =
   blockToDokuWiki opts $ linesToPara lns
 
-blockToDokuWiki _ b@(RawBlock f str)
+blockToDokuWiki opts b@(RawBlock f str)
   | f == Format "dokuwiki" = return str
   -- See https://www.dokuwiki.org/wiki:syntax
   -- use uppercase HTML tag for block-level content:
-  | f == Format "html"     = return $ "<HTML>\n" <> str <> "\n</HTML>"
+  | f == Format "html"
+  , isEnabled Ext_raw_html opts = return $ "<HTML>\n" <> str <> "\n</HTML>"
   | otherwise              = "" <$
          report (BlockNotRendered b)
 
@@ -136,19 +138,22 @@ blockToDokuWiki opts (Header level _ inlines) = do
   let eqs = T.replicate ( 7 - level ) "="
   return $ eqs <> " " <> contents <> " " <> eqs <> "\n"
 
-blockToDokuWiki _ (CodeBlock (_,classes,_) str) =
-  return $ "<code" <>
+blockToDokuWiki _ (CodeBlock (_,classes,_) str) = do
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
+  return $ bqPrefix <>
+           "<code" <>
            (case classes of
                []    -> ""
                (x:_) -> " " <> fromMaybe x (M.lookup x languageNames)) <>
            ">\n" <> str <>
            (if "\n" `T.isSuffixOf` str then "" else "\n") <> "</code>\n"
 
-blockToDokuWiki opts (BlockQuote blocks) = do
-  contents <- blockListToDokuWiki opts blocks
-  if isSimpleBlockQuote blocks
-     then return $ T.unlines $ map ("> " <>) $ T.lines contents
-     else return $ "<HTML><blockquote>\n" <> contents <> "</blockquote></HTML>"
+blockToDokuWiki opts (BlockQuote blocks) =
+  local (\st -> st{ stBlockQuoteLevel = stBlockQuoteLevel st + 1 })
+               (blockListToDokuWiki opts blocks)
 
 blockToDokuWiki opts (Table _ blkCapt specs thead tbody tfoot) = do
   let (capt, aligns, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
@@ -179,37 +184,21 @@ blockToDokuWiki opts (Table _ blkCapt specs thead tbody tfoot) = do
            (if null headers' then "" else renderRow "^" headers' <> "\n") <>
            T.unlines (map (renderRow "|") rows')
 
-blockToDokuWiki opts x@(BulletList items) = do
-  oldUseTags <- asks stUseTags
+blockToDokuWiki opts (BulletList items) = do
   indent <- asks stIndent
   backSlash <- asks stBackSlashLB
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        contents <- local (\s -> s { stUseTags = True })
+  contents <- local (\s -> s { stIndent = stIndent s <> "  "
+                             , stBackSlashLB = backSlash})
                       (mapM (listItemToDokuWiki opts) items)
-        return $ "<HTML><ul></HTML>\n" <> vcat contents <> "<HTML></ul></HTML>\n"
-     else do
-        contents <- local (\s -> s { stIndent = stIndent s <> "  "
-                                   , stBackSlashLB = backSlash})
-                      (mapM (listItemToDokuWiki opts) items)
-        return $ vcat contents <> if T.null indent then "\n" else ""
+  return $ vcat contents <> if T.null indent then "\n" else ""
 
-blockToDokuWiki opts x@(OrderedList attribs items) = do
-  oldUseTags <- asks stUseTags
+blockToDokuWiki opts (OrderedList _attribs items) = do
   indent <- asks stIndent
   backSlash <- asks stBackSlashLB
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        contents <- local (\s -> s { stUseTags = True })
-                      (mapM (orderedListItemToDokuWiki opts) items)
-        return $ "<HTML><ol" <> listAttribsToString attribs <> "></HTML>\n" <> vcat contents <> "<HTML></ol></HTML>\n"
-     else do
-        contents <- local (\s -> s { stIndent = stIndent s <> "  "
-                                   , stBackSlashLB = backSlash})
-                      (mapM (orderedListItemToDokuWiki opts) items)
-        return $ vcat contents <> if T.null indent then "\n" else ""
+  contents <- local (\s -> s { stIndent = stIndent s <> "  "
+                             , stBackSlashLB = backSlash})
+                (mapM (orderedListItemToDokuWiki opts) items)
+  return $ vcat contents <> if T.null indent then "\n" else ""
 
 blockToDokuWiki opts (Figure attr capt body) =
   blockToDokuWiki opts $ figureDiv attr capt body
@@ -217,67 +206,55 @@ blockToDokuWiki opts (Figure attr capt body) =
 -- TODO Need to decide how to make definition lists work on dokuwiki - I don't think there
 --      is a specific representation of them.
 -- TODO This creates double '; ; ' if there is a bullet or ordered list inside a definition list
-blockToDokuWiki opts x@(DefinitionList items) = do
-  oldUseTags <- asks stUseTags
+blockToDokuWiki opts (DefinitionList items) = do
   indent <- asks stIndent
   backSlash <- asks stBackSlashLB
-  let useTags = oldUseTags || not (isSimpleList x)
-  if useTags
-     then do
-        contents <- local (\s -> s { stUseTags = True })
-                      (mapM (definitionListItemToDokuWiki opts) items)
-        return $ "<HTML><dl></HTML>\n" <> vcat contents <> "<HTML></dl></HTML>\n"
-     else do
-        contents <- local (\s -> s { stIndent = stIndent s <> "  "
-                                   , stBackSlashLB = backSlash})
-                      (mapM (definitionListItemToDokuWiki opts) items)
-        return $ vcat contents <> if T.null indent then "\n" else ""
+  contents <- local (\s -> s { stIndent = stIndent s <> "  "
+                             , stBackSlashLB = backSlash})
+                (mapM (definitionListItemToDokuWiki opts) items)
+  return $ vcat contents <> if T.null indent then "\n" else ""
 
 -- Auxiliary functions for lists:
-
--- | Convert ordered list attributes to HTML attribute string
-listAttribsToString :: ListAttributes -> Text
-listAttribsToString (startnum, numstyle, _) =
-  let numstyle' = camelCaseToHyphenated $ tshow numstyle
-  in  (if startnum /= 1
-          then " start=\"" <> tshow startnum <> "\""
-          else "") <>
-      (if numstyle /= DefaultStyle
-          then " style=\"list-style-type: " <> numstyle' <> ";\""
-          else "")
 
 -- | Convert bullet list item (list of blocks) to DokuWiki.
 listItemToDokuWiki :: PandocMonad m
                    => WriterOptions -> [Block] -> DokuWiki m Text
 listItemToDokuWiki opts items = do
-  useTags <- asks stUseTags
-  if useTags
-     then do
-       contents <- blockListToDokuWiki opts items
-       return $ "<HTML><li></HTML>" <> contents <> "<HTML></li></HTML>"
-     else do
-       bs <- mapM (blockToDokuWiki opts) items
-       let contents = case items of
-                           [_, CodeBlock _ _] -> T.concat bs
-                           _                  -> vcat bs
-       indent <- asks stIndent
-       backSlash <- asks stBackSlashLB
-       let indent' = if backSlash then T.drop 2 indent else indent
-       return $ indent' <> "* " <> contents
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
+  let useWrap = not (isSimpleListItem items)
+  bs <- mapM (blockToDokuWiki opts) items
+  let contents = case items of
+                      [_, CodeBlock _ _] -> T.concat bs
+                      _                  -> vcat bs
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
+  let indent' = if backSlash then T.drop 2 indent else indent
+  return $ bqPrefix <> indent' <> "* " <>
+    if useWrap
+       then "<WRAP>\n" <> contents <> "\n</WRAP>"
+       else contents
 
 -- | Convert ordered list item (list of blocks) to DokuWiki.
 -- | TODO Emiminate dreadful duplication of text from listItemToDokuWiki
 orderedListItemToDokuWiki :: PandocMonad m => WriterOptions -> [Block] -> DokuWiki m Text
 orderedListItemToDokuWiki opts items = do
-  contents <- blockListToDokuWiki opts items
-  useTags <- asks stUseTags
-  if useTags
-     then return $ "<HTML><li></HTML>" <> contents <> "<HTML></li></HTML>"
-     else do
-       indent <- asks stIndent
-       backSlash <- asks stBackSlashLB
-       let indent' = if backSlash then T.drop 2 indent else indent
-       return $ indent' <> "- " <> contents
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
+  let useWrap = not (isSimpleListItem items)
+  contents <- local (\st -> st{ stBlockQuoteLevel = 0 })
+               (blockListToDokuWiki opts items)
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
+  let indent' = if backSlash then T.drop 2 indent else indent
+  return $ bqPrefix <> indent' <> "- " <>
+    if useWrap
+       then "<WRAP>\n" <> contents <> "\n</WRAP>"
+       else contents
 
 -- | Convert definition list item (label, list of blocks) to DokuWiki.
 definitionListItemToDokuWiki :: PandocMonad m
@@ -285,19 +262,33 @@ definitionListItemToDokuWiki :: PandocMonad m
                              -> ([Inline],[[Block]])
                              -> DokuWiki m Text
 definitionListItemToDokuWiki opts (label, items) = do
+  let useWrap = not (all isSimpleListItem items)
+  bqLevel <- asks stBlockQuoteLevel
+  let bqPrefix = case bqLevel of
+                    0 -> ""
+                    n -> T.replicate n ">" <> " "
   labelText <- inlineListToDokuWiki opts label
-  contents <- mapM (blockListToDokuWiki opts) items
-  useTags <- asks stUseTags
-  if useTags
-     then return $ "<HTML><dt></HTML>" <> labelText <> "<HTML></dt></HTML>\n" <>
-           T.intercalate "\n" (map (\d -> "<HTML><dd></HTML>" <> d <> "<HTML></dd></HTML>") contents)
-     else do
-       indent <- asks stIndent
-       backSlash <- asks stBackSlashLB
-       let indent' = if backSlash then T.drop 2 indent else indent
-       return $ indent' <> "* **" <> labelText <> "** " <> T.concat contents
+  contents <- local (\st -> st{ stBlockQuoteLevel = 0 })
+               (mapM (blockListToDokuWiki opts) items)
+  indent <- asks stIndent
+  backSlash <- asks stBackSlashLB
+  let indent' = if backSlash then T.drop 2 indent else indent
+  return $ bqPrefix <> indent' <> "* **" <> labelText <> "** " <>
+    if useWrap
+       then "<WRAP>\n" <> vcat contents <> "\n</WRAP>"
+       else T.intercalate "; " contents
 
--- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
+-- | True if list item can be handled with the simple wiki syntax.  False if
+--   WRAP tags will be needed.
+isSimpleListItem :: [Block] -> Bool
+isSimpleListItem []  = True
+isSimpleListItem [x, CodeBlock{}] | isPlainOrPara x = True
+isSimpleListItem (Div _ bs : ys) = -- see #8920
+  isSimpleListItem bs && all isSimpleList ys
+isSimpleListItem (x:ys) | isPlainOrPara x = all isSimpleList ys
+isSimpleListItem _ = False
+--- | True if the list can be handled by simple wiki markup, False if HTML tags will be needed.
+
 isSimpleList :: Block -> Bool
 isSimpleList x =
   case x of
@@ -306,23 +297,10 @@ isSimpleList x =
        DefinitionList items        -> all (all isSimpleListItem . snd) items
        _                           -> False
 
--- | True if list item can be handled with the simple wiki syntax.  False if
---   HTML tags will be needed.
-isSimpleListItem :: [Block] -> Bool
-isSimpleListItem []  = True
-isSimpleListItem [x, CodeBlock{}] | isPlainOrPara x = True
-isSimpleListItem (Div _ bs : ys) = -- see #8920
-  isSimpleListItem bs && all isSimpleList ys
-isSimpleListItem (x:ys) | isPlainOrPara x = all isSimpleList ys
-isSimpleListItem _ = False
-
 isPlainOrPara :: Block -> Bool
 isPlainOrPara (Plain _) = True
 isPlainOrPara (Para  _) = True
 isPlainOrPara _         = False
-
-isSimpleBlockQuote :: [Block] -> Bool
-isSimpleBlockQuote bs  = all isPlainOrPara bs
 
 -- | Concatenates strings with line breaks between them.
 vcat :: [Text] -> Text
@@ -353,8 +331,9 @@ tableItemToDokuWiki opts align' item = do
                  (if align' == AlignLeft || align' == AlignCenter
                      then "  "
                      else "")
-  contents <- local (\s -> s { stBackSlashLB = True }) $
-              blockListToDokuWiki opts item
+  contents <- local (\s -> s { stBackSlashLB = True
+                             , stBlockQuoteLevel = 0 }) $
+                blockListToDokuWiki opts item
   return $ mkcell contents
 
 -- | Convert list of Pandoc block elements to DokuWiki.
@@ -444,9 +423,10 @@ inlineToDokuWiki _ (Math mathType str) = return $ delim <> str <> delim
                      DisplayMath -> "$$"
                      InlineMath  -> "$"
 
-inlineToDokuWiki _ il@(RawInline f str)
+inlineToDokuWiki opts il@(RawInline f str)
   | f == Format "dokuwiki" = return str
-  | f == Format "html"     = return $ "<html>" <> str <> "</html>"
+  | f == Format "html"
+  , isEnabled Ext_raw_html opts = return $ "<html>" <> str <> "</html>"
   | otherwise              = "" <$ report (InlineNotRendered il)
 
 inlineToDokuWiki _ LineBreak = do
@@ -483,7 +463,8 @@ inlineToDokuWiki opts (Image attr alt (source, tit)) = do
   return $ "{{" <> source <> imageDims opts attr <> txt <> "}}"
 
 inlineToDokuWiki opts (Note contents) = do
-  contents' <- blockListToDokuWiki opts contents
+  contents' <- local (\st -> st{ stBlockQuoteLevel = 0 })
+                 (blockListToDokuWiki opts contents)
   return $ "((" <> contents' <> "))"
   -- note - may not work for notes with multiple blocks
 

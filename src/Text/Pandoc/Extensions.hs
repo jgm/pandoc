@@ -643,7 +643,8 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "vimwiki"         = autoIdExtensions
   getAll "dokuwiki"        = autoIdExtensions <>
     extensionsFromList
-    [ Ext_tex_math_dollars ]
+    [ Ext_tex_math_dollars
+    , Ext_raw_html ]
   getAll "tikiwiki"        = autoIdExtensions
   getAll "rst"             = autoIdExtensions <>
     extensionsFromList
