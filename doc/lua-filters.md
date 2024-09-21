@@ -4578,6 +4578,28 @@ Returns:
 
 ## Methods
 
+### `pandoc.List:at` {#pandoc.list:at}
+
+`:at (index[, default])`
+
+Returns the element at the given index, or `default` if the list
+contains no item at the given position.
+
+Negative integers count back from the last item in the list.
+
+Parameters:
+
+`index`
+:   element position (integer)
+
+`default`
+:   the default value that is returned if the index is out of
+    range (any)
+
+Returns:
+
+-   the list item at `index`, or `default`.
+
 ### `pandoc.List:clone ()` {#pandoc.list:clone}
 
 Returns a (shallow) copy of the list. (To get a deep copy
@@ -4682,6 +4704,9 @@ Parameters:
 
 Create a new List. If the optional argument `table` is given,
 set the metatable of that value to `pandoc.List`.
+
+The function also accepts an iterator, in which case it creates a
+new list from the return values of the iterator function.
 
 Parameters:
 
