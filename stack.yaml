@@ -22,7 +22,7 @@ extra-deps:
 - typst-0.6
 # even though the resolver has this version, we need the Hackage revision:
 - hslua-module-doclayout-1.1.1.2
-- hslua-list-1.1.2
+- pandoc-lua-marshal-0.2.8
 - git: https://github.com/jgm/commonmark-hs
   subdirs: [commonmark, commonmark-pandoc]
   commit: 7130ce27089b47588f64946263defc05fd72ab29
