@@ -502,6 +502,20 @@ parseXr = do
         s <- lit <?> "Xr manual section"
         return (toString n, toString s)
 
+parseIn :: PandocMonad m => MdocParser m Inlines
+parseIn = do
+  macro "In"
+  openClose <- closingDelimiters
+  openOpen <- openingDelimiters
+  header <- toString <$> lit
+  close <- closingDelimiters
+  return $ open openClose openOpen <> B.codeWith (cls "In") ("<" <> header <> ">") <> close
+  where
+    open a b
+      | null a = b
+      | null b = a
+      | otherwise = a <> B.space <> b
+
 parseLk :: PandocMonad m => MdocParser m Inlines
 parseLk = do
   macro "Lk"
@@ -550,6 +564,7 @@ parseInlineMacro =
       parseAd,
       parseMs,
       parseAr,
+      parseIn,
       parseNo,
       parseNm,
       parseXr,
