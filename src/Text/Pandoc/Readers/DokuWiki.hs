@@ -29,7 +29,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Shared (trim, stringify, tshow)
-import Data.List (isPrefixOf, isSuffixOf, groupBy, intersperse)
+import Data.List (isPrefixOf, isSuffixOf, groupBy)
 import qualified Safe
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
@@ -461,15 +461,30 @@ quote = go <$> many1 blockQuoteLine
  where
    blockQuoteLine = try $ do
      lev <- length <$> many1 (char '>')
-     contents <- B.trimInlines . mconcat <$> many1Till inline' eol
+     skipMany spaceChar
+     contents <- (blockCode <* skipMany spaceChar <* optional eol) <|>
+       (B.plain . B.trimInlines . mconcat <$> many1Till inline' eol)
      pure (lev, contents)
    go [] = mempty
    go xs = mconcat $ map go' (groupBy (\(x,_) (y,_) -> (x == 0 && y == 0) ||
                                                         (x > 0 && y > 0)) xs)
    go' [] = mempty
-   go' xs@((0,_):_) = B.plain . mconcat $
-                       intersperse B.linebreak (map snd xs)
+   go' xs@((0,_):_) =
+        let (lns, bls) = F.foldl' consolidatePlains (mempty,mempty) (map snd xs)
+         in bls <> if lns == mempty
+                      then mempty
+                      else B.plain lns
    go' xs = B.blockQuote (go $ map (\(x,y) -> (x - 1, y)) xs)
+   consolidatePlains (lns, bls) b =
+     case B.toList b of
+       [Plain ils] -> ((if lns == mempty
+                           then B.fromList ils
+                           else lns <> B.linebreak <> B.fromList ils), bls)
+       _ -> (mempty, bls <>
+                     (if lns == lns
+                         then mempty
+                         else B.plain lns)
+                      <> b)
 
 blockRaw :: PandocMonad m => DWParser m B.Blocks
 blockRaw = try $ do
