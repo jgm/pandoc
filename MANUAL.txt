@@ -870,6 +870,22 @@ header when requesting a document from a URL:
     of contents.  The default is 3 (which means that level-1, 2, and 3
     headings will be listed in the contents).
 
+`--lof[=true|false]`, `--list-of-figures[=true|false]`
+
+:   Include an automatically generated list of figures (or, in
+    some formats, an instruction to create one) in the output
+    document. This option has no effect unless `-s/--standalone`
+    is used, and it only has an effect on `latex`, `context`, and
+    `docx` output.
+
+`--lot[=true|false]`, `--list-of-tables[=true|false]`
+
+:   Include an automatically generated list of tables (or, in
+    some formats, an instruction to create one) in the output
+    document. This option has no effect unless `-s/--standalone`
+    is used, and it only has an effect on `latex`, `context`, and
+    `docx` output.
+
 `--strip-comments[=true|false]`
 
 :   Strip out HTML comments in the Markdown or Textile source,
@@ -2027,6 +2043,22 @@ To include the built-in citeproc filter, use either `citeproc` or
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
+| --list-of-figures                | list-of-figures: true             |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --lof                            | lof: true                         |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --list-of-tables                 | list-of-tables: true              |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
+| --lot                            | lot: true                         |
+| ```                              | ```                               |
++----------------------------------+-----------------------------------+
+| ```                              | ``` yaml                          |
 | --incremental                    | incremental: true                 |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
@@ -3079,7 +3111,8 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 #### Front matter
 
 `lof`, `lot`
-:   include list of figures, list of tables
+:   include list of figures, list of tables (can also be set using
+    `--lof/--list-of-figures`, `--lot/--list-of-tables`)
 
 `thanks`
 :   contents of acknowledgments footnote after document title

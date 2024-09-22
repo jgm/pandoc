@@ -145,6 +145,16 @@ typeWriterOptions = deftype "WriterOptions"
     (pushBool, writerIncremental)
     (peekBool, \opts x -> opts{ writerIncremental = x })
 
+  , property "list_of_figures"
+    "Include list of figures"
+    (pushBool, writerListOfFigures)
+    (peekBool, \opts x -> opts{ writerListOfFigures = x })
+
+  , property "list_of_tables"
+    "Include list of tables"
+    (pushBool, writerListOfTables)
+    (peekBool, \opts x -> opts{ writerListOfTables = x })
+
   , property "listings"
     "Use listings package for code"
     (pushBool, writerListings)
