@@ -444,7 +444,9 @@ parseList prefix marker =
   many1 ((<>) <$> item <*> fmap mconcat (many continuation))
   where
     continuation = try $ list ("  " <> prefix)
-    item = try $ textStr prefix *> char marker *> char ' ' *>
+    item = try $ textStr prefix *>
+                   optional (char ' ') *>  -- see #8863
+                   char marker *> char ' ' *>
                    (mconcat <$> many1 itemContents <* eol)
     itemContents = (B.plain . mconcat <$> many1 inline') <|>
                    blockCode
