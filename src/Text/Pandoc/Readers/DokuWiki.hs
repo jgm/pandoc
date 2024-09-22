@@ -111,6 +111,7 @@ inline'' = br
       <|> autoEmail
       <|> notoc
       <|> nocache
+      <|> dash
       <|> str
       <|> symbol
       <?> "inline"
