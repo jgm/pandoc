@@ -111,7 +111,7 @@ inline'' = br
       <|> autoEmail
       <|> notoc
       <|> nocache
-      <|> dash
+      <|> smartPunctuation inline
       <|> str
       <|> symbol
       <?> "inline"

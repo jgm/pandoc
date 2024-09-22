@@ -472,6 +472,7 @@ getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions "markua"          = extensionsFromList
                                           []
 getDefaultExtensions "typst"           = extensionsFromList [Ext_citations]
+getDefaultExtensions "dokuwiki"        = extensionsFromList [Ext_smart]
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
 
@@ -644,7 +645,8 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "dokuwiki"        = autoIdExtensions <>
     extensionsFromList
     [ Ext_tex_math_dollars
-    , Ext_raw_html ]
+    , Ext_raw_html
+    , Ext_smart ]
   getAll "tikiwiki"        = autoIdExtensions
   getAll "rst"             = autoIdExtensions <>
     extensionsFromList
