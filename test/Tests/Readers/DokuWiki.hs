@@ -269,9 +269,9 @@ tests = [ testGroup "inlines"
                     , ">> baz"
                     , "> bat"
                     ] =?>
-          blockQuote (plain "foo" <>
-                      plain "no space is required after >" <>
-                      plain "bar" <>
+          blockQuote (plain (text "foo" <> linebreak <>
+                        text "no space is required after >" <> linebreak <>
+                        text "bar") <>
                       blockQuote (plain "baz") <>
                       plain "bat")
         , "Code block" =:
