@@ -174,6 +174,22 @@ tests = [
         ".No no \"Ns\" ns \")\" No no" =?>
         para ("nons)" <> space <> "no")
     ]
+  , testGroup "Ap macro"
+    [ "in the middle of a macro line" =:
+        ".Xr mandoc 1 Ap s" =?>
+        para (spanWith (cls "Xr") "mandoc(1)" <> "'s")
+    -- mandoc difference: the edge case of "Ap (" tested in this mandoc regress
+    -- isn't present in any actual OpenBSD base system manuals, where Ap is
+    -- only ever followed by a letter. Furthermore, "Ap" is generally uncommon
+    -- compared to "Ns '" (e.g. ".Xr mandoc 1 Ns 's"). I'm accepting a
+    -- difference from mandoc here because correctly suppressing space after
+    -- the "(" here would require more refactoring than I feel like doing at
+    -- time of writing.
+    -- per mandoc, should be: para (strong "bold" <> "'(" <> strong "bold")
+    , "with punctuation and called macro" =:
+        ".Sy bold Ap ( \"Sy\" bold" =?>
+        para (strong "bold" <> "'( " <> strong "bold")
+    ]
   , testGroup "inline punctuation"
     [ testGroup "leading punctuation"
       [ "open paren"           =: ".Em ( b"     =?> para ("(" <> emph "b")

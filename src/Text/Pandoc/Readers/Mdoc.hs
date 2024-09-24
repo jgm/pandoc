@@ -307,6 +307,9 @@ lineEnclosure nm xform = do
 noSpace :: Inlines
 noSpace = B.rawInline "mdoc" "Ns"
 
+apMacro :: Inlines
+apMacro = B.rawInline "mdoc" "Ap"
+
 data SpacifyState = SpacifyState { accum :: [Inlines], prev :: Inlines, ns :: Bool }
 instance Default SpacifyState where def = SpacifyState [] mempty False
 
@@ -316,8 +319,9 @@ foldNoSpaces xs = (finalize . foldl go def) xs
     go :: SpacifyState -> Inlines -> SpacifyState
     go s x
       | ns s && x == noSpace = s
-      | ns s                 = s{prev = prev s <> x, ns = False}
+      |         x == apMacro = s{prev = prev s <> "'", ns = True}
       |         x == noSpace = s{ns = True}
+      | ns s                 = s{prev = prev s <> x, ns = False}
       | null (prev s)        = s{prev = x}
       | otherwise            = s{accum = accum s <> [prev s], prev = x}
     finalize s
@@ -546,6 +550,15 @@ parseLk = do
 parseNs :: PandocMonad m => MdocParser m Inlines
 parseNs = macro "Ns" >> return noSpace
 
+parseAp :: PandocMonad m => MdocParser m Inlines
+parseAp = macro "Ap" >> return apMacro
+
+-- parseAp :: PandocMonad m => MdocParser m Inlines
+-- parseAp = do
+--   macro "Ap"
+--   return $ B.singleton apMacro
+
+
 -- TODO should possibly rename this function b/c some of these are
 -- Mdoc block partial-implicit macros. Unclear if this distinction
 -- is going to be relevant.
@@ -585,6 +598,7 @@ parseInlineMacro =
       parseBro,
       parseAo,
       parseOo,
+      parseAp,
       parseNs
     ]
 
