@@ -898,7 +898,11 @@ dimenarg = try $ do
   let s = s1 <> s2
   let (num, rest) = T.span (\c -> isDigit c || c == '.') s
   guard $ T.length num > 0
-  guard $ rest `elem` ["", "pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  guard $ rest `elem`
+    ["", "pt","pc","in","bp","cm","mm","dd","cc","sp","ex","em",
+     "mu", -- "mu" in math mode only
+     "px" -- "px" with pdftex and luatex only
+    ]
   return $ T.pack ['=' | ch] <> minus <> s
 
 ignore :: (Monoid a, PandocMonad m) => Text -> ParsecT s u m a
