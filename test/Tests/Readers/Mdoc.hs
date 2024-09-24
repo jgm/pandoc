@@ -145,7 +145,7 @@ tests = [
   , testGroup "Ns macro"
     [ "at the beginning of a macro line (mandoc delta)" =:
         T.unlines [".Op before", ".Ns Op after"] =?>
-        para "[before][after]"  -- mandoc: warning + "[before] [after]"
+        para "[before] [after]"  -- mandoc: warning
     , "after a block closing macro" =:
         T.unlines [".Oo before", ".Oc Ns Op after"] =?>
         para "[before][after]"

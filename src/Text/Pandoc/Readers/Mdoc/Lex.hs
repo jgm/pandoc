@@ -208,9 +208,14 @@ lexControlLine = do
   guard $ sourceColumn pos == 1
   char '.'
   m@(Macro name _) <- lexMacro
+  -- .Ns macros at the start of a line are ignored. We'd have to look behind
+  -- to keep track of the "start of the line" in the parser, so we'll drop
+  -- those macros in lexing.
+  let start | name == "Ns" = []
+            | otherwise = [m]
   let parsed = isParsedMacro name
   (wds, e) <- manyUntil (l parsed) eofline
-  return $ MdocTokens $ Seq.fromList $ (m:wds) <> [e]
+  return $ MdocTokens $ Seq.fromList $ start <> wds <> [e]
     where
       l True = try lexDelim <|> try lexCallableMacro <|> lexLit
       l False = try lexDelim <|> lexLit
