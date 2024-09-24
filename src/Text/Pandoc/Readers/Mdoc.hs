@@ -426,6 +426,12 @@ parseCm = codeLikeInline "Cm"
 parseIc :: PandocMonad m => MdocParser m Inlines
 parseIc = codeLikeInline "Ic"
 
+parseEr :: PandocMonad m => MdocParser m Inlines
+parseEr = codeLikeInline "Er"
+
+parseCd :: PandocMonad m => MdocParser m Inlines
+parseCd = codeLikeInline "Cd"
+
 parseQl :: PandocMonad m => MdocParser m Inlines
 parseQl = lineEnclosure "Ql" $ B.codeWith (cls "Ql") . stringify
 
@@ -574,6 +580,8 @@ parseInlineMacro =
       parseFl,
       parseCm,
       parseIc,
+      parseEr,
+      parseCd,
       parseAd,
       parseMs,
       parseAr,
