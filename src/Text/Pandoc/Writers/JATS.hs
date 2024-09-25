@@ -74,7 +74,7 @@ creditNames = M.fromList [
     ("writing-original-draft", "Writing – original draft"),
     ("writing-review-editing", "Writing – review & editing")]
 
-addCreditNames :: Context a -> Context a
+addCreditNames :: Context Text -> Context Text
 addCreditNames context =
   case getField "roles" context of
     -- If there is no "roles" key in the context, then we don't have to bother,
@@ -217,7 +217,7 @@ docToJATS opts (Pandoc meta blocks') = do
                (lookupMetaInlines "title" meta)
   let context = defField "body" main
               $ defField "back" back
-              $ defField "roles" addCreditNames
+              $ addCreditNames
               $ resetField "title" title'
               $ resetField "date" date
               $ defField "mathml" (case writerHTMLMathMethod opts of
