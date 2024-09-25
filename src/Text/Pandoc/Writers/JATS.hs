@@ -59,20 +59,20 @@ import qualified Text.XML.Light as Xml
 -- for generating JATS that annotate contributor roles
 creditNames :: M.Map Text Text
 creditNames = M.fromList [
-	("conceptualization", "Conceptualization"),
-	("data-curation", "Data curation"),
-	("formal-analysis", "Formal analysis"),
-	("funding-acquisition", "Funding acquisition"),
-	("investigation", "Investigation"),
-	("methodology", "Methodology"),
-	("project-administration", "Project administration"),
-	("resources", "Resources"),
-	("software", "Software"),
-	("supervision", "Supervision"),
-	("validation", "Validation"),
-	("visualization", "Visualization"),
-	("writing-original-draft", "Writing – original draft"),
-	("writing-review-editing", "Writing – review & editing"),
+    ("conceptualization", "Conceptualization"),
+    ("data-curation", "Data curation"),
+    ("formal-analysis", "Formal analysis"),
+    ("funding-acquisition", "Funding acquisition"),
+    ("investigation", "Investigation"),
+    ("methodology", "Methodology"),
+    ("project-administration", "Project administration"),
+    ("resources", "Resources"),
+    ("software", "Software"),
+    ("supervision", "Supervision"),
+    ("validation", "Validation"),
+    ("visualization", "Visualization"),
+    ("writing-original-draft", "Writing – original draft"),
+    ("writing-review-editing", "Writing – review & editing"),
 ]
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
