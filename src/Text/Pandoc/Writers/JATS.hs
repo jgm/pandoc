@@ -72,8 +72,7 @@ creditNames = M.fromList [
     ("validation", "Validation"),
     ("visualization", "Visualization"),
     ("writing-original-draft", "Writing – original draft"),
-    ("writing-review-editing", "Writing – review & editing"),
-]
+    ("writing-review-editing", "Writing – review & editing")]
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
@@ -180,6 +179,7 @@ docToJATS opts (Pandoc meta blocks') = do
                (lookupMetaInlines "title" meta)
   let context = defField "body" main
               $ defField "back" back
+              $ defField "addCreditNames" addCreditNames
               $ resetField "title" title'
               $ resetField "date" date
               $ defField "mathml" (case writerHTMLMathMethod opts of
