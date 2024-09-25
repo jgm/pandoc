@@ -74,6 +74,44 @@ creditNames = M.fromList [
     ("writing-original-draft", "Writing – original draft"),
     ("writing-review-editing", "Writing – review & editing")]
 
+addCreditNames :: Context a -> Context a
+addCreditNames context =
+  case getField "roles" context of
+    -- If there is no "roles" key in the context, then we don't have to bother,
+    -- so just return the context as is
+    Nothing -> context
+    -- If there is a "roles" key in the context, then we're going to overwrite it
+    -- 1. x = (map addCreditName roles) applies the addCreditName to each role
+    -- 2. `resetField "roles" x context` replaces the value of the "roles"
+    --    in the context object with x (the thing from step 1)
+    Just roles -> resetField "roles" (map addCreditName roles) context
+
+addCreditName :: M.Map Text Text -> M.Map Text Text
+addCreditName role =
+  -- Try looking if there's a "credit-name" key in the role dictionary
+  case M.lookup "credit-name" role of
+    -- If there's already an explicitly specified "credit-name"
+    -- key in the role dictionary, then we don't have to do anything
+    Just _ -> role
+    Nothing ->
+      case M.lookup "credit-id" role of
+        -- If there isn't already a "credit-id" key in the role
+        -- dictionary, then we aren't able to do anything
+        Nothing -> role
+        Just creditIdentifier ->
+          -- Try looking up the value from the "credit-id" key, which
+          -- we stored in the `creditIdentifier` variable, is in the
+          -- creditNames dictionary, which is defined as a constant above
+          case M.lookup creditIdentifier creditNames of
+            -- If the credit-id value from the role dictionary is not
+            -- in the creditNames lookup dictionary, then we can't do anything
+            Nothing -> role
+            -- If the credit-id value from the role dictionary is in
+            -- the creditNames lookup dictionary, insert it back into the
+            -- role dictionary under the "credit-name" key and return
+            Just creditName -> M.insert "credit-name" creditName role
+
+
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
 writeJatsArchiving :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -179,7 +217,7 @@ docToJATS opts (Pandoc meta blocks') = do
                (lookupMetaInlines "title" meta)
   let context = defField "body" main
               $ defField "back" back
-              $ defField "addCreditNames" addCreditNames
+              $ defField "roles" addCreditNames
               $ resetField "title" title'
               $ resetField "date" date
               $ defField "mathml" (case writerHTMLMathMethod opts of
