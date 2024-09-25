@@ -61,6 +61,84 @@ Metadata Values
         set it used, as affiliation links are not allowed in that
         schema.
 
+    `roles`
+    :   a list of dictionaries describing the author's role(s).
+        Each role is added as an [`<role>`] element to
+        the author's [`<contrib>`] element. The following examples
+        illustrate:
+
+        An ad-hoc role:
+
+        ```yaml
+        roles:
+          - name: Dolphin Catcher
+        ```
+
+        A role specified with CRediT. Note that if you
+        use `credit-id`, you also have to use `credit-name`:
+
+        ```yaml
+        roles:
+          - credit-id: writing-review-editing
+            credit-name: Writing – review & editing
+        ```
+
+        A role specified with CRediT, including an
+        optional degree of contribution. Note that
+        specifying the degree only is allowed when
+        using CRediT roles and not ad-hoc roles.
+
+        ```yaml
+        roles:
+          - credit-id: writing-review-editing
+            credit-name: Writing – review & editing
+            degree: Lead
+        ```
+
+        A role specified with CRediT with a label override,
+        useful for internationalization:
+
+        ```yaml
+        roles:
+          - credit-id: writing-review-editing
+            credit-name: Writing – review & editing
+            name: Escrita – revisão e edição
+        ```
+
+        The `id` in the `credit` dictionary
+        must be one the 14 identifiers from the
+        Contribution Role Taxonomy (CRediT):
+
+        1. `conceptualization`
+        2. `data-curation`
+        3. `formal-analysis`
+        4. `funding-acquisition`
+        5. `investigation`
+        6. `methodology`
+        7. `project-administration`
+        8. `resources`
+        9. `software`
+        10. `supervision`
+        11. `validation`
+        12. `visualization`
+        13. `writing-original-draft`
+        14. `writing-review-editing`
+
+        It's not clear from the JATS documentation if the `name`
+        key in the `credit` dictionary should always adopt the primary
+        English labels from the vocabulary, or if it's also able to
+        accept internationalized versions. It's best to be safe and
+        use the English labels here, then use the override for
+        internationalization.
+
+        Optionally, the `degree` key in the `credit` dictionary
+        can be used to specify the degree of contribution which
+        can take one of three values:
+
+        1. `Lead`
+        2. `Equal`
+        3. `Supporting`
+
     `equal-contrib`
     :   boolean attribute used to mark authors who contributed
         equally to the work. The
@@ -475,3 +553,4 @@ Required metadata values:
 [`<institution-wrap>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-wrap.html
 [`<institution>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution.html
 [`<pub-date>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/pub-date.html
+[`<role>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/role.html
