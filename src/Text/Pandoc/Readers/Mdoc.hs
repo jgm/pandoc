@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Text.Pandoc.Readers.Mdoc
    Copyright   : 
@@ -43,21 +44,28 @@ data MdocSection
   | ShOther
   deriving (Show, Eq)
 
-data ManState = ManState { readerOptions   :: ReaderOptions
-                         , metadata        :: Meta
-                         , tableCellsPlain :: Bool
-                         , progName :: Maybe T.Text
-                         , currentSection :: MdocSection
-                         } deriving Show
+data MdocState = MdocState
+    { readerOptions :: ReaderOptions
+    , metadata :: Meta
+    , tableCellsPlain :: Bool
+    , spacingMode :: Bool
+    , progName :: Maybe T.Text
+    , currentSection :: MdocSection
+    }
+    deriving (Show)
 
-instance Default ManState where
-  def = ManState { readerOptions   = def
-                 , metadata        = B.nullMeta
-                 , tableCellsPlain = True
-                 , currentSection = ShOther
-                 , progName = Nothing }
+instance Default MdocState where
+    def =
+        MdocState
+            { readerOptions = def
+            , metadata = B.nullMeta
+            , tableCellsPlain = True
+            , spacingMode = True
+            , currentSection = ShOther
+            , progName = Nothing
+            }
 
-type MdocParser m = P.ParsecT [MdocToken] ManState m
+type MdocParser m = P.ParsecT [MdocToken] MdocState m
 
 
 -- | Read mdoc from an input string and return a Pandoc document.
@@ -68,15 +76,15 @@ readMdoc :: (PandocMonad m, ToSources a)
 readMdoc opts s = do
   let Sources inps = toSources s
   tokenz <- mconcat <$> mapM (uncurry lexMdoc) inps
-  let state = def {readerOptions = opts} :: ManState
+  let state = def {readerOptions = opts} :: MdocState
   eitherdoc <- readWithMTokens parseMdoc state
      (Foldable.toList . unRoffTokens $ tokenz)
   either (throwError . fromParsecError (Sources inps)) return eitherdoc
 
 
 readWithMTokens :: PandocMonad m
-        => ParsecT [MdocToken] ManState m a  -- ^ parser
-        -> ManState                         -- ^ initial state
+        => ParsecT [MdocToken] MdocState m a  -- ^ parser
+        -> MdocState                         -- ^ initial state
         -> [MdocToken]                       -- ^ input
         -> m (Either ParseError a)
 readWithMTokens parser state input =
@@ -172,7 +180,7 @@ argsToInlines :: PandocMonad m => MdocParser m Inlines
 argsToInlines = do
   ls <- manyTill arg eol
   let strs = map (B.str . toString) ls
-  return $ spacify strs
+  spacify strs
 
 parsePrologue :: PandocMonad m => MdocParser m ()
 parsePrologue = do
@@ -228,6 +236,15 @@ parseStr = do
   (Str txt _) <- str
   return $ B.str txt
 
+-- Multiple consecutive strs within a block always need to get spaces between
+-- them and then packed up together, because text lines are never affected by
+-- the spacing mode. XXX but apparently this isn't actually true for mandoc,
+-- so I'm not sure what's correct here yet.
+parseStrs :: PandocMonad m => MdocParser m Inlines
+parseStrs = do
+  txt <- many1 parseStr
+  return $ mconcat $ intersperse B.space txt
+
 parseDelim :: PandocMonad m => DelimSide -> MdocParser m Inlines
 parseDelim pos = do
   (Delim _ txt _) <- delim pos
@@ -242,14 +259,14 @@ litsToInlines :: PandocMonad m => MdocParser m Inlines
 litsToInlines = do
   ls <- many1 lit
   let strs = map (B.str . toString) ls
-  return $ spacify strs
+  spacify strs
 
 litsAndDelimsToInlines :: PandocMonad m => MdocParser m Inlines
 litsAndDelimsToInlines = do
   (o, ls, c) <- delimitedArgs $ many lit
   guard $ not (null o && null ls && null c)
-  let strs = map (B.str . toString) ls
-  return $ o <> spacify strs <> c
+  strs <- spacify $ map (B.str . toString) ls
+  return $ o <> strs <> c
 
 openingDelimiters :: PandocMonad m => MdocParser m Inlines
 openingDelimiters = do
@@ -260,7 +277,7 @@ openingDelimiters = do
     return $ openDelim <> omid
 
 pipes :: PandocMonad m => MdocParser m Inlines
-pipes = spacify <$> many (parseDelim Middle)
+pipes = many (parseDelim Middle) >>= spacify
 
 closingDelimiters :: PandocMonad m => MdocParser m Inlines
 closingDelimiters = do
@@ -282,7 +299,7 @@ simpleInline :: PandocMonad m => T.Text -> (Inlines -> Inlines) -> MdocParser m 
 simpleInline nm xform = do
   macro nm
   segs <- manyTill segment inlineContextEnd
-  return $ spacify segs
+  spacify segs
  where
    segment = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToInlines
@@ -302,7 +319,8 @@ lineEnclosure nm xform = do
     (manyTill
       (parseInlineMacro <|> (try (litsAndDelimsToInlines <* notFollowedBy eol))
         <|> litsToInlines) (lookAhead (many (macro "Ns" <|> delim Close) *> eol)))
-  return $ first <> xform (spacify further) <> finally
+  further' <- spacify further
+  return $ first <> xform further' <> finally
 
 noSpace :: Inlines
 noSpace = B.rawInline "mdoc" "Ns"
@@ -310,8 +328,14 @@ noSpace = B.rawInline "mdoc" "Ns"
 apMacro :: Inlines
 apMacro = B.rawInline "mdoc" "Ap"
 
-data SpacifyState = SpacifyState { accum :: [Inlines], prev :: Inlines, ns :: Bool }
-instance Default SpacifyState where def = SpacifyState [] mempty False
+smOff :: Inlines
+smOff = B.rawInline "mdoc" "Sm off"
+
+smOn :: Inlines
+smOn = B.rawInline "mdoc" "Sm on"
+
+data SpacifyState = SpacifyState { accum :: [Inlines], prev :: Inlines, ns :: Bool, sm :: Bool}
+instance Default SpacifyState where def = SpacifyState [] mempty False True
 
 foldNoSpaces :: [Inlines] -> [Inlines]
 foldNoSpaces xs = (finalize . foldl go def) xs
@@ -321,15 +345,23 @@ foldNoSpaces xs = (finalize . foldl go def) xs
       | ns s && x == noSpace = s
       |         x == apMacro = s{prev = prev s <> "'", ns = True}
       |         x == noSpace = s{ns = True}
+      |         x == smOn    = s{sm = True}
+      | sm s && x == smOff   = s{accum = accum s <> [prev s], prev = mempty, sm = False}
       | ns s                 = s{prev = prev s <> x, ns = False}
+      | not (sm s)           = s{prev = prev s <> x}
       | null (prev s)        = s{prev = x}
       | otherwise            = s{accum = accum s <> [prev s], prev = x}
     finalize s
       | null (prev s) = accum s
       | otherwise     = accum s <> [prev s]
 
-spacify :: [Inlines] -> Inlines
-spacify = mconcat . intersperse B.space . foldNoSpaces
+spacify :: PandocMonad m => [Inlines] -> MdocParser m Inlines
+spacify x = do
+  mode <- spacingMode <$> getState
+  return (go mode x)
+  where
+    go True = mconcat . intersperse B.space . foldNoSpaces
+    go False = mconcat . foldNoSpaces
 
 {- Compatibility note: mandoc permits, and doesn't warn on, "vertical" macros
  (Pp, Bl/El, Bd/Ed) inside of "horizontal" block partial-explicit quotations
@@ -345,7 +377,8 @@ multilineEnclosure op cl xform = do
   (macro cl <?> show cl)
   closeDelim <- mconcat <$> many (parseDelim Close)
   optional eol
-  return $ openDelim <> xform (spacify contents) <> closeDelim
+  contents' <- spacify contents
+  return $ openDelim <> xform contents' <> closeDelim
 
 eliminateEmpty :: (Inlines -> Inlines) -> Inlines -> Inlines
 eliminateEmpty x y = if null y then mempty else x y
@@ -391,7 +424,7 @@ parseFl = do
   macro "Fl"
   start <- option mempty (emptyWithDelim <|> flfl <|> emptyWithMacro <|> emptyEmpty)
   segs <- manyTill segment inlineContextEnd
-  return $ spacify ([start] <> segs)
+  spacify ([start] <> segs)
  where
    emptyWithDelim = do
      lookAhead $ many1 (delim Middle <|> delim Close)
@@ -409,7 +442,8 @@ parseFl = do
    emptyEmpty = lookAhead eol $> fl "-"
    segment = do
       (openDelim, inlines, closeDelim) <- delimitedArgs $ option mempty litsToText
-      return $ openDelim <> (spacify . (map fl) . flags) inlines <> closeDelim
+      inner <- (spacify . (map fl) . flags) inlines
+      return $ openDelim <> inner <> closeDelim
    fl = B.codeWith (cls "Fl")
    flags [] = ["-"]
    flags xs = map ("-" <>) xs
@@ -532,7 +566,7 @@ parseLk = do
   openClose <- closingDelimiters
   openOpen <- openingDelimiters
   url <- toString <$> lit
-  inner <- spacify <$> many segment
+  inner <- many segment >>= spacify
   close <- closingDelimiters
   let label | null inner = B.str url
             | otherwise = inner
@@ -611,13 +645,12 @@ parseInlineMacro =
     ]
 
 parseInline :: PandocMonad m => MdocParser m Inlines
-parseInline = parseStr  <|>
-  ((parseInlineMacro <|> litsAndDelimsToInlines) <* optional eol)
+parseInline = parseStrs <|> (controlLine >>= spacify)
+  where
+    controlLine = many1 ((parseInlineMacro <|> litsAndDelimsToInlines) <* optional eol)
 
-
--- TODO probably need some kind of fold to deal with Ns
 parseInlines :: PandocMonad m => MdocParser m Inlines
-parseInlines = spacify <$> many1 parseInline
+parseInlines = many1 (parseSmToggle <|> parseInline) >>= spacify
 
 parsePara :: PandocMonad m => MdocParser m Blocks
 parsePara = do
@@ -642,6 +675,20 @@ parseCodeBlock = do
 
 skipBlanks :: PandocMonad m => MdocParser m Blocks
 skipBlanks = many1 blank *> mempty
+
+parseSmToggle :: PandocMonad m => MdocParser m Inlines
+parseSmToggle = do
+  macro "Sm"
+  cur <- spacingMode <$> getState
+  mode <- optionMaybe (literal "on" $> True <|> literal "off" $> False)
+  eol
+  let newMode = update mode cur
+  modifyState $ \s -> s{spacingMode = newMode}
+  return $ if newMode then smOn else smOff
+  where
+    update = \case
+      Nothing -> not
+      Just x -> const x
 
 parseBlock :: PandocMonad m => MdocParser m Blocks
 parseBlock = choice [ -- parseList

@@ -174,6 +174,23 @@ tests = [
         ".No no \"Ns\" ns \")\" No no" =?>
         para ("nons)" <> space <> "no")
     ]
+  , testGroup "spacing mode"
+    [ "all text" =:
+        T.unlines ["a", ".Sm off", "b c", "d", ".Sm on", "e"] =?>
+        para ("a " <> str "b c" <>  " d e")
+    , "text around macro" =:
+        T.unlines ["a", ".Sm off", ".Sy b c", ".Sm on", "d"] =?>
+        para ("a" <> space <> strong "bc" <> space <> "d")
+    , "mulitple macros" =:
+        T.unlines ["a", ".Sm off", ".Sy b Em c", ".Sm on", "d"] =?>
+        para ("a" <> space <> strong "b" <> emph "c" <> space <> "d")
+    , "mulitple control lines" =:
+        T.unlines ["a", ".Sm off", ".Sy b", ".Em c", ".Sm on", "d"] =?>
+        para ("a" <> space <> strong "b" <> emph "c" <> space <> "d")
+    , "mixed control and text lines" =:
+        T.unlines ["a", ".Sm off", ".Sy b", "c", ".Em d", ".Sm on", "d"] =?>
+        para ("a" <> space <> strong "b" <> "c" <> emph "d" <> space <> "d")
+    ]
   , testGroup "Ap macro"
     [ "in the middle of a macro line" =:
         ".Xr mandoc 1 Ap s" =?>
