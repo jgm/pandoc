@@ -105,24 +105,26 @@ Metadata Values
             name: Escrita – revisão e edição
         ```
 
-        The `id` in the `credit` dictionary
-        must be one the 14 identifiers from the
+        The `credit-id` and `credit-name`
+        must be from one of the 14 terms from the
         Contribution Role Taxonomy (CRediT):
 
-        1. `conceptualization`
-        2. `data-curation`
-        3. `formal-analysis`
-        4. `funding-acquisition`
-        5. `investigation`
-        6. `methodology`
-        7. `project-administration`
-        8. `resources`
-        9. `software`
-        10. `supervision`
-        11. `validation`
-        12. `visualization`
-        13. `writing-original-draft`
-        14. `writing-review-editing`
+        | `credit-id`              | `credit-name`              |
+        |--------------------------|----------------------------|
+        | `conceptualization`      | Conceptualization          |
+        | `data-curation`          | Data curation              |
+        | `formal-analysis`        | Formal analysis            |
+        | `funding-acquisition`    | Funding acquisition        |
+        | `investigation`          | Investigation              |
+        | `methodology`            | Methodology                |
+        | `project-administration` | Project administration     |
+        | `resources`              | Resources                  |
+        | `software`               | Software                   |
+        | `supervision`            | Supervision                |
+        | `validation`             | Validation                 |
+        | `visualization`          | Visualization              |
+        | `writing-original-draft` | Writing – original draft   |
+        | `writing-review-editing` | Writing – review & editing |
 
         It's not clear from the JATS documentation if the `name`
         key in the `credit` dictionary should always adopt the primary
