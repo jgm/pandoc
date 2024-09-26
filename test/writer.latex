@@ -1,9 +1,9 @@
 % Options for packages loaded elsewhere
 \PassOptionsToPackage{unicode}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
-%
 \documentclass[
 ]{article}
+\usepackage{xcolor}
 \usepackage{amsmath,amssymb}
 \usepackage{iftex}
 \ifPDFTeX
@@ -36,7 +36,6 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{fancyvrb}
-\usepackage{xcolor}
 \usepackage{graphicx}
 \makeatletter
 \newsavebox\pandoc@box

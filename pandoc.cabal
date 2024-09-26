@@ -67,6 +67,7 @@ data-files:
                  data/templates/default.openxml
                  data/templates/default.icml
                  data/templates/default.opml
+                 data/templates/default.beamer
                  data/templates/default.latex
                  data/templates/default.bibtex
                  data/templates/default.biblatex
@@ -103,6 +104,13 @@ data-files:
                  data/templates/default.typst
                  data/templates/definitions.typst
                  data/templates/template.typst
+                 data/templates/common.latex
+                 data/templates/hypersetup.latex
+                 data/templates/passoptions.latex
+                 data/templates/font-settings.latex
+                 data/templates/fonts.latex
+                 data/templates/after-header-includes.latex
+
                  -- translations
                  data/translations/*.yaml
                  -- entities
