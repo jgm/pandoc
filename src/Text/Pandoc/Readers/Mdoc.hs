@@ -333,8 +333,15 @@ smOff = B.rawInline "mdoc" "Sm off"
 smOn :: Inlines
 smOn = B.rawInline "mdoc" "Sm on"
 
-data SpacifyState = SpacifyState { accum :: [Inlines], prev :: Inlines, ns :: Bool, sm :: Bool}
-instance Default SpacifyState where def = SpacifyState [] mempty False True
+data SpacifyState = SpacifyState
+  { accum :: [Inlines],
+    prev :: Inlines,
+    ns :: Bool,
+    sm :: Bool
+  }
+
+instance Default SpacifyState where
+  def = SpacifyState [] mempty False True
 
 foldNoSpaces :: [Inlines] -> [Inlines]
 foldNoSpaces xs = (finalize . foldl go def) xs
