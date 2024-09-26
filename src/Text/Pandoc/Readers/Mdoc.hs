@@ -696,6 +696,9 @@ parseSmToggle = do
       Nothing -> not
       Just x -> const x
 
+skipUnknownMacro :: PandocMonad m => MdocParser m Blocks
+skipUnknownMacro = anyMacro *> manyTill anyToken eol $> mempty
+
 parseBlock :: PandocMonad m => MdocParser m Blocks
 parseBlock = choice [ -- parseList
                     -- , parseDefinitionList
@@ -708,6 +711,6 @@ parseBlock = choice [ -- parseList
                     , skipBlanks
                     -- , parseBlockQuote
                     -- , parseNewParagraph
-                    -- , skipUnknownMacro
+                    , skipUnknownMacro
                     ]
 
