@@ -1,0 +1,191 @@
+$passoptions.latex()$
+\documentclass[
+$if(fontsize)$
+  $fontsize$,
+$endif$
+  ignorenonframetext,
+$if(handout)$
+  handout,
+$endif$
+$if(aspectratio)$
+  aspectratio=$aspectratio$,
+$endif$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+$if(geometry)$
+\geometry{$for(geometry)$$geometry$$sep$,$endfor$}
+$endif$
+\newif\ifbibliography
+$if(background-image)$
+\usebackgroundtemplate{%
+  \includegraphics[width=\paperwidth]{$background-image$}%
+}
+% In beamer background-image does not work well when other images are used, so this is the workaround
+\pgfdeclareimage[width=\paperwidth,height=\paperheight]{background}{$background-image$}
+\usebackgroundtemplate{\pgfuseimage{background}}
+$endif$
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbols$if(navigation)$$navigation$$else$empty$endif$
+$for(beameroption)$
+\setbeameroption{$beameroption$}
+$endfor$
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+$if(section-titles)$
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+$endif$
+$if(beamerarticle)$
+\usepackage{beamerarticle} % needs to be loaded first
+$endif$
+$fonts.latex()$
+$-- Set Beamer theme before user font settings so they can override theme
+$if(theme)$
+\usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
+$endif$
+$if(colortheme)$
+\usecolortheme{$colortheme$}
+$endif$
+$if(fonttheme)$
+\usefonttheme{$fonttheme$}
+$endif$
+$if(mainfont)$
+\usefonttheme{serif} % use mainfont rather than sansfont for slide text
+$endif$
+$if(innertheme)$
+\useinnertheme{$innertheme$}
+$endif$
+$if(outertheme)$
+\useoutertheme{$outertheme$}
+$endif$
+$font-settings.latex()$
+$common.latex()$
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+$hypersetup.latex()$
+
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\subtitle{$subtitle$}
+$endif$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+$if(institute)$
+\institute{$for(institute)$$institute$$sep$ \and $endfor$}
+$endif$
+$if(titlegraphic)$
+\titlegraphic{\includegraphics$if(titlegraphicoptions)$[$for(titlegraphicoptions)$$titlegraphicoptions$$sep$, $endfor$]$endif${$titlegraphic$}}
+$endif$
+$if(logo)$
+\logo{\includegraphics{$logo$}}
+$endif$
+
+\begin{document}
+$if(title)$
+\frame{\titlepage}
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+\begin{frame}[allowframebreaks]
+$if(toc-title)$
+  \frametitle{$toc-title$}
+$endif$
+  \setcounter{tocdepth}{$toc-depth$}
+  \tableofcontents
+\end{frame}
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+}
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+$body$
+
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\begin{frame}[allowframebreaks]{$biblio-title$}
+  \bibliographytrue
+  \bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+\end{frame}
+
+$endif$
+$endif$
+$if(biblatex)$
+\begin{frame}[allowframebreaks]{$biblio-title$}
+  \bibliographytrue
+  \printbibliography[heading=none]
+\end{frame}
+
+$endif$
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}

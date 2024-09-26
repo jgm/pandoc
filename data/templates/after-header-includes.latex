@@ -1,0 +1,10 @@
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{$if(urlstyle)$$urlstyle$$else$same$endif$}
+$if(links-as-notes)$
+% Make links footnotes instead of hotlinks:
+\DeclareRobustCommand{\href}[2]{#2\footnote{\url{#1}}}
+$endif$
+$if(verbatim-in-note)$
+\VerbatimFootnotes % allow verbatim text in footnotes
+$endif$

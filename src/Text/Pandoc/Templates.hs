@@ -112,7 +112,6 @@ getDefaultTemplate format = do
        "html"    -> getDefaultTemplate "html5"
        "docbook" -> getDefaultTemplate "docbook5"
        "epub"    -> getDefaultTemplate "epub3"
-       "beamer"  -> getDefaultTemplate "latex"
        "jats"    -> getDefaultTemplate "jats_archiving"
        "markdown_strict"   -> getDefaultTemplate "markdown"
        "multimarkdown"     -> getDefaultTemplate "markdown"
