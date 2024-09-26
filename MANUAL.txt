@@ -1,5 +1,4 @@
----byte-or
-
+---
 title: Pandoc User's Guide
 author: John MacFarlane
 date: September 9, 2024
