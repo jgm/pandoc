@@ -177,7 +177,7 @@ tests = [
   , testGroup "spacing mode"
     [ "all text" =:
         T.unlines ["a", ".Sm off", "b c", "d", ".Sm on", "e"] =?>
-        para ("a " <> str "b c" <>  " d e")
+        para ("a b c d e")
     , "text around macro" =:
         T.unlines ["a", ".Sm off", ".Sy b c", ".Sm on", "d"] =?>
         para ("a" <> space <> strong "bc" <> space <> "d")

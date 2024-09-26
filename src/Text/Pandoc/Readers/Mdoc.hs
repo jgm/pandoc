@@ -228,13 +228,10 @@ parseSynopsisSection = do
   guard $ sec == ShSynopsis
   return mempty
 
--- parseStr doesn't use B.text because roff(7) specifies that
--- whitespace in text lines is treated literally.
--- XXX is this what we actually want?
 parseStr :: PandocMonad m => MdocParser m Inlines
 parseStr = do
   (Str txt _) <- str
-  return $ B.str txt
+  return $ B.text txt
 
 -- Multiple consecutive strs within a block always need to get spaces between
 -- them and then packed up together, because text lines are never affected by
