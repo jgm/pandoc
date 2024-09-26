@@ -526,6 +526,12 @@ parseAq = lineEnclosure "Aq" $ \x -> "⟨" <> x <> "⟩"
 parseAo :: PandocMonad m => MdocParser m Inlines
 parseAo = multilineEnclosure "Ao" "Ac" $ \x -> "⟨" <> x <> "⟩"
 
+parseDl :: PandocMonad m => MdocParser m Blocks
+parseDl = do
+  inner <- lineEnclosure "Dl" id
+  eol
+  return $ B.codeBlock (stringify inner)
+
 parseNm :: PandocMonad m => MdocParser m Inlines
 parseNm = do
   macro "Nm"
@@ -648,20 +654,45 @@ parseInlineMacro =
       parseOo,
       parseAp,
       parseNs
-    ]
+    ] <?> "inline macro"
 
 parseInline :: PandocMonad m => MdocParser m Inlines
-parseInline = parseStrs <|> (controlLine >>= spacify)
+parseInline = parseStrs <|> (controlLine >>= spacify) <?> "text lines or inline macros"
   where
     controlLine = many1 ((parseInlineMacro <|> litsAndDelimsToInlines) <* optional eol)
 
 parseInlines :: PandocMonad m => MdocParser m Inlines
 parseInlines = many1 (parseSmToggle <|> parseInline) >>= spacify
 
+-- Lp is a deprecated synonym for Pp
 parsePara :: PandocMonad m => MdocParser m Blocks
-parsePara = do
-  optional (emptyMacro "Pp" <|> emptyMacro "Lp")  -- Lp: deprecated synonym for Pp
-  B.para . B.trimInlines <$> parseInlines
+parsePara = B.para . B.trimInlines <$> parseInlines <*
+    optional (emptyMacro "Pp" <|> emptyMacro "Lp")
+
+-- Indented display blocks are visually similar to block quotes
+-- but rarely carry those semantics. I'm just putting things in
+-- divs. Centered is discouraged and rarely seen.
+parseDisplay :: PandocMonad m => MdocParser m Blocks
+parseDisplay = do
+  literal "-filled" <|> literal "-ragged" <|> literal "-centered"
+  optional (literal "-offset" *> lit)
+  optional (literal "-compact")
+  eol
+  B.divWith (cls "display") . mconcat <$> many parseRegularBlock
+
+-- This is something of a best-effort interpretation of the -unfilled
+-- display block type. The main difference with mandoc is probably
+-- that newlines inside of multiline enclosures won't be preserved.
+parseUnfilled :: PandocMonad m => MdocParser m Blocks
+parseUnfilled = do
+  literal "-unfilled"
+  optional (literal "-offset" *> lit)
+  optional (literal "-compact")
+  eol
+  lns <- many (parseStr <|> (blank $> mempty) <|> (controlLine >>= spacify))
+  return $ B.lineBlock lns
+  where
+    controlLine = many1 ((parseInlineMacro <|> litsAndDelimsToInlines)) <* optional eol
 
 -- CodeBlocks can't contain any other markup, but mdoc
 -- still interprets control lines within .Bd -literal
@@ -669,14 +700,19 @@ parsePara = do
 -- we get any control lines inside a Bd literal
 parseCodeBlock :: PandocMonad m => MdocParser m Blocks
 parseCodeBlock = do
-  macro "Bd" -- TODO will need to hoist
   literal "-literal"
   optional (literal "-offset" *> lit)
   optional (literal "-compact")
   eol
   l <- T.unlines . map toString <$> many (str <|> blank)
-  emptyMacro "Ed"
   return $ B.codeBlock l
+
+parseBd :: PandocMonad m => MdocParser m Blocks
+parseBd = do
+  macro "Bd"
+  blk <- parseCodeBlock <|> parseDisplay <|> parseUnfilled
+  emptyMacro "Ed"
+  return blk
 
 
 skipBlanks :: PandocMonad m => MdocParser m Blocks
@@ -699,18 +735,23 @@ parseSmToggle = do
 skipUnknownMacro :: PandocMonad m => MdocParser m Blocks
 skipUnknownMacro = anyMacro *> manyTill anyToken eol $> mempty
 
+parseRegularBlock :: PandocMonad m => MdocParser m Blocks
+parseRegularBlock =
+  choice
+    [ parseDl
+    , parsePara
+    , emptyMacro "Pp" *> mempty
+    , parseBd
+    , skipBlanks
+    , skipUnknownMacro
+    ]
+
 parseBlock :: PandocMonad m => MdocParser m Blocks
 parseBlock = choice [ -- parseList
                     -- , parseDefinitionList
                     parseHeader
                     , parseNameSection
                     , parseSynopsisSection
-                    , parsePara
-                    -- , parseTable
-                    , parseCodeBlock
-                    , skipBlanks
-                    -- , parseBlockQuote
-                    -- , parseNewParagraph
-                    , skipUnknownMacro
+                    , parseRegularBlock
                     ]
 
