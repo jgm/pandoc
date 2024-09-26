@@ -528,17 +528,17 @@ parseAo = multilineEnclosure "Ao" "Ac" $ \x -> "⟨" <> x <> "⟩"
 
 parseNm :: PandocMonad m => MdocParser m Inlines
 parseNm = do
+  macro "Nm"
   mnm <- (progName <$> getState)
-  case mnm of
-    Nothing -> do
-      (_, nm, _) <- lookAhead $ delimitedArgs $ option mempty litsToInlines
-      guard $ not (null nm)
-      simpleInline "Nm" ok
-    Just nm -> simpleInline "Nm" $ \x ->
-      if null x
-         then B.codeWith (cls "Nm") nm
-         else ok x
-  where ok = B.codeWith (cls "Nm") . stringify
+  (op, rg, cl) <- delimitedArgs $ option mempty litsToInlines
+  return $ case (mnm, rg) of
+    (Just nm, x) | null x ->
+      op <> ok nm <> cl
+    (_, x) ->
+      op <> (ok . stringify) x <> cl
+  where
+    ok = B.codeWith (cls "Nm")
+
 
 parseXr :: PandocMonad m => MdocParser m Inlines
 parseXr = do
