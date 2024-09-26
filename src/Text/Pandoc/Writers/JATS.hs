@@ -99,6 +99,7 @@ addCreditName val =
                case M.lookup creditId creditNames of
                  Nothing -> val
                  Just creditName -> MapVal $ resetField "credit-name" creditName ctx
+    _ -> val
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
