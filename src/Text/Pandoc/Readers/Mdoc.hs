@@ -226,6 +226,8 @@ parseSynopsisSection :: PandocMonad m => MdocParser m Blocks
 parseSynopsisSection = do
   sec <- currentSection <$> getState
   guard $ sec == ShSynopsis
+  -- TODO actually implement this
+  manyTill (anyToken) (lookAhead (macro "Sh"))
   return mempty
 
 parseStr :: PandocMonad m => MdocParser m Inlines
