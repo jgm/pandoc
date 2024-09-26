@@ -86,31 +86,19 @@ addCreditNames context =
     --    in the context object with x (the thing from step 1)
     Just roles -> resetField "roles" (map addCreditName roles) context
 
-addCreditName :: M.Map Text Text -> M.Map Text Text
-addCreditName role =
-  -- Try looking if there's a "credit-name" key in the role dictionary
-  case M.lookup "credit-name" role of
-    -- If there's already an explicitly specified "credit-name"
-    -- key in the role dictionary, then we don't have to do anything
-    Just _ -> role
-    Nothing ->
-      case M.lookup "credit-id" role of
-        -- If there isn't already a "credit-id" key in the role
-        -- dictionary, then we aren't able to do anything
-        Nothing -> role
-        Just creditIdentifier ->
-          -- Try looking up the value from the "credit-id" key, which
-          -- we stored in the `creditIdentifier` variable, is in the
-          -- creditNames dictionary, which is defined as a constant above
-          case M.lookup creditIdentifier creditNames of
-            -- If the credit-id value from the role dictionary is not
-            -- in the creditNames lookup dictionary, then we can't do anything
-            Nothing -> role
-            -- If the credit-id value from the role dictionary is in
-            -- the creditNames lookup dictionary, insert it back into the
-            -- role dictionary under the "credit-name" key and return
-            Just creditName -> M.insert "credit-name" creditName role
-
+addCreditName :: Val Text -> Val Text
+addCreditName val =
+  case val of
+    MapVal ctx ->
+      case getField "credit-name" ctx of
+        Just (_ :: Val Text) -> val
+        Nothing ->
+           case getField "credit-id" ctx of
+             Nothing -> val
+             Just creditId ->
+               case M.lookup creditId creditNames of
+                 Nothing -> val
+                 Just creditName -> MapVal $ resetField "credit-name" creditName ctx
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
