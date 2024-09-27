@@ -743,7 +743,6 @@ parseRegularBlock =
     , emptyMacro "Pp" *> mempty
     , parseBd
     , skipBlanks
-    , skipUnknownMacro
     ]
 
 parseBlock :: PandocMonad m => MdocParser m Blocks
@@ -753,5 +752,6 @@ parseBlock = choice [ -- parseList
                     , parseNameSection
                     , parseSynopsisSection
                     , parseRegularBlock
+                    , skipUnknownMacro
                     ]
 
