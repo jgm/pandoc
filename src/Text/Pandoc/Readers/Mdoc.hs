@@ -406,6 +406,9 @@ parseNo = simpleInline "No" (eliminateEmpty id)
 parseEv :: PandocMonad m => MdocParser m Inlines
 parseEv = codeLikeInline "Ev"
 
+parseDv :: PandocMonad m => MdocParser m Inlines
+parseDv = codeLikeInline "Dv"
+
 parseAd :: PandocMonad m => MdocParser m Inlines
 parseAd = spanLikeInline "Ad"
 
@@ -621,6 +624,7 @@ parseInlineMacro =
       parseEm,
       parseLk,
       parseEv,
+      parseDv,
       parseMt,
       parsePa,
       parseFl,
