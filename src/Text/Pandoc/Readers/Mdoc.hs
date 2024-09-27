@@ -718,6 +718,45 @@ parseBd = do
   emptyMacro "Ed"
   return blk
 
+parseItemList :: PandocMonad m => MdocParser m Blocks
+parseItemList = do
+  f <- (choice (map literal ["-bullet", "-dash", "-hyphen", "-item"]) $> B.bulletList)
+       <|> literal "-enum" $> B.orderedList
+  optional (literal "-width" *> lit)
+  optional (literal "-offset" *> lit)
+  optional (literal "-compact")
+  eol
+  items <- many bulletItem
+  return $ f items
+  where
+    bulletItem = do
+      emptyMacro "It"
+      mconcat <$> many parseRegularBlock
+
+parseDefinitionList :: PandocMonad m => MdocParser m Blocks
+parseDefinitionList = do
+  choice $ map literal ["-hang", "-inset", "-ohang", "-tag"]
+  optional (literal "-width" *> lit)
+  optional (literal "-offset" *> lit)
+  optional (literal "-compact")
+  eol
+  items <- many dlItem
+  return $ B.definitionList items
+  where
+    dlItem = do
+      macro "It"
+      dt <- listHead >>= spacify
+      dd <- mconcat <$> many parseRegularBlock
+      return (dt, [dd])
+    -- TODO support Xo/Xc
+    listHead = many1 ((parseInlineMacro <|> litsAndDelimsToInlines)) <* optional eol
+
+parseBl :: PandocMonad m => MdocParser m Blocks
+parseBl = do
+  macro "Bl"
+  blk <- parseItemList <|> parseDefinitionList
+  emptyMacro "El"
+  return blk
 
 skipBlanks :: PandocMonad m => MdocParser m Blocks
 skipBlanks = many1 blank *> mempty
@@ -746,6 +785,7 @@ parseRegularBlock =
     , parsePara
     , emptyMacro "Pp" *> mempty
     , parseBd
+    , parseBl
     , skipBlanks
     ]
 
