@@ -351,7 +351,7 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
         | otherwise = renderGrid
   tbl <- rendered
   return $ blankline $$
-           (if null caption
+           (if null caption || isList
                then tbl
                else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl) $$
            blankline
@@ -547,18 +547,18 @@ tableToRSTList caption _ propWidths headers rows = do
         toColumns :: Int -> Double -> Int
         toColumns t p = round (p * fromIntegral t)
         listTableContent :: PandocMonad m => [[[Block]]] -> RST m (Doc Text)
-        listTableContent = joinTable joinDocsM joinDocsM .
+        listTableContent = joinTable (joinDocsM '-') (joinDocsM '*') .
                            mapTable blockListToRST
         -- joinDocsM adapts joinDocs in order to work in the `RST m` monad
-        joinDocsM :: PandocMonad m => [RST m (Doc Text)] -> RST m (Doc Text)
-        joinDocsM = fmap joinDocs . sequence
+        joinDocsM :: PandocMonad m
+                  => Char -> [RST m (Doc Text)] -> RST m (Doc Text)
+        joinDocsM c = fmap (joinDocs c) . sequence
         -- joinDocs will be used to join cells and to join rows
-        joinDocs :: [Doc Text] -> Doc Text
-        joinDocs items = blankline $$
-                         (chomp . vcat . map formatItem) items $$
-                         blankline
-        formatItem :: Doc Text -> Doc Text
-        formatItem i = hang 3 "- " (i <> cr)
+        joinDocs :: Char -> [Doc Text] -> Doc Text
+        joinDocs c items = (chomp . vcat . map (formatItem c)) items $$
+                           blankline
+        formatItem :: Char -> Doc Text -> Doc Text
+        formatItem c i = hang 2 (text [c, ' ']) (i <> cr)
         -- apply a function to all table cells changing their type
         mapTable :: (a -> b) -> [[a]] -> [[b]]
         mapTable = map . map
