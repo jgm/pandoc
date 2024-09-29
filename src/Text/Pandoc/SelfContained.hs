@@ -24,7 +24,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 import Data.Char (isAlphaNum, isAscii)
-import Data.Digest.Pure.SHA (sha1, showDigest)
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import Network.URI (escapeURIString)
 import System.FilePath (takeDirectory, takeExtension, (</>))
 import Text.HTML.TagSoup
@@ -216,8 +216,7 @@ convertTags (t@(TagOpen tagname as):ts)
                   Fetched ("image/svg+xml", bs) | inlineSvgs -> do
                     -- we filter CR in the hash to ensure that Windows
                     -- and non-Windows tests agree:
-                    let hash = T.pack $ take 20 $ showDigest $
-                                        sha1 $ L.fromStrict
+                    let hash = T.pack $ take 20 $ show $ hashWith SHA1
                                              $ B.filter (/='\r') bs
                     return $ Left (hash, getSvgTags (toText bs))
                   Fetched (mt,bs) -> return $ Right (x, makeDataURI (mt,bs))

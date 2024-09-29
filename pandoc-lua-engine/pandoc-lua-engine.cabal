@@ -105,9 +105,9 @@ library
                      , Text.Pandoc.Lua.Writer.Classic
                      , Text.Pandoc.Lua.Writer.Scaffolding
 
-  build-depends:       SHA                   >= 1.6     && < 1.7
-                     , aeson
+  build-depends:       aeson
                      , bytestring            >= 0.9     && < 0.13
+                     , crypton               >= 0.30    && < 1.1
                      , citeproc              >= 0.8     && < 0.9
                      , containers            >= 0.6.0.1 && < 0.8
                      , data-default          >= 0.4     && < 0.8

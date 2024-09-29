@@ -23,20 +23,19 @@ module Text.Pandoc.MediaBag (
                      mediaDirectory,
                      mediaItems
                      ) where
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import qualified Data.ByteString.Lazy as BL
 import Data.Data (Data)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Typeable (Typeable)
-import Network.URI (unEscapeString)
 import System.FilePath
 import qualified System.FilePath.Posix as Posix
 import qualified System.FilePath.Windows as Windows
 import Text.Pandoc.MIME (MimeType, getMimeTypeDef, extensionFromMimeType)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Digest.Pure.SHA (sha1, showDigest)
-import Network.URI (URI (..), parseURI, isURI)
+import Network.URI (URI (..), isURI, parseURI, unEscapeString)
 import Data.List (isInfixOf)
 
 data MediaItem =
@@ -92,7 +91,7 @@ insertMedia fp mbMime contents (MediaBag mediamap) =
                        && not (".." `isInfixOf` fp'')
                        && '%' `notElem` fp''
                      then fp''
-                     else showDigest (sha1 contents) <> ext
+                     else show (hashWith SHA1 $ BL.toStrict contents) <> ext
         fallback = case takeExtension fp'' of
                         ".gz" -> getMimeTypeDef $ dropExtension fp''
                         _     -> getMimeTypeDef fp''

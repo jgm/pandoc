@@ -20,6 +20,7 @@ import qualified Codec.Picture as JP
 import qualified Control.Exception as E
 import Control.Monad.Trans (MonadIO (..))
 import Control.Monad (foldM_)
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BL
@@ -52,7 +53,6 @@ import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (walkM)
 import Text.Pandoc.Writers.Shared (getField, metaToContext)
 import Control.Monad.Catch (MonadMask)
-import Data.Digest.Pure.SHA (sha1, showDigest)
 #ifdef _WINDOWS
 import Data.List (intercalate)
 #endif
@@ -236,7 +236,7 @@ convertImage opts tmpdir fname = do
                  E.catch (Right pngOut <$ JP.savePngImage pngOut img) $
                      \(e :: E.SomeException) -> return (Left (tshow e))
   where
-    sha = showDigest (sha1 (UTF8.fromStringLazy fname))
+    sha = show (hashWith SHA1 (UTF8.fromString fname))
     pngOut = normalise $ tmpdir </> sha <.> "png"
     pdfOut = normalise $ tmpdir </> sha <.> "pdf"
     svgIn = normalise fname
@@ -434,8 +434,8 @@ runTeXProgram program args tmpDir outDir = do
        tocFileExists <- fileExists tocFile
        if tocFileExists
           then do
-            tocContents <- BL.fromStrict <$> readFileStrict tocFile
-            pure $ Just $! sha1 tocContents
+            tocContents <- readFileStrict tocFile
+            pure $ Just $! hashWith SHA1 tocContents
           else pure Nothing
      -- compare hash of toc to former hash to see if it changed (#9295)
      let rerunWarnings' = rerunWarnings ++

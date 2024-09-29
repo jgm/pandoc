@@ -19,6 +19,7 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Sequence as Seq
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import Data.List (find, foldl')
 import Data.Word (Word8, Word16)
 import Data.Default
@@ -35,7 +36,6 @@ import Text.Pandoc.Logging (LogMessage(UnsupportedCodePage))
 import Text.Pandoc.Shared (tshow)
 import Data.Char (isAlphaNum, chr, isAscii, isLetter, isSpace, ord)
 import qualified Data.ByteString.Lazy as BL
-import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Safe (lastMay, initSafe, headDef)
 -- import Debug.Trace
@@ -920,7 +920,7 @@ handlePict toks = do
           Nothing -> (Nothing, "")
   case mimetype of
     Just mt -> do
-      let pictname = showDigest (sha1 bytes) <> ext
+      let pictname = show (hashWith SHA1 $ BL.toStrict bytes) <> ext
       insertMedia pictname (Just mt) bytes
       modifyGroup $ \g -> g{ gImage = Just pict{ picName = T.pack pictname,
                                                  picBytes = bytes } }

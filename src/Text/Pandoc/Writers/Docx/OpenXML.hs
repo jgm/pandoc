@@ -23,6 +23,7 @@ module Text.Pandoc.Writers.Docx.OpenXML ( writeOpenXML, maxListLevel ) where
 import Control.Monad (when, unless)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (isLetter, isSpace)
 import Text.Pandoc.Char (isCJK)
@@ -35,8 +36,6 @@ import Control.Monad.Reader ( asks, MonadReader(local) )
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
-import qualified Data.Text.Lazy as TL
-import Data.Digest.Pure.SHA (sha1, showDigest)
 import Skylighting
 import Text.DocLayout (hcat, vcat, literal, render)
 import Text.Pandoc.Class (PandocMonad, report, getMediaBag)
@@ -45,7 +44,7 @@ import Text.Pandoc.MediaBag (lookupMedia, MediaItem(..))
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Class.PandocMonad as P
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.UTF8 (fromTextLazy)
+import Text.Pandoc.UTF8 (fromText)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (highlight)
 import Text.Pandoc.Templates (compileDefaultTemplate, renderTemplate)
@@ -1082,7 +1081,7 @@ toBookmarkName s
   | Just (c, _) <- T.uncons s
   , isLetter c
   , T.length s <= 40 = s
-  | otherwise = T.pack $ 'X' : drop 1 (showDigest (sha1 (fromTextLazy $ TL.fromStrict s)))
+  | otherwise = T.pack $ 'X' : drop 1 (show (hashWith SHA1 (fromText s)))
 
 maxListLevel :: Int
 maxListLevel = 8

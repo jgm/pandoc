@@ -19,6 +19,7 @@ module Text.Pandoc.Lua.Module.Utils
 
 import Control.Applicative ((<|>))
 import Control.Monad ((<$!>))
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import Data.Data (showConstr, toConstr)
 import Data.Default (def)
 import Data.Maybe (fromMaybe)
@@ -34,8 +35,6 @@ import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Reference
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
 
-import qualified Data.Digest.Pure.SHA as SHA
-import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -301,8 +300,8 @@ run_json_filter = defun "run_json_filter"
 -- | Documented Lua function to compute the hash of a string.
 sha1 :: DocumentedFunction e
 sha1 = defun "sha1"
-  ### liftPure (SHA.showDigest . SHA.sha1)
-  <#> parameter (fmap BSL.fromStrict . peekByteString) "string" "input" ""
+  ### liftPure (show . hashWith SHA1)
+  <#> parameter peekByteString "string" "input" ""
   =#> functionResult pushString "string" "hexadecimal hash value"
   #? "Computes the SHA1 hash of the given string input."
 
