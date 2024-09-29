@@ -1,0 +1,96 @@
+\documentclass[
+$if(fontsize)$
+  fontsize=$fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+  ]{scrlttr2}
+\usepackage{graphicx}
+\usepackage[absolute]{textpos}
+$fonts.latex()$
+$font-settings.latex()$
+$common.latex()$
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+$hypersetup.latex()$
+
+\date{\today}
+
+\renewcommand*{\raggedsignature}{\raggedright}
+
+\setkomavar{fromname}{$fromname$}
+\setkomavar{fromaddress}{$fromaddress$}
+\setkomavar{fromphone}{$fromphone$}
+\setkomavar{fromemail}{$fromemail$}
+\setkomavar{signature}{%
+$if(sigfile)$
+  \includegraphics[width=$if(sigwidth)$$sigwidth$$else$5cm$endif$]{$sigfile$}\\
+$endif$
+$if(signame)$
+  $signame$
+$else$
+  $fromname$
+$endif$
+}
+\setkomavar{backaddress}{$backaddress$}
+\setkomavar{location}{\raggedright
+  $location$
+}
+
+\KOMAoptions{
+  foldmarks=off,
+  fromrule=true,
+  fromalign=center,
+  firsthead=true,
+  firstfoot=false,
+  parskip=half,
+  addrfield=$if(toaddress)$true$else$false$endif$,
+  DIV=12
+}
+
+$if(firstheadvpos)$
+\setplength{firstheadvpos}{$firstheadvpos$}
+$endif$
+%-- \maxdimen = letterhead is centered
+\setplength{firstheadhpos}{$if(firstheadhpos)$$firstheadhpos$$else$\maxdimen$endif$}
+$if(letterheadwidth)$
+\setplength{firstheadwidth}{$letterheadwidth$}
+$endif$
+$if(toaddress)$
+$else$
+$-- avoid extra vertical space where toaddress would go
+\setplength{refvpos}{2in}
+$endif$
+$if(letterhead)$
+\firsthead{$letterhead$}
+$endif$
+
+\begin{document}\raggedright
+
+%\areaset{$if(textwidth)$$textwidth$$else$6in$endif$}{$if(textheight)$$textheight$$else$8.5in$endif$}
+
+\begin{letter}{$toaddress$}
+
+\opening{$opening$}
+
+$body$
+
+\closing{$closing$}
+$if(ps)$
+\ps $ps$
+$endif$
+$if(enclosures)$
+encl{$for(enclosures)$$enclosures$$sep$\\
+$endfor$}
+$endif$
+$if(cc)$
+\cc{$for(cc)$$cc$$sep$\\
+$endfor$}
+$endif$
+
+\end{letter}
+
+\end{document}
