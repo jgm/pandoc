@@ -254,12 +254,17 @@ blockToRST (Div (ident,classes,_kvs) bs) = do
                           -> ".. " <> literal cl <> "::"
                         cls -> ".. container::" <> space <>
                                    literal (T.unwords (filter (/= "container") cls))
+  -- if contents start with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case bs of
+                    BlockQuote{}:_-> ".." $+$ contents
+                    _ -> contents
   return $ blankline $$
            admonition $$
            (if T.null ident
                then blankline
                else "   :name: " <> literal ident $$ blankline) $$
-           nest 3 contents $$
+           nest 3 contents' $$
            blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
 blockToRST (Para inlines)
@@ -421,7 +426,12 @@ blockToRST (Figure (ident, classes, _kvs)
 bulletListItemToRST :: PandocMonad m => [Block] -> RST m (Doc Text)
 bulletListItemToRST items = do
   contents <- blockListToRST items
-  return $ hang 3 "-  " contents $$
+  -- if a list item starts with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case items of
+                    BlockQuote{}:_-> ".." $+$ contents
+                    _ -> contents
+  return $ hang 3 "-  " contents' $$
       if null items || (endsWithPlain items && not (endsWithList items))
          then cr
          else blankline
@@ -434,7 +444,12 @@ orderedListItemToRST :: PandocMonad m
 orderedListItemToRST marker items = do
   contents <- blockListToRST items
   let marker' = marker <> " "
-  return $ hang (T.length marker') (literal marker') contents $$
+  -- if a list item starts with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case items of
+                    BlockQuote{}:_-> ".." $+$ contents
+                    _ -> contents
+  return $ hang (T.length marker') (literal marker') contents' $$
       if null items || (endsWithPlain items && not (endsWithList items))
          then cr
          else blankline
@@ -450,7 +465,12 @@ definitionListItemToRST :: PandocMonad m => ([Inline], [[Block]]) -> RST m (Doc 
 definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
-  return $ nowrap label' $$ nest 3 (nestle contents) $$
+  -- if definition list starts with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case defs of
+                    (BlockQuote{}:_):_ -> ".." $+$ contents
+                    _ -> contents
+  return $ nowrap label' $$ nest 3 (nestle contents') $$
       if isTightList defs
          then cr
          else blankline
