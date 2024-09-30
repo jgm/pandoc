@@ -12,10 +12,10 @@ Definition
 \begin{description}
 \tightlist
 \item[Definition]
+\hfill
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
-\item[]
 \item
   list
 \item
@@ -56,9 +56,9 @@ Definition
 \begin{description}
 \tightlist
 \item[Definition]
+\hfill
 \begin{itemize}
 \tightlist
-\item[]
 \item
   list
 \item

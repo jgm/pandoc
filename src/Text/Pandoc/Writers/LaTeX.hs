@@ -526,10 +526,11 @@ blockToLaTeX (BulletList lst) = do
   let spacing = if isTightList lst
                    then text "\\tightlist"
                    else empty
-  return $ text ("\\begin{itemize}" <> inc) $$
+  return $ -- force list to start on new line if in a defn list
+             (if isFirstInDefinition then "\\hfill" else mempty) $$
+             text ("\\begin{itemize}" <> inc) $$
              spacing $$
              -- force list at beginning of definition to start on new line
-             (if isFirstInDefinition then "\\item[]" else mempty) $$
              vcat items $$
              "\\end{itemize}"
 blockToLaTeX (OrderedList _ []) = return empty -- otherwise latex error
@@ -577,12 +578,12 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   let spacing = if isTightList lst
                    then text "\\tightlist"
                    else empty
-  return $ text ("\\begin{enumerate}" <> inc)
+  return $ -- force list at beginning of definition to start on new line
+           (if isFirstInDefinition then "\\hfill" else mempty)
+         $$ text ("\\begin{enumerate}" <> inc)
          $$ stylecommand
          $$ resetcounter
          $$ spacing
-         -- force list at beginning of definition to start on new line
-         $$ (if isFirstInDefinition then "\\item[]" else mempty)
          $$ vcat items
          $$ "\\end{enumerate}"
 blockToLaTeX (DefinitionList []) = return empty
