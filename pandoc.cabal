@@ -107,7 +107,6 @@ data-files:
                  data/templates/common.latex
                  data/templates/hypersetup.latex
                  data/templates/passoptions.latex
-                 data/templates/font-settings.latex
                  data/templates/fonts.latex
                  data/templates/after-header-includes.latex
 

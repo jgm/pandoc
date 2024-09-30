@@ -15,7 +15,6 @@ $if(geometry)$
 \usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 $fonts.latex()$
-$font-settings.latex()$
 $common.latex()$
 $for(header-includes)$
 $header-includes$
