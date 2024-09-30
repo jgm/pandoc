@@ -1,3 +1,6 @@
+$if(linestretch)$
+\usepackage{setspace}
+$endif$
 $--
 $-- paragraph formatting
 $--

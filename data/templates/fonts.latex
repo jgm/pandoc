@@ -1,7 +1,3 @@
-\usepackage{amsmath,amssymb}
-$if(linestretch)$
-\usepackage{setspace}
-$endif$
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[$if(fontenc)$$fontenc$$else$T1$endif$]{fontenc}
