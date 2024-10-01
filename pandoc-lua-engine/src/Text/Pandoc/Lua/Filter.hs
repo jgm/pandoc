@@ -43,7 +43,10 @@ runFilterFile' envIdx filterPath doc = do
       -- filter if nothing was returned.
       luaFilters <- forcePeek $
         if newtop - oldtop >= 1
-        then peekList peekFilter top      -- get from explicit filter table
+        then liftLua (rawlen top) >>= \case
+          -- explicitly returned filter, either a single one or a list
+          0 -> (:[]) <$!> peekFilter top  -- single filter
+          _ -> peekList peekFilter top    -- list of explicit filters
         else (:[]) <$!> peekFilter envIdx -- get the implicit filter in _ENV
       settop oldtop
       runAll luaFilters doc

@@ -40,11 +40,9 @@ to small caps:
 
 ``` lua
 return {
-  {
-    Strong = function (elem)
-      return pandoc.SmallCaps(elem.content)
-    end,
-  }
+  Strong = function (elem)
+    return pandoc.SmallCaps(elem.content)
+  end,
 }
 ```
 
@@ -187,7 +185,7 @@ local filter = {
   traverse = 'topdown',
   -- ... filter functions ...
 }
-return {filter}
+return filter
 ```
 
 Support for this was added in pandoc 2.17; previous versions
