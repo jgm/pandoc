@@ -227,14 +227,6 @@ $--
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 $--
-$-- section numbering
-$--
-$if(numbersections)$
-\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
-$else$
-\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-$endif$
-$--
 $-- subfigure support
 $--
 $if(subfigure)$
