@@ -12,7 +12,7 @@ Thank you for suggesting a feature! Before you continue, please make sure that y
 
 - read the contributing guidelines: https://pandoc.org/CONTRIBUTING.html
 - searched the issue tracker for similar issues (including closed issues): https://github.com/jgm/pandoc/issues
-- searched the pandoc-discuss mailing list for relevant discussions: https://groups.google.com/forum/#!forum/pandoc-discuss
+- searched the discussion list for relevant discussions: https://github.com/jgm/pandoc/discussions
 -->
 
 **Describe your proposed improvement and the problem it solves.**

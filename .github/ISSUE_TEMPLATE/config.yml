@@ -2,7 +2,6 @@ blank_issues_enabled: false
 contact_links:
   - name: Ask a question
     url: https://github.com/jgm/pandoc/discussions
-    # https://groups.google.com/forum/#!forum/pandoc-discuss
     about: "Discussion forum for pandoc"
   - name: Contributing Guidelines
     url: https://pandoc.org/CONTRIBUTING.html
