@@ -2907,6 +2907,10 @@ These variables change the appearance of PDF slides using [`beamer`].
 `titlegraphicoptions`
 :   options for title slide image
 
+`shorttitle`, `shortsubtitle`, `shortauthor`, `shortinstitute`, `shortdate`
+:   some beamer themes use short versions of the title, subtitle, author,
+    institute, date
+
 ### Variables for PowerPoint
 
 These variables control the visual aspects of a slide show that
