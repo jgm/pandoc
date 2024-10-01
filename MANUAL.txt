@@ -2902,7 +2902,7 @@ These variables change the appearance of PDF slides using [`beamer`].
 :   options for LaTeX beamer themes (lists)
 
 `titlegraphic`
-:   image for title slide
+:   image for title slide: can be a list
 
 `titlegraphicoptions`
 :   options for title slide image
