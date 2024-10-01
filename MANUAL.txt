@@ -3010,7 +3010,10 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
     or `numbersections` variable)
 
 `beamerarticle`
-:   produce an article from Beamer slides
+:   produce an article from Beamer slides.  Note: if you set
+    this variable, you must specify the beamer writer but use the
+    default *LaTeX* template: for example,
+    `pandoc -Vbeamerarticle -t beamer --template default.latex`.
 
 `handout`
 :   produce a handout version of Beamer slides (with overlays condensed
