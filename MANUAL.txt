@@ -2898,8 +2898,8 @@ These variables change the appearance of PDF slides using [`beamer`].
 `theme`, `colortheme`, `fonttheme`, `innertheme`, `outertheme`
 :   beamer themes
 
-`themeoptions`
-:   options for LaTeX beamer themes (a list).
+`themeoptions`, `colorthemeoptions`, `fontthemeoptions`, `innerthemeoptions`, `outerthemeoptions`
+:   options for LaTeX beamer themes (lists)
 
 `titlegraphic`
 :   image for title slide
