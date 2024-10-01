@@ -335,8 +335,7 @@ downloadOrRead :: PandocMonad m
                -> m (B.ByteString, Maybe MimeType)
 downloadOrRead s = do
   sourceURL <- getsCommonState stSourceURL
-  case (sourceURL >>= parseURIReference' .
-                       ensureEscaped, ensureEscaped s) of
+  case (sourceURL >>= parseURIReference' . ensureEscaped, ensureEscaped s) of
     (Just u, s') -> -- try fetching from relative path at source
        case parseURIReference' s' of
             Just u' -> openURL $ T.pack $ show $ u' `nonStrictRelativeTo` u
@@ -348,8 +347,10 @@ downloadOrRead s = do
             Nothing -> openURL s' -- will throw error
     (Nothing, s') ->
        case parseURI (T.unpack s') of  -- requires absolute URI
-            Just u' | uriScheme u' == "file:" ->
-                 readLocalFile $ uriPathToPath (T.pack $ uriPath u')
+            Just URI{ uriScheme = "file:", uriPath = upath}
+              -> readLocalFile $ uriPathToPath (T.pack upath)
+            Just URI{ uriScheme = "data:", uriPath = upath}
+              -> pure $ extractURIData upath
             -- We don't want to treat C:/ as a scheme:
             Just u' | length (uriScheme u') > 2 -> openURL (T.pack $ show u')
             _ -> readLocalFile fp -- get from local file system
