@@ -4688,6 +4688,28 @@ Parameters:
 `value`
 :   value to insert into the list
 
+### `pandoc.List:iter ([step])` {#pandoc.list:iter}
+
+Create an iterator over the list. The resulting function returns the
+next value each time it is called.
+
+Usage:
+
+    for item in List{1, 1, 2, 3, 5, 8}:iter() do
+      -- process item
+    end
+
+Parameters:
+
+`step`
+:   step width with which to step through the list. Negative step sizes
+    will cause the iterator to start from the end of the list. Defaults
+    to 1. (integer)
+
+Returns:
+
+-   iterator (function)
+
 ### `pandoc.List:map (fn)` {#pandoc.list:map}
 
 Returns a copy of the current list by applying the given
