@@ -567,24 +567,8 @@ tableToRSTList caption _ propWidths headers rows = do
         toColumns :: Int -> Double -> Int
         toColumns t p = round (p * fromIntegral t)
         listTableContent :: PandocMonad m => [[[Block]]] -> RST m (Doc Text)
-        listTableContent = joinTable (joinDocsM '-') (joinDocsM '*') .
-                           mapTable blockListToRST
-        -- joinDocsM adapts joinDocs in order to work in the `RST m` monad
-        joinDocsM :: PandocMonad m
-                  => Char -> [RST m (Doc Text)] -> RST m (Doc Text)
-        joinDocsM c = fmap (joinDocs c) . sequence
-        -- joinDocs will be used to join cells and to join rows
-        joinDocs :: Char -> [Doc Text] -> Doc Text
-        joinDocs c items = (chomp . vcat . map (formatItem c)) items $$
-                           blankline
-        formatItem :: Char -> Doc Text -> Doc Text
-        formatItem c i = hang 2 (text [c, ' ']) (i <> cr)
-        -- apply a function to all table cells changing their type
-        mapTable :: (a -> b) -> [[a]] -> [[b]]
-        mapTable = map . map
-        -- function hor to join cells and function ver to join rows
-        joinTable :: ([a] -> a) -> ([a] -> a) -> [[a]] -> a
-        joinTable hor ver = ver . map hor
+        listTableContent = fmap vcat .
+          mapM (fmap (hang 2 (text "* ") . vcat) . mapM bulletListItemToRST)
 
 transformInlines :: [Inline] -> [Inline]
 transformInlines =  insertBS .
