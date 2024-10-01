@@ -40,11 +40,9 @@ to small caps:
 
 ``` lua
 return {
-  {
-    Strong = function (elem)
-      return pandoc.SmallCaps(elem.content)
-    end,
-  }
+  Strong = function (elem)
+    return pandoc.SmallCaps(elem.content)
+  end,
 }
 ```
 
@@ -187,7 +185,7 @@ local filter = {
   traverse = 'topdown',
   -- ... filter functions ...
 }
-return {filter}
+return filter
 ```
 
 Support for this was added in pandoc 2.17; previous versions
@@ -4068,6 +4066,27 @@ Returns:
 
 *Since: 2.8*
 
+### normalize_date {#pandoc.utils.normalize_date}
+
+`normalize_date (date)`
+
+Parse a date and convert (if possible) to "YYYY-MM-DD" format. We
+limit years to the range 1601-9999 (ISO 8601 accepts greater than
+or equal to 1583, but MS Word only accepts dates starting 1601).
+Returns nil instead of a string if the conversion failed.
+
+Parameters:
+
+`date`
+:   the date string (string)
+
+Returns:
+
+-   normalized date, or nil if normalization failed. ([string or
+    nil]{unknown-type="string or nil"})
+
+*Since: 2.0.6*
+
 ### references {#pandoc.utils.references}
 
 `references (doc)`
@@ -4102,31 +4121,6 @@ Returns:
 
 *Since: 2.17*
 
-### run_lua_filter {#pandoc.utils.run_lua_filter}
-
-`run_lua_filter (doc, filter[, env])`
-
-Filter the given doc by passing it through a Lua filter.
-
-The filter will be run in the current Lua process.
-
-Parameters:
-
-`doc`
-:   the Pandoc document to filter ([Pandoc])
-
-`filter`
-:   filepath of the filter to run (string)
-
-`env`
-:   environment to load and run the filter in (table)
-
-Returns:
-
--   filtered document ([Pandoc])
-
-*Since: 3.2.1*
-
 ### run_json_filter {#pandoc.utils.run_json_filter}
 
 `run_json_filter (doc, filter[, args])`
@@ -4151,26 +4145,30 @@ Returns:
 
 *Since: 2.1.1*
 
-### normalize_date {#pandoc.utils.normalize_date}
+### run_lua_filter {#pandoc.utils.run_lua_filter}
 
-`normalize_date (date)`
+`run_lua_filter (doc, filter[, env])`
 
-Parse a date and convert (if possible) to "YYYY-MM-DD" format. We
-limit years to the range 1601-9999 (ISO 8601 accepts greater than
-or equal to 1583, but MS Word only accepts dates starting 1601).
-Returns nil instead of a string if the conversion failed.
+Filter the given doc by passing it through a Lua filter.
+
+The filter will be run in the current Lua process.
 
 Parameters:
 
-`date`
-:   the date string (string)
+`doc`
+:   the Pandoc document to filter ([Pandoc])
+
+`filter`
+:   filepath of the filter to run (string)
+
+`env`
+:   environment to load and run the filter in (table)
 
 Returns:
 
--   normalized date, or nil if normalization failed. ([string or
-    nil]{unknown-type="string or nil"})
+-   filtered document ([Pandoc])
 
-*Since: 2.0.6*
+*Since: 3.2.1*
 
 ### sha1 {#pandoc.utils.sha1}
 

@@ -40,6 +40,7 @@ module Text.Pandoc.Class.PandocMonad
   , setUserDataDir
   , getUserDataDir
   , fetchItem
+  , extractURIData
   , getInputFiles
   , setInputFiles
   , getOutputFile
@@ -78,6 +79,8 @@ import Text.Pandoc.MediaBag (MediaBag, lookupMedia, MediaItem(..))
 import Text.Pandoc.Shared (safeRead, makeCanonical, tshow)
 import Text.Pandoc.URI (uriPathToPath)
 import Text.Pandoc.Walk (walkM)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Data.ByteString.Base64 (decodeLenient)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -332,8 +335,7 @@ downloadOrRead :: PandocMonad m
                -> m (B.ByteString, Maybe MimeType)
 downloadOrRead s = do
   sourceURL <- getsCommonState stSourceURL
-  case (sourceURL >>= parseURIReference' .
-                       ensureEscaped, ensureEscaped s) of
+  case (sourceURL >>= parseURIReference' . ensureEscaped, ensureEscaped s) of
     (Just u, s') -> -- try fetching from relative path at source
        case parseURIReference' s' of
             Just u' -> openURL $ T.pack $ show $ u' `nonStrictRelativeTo` u
@@ -345,8 +347,10 @@ downloadOrRead s = do
             Nothing -> openURL s' -- will throw error
     (Nothing, s') ->
        case parseURI (T.unpack s') of  -- requires absolute URI
-            Just u' | uriScheme u' == "file:" ->
-                 readLocalFile $ uriPathToPath (T.pack $ uriPath u')
+            Just URI{ uriScheme = "file:", uriPath = upath}
+              -> readLocalFile $ uriPathToPath (T.pack upath)
+            Just URI{ uriScheme = "data:", uriPath = upath}
+              -> pure $ extractURIData upath
             -- We don't want to treat C:/ as a scheme:
             Just u' | length (uriScheme u') > 2 -> openURL (T.pack $ show u')
             _ -> readLocalFile fp -- get from local file system
@@ -371,6 +375,16 @@ downloadOrRead s = do
          ensureEscaped = T.pack . escapeURIString isAllowedInURI . T.unpack . T.map convertSlash
          convertSlash '\\' = '/'
          convertSlash x    = x
+
+-- Extract data from a data URI's path component.
+extractURIData :: String -> (B.ByteString, Maybe MimeType)
+extractURIData upath =
+  case break (== ';') (filter (/= ' ') mimespec) of
+     (mime', ";base64") -> (decodeLenient contents, Just (T.pack mime'))
+     (mime', _) -> (contents, Just (T.pack mime'))
+  where
+    (mimespec, rest) = break (== ',') $ unEscapeString upath
+    contents = UTF8.fromString $ drop 1 rest
 
 -- | Checks if the file path is relative to a parent directory.
 isRelativeToParentDir :: FilePath -> Bool

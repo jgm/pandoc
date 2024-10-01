@@ -37,7 +37,6 @@ module Text.Pandoc.Class.IO
 
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.ByteString.Base64 (decodeLenient)
 import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
@@ -62,7 +61,7 @@ import System.IO.Error
 import System.Random (StdGen)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
-       (PandocMonad, getsCommonState, getMediaBag, report)
+       (PandocMonad, getsCommonState, getMediaBag, report, extractURIData)
 import Text.Pandoc.Definition (Pandoc, Inline (Image))
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Logging (LogMessage (..), messageVerbosity, showLogMessage)
@@ -128,14 +127,8 @@ newUniqueHash = hashUnique <$> liftIO Data.Unique.newUnique
 openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType)
 openURL u
  | Just (URI{ uriScheme = "data:",
-              uriPath = upath }) <- parseURI (T.unpack u) = do
-     let (mimespec, rest) = break (== ',') $ unEscapeString upath
-     let contents = UTF8.fromString $ drop 1 rest
-     case break (== ';') (filter (/= ' ') mimespec) of
-       (mime, ";base64") ->
-         return (decodeLenient contents, Just (T.pack mime))
-       (mime, _) ->
-         return (contents, Just (T.pack mime))
+              uriPath = upath }) <- parseURI (T.unpack u)
+     = pure $ extractURIData upath
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
