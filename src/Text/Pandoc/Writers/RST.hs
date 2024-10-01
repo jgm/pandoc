@@ -431,7 +431,7 @@ bulletListItemToRST items = do
   let contents' = case items of
                     BlockQuote{}:_-> ".." $+$ contents
                     _ -> contents
-  return $ hang 3 "-  " contents' $$
+  return $ hang 2 "- " contents' $$
       if null items || (endsWithPlain items && not (endsWithList items))
          then cr
          else blankline

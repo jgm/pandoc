@@ -133,45 +133,45 @@ Unordered
 
 Asterisks tight:
 
--  asterisk 1
--  asterisk 2
--  asterisk 3
+- asterisk 1
+- asterisk 2
+- asterisk 3
 
 Asterisks loose:
 
--  asterisk 1
+- asterisk 1
 
--  asterisk 2
+- asterisk 2
 
--  asterisk 3
+- asterisk 3
 
 Pluses tight:
 
--  Plus 1
--  Plus 2
--  Plus 3
+- Plus 1
+- Plus 2
+- Plus 3
 
 Pluses loose:
 
--  Plus 1
+- Plus 1
 
--  Plus 2
+- Plus 2
 
--  Plus 3
+- Plus 3
 
 Minuses tight:
 
--  Minus 1
--  Minus 2
--  Minus 3
+- Minus 1
+- Minus 2
+- Minus 3
 
 Minuses loose:
 
--  Minus 1
+- Minus 1
 
--  Minus 2
+- Minus 2
 
--  Minus 3
+- Minus 3
 
 Ordered
 -------
@@ -217,20 +217,20 @@ Multiple paragraphs:
 Nested
 ------
 
--  Tab
+- Tab
 
-   -  Tab
+  - Tab
 
-      -  Tab
+    - Tab
 
 Here’s another:
 
 1. First
 2. Second:
 
-   -  Fee
-   -  Fie
-   -  Foe
+   - Fee
+   - Fie
+   - Foe
 
 3. Third
 
@@ -240,22 +240,22 @@ Same thing but with paragraphs:
 
 2. Second:
 
-   -  Fee
-   -  Fie
-   -  Foe
+   - Fee
+   - Fie
+   - Foe
 
 3. Third
 
 Tabs and spaces
 ---------------
 
--  this is a list item indented with tabs
+- this is a list item indented with tabs
 
--  this is a list item indented with spaces
+- this is a list item indented with spaces
 
-   -  this is an example list item indented with tabs
+  - this is an example list item indented with tabs
 
-   -  this is an example list item indented with spaces
+  - this is an example list item indented with spaces
 
 Fancy list markers
 ------------------
@@ -610,24 +610,24 @@ Ellipses…and…and….
 LaTeX
 =====
 
--  :raw-latex:`\cite[22-23]{smith.1899}`
--  :math:`2+2=4`
--  :math:`x \in y`
--  :math:`\alpha \wedge \omega`
--  :math:`223`
--  :math:`p`-Tree
--  Here’s some display math:
+- :raw-latex:`\cite[22-23]{smith.1899}`
+- :math:`2+2=4`
+- :math:`x \in y`
+- :math:`\alpha \wedge \omega`
+- :math:`223`
+- :math:`p`-Tree
+- Here’s some display math:
 
-   .. math:: \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}
--  Here’s one that has a line break in it: :math:`\alpha + \omega \times x^2`.
+  .. math:: \frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}
+- Here’s one that has a line break in it: :math:`\alpha + \omega \times x^2`.
 
 These shouldn’t be math:
 
--  To get the famous equation, write ``$e = mc^2$``.
--  $22,000 is a *lot* of money. So is $34,000. (It worked if “lot” is
-   emphasized.)
--  Shoes ($20) and socks ($5).
--  Escaped ``$``: $73 *this should be emphasized* 23$.
+- To get the famous equation, write ``$e = mc^2$``.
+- $22,000 is a *lot* of money. So is $34,000. (It worked if “lot” is
+  emphasized.)
+- Shoes ($20) and socks ($5).
+- Escaped ``$``: $73 *this should be emphasized* 23$.
 
 Here’s a LaTeX table:
 
@@ -646,11 +646,11 @@ Special Characters
 
 Here is some unicode:
 
--  I hat: Î
--  o umlaut: ö
--  section: §
--  set membership: ∈
--  copyright: ©
+- I hat: Î
+- o umlaut: ö
+- section: §
+- set membership: ∈
+- copyright: ©
 
 AT&T has an ampersand in their name.
 
@@ -762,9 +762,9 @@ Autolinks
 
 With an ampersand: http://example.com/?foo=1&bar=2
 
--  In a list?
--  http://example.com/
--  It should.
+- In a list?
+- http://example.com/
+- It should.
 
 An e-mail address: nobody@nowhere.net
 
