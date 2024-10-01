@@ -42,19 +42,19 @@ $if(theme)$
 \usetheme[$for(themeoptions)$$themeoptions$$sep$,$endfor$]{$theme$}
 $endif$
 $if(colortheme)$
-\usecolortheme{$colortheme$}
+\usecolortheme[$for(colorthemeoptions)$$colorthemeoptions$$sep$,$endfor$]{$colortheme$}
 $endif$
 $if(fonttheme)$
-\usefonttheme{$fonttheme$}
+\usefonttheme[$for(fontthemeoptions)$$fontthemeoptions$$sep$,$endfor$]{$fonttheme$}
 $endif$
 $if(mainfont)$
 \usefonttheme{serif} % use mainfont rather than sansfont for slide text
 $endif$
 $if(innertheme)$
-\useinnertheme{$innertheme$}
+\useinnertheme[$for(innerthemeoptions)$$innerthemeoptions$$sep$,$endfor$]{$innertheme$}
 $endif$
 $if(outertheme)$
-\useoutertheme{$outertheme$}
+\useoutertheme[$for(outerthemeoptions)$$outerthemeoptions$$sep$,$endfor$]{$outertheme$}
 $endif$
 % Prevent slide breaks in the middle of a paragraph
 \widowpenalties 1 10000
