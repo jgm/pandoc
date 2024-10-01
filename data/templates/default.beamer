@@ -91,9 +91,6 @@ $if(section-titles)$
   \frame{\subsectionpage}
 }
 $endif$
-$if(beamerarticle)$
-\usepackage{beamerarticle} % needs to be loaded first
-$endif$
 $fonts.latex()$
 $common.latex()$
 $for(header-includes)$
