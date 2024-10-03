@@ -56,6 +56,7 @@ import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtml4Block,
                  formatHtmlInline, highlight, styleToCss)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
+import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared
 import Text.Pandoc.Slides
 import Text.Pandoc.Templates (renderTemplate)
@@ -231,9 +232,12 @@ writeHtmlString' st opts d = do
   let colwidth = case writerWrapText opts of
                     WrapAuto -> Just (writerColumns opts)
                     _ -> Nothing
-  (if writerPreferAscii opts
-      then toEntities
-      else id) <$>
+  (if writerEmbedResources opts
+   then makeSelfContained
+   else pure) =<<
+    (if writerPreferAscii opts
+     then toEntities
+     else id) <$>
     case writerTemplate opts of
        Nothing -> return $
          case colwidth of

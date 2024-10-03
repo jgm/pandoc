@@ -65,7 +65,6 @@ import Text.Pandoc.Filter (Filter (JSONFilter, LuaFilter), Environment (..),
 import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.PDF (makePDF)
 import Text.Pandoc.Scripting (ScriptingEngine (..), CustomComponents(..))
-import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Readers.Markdown (yamlToMeta)
@@ -327,10 +326,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                     | standalone = t
                     | T.null t || T.last t /= '\n' = t <> T.singleton '\n'
                     | otherwise = t
-              textOutput <- ensureNl <$> f writerOptions doc
-              if (optSelfContained opts || optEmbedResources opts) && htmlFormat format
-                 then TextOutput <$> makeSelfContained textOutput
-                 else return $ TextOutput textOutput
+              TextOutput . ensureNl <$> f writerOptions doc
   reports <- getLog
   return (output, reports)
 

@@ -80,6 +80,11 @@ typeWriterOptions = deftype "WriterOptions"
     (pushViaJSON, writerEmailObfuscation)
     (peekViaJSON, \opts x -> opts{ writerEmailObfuscation = x })
 
+  , property "embed_resources"
+    "Whether resources should be embedded in HTML output"
+    (pushViaJSON, writerEmbedResources)
+    (peekViaJSON, \opts x -> opts{ writerEmbedResources = x })
+
   , property "split_level"
     "Level at which EPUB or chunked HTML documents are split into files"
     (pushIntegral, writerSplitLevel)
