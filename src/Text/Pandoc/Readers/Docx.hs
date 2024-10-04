@@ -669,6 +669,34 @@ normalizeToClassName = T.map go . fromStyleName
              | otherwise = c
 
 bodyPartToBlocks :: PandocMonad m => BodyPart -> DocxContext m Blocks
+bodyPartToBlocks (Heading n style pPr numId lvl mblvlInfo parparts) = do
+    ils <- local (\s-> s{docxInHeaderBlock=True})
+           (smushInlines <$> mapM parPartToInlines parparts)
+    let classes = map normalizeToClassName . delete style
+                $ getStyleNames (pStyle pPr)
+    hasNumbering <- gets docxNumberedHeadings
+    let addNum = if hasNumbering && not (numbered pPr)
+                 then (++ ["unnumbered"])
+                 else id
+    if T.null numId
+       then pure ()
+       else do
+         -- We check whether this current numId has previously been used,
+         -- since Docx expects us to pick up where we left off.
+         listState <- gets docxListState
+         let start = case M.lookup (numId, lvl) listState of
+                       Nothing -> case mblvlInfo of
+                         Nothing -> 1
+                         Just (Level _ _ _ z) -> fromMaybe 1 z
+                       Just z -> z + 1
+         modify $ \st -> st{ docxListState =
+             -- expire all the continuation data for lists of level > this one:
+             -- a new level 1 list item resets continuation for level 2+
+             -- see #10258
+             let notExpired (_, lvl') _ = lvl' <= lvl
+             in M.insert (numId, lvl) start
+                  (M.filterWithKey notExpired listState) }
+    makeHeaderAnchor $ headerWith ("", addNum classes, []) n ils
 bodyPartToBlocks (Paragraph pPr parparts)
   | Just True <- pBidi pPr = do
       let pPr' = pPr { pBidi = Nothing }
@@ -681,18 +709,6 @@ bodyPartToBlocks (Paragraph pPr parparts)
         codeBlock $
         T.concat $
         map parPartToText parparts
-  | Just (style, n) <- pHeading pPr = do
-    ils <- local (\s-> s{docxInHeaderBlock=True})
-           (smushInlines <$> mapM parPartToInlines parparts)
-    let classes = map normalizeToClassName . delete style
-                $ getStyleNames (pStyle pPr)
-
-    hasNumbering <- gets docxNumberedHeadings
-    let addNum = if hasNumbering && not (numbered pPr)
-                 then (++ ["unnumbered"])
-                 else id
-    makeHeaderAnchor $
-      headerWith ("", addNum classes, []) n ils
   | otherwise = do
     ils <- trimSps . smushInlines <$> mapM parPartToInlines parparts
     prevParaIls <- gets docxPrevPara

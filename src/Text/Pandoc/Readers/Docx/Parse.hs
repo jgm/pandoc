@@ -283,6 +283,8 @@ defaultParagraphStyle = ParagraphStyle { pStyle = []
 
 
 data BodyPart = Paragraph ParagraphStyle [ParPart]
+              | Heading Int ParaStyleName ParagraphStyle T.Text T.Text (Maybe Level)
+                 [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl T.Text TblGrid TblLook [Row]
               | Captioned ParagraphStyle [ParPart] BodyPart
@@ -791,13 +793,15 @@ elemToBodyPart ns element
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , Just (numId, lvl) <- getNumInfo ns element = do
+    lvlInfo <- lookupLevel numId lvl <$> asks envNumbering
     parstyle <- elemToParagraphStyle ns element
                 <$> asks envParStyles
                 <*> asks envNumbering
     parparts <- mconcat <$> mapD (elemToParPart ns) (elChildren element)
     case pHeading parstyle of
       Nothing -> mkListItem parstyle numId lvl parparts
-      Just _  -> return $ Paragraph parstyle parparts
+      Just (parstylename, lev)
+        -> return $ Heading lev parstylename parstyle numId lvl lvlInfo parparts
 elemToBodyPart ns element
   | isElem ns "w" "p" element
   , [Elem ppr] <- elContent element
@@ -836,8 +840,11 @@ elemToBodyPart ns element
       case pHeading parstyle of
         Nothing | Just (numId, lvl) <- pNumInfo parstyle -> do
                     mkListItem parstyle numId lvl parparts
-        _ -> return $ Paragraph parstyle parparts
-
+        Just (parstylename, lev) -> do
+          let (numId, lvl) = fromMaybe ("","") $ pNumInfo parstyle
+          lvlInfo <- lookupLevel numId lvl <$> asks envNumbering
+          return $ Heading lev parstylename parstyle numId lvl lvlInfo parparts
+        Nothing -> return $ Paragraph parstyle parparts
 elemToBodyPart ns element
   | isElem ns "w" "tbl" element = do
     let tblProperties = findChildByName ns "w" "tblPr" element
