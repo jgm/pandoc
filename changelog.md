@@ -67,7 +67,7 @@
       inlines, and only if the `raw_html` extension is enabled. (It is
       now a valid extension for `dokuwiki`, though off by default.)
 
-  * Docx writer;
+  * Docx writer:
 
     + Support `--list-of-figures` and `--list-of-tables` (or `lof` and
       `lot` variables) (Akash Patel).
@@ -161,7 +161,8 @@
 
   * Text.Pandoc.App:
 
-    + Add `optListOfFigures` and `optListOfTables` to `Opt` (#8245).
+    + Add `optListOfFigures` and `optListOfTables` to `Opt` (#8245)
+      [API change].
 
   * Lua subsystem (Albert Krewinkel):
 
@@ -176,8 +177,8 @@
       produced and handled by the `pandoc.layout` module can now
       be styled using `bold`, `italic`, `underlined`, or `strikeout`. The
       style is ignored in normal rendering, but becomes visible when
-      rendering to ANSI output. The `pandoc.layout.render` functio
-      n now takes a third parameter that defines the output style,
+      rendering to ANSI output. The `pandoc.layout.render` function
+      now takes a third parameter that defines the output style,
       either *plain* or *ansi*.
     + It is now possible to return a single filter from a filter file, e.g.
       ``` lua
