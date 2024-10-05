@@ -21,13 +21,11 @@ extra-deps:
 - typst-0.6
 - hslua-module-doclayout-1.2.0
 - pandoc-lua-marshal-0.2.8
+- djot-0.1.2.2
+- texmath-0.12.8.11
 - git: https://github.com/jgm/commonmark-hs
   subdirs: [commonmark, commonmark-pandoc]
   commit: 7130ce27089b47588f64946263defc05fd72ab29
-- git: https://github.com/jgm/djoths
-  commit: 8582cdc763716489f5d0f7f5cd250199adcccd17
-- git: https://github.com/jgm/texmath
-  commit: d47229b8287aaf781f9663e868507e731d3914bc
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
