@@ -127,7 +127,8 @@ convertTags (t@(TagOpen "link" as):ts) =
                      (("href",dataUri) : [(x,y) | (x,y) <- as, x /= "href"]) :
                      rest
                 Fetched (mime, bs)
-                  | "text/css" `T.isPrefixOf` mime
+                  | ("text/css" `T.isPrefixOf` mime ||
+                      fromAttrib "rel" t == "stylesheet")
                     && T.null (fromAttrib "media" t)
                     && not ("</" `B.isInfixOf` bs) -> do
                       rest <- convertTags $
