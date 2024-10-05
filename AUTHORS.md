@@ -3,6 +3,7 @@
 - Aaron Wolen
 - Adelar da Silva Queiróz
 - Agustín Martín Barbero
+- Akash Patel
 - Akos Marton
 - Albert Krewinkel
 - Alex Ivkin
@@ -247,6 +248,7 @@
 - Mark Wright
 - Martin Joerg
 - Martin Linn
+- Martin Michlmayr
 - Martín Pozo
 - Masataka Ogawa
 - Masayoshi Takahashi
@@ -410,6 +412,7 @@
 - Wout Gevaert
 - Xavier Olive
 - Yan Pashkovsky
+- Yehuda Katz
 - YI
 - Yoan Blanc
 - Yuchen Pei
