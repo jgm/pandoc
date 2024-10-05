@@ -1,5 +1,216 @@
 # Revision history for pandoc
 
+## pandoc 3.5 (2024-10-04)
+
+  * Add command-line options `--list-of-figures/--lof` and
+    `--list-of-tables/--lot` (#10029, Akash Patel).
+    Only docx, latex, and context are affected by these options currently.
+    Setting the `lof` and `lot` variables will also work for the formats
+    that are currently supported.
+
+  * Defaults files:  interpolation of environment variables now
+    works for `to` and `from` fields (#8024). This is needed because
+    these files can contain paths of custom readers/writers.
+
+  * Docx reader:
+
+    + Reset lists after headers in same list `numId` (#10258).
+      To accomplish this, we add a Heading constructor to BodyPart and
+      include on it all the information list items have.
+
+  * DocBook reader:
+
+    + Parse id, class, and tabstyle on tables (#10181, Erik Rask).
+      Add parsing of id (xml:id), class, and tabstyle XML attributes
+      for table and informaltable in the DocBook reader.
+      The tabstyle value is put in the 'custom-style' attribute.
+
+  * Dokuwiki reader:
+
+    + Be more forgiving about misaligned lists, like dokuwiki itself (#8863).
+    + Improve blockquote parsing in dokuwiki. Allow for quoted code blocks.
+    + Enable smart extension.
+    + Properly parse `--` and `---` as dashes.
+    + Fix block quote behavior (#6461). Blockquotes are not really block
+      containers in DokuWiki; the lines are interpreted literally (so,
+      e.g., you can't start a list), and line breaks are added at the ends.
+
+  * EPUB reader:
+
+    + Fix links to other files in the EPUB, making them internal links
+      to a fragment derived from the filename (#10207).  There was
+      already code to handle links like `#foo`, but not to handle links
+      like `ch0001.html#foo`.
+
+  * LaTeX reader:
+
+    + Add em, ex, px, mu to list of units for dimension args (#10212).
+
+  * ANSI writer:
+
+    + Fix subscripts (Evan Silberman).
+
+  * DokuWiki writer:
+
+    + Don't emit `<HTML>` tags (#7413). The use of these tags is now
+      strongly discouraged for security reasons, and will be removed.
+      We previously used them as a fallback for lists that could not
+      be represented using DokuWiki syntax, e.g. ordered lists with
+      fancy numbers or lists with multiple blocks in their items.
+      We also used them for block quotes with multiple blocks as
+      their contents. We now use the `<WRAP>` syntax (from the optional
+      WRAP plugin) to handle lists with multiple blocks as their contents.
+      A new method of handling block quotes with complex contents
+      has the side benefit of also handling nested block quotes,
+      which weren't supported before.
+      `<HTML>` and `<html>` tags are only for raw HTML blocks and
+      inlines, and only if the `raw_html` extension is enabled. (It is
+      now a valid extension for `dokuwiki`, though off by default.)
+
+  * Docx writer;
+
+    + Support `--list-of-figures` and `--list-of-tables` (or `lof` and
+      `lot` variables) (Akash Patel).
+
+  * HTML writer:
+
+    + Don't emit missing title/lang warnings if templates does not
+      contain the `pagetitle` or `lang` variables respectively (#9370).
+
+  * LaTeX writer:
+
+    + Better fix for lists in definition lists (#10241).
+      In commit a26ec96d89ccf532f7bca7591c96ba30d8544e4a we added an
+      empty `\item[]` to the beginning of a list that occurs first
+      in a definition list, to avoid having one item on the line with
+      the label. This gave bad results in some cases (#10241) and there
+      is a more idiomatic solution anyway: using `\hfill`.
+    + Avoid error on `refs` div with empty citations (#10185).
+      If there are no citations, don't emit an empty CSLReferences environment.
+
+  * RST writer:
+
+    + Change bullet list hang from 3 to 2. This accords with the style in
+      the RST reference docs.
+    + Handle cases where indented context starts with block quote (#10236).
+      In these cases we emit an empty comment to fix the point from
+      which indentation is measured; otherwise the block quote is not
+      parsed as a block quote. This affects list items and admonitions.
+    + Don't enclose the list table in a `.. table::`; this leads to
+      doubled captions (#10226).
+    + Fix alignment of list table items corresponding to cells (#10227).
+
+  * JATS template:
+
+    + Support `floats-group` (Albert Krewinkel, see #10196).
+      The content of the `floats-group` variable is now rendered in a
+      `<floats-group>` element when using the *publishing* or *archiving* tag
+      sets.
+
+  * LaTeX and Beamer templates:
+
+    + Split old default.latex into two templates, `default.latex` and
+      `default.beamer`, factoring common parts into partials:
+      `fonts.latex`, `common.latex`, `passoptions.latex`,
+      `hypersetup.latex`, `after-header-includes.latex`.
+    + Make `default.beamer` the default template for beamer.
+    + Add `shorttitle`, `shortsubtitle`, `shortauthor`, `shortinstitute`,
+      `shortdate` variables to beamer template (#10248, Thomas Hodgson).
+    + Make `--number-sections` work with beamer (#12045, Thomas Hodgson).
+    + Support a list of images for `titlegraphic` in beamer template
+      (#10246, Thomas Hodgson). Title graphic options will be
+      applied to each title graphic. Images will be separated by `\enspace`.
+    + Beamer theme options (#10243)
+    + Add theme options to beamer template: `colorthemeoptions`,
+      `fontthemeoptions`, `innerthemeoptions`, `outerthemeoptions` (#10243,
+      Thomas Hodgson).
+    + Don't load amsmath, amssym in beamer template. These are loaded by
+      beamer automatically.
+
+  * Text.Pandoc.SelfContained:
+
+    + Improve handling of links to remote CSS (#10261).
+
+  * Text.Pandoc.Class:
+
+    + Allow extracting `data:` URIs even in PandocPure (`--sandbox`)
+      (#10249).
+    + Export `extractURIData` [API change].
+
+  * Text.Pandoc.PDF:
+
+    + Read `.toc` and `.log` files from output directory (#10186).
+      When this is different from the input directory, this is
+      where `.toc` and `.log` files are written.
+
+  * Text.Pandoc.Shared:
+
+    + Modify `addPandocAttributes` for changes in commonmark-pandoc.
+      The new commonmark-pandoc version automatically adds the
+      attribute `wrapper="1"` on all Divs and Spans that
+      are introduced just as containers for attributes that belong
+      properly to their contents.  So we don't need to add the
+      attribute here. This gives much better results in some cases.
+      Previously the wrapper attribute was being added even for
+      explicit Divs and Spans in djot, but it is not needed in these cases.
+
+  * Text.Pandoc.Options:
+
+    + Add `writerListOfFigures` and `writerListOfTables` fields
+      to `WriterOptions` (#8245, Akash Patel). [API change]
+
+  * Text.Pandoc.App:
+
+    + Add `optListOfFigures` and `optListOfTables` to `Opt` (#8245).
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + Update List module (#9835). The module now comes with a method
+      `:at(index[, def])` that allows to access indices, accepts
+      negative indices to count from the end, and will return the
+      `def` value as a default if the list has no item at the given position.
+      Furthermore, the list constructor `pandoc.List` now accepts iterators.
+      E.g., `pandoc.List(text:gmatch '%S+')` returns the list of words
+      in `text`.
+    + Support character styling via `pandoc.layout`. The `Doc` values
+      produced and handled by the `pandoc.layout` module can now
+      be styled using `bold`, `italic`, `underlined`, or `strikeout`. The
+      style is ignored in normal rendering, but becomes visible when
+      rendering to ANSI output. The `pandoc.layout.render` functio
+      n now takes a third parameter that defines the output style,
+      either *plain* or *ansi*.
+    + It is now possible to return a single filter from a filter file, e.g.
+      ``` lua
+      -- Switch single- and double quotes
+      return {
+        Quoted = function (q)
+          elem.quotetype = elem.quotetype == 'SingleQuote'
+            and 'DoubleQuote' or 'SingleQuote'
+          return elem
+        end
+      }
+      ```
+      The filter must not contain numerical indexes, or it might be treated
+      as a list of filters.
+    + Add `list_of_figures` and `list_of_tables` to writer options
+      (Akash Patel).
+
+  * Use latest releases of commonmark, commonmark-pandoc, texmath, djot.
+
+  * Stop depending on package SHA (Albert Krewinkel). Use `crypton` instead.
+
+  * `linux/make_artifacts.sh`: add riscv64 support (Olivier Benz).
+
+  * Fix invalid XML in `test/docx/normalize.docx` (#10242).
+
+  * `doc/lua-filters.md`: list functions in `pandoc.utils` alphabetically
+    (Albert Krewinkel).
+
+  * MANUAL.txt:
+
+    + Clarify  use of `beamerarticle` variable (#10250).
+    + Add clarification to address user issues like #6704 (Yehuda Katz).
+
 ## pandoc 3.4 (2024-09-09)
 
   * New output format: `ansi` (for formatted console output) (Evan Silberman).
