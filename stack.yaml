@@ -20,7 +20,7 @@ extra-deps:
 - doctemplates-0.11.0.1
 - typst-0.6
 - hslua-module-doclayout-1.2.0
-- pandoc-lua-marshal-0.2.8
+- pandoc-lua-marshal-0.2.9
 - djot-0.1.2.2
 - texmath-0.12.8.11
 - commonmark-0.2.6.1
