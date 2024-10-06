@@ -2489,9 +2489,9 @@ in square brackets, immediately after the variable name
 or partial:
 
 ```
-${months[, ]}$
+${months[, ]}
 
-${articles:bibentry()[; ]$
+${articles:bibentry()[; ]}
 ```
 
 The separator in this case is literal and (unlike with `sep`
