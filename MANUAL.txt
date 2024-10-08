@@ -2247,8 +2247,10 @@ directory (see `--data-dir`, above). *Exceptions:*
   (or the `default.context` template, if you use `-t context`,
   or the `default.ms` template, if you use `-t ms`, or the
   `default.html` template, if you use `-t html`).
-- `docx` and `pptx` have no template (however, you can use
-  `--reference-doc` to customize the output).
+- For `docx` output, customize the `openxml` template.
+- For `odt`output, customize the `opendocument` template.
+- `pptx` have no template (however, you can use `--reference-doc`
+  to customize the output).
 
 Templates contain *variables*, which allow for the inclusion of
 arbitrary information at any point in the file. They may be set at the
