@@ -109,6 +109,22 @@ $elseif(author.name)$
 $else$
 <string-name>$author$</string-name>
 $endif$
+$if(author.roles)$
+$for(author.roles)$
+$if(it.credit-id)$
+<role vocab="credit"
+      vocab-identifier="https://credit.niso.org/"
+      vocab-term-identifier="https://credit.niso.org/contributor-roles/$it.credit-id$/"
+      vocab-term="$it.credit-name$"
+      $if(it.degree)$degree-contribution="$it.degree$"$endif$
+>
+    $if(it.name)$$it.name$$else$$it.credit-name$$endif$
+</role>
+$else$
+<role>$it.name$</role>
+$endif$
+$endfor$
+$endif$
 $if(author.email)$
 <email>$author.email$</email>
 $endif$
