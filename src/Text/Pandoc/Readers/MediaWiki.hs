@@ -211,8 +211,8 @@ table = do
   caption <- option mempty tableCaption
   optional rowsep
   hasheader <- option False $ True <$ lookAhead (skipSpaces *> char '!')
-  (cellspecs',hdr) <- unzip <$> tableRow
-  let widths = map (tableWidth *) cellspecs'
+  (cellwidths,hdr) <- unzip <$> tableRow
+  let widths = map (tableWidth *) (concat cellwidths)
   let restwidth = tableWidth - sum widths
   let zerocols = length $ filter (==0.0) widths
   let defaultwidth = if zerocols == 0 || zerocols == length widths
@@ -235,10 +235,10 @@ table = do
                    (TableFoot nullAttr [])
 
 calculateAlignments :: [Cell] -> [Alignment]
-calculateAlignments = map cellAligns
+calculateAlignments = concatMap cellAligns
   where
-    cellAligns :: Cell -> Alignment
-    cellAligns (Cell _ align _ _ _) = align
+    cellAligns :: Cell -> [Alignment]
+    cellAligns (Cell _ align _ (ColSpan colspan) _) = replicate colspan align
 
 parseAttrs :: PandocMonad m => MWParser m [(Text,Text)]
 parseAttrs = many1 parseAttr
@@ -269,22 +269,16 @@ rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
                                <* skipMany htmlComment
                                <* blanklines
 
-cellsep :: PandocMonad m => MWParser m ()
+cellsep :: PandocMonad m => MWParser m [(Text,Text)]
 cellsep = try $ do
   col <- sourceColumn <$> getPosition
-  skipSpaces
-  let pipeSep = do
-        char '|'
-        notFollowedBy (oneOf "-}+")
-        if col == 1
-           then optional (char '|')
-           else void (char '|')
-  let exclSep = do
-        char '!'
-        if col == 1
-           then optional (char '!')
-           else void (char '!')
-  pipeSep <|> exclSep
+  skipMany spaceChar
+  c <- oneOf "|!"
+  when (col > 1) $ void $ char c
+  notFollowedBy (oneOf "-}+")
+  attribs <- option [] (parseAttrs <* skipMany spaceChar <* char '|')
+  skipMany spaceChar
+  pure attribs
 
 tableCaption :: PandocMonad m => MWParser m Inlines
 tableCaption = try $ do
@@ -294,20 +288,17 @@ tableCaption = try $ do
   sym "|+"
   optional (try $ parseAttrs *> skipSpaces *> char '|' *> blanklines)
   trimInlines . mconcat <$>
-    many (notFollowedBy (cellsep <|> rowsep) *> inline)
+    many (notFollowedBy (void cellsep <|> rowsep) *> inline)
 
-tableRow :: PandocMonad m => MWParser m [(Double, Cell)]
+tableRow :: PandocMonad m => MWParser m [([Double], Cell)]
 tableRow = try $ skipMany htmlComment *> many tableCell
 
-tableCell :: PandocMonad m => MWParser m (Double, Cell)
+-- multiple widths because cell might have colspan
+tableCell :: PandocMonad m => MWParser m ([Double], Cell)
 tableCell = try $ do
-  cellsep
-  skipMany spaceChar
-  attribs <- option [] $ try $ parseAttrs <* skipSpaces <* char '|' <*
-                                 notFollowedBy (char '|')
-  skipMany spaceChar
+  attribs <- cellsep
   pos' <- getPosition
-  ls <- T.concat <$> many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *>
+  ls <- T.concat <$> many (notFollowedBy (void cellsep <|> rowsep <|> tableEnd) *>
                             ((snd <$> withRaw table) <|> countChar 1 anyChar))
   bs <- parseFromString (do setPosition pos'
                             mconcat <$> many block) ls
@@ -316,18 +307,22 @@ tableCell = try $ do
                     Just "right"  -> AlignRight
                     Just "center" -> AlignCenter
                     _             -> AlignDefault
-  let width = case lookup "width" attribs of
-                    Just xs -> fromMaybe 0.0 $ parseWidth xs
-                    Nothing -> 0.0
   let rowspan = RowSpan . fromMaybe 1 $
                 safeRead =<< lookup "rowspan" attribs
   let colspan = ColSpan . fromMaybe 1 $
                 safeRead =<< lookup "colspan" attribs
+  let ColSpan rawcolspan = colspan
   let handledAttribs = ["align", "colspan", "rowspan"]
       attribs' = [ (k, v) | (k, v) <- attribs
                           , k `notElem` handledAttribs
                  ]
-  return (width, B.cellWith (toAttr attribs') align rowspan colspan bs)
+  let widths = case lookup "width" attribs of
+                    Just xs -> maybe (replicate rawcolspan 0.0)
+                                 (\w -> replicate rawcolspan
+                                    (w / fromIntegral rawcolspan))
+                                 (parseWidth xs)
+                    Nothing -> replicate rawcolspan 0.0
+  return (widths, B.cellWith (toAttr attribs') align rowspan colspan bs)
 
 parseWidth :: Text -> Maybe Double
 parseWidth s =
