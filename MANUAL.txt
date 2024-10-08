@@ -2241,14 +2241,19 @@ the system default templates for a given output format *FORMAT*
 by putting a file `templates/default.*FORMAT*` in the user data
 directory (see `--data-dir`, above). *Exceptions:*
 
-- For `odt` output, customize the `default.opendocument`
-  template.
+- For `odt` output, customize the `default.opendocument` template.
+- For `docx` output, customize the `default.openxml` template.
 - For `pdf` output, customize the `default.latex` template
   (or the `default.context` template, if you use `-t context`,
   or the `default.ms` template, if you use `-t ms`, or the
   `default.html` template, if you use `-t html`).
-- `docx` and `pptx` have no template (however, you can use
-  `--reference-doc` to customize the output).
+- `pptx` has no template.
+
+Note that `docx`, `odt`, and `pptx` output can also be customized
+using `--reference-doc`.  Use a reference doc to adjust the styles
+in your document; use a template to handle variable interpolation and
+customize the presentation of metadata, the position of the table
+of contents, boilerplate text, etc.
 
 Templates contain *variables*, which allow for the inclusion of
 arbitrary information at any point in the file. They may be set at the
