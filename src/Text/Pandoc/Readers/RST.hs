@@ -1604,7 +1604,9 @@ explicitLink = try $ do
   notFollowedBy (char '`') -- `` marks start of inline code
   label' <- trimInlines . mconcat <$>
              manyTill (notFollowedBy (char '`') >> inlineContent) (char '<')
-  src <- trim <$> manyTillChar (noneOf ">\n") (char '>')
+  src <- trim . T.pack . filter (/= '\n') <$> -- see #10279
+           manyTill (noneOf ">\n" <|> (char '\n' <* notFollowedBy blankline))
+                    (char '>')
   skipSpaces
   string "`_"
   optional $ char '_' -- anonymous form
