@@ -471,7 +471,8 @@ getDefaultExtensions "jats_articleauthoring" = getDefaultExtensions "jats"
 getDefaultExtensions "opml"            = pandocExtensions -- affects notes
 getDefaultExtensions "markua"          = extensionsFromList
                                           []
-getDefaultExtensions "typst"           = extensionsFromList [Ext_citations]
+getDefaultExtensions "typst"           = extensionsFromList [Ext_citations,
+                                                             Ext_smart]
 getDefaultExtensions "dokuwiki"        = extensionsFromList [Ext_smart]
 getDefaultExtensions _                 = extensionsFromList
                                           [Ext_auto_identifiers]
@@ -656,6 +657,6 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "mediawiki"       = autoIdExtensions <>
     extensionsFromList
     [ Ext_smart ]
-  getAll "typst"           = extensionsFromList [Ext_citations]
+  getAll "typst"           = extensionsFromList [Ext_citations, Ext_smart]
   getAll "djot"            = extensionsFromList [Ext_sourcepos]
   getAll _                 = mempty

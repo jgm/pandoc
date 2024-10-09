@@ -84,6 +84,7 @@ pandocToTypst options (Pandoc meta blocks) = do
                         Right l ->
                           resetField "lang" (langLanguage l) .
                           maybe id (resetField "region") (langRegion l))
+              $ defField "smart" (isEnabled Ext_smart options)
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
               $ defField "figure-caption-position"
                    (toPosition $ writerFigureCaptionPosition options)
@@ -351,8 +352,9 @@ inlineToTypst :: PandocMonad m => Inline -> TW m (Doc Text)
 inlineToTypst inline =
   case inline of
     Str txt -> do
+      opts <-  gets stOptions
       context <- gets stEscapeContext
-      return $ escapeTypst context txt
+      return $ escapeTypst (isEnabled Ext_smart opts) context txt
     Space -> return space
     SoftBreak -> do
       wrapText <- gets $ writerWrapText . stOptions
@@ -396,11 +398,17 @@ inlineToTypst inline =
           contents <- inlinesToTypst inlines
           return $ toTypstTextElement typstTextAttrs contents <> lab
     Quoted quoteType inlines -> do
-      let q = case quoteType of
-                   DoubleQuote -> literal "\""
-                   SingleQuote -> literal "'"
+      opts <- gets stOptions
+      let smart = isEnabled Ext_smart opts
       contents <- inlinesToTypst inlines
-      return $ q <> contents <> q
+      return $
+        case quoteType of
+           DoubleQuote
+             | smart -> "\"" <> contents <> "\""
+             | otherwise -> "“" <> contents <> "”"
+           SingleQuote
+             | smart -> "'" <> contents <> "'"
+             | otherwise -> "‘" <> contents <> "’"
     Cite citations inlines -> do
       opts <-  gets stOptions
       if isEnabled Ext_citations opts
@@ -455,8 +463,8 @@ textstyle s inlines =
          , needsEscapeAtLineStart c -> ("\\" <>)
        _ -> id
 
-escapeTypst :: EscapeContext -> Text -> Doc Text
-escapeTypst context t =
+escapeTypst :: Bool -> EscapeContext -> Text -> Doc Text
+escapeTypst smart context t =
   (case T.uncons t of
     Just (c, _)
       | needsEscapeAtLineStart c
@@ -469,9 +477,17 @@ escapeTypst context t =
   where
     escapeChar c
       | c == '\160' = "~"
+      | c == '\8217', smart = "'" -- apostrophe
+      | c == '\8212', smart = "---" -- em dash
+      | c == '\8211', smart = "--" -- en dash
       | needsEscape c = "\\" <> T.singleton c
       | otherwise = T.singleton c
     needsEscape '\160' = True
+    needsEscape '\8217' = smart
+    needsEscape '\8212' = smart
+    needsEscape '\8211' = smart
+    needsEscape '\'' = smart
+    needsEscape '"' = smart
     needsEscape '[' = True
     needsEscape ']' = True
     needsEscape '#' = True
@@ -480,8 +496,6 @@ escapeTypst context t =
     needsEscape '@' = True
     needsEscape '$' = True
     needsEscape '\\' = True
-    needsEscape '\'' = True
-    needsEscape '"' = True
     needsEscape '`' = True
     needsEscape '_' = True
     needsEscape '*' = True

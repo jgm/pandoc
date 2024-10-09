@@ -55,10 +55,10 @@ Multiline table with caption:
       aligned],),
     table.hline(),
     [First], [row], [12.0], [Example of a row that spans multiple lines.],
-    [Second], [row], [5.0], [Here’s another one. Note the blank line between
+    [Second], [row], [5.0], [Here's another one. Note the blank line between
     rows.],
   )]
-  , caption: [Here’s the caption. It may span multiple lines.]
+  , caption: [Here's the caption. It may span multiple lines.]
   , kind: table
   )
 
@@ -72,7 +72,7 @@ Multiline table without caption:
       aligned],),
     table.hline(),
     [First], [row], [12.0], [Example of a row that spans multiple lines.],
-    [Second], [row], [5.0], [Here’s another one. Note the blank line between
+    [Second], [row], [5.0], [Here's another one. Note the blank line between
     rows.],
   )]
   , kind: table
@@ -98,7 +98,7 @@ Multiline table without column headers:
     columns: (15%, 13.75%, 16.25%, 35%),
     align: (center,left,right,auto,),
     [First], [row], [12.0], [Example of a row that spans multiple lines.],
-    [Second], [row], [5.0], [Here’s another one. Note the blank line between
+    [Second], [row], [5.0], [Here's another one. Note the blank line between
     rows.],
   )]
   , kind: table

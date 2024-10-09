@@ -28,6 +28,11 @@ $else$
 $template.typst()$
 $endif$
 
+$if(smart)$
+$else$
+#set smartquote(enabled: false)
+
+$endif$
 $for(header-includes)$
 $header-includes$
 
