@@ -109,6 +109,7 @@ data-files:
                  data/templates/passoptions.latex
                  data/templates/fonts.latex
                  data/templates/after-header-includes.latex
+                 data/templates/letter.latex
 
                  -- translations
                  data/translations/*.yaml
