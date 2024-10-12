@@ -40,6 +40,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
+import Text.Pandoc.Walk (walkM)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Time.Format
 import System.FilePath (takeDirectory)
@@ -150,43 +151,79 @@ metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
 
 parseRST :: PandocMonad m => RSTParser m Pandoc
 parseRST = do
+  standalone <- getOption readerStandalone
   optional blanklines -- skip blank lines at beginning of file
-  startPos <- getPosition
-  -- go through once just to get list of reference keys and notes
-  -- docMinusKeys is the raw document with blanks where the keys were...
-  let chunk = referenceKey
-              <|> anchorDef
-              <|> noteBlock
-              <|> citationBlock
-              <|> (snd <$> withRaw comment)
-              <|> headerBlock
-              <|> lineClump
-  docMinusKeys <- Sources <$>
-                  manyTill (do pos <- getPosition
-                               t <- chunk
-                               return (pos, t)) eof
-  -- UGLY: we collapse source position information.
-  -- TODO: fix the parser to use the F monad instead of two passes
-  setInput docMinusKeys
-  setPosition startPos
-  st' <- getState
-  let reversedNotes = stateNotes st'
-  updateState $ \s -> s { stateNotes = reverse reversedNotes
-                        , stateIdentifiers = mempty }
-  -- now parse it for real...
   blocks <- B.toList <$> parseBlocks
   citations <- sort . M.toList . stateCitations <$> getState
   citationItems <- mapM parseCitation citations
   let refBlock = [Div ("citations",[],[]) $
                  B.toList $ B.definitionList citationItems | not (null citationItems)]
-  standalone <- getOption readerStandalone
   state <- getState
   let meta = stateMeta state
   let (blocks', meta') = if standalone
                             then titleTransform (blocks, meta)
                             else (blocks, meta)
+  let reversedNotes = stateNotes state
+  updateState $ \s -> s { stateNotes = reverse reversedNotes }
+  doc <- walkM resolveReferences (Pandoc meta' (blocks' ++ refBlock))
   reportLogMessages
-  return $ Pandoc meta' (blocks' ++ refBlock)
+  return doc
+
+resolveReferences :: PandocMonad m => Inline -> RSTParser m Inline
+resolveReferences x@(Link _ ils (s,_))
+  | Just ref <- T.stripPrefix "##REF##" s = do
+      let isAnonKey (Key (T.uncons -> Just ('_',_))) = True
+          isAnonKey _                                = False
+      state <- getState
+      let keyTable = stateKeys state
+      let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
+      key <-  if ref == "_" -- anonymous key
+                then
+                  case anonKeys of
+                    []    -> mzero -- TODO log?
+                    (k:_) -> return k
+                else return $ toKey ref
+      ((src,tit), attr) <- lookupKey [] key
+      -- if anonymous link, remove key so it won't be used again
+      when (isAnonKey key) $ updateState $ \st ->
+                              st{ stateKeys = M.delete key keyTable }
+      return $ Link attr ils (src, tit)
+  | Just ref <- T.stripPrefix "##NOTE##" s = do
+      state <- getState
+      let notes = stateNotes state
+      case lookup ref notes of
+        Nothing   -> do
+          pos <- getPosition
+          logMessage $ ReferenceNotFound ref pos
+          return x
+        Just raw  -> do
+          -- We temporarily empty the note list while parsing the note,
+          -- so that we don't get infinite loops with notes inside notes...
+          -- Note references inside other notes are allowed in reST, but
+          -- not yet in this implementation.
+          updateState $ \st -> st{ stateNotes = [] }
+          contents <- parseFromString' parseBlocks raw
+          let newnotes = if ref == "*" || ref == "#" -- auto-numbered
+                            -- delete the note so the next auto-numbered note
+                            -- doesn't get the same contents:
+                            then deleteFirstsBy (==) notes [(ref,raw)]
+                            else notes
+          updateState $ \st -> st{ stateNotes = newnotes }
+          return $ Note (B.toList contents)
+  | Just ref <- T.stripPrefix "##SUBST##" s = do
+          substTable <- stateSubstitutions <$> getState
+          let key = toKey $ stripFirstAndLast ref
+          case M.lookup key substTable of
+               Nothing     -> do
+                 pos <- getPosition
+                 logMessage $ ReferenceNotFound (tshow key) pos
+                 return x
+               Just target -> case
+                 B.toList target of
+                   [t] -> return t
+                   ts  -> return $ Span nullAttr ts
+  | otherwise = return x
+resolveReferences x = return x
 
 parseCitation :: PandocMonad m
               => (Text, Text) -> RSTParser m (Inlines, [Blocks])
@@ -207,6 +244,9 @@ block :: PandocMonad m => RSTParser m Blocks
 block = choice [ codeBlock
                , blockQuote
                , fieldList
+               , referenceKey
+               , noteBlock
+               , citationBlock
                , directive
                , anchor
                , comment
@@ -309,7 +349,10 @@ doubleHeader = do
         Just ind -> (headerTable, ind + 1)
         Nothing  -> (headerTable ++ [DoubleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
-  attr <- registerHeader nullAttr txt
+  attr@(ident,_,_) <- registerHeader nullAttr txt
+  let key = toKey (stringify txt)
+  updateState $ \s ->
+    s { stateKeys = M.insert key (("#" <> ident,""), nullAttr) $ stateKeys s }
   return $ B.headerWith attr level txt
 
 doubleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
@@ -338,7 +381,10 @@ singleHeader = do
         Just ind -> (headerTable, ind + 1)
         Nothing  -> (headerTable ++ [SingleHeader c], length headerTable + 1)
   setState (state { stateHeaderTable = headerTable' })
-  attr <- registerHeader nullAttr txt
+  attr@(ident,_,_) <- registerHeader nullAttr txt
+  let key = toKey (stringify txt)
+  updateState $ \s ->
+    s { stateKeys = M.insert key (("#" <> ident,""), nullAttr) $ stateKeys s }
   return $ B.headerWith attr level txt
 
 singleHeader' :: PandocMonad m => RSTParser m (Inlines, Char)
@@ -1059,27 +1105,24 @@ mkAttr ident classes fields = (ident, classes, fields')
 --- note block
 ---
 
-noteBlock :: Monad m => RSTParser m Text
+noteBlock :: Monad m => RSTParser m Blocks
 noteBlock = try $ do
-  (ref, raw, replacement) <- noteBlock' noteMarker
+  (ref, raw) <- noteBlock' noteMarker
   updateState $ \s -> s { stateNotes = (ref, raw) : stateNotes s }
-  -- return blanks so line count isn't affected
-  return replacement
+  return mempty
 
-citationBlock :: Monad m => RSTParser m Text
+citationBlock :: Monad m => RSTParser m Blocks
 citationBlock = try $ do
-  (ref, raw, replacement) <- noteBlock' citationMarker
+  (ref, raw) <- noteBlock' citationMarker
   updateState $ \s ->
      s { stateCitations = M.insert ref raw (stateCitations s),
          stateKeys = M.insert (toKey ref) (("#" <> ref,""), ("",["citation"],[]))
                                (stateKeys s) }
-  -- return blanks so line count isn't affected
-  return replacement
+  return mempty
 
 noteBlock' :: Monad m
-           => RSTParser m Text -> RSTParser m (Text, Text, Text)
+           => RSTParser m Text -> RSTParser m (Text, Text)
 noteBlock' marker = try $ do
-  startPos <- getPosition
   string ".."
   spaceChar >> skipMany spaceChar
   ref <- marker
@@ -1087,10 +1130,8 @@ noteBlock' marker = try $ do
         <|> (newline >> return "")
   blanks <- option "" blanklines
   rest <- option "" indentedBlock
-  endPos <- getPosition
   let raw = first <> "\n" <> blanks <> rest <> "\n"
-  let replacement = T.replicate (sourceLine endPos - sourceLine startPos) "\n"
-  return (ref, raw, replacement)
+  return (ref, raw)
 
 citationMarker :: Monad m => RSTParser m Text
 citationMarker = do
@@ -1132,14 +1173,11 @@ simpleReferenceName = do
 referenceName :: PandocMonad m => RSTParser m Text
 referenceName = quotedReferenceName <|> simpleReferenceName
 
-referenceKey :: PandocMonad m => RSTParser m Text
+referenceKey :: PandocMonad m => RSTParser m Blocks
 referenceKey = do
-  startPos <- getPosition
   choice [substKey, anonymousKey, regularKey]
   optional blanklines
-  endPos <- getPosition
-  -- return enough blanks to replace key
-  return $ T.replicate (sourceLine endPos - sourceLine startPos) "\n"
+  return mempty
 
 targetURI :: Monad m => ParsecT Sources st m Text
 targetURI = do
@@ -1217,19 +1255,14 @@ regularKey = try $ do
     updateState $ \s -> s { stateKeys = M.insert key ((src,""), nullAttr) $
                             stateKeys s }
 
-anchorDef :: PandocMonad m => RSTParser m Text
-anchorDef = try $ do
-  (refs, raw) <- withRaw $ try (referenceNames <* blanklines)
-  forM_ refs $ \rawkey ->
-    updateState $ \s -> s { stateKeys =
-       M.insert (toKey rawkey) (("#" <> rawkey,""), nullAttr) $ stateKeys s }
-  -- keep this for 2nd round of parsing, where we'll add the divs (anchor)
-  return raw
-
 anchor :: PandocMonad m => RSTParser m Blocks
 anchor = try $ do
   refs <- referenceNames
   blanklines
+  forM_ refs $ \rawkey ->
+    updateState $ \s -> s { stateKeys =
+       M.insert (toKey rawkey) (("#" <> rawkey,""), nullAttr)
+         (stateKeys s) }
   b <- block
   let addDiv ref = B.divWith (ref, [], [])
   let emptySpanWithId id' = Span (id',[],[]) []
@@ -1244,16 +1277,6 @@ anchor = try $ do
                 -- we avoid generating divs for headers,
                 -- because it hides them from promoteHeader, see #4240
        _ -> return $ foldr addDiv b refs
-
-headerBlock :: PandocMonad m => RSTParser m Text
-headerBlock = do
-  ((txt, _), raw) <- withRaw (doubleHeader' <|> singleHeader')
-  (ident,_,_) <- registerHeader nullAttr txt
-  let key = toKey (stringify txt)
-  updateState $ \s -> s { stateKeys = M.insert key (("#" <> ident,""), nullAttr)
-                          $ stateKeys s }
-  return raw
-
 
 --
 -- tables
@@ -1628,25 +1651,17 @@ citationName = do
   raw <- citationMarker
   return $ "[" <> raw <> "]"
 
+-- We store the reference link label as the link target,
+-- preceded by '##REF##'. This is replaced after the AST
+-- has been built by the resolved reference.
 referenceLink :: PandocMonad m => RSTParser m Inlines
 referenceLink = try $ do
   ref <- (referenceName <|> citationName) <* char '_'
-  let label' = B.text ref
-  let isAnonKey (Key (T.uncons -> Just ('_',_))) = True
-      isAnonKey _                                = False
-  state <- getState
-  let keyTable = stateKeys state
-  key <- option (toKey ref) $
-                do char '_'
-                   let anonKeys = sort $ filter isAnonKey $ M.keys keyTable
-                   case anonKeys of
-                        []    -> mzero
-                        (k:_) -> return k
-  ((src,tit), attr) <- lookupKey [] key
-  -- if anonymous link, remove key so it won't be used again
-  when (isAnonKey key) $ updateState $ \s ->
-                          s{ stateKeys = M.delete key keyTable }
-  return $ B.linkWith attr src tit label'
+  isAnonymous <- (True <$ char '_') <|> pure False
+  let ref' = if isAnonymous
+                then "_"
+                else ref
+  pure $ B.linkWith nullAttr ("##REF##" <> ref') "" (B.text ref)
 
 -- We keep a list of oldkeys so we can detect lookup loops.
 lookupKey :: PandocMonad m
@@ -1666,6 +1681,10 @@ lookupKey oldkeys key = do
          let newkey = toKey rawkey
          if newkey `elem` oldkeys
             then do
+              -- TODO the pos is not going to be accurate
+              -- because we're calling this after the AST is
+              -- constructed. Probably good to remove that
+              -- parameter form CircularReference at some point.
               logMessage $ CircularReference rawkey pos
               return (("",""),nullAttr)
             else lookupKey (key:oldkeys) newkey
@@ -1687,42 +1706,14 @@ autoLink = autoURI <|> autoEmail
 subst :: PandocMonad m => RSTParser m Inlines
 subst = try $ do
   (_,ref) <- withRaw $ enclosed (char '|') (char '|') inline
-  state <- getState
-  let substTable = stateSubstitutions state
-  let key = toKey $ stripFirstAndLast ref
-  case M.lookup key substTable of
-       Nothing     -> do
-         pos <- getPosition
-         logMessage $ ReferenceNotFound (tshow key) pos
-         return mempty
-       Just target -> return target
+  pure $ B.linkWith nullAttr ("##SUBST##" <> ref) "" (B.text ref)
 
 note :: PandocMonad m => RSTParser m Inlines
 note = try $ do
   optional whitespace
   ref <- noteMarker
   char '_'
-  state <- getState
-  let notes = stateNotes state
-  case lookup ref notes of
-    Nothing   -> do
-      pos <- getPosition
-      logMessage $ ReferenceNotFound ref pos
-      return mempty
-    Just raw  -> do
-      -- We temporarily empty the note list while parsing the note,
-      -- so that we don't get infinite loops with notes inside notes...
-      -- Note references inside other notes are allowed in reST, but
-      -- not yet in this implementation.
-      updateState $ \st -> st{ stateNotes = [] }
-      contents <- parseFromString' parseBlocks raw
-      let newnotes = if ref == "*" || ref == "#" -- auto-numbered
-                        -- delete the note so the next auto-numbered note
-                        -- doesn't get the same contents:
-                        then deleteFirstsBy (==) notes [(ref,raw)]
-                        else notes
-      updateState $ \st -> st{ stateNotes = newnotes }
-      return $ B.note contents
+  pure $ B.linkWith nullAttr ("##NOTE##" <> ref) "" (B.text ref)
 
 smart :: PandocMonad m => RSTParser m Inlines
 smart = smartPunctuation inline
