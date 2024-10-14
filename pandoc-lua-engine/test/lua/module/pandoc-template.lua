@@ -55,14 +55,14 @@ return {
     test('returns a Template', function ()
       assert.are_equal(
         pandoc.utils.type(template.compile('$title$')),
-        'pandoc Template'
+        'Template'
       )
     end),
     test('returns a Template', function ()
       local templ_path = pandoc.path.join{'lua', 'module', 'default.test'}
       assert.are_equal(
         pandoc.utils.type(template.compile('${ partial() }', templ_path)),
-        'pandoc Template'
+        'Template'
       )
     end),
     test('fails if template has non-existing partial', function ()
@@ -76,7 +76,7 @@ return {
       assert.are_equal(type(jats_template), 'string')
       assert.are_equal(
         pandoc.utils.type(template.compile(jats_template)),
-        'pandoc Template'
+        'Template'
       )
     end),
   },

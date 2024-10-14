@@ -25,7 +25,7 @@ import Text.Parsec (SourcePos, sourceName)
 pushSources :: LuaError e => Pusher e Sources
 pushSources (Sources srcs) = do
   pushList (pushUD typeSource) srcs
-  newListMetatable "pandoc Sources" $ do
+  newListMetatable "Sources" $ do
     pushName "__tostring"
     pushHaskellFunction $ do
       sources <- forcePeek $ peekList (peekUD typeSource) (nthBottom 1)
@@ -43,7 +43,7 @@ peekSources idx = liftLua (ltype idx) >>= \case
 
 -- | Source object type.
 typeSource :: LuaError e => DocumentedType e (SourcePos, Text)
-typeSource = deftype "pandoc input source"
+typeSource = deftype "Source"
   [ operation Tostring $ lambda
     ### liftPure snd
     <#> udparam typeSource "srcs" "Source to print in native format"

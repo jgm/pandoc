@@ -22,7 +22,7 @@ import Text.Pandoc.Lua.Marshal.LogMessage (pushLogMessage)
 
 -- | Lua type used for the @CommonState@ object.
 typeCommonState :: LuaError e => DocumentedType e CommonState
-typeCommonState = deftype "pandoc CommonState" []
+typeCommonState = deftype "CommonState" []
   [ readonly "input_files" "input files passed to pandoc"
       (pushPandocList pushString, stInputFiles)
 

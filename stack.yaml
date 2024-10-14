@@ -20,12 +20,12 @@ extra-deps:
 - doctemplates-0.11.0.1
 - typst-0.6
 - hslua-module-doclayout-1.2.0
-- pandoc-lua-marshal-0.2.9
 - djot-0.1.2.2
 - texmath-0.12.8.11
 - commonmark-0.2.6.1
 - commonmark-pandoc-0.2.2.2
-
+- git: https://github.com/pandoc/pandoc-lua-marshal
+  commit: 2dc58d431bb3e4d55999db03c470fbf32970b3d5
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-22.33

@@ -59,7 +59,7 @@ return {
     test('returns a chunked doc', function ()
       assert.are_equal(
         pandoc.utils.type(structure.split_into_chunks(pandoc.Pandoc{})),
-        'pandoc.ChunkedDoc'
+        'ChunkedDoc'
       )
     end),
   },

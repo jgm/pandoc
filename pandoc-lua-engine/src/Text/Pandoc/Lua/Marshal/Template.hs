@@ -40,4 +40,4 @@ peekTemplate idx = liftLua (ltype idx) >>= \case
 
 -- | Template object type.
 typeTemplate :: LuaError e => DocumentedType e (Template Text)
-typeTemplate = deftype "pandoc Template" [] []
+typeTemplate = deftype "Template" [] []

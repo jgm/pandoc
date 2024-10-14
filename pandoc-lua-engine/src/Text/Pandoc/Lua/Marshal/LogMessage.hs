@@ -19,7 +19,7 @@ import qualified Data.Aeson as Aeson
 
 -- | Type definition for pandoc log messages.
 typeLogMessage :: LuaError e => DocumentedType e LogMessage
-typeLogMessage = deftype "pandoc LogMessage"
+typeLogMessage = deftype "LogMessage"
   [ operation Index $ defun "__tostring"
       ### liftPure showLogMessage
       <#> udparam typeLogMessage "msg" "object"
