@@ -1394,6 +1394,7 @@ table = gridTable <|> simpleTable False <|> simpleTable True <?> "table"
 inline :: PandocMonad m => RSTParser m Inlines
 inline = choice [ note          -- can start with whitespace, so try before ws
                 , link
+                , inlineAnchor
                 , strong
                 , emph
                 , code
@@ -1721,3 +1722,13 @@ note = try $ do
 
 smart :: PandocMonad m => RSTParser m Inlines
 smart = smartPunctuation inline
+
+inlineAnchor :: PandocMonad m => RSTParser m Inlines
+inlineAnchor = do
+  char '_'
+  name <- quotedReferenceName <|> simpleReferenceName
+  let ident = textToIdentifier mempty name
+  updateState $ \s ->
+    s{ stateKeys = M.insert (toKey name) (("#" <> ident, ""), nullAttr)
+                    (stateKeys s) }
+  pure $ B.spanWith (ident,[],[]) (B.text name)
