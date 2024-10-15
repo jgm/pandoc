@@ -30,7 +30,7 @@ import qualified Data.Text as T
 import Text.Printf (printf)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad, fetchItem, getTimestamp)
+import Text.Pandoc.Class (PandocMonad, fetchItem, getTimestamp)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -1626,24 +1626,28 @@ explicitLink = try $ do
   char '`'
   notFollowedBy (char '`') -- `` marks start of inline code
   label' <- trimInlines . mconcat <$>
-             manyTill (notFollowedBy (char '`') >> inlineContent) (char '<')
+              manyTill (notFollowedBy (char '`') >> inlineContent) (char '<')
   src <- trim . T.pack . filter (/= '\n') <$> -- see #10279
            manyTill (noneOf ">\n" <|> (char '\n' <* notFollowedBy blankline))
                     (char '>')
   skipSpaces
   string "`_"
   optional $ char '_' -- anonymous form
-  let label'' = if label' == mempty
-                   then B.str src
-                   else label'
-  -- `link <google_>` is a reference link to _google!
   ((src',tit),attr) <-
     if isURI src
        then return ((src, ""), nullAttr)
        else
          case T.unsnoc src of
+           -- `link <google_>` is a reference link to _google!
            Just (xs, '_') -> lookupKey [] (toKey xs)
            _              -> return ((src, ""), nullAttr)
+  let label'' = if label' == mempty
+                   then B.str src
+                   else label'
+  let key = toKey $ stringify label'
+  unless (key == Key mempty) $ do
+    updateState $ \s -> s{
+      stateKeys = M.insert key ((src',tit), attr) $ stateKeys s }
   return $ B.linkWith attr (escapeURI src') tit label''
 
 citationName :: PandocMonad m => RSTParser m Text
