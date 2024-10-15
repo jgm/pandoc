@@ -212,11 +212,11 @@ resolveReferences x@(Link _ ils (s,_))
           return $ Note (B.toList contents)
   | Just ref <- T.stripPrefix "##SUBST##" s = do
           substTable <- stateSubstitutions <$> getState
-          let key = toKey $ stripFirstAndLast ref
+          let key@(Key key') = toKey $ stripFirstAndLast ref
           case M.lookup key substTable of
                Nothing     -> do
                  pos <- getPosition
-                 logMessage $ ReferenceNotFound (tshow key) pos
+                 logMessage $ ReferenceNotFound (tshow key') pos
                  return x
                Just target -> case
                  B.toList target of
@@ -1711,7 +1711,13 @@ autoLink = autoURI <|> autoEmail
 subst :: PandocMonad m => RSTParser m Inlines
 subst = try $ do
   (_,ref) <- withRaw $ enclosed (char '|') (char '|') inline
-  pure $ B.linkWith nullAttr ("##SUBST##" <> ref) "" (B.text ref)
+  let substlink = B.linkWith nullAttr ("##SUBST##" <> ref) "" (B.text ref)
+  reflink <- option False (True <$ char '_')
+  if reflink
+     then do
+       let linkref = T.drop 1 $ T.dropEnd 1 ref
+       return $ B.linkWith nullAttr ("##REF##" <> linkref) "" substlink
+     else return substlink
 
 note :: PandocMonad m => RSTParser m Inlines
 note = try $ do
