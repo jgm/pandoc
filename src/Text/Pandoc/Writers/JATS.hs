@@ -54,6 +54,53 @@ import Text.TeXMath
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import qualified Text.XML.Light as Xml
 
+-- Create a nested dictionary data structure that contains
+-- the Contributor Role Taxonomy (CRediT). This is useful
+-- for generating JATS that annotate contributor roles
+creditNames :: M.Map Text Text
+creditNames = M.fromList [
+    ("conceptualization", "Conceptualization"),
+    ("data-curation", "Data curation"),
+    ("formal-analysis", "Formal analysis"),
+    ("funding-acquisition", "Funding acquisition"),
+    ("investigation", "Investigation"),
+    ("methodology", "Methodology"),
+    ("project-administration", "Project administration"),
+    ("resources", "Resources"),
+    ("software", "Software"),
+    ("supervision", "Supervision"),
+    ("validation", "Validation"),
+    ("visualization", "Visualization"),
+    ("writing-original-draft", "Writing – original draft"),
+    ("writing-review-editing", "Writing – review & editing")]
+
+addCreditNames :: Context Text -> Context Text
+addCreditNames context =
+  case getField "roles" context of
+    -- If there is no "roles" key in the context, then we don't have to bother,
+    -- so just return the context as is
+    Nothing -> context
+    -- If there is a "roles" key in the context, then we're going to overwrite it
+    -- 1. x = (map addCreditName roles) applies the addCreditName to each role
+    -- 2. `resetField "roles" x context` replaces the value of the "roles"
+    --    in the context object with x (the thing from step 1)
+    Just roles -> resetField "roles" (map addCreditName roles) context
+
+addCreditName :: Val Text -> Val Text
+addCreditName val =
+  case val of
+    MapVal ctx ->
+      case getField "credit-name" ctx of
+        Just (_ :: Val Text) -> val
+        Nothing ->
+           case getField "credit-id" ctx of
+             Nothing -> val
+             Just creditId ->
+               case M.lookup creditId creditNames of
+                 Nothing -> val
+                 Just creditName -> MapVal $ resetField "credit-name" creditName ctx
+    _ -> val
+
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
 writeJatsArchiving :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -159,6 +206,7 @@ docToJATS opts (Pandoc meta blocks') = do
                (lookupMetaInlines "title" meta)
   let context = defField "body" main
               $ defField "back" back
+              $ addCreditNames
               $ resetField "title" title'
               $ resetField "date" date
               $ defField "mathml" (case writerHTMLMathMethod opts of
