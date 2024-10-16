@@ -44,7 +44,7 @@
   set heading(numbering: sectionnumbering)
 
   if title != none {
-	place(top + center, float: true, scope: "parent")[
+    place(top + center, float: true, scope: "parent")[
       #text(weight: "bold", size: 1.5em)[#title]
       #(if subtitle != none {
         parbreak()
