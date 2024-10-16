@@ -117,18 +117,16 @@ titleTransform (bs, meta) =
 
 metaFromDefList :: [([Inline], [[Block]])] -> Meta -> Meta
 metaFromDefList ds meta = adjustAuthors $ foldr f meta ds
- where f (k,v) = setMeta (T.toLower $ stringify k) (mconcat $ map fromList v)
+ where f (k,v) =
+         case v of
+           [[Plain ils]] ->  setMeta (T.toLower (stringify k)) $ MetaInlines ils
+           _ -> setMeta (T.toLower (stringify k)) $ mconcat $ map fromList v
        adjustAuthors (Meta metamap) = Meta $ M.adjust splitAuthors "author"
-                                           $ M.adjust toPlain "date"
-                                           $ M.adjust toPlain "title"
                                            $ M.mapKeys (\k ->
                                                  if k == "authors"
                                                     then "author"
                                                     else k) metamap
-       toPlain (MetaBlocks [Para xs]) = MetaInlines xs
-       toPlain x                      = x
-       splitAuthors (MetaBlocks [Para xs])
-                                      = MetaList $ map MetaInlines
+       splitAuthors (MetaInlines xs)  = MetaList $ map MetaInlines
                                                  $ splitAuthors' xs
        splitAuthors x                 = x
        splitAuthors'                  = map normalizeSpaces .
@@ -284,7 +282,10 @@ fieldListItem minIndent = try $ do
   term <- parseInlineFromText name
   contents <- parseFromString' parseBlocks raw
   optional blanklines
-  return (term, [contents])
+  let defn = case B.toList contents of
+                [Para ils] -> [B.plain $ B.fromList ils] -- see #7766
+                _ -> [contents]
+  return (term, defn)
 
 fieldList :: PandocMonad m => RSTParser m Blocks
 fieldList = try $ do
