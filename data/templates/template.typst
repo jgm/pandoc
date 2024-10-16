@@ -50,7 +50,7 @@
         parbreak()
         text(weight: "bold", size: 1.25em)[#subtitle]
       })
-    ]]
+    ]
   }
 
   if authors != none and authors != [] {
@@ -67,13 +67,14 @@
             #author.email
           ]
       )
+     )
     ]
   }
 
   if date != none {
 	place(top + center, float: true, scope: "parent")[
       #date
-    ]]
+    ]
   }
 
   if abstract != none {
