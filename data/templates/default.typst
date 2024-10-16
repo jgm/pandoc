@@ -28,6 +28,10 @@ $else$
 $template.typst()$
 $endif$
 
+#set page(
+  columns: $if(columns)$$columns$$else$1$endif$,
+)
+
 $if(smart)$
 $else$
 #set smartquote(enabled: false)
@@ -89,7 +93,6 @@ $endif$
 $if(section-numbering)$
   sectionnumbering: "$section-numbering$",
 $endif$
-  cols: $if(columns)$$columns$$else$1$endif$,
   doc,
 )
 
