@@ -529,6 +529,7 @@ library
                  split                 >= 0.2      && < 0.3,
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
+                 template-haskell,
                  temporary             >= 1.1      && < 1.4,
                  texmath               >= 0.12.8.11 && < 0.13,
                  text                  >= 1.1.1.0  && < 2.2,
@@ -554,6 +555,7 @@ library
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
+                   Text.Pandoc.Readers.Roff,
                    Text.Pandoc.App,
                    Text.Pandoc.Data,
                    Text.Pandoc.Options,
@@ -595,6 +597,8 @@ library
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
                    Text.Pandoc.Readers.Man,
+                   Text.Pandoc.Readers.Mdoc,
+                   Text.Pandoc.Readers.Mdoc.Lex,
                    Text.Pandoc.Readers.FB2,
                    Text.Pandoc.Readers.DokuWiki,
                    Text.Pandoc.Readers.Ipynb,
@@ -706,6 +710,7 @@ library
                    Text.Pandoc.Readers.LaTeX.Parsing,
                    Text.Pandoc.Readers.LaTeX.SIunitx,
                    Text.Pandoc.Readers.LaTeX.Table,
+                   Text.Pandoc.Readers.Mdoc.Macros,
                    Text.Pandoc.Readers.Typst.Parsing,
                    Text.Pandoc.Readers.Typst.Math,
                    Text.Pandoc.Readers.ODT.Base,
@@ -728,8 +733,8 @@ library
                    Text.Pandoc.Readers.Org.ParserState,
                    Text.Pandoc.Readers.Org.Parsing,
                    Text.Pandoc.Readers.Org.Shared,
+                   Text.Pandoc.Readers.Roff.Escape,
                    Text.Pandoc.Readers.Metadata,
-                   Text.Pandoc.Readers.Roff,
                    Text.Pandoc.Writers.Docx.OpenXML,
                    Text.Pandoc.Writers.Docx.StyleMap,
                    Text.Pandoc.Writers.Docx.Table,
@@ -829,6 +834,7 @@ test-suite test-pandoc
                   Tests.Readers.Muse
                   Tests.Readers.Creole
                   Tests.Readers.Man
+                  Tests.Readers.Mdoc
                   Tests.Readers.FB2
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
@@ -865,3 +871,8 @@ benchmark benchmark-pandoc
                    deepseq
   -- we increase heap size to avoid benchmarking garbage collection:
   ghc-options:     -rtsopts -with-rtsopts=-A8m -threaded
+
+executable lexroff
+  import:  common-executable
+  main-is: lexroff.hs
+  build-depends: pandoc, text
