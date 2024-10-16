@@ -44,7 +44,7 @@
   set heading(numbering: sectionnumbering)
 
   if title != none {
-    align(center)[#block(inset: 2em)[
+	place(top + center, float: true, scope: "parent")[
       #text(weight: "bold", size: 1.5em)[#title]
       #(if subtitle != none {
         parbreak()
@@ -56,7 +56,8 @@
   if authors != none and authors != [] {
     let count = authors.len()
     let ncols = calc.min(count, 3)
-    grid(
+	  place(top + center, float: true, scope: "parent")[
+     #grid(
       columns: (1fr,) * ncols,
       row-gutter: 1.5em,
       ..authors.map(author =>
@@ -66,24 +67,19 @@
             #author.email
           ]
       )
-    )
+    ]
   }
 
   if date != none {
-    align(center)[#block(inset: 1em)[
+	place(top + center, float: true, scope: "parent")[
       #date
     ]]
   }
 
   if abstract != none {
-    block(inset: 2em)[
+	place(top + center, float: true, scope: "parent")[
     #text(weight: "semibold")[Abstract] #h(1em) #abstract
     ]
   }
-
-  if cols == 1 {
-    doc
-  } else {
-    columns(cols, doc)
-  }
+doc
 }
