@@ -56,7 +56,7 @@
   if authors != none and authors != [] {
     let count = authors.len()
     let ncols = calc.min(count, 3)
-	  place(top + center, float: true, scope: "parent")[
+    place(top + center, float: true, scope: "parent")[
      #grid(
       columns: (1fr,) * ncols,
       row-gutter: 1.5em,
@@ -72,13 +72,13 @@
   }
 
   if date != none {
-	place(top + center, float: true, scope: "parent")[
+    place(top + center, float: true, scope: "parent")[
       #date
     ]
   }
 
   if abstract != none {
-	place(top + center, float: true, scope: "parent")[
+    place(top + center, float: true, scope: "parent")[
     #text(weight: "semibold")[Abstract] #h(1em) #abstract
     ]
   }
