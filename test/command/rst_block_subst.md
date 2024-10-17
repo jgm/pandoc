@@ -5,6 +5,7 @@
 .. |figure05| figure:: img/dummy.png
 
    capt
+^D
 [ Figure
     ( "" , [] , [] )
     (Caption Nothing [ Plain [ Str "capt" ] ])
