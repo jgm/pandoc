@@ -186,4 +186,4 @@ toKey = Key . T.toLower . T.unwords . T.words . unbracket
 
 type KeyTable = M.Map Key (Target, Attr)
 
-type SubstTable = M.Map Key Inlines
+type SubstTable = M.Map Key Blocks

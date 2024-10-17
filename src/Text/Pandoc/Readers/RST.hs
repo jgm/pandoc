@@ -163,9 +163,27 @@ parseRST = do
                             else (blocks, meta)
   let reversedNotes = stateNotes state
   updateState $ \s -> s { stateNotes = reverse reversedNotes }
-  doc <- walkM resolveReferences (Pandoc meta' (blocks' ++ refBlock))
+  doc <- walkM resolveReferences =<<
+         walkM resolveBlockSubstitutions
+         (Pandoc meta' (blocks' ++ refBlock))
   reportLogMessages
   return doc
+
+resolveBlockSubstitutions :: PandocMonad m => Block -> RSTParser m Block
+resolveBlockSubstitutions x@(Para [Link _attr _ (s,_)])
+  | Just ref <- T.stripPrefix "##SUBST##" s = do
+          substTable <- stateSubstitutions <$> getState
+          let key@(Key key') = toKey $ stripFirstAndLast ref
+          case M.lookup key substTable of
+               Nothing     -> do
+                 pos <- getPosition
+                 logMessage $ ReferenceNotFound (tshow key') pos
+                 return x
+               Just target -> case
+                 B.toList target of
+                   [bl] -> return bl
+                   bls -> return $ Div nullAttr bls
+resolveBlockSubstitutions x = return x
 
 resolveReferences :: PandocMonad m => Inline -> RSTParser m Inline
 resolveReferences x@(Link _ ils (s,_))
@@ -218,8 +236,9 @@ resolveReferences x@(Link _ ils (s,_))
                  return x
                Just target -> case
                  B.toList target of
-                   [t] -> return t
-                   ts  -> return $ Span nullAttr ts
+                   [Para [t]] -> return t
+                   [Para xs] -> return $ Span nullAttr xs
+                   bls -> return $ Span nullAttr $ blocksToInlines bls
   | otherwise = return x
 resolveReferences x = return x
 
@@ -1202,17 +1221,16 @@ substKey = try $ do
   (alt,ref) <- withRaw $ trimInlines . mconcat
                       <$> enclosed (char '|') (char '|') inline
   res <- B.toList <$> directive'
-  il <- case res of
+  bls <- case res of
              -- use alt unless :alt: attribute on image:
              [Para [Image attr [Str "image"] (src,tit)]] ->
-                return $ B.imageWith attr src tit alt
+                return $ B.para $ B.imageWith attr src tit alt
              [Para [Link _ [Image attr [Str "image"] (src,tit)] (src',tit')]] ->
-                return $ B.link src' tit' (B.imageWith attr src tit alt)
-             [Para ils] -> return $ B.fromList ils
-             _          -> mzero
+                return $ B.para $ B.link src' tit' (B.imageWith attr src tit alt)
+             _          -> return $ B.fromList res
   let key = toKey $ stripFirstAndLast ref
   updateState $ \s -> s{ stateSubstitutions =
-                          M.insert key il $ stateSubstitutions s }
+                          M.insert key bls $ stateSubstitutions s }
 
 anonymousKey :: PandocMonad m => RSTParser m ()
 anonymousKey = try $ do
