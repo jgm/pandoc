@@ -1,53 +1,104 @@
+# This flake is written using haskell-flake
+# https://community.flake.parts/haskell-flake
 {
-  description = "Pandoc development";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    haskell-flake.url = "github:srid/haskell-flake";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
+    # Remember to run `nix flake lock` after adding or modifying flake inputs
+    # This will update the `flake.lock` file.
+    typst-hs.url = "github:jgm/typst-hs/main";
+    typst-hs.flake = false;
+    typst-symbols.url = "github:jgm/typst-symbols/0.1.6";
+    typst-symbols.flake = false;
+    citeproc.url = "github:jgm/citeproc/0.8.1.1";
+    citeproc.flake = false;
+    commonmark-hs.url = "github:jgm/commonmark-hs/master";
+    commonmark-hs.flake = false;
+    emojis.url = "github:jgm/emojis/0.1.4.1";
+    emojis.flake = false;
+    skylighting.url = "github:jgm/skylighting/0.14.2";
+    skylighting.flake = false;
+    djot.url = "github:jgm/djoths/0.1.2.1";
+    djot.flake = false;
+  };
 
-  outputs = inputs:
-    let
-      overlay = final: prev: {
-        haskell = prev.haskell // {
-          packageOverrides = hfinal: hprev:
-            prev.haskell.packageOverrides hfinal hprev // {
-              crypton-connection = final.fetchFromGitHub {
-                owner = "kazu-yamamoto";
-                repo = "crypton-connection";
-                rev = "5c064b911e7327a4d399fd9dd057663d0d0fb256";
-                sha256 = "00j1nf9glbz0cnzd84vp08j9ybzjbm3b6gcamlqxxcjb31kllz4b";
-              };
-              pandoc = hfinal.callCabal2nix "pandoc" ./. { };
-            };
-        };
-        pandoc = final.haskell.lib.compose.justStaticExecutables final.haskellPackages.pandoc;
-      };
-      perSystem = system:
-        let
-          pkgs = import inputs.nixpkgs { inherit system; overlays = [ overlay ]; };
-          hspkgs = pkgs.haskellPackages;
-        in
-        {
-          devShell = hspkgs.shellFor {
-            withHoogle = true;
-            packages = p : [
-              p.pandoc
-            ];
-            buildInputs = [
-              hspkgs.cabal-install
-              hspkgs.haskell-language-server
-              hspkgs.hlint
-              hspkgs.ghcid
-              hspkgs.ormolu
-              hspkgs.stylish-haskell
-              hspkgs.weeder
-              hspkgs.servant-server
-              hspkgs.hslua
-              pkgs.bashInteractive
-            ];
+  outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = nixpkgs.lib.systems.flakeExposed;
+      imports = [ inputs.haskell-flake.flakeModule ];
+
+      perSystem = { config, self', pkgs, ... }: {
+        haskellProjects.default = {
+          # Haskell package overrides. See https://community.flake.parts/haskell-flake/dependency
+          packages = {
+            # Source overrides
+            typst.source = inputs.typst-hs;
+            typst-symbols.source = inputs.typst-symbols;
+            citeproc.source = inputs.citeproc;
+            commonmark-extensions.source = inputs.commonmark-hs + /commonmark-extensions;
+            commonmark-pandoc.source = inputs.commonmark-hs + /commonmark-pandoc;
+            commonmark.source = inputs.commonmark-hs + /commonmark;
+            commonmark-cli.source = inputs.commonmark-hs + /commonmark-cli;
+            emojis.source = inputs.emojis;
+            djot.source = inputs.djot;
+
+            # TODO: Move this to skylighting's flake, and import it here (as haskell-flake module)
+            skylighting.source = pkgs.runCommand "skylighting" {} ''
+              mkdir $out
+              cp -r ${inputs.skylighting} $out/root
+              chmod -R u+w $out
+              cd $out/root/skylighting
+              ${config.haskellProjects.default.outputs.finalPackages.skylighting-core}/bin/skylighting-extract ../skylighting-core/xml
+              rm ./changelog.md; cp ../changelog.md .
+              cd $out
+              mv root/skylighting/* .
+              rm -rf root
+            '';
+            skylighting-core.source = inputs.skylighting + /skylighting-core;
+            skylighting-format-ansi.source = inputs.skylighting + /skylighting-format-ansi;
+            skylighting-format-blaze-html.source = inputs.skylighting + /skylighting-format-blaze-html;
+            skylighting-format-context.source = inputs.skylighting + /skylighting-format-context;
+            skylighting-format-latex.source = inputs.skylighting + /skylighting-format-latex;
+
+            # Hackage overrides
+            texmath.source = "0.12.8.9";
+            toml-parser.source = "2.0.0.0";
+            tls.source = "2.0.5";
           };
-          defaultPackage = pkgs.pandoc;
+          settings = {
+            skylighting-core = {
+              cabalFlags.executable = true;
+            };
+          };
+
+          autoWire = [ "packages" "apps" "checks" ];
+
+          # Programs you want to make available in the shell.
+          # Default programs can be disabled by setting to 'null'
+          devShell.tools = hp: {
+            inherit (hp) hlint stylish-haskell;
+          };
         };
-    in
-    { inherit overlay; } //
-      inputs.flake-utils.lib.eachDefaultSystem perSystem;
+
+        packages = {
+          # This enable us to `nix build` or `nix run` pandoc.
+          default = self'.packages.pandoc;
+          # Tip: Run `nix shell .#skylighting-core` to enter a devShell with this executable in PATH
+          skylighting-core = config.haskellProjects.default.outputs.finalPackages.skylighting-core;
+        };
+
+        devShells.default = pkgs.mkShell {
+          name = "pandoc";
+          packages = with pkgs; [
+            # Add custom packages here
+            bashInteractive
+          ];
+          inputsFrom = [
+            config.haskellProjects.default.outputs.devShell
+          ];
+        };
+      };
+    };
 }
