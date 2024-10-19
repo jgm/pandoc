@@ -43,44 +43,40 @@
            size: fontsize)
   set heading(numbering: sectionnumbering)
 
-  if title != none {
-    place(top + center, float: true, scope: "parent")[
-      #text(weight: "bold", size: 1.5em)[#title]
-      #(if subtitle != none {
+  place(top + center, float: true, scope: "parent", clearance: 4mm)[
+  #if title != none {
+      text(weight: "bold", size: 1.5em)[#title]
+      (if subtitle != none {
         parbreak()
         text(weight: "bold", size: 1.25em)[#subtitle]
       })
-    ]
   }
 
-  if authors != none and authors != [] {
+  #if authors != none and authors != [] {
     let count = authors.len()
     let ncols = calc.min(count, 3)
-    place(top + center, float: true, scope: "parent")[
-     #grid(
-      columns: (1fr,) * ncols,
-      row-gutter: 1.5em,
-      ..authors.map(author =>
+      grid(
+        columns: (1fr,) * ncols,
+        row-gutter: 1.5em,
+        ..authors.map(author =>
           align(center)[
             #author.name \
             #author.affiliation \
             #author.email
           ]
-      )
-     )
-    ]
+        )
+       )
   }
 
-  if date != none {
-    place(top + center, float: true, scope: "parent")[
-      #date
-    ]
+  #if date != none {
+      date
   }
 
-  if abstract != none {
-    place(top + center, float: true, scope: "parent")[
-    #text(weight: "semibold")[Abstract] #h(1em) #abstract
-    ]
+  #if abstract != none {
+    text(weight: "semibold")[Abstract]
+      h(1em) 
+      abstract
   }
+]
 doc
 }
