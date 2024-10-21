@@ -104,6 +104,7 @@ data LogMessage =
   | MakePDFWarning Text
   | UnclosedDiv SourcePos SourcePos
   | UnsupportedCodePage Int
+  | YamlWarning SourcePos Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -283,6 +284,12 @@ instance ToJSON LogMessage where
            ]
       UnsupportedCodePage cpg ->
            ["codepage" .= cpg]
+      YamlWarning pos msg ->
+           [ "source" .= sourceName pos
+           , "line" .= toJSON (sourceLine pos)
+           , "column" .= toJSON (sourceColumn pos)
+           , "message" .= msg
+           ]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -430,6 +437,7 @@ showLogMessage msg =
           " unclosed at " <> showPos closepos <> ", closing implicitly."
        UnsupportedCodePage cpg -> "Unsupported code page " <> tshow cpg <>
           ". Text will likely be garbled."
+       YamlWarning pos m -> "YAML warning (" <> showPos pos <> "): " <> m
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -488,3 +496,4 @@ messageVerbosity msg =
        MakePDFWarning{}              -> WARNING
        UnclosedDiv{}                 -> WARNING
        UnsupportedCodePage{}         -> WARNING
+       YamlWarning{}                 -> WARNING
