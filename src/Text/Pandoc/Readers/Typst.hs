@@ -235,10 +235,11 @@ blockHandlers = M.fromList
   ,("quote", \_ fields -> do
       getField "block" fields >>= guard
       body <- getField "body" fields >>= pWithContents pBlocks
-      attribution <-
-        ((\x -> B.para ("\x2014\xa0" <> x)) <$>
-          (getField "attribution" fields >>= pWithContents pInlines))
-        <|> pure mempty
+      attribution' <- getField "attribution" fields
+      attribution <- if attribution' == mempty
+                        then pure mempty
+                        else (\x -> B.para ("\x2014\xa0" <> x)) <$>
+                              (pWithContents pInlines attribution')
       pure $ B.blockQuote $ body <> attribution)
   ,("list", \_ fields -> do
       children <- V.toList <$> getField "children" fields
