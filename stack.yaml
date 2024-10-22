@@ -22,6 +22,7 @@ extra-deps:
 - djot-0.1.2.2
 - commonmark-0.2.6.1
 - commonmark-pandoc-0.2.2.2
+- typst-symbols-0.1.7
 - git: https://github.com/jgm/texmath.git
   commit: 9539ea28538dc633001260cc8a08fb3aaeca5775
 - git: https://github.com/jgm/typst-hs.git
