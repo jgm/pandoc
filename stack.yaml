@@ -18,12 +18,13 @@ extra-deps:
 - skylighting-0.14.3
 - doclayout-0.5
 - doctemplates-0.11.0.1
-- typst-0.6
 - hslua-module-doclayout-1.2.0
 - djot-0.1.2.2
 - texmath-0.12.8.11
 - commonmark-0.2.6.1
 - commonmark-pandoc-0.2.2.2
+- git: https://github.com/jgm/typst-hs.git
+  commit: cddea1e9382fd16b776a91b6ed8117d71e721896
 - git: https://github.com/pandoc/pandoc-lua-marshal
   commit: 2dc58d431bb3e4d55999db03c470fbf32970b3d5
 ghc-options:
