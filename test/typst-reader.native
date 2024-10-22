@@ -3185,7 +3185,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\preccurlyeq"
+                                  [ Math InlineMath "\\preceq"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "prec.eq"
                                   ]
@@ -3278,7 +3278,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\succcurlyeq"
+                                  [ Math InlineMath "\\succeq"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "succ.eq"
                                   ]
