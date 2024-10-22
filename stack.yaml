@@ -23,9 +23,9 @@ extra-deps:
 - commonmark-0.2.6.1
 - commonmark-pandoc-0.2.2.2
 - git: https://github.com/jgm/texmath.git
-  commit: 25aeb066e1ea54b5259b47cb974b5e99e3211d03
+  commit: 9539ea28538dc633001260cc8a08fb3aaeca5775
 - git: https://github.com/jgm/typst-hs.git
-  commit: cddea1e9382fd16b776a91b6ed8117d71e721896
+  commit: 1703100f41475598fd2d07f7a5921365e80fd0cb
 - git: https://github.com/pandoc/pandoc-lua-marshal
   commit: 2dc58d431bb3e4d55999db03c470fbf32970b3d5
 ghc-options:
