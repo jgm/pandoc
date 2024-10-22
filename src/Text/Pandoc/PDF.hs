@@ -480,7 +480,7 @@ toPdfViaTempFile  ::
           -> Text         -- ^ Source
           -> IO (Either ByteString ByteString)
 toPdfViaTempFile verbosity program args mkOutArgs source =
-  withTempFile "." "toPdfViaTempFile.html" $ \file h1 ->
+  withTempFile "." "toPdfViaTempFile.source" $ \file h1 ->
     withTempFile "." "toPdfViaTempFile.pdf" $ \pdfFile h2 -> do
       hClose h1
       hClose h2
