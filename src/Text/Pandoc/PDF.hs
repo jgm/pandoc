@@ -411,11 +411,11 @@ runTeXProgram program args tmpDir outDir = do
                          , k /= "TEXINPUTS" && k /= "TEXMFOUTPUT"]
     liftIO (UTF8.readFile file) >>=
       showVerboseInfo (Just tmpDir) program programArgs env''
-    go env'' programArgs (1 :: Int) Nothing
+    go env'' programArgs (1 :: Int)
  where
    file = tmpDir ++ "/input.tex"
    outfile = outDir ++ "/input.pdf"
-   go env'' programArgs runNumber oldTocHash = do
+   go env'' programArgs runNumber = do
      let maxruns = 4 -- stop if warnings present after 4 runs
      report $ MakePDFInfo ("LaTeX run number " <> tshow runNumber) mempty
      (exit, out) <- liftIO $ E.catch
@@ -429,23 +429,15 @@ runTeXProgram program args tmpDir outDir = do
                        then BL.fromStrict <$> readFileStrict logFile
                        else return mempty
      let rerunWarnings = checkForRerun logContents
-     tocHash <- do
-       let tocFile = replaceExtension outfile ".toc"
-       tocFileExists <- fileExists tocFile
-       if tocFileExists
-          then do
-            tocContents <- readFileStrict tocFile
-            pure $ Just $! hashWith SHA1 tocContents
-          else pure Nothing
-     -- compare hash of toc to former hash to see if it changed (#9295)
-     let rerunWarnings' = rerunWarnings ++
-                           ["TOC changed" | tocHash /= oldTocHash ]
+     tocFileExists <- fileExists (replaceExtension outfile ".toc")
+       -- if we have a TOC we always need 3 runs, see #10308
+     let rerunWarnings' = rerunWarnings ++ ["TOC is present" | tocFileExists]
      if not (null rerunWarnings') && runNumber < maxruns
         then do
           report $ MakePDFInfo "Rerun needed"
                     (T.intercalate "\n"
                       (map (UTF8.toText . BC.toStrict) rerunWarnings'))
-          go env'' programArgs (runNumber + 1) tocHash
+          go env'' programArgs (runNumber + 1)
        else do
           (log', pdf) <- getResultingPDF (Just logFile) outfile
           return (exit, fromMaybe out log', pdf)
