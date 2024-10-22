@@ -1,7 +1,6 @@
 Pandoc
   Meta { unMeta = fromList [] }
-  [ Para []
-  , Header
+  [ Header
       1
       ( "" , [] , [] )
       [ Str "Fibonacci" , Space , Str "sequence" ]
@@ -46,7 +45,6 @@ Pandoc
           DisplayMath
           "F_{n} = \\left\\lfloor {\\frac{1}{\\sqrt{5}}\\phi^{n}} \\right\\rceil,\\quad\\phi = \\frac{1 + \\sqrt{5}}{2}"
       ]
-  , Para []
   , Para
       [ Str "The"
       , Space
@@ -189,12 +187,6 @@ Pandoc
           ]
           (TableFoot ( "" , [] , [] ) [])
       ]
-  , Para []
-  , Para []
-  , Para []
-  , Para []
-  , Para []
-  , Para []
   , Div
       ( "" , [ "columns-flow" ] , [ ( "count" , "2" ) ] )
       [ Para
@@ -534,7 +526,7 @@ Pandoc
                       AlignDefault
                       (RowSpan 1)
                       (ColSpan 1)
-                      [ Para [] ]
+                      []
                   , Cell
                       ( "" , [] , [] )
                       AlignDefault
@@ -1683,7 +1675,6 @@ Pandoc
           , Code ( "" , [] , [] ) "overline(A)"
           , Str ")."
           ]
-      , Para []
       , DefinitionList
           [ ( [ Str "Remark" ]
             , [ [ Para
@@ -5309,7 +5300,7 @@ Pandoc
                       AlignDefault
                       (RowSpan 1)
                       (ColSpan 1)
-                      [ Para [] ]
+                      []
                   , Cell
                       ( "" , [] , [] )
                       AlignDefault
@@ -5347,7 +5338,6 @@ Pandoc
               ]
           , Str "."
           ]
-      , Para []
       , HorizontalRule
       , Para
           [ Str "johanvx"

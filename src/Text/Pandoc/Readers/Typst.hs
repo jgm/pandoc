@@ -523,9 +523,12 @@ parbreaksToLinebreaks =
    isParbreak _ = False
 
 pPara :: PandocMonad m => P m B.Blocks
-pPara =
-  B.para . B.trimInlines . collapseAdjacentCites . mconcat
-    <$> (many1 pInline <* optional pParBreak)
+pPara = do
+  ils <- B.trimInlines . collapseAdjacentCites . mconcat <$> many1 pInline
+  optional pParBreak
+  pure $ if ils == mempty
+         then mempty
+         else B.para ils
 
 pParBreak :: PandocMonad m => P m ()
 pParBreak =
