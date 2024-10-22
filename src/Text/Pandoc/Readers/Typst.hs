@@ -236,7 +236,7 @@ blockHandlers = M.fromList
       getField "block" fields >>= guard
       body <- getField "body" fields >>= pWithContents pBlocks
       attribution <-
-        ((\x -> B.para ("\x2104\xa0" <> x)) <$>
+        ((\x -> B.para ("\x2014\xa0" <> x)) <$>
           (getField "attribution" fields >>= pWithContents pInlines))
         <|> pure mempty
       pure $ B.blockQuote $ body <> attribution)
