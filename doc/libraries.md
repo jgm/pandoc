@@ -29,6 +29,9 @@ pandoc:
 [commonmark], [commonmark-extensions], and [commonmark-pandoc]
 :   Efficient, standards-compliant parser for commonmark and extensions.
 
+[djot]
+:   Parser and renderer for djot light markup syntax.
+
 [ipynb]
 :   Representation of Jupyter notebooks and conversion to and
     from JSON.
@@ -57,11 +60,20 @@ pandoc:
 :   Lua modules that expose functionality of basic Haskell
     libraries to Lua.
 
+[hslua-module-doclayout]
+:   Lua bindings to the doclayout library mentioned above.
+
 [hslua-aeson]
 :   Converter from aeson data types to Lua objects.
 
 [hslua-cli]
 :   Command-line interface mimicking the default `lua` executable.
+
+[typst]
+:   Parsing and evaluating typst syntax.
+
+[typst-symbol]
+:   Symbol and emoji lookup for typst language.
 
 [skylighting]: https://hackage.haskell.org/package/skylighting
 [skylighting-core]: https://hackage.haskell.org/package/skylighting-core
@@ -72,6 +84,7 @@ pandoc:
 [commonmark]: https://hackage.haskell.org/package/commonmark
 [commonmark-extensions]: https://hackage.haskell.org/package/commonmark-extensions
 [commonmark-pandoc]: https://hackage.haskell.org/package/commonmark-pandoc
+[djot]: https://hackage.haskell.org/package/djot
 [ipynb]: https://hackage.haskell.org/package/ipynb
 [zip-archive]: https://hackage.haskell.org/package/zip-archive
 [rfc5051]: https://hackage.haskell.org/package/rfc5051
@@ -83,7 +96,10 @@ pandoc:
 [hslua-packaging]: https://hackage.haskell.org/package/hslua-packaging
 [hslua-aeson]: https://hackage.haskell.org/package/hslua-aeson
 [hslua-cli]: https://hackage.haskell.org/package/hslua-cli
+[hslua-module-doclayout]: https://hackage.haskell.org/package/hslua-module-doclayout
 [hslua-module-path]: https://hackage.haskell.org/package/hslua-module-path
 [-system]: https://hackage.haskell.org/package/hslua-module-system
 [-text]: https://hackage.haskell.org/package/hslua-module-text
 [-version]: https://hackage.haskell.org/package/hslua-module-version
+[typst]: https://hackage.haskell.org/package/typst
+[typst-symbol]: https://hackage.haskell.org/package/typst-symbol
