@@ -25,7 +25,7 @@ extra-deps:
 - git: https://github.com/jgm/texmath.git
   commit: 9539ea28538dc633001260cc8a08fb3aaeca5775
 - git: https://github.com/jgm/typst-hs.git
-  commit: 6b9b52ffc2ca6309a8a8ac18e7ca3f4f66cdfdd3
+  commit: a05431fd3ee218e42ece855ea25a038c23a589c7
 - git: https://github.com/pandoc/pandoc-lua-marshal
   commit: 2dc58d431bb3e4d55999db03c470fbf32970b3d5
 ghc-options:
