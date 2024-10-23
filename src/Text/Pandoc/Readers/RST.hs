@@ -261,6 +261,7 @@ block :: PandocMonad m => RSTParser m Blocks
 block = choice [ codeBlock
                , blockQuote
                , fieldList
+               , optionList
                , referenceKey
                , noteBlock
                , citationBlock
@@ -313,6 +314,51 @@ fieldList = try $ do
   case items of
      []     -> return mempty
      items' -> return $ B.definitionList items'
+
+optionList :: PandocMonad m => RSTParser m Blocks
+optionList = B.definitionList <$> many1 optionListItem
+
+optionListItem :: PandocMonad m => RSTParser m (Inlines, [Blocks])
+optionListItem = try $ do
+  opts <- snd <$> withRaw (do
+     let anyOpt = shortOpt <|> longOpt <|> dosOpt
+     anyOpt
+     many $ try (char ',' <* many spaceChar *> anyOpt))
+  -- at least two spaces
+  rawfirst <- try (char ' ' *> many1 (char ' ') *> anyLineNewline)
+                    <|> try (mempty <$ skipMany spaceChar <* newline)
+  bodyElements <- do
+    raw <- option "" indentedBlock
+    parseFromString' parseBlocks $ (rawfirst <> raw) <> "\n\n"
+  optional blanklines
+  pure (B.code opts, [bodyElements])
+
+shortOpt :: PandocMonad m => RSTParser m ()
+shortOpt = try $ do
+  char '-'
+  alphaNum
+  optional $ try (optional (char ' ') *> optArg)
+
+optArg :: PandocMonad m => RSTParser m ()
+optArg = do
+  c <- letter <|> char '<'
+  if c == '<'
+     then () <$ manyTill (noneOf "<>") (char '>')
+     else skipMany (alphaNum <|> char '_' <|> char '-')
+
+longOpt :: PandocMonad m => RSTParser m ()
+longOpt = try $ do
+  char '-'
+  char '-'
+  alphaNum
+  skipMany1 (alphaNum <|> char '-' <|> char '_')
+  optional $ try (oneOf " =" *> optArg)
+
+dosOpt :: PandocMonad m => RSTParser m ()
+dosOpt = try $ do
+  char '/'
+  alphaNum <|> char '?'
+  optional $ try (char ' ' *> optArg)
 
 --
 -- line block
