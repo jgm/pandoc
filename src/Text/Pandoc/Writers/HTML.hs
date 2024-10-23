@@ -862,10 +862,15 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
             [("role", "listitem") | isCslBibEntry && html5]
   let speakerNotes = "notes" `elem` classes
   -- we don't want incremental output inside speaker notes, see #1394
-  let opts' = if | speakerNotes -> opts{ writerIncremental = False }
-                 | "incremental" `elem` classes -> opts{ writerIncremental = True }
-                 | "nonincremental" `elem` classes -> opts{ writerIncremental = False }
-                 | otherwise -> opts
+  let (opts', isIncrDiv) =
+        if | speakerNotes ->
+             (opts{ writerIncremental = False }, False)
+           | "incremental" `elem` classes ->
+             (opts{ writerIncremental = True }, True)
+           | "nonincremental" `elem` classes ->
+             (opts{ writerIncremental = False }, True)
+           | otherwise ->
+             (opts, False)
       -- we remove "incremental" and "nonincremental" if we're in a
       -- slide presentation format.
       classes' = case slideVariant of
@@ -886,18 +891,22 @@ blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
   let (divtag, classes'') = if html5 && "section" `elem` classes'
                             then (H5.section, filter (/= "section") classes')
                             else (H.div, classes')
-  if speakerNotes
-     then case slideVariant of
-               RevealJsSlides -> addAttrs opts' attr $
-                           H5.aside contents'
-               DZSlides       -> do
-                 t <- addAttrs opts' attr $
-                             H5.div contents'
-                 return $ t ! A5.role "note"
-               NoSlides       -> addAttrs opts' attr $
-                           H.div contents'
-               _              -> return mempty
-     else addAttrs opts (ident, classes'', kvs) $
+  if | isIncrDiv && (ident, classes'', kvs) == nullAttr ->
+         -- Unwrap divs that only have (non)increment information
+         pure contents
+     | speakerNotes ->
+         case slideVariant of
+              RevealJsSlides -> addAttrs opts' attr $
+                          H5.aside contents'
+              DZSlides       -> do
+                t <- addAttrs opts' attr $
+                            H5.div contents'
+                return $ t ! A5.role "note"
+              NoSlides       -> addAttrs opts' attr $
+                          H.div contents'
+              _              -> return mempty
+     | otherwise ->
+          addAttrs opts (ident, classes'', kvs) $
               divtag contents'
 blockToHtmlInner opts (RawBlock f str) = do
   ishtml <- isRawHtml f
