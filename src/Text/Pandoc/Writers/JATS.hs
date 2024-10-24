@@ -76,6 +76,17 @@ creditNames = M.fromList [
 
 addCreditNames :: Context Text -> Context Text
 addCreditNames context =
+  case getField "authors" context of
+    -- If there is no "authors" key in the context, then we don't have to do
+    -- anything, and just return the context as is
+    Nothing -> context
+    -- If there is an "authors" key, then we replace the existing value
+    -- with one we mutate by running the addCreditNamesToAuthor helper
+    -- function on each
+    Just authors -> resetField "authors" (map addCreditNamesToAuthor authors) context
+
+addCreditNamesToAuthor :: Context Text -> Context Text
+addCreditNamesToAuthor context =
   case getField "roles" context of
     -- If there is no "roles" key in the context, then we don't have to bother,
     -- so just return the context as is
@@ -84,10 +95,10 @@ addCreditNames context =
     -- 1. x = (map addCreditName roles) applies the addCreditName to each role
     -- 2. `resetField "roles" x context` replaces the value of the "roles"
     --    in the context object with x (the thing from step 1)
-    Just roles -> resetField "roles" (map addCreditName roles) context
+    Just roles -> resetField "roles" (map addCreditNameToRole roles) context
 
-addCreditName :: Val Text -> Val Text
-addCreditName val =
+addCreditNameToRole :: Val Text -> Val Text
+addCreditNameToRole val =
   case val of
     MapVal ctx ->
       case getField "credit-name" ctx of
