@@ -4,7 +4,7 @@ local test = tasty.test_case
 local group = tasty.test_group
 local assert = tasty.assert
 
-function os_is_windows ()
+local function os_is_windows ()
   return package.config:sub(1,1) == '\\'
 end
 
