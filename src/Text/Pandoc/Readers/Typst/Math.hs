@@ -207,6 +207,20 @@ handleMath tok =
       case mbAnn of
         Nothing -> pure x
         Just ann -> EOver False x <$> pMathGrouped ann
+    Elt "math.underparen" _ fields -> do
+      mbAnn <- getField "annotation" fields
+      body <- getField "body" fields >>= pMathGrouped
+      let x = EUnder False body (ESymbol TUnder "\9181")
+      case mbAnn of
+        Nothing -> pure x
+        Just ann -> EUnder False x <$> pMathGrouped ann
+    Elt "math.overparen" _ fields -> do
+      mbAnn <- getField "annotation" fields
+      body <- getField "body" fields >>= pMathGrouped
+      let x = EOver False body (ESymbol TOver "\9180")
+      case mbAnn of
+        Nothing -> pure x
+        Just ann -> EOver False x <$> pMathGrouped ann
     Elt "math.scripts" _ fields -> getField "body" fields >>= pMathGrouped
     Elt "math.limits" _ fields -> getField "body" fields >>= pMathGrouped
     Elt "math.root" _ fields -> do
