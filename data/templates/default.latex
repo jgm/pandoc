@@ -27,6 +27,7 @@ $else$
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 $endif$
 $fonts.latex()$
+$font-settings.latex()$
 $common.latex()$
 $for(header-includes)$
 $header-includes$
