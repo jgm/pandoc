@@ -30,7 +30,7 @@ import qualified Data.Text as T
 import Text.Printf (printf)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, setMeta, trimInlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class (PandocMonad, fetchItem, getTimestamp)
+import Text.Pandoc.Class (PandocMonad, readFileFromDirs, fetchItem, getTimestamp)
 import Text.Pandoc.CSV (CSVOptions (..), defaultCSVOptions, parseCSV)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
@@ -742,7 +742,12 @@ directive' = do
     if fieldIndent == 0
        then return []
        else many $ rawFieldListItem fieldIndent
-  body <- option "" $ try $ blanklines >> indentedBlock
+  let mbfile = trim <$> lookup "file" fields
+  body <- case mbfile of
+            Just f | label == "raw" -> do
+               currentDir <- takeDirectory . sourceName <$> getPosition
+               fromMaybe mempty <$> readFileFromDirs [currentDir] (T.unpack f)
+            _ -> option "" $ try $ blanklines >> indentedBlock
   optional blanklines
   let body' = body <> "\n\n"
       name = trim $ fromMaybe "" (lookup "name" fields)
