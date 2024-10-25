@@ -28,7 +28,7 @@ extra-deps:
   commit: a05431fd3ee218e42ece855ea25a038c23a589c7
 - git: https://github.com/pandoc/pandoc-lua-marshal
   commit: 2dc58d431bb3e4d55999db03c470fbf32970b3d5
-- git: https://github.com/pandoc/commonmark-hs.git
+- git: https://github.com/jgm/commonmark-hs.git
   commit: 7950d58dd270ec1576671feb96408bfb0b0fcfdb
   subdirs: [commonmark-extensions]
 
