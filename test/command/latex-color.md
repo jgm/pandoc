@@ -169,9 +169,12 @@ Hello \colorbox{blue}{\textbf{World}}.
 ^D
 [ Div
     ( "" , [] , [ ( "style" , "background-color: orange" ) ] )
-    [ BulletList
-        [ [ Para [ Str "Item" , Space , Str "1" ] ]
-        , [ Para [ Str "Item" , Space , Str "2" ] ]
+    [ Div
+        ( "" , [ "minipage" ] , [] )
+        [ BulletList
+            [ [ Para [ Str "Item" , Space , Str "1" ] ]
+            , [ Para [ Str "Item" , Space , Str "2" ] ]
+            ]
         ]
     ]
 ]
@@ -190,9 +193,12 @@ Hello \colorbox{blue}{\textbf{World}}.
 ^D
 [ Div
     ( "" , [] , [ ( "style" , "background-color: blue" ) ] )
-    [ BulletList
-        [ [ Para [ Str "Item" , Space , Str "1" ] ]
-        , [ Para [ Str "Item" , Space , Str "2" ] ]
+    [ Div
+        ( "" , [ "minipage" ] , [] )
+        [ BulletList
+            [ [ Para [ Str "Item" , Space , Str "1" ] ]
+            , [ Para [ Str "Item" , Space , Str "2" ] ]
+            ]
         ]
     ]
 , Para

@@ -1013,8 +1013,8 @@ environments = M.union (tableEnvironments block inline) $
    , ("abstract", mempty <$ (env "abstract" blocks >>= addMeta "abstract"))
    , ("sloppypar", env "sloppypar" blocks)
    , ("letter", env "letter" letterContents)
-   , ("minipage", env "minipage" $
-          skipopts *> spaces *> optional braced *> spaces *> blocks)
+   , ("minipage", divWith ("",["minipage"],[]) <$>
+       env "minipage" (skipopts *> spaces *> optional braced *> spaces *> blocks))
    , ("figure", env "figure" $ skipopts *> figure')
    , ("subfigure", env "subfigure" $ skipopts *> tok *> figure')
    , ("center", divWith ("", ["center"], []) <$> env "center" blocks)
