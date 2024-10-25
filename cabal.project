@@ -21,3 +21,9 @@ source-repository-package
   type: git
   location: https://github.com/pandoc/pandoc-lua-marshal.git
   tag: 2dc58d431bb3e4d55999db03c470fbf32970b3d5
+
+source-repository-package
+  type: git
+  location: https://github.com/pandoc/commonmark-hs.git
+  tag: 7950d58dd270ec1576671feb96408bfb0b0fcfdb
+  subdir: commonmark-extensions
