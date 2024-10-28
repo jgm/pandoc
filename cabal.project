@@ -5,7 +5,9 @@ packages: .
 tests: True
 flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1.2,
-             skylighting-format-context >= 0.1.0.2
+             skylighting-format-context >= 0.1.0.2,
+             -- for now (commercialhaskell/stackage#7545):
+             data-default-class <= 0.2, data-default <= 0.8
 
 source-repository-package
   type: git
