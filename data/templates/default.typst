@@ -31,12 +31,10 @@ $endif$
 $if(smart)$
 $else$
 #set smartquote(enabled: false)
-
 $endif$
 
 $for(header-includes)$
 $header-includes$
-
 $endfor$
 
 #show: doc => conf(
