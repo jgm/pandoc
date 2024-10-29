@@ -65,7 +65,8 @@
     paper: paper,
     margin: margin,
     numbering: "1",
-  )
+    columns: cols,
+    )
   set par(justify: true)
   set text(lang: lang,
            region: region,
@@ -73,7 +74,8 @@
            size: fontsize)
   set heading(numbering: sectionnumbering)
 
-  if title != none {
+  place(top, float: true, scope: "parent", clearance: 4mm)[
+  #if title != none {
     align(center)[#block(inset: 2em)[
       #text(weight: "bold", size: 1.5em)[#title]
       #(if subtitle != none {
@@ -83,7 +85,7 @@
     ]]
   }
 
-  if authors != none and authors != [] {
+  #if authors != none and authors != [] {
     let count = authors.len()
     let ncols = calc.min(count, 3)
     grid(
@@ -99,23 +101,20 @@
     )
   }
 
-  if date != none {
+  #if date != none {
     align(center)[#block(inset: 1em)[
       #date
     ]]
   }
 
-  if abstract != none {
+  #if abstract != none {
     block(inset: 2em)[
     #text(weight: "semibold")[Abstract] #h(1em) #abstract
     ]
   }
+  ]
 
-  if cols == 1 {
-    doc
-  } else {
-    columns(cols, doc)
-  }
+  doc
 }
 #show: doc => conf(
   title: [Pandoc Test Suite],
