@@ -31,12 +31,12 @@ $endif$
 $if(smart)$
 $else$
 #set smartquote(enabled: false)
-$endif$
 
+$endif$
 $for(header-includes)$
 $header-includes$
-$endfor$
 
+$endfor$
 #show: doc => conf(
 $if(title)$
   title: [$title$],
