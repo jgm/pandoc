@@ -47,11 +47,13 @@
 
   place(top + center, float: true, scope: "parent", clearance: 4mm)[
     #if title != none {
-      text(weight: "bold", size: 1.5em)[#title]
-      (if subtitle != none {
+    block(inset: 2em)[
+    #text(weight: "bold", size: 1.5em)[#title]
+      #(if subtitle != none {
         parbreak()
         text(weight: "bold", size: 1.25em)[#subtitle]
       })
+    ]
     }
 
     #if authors != none and authors != [] {
@@ -71,13 +73,15 @@
     }
 
     #if date != none {
-        date
+      block(inset: 1em)[
+      #date
+    ]
     }
 
     #if abstract != none {
-      text(weight: "semibold")[Abstract]
-      h(1em) 
-      abstract
+    block(inset: 2em)[
+    #text(weight: "semibold")[Abstract] #h(1em) #abstract
+    ]
     }
   ]
 
