@@ -16,9 +16,9 @@
   keywords: (),
   date: none,
   abstract: none,
-  cols: 1,
   margin: (x: 1.25in, y: 1.25in),
   paper: "us-letter",
+  cols: 1,
   lang: "en",
   region: "US",
   font: (),
@@ -32,10 +32,10 @@
     keywords: keywords,
   )
   set page(
-    paper: paper,
     margin: margin,
     numbering: "1",
-  )
+    columns: cols,
+    )
   set par(justify: true)
   set text(lang: lang,
            region: region,
@@ -44,39 +44,39 @@
   set heading(numbering: sectionnumbering)
 
   place(top + center, float: true, scope: "parent", clearance: 4mm)[
-  #if title != none {
+    #if title != none {
       text(weight: "bold", size: 1.5em)[#title]
       (if subtitle != none {
         parbreak()
         text(weight: "bold", size: 1.25em)[#subtitle]
       })
-  }
+    }
 
-  #if authors != none and authors != [] {
-    let count = authors.len()
-    let ncols = calc.min(count, 3)
-      grid(
+    #if authors != none and authors != [] {
+      let count = authors.len()
+      let ncols = calc.min(count, 3)
+       grid(
         columns: (1fr,) * ncols,
         row-gutter: 1.5em,
         ..authors.map(author =>
-          align(center)[
-            #author.name \
-            #author.affiliation \
-            #author.email
-          ]
+            align(center)[
+              #author.name \
+              #author.affiliation \
+              #author.email
+            ]
         )
        )
-  }
+    }
 
-  #if date != none {
-      date
-  }
+    #if date != none {
+        date
+    }
 
-  #if abstract != none {
-    text(weight: "semibold")[Abstract]
+    #if abstract != none {
+      text(weight: "semibold")[Abstract]
       h(1em) 
       abstract
-  }
-]
+    }
+  ]
 doc
 }
