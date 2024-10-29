@@ -28,19 +28,17 @@ $else$
 $template.typst()$
 $endif$
 
-#set page(
-  columns: $if(columns)$$columns$$else$1$endif$,
-)
-
 $if(smart)$
 $else$
 #set smartquote(enabled: false)
 
 $endif$
+
 $for(header-includes)$
 $header-includes$
 
 $endfor$
+
 #show: doc => conf(
 $if(title)$
   title: [$title$],
@@ -93,6 +91,7 @@ $endif$
 $if(section-numbering)$
   sectionnumbering: "$section-numbering$",
 $endif$
+  cols: $if(columns)$$columns$$else$1$endif$,
   doc,
 )
 
