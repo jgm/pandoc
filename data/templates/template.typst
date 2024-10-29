@@ -32,6 +32,7 @@
     keywords: keywords,
   )
   set page(
+    paper: paper,
     margin: margin,
     numbering: "1",
     columns: cols,
