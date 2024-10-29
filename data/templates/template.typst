@@ -37,6 +37,7 @@
     numbering: "1",
     columns: cols,
     )
+
   set par(justify: true)
   set text(lang: lang,
            region: region,
