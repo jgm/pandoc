@@ -45,7 +45,7 @@
 ```
 % pandoc -f jats -t native
 <sec>
-	<title supress="no">The European Parliament</title>
+	<title suppress="no">The European Parliament</title>
 	<p>Members of the European Parliament (MEPs) are directly elected by EU citizens.</p>
 </sec>
 ^D
@@ -89,7 +89,7 @@
 ```
 % pandoc -f jats -t native
 <sec>
-	<title supress="yes">The European Parliament</title>
+	<title suppress="yes">The European Parliament</title>
 	<p>Members of the European Parliament (MEPs) are directly elected by EU citizens.</p>
 </sec>
 ^D
