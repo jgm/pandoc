@@ -69,7 +69,7 @@ writeANSI opts document =
                           stInTable = False
                         }
 
--- | Return ANSI-styled verison of document
+-- | Return ANSI-styled version of document
 pandocToANSI :: PandocMonad m
                 => WriterOptions -> Pandoc -> TW m Text
 pandocToANSI opts (Pandoc meta blocks) = do

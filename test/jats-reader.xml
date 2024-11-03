@@ -163,12 +163,12 @@
   </sec>
   <sec id="disp-formulae">
     <title>Block formulae with <italic>disp-formula</italic></title>
-    <p><bold>Inside a paragraph</bold>, should be natively coded inside the pragraph, but show as block:</p>
+    <p><bold>Inside a paragraph</bold>, should be natively coded inside the paragraph, but show as block:</p>
     <p>Einstein showed that <disp-formula><alternatives>
       <tex-math><![CDATA[e=mc^2]]></tex-math>
       <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></disp-formula>.
       This formula is important because…</p>
-    <p><bold>Outside a pararaph</bold>, should show as block:</p>
+    <p><bold>Outside a paragraph</bold>, should show as block:</p>
     <p>Einstein showed that </p>
     <disp-formula><alternatives>
       <tex-math><![CDATA[e=mc^2]]></tex-math>
@@ -177,7 +177,7 @@
   </sec>
   <sec id="no-formula-wrapper">
     <title>Without a formula wrapper</title>
-    <p><bold>Inside a pragraph</bold>, should show inline:</p>
+    <p><bold>Inside a paragraph</bold>, should show inline:</p>
     <p>Einstein showed that <alternatives>
       <tex-math><![CDATA[e=mc^2]]></tex-math>
       <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mi>m</mml:mi><mml:msup><mml:mi>c</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives>.
