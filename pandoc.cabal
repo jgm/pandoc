@@ -778,7 +778,7 @@ test-suite test-pandoc
   main-is:        test-pandoc.hs
   hs-source-dirs: test
   build-depends:  pandoc,
-                  Diff              >= 0.2     && < 0.6,
+                  Diff              >= 0.2     && < 1.1,
                   Glob              >= 0.7     && < 0.11,
                   bytestring        >= 0.9     && < 0.13,
                   containers        >= 0.4.2.1 && < 0.8,
