@@ -82,6 +82,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Install ghcup
+      run: |
+        brew install ghcup
+
     - name: Install ghc and cabal
       run: |
         ghcup install ghc --set 9.6
