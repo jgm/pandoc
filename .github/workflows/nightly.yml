@@ -78,7 +78,8 @@ jobs:
         brew install ghcup
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.4.4
+        ghcup install ghc --set 9.4
+        ghcup install cabal --set 3.10
     - name: Install dependencies
       run: |
           cabal update
