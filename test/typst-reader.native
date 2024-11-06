@@ -3201,7 +3201,7 @@ Pandoc
                                   ( "" , [ "box" ] , [] )
                                   [ Math InlineMath "\\ominus"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "minus.cirle"
+                                  , Code ( "" , [] , [] ) "minus.circle"
                                   ]
                               ]
                           ]

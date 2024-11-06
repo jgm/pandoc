@@ -536,7 +536,7 @@ Pandoc
       , Space
       , Str "the"
       , Space
-      , Str "pragraph,"
+      , Str "paragraph,"
       , Space
       , Str "but"
       , Space
@@ -568,7 +568,12 @@ Pandoc
       ]
   , Para
       [ Strong
-          [ Str "Outside" , Space , Str "a" , Space , Str "pararaph" ]
+          [ Str "Outside"
+          , Space
+          , Str "a"
+          , Space
+          , Str "paragraph"
+          ]
       , Str ","
       , Space
       , Str "should"
@@ -613,7 +618,7 @@ Pandoc
       ]
   , Para
       [ Strong
-          [ Str "Inside" , Space , Str "a" , Space , Str "pragraph" ]
+          [ Str "Inside" , Space , Str "a" , Space , Str "paragraph" ]
       , Str ","
       , Space
       , Str "should"

@@ -422,7 +422,7 @@ its dependency
 install by adding `path.lua = "/path/to/your/lua"` in your ZeroBrane
 settings file. Next, open your Lua filter in ZeroBrane, and add
 `require('mobdebug').start()` at the line where you want your
-breakpoint. Then make sure the Project > Lua Intepreter is set to the
+breakpoint. Then make sure the Project > Lua Interpreter is set to the
 "Lua" you added in settings and enable "Start Debugger Server" [see
 detailed instructions
 here](https://studio.zerobrane.com/doc-remote-debugging). Run Pandoc
@@ -4885,7 +4885,7 @@ Returns a table containing the size and resolution of an image;
 throws an error if the given string is not an image, or if the
 size of the image cannot be determined.
 
-The resulting table has four entires: *width*, *height*,
+The resulting table has four entries: *width*, *height*,
 *dpi_horz*, and *dpi_vert*.
 
 The `opts` parameter, when given, should be either a WriterOptions
@@ -5912,7 +5912,7 @@ Parameters:
 
 Returns:
 
--   doc contatining just the literal string ([Doc])
+-   doc containing just the literal string ([Doc])
 
 *Since: 2.18*
 
