@@ -568,7 +568,12 @@ Pandoc
       ]
   , Para
       [ Strong
-          [ Str "Outside" , Space , Str "a" , Space , Str "paragraph" ]
+          [ Str "Outside"
+          , Space
+          , Str "a"
+          , Space
+          , Str "paragraph"
+          ]
       , Str ","
       , Space
       , Str "should"
