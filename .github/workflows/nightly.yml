@@ -80,6 +80,7 @@ jobs:
       run: |
         ghcup install ghc --set 9.4
         ghcup install cabal --set 3.10
+        echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
     - name: Install dependencies
       run: |
           cabal update
