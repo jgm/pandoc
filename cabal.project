@@ -12,7 +12,7 @@ constraints: skylighting-format-blaze-html >= 0.1.1.2,
 source-repository-package
   type: git
   location: https://github.com/jgm/typst-hs.git
-  tag: a05431fd3ee218e42ece855ea25a038c23a589c7
+  tag: 6f7e7655be7b1dd74d8d0db7aa4725d14e005ef0
 
 source-repository-package
   type: git
