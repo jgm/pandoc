@@ -175,6 +175,7 @@ jobs:
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.4.4
+        ghcup install cabal --set 3.10
 
     # declare/restore cached things
 
