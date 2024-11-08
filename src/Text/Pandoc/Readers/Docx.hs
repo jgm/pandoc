@@ -539,7 +539,15 @@ handleCitation citation = do
   let items = Citeproc.citationItems citation
   let cs = map toPandocCitation items
   refs <- mapM (traverse (return . text)) $
-            mapMaybe Citeproc.citationItemData items
+            mapMaybe (\item ->
+                        case Citeproc.citationItemData item of
+                          Nothing -> Nothing
+                          Just itemData ->
+                            -- see #10366, sometimes itemData has a different
+                            -- id and we need to use the same one:
+                            Just $ itemData{ referenceId =
+                                               Citeproc.citationItemId item })
+            items
   modify $ \st ->
     st{ docxReferences = foldr
           (\ref -> M.insert (referenceId ref) ref)
