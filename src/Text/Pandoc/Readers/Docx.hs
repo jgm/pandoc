@@ -201,6 +201,8 @@ bodyPartsToMeta' (bp : bps)
     inlines <- smushInlines <$> mapM parPartToInlines parParts
     remaining <- bodyPartsToMeta' bps
     let
+      -- for titles, we just take the first one and ignore the rest, #10359:
+      f _ x | metaField == "title" || metaField == "subtitle" = x
       f (MetaInlines ils) (MetaInlines ils') = MetaBlocks [Para ils, Para ils']
       f (MetaInlines ils) (MetaBlocks blks) = MetaBlocks (Para ils : blks)
       f m (MetaList mv) = MetaList (m : mv)

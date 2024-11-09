@@ -3330,6 +3330,10 @@ The `--css` option also affects the output.
 `section-numbering`
 :    Schema to use for numbering sections, e.g. `1.A.1`.
 
+`page-numbering`
+:    Schema to use for numbering pages, e.g. `1` or `i`, or
+     an empty string to omit page numbering.
+
 `columns`
 :    Number of columns for body text.
 

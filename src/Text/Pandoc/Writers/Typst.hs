@@ -90,6 +90,7 @@ pandocToTypst options (Pandoc meta blocks) = do
                    (toPosition $ writerFigureCaptionPosition options)
               $ defField "table-caption-position"
                    (toPosition $ writerTableCaptionPosition options)
+              $ defField "page-numbering" ("1" :: Text)
               $ (if writerNumberSections options
                     then defField "numbering" ("1.1.1.1.1" :: Text)
                     else id)

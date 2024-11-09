@@ -24,6 +24,7 @@
   font: (),
   fontsize: 11pt,
   sectionnumbering: none,
+  pagenumbering: "1",
   doc,
 ) = {
   set document(
@@ -34,7 +35,7 @@
   set page(
     paper: paper,
     margin: margin,
-    numbering: "1",
+    numbering: pagenumbering,
     columns: cols,
     )
   set par(justify: true)
