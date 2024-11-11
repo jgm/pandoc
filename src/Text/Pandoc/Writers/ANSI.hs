@@ -124,7 +124,11 @@ blockToANSI opts (Plain inlines) = inlineListToANSI opts inlines
 
 blockToANSI opts (Para inlines) = inlineListToANSI opts inlines
 
-blockToANSI opts (LineBlock lns) = blockToANSI opts $ linesToPara lns
+blockToANSI opts (LineBlock lns) = do
+  let go [] = return D.blankline
+      go xs = inlineListToANSI opts xs
+  lns' <- mapM go lns
+  return $ D.vcat lns'
 
 blockToANSI _ b@(RawBlock _ _) = do
     report $ BlockNotRendered b
