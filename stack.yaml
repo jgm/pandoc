@@ -23,7 +23,7 @@ extra-deps:
 - commonmark-pandoc-0.2.2.2
 - typst-symbols-0.1.7
 - git: https://github.com/jgm/texmath.git
-  commit: 9539ea28538dc633001260cc8a08fb3aaeca5775
+  commit: 1703b411ade9103ba7da788d53599ca4ee85889a
 - git: https://github.com/jgm/typst-hs.git
   commit: 6f7e7655be7b1dd74d8d0db7aa4725d14e005ef0
 - git: https://github.com/pandoc/pandoc-lua-marshal
