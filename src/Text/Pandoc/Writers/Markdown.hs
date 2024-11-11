@@ -21,7 +21,7 @@ module Text.Pandoc.Writers.Markdown (
   writeCommonMark,
   writeMarkua,
   writePlain) where
-import Control.Monad (foldM, zipWithM, MonadPlus(..), when)
+import Control.Monad (foldM, zipWithM, MonadPlus(..), when, liftM)
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
@@ -447,12 +447,19 @@ blockToMarkdown' opts (Plain inlines) = do
   return $ contents <> cr
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
-blockToMarkdown' opts (LineBlock lns) =
-  if isEnabled Ext_line_blocks opts
-  then do
-    mdLines <- mapM (inlineListToMarkdown opts) lns
-    return $ vcat (map (hang 2 (literal "| ")) mdLines) <> blankline
-  else blockToMarkdown opts $ linesToPara lns
+blockToMarkdown' opts (LineBlock lns) = do
+  variant <- asks envVariant
+  case variant of
+    PlainText -> do
+      let emptyToBlank l = if isEmpty l then blankline else l
+      mdLines <- mapM (liftM emptyToBlank . inlineListToMarkdown opts) lns
+      return $ vcat mdLines <> blankline
+    _ ->
+      if isEnabled Ext_line_blocks opts
+      then do
+        mdLines <- mapM (inlineListToMarkdown opts) lns
+        return $ vcat (map (hang 2 (literal "| ")) mdLines) <> blankline
+      else blockToMarkdown opts $ linesToPara lns
 blockToMarkdown' opts b@(RawBlock f str) = do
   variant <- asks envVariant
   let Format fmt = f
