@@ -35,15 +35,11 @@ import qualified Data.Text as T
 
 -- | The @aeson@ module specification.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.json"
-  , moduleDescription = "JSON module to work with JSON; " <>
-                        "based on the Aeson Haskell package."
-  , moduleFields = fields
-  , moduleFunctions = functions
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }
+documentedModule = defmodule "pandoc.json"
+  `withDescription`
+    "JSON module to work with JSON; based on the Aeson Haskell package."
+  `withFields` fields
+  `withFunctions` functions
 
 --
 -- Fields
@@ -57,12 +53,10 @@ fields =
 
 -- | The value used to represent the JSON @null@.
 null :: LuaError e => Field e
-null = Field
-  { fieldName = "null"
-  , fieldType = "light userdata"
-  , fieldDescription = "Value used to represent the `null` JSON value."
-  , fieldPushValue = pushValue Aeson.Null
-  }
+null = deffield "null"
+  `withType` "light userdata"
+  `withDescription` "Value used to represent the `null` JSON value."
+  `withValue` pushValue Aeson.Null
 
 --
 -- Functions

@@ -23,20 +23,17 @@ import qualified Data.Text as T
 
 -- | Push the pandoc.types module on the Lua stack.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.cli"
-  , moduleDescription =
+documentedModule = defmodule "pandoc.cli"
+  `withDescription`
       "Command line options and argument parsing."
-  , moduleFields =
-      [ Field
-        { fieldName = "default_options"
-        , fieldType = "table"
-        , fieldDescription = "Default CLI options, using a JSON-like " <>
-          "representation."
-        , fieldPushValue = pushViaJSON defaultOpts
-        }
+  `withFields`
+      [ deffield "default_options"
+        `withType` "table"
+        `withDescription`
+          "Default CLI options, using a JSON-like representation."
+        `withValue` pushViaJSON defaultOpts
       ]
-  , moduleFunctions =
+  `withFunctions`
       [ defun "parse_options"
         ### parseOptions
         <#> parameter peekArgs "{string,...}" "args"
@@ -52,9 +49,6 @@ documentedModule = Module
 
       , repl `since` makeVersion [3, 1, 2]
       ]
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }
  where
   peekArgs idx =
     (,)
