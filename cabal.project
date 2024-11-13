@@ -17,7 +17,7 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
-  tag: 95b3f28782af74d4766a4849e3e667da6157ad18
+  tag: 4666e68eb1b640d69dc5261748bfe716e3b212c9
 
 source-repository-package
   type: git
