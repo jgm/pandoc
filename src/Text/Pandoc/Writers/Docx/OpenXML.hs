@@ -941,13 +941,24 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
                     [extLst])
           _ -> return ([("r:embed", T.pack ident)], [])
       let
-        (xpt,ypt) = desiredSizeInPoints opts attr
-               (either (const def) id (imageSize opts img))
+        transform = imageTransform img
+        (xpt,ypt) = rotatedDesiredSizeInPoints opts attr
+               (either (const def) id (imageSize opts img)) (tRotate transform)
         -- 12700 emu = 1 pt
         pageWidthPt = case dimension Width attr of
                         Just (Percent a) -> pageWidth * floor (a * 127)
                         _                -> pageWidth * 12700
         (xemu,yemu) = fitToPage (xpt * 12700, ypt * 12700) pageWidthPt
+        height = case tRotate transform of
+                   R0 -> tshow xemu
+                   R90 -> tshow yemu
+                   R180 -> tshow xemu
+                   R270 -> tshow yemu
+        width = case tRotate transform of
+                   R0 -> tshow yemu
+                   R90 -> tshow xemu
+                   R180 -> tshow yemu
+                   R270 -> tshow xemu
         cNvPicPr = mknode "pic:cNvPicPr" [] $
                          mknode "a:picLocks" [("noChangeArrowheads","1")
                                              ,("noChangeAspect","1")] ()
@@ -962,20 +973,19 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
           , mknode "a:stretch" [] $
               mknode "a:fillRect" [] ()
           ]
-        transform = imageTransform img
-        attrflip NoFlip = []
-        attrflip FlipH = [("flipH", "1")]
-        attrflip FlipV = [("flipV", "1")]
+        xfrmFlip NoFlip = []
+        xfrmFlip FlipH = [("flipH", "1")]
+        xfrmFlip FlipV = [("flipV", "1")]
         -- 60,000ths of a degree
-        rotate R0 = []
-        rotate R90 = [("rot", "5400000")]
-        rotate R180 = [("rot", "10800000")]
-        rotate R270 = [("rot", "16200000")]
+        xfrmRot R0 = []
+        xfrmRot R90 = [("rot", "5400000")]
+        xfrmRot R180 = [("rot", "10800000")]
+        xfrmRot R270 = [("rot", "16200000")]
 
-        xfrm =    mknode "a:xfrm" ((attrflip (tFlip transform)) <> (rotate (tRotate transform)))
+        xfrm =    mknode "a:xfrm" ((xfrmFlip (tFlip transform)) <> (xfrmRot (tRotate transform)))
                         [ mknode "a:off" [("x","0"),("y","0")] ()
-                        , mknode "a:ext" [("cx",tshow xemu)
-                                         ,("cy",tshow yemu)] () ]
+                        , mknode "a:ext" [("cx",height)
+                                         ,("cy",width)] () ]
         prstGeom = mknode "a:prstGeom" [("prst","rect")] $
                          mknode "a:avLst" [] ()
         ln =      mknode "a:ln" [("w","9525")]
@@ -996,7 +1006,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
         imgElt = mknode "w:r" [] $
           mknode "w:drawing" [] $
             mknode "wp:inline" []
-              [ mknode "wp:extent" [("cx",tshow xemu),("cy",tshow yemu)] ()
+              [ mknode "wp:extent" [("cx",height),("cy",width)] ()
               , mknode "wp:effectExtent"
                 [("b","0"),("l","0"),("r","0"),("t","0")] ()
               , mknode "wp:docPr"

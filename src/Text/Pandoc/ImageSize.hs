@@ -21,6 +21,7 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , sizeInPixels
                              , sizeInPoints
                              , desiredSizeInPoints
+                             , rotatedDesiredSizeInPoints
                              , Dimension(..)
                              , Direction(..)
                              , Flip(..)
@@ -202,13 +203,29 @@ sizeInPoints s = (pxXf * 72 / dpiXf, pxYf * 72 / dpiYf)
 -- are specified in the attribute (or only dimensions in percentages).
 desiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> (Double, Double)
 desiredSizeInPoints opts attr s =
+  desiredSizeInPoints' opts attr s ratio
+  where
+    ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
+
+-- | As desiredSizeInPoints, but swapping the width and height dimensions if
+-- the indicated rotation is a quarter-turn or three-quarter-turn.
+rotatedDesiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> Rotate -> (Double, Double)
+rotatedDesiredSizeInPoints opts attr s r =
+  desiredSizeInPoints' opts attr s (ratio r)
+  where
+    ratio R0 = fromIntegral (pxX s) / fromIntegral (pxY s)
+    ratio R180 = fromIntegral (pxX s) / fromIntegral (pxY s)
+    ratio R90 = fromIntegral (pxY s) / fromIntegral (pxX s)
+    ratio R270 = fromIntegral (pxY s) / fromIntegral (pxX s)
+
+desiredSizeInPoints' :: WriterOptions -> Attr -> ImageSize -> Double -> (Double, Double)
+desiredSizeInPoints' opts attr s ratio =
   case (getDim Width, getDim Height) of
     (Just w, Just h)   -> (w, h)
     (Just w, Nothing)  -> (w, w / ratio)
-    (Nothing, Just h)  -> (h * ratio, h)
+    (Nothing, Just h)  -> (h * ratio , h)
     (Nothing, Nothing) -> sizeInPoints s
   where
-    ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
     getDim dir = case dimension dir attr of
                    Just (Percent _) -> Nothing
                    Just dim         -> Just $ inPoints opts dim
