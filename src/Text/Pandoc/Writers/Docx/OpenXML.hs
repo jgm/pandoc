@@ -962,7 +962,17 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
           , mknode "a:stretch" [] $
               mknode "a:fillRect" [] ()
           ]
-        xfrm =    mknode "a:xfrm" []
+        transform = imageTransform img
+        attrflip NoFlip = []
+        attrflip FlipH = [("flipH", "1")]
+        attrflip FlipV = [("flipV", "1")]
+        -- 60,000ths of a degree
+        rotate R0 = []
+        rotate R90 = [("rot", "5400000")]
+        rotate R180 = [("rot", "10800000")]
+        rotate R270 = [("rot", "16200000")]
+
+        xfrm =    mknode "a:xfrm" ((attrflip (tFlip transform)) <> (rotate (tRotate transform)))
                         [ mknode "a:off" [("x","0"),("y","0")] ()
                         , mknode "a:ext" [("cx",tshow xemu)
                                          ,("cy",tshow yemu)] () ]
