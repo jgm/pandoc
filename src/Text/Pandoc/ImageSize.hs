@@ -27,6 +27,7 @@ module Text.Pandoc.ImageSize ( ImageType(..)
                              , Flip(..)
                              , Rotate(..)
                              , dimension
+                             , rotateDirection
                              , lengthToDim
                              , scaleDimension
                              , inInch
@@ -515,3 +516,11 @@ imageTransform img =
     exifToTransform 7 = def{tFlip = FlipH, tRotate = R90}
     exifToTransform 8 = def{tRotate = R270}
     exifToTransform _ = def
+
+rotateDirection :: Rotate -> Direction -> Direction
+rotateDirection R0 x = x
+rotateDirection R90 Width = Height
+rotateDirection R90 Height = Width
+rotateDirection R180 x = x
+rotateDirection R270 Width = Height
+rotateDirection R270 Height = Width

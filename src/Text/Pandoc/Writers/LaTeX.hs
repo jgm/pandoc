@@ -30,6 +30,7 @@ import Control.Monad
       liftM,
       when,
       unless )
+import Control.Monad.Except (catchError)
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))
@@ -41,7 +42,7 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext), renderTemplate)
 import Text.Collate.Lang (renderLang, Lang(langLanguage))
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang, fetchItem)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
                                  styleToLaTeX)
@@ -1075,13 +1076,15 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
   modify $ \s -> s{ stGraphics = True
                   , stSVG = stSVG s || isSVG }
   opts <- gets stOptions
-  let showDim dir = let d = text (show dir) <> "="
-                    in case dimension dir attr of
+  (ImageTransform flp rot) <- catchError ((imageTransform . fst) <$> fetchItem source) (\_ -> return def)
+  let redir = rotateDirection rot
+      showDim dir = let d = text (show dir) <> "="
+                    in case dimension (redir dir) attr of
                          Just (Pixel a)   ->
                            [d <> literal (showInInch opts (Pixel a)) <> "in"]
                          Just (Percent a) ->
                            [d <> literal (showFl (a / 100)) <>
-                             case dir of
+                             case (redir dir) of
                                 Width  -> "\\linewidth"
                                 Height -> "\\textheight"
                            ]
@@ -1089,9 +1092,9 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
                            [d <> text (show dim)]
                          Nothing          ->
                            case dir of
-                                Width | isJust (dimension Height attr) ->
+                                Width | isJust (dimension (redir Height) attr) ->
                                   [d <> "\\linewidth"]
-                                Height | isJust (dimension Width attr) ->
+                                Height | isJust (dimension (redir Width) attr) ->
                                   [d <> "\\textheight"]
                                 _ -> []
       optList = showDim Width <> showDim Height <>
@@ -1107,6 +1110,21 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
       source' = if isURI source
                    then source
                    else T.pack $ unEscapeString $ T.unpack source
+      -- For images in vertically-mirrored exif orientation, \scalebox{1}[-1]
+      -- will reflect them to below the baseline. It seems like to get the
+      -- final image to be aligned with the baseline again, we have to rotate
+      -- it 180 degrees from the default (baseline) origin and then rotate
+      -- it again about the center so it's facing right side up. In real life
+      -- where there's only 8 possible EXIF orientations, there's never any
+      -- other rotation required for a vertical flip, but I think it would
+      -- still interact correctly if it somehow came up.
+      flipbox NoFlip x = x
+      flipbox FlipH x = "\\scalebox{-1}[1]" <> braces x
+      flipbox FlipV x = "\\rotatebox[origin=c]{180}{\\rotatebox{180}{{\\scalebox{1}[-1]" <> braces x <> "}}}"
+      rotatebox R0 x = x
+      rotatebox R90 x = "\\rotatebox[origin=br]{-90}" <> braces x
+      rotatebox R180 x = "\\rotatebox[origin=c]{180}" <> braces x
+      rotatebox R270 x = "\\rotatebox[origin=bl]{-270}" <> braces x
   source'' <- stringToLaTeX URLString source'
   inHeading <- gets stInHeading
   return $
@@ -1114,7 +1132,8 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
     (case dimension Width attr `mplus` dimension Height attr of
        Just _ -> id
        Nothing -> ("\\pandocbounded" <>) . braces)
-      ((if isSVG then "\\includesvg" else "\\includegraphics") <>
+      ((rotatebox rot . flipbox flp) $
+       (if isSVG then "\\includesvg" else "\\includegraphics") <>
         options <> braces (literal source''))
 inlineToLaTeX (Note contents) = do
   setEmptyLine False
