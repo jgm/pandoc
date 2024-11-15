@@ -222,7 +222,6 @@ formatFromFilePath x =
     ".text"     -> defFlavor "markdown"
     ".textile"  -> defFlavor "textile"
     ".tsv"      -> defFlavor "tsv"
-    ".typ"      -> defFlavor "typst"
     ".txt"      -> defFlavor "markdown"
     ".typ"      -> defFlavor "typst"
     ".wiki"     -> defFlavor "mediawiki"
