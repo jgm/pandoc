@@ -198,6 +198,15 @@ formulaStyle mt = inTags False "style:style"
                                                   ,("style:horizontal-rel", "paragraph-content")
                                                   ,("style:wrap",           "none")]
 
+imageStyles :: [Doc Text]
+imageStyles = [mirror "horizontal", mirror "vertical"]
+  where
+    mirror hv = inTags False "style:style"
+      [("style:name", "mirror-" <> hv)
+      ,("style:family", "graphic")
+      ,("style:parent-style-name", "Graphics")]
+      $ selfClosingTag "style:graphic-properties" [("style:mirror", hv)]
+
 inBookmarkTags :: Text -> Doc Text -> Doc Text
 inBookmarkTags ident d =
   selfClosingTag "text:bookmark-start" [ ("text:name", ident) ]
@@ -260,7 +269,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                   meta'
            b <- blocksToOpenDocument opts blocks
            return (b, m)
-  let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++
+  let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++ imageStyles ++
                      map snd (sortBy (flip (comparing fst)) (
                         Map.elems (stTextStyles s)))
       listStyle (n,l) = inTags True "text:list-style"
@@ -659,6 +668,9 @@ inlineToOpenDocument o ils
                id' <- gets stImageId
                modify (\st -> st{ stImageId = id' + 1 })
                let getDims [] = []
+                   getDims (("mirror", "none") :xs) = getDims xs
+                   getDims (("mirror", t) :xs) = ("draw:style-name", "mirror-" <> t) : getDims xs
+                   getDims (("rotate", t) :xs) = ("draw:transform", t)  : getDims xs
                    getDims (("width", w) :xs) = ("svg:width", w)  : getDims xs
                    getDims (("rel-width", w):xs) = ("style:rel-width", w) : getDims xs
                    getDims (("height", h):xs) = ("svg:height", h) : getDims xs

@@ -257,11 +257,19 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
                        Left msg -> do
                          report $ CouldNotDetermineImageSize src msg
                          return (100, 100)
+       let (ImageTransform flp rot) = imageTransform img
+       let xflip NoFlip = ("mirror", "none")
+           xflip FlipH = ("mirror", "horizontal")
+           xflip FlipV = ("mirror", "vertical")
+       let xrotate R0 = ("rotate", "rotate(0)")
+           xrotate R90 = ("rotate", "rotate(" <> showFl (3*(pi :: Double)/2) <> ")")
+           xrotate R180 = ("rotate", "rotate(" <> showFl (pi :: Double) <> ")")
+           xrotate R270 = ("rotate", "rotate(" <> showFl ((pi :: Double) /2) <> ")")
        let dims =
              case (getDim Width, getDim Height) of
                (Just w, Just h)              -> [("width", tshow w), ("height", tshow h)]
                (Just w@(Percent _), Nothing) -> [("rel-width", tshow w),("rel-height", "scale"),("width", tshow ptX <> "pt"),("height", tshow ptY <> "pt")]
-               (Nothing, Just h@(Percent _)) -> [("rel-width", "scale"),("rel-height", tshow h),("width", tshow ptX <> "pt"),("height", tshow ptY <> "pt")]
+               (Nothing, Just h@(Percent _)) -> [("rel-width", "scale"),("rel-height", tshow h),("width", tshow ptY <> "pt"),("height", tshow ptY <> "pt")]
                (Just w@(Inch i), Nothing)    -> [("width", tshow w), ("height", tshow (i / ratio) <> "in")]
                (Nothing, Just h@(Inch i))    -> [("width", tshow (i * ratio) <> "in"), ("height", tshow h)]
                _                             -> [("width", tshow ptX <> "pt"), ("height", tshow ptY <> "pt")]
@@ -271,7 +279,7 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
                               Just (Percent i) -> Just $ Percent i
                               Just dim         -> Just $ Inch $ inInch opts dim
                               Nothing          -> Nothing
-       let  newattr = (id', cls, dims)
+       let  newattr = (id', cls, (xflip flp):(xrotate rot):dims)
        src' <- if writerLinkImages opts
                   then
                     case T.unpack src of
