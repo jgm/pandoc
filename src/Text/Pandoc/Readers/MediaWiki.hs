@@ -209,6 +209,7 @@ table = do
                          Just w  -> fromMaybe 1.0 $ parseWidth w
                          Nothing -> 1.0
   caption <- option mempty tableCaption
+  optional newline
   optional rowsep
   hasheader <- option False $ True <$ lookAhead (skipSpaces *> char '!')
   (cellwidths,hdr) <- unzip <$> tableRow
