@@ -22,6 +22,9 @@ extra-deps:
 - commonmark-0.2.6.1
 - commonmark-pandoc-0.2.2.2
 - typst-symbols-0.1.7
+- git: https://github.com/jgm/skylighting.git
+  commit: 260a53dfc32b68c1c9c47629f42a9cebd1f12b87
+  subdirs: [skylighting-format-blaze-html]
 - git: https://github.com/jgm/texmath.git
   commit: 4666e68eb1b640d69dc5261748bfe716e3b212c9
 - git: https://github.com/jgm/typst-hs.git
