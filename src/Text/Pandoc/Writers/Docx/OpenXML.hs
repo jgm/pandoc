@@ -1017,6 +1017,7 @@ inlineToOpenXML' opts (Image attr@(imgident, _, _) alt (src, title)) = do
             Just Svg  -> ".svg"
             Just Emf  -> ".emf"
             Just Tiff -> ".tiff"
+            Just Webp -> ".webp"
             Nothing   -> ""
         imgpath = "media/" <> ident <> imgext
         mbMimeType = mt <|> getMimeType (T.unpack imgpath)
