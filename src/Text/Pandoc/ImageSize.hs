@@ -39,7 +39,7 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Binary.Get
 import Data.Bits ((.&.), shiftR, shiftL)
 import Data.Word (bitReverse32)
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (isJust, fromJust)
 import Data.Char (isDigit)
 import Control.Monad
 import Text.Pandoc.Shared (safeRead)
@@ -394,10 +394,15 @@ pWebpSize = do
   AW.string "WEBP"
   (w, h) <- lossy <|> lossless <|> extended
   return $ def
-    { pxX = fromIntegral w
-    , pxY = fromIntegral h
+    { pxX = w
+    , pxY = h
     }
   where
+    bitsToMaybe = either (const Nothing) (\((_, _, s)) -> Just s)
+    decode d = bitsToMaybe . d . BL.fromStrict
+    lossySize = runGetOrFail $ do
+      word <- getWord16le
+      return $ word .&. 0x3FFF
     lossy = do
       AW.string "VP8 "
       AW.take 4 -- length in bytes of VP8 Lossy stream size
@@ -409,42 +414,37 @@ pWebpSize = do
       AW.word8 0x2a
       width16 <- AW.take 2
       height16 <- AW.take 2
-      let w = d width16
-          h = d height16
+      let w = toInteger <$> decode lossySize width16
+          h = toInteger <$> decode lossySize height16
       guard $ isJust w && isJust h
-      return (fromMaybe 0 w, fromMaybe 0 h)
+      return (fromJust w, fromJust h)
+    losslessSizes = runGetOrFail $ do
+      bitReverse32 <$> getWord32le
+    losslessSize word = 1 + (word .&. 0x3FFF)
     lossless = do
       AW.string "VP8L"
       AW.take 4 -- length in bytes of VP8 Lossless chunk size
       AW.word8 0x2f  -- webp lossless stream magic
       sizes <- AW.take 4
-      let word = mb . sizesAsWord . BL.fromStrict $ sizes
-      guard $ isJust word
-      return $ decodeLosslessSizes $ fromIntegral (fromMaybe 0 word)
+      let mbword = decode losslessSizes sizes
+      guard $ isJust mbword
+      let word = fromJust mbword
+      let w = toInteger $ losslessSize word
+          h = toInteger $ losslessSize (word `shiftR` 14)
+      return (w, h)
+    extendedSize = runGetOrFail $ do
+      low <- toInteger <$> getWord16le
+      high <- toInteger <$> getWord8
+      return $ 1 + (high `shiftL` 16) + (low)
     extended = do
       AW.string "VP8X"
       AW.take 8  -- VP8X chunk length, flags and reserved area
       width24 <- AW.take 3
       height24 <- AW.take 3
-      let w = mb . decode24Plus1 . BL.fromStrict $ width24
-          h = mb . decode24Plus1 . BL.fromStrict $ height24
+      let w = decode extendedSize width24
+          h = decode extendedSize height24
       guard $ isJust w && isJust h
-      return (fromMaybe 0 w, fromMaybe 0 h)
-    d = mb . decodeFrameDim . BL.fromStrict
-    mb = either (const Nothing) (\((_, _, s)) -> Just s)
-    decodeLosslessSizes word =
-      let width = 1 + (word .&. 0x3FFF)
-          height = 1 + (word `shiftR` 14 .&. 0x3FFF)
-       in (width, height)
-    decodeFrameDim = runGetOrFail $ do
-      word <- getWord16le
-      return $ word .&. 0x3FFF
-    sizesAsWord = runGetOrFail $ do
-      bitReverse32 <$> getWord32le
-    decode24Plus1 = runGetOrFail $ do
-      low <- getWord16le
-      high <- getWord8
-      return (fromIntegral (high `shiftL` 16) + low + 1)
+      return (fromJust w, fromJust h)
 
 webpSize :: WriterOptions -> ByteString -> Maybe ImageSize
 webpSize opts img =
