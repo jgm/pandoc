@@ -37,6 +37,9 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Binary.Get
+import Data.Bits ((.&.), shiftR, shiftL)
+import Data.Word (bitReverse32)
+import Data.Maybe (isJust, fromJust)
 import Data.Char (isDigit)
 import Control.Monad
 import Text.Pandoc.Shared (safeRead)
@@ -50,6 +53,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Encoding as TE
 import Control.Applicative
+import qualified Data.Attoparsec.ByteString as AW
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Codec.Picture.Metadata as Metadata
 import Codec.Picture (decodeImageWithMetadata)
@@ -57,7 +61,7 @@ import Codec.Picture (decodeImageWithMetadata)
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
 
-data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf | Tiff
+data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf | Tiff | Webp
                  deriving Show
 data Direction = Width | Height
 instance Show Direction where
@@ -124,6 +128,9 @@ imageType img = case B.take 4 img of
                                         -> return Emf
                      "\xEF\xBB\xBF<" -- BOM before svg
                           -> imageType (B.drop 3 img)
+                     "RIFF"
+                       | B.take 4 (B.drop 8 img) == "WEBP"
+                                        -> return Webp
                      _ -> mzero
 
 findSvgTag :: ByteString -> Bool
@@ -140,6 +147,7 @@ imageSize opts img = checkDpi <$>
        Just Eps  -> mbToEither "could not determine EPS size" $ epsSize img
        Just Pdf  -> mbToEither "could not determine PDF size" $ pdfSize img
        Just Emf  -> mbToEither "could not determine EMF size" $ emfSize img
+       Just Webp -> mbToEither "could not determine WebP size" $ webpSize opts img
        Nothing   -> Left "could not determine image type"
   where mbToEither msg Nothing  = Left msg
         mbToEither _   (Just x) = Right x
@@ -376,3 +384,70 @@ emfSize img =
     case parseheader . BL.fromStrict $ img of
       Left _ -> Nothing
       Right (_, _, size) -> Just size
+
+-- See https://developers.google.com/speed/webp/docs/riff_container
+-- and RFC 6386
+pWebpSize :: AW.Parser ImageSize
+pWebpSize = do
+  AW.string "RIFF"
+  AW.take 4
+  AW.string "WEBP"
+  (w, h) <- lossy <|> lossless <|> extended
+  return $ def
+    { pxX = w
+    , pxY = h
+    }
+  where
+    bitsToMaybe = either (const Nothing) (\((_, _, s)) -> Just s)
+    decode d = bitsToMaybe . d . BL.fromStrict
+    lossySize = runGetOrFail $ do
+      word <- getWord16le
+      return $ word .&. 0x3FFF
+    lossy = do
+      AW.string "VP8 "
+      AW.take 4 -- length in bytes of VP8 Lossy stream size
+      keyFrame <-  AW.anyWord8
+      guard $ keyFrame .&. 1 == 0
+      AW.take 2 -- remaining bytes of frame header
+      AW.word8 0x9d  -- VP8 keyframe magic
+      AW.word8 0x01
+      AW.word8 0x2a
+      width16 <- AW.take 2
+      height16 <- AW.take 2
+      let w = toInteger <$> decode lossySize width16
+          h = toInteger <$> decode lossySize height16
+      guard $ isJust w && isJust h
+      return (fromJust w, fromJust h)
+    losslessSizes = runGetOrFail $ do
+      bitReverse32 <$> getWord32le
+    losslessSize word = 1 + (word .&. 0x3FFF)
+    lossless = do
+      AW.string "VP8L"
+      AW.take 4 -- length in bytes of VP8 Lossless chunk size
+      AW.word8 0x2f  -- webp lossless stream magic
+      sizes <- AW.take 4
+      let mbword = decode losslessSizes sizes
+      guard $ isJust mbword
+      let word = fromJust mbword
+      let w = toInteger $ losslessSize word
+          h = toInteger $ losslessSize (word `shiftR` 14)
+      return (w, h)
+    extendedSize = runGetOrFail $ do
+      low <- toInteger <$> getWord16le
+      high <- toInteger <$> getWord8
+      return $ 1 + (high `shiftL` 16) + (low)
+    extended = do
+      AW.string "VP8X"
+      AW.take 8  -- VP8X chunk length, flags and reserved area
+      width24 <- AW.take 3
+      height24 <- AW.take 3
+      let w = decode extendedSize width24
+          h = decode extendedSize height24
+      guard $ isJust w && isJust h
+      return (fromJust w, fromJust h)
+
+webpSize :: WriterOptions -> ByteString -> Maybe ImageSize
+webpSize opts img =
+  case AW.parseOnly pWebpSize img of
+    Left _   -> Nothing
+    Right sz -> Just sz { dpiX = fromIntegral $ writerDpi opts, dpiY = fromIntegral $ writerDpi opts}
