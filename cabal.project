@@ -33,5 +33,11 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/skylighting.git
+  tag: 2b6876018a903207c7a9093c5c63b00a4d0980be
+  subdir: skylighting-core
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/skylighting.git
   tag: 260a53dfc32b68c1c9c47629f42a9cebd1f12b87
   subdir: skylighting-format-blaze-html
