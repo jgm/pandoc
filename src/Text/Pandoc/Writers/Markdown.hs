@@ -671,7 +671,9 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
                      (Pandoc nullMeta [t])
            return $ tbl $$ blankline  -- caption is in the HTML table
        | otherwise
-         -> return $ (literal "[TABLE]" $$ caption''') $$ blankline
+         -> do
+           report (BlockNotRendered t)
+           return $ (literal "[TABLE]" $$ caption''') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ (if isTightList items then vcat else vsep)
