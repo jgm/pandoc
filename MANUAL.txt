@@ -6929,7 +6929,8 @@ Slide 2 has a special image for its background, even though the heading has no c
 
 EPUB metadata may be specified using the `--epub-metadata` option, but
 if the source document is Markdown, it is better to use a [YAML metadata
-block][Extension: `yaml_metadata_block`].  Here is an example:
+block][Extension: `yaml_metadata_block`].  Here is an example of
+a YAML metadata block with EPUB metadata:
 
     ---
     title:
