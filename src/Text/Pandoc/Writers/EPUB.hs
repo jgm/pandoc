@@ -757,11 +757,7 @@ createCoverPage meta metadata opts' vars cssvars writeHtml plainTitle =
         Just img  -> do
           let fp = takeFileName img
           -- retrieve cover image file
-          mediaPaths <- gets (map (fst . snd) . stMediaPaths)
-          coverImageName <-  -- see #4206
-                if ("media/" <> fp) `elem` mediaPaths
-                  then getMediaNextNewName (takeExtension fp)
-                  else return fp
+          coverImageName <- getMediaNextNewName (takeExtension fp) -- see #4206
           -- image dimensions
           imgContent <- lift $ P.readFileLazy img
           (coverImageWidth, coverImageHeight) <-
