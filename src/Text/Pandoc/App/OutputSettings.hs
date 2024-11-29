@@ -267,6 +267,8 @@ optToOutputSettings scriptingEngine opts = do
         , writerSyntaxMap        = syntaxMap
         , writerPreferAscii      = optAscii opts
         , writerLinkImages       = optLinkImages opts
+        , writerEmbedResources   = optEmbedResources opts ||
+                                   optSelfContained opts
         }
   return $ OutputSettings
     { outputFormat = format

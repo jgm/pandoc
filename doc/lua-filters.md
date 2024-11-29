@@ -2130,6 +2130,9 @@ Fields:
 :   How to obfuscate emails -- one of 'none', 'references', or
     'javascript' (string)
 
+`embed_resources`
+:   Whether resources should be embedded in HTML output (boolean)
+
 `epub_chapter_level`
 :   Header level for chapters, i.e., how the document is split
     into separate files (integer)
