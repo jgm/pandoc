@@ -71,7 +71,8 @@ readCommonMark opts s
     readCommonMarkBody opts sources toks
 
 makeFigures :: Block -> Block
-makeFigures (Para [Image (ident,classes,kvs) alt (src,tit)]) =
+makeFigures (Para [Image (ident,classes,kvs) alt (src,tit)])
+  | not (null alt) =
   Figure (ident,[],[])
     (Caption Nothing [Plain alt])
     [Plain [Image ("",classes,kvs) alt (src,tit)]]
