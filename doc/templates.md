@@ -1,5 +1,6 @@
 ---
 title: Templates
+subtitle: templates for standalone pandoc output
 author: John MacFarlane
 ---
 

@@ -1,6 +1,11 @@
 -- we use preloaded text to get a UTF-8 aware 'upper' function
 local text = require('text')
 
+local manuals = {
+    ["MANUAL.txt"] = { title = "pandoc", section = "1" },
+    ["templates.md"] = { title = "pandoc-templates", section = "5" }
+}
+
 -- capitalize level 1 headers
 function Header(el)
     if el.level == 1 then
@@ -35,7 +40,12 @@ end
 
 -- replace links with link text
 function Link(el)
-    return el.content
+    local manual = manuals[el.target]
+    if manual then
+        return pandoc.RawInline("man", "\\fI" .. manual.title .. "\\fR(" .. manual.section .. ")")
+    else
+        return el.content
+    end
 end
 
 -- remove notes
