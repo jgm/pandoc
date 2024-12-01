@@ -66,7 +66,7 @@ import Text.Pandoc.Parsing hiding ((<|>))
 import Text.Pandoc.Shared (
     addMetaField, extractSpaces, htmlSpanLikeElements, renderTags',
     safeRead, tshow, formatCode)
-import Text.Pandoc.URI (escapeURI)
+import Text.Pandoc.URI (escapeURI, isBase64DataURI)
 import Text.Pandoc.Walk
 import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Sequence as Seq
@@ -1219,8 +1219,10 @@ htmlTag f = try $ do
 
 -- | Adjusts a url according to the document's base URL.
 canonicalizeUrl :: PandocMonad m => Text -> TagParser m Text
-canonicalizeUrl url = do
-  mbBaseHref <- baseHref <$> getState
-  return $ case (parseURIReference (T.unpack url), mbBaseHref) of
-                (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
-                _                   -> url
+canonicalizeUrl url 
+  | isBase64DataURI url = return url
+  | otherwise = do
+     mbBaseHref <- baseHref <$> getState
+     return $ case (parseURIReference (T.unpack url), mbBaseHref) of
+                   (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
+                   _                   -> url

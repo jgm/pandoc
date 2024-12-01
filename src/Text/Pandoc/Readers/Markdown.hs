@@ -1822,13 +1822,35 @@ parenthesizedChars = do
   result <- charsInBalanced '(' ')' litChar
   return $ "(" <> result <> ")"
 
+pBase64DataURI :: PandocMonad m => MarkdownParser m Text
+pBase64DataURI = mconcat <$> sequence
+  [ (textStr "data:")
+  , (T.singleton <$> (letter <|> digit))
+  , restrictedName
+  , (T.singleton <$> char '/')
+  , restrictedName
+  , textStr ";" <* trace "cool"
+  , (mconcat <$> many mediaParam)
+  , textStr "base64," <* trace "fine"
+  , parseBase64String
+  ]
+ where
+    restrictedName = manyChar (alphaNum <|> oneOf "!#$&^_.+-")
+    mediaParam = mconcat <$> sequence
+      [ notFollowedBy (textStr "base64,") *> mempty -- XXX ???
+      , restrictedName
+      , textStr "="
+      , manyChar (noneOf ";")
+      , textStr ";"
+      ]
+
 -- source for a link, with optional title
 source :: PandocMonad m => MarkdownParser m (Text, Text)
 source = do
   char '('
   skipSpaces
-  let urlChunk =
-            try parenthesizedChars
+  let urlChunk = try pBase64DataURI
+        <|> try parenthesizedChars
         <|> (notFollowedBy (oneOf " )") >> litChar)
         <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk

@@ -15,12 +15,16 @@ module Text.Pandoc.URI ( urlEncode
                        , isURI
                        , schemes
                        , uriPathToPath
+                       , isBase64DataURI
                        ) where
 import qualified Network.HTTP.Types as HTTP
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
+import qualified Data.Attoparsec.Text as A
 import qualified Data.Set as Set
 import Data.Char (isSpace, isAscii)
+import Data.Either (isRight)
+import Control.Applicative ((<|>))
 import Network.URI (URI (uriScheme), parseURI, escapeURIString)
 
 urlEncode :: T.Text -> T.Text
@@ -28,7 +32,9 @@ urlEncode = UTF8.toText . HTTP.urlEncode True . UTF8.fromText
 
 -- | Escape whitespace and some punctuation characters in URI.
 escapeURI :: T.Text -> T.Text
-escapeURI = T.pack . escapeURIString (not . needsEscaping) . T.unpack
+escapeURI t
+  | isBase64DataURI t = t
+  | otherwise = (T.pack . escapeURIString (not . needsEscaping) . T.unpack) t
   where needsEscaping c = isSpace c || T.any (== c) "<>|\"{}[]^`"
 
 --
@@ -87,12 +93,38 @@ schemes = Set.fromList
   , "doi", "gemini", "isbn", "javascript", "pmid"
   ]
 
+isBase64DataURI :: T.Text -> Bool
+isBase64DataURI =
+  isRight . A.parseOnly pBase64DataURI
+
+pBase64DataURI :: A.Parser T.Text
+pBase64DataURI = mconcat <$> sequence
+  [ (A.string "data:")
+  , (T.singleton <$> (A.letter <|> A.digit))
+  , restrictedName
+  , (T.singleton <$> A.char '/')
+  , restrictedName
+  , (mconcat <$> A.many' mediaParam)
+  , A.string ";base64,"
+  , A.takeWhile1 (A.inClass "A-Za-z0-9+/")
+  , A.takeWhile (== '=')
+  ]
+ where
+    restrictedName = A.takeWhile1 (A.inClass "0-9a-zA-Z!#$&^_.+-")
+    mediaParam = mconcat <$> sequence
+      [ (T.singleton <$> A.char ';')
+      , restrictedName
+      , (T.singleton <$> A.char '=')
+      , A.takeWhile (/= ';') 
+      ]
+
 -- | Check if the string is a valid URL with a IANA or frequently used but
 -- unofficial scheme (see @schemes@).
 isURI :: T.Text -> Bool
-isURI =
-  -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
-  maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack
+isURI t =
+  isBase64DataURI t ||
+    -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
+    (maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack) t
   where
     hasKnownScheme = (`Set.member` schemes) . T.toLower .
                      T.filter (/= ':') . T.pack . uriScheme

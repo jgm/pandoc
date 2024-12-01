@@ -172,7 +172,8 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              Column,
                              ParseError,
                              errorMessages,
-                             messageString
+                             messageString,
+                             parseBase64String
                              )
 where
 
@@ -341,3 +342,4 @@ import Text.Pandoc.Parsing.State
       SubstTable )
 import Text.Pandoc.Parsing.Future
     ( askF, asksF, returnF, runF, Future(..) )
+import Text.Pandoc.Parsing.Base64 (parseBase64String)
