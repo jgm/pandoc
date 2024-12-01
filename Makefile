@@ -109,6 +109,7 @@ check-manversion:
 	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc.1"
 	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-server.1"
 	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-lua.1"
+	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-templates.5"
 .PHONY: check-manversion
 
 checkdocs:
