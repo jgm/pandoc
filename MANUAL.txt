@@ -55,7 +55,7 @@ use the `-s` or `--standalone` flag:
     pandoc -s -o output.html input.txt
 
 For more information on how standalone documents are produced, see
-[Templates] below.
+[Templates](templates.md).
 
 If multiple input files are given, pandoc will concatenate them all (with
 blank lines between them) before parsing. (Use `--file-scope` to parse files
@@ -759,7 +759,7 @@ header when requesting a document from a URL:
 `--template=`*FILE*|*URL*
 
 :   Use the specified file as a custom template for the generated document.
-    Implies `--standalone`. See [Templates], below, for a description
+    Implies `--standalone`. See [Templates](templates.md) for a description
     of template syntax. If no extension is specified, an extension
     corresponding to the writer will be added, so that `--template=special`
     looks for `special.html` for HTML output.  If the template is not
@@ -6266,7 +6266,7 @@ to use `--standalone` with a custom writer, you will need to
 specify a template manually using `--template` or add a new
 default template with the name
 `default.NAME_OF_CUSTOM_WRITER.lua` to the `templates`
-subdirectory of your user data directory (see [Templates]).
+subdirectory of your user data directory (see [Templates](templates.md)).
 
 [Lua]: https://www.lua.org
 [lpeg]:  http://www.inf.puc-rio.br/~roberto/lpeg/
