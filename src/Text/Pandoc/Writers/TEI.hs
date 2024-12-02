@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {- |
-   Module      : Text.Pandoc.Writers.Docbook
+   Module      : Text.Pandoc.Writers.TEI
    Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
@@ -9,7 +9,7 @@
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to Docbook XML.
+Conversion of 'Pandoc' documents to TEI XML
 -}
 module Text.Pandoc.Writers.TEI (writeTEI) where
 import Data.Text (Text)
@@ -27,7 +27,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 
--- | Convert Pandoc document to string in Docbook format.
+-- | Convert Pandoc document to string in TEI XML format.
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTEI opts doc = do
   let Pandoc meta blocks = ensureValidXmlIdentifiers doc
