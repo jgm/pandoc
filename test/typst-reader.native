@@ -1823,7 +1823,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "f\\prime"
+                                  [ Math InlineMath "f'"
                                   , Str "\8192"
                                   , Code ( "" , [] , [] ) "f'"
                                   , Str ","
