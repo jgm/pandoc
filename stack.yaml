@@ -24,7 +24,7 @@ extra-deps:
   commit: 2b6876018a903207c7a9093c5c63b00a4d0980be
   subdirs: [skylighting-core, skylighting-format-blaze-html]
 - git: https://github.com/jgm/texmath.git
-  commit: 4666e68eb1b640d69dc5261748bfe716e3b212c9
+  commit: 0b7bb7626505ab59474ae2c119e0c1341ec30d8f
 - git: https://github.com/jgm/typst-hs.git
   commit: 5a50154c958d09c06fd884dcc4519403f7904bc1
 - git: https://github.com/pandoc/pandoc-lua-marshal
