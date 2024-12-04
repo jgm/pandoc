@@ -2,6 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeFamilies #-}
 {- |
    Module      : Text.Pandoc.Readers.Roff
    Copyright   : Copyright (C) 2018-2020 Yan Pashkovsky and John MacFarlane
@@ -29,11 +30,11 @@ module Text.Pandoc.Readers.Roff
 where
 
 import Safe (lastDef)
-import Control.Monad (void, mzero, mplus, guard)
+import Control.Monad (void, guard)
 import Control.Monad.Except (throwError)
 import Text.Pandoc.Class.PandocMonad
        (getResourcePath, readFileFromDirs, PandocMonad(..), report)
-import Data.Char (isLower, toLower, toUpper, chr, isAscii, isAlphaNum)
+import Data.Char (isLower, toLower, toUpper, isAlphaNum)
 import Data.Default (Default)
 import qualified Data.Map as M
 import Data.List (intercalate)
@@ -42,10 +43,9 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (safeRead)
-import Text.Pandoc.RoffChar (characterCodes, combiningAccents)
+import Text.Pandoc.Readers.Roff.Escape
 import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
-import qualified Data.Text.Normalize as Normalize
 
 -- import Debug.Trace (traceShowId)
 
@@ -64,6 +64,59 @@ data LinePart = RoffStr T.Text
               | Font FontSpec
               | MacroArg Int
               deriving Show
+
+instance RoffLikeLexer RoffTokens where
+  -- The token stream is a list of 'LinePart's
+  type Token RoffTokens = [LinePart]
+  type State RoffTokens = RoffState
+  emit t = [RoffStr t]
+  expandString = try $ do
+    pos <- getPosition
+    char '\\'
+    char '*'
+    cs <- escapeArg <|> countChar 1 anyChar
+    s <- linePartsToText <$> resolveText cs pos
+    addToInput s
+  escString = try $ do
+    pos <- getPosition
+    (do cs <- escapeArg <|> countChar 1 anyChar
+        resolveText cs pos)
+      <|> mempty <$ char 'S'
+  backslash = do
+    char '\\'
+    mode <- roffMode <$> getState
+    case mode of
+      -- experimentally, it seems you don't always need to double
+      -- the backslash in macro defs.  It's essential with \\$1,
+      -- but not with \\f[I].  So we make the second one optional.
+      CopyMode   -> optional $ char '\\'
+      NormalMode -> return ()
+  checkDefined name = do
+    macros <- customMacros <$> getState
+    case M.lookup name macros of
+      Just _  -> return [RoffStr "1"]
+      Nothing -> return [RoffStr "0"]
+  -- \E is ignored in copy mode
+  escE = do
+      mode <- roffMode <$> getState
+      case mode of
+        CopyMode   -> return mempty
+        NormalMode -> return [RoffStr "\\"]
+  escFont = do
+    font <- escapeArg <|> countChar 1 alphaNum
+    font' <- if T.null font || font == "P"
+                then prevFont <$> getState
+                else return $ foldr processFontLetter defaultFontSpec $ T.unpack font
+    updateState $ \st -> st{ prevFont = currentFont st
+                           , currentFont = font' }
+    return [Font font']
+    where
+      processFontLetter c fs
+                | isLower c    = processFontLetter (toUpper c) fs
+      processFontLetter 'B' fs = fs{ fontBold = True }
+      processFontLetter 'I' fs = fs{ fontItalic = True }
+      processFontLetter 'C' fs = fs{ fontMonospace = True }
+      processFontLetter _   fs = fs -- do nothing
 
 type Arg = [LinePart]
 
@@ -132,198 +185,6 @@ eofline = void newline <|> eof <|> () <$ lookAhead (string "\\}")
 
 spacetab :: (Stream s m Char, UpdateSourcePos s Char) => ParsecT s u m Char
 spacetab = char ' ' <|> char '\t'
-
-characterCodeMap :: M.Map T.Text Char
-characterCodeMap =
-  M.fromList $ map (\(x,y) -> (y,x)) characterCodes
-
-combiningAccentsMap :: M.Map T.Text Char
-combiningAccentsMap =
-  M.fromList $ map (\(x,y) -> (y,x)) combiningAccents
-
-escape :: PandocMonad m => RoffLexer m [LinePart]
-escape = try $ do
-  backslash
-  escapeGlyph <|> escapeNormal
-
-escapeGlyph :: PandocMonad m => RoffLexer m [LinePart]
-escapeGlyph = do
-  c <- lookAhead (oneOf ['[','('])
-  escapeArg >>= resolveGlyph c
-
-resolveGlyph :: PandocMonad m => Char -> T.Text -> RoffLexer m [LinePart]
-resolveGlyph delimChar glyph = do
-  let cs = T.replace "_u" " u" glyph -- unicode glyphs separated by _
-  (case T.words cs of
-      []  -> mzero
-      [s] -> case M.lookup s characterCodeMap `mplus` readUnicodeChar s of
-               Nothing -> mzero
-               Just c  -> return [RoffStr $ T.singleton c]
-      (s:ss) -> do
-        basechar <- case M.lookup s characterCodeMap `mplus`
-                         readUnicodeChar s of
-                      Nothing ->
-                        case T.unpack s of
-                          [ch] | isAscii ch && isAlphaNum ch ->
-                                 return ch
-                          _ -> mzero
-                      Just c  -> return c
-        let addAccents [] xs = return $ Normalize.normalize Normalize.NFC $
-                                        T.reverse xs
-            addAccents (a:as) xs =
-              case M.lookup a combiningAccentsMap `mplus` readUnicodeChar a of
-                Just x  -> addAccents as $ T.cons x xs
-                Nothing -> mzero
-        addAccents ss (T.singleton basechar) >>= \xs -> return [RoffStr xs])
-      <|> case delimChar of
-            '['  -> escUnknown ("\\[" <> glyph <> "]")
-            '('  -> escUnknown ("\\(" <> glyph)
-            '\'' -> escUnknown ("\\C'" <> glyph <> "'")
-            _    -> Prelude.fail "resolveGlyph: unknown glyph delimiter"
-
-readUnicodeChar :: T.Text -> Maybe Char
-readUnicodeChar t = case T.uncons t of
-  Just ('u', cs) | T.length cs > 3 -> chr <$> safeRead ("0x" <> cs)
-  _ -> Nothing
-
-escapeNormal :: PandocMonad m => RoffLexer m [LinePart]
-escapeNormal = do
-  c <- noneOf "{}"
-  optional expandString
-  case c of
-    ' ' -> return [RoffStr " "]
-    '"' -> mempty <$ skipMany (satisfy (/='\n')) -- line comment
-    '#' -> mempty <$ manyTill anyChar newline
-    '%' -> return mempty  -- optional hyphenation
-    '&' -> return mempty  -- nonprintable zero-width
-    ')' -> return mempty  -- nonprintable zero-width
-    '*' -> escString
-    ',' -> return mempty  -- to fix spacing after roman
-    '-' -> return [RoffStr "-"]
-    '.' -> return [RoffStr "."]
-    '/' -> return mempty  -- to fix spacing before roman
-    '0' -> return [RoffStr "\x2007"] -- digit-width space
-    ':' -> return mempty  -- zero-width break
-    'A' -> quoteArg >>= checkDefined
-    'B' -> escIgnore 'B' [quoteArg]
-    'C' -> quoteArg >>= resolveGlyph '\''
-    'D' -> escIgnore 'D' [quoteArg]
-    'E' -> do
-      mode <- roffMode <$> getState
-      case mode of
-        CopyMode   -> return mempty
-        NormalMode -> return [RoffStr "\\"]
-    'H' -> escIgnore 'H' [quoteArg]
-    'L' -> escIgnore 'L' [quoteArg]
-    'M' -> escIgnore 'M' [escapeArg, countChar 1 (satisfy (/='\n'))]
-    'N' -> escIgnore 'N' [quoteArg]
-    'O' -> escIgnore 'O' [countChar 1 (oneOf ['0','1'])]
-    'R' -> escIgnore 'R' [quoteArg]
-    'S' -> escIgnore 'S' [quoteArg]
-    'V' -> escIgnore 'V' [escapeArg, countChar 1 alphaNum]
-    'X' -> escIgnore 'X' [quoteArg]
-    'Y' -> escIgnore 'Y' [escapeArg, countChar 1 (satisfy (/='\n'))]
-    'Z' -> escIgnore 'Z' [quoteArg]
-    '\'' -> return [RoffStr "'"]
-    '\n' -> return mempty  -- line continuation
-    '^' -> return [RoffStr "\x200A"] -- 1/12 em space
-    '_' -> return [RoffStr "_"]
-    '`' -> return [RoffStr "`"]
-    'a' -> return mempty  -- "non-interpreted leader character"
-    'b' -> escIgnore 'b' [quoteArg]
-    'c' -> return mempty  -- interrupt text processing
-    'd' -> escIgnore 'd' [] -- forward down 1/2em
-    'e' -> return [RoffStr "\\"]
-    'f' -> escFont
-    'g' -> escIgnore 'g' [escapeArg, countChar 1 (satisfy (/='\n'))]
-    'h' -> escIgnore 'h' [quoteArg]
-    'k' -> escIgnore 'k' [escapeArg, countChar 1 (satisfy (/='\n'))]
-    'l' -> escIgnore 'l' [quoteArg]
-    'm' -> escIgnore 'm' [escapeArg, countChar 1 (satisfy (/='\n'))]
-    'n' -> escIgnore 'm' [escapeArg, countChar 1 (satisfy (/='\n'))]
-    'o' -> escIgnore 'o' [quoteArg]
-    'p' -> escIgnore 'p' []
-    'r' -> escIgnore 'r' []
-    's' -> escIgnore 's' [escapeArg, signedNumber]
-    't' -> return [RoffStr "\t"]
-    'u' -> escIgnore 'u' []
-    'v' -> escIgnore 'v' [quoteArg]
-    'w' -> escIgnore 'w' [quoteArg]
-    'x' -> escIgnore 'x' [quoteArg]
-    'z' -> escIgnore 'z' [countChar 1 anyChar]
-    '|' -> return [RoffStr "\x2006"] --1/6 em space
-    '~' -> return [RoffStr "\160"] -- nonbreaking space
-    '\\' -> do
-      mode <- roffMode <$> getState
-      case mode of
-        CopyMode   -> char '\\'
-        NormalMode -> return '\\'
-      return [RoffStr "\\"]
-    _   -> return [RoffStr $ T.singleton c]
-    -- man 7 groff: "If  a  backslash  is followed by a character that
-    -- does not constitute a defined escape sequence, the backslash
-    -- is  silently  ignored  and  the character maps to itself."
-
-escIgnore :: PandocMonad m
-          => Char
-          -> [RoffLexer m T.Text]
-          -> RoffLexer m [LinePart]
-escIgnore c argparsers = do
-  pos <- getPosition
-  arg <- snd <$> withRaw (choice argparsers) <|> return ""
-  report $ SkippedContent ("\\" <> T.cons c arg) pos
-  return mempty
-
-escUnknown :: PandocMonad m => T.Text -> RoffLexer m [LinePart]
-escUnknown s = do
-  pos <- getPosition
-  report $ SkippedContent s pos
-  return [RoffStr "\xFFFD"]
-
-signedNumber :: PandocMonad m => RoffLexer m T.Text
-signedNumber = try $ do
-  sign <- option "" ("-" <$ char '-' <|> "" <$ char '+')
-  ds <- many1Char digit
-  return (sign <> ds)
-
--- Parses: [..] or (..
-escapeArg :: PandocMonad m => RoffLexer m T.Text
-escapeArg = choice
-    [ char '[' *> optional expandString *>
-                  manyTillChar (noneOf ['\n',']']) (char ']')
-    , char '(' *> optional expandString *>
-                  countChar 2 (satisfy (/='\n'))
-    ]
-
-expandString :: PandocMonad m => RoffLexer m ()
-expandString = try $ do
-  pos <- getPosition
-  char '\\'
-  char '*'
-  cs <- escapeArg <|> countChar 1 anyChar
-  s <- linePartsToText <$> resolveText cs pos
-  addToInput s
-
--- Parses: '..'
-quoteArg :: PandocMonad m => RoffLexer m T.Text
-quoteArg = char '\'' *> manyTillChar (noneOf ['\n','\'']) (char '\'')
-
-escFont :: PandocMonad m => RoffLexer m [LinePart]
-escFont = do
-  font <- escapeArg <|> countChar 1 alphaNum
-  font' <- if T.null font || font == "P"
-              then prevFont <$> getState
-              else return $ foldr processFontLetter defaultFontSpec $ T.unpack font
-  updateState $ \st -> st{ prevFont = currentFont st
-                         , currentFont = font' }
-  return [Font font']
-  where
-    processFontLetter c fs
-              | isLower c    = processFontLetter (toUpper c) fs
-    processFontLetter 'B' fs = fs{ fontBold = True }
-    processFontLetter 'I' fs = fs{ fontItalic = True }
-    processFontLetter 'C' fs = fs{ fontMonospace = True }
-    processFontLetter _   fs = fs -- do nothing
 
 -- separate function from lexMacro since real man files sometimes do not
 -- follow the rules
@@ -624,20 +485,6 @@ lexArgs = do
         char '"'
         return [RoffStr "\""]
 
-checkDefined :: PandocMonad m => T.Text -> RoffLexer m [LinePart]
-checkDefined name = do
-  macros <- customMacros <$> getState
-  case M.lookup name macros of
-    Just _  -> return [RoffStr "1"]
-    Nothing -> return [RoffStr "0"]
-
-escString :: PandocMonad m => RoffLexer m [LinePart]
-escString = try $ do
-  pos <- getPosition
-  (do cs <- escapeArg <|> countChar 1 anyChar
-      resolveText cs pos)
-    <|> mempty <$ char 'S'
-
 -- strings and macros share namespace
 resolveText :: PandocMonad m
               => T.Text -> SourcePos -> RoffLexer m [LinePart]
@@ -667,17 +514,6 @@ lexLine = do
 linePart :: PandocMonad m => RoffLexer m [LinePart]
 linePart = macroArg <|> escape <|>
            regularText <|> quoteChar <|> spaceTabChar
-
-backslash :: PandocMonad m => RoffLexer m ()
-backslash = do
-  char '\\'
-  mode <- roffMode <$> getState
-  case mode of
-    -- experimentally, it seems you don't always need to double
-    -- the backslash in macro defs.  It's essential with \\$1,
-    -- but not with \\f[I].  So we make the second one optional.
-    CopyMode   -> optional $ char '\\'
-    NormalMode -> return ()
 
 macroArg :: PandocMonad m => RoffLexer m [LinePart]
 macroArg = try $ do
