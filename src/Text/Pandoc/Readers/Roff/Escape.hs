@@ -5,6 +5,7 @@
 module Text.Pandoc.Readers.Roff.Escape
   ( escape,
     escapeArg,
+    escIgnore,
     RoffLikeLexer(..),
   )
 where
@@ -50,8 +51,7 @@ class (Monoid (Token x)) => RoffLikeLexer x where
   backslash :: PandocMonad m => Lexer m x ()
   -- | If the given custom macro is defined in this document, emit a
   -- tokenized "1", otherwise emit a tokenized "0", implementing the roff
-  -- escape @\A@. The default case assumes an implementation that doesn't
-  -- support macro definition and always emits null.
+  -- escape @\A@.
   checkDefined :: PandocMonad m => T.Text -> Lexer m x (Token x)
   -- | Output an appropriate token for the @\E@ escape sequence. In roff, @\E@
   -- is an "escape character intended to not be interpreted in copy mode".
