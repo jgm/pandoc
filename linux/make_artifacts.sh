@@ -48,6 +48,7 @@ make_deb() {
 
   mkdir -p "$DEST/bin"
   mkdir -p "$DEST/share/man/man1"
+  mkdir -p "$DEST/share/man/man5"
   mkdir -p "$DEST/share/doc/pandoc"
 
   find "$DIST" -type d -exec chmod 755 {} \;
@@ -56,10 +57,10 @@ make_deb() {
   ln -s pandoc pandoc-server
   ln -s pandoc pandoc-lua
   popd
-  for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1
+  for manpage in pandoc.1 pandoc-lua.1 pandoc-server.1 pandoc-templates.5
   do
-    cp "$WORK/pandoc-cli/man/$manpage" "$DEST/share/man/man1/$manpage"
-    gzip -9 "$DEST/share/man/man1/$manpage"
+    cp "$WORK/pandoc-cli/man/$manpage" "$DEST/share/man/man${manpage##*.}/$manpage"
+    gzip -9 "$DEST/share/man/man${manpage##*.}/$manpage"
   done
   cp $WORK/COPYRIGHT "$COPYRIGHT"
   echo "" >> "$COPYRIGHT"
@@ -84,9 +85,11 @@ make_tarball() {
   pushd "$ARTIFACTS"
   rm -rf "$TARGET"
   mkdir "$TARGET"
-  mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1"
+  mkdir "$TARGET/bin" "$TARGET/share" "$TARGET/share/man" "$TARGET/share/man/man1" "$TARGET/share/man/man5"
   cp $WORK/pandoc-cli/man/pandoc.1 $WORK/pandoc-cli/man/pandoc-server.1 $WORK/pandoc-cli/man/pandoc-lua.1 "$TARGET/share/man/man1"
+  cp $WORK/pandoc-cli/man/pandoc-templates.5 "$TARGET/share/man/man5"
   gzip -9 "$TARGET"/share/man/man1/*.1
+  gzip -9 "$TARGET"/share/man/man5/*.5
   mv pandoc "$TARGET/bin"
   pushd "$TARGET/bin"
   ln -s pandoc pandoc-server

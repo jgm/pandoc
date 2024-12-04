@@ -22,6 +22,7 @@ mkdir -p $ARTIFACTS
 mkdir -p $RESOURCES
 mkdir -p $DEST/bin
 mkdir -p $DEST/share/man/man1
+mkdir -p $DEST/share/man/man5
 
 # Copy binary and strip it
 echo "Copying executable..."
@@ -33,6 +34,7 @@ echo "Copying manuals and license..."
 cp pandoc-cli/man/pandoc.1 "$DEST/share/man/man1/pandoc.1"
 cp pandoc-cli/man/pandoc-server.1 "$DEST/share/man/man1/pandoc-server.1"
 cp pandoc-cli/man/pandoc-lua.1 "$DEST/share/man/man1/pandoc-lua.1"
+cp pandoc-cli/man/pandoc-templates.5 "$DEST/share/man/man5/pandoc-templates.5"
 "$BINPATH" -s COPYING.md -Vpagetitle=License -o "$RESOURCES/license.html"
 
 # Prepare distribution directory; after downloading, run 'make' to notarize

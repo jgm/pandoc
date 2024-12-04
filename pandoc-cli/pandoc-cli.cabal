@@ -19,6 +19,7 @@ extra-source-files:
                  man/pandoc.1
                  man/pandoc-lua.1
                  man/pandoc-server.1
+                 man/pandoc-templates.5
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git

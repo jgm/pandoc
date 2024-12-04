@@ -109,6 +109,7 @@ check-manversion:
 	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc.1"
 	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-server.1"
 	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-lua.1"
+	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-templates.5"
 .PHONY: check-manversion
 
 checkdocs:
@@ -137,7 +138,7 @@ changes_github: ## copy this release's changes in gfm
 	$(pandoc) --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
 .PHONY: changes_github
 
-man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pandoc-lua.1 ## build man pages
+man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pandoc-lua.1 pandoc-cli/man/pandoc-templates.5 ## build man pages
 .PHONY: man
 
 latex-package-dependencies: ## print packages used by default latex template
@@ -199,6 +200,16 @@ pandoc-cli/man/%.1: doc/%.md pandoc.cabal
     --include-after-body man/pandoc.1.after \
 		-o $@
 
+pandoc-cli/man/pandoc-%.5: doc/%.md pandoc.cabal man/template.man
+	$(pandoc) $< -f markdown -t man -s \
+		--template man/template.man \
+		--lua-filter man/manfilter.lua \
+		--metadata author="" \
+    --variable section="5" \
+    --variable title="$(basename $(notdir $@))" \
+    --variable header='Pandoc User\[cq]s Guide' \
+		--variable footer="pandoc $(version)" \
+		-o $@
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
 	$(pandoc) --lua-filter tools/update-readme.lua \
