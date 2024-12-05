@@ -118,7 +118,7 @@ data ReaderState = ReaderState { stateWarnings :: [T.Text]
                  deriving Show
 
 data FldCharState = FldCharOpen
-                  | FldCharFieldInfo FieldInfo
+                  | FldCharFieldInfo T.Text
                   | FldCharContent FieldInfo [ParPart]
                   deriving (Show)
 
@@ -941,6 +941,10 @@ example (omissions and my comments in brackets):
         <w:fldChar w:fldCharType="end"/>
       </w:r>
 
+Note that there may be mulitple w:instrText elements in a row.
+For example, you might first have ` XE "`, then `Kay, Alan`, then `"`.
+The texts in all of them should be concatenated before it is processed!
+
 So we do this in a number of steps. If we encounter the fldchar begin
 tag, we start open a fldchar state variable (see state above). We add
 the instrtext to it as FieldInfo. Then we close that and start adding
@@ -961,13 +965,15 @@ elemToParPart ns element
         _ | fldCharType == "begin" -> do
           modify $ \st -> st {stateFldCharState = FldCharOpen : fldCharState}
           return []
-        FldCharFieldInfo info : ancestors | fldCharType == "separate" -> do
+        FldCharFieldInfo t : ancestors | fldCharType == "separate" -> do
+          info <- eitherToD $ parseFieldInfo t
           modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
           return []
-        -- Some fields have no content, since Pandoc doesn't understand any of those fields, we can just close it.
-        FldCharFieldInfo _ : ancestors | fldCharType == "end" -> do
+        -- Some fields have no content, e.g. index XE:
+        FldCharFieldInfo t : ancestors | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = ancestors}
-          return []
+          info <- eitherToD $ parseFieldInfo t
+          return [Field info []]
         [FldCharContent info children] | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = []}
           return [Field info $ reverse children]
@@ -982,8 +988,13 @@ elemToParPart ns element
       fldCharState <- gets stateFldCharState
       case fldCharState of
         FldCharOpen : ancestors -> do
-          info <- eitherToD $ parseFieldInfo $ strContent instrText
-          modify $ \st -> st {stateFldCharState = FldCharFieldInfo info : ancestors}
+          modify $ \st -> st {stateFldCharState =
+                               FldCharFieldInfo (strContent instrText) : ancestors}
+          return []
+        FldCharFieldInfo t : ancestors -> do
+          modify $ \st -> st {stateFldCharState =
+                               FldCharFieldInfo (t <> strContent instrText) :
+                                ancestors}
           return []
         _ -> return []
 {-

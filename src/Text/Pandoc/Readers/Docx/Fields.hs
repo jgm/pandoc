@@ -25,6 +25,7 @@ type Anchor = T.Text
 data FieldInfo = HyperlinkField URL
                 -- The boolean indicates whether the field is a hyperlink.
                | PagerefField Anchor Bool
+               | IndexrefField T.Text
                | CslCitation T.Text
                | CslBibliography
                | EndNoteCite T.Text
@@ -38,26 +39,27 @@ parseFieldInfo :: T.Text -> Either ParseError FieldInfo
 parseFieldInfo = parse fieldInfo ""
 
 fieldInfo :: Parser FieldInfo
-fieldInfo =
-  try (HyperlinkField <$> hyperlink)
-  <|>
-  try ((uncurry PagerefField) <$> pageref)
-  <|>
-  try addIn
-  <|>
-  return UnknownField
+fieldInfo = do
+  spaces
+  (HyperlinkField <$> hyperlink)
+    <|>
+    ((uncurry PagerefField) <$> pageref)
+    <|>
+    (IndexrefField <$> indexref)
+    <|>
+    addIn
+    <|>
+    return UnknownField
 
 addIn :: Parser FieldInfo
 addIn = do
-  spaces
   string "ADDIN"
   spaces
   try cslCitation <|> cslBibliography <|> endnoteCite <|> endnoteRefList
 
 cslCitation :: Parser FieldInfo
 cslCitation = do
-  optional (string "ZOTERO_ITEM")
-  spaces
+  optional (string "ZOTERO_ITEM" *> spaces)
   string "CSL_CITATION"
   spaces
   CslCitation <$> getInput
@@ -107,7 +109,6 @@ hyperlinkSwitch = do
 
 hyperlink :: Parser URL
 hyperlink = do
-  many space
   string "HYPERLINK"
   spaces
   farg <- option "" $ notFollowedBy (char '\\') *> fieldArgument
@@ -127,7 +128,6 @@ pagerefSwitch = do
 
 pageref :: Parser (Anchor, Bool)
 pageref = do
-  many space
   string "PAGEREF"
   spaces
   farg <- fieldArgument
@@ -136,3 +136,10 @@ pageref = do
               ("\\h", _) : _ -> True
               _              -> False
   return (farg, isLink)
+
+indexref :: Parser T.Text
+indexref = do
+  string "XE"
+  spaces
+  fieldArgument
+
