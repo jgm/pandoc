@@ -263,6 +263,7 @@ header when requesting a document from a URL:
     - `markdown_strict` (original unextended [Markdown])
     - `mediawiki` ([MediaWiki markup])
     - `man` ([roff man])
+    - `mdoc` ([mdoc] manual page markup)
     - `muse` ([Muse])
     - `native` (native Haskell)
     - `odt` ([OpenOffice text document][ODT])
@@ -535,6 +536,7 @@ header when requesting a document from a URL:
 [Markua]: https://leanpub.com/markua/read
 [EndNote XML bibliography]: https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition
 [typst]: https://typst.app
+[mdoc]: https://mandoc.bsd.lv/man/mdoc.7.html
 
 ## Reader options {.options}
 
