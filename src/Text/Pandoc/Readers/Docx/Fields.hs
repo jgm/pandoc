@@ -12,20 +12,30 @@ For parsing Field definitions in instText tags, as described in
 ECMA-376-1:2016, §17.16.5 -}
 
 module Text.Pandoc.Readers.Docx.Fields ( FieldInfo(..)
+                                       , IndexEntry(..)
                                        , parseFieldInfo
                                        ) where
 
 import Data.Functor (($>), void)
 import qualified Data.Text as T
 import Text.Pandoc.Parsing
+import Data.Maybe (isJust)
 
 type URL = T.Text
 type Anchor = T.Text
 
+data IndexEntry = IndexEntry
+  { entryTitle :: T.Text
+  , entrySee :: Maybe T.Text
+  , entryYomi :: Maybe T.Text
+  , entryBold :: Bool
+  , entryItalic :: Bool }
+  deriving (Show)
+
 data FieldInfo = HyperlinkField URL
                 -- The boolean indicates whether the field is a hyperlink.
                | PagerefField Anchor Bool
-               | IndexrefField T.Text (Maybe T.Text) -- second is optional 'see'
+               | IndexrefField IndexEntry
                | CslCitation T.Text
                | CslBibliography
                | EndNoteCite T.Text
@@ -41,11 +51,11 @@ parseFieldInfo = parse fieldInfo ""
 fieldInfo :: Parser FieldInfo
 fieldInfo = do
   spaces
-  (HyperlinkField <$> hyperlink)
+  hyperlink
     <|>
-    ((uncurry PagerefField) <$> pageref)
+    pageref
     <|>
-    ((uncurry IndexrefField) <$> indexref)
+    indexref
     <|>
     addIn
     <|>
@@ -101,7 +111,7 @@ fieldArgument = do
   notFollowedBy (char '\\') -- switch
   quotedString <|> unquotedString
 
-hyperlink :: Parser URL
+hyperlink :: Parser FieldInfo
 hyperlink = do
   string "HYPERLINK"
   spaces
@@ -110,7 +120,7 @@ hyperlink = do
   let url = case [s | ('l',s) <- switches] of
               [s] -> farg <> "#" <> s
               _   -> farg
-  return url
+  return $ HyperlinkField url
 
 -- See §17.16.5.45
 fieldSwitch :: Parser (Char, T.Text)
@@ -119,25 +129,27 @@ fieldSwitch = try $ do
   char '\\'
   c <- anyChar
   spaces
-  farg <- fieldArgument
+  farg <- option mempty fieldArgument
   return (c, farg)
 
-pageref :: Parser (Anchor, Bool)
+pageref :: Parser FieldInfo
 pageref = do
   string "PAGEREF"
   spaces
   farg <- fieldArgument
   switches <- many fieldSwitch
   let isLink = any ((== 'h') . fst) switches
-  return (farg, isLink)
+  return $ PagerefField farg isLink
 
 -- second element of tuple is optional "see".
-indexref :: Parser (T.Text, Maybe T.Text)
+indexref :: Parser FieldInfo
 indexref = do
   string "XE"
   spaces
   farg <- fieldArgument
   switches <- spaces *> many fieldSwitch
-  case [see | ('t', see) <- switches] of
-     [see] -> pure (farg, Just see)
-     _     -> pure (farg, Nothing)
+  return $ IndexrefField $ IndexEntry{ entryTitle = farg
+                                     , entrySee = lookup 't' switches
+                                     , entryYomi = lookup 'y' switches
+                                     , entryBold = isJust (lookup 'b' switches)
+                                     , entryItalic = isJust (lookup 'i' switches) }

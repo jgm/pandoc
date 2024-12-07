@@ -472,10 +472,13 @@ parPartToInlines' (OMathPara exps) =
 parPartToInlines' (Field info children) =
   case info of
     HyperlinkField url -> parPartToInlines' $ ExternalHyperLink url children
-    IndexrefField entry mbsee ->
+    IndexrefField ie ->
       pure $ spanWith ("",["indexref"],
-                           (("entry",entry) :
-                             maybe [] (\x -> [("crossref",x)]) mbsee)) mempty
+                           (("entry", entryTitle ie) :
+                             maybe [] (\x -> [("crossref",x)]) (entrySee ie)
+                          ++ maybe [] (\x -> [("yomi",x)]) (entryYomi ie)
+                          ++ [("bold","") | entryBold ie]
+                          ++ [("italic","") | entryItalic ie])) mempty
     PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
     EndNoteCite t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children

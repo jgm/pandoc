@@ -43,6 +43,7 @@ module Text.Pandoc.Readers.Docx.Parse ( Docx(..)
                                       , ChangeType(..)
                                       , ChangeInfo(..)
                                       , FieldInfo(..)
+                                      , IndexEntry(..)
                                       , Level(..)
                                       , ParaStyleName
                                       , CharStyleName
