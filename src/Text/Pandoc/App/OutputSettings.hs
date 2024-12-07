@@ -133,7 +133,7 @@ optToOutputSettings scriptingEngine opts = do
       templ <- processCustomTemplate $
                case customTemplate components of
                  Nothing -> throwError $ PandocNoTemplateError format
-                 Just t -> (runWithDefaultPartials $ compileTemplate path t) >>=
+                 Just t -> runWithDefaultPartials (compileTemplate path t) >>=
                            templateOrThrow
       return (w, wexts, templ)
     else
