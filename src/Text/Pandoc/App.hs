@@ -323,8 +323,12 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                     | T.null t || T.last t /= '\n' = t <> T.singleton '\n'
                     | otherwise = t
               textOutput <- ensureNl <$> f writerOptions doc
-              if (optSelfContained opts || optEmbedResources opts) && htmlFormat format
-                 then TextOutput <$> makeSelfContained textOutput
+              if htmlFormat format &&
+                  (optSelfContained opts || optEmbedResources opts)
+                 then if optSandbox opts
+                         then sandbox' opts $
+                              TextOutput <$> makeSelfContained textOutput
+                         else TextOutput <$> makeSelfContained textOutput
                  else return $ TextOutput textOutput
   reports <- getLog
   return (output, reports)
