@@ -192,6 +192,7 @@ block = ((do
     TagOpen name attr ->
       let type' = fromMaybe "" $
                      lookup "type" attr <|> lookup "epub:type" attr
+          role = fromMaybe "" $ lookup "role" attr
           epubExts = extensionEnabled Ext_epub_html_exts exts
       in
       case name of
@@ -211,6 +212,8 @@ block = ((do
         _ | "titlepage" `T.isInfixOf` type'
           , name `elem` ("section" : groupingContent)
           -> mempty <$ eTitlePage
+        _ | role == "doc-endnotes"
+          -> eFootnotes
         "p" -> pPara
         "h1" -> pHeader
         "h2" -> pHeader
@@ -281,14 +284,14 @@ eCase = do
 
 eFootnote :: PandocMonad m => TagParser m ()
 eFootnote = do
-  guardEnabled Ext_epub_html_exts
+  inNotes <- inFootnotes <$> getState
   TagOpen tag attr' <- lookAhead $ pSatisfy
     (\case
        TagOpen _ attr'
          -> case lookup "type" attr' <|> lookup "epub:type" attr' of
               Just "footnote" -> True
               Just "rearnote" -> True
-              _ -> False
+              _ -> inNotes
        _ -> False)
   let attr = toStringAttr attr'
   let ident = fromMaybe "" (lookup "id" attr)
@@ -299,11 +302,12 @@ eFootnote = do
 eFootnotes :: PandocMonad m => TagParser m Blocks
 eFootnotes = try $ do
   let notes = ["footnotes", "rearnotes"]
-  guardEnabled Ext_epub_html_exts
   (TagOpen tag attr') <- lookAhead pAny
   let attr = toStringAttr attr'
-  guard $ maybe False (`elem` notes)
-          (lookup "type" attr <|> lookup "epub:type" attr)
+  guard (lookup "role" attr == Just "doc-endnotes") <|>
+    (guardEnabled Ext_epub_html_exts >>
+     guard (maybe False (`elem` notes)
+             (lookup "type" attr <|> lookup "epub:type" attr)))
   updateState $ \s -> s{ inFootnotes = True }
   result <- pInTags tag block
   updateState $ \s -> s{ inFootnotes = False }
@@ -316,12 +320,12 @@ eFootnotes = try $ do
 
 eNoteref :: PandocMonad m => TagParser m Inlines
 eNoteref = try $ do
-  guardEnabled Ext_epub_html_exts
   TagOpen tag attr <-
     pSatisfy (\case
                  TagOpen _ as
                     -> (lookup "type" as <|> lookup "epub:type" as)
-                        == Just "noteref"
+                        == Just "noteref" ||
+                        lookup "role" as == Just "doc-noteref"
                  _  -> False)
   ident <- case lookup "href" attr >>= T.uncons of
              Just ('#', rest) -> return rest
@@ -679,6 +683,9 @@ inline = pTagText <|> do
       case name of
         "a" | extensionEnabled Ext_epub_html_exts exts
           , Just "noteref" <- lookup "type" attr <|> lookup "epub:type" attr
+          , Just ('#',_) <- lookup "href" attr >>= T.uncons
+            -> eNoteref
+          | Just "doc-noteref" <- lookup "role" attr
           , Just ('#',_) <- lookup "href" attr >>= T.uncons
             -> eNoteref
             | otherwise -> pLink
