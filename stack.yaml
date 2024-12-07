@@ -20,6 +20,9 @@ extra-deps:
 - djot-0.1.2.2
 - commonmark-0.2.6.1
 - typst-symbols-0.1.7
+- typst-0.6.1
+- pandoc-lua-marshal-0.3.0
+- texmath-0.12.8.12
 - git: https://github.com/jgm/skylighting.git
   commit: 2b6876018a903207c7a9093c5c63b00a4d0980be
   subdirs: [skylighting-core, skylighting-format-blaze-html]
