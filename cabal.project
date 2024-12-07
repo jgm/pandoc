@@ -11,11 +11,6 @@ constraints: skylighting-format-blaze-html >= 0.1.1.2,
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/typst-hs.git
-  tag: 5a50154c958d09c06fd884dcc4519403f7904bc1
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/commonmark-hs.git
   tag: 1fddc913b31487571b12fd0ac99d4a0ab00acd34
   subdir: commonmark-extensions
