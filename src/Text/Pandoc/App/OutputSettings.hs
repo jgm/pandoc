@@ -18,6 +18,7 @@ Does a pandoc conversion based on command-line options.
 module Text.Pandoc.App.OutputSettings
   ( OutputSettings (..)
   , optToOutputSettings
+  , sandbox'
   ) where
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -97,17 +98,9 @@ optToOutputSettings scriptingEngine opts = do
     report $ Deprecated "asciidoctor" "use asciidoc instead"
 
   let makeSandboxed pureWriter =
-          let files = maybe id (:) (optReferenceDoc opts) .
-                      maybe id (:) (optEpubMetadata opts) .
-                      maybe id (:) (optEpubCoverImage opts) .
-                      maybe id (:) (optCSL opts) .
-                      maybe id (:) (optCitationAbbreviations opts) $
-                      optEpubFonts opts ++
-                      optBibliography opts
-           in  case pureWriter of
-                 TextWriter w -> TextWriter $ \o d -> sandbox files (w o d)
-                 ByteStringWriter w ->
-                   ByteStringWriter $ \o d -> sandbox files (w o d)
+        case pureWriter of
+             TextWriter w -> TextWriter $ \o d -> sandbox' opts (w o d)
+             ByteStringWriter w -> ByteStringWriter $ \o d -> sandbox' opts (w o d)
 
   let standalone = optStandalone opts || isBinaryFormat format || pdfOutput
   let templateOrThrow = \case
@@ -322,3 +315,16 @@ pdfWriterAndProg mWriter mEngine =
 isBinaryFormat :: T.Text -> Bool
 isBinaryFormat s =
   s `elem` ["odt","docx","epub2","epub3","epub","pptx","pdf","chunkedhtml"]
+
+-- Like 'sandbox', but computes the list of files to preserve from
+-- 'Opt'.
+sandbox' :: (PandocMonad m, MonadIO m) => Opt -> PandocPure a -> m a
+sandbox' opts = sandbox sandboxedFiles
+ where
+   sandboxedFiles = maybe id (:) (optReferenceDoc opts) .
+                    maybe id (:) (optEpubMetadata opts) .
+                    maybe id (:) (optEpubCoverImage opts) .
+                    maybe id (:) (optCSL opts) .
+                    maybe id (:) (optCitationAbbreviations opts) $
+                    optEpubFonts opts ++
+                    optBibliography opts
