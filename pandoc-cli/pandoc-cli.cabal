@@ -89,7 +89,7 @@ executable pandoc
 
   if flag(lua)
     build-depends:   hslua-cli         >= 1.4.1 && < 1.5,
-                     pandoc-lua-engine >= 0.3.3 && < 0.4,
+                     pandoc-lua-engine >= 0.4 && < 0.5,
                      temporary         >= 1.1 && < 1.4
     hs-source-dirs:  lua
   else
