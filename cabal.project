@@ -21,9 +21,3 @@ source-repository-package
   tag: 1fddc913b31487571b12fd0ac99d4a0ab00acd34
   subdir: commonmark-pandoc
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/skylighting.git
-  tag: 2b6876018a903207c7a9093c5c63b00a4d0980be
-  subdir: skylighting-core
-
