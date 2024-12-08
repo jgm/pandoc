@@ -12,6 +12,7 @@ extra-deps:
 - lpeg-1.1.0
 - tls-2.1.5
 - crypton-connection-0.4.3
+- crypton-x509-validation-1.6.13
 - toml-parser-2.0.1.0
 - doclayout-0.5
 - doctemplates-0.11.0.1
