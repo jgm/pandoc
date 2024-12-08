@@ -67,8 +67,8 @@
 
   * RST reader:
 
-    + Use a new one-pass parsing strategy. Instead of having an initial pass where
-      we collect reference definitions, we create links with target
+    + Use a new one-pass parsing strategy. Instead of having an initial pass
+      where we collect reference definitions, we create links with target
       `##SUBST##something` or `##REF##something` or `##NOTE##something`,
       and resolve these in a pass over the parsed AST. This allows us to handle
       link references that are not at the top level (#10281).
@@ -94,8 +94,8 @@
   * Markdown writer:
 
     + Issue INFO warning when not rendering table, e.g., when `raw_html` is
-      disabled and the table can't be fit into a supported markdown table format
-      (#10407).
+      disabled and the table can't be fit into a supported markdown table
+      format (#10407).
     + Respect empty LineBlock lines in `plain` output (Evan Silberman).
       The plain writer behaved as a markdown variant with `Ext_line_blocks`
       turned off, and so empty lines in a line block would get eliminated.
@@ -115,8 +115,8 @@
     + Make template sensitive to a `page-numbering` variable (#10370).
       This can be set to an empty string (or, in metadata, to false) for
       no page numbers.
-    + Make `smart` extension work (#10271). If `smart` is not enabled, a command in
-      the default template will disable smartquote substitutions.
+    + Make `smart` extension work (#10271). If `smart` is not enabled, a command
+      in the default template will disable smartquote substitutions.
       When `smart` is enabled, render curly apostrophes as straight
       and escape straight apostrophes. When `smart` is disabled,
       render curly apostrophes as curly and don't escape straight
