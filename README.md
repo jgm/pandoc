@@ -81,6 +81,8 @@ It can convert *from*
 - `mediawiki` ([MediaWiki
   markup](https://www.mediawiki.org/wiki/Help:Formatting))
 - `man` ([roff man](https://man.cx/groff_man(7)))
+- `mdoc` ([mdoc](https://mandoc.bsd.lv/man/mdoc.7.html) manual page
+  markup)
 - `muse` ([Muse](https://amusewiki.org/library/manual))
 - `native` (native Haskell)
 - `odt` ([OpenOffice text
