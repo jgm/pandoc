@@ -23,6 +23,7 @@
 - Amy de Buitléir
 - Anabra
 - Anders Waldenborg
+- Andreas Deininger
 - Andreas Lööw
 - Andreas Scherer
 - Andres Freund
@@ -240,6 +241,7 @@
 - Lucas Escot
 - Lucas Viana
 - Lucas V. R
+- Luis Rivera
 - Luke Plant
 - Marc Schreiber
 - Marcin Serwin
@@ -366,6 +368,7 @@
 - Sukil Etxenike
 - Sukka
 - Sumit Sahrawat
+- Suraj Patil
 - Sven Wick
 - TEC
 - Tarik Graba
