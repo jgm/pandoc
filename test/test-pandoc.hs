@@ -49,6 +49,7 @@ import qualified Tests.Writers.Plain
 import qualified Tests.Writers.Powerpoint
 import qualified Tests.Writers.RST
 import qualified Tests.Writers.AnnotatedTable
+import qualified Tests.Writers.SILE
 import qualified Tests.Writers.TEI
 import qualified Tests.Writers.Markua
 import qualified Tests.MediaBag
@@ -74,6 +75,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "AsciiDoc" Tests.Writers.AsciiDoc.tests
           , testGroup "Docx" Tests.Writers.Docx.tests
           , testGroup "RST" Tests.Writers.RST.tests
+          , testGroup "SILE" Tests.Writers.SILE.tests
           , testGroup "TEI" Tests.Writers.TEI.tests
           , testGroup "markua" Tests.Writers.Markua.tests
           , testGroup "Muse" Tests.Writers.Muse.tests

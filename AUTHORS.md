@@ -57,6 +57,7 @@
 - Brent Yorgey
 - Brian Leung
 - Bryan O'Sullivan
+- Caleb Maclennan
 - Caleb McDaniel
 - Caleb Mclennan
 - Calvin Beck

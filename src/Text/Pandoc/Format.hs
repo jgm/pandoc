@@ -214,6 +214,7 @@ formatFromFilePath x =
     ".rst"      -> defFlavor "rst"
     ".rtf"      -> defFlavor "rtf"
     ".s5"       -> defFlavor "s5"
+    ".sil"      -> defFlavor "sile"
     ".t2t"      -> defFlavor "t2t"
     ".tei"      -> defFlavor "tei"
     ".tex"      -> defFlavor "latex"
