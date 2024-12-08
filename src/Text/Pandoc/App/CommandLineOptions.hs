@@ -364,9 +364,9 @@ options =
     , Option "V" ["variable"]
                  (ReqArg
                   (\arg opt -> do
-                     let (key, val) = splitField arg
+                     let (key, val) = second readBoolOrString $ splitField arg
                      return opt{ optVariables =
-                                  setVariable (T.pack key) (T.pack val) $
+                                  setVariable (T.pack key) val $
                                     optVariables opt })
                   "KEY[:VALUE]")
                  ""
@@ -858,7 +858,7 @@ options =
                   (\arg opt ->
                     return opt {
                        optVariables =
-                         setVariable "title-prefix" (T.pack arg) $
+                         setVariable "title-prefix" (Right arg) $
                            optVariables opt,
                        optStandalone = True })
                   "STRING")
@@ -883,7 +883,7 @@ options =
                   (\arg opt ->
                      return opt { optVariables =
                        setVariable "epub-cover-image"
-                         (T.pack $ normalizePath arg) $
+                         (Right $ normalizePath arg) $
                          optVariables opt })
                   "FILE")
                  "" -- "Path of epub cover image"
@@ -1205,11 +1205,13 @@ deprecatedOption o msg = do
 
 -- | Set text value in text context.  Create list if it has a value already,
 -- or add to a list value.
-setVariable :: Text -> Text -> Context Text -> Context Text
+setVariable :: Text -> Either Bool String -> Context Text -> Context Text
 setVariable key val (Context ctx) = Context $ M.alter go key ctx
-  where go Nothing             = Just $ toVal val
-        go (Just (ListVal xs)) = Just $ ListVal $ xs ++ [toVal val]
-        go (Just x)            = Just $ ListVal [x, toVal val]
+  where go Nothing             = Just val'
+        go (Just (ListVal xs)) = Just $ ListVal $ xs ++ [val']
+        go (Just x)            = Just $ ListVal [x, val']
+
+        val' = either toVal (toVal . T.pack) val
 
 addMeta :: String -> String -> Meta -> Meta
 addMeta k v meta =
@@ -1219,18 +1221,18 @@ addMeta k v meta =
                   setMeta k' (MetaList (xs ++ [v'])) meta
        Just x  -> setMeta k' (MetaList [x, v']) meta
  where
-  v' = readMetaValue v
+  v' = either MetaBool (MetaString . T.pack ) $ readBoolOrString v
   k' = T.pack k
 
-readMetaValue :: String -> MetaValue
-readMetaValue s
-  | s == "true"  = MetaBool True
-  | s == "True"  = MetaBool True
-  | s == "TRUE"  = MetaBool True
-  | s == "false" = MetaBool False
-  | s == "False" = MetaBool False
-  | s == "FALSE" = MetaBool False
-  | otherwise    = MetaString $ T.pack s
+readBoolOrString :: String -> Either Bool String
+readBoolOrString s
+  | s == "true"  = Left True
+  | s == "True"  = Left True
+  | s == "TRUE"  = Left True
+  | s == "false" = Left False
+  | s == "False" = Left False
+  | s == "FALSE" = Left False
+  | otherwise    = Right s
 
 readBoolFromOptArg ::  Text -> Maybe String -> ExceptT OptInfo IO Bool
 readBoolFromOptArg opt = maybe (return True) readBoolFromArg
