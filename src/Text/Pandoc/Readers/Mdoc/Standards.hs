@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Mdoc.Standards
-   Copyright   : 
+   Copyright   : © 2024 Evan Silberman
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Evan Silberman <evan@jklol.net>
