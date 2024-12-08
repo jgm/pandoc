@@ -10,10 +10,9 @@ packages:
 - 'pandoc-server'
 extra-deps:
 - lpeg-1.1.0
-- tls-2.1.0
-- crypton-connection-0.4.1
+- tls-2.1.5
+- crypton-connection-0.4.3
 - toml-parser-2.0.1.0
-- skylighting-0.14.3
 - doclayout-0.5
 - doctemplates-0.11.0.1
 - hslua-module-doclayout-1.2.0
