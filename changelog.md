@@ -124,7 +124,9 @@
       give more idiomatic typst output, with fewer unnecessary
       escapes.
 
-  * ANSI writer: respect empty LineBlock lines (Evan Silberman).
+  * ANSI writer:
+
+    + Respect empty LineBlock lines (Evan Silberman).
 
   * JATS writer:
 
@@ -152,9 +154,7 @@
       latex template. In a beamer template, the beamer theme-setting
       code needs to be moved between these two partials.
 
-  * ConTeXt template:
-
-    + Ensure that font names don't wrap (#10305).
+  * ConTeXt template: Ensure that font names don't wrap (#10305).
 
   * `epub.css`: remove background-color (#10264, Suraj Patil).
     With this greyish background color, epubs look bad on a Kindle (#10263).
@@ -162,8 +162,11 @@
   * Text.Pandoc.ImageSize: add WebP support (Evan Silberman, #10397).
     Add `Webp` constructor on ImageType [API change].
 
-  * Text.Pandoc.Readers.Roff, new module: Text.Pandoc.Readers.Roff.Escape.
-    Parameterize Roff escaping (Evan Silberman) [API change].
+  * Text.Pandoc.Readers.Roff and a new unexported module
+    Text.Pandoc.Readers.Roff.Escape: parameterize Roff
+    escaping (Evan Silberman) [API change]. This allows code to
+    be reused between the mdoc and man readers, despite the
+    differing Token types.
 
   * Text.Pandoc.PDF:
 
