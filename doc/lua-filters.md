@@ -1027,7 +1027,7 @@ Usage:
 A block quote element.
 
 Values of this type can be created with the
-[`pandoc.BlockQuote`](#pandoc.blockquote) constructor.
+[`pandoc.BlockQuote`](#pandoc.BlockQuote) constructor.
 
 Fields:
 
@@ -1042,7 +1042,7 @@ Fields:
 A bullet list.
 
 Values of this type can be created with the
-[`pandoc.BulletList`](#pandoc.bulletlist) constructor.
+[`pandoc.BulletList`](#pandoc.BulletList) constructor.
 
 Fields:
 
@@ -1057,7 +1057,7 @@ Fields:
 Block of code.
 
 Values of this type can be created with the
-[`pandoc.CodeBlock`](#pandoc.codeblock) constructor.
+[`pandoc.CodeBlock`](#pandoc.CodeBlock) constructor.
 
 Fields:
 
@@ -1084,7 +1084,7 @@ Fields:
 Definition list, containing terms and their explanation.
 
 Values of this type can be created with the
-[`pandoc.DefinitionList`](#pandoc.definitionlist) constructor.
+[`pandoc.DefinitionList`](#pandoc.DefinitionList) constructor.
 
 Fields:
 
@@ -1099,7 +1099,7 @@ Fields:
 Generic block container with attributes.
 
 Values of this type can be created with the
-[`pandoc.Div`](#pandoc.div) constructor.
+[`pandoc.Div`](#pandoc.Div) constructor.
 
 Fields:
 
@@ -1127,7 +1127,7 @@ Fields:
 Figure with caption and arbitrary block contents.
 
 Values of this type can be created with the
-[`pandoc.Figure`](#pandoc.figure) constructor.
+[`pandoc.Figure`](#pandoc.Figure) constructor.
 
 Fields:
 
@@ -1157,7 +1157,7 @@ Fields:
 Creates a header element.
 
 Values of this type can be created with the
-[`pandoc.Header`](#pandoc.header) constructor.
+[`pandoc.Header`](#pandoc.Header) constructor.
 
 Fields:
 
@@ -1188,7 +1188,7 @@ Fields:
 A horizontal rule.
 
 Values of this type can be created with the
-[`pandoc.HorizontalRule`](#pandoc.horizontalrule) constructor.
+[`pandoc.HorizontalRule`](#pandoc.HorizontalRule) constructor.
 
 Fields:
 
@@ -1201,7 +1201,7 @@ A line block, i.e. a list of lines, each separated from the next
 by a newline.
 
 Values of this type can be created with the
-[`pandoc.LineBlock`](#pandoc.lineblock) constructor.
+[`pandoc.LineBlock`](#pandoc.LineBlock) constructor.
 
 Fields:
 
@@ -1216,7 +1216,7 @@ Fields:
 An ordered list.
 
 Values of this type can be created with the
-[`pandoc.OrderedList`](#pandoc.orderedlist) constructor.
+[`pandoc.OrderedList`](#pandoc.OrderedList) constructor.
 
 Fields:
 
@@ -1243,7 +1243,7 @@ Fields:
 A paragraph.
 
 Values of this type can be created with the
-[`pandoc.Para`](#pandoc.para) constructor.
+[`pandoc.Para`](#pandoc.Para) constructor.
 
 Fields:
 
@@ -1258,7 +1258,7 @@ Fields:
 Plain text, not a paragraph.
 
 Values of this type can be created with the
-[`pandoc.Plain`](#pandoc.plain) constructor.
+[`pandoc.Plain`](#pandoc.Plain) constructor.
 
 Fields:
 
@@ -1273,7 +1273,7 @@ Fields:
 Raw content of a specified format.
 
 Values of this type can be created with the
-[`pandoc.RawBlock`](#pandoc.rawblock) constructor.
+[`pandoc.RawBlock`](#pandoc.RawBlock) constructor.
 
 Fields:
 
@@ -1291,7 +1291,7 @@ Fields:
 A table.
 
 Values of this type can be created with the
-[`pandoc.Table`](#pandoc.table) constructor.
+[`pandoc.Table`](#pandoc.Table) constructor.
 
 Fields:
 
@@ -1433,7 +1433,7 @@ Usage:
 Citation.
 
 Values of this type can be created with the
-[`pandoc.Cite`](#pandoc.cite) constructor.
+[`pandoc.Cite`](#pandoc.Cite) constructor.
 
 Fields:
 
@@ -1451,7 +1451,7 @@ Fields:
 Inline code
 
 Values of this type can be created with the
-[`pandoc.Code`](#pandoc.code) constructor.
+[`pandoc.Code`](#pandoc.Code) constructor.
 
 Fields:
 
@@ -1478,7 +1478,7 @@ Fields:
 Emphasized text
 
 Values of this type can be created with the
-[`pandoc.Emph`](#pandoc.emph) constructor.
+[`pandoc.Emph`](#pandoc.Emph) constructor.
 
 Fields:
 
@@ -1493,7 +1493,7 @@ Fields:
 Image: alt text (list of inlines), target
 
 Values of this type can be created with the
-[`pandoc.Image`](#pandoc.image) constructor.
+[`pandoc.Image`](#pandoc.Image) constructor.
 
 Fields:
 
@@ -1526,7 +1526,7 @@ Fields:
 Hard line break
 
 Values of this type can be created with the
-[`pandoc.LineBreak`](#pandoc.linebreak) constructor.
+[`pandoc.LineBreak`](#pandoc.LineBreak) constructor.
 
 Fields:
 
@@ -1538,7 +1538,7 @@ Fields:
 Hyperlink: alt text (list of inlines), target
 
 Values of this type can be created with the
-[`pandoc.Link`](#pandoc.link) constructor.
+[`pandoc.Link`](#pandoc.Link) constructor.
 
 Fields:
 
@@ -1571,7 +1571,7 @@ Fields:
 TeX math (literal)
 
 Values of this type can be created with the
-[`pandoc.Math`](#pandoc.math) constructor.
+[`pandoc.Math`](#pandoc.Math) constructor.
 
 Fields:
 
@@ -1591,7 +1591,7 @@ Fields:
 Footnote or endnote
 
 Values of this type can be created with the
-[`pandoc.Note`](#pandoc.note) constructor.
+[`pandoc.Note`](#pandoc.Note) constructor.
 
 Fields:
 
@@ -1606,7 +1606,7 @@ Fields:
 Quoted text
 
 Values of this type can be created with the
-[`pandoc.Quoted`](#pandoc.quoted) constructor.
+[`pandoc.Quoted`](#pandoc.Quoted) constructor.
 
 Fields:
 
@@ -1625,7 +1625,7 @@ Fields:
 Raw inline
 
 Values of this type can be created with the
-[`pandoc.RawInline`](#pandoc.rawinline) constructor.
+[`pandoc.RawInline`](#pandoc.RawInline) constructor.
 
 Fields:
 
@@ -1643,7 +1643,7 @@ Fields:
 Small caps text
 
 Values of this type can be created with the
-[`pandoc.SmallCaps`](#pandoc.smallcaps) constructor.
+[`pandoc.SmallCaps`](#pandoc.Smallcaps) constructor.
 
 Fields:
 
@@ -1658,7 +1658,7 @@ Fields:
 Soft line break
 
 Values of this type can be created with the
-[`pandoc.SoftBreak`](#pandoc.softbreak) constructor.
+[`pandoc.SoftBreak`](#pandoc.Softbreak) constructor.
 
 Fields:
 
@@ -1670,7 +1670,7 @@ Fields:
 Inter-word space
 
 Values of this type can be created with the
-[`pandoc.Space`](#pandoc.space) constructor.
+[`pandoc.Space`](#pandoc.Space) constructor.
 
 Fields:
 
@@ -1682,7 +1682,7 @@ Fields:
 Generic inline container with attributes
 
 Values of this type can be created with the
-[`pandoc.Span`](#pandoc.span) constructor.
+[`pandoc.Span`](#pandoc.Span) constructor.
 
 Fields:
 
@@ -1709,7 +1709,7 @@ Fields:
 Text
 
 Values of this type can be created with the
-[`pandoc.Str`](#pandoc.str) constructor.
+[`pandoc.Str`](#pandoc.Str) constructor.
 
 Fields:
 
@@ -1724,7 +1724,7 @@ Fields:
 Strikeout text
 
 Values of this type can be created with the
-[`pandoc.Strikeout`](#pandoc.strikeout) constructor.
+[`pandoc.Strikeout`](#pandoc.Strikeout) constructor.
 
 Fields:
 
@@ -1739,7 +1739,7 @@ Fields:
 Strongly emphasized text
 
 Values of this type can be created with the
-[`pandoc.Strong`](#pandoc.strong) constructor.
+[`pandoc.Strong`](#pandoc.Strong) constructor.
 
 Fields:
 
@@ -1754,7 +1754,7 @@ Fields:
 Subscripted text
 
 Values of this type can be created with the
-[`pandoc.Subscript`](#pandoc.subscript) constructor.
+[`pandoc.Subscript`](#pandoc.Subscript) constructor.
 
 Fields:
 
@@ -1769,7 +1769,7 @@ Fields:
 Superscripted text
 
 Values of this type can be created with the
-[`pandoc.Superscript`](#pandoc.superscript) constructor.
+[`pandoc.Superscript`](#pandoc.Superscript) constructor.
 
 Fields:
 
@@ -1784,7 +1784,7 @@ Fields:
 Underlined text
 
 Values of this type can be created with the
-[`pandoc.Underline`](#pandoc.underline) constructor.
+[`pandoc.Underline`](#pandoc.Underline) constructor.
 
 Fields:
 
@@ -1853,7 +1853,7 @@ Usage:
 ### Attr {#type-attr}
 
 A set of element attributes. Values of this type can be created
-with the [`pandoc.Attr`](#pandoc.attr) constructor. For
+with the [`pandoc.Attr`](#pandoc.Attr) constructor. For
 convenience, it is usually not necessary to construct the value
 directly if it is part of an element, and it is sufficient to
 pass an HTML-like table. E.g., to create a span with identifier
@@ -1979,7 +1979,7 @@ components:
 List attributes
 
 Values of this type can be created with the
-[`pandoc.ListAttributes`](#pandoc.listattributes) constructor.
+[`pandoc.ListAttributes`](#pandoc.ListAttributes) constructor.
 
 Fields:
 
@@ -2376,7 +2376,7 @@ Comparisons are performed element-wise, i.e.
     Version '1.12' > Version '1.9'
 
 Values of this type can be created with the
-[`pandoc.types.Version`](#pandoc.types.version) constructor.
+[`pandoc.types.Version`](#pandoc.types.Version) constructor.
 
 ### `must_be_at_least`
 
