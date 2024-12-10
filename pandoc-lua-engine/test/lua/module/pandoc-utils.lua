@@ -223,6 +223,22 @@ return {
       local inlines = pandoc.Inlines{pandoc.Str 'a', pandoc.Subscript('b')}
       assert.are_equal('ab', utils.stringify(inlines))
     end),
+    test('Caption', function ()
+      local capt = pandoc.Caption(pandoc.Para{pandoc.Str 'a', pandoc.Emph('b')})
+      assert.are_equal('ab', utils.stringify(capt))
+    end),
+    test('Cell', function ()
+      local cell = pandoc.Cell(pandoc.Para{pandoc.Str 'a', pandoc.Emph('b')})
+      assert.are_equal('ab', utils.stringify(cell))
+    end),
+    test('TableFoot', function ()
+      local tf = pandoc.TableFoot{pandoc.Row{pandoc.Cell{pandoc.Plain "x y"}}}
+      assert.are_equal('x y', utils.stringify(tf))
+    end),
+    test('TableHead', function ()
+      local th = pandoc.TableHead{pandoc.Row{pandoc.Cell{pandoc.Plain "head1"}}}
+      assert.are_equal('head1', utils.stringify(th))
+    end),
     test('Meta', function ()
       local meta = pandoc.Meta{
         a = pandoc.Inlines 'funny and ',
