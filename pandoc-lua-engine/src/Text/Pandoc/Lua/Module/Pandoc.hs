@@ -146,6 +146,7 @@ pushWithConstructorsSubtable constructors = do
 otherConstructors :: [DocumentedFunction PandocError]
 otherConstructors =
   [ mkAttr
+  , mkCaption
   , mkCell
   , mkAttributeList
   , mkCitation
