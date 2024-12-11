@@ -10,8 +10,7 @@ packages:
 - 'pandoc-server'
 extra-deps:
 - tls-2.1.5
-- git: https://github.com/jgm/citeproc.git
-  commit: cc84ef0426c0a7acdc7777c71d0f2ca629f99c56
+- citeproc-0.8.1.2
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
