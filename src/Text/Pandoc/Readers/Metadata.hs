@@ -46,8 +46,7 @@ yamlBsToMeta pMetaValue bstr = do
   case decodeAllWithWarnings bstr of
        Right (warnings, xs) -> do
          pos <- getPosition
-         mapM_ (\w -> case w of
-                        Yaml.DuplicateKey jpath ->
+         mapM_ (\(Yaml.DuplicateKey jpath) ->
                           report (YamlWarning pos $ "Duplicate key: " <>
                                   T.pack (formatRelativePath jpath)))
            warnings
