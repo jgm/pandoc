@@ -21,6 +21,7 @@ module Text.Pandoc.Readers.Metadata (
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString as B
 import qualified Data.Map as M
+import qualified Data.Vector as V
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
@@ -83,20 +84,24 @@ yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
 yamlBsToRefs pMetaValue idpred bstr =
   case Yaml.decodeAllEither' bstr of
        Right (Object m : _) -> do
-         let isSelected (String t) = idpred t
-             isSelected _ = False
-         let hasSelectedId (Object o) =
-               case parse (withObject "ref" (.:? "id")) (Object o) of
-                 Success (Just id') -> isSelected id'
-                 _ -> False
-             hasSelectedId _ = False
          case parse (withObject "metadata" (.:? "references")) (Object m) of
            Success (Just refs) -> sequence <$>
                  mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
            _ -> return $ return []
+       Right (Array v : _) -> do
+         let refs = filter hasSelectedId $ V.toList v
+         sequence <$> mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
        Right _ -> return . return $ []
        Left err' -> throwError $ PandocParseError
                                $ T.pack $ Yaml.prettyPrintParseException err'
+ where
+   isSelected (String t) = idpred t
+   isSelected _ = False
+   hasSelectedId (Object o) =
+     case parse (withObject "ref" (.:? "id")) (Object o) of
+       Success (Just id') -> isSelected id'
+       _ -> False
+   hasSelectedId _ = False
 
 normalizeMetaValue :: (PandocMonad m, HasLastStrPosition st)
                    => ParsecT Sources st m (Future st MetaValue)
