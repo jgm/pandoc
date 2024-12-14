@@ -29,7 +29,7 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (catMaybes, fromMaybe)
 import Skylighting (defaultSyntaxMap)
 import Skylighting.Parser (addSyntaxDefinition, parseSyntaxDefinition)
 import System.Directory (getCurrentDirectory)
@@ -321,10 +321,11 @@ isBinaryFormat s =
 sandbox' :: (PandocMonad m, MonadIO m) => Opt -> PandocPure a -> m a
 sandbox' opts = sandbox sandboxedFiles
  where
-   sandboxedFiles = maybe id (:) (optReferenceDoc opts) .
-                    maybe id (:) (optEpubMetadata opts) .
-                    maybe id (:) (optEpubCoverImage opts) .
-                    maybe id (:) (optCSL opts) .
-                    maybe id (:) (optCitationAbbreviations opts) $
+   sandboxedFiles = catMaybes [ optReferenceDoc opts
+                              , optEpubMetadata opts
+                              , optEpubCoverImage opts
+                              , optCSL opts
+                              , optCitationAbbreviations opts
+                              ] ++
                     optEpubFonts opts ++
                     optBibliography opts
