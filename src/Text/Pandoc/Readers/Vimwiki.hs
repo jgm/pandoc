@@ -54,6 +54,7 @@ import Data.List (isInfixOf)
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import Safe (lastMay)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)
 import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
                                            codeBlockWith, definitionList,
@@ -510,9 +511,7 @@ strong = try $ do
   notFollowedBy (oneOf spaceChars)
   contents <- mconcat <$> many1Till inline'
                            (try (char '*' *> notFollowedBy alphaNum))
-  guard $ case reverse (toList contents) of
-             Space:_ -> False
-             _ -> True
+  guard $ lastMay (toList contents) /= Just Space
   return $ B.spanWith (makeId contents, [], []) mempty <> B.strong contents
 
 makeId :: Inlines -> Text
@@ -524,9 +523,7 @@ emph = try $ do
   notFollowedBy (oneOf spaceChars)
   contents <- mconcat <$> many1Till inline'
                            (try (char '_' *> notFollowedBy alphaNum))
-  guard $ case reverse (toList contents) of
-             Space:_ -> False
-             _ -> True
+  guard $ lastMay (toList contents) /= Just Space
   return $ B.emph contents
 
 strikeout :: PandocMonad m => VwParser m Inlines
