@@ -523,7 +523,7 @@ makeSectionsWithOffsets numoffsets numbering mbBaseLevel bs =
  where
   getLevel (Header level _ _) = Min level
   getLevel _ = Min 99
-  minLevel = if null numoffsets || all (== 0) numoffsets
+  minLevel = if all (== 0) numoffsets
                 then getMin $ query getLevel bs
                 else 1 -- see #5071, for backwards compatibility
   go :: [Block] -> S.State [Int] [Block]
