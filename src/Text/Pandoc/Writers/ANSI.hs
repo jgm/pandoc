@@ -297,12 +297,12 @@ inlineToANSI opts (Strikeout lst) = do
 inlineToANSI opts (Superscript lst) = do
   case traverse toSuperscriptInline lst of
     Just xs -> inlineListToANSI opts xs
-    Nothing -> inlineListToANSI opts lst >>= return . D.parens
+    Nothing -> D.parens <$> inlineListToANSI opts lst
 
 inlineToANSI opts (Subscript lst) = do
   case traverse toSubscriptInline lst of
     Just xs -> inlineListToANSI opts xs
-    Nothing -> inlineListToANSI opts lst >>= return . D.parens
+    Nothing -> D.parens <$> inlineListToANSI opts lst
 
 inlineToANSI opts (SmallCaps lst) = inlineListToANSI opts lst
 
