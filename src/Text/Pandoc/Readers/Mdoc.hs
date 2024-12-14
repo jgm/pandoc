@@ -26,7 +26,7 @@ import Control.Monad.Except (throwError)
 #if MIN_VERSION_base(4,19,0)
 import Data.List (intersperse, unsnoc)
 #else
-import Data.List (intersperse, uncons)
+import Data.List (intersperse)
 #endif
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
@@ -46,7 +46,7 @@ import Text.Pandoc.Shared (stringify)
 
 #if !MIN_VERSION_base(4,19,0)
 unsnoc :: [a] -> Maybe ([a], a)
-unsnoc xs = (\(hd, tl) -> (reverse tl, hd)) <$> uncons (reverse xs)
+unsnoc = foldr (\x -> Just . maybe ([], x) (\(~(a, b)) -> (x : a, b))) Nothing
 #endif
 
   {- As a general principle, if mandoc -T lint issues a WARNING admonition
