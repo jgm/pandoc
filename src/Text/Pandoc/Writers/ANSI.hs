@@ -82,7 +82,7 @@ pandocToANSI opts (Pandoc meta blocks) = do
   body <- blockListToANSI opts blocks'
   notes <- gets $ reverse . stNotes
   let notemark x = D.literal (tshow (x :: Int) <> ".") <+> D.space
-  let marks = take (length notes) $ map notemark [1..]
+  let marks = map notemark [1..length notes]
   let hangWidth = foldr (max . D.offset) 0 marks
   let notepretty | not (null notes) = D.cblock width hr $+$ hangMarks hangWidth marks notes
                  | otherwise = D.empty
