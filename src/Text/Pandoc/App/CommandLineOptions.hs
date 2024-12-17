@@ -222,6 +222,7 @@ engines = map ("html",) htmlEngines ++
           map ("latex",) latexEngines ++
           map ("beamer",) latexEngines ++
           [ ("ms", "pdfroff")
+          , ("sile", "sile")
           , ("typst", "typst")
           , ("context", "context")
           ]

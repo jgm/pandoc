@@ -447,6 +447,9 @@ getDefaultExtensions "epub"            = extensionsFromList
                                            Ext_epub_html_exts]
 getDefaultExtensions "epub2"           = getDefaultExtensions "epub"
 getDefaultExtensions "epub3"           = getDefaultExtensions "epub"
+getDefaultExtensions "sile"           = extensionsFromList
+                                          [Ext_smart,
+                                           Ext_auto_identifiers]
 getDefaultExtensions "latex"           = extensionsFromList
                                           [Ext_smart,
                                            Ext_latex_macros,

@@ -92,6 +92,12 @@ makePDF program pdfargs writer opts doc =
       source <- writer opts doc
       verbosity <- getVerbosity
       liftIO $ toPdfViaTempFile verbosity program pdfargs mkOutArgs source
+    "sile" -> do
+      let mkOutArgs f = ["-o", f]
+      source <- writer opts doc
+      verbosity <- getVerbosity
+      liftIO $
+        toPdfViaTempFile verbosity program pdfargs mkOutArgs source
     "typst" -> do
       source <- writer opts doc
       verbosity <- getVerbosity

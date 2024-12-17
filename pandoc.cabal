@@ -24,6 +24,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  - Ebook formats (EPUB v2 and v3, FB2)
                  - Documentation formats (GNU TexInfo, Haddock)
                  - Roff formats (man, ms)
+                 - SILE
                  - TeX formats (LaTeX, ConTeXt)
                  - Typst
                  - XML formats (DocBook 4 and 5, JATS, TEI Simple, OpenDocument)
@@ -72,6 +73,7 @@ data-files:
                  data/templates/default.bibtex
                  data/templates/default.biblatex
                  data/templates/default.context
+                 data/templates/default.sile
                  data/templates/default.texinfo
                  data/templates/default.jira
                  data/templates/default.man
@@ -617,6 +619,7 @@ library
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
                    Text.Pandoc.Writers.Djot,
+                   Text.Pandoc.Writers.SILE,
                    Text.Pandoc.Writers.Typst,
                    Text.Pandoc.Writers.OpenDocument,
                    Text.Pandoc.Writers.Texinfo,
@@ -755,6 +758,7 @@ library
                    Text.Pandoc.Writers.Markdown.Types,
                    Text.Pandoc.Writers.Markdown.Inline,
                    Text.Pandoc.Writers.Roff,
+                   Text.Pandoc.Writers.SILE.Types,
                    Text.Pandoc.Writers.Blaze,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
@@ -840,6 +844,7 @@ test-suite test-pandoc
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
+                  Tests.Writers.SILE
                   Tests.Writers.DocBook
                   Tests.Writers.HTML
                   Tests.Writers.JATS
@@ -851,6 +856,7 @@ test-suite test-pandoc
                   Tests.Writers.LaTeX
                   Tests.Writers.Docx
                   Tests.Writers.RST
+                  Tests.Writers.SILE
                   Tests.Writers.TEI
                   Tests.Writers.Markua
                   Tests.Writers.Muse

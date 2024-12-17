@@ -1,0 +1,68 @@
+\begin[$if(papersize)$papersize=$papersize$,$endif$class=$documentclass$$if(classoptions)$,$classoptions$$endif$]{document}
+\use[module=packages.pandoc]
+$if(lang)$
+\language[main=$lang$]
+\font[language=$lang$]
+$endif$
+$if(langscript)$
+\font[script=$langscript$]
+$endif$
+$if(mainfont)$
+\font[family=$mainfont$]
+$endif$
+$if(fontsize)$
+\font[size=$fontsize$]
+$endif$
+\begin{lua}
+local base = require("packages.base")
+local package = pl.class(base)
+package._name = "pandoc_document"
+function package:registerCommands ()
+$if(links-as-notes)$
+  self:registerCommand("href", function(options, content)
+    SILE.call("url", options, content)
+    SILE.call("footnote", options, content)
+  end)
+$else$
+  self:registerCommand("href", function(options, content)
+    SILE.call("url", options, content)
+  end)
+$endif$
+end
+return package
+\end{lua}
+$for(include)$
+\script[src=$include$]
+$endfor$
+$for(script)$
+\script[src=$script$]
+$endfor$
+\set[parameter=linebreak.emergencyStretch,value=1em]
+$if(sansfont)$
+\define[command=book:chapterfont]{\font[family=$sansfont$,weight=800,size=20pt]{\process}}
+\define[command=book:sectionfont]{\font[family=$sansfont$,weight=800]{\process}}
+$endif$
+$if(monofont)$
+\define[command=verbatim:font]{\font[family=$monofont$]}
+$endif$
+$if(title)$
+\title{$title$}
+$endif$
+$if(subtitle)$
+\subtitle{$subtitle$}
+$endif$
+$if(author)$
+\author{$author$}
+$endif$
+$if(rights)$
+\rights{$rights$}
+$endif$
+$if(date)$
+\date{$date$}
+$endif$
+$body$
+$for(include-after)$
+$include-after$
+\script[src=$include-after$]
+$endfor$
+\end{document}
