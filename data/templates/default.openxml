@@ -4,7 +4,7 @@
 $if(title)$
     <w:p>
       <w:pPr>
-        <w:pStyle w:val="Title" />
+        <w:pStyle w:val="$title-style-id$" />
       </w:pPr>
       $title$
     </w:p>
@@ -12,7 +12,7 @@ $endif$
 $if(subtitle)$
     <w:p>
       <w:pPr>
-        <w:pStyle w:val="Subtitle" />
+        <w:pStyle w:val="$subtitle-style-id$" />
       </w:pPr>
       $subtitle$
     </w:p>
@@ -20,7 +20,7 @@ $endif$
 $for(author)$
     <w:p>
       <w:pPr>
-        <w:pStyle w:val="Author" />
+        <w:pStyle w:val="$author-style-id$" />
       </w:pPr>
       $author$
     </w:p>
@@ -28,7 +28,7 @@ $endfor$
 $if(date)$
     <w:p>
       <w:pPr>
-        <w:pStyle w:val="Date" />
+        <w:pStyle w:val="$date-style-id$" />
       </w:pPr>
       $date$
     </w:p>
@@ -37,7 +37,7 @@ $if(abstract)$
 $if(abstract-title)$
     <w:p>
       <w:pPr>
-        <w:pStyle w:val="AbstractTitle" />
+        <w:pStyle w:val="$abstract-title-style-id$" />
       </w:pPr>
       <w:r><w:t xml:space="preserve">$abstract-title$</w:t></w:r>
     </w:p>
