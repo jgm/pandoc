@@ -128,6 +128,7 @@ import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
 import Text.Pandoc.Writers.Typst
+import Text.Pandoc.Writers.XML
 import Text.Pandoc.Writers.XWiki
 import Text.Pandoc.Writers.ZimWiki
 
@@ -139,6 +140,7 @@ writers :: PandocMonad m => [ (Text, Writer m) ]
 writers = [
    ("native"       , TextWriter writeNative)
   ,("json"         , TextWriter writeJSON)
+  ,("xml"          , TextWriter writeXML)
   ,("docx"         , ByteStringWriter writeDocx)
   ,("odt"          , ByteStringWriter writeODT)
   ,("pptx"         , ByteStringWriter writePowerpoint)

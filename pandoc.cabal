@@ -606,6 +606,7 @@ library
                    Text.Pandoc.Readers.Djot,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
+                   Text.Pandoc.Writers.XML,
                    Text.Pandoc.Writers.DocBook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
