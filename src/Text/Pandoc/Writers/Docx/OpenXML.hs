@@ -286,6 +286,8 @@ writeOpenXML opts (Pandoc meta blocks) = do
                  (fmap (vcat . map (literal . showContent)) . blocksToOpenXML opts)
                  (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
                  meta
+  cStyleMap <- gets (smParaStyle . stStyleMaps)
+  let styleIdOf name = fromStyleId $ getStyleIdFromName name cStyleMap
   let context = resetField "body" body
               . resetField "toc"
                    (vcat (map (literal . showElement) toc))
@@ -299,6 +301,12 @@ writeOpenXML opts (Pandoc meta blocks) = do
               . resetField "date" date
               . resetField "abstract-title" abstractTitle
               . resetField "abstract" abstract
+              . resetField "title-style-id" (styleIdOf "Title")
+              . resetField "subtitle-style-id" (styleIdOf "Subtitle")
+              . resetField "author-style-id" (styleIdOf "Author")
+              . resetField "date-style-id" (styleIdOf "Date")
+              . resetField "abstract-title-style-id" (styleIdOf "AbstractTitle")
+              . resetField "abstract-style-id" (styleIdOf "Abstract")
               $ metadata
   tpl <- maybe (lift $ compileDefaultTemplate "openxml") pure $ writerTemplate opts
   let rendered = render Nothing $ renderTemplate tpl context
