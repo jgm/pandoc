@@ -1867,13 +1867,15 @@ pBase64Data = do
   Sources inps <- getInput
   case inps of
     [] -> mzero
-    (fp,t):rest -> do
+    (pos,t):rest -> do
       satisfy (A.inClass "A-Za-z0-9+/") -- parse one character or parsec won't know
                                         -- we have consumed input
       let (a,r) = T.span (A.inClass "A-Za-z0-9+/") t
       let (b, trest) = T.span (=='=') r
-      setInput $ Sources ((fp,trest):rest)
-      return (a <> b)
+      let b64 = a <> b
+      let pos' = incSourceColumn pos (T.length b64)
+      setInput $ Sources ((pos',trest):rest)
+      return b64
 
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
