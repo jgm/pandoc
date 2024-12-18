@@ -91,12 +91,12 @@ makePDF program pdfargs writer opts doc =
                else [f]
       source <- writer opts doc
       verbosity <- getVerbosity
-      liftIO $ toPdfViaTempFile verbosity program pdfargs mkOutArgs source
+      liftIO $ toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source
     "typst" -> do
       source <- writer opts doc
       verbosity <- getVerbosity
       liftIO $
-        toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) source
+        toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) ".typ" source
     "pdfroff" -> do
       source <- writer opts doc
       let paperargs =
@@ -184,7 +184,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
                  -- see #6474
   source <- writer opts doc
   verbosity <- getVerbosity
-  liftIO $ toPdfViaTempFile verbosity program args (:[]) source
+  liftIO $ toPdfViaTempFile verbosity program args (:[]) ".html" source
 
 handleImages :: (PandocMonad m, MonadIO m)
              => WriterOptions
@@ -469,10 +469,11 @@ toPdfViaTempFile  ::
           -> String       -- ^ Program (program name or path)
           -> [String]     -- ^ Args to program
           -> (String -> [String]) -- ^ Construct args for output file
+          -> String       -- ^ extension to use for input file (e.g. '.html')
           -> Text         -- ^ Source
           -> IO (Either ByteString ByteString)
-toPdfViaTempFile verbosity program args mkOutArgs source =
-  withTempFile "." "toPdfViaTempFile.source" $ \file h1 ->
+toPdfViaTempFile verbosity program args mkOutArgs extension source =
+  withTempFile "." ("toPdfViaTempFile" <> extension) $ \file h1 ->
     withTempFile "." "toPdfViaTempFile.pdf" $ \pdfFile h2 -> do
       hClose h1
       hClose h2
