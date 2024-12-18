@@ -1222,8 +1222,10 @@ htmlTag f = try $ do
 
 -- | Adjusts a url according to the document's base URL.
 canonicalizeUrl :: PandocMonad m => Text -> TagParser m Text
-canonicalizeUrl url = do
-  mbBaseHref <- baseHref <$> getState
-  return $ case (parseURIReference (T.unpack url), mbBaseHref) of
-                (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
-                _                   -> url
+canonicalizeUrl url
+  | "data:" `T.isPrefixOf` url = return url
+  | otherwise = do
+     mbBaseHref <- baseHref <$> getState
+     return $ case (parseURIReference (T.unpack url), mbBaseHref) of
+                   (Just rel, Just bs) -> tshow (rel `nonStrictRelativeTo` bs)
+                   _                   -> url
