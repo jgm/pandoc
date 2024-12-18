@@ -28,6 +28,7 @@ import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
+import qualified Data.Attoparsec.Text as A
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
@@ -1834,11 +1835,45 @@ source = do
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
          char '<' >> mconcat <$> (manyTill litChar (char '>'))
-  src <- try betweenAngles <|> sourceURL
+  src <- try betweenAngles <|> try pBase64DataURI <|> sourceURL
   tit <- option "" $ try $ spnl >> linkTitle
   skipSpaces
   char ')'
   return (escapeURI $ trimr src, tit)
+
+pBase64DataURI :: PandocMonad m => ParsecT Sources s m Text
+pBase64DataURI = mconcat <$> sequence
+  [ textStr "data:"
+  , T.singleton <$> alphaNum
+  , restrictedName
+  , T.singleton <$> char '/'
+  , restrictedName
+  , textStr ";"
+  , mconcat <$> many (try mediaParam)
+  , textStr "base64,"
+  , pBase64Data
+  ]
+ where
+    restrictedName = manyChar (satisfy (A.inClass "A-Za-z0-9!#$&^_.+-"))
+    mediaParam = mconcat <$> sequence
+      [ restrictedName
+      , textStr "="
+      , manyChar (noneOf ";")
+      , textStr ";"
+      ]
+
+pBase64Data :: PandocMonad m => ParsecT Sources s m Text
+pBase64Data = do
+  Sources inps <- getInput
+  case inps of
+    [] -> mzero
+    (fp,t):rest -> do
+      satisfy (A.inClass "A-Za-z0-9+/") -- parse one character or parsec won't know
+                                        -- we have consumed input
+      let (a,r) = T.span (A.inClass "A-Za-z0-9+/") t
+      let (b, trest) = T.span (=='=') r
+      setInput $ Sources ((fp,trest):rest)
+      return (a <> b)
 
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
