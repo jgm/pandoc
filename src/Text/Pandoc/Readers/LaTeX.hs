@@ -1016,6 +1016,7 @@ environments = M.union (tableEnvironments block inline) $
    , ("minipage", divWith ("",["minipage"],[]) <$>
        env "minipage" (skipopts *> spaces *> optional braced *> spaces *> blocks))
    , ("figure", env "figure" $ skipopts *> figure')
+   , ("figure*", env "figure*" $ skipopts *> figure')
    , ("subfigure", env "subfigure" $ skipopts *> tok *> figure')
    , ("center", divWith ("", ["center"], []) <$> env "center" blocks)
    , ("quote", blockQuote <$> env "quote" blocks)
