@@ -501,6 +501,7 @@ inlineParsers = [ str
                 , endline
                 , code
                 , escapedInline
+                , spanGroup
                 , inlineMarkup
                 , groupedInlineMarkup
                 , rawHtmlInline
@@ -525,8 +526,20 @@ inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       , simpleInline (char '-' <* notFollowedBy (char '-')) B.strikeout
                       , simpleInline (char '^') B.superscript
                       , simpleInline (char '~') B.subscript
-                      , simpleInline (char '%') id
                       ]
+
+-- "The <span> tag is created by percent % signs between whitespaces."
+-- e.g. My mother has %{color:green;}green% eyes.
+spanGroup :: PandocMonad m => TextileParser m Inlines
+spanGroup = try $ do
+  notAfterString >>= guard
+  char '%' *> notFollowedBy whitespace
+  attr <- option nullAttr attributes
+  contents <- mconcat <$> manyTill
+   (try (((B.space <>) <$> try (whitespace *> notFollowedBy newline *> inline))
+         <|> try (notFollowedBy newline *> inline)))
+   (try (char '%' <* lookAhead (newline <|> ' ' <$ whitespace)))
+  pure $ B.spanWith attr contents
 
 -- | Trademark, registered, copyright
 mark :: PandocMonad m => TextileParser m Inlines
@@ -778,14 +791,14 @@ simpleInline :: PandocMonad m
              -> (Inlines -> Inlines)                  -- ^ Inline constructor
              -> TextileParser m Inlines  -- ^ content parser (to be used repeatedly)
 simpleInline border construct = try $ do
-  notAfterString
+  notAfterString >>= guard
   border *> notFollowedBy (oneOf " \t\n\r")
   attr <- attributes
   body <- trimInlines . mconcat <$>
           withQuoteContext InSingleQuote
             (manyTill (((B.space <>) <$>
-                         (whitespace *> notFollowedBy newline >> inline))
-                     <|> (notFollowedBy newline >> inline))
+                         try (whitespace *> notFollowedBy newline >> inline))
+                     <|> try (notFollowedBy newline >> inline))
              (try border <* notFollowedBy alphaNum))
   return $ construct $
         if attr == nullAttr
