@@ -1844,7 +1844,7 @@ source = do
 base64DataURI :: PandocMonad m => ParsecT Sources s m Text
 base64DataURI = do
   Sources ((pos, txt):rest) <- getInput
-  let r = A.parse pBase64DataURI txt
+  let r = A.parse (fst <$> A.match pBase64DataURI) txt
   case r of
     A.Done remaining consumed -> do
       let pos' = incSourceColumn pos (T.length consumed)
