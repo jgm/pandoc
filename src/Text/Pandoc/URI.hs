@@ -15,6 +15,7 @@ module Text.Pandoc.URI ( urlEncode
                        , isURI
                        , schemes
                        , uriPathToPath
+                       , pBase64DataURI
                        ) where
 import qualified Network.HTTP.Types as HTTP
 import qualified Text.Pandoc.UTF8 as UTF8
@@ -22,6 +23,8 @@ import qualified Data.Text as T
 import qualified Data.Set as Set
 import Data.Char (isSpace, isAscii)
 import Network.URI (URI (uriScheme), parseURI, escapeURIString)
+import qualified Data.Attoparsec.Text as A
+import Control.Applicative (many)
 
 urlEncode :: T.Text -> T.Text
 urlEncode = UTF8.toText . HTTP.urlEncode True . UTF8.fromText
@@ -90,12 +93,16 @@ schemes = Set.fromList
 -- | Check if the string is a valid URL with a IANA or frequently used but
 -- unofficial scheme (see @schemes@).
 isURI :: T.Text -> Bool
-isURI =
-  -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
-  maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack
+isURI t =
+  -- If it's a base 64 data: URI, avoid the expensive call to parseURI:
+  case A.parseOnly (pBase64DataURI *> A.endOfInput) t of
+    Right () -> True
+    Left _ ->
+      -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
+      maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack $ t
   where
-    hasKnownScheme = (`Set.member` schemes) . T.toLower .
-                     T.filter (/= ':') . T.pack . uriScheme
+    hasKnownScheme =
+      (`Set.member` schemes) . T.toLower . T.filter (/= ':') . T.pack . uriScheme
 
 -- | Converts the path part of a file: URI to a regular path.
 -- On windows, @/c:/foo@ should be @c:/foo@.
@@ -109,3 +116,25 @@ uriPathToPath (T.unpack -> path) =
 #else
   path
 #endif
+
+pBase64DataURI :: A.Parser T.Text
+pBase64DataURI = fst <$> A.match base64uri
+ where
+  base64uri = do
+    A.string "data:"
+    restrictedName
+    A.char '/'
+    restrictedName
+    A.char ';'
+    many mediaParam
+    A.string "base64,"
+    A.skipWhile (A.inClass "A-Za-z0-9+/")
+    A.skipWhile (== '=')
+  restrictedName = do
+    A.satisfy (A.inClass "A-Za-z0-9")
+    A.skipWhile (A.inClass "A-Za-z0-9!#$&^_.+-")
+  mediaParam = do
+    restrictedName
+    A.char '='
+    A.skipWhile (/=';')
+    A.char ';'
