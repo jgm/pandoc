@@ -52,7 +52,7 @@ import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
-import Text.Pandoc.URI (escapeURI, isURI)
+import Text.Pandoc.URI (escapeURI, isURI, pBase64DataURI)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
 -- import Debug.Trace (traceShowId)
@@ -1835,47 +1835,22 @@ source = do
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
          char '<' >> mconcat <$> (manyTill litChar (char '>'))
-  src <- try betweenAngles <|> try pBase64DataURI <|> sourceURL
+  src <- try betweenAngles <|> try base64DataURI <|> sourceURL
   tit <- option "" $ try $ spnl >> linkTitle
   skipSpaces
   char ')'
   return (escapeURI $ trimr src, tit)
 
-pBase64DataURI :: PandocMonad m => ParsecT Sources s m Text
-pBase64DataURI = mconcat <$> sequence
-  [ textStr "data:"
-  , T.singleton <$> alphaNum
-  , restrictedName
-  , T.singleton <$> char '/'
-  , restrictedName
-  , textStr ";"
-  , mconcat <$> many (try mediaParam)
-  , textStr "base64,"
-  , pBase64Data
-  ]
- where
-    restrictedName = manyChar (satisfy (A.inClass "A-Za-z0-9!#$&^_.+-"))
-    mediaParam = mconcat <$> sequence
-      [ restrictedName
-      , textStr "="
-      , manyChar (noneOf ";")
-      , textStr ";"
-      ]
-
-pBase64Data :: PandocMonad m => ParsecT Sources s m Text
-pBase64Data = do
-  Sources inps <- getInput
-  case inps of
-    [] -> mzero
-    (pos,t):rest -> do
-      satisfy (A.inClass "A-Za-z0-9+/") -- parse one character or parsec won't know
-                                        -- we have consumed input
-      let (a,r) = T.span (A.inClass "A-Za-z0-9+/") t
-      let (b, trest) = T.span (=='=') r
-      let b64 = a <> b
-      let pos' = incSourceColumn pos (T.length b64)
-      setInput $ Sources ((pos',trest):rest)
-      return b64
+base64DataURI :: PandocMonad m => ParsecT Sources s m Text
+base64DataURI = do
+  Sources ((pos, txt):rest) <- getInput
+  let r = A.parse pBase64DataURI txt
+  case r of
+    A.Done remaining consumed -> do
+      let pos' = incSourceColumn pos (T.length consumed)
+      setInput $ Sources ((pos', remaining):rest)
+      return consumed
+    _ -> mzero
 
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
