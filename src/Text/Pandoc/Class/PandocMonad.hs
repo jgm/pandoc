@@ -77,7 +77,8 @@ import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, MediaItem(..))
 import Text.Pandoc.Shared (safeRead, makeCanonical, tshow)
-import Text.Pandoc.URI (uriPathToPath)
+import Text.Pandoc.URI (uriPathToPath, pBase64DataURI)
+import qualified Data.Attoparsec.Text as A
 import Text.Pandoc.Walk (walkM)
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.ByteString.Base64 (decodeLenient)
@@ -333,7 +334,11 @@ fetchItem s = do
 downloadOrRead :: PandocMonad m
                => T.Text
                -> m (B.ByteString, Maybe MimeType)
-downloadOrRead s = do
+downloadOrRead s
+ | "data:" `T.isPrefixOf` s,
+   Right (bs, mt) <- A.parseOnly pBase64DataURI s
+   = pure (bs, Just mt)
+ | otherwise = do
   sourceURL <- getsCommonState stSourceURL
   case (sourceURL >>= parseURIReference' . ensureEscaped, ensureEscaped s) of
     (Just u, s') -> -- try fetching from relative path at source
