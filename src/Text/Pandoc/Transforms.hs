@@ -154,6 +154,11 @@ headerShift n (Pandoc meta (Header m _ ils : bs))
   | n < 0
   , m + n == 0 = headerShift n $
                  B.setTitle (B.fromList ils) $ Pandoc meta bs
+-- for this case, see #10459:
+headerShift n (Pandoc meta (Div attr@(_,"section":_,_) (Header m _ ils : as) : bs))
+  | n < 0
+  , m + n == 0 = headerShift n $
+                 B.setTitle (B.fromList ils) $ Pandoc meta (Div attr as : bs)
 headerShift n (Pandoc meta bs) = Pandoc meta (walk shift bs)
 
  where
