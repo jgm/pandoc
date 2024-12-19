@@ -1578,8 +1578,13 @@ inlineToHtml opts inline = do
                                            $ toHtml linkTxt
                                  , [A5.controls ""] )
                             s' = fromMaybe s $ T.stripSuffix ".gz" s
-                            normSrc = maybe (T.unpack s) uriPath (parseURIReference $ T.unpack s')
-                            (tag, specAttrs) = case mediaCategory normSrc of
+                            category =
+                              if "data:" `T.isPrefixOf` s
+                                 then Just . T.takeWhile (/= '/') . T.drop 5 $ s
+                                 else case parseURIReference (T.unpack s') of
+                                        Just u -> mediaCategory $ uriPath u
+                                        Nothing -> mediaCategory (T.unpack s)
+                            (tag, specAttrs) = case category of
                               Just "image" -> imageTag
                               Just "video" -> mediaTag H5.video "Video"
                               Just "audio" -> mediaTag H5.audio "Audio"
