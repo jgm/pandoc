@@ -18,12 +18,16 @@ module Text.Pandoc.URI ( urlEncode
                        , pBase64DataURI
                        ) where
 import qualified Network.HTTP.Types as HTTP
+import Data.ByteString.Base64 (decodeLenient)
+import Text.Pandoc.MIME (MimeType)
+import qualified Data.ByteString as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
 import qualified Data.Set as Set
 import Data.Char (isSpace, isAscii)
 import Network.URI (URI (uriScheme), parseURI, escapeURIString)
 import qualified Data.Attoparsec.Text as A
+import Data.Text.Encoding (encodeUtf8)
 import Control.Applicative (many)
 
 urlEncode :: T.Text -> T.Text
@@ -117,24 +121,30 @@ uriPathToPath (T.unpack -> path) =
   path
 #endif
 
-pBase64DataURI :: A.Parser T.Text
-pBase64DataURI = fst <$> A.match base64uri
+pBase64DataURI :: A.Parser (B.ByteString, MimeType)
+pBase64DataURI = base64uri
  where
   base64uri = do
     A.string "data:"
-    restrictedName
-    A.char '/'
-    restrictedName
-    A.char ';'
-    many mediaParam
-    A.string "base64,"
-    A.skipWhile (A.inClass "A-Za-z0-9+/")
+    mime <- do
+      n1 <- restrictedName
+      A.char '/'
+      n2 <- restrictedName
+      mps <- many mediaParam
+      pure $ n1 <> "/" <> n2 <> mconcat mps
+    A.string ";base64,"
+    b64 <- A.takeWhile (A.inClass "A-Za-z0-9+/")
     A.skipWhile (== '=')
+    -- this decode should be lazy:
+    pure (decodeLenient (encodeUtf8 b64), mime)
   restrictedName = do
-    A.satisfy (A.inClass "A-Za-z0-9")
-    A.skipWhile (A.inClass "A-Za-z0-9!#$&^_.+-")
+    c <- A.satisfy (A.inClass "A-Za-z0-9")
+    rest <- A.takeWhile (A.inClass "A-Za-z0-9!#$&^_.+-")
+    pure $ T.singleton c <> rest
   mediaParam = do
-    restrictedName
-    A.char '='
-    A.skipWhile (/=';')
     A.char ';'
+    A.skipWhile isSpace
+    k <- restrictedName
+    A.char '='
+    v <- A.takeWhile (/=';')
+    pure $ ";" <> k <> "=" <> v
