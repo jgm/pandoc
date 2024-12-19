@@ -761,14 +761,16 @@ header when requesting a document from a URL:
 `--template=`*FILE*|*URL*
 
 :   Use the specified file as a custom template for the generated document.
-    Implies `--standalone`. See [Templates], below, for a description
-    of template syntax. If no extension is specified, an extension
-    corresponding to the writer will be added, so that `--template=special`
-    looks for `special.html` for HTML output.  If the template is not
-    found, pandoc will search for it in the `templates` subdirectory of
-    the user data directory (see `--data-dir`). If this option is not used,
-    a default template appropriate for the output format will be used (see
-    `-D/--print-default-template`).
+    Implies `--standalone`. See [Templates], below, for a
+    description of template syntax. If the template is not found,
+    pandoc will search for it in the `templates` subdirectory of
+    the user data directory (see `--data-dir`). If no extension
+    is specified and an extensionless template is not found,
+    pandoc will look for a template with an extension
+    corresponding to the writer, so that `--template=special`
+    looks for `special.html` for HTML output. If this option is
+    not used, a default template appropriate for the output
+    format will be used (see `-D/--print-default-template`).
 
 `-V` *KEY*[`=`*VAL*], `--variable=`*KEY*[`:`*VAL*]
 
