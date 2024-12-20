@@ -1,0 +1,394 @@
+[ Header
+    1
+    ( "" , [] , [] )
+    [ Str "POD" , Space , Str "TEST" , Space , Str "SUITE" ]
+, Para
+    [ Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "a"
+    , Space
+    , Str "test"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "Pod" ]
+        ( "https://perldoc.pl/perlpod" , "" )
+    , Space
+    , Str "document"
+    , Space
+    , Str "for"
+    , Space
+    , Str "pandoc."
+    ]
+, Para
+    [ Str "=head2" , Space , Str "Head" , Space , Str "2" ]
+, Header
+    3
+    ( "" , [] , [] )
+    [ Str "Head"
+    , Space
+    , Str "3:"
+    , Space
+    , Emph [ Str "The>" , Space , Str "<Return" ]
+    ]
+, Header
+    4
+    ( "" , [] , [] )
+    [ Str "How"
+    , Space
+    , Str "to"
+    , Space
+    , Str "use"
+    , Space
+    , Str "the"
+    , Space
+    , Link
+        ( "" , [] , [ ( "manual" , "ls(1)" ) ] )
+        [ Str "ls(1)" ]
+        ( "" , "" )
+    , Space
+    , Str "command,"
+    , Space
+    , Str "an"
+    , Space
+    , Str "introduction"
+    ]
+, Header
+    5
+    ( "" , [] , [] )
+    [ Code ( "" , [] , [] ) "Ricky Jay"
+    , Space
+    , Str "and"
+    , Space
+    , Str "his"
+    , Space
+    , Str "52"
+    , Space
+    , Str "assistants"
+    ]
+, Header
+    6
+    ( "" , [] , [] )
+    [ Str "The"
+    , Space
+    , Str "=head5"
+    , Space
+    , Str "and"
+    , Space
+    , Str "=head6"
+    , Space
+    , Str "commands"
+    , Space
+    , Str "are"
+    , Space
+    , Str "newer"
+    , Space
+    , Str "and"
+    , Space
+    , Str "my"
+    , Space
+    , Str "syntax"
+    , Space
+    , Str "highlighting"
+    , Space
+    , Str "doesn't"
+    , Space
+    , Str "recognize"
+    , Space
+    , Str "them."
+    , Space
+    , Str "In"
+    , Space
+    , Str "any"
+    , Space
+    , Str "case,"
+    , Space
+    , Str "it"
+    , Space
+    , Str "should"
+    , Space
+    , Str "be"
+    , Space
+    , Str "possible"
+    , Space
+    , Str "to"
+    , Space
+    , Str "have"
+    , Space
+    , Str "a"
+    , Space
+    , Str "very"
+    , Space
+    , Str "long"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "in"
+    , Space
+    , Str "the"
+    , Space
+    , Str "heading."
+    ]
+, Header
+    6
+    ( "" , [] , [] )
+    [ Str "It"
+    , Space
+    , Str "should"
+    , Space
+    , Str "also"
+    , Space
+    , Str "be"
+    , Space
+    , Str "possible"
+    , Space
+    , Str "to"
+    , Space
+    , Str "start"
+    , Space
+    , Str "the"
+    , Space
+    , Str "heading"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "on"
+    , Space
+    , Str "the"
+    , Space
+    , Str "next"
+    , Space
+    , Str "line"
+    ]
+, RawBlock
+    (Format "html")
+    "<strong>This is a raw block destined for the HTML format</strong>\n\n"
+, BulletList
+    [ [ Para [ Str "Bulleted" , Space , Str "list" ] ]
+    , [ Para [ Str "Ordered" , Space , Str "list" ]
+      , OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Para
+                [ Str "Here's"
+                , Space
+                , Str "a"
+                , Space
+                , Str "verbatim"
+                , Space
+                , Str "paragraph"
+                , Space
+                , Str "in"
+                , Space
+                , Str "this"
+                , Space
+                , Str "list"
+                , Space
+                , Str "item:"
+                ]
+            , CodeBlock
+                ( "" , [] , [] )
+                "    this is a code block\nthis is still part of the code block\n  so is this.\nIt seems that the prefixed spaces in verbatim blocks in pod don't get stripped.\n\n This should continue the previous code block despite the intervening blank\n line, because the first line starts with a space\n\n\n\n    the above blank lines with varying numbers of spaces should also be in\n the code block\n    pod formatters should (but not must) expand tabs by default\nso we're not special casing pandoc's behavior there in any way\n"
+            , Para
+                [ Str "Wow,"
+                , Space
+                , Str "that"
+                , Space
+                , Str "was"
+                , Space
+                , Str "fun."
+                ]
+            ]
+          , [ Para [ Str "Definition" , Space , Str "list" ]
+            , DefinitionList
+                [ ( [ Span
+                        ( "" , [] , [] )
+                        [ Str "Marvin"
+                        , Space
+                        , Str "the"
+                        , Space
+                        , Str "Martian"
+                        ]
+                    ]
+                  , [ [ Para
+                          [ Str "A"
+                          , Space
+                          , Str "cartoon"
+                          , Space
+                          , Str "alien"
+                          ]
+                      ]
+                    ]
+                  )
+                , ( [ Span
+                        ( "" , [] , [] )
+                        [ Emph
+                            [ Str "The"
+                            , Space
+                            , Str "Sun"
+                            , Space
+                            , Str "Also"
+                            , Space
+                            , Str "Rises"
+                            ]
+                        ]
+                    ]
+                  , [ [ Para
+                          [ Str "A"
+                          , Space
+                          , Str "novel"
+                          , Space
+                          , Str "by"
+                          , Space
+                          , Str "Ernest"
+                          , Space
+                          , Str "Hemingway"
+                          ]
+                      ]
+                    ]
+                  )
+                , ( [ Span
+                        ( "" , [] , [] )
+                        [ Code ( "" , [] , [] ) "undefined" ]
+                    ]
+                  , [ [] ]
+                  )
+                , ( [ Span
+                        ( "" , [] , [] )
+                        [ Str "And"
+                        , Space
+                        , Str "now,"
+                        , Space
+                        , Str "a"
+                        , Space
+                        , Str "quotation"
+                        ]
+                    ]
+                  , [ [ BlockQuote
+                          [ Para
+                              [ Str "Where's"
+                              , Space
+                              , Str "my"
+                              , Space
+                              , Str "space"
+                              , Space
+                              , Str "modulator?"
+                              ]
+                          ]
+                      ]
+                    ]
+                  )
+                ]
+            ]
+          , [ Para
+                [ Str "And"
+                , Space
+                , Str "the"
+                , Space
+                , Str "list"
+                , Space
+                , Str "continues."
+                ]
+            ]
+          ]
+      ]
+    , [ Para
+          [ Str "And"
+          , Space
+          , Str "so"
+          , Space
+          , Str "does"
+          , Space
+          , Str "the"
+          , Space
+          , Str "other"
+          , Space
+          , Str "one,"
+          , Space
+          , Str "even"
+          , Space
+          , Str "if"
+          , Space
+          , Str "I"
+          , Space
+          , Str "forget"
+          , Space
+          , Str "the"
+          , Space
+          , Str "asterisk."
+          ]
+      ]
+    ]
+, Div
+    ( "" , [ "neat" ] , [] )
+    [ Para
+        [ Str "This"
+        , Space
+        , Str "is"
+        , Space
+        , Str "a"
+        , Space
+        , Str "div"
+        , Space
+        , Str "for"
+        , Space
+        , Str "our"
+        , Space
+        , Str "purposes."
+        ]
+    , Para
+        [ Str "It"
+        , Space
+        , Str "should"
+        , Space
+        , Str "parse"
+        , Space
+        , Strong [ Str "content" ]
+        , Space
+        , Str "inside"
+        , Space
+        , Str "of"
+        , Space
+        , Str "it."
+        ]
+    , BulletList
+        [ [ Para [ Str "Like" , Space , Str "this" ] ] ]
+    ]
+, Div
+    ( "" , [ "excitement" ] , [] )
+    [ Para
+        [ Str "this"
+        , Space
+        , Str "is"
+        , Space
+        , Str "its"
+        , Space
+        , Str "own"
+        , Space
+        , Str "div"
+        ]
+    ]
+, RawBlock
+    (Format "html") " <p>and this is its own raw block</p>\n"
+, RawBlock (Format "html") "\n<p>so is this</p>\n"
+, Header
+    2
+    ( "" , [] , [] )
+    [ Code ( "" , [] , [] ) "=cut"
+    , Space
+    , Str "before"
+    , Space
+    , Str "any"
+    , Space
+    , Code ( "" , [] , [] ) "=item"
+    , Space
+    , Str "in"
+    , Space
+    , Code ( "" , [] , [] ) "=over"
+    ]
+, BulletList
+    [ [ Para [ Str "a" ] , Para [ Str "b" ] ]
+    , [ Para [ Str "c" ] ]
+    ]
+]

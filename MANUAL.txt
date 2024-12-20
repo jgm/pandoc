@@ -269,6 +269,7 @@ header when requesting a document from a URL:
     - `odt` ([OpenOffice text document][ODT])
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
+    - `pod` (Perl's [Plain Old Documentation])
     - `ris` ([RIS] bibliography)
     - `rtf` ([Rich Text Format])
     - `rst` ([reStructuredText])
@@ -499,6 +500,7 @@ header when requesting a document from a URL:
 [OPML]: http://dev.opml.org/spec2.html
 [OpenDocument]: http://opendocument.xml.org
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
+[Plain Old Documentation]: https://perldoc.perl.org/perlpod
 [Textile]: https://textile-lang.com
 [MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
