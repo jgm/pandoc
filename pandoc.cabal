@@ -424,6 +424,7 @@ extra-source-files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
+                 test/pod-reader.pod
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -604,6 +605,7 @@ library
                    Text.Pandoc.Readers.RTF,
                    Text.Pandoc.Readers.Typst,
                    Text.Pandoc.Readers.Djot,
+                   Text.Pandoc.Readers.Pod,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.DocBook,
@@ -837,6 +839,7 @@ test-suite test-pandoc
                   Tests.Readers.Man
                   Tests.Readers.Mdoc
                   Tests.Readers.FB2
+                  Tests.Readers.Pod
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
