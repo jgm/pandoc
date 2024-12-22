@@ -470,16 +470,18 @@ blockToMarkdown' opts b@(RawBlock f str) = do
   let renderEmpty = mempty <$ report (BlockNotRendered b)
   case variant of
     PlainText
-      | f == "plain" -> return $ literal str <> literal "\n"
+      | f == "plain" -> return $ nest 0 (literal str) <> literal "\n"
     Commonmark
       | f `elem` ["gfm", "commonmark", "commonmark_x", "markdown"]
-         -> return $ literal str $$ blankline
+         -> return $ nest 0 (literal str) $$ blankline
       | f `elem` ["html", "html5", "html4"]
          -> return $ literal (removeBlankLinesInHTML str) $$ blankline
     Markdown
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"]
-         -> return $ literal str <> literal "\n"
+        -- the 'nest 0' ensures that leading and trailing newlines
+        -- don't get collapsed. See #10477 for context;
+         -> return $ nest 0 (literal str) <> literal "\n"
     Markua -> renderEmpty
     _ | f `elem` ["html", "html5", "html4"]
       , isEnabled Ext_markdown_attribute opts
