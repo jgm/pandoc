@@ -1704,22 +1704,19 @@ explicitLink = try $ do
   skipSpaces
   string "`_"
   optional $ char '_' -- anonymous form
-  ((src',tit),attr) <-
-    if isURI src
-       then return ((src, ""), nullAttr)
-       else
-         case T.unsnoc src of
-           -- `link <google_>` is a reference link to _google!
-           Just (xs, '_') -> lookupKey [] (toKey xs)
-           _              -> return ((src, ""), nullAttr)
+  let src' | isURI src = escapeURI src
+           | otherwise = 
+              case T.unsnoc src of
+                 Just (xs, '_') -> "##REF##" <> xs
+                 _              -> src
   let label'' = if label' == mempty
                    then B.str src
                    else label'
   let key = toKey $ stringify label'
   unless (key == Key mempty) $ do
     updateState $ \s -> s{
-      stateKeys = M.insert key ((src',tit), attr) $ stateKeys s }
-  return $ B.linkWith attr (escapeURI src') tit label''
+      stateKeys = M.insert key ((src',""), nullAttr) $ stateKeys s }
+  return $ B.linkWith nullAttr src' "" label''
 
 citationName :: PandocMonad m => RSTParser m Text
 citationName = do
