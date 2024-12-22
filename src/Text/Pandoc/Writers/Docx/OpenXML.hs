@@ -375,6 +375,7 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   wrapBookmark ident $ header <> contents
 blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
   setFirstPara
+  let isChapter = lev == 1 && writerTopLevelDivision opts == TopLevelChapter
   paraProps <- withParaPropM (pStyleM (fromString $ "Heading "++show lev)) $
                     getParaProps False
   number <-
@@ -388,14 +389,20 @@ blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
                 Nothing -> return []
            else return []
   contents <- (number ++) <$> inlinesToOpenXML opts lst
-  if T.null ident
-     then return [Elem $ mknode "w:p" [] (map Elem paraProps ++ contents)]
-     else do
-       let bookmarkName = ident
-       modify $ \s -> s{ stSectionIds = Set.insert bookmarkName
-                                      $ stSectionIds s }
-       bookmarkedContents <- wrapBookmark bookmarkName contents
-       return [Elem $ mknode "w:p" [] (map Elem paraProps ++ bookmarkedContents)]
+  let addSectionBreak
+       | isChapter = (Elem (mknode "w:p" []
+                            (mknode "w:pPr" []
+                             [mknode "w:sectPr" [] ()])) :)
+       | otherwise = id
+  addSectionBreak <$>
+    if T.null ident
+       then return [Elem $ mknode "w:p" [] (map Elem paraProps ++ contents)]
+       else do
+         let bookmarkName = ident
+         modify $ \s -> s{ stSectionIds = Set.insert bookmarkName
+                                        $ stSectionIds s }
+         bookmarkedContents <- wrapBookmark bookmarkName contents
+         return [Elem $ mknode "w:p" [] (map Elem paraProps ++ bookmarkedContents)]
 blockToOpenXML' opts (Plain lst) = do
   isInTable <- gets stInTable
   isInList <- gets stInList
