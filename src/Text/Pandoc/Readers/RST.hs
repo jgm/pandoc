@@ -1705,7 +1705,7 @@ explicitLink = try $ do
   string "`_"
   optional $ char '_' -- anonymous form
   let src' | isURI src = escapeURI src
-           | otherwise = 
+           | otherwise =
               case T.unsnoc src of
                  Just (xs, '_') -> "##REF##" <> xs
                  _              -> src
