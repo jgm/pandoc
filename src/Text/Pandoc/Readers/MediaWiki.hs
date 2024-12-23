@@ -276,7 +276,7 @@ cellsep = try $ do
   skipMany spaceChar
   c <- oneOf "|!"
   when (col > 1) $ void $ char c
-  notFollowedBy (oneOf "-}+")
+  notFollowedBy (oneOf "-}")
   attribs <- option [] (parseAttrs <* skipMany spaceChar <* char '|')
   skipMany spaceChar
   pure attribs
