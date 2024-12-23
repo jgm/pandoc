@@ -1,5 +1,162 @@
 # Revision history for pandoc
 
+## pandoc 3.6.1 (2024-12-23)
+
+  * Allow YAML bibliographies to be arrays of references (#10452).
+    Previously, they had to be YAML objects with a `references` key.
+
+  * Change `--template` to allow use of extensionless templates (#5270).
+    The intent is to allow bash process substitution: e.g.,
+    `--template <(echo "foo")`. Previously pandoc *always* added an
+    extension based on the output format, which caused problems
+    with the absolute filenames used by bash process substitution
+    (e.g. `/dev/fd/11`). Now, if the template has no extension,
+    pandoc will first try to find it without the extension, and
+    then add the extension if it can't be found. So, in general,
+    extensionless templates can now be used. But this has been
+    implemented in a way that should not cause problems for
+    existing uses, unless you are using a template `NAME.FORMAT`
+    but happen to have an extensionless file `NAME` in the template
+    search path.
+
+  * Allow `--shift-heading-level-by=-1` to work in djot in the same way
+    it works for other formats (with the top-level heading being
+    promoted to metadata title) (#10459).  This needed special
+    treatment because of the way djot surrounds sections with Divs.
+
+  * RST reader:
+
+    + Handle explicit reference links (#10484, Evan Silberman).
+      This case was missed when changing the reference link strategy for
+      RST to allow a single pass. (It is a regression in pandoc 3.6.)
+
+  * Markdown reader:
+
+    + Use T.P.URI's `pBase64DataURI` in parsing data URIs (#10075,
+      Evan Silberman and John MacFarlane).
+    + More efficient base64 data URI parsing (#10075, Evan
+      Silberman and John MacFarlane). This should yield dramatic
+      performance improvements for markdown documents containing
+      large data URIs in images.
+
+  * HTML reader:
+
+    + Don't canonicalize data: URIs (#10075). It can be very expensive
+      to call network-uri's URI parser on these.
+
+  * LaTeX reader:
+
+    + Handle `figure*` environment as a figure (#10472).
+
+  * Textile reader:
+
+    + Improve parsing of spans (#9878). The span needs to be separated
+      from its surroundings by spaces. Also, a span can have attributes,
+      which we now attach.
+    + Inline constructors shouldn't trigger if closer is preceded by
+      whitespace (#10414).
+
+  * Docx writer:
+
+    + Put chapters in separate sections, and restart footnotes
+      by section by default (#2773). The main effect of this change is that
+      when `--top-level-division=chapter` is used, chapters will start on
+      a new page and footnote numbering will restart for each chapter.
+      Both of these defaults can be overridden in the reference.docx.
+    + Use styleIds not styleNames for Title, Subtitle, etc.
+      (#10282). This fixes a regression introduced in pandoc 3.5.
+      This change affects the default openxml template as well as the
+      OpenXML writer.
+
+  * Markdown writer:
+
+    + Avoid collapsing of initial/final newline in markdown raw blocks.
+      This makes it easy to write a filter that adds extra blank lines
+      before certain elements (#10477).
+
+  * Mediawiki writer:
+
+    + Escape line-initial characters that would otherwise be interpreted
+      as list starts (#9700).
+
+  * LaTeX writer:
+
+    + Properly handle boolean value for `csquotes` variable (#10403).
+    + Use displayquote for block quotes with `csquotes` (#10456).
+
+  * HTML writer:
+
+    + Avoid calling parseURIString for data URIs (#10075).
+      This was done to determine the "media category," but we can
+      get that directly from the mime component of data: URIs.
+
+  * Typst writer:
+
+    + Properly handle data URIs in images (#10460).
+
+  * LaTeX/Beamer templates:
+
+    + Fix default.beamer `nocite` location (Thomas Hodgson).
+      It must be inside a frame or it is ignored (#10465).
+    + Move nocites from LaTeX preamble to body (#10461, Thomas
+      Hodgson). Putting `\nocite` in the preamble works only with biblatex.
+
+  * Text.Pandoc.Parsing:
+
+    + Correct example in comment on `charsInBalanced` (Evan Silberman).
+
+  * Text.Pandoc.Error:
+
+    + Mention typst in rendering `PandocUnknownWriterError` for `pdf`
+      (Evan Silberman).
+
+  * Text.Pandoc.MediaBag:
+
+    + `insertMedia`: fast path for data URIs. Avoid the slow URI
+      parser from network-uri on large data URIs (#10075).
+
+  * Text.Pandoc.Class:
+
+    + Add shortcut for base64 data URIs in `downloadOrRead` (#10075).
+      This avoids calling the slow URI parser from network-uri on
+      data URIs, instead calling our own parser.
+
+  * Text.Pandoc.MIME:
+
+    + Fix `extensionFromMimeType`. We had a few special cases encoded,
+      but as previously written they wouldn't work properly with
+      modifiers like `;charset=utf-8`.
+
+  * Text.Pandoc.URI:
+
+    + Export `pBase64DataURI`.  Modify `isURI` to use this and avoid
+      calling network-uri's inefficient `parseURI` for data URIs.
+
+  * Text.Pandoc.PDF:
+
+    + Fix temp file extension in `toPdfViaTempFile` (#10468).
+      This fixes a regression in pandoc 3.6, which changed
+      the extension from `html` to `source`. Apparently
+      `wkhtmltopdf` needs it to be `.html`.  So now we have added
+      a parameter to `toPdfViaTempFile` that allows the extension
+      to be specified in a way that is appropriate to the PDF engine
+      used.
+
+  * Lua (Albert Krewinkel):
+
+    + Support more elements as input to `pandoc.utils.stringify`
+      (#10450). Elements of type Caption, Cell, TableHead, and TableFoot
+      can now be stringified.
+    + Add `Caption` constructor to `pandoc` module.
+
+  * Miscellaneous code quality improvements (Joseph C. Sible).
+
+  * Depend on citeproc 0.8.1.2, skylighting and skylighting-core
+    0.14.5.
+
+  * `doc/lua-filters.md: Fix links to constructors (Albert Krewinkel).
+
+
 ## pandoc 3.6 (2024-12-07)
 
   * Add `mdoc` as input format (Evan Silberman). This change
