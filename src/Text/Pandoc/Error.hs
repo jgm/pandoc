@@ -124,6 +124,7 @@ renderError e =
                  "\nTry using Word to save your DOC file as DOCX," <>
                  " and convert that with pandoc."
         "pdf" -> "\nPandoc can convert to PDF, but not from PDF."
+        "asciidoc" -> "\nPandoc can convert to asciidoc, but not from asciidoc."
         _     -> ""
     PandocUnknownWriterError w ->
        "Unknown output format " <> w <>
