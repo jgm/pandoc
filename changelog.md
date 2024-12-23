@@ -48,6 +48,11 @@
 
     + Handle `figure*` environment as a figure (#10472).
 
+  * MediaWiki reader:
+
+    + Allow empty quoted attributes (#10490).
+    + Allow cells starting with `+` (#10491).
+
   * Textile reader:
 
     + Improve parsing of spans (#9878). The span needs to be separated
