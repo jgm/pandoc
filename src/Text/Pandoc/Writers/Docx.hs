@@ -346,7 +346,6 @@ writeDocx opts doc = do
   let relEntry = toEntry "word/_rels/document.xml.rels" epochtime
         $ renderXml reldoc
 
-  -- let sectpr = fromMaybe (mknode "w:sectPr" [] ()) mbsectpr'
   let contents' = BL.fromStrict $ UTF8.fromText contents
 
   -- word/document.xml

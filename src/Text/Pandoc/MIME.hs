@@ -45,20 +45,21 @@ getMimeTypeDef :: FilePath -> MimeType
 getMimeTypeDef = fromMaybe "application/octet-stream" . getMimeType
 
 extensionFromMimeType :: MimeType -> Maybe T.Text
--- few special cases, where there are multiple options:
-extensionFromMimeType "text/plain" = Just "txt"
-extensionFromMimeType "video/quicktime" = Just "mov"
-extensionFromMimeType "video/mpeg" = Just "mpeg"
-extensionFromMimeType "video/dv" = Just "dv"
-extensionFromMimeType "image/vnd.djvu" = Just "djvu"
-extensionFromMimeType "image/tiff" = Just "tiff"
-extensionFromMimeType "image/jpeg" = Just "jpg"
-extensionFromMimeType "application/xml" = Just "xml"
-extensionFromMimeType "application/ogg" = Just "ogg"
-extensionFromMimeType "image/svg+xml" = Just "svg" -- avoid svgz
 extensionFromMimeType mimetype =
-  M.lookup (T.takeWhile (/=';') mimetype) reverseMimeTypes
   -- note:  we just look up the basic mime type, dropping the content-encoding etc.
+  case T.takeWhile (/=';') mimetype of
+    -- handle a few special cases, where there are multiple options:
+    "text/plain" -> Just "txt"
+    "video/quicktime" -> Just "mov"
+    "video/mpeg" -> Just "mpeg"
+    "video/dv" -> Just "dv"
+    "image/vnd.djvu" -> Just "djvu"
+    "image/tiff" -> Just "tiff"
+    "image/jpeg" -> Just "jpg"
+    "application/xml" -> Just "xml"
+    "application/ogg" -> Just "ogg"
+    "image/svg+xml" -> Just "svg" -- avoid svgz
+    mt -> M.lookup mt reverseMimeTypes
 
 -- | Determine general media category for file path, e.g.
 --

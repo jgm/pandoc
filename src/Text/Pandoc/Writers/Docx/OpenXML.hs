@@ -286,6 +286,8 @@ writeOpenXML opts (Pandoc meta blocks) = do
                  (fmap (vcat . map (literal . showContent)) . blocksToOpenXML opts)
                  (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
                  meta
+  cStyleMap <- gets (smParaStyle . stStyleMaps)
+  let styleIdOf name = fromStyleId $ getStyleIdFromName name cStyleMap
   let context = resetField "body" body
               . resetField "toc"
                    (vcat (map (literal . showElement) toc))
@@ -299,6 +301,12 @@ writeOpenXML opts (Pandoc meta blocks) = do
               . resetField "date" date
               . resetField "abstract-title" abstractTitle
               . resetField "abstract" abstract
+              . resetField "title-style-id" (styleIdOf "Title")
+              . resetField "subtitle-style-id" (styleIdOf "Subtitle")
+              . resetField "author-style-id" (styleIdOf "Author")
+              . resetField "date-style-id" (styleIdOf "Date")
+              . resetField "abstract-title-style-id" (styleIdOf "AbstractTitle")
+              . resetField "abstract-style-id" (styleIdOf "Abstract")
               $ metadata
   tpl <- maybe (lift $ compileDefaultTemplate "openxml") pure $ writerTemplate opts
   let rendered = render Nothing $ renderTemplate tpl context
@@ -367,6 +375,7 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   wrapBookmark ident $ header <> contents
 blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
   setFirstPara
+  let isChapter = lev == 1 && writerTopLevelDivision opts == TopLevelChapter
   paraProps <- withParaPropM (pStyleM (fromString $ "Heading "++show lev)) $
                     getParaProps False
   number <-
@@ -380,14 +389,20 @@ blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
                 Nothing -> return []
            else return []
   contents <- (number ++) <$> inlinesToOpenXML opts lst
-  if T.null ident
-     then return [Elem $ mknode "w:p" [] (map Elem paraProps ++ contents)]
-     else do
-       let bookmarkName = ident
-       modify $ \s -> s{ stSectionIds = Set.insert bookmarkName
-                                      $ stSectionIds s }
-       bookmarkedContents <- wrapBookmark bookmarkName contents
-       return [Elem $ mknode "w:p" [] (map Elem paraProps ++ bookmarkedContents)]
+  let addSectionBreak
+       | isChapter = (Elem (mknode "w:p" []
+                            (mknode "w:pPr" []
+                             [mknode "w:sectPr" [] ()])) :)
+       | otherwise = id
+  addSectionBreak <$>
+    if T.null ident
+       then return [Elem $ mknode "w:p" [] (map Elem paraProps ++ contents)]
+       else do
+         let bookmarkName = ident
+         modify $ \s -> s{ stSectionIds = Set.insert bookmarkName
+                                        $ stSectionIds s }
+         bookmarkedContents <- wrapBookmark bookmarkName contents
+         return [Elem $ mknode "w:p" [] (map Elem paraProps ++ bookmarkedContents)]
 blockToOpenXML' opts (Plain lst) = do
   isInTable <- gets stInTable
   isInList <- gets stInList

@@ -450,7 +450,11 @@ mkImage useBox src kvs
        Just v -> ", " <> literal k <> ": " <> literal v
        Nothing -> mempty
   dimAttrs = mconcat $ map toDimAttr ["height", "width"]
-  coreImage = "image" <> parens (doubleQuoted src' <> dimAttrs)
+  isData = "data:" `T.isPrefixOf` src'
+  dataSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"" <> src' <> "\" /></svg>"
+  coreImage
+    | isData = "image.decode" <> parens(doubleQuoted dataSvg <> dimAttrs)
+    | otherwise = "image" <> parens (doubleQuoted src' <> dimAttrs)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines =

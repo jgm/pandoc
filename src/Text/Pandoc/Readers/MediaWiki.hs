@@ -253,7 +253,7 @@ parseAttr = try $ do
   skipMany spaceChar
   char '='
   skipMany spaceChar
-  v <- (char '"' >> many1TillChar (satisfy (/='\n')) (char '"'))
+  v <- (char '"' >> manyTillChar (satisfy (/='\n')) (char '"'))
        <|> many1Char (satisfy $ \c -> not (isSpace c) && c /= '|')
   return (k,v)
 
@@ -276,7 +276,7 @@ cellsep = try $ do
   skipMany spaceChar
   c <- oneOf "|!"
   when (col > 1) $ void $ char c
-  notFollowedBy (oneOf "-}+")
+  notFollowedBy (oneOf "-}")
   attribs <- option [] (parseAttrs <* skipMany spaceChar <* char '|')
   skipMany spaceChar
   pure attribs

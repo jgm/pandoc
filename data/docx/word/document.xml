@@ -189,7 +189,7 @@ Body Text. Body Text Char.
       </w:r>
       <w:r>
         <w:t xml:space="preserve">
- 
+
 </w:t>
       </w:r>
       <w:r>
@@ -207,7 +207,7 @@ Verbatim Char
       </w:r>
       <w:r>
         <w:t xml:space="preserve">
- 
+
 </w:t>
       </w:r>
       <w:hyperlink r:id="rId30">
@@ -227,7 +227,7 @@ Hyperlink
       </w:r>
       <w:r>
         <w:t xml:space="preserve">
- 
+
 </w:t>
       </w:r>
       <w:r>
@@ -391,6 +391,10 @@ Definition
 </w:t>
       </w:r>
     </w:p>
-    <w:sectPr />
+    <w:sectPr>
+      <w:footnotePr>
+        <w:numRestart w:val="eachSect" />
+      </w:footnotePr>
+    </w:sectPr>
   </w:body>
 </w:document>

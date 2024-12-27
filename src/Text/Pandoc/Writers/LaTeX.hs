@@ -39,7 +39,7 @@ import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.DocTemplates (FromContext(lookupContext), renderTemplate)
+import Text.DocTemplates (FromContext(lookupContext), Val(..), renderTemplate)
 import Text.Collate.Lang (renderLang, Lang(langLanguage))
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
@@ -157,11 +157,15 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                           _               -> "article"
   when (documentClass `elem` chaptersClasses) $
      modify $ \s -> s{ stHasChapters = True }
-  case lookupContext "csquotes" (writerVariables options) `mplus`
-       (stringify <$> lookupMeta "csquotes" meta) of
-     Nothing      -> return ()
-     Just "false" -> return ()
-     Just _       -> modify $ \s -> s{stCsquotes = True}
+  let csquotes =
+        case lookupContext "csquotes" (writerVariables options) of
+          Just (BoolVal v) -> v
+          Just (SimpleVal (Text _ t)) -> t /= ("false" :: Text)
+          _ -> case stringify <$> lookupMeta "csquotes" meta of
+                  Nothing -> False
+                  Just "false" -> False
+                  Just _ -> True
+  when csquotes $ modify $ \s -> s{stCsquotes = True}
   let (blocks'', lastHeader) = if writerCiteMethod options == Citeproc then
                                  (blocks', [])
                                else case reverse blocks' of
@@ -426,6 +430,7 @@ blockToLaTeX (LineBlock lns) =
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do
   beamer <- gets stBeamer
+  csquotes <- liftM stCsquotes get
   case lst of
        [b] | beamer && isListBlock b -> do
          oldIncremental <- gets stIncremental
@@ -438,7 +443,10 @@ blockToLaTeX (BlockQuote lst) = do
          modify (\s -> s{stInQuote = True})
          contents <- blockListToLaTeX lst
          modify (\s -> s{stInQuote = oldInQuote})
-         return $ "\\begin{quote}" $$ contents $$ "\\end{quote}"
+         let envname = if csquotes then "displayquote" else "quote"
+         return $ ("\\begin" <> braces envname) $$
+                  contents $$
+                  ("\\end" <> braces envname)
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   inNote <- stInNote <$> get

@@ -25,7 +25,7 @@ import qualified Data.Text as T
 import Text.DocTemplates (toVal, Context(..), Val(..))
 import qualified Control.Exception as E
 import Control.Monad
-import Control.Monad.Except (throwError)
+import Control.Monad.Except (throwError, catchError)
 import Control.Monad.Trans
 import Data.Char (toLower)
 import Data.List (find)
@@ -111,13 +111,15 @@ optToOutputSettings scriptingEngine opts = do
           _ | not standalone -> return Nothing
           Nothing -> Just <$> getDefault
           Just tp -> do
-            -- strip off extensions
-            let tp' = case takeExtension tp of
-                        "" -> tp <.> T.unpack format
-                        _  -> tp
-            getTemplate tp'
-              >>= runWithPartials . compileTemplate tp'
-              >>= fmap Just . templateOrThrow
+            let getAndCompile fp =
+                   getTemplate fp >>= runWithPartials . compileTemplate fp >>=
+                      fmap Just . templateOrThrow
+            catchError
+              (getAndCompile tp)
+              (\e ->
+                  if null (takeExtension tp)
+                     then getAndCompile (tp <.> T.unpack format)
+                     else throwError e)
 
   (writer, writerExts, mtemplate) <-
     if "lua" `T.isSuffixOf` format

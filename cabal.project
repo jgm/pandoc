@@ -9,5 +9,3 @@ constraints: skylighting-format-blaze-html >= 0.1.1.3,
              -- for now (commercialhaskell/stackage#7545):
              data-default-class <= 0.2, data-default <= 0.8
 
--- TODO also update skylighting before release
-

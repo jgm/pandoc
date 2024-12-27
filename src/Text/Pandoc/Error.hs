@@ -124,12 +124,13 @@ renderError e =
                  "\nTry using Word to save your DOC file as DOCX," <>
                  " and convert that with pandoc."
         "pdf" -> "\nPandoc can convert to PDF, but not from PDF."
+        "asciidoc" -> "\nPandoc can convert to asciidoc, but not from asciidoc."
         _     -> ""
     PandocUnknownWriterError w ->
        "Unknown output format " <> w <>
        case w of
          "pdf" -> "To create a pdf using pandoc, use" <>
-                  " -t latex|beamer|context|ms|html5" <>
+                  " -t latex|beamer|context|ms|html5|typst" <>
                  "\nand specify an output file with " <>
                  ".pdf extension (-o filename.pdf)."
          "doc" -> "\nPandoc can convert to DOCX, but not to DOC."

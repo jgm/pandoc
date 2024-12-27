@@ -446,8 +446,8 @@ lineClump = blanklines
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
 -- pairs of open and close, which must be different. For example,
--- @charsInBalanced '(' ')' anyChar@ will parse "(hello (there))"
--- and return "hello (there)".
+-- @charsInBalanced '(' ')' (Data.Text.singleton <$> anyChar)@ will parse
+-- "(hello (there))" and return "hello (there)".
 charsInBalanced :: (Stream s m Char, UpdateSourcePos s Char)
                 => Char -> Char -> ParsecT s st m Text -> ParsecT s st m Text
 charsInBalanced open close parser = try $ do

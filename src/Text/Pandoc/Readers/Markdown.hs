@@ -28,6 +28,7 @@ import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
+import qualified Data.Attoparsec.Text as A
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
@@ -51,7 +52,7 @@ import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
                                  isCommentTag, isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
-import Text.Pandoc.URI (escapeURI, isURI)
+import Text.Pandoc.URI (escapeURI, isURI, pBase64DataURI)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
 -- import Debug.Trace (traceShowId)
@@ -1834,11 +1835,22 @@ source = do
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
          char '<' >> mconcat <$> (manyTill litChar (char '>'))
-  src <- try betweenAngles <|> sourceURL
+  src <- try betweenAngles <|> try base64DataURI <|> sourceURL
   tit <- option "" $ try $ spnl >> linkTitle
   skipSpaces
   char ')'
   return (escapeURI $ trimr src, tit)
+
+base64DataURI :: PandocMonad m => ParsecT Sources s m Text
+base64DataURI = do
+  Sources ((pos, txt):rest) <- getInput
+  let r = A.parse (fst <$> A.match pBase64DataURI) txt
+  case r of
+    A.Done remaining consumed -> do
+      let pos' = incSourceColumn pos (T.length consumed)
+      setInput $ Sources ((pos', remaining):rest)
+      return consumed
+    _ -> mzero
 
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
