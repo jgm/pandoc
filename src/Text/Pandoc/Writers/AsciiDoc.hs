@@ -118,19 +118,46 @@ pandocToAsciiDoc opts (Pandoc meta blocks) = do
        Nothing  -> main
        Just tpl -> renderTemplate tpl context
 
--- | Escape special characters for AsciiDoc.
-escapeString :: PandocMonad m => Text -> ADW m (Doc Text)
-escapeString t = do
-  parentTableLevel <- gets tableNestingLevel
-  let needsEscape '{' = True
-      needsEscape '|' = parentTableLevel > 0
-      needsEscape _   = False
-  let escChar c | needsEscape c = "\\" <> T.singleton c
-                | otherwise     = T.singleton c
-  if T.any needsEscape t
-     then return $ literal $ T.concatMap escChar t
-     else return $ literal t
+data EscContext = Normal | InTable
+  deriving (Show, Eq)
 
+-- | Escape special characters for AsciiDoc.
+escapeString :: EscContext -> Text -> Doc Text
+escapeString context t
+  | T.any needsEscape t
+  = literal $
+      case T.foldl' go (False, mempty) t of
+        (True, x) -> x <> "++" -- close passthrough context
+        (False, x) -> x
+  | otherwise = literal t
+ where
+  -- Bool is True when we are in a ++ passthrough context
+  go :: (Bool, Text) -> Char -> (Bool, Text)
+  go (True, x) '+' = (False, x <> "++" <> "{plus}") -- close context
+  go (False, x) '+' = (False, x <> "{plus}")
+  go (True, x) '|'
+    | context == InTable = (False, x <> "++" <> "{vbar}") -- close context
+  go (False, x) '|'
+    | context == InTable = (False, x <> "{vbar}")
+  go (True, x) c
+    | needsEscape c = (True, T.snoc x c)
+    | otherwise = (False, T.snoc (x <> "++") c)
+  go (False, x) c
+    | needsEscape c = (True, x <> "++" <> T.singleton c)
+    | otherwise = (False, T.snoc x c)
+
+  needsEscape '{' = True
+  needsEscape '+' = True
+  needsEscape '`' = True
+  needsEscape '*' = True
+  needsEscape '_' = True
+  needsEscape '<' = True
+  needsEscape '>' = True
+  needsEscape '[' = True
+  needsEscape ']' = True
+  needsEscape '\\' = True
+  needsEscape '|' = True
+  needsEscape _ = False
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parsec Text ParserState Char
@@ -393,11 +420,11 @@ bulletListItemToAsciiDoc opts blocks = do
 -- | Convert a list item containing text starting with @U+2610 BALLOT BOX@
 -- or @U+2612 BALLOT BOX WITH X@ to asciidoctor checkbox syntax (e.g. @[x]@).
 taskListItemToAsciiDoc :: [Block] -> [Block]
-taskListItemToAsciiDoc = handleTaskListItem toOrg listExt
+taskListItemToAsciiDoc = handleTaskListItem toAd listExt
   where
-    toOrg (Str "☐" : Space : is) = Str "[ ]" : Space : is
-    toOrg (Str "☒" : Space : is) = Str "[x]" : Space : is
-    toOrg is = is
+    toAd (Str "☐" : Space : is) = RawInline (Format "asciidoc") "[ ]" : Space : is
+    toAd (Str "☒" : Space : is) = RawInline (Format "asciidoc") "[x]" : Space : is
+    toAd is = is
     listExt = extensionsFromList [Ext_task_lists]
 
 addBlock :: PandocMonad m
@@ -543,24 +570,27 @@ inlineToAsciiDoc opts (Subscript lst) = do
 inlineToAsciiDoc opts (SmallCaps lst) = inlineListToAsciiDoc opts lst
 inlineToAsciiDoc opts (Quoted qt lst) = do
   isLegacy <- gets legacy
-  inlineListToAsciiDoc opts $
-    case qt of
-      SingleQuote
-        | isLegacy     -> [Str "`"] ++ lst ++ [Str "'"]
-        | otherwise    -> [Str "'`"] ++ lst ++ [Str "`'"]
-      DoubleQuote
-        | isLegacy     -> [Str "``"] ++ lst ++ [Str "''"]
-        | otherwise    -> [Str "\"`"] ++ lst ++ [Str "`\""]
+  contents <- inlineListToAsciiDoc opts lst
+  pure $ case qt of
+    SingleQuote
+      | isLegacy     -> "`" <> contents <> "'"
+      | otherwise    -> "'`" <> contents <> "`'"
+    DoubleQuote
+      | isLegacy     -> "``" <> contents <> "''"
+      | otherwise    -> "\"`" <> contents <> "`\""
 inlineToAsciiDoc _ (Code _ str) = do
   isLegacy <- gets legacy
   let escChar '`' = "\\'"
       escChar c   = T.singleton c
-  let contents = literal (T.concatMap escChar str)
-  return $
-    if isLegacy
-       then text "`"  <> contents <> "`"
-       else text "`+" <> contents <> "+`"
-inlineToAsciiDoc _ (Str str) = escapeString str
+  parentTableLevel <- gets tableNestingLevel
+  let content
+       | isLegacy = literal (T.concatMap escChar str)
+       | otherwise = escapeString
+                       (if parentTableLevel > 0 then InTable else Normal) str
+  return $ text "`" <> content <> "`"
+inlineToAsciiDoc _ (Str str) = do
+  parentTableLevel <- gets tableNestingLevel
+  pure $ escapeString (if parentTableLevel > 0 then InTable else Normal) str
 inlineToAsciiDoc _ (Math InlineMath str) = do
   isLegacy <- gets legacy
   modify $ \st -> st{ hasMath = True }
