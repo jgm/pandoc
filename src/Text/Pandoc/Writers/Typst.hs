@@ -18,6 +18,8 @@ module Text.Pandoc.Writers.Typst (
   ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Class ( PandocMonad)
+import Text.Pandoc.ImageSize ( dimension, Dimension(Pixel), Direction(..),
+                               showInInch )
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled,
                              CaptionPosition(..) )
 import Data.Text (Text)
@@ -309,12 +311,13 @@ blockToTypst block =
           $$ blankline
     Figure (ident,_,_) (Caption _mbshort capt) blocks -> do
       caption <- blocksToTypst capt
+      opts <-  gets stOptions
       contents <- case blocks of
                      -- don't need #box around block-level image
-                     [Para [Image (_,_,kvs) _ (src, _)]]
-                       -> pure $ mkImage False src kvs
-                     [Plain [Image (_,_,kvs) _ (src, _)]]
-                       -> pure $ mkImage False src kvs
+                     [Para [Image attr _ (src, _)]]
+                       -> pure $ mkImage opts False src attr
+                     [Plain [Image attr _ (src, _)]]
+                       -> pure $ mkImage opts False src attr
                      _ -> brackets <$> blocksToTypst blocks
       let lab = toLabel FreestandingLabel ident
       return $ "#figure(" <> nest 2 ((contents <> ",")
@@ -433,23 +436,29 @@ inlineToTypst inline =
                     (if inlines == [Str src]
                           then mempty
                           else nowrap $ brackets contents) <> endCode
-    Image (_,_,kvs) _inlines (src,_tit) -> pure $ mkImage True src kvs
+    Image attr _inlines (src,_tit) -> do
+      opts <-  gets stOptions
+      pure $ mkImage opts True src attr
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents) <> endCode
 
 -- see #9104; need box or image is treated as block-level
-mkImage :: Bool -> Text -> [(Text, Text)] -> Doc Text
-mkImage useBox src kvs
+mkImage :: WriterOptions -> Bool -> Text -> Attr -> Doc Text
+mkImage opts useBox src attr
   | useBox = "#box" <> parens coreImage
   | otherwise = coreImage
  where
   src' = T.pack $ unEscapeString $ T.unpack src -- #9389
-  toDimAttr k =
-     case lookup k kvs of
-       Just v -> ", " <> literal k <> ": " <> literal v
-       Nothing -> mempty
-  dimAttrs = mconcat $ map toDimAttr ["height", "width"]
+  showDim (Pixel a) = literal (showInInch opts (Pixel a) <> "in")
+  showDim dim = text (show dim)
+  dimAttrs =
+     (case dimension Height attr of
+        Nothing -> mempty
+        Just dim -> ", height: " <> showDim dim) <>
+     (case dimension Width attr of
+        Nothing -> mempty
+        Just dim -> ", width: " <> showDim dim)
   isData = "data:" `T.isPrefixOf` src'
   dataSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"" <> src' <> "\" /></svg>"
   coreImage
