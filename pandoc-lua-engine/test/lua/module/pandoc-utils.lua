@@ -149,6 +149,7 @@ return {
     test("doesn't change the local environment by default", function ()
       pandoc.system.with_temporary_directory('lua-filter', function (dir)
         local filter_path = pandoc.path.join{dir, 'test.lua'}
+        -- luacheck: ignore foo
         local foo
         local filter = 'foo = 42'
         local fh = io.open(filter_path, 'wb')
@@ -300,7 +301,7 @@ return {
 
   group 'to_simple_table' {
     test('convertes Table', function ()
-      function simple_cell (blocks)
+      local function simple_cell (blocks)
         return {
           attr = pandoc.Attr(),
           alignment = "AlignDefault",
