@@ -670,9 +670,10 @@ inlineToAsciiDoc opts (Span (ident,classes,_) ils) = do
   contents <- inlineListToAsciiDoc opts ils
   isIntraword <- gets intraword
   let marker = if isIntraword then "##" else "#"
-  if T.null ident && null classes
-     then return contents
-     else do
+  case classes of
+    [] | T.null ident -> return contents
+    ["mark"] | T.null ident -> return $ marker <> contents <> marker
+    _ -> do
        let modifier = brackets $ literal $ T.unwords $
             [ "#" <> ident | not (T.null ident)] ++ map ("." <>) classes
        return $ modifier <> marker <> contents <> marker
