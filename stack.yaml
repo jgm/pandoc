@@ -11,8 +11,9 @@ packages:
 extra-deps:
 - tls-2.1.5
 - citeproc-0.8.1.2
-- skylighting-core-0.14.5
-- skylighting-0.14.5
+- skylighting-core-0.14.6
+- skylighting-0.14.6
+- skylighting-format-typst-0.1
 - git: https://github.com/jgm/texmath.git
   commit: 4f8d982abf6efaef6512f3671e47120eeced15b5
 ghc-options:
