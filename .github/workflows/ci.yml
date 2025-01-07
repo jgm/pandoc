@@ -51,24 +51,31 @@ jobs:
           - ghc: '8.10'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.0'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.2'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.4'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.6'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.8'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.10'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: ''
     steps:
     - uses: actions/checkout@v4
 
@@ -109,7 +116,7 @@ jobs:
 
     - name: Build and test
       run: |
-          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
+          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options="${{ matrix.verisons.ghcopts }}" all
 
   linux-stack:
 
@@ -201,7 +208,7 @@ jobs:
           dist-newstyle
         key: ${{ runner.os }}-stack-work-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
-    - name: Install dependencies
+    - name: Build and test
       run: |
           cabal update
           cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
