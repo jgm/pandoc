@@ -63,6 +63,12 @@ jobs:
           - ghc: '9.6'
             cabal: 'latest'
             cabalopts: ''
+          - ghc: '9.8'
+            cabal: 'latest'
+            cabalopts: ''
+          - ghc: '9.10'
+            cabal: 'latest'
+            cabalopts: ''
     steps:
     - uses: actions/checkout@v4
 
