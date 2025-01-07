@@ -3,8 +3,8 @@
 {- |
    Module      : Text.Pandoc.Writers.Org
    Copyright   : © 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
-                   2010-2024 John MacFarlane <jgm@berkeley.edu>
-                   2016-2024 Albert Krewinkel <albert+pandoc@tarleb.com>
+                   2010-2025 John MacFarlane <jgm@berkeley.edu>
+                   2016-2025 Albert Krewinkel <albert+pandoc@tarleb.com>
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
