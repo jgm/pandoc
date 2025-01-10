@@ -7568,7 +7568,7 @@ See the documentation for [Word][word-accessible-pdfs] and
 [LibreOffice][lo-pdf-export].
 
 [word-accessible-pdfs]: https://support.microsoft.com/en-us/office/create-accessible-pdfs-064625e0-56ea-4e16-ad71-3aa33bb4b7ed
-[lo-pdf-export]: https://help.libreoffice.org/7.1/en-US/text/shared/01/ref_pdf_export_general.html
+[lo-pdf-export]: https://help.libreoffice.org/latest/en-US/text/shared/01/ref_pdf_export_general.html
 
 
 # Running pandoc as a web server
