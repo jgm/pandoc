@@ -287,7 +287,7 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
               | Heading Int ParaStyleName ParagraphStyle T.Text T.Text (Maybe Level)
                  [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
-              | Tbl T.Text TblGrid TblLook [Row]
+              | Tbl (Maybe T.Text) T.Text TblGrid TblLook [Row]
               | Captioned ParagraphStyle [ParPart] BodyPart
               | HRule
               deriving Show
@@ -855,6 +855,9 @@ elemToBodyPart ns element
         description = fromMaybe "" $ tblProperties
                        >>= findChildByName ns "w" "tblDescription"
                        >>= findAttrByName ns "w" "val"
+        mbstyle = tblProperties
+                       >>= findChildByName ns "w" "tblStyle"
+                       >>= findAttrByName ns "w" "val"
         grid' = case findChildByName ns "w" "tblGrid" element of
           Just g  -> elemToTblGrid ns g
           Nothing -> return []
@@ -867,7 +870,7 @@ elemToBodyPart ns element
     grid <- grid'
     tblLook <- tblLook'
     rows <- mapD (elemToRow ns) (elChildren element)
-    return $ Tbl (caption <> description) grid tblLook rows
+    return $ Tbl mbstyle (caption <> description) grid tblLook rows
 elemToBodyPart _ _ = throwError WrongElem
 
 lookupRelationship :: DocumentLocation -> RelId -> [Relationship] -> Maybe Target
