@@ -807,9 +807,9 @@ bodyPartToBlocks (Captioned parstyle parparts bpart) = do
     [Para im@[Image{}]]
       -> pure $ singleton $ Figure nullAttr capt [Plain im]
     _ -> pure captContents
-bodyPartToBlocks (Tbl _ _ _ []) =
+bodyPartToBlocks (Tbl _ _ _ _ []) =
   return mempty
-bodyPartToBlocks (Tbl cap grid look parts) = do
+bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
   let fullCaption = if T.null cap then mempty else plain (text cap)
   let shortCaption = if T.null cap then Nothing else Just (toList (text cap))
       cap' = caption shortCaption fullCaption
@@ -831,7 +831,11 @@ bodyPartToBlocks (Tbl cap grid look parts) = do
       totalWidth = sum grid
       widths = (\w -> ColWidth (fromInteger w / fromInteger totalWidth)) <$> grid
 
-  return $ table cap'
+  extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
+  let attr = case mbsty of
+                Just sty | extStylesEnabled -> ("", [], [("custom-style", sty)])
+                _ -> nullAttr
+  return $ tableWith attr cap'
                  (zip alignments widths)
                  (TableHead nullAttr headerCells)
                  [TableBody nullAttr 0 [] bodyCells]

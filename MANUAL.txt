@@ -3753,11 +3753,14 @@ output formats
 
 ### Extension: `styles` ### {#ext-styles}
 
-When converting from docx, read all docx styles as divs (for
-paragraph styles) and spans (for character styles) regardless
-of whether pandoc understands the meaning of these styles.
-This can be used with [docx custom styles](#custom-styles).
-Disabled by default.
+When converting from docx, add `custom-styles` attributes
+for all docx styles, regardless of whether pandoc understands
+the meanings of these styles. Because attributes cannot be
+added directly to paragraphs or text in the pandoc AST,
+paragraph styles will cause Divs to be created and character
+styles will cause Spans to be created to hold the attributes.
+(Table styles will be added to the Table elements directly.)
+This extension can be used with [docx custom styles](#custom-styles).
 
 input formats
 :  `docx`
@@ -7354,11 +7357,11 @@ However, if you need to apply your own styles to blocks, or match a preexisting
 set of styles, pandoc allows you to define custom styles for blocks and text
 using `div`s and `span`s, respectively.
 
-If you define a `div` or `span` with the attribute `custom-style`,
-pandoc will apply your specified style to the contained elements (with
-the exception of elements whose function depends on a style, like
-headings, code blocks, block quotes, or links). So, for example, using
-the `bracketed_spans` syntax,
+If you define a Div, Span, or Table with the attribute
+`custom-style`, pandoc will apply your specified style to the
+contained elements (with the exception of elements whose function
+depends on a style, like headings, code blocks, block quotes, or
+links). So, for example, using the `bracketed_spans` syntax,
 
     [Get out]{custom-style="Emphatically"}, he said.
 
@@ -7400,9 +7403,10 @@ interpreting the derivation of the input document's styles.
 
 By enabling the [`styles` extension](#ext-styles) in the docx reader
 (`-f docx+styles`), you can produce output that maintains the styles
-of the input document, using the `custom-style` class. Paragraph
-styles are interpreted as divs, while character styles are interpreted
-as spans.
+of the input document, using the `custom-style` class. A `custom-style`
+attribute will be added for each style. Divs will be created to
+hold the paragraph styles, and Spans to hold the character styles.
+Table styles will be applied directly to the Table.
 
 For example, using the `custom-style-reference.docx` file in the test
 directory, we have the following different outputs:
