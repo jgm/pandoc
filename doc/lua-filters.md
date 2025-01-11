@@ -5440,6 +5440,8 @@ The machine architecture on which the program is running. (string)
 ### os {#pandoc.system.os}
 
 The operating system on which the program is running. (string)
+The most common values are `darwin` (macOS), `freebsd`, `linux`,
+`linux-android`, `mingw32` (Windows), `netbsd`, `openbsd`.
 
 ## Functions {#pandoc.system-functions}
 
