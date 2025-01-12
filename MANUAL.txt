@@ -266,7 +266,7 @@ header when requesting a document from a URL:
     - `mdoc` ([mdoc] manual page markup)
     - `muse` ([Muse])
     - `native` (native Haskell)
-    - `odt` ([OpenOffice text document][ODT])
+    - `odt` ([OpenDocument text document][ODT])
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
     - `pod` (Perl's [Plain Old Documentation])
@@ -339,9 +339,9 @@ header when requesting a document from a URL:
     - `ms` ([roff ms])
     - `muse` ([Muse])
     - `native` (native Haskell)
-    - `odt` ([OpenOffice text document][ODT])
+    - `odt` ([OpenDocument text document][ODT])
     - `opml` ([OPML])
-    - `opendocument` ([OpenDocument])
+    - `opendocument` ([OpenDocument XML])
     - `org` ([Emacs Org mode])
     - `pdf` ([PDF])
     - `plain` (plain text)
@@ -498,7 +498,7 @@ header when requesting a document from a URL:
 [txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub
 [OPML]: http://dev.opml.org/spec2.html
-[OpenDocument]: http://opendocument.xml.org
+[OpenDocument XML]: https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
 [Plain Old Documentation]: https://perldoc.perl.org/perlpod
 [Textile]: https://textile-lang.com
