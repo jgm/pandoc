@@ -1,5 +1,86 @@
 # Revision history for pandoc
 
+## pandoc 3.6.2 (2025-01-12)
+
+  * New output format: `pod` (Evan Silberman). Pod ("Plain old documentation")
+    is a markup languaged used principally to document Perl modules and
+    programs.
+
+  * New reader module Text.Pandoc.Readers.Pod, exporting `readPod`
+    [API change].
+
+  * Docx reader:
+
+    + Support row heads in tables (#9495). Reader: When `w:tblLook` has
+      `w:firstColumn` set (or an equivalent bit mask), we set row heads = 1
+      in the AST.
+    + Read table styles as custom styles when `styles` extension
+      is enabled (#9603).
+
+  * HTML reader:
+
+    + Add size information for font awesome SVG icons (#10134).
+      If the icon has class `fa-fw` or `fa-w16` or `fa-w14`, we add a width
+      attribute to prevent the icon from appearing full-width in PDF or
+      docx output.
+
+  * Djot reader:
+
+    + Use a Span with class "mark" rather than "highlighted" for
+      highlighted text, for consistency with the other pandoc readers and
+      writers.
+
+  * mandoc reader:
+
+    + Add mdoc St for C23 (Evan Silberman).
+
+  * RST reader:
+
+    + Fix handling of underscores (#10497). Fixes a a regression
+      introduced in 3.6.
+
+  * Docx writer:
+
+    + Support row heads in tables (#9495). Writer: set `w:firstColumn` in
+      `w:tblLook` when there are row heads. (Word only allows one, so this
+      is triggered by any number of row heads > 0.)
+
+  * Djot writer:
+
+    + Render a Span with sole class "mark" as highlighted text.
+
+  * Asciidoc writer:
+
+    + Don't emit the class in a span if it's just "mark" (#10511).
+      The "mark" class is used for highlighting, and Asciidoc treats
+      bare `#...#` with no attributes as highlighted text.
+    + Improve escaping (#10385, #2337, #6424).
+
+  * EPUB v2 writer:
+
+    + Fix cover image (#10505).  This is a regression introduced in 3.6.
+
+  * Typst writer:
+
+    + Fix handling of pixel image dimensions (#9945).
+      These are now converted to inches as in the LaTeX writer.
+
+  * Improve error message given when users specify `asciidoc` as input
+    format (#8416, Santiago Zarate).
+
+  * Allow random 1.3.
+
+  * Use texmath 0.12.8.13 (typst improvements).
+
+  * `lua-filters.md`: document `system.os` return values (#10523).
+
+  * `MANUAL.txt`:
+
+    + Improve manual's coverage of custom styles.
+    + Replace LibreOffice PDF documentation link to latest so it links
+      to the latest major release rather than a specific major release
+      (which there are two of every year) (Stéphane Guillou).
+
 ## pandoc 3.6.1 (2024-12-23)
 
   * Allow YAML bibliographies to be arrays of references (#10452).
