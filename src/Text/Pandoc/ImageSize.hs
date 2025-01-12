@@ -14,14 +14,20 @@ Functions for determining the size of a PNG, JPEG, or GIF image.
 -}
 module Text.Pandoc.ImageSize ( ImageType(..)
                              , ImageSize(..)
+                             , ImageTransform(..)
                              , imageType
                              , imageSize
+                             , imageTransform
                              , sizeInPixels
                              , sizeInPoints
                              , desiredSizeInPoints
+                             , rotatedDesiredSizeInPoints
                              , Dimension(..)
                              , Direction(..)
+                             , Flip(..)
+                             , Rotate(..)
                              , dimension
+                             , rotateDirection
                              , lengthToDim
                              , scaleDimension
                              , inInch
@@ -41,6 +47,7 @@ import Data.Bits ((.&.), shiftR, shiftL)
 import Data.Word (bitReverse32)
 import Data.Maybe (isJust, fromJust)
 import Data.Char (isDigit)
+import Data.Maybe (fromMaybe)
 import Control.Monad
 import Text.Pandoc.Shared (safeRead)
 import Data.Default (Default)
@@ -56,6 +63,7 @@ import Control.Applicative
 import qualified Data.Attoparsec.ByteString as AW
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Codec.Picture.Metadata as Metadata
+import Codec.Picture.Metadata.Exif (ExifTag(TagOrientation), ExifData(..))
 import Codec.Picture (decodeImageWithMetadata)
 
 -- quick and dirty functions to get image sizes
@@ -83,6 +91,26 @@ instance Show Dimension where
   show (Inch a)       = T.unpack (showFl a) ++ "in"
   show (Percent a)    = show a              ++ "%"
   show (Em a)         = T.unpack (showFl a) ++ "em"
+
+data Flip = NoFlip | FlipH | FlipV deriving Show
+
+data Rotate = R0 | R90 | R180 | R270 deriving Show
+
+-- There's a case to be made that this API is wrong and other code should deal
+-- somewhat more directly with the 8 EXIF orientations that actually occur,
+-- because as-is we could model transformations that don't occur in nature,
+-- like FlipV + R270. But since mirroring and rotating are distinct operations
+-- everywhere we happen to deal with it, I don't think anything is gained in
+-- practice by making ImageTransform a sum type with 8 fixed cases instead of a
+-- product type that theoretically allows for 4 cases we won't encounter.
+data ImageTransform = ImageTransform
+  { tFlip :: Flip,
+    tRotate :: Rotate
+  }
+  deriving (Show)
+
+instance Default ImageTransform where
+  def = ImageTransform NoFlip R0
 
 data ImageSize = ImageSize{
                      pxX   :: Integer
@@ -176,13 +204,29 @@ sizeInPoints s = (pxXf * 72 / dpiXf, pxYf * 72 / dpiYf)
 -- are specified in the attribute (or only dimensions in percentages).
 desiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> (Double, Double)
 desiredSizeInPoints opts attr s =
+  desiredSizeInPoints' opts attr s ratio
+  where
+    ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
+
+-- | As desiredSizeInPoints, but swapping the width and height dimensions if
+-- the indicated rotation is a quarter-turn or three-quarter-turn.
+rotatedDesiredSizeInPoints :: WriterOptions -> Attr -> ImageSize -> Rotate -> (Double, Double)
+rotatedDesiredSizeInPoints opts attr s r =
+  desiredSizeInPoints' opts attr s (ratio r)
+  where
+    ratio R0 = fromIntegral (pxX s) / fromIntegral (pxY s)
+    ratio R180 = fromIntegral (pxX s) / fromIntegral (pxY s)
+    ratio R90 = fromIntegral (pxY s) / fromIntegral (pxX s)
+    ratio R270 = fromIntegral (pxY s) / fromIntegral (pxX s)
+
+desiredSizeInPoints' :: WriterOptions -> Attr -> ImageSize -> Double -> (Double, Double)
+desiredSizeInPoints' opts attr s ratio =
   case (getDim Width, getDim Height) of
     (Just w, Just h)   -> (w, h)
     (Just w, Nothing)  -> (w, w / ratio)
-    (Nothing, Just h)  -> (h * ratio, h)
+    (Nothing, Just h)  -> (h * ratio , h)
     (Nothing, Nothing) -> sizeInPoints s
   where
-    ratio = fromIntegral (pxX s) / fromIntegral (pxY s)
     getDim dir = case dimension dir attr of
                    Just (Percent _) -> Nothing
                    Just dim         -> Just $ inPoints opts dim
@@ -451,3 +495,32 @@ webpSize opts img =
   case AW.parseOnly pWebpSize img of
     Left _   -> Nothing
     Right sz -> Just sz { dpiX = fromIntegral $ writerDpi opts, dpiY = fromIntegral $ writerDpi opts}
+
+imageTransform :: ByteString -> ImageTransform
+imageTransform img =
+  case decodeImageWithMetadata img of
+    Left _ -> def
+    Right (_, meta) ->
+      let orient = fromMaybe ExifNone $ Metadata.lookup (Metadata.Exif TagOrientation) meta
+       in exifToTransform (word orient)
+  where
+    word ExifNone = 1
+    word (ExifShort w) = w
+    word _ = 1
+    exifToTransform 1 = def
+    exifToTransform 2 = def{tFlip = FlipH}
+    exifToTransform 3 = def{tRotate = R180}
+    exifToTransform 4 = def{tFlip = FlipV}
+    exifToTransform 5 = def{tFlip = FlipH, tRotate = R270}
+    exifToTransform 6 = def{tRotate = R90}
+    exifToTransform 7 = def{tFlip = FlipH, tRotate = R90}
+    exifToTransform 8 = def{tRotate = R270}
+    exifToTransform _ = def
+
+rotateDirection :: Rotate -> Direction -> Direction
+rotateDirection R0 x = x
+rotateDirection R90 Width = Height
+rotateDirection R90 Height = Width
+rotateDirection R180 x = x
+rotateDirection R270 Width = Height
+rotateDirection R270 Height = Width
