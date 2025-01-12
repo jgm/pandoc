@@ -7,7 +7,7 @@ local group = tasty.test_group
 
 return {
   group 'List as function' {
-    test('equivalent to List:new', function (x)
+    test('equivalent to List:new', function ()
       local new = List:new {'ramen'}
       local list = List {'ramen'}
       assert.are_same(new, list)
@@ -109,25 +109,25 @@ return {
     end),
     test('leaves original list unchanged', function ()
       local primes = List:new {2, 3, 5, 7}
-      local squares = primes:map(function (x) return x^2 end)
+      local _ = primes:map(function (x) return x^2 end)
       assert.are_same({2, 3, 5, 7}, primes)
     end)
   },
 
   group 'new' {
     test('make table usable as list', function ()
-      local test = List:new{1, 1, 2, 3, 5}
+      local out = List:new{1, 1, 2, 3, 5}
       assert.are_same(
         {1, 1, 4, 9, 25},
-        test:map(function (x) return x^2 end)
+        out:map(function (x) return x^2 end)
       )
     end),
     test('return empty list if no argument is given', function ()
        assert.are_same({}, List:new())
     end),
     test('metatable of result is pandoc.List', function ()
-      local test = List:new{5}
-      assert.are_equal(List, getmetatable(test))
+      local out = List:new{5}
+      assert.are_equal(List, getmetatable(out))
     end)
   },
 
