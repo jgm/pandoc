@@ -9,7 +9,7 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
-- tls-2.1.5
+- tls-2.1.6
 - citeproc-0.8.1.2
 - skylighting-core-0.14.6
 - skylighting-0.14.6
