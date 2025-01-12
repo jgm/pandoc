@@ -80,6 +80,7 @@
     + Replace LibreOffice PDF documentation link to latest so it links
       to the latest major release rather than a specific major release
       (which there are two of every year) (Stéphane Guillou).
+    + Improve links and descriptions for `odt`, `opendocument` (#10518).
 
 ## pandoc 3.6.1 (2024-12-23)
 
