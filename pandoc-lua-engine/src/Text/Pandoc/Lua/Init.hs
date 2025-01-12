@@ -17,7 +17,7 @@ module Text.Pandoc.Lua.Init
 import Control.Monad (when)
 import Control.Monad.Catch (throwM)
 import HsLua as Lua hiding (status)
-import Text.Pandoc.Class (report)
+import Text.Pandoc.Class (PandocMonad (putCommonState), CommonState, report)
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Logging (LogMessage (ScriptingWarning))
@@ -34,11 +34,12 @@ initLua = do
   liftPandocLua Lua.openlibs
   setWarnFunction
   initModules
-  liftPandocLua userInit
 
 -- | User-controlled initialization, e.g., running the user's init script.
-userInit :: LuaE PandocError ()
-userInit = runInitScript
+userInit :: CommonState -> LuaE PandocError ()
+userInit st = do
+  unPandocLua $ putCommonState st
+  runInitScript
 
 -- | Run the @init.lua@ data file as a Lua script.
 runInitScript :: LuaE PandocError ()

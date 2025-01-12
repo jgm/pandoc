@@ -26,11 +26,13 @@ import Data.Proxy (Proxy (Proxy))
 import Data.Text.Encoding.Error (UnicodeException)
 import HsLua
 import System.Exit (ExitCode (..))
+import Text.Pandoc.Class (PandocMonad(putCommonState))
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Format (parseFlavoredFormat)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
+import Text.Pandoc.Lua.Marshal.CommonState (peekCommonStateFromTable)
 import Text.Pandoc.Lua.Marshal.Format (peekFlavoredFormat)
 import Text.Pandoc.Lua.Marshal.Filter (peekFilter)
 import Text.Pandoc.Lua.Marshal.ReaderOptions ( peekReaderOptions
@@ -217,7 +219,28 @@ stringConstants =
 
 functions :: [DocumentedFunction PandocError]
 functions =
-  [ defun "pipe"
+  [ defun "init"
+    ### (\newCommonState -> do
+            getfield registryindex "PANDOC_STATE" >>= \case
+              TypeNil -> True <$ unPandocLua (putCommonState newCommonState)
+              _ -> pure False)
+    <#> parameter peekCommonStateFromTable "table" "props"
+          "pandoc state properties"
+    =#> boolResult "Whether the initialization succeeded."
+    #? T.unlines
+    [ "Initialize the pandoc state. This function should be called at most"
+    , "once, as further invocations won't have any effect. The state is set"
+    , "only if it hasn't been initialized yet."
+    , ""
+    , "Note that the state is always already initialized in filters and in"
+    , "custom readers or writers. The function is most useful in standalone"
+    , "pandoc Lua programs."
+    , ""
+    , "Returns `true` if the initialization succeeded, and `false` if the Lua"
+    , "state had been initialized before."
+    ]
+
+  , defun "pipe"
     ### (\command args input -> do
             (ec, output) <- Lua.liftIO $ pipeProcess Nothing command args input
                             `catch` (throwM . PandocIOError "pipe")
