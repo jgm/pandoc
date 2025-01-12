@@ -85,10 +85,12 @@ It can convert *from*
   markup)
 - `muse` ([Muse](https://amusewiki.org/library/manual))
 - `native` (native Haskell)
-- `odt` ([OpenOffice text
+- `odt` ([OpenDocument text
   document](https://en.wikipedia.org/wiki/OpenDocument))
 - `opml` ([OPML](http://dev.opml.org/spec2.html))
 - `org` ([Emacs Org mode](https://orgmode.org))
+- `pod` (Perl’s [Plain Old
+  Documentation](https://perldoc.perl.org/perlpod))
 - `ris` ([RIS](https://en.wikipedia.org/wiki/RIS_(file_format))
   bibliography)
 - `rtf` ([Rich Text
@@ -185,10 +187,11 @@ It can convert *to*
 - `ms` ([roff ms](https://man.cx/groff_ms(7)))
 - `muse` ([Muse](https://amusewiki.org/library/manual))
 - `native` (native Haskell)
-- `odt` ([OpenOffice text
+- `odt` ([OpenDocument text
   document](https://en.wikipedia.org/wiki/OpenDocument))
 - `opml` ([OPML](http://dev.opml.org/spec2.html))
-- `opendocument` ([OpenDocument](http://opendocument.xml.org))
+- `opendocument` ([OpenDocument
+  XML](https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/))
 - `org` ([Emacs Org mode](https://orgmode.org))
 - `pdf` ([PDF](https://www.adobe.com/pdf/))
 - `plain` (plain text)
