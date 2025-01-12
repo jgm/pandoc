@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeApplications #-}
 {- |
    Module      : Text.Pandoc.Readers.Pod
-   Copyright   : © 2024 Evan Silberman
+   Copyright   : © 2024-2025 Evan Silberman
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Evan Silberman <evan@jklol.net>

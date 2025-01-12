@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Tests.Readers.Jira
-   Copyright   : © 2019-2024 Albert Krewinel
+   Copyright   : © 2019-2025 Albert Krewinel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>

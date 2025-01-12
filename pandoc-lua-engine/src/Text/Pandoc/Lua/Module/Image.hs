@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-|
 Module      : Text.Pandoc.Lua.Module.Image
-Copyright   : © 2024 Albert Krewinkel
+Copyright   : © 2024-2025 Albert Krewinkel
 License     : MIT
 Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
