@@ -2,7 +2,7 @@
 
 ## pandoc 3.6.2 (2025-01-12)
 
-  * New output format: `pod` (Evan Silberman). Pod ("Plain old documentation")
+  * New input format: `pod` (Evan Silberman). Pod ("Plain old documentation")
     is a markup languaged used principally to document Perl modules and
     programs.
 
