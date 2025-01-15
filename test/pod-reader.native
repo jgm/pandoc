@@ -22,8 +22,7 @@
     , Space
     , Str "pandoc."
     ]
-, Para
-    [ Str "=head2" , Space , Str "Head" , Space , Str "2" ]
+, Header 2 ( "" , [] , [] ) [ Str "Head" , Space , Str "2" ]
 , Header
     3
     ( "" , [] , [] )
