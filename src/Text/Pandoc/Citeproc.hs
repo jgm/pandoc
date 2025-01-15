@@ -382,12 +382,12 @@ getBibliographyFormat fp mbmime = do
             _ -> Nothing
 
 isNote :: Inline -> Bool
-isNote (Cite _ [Note _]) = True
- -- the following allows citation styles that are "in-text" but use superscript
- -- references to be treated as if they are "notes" for the purposes of moving
- -- the citations after trailing punctuation (see <https://github.com/jgm/pandoc-citeproc/issues/382>):
-isNote (Cite _ [Superscript _]) = True
-isNote _                 = False
+isNote (Note _) = True
+-- the following allows citation styles that are "in-text" but use superscript
+-- references to be treated as if they are "notes" for the purposes of moving
+-- the citations after trailing punctuation (see <https://github.com/jgm/pandoc-citeproc/issues/382>):
+isNote (Superscript _) = True
+isNote _ = False
 
 isSpacy :: Inline -> Bool
 isSpacy Space     = True
@@ -405,9 +405,9 @@ mvPunct :: Bool -> Locale -> [Inline] -> [Inline]
 mvPunct moveNotes locale (x : xs)
   | isSpacy x = x : mvPunct moveNotes locale xs
 -- 'x [^1],' -> 'x,[^1]'
-mvPunct moveNotes locale (q : s : x : ys)
+mvPunct moveNotes locale (q : s : x@(Cite _ [il]) : ys)
   | isSpacy s
-  , isNote x
+  , isNote il
   = let spunct = T.takeWhile isPunctuation $ stringify ys
     in  if moveNotes
            then if T.null spunct
@@ -418,9 +418,8 @@ mvPunct moveNotes locale (q : s : x : ys)
                           (dropTextWhile isPunctuation (B.fromList ys)))
            else q : x : mvPunct moveNotes locale ys
 -- 'x[^1],' -> 'x,[^1]'
-mvPunct moveNotes locale (Cite cs ils : ys)
-   | not (null ils)
-   , isNote (last ils)
+mvPunct moveNotes locale (Cite cs ils@(_:_) : ys)
+   | isNote (last ils)
    , startWithPunct ys
    , moveNotes
    = let s = stringify ys
@@ -431,8 +430,10 @@ mvPunct moveNotes locale (Cite cs ils : ys)
                     ++ [last ils]) :
          mvPunct moveNotes locale
            (B.toList (dropTextWhile isPunctuation (B.fromList ys)))
-mvPunct moveNotes locale (s : x : ys) | isSpacy s, isNote x =
-  x : mvPunct moveNotes locale ys
+mvPunct moveNotes locale (s : x@(Cite _ [il]) : ys)
+  | isSpacy s
+  , isNote il
+  = x : mvPunct moveNotes locale ys
 mvPunct moveNotes locale (s : x@(Cite _ (Superscript _ : _)) : ys)
   | isSpacy s = x : mvPunct moveNotes locale ys
 mvPunct moveNotes locale (Cite cs ils : Str "." : ys)
