@@ -112,6 +112,7 @@ encoding :: PandocMonad m => PodParser m Blocks
 encoding = do
   cmd "encoding"
   anyLine
+  optional blanklines
   logMessage $ IgnoredElement "=encoding; Pandoc requires UTF-8 input"
   return mempty
 
