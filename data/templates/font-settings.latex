@@ -5,36 +5,36 @@ $endif$
 \ifPDFTeX\else
   % xetex/luatex font selection
 $if(mainfont)$
-  $if(mainfontfallback)$
-    \ifLuaTeX
-      \usepackage{luaotfload}
-      \directlua{luaotfload.add_fallback("mainfontfallback",{
-        $for(mainfontfallback)$"$mainfontfallback$"$sep$,$endfor$
-      })}
-    \fi
-  $endif$
+$if(mainfontfallback)$
+  \ifLuaTeX
+    \usepackage{luaotfload}
+    \directlua{luaotfload.add_fallback("mainfontfallback",{
+      $for(mainfontfallback)$"$mainfontfallback$"$sep$,$endfor$
+    })}
+  \fi
+$endif$
   \setmainfont[$for(mainfontoptions)$$mainfontoptions$$sep$,$endfor$$if(mainfontfallback)$,RawFeature={fallback=mainfontfallback}$endif$]{$mainfont$}
 $endif$
 $if(sansfont)$
-  $if(sansfontfallback)$
-    \ifLuaTeX
-      \usepackage{luaotfload}
-      \directlua{luaotfload.add_fallback("sansfontfallback",{
-        $for(sansfontfallback)$"$sansfontfallback$"$sep$,$endfor$
-      })}
-    \fi
-  $endif$
+$if(sansfontfallback)$
+  \ifLuaTeX
+    \usepackage{luaotfload}
+    \directlua{luaotfload.add_fallback("sansfontfallback",{
+      $for(sansfontfallback)$"$sansfontfallback$"$sep$,$endfor$
+    })}
+  \fi
+$endif$
   \setsansfont[$for(sansfontoptions)$$sansfontoptions$$sep$,$endfor$$if(sansfontfallback)$,RawFeature={fallback=sansfontfallback}$endif$]{$sansfont$}
 $endif$
 $if(monofont)$
-  $if(monofontfallback)$
-    \ifLuaTeX
-      \usepackage{luaotfload}
-      \directlua{luaotfload.add_fallback("monofontfallback",{
-        $for(monofontfallback)$"$monofontfallback$"$sep$,$endfor$
-      })}
-    \fi
-  $endif$
+$if(monofontfallback)$
+  \ifLuaTeX
+    \usepackage{luaotfload}
+    \directlua{luaotfload.add_fallback("monofontfallback",{
+      $for(monofontfallback)$"$monofontfallback$"$sep$,$endfor$
+    })}
+  \fi
+$endif$
   \setmonofont[$for(monofontoptions)$$monofontoptions$$sep$,$endfor$$if(monofontfallback)$,RawFeature={fallback=monofontfallback}$endif$]{$monofont$}
 $endif$
 $for(fontfamilies)$
@@ -55,12 +55,12 @@ $if(CJKmainfont)$
   \ifXeTeX
     \usepackage{xeCJK}
     \setCJKmainfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmainfont$}
-    $if(CJKsansfont)$
-      \setCJKsansfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKsansfont$}
-    $endif$
-    $if(CJKmonofont)$
-      \setCJKmonofont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmonofont$}
-    $endif$
+$if(CJKsansfont)$
+    \setCJKsansfont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKsansfont$}
+$endif$
+$if(CJKmonofont)$
+    \setCJKmonofont[$for(CJKoptions)$$CJKoptions$$sep$,$endfor$]{$CJKmonofont$}
+$endif$
   \fi
 $endif$
 $if(luatexjapresetoptions)$
