@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+
 {- |
    Module      : Main
    Copyright   : Copyright (C) 2006-2024 John MacFarlane
@@ -34,6 +36,13 @@ import qualified Language.Haskell.TH as TH
 import Data.Time
 #endif
 
+#if defined(wasm32_HOST_ARCH)
+import Control.Exception
+import Foreign
+import Foreign.C
+import System.IO
+#endif
+
 #ifdef NIGHTLY
 versionSuffix :: String
 versionSuffix = "-nightly-" ++
@@ -42,6 +51,24 @@ versionSuffix = "-nightly-" ++
 #else
 versionSuffix :: String
 versionSuffix = ""
+#endif
+
+#if defined(wasm32_HOST_ARCH)
+
+foreign export ccall "wasm_main" wasm_main :: Ptr CChar -> Int -> IO ()
+
+wasm_main :: Ptr CChar -> Int -> IO ()
+wasm_main raw_args_ptr raw_args_len =
+  catch act (\(err :: SomeException) -> hPrint stderr err)
+  where
+    act = do
+      args <- words <$> peekCStringLen (raw_args_ptr, raw_args_len)
+      free raw_args_ptr
+      engine <- getEngine
+      res <- parseOptionsFromArgs options defaultOpts "pandoc.wasm" $ args <> ["/in", "-o", "/out"]
+      case res of
+        Left e -> handleOptInfo engine e
+        Right opts -> convertWithOpts engine opts
 #endif
 
 main :: IO ()

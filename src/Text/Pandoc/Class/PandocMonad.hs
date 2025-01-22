@@ -496,11 +496,13 @@ fillMediaBag d = walkM handleImage d
                             "replacing image with description"
                   -- emit alt text
                   return $ replacementSpan attr src tit lab
+#if !defined(wasm32_HOST_ARCH)
                 PandocHttpError u er -> do
                   report $ CouldNotFetchResource u
                             (T.pack $ show er ++ "\rReplacing image with description.")
                   -- emit alt text
                   return $ replacementSpan attr src tit lab
+#endif
                 _ -> throwError e)
         handleImage x = return x
 

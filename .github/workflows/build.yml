@@ -1,0 +1,86 @@
+name: build
+
+on:
+  merge_group:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+
+      - name: setup-alex-happy
+        run: |
+          pushd "$(mktemp -d)"
+          cabal path --installdir >> "$GITHUB_PATH"
+          cabal update
+          cabal install \
+            alex \
+            happy
+          popd
+
+      - name: setup-ghc-wasm
+        run: |
+          pushd "$(mktemp -d)"
+          curl -f -L --retry 5 https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/archive/master/ghc-wasm-meta-master.tar.gz | tar xz --strip-components=1
+          FLAVOUR=9.12 ./setup.sh
+          ~/.ghc-wasm/add_to_github_path.sh
+          popd
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          repository: haskell-wasm/pandoc
+          ref: wasm
+          path: pandoc
+
+      - name: gen-plan-json
+        run: |
+          pushd pandoc
+          wasm32-wasi-cabal build pandoc-cli --dry-run
+          popd
+
+      - name: wasm-cabal-cache
+        uses: actions/cache@v4
+        with:
+          key: wasm-cabal-cache-${{ hashFiles('pandoc/dist-newstyle/cache/plan.json') }}
+          restore-keys: wasm-cabal-cache-
+          path: |
+            ~/.ghc-wasm/.cabal/store
+            pandoc/dist-newstyle
+
+      - name: build
+        run: |
+          pushd pandoc
+          wasm32-wasi-cabal build pandoc-cli
+          popd
+
+      - name: dist
+        run: |
+          mkdir dist
+          wasm-opt --low-memory-unused --converge --gufa --flatten --rereloop -Oz $(find pandoc -type f -name pandoc.wasm) -o dist/pandoc.wasm
+
+      - name: test
+        run: |
+          wasmtime run --dir $PWD::/ -- dist/pandoc.wasm pandoc/README.md -o pandoc/README.rst
+          head --lines=20 pandoc/README.rst
+
+      - name: upload-pages-artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          retention-days: 90
+
+      - name: deploy-pages
+        uses: actions/deploy-pages@v4

@@ -41,16 +41,7 @@ import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
 import Data.Unique (hashUnique)
-import Network.Connection (TLSSettings(..))
-import qualified Network.TLS as TLS
-import qualified Network.TLS.Extra as TLS
-import Network.HTTP.Client
-       (httpLbs, responseBody, responseHeaders,
-        Request(port, host, requestHeaders), parseRequest, newManager)
-import Network.HTTP.Client.Internal (addProxy)
-import Network.HTTP.Client.TLS (mkManagerSettings)
 import Network.HTTP.Types.Header ( hContentType )
-import Network.Socket (withSocketsDo)
 import Network.URI (URI(..), parseURI, unEscapeString)
 import System.Directory (createDirectoryIfMissing)
 import System.Environment (getEnv)
@@ -83,7 +74,6 @@ import qualified System.FilePath.Glob
 import qualified System.Random
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Default (def)
-import System.X509 (getSystemCertificateStore)
 #ifndef EMBED_DATA_FILES
 import qualified Paths_pandoc as Paths
 #endif
@@ -129,6 +119,9 @@ openURL u
  | Just (URI{ uriScheme = "data:",
               uriPath = upath }) <- parseURI (T.unpack u)
      = pure $ extractURIData upath
+#if defined(wasm32_HOST_ARCH)
+ | otherwise = error "Text.Pandoc.Class.IO.openURL"
+#else
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
@@ -168,6 +161,7 @@ openURL u
      case res of
           Right r -> return r
           Left e  -> throwError $ PandocHttpError u e
+#endif
 
 -- | Read the lazy ByteString contents from a file path, raising an error on
 -- failure.

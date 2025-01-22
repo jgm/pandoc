@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase        #-}
@@ -422,9 +423,11 @@ getData mimetype src
                  PandocResourceNotFound r -> do
                    report $ CouldNotFetchResource r ""
                    return $ CouldNotFetch e
+#if !defined(wasm32_HOST_ARCH)
                  PandocHttpError u er -> do
                    report $ CouldNotFetchResource u (tshow er)
                    return $ CouldNotFetch e
+#endif
                  _ -> throwError e
 
 
