@@ -29,7 +29,7 @@ tests = [
         assertBool "file in directory is not extracted with original name" exists1
         exists2 <- doesFileExist ("foo" </> "f9d88c3dbe18f6a7f5670e994a947d51216cdf0e.jpg")
         assertBool "file above directory is not extracted with hashed name" exists2
-        exists3 <- doesFileExist ("foo" </> "2a0eaa89f43fada3e6c577beea4f2f8f53ab6a1d.lua")
+        exists3 <- doesFileExist ("foo" </> "2a0eaa89f43fada3e6c577beea4f2f8f53ab6a1d.png")
         exists4 <- doesFileExist "a.lua"
         assertBool "data uri with malicious payload gets written outside of destination dir"
           (exists3 && not exists4)
