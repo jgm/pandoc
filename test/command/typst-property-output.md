@@ -152,3 +152,81 @@ foo
   , kind: table
   )
 ```
+
+```
+% pandoc -f html -t typst
+<p>Paragraph before.</p>
+
+<table class="typst:no-figure" typst:text:size="3em">
+  <tr>
+    <td>A</td>
+    <td>B</td>
+    <td>C</td>
+  </tr>
+</table>
+
+<p>Paragraph after.</p>
+^D
+Paragraph before.
+
+#{set text(size: 3em); table(
+  columns: 3,
+  align: (auto,auto,auto,),
+  [A], [B], [C],
+)}
+Paragraph after.
+```
+
+
+```
+% pandoc -f html -t typst
+<p>Paragraph before.</p>
+
+<table typst:text:size="3em">
+  <tr>
+    <td>A</td>
+    <td>B</td>
+    <td>C</td>
+  </tr>
+</table>
+
+<p>Paragraph after.</p>
+^D
+Paragraph before.
+
+#figure(
+  align(center)[#set text(size: 3em); #table(
+    columns: 3,
+    align: (auto,auto,auto,),
+    [A], [B], [C],
+  )]
+  , kind: table
+  )
+
+Paragraph after.
+```
+
+
+```
+% pandoc -f html -t typst
+<p>Paragraph before.</p>
+
+<table class="typst:no-figure">
+  <tr>
+    <td>A</td>
+    <td>B</td>
+    <td>C</td>
+  </tr>
+</table>
+
+<p>Paragraph after.</p>
+^D
+Paragraph before.
+
+#table(
+  columns: 3,
+  align: (auto,auto,auto,),
+  [A], [B], [C],
+)
+Paragraph after.
+```

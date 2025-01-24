@@ -131,7 +131,15 @@ toTypstTextElement typstTextAttrs content = "#text" <> toTypstPropsListParens ty
 
 toTypstSetText :: [(Text, Text)] -> Doc Text
 toTypstSetText [] = ""
-toTypstSetText typstTextAttrs = "#set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; " -- newline?
+toTypstSetText typstTextAttrs = "set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; "
+
+toTypstPoundSetText :: [(Text, Text)] -> Doc Text
+toTypstPoundSetText [] = ""
+toTypstPoundSetText typstTextAttrs = "#" <> toTypstSetText typstTextAttrs
+
+toTypstBracesSetText :: [(Text, Text)] -> Doc Text -> Doc Text
+toTypstBracesSetText [] x = "#" <> x
+toTypstBracesSetText typstTextAttrs x = "#" <> braces (toTypstSetText typstTextAttrs <> x)
 
 blocksToTypst :: PandocMonad m => [Block] -> TW m (Doc Text)
 blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
@@ -259,7 +267,7 @@ blockToTypst block =
                      ColSpan n -> [ "colspan: " <> tshow n ]) ++
                   map formatTypstProp typstAttrs2
             cellContents <- blocksToTypst bs
-            let contents2 = brackets (toTypstSetText typstTextAttrs <> cellContents)
+            let contents2 = brackets (toTypstPoundSetText typstTextAttrs <> cellContents)
             pure $ if null cellattrs
                       then contents2
                       else "table.cell" <>
@@ -288,7 +296,7 @@ blockToTypst block =
       header <- fromHead thead
       footer <- fromFoot tfoot
       body <- vcat <$> mapM fromTableBody tbodies
-      let table = toTypstSetText typstTextAttrs <> "#table("
+      let table = "table("
             $$ nest 2
                 (  "columns: " <> columns <> ","
                 $$ "align: " <> alignarray <> ","
@@ -299,11 +307,11 @@ blockToTypst block =
             )
             $$ ")"
       return $ if "typst:no-figure" `elem` tabclasses
-        then table
+        then toTypstBracesSetText typstTextAttrs table
         else "#figure("
             $$
             nest 2
-            ("align(center)[" <> table <> "]"
+            ("align(center)[" <> toTypstPoundSetText typstTextAttrs <> "#" <> table <> "]"
               $$ capt'
               $$ typstFigureKind
               $$ ")")
@@ -332,7 +340,7 @@ blockToTypst block =
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstSetText typstTextAttrs <> contents
+        $$ toTypstPoundSetText typstTextAttrs <> contents
         $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
