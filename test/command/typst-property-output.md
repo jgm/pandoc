@@ -169,11 +169,11 @@ foo
 ^D
 Paragraph before.
 
-#[#set text(size: 3em); #table(
+#{set text(size: 3em); table(
   columns: 3,
   align: (auto,auto,auto,),
   [A], [B], [C],
-)]
+)}
 Paragraph after.
 ```
 
