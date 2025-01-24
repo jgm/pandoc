@@ -133,6 +133,10 @@ toTypstSetText :: [(Text, Text)] -> Doc Text
 toTypstSetText [] = ""
 toTypstSetText typstTextAttrs = "#set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; " -- newline?
 
+toTypstBracketsSetText :: [(Text, Text)] -> Doc Text -> Doc Text
+toTypstBracketsSetText [] x = x
+toTypstBracketsSetText typstTextAttrs x = "#" <> brackets (toTypstSetText typstTextAttrs <> x)
+
 blocksToTypst :: PandocMonad m => [Block] -> TW m (Doc Text)
 blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
 
@@ -288,7 +292,7 @@ blockToTypst block =
       header <- fromHead thead
       footer <- fromFoot tfoot
       body <- vcat <$> mapM fromTableBody tbodies
-      let table = toTypstSetText typstTextAttrs <> "#table("
+      let table = "#table("
             $$ nest 2
                 (  "columns: " <> columns <> ","
                 $$ "align: " <> alignarray <> ","
@@ -299,11 +303,11 @@ blockToTypst block =
             )
             $$ ")"
       return $ if "typst:no-figure" `elem` tabclasses
-        then table
+        then toTypstBracketsSetText typstTextAttrs table
         else "#figure("
             $$
             nest 2
-            ("align(center)[" <> table <> "]"
+            ("align(center)[" <> toTypstSetText typstTextAttrs <> table <> "]"
               $$ capt'
               $$ typstFigureKind
               $$ ")")
