@@ -400,6 +400,11 @@ colon syntax (`mystring:uc_upper()`).
 
 # Debugging Lua filters
 
+Many errors can be avoided by performing static analysis.
+[`luacheck`](https://github.com/rnwst/pandoc.git) may be used for this
+purpose. A Luacheck configuration file for pandoc filters is available
+at <https://github.com/rnwst/pandoc-luacheckrc>.
+
 William Lupton has written a Lua module with some handy
 functions for debugging Lua filters, including functions
 that can pretty-print the Pandoc AST elements manipulated
