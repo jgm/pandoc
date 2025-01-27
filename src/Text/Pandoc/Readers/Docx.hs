@@ -58,7 +58,6 @@ implemented, [-] means partially implemented):
 module Text.Pandoc.Readers.Docx
        ( readDocx
        ) where
-
 import Codec.Archive.Zip
 import Control.Monad ( liftM, unless )
 import Control.Monad.Reader
@@ -359,6 +358,7 @@ blocksToInlinesWarn cmtId blks = do
   let paraOrPlain :: Block -> Bool
       paraOrPlain (Para _)  = True
       paraOrPlain (Plain _) = True
+      paraOrPlain (Div _ _) = True
       paraOrPlain _         = False
   unless (all paraOrPlain blks) $
     lift $ P.report $ DocxParserWarning $
