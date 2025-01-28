@@ -679,7 +679,7 @@ addMetaField key val (Meta meta) =
 -- | Set of HTML elements that are represented as Span with a class equal as
 -- the element tag itself.
 htmlSpanLikeElements :: Set.Set T.Text
-htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn"]
+htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn", "abbr"]
 
 -- | Reformat 'Inlines' as code, putting the stringlike parts in 'Code'
 -- elements while bringing other inline formatting outside.
