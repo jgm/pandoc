@@ -95,10 +95,10 @@ complete list, see the [Pandoc Extras wiki page](https://github.com/jgm/pandoc/w
 repository](https://github.com/pandoc/lua-filters).)
 
   - [Spell
-    checking](https://github.com/pandoc/lua-filters/tree/master/spellcheck)
+    checking](https://github.com/pandoc/lua-filters/tree/master/spellcheck).
   - [Word count](https://github.com/pandoc/lua-filters/tree/master/wordcount).
   - [Embed textually-specified
-    diagrams](https://github.com/pandoc/lua-filters/tree/master/diagram-generator) in PlantUML, Graphviz, TikZ, and Python.
+    diagrams](https://github.com/pandoc-ext/diagram) in Mermaid, Dot/GraphViz, PlantUML, Asymptote, CeTZ, and TikZ.
   - [Handle scholarly
     metadata](https://github.com/pandoc/lua-filters/tree/master/scholarly-metadata).
   - [Panda](http://christophe.delord.free.fr/panda/) provides
