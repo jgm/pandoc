@@ -98,7 +98,9 @@ repository](https://github.com/pandoc/lua-filters).)
     checking](https://github.com/pandoc/lua-filters/tree/master/spellcheck).
   - [Word count](https://github.com/pandoc/lua-filters/tree/master/wordcount).
   - [Embed textually-specified
-    diagrams](https://github.com/pandoc-ext/diagram) in Mermaid, Dot/GraphViz, PlantUML, Asymptote, CeTZ, and TikZ.
+    diagrams](https://github.com/pandoc-ext/diagram) in Mermaid, Dot/GraphViz,
+    PlantUML, Asymptote, CeTZ, and TikZ.
+  - [Create subfigures in pandoc's Markdown](https://github.com/rnwst/pandoc-subfigs).
   - [Handle scholarly
     metadata](https://github.com/pandoc/lua-filters/tree/master/scholarly-metadata).
   - [Panda](http://christophe.delord.free.fr/panda/) provides
