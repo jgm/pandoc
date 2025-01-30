@@ -60,8 +60,6 @@
       <w:rFonts w:asciiTheme="majorHAnsi"
       w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi"
       w:cstheme="majorBidi" />
-      <w:spacing w:val="-10" />
-      <w:kern w:val="28" />
       <w:sz w:val="56" />
       <w:szCs w:val="56" />
     </w:rPr>
@@ -77,8 +75,6 @@
       <w:rFonts w:asciiTheme="majorHAnsi"
       w:eastAsiaTheme="majorEastAsia" w:hAnsiTheme="majorHAnsi"
       w:cstheme="majorBidi" />
-      <w:spacing w:val="-10" />
-      <w:kern w:val="28" />
       <w:sz w:val="56" />
       <w:szCs w:val="56" />
     </w:rPr>
@@ -123,22 +119,22 @@
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="Author">
     <w:name w:val="Author" />
+    <w:basedOn w:val="Title" />
     <w:next w:val="BodyText" />
     <w:qFormat />
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
-      <w:jc w:val="center" />
     </w:pPr>
   </w:style>
   <w:style w:type="paragraph" w:styleId="Date">
     <w:name w:val="Date" />
+    <w:basedOn w:val="Title" />
     <w:next w:val="BodyText" />
     <w:qFormat />
     <w:pPr>
       <w:keepNext />
       <w:keepLines />
-      <w:jc w:val="center" />
     </w:pPr>
   </w:style>
   <w:style w:type="paragraph" w:customStyle="1" w:styleId="AbstractTitle">
