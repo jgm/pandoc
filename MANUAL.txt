@@ -1123,7 +1123,8 @@ header when requesting a document from a URL:
     remain as their default type.
 
     In Docx output, this option adds section breaks before first-level
-    headings if `chapter` is selected.
+    headings if `chapter` is selected. Footnote numbers will restart
+    with each section break unless the reference doc modifies this.
 
 `-N`, `--number-sections=[true|false]`
 
