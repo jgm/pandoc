@@ -359,7 +359,7 @@ blocksToInlinesWarn cmtId blks = do
   let paraOrPlain :: Block -> Bool
       paraOrPlain (Para _)       = True
       paraOrPlain (Plain _)      = True
-      paraOrPlain (Div _ nested) = (all paraOrPlain nested)
+      paraOrPlain (Div _ nested) = all paraOrPlain nested
       paraOrPlain _              = False
   unless (all paraOrPlain blks) $
     lift $ P.report $ DocxParserWarning $
