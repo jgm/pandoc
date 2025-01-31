@@ -33,7 +33,7 @@ prof: ## build with profiling and optimizations
 .PHONY: prof
 
 binpath: ## print path of built pandoc executable
-	@cabal list-bin $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
+	@cabal list-bin -v0 $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
 .PHONY: binpath
 
 ghcid: ## run ghcid
