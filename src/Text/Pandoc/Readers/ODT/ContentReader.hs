@@ -400,32 +400,17 @@ getParaModifier props | any isBlockQuote props
                        = id
   where
   isBlockQuote SProps {..} | Just paraProps <- paraProperties
-                                    , isQuoteWidth (indentation paraProps)
-                                                  (margin_left paraProps)
+                                    , isQuoteWidth (margin_left paraProps)
                                     = True
                                     | otherwise
                                     = False
-  isQuoteWidth mIndent mMargin
-    | LengthValueMM indent <- mIndent
-    ,  indent          > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-     = True
+  isQuoteWidth mMargin
     | LengthValueMM margin <- mMargin
     ,           margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-     = True
-    | LengthValueMM indent <- mIndent
-    , LengthValueMM margin <- mMargin
-     = indent + margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-
-    | PercentValue  indent <- mIndent
-    ,  indent          > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
      = True
     | PercentValue  margin <- mMargin
     ,           margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
      = True
-    | PercentValue  indent <- mIndent
-    , PercentValue  margin <- mMargin
-     = indent + margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
-
     | otherwise
      = False
 
