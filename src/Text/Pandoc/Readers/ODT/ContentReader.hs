@@ -393,11 +393,11 @@ _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_ = 5
 
 -- | Returns either 'id' or 'blockQuote' depending if any of the StyleProperties
 -- are indented at quote level.
-getParaModifier :: [StyleProperties] -> ParaModifier
-getParaModifier props | any isBlockQuote props
-                       = blockQuote
-                       | otherwise
-                       = id
+getParaModifier :: ListLevel -> [StyleProperties] -> ParaModifier
+getParaModifier listLevel props
+  | listLevel > 0 = id -- see #9505, list paragraphs need indentation
+  | any isBlockQuote props = blockQuote
+  | otherwise = id
   where
   isBlockQuote SProps {..} | Just paraProps <- paraProperties
                                     , isQuoteWidth (margin_left paraProps)
@@ -425,7 +425,8 @@ constructPara reader = proc blocks -> do
       arr tableCaptionP  -< blocks'
     Right (_, style) -> do
       props <- fromStyles extendedStylePropertyChain -< [style]
-      let modifier = getParaModifier props
+      listLevel <- getCurrentListLevel -< ()
+      let modifier = getParaModifier listLevel props
       blocks' <- reader   -<  blocks
       arr modifier        -<< blocks'
   where
