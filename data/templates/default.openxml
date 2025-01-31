@@ -60,15 +60,6 @@ $endif$
 $for(include-after)$
     $include-after$
 $endfor$
-$-- sectpr will be set to the last sectpr in a reference.docx, if present
-$if(sectpr)$
     $sectpr$
-$else$
-    <w:sectPr>
-      <w:footnotePr>
-        <w:numRestart w:val="eachSect" />
-      </w:footnotePr>
-    </w:sectPr>
-$endif$
   </w:body>
 </w:document>

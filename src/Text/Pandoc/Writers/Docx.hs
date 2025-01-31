@@ -239,20 +239,17 @@ writeDocx opts doc = do
                                  (\q -> qName q == "id" && qPrefix q == Just "r")
                                  idMap
                                  (elChildren sectpr')
-                        in Just . ppElement $
-                             add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
-        Nothing      -> Nothing
-
+                        in add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
+        Nothing      -> mknode "w:sectPr" []
+                          [ mknode "w:footnotePr" []
+                            [ mknode "w:numRestart" [("w:val","eachSect")] () ]
+                          ]
 
   ((contents, footnotes, comments), st) <- runStateT
                          (runReaderT
-                          (writeOpenXML opts{ writerWrapText = WrapNone
-                                            , writerVariables =
-                                                (maybe id (setField "sectpr") sectpr)
-                                                (writerVariables opts)
-                                                }
+                          (writeOpenXML opts{ writerWrapText = WrapNone }
                                         doc')
-                          env)
+                          env{ envSectPr = Just sectpr })
                          initialSt
   let epochtime = floor $ utcTimeToPOSIXSeconds utctime
   let imgs = M.elems $ stImages st
