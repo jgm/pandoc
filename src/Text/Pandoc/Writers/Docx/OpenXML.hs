@@ -375,7 +375,10 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   wrapBookmark ident $ header <> contents
 blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
   setFirstPara
-  let isChapter = lev == 1 && writerTopLevelDivision opts == TopLevelChapter
+  let isSection = case writerTopLevelDivision opts of
+                     TopLevelChapter -> lev == 1
+                     TopLevelPart -> lev <= 2
+                     _ -> False
   paraProps <- withParaPropM (pStyleM (fromString $ "Heading "++show lev)) $
                     getParaProps False
   number <-
@@ -390,7 +393,7 @@ blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
            else return []
   contents <- (number ++) <$> inlinesToOpenXML opts lst
   let addSectionBreak
-       | isChapter = (Elem (mknode "w:p" []
+       | isSection = (Elem (mknode "w:p" []
                             (mknode "w:pPr" []
                              [mknode "w:sectPr" [] ()])) :)
        | otherwise = id
