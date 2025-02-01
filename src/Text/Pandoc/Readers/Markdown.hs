@@ -2267,7 +2267,11 @@ bareloc c = try $ do
 
 normalCite :: PandocMonad m => MarkdownParser m (F [Citation])
 normalCite = try $ do
-  citations <- inBalancedBrackets (spnl *> citeList <* spnl)
+  char '['
+  spnl
+  citations <- citeList
+  spnl
+  char ']'
   -- not a link or a bracketed span
   notFollowedBy (try (void source) <|>
                   (guardEnabled Ext_bracketed_spans *> void attributes) <|>
