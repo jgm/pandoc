@@ -879,7 +879,8 @@ parseBlock (Elem e) =
         "bibliomisc" -> parseMixed para (elContent e)
         "bibliomixed" -> parseMixed para (elContent e)
         "equation"         -> para <$> equation e displayMath
-        "informalequation" -> para <$> equation e displayMath
+        "informalequation" -> divWith (attrValue "id" e,["informalequation"],[]) .
+                              para <$> equation e displayMath
         "glosssee" -> para . (\ils -> text "See " <> ils <> str ".")
                          <$> getInlines e
         "glossseealso" -> para . (\ils -> text "See also " <> ils <> str ".")
