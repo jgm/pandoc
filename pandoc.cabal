@@ -466,7 +466,7 @@ common common-executable
 library xml-light
   import:        common-options
   build-depends: xml                   >= 1.3.12   && < 1.4,
-                 xml-conduit           >= 1.9.1.1  && < 1.10,
+                 xml-conduit           >= 1.9.1.1  && < 1.11,
                  xml-types             >= 0.3      && < 0.4,
                  containers            >= 0.6.0.1  && < 0.8,
                  text                  >= 1.1.1.0  && < 2.2
