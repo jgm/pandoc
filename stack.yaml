@@ -10,13 +10,14 @@ packages:
 - 'pandoc-server'
 extra-deps:
 - tls-2.1.6
-- citeproc-0.8.1.2
 - skylighting-core-0.14.6
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
 - texmath-0.12.8.13
 - git: https://github.com/jgm/typst-hs.git
   commit: 109ad055af75c9dcf51a7d188b6ef750ac3ef7c1
+- git: https://github.com/jgm/citeproc.git
+  commit: 9cdcdde4a2fa91421dcbbd3febb23096a744c600
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.0
