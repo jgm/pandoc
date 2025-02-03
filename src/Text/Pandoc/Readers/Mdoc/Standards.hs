@@ -43,6 +43,7 @@ standards = fromList [
   ("-isoC-tcor2",    "ISO/IEC 9899/TCOR2:1995 (“ISO C90, Technical Corrigendum 2”)"),
   ("-isoC-99",       "ISO/IEC 9899:1999 (“ISO C99”)"),
   ("-isoC-2011",     "ISO/IEC 9899:2011 (“ISO C11”)"),
+  ("-isoC-2023",     "ISO/IEC 9899:2024 (“ISO C23”)"),
   ("-iso9945-1-90",  "ISO/IEC 9945-1:1990 (“POSIX.1”)"),
   ("-iso9945-1-96",  "ISO/IEC 9945-1:1996 (“POSIX.1”)"),
   ("-iso9945-2-93",  "ISO/IEC 9945-2:1993 (“POSIX.2”)"),

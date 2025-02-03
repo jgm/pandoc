@@ -288,6 +288,8 @@ writeOpenXML opts (Pandoc meta blocks) = do
                  meta
   cStyleMap <- gets (smParaStyle . stStyleMaps)
   let styleIdOf name = fromStyleId $ getStyleIdFromName name cStyleMap
+  renderedSectPr <- maybe mempty ppElement <$> asks envSectPr
+
   let context = resetField "body" body
               . resetField "toc"
                    (vcat (map (literal . showElement) toc))
@@ -307,6 +309,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
               . resetField "date-style-id" (styleIdOf "Date")
               . resetField "abstract-title-style-id" (styleIdOf "AbstractTitle")
               . resetField "abstract-style-id" (styleIdOf "Abstract")
+              . resetField "sectpr" renderedSectPr
               $ metadata
   tpl <- maybe (lift $ compileDefaultTemplate "openxml") pure $ writerTemplate opts
   let rendered = render Nothing $ renderTemplate tpl context
@@ -375,7 +378,10 @@ blockToOpenXML' opts (Div (ident,_classes,kvs) bs) = do
   wrapBookmark ident $ header <> contents
 blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
   setFirstPara
-  let isChapter = lev == 1 && writerTopLevelDivision opts == TopLevelChapter
+  let isSection = case writerTopLevelDivision opts of
+                     TopLevelChapter -> lev == 1
+                     TopLevelPart -> lev <= 2
+                     _ -> False
   paraProps <- withParaPropM (pStyleM (fromString $ "Heading "++show lev)) $
                     getParaProps False
   number <-
@@ -389,10 +395,12 @@ blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
                 Nothing -> return []
            else return []
   contents <- (number ++) <$> inlinesToOpenXML opts lst
+  sectpr <- asks envSectPr
   let addSectionBreak
-       | isChapter = (Elem (mknode "w:p" []
-                            (mknode "w:pPr" []
-                             [mknode "w:sectPr" [] ()])) :)
+       | isSection
+       , Just sectPrElem <- sectpr
+        = (Elem (mknode "w:p" []
+                   (mknode "w:pPr" [] [sectPrElem])) :)
        | otherwise = id
   addSectionBreak <$>
     if T.null ident

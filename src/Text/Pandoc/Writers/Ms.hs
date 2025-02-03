@@ -92,7 +92,7 @@ pandocToMs opts (Pandoc meta blocks) = do
 
 escapeStr :: WriterOptions -> Text -> Text
 escapeStr opts =
-  escapeString (if writerPreferAscii opts then AsciiOnly else AllowUTF8)
+  escapeString False (if writerPreferAscii opts then AsciiOnly else AllowUTF8)
 
 -- In PDFs we need to escape parentheses and backslash.
 -- In PDF we need to encode as UTF-16 BE.

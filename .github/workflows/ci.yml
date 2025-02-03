@@ -51,18 +51,31 @@ jobs:
           - ghc: '8.10'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.0'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.2'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.4'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
           - ghc: '9.6'
             cabal: 'latest'
             cabalopts: ''
+            ghcopts: '-Werror'
+          - ghc: '9.8'
+            cabal: 'latest'
+            cabalopts: ''
+            ghcopts: '-Werror'
+          - ghc: '9.10'
+            cabal: 'latest'
+            cabalopts: ''
+            ghcopts: ''
     steps:
     - uses: actions/checkout@v4
 
@@ -103,7 +116,7 @@ jobs:
 
     - name: Build and test
       run: |
-          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
+          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options="${{ matrix.verisons.ghcopts }}" all
 
   linux-stack:
 
@@ -138,32 +151,32 @@ jobs:
       run: |
           stack test --fast
 
-  linux-nix-cabal:
+# linux-nix-cabal:
 
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-    - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v30
-      with:
-        nix_path: nixpkgs=channel:nixos-24.05
-    - name: Cache cabal global package db
-      id:   cabal-global
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.local/state/cabal
-        key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
-    - name: Cache cabal work
-      id:   cabal-local
-      uses: actions/cache@v4
-      with:
-        path: |
-          dist-newstyle
-        key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
-    - run: |
-        nix-shell --run "cabal update && cabal test --enable-tests --disable-optimization --ghc-options=-Werror all"
+#   runs-on: ubuntu-latest
+#   strategy:
+#     fail-fast: true
+#   steps:
+#   - uses: actions/checkout@v4
+#   - uses: cachix/install-nix-action@v30
+#     with:
+#       nix_path: nixpkgs=channel:nixos-24.05
+#   - name: Cache cabal global package db
+#     id:   cabal-global
+#     uses: actions/cache@v4
+#     with:
+#       path: |
+#         ~/.local/state/cabal
+#       key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
+#   - name: Cache cabal work
+#     id:   cabal-local
+#     uses: actions/cache@v4
+#     with:
+#       path: |
+#         dist-newstyle
+#       key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
+#   - run: |
+#       nix-shell --run "cabal update && cabal test --enable-tests --disable-optimization --ghc-options=-Werror all"
 
   windows:
 
@@ -195,7 +208,7 @@ jobs:
           dist-newstyle
         key: ${{ runner.os }}-stack-work-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
-    - name: Install dependencies
+    - name: Build and test
       run: |
           cabal update
           cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all

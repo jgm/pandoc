@@ -487,6 +487,11 @@ tests = [ testGroup "document"
             "comment warnings (all)"
             "docx/comments_warning.docx"
             ["Docx comment 1 will not retain formatting"]
+          , testForWarningsWithOpts def{readerTrackChanges=AllChanges,
+                                        readerExtensions=extensionsFromList [Ext_styles]}
+            "comments (with styles extension)"
+            "docx/comments.docx"
+            []
           ]
         , testGroup "media"
           [ testMediaBag

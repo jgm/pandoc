@@ -18,6 +18,8 @@ module Text.Pandoc.Writers.Typst (
   ) where
 import Text.Pandoc.Definition
 import Text.Pandoc.Class ( PandocMonad)
+import Text.Pandoc.ImageSize ( dimension, Dimension(Pixel), Direction(..),
+                               showInInch )
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled,
                              CaptionPosition(..) )
 import Data.Text (Text)
@@ -129,7 +131,15 @@ toTypstTextElement typstTextAttrs content = "#text" <> toTypstPropsListParens ty
 
 toTypstSetText :: [(Text, Text)] -> Doc Text
 toTypstSetText [] = ""
-toTypstSetText typstTextAttrs = "#set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; " -- newline?
+toTypstSetText typstTextAttrs = "set text" <> parens (toTypstPropsListSep typstTextAttrs) <> "; "
+
+toTypstPoundSetText :: [(Text, Text)] -> Doc Text
+toTypstPoundSetText [] = ""
+toTypstPoundSetText typstTextAttrs = "#" <> toTypstSetText typstTextAttrs
+
+toTypstBracesSetText :: [(Text, Text)] -> Doc Text -> Doc Text
+toTypstBracesSetText [] x = "#" <> x
+toTypstBracesSetText typstTextAttrs x = "#" <> braces (toTypstSetText typstTextAttrs <> x)
 
 blocksToTypst :: PandocMonad m => [Block] -> TW m (Doc Text)
 blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
@@ -257,7 +267,7 @@ blockToTypst block =
                      ColSpan n -> [ "colspan: " <> tshow n ]) ++
                   map formatTypstProp typstAttrs2
             cellContents <- blocksToTypst bs
-            let contents2 = brackets (toTypstSetText typstTextAttrs <> cellContents)
+            let contents2 = brackets (toTypstPoundSetText typstTextAttrs <> cellContents)
             pure $ if null cellattrs
                       then contents2
                       else "table.cell" <>
@@ -286,7 +296,7 @@ blockToTypst block =
       header <- fromHead thead
       footer <- fromFoot tfoot
       body <- vcat <$> mapM fromTableBody tbodies
-      let table = toTypstSetText typstTextAttrs <> "#table("
+      let table = "table("
             $$ nest 2
                 (  "columns: " <> columns <> ","
                 $$ "align: " <> alignarray <> ","
@@ -297,11 +307,11 @@ blockToTypst block =
             )
             $$ ")"
       return $ if "typst:no-figure" `elem` tabclasses
-        then table
+        then toTypstBracesSetText typstTextAttrs table
         else "#figure("
             $$
             nest 2
-            ("align(center)[" <> table <> "]"
+            ("align(center)[" <> toTypstPoundSetText typstTextAttrs <> "#" <> table <> "]"
               $$ capt'
               $$ typstFigureKind
               $$ ")")
@@ -309,12 +319,13 @@ blockToTypst block =
           $$ blankline
     Figure (ident,_,_) (Caption _mbshort capt) blocks -> do
       caption <- blocksToTypst capt
+      opts <-  gets stOptions
       contents <- case blocks of
                      -- don't need #box around block-level image
-                     [Para [Image (_,_,kvs) _ (src, _)]]
-                       -> pure $ mkImage False src kvs
-                     [Plain [Image (_,_,kvs) _ (src, _)]]
-                       -> pure $ mkImage False src kvs
+                     [Para [Image attr _ (src, _)]]
+                       -> pure $ mkImage opts False src attr
+                     [Plain [Image attr _ (src, _)]]
+                       -> pure $ mkImage opts False src attr
                      _ -> brackets <$> blocksToTypst blocks
       let lab = toLabel FreestandingLabel ident
       return $ "#figure(" <> nest 2 ((contents <> ",")
@@ -329,7 +340,7 @@ blockToTypst block =
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstSetText typstTextAttrs <> contents
+        $$ toTypstPoundSetText typstTextAttrs <> contents
         $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
@@ -433,23 +444,29 @@ inlineToTypst inline =
                     (if inlines == [Str src]
                           then mempty
                           else nowrap $ brackets contents) <> endCode
-    Image (_,_,kvs) _inlines (src,_tit) -> pure $ mkImage True src kvs
+    Image attr _inlines (src,_tit) -> do
+      opts <-  gets stOptions
+      pure $ mkImage opts True src attr
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents) <> endCode
 
 -- see #9104; need box or image is treated as block-level
-mkImage :: Bool -> Text -> [(Text, Text)] -> Doc Text
-mkImage useBox src kvs
+mkImage :: WriterOptions -> Bool -> Text -> Attr -> Doc Text
+mkImage opts useBox src attr
   | useBox = "#box" <> parens coreImage
   | otherwise = coreImage
  where
   src' = T.pack $ unEscapeString $ T.unpack src -- #9389
-  toDimAttr k =
-     case lookup k kvs of
-       Just v -> ", " <> literal k <> ": " <> literal v
-       Nothing -> mempty
-  dimAttrs = mconcat $ map toDimAttr ["height", "width"]
+  showDim (Pixel a) = literal (showInInch opts (Pixel a) <> "in")
+  showDim dim = text (show dim)
+  dimAttrs =
+     (case dimension Height attr of
+        Nothing -> mempty
+        Just dim -> ", height: " <> showDim dim) <>
+     (case dimension Width attr of
+        Nothing -> mempty
+        Just dim -> ", width: " <> showDim dim)
   isData = "data:" `T.isPrefixOf` src'
   dataSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"" <> src' <> "\" /></svg>"
   coreImage

@@ -344,6 +344,7 @@
 - Sam May
 - Samuel Tardieu
 - Saumel Lemmenmeier
+- Santiago Zarate
 - Sascha Wilde
 - Scott Morrison
 - Sebastian Talmon
@@ -365,6 +366,7 @@
 - Stephan Meijer
 - Stephen Altamirano
 - Stephen Huan
+- Stéphane Guillou
 - Sukil Etxenike
 - Sukka
 - Sumit Sahrawat

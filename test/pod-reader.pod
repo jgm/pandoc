@@ -1,0 +1,155 @@
+text before any Pod commands is not parsed, which is unusual for formats
+supported by pandoc, but 
+
+=head1 POD TEST SUITE
+
+This is a test L<Pod|https://perldoc.pl/perlpod> document for pandoc.
+
+=encoding utf8
+
+=head2 Head 2
+
+=head3 Head 3: I<< The> <Return >>
+
+=head4 How to use the L<ls(1)> command,
+an introduction
+
+=head5 C<Ricky Jay> and his 52 assistants
+
+=head6 The =head5 and =head6 commands are newer and my syntax highlighting
+doesn't recognize them. In any case, it should be possible to have a very long
+paragraph in the heading.
+
+=head6
+It should also be possible to start the heading paragraph on the next line
+
+=cut
+
+This doesn't get parsed at all.
+
+=begin html
+
+<strong>This is a raw block destined for the HTML format</strong>
+
+=end html
+
+=over
+
+=item *
+
+Bulleted list
+
+=item *
+
+Ordered list
+
+=over
+
+=item 1.
+
+Here's a verbatim paragraph in this list item:
+
+    this is a code block
+this is still part of the code block
+  so is this.
+It seems that the prefixed spaces in verbatim blocks in pod don't get stripped.
+
+ This should continue the previous code block despite the intervening blank
+ line, because the first line starts with a space
+    
+
+ 
+    the above blank lines with varying numbers of spaces should also be in
+ the code block
+	pod formatters should (but not must) expand tabs by default
+so we're not special casing pandoc's behavior there in any way
+
+Wow, that was fun.
+
+=item 2.
+
+Definition list
+
+=over
+
+=item Marvin the MZ<>artian
+
+A cartoon alien
+
+=item I<The Sun
+Also Rises>
+
+A novel by Ernest Hemingway
+
+=item C<undefined>
+
+=item And now, a quotation
+
+=over
+
+Where's my space modulator?
+
+=back
+
+=back
+
+=item 3.
+
+And the list continues.
+
+=back
+
+=item
+
+And so does the other one, even if I forget the asterisk.
+
+=back
+
+=begin :neat
+
+This is a div for our purposes.
+
+It should parse B<< content >> inside of it.
+
+=over
+
+=item
+
+Like this
+
+=back
+
+=end :neat
+
+=for :excitement this is its own div
+
+=for html <p>and this is its own raw block</p>
+
+=for html
+<p>so is this</p>
+
+=head2 C<=cut> before any C<=item> in C<=over>
+
+=over
+
+=cut
+
+blah
+
+=item *
+
+a
+
+=cut
+
+blah blah
+
+=pod
+
+b
+
+=item *
+
+c
+
+=back

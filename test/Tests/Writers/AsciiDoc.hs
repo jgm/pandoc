@@ -36,7 +36,7 @@ tests = [ testGroup "emphasis"
                  "__foo__bar"
           , testAsciidoc "emph quoted" $
                para (doubleQuoted (emph (text "foo"))) =?>
-                 "``__foo__''"
+                 "``_foo_''"
           , testAsciidoc "strong word before" $
                para (text "foo" <> strong (text "bar")) =?>
                  "foo**bar**"
@@ -45,7 +45,7 @@ tests = [ testGroup "emphasis"
                  "**foo**bar"
           , testAsciidoc "strong quoted" $
                para (singleQuoted (strong (text "foo"))) =?>
-                 "`**foo**'"
+                 "`*foo*'"
           ]
         , testGroup "blocks"
           [ testAsciidoc "code block without line numbers" $

@@ -246,6 +246,10 @@ tests pandocPath =
       [ test' "ansi" ["-f", "markdown", "-t", "ansi"]
         "ansi-test.txt" "ansi-test.ansi"
       ]
+  , testGroup "pod"
+      [ test' "pod" ["-f", "pod", "-t", "native"]
+        "pod-reader.pod" "pod-reader.native"
+      ]
   ]
  where
     test'           = test pandocPath

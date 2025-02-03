@@ -837,7 +837,10 @@ pSvg = do
   let rawText = T.strip $ renderTags' (opent : contents ++ [closet])
   let svgData = "data:image/svg+xml;base64," <>
                    UTF8.toText (encode $ UTF8.fromText rawText)
-  return $ B.imageWith (ident,cls,[]) svgData mempty mempty
+  let kvs = [("width", "1em") | "fa-w-14" `elem` cls ||
+                                "fa-w-16" `elem` cls ||
+                                "fa-fw" `elem` cls] -- #10134
+  return $ B.imageWith (ident,cls,kvs) svgData mempty mempty
 
 pCodeWithClass :: PandocMonad m => Text -> Text -> TagParser m Inlines
 pCodeWithClass name class' = try $ do

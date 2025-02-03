@@ -393,39 +393,24 @@ _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_ = 5
 
 -- | Returns either 'id' or 'blockQuote' depending if any of the StyleProperties
 -- are indented at quote level.
-getParaModifier :: [StyleProperties] -> ParaModifier
-getParaModifier props | any isBlockQuote props
-                       = blockQuote
-                       | otherwise
-                       = id
+getParaModifier :: ListLevel -> [StyleProperties] -> ParaModifier
+getParaModifier listLevel props
+  | listLevel > 0 = id -- see #9505, list paragraphs need indentation
+  | any isBlockQuote props = blockQuote
+  | otherwise = id
   where
   isBlockQuote SProps {..} | Just paraProps <- paraProperties
-                                    , isQuoteWidth (indentation paraProps)
-                                                  (margin_left paraProps)
+                                    , isQuoteWidth (margin_left paraProps)
                                     = True
                                     | otherwise
                                     = False
-  isQuoteWidth mIndent mMargin
-    | LengthValueMM indent <- mIndent
-    ,  indent          > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-     = True
+  isQuoteWidth mMargin
     | LengthValueMM margin <- mMargin
     ,           margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-     = True
-    | LengthValueMM indent <- mIndent
-    , LengthValueMM margin <- mMargin
-     = indent + margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-
-    | PercentValue  indent <- mIndent
-    ,  indent          > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
      = True
     | PercentValue  margin <- mMargin
     ,           margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
      = True
-    | PercentValue  indent <- mIndent
-    , PercentValue  margin <- mMargin
-     = indent + margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
-
     | otherwise
      = False
 
@@ -440,7 +425,8 @@ constructPara reader = proc blocks -> do
       arr tableCaptionP  -< blocks'
     Right (_, style) -> do
       props <- fromStyles extendedStylePropertyChain -< [style]
-      let modifier = getParaModifier props
+      listLevel <- getCurrentListLevel -< ()
+      let modifier = getParaModifier listLevel props
       blocks' <- reader   -<  blocks
       arr modifier        -<< blocks'
   where

@@ -74,13 +74,18 @@ combiningAccentsMap = Map.fromList combiningAccents
 essentialEscapes :: Map.Map Char Text
 essentialEscapes = Map.fromList standardEscapes
 
--- | Escape special characters for roff.
-escapeString :: EscapeMode -> Text -> Text
-escapeString e = Text.concat . escapeString' e . Text.unpack
+-- | Escape special characters for roff. If the first parameter is
+-- True, escape @-@ as @\-@, as required by current versions of groff man;
+-- otherwise leave it unescaped, as neededfor ms.
+escapeString :: Bool -> EscapeMode -> Text -> Text
+escapeString escapeHyphen e = Text.concat . escapeString' e . Text.unpack
   where
     escapeString' _ [] = []
     escapeString' escapeMode ('\n':'.':xs) =
       "\n\\&." : escapeString' escapeMode xs
+    -- see #10533; we need to escape hyphens as \- in man but not in ms:
+    escapeString' escapeMode ('-':xs) | escapeHyphen =
+      "\\-" : escapeString' escapeMode xs
     escapeString' escapeMode (x:xs) =
       case Map.lookup x essentialEscapes of
         Just s  -> s : escapeString' escapeMode xs

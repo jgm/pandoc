@@ -17,7 +17,8 @@ jobs:
 
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.4.4
+        ghcup install ghc --set 9.8
+        ghcup install cabal --set 3.14
 
     - name: Install dependencies
       run: |
@@ -46,7 +47,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.4.4
+        ghcup install ghc --set 9.8
+        ghcup install cabal --set 3.14
     - name: Install dependencies
       run: |
           cabal update
@@ -78,8 +80,8 @@ jobs:
         brew install ghcup
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.4
-        ghcup install cabal --set 3.10
+        ghcup install ghc --set 9.8
+        ghcup install cabal --set 3.14
         echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
     - name: Install dependencies
       run: |

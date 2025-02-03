@@ -287,18 +287,22 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
               | Heading Int ParaStyleName ParagraphStyle T.Text T.Text (Maybe Level)
                  [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
-              | Tbl T.Text TblGrid TblLook [Row]
+              | Tbl (Maybe T.Text) T.Text TblGrid TblLook [Row]
               | Captioned ParagraphStyle [ParPart] BodyPart
               | HRule
               deriving Show
 
 type TblGrid = [Integer]
 
-newtype TblLook = TblLook {firstRowFormatting::Bool}
+data TblLook = TblLook { firstRowFormatting ::Bool
+                       , firstColumnFormatting :: Bool
+                       }
               deriving Show
 
 defaultTblLook :: TblLook
-defaultTblLook = TblLook{firstRowFormatting = False}
+defaultTblLook = TblLook{ firstRowFormatting = False
+                        , firstColumnFormatting = False
+                        }
 
 data Row = Row TblHeader [Cell] deriving Show
 
@@ -691,17 +695,25 @@ elemToTblGrid _ _ = throwError WrongElem
 
 elemToTblLook :: NameSpaces -> Element -> D TblLook
 elemToTblLook ns element | isElem ns "w" "tblLook" element =
-  let firstRow = findAttrByName ns "w" "firstRow" element
-      val = findAttrByName ns "w" "val" element
+  let val = findAttrByName ns "w" "val" element
       firstRowFmt =
-        case firstRow of
+        case findAttrByName ns "w" "firstRow" element of
           Just "1" -> True
           Just  _  -> False
           Nothing -> case val of
             Just bitMask -> testBitMask bitMask 0x020
             Nothing      -> False
+      firstColFmt =
+        case findAttrByName ns "w" "firstColumn" element of
+          Just "1" -> True
+          Just  _  -> False
+          Nothing -> case val of
+            Just bitMask -> testBitMask bitMask 0x080
+            Nothing      -> False
   in
-   return TblLook{firstRowFormatting = firstRowFmt}
+   return TblLook{ firstRowFormatting = firstRowFmt
+                 , firstColumnFormatting = firstColFmt
+                 }
 elemToTblLook _ _ = throwError WrongElem
 
 elemToRow :: NameSpaces -> Element -> D Row
@@ -855,6 +867,9 @@ elemToBodyPart ns element
         description = fromMaybe "" $ tblProperties
                        >>= findChildByName ns "w" "tblDescription"
                        >>= findAttrByName ns "w" "val"
+        mbstyle = tblProperties
+                       >>= findChildByName ns "w" "tblStyle"
+                       >>= findAttrByName ns "w" "val"
         grid' = case findChildByName ns "w" "tblGrid" element of
           Just g  -> elemToTblGrid ns g
           Nothing -> return []
@@ -867,7 +882,7 @@ elemToBodyPart ns element
     grid <- grid'
     tblLook <- tblLook'
     rows <- mapD (elemToRow ns) (elChildren element)
-    return $ Tbl (caption <> description) grid tblLook rows
+    return $ Tbl mbstyle (caption <> description) grid tblLook rows
 elemToBodyPart _ _ = throwError WrongElem
 
 lookupRelationship :: DocumentLocation -> RelId -> [Relationship] -> Maybe Target

@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: December 22, 2024
+date: January 12, 2025
 ---
 
 # Synopsis
@@ -266,9 +266,10 @@ header when requesting a document from a URL:
     - `mdoc` ([mdoc] manual page markup)
     - `muse` ([Muse])
     - `native` (native Haskell)
-    - `odt` ([OpenOffice text document][ODT])
+    - `odt` ([OpenDocument text document][ODT])
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
+    - `pod` (Perl's [Plain Old Documentation])
     - `ris` ([RIS] bibliography)
     - `rtf` ([Rich Text Format])
     - `rst` ([reStructuredText])
@@ -338,9 +339,9 @@ header when requesting a document from a URL:
     - `ms` ([roff ms])
     - `muse` ([Muse])
     - `native` (native Haskell)
-    - `odt` ([OpenOffice text document][ODT])
+    - `odt` ([OpenDocument text document][ODT])
     - `opml` ([OPML])
-    - `opendocument` ([OpenDocument])
+    - `opendocument` ([OpenDocument XML])
     - `org` ([Emacs Org mode])
     - `pdf` ([PDF])
     - `plain` (plain text)
@@ -497,8 +498,9 @@ header when requesting a document from a URL:
 [txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub
 [OPML]: http://dev.opml.org/spec2.html
-[OpenDocument]: http://opendocument.xml.org
+[OpenDocument XML]: https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
+[Plain Old Documentation]: https://perldoc.perl.org/perlpod
 [Textile]: https://textile-lang.com
 [MediaWiki markup]: https://www.mediawiki.org/wiki/Help:Formatting
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
@@ -1107,7 +1109,7 @@ header when requesting a document from a URL:
 `--top-level-division=default`|`section`|`chapter`|`part`
 
 :   Treat top-level headings as the given division type in
-    LaTeX, ConTeXt, DocBook, and  TEI output. The hierarchy
+    LaTeX, ConTeXt, DocBook, and TEI output. The hierarchy
     order is part, chapter, then section; all headings are
     shifted such that the top-level heading becomes the
     specified type. The default behavior is to determine the
@@ -1119,6 +1121,11 @@ header when requesting a document from a URL:
     specifying either `chapter` or `part` will cause top-level
     headings to become `\part{..}`, while second-level headings
     remain as their default type.
+
+    In Docx output, this option adds section breaks before first-level
+    headings if `chapter` is selected, and before first- and second-level
+    headings if `part` is selected. Footnote numbers will restart
+    with each section break unless the reference doc modifies this.
 
 `-N`, `--number-sections=[true|false]`
 
@@ -3751,11 +3758,14 @@ output formats
 
 ### Extension: `styles` ### {#ext-styles}
 
-When converting from docx, read all docx styles as divs (for
-paragraph styles) and spans (for character styles) regardless
-of whether pandoc understands the meaning of these styles.
-This can be used with [docx custom styles](#custom-styles).
-Disabled by default.
+When converting from docx, add `custom-styles` attributes
+for all docx styles, regardless of whether pandoc understands
+the meanings of these styles. Because attributes cannot be
+added directly to paragraphs or text in the pandoc AST,
+paragraph styles will cause Divs to be created and character
+styles will cause Spans to be created to hold the attributes.
+(Table styles will be added to the Table elements directly.)
+This extension can be used with [docx custom styles](#custom-styles).
 
 input formats
 :  `docx`
@@ -7352,11 +7362,11 @@ However, if you need to apply your own styles to blocks, or match a preexisting
 set of styles, pandoc allows you to define custom styles for blocks and text
 using `div`s and `span`s, respectively.
 
-If you define a `div` or `span` with the attribute `custom-style`,
-pandoc will apply your specified style to the contained elements (with
-the exception of elements whose function depends on a style, like
-headings, code blocks, block quotes, or links). So, for example, using
-the `bracketed_spans` syntax,
+If you define a Div, Span, or Table with the attribute
+`custom-style`, pandoc will apply your specified style to the
+contained elements (with the exception of elements whose function
+depends on a style, like headings, code blocks, block quotes, or
+links). So, for example, using the `bracketed_spans` syntax,
 
     [Get out]{custom-style="Emphatically"}, he said.
 
@@ -7398,9 +7408,10 @@ interpreting the derivation of the input document's styles.
 
 By enabling the [`styles` extension](#ext-styles) in the docx reader
 (`-f docx+styles`), you can produce output that maintains the styles
-of the input document, using the `custom-style` class. Paragraph
-styles are interpreted as divs, while character styles are interpreted
-as spans.
+of the input document, using the `custom-style` class. A `custom-style`
+attribute will be added for each style. Divs will be created to
+hold the paragraph styles, and Spans to hold the character styles.
+Table styles will be applied directly to the Table.
 
 For example, using the `custom-style-reference.docx` file in the test
 directory, we have the following different outputs:
@@ -7566,7 +7577,7 @@ See the documentation for [Word][word-accessible-pdfs] and
 [LibreOffice][lo-pdf-export].
 
 [word-accessible-pdfs]: https://support.microsoft.com/en-us/office/create-accessible-pdfs-064625e0-56ea-4e16-ad71-3aa33bb4b7ed
-[lo-pdf-export]: https://help.libreoffice.org/7.1/en-US/text/shared/01/ref_pdf_export_general.html
+[lo-pdf-export]: https://help.libreoffice.org/latest/en-US/text/shared/01/ref_pdf_export_general.html
 
 
 # Running pandoc as a web server

@@ -189,7 +189,7 @@ convertInline (D.Node pos attr il) = addAttrToInline pos attr <$>
     D.Str bs -> pure $ str (UTF8.toText bs)
     D.Emph ils -> emph <$> convertInlines ils
     D.Strong ils -> strong <$> convertInlines ils
-    D.Highlight ils -> spanWith ("",["highlighted"],[]) <$> convertInlines ils
+    D.Highlight ils -> spanWith ("",["mark"],[]) <$> convertInlines ils
     D.Insert ils -> spanWith ("",["inserted"],[]) <$> convertInlines ils
     D.Delete ils -> spanWith ("",["deleted"],[]) <$> convertInlines ils
     D.Subscript ils -> subscript <$> convertInlines ils

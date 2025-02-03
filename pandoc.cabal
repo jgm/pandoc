@@ -1,6 +1,6 @@
 cabal-version:   2.4
 name:            pandoc
-version:         3.6.1
+version:         3.6.2
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
@@ -12,7 +12,8 @@ stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
 tested-with:     GHC == 8.10.7, GHC == 9.0.2,
-                 GHC == 9.2.5, GHC == 9.4.4, GHC == 9.6.3
+                 GHC == 9.2.5, GHC == 9.4.4, GHC == 9.6.3,
+                 GHC == 9.8.2, GHC == 9.10.1
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another.  The formats it can handle include
@@ -218,6 +219,7 @@ extra-source-files:
                  test/command/9391.docx
                  test/command/9358.docx
                  test/command/9002.docx
+                 test/command/9603.docx
                  test/command/biblio.bib
                  test/command/averroes.bib
                  test/command/A.txt
@@ -424,6 +426,7 @@ extra-source-files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
+                 test/pod-reader.pod
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -463,7 +466,7 @@ common common-executable
 library xml-light
   import:        common-options
   build-depends: xml                   >= 1.3.12   && < 1.4,
-                 xml-conduit           >= 1.9.1.1  && < 1.10,
+                 xml-conduit           >= 1.9.1.1  && < 1.11,
                  xml-types             >= 0.3      && < 0.4,
                  containers            >= 0.6.0.1  && < 0.8,
                  text                  >= 1.1.1.0  && < 2.2
@@ -521,7 +524,7 @@ library
                  pretty                >= 1.1      && < 1.2,
                  pretty-show           >= 1.10     && < 1.11,
                  process               >= 1.2.3    && < 1.7,
-                 random                >= 1        && < 1.3,
+                 random                >= 1        && < 1.4,
                  safe                  >= 0.3.18   && < 0.4,
                  scientific            >= 0.3      && < 0.4,
                  skylighting           >= 0.14.5   && < 0.15,
@@ -530,7 +533,7 @@ library
                  syb                   >= 0.1      && < 0.8,
                  tagsoup               >= 0.14.6   && < 0.15,
                  temporary             >= 1.1      && < 1.4,
-                 texmath               >= 0.12.8.12 && < 0.13,
+                 texmath               >= 0.12.8.13 && < 0.13,
                  text                  >= 1.1.1.0  && < 2.2,
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.15,
@@ -604,6 +607,7 @@ library
                    Text.Pandoc.Readers.RTF,
                    Text.Pandoc.Readers.Typst,
                    Text.Pandoc.Readers.Djot,
+                   Text.Pandoc.Readers.Pod,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.XML,
@@ -838,6 +842,7 @@ test-suite test-pandoc
                   Tests.Readers.Man
                   Tests.Readers.Mdoc
                   Tests.Readers.FB2
+                  Tests.Readers.Pod
                   Tests.Readers.DokuWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt

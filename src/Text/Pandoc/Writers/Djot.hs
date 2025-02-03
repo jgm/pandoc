@@ -212,6 +212,7 @@ inlineToDjot (Strong ils) = D.strong <$> inlinesToDjot ils
 inlineToDjot (Strikeout ils) = D.delete <$> inlinesToDjot ils
 inlineToDjot (Subscript ils) = D.subscript <$> inlinesToDjot ils
 inlineToDjot (Superscript ils) = D.superscript <$> inlinesToDjot ils
+inlineToDjot (Span ("",["mark"],[]) ils) = D.highlight <$> inlinesToDjot ils
 inlineToDjot (Span attr@(ident,cls,kvs) ils)
   | Just "1" <- lookup "wrapper" kvs
     = fmap (D.addAttr

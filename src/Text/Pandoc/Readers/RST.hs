@@ -1286,6 +1286,7 @@ substKey = try $ do
 anonymousKey :: PandocMonad m => RSTParser m ()
 anonymousKey = try $ do
   oneOfStrings [".. __:", "__"]
+  skipMany1 spaceChar
   src <- targetURI
   -- we need to ensure that the keys are ordered by occurrence in
   -- the document.
@@ -1462,15 +1463,14 @@ table = gridTable <|> simpleTable False <|> simpleTable True <?> "table"
 --
 
 inline :: PandocMonad m => RSTParser m Inlines
-inline = choice [ note          -- can start with whitespace, so try before ws
-                , link
-                , inlineAnchor
-                , strong
-                , emph
-                , code
-                , subst
-                , interpretedRole
-                , inlineContent ] <?> "inline"
+inline =
+  (note          -- can start with whitespace, so try before ws
+    <|> do notAfterString >>= guard
+           (link <|> inlineAnchor <|> strong <|> emph)
+    <|> code
+    <|> subst
+    <|> interpretedRole
+    <|> inlineContent) <?> "inline"
 
 -- strings, spaces and other characters that can appear either by
 -- themselves or within inline markup
@@ -1730,6 +1730,7 @@ referenceLink :: PandocMonad m => RSTParser m Inlines
 referenceLink = try $ do
   ref <- (referenceName <|> citationName) <* char '_'
   isAnonymous <- (True <$ char '_') <|> pure False
+  eof <|> notFollowedBy alphaNum
   let ref' = if isAnonymous
                 then "_"
                 else ref
@@ -1797,7 +1798,7 @@ smart :: PandocMonad m => RSTParser m Inlines
 smart = smartPunctuation inline
 
 inlineAnchor :: PandocMonad m => RSTParser m Inlines
-inlineAnchor = do
+inlineAnchor = try $ do
   char '_'
   name <- quotedReferenceName <|> simpleReferenceName
   let ident = textToIdentifier mempty name

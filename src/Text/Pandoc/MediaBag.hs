@@ -107,9 +107,11 @@ insertMedia fp mbMime contents (MediaBag mediamap)
                   _     -> getMimeTypeDef fp''
   mt = fromMaybe fallback mbMime
   path = maybe fp'' (unEscapeString . uriPath) uri
-  ext = case takeExtension path of
-          '.':e | '%' `notElem` e -> '.':e
-          _ -> maybe "" (\x -> '.':T.unpack x) $ extensionFromMimeType mt
+  ext = case extensionFromMimeType mt of
+             Just e -> '.':T.unpack e
+             Nothing -> case takeExtension path of
+                             '.':e | '%' `notElem` e -> '.':e
+                             _ -> ""
 
 -- | Lookup a media item in a 'MediaBag', returning mime type and contents.
 lookupMedia :: FilePath

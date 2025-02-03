@@ -208,6 +208,9 @@ formatFromFilePath x =
     ".opml"     -> defFlavor "opml"
     ".org"      -> defFlavor "org"
     ".pdf"      -> defFlavor "pdf"  -- so we get an "unknown reader" error
+    ".pl"       -> defFlavor "pod"
+    ".pm"       -> defFlavor "pod"
+    ".pod"      -> defFlavor "pod"
     ".pptx"     -> defFlavor "pptx"
     ".ris"      -> defFlavor "ris"
     ".roff"     -> defFlavor "ms"

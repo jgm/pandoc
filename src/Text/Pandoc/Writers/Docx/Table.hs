@@ -63,6 +63,7 @@ import Text.Pandoc.XML.Light.Types
 import qualified Data.Text as T
 import qualified Text.Pandoc.Translations as Term
 import qualified Text.Pandoc.Writers.GridTable as Grid
+import Data.Bits ((.|.))
 
 tableToOpenXML :: PandocMonad m
                => WriterOptions
@@ -71,7 +72,7 @@ tableToOpenXML :: PandocMonad m
                -> WS m [Content]
 tableToOpenXML opts blocksToOpenXML gridTable = do
   setFirstPara
-  let (Grid.Table (ident,_,tableAttr) caption colspecs _rowheads thead tbodies tfoot) =
+  let (Grid.Table (ident,_,tableAttr) caption colspecs rowheads thead tbodies tfoot) =
         gridTable
   let (Caption _maybeShortCaption captionBlocks) = caption
   tablenum <- gets stNextTableNum
@@ -106,7 +107,8 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
   -- 0×0100  Apply last column conditional formatting
   -- 0×0200  Do not apply row banding conditional formatting
   -- 0×0400  Do not apply column banding conditional formattin
-  let tblLookVal = if hasHeader then (0x20 :: Int) else 0
+  let tblLookVal = (if hasHeader then (0x20 :: Int) else 0) .|.
+                   (if rowheads > 0 then (0x80 :: Int) else 0)
   let (gridCols, tblWattr) = tableLayout (elems colspecs)
   listLevel <- asks envListLevel
   let tblStyle =  fromMaybe "Table" (lookup "custom-style" tableAttr)
@@ -122,7 +124,7 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
             [ mknode "w:tblLayout" [("w:type", "fixed")] () | hasWidths ] ++
             [ mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
                                  ,("w:lastRow",if hasFooter then "1" else "0")
-                                 ,("w:firstColumn","0")
+                                 ,("w:firstColumn",if rowheads > 0 then "1" else "0")
                                  ,("w:lastColumn","0")
                                  ,("w:noHBand","0")
                                  ,("w:noVBand","0")

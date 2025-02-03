@@ -30,6 +30,7 @@ import qualified Tests.Readers.RTF
 import qualified Tests.Readers.Txt2Tags
 import qualified Tests.Readers.Man
 import qualified Tests.Readers.Mdoc
+import qualified Tests.Readers.Pod
 import qualified Tests.Shared
 import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.ConTeXt
@@ -101,6 +102,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Mdoc" Tests.Readers.Mdoc.tests
           , testGroup "FB2" Tests.Readers.FB2.tests
           , testGroup "DokuWiki" Tests.Readers.DokuWiki.tests
+          , testGroup "Pod" Tests.Readers.Pod.tests
           ]
         ]
 

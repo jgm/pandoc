@@ -357,9 +357,10 @@ extentToAttr _ = nullAttr
 blocksToInlinesWarn :: PandocMonad m => T.Text -> Blocks -> DocxContext m Inlines
 blocksToInlinesWarn cmtId blks = do
   let paraOrPlain :: Block -> Bool
-      paraOrPlain (Para _)  = True
-      paraOrPlain (Plain _) = True
-      paraOrPlain _         = False
+      paraOrPlain (Para _)       = True
+      paraOrPlain (Plain _)      = True
+      paraOrPlain (Div _ nested) = all paraOrPlain nested
+      paraOrPlain _              = False
   unless (all paraOrPlain blks) $
     lift $ P.report $ DocxParserWarning $
       "Docx comment " <> cmtId <> " will not retain formatting"
@@ -807,13 +808,15 @@ bodyPartToBlocks (Captioned parstyle parparts bpart) = do
     [Para im@[Image{}]]
       -> pure $ singleton $ Figure nullAttr capt [Plain im]
     _ -> pure captContents
-bodyPartToBlocks (Tbl _ _ _ []) =
+bodyPartToBlocks (Tbl _ _ _ _ []) =
   return mempty
-bodyPartToBlocks (Tbl cap grid look parts) = do
+bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
   let fullCaption = if T.null cap then mempty else plain (text cap)
   let shortCaption = if T.null cap then Nothing else Just (toList (text cap))
       cap' = caption shortCaption fullCaption
       (hdr, rows) = splitHeaderRows (firstRowFormatting look) parts
+
+  let rowHeadCols = if firstColumnFormatting look then 1 else 0
 
   let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
       rowLength :: Docx.Row -> Int
@@ -831,10 +834,14 @@ bodyPartToBlocks (Tbl cap grid look parts) = do
       totalWidth = sum grid
       widths = (\w -> ColWidth (fromInteger w / fromInteger totalWidth)) <$> grid
 
-  return $ table cap'
+  extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
+  let attr = case mbsty of
+                Just sty | extStylesEnabled -> ("", [], [("custom-style", sty)])
+                _ -> nullAttr
+  return $ tableWith attr cap'
                  (zip alignments widths)
                  (TableHead nullAttr headerCells)
-                 [TableBody nullAttr 0 [] bodyCells]
+                 [TableBody nullAttr (RowHeadColumns rowHeadCols) [] bodyCells]
                  (TableFoot nullAttr [])
 bodyPartToBlocks HRule = pure Pandoc.horizontalRule
 

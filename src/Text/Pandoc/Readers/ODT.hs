@@ -15,7 +15,9 @@ module Text.Pandoc.Readers.ODT ( readODT ) where
 
 import Codec.Archive.Zip
 import Text.Pandoc.XML.Light
+import Text.Pandoc.Walk
 
+import Data.Char (isDigit)
 import qualified Data.ByteString.Lazy as B
 
 import System.FilePath
@@ -46,8 +48,23 @@ readODT :: PandocMonad m
 readODT opts bytes = case readODT' opts bytes of
   Right (doc, mb) -> do
     P.setMediaBag mb
-    return doc
+    return $ walk makeFigure doc
   Left e -> throwError e
+
+-- the ODT parser uses old-style figures: an image with title beginning
+-- "fig:" in a paragraph by itself.  Convert these to new Figure elements.
+makeFigure :: Block -> Block
+makeFigure (Para [ Image (ident, classes, kvs) capt (src, tit) ])
+  | "fig:" `T.isPrefixOf` tit
+  = Figure (ident, [], []) (Caption Nothing [Plain capt'])
+      [Plain [Image ("", classes, kvs) capt (src, "")]]
+   where
+     capt' = case capt of -- strip "Figure 1:" for consistency
+                 (Str _ : Space : Str t : Space : xs)
+                    | T.all (\c -> isDigit c || c == ':') t
+                    , ":" `T.isSuffixOf` t -> xs
+                 xs -> xs
+makeFigure x = x
 
 --
 readODT' :: ReaderOptions

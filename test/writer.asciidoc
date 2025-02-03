@@ -40,7 +40,7 @@ In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
 Because a hard-wrapped line in the middle of a paragraph looked like a list
 item.
 
-Here’s one with a bullet. * criminey.
+Here’s one with a bullet. ++*++ criminey.
 
 There should be a hard line break +
 here.
@@ -84,7 +84,7 @@ ____
 --
 ____
 
-This should not be a block quote: 2 > 1.
+This should not be a block quote: 2 ++>++ 1.
 
 And a following paragraph.
 
@@ -424,7 +424,7 @@ So is *_this_* word.
 
 So is *_this_* word.
 
-This is code: `+>+`, `+$+`, `+\+`, `+\$+`, `+<html>+`.
+This is code: `++>++`, `$`, `++\++`, `++\++$`, `++<++html++>++`.
 
 [line-through]#This is _strikeout_.#
 
@@ -447,7 +447,7 @@ a^b c^d, a~b c~d.
 
 '`He said, "`I want to go.`"`' Were you alive in the 70’s?
 
-Here is some quoted '``+code+``' and a "`http://example.com/?foo=1&bar=2[quoted
+Here is some quoted '``code``' and a "`http://example.com/?foo=1&bar=2[quoted
 link]`".
 
 Some dashes: one—two — three—four — five.
@@ -477,11 +477,11 @@ latexmath:[\alpha + \omega \times x^2].
 
 These shouldn’t be math:
 
-* To get the famous equation, write `+$e = mc^2$+`.
+* To get the famous equation, write `$e = mc^2$`.
 * $22,000 is a _lot_ of money. So is $34,000. (It worked if "`lot`" is
 emphasized.)
 * Shoes ($20) and socks ($5).
-* Escaped `+$+`: $73 _this should be emphasized_ 23$.
+* Escaped `$`: $73 _this should be emphasized_ 23$.
 
 Here’s a LaTeX table:
 
@@ -503,31 +503,31 @@ AT&T is another way to write it.
 
 This & that.
 
-4 < 5.
+4 ++<++ 5.
 
-6 > 5.
+6 ++>++ 5.
 
-Backslash: \
+Backslash: ++\++
 
-Backtick: `
+Backtick: ++`++
 
-Asterisk: *
+Asterisk: ++*++
 
-Underscore: _
+Underscore: ++_++
 
-Left brace: \{
+Left brace: ++{++
 
 Right brace: }
 
-Left bracket: [
+Left bracket: ++[++
 
-Right bracket: ]
+Right bracket: ++]++
 
 Left paren: (
 
 Right paren: )
 
-Greater-than: >
+Greater-than: ++>++
 
 Hash: #
 
@@ -535,7 +535,7 @@ Period: .
 
 Bang: !
 
-Plus: +
+Plus: {plus}
 
 Minus: -
 
@@ -557,7 +557,7 @@ link:/url/[URL and title]
 
 link:/url/[URL and title]
 
-link:/url/with_underscore[with_underscore]
+link:/url/with_underscore[with++_++underscore]
 
 mailto:nobody@nowhere.net[Email link]
 
@@ -567,7 +567,7 @@ link:[Empty].
 
 Foo link:/url/[bar].
 
-With link:/url/[embedded [brackets]].
+With link:/url/[embedded ++[++brackets++]++].
 
 link:/url/[b] by itself should be a link.
 
@@ -577,7 +577,7 @@ Indented link:/url[twice].
 
 Indented link:/url[thrice].
 
-This should [not][] be a link.
+This should ++[++not++][]++ be a link.
 
 ....
 [not]: /url
@@ -611,7 +611,7 @@ ____
 Blockquoted: http://example.com/
 ____
 
-Auto-links should not occur here: `+<http://example.com/>+`
+Auto-links should not occur here: `++<++http://example.com/++>++`
 
 ....
 or here: <http://example.com/>
@@ -635,10 +635,10 @@ Here is a movie image:movie.jpg[movie] icon.
 Here is a footnote reference,footnote:[Here is the footnote. It can go anywhere
 after the footnote reference. It need not be placed at the end of the document.]
 and another.[multiblock footnote omitted] This should _not_ be a footnote
-reference, because it contains a space.[^my note] Here is an inline
+reference, because it contains a space.++[++^my note++]++ Here is an inline
 note.footnote:[This is _easier_ to type. Inline notes may contain
-http://google.com[links] and `+]+` verbatim characters, as well as [bracketed
-text].]
+http://google.com[links] and `++]++` verbatim characters, as well as
+++[++bracketed text++]++.]
 
 ____
 Notes can go in quotes.footnote:[In quote.]
