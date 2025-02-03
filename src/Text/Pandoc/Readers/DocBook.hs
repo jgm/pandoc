@@ -866,7 +866,7 @@ parseBlock (Elem e) =
         "simpara"  -> parseMixed para (elContent e)
         "ackno"  -> parseMixed para (elContent e)
         "epigraph" -> parseBlockquote
-        "blockquote" -> parseBlockquote
+        "blockquote" -> withOptionalTitle parseBlockquote
         "attribution" -> skip
         "titleabbrev" -> skip
         "authorinitials" -> skip
@@ -917,9 +917,10 @@ parseBlock (Elem e) =
         "question" -> addToStart (strong (str "Q:") <> str " ") <$> getBlocks e
         "answer" -> addToStart (strong (str "A:") <> str " ") <$> getBlocks e
         "abstract" -> blockQuote <$> getBlocks e
-        "calloutlist" -> bulletList <$> callouts
-        "itemizedlist" -> bulletList . handleCompact <$> listitems
-        "orderedlist" -> do
+        "calloutlist" -> withOptionalTitle $ bulletList <$> callouts
+        "itemizedlist" -> withOptionalTitle $
+                            bulletList . handleCompact <$> listitems
+        "orderedlist" -> withOptionalTitle $ do
           let listStyle = case attrValue "numeration" e of
                                "arabic"     -> Decimal
                                "loweralpha" -> LowerAlpha
@@ -1106,23 +1107,34 @@ parseBlock (Elem e) =
              Just t  -> Just ("titleabbrev", strContentRecursive t)
              Nothing -> Nothing
          lineItems = mapM getInlines $ filterChildren (named "line") e
+
+         -- <title> elements can be directly nested inside an admonition block, use
+         -- it if it's there. It is unclear whether we should include the label in
+         -- the title: docbook references are ambiguous on that, and some implementations of admonitions
+         -- (e.g. asciidoctor) just use an icon in all cases. To be conservative, we don't
+         -- include the label and leave it to styling.
+         --
+         getTitle = case filterChild (named "title") e of
+                        Just t  -> Just <$> getInlines t
+                        Nothing -> return Nothing
+         withOptionalTitle p = do
+           mbt <- getTitle
+           b <- p
+           case mbt of
+             Nothing -> return b
+             Just t -> return $ divWith (attrValue "id" e,[],[])
+                         (divWith ("", ["title"], []) (plain t) <> b)
+
          -- Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
          -- block itself a class corresponding to the admonition name.
          parseAdmonition label = do
-           -- <title> elements can be directly nested inside an admonition block, use
-           -- it if it's there. It is unclear whether we should include the label in
-           -- the title: docbook references are ambiguous on that, and some implementations of admonitions
-           -- (e.g. asciidoctor) just use an icon in all cases. To be conservative, we don't
-           -- include the label and leave it to styling.
-           title <- divWith ("", ["title"], []) . plain <$>
-                    case filterChild (named "title") e of
-                        Just t  -> getInlines t
-                        Nothing -> return mempty
-           -- this will ignore the title element if it is present
+           mbt <- getTitle
+           -- this will ignore the title element if it is present:
            b <- getBlocks e
+           let t = divWith ("", ["title"], []) (plain $ fromMaybe mempty mbt)
            -- we also attach the label as a class, so it can be styled properly
-           return $ divWith (attrValue "id" e,[label],[]) (title <> b)
+           return $ divWith (attrValue "id" e,[label],[]) (t <> b)
 
 toAlignment :: Element -> Alignment
 toAlignment c = case findAttr (unqual "align") c of
