@@ -27,7 +27,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, isNothing)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -43,7 +43,7 @@ import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
-import Text.DocTemplates (Context(..), Val(..))
+import Text.DocTemplates (Context(..), Val(..), toVal)
 import Text.Pandoc.Writers.JATS.References (referencesToJATS)
 import Text.Pandoc.Writers.JATS.Table (tableToJATS)
 import Text.Pandoc.Writers.JATS.Types
@@ -53,6 +53,54 @@ import Text.Pandoc.XML
 import Text.TeXMath
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import qualified Text.XML.Light as Xml
+
+-- | Default human-readable names for roles in the Contributor Role
+-- Taxonomy (CRediT). This is useful for generating JATS that annotate
+-- contributor roles
+creditNames :: M.Map Text Text
+creditNames = M.fromList [
+    ("conceptualization", "Conceptualization"),
+    ("data-curation", "Data curation"),
+    ("formal-analysis", "Formal analysis"),
+    ("funding-acquisition", "Funding acquisition"),
+    ("investigation", "Investigation"),
+    ("methodology", "Methodology"),
+    ("project-administration", "Project administration"),
+    ("resources", "Resources"),
+    ("software", "Software"),
+    ("supervision", "Supervision"),
+    ("validation", "Validation"),
+    ("visualization", "Visualization"),
+    ("writing-original-draft", "Writing – original draft"),
+    ("writing-review-editing", "Writing – review & editing")]
+
+-- | Ensure every role with a `credit` key also has a `credit-name`,
+-- using a default value if necessary
+addCreditNames :: Context Text -> Context Text
+addCreditNames context =
+  case getField "author" context of
+    -- If there is an "authors" key, then we replace the existing value
+    -- with one we mutate by running the addCreditNamesToAuthor helper
+    -- function on each
+    Just (ListVal authors) ->
+      resetField "author" (map addCreditNamesToAuthor authors) context
+    -- If there is no "authors" key in the context, then we don't have to do
+    -- anything, and just return the context as is
+    _ -> context
+  where
+    addCreditNamesToAuthor :: Val Text -> Val Text
+    addCreditNamesToAuthor val = fromMaybe val $ do
+      MapVal authorCtx <- pure val
+      ListVal roles <- getField "roles" authorCtx
+      return $ toVal $ resetField "roles" (map addCreditNameToRole roles) authorCtx
+
+    addCreditNameToRole :: Val Text -> Val Text
+    addCreditNameToRole val = fromMaybe val $ do
+      MapVal roleCtx <- pure val
+      guard $ isNothing (getField "credit-name" roleCtx :: Maybe (Val Text))
+      creditId <- getField "credit" roleCtx
+      creditName <- M.lookup creditId creditNames
+      return $ toVal $ resetField "credit-name" creditName roleCtx
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
@@ -159,6 +207,7 @@ docToJATS opts (Pandoc meta blocks') = do
                (lookupMetaInlines "title" meta)
   let context = defField "body" main
               $ defField "back" back
+              $ addCreditNames
               $ resetField "title" title'
               $ resetField "date" date
               $ defField "mathml" (case writerHTMLMathMethod opts of
