@@ -3037,6 +3037,12 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 :   produce a handout version of Beamer slides (with overlays condensed
     into single slides)
 
+`csquotes`
+:   load `csquotes` package and use `\enquote` or `\enquote*` for quoted text.
+
+`csquotesoptions`
+:   options to use for `csquotes` package (repeat for multiple options).
+
 #### Fonts
 
 `fontenc`
