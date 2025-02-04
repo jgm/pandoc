@@ -261,5 +261,5 @@ $--
 $-- csquotes
 $--
 $if(csquotes)$
-\usepackage{csquotes}
+\usepackage[$for(csquotesoptions)$$csquotesoptions$$sep$,$endfor$]{csquotes}
 $endif$
