@@ -69,6 +69,7 @@
 - Cezary Drożak
 - Chandrahas77
 - Charanjit Singh
+- Charles Tapley Hoyt
 - Charlotte Koch
 - Chris Black
 - Christian Conkle
@@ -197,6 +198,7 @@
 - Jeroen de Haas
 - Jerry Sky
 - Jesse Rosenthal
+- Jez Cope
 - Joe Hermaszewski
 - Joe Hillenbrand
 - John KetzerX
