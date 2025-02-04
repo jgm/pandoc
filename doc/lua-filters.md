@@ -3750,6 +3750,10 @@ all enabled extensions, or a table with extensions as keys and
 their activation status as values (`true` or `'enable'` to enable
 an extension, `false` or `'disable'` to disable it).
 
+Note: The extensions field in `reader_options` is ignored, as the
+function will always use the format extensions specified via the
+`format` parameter.
+
 Parameters:
 
 `markup`
@@ -3782,6 +3786,10 @@ Usage:
 ### `write (doc[, format[, writer_options]])` {#pandoc.write}
 
 Converts a document to the given target format.
+
+Note: The extensions field in `writer_options` is ignored, as the
+function will always use the format extensions specified via the
+`format` parameter.
 
 Parameters:
 
