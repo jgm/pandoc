@@ -183,12 +183,11 @@ $-- Babel language support
 $--
 $if(lang)$
 \ifLuaTeX
-\usepackage[bidi=basic]{babel}
+\usepackage[bidi=basic$for(babeloptions)$,$babeloptions$$endfor$]{babel}
 \else
-\usepackage[bidi=default]{babel}
+\usepackage[bidi=default$for(babeloptions)$,$babeloptions$$endfor$]{babel}
 \fi
 $if(babel-lang)$
-\babelprovide[main,import]{$babel-lang$}
 $if(mainfont)$
 \ifPDFTeX
 \else
@@ -196,9 +195,6 @@ $if(mainfont)$
 \fi
 $endif$
 $endif$
-$for(babel-otherlangs)$
-\babelprovide[import]{$babel-otherlangs$}
-$endfor$
 $for(babelfonts/pairs)$
 \babelfont[$babelfonts.key$]{rm}{$babelfonts.value$}
 $endfor$

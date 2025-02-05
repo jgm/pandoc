@@ -3043,6 +3043,13 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 `csquotesoptions`
 :   options to use for `csquotes` package (repeat for multiple options).
 
+`babeloptions`
+:   options to pass to the babel package (may be repeated for
+    multiple options). This defaults to `provide=*` if the main
+    language isn't a European language written with Latin or
+    Cyrillic script or Vietnamese. Most users will not need to
+    adjust the default setting.
+
 #### Fonts
 
 `fontenc`
