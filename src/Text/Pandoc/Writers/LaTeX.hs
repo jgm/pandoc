@@ -265,9 +265,15 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       (literal $ renderLang l)) mblang
         $ maybe id (\l -> defField "babel-lang"
                       (literal l)) babelLang
+        $ (case babelLang of -- see #8283
+                Just l | l `notElem` ldfLanguages
+                         -> defField "babeloptions" ("provide=*" :: Text)
+                _ -> id)
         $ defField "babel-otherlangs"
              (map literal
-               (nubOrd . catMaybes . filter (/= babelLang)
+               (filter (`elem` ldfLanguages) .
+                nubOrd . catMaybes .
+                filter (/= babelLang)
                 $ map toBabel docLangs))
         $ defField "selnolig-langs"
              (literal . T.intercalate "," $
@@ -1187,3 +1193,96 @@ inSoulCommand pa = do
   result <- pa
   modify $ \st -> st{ stInSoulCommand = oldInSoulCommand }
   pure result
+
+-- Babel languages with a .ldf that works well with all engines (see #8283).
+-- We follow the guidance from the Babel documentation:
+-- "In general, you should do this for European languages written in Latin
+-- and Cyrillic scripts, as well as for Vietnamese."
+ldfLanguages :: [Text]
+ldfLanguages =
+  [ "magyar"
+  , "croatian"
+  , "ngerman"
+  , "germanb"
+  , "german"
+  , "austrian"
+  , "ngermanb"
+  , "naustrian"
+  , "nswissgerman"
+  , "swissgerman"
+  , "italian"
+  , "greek"
+  , "azerbaijani"
+  , "american"
+  , "newzealand"
+  , "UKenglish"
+  , "USenglish"
+  , "australian"
+  , "british"
+  , "canadian"
+  , "english"
+  , "bahasa"
+  , "slovak"
+  , "finnish"
+  , "occitan"
+  , "swedish"
+  , "brazil"
+  , "portuguese"
+  , "portuges"
+  , "brazilian"
+  , "spanish"
+  , "norwegian"
+  , "norsk"
+  , "nynorsk"
+  , "bulgarian"
+  , "breton"
+  , "belarusian"
+  , "piedmontese"
+  , "esperanto"
+  , "lithuanian"
+  , "ukraineb"
+  , "scottishgaelic"
+  , "scottish"
+  , "dutch"
+  , "afrikaans"
+  , "czech"
+  , "serbian"
+  , "latvian"
+  , "catalan"
+  , "basque"
+  , "albanian"
+  , "irish"
+  , "serbianc"
+  , "interlingua"
+  , "bosnian"
+  , "friulan"
+  , "romanian"
+  , "icelandic"
+  , "classiclatin"
+  , "ecclesiasticlatin"
+  , "medievallatin"
+  , "latin"
+  , "georgian"
+  , "macedonian"
+  , "welsh"
+  , "vietnamese"
+  , "romansh"
+  , "danish"
+  , "lsorbian"
+  , "usorbian"
+  , "polish-compat"
+  , "polish"
+  , "estonian"
+  , "french"
+  , "frenchb"
+  , "canadien"
+  , "acadian"
+  , "francais"
+  , "turkish"
+  , "hindi"
+  , "northernsami"
+  , "samin"
+  , "russianb"
+  , "galician"
+  , "slovene"
+  ]
