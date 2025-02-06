@@ -649,7 +649,7 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
                 case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
                       _       -> False
-  let useWikilink = tit == "wikilink" &&
+  let useWikilink = "wikilink" `elem` classes &&
                     (isEnabled Ext_wikilinks_title_after_pipe opts ||
                      isEnabled Ext_wikilinks_title_before_pipe opts)
   let useRefLinks = writerReferenceLinks opts && not useAuto
