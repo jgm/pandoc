@@ -78,7 +78,7 @@ jobs:
             ghcopts: ''
           - ghc: '9.12'
             cabal: 'latest'
-            cabalopts: ''
+            cabalopts: '--allow-newer'
             ghcopts: ''
     steps:
     - uses: actions/checkout@v4
