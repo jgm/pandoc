@@ -845,6 +845,7 @@ test-suite test-pandoc
                   Tests.Readers.FB2
                   Tests.Readers.Pod
                   Tests.Readers.DokuWiki
+                  Tests.Readers.MediaWiki
                   Tests.Writers.Native
                   Tests.Writers.ConTeXt
                   Tests.Writers.DocBook
