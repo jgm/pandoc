@@ -58,6 +58,9 @@ autolinkWith :: Attr -> String -> Inlines
 autolinkWith attr s = linkWith attr s' "" (str s')
   where s' = T.pack s
 
+wikilink :: Attr
+wikilink = (mempty, ["wikilink"], mempty)
+
 bareLinkTests :: [(Text, Inlines)]
 bareLinkTests =
   [ ("http://google.com is a search engine.",
@@ -312,22 +315,22 @@ tests = [ testGroup "inline code"
         , testGroup "Github wiki links"
           [ test markdownGH "autolink" $
             "[[https://example.org]]" =?>
-            para (link "https://example.org" "wikilink" (str "https://example.org"))
+            para (linkWith wikilink "https://example.org" "" (str "https://example.org"))
           , test markdownGH "link with title" $
             "[[title|https://example.org]]" =?>
-            para (link "https://example.org" "wikilink" (str "title"))
+            para (linkWith wikilink "https://example.org" "" (str "title"))
           , test markdownGH "bad link with title" $
             "[[title|random string]]" =?>
-            para (link "random string" "wikilink" (str "title"))
+            para (linkWith wikilink "random string" "" (str "title"))
           , test markdownGH "autolink not being a link" $
             "[[Name of page]]" =?>
-            para (link "Name of page" "wikilink" (text "Name of page"))
+            para (linkWith wikilink "Name of page" "" (text "Name of page"))
           , test markdownGH "autolink not being a link with a square bracket" $
             "[[Name of ]page]]" =?>
-            para (link "Name of ]page" "wikilink" (text "Name of ]page"))
+            para (linkWith wikilink "Name of ]page" "" (text "Name of ]page"))
           , test markdownGH "link with inline start should be a link" $
             "[[t`i*t_le|https://example.org]]" =?>
-            para (link "https://example.org" "wikilink" (str "t`i*t_le"))
+            para (linkWith wikilink "https://example.org" "" (str "t`i*t_le"))
           ]
         , testGroup "Headers"
           [ "blank line before header" =:
