@@ -7572,6 +7572,12 @@ for various PDF standards as well as tagging. E.g.:
 
 See the prince documentation for more info.
 
+## Typst
+
+Typst 0.12 can produce PDF/A-2b:
+
+    pandoc --pdf-engine=typst --pdf-engine-opt=--pdf-standard=a-2b ...
+
 ## Word Processors
 
 Word processors like LibreOffice and MS Word can also be used to
