@@ -667,7 +667,7 @@ internalLink = try $ do
   sym "]]"
   -- see #8525:
   linktrail <- B.text <$> manyChar (satisfy (\c -> isLetter c && not (isCJK c)))
-  let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
+  let link = B.linkWith (mempty, ["wikilink"], mempty) (addUnderscores pagename) (stringify label) (label <> linktrail)
   if "Category:" `T.isPrefixOf` pagename
      then do
        updateState $ \st -> st{ mwCategoryLinks = link : mwCategoryLinks st }

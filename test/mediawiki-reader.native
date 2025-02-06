@@ -254,40 +254,46 @@ Pandoc
       [ Str "internal" , Space , Str "links" ]
   , Para
       [ Link
-          ( "" , [] , [] ) [ Str "Help" ] ( "Help" , "wikilink" )
+          ( "" , [ "wikilink" ] , [] )
+          [ Str "Help" ]
+          ( "Help" , "Help" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "the" , Space , Str "help" , Space , Str "page" ]
-          ( "Help" , "wikilink" )
+          ( "Help" , "the help page" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] ) [ Str "Helpers" ] ( "Help" , "wikilink" )
+          ( "" , [ "wikilink" ] , [] )
+          [ Str "Helpers" ]
+          ( "Help" , "Help" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] ) [ Str "Help" ] ( "Help" , "wikilink" )
+          ( "" , [ "wikilink" ] , [] )
+          [ Str "Help" ]
+          ( "Help" , "Help" )
       , Str "ers"
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "Contents" ]
-          ( "Help:Contents" , "wikilink" )
+          ( "Help:Contents" , "Contents" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "#My" , Space , Str "anchor" ]
-          ( "#My_anchor" , "wikilink" )
+          ( "#My_anchor" , "#My anchor" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "and" , Space , Str "text" ]
-          ( "Page#with_anchor" , "wikilink" )
+          ( "Page#with_anchor" , "and text" )
       ]
   , Header 2 ( "images" , [] , [] ) [ Str "images" ]
   , Figure

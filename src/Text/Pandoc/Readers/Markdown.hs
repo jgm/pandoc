@@ -1859,6 +1859,7 @@ wikilink :: PandocMonad m
   => (Attr -> Text -> Text -> Inlines -> Inlines)
   -> MarkdownParser m (F Inlines)
 wikilink constructor = do
+  let attr = (mempty, ["wikilink"], mempty)
   titleAfter <-
     (True <$ guardEnabled Ext_wikilinks_title_after_pipe) <|>
     (False <$ guardEnabled Ext_wikilinks_title_before_pipe)
@@ -1871,7 +1872,7 @@ wikilink constructor = do
             | titleAfter -> (T.drop 1 after, before)
             | otherwise -> (before, T.drop 1 after)
     guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
-    return . pure . constructor nullAttr url "wikilink" $
+    return . pure . constructor attr url "" $
        B.text $ fromEntities title
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
