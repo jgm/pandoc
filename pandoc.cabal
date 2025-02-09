@@ -206,10 +206,12 @@ data-files:
                  citeproc/biblatex-localization/*.lbx.strings
                  -- documentation
                  MANUAL.txt, COPYRIGHT
+extra-doc-files:
+                 changelog.md
 extra-source-files:
                  -- documentation
                  INSTALL.md, AUTHORS.md, README.md,
-                 CONTRIBUTING.md, BUGS, changelog.md,
+                 CONTRIBUTING.md, BUGS,
                  -- tests
                  test/bodybg.gif
                  test/*.native
