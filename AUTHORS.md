@@ -150,6 +150,7 @@
 - Gwern Branwen
 - Hamish Mackenzie
 - Hans-Peter Deifel
+- Hendrik Erz
 - Heiko Schlittermann
 - Henrik Tramberend
 - Henry de Valence
@@ -248,6 +249,7 @@
 - Marc Schreiber
 - Marcin Serwin
 - Mario Lang
+- Mark Gardner
 - Mark Szepieniec
 - Mark Wright
 - Martin Joerg
@@ -351,6 +353,7 @@
 - Scott Morrison
 - Sebastian Talmon
 - Sebbones
+- Sen-wen Deng
 - Sergei Trofimovich
 - Sergey Astanin
 - Seth Speaks
@@ -368,6 +371,7 @@
 - Stephan Meijer
 - Stephen Altamirano
 - Stephen Huan
+- Stephen Reindl
 - Stéphane Guillou
 - Sukil Etxenike
 - Sukka
