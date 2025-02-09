@@ -21,7 +21,7 @@ extra-source-files:
                  man/pandoc-server.1
 source-repository head
   type:          git
-  location:      git://github.com/jgm/pandoc.git
+  location:      https://github.com/jgm/pandoc.git
 
 flag lua
   description:   Support custom modifications and conversions with the
