@@ -16,9 +16,8 @@ extra-deps:
 - texmath-0.12.8.13
 - typst-0.6.2
 - citeproc-0.8.1.3
-- git: https://github.com/jgm/commonmark-hs.git
-  commit: 99af4b26ac9fdd3580278204c37252c81305a7f4
-  subdirs: [commonmark-extensions, commonmark-pandoc]
+- commonmark-extensions-0.2.6
+- commonmark-pandoc-0.2.3
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.0
