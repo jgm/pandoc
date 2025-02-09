@@ -153,15 +153,15 @@ Pandoc
       [ Str "internal" , Space , Str "links" ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "MySimplePage" ]
-          ( "MySimplePage" , "wikilink" )
+          ( "MySimplePage" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "My23Page23" ]
-          ( "My23Page23" , "wikilink" )
+          ( "My23Page23" , "" )
       ]
   , Header
       1
