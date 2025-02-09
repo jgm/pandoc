@@ -429,7 +429,7 @@ extra-source-files:
                  test/pod-reader.pod
 source-repository head
   type:          git
-  location:      git://github.com/jgm/pandoc.git
+  location:      https://github.com/jgm/pandoc.git
 
 flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
