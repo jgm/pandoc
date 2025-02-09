@@ -14,8 +14,7 @@ extra-deps:
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
 - texmath-0.12.8.13
-- git: https://github.com/jgm/typst-hs.git
-  commit: 109ad055af75c9dcf51a7d188b6ef750ac3ef7c1
+- typst-0.6.2
 - git: https://github.com/jgm/citeproc.git
   commit: 9cdcdde4a2fa91421dcbbd3febb23096a744c600
 - git: https://github.com/jgm/commonmark-hs.git
