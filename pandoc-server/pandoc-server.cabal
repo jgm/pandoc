@@ -18,7 +18,7 @@ description:     Pandoc-server provides pandoc's document conversion functions
                  in an HTTP server.
 source-repository head
   type:          git
-  location:      git://github.com/jgm/pandoc.git
+  location:      https://github.com/jgm/pandoc.git
 
 common common-options
   default-language: Haskell2010
