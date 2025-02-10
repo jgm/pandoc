@@ -33,14 +33,13 @@ import Control.Monad
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit)
 import Data.List (intersperse, (\\))
-import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing,
-                   maybeToList)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext), Val(..), renderTemplate)
-import Text.Collate.Lang (renderLang, Lang(langLanguage))
+import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
@@ -275,11 +274,6 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                 nubOrd . catMaybes .
                 filter (/= babelLang)
                 $ map toBabel docLangs))
-        $ defField "selnolig-langs"
-             (literal . T.intercalate "," $
-               let langs = docLangs ++ maybeToList mblang
-               in (["english" | any ((== "en") . langLanguage) langs] ++
-                   ["german" | any ((== "de") . langLanguage) langs]))
         $ defField "latex-dir-rtl"
            ((render Nothing <$> getField "dir" context) ==
                Just ("rtl" :: Text)) context
