@@ -43,13 +43,10 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \ifLuaTeX
-\usepackage[bidi=basic]{babel}
+\usepackage[bidi=basic,shorthands=off,]{babel}
 \else
-\usepackage[bidi=default]{babel}
+\usepackage[bidi=default,shorthands=off,]{babel}
 \fi
-% get rid of language-specific shorthands (see #6817):
-\let\LanguageShortHands\languageshorthands
-\def\languageshorthands#1{}
 \ifLuaTeX
   \usepackage{selnolig} % disable illegal ligatures
 \fi
