@@ -45,7 +45,7 @@ tests = [ "indented code after list"
         , "list with tight sublist"
              =: bulletList [ plain "foo" <> bulletList [ plain "bar" ],
                              plain "baz" ]
-             =?> "-   foo\n    -   bar\n-   baz\n"
+             =?> "- foo\n  - bar\n- baz\n"
         ] ++ [noteTests] ++ [shortcutLinkRefsTests]
 
 {-
