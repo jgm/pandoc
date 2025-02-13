@@ -108,11 +108,11 @@ stringToLaTeX context zs = do
          '}' -> emits "\\}"
          '?' | ligatures ->  -- avoid ?` ligature
            case xs of
-             '`':_ -> emits "?{}"
+             '`':_ -> emits "?{\\kern0pt}" -- se #10610
              _     -> emitc x
          '!' | ligatures ->  -- avoid !` ligature
            case xs of
-             '`':_ -> emits "!{}"
+             '`':_ -> emits "!{\\kern0pt}"
              _     -> emitc x
          '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
          '$' -> emits "\\$"

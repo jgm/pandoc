@@ -49,11 +49,15 @@ references:
 Foo [@item1; @item2; @item3; @item4; @item5; @item6; @item7; @item8].
 ^D
 Foo (al-ʾUdhrī, n.d.; al-ʿUdhrī, n.d.; al-\'Udhrī, n.d.; al-'Udhrī,
-n.d.a, n.d.b; Uch, n.d.; Uebel, n.d.; Zzz, n.d.).
+n.d.; al-'Udhrī, n.d.; Uch, n.d.; Uebel, n.d.; Zzz, n.d.).
 
 ::::::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
 ::: {#ref-item6 .csl-entry}
 Uch, Ann. n.d.
+:::
+
+::: {#ref-item4 .csl-entry}
+'Udhrī, Jamīl al-. n.d.
 :::
 
 ::: {#ref-item1 .csl-entry}
@@ -68,12 +72,8 @@ Uch, Ann. n.d.
 \'Udhrī, Jamīl al-. n.d.
 :::
 
-::: {#ref-item4 .csl-entry}
-'Udhrī, Jamīl al-. n.d.a.
-:::
-
 ::: {#ref-item5 .csl-entry}
----------. n.d.b.
+'Udhrī, Jamīl al-. n.d.
 :::
 
 ::: {#ref-item7 .csl-entry}
