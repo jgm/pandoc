@@ -1818,25 +1818,25 @@ reference = do
   guardDisabled Ext_footnotes <|> notFollowedBy' noteMarker
   withRaw $ trimInlinesF <$> inBalancedBrackets inlines
 
-parenthesizedChars :: PandocMonad m => MarkdownParser m Text
-parenthesizedChars = do
-  result <- charsInBalanced '(' ')' litChar
-  return $ "(" <> result <> ")"
-
 -- source for a link, with optional title
 source :: PandocMonad m => MarkdownParser m (Text, Text)
 source = do
   char '('
   skipSpaces
-  let urlChunk =
-            try parenthesizedChars
-        <|> (notFollowedBy (oneOf " )") >> litChar)
-        <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
+  let parenthesizedChars = do
+        result <- charsInBalanced '(' ')' litChar
+        return $ "(" <> result <> ")"
+  let linkTitle' = try $ spnl >> linkTitle
+  let urlChunk = do
+        notFollowedBy linkTitle'
+        try parenthesizedChars
+          <|> (notFollowedBy (oneOf " )") >> litChar)
+          <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
          char '<' >> mconcat <$> (manyTill litChar (char '>'))
   src <- try betweenAngles <|> try base64DataURI <|> sourceURL
-  tit <- option "" $ try $ spnl >> linkTitle
+  tit <- option "" linkTitle'
   skipSpaces
   char ')'
   return (escapeURI $ trimr src, tit)
