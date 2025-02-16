@@ -922,7 +922,7 @@ createNavEntry opts meta metadata
           subs <- catMaybes <$> mapM mkItem subsecs
           let secnum' = case secNumber secinfo of
                           Just num -> [Span ("", ["section-header-number"], [])
-                                       [Str num] , Space]
+                                       [Str num] , Str "\160"]
                           Nothing -> []
           let title' = secnum' <> secTitle secinfo
           -- can't have <a> elements inside generated links...
