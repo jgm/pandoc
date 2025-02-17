@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Lua
-   Copyright   : Copyright © 2017-2024 Albert Krewinkel
+   Copyright   : Copyright © 2017-2025 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>

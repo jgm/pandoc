@@ -1,6 +1,6 @@
 {- |
 Module      : Tests.Lua.Module
-Copyright   : © 2019-2024 Albert Krewinkel
+Copyright   : © 2019-2025 Albert Krewinkel
 License     : GNU GPL, version 2 or above
 
 Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>

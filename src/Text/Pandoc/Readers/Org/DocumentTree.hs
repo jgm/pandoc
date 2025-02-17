@@ -3,7 +3,7 @@
 {-# LANGUAGE TupleSections     #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.DocumentTree
-   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2025 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>

@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {- |
    Module      : Text.Pandoc.Readers.Mdoc.Lex
-   Copyright   : Copyright (C) 2024 Evan Silberman
+   Copyright   : Copyright (C) 2024-2025 Evan Silberman
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Evan Silberman <evan@jklol.net>

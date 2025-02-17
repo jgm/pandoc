@@ -2,7 +2,7 @@
 {-# LANGUAGE StrictData          #-}
 {- |
    Module      : Text.Pandoc.Transforms
-   Copyright   : © 2006-2024 John MacFarlane
+   Copyright   : © 2006-2025 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
 

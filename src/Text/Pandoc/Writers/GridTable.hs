@@ -5,7 +5,7 @@
 
 {- |
 Module      : Text.Pandoc.Writers.GridTable
-Copyright   : © 2020-2024 Albert Krewinkel
+Copyright   : © 2020-2025 Albert Krewinkel
 License     : GNU GPL, version 2 or above
 
 Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
