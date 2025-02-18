@@ -44,9 +44,9 @@ yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
              -> B.ByteString
              -> ParsecT Sources st m (Future st Meta)
 yamlBsToMeta pMetaValue bstr = do
+  pos <- getPosition
   case decodeAllWithWarnings bstr of
        Right (warnings, xs) -> do
-         pos <- getPosition
          mapM_ (\(Yaml.DuplicateKey jpath) ->
                           report (YamlWarning pos $ "Duplicate key: " <>
                                   T.pack (formatRelativePath jpath)))
@@ -57,7 +57,9 @@ yamlBsToMeta pMetaValue bstr = do
            [] -> return . return $ mempty
            _  -> Prelude.fail "expected YAML object"
        Left err' -> do
-         let msg = T.pack $ Yaml.prettyPrintParseException err'
+         let msg = T.pack $ "Error parsing YAML metadata at " <>
+                             show pos <> ":\n" <>
+                             Yaml.prettyPrintParseException err'
          throwError $ PandocParseError $
            if "did not find expected key" `T.isInfixOf` msg
               then msg <>
