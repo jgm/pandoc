@@ -2157,9 +2157,9 @@ Fields:
     value `nil` means that no highlighting is used. (table|nil)
 
 `html_math_method`
-:   How to print math in HTML; one 'plain', 'gladtex', 'webtex',
-    'mathml', 'mathjax', or a table with keys `method` and
-    `url`. (string|table)
+:   How to print math in HTML; one of 'plain', 'mathjax',
+    'mathml', 'webtex', 'katex', 'gladtex', or a table with keys
+    `method` and `url`. (string|table)
 
 `html_q_tags`
 :   Use `<q>` tags for quotes in HTML (boolean)
