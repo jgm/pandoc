@@ -851,6 +851,10 @@ getBlocks :: PandocMonad m => Element -> DB m Blocks
 getBlocks e =  mconcat <$>
                  mapM parseBlock (elContent e)
 
+getRoleAttr :: Element -> [(Text, Text)] -- extract role attribute and add it to the attribute list
+getRoleAttr e = case attrValue "role" e of
+                  "" -> []
+                  r  -> [("role", r)]
 
 parseBlock :: PandocMonad m => Content -> DB m Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
@@ -879,7 +883,7 @@ parseBlock (Elem e) =
         "bibliomisc" -> parseMixed para (elContent e)
         "bibliomixed" -> parseMixed para (elContent e)
         "equation"         -> para <$> equation e displayMath
-        "informalequation" -> divWith (attrValue "id" e,["informalequation"],[]) .
+        "informalequation" -> divWith (attrValue "id" e,["informalequation"], getRoleAttr e) .
                               para <$> equation e displayMath
         "glosssee" -> para . (\ils -> text "See " <> ils <> str ".")
                          <$> getInlines e
@@ -903,7 +907,7 @@ parseBlock (Elem e) =
         "section" -> gets dbSectionLevel >>= sect . (+1)
         "simplesect" ->
           gets dbSectionLevel >>=
-          sectWith(attrValue "id" e) ["unnumbered"] [] . (+1)
+          sectWith(attrValue "id" e) ["unnumbered"] (getRoleAttr e) . (+1)
         "refsect1" -> sect 1
         "refsect2" -> sect 2
         "refsect3" -> sect 3
@@ -963,7 +967,7 @@ parseBlock (Elem e) =
                     addMetadataFromElement e >> getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
-        "informalexample" -> divWith ("", ["informalexample"], []) <$>
+        "informalexample" -> divWith (attrValue "id" e, ["informalexample"], getRoleAttr e) <$>
                              getBlocks e
         "linegroup" -> lineBlock <$> lineItems
         "literallayout" -> codeBlockWithLang
@@ -1025,8 +1029,8 @@ parseBlock (Elem e) =
          parseTable = do
                       let elId = attrValue "id" e
                       let attrs = case attrValue "tabstyle" e of
-                                    "" -> []
-                                    x  -> [("custom-style", x)]
+                                    "" -> getRoleAttr e
+                                    x  -> ("custom-style", x) : getRoleAttr e
                       let classes = T.words $ attrValue "class" e
                       let isCaption x = named "title" x || named "caption" x
                       capt <- case filterChild isCaption e of
@@ -1099,7 +1103,7 @@ parseBlock (Elem e) =
            modify $ \st -> st{ dbSectionLevel = n }
            b <- getBlocks e
            modify $ \st -> st{ dbSectionLevel = n - 1 }
-           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs) n' headerText <> b
+           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs++getRoleAttr e) n' headerText <> b
          titleabbrevElAsAttr =
            case filterChild (named "titleabbrev") e `mplus`
                 (filterChild (named "info") e >>=
@@ -1122,9 +1126,8 @@ parseBlock (Elem e) =
            b <- p
            case mbt of
              Nothing -> return b
-             Just t -> return $ divWith (attrValue "id" e,[],[])
-                         (divWith ("", ["title"], []) (plain t) <> b)
-
+             Just t  -> return $ divWith (attrValue "id" e, [], getRoleAttr e)  -- Updated!
+                         (divWith ("", ["title"], getRoleAttr e) (plain t) <> b)
          -- Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
          -- block itself a class corresponding to the admonition name.
@@ -1134,7 +1137,7 @@ parseBlock (Elem e) =
            b <- getBlocks e
            let t = divWith ("", ["title"], []) (plain $ fromMaybe mempty mbt)
            -- we also attach the label as a class, so it can be styled properly
-           return $ divWith (attrValue "id" e,[label],[]) (t <> b)
+           return $ divWith (attrValue "id" e, [label], getRoleAttr e) (t <> b)
 
 toAlignment :: Element -> Alignment
 toAlignment c = case findAttr (unqual "align") c of
@@ -1209,7 +1212,7 @@ parseInline (CRef ref) =
 parseInline (Elem e) =
   case qName (elName e) of
         "anchor" -> do
-           return $ spanWith (attrValue "id" e, [], []) mempty
+           return $ spanWith (attrValue "id" e, [], getRoleAttr e) mempty
         "phrase" -> do
           let ident = attrValue "id" e
           let classes = T.words $ attrValue "role" e
