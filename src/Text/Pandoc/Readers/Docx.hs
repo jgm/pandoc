@@ -816,8 +816,6 @@ bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
       cap' = caption shortCaption fullCaption
       (hdr, rows) = splitHeaderRows (firstRowFormatting look) parts
 
-  let rowHeadCols = if firstColumnFormatting look then 1 else 0
-
   let width = maybe 0 maximum $ nonEmpty $ map rowLength parts
       rowLength :: Docx.Row -> Int
       rowLength (Docx.Row _ c) = sum (fmap (\(Docx.Cell _ gridSpan _ _) -> fromIntegral gridSpan) c)
@@ -841,7 +839,7 @@ bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
   return $ tableWith attr cap'
                  (zip alignments widths)
                  (TableHead nullAttr headerCells)
-                 [TableBody nullAttr (RowHeadColumns rowHeadCols) [] bodyCells]
+                 [TableBody nullAttr 0 [] bodyCells]
                  (TableFoot nullAttr [])
 bodyPartToBlocks HRule = pure Pandoc.horizontalRule
 
