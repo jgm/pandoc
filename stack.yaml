@@ -19,7 +19,7 @@ extra-deps:
 - git: https://github.com/jgm/typst-hs.git
   commit: 66f0ce38f95a6807dc810111dabd7bd21ca32374
 - git: https://github.com/jgm/texmath.git
-  commit: 2e2ef8dcb4d6aaeafffe2b5df214f4467b1c22c9
+  commit: b37930a908bacdfa7cea5cbea35331d97fc15e8e
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.0
