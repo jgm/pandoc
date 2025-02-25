@@ -469,25 +469,25 @@ link = try $ do
   st <- getState
   guard $ stateAllowLinks st
   setState $ st{ stateAllowLinks = False }
-  (url, title, content) <- linkText <|> simpleWikiLink
+  (url, title, classes, content) <- linkText <|> simpleWikiLink
   setState $ st{ stateAllowLinks = True }
-  return $ B.link url title content
+  return $ B.linkWith ("",classes,[]) url title content
 
-linkText :: PandocMonad m => TWParser m (Text, Text, B.Inlines)
+linkText :: PandocMonad m => TWParser m (Text, Text, [Text], B.Inlines)
 linkText = do
   string "[["
   url <- T.pack <$> many1Till anyChar (char ']')
   content <- option (B.str url) (mconcat <$> linkContent)
   char ']'
-  return (url, "", content)
+  return (url, "", [], content)
   where
     linkContent      = char '[' >> many1Till anyChar (char ']') >>= parseLinkContent . T.pack
     parseLinkContent = parseFromString' $ many1 inline
 
-simpleWikiLink :: PandocMonad m => TWParser m (Text, Text, B.Inlines)
+simpleWikiLink :: PandocMonad m => TWParser m (Text, Text, [Text], B.Inlines)
 simpleWikiLink = do
   w <- wikiWord
-  return (w, "wikilink", B.str w)
+  return (w, "", ["wikilink"], B.str w)
  where
    wikiWord = do
      cs <- many1 $ satisfy (\x -> isLetter x && isUpper x)

@@ -1,87 +1,80 @@
 ```
-% pandoc --citeproc -t markdown-citations
+% pandoc --citeproc -t plain
 ---
 references:
 - author:
   - family: ʾUdhrī
     given: Jamīl
     non-dropping-particle: 'al-'
-    note: ayn
+  issued: 2000
+  title: hamza
   id: item1
 - author:
   - family: ʿUdhrī
     given: Jamīl
     non-dropping-particle: 'al-'
-    note: hamza
+  issued: 2000
+  title: ayn
   id: item2
 - author:
-  - family: '\''Udhrī'
+  - family: "'Udhrī"
     given: Jamīl
     non-dropping-particle: 'al-'
-    note: straight apostrophe
+  issued: 2000
+  title: straight apostrophe
   id: item3
 - author:
   - family: '‘Udhrī'
     given: Jamīl
     non-dropping-particle: 'al-'
-    note: inverted apostrophe = opening single curly quote (for ayn)
+  issued: 2000
+  title: inverted curly apostrophe = opening single curly quote (for ayn)
   id: item4
 - author:
   - family: '’Udhrī'
     given: Jamīl
     non-dropping-particle: 'al-'
-    note: apostrophe = closing single curly quote (for hamza)
+  issued: 2000
+  title: curly apostrophe = closing single curly quote (for hamza)
   id: item5
 - author:
   - family: Uch
     given: Ann
   id: item6
+  issued: 2000
 - author:
   - family: Uebel
     given: Joe
   id: item7
+  issued: 2000
 - author:
   - family: Zzz
     given: Zoe
   id: item8
+  issued: 2000
 ---
 
 Foo [@item1; @item2; @item3; @item4; @item5; @item6; @item7; @item8].
 ^D
-Foo (al-ʾUdhrī, n.d.; al-ʿUdhrī, n.d.; al-\'Udhrī, n.d.; al-'Udhrī,
-n.d.a, n.d.b; Uch, n.d.; Uebel, n.d.; Zzz, n.d.).
+Foo (al-ʾUdhrī 2000; al-ʿUdhrī 2000; al-’Udhrī 2000b, 2000a; al-‘Udhrī
+2000; Uch 2000; Uebel 2000; Zzz 2000).
 
-::::::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
-::: {#ref-item6 .csl-entry}
-Uch, Ann. n.d.
-:::
+Uch, Ann. 2000.
 
-::: {#ref-item1 .csl-entry}
-ʾUdhrī, Jamīl al-. n.d.
-:::
+‘Udhrī, Jamīl al-. 2000. “Inverted Curly Apostrophe = Opening Single
+Curly Quote (for Ayn).”
 
-::: {#ref-item2 .csl-entry}
-ʿUdhrī, Jamīl al-. n.d.
-:::
+ʿUdhrī, Jamīl al-. 2000. “Ayn.”
 
-::: {#ref-item3 .csl-entry}
-\'Udhrī, Jamīl al-. n.d.
-:::
+’Udhrī, Jamīl al-. 2000a. “Curly Apostrophe = Closing Single Curly Quote
+(for Hamza).”
 
-::: {#ref-item4 .csl-entry}
-'Udhrī, Jamīl al-. n.d.a.
-:::
+ʾUdhrī, Jamīl al-. 2000. “Hamza.”
 
-::: {#ref-item5 .csl-entry}
----------. n.d.b.
-:::
+’Udhrī, Jamīl al-. 2000b. “Straight Apostrophe.”
 
-::: {#ref-item7 .csl-entry}
-Uebel, Joe. n.d.
-:::
+Uebel, Joe. 2000.
 
-::: {#ref-item8 .csl-entry}
-Zzz, Zoe. n.d.
-:::
-:::::::::::
+Zzz, Zoe. 2000.
+
 ```

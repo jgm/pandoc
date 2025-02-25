@@ -559,13 +559,13 @@ Pandoc
       [ Str "internal" , Space , Str "links" ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "This is a link" ]
-          ( "This is a link" , "wikilink" )
+          ( "This is a link" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "Description"
           , Space
           , Str "of"
@@ -574,27 +574,27 @@ Pandoc
           , Space
           , Str "link"
           ]
-          ( "This is a link source" , "wikilink" )
+          ( "This is a link source" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "projects/Important Project 1" ]
-          ( "projects/Important Project 1" , "wikilink" )
+          ( "projects/Important Project 1" , "" )
       , SoftBreak
       , Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "../index" ]
-          ( "../index" , "wikilink" )
+          ( "../index" , "" )
       , SoftBreak
       , Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "Other" , Space , Str "files" ]
-          ( "a subdirectory/" , "wikilink" )
+          ( "a subdirectory/" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "try"
           , Space
           , Str "me"
@@ -607,11 +607,11 @@ Pandoc
           , Space
           , Str "anchors"
           ]
-          ( "#tag-one" , "wikilink" )
+          ( "#tag-one" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "try"
           , Space
           , Str "me"
@@ -624,11 +624,11 @@ Pandoc
           , Space
           , Str "anchors"
           ]
-          ( "#block quotes" , "wikilink" )
+          ( "#block quotes" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "try"
           , Space
           , Str "me"
@@ -641,19 +641,19 @@ Pandoc
           , Space
           , Str "anchors"
           ]
-          ( "#strong" , "wikilink" )
+          ( "#strong" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "Tasks" , Space , Str "for" , Space , Str "tomorrow" ]
-          ( "Todo List#Tomorrow" , "wikilink" )
+          ( "Todo List#Tomorrow" , "" )
       ]
   , Para
       [ Link
-          ( "" , [] , [] )
+          ( "" , [ "wikilink" ] , [] )
           [ Str "diary:2017-05-01" ]
-          ( "diary/2017-05-01" , "wikilink" )
+          ( "diary/2017-05-01" , "" )
       ]
   , Para
       [ Link

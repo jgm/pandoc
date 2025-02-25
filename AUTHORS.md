@@ -69,6 +69,7 @@
 - Cezary Drożak
 - Chandrahas77
 - Charanjit Singh
+- Charles Tapley Hoyt
 - Charlotte Koch
 - Chris Black
 - Christian Conkle
@@ -149,6 +150,7 @@
 - Gwern Branwen
 - Hamish Mackenzie
 - Hans-Peter Deifel
+- Hendrik Erz
 - Heiko Schlittermann
 - Henrik Tramberend
 - Henry de Valence
@@ -197,6 +199,7 @@
 - Jeroen de Haas
 - Jerry Sky
 - Jesse Rosenthal
+- Jez Cope
 - Joe Hermaszewski
 - Joe Hillenbrand
 - John KetzerX
@@ -246,6 +249,7 @@
 - Marc Schreiber
 - Marcin Serwin
 - Mario Lang
+- Mark Gardner
 - Mark Szepieniec
 - Mark Wright
 - Martin Joerg
@@ -349,6 +353,7 @@
 - Scott Morrison
 - Sebastian Talmon
 - Sebbones
+- Sen-wen Deng
 - Sergei Trofimovich
 - Sergey Astanin
 - Seth Speaks
@@ -366,6 +371,7 @@
 - Stephan Meijer
 - Stephen Altamirano
 - Stephen Huan
+- Stephen Reindl
 - Stéphane Guillou
 - Sukil Etxenike
 - Sukka

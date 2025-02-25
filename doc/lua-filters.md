@@ -2157,9 +2157,9 @@ Fields:
     value `nil` means that no highlighting is used. (table|nil)
 
 `html_math_method`
-:   How to print math in HTML; one 'plain', 'gladtex', 'webtex',
-    'mathml', 'mathjax', or a table with keys `method` and
-    `url`. (string|table)
+:   How to print math in HTML; one of 'plain', 'mathjax',
+    'mathml', 'webtex', 'katex', 'gladtex', or a table with keys
+    `method` and `url`. (string|table)
 
 `html_q_tags`
 :   Use `<q>` tags for quotes in HTML (boolean)
@@ -3750,6 +3750,10 @@ all enabled extensions, or a table with extensions as keys and
 their activation status as values (`true` or `'enable'` to enable
 an extension, `false` or `'disable'` to disable it).
 
+Note: The extensions field in `reader_options` is ignored, as the
+function will always use the format extensions specified via the
+`format` parameter.
+
 Parameters:
 
 `markup`
@@ -3782,6 +3786,10 @@ Usage:
 ### `write (doc[, format[, writer_options]])` {#pandoc.write}
 
 Converts a document to the given target format.
+
+Note: The extensions field in `writer_options` is ignored, as the
+function will always use the format extensions specified via the
+`format` parameter.
 
 Parameters:
 

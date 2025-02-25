@@ -1,5 +1,148 @@
 # Revision history for pandoc
 
+## pandoc 3.6.3 (2025-02-09)
+
+  * Track wikilinks with a class instead of a title (Evan Silberman).
+    Previously wikilinks were distinguished by giving them the `title`
+    `wikilink`.  Now that we have link attributes, it makes more sense
+    to give them the `class` `wikilink`. This change affects all readers
+    and writers that support wikilinks.
+
+  * DocBook reader:
+
+    + Handle title inside `orderedlist` (#10594). Also some other
+      elements that allow title: `blockquote`, `calloutlist`, etc.
+    + Better handle `informalequation` (#10592, tombolano). Include `id`
+      attribute.
+    + Better handle `formalpara`, `example`, and `sidebar` (#8666, tombolano).
+      Include identifiers and titles in each case.
+
+  * Markdown reader:
+
+    + Simplify and fix normal citation parsing (#10584).
+      This fixes a bug that causes some normal citations to be
+      parsed as bracketed regular citations.
+
+  * ODT reader:
+
+    + Create Figure elements for images that are figures (#10567).
+    + Avoid producing spurious blockquotes in list items (#9505).
+    + Fix unwanted block quotes (#10575). Previously the reader created
+      block quotes whenever a paragraph was marked indented (even though
+      this just affects the first line). With this change we still
+      generate block quotes for content that has an altered left margin,
+      but not for indented paragraphs.
+
+  * Docx reader:
+
+    + Do not issue warning for comments with `+styles` (#10571, Stephen Reindl).
+
+  * LaTeX reader:
+
+    + Test \{,re}newcommand arguments (#4470, Evan Silberman).
+
+  * Pod reader:
+
+    + Consume blanks after =encoding in pod reader (#10537, Evan Silberman).
+
+  * JATS writer:
+
+    + Add CRediT roles to JATS (Charles Tapley Hoyt and Jez Cope, #10152).
+      Enable annotating author roles using the Contribution Role Taxonomy
+      (CRediT) and export this information in conformant JATS.
+
+  * LaTeX writer/templates:
+
+    + Improve babel support (#8283). Previously we used the `.ini`
+      files for every language, but for European languages these tend to
+      provide inferior results to the `.ldf` files used by classic
+      Babel. Currently Babel documentation recommends using the classic
+      system for European languages written in Latin and Cyrillic
+      scripts and Vietnamese. So the LaTeX writer and template now
+      follow this guidance.
+
+      Main languages in the list of languages with good "classic" support
+      are added to global documentclass options and will be automatically
+      handled by Babel using the `.ldf` files.
+
+      If the main language is not in this list, the `babeloptions` variable
+      will be set to `provide=*`, which will cause support to be loaded from
+      the `.ini` file rather than an `.ldf`. So, for example, setting
+      `-V babeloptions=''` with a polytonic Greek document will cause the
+      `.ldf` support to be used instead of the `.ini`.
+
+      The default setting of this variable can be overwritten, but in most
+      cases the default should give good results.
+
+    + Allow `csquotesoptions` to be specified.
+    + Fix indentation bugs in `font-settings.latex`.
+
+  * Docx writer:
+
+    + Repeat reference doc's `sectPr` for each new section (#10577).
+      Previously we were only carrying over the reference doc's `sectPr`
+      at the end of the document, so it wouldn't affect the intermediate
+      sections that are now added if `--top-level-division` is `chapter`
+      or `part`. This could lead to bad results (e.g. page numbering
+      starting only on the last chapter).
+    + Create section divisions with `--top-level-division=part` (#10576).
+    + Improve title style in reference.docx; base Author and Date
+      on Title; remove condensed spacing (Andrew Dunning, #10581).
+
+  * Typst writer:
+
+    + Brace tables with `typst:no-figure` and `typst:text` attributes (#10563,
+      Gordon Woodhull).
+
+  * Ms writer:
+
+    + Fix escaping of `-` (#10536). `-` should now be escaped in man
+      output but not in ms output (where `\-` is a unicode minus sign).
+
+  * HTML styles: fix style of `hr` so it works when printed (#10535, Hendrik Erz).
+    Previously `background-color` was used to style the hr, but this gets ignored
+    when printing.  This commit uses `border-top` instead.
+
+  * Text.Pandoc.Shared:
+
+    + Handle `<abbr>` as a span-like inline in `htmlSpanLikeElements`
+      (#5793, Evan Silberman).
+
+  * Text.Pandoc.MediaBag:
+
+    + Prefer MIME type when determining extensions for MediaBag items (#10557,
+      Max Heller).  This should give different results for remote images
+      that are served at URLs that do not contain misleading extensions
+      (e.g. `shields.io`).
+
+  * Text.Pandoc.Citeproc:
+
+    + Fix moving punctuation before citation notes. This previously worked with
+      regular citations, but not author-in-text citations. Now it works with both.
+
+  * `doc/lua-filters.md`:
+
+    + Correct luacheck URL (#10589, R. N. West).
+    + Add static analysis paragraph to debugging section (#10568, R. N. West).
+    + Add note about extensions handling in `read` and `write` (Albert Krewinkel).
+
+  * `doc/extras.md`:
+
+    + Add entry for pandoc-subfigs (R. N. West).
+    + Update diagram Lua filter URL and description (R. N. West).
+
+  * MANUAL.txt:
+
+    + Add note on using typst to produce pdf/a-2b.
+    + Document top-level-division functionality with Docx (#10579, Andrew Dunning).
+
+  * Raise xml-conduit upper bound.
+
+  * Depend on latest commonmark-pandoc, commonmark-extensions,
+    citeproc, typst.
+
+  * Makefile: make `make binpath` quiet.
+
 ## pandoc 3.6.2 (2025-01-12)
 
   * New input format: `pod` (Evan Silberman). Pod ("Plain old documentation")

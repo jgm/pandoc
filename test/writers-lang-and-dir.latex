@@ -2,6 +2,12 @@
 \PassOptionsToPackage{unicode}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
 \documentclass[
+  ngerman,
+  british,
+  nswissgerman,
+  spanish,
+  french,
+  english,
 ]{article}
 \usepackage{xcolor}
 \usepackage{amsmath,amssymb}
@@ -37,21 +43,12 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \ifLuaTeX
-\usepackage[bidi=basic]{babel}
+\usepackage[bidi=basic,shorthands=off,]{babel}
 \else
-\usepackage[bidi=default]{babel}
+\usepackage[bidi=default,shorthands=off,]{babel}
 \fi
-\babelprovide[main,import]{english}
-\babelprovide[import]{ngerman}
-\babelprovide[import]{british}
-\babelprovide[import]{nswissgerman}
-\babelprovide[import]{spanish}
-\babelprovide[import]{french}
-% get rid of language-specific shorthands (see #6817):
-\let\LanguageShortHands\languageshorthands
-\def\languageshorthands#1{}
 \ifLuaTeX
-  \usepackage[english,german]{selnolig} % disable illegal ligatures
+  \usepackage{selnolig} % disable illegal ligatures
 \fi
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%

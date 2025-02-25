@@ -56,15 +56,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (lastMay)
 import Text.Pandoc.Builder (Blocks, Inlines, fromList, toList, trimInlines)
-import qualified Text.Pandoc.Builder as B (blockQuote, bulletList, code,
-                                           codeBlockWith, definitionList,
-                                           displayMath, divWith, emph,
-                                           headerWith, horizontalRule, image,
-                                           imageWith, link, math, orderedList,
-                                           para, plain, setMeta, simpleTable,
-                                           softbreak, space, spanWith, str,
-                                           strikeout, strong, subscript,
-                                           superscript)
+import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition (Attr, Block (BulletList, OrderedList),
                                Inline (Space), ListNumberDelim (..),
@@ -555,17 +547,14 @@ link = try $ do
                   then do
                     url <- manyTillChar anyChar $ char '|'
                     lab <- mconcat <$> manyTill inline (string "]]")
-                    let tit = if isURI url
-                                 then ""
-                                 else "wikilink"
-                    return $ B.link (procLink url) tit lab
+                    return $ B.linkWith (attr url) (procLink url) "" lab
                   else do
                     manyTill anyChar (string "]]")
 -- not using try here because [[hell]o]] is not rendered as a link in vimwiki
-                    let tit = if isURI contents
-                                 then ""
-                                 else "wikilink"
-                    return $ B.link (procLink contents) tit (B.str contents)
+                    return $ B.linkWith (attr contents) (procLink contents) "" (B.str contents)
+  where
+    attr t | isURI t = B.nullAttr
+           | otherwise = (mempty, ["wikilink"], mempty)
 
 image :: PandocMonad m => VwParser m Inlines
 image = try $ do

@@ -174,7 +174,8 @@ imageToDocBook _ attr src = selfClosingTag "imagedata" $
 blockToDocBook :: PandocMonad m => WriterOptions -> Block -> DB m (Doc Text)
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
-blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils : xs)) = do
+blockToDocBook opts (Div (id',"section":_classes,divattrs)
+                     (Header lvl (_,hclasses,_) ils : xs)) = do
   version <- ask
   -- DocBook doesn't allow sections with no content, so insert some if needed
   let bs = if null xs
@@ -198,7 +199,7 @@ blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils :
 
       -- Populate miscAttr with Header.Attr.attributes, filtering out non-valid DocBook section attributes, id, and xml:id
       -- Also enrich the role attribute with certain class tokens
-      miscAttr = enrichRole (filter (isSectionAttr version) attrs) classes
+      miscAttr = enrichRole (filter (isSectionAttr version) divattrs) hclasses
       attribs = nsAttr <> idAttr <> miscAttr
   title' <- inlinesToDocBook opts ils
   contents <- blocksToDocBook opts bs

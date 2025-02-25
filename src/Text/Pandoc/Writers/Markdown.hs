@@ -782,7 +782,10 @@ bulletListItemToMarkdown opts bs = do
   let start = case variant of
               Markua -> "* "
               Commonmark -> "- "
-              _ -> "- " <> T.replicate (writerTabStop opts - 2) " "
+              Markdown
+                | isEnabled Ext_four_space_rule opts
+                  -> "- " <> T.replicate (writerTabStop opts - 2) " "
+              _ -> "- "
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr

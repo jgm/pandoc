@@ -547,9 +547,14 @@ makeSectionsWithOffsets numoffsets numbering mbBaseLevel bs =
                         ("number", T.intercalate "." (map tshow newnum)) : kvs
                   _ -> kvs
     let divattr = (ident, "section":classes, kvs')
-    let attr = ("",classes,kvs')
+    let isHeadingAttr ("epub:type",_) = False
+        isHeadingAttr ("role",v) =
+          v `elem` ["tab", "presentation", "none", "treeitem",
+                    "menuitem", "button", "heading"]
+        isHeadingAttr _ = True
+    let hattr = ("",classes, filter isHeadingAttr kvs')
     return $
-      Div divattr (Header level' attr title' : sectionContents') : rest'
+      Div divattr (Header level' hattr title' : sectionContents') : rest'
   go (Div divattr@(dident,dclasses,_) (Header level hattr title':ys) : xs)
       | all (\case
                Header level' _ _ -> level' > level
