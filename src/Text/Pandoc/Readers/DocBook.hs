@@ -883,7 +883,8 @@ parseBlock (Elem e) =
         "bibliomisc" -> parseMixed para (elContent e)
         "bibliomixed" -> parseMixed para (elContent e)
         "equation"         -> para <$> equation e displayMath
-        "informalequation" -> divWith (attrValue "id" e,["informalequation"], getRoleAttr e) .
+        "informalequation" -> divWith (attrValue "id" e,["informalequation"],
+                              getRoleAttr e) .
                               para <$> equation e displayMath
         "glosssee" -> para . (\ils -> text "See " <> ils <> str ".")
                          <$> getInlines e
@@ -967,7 +968,8 @@ parseBlock (Elem e) =
                     addMetadataFromElement e >> getBlocks e
         "table" -> parseTable
         "informaltable" -> parseTable
-        "informalexample" -> divWith (attrValue "id" e, ["informalexample"], getRoleAttr e) <$>
+        "informalexample" -> divWith (attrValue "id" e,
+                             ["informalexample"], getRoleAttr e) <$>
                              getBlocks e
         "linegroup" -> lineBlock <$> lineItems
         "literallayout" -> codeBlockWithLang
@@ -1103,7 +1105,8 @@ parseBlock (Elem e) =
            modify $ \st -> st{ dbSectionLevel = n }
            b <- getBlocks e
            modify $ \st -> st{ dbSectionLevel = n - 1 }
-           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs++getRoleAttr e) n' headerText <> b
+           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs++getRoleAttr e) n'
+             headerText <> b
          titleabbrevElAsAttr =
            case filterChild (named "titleabbrev") e `mplus`
                 (filterChild (named "info") e >>=
