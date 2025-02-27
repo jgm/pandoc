@@ -29,8 +29,7 @@ import Network.URI (unEscapeString)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
-                                    lookupMetaString,
-                                    isOrderedListMarker )
+                                    lookupMetaString )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
@@ -39,7 +38,7 @@ import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, isDigit)
 import Data.Maybe (fromMaybe)
 
 -- | Convert Pandoc to Typst.
@@ -147,8 +146,12 @@ blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
 blockToTypst :: PandocMonad m => Block -> TW m (Doc Text)
 blockToTypst block =
   case block of
-    Plain inlines -> inlinesToTypst inlines
-    Para inlines -> ($$ blankline) <$> inlinesToTypst inlines
+    Plain inlines -> do
+      opts <- gets stOptions
+      inlinesToTypst (addLineStartEscapes opts inlines)
+    Para inlines -> do
+      opts <- gets stOptions
+      ($$ blankline) <$> inlinesToTypst (addLineStartEscapes opts inlines)
     Header level (ident,cls,_) inlines -> do
       contents <- inlinesToTypst inlines
       let lab = toLabel FreestandingLabel ident
@@ -474,16 +477,28 @@ mkImage opts useBox src attr
     | otherwise = "image" <> parens (doubleQuoted src' <> dimAttrs)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
-textstyle s inlines =
-  (<> endCode) . (s <>) . brackets . addEscape <$> inlinesToTypst inlines
+textstyle s inlines = do
+  opts <-  gets stOptions
+  (<> endCode) . (s <>) . brackets
+    <$> inlinesToTypst (addLineStartEscapes opts inlines)
+
+addLineStartEscapes :: WriterOptions -> [Inline] -> [Inline]
+addLineStartEscapes opts = go True
  where
-   addEscape =
-     case inlines of
-       (Str t : _)
-         | isOrderedListMarker t -> ("\\" <>)
-         | Just (c, _) <- T.uncons t
-         , needsEscapeAtLineStart c -> ("\\" <>)
-       _ -> id
+   go True (Str t : xs)
+        | isOrderedListMarker t = RawInline "typst" "\\" : Str t : go False xs
+        | Just (c, t') <- T.uncons t
+        , needsEscapeAtLineStart c
+        , T.null t' = RawInline "typst" "\\" : Str t : go False xs
+   go _ (SoftBreak : xs)
+        | writerWrapText opts == WrapPreserve = SoftBreak : go True xs
+   go _ (LineBreak : xs) = LineBreak : go True xs
+   go _ (x : xs) = x : go False xs
+   go _ [] = []
+
+isOrderedListMarker :: Text -> Bool
+isOrderedListMarker t = not (T.null ds) && rest == "."
+  where (ds, rest) = T.span isDigit t
 
 escapeTypst :: Bool -> EscapeContext -> Text -> Doc Text
 escapeTypst smart context t =
