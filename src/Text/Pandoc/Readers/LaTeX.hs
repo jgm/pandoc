@@ -390,16 +390,12 @@ inlineCommands = M.unions
     -- \passthrough macro used by latex writer
                            -- for listings
     , ("includegraphics", do options <- option [] keyvals
-                             src <- braced
-                             mkImage options .
-                               unescapeURL .
-                               removeDoubleQuotes $ untokenize src)
+                             src <- bracedFilename
+                             mkImage options . unescapeURL $ src)
     -- svg
     , ("includesvg",      do options <- option [] keyvals
-                             src <- braced
-                             mkImage options .
-                               unescapeURL .
-                               removeDoubleQuotes $ untokenize src)
+                             src <- bracedFilename
+                             mkImage options . unescapeURL $ src)
     -- hyperref
     , ("url", (\url -> linkWith ("",["uri"],[]) url "" (str url))
                         . unescapeURL . untokenize <$> bracedUrl)
@@ -437,6 +433,14 @@ inlineCommands = M.unions
     -- generally only used in \date
     , ("today", today)
     ]
+
+bracedFilename :: PandocMonad m => LP m Text
+bracedFilename =
+  removeDoubleQuotes . T.strip . untokenize . filter (not . isComment) <$> braced
+
+isComment :: Tok -> Bool
+isComment (Tok _ Comment _) = True
+isComment _ = False
 
 today :: PandocMonad m => LP m Inlines
 today =
@@ -719,7 +723,7 @@ rawBlockOr name fallback = do
 doSubfile :: PandocMonad m => LP m Blocks
 doSubfile = do
   skipMany opt
-  f <- T.unpack . removeDoubleQuotes . T.strip . untokenize <$> braced
+  f <- T.unpack <$> bracedFilename
   oldToks <- getInput
   setInput $ TokStream False []
   insertIncluded (ensureExtension (/= "") ".tex" f)
@@ -737,7 +741,7 @@ include name = do
           _ -> const False
   skipMany opt
   fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
-         untokenize <$> braced
+         untokenize . filter (not . isComment) <$> braced
   mapM_ (insertIncluded . ensureExtension isAllowed ".tex") fs
   return mempty
 
@@ -745,7 +749,7 @@ usepackage :: (PandocMonad m, Monoid a) => LP m a
 usepackage = do
   skipMany opt
   fs <- map (T.unpack . removeDoubleQuotes . T.strip) . T.splitOn "," .
-         untokenize <$> braced
+           untokenize . filter (not . isComment) <$> braced
   let parsePackage f = do
         TokStream _ ts <- getIncludedToks (ensureExtension (== ".sty") ".sty" f)
         parseFromToks (do _ <- blocks
