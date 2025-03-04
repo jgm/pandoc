@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {- |
    Module      : Main
-   Copyright   : Copyright (C) 2006-2024 John MacFarlane
+   Copyright   : Copyright (C) 2006-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -69,7 +69,7 @@ main = E.handle (handleError . Left) $ do
 
 copyrightMessage :: String
 copyrightMessage =
- "Copyright (C) 2006-2024 John MacFarlane. Web: https://pandoc.org\n"
+ "Copyright (C) 2006-2025 John MacFarlane. Web: https://pandoc.org\n"
  ++
  "This is free software; see the source for copying conditions. There is no\n"
  ++

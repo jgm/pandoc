@@ -1,6 +1,6 @@
 {- |
    Module      : Tests.Old
-   Copyright   : © 2006-2024 John MacFarlane
+   Copyright   : © 2006-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>

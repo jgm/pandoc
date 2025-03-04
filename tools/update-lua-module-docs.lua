@@ -1,5 +1,5 @@
 --- Generate documentation for a pandoc Lua module.
--- Copyright: © 2022-2024 Albert Krewinkel
+-- Copyright: © 2022-2025 Albert Krewinkel
 -- License: MIT
 --
 -- This script can be used as either a custom reader, or as a standalone

@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
-   Copyright   : Copyright © 2017-2024 Albert Krewinkel
+   Copyright   : Copyright © 2017-2025 Albert Krewinkel
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
