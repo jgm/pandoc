@@ -294,15 +294,11 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
 
 type TblGrid = [Integer]
 
-data TblLook = TblLook { firstRowFormatting ::Bool
-                       , firstColumnFormatting :: Bool
-                       }
+newtype TblLook = TblLook {firstRowFormatting::Bool}
               deriving Show
 
 defaultTblLook :: TblLook
-defaultTblLook = TblLook{ firstRowFormatting = False
-                        , firstColumnFormatting = False
-                        }
+defaultTblLook = TblLook{firstRowFormatting = False}
 
 data Row = Row TblHeader [Cell] deriving Show
 
@@ -695,25 +691,17 @@ elemToTblGrid _ _ = throwError WrongElem
 
 elemToTblLook :: NameSpaces -> Element -> D TblLook
 elemToTblLook ns element | isElem ns "w" "tblLook" element =
-  let val = findAttrByName ns "w" "val" element
+  let firstRow = findAttrByName ns "w" "firstRow" element
+      val = findAttrByName ns "w" "val" element
       firstRowFmt =
-        case findAttrByName ns "w" "firstRow" element of
+        case firstRow of
           Just "1" -> True
           Just  _  -> False
           Nothing -> case val of
             Just bitMask -> testBitMask bitMask 0x020
             Nothing      -> False
-      firstColFmt =
-        case findAttrByName ns "w" "firstColumn" element of
-          Just "1" -> True
-          Just  _  -> False
-          Nothing -> case val of
-            Just bitMask -> testBitMask bitMask 0x080
-            Nothing      -> False
   in
-   return TblLook{ firstRowFormatting = firstRowFmt
-                 , firstColumnFormatting = firstColFmt
-                 }
+   return TblLook{firstRowFormatting = firstRowFmt}
 elemToTblLook _ _ = throwError WrongElem
 
 elemToRow :: NameSpaces -> Element -> D Row

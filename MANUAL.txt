@@ -3338,6 +3338,9 @@ The `--css` option also affects the output.
 
 ### Variables for Typst
 
+`template`
+:   Typst template to use.
+
 `margin`
 :   A dictionary with the fields defined in the Typst documentation:
     `x`, `y`, `top`, `bottom`, `left`, `right`.
@@ -4828,7 +4831,7 @@ If the file begins with a title block
 
 it will be parsed as bibliographic information, not regular text.  (It
 will be used, for example, in the title of standalone LaTeX or HTML
-output.)  The block may contain just a title, a title and an author,
+output.)  The block may contain just a title, a date and an author,
 or all three elements. If you want to include an author but no
 title, or a title and a date but no author, you need a blank line:
 
