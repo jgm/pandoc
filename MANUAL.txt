@@ -3338,6 +3338,9 @@ The `--css` option also affects the output.
 
 ### Variables for Typst
 
+`template`
+:   Typst template to use.
+
 `margin`
 :   A dictionary with the fields defined in the Typst documentation:
     `x`, `y`, `top`, `bottom`, `left`, `right`.
