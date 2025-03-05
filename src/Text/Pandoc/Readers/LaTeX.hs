@@ -386,6 +386,8 @@ inlineCommands = M.unions
     , ("lowercase", makeLowercase <$> tok)
     , ("thanks", skipopts >> note <$> grouped block)
     , ("footnote", skipopts >> footnote)
+    , ("newline", pure B.linebreak)
+    , ("linebreak", pure B.linebreak)
     , ("passthrough", fixPassthroughEscapes <$> tok)
     -- \passthrough macro used by latex writer
                            -- for listings
