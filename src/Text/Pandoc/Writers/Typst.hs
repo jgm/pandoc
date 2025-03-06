@@ -85,6 +85,7 @@ pandocToTypst options (Pandoc meta blocks) = do
                         Right l ->
                           resetField "lang" (langLanguage l) .
                           maybe id (resetField "region") (langRegion l))
+              $ defField "csl" (lookupMetaString "citation-style" meta) -- #10661
               $ defField "smart" (isEnabled Ext_smart options)
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
               $ defField "figure-caption-position"
