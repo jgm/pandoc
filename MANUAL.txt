@@ -1505,11 +1505,10 @@ header when requesting a document from a URL:
     order they appear on the command line.  For more
     information, see the section on [Citations].
 
-    Note: if your target format is `markdown`, `org`, or `typst`,
-    you will need to disable the `citations` extension (e.g., `-t
-    markdown-citations`) to see the rendered citations and
-    bibliography. Otherwise the format's own citation syntax will
-    be used.
+    Note: if this option is specified, the `citations` extension
+    will be disabled automatically in the writer, to ensure that
+    the citeproc-generated citations will be rendered instead of
+    the format's own citation syntax.
 
 `--bibliography=`*FILE*
 
