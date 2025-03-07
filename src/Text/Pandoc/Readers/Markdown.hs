@@ -1553,7 +1553,8 @@ inline = do
 escapedChar' :: PandocMonad m => MarkdownParser m Char
 escapedChar' = try $ do
   char '\\'
-  (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
+  (guardEnabled Ext_all_symbols_escapable >>
+     satisfy (\c -> c /= '\n' && c /= '\r' && not (isAlphaNum c)))
      <|> (guardEnabled Ext_angle_brackets_escapable >>
             oneOf "\\`*_{}[]()>#+-.!~\"<>")
      <|> oneOf "\\`*_{}[]()>#+-.!"
