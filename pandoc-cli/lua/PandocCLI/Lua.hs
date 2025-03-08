@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : PandocCLI.Lua
-   Copyright   : © 2022-2024 Albert Krewinkel
+   Copyright   : © 2022-2025 Albert Krewinkel
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
@@ -44,7 +44,7 @@ runLuaInterpreter progName args = do
             { settingsVersionInfo =
               "\nEmbedded in pandoc " <>
               pandocVersionText <>
-              "  Copyright (C) 2006-2024 John MacFarlane"
+              "  Copyright (C) 2006-2025 John MacFarlane"
             , settingsRunner = runner
             , settingsHistory = Just histfile
             }
