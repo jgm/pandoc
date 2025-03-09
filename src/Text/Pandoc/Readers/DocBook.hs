@@ -1030,8 +1030,8 @@ parseBlock (Elem e) = do
          parseTable = do
                       let elId = attrValue "id" e
                       let attrs = case attrValue "tabstyle" e of
-                                    "" -> getRoleAttr e
-                                    x  -> ("custom-style", x) : getRoleAttr e
+                                    "" -> []
+                                    x  -> [("custom-style", x)]
                       let classes = T.words $ attrValue "class" e
                       let isCaption x = named "title" x || named "caption" x
                       capt <- case filterChild isCaption e of
@@ -1104,8 +1104,7 @@ parseBlock (Elem e) = do
            modify $ \st -> st{ dbSectionLevel = n }
            b <- getBlocks e
            modify $ \st -> st{ dbSectionLevel = n - 1 }
-           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs++getRoleAttr e) n'
-             headerText <> b
+           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs) n' headerText <> b
          titleabbrevElAsAttr =
            case filterChild (named "titleabbrev") e `mplus`
                 (filterChild (named "info") e >>=
@@ -1128,8 +1127,8 @@ parseBlock (Elem e) = do
            b <- p
            case mbt of
              Nothing -> return b
-             Just t  -> return $ divWith (attrValue "id" e, [], getRoleAttr e)  -- Updated!
-                         (divWith ("", ["title"], getRoleAttr e) (plain t) <> b)
+             Just t -> return $ divWith (attrValue "id" e,[],[])
+                         (divWith ("", ["title"], []) (plain t) <> b)
          -- Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
          -- block itself a class corresponding to the admonition name.
@@ -1139,7 +1138,7 @@ parseBlock (Elem e) = do
            b <- getBlocks e
            let t = divWith ("", ["title"], []) (plain $ fromMaybe mempty mbt)
            -- we also attach the label as a class, so it can be styled properly
-           return $ divWith (attrValue "id" e, [label], getRoleAttr e) (t <> b)
+           return $ divWith (attrValue "id" e,[label],[]) (t <> b)
 
 toAlignment :: Element -> Alignment
 toAlignment c = case findAttr (unqual "align") c of
