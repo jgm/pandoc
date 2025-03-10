@@ -1333,7 +1333,9 @@ parseInline (Elem e) = do
         -- <?asciidor-br?> to in handleInstructions, above.
         "pi-asciidoc-br" -> return linebreak
         _          -> skip >> innerInlines id
-  return $ addPandocAttributes (getRoleAttr e) parsedInline
+  return $ case qName (elName e) of
+    "emphasis" -> parsedInline
+    _ -> addPandocAttributes (getRoleAttr e) parsedInline
    where skip = do
            let qn = qName $ elName e
            let name = if "pi-" `T.isPrefixOf` qn
