@@ -1343,7 +1343,7 @@ parseInline (Elem e) = do
     if not (isEmphElement inlineElement)
         then addPandocAttributes (getRoleAttr e) parsedInline
         else parsedInline
-    else parsedInline
+    else addPandocAttributes (getRoleAttr e) parsedInline
    where skip = do
            let qn = qName $ elName e
            let name = if "pi-" `T.isPrefixOf` qn
