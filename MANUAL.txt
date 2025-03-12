@@ -2819,7 +2819,7 @@ ODT or pptx.
     which is preferred to be unitless.
 
 `maxwidth`
-:   sets the CSS `max-width` property (default is 32em).
+:   sets the CSS `max-width` property (default is 36em).
 
 `backgroundcolor`
 :   sets the CSS `background-color` property on the `html` element.
