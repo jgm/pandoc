@@ -701,6 +701,10 @@ instance HasMeta DBState where
   setMeta field v s =  s {dbMeta = setMeta field v (dbMeta s)}
   deleteMeta field s = s {dbMeta = deleteMeta field (dbMeta s)}
 
+isEmphElement :: Inline -> Bool
+isEmphElement (Emph _) = True
+isEmphElement _        = False
+
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `Set.member` blockTags
 isBlockElement _ = False
@@ -1334,9 +1338,12 @@ parseInline (Elem e) = do
         -- <?asciidor-br?> to in handleInstructions, above.
         "pi-asciidoc-br" -> return linebreak
         _          -> skip >> innerInlines id
-  return $ case qName (elName e) of
-    "emphasis" -> parsedInline
-    _ -> addPandocAttributes (getRoleAttr e) parsedInline
+  return $ if qName (elName e) == "emphasis" then do
+    let inlineElement = e :: Inline
+    if not (isEmphElement inlineElement)
+        then addPandocAttributes (getRoleAttr e) parsedInline
+        else parsedInline
+    else parsedInline
    where skip = do
            let qn = qName $ elName e
            let name = if "pi-" `T.isPrefixOf` qn
