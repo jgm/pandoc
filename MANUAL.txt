@@ -6956,10 +6956,14 @@ Slide 2 has a special image for its background, even though the heading has no c
 
 ## EPUB Metadata
 
-EPUB metadata may be specified using the `--epub-metadata` option, but
-if the source document is Markdown, it is better to use a [YAML metadata
-block][Extension: `yaml_metadata_block`].  Here is an example of
-a YAML metadata block with EPUB metadata:
+There are two ways to specify metadata for an EPUB. The first is to use
+the `--epub-metadata` option, which takes as its argument an XML file
+with [Dublin Core elements].
+
+The second way is to use YAML, either in a
+[YAML metadata block][Extension: `yaml_metadata_block`] in a Markdown
+document, or in a separate YAML file specified with `--metadata-file`.
+Here is an example of a YAML metadata block with EPUB metadata:
 
     ---
     title:
