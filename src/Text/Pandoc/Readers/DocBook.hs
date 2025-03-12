@@ -1104,7 +1104,8 @@ parseBlock (Elem e) = do
            modify $ \st -> st{ dbSectionLevel = n }
            b <- getBlocks e
            modify $ \st -> st{ dbSectionLevel = n - 1 }
-           return $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr++attrs) n' headerText <> b
+           return $ divWith ("", ["section"], ("level", T.pack $ show n') : attrs)
+             $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr) n' headerText <> b
          titleabbrevElAsAttr =
            case filterChild (named "titleabbrev") e `mplus`
                 (filterChild (named "info") e >>=
