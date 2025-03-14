@@ -200,12 +200,8 @@ Pandoc
       , Str "item"
       ]
   , BulletList
-      [ [ Plain
-            [ Str "one"
-            , SoftBreak
-            , RawInline (Format "html") "<!--\n- two\n-->"
-            ]
-        ]
+      [ [ Plain [ Str "one" , SoftBreak , Str "<!\8211" ] ]
+      , [ Plain [ Str "two" , SoftBreak , Str "\8211>" ] ]
       , [ Plain [ Str "three" ] ]
       ]
   , Header
