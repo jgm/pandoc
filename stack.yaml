@@ -17,7 +17,7 @@ extra-deps:
 - commonmark-extensions-0.2.6
 - commonmark-pandoc-0.2.3
 - git: https://github.com/jgm/typst-hs.git
-  commit: dd9a338c2adf4bc74cbe57378a0a3a01c132aadf
+  commit: 935729624dc7fe641a9c227ab401683c2cdb9cf7
 - git: https://github.com/jgm/texmath.git
   commit: 22abed57ef3f5d8eb75c7e3e77ba1c617ecda886
 ghc-options:
