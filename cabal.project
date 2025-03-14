@@ -17,4 +17,4 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/typst-hs.git
-  tag: dd9a338c2adf4bc74cbe57378a0a3a01c132aadf
+  tag: 935729624dc7fe641a9c227ab401683c2cdb9cf7
