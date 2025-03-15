@@ -366,11 +366,15 @@ cellToLaTeX blockListToLaTeX isSimpleTable colCount celltype annotatedCell = do
                                <> braces (literal colDescr)
                                <> braces ("%\n" <> x)
                                   -- linebreak for readability
+  let hasColWidths = not (all (== ColWidthDefault) colWidths)
   let inMultiRow x = case rowspan of
                        (RowSpan 1) -> x
                        (RowSpan n) -> let nrows = literal (tshow n)
                                       in "\\multirow" <> braces nrows
-                                         <> braces "=" -- width of column
+                                         <> braces -- width of column
+                                             (if hasColWidths
+                                                 then "=" -- max width
+                                                 else "*") -- natural width
                                          <> braces x
   return . inMultiColumn . inMultiRow $ result
 
