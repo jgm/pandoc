@@ -17,7 +17,7 @@ extra-deps:
 - commonmark-extensions-0.2.6
 - commonmark-pandoc-0.2.3
 - typst-0.7
-- texmath-0.12.92
+- texmath-0.12.9
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.0
