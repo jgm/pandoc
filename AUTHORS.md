@@ -309,6 +309,7 @@
 - Oliver Fabel
 - Oliver Matthews
 - Olivier Benz
+- Olivier Dossmann
 - Ophir Lifshitz
 - Or Neeman
 - OvidiusCicero
@@ -386,6 +387,7 @@
 - Thomas Hodgson
 - Thomas Soeiro
 - Thomas Weißschuh
+- Tiago-Manzato
 - Tim Lin
 - Tim Stewart
 - Tim Wisotzki
@@ -445,12 +447,14 @@
 - dbecher-ito
 - ebiim
 - ech0
+- etclub
 - favonia
 - guqicun
 - harabat
 - hseg
 - infinity0x
 - jeongminkim-islab
+- josch
 - kaizshang91
 - lawcho
 - lifeunleaded
