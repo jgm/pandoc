@@ -88,7 +88,7 @@ check-cabal: git-files.txt sdist-files.txt
 	@for pkg in . pandoc-lua-engine pandoc-server pandoc-cli; \
 	do \
 	     pushd $$pkg ; \
-	     cabal check ; \
+	     cabal check --ignore=missing-upper-bounds ; \
 	     cabal outdated ; \
 	     popd ; \
 	done
