@@ -1,5 +1,155 @@
 # Revision history for pandoc
 
+## pandoc 3.6.4 (2025-03-16)
+
+  * Disable `citations` extension in writers if `--citeproc` is used (#10662).
+    Otherwise we get undesirable results, as the format's native
+    citation mechanism is used instead of (or in addition to) the
+    citeproc-generated citations.
+
+  * Markdown reader:
+
+    + Allow line break between URL and title of link (#10621).
+    + Give better position information when YAML metadata parsing fails
+      with a YAML exception (#10231).
+    + Fixed `escapedChar'` parser (#10672). It should not accept
+      escaped newlines.
+    + Remove some misguided list fanciness (#9865, #7778, cf. #5628).
+      Previously we tried to handle things like commented out list items:
+      ```
+      - one
+      <!--
+      - two
+      -->
+      - three
+      ```
+      and also things like:
+      ```
+      - one `and
+      - two` and
+      ```
+      But the code we added to handle these cases caused problems with
+      other, more straightforward things, like:
+      ````
+      - one
+      - ```
+        code
+        ```
+      - three
+      ````
+      So we are rolling back all the fanciness, so that the markdown
+      parser now behaves more like the commonmark parser, in which
+      indicators of block-level structure always take priority over
+      indicators of inline structure.
+
+  * HTML reader:
+
+    + Skip MathJaX-introduced cruft (#10673).
+    + Ignore style tags in the body (#10643).
+
+  * LaTeX reader:
+
+    + Better handle comments/whitespace in option lists and includes (#10659).
+    + Support `\newline`, `\linebreak`.
+
+  * Docx reader/writer:
+
+    + Revert commit adding row heads
+      (cbe67b9602a736976ef6921aefbbc60d51c6755a) (#10627).
+      Word sets `w:firstColumn="1"` by default for tables.  You have to find
+      the Table Design tab and explicitly uncheck "First Column" to make this
+      go away.  In most cases, I don't think writers intend to designate
+      the first column as a row head, so this commit is going to produce
+      unexpected results.  In addition, because of the table normalization
+      done by pandoc-type's `tableWith`, any table containing a colspanned
+      cell in the left-hand column will get broken if the first column is
+      designated a row head.  For these reasons it seems best to revert this
+      change, which was made in response to #9495.
+
+  * LaTeX writer and template:
+
+    + Remove `selnolig-langs` (#9863). We now specify the language as
+      a global option again, so we no longer need to specify it when
+      invoking selnolig.
+    + Use babel options `shorthands=off` (#6817).
+    + Use `*` for multirow width when no colwidth specified (#10685).
+      Otherwise the multirow will be excessively wide.
+    + Protect `\phantomsection` (#10688, etclub).
+
+  * Markdown writer:
+
+    + Omit extra space after bullets (#7172). Those who want the old
+      behavior can obtain it by using `-t markdown+four_space_rule`.
+    + Treat `Emph [Emph ils]]` as `ils` (#10642). Otherwise we get
+      `**content**` which means strong emphasis.
+
+  * EPUB writer:
+
+    + Use a nonbreaking space after section number in nav.xhtml.
+      This seems to be required for iOS books app to display the space.
+
+  * Typst writer:
+
+    + Better heuristics for escaping potential list markers (#10650).
+    + Ensure that `citation-style` works as well as `csl` (#10661).
+
+  * Powerpoint writer:
+
+    + Avoid extra blank lines before author when there is no
+      subtitle (#10619).
+
+  * JATS template:
+
+    + Fix typo in author prefix in article.jats_publishing template
+      (#10622, Tiago-Manzato).
+
+  * Text.Pandoc.Parsing:
+
+    + Smart quote parsing: ignore curly quotes (#10610). Previously we
+      tried to match curly quotes as well as straight quotes,
+      producing Quoted inlines. But it seems better just to assume
+      that those who use curly quotes want them passed through
+      verbatim. This also fixes an (unintended) bug whereby curly
+      single left quotes would sometimes be changed to single right quotes.
+
+  * Text.Pandoc.Shared:
+
+    + `makeSections`: put some attributes on section element only.
+      Certain `role` and `epub:type` attributes should only be on the section
+      (and indeed, many `role`s give a validation error if left on the
+      heading element).
+
+  * Text.Pandoc.Logging:
+
+    + Change NoTitleElement from WARNING to INFO (#10671). Users
+      commonly complain about the warning when producing HTML
+      documents without an explicit title. It seems that an info
+      message is more appropriate, since pandoc's default here (using
+      the input's base name) ensures compliance with the standard and
+      many users are happy with that default. Those who want to make
+      sure the message is seen can use `--verbose`.
+
+  * Beamer template: only emit `\date` if set (#10687, josch).
+
+  * Fix invalid OOXML in definition_list.docx test (#10394).
+
+  * MANUAL.txt:
+
+    + Correct typo: 'date' for doubled 'title' (#10654, Olivier Dossmann).
+    + Add note about `template` variable for typst.
+    + Change maxwidth default in MANUAL.txt (#10683).
+    + Improve EPUB metadata documentation.
+    + In Security section, alert readers to a threat relating to iframe in
+      HTML, and add LaTeX, Typst to the list of formats that have an
+      `include` (#10682).
+
+  * `doc/lua-filters.md`: Add missing html_math_method 'katex' (R. N. West).
+
+  * Use texmath 0.12.9.
+
+  * Use typst 0.7. Fixes an issue with package loading, a regression
+    in pandoc 3.6.3.
+
 ## pandoc 3.6.3 (2025-02-09)
 
   * Track wikilinks with a class instead of a title (Evan Silberman).
