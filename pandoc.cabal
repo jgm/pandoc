@@ -873,7 +873,7 @@ benchmark benchmark-pandoc
   main-is:         benchmark-pandoc.hs
   hs-source-dirs:  benchmark
   build-depends:   bytestring,
-                   tasty-bench >= 0.2     && <= 0.4,
+                   tasty-bench >= 0.4     && <= 0.5,
                    mtl         >= 2.2     && < 2.4,
                    text        >= 1.1.1.0 && < 2.2,
                    deepseq
