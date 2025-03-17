@@ -46,6 +46,9 @@ tests = [ "indented code after list"
              =: bulletList [ plain "foo" <> bulletList [ plain "bar" ],
                              plain "baz" ]
              =?> "- foo\n  - bar\n- baz\n"
+        , "emph/strong with spaces (#10696)"
+             =: emph (str "f" <> strong (space <> str "d" <> space)) <> str "l" =?>
+             "*f **d*** l"
         ] ++ [noteTests] ++ [shortcutLinkRefsTests]
 
 {-
