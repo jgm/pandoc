@@ -24,7 +24,7 @@ Pandoc is a [Haskell](https://haskell.org) library for converting from
 one markup format to another, and a command-line tool that uses this
 library.
 
-It can convert *from*
+It can convert _from_
 
 <div id="input-formats">
 
@@ -80,7 +80,7 @@ It can convert *from*
   [Markdown](https://daringfireball.net/projects/markdown/))
 - `mediawiki` ([MediaWiki
   markup](https://www.mediawiki.org/wiki/Help:Formatting))
-- `man` ([roff man](https://man.cx/groff_man(7)))
+- `man` ([roff man](<https://man.cx/groff_man(7)>))
 - `mdoc` ([mdoc](https://mandoc.bsd.lv/man/mdoc.7.html) manual page
   markup)
 - `muse` ([Muse](https://amusewiki.org/library/manual))
@@ -91,7 +91,7 @@ It can convert *from*
 - `org` ([Emacs Org mode](https://orgmode.org))
 - `pod` (Perl’s [Plain Old
   Documentation](https://perldoc.perl.org/perlpod))
-- `ris` ([RIS](https://en.wikipedia.org/wiki/RIS_(file_format))
+- `ris` ([RIS](<https://en.wikipedia.org/wiki/RIS_(file_format)>)
   bibliography)
 - `rtf` ([Rich Text
   Format](https://en.wikipedia.org/wiki/Rich_Text_Format))
@@ -111,7 +111,7 @@ It can convert *from*
 
 </div>
 
-It can convert *to*
+It can convert _to_
 
 <div id="output-formats">
 
@@ -172,7 +172,7 @@ It can convert *to*
   wiki markup)
 - `json` (JSON version of native AST)
 - `latex` ([LaTeX](https://www.latex-project.org/))
-- `man` ([roff man](https://man.cx/groff_man(7)))
+- `man` ([roff man](<https://man.cx/groff_man(7)>))
 - `markdown` ([Pandoc’s
   Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
 - `markdown_mmd`
@@ -184,7 +184,7 @@ It can convert *to*
 - `markua` ([Markua](https://leanpub.com/markua/read))
 - `mediawiki` ([MediaWiki
   markup](https://www.mediawiki.org/wiki/Help:Formatting))
-- `ms` ([roff ms](https://man.cx/groff_ms(7)))
+- `ms` ([roff ms](<https://man.cx/groff_ms(7)>))
 - `muse` ([Muse](https://amusewiki.org/library/manual))
 - `native` (native Haskell)
 - `odt` ([OpenDocument text
@@ -235,7 +235,7 @@ Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown).
 
 Pandoc has a modular design: it consists of a set of readers, which
 parse text in a given format and produce a native representation of the
-document (an *abstract syntax tree* or AST), and a set of writers, which
+document (an _abstract syntax tree_ or AST), and a set of writers, which
 convert this native representation into a target format. Thus, adding an
 input or output format requires only adding a reader or writer. Users
 can also run custom pandoc filters to modify the intermediate AST (see
@@ -273,7 +273,7 @@ opening a new issue.
 
 ## License
 
-© 2006-2024 John MacFarlane (jgm@berkeley.edu). Released under the
+© 2006-2025 John MacFarlane (jgm@berkeley.edu). Released under the
 [GPL](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html "GNU General Public License"),
 version 2 or greater. This software carries no warranty of any kind.
 (See COPYRIGHT for full copyright and warranty notices.)
