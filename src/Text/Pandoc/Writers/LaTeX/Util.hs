@@ -267,7 +267,7 @@ hypertarget ident = do
       return $ text "\\protect\\hypertarget" <> braces ref <> "{}"
      else do
       label <- labelFor ident
-      return $ text "\\phantomsection" <> label
+      return $ text "\\protect\\phantomsection" <> label
 
 labelFor :: PandocMonad m => Text -> LW m (Doc Text)
 labelFor ""    = return empty

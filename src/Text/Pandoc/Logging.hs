@@ -473,7 +473,7 @@ messageVerbosity msg =
        LoadedResource{}              -> INFO
        ScriptingInfo{}               -> INFO
        ScriptingWarning{}            -> WARNING
-       NoTitleElement{}              -> WARNING
+       NoTitleElement{}              -> INFO
        NoLangSpecified               -> INFO
        InvalidLang{}                 -> WARNING
        CouldNotHighlight{}           -> WARNING

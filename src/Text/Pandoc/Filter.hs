@@ -41,7 +41,7 @@ import Control.Monad (foldM, when)
 data Filter = LuaFilter FilePath
             | JSONFilter FilePath
             | CiteprocFilter -- built-in citeproc
-            deriving (Show, Generic)
+            deriving (Show, Generic, Eq)
 
 instance FromJSON Filter where
  parseJSON node =

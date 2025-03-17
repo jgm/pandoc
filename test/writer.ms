@@ -699,7 +699,7 @@ LaTeX
 .IP \[bu] 3
 Here\[cq]s some display math:
 .EQ
-d over {d x} f left ( x right ) = lim from {h -> 0} {f left ( x + h right ) - f left ( x right )} over h
+d over {d x} f ( x ) = lim from {h -> 0} {f ( x + h ) - f ( x )} over h
 .EN
 .IP \[bu] 3
 Here\[cq]s one that has a line break in it: @alpha + omega times x sup 2@.

@@ -192,25 +192,23 @@ Pandoc
       [ Para
           [ Span
               ( "" , [] , [ ( "align" , "center" ) ] )
-              [ Underline
-                  [ Link
-                      ( "" , [] , [] )
-                      [ SoftBreak
-                      , Strong
-                          [ Str "Typst"
-                          , Space
-                          , Str "Math"
-                          , Space
-                          , Str "for"
-                          , Space
-                          , Str "Undergrads"
-                          ]
-                      , SoftBreak
+              [ Link
+                  ( "" , [] , [] )
+                  [ SoftBreak
+                  , Strong
+                      [ Str "Typst"
+                      , Space
+                      , Str "Math"
+                      , Space
+                      , Str "for"
+                      , Space
+                      , Str "Undergrads"
                       ]
-                      ( "https://github.com/johanvx/typst-undergradmath"
-                      , ""
-                      )
+                  , SoftBreak
                   ]
+                  ( "https://github.com/johanvx/typst-undergradmath"
+                  , ""
+                  )
               ]
           ]
       , Para
@@ -259,16 +257,13 @@ Pandoc
           , Str "at"
           , Space
           , Underline
-              [ Underline
-                  [ Link
-                      ( "" , [] , [] )
-                      [ Str
-                          "https://gitlab.com/jim.hefferon/undergradmath"
-                      ]
-                      ( "https://gitlab.com/jim.hefferon/undergradmath"
-                      , ""
-                      )
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "https://gitlab.com/jim.hefferon/undergradmath"
                   ]
+                  ( "https://gitlab.com/jim.hefferon/undergradmath"
+                  , ""
+                  )
               ]
           , Str "."
           ]
@@ -4447,14 +4442,12 @@ Pandoc
           , Str "Typst,"
           , Space
           , Underline
-              [ Underline
-                  [ Link
-                      ( "" , [] , [] )
-                      [ Str "array" ]
-                      ( "https://typst.app/docs/reference/typst/array"
-                      , ""
-                      )
-                  ]
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "array" ]
+                  ( "https://typst.app/docs/reference/typst/array"
+                  , ""
+                  )
               ]
           , Space
           , Str "is"
@@ -5329,12 +5322,10 @@ Pandoc
           , Str "at"
           , Space
           , Underline
-              [ Underline
-                  [ Link
-                      ( "" , [] , [] )
-                      [ Str "https://typst.app/docs" ]
-                      ( "https://typst.app/docs" , "" )
-                  ]
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "https://typst.app/docs" ]
+                  ( "https://typst.app/docs" , "" )
               ]
           , Str "."
           ]
@@ -5344,14 +5335,10 @@ Pandoc
           , Space
           , Str "("
           , Underline
-              [ Underline
-                  [ Underline
-                      [ Link
-                          ( "" , [] , [] )
-                          [ Str "https://github.com/johanvx" ]
-                          ( "https://github.com/johanvx" , "" )
-                      ]
-                  ]
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "https://github.com/johanvx" ]
+                  ( "https://github.com/johanvx" , "" )
               ]
           , Str ")"
           , Space

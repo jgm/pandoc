@@ -365,6 +365,8 @@ inlineToMarkdown opts (Span attrs ils) = do
                         tagWithAttrs "span" attrs <> contents <> literal "</span>"
                       | otherwise -> contents
 inlineToMarkdown _ (Emph []) = return empty
+inlineToMarkdown opts (Emph [Emph ils]) = -- #10642
+  inlineListToMarkdown opts ils
 inlineToMarkdown opts (Emph lst) = do
   variant <- asks envVariant
   contents <- inlineListToMarkdown opts lst
