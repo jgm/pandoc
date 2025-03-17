@@ -48,7 +48,7 @@ module Text.Pandoc.Writers.Shared (
                      , setupTranslations
                      , isOrderedListMarker
                      , toTaskListItem
-                     , surroundInlines
+                     , delimited
                      )
 where
 import Safe (lastMay)
@@ -668,8 +668,8 @@ toTaskListItem _                              = mzero
 -- with whitespace, export this outside the opener or closer.
 -- This is used for formats, like Markdown, which don't allow spaces
 -- after opening or before closing delimiters.
-surroundInlines :: Doc Text -> Doc Text -> Doc Text -> Doc Text
-surroundInlines opener closer content =
+delimited :: Doc Text -> Doc Text -> Doc Text -> Doc Text
+delimited opener closer content =
   mconcat initialWS <> opener <> mconcat middle <> closer <> mconcat finalWS
  where
   contents = toList content
