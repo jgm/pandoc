@@ -133,7 +133,7 @@ pBase64DataURI = base64uri
       mps <- many mediaParam
       pure $ n1 <> "/" <> n2 <> mconcat mps
     A.string ";base64,"
-    b64 <- A.takeWhile (A.inClass "A-Za-z0-9+/")
+    b64 <- A.takeWhile (A.inClass "A-Za-z0-9+ \t\r\n/")
     A.skipWhile (== '=')
     -- this decode should be lazy:
     pure (decodeLenient (encodeUtf8 b64), mime)
