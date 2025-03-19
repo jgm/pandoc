@@ -114,9 +114,7 @@ $if(subtitle)$
 \subtitle$if(shortsubtitle)$[$shortsubtitle$]$endif${$subtitle$}
 $endif$
 \author$if(shortauthor)$[$shortauthor$]$endif${$for(author)$$author$$sep$ \and $endfor$}
-$if(date)$
 \date$if(shortdate)$[$shortdate$]$endif${$date$}
-$endif$
 $if(institute)$
 \institute$if(shortinstitute)$[$shortinstitute$]$endif${$for(institute)$$institute$$sep$ \and $endfor$}
 $endif$

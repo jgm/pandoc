@@ -48,6 +48,7 @@ module Text.Pandoc.Writers.Shared (
                      , setupTranslations
                      , isOrderedListMarker
                      , toTaskListItem
+                     , delimited
                      )
 where
 import Safe (lastMay)
@@ -662,3 +663,25 @@ toTaskListItem (Plain (Str "☒":Space:ils):xs) = pure (True, Plain ils:xs)
 toTaskListItem (Para  (Str "☐":Space:ils):xs) = pure (False, Para ils:xs)
 toTaskListItem (Para  (Str "☒":Space:ils):xs) = pure (True, Para ils:xs)
 toTaskListItem _                              = mzero
+
+-- | Add an opener and closer to a Doc. If the Doc begins or ends
+-- with whitespace, export this outside the opener or closer.
+-- This is used for formats, like Markdown, which don't allow spaces
+-- after opening or before closing delimiters.
+delimited :: Doc Text -> Doc Text -> Doc Text -> Doc Text
+delimited opener closer content =
+  mconcat initialWS <> opener <> mconcat middle <> closer <> mconcat finalWS
+ where
+  contents = toList content
+  (initialWS, rest) = span isWS contents
+  (reverseFinalWS, reverseMiddle) = span isWS (reverse rest)
+  finalWS = reverse reverseFinalWS
+  middle = reverse reverseMiddle
+  isWS NewLine = True
+  isWS CarriageReturn = True
+  isWS BreakingSpace = True
+  isWS BlankLines{} = True
+  isWS _ = False
+  toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
+  toList (Concat a b) = a : toList b
+  toList x = [x]
