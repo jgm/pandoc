@@ -336,8 +336,7 @@ downloadOrRead :: PandocMonad m
                -> m (B.ByteString, Maybe MimeType)
 downloadOrRead s
  | "data:" `T.isPrefixOf` s,
-   Right (bs, mt) <- A.parseOnly pBase64DataURI
-                        (T.pack . unEscapeString . T.unpack $ s)
+   Right (bs, mt) <- A.parseOnly (pBase64DataURI <* A.endOfInput) s
    = pure (bs, Just mt)
  | otherwise = do
   sourceURL <- getsCommonState stSourceURL
