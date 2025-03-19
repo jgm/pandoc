@@ -56,7 +56,6 @@ extensionFromMimeType mimetype =
     "image/vnd.djvu" -> Just "djvu"
     "image/tiff" -> Just "tiff"
     "image/jpeg" -> Just "jpg"
-    "image/avif" -> Just "avif"
     "application/xml" -> Just "xml"
     "application/ogg" -> Just "ogg"
     "image/svg+xml" -> Just "svg" -- avoid svgz
@@ -90,10 +89,12 @@ mimeTypesList = M.toList (M.map T.decodeUtf8 Network.Mime.defaultMimeMap) ++
            [("%","application/x-trash")
            ,("323","text/h323")
            ,("alc","chemical/x-alchemy")
+           ,("apng","image/apng")
            ,("art","image/x-jg")
            ,("asn","chemical/x-ncbi-asn1")
            ,("aso","chemical/x-ncbi-asn1-binary")
            ,("atomsrv","application/atomserv+xml")
+           ,("avif", "impage/avif")
            ,("b","chemical/x-molconn-Z")
            ,("bak","application/x-trash")
            ,("bat","application/x-msdos-program")
@@ -187,6 +188,7 @@ mimeTypesList = M.toList (M.map T.decodeUtf8 Network.Mime.defaultMimeMap) ++
            ,("istr","chemical/x-isostar")
            ,("jdx","chemical/x-jcamp-dx")
            ,("jfif","image/jpeg")
+           ,("jxl","image/jxl")
            ,("jmz","application/x-jmol")
            ,("key","application/pgp-keys")
            ,("kil","application/x-killustrator")
