@@ -56,6 +56,7 @@ extensionFromMimeType mimetype =
     "image/vnd.djvu" -> Just "djvu"
     "image/tiff" -> Just "tiff"
     "image/jpeg" -> Just "jpg"
+    "image/avif" -> Just "avif"
     "application/xml" -> Just "xml"
     "application/ogg" -> Just "ogg"
     "image/svg+xml" -> Just "svg" -- avoid svgz
