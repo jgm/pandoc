@@ -3,64 +3,98 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Text.Pandoc.Writers.XML (writeXML) where
+
 -- import Text.Pandoc
+
+import Data.Aeson
+import qualified Data.Aeson.Key as K
+import qualified Data.Aeson.KeyMap as KM
+import Data.Maybe (isJust)
+import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.Options ( WriterOptions(..))
-import qualified Data.Text as T
-import qualified Data.Vector as V
+import Text.Pandoc.Options (WriterOptions (..))
 import Text.XML.Light
-import Data.Aeson.Types (Parser)
-import Data.Aeson
-import qualified Data.ByteString.Lazy as BL
-import qualified Text.Pandoc.UTF8 as UTF8
-
 
 -- | Convert Pandoc document to string in ICML format.
-writeXML :: PandocMonad m => WriterOptions -> Pandoc -> m T.Text
-writeXML opts doc = do
-  json <- writeJSON opts doc
-  return $ T.pack $ showElement $ jsonToXml json
+writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
+writeXML _ doc = do
+  let value = toJSON doc
+  return $ T.pack $ showTopElement $ valueToXML value
 
-writeJSON :: PandocMonad m => WriterOptions -> Pandoc -> m T.Text
-writeJSON _ = return . UTF8.toText . BL.toStrict . encode
+valueToXML :: Value -> Element
+valueToXML value =
+  if isPandocObject value
+    then
+      Element
+        { elName = unqual "Pandoc", -- Tag name
+          elAttribs = [Attr (unqual "class") "my-class"], -- Attributes
+          elContent = [Text (CData CDataText "Hello, World!" Nothing)], -- Child content
+          elLine = Nothing -- Line number (optional, usually `Nothing`)
+        }
+    else
+      Element
+        { elName = unqual "ERROR",
+          elAttribs = [], -- Attributes
+          elContent = [], -- Child content
+          elLine = Nothing -- Line number (optional, usually `Nothing`)
+        }
 
-jsonToXML :: Value -> Element
-jsonToXML (Object obj) =
-    let tVal = obj .: "t"
-        cVal = obj .: "c"
-    in case tVal of
-        Just (String "Space") -> Element "Space" mempty [NodeContent " "]
-        Just (String "Str") -> Element "Str" mempty [NodeContent (extractText cVal)]
-        Just (String "Emph") -> Element "Emph" mempty (convertChildren cVal)
-        _ -> Element "Unknown" mempty []  -- Fallback for unsupported types
-jsonToXML _ = Element "Invalid" mempty []
+objectHasKey :: T.Text -> Value -> Bool
+objectHasKey key (Object obj) = isJust (KM.lookup (K.fromText key) obj)
+objectHasKey _ _ = False
+
+isPandocObject :: Value -> Bool
+isPandocObject value =
+  (objectHasKey "blocks" value)
+    && (objectHasKey "meta" value)
+    && (objectHasKey "pandoc-api-version" value)
+
+objectHasType :: Value -> Bool
+objectHasType value = objectHasKey "t" value
+
+objectHasContent :: Value -> Bool
+objectHasContent value = objectHasKey "c" value
+
+objectHasTypeAndContent :: Value -> Bool
+objectHasTypeAndContent value = (objectHasContent value) && (objectHasType value)
+
+-- Element "Pandoc" [] [] Nothing
+-- jsonToXML (Object obj) =
+--     let tVal = obj .: "t"
+--         cVal = obj .: "c"
+--     in case tVal of
+--         Just (String "Space") -> Element "Space" mempty [NodeContent " "]
+--         Just (String "Str") -> Element "Str" mempty [NodeContent (extractText cVal)]
+--         Just (String "Emph") -> Element "Emph" mempty (convertChildren cVal)
+--         _ -> Element "Unknown" mempty []  -- Fallback for unsupported types
+-- jsonToXML _ = Element "Invalid" mempty []
 
 -- Helper to extract Text content (assuming cVal is an array)
-extractText :: Maybe Value -> T.Text
-extractText (Just (String text)) = text
-extractText _ = T.empty
+-- extractText :: Maybe Value -> T.Text
+-- extractText (Just (String text)) = text
+-- extractText _ = T.empty
 
--- Handle child nodes (e.g., arrays of Inline or Block)
-convertChildren :: Maybe Value -> [Text.XML.Light.Element]
-convertChildren (Just (Array arr)) = map jsonToXML (V.toList arr)
-convertChildren _ = []
+-- -- Handle child nodes (e.g., arrays of Inline or Block)
+-- convertChildren :: Maybe Value -> [Text.XML.Light.Element]
+-- convertChildren (Just (Array arr)) = map jsonToXML (V.toList arr)
+-- convertChildren _ = []
 
--- Check if a Value is a Pandoc Object with "blocks", "pandoc-api-version", and "meta" keys
-isPandocObject :: Value -> Bool
-isPandocObject = withObject "PandocObject" $ \obj -> do
-    _ <- obj .: "blocks"             -- Access "blocks"
-    _ <- obj .: "pandoc-api-version" -- Access "pandoc-api-version"
-    _ <- obj .: "meta"               -- Access "meta"
-    return True
+-- -- Check if a Value is a Pandoc Object with "blocks", "pandoc-api-version", and "meta" keys
+-- isPandocObject :: Value -> Bool
+-- isPandocObject = withObject "PandocObject" $ \obj -> do
+--     _ <- obj .: "blocks"             -- Access "blocks"
+--     _ <- obj .: "pandoc-api-version" -- Access "pandoc-api-version"
+--     _ <- obj .: "meta"               -- Access "meta"
+--     return True
 
--- Extract the fields for "blocks", "pandoc-api-version", and "meta" using the `Parser` monad
-extractPandocFields :: Value -> Parser (Value, Value, Value)
-extractPandocFields = withObject "PandocObject" $ \obj -> do
-    blocks <- obj .: "blocks"
-    version <- obj .: "pandoc-api-version"
-    meta <- obj .: "meta"
-    return (blocks, version, meta)
+-- -- Extract the fields for "blocks", "pandoc-api-version", and "meta" using the `Parser` monad
+-- extractPandocFields :: Value -> Parser (Value, Value, Value)
+-- extractPandocFields = withObject "PandocObject" $ \obj -> do
+--     blocks <- obj .: "blocks"
+--     version <- obj .: "pandoc-api-version"
+--     meta <- obj .: "meta"
+--     return (blocks, version, meta)
 
 -- docToXML :: Pandoc -> Element
 -- docToXML (Pandoc meta blocks) = unode "Pandoc" [ (metaElement meta), (blocksElement blocks) ]
@@ -78,7 +112,7 @@ extractPandocFields = withObject "PandocObject" $ \obj -> do
 -- textToCData text = blank_cdata { cdData = T.unpack text }
 
 -- extractFormatName :: Format -> String
--- extractFormatName (Format fmt) = T.unpack fmt 
+-- extractFormatName (Format fmt) = T.unpack fmt
 
 -- blockToXML :: Block -> Element
 -- blockToXML blk = case blk of
