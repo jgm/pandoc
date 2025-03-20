@@ -8,52 +8,100 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options ( WriterOptions(..))
 import qualified Data.Text as T
+import qualified Data.Vector as V
 import Text.XML.Light
+import Data.Aeson.Types (Parser)
+import Data.Aeson
+import qualified Data.ByteString.Lazy as BL
+import qualified Text.Pandoc.UTF8 as UTF8
+
 
 -- | Convert Pandoc document to string in ICML format.
 writeXML :: PandocMonad m => WriterOptions -> Pandoc -> m T.Text
-writeXML _ doc = return $ T.pack $ showElement $ docToXML doc
+writeXML opts doc = do
+  json <- writeJSON opts doc
+  return $ T.pack $ showElement $ jsonToXml json
 
-docToXML :: Pandoc -> Element
-docToXML (Pandoc meta blocks) = unode "Pandoc" [ (metaElement meta), (blocksElement blocks) ]
+writeJSON :: PandocMonad m => WriterOptions -> Pandoc -> m T.Text
+writeJSON _ = return . UTF8.toText . BL.toStrict . encode
 
-metaElement :: Meta -> Element
-metaElement (meta) = unode "meta" ([] :: [Content]) -- TODO: convert single meta values
+jsonToXML :: Value -> Element
+jsonToXML (Object obj) =
+    let tVal = obj .: "t"
+        cVal = obj .: "c"
+    in case tVal of
+        Just (String "Space") -> Element "Space" mempty [NodeContent " "]
+        Just (String "Str") -> Element "Str" mempty [NodeContent (extractText cVal)]
+        Just (String "Emph") -> Element "Emph" mempty (convertChildren cVal)
+        _ -> Element "Unknown" mempty []  -- Fallback for unsupported types
+jsonToXML _ = Element "Invalid" mempty []
 
-blocksElement :: [Block] -> Element
-blocksElement (blocks) = unode "blocks" (map blockToXML blocks)
+-- Helper to extract Text content (assuming cVal is an array)
+extractText :: Maybe Value -> T.Text
+extractText (Just (String text)) = text
+extractText _ = T.empty
 
-mkCData :: T.Text -> [Content]
-mkCData text = [Elem $ blank_element { elContent = [CRef $ T.unpack text] }]
+-- Handle child nodes (e.g., arrays of Inline or Block)
+convertChildren :: Maybe Value -> [Text.XML.Light.Element]
+convertChildren (Just (Array arr)) = map jsonToXML (V.toList arr)
+convertChildren _ = []
 
-textToCData :: T.Text -> CData
-textToCData text = blank_cdata { cdData = T.unpack text }
+-- Check if a Value is a Pandoc Object with "blocks", "pandoc-api-version", and "meta" keys
+isPandocObject :: Value -> Bool
+isPandocObject = withObject "PandocObject" $ \obj -> do
+    _ <- obj .: "blocks"             -- Access "blocks"
+    _ <- obj .: "pandoc-api-version" -- Access "pandoc-api-version"
+    _ <- obj .: "meta"               -- Access "meta"
+    return True
 
-extractFormatName :: Format -> String
-extractFormatName (Format fmt) = T.unpack fmt 
+-- Extract the fields for "blocks", "pandoc-api-version", and "meta" using the `Parser` monad
+extractPandocFields :: Value -> Parser (Value, Value, Value)
+extractPandocFields = withObject "PandocObject" $ \obj -> do
+    blocks <- obj .: "blocks"
+    version <- obj .: "pandoc-api-version"
+    meta <- obj .: "meta"
+    return (blocks, version, meta)
 
-blockToXML :: Block -> Element
-blockToXML blk = case blk of
-  Para inlines -> unode "Para" (map inlineToContent inlines)
-  Plain inlines -> unode "Plain" (map inlineToContent inlines)
-  Header _ _ inlines -> unode "Header" (map inlineToContent inlines)
-  CodeBlock _ text -> unode "CodeBlock" (mkCData text)
-  RawBlock format text -> unode "RawBlock" ([rawAttr format], (textToCData text))
-  _ -> unode "Unknown" ()
+-- docToXML :: Pandoc -> Element
+-- docToXML (Pandoc meta blocks) = unode "Pandoc" [ (metaElement meta), (blocksElement blocks) ]
 
-inlineToContent :: Inline -> Content
-inlineToContent inl = case inl of
-  Space -> Text $ textToCData " "
-  Str text -> Text $ textToCData text
-  Emph inlines -> Elem $ unode "Emph" (map inlineToContent inlines)
-  Strong inlines -> Elem $ unode "Strong" (map inlineToContent inlines)
-  SmallCaps inlines -> Elem $ unode "SmallCaps" (map inlineToContent inlines)
-  Superscript inlines -> Elem $ unode "Superscript" (map inlineToContent inlines)
-  Subscript inlines -> Elem $ unode "Subscript" (map inlineToContent inlines)
-  Underline inlines -> Elem $ unode "Underline" (map inlineToContent inlines)
-  Code _ text -> Elem $ unode "Code" (textToCData text)
-  RawInline format text -> Elem $ unode "RawInline" ([rawAttr format], (textToCData text))
-  _ -> Elem $ unode "Unknown" ()
+-- metaElement :: Meta -> Element
+-- metaElement (meta) = unode "meta" ([] :: [Content]) -- TODO: convert single meta values
 
-rawAttr :: Format -> Text.XML.Light.Attr
-rawAttr format = Attr (unqual "format") (extractFormatName format)
+-- blocksElement :: [Block] -> Element
+-- blocksElement (blocks) = unode "blocks" (map blockToXML blocks)
+
+-- mkCData :: T.Text -> [Content]
+-- mkCData text = [Elem $ blank_element { elContent = [CRef $ T.unpack text] }]
+
+-- textToCData :: T.Text -> CData
+-- textToCData text = blank_cdata { cdData = T.unpack text }
+
+-- extractFormatName :: Format -> String
+-- extractFormatName (Format fmt) = T.unpack fmt 
+
+-- blockToXML :: Block -> Element
+-- blockToXML blk = case blk of
+--   Para inlines -> unode "Para" (map inlineToContent inlines)
+--   Plain inlines -> unode "Plain" (map inlineToContent inlines)
+--   Header _ _ inlines -> unode "Header" (map inlineToContent inlines)
+--   CodeBlock _ text -> unode "CodeBlock" (mkCData text)
+--   RawBlock format text -> unode "RawBlock" ([rawAttr format], (textToCData text))
+--   _ -> unode "Unknown" ()
+
+-- inlineToContent :: Inline -> Content
+-- inlineToContent inl = case inl of
+--   Space -> Text $ textToCData " "
+--   Str text -> Text $ textToCData text
+--   Emph inlines -> Elem $ unode "Emph" (map inlineToContent inlines)
+--   Strong inlines -> Elem $ unode "Strong" (map inlineToContent inlines)
+--   SmallCaps inlines -> Elem $ unode "SmallCaps" (map inlineToContent inlines)
+--   Superscript inlines -> Elem $ unode "Superscript" (map inlineToContent inlines)
+--   Subscript inlines -> Elem $ unode "Subscript" (map inlineToContent inlines)
+--   Underline inlines -> Elem $ unode "Underline" (map inlineToContent inlines)
+--   Code _ text -> Elem $ unode "Code" (textToCData text)
+--   RawInline format text -> Elem $ unode "RawInline" ([rawAttr format], (textToCData text))
+--   _ -> Elem $ unode "Unknown" ()
+
+-- rawAttr :: Format -> Text.XML.Light.Attr
+-- rawAttr format = Attr (unqual "format") (extractFormatName format)
