@@ -20,25 +20,21 @@ import Text.XML.Light
 writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
 writeXML _ doc = do
   let value = toJSON doc
-  return $ T.pack $ showTopElement $ valueToXML value
+  return $ T.pack $ showTopElement $ valueToXML value Nothing
 
-valueToXML :: Value -> Element
-valueToXML value =
-  if isPandocObject value
-    then
-      Element
+valueToXML :: Value -> Maybe Element -> Maybe Element
+valueToXML value Nothing =
+  if (isPandocObject value) then Element
         { elName = unqual "Pandoc", -- Tag name
           elAttribs = [Attr (unqual "class") "my-class"], -- Attributes
           elContent = [Text (CData CDataText "Hello, World!" Nothing)], -- Child content
           elLine = Nothing -- Line number (optional, usually `Nothing`)
         }
-    else
-      Element
-        { elName = unqual "ERROR",
-          elAttribs = [], -- Attributes
-          elContent = [], -- Child content
-          elLine = Nothing -- Line number (optional, usually `Nothing`)
-        }
+  else Nothing
+-- valueToXML (Object obj) (Just current) = 
+
+objectType :: Value -> Maybe T.Text
+objectType (Object obj) = KM.lookup (K.fromText "t") obj
 
 objectHasKey :: T.Text -> Value -> Bool
 objectHasKey key (Object obj) = isJust (KM.lookup (K.fromText key) obj)
