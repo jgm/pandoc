@@ -14,27 +14,45 @@ import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (..))
-import Text.XML.Light
+import Text.Pandoc.XML.Light
+import qualified Text.Pandoc.XML.Light as XML
+
+data Item
+  = ItemElement Element
+  | ItemAttr XML.Attr
+  deriving (Show, Eq)
 
 -- | Convert Pandoc document to string in ICML format.
 writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
 writeXML _ doc = do
   let value = toJSON doc
-  return $ T.pack $ showTopElement $ valueToXML value Nothing
+  let maybeXml = valueToXML value Nothing
+  case maybeXml of
+    Just (ItemElement xml) -> return $ showTopElement xml
+    _ -> return ""
 
-valueToXML :: Value -> Maybe Element -> Maybe Element
+valueToXML :: Value -> Maybe Element -> Maybe Item
 valueToXML value Nothing =
-  if (isPandocObject value) then Element
-        { elName = unqual "Pandoc", -- Tag name
-          elAttribs = [Attr (unqual "class") "my-class"], -- Attributes
-          elContent = [Text (CData CDataText "Hello, World!" Nothing)], -- Child content
-          elLine = Nothing -- Line number (optional, usually `Nothing`)
-        }
-  else Nothing
--- valueToXML (Object obj) (Just current) = 
+  if (isPandocObject value)
+    then
+      Just
+        ( ItemElement
+            Element
+              { elName = unqual "Pandoc", -- Tag name
+                elAttribs = [XML.Attr (unqual "class") "my-class"], -- Attributes
+                elContent = [Text (CData CDataText "Hello, World!" Nothing)], -- Child content
+                elLine = Nothing -- Line number (optional, usually `Nothing`)
+              }
+        )
+    else Nothing
+valueToXML (Object obj) (Just current) = Nothing
+valueToXML _ _ = Nothing
 
 objectType :: Value -> Maybe T.Text
-objectType (Object obj) = KM.lookup (K.fromText "t") obj
+objectType (Object obj) = case KM.lookup "t" obj of
+  Just (String tValue) -> Just tValue
+  _ -> Nothing
+objectType _ = Nothing
 
 objectHasKey :: T.Text -> Value -> Bool
 objectHasKey key (Object obj) = isJust (KM.lookup (K.fromText key) obj)
@@ -54,6 +72,10 @@ objectHasContent value = objectHasKey "c" value
 
 objectHasTypeAndContent :: Value -> Bool
 objectHasTypeAndContent value = (objectHasContent value) && (objectHasType value)
+
+-- processContents :: Array -> Element -> Element
+
+-- processContent :: Value -> Element -> Element
 
 -- Element "Pandoc" [] [] Nothing
 -- jsonToXML (Object obj) =
