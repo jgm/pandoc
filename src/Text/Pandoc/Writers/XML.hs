@@ -22,30 +22,29 @@ data Item
   | ItemAttr XML.Attr
   deriving (Show, Eq)
 
+pandocElement :: Element
+pandocElement =
+  Element
+    { elName = unqual "Pandoc", -- Tag name
+      elAttribs = [XML.Attr (unqual "class") "my-class"], -- Attributes
+      elContent = [Text (CData CDataText "Hello, World!" Nothing)], -- Child content
+      elLine = Nothing -- Line number (optional, usually `Nothing`)
+    }
+
 -- | Convert Pandoc document to string in ICML format.
 writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
 writeXML _ doc = do
-  let value = toJSON doc
-  let maybeXml = valueToXML value Nothing
+  let maybeXml = valueToXML pandocElement (toJSON doc)
   case maybeXml of
     Just (ItemElement xml) -> return $ showTopElement xml
     _ -> return ""
 
-valueToXML :: Value -> Maybe Element -> Maybe Item
-valueToXML value Nothing =
-  if (isPandocObject value)
-    then
-      Just
-        ( ItemElement
-            Element
-              { elName = unqual "Pandoc", -- Tag name
-                elAttribs = [XML.Attr (unqual "class") "my-class"], -- Attributes
-                elContent = [Text (CData CDataText "Hello, World!" Nothing)], -- Child content
-                elLine = Nothing -- Line number (optional, usually `Nothing`)
-              }
-        )
+valueToXML :: Element -> Value -> Maybe Item
+valueToXML _ (Object obj) =
+  if (isPandocObject (Object obj))
+    then Just (ItemElement pandocElement)
     else Nothing
-valueToXML (Object obj) (Just current) = Nothing
+valueToXML _ (Array _) = Nothing
 valueToXML _ _ = Nothing
 
 objectType :: Value -> Maybe T.Text
