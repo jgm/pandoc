@@ -120,8 +120,10 @@ handleGfmMath (CodeBlock ("",["math"],[]) raw) = Para [Math DisplayMath raw]
 handleGfmMath x = walk handleGfmMathInline x
 
 handleGfmMathInline :: Inline -> Inline
-handleGfmMathInline (Math InlineMath math') =
-  let (ticks, rest) = T.span (== '`') math'
+handleGfmMathInline (Math InlineMath math'') =
+  let math' = T.replace "\\\\{" "\\{" . T.replace "\\\\}" "\\}" $ math''
+              -- see #10631
+      (ticks, rest) = T.span (== '`') math'
   in  if T.null ticks
          then Math InlineMath math'
          else case T.stripSuffix ticks rest of
