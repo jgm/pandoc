@@ -328,7 +328,7 @@ bulletListItemToMs opts (Para first:rest) =
 bulletListItemToMs opts (Plain first:rest) = do
   first' <- blockToMs opts (Plain first)
   rest' <- blockListToMs opts rest
-  let first'' = literal ".IP \\[bu] 3" $$ first'
+  let first'' = literal ".IP \\(bu 3" $$ first'
   let rest''  = if null rest
                    then empty
                    else literal ".RS 3" $$ rest' $$ literal ".RE"
@@ -336,7 +336,7 @@ bulletListItemToMs opts (Plain first:rest) = do
 bulletListItemToMs opts (first:rest) = do
   first' <- blockToMs opts first
   rest' <- blockListToMs opts rest
-  return $ literal "\\[bu] .RS 3" $$ first' $$ rest' $$ literal ".RE"
+  return $ literal "\\(bu .RS 3" $$ first' $$ rest' $$ literal ".RE"
 
 -- | Convert ordered list item (a list of blocks) to ms.
 orderedListItemToMs :: PandocMonad m
@@ -435,7 +435,7 @@ inlineToMs opts (Quoted SingleQuote lst) = do
   return $ char '`' <> contents <> char '\''
 inlineToMs opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMs opts lst
-  return $ literal "\\[lq]" <> contents <> literal "\\[rq]"
+  return $ literal "\\(lq" <> contents <> literal "\\(rq"
 inlineToMs opts (Cite _ lst) =
   inlineListToMs opts lst
 inlineToMs opts (Code attr str) = do

@@ -99,7 +99,12 @@ escapeString escapeHyphen e = Text.concat . escapeString' e . Text.unpack
                         (map (`Map.lookup` combiningAccentsMap) xs)
                       rest = drop (length accents) xs
                       s = case Map.lookup x characterCodeMap of
-                            Just t  -> "\\[" <> Text.unwords (t:accents) <> "]"
+                            Just t ->
+                              if null accents
+                                 then if Text.length t == 2
+                                         then "\\(" <> t -- see #10716
+                                         else "\\[" <> t <> "]"
+                                 else "\\[" <> Text.unwords (t:accents) <> "]"
                             Nothing -> "\\[" <> Text.unwords
                               (Text.pack (printf "u%04X" (ord x)) : accents) <> "]"
                   in  s : escapeString' escapeMode rest
