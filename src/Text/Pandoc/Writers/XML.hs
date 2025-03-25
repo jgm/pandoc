@@ -14,12 +14,13 @@ import qualified Data.Text as T
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (..))
+import Text.Pandoc.XML (escapeStringForXML, inTagsSimple)
 import Text.Pandoc.XML.Light
 import qualified Text.Pandoc.XML.Light as XML
 
-data Item
-  = ItemElement Element
-  | ItemAttr XML.Attr
+data ContentsOrAttrs
+  = Contents Content
+  | Attrs [XML.Attr]
   deriving (Show, Eq)
 
 pandocElement :: Element
@@ -31,21 +32,34 @@ pandocElement =
       elLine = Nothing -- Line number (optional, usually `Nothing`)
     }
 
--- | Convert Pandoc document to string in ICML format.
 writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
 writeXML _ doc = do
   let maybeXml = valueToXML pandocElement (toJSON doc)
   case maybeXml of
-    Just (ItemElement xml) -> return $ showTopElement xml
+    (Contents (Elem xml)) -> return $ showTopElement xml
     _ -> return ""
 
-valueToXML :: Element -> Value -> Maybe Item
+text_node :: T.Text -> Content
+text_node text = Text (CData CDataText text Nothing)
+
+empty_text :: Content
+empty_text = text_node ""
+
+valueToXML :: Element -> Value -> ContentsOrAttrs
 valueToXML _ (Object obj) =
   if (isPandocObject (Object obj))
-    then Just (ItemElement pandocElement)
-    else Nothing
-valueToXML _ (Array _) = Nothing
-valueToXML _ _ = Nothing
+    then Contents $ Elem pandocElement
+    else Contents $ text_node ""
+valueToXML _ (Array _) = Contents empty_text
+valueToXML _ _ = Contents empty_text
+
+-- process a JSON Object with "t" and maybe "c"
+typedValueToXML :: T.Text -> Maybe Value -> ContentsOrAttrs
+typedValueToXML "Str" (Just (String text)) = Contents $ text_node $ escapeStringForXML text
+typedValueToXML "Space" Nothing = Contents $ text_node " "
+typedValueToXML tag Nothing = Contents $ text_node $ mconcat ["<", tag, " />"]
+-- typedValueToXML t (Just (Array a)) =
+typedValueToXML _ _ = Contents empty_text
 
 objectType :: Value -> Maybe T.Text
 objectType (Object obj) = case KM.lookup "t" obj of
