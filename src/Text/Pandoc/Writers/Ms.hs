@@ -47,6 +47,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
+import Text.Pandoc.Writers.Markdown (writePlain)
 import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
 import qualified Data.Text.Encoding as TE
@@ -98,8 +99,7 @@ escapeStr opts =
 -- In PDF we need to encode as UTF-16 BE.
 escapePDFString :: Text -> Text
 escapePDFString t
-  | T.all isAscii t =
-    T.replace "(" "\\(" .  T.replace ")" "\\)" . T.replace "\\" "\\\\" $ t
+  | T.all (\c -> isAscii c && c /= '(' && c /= ')' && c /= '\\' && c /= '"') t = t
   | otherwise = ("\\376\\377" <>) .  -- add bom
     mconcat . map encodeChar .  T.unpack $ t
  where
@@ -181,7 +181,9 @@ blockToMs _ HorizontalRule = do
 blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
   modify $ \st -> st{ stInHeader = True }
-  contents <- inlineListToMs' opts $ map breakToSpace inlines
+  let inlines' = map breakToSpace inlines
+  contents <- inlineListToMs' opts inlines'
+  plainContents <- inlinesToPlain inlines'
   modify $ \st -> st{ stInHeader = False }
   let (heading, secnum) = if writerNumberSections opts &&
                               "unnumbered" `notElem` classes
@@ -197,7 +199,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                       (if T.null secnum
                                           then ""
                                           else "  ") <>
-                                      escapePDFString (stringify inlines))
+                                      escapePDFString plainContents)
   let backlink = nowrap (literal ".pdfhref L -D " <>
        doubleQuotes (literal (toAscii ident)) <> space <> literal "\\") <> cr <>
        literal " -- "
@@ -656,3 +658,7 @@ getSizeAttrs opts attr =
  where
   mbW = inPoints opts <$> dimension Width attr
   mbH = inPoints opts <$> dimension Height attr
+
+inlinesToPlain :: PandocMonad m => [Inline] -> m Text
+inlinesToPlain ils =
+  T.strip <$> writePlain def (Pandoc nullMeta [Plain ils])
