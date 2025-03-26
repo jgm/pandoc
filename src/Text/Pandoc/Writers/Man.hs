@@ -200,7 +200,7 @@ bulletListItemToMan opts (Para first:rest) =
 bulletListItemToMan opts (Plain first:rest) = do
   first' <- blockToMan opts (Plain first)
   rest' <- blockListToMan opts rest
-  let first'' = literal ".IP \\[bu] 2" $$ first'
+  let first'' = literal ".IP \\(bu 2" $$ first'
   let rest''  = if null rest
                    then empty
                    else literal ".RS 2" $$ rest' $$ literal ".RE"
@@ -208,7 +208,7 @@ bulletListItemToMan opts (Plain first:rest) = do
 bulletListItemToMan opts (first:rest) = do
   first' <- blockToMan opts first
   rest' <- blockListToMan opts rest
-  return $ literal "\\[bu] .RS 2" $$ first' $$ rest' $$ literal ".RE"
+  return $ literal "\\(bu .RS 2" $$ first' $$ rest' $$ literal ".RE"
 
 -- | Convert ordered list item (a list of blocks) to man.
 orderedListItemToMan :: PandocMonad m
@@ -299,7 +299,7 @@ inlineToMan opts (Quoted SingleQuote lst) = do
   return $ char '`' <> contents <> char '\''
 inlineToMan opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMan opts lst
-  return $ literal "\\[lq]" <> contents <> literal "\\[rq]"
+  return $ literal "\\(lq" <> contents <> literal "\\(rq"
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan opts (Code _ str) =

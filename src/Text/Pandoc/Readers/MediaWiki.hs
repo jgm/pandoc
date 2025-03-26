@@ -55,6 +55,7 @@ readMediaWiki opts s = do
                                             , mwIdentifierList = Set.empty
                                             , mwLogMessages = []
                                             , mwInTT = False
+                                            , mwAllowNewlines = True
                                             }
             sources
   case parsed of
@@ -68,6 +69,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwIdentifierList  :: Set.Set Text
                        , mwLogMessages     :: [LogMessage]
                        , mwInTT            :: Bool
+                       , mwAllowNewlines   :: Bool
                        }
 
 type MWParser m = ParsecT Sources MWState m
@@ -453,9 +455,8 @@ defListTerm = do
   guardColumnOne
   char ';'
   skipMany spaceChar
-  pos' <- getPosition
-  anyLine >>= parseFromString (do setPosition pos'
-                                  trimInlines . mconcat <$> many inline)
+  trimInlines . mconcat <$> many (notFollowedBy (oneOf ":\r\n") *> inline) <*
+    optional newline
 
 listStart :: PandocMonad m => Char -> MWParser m ()
 listStart c = char c *> notFollowedBy listStartChar
@@ -472,7 +473,7 @@ li = lookAhead (htmlTag (~== TagOpen ("li" :: Text) [])) *>
 
 listItem :: PandocMonad m => Char -> MWParser m Blocks
 listItem c = try $ do
-  guardColumnOne
+  guardColumnOne <|> guard (c == ':') -- def can start on same line as term
   extras <- many (try $ char c <* lookAhead listStartChar)
   if null extras
      then listItem' c
@@ -607,13 +608,14 @@ whitespace = B.space <$ (skipMany1 spaceChar <|> htmlComment)
          <|> B.softbreak <$ endline
 
 endline :: PandocMonad m => MWParser m ()
-endline = () <$ try (newline <*
-                     notFollowedBy spaceChar <*
-                     notFollowedBy newline <*
-                     notFollowedBy' hrule <*
-                     notFollowedBy tableStart <*
-                     notFollowedBy' header <*
-                     notFollowedBy anyListStart)
+endline = do
+ getState >>= guard . mwAllowNewlines
+ () <$ try (newline <* notFollowedBy spaceChar <*
+                       notFollowedBy newline <*
+                       notFollowedBy' hrule <*
+                       notFollowedBy tableStart <*
+                       notFollowedBy' header <*
+                       notFollowedBy anyListStart)
 
 imageIdentifier :: PandocMonad m => MWParser m ()
 imageIdentifier = try $ do

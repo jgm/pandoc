@@ -38,6 +38,7 @@ import Text.Pandoc.XML (escapeStringForXML)
 data WriterState = WriterState {
     stNotes   :: Bool            -- True if there are notes
   , stOptions :: WriterOptions   -- writer options
+  , stInDefLabel :: Bool         -- True if in definition list label
   }
 
 data WriterReader = WriterReader {
@@ -51,7 +52,8 @@ type MediaWikiWriter m = ReaderT WriterReader (StateT WriterState m)
 -- | Convert Pandoc to MediaWiki.
 writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMediaWiki opts document =
-  let initialState = WriterState { stNotes = False, stOptions = opts }
+  let initialState = WriterState {
+        stNotes = False, stOptions = opts, stInDefLabel = False }
       env = WriterReader { options = opts, listLevel = [], useTags = False }
   in  evalStateT (runReaderT (pandocToMediaWiki document) env) initialState
 
@@ -237,7 +239,9 @@ definitionListItemToMediaWiki :: PandocMonad m
                               => ([Inline],[[Block]])
                               -> MediaWikiWriter m Text
 definitionListItemToMediaWiki (label, items) = do
+  modify $ \st -> st{ stInDefLabel = True }
   labelText <- inlineListToMediaWiki label
+  modify $ \st -> st{ stInDefLabel = False }
   contents <- mapM blockListToMediaWiki items
   tags <- asks useTags
   if tags
@@ -446,7 +450,13 @@ inlineToMediaWiki (Cite _  lst) = inlineListToMediaWiki lst
 inlineToMediaWiki (Code _ str) =
   return $ "<code>" <> escapeText str <> "</code>"
 
-inlineToMediaWiki (Str str) = return $ escapeText str
+inlineToMediaWiki (Str str) = do
+  inDefLabel <- gets stInDefLabel
+  return $
+    if inDefLabel
+       then T.intercalate "<nowiki>:</nowiki>" $
+              map escapeText $ T.splitOn ":" str
+       else escapeText str
 
 inlineToMediaWiki (Math mt str) = return $
   "<math display=\"" <>

@@ -8,13 +8,13 @@ The simplest way to get the latest pandoc release is to use the installer.
 </a>
 
 For alternative ways to install pandoc, see below under the heading for
-your operating system. 
+your operating system.
 
 **Note**: the statically linked Pandoc binaries provided by us (or those
 available on Conda Forge) have a limitation. They are unable to utilise Lua
 filters that rely on Lua modules written in C. If you require the
 functionality offered by these filters, please consider an alternative
-method of installation. 
+method of installation.
 
 ## Windows
 
@@ -77,6 +77,10 @@ without SVG support), [Python] (to use Pandoc filters), and
 Note: On unsupported versions of macOS (more than three releases old),
 Homebrew installs from source, which takes additional time and disk space
 for the `ghc` compiler and dependent Haskell libraries.
+
+You can also install pandoc using [MacPorts]:
+
+    port install pandoc
 
 Or, you can install Pandoc using [Conda forge].
 
@@ -399,7 +403,7 @@ To run just the markdown benchmarks:
 [GHC]:  https://www.haskell.org/ghc/
 [GitLab CI/CD]: https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/
 [Haskell platform]: https://hackage.haskell.org/platform/
-[MacPorts]: https://trac.macports.org/browser/trunk/dports/textproc/pandoc/Portfile
+[MacPorts]: https://ports.macports.org/port/pandoc/
 [MacTeX]: https://tug.org/mactex/
 [OpenBSD ports]: https://cvsweb.openbsd.org/ports/textproc/pandoc/
 [BasicTeX]: https://www.tug.org/mactex/morepackages.html

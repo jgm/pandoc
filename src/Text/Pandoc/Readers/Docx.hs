@@ -800,14 +800,17 @@ bodyPartToBlocks (Captioned parstyle parparts bpart) = do
   bs <- bodyPartToBlocks bpart
   captContents <- bodyPartToBlocks (Paragraph parstyle parparts)
   let capt = Caption Nothing (toList captContents)
-  case toList bs of
-    [Table attr _cap colspecs thead tbodies tfoot]
-      -> pure $ singleton $ Table attr capt colspecs thead tbodies tfoot
-    [Figure attr _cap blks]
-      -> pure $ singleton $ Figure attr capt blks
-    [Para im@[Image{}]]
-      -> pure $ singleton $ Figure nullAttr capt [Plain im]
-    _ -> pure captContents
+  let toCaptioned attr' bls = case bls of
+        [Table attr _cap colspecs thead tbodies tfoot]
+          -> singleton $ Table (attr <> attr') capt colspecs thead tbodies tfoot
+        [Figure attr _cap blks]
+          -> singleton $ Figure (attr <> attr') capt blks
+        [Para im@[Image{}]]
+          -> singleton $ Figure attr' capt [Plain im]
+        [Div attr bls']
+          -> toCaptioned (attr <> attr') bls'
+        _ -> captContents
+  pure $ toCaptioned nullAttr (toList bs)
 bodyPartToBlocks (Tbl _ _ _ _ []) =
   return mempty
 bodyPartToBlocks (Tbl mbsty cap grid look parts) = do

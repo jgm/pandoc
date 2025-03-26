@@ -141,7 +141,7 @@ T}
 .LP
 Multiline table with caption:
 .PP
-Here\[cq]s the caption. It may span multiple lines.
+Here\(cqs the caption. It may span multiple lines.
 .na
 .nr LLold \n[LL]
 .TS
@@ -181,7 +181,7 @@ T}	T{
 5.0
 T}	T{
 .nr LL 24.5n
-Here\[cq]s another one.
+Here\(cqs another one.
 Note the blank line between rows.
 T}
 .TE
@@ -229,7 +229,7 @@ T}	T{
 5.0
 T}	T{
 .nr LL 24.5n
-Here\[cq]s another one.
+Here\(cqs another one.
 Note the blank line between rows.
 T}
 .TE
@@ -303,7 +303,7 @@ T}	T{
 5.0
 T}	T{
 .nr LL 24.5n
-Here\[cq]s another one.
+Here\(cqs another one.
 Note the blank line between rows.
 T}
 .TE

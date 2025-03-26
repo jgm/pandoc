@@ -19,23 +19,25 @@ module Text.Pandoc.RoffChar (
 import qualified Data.Text as T
 
 -- | These are the escapes specifically mentioned in groff_man(7),
--- plus @ and ellipsis.
+-- plus @ and ellipsis. We use the \(aq form when possible (with
+-- two-letter escapes), because these are compatible with all forms
+-- of roff (#10716).
 standardEscapes :: [(Char, T.Text)]
 standardEscapes =
   [ ('\160', "\\ ")
-  , ('\'', "\\[aq]")
-  , ('‘', "\\[oq]")
-  , ('’', "\\[cq]")
-  , ('"', "\\[dq]")
-  , ('“', "\\[lq]")
-  , ('”', "\\[rq]")
-  , ('—', "\\[em]")
-  , ('–', "\\[en]")
-  , ('`', "\\[ga]")
-  , ('^', "\\[ha]")
-  , ('~', "\\[ti]")
-  , ('\\', "\\[rs]")
-  , ('@', "\\[at]") -- because we use @ as a table and math delimiter
+  , ('\'', "\\(aq")
+  , ('‘', "\\(oq")
+  , ('’', "\\(cq")
+  , ('"', "\\(dq")
+  , ('“', "\\(lq")
+  , ('”', "\\(rq")
+  , ('—', "\\(em")
+  , ('–', "\\(en")
+  , ('`', "\\(ga")
+  , ('^', "\\(ha")
+  , ('~', "\\(ti")
+  , ('\\', "\\(rs")
+  , ('@', "\\(at") -- because we use @ as a table and math delimiter
   , ('\x2026', "\\&...")  -- because u2026 doesn't render on tty
   ]
 
