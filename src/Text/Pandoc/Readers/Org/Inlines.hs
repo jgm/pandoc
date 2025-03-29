@@ -635,11 +635,11 @@ emphasisBetween c = try $ do
 verbatimBetween :: PandocMonad m
                 => Char
                 -> OrgParser m Text
-verbatimBetween c = try $
-  emphasisStart c *>
-  many1TillNOrLessNewlines 1 verbatimChar (emphasisEnd c)
+verbatimBetween c = newlinesToSpaces <$>
+  try (emphasisStart c *> many1TillNOrLessNewlines 1 verbatimChar (emphasisEnd c))
  where
    verbatimChar = noneOf "\n\r" >>= updatePositions
+   newlinesToSpaces = T.map (\d -> if d == '\n' then ' ' else d)
 
 -- | Parses a raw string delimited by @c@ using Org's math rules
 mathTextBetween :: PandocMonad m
