@@ -40,6 +40,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
+import Data.Char (toLower)
 import System.Directory (doesDirectoryExist, createDirectory)
 import Codec.Archive.Zip (toArchiveOrFail,
                           extractFilesFromArchive, ZipOption(..))
@@ -186,7 +187,8 @@ convertWithOpts' scriptingEngine istty datadir opts = do
   let writerOptions = outputWriterOptions outputSettings
 
   -- whether we are targeting PDF.
-  let pdfOutput = isJust $ outputPdfProgram outputSettings
+  let pdfOutput = map toLower (takeExtension outputFile) == ".pdf" ||
+                  optTo opts == Just "pdf"
   -- whether standalone output should be produced.
   let bibOutput = format `elem` ["bibtex", "biblatex", "csljson"]
   let standalone = isJust (writerTemplate writerOptions) || bibOutput
@@ -309,7 +311,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
       | format == "chunkedhtml" -> ZipOutput <$> f writerOptions doc
       | otherwise -> BinaryOutput <$> f writerOptions doc
     TextWriter f -> case outputPdfProgram outputSettings of
-      Just pdfProg -> do
+      Just pdfProg | pdfOutput -> do
               res <- makePDF pdfProg (optPdfEngineOpts opts) f
                       writerOptions doc
               case res of
@@ -317,7 +319,7 @@ convertWithOpts' scriptingEngine istty datadir opts = do
                    Left err' -> throwError $ PandocPDFError $
                                    TL.toStrict (TE.decodeUtf8With TE.lenientDecode err')
 
-      Nothing -> do
+      _ -> do
               let ensureNl t
                     | standalone = t
                     | T.null t || T.last t /= '\n' = t <> T.singleton '\n'
