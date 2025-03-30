@@ -45,8 +45,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
-import Text.Pandoc.Extensions (enableExtension, disableExtension,
-                               Extension(Ext_smart, Ext_groff))
+import Text.Pandoc.Extensions (disableExtension, Extension(Ext_smart))
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
 import Text.Pandoc.Shared (inDirectory, stringify, tshow)
@@ -113,9 +112,7 @@ makePDF program pdfargs writer opts doc =
                     paperargs ++ pdfargs
       generic2pdf program args source
     "groff" -> do
-      source <- writer opts{ writerExtensions =
-                              enableExtension Ext_groff
-                               (writerExtensions opts) } doc
+      source <- writer opts doc
       let paperargs =
             case lookupContext "papersize" (writerVariables opts) of
               Just s

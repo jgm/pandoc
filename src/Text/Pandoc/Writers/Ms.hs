@@ -28,7 +28,7 @@ import Data.Char (isAscii, isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as Map
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, isNothing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (escapeURIString, isAllowedInURI)
@@ -42,6 +42,7 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout hiding (Color)
+import Text.DocTemplates (lookupContext)
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
@@ -127,12 +128,15 @@ toSmallCaps opts s = case T.uncons s of
 -- line.  roff treats the line-ending period differently.
 -- See http://code.google.com/p/pandoc/issues/detail?id=148.
 
+getPdfEngine :: WriterOptions -> Maybe Text
+getPdfEngine opts = lookupContext "pdf-engine" (writerVariables opts)
+
 blockToMs :: PandocMonad m
           => WriterOptions -- ^ Options
           -> Block         -- ^ Block element
           -> MS m (Doc Text)
 blockToMs opts (Div (ident,cls,kvs) bs) = do
-  let anchor = if T.null ident
+  let anchor = if isNothing (getPdfEngine opts) || T.null ident
                   then empty
                   else nowrap $
                          literal ".pdfhref M "
@@ -189,6 +193,7 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                               "unnumbered" `notElem` classes
                              then (".NH", "\\*[SN]")
                              else (".SH", "")
+  let mbPdfEngine = getPdfEngine opts
   let anchor = if T.null ident
                   then empty
                   else nowrap $
@@ -199,9 +204,9 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                       (if T.null secnum
                                           then ""
                                           else "  ") <>
-                                      (if isEnabled Ext_groff opts
-                                          then id
-                                          else escapePDFString)
+                                      (case mbPdfEngine of
+                                         Just "groff" -> id
+                                         _ -> escapePDFString)
                                       plainContents)
   let backlink = nowrap (literal ".pdfhref L -D " <>
        doubleQuotes (literal (toAscii ident)) <> space <> literal "\\") <> cr <>
@@ -220,9 +225,9 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
   modify $ \st -> st{ stFirstPara = True }
   return $ (literal heading <> space <> literal (tshow level)) $$
            contents $$
-           bookmark $$
-           anchor $$
-           tocEntry
+           case mbPdfEngine of
+             Nothing -> mempty
+             Just _ -> bookmark $$ anchor $$ tocEntry
 blockToMs opts (CodeBlock attr str) = do
   hlCode <- highlightCode opts attr str
   setFirstPara
@@ -484,17 +489,25 @@ inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt (T.uncons -> Just ('#',ident), _)) = do
   -- internal link
   contents <- inlineListToMs' opts $ map breakToSpace txt
-  return $ literal "\\c" <> cr <> nowrap (literal ".pdfhref L -D " <>
-       doubleQuotes (literal (toAscii ident)) <> literal " -A " <>
-       doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
-       literal " -- " <> doubleQuotes (nowrap contents) <> cr <> literal "\\&"
+  return $
+    case getPdfEngine opts of
+      Just _ -> literal "\\c" <> cr <> nowrap (literal ".pdfhref L -D " <>
+            doubleQuotes (literal (toAscii ident)) <> literal " -A " <>
+            doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
+            literal " -- " <> doubleQuotes (nowrap contents) <> cr <>
+            literal "\\&"
+      Nothing -> contents
 inlineToMs opts (Link _ txt (src, _)) = do
   -- external link
   contents <- inlineListToMs' opts $ map breakToSpace txt
-  return $ literal "\\c" <> cr <> nowrap (literal ".pdfhref W -D " <>
-       doubleQuotes (literal (escapeUri src)) <> literal " -A " <>
-       doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
-       literal " -- " <> doubleQuotes (nowrap contents) <> cr <> literal "\\&"
+  return $
+    case getPdfEngine opts of
+      Just _ -> literal "\\c" <> cr <> nowrap (literal ".pdfhref W -D " <>
+            doubleQuotes (literal (escapeUri src)) <> literal " -A " <>
+            doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
+            literal " -- " <> doubleQuotes (nowrap contents) <> cr <>
+            literal "\\&"
+      Nothing -> contents
 inlineToMs opts (Image attr alternate (src, _)) = do
   let desc = literal "[IMAGE: " <>
              literal (escapeStr opts (stringify alternate)) <> char ']'
