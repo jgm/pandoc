@@ -38,10 +38,6 @@
 .nr FPS (\n[PS] - 2000)
 .\" color used for strikeout
 .defcolor strikecolor rgb 0.7 0.7 0.7
-.\" color for links (rgb)
-.ds PDFHREF.COLOUR   0.35 0.00 0.60
-.\" border for links (default none)
-.ds PDFHREF.BORDER   0 0 0
 .\" point size difference between heading levels
 .nr PSINCR 1p
 .\" heading level above which point size no longer changes
@@ -52,6 +48,14 @@
 .\" page numbers in footer, centered
 .ds CH
 .ds CF %
+.hy
+.EQ
+delim @@
+.EN
+.\" color for links (rgb)
+.ds PDFHREF.COLOUR   0.35 0.00 0.60
+.\" border for links (default none)
+.ds PDFHREF.BORDER   0 0 0
 .\" pdf outline fold level
 .nr PDFOUTLINE.FOLDLEVEL 3
 .\" start out in outline view
@@ -60,10 +64,6 @@
 .\" PDF metadata
 .pdfinfo /Title "Pandoc Test Suite"
 .pdfinfo /Author "John MacFarlane; Anonymous"
-.hy
-.EQ
-delim @@
-.EN
 .TL
 Pandoc Test Suite
 .AU
