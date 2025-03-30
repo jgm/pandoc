@@ -45,7 +45,8 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
-import Text.Pandoc.Extensions (disableExtension, Extension(Ext_smart))
+import Text.Pandoc.Extensions (enableExtension, disableExtension,
+                               Extension(Ext_smart, Ext_groff))
 import Text.Pandoc.Process (pipeProcess)
 import System.Process (readProcessWithExitCode)
 import Text.Pandoc.Shared (inDirectory, stringify, tshow)
@@ -108,6 +109,22 @@ makePDF program pdfargs writer opts doc =
               Nothing -> []
       let args   = ["-ms", "-mpdfmark", "-mspdf",
                     "-e", "-t", "-k", "-KUTF-8", "-i"] ++
+                   ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
+                    paperargs ++ pdfargs
+      generic2pdf program args source
+    "groff" -> do
+      source <- writer opts{ writerExtensions =
+                              enableExtension Ext_groff
+                               (writerExtensions opts) } doc
+      let paperargs =
+            case lookupContext "papersize" (writerVariables opts) of
+              Just s
+                | T.takeEnd 1 s == "l" -> ["-P-p" <>
+                                           T.unpack (T.dropEnd 1 s), "-P-l"]
+                | otherwise -> ["-P-p" <> T.unpack s]
+              Nothing -> []
+      let args   = ["-ms", "-Tpdf",
+                    "-e", "-t", "-k", "-KUTF-8"] ++
                    ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
                     paperargs ++ pdfargs
       generic2pdf program args source
