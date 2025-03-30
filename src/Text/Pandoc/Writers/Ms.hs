@@ -199,7 +199,10 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                                       (if T.null secnum
                                           then ""
                                           else "  ") <>
-                                      escapePDFString plainContents)
+                                      (if isEnabled Ext_groff opts
+                                          then id
+                                          else escapePDFString)
+                                      plainContents)
   let backlink = nowrap (literal ".pdfhref L -D " <>
        doubleQuotes (literal (toAscii ident)) <> space <> literal "\\") <> cr <>
        literal " -- "
