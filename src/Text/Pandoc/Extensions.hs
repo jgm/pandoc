@@ -144,6 +144,7 @@ data Extension =
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
+    | Ext_groff               -- ^ Use groff form for .pdfhref macro in ms
     | CustomExtension T.Text  -- ^ Custom extension
     deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
@@ -659,4 +660,5 @@ getAllExtensions f = universalExtensions <> getAll f
     [ Ext_smart ]
   getAll "typst"           = extensionsFromList [Ext_citations, Ext_smart]
   getAll "djot"            = extensionsFromList [Ext_sourcepos]
+  getAll "ms"              = extensionsFromList [Ext_groff]
   getAll _                 = mempty
