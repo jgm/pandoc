@@ -865,11 +865,14 @@ header when requesting a document from a URL:
     unless `-s/--standalone` is used, and it has no effect
     on `man`, `docbook4`, `docbook5`, or `jats` output.
 
-    Note that if you are producing a PDF via `ms`, the table
+    Note that if you are producing a PDF via `ms` and using
+    (the default) `pdfroff` as a `--pdf-engine`, the table
     of contents will appear at the beginning of the
     document, before the title.  If you would prefer it to
     be at the end of the document, use the option
-    `--pdf-engine-opt=--no-toc-relocation`.
+    `--pdf-engine-opt=--no-toc-relocation`. If `groff` is
+    used as the `--pdf-engine`, the table of contents will
+    always appear at the end of the document.
 
 `--toc-depth=`*NUMBER*
 
@@ -1456,11 +1459,11 @@ header when requesting a document from a URL:
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
     `tectonic`, `wkhtmltopdf`, `weasyprint`, `pagedjs-cli`,
-    `prince`, `context`, `pdfroff`, and `typst`. If the engine is not in
-    your PATH, the full path of the engine may be specified here.
-    If this option is not specified, pandoc uses the following
-    defaults depending on the output format specified using
-    `-t/--to`:
+    `prince`, `context`, `groff`, `pdfroff`, and `typst`.
+    If the engine is not in your PATH, the full path of the engine
+    may be specified here. If this option is not specified,
+    pandoc uses the following defaults depending on the output
+    format specified using `-t/--to`:
 
     - `-t latex` or none: `pdflatex` (other options: `xelatex`, `lualatex`,
         `tectonic`, `latexmk`)
@@ -3854,6 +3857,12 @@ additional markers for paragraphs and alternative markup for
 emphasized text. The `emphasis-command` template variable is set
 if the extension is enabled.
 
+### Extension: `groff` ###
+
+Enabling this extension with `ms` output will cause the `.pdfhref O`
+macros to be formatted in the way `groff -Tpdf` likes, instead of
+the way `pdfroff` likes. This extension is enabled automatically
+when `groff` is used as a `--pdf-engine`.
 
 # Pandoc's Markdown
 
