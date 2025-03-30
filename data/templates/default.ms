@@ -35,7 +35,7 @@ $endif$
 .\" line height
 .nr VS $if(lineheight)$$lineheight$$else$12p$endif$
 .\" font family: A, BM, H, HN, N, P, T, ZCM
-.fam $if(fontfamily)$$fontfamily$$else$P$endif$
+.fam $if(fontfamily)$$fontfamily$$else$T$endif$
 .\" paragraph indent
 .nr PI $if(indent)$$indent$$else$0m$endif$
 .\" interparagraph space
