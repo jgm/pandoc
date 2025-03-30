@@ -1475,6 +1475,14 @@ header when requesting a document from a URL:
     - `-t ms`:  `pdfroff`
     - `-t typst`: `typst`
 
+    This option is normally intended to be used when a PDF
+    file is specified as `-o/--output`.  However, it may still
+    have an effect when other output formats are requested.
+    For example, `ms` output will include `.pdfhref` macros
+    only if a `--pdf-engine` is selected, and the macros will
+    be differently encoded depending on whether `groff` or
+    `pdfroff` is specified.
+
 `--pdf-engine-opt=`*STRING*
 
 :   Use the given string as a command-line argument to the `pdf-engine`.
@@ -3446,6 +3454,10 @@ on the output format, and include the following:
 
     If you need absolute paths, use e.g. `$curdir$/$sourcefile$`.
 
+`pdf-engine`
+:   name of PDF engine if provided using `--pdf-engine`, or the
+    default engine for the format if PDF output is requested.
+
 `curdir`
 :   working directory from which pandoc is run.
 
@@ -3856,13 +3868,6 @@ suitable for the production of tagged PDFs. This includes
 additional markers for paragraphs and alternative markup for
 emphasized text. The `emphasis-command` template variable is set
 if the extension is enabled.
-
-### Extension: `groff` ###
-
-Enabling this extension with `ms` output will cause the `.pdfhref O`
-macros to be formatted in the way `groff -Tpdf` likes, instead of
-the way `pdfroff` likes. This extension is enabled automatically
-when `groff` is used as a `--pdf-engine`.
 
 # Pandoc's Markdown
 
