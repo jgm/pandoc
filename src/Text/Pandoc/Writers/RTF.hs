@@ -64,7 +64,7 @@ rtfEmbedImage opts x@(Image attr _ (src,_)) = catchError
                                 <> "\\pichgoal" <> tshow (floor (ypt * 20) :: Integer)
                         -- twip = 1/1440in = 1/20pt
                         where (xpx, ypx) = sizeInPixels sz
-                              (xpt, ypt) = desiredSizeInPoints opts attr sz
+                              (xpt, ypt) = desiredSizeInPoints opts attr Nothing sz
              let raw = "{\\pict" <> filetype <> sizeSpec <> " " <>
                         T.concat bytes <> "}"
              if B.null imgdata

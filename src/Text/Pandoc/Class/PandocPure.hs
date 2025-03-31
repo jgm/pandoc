@@ -205,6 +205,8 @@ instance PandocMonad PandocPure where
       Nothing -> throwError $ PandocResourceNotFound $ T.pack fp
 
   readStdinStrict = getsPureState stStdin
+  
+  svgToPng _ _ _ _ = return $ Left "SVG conversion not available in PandocPure"
 
   glob s = do
     FileTree ftmap <- getsPureState stFiles
