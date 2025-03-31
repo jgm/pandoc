@@ -72,7 +72,7 @@ creditNames = M.fromList [
     ("validation", "Validation"),
     ("visualization", "Visualization"),
     ("writing-original-draft", "Writing – original draft"),
-    ("writing-review-editing", "Writing – review & editing")]
+    ("writing-review-editing", "Writing – review &amp; editing")]
 
 -- | Ensure every role with a `credit` key also has a `credit-name`,
 -- using a default value if necessary
