@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Pandoc api-version="1,23,1">
+  <meta />
+  <blocks>
+    <Header id="pandoc-with-citeproc-hs" level="1">Pandoc with citeproc-hs</Header>
+    <BulletList>
+      <item>
+        <Para>
+          <Cite><citations>
+              <Citation note-num="1" mode="NormalCitation" id="nonexistent" hash="0" />
+            </citations>
+            [@nonexistent]</Cite>
+        </Para>
+      </item>
+      <item>
+        <Para>
+          <Cite><citations>
+              <Citation note-num="2" mode="AuthorInText" id="nonexistent" hash="0" />
+            </citations>
+            @nonexistent</Cite>
+        </Para>
+      </item>
+      <item>
+        <Para><Cite><citations>
+              <Citation note-num="3" mode="AuthorInText" id="item1" hash="0" />
+            </citations>
+          @item1</Cite> says blah.</Para>
+      </item>
+      <item>
+        <Para><Cite><citations>
+              <Citation note-num="4" mode="AuthorInText" id="item1" hash="0">
+                <suffix>p. 30</suffix>
+              </Citation>
+            </citations>@item1 [p.
+          30]</Cite> says blah.</Para>
+      </item>
+      <item>
+        <Para><Cite><citations>
+              <Citation note-num="5" mode="AuthorInText" id="item1" hash="0">
+                <suffix>p. 30, with suffix</suffix>
+              </Citation>
+            </citations>@item1
+          [p. 30, with suffix]</Cite> says blah.</Para>
+      </item>
+      <item>
+        <Para><Cite><citations>
+              <Citation note-num="6" mode="AuthorInText" id="item1" hash="0" />
+              <Citation note-num="6" mode="SuppressAuthor" id="item2" hash="0">
+                <suffix> p. 30</suffix>
+              </Citation>
+              <Citation note-num="6" mode="NormalCitation" id="пункт3" hash="0">
+                <prefix>see also</prefix>
+              </Citation>
+            </citations>@item1
+          [-@item2 p. 30; see also @пункт3]</Cite> says blah.</Para>
+      </item>
+      <item>
+        <Para>In a note.<Note>
+            <Para><Cite><citations>
+                  <Citation note-num="7" mode="AuthorInText" id="пункт3" hash="0">
+                    <suffix>p. 12</suffix>
+                  </Citation>
+                </citations>@пункт3
+          [p. 12]</Cite> and a citation without locators <Cite><citations>
+                  <Citation note-num="7" mode="NormalCitation" id="пункт3" hash="0" />
+                </citations>
+          [@пункт3]</Cite>.</Para>
+          </Note></Para>
+      </item>
+      <item>
+        <Para>A citation group <Cite><citations>
+              <Citation note-num="8" mode="NormalCitation" id="item1" hash="0">
+                <prefix>see</prefix>
+                <suffix> chap. 3</suffix>
+              </Citation>
+              <Citation note-num="8" mode="NormalCitation" id="пункт3" hash="0">
+                <prefix>also</prefix>
+                <suffix> p. 34-35</suffix>
+              </Citation>
+            </citations>[see
+          @item1 chap. 3; also @пункт3 p. 34-35]</Cite>.</Para>
+      </item>
+      <item>
+        <Para>Another one <Cite><citations>
+              <Citation note-num="9" mode="NormalCitation" id="item1" hash="0">
+                <prefix>see</prefix>
+                <suffix> p. 34-35</suffix>
+              </Citation>
+            </citations>[see
+          @item1 p. 34-35]</Cite>.</Para>
+      </item>
+      <item>
+        <Para>And another one in a note.<Note>
+            <Para>Some citations <Cite><citations>
+                  <Citation note-num="10" mode="NormalCitation" id="item1" hash="0">
+                    <prefix>see</prefix>
+                    <suffix> chap. 3</suffix>
+                  </Citation>
+                  <Citation note-num="10" mode="NormalCitation" id="пункт3" hash="0" />
+                  <Citation note-num="10" mode="NormalCitation" id="item2" hash="0" />
+                </citations>[see
+          @item1 chap. 3; @пункт3; @item2]</Cite>.</Para>
+          </Note></Para>
+      </item>
+      <item>
+        <Para>Citation with a suffix and locator <Cite><citations>
+              <Citation note-num="11" mode="NormalCitation" id="item1" hash="0">
+                <suffix> pp. 33, 35-37, and nowhere else</suffix>
+              </Citation>
+            </citations>[@item1
+          pp. 33, 35-37, and nowhere else]</Cite>.</Para>
+      </item>
+      <item>
+        <Para>Citation with suffix only <Cite><citations>
+              <Citation note-num="12" mode="NormalCitation" id="item1" hash="0">
+                <suffix> and nowhere else</suffix>
+              </Citation>
+            </citations>[@item1
+          and nowhere else]</Cite>.</Para>
+      </item>
+      <item>
+        <Para>Now some modifiers.<Note>
+            <Para>Like a citation without author: <Cite><citations>
+                  <Citation note-num="13" mode="SuppressAuthor" id="item1" hash="0" />
+                </citations>
+          [-@item1]</Cite>, and now Doe with a locator <Cite><citations>
+                  <Citation note-num="13" mode="SuppressAuthor" id="item2" hash="0">
+                    <suffix> p. 44</suffix>
+                  </Citation>
+                </citations>[-@item2
+          p. 44]</Cite>.</Para>
+          </Note></Para>
+      </item>
+      <item>
+        <Para>With some markup <Cite><citations>
+              <Citation note-num="14" mode="NormalCitation" id="item1" hash="0">
+                <prefix>
+                  <Emph>see</Emph>
+                </prefix>
+                <suffix> p. <Strong>32</Strong></suffix>
+              </Citation>
+            </citations>[*see*
+          @item1 p. **32**]</Cite>.</Para>
+      </item>
+    </BulletList>
+    <Header id="references" level="1">References</Header>
+  </blocks>
+</Pandoc>
