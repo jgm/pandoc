@@ -200,14 +200,15 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
                          literal ".pdfhref M "
                          <> doubleQuotes (literal (toAscii ident))
   let bookmark = literal ".pdfhref O " <> literal (tshow level <> " ") <>
-                      doubleQuotes (literal $ secnum <>
+                      nowrap (doubleQuotes
+                              (literal $ secnum <>
                                       (if T.null secnum
                                           then ""
                                           else "  ") <>
                                       (case mbPdfEngine of
                                          Just "groff" -> id
                                          _ -> escapePDFString)
-                                      plainContents)
+                                        plainContents))
   let backlink = nowrap (literal ".pdfhref L -D " <>
        doubleQuotes (literal (toAscii ident)) <> space <> literal "\\") <> cr <>
        literal " -- "
@@ -676,5 +677,5 @@ getSizeAttrs opts attr =
   mbH = inPoints opts <$> dimension Height attr
 
 inlinesToPlain :: PandocMonad m => [Inline] -> m Text
-inlinesToPlain ils =
-  T.strip <$> writePlain def (Pandoc nullMeta [Plain ils])
+inlinesToPlain ils = T.strip <$> writePlain def{ writerWrapText = WrapNone }
+                                    (Pandoc nullMeta [Plain ils])
