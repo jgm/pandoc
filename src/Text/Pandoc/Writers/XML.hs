@@ -294,7 +294,6 @@ processCitationObject obj = foldl process_citation_field el fields
         ("citationId", (CtxAttribute "id")),
         ("citationMode", (CtxAttribute "mode")),
         ("citationNoteNum", (CtxAttribute "note-num")),
-        ("citationHash", (CtxAttribute "hash")),
         ("citationPrefix", CtxCitationPrefix),
         ("citationSuffix", CtxCitationSuffix)
       ]
