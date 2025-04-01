@@ -201,8 +201,8 @@ processValue el context v = case (context, v) of
   (CtxDefListTerm, Array (a)) -> appendContentsToElement el [newElementWithContents "term" [CtxInline] a]
   (CtxDefListDef, Array (a)) -> appendContentsToElement el [newElementWithContents "def" [CtxBlock] a]
   (CtxLineBlock, Array (a)) -> appendContentsToElement el [newElementWithContents "line" [CtxInline] a]
-  (CtxCitationPrefix, Array (a)) -> appendContentsToElement el [newElementWithContents "prefix" [CtxInline] a]
-  (CtxCitationSuffix, Array (a)) -> appendContentsToElement el [newElementWithContents "suffix" [CtxInline] a]
+  (CtxCitationPrefix, Array (a)) -> if V.length a > 0 then appendContentsToElement el [newElementWithContents "prefix" [CtxInline] a] else el
+  (CtxCitationSuffix, Array (a)) -> if V.length a > 0 then appendContentsToElement el [newElementWithContents "suffix" [CtxInline] a] else el
   (_, Array (a)) -> processArray el [context] a
   (_, String (text)) -> appendContentsToElement el [text_node text]
   _ -> el
