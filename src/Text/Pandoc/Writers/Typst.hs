@@ -405,14 +405,15 @@ inlineToTypst inline =
     Superscript inlines -> textstyle "#super" inlines
     Subscript inlines -> textstyle "#sub" inlines
     SmallCaps inlines -> textstyle "#smallcaps" inlines
-    Span (ident,_,kvs) inlines -> do
+    Span (ident,cls,kvs) inlines -> do
       let lab = toLabel FreestandingLabel ident
       let (_, typstTextAttrs) = pickTypstAttrs kvs
-      case typstTextAttrs of
-        [] -> (<> lab) <$> inlinesToTypst inlines
-        _ -> do
-          contents <- inlinesToTypst inlines
-          return $ toTypstTextElement typstTextAttrs contents <> lab
+      contents <- inlinesToTypst inlines
+      let addHl x = "#highlight" <> brackets x
+      return $ (if "mark" `elem` cls
+                   then addHl
+                   else id)
+               (toTypstTextElement typstTextAttrs contents) <> lab
     Quoted quoteType inlines -> do
       opts <- gets stOptions
       let smart = isEnabled Ext_smart opts
