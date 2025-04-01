@@ -11,6 +11,7 @@ import Data.Maybe (mapMaybe)
 import Data.Scientific (FPFormat (Fixed), Scientific, formatScientific, isInteger)
 import qualified Data.Text as T
 import qualified Data.Vector as V
+import Data.Version (versionBranch)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (WriterOptions (..))
@@ -18,39 +19,47 @@ import Text.Pandoc.XML.Light
 import qualified Text.Pandoc.XML.Light as XML
 
 data Context
-  = None
-  | PandocObject
-  | MetaData
-  | BlockElem
-  | InlineElem
-  | Attribute T.Text
-  | AttrData
-  | WordsAttribute T.Text
-  | Attributes
-  | ListElem
-  | ListAttributes
-  | ListContents
-  | ListItem
-  | TextData
-  deriving (Eq, Show)
-
-data ElementType
-  = IsBlockOfBlocks
-  | IsBlockOfInlines
-  | IsInline
-  | IsListElem
-  | IsLineBlockElem
+  = CtxNone
+  | CtxPandocObject
+  | CtxMeta
+  | CtxMetaValue
+  | CtxBlock
+  | CtxInline
+  | CtxAttribute T.Text
+  | CtxAttr
+  | CtxClasses T.Text
+  | CtxAttributes
+  | CtxList
+  | CtxListAttributes
+  | CtxListItem
+  | CtxCaption
+  | CtxShortCaption
+  | CtxColSpec
+  | CtxTableHead
+  | CtxTableBody
+  | CtxTableFoot
+  | CtxRow
+  | CtxCell
+  | CtxDefListItem
+  | CtxDefListTerm
+  | CtxDefListDef
+  | CtxLineBlock
+  | CtxLinkTarget
+  | CtxImageTarget
+  | CtxCitation
+  | CtxCitationPrefix
+  | CtxCitationSuffix
+  | CtxText
+  | CtxArrayOf Context
+  | CtxWrapArrayOf Context T.Text
   deriving (Eq, Show)
 
 writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
 writeXML _ doc = do
-  return $ showTopElement $ processValue (empty_element "Pandoc") PandocObject $ toJSON doc
+  return $ showTopElement $ processValue (empty_element "Pandoc") CtxPandocObject $ toJSON doc
 
 text_node :: T.Text -> Content
 text_node text = Text (CData CDataText text Nothing)
-
-empty_text :: Content
-empty_text = text_node ""
 
 empty_element :: T.Text -> Element
 empty_element tag =
@@ -61,9 +70,6 @@ empty_element tag =
       elLine = Nothing
     }
 
-element_name :: Element -> T.Text
-element_name element = qName $ elName element
-
 scientific_to_text :: Scientific -> T.Text
 scientific_to_text sc
   | isInteger sc = T.pack (show (round sc :: Integer)) -- No decimals if it's an integer
@@ -71,6 +77,9 @@ scientific_to_text sc
 
 appendContentsToElement :: Element -> [Content] -> Element
 appendContentsToElement el newContents = el {elContent = (elContent el) ++ newContents}
+
+-- prependContentsToElement :: Element -> [Content] -> Element
+-- prependContentsToElement el newContents = el {elContent = newContents ++ (elContent el)}
 
 addAttributesToElement :: Element -> [XML.Attr] -> Element
 addAttributesToElement el newAttrs = el {elAttribs = newAttrs ++ elAttribs el}
@@ -87,27 +96,41 @@ objectAtKey obj key = case (KM.lookup (K.fromText key) obj) of
 
 processPandocObject :: Element -> Object -> Element
 processPandocObject element obj =
-  let meta = Elem $ processObject (empty_element "meta") MetaData $ objectAtKey obj "meta"
-      blocks = newElementWithContents "blocks" [BlockElem] $ arrayAtKey obj "blocks"
-   in -- add apiVersion attribute
-      appendContentsToElement element [meta, blocks]
+  let meta = Elem $ processObject (empty_element "meta") CtxMeta $ objectAtKey obj "meta"
+      blocks = newElementWithContents "blocks" [CtxBlock] $ arrayAtKey obj "blocks"
+      maybe_api_version = valueToArrayOfStrings $ KM.lookup (K.fromText "pandoc-api-version") obj
+      api_version = case (maybe_api_version) of
+        Just (vv) -> T.intercalate "," vv
+        Nothing -> T.intercalate "," $ map (T.pack . show) $ versionBranch pandocTypesVersion
+      with_api_version = addAttributesToElement element [Attr (unqual "api-version") api_version]
+   in appendContentsToElement with_api_version [meta, blocks]
+
+valueToArrayOfStrings :: Maybe Value -> Maybe [T.Text]
+valueToArrayOfStrings (Just (Array arr)) =
+  let strings = [str | String str <- V.toList arr]
+   in if length strings == V.length arr
+        then Just (strings)
+        else Nothing
+valueToArrayOfStrings _ = Nothing
 
 newElementWithContents :: T.Text -> [Context] -> Array -> Content
 newElementWithContents tag contexts contents =
-  Elem $ processArray (empty_element tag) contexts $ V.toList contents
+  Elem $ processArray (empty_element tag) contexts contents
 
--- process Object that has the "t" key
 processObject :: Element -> Context -> Object -> Element
-processObject element context obj = case (context, t, c) of
-  (PandocObject, _, Nothing) -> processPandocObject element obj
-  (_, "Str", Just (String (text))) -> appendContentsToElement element [text_node text]
-  (_, "Space", Nothing) -> appendContentsToElement element [text_node " "]
-  -- (_, "", _, Just (Array (contents))) -> processArray element [context] $ V.toList contents -- should not happen
-  (_, _, Just (Array (contents))) -> processObjectWithArrayContents element t contents
-  (Attribute ("col-width"), "ColWidthDefault", Nothing) -> addAttributesToElement element [Attr (unqual "col-width") "0"]
-  (Attribute (name), _, Nothing) -> addAttributesToElement element [Attr (unqual name) t]
-  (_, tag, Nothing) -> appendContentsToElement element [Elem $ empty_element tag] -- HorizontalRule, SoftBreak, LineBreak
-  _ -> element
+processObject el context obj = case (context, t, c) of
+  (CtxPandocObject, _, Nothing) -> processPandocObject el obj -- outermost object with "meta", "blocks" and "pandoc-api-version" fields
+  (_, "Str", Just (String (text))) -> appendContentsToElement el [text_node text] -- text in Str
+  (_, "Space", Nothing) -> appendContentsToElement el [text_node " "] -- spaces as Space
+  -- (_, "", Just (Array (contents))) -> processArray el [context] contents -- should not happen
+  (_, _, Just (Array (contents))) -> processObjectWithArrayContents el t contents -- any object with a non-empty t field
+  (CtxAttribute ("col-width"), "ColWidthDefault", Nothing) -> addAttributesToElement el [Attr (unqual "col-width") "0"] -- ColSpec col-width attribute with a ColWidthDefault value
+  (CtxAttribute (name), _, Nothing) -> addAttributesToElement el [Attr (unqual name) t] -- alignments, number-style, number-delim
+  (CtxCitation, _, Nothing) -> appendContentsToElement el [Elem $ processCitationObject obj] -- Citation
+  (_, "MetaMap", Nothing) -> processMetaMap (empty_element "MetaMap") obj -- MetaMap
+  (CtxMeta, _, Nothing) -> processMetaMap el obj -- Meta
+  (_, tag, Nothing) -> appendContentsToElement el [Elem $ empty_element tag] -- HorizontalRule, SoftBreak, LineBreak
+  _ -> el
   where
     t = case KM.lookup (K.fromText "t") obj of
       Just (String (text)) -> text
@@ -115,87 +138,83 @@ processObject element context obj = case (context, t, c) of
     c = KM.lookup (K.fromText "c") obj
 
 processObjectWithArrayContents :: Element -> T.Text -> Array -> Element
-processObjectWithArrayContents el tag contents = case (tag, el_type) of
-  (_, IsBlockOfInlines) -> createElemAndProcessValuesAs [InlineElem] -- Plain, Para
-  (_, IsBlockOfBlocks) -> createElemAndProcessValuesAs [BlockElem] -- BlockQuote
-  ("Div", _) -> createElemAndProcessValuesAs [AttrData, BlockElem]
-  ("Span", _) -> createElemAndProcessValuesAs [AttrData, InlineElem]
-  ("Header", _) -> createElemAndProcessValuesAs [Attribute "level", AttrData, InlineElem]
-  ("BulletList", _) -> createElemAndProcessValuesAs [ListContents]
-  ("OrderedList", _) -> createElemAndProcessValuesAs [ListAttributes, ListContents]
-  _ -> createElemAndProcessValuesAs [BlockElem]
+processObjectWithArrayContents el tag contents = case (tag) of
+  "Para" -> createElemAndProcessValuesAs [CtxInline]
+  "Div" -> createElemAndProcessValuesAs [CtxAttr, CtxArrayOf CtxBlock]
+  "Header" -> createElemAndProcessValuesAs [CtxAttribute "level", CtxAttr, CtxArrayOf CtxInline]
+  "Plain" -> createElemAndProcessValuesAs [CtxInline]
+  "Span" -> createElemAndProcessValuesAs [CtxAttr, CtxArrayOf CtxInline]
+  "BulletList" -> createElemAndProcessValuesAs [CtxListItem]
+  "OrderedList" -> createElemAndProcessValuesAs [CtxListAttributes, CtxArrayOf CtxListItem]
+  "Table" -> createElemAndProcessValuesAs [CtxAttr, CtxCaption, CtxWrapArrayOf CtxColSpec "colspecs", CtxTableHead, CtxArrayOf CtxTableBody, CtxTableFoot]
+  "Figure" -> createElemAndProcessValuesAs [CtxAttr, CtxCaption, CtxArrayOf CtxBlock]
+  "BlockQuote" -> createElemAndProcessValuesAs [CtxBlock]
+  "DefinitionList" -> createElemAndProcessValuesAs [CtxDefListItem]
+  "LineBlock" -> createElemAndProcessValuesAs [CtxLineBlock]
+  "CodeBlock" -> createElemAndProcessValuesAs [CtxAttr, CtxText]
+  "RawBlock" -> createElemAndProcessValuesAs [CtxAttribute "format", CtxText]
+  "Quoted" -> createElemAndProcessValuesAs [CtxAttribute "quote-type", CtxArrayOf CtxInline]
+  "Cite" -> createElemAndProcessValuesAs [CtxWrapArrayOf CtxCitation "citations", CtxArrayOf CtxInline]
+  "Code" -> createElemAndProcessValuesAs [CtxAttr, CtxText]
+  "Math" -> createElemAndProcessValuesAs [CtxAttribute "math-type", CtxText]
+  "RawInline" -> createElemAndProcessValuesAs [CtxAttribute "format", CtxText]
+  "Link" -> createElemAndProcessValuesAs [CtxAttr, CtxArrayOf CtxInline, CtxLinkTarget]
+  "Image" -> createElemAndProcessValuesAs [CtxAttr, CtxArrayOf CtxInline, CtxImageTarget]
+  "Note" -> createElemAndProcessValuesAs [CtxBlock]
+  "MetaBlocks" -> createElemAndProcessValuesAs [CtxBlock]
+  "MetaList" -> createElemAndProcessValuesAs [CtxMetaValue]
+  "MetaBool" -> createElemAndProcessValuesAs [CtxAttribute "value"]
+  "MetaString" -> createElemAndProcessValuesAs [CtxText]
+  _ -> createElemAndProcessValuesAs [CtxInline] -- Emph, Underline, Strong, Strikeout, Superscript, Subscript, SmallCaps, MetaInlines
   where
-    el_type = elementType el
     createElemAndProcessValuesAs :: [Context] -> Element
-    createElemAndProcessValuesAs contexts = appendContentsToElement el [newElementWithContents tag contexts contents]
+    createElemAndProcessValuesAs contexts =
+      let before = text_node ""
+          after = text_node ""
+       in appendContentsToElement el [before, newElementWithContents tag contexts contents, after]
 
 processValue :: Element -> Context -> Value -> Element
 processValue el context v = case (context, v) of
   (_, Object (obj)) -> processObject el context obj
-  (AttrData, Array (arr)) -> processAttr el $ V.toList arr
-  (Attribute attr_name, Number (number)) -> addAttributesToElement el [Attr (unqual attr_name) (scientific_to_text number)]
-  (Attribute attr_name, String (text)) -> addAttributesToElement el [Attr (unqual attr_name) text]
-  (WordsAttribute attr_name, Array (wrds)) -> addAttributesToElement el [Attr (unqual attr_name) $ wordsAttrValue (V.toList wrds)]
-  (Attributes, Array (a)) -> addAttributesToElement el $ arrayToAttributes $ V.toList a
-  (ListAttributes, Array (a)) -> processArray el [Attribute "start", Attribute "number-style", Attribute "number-delim"] $ V.toList a
-  (ListContents, Array (a)) -> appendContentsToElement el $ wrapItems "item" BlockElem $ V.toList a
-  (ListItem, Array (a)) -> appendContentsToElement el [newElementWithContents "item" [BlockElem] a]
-  (_, Array (a)) -> processArray el [context] $ V.toList a
+  (CtxArrayOf ctx, Array (a)) -> processArray el [ctx] a
+  (CtxWrapArrayOf ctx tag, Array (a)) -> appendContentsToElement el [newElementWithContents tag [ctx] a]
+  (CtxAttr, Array (arr)) -> processAttr el $ V.toList arr
+  (CtxAttribute attr_name, Number (number)) -> addAttributesToElement el [Attr (unqual attr_name) (scientific_to_text number)]
+  (CtxAttribute attr_name, String (text)) -> addAttributesToElement el [Attr (unqual attr_name) text]
+  (CtxAttribute attr_name, Bool (b)) -> addAttributesToElement el [Attr (unqual attr_name) $ if b then "true" else "false"]
+  (CtxClasses attr_name, Array (wrds)) -> addAttributesToElement el [Attr (unqual attr_name) $ wordsAttrValue (V.toList wrds)]
+  (CtxAttributes, Array (a)) -> addAttributesToElement el $ arrayToAttributes $ V.toList a
+  (CtxListAttributes, Array (a)) -> processArray el [CtxAttribute "start", CtxAttribute "number-style", CtxAttribute "number-delim"] a
+  (CtxListItem, Array (a)) -> appendContentsToElement el [newElementWithContents "item" [CtxBlock] a]
+  (CtxImageTarget, Array (a)) -> processArray el [CtxAttribute "src", CtxAttribute "title"] a
+  (CtxLinkTarget, Array (a)) -> processArray el [CtxAttribute "href", CtxAttribute "title"] a
+  (CtxCaption, Array (a)) -> appendContentsToElement el [newElementWithContents "Caption" [CtxShortCaption, CtxArrayOf CtxBlock] a]
+  (CtxShortCaption, Array (a)) -> appendContentsToElement el [newElementWithContents "ShortCaption" [CtxArrayOf CtxInline] a]
+  (CtxColSpec, Array (a)) -> appendContentsToElement el [newElementWithContents "ColSpec" [CtxAttribute "alignment", CtxAttribute "col-width"] a]
+  (CtxTableHead, Array (a)) -> appendContentsToElement el [newElementWithContents "TableHead" [CtxAttr, CtxArrayOf CtxRow] a]
+  (CtxTableBody, Array (a)) -> appendContentsToElement el [newElementWithContents "TableBody" [CtxAttr, CtxAttribute "row-head-columns", CtxArrayOf CtxRow, CtxArrayOf CtxRow] a]
+  (CtxTableFoot, Array (a)) -> appendContentsToElement el [newElementWithContents "TableFoot" [CtxAttr, CtxArrayOf CtxRow] a]
+  (CtxRow, Array (a)) -> appendContentsToElement el [newElementWithContents "Row" [CtxAttr, CtxArrayOf CtxCell] a]
+  (CtxCell, Array (a)) -> appendContentsToElement el [newElementWithContents "Cell" [CtxAttr, CtxAttribute "alignment", CtxAttribute "row-span", CtxAttribute "col-span", CtxArrayOf CtxBlock] a]
+  (CtxDefListItem, Array (a)) -> appendContentsToElement el [newElementWithContents "item" [CtxDefListTerm, CtxArrayOf CtxDefListDef] a]
+  (CtxDefListTerm, Array (a)) -> appendContentsToElement el [newElementWithContents "term" [CtxInline] a]
+  (CtxDefListDef, Array (a)) -> appendContentsToElement el [newElementWithContents "def" [CtxBlock] a]
+  (CtxLineBlock, Array (a)) -> appendContentsToElement el [newElementWithContents "line" [CtxInline] a]
+  (CtxCitationPrefix, Array (a)) -> appendContentsToElement el [newElementWithContents "prefix" [CtxInline] a]
+  (CtxCitationSuffix, Array (a)) -> appendContentsToElement el [newElementWithContents "suffix" [CtxInline] a]
+  (_, Array (a)) -> processArray el [context] a
   (_, String (text)) -> appendContentsToElement el [text_node text]
   _ -> el
 
-wrapItems :: T.Text -> Context -> [Value] -> [Content]
-wrapItems tag context values = map wrapInElement values
-  where
-    wrapInElement :: Value -> Content
-    wrapInElement (Array a) = Elem $ processArray item_el [context] $ V.toList a
-      where
-        item_el = empty_element tag
-    wrapInElement _ = empty_text
-
-processArray :: Element -> [Context] -> [Value] -> Element
-processArray element contexts contents = case (contents) of
+processArray :: Element -> [Context] -> Array -> Element
+processArray element contexts contents = case (V.toList contents) of
   [] -> element
-  x : xs -> processArray (processValue element (head contexts) x) contexts_tail xs
+  x : xs -> processArray (processValue element (head contexts) x) contexts_tail $ V.fromList xs
     where
       contexts_tail = case (contexts) of
-        [] -> [None]
+        [] -> [CtxNone]
         [c] -> [c]
         _ : cs -> cs
-
-elementType :: Element -> ElementType
-elementType el = tagType $ element_name el
-
-tagType :: T.Text -> ElementType
-tagType name = case (name) of
-  "Str" -> IsInline
-  "Space" -> IsInline
-  "Para" -> IsBlockOfInlines
-  "Header" -> IsBlockOfInlines
-  "Plain" -> IsBlockOfInlines
-  "Emph" -> IsInline
-  "Underline" -> IsInline
-  "Strong" -> IsInline
-  "Strikeout" -> IsInline
-  "Superscript" -> IsInline
-  "Subscript" -> IsInline
-  "SmallCaps" -> IsInline
-  "Quoted" -> IsInline
-  "Cite" -> IsInline
-  "Code" -> IsInline
-  "SoftBreak" -> IsInline
-  "LineBreak" -> IsInline
-  "Math" -> IsInline
-  "RawInline" -> IsInline
-  "Link" -> IsInline
-  "Image" -> IsInline
-  "Note" -> IsInline
-  "Span" -> IsInline
-  "BulletList" -> IsListElem
-  "OrderedList" -> IsListElem
-  "LineBlock" -> IsLineBlockElem
-  "line" -> IsBlockOfInlines
-  _ -> IsBlockOfBlocks
 
 wordsAttrValue :: [Value] -> T.Text
 wordsAttrValue wrds =
@@ -262,3 +281,31 @@ processAttr element arr = case (arr) of
 valueIsString :: Value -> Bool
 valueIsString (String _) = True
 valueIsString _ = False
+
+processCitationObject :: Object -> Element
+processCitationObject obj = foldl process_citation_field el fields
+  where
+    el = empty_element "Citation"
+    fields =
+      [ ("citationHash", (CtxAttribute "hash")),
+        ("citationId", (CtxAttribute "id")),
+        ("citationMode", (CtxAttribute "mode")),
+        ("citationNoteNum", (CtxAttribute "note-num")),
+        ("citationHash", (CtxAttribute "hash")),
+        ("citationPrefix", CtxCitationPrefix),
+        ("citationSuffix", CtxCitationSuffix)
+      ]
+    value_at_key :: T.Text -> Value
+    value_at_key key = case (KM.lookup (K.fromText key) obj) of
+      Just (v) -> v
+      Nothing -> String ""
+    process_citation_field :: Element -> (T.Text, Context) -> Element
+    process_citation_field e (key, context) = processValue e context $ value_at_key key
+
+processMetaMap :: Element -> Object -> Element
+processMetaMap el obj = foldl process_meta_entry el $ KM.toList obj
+  where
+    entry_element :: KM.Key -> Element
+    entry_element k = addAttributesToElement (empty_element "entry") [XML.Attr (unqual "text") $ K.toText k]
+    process_meta_entry :: Element -> (KM.Key, Value) -> Element
+    process_meta_entry e (k, v) = appendContentsToElement e [Elem $ processValue (entry_element k) CtxMetaValue v]
