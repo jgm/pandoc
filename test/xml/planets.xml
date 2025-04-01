@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Pandoc api-version="1,23,1">
+  <meta />
+  <blocks>
+    <Table>
+      <Caption>
+        <Para>Data about the planets of our solar system.</Para>
+      </Caption>
+      <colspecs>
+        <ColSpec col-width="0" alignment="AlignCenter" />
+        <ColSpec col-width="0" alignment="AlignCenter" />
+        <ColSpec col-width="0" alignment="AlignDefault" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignRight" />
+        <ColSpec col-width="0" alignment="AlignDefault" />
+      </colspecs>
+      <TableHead>
+        <Row>
+          <Cell col-span="2" row-span="1" alignment="AlignDefault" />
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Name</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Mass (10^24kg)</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Diameter (km)</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Density (kg/m^3)</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Gravity (m/s^2)</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Length of day (hours)</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Distance from Sun (10^6km)</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Mean temperature (C)</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Number of moons</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Notes</Plain>
+          </Cell>
+        </Row>
+      </TableHead>
+      <TableBody row-head-columns="3">
+        <Row>
+          <Cell col-span="2" row-span="4" alignment="AlignDefault">
+            <Plain>Terrestrial planets</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Mercury</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>0.330</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>4,879</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>5427</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>3.7</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>4222.6</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>57.9</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>167</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>0</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Closest to the Sun</Plain>
+          </Cell>
+        </Row>
+        <Row>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Venus</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>4.87</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>12,104</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>5243</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>8.9</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>2802.0</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>108.2</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>464</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>0</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault" />
+        </Row>
+        <Row>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Earth</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>5.97</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>12,756</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>5514</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>9.8</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>24.0</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>149.6</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>15</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>1</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Our world</Plain>
+          </Cell>
+        </Row>
+        <Row>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Mars</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>0.642</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>6,792</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>3933</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>3.7</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>24.7</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>227.9</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>-65</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>2</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>The red planet</Plain>
+          </Cell>
+        </Row>
+        <Row>
+          <Cell col-span="1" row-span="4" alignment="AlignDefault">
+            <Plain>Jovian planets</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="2" alignment="AlignDefault">
+            <Plain>Gas giants</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Jupiter</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>1898</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>142,984</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>1326</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>23.1</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>9.9</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>778.6</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>-110</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>67</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>The largest planet</Plain>
+          </Cell>
+        </Row>
+        <Row>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Saturn</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>568</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>120,536</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>687</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>9.0</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>10.7</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>1433.5</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>-140</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>62</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault" />
+        </Row>
+        <Row>
+          <Cell col-span="1" row-span="2" alignment="AlignDefault">
+            <Plain>Ice giants</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Uranus</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>86.8</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>51,118</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>1271</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>8.7</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>17.2</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>2872.5</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>-195</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>27</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault" />
+        </Row>
+        <Row>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Neptune</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>102</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>49,528</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>1638</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>11.0</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>16.1</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>4495.1</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>-200</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>14</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault" />
+        </Row>
+        <Row>
+          <Cell col-span="2" row-span="1" alignment="AlignDefault">
+            <Plain>Dwarf planets</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Pluto</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>0.0146</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>2,370</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>2095</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>0.7</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>153.3</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>5906.4</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>-225</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>5</Plain>
+          </Cell>
+          <Cell col-span="1" row-span="1" alignment="AlignDefault">
+            <Plain>Declassified as a planet in 2006.</Plain>
+          </Cell>
+        </Row>
+      </TableBody>
+      <TableFoot />
+    </Table>
+  </blocks>
+</Pandoc>
