@@ -209,8 +209,11 @@ processValue el context v = case (context, v) of
 processArray :: Element -> [Context] -> Array -> Element
 processArray element contexts contents = case (V.toList contents) of
   [] -> element
-  x : xs -> processArray (processValue element (head contexts) x) contexts_tail $ V.fromList xs
+  x : xs -> processArray (processValue element contexts_head x) contexts_tail $ V.fromList xs
     where
+      contexts_head = case (contexts) of
+        [] -> CtxNone
+        c : cs -> c
       contexts_tail = case (contexts) of
         [] -> [CtxNone]
         [c] -> [c]
