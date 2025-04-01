@@ -180,7 +180,7 @@ processValue el context v = case (context, v) of
   (CtxWrapArrayOf ctx tag, Array (a)) -> appendContentsToElement el [newElementWithContents tag [ctx] a]
   (CtxAttr, Array (arr)) -> processAttr el $ V.toList arr
   (CtxAttribute attr_name, Number (number)) -> addAttributesToElement el [Attr (unqual attr_name) (scientific_to_text number)]
-  (CtxAttribute attr_name, String ("")) -> el -- no empty attributes
+  (CtxAttribute _, String ("")) -> el -- no empty attributes
   (CtxAttribute attr_name, String (text)) -> addAttributesToElement el [Attr (unqual attr_name) text]
   (CtxAttribute attr_name, Bool (b)) -> addAttributesToElement el [Attr (unqual attr_name) $ if b then "true" else "false"]
   (CtxClasses attr_name, Array (wrds)) -> addAttributesToElement el [Attr (unqual attr_name) $ wordsAttrValue (V.toList wrds)]
@@ -214,7 +214,7 @@ processArray element contexts contents = case (V.toList contents) of
     where
       contexts_head = case (contexts) of
         [] -> CtxNone
-        c : cs -> c
+        c : _ -> c
       contexts_tail = case (contexts) of
         [] -> [CtxNone]
         [c] -> [c]
