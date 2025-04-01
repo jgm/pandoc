@@ -865,11 +865,14 @@ header when requesting a document from a URL:
     unless `-s/--standalone` is used, and it has no effect
     on `man`, `docbook4`, `docbook5`, or `jats` output.
 
-    Note that if you are producing a PDF via `ms`, the table
+    Note that if you are producing a PDF via `ms` and using
+    (the default) `pdfroff` as a `--pdf-engine`, the table
     of contents will appear at the beginning of the
     document, before the title.  If you would prefer it to
     be at the end of the document, use the option
-    `--pdf-engine-opt=--no-toc-relocation`.
+    `--pdf-engine-opt=--no-toc-relocation`. If `groff` is
+    used as the `--pdf-engine`, the table of contents will
+    always appear at the end of the document.
 
 `--toc-depth=`*NUMBER*
 
@@ -1456,11 +1459,11 @@ header when requesting a document from a URL:
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
     `tectonic`, `wkhtmltopdf`, `weasyprint`, `pagedjs-cli`,
-    `prince`, `context`, `pdfroff`, and `typst`. If the engine is not in
-    your PATH, the full path of the engine may be specified here.
-    If this option is not specified, pandoc uses the following
-    defaults depending on the output format specified using
-    `-t/--to`:
+    `prince`, `context`, `groff`, `pdfroff`, and `typst`.
+    If the engine is not in your PATH, the full path of the engine
+    may be specified here. If this option is not specified,
+    pandoc uses the following defaults depending on the output
+    format specified using `-t/--to`:
 
     - `-t latex` or none: `pdflatex` (other options: `xelatex`, `lualatex`,
         `tectonic`, `latexmk`)
@@ -1471,6 +1474,14 @@ header when requesting a document from a URL:
         introduction to PDF generation from HTML/CSS)
     - `-t ms`:  `pdfroff`
     - `-t typst`: `typst`
+
+    This option is normally intended to be used when a PDF
+    file is specified as `-o/--output`.  However, it may still
+    have an effect when other output formats are requested.
+    For example, `ms` output will include `.pdfhref` macros
+    only if a `--pdf-engine` is selected, and the macros will
+    be differently encoded depending on whether `groff` or
+    `pdfroff` is specified.
 
 `--pdf-engine-opt=`*STRING*
 
@@ -2866,7 +2877,7 @@ pandoc](#slide-shows).
 
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to
-    `https://unpkg.com/reveal.js@^4`)
+    `https://unpkg.com/reveal.js@^5`)
 
 `s5-url`
 :   base URL for S5 documents (defaults to `s5/default`)
@@ -3443,6 +3454,10 @@ on the output format, and include the following:
 
     If you need absolute paths, use e.g. `$curdir$/$sourcefile$`.
 
+`pdf-engine`
+:   name of PDF engine if provided using `--pdf-engine`, or the
+    default engine for the format if PDF output is requested.
+
 `curdir`
 :   working directory from which pandoc is run.
 
@@ -3853,7 +3868,6 @@ suitable for the production of tagged PDFs. This includes
 additional markers for paragraphs and alternative markup for
 emphasized text. The `emphasis-command` template variable is set
 if the extension is enabled.
-
 
 # Pandoc's Markdown
 

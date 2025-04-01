@@ -94,7 +94,7 @@ mimeTypesList = M.toList (M.map T.decodeUtf8 Network.Mime.defaultMimeMap) ++
            ,("asn","chemical/x-ncbi-asn1")
            ,("aso","chemical/x-ncbi-asn1-binary")
            ,("atomsrv","application/atomserv+xml")
-           ,("avif", "impage/avif")
+           ,("avif", "image/avif")
            ,("b","chemical/x-molconn-Z")
            ,("bak","application/x-trash")
            ,("bat","application/x-msdos-program")

@@ -196,7 +196,14 @@ tests pandocPath =
     [ testGroup "writer" $ writerTests' "muse"
     ]
   , testGroup "ms"
-    [ testGroup "writer" $ writerTests' "ms"
+    [ test' "basic"  ["-f", "native", "-t", "ms", "--columns=80",
+                      "--variable", "pandoc-version=",
+                      "--pdf-engine", "pdfroff", "-s"]
+      "testsuite.native" "writer.ms"
+    , test' "tables" ["-f", "native", "-t", "ms", "--columns=80",
+                      "--variable", "pandoc-version=",
+                      "--pdf-engine", "pdfroff"]
+      "tables.native"  "tables.ms"
     ]
   , testGroup "typst"
     [ testGroup "writer" $ writerTests' "typst" ++ extWriterTests' "typst"

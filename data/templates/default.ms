@@ -35,7 +35,7 @@ $endif$
 .\" line height
 .nr VS $if(lineheight)$$lineheight$$else$12p$endif$
 .\" font family: A, BM, H, HN, N, P, T, ZCM
-.fam $if(fontfamily)$$fontfamily$$else$P$endif$
+.fam $if(fontfamily)$$fontfamily$$else$T$endif$
 .\" paragraph indent
 .nr PI $if(indent)$$indent$$else$0m$endif$
 .\" interparagraph space
@@ -50,10 +50,6 @@ $if(papersize)$
 $endif$
 .\" color used for strikeout
 .defcolor strikecolor rgb 0.7 0.7 0.7
-.\" color for links (rgb)
-.ds PDFHREF.COLOUR   0.35 0.00 0.60
-.\" border for links (default none)
-.ds PDFHREF.BORDER   0 0 0
 .\" point size difference between heading levels
 .nr PSINCR 1p
 .\" heading level above which point size no longer changes
@@ -64,14 +60,6 @@ $endif$
 .\" page numbers in footer, centered
 .ds CH
 .ds CF %
-.\" pdf outline fold level
-.nr PDFOUTLINE.FOLDLEVEL 3
-.\" start out in outline view
-.pdfview /PageMode /UseOutlines
-.\" ***************************************************************
-.\" PDF metadata
-.pdfinfo /Title "$title-meta$"
-.pdfinfo /Author "$author-meta$"
 $if(adjusting)$
 .ad $adjusting$
 $endif$
@@ -84,6 +72,20 @@ $if(has-inline-math)$
 .EQ
 delim @@
 .EN
+$endif$
+$if(pdf-engine)$
+.\" color for links (rgb)
+.ds PDFHREF.COLOUR   0.35 0.00 0.60
+.\" border for links (default none)
+.ds PDFHREF.BORDER   0 0 0
+.\" pdf outline fold level
+.nr PDFOUTLINE.FOLDLEVEL 3
+.\" start out in outline view
+.pdfview /PageMode /UseOutlines
+.\" ***************************************************************
+.\" PDF metadata
+.pdfinfo /Title "$title-meta$"
+.pdfinfo /Author "$author-meta$"
 $endif$
 $for(header-includes)$
 $header-includes$

@@ -111,6 +111,20 @@ makePDF program pdfargs writer opts doc =
                    ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
                     paperargs ++ pdfargs
       generic2pdf program args source
+    "groff" -> do
+      source <- writer opts doc
+      let paperargs =
+            case lookupContext "papersize" (writerVariables opts) of
+              Just s
+                | T.takeEnd 1 s == "l" -> ["-P-p" <>
+                                           T.unpack (T.dropEnd 1 s), "-P-l"]
+                | otherwise -> ["-P-p" <> T.unpack s]
+              Nothing -> []
+      let args   = ["-ms", "-Tpdf",
+                    "-e", "-t", "-k", "-KUTF-8"] ++
+                   ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
+                    paperargs ++ pdfargs
+      generic2pdf program args source
     baseProg -> do
       withTempDir "tex2pdf." $ \tmpdir' -> do
 #ifdef _WINDOWS

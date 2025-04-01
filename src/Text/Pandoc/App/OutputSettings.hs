@@ -84,16 +84,16 @@ optToOutputSettings scriptingEngine opts = do
                         _ -> pure Nothing
          liftIO $ pdfWriterAndProg outflavor (optPdfEngine opts)
        else case optTo opts of
-              Just f -> (, Nothing) <$> parseFlavoredFormat f
+              Just f -> (, optPdfEngine opts) <$> parseFlavoredFormat f
               Nothing
                | outputFile == "-" ->
-                   return (defaultOutputFlavor, Nothing)
+                   return (defaultOutputFlavor, optPdfEngine opts)
                | otherwise -> case formatFromFilePaths [outputFile] of
                    Nothing -> do
                      report $ CouldNotDeduceFormat
                        [T.pack $ takeExtension outputFile] defaultOutput
-                     return (defaultOutputFlavor,Nothing)
-                   Just f  -> return (f, Nothing)
+                     return (defaultOutputFlavor, optPdfEngine opts)
+                   Just f  -> return (f, optPdfEngine opts)
 
   when (format == "asciidoctor") $ do
     report $ Deprecated "asciidoctor" "use asciidoc instead"
@@ -196,6 +196,8 @@ optToOutputSettings scriptingEngine opts = do
     setVariableM "outputfile" (T.pack outputFile)
     >>=
     setVariableM "pandoc-version" pandocVersionText
+    >>=
+    maybe return (setVariableM "pdf-engine" . T.pack) maybePdfProg
     >>=
     setFilesVariableM "include-before" (optIncludeBeforeBody opts)
     >>=

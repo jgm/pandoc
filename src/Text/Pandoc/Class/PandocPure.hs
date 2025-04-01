@@ -49,7 +49,7 @@ import Data.Word (Word8)
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.FilePath ((</>))
 import System.FilePath.Glob (match, compile)
-import System.Random (StdGen, split, mkStdGen)
+import System.Random (StdGen, splitGen, mkStdGen)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error
@@ -180,7 +180,7 @@ instance PandocMonad PandocPure where
 
   newStdGen = do
     oldGen <- getsPureState stStdGen
-    let (genToStore, genToReturn) = split oldGen
+    let (genToStore, genToReturn) = splitGen oldGen
     modifyPureState $ \st -> st { stStdGen = genToStore }
     return genToReturn
 
