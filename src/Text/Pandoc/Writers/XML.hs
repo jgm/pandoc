@@ -193,7 +193,7 @@ processValue el context v = case (context, v) of
   (CtxShortCaption, Array (a)) -> appendContentsToElement el [newElementWithContents "ShortCaption" [CtxArrayOf CtxInline] a]
   (CtxColSpec, Array (a)) -> appendContentsToElement el [newElementWithContents "ColSpec" [CtxAttribute "alignment", CtxAttribute "col-width"] a]
   (CtxTableHead, Array (a)) -> appendContentsToElement el [newElementWithContents "TableHead" [CtxAttr, CtxArrayOf CtxRow] a]
-  (CtxTableBody, Array (a)) -> appendContentsToElement el [newElementWithContents "TableBody" [CtxAttr, CtxAttribute "row-head-columns", CtxArrayOf CtxRow, CtxArrayOf CtxRow] a]
+  (CtxTableBody, Array (a)) -> appendContentsToElement el [newElementWithContents "TableBody" [CtxAttr, CtxAttribute "row-head-columns", CtxWrapArrayOf CtxRow "header", CtxWrapArrayOf CtxRow "body"] a]
   (CtxTableFoot, Array (a)) -> appendContentsToElement el [newElementWithContents "TableFoot" [CtxAttr, CtxArrayOf CtxRow] a]
   (CtxRow, Array (a)) -> appendContentsToElement el [newElementWithContents "Row" [CtxAttr, CtxArrayOf CtxCell] a]
   (CtxCell, Array (a)) -> appendContentsToElement el [newElementWithContents "Cell" [CtxAttr, CtxAttribute "alignment", CtxAttribute "row-span", CtxAttribute "col-span", CtxArrayOf CtxBlock] a]
