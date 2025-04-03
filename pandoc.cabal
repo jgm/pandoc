@@ -613,6 +613,7 @@ library
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
                    Text.Pandoc.Writers.AesonXML,
+                   Text.Pandoc.Writers.XML,
                    Text.Pandoc.Writers.DocBook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
