@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Text.Pandoc.Writers.XML (writeXML) where
+module Text.Pandoc.Writers.AesonXML (writeAesonXML) where
 
 import Data.Aeson
 import qualified Data.Aeson.Key as K
@@ -54,8 +54,8 @@ data Context
   | CtxWrapArrayOf Context T.Text
   deriving (Eq, Show)
 
-writeXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
-writeXML _ doc = do
+writeAesonXML :: (PandocMonad m) => WriterOptions -> Pandoc -> m T.Text
+writeAesonXML _ doc = do
   return $ showTopElement $ processValue (empty_element "Pandoc") CtxPandocObject $ toJSON doc
 
 text_node :: T.Text -> Content
