@@ -717,6 +717,8 @@ blockToMarkdown' opts (Figure figattr capt body) = do
                               else Just alt
         Caption Nothing [Plain captInlines]
           | captInlines == alt || null alt -> Just captInlines
+        Caption Nothing [Para captInlines]
+          | captInlines == alt || null alt -> Just captInlines
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
@@ -763,8 +765,11 @@ figureToMarkdown opts attr@(ident, classes, kvs) capt body
       writeHtml5String
         opts{ writerTemplate = Nothing }
         (Pandoc nullMeta [Figure attr capt body])
-  | otherwise = let attr' = (ident, ["figure"] `union` classes, kvs)
-                in blockToMarkdown' opts (Div attr' body)
+  | otherwise = do
+      let attr' = (ident, ["figure"] `union` classes, kvs)
+      let Caption _mbshort caption = capt
+      let captionBs = [Div ("",["caption"],[]) caption | not (null caption)]
+      blockToMarkdown' opts (Div attr' (body <> captionBs))
 
 itemEndsWithTightList :: [Block] -> Bool
 itemEndsWithTightList bs =
