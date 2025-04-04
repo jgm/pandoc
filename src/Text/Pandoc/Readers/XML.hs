@@ -91,8 +91,9 @@ parseBlock parent (Elem e) = do
     "Pandoc" -> parsePandoc
     "?xml" -> return mempty
     "blocks" -> getBlocks name e
-    "Para" -> parseMixed para (elContent e)
-    "Plain" -> parseMixed plain (elContent e)
+    "Para" -> parseMixed name para (elContent e)
+    "Plain" -> parseMixed name plain (elContent e)
+    "HorizontalRule" -> return horizontalRule
     _ -> reportUnexpected "element" name parent mempty
   where
     parsePandoc = do
@@ -103,15 +104,15 @@ parseBlock parent (Elem e) = do
        in modify $ \st -> st {xmlApiVersion = apiversion}
       getBlocks "Pandoc" e
 
-    parseMixed container conts = do
+    parseMixed parent' container conts = do
       let (ils, rest) = break isBlockElement conts
-      ils' <- trimInlines . mconcat <$> mapM parseInline ils
+      ils' <- trimInlines . mconcat <$> mapM (parseInline parent') ils
       let p = if ils' == mempty then mempty else container ils'
       case rest of
         [] -> return p
         (r : rs) -> do
-          b <- parseBlock parent r
-          x <- parseMixed container rs
+          b <- parseBlock parent' r
+          x <- parseMixed parent' container rs
           return $ p <> b <> x
 
 isBlockElement :: Content -> Bool
@@ -147,30 +148,30 @@ elementToStr :: Content -> Content
 elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
 elementToStr x = x
 
-parseInline :: (PandocMonad m) => Content -> XMLReader m Inlines
-parseInline (Text (CData _ s _)) = return $ text s
-parseInline (CRef ref) =
+parseInline :: (PandocMonad m) => Text -> Content -> XMLReader m Inlines
+parseInline _ (Text (CData _ s _)) = return $ text s
+parseInline _ (CRef ref) =
   return $
     maybe (text $ T.toUpper ref) text $
       lookupEntity ref
-parseInline (Elem e) =
+parseInline parent (Elem e) =
   case qName (elName e) of
-    "Emph" -> innerInlines emph
-    "Strong" -> innerInlines strong
-    "Strikeout" -> innerInlines strikeout
-    "Subscript" -> innerInlines subscript
-    "Superscript" -> innerInlines superscript
-    "Underline" -> innerInlines underline
+    "Emph" -> innerInlines parent emph
+    "Strong" -> innerInlines parent strong
+    "Strikeout" -> innerInlines parent strikeout
+    "Subscript" -> innerInlines parent subscript
+    "Superscript" -> innerInlines parent superscript
+    "Underline" -> innerInlines parent underline
     "LineBreak" -> return linebreak
-    "SmallCaps" -> innerInlines smallcaps
+    "SmallCaps" -> innerInlines parent smallcaps
     "Code" -> codeWithLang
     -- "monospace" -> codeWithLang
     -- "inline-graphic" -> getGraphic e
-    _ -> innerInlines id
+    _ -> innerInlines parent id
   where
-    innerInlines f =
+    innerInlines parent' f =
       extractSpaces f . mconcat
-        <$> mapM parseInline (elContent e)
+        <$> mapM (parseInline parent') (elContent e)
     codeWithLang = do
       let classes' = case attrValue "language" e of
             "" -> []
