@@ -19,7 +19,6 @@ module Text.Pandoc.Writers
     -- * Writers: converting /from/ Pandoc format
       Writer(..)
     , writers
-    , writeAesonXML
     , writeANSI
     , writeAsciiDoc
     , writeAsciiDocLegacy
@@ -93,7 +92,6 @@ import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
-import Text.Pandoc.Writers.AesonXML
 import Text.Pandoc.Writers.ANSI
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.BibTeX
@@ -207,7 +205,6 @@ writers = [
   ,("chunkedhtml"  , ByteStringWriter writeChunkedHTML)
   ,("djot"         , TextWriter writeDjot)
   ,("ansi"         , TextWriter writeANSI)
-  ,("aesonxml"     , TextWriter writeAesonXML)
   ,("xml"          , TextWriter writeXML)
   ]
 
