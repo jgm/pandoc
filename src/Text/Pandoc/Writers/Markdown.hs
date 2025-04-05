@@ -709,16 +709,20 @@ blockToMarkdown' opts (DefinitionList items) = do
   return $ mconcat contents <> blankline
 blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
-        ("", cls, kv) | (figid, [], []) <- figattr -> Just (figid, cls, kv)
+        ("", cls, kv)
+          | (figid, [], []) <- figattr -> Just (figid, cls, kv)
+          | otherwise -> Just ("", cls, kv)
         _ -> Nothing
   let combinedAlt alt = case capt of
         Caption Nothing [] -> if null alt
                               then Just [Str "image"]
                               else Just alt
         Caption Nothing [Plain captInlines]
-          | captInlines == alt || null alt -> Just captInlines
+          | null alt || stringify captInlines == stringify alt
+            -> Just captInlines
         Caption Nothing [Para captInlines]
-          | captInlines == alt || null alt -> Just captInlines
+          | null alt || stringify captInlines == stringify alt
+            -> Just captInlines
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
