@@ -1284,7 +1284,6 @@ header when requesting a document from a URL:
         Character styles:
 
         - Default Paragraph Font
-        - Body Text Char
         - Verbatim Char
         - Footnote Reference
         - Hyperlink
