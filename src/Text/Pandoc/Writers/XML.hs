@@ -55,7 +55,7 @@ elementWithAttributes tag attributes =
     }
 
 elementWithAttrAndContents :: T.Text -> PandocAttr -> [Content] -> Element
-elementWithAttrAndContents tag attr contents = addAttributes (elementWithContents tag contents) $ attrAttributes attr
+elementWithAttrAndContents tag attr contents = addAttrAttributes attr $ elementWithContents tag contents
 
 asBlockOfInlines :: Element -> [Content]
 asBlockOfInlines el = [Elem el, text_node "\n"]
@@ -64,7 +64,7 @@ asBlockOfBlocks :: Element -> [Content]
 asBlockOfBlocks el = [Elem newline_before_first, newline]
   where
     newline = text_node "\n"
-    newline_before_first = if null (elContent el) then el else prependContents el [newline]
+    newline_before_first = if null (elContent el) then el else prependContents [newline] el
 
 itemName :: (Show a) => a -> T.Text
 itemName a = T.pack $ takeWhile (/= ' ') (show a)
@@ -76,13 +76,14 @@ itemAsEmptyElement :: (Show a) => a -> Element
 itemAsEmptyElement item = emptyElement $ itemName item
 
 pandocToXmlText :: Pandoc -> T.Text
-pandocToXmlText (Pandoc (Meta meta) blocks) = with_header
+pandocToXmlText (Pandoc (Meta meta) blocks) = with_header . with_blocks . with_meta . with_version $ el
   where
-    el = prependContents (emptyElement "Pandoc") [text_node "\n"]
-    with_version = addAttribute el "api-version" $ T.intercalate "," $ map (T.pack . show) $ versionBranch pandocTypesVersion
-    with_meta = appendContents with_version $ metaMapToXML meta "meta"
-    with_blocks = appendContents with_meta $ asBlockOfBlocks $ elementWithContents "blocks" $ blocksToXML blocks
-    with_header = T.concat [T.pack xml_header, "\n", showElement with_blocks]
+    el = prependContents [text_node "\n"] $ emptyElement "Pandoc"
+    with_version = addAttribute "api-version" (T.intercalate "," $ map (T.pack . show) $ versionBranch pandocTypesVersion)
+    with_meta = appendContents (metaMapToXML meta "meta")
+    with_blocks = appendContents (asBlockOfBlocks $ elementWithContents "blocks" $ blocksToXML blocks)
+    with_header :: Element -> T.Text
+    with_header e = T.concat [T.pack xml_header, "\n", showElement e]
 
 metaMapToXML :: Map T.Text MetaValue -> T.Text -> [Content]
 metaMapToXML mmap tag = asBlockOfBlocks $ elementWithContents tag entries
@@ -92,20 +93,20 @@ metaMapToXML mmap tag = asBlockOfBlocks $ elementWithContents tag entries
     to_entry (text, metavalue) = asBlockOfBlocks with_key
       where
         entry = elementWithContents "entry" $ metaValueToXML metavalue
-        with_key = addAttribute entry "text" text
+        with_key = addAttribute "text" text entry
 
 metaValueToXML :: MetaValue -> [Content]
 metaValueToXML value =
   let name = itemName value
       el = itemAsEmptyElement value
    in case (value) of
-        MetaBool b -> asBlockOfInlines $ addAttribute el "value" bool_value
+        MetaBool b -> asBlockOfInlines $ addAttribute "value" bool_value el
           where
             bool_value = if b then "true" else "false"
-        MetaString s -> asBlockOfInlines $ appendContents el $ [text_node s]
-        MetaInlines inlines -> asBlockOfInlines $ appendContents el $ inlinesToXML inlines
-        MetaBlocks blocks -> asBlockOfBlocks $ appendContents el $ blocksToXML blocks
-        MetaList items -> asBlockOfBlocks $ appendContents el $ concatMap metaValueToXML items
+        MetaString s -> asBlockOfInlines $ appendContents [text_node s] el
+        MetaInlines inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) el
+        MetaBlocks blocks -> asBlockOfBlocks $ appendContents (blocksToXML blocks) el
+        MetaList items -> asBlockOfBlocks $ appendContents (concatMap metaValueToXML items) el
         MetaMap mm -> metaMapToXML mm name
 
 blocksToXML :: [Block] -> [Content]
@@ -130,61 +131,65 @@ blockToXML :: Block -> [Content]
 blockToXML block =
   let el = itemAsEmptyElement block
    in case (block) of
-        Para inlines -> asBlockOfInlines $ appendContents el $ inlinesToXML inlines
-        Header level (idn, cls, attrs) inlines -> asBlockOfInlines $ appendContents with_attr $ inlinesToXML inlines
+        Para inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) el
+        Header level (idn, cls, attrs) inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttributes el $ attrAttributes (idn, cls, attrs ++ [("level", intAsText level)])
-        Plain inlines -> asBlockOfInlines $ appendContents el $ inlinesToXML inlines
-        Div attr blocks -> asBlockOfBlocks $ appendContents with_attr $ blocksToXML blocks
+            with_attr = addAttrAttributes (idn, cls, attrs ++ [("level", intAsText level)]) el
+        Plain inlines -> asBlockOfInlines $ appendContents (inlinesToXML inlines) el
+        Div attr blocks -> asBlockOfBlocks $ appendContents (blocksToXML blocks) with_attr
           where
-            with_attr = addAttributes el $ attrAttributes attr
-        BulletList items -> asBlockOfBlocks $ appendContents el $ wrapArrayOfBlocks "item" items
-        OrderedList (start, style, delim) items -> asBlockOfBlocks $ appendContents with_attrs $ wrapArrayOfBlocks "item" items
+            with_attr = addAttrAttributes attr el
+        BulletList items -> asBlockOfBlocks $ appendContents (wrapArrayOfBlocks "item" items) el
+        OrderedList (start, style, delim) items -> asBlockOfBlocks $ with_contents . with_attrs $ el
           where
             with_attrs =
-              addAttributes el $
-                validAttributes
-                  [ ("start", intAsText start),
-                    ("number-style", itemName style),
-                    ("number-delim", itemName delim)
-                  ]
-        BlockQuote blocks -> asBlockOfBlocks $ appendContents el $ blocksToXML blocks
+              addAttributes
+                ( validAttributes
+                    [ ("start", intAsText start),
+                      ("number-style", itemName style),
+                      ("number-delim", itemName delim)
+                    ]
+                )
+            with_contents = appendContents (wrapArrayOfBlocks "item" items)
+        BlockQuote blocks -> asBlockOfBlocks $ appendContents (blocksToXML blocks) el
         HorizontalRule -> asBlockOfInlines el
-        CodeBlock attr text -> asBlockOfInlines $ appendContents with_attr [text_node text]
+        CodeBlock attr text -> asBlockOfInlines $ with_contents . with_attr $ el
           where
-            with_attr = addAttributes el $ attrAttributes attr
-        LineBlock lins -> asBlockOfBlocks $ appendContents el $ concatMap wrapInlines lins
+            with_contents = appendContents [text_node text]
+            with_attr = addAttrAttributes attr
+        LineBlock lins -> asBlockOfBlocks $ appendContents (concatMap wrapInlines lins) el
           where
-            wrapInlines inlines = asContents $ appendContents (emptyElement "line") $ inlinesToXML inlines
-        Table attr caption colspecs thead tbodies tfoot -> asBlockOfBlocks with_foot
+            wrapInlines inlines = asContents $ appendContents (inlinesToXML inlines) $ emptyElement "line"
+        Table attr caption colspecs thead tbodies tfoot -> asBlockOfBlocks $ with_foot . with_bodies . with_head . with_colspecs . with_caption . with_attr $ el
           where
-            with_attr = addAttributes el $ attrAttributes attr
-            with_caption = appendContents with_attr $ captionToXML caption
-            with_colspecs = appendContents with_caption $ colSpecsToXML colspecs
-            with_head = appendContents with_colspecs $ tableHeadToXML thead
-            with_bodies = appendContents with_head $ concatMap tableBodyToXML tbodies
-            with_foot = appendContents with_bodies $ tableFootToXML tfoot
-        Figure attr caption blocks -> asBlockOfBlocks $ appendContents with_caption $ blocksToXML blocks
+            with_attr = addAttrAttributes attr
+            with_caption = appendContents (captionToXML caption)
+            with_colspecs = appendContents (colSpecsToXML colspecs)
+            with_head = appendContents (tableHeadToXML thead)
+            with_bodies = appendContents (concatMap tableBodyToXML tbodies)
+            with_foot = appendContents (tableFootToXML tfoot)
+        Figure attr caption blocks -> asBlockOfBlocks $ with_contents . with_caption . with_attr $ el
           where
-            with_attr = addAttributes el $ attrAttributes attr
-            with_caption = appendContents with_attr $ captionToXML caption
-        RawBlock (Format format) text -> asContents $ appendContents raw [text_node text]
+            with_attr = addAttrAttributes attr
+            with_caption = appendContents (captionToXML caption)
+            with_contents = appendContents (blocksToXML blocks)
+        RawBlock (Format format) text -> asContents $ appendContents [text_node text] raw
           where
-            raw = addAttribute el "format" format
-        DefinitionList items -> asBlockOfBlocks $ appendContents el $ map definitionListItemToXML items
+            raw = addAttribute "format" format el
+        DefinitionList items -> asBlockOfBlocks $ appendContents (map definitionListItemToXML items) el
 
 inlineToXML :: Inline -> [Content]
 inlineToXML inline =
   let el = itemAsEmptyElement inline
-      wrapInlines inlines = asContents $ appendContents el $ inlinesToXML inlines
+      wrapInlines inlines = asContents $ appendContents (inlinesToXML inlines) el
    in case (inline) of
         Space -> [text_node " "]
         Str s -> [text_node s]
         Emph inlines -> wrapInlines inlines
         Strong inlines -> wrapInlines inlines
-        Quoted quote_type inlines -> asContents $ appendContents quoted $ inlinesToXML inlines
+        Quoted quote_type inlines -> asContents $ appendContents (inlinesToXML inlines) quoted
           where
-            quoted = addAttribute el "quote-type" $ itemName quote_type
+            quoted = addAttribute "quote-type" (itemName quote_type) el
         Underline inlines -> wrapInlines inlines
         Strikeout inlines -> wrapInlines inlines
         SmallCaps inlines -> wrapInlines inlines
@@ -192,28 +197,28 @@ inlineToXML inline =
         Subscript inlines -> wrapInlines inlines
         SoftBreak -> asContents el
         LineBreak -> asContents el
-        Span attr inlines -> asContents $ appendContents with_attr $ inlinesToXML inlines
+        Span attr inlines -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttributes el $ attrAttributes attr
-        Link (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents with_attr $ inlinesToXML inlines
+            with_attr = addAttrAttributes attr el
+        Link (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttributes el $ attrAttributes (idn, cls, attrs ++ [("href", url), ("title", title)])
-        Image (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents with_attr $ inlinesToXML inlines
+            with_attr = addAttrAttributes (idn, cls, attrs ++ [("href", url), ("title", title)]) el
+        Image (idn, cls, attrs) inlines (url, title) -> asContents $ appendContents (inlinesToXML inlines) with_attr
           where
-            with_attr = addAttributes el $ attrAttributes (idn, cls, attrs ++ [("src", url), ("title", title)])
-        RawInline (Format format) text -> asContents $ appendContents raw [text_node text]
+            with_attr = addAttrAttributes (idn, cls, attrs ++ [("src", url), ("title", title)]) el
+        RawInline (Format format) text -> asContents $ appendContents [text_node text] raw
           where
-            raw = addAttribute el "format" format
-        Math math_type text -> asContents $ appendContents math [text_node text]
+            raw = addAttribute "format" format el
+        Math math_type text -> asContents $ appendContents [text_node text] math
           where
-            math = addAttribute el "math-type" $ itemName math_type
-        Code attr text -> asContents $ appendContents with_attr [text_node text]
+            math = addAttribute "math-type" (itemName math_type) el
+        Code attr text -> asContents $ appendContents [text_node text] with_attr
           where
-            with_attr = addAttributes el $ attrAttributes attr
-        Note blocks -> asContents $ appendContents el $ blocksToXML blocks
-        Cite citations inlines -> asContents $ appendContents with_citations $ inlinesToXML inlines
+            with_attr = addAttrAttributes attr el
+        Note blocks -> asContents $ appendContents (blocksToXML blocks) el
+        Cite citations inlines -> asContents $ appendContents (inlinesToXML inlines) with_citations
           where
-            with_citations = addCitations el citations
+            with_citations = addCitations citations el
 
 -- TODO: don't let an attribute overwrite id or class
 maybeAttribute :: (T.Text, T.Text) -> Maybe XML.Attr
@@ -224,31 +229,27 @@ maybeAttribute (name, value) = Just $ XML.Attr (unqual name) value
 validAttributes :: [(T.Text, T.Text)] -> [XML.Attr]
 validAttributes pairs = mapMaybe maybeAttribute pairs
 
-attrAttributes :: PandocAttr -> [XML.Attr]
-attrAttributes (identifier, classes, attributes) =
-  mapMaybe
-    maybeAttribute
-    ( ("id", identifier)
-        : ("class", T.intercalate " " classes)
-        : attributes
-    )
+appendContents :: [Content] -> Element -> Element
+appendContents newContents el = el {elContent = (elContent el) ++ newContents}
 
-appendContents :: Element -> [Content] -> Element
-appendContents el newContents = el {elContent = (elContent el) ++ newContents}
+prependContents :: [Content] -> Element -> Element
+prependContents newContents el = el {elContent = newContents ++ (elContent el)}
 
-prependContents :: Element -> [Content] -> Element
-prependContents el newContents = el {elContent = newContents ++ (elContent el)}
+addAttributes :: [XML.Attr] -> Element -> Element
+addAttributes newAttrs el = el {elAttribs = newAttrs ++ elAttribs el}
 
-addAttributes :: Element -> [XML.Attr] -> Element
-addAttributes el newAttrs = el {elAttribs = newAttrs ++ elAttribs el}
-
-addAttribute :: Element -> T.Text -> T.Text -> Element
-addAttribute el attr_name attr_value = el {elAttribs = new_attr : elAttribs el}
+addAttribute :: T.Text -> T.Text -> Element -> Element
+addAttribute attr_name attr_value el = el {elAttribs = new_attr : elAttribs el}
   where
     new_attr = XML.Attr (unqual attr_name) attr_value
 
-addCitations :: Element -> [Citation] -> Element
-addCitations el citations = appendContents el [Elem $ elementWithContents "citations" $ (text_node "\n") : concatMap citation_to_elem citations]
+addAttrAttributes :: PandocAttr -> Element -> Element
+addAttrAttributes (identifier, classes, attributes) el = addAttributes attrs' el
+  where
+    attrs' = mapMaybe maybeAttribute (("id", identifier) : ("class", T.intercalate " " classes) : attributes)
+
+addCitations :: [Citation] -> Element -> Element
+addCitations citations el = appendContents [Elem $ elementWithContents "citations" $ (text_node "\n") : concatMap citation_to_elem citations] el
   where
     citation_to_elem :: Citation -> [Content]
     citation_to_elem citation = asBlockOfInlines with_suffix
@@ -256,8 +257,8 @@ addCitations el citations = appendContents el [Elem $ elementWithContents "citat
         cit_elem = elementWithAttributes (itemName citation) attrs
         prefix = citationPrefix citation
         suffix = citationSuffix citation
-        with_prefix = if null prefix then cit_elem else appendContents cit_elem [Elem $ elementWithContents "prefix" $ inlinesToXML prefix]
-        with_suffix = if null suffix then with_prefix else appendContents with_prefix [Elem $ elementWithContents "suffix" $ inlinesToXML suffix]
+        with_prefix = if null prefix then cit_elem else appendContents [Elem $ elementWithContents "prefix" $ inlinesToXML prefix] cit_elem
+        with_suffix = if null suffix then with_prefix else appendContents [Elem $ elementWithContents "suffix" $ inlinesToXML suffix] with_prefix
         attrs =
           map
             (\(n, v) -> XML.Attr (unqual n) v)
@@ -270,14 +271,14 @@ addCitations el citations = appendContents el [Elem $ elementWithContents "citat
 definitionListItemToXML :: ([Inline], [[Block]]) -> Content
 definitionListItemToXML (inlines, defs) = Elem $ elementWithContents "item" $ term ++ wrapArrayOfBlocks "def" defs
   where
-    term = asBlockOfInlines $ appendContents (emptyElement "term") $ inlinesToXML inlines
+    term = asBlockOfInlines $ appendContents (inlinesToXML inlines) $ emptyElement "term"
 
 captionToXML :: Caption -> [Content]
 captionToXML (Caption short blocks) = asBlockOfBlocks with_short_caption
   where
     el = elementWithContents "Caption" $ blocksToXML blocks
     with_short_caption = case (short) of
-      Just inlines -> prependContents el $ asBlockOfInlines $ elementWithContents "ShortCaption" $ inlinesToXML inlines
+      Just inlines -> prependContents (asBlockOfInlines $ elementWithContents "ShortCaption" $ inlinesToXML inlines) el
       _ -> el
 
 colSpecToXML :: (Alignment, ColWidth) -> [Content]
@@ -311,7 +312,8 @@ rowToXML (Row attr cells) = asBlockOfBlocks $ elementWithAttrAndContents "Row" a
 cellToXML :: Cell -> [Content]
 cellToXML (Cell (idn, cls, attrs) alignment (RowSpan rowspan) (ColSpan colspan) blocks) = asBlockOfBlocks $ elementWithAttrAndContents "Cell" attr $ blocksToXML blocks
   where
-    attrs' = (alignmentAttrName, itemName alignment) : attrs
-    attrs'' = if rowspan > 1 then ("rowspan", intAsText rowspan) : attrs' else attrs'
-    attrs''' = if colspan > 1 then ("colspan", intAsText colspan) : attrs'' else attrs''
-    attr = (idn, cls, attrs''')
+    with_alignment a = (alignmentAttrName, itemName alignment) : a
+    with_rowspan a = if rowspan > 1 then ("rowspan", intAsText rowspan) : a else a
+    with_colspan a = if colspan > 1 then ("colspan", intAsText colspan) : a else a
+    attrs' = (with_colspan . with_rowspan . with_alignment) attrs
+    attr = (idn, cls, attrs')
