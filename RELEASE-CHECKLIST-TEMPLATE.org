@@ -1,11 +1,8 @@
-:PROPERTIES:
-:header-args: :var VERSION="X.Y.Z"
-:END:
-** pandoc release checklist
+** pandoc VERSION release checklist
 *** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%1Aopen%20label%3A%22priority%3Ahigh%22][priority-high tag]]
 *** TODO [[./pandoc.cabal]] - bump version number
 *** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version number and sync pandoc version
-* TODO [[./pandoc-lua-engine/pandoc-lua-engine.cabal]] - bump version number if appropriate
+*** TODO [[./pandoc-lua-engine/pandoc-lua-engine.cabal]] - bump version number if appropriate
 *** TODO [[./pandoc-server/pandoc-server.cabal]] - bump version number if appropriate
 *** TODO Update [[./MANUAL.txt]] date
 *** TODO Finalize [[./changelog.md]]
@@ -15,7 +12,7 @@ make prerelease
 #+end_src
 *** TODO Update [[./AUTHORS.md]]
 #+begin_src sh
-make authors LASTRELEASE=$VERSION
+make authors LASTRELEASE=VERSION
 #+end_src
 *** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] manually on GitHub
 *** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
@@ -42,12 +39,31 @@ make update-website
 #+begin_src sh
 make pandoc-templates
 pushd ~/src/pandoc-templates
-git tag $VERSION
+git tag VERSION
 git push
 git push --tags
 popd
 #+end_src
-*** TODO Add release on github (use 'make changes_github' and upload files)
 *** TODO Copy deb to server, install it
+*** TODO Add release on github (use 'make changes_github' and upload files)
+*** TODO create release announcement and add to GH release announcement
+#+begin_src sh :results none
+echo <<EOF >relann-VERSION
+I'm pleased to announce the release of pandoc VERSION,
+available in the usual places:
+
+Binary packages & changelog:
+https://github.com/jgm/pandoc/releases/tag/VERSION
+
+Source & API documentation:
+http://hackage.haskell.org/package/pandoc-VERSION
+
+Description of release.
+
+Any API changes.
+
+Thanks to all who contributed, especially new contributors ...
+EOF
+#+end_src
 *** TODO Announce on pandoc-announce, pandoc-discuss
 
