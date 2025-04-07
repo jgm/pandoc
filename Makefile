@@ -322,6 +322,12 @@ help: ## display this help
 	@printf "%-16s%s\n" "REVISION" "$(REVISION)"
 .PHONY: help
 
+release-checklist: release-checklist-${version}.org
+.PHONY: release-checklist
+
+release-checklist-${version}.org: RELEASE-CHECKLIST-TEMPLATE.org
+	sed -e 's/VERSION/${version}/g' $< > $@
+
 hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@
 .PHONY: hie.yaml
