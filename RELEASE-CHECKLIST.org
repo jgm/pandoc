@@ -1,0 +1,53 @@
+:PROPERTIES:
+:header-args: :var VERSION="X.Y.Z"
+:END:
+** pandoc release checklist
+*** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%1Aopen%20label%3A%22priority%3Ahigh%22][priority-high tag]]
+*** TODO [[./pandoc.cabal]] - bump version number
+*** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version number and sync pandoc version
+* TODO [[./pandoc-lua-engine/pandoc-lua-engine.cabal]] - bump version number if appropriate
+*** TODO [[./pandoc-server/pandoc-server.cabal]] - bump version number if appropriate
+*** TODO Update [[./MANUAL.txt]] date
+*** TODO Finalize [[./changelog.md]]
+*** TODO prerelease checks
+#+begin_src sh
+make prerelease
+#+end_src
+*** TODO Update [[./AUTHORS.md]]
+#+begin_src sh
+make authors LASTRELEASE=$VERSION
+#+end_src
+*** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] manually on GitHub
+*** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
+*** TODO If it builds successfully, download artifacts from GitHub, cirrus-ci.com
+    (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
+    from cirrus)
+*** TODO Use 'make' in macos and windows artifacts to sign code
+*** TODO Update website
+#+begin_src sh
+make update-website
+#+end_src
+*** TODO Tag release in git:
+    - use X.Y for pandoc
+    - pandoc-cli-X.Y
+    - if needed: pandoc-server-X.Y
+    - if needed: pandoc-lua-engine-X.Y
+*** TODO Upload packages to Hackage:
+    - pandoc
+    - pandoc-cli
+    and if changed:
+    - pandoc-server
+    - pandoc-lua-engine
+*** TODO make pandoc-templates
+#+begin_src sh
+make pandoc-templates
+pushd ~/src/pandoc-templates
+git tag $VERSION
+git push
+git push --tags
+popd
+#+end_src
+*** TODO Add release on github (use 'make changes_github' and upload files)
+*** TODO Copy deb to server, install it
+*** TODO Announce on pandoc-announce, pandoc-discuss
+

@@ -27,7 +27,7 @@
 !Makefile
 !README.md
 !README.template
-!RELEASE-CHECKLIST
+!RELEASE-CHECKLIST.org
 !SECURITY.md
 !Setup.hs
 !cabal.project
