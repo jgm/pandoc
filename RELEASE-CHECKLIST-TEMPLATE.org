@@ -19,6 +19,10 @@ make authors LASTRELEASE=VERSION
 *** TODO If it builds successfully, download artifacts from GitHub, cirrus-ci.com
     (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
     from cirrus)
+    #+begin_src sh :var ghtoken=(jgm-authinfo-get "api.github.com" "jgm_pandoc_release")
+echo $ghtoken
+    #+end_src
+
 *** TODO Use 'make' in macos and windows artifacts to sign code
 *** TODO Update website
 #+begin_src sh
