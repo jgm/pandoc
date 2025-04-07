@@ -4,6 +4,7 @@
 
 module Text.Pandoc.Readers.XML (readXML) where
 
+import Codec.Picture.Metadata (Value (Int))
 import Control.Monad (forM_, unless, when)
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict (StateT (runStateT), gets, modify)
@@ -11,13 +12,14 @@ import Data.Char (isDigit, isSpace)
 import Data.Default (Default (..))
 import Data.Generics
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Set ((\\))
-import qualified Data.Set as S (fromList, member)
+import qualified Data.Set as S (Set, fromList, member)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Lazy (fromStrict)
 import Data.Version (Version, makeVersion, versionBranch)
+import Text.Blaze.Html4.FrameSet (blockquote)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Definition
@@ -30,7 +32,8 @@ import Text.Pandoc.Sources (sourcesToText)
 import Text.Pandoc.Version (pandocVersion)
 import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.XML.Light
-import Text.Blaze.Html4.FrameSet (blockquote)
+import qualified Text.Pandoc.XML.Light as XML
+import Text.Read (readMaybe)
 
 type XMLReader m = StateT XMLReaderState m
 
@@ -97,8 +100,17 @@ parseBlock (Elem e) = do
     "blocks" -> getBlocks e
     "Para" -> parseMixed name para (elContent e)
     "Plain" -> parseMixed name plain (elContent e)
+    "Header" -> parseMixed name (headerWith attr level) (elContent e)
+      where
+        level = textToInt (attrValue "level" e) 1
+        attr = filterAttrAttributes ["level"] $ attrFromElement e
     "HorizontalRule" -> return horizontalRule
-    -- "BlockQuote" -> return blockQuote []
+    "BlockQuote" -> do
+      contents <- getBlocks e
+      return $ blockQuote contents
+    "Div" -> do
+      contents <- getBlocks e
+      return $ divWith (attrFromElement e) contents
     _ -> reportUnexpected "element" name mempty
   where
     parsePandoc = do
@@ -128,6 +140,14 @@ strContentRecursive =
 elementToStr :: Content -> Content
 elementToStr (Elem e') = Text $ CData CDataText (strContentRecursive e') Nothing
 elementToStr x = x
+
+textToInt :: Text -> Int -> Int
+textToInt t deflt =
+  let safe_to_int :: Text -> Maybe Int
+      safe_to_int s = readMaybe $ T.unpack s
+   in case (safe_to_int t) of
+        Nothing -> deflt
+        Just (n) -> n
 
 parseInline :: (PandocMonad m) => Text -> Content -> XMLReader m Inlines
 parseInline _ (Text (CData _ s _)) = return $ text s
@@ -351,3 +371,22 @@ parseContents content = do
                   b <- parseBlock r
                   x <- parseMixed parent' container rs
                   return $ p <> b <> x
+
+type PandocAttr = (Text, [Text], [(Text, Text)])
+
+filterAttributes :: S.Set Text -> [(Text, Text)] -> [(Text, Text)]
+filterAttributes to_be_removed a = filter keep_attr a
+  where
+    keep_attr (k, _) = not (k `S.member` to_be_removed)
+
+filterAttrAttributes :: [Text] -> PandocAttr -> PandocAttr
+filterAttrAttributes to_be_removed (idn, classes, a) = (idn, classes, filtered)
+  where
+    filtered = filterAttributes (S.fromList to_be_removed) a
+
+attrFromElement :: Element -> PandocAttr
+attrFromElement e = filterAttrAttributes ["id", "class"] (idn, classes, attributes)
+  where
+    idn = attrValue "id" e
+    classes = T.words $ attrValue "class" e
+    attributes = map (\a -> (qName $ attrKey a, attrVal a)) $ elAttribs e
