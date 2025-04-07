@@ -320,7 +320,7 @@ blockToDocBook opts (Table _ blkCapt specs thead tbody tfoot) = do
   return $ inTagsIndented tableType $ captionDoc $$
         inTags True "tgroup" [("cols", tshow (length aligns))] (
          coltags $$ head' $$ body')
-blockToDocBook opts (Figure attr capt@(Caption _ caption) body) = do
+blockToDocBook opts (Figure attr@(id', _, _) capt@(Caption _ caption) body) = do
   -- TODO: probably better to handle nested figures as mediaobject
   let isAcceptable = \case
         Table {}  -> All False
@@ -344,10 +344,13 @@ blockToDocBook opts (Figure attr capt@(Caption _ caption) body) = do
                    DocBook4 -> pure mempty -- docbook4 requires media
                    DocBook5 -> blocksToDocBook opts body
       mediaobjects <- mapM toMediaobject body
+      version <- ask
+      let idAttr = [ (idName version, writerIdentifierPrefix opts <> id')
+                   | not (T.null id') ]
       return $
         if isEmpty $ mconcat mediaobjects
         then mempty -- figures must have at least some content
-        else inTagsIndented "figure" $
+        else inTags True "figure" idAttr $
              inTagsSimple "title" title $$
              mconcat mediaobjects
 
