@@ -62,29 +62,6 @@ import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
 import Text.Collate.Lang (renderLang, Lang(..))
 
-renumIdMap :: Int -> [Element] -> M.Map Text Text
-renumIdMap _ [] = M.empty
-renumIdMap n (e:es)
-  | Just oldId <- findAttr (QName "Id" Nothing Nothing) e =
-      M.insert oldId ("rId" <> tshow n) (renumIdMap (n+1) es)
-  | otherwise = renumIdMap n es
-
-replaceAttr :: (QName -> Bool) -> Text -> [XML.Attr] -> [XML.Attr]
-replaceAttr f val = map $
-    \a -> if f (attrKey a) then XML.Attr (attrKey a) val else a
-
-renumId :: (QName -> Bool) -> M.Map Text Text -> Element -> Element
-renumId f renumMap e
-  | Just oldId <- findAttrBy f e
-  , Just newId <- M.lookup oldId renumMap =
-    let attrs' = replaceAttr f newId (elAttribs e)
-    in
-     e { elAttribs = attrs' }
-  | otherwise = e
-
-renumIds :: (QName -> Bool) -> M.Map Text Text -> [Element] -> [Element]
-renumIds f renumMap = map (renumId f renumMap)
-
 writeDocx :: (PandocMonad m)
           => WriterOptions  -- ^ Writer options
           -> Pandoc         -- ^ Document to convert
@@ -237,15 +214,10 @@ writeDocx opts doc = do
         , stCurId      = newMaxRelId + 1
         }
 
-  let idMap = renumIdMap (length baserels + 1) (headers ++ footers)
-
   -- adjust contents to add sectPr from reference.docx
   let sectpr = case mbsectpr of
-        Just sectpr' -> let cs = renumIds
-                                 (\q -> qName q == "id" && qPrefix q == Just "r")
-                                 idMap
-                                 (elChildren sectpr')
-                        in add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
+        Just sectpr' -> add_attrs (elAttribs sectpr') $ mknode "w:sectPr" []
+                             (elChildren sectpr')
         Nothing      -> mknode "w:sectPr" []
                           [ mknode "w:footnotePr" []
                             [ mknode "w:numRestart" [("w:val","eachSect")] () ]
