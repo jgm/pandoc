@@ -1,27 +1,40 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Text.Pandoc.Format.XML
-  (
+module Text.Pandoc.FormatXML
+  ( attrApiVersion,
+    attrCitationHash,
+    attrCitationMode,
+    attrCitationNoteNum,
+    attrFormat,
     attrImageUrl,
     attrLevel,
     attrLinkUrl,
+    attrMathType,
     attrNumberDelim,
     attrNumberStyle,
+    attrQuoteType,
     attrStart,
     attrTitle,
     tagBodyBody,
     tagBodyHeader,
     tagCitations,
+    tagCitationPrefix,
+    tagCitationSuffix,
     tagColspecs,
     tagDefListDef,
     tagDefListItem,
     tagDefListTerm,
+    tagLineItem,
     tagListItem,
   )
 where
 
 import Data.Text (Text)
+
+-- the attribute carrying the API version of pandoc types in the main Pandoc element
+attrApiVersion :: Text
+attrApiVersion = "api-version"
 
 -- level of a Header
 attrLevel :: Text
@@ -51,9 +64,41 @@ attrImageUrl = "src"
 attrLinkUrl :: Text
 attrLinkUrl = "href"
 
+-- QuoteType of a Quoted
+attrQuoteType :: Text
+attrQuoteType = "quote-type"
+
+-- MathType of a Math
+attrMathType :: Text
+attrMathType = "math-type"
+
+-- format of a RawInline or a RawBlock
+attrFormat :: Text
+attrFormat = "format"
+
+-- the citationMode of a Citation
+attrCitationMode :: Text
+attrCitationMode = "mode"
+
+-- the citationHash of a Citation
+attrCitationHash :: Text
+attrCitationHash = "hash"
+
+-- the citationNoteNum of a Citation
+attrCitationNoteNum :: Text
+attrCitationNoteNum = "note-num"
+
 -- container of Citation elements in Cite inlines
 tagCitations :: Text
 tagCitations = "citations"
+
+-- element around the prefix inlines of a Citation
+tagCitationPrefix :: Text
+tagCitationPrefix = "prefix"
+
+-- element around the suffix inlines of a Citation
+tagCitationSuffix :: Text
+tagCitationSuffix = "suffix"
 
 -- list item for BulletList and OrderedList
 tagListItem :: Text
@@ -75,10 +120,14 @@ tagDefListDef = "def"
 tagColspecs :: Text
 tagColspecs = "colspecs"
 
--- tag around the header rows of a TableBody
+-- element around the header rows of a TableBody
 tagBodyHeader :: Text
 tagBodyHeader = "header"
 
--- tag around the body rows of a TableBody
+-- element around the body rows of a TableBody
 tagBodyBody :: Text
 tagBodyBody = "body"
+
+-- element around the inlines of a line in a LineBlock
+tagLineItem :: Text
+tagLineItem = "line"
