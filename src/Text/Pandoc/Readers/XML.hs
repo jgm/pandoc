@@ -19,6 +19,7 @@ import Data.Version (Version, makeVersion)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error (PandocError (..))
+import Text.Pandoc.FormatXML
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (ToSources, toSources)
@@ -94,8 +95,8 @@ parseBlock (Elem e) = do
         "Plain" -> parseMixed plain (elContent e)
         "Header" -> parseMixed (headerWith attr level) (elContent e)
           where
-            level = textToInt (attrValue "level" e) 1
-            attr = filterAttrAttributes ["level"] $ attrFromElement e
+            level = textToInt (attrValue attrLevel e) 1
+            attr = filterAttrAttributes [attrLevel] $ attrFromElement e
         "HorizontalRule" -> return horizontalRule
         "BlockQuote" -> do
           contents <- getBlocks e
@@ -119,7 +120,7 @@ parseBlock (Elem e) = do
           let attr = attrFromElement e
           return $ codeBlockWith attr $ strContentRecursive e
         "RawBlock" -> do
-          let format = (attrValue "format" e)
+          let format = (attrValue attrFormat e)
           return $ rawBlock format $ strContentRecursive e
         "LineBlock" -> do
           lins <- getArrayOfInlines isLineItem (elContent e)
@@ -130,7 +131,7 @@ parseBlock (Elem e) = do
           return mempty
   where
     parsePandoc = do
-      let version = maybeAttrValue "api-version" e
+      let version = maybeAttrValue attrApiVersion e
           apiversion = case (version) of
             Just (v) -> makeVersion $ map (read . T.unpack) $ T.splitOn "," v
             Nothing -> pandocVersion
@@ -226,10 +227,10 @@ parseInline (Elem e) =
         "SoftBreak" -> return softbreak
         "LineBreak" -> return linebreak
         "SmallCaps" -> innerInlines smallcaps
-        "Quoted" -> case (attrValue "quote-type" e) of
+        "Quoted" -> case (attrValue attrQuoteType e) of
           "SingleQuoted" -> innerInlines singleQuoted
           _ -> innerInlines doubleQuoted
-        "Math" -> case (attrValue "math-type" e) of
+        "Math" -> case (attrValue attrMathType e) of
           "DisplayMath" -> do return $ displayMath $ strContentRecursive e
           _ -> do return $ math $ strContentRecursive e
         "Span" -> innerInlines $ spanWith (attrFromElement e)
@@ -238,16 +239,16 @@ parseInline (Elem e) =
           return $ codeWith attr $ strContentRecursive e
         "Link" -> innerInlines $ linkWith attr url title
           where
-            url = attrValue "href" e
-            title = attrValue "title" e
-            attr = filterAttrAttributes ["href", "title"] $ attrFromElement e
+            url = attrValue attrLinkUrl e
+            title = attrValue attrTitle e
+            attr = filterAttrAttributes [attrLinkUrl, attrTitle] $ attrFromElement e
         "Image" -> innerInlines $ imageWith attr url title
           where
-            url = attrValue "src" e
-            title = attrValue "title" e
-            attr = filterAttrAttributes ["src", "title"] $ attrFromElement e
+            url = attrValue attrImageUrl e
+            title = attrValue attrTitle e
+            attr = filterAttrAttributes [attrImageUrl, attrTitle] $ attrFromElement e
         "RawInline" -> do
-          let format = (attrValue "format" e)
+          let format = (attrValue attrFormat e)
           return $ rawInline format $ strContentRecursive e
         "Note" -> do
           contents <- getBlocks e
@@ -268,8 +269,8 @@ parseInline (Elem e) =
 getListAttributes :: Element -> ListAttributes
 getListAttributes e = (start, style, delim)
   where
-    start = textToInt (attrValue "start" e) 1
-    style = case (attrValue "number-style" e) of
+    start = textToInt (attrValue attrStart e) 1
+    style = case (attrValue attrNumberStyle e) of
       "Example" -> Example
       "Decimal" -> Decimal
       "LowerRoman" -> LowerRoman
@@ -277,7 +278,7 @@ getListAttributes e = (start, style, delim)
       "LowerAlpha" -> LowerAlpha
       "UpperAlpha" -> UpperAlpha
       _ -> DefaultStyle
-    delim = case (attrValue "number-delim" e) of
+    delim = case (attrValue attrNumberDelim e) of
       "Period" -> Period
       "OneParen" -> OneParen
       "TwoParens" -> TwoParens
@@ -286,18 +287,18 @@ getListAttributes e = (start, style, delim)
 partitionCitationsAndInlines :: (PandocMonad m) => [Content] -> XMLReader m ([Content], [Content])
 partitionCitationsAndInlines contents =
   let (citations_el, inlines) = partition isCitations contents
-      citations_children = contentsOfChildren "citations" citations_el
+      citations_children = contentsOfChildren tagCitations citations_el
    in case (length citations_children) of
         1 -> do return (concat citations_children, inlines)
         0 -> do
-          report $ UnexpectedXmlElement "missing <citations> element" ""
+          report $ UnexpectedXmlElement ("missing <" <> tagCitations <> "> element") ""
           return (mempty, inlines)
         n -> do
-          report $ UnexpectedXmlElement ("too many (" <> T.pack (show n) <> ") <citations> elements") ""
+          report $ UnexpectedXmlElement ("too many (" <> T.pack (show n) <> ") <" <> tagCitations <> "> elements") ""
           return (concat citations_children, inlines)
   where
     isCitations content = case (content) of
-      Elem e -> elementName e == "citations"
+      Elem e -> elementName e == tagCitations
       _ -> False
 
 contentsOfChildren :: Text -> [Content] -> [[Content]]
@@ -326,12 +327,12 @@ parseCitations contents = do
                     { citationId = attrValue "id" e,
                       citationPrefix = toList p,
                       citationSuffix = toList s,
-                      citationMode = case (attrValue "mode" e) of
+                      citationMode = case (attrValue attrCitationMode e) of
                         "AuthorInText" -> AuthorInText
                         "SuppressAuthor" -> SuppressAuthor
                         _ -> NormalCitation,
-                      citationNoteNum = textToInt (attrValue "note-num" e) 0,
-                      citationHash = textToInt (attrValue "hash" e) 0
+                      citationNoteNum = textToInt (attrValue attrCitationNoteNum e) 0,
+                      citationHash = textToInt (attrValue attrCitationHash e) 0
                     }
                 )
           else do
@@ -339,17 +340,17 @@ parseCitations contents = do
       _ -> do
         return Nothing
       where
-        prefix e = getArrayOfInlines (\c -> "prefix" == elementName c) $ elContent e
-        suffix e = getArrayOfInlines (\c -> "suffix" == elementName c) $ elContent e
+        prefix e = getArrayOfInlines (\c -> tagCitationPrefix == elementName c) $ elContent e
+        suffix e = getArrayOfInlines (\c -> tagCitationSuffix == elementName c) $ elContent e
 
 -- parseCaption :: (PandocMonad m) => [Content] -> XMLReader m Caption
 -- parseCaption contents = let (caption_els, contents)
 
 isListItem :: Element -> Bool
-isListItem e = qName (elName e) == "item"
+isListItem e = qName (elName e) == tagListItem
 
 isLineItem :: Element -> Bool
-isLineItem e = qName (elName e) == "line"
+isLineItem e = qName (elName e) == tagLineItem
 
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
