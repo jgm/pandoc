@@ -1,5 +1,5 @@
-version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
-pandoc-cli-version?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
+VERSION?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
+PANDOC_CLI_VERSION?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
 SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
 DOCKERIMAGE=quay.io/benz0li/ghc-musl:9.8
@@ -98,21 +98,21 @@ check-cabal: git-files.txt sdist-files.txt
 
 check-version-sync:
 	@echo "Checking for match between pandoc and pandoc-cli versions"
-	[ $(version) == $(pandoc-cli-version) ]
+	[ $(VERSION) == $(PANDOC_CLI_VERSION) ]
 	@echo "Checking that pandoc-cli depends on this version of pandoc"
-	grep 'pandoc == $(version)' pandoc-cli/pandoc-cli.cabal
+	grep 'pandoc == $(VERSION)' pandoc-cli/pandoc-cli.cabal
 .PHONY: check-version-sync
 
 check-changelog:
 	@echo "Checking for changelog entry for this version"
-	grep '## pandoc $(version) (\d\d\d\d-\d\d-\d\d)' changelog.md
+	grep '## pandoc $(VERSION) (\d\d\d\d-\d\d-\d\d)' changelog.md
 .PHONY: check-changelog
 
 check-manversion:
 	@echo "Checking version number in man pages"
-	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc.1"
-	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-server.1"
-	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-lua.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc-server.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc-lua.1"
 .PHONY: check-manversion
 
 checkdocs:
@@ -189,7 +189,7 @@ pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pando
     --variable section="1" \
     --variable title="pandoc" \
     --variable header='Pandoc User\[cq]s Guide' \
-		--variable footer="pandoc $(version)" \
+		--variable footer="pandoc $(VERSION)" \
 		-o $@
 
 pandoc-cli/man/%.1: doc/%.md pandoc.cabal
@@ -199,7 +199,7 @@ pandoc-cli/man/%.1: doc/%.md pandoc.cabal
     --variable section="1" \
     --variable title="$(basename $(notdir $@))" \
     --variable header='Pandoc User\[cq]s Guide' \
-		--variable footer="pandoc $(version)" \
+		--variable footer="pandoc $(VERSION)" \
     --include-after-body man/pandoc.1.after \
 		-o $@
 
@@ -228,7 +228,7 @@ pandoc-templates: ## update pandoc-templates repo
 	cp data/templates/* ../pandoc-templates/ ; \
 	pushd ../pandoc-templates/ && \
 	git add * && \
-	git commit -m "Updated templates for pandoc $(version)" && \
+	git commit -m "Updated templates for pandoc $(VERSION)" && \
 	popd
 .PHONY: pandoc-templates
 
@@ -322,11 +322,11 @@ help: ## display this help
 	@printf "%-16s%s\n" "REVISION" "$(REVISION)"
 .PHONY: help
 
-release-checklist: release-checklist-${version}.org
+release-checklist: release-checklist-$(VERSION).org
 .PHONY: release-checklist
 
-release-checklist-$(version).org: RELEASE-CHECKLIST-TEMPLATE.org
-	sed -e 's/VERSION/$(version)/g' $< > $@
+release-checklist-$(VERSION).org: RELEASE-CHECKLIST-TEMPLATE.org
+	sed -e 's/VERSION/$(VERSION)/g' $< > $@
 
 hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@
