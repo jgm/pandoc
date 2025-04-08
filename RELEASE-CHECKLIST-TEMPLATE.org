@@ -51,9 +51,8 @@ popd
 *** TODO Copy deb to server, install it
 *** TODO Add release on github (use 'make changes_github' and upload files)
 *** TODO create release announcement and add to GH release announcement
-#+begin_src sh :results none
-echo <<EOF >relann-VERSION
-I'm pleased to announce the release of pandoc VERSION,
+#+begin_src elisp :results value file :file relann-VERSION
+"I'm pleased to announce the release of pandoc VERSION,
 available in the usual places:
 
 Binary packages & changelog:
@@ -67,7 +66,7 @@ Description of release.
 Any API changes.
 
 Thanks to all who contributed, especially new contributors ...
-EOF
+"
 #+end_src
 *** TODO Announce on pandoc-announce, pandoc-discuss
 
