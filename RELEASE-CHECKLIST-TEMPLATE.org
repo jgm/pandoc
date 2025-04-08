@@ -1,3 +1,4 @@
+#+STARTUP: content
 ** pandoc VERSION release checklist
 *** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%1Aopen%20label%3A%22priority%3Ahigh%22][priority-high tag]]
 *** TODO [[./pandoc.cabal]] - bump version number
