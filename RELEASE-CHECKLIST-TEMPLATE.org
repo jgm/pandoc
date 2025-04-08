@@ -1,5 +1,5 @@
 #+STARTUP: content
-** pandoc VERSION release checklist
+** pandoc RELEASE_VERSION release checklist
 *** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%3Aopen%20label%3A%22priority%3Ahigh%22%20][priority-high]] tag
 *** TODO [[./pandoc.cabal]] - bump version number
 *** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version number and sync pandoc version
@@ -12,8 +12,8 @@
 make prerelease
 #+end_src
 *** TODO Update [[./AUTHORS.md]]
-#+begin_src sh
-make authors LASTRELEASE=VERSION
+#+begin_src sh :results output list
+make authors LASTRELEASE=$(git tag -l | grep '^[0-9]' | sort | tail -1)
 #+end_src
 *** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] manually on GitHub
 *** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
@@ -44,7 +44,7 @@ make update-website
 #+begin_src sh
 make pandoc-templates
 pushd ~/src/pandoc-templates
-git tag VERSION
+git tag RELEASE_VERSION
 git push
 git push --tags
 popd
@@ -52,15 +52,15 @@ popd
 *** TODO Copy deb to server, install it
 *** TODO Add release on github (use 'make changes_github' and upload files)
 *** TODO create release announcement and add to GH release announcement
-#+begin_src elisp :results value file :file relann-VERSION
-"I'm pleased to announce the release of pandoc VERSION,
+#+begin_src elisp :results value file :file relann-RELEASE_VERSION
+"I'm pleased to announce the release of pandoc RELEASE_VERSION,
 available in the usual places:
 
 Binary packages & changelog:
-https://github.com/jgm/pandoc/releases/tag/VERSION
+https://github.com/jgm/pandoc/releases/tag/RELEASE_VERSION
 
 Source & API documentation:
-http://hackage.haskell.org/package/pandoc-VERSION
+http://hackage.haskell.org/package/pandoc-RELEASE_VERSION
 
 Description of release.
 

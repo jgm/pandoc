@@ -326,7 +326,7 @@ release-checklist: release-checklist-$(VERSION).org
 .PHONY: release-checklist
 
 release-checklist-$(VERSION).org: RELEASE-CHECKLIST-TEMPLATE.org
-	sed -e 's/VERSION/$(VERSION)/g' $< > $@
+	sed -e 's/RELEASE_VERSION/$(VERSION)/g' $< > $@
 
 hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@
