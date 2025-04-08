@@ -12,8 +12,8 @@
 make prerelease
 #+end_src
 *** TODO Update [[./AUTHORS.md]]
-#+begin_src sh :results output list
-make authors LASTRELEASE=$(git tag -l | grep '^[0-9]' | sort | tail -1)
+#+begin_src sh :results output list org
+make authors
 #+end_src
 *** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] manually on GitHub
 *** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com

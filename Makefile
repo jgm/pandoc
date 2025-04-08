@@ -73,9 +73,8 @@ uncommitted_changes:
 	! git diff | grep '.'
 .PHONY: uncommitted_changes
 
-authors:  ## prints unique authors since LASTRELEASE (version)
-	git log --pretty=format:"%an" $(LASTRELEASE)..HEAD | sort | uniq
-
+authors:  ## prints unique authors since last released version
+	git log --pretty=format:"%an" $$(git tag -l | grep '[^0-9]' | sort | tail -1)..HEAD | sort | uniq | while read -r; do grep -i -q "^- $$REPLY" AUTHORS.md || echo $$REPLY ; done
 
 check-stack:
 	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
