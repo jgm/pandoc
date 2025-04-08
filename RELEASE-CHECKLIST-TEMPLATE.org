@@ -4,6 +4,15 @@
 *** TODO [[./pandoc.cabal]] - bump version number
 *** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version number and sync pandoc version
 *** TODO [[./pandoc-lua-engine/pandoc-lua-engine.cabal]] - bump version number if appropriate
+#+NAME: changed-packages
+#+begin_src sh :results silent
+for package in pandoc-lua-engine pandoc-server; do
+    lines=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline $package | wc -l)
+    if ! [ $lines -eq 0 ]; then
+        echo $package;
+    fi
+done
+#+end_src
 *** TODO [[./pandoc-server/pandoc-server.cabal]] - bump version number if appropriate
 *** TODO Update [[./MANUAL.txt]] date
 *** TODO Finalize [[./changelog.md]]
