@@ -27,6 +27,7 @@ module Text.Pandoc.FormatXML
     tagDefListTerm,
     tagLineItem,
     tagListItem,
+    tagShortCaption
   )
 where
 
@@ -115,6 +116,10 @@ tagDefListTerm = "term"
 -- element around the blocks of a definition in a DefinitionList item
 tagDefListDef :: Text
 tagDefListDef = "def"
+
+-- optional element of the ShortCaption
+tagShortCaption :: Text
+tagShortCaption = "ShortCaption"
 
 -- element around the ColSpec of a Table
 tagColspecs :: Text

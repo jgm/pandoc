@@ -55,12 +55,15 @@ readXML _ inp = do
   tree <-
     either (throwError . PandocXMLError "") return $
       parseXMLContents (fromStrict . sourcesToText $ sources)
-  (bs, st') <- flip runStateT (def {xmlContent = tree}) $ mapM parseContents tree
+  (bs, st') <- flip runStateT (def {xmlContent = tree}) $ mapM parseBlock tree
   let blockList = toList $ mconcat bs
   return $ Pandoc (xmlMeta st') blockList
 
+parseBlocks :: (PandocMonad m) => [Content] -> XMLReader m Blocks
+parseBlocks contents = mconcat <$> mapM parseBlock contents
+
 getBlocks :: (PandocMonad m) => Element -> XMLReader m Blocks
-getBlocks e = mconcat <$> mapM parseBlock (elContent e)
+getBlocks e = parseBlocks (elContent e)
 
 elementName :: Element -> Text
 elementName e = qName $ elName e
@@ -110,12 +113,16 @@ parseBlock (Elem e) = do
         "OrderedList" -> do
           items <- getArrayOfBlocks isListItem (elContent e)
           return $ orderedListWith (getListAttributes e) items
-        -- "DefinitionList" -> do
-        -- "Figure" -> do
-        --   let attr = attrFromElement e
-        --    (citations_contents, contents) <- partitionCitationsAndInlines $ elContent e
-        --   caption <- parseCaption e
-        --   return $ figureWith attr caption
+        "DefinitionList" -> do
+          let items_contents = getContentsOfElements (isElementNamed tagDefListItem) (elContent e)
+          items <- mapM parseDefinitionListItem items_contents
+          return $ definitionList items
+        "Figure" -> do
+          let attr = attrFromElement e
+          (caption_contents, contents) <- partitionSingleFirstElement "Caption" $ elContent e
+          figure_caption <- parseCaption caption_contents
+          blocks <- parseBlocks contents
+          return $ figureWith attr figure_caption blocks
         "CodeBlock" -> do
           let attr = attrFromElement e
           return $ codeBlockWith attr $ strContentRecursive e
@@ -123,7 +130,8 @@ parseBlock (Elem e) = do
           let format = (attrValue attrFormat e)
           return $ rawBlock format $ strContentRecursive e
         "LineBlock" -> do
-          lins <- getArrayOfInlines isLineItem (elContent e)
+          -- lins <- getArrayOfInlines isLineItem (elContent e)
+          lins <- mapM getInlines (contentsOfChildren tagLineItem (elContent e))
           return $ lineBlock lins
         -- "Table" -> do
         _ -> do
@@ -140,7 +148,7 @@ parseBlock (Elem e) = do
 
     parseMixed container conts = do
       let (ils, rest) = break isBlockElement conts
-      ils' <- trimInlines . mconcat <$> mapM parseInline ils
+      ils' <- getInlines ils
       let p = if ils' == mempty then mempty else container ils'
       case rest of
         [] -> return p
@@ -148,6 +156,14 @@ parseBlock (Elem e) = do
           b <- parseBlock r
           x <- parseMixed container rs
           return $ p <> b <> x
+
+getContentsOfElements :: (Content -> Bool) -> [Content] -> [[Content]]
+getContentsOfElements filter_element contents = mapMaybe element_contents $ filter filter_element contents
+  where
+    element_contents :: Content -> Maybe [Content]
+    element_contents c = case (c) of
+      Elem e -> Just (elContent e)
+      _ -> Nothing
 
 getArrayOfBlocks :: (PandocMonad m) => (Element -> Bool) -> [Content] -> XMLReader m [Blocks]
 getArrayOfBlocks filter_element contents = mfilter not_empty <$> mapM readBlocksSelectedElements contents
@@ -186,9 +202,9 @@ getArrayOfInlines filter_element contents = mapM readInlinesSelectedElements con
             (Elem c) ->
               if filter_element c
                 then do
-                  mconcat <$> mapM parseInline (elContent c)
+                  getInlines (elContent c)
                 else do
-                  report $ UnexpectedXmlElement (elementName c) parent
+                  -- report $ UnexpectedXmlElement (elementName c) parent
                   return mempty
             i -> parseInline i
 
@@ -228,7 +244,7 @@ parseInline (Elem e) =
         "LineBreak" -> return linebreak
         "SmallCaps" -> innerInlines smallcaps
         "Quoted" -> case (attrValue attrQuoteType e) of
-          "SingleQuoted" -> innerInlines singleQuoted
+          "SingleQuote" -> innerInlines singleQuoted
           _ -> innerInlines doubleQuoted
         "Math" -> case (attrValue attrMathType e) of
           "DisplayMath" -> do return $ displayMath $ strContentRecursive e
@@ -254,7 +270,7 @@ parseInline (Elem e) =
           contents <- getBlocks e
           return $ note contents
         "Cite" -> do
-          (citations_contents, contents) <- partitionCitationsAndInlines $ elContent e
+          (citations_contents, contents) <- partitionSingleFirstElement tagCitations (elContent e)
           citations <- parseCitations citations_contents
           (innerInlines' contents) $ cite citations
         _ -> do
@@ -265,6 +281,9 @@ parseInline (Elem e) =
       extractSpaces f . mconcat
         <$> mapM parseInline contents
     innerInlines f = innerInlines' (elContent e) f
+
+getInlines :: (PandocMonad m) => [Content] -> XMLReader m Inlines
+getInlines contents = trimInlines . mconcat <$> mapM parseInline contents
 
 getListAttributes :: Element -> ListAttributes
 getListAttributes e = (start, style, delim)
@@ -284,22 +303,19 @@ getListAttributes e = (start, style, delim)
       "TwoParens" -> TwoParens
       _ -> DefaultDelim
 
-partitionCitationsAndInlines :: (PandocMonad m) => [Content] -> XMLReader m ([Content], [Content])
-partitionCitationsAndInlines contents =
-  let (citations_el, inlines) = partition isCitations contents
-      citations_children = contentsOfChildren tagCitations citations_el
-   in case (length citations_children) of
-        1 -> do return (concat citations_children, inlines)
+-- used to get the <citations>, <ShortCaption>, <colspecs> elements
+partitionSingleFirstElement :: (PandocMonad m) => Text -> [Content] -> XMLReader m ([Content], [Content])
+partitionSingleFirstElement tag contents =
+  let (first_elem, remainder) = partition (isElementNamed tag) contents
+      first_elem_children = contentsOfChildren tag first_elem
+   in case (length first_elem_children) of
+        1 -> do return (concat first_elem_children, remainder)
         0 -> do
-          report $ UnexpectedXmlElement ("missing <" <> tagCitations <> "> element") ""
-          return (mempty, inlines)
+          report $ UnexpectedXmlElement ("missing <" <> tag <> "> element") ""
+          return (mempty, remainder)
         n -> do
-          report $ UnexpectedXmlElement ("too many (" <> T.pack (show n) <> ") <" <> tagCitations <> "> elements") ""
-          return (concat citations_children, inlines)
-  where
-    isCitations content = case (content) of
-      Elem e -> elementName e == tagCitations
-      _ -> False
+          report $ UnexpectedXmlElement ("too many (" <> T.pack (show n) <> ") <" <> tag <> "> elements") ""
+          return (concat first_elem_children, remainder)
 
 contentsOfChildren :: Text -> [Content] -> [[Content]]
 contentsOfChildren tag contents = mapMaybe childrenElementWithTag contents
@@ -343,218 +359,69 @@ parseCitations contents = do
         prefix e = getArrayOfInlines (\c -> tagCitationPrefix == elementName c) $ elContent e
         suffix e = getArrayOfInlines (\c -> tagCitationSuffix == elementName c) $ elContent e
 
--- parseCaption :: (PandocMonad m) => [Content] -> XMLReader m Caption
--- parseCaption contents = let (caption_els, contents)
+parseCaption :: (PandocMonad m) => [Content] -> XMLReader m Caption
+parseCaption contents = do
+  (short_caption_contents, caption_contents) <- partitionSingleFirstElement tagShortCaption contents
+  short_caption_inlines <- getInlines short_caption_contents
+  let short_caption =
+        if null short_caption_inlines
+          then Nothing
+          else Just (toList short_caption_inlines)
+  blocks <- parseBlocks caption_contents
+  return $ caption short_caption blocks
 
-isListItem :: Element -> Bool
-isListItem e = qName (elName e) == tagListItem
+parseDefinitionListItem :: (PandocMonad m) => [Content] -> XMLReader m (Inlines, [Blocks])
+parseDefinitionListItem contents = do
+  let term_contents = getContentsOfElements (isElementNamed tagDefListTerm) contents
+      defs_elements = elementContents $ filter (isElementNamed tagDefListDef) contents
+  term_inlines <- getInlines (concat term_contents)
+  defs <- mapM getBlocks defs_elements
+  return (term_inlines, defs)
 
-isLineItem :: Element -> Bool
-isLineItem e = qName (elName e) == tagLineItem
-
-isBlockElement :: Content -> Bool
-isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
+elementContents :: [Content] -> [Element]
+elementContents contents = mapMaybe toElement contents
   where
-    blocktags = S.fromList $ paragraphLevel ++ lists ++ other
-    paragraphLevel = ["Para", "Plain", "Header"]
-    lists = ["BulletList", "DefinitionList", "OrderedList"]
-    other =
-      [ "LineBlock",
-        "CodeBlock",
-        "RawBlock",
-        "BlockQuote",
-        "HorizontalRule",
-        "Table",
-        "Figure",
-        "Div"
-      ]
-isBlockElement _ = False
+    toElement :: Content -> Maybe Element
+    toElement (Elem e) = Just e
+    toElement _ = Nothing
 
--- onlyOneChild x = length (allChildren x) == 1
--- allChildren x = filterChildren (const True) x
+isElementNamed :: Text -> Content -> Bool
+isElementNamed t c = case (c) of
+  Elem e -> t == elementName e
+  _ -> False
 
-isBlockTag :: Text -> Bool
-isBlockTag tag = tag `S.member` blocktags
+childrenNamed :: Text -> Element -> [Element]
+childrenNamed tag e = elementContents $ filter (isElementNamed tag) (elContent e)
+
+partitionFirstChildNamed :: Text -> Element -> (Maybe Element, [Element])
+partitionFirstChildNamed tag e =
+  let children = elementContents (elContent e)
+   in case (children) of
+        [] -> (Nothing, mempty)
+        (x : xs) ->
+          if tag == elementName x
+            then (Just x, xs)
+            else (Nothing, x : xs)
+
+ensureContentMatches :: (PandocMonad m) => (Content -> Maybe LogMessage) -> Element -> XMLReader m ()
+ensureContentMatches check e = mapM_ reportUnexpectedContents (elContent e)
   where
-    blocktags = S.fromList $ paragraphLevel ++ lists ++ other
-    paragraphLevel = ["Para", "Plain", "Header"]
-    lists = ["BulletList", "DefinitionList", "OrderedList"]
-    other =
-      [ "LineBlock",
-        "CodeBlock",
-        "RawBlock",
-        "BlockQuote",
-        "HorizontalRule",
-        "Table",
-        "Figure",
-        "Div"
-      ]
+    reportUnexpectedContents c = case (check c) of
+      Just (message) -> do report message; return ()
+      Nothing -> do return ()
 
--- True for elements that can contain only elements or spaces, not text or references
-isOnlyElementsTag :: Text -> Bool
-isOnlyElementsTag tag =
-  tag
-    `S.member` S.fromList
-      [ "meta",
-        "blocks",
-        "BulletList",
-        "DefinitionList",
-        "OrderedList",
-        "LineBlock",
-        "BlockQuote",
-        "Table",
-        "Figure",
-        "Div",
-        "Note",
-        "Caption", -- container of an optional ShortCaption and the blocks of a (Figure or Table) Caption
-        "TableHead",
-        "TableBody",
-        "TableFoot",
-        "Row",
-        "Cell",
-        "item", -- container of list items
-        "def", -- container of the definitions of an item in a DefinitionList
-        "header", -- container of the header rows of a TableBody
-        "body" -- container of the body rows of a TableBody
-      ]
-
-isMetaValueTag :: Text -> Bool
-isMetaValueTag tag =
-  tag
-    `S.member` S.fromList
-      [ "MetaBool",
-        "MetaString",
-        "MetaInlines",
-        "MetaBlocks",
-        "MetaList",
-        "MetaMap"
-      ]
-
-isListItemTag :: Text -> Bool
-isListItemTag tag = tag == "item"
-
-isTableSectionTag :: Text -> Bool
-isTableSectionTag tag = tag == "TableBody" || tag == "TableHead" || tag == "TableFoot"
-
-isTableBodySectionTag :: Text -> Bool
-isTableBodySectionTag tag = tag == "header" || tag == "body"
-
-isInlineTag :: Text -> Bool
-isInlineTag tag = tag `S.member` inlinetags
+ensureContentIsElementsOnly :: (PandocMonad m) => Element -> XMLReader m ()
+ensureContentIsElementsOnly e = ensureContentMatches check e
   where
-    inlinetags =
-      S.fromList
-        [ "Underline",
-          "Strong",
-          "Strikeout",
-          "Superscript",
-          "Subscript",
-          "SmallCaps",
-          "Quoted",
-          "Cite",
-          "Code",
-          "SoftBreak",
-          "LineBreak",
-          "Math",
-          "RawInline",
-          "Link",
-          "Image",
-          "Note",
-          "Span"
-        ]
-
-expectedContent :: [Text] -> Content -> Bool
-expectedContent path (Elem e) =
-  let tag = qName $ elName e
-      parent = headOr "" path
-      grandparent = tailHeadOr "" path
-   in case (parent) of
-        "blocks" -> isBlockTag tag
-        "meta" -> isMetaValueTag tag
-        "Para" -> isInlineTag tag
-        "Plain" -> isInlineTag tag
-        "Header" -> isInlineTag tag
-        "Div" -> isBlockTag tag
-        "BlockQuote" -> isBlockTag tag
-        "BulletList" -> isListItemTag tag
-        "OrderedList" -> isListItemTag tag
-        "DefinitionList" -> isListItemTag tag
-        "item" ->
-          if grandparent /= "DefinitionList"
-            then isBlockTag tag
-            else tag == "term" || tag == "def"
-        "LineBlock" -> tag == "line"
-        "Table" -> tag == "Caption" || tag == "colspecs" || isTableBodySectionTag tag
-        "Figure" -> tag == "Caption" || isBlockTag "tag"
-        "Caption" -> tag == "ShortCaption" || isBlockTag "tag"
-        "TableBody" -> tag == "header" || tag == "body"
-        "header" -> tag == "Row"
-        "body" -> tag == "Row"
-        "TableHead" -> tag == "Row"
-        "TableFoot" -> tag == "Row"
-        "Row" -> tag == "Cell"
-        _ -> False
-expectedContent path (Text (CData _ s _)) = non_space_text_allowed || T.all isSpace s
-  where
-    parent = if length path > 1 then head path else ""
-    non_space_text_allowed = not (isOnlyElementsTag parent)
-expectedContent _ _ = True
-
-headOr :: a -> [a] -> a
-headOr default_value [] = default_value
-headOr _ (x : _) = x
-
-tailHeadOr :: a -> [a] -> a
-tailHeadOr default_value [] = default_value
-tailHeadOr default_value [_] = default_value
-tailHeadOr default_value (_ : xs) = headOr default_value xs
-
-parseContents :: (PandocMonad m) => Content -> XMLReader m Blocks
-parseContents content = do
-  path <- gets xmlPath
-  let expected = expectedContent path
-   in case (content) of
-        (Text (CData CDataRaw _ _)) -> return mempty -- DOCTYPE
-        (Text (CData _ s _)) -> do
-          if T.all isSpace s
-            then return mempty
-            else do
-              report $ UnexpectedXmlCData s ""
-              return mempty
-        (CRef x) -> do
-          report $ UnexpectedXmlReference x ""
-          return mempty
-        (Elem e) -> do
-          let name = qName $ elName e
-           in -- modify $ \st -> st {xmlContextElement = name, xmlContextParent = parent}
-              case (name) of
-                "Pandoc" -> parsePandoc
-                "?xml" -> return mempty
-                "blocks" -> getBlocks e
-                "Para" -> parseMixed name para (elContent e)
-                "Plain" -> parseMixed name plain (elContent e)
-                "HorizontalRule" -> return horizontalRule
-                _ -> do
-                  report $ UnexpectedXmlElement name ""
-                  return mempty
-          where
-            parsePandoc = do
-              let version = maybeAttrValue "api-version" e
-                  apiversion = case (version) of
-                    Just (v) -> makeVersion $ map (read . T.unpack) $ T.splitOn "," v
-                    Nothing -> pandocVersion
-               in modify $ \st -> st {xmlApiVersion = apiversion}
-              getBlocks e
-            parseMixed parent' container conts = do
-              let (ils, rest) = break isBlockElement conts
-              ils' <- trimInlines . mconcat <$> mapM parseInline ils
-              let p = if ils' == mempty then mempty else container ils'
-              case rest of
-                [] -> return p
-                (r : rs) -> do
-                  b <- parseBlock r
-                  x <- parseMixed parent' container rs
-                  return $ p <> b <> x
+    check :: Content -> Maybe LogMessage
+    check c =     case (c) of
+     Elem _ -> Nothing
+     Text (CData CDataRaw s _) -> Just $ UnexpectedXmlCData s ""
+     Text (CData _ s _) -> if T.all isSpace s
+       then Nothing
+       else Just $ UnexpectedXmlCData s ""
+     CRef x -> Just $ UnexpectedXmlReference x ""
+    
 
 type PandocAttr = (Text, [Text], [(Text, Text)])
 
@@ -574,3 +441,213 @@ attrFromElement e = filterAttrAttributes ["id", "class"] (idn, classes, attribut
     idn = attrValue "id" e
     classes = T.words $ attrValue "class" e
     attributes = map (\a -> (qName $ attrKey a, attrVal a)) $ elAttribs e
+
+headOr :: a -> [a] -> a
+headOr default_value [] = default_value
+headOr _ (x : _) = x
+
+-- tailHeadOr :: a -> [a] -> a
+-- tailHeadOr default_value [] = default_value
+-- tailHeadOr default_value [_] = default_value
+-- tailHeadOr default_value (_ : xs) = headOr default_value xs
+
+isListItem :: Element -> Bool
+isListItem e = tagListItem == elementName e
+
+isLineItem :: Element -> Bool
+isLineItem e = tagLineItem == elementName e
+
+isBlockElement :: Content -> Bool
+isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
+  where
+    blocktags = S.fromList $ paragraphLevel ++ lists ++ other
+    paragraphLevel = ["Para", "Plain", "Header"]
+    lists = ["BulletList", "DefinitionList", "OrderedList"]
+    other =
+      [ "LineBlock",
+        "CodeBlock",
+        "RawBlock",
+        "BlockQuote",
+        "HorizontalRule",
+        "Table",
+        "Figure",
+        "Div"
+      ]
+isBlockElement _ = False
+
+-- -- onlyOneChild x = length (allChildren x) == 1
+-- -- allChildren x = filterChildren (const True) x
+
+-- isBlockTag :: Text -> Bool
+-- isBlockTag tag = tag `S.member` blocktags
+--   where
+--     blocktags = S.fromList $ paragraphLevel ++ lists ++ other
+--     paragraphLevel = ["Para", "Plain", "Header"]
+--     lists = ["BulletList", "DefinitionList", "OrderedList"]
+--     other =
+--       [ "LineBlock",
+--         "CodeBlock",
+--         "RawBlock",
+--         "BlockQuote",
+--         "HorizontalRule",
+--         "Table",
+--         "Figure",
+--         "Div"
+--       ]
+
+-- -- True for elements that can contain only elements or spaces, not text or references
+-- isOnlyElementsTag :: Text -> Bool
+-- isOnlyElementsTag tag =
+--   tag
+--     `S.member` S.fromList
+--       [ "meta",
+--         "blocks",
+--         "BulletList",
+--         "DefinitionList",
+--         "OrderedList",
+--         "LineBlock",
+--         "BlockQuote",
+--         "Table",
+--         "Figure",
+--         "Div",
+--         "Note",
+--         "Caption", -- container of an optional ShortCaption and the blocks of a (Figure or Table) Caption
+--         "TableHead",
+--         "TableBody",
+--         "TableFoot",
+--         "Row",
+--         "Cell",
+--         "item", -- container of list items
+--         "def", -- container of the definitions of an item in a DefinitionList
+--         "header", -- container of the header rows of a TableBody
+--         "body" -- container of the body rows of a TableBody
+--       ]
+
+-- isMetaValueTag :: Text -> Bool
+-- isMetaValueTag tag =
+--   tag
+--     `S.member` S.fromList
+--       [ "MetaBool",
+--         "MetaString",
+--         "MetaInlines",
+--         "MetaBlocks",
+--         "MetaList",
+--         "MetaMap"
+--       ]
+
+-- isListItemTag :: Text -> Bool
+-- isListItemTag tag = tag == "item"
+
+-- isTableSectionTag :: Text -> Bool
+-- isTableSectionTag tag = tag == "TableBody" || tag == "TableHead" || tag == "TableFoot"
+
+-- isTableBodySectionTag :: Text -> Bool
+-- isTableBodySectionTag tag = tag == "header" || tag == "body"
+
+-- isInlineTag :: Text -> Bool
+-- isInlineTag tag = tag `S.member` inlinetags
+--   where
+--     inlinetags =
+--       S.fromList
+--         [ "Underline",
+--           "Strong",
+--           "Strikeout",
+--           "Superscript",
+--           "Subscript",
+--           "SmallCaps",
+--           "Quoted",
+--           "Cite",
+--           "Code",
+--           "SoftBreak",
+--           "LineBreak",
+--           "Math",
+--           "RawInline",
+--           "Link",
+--           "Image",
+--           "Note",
+--           "Span"
+--         ]
+
+-- expectedContent :: [Text] -> Content -> Bool
+-- expectedContent path (Elem e) =
+--   let tag = qName $ elName e
+--       parent = headOr "" path
+--       grandparent = tailHeadOr "" path
+--    in case (parent) of
+--         "blocks" -> isBlockTag tag
+--         "meta" -> isMetaValueTag tag
+--         "Para" -> isInlineTag tag
+--         "Plain" -> isInlineTag tag
+--         "Header" -> isInlineTag tag
+--         "Div" -> isBlockTag tag
+--         "BlockQuote" -> isBlockTag tag
+--         "BulletList" -> isListItemTag tag
+--         "OrderedList" -> isListItemTag tag
+--         "DefinitionList" -> isListItemTag tag
+--         "item" ->
+--           if grandparent /= "DefinitionList"
+--             then isBlockTag tag
+--             else tag == "term" || tag == "def"
+--         "LineBlock" -> tag == "line"
+--         "Table" -> tag == "Caption" || tag == "colspecs" || isTableBodySectionTag tag
+--         "Figure" -> tag == "Caption" || isBlockTag "tag"
+--         "Caption" -> tag == "ShortCaption" || isBlockTag "tag"
+--         "TableBody" -> tag == "header" || tag == "body"
+--         "header" -> tag == "Row"
+--         "body" -> tag == "Row"
+--         "TableHead" -> tag == "Row"
+--         "TableFoot" -> tag == "Row"
+--         "Row" -> tag == "Cell"
+--         _ -> False
+-- expectedContent path (Text (CData _ s _)) = non_space_text_allowed || T.all isSpace s
+--   where
+--     parent = if length path > 1 then head path else ""
+--     non_space_text_allowed = not (isOnlyElementsTag parent)
+-- expectedContent _ _ = True
+
+-- parseContents :: (PandocMonad m) => Content -> XMLReader m Blocks
+-- parseContents content = do
+--   path <- gets xmlPath
+--   let expected = expectedContent path
+--    in case (content) of
+--         (Text (CData CDataRaw _ _)) -> return mempty -- DOCTYPE
+--         (Text (CData _ s _)) -> do
+--           if T.all isSpace s
+--             then return mempty
+--             else do
+--               report $ UnexpectedXmlCData s ""
+--               return mempty
+--         (CRef x) -> do
+--           report $ UnexpectedXmlReference x ""
+--           return mempty
+--         (Elem e) -> do
+--           let name = qName $ elName e
+--            in -- modify $ \st -> st {xmlContextElement = name, xmlContextParent = parent}
+--               case (name) of
+--                 "Pandoc" -> parsePandoc
+--                 "?xml" -> return mempty
+--                 "blocks" -> getBlocks e
+--                 "Para" -> parseMixed name para (elContent e)
+--                 "Plain" -> parseMixed name plain (elContent e)
+--                 "HorizontalRule" -> return horizontalRule
+--                 _ -> do
+--                   report $ UnexpectedXmlElement name ""
+--                   return mempty
+--           where
+--             parsePandoc = do
+--               let version = maybeAttrValue "api-version" e
+--                   apiversion = case (version) of
+--                     Just (v) -> makeVersion $ map (read . T.unpack) $ T.splitOn "," v
+--                     Nothing -> pandocVersion
+--                in modify $ \st -> st {xmlApiVersion = apiversion}
+--               getBlocks e
+--             parseMixed parent' container conts = do
+--               let (ils, rest) = break isBlockElement conts
+--               ils' <- trimInlines . mconcat <$> mapM parseInline ils
+--               let p = if ils' == mempty then mempty else container ils'
+--               case rest of
+--                 [] -> return p
+--                 (r : rs) -> do
+--                   b <- parseBlock r
+--                   x <- parseMixed parent' container rs
+--                   return $ p <> b <> x
