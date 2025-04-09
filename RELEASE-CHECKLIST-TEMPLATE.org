@@ -1,21 +1,25 @@
 #+STARTUP: content
 ** pandoc RELEASE_VERSION release checklist
 *** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%3Aopen%20label%3A%22priority%3Ahigh%22%20][priority-high]] tag
+** TODO Release any prerelease packages in [[./cabal.project]]
 *** TODO [[./pandoc.cabal]] - bump version number
-*** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version number and sync pandoc version
-*** TODO [[./pandoc-lua-engine/pandoc-lua-engine.cabal]] - bump version number if appropriate
-#+NAME: changed-packages
-#+begin_src sh :results silent
-for package in pandoc-lua-engine pandoc-server; do
-    lines=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline $package | wc -l)
-    if ! [ $lines -eq 0 ]; then
-        echo $package;
-    fi
-done
+*** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version, sync pandoc version
+#+begin_src sh
+git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-cli
 #+end_src
-*** TODO [[./pandoc-server/pandoc-server.cabal]] - bump version number if appropriate
+*** TODO [[./pandoc-lua-engine/pandoc-lua-engine.cabal]] - bump version?
+#+begin_src sh
+git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-lua-engine
+#+end_src
+*** TODO [[./pandoc-server/pandoc-server.cabal]] - bump version?
+#+begin_src sh
+git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-server
+#+end_src
 *** TODO Update [[./MANUAL.txt]] date
 *** TODO Finalize [[./changelog.md]]
+#+begin_src sh :results output file :file LOG.md
+git log $(git describe --tags --abbrev=0)..HEAD --reverse
+#+end_src
 *** TODO prerelease checks
 #+begin_src sh
 make prerelease
@@ -24,15 +28,20 @@ make prerelease
 #+begin_src sh :results output list org
 make authors
 #+end_src
-*** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] manually on GitHub
+*** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] on GitHub
+    #+begin_src sh :var ghtoken=(jgm-authinfo-get "api.github.com" "jgm_pandoc_release")
+curl -L \
+  -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $ghtoken"\
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+https://api.github.com/repos/jgm/pandoc/actions/workflows/release-candidate.yml/dispatches \
+  -d '{"ref":"main"}'
+    #+end_src
 *** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
 *** TODO If it builds successfully, download artifacts from GitHub, cirrus-ci.com
     (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
     from cirrus)
-    #+begin_src sh :var ghtoken=(jgm-authinfo-get "api.github.com" "jgm_pandoc_release")
-echo $ghtoken
-    #+end_src
-
 *** TODO Use 'make' in macos and windows artifacts to sign code
 *** TODO Update website
 #+begin_src sh
@@ -44,6 +53,18 @@ make update-website
     - if needed: pandoc-server-X.Y
     - if needed: pandoc-lua-engine-X.Y
 *** TODO Upload packages to Hackage:
+#+NAME: changed-packages
+#+begin_src sh :results silent
+echo pandoc
+echo pandoc-cli
+for package in pandoc-lua-engine pandoc-server; do
+    lines=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline $package | wc -l)
+    if ! [ $lines -eq 0 ]; then
+        echo $package;
+    fi
+done
+#+end_src
+
     - pandoc
     - pandoc-cli
     and if changed:
