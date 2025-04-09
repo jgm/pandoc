@@ -15,7 +15,12 @@ git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-lua-engine
 #+begin_src sh
 git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-server
 #+end_src
-*** TODO Update [[./MANUAL.txt]] date
+*** TODO Update [[./MANUAL.txt]] date and rebuild man pages
+#+begin_src sh :results silent
+NEWDATE=$(date -I)
+sed -i '' -e "/^---$/,/^---$/s/^date:.*$/date: $NEWDATE/" MANUAL.txt
+make man
+#+end_src
 *** TODO Finalize [[./changelog.md]]
 #+begin_src sh :results output file :file LOG.md
 git log $(git describe --tags --abbrev=0)..HEAD --reverse
