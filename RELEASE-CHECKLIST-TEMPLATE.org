@@ -23,7 +23,7 @@ make man
 #+end_src
 *** TODO Finalize [[./changelog.md]]
 #+begin_src sh :results output file :file LOG.md
-git log $(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'%h %aN%n*   %s%n%w(72,4,4)%b'
+git log $(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'%h %aN%n  * %s%n%w(72,4,4)%b'
 #+end_src
 *** TODO prerelease checks
 #+begin_src sh
