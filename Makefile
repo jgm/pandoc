@@ -137,7 +137,7 @@ fix_spacing: ## fix trailing newlines and spaces
 .PHONY: fix_spacing
 
 changes_github: ## copy this release's changes in gfm
-	$(pandoc) --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
+	@$(pandoc) --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g'
 .PHONY: changes_github
 
 man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pandoc-lua.1 ## build man pages
