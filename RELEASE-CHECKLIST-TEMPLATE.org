@@ -1,7 +1,7 @@
 #+STARTUP: content
 ** pandoc RELEASE_VERSION release checklist
 *** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%3Aopen%20label%3A%22priority%3Ahigh%22%20][priority-high]] tag
-** TODO Release any prerelease packages in [[./cabal.project]]
+*** TODO Release any prerelease packages in [[./cabal.project]]
 *** TODO [[./pandoc.cabal]] - bump version number
 *** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version, sync pandoc version
 #+begin_src sh
@@ -23,7 +23,7 @@ make man
 #+end_src
 *** TODO Finalize [[./changelog.md]]
 #+begin_src sh :results output file :file LOG.md
-git log $(git describe --tags --abbrev=0)..HEAD --reverse
+git log $(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'%h %aN%n*   %s%n%w(72,4,4)%b'
 #+end_src
 *** TODO prerelease checks
 #+begin_src sh
