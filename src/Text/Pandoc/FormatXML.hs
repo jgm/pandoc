@@ -2,18 +2,25 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Text.Pandoc.FormatXML
-  ( attrApiVersion,
+  ( attrAlignment,
+    attrApiVersion,
     attrCitationHash,
     attrCitationMode,
     attrCitationNoteNum,
+    attrColspan,
+    attrColWidth,
     attrFormat,
     attrImageUrl,
     attrLevel,
     attrLinkUrl,
     attrMathType,
+    attrMetaBoolValue,
+    attrMetaMapEntryKey,
     attrNumberDelim,
     attrNumberStyle,
     attrQuoteType,
+    attrRowHeadColumns,
+    attrRowspan,
     attrStart,
     attrTitle,
     tagBodyBody,
@@ -27,6 +34,7 @@ module Text.Pandoc.FormatXML
     tagDefListTerm,
     tagLineItem,
     tagListItem,
+    tagMetaMapEntry,
     tagShortCaption
   )
 where
@@ -36,6 +44,18 @@ import Data.Text (Text)
 -- the attribute carrying the API version of pandoc types in the main Pandoc element
 attrApiVersion :: Text
 attrApiVersion = "api-version"
+
+-- the element of a <meta> or <MetaMap> entry
+tagMetaMapEntry :: Text
+tagMetaMapEntry = "entry"
+
+-- the attribute carrying the key name of a <meta> or <MetaMap> entry
+attrMetaMapEntryKey :: Text
+attrMetaMapEntryKey = "text"
+
+-- the attribute carrying the boolean value ("true" or "false") of a MetaBool
+attrMetaBoolValue :: Text
+attrMetaBoolValue = "value"
 
 -- level of a Header
 attrLevel :: Text
@@ -76,6 +96,26 @@ attrMathType = "math-type"
 -- format of a RawInline or a RawBlock
 attrFormat :: Text
 attrFormat = "format"
+
+-- alignment attribute in a ColSpec or in a Cell
+attrAlignment :: Text
+attrAlignment = "alignment"
+
+-- ColWidth attribute in a ColSpec
+attrColWidth :: Text
+attrColWidth = "col-width"
+
+-- RowHeadColumns attribute in a TableBody
+attrRowHeadColumns :: Text
+attrRowHeadColumns = "row-head-columns"
+
+-- rowspan attribute in a Cell
+attrRowspan :: Text
+attrRowspan = "rowspan"
+
+-- colpan attribute in a Cell
+attrColspan :: Text
+attrColspan = "colspan"
 
 -- the citationMode of a Citation
 attrCitationMode :: Text

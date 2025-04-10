@@ -4,12 +4,13 @@
 
 module Text.Pandoc.Readers.XML (readXML) where
 
-import Control.Monad (mfilter)
+import Control.Monad (mfilter, msum)
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict (StateT (runStateT), gets, modify)
 import Data.Char (isSpace)
 import Data.Default (Default (..))
-import Data.List (partition)
+import qualified Data.List as L
+import qualified Data.Map as M
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe)
 import qualified Data.Set as S (Set, fromList, member)
 import Data.Text (Text)
@@ -20,6 +21,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.FormatXML
+import Text.Pandoc.FormatXML (attrRowHeadColumns)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (ToSources, toSources)
@@ -89,11 +91,16 @@ parseBlock (CRef x) = do
   return mempty
 parseBlock (Elem e) = do
   let name = elementName e
-   in -- modify $ \st -> st {xmlContextElement = name, xmlContextParent = parent}
-      case (name) of
+   in case (name) of
         "Pandoc" -> parsePandoc
         "?xml" -> return mempty
         "blocks" -> getBlocks e
+        "meta" ->
+          let entry_els = childrenNamed tagMetaMapEntry e
+           in do
+                entries <- catMaybes <$> mapM parseMetaMapEntry entry_els
+                mapM_ (uncurry addMeta) entries
+                return mempty
         "Para" -> parseMixed para (elContent e)
         "Plain" -> parseMixed plain (elContent e)
         "Header" -> parseMixed (headerWith attr level) (elContent e)
@@ -119,8 +126,10 @@ parseBlock (Elem e) = do
           return $ definitionList items
         "Figure" -> do
           let attr = attrFromElement e
-          (caption_contents, contents) <- partitionSingleFirstElement "Caption" $ elContent e
-          figure_caption <- parseCaption caption_contents
+              (maybe_caption_el, contents) = partitionFirstChildNamed "Caption" $ elContent e
+          figure_caption <- case (maybe_caption_el) of
+            Just (caption_el) -> parseCaption $ elContent caption_el
+            Nothing -> pure emptyCaption
           blocks <- parseBlocks contents
           return $ figureWith attr figure_caption blocks
         "CodeBlock" -> do
@@ -130,10 +139,22 @@ parseBlock (Elem e) = do
           let format = (attrValue attrFormat e)
           return $ rawBlock format $ strContentRecursive e
         "LineBlock" -> do
-          -- lins <- getArrayOfInlines isLineItem (elContent e)
           lins <- mapM getInlines (contentsOfChildren tagLineItem (elContent e))
           return $ lineBlock lins
-        -- "Table" -> do
+        "Table" -> do
+          -- TODO: check unexpected items
+          let attr = attrFromElement e
+              (maybe_caption_el, after_caption) = partitionFirstChildNamed "Caption" $ elContent e
+              children = elementsWithNames (S.fromList [tagColspecs, "TableHead", "TableBody", "TableFoot"]) after_caption
+              is_element tag el = tag == elementName el
+          colspecs <- getColspecs $ L.find (is_element tagColspecs) children
+          tbs <- getTableBodies $ filter (is_element "TableBody") children
+          th <- getTableHead $ L.find (is_element "TableHead") children
+          tf <- getTableFoot $ L.find (is_element "TableFoot") children
+          capt <- parseMaybeCaptionElement maybe_caption_el
+          case colspecs of
+            Nothing -> return mempty
+            Just cs -> return $ tableWith attr capt cs th tbs tf
         _ -> do
           report $ UnexpectedXmlElement name ""
           return mempty
@@ -247,8 +268,8 @@ parseInline (Elem e) =
           "SingleQuote" -> innerInlines singleQuoted
           _ -> innerInlines doubleQuoted
         "Math" -> case (attrValue attrMathType e) of
-          "DisplayMath" -> do return $ displayMath $ strContentRecursive e
-          _ -> do return $ math $ strContentRecursive e
+          "DisplayMath" -> pure $ displayMath $ strContentRecursive e
+          _ -> pure $ math $ strContentRecursive e
         "Span" -> innerInlines $ spanWith (attrFromElement e)
         "Code" -> do
           let attr = attrFromElement e
@@ -269,10 +290,13 @@ parseInline (Elem e) =
         "Note" -> do
           contents <- getBlocks e
           return $ note contents
-        "Cite" -> do
-          (citations_contents, contents) <- partitionSingleFirstElement tagCitations (elContent e)
-          citations <- parseCitations citations_contents
-          (innerInlines' contents) $ cite citations
+        "Cite" ->
+          let (maybe_citations_el, contents) = partitionFirstChildNamed tagCitations $ elContent e
+           in case (maybe_citations_el) of
+                Just citations_el -> do
+                  citations <- parseCitations $ elContent citations_el
+                  (innerInlines' contents) $ cite citations
+                Nothing -> getInlines contents
         _ -> do
           report $ UnexpectedXmlElement name ""
           return mempty
@@ -283,7 +307,7 @@ parseInline (Elem e) =
     innerInlines f = innerInlines' (elContent e) f
 
 getInlines :: (PandocMonad m) => [Content] -> XMLReader m Inlines
-getInlines contents = trimInlines . mconcat <$> mapM parseInline contents
+getInlines contents = mconcat <$> mapM parseInline contents
 
 getListAttributes :: Element -> ListAttributes
 getListAttributes e = (start, style, delim)
@@ -303,20 +327,6 @@ getListAttributes e = (start, style, delim)
       "TwoParens" -> TwoParens
       _ -> DefaultDelim
 
--- used to get the <citations>, <ShortCaption>, <colspecs> elements
-partitionSingleFirstElement :: (PandocMonad m) => Text -> [Content] -> XMLReader m ([Content], [Content])
-partitionSingleFirstElement tag contents =
-  let (first_elem, remainder) = partition (isElementNamed tag) contents
-      first_elem_children = contentsOfChildren tag first_elem
-   in case (length first_elem_children) of
-        1 -> do return (concat first_elem_children, remainder)
-        0 -> do
-          report $ UnexpectedXmlElement ("missing <" <> tag <> "> element") ""
-          return (mempty, remainder)
-        n -> do
-          report $ UnexpectedXmlElement ("too many (" <> T.pack (show n) <> ") <" <> tag <> "> elements") ""
-          return (concat first_elem_children, remainder)
-
 contentsOfChildren :: Text -> [Content] -> [[Content]]
 contentsOfChildren tag contents = mapMaybe childrenElementWithTag contents
   where
@@ -324,6 +334,71 @@ contentsOfChildren tag contents = mapMaybe childrenElementWithTag contents
     childrenElementWithTag c = case (c) of
       (Elem e) -> if tag == elementName e then Just (elContent e) else Nothing
       _ -> Nothing
+
+alignmentFromText :: Text -> Alignment
+alignmentFromText t = case t of
+  "AlignLeft" -> AlignLeft
+  "AlignRight" -> AlignRight
+  "AlignCenter" -> AlignCenter
+  _ -> AlignDefault
+
+getColWidth :: Text -> ColWidth
+getColWidth txt = case reads (T.unpack txt) of
+  [(value, "")] -> if value == 0.0 then ColWidthDefault else ColWidth value
+  _ -> ColWidthDefault
+
+getColspecs :: (PandocMonad m) => Maybe Element -> XMLReader m (Maybe [ColSpec])
+getColspecs Nothing = pure Nothing
+getColspecs (Just cs) = do
+  return $ Just $ map elementToColSpec (childrenNamed "ColSpec" cs)
+  where
+    elementToColSpec e = (alignmentFromText $ attrValue attrAlignment e, getColWidth $ attrValue attrColWidth e)
+
+getTableBody :: (PandocMonad m) => Element -> XMLReader m (Maybe TableBody)
+getTableBody body_el = do
+  let attr =  filterAttrAttributes [attrRowHeadColumns] $ attrFromElement body_el
+      bh = childrenNamed tagBodyHeader body_el
+      bb = childrenNamed tagBodyBody body_el
+      headcols = textToInt (attrValue attrRowHeadColumns body_el) 0
+  hrows <- mconcat <$> mapM getRows bh
+  brows <- mconcat <$> mapM getRows bb
+  return $ Just $ TableBody attr (RowHeadColumns headcols) hrows brows
+
+getTableBodies :: (PandocMonad m) => [Element] -> XMLReader m [TableBody]
+getTableBodies body_elements = do
+  catMaybes <$> mapM getTableBody body_elements
+
+getTableHead :: (PandocMonad m) => Maybe Element -> XMLReader m TableHead
+getTableHead maybe_e = case maybe_e of
+  Just e -> do
+    let attr = attrFromElement e
+    rows <- getRows e
+    return $ TableHead attr rows
+  Nothing -> return $ TableHead nullAttr []
+
+getTableFoot :: (PandocMonad m) => Maybe Element -> XMLReader m TableFoot
+getTableFoot maybe_e = case maybe_e of
+  Just e -> do
+    let attr = attrFromElement e
+    rows <- getRows e
+    return $ TableFoot attr rows
+  Nothing -> return $ TableFoot nullAttr []
+
+getCell :: (PandocMonad m) => Element -> XMLReader m Cell
+getCell c = do
+  let alignment = alignmentFromText $ attrValue attrAlignment c
+      rowspan = RowSpan $ textToInt (attrValue attrRowspan c) 1
+      colspan = ColSpan $ textToInt (attrValue attrColspan c) 1
+      attr = filterAttrAttributes [attrAlignment, attrRowspan, attrColspan] $ attrFromElement c
+  blocks <- getBlocks c
+  return $ Cell attr alignment rowspan colspan (toList blocks)
+
+getRows :: (PandocMonad m) => Element -> XMLReader m [Row]
+getRows e = mapM getRow $ childrenNamed "Row" e
+  where
+    getRow r = do
+      cells <- mapM getCell (childrenNamed "Cell" r)
+      return $ Row (attrFromElement r) cells
 
 parseCitations :: (PandocMonad m) => [Content] -> XMLReader m [Citation]
 parseCitations contents = do
@@ -359,16 +434,20 @@ parseCitations contents = do
         prefix e = getArrayOfInlines (\c -> tagCitationPrefix == elementName c) $ elContent e
         suffix e = getArrayOfInlines (\c -> tagCitationSuffix == elementName c) $ elContent e
 
+parseMaybeCaptionElement :: (PandocMonad m) => Maybe Element -> XMLReader m Caption
+parseMaybeCaptionElement Nothing = pure emptyCaption
+parseMaybeCaptionElement (Just e) = parseCaption $ elContent e
+
 parseCaption :: (PandocMonad m) => [Content] -> XMLReader m Caption
-parseCaption contents = do
-  (short_caption_contents, caption_contents) <- partitionSingleFirstElement tagShortCaption contents
-  short_caption_inlines <- getInlines short_caption_contents
-  let short_caption =
-        if null short_caption_inlines
-          then Nothing
-          else Just (toList short_caption_inlines)
-  blocks <- parseBlocks caption_contents
-  return $ caption short_caption blocks
+parseCaption contents =
+  let (maybe_shortcaption_el, caption_contents) = partitionFirstChildNamed tagShortCaption contents
+   in do
+        blocks <- parseBlocks caption_contents
+        case (maybe_shortcaption_el) of
+          Just shortcaption_el -> do
+            short_caption <- getInlines (elContent shortcaption_el)
+            return $ caption (Just $ toList short_caption) blocks
+          Nothing -> return $ caption Nothing blocks
 
 parseDefinitionListItem :: (PandocMonad m) => [Content] -> XMLReader m (Inlines, [Blocks])
 parseDefinitionListItem contents = do
@@ -393,35 +472,50 @@ isElementNamed t c = case (c) of
 childrenNamed :: Text -> Element -> [Element]
 childrenNamed tag e = elementContents $ filter (isElementNamed tag) (elContent e)
 
-partitionFirstChildNamed :: Text -> Element -> (Maybe Element, [Element])
-partitionFirstChildNamed tag e =
-  let children = elementContents (elContent e)
-   in case (children) of
-        [] -> (Nothing, mempty)
-        (x : xs) ->
-          if tag == elementName x
-            then (Just x, xs)
-            else (Nothing, x : xs)
+elementsWithNames :: S.Set Text -> [Content] -> [Element]
+elementsWithNames tags contents = mapMaybe isElementWithNameInSet contents
+  where
+    isElementWithNameInSet c = case (c) of
+      Elem el ->
+        if (elementName el) `S.member` tags
+          then Just el
+          else Nothing
+      _ -> Nothing
+
+childrenWithNames :: S.Set Text -> Element -> [Element]
+childrenWithNames tags e = elementsWithNames tags $ elContent e
+
+partitionFirstChildNamed :: Text -> [Content] -> (Maybe Element, [Content])
+partitionFirstChildNamed tag contents = case (contents) of
+  (Text (CData _ s _) : rest) ->
+    if T.all isSpace s
+      then partitionFirstChildNamed tag rest
+      else (Nothing, contents)
+  (Elem e : rest) ->
+    if tag == elementName e
+      then (Just e, rest)
+      else (Nothing, contents)
+  _ -> (Nothing, contents)
 
 ensureContentMatches :: (PandocMonad m) => (Content -> Maybe LogMessage) -> Element -> XMLReader m ()
 ensureContentMatches check e = mapM_ reportUnexpectedContents (elContent e)
   where
     reportUnexpectedContents c = case (check c) of
       Just (message) -> do report message; return ()
-      Nothing -> do return ()
+      Nothing -> pure ()
 
 ensureContentIsElementsOnly :: (PandocMonad m) => Element -> XMLReader m ()
 ensureContentIsElementsOnly e = ensureContentMatches check e
   where
     check :: Content -> Maybe LogMessage
-    check c =     case (c) of
-     Elem _ -> Nothing
-     Text (CData CDataRaw s _) -> Just $ UnexpectedXmlCData s ""
-     Text (CData _ s _) -> if T.all isSpace s
-       then Nothing
-       else Just $ UnexpectedXmlCData s ""
-     CRef x -> Just $ UnexpectedXmlReference x ""
-    
+    check c = case (c) of
+      Elem _ -> Nothing
+      Text (CData CDataRaw s _) -> Just $ UnexpectedXmlCData s ""
+      Text (CData _ s _) ->
+        if T.all isSpace s
+          then Nothing
+          else Just $ UnexpectedXmlCData s ""
+      CRef x -> Just $ UnexpectedXmlReference x ""
 
 type PandocAttr = (Text, [Text], [(Text, Text)])
 
@@ -474,6 +568,75 @@ isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
         "Div"
       ]
 isBlockElement _ = False
+
+addMeta :: (PandocMonad m) => (ToMetaValue a) => Text -> a -> XMLReader m ()
+addMeta field val = modify (setMeta field val)
+
+instance HasMeta XMLReaderState where
+  setMeta field v s = s {xmlMeta = setMeta field v (xmlMeta s)}
+
+  deleteMeta field s = s {xmlMeta = deleteMeta field (xmlMeta s)}
+
+-- parseMetaContents :: (PandocMonad m) => [Content] -> XMLReader m (Maybe MetaValue)
+
+parseMetaMapEntry :: (PandocMonad m) => Element -> XMLReader m (Maybe (Text, MetaValue))
+parseMetaMapEntry e =
+  let key = attrValue attrMetaMapEntryKey e
+   in case (key) of
+        "" -> pure Nothing
+        k -> do
+          maybe_value <- parseMetaMapEntryContents $ elContent e
+          case (maybe_value) of
+            Nothing -> return Nothing
+            Just v -> return $ Just (k, v)
+
+parseMetaMapEntryContents :: (PandocMonad m) => [Content] -> XMLReader m (Maybe MetaValue)
+parseMetaMapEntryContents cs = msum <$> mapM parseMeta cs
+
+parseMeta :: (PandocMonad m) => Content -> XMLReader m (Maybe MetaValue)
+parseMeta (Text (CData CDataRaw _ _)) = return Nothing
+parseMeta (Text (CData _ s _)) =
+  if T.all isSpace s
+    then return Nothing
+    else do
+      report $ UnexpectedXmlCData s ""
+      return Nothing
+parseMeta (CRef x) = do
+  report $ UnexpectedXmlReference x ""
+  return Nothing
+parseMeta (Elem e) = do
+  let name = elementName e
+   in case (name) of
+        "MetaBool" -> case (attrValue attrMetaBoolValue e) of
+          "true" -> return $ Just $ MetaBool True
+          _ -> return $ Just $ MetaBool False
+        "MetaString" -> pure Nothing
+        "MetaInlines" -> do
+          inlines <- getInlines (elContent e)
+          return $ Just $ MetaInlines $ toList inlines
+        "MetaBlocks" -> do
+          blocks <- getBlocks e
+          return $ Just $ MetaBlocks $ toList blocks
+        "MetaList" -> do
+          maybe_items <- mapM parseMeta $ elContent e
+          let items = catMaybes maybe_items
+           in if null items
+                then
+                  -- TODO: report empty MetaList
+                  return Nothing
+                else return $ Just $ MetaList items
+        "MetaMap" ->
+          let entry_els = childrenNamed tagMetaMapEntry e
+           in do
+                entries <- catMaybes <$> mapM parseMetaMapEntry entry_els
+                if null entries
+                  then
+                    -- TODO: report empty MetaMap
+                    return Nothing
+                  else return $ Just $ MetaMap $ M.fromList entries
+        _ -> do
+          report $ UnexpectedXmlElement name ""
+          return Nothing
 
 -- -- onlyOneChild x = length (allChildren x) == 1
 -- -- allChildren x = filterChildren (const True) x
