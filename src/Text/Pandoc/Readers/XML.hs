@@ -21,7 +21,6 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.FormatXML
-import Text.Pandoc.FormatXML (attrRowHeadColumns)
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (ToSources, toSources)
@@ -96,7 +95,7 @@ parseBlock (Elem e) = do
         "?xml" -> return mempty
         "blocks" -> getBlocks e
         "meta" ->
-          let entry_els = childrenNamed tagMetaMapEntry e
+          let entry_els = childrenNamed tgNameMetaMapEntry e
            in do
                 entries <- catMaybes <$> mapM parseMetaMapEntry entry_els
                 mapM_ (uncurry addMeta) entries
@@ -105,8 +104,8 @@ parseBlock (Elem e) = do
         "Plain" -> parseMixed plain (elContent e)
         "Header" -> parseMixed (headerWith attr level) (elContent e)
           where
-            level = textToInt (attrValue attrLevel e) 1
-            attr = filterAttrAttributes [attrLevel] $ attrFromElement e
+            level = textToInt (attrValue atNameLevel e) 1
+            attr = filterAttrAttributes [atNameLevel] $ attrFromElement e
         "HorizontalRule" -> return horizontalRule
         "BlockQuote" -> do
           contents <- getBlocks e
@@ -121,7 +120,7 @@ parseBlock (Elem e) = do
           items <- getArrayOfBlocks isListItem (elContent e)
           return $ orderedListWith (getListAttributes e) items
         "DefinitionList" -> do
-          let items_contents = getContentsOfElements (isElementNamed tagDefListItem) (elContent e)
+          let items_contents = getContentsOfElements (isElementNamed tgNameDefListItem) (elContent e)
           items <- mapM parseDefinitionListItem items_contents
           return $ definitionList items
         "Figure" -> do
@@ -136,18 +135,18 @@ parseBlock (Elem e) = do
           let attr = attrFromElement e
           return $ codeBlockWith attr $ strContentRecursive e
         "RawBlock" -> do
-          let format = (attrValue attrFormat e)
+          let format = (attrValue atNameFormat e)
           return $ rawBlock format $ strContentRecursive e
         "LineBlock" -> do
-          lins <- mapM getInlines (contentsOfChildren tagLineItem (elContent e))
+          lins <- mapM getInlines (contentsOfChildren tgNameLineItem (elContent e))
           return $ lineBlock lins
         "Table" -> do
           -- TODO: check unexpected items
           let attr = attrFromElement e
               (maybe_caption_el, after_caption) = partitionFirstChildNamed "Caption" $ elContent e
-              children = elementsWithNames (S.fromList [tagColspecs, "TableHead", "TableBody", "TableFoot"]) after_caption
+              children = elementsWithNames (S.fromList [tgNameColspecs, "TableHead", "TableBody", "TableFoot"]) after_caption
               is_element tag el = tag == elementName el
-          colspecs <- getColspecs $ L.find (is_element tagColspecs) children
+          colspecs <- getColspecs $ L.find (is_element tgNameColspecs) children
           tbs <- getTableBodies $ filter (is_element "TableBody") children
           th <- getTableHead $ L.find (is_element "TableHead") children
           tf <- getTableFoot $ L.find (is_element "TableFoot") children
@@ -160,7 +159,7 @@ parseBlock (Elem e) = do
           return mempty
   where
     parsePandoc = do
-      let version = maybeAttrValue attrApiVersion e
+      let version = maybeAttrValue atNameApiVersion e
           apiversion = case (version) of
             Just (v) -> makeVersion $ map (read . T.unpack) $ T.splitOn "," v
             Nothing -> pandocVersion
@@ -264,10 +263,10 @@ parseInline (Elem e) =
         "SoftBreak" -> return softbreak
         "LineBreak" -> return linebreak
         "SmallCaps" -> innerInlines smallcaps
-        "Quoted" -> case (attrValue attrQuoteType e) of
+        "Quoted" -> case (attrValue atNameQuoteType e) of
           "SingleQuote" -> innerInlines singleQuoted
           _ -> innerInlines doubleQuoted
-        "Math" -> case (attrValue attrMathType e) of
+        "Math" -> case (attrValue atNameMathType e) of
           "DisplayMath" -> pure $ displayMath $ strContentRecursive e
           _ -> pure $ math $ strContentRecursive e
         "Span" -> innerInlines $ spanWith (attrFromElement e)
@@ -276,22 +275,22 @@ parseInline (Elem e) =
           return $ codeWith attr $ strContentRecursive e
         "Link" -> innerInlines $ linkWith attr url title
           where
-            url = attrValue attrLinkUrl e
-            title = attrValue attrTitle e
-            attr = filterAttrAttributes [attrLinkUrl, attrTitle] $ attrFromElement e
+            url = attrValue atNameLinkUrl e
+            title = attrValue atNameTitle e
+            attr = filterAttrAttributes [atNameLinkUrl, atNameTitle] $ attrFromElement e
         "Image" -> innerInlines $ imageWith attr url title
           where
-            url = attrValue attrImageUrl e
-            title = attrValue attrTitle e
-            attr = filterAttrAttributes [attrImageUrl, attrTitle] $ attrFromElement e
+            url = attrValue atNameImageUrl e
+            title = attrValue atNameTitle e
+            attr = filterAttrAttributes [atNameImageUrl, atNameTitle] $ attrFromElement e
         "RawInline" -> do
-          let format = (attrValue attrFormat e)
+          let format = (attrValue atNameFormat e)
           return $ rawInline format $ strContentRecursive e
         "Note" -> do
           contents <- getBlocks e
           return $ note contents
         "Cite" ->
-          let (maybe_citations_el, contents) = partitionFirstChildNamed tagCitations $ elContent e
+          let (maybe_citations_el, contents) = partitionFirstChildNamed tgNameCitations $ elContent e
            in case (maybe_citations_el) of
                 Just citations_el -> do
                   citations <- parseCitations $ elContent citations_el
@@ -312,8 +311,8 @@ getInlines contents = mconcat <$> mapM parseInline contents
 getListAttributes :: Element -> ListAttributes
 getListAttributes e = (start, style, delim)
   where
-    start = textToInt (attrValue attrStart e) 1
-    style = case (attrValue attrNumberStyle e) of
+    start = textToInt (attrValue atNameStart e) 1
+    style = case (attrValue atNameNumberStyle e) of
       "Example" -> Example
       "Decimal" -> Decimal
       "LowerRoman" -> LowerRoman
@@ -321,7 +320,7 @@ getListAttributes e = (start, style, delim)
       "LowerAlpha" -> LowerAlpha
       "UpperAlpha" -> UpperAlpha
       _ -> DefaultStyle
-    delim = case (attrValue attrNumberDelim e) of
+    delim = case (attrValue atNameNumberDelim e) of
       "Period" -> Period
       "OneParen" -> OneParen
       "TwoParens" -> TwoParens
@@ -352,14 +351,14 @@ getColspecs Nothing = pure Nothing
 getColspecs (Just cs) = do
   return $ Just $ map elementToColSpec (childrenNamed "ColSpec" cs)
   where
-    elementToColSpec e = (alignmentFromText $ attrValue attrAlignment e, getColWidth $ attrValue attrColWidth e)
+    elementToColSpec e = (alignmentFromText $ attrValue atNameAlignment e, getColWidth $ attrValue atNameColWidth e)
 
 getTableBody :: (PandocMonad m) => Element -> XMLReader m (Maybe TableBody)
 getTableBody body_el = do
-  let attr =  filterAttrAttributes [attrRowHeadColumns] $ attrFromElement body_el
-      bh = childrenNamed tagBodyHeader body_el
-      bb = childrenNamed tagBodyBody body_el
-      headcols = textToInt (attrValue attrRowHeadColumns body_el) 0
+  let attr =  filterAttrAttributes [atNameRowHeadColumns] $ attrFromElement body_el
+      bh = childrenNamed tgNameBodyHeader body_el
+      bb = childrenNamed tgNameBodyBody body_el
+      headcols = textToInt (attrValue atNameRowHeadColumns body_el) 0
   hrows <- mconcat <$> mapM getRows bh
   brows <- mconcat <$> mapM getRows bb
   return $ Just $ TableBody attr (RowHeadColumns headcols) hrows brows
@@ -386,10 +385,10 @@ getTableFoot maybe_e = case maybe_e of
 
 getCell :: (PandocMonad m) => Element -> XMLReader m Cell
 getCell c = do
-  let alignment = alignmentFromText $ attrValue attrAlignment c
-      rowspan = RowSpan $ textToInt (attrValue attrRowspan c) 1
-      colspan = ColSpan $ textToInt (attrValue attrColspan c) 1
-      attr = filterAttrAttributes [attrAlignment, attrRowspan, attrColspan] $ attrFromElement c
+  let alignment = alignmentFromText $ attrValue atNameAlignment c
+      rowspan = RowSpan $ textToInt (attrValue atNameRowspan c) 1
+      colspan = ColSpan $ textToInt (attrValue atNameColspan c) 1
+      attr = filterAttrAttributes [atNameAlignment, atNameRowspan, atNameColspan] $ attrFromElement c
   blocks <- getBlocks c
   return $ Cell attr alignment rowspan colspan (toList blocks)
 
@@ -418,12 +417,12 @@ parseCitations contents = do
                     { citationId = attrValue "id" e,
                       citationPrefix = toList p,
                       citationSuffix = toList s,
-                      citationMode = case (attrValue attrCitationMode e) of
+                      citationMode = case (attrValue atNameCitationMode e) of
                         "AuthorInText" -> AuthorInText
                         "SuppressAuthor" -> SuppressAuthor
                         _ -> NormalCitation,
-                      citationNoteNum = textToInt (attrValue attrCitationNoteNum e) 0,
-                      citationHash = textToInt (attrValue attrCitationHash e) 0
+                      citationNoteNum = textToInt (attrValue atNameCitationNoteNum e) 0,
+                      citationHash = textToInt (attrValue atNameCitationHash e) 0
                     }
                 )
           else do
@@ -431,8 +430,8 @@ parseCitations contents = do
       _ -> do
         return Nothing
       where
-        prefix e = getArrayOfInlines (\c -> tagCitationPrefix == elementName c) $ elContent e
-        suffix e = getArrayOfInlines (\c -> tagCitationSuffix == elementName c) $ elContent e
+        prefix e = getArrayOfInlines (\c -> tgNameCitationPrefix == elementName c) $ elContent e
+        suffix e = getArrayOfInlines (\c -> tgNameCitationSuffix == elementName c) $ elContent e
 
 parseMaybeCaptionElement :: (PandocMonad m) => Maybe Element -> XMLReader m Caption
 parseMaybeCaptionElement Nothing = pure emptyCaption
@@ -440,7 +439,7 @@ parseMaybeCaptionElement (Just e) = parseCaption $ elContent e
 
 parseCaption :: (PandocMonad m) => [Content] -> XMLReader m Caption
 parseCaption contents =
-  let (maybe_shortcaption_el, caption_contents) = partitionFirstChildNamed tagShortCaption contents
+  let (maybe_shortcaption_el, caption_contents) = partitionFirstChildNamed tgNameShortCaption contents
    in do
         blocks <- parseBlocks caption_contents
         case (maybe_shortcaption_el) of
@@ -451,8 +450,8 @@ parseCaption contents =
 
 parseDefinitionListItem :: (PandocMonad m) => [Content] -> XMLReader m (Inlines, [Blocks])
 parseDefinitionListItem contents = do
-  let term_contents = getContentsOfElements (isElementNamed tagDefListTerm) contents
-      defs_elements = elementContents $ filter (isElementNamed tagDefListDef) contents
+  let term_contents = getContentsOfElements (isElementNamed tgNameDefListTerm) contents
+      defs_elements = elementContents $ filter (isElementNamed tgNameDefListDef) contents
   term_inlines <- getInlines (concat term_contents)
   defs <- mapM getBlocks defs_elements
   return (term_inlines, defs)
@@ -546,10 +545,10 @@ headOr _ (x : _) = x
 -- tailHeadOr default_value (_ : xs) = headOr default_value xs
 
 isListItem :: Element -> Bool
-isListItem e = tagListItem == elementName e
+isListItem e = tgNameListItem == elementName e
 
 isLineItem :: Element -> Bool
-isLineItem e = tagLineItem == elementName e
+isLineItem e = tgNameLineItem == elementName e
 
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
@@ -581,7 +580,7 @@ instance HasMeta XMLReaderState where
 
 parseMetaMapEntry :: (PandocMonad m) => Element -> XMLReader m (Maybe (Text, MetaValue))
 parseMetaMapEntry e =
-  let key = attrValue attrMetaMapEntryKey e
+  let key = attrValue atNameMetaMapEntryKey e
    in case (key) of
         "" -> pure Nothing
         k -> do
@@ -607,7 +606,7 @@ parseMeta (CRef x) = do
 parseMeta (Elem e) = do
   let name = elementName e
    in case (name) of
-        "MetaBool" -> case (attrValue attrMetaBoolValue e) of
+        "MetaBool" -> case (attrValue atNameMetaBoolValue e) of
           "true" -> return $ Just $ MetaBool True
           _ -> return $ Just $ MetaBool False
         "MetaString" -> pure Nothing
@@ -626,7 +625,7 @@ parseMeta (Elem e) = do
                   return Nothing
                 else return $ Just $ MetaList items
         "MetaMap" ->
-          let entry_els = childrenNamed tagMetaMapEntry e
+          let entry_els = childrenNamed tgNameMetaMapEntry e
            in do
                 entries <- catMaybes <$> mapM parseMetaMapEntry entry_els
                 if null entries
