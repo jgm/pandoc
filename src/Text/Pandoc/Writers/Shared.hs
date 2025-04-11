@@ -51,14 +51,14 @@ module Text.Pandoc.Writers.Shared (
                      , delimited
                      )
 where
-import Safe (lastMay)
+import Safe (lastMay, maximumMay, atDef)
 import qualified Data.ByteString.Lazy as BL
-import Control.Monad (zipWithM, MonadPlus, mzero)
+import Control.Monad (MonadPlus, mzero)
 import Data.Either (isRight)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter, isUpper)
-import Data.List (groupBy, intersperse, transpose, foldl')
-import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
+import Data.List (groupBy, intersperse, foldl', transpose)
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -81,6 +81,9 @@ import Text.Collate.Lang (Lang (..))
 import Text.Pandoc.Class (PandocMonad, toLang)
 import Text.Pandoc.Translations (setTranslations)
 import Data.Maybe (fromMaybe)
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+
+-- import Debug.Trace
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -282,121 +285,226 @@ unsmartify opts = T.concatMap $ \c -> case c of
   _       -> T.singleton c
 
 -- | Writes a grid table.
-gridTable :: (Monad m, HasChars a)
-          => WriterOptions
-          -> (WriterOptions -> [Block] -> m (Doc a)) -- ^ format Doc writer
-          -> Bool             -- ^ headless
-          -> [Alignment]      -- ^ column alignments
-          -> [Double]         -- ^ column widths
-          -> [[Block]]        -- ^ table header row
-          -> [[[Block]]]      -- ^ table body rows
-          -> m (Doc a)
-gridTable opts blocksToDoc headless aligns widths headers rows = do
-  -- the number of columns will be used in case of even widths
-  let numcols = maximum (length aligns :| length widths :
-                           map length (headers:rows))
-  let officialWidthsInChars :: [Double] -> [Int]
-      officialWidthsInChars widths' = map (
-                        (max 1) .
-                        (\x -> x - 3) . floor .
-                        (fromIntegral (writerColumns opts) *)
-                        ) widths'
-  -- handleGivenWidths wraps the given blocks in order for them to fit
-  -- in cells with given widths. the returned content can be
-  -- concatenated with borders and frames
-  let handleGivenWidthsInChars widthsInChars' = do
-        -- replace page width (in columns) in the options with a
-        -- given width if smaller (adjusting by two)
-        let useWidth w = opts{writerColumns = min (w - 2) (writerColumns opts)}
-        -- prepare options to use with header and row cells
-        let columnOptions = map useWidth widthsInChars'
-        rawHeaders' <- zipWithM blocksToDoc columnOptions headers
-        rawRows' <- mapM
-             (\cs -> zipWithM blocksToDoc columnOptions cs)
-             rows
-        return (widthsInChars', rawHeaders', rawRows')
-  let handleGivenWidths widths' = handleGivenWidthsInChars
-                                     (officialWidthsInChars widths')
-  -- handleFullWidths tries to wrap cells to the page width or even
-  -- more in cases where `--wrap=none`. thus the content here is left
-  -- as wide as possible
-  let handleFullWidths widths' = do
-        rawHeaders' <- mapM (blocksToDoc opts) headers
-        rawRows' <- mapM (mapM (blocksToDoc opts)) rows
-        let numChars = maybe 0 maximum . nonEmpty . map offset
-        let minWidthsInChars =
-                map numChars $ transpose (rawHeaders' : rawRows')
-        let widthsInChars' = zipWith max
-                              minWidthsInChars
-                              (officialWidthsInChars widths')
-        return (widthsInChars', rawHeaders', rawRows')
-  -- handleZeroWidths calls handleFullWidths to check whether a wide
-  -- table would fit in the page. if the produced table is too wide,
-  -- it calculates even widths and passes the content to
-  -- handleGivenWidths
-  let handleZeroWidths widths' = do
-        (widthsInChars', rawHeaders', rawRows') <- handleFullWidths widths'
-        if foldl' (+) 0 widthsInChars' > writerColumns opts
-           then do -- use even widths except for thin columns
-             let evenCols  = max 5
-                              (((writerColumns opts - 1) `div` numcols) - 3)
-             let (numToExpand, colsToExpand) =
-                   foldr (\w (n, tot) -> if w < evenCols
-                                            then (n, tot + (evenCols - w))
-                                            else (n + 1, tot))
-                                   (0,0) widthsInChars'
-             let expandAllowance = colsToExpand `div` numToExpand
-             let newWidthsInChars = map (\w -> if w < evenCols
+gridTable :: Monad m
+           => WriterOptions
+           -> (WriterOptions -> [Block] -> m (Doc Text)) -- ^ format Doc writer
+           -> [ColSpec]
+           -> TableHead
+           -> [TableBody]
+           -> TableFoot
+           -> m (Doc Text)
+gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
+  let Ann.Table _ _ colspecs thead tbodies tfoot =
+        Ann.toTable mempty (Caption Nothing mempty)
+                    colspecs' thead' tbodies' tfoot'
+  let widths = map (toCharWidth opts . getColWidth) colspecs
+  let renderRows = fmap (map (addDummies widths)) . mapM (gridRow opts blocksToDoc)
+  let getHeadCells (Ann.HeaderRow _ _ cells) = cells
+  let getHeadRows (Ann.TableHead _ rs) = map getHeadCells rs
+  headCells <- renderRows (getHeadRows thead)
+  let getFootRows (Ann.TableFoot _ xs) = map getHeadCells xs
+  footCells <- renderRows (getFootRows tfoot)
+  let getBodyCells (Ann.BodyRow _ _ _ cells) = cells
+  let getBody (Ann.TableBody _ _ hs xs) = map getHeadCells hs <> map getBodyCells xs
+  bodyCells <- mapM (renderRows . getBody) tbodies
+  let rows = setTopBorder SingleLine headCells ++
+             (setTopBorder (if null headCells then SingleLine else DoubleLine)
+              . setBottomBorder SingleLine) (mconcat bodyCells) ++
+             (if null footCells
+                 then mempty
+                 else setTopBorder DoubleLine . setBottomBorder DoubleLine $
+                       footCells)
+  let cellHasColSpan c = cellColSpan c > 1
+  let hasColSpans = any (any cellHasColSpan) rows
+  let isSimple = all ((== ColWidthDefault) . snd) colspecs && not hasColSpans
+  pure $ gridRows $
+    if not hasColSpans  -- TODO: figure out how to calculate widths with colspans
+       then redoWidths isSimple opts rows
+       else rows
+
+redoWidths :: Bool -> WriterOptions -> [[RenderedCell Text]] -> [[RenderedCell Text]]
+redoWidths _ _ [] = []
+redoWidths isSimple opts rows@(r:_) =
+  map (\cs -> zipWith resetWidth newwidths cs) rows
+ where
+  actualWidths = map cellWidth r
+  fullwidths = calculateFullWidths rows
+  minwidths = case writerWrapText opts of
+                WrapNone -> fullwidths
+                _ -> calculateMinWidths rows
+  totwidth = writerColumns opts - (3 * length r) - 1
+  evenwidth = totwidth `div` length r
+  resetWidth w c = c{ cellWidth = w }
+  keepwidths = filter (< evenwidth) fullwidths
+  evenwidth' = (totwidth - sum keepwidths) `div`
+                (length r - length keepwidths)
+  ensureMinWidths = zipWith max minwidths
+  newwidths = ensureMinWidths $
+              case isSimple of
+                True | sum fullwidths <= totwidth -> fullwidths
+                     | otherwise -> map (\w -> if w < evenwidth
                                                   then w
-                                                  else min
-                                                       (evenCols + expandAllowance)
-                                                       w)
-                                        widthsInChars'
-             handleGivenWidthsInChars newWidthsInChars
-           else return (widthsInChars', rawHeaders', rawRows')
-  -- render the contents of header and row cells differently depending
-  -- on command line options, widths given in this specific table, and
-  -- cells' contents
-  let handleWidths
-        | writerWrapText opts == WrapNone    = handleFullWidths widths
-        | all (== 0) widths                  = handleZeroWidths widths
-        | otherwise                          = handleGivenWidths widths
-  (widthsInChars, rawHeaders, rawRows) <- handleWidths
-  let hpipeBlocks blocks = hcat [beg, middle, end]
-        where sep'    = vfill " | "
-              beg     = vfill "| "
-              end     = vfill " |"
-              middle  = chomp $ hcat $ intersperse sep' blocks
-  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow rawHeaders
-  let rows' = map (makeRow . map chomp) rawRows
-  let borderpart ch align widthInChars =
-           (if align == AlignLeft || align == AlignCenter
-               then char ':'
-               else char ch) <>
-           text (replicate widthInChars ch) <>
-           (if align == AlignRight || align == AlignCenter
-               then char ':'
-               else char ch)
-  let border ch aligns' widthsInChars' =
-        char '+' <>
-        hcat (intersperse (char '+') (zipWith (borderpart ch)
-                aligns' widthsInChars')) <> char '+'
-  let body = vcat $ intersperse (border '-' (repeat AlignDefault) widthsInChars)
-                    rows'
-  let head'' = if headless
-                  then empty
-                  else head' $$ border '=' aligns widthsInChars
-  if headless
-     then return $
-           border '-' aligns widthsInChars $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
-     else return $
-           border '-' (repeat AlignDefault) widthsInChars $$
-           head'' $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
+                                                  else evenwidth') fullwidths
+                False -> actualWidths
+
+-- Returns for each column a pair (full width, min width)
+calculateFullWidths :: [[RenderedCell Text]] -> [Int]
+calculateFullWidths rows =
+  map (fromMaybe 0 . maximumMay) (transpose (map (map (\c ->
+         offset (cellContents c))) rows))
+
+calculateMinWidths :: [[RenderedCell Text]] -> [Int]
+calculateMinWidths rows =
+  map (fromMaybe 0 . maximumMay) (transpose (map (map (\c ->
+         minOffset (cellContents c))) rows))
+
+makeDummy :: [Int] -> Int -> Int -> RenderedCell Text
+makeDummy widths n len =
+ let width = atDef 0 widths n
+ in RenderedCell{ cellColNum = n,
+                cellColSpan = len,
+                cellAlign = AlignDefault,
+                cellRowSpan = 0, -- indicates dummy
+                cellWidth = width,
+                cellHeight = 0,
+                cellContents = mempty,
+                cellBottomBorder = NoLine,
+                cellTopBorder = NoLine }
+
+addDummies :: [Int] -> [RenderedCell Text] -> [RenderedCell Text]
+addDummies widths = reverse . snd . foldl' addDummy (0,[])
+ where
+   addDummy (i,cs) c =
+     case cellColNum c - i of
+       0 -> (i+1, c:cs)
+       len -> (cellColNum c + 1, c : makeDummy widths i len : cs)
+
+
+setTopBorder :: LineStyle -> [[RenderedCell Text]] -> [[RenderedCell Text]]
+setTopBorder _ [] = []
+setTopBorder sty (cs:rest) = (map (\c -> c{ cellTopBorder = sty }) cs) : rest
+
+setBottomBorder :: LineStyle -> [[RenderedCell Text]] -> [[RenderedCell Text]]
+setBottomBorder _ [] = []
+setBottomBorder sty [cs] = [map (\c -> c{ cellBottomBorder = sty }) cs]
+setBottomBorder sty (c:cs) = c : setBottomBorder sty cs
+
+gridRows :: [[RenderedCell Text]] -> Doc Text
+gridRows [] = mempty
+gridRows (x:xs) =
+  (formatBorder cellTopBorder False (map (\z -> z{ cellBottomBorder = NoLine }) x))
+  $$
+  vcat (zipWith rowAndBottom (x:xs) (xs ++ [[]]))
+ where
+  -- generate wrapped contents. include pipe borders, bottom and left
+
+  renderCellContents c =
+    -- we don't use cblock or lblock because the content might
+    -- be interpreted as an indented code block...even though it
+    -- would look better to right-align right-aligned cells...
+    -- (TODO: change this on parsing side?)
+    lblock (case cellWidth c of
+                  0 -> 16 -- TODO arbitrary
+                  w -> w) (cellContents c)
+
+  formatRow cs = vfill "| " <>
+   hcat (intersperse (vfill " | ") (map renderCellContents cs)) <> vfill " |"
+
+  rowAndBottom thisRow nextRow =
+    let isLastRow = null nextRow
+        border1 = render Nothing (formatBorder cellBottomBorder False thisRow)
+        border2 = render Nothing (formatBorder cellTopBorder False nextRow)
+        go '+' _ = '+'
+        go _ '+' = '+'
+        go '=' _ = '='
+        go _ '=' = '='
+        go c _   = c
+        combinedBorder = if isLastRow
+                            then literal border1
+                            else literal $ T.zipWith go border1 border2
+    in formatRow thisRow $$ combinedBorder
+
+
+formatBorder :: (RenderedCell Text -> LineStyle) -> Bool -> [RenderedCell Text]
+             -> Doc Text
+formatBorder _ _alignMarkers [] = mempty
+formatBorder borderStyle alignMarkers (c:cs)
+  | borderStyle c == NoLine
+    = openpipe <> text (replicate (cellWidth c + 2) ' ') <> closepipe <>
+      formatBorder borderStyle alignMarkers cs
+  | otherwise
+    = openplus <> leftalign <> underline <> rightalign <> closeplus <>
+      formatBorder borderStyle alignMarkers cs
+  where
+
+    openpipe = "|"
+    closepipe = if null cs then "|" else mempty
+    openplus = "+"
+    closeplus = if null cs
+                   then "+"
+                   else mempty
+    lineChar = case borderStyle c of
+                 NoLine -> ' '
+                 SingleLine -> '-'
+                 DoubleLine -> '='
+    (leftalign, rightalign) =
+       case cellAlign c of
+         _ | not alignMarkers -> (char lineChar,char lineChar)
+         AlignLeft -> (char ':',char lineChar)
+         AlignCenter -> (char ':',char ':')
+         AlignRight -> (char lineChar,char ':')
+         AlignDefault -> (char lineChar,char lineChar)
+    underline = text (replicate (cellWidth c) lineChar)
+
+data LineStyle = NoLine | SingleLine | DoubleLine
+    deriving (Show, Ord, Eq)
+
+data RenderedCell a =
+  RenderedCell{ cellColNum :: Int
+              , cellColSpan :: Int
+              , cellAlign :: Alignment
+              , cellRowSpan :: Int
+              , cellWidth :: Int
+              , cellHeight :: Int
+              , cellContents :: Doc a
+              , cellBottomBorder :: LineStyle
+              , cellTopBorder :: LineStyle
+              }
+  deriving (Show)
+
+getColWidth :: ColSpec -> Double
+getColWidth (_, ColWidth n) = n
+getColWidth (_, ColWidthDefault) = 0 -- TODO?
+
+toCharWidth :: WriterOptions -> Double -> Int
+toCharWidth opts width =
+  max 1 (floor (width * fromIntegral (writerColumns opts)) - 3)
+
+gridRow :: (Monad m, HasChars a)
+        => WriterOptions
+        -> (WriterOptions -> [Block] -> m (Doc a)) -- ^ format Doc writer
+        -> [Ann.Cell]
+        -> m [RenderedCell a]
+gridRow opts blocksToDoc = mapM renderCell
+ where
+  renderer = blocksToDoc opts
+  renderCell (Ann.Cell cellcolspecs (Ann.ColNumber colnum)
+               (Cell _ _ (RowSpan rowspan) _ blocks)) = do
+    let ((align,_):|_) = cellcolspecs
+    let width = toCharWidth opts $ sum (fmap getColWidth cellcolspecs)
+    rendered <- renderer blocks
+    pure $ RenderedCell{ cellColNum = colnum,
+                         cellColSpan = length cellcolspecs,
+                         cellAlign = align,
+                         cellRowSpan = rowspan,
+                         cellWidth = width,
+                         cellHeight = height rendered,
+                         cellContents = rendered,
+                         cellBottomBorder = if rowspan < 2
+                                               then SingleLine
+                                               else NoLine,
+                         cellTopBorder = SingleLine }
+
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to Bool.
