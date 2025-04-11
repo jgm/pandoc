@@ -2,132 +2,177 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Text.Pandoc.FormatXML
-  ( attrApiVersion,
-    attrCitationHash,
-    attrCitationMode,
-    attrCitationNoteNum,
-    attrFormat,
-    attrImageUrl,
-    attrLevel,
-    attrLinkUrl,
-    attrMathType,
-    attrNumberDelim,
-    attrNumberStyle,
-    attrQuoteType,
-    attrStart,
-    attrTitle,
-    tagBodyBody,
-    tagBodyHeader,
-    tagCitations,
-    tagCitationPrefix,
-    tagCitationSuffix,
-    tagColspecs,
-    tagDefListDef,
-    tagDefListItem,
-    tagDefListTerm,
-    tagLineItem,
-    tagListItem,
+  ( atNameAlignment,
+    atNameApiVersion,
+    atNameCitationHash,
+    atNameCitationMode,
+    atNameCitationNoteNum,
+    atNameColspan,
+    atNameColWidth,
+    atNameFormat,
+    atNameImageUrl,
+    atNameLevel,
+    atNameLinkUrl,
+    atNameMathType,
+    atNameMetaBoolValue,
+    atNameMetaMapEntryKey,
+    atNameNumberDelim,
+    atNameNumberStyle,
+    atNameQuoteType,
+    atNameRowHeadColumns,
+    atNameRowspan,
+    atNameStart,
+    atNameTitle,
+    tgNameBodyBody,
+    tgNameBodyHeader,
+    tgNameCitations,
+    tgNameCitationPrefix,
+    tgNameCitationSuffix,
+    tgNameColspecs,
+    tgNameDefListDef,
+    tgNameDefListItem,
+    tgNameDefListTerm,
+    tgNameLineItem,
+    tgNameListItem,
+    tgNameMetaMapEntry,
+    tgNameShortCaption
   )
 where
 
 import Data.Text (Text)
 
 -- the attribute carrying the API version of pandoc types in the main Pandoc element
-attrApiVersion :: Text
-attrApiVersion = "api-version"
+atNameApiVersion :: Text
+atNameApiVersion = "api-version"
+
+-- the element of a <meta> or <MetaMap> entry
+tgNameMetaMapEntry :: Text
+tgNameMetaMapEntry = "entry"
+
+-- the attribute carrying the key name of a <meta> or <MetaMap> entry
+atNameMetaMapEntryKey :: Text
+atNameMetaMapEntryKey = "text"
+
+-- the attribute carrying the boolean value ("true" or "false") of a MetaBool
+atNameMetaBoolValue :: Text
+atNameMetaBoolValue = "value"
 
 -- level of a Header
-attrLevel :: Text
-attrLevel = "level"
+atNameLevel :: Text
+atNameLevel = "level"
 
 -- start number of an OrderedList
-attrStart :: Text
-attrStart = "start"
+atNameStart :: Text
+atNameStart = "start"
 
 -- number delimiter of an OrderedList
-attrNumberDelim :: Text
-attrNumberDelim = "number-delim"
+atNameNumberDelim :: Text
+atNameNumberDelim = "number-delim"
 
 -- number style of an OrderedList
-attrNumberStyle :: Text
-attrNumberStyle = "number-style"
+atNameNumberStyle :: Text
+atNameNumberStyle = "number-style"
 
 -- target title in Image and Link
-attrTitle :: Text
-attrTitle = "title"
+atNameTitle :: Text
+atNameTitle = "title"
 
 -- target url in Image
-attrImageUrl :: Text
-attrImageUrl = "src"
+atNameImageUrl :: Text
+atNameImageUrl = "src"
 
 -- target url in Link
-attrLinkUrl :: Text
-attrLinkUrl = "href"
+atNameLinkUrl :: Text
+atNameLinkUrl = "href"
 
 -- QuoteType of a Quoted
-attrQuoteType :: Text
-attrQuoteType = "quote-type"
+atNameQuoteType :: Text
+atNameQuoteType = "quote-type"
 
 -- MathType of a Math
-attrMathType :: Text
-attrMathType = "math-type"
+atNameMathType :: Text
+atNameMathType = "math-type"
 
 -- format of a RawInline or a RawBlock
-attrFormat :: Text
-attrFormat = "format"
+atNameFormat :: Text
+atNameFormat = "format"
+
+-- alignment attribute in a ColSpec or in a Cell
+atNameAlignment :: Text
+atNameAlignment = "alignment"
+
+-- ColWidth attribute in a ColSpec
+atNameColWidth :: Text
+atNameColWidth = "col-width"
+
+-- RowHeadColumns attribute in a TableBody
+atNameRowHeadColumns :: Text
+atNameRowHeadColumns = "row-head-columns"
+
+-- rowspan attribute in a Cell
+atNameRowspan :: Text
+atNameRowspan = "rowspan"
+
+-- colpan attribute in a Cell
+atNameColspan :: Text
+atNameColspan = "colspan"
 
 -- the citationMode of a Citation
-attrCitationMode :: Text
-attrCitationMode = "mode"
+atNameCitationMode :: Text
+atNameCitationMode = "mode"
 
 -- the citationHash of a Citation
-attrCitationHash :: Text
-attrCitationHash = "hash"
+atNameCitationHash :: Text
+atNameCitationHash = "hash"
 
 -- the citationNoteNum of a Citation
-attrCitationNoteNum :: Text
-attrCitationNoteNum = "note-num"
+atNameCitationNoteNum :: Text
+atNameCitationNoteNum = "note-num"
 
 -- container of Citation elements in Cite inlines
-tagCitations :: Text
-tagCitations = "citations"
+tgNameCitations :: Text
+tgNameCitations = "citations"
 
 -- element around the prefix inlines of a Citation
-tagCitationPrefix :: Text
-tagCitationPrefix = "prefix"
+tgNameCitationPrefix :: Text
+tgNameCitationPrefix = "prefix"
 
 -- element around the suffix inlines of a Citation
-tagCitationSuffix :: Text
-tagCitationSuffix = "suffix"
+tgNameCitationSuffix :: Text
+tgNameCitationSuffix = "suffix"
 
 -- list item for BulletList and OrderedList
-tagListItem :: Text
-tagListItem = "item"
+tgNameListItem :: Text
+tgNameListItem = "item"
 
 -- list item for DefinitionList
-tagDefListItem :: Text
-tagDefListItem = "item"
+tgNameDefListItem :: Text
+tgNameDefListItem = "item"
 
 -- element around the inlines of the term of a DefinitionList item
-tagDefListTerm :: Text
-tagDefListTerm = "term"
+tgNameDefListTerm :: Text
+tgNameDefListTerm = "term"
 
 -- element around the blocks of a definition in a DefinitionList item
-tagDefListDef :: Text
-tagDefListDef = "def"
+tgNameDefListDef :: Text
+tgNameDefListDef = "def"
+
+-- optional element of the ShortCaption
+tgNameShortCaption :: Text
+tgNameShortCaption = "ShortCaption"
 
 -- element around the ColSpec of a Table
-tagColspecs :: Text
-tagColspecs = "colspecs"
+tgNameColspecs :: Text
+tgNameColspecs = "colspecs"
 
 -- element around the header rows of a TableBody
-tagBodyHeader :: Text
-tagBodyHeader = "header"
+tgNameBodyHeader :: Text
+tgNameBodyHeader = "header"
 
 -- element around the body rows of a TableBody
-tagBodyBody :: Text
-tagBodyBody = "body"
+tgNameBodyBody :: Text
+tgNameBodyBody = "body"
 
 -- element around the inlines of a line in a LineBlock
-tagLineItem :: Text
-tagLineItem = "line"
+tgNameLineItem :: Text
+tgNameLineItem = "line"
