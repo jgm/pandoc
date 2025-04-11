@@ -49,35 +49,38 @@ These are the main rules:
 
 - blocks and inlines with an `Attr` are HTM-like, and they have:
 
-    - the `id` attribute for the identifier
-    
-    - the `class` attribute, a string of space-separated classes
+  - the `id` attribute for the identifier
 
-    - the other attributes of `Attr`, without any prefix (so no `data-` prefix, instead of HTML)
+  - the `class` attribute, a string of space-separated classes
+
+  - the other attributes of `Attr`, without any prefix (so no `data-` prefix, instead of HTML)
 
 - attributes are in lower (kebab) case:
 
-    - `level` in Header
+  - `level` in Header
 
-    - `start`, `number-style`, `number-delim` in OrderedList
+  - `start`, `number-style`, `number-delim` in OrderedList;
+    style and delimiter values are capitalized exactly as in `Text.Pandoc.Definition`;
 
-    - `format` in `RawBlock` and RawInline
+  - `format` in `RawBlock` and RawInline
 
-    - `quote-type` in Quoted
+  - `quote-type` in Quoted (values are `SingleQuote` and `DoubleQuote`)
 
-    - `math-type` in Math
+  - `math-type` in Math (values are `InlineMath` and `DisplayMath`)
 
-    - `title` and `src` in Image (about `src`, see below)
+  - `title` and `src` in Image (about `src`, see below)
 
-    - `title` and `href` in Link (about `href`, see below)
+  - `title` and `href` in Link (about `href`, see below)
 
-    - `alignment` and `col-width` in ColSpec (about `col-width` values, see below)
+  - `alignment` and `col-width` in ColSpec (about `col-width` values, see below);
+    (alignment values are capitalized as in `Text.Pandoc.Definition`)
 
-    - `alignment`, `rowspan` and `colspan` in Cell
+  - `alignment`, `rowspan` and `colspan` in Cell
 
-    - `row-head-columns` in TableBody
+  - `row-head-columns` in TableBody
 
-    - `id`, `mode`, `note-num` and `hash` for Citation (about Cite elements, see below)
+  - `id`, `mode`, `note-num` and `hash` for Citation (about Cite elements, see below);
+    (`mode` values are capitalized as in `Text.Pandoc.Definition`)
 
 The classes of items with an `Attr` are put in a `class` attribute,
 so that you can style the XML with CSS.
@@ -93,6 +96,34 @@ in Pandoc's haskell code, they are kept lowercased.
 
 Items of those lists are embedded in `<item>` elements.
 
+These snippets are from the `xml` version of `test/testsuite.native`:
+
+```xml
+<BulletList>
+  <item>
+    <Plain>asterisk 1</Plain>
+  </item>
+  <item>
+    <Plain>asterisk 2</Plain>
+  </item>
+  <item>
+    <Plain>asterisk 3</Plain>
+  </item>
+</BulletList>
+...
+<OrderedList start="1" number-style="Decimal" number-delim="Period">
+  <item>
+    <Plain>First</Plain>
+  </item>
+  <item>
+    <Plain>Second</Plain>
+  </item>
+  <item>
+    <Plain>Third</Plain>
+  </item>
+</OrderedList>
+```
+
 ### DefinitionList items
 
 Definition lists have `<item>` elements.
@@ -100,10 +131,46 @@ Definition lists have `<item>` elements.
 Each `<item>` term has only one `<term>` child element,
 and one or more `<def>` children elements.
 
+This snippet is from the `xml` version of `test/testsuite.native`:
+
+```xml
+<DefinitionList>
+  <item>
+    <term>apple</term>
+    <def>
+      <Plain>red fruit</Plain>
+    </def>
+  </item>
+  <item>
+    <term>orange</term>
+    <def>
+      <Plain>orange fruit</Plain>
+    </def>
+  </item>
+  <item>
+    <term>banana</term>
+    <def>
+      <Plain>yellow fruit</Plain>
+    </def>
+  </item>
+</DefinitionList>
+```
+
 ### Figure and Table captions
 
 Figures and tables have a `<Caption>` child element,
 which in turn may optionally have a `<ShortCaption>` child element.
+
+This snippet is from the `xml` version of `test/testsuite.native`:
+
+```xml
+<Figure>
+  <Caption>
+    <Plain>lalune</Plain>
+  </Caption>
+  <Plain><Image src="lalune.jpg" title="Voyage dans la Lune">lalune</Image></Plain>
+</Figure>
+```
 
 ### Tables
 
@@ -127,16 +194,167 @@ This specification is debatable; I have these doubts:
 - is it necessary to enclose the `<ColSpec>` elements in a `<colspecs>` element?
 
 - to discriminate between header and data cells in table bodies,
-  there are the `row-head-columns` attribute, and the `<header>` and `<body>` children 
+  there are the `row-head-columns` attribute, and the `<header>` and `<body>` children
   of the `<TableBody>` element, but there's only one type of cell:
   every cell is a `<Cell>` element
 
 - the specs are a tradeoff between consistency with pandoc types and CSS compatibility;
   this way bodies' header rows are easily stylable with CSS, while header columns are not
 
+The `ColWidthDefault` value becomes a "0" value for the attribute `col-width`;
+this way it's type-consistent with non-zero values, but I'm still doubtful whether to
+leave its value as a "ColWidthDefault" string.
+
+Here's an example from the `xml` version of `test/tables/planets.native`:
+
+```xml
+<Table>
+  <Caption>
+    <Para>Data about the planets of our solar system.</Para>
+  </Caption>
+  <colspecs>
+    <ColSpec col-width="0" alignment="AlignCenter" />
+    <ColSpec col-width="0" alignment="AlignCenter" />
+    <ColSpec col-width="0" alignment="AlignDefault" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignRight" />
+    <ColSpec col-width="0" alignment="AlignDefault" />
+  </colspecs>
+  <TableHead>
+    <Row>
+      <Cell col-span="2" row-span="1" alignment="AlignDefault" />
+      <Cell col-span="1" row-span="1" alignment="AlignDefault">
+        <Plain>Name</Plain>
+      </Cell>
+      <Cell col-span="1" row-span="1" alignment="AlignDefault">
+        <Plain>Mass (10^24kg)</Plain>
+      </Cell>
+      ...
+    </Row>
+  </TableHead>
+  <TableBody row-head-columns="3">
+    <header />
+    <body>
+      <Row>
+        <Cell colspan="2" rowspan="4" alignment="AlignDefault">
+          <Plain>Terrestrial planets</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>Mercury</Plain>
+        </Cell>
+          <Cell alignment="AlignDefault">
+        <Plain>0.330</Plain>
+          </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>4,879</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>5427</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>3.7</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>4222.6</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>57.9</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>167</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>0</Plain>
+        </Cell>
+        <Cell alignment="AlignDefault">
+          <Plain>Closest to the Sun</Plain>
+        </Cell>
+      </Row>
+      ...
+    </body>
+  </TableBody>
+  <TableFoot />
+</Table>
+```
+
 ### Metadata and MetaMap entries
 
 Metadata entries are meta values (`MetaBool`, `MetaString`, `MetaInlines`, `MetaBlocks`,
 `MetaList` and `MetaMap` elements) inside `<entry>` elements.
 
+The `<meta>` and the `<MetaMap>` elements have the same children elements.
+
+Currently the attribute of `<entry>` carrying the key is named `text`.
+Maybe I'll rename it to `key`.
+
+`<MetaInlines>`, `<MetaBlocks>`, `<MetaList>` and `<MetaMap>` elements
+all have children elements.
+
+`<MetaString>` elements have only text.
+
+`<MetaBool>` elements are empty, they can be either `<MetaBool value="true" />`
+or `<MetaBool value="false" />`.
+
+This snippet is from the `xml` version of `test/testsuite.native`:
+
+```xml
+<meta>
+  <entry text="author">
+    <MetaList>
+      <MetaInlines>John MacFarlane</MetaInlines>
+      <MetaInlines>Anonymous</MetaInlines>
+    </MetaList>
+  </entry>
+  <entry text="date">
+    <MetaInlines>July 17, 2006</MetaInlines>
+  </entry>
+  <entry text="title">
+    <MetaInlines>Pandoc Test Suite</MetaInlines>
+  </entry>
+</meta>
+```
+
+### URL attributes in Image and Link
+
+The URL attribute in `<Image>` elements is `src`, as in HTML `<img>`.
+
+The URL attribute in `<Link>` elements is `href`, as in HTML `<a>`.
+
+I'm still doubtful whether to use an attribute named `url` for both,
+instead of following the HTML model.
+
 ### Cite elements
+
+`Cite` inlines are modeled with `<Cite>` elements, whose first child
+is a `<citations>` element, that have only `<Citation>` children elements.
+
+`<Citation>` elements are empty, unless they have a prefix and/or a suffix.
+
+Here's an example from the `xml` version of `test/markdown-citations.native`:
+
+```xml
+<Para><Cite><citations>
+  <Citation note-num="3" mode="AuthorInText" id="item1" hash="0" />
+</citations>@item1</Cite> says blah.</Para>
+<Para><Cite><citations>
+  <Citation note-num="4" mode="AuthorInText" id="item1" hash="0">
+    <suffix>p. 30</suffix>
+  </Citation>
+</citations>@item1 [p. 30]</Cite> says blah.</Para>
+<Para>A citation group <Cite><citations>
+  <Citation note-num="8" mode="NormalCitation" id="item1" hash="0">
+    <prefix>see</prefix>
+    <suffix> chap. 3</suffix>
+  </Citation>
+  <Citation note-num="8" mode="NormalCitation" id="пункт3" hash="0">
+    <prefix>also</prefix>
+    <suffix> p. 34-35</suffix>
+  </Citation>
+</citations>[see @item1 chap. 3; also @пункт3 p. 34-35]</Cite>.</Para>
+```
