@@ -67,6 +67,7 @@ import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
 import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
                                          nameCommands, charCommands,
                                          accentCommands,
+                                         miscCommands,
                                          biblatexInlineCommands,
                                          verbCommands, rawInlineOr,
                                          listingsLanguage)
@@ -331,6 +332,7 @@ unescapeURL = T.concat . go . T.splitOn "\\"
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineCommands = M.unions
   [ accentCommands tok
+  , miscCommands
   , citationCommands inline
   , siunitxCommands tok
   , acronymCommands
@@ -343,6 +345,12 @@ inlineCommands = M.unions
   , biblatexInlineCommands tok
   , rest ]
  where
+  disableLigatures p = do
+    oldLigatures <- sLigatures <$> getState
+    updateState (\s -> s{ sLigatures = False })
+    res <- p
+    updateState (\s -> s{ sLigatures = oldLigatures })
+    pure res
   rest = M.fromList
     [ ("emph", extractSpaces emph <$> tok)
     , ("textit", extractSpaces emph <$> tok)
@@ -352,7 +360,7 @@ inlineCommands = M.unions
     , ("textmd", extractSpaces (spanWith ("",["medium"],[])) <$> tok)
     , ("textrm", extractSpaces (spanWith ("",["roman"],[])) <$> tok)
     , ("textup", extractSpaces (spanWith ("",["upright"],[])) <$> tok)
-    , ("texttt", formatCode nullAttr <$> tok)
+    , ("texttt", formatCode nullAttr <$> disableLigatures tok)
     , ("alert", skipopts >> spanWith ("",["alert"],[]) <$> tok) -- beamer
     , ("textsuperscript", extractSpaces superscript <$> tok)
     , ("textsubscript", extractSpaces subscript <$> tok)
@@ -634,6 +642,7 @@ inline = do
         do eatOneToken
            report $ ParsingUnescaped t pos
            return $ str t
+  ligatures <- sLigatures <$> getState
   case toktype of
     Comment     -> mempty <$ eatOneToken
     Spaces      -> space <$ eatOneToken
@@ -641,14 +650,19 @@ inline = do
     Word        -> str t <$ eatOneToken
     Symbol      ->
       case t of
-        "-"     -> eatOneToken *>
+        "-" | ligatures
+                -> eatOneToken *>
                     option (str "-") (symbol '-' *>
                       option (str "–") (str "—" <$ symbol '-'))
         "'"     -> eatOneToken *>
-                    option (str "’") (str  "”" <$ symbol '\'')
+                    option (str "’") (str  "”" <$ (guard ligatures *> symbol '\''))
         "~"     -> str "\160" <$ eatOneToken
-        "`"     -> doubleQuote <|> singleQuote <|> symbolAsString
-        "\""    -> doubleQuote <|> singleQuote <|> symbolAsString
+        "`" | ligatures
+                -> doubleQuote <|> singleQuote <|> (str "‘" <$ symbol '`')
+            | otherwise
+                -> str "‘" <$ symbol '`'
+        "\"" | ligatures
+                -> doubleQuote <|> singleQuote <|> symbolAsString
         "“"     -> doubleQuote <|> symbolAsString
         "‘"     -> singleQuote <|> symbolAsString
         "$"     -> dollarsMath <|> unescapedSymbolAsString

@@ -14,6 +14,7 @@ module Text.Pandoc.Readers.LaTeX.Inline
   , verbCommands
   , charCommands
   , accentCommands
+  , miscCommands
   , nameCommands
   , biblatexInlineCommands
   , refCommands
@@ -183,6 +184,43 @@ verbCommands = M.fromList
   , ("Verb", doverb)
   ]
 
+miscCommands :: PandocMonad m => M.Map Text (LP m Inlines)
+miscCommands =
+  M.fromList
+  [ ("pounds", lit "£")
+  , ("euro", lit "€")
+  , ("copyright", lit "©")
+  , ("textasciicircum", lit "^")
+  , ("textasciitilde", lit "~")
+  , ("textbaht", lit "฿")
+  , ("textblank", lit "␢")
+  , ("textbigcircle", lit "○")
+  , ("textbrokenbar", lit "¦")
+  , ("textbullet", lit "•")
+  , ("textcentoldstyle", lit "¢")
+  , ("textcopyright", lit "©")
+  , ("textdagger", lit "†")
+  , ("textdegree", lit "°")
+  , ("textdollar", lit "$")
+  , ("textdong", lit "₫")
+  , ("textlira", lit "₤")
+  , ("textmu", lit "μ")
+  , ("textmusicalnote", lit "♪")
+  , ("textonehalf", lit "½")
+  , ("textonequarter", lit "¼")
+  , ("textparagraph", lit "¶")
+  , ("textpertenthousand", lit "‱")
+  , ("textpeso", lit "₱")
+  , ("textquotesingle", lit "'")
+  , ("textregistered", lit "®")
+  , ("textsection", lit "§")
+  , ("textsterling", lit "£")
+  , ("textthreequarters", lit "¾")
+  , ("textthreesuperior", lit "³")
+  , ("texttwosuperior", lit "²")
+  , ("textyen", lit "¥")
+  ]
+
 accentCommands :: PandocMonad m => LP m Inlines -> M.Map Text (LP m Inlines)
 accentCommands tok =
   let accent = accentWith tok
@@ -198,11 +236,6 @@ accentCommands tok =
   , ("AE", lit "Æ")
   , ("oe", lit "œ")
   , ("OE", lit "Œ")
-  , ("pounds", lit "£")
-  , ("euro", lit "€")
-  , ("copyright", lit "©")
-  , ("textasciicircum", lit "^")
-  , ("textasciitilde", lit "~")
   , ("H", accent '\779' Nothing) -- hungarumlaut
   , ("`", accent '\768' (Just '`')) -- grave
   , ("'", accent '\769' (Just '\'')) -- acute
