@@ -1284,7 +1284,6 @@ header when requesting a document from a URL:
         Character styles:
 
         - Default Paragraph Font
-        - Body Text Char
         - Verbatim Char
         - Footnote Reference
         - Hyperlink
@@ -6068,6 +6067,9 @@ Supports [GitHub-style Markdown alerts], like
 
   [GitHub-style Markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
 
+Note: This extension currently only works with commonmark:
+`commonmark`, `gfm`, `commonmark_x`.
+
 ### Extension: `autolink_bare_uris` ###
 
 Makes all absolute URIs into links, even when not surrounded by
@@ -7643,7 +7645,10 @@ Calling the pandoc executable under the name `pandoc-lua` or with
 `lua` as the first argument will make it function as a standalone
 Lua interpreter. The behavior is mostly identical to that of the
 [standalone `lua` executable][lua standalone], version 5.4.
-For full documentation, see the [pandoc-lua] man page.
+All `pandoc.*` packages, as well as the packages `re` and `lpeg`,
+are available via global variables. Furthermore, the globals
+`PANDOC_VERSION`, `PANDOC_STATE`, and `PANDOC_API_VERSION` are
+set at startup. For full documentation, see the [pandoc-lua] man page.
 
 [lua standalone]: https://www.lua.org/manual/5.4/manual.html#7
 [pandoc-lua]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-lua.md

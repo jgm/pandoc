@@ -3,9 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
    Copyright   : Copyright (C) 2012-2024 John MacFarlane
@@ -63,29 +61,6 @@ import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
 import Data.Generics (mkT, everywhere)
 import Text.Collate.Lang (renderLang, Lang(..))
-
-renumIdMap :: Int -> [Element] -> M.Map Text Text
-renumIdMap _ [] = M.empty
-renumIdMap n (e:es)
-  | Just oldId <- findAttr (QName "Id" Nothing Nothing) e =
-      M.insert oldId ("rId" <> tshow n) (renumIdMap (n+1) es)
-  | otherwise = renumIdMap n es
-
-replaceAttr :: (QName -> Bool) -> Text -> [XML.Attr] -> [XML.Attr]
-replaceAttr f val = map $
-    \a -> if f (attrKey a) then XML.Attr (attrKey a) val else a
-
-renumId :: (QName -> Bool) -> M.Map Text Text -> Element -> Element
-renumId f renumMap e
-  | Just oldId <- findAttrBy f e
-  , Just newId <- M.lookup oldId renumMap =
-    let attrs' = replaceAttr f newId (elAttribs e)
-    in
-     e { elAttribs = attrs' }
-  | otherwise = e
-
-renumIds :: (QName -> Bool) -> M.Map Text Text -> [Element] -> [Element]
-renumIds f renumMap = map (renumId f renumMap)
 
 writeDocx :: (PandocMonad m)
           => WriterOptions  -- ^ Writer options
@@ -176,12 +151,6 @@ writeDocx opts doc = do
                    [] -> stTocTitle defaultWriterState
                    ls -> ls
 
-  let initialSt = defaultWriterState {
-          stStyleMaps  = styleMaps
-        , stTocTitle   = tocTitle
-        , stCurId      = 20
-        }
-
   let isRTLmeta = case lookupMeta "dir" meta of
         Just (MetaString "rtl")        -> True
         Just (MetaInlines [Str "rtl"]) -> True
@@ -194,52 +163,61 @@ writeDocx opts doc = do
         , envPrintWidth = maybe 420 (`quot` 20) pgContentWidth
         }
 
-  parsedRels <- parseXml refArchive distArchive "word/_rels/document.xml.rels"
+  let isImageNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
   let isHeaderNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
   let isFooterNode e = findAttr (QName "Type" Nothing Nothing) e == Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
-  let headers = filterElements isHeaderNode parsedRels
-  let footers = filterElements isFooterNode parsedRels
+  parsedRels <- filterElements
+                  (\e -> isImageNode e || isHeaderNode e || isFooterNode e)
+              <$> parseXml refArchive distArchive "word/_rels/document.xml.rels"
+  let getRelId e =
+        case findAttr (QName "Id" Nothing Nothing) e of
+          Just ident -> T.stripPrefix "rId" ident >>= safeRead
+          Nothing -> Nothing
+  let relIds = mapMaybe getRelId parsedRels
+  let maxRelId = if null relIds then 0 else maximum relIds
+
+  let headers = filter isHeaderNode parsedRels
+  let footers = filter isFooterNode parsedRels
   -- word/_rels/document.xml.rels
-  let toBaseRel (url', id', target') = mknode "Relationship"
-                                          [("Type",url')
-                                          ,("Id",id')
-                                          ,("Target",target')] ()
-  let baserels' = map toBaseRel
+  let addBaseRel (url', target') (maxId, rels) =
+        case [e | e <- rels
+                , findAttr (QName "Target" Nothing Nothing) e ==
+                   Just target'] of
+          [] -> (maxId + 1, mknode "Relationship"
+                            [("Type",url')
+                            ,("Id","rId" <> tshow (maxId + 1))
+                            ,("Target",target')] () : rels)
+          _ -> (maxId, rels)
+
+  let (newMaxRelId, baserels) = foldr addBaseRel (maxRelId, parsedRels)
                     [("http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering",
-                      "rId1",
                       "numbering.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles",
-                      "rId2",
                       "styles.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings",
-                      "rId3",
                       "settings.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings",
-                      "rId4",
                       "webSettings.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable",
-                      "rId5",
                       "fontTable.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme",
-                      "rId6",
                       "theme/theme1.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
-                      "rId7",
                       "footnotes.xml")
                     ,("http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
-                      "rId8",
                       "comments.xml")
                     ]
 
-  let idMap = renumIdMap (length baserels' + 1) (headers ++ footers)
+  let initialSt = defaultWriterState {
+          stStyleMaps  = styleMaps
+        , stTocTitle   = tocTitle
+        , stCurId      = newMaxRelId + 1
+        }
 
   -- adjust contents to add sectPr from reference.docx
   let sectpr = case mbsectpr of
-        Just sectpr' -> let cs = renumIds
-                                 (\q -> qName q == "id" && qPrefix q == Just "r")
-                                 idMap
-                                 (elChildren sectpr')
-                        in add_attrs (elAttribs sectpr') $ mknode "w:sectPr" [] cs
+        Just sectpr' -> add_attrs (elAttribs sectpr') $ mknode "w:sectPr" []
+                             (elChildren sectpr')
         Nothing      -> mknode "w:sectPr" []
                           [ mknode "w:footnotePr" []
                             [ mknode "w:numRestart" [("w:val","eachSect")] () ]
@@ -331,10 +309,6 @@ writeDocx opts doc = do
   let contentTypesEntry = toEntry "[Content_Types].xml" epochtime
         $ renderXml contentTypesDoc
 
-
-  let renumHeaders = renumIds (\q -> qName q == "Id") idMap headers
-  let renumFooters = renumIds (\q -> qName q == "Id") idMap footers
-  let baserels = baserels' ++ renumHeaders ++ renumFooters
   let toImgRel (ident,path,_,_) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"),("Id",T.pack ident),("Target",T.pack path)] ()
   let imgrels = map toImgRel imgs
   let toLinkRel (src,ident) =  mknode "Relationship" [("Type","http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"),("Id",ident),("Target",src),("TargetMode","External") ] ()

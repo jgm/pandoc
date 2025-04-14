@@ -394,7 +394,8 @@ itemToReference locale variant item = do
                   <|> return Nothing
     modify $ \s -> s{ untitlecase = untitlecase s &&
                                       case hyphenation of
-                                        Just x -> "en-" `T.isPrefixOf` x
+                                        Just x ->
+                                          "en-" `T.isPrefixOf` x || x == "en"
                                         _ -> True }
 
 
