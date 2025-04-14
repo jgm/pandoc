@@ -1,7 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections #-}
 
+-- |
+--   Module      : Text.Pandoc.Readers.XML
+--   Copyright   : Copyright (C) 2025- Massimiliano Farinella and John MacFarlane
+--   License     : GNU GPL, version 2 or above
+--
+--   Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+--   Stability   : WIP
+--   Portability : portable
+--
+-- Conversion of (Pandoc specific) xml to 'Pandoc' document.
 module Text.Pandoc.Readers.XML (readXML) where
 
 import Control.Monad (mfilter, msum)
@@ -21,15 +30,15 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.FormatXML
-import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (ToSources, toSources)
-import Text.Pandoc.Shared (extractSpaces)
 import Text.Pandoc.Sources (sourcesToText)
 import Text.Pandoc.Version (pandocVersion)
 import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.XML.Light
 import Text.Read (readMaybe)
+
+-- TODO: use xmlPath state to give better context when an error occurs
 
 type XMLReader m = StateT XMLReaderState m
 
@@ -83,11 +92,9 @@ parseBlock (Text (CData _ s _)) =
   if T.all isSpace s
     then return mempty
     else do
-      report $ UnexpectedXmlCData s ""
-      return mempty
+      throwError $ PandocXMLError "" "non-space characters out of inline context"
 parseBlock (CRef x) = do
-  report $ UnexpectedXmlReference x ""
-  return mempty
+  throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
 parseBlock (Elem e) = do
   let name = elementName e
    in case (name) of
@@ -155,8 +162,7 @@ parseBlock (Elem e) = do
             Nothing -> return mempty
             Just cs -> return $ tableWith attr capt cs th tbs tf
         _ -> do
-          report $ UnexpectedXmlElement name ""
-          return mempty
+          throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in blocks context")
   where
     parsePandoc = do
       let version = maybeAttrValue atNameApiVersion e
@@ -199,17 +205,14 @@ getArrayOfBlocks filter_element contents = mfilter not_empty <$> mapM readBlocks
                 then do
                   mconcat <$> mapM parseBlock (elContent c)
                 else do
-                  report $ UnexpectedXmlElement (elementName c) ""
-                  return mempty
+                  throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
             (Text (CData _ s _)) ->
               if T.all isSpace s
                 then return mempty
                 else do
-                  report $ UnexpectedXmlCData s parent
-                  return mempty
-            (CRef ref) -> do
-              report $ UnexpectedXmlReference ref parent
-              return mempty
+                  throwError $ PandocXMLError "" "non-space characters out of inline context"
+            (CRef x) -> do
+              throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
 
 getArrayOfInlines :: (PandocMonad m) => (Element -> Bool) -> [Content] -> XMLReader m [Inlines]
 getArrayOfInlines filter_element contents = mapM readInlinesSelectedElements contents
@@ -224,8 +227,7 @@ getArrayOfInlines filter_element contents = mapM readInlinesSelectedElements con
                 then do
                   getInlines (elContent c)
                 else do
-                  -- report $ UnexpectedXmlElement (elementName c) parent
-                  return mempty
+                  throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
             i -> parseInline i
 
 strContentRecursive :: Element -> Text
@@ -246,7 +248,8 @@ textToInt t deflt =
         Just (n) -> n
 
 parseInline :: (PandocMonad m) => Content -> XMLReader m Inlines
-parseInline (Text (CData _ s _)) = return $ text s
+parseInline (Text (CData _ s _)) =
+  return $ text s
 parseInline (CRef ref) =
   return $
     maybe (text $ T.toUpper ref) text $
@@ -297,13 +300,16 @@ parseInline (Elem e) =
                   (innerInlines' contents) $ cite citations
                 Nothing -> getInlines contents
         _ -> do
-          report $ UnexpectedXmlElement name ""
-          return mempty
+          throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in inline context")
   where
     innerInlines' contents f =
-      extractSpaces f . mconcat
+      f . mconcat
         <$> mapM parseInline contents
     innerInlines f = innerInlines' (elContent e) f
+
+-- innerInlines' contents f =
+--   extractSpaces f . mconcat
+--     <$> mapM parseInline contents
 
 getInlines :: (PandocMonad m) => [Content] -> XMLReader m Inlines
 getInlines contents = mconcat <$> mapM parseInline contents
@@ -355,7 +361,7 @@ getColspecs (Just cs) = do
 
 getTableBody :: (PandocMonad m) => Element -> XMLReader m (Maybe TableBody)
 getTableBody body_el = do
-  let attr =  filterAttrAttributes [atNameRowHeadColumns] $ attrFromElement body_el
+  let attr = filterAttrAttributes [atNameRowHeadColumns] $ attrFromElement body_el
       bh = childrenNamed tgNameBodyHeader body_el
       bb = childrenNamed tgNameBodyBody body_el
       headcols = textToInt (attrValue atNameRowHeadColumns body_el) 0
@@ -481,9 +487,6 @@ elementsWithNames tags contents = mapMaybe isElementWithNameInSet contents
           else Nothing
       _ -> Nothing
 
-childrenWithNames :: S.Set Text -> Element -> [Element]
-childrenWithNames tags e = elementsWithNames tags $ elContent e
-
 partitionFirstChildNamed :: Text -> [Content] -> (Maybe Element, [Content])
 partitionFirstChildNamed tag contents = case (contents) of
   (Text (CData _ s _) : rest) ->
@@ -495,26 +498,6 @@ partitionFirstChildNamed tag contents = case (contents) of
       then (Just e, rest)
       else (Nothing, contents)
   _ -> (Nothing, contents)
-
-ensureContentMatches :: (PandocMonad m) => (Content -> Maybe LogMessage) -> Element -> XMLReader m ()
-ensureContentMatches check e = mapM_ reportUnexpectedContents (elContent e)
-  where
-    reportUnexpectedContents c = case (check c) of
-      Just (message) -> do report message; return ()
-      Nothing -> pure ()
-
-ensureContentIsElementsOnly :: (PandocMonad m) => Element -> XMLReader m ()
-ensureContentIsElementsOnly e = ensureContentMatches check e
-  where
-    check :: Content -> Maybe LogMessage
-    check c = case (c) of
-      Elem _ -> Nothing
-      Text (CData CDataRaw s _) -> Just $ UnexpectedXmlCData s ""
-      Text (CData _ s _) ->
-        if T.all isSpace s
-          then Nothing
-          else Just $ UnexpectedXmlCData s ""
-      CRef x -> Just $ UnexpectedXmlReference x ""
 
 type PandocAttr = (Text, [Text], [(Text, Text)])
 
@@ -546,9 +529,6 @@ headOr _ (x : _) = x
 
 isListItem :: Element -> Bool
 isListItem e = tgNameListItem == elementName e
-
-isLineItem :: Element -> Bool
-isLineItem e = tgNameLineItem == elementName e
 
 isBlockElement :: Content -> Bool
 isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
@@ -598,11 +578,9 @@ parseMeta (Text (CData _ s _)) =
   if T.all isSpace s
     then return Nothing
     else do
-      report $ UnexpectedXmlCData s ""
-      return Nothing
-parseMeta (CRef x) = do
-  report $ UnexpectedXmlReference x ""
-  return Nothing
+      throwError $ PandocXMLError "" "non-space characters out of inline context in metadata"
+parseMeta (CRef x) =
+  throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
 parseMeta (Elem e) = do
   let name = elementName e
    in case (name) of
@@ -634,182 +612,4 @@ parseMeta (Elem e) = do
                     return Nothing
                   else return $ Just $ MetaMap $ M.fromList entries
         _ -> do
-          report $ UnexpectedXmlElement name ""
-          return Nothing
-
--- -- onlyOneChild x = length (allChildren x) == 1
--- -- allChildren x = filterChildren (const True) x
-
--- isBlockTag :: Text -> Bool
--- isBlockTag tag = tag `S.member` blocktags
---   where
---     blocktags = S.fromList $ paragraphLevel ++ lists ++ other
---     paragraphLevel = ["Para", "Plain", "Header"]
---     lists = ["BulletList", "DefinitionList", "OrderedList"]
---     other =
---       [ "LineBlock",
---         "CodeBlock",
---         "RawBlock",
---         "BlockQuote",
---         "HorizontalRule",
---         "Table",
---         "Figure",
---         "Div"
---       ]
-
--- -- True for elements that can contain only elements or spaces, not text or references
--- isOnlyElementsTag :: Text -> Bool
--- isOnlyElementsTag tag =
---   tag
---     `S.member` S.fromList
---       [ "meta",
---         "blocks",
---         "BulletList",
---         "DefinitionList",
---         "OrderedList",
---         "LineBlock",
---         "BlockQuote",
---         "Table",
---         "Figure",
---         "Div",
---         "Note",
---         "Caption", -- container of an optional ShortCaption and the blocks of a (Figure or Table) Caption
---         "TableHead",
---         "TableBody",
---         "TableFoot",
---         "Row",
---         "Cell",
---         "item", -- container of list items
---         "def", -- container of the definitions of an item in a DefinitionList
---         "header", -- container of the header rows of a TableBody
---         "body" -- container of the body rows of a TableBody
---       ]
-
--- isMetaValueTag :: Text -> Bool
--- isMetaValueTag tag =
---   tag
---     `S.member` S.fromList
---       [ "MetaBool",
---         "MetaString",
---         "MetaInlines",
---         "MetaBlocks",
---         "MetaList",
---         "MetaMap"
---       ]
-
--- isListItemTag :: Text -> Bool
--- isListItemTag tag = tag == "item"
-
--- isTableSectionTag :: Text -> Bool
--- isTableSectionTag tag = tag == "TableBody" || tag == "TableHead" || tag == "TableFoot"
-
--- isTableBodySectionTag :: Text -> Bool
--- isTableBodySectionTag tag = tag == "header" || tag == "body"
-
--- isInlineTag :: Text -> Bool
--- isInlineTag tag = tag `S.member` inlinetags
---   where
---     inlinetags =
---       S.fromList
---         [ "Underline",
---           "Strong",
---           "Strikeout",
---           "Superscript",
---           "Subscript",
---           "SmallCaps",
---           "Quoted",
---           "Cite",
---           "Code",
---           "SoftBreak",
---           "LineBreak",
---           "Math",
---           "RawInline",
---           "Link",
---           "Image",
---           "Note",
---           "Span"
---         ]
-
--- expectedContent :: [Text] -> Content -> Bool
--- expectedContent path (Elem e) =
---   let tag = qName $ elName e
---       parent = headOr "" path
---       grandparent = tailHeadOr "" path
---    in case (parent) of
---         "blocks" -> isBlockTag tag
---         "meta" -> isMetaValueTag tag
---         "Para" -> isInlineTag tag
---         "Plain" -> isInlineTag tag
---         "Header" -> isInlineTag tag
---         "Div" -> isBlockTag tag
---         "BlockQuote" -> isBlockTag tag
---         "BulletList" -> isListItemTag tag
---         "OrderedList" -> isListItemTag tag
---         "DefinitionList" -> isListItemTag tag
---         "item" ->
---           if grandparent /= "DefinitionList"
---             then isBlockTag tag
---             else tag == "term" || tag == "def"
---         "LineBlock" -> tag == "line"
---         "Table" -> tag == "Caption" || tag == "colspecs" || isTableBodySectionTag tag
---         "Figure" -> tag == "Caption" || isBlockTag "tag"
---         "Caption" -> tag == "ShortCaption" || isBlockTag "tag"
---         "TableBody" -> tag == "header" || tag == "body"
---         "header" -> tag == "Row"
---         "body" -> tag == "Row"
---         "TableHead" -> tag == "Row"
---         "TableFoot" -> tag == "Row"
---         "Row" -> tag == "Cell"
---         _ -> False
--- expectedContent path (Text (CData _ s _)) = non_space_text_allowed || T.all isSpace s
---   where
---     parent = if length path > 1 then head path else ""
---     non_space_text_allowed = not (isOnlyElementsTag parent)
--- expectedContent _ _ = True
-
--- parseContents :: (PandocMonad m) => Content -> XMLReader m Blocks
--- parseContents content = do
---   path <- gets xmlPath
---   let expected = expectedContent path
---    in case (content) of
---         (Text (CData CDataRaw _ _)) -> return mempty -- DOCTYPE
---         (Text (CData _ s _)) -> do
---           if T.all isSpace s
---             then return mempty
---             else do
---               report $ UnexpectedXmlCData s ""
---               return mempty
---         (CRef x) -> do
---           report $ UnexpectedXmlReference x ""
---           return mempty
---         (Elem e) -> do
---           let name = qName $ elName e
---            in -- modify $ \st -> st {xmlContextElement = name, xmlContextParent = parent}
---               case (name) of
---                 "Pandoc" -> parsePandoc
---                 "?xml" -> return mempty
---                 "blocks" -> getBlocks e
---                 "Para" -> parseMixed name para (elContent e)
---                 "Plain" -> parseMixed name plain (elContent e)
---                 "HorizontalRule" -> return horizontalRule
---                 _ -> do
---                   report $ UnexpectedXmlElement name ""
---                   return mempty
---           where
---             parsePandoc = do
---               let version = maybeAttrValue "api-version" e
---                   apiversion = case (version) of
---                     Just (v) -> makeVersion $ map (read . T.unpack) $ T.splitOn "," v
---                     Nothing -> pandocVersion
---                in modify $ \st -> st {xmlApiVersion = apiversion}
---               getBlocks e
---             parseMixed parent' container conts = do
---               let (ils, rest) = break isBlockElement conts
---               ils' <- trimInlines . mconcat <$> mapM parseInline ils
---               let p = if ils' == mempty then mempty else container ils'
---               case rest of
---                 [] -> return p
---                 (r : rs) -> do
---                   b <- parseBlock r
---                   x <- parseMixed parent' container rs
---                   return $ p <> b <> x
+          throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in metadata")
