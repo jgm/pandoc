@@ -67,6 +67,7 @@ import Text.Pandoc.Readers.LaTeX.SIunitx (siunitxCommands)
 import Text.Pandoc.Readers.LaTeX.Inline (acronymCommands, refCommands,
                                          nameCommands, charCommands,
                                          accentCommands,
+                                         miscCommands,
                                          biblatexInlineCommands,
                                          verbCommands, rawInlineOr,
                                          listingsLanguage)
@@ -331,6 +332,7 @@ unescapeURL = T.concat . go . T.splitOn "\\"
 inlineCommands :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineCommands = M.unions
   [ accentCommands tok
+  , miscCommands
   , citationCommands inline
   , siunitxCommands tok
   , acronymCommands
