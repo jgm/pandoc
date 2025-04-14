@@ -91,8 +91,6 @@ data LogMessage =
   | CouldNotLoadTranslations Text Text
   | UnusualConversion Text
   | UnexpectedXmlElement Text Text
-  | UnexpectedXmlReference Text Text
-  | UnexpectedXmlCData Text Text
   | UnknownOrgExportOption Text
   | CouldNotDeduceFormat [Text] Text
   | RunningFilter FilePath
@@ -246,12 +244,6 @@ instance ToJSON LogMessage where
            ["message" .= msg]
       UnexpectedXmlElement element parent ->
            ["element" .= element,
-            "parent" .= parent]
-      UnexpectedXmlReference name parent ->
-           ["reference" .= name,
-            "parent" .= parent]
-      UnexpectedXmlCData cdata parent->
-           ["cdata" .= cdata,
             "parent" .= parent]
       UnknownOrgExportOption option ->
            ["option" .= option]
@@ -411,10 +403,6 @@ showLogMessage msg =
          "Unusual conversion: " <> m
        UnexpectedXmlElement element parent ->
          "Unexpected XML element " <> element <> " in " <> parent
-       UnexpectedXmlReference name parent ->
-         "Unexpected XML reference " <> name <> " in " <> parent
-       UnexpectedXmlCData cdata parent ->
-         "Unexpected XML CData " <> cdata <> " in " <> parent
        UnknownOrgExportOption option ->
          "Ignoring unknown Org export option: " <> option
        CouldNotDeduceFormat exts format ->
@@ -495,8 +483,6 @@ messageVerbosity msg =
        CouldNotLoadTranslations{}    -> WARNING
        UnusualConversion {}          -> WARNING
        UnexpectedXmlElement {}       -> WARNING
-       UnexpectedXmlReference {}     -> WARNING
-       UnexpectedXmlCData {}         -> WARNING
        UnknownOrgExportOption {}     -> WARNING
        CouldNotDeduceFormat{}        -> WARNING
        RunningFilter{}               -> INFO
