@@ -29,7 +29,7 @@ import Data.Version (Version, makeVersion)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error (PandocError (..))
-import Text.Pandoc.FormatXML
+import Text.Pandoc.XMLFormat
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (ToSources, toSources)
 import Text.Pandoc.Sources (sourcesToText)

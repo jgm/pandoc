@@ -21,7 +21,7 @@ import qualified Data.Text as T
 import Data.Version (versionBranch)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.FormatXML
+import Text.Pandoc.XMLFormat
 import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.XML.Light
 import qualified Text.Pandoc.XML.Light as XML

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Text.Pandoc.FormatXML
+module Text.Pandoc.XMLFormat
   ( atNameAlignment,
     atNameApiVersion,
     atNameCitationHash,
