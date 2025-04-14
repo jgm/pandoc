@@ -1,6 +1,17 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{- |
+   Module      : Text.Pandoc.Writers.XML
+   Copyright   : Copyright (C) 2025- Massimiliano Farinella and John MacFarlane
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+   Stability   : WIP
+   Portability : portable
+
+Conversion of 'Pandoc' documents to (pandoc specific) xml markup.
+-}
 
 module Text.Pandoc.Writers.XML (writeXML) where
 
