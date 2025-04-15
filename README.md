@@ -265,6 +265,10 @@ contains some [examples of the use of
 pandoc](https://pandoc.org/demos.html) and a limited [online
 demo](https://pandoc.org/try).
 
+## MCP Server
+
+[Klavis AI](https://www.klavis.ai/mcp-servers) has created and hosted Pandoc as a MCP server. You can give it a try there.
+
 ## Contributing
 
 Pull requests, bug reports, and feature requests are welcome. Please
