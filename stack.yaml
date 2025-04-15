@@ -19,7 +19,7 @@ extra-deps:
 - git: https://github.com/jgm/citeproc.git
   commit: cf5542df8f21085bbfd794eaa5cc40abc605637b
 - git: https://github.com/jgm/texmath.git
-  commit: bdf2608dcc2e54e4167c38470e2fda01557310be
+  commit: 4f2acdc8c6a3e26ccb778305fecf824286b0419c
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
