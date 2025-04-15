@@ -16,9 +16,10 @@ extra-deps:
 - commonmark-extensions-0.2.6
 - commonmark-pandoc-0.2.3
 - typst-0.7
-- texmath-0.12.9
 - git: https://github.com/jgm/citeproc.git
   commit: cf5542df8f21085bbfd794eaa5cc40abc605637b
+- git: https://github.com/jgm/texmath.git
+  commit: bdf2608dcc2e54e4167c38470e2fda01557310be
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
