@@ -15,7 +15,7 @@ module Text.Pandoc.Readers.XML (readXML) where
 
 import Control.Monad (mfilter, msum)
 import Control.Monad.Except (throwError)
-import Control.Monad.State.Strict (StateT (runStateT), gets, modify)
+import Control.Monad.State.Strict (StateT (runStateT), modify)
 import Data.Char (isSpace)
 import Data.Default (Default (..))
 import qualified Data.List as L
@@ -29,13 +29,13 @@ import Data.Version (Version, makeVersion)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error (PandocError (..))
-import Text.Pandoc.XMLFormat
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing (ToSources, toSources)
 import Text.Pandoc.Sources (sourcesToText)
 import Text.Pandoc.Version (pandocVersion)
 import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.XML.Light
+import Text.Pandoc.XMLFormat
 import Text.Read (readMaybe)
 
 -- TODO: use xmlPath state to give better context when an error occurs
@@ -197,38 +197,40 @@ getArrayOfBlocks filter_element contents = mfilter not_empty <$> mapM readBlocks
     not_empty blocks = not (null blocks)
     readBlocksSelectedElements :: (PandocMonad m) => Content -> XMLReader m Blocks
     readBlocksSelectedElements content = do
-      context <- gets xmlPath
-      let parent = headOr "" context
-       in case (content) of
-            (Elem c) ->
-              if filter_element c
-                then do
-                  mconcat <$> mapM parseBlock (elContent c)
-                else do
-                  throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
-            (Text (CData _ s _)) ->
-              if T.all isSpace s
-                then return mempty
-                else do
-                  throwError $ PandocXMLError "" "non-space characters out of inline context"
-            (CRef x) -> do
-              throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
+      -- context <- gets xmlPath
+      -- let parent = headOr "" context
+      --  in
+      case (content) of
+        (Elem c) ->
+          if filter_element c
+            then do
+              mconcat <$> mapM parseBlock (elContent c)
+            else do
+              throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
+        (Text (CData _ s _)) ->
+          if T.all isSpace s
+            then return mempty
+            else do
+              throwError $ PandocXMLError "" "non-space characters out of inline context"
+        (CRef x) -> do
+          throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
 
 getArrayOfInlines :: (PandocMonad m) => (Element -> Bool) -> [Content] -> XMLReader m [Inlines]
 getArrayOfInlines filter_element contents = mapM readInlinesSelectedElements contents
   where
     readInlinesSelectedElements :: (PandocMonad m) => Content -> XMLReader m Inlines
     readInlinesSelectedElements content = do
-      context <- gets xmlPath
-      let parent = headOr "" context
-       in case (content) of
-            (Elem c) ->
-              if filter_element c
-                then do
-                  getInlines (elContent c)
-                else do
-                  throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
-            i -> parseInline i
+      -- context <- gets xmlPath
+      -- let parent = headOr "" context
+      --  in
+      case (content) of
+        (Elem c) ->
+          if filter_element c
+            then do
+              getInlines (elContent c)
+            else do
+              throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
+        i -> parseInline i
 
 strContentRecursive :: Element -> Text
 strContentRecursive =
@@ -518,9 +520,9 @@ attrFromElement e = filterAttrAttributes ["id", "class"] (idn, classes, attribut
     classes = T.words $ attrValue "class" e
     attributes = map (\a -> (qName $ attrKey a, attrVal a)) $ elAttribs e
 
-headOr :: a -> [a] -> a
-headOr default_value [] = default_value
-headOr _ (x : _) = x
+-- headOr :: a -> [a] -> a
+-- headOr default_value [] = default_value
+-- headOr _ (x : _) = x
 
 -- tailHeadOr :: a -> [a] -> a
 -- tailHeadOr default_value [] = default_value

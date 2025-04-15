@@ -1,18 +1,17 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{- |
-   Module      : Text.Pandoc.Writers.XML
-   Copyright   : Copyright (C) 2025- Massimiliano Farinella and John MacFarlane
-   License     : GNU GPL, version 2 or above
 
-   Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
-   Stability   : WIP
-   Portability : portable
-
-Conversion of 'Pandoc' documents to (pandoc specific) xml markup.
--}
-
+-- |
+--   Module      : Text.Pandoc.Writers.XML
+--   Copyright   : Copyright (C) 2025- Massimiliano Farinella and John MacFarlane
+--   License     : GNU GPL, version 2 or above
+--
+--   Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+--   Stability   : WIP
+--   Portability : portable
+--
+-- Conversion of 'Pandoc' documents to (pandoc specific) xml markup.
 module Text.Pandoc.Writers.XML (writeXML) where
 
 import Data.Map (Map, toList)
@@ -21,10 +20,10 @@ import qualified Data.Text as T
 import Data.Version (versionBranch)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
-import Text.Pandoc.XMLFormat
 import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.XML.Light
 import qualified Text.Pandoc.XML.Light as XML
+import Text.Pandoc.XMLFormat
 import Text.XML.Light (xml_header)
 
 type PandocAttr = Text.Pandoc.Definition.Attr
