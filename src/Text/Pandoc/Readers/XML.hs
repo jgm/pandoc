@@ -215,23 +215,6 @@ getArrayOfBlocks filter_element contents = mfilter not_empty <$> mapM readBlocks
         (CRef x) -> do
           throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
 
-getArrayOfInlines :: (PandocMonad m) => (Element -> Bool) -> [Content] -> XMLReader m [Inlines]
-getArrayOfInlines filter_element contents = mapM readInlinesSelectedElements contents
-  where
-    readInlinesSelectedElements :: (PandocMonad m) => Content -> XMLReader m Inlines
-    readInlinesSelectedElements content = do
-      -- context <- gets xmlPath
-      -- let parent = headOr "" context
-      --  in
-      case (content) of
-        (Elem c) ->
-          if filter_element c
-            then do
-              getInlines (elContent c)
-            else do
-              throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
-        i -> parseInline i
-
 strContentRecursive :: Element -> Text
 strContentRecursive =
   strContent
@@ -417,8 +400,8 @@ parseCitations contents = do
       (Elem e) ->
         if qName (elName e) == "Citation"
           then do
-            p <- mconcat <$> prefix e
-            s <- mconcat <$> suffix e
+            p <- inlinesOfChildrenNamed tgNameCitationPrefix e
+            s <- inlinesOfChildrenNamed tgNameCitationSuffix e
             return $
               Just
                 ( Citation
@@ -438,8 +421,7 @@ parseCitations contents = do
       _ -> do
         return Nothing
       where
-        prefix e = getArrayOfInlines (\c -> tgNameCitationPrefix == elementName c) $ elContent e
-        suffix e = getArrayOfInlines (\c -> tgNameCitationSuffix == elementName c) $ elContent e
+        inlinesOfChildrenNamed tag e = getInlines $ concatMap (\e' -> elContent e') (childrenNamed tag e)
 
 parseMaybeCaptionElement :: (PandocMonad m) => Maybe Element -> XMLReader m Caption
 parseMaybeCaptionElement Nothing = pure emptyCaption
@@ -599,8 +581,8 @@ parseMeta (Elem e) = do
         "MetaList" -> do
           maybe_items <- mapM parseMeta $ elContent e
           let items = catMaybes maybe_items
-           -- TODO: report empty MetaList?
-           in return $ Just $ MetaList items
+           in -- TODO: report empty MetaList?
+              return $ Just $ MetaList items
         "MetaMap" ->
           let entry_els = childrenNamed tgNameMetaMapEntry e
            in do
