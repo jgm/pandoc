@@ -8,22 +8,33 @@ import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Walk (query)
+import Text.Pandoc.Walk (query, walk)
+import Text.Pandoc.Builder as B
 
 p_xml_roundtrip :: Pandoc -> Property
-p_xml_roundtrip d = isValidPandoc d ==> d' == d
+p_xml_roundtrip d = isValidPandoc d ==> d'' == d'
   where
-    xml = purely (writeXML def) d
-    d' = purely (readXML def) xml
+    d' = walk normalize d
+    xml = purely (writeXML def) d'
+    d'' = purely (readXML def) xml
+
+normalize :: Pandoc -> Pandoc
+normalize = walk fixInlines
+ where
+  fixInlines :: [Inline] -> [Inline]
+  fixInlines = B.toList . B.fromList
 
 isValidPandoc :: Pandoc -> Bool
-isValidPandoc d = not (hasEmptyStr || hasSuccSameInline || hasSuccSpaces || hasSpaceAroundBreaks)
+isValidPandoc d = not has_ilnesses
   where
+    has_ilnesses = hasEmptyStr || hasSpaceAroundBreaks
+    -- \|| hasSuccSameInline || hasSuccSpaces
     inlines = (query extractInlines d) ++ (query extractMetaInlines d)
     hasEmptyStr = any (any isIllStr) inlines
-    hasSuccSameInline = any hasSuccessiveInline inlines
-    hasSuccSpaces = any hasMultipleSpace inlines
     hasSpaceAroundBreaks = any hasSpaceAroundBreak inlines
+
+-- hasSuccSameInline = any hasSuccessiveInline inlines
+-- hasSuccSpaces = any hasMultipleSpace inlines
 
 -- a Str is ill if its text is empty or it contains spaces
 isIllStr :: Inline -> Bool
@@ -43,6 +54,7 @@ hasSuccessiveInline ((Superscript _) : (Superscript _) : _) = True
 hasSuccessiveInline ((Quoted q1 _) : (Quoted q2 _) : _) = q1 == q2
 -- hasSuccessiveInline ((Math mt1 _) : (Math mt2 _) : _) = mt1 == mt2
 -- hasSuccessiveInline ((RawInline f1 _) : (RawInline f2 _) : _) = f1 == f2
+hasSuccessiveInline (SoftBreak : SoftBreak : _) = True
 hasSuccessiveInline (_ : xs) = hasSuccessiveInline xs
 hasSuccessiveInline [] = False
 
