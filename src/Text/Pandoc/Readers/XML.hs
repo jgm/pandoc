@@ -599,11 +599,8 @@ parseMeta (Elem e) = do
         "MetaList" -> do
           maybe_items <- mapM parseMeta $ elContent e
           let items = catMaybes maybe_items
-           in if null items
-                then
-                  -- TODO: report empty MetaList
-                  return Nothing
-                else return $ Just $ MetaList items
+           -- TODO: report empty MetaList?
+           in return $ Just $ MetaList items
         "MetaMap" ->
           let entry_els = childrenNamed tgNameMetaMapEntry e
            in do
