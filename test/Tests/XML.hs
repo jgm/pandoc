@@ -2,54 +2,51 @@
 
 module Tests.XML (tests) where
 
-import Data.Maybe (mapMaybe)
 import Test.Tasty (TestTree)
 import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Walk (walk)
+import Text.Pandoc.Walk (query)
+import System.Process (terminateProcess)
 
-p_xml_roundtrip :: Pandoc -> Bool
-p_xml_roundtrip d = d'' == d'
+p_xml_roundtrip :: Pandoc -> Property
+p_xml_roundtrip d = isValidPandoc d ==> d' == d
   where
-    d' =
-      walk
-        ( compressBreaks
-            . concatAdjacentStrings
-            . compressMultipleSpaces
-            . suppressEmptyStrings
-        )
-        d
-    xml = purely (writeXML def) d'
-    d'' = purely (readXML def) xml
+    xml = purely (writeXML def) d
+    d' = purely (readXML def) xml
 
-suppressEmptyStrings :: [Inline] -> [Inline]
-suppressEmptyStrings inlines = mapMaybe suppressEmptyString inlines
+isValidPandoc :: Pandoc -> Bool
+isValidPandoc d = not (hasEmptyStr || hasSuccStrs || hasSuccSpaces)
   where
-    suppressEmptyString str@(Str s) = if s == "" then Nothing else Just str
-    suppressEmptyString x = Just x
+    inlines = (query extractInlines d) ++ (query extractMetaInlines d)
+    hasEmptyStr = any (any (\i -> i == Str "")) inlines
+    hasSuccStrs = any  hasSuccessiveStr inlines
+    hasSuccSpaces = any hasMultipleSpace inlines
 
-concatAdjacentStrings :: [Inline] -> [Inline]
-concatAdjacentStrings ((Str s1) : (Str s2) : xs) = Str (s1 <> s2) : xs
-concatAdjacentStrings (x : xs) = x : concatAdjacentStrings xs
-concatAdjacentStrings [] = []
+hasSuccessiveStr :: [Inline] -> Bool
+hasSuccessiveStr ((Str _) : (Str _) : _) = True
+hasSuccessiveStr (_ : xs) = hasSuccessiveStr xs
+hasSuccessiveStr [] = False
 
-compressMultipleSpaces :: [Inline] -> [Inline]
-compressMultipleSpaces (Space : Space : xs) = compressMultipleSpaces $ Space : xs
-compressMultipleSpaces (x : xs) = x : compressMultipleSpaces xs
-compressMultipleSpaces [] = []
+hasMultipleSpace :: [Inline] -> Bool
+hasMultipleSpace (Space : Space : _) = True
+hasMultipleSpace (_ : xs) = hasMultipleSpace xs
+hasMultipleSpace [] = False
 
-compressBreaks :: [Inline] -> [Inline]
-compressBreaks (sb1 : sb2 : xs) = case (isSpace sb1 || isBreak sb1, isBreak sb2, isSpace sb2) of
-  (True, True, False) -> compressBreaks (sb2 : xs) -- break1, break2 -> break2
-  (True, False, True) -> compressBreaks (sb1 : xs) -- break or space, space -> break or space
-  _ -> sb1 : compressBreaks (sb2 : xs)
-  where
-    isBreak mb = mb == LineBreak || mb == SoftBreak
-    isSpace ms = ms == Space
-compressBreaks (x : xs) = x : compressBreaks xs
-compressBreaks [] = []
+extractMetaInlines :: MetaValue -> [[Inline]]
+extractMetaInlines (MetaInlines inlines) = [inlines]
+extractMetaInlines _ = []
+
+extractInlines :: Block  -> [[Inline]]
+extractInlines (Para inlines) = [inlines]
+extractInlines (Plain inlines) = [inlines]
+extractInlines (Header _ _ inlines) = [inlines]
+extractInlines (Figure _ (Caption (Just (inlines)) _) _) = [inlines]
+extractInlines (Table _ (Caption (Just (inlines)) _) _ _ _ _) = [inlines]
+extractInlines (LineBlock blines) = blines
+extractInlines (DefinitionList items) = map fst items
+extractInlines _ = []
 
 tests :: [TestTree]
 tests = [testProperty "p_xml_roundtrip" p_xml_roundtrip]
