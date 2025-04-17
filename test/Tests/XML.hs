@@ -8,21 +8,28 @@ import Test.Tasty.QuickCheck
 import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
-import Text.Pandoc.Walk (query, walk)
 import Text.Pandoc.Builder as B
+import Text.Pandoc.Walk (query, walk)
 
 p_xml_roundtrip :: Pandoc -> Property
 p_xml_roundtrip d = isValidPandoc d ==> d'' == d'
   where
-    d' = walk normalize d
+    d' = normalize d
     xml = purely (writeXML def) d'
     d'' = purely (readXML def) xml
 
 normalize :: Pandoc -> Pandoc
-normalize = walk fixInlines
- where
-  fixInlines :: [Inline] -> [Inline]
-  fixInlines = B.toList . B.fromList
+normalize = walk (fix' . fixInlines)
+  where
+    fixInlines :: [Inline] -> [Inline]
+    fixInlines = B.toList . B.fromList
+    fix' :: [Inline] -> [Inline]
+    fix' (Space : Space : xs) = fix' $ Space : xs
+    fix' (Str s1 : Str s2 : xs) = fix' $ Str (s1 <> s2) : xs
+    fix' (LineBreak : SoftBreak : xs) = fix' $ LineBreak : xs
+    fix' (SoftBreak : LineBreak : xs) = fix' $ LineBreak : xs
+    fix' (x : xs) = x : fix' xs
+    fix' [] = []
 
 isValidPandoc :: Pandoc -> Bool
 isValidPandoc d = not has_ilnesses
@@ -33,8 +40,8 @@ isValidPandoc d = not has_ilnesses
     hasEmptyStr = any (any isIllStr) inlines
     hasSpaceAroundBreaks = any hasSpaceAroundBreak inlines
 
--- hasSuccSameInline = any hasSuccessiveInline inlines
 -- hasSuccSpaces = any hasMultipleSpace inlines
+-- hasSuccSameInline = any hasSuccessiveInline inlines
 
 -- a Str is ill if its text is empty or it contains spaces
 isIllStr :: Inline -> Bool
@@ -42,27 +49,27 @@ isIllStr (Str s) = s == "" || (' ' `elem` (unpack s))
 isIllStr _ = False
 
 -- detect two consecutive Inlines of the same type in a [Inline]
-hasSuccessiveInline :: [Inline] -> Bool
-hasSuccessiveInline ((Str _) : (Str _) : _) = True
-hasSuccessiveInline ((Emph _) : (Emph _) : _) = True
-hasSuccessiveInline ((Strong _) : (Strong _) : _) = True
-hasSuccessiveInline ((Underline _) : (Underline _) : _) = True
-hasSuccessiveInline ((SmallCaps _) : (SmallCaps _) : _) = True
-hasSuccessiveInline ((Strikeout _) : (Strikeout _) : _) = True
-hasSuccessiveInline ((Subscript _) : (Subscript _) : _) = True
-hasSuccessiveInline ((Superscript _) : (Superscript _) : _) = True
-hasSuccessiveInline ((Quoted q1 _) : (Quoted q2 _) : _) = q1 == q2
--- hasSuccessiveInline ((Math mt1 _) : (Math mt2 _) : _) = mt1 == mt2
--- hasSuccessiveInline ((RawInline f1 _) : (RawInline f2 _) : _) = f1 == f2
-hasSuccessiveInline (SoftBreak : SoftBreak : _) = True
-hasSuccessiveInline (_ : xs) = hasSuccessiveInline xs
-hasSuccessiveInline [] = False
+-- hasSuccessiveInline :: [Inline] -> Bool
+-- hasSuccessiveInline ((Str _) : (Str _) : _) = True
+-- hasSuccessiveInline ((Emph _) : (Emph _) : _) = True
+-- hasSuccessiveInline ((Strong _) : (Strong _) : _) = True
+-- hasSuccessiveInline ((Underline _) : (Underline _) : _) = True
+-- hasSuccessiveInline ((SmallCaps _) : (SmallCaps _) : _) = True
+-- hasSuccessiveInline ((Strikeout _) : (Strikeout _) : _) = True
+-- hasSuccessiveInline ((Subscript _) : (Subscript _) : _) = True
+-- hasSuccessiveInline ((Superscript _) : (Superscript _) : _) = True
+-- hasSuccessiveInline ((Quoted q1 _) : (Quoted q2 _) : _) = q1 == q2
+-- -- hasSuccessiveInline ((Math mt1 _) : (Math mt2 _) : _) = mt1 == mt2
+-- -- hasSuccessiveInline ((RawInline f1 _) : (RawInline f2 _) : _) = f1 == f2
+-- hasSuccessiveInline (SoftBreak : SoftBreak : _) = True
+-- hasSuccessiveInline (_ : xs) = hasSuccessiveInline xs
+-- hasSuccessiveInline [] = False
 
 -- detect two consecutive Space in a [Inline]
-hasMultipleSpace :: [Inline] -> Bool
-hasMultipleSpace (Space : Space : _) = True
-hasMultipleSpace (_ : xs) = hasMultipleSpace xs
-hasMultipleSpace [] = False
+-- hasMultipleSpace :: [Inline] -> Bool
+-- hasMultipleSpace (Space : Space : _) = True
+-- hasMultipleSpace (_ : xs) = hasMultipleSpace xs
+-- hasMultipleSpace [] = False
 
 hasSpaceAroundBreak :: [Inline] -> Bool
 hasSpaceAroundBreak (Space : SoftBreak : _) = True
