@@ -115,10 +115,6 @@ addTextStyle :: PandocMonad m
 addTextStyle attrs i = modify $ \s ->
   s { stTextStyles = Map.insert attrs i (stTextStyles s) }
 
-addTextStyleAttr :: PandocMonad m => TextStyle -> OD m ()
-addTextStyleAttr t = modify $ \s ->
-  s { stTextStyleAttr = Set.insert t (stTextStyleAttr s) }
-
 increaseIndent :: PandocMonad m => OD m ()
 increaseIndent = modify $ \s -> s { stIndentPara = 1 + stIndentPara s }
 
@@ -150,13 +146,17 @@ inParagraphTagsWithStyle sty = inTags False "text:p" [("text:style-name", sty)]
 inSpanTags :: Text -> Doc Text -> Doc Text
 inSpanTags s = inTags False "text:span" [("text:style-name",s)]
 
-withTextStyle :: PandocMonad m => TextStyle -> OD m a -> OD m a
-withTextStyle s f = do
+withAlteredTextStyles :: PandocMonad m
+                       => (Set.Set TextStyle -> Set.Set TextStyle) -> OD m a -> OD m a
+withAlteredTextStyles f action = do
   oldTextStyleAttr <- gets stTextStyleAttr
-  addTextStyleAttr s
-  res <- f
+  modify $ \st -> st{ stTextStyleAttr = f oldTextStyleAttr }
+  res <- action
   modify $ \st -> st{ stTextStyleAttr = oldTextStyleAttr }
   return res
+
+withTextStyle :: PandocMonad m => TextStyle -> OD m a -> OD m a
+withTextStyle s = withAlteredTextStyles (Set.insert s)
 
 inTextStyle :: PandocMonad m => Doc Text -> OD m (Doc Text)
 inTextStyle d = do
@@ -691,7 +691,8 @@ inlineToOpenDocument o ils
                          , ("text:note-class", "footnote"     )] $
                          inTagsSimple "text:note-citation" (text . show $ n + 1) <>
                          inTagsSimple "text:note-body" t
-        nn <- footNote <$> withParagraphStyle o "Footnote" l
+        nn <- footNote <$> withAlteredTextStyles (const mempty)
+                            (withParagraphStyle o "Footnote" l)
         addNote nn
         return nn
 
