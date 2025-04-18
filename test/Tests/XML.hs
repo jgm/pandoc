@@ -11,73 +11,72 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Walk (query, walk)
 
-p_xml_roundtrip :: Pandoc -> Property
-p_xml_roundtrip d = isValidPandoc d ==> d'' == d'
+p_xml_roundtrip :: Property
+p_xml_roundtrip = forAll (normalize <$> arbitrary) testdoc
   where
-    d' = normalize d
-    xml = purely (writeXML def) d'
-    d'' = purely (readXML def) xml
+    testdoc d =
+      if isValidPandoc d
+        then purely (readXML def) (purely (writeXML def) d) == d
+        else discard
 
 normalize :: Pandoc -> Pandoc
-normalize = walk (fix' . fixInlines)
+normalize d =
+  let textual = show d
+      normalized = normalize' d
+   in if textual == show normalized
+        then normalized
+        else normalize normalized
+
+normalize' :: Pandoc -> Pandoc
+normalize' = walk simplify . (walk simplifyBlocks)
   where
-    fixInlines :: [Inline] -> [Inline]
-    fixInlines = B.toList . B.fromList
-    fix' :: [Inline] -> [Inline]
-    fix' (Space : Space : xs) = fix' $ Space : xs
-    fix' (Str s1 : Str s2 : xs) = fix' $ Str (s1 <> s2) : xs
-    fix' (LineBreak : SoftBreak : xs) = fix' $ LineBreak : xs
-    fix' (SoftBreak : LineBreak : xs) = fix' $ LineBreak : xs
-    fix' (x : xs) = x : fix' xs
-    fix' [] = []
+    simplify :: [Inline] -> [Inline]
+    simplify ils = (simplifyInlines . B.toList . B.fromList) ils
+
+simplifyInlines :: [Inline] -> [Inline]
+simplifyInlines (Str "" : xs) = simplifyInlines xs
+simplifyInlines (Space : Space : xs) = simplifyInlines $ Space : xs
+simplifyInlines (Str s1 : Str s2 : xs) = simplifyInlines $ Str (s1 <> s2) : xs
+simplifyInlines (Space : SoftBreak : xs) = simplifyInlines $ SoftBreak : xs
+simplifyInlines (Space : LineBreak : xs) = simplifyInlines $ LineBreak : xs
+simplifyInlines (SoftBreak : Space : xs) = simplifyInlines $ SoftBreak : xs
+simplifyInlines (LineBreak : Space : xs) = simplifyInlines $ LineBreak : xs
+simplifyInlines (LineBreak : SoftBreak : xs) = simplifyInlines $ LineBreak : xs
+simplifyInlines (SoftBreak : LineBreak : xs) = simplifyInlines $ LineBreak : xs
+simplifyInlines (SoftBreak : SoftBreak : xs) = simplifyInlines $ SoftBreak : xs
+simplifyInlines (Emph ils1 : Emph ils2 : xs) = simplifyInlines $ Emph (ils1 ++ ils2) : xs
+simplifyInlines (Strong ils1 : Strong ils2 : xs) = simplifyInlines $ Strong (ils1 ++ ils2) : xs
+simplifyInlines (Superscript ils1 : Superscript ils2 : xs) = simplifyInlines $ Superscript (ils1 ++ ils2) : xs
+simplifyInlines (Subscript ils1 : Subscript ils2 : xs) = simplifyInlines $ Subscript (ils1 ++ ils2) : xs
+simplifyInlines (Strikeout ils1 : Strikeout ils2 : xs) = simplifyInlines $ Strikeout (ils1 ++ ils2) : xs
+simplifyInlines (Underline ils1 : Underline ils2 : xs) = simplifyInlines $ Strikeout (ils1 ++ ils2) : xs
+simplifyInlines (SmallCaps ils1 : SmallCaps ils2 : xs) = simplifyInlines $ SmallCaps (ils1 ++ ils2) : xs
+simplifyInlines (x : xs) = x : simplifyInlines xs
+simplifyInlines [] = []
+
+simplifyBlocks :: [Block] -> [Block]
+simplifyBlocks (Plain []: xs) = simplifyBlocks xs
+simplifyBlocks (Para []: xs) = simplifyBlocks xs
+simplifyBlocks (Header _ _ []: xs) = simplifyBlocks xs
+simplifyBlocks (x:xs ) = x : simplifyBlocks xs
+simplifyBlocks [] = []
 
 isValidPandoc :: Pandoc -> Bool
 isValidPandoc d = not has_ilnesses
   where
-    has_ilnesses = hasEmptyStr || hasSpaceAroundBreaks
-    -- \|| hasSuccSameInline || hasSuccSpaces
+    has_ilnesses = hasEmptyStr
     inlines = (query extractInlines d) ++ (query extractMetaInlines d)
     hasEmptyStr = any (any isIllStr) inlines
-    hasSpaceAroundBreaks = any hasSpaceAroundBreak inlines
 
+-- hasSpaceAroundBreaks = any hasSpaceAroundBreak inlines
 -- hasSuccSpaces = any hasMultipleSpace inlines
 -- hasSuccSameInline = any hasSuccessiveInline inlines
 
 -- a Str is ill if its text is empty or it contains spaces
 isIllStr :: Inline -> Bool
-isIllStr (Str s) = s == "" || (' ' `elem` (unpack s))
+-- isIllStr (Str s) = s == "" || (' ' `elem` (unpack s))
+isIllStr (Str s) = ' ' `elem` (unpack s)
 isIllStr _ = False
-
--- detect two consecutive Inlines of the same type in a [Inline]
--- hasSuccessiveInline :: [Inline] -> Bool
--- hasSuccessiveInline ((Str _) : (Str _) : _) = True
--- hasSuccessiveInline ((Emph _) : (Emph _) : _) = True
--- hasSuccessiveInline ((Strong _) : (Strong _) : _) = True
--- hasSuccessiveInline ((Underline _) : (Underline _) : _) = True
--- hasSuccessiveInline ((SmallCaps _) : (SmallCaps _) : _) = True
--- hasSuccessiveInline ((Strikeout _) : (Strikeout _) : _) = True
--- hasSuccessiveInline ((Subscript _) : (Subscript _) : _) = True
--- hasSuccessiveInline ((Superscript _) : (Superscript _) : _) = True
--- hasSuccessiveInline ((Quoted q1 _) : (Quoted q2 _) : _) = q1 == q2
--- -- hasSuccessiveInline ((Math mt1 _) : (Math mt2 _) : _) = mt1 == mt2
--- -- hasSuccessiveInline ((RawInline f1 _) : (RawInline f2 _) : _) = f1 == f2
--- hasSuccessiveInline (SoftBreak : SoftBreak : _) = True
--- hasSuccessiveInline (_ : xs) = hasSuccessiveInline xs
--- hasSuccessiveInline [] = False
-
--- detect two consecutive Space in a [Inline]
--- hasMultipleSpace :: [Inline] -> Bool
--- hasMultipleSpace (Space : Space : _) = True
--- hasMultipleSpace (_ : xs) = hasMultipleSpace xs
--- hasMultipleSpace [] = False
-
-hasSpaceAroundBreak :: [Inline] -> Bool
-hasSpaceAroundBreak (Space : SoftBreak : _) = True
-hasSpaceAroundBreak (SoftBreak : Space : _) = True
-hasSpaceAroundBreak (LineBreak : Space : _) = True
-hasSpaceAroundBreak (Space : LineBreak : _) = True
-hasSpaceAroundBreak (_ : xs) = hasSpaceAroundBreak xs
-hasSpaceAroundBreak _ = False
 
 extractMetaInlines :: MetaValue -> [[Inline]]
 extractMetaInlines (MetaInlines inlines) = [inlines]
