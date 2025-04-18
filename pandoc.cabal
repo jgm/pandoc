@@ -816,6 +816,7 @@ test-suite test-pandoc
                   Tests.Helpers
                   Tests.Shared
                   Tests.MediaBag
+                  Tests.XML
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.JATS
