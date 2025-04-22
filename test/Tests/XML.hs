@@ -19,9 +19,8 @@ p_xml_roundtrip = forAll (normalize <$> arbitrary) testdoc
 
 normalize :: Pandoc -> Pandoc
 normalize d =
-  let textual = show d
-      normalized = normalize' d
-   in if textual == show normalized
+  let normalized = normalize' d
+   in if d == normalized
         then normalized
         else normalize normalized
 
