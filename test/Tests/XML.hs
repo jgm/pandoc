@@ -10,13 +10,14 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder as B
 import Text.Pandoc.Walk (query, walk)
+import Control.Monad ((>=>))
 
 p_xml_roundtrip :: Property
 p_xml_roundtrip = forAll (normalize <$> arbitrary) testdoc
   where
     testdoc d =
       if isValidPandoc d
-        then purely (readXML def) (purely (writeXML def) d) == d
+        then d == purely (writeXML def >=> readXML def) d
         else discard
 
 normalize :: Pandoc -> Pandoc
