@@ -163,7 +163,7 @@ parseBlock (Elem e) = do
           capt <- parseMaybeCaptionElement maybe_caption_el
           case colspecs of
             Nothing -> return mempty
-            Just cs -> return $ tableWith attr capt cs th tbs tf
+            Just cs -> return $ fromList [Table attr capt cs th tbs tf]
         _ -> do
           throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in blocks context")
   where
