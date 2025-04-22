@@ -66,11 +66,14 @@ readXML _ inp = do
     either (throwError . PandocXMLError "") return $
       parseXMLContents (fromStrict . sourcesToText $ sources)
   (bs, st') <- flip runStateT (def {xmlContent = tree}) $ mapM parseBlock tree
-  let blockList = toList $ mconcat bs
+  let blockList = toList $ concatMany bs
   return $ Pandoc (xmlMeta st') blockList
 
+concatMany :: [Many a] -> Many a
+concatMany = Many . mconcat . map unMany
+
 parseBlocks :: (PandocMonad m) => [Content] -> XMLReader m Blocks
-parseBlocks contents = mconcat <$> mapM parseBlock contents
+parseBlocks contents = concatMany <$> mapM parseBlock contents
 
 getBlocks :: (PandocMonad m) => Element -> XMLReader m Blocks
 getBlocks e = parseBlocks (elContent e)
@@ -204,7 +207,7 @@ getArrayOfBlocks filter_element contents = mfilter not_empty <$> mapM readBlocks
         (Elem c) ->
           if filter_element c
             then do
-              mconcat <$> mapM parseBlock (elContent c)
+              concatMany <$> mapM parseBlock (elContent c)
             else do
               throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
         (Text (CData _ s _)) ->
@@ -288,16 +291,16 @@ parseInline (Elem e) =
           throwError $ PandocXMLError "" ("unexpected element \"" <> name <> "\" in inline context")
   where
     innerInlines' contents f =
-      f . mconcat
+      f . concatMany
         <$> mapM parseInline contents
     innerInlines f = innerInlines' (elContent e) f
 
 -- innerInlines' contents f =
---   extractSpaces f . mconcat
+--   extractSpaces f . concatMany
 --     <$> mapM parseInline contents
 
 getInlines :: (PandocMonad m) => [Content] -> XMLReader m Inlines
-getInlines contents = mconcat <$> mapM parseInline contents
+getInlines contents = concatMany <$> mapM parseInline contents
 
 getListAttributes :: Element -> ListAttributes
 getListAttributes e = (start, style, delim)
