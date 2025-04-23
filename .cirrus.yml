@@ -29,7 +29,7 @@ task:
   trigger_type: manual
   timeout_in: 90m
   arm_container:
-    image: quay.io/benz0li/ghc-musl:9.8
+    image: quay.io/benz0li/ghc-musl:9.8-int-native
     cpu: 4
     memory: 12G
   env:
@@ -55,7 +55,7 @@ task:
   trigger_type: manual
   timeout_in: 90m
   container:
-    image: quay.io/benz0li/ghc-musl:9.8
+    image: quay.io/benz0li/ghc-musl:9.8-int-native
     cpu: 4
     memory: 12G
   env:
