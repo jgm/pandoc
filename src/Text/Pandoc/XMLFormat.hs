@@ -21,7 +21,9 @@ module Text.Pandoc.XMLFormat
     atNameQuoteType,
     atNameRowHeadColumns,
     atNameRowspan,
+    atNameSpaceCount,
     atNameStart,
+    atNameStrContent,
     atNameTitle,
     tgNameBodyBody,
     tgNameBodyHeader,
@@ -35,7 +37,7 @@ module Text.Pandoc.XMLFormat
     tgNameLineItem,
     tgNameListItem,
     tgNameMetaMapEntry,
-    tgNameShortCaption
+    tgNameShortCaption,
   )
 where
 
@@ -128,6 +130,14 @@ atNameCitationHash = "hash"
 -- the citationNoteNum of a Citation
 atNameCitationNoteNum :: Text
 atNameCitationNoteNum = "note-num"
+
+-- the number of consecutive spaces of the <Space> element
+atNameSpaceCount :: Text
+atNameSpaceCount = "count"
+
+-- the content of the <Str> element
+atNameStrContent :: Text
+atNameStrContent = "content"
 
 -- container of Citation elements in Cite inlines
 tgNameCitations :: Text

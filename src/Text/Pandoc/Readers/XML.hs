@@ -218,6 +218,10 @@ parseInline (CRef ref) =
 parseInline (Elem e) =
   let name = elementName e
    in case (name) of
+        "Space" ->
+          let count = textToInt (attrValue atNameSpaceCount e) 1
+           in return $ fromList $ replicate count Space
+        "Str" -> return $ fromList [Str $ attrValue atNameStrContent e]
         "Emph" -> innerInlines emph
         "Strong" -> innerInlines strong
         "Strikeout" -> innerInlines strikeout
