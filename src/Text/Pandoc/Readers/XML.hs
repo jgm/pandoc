@@ -13,7 +13,7 @@
 -- Conversion of (Pandoc specific) xml to 'Pandoc' document.
 module Text.Pandoc.Readers.XML (readXML) where
 
-import Control.Monad (mfilter, msum)
+import Control.Monad (msum)
 import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict (StateT (runStateT), modify)
 import Data.Char (isSpace)
@@ -110,9 +110,11 @@ parseBlock (Elem e) = do
                 entries <- catMaybes <$> mapM parseMetaMapEntry entry_els
                 mapM_ (uncurry addMeta) entries
                 return mempty
-        "Para" -> parseMixed para (elContent e)
-        "Plain" -> parseMixed plain (elContent e)
-        "Header" -> parseMixed (headerWith attr level) (elContent e)
+        "Para" -> para <$> getInlines (elContent e)
+        "Plain" -> do
+          ils <- getInlines (elContent e)
+          return $ singleton . Plain . toList $ ils
+        "Header" -> (headerWith attr level) <$> getInlines (elContent e)
           where
             level = textToInt (attrValue atNameLevel e) 1
             attr = filterAttrAttributes [atNameLevel] $ attrFromElement e
@@ -124,10 +126,10 @@ parseBlock (Elem e) = do
           contents <- getBlocks e
           return $ divWith (attrFromElement e) contents
         "BulletList" -> do
-          items <- getArrayOfBlocks isListItem (elContent e)
+          items <- getListItems e
           return $ bulletList items
         "OrderedList" -> do
-          items <- getArrayOfBlocks isListItem (elContent e)
+          items <- getListItems e
           return $ orderedListWith (getListAttributes e) items
         "DefinitionList" -> do
           let items_contents = getContentsOfElements (isElementNamed tgNameDefListItem) (elContent e)
@@ -175,16 +177,11 @@ parseBlock (Elem e) = do
        in modify $ \st -> st {xmlApiVersion = apiversion}
       getBlocks e
 
-    parseMixed container conts = do
-      let (ils, rest) = break isBlockElement conts
-      ils' <- getInlines ils
-      let p = if ils' == mempty then mempty else container ils'
-      case rest of
-        [] -> return p
-        (r : rs) -> do
-          b <- parseBlock r
-          x <- parseMixed container rs
-          return $ p <> b <> x
+getListItems :: (PandocMonad m) => Element -> XMLReader m [Blocks]
+getListItems e =
+  let items_els = childrenNamed tgNameListItem e
+   in do
+        mapM getBlocks items_els
 
 getContentsOfElements :: (Content -> Bool) -> [Content] -> [[Content]]
 getContentsOfElements filter_element contents = mapMaybe element_contents $ filter filter_element contents
@@ -193,30 +190,6 @@ getContentsOfElements filter_element contents = mapMaybe element_contents $ filt
     element_contents c = case (c) of
       Elem e -> Just (elContent e)
       _ -> Nothing
-
-getArrayOfBlocks :: (PandocMonad m) => (Element -> Bool) -> [Content] -> XMLReader m [Blocks]
-getArrayOfBlocks filter_element contents = mfilter not_empty <$> mapM readBlocksSelectedElements contents
-  where
-    not_empty blocks = not (null blocks)
-    readBlocksSelectedElements :: (PandocMonad m) => Content -> XMLReader m Blocks
-    readBlocksSelectedElements content = do
-      -- context <- gets xmlPath
-      -- let parent = headOr "" context
-      --  in
-      case (content) of
-        (Elem c) ->
-          if filter_element c
-            then do
-              concatMany <$> mapM parseBlock (elContent c)
-            else do
-              throwError $ PandocXMLError "" ("unexpected element \"" <> (elementName c) <> "\"")
-        (Text (CData _ s _)) ->
-          if T.all isSpace s
-            then return mempty
-            else do
-              throwError $ PandocXMLError "" "non-space characters out of inline context"
-        (CRef x) -> do
-          throwError $ PandocXMLError "" ("reference \"" <> x <> "\" out of inline context")
 
 strContentRecursive :: Element -> Text
 strContentRecursive =
@@ -294,10 +267,6 @@ parseInline (Elem e) =
       f . concatMany
         <$> mapM parseInline contents
     innerInlines f = innerInlines' (elContent e) f
-
--- innerInlines' contents f =
---   extractSpaces f . concatMany
---     <$> mapM parseInline contents
 
 getInlines :: (PandocMonad m) => [Content] -> XMLReader m Inlines
 getInlines contents = concatMany <$> mapM parseInline contents
@@ -505,36 +474,6 @@ attrFromElement e = filterAttrAttributes ["id", "class"] (idn, classes, attribut
     classes = T.words $ attrValue "class" e
     attributes = map (\a -> (qName $ attrKey a, attrVal a)) $ elAttribs e
 
--- headOr :: a -> [a] -> a
--- headOr default_value [] = default_value
--- headOr _ (x : _) = x
-
--- tailHeadOr :: a -> [a] -> a
--- tailHeadOr default_value [] = default_value
--- tailHeadOr default_value [_] = default_value
--- tailHeadOr default_value (_ : xs) = headOr default_value xs
-
-isListItem :: Element -> Bool
-isListItem e = tgNameListItem == elementName e
-
-isBlockElement :: Content -> Bool
-isBlockElement (Elem e) = qName (elName e) `S.member` blocktags
-  where
-    blocktags = S.fromList $ paragraphLevel ++ lists ++ other
-    paragraphLevel = ["Para", "Plain", "Header"]
-    lists = ["BulletList", "DefinitionList", "OrderedList"]
-    other =
-      [ "LineBlock",
-        "CodeBlock",
-        "RawBlock",
-        "BlockQuote",
-        "HorizontalRule",
-        "Table",
-        "Figure",
-        "Div"
-      ]
-isBlockElement _ = False
-
 addMeta :: (PandocMonad m) => (ToMetaValue a) => Text -> a -> XMLReader m ()
 addMeta field val = modify (setMeta field val)
 
@@ -542,8 +481,6 @@ instance HasMeta XMLReaderState where
   setMeta field v s = s {xmlMeta = setMeta field v (xmlMeta s)}
 
   deleteMeta field s = s {xmlMeta = deleteMeta field (xmlMeta s)}
-
--- parseMetaContents :: (PandocMonad m) => [Content] -> XMLReader m (Maybe MetaValue)
 
 parseMetaMapEntry :: (PandocMonad m) => Element -> XMLReader m (Maybe (Text, MetaValue))
 parseMetaMapEntry e =

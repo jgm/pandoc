@@ -25,7 +25,7 @@ normalize d =
         else normalize normalized
 
 normalize' :: Pandoc -> Pandoc
-normalize' = walk simplify . (walk simplifyBlocks)
+normalize' = walk simplify
   where
     simplify :: [Inline] -> [Inline]
     simplify ils = (simplifyInlines . B.toList . B.fromList) ils
@@ -52,20 +52,6 @@ strsAndSpaces s =
     to_inlines (x : xs) (Space : ilss) = to_inlines xs (Str x : Space : ilss)
     to_inlines (x : xs) ils = to_inlines xs (Str x : Space : ils)
     to_inlines [] ils = reverse ils
-
-simplifyBlocks :: [Block] -> [Block]
-simplifyBlocks (Plain [] : xs) = simplifyBlocks xs
-simplifyBlocks (Para [] : xs) = simplifyBlocks xs
-simplifyBlocks (Header _ _ [] : xs) = simplifyBlocks xs
-simplifyBlocks (BulletList items : xs) = BulletList (removeEmptyItems items) : simplifyBlocks xs
-simplifyBlocks (OrderedList la items : xs) = OrderedList la (removeEmptyItems items) : simplifyBlocks xs
-simplifyBlocks (x : xs) = x : simplifyBlocks xs
-simplifyBlocks [] = []
-
-removeEmptyItems :: [[Block]] -> [[Block]]
-removeEmptyItems ([] : xs) = removeEmptyItems xs
-removeEmptyItems (x : xs) = x : removeEmptyItems xs
-removeEmptyItems [] = []
 
 tests :: [TestTree]
 tests = [testProperty "p_xml_roundtrip" p_xml_roundtrip]
