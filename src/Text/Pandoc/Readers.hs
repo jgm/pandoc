@@ -119,7 +119,7 @@ import Text.Pandoc.Readers.RIS
 import Text.Pandoc.Readers.RTF
 import Text.Pandoc.Readers.Typst
 import Text.Pandoc.Readers.Djot
-import Text.Pandoc.Readers.XML (readXML)
+import Text.Pandoc.Readers.XML
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
