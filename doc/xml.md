@@ -15,10 +15,10 @@ to give you a glimpse of the format:
 <?xml version='1.0' ?>
 <Pandoc api-version="1,23,1">
 <meta>
-  <entry text="author">
+  <entry key="author">
     <MetaInlines>massifrg@gmail.com</MetaInlines>
   </entry>
-  <entry text="title">
+  <entry key="title">
     <MetaInlines>XML</MetaInlines>
   </entry>
 </meta>
@@ -315,10 +315,8 @@ Here's an example from the `xml` version of `test/tables/planets.native`:
 Metadata entries are meta values (`MetaBool`, `MetaString`, `MetaInlines`, `MetaBlocks`,
 `MetaList` and `MetaMap` elements) inside `<entry>` elements.
 
-The `<meta>` and the `<MetaMap>` elements have the same children elements.
-
-Currently the attribute of `<entry>` carrying the key is named `text`.
-Maybe I'll rename it to `key`.
+The `<meta>` and the `<MetaMap>` elements have the same children elements (`<entry>`),
+which have a `key` attribute.
 
 `<MetaInlines>`, `<MetaBlocks>`, `<MetaList>` and `<MetaMap>` elements
 all have children elements.
@@ -332,16 +330,16 @@ This snippet is from the `xml` version of `test/testsuite.native`:
 
 ```xml
 <meta>
-  <entry text="author">
+  <entry key="author">
     <MetaList>
       <MetaInlines>John MacFarlane</MetaInlines>
       <MetaInlines>Anonymous</MetaInlines>
     </MetaList>
   </entry>
-  <entry text="date">
+  <entry key="date">
     <MetaInlines>July 17, 2006</MetaInlines>
   </entry>
-  <entry text="title">
+  <entry key="title">
     <MetaInlines>Pandoc Test Suite</MetaInlines>
   </entry>
 </meta>

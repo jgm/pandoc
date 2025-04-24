@@ -53,7 +53,7 @@ tgNameMetaMapEntry = "entry"
 
 -- the attribute carrying the key name of a <meta> or <MetaMap> entry
 atNameMetaMapEntryKey :: Text
-atNameMetaMapEntryKey = "text"
+atNameMetaMapEntryKey = "key"
 
 -- the attribute carrying the boolean value ("true" or "false") of a MetaBool
 atNameMetaBoolValue :: Text
