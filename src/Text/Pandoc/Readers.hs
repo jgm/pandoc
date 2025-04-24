@@ -65,6 +65,7 @@ module Text.Pandoc.Readers
   , readTypst
   , readDjot
   , readPod
+  , readXML
   -- * Miscellaneous
   , getReader
   , getDefaultExtensions
@@ -118,6 +119,7 @@ import Text.Pandoc.Readers.RIS
 import Text.Pandoc.Readers.RTF
 import Text.Pandoc.Readers.Typst
 import Text.Pandoc.Readers.Djot
+import Text.Pandoc.Readers.XML
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 
@@ -174,6 +176,7 @@ readers = [("native"       , TextReader readNative)
           ,("djot"         , TextReader readDjot)
           ,("mdoc"         , TextReader readMdoc)
           ,("pod"          , TextReader readPod)
+          ,("xml"          , TextReader readXML)
           ]
 
 -- | Retrieve reader, extensions based on format spec (format+extensions).

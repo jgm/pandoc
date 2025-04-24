@@ -229,6 +229,7 @@ formatFromFilePath x =
     ".typ"      -> defFlavor "typst"
     ".wiki"     -> defFlavor "mediawiki"
     ".xhtml"    -> defFlavor "html"
+    ".xml"      -> defFlavor "xml"
     ['.',y]     | y `elem` ['1'..'9'] -> defFlavor "man"
     _           -> Nothing
  where

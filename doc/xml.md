@@ -15,10 +15,10 @@ to give you a glimpse of the format:
 <?xml version='1.0' ?>
 <Pandoc api-version="1,23,1">
 <meta>
-  <entry text="author">
+  <entry key="author">
     <MetaInlines>massifrg@gmail.com</MetaInlines>
   </entry>
-  <entry text="title">
+  <entry key="title">
     <MetaInlines>XML</MetaInlines>
   </entry>
 </meta>
@@ -35,6 +35,10 @@ to give you a glimpse of the format:
 If you know [Pandoc types](https://hackage.haskell.org/package/pandoc-types-1.23.1/docs/Text-Pandoc-Definition.html), the XML conversion is fairly straightforward.
 
 These are the main rules:
+
+- `Str` inlines are usually converted to plain, UTF-8 text (see below for exceptions)
+
+- `Space` inlines are usually converted to " " chars (see below for exceptions)
 
 - every `Block` and `Inline` becomes an element with the same name and the same capitalization:
   a `Para` Block becomes a `<Para>` element, an `Emph` Inline becomes an `<Emph>` element,
@@ -84,6 +88,29 @@ These are the main rules:
 
 The classes of items with an `Attr` are put in a `class` attribute,
 so that you can style the XML with CSS.
+
+## Str and Space elements
+
+`Str` and `Space` usually result in text and normal " " spaces, but there are exceptions:
+
+- `Str ""`, an empty string, is not suppressed; instead it is converted into a `<Str />` element;
+
+- `Str "foo bar"`, a string containing a space, is converted as `<Str content="foo bar" />`;
+
+- consecutive `Str` inlines, as in `[ ..., Str "foo", Str "bar", ... ]`,
+  are encoded as `foo<Str content="bar" />` to keep their individuality;
+
+- consecutive `Space` inlines, as in `[ ..., Space, Space, ... ]`,
+  are encoded as `<Space count="2" />`
+
+- `Space` inlines at the start or at the end of their container element
+  are always encoded with a `<Space />` element, instead of just a " "
+
+These encodings are necessary to ensure 1:1 equivalence of the `xml` format with the AST,
+or the `native` and `json` formats.
+
+Since the ones above are corner cases, usually you should not see those `<Str />` and `<Space />`
+elements in your documents.
 
 ## Added tags
 
@@ -288,10 +315,8 @@ Here's an example from the `xml` version of `test/tables/planets.native`:
 Metadata entries are meta values (`MetaBool`, `MetaString`, `MetaInlines`, `MetaBlocks`,
 `MetaList` and `MetaMap` elements) inside `<entry>` elements.
 
-The `<meta>` and the `<MetaMap>` elements have the same children elements.
-
-Currently the attribute of `<entry>` carrying the key is named `text`.
-Maybe I'll rename it to `key`.
+The `<meta>` and the `<MetaMap>` elements have the same children elements (`<entry>`),
+which have a `key` attribute.
 
 `<MetaInlines>`, `<MetaBlocks>`, `<MetaList>` and `<MetaMap>` elements
 all have children elements.
@@ -305,16 +330,16 @@ This snippet is from the `xml` version of `test/testsuite.native`:
 
 ```xml
 <meta>
-  <entry text="author">
+  <entry key="author">
     <MetaList>
       <MetaInlines>John MacFarlane</MetaInlines>
       <MetaInlines>Anonymous</MetaInlines>
     </MetaList>
   </entry>
-  <entry text="date">
+  <entry key="date">
     <MetaInlines>July 17, 2006</MetaInlines>
   </entry>
-  <entry text="title">
+  <entry key="title">
     <MetaInlines>Pandoc Test Suite</MetaInlines>
   </entry>
 </meta>

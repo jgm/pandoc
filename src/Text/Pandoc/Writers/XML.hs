@@ -121,7 +121,39 @@ blocksToXML :: [Block] -> [Content]
 blocksToXML blocks = concatMap blockToXML blocks
 
 inlinesToXML :: [Inline] -> [Content]
-inlinesToXML inlines = concatMap inlineToXML inlines
+inlinesToXML inlines = concatMap inlineContentToContents (ilsToIlsContent inlines [])
+
+data InlineContent
+  = NormalInline Inline
+  | ElSpace Int
+  | ElStr T.Text
+
+ilsToIlsContent :: [Inline] -> [InlineContent] -> [InlineContent]
+ilsToIlsContent (Space : xs) [] = ilsToIlsContent xs [ElSpace 1]
+ilsToIlsContent (Space : xs) (NormalInline Space : cs) = ilsToIlsContent xs (ElSpace 2 : cs)
+ilsToIlsContent (Space : xs) (ElSpace n : cs) = ilsToIlsContent xs (ElSpace (n + 1) : cs)
+-- empty Str are always encoded as <Str />
+ilsToIlsContent (Str "" : xs) ilct = ilsToIlsContent xs (ElStr "" : ilct)
+-- Str s1, Str s2 -> s1<Str content="s2">
+ilsToIlsContent (Str s2 : xs) (NormalInline str1@(Str _) : ilct) = ilsToIlsContent xs (ElStr s2 : NormalInline str1 : ilct)
+--
+ilsToIlsContent (Str s : xs) ilct =
+  if T.any (== ' ') s
+    then ilsToIlsContent xs (ElStr s : ilct)
+    else ilsToIlsContent xs (NormalInline (Str s) : ilct)
+ilsToIlsContent (x : xs) ilct = ilsToIlsContent xs (NormalInline x : ilct)
+ilsToIlsContent [] ilct = reverse $ lastSpaceAsElem ilct
+  where
+    lastSpaceAsElem :: [InlineContent] -> [InlineContent]
+    lastSpaceAsElem (NormalInline Space : xs) = ElSpace 1 : xs
+    lastSpaceAsElem ilcts = ilcts
+
+inlineContentToContents :: InlineContent -> [Content]
+inlineContentToContents (NormalInline il) = inlineToXML il
+inlineContentToContents (ElSpace 1) = [Elem $ emptyElement "Space"]
+inlineContentToContents (ElSpace n) = [Elem $ addAttribute atNameSpaceCount (intAsText n) (emptyElement "Space")]
+inlineContentToContents (ElStr "") = [Elem $ emptyElement "Str"]
+inlineContentToContents (ElStr s) = [Elem $ addAttribute atNameStrContent s (emptyElement "Str")]
 
 asContents :: Element -> [Content]
 asContents el = [Elem el]
