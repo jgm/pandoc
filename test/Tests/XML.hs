@@ -10,7 +10,7 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 
 p_xml_roundtrip :: Pandoc -> Bool
-p_xml_roundtrip d = d == purely (writeXML def >=> readXML def) d
+p_xml_roundtrip d = d == purely (writeXML def {writerTemplate = Just mempty} >=> readXML def) d
 
 tests :: [TestTree]
 tests = [testProperty "p_xml_roundtrip" p_xml_roundtrip]
