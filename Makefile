@@ -1,8 +1,8 @@
-version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
-pandoc-cli-version?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
+VERSION?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
+PANDOC_CLI_VERSION?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
 SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
-DOCKERIMAGE=quay.io/benz0li/ghc-musl:9.6
+DOCKERIMAGE=quay.io/benz0li/ghc-musl:9.8
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
@@ -73,9 +73,8 @@ uncommitted_changes:
 	! git diff | grep '.'
 .PHONY: uncommitted_changes
 
-authors:  ## prints unique authors since LASTRELEASE (version)
-	git log --pretty=format:"%an" $(LASTRELEASE)..HEAD | sort | uniq
-
+authors:  ## prints unique authors since last released version
+	git log --pretty=format:"%an" $$(git tag -l | grep '[^0-9]' | sort | tail -1)..HEAD | sort | uniq | while read -r; do grep -i -q "^- $$REPLY" AUTHORS.md || echo $$REPLY ; done
 
 check-stack:
 	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
@@ -88,7 +87,7 @@ check-cabal: git-files.txt sdist-files.txt
 	@for pkg in . pandoc-lua-engine pandoc-server pandoc-cli; \
 	do \
 	     pushd $$pkg ; \
-	     cabal check ; \
+	     cabal check --ignore=missing-upper-bounds ; \
 	     cabal outdated ; \
 	     popd ; \
 	done
@@ -98,21 +97,21 @@ check-cabal: git-files.txt sdist-files.txt
 
 check-version-sync:
 	@echo "Checking for match between pandoc and pandoc-cli versions"
-	[ $(version) == $(pandoc-cli-version) ]
+	[ $(VERSION) == $(PANDOC_CLI_VERSION) ]
 	@echo "Checking that pandoc-cli depends on this version of pandoc"
-	grep 'pandoc == $(version)' pandoc-cli/pandoc-cli.cabal
+	grep 'pandoc == $(VERSION)' pandoc-cli/pandoc-cli.cabal
 .PHONY: check-version-sync
 
 check-changelog:
 	@echo "Checking for changelog entry for this version"
-	grep '## pandoc $(version) (\d\d\d\d-\d\d-\d\d)' changelog.md
+	grep '## pandoc $(VERSION) (\d\d\d\d-\d\d-\d\d)' changelog.md
 .PHONY: check-changelog
 
 check-manversion:
 	@echo "Checking version number in man pages"
-	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc.1"
-	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-server.1"
-	grep '"pandoc $(version)"' "pandoc-cli/man/pandoc-lua.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc-server.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc-lua.1"
 .PHONY: check-manversion
 
 checkdocs:
@@ -138,7 +137,7 @@ fix_spacing: ## fix trailing newlines and spaces
 .PHONY: fix_spacing
 
 changes_github: ## copy this release's changes in gfm
-	$(pandoc) --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
+	@$(pandoc) --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g'
 .PHONY: changes_github
 
 man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pandoc-lua.1 ## build man pages
@@ -189,7 +188,7 @@ pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pando
     --variable section="1" \
     --variable title="pandoc" \
     --variable header='Pandoc User\[cq]s Guide' \
-		--variable footer="pandoc $(version)" \
+		--variable footer="pandoc $(VERSION)" \
 		-o $@
 
 pandoc-cli/man/%.1: doc/%.md pandoc.cabal
@@ -199,7 +198,7 @@ pandoc-cli/man/%.1: doc/%.md pandoc.cabal
     --variable section="1" \
     --variable title="$(basename $(notdir $@))" \
     --variable header='Pandoc User\[cq]s Guide' \
-		--variable footer="pandoc $(version)" \
+		--variable footer="pandoc $(VERSION)" \
     --include-after-body man/pandoc.1.after \
 		-o $@
 
@@ -228,7 +227,7 @@ pandoc-templates: ## update pandoc-templates repo
 	cp data/templates/* ../pandoc-templates/ ; \
 	pushd ../pandoc-templates/ && \
 	git add * && \
-	git commit -m "Updated templates for pandoc $(version)" && \
+	git commit -m "Updated templates for pandoc $(VERSION)" && \
 	popd
 .PHONY: pandoc-templates
 
@@ -321,6 +320,12 @@ help: ## display this help
 	@printf "%-16s%s\n" "BASELINE" "$(BASELINE)"
 	@printf "%-16s%s\n" "REVISION" "$(REVISION)"
 .PHONY: help
+
+release-checklist: release-checklist-$(VERSION).org
+.PHONY: release-checklist
+
+release-checklist-$(VERSION).org: RELEASE-CHECKLIST-TEMPLATE.org
+	sed -e 's/RELEASE_VERSION/$(VERSION)/g' $< > $@
 
 hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@

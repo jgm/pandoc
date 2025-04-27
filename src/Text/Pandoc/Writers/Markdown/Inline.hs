@@ -365,14 +365,16 @@ inlineToMarkdown opts (Span attrs ils) = do
                         tagWithAttrs "span" attrs <> contents <> literal "</span>"
                       | otherwise -> contents
 inlineToMarkdown _ (Emph []) = return empty
+inlineToMarkdown opts (Emph [Emph ils]) = -- #10642
+  inlineListToMarkdown opts ils
 inlineToMarkdown opts (Emph lst) = do
   variant <- asks envVariant
   contents <- inlineListToMarkdown opts lst
   return $ case variant of
              PlainText
-               | isEnabled Ext_gutenberg opts -> "_" <> contents <> "_"
+               | isEnabled Ext_gutenberg opts -> delimited "_" "_" contents
                | otherwise ->  contents
-             _ -> "*" <> contents <> "*"
+             _ -> delimited "*" "*" contents
 inlineToMarkdown _ (Underline []) = return empty
 inlineToMarkdown opts (Underline lst) = do
   variant <- asks envVariant
@@ -380,7 +382,7 @@ inlineToMarkdown opts (Underline lst) = do
   case variant of
     PlainText -> return contents
     _     | isEnabled Ext_bracketed_spans opts ->
-            return $ "[" <> contents <> "]" <> "{.underline}"
+            return $ delimited "[" "]{.underline}" contents
           | isEnabled Ext_native_spans opts ->
             return $ tagWithAttrs "span" ("", ["underline"], [])
               <> contents
@@ -399,12 +401,12 @@ inlineToMarkdown opts (Strong lst) = do
                   else lst
     _ -> do
        contents <- inlineListToMarkdown opts lst
-       return $ "**" <> contents <> "**"
+       return $ delimited "**" "**" contents
 inlineToMarkdown _ (Strikeout []) = return empty
 inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ if isEnabled Ext_strikeout opts
-              then "~~" <> contents <> "~~"
+              then delimited "~~" "~~" contents
               else if isEnabled Ext_raw_html opts
                        then "<s>" <> contents <> "</s>"
                        else contents
@@ -413,7 +415,7 @@ inlineToMarkdown opts (Superscript lst) =
   local (\env -> env {envEscapeSpaces = envVariant env == Markdown}) $ do
     contents <- inlineListToMarkdown opts lst
     if isEnabled Ext_superscript opts
-       then return $ "^" <> contents <> "^"
+       then return $ delimited "^" "^" contents
        else if isEnabled Ext_raw_html opts
                 then return $ "<sup>" <> contents <> "</sup>"
                 else
@@ -431,7 +433,7 @@ inlineToMarkdown opts (Subscript lst) =
   local (\env -> env {envEscapeSpaces = envVariant env == Markdown}) $ do
     contents <- inlineListToMarkdown opts lst
     if isEnabled Ext_subscript opts
-       then return $ "~" <> contents <> "~"
+       then return $ delimited "~" "~" contents
        else if isEnabled Ext_raw_html opts
                 then return $ "<sub>" <> contents <> "</sub>"
                 else
@@ -509,7 +511,7 @@ inlineToMarkdown opts (Math InlineMath str) = do
           _ | isEnabled Ext_tex_math_gfm opts ->
                 return $ "$`" <> literal str <> "`$"
             | isEnabled Ext_tex_math_dollars opts ->
-                return $ "$" <> literal str <> "$"
+                return $ delimited "$" "$" (literal str)
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\(" <> literal str <> "\\)"
             | isEnabled Ext_tex_math_double_backslash opts ->
@@ -538,7 +540,7 @@ inlineToMarkdown opts (Math DisplayMath str) = do
                              $$ literal str
                              $$ literal "```") <> cr
             | isEnabled Ext_tex_math_dollars opts ->
-                return $ "$$" <> literal str <> "$$"
+                return $ delimited "$$" "$$" (literal str)
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\[" <> literal str <> "\\]"
             | isEnabled Ext_tex_math_double_backslash opts ->

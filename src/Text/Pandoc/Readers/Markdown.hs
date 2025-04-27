@@ -49,7 +49,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
-                                 isCommentTag, isInlineTag, isTextTag)
+                                 isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI (escapeURI, isURI, pBase64DataURI)
@@ -855,15 +855,7 @@ listLine continuationIndent = try $ do
   notFollowedByHtmlCloser
   notFollowedByDivCloser
   optional (() <$ gobbleSpaces continuationIndent)
-  listLineCommon
-
-listLineCommon :: PandocMonad m => MarkdownParser m Text
-listLineCommon = T.concat <$> manyTill
-              (  many1Char (satisfy $ \c -> c `notElem` ['\n', '<', '`'])
-             <|> fmap snd (withRaw code)
-             <|> fmap (renderTags . (:[]) . fst) (htmlTag isCommentTag)
-             <|> countChar 1 anyChar
-              ) newline
+  anyLine
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: PandocMonad m
@@ -877,7 +869,7 @@ rawListItem fourSpaceRule start = try $ do
   let continuationIndent = if fourSpaceRule
                               then 4
                               else sourceColumn pos2 - sourceColumn pos1
-  first <- listLineCommon
+  first <- anyLine
   rest <- many (do notFollowedBy listStart
                    notFollowedBy (() <$ codeBlockFenced)
                    notFollowedBy blankline
@@ -1553,7 +1545,8 @@ inline = do
 escapedChar' :: PandocMonad m => MarkdownParser m Char
 escapedChar' = try $ do
   char '\\'
-  (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
+  (guardEnabled Ext_all_symbols_escapable >>
+     satisfy (\c -> c /= '\n' && c /= '\r' && not (isAlphaNum c)))
      <|> (guardEnabled Ext_angle_brackets_escapable >>
             oneOf "\\`*_{}[]()>#+-.!~\"<>")
      <|> oneOf "\\`*_{}[]()>#+-.!"

@@ -27,7 +27,7 @@
 .\" line height
 .nr VS 12p
 .\" font family: A, BM, H, HN, N, P, T, ZCM
-.fam P
+.fam T
 .\" paragraph indent
 .nr PI 0m
 .\" interparagraph space
@@ -38,10 +38,6 @@
 .nr FPS (\n[PS] - 2000)
 .\" color used for strikeout
 .defcolor strikecolor rgb 0.7 0.7 0.7
-.\" color for links (rgb)
-.ds PDFHREF.COLOUR   0.35 0.00 0.60
-.\" border for links (default none)
-.ds PDFHREF.BORDER   0 0 0
 .\" point size difference between heading levels
 .nr PSINCR 1p
 .\" heading level above which point size no longer changes
@@ -52,6 +48,14 @@
 .\" page numbers in footer, centered
 .ds CH
 .ds CF %
+.hy
+.EQ
+delim @@
+.EN
+.\" color for links (rgb)
+.ds PDFHREF.COLOUR   0.35 0.00 0.60
+.\" border for links (default none)
+.ds PDFHREF.BORDER   0 0 0
 .\" pdf outline fold level
 .nr PDFOUTLINE.FOLDLEVEL 3
 .\" start out in outline view
@@ -60,10 +64,6 @@
 .\" PDF metadata
 .pdfinfo /Title "Pandoc Test Suite"
 .pdfinfo /Author "John MacFarlane; Anonymous"
-.hy
-.EQ
-delim @@
-.EN
 .TL
 Pandoc Test Suite
 .AU
@@ -78,7 +78,7 @@ July 17, 2006
 .1C
 .LP
 This is a set of tests for pandoc.
-Most of them are adapted from John Gruber\[cq]s markdown test suite.
+Most of them are adapted from John Gruber\(cqs markdown test suite.
 .HLINE
 .SH 1
 Headers
@@ -129,7 +129,7 @@ Paragraphs
 .pdfhref O 1 "Paragraphs"
 .pdfhref M "paragraphs"
 .LP
-Here\[cq]s a regular paragraph.
+Here\(cqs a regular paragraph.
 .PP
 In Markdown 1.0.0 and earlier.
 Version 8.
@@ -137,7 +137,7 @@ This line turns into a list item.
 Because a hard-wrapped line in the middle of a paragraph looked like a list
 item.
 .PP
-Here\[cq]s one with a bullet.
+Here\(cqs one with a bullet.
 * criminey.
 .PP
 There should be a hard line break
@@ -162,7 +162,7 @@ Code in a block quote:
 .nf
 \f[C]
 sub status {
-    print \[dq]working\[dq];
+    print \(dqworking\(dq;
 }
 \f[]
 .fi
@@ -200,7 +200,7 @@ Code:
 ---- (should be four hyphens)
 
 sub status {
-    print \[dq]working\[dq];
+    print \(dqworking\(dq;
 }
 
 this code block is indented by one tab
@@ -213,7 +213,7 @@ And:
 \f[C]
     this code block is indented by two tabs
 
-These should not be escaped:  \[rs]$ \[rs]\[rs] \[rs]> \[rs][ \[rs]{
+These should not be escaped:  \(rs$ \(rs\(rs \(rs> \(rs[ \(rs{
 \f[]
 .fi
 .HLINE
@@ -227,51 +227,51 @@ Unordered
 .pdfhref M "unordered"
 .LP
 Asterisks tight:
-.IP \[bu] 3
+.IP \(bu 3
 asterisk 1
-.IP \[bu] 3
+.IP \(bu 3
 asterisk 2
-.IP \[bu] 3
+.IP \(bu 3
 asterisk 3
 .LP
 Asterisks loose:
-.IP \[bu] 3
+.IP \(bu 3
 asterisk 1
-.IP \[bu] 3
+.IP \(bu 3
 asterisk 2
-.IP \[bu] 3
+.IP \(bu 3
 asterisk 3
 .LP
 Pluses tight:
-.IP \[bu] 3
+.IP \(bu 3
 Plus 1
-.IP \[bu] 3
+.IP \(bu 3
 Plus 2
-.IP \[bu] 3
+.IP \(bu 3
 Plus 3
 .LP
 Pluses loose:
-.IP \[bu] 3
+.IP \(bu 3
 Plus 1
-.IP \[bu] 3
+.IP \(bu 3
 Plus 2
-.IP \[bu] 3
+.IP \(bu 3
 Plus 3
 .LP
 Minuses tight:
-.IP \[bu] 3
+.IP \(bu 3
 Minus 1
-.IP \[bu] 3
+.IP \(bu 3
 Minus 2
-.IP \[bu] 3
+.IP \(bu 3
 Minus 3
 .LP
 Minuses loose:
-.IP \[bu] 3
+.IP \(bu 3
 Minus 1
-.IP \[bu] 3
+.IP \(bu 3
 Minus 2
-.IP \[bu] 3
+.IP \(bu 3
 Minus 3
 .SH 2
 Ordered
@@ -317,7 +317,7 @@ Item 1, graf one.
 .PP
 Item 1.
 graf two.
-The quick brown fox jumped over the lazy dog\[cq]s back.
+The quick brown fox jumped over the lazy dog\(cqs back.
 .RE
 .IP " 2." 4
 Item 2.
@@ -327,28 +327,28 @@ Item 3.
 Nested
 .pdfhref O 2 "Nested"
 .pdfhref M "nested"
-.IP \[bu] 3
+.IP \(bu 3
 Tab
 .RS 3
-.IP \[bu] 3
+.IP \(bu 3
 Tab
 .RS 3
-.IP \[bu] 3
+.IP \(bu 3
 Tab
 .RE
 .RE
 .LP
-Here\[cq]s another:
+Here\(cqs another:
 .IP " 1." 4
 First
 .IP " 2." 4
 Second:
 .RS 4
-.IP \[bu] 3
+.IP \(bu 3
 Fee
-.IP \[bu] 3
+.IP \(bu 3
 Fie
-.IP \[bu] 3
+.IP \(bu 3
 Foe
 .RE
 .IP " 3." 4
@@ -360,11 +360,11 @@ First
 .IP " 2." 4
 Second:
 .RS 4
-.IP \[bu] 3
+.IP \(bu 3
 Fee
-.IP \[bu] 3
+.IP \(bu 3
 Fie
-.IP \[bu] 3
+.IP \(bu 3
 Foe
 .RE
 .IP " 3." 4
@@ -373,14 +373,14 @@ Third
 Tabs and spaces
 .pdfhref O 2 "Tabs and spaces"
 .pdfhref M "tabs-and-spaces"
-.IP \[bu] 3
+.IP \(bu 3
 this is a list item indented with tabs
-.IP \[bu] 3
+.IP \(bu 3
 this is a list item indented with spaces
 .RS 3
-.IP \[bu] 3
+.IP \(bu 3
 this is an example list item indented with tabs
-.IP \[bu] 3
+.IP \(bu 3
 this is an example list item indented with spaces
 .RE
 .SH 2
@@ -572,7 +572,7 @@ Interpreted markdown in a table:
 This is \f[I]emphasized\f[R]
 And this is \f[B]strong\f[R]
 .PP
-Here\[cq]s a simple block:
+Here\(cqs a simple block:
 .LP
 foo
 .LP
@@ -619,7 +619,7 @@ Code:
 \f[]
 .fi
 .LP
-Hr\[cq]s:
+Hr\(cqs:
 .HLINE
 .SH 1
 Inline Markup
@@ -643,7 +643,7 @@ So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
 So is \f[B]\f[BI]this\f[B]\f[R] word.
 .PP
-This is code: \f[CR]>\f[R], \f[CR]$\f[R], \f[CR]\[rs]\f[R], \f[CR]\[rs]$\f[R],
+This is code: \f[CR]>\f[R], \f[CR]$\f[R], \f[CR]\(rs\f[R], \f[CR]\(rs$\f[R],
 \f[CR]<html>\f[R].
 .PP
 \m[strikecolor]This is \f[I]strikeout\f[R].\m[]
@@ -653,31 +653,31 @@ Superscripts: a\*{bc\*}d a\*{\f[I]hello\f[R]\*} a\*{hello\ there\*}.
 Subscripts: H\*<2\*>O, H\*<23\*>O, H\*<many\ of\ them\*>O.
 .PP
 These should not be superscripts or subscripts, because of the unescaped spaces:
-a\[ha]b c\[ha]d, a\[ti]b c\[ti]d.
+a\(hab c\(had, a\(tib c\(tid.
 .HLINE
 .SH 1
 Smart quotes, ellipses, dashes
 .pdfhref O 1 "Smart quotes, ellipses, dashes"
 .pdfhref M "smart-quotes-ellipses-dashes"
 .LP
-\[lq]Hello,\[rq] said the spider.
-\[lq]`Shelob' is my name.\[rq]
+\(lqHello,\(rq said the spider.
+\(lq`Shelob' is my name.\(rq
 .PP
 `A', `B', and `C' are letters.
 .PP
 `Oak,' `elm,' and `beech' are names of trees.
 So is `pine.'
 .PP
-`He said, \[lq]I want to go.\[rq]' Were you alive in the 70\[cq]s?
+`He said, \(lqI want to go.\(rq' Were you alive in the 70\(cqs?
 .PP
-Here is some quoted `\f[CR]code\f[R]' and a \[lq]\c
+Here is some quoted `\f[CR]code\f[R]' and a \(lq\c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "quoted link"
-\&\[rq].
+\&\(rq.
 .PP
-Some dashes: one\[em]two \[em] three\[em]four \[em] five.
+Some dashes: one\(emtwo \(em three\(emfour \(em five.
 .PP
-Dashes between numbers: 5\[en]7, 255\[en]66, 1987\[en]1999.
+Dashes between numbers: 5\(en7, 255\(en66, 1987\(en1999.
 .PP
 Ellipses\&...and\&...and\&....
 .HLINE
@@ -685,38 +685,38 @@ Ellipses\&...and\&...and\&....
 LaTeX
 .pdfhref O 1 "LaTeX"
 .pdfhref M "latex"
-.IP \[bu] 3
-.IP \[bu] 3
+.IP \(bu 3
+.IP \(bu 3
 @2 + 2 = 4@
-.IP \[bu] 3
+.IP \(bu 3
 @x \[u2208] y@
-.IP \[bu] 3
+.IP \(bu 3
 @alpha \[u2227] omega@
-.IP \[bu] 3
+.IP \(bu 3
 @223@
-.IP \[bu] 3
+.IP \(bu 3
 @p@-Tree
-.IP \[bu] 3
-Here\[cq]s some display math:
+.IP \(bu 3
+Here\(cqs some display math:
 .EQ
 d over {d x} f ( x ) = lim from {h -> 0} {f ( x + h ) - f ( x )} over h
 .EN
-.IP \[bu] 3
-Here\[cq]s one that has a line break in it: @alpha + omega times x sup 2@.
+.IP \(bu 3
+Here\(cqs one that has a line break in it: @alpha + omega times x sup 2@.
 .LP
-These shouldn\[cq]t be math:
-.IP \[bu] 3
-To get the famous equation, write \f[CR]$e = mc\[ha]2$\f[R].
-.IP \[bu] 3
+These shouldn\(cqt be math:
+.IP \(bu 3
+To get the famous equation, write \f[CR]$e = mc\(ha2$\f[R].
+.IP \(bu 3
 $22,000 is a \f[I]lot\f[R] of money.
 So is $34,000.
-(It worked if \[lq]lot\[rq] is emphasized.)
-.IP \[bu] 3
+(It worked if \(lqlot\(rq is emphasized.)
+.IP \(bu 3
 Shoes ($20) and socks ($5).
-.IP \[bu] 3
+.IP \(bu 3
 Escaped \f[CR]$\f[R]: $73 \f[I]this should be emphasized\f[R] 23$.
 .LP
-Here\[cq]s a LaTeX table:
+Here\(cqs a LaTeX table:
 .HLINE
 .SH 1
 Special Characters
@@ -724,15 +724,15 @@ Special Characters
 .pdfhref M "special-characters"
 .LP
 Here is some unicode:
-.IP \[bu] 3
+.IP \(bu 3
 I hat: Î
-.IP \[bu] 3
+.IP \(bu 3
 o umlaut: ö
-.IP \[bu] 3
+.IP \(bu 3
 section: §
-.IP \[bu] 3
+.IP \(bu 3
 set membership: ∈
-.IP \[bu] 3
+.IP \(bu 3
 copyright: ©
 .LP
 AT&T has an ampersand in their name.
@@ -745,9 +745,9 @@ This & that.
 .PP
 6 > 5.
 .PP
-Backslash: \[rs]
+Backslash: \(rs
 .PP
-Backtick: \[ga]
+Backtick: \(ga
 .PP
 Asterisk: *
 .PP
@@ -887,22 +887,22 @@ With ampersands
 .pdfhref O 2 "With ampersands"
 .pdfhref M "with-ampersands"
 .LP
-Here\[cq]s a \c
+Here\(cqs a \c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "link with an ampersand in the URL"
 \&.
 .PP
-Here\[cq]s a link with an amersand in the link text: \c
+Here\(cqs a link with an amersand in the link text: \c
 .pdfhref W -D "http://att.com/" -A "\c" \
  -- "AT&T"
 \&.
 .PP
-Here\[cq]s an \c
+Here\(cqs an \c
 .pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
  -- "inline link"
 \&.
 .PP
-Here\[cq]s an \c
+Here\(cqs an \c
 .pdfhref W -D "/script?foo=1&bar=2" -A "\c" \
  -- "inline link in pointy braces"
 \&.
@@ -915,19 +915,19 @@ With an ampersand: \c
 .pdfhref W -D "http://example.com/?foo=1&bar=2" -A "\c" \
  -- "http://example.com/?foo=1&bar=2"
 \&
-.IP \[bu] 3
+.IP \(bu 3
 In a list?
-.IP \[bu] 3
+.IP \(bu 3
 \c
 .pdfhref W -D "http://example.com/" -A "\c" \
  -- "http://example.com/"
 \&
-.IP \[bu] 3
+.IP \(bu 3
 It should.
 .LP
 An e-mail address: \c
 .pdfhref W -D "mailto:nobody%40nowhere.net" -A "\c" \
- -- "nobody\[at]nowhere.net"
+ -- "nobody\(atnowhere.net"
 \&
 .QS
 .LP
@@ -950,7 +950,7 @@ Images
 .pdfhref O 1 "Images"
 .pdfhref M "images"
 .LP
-From \[lq]Voyage dans la Lune\[rq] by Georges Melies (1902):
+From \(lqVoyage dans la Lune\(rq by Georges Melies (1902):
 \" .IMAGE "lalune.jpg"
 .ce 1
 lalune
@@ -973,7 +973,7 @@ It need not be placed at the end of the document.
 .FE
 and another.\**
 .FS
-Here\[cq]s the long note.
+Here\(cqs the long note.
 This one contains multiple blocks.
 .PP
 Subsequent blocks are indented to show that they belong to the footnote (as with
@@ -989,7 +989,7 @@ If you want, you can indent every line, but you can also be lazy and just indent
 the first line of each block.
 .FE
 This should \f[I]not\f[R] be a footnote reference, because it contains a
-space.[\[ha]my note] Here is an inline note.\**
+space.[\(hamy note] Here is an inline note.\**
 .FS
 This is \f[I]easier\f[R] to type.
 Inline notes may contain \c

@@ -26,13 +26,12 @@ import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.String
-import Data.Maybe (fromMaybe, isJust, catMaybes)
+import Data.Maybe (fromMaybe)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.DocLayout
 import Text.Printf (printf)
-import Text.Pandoc.RoffChar (standardEscapes,
-                              characterCodes, combiningAccents)
+import Text.Pandoc.RoffChar (standardEscapes, characterCodes)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -68,9 +67,6 @@ data EscapeMode = AllowUTF8        -- ^ use preferred man escapes
                 | AsciiOnly        -- ^ escape everything
                 deriving Show
 
-combiningAccentsMap :: Map.Map Char Text
-combiningAccentsMap = Map.fromList combiningAccents
-
 essentialEscapes :: Map.Map Char Text
 essentialEscapes = Map.fromList standardEscapes
 
@@ -92,17 +88,16 @@ escapeString escapeHyphen e = Text.concat . escapeString' e . Text.unpack
         Nothing
           | isAscii x -> Text.singleton x : escapeString' escapeMode xs
           | otherwise ->
-              case escapeMode of
-                AllowUTF8 -> Text.singleton x : escapeString' escapeMode xs
+              (case escapeMode of
+                AllowUTF8 -> Text.singleton x
                 AsciiOnly ->
-                  let accents = catMaybes $ takeWhile isJust
-                        (map (`Map.lookup` combiningAccentsMap) xs)
-                      rest = drop (length accents) xs
-                      s = case Map.lookup x characterCodeMap of
-                            Just t  -> "\\[" <> Text.unwords (t:accents) <> "]"
-                            Nothing -> "\\[" <> Text.unwords
-                              (Text.pack (printf "u%04X" (ord x)) : accents) <> "]"
-                  in  s : escapeString' escapeMode rest
+                   case Map.lookup x characterCodeMap of
+                      Just t
+                        | Text.length t == 2 -> "\\(" <> t -- see #10716
+                        | otherwise -> "\\C'" <> t <> "'"
+                      Nothing ->
+                        "\\C'" <> Text.pack (printf "u%04X" (ord x)) <> "'")
+               : escapeString' escapeMode xs
 
 characterCodeMap :: Map.Map Char Text
 characterCodeMap = Map.fromList characterCodes

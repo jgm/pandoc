@@ -79,13 +79,7 @@ extractChildren el condition
   | otherwise = Just (modifiedElement, removedChildren)  -- Children removed, return Just
   where
     -- Separate the children based on the condition
-    (removedChildren, keptChildren) = partition condition (onlyElems' $ elContent el)
-
-    -- Helper function to filter only Element types from Content
-    onlyElems' :: [Content] -> [Element]
-    onlyElems' = foldr (\c acc -> case c of
-                                   Elem e -> e : acc
-                                   _      -> acc) []
+    (removedChildren, keptChildren) = partition condition (onlyElems $ elContent el)
 
     -- Reconstruct the element with the kept children
     modifiedElement = el { elContent = map Elem keptChildren }

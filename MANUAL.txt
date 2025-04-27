@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: February 9, 2025
+date: March 16, 2025
 ---
 
 # Synopsis
@@ -865,11 +865,14 @@ header when requesting a document from a URL:
     unless `-s/--standalone` is used, and it has no effect
     on `man`, `docbook4`, `docbook5`, or `jats` output.
 
-    Note that if you are producing a PDF via `ms`, the table
+    Note that if you are producing a PDF via `ms` and using
+    (the default) `pdfroff` as a `--pdf-engine`, the table
     of contents will appear at the beginning of the
     document, before the title.  If you would prefer it to
     be at the end of the document, use the option
-    `--pdf-engine-opt=--no-toc-relocation`.
+    `--pdf-engine-opt=--no-toc-relocation`. If `groff` is
+    used as the `--pdf-engine`, the table of contents will
+    always appear at the end of the document.
 
 `--toc-depth=`*NUMBER*
 
@@ -1281,7 +1284,6 @@ header when requesting a document from a URL:
         Character styles:
 
         - Default Paragraph Font
-        - Body Text Char
         - Verbatim Char
         - Footnote Reference
         - Hyperlink
@@ -1456,11 +1458,11 @@ header when requesting a document from a URL:
 :   Use the specified engine when producing PDF output.
     Valid values are `pdflatex`, `lualatex`, `xelatex`, `latexmk`,
     `tectonic`, `wkhtmltopdf`, `weasyprint`, `pagedjs-cli`,
-    `prince`, `context`, `pdfroff`, and `typst`. If the engine is not in
-    your PATH, the full path of the engine may be specified here.
-    If this option is not specified, pandoc uses the following
-    defaults depending on the output format specified using
-    `-t/--to`:
+    `prince`, `context`, `groff`, `pdfroff`, and `typst`.
+    If the engine is not in your PATH, the full path of the engine
+    may be specified here. If this option is not specified,
+    pandoc uses the following defaults depending on the output
+    format specified using `-t/--to`:
 
     - `-t latex` or none: `pdflatex` (other options: `xelatex`, `lualatex`,
         `tectonic`, `latexmk`)
@@ -1471,6 +1473,14 @@ header when requesting a document from a URL:
         introduction to PDF generation from HTML/CSS)
     - `-t ms`:  `pdfroff`
     - `-t typst`: `typst`
+
+    This option is normally intended to be used when a PDF
+    file is specified as `-o/--output`.  However, it may still
+    have an effect when other output formats are requested.
+    For example, `ms` output will include `.pdfhref` macros
+    only if a `--pdf-engine` is selected, and the macros will
+    be differently encoded depending on whether `groff` or
+    `pdfroff` is specified.
 
 `--pdf-engine-opt=`*STRING*
 
@@ -2819,7 +2829,7 @@ ODT or pptx.
     which is preferred to be unitless.
 
 `maxwidth`
-:   sets the CSS `max-width` property (default is 32em).
+:   sets the CSS `max-width` property (default is 36em).
 
 `backgroundcolor`
 :   sets the CSS `background-color` property on the `html` element.
@@ -2866,7 +2876,7 @@ pandoc](#slide-shows).
 
 `revealjs-url`
 :   base URL for reveal.js documents (defaults to
-    `https://unpkg.com/reveal.js@^4/`)
+    `https://unpkg.com/reveal.js@^5`)
 
 `s5-url`
 :   base URL for S5 documents (defaults to `s5/default`)
@@ -3443,6 +3453,10 @@ on the output format, and include the following:
 
     If you need absolute paths, use e.g. `$curdir$/$sourcefile$`.
 
+`pdf-engine`
+:   name of PDF engine if provided using `--pdf-engine`, or the
+    default engine for the format if PDF output is requested.
+
 `curdir`
 :   working directory from which pandoc is run.
 
@@ -3853,7 +3867,6 @@ suitable for the production of tagged PDFs. This includes
 additional markers for paragraphs and alternative markup for
 emphasized text. The `emphasis-command` template variable is set
 if the extension is enabled.
-
 
 # Pandoc's Markdown
 
@@ -6054,6 +6067,9 @@ Supports [GitHub-style Markdown alerts], like
 
   [GitHub-style Markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
 
+Note: This extension currently only works with commonmark:
+`commonmark`, `gfm`, `commonmark_x`.
+
 ### Extension: `autolink_bare_uris` ###
 
 Makes all absolute URIs into links, even when not surrounded by
@@ -6956,10 +6972,14 @@ Slide 2 has a special image for its background, even though the heading has no c
 
 ## EPUB Metadata
 
-EPUB metadata may be specified using the `--epub-metadata` option, but
-if the source document is Markdown, it is better to use a [YAML metadata
-block][Extension: `yaml_metadata_block`].  Here is an example of
-a YAML metadata block with EPUB metadata:
+There are two ways to specify metadata for an EPUB. The first is to use
+the `--epub-metadata` option, which takes as its argument an XML file
+with [Dublin Core elements].
+
+The second way is to use YAML, either in a
+[YAML metadata block][Extension: `yaml_metadata_block`] in a Markdown
+document, or in a separate YAML file specified with `--metadata-file`.
+Here is an example of a YAML metadata block with EPUB metadata:
 
     ---
     title:
@@ -7625,7 +7645,10 @@ Calling the pandoc executable under the name `pandoc-lua` or with
 `lua` as the first argument will make it function as a standalone
 Lua interpreter. The behavior is mostly identical to that of the
 [standalone `lua` executable][lua standalone], version 5.4.
-For full documentation, see the [pandoc-lua] man page.
+All `pandoc.*` packages, as well as the packages `re` and `lpeg`,
+are available via global variables. Furthermore, the globals
+`PANDOC_VERSION`, `PANDOC_STATE`, and `PANDOC_API_VERSION` are
+set at startup. For full documentation, see the [pandoc-lua] man page.
 
 [lua standalone]: https://www.lua.org/manual/5.4/manual.html#7
 [pandoc-lua]: https://github.com/jgm/pandoc/blob/master/doc/pandoc-lua.md
@@ -7638,11 +7661,11 @@ For full documentation, see the [pandoc-lua] man page.
    writer could in principle do anything on your file system. Please
    audit filters and custom writers very carefully before using them.
 
-2. Several input formats (including HTML, Org, and RST) support `include`
-   directives that allow the contents of a file to be included in the
-   output. An untrusted attacker could use these to view the contents of
-   files on the file system.  (Using the `--sandbox` option can
-   protect against this threat.)
+2. Several input formats (including LaTeX, Org, RST, and Typst)
+   support `include` directives that allow the contents of a file to be
+   included in the output. An untrusted attacker could use these
+   to view the contents of files on the file system. (Using the
+   `--sandbox` option can protect against this threat.)
 
 3. Several output formats (including RTF, FB2, HTML with
    `--self-contained`, EPUB, Docx, and ODT) will embed encoded
@@ -7652,7 +7675,16 @@ For full documentation, see the [pandoc-lua] man page.
    against this threat, but will also prevent including images in
    these formats.)
 
-4. If your application uses pandoc as a Haskell library (rather than
+4. In reading HTML files, pandoc will attempt to include the
+   contents of `iframe` elements by fetching content from the
+   local file or URL specified by `src`. If untrusted HTML is
+   processed on a server, this has the potential to reveal anything
+   readable by the process running the server. Using the `-f html+raw_html`
+   will mitigate this threat by causing the whole `iframe`
+   to be parsed as a raw HTML block. Using `--sandbox will also
+   protect against the threat.
+
+5. If your application uses pandoc as a Haskell library (rather than
    shelling out to the executable), it is possible to use it in a mode
    that fully isolates pandoc from your file system, by running the
    pandoc operations in the `PandocPure` monad. See the document
@@ -7660,7 +7692,7 @@ For full documentation, see the [pandoc-lua] man page.
    for more details. (This corresponds to the use of the `--sandbox`
    option on the command line.)
 
-5. Pandoc's parsers can exhibit pathological performance on some
+6. Pandoc's parsers can exhibit pathological performance on some
    corner cases.  It is wise to put any pandoc operations under
    a timeout, to avoid DOS attacks that exploit these issues.
    If you are using the pandoc executable, you can add the
@@ -7670,7 +7702,7 @@ For full documentation, see the [pandoc-lua] man page.
    to pathological performance than the `markdown` parser, so
    it is a better choice when processing untrusted input.
 
-6. The HTML generated by pandoc is not guaranteed to be safe.
+7. The HTML generated by pandoc is not guaranteed to be safe.
    If `raw_html` is enabled for the Markdown input, users can
    inject arbitrary HTML.  Even if `raw_html` is disabled,
    users can include dangerous content in URLs and attributes.

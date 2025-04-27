@@ -28,7 +28,7 @@ import Data.Char (isAscii, isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as Map
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, isNothing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (escapeURIString, isAllowedInURI)
@@ -42,11 +42,13 @@ import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.DocLayout hiding (Color)
+import Text.DocTemplates (lookupContext)
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
+import Text.Pandoc.Writers.Markdown (writePlain)
 import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
 import qualified Data.Text.Encoding as TE
@@ -98,8 +100,7 @@ escapeStr opts =
 -- In PDF we need to encode as UTF-16 BE.
 escapePDFString :: Text -> Text
 escapePDFString t
-  | T.all isAscii t =
-    T.replace "(" "\\(" .  T.replace ")" "\\)" . T.replace "\\" "\\\\" $ t
+  | T.all (\c -> isAscii c && c /= '(' && c /= ')' && c /= '\\' && c /= '"') t = t
   | otherwise = ("\\376\\377" <>) .  -- add bom
     mconcat . map encodeChar .  T.unpack $ t
  where
@@ -127,12 +128,15 @@ toSmallCaps opts s = case T.uncons s of
 -- line.  roff treats the line-ending period differently.
 -- See http://code.google.com/p/pandoc/issues/detail?id=148.
 
+getPdfEngine :: WriterOptions -> Maybe Text
+getPdfEngine opts = lookupContext "pdf-engine" (writerVariables opts)
+
 blockToMs :: PandocMonad m
           => WriterOptions -- ^ Options
           -> Block         -- ^ Block element
           -> MS m (Doc Text)
 blockToMs opts (Div (ident,cls,kvs) bs) = do
-  let anchor = if T.null ident
+  let anchor = if isNothing (getPdfEngine opts) || T.null ident
                   then empty
                   else nowrap $
                          literal ".pdfhref M "
@@ -181,23 +185,30 @@ blockToMs _ HorizontalRule = do
 blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
   modify $ \st -> st{ stInHeader = True }
-  contents <- inlineListToMs' opts $ map breakToSpace inlines
+  let inlines' = map breakToSpace inlines
+  contents <- inlineListToMs' opts inlines'
+  plainContents <- inlinesToPlain inlines'
   modify $ \st -> st{ stInHeader = False }
   let (heading, secnum) = if writerNumberSections opts &&
                               "unnumbered" `notElem` classes
                              then (".NH", "\\*[SN]")
                              else (".SH", "")
+  let mbPdfEngine = getPdfEngine opts
   let anchor = if T.null ident
                   then empty
                   else nowrap $
                          literal ".pdfhref M "
                          <> doubleQuotes (literal (toAscii ident))
   let bookmark = literal ".pdfhref O " <> literal (tshow level <> " ") <>
-                      doubleQuotes (literal $ secnum <>
+                      nowrap (doubleQuotes
+                              (literal $ secnum <>
                                       (if T.null secnum
                                           then ""
                                           else "  ") <>
-                                      escapePDFString (stringify inlines))
+                                      (case mbPdfEngine of
+                                         Just "groff" -> id
+                                         _ -> escapePDFString)
+                                        plainContents))
   let backlink = nowrap (literal ".pdfhref L -D " <>
        doubleQuotes (literal (toAscii ident)) <> space <> literal "\\") <> cr <>
        literal " -- "
@@ -215,9 +226,9 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
   modify $ \st -> st{ stFirstPara = True }
   return $ (literal heading <> space <> literal (tshow level)) $$
            contents $$
-           bookmark $$
-           anchor $$
-           tocEntry
+           case mbPdfEngine of
+             Nothing -> mempty
+             Just _ -> bookmark $$ anchor $$ tocEntry
 blockToMs opts (CodeBlock attr str) = do
   hlCode <- highlightCode opts attr str
   setFirstPara
@@ -328,7 +339,7 @@ bulletListItemToMs opts (Para first:rest) =
 bulletListItemToMs opts (Plain first:rest) = do
   first' <- blockToMs opts (Plain first)
   rest' <- blockListToMs opts rest
-  let first'' = literal ".IP \\[bu] 3" $$ first'
+  let first'' = literal ".IP \\(bu 3" $$ first'
   let rest''  = if null rest
                    then empty
                    else literal ".RS 3" $$ rest' $$ literal ".RE"
@@ -336,7 +347,7 @@ bulletListItemToMs opts (Plain first:rest) = do
 bulletListItemToMs opts (first:rest) = do
   first' <- blockToMs opts first
   rest' <- blockListToMs opts rest
-  return $ literal "\\[bu] .RS 3" $$ first' $$ rest' $$ literal ".RE"
+  return $ literal "\\(bu .RS 3" $$ first' $$ rest' $$ literal ".RE"
 
 -- | Convert ordered list item (a list of blocks) to ms.
 orderedListItemToMs :: PandocMonad m
@@ -435,7 +446,7 @@ inlineToMs opts (Quoted SingleQuote lst) = do
   return $ char '`' <> contents <> char '\''
 inlineToMs opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMs opts lst
-  return $ literal "\\[lq]" <> contents <> literal "\\[rq]"
+  return $ literal "\\(lq" <> contents <> literal "\\(rq"
 inlineToMs opts (Cite _ lst) =
   inlineListToMs opts lst
 inlineToMs opts (Code attr str) = do
@@ -479,17 +490,25 @@ inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt (T.uncons -> Just ('#',ident), _)) = do
   -- internal link
   contents <- inlineListToMs' opts $ map breakToSpace txt
-  return $ literal "\\c" <> cr <> nowrap (literal ".pdfhref L -D " <>
-       doubleQuotes (literal (toAscii ident)) <> literal " -A " <>
-       doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
-       literal " -- " <> doubleQuotes (nowrap contents) <> cr <> literal "\\&"
+  return $
+    case getPdfEngine opts of
+      Just _ -> literal "\\c" <> cr <> nowrap (literal ".pdfhref L -D " <>
+            doubleQuotes (literal (toAscii ident)) <> literal " -A " <>
+            doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
+            literal " -- " <> doubleQuotes (nowrap contents) <> cr <>
+            literal "\\&"
+      Nothing -> contents
 inlineToMs opts (Link _ txt (src, _)) = do
   -- external link
   contents <- inlineListToMs' opts $ map breakToSpace txt
-  return $ literal "\\c" <> cr <> nowrap (literal ".pdfhref W -D " <>
-       doubleQuotes (literal (escapeUri src)) <> literal " -A " <>
-       doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
-       literal " -- " <> doubleQuotes (nowrap contents) <> cr <> literal "\\&"
+  return $
+    case getPdfEngine opts of
+      Just _ -> literal "\\c" <> cr <> nowrap (literal ".pdfhref W -D " <>
+            doubleQuotes (literal (escapeUri src)) <> literal " -A " <>
+            doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
+            literal " -- " <> doubleQuotes (nowrap contents) <> cr <>
+            literal "\\&"
+      Nothing -> contents
 inlineToMs opts (Image attr alternate (src, _)) = do
   let desc = literal "[IMAGE: " <>
              literal (escapeStr opts (stringify alternate)) <> char ']'
@@ -656,3 +675,7 @@ getSizeAttrs opts attr =
  where
   mbW = inPoints opts <$> dimension Width attr
   mbH = inPoints opts <$> dimension Height attr
+
+inlinesToPlain :: PandocMonad m => [Inline] -> m Text
+inlinesToPlain ils = T.strip <$> writePlain def{ writerWrapText = WrapNone }
+                                    (Pandoc nullMeta [Plain ils])

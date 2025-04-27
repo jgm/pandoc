@@ -173,6 +173,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sFileContents  :: M.Map Text Text
                             , sEnableWithRaw :: Bool
                             , sRawTokens     :: IntMap.IntMap [Tok]
+                            , sLigatures     :: Bool
                             }
      deriving Show
 
@@ -201,6 +202,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sFileContents  = M.empty
                               , sEnableWithRaw = True
                               , sRawTokens     = IntMap.empty
+                              , sLigatures     = True
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where

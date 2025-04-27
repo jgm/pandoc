@@ -709,14 +709,20 @@ blockToMarkdown' opts (DefinitionList items) = do
   return $ mconcat contents <> blankline
 blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
-        ("", cls, kv) | (figid, [], []) <- figattr -> Just (figid, cls, kv)
+        ("", cls, kv)
+          | (figid, [], []) <- figattr -> Just (figid, cls, kv)
+          | otherwise -> Just ("", cls, kv)
         _ -> Nothing
   let combinedAlt alt = case capt of
         Caption Nothing [] -> if null alt
                               then Just [Str "image"]
                               else Just alt
         Caption Nothing [Plain captInlines]
-          | captInlines == alt || null alt -> Just captInlines
+          | null alt || stringify captInlines == stringify alt
+            -> Just captInlines
+        Caption Nothing [Para captInlines]
+          | null alt || stringify captInlines == stringify alt
+            -> Just captInlines
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
@@ -763,8 +769,11 @@ figureToMarkdown opts attr@(ident, classes, kvs) capt body
       writeHtml5String
         opts{ writerTemplate = Nothing }
         (Pandoc nullMeta [Figure attr capt body])
-  | otherwise = let attr' = (ident, ["figure"] `union` classes, kvs)
-                in blockToMarkdown' opts (Div attr' body)
+  | otherwise = do
+      let attr' = (ident, ["figure"] `union` classes, kvs)
+      let Caption _mbshort caption = capt
+      let captionBs = [Div ("",["caption"],[]) caption | not (null caption)]
+      blockToMarkdown' opts (Div attr' (body <> captionBs))
 
 itemEndsWithTightList :: [Block] -> Bool
 itemEndsWithTightList bs =

@@ -447,7 +447,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "slidy-url"
                     ("https://www.w3.org/Talks/Tools/Slidy2" :: Doc Text) .
                   defField "slideous-url" ("slideous" :: Doc Text) .
-                  defField "revealjs-url" ("https://unpkg.com/reveal.js@^4/" :: Doc Text) $
+                  defField "revealjs-url" ("https://unpkg.com/reveal.js@^5" :: Doc Text) $
                   defField "s5-url" ("s5/default" :: Doc Text) .
                   defField "table-caption-below"
                      (writerTableCaptionPosition opts == CaptionBelow) .

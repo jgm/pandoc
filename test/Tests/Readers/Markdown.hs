@@ -188,7 +188,6 @@ tests = [ testGroup "inline code"
                 , ("after literal backticks", ["`x``- x`"            ], [code "x``- x"                                           ])
                 ]
               lis = ["`text","y","x`"]
-              lis' = ["text","y","x"]
               bldLsts w lsts txts
                 = let (res, res', f) =
                          foldr (\((_, _, lt), lc) (acc, tacc, t) ->
@@ -209,12 +208,6 @@ tests = [ testGroup "inline code"
                T.intercalate "\n" (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
                =?> bldLsts plain lsts lis
              | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
-             ]
-          <> [ "lists with newlines and indent in backticks" =:
-               T.intercalate ("\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis (l:ls))
-               =?> let (_, _, f) = l
-                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ "text" : zipWith (\i (_, lt, _) -> lt <> i) (drop 1 lis') ls]
-             | (l:ls) <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
           <> [ "lists with blank lines and indent in backticks" =:
                T.intercalate ("\n\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis (l:ls))

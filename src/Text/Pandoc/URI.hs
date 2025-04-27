@@ -24,11 +24,12 @@ import qualified Data.ByteString as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
 import qualified Data.Set as Set
-import Data.Char (isSpace, isAscii)
+import Data.Char (isSpace, isAscii, isHexDigit, chr)
+import Safe (readMay)
 import Network.URI (URI (uriScheme), parseURI, escapeURIString)
 import qualified Data.Attoparsec.Text as A
 import Data.Text.Encoding (encodeUtf8)
-import Control.Applicative (many)
+import Control.Applicative (many, (<|>))
 
 urlEncode :: T.Text -> T.Text
 urlEncode = UTF8.toText . HTTP.urlEncode True . UTF8.fromText
@@ -133,10 +134,18 @@ pBase64DataURI = base64uri
       mps <- many mediaParam
       pure $ n1 <> "/" <> n2 <> mconcat mps
     A.string ";base64,"
-    b64 <- A.takeWhile (A.inClass "A-Za-z0-9+/")
+    b64 <- mconcat <$> many
+              (A.takeWhile1 (A.inClass "A-Za-z0-9/+ \t\r\n") <|> percentOctet)
     A.skipWhile (== '=')
     -- this decode should be lazy:
     pure (decodeLenient (encodeUtf8 b64), mime)
+  percentOctet = do
+    A.char '%'
+    x <- A.satisfy isHexDigit
+    y <- A.satisfy isHexDigit
+    case readMay ['0','x',x,y] of
+      Nothing -> fail $ "Could not read percent encoded byte " <> [x,y]
+      Just d -> pure $ T.singleton $ chr d
   restrictedName = do
     c <- A.satisfy (A.inClass "A-Za-z0-9")
     rest <- A.takeWhile (A.inClass "A-Za-z0-9!#$&^_.+-")
