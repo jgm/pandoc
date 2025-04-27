@@ -72,14 +72,12 @@ These are the main rules:
 
   - `math-type` in Math (values are `InlineMath` and `DisplayMath`)
 
-  - `title` and `src` in Image (about `src`, see below)
-
-  - `title` and `href` in Link (about `href`, see below)
+  - `title` and `url` in Image and Link target
 
   - `alignment` and `col-width` in ColSpec (about `col-width` values, see below);
     (alignment values are capitalized as in `Text.Pandoc.Definition`)
 
-  - `alignment`, `rowspan` and `colspan` in Cell
+  - `alignment`, `row-span` and `col-span` in Cell
 
   - `row-head-columns` in TableBody
 
@@ -195,7 +193,7 @@ This snippet is from the `xml` version of `test/testsuite.native`:
   <Caption>
     <Plain>lalune</Plain>
   </Caption>
-  <Plain><Image src="lalune.jpg" title="Voyage dans la Lune">lalune</Image></Plain>
+  <Plain><Image url="lalune.jpg" title="Voyage dans la Lune">lalune</Image></Plain>
 </Figure>
 ```
 
@@ -269,7 +267,7 @@ Here's an example from the `xml` version of `test/tables/planets.native`:
     <header />
     <body>
       <Row>
-        <Cell colspan="2" rowspan="4" alignment="AlignDefault">
+        <Cell col-span="2" row-span="4" alignment="AlignDefault">
           <Plain>Terrestrial planets</Plain>
         </Cell>
         <Cell alignment="AlignDefault">
@@ -344,15 +342,6 @@ This snippet is from the `xml` version of `test/testsuite.native`:
   </entry>
 </meta>
 ```
-
-### URL attributes in Image and Link
-
-The URL attribute in `<Image>` elements is `src`, as in HTML `<img>`.
-
-The URL attribute in `<Link>` elements is `href`, as in HTML `<a>`.
-
-I'm still doubtful whether to use an attribute named `url` for both,
-instead of following the HTML model.
 
 ### Cite elements
 

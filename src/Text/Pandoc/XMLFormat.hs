@@ -81,11 +81,11 @@ atNameTitle = "title"
 
 -- target url in Image
 atNameImageUrl :: Text
-atNameImageUrl = "src"
+atNameImageUrl = "url"
 
 -- target url in Link
 atNameLinkUrl :: Text
-atNameLinkUrl = "href"
+atNameLinkUrl = "url"
 
 -- QuoteType of a Quoted
 atNameQuoteType :: Text
@@ -111,13 +111,13 @@ atNameColWidth = "col-width"
 atNameRowHeadColumns :: Text
 atNameRowHeadColumns = "row-head-columns"
 
--- rowspan attribute in a Cell
+-- RowSpan attribute in a Cell
 atNameRowspan :: Text
-atNameRowspan = "rowspan"
+atNameRowspan = "row-span"
 
--- colpan attribute in a Cell
+-- ColSpan attribute in a Cell
 atNameColspan :: Text
-atNameColspan = "colspan"
+atNameColspan = "col-span"
 
 -- the citationMode of a Citation
 atNameCitationMode :: Text
