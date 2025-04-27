@@ -386,7 +386,7 @@ inlineToTypst inline =
           Right r ->
             (case extractLabel str of -- #10805
               Nothing -> id
-              Just lab -> (<> ("<" <> literal lab <> ">"))) <$>
+              Just lab -> (<> (toLabel FreestandingLabel lab))) <$>
              case mathType of
                InlineMath -> return $ "$" <> literal r <> "$"
                DisplayMath -> return $ "$ " <> literal r <> " $"
