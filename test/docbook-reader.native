@@ -101,9 +101,13 @@ Pandoc
               , Emph [ Str "emphasis" ]
               ]
           , Header
-              4 ( "level-4" , [] , [] ) [ Str "Level" , Space , Str "4" ]
+              4
+              ( "level-4" , [] , [] )
+              [ Str "Level" , Space , Str "4" ]
           , Header
-              5 ( "level-5" , [] , [] ) [ Str "Level" , Space , Str "5" ]
+              5
+              ( "level-5" , [] , [] )
+              [ Str "Level" , Space , Str "5" ]
           , Para [ Str "Hi." ]
           ]
       ]
