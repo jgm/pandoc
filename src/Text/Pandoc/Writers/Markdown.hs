@@ -794,6 +794,9 @@ bulletListItemToMarkdown opts bs = do
               Markdown
                 | isEnabled Ext_four_space_rule opts
                   -> "- " <> T.replicate (writerTabStop opts - 2) " "
+              PlainText
+                | isEnabled Ext_four_space_rule opts
+                  -> "- " <> T.replicate (writerTabStop opts - 2) " "
               _ -> "- "
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
