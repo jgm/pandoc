@@ -1132,7 +1132,7 @@ parseBlock (Elem e) = do
            b <- p
            case mbt of
              Nothing -> return b
-             Just t -> return $ divWith (attrValue "id" e,[],[])
+             Just t -> return $ divWith (attrValue "id" e, [], getRoleAttr e)
                          (divWith ("", ["title"], []) (plain t) <> b)
          -- Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
@@ -1329,8 +1329,7 @@ parseInline (Elem e) = do
                              "strong"        -> innerInlines strong
                              "strikethrough" -> innerInlines strikeout
                              "underline"     -> innerInlines underline
-                             _               -> innerInlines $
-                                                  spanWith ("", ["emphasis"], getRoleAttr e)
+                             _               -> innerInlines emph
         "footnote" -> note . mconcat <$>
                          mapM parseBlock (elContent e)
         "title" -> return mempty
