@@ -1,7 +1,8 @@
-packages: .
-          pandoc-lua-engine
-          pandoc-server
-          pandoc-cli
+packages:
+  .
+  pandoc-lua-engine
+  pandoc-server
+  pandoc-cli
 tests: True
 flags: +embed_data_files
 constraints: skylighting-format-blaze-html >= 0.1.1.3,
