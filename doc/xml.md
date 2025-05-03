@@ -72,7 +72,9 @@ These are the main rules:
 
   - `math-type` in Math (values are `InlineMath` and `DisplayMath`)
 
-  - `title` and `url` in Image and Link target
+  - `title` and `src` in Image target
+
+  - `title` and `href` in Link target
 
   - `alignment` and `col-width` in ColSpec (about `col-width` values, see below);
     (alignment values are capitalized as in `Text.Pandoc.Definition`)
@@ -193,7 +195,7 @@ This snippet is from the `xml` version of `test/testsuite.native`:
   <Caption>
     <Plain>lalune</Plain>
   </Caption>
-  <Plain><Image url="lalune.jpg" title="Voyage dans la Lune">lalune</Image></Plain>
+  <Plain><Image src="lalune.jpg" title="Voyage dans la Lune">lalune</Image></Plain>
 </Figure>
 ```
 

@@ -81,11 +81,11 @@ atNameTitle = "title"
 
 -- target url in Image
 atNameImageUrl :: Text
-atNameImageUrl = "url"
+atNameImageUrl = "src"
 
 -- target url in Link
 atNameLinkUrl :: Text
-atNameLinkUrl = "url"
+atNameLinkUrl = "href"
 
 -- QuoteType of a Quoted
 atNameQuoteType :: Text

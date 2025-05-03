@@ -148,10 +148,16 @@
 <!ENTITY % target "title CDATA #IMPLIED url CDATA #IMPLIED">
 
 <!ELEMENT Image (%inline;)*>
-<!ATTLIST Image %attr; %target;>
+<!ATTLIST Image 
+  title CDATA #IMPLIED
+  src CDATA #IMPLIED
+  %attr;>
 
 <!ELEMENT Link (%inline;)*>
-<!ATTLIST Link %attr; %target;>
+<!ATTLIST Link
+  title CDATA #IMPLIED
+  href CDATA #IMPLIED
+  %attr;>
 
 <!ELEMENT SoftBreak EMPTY>
 <!ELEMENT LineBreak EMPTY>

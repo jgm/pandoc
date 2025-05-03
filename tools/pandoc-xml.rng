@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
-  xmlns="http://relaxng.org/ns/structure/1.0"
-  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
   <define name="Pandoc">
     <element name="Pandoc">
       <ref name="attlist_Pandoc" />
@@ -826,14 +825,6 @@
   <define name="attlist_Code" combine="interleave">
     <ref name="attr" />
   </define>
-  <define name="target">
-    <optional>
-      <attribute name="title" />
-    </optional>
-    <optional>
-      <attribute name="url" />
-    </optional>
-  </define>
   <define name="Image">
     <element name="Image">
       <ref name="attlist_Image" />
@@ -843,8 +834,13 @@
     </element>
   </define>
   <define name="attlist_Image" combine="interleave">
-    <ref name="attr" />
-    <ref name="target" />
+    <optional>
+      <attribute name="title"/>
+    </optional>
+    <optional>
+      <attribute name="src"/>
+    </optional>
+    <ref name="attr"/>
   </define>
   <define name="Link">
     <element name="Link">
@@ -855,8 +851,13 @@
     </element>
   </define>
   <define name="attlist_Link" combine="interleave">
-    <ref name="attr" />
-    <ref name="target" />
+    <optional>
+      <attribute name="title"/>
+    </optional>
+    <optional>
+      <attribute name="href"/>
+    </optional>
+    <ref name="attr"/>
   </define>
   <define name="SoftBreak">
     <element name="SoftBreak">
