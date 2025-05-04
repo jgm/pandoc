@@ -13,6 +13,19 @@
 
         haskellPackages = pkgs.haskellPackages;
 
+        # Or, override some dependencies as follows:
+        # haskellPackages = (pkgs.haskellPackages.override {
+        #   all-cabal-hashes = pkgs.fetchurl {
+        #    url = "https://github.com/commercialhaskell/all-cabal-hashes/archive/c10b0447a6de06e7d226477787225fa1136abb95.tar.gz";
+        #    sha256 = "9XkvkmfiRvkqGw9dpgTPXXdjaOQN1W9j1dOEDwUGnwM=";
+        #   };
+        # }).extend(self: super: {
+        #   typst-symbols = self.callHackage "typst-symbols" "0.1.7" {};
+        #   typst = self.callHackage "typst" "0.7" {};
+        #   texmath = self.callHackage "texmath" "0.12.10" {};
+        #   toml-parser = self.callHackage "toml-parser" "2.0.1.2" {};
+        # });
+
         jailbreakUnbreak = pkg:
           pkgs.haskell.lib.doJailbreak (pkg.overrideAttrs (_: { meta = { }; }));
 
