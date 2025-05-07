@@ -13,8 +13,3 @@ source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
   tag: cf5542df8f21085bbfd794eaa5cc40abc605637b
-
-source-repository-package
-  type: git
-  location: https://github.com/jgm/texmath.git
-  tag: aa0cffc32fd6d3d9e0f219b8583141de99b54a36

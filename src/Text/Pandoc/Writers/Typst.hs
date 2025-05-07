@@ -384,9 +384,12 @@ inlineToTypst inline =
       case res of
           Left il -> inlineToTypst il
           Right r ->
-            case mathType of
-              InlineMath -> return $ "$" <> literal r <> "$"
-              DisplayMath -> return $ "$ " <> literal r <> " $"
+            (case extractLabel str of -- #10805
+              Nothing -> id
+              Just lab -> (<> (toLabel FreestandingLabel lab))) <$>
+             case mathType of
+               InlineMath -> return $ "$" <> literal r <> "$"
+               DisplayMath -> return $ "$ " <> literal r <> " $"
     Code (_,cls,_) code -> return $
       case cls of
         (lang:_) -> "#raw(lang:" <> doubleQuoted lang <>
@@ -605,3 +608,10 @@ doubleQuoted = doubleQuotes . literal . escape
 
 endCode :: Doc Text
 endCode = beforeNonBlank ";"
+
+extractLabel :: Text -> Maybe Text
+extractLabel = go . T.unpack
+ where
+   go [] = Nothing
+   go ('\\':'l':'a':'b':'e':'l':'{':xs) = Just (T.pack (takeWhile (/='}') xs))
+   go (_:xs) = go xs
