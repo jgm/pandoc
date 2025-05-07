@@ -96,9 +96,9 @@ The following Pandoc AST elements are currently supported. More may be supported
 
   : The table is wrapped in a Typst [text element](https://typst.app/docs/reference/text/text/) with `prop` as one of its parameters.
 
-  `typst:no-figure`
+  `typst:no-figure` (class)
 
-  : By default, Pandoc will wrap the table in a Typst [figure element](https://typst.app/docs/reference/model/figure/). If this attribute is set, only the table element itself will be emitted. This avoids Typst's crossreference counter of kind `table` from being incremented.
+  : By default, Pandoc will wrap the table in a Typst [figure element](https://typst.app/docs/reference/model/figure/). If the table has this class, only the table element itself will be emitted. This avoids Typst's crossreference counter of kind `table` from being incremented.
 
   `typst:figure:kind`
 
