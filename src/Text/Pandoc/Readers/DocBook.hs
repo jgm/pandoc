@@ -25,6 +25,7 @@ import Data.ByteString (ByteString)
 import Data.FileEmbed
 import Data.Char (isSpace, isLetter, chr)
 import Data.Default
+import Data.List.Split (splitWhen)
 import Data.Either (rights)
 import Data.Foldable (asum)
 import Data.Generics
@@ -539,11 +540,12 @@ List of all DocBook tags, with [x] indicating implemented,
 
 type DB m = StateT DBState m
 
-data DBState = DBState{ dbSectionLevel :: Int
-                      , dbQuoteType    :: QuoteType
-                      , dbMeta         :: Meta
-                      , dbBook         :: Bool
-                      , dbContent      :: [Content]
+data DBState = DBState{ dbSectionLevel  :: Int
+                      , dbQuoteType     :: QuoteType
+                      , dbMeta          :: Meta
+                      , dbBook          :: Bool
+                      , dbContent       :: [Content]
+                      , dbLiteralLayout :: Bool
                       } deriving Show
 
 instance Default DBState where
@@ -551,7 +553,8 @@ instance Default DBState where
                , dbQuoteType = DoubleQuote
                , dbMeta = mempty
                , dbBook = False
-               , dbContent = [] }
+               , dbContent = []
+               , dbLiteralLayout = False }
 
 
 readDocBook :: (PandocMonad m, ToSources a)
@@ -966,7 +969,7 @@ parseBlock (Elem e) =
         "informalexample" -> divWith ("", ["informalexample"], []) <$>
                              getBlocks e
         "linegroup" -> lineBlock <$> lineItems
-        "literallayout" -> codeBlockWithLang
+        "literallayout" -> literalLayout
         "screen" -> codeBlockWithLang
         "programlisting" -> codeBlockWithLang
         "?xml"  -> return mempty
@@ -989,6 +992,17 @@ parseBlock (Elem e) =
          handleCompact = if compactSpacing
                             then map (fmap paraToPlain)
                             else id
+
+         literalLayout
+           | "monospaced" `elem` (T.words (attrValue "class" e))
+               = codeBlockWithLang
+           | otherwise = do
+               oldLiteralLayout <- gets dbLiteralLayout
+               modify $ \st -> st{ dbLiteralLayout = True }
+               content <- mconcat <$> mapM parseInline (elContent e)
+               let ls = map fromList . splitWhen (== LineBreak) . toList $ content
+               modify $ \st -> st{ dbLiteralLayout = oldLiteralLayout }
+               return $ lineBlock ls
 
          codeBlockWithLang = do
            let classes' = case attrValue "language" e of
@@ -1203,7 +1217,14 @@ attrValueAsOptionalAttr n e = case attrValue n e of
         _ -> Just (n, attrValue n e)
 
 parseInline :: PandocMonad m => Content -> DB m Inlines
-parseInline (Text (CData _ s _)) = return $ text s
+parseInline (Text (CData _ s _)) = do
+  literalLayout <- gets dbLiteralLayout
+  if literalLayout
+     then do
+       let ls = T.splitOn "\n" s
+       let toLiteralLine = str . T.map (\c -> if c == ' ' then '\xa0' else c)
+       return $ mconcat $ intersperse linebreak $ map toLiteralLine ls
+     else return $ text s
 parseInline (CRef ref) =
   return $ text $ fromMaybe (T.toUpper ref) $ lookupEntity ref
 parseInline (Elem e) =
