@@ -1059,7 +1059,8 @@ createCaption contentShapeDimensions paraElements = do
        mknode "p:sp" [] [ mknode "p:nvSpPr" []
                           [ mknode "p:cNvPr" [("id","1"), ("name","TextBox 3")] ()
                           , mknode "p:cNvSpPr" [("txBox", "1")] ()
-                          , mknode "p:nvPr" [] ()
+                          , mknode "p:nvPr" []
+                            [mknode "p:ph" [("idx", "1")] ()]
                           ]
                         , mknode "p:spPr" []
                           [ mknode "a:xfrm" []
