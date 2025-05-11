@@ -296,7 +296,7 @@ modules.pdf: modules.dot
 # make moduledeps ROOT=Text.Pandoc.Parsing
 moduledeps: modules.csv  ## Print transitive dependencies of a module ROOT
 	@echo "$(ROOT)"
-	@lua tools/moduledeps.lua transitive $(ROOT) | sort
+	@$(pandoc) lua tools/moduledeps.lua transitive $(ROOT) | sort
 .PHONY: moduledeps
 
 clean: ## clean up
