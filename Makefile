@@ -251,7 +251,7 @@ validate-docx-golden-tests: ## validate docx golden tests against schema
 
 validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
 	which dotnet || ("dotnet is required" && exit 1)
-	which json_reformat || ("json_reformat is required" && exit 1)
+	which jq || ("jq is required" && exit 1)
 	test -d ./OOXML-Validator || \
 		(git clone https://github.com/mikeebowen/OOXML-Validator.git \
 		&& cd OOXML-Validator && dotnet build --configuration=Release)
