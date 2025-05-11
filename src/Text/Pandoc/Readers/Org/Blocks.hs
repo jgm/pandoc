@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -25,7 +26,7 @@ import Text.Pandoc.Readers.Org.ParserState
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Readers.Org.Shared (cleanLinkText, isImageFilename,
                                        originalLang, translateLang, exportsCode)
-
+import Text.Pandoc.Readers.LaTeX.Math (inlineEnvironmentNames)
 import Text.Pandoc.Builder (Blocks, Inlines, Many(..))
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
@@ -796,6 +797,7 @@ rowToContent tbl row =
 latexFragment :: PandocMonad m => OrgParser m (F Blocks)
 latexFragment = try $ do
   envName <- latexEnvStart
+  guard $ envName `notElem` inlineEnvironmentNames
   texOpt  <- getExportSetting exportWithLatex
   let envStart = "\\begin{" <> envName <> "}"
   let envEnd = "\\end{" <> envName <> "}"

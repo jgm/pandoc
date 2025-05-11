@@ -208,6 +208,6 @@ tests =
                    , citationMode = NormalCitation
                    , citationNoteNum = 0
                    , citationHash = 0}
-    in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
+    in (para $ rawInline "latex" "\\cite{Coffee}")
 
   ]
