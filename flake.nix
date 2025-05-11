@@ -49,6 +49,7 @@
             haskellPackages.weeder
             haskellPackages.hpc
             haskellPackages.ghcid
+            haskellPackages.stylish-haskell
             zlib
             git
             bashInteractive
