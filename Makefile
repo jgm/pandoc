@@ -258,9 +258,11 @@ validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
 	sh ./tools/validate-docx2.sh test/docx/golden/
 .PHONY: validate-docx-golden-tests2
 
-validate-epub: ## generate an epub and validate it with epubcheck and ace
+node_modules/.bin/ace:
+	npm install @daisy/ace
+
+validate-epub: node_modules/.bin/ace ## generate an epub and validate it with epubcheck and ace
 	which epubcheck || exit 1
-	which ace || exit 1
 	tmp=$$(mktemp -d) && \
   for epubver in 2 3; do \
     file=$$tmp/ver$$epubver.epub ; \
@@ -268,7 +270,7 @@ validate-epub: ## generate an epub and validate it with epubcheck and ace
 	  echo $$file && \
 	  epubcheck $$file || exit 1 ; \
   done && \
-	ace $$tmp/ver3.epub -o ace-report-v2 --force
+	./node_modules/.bin/ace $$tmp/ver3.epub -o ace-report-v2 --force
 
 modules.csv: $(PANDOCSOURCEFILES)
 	@rg '^import.*Text\.Pandoc\.' --with-filename $^ \
