@@ -45,6 +45,9 @@
             haskellPackages.haskell-language-server # you must build it with your ghc to work
             haskellPackages.hlint
             haskellPackages.cabal-install
+            haskellPackages.cabal-plan
+            haskellPackages.weeder
+            haskellPackages.hpc
             haskellPackages.ghcid
             zlib
             git
