@@ -2,6 +2,7 @@
 module Text.Pandoc.Readers.LaTeX.Math
   ( dollarsMath
   , inlineEnvironments
+  , inlineEnvironmentNames
   , inlineEnvironment
   , mathInline
   , mathDisplay
@@ -79,6 +80,10 @@ inlineEnvironment = try $ do
   controlSeq "begin"
   name <- untokenize <$> braced
   M.findWithDefault mzero name inlineEnvironments
+
+inlineEnvironmentNames :: [Text]
+inlineEnvironmentNames =
+  M.keys (inlineEnvironments :: M.Map Text (LP PandocPure Inlines))
 
 inlineEnvironments :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineEnvironments = M.fromList [
