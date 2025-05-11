@@ -52,9 +52,11 @@
             zlib
             git
             bashInteractive
-            epubcheck
-            nodejs
+            epubcheck # for validate-epub
+            nodejs # for validate-epub
             ripgrep
+            libxml2 # for xmllint
+            jq
           ];
           inputsFrom = map (__getAttr "env") (__attrValues self.packages.${system});
         };
