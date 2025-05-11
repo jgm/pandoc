@@ -144,7 +144,7 @@ man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pando
 .PHONY: man
 
 latex-package-dependencies: ## print packages used by default latex template
-	$(pandoc) lua tools=latex-package-dependencies.lua
+	$(pandoc) lua tools/latex-package-dependencies.lua
 .PHONY: latex-package-dependencies
 
 coverage: ## code coverage information
