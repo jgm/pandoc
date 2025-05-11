@@ -1,127 +1,43 @@
-{nixpkgs ? import <nixpkgs> {} }:
+# based on https://gist.github.com/TikhonJelvis/be42400fc31bac0cd1736740fe5eb83b
+{ nixpkgs ? import <nixpkgs> {}, compiler ? "default" }:
+
 let
+
   inherit (nixpkgs) pkgs;
-  inherit (pkgs) haskellPackages;
 
-  haskellDeps = ps: with ps; [
-    Diff
-    Glob
-    aeson
-    aeson-pretty
-    array
-    attoparsec
-    base
-    base64
-    binary
-    blaze-html
-    blaze-markup
-    bytestring
-    case-insensitive
-    cassava
-    commonmark
-    citeproc
-    commonmark
-    commonmark-extensions
-    commonmark-pandoc
-#    connection
-    containers
-    data-default
-    deepseq
-    directory
-    doclayout
-    doctemplates
-    emojis
-    exceptions
-    file-embed
-    filepath
-    Glob
-    gridtables
-    haddock-library
-    hslua-aeson
-#    hslua-list
-    hslua-module-doclayout
-    hslua-module-path
-    hslua-module-system
-    hslua-module-text
-    hslua-module-version
-    http-client
-    http-client-tls
-    http-types
-    ipynb
-    jira-wiki-markup
-    JuicyPixels
-    lpeg
-    lua
-    lua-arbitrary
-    lpeg
-    mime-types
-    mtl
-    network
-    network-uri
-    Only
-    ordered-containers
-    pandoc-lua-marshal
-    pandoc-types
-    parsec
-    pretty
-    pretty-show
-    process
-    random
-    regex-tdfa
-    safe
-    scientific
-    servant-server
-    SHA
-    skylighting
-    skylighting-core
-    skylighting-format-latex
-# skylighting-format-context
-    skylighting-format-blaze-html
-# skylighting-format-ansi
-    split
-    syb
-    tagsoup
-    tasty
-    tasty-bench
-    tasty-golden
-    tasty-hunit
-    tasty-lua
-    tasty-quickcheck
-    temporary
-    texmath
-    text
-    text-conversions
-    time
-    unicode-collation
-    unicode-transforms
-    unix
-    wai
-    wai-app-static
-    wai-cors
-    wai-extra
-    warp
-    xml
-    xml-conduit
-    xml-types
-    yaml
-    zip-archive
-    zlib
-  ];
+  # Build a default.nix file from our .cabal file:
+  here = ./.;
+  project = pkgs.stdenv.mkDerivation ({
+    name = "default.nix";
 
-  ghc = haskellPackages.ghcWithPackages haskellDeps;
+    buildCommand = ''
+    ${pkgs.cabal2nix}/bin/cabal2nix file://${here} > $out
+    '';
+  });
 
-  nixPackages = [
-    pkgs.zlib
-    ghc
-    haskellPackages.ghcid
-    haskellPackages.haskell-language-server
-    haskellPackages.cabal2nix
-    haskellPackages.cabal-install
-    haskellPackages.hlint
-    haskellPackages.stylish-haskell
-  ];
+  # Use the package set for our compiler:
+  haskellPackages = if compiler == "default"
+                       then pkgs.haskellPackages
+                       else pkgs.haskell.packages.${compiler};
+
+  # Helper function that gets Nix-packaged dependencies off GitHub.
+  # GitHub project needs a default.nix file for this to work.
+  fetchHaskell = { url, rev, sha256 }:
+    haskellPackages.callPackage (pkgs.fetchgit { inherit url rev sha256; }) {};
+
+  # Note: fetchHaskell shouldn't download the package if you already
+  # have it in the system.
+
+    base = haskellPackages.callPackage project {
+    ## Specify GitHub dependencies here.
+    ## You can get url, rev and sha256 by running 'nix-prefetch-git git@...'
+    # extraPackage = fetchHaskell {
+    #   url = "git@...";
+    #   rev = "<commit hash>";
+    #   sha256 = "<sha256 hash>";
+    # };
+  };
+
 in
-pkgs.stdenv.mkDerivation {
-  name = "env";
-  buildInputs = nixPackages;
-}
+
+  if pkgs.lib.inNixShell then base.env else base
