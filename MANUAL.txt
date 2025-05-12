@@ -774,13 +774,20 @@ header when requesting a document from a URL:
     not used, a default template appropriate for the output
     format will be used (see `-D/--print-default-template`).
 
-`-V` *KEY*[`=`*VAL*], `--variable=`*KEY*[`:`*VAL*]
+`-V` *KEY*[`=`*VAL*], `--variable=`*KEY*[`=`*VAL*]
 
 :   Set the template variable *KEY* to the string value *VAL* when rendering
-    the document in standalone mode. If no *VAL* is specified, the
+    the document in standalone mode. Either `:` or `=` may be used
+    to separate *KEY* from *VAL*. If no *VAL* is specified, the
     key will be given the value `true`.  Structured values (lists, maps)
     cannot be assigned using this option, but they can be assigned in
-    the `variables` section of a [defaults file][Defaults files].
+    the `variables` section of a [defaults file][Defaults files] or
+    using the `--variable-json` option. If the variable already has
+    a *list* value, the value will be added to the list. If it already
+    has another kind of value, it will be made into a list containing
+    the previous and the new value. For example,
+    `-V keyword=Joe -V author=Sue` makes `author` contain a list
+    of strings: `Joe` and `Sue`.
 
 `--sandbox[=true|false]`
 
