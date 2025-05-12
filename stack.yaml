@@ -15,10 +15,11 @@ extra-deps:
 - skylighting-format-typst-0.1
 - commonmark-extensions-0.2.6
 - commonmark-pandoc-0.2.3
-- typst-0.7
-- texmath-0.12.10.1
+- typst-symbols-0.1.8.1
+- texmath-0.12.10.2
 - citeproc-0.9
-
+- git: https://github.com/jgm/typst-hs.git
+  commit: 130975618114207e5bc8e6120b66ef3b56ffd6a7
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.0
