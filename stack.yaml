@@ -16,7 +16,7 @@ extra-deps:
 - commonmark-extensions-0.2.6
 - commonmark-pandoc-0.2.3
 - typst-0.7
-- texmath-0.12.10
+- texmath-0.12.10.1
 - citeproc-0.9
 
 ghc-options:
