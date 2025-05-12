@@ -789,6 +789,17 @@ header when requesting a document from a URL:
     `-V keyword=Joe -V author=Sue` makes `author` contain a list
     of strings: `Joe` and `Sue`.
 
+`--variable-json=`*KEY*[`=`:*JSON*]
+
+:   Set the template variable *KEY* to the value specified by a JSON
+    string (this may be a boolean, a string, a list, or a mapping;
+    a number will be treated as a string). For example,
+    `--variable-json foo=false` will give `foo` the boolean false
+    value, while `--variable-json foo='"false"'` will give it the
+    string value `"false"`. Either `:` or `=` may be used to
+    separate *KEY* from *VAL*. If the variable already has a
+    value, this value will be replaced.
+
 `--sandbox[=true|false]`
 
 :   Run pandoc in a sandbox, limiting IO operations in readers
