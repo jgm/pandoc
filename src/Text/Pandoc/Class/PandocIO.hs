@@ -63,6 +63,7 @@ instance PandocMonad PandocIO where
   readFileLazy = IO.readFileLazy
   readFileStrict = IO.readFileStrict
   readStdinStrict = IO.readStdinStrict
+  svgToPng = IO.svgToPng
 
   glob = IO.glob
   fileExists = IO.fileExists
