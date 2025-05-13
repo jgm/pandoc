@@ -3730,7 +3730,7 @@ Parameters:
 
 Returns: the transformed inline element
 
-### `read (markup[, format[, reader_options]])` {#pandoc.read}
+### `read (markup[, format[, reader_options[, read_env]]])` {#pandoc.read}
 
 Parse the given string into a Pandoc document.
 
@@ -3740,7 +3740,8 @@ the mediabag. This means that if the document specifies files to
 be included, as is possible in formats like LaTeX,
 reStructuredText, and Org, then these will be included in the
 resulting document. Any media elements are added to those
-retrieved from the other parsed input files.
+retrieved from the other parsed input files. Use the `read_env`
+parameter to modify this behavior.
 
 The `format` parameter defines the format flavor that will be
 parsed. This can be either a string, using `+` and `-` to enable
@@ -3769,6 +3770,19 @@ Parameters:
     a table with a subset of the keys and values of a
     ReaderOptions object; defaults to the default values
     documented in the manual. ([ReaderOptions]|table)
+
+`read_env`
+:   which environment the reader operates in: Possible values
+    are:
+
+    - 'io' is the default and gives the behavior described above.
+    - 'global' uses the same environment that was used to read
+      the input files; the parser has full access to the
+      file-system and the mediabag.
+    - 'sandbox' works like 'global' and give the parser access to
+      the mediabag, but prohibits file-system access.
+
+    Defaults to `'io'`. (string)
 
 Returns: pandoc document ([Pandoc](#type-pandoc))
 

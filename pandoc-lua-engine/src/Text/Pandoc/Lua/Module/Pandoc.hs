@@ -19,6 +19,7 @@ import Prelude hiding (read)
 import Control.Applicative ((<|>))
 import Control.Monad (forM_, when)
 import Control.Monad.Catch (catch, handle, throwM)
+import Control.Monad.Except (MonadError (throwError))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
@@ -26,9 +27,10 @@ import Data.Proxy (Proxy (Proxy))
 import Data.Text.Encoding.Error (UnicodeException)
 import HsLua
 import System.Exit (ExitCode (..))
+import Text.Pandoc.Class (PandocMonad, sandbox)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
-import Text.Pandoc.Format (parseFlavoredFormat)
+import Text.Pandoc.Format (FlavoredFormat, parseFlavoredFormat)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Format (peekFlavoredFormat)
@@ -234,22 +236,31 @@ functions =
     =?> "output string, or error triple"
 
   , defun "read"
-    ### (\content mformatspec mreaderOptions ->
-          handle (failLua . show @UnicodeException) . unPandocLua $ do
-            flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
+    ### (\content mformatspec mreaderOptions mreadEnv -> do
             let readerOpts = fromMaybe def mreaderOptions
-            getReader flvrd >>= \case
-              (TextReader r, es)       ->
-                 r readerOpts{readerExtensions = es}
-                   (case content of
+                readEnv    = fromMaybe "global" mreadEnv
+
+                readAction :: PandocMonad m => FlavoredFormat -> m Pandoc
+                readAction flvrd = getReader flvrd >>= \case
+                  (TextReader r, es)       ->
+                    r readerOpts{readerExtensions = es} $
+                    case content of
                       Left bs       -> toSources $ UTF8.toText bs
-                      Right sources -> sources)
-              (ByteStringReader r, es) ->
-                 case content of
-                   Left bs -> r readerOpts{readerExtensions = es}
-                                (BSL.fromStrict bs)
-                   Right _ -> throwM $ PandocLuaError
-                              "Cannot use bytestring reader with Sources")
+                      Right sources -> sources
+                  (ByteStringReader r, es) ->
+                    case content of
+                      Left bs -> r readerOpts{readerExtensions = es}
+                                 (BSL.fromStrict bs)
+                      Right _ -> throwError $ PandocLuaError
+                                 "Cannot use bytestring reader with Sources"
+
+            handle (failLua . show @UnicodeException) . unPandocLua $ do
+              flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
+              case readEnv of
+                "global"  -> readAction flvrd
+                "sandbox" -> sandbox [] (readAction flvrd)
+                x         -> throwError $ PandocLuaError
+                             ("unknown read environment: " <> x))
     <#> parameter (\idx -> (Left  <$> peekByteString idx)
                        <|> (Right <$> peekSources idx))
           "string|Sources" "content" "text to parse"
@@ -257,6 +268,19 @@ functions =
                        "formatspec" "format and extensions")
     <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
              "reader options")
+    <#> opt (parameter peekText "string" "read_env" $ mconcat
+            [ "which environment the reader operates in: Possible values"
+            , "are:"
+            , ""
+            , "- 'io' is the default and gives the behavior described above."
+            , "- 'global' uses the same environment that was used to read"
+            , "  the input files; the parser has full access to the"
+            , "  file-system and the mediabag."
+            , "- 'sandbox' works like 'global' and give the parser access to"
+            , "  the mediabag, but prohibits file-system access."
+            , ""
+            , "Defaults to `'io'`. (string)"
+            ])
     =#> functionResult pushPandoc "Pandoc" "result document"
 
   , sha1
