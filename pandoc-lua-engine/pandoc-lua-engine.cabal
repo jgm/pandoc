@@ -26,8 +26,10 @@ extra-source-files:  README.md
                    , test/extensions.lua
                    , test/lua/*.lua
                    , test/lua/module/*.lua
+                   , test/lua/module/include.tex
                    , test/lua/module/partial.test
                    , test/lua/module/sample.svg
+                   , test/lua/module/sample.epub
                    , test/lua/module/tiny.epub
                    , test/sample.lua
                    , test/tables.custom
