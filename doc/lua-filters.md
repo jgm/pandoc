@@ -3775,7 +3775,9 @@ Parameters:
 :   If the value is not given or `nil`, then the global
     environment is used. Passing a list of filenames causes the
     reader to be run in a sandbox. The given files are read from
-    the file system and provided to the sandbox in a ersatz file
+    the file system and provided to the sandbox via an ersatz file
+    system. The table can also contain mappings from filenames to
+    contents, which will be used to populate the ersatz file
     system.
 
 Returns: pandoc document ([Pandoc](#type-pandoc))

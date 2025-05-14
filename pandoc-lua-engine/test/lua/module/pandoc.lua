@@ -325,6 +325,29 @@ return {
           pandoc.Blocks{pandoc.Para 'included'}
         )
       end),
+      test('sandbox files can be given as key-value pairs', function ()
+        local tex = '\\include{lua/module/include.tex}'
+        local files = {
+          ['lua/module/include.tex'] = 'Hello'
+        }
+        local doc = pandoc.read(tex, 'latex', nil, files)
+        assert.are_equal(
+          doc.blocks,
+          pandoc.Blocks{pandoc.Para 'Hello'}
+        )
+      end),
+      test('kv-pairs override contents read from file system', function ()
+        local tex = '\\include{lua/module/include.tex}'
+        local files = {
+          'lua/module/include.tex',
+          ['lua/module/include.tex'] = 'Hello'
+        }
+        local doc = pandoc.read(tex, 'latex', nil, files)
+        assert.are_equal(
+          doc.blocks,
+          pandoc.Blocks{pandoc.Para 'Hello'}
+        )
+      end),
     },
     group 'extensions' {
       test('string spec', function ()
