@@ -1,5 +1,278 @@
 # Revision history for pandoc
 
+## pandoc 3.7 (2025-05-14)
+
+  * Add new command-line option `--variable-json` (#10341).
+    This allows non-string values (booleans, lists, maps) to be given to
+    template variables on the command line.
+
+  * The `--pdf-engine` option can now take `groff` as a value.
+
+  * Markdown writer:
+
+    + Avoid spaces after/before open/close delimiters (#10696).
+      E.g. instead of rendering `x<em> space </em>y` as `x* space *y` we render
+      it as `x *space* y`.
+    + Handle row/colspans in grid tables, and expand cells when it isn't
+      possible to lay them out without breaking string of non-whitespace.
+    + Render a figure with Para caption as implicit figure (#10755).
+    + When falling back to a Div with class `figure` for a figure that
+      can't be represented any other way, include a Div with class
+      `caption` containing the caption.
+    + Improve use of implicit figures when possible (#10758).
+      When the alt differs from the caption, but only as regards formatting, we
+      still use an implicit figure.
+    + Omit initial newlines in gfm `math` blocks to avoid an ugly blank line.
+    * Support the `four_space_rule` extension for `plain` output (#10813,
+      Manolis Stamatogiannakis).
+
+  * RST writer:
+
+    + Handle row/colspans in grid tables, and expand cells when it isn't
+      possible to lay them out without breaking string of non-whitespace.
+
+  * Muse writer:
+
+    + Handle row/colspans in grid tables, and expand cells when it isn't
+      possible to lay them out without breaking string of non-whitespace.
+
+  * JATS writer:
+
+    + Fix escaping for writing-review-editing role (#10744).
+
+  * HTML writer:
+
+    + Remove trailing slash from default revealjs URL (#8749). This
+      avoids a double slash in the URL's path component.
+
+  * LaTeX writer:
+
+    + Make alignment work within `multirow` in tables (#10772).
+
+  * Typst writer:
+
+    + Support `mark` class on spans (#10747).
+    + Add equation label if math contains `\label{..}` (#10805).
+    + Handle equation labels with spaces (#10805).
+
+  * Roff format writers (man, ms):
+
+    + Use the most compatible form for roff escapes (#10716).
+      For example, `\(xy` instead of `\[xy]`. This was the original
+      AT&T troff form and is the most widely supported. The
+      bracketed form causes problem for some tools, e.g.
+      `makewhatis` on macOS. And emit `e` followed by an escape
+      for a unicode combining accent rather than the form `\[e aa]`,
+      which works for groff but not e.g. on macOS's man.
+      This change affects Text.Pandoc.RoffChar,
+      Text.Pandoc.Writers.Roff, and the Man and Ms writers.
+
+  * Docx writer:
+
+    + Ensure that figures and tables with custom styles are not dropped (#10705).
+    + Preserve Relationships for images from reference docx (#10759).
+      This should allow one to include an image in a reference.docx and
+      reference it in an openxml template.
+    + Don't renumber rels (#10769). We used to renumber the
+      Relationships so they didn't conflict with the set of fixed
+      Relationships we imposed. We are now preserving the ids
+      from the reference doc's document.xml.refs, so we shouldn't
+      renumber them or references introduced by the user (e.g. in
+      a template) will fail.
+
+  * Ms writer:
+
+    + Improve PDF TOC labels. We now use the plain writer to render these,
+      so that Greek characters etc. will show up properly.
+    + When no `pdf-engine` variable is specified, do not use the
+      `.pdfhref` macros at all (#10738). This gives better results for links
+      in formats other than PDF, since the link text would simply
+      disappear if it exists only in a `.pdfhref` macro. When a PDF
+      engine is specified, escape the argument of `.pdfhref O` in a way
+      that is appropriate.
+
+  * OpenDocument writer:
+
+    + Fix character styles in footnotes (#10791). Character
+      styles governing the position of the footnote reference
+      should not be imposed on the footnote text.
+
+  * Powerpoint writer:
+
+    + Use reference-doc font for captions (#9896, R. N. West).
+
+  * DocBook writer:
+
+    + Use literallayout element for LineBlock (#10825).
+
+  * MediaWiki reader/writer:
+
+    + Allow definition on same line as term (#10708).
+
+  * LaTeX reader:
+
+    + Skip at most one argument to LaTeX tabular newline (#7512,
+      Evan Silberman).
+    + Disable ligatures inside `\texttt` (#10781).
+    + Support more symbol commands (#10782).
+
+  * Commonmark Reader:
+
+    + Handle GFM math irregularity with braces (#10631). In GFM, you need
+      to use `\\{` rather than `\{` for a literal brace.
+
+  * DocBook reader:
+
+    + Improve handling of literallayout (#10825). This is now only made
+      a CodeBlock when there is a `monospaced` class. Otherwise it is made
+      a LineBlock.
+
+  * Org reader:
+
+    + Add AVIF to Org Reader image extensions (#10736, Christian Christiansen).
+    + Don't include newlines in inine code/verbatim (#10730).
+      Convert newlines to spaces as we do in other formats.
+    + Change handling of inline TeX (#10836). Previously inline
+      TeX was handled in a way that was different from org's own export,
+      and that could lead to information loss. This was particularly noticeable
+      for inline math environments such as `equation`.  Previously, an
+      `equation` environment starting at the beginning of a line would create
+      a raw block, splitting up the paragraph containing it (see #10836). On the
+      other hand, an `equation` environment not at the beginning of a line would
+      be turned into regular inline elements representing the math. (This would
+      cause the equation number to go missing and in some cases degrade the math
+      formatting.) Now, we parse all of these as raw "latex"
+      inlines, which will be omitted when converting to formats
+      other than LaTeX (and other formats like pandoc's Markdown
+      that allow raw LaTex).
+
+  * Beamer template: fix regression in 3.6.4, reverting the omission of
+    `\date` when the document does not have a date. By default, beamer
+    will display a date when no `\date` is present in the title block,
+    so this was an unintended behavior change. The reverted
+    change was motivated by the desire to include a custom
+    `\date` in the frontmatter via header-includes. This can be
+    achieved more simply by simply setting the `date` variable.
+    In markdown you can even use `date` in metadata and put some
+    raw LaTeX there.
+
+  * Ms template:
+
+    + Use T rather than P as default font family (#10738).
+    + Put PDF-specific things under a conditional.
+      Don't inculde them if `pdf-engine` isn't set.
+
+  * Upgrade reveal.js URL to v5 (#10740, Kolen Cheung).
+    v4 is no longer available on unpkg.com.
+
+  * Text.Pandoc.PDF: Allow `groff` to be used as `--pdf-engine` with `ms`
+    (#10738). When `groff` is used as a PDF engine, the `groff`
+    extension to `ms` is automatically enabled. Limitations:
+
+    - `groff` currently produces larger PDFs than `pdfroff`.
+    - With `groff`, a table of contents produced with
+      `--table-of-contents/--toc` will always be placed at the end of
+      the document.
+    - Certain characters (e.g. Greek characters) may be dropped in
+      the PDF outline.
+
+  * Text.Pandoc.Writers.Shared:
+
+    + Export `surroundInlines` [API change].
+    + Rename `surroundInlines` -> `delimited`.
+    + New version of `gridTable` (#6344) [API change]. This
+      handles row and colspans. It also ensures that cells won't
+      wrap text in places where it wouldn't normally wrap, even
+      if this means making the cells wider than requested by the
+      colspec (#9001, #7641). Because the parameters are
+      different, this is a breaking API change.
+
+  * Text.Pandoc.App: set `pdf-engine` variable.
+    If `--pdf-engine` is specified or if a PDF is being produced, we set the
+    `pdf-engine` variable. This allows writers and templates to behave
+    differently depending on the PDF engine.
+
+  * Text.Pandoc.Class and Text.Pandoc.URI:
+
+    + Fix parsing of base64 data URIs to allow URI escapes and
+      whitespace (which will be ignored) (#10704).
+    + Handle percent encoding in `pBase64URI` instead of
+      unescaping later, for efficiency (#10704).
+
+  * Text.Pandoc.Citeproc.BibTeX:
+
+    + Recognize `en` as a `langid` in biblatex bibliographies (#10764).
+
+  * Text.Pandoc.MIME:
+
+    + Add mime type and extension for `avif` (#10704).
+    + Handle `apng`, `avif`, `jxl` (#10704).
+
+  * Text.Pandoc.Readers.LaTeX.Math: export `inlineEnvironmentNames`.
+    Internal module, not a change to the public API.
+
+  * `reference.docx` (Andrew Dunning):
+
+    + Remove extra spaces around text placeholders.
+    + Add footnote block text sample.
+
+  * Text.Pandoc.Class.Sandbox:
+
+    + Add `sandboxWithFileTree` function [API change] (Albert Krewinkel).
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + pandoc-lua-engine: add all test files to the cabal file.
+    + Allow `pandoc.read` to be called in "sandbox" mode for added
+      security (#10831). Readers running in a sandbox will not be
+      able to access the network or file system. The sandbox is
+      enabled if the fourth parameter is a list of files or
+      filename/content pairs. The files are read and then made
+      available in the sandbox via en ersatz file system.
+
+  * Makefile:
+
+    + Add target `release-checkist`.
+    + Install @daisy/ace from npm if not present.
+    + Use pandoc lua instead of lua.
+    + Fix typo in `latex-package-dependencies` target.
+    + Use `jq` instead of `json_reformat` in `validate-docx-golden-tests2`.
+
+  * NiX infrastructure: new working `flake.nix` and simpler `shell.nix`.
+    Removed old `default.nix`.
+
+  * Require random >= 1.3 and use `splitGen`. `split` has been deprecated.
+
+  * Use citeproc-0.9. Bump citeproc bounds for pandoc, pandoc-lua-engine.
+
+  * Use texmath-0.12.10.1.
+
+  * Use released typst 0.8 (partially supporting typst 0.13).
+
+  * Use citeproc 0.9.0.1.
+
+  * MANUAL.txt:
+
+    + Fix default URL for revealjs.
+    + Add note that `alerts` extension only works with commonmark (#9716).
+    + Remove "Body Text Char" from list of Word styles that can be customized
+      using a reference.docx (#10646). This doesn't seem to be present in
+      pandoc-generated docx files, nor is it a Word default.
+    + For pandoc lua, add note about the environment.
+    + Improve documentation of `--variable` option.
+
+  * `doc/typst-property-output.md`: Mention that `typst:no-figure` is a
+    class, not an attribute (#10826, Niklas Eicker).
+
+  * Change RELEASE-CHECKLIST to RELEASE-CHECKLIST-TEMPLATE.org. Use org-babel
+    to automate many of the steps of the release.
+
+  * INSTALL.md: update MacPorts information (#10719, Mohamed Akram).
+
+  * COPYRIGHT: fix link to source code.
+
+  * CONTRIBUTING.md: Fix link to discussion forum. (#10834, R. N. West).
+
 ## pandoc 3.6.4 (2025-03-16)
 
   * Disable `citations` extension in writers if `--citeproc` is used (#10662).
