@@ -3772,17 +3772,11 @@ Parameters:
     documented in the manual. ([ReaderOptions]|table)
 
 `read_env`
-:   which environment the reader operates in: Possible values
-    are:
-
-    - 'io' is the default and gives the behavior described above.
-    - 'global' uses the same environment that was used to read
-      the input files; the parser has full access to the
-      file-system and the mediabag.
-    - 'sandbox' works like 'global' and give the parser access to
-      the mediabag, but prohibits file-system access.
-
-    Defaults to `'io'`. (string)
+:   If the value is not given or `nil`, then the global
+    environment is used. Passing a list of filenames causes the
+    reader to be run in a sandbox. The given files are read from
+    the file system and provided to the sandbox in a ersatz file
+    system.
 
 Returns: pandoc document ([Pandoc](#type-pandoc))
 
