@@ -238,7 +238,6 @@ functions =
   , defun "read"
     ### (\content mformatspec mreaderOptions mreadEnv -> do
             let readerOpts = fromMaybe def mreaderOptions
-                readEnv    = fromMaybe "global" mreadEnv
 
                 readAction :: PandocMonad m => FlavoredFormat -> m Pandoc
                 readAction flvrd = getReader flvrd >>= \case
@@ -256,11 +255,9 @@ functions =
 
             handle (failLua . show @UnicodeException) . unPandocLua $ do
               flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
-              case readEnv of
-                "global"  -> readAction flvrd
-                "sandbox" -> sandbox [] (readAction flvrd)
-                x         -> throwError $ PandocLuaError
-                             ("unknown read environment: " <> x))
+              case mreadEnv of
+                Nothing    -> readAction flvrd
+                Just files -> sandbox files (readAction flvrd))
     <#> parameter (\idx -> (Left  <$> peekByteString idx)
                        <|> (Right <$> peekSources idx))
           "string|Sources" "content" "text to parse"
@@ -268,18 +265,11 @@ functions =
                        "formatspec" "format and extensions")
     <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
              "reader options")
-    <#> opt (parameter peekText "string" "read_env" $ mconcat
-            [ "which environment the reader operates in: Possible values"
-            , "are:"
-            , ""
-            , "- 'io' is the default and gives the behavior described above."
-            , "- 'global' uses the same environment that was used to read"
-            , "  the input files; the parser has full access to the"
-            , "  file-system and the mediabag."
-            , "- 'sandbox' works like 'global' and give the parser access to"
-            , "  the mediabag, but prohibits file-system access."
-            , ""
-            , "Defaults to `'io'`. (string)"
+    <#> opt (parameter peekReadEnv "table" "read_env" $ mconcat
+            [ "If the value is not given or `nil`, then the global environment "
+            , "is used. Passing a list of filenames causes the reader to be "
+            , "run in a sandbox. The given files are read from the file "
+            , "system and provided to the sandbox in a ersatz file system."
             ])
     =#> functionResult pushPandoc "Pandoc" "result document"
 
@@ -411,3 +401,7 @@ pushPipeError pipeErr = do
           , if output == mempty then BSL.pack "<no output>" else output
           ]
         return (NumResults 1)
+
+-- | Peek the environment in which the `read` function operates.
+peekReadEnv :: LuaError e => Peeker e [FilePath]
+peekReadEnv = peekList peekString
