@@ -53,7 +53,6 @@
 
     + Support `mark` class on spans (#10747).
     + Add equation label if math contains `\label{..}` (#10805).
-    + Handle equation labels with spaces (#10805).
 
   * Roff format writers (man, ms):
 
