@@ -9,19 +9,17 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
-- tls-2.1.7
+- tls-2.1.10
 - skylighting-core-0.14.6
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
-- commonmark-extensions-0.2.6
-- commonmark-pandoc-0.2.3
 - typst-symbols-0.1.8.1
 - texmath-0.12.10.2
 - citeproc-0.9.0.1
 - typst-0.8
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-23.0
+resolver: lts-23.22
 nix:
   packages:
   - pkg-config
