@@ -9,10 +9,7 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
-- tls-2.1.10
-- ech-config-0.0.1
-- hpke-0.0.0
-- random-1.3.1
+- tls-2.1.7
 - skylighting-core-0.14.6
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
