@@ -83,7 +83,7 @@ import Text.Pandoc.Translations (setTranslations)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
--- import Debug.Trace
+import Debug.Trace
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -314,30 +314,46 @@ gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
                  then mempty
                  else setTopBorder DoubleLine . setBottomBorder DoubleLine $
                        footCells)
-  let cellHasColSpan c = cellColSpan c > 1
-  let hasColSpans = any (any cellHasColSpan) rows
-  let isSimple = all ((== ColWidthDefault) . snd) colspecs && not hasColSpans
-  pure $ gridRows $
-    if not hasColSpans  -- TODO: figure out how to calculate widths with colspans
-       then redoWidths isSimple opts rows
-       else rows
+  pure $ gridRows $ redoWidths opts colspecs rows
 
-redoWidths :: Bool -> WriterOptions -> [[RenderedCell Text]] -> [[RenderedCell Text]]
-redoWidths _ _ [] = []
-redoWidths isSimple opts rows@(r:_) =
-  map (\cs -> zipWith resetWidth newwidths cs) rows
+-- Returns (current widths, full widths, min widths)
+extractColWidths :: WriterOptions -> [[RenderedCell Text]] -> ([Int], [Int], [Int])
+extractColWidths opts rows = (currentwidths, fullwidths, minwidths)
  where
-  actualWidths = map cellWidth r
-  fullwidths = calculateFullWidths rows
-  minwidths = case writerWrapText opts of
-                WrapNone -> fullwidths
-                _ -> calculateMinWidths rows
-  totwidth = writerColumns opts - (3 * length r) - 1
-  evenwidth = totwidth `div` length r
-  resetWidth w c = c{ cellWidth = w }
+   getWidths calcOffset =
+     map (fromMaybe 0 . maximumMay) (transpose (map (concatMap (getCellWidths calcOffset)) rows))
+   getCellWidths calcOffset c = replicate (cellColSpan c)
+                                 (calcOffset c `div` (cellColSpan c) +
+                                  calcOffset c `rem` (cellColSpan c))
+   fullwidths = getWidths (offset . cellContents)
+   currentwidths = getWidths cellWidth
+   minwidths =
+     case writerWrapText opts of
+       WrapNone -> fullwidths
+       _ -> getWidths (minOffset . cellContents)
+
+resetWidths :: [Int] -> [RenderedCell Text] -> [RenderedCell Text]
+resetWidths _ [] = []
+resetWidths [] cs = cs
+resetWidths (w:ws) (c:cs) =
+  case cellColSpan c of
+    1 -> c{ cellWidth = w } : resetWidths ws cs
+    n | n < 1 -> c : resetWidths ws cs
+      | otherwise -> c{ cellWidth = sum (take n ws) + (3 * (n - 1)) }
+                               : resetWidths (drop n ws) cs
+
+redoWidths :: WriterOptions -> [ColSpec] -> [[RenderedCell Text]] -> [[RenderedCell Text]]
+redoWidths _ _ [] = []
+redoWidths opts colspecs rows = map (resetWidths newwidths) rows
+ where
+  numcols = length colspecs
+  isSimple = all ((== ColWidthDefault) . snd) colspecs
+  (actualwidths, fullwidths, minwidths) = extractColWidths opts rows
+  totwidth = writerColumns opts - (3 * numcols) - 1
+  evenwidth = totwidth `div` numcols + totwidth `rem` numcols
   keepwidths = filter (< evenwidth) fullwidths
   evenwidth' = (totwidth - sum keepwidths) `div`
-                (length r - length keepwidths)
+                (numcols - length keepwidths)
   ensureMinWidths = zipWith max minwidths
   newwidths = ensureMinWidths $
               case isSimple of
@@ -345,18 +361,7 @@ redoWidths isSimple opts rows@(r:_) =
                      | otherwise -> map (\w -> if w < evenwidth
                                                   then w
                                                   else evenwidth') fullwidths
-                False -> actualWidths
-
--- Returns for each column a pair (full width, min width)
-calculateFullWidths :: [[RenderedCell Text]] -> [Int]
-calculateFullWidths rows =
-  map (fromMaybe 0 . maximumMay) (transpose (map (map (\c ->
-         offset (cellContents c))) rows))
-
-calculateMinWidths :: [[RenderedCell Text]] -> [Int]
-calculateMinWidths rows =
-  map (fromMaybe 0 . maximumMay) (transpose (map (map (\c ->
-         minOffset (cellContents c))) rows))
+                False -> actualwidths
 
 makeDummy :: [Int] -> Int -> Int -> RenderedCell Text
 makeDummy widths n len =
@@ -366,7 +371,6 @@ makeDummy widths n len =
                 cellAlign = AlignDefault,
                 cellRowSpan = 0, -- indicates dummy
                 cellWidth = width,
-                cellHeight = 0,
                 cellContents = mempty,
                 cellBottomBorder = NoLine,
                 cellTopBorder = NoLine }
@@ -465,7 +469,6 @@ data RenderedCell a =
               , cellAlign :: Alignment
               , cellRowSpan :: Int
               , cellWidth :: Int
-              , cellHeight :: Int
               , cellContents :: Doc a
               , cellBottomBorder :: LineStyle
               , cellTopBorder :: LineStyle
@@ -498,7 +501,6 @@ gridRow opts blocksToDoc = mapM renderCell
                          cellAlign = align,
                          cellRowSpan = rowspan,
                          cellWidth = width,
-                         cellHeight = height rendered,
                          cellContents = rendered,
                          cellBottomBorder = if rowspan < 2
                                                then SingleLine
