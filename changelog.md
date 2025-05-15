@@ -68,7 +68,8 @@
 
   * Docx writer:
 
-    + Ensure that figures and tables with custom styles are not dropped (#10705).
+    + Ensure that figures and tables with custom styles are not dropped
+      (#10705).
     + Preserve Relationships for images from reference docx (#10759).
       This should allow one to include an image in a reference.docx and
       reference it in an openxml template.
@@ -136,14 +137,15 @@
       and that could lead to information loss. This was particularly noticeable
       for inline math environments such as `equation`.  Previously, an
       `equation` environment starting at the beginning of a line would create
-      a raw block, splitting up the paragraph containing it (see #10836). On the
-      other hand, an `equation` environment not at the beginning of a line would
-      be turned into regular inline elements representing the math. (This would
-      cause the equation number to go missing and in some cases degrade the math
-      formatting.) Now, we parse all of these as raw "latex"
-      inlines, which will be omitted when converting to formats
-      other than LaTeX (and other formats like pandoc's Markdown
-      that allow raw LaTex).
+      a raw block, splitting up the paragraph containing it (see
+      #10836). On the other hand, an `equation` environment not
+      at the beginning of a line would be turned into regular
+      inline elements representing the math. (This would cause
+      the equation number to go missing and in some cases degrade
+      the math formatting.) Now, we parse all of these as raw
+      "latex" inlines, which will be omitted when converting to
+      formats other than LaTeX (and other formats like pandoc's
+      Markdown that allow raw LaTex).
 
   * Beamer template: fix regression in 3.6.4, reverting the omission of
     `\date` when the document does not have a date. By default, beamer
@@ -159,7 +161,7 @@
 
     + Use T rather than P as default font family (#10738).
     + Put PDF-specific things under a conditional.
-      Don't inculde them if `pdf-engine` isn't set.
+      Don't include them if `pdf-engine` isn't set.
 
   * Upgrade reveal.js URL to v5 (#10740, Kolen Cheung).
     v4 is no longer available on unpkg.com.
