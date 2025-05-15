@@ -77,7 +77,7 @@ authors:  ## prints unique authors since last released version
 	git log --pretty=format:"%an" $$(git tag -l | grep '[^0-9]' | sort | tail -1)..HEAD | sort | uniq | while read -r; do grep -i -q "^- $$REPLY" AUTHORS.md || echo $$REPLY ; done
 
 check-stack:
-	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
+	$$HOME/.local/bin/stack-lint-extra-deps # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
 .PHONY: check-stack
 
@@ -104,7 +104,7 @@ check-version-sync:
 
 check-changelog:
 	@echo "Checking for changelog entry for this version"
-	grep '## pandoc $(VERSION) (\d\d\d\d-\d\d-\d\d)' changelog.md
+	rg '## pandoc $(VERSION) \(\d\d\d\d-\d\d-\d\d\)' changelog.md
 .PHONY: check-changelog
 
 check-manversion:
@@ -116,7 +116,7 @@ check-manversion:
 
 checkdocs:
 	@echo "Checking for tabs in manual."
-	! grep -q -n -e "\t" \
+	! rg -n -e '\t' \
 	   MANUAL.txt changelog.md doc/pandoc-server.md doc/pandoc-lua.md
 .PHONY: checkdocs
 
