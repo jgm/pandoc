@@ -26,7 +26,7 @@ make man
 git log $(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'  * %s%n    %aN%n%w(78,4,4)%b' | sed -e '/^ *John MacFarlane$/d' | sed -e 's/  *$//'
 #+end_src
 *** TODO prerelease checks
-#+begin_src sh
+#+begin_src sh :results output verbatim
 make prerelease
 #+end_src
 *** TODO Update [[./AUTHORS.md]]
