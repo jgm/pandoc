@@ -83,7 +83,7 @@ import Text.Pandoc.Translations (setTranslations)
 import Data.Maybe (fromMaybe)
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
-import Debug.Trace
+-- import Debug.Trace
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -339,8 +339,8 @@ resetWidths (w:ws) (c:cs) =
   case cellColSpan c of
     1 -> c{ cellWidth = w } : resetWidths ws cs
     n | n < 1 -> c : resetWidths ws cs
-      | otherwise -> c{ cellWidth = sum (take n ws) + (3 * (n - 1)) }
-                               : resetWidths (drop n ws) cs
+      | otherwise -> c{ cellWidth = sum (take (n - 1) ws) + (3 * (n - 1)) + 1 }
+                               : resetWidths (drop (n - 1) ws) cs
 
 redoWidths :: WriterOptions -> [ColSpec] -> [[RenderedCell Text]] -> [[RenderedCell Text]]
 redoWidths _ _ [] = []
@@ -380,8 +380,8 @@ addDummies widths = reverse . snd . foldl' addDummy (0,[])
  where
    addDummy (i,cs) c =
      case cellColNum c - i of
-       0 -> (i+1, c:cs)
-       len -> (cellColNum c + 1, c : makeDummy widths i len : cs)
+       0 -> (cellColNum c + cellColSpan c, c:cs)
+       len -> (cellColNum c + cellColSpan c, c : makeDummy widths i len : cs)
 
 
 setTopBorder :: LineStyle -> [[RenderedCell Text]] -> [[RenderedCell Text]]
