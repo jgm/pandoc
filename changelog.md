@@ -178,8 +178,7 @@
 
   * Text.Pandoc.Writers.Shared:
 
-    + Export `surroundInlines` [API change].
-    + Rename `surroundInlines` -> `delimited`.
+    + Export `delimited` [API change].
     + New version of `gridTable` (#6344) [API change]. This
       handles row and colspans. It also ensures that cells won't
       wrap text in places where it wouldn't normally wrap, even
