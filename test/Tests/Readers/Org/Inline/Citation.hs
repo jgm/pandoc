@@ -201,13 +201,6 @@ tests =
 
   , "LaTeX citation" =:
     "\\cite{Coffee}" =?>
-    let citation = Citation
-                   { citationId = "Coffee"
-                   , citationPrefix = []
-                   , citationSuffix = []
-                   , citationMode = NormalCitation
-                   , citationNoteNum = 0
-                   , citationHash = 0}
-    in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
+      para (rawInline "latex" "\\cite{Coffee}")
 
   ]

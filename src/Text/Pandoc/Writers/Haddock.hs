@@ -125,14 +125,12 @@ blockToHaddock _ (CodeBlock (_,_,_) str) =
 blockToHaddock opts (BlockQuote blocks) =
   blockListToHaddock opts blocks
 blockToHaddock opts (Table _ blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
-  caption' <- inlineListToHaddock opts caption
+  let Caption _ caption = blkCapt
+  caption' <- blockListToHaddock opts caption
   let caption'' = if null caption
                      then empty
                      else blankline <> caption' <> blankline
-  tbl <- gridTable opts blockListToHaddock
-              (all null headers) (map (const AlignDefault) aligns)
-                widths headers rows
+  tbl <- gridTable opts blockListToHaddock specs thead tbody tfoot
   return $ (tbl $$ blankline $$ caption'') $$ blankline
 blockToHaddock opts (BulletList items) = do
   contents <- mapM (bulletListItemToHaddock opts) items

@@ -17,8 +17,9 @@ module Text.Pandoc.Lua.Module.Pandoc
 
 import Prelude hiding (read)
 import Control.Applicative ((<|>))
-import Control.Monad (forM_, when)
+import Control.Monad (foldM, forM_, when)
 import Control.Monad.Catch (catch, handle, throwM)
+import Control.Monad.Except (MonadError (throwError))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
@@ -26,9 +27,13 @@ import Data.Proxy (Proxy (Proxy))
 import Data.Text.Encoding.Error (UnicodeException)
 import HsLua
 import System.Exit (ExitCode (..))
+import Text.Pandoc.Class ( PandocMonad, FileInfo (..), FileTree
+                         , addToFileTree, getCurrentTime
+                         , insertInFileTree, sandboxWithFileTree
+                         )
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
-import Text.Pandoc.Format (parseFlavoredFormat)
+import Text.Pandoc.Format (FlavoredFormat, parseFlavoredFormat)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Format (peekFlavoredFormat)
@@ -234,22 +239,28 @@ functions =
     =?> "output string, or error triple"
 
   , defun "read"
-    ### (\content mformatspec mreaderOptions ->
-          handle (failLua . show @UnicodeException) . unPandocLua $ do
-            flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
+    ### (\content mformatspec mreaderOptions mreadEnv -> do
             let readerOpts = fromMaybe def mreaderOptions
-            getReader flvrd >>= \case
-              (TextReader r, es)       ->
-                 r readerOpts{readerExtensions = es}
-                   (case content of
+
+                readAction :: PandocMonad m => FlavoredFormat -> m Pandoc
+                readAction flvrd = getReader flvrd >>= \case
+                  (TextReader r, es)       ->
+                    r readerOpts{readerExtensions = es} $
+                    case content of
                       Left bs       -> toSources $ UTF8.toText bs
-                      Right sources -> sources)
-              (ByteStringReader r, es) ->
-                 case content of
-                   Left bs -> r readerOpts{readerExtensions = es}
-                                (BSL.fromStrict bs)
-                   Right _ -> throwM $ PandocLuaError
-                              "Cannot use bytestring reader with Sources")
+                      Right sources -> sources
+                  (ByteStringReader r, es) ->
+                    case content of
+                      Left bs -> r readerOpts{readerExtensions = es}
+                                 (BSL.fromStrict bs)
+                      Right _ -> throwError $ PandocLuaError
+                                 "Cannot use bytestring reader with Sources"
+
+            handle (failLua . show @UnicodeException) . unPandocLua $ do
+              flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
+              case mreadEnv of
+                Nothing   -> readAction flvrd
+                Just tree -> sandboxWithFileTree tree (readAction flvrd))
     <#> parameter (\idx -> (Left  <$> peekByteString idx)
                        <|> (Right <$> peekSources idx))
           "string|Sources" "content" "text to parse"
@@ -257,6 +268,15 @@ functions =
                        "formatspec" "format and extensions")
     <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
              "reader options")
+    <#> opt (parameter peekReadEnv "table" "read_env" $ T.unlines
+            [ "If the value is not given or `nil`, then the global environment"
+            , "is used. Passing a list of filenames causes the reader to"
+            , "be run in a sandbox. The given files are read from the file"
+            , "system and provided to the sandbox via an ersatz file system."
+            , "The table can also contain mappings from filenames to"
+            , "contents, which will be used to populate the ersatz file"
+            , "system."
+            ])
     =#> functionResult pushPandoc "Pandoc" "result document"
 
   , sha1
@@ -387,3 +407,24 @@ pushPipeError pipeErr = do
           , if output == mempty then BSL.pack "<no output>" else output
           ]
         return (NumResults 1)
+
+-- | Peek the environment in which the `read` function operates.
+peekReadEnv :: Peeker PandocError FileTree
+peekReadEnv idx = do
+  mtime <- liftLua . unPandocLua $ getCurrentTime
+
+  -- Add files from file system
+  files <- peekList peekString idx
+  tree1 <- liftLua $
+           foldM (\tree fp -> liftIO $ addToFileTree tree fp) mempty files
+
+  -- Add files from key-value pairs
+  let toFileInfo contents = FileInfo
+        { infoFileMTime = mtime
+        , infoFileContents = contents
+        }
+  pairs <- peekKeyValuePairs peekString (fmap toFileInfo . peekByteString) idx
+  let tree2 = foldr (uncurry insertInFileTree) tree1 pairs
+
+  -- Return ersatz file system.
+  pure tree2

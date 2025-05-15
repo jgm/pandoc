@@ -169,26 +169,24 @@ tests =
       rawBlock "html" "<samp>Hello, World!</samp>\n"
 
     , "LaTeX fragment" =:
-      T.unlines [ "\\begin{equation}"
-                , "X_i = \\begin{cases}"
-                , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) = \\alpha(i)\\\\"
-                , "      C_{\\alpha(i)} & \\text{otherwise}"
-                , "      \\end{cases}"
-                , "\\end{equation}"
-                ] =?>
-      rawBlock "latex"
-      (T.unlines [ "\\begin{equation}"
-               , "X_i = \\begin{cases}"
-               , "      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) =" <>
-                 " \\alpha(i)\\\\"
-               , "      C_{\\alpha(i)} & \\text{otherwise}"
-               , "      \\end{cases}"
-               , "\\end{equation}"
-               ])
+      "\\begin{equation}\n\
+      \X_i = \\begin{cases}\n\
+      \      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) = \\alpha(i)\\\\\n\
+      \      C_{\\alpha(i)} & \\text{otherwise}\n\
+      \      \\end{cases}\n\
+      \\\end{equation}"
+      =?>
+      para (rawInline "latex"
+             "\\begin{equation}\n\
+             \X_i = \\begin{cases}\n\
+             \      G_{\\alpha(i)} & \\text{if }\\alpha(i-1) = \\alpha(i)\\\\\n\
+             \      C_{\\alpha(i)} & \\text{otherwise}\n\
+             \      \\end{cases}\n\
+             \\\end{equation}")
 
     , "One-line LaTeX fragment" =:
       "\\begin{equation} 2 + 3 \\end{equation}" =?>
-      rawBlock "latex" "\\begin{equation} 2 + 3 \\end{equation}\n"
+      para (rawInline "latex" "\\begin{equation} 2 + 3 \\end{equation}")
 
     , "LaTeX fragment with more arguments" =:
       T.unlines [ "\\begin{tikzcd}[ampersand replacement=\\&]"

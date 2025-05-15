@@ -26,7 +26,7 @@ tests :: FilePath -> [TestTree]
 tests pandocPath =
   [ testGroup "markdown"
     [ testGroup "writer"
-      $ writerTests' "markdown" ++ lhsWriterTests' "markdown"
+      $ writerTests' "markdown" ++ lhsWriterTests' "markdown" ++ extWriterTests' "markdown"
     , testGroup "reader"
       [ test' "basic" ["-r", "markdown", "-w", "native", "-s"]
         "testsuite.txt" "testsuite.native"

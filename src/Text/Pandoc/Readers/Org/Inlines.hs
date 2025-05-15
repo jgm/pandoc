@@ -808,16 +808,20 @@ inlineLaTeX = try $ do
   allowEntities <- getExportSetting exportWithEntities
   ils <- parseAsInlineLaTeX cmd texOpt
   maybe mzero returnF $
-     parseAsMathMLSym allowEntities cmd `mplus`
-     parseAsMath cmd texOpt `mplus`
-     ils
+    if "\\begin{" `T.isPrefixOf` cmd
+       then ils
+       else parseAsMathMLSym allowEntities cmd `mplus`
+            parseAsMath cmd texOpt `mplus`
+            ils
  where
    parseAsInlineLaTeX :: PandocMonad m
                       => Text -> TeXExport -> OrgParser m (Maybe Inlines)
    parseAsInlineLaTeX cs = \case
-     TeXExport -> maybeRight <$> runParserT inlineCommand state "" (toSources cs)
+     TeXExport -> maybeRight <$> runParserT
+                  (B.rawInline "latex" . snd <$> withRaw inlineCommand)
+                  state "" (toSources cs)
      TeXIgnore -> return (Just mempty)
-     TeXVerbatim -> return (Just $ B.str cs)
+     TeXVerbatim -> return (Just $ B.text cs)
 
    parseAsMathMLSym :: Bool -> Text -> Maybe Inlines
    parseAsMathMLSym allowEntities cs = do

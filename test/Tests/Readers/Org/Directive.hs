@@ -188,7 +188,7 @@ tests =
           T.unlines [ "#+OPTIONS: tex:t"
                     , "Hello \\emph{Name}"
                     ] =?>
-          para ("Hello" <> space <> emph "Name")
+          para ("Hello" <> space <> rawInline "latex" "\\emph{Name}")
 
         , "Alpha" =:
           T.unlines [ "#+OPTIONS: tex:t"
@@ -197,15 +197,15 @@ tests =
           para "α"
 
         , "equation environment" =:
-          T.unlines [ "#+OPTIONS: tex:t"
-                    , "\\begin{equation}"
-                    , "f(x) = x^2"
-                    , "\\end{equation}"
-                    ] =?>
-          rawBlock "latex" (T.unlines [ "\\begin{equation}"
-                                      , "f(x) = x^2"
-                                      , "\\end{equation}"
-                                      ])
+          "#+OPTIONS: tex:t\n\
+          \\\begin{equation}\n\
+          \f(x) = x^2\n\
+          \\\end{equation}"
+          =?>
+          para (rawInline "latex"
+                 "\\begin{equation}\n\
+                 \f(x) = x^2\n\
+                 \\\end{equation}")
         ]
 
       , testGroup "Ignore LaTeX fragments"
@@ -227,7 +227,7 @@ tests =
                     , "f(x) = x^2"
                     , "\\end{equation}"
                     ] =?>
-          (mempty :: Blocks)
+          (para mempty)
         ]
 
       , testGroup "Verbatim LaTeX"

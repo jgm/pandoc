@@ -329,7 +329,8 @@ blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
 blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  let (caption, aligns, widths, headers, rows) =
+        toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
          oldOpts <- gets stOptions
@@ -338,9 +339,8 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
          modify $ \st -> st{ stOptions = oldOpts }
          return result
   opts <- gets stOptions
-  let renderGrid = gridTable opts blocksToDoc (all null headers)
-                    (map (const AlignDefault) aligns) widths
-                    headers rows
+  let specs' = map (\(_,width) -> (AlignDefault, width)) specs
+      renderGrid = gridTable opts blocksToDoc specs' thead tbody tfoot
       isSimple = all (== 0) widths && length widths > 1
       renderSimple = do
         tbl' <- simpleTable opts blocksToDoc headers rows

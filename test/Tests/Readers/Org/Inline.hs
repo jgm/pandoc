@@ -342,7 +342,7 @@ tests =
 
   , "Inline LaTeX command with spaces" =:
       "\\emph{Emphasis mine}" =?>
-      para (emph "Emphasis mine")
+      para (rawInline "latex" "\\emph{Emphasis mine}")
 
   , "Inline math symbols" =:
       "\\tau \\oplus \\alpha" =?>

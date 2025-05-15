@@ -537,7 +537,7 @@ inlineToMarkdown opts (Math DisplayMath str) = do
                         (url <> urlEncode str', str'))
           _ | isEnabled Ext_tex_math_gfm opts ->
                 return $ cr <> (literal "``` math"
-                             $$ literal str
+                             $$ literal (T.dropAround (=='\n') str)
                              $$ literal "```") <> cr
             | isEnabled Ext_tex_math_dollars opts ->
                 return $ delimited "$$" "$$" (literal str)

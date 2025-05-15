@@ -26,7 +26,7 @@ make man
 git log $(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'  * %s%n    %aN%n%w(78,4,4)%b' | sed -e '/^ *John MacFarlane$/d' | sed -e 's/  *$//'
 #+end_src
 *** TODO prerelease checks
-#+begin_src sh
+#+begin_src sh :results output verbatim
 make prerelease
 #+end_src
 *** TODO Update [[./AUTHORS.md]]
@@ -84,7 +84,14 @@ git push
 git push --tags
 popd
 #+end_src
-*** TODO Copy deb to server, install it
+*** TODO Copy binary to server, install it
+#+begin_src
+# example:
+cd 3.7
+tar xvzf pandoc-3.7-linux-amd64.tar.gz
+scp pandoc-3.7/bin/pandoc website:cgi-bin/pandoc-server.cgi
+#+end_src
+
 *** TODO create release announcement and add to GH release announcement
 #+NAME: relann
 #+begin_src elisp :results value file :file relann-RELEASE_VERSION

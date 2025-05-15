@@ -246,6 +246,7 @@
 - Lucas V. R
 - Luis Rivera
 - Luke Plant
+- Manolis Stamatogiannakis
 - Marc Schreiber
 - Marcin Serwin
 - Mario Lang
@@ -287,6 +288,7 @@
 - Mikołaj Machowski
 - Milan Bracke
 - MinRK
+- Mohamed Akram
 - Morgan Willcock
 - Morton Fox
 - Nathan Gass
@@ -296,6 +298,7 @@
 - Nick Berendsen
 - Nick Fleisher
 - Nicolas Kaiser
+- Niklas Eicker
 - Nikolai Korobeinikov
 - Nikolay Yakimov
 - Nils Carlson

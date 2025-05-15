@@ -246,7 +246,7 @@ blockToDocBook opts (Para lst)
                         <$> inlinesToDocBook opts lst
   | otherwise         = inTagsIndented "para" <$> inlinesToDocBook opts lst
 blockToDocBook opts (LineBlock lns) =
-  blockToDocBook opts $ linesToPara lns
+  inTags False "literallayout" [] . vcat <$> mapM (inlinesToDocBook opts) lns
 blockToDocBook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" <$> blocksToDocBook opts blocks
 blockToDocBook opts (CodeBlock (_,classes,_) str) = return $
