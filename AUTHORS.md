@@ -297,7 +297,7 @@
 - Nick Bart
 - Nick Berendsen
 - Nick Fleisher
-- Nicolas Kaise
+- Nicolas Kaiser
 - Niklas Eicker
 - Nikolai Korobeinikov
 - Nikolay Yakimov
