@@ -376,8 +376,13 @@ makeDummy widths n len =
                 cellTopBorder = NoLine }
 
 addDummies :: [Int] -> [RenderedCell Text] -> [RenderedCell Text]
-addDummies widths = reverse . snd . foldl' addDummy (0,[])
+addDummies widths cells =
+  reverse $ (case numcols - i' of
+               0 -> id
+               n -> (makeDummy widths i' n:)) $ cs'
  where
+   (i',cs') = foldl' addDummy (0,[]) cells
+   numcols = length widths
    addDummy (i,cs) c =
      case cellColNum c - i of
        0 -> (cellColNum c + cellColSpan c, c:cs)
@@ -433,37 +438,33 @@ gridRows (x:xs) =
                             else literal $ T.zipWith go border1 border2
     in formatRow thisRow $$ combinedBorder
 
-
-formatBorder :: (RenderedCell Text -> LineStyle) -> Bool -> [RenderedCell Text]
+formatBorder :: (RenderedCell a -> LineStyle) -> Bool -> [RenderedCell a]
              -> Doc Text
-formatBorder _ _alignMarkers [] = mempty
-formatBorder borderStyle alignMarkers (c:cs)
-  | borderStyle c == NoLine
-    = openpipe <> text (replicate (cellWidth c + 2) ' ') <> closepipe <>
-      formatBorder borderStyle alignMarkers cs
-  | otherwise
-    = openplus <> leftalign <> underline <> rightalign <> closeplus <>
-      formatBorder borderStyle alignMarkers cs
-  where
-
-    openpipe = "|"
-    closepipe = if null cs then "|" else mempty
-    openplus = "+"
-    closeplus = if null cs
-                   then "+"
-                   else mempty
-    lineChar = case borderStyle c of
-                 NoLine -> ' '
-                 SingleLine -> '-'
-                 DoubleLine -> '='
-    (leftalign, rightalign) =
-       case cellAlign c of
-         _ | not alignMarkers -> (char lineChar,char lineChar)
-         AlignLeft -> (char ':',char lineChar)
-         AlignCenter -> (char ':',char ':')
-         AlignRight -> (char lineChar,char ':')
-         AlignDefault -> (char lineChar,char lineChar)
-    underline = text (replicate (cellWidth c) lineChar)
+formatBorder borderStyle alignMarkers cs =
+  borderParts <> if lastBorderStyle == NoLine
+                            then char '|'
+                            else char '+'
+ where
+   (lastBorderStyle, borderParts) = foldl' addBorder (NoLine, mempty) cs
+   addBorder (prevBorderStyle, accum) c =
+     (borderStyle c, accum <> char junctionChar <> toBorderSection c)
+      where junctionChar = case (borderStyle c, prevBorderStyle) of
+                               (NoLine, NoLine) -> '|'
+                               _ -> '+'
+   toBorderSection c =
+       text $ leftalign : replicate (cellWidth c) lineChar ++ [rightalign]
+     where
+       lineChar = case borderStyle c of
+                     NoLine -> ' '
+                     SingleLine -> '-'
+                     DoubleLine -> '='
+       (leftalign, rightalign) =
+           case cellAlign c of
+             _ | not alignMarkers -> (lineChar,lineChar)
+             AlignLeft -> (':',lineChar)
+             AlignCenter -> (':',':')
+             AlignRight -> (lineChar,':')
+             AlignDefault -> (lineChar,lineChar)
 
 data LineStyle = NoLine | SingleLine | DoubleLine
     deriving (Show, Ord, Eq)
