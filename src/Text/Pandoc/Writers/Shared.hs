@@ -304,7 +304,8 @@ gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
   headCells <- renderRows (getHeadRows thead)
   let getFootRows (Ann.TableFoot _ xs) = map getHeadCells xs
   footCells <- renderRows (getFootRows tfoot)
-  let getBodyCells (Ann.BodyRow _ _ _ cells) = cells
+  -- We don't distinguish between row head and regular cells here:
+  let getBodyCells (Ann.BodyRow _ _ rhcells cells) = rhcells ++ cells
   let getBody (Ann.TableBody _ _ hs xs) = map getHeadCells hs <> map getBodyCells xs
   bodyCells <- mapM (renderRows . getBody) tbodies
   let rows = setTopBorder SingleLine headCells ++
