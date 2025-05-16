@@ -420,8 +420,13 @@ gridRows (x:xs) =
         border2 = render Nothing (formatBorder cellTopBorder False nextRow)
         go '+' _ = '+'
         go _ '+' = '+'
+        go '|' '-' = '+'
+        go '-' '|' = '+'
+        go '|' '=' = '+'
+        go '=' '|' = '+'
         go '=' _ = '='
         go _ '=' = '='
+        go ' ' d = d
         go c _   = c
         combinedBorder = if isLastRow
                             then literal border1
