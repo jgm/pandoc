@@ -233,6 +233,9 @@ tests =
     , "paragraph with wrapper and other attributes" =:
       divWith ("mypara", ["important"], [("wrapper", "1"), ("data-value", "123")]) (para (text "This is a paragraph."))
       =?> "<p id=\"mypara\" class=\"important\" data-value=\"123\">This is a paragraph.</p>"
+    , "paragraph with wrapper and align" =:
+      divWith ("mypara", [], [("wrapper", "1"), ("align", "center")]) (para (text "Aligned paragraph."))
+      =?> "<p id=\"mypara\" align=\"center\">Aligned paragraph.</p>"
     ]
   ]
   where
