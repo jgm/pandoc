@@ -1,5 +1,14 @@
 # Revision history for pandoc
 
+## pandoc 3.7.0.1 (2025-05-16)
+
+  * Text.Pandoc.Shared.Writer:  Fix numerous problems with `gridTable` and add
+    tests (#10848).  These fixes affect the Markdown, RST, and Muse writers.
+
+  * Fix context writer/template to produce tagged PDFs (#10846).
+    As before, the `tagging` extension must be enabled.
+    We now add the command that tells ConTeXt to start tagging.
+
 ## pandoc 3.7 (2025-05-14)
 
   * Add new command-line option `--variable-json` (#10341).
