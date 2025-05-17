@@ -51,7 +51,7 @@ module Text.Pandoc.Writers.Shared (
                      , delimited
                      )
 where
-import Safe (lastMay, maximumMay, atDef)
+import Safe (lastMay, maximumMay)
 import qualified Data.ByteString.Lazy as BL
 import Control.Monad (MonadPlus, mzero)
 import Data.Either (isRight)
@@ -297,8 +297,7 @@ gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
   let Ann.Table _ _ colspecs thead tbodies tfoot =
         Ann.toTable mempty (Caption Nothing mempty)
                     colspecs' thead' tbodies' tfoot'
-  let widths = map (toCharWidth opts . getColWidth) colspecs
-  let renderRows = fmap (map (addDummies widths)) . mapM (gridRow opts blocksToDoc)
+  let renderRows = fmap addDummies . mapM (gridRow opts blocksToDoc)
   let getHeadCells (Ann.HeaderRow _ _ cells) = cells
   let getHeadRows (Ann.TableHead _ rs) = map getHeadCells rs
   headCells <- renderRows (getHeadRows thead)
@@ -340,7 +339,7 @@ resetWidths (w:ws) (c:cs) =
   case cellColSpan c of
     1 -> c{ cellWidth = w } : resetWidths ws cs
     n | n < 1 -> c : resetWidths ws cs
-      | otherwise -> c{ cellWidth = sum (take (n - 1) ws) + (3 * (n - 1)) + 1 }
+      | otherwise -> c{ cellWidth = w + sum (take (n - 1) ws) + (3 * (n-1)) }
                                : resetWidths (drop (n - 1) ws) cs
 
 redoWidths :: WriterOptions -> [ColSpec] -> [[RenderedCell Text]] -> [[RenderedCell Text]]
@@ -364,31 +363,49 @@ redoWidths opts colspecs rows = map (resetWidths newwidths) rows
                                                   else evenwidth') fullwidths
                 False -> actualwidths
 
-makeDummy :: [Int] -> Int -> Int -> RenderedCell Text
-makeDummy widths n len =
- let width = atDef 0 widths n
- in RenderedCell{ cellColNum = n,
-                cellColSpan = len,
-                cellAlign = AlignDefault,
-                cellRowSpan = 0, -- indicates dummy
-                cellWidth = width,
-                cellContents = mempty,
-                cellBottomBorder = NoLine,
-                cellTopBorder = NoLine }
+makeDummy :: RenderedCell Text -> RenderedCell Text
+makeDummy c =
+    RenderedCell{ cellColNum = cellColNum c,
+                  cellColSpan = cellColSpan c,
+                  cellAlign = AlignDefault,
+                  cellRowSpan = cellRowSpan c - 1,
+                  cellWidth = cellWidth c,
+                  cellContents = mempty,
+                  cellBottomBorder = NoLine,
+                  cellTopBorder = NoLine }
 
-addDummies :: [Int] -> [RenderedCell Text] -> [RenderedCell Text]
-addDummies widths cells =
+addDummies :: [[RenderedCell Text]] -> [[RenderedCell Text]]
+addDummies = reverse . foldl' go []
+ where
+   go [] cs = [cs]
+   go (prevRow:rs) cs = addDummiesToRow prevRow cs : prevRow : rs
+   addDummiesToRow [] cs = cs
+   addDummiesToRow ds [] = map makeDummy ds
+   addDummiesToRow (d:ds) (c:cs) =
+     if cellColNum d < cellColNum c
+        then makeDummy d : addDummiesToRow ds (c:cs)
+        else c : addDummiesToRow
+                   (dropWhile (\x ->
+                       cellColNum x < cellColNum c + cellColSpan c) (d:ds))
+                   cs
+
+{-
   reverse $ (case numcols - i' of
                0 -> id
-               n -> (makeDummy widths i' n:)) $ cs'
+               -- TODO this is wrong; it assumes that the row span
+               -- above covers ALL the relevant columns. We need
+               -- to pay attention to the details of the row above
+               -- so we get the borders right.
+               -- TODO the 2 parameter is a placeholder
+               n -> (makeDummy widths i' n 2 :)) cs'
  where
    (i',cs') = foldl' addDummy (0,[]) cells
    numcols = length widths
    addDummy (i,cs) c =
      case cellColNum c - i of
        0 -> (cellColNum c + cellColSpan c, c:cs)
-       len -> (cellColNum c + cellColSpan c, c : makeDummy widths i len : cs)
-
+       len -> (cellColNum c + cellColSpan c, c : makeDummy widths i len 2 : cs)
+-}
 
 setTopBorder :: LineStyle -> [[RenderedCell Text]] -> [[RenderedCell Text]]
 setTopBorder _ [] = []

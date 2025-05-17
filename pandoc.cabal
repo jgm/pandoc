@@ -345,6 +345,7 @@ extra-source-files:
                  test/tables/*.native
                  test/tables/*.mediawiki
                  test/tables/*.jats_archiving
+                 test/tables/*.markdown
                  test/testsuite.txt
                  test/ansi-test.txt
                  test/writer.latex
