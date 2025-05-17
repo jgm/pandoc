@@ -156,6 +156,24 @@ tests = [ testGroup "base tag"
           , test htmlNativeDivs "paragraph without attributes" $
             "<p>This is a normal paragraph.</p>" =?>
             doc (para (text "This is a normal paragraph."))
+          , test htmlNativeDivs "paragraph with align only (center)" $
+            "<p align=\"center\">Aligned paragraph.</p>" =?>
+            doc (divWith ("", [], [("align", "center")]) (para (text "Aligned paragraph.")))
+          , test htmlNativeDivs "paragraph with align only (right)" $
+            "<p align=\"right\">Aligned paragraph.</p>" =?>
+            doc (divWith ("", [], [("align", "right")]) (para (text "Aligned paragraph.")))
+          , test htmlNativeDivs "paragraph with align and id" $
+            "<p id=\"foo\" align=\"left\">Aligned paragraph with id.</p>" =?>
+            doc (divWith ("foo", [], [("wrapper", "1"), ("align", "left")]) (para (text "Aligned paragraph with id.")))
+          , test htmlNativeDivs "paragraph with align and class" $
+            "<p class=\"bar\" align=\"justify\">Aligned paragraph with class.</p>" =?>
+            doc (divWith ("", ["bar"], [("wrapper", "1"), ("align", "justify")]) (para (text "Aligned paragraph with class.")))
+          , test htmlNativeDivs "paragraph with invalid align" $
+            "<p align=\"invalid\">Invalid align.</p>" =?>
+            doc (para (text "Invalid align."))
+          , test htmlNativeDivs "paragraph with invalid align and id" $
+            "<p id=\"baz\" align=\"invalid\">Invalid align with id.</p>" =?>
+            doc (divWith ("baz", [], [("wrapper", "1")]) (para (text "Invalid align with id.")))
           ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
