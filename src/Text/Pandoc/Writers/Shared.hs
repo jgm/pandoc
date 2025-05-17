@@ -325,7 +325,7 @@ extractColWidths opts rows = (currentwidths, fullwidths, minwidths)
    getCellWidths calcOffset c = replicate (cellColSpan c)
                                  (calcOffset c `div` (cellColSpan c) +
                                   calcOffset c `rem` (cellColSpan c))
-   fullwidths = getWidths (offset . cellContents)
+   fullwidths = getWidths (max 1 . offset . cellContents)
    currentwidths = getWidths cellWidth
    minwidths =
      case writerWrapText opts of
@@ -430,9 +430,7 @@ gridRows (x:xs) =
     -- be interpreted as an indented code block...even though it
     -- would look better to right-align right-aligned cells...
     -- (TODO: change this on parsing side?)
-    lblock (case cellWidth c of
-                  0 -> 16 -- TODO arbitrary
-                  w -> w) (cellContents c)
+    lblock (cellWidth c) (cellContents c)
 
   formatRow cs = vfill "| " <>
    hcat (intersperse (vfill " | ") (map renderCellContents cs)) <> vfill " |"
