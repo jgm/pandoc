@@ -12,17 +12,19 @@
         pkgs = nixpkgs.legacyPackages.${system};
 
         haskellPackages = pkgs.haskellPackages;
-
         # Or, override some dependencies as follows:
         # haskellPackages = (pkgs.haskellPackages.override {
         #   all-cabal-hashes = pkgs.fetchurl {
-        #    url = "https://github.com/commercialhaskell/all-cabal-hashes/archive/c10b0447a6de06e7d226477787225fa1136abb95.tar.gz";
-        #    sha256 = "9XkvkmfiRvkqGw9dpgTPXXdjaOQN1W9j1dOEDwUGnwM=";
+        #    # The hash in the URL is just a git commit hash
+        #    url = "https://github.com/commercialhaskell/all-cabal-hashes/archive/2e3f153549871ada6ecbf36719339a5da051bc76.tar.gz";
+        #    sha256 = "ymHZb6wCZlrtKb+T+iOL17jyN8IzA7s52uiamUIkWNI=";
         #   };
         # }).extend(self: super: {
-        #   typst-symbols = self.callHackage "typst-symbols" "0.1.7" {};
-        #   typst = self.callHackage "typst" "0.7" {};
-        #   texmath = self.callHackage "texmath" "0.12.10" {};
+        #   citeproc = pkgs.haskell.lib.dontCheck (self.callHackage "citeproc" "0.9.0.1" {});
+        #   commonmark-pandoc = self.callHackage "commonmark-pandoc" "0.2.3" {};
+        #   typst-symbols = self.callHackage "typst-symbols" "0.1.8.1" {};
+        #   typst = self.callHackage "typst" "0.8" {};
+        #   texmath = self.callHackage "texmath" "0.12.10.2" {};
         #   toml-parser = self.callHackage "toml-parser" "2.0.1.2" {};
         # });
 
