@@ -625,11 +625,37 @@ pPlain = do
 
 pPara :: PandocMonad m => TagParser m Blocks
 pPara = do
-  contents <- trimInlines <$> pInTags "p" inline
-  (do guardDisabled Ext_empty_paragraphs
-      guard (null contents)
-      return mempty)
-    <|> return (B.para contents)
+  TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "p" [])
+  let (ident, classes, kvs) = toAttr attr'
+  let alignValue = lookup "align" kvs
+  -- "Significant" attributes are any id, class, or key-value pair other than 'align'.
+  let significantKVs = filter (\(k,_) -> k /= "align") kvs
+  let hasSignificantAttributes = not (T.null ident) || not (null classes) || not (null significantKVs)
+
+  if hasSignificantAttributes
+    then do
+      -- If there are significant attributes, parse as Div with wrapper="1"
+      -- All original attributes (including align, if present) go on this Div.
+      guardEnabled Ext_native_divs -- Ensure native_divs is enabled for this behavior
+      pInhalt <- trimInlines <$> pInTags "p" inline
+      (do guardDisabled Ext_empty_paragraphs
+          guard (null pInhalt)
+          return mempty) <|> do
+        let wrapperAttr = ("wrapper", "1")
+        -- Use all original kvs for the Div
+        let finalAttrs = (ident, classes, wrapperAttr : kvs)
+        return $ B.divWith finalAttrs (B.para pInhalt)
+    else do
+      -- If only 'align' (or no attributes) is present, handle as before.
+      contents <- trimInlines <$> pInTags "p" inline
+      let paraBlock = B.para contents
+      (do guardDisabled Ext_empty_paragraphs
+          guard (null contents)
+          return mempty) <|>
+        return (case alignValue of
+                  Just algn | algn `elem` ["left","right","center","justify"] ->
+                                B.divWith ("", [], [("align", algn)]) paraBlock
+                  _ -> paraBlock)
 
 pFigure :: PandocMonad m => TagParser m Blocks
 pFigure = do

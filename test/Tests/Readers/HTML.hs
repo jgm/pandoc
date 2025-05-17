@@ -137,6 +137,26 @@ tests = [ testGroup "base tag"
             =?>
             codeBlockWith ("c", [], []) "print('hi mom!')"
           ]
+        , testGroup "paragraph attributes"
+          [ test htmlNativeDivs "paragraph with id and class" $
+            "<p id=\"mypara\" class=\"important\">This is a paragraph.</p>" =?>
+            doc (divWith ("mypara", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with id only" $
+            "<p id=\"mypara\">This is a paragraph.</p>" =?>
+            doc (divWith ("mypara", [], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with class only" $
+            "<p class=\"important\">This is a paragraph.</p>" =?>
+            doc (divWith ("", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with multiple classes" $
+            "<p class=\"important urgent\">This is a paragraph.</p>" =?>
+            doc (divWith ("", ["important", "urgent"], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with key-value attributes" $
+            "<p data-foo=\"bar\">This is a paragraph.</p>" =?>
+            doc (divWith ("", [], [("wrapper", "1"), ("foo", "bar")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph without attributes" $
+            "<p>This is a normal paragraph.</p>" =?>
+            doc (para (text "This is a normal paragraph."))
+          ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
               withMaxSuccess (if QuickCheckTests numtests == defaultValue
