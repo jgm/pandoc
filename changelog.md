@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.7.0.1 (2025-05-16)
+## pandoc 3.7.0.1 (2025-05-17)
 
   * Text.Pandoc.Shared.Writer:  Fix numerous problems with `gridTable` and add
     tests (#10848).  These fixes affect the Markdown, RST, and Muse writers.
