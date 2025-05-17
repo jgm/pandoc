@@ -5389,7 +5389,7 @@ from being interpreted as Markdown.
 
 ### Extension: `native_divs` ###
 
-Use native pandoc `Div` blocks for content inside `<div>` tags.
+Use native pandoc `Div` blocks for content inside `<div>` tags. This extension also influences how HTML `<p>` tags with attributes are processed, by wrapping them in `Div` blocks to better preserve their attributes during conversion.
 For the most part this should give the same output as
 `markdown_in_html_blocks`, but it makes it easier to write pandoc
 filters to manipulate groups of blocks.
