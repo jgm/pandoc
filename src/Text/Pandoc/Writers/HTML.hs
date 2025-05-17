@@ -750,6 +750,13 @@ blockToHtmlInner opts (Para lst) = do
 blockToHtmlInner opts (LineBlock lns) = do
   htmlLines <- inlineListToHtml opts $ intercalate [LineBreak] lns
   return $ H.div ! A.class_ "line-block" $ htmlLines
+blockToHtmlInner opts (Div (ident, classes, kvs) [Para pans]) | Just "1" <- lookup "wrapper" kvs = do
+  -- This is a paragraph that was wrapped in a Div by the reader
+  -- Unwrap it back to a <p> tag, transferring attributes from the Div
+  let pKVs = filter (\(k,_) -> k /= "wrapper") kvs
+  let pAttr = (ident, classes, pKVs)
+  inner <- inlineListToHtml opts pans
+  addAttrs opts pAttr (H.p inner)
 blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
                    (Header level
                      hattr@(hident,hclasses,hkvs) ils : xs)) = do

@@ -21,6 +21,9 @@ htmlQTags = unpack
   . purely (writeHtml4String def{ writerWrapText = WrapNone, writerHtmlQTags = True })
   . toPandoc
 
+html5 :: (ToPandoc a) => a -> String
+html5 = unpack . purely (writeHtml5String def{ writerWrapText = WrapNone }) . toPandoc
+
 {-
   "my test" =: X =?> Y
 
@@ -208,6 +211,29 @@ tests =
           , "</div>"
           ]
       ]
+  , testGroup "paragraph attributes"
+    [ "paragraph with id and class" =:
+      divWith ("mypara", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      =?> "<p id=\"mypara\" class=\"important\">This is a paragraph.</p>"
+    , "paragraph with id only" =:
+      divWith ("mypara", [], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      =?> "<p id=\"mypara\">This is a paragraph.</p>"
+    , "paragraph with class only" =:
+      divWith ("", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      =?> "<p class=\"important\">This is a paragraph.</p>"
+    , "paragraph with multiple classes" =:
+      divWith ("", ["important", "urgent"], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      =?> "<p class=\"important urgent\">This is a paragraph.</p>"
+    , test html5 "paragraph with key-value attributes"
+        (divWith ("", [], [("wrapper", "1"), ("foo", "bar")]) (para (text "This is a paragraph."))
+        , "<p data-foo=\"bar\">This is a paragraph.</p>" :: String)
+    , "paragraph without wrapper attribute" =:
+      divWith ("mydiv", ["someclass"], []) (para (text "This is a div, not a p."))
+      =?> "<div id=\"mydiv\" class=\"someclass\">\n<p>This is a div, not a p.</p>\n</div>"
+    , "paragraph with wrapper and other attributes" =:
+      divWith ("mypara", ["important"], [("wrapper", "1"), ("data-value", "123")]) (para (text "This is a paragraph."))
+      =?> "<p id=\"mypara\" class=\"important\" data-value=\"123\">This is a paragraph.</p>"
+    ]
   ]
   where
     tQ :: (ToString a, ToPandoc a)
