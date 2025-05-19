@@ -462,10 +462,10 @@
            , Str "lines."
            ]
        ])
-    [ ( AlignDefault , ColWidth 0.15 )
-    , ( AlignDefault , ColWidth 0.1375 )
-    , ( AlignDefault , ColWidth 0.1625 )
-    , ( AlignDefault , ColWidth 0.35 )
+    [ ( AlignCenter , ColWidth 0.15 )
+    , ( AlignLeft , ColWidth 0.1375 )
+    , ( AlignRight , ColWidth 0.1625 )
+    , ( AlignLeft , ColWidth 0.35 )
     ]
     (TableHead
        ( "" , [] , [] )
@@ -606,10 +606,10 @@
 , Table
     ( "" , [] , [] )
     (Caption Nothing [])
-    [ ( AlignDefault , ColWidth 0.15 )
-    , ( AlignDefault , ColWidth 0.1375 )
-    , ( AlignDefault , ColWidth 0.1625 )
-    , ( AlignDefault , ColWidth 0.35 )
+    [ ( AlignCenter , ColWidth 0.15 )
+    , ( AlignLeft , ColWidth 0.1375 )
+    , ( AlignRight , ColWidth 0.1625 )
+    , ( AlignLeft , ColWidth 0.35 )
     ]
     (TableHead
        ( "" , [] , [] )

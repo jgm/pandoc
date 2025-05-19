@@ -438,9 +438,11 @@ gridRows (x:xs) =
   rowAndBottom thisRow nextRow =
     let isLastRow = null nextRow
         border1 = render Nothing (formatBorder cellBottomBorder False thisRow)
-        border2 = render Nothing (formatBorder cellTopBorder False nextRow)
+        border2 = render Nothing (formatBorder cellTopBorder True nextRow)
         go '+' _ = '+'
         go _ '+' = '+'
+        go ':' _ = ':'
+        go _ ':' = ':'
         go '|' '-' = '+'
         go '-' '|' = '+'
         go '|' '=' = '+'
@@ -454,7 +456,7 @@ gridRows (x:xs) =
                             else literal $ T.zipWith go border1 border2
     in formatRow thisRow $$ combinedBorder
 
-formatBorder :: (RenderedCell a -> LineStyle) -> Bool -> [RenderedCell a]
+formatBorder :: Show a => (RenderedCell a -> LineStyle) -> Bool -> [RenderedCell a]
              -> Doc Text
 formatBorder borderStyle alignMarkers cs =
   borderParts <> if lastBorderStyle == NoLine
@@ -476,7 +478,8 @@ formatBorder borderStyle alignMarkers cs =
                      DoubleLine -> '='
        (leftalign, rightalign) =
            case cellAlign c of
-             _ | not alignMarkers -> (lineChar,lineChar)
+             _ | not alignMarkers || borderStyle c /= DoubleLine
+                       -> (lineChar,lineChar)
              AlignLeft -> (':',lineChar)
              AlignCenter -> (':',':')
              AlignRight -> (lineChar,':')
