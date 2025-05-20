@@ -307,13 +307,9 @@ gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
   let getBodyCells (Ann.BodyRow _ _ rhcells cells) = rhcells ++ cells
   let getBody (Ann.TableBody _ _ hs xs) = map getHeadCells hs <> map getBodyCells xs
   bodyCells <- mapM (renderRows . getBody) tbodies
-  let rows = setTopBorder SingleLine headCells ++
-             (setTopBorder (if null headCells then SingleLine else DoubleLine)
-              . setBottomBorder SingleLine) (mconcat bodyCells) ++
-             (if null footCells
-                 then mempty
-                 else setTopBorder DoubleLine . setBottomBorder DoubleLine $
-                       footCells)
+  let rows = (setTopBorder SingleLine . setBottomBorder DoubleLine) headCells ++
+             (setTopBorder SingleLine . setBottomBorder SingleLine) (mconcat bodyCells) ++
+             (setTopBorder DoubleLine . setBottomBorder DoubleLine) footCells
   pure $ gridRows $ redoWidths opts colspecs rows
 
 -- Returns (current widths, full widths, min widths)
@@ -367,6 +363,7 @@ makeDummy :: RenderedCell Text -> RenderedCell Text
 makeDummy c =
     RenderedCell{ cellColNum = cellColNum c,
                   cellColSpan = cellColSpan c,
+                  cellColSpecs = cellColSpecs c,
                   cellAlign = AlignDefault,
                   cellRowSpan = cellRowSpan c - 1,
                   cellWidth = cellWidth c,
@@ -437,8 +434,8 @@ gridRows (x:xs) =
 
   rowAndBottom thisRow nextRow =
     let isLastRow = null nextRow
-        border1 = render Nothing (formatBorder cellBottomBorder False thisRow)
-        border2 = render Nothing (formatBorder cellTopBorder True nextRow)
+        border1 = render Nothing (formatBorder cellBottomBorder True thisRow)
+        border2 = render Nothing (formatBorder cellTopBorder False nextRow)
         go '+' _ = '+'
         go _ '+' = '+'
         go ':' _ = ':'
@@ -491,6 +488,7 @@ data LineStyle = NoLine | SingleLine | DoubleLine
 data RenderedCell a =
   RenderedCell{ cellColNum :: Int
               , cellColSpan :: Int
+              , cellColSpecs :: NonEmpty ColSpec
               , cellAlign :: Alignment
               , cellRowSpan :: Int
               , cellWidth :: Int
@@ -523,6 +521,7 @@ gridRow opts blocksToDoc = mapM renderCell
     rendered <- renderer blocks
     pure $ RenderedCell{ cellColNum = colnum,
                          cellColSpan = length cellcolspecs,
+                         cellColSpecs = cellcolspecs,
                          cellAlign = align,
                          cellRowSpan = rowspan,
                          cellWidth = width,
