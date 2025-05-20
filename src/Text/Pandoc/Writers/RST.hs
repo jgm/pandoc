@@ -339,7 +339,8 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
          modify $ \st -> st{ stOptions = oldOpts }
          return result
   opts <- gets stOptions
-  let renderGrid = gridTable opts blocksToDoc specs thead tbody tfoot
+  let specs' = map (\(_,width) -> (AlignDefault, width)) specs
+      renderGrid = gridTable opts blocksToDoc specs' thead tbody tfoot
       isSimple = all (== 0) widths && length widths > 1
       renderSimple = do
         tbl' <- simpleTable opts blocksToDoc headers rows
