@@ -721,7 +721,6 @@ blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
         ("", cls, kv)
           | (figid, [], []) <- figattr -> Just (figid, cls, kv)
-          | otherwise -> Just ("", cls, kv)
         _ -> Nothing
   let combinedAlt alt = case capt of
         Caption Nothing [] -> if null alt
