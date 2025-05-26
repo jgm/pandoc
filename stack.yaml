@@ -14,9 +14,10 @@ extra-deps:
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
 - typst-symbols-0.1.8.1
-- texmath-0.12.10.2
 - citeproc-0.9.0.1
 - typst-0.8
+- git: https://github.com/jgm/texmath.git
+  commit: 72c09572909cfbc59890684b5e7f40c753e0b977
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.22
