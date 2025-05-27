@@ -90,7 +90,7 @@ convertTags (t@(TagOpen "style" _):ts) =
       ((t:xs') ++) <$> convertTags rest
 convertTags (t@(TagOpen "script" as):tc@(TagClose "script"):ts) =
   case fromAttrib "src" t of
-       ""  -> (t:) <$> convertTags ts
+       ""  -> ([t, tc] ++) <$> convertTags ts
        src -> do
            let typeAttr = fromAttrib "type" t
            res <- getData typeAttr src
