@@ -923,12 +923,12 @@ From ``Voyage dans la Lune'' by Georges Melies (1902):
 
 \begin{figure}
 \centering
-\pandocbounded{\includegraphics[keepaspectratio]{lalune.jpg}}
+\pandocbounded{\includegraphics[keepaspectratio,alt={lalune}]{lalune.jpg}}
 \caption{lalune}
 \end{figure}
 
-Here is a movie \pandocbounded{\includegraphics[keepaspectratio]{movie.jpg}}
-icon.
+Here is a movie
+\pandocbounded{\includegraphics[keepaspectratio,alt={movie}]{movie.jpg}} icon.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
