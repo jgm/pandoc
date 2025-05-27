@@ -105,7 +105,9 @@ convertTags (t@(TagOpen "script" as):tc@(TagClose "script"):ts) =
                      "application/x-javascript" `T.isPrefixOf` mime) &&
                      not ("</script" `B.isInfixOf` bs) ->
                      return $
-                       TagOpen "script" [("type", typeAttr)|not (T.null typeAttr)]
+                       TagOpen "script" [(k,v) | (k,v) <- as
+                                               , k == "type" ||
+                                                 "data-" `T.isPrefixOf` k]
                        : TagText (toText bs)
                        : TagClose "script"
                        : rest
