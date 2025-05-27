@@ -1,7 +1,5 @@
 local tasty = require 'tasty'
 local structure = require 'pandoc.structure'
-local path = require 'pandoc.path'
-local system = require 'pandoc.system'
 
 local assert = tasty.assert
 local test = tasty.test_case
