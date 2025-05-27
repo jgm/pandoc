@@ -558,7 +558,7 @@ footnoteSection opts refLocation startCounter notes = do
         | html5
         , refLocation == EndOfDocument
         -- Note: we need a section for a new slide in slide formats.
-                = H5.section ! A5.id (fromString idName)
+                = H5.section ! prefixedId opts (fromString idName)
                              ! A5.class_ className
                              ! A5.role "doc-endnotes"
                              $ x
