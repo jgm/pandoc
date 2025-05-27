@@ -307,8 +307,11 @@ gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
   let getBodyCells (Ann.BodyRow _ _ rhcells cells) = rhcells ++ cells
   let getBody (Ann.TableBody _ _ hs xs) = map getHeadCells hs <> map getBodyCells xs
   bodyCells <- mapM (renderRows . getBody) tbodies
-  let rows = (setTopBorder SingleLine . setBottomBorder DoubleLine) headCells ++
-             (setTopBorder SingleLine . setBottomBorder SingleLine) (mconcat bodyCells) ++
+  let rows = (setTopBorder SingleLine . setBottomBorder DoubleHeaderLine) headCells ++
+             (setTopBorder (if null headCells
+                               then SingleHeaderLine
+                               else SingleLine) . setBottomBorder SingleLine)
+                   (mconcat bodyCells) ++
              (setTopBorder DoubleLine . setBottomBorder DoubleLine) footCells
   pure $ gridRows $ redoWidths opts colspecs rows
 
@@ -386,23 +389,6 @@ addDummies = reverse . foldl' go []
                        cellColNum x < cellColNum c + cellColSpan c) (d:ds))
                    cs
 
-{-
-  reverse $ (case numcols - i' of
-               0 -> id
-               -- TODO this is wrong; it assumes that the row span
-               -- above covers ALL the relevant columns. We need
-               -- to pay attention to the details of the row above
-               -- so we get the borders right.
-               -- TODO the 2 parameter is a placeholder
-               n -> (makeDummy widths i' n 2 :)) cs'
- where
-   (i',cs') = foldl' addDummy (0,[]) cells
-   numcols = length widths
-   addDummy (i,cs) c =
-     case cellColNum c - i of
-       0 -> (cellColNum c + cellColSpan c, c:cs)
-       len -> (cellColNum c + cellColSpan c, c : makeDummy widths i len 2 : cs)
--}
 
 setTopBorder :: LineStyle -> [[RenderedCell Text]] -> [[RenderedCell Text]]
 setTopBorder _ [] = []
@@ -416,9 +402,14 @@ setBottomBorder sty (c:cs) = c : setBottomBorder sty cs
 gridRows :: [[RenderedCell Text]] -> Doc Text
 gridRows [] = mempty
 gridRows (x:xs) =
-  (formatBorder cellTopBorder False (map (\z -> z{ cellBottomBorder = NoLine }) x))
+  (case x of
+     [] -> mempty
+     (c:_) | isHeaderStyle (cellTopBorder c)
+            -> formatHeaderLine (cellTopBorder c) (x:xs)
+           | otherwise
+            -> formatBorder cellTopBorder False x)
   $$
-  vcat (zipWith rowAndBottom (x:xs) (xs ++ [[]]))
+  vcat (zipWith (rowAndBottom (x:xs)) (x:xs) (xs ++ [[]]))
  where
   -- generate wrapped contents. include pipe borders, bottom and left
 
@@ -432,29 +423,51 @@ gridRows (x:xs) =
   formatRow cs = vfill "| " <>
    hcat (intersperse (vfill " | ") (map renderCellContents cs)) <> vfill " |"
 
-  rowAndBottom thisRow nextRow =
+  rowAndBottom allRows thisRow nextRow =
     let isLastRow = null nextRow
-        border1 = render Nothing (formatBorder cellBottomBorder True thisRow)
-        border2 = render Nothing (formatBorder cellTopBorder False nextRow)
-        go '+' _ = '+'
-        go _ '+' = '+'
-        go ':' _ = ':'
-        go _ ':' = ':'
-        go '|' '-' = '+'
-        go '-' '|' = '+'
-        go '|' '=' = '+'
-        go '=' '|' = '+'
-        go '=' _ = '='
-        go _ '=' = '='
-        go ' ' d = d
-        go c _   = c
+        border1 = case thisRow of
+                     [] -> mempty
+                     (c:_) -> if isHeaderStyle (cellBottomBorder c)
+                                 then formatHeaderLine (cellBottomBorder c) allRows
+                                 else formatBorder cellBottomBorder False thisRow
+        border2 = case nextRow of
+                     [] -> mempty
+                     (c:_) -> if isHeaderStyle (cellTopBorder c)
+                                 then formatHeaderLine (cellTopBorder c) allRows
+                                 else formatBorder cellTopBorder False nextRow
         combinedBorder = if isLastRow
-                            then literal border1
-                            else literal $ T.zipWith go border1 border2
+                            then border1
+                            else literal $ combineBorders
+                                  (render Nothing border1) (render Nothing border2)
     in formatRow thisRow $$ combinedBorder
 
-formatBorder :: Show a => (RenderedCell a -> LineStyle) -> Bool -> [RenderedCell a]
-             -> Doc Text
+combineBorders :: Text -> Text -> Text
+combineBorders t1 t2 =
+  if T.null t1
+     then t2
+     else T.zipWith go t1 t2
+ where
+   go '+' _ = '+'
+   go _ '+' = '+'
+   go ':' _ = ':'
+   go _ ':' = ':'
+   go '|' '-' = '+'
+   go '-' '|' = '+'
+   go '|' '=' = '+'
+   go '=' '|' = '+'
+   go '=' _ = '='
+   go _ '=' = '='
+   go ' ' d = d
+   go c _   = c
+
+formatHeaderLine :: Show a => LineStyle -> [[RenderedCell a]] -> Doc Text
+formatHeaderLine lineStyle rows =
+  literal $ foldl'
+    (\t row -> combineBorders t (render Nothing $ formatBorder (const lineStyle) True row))
+    mempty rows
+
+formatBorder :: Show a => (RenderedCell a -> LineStyle) -> Bool
+             -> [RenderedCell a] -> Doc Text
 formatBorder borderStyle alignMarkers cs =
   borderParts <> if lastBorderStyle == NoLine
                             then char '|'
@@ -472,18 +485,28 @@ formatBorder borderStyle alignMarkers cs =
        lineChar = case borderStyle c of
                      NoLine -> ' '
                      SingleLine -> '-'
+                     SingleHeaderLine -> '-'
                      DoubleLine -> '='
+                     DoubleHeaderLine -> '='
        (leftalign, rightalign) =
            case cellAlign c of
-             _ | not alignMarkers || borderStyle c /= DoubleLine
-                       -> (lineChar,lineChar)
+             _ | not alignMarkers -> (lineChar,lineChar)
              AlignLeft -> (':',lineChar)
              AlignCenter -> (':',':')
              AlignRight -> (lineChar,':')
              AlignDefault -> (lineChar,lineChar)
 
-data LineStyle = NoLine | SingleLine | DoubleLine
+data LineStyle = NoLine
+               | SingleLine
+               | DoubleLine
+               | SingleHeaderLine
+               | DoubleHeaderLine
     deriving (Show, Ord, Eq)
+
+isHeaderStyle :: LineStyle -> Bool
+isHeaderStyle SingleHeaderLine = True
+isHeaderStyle DoubleHeaderLine = True
+isHeaderStyle _ = False
 
 data RenderedCell a =
   RenderedCell{ cellColNum :: Int
