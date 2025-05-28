@@ -63,8 +63,8 @@ tests = [ testGroup "emphasis"
                                            , "----"
                                            ]
           , testAsciidoc "sidebar block" $
-               divWith ("sidebar_id", ["sidebar"], []) 
-                                           (divWith ("", ["title"], []) 
+               divWith ("sidebar_id", ["sidebar"], [])
+                                           (divWith ("", ["title"], [])
                                            (plain "Sidebar Title")
                                            <> para "Sidebar paragraph"
                                            ) =?> unlines

@@ -382,7 +382,7 @@ blockToAsciiDoc opts (Div (ident,classes,_) bs) = do
   let admonition_classes = ["attention","caution","danger","error","hint",
                      "important","note","tip","warning"]
   let sidebar_class = "sidebar"
-  
+
   contents <-
        case classes of
          (l:_) | l `elem` admonition_classes || T.toLower l == sidebar_class -> do
