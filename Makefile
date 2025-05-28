@@ -306,10 +306,10 @@ clean: ## clean up
 .PHONY: .FORCE
 
 sdist-files.txt: .FORCE
-	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)\/' | sort > $@
+	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)/' | sort > $@
 
 git-files.txt: .FORCE
-	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
+	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)/' | sort > $@
 
 help: ## display this help
 	@echo "Targets:"
