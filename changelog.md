@@ -8,7 +8,7 @@
 
   * Asciidoc writer:
 
-    + Add support for sidebars (Greg).
+    + Add support for sidebars (GHyman83).
 
   * LaTeX writer:
 
@@ -46,9 +46,11 @@
       The function takes a MIME type and raw data from which it creates an
       RFC 2397 data URI.
 
-  * `tools/update-lua-module-docs`: fix handling of wikilinks (Albert Krewinkel).
+  * `tools/update-lua-module-docs`: fix handling of wikilinks
+    (Albert Krewinkel).
 
-  * `doc/lua-filters.md`: add missing docs for `pandoc.Caption` (Albert Krewinkel).
+  * `doc/lua-filters.md`: add missing docs for `pandoc.Caption`
+    (Albert Krewinkel).
 
   * Require texmath 0.12.10.3, typst 0.8.0.1
 
