@@ -4532,6 +4532,38 @@ Returns:
 
 *Since: 2.0*
 
+### make_data_uri {#pandoc.mediabag.make_data_uri}
+
+`make_data_uri (mime_type, raw_data)`
+
+Convert the input data into a data URI as defined by RFC 2397.
+
+Example:
+
+    -- Embed an unofficial pandoc logo
+    local pandoc_logo_url = 'https://raw.githubusercontent.com/'
+      .. 'tarleb/pandoc-logo/main/pandoc.svg'
+
+    local datauri = pandoc.mediabag.make_data_uri(
+      pandoc.mediabag.fetch(pandoc_logo_url)
+    )
+
+    local image = pandoc.Image('Logo', datauri)
+
+Parameters:
+
+`mime_type`
+:   MIME type of the data (string)
+
+`raw_data`
+:   data to encode (string)
+
+Returns:
+
+- data uri (string)
+
+*Since: 3.7.1*
+
 ### write {#pandoc.mediabag.write}
 
 `write (dir[, fp])`

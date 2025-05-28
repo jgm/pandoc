@@ -104,4 +104,15 @@ return {
     end),
   },
 
+  group 'make_data_uri' {
+    test('returns a data URI', function ()
+      local uri = mediabag.make_data_uri('text/plain', 'foo')
+      assert.are_equal(uri:sub(1,5), 'data:')
+    end),
+    test('URI specifies the given MIME type', function ()
+      local mimetype = 'text/plain'
+      local uri = mediabag.make_data_uri(mimetype, 'foo')
+      assert.are_equal(uri:sub(6, 5 + #mimetype), mimetype)
+    end),
+  }
 }
