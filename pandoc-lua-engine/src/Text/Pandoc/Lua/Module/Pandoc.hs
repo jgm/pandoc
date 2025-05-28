@@ -25,6 +25,7 @@ import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (Proxy))
 import Data.Text.Encoding.Error (UnicodeException)
+import Data.Version (makeVersion)
 import HsLua
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class ( PandocMonad, FileInfo (..), FileTree
@@ -151,7 +152,7 @@ pushWithConstructorsSubtable constructors = do
 otherConstructors :: [DocumentedFunction PandocError]
 otherConstructors =
   [ mkAttr
-  , mkCaption
+  , mkCaption `since` makeVersion [3,6,1]
   , mkCell
   , mkAttributeList
   , mkCitation

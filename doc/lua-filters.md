@@ -3275,6 +3275,26 @@ Returns:
 
 - new Attr object ([Attr])
 
+### Caption {#pandoc.Caption}
+
+`Caption ([long[, short]])`
+
+Creates a new Caption object.
+
+Parameters:
+
+`long`
+:   full caption ([Blocks])
+
+`short`
+:   short summary caption ([Inlines])
+
+Returns:
+
+- new Caption object ([Caption])
+
+*Since: 3.6.1*
+
 ### Cell {#pandoc.Cell}
 
 `Cell (blocks[, align[, rowspan[, colspan[, attr]]]])`
