@@ -1,5 +1,57 @@
 # Revision history for pandoc
 
+## pandoc 3.7.0.2 (2025-05-28)
+
+  * RST writer:
+
+    + Don't emit alignment markers in grid tables (#10857).
+
+  * Asciidoc writer:
+
+    + Add support for sidebars (Greg).
+
+  * LaTeX writer:
+
+    + Include alt option in `\includegraphics` (#6095).
+
+  * Markdown writer:
+
+    + Preserve figure attributes (Nikolay Yakimov, #10867).
+      Fixes a regression introduced by 0d2114e, which caused the
+      Markdown writer to ignore attributes on the figure if it
+      has class or key-value attributes set.
+
+  * HTML writer:
+
+    + Use the ID prefix in the ID for the footnotes section (Benjamin Esham).
+
+  * Text.Pandoc.Writers.Shared:
+
+    + `gridTable`: fix (3.7) regression with missing cell alignments (#10853).
+    + `gridTable`: fix headings with colspans (#10855). If the heading
+      contains a colspan, we still need to include information in the header
+      line about the colspecs.
+    + `gridTable`: fix headerless tables. The top line should encode
+      colspan information.
+
+  * Text.Pandoc.SelfContained:
+
+    + Fix handling of empty script element (#10862). Previously in this
+      case the closing tag was dropped.
+    + Do not drop `data-` attributes in script tags (#10861).
+
+  * Lua subsystem (Albert Krewinkel):
+
+    + Add function `pandoc.mediabag.make_data_uri` (#10876).
+      The function takes a MIME type and raw data from which it creates an
+      RFC 2397 data URI.
+
+  * `tools/update-lua-module-docs`: fix handling of wikilinks (Albert Krewinkel).
+
+  * `doc/lua-filters.md`: add missing docs for `pandoc.Caption` (Albert Krewinkel).
+
+  * Require texmath 0.12.10.3, typst 0.8.0.1
+
 ## pandoc 3.7.0.1 (2025-05-17)
 
   * Text.Pandoc.Shared.Writer:  Fix numerous problems with `gridTable` and add
