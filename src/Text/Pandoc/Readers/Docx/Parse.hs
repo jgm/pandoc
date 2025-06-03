@@ -92,13 +92,13 @@ import Text.Pandoc.XML.Light
       filterChild,
       filterChildrenName,
       filterElementName,
+      filterElementsName,
       lookupAttrBy,
       parseXMLElement,
       elChildren,
       QName(QName, qName),
       Content(Elem),
-      Element(..),
-      findElements )
+      Element(..))
 
 data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envComments      :: Comments
@@ -453,8 +453,10 @@ getDocumentXmlPath zf = do
   entry <- findEntryByPath "_rels/.rels" zf
   relsElem <- parseXMLFromEntry entry
   let rels = filterChildrenName (\n -> qName n == "Relationship") relsElem
-  rel <- find (\e -> findAttr (QName "Type" Nothing Nothing) e ==
-                       Just "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument")
+  rel <- find (\e ->
+                 case findAttr (QName "Type" Nothing Nothing) e of
+                   Just u -> isNamespace "officeDocument" "relationships/officeDocument" u
+                   Nothing -> False)
          rels
   fp <- findAttr (QName "Target" Nothing Nothing) rel
   -- sometimes there will be a leading slash, which windows seems to
@@ -1022,8 +1024,8 @@ elemToParPart' :: NameSpaces -> Element -> D [ParPart]
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
-  , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) drawingElem
+  , picElems <- filterElementsName
+                 (matchQName "drawingml" "picture" (Just "pic") "pic") drawingElem
   = let (title, alt) = getTitleAndAlt ns drawingElem
         drawings = map (\el ->
                         ((findBlip el >>= findAttrByName ns "r" "embed"), el))
@@ -1057,15 +1059,15 @@ elemToParPart' ns element
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , d_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
-  , Just _ <- findElement (QName "relIds" (Just d_ns) (Just "dgm")) drawingElem
+  , Just _ <- filterElementName
+                 (matchQName "drawingml" "diagram" (Just "dgm") "relIds") drawingElem
   = return [Diagram]
 -- Chart
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
-  , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) drawingElem
+  , Just _ <- filterElementName
+                (matchQName "drawingml" "chart" (Just "c") "chart") drawingElem
   = return [Chart]
 elemToParPart' ns element
   | isElem ns "w" "r" element = do
@@ -1146,8 +1148,8 @@ elemToExtent el =
 childElemToRun :: NameSpaces -> Element -> D [Run]
 childElemToRun ns element
   | isElem ns "w" "drawing" element
-  , pic_ns <- "http://schemas.openxmlformats.org/drawingml/2006/picture"
-  , picElems <- findElements (QName "pic" (Just pic_ns) (Just "pic")) element
+  , picElems <- filterElementsName
+                 (matchQName "drawingml" "picture" (Just "pic") "pic") element
   = let (title, alt) = getTitleAndAlt ns element
         drawings = map (\el ->
                          ((findBlip el >>= findAttrByName ns "r" "embed"), el))
@@ -1161,13 +1163,13 @@ childElemToRun ns element
        drawings
 childElemToRun ns element
   | isElem ns "w" "drawing" element
-  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/chart"
-  , Just _ <- findElement (QName "chart" (Just c_ns) (Just "c")) element
+  , Just _ <- filterElementName
+                 (matchQName "drawingml" "chart" (Just "c") "chart") element
   = return [InlineChart]
 childElemToRun ns element
   | isElem ns "w" "drawing" element
-  , c_ns <- "http://schemas.openxmlformats.org/drawingml/2006/diagram"
-  , Just _ <- findElement (QName "relIds" (Just c_ns) (Just "dgm")) element
+  , Just _ <- filterElementName
+                 (matchQName "drawingml" "diagram" (Just "dgm") "relIds") element
   = return [InlineDiagram]
 childElemToRun ns element
   | isElem ns "w" "footnoteReference" element
@@ -1358,11 +1360,9 @@ setFont f s = s{envFont = f}
 
 findBlip :: Element -> Maybe Element
 findBlip el = do
-  blip <- findElement (QName "blip" (Just a_ns) (Just "a")) el
+  blip <- filterElementName (matchQName "drawingml" "main" (Just "a") "blip") el
   -- return svg if present:
   filterElementName (\(QName tag _ _) -> tag == "svgBlip") el `mplus` pure blip
- where
-  a_ns = "http://schemas.openxmlformats.org/drawingml/2006/main"
 
 hasCaptionStyle :: ParagraphStyle -> Bool
 hasCaptionStyle parstyle = any (isCaptionStyleName . pStyleName) (pStyle parstyle)
@@ -1387,3 +1387,23 @@ stripCaptionLabel els =
        (qName name == "instrText" &&
           let ws = T.words (strContent el)
           in  ("Table" `elem` ws || "Figure" `elem` ws))
+
+isNamespace :: Text -> Text -> Text -> Bool
+isNamespace primary secondary url =
+  -- first try transitional:
+  case T.stripPrefix "http://schemas.openxmlformats.org/" url of
+    Just path -> path == primary <> "/2006/" <> secondary
+    Nothing -> -- then try strict:
+      case T.stripPrefix "http://purl.oclc.org/ooxml/" url of
+        Just path -> path == primary <> "/" <> snakeToCamel secondary
+        Nothing -> False
+ where
+   snakeToCamel "custom-properties" = "customProperties"
+   snakeToCamel "extended-properties" = "extendedProperties"
+   snakeToCamel x = x
+
+matchQName :: Text -> Text -> Maybe Text -> Text -> QName -> Bool
+matchQName primary secondary mbprefix name (QName name' mbns' mbprefix') =
+  name == name' &&
+  (isNothing mbprefix || mbprefix' == mbprefix) &&
+  maybe True (isNamespace primary secondary) mbns'
