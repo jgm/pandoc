@@ -4502,9 +4502,6 @@ definition:
       ~ Definition 2b
 
 Note that space between items in a definition list is required.
-(A variant that loosens this requirement, but disallows "lazy"
-hard wrapping, can be activated with the [`compact_definition_lists`
-extension][Extension: `compact_definition_lists`].)
 
 [^3]:  I have been influenced by the suggestions of [David
   Wheeler](https://justatheory.com/2009/02/modest-markdown-proposal/).
@@ -6108,33 +6105,6 @@ and image references. This extension should not be confused with the
 
 Parses MultiMarkdown-style heading identifiers (in square brackets,
 after the heading but before any trailing `#`s in an ATX heading).
-
-### Extension: `compact_definition_lists` ###
-
-Activates the definition list syntax of pandoc 1.12.x and earlier.
-This syntax differs from the one described above under [Definition lists]
-in several respects:
-
-  - No blank line is required between consecutive items of the
-    definition list.
-  - To get a "tight" or "compact" list, omit space between consecutive
-    items; the space between a term and its definition does not affect
-    anything.
-  - Lazy wrapping of paragraphs is not allowed:  the entire definition must
-    be indented four spaces.[^6]
-
-[^6]:  To see why laziness is incompatible with relaxing the requirement
-    of a blank line between items, consider the following example:
-
-        bar
-        :    definition
-        foo
-        :    definition
-
-    Is this a single list item with two definitions of "bar," the first of
-    which is lazily wrapped, or two list items?  To remove the ambiguity
-    we must either disallow lazy wrapping or require a blank line between
-    list items.
 
 ### Extension: `gutenberg` ###
 
