@@ -3,9 +3,9 @@
 
 local f = assert(io.open("MANUAL.txt", "r"))
 local manual = f:read("*all")
-mdoc = pandoc.read(manual, "markdown")
+local mdoc = pandoc.read(manual, "markdown")
 f:close()
-result = {}
+local result = {}
 
 function Div(elem)
   local ident = elem.identifier or ""
