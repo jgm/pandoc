@@ -18,6 +18,7 @@ import HsLua as Lua hiding (Operation (Div))
 import Text.Pandoc.Class (PandocMonad, findFileWithDataFallback)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Global (Global (..), setGlobals)
+import Text.Pandoc.Lua.Init (userInit)
 import Text.Pandoc.Lua.Marshal.Format (peekExtensionsConfig)
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
@@ -34,10 +35,12 @@ import qualified Text.Pandoc.Class as PandocMonad
 loadCustom :: (PandocMonad m, MonadIO m)
            => FilePath -> m (CustomComponents m)
 loadCustom luaFile = do
+  initialState <- PandocMonad.getCommonState
   luaState <- liftIO newGCManagedState
   luaFile' <- fromMaybe luaFile <$>
               findFileWithDataFallback "custom"  luaFile
   either throw pure <=< runLuaWith luaState $ do
+    userInit initialState
     let globals = [ PANDOC_SCRIPT_FILE luaFile' ]
     setGlobals globals
     dofileTrace (Just luaFile') >>= \case
