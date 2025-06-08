@@ -305,7 +305,8 @@ runStyleToTransform rPr' = do
             emph . go rPr{isItalic = Nothing, isItalicCTL = Nothing}
         | Just True <- bold rPr =
             strong . go rPr{isBold = Nothing, isBoldCTL = Nothing}
-        | Just _ <- rHighlight rPr =
+        | Just v <- rHighlight rPr
+        , v /= "none" =
             spanWith ("",["mark"],[]) . go rPr{rHighlight = Nothing}
         | Just True <- isSmallCaps rPr =
             smallcaps . go rPr{isSmallCaps = Nothing}
