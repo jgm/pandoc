@@ -105,6 +105,7 @@ getDefaultTemplate format = do
        "fb2"     -> return ""
        "pptx"    -> return ""
        "ipynb"   -> return ""
+       "xml"     -> return ""
        "asciidoctor" -> getDefaultTemplate "asciidoc"
        "asciidoc_legacy" -> getDefaultTemplate "asciidoc"
        "docx"    -> getDefaultTemplate "openxml"
