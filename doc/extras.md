@@ -20,7 +20,7 @@ complete list, see the [Pandoc Extras wiki page](https://github.com/jgm/pandoc/w
 
 ### Editor support
 
-  - [pandoc-mode](http://joostkremers.github.com/pandoc-mode/) for Emacs
+  - [pandoc-mode](http://joostkremers.github.io/pandoc-mode) for Emacs
   - [vim-pandoc](https://github.com/vim-pandoc) for Vim
 
 ### CLI wrappers
