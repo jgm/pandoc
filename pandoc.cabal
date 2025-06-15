@@ -614,6 +614,7 @@ library
                    Text.Pandoc.Readers.Pod,
                    Text.Pandoc.Writers,
                    Text.Pandoc.Writers.Native,
+                   Text.Pandoc.Writers.XML,
                    Text.Pandoc.Writers.DocBook,
                    Text.Pandoc.Writers.JATS,
                    Text.Pandoc.Writers.OPML,
@@ -744,6 +745,7 @@ library
                    Text.Pandoc.Readers.Metadata,
                    Text.Pandoc.Readers.Roff,
                    Text.Pandoc.Readers.Roff.Escape,
+                   Text.Pandoc.Readers.XML,
                    Text.Pandoc.Writers.Docx.OpenXML,
                    Text.Pandoc.Writers.Docx.StyleMap,
                    Text.Pandoc.Writers.Docx.Table,
@@ -769,6 +771,7 @@ library
                    Text.Pandoc.Char,
                    Text.Pandoc.TeX,
                    Text.Pandoc.URI,
+                   Text.Pandoc.XMLFormat,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
@@ -815,6 +818,7 @@ test-suite test-pandoc
                   Tests.Helpers
                   Tests.Shared
                   Tests.MediaBag
+                  Tests.XML
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.JATS
