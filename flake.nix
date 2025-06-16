@@ -52,7 +52,7 @@
             haskellPackages.hpc
             haskellPackages.ghcid
             haskellPackages.stylish-haskell
-            zlib
+            zlib.dev
             git
             bashInteractive
             epubcheck # for validate-epub
