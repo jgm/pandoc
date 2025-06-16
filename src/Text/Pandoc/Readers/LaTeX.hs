@@ -52,8 +52,8 @@ import Text.Pandoc.Parsing hiding (blankline, many, mathDisplay, mathInline,
 import Text.Pandoc.TeX (Tok (..), TokType (..))
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.Readers.LaTeX.Citation (citationCommands, cites)
-import Text.Pandoc.Readers.LaTeX.Math (dollarsMath, inlineEnvironments,
-                                       inlineEnvironment,
+import Text.Pandoc.Readers.LaTeX.Math (withMathMode, dollarsMath,
+                                       inlineEnvironments, inlineEnvironment,
                                        mathDisplay, mathInline,
                                        newtheorem, theoremstyle, proof,
                                        theoremEnvironment)
@@ -371,9 +371,11 @@ inlineCommands = M.unions
     , ("hbox", rawInlineOr "hbox" $ processHBox <$> tok)
     , ("vbox", rawInlineOr "vbox" tok)
     , ("lettrine", rawInlineOr "lettrine" lettrine)
-    , ("(", mathInline . untokenize <$> manyTill anyTok (controlSeq ")"))
-    , ("[", mathDisplay . untokenize <$> manyTill anyTok (controlSeq "]"))
-    , ("ensuremath", mathInline . untokenize <$> braced)
+    , ("(", withMathMode
+        (mathInline . untokenize <$> manyTill anyTok (controlSeq ")")))
+    , ("[", withMathMode
+        (mathDisplay . untokenize <$> manyTill anyTok (controlSeq "]")))
+    , ("ensuremath", withMathMode (mathInline . untokenize <$> braced))
     , ("texorpdfstring", const <$> tok <*> tok)
     -- old TeX commands
     , ("em", extractSpaces emph <$> inlines)
