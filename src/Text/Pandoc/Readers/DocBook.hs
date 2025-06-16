@@ -932,10 +932,7 @@ parseBlock (Elem e) =
                                "lowerroman" -> LowerRoman
                                "upperroman" -> UpperRoman
                                _            -> Decimal
-          let start = fromMaybe 1 $
-                           (safeRead $ attrValue "startingnumber" e)
-                       <|> (filterElement (named "listitem") e
-                                    >>= safeRead . attrValue "override")
+          let start = fromMaybe 1 $ safeRead $ attrValue "startingnumber" e
           orderedListWith (start,listStyle,DefaultDelim) . handleCompact
             <$> listitems
         "variablelist" -> definitionList <$> deflistitems

@@ -405,8 +405,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </sect2>
   <sect2 id="fancy-list-markers">
     <title>Fancy list markers</title>
-    <orderedlist numeration="arabic">
-      <listitem override="2">
+    <orderedlist numeration="arabic" startingnumber="2">
+      <listitem>
         <para>
           begins with 2
         </para>
@@ -418,8 +418,8 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
         <para>
           with a continuation
         </para>
-        <orderedlist numeration="lowerroman">
-          <listitem override="4">
+        <orderedlist numeration="lowerroman" startingnumber="4">
+          <listitem>
             <para>
               sublist with roman numerals, starting with 4
             </para>
@@ -457,13 +457,13 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
             <para>
               Upper Roman.
             </para>
-            <orderedlist numeration="arabic">
-              <listitem override="6">
+            <orderedlist numeration="arabic" startingnumber="6">
+              <listitem>
                 <para>
                   Decimal start with 6
                 </para>
-                <orderedlist numeration="loweralpha">
-                  <listitem override="3">
+                <orderedlist numeration="loweralpha" startingnumber="3">
+                  <listitem>
                     <para>
                       Lower alpha with paren
                     </para>
