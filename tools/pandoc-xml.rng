@@ -1,3 +1,20 @@
+<!--
+A RELAX NG schema for Pandoc XML format.
+Copyright   : Copyright (C) 2025- Massimiliano Farinella
+License     : GNU GPL, version 2 or above
+Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+
+This is a RELAX NG schema for the XML representation of Pandoc AST.
+It's an equivalent of native and JSON formats, but modeled as XML.
+You can use this schema to validate Pandoc XML documents.
+It's translated from pandoc-xml.dtd with the "Trang" software by James Clark,
+and adjusted manually to add some constraints:
+- elements with Attr can have arbitrary attributes (this is not possible with a DTD)
+- Header's "level", OrderedList's "start" and Cell's "rowspan" and "colspan" attributes
+  must be a positive integer and are equal to 1 if not specified
+- column widths in ColSpec must be between 0 and 1 (inclusive, with 0=ColWidthDefault)
+- the "count" attribute in the "<Space>" element must be positive and equal to 1 if not specified
+-->
 <?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
   xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">

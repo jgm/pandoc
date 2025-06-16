@@ -1,3 +1,25 @@
+<!--
+A XML Schema definition for Pandoc XML format.
+Copyright   : Copyright (C) 2025- Massimiliano Farinella
+License     : GNU GPL, version 2 or above
+Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+
+This is a XML Schema schema for the XML representation of Pandoc AST.
+It's an equivalent of native and JSON formats, but modeled as XML.
+You can use this schema to validate Pandoc XML documents.
+It's translated from pandoc-xml.dtd with the "Trang" software by James Clark,
+and adjusted manually to add some constraints:
+- elements with Attr can have arbitrary attributes (this is not possible with a DTD)
+- Header's "level", OrderedList's "start" and Cell's "rowspan" and "colspan" attributes
+  must be a positive integer and are equal to 1 if not specified
+- column widths in ColSpec must be between 0 and 1 (inclusive, with 0=ColWidthDefault)
+- the "count" attribute in the "<Space>" element must be a positive integer,
+  equal to 1 if not specified
+- OrderedList's number style and delimiter, ColSpec's and Cell's alignment,
+  Quoted's QuoteType and Math's Mathtype
+  can only take the values specified in pandoc-types
+- TableBody's row-head-columns must be zero (default, when not specified) or a positive integer
+-->
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
   <xs:element name="Pandoc">

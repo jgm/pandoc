@@ -1,3 +1,19 @@
+<!--
+A DTD for Pandoc XML format.
+Copyright   : Copyright (C) 2025- Massimiliano Farinella
+License     : GNU GPL, version 2 or above
+Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+
+This is a DTD for the XML representation of Pandoc AST.
+It's an equivalent of native and JSON formats, but modeled as XML.
+You can validate Pandoc XML documents with this DTD,
+but there are some limitations:
+- a Pandoc Attr can contain arbitrary attributes, but it looks like you can't tell
+  an element has arbitrary attributes in a DTD
+- some Pandoc attributes have constraints that can't be specified with a DTD
+The Relax-NG and XML Schema translations of this specification overcome
+some of those limitations (see pandoc-xml.rng and pandoc-xml.xsd).
+-->
 <!ELEMENT Pandoc (meta, blocks)>
 <!ATTLIST Pandoc api-version CDATA #REQUIRED>
 
@@ -148,7 +164,7 @@
 <!ENTITY % target "title CDATA #IMPLIED url CDATA #IMPLIED">
 
 <!ELEMENT Image (%inline;)*>
-<!ATTLIST Image 
+<!ATTLIST Image
   title CDATA #IMPLIED
   src CDATA #IMPLIED
   %attr;>
