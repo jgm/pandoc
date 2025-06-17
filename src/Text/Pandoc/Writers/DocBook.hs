@@ -277,8 +277,7 @@ blockToDocBook opts (OrderedList (start, numstyle, _) items) = do
       spacing    = [("spacing", "compact") | isTightList items]
       startnum   = [("startingnumber", tshow start) | start /= 1]
       attribs    = numeration <> spacing <> startnum
-  items <- listItemsToDocBook opts items
-  return $ inTags True "orderedlist" attribs items
+  inTags True "orderedlist" attribs <$> listItemsToDocBook opts items
 blockToDocBook opts (DefinitionList lst) = do
   let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   inTags True "variablelist" attribs <$> deflistItemsToDocBook opts lst
