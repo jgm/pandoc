@@ -15,7 +15,7 @@ Conversion of DocBook XML to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.DocBook ( readDocBook ) where
 import Control.Monad (MonadPlus(mplus))
-import Control.Applicative ((<|>))
+import Control.Applicative ()
 import Control.Monad.State.Strict
     ( MonadTrans(lift),
       StateT(runStateT),
