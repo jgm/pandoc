@@ -13,3 +13,5 @@ source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
   tag: 157c7815f06e4e6771740a4eb8df97568626a8fe
+
+-- TODO: release new skylighting-core, skylighting
