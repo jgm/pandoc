@@ -25,7 +25,7 @@ import Control.Monad (foldM, zipWithM, MonadPlus(..), when, liftM)
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
-import Data.List (intersperse, sortOn, union)
+import Data.List (intersperse, sortOn, union, find)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing)
@@ -369,6 +369,10 @@ blockToMarkdown' :: PandocMonad m
                  -> Block         -- ^ Block element
                  -> MD m (Doc Text)
 blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
+  | ("sourceCode":_) <- classes
+  , [CodeBlock (_,"sourceCode":_,_) _] <- bs
+     -- skip pandoc-generated Div wrappers around code blocks
+   = blockListToMarkdown opts bs
   | isEnabled Ext_alerts opts
   , (cls:_) <- classes
   , cls `elem` ["note", "tip", "warning", "caution", "important"]
@@ -589,9 +593,11 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
      attrs  = if isEnabled Ext_fenced_code_attributes opts ||
                  isEnabled Ext_attributes opts
                  then nowrap $ " " <> classOrAttrsToMarkdown opts attribs
-                 else case attribs of
-                            (_,cls:_,_) -> " " <> literal cls
-                            _             -> empty
+                 else
+                   let (_,cls,_) = attribs
+                    in case getLangFromClasses cls of
+                              Just l -> " " <> literal l
+                              Nothing -> empty
 blockToMarkdown' opts (BlockQuote blocks) = do
   variant <- asks envVariant
   -- if we're writing literate haskell, put a space before the bird tracks
@@ -942,3 +948,14 @@ computeDivNestingLevel = foldr go 0
  where
    go (Div _ bls') n = max (n + 1) (foldr go (n + 1) bls')
    go _ n = n
+
+-- Identify the class in a list of classes that corresponds to
+-- the language syntax.  language-X turns to X.
+getLangFromClasses :: [Text] -> Maybe Text
+getLangFromClasses cs =
+  case find ("language-" `T.isPrefixOf`) cs of
+    Just x -> Just (T.drop 9 x)
+    Nothing ->
+      case filter (/= "sourceCode") cs of
+        (x:_) -> Just x
+        [] -> Nothing
