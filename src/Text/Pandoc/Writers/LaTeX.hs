@@ -357,8 +357,10 @@ blockToLaTeX (Div attr@(identifier,"block":dclasses,_)
                else (cr <>) <$> hypertarget identifier
   title' <- inlineListToLaTeX ils
   contents <- blockListToLaTeX bs
-  wrapDiv attr $ ("\\begin" <> braces blockname <> braces title' <> anchor) $$
-                 contents $$ "\\end" <> braces blockname
+  ($$ blankline) <$> wrapDiv attr
+    (("\\begin" <> braces blockname <> braces title' <> anchor) $$
+      contents $$
+      "\\end" <> braces blockname)
 blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
                (Header _ (_,hclasses,hkvs) ils : bs)) = do
   -- note: [fragile] is required or verbatim breaks
@@ -392,7 +394,7 @@ blockToLaTeX (Div (identifier,"slide":dclasses,dkvs)
                     else (cr <>) <$> hypertarget identifier
   contents <- blockListToLaTeX bs >>= wrapDiv (identifier,classes,kvs)
   return $ ("\\begin{frame}" <> options <> slideTitle <> slideAnchor) $$
-             contents $$ "\\end{frame}"
+             contents $$ "\\end{frame}" $$ blankline
 blockToLaTeX (Div (identifier@(T.uncons -> Just (_,_)),dclasses,dkvs)
                (Header lvl ("",hclasses,hkvs) ils : bs)) =
   -- move identifier from div to header
@@ -433,23 +435,24 @@ blockToLaTeX (Div (identifier,classes,kvs) bs) = do
          | otherwise = do
              linkAnchor <- hypertarget identifier
              pure $ linkAnchor $$ txt
-  wrapDiv (identifier,classes,kvs) result >>= wrap
+  ($$ blankline) <$> (wrapDiv (identifier,classes,kvs) result >>= wrap)
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
--- . . . indicates pause in beamer slides
+-- . . .  indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- gets stBeamer
   if beamer
      then blockToLaTeX (RawBlock "latex" "\\pause")
-     else inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
+     else ($$ blankline) . (blankline $$)
+           <$> inlineListToLaTeX [Str ".",Space,Str ".",Space,Str "."]
 blockToLaTeX (Para lst) =
   if null lst
      then do
        opts <- gets stOptions
        if isEnabled Ext_empty_paragraphs opts
-          then pure "\\hfill\\par"
+          then pure $ "\\hfill\\par" $$ blankline
           else pure mempty
-     else inlineListToLaTeX lst
+     else (blankline $$) . ($$ blankline) <$> inlineListToLaTeX lst
 blockToLaTeX (LineBlock lns) =
   blockToLaTeX $ linesToPara lns
 blockToLaTeX (BlockQuote lst) = do
@@ -470,7 +473,8 @@ blockToLaTeX (BlockQuote lst) = do
          let envname = if csquotes then "displayquote" else "quote"
          return $ ("\\begin" <> braces envname) $$
                   contents $$
-                  ("\\end" <> braces envname)
+                  ("\\end" <> braces envname) $$
+                  blankline
 blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   opts <- gets stOptions
   inNote <- stInNote <$> get
@@ -527,7 +531,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                   when inNote $ modify (\s -> s{ stVerbInNote = True })
                   modify (\s -> s{ stHighlighting = True })
                   return (flush $ linkAnchor $$ text (T.unpack h))
-  case () of
+  ($$ blankline) <$>
+    case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes           -> lhsCodeBlock
        | writerListings opts                 -> listingsCodeBlock
@@ -564,7 +569,8 @@ blockToLaTeX (BulletList lst) = do
              spacing $$
              -- force list at beginning of definition to start on new line
              vcat items $$
-             "\\end{itemize}"
+             "\\end{itemize}" $$
+             blankline
 blockToLaTeX (OrderedList _ []) = return empty -- otherwise latex error
 blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
   st <- get
@@ -618,6 +624,7 @@ blockToLaTeX (OrderedList (start, numstyle, numdelim) lst) = do
          $$ spacing
          $$ vcat items
          $$ "\\end{enumerate}"
+         $$ blankline
 blockToLaTeX (DefinitionList []) = return empty
 blockToLaTeX (DefinitionList lst) = do
   incremental <- gets stIncremental
@@ -628,17 +635,18 @@ blockToLaTeX (DefinitionList lst) = do
                    then text "\\tightlist"
                    else empty
   return $ text ("\\begin{description}" <> inc) $$ spacing $$ vcat items $$
-               "\\end{description}"
-blockToLaTeX HorizontalRule =
-            return
-  "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}"
+               "\\end{description}" $$
+               blankline
+blockToLaTeX HorizontalRule = return $
+  "\\begin{center}\\rule{0.5\\linewidth}{0.5pt}\\end{center}" $$ blankline
 blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = True}
   hdr <- sectionHeader classes id' level lst
   modify $ \s -> s{stInHeading = False}
-  return hdr
+  return $ hdr $$ blankline
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
-  tableToLaTeX inlineListToLaTeX blockListToLaTeX
+  ($$ blankline) <$>
+      tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
 blockToLaTeX (Figure (ident, _, _) captnode body) = do
   opts <- gets stOptions
@@ -678,6 +686,7 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
           innards
     _ ->  cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}")
     $$ footnotes
+    $$ blankline
 
 toSubfigure :: PandocMonad m => Int -> Block -> LW m (Doc Text)
 toSubfigure nsubfigs blk = do
@@ -696,8 +705,8 @@ toSubfigure nsubfigs blk = do
                     ]
 
 blockListToLaTeX :: PandocMonad m => [Block] -> LW m (Doc Text)
-blockListToLaTeX lst =
-  vsep `fmap` mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
+blockListToLaTeX lst = (nestle . chomp . vcat) <$>
+    mapM (\b -> setEmptyLine True >> blockToLaTeX b) lst
 
 listItemToLaTeX :: PandocMonad m => Bool -> [Block] -> LW m (Doc Text)
 listItemToLaTeX isOrdered lst
@@ -742,7 +751,7 @@ defListItemToLaTeX (term, defs) = do
                  firstitem <- blockToLaTeX x
                  modify $ \s -> s{stIsFirstInDefinition = False }
                  rest <- blockListToLaTeX xs
-                 return $ firstitem $+$ rest
+                 return $ chomp . nestle $ firstitem $+$ rest
     return $ case defs of
      ((Header{} : _) : _)    ->
        "\\item" <> brackets term'' <> " ~ " $$ def'

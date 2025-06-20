@@ -339,12 +339,10 @@ Multiple paragraphs:
 \tightlist
 \item
   Tab
-
   \begin{itemize}
   \tightlist
   \item
     Tab
-
     \begin{itemize}
     \tightlist
     \item
@@ -362,7 +360,6 @@ Here's another:
   First
 \item
   Second:
-
   \begin{itemize}
   \tightlist
   \item
@@ -434,7 +431,6 @@ Same thing but with paragraphs:
     sublist with roman numerals, starting with 4
   \item
     more items
-
     \begin{enumerate}
     \def\labelenumiii{(\Alph{enumiii})}
     \tightlist
@@ -453,20 +449,17 @@ Nesting:
 \tightlist
 \item
   Upper Alpha
-
   \begin{enumerate}
   \def\labelenumii{\Roman{enumii}.}
   \tightlist
   \item
     Upper Roman.
-
     \begin{enumerate}
     \def\labelenumiii{(\arabic{enumiii})}
     \setcounter{enumiii}{5}
     \tightlist
     \item
       Decimal start with 6
-
       \begin{enumerate}
       \def\labelenumiv{\alph{enumiv})}
       \setcounter{enumiv}{2}
@@ -486,7 +479,6 @@ Autonumbering:
   Autonumber.
 \item
   More.
-
   \begin{enumerate}
   \tightlist
   \item
@@ -620,7 +612,6 @@ bar
 Interpreted markdown in a table:
 
 This is \emph{emphasized}
-
 And this is \textbf{strong}
 
 Here's a simple block:
@@ -765,7 +756,6 @@ Animal & Number \\ \hline
 Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
-
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
 \section{Special Characters}\label{special-characters}

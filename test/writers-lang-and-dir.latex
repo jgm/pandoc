@@ -82,7 +82,6 @@
 \section{Empty Divs and Spans}\label{empty-divs-and-spans}
 
 Some text and
-
 div contents
 
 and more text.
@@ -92,7 +91,6 @@ Next paragraph with a {span} and a word-thatincludesa{span}right?
 \section{Directionality}\label{directionality}
 
 Some text and
-
 \begin{RTL}
 rtl div contents
 \end{RTL}
@@ -109,7 +107,6 @@ word-that-includesa\LR{ltrspan}right?
 \section{Languages}\label{languages}
 
 Some text and
-
 \begin{otherlanguage}{ngerman}
 
 German div contents
@@ -127,7 +124,6 @@ Some \foreignlanguage{spanish}{Spanish text}.
 \section{Combined}\label{combined}
 
 Some text and
-
 \begin{RTL}
 \begin{otherlanguage}{french}
 
