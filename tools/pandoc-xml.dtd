@@ -1,0 +1,181 @@
+<!--
+A DTD for Pandoc XML format.
+Copyright   : Copyright (C) 2025- Massimiliano Farinella
+License     : GNU GPL, version 2 or above
+Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+
+This is a DTD for the XML representation of Pandoc AST.
+It's an equivalent of native and JSON formats, but modeled as XML.
+You can validate Pandoc XML documents with this DTD,
+but there are some limitations:
+- a Pandoc Attr can contain arbitrary attributes, but it looks like you can't tell
+  an element has arbitrary attributes in a DTD
+- some Pandoc attributes have constraints that can't be specified with a DTD
+The Relax-NG and XML Schema translations of this specification overcome
+some of those limitations (see pandoc-xml.rng and pandoc-xml.xsd).
+-->
+<!ELEMENT Pandoc (meta, blocks)>
+<!ATTLIST Pandoc api-version CDATA #REQUIRED>
+
+<!ENTITY % block "Para | Plain | Header | Div | BlockQuote | HorizontalRule | BulletList | OrderedList | DefinitionList | Table | Figure | LineBlock | CodeBlock | RawBlock">
+
+<!ENTITY % inline_element "Str | Space | Emph | Strong | Underline | Strikeout | Superscript | Subscript | SmallCaps | Quoted | Cite | Code | SoftBreak | LineBreak | Math | RawInline | Link | Image | Note | Span">
+<!ENTITY % inline "#PCDATA | %inline_element;">
+
+<!ENTITY % attr "id ID #IMPLIED class CDATA #IMPLIED">
+
+<!ENTITY % metavalue "MetaMap | MetaList | MetaBool | MetaString | MetaInlines | MetaBlocks">
+
+<!ELEMENT meta (entry*)>
+<!ELEMENT MetaMap (entry*)>
+
+<!ELEMENT entry (%metavalue;)*>
+<!ATTLIST entry key CDATA #REQUIRED>
+
+<!ELEMENT MetaList (%metavalue;)*>
+
+<!ELEMENT MetaBool EMPTY>
+<!ATTLIST MetaBool value (true | false) #REQUIRED>
+
+<!ELEMENT MetaString (#PCDATA)>
+
+<!ELEMENT MetaInlines (%inline;)*>
+
+<!ELEMENT MetaBlocks (%block;)*>
+
+<!ELEMENT blocks (%block;)*>
+
+<!ELEMENT Para (%inline;)*>
+
+<!ELEMENT Plain (%inline;)*>
+
+<!ELEMENT Header (%inline;)*>
+<!ATTLIST Header
+  level CDATA "1"
+  %attr;>
+
+<!ELEMENT Div (%block;)* >
+<!ATTLIST Div
+  custom-style CDATA #IMPLIED
+  %attr;>
+
+<!ELEMENT BlockQuote (%block;)*>
+
+<!ELEMENT HorizontalRule EMPTY>
+
+<!ELEMENT BulletList (item)+>
+
+<!ELEMENT OrderedList (item)+>
+<!ATTLIST OrderedList
+  start CDATA "1"
+  number-style (DefaultStyle | Example | Decimal | LowerRoman | UpperRoman | LowerAlpha | UpperAlpha) "DefaultStyle"
+  number-delim (DefaultDelim | Period | OneParen | TwoParens) "DefaultDelim">
+
+<!ELEMENT DefinitionList (item)+>
+
+<!ELEMENT item ((%block;)*|(term,def+))>
+<!ELEMENT term (%inline;)*>
+<!ELEMENT def (%block;)*>
+
+<!ELEMENT Table (Caption, colspecs, TableHead, TableBody+, TableFoot)>
+<!ATTLIST Table
+  custom-style CDATA #IMPLIED
+  %attr;>
+<!ELEMENT Caption (ShortCaption?, (%block;)*)>
+<!ELEMENT ShortCaption (%inline;)*>
+<!ELEMENT colspecs (ColSpec+)>
+<!ELEMENT ColSpec EMPTY>
+<!ATTLIST ColSpec
+  alignment (AlignLeft | AlignRight | AlignCenter | AlignDefault) "AlignDefault"
+  col-width CDATA "0">
+<!ELEMENT TableHead (Row*)>
+<!ATTLIST TableHead %attr;>
+<!ELEMENT TableFoot (Row*)>
+<!ATTLIST TableFoot %attr;>
+<!ELEMENT TableBody (header, body)>
+<!ATTLIST TableBody
+  row-head-columns CDATA "0"
+  %attr;>
+<!ELEMENT header (Row*)>
+<!ELEMENT body (Row*)>
+<!ELEMENT Row (Cell*)>
+<!ATTLIST Row %attr;>
+<!ELEMENT Cell (%block;)*>
+<!ATTLIST Cell
+  alignment (AlignLeft | AlignRight | AlignCenter | AlignDefault) "AlignDefault"
+  row-span CDATA "1"
+  col-span CDATA "1"
+  %attr; >
+
+<!ELEMENT Figure (Caption,(%block;)*)>
+<!ATTLIST Figure %attr;>
+
+<!ELEMENT LineBlock (line+)>
+<!ELEMENT line (%inline;)*>
+
+<!ELEMENT CodeBlock (#PCDATA)>
+<!ATTLIST CodeBlock %attr;>
+
+<!ELEMENT RawBlock (#PCDATA)>
+<!ATTLIST RawBlock format CDATA #REQUIRED>
+
+<!ELEMENT Space EMPTY>
+<!ATTLIST Space count CDATA "1">
+
+<!ELEMENT Str EMPTY>
+<!ATTLIST Str content CDATA "">
+
+<!ELEMENT Emph (%inline;)*>
+<!ELEMENT Strong (%inline;)*>
+<!ELEMENT Underline (%inline;)*>
+<!ELEMENT Strikeout (%inline;)*>
+<!ELEMENT Superscript (%inline;)*>
+<!ELEMENT Subscript (%inline;)*>
+<!ELEMENT SmallCaps (%inline;)*>
+
+<!ELEMENT Span (%inline;)*>
+<!ATTLIST Span
+  custom-style CDATA #IMPLIED
+  %attr;>
+
+<!ELEMENT Quoted (%inline;)*>
+<!ATTLIST Quoted quote-type (SingleQuote | DoubleQuote) "DoubleQuote">
+
+<!ELEMENT Math (#PCDATA)>
+<!ATTLIST Math math-type (DisplayMath	| InlineMath) "InlineMath">
+
+<!ELEMENT RawInline (#PCDATA)>
+<!ATTLIST RawInline format CDATA #REQUIRED>
+
+<!ELEMENT Cite (#PCDATA | citations | %inline_element;)*>
+<!ELEMENT citations (Citation)+>
+<!ELEMENT Citation (prefix?, suffix?)>
+<!ELEMENT prefix (%inline;)*>
+<!ELEMENT suffix (%inline;)*>
+<!ATTLIST Citation
+  id CDATA #IMPLIED
+  note-num CDATA #IMPLIED
+  hash CDATA "0"
+  mode (AuthorInText	| SuppressAuthor | NormalCitation) "AuthorInText">
+
+<!ELEMENT Code (#PCDATA)>
+<!ATTLIST Code %attr;>
+
+<!ENTITY % target "title CDATA #IMPLIED url CDATA #IMPLIED">
+
+<!ELEMENT Image (%inline;)*>
+<!ATTLIST Image
+  title CDATA #IMPLIED
+  src CDATA #IMPLIED
+  %attr;>
+
+<!ELEMENT Link (%inline;)*>
+<!ATTLIST Link
+  title CDATA #IMPLIED
+  href CDATA #IMPLIED
+  %attr;>
+
+<!ELEMENT SoftBreak EMPTY>
+<!ELEMENT LineBreak EMPTY>
+
+<!ELEMENT Note (%block;)*>
