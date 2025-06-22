@@ -299,17 +299,49 @@ getCitations locale otherIdsMap = Foldable.toList . query getCitation
  where
   getCitation (Cite cs _fallback) = Seq.singleton $
     Citeproc.Citation { Citeproc.citationId = Nothing
-                      , Citeproc.citationPrefix = Nothing
-                      , Citeproc.citationSuffix = Nothing
+                      , Citeproc.citationPrefix = pref
+                      , Citeproc.citationSuffix = suff
                       , Citeproc.citationNoteNumber =
                           case cs of
                             []    -> Nothing
                             (Pandoc.Citation{ Pandoc.citationNoteNum = n }:
                                _) | n > 0     -> Just n
                                   | otherwise -> Nothing
-                      , Citeproc.citationItems =
-                           fromPandocCitations locale otherIdsMap cs
+                      , Citeproc.citationItems = items
                       }
+    where
+     (pref, suff, items) =
+       case fromPandocCitations locale otherIdsMap cs of
+         [] -> (Nothing, Nothing, [])
+         (i:is) ->
+           let (pref', i') = case citationItemPrefix i of
+                              Nothing -> (Nothing, i)
+                              Just p ->
+                                case splitInlinesOnPipe (B.toList p) of
+                                  (_,[]) -> (Nothing, i)
+                                  (as,bs) -> (Just (B.fromList as),
+                                              i{ citationItemPrefix = Just (B.fromList bs) })
+               (suff', is') = case reverse is of
+                               [] -> (Nothing, [])
+                               (i'':is'') ->
+                                 case Citeproc.citationItemSuffix i'' of
+                                   Nothing -> (Nothing, is)
+                                   Just s ->
+                                     case splitInlinesOnPipe (B.toList s) of
+                                       (_,[]) -> (Nothing, is)
+                                       (as,bs) -> (Just (B.fromList bs), reverse
+                                                   (i''{ citationItemSuffix = Just (B.fromList as) }:is''))
+            in (pref', suff', i':is')
+     splitInlinesOnPipe ils =
+       case break isStrWithPipe ils of
+         (xs,Str s : ys) ->
+           let (as,bs) = T.break (=='|') s
+               bs' = T.drop 1 bs
+           in  (xs ++ [Str as | not (T.null as)],
+                [Str bs' | not (T.null bs')] ++ ys)
+         _ -> (ils,[])
+     isStrWithPipe (Str s) = T.any (=='|') s
+     isStrWithPipe _ = False
   getCitation _ = mempty
 
 fromPandocCitations :: Locale
