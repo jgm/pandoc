@@ -9,6 +9,11 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
+- hslua-2.4.0
+- hslua-module-doclayout-1.2.0.1
+- hslua-objectorientation-2.4.0
+- hslua-packaging-2.3.2
+- pandoc-lua-marshal-0.3.1
 - tls-2.1.7
 - skylighting-core-0.14.6
 - skylighting-0.14.6
