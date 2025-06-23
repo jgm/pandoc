@@ -2910,14 +2910,14 @@ Returns:
 
 ### Cite {#pandoc.Cite}
 
-`Cite (Inlines, citations)`
+`Cite (content, citations)`
 
 Creates a Cite inline element
 
 Parameters:
 
-`Inlines`
-:   placeholder content ([content]{unknown-type="content"})
+`content`
+:   placeholder content ([Inlines])
 
 `citations`
 :   List of Citations ({[Citation]{unknown-type="Citation"},\...})
