@@ -90,7 +90,7 @@ convertTags (t@(TagOpen "style" _):ts) =
       ((t:xs') ++) <$> convertTags rest
 convertTags (t@(TagOpen "script" as):tc@(TagClose "script"):ts) =
   case fromAttrib "src" t of
-       ""  -> (t:) <$> convertTags ts
+       ""  -> ([t, tc] ++) <$> convertTags ts
        src -> do
            let typeAttr = fromAttrib "type" t
            res <- getData typeAttr src
@@ -105,7 +105,9 @@ convertTags (t@(TagOpen "script" as):tc@(TagClose "script"):ts) =
                      "application/x-javascript" `T.isPrefixOf` mime) &&
                      not ("</script" `B.isInfixOf` bs) ->
                      return $
-                       TagOpen "script" [("type", typeAttr)|not (T.null typeAttr)]
+                       TagOpen "script" [(k,v) | (k,v) <- as
+                                               , k == "type" ||
+                                                 "data-" `T.isPrefixOf` k]
                        : TagText (toText bs)
                        : TagClose "script"
                        : rest

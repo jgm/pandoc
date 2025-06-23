@@ -33,6 +33,7 @@ Definition
     2. list
 ^D
 \begin{description}
+\tightlist
 \item[Definition]
 Foo
 

@@ -2534,7 +2534,7 @@ Parameters:
 
 Returns:
 
--   new Pandoc document ([Pandoc])
+- new Pandoc document ([Pandoc])
 
 ### Meta {#pandoc.Meta}
 
@@ -2547,7 +2547,7 @@ Parameters:
 
 Returns:
 
--   new Meta table (table)
+- new Meta table (table)
 
 ### MetaBlocks {#pandoc.MetaBlocks}
 
@@ -2564,7 +2564,7 @@ Parameters:
 
 Returns:
 
--   list of Block elements ([Blocks])
+- list of Block elements ([Blocks])
 
 ### MetaBool {#pandoc.MetaBool}
 
@@ -2577,7 +2577,7 @@ Parameters:
 
 Returns:
 
--   input, unchanged (boolean)
+- input, unchanged (boolean)
 
 ### MetaInlines {#pandoc.MetaInlines}
 
@@ -2594,7 +2594,7 @@ Parameters:
 
 Returns:
 
--   list of Inline elements ([Inlines])
+- list of Inline elements ([Inlines])
 
 ### MetaList {#pandoc.MetaList}
 
@@ -2611,7 +2611,7 @@ Parameters:
 
 Returns:
 
--   list of meta values ([List]{unknown-type="List"})
+- list of meta values ([List]{unknown-type="List"})
 
 ### MetaMap {#pandoc.MetaMap}
 
@@ -2628,7 +2628,7 @@ Parameters:
 
 Returns:
 
--   map of meta values (table)
+- map of meta values (table)
 
 ### MetaString {#pandoc.MetaString}
 
@@ -2645,7 +2645,7 @@ Parameters:
 
 Returns:
 
--   unchanged input (string)
+- unchanged input (string)
 
 ### BlockQuote {#pandoc.BlockQuote}
 
@@ -2660,7 +2660,7 @@ Parameters:
 
 Returns:
 
--   BlockQuote element ([Block])
+- BlockQuote element ([Block])
 
 ### BulletList {#pandoc.BulletList}
 
@@ -2675,7 +2675,7 @@ Parameters:
 
 Returns:
 
--   BulletList element ([Block])
+- BulletList element ([Block])
 
 ### CodeBlock {#pandoc.CodeBlock}
 
@@ -2693,7 +2693,7 @@ Parameters:
 
 Returns:
 
--   CodeBlock element ([Block])
+- CodeBlock element ([Block])
 
 ### DefinitionList {#pandoc.DefinitionList}
 
@@ -2709,7 +2709,7 @@ Parameters:
 
 Returns:
 
--   DefinitionList element ([Block])
+- DefinitionList element ([Block])
 
 ### Div {#pandoc.Div}
 
@@ -2727,7 +2727,7 @@ Parameters:
 
 Returns:
 
--   Div element ([Block])
+- Div element ([Block])
 
 ### Figure {#pandoc.Figure}
 
@@ -2748,7 +2748,7 @@ Parameters:
 
 Returns:
 
--   Figure object ([Block])
+- Figure object ([Block])
 
 ### Header {#pandoc.Header}
 
@@ -2769,7 +2769,7 @@ Parameters:
 
 Returns:
 
--   Header element ([Block])
+- Header element ([Block])
 
 ### HorizontalRule {#pandoc.HorizontalRule}
 
@@ -2779,7 +2779,7 @@ Creates a horizontal rule.
 
 Returns:
 
--   HorizontalRule element ([Block])
+- HorizontalRule element ([Block])
 
 ### LineBlock {#pandoc.LineBlock}
 
@@ -2794,7 +2794,7 @@ Parameters:
 
 Returns:
 
--   LineBlock element ([Block])
+- LineBlock element ([Block])
 
 ### OrderedList {#pandoc.OrderedList}
 
@@ -2812,7 +2812,7 @@ Parameters:
 
 Returns:
 
--   OrderedList element ([Block])
+- OrderedList element ([Block])
 
 ### Para {#pandoc.Para}
 
@@ -2827,7 +2827,7 @@ Parameters:
 
 Returns:
 
--   Para element ([Block])
+- Para element ([Block])
 
 ### Plain {#pandoc.Plain}
 
@@ -2842,7 +2842,7 @@ Parameters:
 
 Returns:
 
--   Plain element ([Block])
+- Plain element ([Block])
 
 ### RawBlock {#pandoc.RawBlock}
 
@@ -2860,7 +2860,7 @@ Parameters:
 
 Returns:
 
--   RawBlock element ([Block])
+- RawBlock element ([Block])
 
 ### Table {#pandoc.Table}
 
@@ -2890,7 +2890,7 @@ Parameters:
 
 Returns:
 
--   Table element ([Block])
+- Table element ([Block])
 
 ### Blocks {#pandoc.Blocks}
 
@@ -2906,25 +2906,25 @@ Parameters:
 
 Returns:
 
--   list of block elements ([Blocks])
+- list of block elements ([Blocks])
 
 ### Cite {#pandoc.Cite}
 
-`Cite (Inlines, citations)`
+`Cite (content, citations)`
 
 Creates a Cite inline element
 
 Parameters:
 
-`Inlines`
-:   placeholder content ([content]{unknown-type="content"})
+`content`
+:   placeholder content ([Inlines])
 
 `citations`
 :   List of Citations ({[Citation]{unknown-type="Citation"},\...})
 
 Returns:
 
--   cite element ([Inline])
+- cite element ([Inline])
 
 ### Code {#pandoc.Code}
 
@@ -2942,7 +2942,7 @@ Parameters:
 
 Returns:
 
--   code element ([Inline])
+- code element ([Inline])
 
 ### Emph {#pandoc.Emph}
 
@@ -2957,7 +2957,7 @@ Parameters:
 
 Returns:
 
--   new object ([Inline])
+- new object ([Inline])
 
 ### Image {#pandoc.Image}
 
@@ -2981,7 +2981,7 @@ Parameters:
 
 Returns:
 
--   Image element ([Inline])
+- Image element ([Inline])
 
 ### LineBreak {#pandoc.LineBreak}
 
@@ -2991,7 +2991,7 @@ Create a LineBreak inline element
 
 Returns:
 
--   line break ([Inline])
+- line break ([Inline])
 
 ### Link {#pandoc.Link}
 
@@ -3015,7 +3015,7 @@ Parameters:
 
 Returns:
 
--   link element ([Inline])
+- link element ([Inline])
 
 ### Math {#pandoc.Math}
 
@@ -3033,7 +3033,7 @@ Parameters:
 
 Returns:
 
--   math element ([Inline])
+- math element ([Inline])
 
 ### Note {#pandoc.Note}
 
@@ -3048,7 +3048,7 @@ Parameters:
 
 Returns:
 
--   note ([Inline])
+- note ([Inline])
 
 ### Quoted {#pandoc.Quoted}
 
@@ -3067,7 +3067,7 @@ Parameters:
 
 Returns:
 
--   quoted element ([Inline])
+- quoted element ([Inline])
 
 ### RawInline {#pandoc.RawInline}
 
@@ -3085,7 +3085,7 @@ Parameters:
 
 Returns:
 
--   raw inline element ([Inline])
+- raw inline element ([Inline])
 
 ### SmallCaps {#pandoc.SmallCaps}
 
@@ -3100,7 +3100,7 @@ Parameters:
 
 Returns:
 
--   new object ([Inline])
+- new object ([Inline])
 
 ### SoftBreak {#pandoc.SoftBreak}
 
@@ -3110,7 +3110,7 @@ Creates a SoftBreak inline element.
 
 Returns:
 
--   soft break ([Inline])
+- soft break ([Inline])
 
 ### Space {#pandoc.Space}
 
@@ -3120,7 +3120,7 @@ Create a Space inline element
 
 Returns:
 
--   new space ([Inline])
+- new space ([Inline])
 
 ### Span {#pandoc.Span}
 
@@ -3138,7 +3138,7 @@ Parameters:
 
 Returns:
 
--   [Span] object ([Inline])
+- [Span] object ([Inline])
 
 ### Str {#pandoc.Str}
 
@@ -3153,7 +3153,7 @@ Parameters:
 
 Returns:
 
--   [Str] object ([Inline])
+- [Str] object ([Inline])
 
 ### Strikeout {#pandoc.Strikeout}
 
@@ -3168,7 +3168,7 @@ Parameters:
 
 Returns:
 
--   new object ([Inline])
+- new object ([Inline])
 
 ### Strong {#pandoc.Strong}
 
@@ -3184,7 +3184,7 @@ Parameters:
 
 Returns:
 
--   new object ([Inline])
+- new object ([Inline])
 
 ### Subscript {#pandoc.Subscript}
 
@@ -3199,7 +3199,7 @@ Parameters:
 
 Returns:
 
--   new object ([Inline])
+- new object ([Inline])
 
 ### Superscript {#pandoc.Superscript}
 
@@ -3214,7 +3214,7 @@ Parameters:
 
 Returns:
 
--   new object ([Inline])
+- new object ([Inline])
 
 ### Underline {#pandoc.Underline}
 
@@ -3229,7 +3229,7 @@ Parameters:
 
 Returns:
 
--   new object ([Inline])
+- new object ([Inline])
 
 ### Inlines {#pandoc.Inlines}
 
@@ -3237,11 +3237,11 @@ Returns:
 
 Converts its argument into an [Inlines] list:
 
--   copies a list of [Inline] elements into a fresh list; any
-    string `s` within the list is treated as `pandoc.Str(s)`;
--   turns a single [Inline] into a singleton list;
--   splits a string into `Str`-wrapped words, treating interword
-    spaces as `Space`s or `SoftBreak`s.
+- copies a list of [Inline] elements into a fresh list; any string
+  `s` within the list is treated as `pandoc.Str(s)`;
+- turns a single [Inline] into a singleton list;
+- splits a string into `Str`-wrapped words, treating interword
+  spaces as `Space`s or `SoftBreak`s.
 
 Parameters:
 
@@ -3251,7 +3251,7 @@ Parameters:
 
 Returns:
 
--   list of inline elements ([Inlines])
+- list of inline elements ([Inlines])
 
 ### Attr {#pandoc.Attr}
 
@@ -3273,7 +3273,27 @@ Parameters:
 
 Returns:
 
--   new Attr object ([Attr])
+- new Attr object ([Attr])
+
+### Caption {#pandoc.Caption}
+
+`Caption ([long[, short]])`
+
+Creates a new Caption object.
+
+Parameters:
+
+`long`
+:   full caption ([Blocks])
+
+`short`
+:   short summary caption ([Inlines])
+
+Returns:
+
+- new Caption object ([Caption])
+
+*Since: 3.6.1*
 
 ### Cell {#pandoc.Cell}
 
@@ -3302,7 +3322,7 @@ Parameters:
 
 Returns:
 
--   new Cell object ([Cell])
+- new Cell object ([Cell])
 
 ### AttributeList {#pandoc.AttributeList}
 
@@ -3315,7 +3335,7 @@ Parameters:
 
 Returns:
 
--   new AttributeList object ([AttributeList])
+- new AttributeList object ([AttributeList])
 
 ### Citation {#pandoc.Citation}
 
@@ -3346,7 +3366,7 @@ Parameters:
 
 Returns:
 
--   new citation object ([Citation]{unknown-type="Citation"})
+- new citation object ([Citation]{unknown-type="Citation"})
 
 ### ListAttributes {#pandoc.ListAttributes}
 
@@ -3368,7 +3388,7 @@ Parameters:
 
 Returns:
 
--   new ListAttributes object ([ListAttributes])
+- new ListAttributes object ([ListAttributes])
 
 ### Row {#pandoc.Row}
 
@@ -3386,7 +3406,7 @@ Parameters:
 
 Returns:
 
--   new Row object ([Row])
+- new Row object ([Row])
 
 ### TableFoot {#pandoc.TableFoot}
 
@@ -3404,7 +3424,7 @@ Parameters:
 
 Returns:
 
--   new TableFoot object ([TableFoot])
+- new TableFoot object ([TableFoot])
 
 ### TableHead {#pandoc.TableHead}
 
@@ -3422,7 +3442,7 @@ Parameters:
 
 Returns:
 
--   new TableHead object ([TableHead])
+- new TableHead object ([TableHead])
 
 ### SimpleTable {#pandoc.SimpleTable}
 
@@ -3466,7 +3486,7 @@ Parameters:
 
 Returns:
 
--   new SimpleTable object ([SimpleTable])
+- new SimpleTable object ([SimpleTable])
 
 <!-- END: AUTOGENERATED CONTENT -->
 
@@ -3730,7 +3750,7 @@ Parameters:
 
 Returns: the transformed inline element
 
-### `read (markup[, format[, reader_options]])` {#pandoc.read}
+### `read (markup[, format[, reader_options[, read_env]]])` {#pandoc.read}
 
 Parse the given string into a Pandoc document.
 
@@ -3740,7 +3760,8 @@ the mediabag. This means that if the document specifies files to
 be included, as is possible in formats like LaTeX,
 reStructuredText, and Org, then these will be included in the
 resulting document. Any media elements are added to those
-retrieved from the other parsed input files.
+retrieved from the other parsed input files. Use the `read_env`
+parameter to modify this behavior.
 
 The `format` parameter defines the format flavor that will be
 parsed. This can be either a string, using `+` and `-` to enable
@@ -3769,6 +3790,15 @@ Parameters:
     a table with a subset of the keys and values of a
     ReaderOptions object; defaults to the default values
     documented in the manual. ([ReaderOptions]|table)
+
+`read_env`
+:   If the value is not given or `nil`, then the global
+    environment is used. Passing a list of filenames causes the
+    reader to be run in a sandbox. The given files are read from
+    the file system and provided to the sandbox via an ersatz file
+    system. The table can also contain mappings from filenames to
+    contents, which will be used to populate the ersatz file
+    system.
 
 Returns: pandoc document ([Pandoc](#type-pandoc))
 
@@ -3879,7 +3909,7 @@ Parameters:
 
 Returns:
 
--   parsed options, using their JSON-like representation. (table)
+- parsed options, using their JSON-like representation. (table)
 
 *Since: 3.0*
 
@@ -3966,7 +3996,7 @@ Parameters:
 
 Returns:
 
--    ([Inlines])
+-  ([Inlines])
 
 *Since: 2.2.3*
 
@@ -3992,7 +4022,7 @@ Parameters:
 
 Returns:
 
--   processed document ([Pandoc])
+- processed document ([Pandoc])
 
 *Since: 2.19.1*
 
@@ -4017,7 +4047,7 @@ Parameters:
 
 Returns:
 
--   Whether the two objects represent the same element (boolean)
+- Whether the two objects represent the same element (boolean)
 
 *Since: 2.5*
 
@@ -4044,7 +4074,7 @@ Parameters:
 
 Returns:
 
--   table block element ([Block])
+- table block element ([Block])
 
 *Since: 2.11*
 
@@ -4075,7 +4105,7 @@ Parameters:
 
 Returns:
 
--   blocks with sections ([Blocks])
+- blocks with sections ([Blocks])
 
 *Since: 2.8*
 
@@ -4095,8 +4125,8 @@ Parameters:
 
 Returns:
 
--   normalized date, or nil if normalization failed. ([string or
-    nil]{unknown-type="string or nil"})
+- normalized date, or nil if normalization failed. ([string or
+  nil]{unknown-type="string or nil"})
 
 *Since: 2.0.6*
 
@@ -4130,7 +4160,7 @@ Parameters:
 
 Returns:
 
--   lift of references. (table)
+- lift of references. (table)
 
 *Since: 2.17*
 
@@ -4154,7 +4184,7 @@ Parameters:
 
 Returns:
 
--   filtered document ([Pandoc])
+- filtered document ([Pandoc])
 
 *Since: 2.1.1*
 
@@ -4179,7 +4209,7 @@ Parameters:
 
 Returns:
 
--   filtered document ([Pandoc])
+- filtered document ([Pandoc])
 
 *Since: 3.2.1*
 
@@ -4196,7 +4226,7 @@ Parameters:
 
 Returns:
 
--   hexadecimal hash value (string)
+- hexadecimal hash value (string)
 
 *Since: 2.0.6*
 
@@ -4215,7 +4245,7 @@ Parameters:
 
 Returns:
 
--   A plain string representation of the given element. (string)
+- A plain string representation of the given element. (string)
 
 *Since: 2.0.6*
 
@@ -4239,7 +4269,7 @@ Parameters:
 
 Returns:
 
--   A roman numeral. (string)
+- A roman numeral. (string)
 
 *Since: 2.0.6*
 
@@ -4264,7 +4294,7 @@ Parameters:
 
 Returns:
 
--   SimpleTable object ([SimpleTable])
+- SimpleTable object ([SimpleTable])
 
 *Since: 2.11*
 
@@ -4299,7 +4329,7 @@ Parameters:
 
 Returns:
 
--   type of the given value (string)
+- type of the given value (string)
 
 *Since: 2.17*
 
@@ -4317,7 +4347,7 @@ Parameters:
 
 Returns:
 
--   new Version object ([Version])
+- new Version object ([Version])
 
 <!-- END: AUTOGENERATED CONTENT -->
 
@@ -4384,10 +4414,10 @@ Parameters:
 
 Returns:
 
--   The entry's MIME type, or `nil` if the file was not found.
-    (string)
--   Contents of the file, or `nil` if the file was not found.
-    (string)
+- The entry's MIME type, or `nil` if the file was not found.
+  (string)
+- Contents of the file, or `nil` if the file was not found.
+  (string)
 
 *Since: 2.0*
 
@@ -4409,7 +4439,7 @@ Parameters:
 
 Returns:
 
--   modified document ([Pandoc])
+- modified document ([Pandoc])
 
 *Since: 2.19*
 
@@ -4463,11 +4493,11 @@ Returns:
 
 Iterator triple:
 
--   The iterator function; must be called with the iterator state
-    and the current iterator value.
--   Iterator state -- an opaque value to be passed to the iterator
-    function.
--   Initial iterator value.
+- The iterator function; must be called with the iterator state
+  and the current iterator value.
+- Iterator state -- an opaque value to be passed to the iterator
+  function.
+- Initial iterator value.
 
 *Since: 2.7.3*
 
@@ -4489,10 +4519,10 @@ Usage:
 
 Returns:
 
--   A list of elements summarizing each entry in the media bag.
-    The summary item contains the keys `path`, `type`, and
-    `length`, giving the filepath, MIME type, and length of
-    contents in bytes, respectively. (table)
+- A list of elements summarizing each entry in the media bag. The
+  summary item contains the keys `path`, `type`, and `length`,
+  giving the filepath, MIME type, and length of contents in bytes,
+  respectively. (table)
 
 *Since: 2.0*
 
@@ -4515,12 +4545,43 @@ Parameters:
 
 Returns:
 
--   The entry's MIME type, or nil if the file was not found.
-    (string)
--   Contents of the file, or nil if the file was not found.
-    (string)
+- The entry's MIME type, or nil if the file was not found.
+  (string)
+- Contents of the file, or nil if the file was not found. (string)
 
 *Since: 2.0*
+
+### make_data_uri {#pandoc.mediabag.make_data_uri}
+
+`make_data_uri (mime_type, raw_data)`
+
+Convert the input data into a data URI as defined by RFC 2397.
+
+Example:
+
+    -- Embed an unofficial pandoc logo
+    local pandoc_logo_url = 'https://raw.githubusercontent.com/'
+      .. 'tarleb/pandoc-logo/main/pandoc.svg'
+
+    local datauri = pandoc.mediabag.make_data_uri(
+      pandoc.mediabag.fetch(pandoc_logo_url)
+    )
+
+    local image = pandoc.Image('Logo', datauri)
+
+Parameters:
+
+`mime_type`
+:   MIME type of the data (string)
+
+`raw_data`
+:   data to encode (string)
+
+Returns:
+
+- data uri (string)
+
+*Since: 3.7.1*
 
 ### write {#pandoc.mediabag.write}
 
@@ -4816,8 +4877,8 @@ Parameters:
 
 Returns:
 
--   all extensions supported for `format`
-    ([FormatExtensions]{unknown-type="FormatExtensions"})
+- all extensions supported for `format`
+  ([FormatExtensions]{unknown-type="FormatExtensions"})
 
 *Since: 3.0*
 
@@ -4836,8 +4897,8 @@ Parameters:
 
 Returns:
 
--   default extensions enabled for `format`
-    ([FormatExtensions]{unknown-type="FormatExtensions"})
+- default extensions enabled for `format`
+  ([FormatExtensions]{unknown-type="FormatExtensions"})
 
 *Since: 3.0*
 
@@ -4861,7 +4922,7 @@ Parameters:
 
 Returns:
 
--   extensions config (table)
+- extensions config (table)
 
 *Since: 3.0*
 
@@ -4876,7 +4937,7 @@ Parameters:
 
 Returns:
 
--   format determined by heuristic (string\|nil)
+- format determined by heuristic (string\|nil)
 
 *Since: 3.1.2*
 
@@ -4916,7 +4977,7 @@ Parameters:
 
 Returns:
 
--   image size information or error message (table)
+- image size information or error message (table)
 
 *Since: 3.1.13*
 
@@ -4936,8 +4997,8 @@ Parameters:
 
 Returns:
 
--   image format, or nil if the format cannot be determined
-    (string\|nil)
+- image format, or nil if the format cannot be determined
+  (string\|nil)
 
 *Since: 3.1.13*
 
@@ -4983,7 +5044,7 @@ Parameters:
 
 Returns:
 
--   decoded object (any)
+- decoded object (any)
 
 *Since: 3.1.1*
 
@@ -5005,7 +5066,7 @@ Parameters:
 
 Returns:
 
--   JSON encoding of the given `object` (string)
+- JSON encoding of the given `object` (string)
 
 *Since: 3.1.1*
 
@@ -5104,7 +5165,7 @@ Parameters:
 
 Returns:
 
--   The filepath up to the last directory separator. (string)
+- The filepath up to the last directory separator. (string)
 
 *Since: 2.12*
 
@@ -5121,7 +5182,7 @@ Parameters:
 
 Returns:
 
--   File name part of the input path. (string)
+- File name part of the input path. (string)
 
 *Since: 2.12*
 
@@ -5138,8 +5199,8 @@ Parameters:
 
 Returns:
 
--   `true` iff `filepath` is an absolute path, `false` otherwise.
-    (boolean)
+- `true` iff `filepath` is an absolute path, `false` otherwise.
+  (boolean)
 
 *Since: 2.12*
 
@@ -5156,8 +5217,8 @@ Parameters:
 
 Returns:
 
--   `true` iff `filepath` is a relative path, `false` otherwise.
-    (boolean)
+- `true` iff `filepath` is a relative path, `false` otherwise.
+  (boolean)
 
 *Since: 2.12*
 
@@ -5174,7 +5235,7 @@ Parameters:
 
 Returns:
 
--   The joined path. (string)
+- The joined path. (string)
 
 *Since: 2.12*
 
@@ -5200,7 +5261,7 @@ Parameters:
 
 Returns:
 
--   contracted filename (string)
+- contracted filename (string)
 
 *Since: 2.12*
 
@@ -5210,12 +5271,12 @@ Returns:
 
 Normalizes a path.
 
--   `//` makes sense only as part of a (Windows) network drive;
-    elsewhere, multiple slashes are reduced to a single
-    `path.separator` (platform dependent).
--   `/` becomes `path.separator` (platform dependent).
--   `./` is removed.
--   an empty path becomes `.`
+- `//` makes sense only as part of a (Windows) network drive;
+  elsewhere, multiple slashes are reduced to a single
+  `path.separator` (platform dependent).
+- `/` becomes `path.separator` (platform dependent).
+- `./` is removed.
+- an empty path becomes `.`
 
 Parameters:
 
@@ -5224,7 +5285,7 @@ Parameters:
 
 Returns:
 
--   The normalized path. (string)
+- The normalized path. (string)
 
 *Since: 2.12*
 
@@ -5241,7 +5302,7 @@ Parameters:
 
 Returns:
 
--   List of all path components. ({string,\...})
+- List of all path components. ({string,\...})
 
 *Since: 2.12*
 
@@ -5261,8 +5322,8 @@ Parameters:
 
 Returns:
 
--   filepath without extension (string)
--   extension or empty string (string)
+- filepath without extension (string)
+- extension or empty string (string)
 
 *Since: 2.12*
 
@@ -5281,7 +5342,7 @@ Parameters:
 
 Returns:
 
--   list of directories in search path ({string,\...})
+- list of directories in search path ({string,\...})
 
 *Since: 2.12*
 
@@ -5343,7 +5404,7 @@ Parameters:
 
 Returns:
 
--   processed blocks ([Blocks])
+- processed blocks ([Blocks])
 
 *Since: 3.0*
 
@@ -5362,7 +5423,7 @@ Parameters:
 
 Returns:
 
--   slide level ([integer]{unknown-type="integer"})
+- slide level ([integer]{unknown-type="integer"})
 
 *Since: 3.0*
 
@@ -5411,7 +5472,7 @@ Parameters:
 
 Returns:
 
--    ([ChunkedDoc])
+-  ([ChunkedDoc])
 
 *Since: 3.0*
 
@@ -5432,7 +5493,7 @@ Parameters:
 
 Returns:
 
--   Table of contents as a BulletList object ([Block])
+- Table of contents as a BulletList object ([Block])
 
 *Since: 3.0*
 
@@ -5452,9 +5513,10 @@ The machine architecture on which the program is running. (string)
 
 ### os {#pandoc.system.os}
 
-The operating system on which the program is running. (string)
-The most common values are `darwin` (macOS), `freebsd`, `linux`,
+The operating system on which the program is running. The most
+common values are `darwin` (macOS), `freebsd`, `linux`,
 `linux-android`, `mingw32` (Windows), `netbsd`, `openbsd`.
+(string)
 
 ## Functions {#pandoc.system-functions}
 
@@ -5468,7 +5530,7 @@ versions and on different platforms.
 
 Returns:
 
--   CPU time in picoseconds ([integer]{unknown-type="integer"})
+- CPU time in picoseconds ([integer]{unknown-type="integer"})
 
 *Since: 3.1.1*
 
@@ -5480,8 +5542,8 @@ Retrieves the entire environment as a string-indexed table.
 
 Returns:
 
--   A table mapping environment variable names to their value.
-    (table)
+- A table mapping environment variable names to their value.
+  (table)
 
 *Since: 2.7.3*
 
@@ -5493,7 +5555,7 @@ Obtain the current working directory as an absolute path.
 
 Returns:
 
--   The current working directory. (string)
+- The current working directory. (string)
 
 *Since: 2.8*
 
@@ -5511,8 +5573,8 @@ Parameters:
 
 Returns:
 
--   A table of all entries in `directory`, except for the special
-    entries (`.` and `..`). (table)
+- A table of all entries in `directory`, except for the special
+  entries (`.` and `..`). (table)
 
 *Since: 2.19*
 
@@ -5680,7 +5742,7 @@ Parameters:
 
 Returns:
 
--   new doc ([Doc])
+- new doc ([Doc])
 
 *Since: 2.18*
 
@@ -5698,7 +5760,7 @@ Parameters:
 
 Returns:
 
--   conditional doc ([Doc])
+- conditional doc ([Doc])
 
 *Since: 2.18*
 
@@ -5715,7 +5777,7 @@ Parameters:
 
 Returns:
 
--   conditional blank lines ([Doc])
+- conditional blank lines ([Doc])
 
 *Since: 2.18*
 
@@ -5732,7 +5794,7 @@ Parameters:
 
 Returns:
 
--   `doc` enclosed by {}. ([Doc])
+- `doc` enclosed by {}. ([Doc])
 
 *Since: 2.18*
 
@@ -5749,7 +5811,7 @@ Parameters:
 
 Returns:
 
--   doc enclosed by \[\]. ([Doc])
+- doc enclosed by \[\]. ([Doc])
 
 *Since: 2.18*
 
@@ -5770,8 +5832,8 @@ Parameters:
 
 Returns:
 
--   doc, aligned centered in a block with max `width` chars per
-    line. ([Doc])
+- doc, aligned centered in a block with max `width` chars per
+  line. ([Doc])
 
 *Since: 2.18*
 
@@ -5788,7 +5850,7 @@ Parameters:
 
 Returns:
 
--   `doc` without trailing blanks ([Doc])
+- `doc` without trailing blanks ([Doc])
 
 *Since: 2.18*
 
@@ -5808,7 +5870,7 @@ Parameters:
 
 Returns:
 
--   concatenated doc ([Doc])
+- concatenated doc ([Doc])
 
 *Since: 2.18*
 
@@ -5825,7 +5887,7 @@ Parameters:
 
 Returns:
 
--   `doc` enclosed by `"` chars ([Doc])
+- `doc` enclosed by `"` chars ([Doc])
 
 *Since: 2.18*
 
@@ -5842,7 +5904,7 @@ Parameters:
 
 Returns:
 
--   flushed `doc` ([Doc])
+- flushed `doc` ([Doc])
 
 *Since: 2.18*
 
@@ -5865,8 +5927,8 @@ Parameters:
 
 Returns:
 
--   `doc` prefixed by `start` on the first line, subsequent lines
-    indented by `ind` spaces. ([Doc])
+- `doc` prefixed by `start` on the first line, subsequent lines
+  indented by `ind` spaces. ([Doc])
 
 *Since: 2.18*
 
@@ -5889,7 +5951,7 @@ Parameters:
 
 Returns:
 
--   enclosed contents ([Doc])
+- enclosed contents ([Doc])
 
 *Since: 2.18*
 
@@ -5910,7 +5972,7 @@ Parameters:
 
 Returns:
 
--   doc put into block with max `width` chars per line. ([Doc])
+- doc put into block with max `width` chars per line. ([Doc])
 
 *Since: 2.18*
 
@@ -5927,7 +5989,7 @@ Parameters:
 
 Returns:
 
--   doc containing just the literal string ([Doc])
+- doc contatining just the literal string ([Doc])
 
 *Since: 2.18*
 
@@ -5947,7 +6009,7 @@ Parameters:
 
 Returns:
 
--   `doc` indented by `ind` spaces ([Doc])
+- `doc` indented by `ind` spaces ([Doc])
 
 *Since: 2.18*
 
@@ -5964,7 +6026,7 @@ Parameters:
 
 Returns:
 
--   `doc` with leading blanks removed ([Doc])
+- `doc` with leading blanks removed ([Doc])
 
 *Since: 2.18*
 
@@ -5981,7 +6043,7 @@ Parameters:
 
 Returns:
 
--   same as input, but non-reflowable ([Doc])
+- same as input, but non-reflowable ([Doc])
 
 *Since: 2.18*
 
@@ -5998,7 +6060,7 @@ Parameters:
 
 Returns:
 
--   doc enclosed by (). ([Doc])
+- doc enclosed by (). ([Doc])
 
 *Since: 2.18*
 
@@ -6019,7 +6081,7 @@ Parameters:
 
 Returns:
 
--   prefixed `doc` ([Doc])
+- prefixed `doc` ([Doc])
 
 *Since: 2.18*
 
@@ -6036,7 +6098,7 @@ Parameters:
 
 Returns:
 
--   doc enclosed in `'`. ([Doc])
+- doc enclosed in `'`. ([Doc])
 
 *Since: 2.18*
 
@@ -6057,8 +6119,8 @@ Parameters:
 
 Returns:
 
--   doc, right aligned in a block with max `width` chars per line.
-    ([Doc])
+- doc, right aligned in a block with max `width` chars per line.
+  ([Doc])
 
 *Since: 2.18*
 
@@ -6076,7 +6138,7 @@ Parameters:
 
 Returns:
 
--   automatically expanding border Doc ([Doc])
+- automatically expanding border Doc ([Doc])
 
 *Since: 2.18*
 
@@ -6105,7 +6167,7 @@ Parameters:
 
 Returns:
 
--   rendered doc (string)
+- rendered doc (string)
 
 *Since: 2.18*
 
@@ -6122,8 +6184,8 @@ Parameters:
 
 Returns:
 
--   `true` iff `doc` is the empty document, `false` otherwise.
-    (boolean)
+- `true` iff `doc` is the empty document, `false` otherwise.
+  (boolean)
 
 *Since: 2.18*
 
@@ -6140,7 +6202,7 @@ Parameters:
 
 Returns:
 
--   doc height ([integer]{unknown-type="integer"}\|string)
+- doc height ([integer]{unknown-type="integer"}\|string)
 
 *Since: 2.18*
 
@@ -6158,8 +6220,8 @@ Parameters:
 
 Returns:
 
--   minimal possible width
-    ([integer]{unknown-type="integer"}\|string)
+- minimal possible width
+  ([integer]{unknown-type="integer"}\|string)
 
 *Since: 2.18*
 
@@ -6176,7 +6238,7 @@ Parameters:
 
 Returns:
 
--   doc width ([integer]{unknown-type="integer"}\|string)
+- doc width ([integer]{unknown-type="integer"}\|string)
 
 *Since: 2.18*
 
@@ -6195,7 +6257,7 @@ Parameters:
 
 Returns:
 
--   text length ([integer]{unknown-type="integer"}\|string)
+- text length ([integer]{unknown-type="integer"}\|string)
 
 *Since: 2.18*
 
@@ -6216,7 +6278,7 @@ Parameters:
 
 Returns:
 
--   column number ([integer]{unknown-type="integer"}\|string)
+- column number ([integer]{unknown-type="integer"}\|string)
 
 *Since: 2.18*
 
@@ -6233,7 +6295,7 @@ Parameters:
 
 Returns:
 
--   bolded Doc ([Doc])
+- bolded Doc ([Doc])
 
 *Since: 3.4.1*
 
@@ -6250,7 +6312,7 @@ Parameters:
 
 Returns:
 
--   styled Doc ([Doc])
+- styled Doc ([Doc])
 
 *Since: 3.4.1*
 
@@ -6267,7 +6329,7 @@ Parameters:
 
 Returns:
 
--   styled Doc ([Doc])
+- styled Doc ([Doc])
 
 *Since: 3.4.1*
 
@@ -6284,7 +6346,7 @@ Parameters:
 
 Returns:
 
--   styled Doc ([Doc])
+- styled Doc ([Doc])
 
 *Since: 3.4.1*
 
@@ -6305,7 +6367,7 @@ Parameters:
 
 Returns:
 
--   styled Doc ([Doc])
+- styled Doc ([Doc])
 
 *Since: 3.4.1*
 
@@ -6326,7 +6388,7 @@ Parameters:
 
 Returns:
 
--   styled Doc ([Doc])
+- styled Doc ([Doc])
 
 *Since: 3.4.1*
 
@@ -6397,7 +6459,7 @@ Parameters:
 
 Returns:
 
--   UTF-8 string (string)
+- UTF-8 string (string)
 
 *Since: 3.0*
 
@@ -6415,7 +6477,7 @@ Parameters:
 
 Returns:
 
--   length ([integer]{unknown-type="integer"}\|string)
+- length ([integer]{unknown-type="integer"}\|string)
 
 *Since: 2.0.3*
 
@@ -6432,7 +6494,7 @@ Parameters:
 
 Returns:
 
--   Lowercase copy of `s` (string)
+- Lowercase copy of `s` (string)
 
 *Since: 2.0.3*
 
@@ -6449,7 +6511,7 @@ Parameters:
 
 Returns:
 
--   Reversed `s` (string)
+- Reversed `s` (string)
 
 *Since: 2.0.3*
 
@@ -6473,7 +6535,7 @@ Parameters:
 
 Returns:
 
--   text substring (string)
+- text substring (string)
 
 *Since: 2.0.3*
 
@@ -6500,7 +6562,7 @@ Parameters:
 
 Returns:
 
--   re-encoded string (string)
+- re-encoded string (string)
 
 *Since: 3.0*
 
@@ -6517,7 +6579,7 @@ Parameters:
 
 Returns:
 
--   Uppercase copy of `s` (string)
+- Uppercase copy of `s` (string)
 
 *Since: 2.0.3*
 
@@ -6551,7 +6613,7 @@ Parameters:
 
 Returns:
 
--   rendered template ([Doc])
+- rendered template ([Doc])
 
 *Since: 3.0*
 
@@ -6581,7 +6643,7 @@ Parameters:
 
 Returns:
 
--   compiled template ([Template])
+- compiled template ([Template])
 
 *Since: 2.17*
 
@@ -6600,7 +6662,7 @@ Parameters:
 
 Returns:
 
--   raw template (string)
+- raw template (string)
 
 *Since: 2.17*
 
@@ -6622,7 +6684,7 @@ Parameters:
 
 Returns:
 
--   content of template file (string)
+- content of template file (string)
 
 *Since: 3.2.1*
 
@@ -6647,9 +6709,13 @@ Parameters:
 
 Returns:
 
--   template context (table)
+- template context (table)
 
 *Since: 3.0*
+
+## Types {#pandoc.template-types}
+
+### Template {#type-pandoc.Template}
 
 <!-- END: AUTOGENERATED CONTENT -->
 
@@ -6674,7 +6740,7 @@ Parameters:
 
 Returns:
 
--   New Version object. ([Version])
+- New Version object. ([Version])
 
 *Since: 2.7.3*
 
@@ -6692,15 +6758,14 @@ like the `zip` function described below.
 Zip options are optional; when defined, they must be a table with
 any of the following keys:
 
--   `recursive`: recurse directories when set to `true`;
--   `verbose`: print info messages to stdout;
--   `destination`: the value specifies the directory in which to
-    extract;
--   `location`: value is used as path name, defining where files
-    are placed.
--   `preserve_symlinks`: Boolean value, controlling whether
-    symbolic links are preserved as such. This option is ignored
-    on Windows.
+- `recursive`: recurse directories when set to `true`;
+- `verbose`: print info messages to stdout;
+- `destination`: the value specifies the directory in which to
+  extract;
+- `location`: value is used as path name, defining where files are
+  placed.
+- `preserve_symlinks`: Boolean value, controlling whether symbolic
+  links are preserved as such. This option is ignored on Windows.
 
 ## Functions {#pandoc.zip-functions}
 
@@ -6720,7 +6785,7 @@ Parameters:
 
 Returns:
 
--   new Archive ([zip.Archive])
+- new Archive ([zip.Archive])
 
 *Since: 3.0*
 
@@ -6744,7 +6809,7 @@ Parameters:
 
 Returns:
 
--   a new zip archive entry ([zip.Entry])
+- a new zip archive entry ([zip.Entry])
 
 *Since: 3.0*
 
@@ -6764,7 +6829,7 @@ Parameters:
 
 Returns:
 
--   a new zip archive entry ([zip.Entry])
+- a new zip archive entry ([zip.Entry])
 
 *Since: 3.0*
 
@@ -6785,7 +6850,7 @@ Parameters:
 
 Returns:
 
--   a new archive ([zip.Archive])
+- a new archive ([zip.Archive])
 
 *Since: 3.0*
 
@@ -6814,7 +6879,7 @@ Parameters:
 
 Returns:
 
--   bytes of the archive (string)
+- bytes of the archive (string)
 
 ##### extract {#pandoc.zip.Archive.extract}
 
@@ -6866,7 +6931,7 @@ Parameters:
 
 Returns:
 
--   binary contents (string)
+- binary contents (string)
 
 ##### symlink {#pandoc.zip.Entry.symlink}
 
@@ -6882,7 +6947,7 @@ Parameters:
 
 Returns:
 
--   link target if entry represents a symbolic link (string\|nil)
+- link target if entry represents a symbolic link (string\|nil)
 
 <!-- END: AUTOGENERATED CONTENT -->
 

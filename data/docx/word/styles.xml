@@ -3,10 +3,10 @@
   <w:docDefaults>
     <w:rPrDefault>
       <w:rPr>
-        <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsiaTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" w:cstheme="minorBidi" />
+        <w:rFonts w:asciiTheme="minorHAnsi" w:eastAsiaTheme="minorEastAsia" w:hAnsiTheme="minorHAnsi" w:cstheme="minorBidi" />
         <w:sz w:val="24" />
         <w:szCs w:val="24" />
-        <w:lang w:val="en-US" w:eastAsia="en-US" w:bidi="ar-SA" />
+        <w:lang w:val="en-US" w:eastAsia="zh-CN" w:bidi="ar-SA" />
       </w:rPr>
     </w:rPrDefault>
     <w:pPrDefault>

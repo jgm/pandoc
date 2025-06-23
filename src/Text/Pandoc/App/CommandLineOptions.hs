@@ -25,6 +25,7 @@ module Text.Pandoc.App.CommandLineOptions (
 import Control.Monad.Trans
 import Control.Monad.State.Strict
 import Data.Containers.ListUtils (nubOrd)
+import Data.Aeson (eitherDecode)
 import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Bifunctor (second)
@@ -370,6 +371,23 @@ options =
                                   setVariable (T.pack key) (T.pack val) $
                                     optVariables opt })
                   "KEY[:VALUE]")
+                 ""
+
+    , Option "" ["variable-json"]
+                 (ReqArg
+                  (\arg opt -> do
+                     let (key, json) = splitField arg
+                     case eitherDecode (B.fromStrict . UTF8.fromString $ json) of
+                       Right (val :: Val Text) ->
+                         return opt{ optVariables =
+                                      let Context m = optVariables opt
+                                       in Context $ M.insert (T.pack key) val m }
+                           -- note that this replaces any existing value, which
+                           -- is different from what --variable does
+                       Left err'  -> optError $ PandocOptionError $
+                          "Could not parse '" <> T.pack json <> "' as JSON:\n" <>
+                           T.pack err')
+                  "KEY[:JSON]")
                  ""
 
     , Option "" ["wrap"]

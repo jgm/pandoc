@@ -375,29 +375,34 @@ blockToAsciiDoc opts (DefinitionList items) = do
   contents <- mapM (definitionListItemToAsciiDoc opts) items
   modify $ \st -> st{ inList = inlist }
   return $ mconcat contents <> blankline
+
+-- convert admonition and sidebar divs to asicidoc
 blockToAsciiDoc opts (Div (ident,classes,_) bs) = do
   let identifier = if T.null ident then empty else "[[" <> literal ident <> "]]"
-  let admonitions = ["attention","caution","danger","error","hint",
+  let admonition_classes = ["attention","caution","danger","error","hint",
                      "important","note","tip","warning"]
+  let sidebar_class = "sidebar"
+
   contents <-
        case classes of
-         (l:_) | l `elem` admonitions -> do
+         (l:_) | l `elem` admonition_classes || T.toLower l == sidebar_class -> do
              let (titleBs, bodyBs) =
                      case bs of
                        (Div (_,["title"],_) ts : rest) -> (ts, rest)
                        _ -> ([], bs)
-             admonitionTitle <- if null titleBs ||
+             let fence = if l == "sidebar" then "****" else "===="
+             elemTitle <- if null titleBs ||
                                    -- If title matches class, omit
                                    (T.toLower (T.strip (stringify titleBs))) == l
                                    then return mempty
                                    else ("." <>) <$>
                                          blockListToAsciiDoc opts titleBs
-             admonitionBody <- blockListToAsciiDoc opts bodyBs
+             elemBody <- blockListToAsciiDoc opts bodyBs
              return $ "[" <> literal (T.toUpper l) <> "]" $$
-                      chomp admonitionTitle $$
-                      "====" $$
-                      chomp admonitionBody $$
-                      "===="
+                      chomp elemTitle $$
+                      fence $$
+                      chomp elemBody $$
+                      fence
          _ -> blockListToAsciiDoc opts bs
   return $ identifier $$ contents $$ blankline
 

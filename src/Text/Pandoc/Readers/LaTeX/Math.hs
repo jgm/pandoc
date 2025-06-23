@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Text.Pandoc.Readers.LaTeX.Math
-  ( dollarsMath
+  ( withMathMode
+  , dollarsMath
   , inlineEnvironments
+  , inlineEnvironmentNames
   , inlineEnvironment
   , mathInline
   , mathDisplay
@@ -27,11 +29,19 @@ import Control.Monad (guard, mzero)
 import qualified Data.Map as M
 import Data.Text (Text)
 
+withMathMode :: PandocMonad m => LP m a -> LP m a
+withMathMode p = do
+  oldMathMode <- sMathMode <$> getState
+  updateState $ \s -> s{ sMathMode = True }
+  result <- p
+  updateState $ \s -> s{ sMathMode = oldMathMode }
+  return result
+
 dollarsMath :: PandocMonad m => LP m Inlines
 dollarsMath = do
   symbol '$'
   display <- option False (True <$ symbol '$')
-  (do contents <- try $ untokenize <$> pDollarsMath 0
+  (do contents <- try $ untokenize <$> withMathMode (pDollarsMath 0)
       if display
          then mathDisplay contents <$ symbol '$'
          else return $ mathInline contents)
@@ -69,7 +79,7 @@ mathEnvWith f innerEnv name = f . mathDisplay . inner <$> mathEnv name
                                    "\n\\end{" <> y <> "}"
 
 mathEnv :: PandocMonad m => Text -> LP m Text
-mathEnv name = do
+mathEnv name = withMathMode $ do
   optional blankline
   res <- manyTill anyTok (end_ name)
   return $ stripTrailingNewlines $ untokenize res
@@ -79,6 +89,10 @@ inlineEnvironment = try $ do
   controlSeq "begin"
   name <- untokenize <$> braced
   M.findWithDefault mzero name inlineEnvironments
+
+inlineEnvironmentNames :: [Text]
+inlineEnvironmentNames =
+  M.keys (inlineEnvironments :: M.Map Text (LP PandocPure Inlines))
 
 inlineEnvironments :: PandocMonad m => M.Map Text (LP m Inlines)
 inlineEnvironments = M.fromList [

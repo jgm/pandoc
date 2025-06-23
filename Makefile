@@ -77,7 +77,7 @@ authors:  ## prints unique authors since last released version
 	git log --pretty=format:"%an" $$(git tag -l | grep '[^0-9]' | sort | tail -1)..HEAD | sort | uniq | while read -r; do grep -i -q "^- $$REPLY" AUTHORS.md || echo $$REPLY ; done
 
 check-stack:
-	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
+	$$HOME/.local/bin/stack-lint-extra-deps # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
 .PHONY: check-stack
 
@@ -104,7 +104,7 @@ check-version-sync:
 
 check-changelog:
 	@echo "Checking for changelog entry for this version"
-	grep '## pandoc $(VERSION) (\d\d\d\d-\d\d-\d\d)' changelog.md
+	rg '## pandoc $(VERSION) \(\d\d\d\d-\d\d-\d\d\)' changelog.md
 .PHONY: check-changelog
 
 check-manversion:
@@ -116,7 +116,7 @@ check-manversion:
 
 checkdocs:
 	@echo "Checking for tabs in manual."
-	! grep -q -n -e "\t" \
+	! rg -n -e '\t' \
 	   MANUAL.txt changelog.md doc/pandoc-server.md doc/pandoc-lua.md
 .PHONY: checkdocs
 
@@ -144,7 +144,7 @@ man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pando
 .PHONY: man
 
 latex-package-dependencies: ## print packages used by default latex template
-	$(pandoc) lua tools=latex-package-dependencies.lua
+	$(pandoc) lua tools/latex-package-dependencies.lua
 .PHONY: latex-package-dependencies
 
 coverage: ## code coverage information
@@ -251,16 +251,18 @@ validate-docx-golden-tests: ## validate docx golden tests against schema
 
 validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
 	which dotnet || ("dotnet is required" && exit 1)
-	which json_reformat || ("json_reformat is required" && exit 1)
+	which jq || ("jq is required" && exit 1)
 	test -d ./OOXML-Validator || \
 		(git clone https://github.com/mikeebowen/OOXML-Validator.git \
 		&& cd OOXML-Validator && dotnet build --configuration=Release)
 	sh ./tools/validate-docx2.sh test/docx/golden/
 .PHONY: validate-docx-golden-tests2
 
-validate-epub: ## generate an epub and validate it with epubcheck and ace
+node_modules/.bin/ace:
+	npm install @daisy/ace
+
+validate-epub: node_modules/.bin/ace ## generate an epub and validate it with epubcheck and ace
 	which epubcheck || exit 1
-	which ace || exit 1
 	tmp=$$(mktemp -d) && \
   for epubver in 2 3; do \
     file=$$tmp/ver$$epubver.epub ; \
@@ -268,7 +270,7 @@ validate-epub: ## generate an epub and validate it with epubcheck and ace
 	  echo $$file && \
 	  epubcheck $$file || exit 1 ; \
   done && \
-	ace $$tmp/ver3.epub -o ace-report-v2 --force
+	./node_modules/.bin/ace $$tmp/ver3.epub -o ace-report-v2 --force
 
 modules.csv: $(PANDOCSOURCEFILES)
 	@rg '^import.*Text\.Pandoc\.' --with-filename $^ \
@@ -294,7 +296,7 @@ modules.pdf: modules.dot
 # make moduledeps ROOT=Text.Pandoc.Parsing
 moduledeps: modules.csv  ## Print transitive dependencies of a module ROOT
 	@echo "$(ROOT)"
-	@lua tools/moduledeps.lua transitive $(ROOT) | sort
+	@$(pandoc) lua tools/moduledeps.lua transitive $(ROOT) | sort
 .PHONY: moduledeps
 
 clean: ## clean up
@@ -304,10 +306,10 @@ clean: ## clean up
 .PHONY: .FORCE
 
 sdist-files.txt: .FORCE
-	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)\/' | sort > $@
+	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)/' | sort > $@
 
 git-files.txt: .FORCE
-	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
+	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)/' | sort > $@
 
 help: ## display this help
 	@echo "Targets:"

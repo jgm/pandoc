@@ -845,7 +845,9 @@ orderedListStart mbstydelim = try $ do
        return (num, style, delim))
 
 listStart :: PandocMonad m => MarkdownParser m ()
-listStart = bulletListStart <|> Control.Monad.void (orderedListStart Nothing)
+listStart = bulletListStart
+        <|> Control.Monad.void (orderedListStart Nothing)
+        <|> defListStart
 
 listLine :: PandocMonad m => Int -> MarkdownParser m Text
 listLine continuationIndent = try $ do
@@ -967,67 +969,39 @@ bulletList = do
 
 -- definition lists
 
-defListMarker :: PandocMonad m => MarkdownParser m ()
-defListMarker = do
-  sps <- nonindentSpaces
+defListStart :: PandocMonad m => MarkdownParser m ()
+defListStart = do
+  nonindentSpaces
   char ':' <|> char '~'
-  tabStop <- getOption readerTabStop
-  let remaining = tabStop - (T.length sps + 1)
-  if remaining > 0
-     then try (count remaining (char ' ')) <|> string "\t" <|> many1 spaceChar
-     else mzero
-  return ()
+  gobbleSpaces 1 <|> () <$ lookAhead newline
+  try (gobbleAtMostSpaces 3 >> notFollowedBy spaceChar) <|> return ()
 
-definitionListItem :: PandocMonad m => Bool -> MarkdownParser m (F (Inlines, [Blocks]))
-definitionListItem compact = try $ do
+definitionListItem :: PandocMonad m => MarkdownParser m (F (Inlines, [Blocks]))
+definitionListItem = try $ do
   rawLine' <- anyLine
-  raw <- many1 $ defRawBlock compact
   term <- parseFromString' (trimInlinesF <$> inlines) rawLine'
-  contents <- mapM (parseFromString' parseBlocks . (<> "\n")) raw
+  isTight <- (False <$ blanklines) <|> pure True
+  fourSpaceRule <- (True <$ guardEnabled Ext_four_space_rule) <|> pure False
+  contents <- many1 $ listItem fourSpaceRule defListStart
   optional blanklines
-  return $ liftM2 (,) term (sequence contents)
+  return $ liftM2 (,)
+              term
+              ((if isTight
+                   then fmap (fmap (fmap paraToPlain))
+                   else id) (sequence contents))
 
-defRawBlock :: PandocMonad m => Bool -> MarkdownParser m Text
-defRawBlock compact = try $ do
-  hasBlank <- option False $ blankline >> return True
-  defListMarker
-  firstline <- anyLineNewline
-  let dline = try
-               ( do notFollowedBy blankline
-                    notFollowedByHtmlCloser
-                    notFollowedByDivCloser
-                    if compact -- laziness not compatible with compact
-                       then () <$ indentSpaces
-                       else (() <$ indentSpaces)
-                             <|> notFollowedBy defListMarker
-                    anyLine )
-  rawlines <- many dline
-  cont <- fmap T.concat $ many $ try $ do
-            trailing <- option "" blanklines
-            ln <- indentSpaces >> notFollowedBy blankline >> anyLine
-            lns <- many dline
-            return $ trailing <> T.unlines (ln:lns)
-  return $ trimr (firstline <> T.unlines rawlines <> cont) <>
-            if hasBlank || not (T.null cont) then "\n\n" else ""
+paraToPlain :: Block -> Block
+paraToPlain (Para ils) = Plain ils
+paraToPlain x = x
 
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
 definitionList = try $ do
+  guardEnabled Ext_definition_lists
   lookAhead (anyLine >>
              optional (blankline >> notFollowedBy (Control.Monad.void table)) >>
              -- don't capture table caption as def list!
-             defListMarker)
-  compactDefinitionList <|> normalDefinitionList
-
-compactDefinitionList :: PandocMonad m => MarkdownParser m (F Blocks)
-compactDefinitionList = do
-  guardEnabled Ext_compact_definition_lists
-  items <- fmap sequence $ many1 $ definitionListItem True
-  return $ B.definitionList <$> fmap compactifyDL items
-
-normalDefinitionList :: PandocMonad m => MarkdownParser m (F Blocks)
-normalDefinitionList = do
-  guardEnabled Ext_definition_lists
-  items <- fmap sequence $ many1 $ definitionListItem False
+             defListStart)
+  items <- fmap sequence $ many1 definitionListItem
   return $ B.definitionList <$> items
 
 --

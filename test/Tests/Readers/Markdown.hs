@@ -29,10 +29,6 @@ markdownSmart :: Text -> Pandoc
 markdownSmart = purely $  readMarkdown def { readerExtensions =
                              enableExtension Ext_smart pandocExtensions }
 
-markdownCDL :: Text -> Pandoc
-markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension
-                 Ext_compact_definition_lists pandocExtensions }
-
 markdownGH :: Text -> Pandoc
 markdownGH = purely $ readMarkdown def {readerExtensions = enableExtension
                  Ext_wikilinks_title_before_pipe githubMarkdownExtensions }
@@ -461,14 +457,14 @@ tests = [ testGroup "inline code"
           , "blank space before first def" =:
             "foo1\n\n  :  bar\n\nfoo2\n\n  : bar2\n  : bar3\n" =?>
             definitionList [ (text "foo1", [para (text "bar")])
-                           , (text "foo2", [para (text "bar2"),
-                                            plain (text "bar3")])
+                           , (text "foo2", [plain (text "bar2"),
+                                            para (text "bar3")])
                            ]
           , "blank space before second def" =:
             "foo1\n  :  bar\n\nfoo2\n  : bar2\n\n  : bar3\n" =?>
             definitionList [ (text "foo1", [plain (text "bar")])
                            , (text "foo2", [plain (text "bar2"),
-                                            para (text "bar3")])
+                                            plain (text "bar3")])
                            ]
           , "laziness" =:
             "foo1\n  :  bar\nbaz\n  : bar2\n" =?>
@@ -478,8 +474,8 @@ tests = [ testGroup "inline code"
                            ]
           , "no blank space before first of two paragraphs" =:
             "foo1\n  : bar\n\n    baz\n" =?>
-            definitionList [ (text "foo1", [para (text "bar") <>
-                                            para (text "baz")])
+            definitionList [ (text "foo1", [plain (text "bar") <>
+                                            plain (text "baz")])
                            ]
           , "first line not indented" =:
             "foo\n: bar\n" =?>
@@ -491,14 +487,6 @@ tests = [ testGroup "inline code"
             "<div>foo\n:   - bar\n</div>" =?>
             divWith nullAttr (definitionList
               [ (text "foo", [bulletList [plain (text "bar")]]) ])
-          ]
-        , testGroup "+compact_definition_lists"
-          [ test markdownCDL "basic compact list" $
-            "foo1\n:   bar\n    baz\nfoo2\n:   bar2\n" =?>
-            definitionList [ (text "foo1", [plain (text "bar" <> softbreak <>
-                                                     text "baz")])
-                           , (text "foo2", [plain (text "bar2")])
-                           ]
           ]
         , testGroup "lists"
           [ "issue #1154" =:

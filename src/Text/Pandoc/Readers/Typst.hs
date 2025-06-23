@@ -466,7 +466,7 @@ inlineHandlers = M.fromList
                 (B.fromList . blocksToInlines . B.toList <$> pBlocks) body
       pure $ B.link src "" description)
   ,("image", \_ fields -> do
-      path <- getField "path" fields
+      path <- getField "source" fields <|> getField "path" fields
       alt <- (B.text <$> getField "alt" fields) `mplus` pure mempty
       (mbwidth :: Maybe Text) <-
         fmap (renderLength False) <$> getField "width" fields

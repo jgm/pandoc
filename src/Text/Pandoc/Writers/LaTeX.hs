@@ -1077,12 +1077,20 @@ inlineToLaTeX il@(Image _ _ (src, _))
   | Just _ <- T.stripPrefix "data:" src = do
       report $ InlineNotRendered il
       return empty
-inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
+inlineToLaTeX (Image attr@(_,_,kvs) description (source, _)) = do
   setEmptyLine False
   let isSVG = ".svg" `T.isSuffixOf` source || ".SVG" `T.isSuffixOf` source
   modify $ \s -> s{ stGraphics = True
                   , stSVG = stSVG s || isSVG }
   opts <- gets stOptions
+  mbalt <- if isSVG
+              then pure Nothing
+              else case lookup "alt" kvs of
+                     Just x -> Just <$> stringToLaTeX TextString x
+                     Nothing
+                       | null description -> pure Nothing
+                       | otherwise -> Just <$> stringToLaTeX TextString
+                                                  (stringify description)
   let showDim dir = let d = text (show dir) <> "="
                     in case dimension dir attr of
                          Just (Pixel a)   ->
@@ -1108,6 +1116,7 @@ inlineToLaTeX (Image attr@(_,_,kvs) _ (source, _)) = do
                   _ -> ["keepaspectratio"]) <>
                 maybe [] (\x -> ["page=" <> literal x]) (lookup "page" kvs) <>
                 maybe [] (\x -> ["trim=" <> literal x]) (lookup "trim" kvs) <>
+                maybe [] (\x -> ["alt=" <> braces (literal x)]) mbalt <>
                 maybe [] (const ["clip"]) (lookup "clip" kvs)
       options = if null optList
                    then empty

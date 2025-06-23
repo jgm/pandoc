@@ -23,13 +23,14 @@ module Text.Pandoc.Readers.Org.BlockStarts
   , endOfBlock
   ) where
 
-import Control.Monad (void)
+import Control.Monad (void, guard)
 import Data.Text (Text)
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Parsing (lowerAlpha, upperAlpha)
 import Text.Pandoc.Extensions
+import Text.Pandoc.Readers.LaTeX.Math (inlineEnvironmentNames)
 import Data.Functor (($>))
 
 -- | Horizontal Line (five -- dashes or more)
@@ -55,10 +56,13 @@ gridTableStart = try $ skipSpaces <* char '+' <* char '-'
 
 
 latexEnvStart :: Monad m => OrgParser m Text
-latexEnvStart = try $
-  skipSpaces *> string "\\begin{"
-             *> latexEnvName
-             <* string "}"
+latexEnvStart = try $ do
+  skipSpaces
+  string "\\begin{"
+  name <- latexEnvName
+  char '}'
+  guard $ name `notElem` inlineEnvironmentNames
+  pure name
  where
    latexEnvName :: Monad m => OrgParser m Text
    latexEnvName = try $ mappend <$> many1Char alphaNum <*> option "" (textStr "*")

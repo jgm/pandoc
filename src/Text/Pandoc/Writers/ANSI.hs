@@ -76,26 +76,39 @@ pandocToANSI opts (Pandoc meta blocks) = do
   metadata <- metaToContext opts
                  (blockListToANSI opts)
                  (inlineListToANSI opts) meta
-  width <- gets stColumns
-  let title = titleBlock width metadata
+  let colwidth = if writerWrapText opts == WrapAuto
+                    then Just $ writerColumns opts
+                    else Nothing
+  let title = titleBlock colwidth metadata
   let blocks' = makeSections (writerNumberSections opts) Nothing blocks
   body <- blockListToANSI opts blocks'
   notes <- gets $ reverse . stNotes
   let notemark x = D.literal (tshow (x :: Int) <> ".") <+> D.space
   let marks = map notemark [1..length notes]
   let hangWidth = foldr (max . D.offset) 0 marks
-  let notepretty | not (null notes) = D.cblock width hr $+$ hangMarks hangWidth marks notes
-                 | otherwise = D.empty
+  let notepretty
+       | not (null notes) =
+          (case colwidth of
+            Nothing -> hr
+            Just w  -> D.cblock w hr)
+          $+$ hangMarks hangWidth marks notes
+       | otherwise = D.empty
   let main = body $+$ notepretty
   let context = defField "body" main
               $ defField "titleblock" title metadata
   return $
     case writerTemplate opts of
-         Nothing  -> toStrict $ D.renderANSI (Just width) main
-         Just tpl -> toStrict $ D.renderANSI (Just width) $ renderTemplate tpl context
+         Nothing  -> toStrict $ D.renderANSI colwidth main
+         Just tpl -> toStrict $ D.renderANSI colwidth
+                              $ renderTemplate tpl context
 
-titleBlock :: Int -> Context Text -> D.Doc Text
-titleBlock width meta = if null most then D.empty else D.cblock width $ most $+$ hr
+titleBlock :: Maybe Int -> Context Text -> D.Doc Text
+titleBlock width meta =
+  if null most
+     then D.empty
+     else (case width of
+             Just w -> D.cblock w
+             Nothing -> id) $ most $+$ hr
   where
     title = D.bold (fromMaybe D.empty $ getField "title" meta)
     subtitle = fromMaybe D.empty $ getField "subtitle" meta

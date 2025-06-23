@@ -27,6 +27,7 @@ import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.PandocLua (unPandocLua)
 import Text.Pandoc.MIME (MimeType)
+import Text.Pandoc.SelfContained (makeDataURI)
 
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
@@ -60,6 +61,7 @@ documentedModule = Module
       , items   `since` makeVersion [2,7,3]
       , list    `since` makeVersion [2,0]
       , lookup  `since` makeVersion [2,0]
+      , make_data_uri `since` makeVersion [3,7,1]
       , write   `since` makeVersion [3,0]
       ]
   , moduleOperations = []
@@ -242,6 +244,29 @@ fetch = defun "fetch"
   , "    local diagram_url = 'https://pandoc.org/diagram.jpg'"
   , "    local mt, contents = pandoc.mediabag.fetch(diagram_url)"
   ]
+
+make_data_uri :: DocumentedFunction PandocError
+make_data_uri = defun "make_data_uri"
+  ### (\mime raw -> pure $ makeDataURI (mime, raw))
+  <#> parameter Lua.peekText "string" "mime_type" "MIME type of the data"
+  <#> parameter Lua.peekByteString "string" "raw_data" "data to encode"
+  =#> functionResult Lua.pushText "string" "data uri"
+  #? T.unlines
+  [ "Convert the input data into a data URI as defined by RFC 2397."
+  , ""
+  , "Example:"
+  , ""
+  , "    -- Embed an unofficial pandoc logo"
+  , "    local pandoc_logo_url = 'https://raw.githubusercontent.com/'"
+  , "      .. 'tarleb/pandoc-logo/main/pandoc.svg'"
+  , ""
+  , "    local datauri = pandoc.mediabag.make_data_uri("
+  , "      pandoc.mediabag.fetch(pandoc_logo_url)"
+  , "    )"
+  , ""
+  , "    local image = pandoc.Image('Logo', datauri)"
+  ]
+
 
 -- | Extract the mediabag or just a single entry.
 write :: DocumentedFunction PandocError

@@ -62,6 +62,19 @@ tests = [ testGroup "emphasis"
                                            , "foo"
                                            , "----"
                                            ]
+          , testAsciidoc "sidebar block" $
+               divWith ("sidebar_id", ["sidebar"], [])
+                                           (divWith ("", ["title"], [])
+                                           (plain "Sidebar Title")
+                                           <> para "Sidebar paragraph"
+                                           ) =?> unlines
+                                           [ "[[sidebar_id]]"
+                                           , "[SIDEBAR]"
+                                           , ".Sidebar Title"
+                                           , "****"
+                                           , "Sidebar paragraph"
+                                           , "****"
+                                           ]
           ]
         , testGroup "tables"
           [ testAsciidoc "empty cells" $

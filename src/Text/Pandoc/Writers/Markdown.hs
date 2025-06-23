@@ -25,7 +25,7 @@ import Control.Monad (foldM, zipWithM, MonadPlus(..), when, liftM)
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
-import Data.List (intersperse, sortOn, union)
+import Data.List (intersperse, sortOn, union, find)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing)
@@ -369,6 +369,10 @@ blockToMarkdown' :: PandocMonad m
                  -> Block         -- ^ Block element
                  -> MD m (Doc Text)
 blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
+  | ("sourceCode":_) <- classes
+  , [CodeBlock (_,"sourceCode":_,_) _] <- bs
+     -- skip pandoc-generated Div wrappers around code blocks
+   = blockListToMarkdown opts bs
   | isEnabled Ext_alerts opts
   , (cls:_) <- classes
   , cls `elem` ["note", "tip", "warning", "caution", "important"]
@@ -589,9 +593,11 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
      attrs  = if isEnabled Ext_fenced_code_attributes opts ||
                  isEnabled Ext_attributes opts
                  then nowrap $ " " <> classOrAttrsToMarkdown opts attribs
-                 else case attribs of
-                            (_,cls:_,_) -> " " <> literal cls
-                            _             -> empty
+                 else
+                   let (_,cls,_) = attribs
+                    in case getLangFromClasses cls of
+                              Just l -> " " <> literal l
+                              Nothing -> empty
 blockToMarkdown' opts (BlockQuote blocks) = do
   variant <- asks envVariant
   -- if we're writing literate haskell, put a space before the bird tracks
@@ -604,6 +610,15 @@ blockToMarkdown' opts (BlockQuote blocks) = do
   return $ text leader <> prefixed leader contents <> blankline
 blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  let isColRowSpans (Cell _ _ rs cs _) = rs > 1 || cs > 1
+  let rowHasColRowSpans (Row _ cs) = any isColRowSpans cs
+  let tbodyHasColRowSpans (TableBody _ _ rhs rs) =
+        any rowHasColRowSpans rhs || any rowHasColRowSpans rs
+  let theadHasColRowSpans (TableHead _ rs) = any rowHasColRowSpans rs
+  let tfootHasColRowSpans (TableFoot _ rs) = any rowHasColRowSpans rs
+  let hasColRowSpans = theadHasColRowSpans thead ||
+                       any tbodyHasColRowSpans tbody ||
+                       tfootHasColRowSpans tfoot
   let numcols = maximum (length aligns :| length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
@@ -616,7 +631,7 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
         = blankline $$ (": " <> caption'') $$ blankline
         | otherwise = blankline $$ caption'' $$ blankline
   let hasSimpleCells = onlySimpleTableCells $ headers : rows
-  let isSimple = hasSimpleCells && all (==0) widths
+  let isSimple = hasSimpleCells && all (==0) widths && not hasColRowSpans
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
   let hasBlocks = not (all (all (all isPlainBlock)) $ headers:rows)
@@ -646,7 +661,7 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
            tbl <- pipeTable opts (all null headers) aligns' widths'
                      rawHeaders rawRows
            return $ (tbl $$ caption''') $$ blankline
-       | not hasBlocks &&
+       | not (hasBlocks || hasColRowSpans) &&
          isEnabled Ext_multiline_tables opts -> do
            rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
            rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
@@ -655,11 +670,12 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
                      aligns' widths' rawHeaders rawRows
            return $ nest 2 (tbl $$ caption''') $$ blankline
        | isEnabled Ext_grid_tables opts &&
-          writerColumns opts >= 8 * numcols -> do
+          (hasColRowSpans || writerColumns opts >= 8 * numcols) -> do
            tbl <- gridTable opts blockListToMarkdown
-             (all null headers) aligns' widths' headers rows
+                     specs thead tbody tfoot
            return $ (tbl $$ caption''') $$ blankline
-       | hasSimpleCells &&
+       | hasSimpleCells,
+         not hasColRowSpans,
          isEnabled Ext_pipe_tables opts -> do
            rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
            rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
@@ -711,7 +727,6 @@ blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
         ("", cls, kv)
           | (figid, [], []) <- figattr -> Just (figid, cls, kv)
-          | otherwise -> Just ("", cls, kv)
         _ -> Nothing
   let combinedAlt alt = case capt of
         Caption Nothing [] -> if null alt
@@ -794,6 +809,9 @@ bulletListItemToMarkdown opts bs = do
               Markdown
                 | isEnabled Ext_four_space_rule opts
                   -> "- " <> T.replicate (writerTabStop opts - 2) " "
+              PlainText
+                | isEnabled Ext_four_space_rule opts
+                  -> "- " <> T.replicate (writerTabStop opts - 2) " "
               _ -> "- "
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
@@ -848,17 +866,11 @@ definitionListItemToMarkdown opts (label, defs) = do
        let isTight = case defs of
                         ((Plain _ : _): _) -> True
                         _                  -> False
-       if isEnabled Ext_compact_definition_lists opts
-          then do
-            let contents = vcat $ map (\d -> hang tabStop (leader <> sps)
-                                $ vcat d <> cr) defs'
-            return $ nowrap labelText <> cr <> contents <> cr
-          else do
-            let contents = (if isTight then vcat else vsep) $ map
-                            (\d -> hang tabStop (leader <> sps) $ vcat d)
-                            defs'
-            return $ blankline <> nowrap labelText $$
-                     (if isTight then empty else blankline) <> contents <> blankline
+       let contents = (if isTight then vcat else vsep) $ map
+                       (\d -> hang tabStop (leader <> sps) $ vcat d)
+                       defs'
+       return $ blankline <> nowrap labelText $$
+                (if isTight then empty else blankline) <> contents <> blankline
      else
        return $ nowrap (chomp labelText <> literal "  " <> cr) <>
                 vsep (map vsep defs') <> blankline
@@ -936,3 +948,14 @@ computeDivNestingLevel = foldr go 0
  where
    go (Div _ bls') n = max (n + 1) (foldr go (n + 1) bls')
    go _ n = n
+
+-- Identify the class in a list of classes that corresponds to
+-- the language syntax.  language-X turns to X.
+getLangFromClasses :: [Text] -> Maybe Text
+getLangFromClasses cs =
+  case find ("language-" `T.isPrefixOf`) cs of
+    Just x -> Just (T.drop 9 x)
+    Nothing ->
+      case filter (/= "sourceCode") cs of
+        (x:_) -> Just x
+        [] -> Nothing

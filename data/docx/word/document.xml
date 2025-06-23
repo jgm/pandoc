@@ -15,9 +15,7 @@ xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing
         <w:pStyle w:val="Title" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Title
-</w:t>
+        <w:t xml:space="preserve">Title</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -25,9 +23,7 @@ Title
         <w:pStyle w:val="Subtitle" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Subtitle
-</w:t>
+        <w:t xml:space="preserve">Subtitle</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -35,9 +31,7 @@ Subtitle
         <w:pStyle w:val="Author" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Author
-</w:t>
+        <w:t xml:space="preserve">Author</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -45,9 +39,7 @@ Author
         <w:pStyle w:val="Date" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Date
-</w:t>
+        <w:t xml:space="preserve">Date</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -55,9 +47,7 @@ Date
         <w:pStyle w:val="Abstract" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Abstract
-</w:t>
+        <w:t xml:space="preserve">Abstract</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -66,9 +56,7 @@ Abstract
       </w:pPr>
       <w:bookmarkStart w:id="21" w:name="heading-1" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 1
-</w:t>
+        <w:t xml:space="preserve">Heading 1</w:t>
       </w:r>
       <w:bookmarkEnd w:id="21" />
     </w:p>
@@ -78,9 +66,7 @@ Heading 1
       </w:pPr>
       <w:bookmarkStart w:id="22" w:name="heading-2" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 2
-</w:t>
+        <w:t xml:space="preserve">Heading 2</w:t>
       </w:r>
       <w:bookmarkEnd w:id="22" />
     </w:p>
@@ -90,9 +76,7 @@ Heading 2
       </w:pPr>
       <w:bookmarkStart w:id="23" w:name="heading-3" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 3
-</w:t>
+        <w:t xml:space="preserve">Heading 3</w:t>
       </w:r>
       <w:bookmarkEnd w:id="23" />
     </w:p>
@@ -102,9 +86,7 @@ Heading 3
       </w:pPr>
       <w:bookmarkStart w:id="24" w:name="heading-4" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 4
-</w:t>
+        <w:t xml:space="preserve">Heading 4</w:t>
       </w:r>
       <w:bookmarkEnd w:id="24" />
     </w:p>
@@ -114,9 +96,7 @@ Heading 4
       </w:pPr>
       <w:bookmarkStart w:id="25" w:name="heading-5" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 5
-</w:t>
+        <w:t xml:space="preserve">Heading 5</w:t>
       </w:r>
       <w:bookmarkEnd w:id="25" />
     </w:p>
@@ -126,9 +106,7 @@ Heading 5
       </w:pPr>
       <w:bookmarkStart w:id="26" w:name="heading-6" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 6
-</w:t>
+        <w:t xml:space="preserve">Heading 6</w:t>
       </w:r>
       <w:bookmarkEnd w:id="26" />
     </w:p>
@@ -138,9 +116,7 @@ Heading 6
       </w:pPr>
       <w:bookmarkStart w:id="27" w:name="heading-7" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 7
-</w:t>
+        <w:t xml:space="preserve">Heading 7</w:t>
       </w:r>
       <w:bookmarkEnd w:id="27" />
     </w:p>
@@ -150,9 +126,7 @@ Heading 7
       </w:pPr>
       <w:bookmarkStart w:id="28" w:name="heading-8" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 8
-</w:t>
+        <w:t xml:space="preserve">Heading 8</w:t>
       </w:r>
       <w:bookmarkEnd w:id="28" />
     </w:p>
@@ -162,9 +136,7 @@ Heading 8
       </w:pPr>
       <w:bookmarkStart w:id="29" w:name="heading-9" />
       <w:r>
-        <w:t xml:space="preserve">
-Heading 9
-</w:t>
+        <w:t xml:space="preserve">Heading 9</w:t>
       </w:r>
       <w:bookmarkEnd w:id="29" />
     </w:p>
@@ -173,9 +145,7 @@ Heading 9
         <w:pStyle w:val="FirstParagraph" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-First Paragraph.
-</w:t>
+        <w:t xml:space="preserve">First Paragraph.</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -183,57 +153,39 @@ First Paragraph.
         <w:pStyle w:val="BodyText" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Body Text. Body Text Char.
-</w:t>
+        <w:t xml:space="preserve">Body Text. Body Text Char.</w:t>
       </w:r>
       <w:r>
-        <w:t xml:space="preserve">
-
-</w:t>
+        <w:t xml:space="preserve"> </w:t>
       </w:r>
       <w:r>
         <w:rPr>
           <w:rStyle w:val="VerbatimChar" />
         </w:rPr>
-        <w:t xml:space="preserve">
-Verbatim Char
-</w:t>
+        <w:t xml:space="preserve">Verbatim Char</w:t>
       </w:r>
       <w:r>
-        <w:t xml:space="preserve">
-.
-</w:t>
+        <w:t xml:space="preserve">.</w:t>
       </w:r>
       <w:r>
-        <w:t xml:space="preserve">
-
-</w:t>
+        <w:t xml:space="preserve"> </w:t>
       </w:r>
       <w:hyperlink r:id="rId30">
         <w:r>
           <w:rPr>
             <w:rStyle w:val="Hyperlink" />
           </w:rPr>
-          <w:t xml:space="preserve">
-Hyperlink
-</w:t>
+          <w:t xml:space="preserve">Hyperlink</w:t>
         </w:r>
       </w:hyperlink>
       <w:r>
-        <w:t xml:space="preserve">
-.
-</w:t>
+        <w:t xml:space="preserve">.</w:t>
       </w:r>
       <w:r>
-        <w:t xml:space="preserve">
-
-</w:t>
+        <w:t xml:space="preserve"> </w:t>
       </w:r>
       <w:r>
-        <w:t xml:space="preserve">
-Footnote.
-</w:t>
+        <w:t xml:space="preserve">Footnote.</w:t>
       </w:r>
       <w:r>
         <w:rPr>
@@ -247,9 +199,7 @@ Footnote.
         <w:pStyle w:val="BlockText" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Block Text.
-</w:t>
+        <w:t xml:space="preserve">Block Text.</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -257,9 +207,7 @@ Block Text.
         <w:pStyle w:val="TableCaption" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Table caption.
-</w:t>
+        <w:t xml:space="preserve">Table caption.</w:t>
       </w:r>
     </w:p>
     <w:tbl>
@@ -286,9 +234,7 @@ Table caption.
               <w:jc w:val="left" />
             </w:pPr>
             <w:r>
-              <w:t xml:space="preserve">
-Table
-</w:t>
+              <w:t xml:space="preserve">Table</w:t>
             </w:r>
           </w:p>
         </w:tc>
@@ -305,9 +251,7 @@ Table
               <w:jc w:val="left" />
             </w:pPr>
             <w:r>
-              <w:t xml:space="preserve">
-Table
-</w:t>
+              <w:t xml:space="preserve">Table</w:t>
             </w:r>
           </w:p>
         </w:tc>
@@ -320,9 +264,7 @@ Table
               <w:jc w:val="left" />
             </w:pPr>
             <w:r>
-              <w:t xml:space="preserve">
-1
-</w:t>
+              <w:t xml:space="preserve">1</w:t>
             </w:r>
           </w:p>
         </w:tc>
@@ -333,9 +275,7 @@ Table
               <w:jc w:val="left" />
             </w:pPr>
             <w:r>
-              <w:t xml:space="preserve">
-2
-</w:t>
+              <w:t xml:space="preserve">2</w:t>
             </w:r>
           </w:p>
         </w:tc>
@@ -346,9 +286,7 @@ Table
         <w:pStyle w:val="ImageCaption" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Image Caption
-</w:t>
+        <w:t xml:space="preserve">Image Caption</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -356,9 +294,7 @@ Image Caption
         <w:pStyle w:val="DefinitionTerm" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-DefinitionTerm
-</w:t>
+        <w:t xml:space="preserve">DefinitionTerm</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -366,9 +302,7 @@ DefinitionTerm
         <w:pStyle w:val="Definition" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Definition
-</w:t>
+        <w:t xml:space="preserve">Definition</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -376,9 +310,7 @@ Definition
         <w:pStyle w:val="DefinitionTerm" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-DefinitionTerm
-</w:t>
+        <w:t xml:space="preserve">DefinitionTerm</w:t>
       </w:r>
     </w:p>
     <w:p>
@@ -386,9 +318,7 @@ DefinitionTerm
         <w:pStyle w:val="Definition" />
       </w:pPr>
       <w:r>
-        <w:t xml:space="preserve">
-Definition
-</w:t>
+        <w:t xml:space="preserve">Definition</w:t>
       </w:r>
     </w:p>
     <w:sectPr>

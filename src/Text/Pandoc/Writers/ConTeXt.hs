@@ -117,6 +117,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                         "subsubsubsection","subsubsubsubsection"])
                 $ defField "body" main
                 $ defField "layout" layoutFromMargins
+                $ defField "tagging" (isEnabled Ext_tagging options)
                 $ defField "number-sections" (writerNumberSections options)
                 $ defField "csl-refs" (stHasCslRefs st)
                 $ defField "csl-hanging-indent" (stCslHangingIndent st)

@@ -59,8 +59,6 @@ data Extension =
     | Ext_blank_before_header     -- ^ Require blank line before a header
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_citations           -- ^ Pandoc/citeproc citations
-    | Ext_compact_definition_lists  -- ^ Definition lists without space between items,
-                                    --   and disallow laziness
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_east_asian_line_breaks  -- ^ Newlines in paragraphs are ignored between
                                   --   East Asian wide characters. Note: this extension
@@ -511,7 +509,6 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_mark
        , Ext_mmd_link_attributes
        , Ext_mmd_header_identifiers
-       , Ext_compact_definition_lists
        , Ext_gutenberg
        , Ext_smart
        , Ext_literate_haskell

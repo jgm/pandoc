@@ -157,6 +157,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLogMessages   :: [LogMessage]
                             , sIdentifiers   :: Set.Set Text
                             , sVerbatimMode  :: Bool
+                            , sMathMode      :: Bool
                             , sCaption       :: Maybe Caption
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
@@ -186,6 +187,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLogMessages   = []
                               , sIdentifiers   = Set.empty
                               , sVerbatimMode  = False
+                              , sMathMode      = False
                               , sCaption       = Nothing
                               , sInListItem    = False
                               , sInTableCell   = False
@@ -650,6 +652,9 @@ trySpecialMacro "xspace" ts = do
     _ -> return ts'
 trySpecialMacro "iftrue" ts = handleIf True ts
 trySpecialMacro "iffalse" ts = handleIf False ts
+trySpecialMacro "ifmmode" ts = do
+  mathMode <- sMathMode <$> getState
+  handleIf mathMode ts
 trySpecialMacro _ _ = mzero
 
 handleIf :: PandocMonad m => Bool -> [Tok] -> LP m [Tok]

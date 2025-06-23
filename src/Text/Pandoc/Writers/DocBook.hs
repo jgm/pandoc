@@ -246,7 +246,7 @@ blockToDocBook opts (Para lst)
                         <$> inlinesToDocBook opts lst
   | otherwise         = inTagsIndented "para" <$> inlinesToDocBook opts lst
 blockToDocBook opts (LineBlock lns) =
-  blockToDocBook opts $ linesToPara lns
+  inTags False "literallayout" [] . vcat <$> mapM (inlinesToDocBook opts) lns
 blockToDocBook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" <$> blocksToDocBook opts blocks
 blockToDocBook opts (CodeBlock (_,classes,_) str) = return $
@@ -265,7 +265,7 @@ blockToDocBook opts (BulletList lst) = do
   let attribs = [("spacing", "compact") | isTightList lst]
   inTags True "itemizedlist" attribs <$> listItemsToDocBook opts lst
 blockToDocBook _ (OrderedList _ []) = return empty
-blockToDocBook opts (OrderedList (start, numstyle, _) (first:rest)) = do
+blockToDocBook opts (OrderedList (start, numstyle, _) items) = do
   let numeration = case numstyle of
                        DefaultStyle -> []
                        Decimal      -> [("numeration", "arabic")]
@@ -274,17 +274,10 @@ blockToDocBook opts (OrderedList (start, numstyle, _) (first:rest)) = do
                        LowerAlpha   -> [("numeration", "loweralpha")]
                        UpperRoman   -> [("numeration", "upperroman")]
                        LowerRoman   -> [("numeration", "lowerroman")]
-      spacing    = [("spacing", "compact") | isTightList (first:rest)]
-      attribs    = numeration <> spacing
-  items <- if start == 1
-              then listItemsToDocBook opts (first:rest)
-              else do
-                first' <- blocksToDocBook opts (map plainToPara first)
-                rest' <- listItemsToDocBook opts rest
-                return $
-                  inTags True "listitem" [("override",tshow start)] first' $$
-                   rest'
-  return $ inTags True "orderedlist" attribs items
+      spacing    = [("spacing", "compact") | isTightList items]
+      startnum   = [("startingnumber", tshow start) | start /= 1]
+      attribs    = numeration <> spacing <> startnum
+  inTags True "orderedlist" attribs <$> listItemsToDocBook opts items
 blockToDocBook opts (DefinitionList lst) = do
   let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   inTags True "variablelist" attribs <$> deflistItemsToDocBook opts lst

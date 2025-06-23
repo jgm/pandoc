@@ -9,6 +9,7 @@
 local ipairs, next, pairs, print, tostring, type, warn =
   ipairs, next, pairs, print, tostring, type, warn
 local string, table = string, table
+local pandoc = require 'pandoc'
 local utils = require 'pandoc.utils'
 local read, write = pandoc.read, pandoc.write
 local Pandoc = pandoc.Pandoc
@@ -342,7 +343,7 @@ end
 local function render_main_pandoc_module (doc)
   local constants_section = Blocks{Header(2, "Constants")}
   local fields = List{}
-  for i, field in ipairs(doc.fields) do
+  for _, field in ipairs(doc.fields) do
     if tostring(field.type) == 'string' then
       constants_section:extend(render_field(field, 2, "pandoc"))
     elseif field.name:match '^[A-Z]' then
@@ -410,8 +411,8 @@ function Reader (inputs)
   local blocks = process_document(tostring(inputs), Blocks{}, 1)
   blocks = blocks:walk {
     Link = function (link)
-      if link.title == 'wikilink' then
-        link.title = ''
+      if link.classes == pandoc.List{'wikilink'} then
+        link.classes = {}
         if known_types[link.target] then
           link.target = '#' .. known_types[link.target]
         else
