@@ -1145,9 +1145,8 @@ parseBlock (Elem e) = do
            b <- p
            case mbt of
              Nothing -> return b
-             Just t -> return $ divWith (attrValue "id" e,[],[])
+             Just t -> return $ divWith (attrValue "id" e, [], getRoleAttr e)
                          (divWith ("", ["title"], []) (plain t) <> b)
-
          -- Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
          -- block itself a class corresponding to the admonition name.
