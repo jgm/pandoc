@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 A XML Schema definition for Pandoc XML format.
 Copyright   : Copyright (C) 2025- Massimiliano Farinella
@@ -20,7 +21,6 @@ and adjusted manually to add some constraints:
   can only take the values specified in pandoc-types
 - TableBody's row-head-columns must be zero (default, when not specified) or a positive integer
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
   <xs:element name="Pandoc">
     <xs:complexType>
