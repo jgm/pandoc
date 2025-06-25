@@ -1,0 +1,250 @@
+# A RELAX NG schema for Pandoc XML format.
+# Copyright   : Copyright (C) 2025- Massimiliano Farinella
+# License     : GNU GPL, version 2 or above
+# Maintainer  : Massimiliano Farinella <massifrg@gmail.com>
+# 
+# This is a RELAX NG schema for the XML representation of Pandoc AST.
+# It's an equivalent of native and JSON formats, but modeled as XML.
+# You can use this schema to validate Pandoc XML documents.
+# It's translated from pandoc-xml.dtd with the "Trang" software by James Clark,
+# and adjusted manually to add some constraints:
+# - elements with Attr can have arbitrary attributes (this is not possible with a DTD)
+# - Header's "level", OrderedList's "start" and Cell's "rowspan" and "colspan" attributes
+#   must be a positive integer and are equal to 1 if not specified
+# - column widths in ColSpec must be between 0 and 1 (inclusive, with 0=ColWidthDefault)
+# - the "count" attribute in the "<Space>" element must be positive and equal to 1 if not specified
+
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+
+Pandoc = element Pandoc { attlist_Pandoc, meta, blocks }
+attlist_Pandoc &= attribute api-version { text }
+block =
+  Para
+  | Plain
+  | Header
+  | Div
+  | BlockQuote
+  | HorizontalRule
+  | BulletList
+  | OrderedList
+  | DefinitionList
+  | Table
+  | Figure
+  | LineBlock
+  | CodeBlock
+  | RawBlock
+inline_element =
+  Str
+  | Space
+  | Emph
+  | Strong
+  | Underline
+  | Strikeout
+  | Superscript
+  | Subscript
+  | SmallCaps
+  | Quoted
+  | Cite
+  | Code
+  | SoftBreak
+  | LineBreak
+  | Math
+  | RawInline
+  | Link
+  | Image
+  | Note
+  | Span
+inline = text | inline_element
+attr =
+  attribute id { xsd:ID }?,
+  attribute class { text }?,
+  attribute * { text }*
+metavalue =
+  MetaMap | MetaList | MetaBool | MetaString | MetaInlines | MetaBlocks
+meta = element meta { attlist_meta, entry* }
+attlist_meta &= empty
+MetaMap = element MetaMap { attlist_MetaMap, entry* }
+attlist_MetaMap &= empty
+entry = element entry { attlist_entry, metavalue* }
+attlist_entry &= attribute key { text }
+MetaList = element MetaList { attlist_MetaList, metavalue* }
+attlist_MetaList &= empty
+MetaBool = element MetaBool { attlist_MetaBool, empty }
+attlist_MetaBool &= attribute value { "true" | "false" }
+MetaString = element MetaString { attlist_MetaString, text }
+attlist_MetaString &= empty
+MetaInlines = element MetaInlines { attlist_MetaInlines, inline* }
+attlist_MetaInlines &= empty
+MetaBlocks = element MetaBlocks { attlist_MetaBlocks, block* }
+attlist_MetaBlocks &= empty
+blocks = element blocks { attlist_blocks, block* }
+attlist_blocks &= empty
+Para = element Para { attlist_Para, inline* }
+attlist_Para &= empty
+Plain = element Plain { attlist_Plain, inline* }
+attlist_Plain &= empty
+Header = element Header { attlist_Header, inline* }
+attlist_Header &=
+  [ a:defaultValue = "1" ] attribute level { xsd:positiveInteger }?,
+  attr
+Div = element Div { attlist_Div, block* }
+attlist_Div &= attr
+BlockQuote = element BlockQuote { attlist_BlockQuote, block* }
+attlist_BlockQuote &= empty
+HorizontalRule =
+  element HorizontalRule { attlist_HorizontalRule, empty }
+attlist_HorizontalRule &= empty
+BulletList = element BulletList { attlist_BulletList, item+ }
+attlist_BulletList &= empty
+OrderedList = element OrderedList { attlist_OrderedList, item+ }
+attlist_OrderedList &=
+  [ a:defaultValue = "1" ] attribute start { xsd:positiveInteger }?,
+  [ a:defaultValue = "DefaultStyle" ]
+  attribute number-style {
+    "DefaultStyle"
+    | "Example"
+    | "Decimal"
+    | "LowerRoman"
+    | "UpperRoman"
+    | "LowerAlpha"
+    | "UpperAlpha"
+  }?,
+  [ a:defaultValue = "DefaultDelim" ]
+  attribute number-delim {
+    "DefaultDelim" | "Period" | "OneParen" | "TwoParens"
+  }?
+DefinitionList =
+  element DefinitionList { attlist_DefinitionList, item+ }
+attlist_DefinitionList &= empty
+item =
+  element item {
+    attlist_item,
+    (block* | (term, def+))
+  }
+attlist_item &= empty
+term = element term { attlist_term, inline* }
+attlist_term &= empty
+def = element def { attlist_def, block* }
+attlist_def &= empty
+Table =
+  element Table {
+    attlist_Table, Caption, colspecs, TableHead, TableBody+, TableFoot
+  }
+attlist_Table &= attr
+Caption = element Caption { attlist_Caption, ShortCaption?, block* }
+attlist_Caption &= empty
+ShortCaption = element ShortCaption { attlist_ShortCaption, inline* }
+attlist_ShortCaption &= empty
+colspecs = element colspecs { attlist_colspecs, ColSpec+ }
+attlist_colspecs &= empty
+ColSpec = element ColSpec { attlist_ColSpec, empty }
+attlist_ColSpec &=
+  [ a:defaultValue = "AlignDefault" ]
+  attribute alignment {
+    "AlignLeft" | "AlignRight" | "AlignCenter" | "AlignDefault"
+  }?,
+  [ a:defaultValue = "0" ]
+  attribute col-width {
+    xsd:double { minInclusive = "0" maxInclusive = "1" }
+  }?
+TableHead = element TableHead { attlist_TableHead, Row* }
+attlist_TableHead &= attr
+TableFoot = element TableFoot { attlist_TableFoot, Row* }
+attlist_TableFoot &= attr
+TableBody = element TableBody { attlist_TableBody, header, body }
+attlist_TableBody &=
+  [ a:defaultValue = "0" ] attribute row-head-columns { text }?,
+  attr
+header = element header { attlist_header, Row* }
+attlist_header &= empty
+body = element body { attlist_body, Row* }
+attlist_body &= empty
+Row = element Row { attlist_Row, Cell* }
+attlist_Row &= attr
+Cell = element Cell { attlist_Cell, block* }
+attlist_Cell &=
+  [ a:defaultValue = "AlignDefault" ]
+  attribute alignment {
+    "AlignLeft" | "AlignRight" | "AlignCenter" | "AlignDefault"
+  }?,
+  [ a:defaultValue = "1" ] attribute row-span { xsd:positiveInteger }?,
+  [ a:defaultValue = "1" ] attribute col-span { xsd:positiveInteger }?,
+  attr
+Figure = element Figure { attlist_Figure, Caption, block* }
+attlist_Figure &= attr
+LineBlock = element LineBlock { attlist_LineBlock, line+ }
+attlist_LineBlock &= empty
+line = element line { attlist_line, inline* }
+attlist_line &= empty
+CodeBlock = element CodeBlock { attlist_CodeBlock, text }
+attlist_CodeBlock &= attr
+RawBlock = element RawBlock { attlist_RawBlock, text }
+attlist_RawBlock &= attribute format { text }
+Space = element Space { attlist_Space, empty }
+attlist_Space &=
+  [ a:defaultValue = "1" ] attribute count { xsd:positiveInteger }?
+Str = element Str { attlist_Str, empty }
+attlist_Str &= [ a:defaultValue = "" ] attribute content { text }?
+Emph = element Emph { attlist_Emph, inline* }
+attlist_Emph &= empty
+Strong = element Strong { attlist_Strong, inline* }
+attlist_Strong &= empty
+Underline = element Underline { attlist_Underline, inline* }
+attlist_Underline &= empty
+Strikeout = element Strikeout { attlist_Strikeout, inline* }
+attlist_Strikeout &= empty
+Superscript = element Superscript { attlist_Superscript, inline* }
+attlist_Superscript &= empty
+Subscript = element Subscript { attlist_Subscript, inline* }
+attlist_Subscript &= empty
+SmallCaps = element SmallCaps { attlist_SmallCaps, inline* }
+attlist_SmallCaps &= empty
+Span = element Span { attlist_Span, inline* }
+attlist_Span &= attr
+Quoted = element Quoted { attlist_Quoted, inline* }
+attlist_Quoted &=
+  [ a:defaultValue = "DoubleQuote" ]
+  attribute quote-type { "SingleQuote" | "DoubleQuote" }?
+Math = element Math { attlist_Math, text }
+attlist_Math &=
+  [ a:defaultValue = "InlineMath" ]
+  attribute math-type { "DisplayMath" | "InlineMath" }?
+RawInline = element RawInline { attlist_RawInline, text }
+attlist_RawInline &= attribute format { text }
+Cite =
+  element Cite { attlist_Cite, (text | citations | inline_element)* }
+attlist_Cite &= empty
+citations = element citations { attlist_citations, Citation+ }
+attlist_citations &= empty
+Citation = element Citation { attlist_Citation, prefix?, suffix? }
+prefix = element prefix { attlist_prefix, inline* }
+attlist_prefix &= empty
+suffix = element suffix { attlist_suffix, inline* }
+attlist_suffix &= empty
+attlist_Citation &=
+  attribute id { text }?,
+  attribute note-num { text }?,
+  [ a:defaultValue = "0" ] attribute hash { text }?,
+  [ a:defaultValue = "AuthorInText" ]
+  attribute mode {
+    "AuthorInText" | "SuppressAuthor" | "NormalCitation"
+  }?
+Code = element Code { attlist_Code, text }
+attlist_Code &= attr
+Image = element Image { attlist_Image, inline* }
+attlist_Image &=
+  attribute title { text }?,
+  attribute src { text }?,
+  attr
+Link = element Link { attlist_Link, inline* }
+attlist_Link &=
+  attribute title { text }?,
+  attribute href { text }?,
+  attr
+SoftBreak = element SoftBreak { attlist_SoftBreak, empty }
+attlist_SoftBreak &= empty
+LineBreak = element LineBreak { attlist_LineBreak, empty }
+attlist_LineBreak &= empty
+Note = element Note { attlist_Note, block* }
+attlist_Note &= empty
+start = Pandoc
