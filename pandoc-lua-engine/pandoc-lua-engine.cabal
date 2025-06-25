@@ -144,7 +144,7 @@ test-suite test-pandoc-lua-engine
                      , data-default
                      , exceptions            >= 0.8     && < 0.11
                      , filepath
-                     , hslua                 >= 2.3     && < 2.4
+                     , hslua                 >= 2.3     && < 2.5
                      , pandoc
                      , pandoc-types          >= 1.22    && < 1.24
                      , tasty
