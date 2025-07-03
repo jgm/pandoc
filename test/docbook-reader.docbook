@@ -27,9 +27,9 @@
   This is a set of tests for pandoc. Most of them are adapted from John
   Gruber’s markdown test suite.
 </para>
-<sect1 id="headers">
+<sect1 id="headers" role="sect1role">
   <title>Headers</title>
-  <sect2 id="level-2-with-an-embedded-link">
+  <sect2 id="level-2-with-an-embedded-link" role="sect2role">
     <title>Level 2 with an <ulink url="/url">embedded link</ulink></title>
     <sect3 id="level-3-with-emphasis">
       <title>Level 3 with <emphasis>emphasis</emphasis></title>
@@ -74,6 +74,9 @@
   <para>
     Here’s a regular paragraph.
   </para>
+  <para role="pararole">
+    And here’s a regular paragraph with a role.
+  </para>
   <para>
     In Markdown 1.0.0 and earlier. Version 8. This line turns into a list
     item. Because a hard-wrapped line in the middle of a paragraph looked like
@@ -91,6 +94,11 @@
   <blockquote>
     <para>
       This is a block quote. It is pretty short.
+    </para>
+  </blockquote>
+  <blockquote role="roleblockquote">
+    <para>
+      This is a block quote with a role.
     </para>
   </blockquote>
   <blockquote>
@@ -217,6 +225,26 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   <sect2 id="ordered">
     <title>Ordered</title>
     <orderedlist numeration="arabic">
+      <listitem>
+        <para>
+          First
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Second
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Third
+        </para>
+      </listitem>
+    </orderedlist>
+    <para>
+      with role:
+    </para>
+    <orderedlist role="listrole" numeration="arabic">
       <listitem>
         <para>
           First
@@ -701,6 +729,12 @@ These should not be escaped:  \$ \\ \&gt; \[ \{
   </para>
   <para>
     So is <emphasis role="strong"><emphasis>this</emphasis></emphasis> word.
+  </para>
+  <para>
+    So is <emphasis role="emphasisrole"><emphasis>this</emphasis></emphasis> word with a role.
+  </para>
+  <para>
+    So is <phrase role="phraserole"><phrase>this</phrase></phrase> phrase with a role.
   </para>
   <para>
     This is code: <literal>&gt;</literal>, <literal>$</literal>,
@@ -1408,7 +1442,7 @@ or here: &lt;http://example.com/&gt;
   <para>
     Table with attributes
   </para>
-  <table xml:id="mytableid1" class="mytableclass1 mytableclass2" tabstyle="mytabstyle1">
+  <table xml:id="mytableid1" class="mytableclass1 mytableclass2" tabstyle="mytabstyle1" role="tablerole1">
     <title>
       Attribute table caption
     </title>
@@ -1444,7 +1478,7 @@ or here: &lt;http://example.com/&gt;
   <para>
     Table with attributes, without caption
   </para>
-  <informaltable xml:id="mytableid2" class="mytableclass3 mytableclass4" tabstyle="mytabstyle2">
+  <informaltable xml:id="mytableid2" class="mytableclass3 mytableclass4" tabstyle="mytabstyle2" role="tablerole2">
     <tgroup>
       <thead>
 	<th>
