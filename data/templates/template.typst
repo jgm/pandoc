@@ -15,7 +15,9 @@
   authors: (),
   keywords: (),
   date: none,
+  abstract-title: none,
   abstract: none,
+  thanks: none,
   cols: 1,
   margin: (x: 1.25in, y: 1.25in),
   paper: "us-letter",
@@ -23,66 +25,90 @@
   region: "US",
   font: (),
   fontsize: 11pt,
+  mathfont: none,
+  codefont: none,
+  linestretch: 1,
   sectionnumbering: none,
+  linkcolor: none,
+  citecolor: none,
+  filecolor: none,
   pagenumbering: "1",
   doc,
 ) = {
   set document(
     title: title,
-    author: authors.map(author => content-to-string(author.name)),
+    author: authors.map(author => content-to-string(author.name)).join(", ", last: " & "),
     keywords: keywords,
   )
   set page(
     paper: paper,
     margin: margin,
     numbering: pagenumbering,
-    columns: cols,
-    )
-  set par(justify: true)
+  )
+
+  set par(
+    justify: true,
+    leading: linestretch * 0.65em
+  )
   set text(lang: lang,
            region: region,
            font: font,
            size: fontsize)
+
+  show math.equation: set text(font: mathfont) if mathfont != none
+  show raw: set text(font: codefont) if codefont != none
+
   set heading(numbering: sectionnumbering)
 
-  place(top, float: true, scope: "parent", clearance: 4mm)[
-  #if title != none {
-    align(center)[#block(inset: 2em)[
-      #text(weight: "bold", size: 1.5em)[#title]
-      #(if subtitle != none {
-        parbreak()
-        text(weight: "bold", size: 1.25em)[#subtitle]
-      })
-    ]]
+  show link: set text(fill: rgb(content-to-string(linkcolor))) if linkcolor != none
+  show ref: set text(fill: rgb(content-to-string(citecolor))) if citecolor != none
+  show link: this => {
+    if filecolor != none and type(this.dest) == label {
+      text(this, fill: rgb(content-to-string(filecolor)))
+    }
   }
 
-  #if authors != none and authors != [] {
-    let count = authors.len()
-    let ncols = calc.min(count, 3)
-    grid(
-      columns: (1fr,) * ncols,
-      row-gutter: 1.5em,
-      ..authors.map(author =>
-          align(center)[
-            #author.name \
-            #author.affiliation \
-            #author.email
-          ]
+  block(below: 4mm)[
+    #if title != none {
+      align(center)[#block(inset: 2em)[
+          #text(weight: "bold", size: 1.5em)[#title #if thanks != none {
+              footnote(thanks, numbering: "*")
+              counter(footnote).update(n => n - 1)
+            }]
+          #(
+            if subtitle != none {
+              parbreak()
+              text(weight: "bold", size: 1.25em)[#subtitle]
+            }
+          )
+        ]]
+    }
+
+    #if authors != none and authors != [] {
+      let count = authors.len()
+      let ncols = calc.min(count, 3)
+      grid(
+        columns: (1fr,) * ncols,
+        row-gutter: 1.5em,
+        ..authors.map(author => align(center)[
+          #author.name \
+          #author.affiliation \
+          #author.email
+        ])
       )
-    )
-  }
+    }
 
-  #if date != none {
-    align(center)[#block(inset: 1em)[
-      #date
-    ]]
-  }
+    #if date != none {
+      align(center)[#block(inset: 1em)[
+          #date
+        ]]
+    }
 
-  #if abstract != none {
-    block(inset: 2em)[
-    #text(weight: "semibold")[Abstract] #h(1em) #abstract
-    ]
-  }
+    #if abstract != none {
+      block(inset: 2em)[
+        #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
+      ]
+    }
   ]
 
   doc
