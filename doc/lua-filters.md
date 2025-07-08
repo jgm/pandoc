@@ -2896,46 +2896,46 @@ Example:
 
 ```lua
 pandoc.Table(
-    pandoc.Caption( "This is my table caption." ),
-    {
-        { pandoc.AlignLeft },
-        { pandoc.AlignDefault }, 
-        { pandoc.AlignCenter }, 
-        { pandoc.AlignRight },
-        { pandoc.AlignDefault }
-    },
-    pandoc.TableHead{
-        pandoc.Row{
-            pandoc.Cell( "This" ), 
-            pandoc.Cell( "is my" ), 
-            pandoc.Cell( "table" ),
-            pandoc.Cell( "header" )
-        }
-    },
-    {
-        {
-            attr={},
-            body={ 
-                pandoc.Row{
-                    pandoc.Cell( "Cell 1" ), 
-                    pandoc.Cell( "Cell 2" ), 
-                    pandoc.Cell( "Cell 3" )
-                },
-                pandoc.Row{
-                    pandoc.Cell( "Cell 4" ), 
-                    pandoc.Cell( "Cell 5" ), 
-                    pandoc.Cell( "Cell 6" )
-                }
-            },
-            head={},
-            row_head_columns=0
-        }
-    },
-    pandoc.TableFoot{
-        pandoc.Row{
-            pandoc.Cell( "This is my table footer.", pandoc.AlignDefault, 1, 4 )
-        }
+  pandoc.Caption( "This is my table caption." ),
+  {
+    { pandoc.AlignLeft },
+    { pandoc.AlignDefault }, 
+    { pandoc.AlignCenter }, 
+    { pandoc.AlignRight },
+    { pandoc.AlignDefault }
+  },
+  pandoc.TableHead{
+    pandoc.Row{
+      pandoc.Cell( "This" ), 
+      pandoc.Cell( "is my" ), 
+      pandoc.Cell( "table" ),
+      pandoc.Cell( "header" )
     }
+  },
+  {
+    {
+      attr={},
+      body={ 
+        pandoc.Row{
+          pandoc.Cell( "Cell 1" ), 
+          pandoc.Cell( "Cell 2" ), 
+          pandoc.Cell( "Cell 3" )
+        },
+        pandoc.Row{
+          pandoc.Cell( "Cell 4" ), 
+          pandoc.Cell( "Cell 5" ), 
+          pandoc.Cell( "Cell 6" )
+        }
+      },
+      head={},
+      row_head_columns=0
+    }
+  },
+  pandoc.TableFoot{
+    pandoc.Row{
+      pandoc.Cell( "This is my table footer.", pandoc.AlignDefault, 1, 4 )
+    }
+  }
 )
 ```
 
