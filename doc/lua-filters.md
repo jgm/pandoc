@@ -2892,6 +2892,73 @@ Returns:
 
 - Table element ([Block])
 
+Example:
+
+```lua
+pandoc.Table(
+    pandoc.Caption( "This is my table caption." ),
+    {
+        { pandoc.AlignLeft },
+        { pandoc.AlignDefault }, 
+        { pandoc.AlignCenter }, 
+        { pandoc.AlignRight },
+        { pandoc.AlignDefault }
+    },
+    pandoc.TableHead{
+        pandoc.Row{
+            pandoc.Cell( "This" ), 
+            pandoc.Cell( "is my" ), 
+            pandoc.Cell( "table" ),
+            pandoc.Cell( "header" )
+        }
+    },
+    {
+        {
+            attr={},
+            body={ 
+                pandoc.Row{
+                    pandoc.Cell( "Cell 1" ), 
+                    pandoc.Cell( "Cell 2" ), 
+                    pandoc.Cell( "Cell 3" )
+                },
+                pandoc.Row{
+                    pandoc.Cell( "Cell 4" ), 
+                    pandoc.Cell( "Cell 5" ), 
+                    pandoc.Cell( "Cell 6" )
+                }
+            },
+            head={},
+            row_head_columns=0
+        }
+    },
+    pandoc.TableFoot{
+        pandoc.Row{
+            pandoc.Cell( "This is my table footer.", pandoc.AlignDefault, 1, 4 )
+        }
+    }
+)
+```
+
++--------+--------+--------+--------+---+
+| This   | is my  | table  | header |   |
++========+:=======+:======:+=======:+===+
+| Cell 1 | Cell 2 | Cell 3 |        |   |
++--------+--------+--------+--------+---+
+| Cell 4 | Cell 5 | Cell 6 |        |   |
++========+========+========+========+===+
+| This is my table footer.          |   |
++===================================+===+
+
+: This is my table caption.
+
+Notes:
+
+- The number of columns in the resulting Table element is equal to the number of entries in the `colspecs` parameter.
+
+- A [ColSpec] object must contain the cell alignment, but the column width is optional.
+
+- A [TableBody] object is specified using a Lua table in the `bodies` parameter because there is no `pandoc.TableBody` constructor.
+
 ### Blocks {#pandoc.Blocks}
 
 `Blocks (block_like_elements)`
