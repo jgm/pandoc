@@ -320,7 +320,7 @@ latexWarnings log' = foldM_ go Nothing (BC.lines log')
    go (Just msg) ln
      | ln == "" = do -- emit report and reset accumulator
          report $ MakePDFWarning $ render (Just 60) $
-            hsep $ map literal $ T.words $ UTF8.toText $ BC.toStrict msg
+            hsep $ map literal $ T.words $ utf8ToText msg
          pure Nothing
      | otherwise = pure $ Just (msg <> ln)
 
