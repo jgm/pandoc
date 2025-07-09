@@ -767,10 +767,8 @@ Note that:
   constructor.
 
 ```lua
-function Pandoc(blocks, meta)
-
+function Pandoc (blocks, meta)
   local caption = pandoc.Caption( "This is my table caption." )
-
   local colspecs = {
     { pandoc.AlignLeft },
     { pandoc.AlignDefault }, 
@@ -778,7 +776,6 @@ function Pandoc(blocks, meta)
     { pandoc.AlignRight },
     { pandoc.AlignDefault }
   }
-
   local head = pandoc.TableHead{
     pandoc.Row{
       pandoc.Cell( "This" ), 
@@ -787,7 +784,6 @@ function Pandoc(blocks, meta)
       pandoc.Cell( "header" )
     }
   }
-
   local bodies = {
     {
       attr={},
@@ -807,18 +803,65 @@ function Pandoc(blocks, meta)
       row_head_columns=0
     }
   }
-
   local foot = pandoc.TableFoot{
     pandoc.Row{
       pandoc.Cell( "This is my table footer.", pandoc.AlignDefault, 1, 4 )
     }
   }
-
   return pandoc.Pandoc(
     { pandoc.Table(caption, colspecs, head, bodies, foot) }, 
     meta
   )
-  
+end
+```
+
+## Extracting links from a document
+
+This filter creates a document containing a table that lists
+the URLs the input document links to, together with the 
+number of links to each URL.
+
+```lua
+links = {}
+
+function Link (el)
+  if links[el.target] then
+    links[el.target] = links[el.target] + 1
+  else
+    links[el.target] = 1
+  end
+  return el
+end
+
+function Pandoc (blocks, meta)
+  local caption = pandoc.Caption("Link count.")
+  local colspecs = { 
+    { pandoc.AlignDefault, 0.8 }, 
+    { pandoc.AlignLeft, 0.2 }
+  }
+  local head = pandoc.TableHead{
+    pandoc.Row{ pandoc.Cell("Target"), pandoc.Cell("Count") }
+  }
+  local foot = pandoc.TableFoot()
+  local rows = {}
+  for link, count in pairs(links) do
+    rows[#rows + 1] = pandoc.Row{ 
+        pandoc.Cell( link ), 
+        pandoc.Cell( pandoc.utils.stringify(count) ) 
+    }
+  end
+  local bodies = {
+    {
+      attr={},
+      body=rows,
+      head={},
+      row_head_columns=0
+    }
+  }
+  return pandoc.Pandoc(
+    {pandoc.Table(caption, colspecs, head, bodies, foot)},
+    meta
+  )
 end
 ```
 
