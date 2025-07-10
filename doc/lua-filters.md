@@ -736,6 +736,133 @@ function Pandoc(el)
 end
 ```
 
+## Creating a table
+
+This filter creates a document that contains the following 
+table with 5 columns. It serves as a working example of how 
+to use the [`pandoc.Table`](#pandoc.Table) constructor. 
+
++--------+--------+--------+--------+---+
+| This   | is my  | table  | header |   |
++========+:=======+:======:+=======:+===+
+| Cell 1 | Cell 2 | Cell 3 |        |   |
++--------+--------+--------+--------+---+
+| Cell 4 | Cell 5 | Cell 6 |        |   |
++========+========+========+========+===+
+| This is my table footer.          |   |
++===================================+===+
+
+: This is my table caption.
+
+Note that:
+
+- The number of columns in the resulting Table element is 
+  equal to the number of entries in the `colspecs` parameter.
+
+- A [ColSpec] object must contain the cell alignment, but the 
+  column width is optional.
+
+- A [TableBody] object is specified using a Lua table in the 
+  `bodies` parameter because there is no `pandoc.TableBody` 
+  constructor.
+
+```lua
+function Pandoc ()
+  local caption = pandoc.Caption( "This is my table caption." )
+  local colspecs = {
+    { pandoc.AlignLeft },
+    { pandoc.AlignDefault }, 
+    { pandoc.AlignCenter }, 
+    { pandoc.AlignRight },
+    { pandoc.AlignDefault }
+  }
+  local head = pandoc.TableHead{
+    pandoc.Row{
+      pandoc.Cell( "This" ), 
+      pandoc.Cell( "is my" ), 
+      pandoc.Cell( "table" ),
+      pandoc.Cell( "header" )
+    }
+  }
+  local bodies = {
+    {
+      attr={},
+      body={ 
+        pandoc.Row{
+          pandoc.Cell( "Cell 1" ), 
+          pandoc.Cell( "Cell 2" ), 
+          pandoc.Cell( "Cell 3" )
+        },
+        pandoc.Row{
+          pandoc.Cell( "Cell 4" ), 
+          pandoc.Cell( "Cell 5" ), 
+          pandoc.Cell( "Cell 6" )
+        }
+      },
+      head={},
+      row_head_columns=0
+    }
+  }
+  local foot = pandoc.TableFoot{
+    pandoc.Row{
+      pandoc.Cell( "This is my table footer.", pandoc.AlignDefault, 1, 4 )
+    }
+  }
+  return pandoc.Pandoc { 
+    pandoc.Table(caption, colspecs, head, bodies, foot) 
+  }
+end
+```
+
+## Extracting links from a document
+
+This filter creates a document containing a table that lists
+the URLs the input document links to, together with the 
+number of links to each URL.
+
+```lua
+links = {}
+
+function Link (el)
+  if links[el.target] then
+    links[el.target] = links[el.target] + 1
+  else
+    links[el.target] = 1
+  end
+  return el
+end
+
+function Pandoc ()
+  local caption = pandoc.Caption("Link count.")
+  local colspecs = { 
+    { pandoc.AlignDefault, 0.8 }, 
+    { pandoc.AlignLeft, 0.2 }
+  }
+  local head = pandoc.TableHead{
+    pandoc.Row{ pandoc.Cell("Target"), pandoc.Cell("Count") }
+  }
+  local foot = pandoc.TableFoot()
+  local rows = {}
+  for link, count in pairs(links) do
+    rows[#rows + 1] = pandoc.Row{ 
+        pandoc.Cell( link ), 
+        pandoc.Cell( pandoc.utils.stringify(count) ) 
+    }
+  end
+  local bodies = {
+    {
+      attr={},
+      body=rows,
+      head={},
+      row_head_columns=0
+    }
+  }
+  return pandoc.Pandoc {
+    pandoc.Table(caption, colspecs, head, bodies, foot)
+  }
+end
+```
+
 ## Converting ABC code to music notation
 
 This filter replaces code blocks with class `abc` with images
@@ -903,7 +1030,7 @@ Usage:
 Pandoc document
 
 Values of this type can be created with the
-[`pandoc.Pandoc`](#pandoc.pandoc) constructor. Pandoc values are
+[`pandoc.Pandoc`](#pandoc.Pandoc) constructor. Pandoc values are
 equal in Lua if and only if they are equal in Haskell.
 
 `blocks`
