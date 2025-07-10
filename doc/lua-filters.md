@@ -1030,7 +1030,7 @@ Usage:
 Pandoc document
 
 Values of this type can be created with the
-[`pandoc.Pandoc`](#pandoc.pandoc) constructor. Pandoc values are
+[`pandoc.Pandoc`](#pandoc.Pandoc) constructor. Pandoc values are
 equal in Lua if and only if they are equal in Haskell.
 
 `blocks`
