@@ -21,7 +21,6 @@ function Writer (doc, opts)
 end
 
 local pipe = pandoc.pipe
-local stringify = (require 'pandoc.utils').stringify
 
 -- Choose the image format based on the value of the
 -- `image_format` environment variable.
@@ -80,7 +79,7 @@ end
 -- This gives you a fragment.  You could use the metadata table to
 -- fill variables in a custom lua template.  Or, pass `--template=...`
 -- to pandoc, and pandoc will do the template processing as usual.
-function Doc(body, metadata, variables)
+function Doc(body, _metadata, _variables)
   local buffer = {}
   local function add(s)
     table.insert(buffer, s)
@@ -146,7 +145,7 @@ function Link(s, tgt, tit, attr)
          escape(tit,true) .. '"' .. attributes(attr) .. '>' .. s .. '</a>'
 end
 
-function Image(s, src, tit, attr)
+function Image(_s, src, tit, _attr)
   return '<img src="' .. escape(src,true) .. '" title="' ..
          escape(tit,true) .. '"/>'
 end
@@ -283,7 +282,7 @@ local function html_align(align)
   end
 end
 
-function CaptionedImage(src, tit, caption, attr)
+function CaptionedImage(src, _tit, caption, attr)
   if #caption == 0 then
     return '<p><img src="' .. escape(src,true) .. '" id="' .. attr.id ..
       '"/></p>'
