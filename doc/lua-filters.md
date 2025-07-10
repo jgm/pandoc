@@ -767,7 +767,7 @@ Note that:
   constructor.
 
 ```lua
-function Pandoc (blocks, meta)
+function Pandoc ()
   local caption = pandoc.Caption( "This is my table caption." )
   local colspecs = {
     { pandoc.AlignLeft },
@@ -808,10 +808,9 @@ function Pandoc (blocks, meta)
       pandoc.Cell( "This is my table footer.", pandoc.AlignDefault, 1, 4 )
     }
   }
-  return pandoc.Pandoc(
-    { pandoc.Table(caption, colspecs, head, bodies, foot) }, 
-    meta
-  )
+  return pandoc.Pandoc { 
+    pandoc.Table(caption, colspecs, head, bodies, foot) 
+  }
 end
 ```
 
@@ -833,7 +832,7 @@ function Link (el)
   return el
 end
 
-function Pandoc (blocks, meta)
+function Pandoc ()
   local caption = pandoc.Caption("Link count.")
   local colspecs = { 
     { pandoc.AlignDefault, 0.8 }, 
@@ -858,10 +857,9 @@ function Pandoc (blocks, meta)
       row_head_columns=0
     }
   }
-  return pandoc.Pandoc(
-    {pandoc.Table(caption, colspecs, head, bodies, foot)},
-    meta
-  )
+  return pandoc.Pandoc {
+    pandoc.Table(caption, colspecs, head, bodies, foot)
+  }
 end
 ```
 
