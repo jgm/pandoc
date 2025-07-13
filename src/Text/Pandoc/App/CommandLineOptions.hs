@@ -21,6 +21,7 @@ module Text.Pandoc.App.CommandLineOptions (
           , options
           , engines
           , setVariable
+          , copyrightMessage
           ) where
 import Control.Monad.Trans
 import Control.Monad.State.Strict
