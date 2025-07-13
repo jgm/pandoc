@@ -91,11 +91,10 @@ flagSettings = "Features: " ++
 
 versionInfo :: IO ()
 versionInfo = do
-  progname <- getProgName
   defaultDatadir <- defaultUserDataDir
   scriptingEngine <- getEngine
   UTF8.putStr $ T.unlines $ map T.pack
-   [ progname ++ " " ++ showVersion pandocVersion ++ versionSuffix
+   [ "pandoc " ++ showVersion pandocVersion ++ versionSuffix
    , flagSettings
    , "Scripting engine: " ++ T.unpack (engineName scriptingEngine)
    , "User data directory: " ++ defaultDatadir

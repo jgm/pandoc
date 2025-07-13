@@ -194,11 +194,10 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
                   ,confNumFormat = Generic
                   ,confTrailingNewline = True} sty
     VersionInfo -> do
-      prg <- getProgName
       defaultDatadir <- defaultUserDataDir
       UTF8.hPutStrLn stdout
        $ T.pack
-       $ prg ++ " " ++ T.unpack pandocVersionText ++
+       $ "pandoc " ++ T.unpack pandocVersionText ++
          "\nUser data directory: " ++ defaultDatadir ++
          ('\n':copyrightMessage)
     Help -> do
