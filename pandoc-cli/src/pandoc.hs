@@ -16,7 +16,7 @@ module Main where
 import qualified Control.Exception as E
 import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
-                       , parseOptionsFromArgs, handleOptInfo )
+                       , parseOptionsFromArgs, handleOptInfo, copyrightMessage )
 import Text.Pandoc.Error (handleError)
 import System.Exit (exitSuccess)
 import Data.Monoid (Any(..))
@@ -67,13 +67,6 @@ main = E.handle (handleError . Left) $ do
             Left e -> handleOptInfo engine e
             Right opts -> convertWithOpts engine opts
 
-copyrightMessage :: String
-copyrightMessage =
- "Copyright (C) 2006-2024 John MacFarlane. Web: https://pandoc.org\n"
- ++
- "This is free software; see the source for copying conditions. There is no\n"
- ++
- "warranty, not even for merchantability or fitness for a particular purpose."
 
 flagSettings :: String
 flagSettings = "Features: " ++
