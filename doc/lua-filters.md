@@ -984,6 +984,19 @@ function RawBlock(el)
   end
 end
 
+## Comments to LaTeX
+
+The `comments-to-latex.lua` filter converts DOCX comments into LaTeX notes. It can be configured with the `COMMENT_MODE` environment variable.
+
+*   `COMMENT_MODE=inline-todo` (default): Converts comments to `\\todo{...}` notes from the `todonotes` package.
+*   `COMMENT_MODE=list-only`: Extracts comments and appends them as a list at the end of the document.
+
+Example usage:
+
+```
+COMMENT_MODE=inline-todo pandoc mydoc.docx -t latex --track-changes=all --lua-filter=comments-to-latex.lua -o mydoc.tex
+```
+
 ## Track Changes to LaTeX
 
 The `track-changes.lua` filter converts DOCX track changes (insertions and deletions) into LaTeX commands using the `changes` package. To use this filter, you must first convert your DOCX file with the `AllChanges` track changes option:
