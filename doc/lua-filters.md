@@ -984,6 +984,18 @@ function RawBlock(el)
   end
 end
 
+## Cross-references to LaTeX
+
+The `crossref-to-latex.lua` filter converts DOCX cross-references to LaTeX commands using the `cleveref` package. This filter requires a modified DOCX reader that extracts the necessary information from the `REF` fields.
+
+To use this filter, you must first convert your DOCX file with the modified reader, and then apply the filter:
+
+```
+pandoc mydoc.docx -t latex --lua-filter=crossref-to-latex.lua -o mydoc.tex
+```
+
+This will produce a LaTeX file with `\\cref` and `\\cpageref` commands, which can then be processed with a LaTeX engine. You will need to have the `cleveref` package installed.
+
 ## Comments to LaTeX
 
 The `comments-to-latex.lua` filter converts DOCX comments into LaTeX notes. It can be configured with the `COMMENT_MODE` environment variable.

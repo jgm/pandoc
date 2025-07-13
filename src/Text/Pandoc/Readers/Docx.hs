@@ -482,6 +482,9 @@ parPartToInlines' (Field info children) =
                           ++ [("bold","") | entryBold ie]
                           ++ [("italic","") | entryItalic ie])) mempty
     PagerefField fieldAnchor True -> parPartToInlines' $ InternalHyperLink fieldAnchor children
+    RefField fieldAnchor switches -> do
+        let classes = "crossref" : switches
+        return $ spanWith (fieldAnchor, classes, []) mempty
     EndNoteCite t -> do
       formattedCite <- smushInlines <$> mapM parPartToInlines' children
       opts <- asks docxOptions

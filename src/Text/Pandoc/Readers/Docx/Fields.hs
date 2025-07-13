@@ -35,6 +35,7 @@ data IndexEntry = IndexEntry
 data FieldInfo = HyperlinkField URL
                 -- The boolean indicates whether the field is a hyperlink.
                | PagerefField Anchor Bool
+               | RefField Anchor [T.Text]
                | IndexrefField IndexEntry
                | CslCitation T.Text
                | CslBibliography
@@ -54,6 +55,8 @@ fieldInfo = do
   hyperlink
     <|>
     pageref
+    <|>
+    ref
     <|>
     indexref
     <|>
@@ -140,6 +143,14 @@ pageref = do
   switches <- many fieldSwitch
   let isLink = any ((== 'h') . fst) switches
   return $ PagerefField farg isLink
+
+ref :: Parser FieldInfo
+ref = do
+  string "REF"
+  spaces
+  farg <- fieldArgument
+  switches <- many fieldSwitch
+  return $ RefField farg (map (T.singleton . fst) switches)
 
 -- second element of tuple is optional "see".
 indexref :: Parser FieldInfo
