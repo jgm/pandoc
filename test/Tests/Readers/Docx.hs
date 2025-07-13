@@ -492,6 +492,10 @@ tests = [ testGroup "document"
             "comments (with styles extension)"
             "docx/comments.docx"
             []
+          , testCompareWithOpts def{readerTrackChanges=AllChanges}
+            "latex track changes"
+            "docx/track_changes_latex.docx"
+            "docx/track_changes_latex_all.native"
           ]
         , testGroup "media"
           [ testMediaBag

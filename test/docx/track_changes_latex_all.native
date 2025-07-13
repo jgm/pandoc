@@ -1,0 +1,36 @@
+Pandoc (Meta {unMeta = fromList []})
+[ Para
+    [ Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "a"
+    , Space
+    , Span
+        ( ""
+        , [ "deletion" ]
+        , [ ( "author" , "Author One" )
+          , ( "date" , "2023-01-01T12:00:00Z" )
+          ]
+        )
+        [ Str "deleted" ]
+    , Str "."
+    ]
+, Para
+    [ Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "an"
+    , Space
+    , Span
+        ( ""
+        , [ "insertion" ]
+        , [ ( "author" , "Author Two" )
+          , ( "date" , "2023-01-02T13:00:00Z" )
+          ]
+        )
+        [ Str "inserted" ]
+    , Str "."
+    ]
+]

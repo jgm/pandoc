@@ -983,6 +983,16 @@ function RawBlock(el)
    return el
   end
 end
+
+## Track Changes to LaTeX
+
+The `track-changes.lua` filter converts DOCX track changes (insertions and deletions) into LaTeX commands using the `changes` package. To use this filter, you must first convert your DOCX file with the `AllChanges` track changes option:
+
+```
+pandoc mydoc.docx -t latex --track-changes=all --lua-filter=track-changes.lua -o mydoc.tex
+```
+
+This will produce a LaTeX file with `\\added` and `\\deleted` commands, which can then be processed with a LaTeX engine. You will need to have the `changes` package installed.
 ```
 
 Example of use:
