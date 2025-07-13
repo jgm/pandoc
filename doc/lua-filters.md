@@ -984,6 +984,18 @@ function RawBlock(el)
   end
 end
 
+## Custom Captions to LaTeX
+
+The `captions-to-latex.lua` filter converts custom DOCX captions to LaTeX. This filter requires a modified DOCX reader that extracts the custom caption label and numbering scheme.
+
+To use this filter, you must first convert your DOCX file with the modified reader, and then apply the filter:
+
+```
+pandoc mydoc.docx -t latex --lua-filter=captions-to-latex.lua -o mydoc.tex
+```
+
+This will produce a LaTeX file with the custom caption labels included in the caption text.
+
 ## Cross-references to LaTeX
 
 The `crossref-to-latex.lua` filter converts DOCX cross-references to LaTeX commands using the `cleveref` package. This filter requires a modified DOCX reader that extracts the necessary information from the `REF` fields.

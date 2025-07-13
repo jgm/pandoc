@@ -288,7 +288,7 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
                  [ParPart]
               | ListItem ParagraphStyle T.Text T.Text (Maybe Level) [ParPart]
               | Tbl (Maybe T.Text) T.Text TblGrid TblLook [Row]
-              | Captioned ParagraphStyle [ParPart] BodyPart
+              | Captioned ParagraphStyle [ParPart] BodyPart (Maybe T.Text) (Maybe T.Text)
               | HRule
               deriving Show
 

@@ -800,17 +800,20 @@ bodyPartToBlocks (ListItem pPr _ _ _ parparts) =
   let pPr' = pPr {pStyle = constructBogusParStyleData "list-paragraph": pStyle pPr}
   in
     bodyPartToBlocks $ Paragraph pPr' parparts
-bodyPartToBlocks (Captioned parstyle parparts bpart) = do
+bodyPartToBlocks (Captioned parstyle parparts bpart label num) = do
   bs <- bodyPartToBlocks bpart
   captContents <- bodyPartToBlocks (Paragraph parstyle parparts)
   let capt = Caption Nothing (toList captContents)
   let toCaptioned attr' bls = case bls of
         [Table attr _cap colspecs thead tbodies tfoot]
-          -> singleton $ Table (attr <> attr') capt colspecs thead tbodies tfoot
+          -> let attr'' = ("custom-style", fromMaybe "Table" label) : kvs attr'
+             in singleton $ Table (fst attr, snd attr, attr'') capt colspecs thead tbodies tfoot
         [Figure attr _cap blks]
-          -> singleton $ Figure (attr <> attr') capt blks
+          -> let attr'' = ("custom-style", fromMaybe "Figure" label) : kvs attr'
+             in singleton $ Figure (fst attr, snd attr, attr'') capt blks
         [Para im@[Image{}]]
-          -> singleton $ Figure attr' capt [Plain im]
+          -> let attr' = ("custom-style", fromMaybe "Figure" label)
+             in singleton $ Figure ("", [], [attr']) capt [Plain im]
         [Div attr bls']
           -> toCaptioned (attr <> attr') bls'
         _ -> captContents

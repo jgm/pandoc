@@ -36,6 +36,7 @@ data FieldInfo = HyperlinkField URL
                 -- The boolean indicates whether the field is a hyperlink.
                | PagerefField Anchor Bool
                | RefField Anchor [T.Text]
+               | SeqField T.Text T.Text
                | IndexrefField IndexEntry
                | CslCitation T.Text
                | CslBibliography
@@ -57,6 +58,8 @@ fieldInfo = do
     pageref
     <|>
     ref
+    <|>
+    seqField
     <|>
     indexref
     <|>
@@ -151,6 +154,15 @@ ref = do
   farg <- fieldArgument
   switches <- many fieldSwitch
   return $ RefField farg (map (T.singleton . fst) switches)
+
+seqField :: Parser FieldInfo
+seqField = do
+  string "SEQ"
+  spaces
+  label <- fieldArgument
+  spaces
+  num <- option "" fieldArgument
+  return $ SeqField label num
 
 -- second element of tuple is optional "see".
 indexref :: Parser FieldInfo
