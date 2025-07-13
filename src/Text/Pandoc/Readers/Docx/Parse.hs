@@ -391,8 +391,8 @@ data Run = Run RunStyle [RunElem]
          | Footnote [BodyPart]
          | Endnote [BodyPart]
          | InlineDrawing FilePath T.Text T.Text B.ByteString Extent -- title, alt
-         | InlineChart          -- placeholder
-         | InlineDiagram        -- placeholder
+         | InlineChart T.Text [(T.Text, [Double])]
+         | InlineDiagram T.Text [T.Text]
            deriving Show
 
 data RunElem = TextRun T.Text | LnBrk | Tab | SoftHyphen | NoBreakHyphen
@@ -1059,16 +1059,29 @@ elemToParPart' ns element
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , Just _ <- filterElementName
+  , Just relIds <- filterElementName
                  (matchQName "drawingml" "diagram" (Just "dgm") "relIds") drawingElem
-  = return [Diagram]
+  = do
+      let title = fromMaybe "" $ findAttrByName ns "dm" "title" relIds
+      let points = map (strContent . fromMaybe (Element (QName "" Nothing Nothing) [] [])) $
+                   findChildrenByName ns "dgm" "pt" relIds
+      return [InlineDiagram title points]
 -- Chart
 elemToParPart' ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element
-  , Just _ <- filterElementName
+  , Just chartElem <- filterElementName
                 (matchQName "drawingml" "chart" (Just "c") "chart") drawingElem
-  = return [Chart]
+  = do
+      let title = fromMaybe "" $ findChildByName ns "c" "title" chartElem >>=
+                                 findChildByName ns "c" "tx" >>=
+                                 findChildByName ns "c" "rich" >>=
+                                 findChildByName ns "a" "p" >>=
+                                 findChildByName ns "a" "r" >>=
+                                 findChildByName ns "a" "t" >>=
+                                 return . strContent
+      let series = map (elemToSeries ns) $ findChildrenByName ns "c" "ser" chartElem
+      return [InlineChart title series]
 elemToParPart' ns element
   | isElem ns "w" "r" element = do
     runs <- elemToRun ns element
@@ -1128,6 +1141,15 @@ elemToCommentStart ns element
       bps <- mapD (elemToBodyPart ns) (elChildren element)
       return [CommentStart cmtId cmtAuthor cmtDate bps]
 elemToCommentStart _ _ = throwError WrongElem
+
+elemToSeries :: NameSpaces -> Element -> (T.Text, [Double])
+elemToSeries ns element =
+  let title = fromMaybe "" $ findChildByName ns "c" "tx" element >>=
+                             findChildByName ns "c" "v" >>=
+                             return . strContent
+      values = map (safeRead . strContent) $
+               findChildrenByName ns "c" "v" element
+  in (title, catMaybes values)
 
 lookupFootnote :: T.Text -> Notes -> Maybe Element
 lookupFootnote s (Notes _ fns _) = fns >>= M.lookup s

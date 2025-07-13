@@ -984,6 +984,18 @@ function RawBlock(el)
   end
 end
 
+## SmartArt and Charts to LaTeX
+
+The `graphics-to-latex.lua` filter converts simple SmartArt diagrams and charts into LaTeX graphics using TikZ and pgfplots. This filter requires a modified DOCX reader that extracts the data from the SmartArt and chart XML files.
+
+To use this filter, you must first convert your DOCX file with the modified reader, and then apply the filter:
+
+```
+pandoc mydoc.docx -t latex --lua-filter=graphics-to-latex.lua -o mydoc.tex
+```
+
+This will produce a LaTeX file with TikZ and pgfplots code, which can then be processed with a LaTeX engine. You will need to have the `tikz` and `pgfplots` packages installed.
+
 ## Custom Captions to LaTeX
 
 The `captions-to-latex.lua` filter converts custom DOCX captions to LaTeX. This filter requires a modified DOCX reader that extracts the custom caption label and numbering scheme.

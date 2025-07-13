@@ -345,8 +345,10 @@ runToInlines (Endnote bps) = note . smushBlocks <$> mapM bodyPartToBlocks bps
 runToInlines (InlineDrawing fp title alt bs ext) = do
   (lift . lift) $ P.insertMedia fp Nothing bs
   return $ imageWith (extentToAttr ext) (T.pack fp) title $ text alt
-runToInlines InlineChart = return $ spanWith ("", ["chart"], []) $ text "[CHART]"
-runToInlines InlineDiagram = return $ spanWith ("", ["diagram"], []) $ text "[DIAGRAM]"
+runToInlines (InlineChart title series) =
+  return $ spanWith ("", ["chart"], [("title", title)]) $ text $ T.pack $ show series
+runToInlines (InlineDiagram title points) =
+  return $ spanWith ("", ["diagram"], [("title", title)]) $ text $ T.intercalate " -> " points
 
 extentToAttr :: Extent -> Attr
 extentToAttr (Just (w, h)) =
