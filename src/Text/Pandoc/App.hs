@@ -26,7 +26,6 @@ module Text.Pandoc.App (
           , parseOptionsFromArgs
           , options
           , applyFilters
-          , copyrightMessage
           ) where
 import qualified Control.Exception as E
 import Control.Monad ( (>=>), when, forM, forM_ )
@@ -56,7 +55,7 @@ import Text.Pandoc.Image (svgToPng)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), defaultOpts,
                             IpynbOutput (..), OptInfo(..))
 import Text.Pandoc.App.CommandLineOptions (parseOptions, parseOptionsFromArgs,
-                                           options, handleOptInfo, copyrightMessage)
+                                           options, handleOptInfo)
 import Text.Pandoc.App.Input (InputParameters (..), readInput)
 import Text.Pandoc.App.OutputSettings (OutputSettings (..), optToOutputSettings,
                                        sandbox')
