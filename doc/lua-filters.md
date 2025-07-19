@@ -1039,6 +1039,24 @@ equal in Lua if and only if they are equal in Haskell.
 `meta`
 :   document meta information ([Meta] object)
 
+### Methods {#type-pandoc-methods}
+
+#### normalize
+
+`normalize(self)`
+
+Perform a normalization of Pandoc documents. E.g., multiple
+successive spaces are collapsed, and tables are normalized, so
+that all rows and columns contain the same number of cells.
+
+Parameters:
+
+`self`
+:   the element ([Pandoc][])
+
+Results:
+
+-   cloned and normalized document. ([Pandoc][])
 
 ### walk {#type-pandoc:walk}
 
