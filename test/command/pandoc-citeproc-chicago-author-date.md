@@ -83,18 +83,18 @@ With some markup (*see* [Doe 2005, 32](#ref-item1)).
 
 # References {#references .unnumbered}
 
-:::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}
-Doe, John. 2005. *First Book*. Cambridge: Cambridge University Press.
+Doe, John. 2005. *First Book*. Cambridge University Press.
 :::
 
 ::: {#ref-item2 .csl-entry}
----------. 2006. "Article." *Journal of Generic Studies* 6: 33--34.
+Doe, John. 2006. "Article." *Journal of Generic Studies* 6: 33--34.
 :::
 
 ::: {#ref-пункт3 .csl-entry}
 Doe, John, and Jenny Roe. 2007. "Why Water Is Wet." In *Third Book*,
-edited by Sam Smith. Oxford: Oxford University Press.
+edited by Sam Smith. Oxford University Press.
 :::
 ::::::
 

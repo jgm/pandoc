@@ -27,13 +27,13 @@ references:
 ^D
 (Smith and Smith 2019; Smith 2019)
 
-::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-smith1 .csl-entry}
-Smith, Mary. 2019. "Foo."
+Smith, Mary. 2019. *Foo*.
 :::
 
 ::: {#ref-smithsmith .csl-entry}
-Smith, Mary, and John Smith. 2019. "Foo Bar."
+Smith, Mary, and John Smith. 2019. *Foo Bar*.
 :::
 :::::
 ```
