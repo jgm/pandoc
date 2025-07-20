@@ -33,7 +33,7 @@ references:
 ^D
 Doe (1987--1988); Roe (1987)
 
-::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}
 Doe, John. 1987--1988. "The Title." *Journal of Something* 3: 12--34.
 :::

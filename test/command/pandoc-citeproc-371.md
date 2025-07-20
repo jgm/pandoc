@@ -28,13 +28,13 @@ Foo (Doe 2018, in press).
 
 # References {#references .unnumbered}
 
-::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item2 .csl-entry}
 Doe, Jane. 2018. *Title Two*.
 :::
 
 ::: {#ref-item1 .csl-entry}
----------. In press. *Title One*.
+Doe, Jane. In press. *Title One*.
 :::
 :::::
 ```

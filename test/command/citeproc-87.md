@@ -32,7 +32,7 @@ Foo [@a 50].
 ^D
 Foo (Aristotele, n.d., 50).
 
-Aristotele. n.d. “Metafisica Et ‘Physica’.”
+Aristotele. n.d. Metafisica Et “Physica”.
 ```
 
 ```
@@ -50,6 +50,6 @@ Foo [@a 50].
 ^D
 Foo (Aristotele, s.d., 50).
 
-Aristotele. s.d. «Metafisica et “Physica”».
+Aristotele. s.d. Metafisica et «Physica».
 ```
 

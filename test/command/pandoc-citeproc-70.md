@@ -56,14 +56,14 @@ references:
 ^D
 (Thorndike 1955; Dinkova-Bruun 2009)
 
-::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-bruun:2009samuel .csl-entry}
 Dinkova-Bruun, Greti. 2009. "Samuel Presbyter and the Glosses to His
 Versification of Psalm 1: An Anti-Church Invective?" In *Florilegium
 mediaevale: Études offertes à Jacqueline Hamesse à l'occasion de son
-éméritat*, edited by José Francisco Meirinhos and Olga Weijers, 155--74.
-Textes et études du moyen âge 50. Louvain-la-Neuve: Fédération
-Internationale des Instituts d'Études Médiévales.
+éméritat*, edited by José Francisco Meirinhos and Olga Weijers. Textes
+et études du moyen âge 50. Fédération Internationale des Instituts
+d'Études Médiévales.
 :::
 
 ::: {#ref-thorndike:1955unde .csl-entry}
