@@ -71,7 +71,7 @@ Development of Doctrine*. University of Chicago Press.
 ::: {#ref-CTv1 .csl-entry}
 Pelikan, Jaroslav. 1971c. *The Emergence of the Catholic Tradition
 (100--600)*. In *The Christian Tradition: A History of the Development
-of Doctrine*, vol. 1, 1. University of Chicago Press.
+of Doctrine*, vol. 1. University of Chicago Press.
 :::
 ::::::
 ```
