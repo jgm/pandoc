@@ -1056,9 +1056,8 @@ parseBlock (Elem e) =
                                        cs -> mapMaybe (findAttr (unqual "colname" )) cs
                       let isRow x = named "row" x || named "tr" x
                       headrows <- case filterChild (named "thead") e' of
-                                       Just h  -> case filterChild isRow h of
-                                                       Just x  -> parseRow colnames x
-                                                       Nothing -> return []
+                                       Just h  -> mapM (parseRow colnames)
+                                                  $ filterChildren isRow h
                                        Nothing -> return []
                       bodyrows <- case filterChild (named "tbody") e' of
                                        Just b  -> mapM (parseRow colnames)
@@ -1071,8 +1070,8 @@ parseBlock (Elem e) =
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') w
                             if n > 0 then Just n else Nothing
-                      let numrows = maybe 0 maximum $ nonEmpty
-                                                    $ map length bodyrows
+                      let numrows = maybe 0 maximum $ nonEmpty 
+                                                    $ map length (bodyrows ++ headrows)
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
@@ -1094,11 +1093,10 @@ parseBlock (Elem e) =
                                                             in  ColWidth . scale <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr
-                          toHeaderRow l = [toRow l | not (null l)]
                       return $ tableWith (elId,classes,attrs)
                                      (simpleCaption $ plain capt)
                                      (zip aligns widths)
-                                     (TableHead nullAttr $ toHeaderRow headrows)
+                                     (TableHead nullAttr $ map toRow headrows)
                                      [TableBody nullAttr 0 [] $ map toRow bodyrows]
                                      (TableFoot nullAttr [])
          sect n = sectWith(attrValue "id" e) [] [] n
