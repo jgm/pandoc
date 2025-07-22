@@ -34,7 +34,7 @@ import Data.List (intersperse,elemIndex)
 import qualified Data.Set as Set
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (catMaybes,fromMaybe,mapMaybe,maybeToList)
-import Data.Text (Text)
+import Data.Text (Text, unpack)
 import Data.Text.Read as TR
 import Data.Text.Encoding (decodeUtf8)
 import qualified Data.Text as T
@@ -53,6 +53,7 @@ import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Map as M
 import Text.Pandoc.XML.Light
 import Text.Pandoc.Walk (query)
+import Text.Read (readMaybe)
 
 {-
 
@@ -1171,7 +1172,7 @@ parseMixed container conts = do
 
 parseRow :: PandocMonad m => [Text] -> Element -> DB m [Cell]
 parseRow cn = do
-  let isEntry x  = named "entry" x || named "td" x || named "th" x
+  let isEntry x = named "entry" x || named "td" x || named "th" x
   mapM (parseEntry cn) . filterChildren isEntry
 
 parseEntry :: PandocMonad m => [Text] -> Element -> DB m Cell
@@ -1188,9 +1189,18 @@ parseEntry cn el = do
         case (mStrt, mEnd) of
           (Just start, Just end) -> colDistance start end
           _ -> 1
+  let rowDistance mr = do
+        case readMaybe $ unpack mr :: Maybe Int of
+          Just moreRow -> RowSpan $ moreRow + 1
+          _ -> 1
+  let toRowSpan en = do
+        case findAttr (unqual "morerows") en of
+          Just moreRow -> rowDistance moreRow
+          _ -> 1   
   let colSpan = toColSpan el
+  let rowSpan = toRowSpan el
   let align = toAlignment el
-  (fmap (cell align 1 colSpan) . parseMixed plain . elContent) el
+  (fmap (cell align rowSpan colSpan) . parseMixed plain . elContent) el
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = trimInlines . mconcat <$>
