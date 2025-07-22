@@ -1635,7 +1635,11 @@ or here: &lt;http://example.com/&gt;
       <colspec align="left" colname="c1" />
       <colspec align="left" colname="c2" />
       <colspec align="left" colname="c3" />
+      <colspec align="left" colname="c4" />
       <thead>
+  <tr>
+    <th namest="c1" nameend="c3">Columns</th>
+  </tr>
   <tr>
     <th>A</th>
     <th>B</th>
@@ -1652,11 +1656,6 @@ or here: &lt;http://example.com/&gt;
 	</tr>
   <tr>
 	  <td>C3</td>
-	</tr>
-  <tr>
-	  <td>A4</td>
-    <td>B4</td>
-    <td>C4</td>
 	</tr>
       </tbody>
     </tgroup>

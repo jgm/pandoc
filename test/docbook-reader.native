@@ -3084,6 +3084,15 @@ Pandoc
                  ( "" , [] , [] )
                  AlignDefault
                  (RowSpan 1)
+                 (ColSpan 3)
+                 [ Plain [ Str "Columns" ] ]
+             ]
+         , Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
                  (ColSpan 1)
                  [ Plain [ Str "A" ] ]
              , Cell
@@ -3155,27 +3164,6 @@ Pandoc
                   (RowSpan 1)
                   (ColSpan 1)
                   [ Plain [ Str "C3" ] ]
-              ]
-          , Row
-              ( "" , [] , [] )
-              [ Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [ Str "A4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [ Str "B4" ] ]
-              , Cell
-                  ( "" , [] , [] )
-                  AlignDefault
-                  (RowSpan 1)
-                  (ColSpan 1)
-                  [ Plain [ Str "C4" ] ]
               ]
           ]
       ]
