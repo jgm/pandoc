@@ -34,7 +34,7 @@ import Data.List (intersperse,elemIndex)
 import qualified Data.Set as Set
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (catMaybes,fromMaybe,mapMaybe,maybeToList)
-import Data.Text (Text, unpack)
+import Data.Text (Text)
 import Data.Text.Read as TR
 import Data.Text.Encoding (decodeUtf8)
 import qualified Data.Text as T
@@ -1070,7 +1070,7 @@ parseBlock (Elem e) =
                                                      (x >= '0' && x <= '9')
                                                       || x == '.') w
                             if n > 0 then Just n else Nothing
-                      let numrows = maybe 0 maximum $ nonEmpty 
+                      let numrows = maybe 0 maximum $ nonEmpty
                                                     $ map length (bodyrows ++ headrows)
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
@@ -1188,7 +1188,7 @@ parseEntry cn el = do
           (Just start, Just end) -> colDistance start end
           _ -> 1
   let rowDistance mr = do
-        case readMaybe $ unpack mr :: Maybe Int of
+        case readMaybe $ T.unpack mr :: Maybe Int of
           Just moreRow -> RowSpan $ moreRow + 1
           _ -> 1
   let toRowSpan en = do
