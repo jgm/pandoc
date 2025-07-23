@@ -299,6 +299,8 @@ getCitations locale otherIdsMap = Foldable.toList . query getCitation
  where
   getCitation (Cite cs _fallback) = Seq.singleton $
     Citeproc.Citation { Citeproc.citationId = Nothing
+                      , Citeproc.citationPrefix = Nothing
+                      , Citeproc.citationSuffix = Nothing
                       , Citeproc.citationNoteNumber =
                           case cs of
                             []    -> Nothing
@@ -318,7 +320,7 @@ fromPandocCitations locale otherIdsMap = concatMap go
  where
   locmap = toLocatorMap locale
   go c =
-    let (mblocinfo, suffix) = parseLocator locmap (citationSuffix c)
+    let (mblocinfo, suffix) = parseLocator locmap (Pandoc.citationSuffix c)
         cit = CitationItem
                { citationItemId = fromMaybe
                    (ItemId $ Pandoc.citationId c)
@@ -326,7 +328,7 @@ fromPandocCitations locale otherIdsMap = concatMap go
                , citationItemLabel = locatorLabel <$> mblocinfo
                , citationItemLocator = locatorLoc <$> mblocinfo
                , citationItemType = NormalCite
-               , citationItemPrefix = case citationPrefix c of
+               , citationItemPrefix = case Pandoc.citationPrefix c of
                                         [] -> Nothing
                                         ils -> Just $ B.fromList ils <>
                                                       B.space

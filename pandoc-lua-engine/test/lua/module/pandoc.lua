@@ -164,6 +164,13 @@ return {
       assert.are_same(meta.test, {pandoc.Plain{pandoc.Str 'check'}})
     end),
   },
+  group 'Pandoc' {
+    test('normalize', function ()
+      local doc = pandoc.Pandoc({{'a', pandoc.Space(), pandoc.Space(), 'b'}})
+      local normalized = pandoc.Pandoc({{'a', pandoc.Space(), 'b'}})
+      assert.are_equal(normalized, doc:normalize())
+    end),
+  },
   group 'Other types' {
     group 'ReaderOptions' {
       test('returns a userdata value', function ()

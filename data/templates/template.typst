@@ -80,7 +80,7 @@
 
   #if abstract != none {
     block(inset: 2em)[
-    #text(weight: "semibold")[Abstract] #h(1em) #abstract
+    #text(weight: "semibold")[$if(abstract-title)$${abstract-title}$else$Abstract$endif$] #h(1em) #abstract
     ]
   }
   ]

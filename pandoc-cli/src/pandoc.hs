@@ -16,17 +16,12 @@ module Main where
 import qualified Control.Exception as E
 import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
-                       , parseOptionsFromArgs, handleOptInfo )
+                       , parseOptionsFromArgs, handleOptInfo, versionInfo )
 import Text.Pandoc.Error (handleError)
-import System.Exit (exitSuccess)
 import Data.Monoid (Any(..))
 import PandocCLI.Lua
 import PandocCLI.Server
-import qualified Text.Pandoc.UTF8 as UTF8
-import Text.Pandoc.Version (pandocVersion)
-import Text.Pandoc.Data (defaultUserDataDir)
 import Text.Pandoc.Scripting (ScriptingEngine(..))
-import Data.Version (showVersion)
 import qualified Data.Text as T
 
 #ifdef NIGHTLY
@@ -51,7 +46,7 @@ main = E.handle (handleError . Left) $ do
   let hasVersion = getAny $ foldMap
          (\s -> Any (s == "-v" || s == "--version"))
          (takeWhile (/= "--") rawArgs)
-  let versionOr action = if hasVersion then versionInfo else action
+  let versionOr action = if hasVersion then versionInfoCLI else action
   case prg of
     "pandoc-server.cgi" -> versionOr runCGI
     "pandoc-server"     -> versionOr $ runServer rawArgs
@@ -67,38 +62,25 @@ main = E.handle (handleError . Left) $ do
             Left e -> handleOptInfo engine e
             Right opts -> convertWithOpts engine opts
 
-copyrightMessage :: String
-copyrightMessage =
- "Copyright (C) 2006-2024 John MacFarlane. Web: https://pandoc.org\n"
- ++
- "This is free software; see the source for copying conditions. There is no\n"
- ++
- "warranty, not even for merchantability or fitness for a particular purpose."
 
-flagSettings :: String
-flagSettings = "Features: " ++
+getFeatures :: [String]
+getFeatures = [
 #ifdef VERSION_pandoc_server
   "+server"
 #else
   "-server"
 #endif
-  ++ " " ++
+  ,
 #ifdef VERSION_hslua_cli
   "+lua"
 #else
   "-lua"
 #endif
+  ]
 
-versionInfo :: IO ()
-versionInfo = do
-  progname <- getProgName
-  defaultDatadir <- defaultUserDataDir
+versionInfoCLI :: IO ()
+versionInfoCLI = do
   scriptingEngine <- getEngine
-  UTF8.putStr $ T.unlines $ map T.pack
-   [ progname ++ " " ++ showVersion pandocVersion ++ versionSuffix
-   , flagSettings
-   , "Scripting engine: " ++ T.unpack (engineName scriptingEngine)
-   , "User data directory: " ++ defaultDatadir
-   , copyrightMessage
-   ]
-  exitSuccess
+  versionInfo getFeatures
+              (Just $ T.unpack (engineName scriptingEngine))
+              versionSuffix

@@ -38,7 +38,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Binary.Get
 import Data.Bits ((.&.), shiftR, shiftL)
-import Data.Word (bitReverse32)
+import Data.Word (bitReverse32, Word32)
 import Data.Maybe (isJust, fromJust)
 import Data.Char (isDigit)
 import Control.Monad
@@ -61,7 +61,7 @@ import Codec.Picture (decodeImageWithMetadata)
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
 
-data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf | Tiff | Webp
+data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf | Tiff | Webp | Avif
                  deriving Show
 data Direction = Width | Height
 instance Show Direction where
@@ -131,6 +131,7 @@ imageType img = case B.take 4 img of
                      "RIFF"
                        | B.take 4 (B.drop 8 img) == "WEBP"
                                         -> return Webp
+                     _ | B.take 4 (B.drop 4 img) == "ftyp" -> return Avif
                      _ -> mzero
 
 findSvgTag :: ByteString -> Bool
@@ -148,6 +149,7 @@ imageSize opts img = checkDpi <$>
        Just Pdf  -> mbToEither "could not determine PDF size" $ pdfSize img
        Just Emf  -> mbToEither "could not determine EMF size" $ emfSize img
        Just Webp -> mbToEither "could not determine WebP size" $ webpSize opts img
+       Just Avif -> mbToEither "could not determine AVIF size" $ avifSize opts img
        Nothing   -> Left "could not determine image type"
   where mbToEither msg Nothing  = Left msg
         mbToEither _   (Just x) = Right x
@@ -451,3 +453,173 @@ webpSize opts img =
   case AW.parseOnly pWebpSize img of
     Left _   -> Nothing
     Right sz -> Just sz { dpiX = fromIntegral $ writerDpi opts, dpiY = fromIntegral $ writerDpi opts}
+
+avifSize :: WriterOptions -> ByteString -> Maybe ImageSize
+avifSize _opts img =
+  case runGetOrFail (verifyFtyp >> findAvifDimensions) (BL.fromStrict img) of
+    Left (_, _, _err) -> Nothing
+    Right (_, _, (width, height)) ->
+      Just $ ImageSize { pxX = fromIntegral width
+                       , pxY = fromIntegral height
+                       , dpiX = 72
+                       , dpiY = 72 }
+
+---- AVIF parsing:
+
+verifyFtyp :: Get ()
+verifyFtyp = do
+  ftypSize <- getWord32be
+  when (ftypSize < 16) $ fail "Invalid ftyp size"
+
+  ftyp <- getByteString 4
+  unless (ftyp == "ftyp") $ fail "ftyp signature not found"
+
+  brand <- getByteString 4
+  unless (brand == "avif" || brand == "avis") $ fail "Not an AVIF file"
+
+  -- Skip minor version and compatible brands
+  -- (we've read 12 bytes: size+type+brand)
+  let remaining_ftyp = fromIntegral ftypSize - 12
+  when (remaining_ftyp > 0) $ skip remaining_ftyp
+
+findAvifDimensions :: Get (Word32, Word32)
+findAvifDimensions = searchAvifBoxes []
+
+searchAvifBoxes :: [B.ByteString] -> Get (Word32, Word32)
+searchAvifBoxes path = do
+  isempty <- isEmpty
+  if isempty
+    then fail $ "No dimensions found. Searched: " ++ show (reverse path)
+    else do
+      boxSize <- getWord32be
+      boxType <- getByteString 4
+
+      let contentSize = fromIntegral boxSize - 8
+      let newPath = boxType : path
+
+      -- If it's a container box, search inside it
+      if isContainerBox boxType
+        then searchInsideBox contentSize newPath
+        else do
+          -- Try to parse dimensions from this box
+          result <- tryParseDimensions boxType contentSize
+          case result of
+            Just dims -> return dims
+            Nothing -> do
+              -- Skip this box and continue
+              when (contentSize > 0 && contentSize < 10000000) $
+                skip contentSize
+              searchAvifBoxes path
+
+tryParseDimensions :: B.ByteString -> Int -> Get (Maybe (Word32, Word32))
+tryParseDimensions boxType size = do
+  pos <- bytesRead
+  result <- case boxType of
+    "ispe" -> parseIspeBox
+    "tkhd" -> parseTkhdBox
+    "stsd" -> parseStsdBox
+    "av01" -> parseAv01Box
+    _ -> return Nothing
+
+  -- Reset position if we didn't find dimensions
+  case result of
+    Nothing -> do
+      newPos <- bytesRead
+      let consumed = fromIntegral (newPos - pos)
+      case size - consumed of
+        n | n > 0 -> skip n
+        _ -> return ()
+    Just _ -> return ()
+
+  return result
+
+parseIspeBox :: Get (Maybe (Word32, Word32))
+parseIspeBox = do
+  skip 4  -- version/flags
+  width <- getWord32be
+  height <- getWord32be
+  return $ Just (width, height)
+
+parseTkhdBox :: Get (Maybe (Word32, Word32))
+parseTkhdBox = do
+  version <- getWord8
+  skip 3  -- flags
+
+  -- Skip to width/height based on version
+  let skipBytes = if version == 1 then 76 else 64
+  skip skipBytes
+
+  width <- getWord32be
+  height <- getWord32be
+  -- Convert from 16.16 fixed point
+  return $ Just (width `shiftR` 16, height `shiftR` 16)
+
+parseStsdBox :: Get (Maybe (Word32, Word32))
+parseStsdBox = do
+  skip 8  -- version, flags, entry count
+  findAv01Entry
+
+findAv01Entry :: Get (Maybe (Word32, Word32))
+findAv01Entry = do
+  entrySize <- getWord32be
+  codec <- getByteString 4
+
+  if codec == "av01"
+    then do
+      skip 6  -- reserved
+      skip 2  -- data reference index
+      skip 16 -- pre-defined + reserved
+      width <- getWord16be
+      height <- getWord16be
+      return $ Just (fromIntegral width, fromIntegral height)
+    else do
+      let skipSize = fromIntegral entrySize - 8
+      when (skipSize > 0) $ skip skipSize
+      findAv01Entry
+
+parseAv01Box :: Get (Maybe (Word32, Word32))
+parseAv01Box = do
+  skip 6   -- reserved
+  skip 2   -- data reference index
+  skip 16  -- predefined/reserved
+  width <- getWord16be
+  height <- getWord16be
+  return $ Just (fromIntegral width, fromIntegral height)
+
+searchInsideBox :: Int -> [B.ByteString] -> Get (Word32, Word32)
+searchInsideBox size path = do
+  -- For meta boxes, skip version/flags
+  let isMeta = case path of
+                 "meta":_ -> True
+                 _ -> False
+  when isMeta $ skip 4
+
+  let searchSize = if isMeta then size - 4 else size
+  searchAvifBoxesInRange searchSize path
+
+searchAvifBoxesInRange :: Int -> [B.ByteString] -> Get (Word32, Word32)
+searchAvifBoxesInRange remaining' path
+  | remaining' < 8 = searchAvifBoxes path
+  | otherwise = do
+      boxSize <- getWord32be
+      boxType <- getByteString 4
+
+      let contentSize = fromIntegral boxSize - 8
+      let newPath = boxType : path
+
+      when (contentSize < 0 || fromIntegral boxSize > remaining') $ do
+        fail $ "Malformed box at path: " ++ show (reverse newPath)
+
+      if isContainerBox boxType
+        then searchInsideBox contentSize newPath
+        else do
+          result <- tryParseDimensions boxType contentSize
+          case result of
+            Just dims -> return dims
+            Nothing -> do
+              -- Don't skip here - tryParseDimensions already handled it
+              searchAvifBoxesInRange (remaining' - fromIntegral boxSize) path
+
+isContainerBox :: B.ByteString -> Bool
+isContainerBox boxType = boxType `elem`
+  ["moov", "trak", "mdia", "minf", "stbl", "meta", "dinf", "ipco", "iprp"]
