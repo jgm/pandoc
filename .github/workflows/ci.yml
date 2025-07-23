@@ -120,7 +120,8 @@ jobs:
 
     - name: Build and test
       run: |
-          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options="${{ matrix.verisons.ghcopts }}" all
+          cabal build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options="${{ matrix.verisons.ghcopts }}" all
+          cabal test ${{ matrix.versions.cabalopts }} --disable-optimization --ghc-options="${{ matrix.verisons.ghcopts }}" all
 
   linux-stack:
 
