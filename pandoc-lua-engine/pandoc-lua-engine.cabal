@@ -93,6 +93,7 @@ library
                      , Text.Pandoc.Lua.Module.Log
                      , Text.Pandoc.Lua.Module.MediaBag
                      , Text.Pandoc.Lua.Module.Pandoc
+                     , Text.Pandoc.Lua.Module.Path
                      , Text.Pandoc.Lua.Module.Scaffolding
                      , Text.Pandoc.Lua.Module.Structure
                      , Text.Pandoc.Lua.Module.System
@@ -119,7 +120,7 @@ library
                      , hslua                 >= 2.3     && < 2.5
                      , hslua-module-doclayout>= 1.2     && < 1.3
                      , hslua-module-path     >= 1.1     && < 1.2
-                     , hslua-module-system   >= 1.2     && < 1.3
+                     , hslua-module-system   >= 1.2.1   && < 1.3
                      , hslua-module-text     >= 1.1     && < 1.2
                      , hslua-module-version  >= 1.1     && < 1.2
                      , hslua-module-zip      >= 1.1.3   && < 1.2
