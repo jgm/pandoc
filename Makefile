@@ -12,7 +12,7 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j +RTS -A8m -RTS
+GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -Wall -j +RTS -A8m -RTS
 CABALOPTS?=--disable-optimization -f-export-dynamic
 WEBSITE=../../web/pandoc.org
 REVISION?=1
