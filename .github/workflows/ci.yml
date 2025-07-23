@@ -68,10 +68,10 @@ jobs:
             cabalopts: '--ghc-option=-Werror'
           - ghc: '9.10'
             cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror --ghc-option=-W-no-unused-imports'
+            cabalopts: '--ghc-option=-Werror --ghc-option=-Werror-no-unused-imports'
           - ghc: '9.12'
             cabal: 'latest'
-            cabalopts: '--allow-newer --ghc-option=-Werror --ghc-options=-W-no-unused-imports'
+            cabalopts: '--allow-newer --ghc-option=-Werror --ghc-option=-Werror-no-unused-imports --ghc-option=-Werror-no-deriving-typeable'
     steps:
     - uses: actions/checkout@v4
 
