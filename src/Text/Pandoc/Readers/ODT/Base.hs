@@ -10,7 +10,11 @@
 Core types of the odt reader.
 -}
 
-module Text.Pandoc.Readers.ODT.Base where
+module Text.Pandoc.Readers.ODT.Base
+  ( ODTConverterState
+  , XMLReader
+  , XMLReaderSafe
+  ) where
 
 import Text.Pandoc.Readers.ODT.Generic.XMLConverter
 import Text.Pandoc.Readers.ODT.Namespaces
