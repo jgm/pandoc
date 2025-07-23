@@ -23,7 +23,7 @@ extra-deps:
 - texmath-0.12.10.3
 - typst-0.8.0.1
 - git: https://github.com/jgm/citeproc.git
-  commit: 120d0914adf90908ae0eca972a061e9edd6e65a1
+  commit: 723d22a112a15a8f287d4db68ba05e9083facfec
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.22
