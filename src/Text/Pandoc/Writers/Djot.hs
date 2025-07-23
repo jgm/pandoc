@@ -100,7 +100,8 @@ blockToDjot (BlockQuote bls) = D.blockQuote <$> blocksToDjot bls
 blockToDjot (Header lev attr ils) =
   fmap (D.addAttr (toDjotAttr attr)) . D.heading lev <$> inlinesToDjot ils
 blockToDjot HorizontalRule = pure D.thematicBreak
-blockToDjot (Div (ident,"section":cls,kvs) bls@(Header _ _ ils : _)) = do
+blockToDjot (Div (ident,"section":cls,kvs)
+              (Header lev (_,hcls,hkvs) ils : bls)) = do
   ilsBs <- D.inlinesToByteString <$> inlinesToDjot ils
   let ident' = toIdentifier ilsBs
   let label = D.normalizeLabel ilsBs
@@ -112,8 +113,10 @@ blockToDjot (Div (ident,"section":cls,kvs) bls@(Header _ _ ils : _)) = do
   fmap
     (D.addAttr (toDjotAttr (if autoid then "" else ident,
                          filter (/= "section") cls,
-                         filter (\(k,_) -> k /= "wrapper") kvs))) . D.section
-     <$> blocksToDjot bls
+                         filter (\(k,_) -> k /= "wrapper") kvs) <>
+                toDjotAttr ("", [c | c <- hcls, c `notElem` cls], hkvs)))
+         . D.section
+     <$> blocksToDjot (Header lev mempty ils : bls)
 blockToDjot (Div attr@(ident,cls,kvs) bls)
   | Just "1" <- lookup "wrapper" kvs
     = fmap (D.addAttr
