@@ -3543,7 +3543,7 @@ input formats
    `html`
 
 output formats
-:  `markdown`, `latex`, `context`, `rst`
+:  `markdown`, `latex`, `context`, `org`, `rst`
 
 enabled by default in
 :  `markdown`, `latex`, `context` (both input and output)
@@ -3892,6 +3892,21 @@ In the `context` output format this enables the use of [Natural Tables
 [Extreme Tables (xtables)](https://wiki.contextgarden.net/xtables).
 Natural tables allow more fine-grained global customization but come
 at a performance penalty compared to extreme tables.
+
+### Extension: `smart_quotes` (org) ###
+
+Interpret straight quotes as curly quotes during parsing. When
+*writing* Org, then the `smart_quotes` extension has the reverse
+effect: what would have been curly quotes comes out straight.
+
+This extension is implied if `smart` is enabled.
+
+### Extension: `special_strings` (org) ###
+
+Interpret `---` as em-dashes, `--` as en-dashes, `\-` as shy
+hyphen, and `...` as ellipses.
+
+This extension is implied if `smart` is enabled.
 
 ### Extension: `tagging` ### {#extension--tagging}
 

@@ -47,6 +47,10 @@ tests =
     ("/foo---/" =?>
      para (emph "foo—"))
 
+  , test orgSmart "Support for shy (soft) hyphen"
+    ("Ur\\-instinkt" =?>
+     para "Ur\173instinkt")
+
   , test orgSmart "Single quotes can be followed by emphasized text"
     ("Singles on the '/meat market/'" =?>
      para ("Singles on the " <> singleQuoted (emph "meat market")))
