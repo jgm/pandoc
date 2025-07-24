@@ -18,7 +18,7 @@ Foo (Aristotele, s.d., 50: «Disse: "bar"»). «Disse: "baz"»
 The Quoted is passed to citeproc as a Span ("",["csl-quoted"],[])
 so that flipflopping and localization occur.
 ```
-% pandoc -C -t plain -Mlang=en
+% pandoc -C -t plain -Mlang=en --csl command/le-tapuscrit-note.csl
 ---
 references:
 - id: a
@@ -30,13 +30,15 @@ references:
 
 Foo [@a 50].
 ^D
-Foo (Aristotele, n.d., 50).
+Foo.[1]
 
-Aristotele. n.d. “Metafisica Et ‘Physica’.”
+ARISTOTELE, “Metafisica et ‘Physica’.”
+
+[1] Aristotele, “Metafisica et ‘Physica’,” p. 50.
 ```
 
 ```
-% pandoc -C -t plain -Mlang=it
+% pandoc -C -t plain -Mlang=it --csl command/le-tapuscrit-note.csl
 ---
 references:
 - id: a
@@ -48,8 +50,10 @@ references:
 
 Foo [@a 50].
 ^D
-Foo (Aristotele, s.d., 50).
+Foo.[1]
 
-Aristotele. s.d. «Metafisica et “Physica”».
+ARISTOTELE, «Metafisica et “Physica”».
+
+[1] Aristotele, «Metafisica et “Physica”», p. 50.
 ```
 

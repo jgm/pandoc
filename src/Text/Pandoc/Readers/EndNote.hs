@@ -81,6 +81,8 @@ readEndNoteXMLCitation xml = do
   let items = map toCitationItem $ filterElementsName (name "Cite") tree
   return $ Citeproc.Citation{
                      Citeproc.citationId = Nothing
+                   , Citeproc.citationPrefix = Nothing
+                   , Citeproc.citationSuffix = Nothing
                    , Citeproc.citationNoteNumber = Nothing
                    , Citeproc.citationItems = items
                    }

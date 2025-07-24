@@ -17,7 +17,21 @@ Most of these might be implemented without access to innards, but it's much
 faster and easier to implement this way.
 -}
 
-module Text.Pandoc.Readers.ODT.Arrows.State where
+module Text.Pandoc.Readers.ODT.Arrows.State
+  ( ArrowState(..)
+  , withState
+  , modifyState
+  , ignoringState
+  , fromState
+  , extractFromState
+  , tryModifyState
+  , withSubStateF
+  , withSubStateF'
+  , foldS
+  , iterateS
+  , iterateSL
+  , iterateS'
+  ) where
 
 import Control.Arrow
 import qualified Control.Category as Cat

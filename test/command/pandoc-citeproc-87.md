@@ -108,49 +108,49 @@ references:
 References
 ==========
 ^D
-Doe (2006c) -- webpage, date
+Doe (2006a) -- webpage, date
 
-Doe (2006d) -- webpage, date range
+Doe (2006b) -- webpage, date range
 
-Doe (2006a) -- webpage, date range YM
+Doe (2006d) -- webpage, date range YM
 
 Doe (2006--2007) -- webpage, date range across years
 
-Doe (2006e) -- article-newspaper
+Doe (2006c) -- article-newspaper
 
-Doe (2006b) -- article-newspaper YM
+Doe (2006e) -- article-newspaper YM
 
 # References {#references .unnumbered}
 
-::::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
-::: {#ref-item2a .csl-entry}
-Doe, John. 2006a. "Title." The Web Site. October--November 2006.
-<http://www.example.com>.
-:::
-
-::: {#ref-item3b .csl-entry}
----------. 2006b. "Title." *The Newspaper*, October--November 2006.
-<http://www.example.com>.
-:::
-
+::::::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}
----------. 2006c. "Title." The Web Site. October 26, 2006.
+Doe, John. 2006a. "Title." The Web Site, October 26.
 <http://www.example.com>.
 :::
 
 ::: {#ref-item2 .csl-entry}
----------. 2006d. "Title." The Web Site. October 26--November 27, 2006.
+Doe, John. 2006b. "Title." The Web Site, October 26--November 27.
 <http://www.example.com>.
 :::
 
 ::: {#ref-item3 .csl-entry}
----------. 2006e. "Title." *The Newspaper*, October 26--November 27,
-2006. <http://www.example.com>.
+Doe, John. 2006c. "Title." *The Newspaper*, October 26--November 27.
+<http://www.example.com>.
+:::
+
+::: {#ref-item2a .csl-entry}
+Doe, John. 2006d. "Title." The Web Site, October--November.
+<http://www.example.com>.
+:::
+
+::: {#ref-item3b .csl-entry}
+Doe, John. 2006e. "Title." *The Newspaper*, October--November.
+<http://www.example.com>.
 :::
 
 ::: {#ref-item2b .csl-entry}
----------. 2006--2007. "Title." The Web Site. December 31, 2006--January
-1, 2007. <http://www.example.com>.
+Doe, John. 2006--2007. "Title." The Web Site, December 31--January 1.
+<http://www.example.com>.
 :::
 :::::::::
 ```

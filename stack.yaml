@@ -9,15 +9,22 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
+- hslua-2.4.0
+- hslua-module-doclayout-1.2.0.1
+- hslua-module-system-1.2.1
+- hslua-objectorientation-2.4.0
+- hslua-packaging-2.3.2
+- pandoc-lua-marshal-0.3.1
 - tls-2.1.7
 - skylighting-core-0.14.6
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
 - typst-symbols-0.1.8.1
-- texmath-0.12.10.3
 - typst-0.8.0.1
 - git: https://github.com/jgm/citeproc.git
-  commit: 157c7815f06e4e6771740a4eb8df97568626a8fe
+  commit: 723d22a112a15a8f287d4db68ba05e9083facfec
+- git: https://github.com/jgm/texmath.git
+  commit: 77e20978ffcdec4ca50bbb809f061850c0998560
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.22

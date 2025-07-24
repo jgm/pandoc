@@ -16,15 +16,15 @@ references:
 
 [@item1; @item2]
 ^D
-(Smith, n.d.a, n.d.b)
+(Smith, n.d.-a, n.d.-b)
 
-::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}
-Smith, John. n.d.a.
+Smith, John. n.d.-a.
 :::
 
 ::: {#ref-item2 .csl-entry}
----------. n.d.b.
+Smith, John. n.d.-b.
 :::
 :::::
 ```

@@ -19,10 +19,9 @@ references:
 ^D
 (Hitchcock 1959) is a spy thriller film.
 
-:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-nbn .csl-entry}
-Hitchcock, Alfred, dir. 1959. *North by Northwest*. USA:
-Metro-Goldwyn-Mayer.
+Hitchcock, Alfred, dir. 1959. *North by Northwest*. Metro-Goldwyn-Mayer.
 :::
 ::::
 ```

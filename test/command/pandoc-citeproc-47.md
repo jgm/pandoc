@@ -69,8 +69,8 @@ chronological order is maintained, regardless of the added abbreviation.
 References {#references .unnumbered}
 ==========
 ^D
-Foo (Doe 2000a). Bar (Doe and Poe 2000). Foo (Doe 2000b). Bar (Doe, Loe,
-and Toe 2000).
+Foo (Doe 2000a). Bar (Doe and Poe 2000). Foo (Doe 2000b). Bar (Doe et
+al. 2000).
 
 Expected output:
 
@@ -92,13 +92,13 @@ chronological order is maintained, regardless of the added abbreviation.
 
 # References {#references .unnumbered}
 
-::::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+::::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-doe .csl-entry}
 Doe, A. 2000a. *Title*.
 :::
 
 ::: {#ref-doe-ed .csl-entry}
----------, ed. 2000b. *Title*.
+Doe, A., ed. 2000b. *Title*.
 :::
 
 ::: {#ref-doeloetoe .csl-entry}

@@ -317,17 +317,17 @@ Multiple blocks with italics:
 
 : red fruit
 
-    contains seeds, crisp, pleasant to taste
+  contains seeds, crisp, pleasant to taste
 
 *orange*
 
 : orange fruit
 
-    ```
-    { orange code block }
-    ```
+  ```
+  { orange code block }
+  ```
 
-    > orange block quote
+  > orange block quote
 
 Multiple definitions, tight:
 
@@ -365,8 +365,8 @@ orange
 
 : orange fruit
 
-    1. sublist
-    2. sublist
+  1. sublist
+  2. sublist
 
 {id: html-blocks}
 # HTML Blocks

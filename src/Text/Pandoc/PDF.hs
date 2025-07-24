@@ -81,7 +81,19 @@ makePDF :: (PandocMonad m, MonadIO m, MonadMask m)
         -> WriterOptions       -- ^ options
         -> Pandoc              -- ^ document
         -> m (Either ByteString ByteString)
-makePDF program pdfargs writer opts doc =
+makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "media" $ \mediaDir -> do
+#ifdef _WINDOWS
+  -- note:  we want / even on Windows, for TexLive
+  let tmpdir = changePathSeparators mediaDir
+#else
+  let tmpdir = mediaDir
+#endif
+  doc' <- handleImages opts tmpdir doc
+  source <- writer opts{ writerExtensions = -- disable use of quote
+                            -- ligatures to avoid bad ligatures like ?`
+                            disableExtension Ext_smart
+                             (writerExtensions opts) } doc'
+  verbosity <- getVerbosity
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
     prog | prog `elem` ["pagedjs-cli" ,"weasyprint", "prince"] -> do
@@ -89,16 +101,10 @@ makePDF program pdfargs writer opts doc =
             if program `elem` ["pagedjs-cli", "prince"]
                then ["-o", f]
                else [f]
-      source <- writer opts doc
-      verbosity <- getVerbosity
       liftIO $ toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source
-    "typst" -> do
-      source <- writer opts doc
-      verbosity <- getVerbosity
-      liftIO $
+    "typst" -> liftIO $
         toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) ".typ" source
     "pdfroff" -> do
-      source <- writer opts doc
       let paperargs =
             case lookupContext "papersize" (writerVariables opts) of
               Just s
@@ -112,7 +118,6 @@ makePDF program pdfargs writer opts doc =
                     paperargs ++ pdfargs
       generic2pdf program args source
     "groff" -> do
-      source <- writer opts doc
       let paperargs =
             case lookupContext "papersize" (writerVariables opts) of
               Just s
@@ -125,33 +130,20 @@ makePDF program pdfargs writer opts doc =
                    ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
                     paperargs ++ pdfargs
       generic2pdf program args source
-    baseProg -> do
-      withTempDir "tex2pdf." $ \tmpdir' -> do
-#ifdef _WINDOWS
-        -- note:  we want / even on Windows, for TexLive
-        let tmpdir = changePathSeparators tmpdir'
-#else
-        let tmpdir = tmpdir'
-#endif
-        doc' <- handleImages opts tmpdir doc
-        source <- writer opts{ writerExtensions = -- disable use of quote
-                                  -- ligatures to avoid bad ligatures like ?`
-                                  disableExtension Ext_smart
-                                   (writerExtensions opts) } doc'
-        case baseProg of
-          "context" -> context2pdf program pdfargs tmpdir source
-          "tectonic" -> tectonic2pdf program pdfargs tmpdir source
-          prog | prog `elem` ["pdflatex", "lualatex", "xelatex", "latexmk"]
-              -> tex2pdf program pdfargs tmpdir source
-          _ -> return $ Left $ UTF8.fromStringLazy
-                             $ "Unknown program " ++ program
+    baseProg ->
+      case baseProg of
+        "context" -> context2pdf program pdfargs tmpdir source
+        "tectonic" -> tectonic2pdf program pdfargs tmpdir source
+        prog | prog `elem` ["pdflatex", "lualatex", "xelatex", "latexmk"]
+            -> tex2pdf program pdfargs tmpdir source
+        _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
 -- latex has trouble with tildes in paths, which
 -- you find in Windows temp dir paths with longer
 -- user names (see #777)
 withTempDir :: (PandocMonad m, MonadMask m, MonadIO m)
-            => FilePath -> (FilePath -> m a) -> m a
-withTempDir templ action = do
+            => Bool -> FilePath -> (FilePath -> m a) -> m a
+withTempDir useWorkingDirectory templ action = do
   tmp <- liftIO getTemporaryDirectory
   uname <- liftIO $ E.catch
     (do (ec, sout, _) <- readProcessWithExitCode "uname" ["-o"] ""
@@ -159,9 +151,9 @@ withTempDir templ action = do
            then return $ Just $ filter (not . isSpace) sout
            else return Nothing)
     (\(_  :: E.SomeException) -> return Nothing)
-  if '~' `elem` tmp || uname == Just "Cygwin" -- see #5451
-         then withTempDirectory "." templ action
-         else withSystemTempDirectory templ action
+  if useWorkingDirectory || '~' `elem` tmp || uname == Just "Cygwin" -- see #5451
+     then withTempDirectory "." templ action
+     else withSystemTempDirectory templ action
 
 makeWithWkhtmltopdf :: (PandocMonad m, MonadIO m)
                     => String              -- ^ wkhtmltopdf or path
@@ -328,7 +320,7 @@ latexWarnings log' = foldM_ go Nothing (BC.lines log')
    go (Just msg) ln
      | ln == "" = do -- emit report and reset accumulator
          report $ MakePDFWarning $ render (Just 60) $
-            hsep $ map literal $ T.words $ UTF8.toText $ BC.toStrict msg
+            hsep $ map literal $ T.words $ utf8ToText msg
          pure Nothing
      | otherwise = pure $ Just (msg <> ln)
 
