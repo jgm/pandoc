@@ -22,7 +22,7 @@ extra-deps:
 - typst-symbols-0.1.8.1
 - typst-0.8.0.1
 - git: https://github.com/jgm/citeproc.git
-  commit: 723d22a112a15a8f287d4db68ba05e9083facfec
+  commit: b32c4c117795d8fef3fcc8996a62ee661904738e
 - git: https://github.com/jgm/texmath.git
   commit: 77e20978ffcdec4ca50bbb809f061850c0998560
 ghc-options:
