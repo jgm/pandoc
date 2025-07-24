@@ -496,10 +496,18 @@ inlineToOrg (Subscript lst) = do
 inlineToOrg (SmallCaps lst) = inlineListToOrg lst
 inlineToOrg (Quoted SingleQuote lst) = do
   contents <- inlineListToOrg lst
-  return $ "'" <> contents <> "'"
+  opts <- gets stOptions
+  return $
+    if isEnabled Ext_smart opts || isEnabled Ext_smart_quotes opts
+    then "'" <> contents <> "'"
+    else "‘" <> contents <> "’"
 inlineToOrg (Quoted DoubleQuote lst) = do
   contents <- inlineListToOrg lst
-  return $ "\"" <> contents <> "\""
+  opts <- gets stOptions
+  return $
+    if isEnabled Ext_smart opts || isEnabled Ext_smart_quotes opts
+    then "\"" <> contents <> "\""
+    else "“" <> contents <> "”"
 inlineToOrg (Cite cs lst) = do
   opts <- gets stOptions
   if isEnabled Ext_citations opts
