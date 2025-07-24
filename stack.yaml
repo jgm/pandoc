@@ -20,8 +20,9 @@ extra-deps:
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
 - typst-symbols-0.1.8.1
-- texmath-0.12.10.3
 - typst-0.8.0.1
+- git: https://github.com/jgm/citeproc.git
+  commit: 723d22a112a15a8f287d4db68ba05e9083facfec
 - git: https://github.com/jgm/texmath.git
   commit: 77e20978ffcdec4ca50bbb809f061850c0998560
 ghc-options:
