@@ -3046,6 +3046,128 @@ Pandoc
           ]
       ]
       (TableFoot ( "" , [] , [] ) [])
+  , Para
+      [ Str "Multiline"
+      , Space
+      , Str "table"
+      , Space
+      , Str "with"
+      , Space
+      , Str "cells"
+      , Space
+      , Str "spanning"
+      , Space
+      , Str "multiple"
+      , Space
+      , Str "columns"
+      , Space
+      , Str "and"
+      , Space
+      , Str "rows"
+      , Space
+      , Str "without"
+      , Space
+      , Str "caption."
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignLeft , ColWidthDefault )
+      , ( AlignLeft , ColWidthDefault )
+      , ( AlignLeft , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 3)
+                 [ Plain [ Str "Columns" ] ]
+             ]
+         , Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "A" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "B" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Plain [ Str "C" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 2)
+                  [ Plain
+                      [ Str "A1" , Space , Str "+" , Space , Str "B1" ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 2)
+                  (ColSpan 1)
+                  [ Plain
+                      [ Str "C1" , Space , Str "+" , Space , Str "C2" ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 2)
+                  (ColSpan 2)
+                  [ Plain
+                      [ Str "A2"
+                      , Space
+                      , Str "+"
+                      , Space
+                      , Str "B2"
+                      , Space
+                      , Str "+"
+                      , Space
+                      , Str "A3"
+                      , Space
+                      , Str "+"
+                      , Space
+                      , Str "B3"
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Plain [ Str "C3" ] ]
+              ]
+          ]
+      ]
+      (TableFoot ( "" , [] , [] ) [])
   , OrderedList
       ( 1 , DefaultStyle , DefaultDelim )
       [ [ Para [ Str "A" , Space , Str "Step" ] ]

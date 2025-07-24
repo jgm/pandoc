@@ -53,6 +53,7 @@ import Text.TeXMath (readMathML, writeTeX)
 import qualified Data.Map as M
 import Text.Pandoc.XML.Light
 import Text.Pandoc.Walk (query)
+import Text.Read (readMaybe)
 
 {-
 
@@ -1055,9 +1056,8 @@ parseBlock (Elem e) =
                                        cs -> mapMaybe (findAttr (unqual "colname" )) cs
                       let isRow x = named "row" x || named "tr" x
                       headrows <- case filterChild (named "thead") e' of
-                                       Just h  -> case filterChild isRow h of
-                                                       Just x  -> parseRow colnames x
-                                                       Nothing -> return []
+                                       Just h  -> mapM (parseRow colnames)
+                                                  $ filterChildren isRow h
                                        Nothing -> return []
                       bodyrows <- case filterChild (named "tbody") e' of
                                        Just b  -> mapM (parseRow colnames)
@@ -1071,7 +1071,7 @@ parseBlock (Elem e) =
                                                       || x == '.') w
                             if n > 0 then Just n else Nothing
                       let numrows = maybe 0 maximum $ nonEmpty
-                                                    $ map length bodyrows
+                                                    $ map length (bodyrows ++ headrows)
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs
@@ -1093,11 +1093,10 @@ parseBlock (Elem e) =
                                                             in  ColWidth . scale <$> ws'
                                                 Nothing  -> replicate numrows ColWidthDefault
                       let toRow = Row nullAttr
-                          toHeaderRow l = [toRow l | not (null l)]
                       return $ tableWith (elId,classes,attrs)
                                      (simpleCaption $ plain capt)
                                      (zip aligns widths)
-                                     (TableHead nullAttr $ toHeaderRow headrows)
+                                     (TableHead nullAttr $ map toRow headrows)
                                      [TableBody nullAttr 0 [] $ map toRow bodyrows]
                                      (TableFoot nullAttr [])
          sect n = sectWith(attrValue "id" e) [] [] n
@@ -1171,7 +1170,7 @@ parseMixed container conts = do
 
 parseRow :: PandocMonad m => [Text] -> Element -> DB m [Cell]
 parseRow cn = do
-  let isEntry x  = named "entry" x || named "td" x || named "th" x
+  let isEntry x = named "entry" x || named "td" x || named "th" x
   mapM (parseEntry cn) . filterChildren isEntry
 
 parseEntry :: PandocMonad m => [Text] -> Element -> DB m Cell
@@ -1188,9 +1187,18 @@ parseEntry cn el = do
         case (mStrt, mEnd) of
           (Just start, Just end) -> colDistance start end
           _ -> 1
+  let rowDistance mr = do
+        case readMaybe $ T.unpack mr :: Maybe Int of
+          Just moreRow -> RowSpan $ moreRow + 1
+          _ -> 1
+  let toRowSpan en = do
+        case findAttr (unqual "morerows") en of
+          Just moreRow -> rowDistance moreRow
+          _ -> 1   
   let colSpan = toColSpan el
+  let rowSpan = toRowSpan el
   let align = toAlignment el
-  (fmap (cell align 1 colSpan) . parseMixed plain . elContent) el
+  (fmap (cell align rowSpan colSpan) . parseMixed plain . elContent) el
 
 getInlines :: PandocMonad m => Element -> DB m Inlines
 getInlines e' = trimInlines . mconcat <$>

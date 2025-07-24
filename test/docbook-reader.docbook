@@ -1627,6 +1627,39 @@ or here: &lt;http://example.com/&gt;
       </tbody>
     </tgroup>
   </informaltable>
+  <para>
+    Multiline table with cells spanning multiple columns and rows without caption.
+  </para>
+  <informaltable>
+    <tgroup cols="3">
+      <colspec align="left" colname="c1" />
+      <colspec align="left" colname="c2" />
+      <colspec align="left" colname="c3" />
+      <colspec align="left" colname="c4" />
+      <thead>
+  <tr>
+    <th namest="c1" nameend="c3">Columns</th>
+  </tr>
+  <tr>
+    <th>A</th>
+    <th>B</th>
+    <th>C</th>
+  </tr>
+      </thead>
+      <tbody>
+	<tr>
+	  <td namest="c1" nameend="c2">A1 + B1</td>
+	  <td morerows="1">C1 + C2</td>
+	</tr>
+  <tr>
+	  <td namest="c1" nameend="c2" morerows="1">A2 + B2 + A3 + B3</td>
+	</tr>
+  <tr>
+	  <td>C3</td>
+	</tr>
+      </tbody>
+    </tgroup>
+  </informaltable>
   <procedure><title>An Example Procedure</title>
     <step>
       <para>
