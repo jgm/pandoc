@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.ParserState
-   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2025 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
@@ -49,7 +49,7 @@ import Data.Text (Text)
 import Text.Pandoc.Builder (Blocks)
 import Text.Pandoc.Definition (Meta (..), nullMeta)
 import Text.Pandoc.Logging
-import Text.Pandoc.Options (ReaderOptions (..))
+import Text.Pandoc.Options (ReaderOptions (..), Extension(..), isEnabled)
 import Text.Pandoc.Parsing (Future, HasIdentifierList (..),
                             HasIncludeFiles (..), HasLastStrPosition (..),
                             HasLogMessages (..), HasMacros (..),
@@ -193,7 +193,15 @@ defaultOrgParserState = OrgParserState
 
 optionsToParserState :: ReaderOptions -> OrgParserState
 optionsToParserState opts =
-  def { orgStateOptions = opts }
+  let exportSettings = defaultExportSettings
+        { exportSmartQuotes = isEnabled Ext_smart opts ||
+                              isEnabled Ext_smart_quotes opts
+        , exportSpecialStrings = isEnabled Ext_smart opts ||
+                                 isEnabled Ext_special_strings opts
+        }
+  in def { orgStateOptions = opts
+         , orgStateExportSettings = exportSettings
+         }
 
 registerTodoSequence :: TodoSequence -> OrgParserState -> OrgParserState
 registerTodoSequence todoSeq st =
