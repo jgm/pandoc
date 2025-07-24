@@ -3,8 +3,8 @@
 {- |
    Module      : Text.Pandoc.Writers.Org
    Copyright   : © 2010-2015 Puneeth Chaganti <punchagan@gmail.com>
-                   2010-2024 John MacFarlane <jgm@berkeley.edu>
-                   2016-2024 Albert Krewinkel <albert+pandoc@tarleb.com>
+                   2010-2025 John MacFarlane <jgm@berkeley.edu>
+                   2016-2025 Albert Krewinkel <albert+pandoc@tarleb.com>
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
@@ -89,20 +89,28 @@ noteToOrg num note = do
   let marker = "[fn:" ++ show num ++ "] "
   return $ hang (length marker) (text marker) contents
 
+-- | Replace Unicode characters with their ASCII representation
+replaceSpecialStrings :: Text -> Text
+replaceSpecialStrings =
+  let expand c = case c of
+        '\x00ad' -> "\\-"
+        '\x2013' -> "--"
+        '\x2014' -> "---"
+        '\x2019' -> "'"
+        '\x2026' -> "..."
+        _        -> T.singleton c
+  in T.concatMap expand
+
 -- | Escape special characters for Org.
 escapeString :: Text -> Doc Text
 escapeString t
   | T.all isAlphaNum t = literal t
   | otherwise = mconcat $ map escChar (T.unpack t)
   where
-   escChar '\x2013' = "--"
-   escChar '\x2014' = "---"
-   escChar '\x2019' = "'"
-   escChar '\x2026' = "..."
-   escChar c
-     -- escape special chars with ZERO WIDTH SPACE as org manual suggests
-     | c == '*' || c == '#' || c == '|' = afterBreak "\x200B" <> char c
-     | otherwise = char c
+    -- escape special chars with ZERO WIDTH SPACE as org manual suggests
+   escChar c = if c == '*' || c == '#' || c == '|'
+     then afterBreak "\x200B" <> char c
+     else char c
 
 isRawFormat :: Format -> Bool
 isRawFormat f =
@@ -522,7 +530,12 @@ inlineToOrg (Cite cs lst) = do
        return $ "[cite" <> sty <> ":" <> citeItems <> "]"
      else inlineListToOrg lst
 inlineToOrg (Code _ str) = return $ "=" <> literal str <> "="
-inlineToOrg (Str str) = return $ escapeString str
+inlineToOrg (Str str) = do
+  opts <- gets stOptions
+  let str' = if isEnabled Ext_smart opts || isEnabled Ext_special_strings opts
+             then replaceSpecialStrings str
+             else str
+  return $ escapeString str'
 inlineToOrg (Math t str) = do
   modify $ \st -> st{ stHasMath = True }
   return $ if t == InlineMath

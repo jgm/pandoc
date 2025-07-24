@@ -98,7 +98,8 @@ inline =
          , inlineLaTeX
          , exportSnippet
          , macro
-         , smart
+         , smartQuotes
+         , specialStrings
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
@@ -892,29 +893,27 @@ macro = try $ do
   escapedComma = try $ char '\\' *> oneOf ",\\"
   eoa = string ")}}}"
 
-smart :: PandocMonad m => OrgParser m (F Inlines)
-smart = choice [doubleQuoted, singleQuoted, orgApostrophe, orgDash, orgEllipses]
+smartQuotes :: PandocMonad m => OrgParser m (F Inlines)
+smartQuotes = do
+  guard =<< getExportSetting exportSmartQuotes
+  choice [doubleQuoted, singleQuoted, orgApostrophe]
   where
-    orgDash = do
-      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      pure <$> dash <* updatePositions '-'
-    orgEllipses = do
-      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      pure <$> ellipses <* updatePositions '.'
     orgApostrophe = do
-      guardEnabled Ext_smart
       (char '\'' <|> char '\8217') <* updateLastPreCharPos
                                    <* updateLastForbiddenCharPos
       returnF (B.str "\x2019")
 
-guardOrSmartEnabled :: PandocMonad m => Bool -> OrgParser m ()
-guardOrSmartEnabled b = do
-  smartExtension <- extensionEnabled Ext_smart <$> getOption readerExtensions
-  guard (b || smartExtension)
+specialStrings :: PandocMonad m => OrgParser m (F Inlines)
+specialStrings = do
+  guard =<< getExportSetting exportSpecialStrings
+  choice [orgDash, orgEllipses, shyHyphen]
+  where
+    shyHyphen   = pure <$> (B.str "\173" <$ string "\\-") <* updatePositions '-'
+    orgDash     = pure <$> dash <* updatePositions '-'
+    orgEllipses = pure <$> ellipses <* updatePositions '.'
 
 singleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 singleQuoted = try $ do
-  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   singleQuoteStart
   updatePositions '\''
   withQuoteContext InSingleQuote $
@@ -926,7 +925,6 @@ singleQuoted = try $ do
 -- in the same paragraph.
 doubleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 doubleQuoted = try $ do
-  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)
