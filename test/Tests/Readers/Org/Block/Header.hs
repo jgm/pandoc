@@ -118,6 +118,13 @@ tests =
         in headerWith ("compile", [], []) 1 (waiting <> space <> "compile")
         <> headerWith ("lunch", [], []) 1 (cancelled <> space <> "lunch")
         <> headerWith ("todo-feature", [], []) 1 (done <> space <> "todo-feature")
+
+    , "Fast access TODO states" =:
+        T.unlines [ "#+TODO: TODO(t) | DONE(d)"
+                  , "* TODO test"
+                  ] =?>
+        let todoSpan = spanWith ("", ["todo", "TODO"], []) "TODO"
+        in headerWith ("test", [], []) 1 (todoSpan <> space <> "test")
     ]
 
   , "Tagged headers" =:
