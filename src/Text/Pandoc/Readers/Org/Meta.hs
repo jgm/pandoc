@@ -252,7 +252,11 @@ todoSequence = try $ do
 
  where
    todoKeyword :: Monad m => OrgParser m Text
-   todoKeyword = many1Char nonspaceChar <* skipSpaces
+   todoKeyword = do
+     keyword <- many1Char nonspaceChar
+     let cleanKeyword = T.takeWhile (/= '(') keyword
+     skipSpaces
+     return cleanKeyword
 
    todoKeywords :: Monad m => OrgParser m [Text]
    todoKeywords = try $
