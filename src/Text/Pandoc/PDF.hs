@@ -133,7 +133,9 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
     "tectonic"     -> tectonic2pdf program pdfargs tmpdir source
     "latexmk"      -> tex2pdf program pdfargs tmpdir source
     "lualatex"     -> tex2pdf program pdfargs tmpdir source
+    "lualatex-dev" -> tex2pdf program pdfargs tmpdir source
     "pdflatex"     -> tex2pdf program pdfargs tmpdir source
+    "pdflatex-dev" -> tex2pdf program pdfargs tmpdir source
     "xelatex"      -> tex2pdf program pdfargs tmpdir source
     _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
