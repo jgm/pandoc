@@ -205,7 +205,8 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
 -- | Supported LaTeX engines; the first item is used as default engine
 -- when going through LaTeX.
 latexEngines :: [String]
-latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
+latexEngines  = [ "pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"
+                , "pdflatex-dev", "lualatex-dev" ]
 
 -- | Supported HTML PDF engines; the first item is used as default
 -- engine when going through HTML.
