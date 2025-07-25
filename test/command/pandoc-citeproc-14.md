@@ -51,27 +51,27 @@ Foo [@CT, 1:12]. Bar [@CTv1, 12]. Baz [@CTv1c2, 12].
 References {#references .unnumbered}
 ==========
 ^D
-Foo (Pelikan 1971b, 1:12). Bar (Pelikan 1971c, 1:12). Baz (Pelikan
-1971a, 12).
+Foo (Pelikan 1971b, 1:12). Bar (Pelikan 1971c, 12). Baz (Pelikan 1971a,
+12).
 
 # References {#references .unnumbered}
 
-:::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-CTv1c2 .csl-entry}
-Pelikan, Jaroslav. 1971a. "Chapter Two." In *The Christian Tradition: A
-History of the Development of Doctrine*, 1:34--56. Chicago: University
-of Chicago Press.
+Pelikan, Jaroslav. 1971a. "Chapter Two." In *The Emergence of the
+Catholic Tradition (100--600)*, vol. 1 of *The Christian Tradition: A
+History of the Development of Doctrine*. University of Chicago Press.
 :::
 
 ::: {#ref-CT .csl-entry}
----------. 1971b. *The Christian Tradition: A History of the Development
-of Doctrine*. Chicago: University of Chicago Press.
+Pelikan, Jaroslav. 1971b. *The Christian Tradition: A History of the
+Development of Doctrine*. University of Chicago Press.
 :::
 
 ::: {#ref-CTv1 .csl-entry}
----------. 1971c. *The Emergence of the Catholic Tradition (100--600)*.
-*The Christian Tradition: A History of the Development of Doctrine*.
-Vol. 1. Chicago: University of Chicago Press.
+Pelikan, Jaroslav. 1971c. *The Emergence of the Catholic Tradition
+(100--600)*. In *The Christian Tradition: A History of the Development
+of Doctrine*, vol. 1. University of Chicago Press.
 :::
 ::::::
 ```

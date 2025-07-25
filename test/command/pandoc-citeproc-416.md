@@ -44,17 +44,17 @@ Blah blah (Doe 2010, 2007, 2008).
 
 # References {#references .unnumbered}
 
-:::::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item2 .csl-entry}
-Doe, J. 2007. "The Title," December 12--13, 2007.
+Doe, J. 2007. *The Title*. December 12--13.
 :::
 
 ::: {#ref-item3 .csl-entry}
----------. 2008. "The Title," 2008.
+Doe, J. 2008. *The Title*.
 :::
 
 ::: {#ref-item1 .csl-entry}
----------. 2010. "The Title," December 13, 2010.
+Doe, J. 2010. *The Title*. December 13.
 :::
 ::::::
 ```

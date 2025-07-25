@@ -736,6 +736,133 @@ function Pandoc(el)
 end
 ```
 
+## Creating a table
+
+This filter creates a document that contains the following 
+table with 5 columns. It serves as a working example of how 
+to use the [`pandoc.Table`](#pandoc.Table) constructor. 
+
++--------+--------+--------+--------+---+
+| This   | is my  | table  | header |   |
++========+:=======+:======:+=======:+===+
+| Cell 1 | Cell 2 | Cell 3 |        |   |
++--------+--------+--------+--------+---+
+| Cell 4 | Cell 5 | Cell 6 |        |   |
++========+========+========+========+===+
+| This is my table footer.          |   |
++===================================+===+
+
+: This is my table caption.
+
+Note that:
+
+- The number of columns in the resulting Table element is 
+  equal to the number of entries in the `colspecs` parameter.
+
+- A [ColSpec] object must contain the cell alignment, but the 
+  column width is optional.
+
+- A [TableBody] object is specified using a Lua table in the 
+  `bodies` parameter because there is no `pandoc.TableBody` 
+  constructor.
+
+```lua
+function Pandoc ()
+  local caption = pandoc.Caption( "This is my table caption." )
+  local colspecs = {
+    { pandoc.AlignLeft },
+    { pandoc.AlignDefault }, 
+    { pandoc.AlignCenter }, 
+    { pandoc.AlignRight },
+    { pandoc.AlignDefault }
+  }
+  local head = pandoc.TableHead{
+    pandoc.Row{
+      pandoc.Cell( "This" ), 
+      pandoc.Cell( "is my" ), 
+      pandoc.Cell( "table" ),
+      pandoc.Cell( "header" )
+    }
+  }
+  local bodies = {
+    {
+      attr={},
+      body={ 
+        pandoc.Row{
+          pandoc.Cell( "Cell 1" ), 
+          pandoc.Cell( "Cell 2" ), 
+          pandoc.Cell( "Cell 3" )
+        },
+        pandoc.Row{
+          pandoc.Cell( "Cell 4" ), 
+          pandoc.Cell( "Cell 5" ), 
+          pandoc.Cell( "Cell 6" )
+        }
+      },
+      head={},
+      row_head_columns=0
+    }
+  }
+  local foot = pandoc.TableFoot{
+    pandoc.Row{
+      pandoc.Cell( "This is my table footer.", pandoc.AlignDefault, 1, 4 )
+    }
+  }
+  return pandoc.Pandoc { 
+    pandoc.Table(caption, colspecs, head, bodies, foot) 
+  }
+end
+```
+
+## Extracting links from a document
+
+This filter creates a document containing a table that lists
+the URLs the input document links to, together with the 
+number of links to each URL.
+
+```lua
+links = {}
+
+function Link (el)
+  if links[el.target] then
+    links[el.target] = links[el.target] + 1
+  else
+    links[el.target] = 1
+  end
+  return el
+end
+
+function Pandoc ()
+  local caption = pandoc.Caption("Link count.")
+  local colspecs = { 
+    { pandoc.AlignDefault, 0.8 }, 
+    { pandoc.AlignLeft, 0.2 }
+  }
+  local head = pandoc.TableHead{
+    pandoc.Row{ pandoc.Cell("Target"), pandoc.Cell("Count") }
+  }
+  local foot = pandoc.TableFoot()
+  local rows = {}
+  for link, count in pairs(links) do
+    rows[#rows + 1] = pandoc.Row{ 
+        pandoc.Cell( link ), 
+        pandoc.Cell( pandoc.utils.stringify(count) ) 
+    }
+  end
+  local bodies = {
+    {
+      attr={},
+      body=rows,
+      head={},
+      row_head_columns=0
+    }
+  }
+  return pandoc.Pandoc {
+    pandoc.Table(caption, colspecs, head, bodies, foot)
+  }
+end
+```
+
 ## Converting ABC code to music notation
 
 This filter replaces code blocks with class `abc` with images
@@ -903,7 +1030,7 @@ Usage:
 Pandoc document
 
 Values of this type can be created with the
-[`pandoc.Pandoc`](#pandoc.pandoc) constructor. Pandoc values are
+[`pandoc.Pandoc`](#pandoc.Pandoc) constructor. Pandoc values are
 equal in Lua if and only if they are equal in Haskell.
 
 `blocks`
@@ -912,6 +1039,24 @@ equal in Lua if and only if they are equal in Haskell.
 `meta`
 :   document meta information ([Meta] object)
 
+### Methods {#type-pandoc-methods}
+
+#### normalize
+
+`normalize(self)`
+
+Perform a normalization of Pandoc documents. E.g., multiple
+successive spaces are collapsed, and tables are normalized, so
+that all rows and columns contain the same number of cells.
+
+Parameters:
+
+`self`
+:   the element ([Pandoc][])
+
+Results:
+
+-   cloned and normalized document. ([Pandoc][])
 
 ### walk {#type-pandoc:walk}
 
@@ -5169,6 +5314,32 @@ Returns:
 
 *Since: 2.12*
 
+### exists {#pandoc.path.exists}
+
+`exists (path[, type])`
+
+Check whether there exists a filesystem object at the given path.
+If `type` is given and either *directory* or *file*, then the
+function returns `true` if and only if the file system object has
+the given type, or if it's a symlink pointing to an object of that
+type. Passing *symlink* as type requires the path itself to be a
+symlink. Types other than those will cause an error.
+
+Parameters:
+
+`path`
+:   file path to check (string)
+
+`type`
+:   the required type of the filesystem object (string)
+
+Returns:
+
+- whether a filesystem object of type `type` exists at `path`.
+  (boolean)
+
+*Since: 3.7.1*
+
 ### filename {#pandoc.path.filename}
 
 `filename (filepath)`
@@ -5534,6 +5705,53 @@ Returns:
 
 *Since: 3.1.1*
 
+### command {#pandoc.system.command}
+
+`command (command, args[, input[, opts]])`
+
+Executes a system command with the given arguments and `input` on
+*stdin*.
+
+Parameters:
+
+`command`
+:   command to execute (string)
+
+`args`
+:   command arguments ({string,\...})
+
+`input`
+:   input on stdin (string)
+
+`opts`
+:   process options (table)
+
+Returns:
+
+- exit code -- `false` on success, an integer otherwise
+  ([integer]{unknown-type="integer"}\|boolean)
+- stdout (string)
+- stderr (string)
+
+*Since: 3.7.1*
+
+### copy {#pandoc.system.copy}
+
+`copy (source, target)`
+
+Copy a file with its permissions. If the destination file already
+exists, it is overwritten.
+
+Parameters:
+
+`source`
+:   source file (string)
+
+`target`
+:   target destination (string)
+
+*Since: 3.7.1*
+
 ### environment {#pandoc.system.environment}
 
 `environment ()`
@@ -5602,6 +5820,61 @@ Parameters:
 
 *Since: 2.19*
 
+### read_file {#pandoc.system.read_file}
+
+`read_file (filepath)`
+
+Parameters:
+
+`filepath`
+:   File to read (string)
+
+Returns:
+
+- file contents (string)
+
+*Since: 3.7.1*
+
+### rename {#pandoc.system.rename}
+
+`rename (old, new)`
+
+Change the name of an existing path from `old` to `new`.
+
+If `old` is a directory and `new` is a directory that already
+exists, then `new` is atomically replaced by the `old` directory.
+On Win32 platforms, this function fails if `new` is an existing
+directory.
+
+If `old` does not refer to a directory, then neither may `new`.
+
+Renaming may not work across file system boundaries or due to
+other system-specific reasons. It's generally more robust to copy
+the source path to its destination before deleting the source.
+
+Parameters:
+
+`old`
+:   original path (string)
+
+`new`
+:   new path (string)
+
+*Since: 3.7.1*
+
+### remove {#pandoc.system.remove}
+
+`remove (filename)`
+
+Removes the directory entry for an existing file.
+
+Parameters:
+
+`filename`
+:   file to remove (string)
+
+*Since: 3.7.1*
+
 ### remove_directory {#pandoc.system.remove_directory}
 
 `remove_directory (dirname[, recursive])`
@@ -5618,6 +5891,25 @@ Parameters:
 :   delete content recursively (boolean)
 
 *Since: 2.19*
+
+### times {#pandoc.system.times}
+
+`times (filepath)`
+
+Obtain the modification and access time of a file or directory.
+The times are returned as strings using the ISO 8601 format.
+
+Parameters:
+
+`filepath`
+:   file or directory path (string)
+
+Returns:
+
+- time at which the file or directory was last modified (table)
+- time at which the file or directory was last accessed (table)
+
+*Since: 3.7.1*
 
 ### with_environment {#pandoc.system.with_environment}
 
@@ -5694,6 +5986,58 @@ Returns:
 The results of the call to `callback`.
 
 *Since: 2.7.3*
+
+### write_file {#pandoc.system.write_file}
+
+`write_file (filepath, contents)`
+
+Writes a string to a file.
+
+Parameters:
+
+`filepath`
+:   path to target file (string)
+
+`contents`
+:   file contents (string)
+
+*Since: 3.7.1*
+
+### xdg {#pandoc.system.xdg}
+
+`xdg (xdg_directory_type[, filepath])`
+
+Access special directories and directory search paths.
+
+Special directories for storing user-specific application data,
+configuration, and cache files, as specified by the [XDG Base
+Directory Specification].
+
+Parameters:
+
+`xdg_directory_type`
+
+:   The type of the XDG directory or search path. Must be one of
+    `config`, `data`, `cache`, `state`, `datadirs`, or
+    `configdirs`.
+
+    Matching is case-insensitive, and underscores and `XDG`
+    prefixes are ignored, so a value like `XDG_DATA_DIRS` is also
+    acceptable.
+
+    The `state` directory might not be available, depending on the
+    version of the underlying Haskell library. (string)
+
+`filepath`
+:   relative path that is appended to the path; ignored if the
+    result is a list of search paths. (string)
+
+Returns:
+
+- Either a single file path, or a list of search paths.
+  (string\|{string,\...})
+
+*Since: 3.7.1*
 
 <!-- END: AUTOGENERATED CONTENT -->
 
@@ -6982,6 +7326,7 @@ Returns:
   [null]: #pandoc.json.null
   [this blog post]: http://neilmitchell.blogspot.co.uk/2015/10/filepaths-are-subtle-symlinks-are-hard.html
   [ChunkedDoc]: #type-chunkeddoc
+  [XDG Base Directory Specification]: https://specifications.freedesktop.org/basedir-spec/latest/
   [Doc]: #type-doc
   [Template]: #type-template
   [zip.Entry]: #type-pandoc.zip.Entry
