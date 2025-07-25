@@ -598,8 +598,8 @@ options =
                         then return opt { optPdfEngine = Just arg }
                         else optError $
                               PandocOptionError $ T.pack $
-                              "Argument of --pdf-engine must be one of "
-                               ++ intercalate ", " pdfEngines)
+                              "Argument of --pdf-engine must be one of\n"
+                               ++ concatMap (\e -> "\t" <> e <> "\n") pdfEngines)
                   "PROGRAM")
                  "" -- "Name of program to use in generating PDF"
 
