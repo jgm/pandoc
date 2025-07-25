@@ -19,11 +19,11 @@ references:
 
 @a
 ^D
-Doe, Doe, and Roe (2007)
+Doe et al. (2007)
 
-:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-a .csl-entry}
-Doe, Ann, Ben Doe, and Ron Roe. 2007. "Title."
+Doe, Ann, Ben Doe, and Ron Roe. 2007. *Title*.
 :::
 ::::
 ```

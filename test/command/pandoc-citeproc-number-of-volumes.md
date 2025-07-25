@@ -21,9 +21,9 @@ references:
 ^D
 Author (2013)
 
-:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}
-Author, Al. 2013. *Title*. 2 vols. Location: Publisher.
+Author, Al. 2013. *Title*. 2 vols. Publisher.
 :::
 ::::
 ```

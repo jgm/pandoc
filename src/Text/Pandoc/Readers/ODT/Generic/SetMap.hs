@@ -10,7 +10,13 @@
 A map of values to sets of values.
 -}
 
-module Text.Pandoc.Readers.ODT.Generic.SetMap where
+module Text.Pandoc.Readers.ODT.Generic.SetMap
+  ( SetMap
+  , empty
+  , fromList
+  , insert
+  , union3
+  ) where
 
 import qualified Data.Map as M
 import qualified Data.Set as S

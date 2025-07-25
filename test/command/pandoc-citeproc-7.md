@@ -23,9 +23,9 @@ references:
 ^D
 Author (2011)
 
-:::: {#refs .references .csl-bib-body .hanging-indent entry-spacing="0"}
+:::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-item1 .csl-entry}
-Author, Ann. 2011. "Title." *Journal*, September 24--26, 2011.
+Author, Ann. 2011. "Title." *Journal*, September 24--26.
 :::
 ::::
 ```

@@ -61,17 +61,17 @@ Foo (al-ʾUdhrī 2000; al-ʿUdhrī 2000; al-’Udhrī 2000b, 2000a; al-‘Udhrī
 
 Uch, Ann. 2000.
 
-‘Udhrī, Jamīl al-. 2000. “Inverted Curly Apostrophe = Opening Single
-Curly Quote (for Ayn).”
+‘Udhrī, Jamīl al-. 2000. Inverted Curly Apostrophe = Opening Single
+Curly Quote (for Ayn).
 
-ʿUdhrī, Jamīl al-. 2000. “Ayn.”
+ʿUdhrī, Jamīl al-. 2000. Ayn.
 
-’Udhrī, Jamīl al-. 2000a. “Curly Apostrophe = Closing Single Curly Quote
-(for Hamza).”
+’Udhrī, Jamīl al-. 2000a. Curly Apostrophe = Closing Single Curly Quote
+(for Hamza).
 
-ʾUdhrī, Jamīl al-. 2000. “Hamza.”
+ʾUdhrī, Jamīl al-. 2000. Hamza.
 
-’Udhrī, Jamīl al-. 2000b. “Straight Apostrophe.”
+’Udhrī, Jamīl al-. 2000b. Straight Apostrophe.
 
 Uebel, Joe. 2000.
 

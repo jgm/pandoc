@@ -451,7 +451,7 @@ common common-options
                     -Wpartial-fields
                     -Wmissing-signatures
                     -fhide-source-paths
-                    -- -Wmissing-export-lists
+                    -Wmissing-export-lists
 
   if impl(ghc >= 8.10)
     ghc-options:    -Wunused-packages

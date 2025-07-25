@@ -21,6 +21,7 @@ module Text.Pandoc.App.CommandLineOptions (
           , options
           , engines
           , setVariable
+          , versionInfo
           ) where
 import Control.Monad.Trans
 import Control.Monad.State.Strict
@@ -46,6 +47,7 @@ import System.IO (stdout)
 import Text.DocTemplates (Context (..), ToContext (toVal), Val (..))
 import Text.Pandoc
 import Text.Pandoc.Builder (setMeta)
+import Data.Version (showVersion)
 import Text.Pandoc.App.Opt (Opt (..), LineEnding (..), IpynbOutput (..),
                             DefaultsState (..), applyDefaults,
                             fullDefaultsPath, OptInfo(..))
@@ -193,14 +195,7 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
                      ,"text-styles"])
                   ,confNumFormat = Generic
                   ,confTrailingNewline = True} sty
-    VersionInfo -> do
-      prg <- getProgName
-      defaultDatadir <- defaultUserDataDir
-      UTF8.hPutStrLn stdout
-       $ T.pack
-       $ prg ++ " " ++ T.unpack pandocVersionText ++
-         "\nUser data directory: " ++ defaultDatadir ++
-         ('\n':copyrightMessage)
+    VersionInfo -> versionInfo [] Nothing ""
     Help -> do
       prg <- getProgName
       UTF8.hPutStr stdout (T.pack $ usageMessage prg options)
@@ -210,7 +205,8 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
 -- | Supported LaTeX engines; the first item is used as default engine
 -- when going through LaTeX.
 latexEngines :: [String]
-latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
+latexEngines  = [ "pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"
+                , "pdflatex-dev", "lualatex-dev" ]
 
 -- | Supported HTML PDF engines; the first item is used as default
 -- engine when going through HTML.
@@ -602,8 +598,8 @@ options =
                         then return opt { optPdfEngine = Just arg }
                         else optError $
                               PandocOptionError $ T.pack $
-                              "Argument of --pdf-engine must be one of "
-                               ++ intercalate ", " pdfEngines)
+                              "Argument of --pdf-engine must be one of\n"
+                               ++ concatMap (\e -> "\t" <> e <> "\n") pdfEngines)
                   "PROGRAM")
                  "" -- "Name of program to use in generating PDF"
 
@@ -1172,7 +1168,7 @@ usageMessage programName = usageInfo (programName ++ " [OPTIONS] [FILES]")
 
 copyrightMessage :: String
 copyrightMessage = intercalate "\n" [
- "Copyright (C) 2006-2024 John MacFarlane. Web:  https://pandoc.org",
+ "Copyright (C) 2006-2025 John MacFarlane. Web:  https://pandoc.org",
  "This is free software; see the source for copying conditions. There is no",
  "warranty, not even for merchantability or fitness for a particular purpose." ]
 
@@ -1270,3 +1266,21 @@ normalizePath fp =
 #else
 normalizePath = id
 #endif
+
+-- | Print version information with customizable features and scripting engine
+versionInfo :: [String] -> Maybe String -> String -> IO ()
+versionInfo features mbScriptingEngineName suffix = do
+  defaultDatadir <- defaultUserDataDir
+  let featuresLine = if null features
+                       then []
+                       else ["Features: " ++ unwords features]
+  let scriptingLine = case mbScriptingEngineName of
+                        Nothing -> []
+                        Just name -> ["Scripting engine: " ++ name]
+  UTF8.putStr $ T.unlines $ map T.pack $
+    ["pandoc " ++ showVersion pandocVersion ++ suffix] ++
+    featuresLine ++
+    scriptingLine ++
+    ["User data directory: " ++ defaultDatadir,
+     copyrightMessage]
+  exitSuccess

@@ -29,8 +29,9 @@ import Network.URI (unEscapeString)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
-                                    lookupMetaString )
+                                    setupTranslations, lookupMetaString )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
+import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
 import Text.DocLayout
@@ -64,11 +65,13 @@ pandocToTypst options (Pandoc meta blocks) = do
   let colwidth = if writerWrapText options == WrapAuto
                     then Just $ writerColumns options
                     else Nothing
+  setupTranslations meta
   metadata <- metaToContext options
               blocksToTypst
               (fmap chomp . inlinesToTypst)
               meta
   main <- blocksToTypst blocks
+  abstractTitle <- translateTerm Abstract
   let toPosition :: CaptionPosition -> Text
       toPosition CaptionAbove = "top"
       toPosition CaptionBelow = "bottom"
@@ -87,6 +90,7 @@ pandocToTypst options (Pandoc meta blocks) = do
                           maybe id (resetField "region") (langRegion l))
               $ defField "csl" (lookupMetaString "citation-style" meta) -- #10661
               $ defField "smart" (isEnabled Ext_smart options)
+              $ defField "abstract-title" abstractTitle
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
               $ defField "figure-caption-position"
                    (toPosition $ writerFigureCaptionPosition options)
@@ -342,9 +346,17 @@ blockToTypst block =
     Div (ident,_,kvs) blocks -> do
       let lab = toLabel FreestandingLabel ident
       let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
+      -- Handle lang attribute for Div elements
+      let langAttrs = case lookup "lang" kvs of
+                        Nothing -> []
+                        Just lang -> case parseLang lang of
+                                       Left _ -> []
+                                       Right l -> [("lang",
+                                                    tshow (langLanguage l))]
+      let allTypstTextAttrs = typstTextAttrs ++ langAttrs
       contents <- blocksToTypst blocks
       return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstPoundSetText typstTextAttrs <> contents
+        $$ toTypstPoundSetText allTypstTextAttrs <> contents
         $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
