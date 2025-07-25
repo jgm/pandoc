@@ -1,6 +1,4 @@
-{-# OPTIONS_GHC -Wall #-}
-
-module Main where
+module Main (main) where
 
 import System.Environment (getArgs, getExecutablePath)
 import qualified Control.Exception as E

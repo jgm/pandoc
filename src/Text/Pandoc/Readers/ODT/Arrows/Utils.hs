@@ -19,7 +19,40 @@ with an equivalent return value.
 -}
 
 -- We export everything
-module Text.Pandoc.Readers.ODT.Arrows.Utils where
+module Text.Pandoc.Readers.ODT.Arrows.Utils
+  ( and2
+  , and3
+  , and4
+  , and5
+  , and6
+  , liftA2
+  , liftA3
+  , liftA4
+  , liftA5
+  , liftA6
+  , liftA
+  , duplicate
+  , (>>%)
+  , keepingTheValue
+  , (^|||)
+  , (|||^)
+  , (^|||^)
+  , (^&&&)
+  , (&&&^)
+  , choiceToMaybe
+  , maybeToChoice
+  , returnV
+  , FallibleArrow
+  , liftAsSuccess
+  , (>>?)
+  , (>>?^)
+  , (>>?^?)
+  , (^>>?)
+  , (>>?!)
+  , (>>?%)
+  , (>>?%?)
+  , ifFailedDo
+  ) where
 
 import Prelude hiding (Applicative(..))
 import Control.Arrow

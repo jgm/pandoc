@@ -11,7 +11,11 @@ A class containing a set of namespace identifiers. Used to convert between
 typesafe Haskell namespace identifiers and unsafe "real world" namespaces.
 -}
 
-module Text.Pandoc.Readers.ODT.Generic.Namespaces where
+module Text.Pandoc.Readers.ODT.Generic.Namespaces
+  ( NameSpaceIRI
+  , NameSpaceIRIs
+  , NameSpaceID(..)
+  ) where
 
 import qualified Data.Map as M
 import Data.Text (Text)

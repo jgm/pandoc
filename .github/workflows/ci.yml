@@ -50,36 +50,28 @@ jobs:
         versions:
           - ghc: '8.10'
             cabal: 'latest'
-            cabalopts: ''
-            ghcopts: '-Werror'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.0'
             cabal: 'latest'
-            cabalopts: ''
-            ghcopts: '-Werror'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.2'
             cabal: 'latest'
-            cabalopts: ''
-            ghcopts: '-Werror'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.4'
             cabal: 'latest'
-            cabalopts: ''
-            ghcopts: '-Werror'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.6'
             cabal: 'latest'
-            cabalopts: ''
-            ghcopts: '-Werror'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.8'
             cabal: 'latest'
-            cabalopts: ''
-            ghcopts: '-Werror'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.10'
             cabal: 'latest'
-            cabalopts: ''
-            ghcopts: ''
+            cabalopts: '--ghc-option=-Werror --ghc-option=-Wno-unused-imports'
           - ghc: '9.12'
             cabal: 'latest'
-            cabalopts: '--allow-newer'
-            ghcopts: ''
+            cabalopts: '--allow-newer --ghc-option=-Werror --ghc-option=-Wno-unused-imports --ghc-option=-Wno-deriving-typeable'
     steps:
     - uses: actions/checkout@v4
 
@@ -120,7 +112,8 @@ jobs:
 
     - name: Build and test
       run: |
-          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options="${{ matrix.verisons.ghcopts }}" all
+          cabal build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization all
+          cabal test ${{ matrix.versions.cabalopts }} --disable-optimization all
 
   linux-stack:
 

@@ -94,14 +94,13 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
                             disableExtension Ext_smart
                              (writerExtensions opts) } doc'
   verbosity <- getVerbosity
+  let compileHTML mkOutArgs = liftIO $
+        toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
-    prog | prog `elem` ["pagedjs-cli" ,"weasyprint", "prince"] -> do
-      let mkOutArgs f =
-            if program `elem` ["pagedjs-cli", "prince"]
-               then ["-o", f]
-               else [f]
-      liftIO $ toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source
+    "pagedjs-cli" -> compileHTML (\f -> ["-o", f])
+    "prince"      -> compileHTML (\f -> ["-o", f])
+    "weasyprint"  -> compileHTML (:[])
     "typst" -> liftIO $
         toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) ".typ" source
     "pdfroff" -> do
@@ -130,13 +129,15 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
                    ["-U" | ".PDFPIC" `T.isInfixOf` source] ++
                     paperargs ++ pdfargs
       generic2pdf program args source
-    baseProg ->
-      case baseProg of
-        "context" -> context2pdf program pdfargs tmpdir source
-        "tectonic" -> tectonic2pdf program pdfargs tmpdir source
-        prog | prog `elem` ["pdflatex", "lualatex", "xelatex", "latexmk"]
-            -> tex2pdf program pdfargs tmpdir source
-        _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
+    "context"      -> context2pdf program pdfargs tmpdir source
+    "tectonic"     -> tectonic2pdf program pdfargs tmpdir source
+    "latexmk"      -> tex2pdf program pdfargs tmpdir source
+    "lualatex"     -> tex2pdf program pdfargs tmpdir source
+    "lualatex-dev" -> tex2pdf program pdfargs tmpdir source
+    "pdflatex"     -> tex2pdf program pdfargs tmpdir source
+    "pdflatex-dev" -> tex2pdf program pdfargs tmpdir source
+    "xelatex"      -> tex2pdf program pdfargs tmpdir source
+    _ -> return $ Left $ UTF8.fromStringLazy $ "Unknown program " ++ program
 
 -- latex has trouble with tildes in paths, which
 -- you find in Windows temp dir paths with longer

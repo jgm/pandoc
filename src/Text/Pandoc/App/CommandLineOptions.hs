@@ -205,7 +205,8 @@ handleOptInfo engine info = E.handle (handleError . Left) $ do
 -- | Supported LaTeX engines; the first item is used as default engine
 -- when going through LaTeX.
 latexEngines :: [String]
-latexEngines  = ["pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"]
+latexEngines  = [ "pdflatex", "lualatex", "xelatex", "latexmk", "tectonic"
+                , "pdflatex-dev", "lualatex-dev" ]
 
 -- | Supported HTML PDF engines; the first item is used as default
 -- engine when going through HTML.
@@ -597,8 +598,8 @@ options =
                         then return opt { optPdfEngine = Just arg }
                         else optError $
                               PandocOptionError $ T.pack $
-                              "Argument of --pdf-engine must be one of "
-                               ++ intercalate ", " pdfEngines)
+                              "Argument of --pdf-engine must be one of\n"
+                               ++ concatMap (\e -> "\t" <> e <> "\n") pdfEngines)
                   "PROGRAM")
                  "" -- "Name of program to use in generating PDF"
 

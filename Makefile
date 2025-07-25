@@ -12,8 +12,7 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j +RTS -A8m -RTS
-CABALOPTS?=--disable-optimization -f-export-dynamic
+CABALOPTS?=--disable-optimization -f-export-dynamic --ghc-option=-fwrite-ide-info --ghc-option=-fdiagnostics-color=always --ghc-option=-j
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
@@ -24,7 +23,6 @@ all: build test binpath ## build executable and run tests
 
 build: ## build executable
 	cabal build \
-	  --ghc-options='$(GHCOPTS)' \
 	  $(CABALOPTS) pandoc-cli
 .PHONY: build
 
@@ -33,7 +31,7 @@ prof: ## build with profiling and optimizations
 .PHONY: prof
 
 binpath: ## print path of built pandoc executable
-	@cabal list-bin -v0 $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
+	@cabal list-bin -v0 $(CABALOPTS) pandoc-cli
 .PHONY: binpath
 
 ghcid: ## run ghcid
@@ -52,14 +50,12 @@ linecounts: ## print line counts for each module
 # make test TESTARGS='--accept'
 test:  ## unoptimized build and run tests with cabal
 	cabal test \
-	  --ghc-options='$(GHCOPTS)' \
 	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)" all
 .PHONY: test
 
 quick-stack: ## unoptimized build and tests with stack
 	stack install \
-	  --ghc-options='$(GHCOPTS)' \
 	  --system-ghc --flag 'pandoc:embed_data_files' \
 	  --fast \
 	  --test \
@@ -149,7 +145,7 @@ latex-package-dependencies: ## print packages used by default latex template
 
 coverage: ## code coverage information
 	cabal test \
-	  --ghc-options='-fhpc $(GHCOPTS)' \
+	  --ghc-option=-fhpc \
 	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
 	hpc markup --destdir=coverage test/test-pandoc.tix
@@ -169,8 +165,7 @@ debpkg: ## create linux package
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \
 		   -e REVISION=$(REVISION) \
-       -e GHCOPTS="-j4 +RTS -A256m -RTS -split-sections -optc-Os -optl=-pthread" \
-       -e CABALOPTS="-f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4" \
+       -e CABALOPTS="-f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4 --ghc-option=-j4 --ghc-option=-split-sections --ghc-option=-optc-Os --ghc-option=-optl=-pthread" \
 		   -w /mnt \
 		   --memory=0 \
 		   --rm \
@@ -317,7 +312,6 @@ help: ## display this help
 	@echo
 	@echo "Environment variables with default values:"
 	@printf "%-16s%s\n" "CABALOPTS" "$(CABALOPTS)"
-	@printf "%-16s%s\n" "GHCOPTS" "$(GHCOPTS)"
 	@printf "%-16s%s\n" "TESTARGS" "$(TESTARGS)"
 	@printf "%-16s%s\n" "BASELINE" "$(BASELINE)"
 	@printf "%-16s%s\n" "REVISION" "$(REVISION)"

@@ -23,7 +23,6 @@ import qualified Data.ByteString.Char8 as Char8
 import qualified Lua.LPeg as LPeg
 import qualified HsLua.Aeson
 import qualified HsLua.Module.DocLayout as Module.Layout
-import qualified HsLua.Module.Path as Module.Path
 import qualified HsLua.Module.Zip as Module.Zip
 import qualified Text.Pandoc.Lua.Module.CLI as Pandoc.CLI
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
@@ -32,6 +31,7 @@ import qualified Text.Pandoc.Lua.Module.JSON as Pandoc.JSON
 import qualified Text.Pandoc.Lua.Module.Log as Pandoc.Log
 import qualified Text.Pandoc.Lua.Module.MediaBag as Pandoc.MediaBag
 import qualified Text.Pandoc.Lua.Module.Pandoc as Module.Pandoc
+import qualified Text.Pandoc.Lua.Module.Path as Pandoc.Path
 import qualified Text.Pandoc.Lua.Module.Scaffolding as Pandoc.Scaffolding
 import qualified Text.Pandoc.Lua.Module.Structure as Pandoc.Structure
 import qualified Text.Pandoc.Lua.Module.System as Pandoc.System
@@ -84,6 +84,7 @@ submodules =
   , Pandoc.JSON.documentedModule
   , Pandoc.Log.documentedModule
   , Pandoc.MediaBag.documentedModule
+  , Pandoc.Path.documentedModule
   , Pandoc.Scaffolding.documentedModule
   , Pandoc.Structure.documentedModule
   , Pandoc.System.documentedModule
@@ -95,8 +96,6 @@ submodules =
       `allSince` [2,18])
      `functionsSince` ["bold", "italic", "underlined", "strikeout", "fg", "bg"])
     [3, 4, 1]
-  , Module.Path.documentedModule { moduleName = "pandoc.path" }
-    `allSince` [2,12]
   , Module.Zip.documentedModule { moduleName = "pandoc.zip" }
     `allSince` [3,0]
   ]
