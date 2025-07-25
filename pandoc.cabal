@@ -110,6 +110,7 @@ data-files:
                  data/templates/fonts.latex
                  data/templates/font-settings.latex
                  data/templates/after-header-includes.latex
+                 data/templates/letter.latex
 
                  -- translations
                  data/translations/*.yaml
