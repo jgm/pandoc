@@ -5992,6 +5992,17 @@ parentheses, while author-in-text citations will not.  For
 this reason, it is sometimes preferable to use the
 author-in-text style inside notes when using a note style.
 
+Many CSL styles will format citations differently when the
+same source has been cited earlier.  In documents with chapters,
+it is usually desirable to reset this position information
+at the beginning of every chapter. To do this, add the class
+`reset-citation-positions` to the heading for each chapter:
+
+    # The Beginning {.reset-citation-positions}
+
+Note that this class only has an effect when placed on
+top-level headings; it is ignored in nested blocks.
+
 [CSL user documentation]: https://citationstyles.org/authors/
 [CSL]: https://docs.citationstyles.org/en/stable/specification.html
 [CSL markup specs]: https://citeproc-js.readthedocs.io/en/latest/csl-json/markup.html#html-like-formatting-tags
