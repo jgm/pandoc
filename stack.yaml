@@ -21,6 +21,8 @@ extra-deps:
   commit: c2b4852e0002a7995793ec0e3c44b723a85a2ca2
 - git: https://github.com/jgm/typst-hs.git
   commit: 9b10ff32492304867b6cc410db6e843c2c9b913b
+- git: https://github.com/jgm/citeproc.git
+  commit: 777a916be683a40e9b5e17da25816917b6fb1208
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.20
