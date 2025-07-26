@@ -3559,6 +3559,19 @@ literally.  In writing LaTeX, enabling `smart` tells pandoc
 to use the ligatures when possible; if `smart` is disabled
 pandoc will use unicode quotation mark and dash characters.
 
+### Extension: `smart_quotes` ###
+
+Interpret straight quotes as curly quotes.
+
+FIXME: explain
+
+### Extension: `special_strings` ###
+
+Interpret `---` as em-dashes, `--` as en-dashes, and `...` as
+ellipses.
+
+FIXME: explain
+
 ## Headings and sections
 
 ### Extension: `auto_identifiers` ###

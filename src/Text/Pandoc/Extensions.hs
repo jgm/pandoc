@@ -120,6 +120,8 @@ data Extension =
     | Ext_shortcut_reference_links -- ^ Shortcut reference links
     | Ext_simple_tables       -- ^ Pandoc-style simple tables
     | Ext_smart               -- ^ "Smart" quotes, apostrophes, ellipses, dashes
+    | Ext_smart_quotes        -- ^ "Smart" quotes
+    | Ext_special_strings     -- ^ Treat certain strings like special characters
     | Ext_sourcepos           -- ^ Include source position attributes
     | Ext_space_in_atx_header -- ^ Require space between # and header text
     | Ext_spaced_reference_links -- ^ Allow space between two parts of ref link
@@ -429,6 +431,7 @@ getDefaultExtensions "commonmark_x"    = extensionsFromList
   ]
 getDefaultExtensions "org"             = extensionsFromList
                                           [Ext_citations,
+                                           Ext_special_strings,
                                            Ext_task_lists,
                                            Ext_auto_identifiers]
 getDefaultExtensions "html"            = extensionsFromList
@@ -580,6 +583,8 @@ getAllExtensions f = universalExtensions <> getAll f
     extensionsFromList
     [ Ext_citations
     , Ext_smart
+    , Ext_smart_quotes
+    , Ext_special_strings
     , Ext_fancy_lists
     , Ext_task_lists
     ]
