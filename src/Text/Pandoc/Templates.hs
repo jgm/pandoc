@@ -102,6 +102,7 @@ getDefaultTemplate format = do
        "native"  -> return ""
        "csljson" -> return ""
        "json"    -> return ""
+       "xml"     -> return ""
        "fb2"     -> return ""
        "pptx"    -> return ""
        "ipynb"   -> return ""
