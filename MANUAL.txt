@@ -279,6 +279,7 @@ header when requesting a document from a URL:
     - `twiki` ([TWiki markup])
     - `typst` ([typst])
     - `vimwiki` ([Vimwiki])
+    - `xml` (XML version of native AST)
     - the path of a custom Lua reader, see [Custom readers and writers] below
     :::
 
@@ -357,6 +358,7 @@ header when requesting a document from a URL:
     - `s5` ([S5] HTML and JavaScript slide show)
     - `tei` ([TEI Simple])
     - `typst` ([typst])
+    - `xml` (XML version of native AST)
     - `xwiki` ([XWiki markup])
     - `zimwiki` ([ZimWiki markup])
     - the path of a custom Lua writer, see [Custom readers and writers] below
