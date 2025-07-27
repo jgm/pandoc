@@ -400,8 +400,7 @@ blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
                          | (take 3 (T.unpack id')) == "ref"
                            -> contents <> blankline
                          | otherwise -> contents <> blankline
-             | isEnabled Ext_fenced_divs opts &&
-               attrs /= nullAttr ->
+             | isEnabled Ext_fenced_divs opts ->
                   let attrsToMd = if variant == Commonmark
                                   then attrsToMarkdown opts
                                   else classOrAttrsToMarkdown opts
