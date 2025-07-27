@@ -571,8 +571,8 @@ a^b c^d, a~b c~d.
 
 'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted '=code=' and a "[[http://example.com/?foo=1&bar=2][quoted
-link]]".
+Here is some quoted '=code=' and a
+"[[http://example.com/?foo=1&bar=2][quoted link]]".
 
 Some dashes: one---two --- three---four --- five.
 

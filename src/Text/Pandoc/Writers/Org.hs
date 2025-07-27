@@ -547,7 +547,7 @@ inlineToOrg (Link _ txt (src, _)) =
   case txt of
         [Str x] | escapeURI x == src ->  -- autolink
              return $ "[[" <> literal (orgPath x) <> "]]"
-        _ -> do contents <- inlineListToOrg txt
+        _ -> do contents <- nowrap <$> inlineListToOrg txt
                 return $ "[[" <> literal (orgPath src) <> "][" <> contents <> "]]"
 inlineToOrg (Image _ _ (source, _)) =
   return $ "[[" <> literal (orgPath source) <> "]]"
