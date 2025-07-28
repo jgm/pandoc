@@ -92,13 +92,20 @@ applies all filters (including JSON filters specified via
 `--filter` and Lua filters specified via `--lua-filter`) in the
 order they appear on the command line.
 
-Pandoc expects each Lua file to return a list of filters. The
-filters in that list are called sequentially, each on the result
-of the previous filter. If there is no value returned by the
-filter script, then pandoc will try to generate a single filter
-by collecting all top-level functions whose names correspond to
-those of pandoc elements (e.g., `Str`, `Para`, `Meta`, or
-`Pandoc`). (That is why the two examples above are equivalent.)
+Pandoc expects each Lua file to return a filter. If there is
+no value returned by the filter script, then pandoc will try to
+generate a single filter by collecting all top-level functions
+whose names correspond to those of pandoc elements (e.g., `Str`,
+`Para`, `Meta`, or `Pandoc`). (That is why the two examples above
+are equivalent.)
+
+It is currently also possible to return a list of filters
+from a Lua file which are called sequentially. Before the
+[walk](#type-pandoc:walk) method was made available, this was
+the only way to run multiple filters from one Lua file. However,
+returning a list of filters is now discouraged in favor of using
+the [walk](#type-pandoc:walk) method, and this functionality may
+be removed at some point.
 
 For each filter, the document is traversed and each element
 subjected to the filter. Elements for which the filter contains
@@ -203,23 +210,17 @@ fixed order, skipping any which are not present:
   3. the [`Meta`](#type-meta) filter function, and last
   4. the [`Pandoc`](#type-pandoc) filter function.
 
-It is still possible to force a different order by explicitly
-returning multiple filter sets. For example, if the filter for
-*Meta* is to be run before that for *Str*, one can write
+It is still possible to force a different order by manually
+running the filters using the [walk](#type-pandoc:walk) method.
+For example, if the filter for *Meta* is to be run before that
+for *Str*, one can write
 
 ``` lua
--- ... filter definitions ...
-
-return {
-  { Meta = Meta },  -- (1)
-  { Str = Str }     -- (2)
-}
+function Pandoc(doc)
+  doc = doc:walk { Meta = Meta } -- (1)
+  return doc:walk { Str = Str }  -- (2)
+end
 ```
-
-Filter sets are applied in the order in which they are returned.
-All functions in set (1) are thus run before those in (2),
-causing the filter function for *Meta* to be run before the
-filtering of *Str* elements is started.
 
 ### Topdown traversal
 
@@ -490,15 +491,13 @@ emphasized text "Hello, World".
 
 ``` lua
 return {
-  {
-    Str = function (elem)
-      if elem.text == "{{helloworld}}" then
-        return pandoc.Emph {pandoc.Str "Hello, World"}
-      else
-        return elem
-      end
-    end,
-  }
+  Str = function (elem)
+    if elem.text == "{{helloworld}}" then
+      return pandoc.Emph {pandoc.Str "Hello, World"}
+    else
+      return elem
+    end
+  end,
 }
 ```
 
@@ -586,7 +585,7 @@ filters living in the same file:
 ``` lua
 local vars = {}
 
-function get_vars (meta)
+local function get_vars (meta)
   for k, v in pairs(meta) do
     if pandoc.utils.type(v) == 'Inlines' then
       vars["%" .. k .. "%"] = {table.unpack(v)}
@@ -594,7 +593,7 @@ function get_vars (meta)
   end
 end
 
-function replace (el)
+local function replace (el)
   if vars[el.text] then
     return pandoc.Span(vars[el.text])
   else
@@ -602,10 +601,12 @@ function replace (el)
   end
 end
 
-return {{Meta = get_vars}, {Str = replace}}
+function Pandoc(doc)
+  return doc:walk { Meta = get_vars }:walk { Str = replace }
+end
 ```
 
-If the contents of file `occupations.md` is
+If the contents of file `occupations.md` are
 
 ``` markdown
 ---
@@ -635,6 +636,9 @@ will output:
 </dd>
 </dl>
 ```
+Note that the placeholders must not contain any spaces, otherwise
+they will turn into two separate Str elements and the filter
+won't work.
 
 ## Modifying pandoc's `MANUAL.txt` for man pages
 
