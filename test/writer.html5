@@ -9,6 +9,9 @@
   <meta name="dcterms.date" content="2006-07-17" />
   <title>Pandoc Test Suite</title>
   <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
     html {
       color: #1a1a1a;
       background-color: #fdfdfd;
