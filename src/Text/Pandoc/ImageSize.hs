@@ -72,6 +72,8 @@ data Dimension = Pixel Integer
                | Centimeter Double
                | Millimeter Double
                | Inch Double
+               | Point Double
+               | Pica Double
                | Percent Double
                | Em Double
                deriving Eq
@@ -81,6 +83,8 @@ instance Show Dimension where
   show (Centimeter a) = T.unpack (showFl a) ++ "cm"
   show (Millimeter a) = T.unpack (showFl a) ++ "mm"
   show (Inch a)       = T.unpack (showFl a) ++ "in"
+  show (Point a)      = T.unpack (showFl a) ++ "pt"
+  show (Pica a)       = T.unpack (showFl a) ++ "pc"
   show (Percent a)    = show a              ++ "%"
   show (Em a)         = T.unpack (showFl a) ++ "em"
 
@@ -203,6 +207,8 @@ inInch opts dim =
     (Centimeter a) -> a * 0.3937007874
     (Millimeter a) -> a * 0.03937007874
     (Inch a)       -> a
+    (Point a)      -> (a / 72)
+    (Pica a)       -> (a / 6)
     (Percent _)    -> 0
     (Em a)         -> a * (11/64)
 
@@ -210,11 +216,7 @@ inPixel :: WriterOptions -> Dimension -> Integer
 inPixel opts dim =
   case dim of
     (Pixel a)      -> a
-    (Centimeter a) -> floor $ dpi * a * 0.3937007874 :: Integer
-    (Millimeter a) -> floor $ dpi * a * 0.03937007874 :: Integer
-    (Inch a)       -> floor $ dpi * a :: Integer
-    (Percent _)    -> 0
-    (Em a)         -> floor $ dpi * a * (11/64) :: Integer
+    _              -> floor (dpi * inInch opts dim)
   where
     dpi = fromIntegral $ writerDpi opts
 
@@ -244,6 +246,8 @@ scaleDimension factor dim =
         Centimeter x -> Centimeter (factor * x)
         Millimeter x -> Millimeter (factor * x)
         Inch x       -> Inch (factor * x)
+        Point x      -> Point (factor * x)
+        Pica x       -> Pica (factor * x)
         Percent x    -> Percent (factor * x)
         Em x         -> Em (factor * x)
 
@@ -267,8 +271,8 @@ lengthToDim s = numUnit s >>= uncurry toDim
     toDim a "%"    = Just $ Percent a
     toDim a "px"   = Just $ Pixel (floor a::Integer)
     toDim a ""     = Just $ Pixel (floor a::Integer)
-    toDim a "pt"   = Just $ Inch (a / 72)
-    toDim a "pc"   = Just $ Inch (a / 6)
+    toDim a "pt"   = Just $ Point a
+    toDim a "pc"   = Just $ Pica a
     toDim a "em"   = Just $ Em a
     toDim _ _      = Nothing
 
