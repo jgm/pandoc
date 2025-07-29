@@ -45,7 +45,7 @@ import Network.Connection (TLSSettings(..))
 import qualified Network.TLS as TLS
 import qualified Network.TLS.Extra as TLS
 import Network.HTTP.Client
-       (httpLbs, responseBody, responseHeaders,
+       (httpLbs, Manager, responseBody, responseHeaders,
         Request(port, host, requestHeaders), parseRequest, newManager)
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (mkManagerSettings)
@@ -61,7 +61,8 @@ import System.IO.Error
 import System.Random (StdGen)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
-       (PandocMonad, getsCommonState, getMediaBag, report, extractURIData)
+       (PandocMonad, getsCommonState, modifyCommonState,
+        getMediaBag, report, extractURIData)
 import Text.Pandoc.Definition (Pandoc, Inline (Image))
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Logging (LogMessage (..), messageVerbosity, showLogMessage)
@@ -70,7 +71,6 @@ import Text.Pandoc.MediaBag (MediaBag, MediaItem(..), lookupMedia, mediaItems)
 import Text.Pandoc.Walk (walk)
 import qualified Control.Exception as E
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text as T
@@ -124,6 +124,36 @@ newStdGen = liftIO System.Random.newStdGen
 newUniqueHash :: MonadIO m => m Int
 newUniqueHash = hashUnique <$> liftIO Data.Unique.newUnique
 
+getManager :: (PandocMonad m, MonadIO m) => m Manager
+getManager = do
+  mbManager <- getsCommonState stManager
+  disableCertificateValidation <- getsCommonState stNoCheckCertificate
+  case mbManager of
+    Just manager -> pure manager
+    Nothing -> do
+      manager <- liftIO $ do
+        certificateStore <- getSystemCertificateStore
+        let tlsSettings = TLSSettings $
+               (TLS.defaultParamsClient "localhost.localdomain" "80")
+                  { TLS.clientSupported = def{ TLS.supportedCiphers =
+                                               TLS.ciphersuite_default
+                                             , TLS.supportedExtendedMainSecret =
+                                                TLS.AllowEMS }
+                  , TLS.clientShared = def
+                      { TLS.sharedCAStore = certificateStore
+                      , TLS.sharedValidationCache =
+                          if disableCertificateValidation
+                             then TLS.ValidationCache
+                                   (\_ _ _ -> return TLS.ValidationCachePass)
+                                   (\_ _ _ -> return ())
+                             else def
+                      }
+                  }
+        let tlsManagerSettings = mkManagerSettings tlsSettings  Nothing
+        newManager tlsManagerSettings
+      modifyCommonState $ \st -> st{ stManager = Just manager }
+      pure manager
+
 openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType)
 openURL u
  | Just (URI{ uriScheme = "data:",
@@ -132,8 +162,8 @@ openURL u
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
-     disableCertificateValidation <- getsCommonState stNoCheckCertificate
      report $ Fetching u
+     manager <- getManager
      res <- liftIO $ E.try $ withSocketsDo $ do
        proxy <- tryIOError (getEnv "http_proxy")
        let addProxy' x = case proxy of
@@ -142,26 +172,7 @@ openURL u
                                 return (addProxy (host r) (port r) x)
        req <- parseRequest (unpack u) >>= addProxy'
        let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
-       certificateStore <- getSystemCertificateStore
-       let tlsSettings = TLSSettings $
-              (TLS.defaultParamsClient (show $ host req')
-                                       (B8.pack $ show $ port req'))
-                 { TLS.clientSupported = def{ TLS.supportedCiphers =
-                                              TLS.ciphersuite_default
-                                            , TLS.supportedExtendedMainSecret =
-                                               TLS.AllowEMS }
-                 , TLS.clientShared = def
-                     { TLS.sharedCAStore = certificateStore
-                     , TLS.sharedValidationCache =
-                         if disableCertificateValidation
-                            then TLS.ValidationCache
-                                  (\_ _ _ -> return TLS.ValidationCachePass)
-                                  (\_ _ _ -> return ())
-                            else def
-                     }
-                 }
-       let tlsManagerSettings = mkManagerSettings tlsSettings  Nothing
-       resp <- newManager tlsManagerSettings >>= httpLbs req'
+       resp <- httpLbs req' manager
        return (B.concat $ toChunks $ responseBody resp,
                UTF8.toText `fmap` lookup hContentType (responseHeaders resp))
 
