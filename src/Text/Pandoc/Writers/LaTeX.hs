@@ -31,7 +31,7 @@ import Control.Monad
       when,
       unless )
 import Data.Containers.ListUtils (nubOrd)
-import Data.Char (isDigit)
+import Data.Char (isDigit, isAscii)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import Data.Monoid (Any (..))
@@ -1053,7 +1053,9 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
                      then "\\hyperlink" <> braces (literal lab) <> braces contents
                      else "\\hyperref" <> brackets (literal lab) <> braces contents
      _ -> case txt of
-          [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
+          [Str x] | T.all isAscii x  -- see #8802
+                  , unEscapeString (T.unpack x) ==
+                    unEscapeString (T.unpack src) ->  -- autolink
                do modify $ \s -> s{ stUrl = True }
                   src' <- stringToLaTeX URLString (escapeURI src)
                   return $ literal $ "\\url{" <> src' <> "}"
