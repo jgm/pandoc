@@ -20,7 +20,8 @@ module Text.Pandoc.Translations (
                          )
 where
 import Text.Pandoc.Translations.Types
-import Text.Pandoc.Class (PandocMonad(..), CommonState(..), toTextM, report)
+import Text.Pandoc.Class (PandocMonad(..), toTextM, report)
+import Text.Pandoc.Class.CommonState (CommonState(..))
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging (LogMessage(..))
