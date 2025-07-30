@@ -24,8 +24,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.CommonState (CommonState (..))
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class.PandocMonad (PandocMonad (..), getVerbosity)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging (Verbosity (..))
 import Text.Pandoc.Options
@@ -71,7 +70,7 @@ parseTikiWiki = do
 
 block :: PandocMonad m => TikiWikiParser m B.Blocks
 block = do
-  verbosity <- getsCommonState stVerbosity
+  verbosity <- getVerbosity
   pos <- getPosition
   res <- mempty <$ skipMany1 blankline
          <|> blockElements
