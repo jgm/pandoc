@@ -438,8 +438,17 @@ addBlock opts d b = do
   x <- chomp <$> blockToAsciiDoc opts b
   return $
     case b of
-        BulletList{} -> d <> cr <> x
-        OrderedList{} -> d <> cr <> x
+        BulletList{}
+          -> case d of
+              Concat (Concat _ CarriageReturn) (Text 1 "+")
+                -> d <> blankline <> x  -- see #11006
+              _ -> d <> cr <> x
+        OrderedList listAttr _
+          -> case d of
+              Concat (Concat _ CarriageReturn) (Text 1 "+")
+                | (1, DefaultStyle, _) <- listAttr
+                -> d <> blankline <> x  -- see #11006
+              _ -> d <> cr <> x
         Para (Math DisplayMath _:_) -> d <> cr <> x
         Plain (Math DisplayMath _:_) -> d <> cr <> x
         Para{} | isEmpty d -> x
