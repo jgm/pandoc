@@ -28,12 +28,13 @@ module Text.Pandoc.Class.PandocMonad
   , getZonedTime
   , readFileFromDirs
   , report
-  , setTrace
   , setRequestHeader
   , setNoCheckCertificate
   , getLog
   , setVerbosity
   , getVerbosity
+  , setTrace
+  , getTrace
   , getMediaBag
   , setMediaBag
   , insertMedia
@@ -47,6 +48,9 @@ module Text.Pandoc.Class.PandocMonad
   , setOutputFile
   , setResourcePath
   , getResourcePath
+  , setRequestHeaders
+  , getRequestHeaders
+  , getSourceURL
   , readMetadataFile
   , toTextM
   , fillMediaBag
@@ -164,6 +168,15 @@ setVerbosity verbosity =
 getVerbosity :: PandocMonad m => m Verbosity
 getVerbosity = getsCommonState stVerbosity
 
+-- | Set tracing. This affects the behavior of 'trace'. If tracing
+-- is not enabled, 'trace' does nothing.
+setTrace :: PandocMonad m => Bool -> m ()
+setTrace enabled = modifyCommonState $ \st -> st{ stTrace = enabled }
+
+-- | Get tracing status.
+getTrace :: PandocMonad m => m Bool
+getTrace = getsCommonState stTrace
+
 -- | Get the accumulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
@@ -178,12 +191,6 @@ report msg = do
   let level = messageVerbosity msg
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
-
--- | Determine whether tracing is enabled.  This affects
--- the behavior of 'trace'.  If tracing is not enabled,
--- 'trace' does nothing.
-setTrace :: PandocMonad m => Bool -> m ()
-setTrace useTracing = modifyCommonState $ \st -> st{stTrace = useTracing}
 
 -- | Set request header to use in HTTP requests.
 setRequestHeader :: PandocMonad m
@@ -247,6 +254,18 @@ getResourcePath = getsCommonState stResourcePath
 -- | Set the resource path searched by 'fetchItem'.
 setResourcePath :: PandocMonad m => [FilePath] -> m ()
 setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
+
+-- | Retrieve the request headers to add for HTTP requests.
+getRequestHeaders :: PandocMonad m => m [(T.Text, T.Text)]
+getRequestHeaders = getsCommonState stRequestHeaders
+
+-- | Set the request headers to add for HTTP requests.
+setRequestHeaders :: PandocMonad m => [(T.Text, T.Text)] -> m ()
+setRequestHeaders hs = modifyCommonState $ \st -> st{ stRequestHeaders = hs }
+
+-- | Get the absolute UL or directory of first source file.
+getSourceURL :: PandocMonad m => m (Maybe T.Text)
+getSourceURL = getsCommonState stSourceURL
 
 -- | Get the current UTC time. If the @SOURCE_DATE_EPOCH@ environment
 -- variable is set to a unix time (number of seconds since midnight
