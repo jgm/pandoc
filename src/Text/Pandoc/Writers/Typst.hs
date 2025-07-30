@@ -28,10 +28,12 @@ import Data.Bifunctor (first, second)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
-import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
-                                    setupTranslations, lookupMetaString )
+import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
+                                    metaToContext, defField, resetField,
+                                    setupTranslations )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
+import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
 import Text.DocLayout
@@ -75,10 +77,17 @@ pandocToTypst options (Pandoc meta blocks) = do
   let toPosition :: CaptionPosition -> Text
       toPosition CaptionAbove = "top"
       toPosition CaptionBelow = "bottom"
+  let nociteIds = query (\inln -> case inln of
+                                    Cite cs _ -> map citationId cs
+                                    _         -> [])
+                  $ lookupMetaInlines "nocite" meta
+
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents options)
               $ (if isEnabled Ext_citations options
                     then defField "citations" True
+                       . defField "nocite-ids" (filter (/= "*") nociteIds)
+                       . defField "full-bibliography" ("*" `elem` nociteIds)
                     else id)
               $ (case lookupMetaString "lang" meta of
                     "" -> id
