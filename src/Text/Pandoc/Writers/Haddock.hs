@@ -93,62 +93,64 @@ blockToHaddock :: PandocMonad m
                => WriterOptions -- ^ Options
                -> Block         -- ^ Block element
                -> StateT WriterState m (Doc Text)
-blockToHaddock opts (Div _ ils) = do
-  contents <- blockListToHaddock opts ils
-  return $ contents <> blankline
-blockToHaddock opts (Plain inlines) = do
-  contents <- inlineListToHaddock opts inlines
-  return $ contents <> cr
-blockToHaddock opts (Para inlines) =
-  -- TODO:  if it contains linebreaks, we need to use a @...@ block
-  (<> blankline) `fmap` blockToHaddock opts (Plain inlines)
-blockToHaddock opts (LineBlock lns) =
-  blockToHaddock opts $ linesToPara lns
-blockToHaddock _ b@(RawBlock f str)
-  | f == "haddock" =
-      return $ literal str <> text "\n"
-  | otherwise = do
-    report $ BlockNotRendered b
-    return empty
-blockToHaddock opts HorizontalRule =
-  return $ blankline <> text (replicate (writerColumns opts) '_') <> blankline
-blockToHaddock opts (Header level (ident,_,_) inlines) = do
-  contents <- inlineListToHaddock opts inlines
-  let attr' = if T.null ident
-                 then empty
-                 else cr <> text "#" <> literal ident <> text "#"
-  return $ nowrap (text (replicate level '=') <> space <> contents)
-                 <> attr' <> blankline
-blockToHaddock _ (CodeBlock (_,_,_) str) =
-  return $ prefixed "> " (literal str) <> blankline
--- Nothing in haddock corresponds to block quotes:
-blockToHaddock opts (BlockQuote blocks) =
-  blockListToHaddock opts blocks
-blockToHaddock opts (Table _ blkCapt specs thead tbody tfoot) = do
-  let Caption _ caption = blkCapt
-  caption' <- blockListToHaddock opts caption
-  let caption'' = if null caption
-                     then empty
-                     else blankline <> caption' <> blankline
-  tbl <- gridTable opts blockListToHaddock specs thead tbody tfoot
-  return $ (tbl $$ blankline $$ caption'') $$ blankline
-blockToHaddock opts (BulletList items) = do
-  contents <- mapM (bulletListItemToHaddock opts) items
-  return $ (if isTightList items then vcat else vsep) contents <> blankline
-blockToHaddock opts (OrderedList (start,_,delim) items) = do
-  let attribs = (start, Decimal, delim)
-  let markers  = orderedListMarkers attribs
-  let markers' = map (\m -> if T.length m < 3
-                               then m <> T.replicate (3 - T.length m) " "
-                               else m) markers
-  contents <- zipWithM (orderedListItemToHaddock opts) markers' items
-  return $ (if isTightList items then vcat else vsep) contents <> blankline
-blockToHaddock opts (DefinitionList items) = do
-  contents <- mapM (definitionListItemToHaddock opts) items
-  return $ vcat contents <> blankline
-blockToHaddock opts (Figure _ (Caption _ longcapt) body) =
-  -- Haddock has no concept of figures, floats, or captions.
-  fmap (<> blankline) (blockListToHaddock opts (body ++ longcapt))
+blockToHaddock opts block = case unwrapWrapperDiv block of
+  Para inlines -> do
+    -- TODO:  if it contains linebreaks, we need to use a @...@ block
+    contents <- inlineListToHaddock opts inlines
+    return $ contents <> blankline
+  Div _ ils -> do
+    contents <- blockListToHaddock opts ils
+    return $ contents <> blankline
+  Plain inlines -> do
+    contents <- inlineListToHaddock opts inlines
+    return $ contents <> cr
+  LineBlock lns ->
+    blockToHaddock opts $ linesToPara lns
+  b@(RawBlock f str)
+    | f == "haddock" ->
+        return $ literal str <> text "\n"
+    | otherwise -> do
+      report $ BlockNotRendered b
+      return empty
+  HorizontalRule ->
+    return $ blankline <> text (replicate (writerColumns opts) '_') <> blankline
+  Header level (ident,_,_) inlines -> do
+    contents <- inlineListToHaddock opts inlines
+    let attr' = if T.null ident
+                   then empty
+                   else cr <> text "#" <> literal ident <> text "#"
+    return $ nowrap (text (replicate level '=') <> space <> contents)
+                   <> attr' <> blankline
+  CodeBlock (_,_,_) str ->
+    return $ prefixed "> " (literal str) <> blankline
+  -- Nothing in haddock corresponds to block quotes:
+  BlockQuote blocks ->
+    blockListToHaddock opts blocks
+  Table _ blkCapt specs thead tbody tfoot -> do
+    let Caption _ caption = blkCapt
+    caption' <- blockListToHaddock opts caption
+    let caption'' = if null caption
+                       then empty
+                       else blankline <> caption' <> blankline
+    tbl <- gridTable opts blockListToHaddock specs thead tbody tfoot
+    return $ (tbl $$ blankline $$ caption'') $$ blankline
+  BulletList items -> do
+    contents <- mapM (bulletListItemToHaddock opts) items
+    return $ (if isTightList items then vcat else vsep) contents <> blankline
+  OrderedList (start,_,delim) items -> do
+    let attribs = (start, Decimal, delim)
+    let markers  = orderedListMarkers attribs
+    let markers' = map (\m -> if T.length m < 3
+                                 then m <> T.replicate (3 - T.length m) " "
+                                 else m) markers
+    contents <- zipWithM (orderedListItemToHaddock opts) markers' items
+    return $ (if isTightList items then vcat else vsep) contents <> blankline
+  DefinitionList items -> do
+    contents <- mapM (definitionListItemToHaddock opts) items
+    return $ vcat contents <> blankline
+  Figure _ (Caption _ longcapt) body ->
+    -- Haddock has no concept of figures, floats, or captions.
+    fmap (<> blankline) (blockListToHaddock opts (body ++ longcapt))
 
 -- | Convert bullet list item (list of blocks) to haddock
 bulletListItemToHaddock :: PandocMonad m

@@ -59,7 +59,7 @@ import qualified Text.Pandoc.Shared as Shared -- so we don't overlap "Element"
 import Text.Pandoc.Shared (tshow)
 import Text.Pandoc.Writers.Shared (lookupMetaInlines, lookupMetaBlocks
                                  , lookupMetaString, toTableOfContents
-                                 , toLegacyTable)
+                                 , toLegacyTable, unwrapWrapperDiv)
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Maybe (maybeToList, fromMaybe, listToMaybe, isNothing)
@@ -536,7 +536,9 @@ blockToParagraphs (Div (_, classes, _) blks) = let
                    | hasNonIncremental -> Just InNonIncremental
                    | otherwise -> Nothing
   addIncremental env = env { envInIncrementalDiv = incremental }
-  in local addIncremental (concatMapM blockToParagraphs blks)
+  -- Apply unwrapWrapperDiv to each block to handle wrapper divs
+  unwrappedBlks = map unwrapWrapperDiv blks
+  in local addIncremental (concatMapM blockToParagraphs unwrappedBlks)
 blockToParagraphs (Figure attr capt blks) = -- This never seems to be used:
   blockToParagraphs (Shared.figureDiv attr capt blks)
 blockToParagraphs hr@HorizontalRule = notRendered hr

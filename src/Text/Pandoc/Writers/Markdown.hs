@@ -386,43 +386,48 @@ blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
          "important" -> "[!IMPORTANT]\n"
          _ -> "[!NOTE]\n") : ils)) : bs'
   | otherwise = do
-    contents <- blockListToMarkdown opts bs
-    variant <- asks envVariant
-    return $
-       case () of
-           _ | variant == Markua ->
-                 case () of
-                      () | "blurb" `elem` classes'
-                           -> prefixed "B> " contents <> blankline
-                         | "aside" `elem` classes'
-                           -> prefixed "A> " contents <> blankline
-                         -- necessary to enable option to create a bibliography
-                         | (take 3 (T.unpack id')) == "ref"
-                           -> contents <> blankline
-                         | otherwise -> contents <> blankline
-             | isEnabled Ext_fenced_divs opts ->
-                  let attrsToMd = if variant == Commonmark
-                                  then attrsToMarkdown opts
-                                  else classOrAttrsToMarkdown opts
-                      divNesting = computeDivNestingLevel bs
-                      numcolons = 3 + divNesting
-                      colons = literal $ T.replicate numcolons ":"
-                  in nowrap (colons <+> attrsToMd attrs) $$
-                     chomp contents $$
-                     colons <> blankline
-             | isEnabled Ext_native_divs opts ||
-               (isEnabled Ext_raw_html opts &&
-                (variant == Commonmark ||
-                 isEnabled Ext_markdown_in_html_blocks opts)) ->
-                  tagWithAttrs "div" attrs <> blankline <>
-                  contents <> blankline <> "</div>" <> blankline
-             | isEnabled Ext_raw_html opts &&
-               isEnabled Ext_markdown_attribute opts ->
-                  tagWithAttrs "div" attrs' <> blankline <>
-                  contents <> blankline <> "</div>" <> blankline
-             | otherwise -> contents <> blankline
-         where (id',classes',kvs') = attrs
-               attrs' = (id',classes',("markdown","1"):kvs')
+     -- Apply unwrapWrapperDiv to handle wrapper divs
+     case unwrapWrapperDiv (Div attrs bs) of
+       Para inlines -> blockToMarkdown' opts (Para inlines)
+       unwrapped | unwrapped /= Div attrs bs -> blockToMarkdown' opts unwrapped
+       _ -> do
+         contents <- blockListToMarkdown opts bs
+         variant <- asks envVariant
+         return $
+            case () of
+                _ | variant == Markua ->
+                      case () of
+                           () | "blurb" `elem` classes'
+                                -> prefixed "B> " contents <> blankline
+                              | "aside" `elem` classes'
+                                -> prefixed "A> " contents <> blankline
+                              -- necessary to enable option to create a bibliography
+                              | (take 3 (T.unpack id')) == "ref"
+                                -> contents <> blankline
+                              | otherwise -> contents <> blankline
+                  | isEnabled Ext_fenced_divs opts ->
+                       let attrsToMd = if variant == Commonmark
+                                       then attrsToMarkdown opts
+                                       else classOrAttrsToMarkdown opts
+                           divNesting = computeDivNestingLevel bs
+                           numcolons = 3 + divNesting
+                           colons = literal $ T.replicate numcolons ":"
+                       in nowrap (colons <+> attrsToMd attrs) $$
+                          chomp contents $$
+                          colons <> blankline
+                  | isEnabled Ext_native_divs opts ||
+                    (isEnabled Ext_raw_html opts &&
+                     (variant == Commonmark ||
+                      isEnabled Ext_markdown_in_html_blocks opts)) ->
+                       tagWithAttrs "div" attrs <> blankline <>
+                       contents <> blankline <> "</div>" <> blankline
+                  | isEnabled Ext_raw_html opts &&
+                    isEnabled Ext_markdown_attribute opts ->
+                       tagWithAttrs "div" attrs' <> blankline <>
+                       contents <> blankline <> "</div>" <> blankline
+                  | otherwise -> contents <> blankline
+              where (id',classes',kvs') = attrs
+                    attrs' = (id',classes',("markdown","1"):kvs')
 blockToMarkdown' opts (Plain inlines) = do
   -- escape if para starts with ordered list marker
   variant <- asks envVariant

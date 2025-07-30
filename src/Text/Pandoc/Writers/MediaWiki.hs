@@ -88,9 +88,13 @@ blockToMediaWiki :: PandocMonad m
                  -> MediaWikiWriter m Text
 
 blockToMediaWiki (Div attrs bs) = do
-  contents <- blockListToMediaWiki bs
-  return $ render Nothing (tagWithAttrs "div" attrs) <> "\n\n" <>
-                     contents <> "\n\n" <> "</div>"
+  -- First try to unwrap wrapper divs
+  case unwrapWrapperDiv (Div attrs bs) of
+    Para inlines -> blockToMediaWiki (Para inlines)
+    _ -> do
+      contents <- blockListToMediaWiki bs
+      return $ render Nothing (tagWithAttrs "div" attrs) <> "\n\n" <>
+                         contents <> "\n\n" <> "</div>"
 
 blockToMediaWiki (Plain inlines) =
   inlineListToMediaWiki inlines

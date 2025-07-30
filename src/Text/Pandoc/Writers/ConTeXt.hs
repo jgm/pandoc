@@ -38,7 +38,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.URI (isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Walk (query)
-import Text.Pandoc.Writers.Shared
+import Text.Pandoc.Writers.Shared (unwrapWrapperDiv, defField, getField, resetField, lookupMetaString, metaToContext, getLang)
 import Text.Printf (printf)
 
 import qualified Data.List.NonEmpty as NonEmpty
@@ -187,37 +187,40 @@ toLabel z = T.concatMap go z
 
 -- | Convert Pandoc block element to ConTeXt.
 blockToConTeXt :: PandocMonad m => Block -> WM m (Doc Text)
-blockToConTeXt (Div attr@(_,"section":_,_)
+blockToConTeXt block = blockToConTeXt' (unwrapWrapperDiv block)
+
+blockToConTeXt' :: PandocMonad m => Block -> WM m (Doc Text)
+blockToConTeXt' (Div attr@(_,"section":_,_)
                  (Header level _ title' : xs)) = do
   header' <- sectionHeader attr level title' SectionHeading
   footer' <- sectionFooter attr level
   innerContents <- blockListToConTeXt xs
   return $ header' $$ innerContents $$ footer'
-blockToConTeXt (Plain lst) = do
+blockToConTeXt' (Plain lst) = do
   opts <- gets stOptions
   contents <- inlineListToConTeXt lst
   return $
     if isEnabled Ext_tagging opts
     then "\\bpar{}" <> contents <> "\\epar{}"
     else contents
-blockToConTeXt (Para lst) = do
+blockToConTeXt' (Para lst) = do
   opts <- gets stOptions
   contents <- inlineListToConTeXt lst
   return $
     if isEnabled Ext_tagging opts
     then "\\bpar" $$ contents $$ "\\epar" <> blankline
     else contents <> blankline
-blockToConTeXt (LineBlock lns) = do
+blockToConTeXt' (LineBlock lns) = do
   let emptyToBlankline doc = if isEmpty doc
                              then blankline
                              else doc
   doclines <- mapM inlineListToConTeXt lns
   let contextLines = vcat . map emptyToBlankline $ doclines
   return $ "\\startlines" $$ contextLines $$ "\\stoplines" <> blankline
-blockToConTeXt (BlockQuote lst) = do
+blockToConTeXt' (BlockQuote lst) = do
   contents <- blockListToConTeXt lst
   return $ "\\startblockquote" $$ nest 0 contents $$ "\\stopblockquote" <> blankline
-blockToConTeXt (CodeBlock (_ident, classes, kv) str) = do
+blockToConTeXt' (CodeBlock (_ident, classes, kv) str) = do
   opts <- gets stOptions
   let syntaxMap = writerSyntaxMap opts
   let attr' = ("", classes, kv)
@@ -236,15 +239,15 @@ blockToConTeXt (CodeBlock (_ident, classes, kv) str) = do
     if null classes || isNothing (writerHighlightStyle opts)
     then pure unhighlighted
     else highlighted
-blockToConTeXt b@(RawBlock f str)
+blockToConTeXt' b@(RawBlock f str)
   | f == Format "context" || f == Format "tex" = return $ literal str <> blankline
   | otherwise = empty <$ report (BlockNotRendered b)
-blockToConTeXt (Div ("refs",classes,_) bs) = do
+blockToConTeXt' (Div ("refs",classes,_) bs) = do
   modify $ \st -> st{ stHasCslRefs = True
                     , stCslHangingIndent = "hanging-indent" `elem` classes }
   inner <- blockListToConTeXt bs
   return $ "\\startcslreferences" $$ inner $$ "\\stopcslreferences"
-blockToConTeXt (Div (ident,_,kvs) bs) = do
+blockToConTeXt' (Div (ident,_,kvs) bs) = do
   let align dir txt = "\\startalignment[" <> dir <> "]" $$ txt $$ "\\stopalignment"
   mblang <- fromBCP47 (lookup "lang" kvs)
   let wrapRef txt = if T.null ident
@@ -261,13 +264,13 @@ blockToConTeXt (Div (ident,_,kvs) bs) = do
                        Nothing  -> txt
       wrapBlank txt = blankline <> txt <> blankline
   wrapBlank . wrapLang . wrapDir . wrapRef <$> blockListToConTeXt bs
-blockToConTeXt (BulletList lst) = do
+blockToConTeXt' (BulletList lst) = do
   contents <- mapM listItemToConTeXt lst
   return $ ("\\startitemize" <> if isTightList lst
                                    then brackets "packed"
                                    else empty) $$
     vcat contents $$ literal "\\stopitemize" <> blankline
-blockToConTeXt (OrderedList (start, style', delim) lst) = do
+blockToConTeXt' (OrderedList (start, style', delim) lst) = do
     st <- get
     let level = stOrderedListLevel st
     put st {stOrderedListLevel = level + 1}
@@ -295,15 +298,15 @@ blockToConTeXt (OrderedList (start, style', delim) lst) = do
     let specs = T.pack style'' <> specs2
     return $ "\\startenumerate" <> literal specs $$ vcat contents $$
              "\\stopenumerate" <> blankline
-blockToConTeXt (DefinitionList lst) =
+blockToConTeXt' (DefinitionList lst) =
   liftM vcat $ mapM defListItemToConTeXt lst
-blockToConTeXt HorizontalRule = return $ "\\thinrule" <> blankline
+blockToConTeXt' HorizontalRule = return $ "\\thinrule" <> blankline
 -- If this is ever executed, provide a default for the reference identifier.
-blockToConTeXt (Header level attr lst) =
+blockToConTeXt' (Header level attr lst) =
   sectionHeader attr level lst NonSectionHeading
-blockToConTeXt (Table attr caption colspecs thead tbody tfoot) =
+blockToConTeXt' (Table attr caption colspecs thead tbody tfoot) =
   tableToConTeXt (Ann.toTable attr caption colspecs thead tbody tfoot)
-blockToConTeXt (Figure (ident, _, _) (Caption cshort clong) body) = do
+blockToConTeXt' (Figure (ident, _, _) (Caption cshort clong) body) = do
   title   <- inlineListToConTeXt (blocksToInlines clong)
   list    <- maybe (pure empty) inlineListToConTeXt cshort
   content <- blockListToConTeXt body

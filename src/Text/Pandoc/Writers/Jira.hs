@@ -28,7 +28,7 @@ import Text.Pandoc.Options (WriterOptions (writerTemplate, writerWrapText),
 import Text.Pandoc.Shared (linesToPara, stringify)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
-import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
+import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unwrapWrapperDiv)
 import Text.DocLayout (literal, render)
 import qualified Data.Text as T
 import qualified Text.Jira.Markup as Jira
@@ -93,7 +93,9 @@ toJiraBlocks blocks = do
                                 <$> toJiraItems items
         CodeBlock attr cs    -> toJiraCode attr cs
         DefinitionList items -> toJiraDefinitionList items
-        Div attr bs          -> toJiraPanel attr bs
+        Div attr bs          -> case unwrapWrapperDiv (Div attr bs) of
+                                  Para inlines -> singleton . Jira.Para <$> toJiraInlines inlines
+                                  _            -> toJiraPanel attr bs
         Header lvl attr xs   -> toJiraHeader lvl attr xs
         HorizontalRule       -> return . singleton $ Jira.HorizontalRule
         LineBlock xs         -> toJiraBlocks [linesToPara xs]

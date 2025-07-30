@@ -227,6 +227,8 @@ writeOpenXML :: PandocMonad m
              -> WS m (Text, [Element], [Element])
 writeOpenXML opts (Pandoc meta blocks) = do
   setupTranslations meta
+  -- Apply unwrapWrapperDiv to all blocks
+  let blocks' = walk unwrapWrapperDiv blocks
   let includeTOC = writerTableOfContents opts || lookupMetaBool "toc" meta
   let includeLOF = writerListOfFigures opts || lookupMetaBool "lof" meta
   let includeLOT = writerListOfTables opts || lookupMetaBool "lot" meta
@@ -252,7 +254,7 @@ writeOpenXML opts (Pandoc meta blocks) = do
              (fmap (hcat . map (literal . showContent)) . inlinesToOpenXML opts)
              (docAuthors meta)
 
-  doc' <- setFirstPara >> blocksToOpenXML opts blocks
+  doc' <- setFirstPara >> blocksToOpenXML opts blocks'
   let body = vcat $ map (literal . showContent) doc'
   notes' <- gets (reverse . stFootnotes)
   comments <- gets (reverse . stComments)

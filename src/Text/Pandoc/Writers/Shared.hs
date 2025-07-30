@@ -49,6 +49,7 @@ module Text.Pandoc.Writers.Shared (
                      , isOrderedListMarker
                      , toTaskListItem
                      , delimited
+                     , unwrapWrapperDiv
                      )
 where
 import Safe (lastMay, maximumMay)
@@ -842,3 +843,11 @@ delimited opener closer content =
   toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
   toList (Concat a b) = a : toList b
   toList x = [x]
+
+-- | Unwrap a Div with wrapper="1" attribute containing a single Para.
+-- This is used to handle HTML paragraphs with attributes that were
+-- wrapped during parsing.
+unwrapWrapperDiv :: Block -> Block
+unwrapWrapperDiv (Div (_, _, kvs) [Para inlines])
+  | Just "1" <- lookup "wrapper" kvs = Para inlines
+unwrapWrapperDiv block = block

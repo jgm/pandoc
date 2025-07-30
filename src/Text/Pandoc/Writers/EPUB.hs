@@ -35,7 +35,7 @@ import qualified Data.Text.Lazy as TL
 import System.FilePath (takeExtension, takeFileName, makeRelative)
 import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Text.Pandoc.Builder (fromList, setMeta)
-import Text.Pandoc.Writers.Shared (ensureValidXmlIdentifiers)
+import Text.Pandoc.Writers.Shared (ensureValidXmlIdentifiers, unwrapWrapperDiv)
 import Data.Tree (Tree(..))
 import Text.Pandoc.Class (PandocMonad, report)
 import qualified Text.Pandoc.Class.PandocPure as P
@@ -1211,7 +1211,7 @@ transformBlock (RawBlock fmt raw)
   let tags = parseTags raw
   tags' <- mapM transformTag tags
   return $ RawBlock fmt (renderTags' tags')
-transformBlock b = return b
+transformBlock b = return $ unwrapWrapperDiv b
 
 transformInline  :: PandocMonad m
                  => WriterOptions
