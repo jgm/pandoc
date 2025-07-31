@@ -28,6 +28,7 @@ module Text.Pandoc.Class.PandocMonad
   , getZonedTime
   , readFileFromDirs
   , report
+  , runSilently
   , setRequestHeader
   , setNoCheckCertificate
   , getLog
@@ -191,6 +192,23 @@ report msg = do
   let level = messageVerbosity msg
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
+
+-- | Run an action, but suppress the output of any log messages;
+-- instead, all messages reported by @action@ are returned separately
+-- and not added to the main log.
+runSilently :: PandocMonad m => m a -> m (a, [LogMessage])
+runSilently action = do
+  -- get current settings
+  origLog <- getsCommonState stLog
+  origVerbosity <- getVerbosity
+  -- reset log level and set verbosity to the minimum
+  modifyCommonState (\st -> st { stVerbosity = ERROR, stLog = []})
+  result <- action
+  -- get log messages reported while running `action`
+  newLog <- getsCommonState stLog
+  modifyCommonState (\st -> st { stVerbosity = origVerbosity, stLog = origLog})
+
+  return (result, newLog)
 
 -- | Set request header to use in HTTP requests.
 setRequestHeader :: PandocMonad m
