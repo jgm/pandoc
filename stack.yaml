@@ -25,6 +25,8 @@ extra-deps:
   commit: b32c4c117795d8fef3fcc8996a62ee661904738e
 - git: https://github.com/jgm/texmath.git
   commit: 77e20978ffcdec4ca50bbb809f061850c0998560
+- git: https://github.com/jgm/pandoc-types.git
+  commit: aab4360e78ba27147a5b48ed3c8fcc8e96c71396
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.22

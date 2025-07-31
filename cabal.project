@@ -16,6 +16,12 @@ source-repository-package
   location: https://github.com/jgm/citeproc.git
   tag: b32c4c117795d8fef3fcc8996a62ee661904738e
 
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/pandoc-types.git
+  tag: aab4360e78ba27147a5b48ed3c8fcc8e96c71396
+
 source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
