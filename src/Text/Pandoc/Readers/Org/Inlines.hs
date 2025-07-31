@@ -199,7 +199,7 @@ addSuffixToLastItem aff cs = do
                                 citationSuffix d <> B.toList aff' }])
 
 citeItems :: PandocMonad m => OrgParser m (F [Citation])
-citeItems = sequence <$> citeItem `sepBy1` (char ';')
+citeItems = sequence <$> citeItem `sepBy1` (char ';' <* skipMany1 spaceChar)
 
 citeItem :: PandocMonad m => OrgParser m (F Citation)
 citeItem = do
