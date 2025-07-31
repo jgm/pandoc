@@ -14,14 +14,9 @@ module Text.Pandoc.Lua.Module.Log
 
 import Data.Version (makeVersion)
 import HsLua
-import Text.Pandoc.Class
-  ( CommonState (stVerbosity, stLog)
-  , PandocMonad (putCommonState, getCommonState)
-  , report )
+import Text.Pandoc.Class (report, runSilently)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Logging
-  ( Verbosity (ERROR)
-  , LogMessage (ScriptingInfo, ScriptingWarning) )
+import Text.Pandoc.Logging (LogMessage (ScriptingInfo, ScriptingWarning))
 import Text.Pandoc.Lua.Marshal.List (pushPandocList)
 import Text.Pandoc.Lua.Marshal.LogMessage (pushLogMessage)
 import Text.Pandoc.Lua.PandocLua (liftPandocLua, unPandocLua)
@@ -92,23 +87,12 @@ documentedModule = Module
 -- results of the function call after that.
 silence :: LuaE PandocError NumResults
 silence = unPandocLua $ do
-  -- get current log messages
-  origState <- getCommonState
-  let origLog = stLog origState
-  let origVerbosity = stVerbosity origState
-  putCommonState (origState { stLog = [], stVerbosity = ERROR })
-
   -- call function given as the first argument
-  liftPandocLua $ do
+  ((), messages) <- runSilently . liftPandocLua $ do
     nargs <- (NumArgs . subtract 1 . fromStackIndex) <$> gettop
     call @PandocError nargs multret
 
-  -- restore original log messages
-  newState <- getCommonState
-  let newLog = stLog newState
-  putCommonState (newState { stLog = origLog, stVerbosity = origVerbosity })
-
   liftPandocLua $ do
-    pushPandocList pushLogMessage newLog
+    pushPandocList pushLogMessage messages
     insert 1
     (NumResults . fromStackIndex) <$> gettop

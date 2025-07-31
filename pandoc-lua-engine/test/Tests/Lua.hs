@@ -24,8 +24,7 @@ import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
                             linebreak, math, orderedList, para, plain, rawBlock,
                             singleQuoted, space, str, strong,
                             HasMeta (setMeta))
-import Text.Pandoc.Class ( CommonState (stVerbosity)
-                         , modifyCommonState, runIOorExplode, setUserDataDir)
+import Text.Pandoc.Class ( runIOorExplode, setUserDataDir, setVerbosity )
 import Text.Pandoc.Definition (Attr, Block (BlockQuote, Div, Para), Pandoc,
                                Inline (Emph, Str), pandocTypesVersion)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
@@ -242,7 +241,7 @@ runLuaTest :: HasCallStack => Lua.LuaE PandocError a -> IO a
 runLuaTest op = runIOorExplode $ do
   -- Disable printing of warnings on stderr: some tests will generate
   -- warnings, we don't want to see those messages.
-  modifyCommonState $ \st -> st { stVerbosity = ERROR }
+  setVerbosity ERROR
   res <- runLua $ do
     setGlobals [ PANDOC_WRITER_OPTIONS def ]
     op

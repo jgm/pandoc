@@ -110,8 +110,8 @@ return {
   },
 
   group 'PANDOC_STATE' {
-    test('is a userdata object', function ()
-      assert.are_equal(type(PANDOC_STATE), 'userdata')
+    test('is a table object', function ()
+      assert.are_equal(type(PANDOC_STATE), 'table')
     end),
     test('has property "input_files"', function ()
       assert.are_equal(type(PANDOC_STATE.input_files), 'table')

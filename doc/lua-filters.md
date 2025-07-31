@@ -2397,8 +2397,7 @@ Fields:
 :   Output file from command line (string or nil)
 
 `log`
-:   A list of log messages in reverse order ([List] of
-    [LogMessage]s)
+:   A list of log messages ([List] of [LogMessage]s)
 
 `request_headers`
 :   Headers to add for HTTP requests; table with header names as
