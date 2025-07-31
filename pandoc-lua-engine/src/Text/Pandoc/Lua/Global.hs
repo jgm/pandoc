@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Lua
@@ -16,14 +17,18 @@ module Text.Pandoc.Lua.Global
 
 import HsLua as Lua
 import HsLua.Module.Version (pushVersion)
-import Text.Pandoc.Class (CommonState)
+import Text.Pandoc.Class ( getInputFiles, getOutputFile, getLog
+                         , getRequestHeaders, getResourcePath, getSourceURL
+                         , getUserDataDir, getTrace, getVerbosity
+                         )
 import Text.Pandoc.Definition (Pandoc, pandocTypesVersion)
 import Text.Pandoc.Error (PandocError)
-import Text.Pandoc.Lua.Marshal.CommonState (pushCommonState)
+import Text.Pandoc.Lua.Marshal.List (pushPandocList)
+import Text.Pandoc.Lua.Marshal.LogMessage (pushLogMessage)
 import Text.Pandoc.Lua.Marshal.Pandoc (pushPandoc)
 import Text.Pandoc.Lua.Marshal.ReaderOptions (pushReaderOptionsReadonly)
 import Text.Pandoc.Lua.Marshal.WriterOptions (pushWriterOptions)
-import Text.Pandoc.Lua.PandocLua ()
+import Text.Pandoc.Lua.PandocLua (unPandocLua)
 import Text.Pandoc.Options (ReaderOptions, WriterOptions)
 import Text.Pandoc.Version (pandocVersion)
 
@@ -37,7 +42,7 @@ data Global =
   | PANDOC_READER_OPTIONS ReaderOptions
   | PANDOC_WRITER_OPTIONS WriterOptions
   | PANDOC_SCRIPT_FILE FilePath
-  | PANDOC_STATE CommonState
+  | PANDOC_STATE
   | PANDOC_VERSION
   -- Cannot derive instance of Data because of CommonState
 
@@ -66,8 +71,47 @@ setGlobal global = case global of
   PANDOC_SCRIPT_FILE filePath -> do
     Lua.pushString filePath
     Lua.setglobal "PANDOC_SCRIPT_FILE"
-  PANDOC_STATE commonState -> do
-    pushCommonState commonState
+  PANDOC_STATE -> do
+    -- The common state is an opaque value. We provide a table that
+    -- contains the values accessible through the PandocMonad API. This
+    -- is for backwards compatibility, as the state used to be exposed
+    -- as a read-only object.
+    Lua.newtable
+    Lua.newmetatable "CommonStateInterface"
+    Lua.pushHaskellFunction $ do
+      Lua.forcePeek (peekText (Lua.nthBottom 2)) >>= \case
+        "input_files" -> do
+          pushPandocList pushString =<< unPandocLua getInputFiles
+          return 1
+        "output_file" -> do
+          maybe pushnil pushString =<< unPandocLua getOutputFile
+          return 1
+        "log" -> do
+          pushPandocList pushLogMessage =<< unPandocLua getLog
+          return 1
+        "request_headers" -> do
+          pushPandocList (pushPair pushText pushText)
+                   =<< unPandocLua getRequestHeaders
+          return 1
+        "resource_path" -> do
+          pushPandocList pushString =<< unPandocLua getResourcePath
+          return 1
+        "source_url" -> do
+          maybe pushnil pushText =<< unPandocLua getSourceURL
+          return 1
+        "user_data_dir" -> do
+          maybe pushnil pushString =<< unPandocLua getUserDataDir
+          return 1
+        "trace" -> do
+          pushBool =<< unPandocLua getTrace
+          return 1
+        "verbosity" -> do
+          pushString . show =<< unPandocLua getVerbosity
+          return 1
+        _ ->
+          failLua "Unknown key"
+    Lua.setfield (Lua.nth 2) "__index"
+    Lua.setmetatable (Lua.nth 2)
     Lua.setglobal "PANDOC_STATE"
   PANDOC_VERSION              -> do
     pushVersion pandocVersion

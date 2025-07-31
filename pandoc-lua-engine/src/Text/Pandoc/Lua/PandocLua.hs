@@ -81,9 +81,7 @@ instance PandocMonad PandocLua where
     forcePeek $ peekCommonState Lua.top `lastly` pop 1
   putCommonState cst = PandocLua $ do
     pushCommonState cst
-    Lua.pushvalue Lua.top
     Lua.setfield registryindex "PANDOC_STATE"
-    Lua.setglobal "PANDOC_STATE"
 
   logOutput = IO.logOutput
 
