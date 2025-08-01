@@ -365,7 +365,7 @@ runTectonic program args' tmpDir' source = do
     (exit, out) <- liftIO $ E.catch
       (pipeProcess (Just env) program programArgs sourceBL)
       (handlePDFProgramNotFound program)
-    report $ MakePDFInfo "tectonic output" (UTF8.toText $ BL.toStrict out)
+    report $ MakePDFInfo "tectonic output" (utf8ToText out)
     let pdfFile = tmpDir ++ "/texput.pdf"
     (_, pdf) <- getResultingPDF Nothing pdfFile
     return (exit, out, pdf)
@@ -428,7 +428,7 @@ runTeXProgram program args tmpDir outDir = do
      (exit, out) <- liftIO $ E.catch
        (pipeProcess (Just env'') program programArgs BL.empty)
        (handlePDFProgramNotFound program)
-     report $ MakePDFInfo "LaTeX output" (UTF8.toText $ BL.toStrict out)
+     report $ MakePDFInfo "LaTeX output" (utf8ToText out)
      -- parse log to see if we need to rerun LaTeX
      let logFile = replaceExtension outfile ".log"
      logExists <- fileExists logFile
@@ -442,8 +442,7 @@ runTeXProgram program args tmpDir outDir = do
      if not (null rerunWarnings') && runNumber < maxruns
         then do
           report $ MakePDFInfo "Rerun needed"
-                    (T.intercalate "\n"
-                      (map (UTF8.toText . BC.toStrict) rerunWarnings'))
+                    (T.intercalate "\n" (map utf8ToText rerunWarnings'))
           go env'' programArgs (runNumber + 1)
        else do
           (log', pdf) <- getResultingPDF (Just logFile) outfile
@@ -496,7 +495,7 @@ toPdfViaTempFile verbosity program args mkOutArgs extension source =
         (handlePDFProgramNotFound program)
       runIOorExplode $ do
         setVerbosity verbosity
-        report $ MakePDFInfo "pdf-engine output" (UTF8.toText $ BL.toStrict out)
+        report $ MakePDFInfo "pdf-engine output" (utf8ToText out)
       pdfExists <- doesFileExist pdfFile
       mbPdf <- if pdfExists
                 -- We read PDF as a strict bytestring to make sure that the
@@ -529,7 +528,7 @@ context2pdf program pdfargs tmpDir source = do
       (handlePDFProgramNotFound program)
     runIOorExplode $ do
       setVerbosity verbosity
-      report $ MakePDFInfo "ConTeXt run output" (UTF8.toText $ BL.toStrict out)
+      report $ MakePDFInfo "ConTeXt run output" (utf8ToText out)
     let pdfFile = replaceExtension file ".pdf"
     pdfExists <- doesFileExist pdfFile
     mbPdf <- if pdfExists
