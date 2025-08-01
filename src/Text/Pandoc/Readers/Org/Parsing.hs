@@ -40,6 +40,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , many1Till
   , many1TillChar
   , notFollowedBy'
+  , sepBy1'
   , spaceChar
   , nonspaceChar
   , skipSpaces

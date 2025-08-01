@@ -199,10 +199,10 @@ addSuffixToLastItem aff cs = do
                                 citationSuffix d <> B.toList aff' }])
 
 citeItems :: PandocMonad m => OrgParser m (F [Citation])
-citeItems = sequence <$> citeItem `sepBy1` (char ';' <* skipMany1 spaceChar)
+citeItems = sequence <$> sepBy1' citeItem (char ';' <* void (many spaceChar))
 
 citeItem :: PandocMonad m => OrgParser m (F Citation)
-citeItem = do
+citeItem = try $ do
   pref <- citePrefix
   itemKey <- orgCiteKey
   suff <- citeSuffix
@@ -246,37 +246,36 @@ citePrefix =
 
 citeSuffix :: PandocMonad m => OrgParser m (F Inlines)
 citeSuffix =
-  rawAffix False >>= parseFromString parseSuffix
- where
-   parseSuffix = do
-     hasSpace <- option False
-              (True <$ try (spaceChar >> skipSpaces >> lookAhead nonspaceChar))
-     ils <- trimInlinesF . mconcat <$> many inline
-     return $ if hasSpace
-                 then (B.space <>) <$> ils
-                 else ils
+  rawAffix False >>= parseFromString (mconcat <$> many inline)
 
 citeStyle :: PandocMonad m => OrgParser m (CiteStyle, [CiteVariant])
-citeStyle = option (DefStyle, []) $ do
-  sty <- option DefStyle $ try $ char '/' *> orgCiteStyle
+citeStyle = do
+  sty <- option NilStyle $ try $ char '/' *> orgCiteStyle
   variants <- option [] $ try $ char '/' *> orgCiteVariants
   return (sty, variants)
 
 orgCiteStyle :: PandocMonad m => OrgParser m CiteStyle
-orgCiteStyle = choice $ map try
-  [ NoAuthorStyle <$ string "noauthor"
-  , NoAuthorStyle <$ string "na"
-  , LocatorsStyle <$ string "locators"
-  , LocatorsStyle <$ char 'l'
-  , NociteStyle <$ string "nocite"
-  , NociteStyle <$ char 'n'
-  , TextStyle <$ string "text"
-  , TextStyle <$ char 't'
-  ]
+orgCiteStyle = try $ do
+  s <- many1 letter
+  case s of
+    "author" -> pure AuthorStyle
+    "a" -> pure AuthorStyle
+    "noauthor" -> pure NoAuthorStyle
+    "na" -> pure NoAuthorStyle
+    "nocite" -> pure NociteStyle
+    "n" -> pure NociteStyle
+    "text" -> pure TextStyle
+    "t" -> pure TextStyle
+    "note" -> pure NoteStyle
+    "ft" -> pure NoteStyle
+    "numeric" -> pure NumericStyle
+    "nb" -> pure NumericStyle
+    "nil" -> pure NilStyle
+    _ -> fail $ "Unknown org cite style " <> show s
 
 orgCiteVariants :: PandocMonad m => OrgParser m [CiteVariant]
 orgCiteVariants =
-  (fullnameVariant `sepBy1` (char '-')) <|> (many1 onecharVariant)
+  (sepBy1' fullnameVariant (char '-')) <|> (many1 onecharVariant)
  where
   fullnameVariant = choice $ map try
      [ Bare <$ string "bare"
@@ -290,11 +289,14 @@ orgCiteVariants =
      ]
 
 data CiteStyle =
-    NoAuthorStyle
+    AuthorStyle
+  | NoAuthorStyle
   | LocatorsStyle
   | NociteStyle
   | TextStyle
-  | DefStyle
+  | NoteStyle
+  | NumericStyle
+  | NilStyle
   deriving Show
 
 data CiteVariant =
