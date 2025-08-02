@@ -845,6 +845,11 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
                      if null innerSecs
                         then mempty
                         else nl <> innerContents
+blockToHtmlInner opts (Div (ident, classes, kvs) [b])
+  | Just "1" <- lookup "wrapper" kvs
+    -- unwrap "wrapper" div, putting attr on child
+  = blockToHtmlInner opts b >>=
+      addAttrs opts (ident, classes, [(k,v) | (k,v) <- kvs, k /= "wrapper"])
 blockToHtmlInner opts (Div attr@(ident, classes, kvs') bs) = do
   html5 <- gets stHtml5
   slideVariant <- gets stSlideVariant
