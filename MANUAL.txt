@@ -5865,6 +5865,19 @@ the suffix as locator by prepending curly braces:
     [@smith, {pp. iv, vi-xi, (xv)-(xvii)} with suffix here]
     [@smith{}, 99 years later]
 
+A prefix or suffix can be marked as going with the whole citation
+rather than an individual item. A horizontal bar (`|`) is used
+to separate the global citation prefix or suffix from the individual
+items:
+
+    [for example, see |@C1; @A3; @B4, in part|, and others]
+
+The global prefix/suffix will always be at the beginning/end
+of the rendered citation, even if the style causes the
+items to be sorted in a different order. By contrast, the
+prefixes and suffixes on each item will move with the items when
+they are sorted.
+
 A minus sign (`-`) before the `@` will suppress mention of
 the author in the citation.  This can be useful when the
 author is already mentioned in the text:
