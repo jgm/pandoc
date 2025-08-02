@@ -137,6 +137,44 @@ tests = [ testGroup "base tag"
             =?>
             codeBlockWith ("c", [], []) "print('hi mom!')"
           ]
+        , testGroup "paragraph attributes"
+          [ test htmlNativeDivs "paragraph with id and class" $
+            "<p id=\"mypara\" class=\"important\">This is a paragraph.</p>" =?>
+            doc (divWith ("mypara", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with id only" $
+            "<p id=\"mypara\">This is a paragraph.</p>" =?>
+            doc (divWith ("mypara", [], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with class only" $
+            "<p class=\"important\">This is a paragraph.</p>" =?>
+            doc (divWith ("", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with multiple classes" $
+            "<p class=\"important urgent\">This is a paragraph.</p>" =?>
+            doc (divWith ("", ["important", "urgent"], [("wrapper", "1")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph with key-value attributes" $
+            "<p data-foo=\"bar\">This is a paragraph.</p>" =?>
+            doc (divWith ("", [], [("wrapper", "1"), ("foo", "bar")]) (para (text "This is a paragraph.")))
+          , test htmlNativeDivs "paragraph without attributes" $
+            "<p>This is a normal paragraph.</p>" =?>
+            doc (para (text "This is a normal paragraph."))
+          , test htmlNativeDivs "paragraph with align only (center)" $
+            "<p align=\"center\">Aligned paragraph.</p>" =?>
+            doc (divWith ("", [], [("wrapper", "1"), ("align", "center")]) (para (text "Aligned paragraph.")))
+          , test htmlNativeDivs "paragraph with align only (right)" $
+            "<p align=\"right\">Aligned paragraph.</p>" =?>
+            doc (divWith ("", [], [("wrapper", "1"), ("align", "right")]) (para (text "Aligned paragraph.")))
+          , test htmlNativeDivs "paragraph with align and id" $
+            "<p id=\"foo\" align=\"left\">Aligned paragraph with id.</p>" =?>
+            doc (divWith ("foo", [], [("wrapper", "1"), ("align", "left")]) (para (text "Aligned paragraph with id.")))
+          , test htmlNativeDivs "paragraph with align and class" $
+            "<p class=\"bar\" align=\"justify\">Aligned paragraph with class.</p>" =?>
+            doc (divWith ("", ["bar"], [("wrapper", "1"), ("align", "justify")]) (para (text "Aligned paragraph with class.")))
+          , test htmlNativeDivs "paragraph with invalid align" $
+            "<p align=\"invalid\">Invalid align.</p>" =?>
+            doc (divWith ("", [], [("wrapper", "1"), ("align", "invalid")]) (para (text "Invalid align.")))
+          , test htmlNativeDivs "paragraph with invalid align and id" $
+            "<p id=\"baz\" align=\"invalid\">Invalid align with id.</p>" =?>
+            doc (divWith ("baz", [], [("wrapper", "1"), ("align", "invalid")]) (para (text "Invalid align with id.")))
+          ]
         , askOption $ \(QuickCheckTests numtests) ->
             testProperty "Round trip" $
               withMaxSuccess (if QuickCheckTests numtests == defaultValue

@@ -383,9 +383,13 @@ blockToICML opts style (Table attr blkCapt specs thead tbody tfoot) =
                        , ("ColumnCount", tshow nrCols)
                        ] (colDescs $$ cells)
       liftM2 ($$) tableDoc $ parStyle opts (tableCaptionName:style) "" caption
-blockToICML opts style (Div (_ident, _, kvs) lst) =
-  let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
-  in  blocksToICML opts (dynamicStyle <> style) lst
+blockToICML opts style block@(Div (_, _, kvs) lst) =
+  case unwrapWrapperDiv block of
+    Para inlines -> blockToICML opts style (Para inlines)
+    Div {} ->
+      let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
+      in  blocksToICML opts (dynamicStyle <> style) lst
+    other -> blockToICML opts style other
 blockToICML opts style (Figure attr capt@(Caption _ longcapt) body) =
   case body of
     [Plain [img@(Image {})]] -> do
