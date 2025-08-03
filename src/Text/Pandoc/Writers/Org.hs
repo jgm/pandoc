@@ -71,6 +71,17 @@ pandocToOrg (Pandoc meta blocks) = do
   let main = body $+$ notes
   let context = defField "body" main
               . defField "math" hasMath
+              . defField "options"
+                         (M.fromList
+                          ((if isEnabled Ext_smart_quotes opts
+                            then (("'", "t"):)
+                            else id) .
+                           (if not (isEnabled Ext_special_strings opts)
+                            then (("-", "nil"):)
+                            else id)
+                           $ ([] :: [(Text, Text)])))
+              . defField "option-special-strings"
+                         (isEnabled Ext_special_strings opts)
               $ metadata
   return $ render colwidth $
     case writerTemplate opts of
