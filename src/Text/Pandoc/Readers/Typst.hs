@@ -51,8 +51,6 @@ import Typst.Methods (formatNumber, applyPureFunction)
 import Typst.Types
 import qualified Data.Vector as V
 
--- import Debug.Trace
-
 -- | Read Typst from an input string and return a Pandoc document.
 readTypst :: (PandocMonad m, ToSources a)
            => ReaderOptions -> a -> m Pandoc
@@ -73,9 +71,10 @@ readTypst _opts inp = do
       case res of
         Left e -> throwError $ PandocParseError $ tshow e
         Right content -> do
-          let labs = findLabels [content]
+          let content' = fixNesting content
+          let labs = findLabels [content']
           runParserT pPandoc defaultPState{ sLabels = labs }
-            inputName [content] >>=
+            inputName [content'] >>=
               either (throwError . PandocParseError . T.pack . show) pure
 
 pBlockElt :: PandocMonad m => P m B.Blocks
@@ -128,6 +127,29 @@ pInline = try $ do
                        " at " <> tshow pos)
               pure mempty
             Just handler -> handler Nothing fields
+
+-- Pull block elements out of inline elements, e.g.
+-- Elt "smallcaps" [ Elt "heading" [..] ] ->
+-- Elt "heading" [ Elt "smallcaps" [..]]. See #11017.
+fixNesting :: Content -> Content
+fixNesting el@(Elt name pos fields)
+  | Just (VContent elts) <- M.lookup "body" fields
+  = let elts' = fmap fixNesting elts
+        fields' = M.insert "body" (VContent elts') fields
+        in if isInline el
+              then case getField "body" fields' of
+                        Just ([el'@(Elt name' pos' fields'')] :: Seq Content)
+                          | isBlock el'
+                          , not (isInline el')
+                          , "body" `M.member` fields''
+                          -> Elt name' pos' $
+                               M.insert "body" (VContent
+                                                (Seq.singleton
+                                                  (Elt name pos fields'')))
+                                        fields'
+                        _ -> Elt name pos fields'
+              else Elt name pos fields'
+fixNesting x = x
 
 pPandoc :: PandocMonad m => P m B.Pandoc
 pPandoc = do
