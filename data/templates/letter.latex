@@ -1,0 +1,202 @@
+$passoptions.latex()$
+\documentclass[
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+$if(beamerarticle)$
+\usepackage{beamerarticle} % needs to be loaded first
+$endif$
+\usepackage{xcolor}
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$endif$
+\usepackage{amsmath,amssymb}
+$--
+$-- section numbering
+$--
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+$endif$
+$fonts.latex()$
+$common.latex()$
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+$hypersetup.latex()$
+
+$-- begin: letter includes
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \address{$for(return-address)$$return-address$$sep$\\$endfor$}
+  $if(letterhead-file)$
+  \usepackage{wallpaper}
+  \ThisULCornerWallPaper{1}{$letterhead-file$}
+  $endif$
+  $if(signature-file)$
+  \usepackage{graphicx}
+  \signature{%
+$if(signature-before)$\vspace*{$signature-before$}$endif$%
+\includegraphics{$signature-file$}%
+$if(author)$\\$for(author)$$author$$sep$\\$endfor$$endif$%
+$if(signature-after)$\vspace*{$signature-after$}$endif$}
+  $else$
+  $if(author)$
+  \signature{$for(author)$$author$$sep$\\$endfor$%
+$if(signature-after)$\vspace*{$signature-after$}$endif$}
+  $endif$
+  $endif$
+  $if(closing-indentation)$
+  \longindentation=$closing-indentation$
+  $endif$
+}{% if KOMA class
+  $if(scrletter)$
+  \usepackage{scrletter}
+  $endif$
+  $for(scrletter-options)$
+  $scrletter-options$
+  $endfor$
+  $if(date)$\setkomavar{date}{$date$}$endif$
+  $for(letteroption)$
+  \LoadLetterOption{$letteroption$}
+  $endfor$
+  \setkomavar{fromaddress}{$for(return-address)$$return-address$$sep$\\$endfor$}
+  $if(letterhead-file)$
+  \usepackage{graphicx}
+  \setkomavar{fromlogo}{\includegraphics[width=\textwidth]{$letterhead-file$}}
+  \setkomavar{firsthead}{\hfill\usekomavar{fromlogo}}
+  $endif$
+  $if(signature-file)$
+  \usepackage{graphicx}
+  \setkomavar{signature}{%
+\includegraphics{$signature-file$}%
+$if(author)$\\$for(author)$$author$$sep$\\$endfor$$endif$%
+$if(signature-after)$\vspace*{$signature-after$}$endif$}
+  $else$
+  $if(author)$
+  \setkomavar{signature}{$for(author)$$author$$sep$\\$endfor$%
+$if(signature-after)$\vspace*{$signature-after$}$endif$}
+  $endif$
+  $endif$
+  $if(signature-before)$
+  \setplength{sigbeforevskip}{$signature-before$}
+  $endif$
+  $if(closing-indentation)$
+  \setplength{sigindent}{$closing-indentation$}
+  $endif$}
+\makeatother
+$-- end: letter includes
+
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{$subtitle$}
+$endif$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+
+\begin{document}
+$if(has-frontmatter)$
+\frontmatter
+$endif$
+$if(title)$
+\maketitle
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+{
+$if(colorlinks)$
+\hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$$endif$}
+$endif$
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+}
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+$if(has-frontmatter)$
+\mainmatter
+$endif$
+
+$-- begin: letter pre body
+\begin{letter}{$for(to-address)$$to-address$$sep$\\$endfor$}
+\opening{$opening$}
+$-- end: letter pre body
+
+$body$
+
+$-- begin: letter post body
+\closing{$closing$}
+$if(encl)$
+\encl{$for(encl)$$encl$$sep$\\$endfor$}
+$endif$
+$if(cc)$
+\cc{$for(cc)$$cc$$sep$\\$endfor$}
+$endif$
+$if(ps)$
+\ps{$ps$}
+$endif$
+
+\end{letter}
+$-- end: letter post body
+
+$if(has-frontmatter)$
+\backmatter
+$endif$
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+
+$endif$
+$endif$
+$if(biblatex)$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+
+$endif$
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}
