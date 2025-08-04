@@ -145,6 +145,17 @@ tests = [
             "E<rchevron>" =?>
             para "»"
         ]
+      , testGroup "html"
+        [ "trade" =:
+           "E<trade>" =?>
+           para "™"
+        , "ccaron" =:
+           "E<ccaron>" =?>
+           para "č"
+        , "cent" =:
+           "E<cent>" =?>
+           para "¢"
+        ]
       , testGroup "numeric"
         [ "decimal" =:
             "E<162>" =?>
@@ -170,6 +181,7 @@ tests = [
         , bogusEntity "0xhh"
         , bogusEntity "077x"
         , bogusEntity "0x63 skidoo"
+        , bogusEntity "trade;"
         ]
       ]
     ]

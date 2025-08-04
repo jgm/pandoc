@@ -258,7 +258,11 @@ format = try $ do
     entity (T.stripPrefix "0" -> Just suf)
         | Just (n, "") <- oct (T.unpack suf) = lookupEntity $ "#" <> tshow n
     entity (TR.decimal @Integer -> Right (x, "")) = lookupEntity $ "#" <> tshow x
-    entity x = lookupEntity x
+    -- named entities in Commonmark.Entity de facto have to be looked up with
+    -- the semicolon at the end. perlpodspec says arguments to E<> must be
+    -- alphanumeric, so an argument that already has a trailing semicolon
+    -- is bogus anyway, so just paste the semicolon on unconditionally.
+    entity x = lookupEntity (x <> ";")
 
 -- god knows there must be a higher order way of writing this thing, where we
 -- have multiple different possible parser states within the link argument
