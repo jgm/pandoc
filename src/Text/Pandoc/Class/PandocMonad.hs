@@ -408,8 +408,7 @@ downloadOrRead s
                           uriPath = "",
                           uriQuery = "",
                           uriFragment = "" }
-         dropFragmentAndQuery = T.takeWhile (\c -> c /= '?' && c /= '#')
-         fp = unEscapeString $ T.unpack $ dropFragmentAndQuery s
+         fp = unEscapeString $ T.unpack s
          mime = getMimeType $ case takeExtension fp of
                      ".gz" -> dropExtension fp
                      ".svgz" -> dropExtension fp ++ ".svg"
