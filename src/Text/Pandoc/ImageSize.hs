@@ -57,6 +57,8 @@ import qualified Data.Attoparsec.ByteString as AW
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Codec.Picture.Metadata as Metadata
 import Codec.Picture (decodeImageWithMetadata)
+import Codec.Compression.Zlib (decompress)
+-- import Debug.Trace
 
 -- quick and dirty functions to get image sizes
 -- algorithms borrowed from wwwis.pl
@@ -300,10 +302,10 @@ pdfSize img =
     Right sz -> Just sz
 
 pPdfSize :: A.Parser ImageSize
-pPdfSize = do
-  A.skipWhile (/='/')
-  A.char8 '/'
-  (do A.string "MediaBox"
+pPdfSize =
+  (A.takeWhile1 (/= '/') *> pPdfSize)
+  <|>
+  (do A.string "/MediaBox"
       A.skipSpace
       A.char8 '['
       A.skipSpace
@@ -320,7 +322,27 @@ pPdfSize = do
             , pxY  = y2 - y1
             , dpiX = 72
             , dpiY = 72 }
-   ) <|> pPdfSize
+  )
+  <|> -- if we encounter a compressed object stream, uncompress it (#10902)
+  (do A.string "/Type"
+      A.skipSpace
+      A.string "/ObjStm"
+      _ <- A.manyTill pLine (A.string "stream" *> pEol)
+      stream <- BL.pack <$> A.manyTill
+                        (AW.satisfy (const True))
+                        (pEol *> A.string "endstream" *> pEol)
+      let contents = BL.toStrict (decompress stream)
+      case A.parseOnly pPdfSize contents of
+        Left _ -> pPdfSize
+        Right is -> pure is)
+  <|>
+  (A.char '/' *> pPdfSize)
+ where
+   iseol '\r' = True
+   iseol '\n' = True
+   iseol _ = False
+   pEol = A.satisfy iseol *> A.skipMany (A.satisfy iseol)
+   pLine = A.takeWhile (not . iseol) <* pEol
 
 getSize :: ByteString -> Either T.Text ImageSize
 getSize img =
