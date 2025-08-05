@@ -3209,6 +3209,16 @@ These variables function when using BibLaTeX for [citation rendering].
 `natbiboptions`
 :   list of options for natbib
 
+#### Other
+
+`pdf-trailer-id`
+:   the PDF trailer ID; must be two PDF byte strings if set,
+    conventionally with 16 bytes each. E.g.,
+    `<00112233445566778899aabbccddeeff>
+    <00112233445566778899aabbccddeeff>`.
+
+    See the section on [reproducible builds].
+
 [KOMA-Script]: https://ctan.org/pkg/koma-script
 [LaTeX Font Catalogue]: https://tug.org/FontCatalogue/
 [LaTeX font encodings guide]: https://ctan.org/pkg/encguide
@@ -7540,6 +7550,11 @@ differ, even if the source does not.  To avoid this, set the
 be taken from it instead of the current time.
 `SOURCE_DATE_EPOCH` should contain an integer unix timestamp
 (specifying the number of seconds since midnight UTC January 1, 1970).
+
+For reproducible builds with LaTeX, you can either specify the
+`pdf-trailer-id` in the metadata or leave it undefined, in which
+case pandoc will create a trailer-id based on a hash of the
+`SOURCE_DATE_EPOCH` and the document's contents.
 
 Some document formats also include a unique identifier.  For
 EPUB, this can be set explicitly by setting the `identifier`

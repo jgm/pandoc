@@ -7,7 +7,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
-   Copyright   : Copyright (C) 2006-2024 John MacFarlane
+   Copyright   : Copyright (C) 2006-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -30,6 +30,7 @@ import Control.Monad
       liftM,
       when,
       unless )
+import Crypto.Hash (hashWith, MD5(MD5))
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit, isAscii)
 import Data.List (intersperse, (\\))
@@ -40,7 +41,8 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext), Val(..), renderTemplate)
 import Text.Collate.Lang (renderLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, getPOSIXTime, lookupEnv,
+                                      report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
                                  styleToLaTeX)
@@ -63,6 +65,7 @@ import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        wrapDiv, hypertarget, labelFor,
                                        getListingsLanguage, mbBraced)
 import Text.Pandoc.Writers.Shared
+import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 
 -- Work around problems with notes inside emphasis (see #8982)
@@ -178,6 +181,19 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
+  -- The trailer ID is as hash used to identify the PDF. Taking control of its
+  -- value is important when aiming for reproducible PDF generation. Setting
+  -- `SOURCE_DATE_EPOCH` is the traditional method used to control
+  -- reproducible builds. There are no cryptographic requirements for the ID,
+  -- so the 128bits (16 bytes) of MD5 are appropriate.
+  reproduciblePDF <- isJust <$> lookupEnv "SOURCE_DATE_EPOCH"
+  trailerID <- do
+    time <- getPOSIXTime
+    let hash = T.pack . show . hashWith MD5 $ mconcat
+               [ UTF8.fromString $ show time
+               , UTF8.fromText $ render Nothing main
+               ]
+    pure $ mconcat [ "<", hash, "> <", hash, ">" ]
   -- we need a default here since lang is used in template conditionals
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
@@ -254,7 +270,10 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       Just (Just ('A', ds))
                         | not (T.null ds) && T.all isDigit ds
                           -> resetField "papersize" ("a" <> ds)
-                      _   -> id)
+                      _   -> id) .
+                  (if reproduciblePDF
+                    then defField "pdf-trailer-id" trailerID
+                    else id) $
                   metadata
   let babelLang = mblang >>= toBabel
   let context' =
