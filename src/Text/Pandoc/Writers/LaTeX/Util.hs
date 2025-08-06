@@ -134,6 +134,7 @@ stringToLaTeX context zs = do
          ']'  -> emits "{]}"  -- optional arguments
          '\'' -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
+         '\x00AD' -> emits "\\-"  -- shy hyphen
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
          '\x202F' -> emits "\\,"
          '\x2026' | ligatures -> emitcseq "\\ldots"
