@@ -281,6 +281,7 @@ charCommands = M.fromList
   , ("_", lit "_")
   , ("{", lit "{")
   , ("}", lit "}")
+  , ("-", lit "\x00ad") -- soft hyphen
   , ("qed", lit "\a0\x25FB")
   , ("lq", return (str "‘"))
   , ("rq", return (str "’"))
