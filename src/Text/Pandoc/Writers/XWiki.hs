@@ -45,7 +45,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Writers.MediaWiki (highlightingLangs)
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
+import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unwrapWrapperDiv)
 import Text.DocLayout (render, literal)
 
 newtype WriterState = WriterState {
@@ -83,7 +83,7 @@ genAnchor id' = if Text.null id'
 
 blockListToXWiki :: PandocMonad m => [Block] -> XWikiReader m Text
 blockListToXWiki blocks =
-  vcat <$> mapM blockToXWiki blocks
+  vcat <$> mapM blockToXWiki (map unwrapWrapperDiv blocks)
 
 blockToXWiki :: PandocMonad m => Block -> XWikiReader m Text
 

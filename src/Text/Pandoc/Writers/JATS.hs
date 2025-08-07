@@ -358,13 +358,17 @@ blockToJATS opts (Div (ident,[cls],kvs) bs) | cls `elem` ["fig", "caption", "tab
              [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
                  "content-type", "orientation", "position"]]
   return $ inTags True cls attr contents
-blockToJATS opts (Div (ident,_,kvs) bs) = do
-  contents <- blocksToJATS opts bs
-  let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
-             [("xml:lang",l) | ("lang",l) <- kvs] ++
-             [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
-                 "content-type", "orientation", "position"]]
-  return $ inTags True "boxed-text" attr contents
+blockToJATS opts (Div (ident,classes,kvs) bs) = do
+  -- First try to unwrap wrapper divs
+  case unwrapWrapperDiv (Div (ident,classes,kvs) bs) of
+    Para inlines -> blockToJATS opts (Para inlines)
+    _ -> do
+      contents <- blocksToJATS opts bs
+      let attr = [("id", escapeNCName ident) | not (T.null ident)] ++
+                 [("xml:lang",l) | ("lang",l) <- kvs] ++
+                 [(k,v) | (k,v) <- kvs, k `elem` ["specific-use",
+                     "content-type", "orientation", "position"]]
+      return $ inTags True "boxed-text" attr contents
 blockToJATS opts (Header _ _ title) = do
   title' <- inlinesToJATS opts (map fixLineBreak title)
   return $ inTagsSimple "title" title'

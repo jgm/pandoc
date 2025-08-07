@@ -247,18 +247,20 @@ writeOpenDocument opts (Pandoc meta blocks) = do
                         (B.divWith ("",[],[("custom-style","Abstract")])
                           (B.fromList xs))
                         meta
+  -- Apply unwrapWrapperDiv to all blocks
+  let blocks' = walk unwrapWrapperDiv blocks
   ((body, metadata),s) <- flip runStateT
         defaultWriterState $ do
            let collectBlockIdent (Header _ (ident,_,_) _)      = [(ident,HeaderRef)]
                collectBlockIdent (Figure (ident,_,_) _ _ )     = [(ident,FigureRef)]
                collectBlockIdent (Table (ident,_,_) _ _ _ _ _) = [(ident,TableRef)]
                collectBlockIdent _                             = []
-           modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks }
+           modify $ \s -> s{ stIdentTypes = query collectBlockIdent blocks' }
            m <- metaToContext opts
                   (inlinesToOpenDocument opts . blocksToInlines)
                   (fmap chomp . inlinesToOpenDocument opts)
                   meta'
-           b <- blocksToOpenDocument opts blocks
+           b <- blocksToOpenDocument opts blocks'
            return (b, m)
   let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++
                      map snd (sortBy (flip (comparing fst)) (
