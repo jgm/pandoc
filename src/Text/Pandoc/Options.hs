@@ -114,7 +114,8 @@ instance FromJSON HTMLMathMethod where
         mburl <- m .:? "url"
         case method :: Text of
           "plain" -> return PlainMath
-          "webtex" -> return $ WebTeX $ fromMaybe "" mburl
+          "webtex" -> return $ WebTeX $ 
+                         fromMaybe defaultWebTeXURL mburl
           "gladtex" -> return GladTeX
           "mathml" -> return MathML
           "mathjax" -> return $ MathJax $
@@ -124,7 +125,7 @@ instance FromJSON HTMLMathMethod where
           _ -> fail $ "Unknown HTML math method " ++ show method) node
        <|> (case node of
                String "plain" -> return PlainMath
-               String "webtex" -> return $ WebTeX ""
+               String "webtex" -> return $ WebTeX defaultWebTeXURL
                String "gladtex" -> return GladTeX
                String "mathml" -> return MathML
                String "mathjax" -> return $ MathJax defaultMathJaxURL
@@ -401,6 +402,9 @@ isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
 defaultMathJaxURL :: Text
 defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+
+defaultWebTeXURL :: Text
+defaultWebTeXURL = "https://latex.codecogs.com/png.latex?"
 
 defaultKaTeXURL :: Text
 defaultKaTeXURL = "https://cdn.jsdelivr.net/npm/katex@latest/dist/"
