@@ -1023,8 +1023,8 @@ options =
     , Option "" ["webtex"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe defaultWebTeXURL arg
-                      return opt { optHTMLMathMethod = WebTeX $ T.pack url' })
+                      let url' = maybe defaultWebTeXURL T.pack arg
+                      return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use web service for HTML math"
 
