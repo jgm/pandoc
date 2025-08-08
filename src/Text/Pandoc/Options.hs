@@ -32,6 +32,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            , defaultMathJaxURL
+                           , defaultWebTeXURL
                            , defaultKaTeXURL
                            ) where
 import Control.Applicative ((<|>))
