@@ -795,15 +795,26 @@ read_citation     = matchingElement NsText "bibliography-mark"
 read_table        :: BlockMatcher
 read_table         = matchingElement NsTable "table"
                      $ liftA simpleTable'
-                     $ matchChildContent'  [ read_table_row
-                                           ]
+                     $ (matchChildContent' [read_table_header]) &&&
+                       (matchChildContent'  [read_table_row])
 
--- | A simple table without a caption or headers
--- | Infers the number of headers from rows
-simpleTable' :: [[Blocks]] -> Blocks
-simpleTable' []         = simpleTable [] []
-simpleTable' (x : rest) = simpleTable (fmap (const defaults) x) (x : rest)
-  where defaults = fromList []
+-- | A simple table without a caption.
+simpleTable' :: ([[Blocks]], [[Blocks]]) -> Blocks
+simpleTable' (headers, rows) =
+  table emptyCaption (replicate numcols defaults) th [tb] tf
+  where
+    defaults = (AlignDefault, ColWidthDefault)
+    numcols = maximum $ map length $ headers ++ rows
+    toRow = Row nullAttr . map simpleCell
+    th = TableHead nullAttr $ map toRow headers
+    tb = TableBody nullAttr 0 [] $ map toRow rows
+    tf = TableFoot nullAttr []
+
+--
+read_table_header :: ElementMatcher [[Blocks]]
+read_table_header = matchingElement NsTable "table-header-rows"
+                      $ matchChildContent' [ read_table_row
+                                           ]
 
 --
 read_table_row    :: ElementMatcher [[Blocks]]
