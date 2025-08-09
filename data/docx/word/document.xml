@@ -325,6 +325,7 @@ xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing
       <w:footnotePr>
         <w:numRestart w:val="eachSect" />
       </w:footnotePr>
+      <w:pgSz w:w="11906" w:h="16838" />
     </w:sectPr>
   </w:body>
 </w:document>
