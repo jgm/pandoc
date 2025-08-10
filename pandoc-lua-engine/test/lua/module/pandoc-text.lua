@@ -41,6 +41,28 @@ return {
     test('sub', function ()
       assert.is_function(text.sub)
     end),
+    group 'subscript' {
+      test('is a function', function ()
+        assert.is_function(text.subscript)
+      end),
+      test('converts a string to Unicode subscript chars', function ()
+        assert.are_equal(text.subscript '1+(9-7)', '₁₊₍₉₋₇₎')
+      end),
+      test('returns nil if the input contains unsupported chars', function ()
+        assert.is_nil(text.subscript '00ä')
+      end),
+    },
+    group 'superscript' {
+      test('is a function', function ()
+        assert.is_function(text.superscript)
+      end),
+      test('converts a string to Unicode superscript chars', function ()
+        assert.are_equal(text.superscript '1+(9-7)', '¹⁺⁽⁹⁻⁷⁾')
+      end),
+      test('returns nil if the input contains unsupported chars', function ()
+        assert.is_nil(text.superscript '00ä')
+      end),
+    },
     test('toencoding', function ()
       assert.is_function(text.toencoding)
     end),

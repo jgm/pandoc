@@ -6886,6 +6886,48 @@ Returns:
 
 *Since: 2.0.3*
 
+### subscript {#pandoc.text.subscript}
+
+`subscript (input)`
+
+Tries to convert the string into a Unicode subscript version of
+the string. Returns `nil` if not all characters of the input can
+be mapped to a subscript Unicode character. Supported characters
+include numbers, parentheses, and plus/minus.
+
+Parameters:
+
+`input`
+:   string to convert to subscript characters (string)
+
+Returns:
+
+- Subscript version of the input, or `nil` if not all characters
+  could be converted. (string\|nil)
+
+*Since: 3.8*
+
+### superscript {#pandoc.text.superscript}
+
+`superscript (input)`
+
+Tries to convert the string into a Unicode superscript version of
+the string. Returns `nil` if not all characters of the input can
+be mapped to a superscript Unicode character. Supported characters
+include numbers, parentheses, and plus/minus.
+
+Parameters:
+
+`input`
+:   string to convert to superscript characters (string)
+
+Returns:
+
+- Superscript version of the input, or `nil` if not all characters
+  could be converted. (string\|nil)
+
+*Since: 3.8*
+
 ### toencoding {#pandoc.text.toencoding}
 
 `toencoding (s[, enc])`
