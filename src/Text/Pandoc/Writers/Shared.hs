@@ -568,6 +568,8 @@ lookupMetaBool key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract blocks.
+--
+-- Note that an empty list is returned for maps, lists, and booleans.
 lookupMetaBlocks :: Text -> Meta -> [Block]
 lookupMetaBlocks key meta =
   case lookupMeta key meta of
@@ -578,6 +580,8 @@ lookupMetaBlocks key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract inlines.
+--
+-- Note that an empty list is returned for maps and lists.
 lookupMetaInlines :: Text -> Meta -> [Inline]
 lookupMetaInlines key meta =
   case lookupMeta key meta of
@@ -589,6 +593,8 @@ lookupMetaInlines key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to String.
+--
+-- Note that an empty list is returned for maps, lists, and booleans.
 lookupMetaString :: Text -> Meta -> Text
 lookupMetaString key meta =
   case lookupMeta key meta of
