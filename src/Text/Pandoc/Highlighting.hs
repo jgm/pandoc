@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Highlighting
-   Copyright   : Copyright (C) 2008-2024 John MacFarlane
+   Copyright   : Copyright (C) 2008-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -31,6 +31,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , styleToConTeXt
                                 , formatANSI
                                 -- * Styles
+                                , defaultStyle
                                 , pygments
                                 , espresso
                                 , zenburn
@@ -55,6 +56,10 @@ import Text.Pandoc.Error (PandocError(..))
 import Control.Monad.Except (throwError)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Shared (safeRead)
+
+-- | The default highlighting style used by pandoc (pygments).
+defaultStyle :: Style
+defaultStyle = pygments
 
 highlightingStyles :: [(T.Text, Style)]
 highlightingStyles =

@@ -36,6 +36,7 @@ import Data.Char (toLower)
 import Data.Maybe (fromMaybe)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Filter (Filter (..))
+import Text.Pandoc.Highlighting (defaultStyleName)
 import Text.Pandoc.Logging (Verbosity (WARNING), LogMessage(..))
 import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
@@ -773,7 +774,7 @@ defaultOpts = Opt
     , optEmbedResources        = False
     , optLinkImages            = False
     , optHtmlQTags             = False
-    , optHighlightStyle        = Just "pygments"
+    , optHighlightStyle        = Just defaultStyleName
     , optSyntaxDefinitions     = []
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
