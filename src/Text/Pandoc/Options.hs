@@ -48,7 +48,7 @@ import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.DocTemplates (Context(..), Template)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Chunks (PathTemplate)
-import Text.Pandoc.Highlighting (Style, pygments)
+import Text.Pandoc.Highlighting (Style, defaultStyle)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Data.Aeson.TH (deriveJSON)
 import Data.Aeson
@@ -115,7 +115,7 @@ instance FromJSON HTMLMathMethod where
         mburl <- m .:? "url"
         case method :: Text of
           "plain" -> return PlainMath
-          "webtex" -> return $ WebTeX $ 
+          "webtex" -> return $ WebTeX $
                          fromMaybe defaultWebTeXURL mburl
           "gladtex" -> return GladTeX
           "mathml" -> return MathML
@@ -375,7 +375,7 @@ instance Default WriterOptions where
                       , writerSlideLevel       = Nothing
                       , writerTopLevelDivision = TopLevelDefault
                       , writerListings         = False
-                      , writerHighlightStyle   = Just pygments
+                      , writerHighlightStyle   = Just defaultStyle
                       , writerSetextHeaders    = False
                       , writerListTables       = False
                       , writerEpubSubdirectory = "EPUB"
