@@ -963,6 +963,7 @@ blockCommands = M.fromList
    , ("paragraph*", section ("",["unnumbered"],[]) 4)
    , ("subparagraph", section nullAttr 5)
    , ("subparagraph*", section ("",["unnumbered"],[]) 5)
+   , ("minisec", section ("",["unnumbered","unlisted"],[]) 6) -- from KOMA
    -- beamer slides
    , ("frametitle", section nullAttr 3)
    , ("framesubtitle", section nullAttr 4)
