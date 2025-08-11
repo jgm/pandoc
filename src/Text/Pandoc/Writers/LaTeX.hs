@@ -45,7 +45,7 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, getPOSIXTime, lookupEnv,
                                       report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
-                                 styleToLaTeX)
+                                 defaultStyle, styleToLaTeX)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -242,15 +242,20 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "svg" (stSVG st) $
                   defField "has-chapters" (stHasChapters st) $
                   defField "has-frontmatter" (documentClass `elem` frontmatterClasses) $
-                  defField "listings" (writerListings options || stLHS st) $
+                  defField "listings" (writerHighlightMethod options ==
+                                       IdiomaticHighlighting
+                                       || stLHS st) $
                   defField "zero-width-non-joiner" (stZwnj st) $
                   defField "beamer" beamer $
                   (if stHighlighting st
-                      then case writerHighlightStyle options of
-                                Just sty ->
+                      then case writerHighlightMethod options of
+                             Skylighting sty ->
                                    defField "highlighting-macros"
                                       (T.stripEnd $ styleToLaTeX sty)
-                                Nothing -> id
+                             DefaultHighlighting ->
+                                   defField "highlighting-macros"
+                                      (T.stripEnd $ styleToLaTeX defaultStyle)
+                             _ -> id
                       else id) $
                   (case writerCiteMethod options of
                          Natbib   -> defField "biblio-title" biblioTitle .
@@ -497,7 +502,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         ref <- toLabel identifier
         kvs <- mapM (\(k,v) -> (k,) <$>
                        stringToLaTeX TextString v) keyvalAttr
-        let params = if writerListings (stOptions st)
+        let params = if writerHighlightMethod (stOptions st)
+                        == IdiomaticHighlighting
                      then (case getListingsLanguage classes of
                                 Just l  -> [ "language=" <> mbBraced l ]
                                 Nothing -> []) ++
@@ -534,8 +540,11 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes           -> lhsCodeBlock
-       | writerListings opts                 -> listingsCodeBlock
-       | not (null classes) && isJust (writerHighlightStyle opts)
+       | writerHighlightMethod opts == IdiomaticHighlighting
+                                             -> listingsCodeBlock
+       | not (null classes), Skylighting _ <- writerHighlightMethod opts
+                                             -> highlightedCodeBlock
+       | not (null classes), DefaultHighlighting <- writerHighlightMethod opts
                                              -> highlightedCodeBlock
        -- we don't want to use \begin{verbatim} if our code
        -- contains \end{verbatim}:
@@ -991,12 +1000,14 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   -- incorrect results if there is a space (see #5529).
   let inMbox x = "\\mbox" <> braces x
   (if inSoul then inMbox else id) <$>
-   case () of
+   case writerHighlightMethod opts of
      _ | inHeading || inItem  -> rawCode  -- see #5574
-       | writerListings opts  -> listingsCode
-       | isJust (writerHighlightStyle opts) && not (null classes)
+     IdiomaticHighlighting    -> listingsCode
+     Skylighting _ | not (null classes)
                               -> highlightCode
-       | otherwise            -> rawCode
+     DefaultHighlighting | not (null classes)
+                              -> highlightCode
+     _noHighlighting          -> rawCode
 inlineToLaTeX (Quoted qt lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get

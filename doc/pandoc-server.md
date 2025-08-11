@@ -203,15 +203,28 @@ the first one given is the default.
 :   Causes HTML comments to be stripped in Markdown or Textile
     source, instead of being passed through to the output format.
 
-`highlight-style` (string, leave unset for no highlighting)
+`syntax-highlighting` (`"default"|"none"|"idiomatic"|style`)
 
-:   Specify the style to use for syntax highlighting of code.
+:   The method used for code syntax highlighting. Setting a
+    specific *style* causes highlighting to be performed with the
+    internal highlighting engine, using KDE syntax definitions and
+    styles. The `"idiomatic"` method uses a format-specific
+    highlighter if one is available, or the default style if the
+    target format has no idiomatic highlighting method. Setting
+    this option to `none` disables all syntax highlighting. The
+    `"default"` method uses a format-specific default.
+
     Standard styles are `"pygments"` (the default), `"kate"`,
     `"monochrome"`, `"breezeDark"`, `"espresso"`, `"zenburn"`,
-    `"haddock"`, and `"tango"`. Alternatively, the path of
-    a `.theme` with a KDE syntax theme may be used (in this
-    case, the relevant file contents must also be included
-    in `files`, see below).
+    `"haddock"`, and `"tango"`. Alternatively, the path of a
+    `.theme` with a KDE syntax theme may be used (in this case,
+    the relevant file contents must also be included in `files`,
+    see below).
+
+    The default for HTML, EPUB, Docx, Ms, Man, and LaTeX output is
+    to use the internal highlighter with the default style; Typst
+    output relies on Typst's own syntax highlighting system by
+    default.
 
 `embed-resources`
 

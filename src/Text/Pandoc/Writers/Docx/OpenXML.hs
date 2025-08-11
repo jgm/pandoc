@@ -30,7 +30,7 @@ import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, maybeToList, isJust)
+import Data.Maybe (fromMaybe, maybeToList, isJust)
 import Control.Monad.State ( gets, modify, MonadTrans(lift) )
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import qualified Data.Set as Set
@@ -889,14 +889,14 @@ inlineToOpenXML' opts (Code attrs str) = do
             maybeToList (lookup toktype tokTypesMap)
             , mknode "w:t" [("xml:space","preserve")] tok ]
   withTextPropM (rStyleM "Verbatim Char")
-    $ if isNothing (writerHighlightStyle opts)
-          then unhighlighted
-          else case highlight (writerSyntaxMap opts)
-                      formatOpenXML attrs str of
-                    Right h  -> return (map Elem h)
-                    Left msg -> do
-                      unless (T.null msg) $ report $ CouldNotHighlight msg
-                      unhighlighted
+    $ case writerHighlightMethod opts of
+        Skylighting _ ->
+          case highlight (writerSyntaxMap opts) formatOpenXML attrs str of
+            Right h  -> return (map Elem h)
+            Left msg -> do
+              unless (T.null msg) $ report $ CouldNotHighlight msg
+              unhighlighted
+        _ -> unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- getUniqueId

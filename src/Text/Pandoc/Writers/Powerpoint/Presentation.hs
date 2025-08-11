@@ -460,15 +460,17 @@ blockToParagraphs (CodeBlock attr str) = do
                                     , pPropIndent = Just 0
                                     }
                 , envRunProps = (envRunProps r){rPropCode = True}}) $ do
-    mbSty <- writerHighlightStyle <$> asks envOpts
+    highlightOpt <- writerHighlightMethod <$> asks envOpts
     synMap <- writerSyntaxMap <$> asks envOpts
-    case mbSty of
-      Just sty ->
-        case highlight synMap (formatSourceLines sty) attr str of
-          Right pElems -> do pPropsNew <- asks envParaProps
-                             return [Paragraph pPropsNew pElems]
-          Left _ -> blockToParagraphs $ Para [Str str]
-      Nothing -> blockToParagraphs $ Para [Str str]
+    let highlightWithStyle style = do
+          case highlight synMap (formatSourceLines style) attr str of
+            Right pElems -> do pPropsNew <- asks envParaProps
+                               return [Paragraph pPropsNew pElems]
+            Left _ -> blockToParagraphs $ Para [Str str]
+    case highlightOpt of
+      Skylighting sty -> highlightWithStyle sty
+      DefaultHighlighting -> highlightWithStyle defaultStyle
+      _ -> blockToParagraphs $ Para [Str str]
 -- We can't yet do incremental lists, but we should render a
 -- (BlockQuote List) as a list to maintain compatibility with other
 -- formats.

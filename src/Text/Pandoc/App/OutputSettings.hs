@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PatternSynonyms     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {- |
@@ -165,8 +166,11 @@ optToOutputSettings scriptingEngine opts = do
   syntaxMap <- foldM addSyntaxMap defaultSyntaxMap
                      (optSyntaxDefinitions opts)
 
-  hlStyle <- traverse (lookupHighlightingStyle . T.unpack) $
-               optHighlightStyle opts
+  hlStyle <- case optSyntaxHighlighting opts of
+    NoHighlightingString        -> pure NoHighlighting
+    DefaultHighlightingString   -> pure DefaultHighlighting
+    IdiomaticHighlightingString -> pure IdiomaticHighlighting
+    style       -> Skylighting <$> lookupHighlightingStyle (T.unpack style)
 
   let setListVariableM _ [] ctx = return ctx
       setListVariableM k vs ctx = do
@@ -251,9 +255,8 @@ optToOutputSettings scriptingEngine opts = do
         , writerIdentifierPrefix = optIdentifierPrefix opts
         , writerHtmlQTags        = optHtmlQTags opts
         , writerTopLevelDivision = optTopLevelDivision opts
-        , writerListings         = optListings opts
         , writerSlideLevel       = optSlideLevel opts
-        , writerHighlightStyle   = hlStyle
+        , writerHighlightMethod  = hlStyle
         , writerSetextHeaders    = optSetextHeaders opts
         , writerListTables       = optListTables opts
         , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts

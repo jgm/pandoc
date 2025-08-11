@@ -466,7 +466,7 @@ header when requesting a document from a URL:
 `--list-highlight-styles`
 
 :   List supported styles for syntax highlighting, one per line.
-    See `--highlight-style`.
+    See `--syntax-highlighting`.
 
 `-v`, `--version`
 
@@ -927,18 +927,32 @@ header when requesting a document from a URL:
     inside raw HTML blocks when the `markdown_in_html_blocks`
     extension is not set.
 
-`--no-highlight`
+`--syntax-highlighting="default"|"none"|"idiomatic"|`*STYLE*`|`*FILE*
 
-:   Disables syntax highlighting for code blocks and inlines, even when
-    a language attribute is given.
+:   The method to use for code syntax highlighting. Setting a
+    specific *STYLE* causes highlighting to be performed with the
+    internal highlighting engine, using KDE syntax definitions and
+    styles. The `"idiomatic"` method uses a format-specific
+    highlighter if one is available, or the default style if the
+    target format has no idiomatic highlighting method. Setting this
+    option to `none` disables all syntax highlighting. The
+    `"default"` method uses a format-specific default.
 
-`--highlight-style=`*STYLE*|*FILE*
+    The default for HTML, EPUB, Docx, Ms, Man, and LaTeX output is
+    to use the internal highlighter with the default style; Typst
+    output relies on Typst's own syntax highlighting system by
+    default.
 
-:   Specifies the coloring style to be used in highlighted source code.
-    Options are `pygments` (the default), `kate`, `monochrome`,
-    `breezeDark`, `espresso`, `zenburn`, `haddock`, and `tango`.
-    For more information on syntax highlighting in pandoc, see
-    [Syntax highlighting], below.  See also
+    The [`listings`][] LaTeX package is used for idiomatic
+    highlighting in LaTeX. The package does not support multi-byte
+    encoding for source code. To handle UTF-8 you would need to
+    use a custom template. This issue is fully documented here:
+    [Encoding issue with the listings package][].
+
+    Style options are `pygments` (the default), `kate`,
+    `monochrome`, `breezeDark`, `espresso`, `zenburn`, `haddock`,
+    and `tango`. For more information on syntax highlighting in
+    pandoc, see [Syntax highlighting], below. See also
     `--list-highlight-styles`.
 
     Instead of a *STYLE* name, a JSON file with extension
@@ -949,11 +963,24 @@ header when requesting a document from a URL:
     To generate the JSON version of an existing style,
     use `--print-highlight-style`.
 
+`--no-highlight`
+
+:   *Deprecated, use `--syntax-highlighting=none` instead.*
+
+    Disables syntax highlighting for code blocks and inlines, even when
+    a language attribute is given.
+
+`--highlight-style=`*STYLE*|*FILE*
+
+:   _Deprecated, use `--syntax-highlighting=`*STYLE*|*FILE* instead._
+
+    Specifies the coloring style to be used in highlighted source code.
+
 `--print-highlight-style=`*STYLE*|*FILE*
 
 :   Prints a JSON version of a highlighting style, which can
     be modified, saved with a `.theme` extension, and used
-    with `--highlight-style`.  This option may be used with
+    with `--syntax-highlighting`.  This option may be used with
     `-o`/`--output` to redirect output to a file, but
     `-o`/`--output` must come before `--print-highlight-style`
     on the command line.
@@ -1176,7 +1203,10 @@ header when requesting a document from a URL:
 
 `--listings[=true|false]`
 
-:   Use the [`listings`] package for LaTeX code blocks. The package
+:   *Deprecated, use `--syntax-highlighting=idiomatic` or
+    `--syntax-highlighting=default` instead.
+
+    Use the [`listings`] package for LaTeX code blocks. The package
     does not support multi-byte encoding for source code. To handle UTF-8
     you would need to use a custom template. This issue is fully
     documented here: [Encoding issue with the listings package].
@@ -1981,11 +2011,11 @@ To include the built-in citeproc filter, use either `citeproc` or
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --no-highlight                   | highlight-style: null             |
+| --no-highlight                   | syntax-highlighting: 'none'       |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
-| --highlight-style kate           | highlight-style: kate             |
+| --syntax-highlighting kate       | syntax-highlighting: kate         |
 | ```                              | ```                               |
 +----------------------------------+-----------------------------------+
 | ```                              | ``` yaml                          |
@@ -4277,10 +4307,10 @@ input contains class attribute(s) for the code block, the first
 class attribute will be printed after the opening fence as a bare
 word.
 
-To prevent all highlighting, use the `--no-highlight` flag.
-To set the highlighting style, use `--highlight-style`.
-For more information on highlighting, see [Syntax highlighting],
-below.
+To prevent all highlighting, use the `--syntax-highlighting=none`
+option. To set the highlighting style or method, use
+`--syntax-highlighting`. For more information on highlighting, see
+[Syntax highlighting], below.
 
 ## Line blocks
 
@@ -7388,22 +7418,23 @@ HTML, EPUB, Docx, Ms, Man, and LaTeX/PDF output. To see a list
 of language names that pandoc will recognize, type `pandoc
 --list-highlight-languages`.
 
-The color scheme can be selected using the `--highlight-style` option.
-The default color scheme is `pygments`, which imitates the default color
-scheme used by the Python library pygments (though pygments is not actually
-used to do the highlighting).  To see a list of highlight styles,
-type `pandoc --list-highlight-styles`.
+The color scheme can be selected using the `--syntax-highlighting`
+option. The default color scheme is `pygments`, which imitates the
+default color scheme used by the Python library pygments (though
+pygments is not actually used to do the highlighting). To see a
+list of highlight styles, type `pandoc --list-highlight-styles`.
 
-If you are not satisfied with the predefined styles, you can
-use `--print-highlight-style` to generate a JSON `.theme` file which
-can be modified and used as the argument to `--highlight-style`. To
-get a JSON version of the `pygments` style, for example:
+If you are not satisfied with the predefined styles, you can use
+`--print-highlight-style` to generate a JSON `.theme` file which
+can be modified and used as the argument to
+`--syntax-highlighting`. To get a JSON version of the `pygments`
+style, for example:
 
     pandoc -o my.theme --print-highlight-style pygments
 
 Then edit `my.theme` and use it like this:
 
-    pandoc --highlight-style my.theme
+    pandoc --syntax-highlighting my.theme
 
 If you are not satisfied with the built-in highlighting, or you
 want to highlight a language that isn't supported, you can use the
@@ -7415,7 +7446,7 @@ definitions](https://github.com/KDE/syntax-highlighting/tree/master/data/syntax)
 If you receive an error that pandoc "Could not read highlighting theme",
 check that the JSON file is encoded with UTF-8 and has no Byte-Order Mark (BOM).
 
-To disable highlighting, use the `--no-highlight` option.
+To disable highlighting, use `--syntax-highlighting=none`.
 
 [skylighting]: https://github.com/jgm/skylighting
 
