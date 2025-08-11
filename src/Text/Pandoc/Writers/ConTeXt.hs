@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
-   Copyright   : Copyright (C) 2007-2024 John MacFarlane
+   Copyright   : Copyright (C) 2007-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -20,7 +20,7 @@ import Control.Monad.State.Strict
 import Data.Char (ord, isDigit)
 import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty ((:|)))
-import Data.Maybe (isNothing, mapMaybe, catMaybes)
+import Data.Maybe (mapMaybe, catMaybes)
 import Data.Monoid (Any (Any, getAny))
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -131,10 +131,10 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                         _                     -> id)
                 $ defField "emphasis-commands"
                     (mconcat $ Map.elems (stEmphasisCommands st))
-                $ (case writerHighlightStyle options of
-                        Just sty | stHighlighting st ->
-                          defField "highlighting-commands" (styleToConTeXt sty)
-                        _ -> id)
+                $ (case writerHighlightMethod options of
+                      Skylighting sty | stHighlighting st ->
+                        defField "highlighting-commands" (styleToConTeXt sty)
+                      _ -> id)
                 $ (case T.toLower $ lookupMetaString "pdfa" meta of
                         "true" -> resetField "pdfa" (T.pack "1b:2005")
                         _                     -> id) metadata
@@ -233,9 +233,9 @@ blockToConTeXt (CodeBlock (_ident, classes, kv) str) = do
             return (literal h)
   -- blankline because \stoptyping can't have anything after it, inc. '}'
   ($$ blankline) . flush <$>
-    if null classes || isNothing (writerHighlightStyle opts)
-    then pure unhighlighted
-    else highlighted
+    case writerHighlightMethod opts of
+      Skylighting _ | not (null classes) -> pure unhighlighted
+      _ -> highlighted
 blockToConTeXt b@(RawBlock f str)
   | f == Format "context" || f == Format "tex" = return $ literal str <> blankline
   | otherwise = empty <$ report (BlockNotRendered b)
@@ -625,9 +625,9 @@ inlineToConTeXt (Code (_ident, classes, _kv) str) = do
           Right h -> do
             modify (\st -> st{ stHighlighting = True })
             return (text (T.unpack h))
-  if isNothing (writerHighlightStyle opts) || null classes
-    then rawCode
-    else highlightCode
+  case writerHighlightMethod opts of
+    Skylighting _ | not (null classes) -> highlightCode
+    _ -> rawCode
 inlineToConTeXt (Quoted SingleQuote lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\quote" <> braces contents

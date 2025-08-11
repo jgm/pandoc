@@ -34,7 +34,8 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (extensionFromMimeType, getMimeType)
-import Text.Pandoc.Options (WrapOption (..), WriterOptions (..))
+import Text.Pandoc.Options (WrapOption (..), WriterOptions (..),
+                            HighlightMethod(Skylighting))
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, tshow)
 import Text.Pandoc.Version (pandocVersionText)
@@ -211,7 +212,9 @@ updateStyle opts mbLang arch = do
                 . maybe id addLang mbLang
                 . transformElement (\qn -> qName qn == "styles" &&
                                       qPrefix qn == Just "office" )
-                     (maybe id addHlStyles (writerHighlightStyle opts))
+                     (case writerHighlightMethod opts of
+                        Skylighting style -> addHlStyles style
+                        _ -> id)
                 $ d )
         | otherwise = pure e
   entries <- mapM goEntry (zEntries arch)

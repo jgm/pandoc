@@ -115,10 +115,10 @@ typeWriterOptions = deftype "WriterOptions"
     (pushExtensions, writerExtensions)
     (peekExtensions, \opts x -> opts{ writerExtensions = x })
 
-  , property "highlight_style"
-    "Style to use for highlighting (nil = no highlighting)"
-    (maybe pushnil pushViaJSON, writerHighlightStyle)
-    (optional . peekViaJSON, \opts x -> opts{ writerHighlightStyle = x })
+  , property "highlight_method"
+    "Method to use for code highlighting ('none'|'default'|'idiomatic'|style)"
+    (pushViaJSON, writerHighlightMethod)
+    (peekViaJSON, \opts x -> opts{ writerHighlightMethod = x })
 
   , property "html_math_method"
     "How to print math in HTML"
@@ -154,11 +154,6 @@ typeWriterOptions = deftype "WriterOptions"
     "Include list of tables"
     (pushBool, writerListOfTables)
     (peekBool, \opts x -> opts{ writerListOfTables = x })
-
-  , property "listings"
-    "Use listings package for code"
-    (pushBool, writerListings)
-    (peekBool, \opts x -> opts{ writerListings = x })
 
   , property "number_offset"
     "Starting number for section, subsection, ..."

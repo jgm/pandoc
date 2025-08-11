@@ -76,7 +76,9 @@ pandocToMs opts (Pandoc meta blocks) = do
   let authorsMeta = map (escapeStr opts . stringify) $ docAuthors meta
   hasHighlighting <- gets stHighlighting
   let highlightingMacros = if hasHighlighting
-                              then maybe mempty styleToMs $ writerHighlightStyle opts
+                              then case writerHighlightMethod opts of
+                                     Skylighting sty -> styleToMs sty
+                                     _ -> mempty
                               else mempty
 
   let context = defField "body" main
