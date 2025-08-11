@@ -53,7 +53,7 @@ import qualified Text.DocTemplates.Internal as DT
 import Text.Blaze.Html hiding (contents)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatHtmlBlock, formatHtml4Block,
-                 formatHtmlInline, highlight, styleToCss)
+                 formatHtmlInline, highlight, styleToCss, defaultStyle)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Options
 import Text.Pandoc.Shared
@@ -356,10 +356,14 @@ pandocToHtml opts (Pandoc meta blocks) = do
   let mCss :: Maybe [Text] = lookupContext "css" metadata
   let context :: Context Text
       context =   (if stHighlighting st
-                      then case writerHighlightStyle opts of
-                                Just sty -> defField "highlighting-css"
-                                            (literal $ T.pack $ styleToCss sty)
-                                Nothing  -> id
+                      then case writerHighlightMethod opts of
+                             Skylighting sty ->
+                               defField "highlighting-css"
+                                 (literal $ T.pack $ styleToCss sty)
+                             DefaultHighlighting ->
+                               defField "highlighting-css"
+                                 (literal $ T.pack $ styleToCss defaultStyle)
+                             _  -> id
                       else id) .
                   (if stCsl st
                       then defField "csl-css" True .
@@ -948,11 +952,13 @@ blockToHtmlInner opts (CodeBlock (id',classes,keyvals) rawCode) = do
       adjCode  = if tolhs
                     then T.unlines . map ("> " <>) . T.lines $ rawCode
                     else rawCode
-      hlCode   = if isJust (writerHighlightStyle opts)
-                    then highlight (writerSyntaxMap opts)
-                         (if html5 then formatHtmlBlock else formatHtml4Block)
-                            (id'',classes',keyvals) adjCode
-                    else Left ""
+      highlighted = highlight (writerSyntaxMap opts)
+                      (if html5 then formatHtmlBlock else formatHtml4Block)
+                      (id'',classes',keyvals) adjCode
+      hlCode   = case writerHighlightMethod opts of
+                   Skylighting _ -> highlighted
+                   DefaultHighlighting -> highlighted
+                   _ -> Left ""
   case hlCode of
          Left msg -> do
            unless (T.null msg) $
@@ -1442,11 +1448,12 @@ inlineToHtml opts inline = do
                                modify $ \st -> st{ stHighlighting = True }
                                addAttrs opts (ids,[],kvs) $
                                  fromMaybe id sampOrVar h
-                        where hlCode = if isJust (writerHighlightStyle opts)
-                                          then highlight
-                                                 (writerSyntaxMap opts)
-                                                 formatHtmlInline attr str
-                                          else Left ""
+                        where hlCode = case writerHighlightMethod opts of
+                                          Skylighting _ -> highlighted
+                                          DefaultHighlighting -> highlighted
+                                          _ -> Left ""
+                              highlighted =  highlight (writerSyntaxMap opts)
+                                                       formatHtmlInline attr str
                               (sampOrVar,cs')
                                 | "sample" `elem` cs =
                                       (Just H.samp,"sample" `delete` cs)

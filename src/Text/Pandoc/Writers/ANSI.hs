@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.ANSI
-   Copyright   : Copyright (C) 2024 Evan Silberman
+   Copyright   : © 2024 Evan Silberman
+                 © 2025 Pandoc contributors
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -30,6 +31,7 @@ import Text.Pandoc.Writers.Shared
 import qualified Data.Text as T
 import Data.Text.Lazy (toStrict)
 import qualified Text.DocLayout as D
+import qualified Text.Pandoc.Highlighting as HL
 
 hr :: D.HasChars a => D.Doc a
 hr = rule 20
@@ -168,15 +170,20 @@ blockToANSI opts (Header level (_, classes, kvs) inlines) = do
 -- Doc Text.
 blockToANSI opts (CodeBlock attr str) = do
   table <- gets stInTable
-  inner <- case (table, writerHighlightStyle opts) of
-    (_, Nothing) -> return $ defaultStyle str
+  let highlightWithStyle s = do
+        let fmt o = formatANSI o s
+            result = highlight (writerSyntaxMap opts) fmt attr str
+        return $ case result of
+          Left _ -> defaultStyle str
+          Right f -> D.literal f
+  inner <- case (table, writerHighlightMethod opts) of
+    (_, NoHighlighting) -> return $ defaultStyle str
     (True, _) -> return $ defaultStyle str
-    (False, Just s) -> do
-      let fmt o = formatANSI o s
-          result = highlight (writerSyntaxMap opts) fmt attr str
-      return $ case result of
-        Left _ -> defaultStyle str
-        Right f -> D.literal f
+    (False, Skylighting s) -> highlightWithStyle s
+    (False, DefaultHighlighting) -> highlightWithStyle HL.defaultStyle
+    (False, IdiomaticHighlighting) -> do
+      report $ CouldNotHighlight "no idiomatic highlighting in ANSI"
+      return $ defaultStyle str
   return $ nest table inner
   where defaultStyle = (D.fg D.red) . D.literal
         nest False = D.nest 4

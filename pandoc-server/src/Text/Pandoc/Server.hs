@@ -275,8 +275,11 @@ server = convertBytes
 
     let isStandalone = optStandalone opts
     let toformat = formatName writerFormat
-    hlStyle <- traverse (lookupHighlightingStyle . T.unpack)
-                  $ optHighlightStyle opts
+    hlStyle <- case optSyntaxHighlighting opts of
+      "none"      -> pure NoHighlighting
+      "idiomatic" -> pure IdiomaticHighlighting
+      "default"   -> pure DefaultHighlighting
+      s           -> Skylighting <$> lookupHighlightingStyle (T.unpack s)
 
     mbTemplate <- if isStandalone
                      then case optTemplate opts of
@@ -327,8 +330,7 @@ server = convertBytes
              , writerHtmlQTags = optHtmlQTags opts
              , writerSlideLevel = optSlideLevel opts
              , writerTopLevelDivision = optTopLevelDivision opts
-             , writerListings = optListings opts
-             , writerHighlightStyle = hlStyle
+             , writerHighlightMethod = hlStyle
              , writerSetextHeaders = optSetextHeaders opts
              , writerListTables = optListTables opts
              , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
