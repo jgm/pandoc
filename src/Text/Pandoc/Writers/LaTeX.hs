@@ -1021,6 +1021,10 @@ inlineToLaTeX (Quoted qt lst) = do
 inlineToLaTeX (Str str) = do
   setEmptyLine False
   liftM literal $ stringToLaTeX TextString str
+inlineToLaTeX (Math _ str)
+  | isMathEnv str -- see #9711
+  = do setEmptyLine False
+       pure $ literal str
 inlineToLaTeX (Math InlineMath str) = do
   setEmptyLine False
   inSoul <- gets stInSoulCommand
@@ -1310,3 +1314,23 @@ ldfLanguages =
   , "galician"
   , "slovene"
   ]
+
+isMathEnv :: Text -> Bool
+isMathEnv t =
+  case T.stripPrefix "\\begin{" t of
+    Nothing -> False
+    Just t' -> T.takeWhile (/= '}') t' `elem`
+      [ "align", "align*"
+      , "flalign", "flalign*"
+      , "alignat", "alignat*"
+      , "dmath", "dmath*"
+      , "dgroup", "dgroup*"
+      , "darray", "darray*"
+      , "gather", "gather*"
+      , "multline", "multline*"
+      , "split"
+      , "subequations"
+      , "equation", "equation*"
+      , "eqnarray"
+      , "displaymath"
+      ]

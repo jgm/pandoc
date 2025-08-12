@@ -61,9 +61,9 @@ x &= y\\
 ^D
 \(5-67\)
 
-\[\begin{aligned}
+\begin{align}
 x &= y\\
-\end{aligned}\]
+\end{align}
 
 \emph{hi}
 
