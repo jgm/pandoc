@@ -136,4 +136,28 @@ return {
       )
     end),
   },
+  group 'unique_identifier' {
+    test('returns an identifier based on the input', function ()
+      local inlines = pandoc.Inlines{pandoc.Emph{'This'}, ' is nice'}
+      local id = structure.unique_identifier(inlines)
+      assert.are_equal('this-is-nice', id)
+    end),
+    test('respects the list of used IDs', function ()
+      local inlines = pandoc.Inlines('Hello, World!')
+      local used = {['hello-world'] = true}
+      local id = structure.unique_identifier(inlines, used)
+      assert.are_equal('hello-world-1', id)
+    end),
+    test('defaults to pandoc Markdown identifiers', function ()
+      local inlines = pandoc.Inlines('Mr. Jones')
+      local id = structure.unique_identifier(inlines, {})
+      assert.are_equal('mr.-jones', id)
+    end),
+    test('can generate gfm identifiers', function ()
+      local inlines = pandoc.Inlines('Mr. Jones')
+      local exts = {'gfm_auto_identifiers'}
+      local id = structure.unique_identifier(inlines, {}, exts)
+      assert.are_equal('mr-jones', id)
+    end),
+  }
 }
