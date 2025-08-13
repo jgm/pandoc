@@ -617,7 +617,10 @@ toCite cite = do
                   [] -> pure mempty
                   suff -> (", supplement: " <>) . brackets
                              <$> inlinesToTypst (eatComma suff)
-       pure $ "#cite" <> parens (label <> form <> suppl) <> endCode
+       pure $ (if citationMode cite == SuppressAuthor  -- see #11044
+                  then parens
+                  else id)
+            $ "#cite" <> parens (label <> form <> suppl) <> endCode
 
 doubleQuoted :: Text -> Doc Text
 doubleQuoted = doubleQuotes . literal . escape
