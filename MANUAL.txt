@@ -7625,7 +7625,7 @@ assumed.
 
 ## Prince XML
 
-The non-free HTML-to-PDf converter `prince` has extensive support
+The non-free HTML-to-PDF converter `prince` has extensive support
 for various PDF standards as well as tagging. E.g.:
 
     pandoc --pdf-engine=prince \
