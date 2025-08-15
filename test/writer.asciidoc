@@ -1,6 +1,7 @@
 = Pandoc Test Suite
 John MacFarlane; Anonymous
 July 17, 2006
+:stem: latexmath
 
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s
 markdown test suite.
@@ -39,7 +40,7 @@ In Markdown 1.0.0 and earlier. Version 8. This line turns into a list item.
 Because a hard-wrapped line in the middle of a paragraph looked like a list
 item.
 
-Here’s one with a bullet. * criminey.
+Here’s one with a bullet. ++*++ criminey.
 
 There should be a hard line break +
 here.
@@ -83,7 +84,7 @@ ____
 --
 ____
 
-This should not be a block quote: 2 > 1.
+This should not be a block quote: 2 ++>++ 1.
 
 And a following paragraph.
 
@@ -423,9 +424,9 @@ So is *_this_* word.
 
 So is *_this_* word.
 
-This is code: `>`, `$`, `\`, `\$`, `<html>`.
+This is code: `++>++`, `$`, `++\++`, `++\++$`, `++<++html++>++`.
 
-[line-through]*This is _strikeout_.*
+[line-through]#This is _strikeout_.#
 
 Superscripts: a^bc^d a^_hello_^ a^hello there^.
 
@@ -438,16 +439,16 @@ a^b c^d, a~b c~d.
 
 == Smart quotes, ellipses, dashes
 
-``Hello,'' said the spider. ```Shelob' is my name.''
+"`Hello,`" said the spider. "`'`Shelob`' is my name.`"
 
-`A', `B', and `C' are letters.
+'`A`', '`B`', and '`C`' are letters.
 
-`Oak,' `elm,' and `beech' are names of trees. So is `pine.'
+'`Oak,`' '`elm,`' and '`beech`' are names of trees. So is '`pine.`'
 
-`He said, ``I want to go.''' Were you alive in the 70’s?
+'`He said, "`I want to go.`"`' Were you alive in the 70’s?
 
-Here is some quoted ``code`' and a ``http://example.com/?foo=1&bar=2[quoted
-link]''.
+Here is some quoted '``code``' and a "`http://example.com/?foo=1&bar=2[quoted
+link]`".
 
 Some dashes: one—two — three—four — five.
 
@@ -460,24 +461,24 @@ Ellipses…and…and….
 == LaTeX
 
 * 
-* latexmath:[$2+2=4$]
-* latexmath:[$x \in y$]
-* latexmath:[$\alpha \wedge \omega$]
-* latexmath:[$223$]
-* latexmath:[$p$]-Tree
+* latexmath:[2+2=4]
+* latexmath:[x \in y]
+* latexmath:[\alpha \wedge \omega]
+* latexmath:[223]
+* latexmath:[p]-Tree
 * Here’s some display math:
 +
 [latexmath]
 ++++
-\[\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}\]
+\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}
 ++++
 * Here’s one that has a line break in it:
-latexmath:[$\alpha + \omega \times x^2$].
+latexmath:[\alpha + \omega \times x^2].
 
 These shouldn’t be math:
 
 * To get the famous equation, write `$e = mc^2$`.
-* $22,000 is a _lot_ of money. So is $34,000. (It worked if ``lot'' is
+* $22,000 is a _lot_ of money. So is $34,000. (It worked if "`lot`" is
 emphasized.)
 * Shoes ($20) and socks ($5).
 * Escaped `$`: $73 _this should be emphasized_ 23$.
@@ -502,31 +503,31 @@ AT&T is another way to write it.
 
 This & that.
 
-4 < 5.
+4 ++<++ 5.
 
-6 > 5.
+6 ++>++ 5.
 
-Backslash: \
+Backslash: ++\++
 
-Backtick: `
+Backtick: ++`++
 
-Asterisk: *
+Asterisk: ++*++
 
-Underscore: _
+Underscore: ++_++
 
-Left brace: \{
+Left brace: ++{++
 
 Right brace: }
 
-Left bracket: [
+Left bracket: ++[++
 
-Right bracket: ]
+Right bracket: ++]++
 
 Left paren: (
 
 Right paren: )
 
-Greater-than: >
+Greater-than: ++>++
 
 Hash: #
 
@@ -534,7 +535,7 @@ Period: .
 
 Bang: !
 
-Plus: +
+Plus: {plus}
 
 Minus: -
 
@@ -556,7 +557,7 @@ link:/url/[URL and title]
 
 link:/url/[URL and title]
 
-link:/url/with_underscore[with_underscore]
+link:/url/with_underscore[with++_++underscore]
 
 mailto:nobody@nowhere.net[Email link]
 
@@ -566,7 +567,7 @@ link:[Empty].
 
 Foo link:/url/[bar].
 
-With link:/url/[embedded [brackets]].
+With link:/url/[embedded ++[++brackets++]++].
 
 link:/url/[b] by itself should be a link.
 
@@ -576,7 +577,7 @@ Indented link:/url[twice].
 
 Indented link:/url[thrice].
 
-This should [not][] be a link.
+This should ++[++not++][]++ be a link.
 
 ....
 [not]: /url
@@ -610,7 +611,7 @@ ____
 Blockquoted: http://example.com/
 ____
 
-Auto-links should not occur here: `<http://example.com/>`
+Auto-links should not occur here: `++<++http://example.com/++>++`
 
 ....
 or here: <http://example.com/>
@@ -620,7 +621,7 @@ or here: <http://example.com/>
 
 == Images
 
-From ``Voyage dans la Lune'' by Georges Melies (1902):
+From "`Voyage dans la Lune`" by Georges Melies (1902):
 
 .lalune
 image::lalune.jpg[lalune,title="Voyage dans la Lune"]
@@ -634,10 +635,10 @@ Here is a movie image:movie.jpg[movie] icon.
 Here is a footnote reference,footnote:[Here is the footnote. It can go anywhere
 after the footnote reference. It need not be placed at the end of the document.]
 and another.[multiblock footnote omitted] This should _not_ be a footnote
-reference, because it contains a space.[^my note] Here is an inline
+reference, because it contains a space.++[++^my note++]++ Here is an inline
 note.footnote:[This is _easier_ to type. Inline notes may contain
-http://google.com[links] and `]` verbatim characters, as well as [bracketed
-text].]
+http://google.com[links] and `++]++` verbatim characters, as well as
+++[++bracketed text++]++.]
 
 ____
 Notes can go in quotes.footnote:[In quote.]

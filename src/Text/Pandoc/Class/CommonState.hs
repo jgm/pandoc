@@ -23,6 +23,7 @@ import Text.Collate.Lang (Lang)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Logging (LogMessage, Verbosity (WARNING))
 import Text.Pandoc.Translations.Types (Translations)
+import Network.HTTP.Client (Manager)
 
 -- | 'CommonState' represents state that is used by all
 -- instances of 'PandocMonad'.  Normally users should not
@@ -50,6 +51,9 @@ data CommonState = CommonState
   , stResourcePath :: [FilePath]
     -- ^ Path to search for resources like
     -- included images
+  , stManager      :: Maybe Manager
+    -- ^ Manager for HTTP client; this needs to persist across many requests
+    -- for efficiency.
   , stVerbosity    :: Verbosity
     -- ^ Verbosity level
   , stTrace        :: Bool
@@ -75,6 +79,7 @@ defaultCommonState = CommonState
   , stInputFiles = []
   , stOutputFile = Nothing
   , stResourcePath = ["."]
+  , stManager = Nothing
   , stVerbosity = WARNING
   , stTrace = False
   }

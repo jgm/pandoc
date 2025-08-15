@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Markdown
-   Copyright   : © 2006-2023 John MacFarlane
+   Copyright   : © 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -29,10 +29,6 @@ markdownSmart :: Text -> Pandoc
 markdownSmart = purely $  readMarkdown def { readerExtensions =
                              enableExtension Ext_smart pandocExtensions }
 
-markdownCDL :: Text -> Pandoc
-markdownCDL = purely $ readMarkdown def { readerExtensions = enableExtension
-                 Ext_compact_definition_lists pandocExtensions }
-
 markdownGH :: Text -> Pandoc
 markdownGH = purely $ readMarkdown def {readerExtensions = enableExtension
                  Ext_wikilinks_title_before_pipe githubMarkdownExtensions }
@@ -57,6 +53,9 @@ autolink = autolinkWith ("",["uri"],[])
 autolinkWith :: Attr -> String -> Inlines
 autolinkWith attr s = linkWith attr s' "" (str s')
   where s' = T.pack s
+
+wikilink :: Attr
+wikilink = (mempty, ["wikilink"], mempty)
 
 bareLinkTests :: [(Text, Inlines)]
 bareLinkTests =
@@ -185,7 +184,6 @@ tests = [ testGroup "inline code"
                 , ("after literal backticks", ["`x``- x`"            ], [code "x``- x"                                           ])
                 ]
               lis = ["`text","y","x`"]
-              lis' = ["text","y","x"]
               bldLsts w lsts txts
                 = let (res, res', f) =
                          foldr (\((_, _, lt), lc) (acc, tacc, t) ->
@@ -207,18 +205,12 @@ tests = [ testGroup "inline code"
                =?> bldLsts plain lsts lis
              | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
-          <> [ "lists with newlines and indent in backticks" =:
-               T.intercalate ("\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
-               =?> let (_, _, f) = head lsts
-                   in f [plain $ code $ T.intercalate (T.replicate 5 " ") $ head lis' : zipWith (\i (_, lt, _) -> lt <> i) (tail lis') (tail lsts)]
-             | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
-             ]
           <> [ "lists with blank lines and indent in backticks" =:
-               T.intercalate ("\n\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis lsts)
+               T.intercalate ("\n\n" <> T.replicate 4 " ") (zipWith (\i (_, lt, _) -> lt <> i) lis (l:ls))
                <> "\n"
-               =?> let (_, _, f) = head lsts
-                   in f . pure $ (para . text $ head lis) <> bldLsts para (tail lsts) (tail lis)
-             | lsts <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
+               =?> let (_, _, f) = l
+                   in f . pure $ (para . text $ "`text") <> bldLsts para ls (drop 1 lis)
+             | (l:ls) <- [ [i, j, k] | i <- lists, j <- lists, k <- lists]
              ]
         , testGroup "emph and strong"
           [ "two strongs in emph" =:
@@ -312,22 +304,22 @@ tests = [ testGroup "inline code"
         , testGroup "Github wiki links"
           [ test markdownGH "autolink" $
             "[[https://example.org]]" =?>
-            para (link "https://example.org" "wikilink" (str "https://example.org"))
+            para (linkWith wikilink "https://example.org" "" (str "https://example.org"))
           , test markdownGH "link with title" $
             "[[title|https://example.org]]" =?>
-            para (link "https://example.org" "wikilink" (str "title"))
+            para (linkWith wikilink "https://example.org" "" (str "title"))
           , test markdownGH "bad link with title" $
             "[[title|random string]]" =?>
-            para (link "random string" "wikilink" (str "title"))
+            para (linkWith wikilink "random string" "" (str "title"))
           , test markdownGH "autolink not being a link" $
             "[[Name of page]]" =?>
-            para (link "Name of page" "wikilink" (str "Name of page"))
+            para (linkWith wikilink "Name of page" "" (text "Name of page"))
           , test markdownGH "autolink not being a link with a square bracket" $
             "[[Name of ]page]]" =?>
-            para (link "Name of ]page" "wikilink" (str "Name of ]page"))
+            para (linkWith wikilink "Name of ]page" "" (text "Name of ]page"))
           , test markdownGH "link with inline start should be a link" $
             "[[t`i*t_le|https://example.org]]" =?>
-            para (link "https://example.org" "wikilink" (str "t`i*t_le"))
+            para (linkWith wikilink "https://example.org" "" (str "t`i*t_le"))
           ]
         , testGroup "Headers"
           [ "blank line before header" =:
@@ -449,7 +441,7 @@ tests = [ testGroup "inline code"
                   <>
                   codeBlockWith ("",["haskell"],[]) "b"
                   <>
-                  rawBlock "html" "<div>\n\n"
+                  divWith ("",[],[]) mempty
           ]
 -- the round-trip properties frequently fail
 --        , testGroup "round trip"
@@ -465,14 +457,14 @@ tests = [ testGroup "inline code"
           , "blank space before first def" =:
             "foo1\n\n  :  bar\n\nfoo2\n\n  : bar2\n  : bar3\n" =?>
             definitionList [ (text "foo1", [para (text "bar")])
-                           , (text "foo2", [para (text "bar2"),
-                                            plain (text "bar3")])
+                           , (text "foo2", [plain (text "bar2"),
+                                            para (text "bar3")])
                            ]
           , "blank space before second def" =:
             "foo1\n  :  bar\n\nfoo2\n  : bar2\n\n  : bar3\n" =?>
             definitionList [ (text "foo1", [plain (text "bar")])
                            , (text "foo2", [plain (text "bar2"),
-                                            para (text "bar3")])
+                                            plain (text "bar3")])
                            ]
           , "laziness" =:
             "foo1\n  :  bar\nbaz\n  : bar2\n" =?>
@@ -482,8 +474,8 @@ tests = [ testGroup "inline code"
                            ]
           , "no blank space before first of two paragraphs" =:
             "foo1\n  : bar\n\n    baz\n" =?>
-            definitionList [ (text "foo1", [para (text "bar") <>
-                                            para (text "baz")])
+            definitionList [ (text "foo1", [plain (text "bar") <>
+                                            plain (text "baz")])
                            ]
           , "first line not indented" =:
             "foo\n: bar\n" =?>
@@ -495,14 +487,6 @@ tests = [ testGroup "inline code"
             "<div>foo\n:   - bar\n</div>" =?>
             divWith nullAttr (definitionList
               [ (text "foo", [bulletList [plain (text "bar")]]) ])
-          ]
-        , testGroup "+compact_definition_lists"
-          [ test markdownCDL "basic compact list" $
-            "foo1\n:   bar\n    baz\nfoo2\n:   bar2\n" =?>
-            definitionList [ (text "foo1", [plain (text "bar" <> softbreak <>
-                                                     text "baz")])
-                           , (text "foo2", [plain (text "bar2")])
-                           ]
           ]
         , testGroup "lists"
           [ "issue #1154" =:

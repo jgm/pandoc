@@ -164,6 +164,13 @@ return {
       assert.are_same(meta.test, {pandoc.Plain{pandoc.Str 'check'}})
     end),
   },
+  group 'Pandoc' {
+    test('normalize', function ()
+      local doc = pandoc.Pandoc({{'a', pandoc.Space(), pandoc.Space(), 'b'}})
+      local normalized = pandoc.Pandoc({{'a', pandoc.Space(), 'b'}})
+      assert.are_equal(normalized, doc:normalize())
+    end),
+  },
   group 'Other types' {
     group 'ReaderOptions' {
       test('returns a userdata value', function ()
@@ -293,6 +300,62 @@ return {
         'Unknown input format nosuchreader'
       )
     end),
+    group 'read_env' {
+      test('images are added to the mediabag', function ()
+        local epub = io.open('lua/module/sample.epub', 'rb'):read('a')
+        local _ = pandoc.read(epub, 'epub')
+        assert.are_equal(#pandoc.mediabag.list(), 1)
+      end),
+      test('images from EPUB are added when using the sandbox', function ()
+        local epub = io.open('lua/module/sample.epub', 'rb'):read('a')
+        local _ = pandoc.read(epub, 'epub', nil, {})
+        assert.are_equal(#pandoc.mediabag.list(), 1)
+      end),
+      test('includes work in global env', function ()
+        local tex = '\\include{lua/module/include.tex}'
+        local doc = pandoc.read(tex, 'latex')
+        assert.are_equal(
+          doc.blocks,
+          pandoc.Blocks{pandoc.Para 'included'}
+        )
+      end),
+      test('sandbox disallows access to the filesystem', function ()
+        local tex = '\\include{lua/module/include.tex}'
+        local doc = pandoc.read(tex, 'latex', nil, {})
+        assert.are_equal(doc.blocks, pandoc.Blocks{})
+      end),
+      test('files can be added to the sandbox', function ()
+        local tex = '\\include{lua/module/include.tex}'
+        local doc = pandoc.read(tex, 'latex', nil, {'lua/module/include.tex'})
+        assert.are_equal(
+          doc.blocks,
+          pandoc.Blocks{pandoc.Para 'included'}
+        )
+      end),
+      test('sandbox files can be given as key-value pairs', function ()
+        local tex = '\\include{lua/module/include.tex}'
+        local files = {
+          ['lua/module/include.tex'] = 'Hello'
+        }
+        local doc = pandoc.read(tex, 'latex', nil, files)
+        assert.are_equal(
+          doc.blocks,
+          pandoc.Blocks{pandoc.Para 'Hello'}
+        )
+      end),
+      test('kv-pairs override contents read from file system', function ()
+        local tex = '\\include{lua/module/include.tex}'
+        local files = {
+          'lua/module/include.tex',
+          ['lua/module/include.tex'] = 'Hello'
+        }
+        local doc = pandoc.read(tex, 'latex', nil, files)
+        assert.are_equal(
+          doc.blocks,
+          pandoc.Blocks{pandoc.Para 'Hello'}
+        )
+      end),
+    },
     group 'extensions' {
       test('string spec', function ()
         local doc = pandoc.read('"vice versa"', 'markdown-smart')

@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Readers.Ipynb
-   Copyright   : Copyright (C) 2019-2023 John MacFarlane
+   Copyright   : Copyright (C) 2019-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -15,9 +15,9 @@ Ipynb (Jupyter notebook JSON format) reader for pandoc.
 -}
 module Text.Pandoc.Readers.Ipynb ( readIpynb )
 where
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
-import Data.Digest.Pure.SHA (sha1, showDigest)
 import Text.Pandoc.Options
 import Control.Applicative ((<|>))
 import qualified Data.Scientific as Scientific
@@ -186,16 +186,16 @@ handleData (JSONMeta metadata) (MimeBundle mb) =
                        Error _   -> mempty
                    _ -> mempty
       let metaPairs = jsonMetaToPairs meta
-      let bl = case d of
-                 BinaryData bs  -> BL.fromStrict bs
-                 TextualData t  -> BL.fromStrict $ UTF8.fromText t
-                 JsonData v     -> encode v
+      let bs = case d of
+                 BinaryData bs' -> bs'
+                 TextualData t  -> UTF8.fromText t
+                 JsonData v     -> BL.toStrict $ encode v
       -- SHA1 hash for filename
-      let fname = T.pack (showDigest (sha1 bl)) <>
+      let fname = T.pack (show (hashWith SHA1 bs)) <>
             case extensionFromMimeType mt of
               Nothing  -> ""
               Just ext -> "." <> ext
-      insertMedia (T.unpack fname) (Just mt) bl
+      insertMedia (T.unpack fname) (Just mt) (BL.fromStrict bs)
       return $ B.para $ B.imageWith ("",[],metaPairs) fname "" mempty
 
     dataBlock ("text/html", TextualData t)

@@ -11,6 +11,7 @@ import Text.Pandoc.Options
   ( WriterOptions (writerIncremental, writerTopLevelDivision)
   , TopLevelDivision (..)
   )
+import Citeproc.Types (Lang)
 
 -- | LaTeX writer type. The type constructor @m@ will typically be an
 -- instance of PandocMonad.
@@ -26,6 +27,7 @@ data WriterState =
   , stInHeading     :: Bool          -- ^ true if in a section heading
   , stInItem        :: Bool          -- ^ true if in \item[..]
   , stInFigure      :: Bool          -- ^ true if in figure environment
+  , stInCite        :: Bool          -- ^ true if in a Cite
   , stNotes         :: [Doc Text]    -- ^ notes in a minipage
   , stOLLevel       :: Int           -- ^ level of ordered list nesting
   , stOptions       :: WriterOptions -- ^ writer options, so they don't have to
@@ -49,6 +51,8 @@ data WriterState =
   , stEmptyLine     :: Bool          -- ^ true if no content on line
   , stHasCslRefs    :: Bool          -- ^ has a Div with class refs
   , stIsFirstInDefinition :: Bool    -- ^ first block in a defn list
+  , stLang          :: Maybe Lang    -- ^ lang specified in metadata
+  , stInSoulCommand :: Bool          -- ^ in a soul command like ul
   }
 
 startingState :: WriterOptions -> WriterState
@@ -61,6 +65,7 @@ startingState options =
   , stInMinipage = False
   , stInItem = False
   , stInFigure = False
+  , stInCite = False
   , stNotes = []
   , stOLLevel = 1
   , stOptions = options
@@ -86,4 +91,6 @@ startingState options =
   , stEmptyLine = True
   , stHasCslRefs = False
   , stIsFirstInDefinition = False
+  , stLang = Nothing
+  , stInSoulCommand = False
   }

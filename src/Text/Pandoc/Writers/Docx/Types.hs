@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
 Module      : Text.Pandoc.Writers.Docx
-Copyright   : Copyright (C) 2012-2023 John MacFarlane
+Copyright   : Copyright (C) 2012-2024 John MacFarlane
 License     : GNU GPL, version 2 or above
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -40,12 +40,15 @@ import qualified Data.Text as T
 
 data ListMarker = NoMarker
                 | BulletMarker
+                | CheckboxMarker Bool
                 | NumberMarker ListNumberStyle ListNumberDelim Int
                 deriving (Show, Read, Eq, Ord)
 
 listMarkerToId :: ListMarker -> Text
 listMarkerToId NoMarker = "990"
 listMarkerToId BulletMarker = "991"
+listMarkerToId (CheckboxMarker False) = "992"
+listMarkerToId (CheckboxMarker True) = "993"
 listMarkerToId (NumberMarker sty delim n) = T.pack $
   '9' : '9' : styNum : delimNum : show n
   where styNum = case sty of
@@ -81,10 +84,12 @@ data WriterEnv = WriterEnv
   , envListLevel      :: Int
   , envListNumId      :: Int
   , envInDel          :: Bool
+  , envInNote         :: Bool
   , envChangesAuthor  :: Text
   , envChangesDate    :: Text
   , envPrintWidth     :: Integer
   , envLang           :: Maybe Text
+  , envSectPr         :: Maybe Element
   }
 
 defaultWriterEnv :: WriterEnv
@@ -95,10 +100,12 @@ defaultWriterEnv = WriterEnv
   , envListLevel = -1
   , envListNumId = 1
   , envInDel = False
+  , envInNote = False
   , envChangesAuthor  = "unknown"
   , envChangesDate    = "1969-12-31T19:00:00Z"
   , envPrintWidth     = 1
   , envLang           = Nothing
+  , envSectPr         = Nothing
   }
 
 

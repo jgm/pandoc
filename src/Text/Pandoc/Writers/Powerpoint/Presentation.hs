@@ -244,7 +244,7 @@ data TableProps = TableProps { tblPrFirstRow :: Bool
                              , tblPrBandRow :: Bool
                              } deriving (Show, Eq)
 
-data Graphic = Tbl TableProps [TableCell] [[TableCell]]
+data Graphic = Tbl [Double] TableProps [TableCell] [[TableCell]]
   deriving (Show, Eq)
 
 
@@ -537,7 +537,7 @@ blockToParagraphs (Div (_, classes, _) blks) = let
                    | otherwise -> Nothing
   addIncremental env = env { envInIncrementalDiv = incremental }
   in local addIncremental (concatMapM blockToParagraphs blks)
-blockToParagraphs (Figure attr capt blks) =
+blockToParagraphs (Figure attr capt blks) = -- This never seems to be used:
   blockToParagraphs (Shared.figureDiv attr capt blks)
 blockToParagraphs hr@HorizontalRule = notRendered hr
 blockToParagraphs tbl@Table{} = notRendered tbl
@@ -601,7 +601,7 @@ blockToShape (Para (il:_))  | Link _ (il':_) target <- il
       <$> inlinesToParElems ils
 blockToShape (Figure _figattr _caption [b]) = blockToShape b
 blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
-  let (caption, algn, _, hdrCells, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  let (caption, algn, widths, hdrCells, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlinesToParElems caption
   hdrCells' <- rowToParagraphs algn hdrCells
   rows' <- mapM (rowToParagraphs algn) rows
@@ -613,7 +613,7 @@ blockToShape (Table _ blkCapt specs thead tbody tfoot) = do
                               , tblPrBandRow = True
                               }
 
-  return $ GraphicFrame [Tbl tblPr hdrCells' rows'] caption'
+  return $ GraphicFrame [Tbl widths tblPr hdrCells' rows'] caption'
 -- If the format isn't openxml, we fall through to blockToPargraphs
 blockToShape (RawBlock (Format "openxml") str) = return $ RawOOXMLShape str
 blockToShape blk = do paras <- blockToParagraphs blk
@@ -649,6 +649,7 @@ plainOrPara _ = Nothing
 notText :: Block -> Bool
 notText block | startsWithImage block = True
 notText Table{} = True
+notText Figure{} = True
 notText _ = False
 
 startsWithImage :: Block -> Bool

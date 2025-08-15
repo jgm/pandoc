@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Roff
-   Copyright   : Copyright (C) 2007-2023 John MacFarlane
+   Copyright   : Copyright (C) 2007-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -26,13 +26,12 @@ import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.String
-import Data.Maybe (fromMaybe, isJust, catMaybes)
+import Data.Maybe (fromMaybe)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Text.DocLayout
 import Text.Printf (printf)
-import Text.Pandoc.RoffChar (standardEscapes,
-                              characterCodes, combiningAccents)
+import Text.Pandoc.RoffChar (standardEscapes, characterCodes)
 
 data WriterState = WriterState { stHasInlineMath :: Bool
                                , stFirstPara     :: Bool
@@ -68,36 +67,37 @@ data EscapeMode = AllowUTF8        -- ^ use preferred man escapes
                 | AsciiOnly        -- ^ escape everything
                 deriving Show
 
-combiningAccentsMap :: Map.Map Char Text
-combiningAccentsMap = Map.fromList combiningAccents
-
 essentialEscapes :: Map.Map Char Text
 essentialEscapes = Map.fromList standardEscapes
 
--- | Escape special characters for roff.
-escapeString :: EscapeMode -> Text -> Text
-escapeString e = Text.concat . escapeString' e . Text.unpack
+-- | Escape special characters for roff. If the first parameter is
+-- True, escape @-@ as @\-@, as required by current versions of groff man;
+-- otherwise leave it unescaped, as neededfor ms.
+escapeString :: Bool -> EscapeMode -> Text -> Text
+escapeString escapeHyphen e = Text.concat . escapeString' e . Text.unpack
   where
     escapeString' _ [] = []
     escapeString' escapeMode ('\n':'.':xs) =
       "\n\\&." : escapeString' escapeMode xs
+    -- see #10533; we need to escape hyphens as \- in man but not in ms:
+    escapeString' escapeMode ('-':xs) | escapeHyphen =
+      "\\-" : escapeString' escapeMode xs
     escapeString' escapeMode (x:xs) =
       case Map.lookup x essentialEscapes of
         Just s  -> s : escapeString' escapeMode xs
         Nothing
           | isAscii x -> Text.singleton x : escapeString' escapeMode xs
           | otherwise ->
-              case escapeMode of
-                AllowUTF8 -> Text.singleton x : escapeString' escapeMode xs
+              (case escapeMode of
+                AllowUTF8 -> Text.singleton x
                 AsciiOnly ->
-                  let accents = catMaybes $ takeWhile isJust
-                        (map (`Map.lookup` combiningAccentsMap) xs)
-                      rest = drop (length accents) xs
-                      s = case Map.lookup x characterCodeMap of
-                            Just t  -> "\\[" <> Text.unwords (t:accents) <> "]"
-                            Nothing -> "\\[" <> Text.unwords
-                              (Text.pack (printf "u%04X" (ord x)) : accents) <> "]"
-                  in  s : escapeString' escapeMode rest
+                   case Map.lookup x characterCodeMap of
+                      Just t
+                        | Text.length t == 2 -> "\\(" <> t -- see #10716
+                        | otherwise -> "\\C'" <> t <> "'"
+                      Nothing ->
+                        "\\C'" <> Text.pack (printf "u%04X" (ord x)) <> "'")
+               : escapeString' escapeMode xs
 
 characterCodeMap :: Map.Map Char Text
 characterCodeMap = Map.fromList characterCodes
@@ -112,9 +112,11 @@ fontChange = do
                        fromMaybe False (Map.lookup 'B' features)] ++
                 ['I' | fromMaybe False $ Map.lookup 'I' features]
   return $
-    if null filling
-       then text "\\f[R]"
-       else text $ "\\f[" ++ filling ++ "]"
+    case filling of
+      [] -> text "\\f[R]"
+      -- see #9020. C is not a font, use CR.
+      ['C'] -> text "\\f[CR]"
+      _ -> text $ "\\f[" ++ filling ++ "]"
 
 withFontFeature :: (HasChars a, IsString a, PandocMonad m)
                 => Char -> MS m (Doc a) -> MS m (Doc a)

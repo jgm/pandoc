@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.RST
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -254,29 +254,19 @@ blockToRST (Div (ident,classes,_kvs) bs) = do
                           -> ".. " <> literal cl <> "::"
                         cls -> ".. container::" <> space <>
                                    literal (T.unwords (filter (/= "container") cls))
+  -- if contents start with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case bs of
+                    BlockQuote{}:_-> ".." $+$ contents
+                    _ -> contents
   return $ blankline $$
            admonition $$
            (if T.null ident
                then blankline
                else "   :name: " <> literal ident $$ blankline) $$
-           nest 3 contents $$
+           nest 3 contents' $$
            blankline
 blockToRST (Plain inlines) = inlineListToRST inlines
-blockToRST (Para [Image attr txt (src, _)]) = do
-  description <- inlineListToRST txt
-  dims <- imageDimsToRST attr
-  let fig = "image:: " <> literal src
-      alt | null txt = empty
-          | otherwise = ":alt: " <> description
-      capt = empty
-      (_,cls,_) = attr
-      classes = case cls of
-                   []               -> empty
-                   ["align-right"]  -> ":align: right"
-                   ["align-left"]   -> ":align: left"
-                   ["align-center"] -> ":align: center"
-                   _ -> ":class: " <> literal (T.unwords cls)
-  return $ hang 3 ".. " (fig $$ alt $$ classes $$ dims $+$ capt) $$ blankline
 blockToRST (Para inlines)
   | LineBreak `elem` inlines =
       linesToLineBlock $ splitBy (==LineBreak) inlines
@@ -339,7 +329,8 @@ blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
 blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  let (caption, aligns, widths, headers, rows) =
+        toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToRST caption
   let blocksToDoc opts bs = do
          oldOpts <- gets stOptions
@@ -348,9 +339,8 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
          modify $ \st -> st{ stOptions = oldOpts }
          return result
   opts <- gets stOptions
-  let renderGrid = gridTable opts blocksToDoc (all null headers)
-                    (map (const AlignDefault) aligns) widths
-                    headers rows
+  let specs' = map (\(_,width) -> (AlignDefault, width)) specs
+      renderGrid = gridTable opts blocksToDoc specs' thead tbody tfoot
       isSimple = all (== 0) widths && length widths > 1
       renderSimple = do
         tbl' <- simpleTable opts blocksToDoc headers rows
@@ -366,7 +356,7 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
         | otherwise = renderGrid
   tbl <- rendered
   return $ blankline $$
-           (if null caption
+           (if null caption || isList
                then tbl
                else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl) $$
            blankline
@@ -394,13 +384,21 @@ blockToRST (DefinitionList items) = do
   -- ensure that sublists have preceding blank line
   return $ blankline $$ vcat contents $$ blankline
 
-blockToRST (Figure (ident, classes, _) _ body) = do
+blockToRST (Figure (ident, classes, _kvs)
+             (Caption _ longCapt) body) = do
   let figure attr txt (src, tit) = do
         description <- inlineListToRST txt
+        capt <- blockListToRST longCapt
         dims <- imageDimsToRST attr
-        let fig = "figure:: " <> literal src
-            alt = ":alt: " <> if T.null tit then description else literal tit
-            capt = description
+        let fig = "figure::" <+> literal src
+            alt = if null txt
+                     then if T.null tit
+                              then empty
+                              else ":alt:" <+> literal tit
+                     else ":alt:" <+> description
+            name = if T.null ident
+                      then empty
+                      else "name:" <+> literal ident
             (_,cls,_) = attr
             align = case cls of
                       []               -> empty
@@ -408,7 +406,7 @@ blockToRST (Figure (ident, classes, _) _ body) = do
                       ["align-left"]   -> ":align: left"
                       ["align-center"] -> ":align: center"
                       _ -> ":figclass: " <> literal (T.unwords cls)
-        return $ hang 3 ".. " (fig $$ alt $$ align $$ dims $+$ capt)
+        return $ hang 3 ".. " (fig $$ name $$ alt $$ align $$ dims $+$ capt)
               $$ blankline
   case body of
     [Para  [Image attr txt tgt]] -> figure attr txt tgt
@@ -428,7 +426,12 @@ blockToRST (Figure (ident, classes, _) _ body) = do
 bulletListItemToRST :: PandocMonad m => [Block] -> RST m (Doc Text)
 bulletListItemToRST items = do
   contents <- blockListToRST items
-  return $ hang 3 "-  " contents $$
+  -- if a list item starts with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case items of
+                    BlockQuote{}:_-> ".." $+$ contents
+                    _ -> contents
+  return $ hang 2 "- " contents' $$
       if null items || (endsWithPlain items && not (endsWithList items))
          then cr
          else blankline
@@ -441,7 +444,12 @@ orderedListItemToRST :: PandocMonad m
 orderedListItemToRST marker items = do
   contents <- blockListToRST items
   let marker' = marker <> " "
-  return $ hang (T.length marker') (literal marker') contents $$
+  -- if a list item starts with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case items of
+                    BlockQuote{}:_-> ".." $+$ contents
+                    _ -> contents
+  return $ hang (T.length marker') (literal marker') contents' $$
       if null items || (endsWithPlain items && not (endsWithList items))
          then cr
          else blankline
@@ -457,7 +465,12 @@ definitionListItemToRST :: PandocMonad m => ([Inline], [[Block]]) -> RST m (Doc 
 definitionListItemToRST (label, defs) = do
   label' <- inlineListToRST label
   contents <- liftM vcat $ mapM blockListToRST defs
-  return $ nowrap label' $$ nest 3 (nestle contents) $$
+  -- if definition list starts with block quote, we need to insert
+  -- an empty comment to fix the indentation point (#10236)
+  let contents' = case defs of
+                    (BlockQuote{}:_):_ -> ".." $+$ contents
+                    _ -> contents
+  return $ nowrap label' $$ nest 3 (nestle contents') $$
       if isTightList defs
          then cr
          else blankline
@@ -554,24 +567,8 @@ tableToRSTList caption _ propWidths headers rows = do
         toColumns :: Int -> Double -> Int
         toColumns t p = round (p * fromIntegral t)
         listTableContent :: PandocMonad m => [[[Block]]] -> RST m (Doc Text)
-        listTableContent = joinTable joinDocsM joinDocsM .
-                           mapTable blockListToRST
-        -- joinDocsM adapts joinDocs in order to work in the `RST m` monad
-        joinDocsM :: PandocMonad m => [RST m (Doc Text)] -> RST m (Doc Text)
-        joinDocsM = fmap joinDocs . sequence
-        -- joinDocs will be used to join cells and to join rows
-        joinDocs :: [Doc Text] -> Doc Text
-        joinDocs items = blankline $$
-                         (chomp . vcat . map formatItem) items $$
-                         blankline
-        formatItem :: Doc Text -> Doc Text
-        formatItem i = hang 3 "- " (i <> cr)
-        -- apply a function to all table cells changing their type
-        mapTable :: (a -> b) -> [[a]] -> [[b]]
-        mapTable = map . map
-        -- function hor to join cells and function ver to join rows
-        joinTable :: ([a] -> a) -> ([a] -> a) -> [[a]] -> a
-        joinTable hor ver = ver . map hor
+        listTableContent = fmap vcat .
+          mapM (fmap (hang 2 (text "* ") . vcat) . mapM bulletListItemToRST)
 
 transformInlines :: [Inline] -> [Inline]
 transformInlines =  insertBS .

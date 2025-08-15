@@ -2,9 +2,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Structure
-   Copyright   : © 2023 Albert Krewinkel
+   Copyright   : © 2023-2025 Albert Krewinkel <albert+pandoc@tarleb.com>
    License     : GPL-2.0-or-later
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Command line helpers
 -}
@@ -15,19 +15,22 @@ module Text.Pandoc.Lua.Module.Structure
 import Control.Applicative ((<|>), optional)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
+import Data.Version (makeVersion)
 import HsLua ( DocumentedFunction, LuaError, Module (..), Peeker
              , (###), (<#>), (=#>), (#?)
              , defun, functionResult, getfield, isnil, lastly, liftLua
              , opt, liftPure, parameter , peekBool, peekIntegral
-             , peekFieldRaw, peekText, pop, pushIntegral, top )
+             , peekFieldRaw, peekSet, peekText, pop, pushIntegral
+             , pushText, since, top )
 import Text.Pandoc.Chunks ( ChunkedDoc (..), PathTemplate (..)
                           , tocToList, splitIntoChunks )
 import Text.Pandoc.Definition (Pandoc (..), Block)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua ()
-import Text.Pandoc.Lua.Marshal.AST ( peekBlocksFuzzy, peekPandoc
-                                   , pushBlock, pushBlocks )
+import Text.Pandoc.Lua.Marshal.AST ( peekBlocksFuzzy, peekInlinesFuzzy
+                                   , peekPandoc, pushBlock, pushBlocks )
 import Text.Pandoc.Lua.Marshal.Chunks
+import Text.Pandoc.Lua.Marshal.Format (peekExtensions)
 import Text.Pandoc.Lua.Marshal.WriterOptions ( peekWriterOptions )
 import Text.Pandoc.Options (WriterOptions (writerTOCDepth,
                                            writerNumberSections))
@@ -41,14 +44,15 @@ documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc.structure"
   , moduleDescription =
-    "Access to the higher-level document structure, including" <>
+    "Access to the higher-level document structure, including " <>
     "hierarchical sections and the table of contents."
   , moduleFields = []
   , moduleFunctions =
-      [ make_sections
-      , slide_level
-      , split_into_chunks
-      , table_of_contents
+      [ make_sections     `since` makeVersion [3,0]
+      , slide_level       `since` makeVersion [3,0]
+      , split_into_chunks `since` makeVersion [3,0]
+      , table_of_contents `since` makeVersion [3,0]
+      , unique_identifier `since` makeVersion [3,8]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []
@@ -64,12 +68,13 @@ make_sections = defun "make_sections"
                        Just sl -> prepSlides sl blks
                        Nothing -> blks
          in pure $ Shared.makeSections numSects baseLevel blks')
-  <#> parameter peekBodyBlocks "Blocks" "blocks" "document blocks to process"
+  <#> parameter peekBodyBlocks "Blocks|Pandoc" "blocks"
+        "document blocks to process"
   <#> opt (parameter peekOpts "table" "opts" "options")
-  =#> functionResult pushBlocks "list of Blocks"
+  =#> functionResult pushBlocks "Blocks"
         "processed blocks"
   #? T.unlines
-     [ "Puts [Blocks] into a hierarchical structure: a list of sections"
+     [ "Puts [[Blocks]] into a hierarchical structure: a list of sections"
      , "(each a Div with class \"section\" and first element a Header)."
      , ""
      , "The optional `opts` argument can be a table; two settings are"
@@ -80,9 +85,18 @@ make_sections = defun "make_sections"
      , "shifted by the given value. Finally, an integer `slide_level`"
      , "value triggers the creation of slides at that heading level."
      , ""
-     , "Note that a [WriterOptions][] object can be passed as the opts"
+     , "Note that a [[WriterOptions]] object can be passed as the opts"
      , "table; this will set the `number_section` and `slide_level` values"
      , "to those defined on the command line."
+     , ""
+     , "Usage:"
+     , ""
+     , "    local blocks = {"
+     , "      pandoc.Header(2, pandoc.Str 'first'),"
+     , "      pandoc.Header(2, pandoc.Str 'second'),"
+     , "    }"
+     , "    local opts = PANDOC_WRITER_OPTIONS"
+     , "    local newblocks = pandoc.structure.make_sections(blocks, opts)"
      ]
   where
     defNumSec = False
@@ -101,7 +115,7 @@ make_sections = defun "make_sections"
 slide_level :: LuaError e => DocumentedFunction e
 slide_level = defun "slide_level"
   ### liftPure getSlideLevel
-  <#> parameter peekBodyBlocks "Pandoc|Blocks" "blocks" "document body"
+  <#> parameter peekBodyBlocks "Blocks|Pandoc" "blocks" "document body"
   =#> functionResult pushIntegral "integer" "slide level"
   #? T.unlines
   [ "Find level of header that starts slides (defined as the least"
@@ -121,7 +135,7 @@ split_into_chunks = defun "split_into_chunks"
   <#> opt (parameter peekSplitOpts "table" "opts" optionsDescr)
   =#> functionResult pushChunkedDoc "ChunkedDoc" ""
   #? T.unlines
-     [ "Converts a `Pandoc` document into a `ChunkedDoc`." ]
+     [ "Converts a [[Pandoc]] document into a [[ChunkedDoc]]." ]
  where
   defPathTmpl = PathTemplate "chunk-%n"
   defNumSects = False
@@ -136,7 +150,9 @@ split_into_chunks = defun "split_into_chunks"
     True  -> pure defaultValue
     False -> p idx'
   optionsDescr = T.unlines
-    [ "The following options are supported:"
+    [ "Splitting options."
+    , ""
+    , "The following options are supported:"
     , ""
     , "    `path_template`"
     , "    :   template used to generate the chunks' filepaths"
@@ -184,6 +200,40 @@ table_of_contents = defun "table_of_contents"
   peekTocSource idx =
     (Left <$> peekBodyBlocks idx) <|>
     (Right . chunkedTOC <$> peekChunkedDoc idx)
+
+-- | Generate a unique ID from a list of inlines.
+unique_identifier :: LuaError e => DocumentedFunction e
+unique_identifier = defun "unique_identifier"
+  ### (\inlns mUsedIdents mExts -> do
+          let usedIdents = fromMaybe mempty mUsedIdents
+          let exts       = fromMaybe mempty mExts
+          pure $ Shared.uniqueIdent exts inlns usedIdents)
+  <#> parameter peekInlinesFuzzy "Inlines" "inlines" "base for identifier"
+  <#> opt (parameter (peekSet peekText) "table" "used"
+           "set of identifiers (string keys, boolean values) that\
+           \ have already been used.")
+  <#> opt (parameter peekExtensions "{string,...}" "exts"
+           "list of format extensions")
+  =#> functionResult pushText "string" "unique identifier"
+  #? "Generates a unique identifier from a list of inlines, similar to\
+     \ what's generated by the `auto_identifiers` extension.\n\
+     \\n\
+     \ The method used to generated identifiers can be modified through\
+     \ `ext`, which is a list of format extensions.\n\
+     \\n\
+     \ It can be used to generate IDs similar to what the `auto_identifiers`\
+     \ extension provides.\n\
+     \\n\
+     \ Example:\n\
+     \\n\
+     \     local used_ids = {}\n\
+     \     function Header (h)\n\
+     \       local id =\n\
+     \         pandoc.structure.unique_identifier(h.content, used_ids)\n\
+     \       used_ids[id] = true\n\
+     \       h.identifier = id\n\
+     \       return h\n\
+     \     end"
 
 -- | Retrieves the body blocks of a 'Pandoc' object or from a list of
 -- blocks.

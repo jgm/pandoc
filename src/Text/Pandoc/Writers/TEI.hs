@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards     #-}
 {- |
-   Module      : Text.Pandoc.Writers.Docbook
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Module      : Text.Pandoc.Writers.TEI
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
    Stability   : alpha
    Portability : portable
 
-Conversion of 'Pandoc' documents to Docbook XML.
+Conversion of 'Pandoc' documents to TEI XML
 -}
 module Text.Pandoc.Writers.TEI (writeTEI) where
 import Data.Text (Text)
@@ -27,7 +27,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
 
--- | Convert Pandoc document to string in Docbook format.
+-- | Convert Pandoc document to string in TEI XML format.
 writeTEI :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTEI opts doc = do
   let Pandoc meta blocks = ensureValidXmlIdentifiers doc
@@ -138,9 +138,9 @@ blockToTEI opts (BlockQuote blocks) =
 blockToTEI opts (CodeBlock (_,classes,_) str) =
   return $ literal ("<ab type='codeblock " <> lang <> "'>") <> cr <>
      flush (literal (escapeStringForXML str) <> cr <> text "</ab>")
-    where lang  = if null langs
-                     then ""
-                     else escapeStringForXML (head langs)
+    where lang  = case langs of
+                    [] -> ""
+                    (l:_) -> escapeStringForXML l
           syntaxMap = writerSyntaxMap opts
           isLang l    = T.toLower l `elem` map T.toLower (languages syntaxMap)
           langsFrom s = if isLang s

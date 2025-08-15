@@ -2,7 +2,7 @@
 {-# LANGUAGE CPP               #-}
 {- |
    Module      : Text.Pandoc.Writers.OPML
-   Copyright   : Copyright (C) 2013-2023 John MacFarlane
+   Copyright   : Copyright (C) 2013-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -35,9 +35,9 @@ writeOPML opts (Pandoc meta blocks) = do
                     else Nothing
       meta' = B.setMeta "date" (B.str $ convertDate $ docDate meta) meta
   metadata <- metaToContext opts
-              (fmap literal . writeMarkdown def . Pandoc nullMeta)
+              (fmap literal . writeMarkdown' opts . Pandoc nullMeta)
               (\ils -> literal . T.stripEnd <$>
-                writeMarkdown def (Pandoc nullMeta [Plain ils]))
+                writeMarkdown' opts (Pandoc nullMeta [Plain ils]))
               meta'
   let blocks' = makeSections False (Just 1) blocks
   main <- render colwidth . vcat <$>
@@ -49,6 +49,11 @@ writeOPML opts (Pandoc meta blocks) = do
        Nothing  -> main
        Just tpl -> render colwidth $ renderTemplate tpl context
 
+writeMarkdown' :: PandocMonad m => WriterOptions -> Pandoc -> m Text
+writeMarkdown' opts = writeMarkdown def{ writerWrapText = writerWrapText opts
+                                       , writerColumns = writerColumns opts
+                                       , writerExtensions = pandocExtensions
+                                       }
 
 writeHtmlInlines :: PandocMonad m => [Inline] -> m Text
 writeHtmlInlines ils =
@@ -71,7 +76,7 @@ blockToOPML opts (Div (_,"section":_,_) (Header _ _ title : xs)) = do
   htmlIls <- writeHtmlInlines title
   md <- if null blocks
         then return mempty
-        else writeMarkdown def $ Pandoc nullMeta blocks
+        else writeMarkdown' opts $ Pandoc nullMeta blocks
   let attrs = ("text", htmlIls) :
               [("_note", T.stripEnd md) | not (null blocks)]
   rest' <- vcat <$> mapM (blockToOPML opts) rest

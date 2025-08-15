@@ -105,45 +105,45 @@ And:
 
 Asterisks tight:
 
--   asterisk 1
--   asterisk 2
--   asterisk 3
+- asterisk 1
+- asterisk 2
+- asterisk 3
 
 Asterisks loose:
 
--   asterisk 1
+- asterisk 1
 
--   asterisk 2
+- asterisk 2
 
--   asterisk 3
+- asterisk 3
 
 Pluses tight:
 
--   Plus 1
--   Plus 2
--   Plus 3
+- Plus 1
+- Plus 2
+- Plus 3
 
 Pluses loose:
 
--   Plus 1
+- Plus 1
 
--   Plus 2
+- Plus 2
 
--   Plus 3
+- Plus 3
 
 Minuses tight:
 
--   Minus 1
--   Minus 2
--   Minus 3
+- Minus 1
+- Minus 2
+- Minus 3
 
 Minuses loose:
 
--   Minus 1
+- Minus 1
 
--   Minus 2
+- Minus 2
 
--   Minus 3
+- Minus 3
 
 ## Ordered
 
@@ -187,17 +187,17 @@ Multiple paragraphs:
 
 ## Nested
 
--   Tab
-    -   Tab
-        -   Tab
+- Tab
+  - Tab
+    - Tab
 
 Here's another:
 
 1.  First
 2.  Second:
-    -   Fee
-    -   Fie
-    -   Foe
+    - Fee
+    - Fie
+    - Foe
 3.  Third
 
 Same thing but with paragraphs:
@@ -206,21 +206,21 @@ Same thing but with paragraphs:
 
 2.  Second:
 
-    -   Fee
-    -   Fie
-    -   Foe
+    - Fee
+    - Fie
+    - Foe
 
 3.  Third
 
 ## Tabs and spaces
 
--   this is a list item indented with tabs
+- this is a list item indented with tabs
 
--   this is a list item indented with spaces
+- this is a list item indented with spaces
 
-    -   this is an example list item indented with tabs
+  - this is an example list item indented with tabs
 
-    -   this is an example list item indented with spaces
+  - this is an example list item indented with spaces
 
 ## Fancy list markers
 
@@ -353,72 +353,43 @@ orange
 
 Simple block on one line:
 
-<div>
-
+::: {}
 foo
-
-</div>
+:::
 
 And nested without indentation:
 
-<div>
-
-<div>
-
-<div>
-
+:::::: {}
+:::: {}
+::: {}
 foo
+:::
+::::
 
-</div>
-
-</div>
-
-<div>
-
+::: {}
 bar
-
-</div>
-
-</div>
+:::
+::::::
 
 Interpreted markdown in a table:
 
-```{=html}
 <table>
-```
-```{=html}
 <tr>
-```
-```{=html}
 <td>
-```
 This is *emphasized*
-```{=html}
 </td>
-```
-```{=html}
 <td>
-```
 And this is **strong**
-```{=html}
 </td>
-```
-```{=html}
 </tr>
-```
-```{=html}
 </table>
-```
-```{=html}
 <script type="text/javascript">document.write('This *should not* be interpreted as markdown');</script>
-```
+
 Here's a simple block:
 
-<div>
-
+::: {}
 foo
-
-</div>
+:::
 
 This should be a code block, though:
 
@@ -432,80 +403,51 @@ As should this:
 
 Now, nested:
 
-<div>
-
-<div>
-
-<div>
-
+::::: {}
+:::: {}
+::: {}
 foo
-
-</div>
-
-</div>
-
-</div>
+:::
+::::
+:::::
 
 This should just be an HTML comment:
 
-```{=html}
 <!-- Comment -->
-```
+
 Multiline:
 
-```{=html}
 <!--
 Blah
 Blah
 -->
-```
-```{=html}
 <!--
     This is another comment.
 -->
-```
+
 Code block:
 
     <!-- Comment -->
 
 Just plain comment, with trailing spaces on the line:
 
-```{=html}
 <!-- foo -->
-```
+
 Code:
 
     <hr />
 
 Hr's:
 
-```{=html}
 <hr>
-```
-```{=html}
 <hr />
-```
-```{=html}
 <hr />
-```
-```{=html}
 <hr>
-```
-```{=html}
 <hr />
-```
-```{=html}
 <hr />
-```
-```{=html}
 <hr class="foo" id="bar" />
-```
-```{=html}
 <hr class="foo" id="bar" />
-```
-```{=html}
 <hr class="foo" id="bar">
-```
 
 --------------------------------------------------------------------------------
 
@@ -561,33 +503,31 @@ Ellipses...and...and....
 
 # LaTeX
 
--   `\cite[22-23]{smith.1899}`{=tex}
--   $2+2=4$
--   $x \in y$
--   $\alpha \wedge \omega$
--   $223$
--   $p$-Tree
--   Here's some display math:
-    $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
--   Here's one that has a line break in it: $\alpha + \omega \times x^2$.
+- `\cite[22-23]{smith.1899}`{=tex}
+- $2+2=4$
+- $x \in y$
+- $\alpha \wedge \omega$
+- $223$
+- $p$-Tree
+- Here's some display math:
+  $$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
+- Here's one that has a line break in it: $\alpha + \omega \times x^2$.
 
 These shouldn't be math:
 
--   To get the famous equation, write `$e = mc^2$`.
--   \$22,000 is a *lot* of money. So is \$34,000. (It worked if "lot" is
-    emphasized.)
--   Shoes (\$20) and socks (\$5).
--   Escaped `$`: \$73 *this should be emphasized* 23\$.
+- To get the famous equation, write `$e = mc^2$`.
+- \$22,000 is a *lot* of money. So is \$34,000. (It worked if "lot" is
+  emphasized.)
+- Shoes (\$20) and socks (\$5).
+- Escaped `$`: \$73 *this should be emphasized* 23\$.
 
 Here's a LaTeX table:
 
-```{=tex}
 \begin{tabular}{|l|l|}\hline
 Animal & Number \\ \hline
 Dog    & 2      \\
 Cat    & 1      \\ \hline
 \end{tabular}
-```
 
 --------------------------------------------------------------------------------
 
@@ -595,11 +535,11 @@ Cat    & 1      \\ \hline
 
 Here is some unicode:
 
--   I hat: Î
--   o umlaut: ö
--   section: §
--   set membership: ∈
--   copyright: ©
+- I hat: Î
+- o umlaut: ö
+- section: §
+- set membership: ∈
+- copyright: ©
 
 AT&T has an ampersand in their name.
 
@@ -703,9 +643,9 @@ Here's an [inline link in pointy braces](/script?foo=1&bar=2).
 
 With an ampersand: <http://example.com/?foo=1&bar=2>
 
--   In a list?
--   <http://example.com/>
--   It should.
+- In a list?
+- <http://example.com/>
+- It should.
 
 An e-mail address: <nobody@nowhere.net>
 

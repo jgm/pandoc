@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Highlighting
-   Copyright   : Copyright (C) 2008-2023 John MacFarlane
+   Copyright   : Copyright (C) 2008-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -29,6 +29,7 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , formatConTeXtInline
                                 , formatConTeXtBlock
                                 , styleToConTeXt
+                                , formatANSI
                                 -- * Styles
                                 , pygments
                                 , espresso

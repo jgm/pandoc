@@ -7,7 +7,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {- |
    Module      : Text.Pandoc.App.Opt
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -41,6 +41,7 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             TrackChanges (AcceptChanges),
                             WrapOption (WrapAuto), HTMLMathMethod (PlainMath),
                             ReferenceLocation (EndOfDocument),
+                            CaptionPosition (..),
                             ObfuscationMethod (NoObfuscation),
                             CiteMethod (Citeproc))
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
@@ -106,6 +107,8 @@ data Opt = Opt
     , optFrom                  :: Maybe Text  -- ^ Reader format
     , optTo                    :: Maybe Text  -- ^ Writer format
     , optTableOfContents       :: Bool    -- ^ Include table of contents
+    , optListOfFigures         :: Bool    -- ^ Include list of figures
+    , optListOfTables          :: Bool    -- ^ Include list of tables
     , optShiftHeadingLevelBy   :: Int     -- ^ Shift heading level by
     , optTemplate              :: Maybe FilePath  -- ^ Custom template
     , optVariables             :: Context Text    -- ^ Template variables to set
@@ -119,6 +122,7 @@ data Opt = Opt
     , optIncremental           :: Bool    -- ^ Use incremental lists in Slidy/Slideous/S5
     , optSelfContained         :: Bool    -- ^ Make HTML accessible offline (deprecated)
     , optEmbedResources        :: Bool    -- ^ Make HTML accessible offline
+    , optLinkImages            :: Bool    -- ^ Link ODT images rather than embedding
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
     , optHighlightStyle        :: Maybe Text -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
@@ -142,6 +146,8 @@ data Opt = Opt
     , optFailIfWarnings        :: Bool    -- ^ Fail on warnings
     , optReferenceLinks        :: Bool    -- ^ Use reference links in writing markdown, rst
     , optReferenceLocation     :: ReferenceLocation -- ^ location for footnotes and link references in markdown output
+    , optFigureCaptionPosition :: CaptionPosition -- ^ position for figure caption
+    , optTableCaptionPosition  :: CaptionPosition -- ^ position for table caption
     , optDpi                   :: Int     -- ^ Dpi
     , optWrap                  :: WrapOption  -- ^ Options for wrapping text
     , optColumns               :: Int     -- ^ Line length in characters
@@ -188,6 +194,8 @@ instance FromJSON Opt where
        <*> o .:? "from"
        <*> o .:? "to"
        <*> o .:? "table-of-contents" .!= optTableOfContents defaultOpts
+       <*> o .:? "list-of-figures" .!= optListOfFigures defaultOpts
+       <*> o .:? "list-of-tables" .!= optListOfTables defaultOpts
        <*> o .:? "shift-heading-level-by" .!= optShiftHeadingLevelBy defaultOpts
        <*> o .:? "template"
        <*> o .:? "variables" .!= optVariables defaultOpts
@@ -201,6 +209,7 @@ instance FromJSON Opt where
        <*> o .:? "incremental" .!= optIncremental defaultOpts
        <*> o .:? "self-contained" .!= optSelfContained defaultOpts
        <*> o .:? "embed-resources" .!= optEmbedResources defaultOpts
+       <*> o .:? "link-images" .!= optLinkImages defaultOpts
        <*> o .:? "html-q-tags" .!= optHtmlQTags defaultOpts
        <*> o .:? "highlight-style"
        <*> o .:? "syntax-definitions" .!= optSyntaxDefinitions defaultOpts
@@ -225,6 +234,8 @@ instance FromJSON Opt where
        <*> o .:? "fail-if-warnings" .!= optFailIfWarnings defaultOpts
        <*> o .:? "reference-links" .!= optReferenceLinks defaultOpts
        <*> o .:? "reference-location" .!= optReferenceLocation defaultOpts
+       <*> o .:? "figure-caption-position" .!= optFigureCaptionPosition defaultOpts
+       <*> o .:? "table-caption-position" .!= optTableCaptionPosition defaultOpts
        <*> o .:? "dpi" .!= optDpi defaultOpts
        <*> o .:? "wrap" .!= optWrap defaultOpts
        <*> o .:? "columns" .!= optColumns defaultOpts
@@ -301,7 +312,9 @@ resolveVarsInOpt :: forall m. (PandocMonad m, MonadIO m)
                  => Opt -> StateT DefaultsState m Opt
 resolveVarsInOpt
     opt@Opt
-    { optTemplate              = oTemplate
+    { optTo                    = oTo
+    , optFrom                  = oFrom
+    , optTemplate              = oTemplate
     , optMetadataFiles         = oMetadataFiles
     , optOutputFile            = oOutputFile
     , optInputFiles            = oInputFiles
@@ -327,6 +340,8 @@ resolveVarsInOpt
     , optHighlightStyle        = oHighlightStyle
     }
   = do
+      oTo' <- mapM (fmap T.pack . resolveVars . T.unpack) oTo
+      oFrom' <- mapM (fmap T.pack . resolveVars . T.unpack) oFrom
       oTemplate' <- mapM resolveVars oTemplate
       oMetadataFiles' <- mapM resolveVars oMetadataFiles
       oOutputFile' <- mapM resolveVars oOutputFile
@@ -351,7 +366,9 @@ resolveVarsInOpt
       oCitationAbbreviations' <- mapM resolveVars oCitationAbbreviations
       oPdfEngine' <- mapM resolveVars oPdfEngine
       oHighlightStyle' <- mapM (fmap T.pack . resolveVars . T.unpack) oHighlightStyle
-      return opt{ optTemplate              = oTemplate'
+      return opt{ optTo                    = oTo'
+                , optFrom                  = oFrom'
+                , optTemplate              = oTemplate'
                 , optMetadataFiles         = oMetadataFiles'
                 , optOutputFile            = oOutputFile'
                 , optInputFiles            = oInputFiles'
@@ -467,6 +484,14 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optTableOfContents = x })
     "toc" ->
       parseJSON v >>= \x -> return (\o -> o{ optTableOfContents = x })
+    "list-of-figures" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfFigures = x })
+    "lof" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfFigures = x })
+    "list-of-tables" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfTables = x })
+    "lot" ->
+      parseJSON v >>= \x -> return (\o -> o{ optListOfTables = x })
     "from" ->
       parseJSON v >>= \x -> return (\o -> o{ optFrom = x })
     "reader" ->
@@ -526,6 +551,8 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optSelfContained = x })
     "embed-resources" ->
       parseJSON v >>= \x -> return (\o -> o{ optEmbedResources = x })
+    "link-images" ->
+      parseJSON v >>= \x -> return (\o -> o{ optLinkImages = x })
     "html-q-tags" ->
       parseJSON v >>= \x -> return (\o -> o{ optHtmlQTags = x })
     "highlight-style" ->
@@ -570,6 +597,8 @@ doOpt (k,v) = do
     "epub-cover-image" ->
       parseJSON v >>= \x ->
              return (\o -> o{ optEpubCoverImage = unpack <$> x })
+    "epub-title-page" ->
+      parseJSON v >>= \x -> return (\o -> o{ optEpubTitlePage = x })
     "toc-depth" ->
       parseJSON v >>= \x -> return (\o -> o{ optTOCDepth = x })
     "dump-args" ->
@@ -588,6 +617,10 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optReferenceLinks = x })
     "reference-location" ->
       parseJSON v >>= \x -> return (\o -> o{ optReferenceLocation = x })
+    "figure-caption-position" ->
+      parseJSON v >>= \x -> return (\o -> o{ optFigureCaptionPosition = x })
+    "table-caption-position" ->
+      parseJSON v >>= \x -> return (\o -> o{ optTableCaptionPosition = x })
     "dpi" ->
       parseJSON v >>= \x -> return (\o -> o{ optDpi = x })
     "wrap" ->
@@ -723,6 +756,8 @@ defaultOpts = Opt
     , optFrom                  = Nothing
     , optTo                    = Nothing
     , optTableOfContents       = False
+    , optListOfFigures         = False
+    , optListOfTables          = False
     , optShiftHeadingLevelBy   = 0
     , optTemplate              = Nothing
     , optVariables             = mempty
@@ -731,11 +766,12 @@ defaultOpts = Opt
     , optOutputFile            = Nothing
     , optInputFiles            = Nothing
     , optNumberSections        = False
-    , optNumberOffset          = [0,0,0,0,0,0]
+    , optNumberOffset          = []
     , optSectionDivs           = False
     , optIncremental           = False
     , optSelfContained         = False
     , optEmbedResources        = False
+    , optLinkImages            = False
     , optHtmlQTags             = False
     , optHighlightStyle        = Just "pygments"
     , optSyntaxDefinitions     = []
@@ -759,6 +795,8 @@ defaultOpts = Opt
     , optFailIfWarnings        = False
     , optReferenceLinks        = False
     , optReferenceLocation     = EndOfDocument
+    , optFigureCaptionPosition = CaptionBelow
+    , optTableCaptionPosition  = CaptionAbove
     , optDpi                   = 96
     , optWrap                  = WrapAuto
     , optColumns               = 72

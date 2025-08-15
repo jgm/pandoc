@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -49,7 +50,7 @@ import Data.Word (Word8)
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.FilePath ((</>))
 import System.FilePath.Glob (match, compile)
-import System.Random (StdGen, split, mkStdGen)
+import System.Random (StdGen, mkStdGen)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Error
@@ -58,6 +59,15 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified System.Directory as Directory (getModificationTime)
+
+#if MIN_VERSION_random(1,3,0)
+import System.Random (splitGen, SplitGen)
+
+split :: SplitGen g => g -> (g, g)
+split = splitGen
+#else
+import System.Random (split)
+#endif
 
 -- | The 'PureState' contains ersatz representations
 -- of things that would normally be obtained through IO.

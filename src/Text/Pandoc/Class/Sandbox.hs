@@ -1,6 +1,6 @@
 {- |
 Module      : Text.Pandoc.Class.Sandbox
-Copyright   : Copyright (C) 2021-2023 John MacFarlane
+Copyright   : Copyright (C) 2021-2024 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane (<jgm@berkeley.edu>)
@@ -12,7 +12,9 @@ This module provides a way to run PandocMonad actions in a sandbox
 -}
 
 module Text.Pandoc.Class.Sandbox
-  ( sandbox )
+  ( sandbox
+  , sandboxWithFileTree
+  )
 where
 
 import Control.Monad (foldM)
@@ -30,8 +32,18 @@ import Text.Pandoc.Logging (messageVerbosity)
 -- ersatz file system and be available for reading.
 sandbox :: (PandocMonad m, MonadIO m) => [FilePath] -> PandocPure a -> m a
 sandbox files action = do
-  oldState <- getCommonState
   tree <- liftIO $ foldM addToFileTree mempty files
+  sandboxWithFileTree tree action
+
+-- | Lift a PandocPure action into any instance of PandocMonad.
+-- The main computation is done purely, but CommonState is preserved
+-- continuously, and warnings are emitted after the action completes.
+-- The parameter is an ersatz file system which will be available for
+-- reading.
+sandboxWithFileTree :: (PandocMonad m, MonadIO m)
+                    => FileTree -> PandocPure a -> m a
+sandboxWithFileTree tree action = do
+  oldState <- getCommonState
   case runPure (do putCommonState oldState
                    modifyPureState $ \ps -> ps{ stFiles = tree }
                    result <- action

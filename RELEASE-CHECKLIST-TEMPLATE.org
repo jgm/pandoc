@@ -1,0 +1,122 @@
+#+STARTUP: content
+** pandoc RELEASE_VERSION release checklist
+*** TODO Check [[https://github.com/jgm/pandoc/issues?q=state%3Aopen%20label%3A%22priority%3Ahigh%22%20][priority-high]] tag
+*** TODO Release any prerelease packages in [[./cabal.project]]
+*** TODO [[./pandoc.cabal]] - bump version number
+*** TODO [[./pandoc-cli/pandoc-cli.cabal]] - bump version, sync pandoc version
+#+begin_src sh
+git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-cli
+#+end_src
+*** TODO [[./pandoc-lua-engine/pandoc-lua-engine.cabal]] - bump version?
+#+begin_src sh
+git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-lua-engine
+#+end_src
+*** TODO [[./pandoc-server/pandoc-server.cabal]] - bump version?
+#+begin_src sh
+git log $(git describe --tags --abbrev=0)..HEAD --oneline pandoc-server
+#+end_src
+*** TODO Update [[./MANUAL.txt]] date and rebuild man pages
+#+begin_src sh :results silent
+NEWDATE=$(date -I)
+sed -i '' -e "/^---$/,/^---$/s/^date:.*$/date: $NEWDATE/" MANUAL.txt
+make man
+#+end_src
+*** TODO Finalize [[./changelog.md]]
+#+begin_src sh :results output file :file LOG.md
+git log $(git describe --tags --abbrev=0)..HEAD --mailmap --reverse --format=format:'  * %s%n    %aN%n%w(78,4,4)%b' | sed -e '/^ *John MacFarlane$/d' | sed -e 's/  *$//'
+#+end_src
+*** TODO prerelease checks
+#+begin_src sh :results output verbatim
+make prerelease
+#+end_src
+*** TODO Update [[./AUTHORS.md]]
+#+begin_src sh :results output list org
+make authors
+#+end_src
+*** TODO Run [[https://github.com/jgm/pandoc/actions/workflows/release-candidate.yml][release candidate workflow]] on GitHub
+    #+begin_src sh :var ghtoken=(jgm-authinfo-get "api.github.com" "jgm_pandoc_release")
+curl -L \
+  -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $ghtoken"\
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+https://api.github.com/repos/jgm/pandoc/actions/workflows/release-candidate.yml/dispatches \
+  -d '{"ref":"main"}'
+    #+end_src
+*** TODO Run [[https://cirrus-ci.com][release candidate workflows]] manually on cirrus-ci.com
+*** TODO If it builds successfully, download artifacts from GitHub, cirrus-ci.com
+    (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
+    from cirrus)
+*** TODO Use 'make' in macos and windows artifacts to sign code
+*** TODO Update website
+#+begin_src sh
+make update-website
+#+end_src
+*** TODO Tag release in git:
+    - use X.Y for pandoc
+    - pandoc-cli-X.Y
+    - if needed: pandoc-server-X.Y
+    - if needed: pandoc-lua-engine-X.Y
+*** TODO Upload packages to Hackage:
+#+NAME: changed-packages
+#+begin_src sh :results silent
+echo pandoc
+echo pandoc-cli
+for package in pandoc-lua-engine pandoc-server; do
+    lines=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline $package | wc -l)
+    if ! [ $lines -eq 0 ]; then
+        echo $package;
+    fi
+done
+#+end_src
+
+    - pandoc
+    - pandoc-cli
+    and if changed:
+    - pandoc-server
+    - pandoc-lua-engine
+*** TODO make pandoc-templates
+#+begin_src sh
+make pandoc-templates
+pushd ~/src/pandoc-templates
+git tag RELEASE_VERSION
+git push
+git push --tags
+popd
+#+end_src
+*** TODO Copy binary to server, install it
+#+begin_src
+# example:
+cd 3.7
+tar xvzf pandoc-3.7-linux-amd64.tar.gz
+scp pandoc-3.7/bin/pandoc website:cgi-bin/pandoc-server.cgi
+#+end_src
+
+*** TODO create release announcement and add to GH release announcement
+#+NAME: relann
+#+begin_src elisp :results value file :file relann-RELEASE_VERSION
+"I'm pleased to announce the release of pandoc RELEASE_VERSION,
+available in the usual places:
+
+Binary packages & changelog:
+https://github.com/jgm/pandoc/releases/tag/RELEASE_VERSION
+
+Source & API documentation:
+http://hackage.haskell.org/package/pandoc-RELEASE_VERSION
+
+Description of release.
+
+Any API changes.
+
+Thanks to all who contributed, especially new contributors ...
+"
+#+end_src
+*** TODO Add [[https://github.com/jgm/pandoc/releases/][release on GitHub]]
+#+begin_src sh :var announcement=relann :results output literal
+echo '```'
+cat $announcement
+echo '```'
+echo ''
+make changes_github
+#+end_src
+*** TODO Announce on [[mailto:pandoc-announce@googlegroups.com][pandoc-announce]]

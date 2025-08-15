@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Types
-   Copyright   : © 2019-2023 Albert Krewinkel
+   Copyright   : © 2019-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
 
 Pandoc data type constructors.
@@ -13,8 +13,9 @@ module Text.Pandoc.Lua.Module.Types
   ( documentedModule
   ) where
 
+import Data.Version (makeVersion)
 import HsLua ( Module (..), (###), (<#>), (=#>)
-             , defun, functionResult, parameter)
+             , defun, functionResult, parameter, since)
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua ()
@@ -29,14 +30,15 @@ documentedModule = Module
   , moduleFunctions =
       [ defun "Version"
         ### return
-        <#> parameter peekVersionFuzzy "string|integer|{integer,...}|Version"
+        <#> parameter peekVersionFuzzy "string|number|{integer,...}|Version"
               "version_specifier"
-              (mconcat [ "either a version string like `'2.7.3'`, "
-                       , "a single integer like `2`, "
-                       , "list of integers like `{2,7,3}`, "
-                       , "or a Version object"
+              (mconcat [ "A version string like `'2.7.3'`, "
+                       , "a Lua number like `2.0`, "
+                       , "a list of integers like `{2,7,3}`, "
+                       , "or a Version object."
                        ])
-        =#> functionResult pushVersion "Version" "A new Version object."
+        =#> functionResult pushVersion "Version" "New Version object."
+        `since` makeVersion [2,7,3]
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []

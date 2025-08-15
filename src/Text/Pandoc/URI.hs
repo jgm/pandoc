@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 {- |
    Module      : Text.Pandoc.URI
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -15,13 +15,21 @@ module Text.Pandoc.URI ( urlEncode
                        , isURI
                        , schemes
                        , uriPathToPath
+                       , pBase64DataURI
                        ) where
 import qualified Network.HTTP.Types as HTTP
+import Data.ByteString.Base64 (decodeLenient)
+import Text.Pandoc.MIME (MimeType)
+import qualified Data.ByteString as B
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text as T
 import qualified Data.Set as Set
-import Data.Char (isSpace, isAscii)
+import Data.Char (isSpace, isAscii, isHexDigit, chr)
+import Safe (readMay)
 import Network.URI (URI (uriScheme), parseURI, escapeURIString)
+import qualified Data.Attoparsec.Text as A
+import Data.Text.Encoding (encodeUtf8)
+import Control.Applicative (many, (<|>))
 
 urlEncode :: T.Text -> T.Text
 urlEncode = UTF8.toText . HTTP.urlEncode True . UTF8.fromText
@@ -84,18 +92,22 @@ schemes = Set.fromList
   , "xmlrpc.beep", "xmlrpc.beeps", "xmpp", "xri", "ymsgr", "z39.50", "z39.50r"
   , "z39.50s"
   -- Unofficial schemes
-  , "doi", "isbn", "javascript", "pmid"
+  , "doi", "gemini", "isbn", "javascript", "pmid"
   ]
 
 -- | Check if the string is a valid URL with a IANA or frequently used but
 -- unofficial scheme (see @schemes@).
 isURI :: T.Text -> Bool
-isURI =
-  -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
-  maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack
+isURI t =
+  -- If it's a base 64 data: URI, avoid the expensive call to parseURI:
+  case A.parseOnly (pBase64DataURI *> A.endOfInput) t of
+    Right () -> True
+    Left _ ->
+      -- we URI-escape non-ASCII characters because otherwise parseURI will choke:
+      maybe False hasKnownScheme . parseURI . escapeURIString isAscii . T.unpack $ t
   where
-    hasKnownScheme = (`Set.member` schemes) . T.toLower .
-                     T.filter (/= ':') . T.pack . uriScheme
+    hasKnownScheme =
+      (`Set.member` schemes) . T.toLower . T.filter (/= ':') . T.pack . uriScheme
 
 -- | Converts the path part of a file: URI to a regular path.
 -- On windows, @/c:/foo@ should be @c:/foo@.
@@ -109,3 +121,39 @@ uriPathToPath (T.unpack -> path) =
 #else
   path
 #endif
+
+pBase64DataURI :: A.Parser (B.ByteString, MimeType)
+pBase64DataURI = base64uri
+ where
+  base64uri = do
+    A.string "data:"
+    mime <- do
+      n1 <- restrictedName
+      A.char '/'
+      n2 <- restrictedName
+      mps <- many mediaParam
+      pure $ n1 <> "/" <> n2 <> mconcat mps
+    A.string ";base64,"
+    b64 <- mconcat <$> many
+              (A.takeWhile1 (A.inClass "A-Za-z0-9/+ \t\r\n") <|> percentOctet)
+    A.skipWhile (== '=')
+    -- this decode should be lazy:
+    pure (decodeLenient (encodeUtf8 b64), mime)
+  percentOctet = do
+    A.char '%'
+    x <- A.satisfy isHexDigit
+    y <- A.satisfy isHexDigit
+    case readMay ['0','x',x,y] of
+      Nothing -> fail $ "Could not read percent encoded byte " <> [x,y]
+      Just d -> pure $ T.singleton $ chr d
+  restrictedName = do
+    c <- A.satisfy (A.inClass "A-Za-z0-9")
+    rest <- A.takeWhile (A.inClass "A-Za-z0-9!#$&^_.+-")
+    pure $ T.singleton c <> rest
+  mediaParam = do
+    A.char ';'
+    A.skipWhile isSpace
+    k <- restrictedName
+    A.char '='
+    v <- A.takeWhile (/=';')
+    pure $ ";" <> k <> "=" <> v

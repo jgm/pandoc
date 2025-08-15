@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
 Module      : Text.Pandoc.Parsing.Smart
-Copyright   : © 2006-2023 John MacFarlane
+Copyright   : © 2006-2024 John MacFarlane
 License     : GPL-2.0-or-later
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -43,7 +43,6 @@ import Text.Parsec
   , notFollowedBy
   , try
   )
-import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
 
 -- | Parses various ASCII punctuation, quotes, and apostrophe in a smart
@@ -93,13 +92,6 @@ doubleQuoted inlineParser = do
      (withQuoteContext InDoubleQuote (manyTill inlineParser doubleQuoteEnd)))
    <|> pure (B.str "\8220")
 
-charOrRef :: (Stream s m Char, UpdateSourcePos s Char) => [Char] -> ParsecT s st m Char
-charOrRef cs =
-  oneOf cs <|> try (do t <- characterReference
-                       case T.unpack t of
-                         [c] | c `elem` cs -> return c
-                         _ -> fail "unexpected character reference")
-
 -- | Succeeds if the parser is
 --
 -- * not within single quoted text;
@@ -116,13 +108,13 @@ singleQuoteStart = do
   -- single quote start can't be right after str
   guard =<< notAfterString
   try $ do
-    charOrRef "'\8216\145"
+    char '\''
     void $ lookAhead (satisfy (not . isSpaceChar))
 
 singleQuoteEnd :: (Stream s m Char, UpdateSourcePos s Char)
                => ParsecT s st m ()
 singleQuoteEnd = try $ do
-  charOrRef "'\8217\146"
+  char '\''
   notFollowedBy alphaNum
 
 -- | Succeeds if the parser is
@@ -142,13 +134,13 @@ doubleQuoteStart :: (HasLastStrPosition st,
 doubleQuoteStart = do
   failIfInQuoteContext InDoubleQuote
   guard =<< notAfterString
-  try $ do charOrRef "\"\8220\147"
+  try $ do char '"'
            void $ lookAhead (satisfy (not . isSpaceChar))
 
 -- | Parses a closing quote character.
 doubleQuoteEnd :: (Stream s m Char, UpdateSourcePos s Char)
                => ParsecT s st m ()
-doubleQuoteEnd = void (charOrRef "\"\8221\148")
+doubleQuoteEnd = void (char '"')
 
 -- | Parses an ASCII apostrophe (@'@) or right single quotation mark and
 -- returns a RIGHT SINGLE QUOtatiON MARK character.

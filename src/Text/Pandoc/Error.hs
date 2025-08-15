@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Error
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -124,19 +124,21 @@ renderError e =
                  "\nTry using Word to save your DOC file as DOCX," <>
                  " and convert that with pandoc."
         "pdf" -> "\nPandoc can convert to PDF, but not from PDF."
+        "asciidoc" -> "\nPandoc can convert to asciidoc, but not from asciidoc."
         _     -> ""
     PandocUnknownWriterError w ->
        "Unknown output format " <> w <>
        case w of
          "pdf" -> "To create a pdf using pandoc, use" <>
-                  " -t latex|beamer|context|ms|html5" <>
+                  " -t latex|beamer|context|ms|html5|typst" <>
                  "\nand specify an output file with " <>
                  ".pdf extension (-o filename.pdf)."
          "doc" -> "\nPandoc can convert to DOCX, but not to DOC."
          _     -> ""
     PandocUnsupportedExtensionError ext f ->
       "The extension " <> ext <> " is not supported " <>
-      "for " <> f
+      "for " <> f <> ".\nUse --list-extensions=" <> f <> " to " <>
+      "list supported extensions."
     PandocCiteprocError e' ->
       prettyCiteprocError e'
     PandocBibliographyError fp msg ->

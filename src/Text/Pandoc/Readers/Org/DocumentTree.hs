@@ -3,10 +3,10 @@
 {-# LANGUAGE TupleSections     #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.DocumentTree
-   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Parsers for org-mode headlines and document subtrees
 -}
@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.Org.DocumentTree
   ) where
 
 import Control.Arrow ((***), first)
-import Control.Monad (guard)
+import Control.Monad (guard, mplus)
 import Data.List (intersperse)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
@@ -317,10 +317,12 @@ propertiesToAttr properties =
   let
     toTextPair = fromKey *** fromValue
     customIdKey = toPropertyKey "custom_id"
+    idKey = toPropertyKey "id"
     classKey    = toPropertyKey "class"
     unnumberedKey = toPropertyKey "unnumbered"
-    specialProperties = [customIdKey, classKey, unnumberedKey]
-    id'  = maybe mempty fromValue . lookup customIdKey $ properties
+    specialProperties = [customIdKey, idKey, classKey, unnumberedKey]
+    id'  = maybe mempty fromValue $
+              (lookup customIdKey properties `mplus` lookup idKey properties)
     cls  = maybe mempty fromValue . lookup classKey    $ properties
     kvs' = map toTextPair . filter ((`notElem` specialProperties) . fst)
            $ properties

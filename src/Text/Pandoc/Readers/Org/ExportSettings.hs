@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.ExportSettings
-   Copyright   : © 2016-2023 Albert Krewinkel
+   Copyright   : © 2016-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Parsers for Org-mode export options.
 -}

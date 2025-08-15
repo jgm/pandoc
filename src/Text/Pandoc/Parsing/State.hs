@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Parsing
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -186,4 +186,4 @@ toKey = Key . T.toLower . T.unwords . T.words . unbracket
 
 type KeyTable = M.Map Key (Target, Attr)
 
-type SubstTable = M.Map Key Inlines
+type SubstTable = M.Map Key Blocks

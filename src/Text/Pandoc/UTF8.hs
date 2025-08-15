@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.UTF8
-   Copyright   : Copyright (C) 2010-2023 John MacFarlane
+   Copyright   : Copyright (C) 2010-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -140,5 +140,6 @@ fromStringLazy = fromTextLazy . TL.pack
 encodePath :: FilePath -> FilePath
 encodePath = id
 
+{-# DEPRECATED decodeArg "decodeArg is now a no-op" #-}
 decodeArg :: String -> String
 decodeArg = id

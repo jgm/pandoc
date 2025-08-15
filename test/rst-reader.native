@@ -12,7 +12,7 @@ Pandoc
             , MetaInlines
                 [ Str "July" , Space , Str "17," , Space , Str "2006" ]
             )
-          , ( "revision" , MetaBlocks [ Para [ Str "3" ] ] )
+          , ( "revision" , MetaInlines [ Str "3" ] )
           , ( "subtitle" , MetaInlines [ Str "Subtitle" ] )
           , ( "title"
             , MetaInlines
@@ -598,11 +598,11 @@ Pandoc
   , BlockQuote
       [ DefinitionList
           [ ( [ Str "address" ]
-            , [ [ Para [ Str "61" , Space , Str "Main" , Space , Str "St." ] ]
+            , [ [ Plain [ Str "61" , Space , Str "Main" , Space , Str "St." ] ]
               ]
             )
           , ( [ Str "city" ]
-            , [ [ Para
+            , [ [ Plain
                     [ Emph [ Str "Nowhere" ]
                     , Str ","
                     , Space
@@ -613,16 +613,16 @@ Pandoc
                 ]
               ]
             )
-          , ( [ Str "phone" ] , [ [ Para [ Str "123-4567" ] ] ] )
+          , ( [ Str "phone" ] , [ [ Plain [ Str "123-4567" ] ] ] )
           ]
       ]
   , DefinitionList
       [ ( [ Str "address" ]
-        , [ [ Para [ Str "61" , Space , Str "Main" , Space , Str "St." ] ]
+        , [ [ Plain [ Str "61" , Space , Str "Main" , Space , Str "St." ] ]
           ]
         )
       , ( [ Str "city" ]
-        , [ [ Para
+        , [ [ Plain
                 [ Emph [ Str "Nowhere" ]
                 , Str ","
                 , Space
@@ -633,7 +633,7 @@ Pandoc
             ]
           ]
         )
-      , ( [ Str "phone" ] , [ [ Para [ Str "123-4567" ] ] ] )
+      , ( [ Str "phone" ] , [ [ Plain [ Str "123-4567" ] ] ] )
       ]
   , Header
       1 ( "html-blocks" , [] , [] ) [ Str "HTML" , Space , Str "Blocks" ]

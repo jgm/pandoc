@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {- |
    Module      : Text.Pandoc.Logging
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -79,6 +79,8 @@ data LogMessage =
   | Fetching Text
   | Extracting Text
   | LoadedResource FilePath FilePath
+  | ScriptingInfo Text (Maybe SourcePos)
+  | ScriptingWarning Text (Maybe SourcePos)
   | NoTitleElement Text
   | NoLangSpecified
   | InvalidLang Text
@@ -98,6 +100,11 @@ data LogMessage =
   | EnvironmentVariableUndefined Text
   | DuplicateAttribute Text Text
   | NotUTF8Encoded FilePath
+  | MakePDFInfo Text Text
+  | MakePDFWarning Text
+  | UnclosedDiv SourcePos SourcePos
+  | UnsupportedCodePage Int
+  | YamlWarning SourcePos Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -200,6 +207,22 @@ instance ToJSON LogMessage where
       LoadedResource orig found ->
            ["for"  .= orig
            ,"from" .= found]
+      ScriptingInfo msg mbpos ->
+           ["message" .= msg] <>
+           case mbpos of
+             Nothing  -> []
+             Just pos -> ["source" .= sourceName pos
+                         ,"line" .= toJSON (sourceLine pos)
+                         ,"column" .= toJSON (sourceColumn pos)
+                         ]
+      ScriptingWarning msg mbpos ->
+           ["message" .= msg] <>
+           case mbpos of
+             Nothing  -> []
+             Just pos -> ["source" .= sourceName pos
+                         ,"line" .= toJSON (sourceLine pos)
+                         ,"column" .= toJSON (sourceColumn pos)
+                         ]
       NoTitleElement fallback ->
            ["fallback" .= fallback]
       NoLangSpecified -> []
@@ -244,6 +267,29 @@ instance ToJSON LogMessage where
            ,"value" .= val]
       NotUTF8Encoded src ->
            ["source" .= src]
+      MakePDFInfo description contents ->
+           ["description" .= description
+           ,"contents" .= contents]
+      MakePDFWarning message ->
+           ["message" .= message]
+      UnclosedDiv openpos closepos ->
+           ["openpos" .= object
+             [ "source" .= sourceName openpos,
+               "line" .= toJSON (sourceLine openpos),
+               "column" .= toJSON (sourceColumn openpos)]
+           ,"closepos" .= object
+             [ "source" .= sourceName closepos,
+               "line" .= toJSON (sourceLine closepos),
+               "column" .= toJSON (sourceColumn closepos)]
+           ]
+      UnsupportedCodePage cpg ->
+           ["codepage" .= cpg]
+      YamlWarning pos msg ->
+           [ "source" .= sourceName pos
+           , "line" .= toJSON (sourceLine pos)
+           , "column" .= toJSON (sourceColumn pos)
+           , "message" .= msg
+           ]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -322,6 +368,12 @@ showLogMessage msg =
          "Extracting " <> fp <> "..."
        LoadedResource orig found ->
          "Loaded " <> Text.pack orig <> " from " <> Text.pack found
+       ScriptingInfo s mbpos ->
+         "Scripting info" <>
+         maybe "" (\pos -> " at " <> showPos pos) mbpos  <> ": " <> s
+       ScriptingWarning s mbpos ->
+         "Scripting warning" <>
+         maybe "" (\pos -> " at " <> showPos pos) mbpos  <> ": " <> s
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" <>
          "Defaulting to '" <> fallback <> "' as the title.\n" <>
@@ -375,6 +427,17 @@ showLogMessage msg =
        NotUTF8Encoded src ->
          Text.pack src <>
            " is not UTF-8 encoded: falling back to latin1."
+       MakePDFInfo description contents ->
+         "[makePDF] " <> description <>
+          if Text.null contents
+             then mempty
+             else "\n" <> contents
+       MakePDFWarning message -> "[makePDF] " <> message
+       UnclosedDiv openpos closepos -> "Div at " <> showPos openpos <>
+          " unclosed at " <> showPos closepos <> ", closing implicitly."
+       UnsupportedCodePage cpg -> "Unsupported code page " <> tshow cpg <>
+          ". Text will likely be garbled."
+       YamlWarning pos m -> "YAML warning (" <> showPos pos <> "): " <> m
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -396,7 +459,7 @@ messageVerbosity msg =
        ParsingUnescaped{}            -> INFO
        InlineNotRendered{}           -> INFO
        BlockNotRendered{}            -> INFO
-       DocxParserWarning{}           -> INFO
+       DocxParserWarning{}           -> WARNING
        PowerpointTemplateWarning{}   -> WARNING
        IgnoredIOError{}              -> WARNING
        CouldNotFetchResource{}       -> WARNING
@@ -408,7 +471,9 @@ messageVerbosity msg =
        Fetching{}                    -> INFO
        Extracting{}                  -> INFO
        LoadedResource{}              -> INFO
-       NoTitleElement{}              -> WARNING
+       ScriptingInfo{}               -> INFO
+       ScriptingWarning{}            -> WARNING
+       NoTitleElement{}              -> INFO
        NoLangSpecified               -> INFO
        InvalidLang{}                 -> WARNING
        CouldNotHighlight{}           -> WARNING
@@ -427,3 +492,8 @@ messageVerbosity msg =
        EnvironmentVariableUndefined{}-> WARNING
        DuplicateAttribute{}          -> WARNING
        NotUTF8Encoded{}              -> WARNING
+       MakePDFInfo{}                 -> INFO
+       MakePDFWarning{}              -> WARNING
+       UnclosedDiv{}                 -> WARNING
+       UnsupportedCodePage{}         -> WARNING
+       YamlWarning{}                 -> WARNING

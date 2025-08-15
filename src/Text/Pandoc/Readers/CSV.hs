@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Readers.CSV
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -25,6 +25,7 @@ import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.Pandoc.Options (ReaderOptions)
 import Control.Monad.Except (throwError)
 import Data.Text (Text)
+import Data.List (intersperse)
 import Text.Pandoc.Parsing (fromParsecError)
 
 readCSV :: (PandocMonad m, ToSources a)
@@ -60,7 +61,8 @@ readCSVWith csvopts txt = do
                                              (TableFoot nullAttr [])
        where capt = B.emptyCaption
              numcols = length r
-             toplain = B.simpleCell . B.plain . B.text . T.strip
+             toplain = B.simpleCell . B.plain . mconcat .
+                       intersperse B.linebreak . map B.text . T.lines
              toRow = Row nullAttr . map toplain
              toHeaderRow l = [toRow l | not (null l)]
              hdrs = toHeaderRow r

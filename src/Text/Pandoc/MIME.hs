@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.MIME
-   Copyright   : Copyright (C) 2011-2023 John MacFarlane
+   Copyright   : Copyright (C) 2011-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -45,19 +45,21 @@ getMimeTypeDef :: FilePath -> MimeType
 getMimeTypeDef = fromMaybe "application/octet-stream" . getMimeType
 
 extensionFromMimeType :: MimeType -> Maybe T.Text
--- few special cases, where there are multiple options:
-extensionFromMimeType "text/plain" = Just "txt"
-extensionFromMimeType "video/quicktime" = Just "mov"
-extensionFromMimeType "video/mpeg" = Just "mpeg"
-extensionFromMimeType "video/dv" = Just "dv"
-extensionFromMimeType "image/vnd.djvu" = Just "djvu"
-extensionFromMimeType "image/tiff" = Just "tiff"
-extensionFromMimeType "image/jpeg" = Just "jpg"
-extensionFromMimeType "application/xml" = Just "xml"
-extensionFromMimeType "application/ogg" = Just "ogg"
 extensionFromMimeType mimetype =
-  M.lookup (T.takeWhile (/=';') mimetype) reverseMimeTypes
   -- note:  we just look up the basic mime type, dropping the content-encoding etc.
+  case T.takeWhile (/=';') mimetype of
+    -- handle a few special cases, where there are multiple options:
+    "text/plain" -> Just "txt"
+    "video/quicktime" -> Just "mov"
+    "video/mpeg" -> Just "mpeg"
+    "video/dv" -> Just "dv"
+    "image/vnd.djvu" -> Just "djvu"
+    "image/tiff" -> Just "tiff"
+    "image/jpeg" -> Just "jpg"
+    "application/xml" -> Just "xml"
+    "application/ogg" -> Just "ogg"
+    "image/svg+xml" -> Just "svg" -- avoid svgz
+    mt -> M.lookup mt reverseMimeTypes
 
 -- | Determine general media category for file path, e.g.
 --
@@ -87,10 +89,12 @@ mimeTypesList = M.toList (M.map T.decodeUtf8 Network.Mime.defaultMimeMap) ++
            [("%","application/x-trash")
            ,("323","text/h323")
            ,("alc","chemical/x-alchemy")
+           ,("apng","image/apng")
            ,("art","image/x-jg")
            ,("asn","chemical/x-ncbi-asn1")
            ,("aso","chemical/x-ncbi-asn1-binary")
            ,("atomsrv","application/atomserv+xml")
+           ,("avif", "image/avif")
            ,("b","chemical/x-molconn-Z")
            ,("bak","application/x-trash")
            ,("bat","application/x-msdos-program")
@@ -184,6 +188,7 @@ mimeTypesList = M.toList (M.map T.decodeUtf8 Network.Mime.defaultMimeMap) ++
            ,("istr","chemical/x-isostar")
            ,("jdx","chemical/x-jcamp-dx")
            ,("jfif","image/jpeg")
+           ,("jxl","image/jxl")
            ,("jmz","application/x-jmol")
            ,("key","application/pgp-keys")
            ,("kil","application/x-killustrator")

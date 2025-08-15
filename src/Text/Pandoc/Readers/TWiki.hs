@@ -16,7 +16,7 @@ module Text.Pandoc.Readers.TWiki ( readTWiki
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isAlphaNum)
+import Data.Char (isAlphaNum, isDigit, isUpper, isLower, isLetter)
 import qualified Data.Foldable as F
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
@@ -222,9 +222,11 @@ table = try $ do
                               (TableHead nullAttr $ toHeaderRow heads)
                               [TableBody nullAttr 0 [] $ map toRow rows]
                               (TableFoot nullAttr [])
-    align rows      = replicate (columCount rows) (AlignDefault, ColWidthDefault)
-    columns rows    = replicate (columCount rows) mempty
-    columCount rows = length $ head rows
+    align rows      = replicate (columnCount rows)
+                         (AlignDefault, ColWidthDefault)
+    columns rows    = replicate (columnCount rows) mempty
+    columnCount (r:_) = length r
+    columnCount []  = 0
     toRow           = Row nullAttr . map B.simpleCell
     toHeaderRow l = [toRow l | not (null l)]
 
@@ -467,17 +469,29 @@ link = try $ do
   st <- getState
   guard $ stateAllowLinks st
   setState $ st{ stateAllowLinks = False }
-  (url, title, content) <- linkText
+  (url, title, classes, content) <- linkText <|> simpleWikiLink
   setState $ st{ stateAllowLinks = True }
-  return $ B.link url title content
+  return $ B.linkWith ("",classes,[]) url title content
 
-linkText :: PandocMonad m => TWParser m (Text, Text, B.Inlines)
+linkText :: PandocMonad m => TWParser m (Text, Text, [Text], B.Inlines)
 linkText = do
   string "[["
   url <- T.pack <$> many1Till anyChar (char ']')
   content <- option (B.str url) (mconcat <$> linkContent)
   char ']'
-  return (url, "", content)
+  return (url, "", [], content)
   where
     linkContent      = char '[' >> many1Till anyChar (char ']') >>= parseLinkContent . T.pack
     parseLinkContent = parseFromString' $ many1 inline
+
+simpleWikiLink :: PandocMonad m => TWParser m (Text, Text, [Text], B.Inlines)
+simpleWikiLink = do
+  w <- wikiWord
+  return (w, "", ["wikilink"], B.str w)
+ where
+   wikiWord = do
+     cs <- many1 $ satisfy (\x -> isLetter x && isUpper x)
+     ds <- many1 $ satisfy (\x -> isDigit x || (isLetter x && isLower x))
+     es <- many1 $ satisfy (\x -> isLetter x && isUpper x)
+     fs <- many $ satisfy isAlphaNum
+     return $ T.pack $ cs ++ ds ++ es ++ fs

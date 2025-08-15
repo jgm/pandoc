@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.BlockStarts
-   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Parsers for Org-mode inline elements.
 -}
@@ -23,12 +23,14 @@ module Text.Pandoc.Readers.Org.BlockStarts
   , endOfBlock
   ) where
 
-import Control.Monad (void)
+import Control.Monad (void, guard)
 import Data.Text (Text)
 import Text.Pandoc.Readers.Org.Parsing
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Parsing (lowerAlpha, upperAlpha)
+import Text.Pandoc.Extensions
+import Text.Pandoc.Readers.LaTeX.Math (inlineEnvironmentNames)
 import Data.Functor (($>))
 
 -- | Horizontal Line (five -- dashes or more)
@@ -54,10 +56,13 @@ gridTableStart = try $ skipSpaces <* char '+' <* char '-'
 
 
 latexEnvStart :: Monad m => OrgParser m Text
-latexEnvStart = try $
-  skipSpaces *> string "\\begin{"
-             *> latexEnvName
-             <* string "}"
+latexEnvStart = try $ do
+  skipSpaces
+  string "\\begin{"
+  name <- latexEnvName
+  char '}'
+  guard $ name `notElem` inlineEnvironmentNames
+  pure name
  where
    latexEnvName :: Monad m => OrgParser m Text
    latexEnvName = try $ mappend <$> many1Char alphaNum <*> option "" (textStr "*")
@@ -69,8 +74,7 @@ listCounterCookie = try $
   <* char ']'
   <* (skipSpaces <|> lookAhead eol)
   where parseNum = (safeRead =<< many1Char digit)
-                   <|> snd <$> lowerAlpha
-                   <|> snd <$> upperAlpha
+                   <|> snd <$> (lowerAlpha <|> upperAlpha)
 
 bulletListStart :: Monad m => OrgParser m Int
 bulletListStart = try $ do
@@ -87,20 +91,27 @@ eol = void (char '\n')
 orderedListStart :: Monad m => OrgParser m (Int, ListAttributes)
 orderedListStart = try $ do
   ind <- length <$> many spaceChar
+  fancy <- option False $ True <$ guardEnabled Ext_fancy_lists
+  -- Ordered list markers allowed in org-mode
+  let styles = (many1Char digit $> (if fancy
+                                       then Decimal
+                                       else DefaultStyle))
+               : if fancy
+                    then [ fst <$> lowerAlpha
+                         , fst <$> upperAlpha ]
+                    else []
+  let delims = [ char '.' $> (if fancy
+                                 then Period
+                                 else DefaultDelim)
+               , char ')' $> (if fancy
+                                 then OneParen
+                                 else DefaultDelim)
+               ]
   style <- choice styles
   delim <- choice delims
   skipSpaces1 <|> lookAhead eol
   start <- option 1 listCounterCookie
   return (ind + 1, (start, style, delim))
-  -- Ordered list markers allowed in org-mode
-  where
-    styles = [ many1Char digit $> Decimal
-             , fst <$> lowerAlpha
-             , fst <$> upperAlpha
-             ]
-    delims = [ char '.' $> Period
-             , char ')' $> OneParen
-             ]
 
 drawerStart :: Monad m => OrgParser m Text
 drawerStart = try $ skipSpaces *> drawerName <* skipSpaces <* newline
@@ -115,7 +126,7 @@ commentLineStart = try $
   skipSpaces <* string "#" <* lookAhead (oneOf " \n")
 
 exampleLineStart :: Monad m => OrgParser m ()
-exampleLineStart = () <$ try (skipSpaces *> string ": ")
+exampleLineStart = () <$ try (skipSpaces *> char ':' *> (void (char ' ') <|> lookAhead eol))
 
 noteMarker :: Monad m => OrgParser m Text
 noteMarker = try $ do

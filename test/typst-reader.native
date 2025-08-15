@@ -1,0 +1,5350 @@
+Pandoc
+  Meta { unMeta = fromList [] }
+  [ Header
+      1
+      ( "" , [] , [] )
+      [ Str "Fibonacci" , Space , Str "sequence" ]
+  , Para
+      [ Str "The"
+      , Space
+      , Str "Fibonacci"
+      , Space
+      , Str "sequence"
+      , Space
+      , Str "is"
+      , Space
+      , Str "defined"
+      , Space
+      , Str "through"
+      , Space
+      , Str "the"
+      , SoftBreak
+      , Str "recurrence"
+      , Space
+      , Str "relation"
+      , Space
+      , Math InlineMath "F_{n} = F_{n - 1} + F_{n - 2}"
+      , Str "."
+      , SoftBreak
+      , Str "It"
+      , Space
+      , Str "can"
+      , Space
+      , Str "also"
+      , Space
+      , Str "be"
+      , Space
+      , Str "expressed"
+      , Space
+      , Str "in"
+      , Space
+      , Emph [ Str "closed" , Space , Str "form:" ]
+      ]
+  , Para
+      [ Math
+          DisplayMath
+          "F_{n} = \\left\\lfloor {\\frac{1}{\\sqrt{5}}\\phi^{n}} \\right\\rceil,\\quad\\phi = \\frac{1 + \\sqrt{5}}{2}"
+      ]
+  , Para
+      [ Str "The"
+      , Space
+      , Str "first"
+      , Space
+      , Str "8"
+      , Space
+      , Str "numbers"
+      , Space
+      , Str "of"
+      , Space
+      , Str "the"
+      , Space
+      , Str "sequence"
+      , Space
+      , Str "are:"
+      ]
+  , Div
+      ( "" , [] , [ ( "align" , "center" ) ] )
+      [ Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{1}" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{2}" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{3}" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{4}" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{5}" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{6}" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{7}" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Math InlineMath "F_{8}" ] ]
+                  ]
+              , Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "1" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "2" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "3" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "5" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "8" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "13" ] ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para [ Str "21" ] ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      ]
+  , Div
+      ( "" , [ "columns-flow" ] , [ ( "count" , "2" ) ] )
+      [ Para
+          [ Span
+              ( "" , [] , [ ( "align" , "center" ) ] )
+              [ Link
+                  ( "" , [] , [] )
+                  [ SoftBreak
+                  , Strong
+                      [ Str "Typst"
+                      , Space
+                      , Str "Math"
+                      , Space
+                      , Str "for"
+                      , Space
+                      , Str "Undergrads"
+                      ]
+                  , SoftBreak
+                  ]
+                  ( "https://github.com/johanvx/typst-undergradmath"
+                  , ""
+                  )
+              ]
+          ]
+      , Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "Typst"
+          , Space
+          , Str "port"
+          , Space
+          , Str "of"
+          , Space
+          , Emph
+              [ Span
+                  ( "" , [ "box" ] , [] )
+                  [ Str "L\8202A\8202"
+                  , Span ( "" , [ "box" ] , [] ) [ Str "T\8202E\8202X" ]
+                  ]
+              , Space
+              , Str "Math"
+              , Space
+              , Str "for"
+              , Space
+              , Str "Undergrads"
+              ]
+          , Space
+          , Str "by"
+          , Space
+          , Str "Jim"
+          , Space
+          , Str "Hefferon."
+          , SoftBreak
+          , Str "The"
+          , Space
+          , Str "original"
+          , Space
+          , Str "version"
+          , Space
+          , Str "is"
+          , Space
+          , Str "available"
+          , Space
+          , Str "at"
+          , Space
+          , Underline
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "https://gitlab.com/jim.hefferon/undergradmath"
+                  ]
+                  ( "https://gitlab.com/jim.hefferon/undergradmath"
+                  , ""
+                  )
+              ]
+          , Str "."
+          ]
+      , Para
+          [ Strong
+              [ Str "Meaning"
+              , Space
+              , Str "of"
+              , Space
+              , Str "annotations\8192\160"
+              ]
+          ]
+      , Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidth 0.3333333333333333 )
+          , ( AlignLeft , ColWidth 0.6666666666666666 )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para
+                          [ Span
+                              ( "" , [ "box" ] , [] )
+                              [ Str "2023-05-22"
+                              , Space
+                              , Str "\10060"
+                              ]
+                          ]
+                      ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para
+                          [ Str "This"
+                          , Space
+                          , Str "is"
+                          , Space
+                          , Str "unavailable."
+                          , Space
+                          , Str "Last"
+                          , Space
+                          , Str "check"
+                          , Space
+                          , Str "date"
+                          , Space
+                          , Str "is"
+                          , Space
+                          , Str "2023-05-22."
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      , Para [ Span ( "unavailable" , [] , [] ) [] ]
+      , Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidth 0.3333333333333333 )
+          , ( AlignLeft , ColWidth 0.6666666666666666 )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para
+                          [ Span
+                              ( "" , [ "box" ] , [] ) [ Str "\128166" ]
+                          ]
+                      ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para
+                          [ Str "Get"
+                          , Space
+                          , Str "this"
+                          , Space
+                          , Str "in"
+                          , Space
+                          , Str "a"
+                          , Space
+                          , Str "tricky"
+                          , Space
+                          , Str "way."
+                          , Space
+                          , Str "Need"
+                          , Space
+                          , Str "a"
+                          , Space
+                          , Str "simpler"
+                          , Space
+                          , Str "method."
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      , Para [ Span ( "tricky" , [] , [] ) [] ]
+      , Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignLeft , ColWidth 0.3333333333333333 )
+          , ( AlignLeft , ColWidth 0.6666666666666666 )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para
+                          [ Span
+                              ( "" , [ "box" ] , [] )
+                              [ Str "No"
+                              , Space
+                              , Str "idea"
+                              , Space
+                              , Str "\128533"
+                              ]
+                          ]
+                      ]
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ Para
+                          [ Str "Don\8217t"
+                          , Space
+                          , Str "know"
+                          , Space
+                          , Str "how"
+                          , Space
+                          , Str "to"
+                          , Space
+                          , Str "get"
+                          , Space
+                          , Str "this."
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      , Para [ Span ( "noidea" , [] , [] ) [] ]
+      , Para
+          [ Strong [ Str "Rule" , Space , Str "One\8192\160" ]
+          , Str "Any"
+          , Space
+          , Str "mathematics"
+          , Space
+          , Str "at"
+          , Space
+          , Str "all,"
+          , Space
+          , Str "even"
+          , Space
+          , Str "a"
+          , Space
+          , Str "single"
+          , Space
+          , Str "character,"
+          , Space
+          , Str "gets"
+          , Space
+          , Str "a"
+          , Space
+          , Str "mathematical"
+          , Space
+          , Str "setting."
+          , SoftBreak
+          , Str "Thus,"
+          , Space
+          , Str "for"
+          , Space
+          , Str "\8220the"
+          , Space
+          , Str "value"
+          , Space
+          , Str "of"
+          , Space
+          , Math InlineMath "x"
+          , Space
+          , Str "is"
+          , Space
+          , Math InlineMath "7"
+          , Str "\8221"
+          , Space
+          , Str "enter"
+          , Space
+          , Code ( "" , [] , [] ) "the value of $x$ is $7$"
+          , Str "."
+          ]
+      , Para
+          [ Strong [ Str "Template\8192\160" ]
+          , Str "Your"
+          , Space
+          , Str "document"
+          , Space
+          , Str "should"
+          , Space
+          , Str "contain"
+          , Space
+          , Str "at"
+          , Space
+          , Str "least"
+          , Space
+          , Str "this."
+          ]
+      , Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      []
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ CodeBlock
+                          ( "" , [] , [] )
+                          "-- document body here --\n  "
+                      ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      , Para
+          [ Strong
+              [ Str "Common" , Space , Str "constructs\8192\160" ]
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "x^{2}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "x^2"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sqrt{2}"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\sqrt[n]{3}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sqrt(2)"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "root(n, 3)"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "x_{i,j}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "x_(i, j)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\frac{2}{3}"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "2/3"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "2 / 3"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "2 \\/ 3"
+                                  , Space
+                                  , Str "or"
+                                  , Space
+                                  , Code ( "" , [] , [] ) "2 slash 3"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Strong
+              [ Str "Calligraphic" , Space , Str "letters\8192\160" ]
+          , Str "Use"
+          , Space
+          , Str "as"
+          , Space
+          , Str "in"
+          , Space
+          , Code ( "" , [] , [] ) "$cal(A)$"
+          , Str "."
+          ]
+      , Para
+          [ Math DisplayMath "\\mathcal{ABCDEFGHIJKLMNOPQRSTUVWXYZ}" ]
+      , Para
+          [ Str "Getting"
+          , Space
+          , Str "script"
+          , Space
+          , Str "letters"
+          , Space
+          , Str "is"
+          , Space
+          , Link
+              ( "" , [ "ref" ] , [] )
+              [ Str "[unavailable]" ]
+              ( "#unavailable" , "" )
+          , Str "."
+          ]
+      , Para [ Strong [ Str "Greek\8192\160" ] ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\alpha"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "alpha"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\xi"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Xi"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "xi"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Xi"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\beta"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "beta"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\959"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "omicron"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\gamma"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Gamma"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "gamma"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Gamma"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\pi"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Pi"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "pi"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Pi"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\delta"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Delta"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "delta"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Delta"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\varpi"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "pi.alt"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\epsilon"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "epsilon.alt"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\rho"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "rho"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\varepsilon"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "epsilon"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\varrho"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "rho.alt"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\zeta"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "zeta"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sigma"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Sigma"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sigma"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Sigma"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\eta"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "eta"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\varsigma"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "\\u{03C2}"
+                                  , Space
+                                  , Link
+                                      ( "" , [ "ref" ] , [] )
+                                      [ Str "[tricky]" ]
+                                      ( "#tricky" , "" )
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\theta"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Theta"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "theta"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Theta"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\tau"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tau"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\vartheta"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "theta.alt"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\upsilon"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Upsilon"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "upsilon"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Upsilon"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\iota"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "iota"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\phi"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Phi"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "phi.alt"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Phi"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\kappa"
+                                  , Str "\8192"
+                                  , Math InlineMath "\922"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\varphi"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "phi"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\lambda"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Lambda"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "lambda"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Lambda"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\chi"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "chi"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mu"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "mu"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\psi"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Psi"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "psi"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Psi"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\nu"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "nu"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\omega"
+                                  , Str ","
+                                  , Space
+                                  , Math InlineMath "\\Omega"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "omega"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "Omega"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Strong
+              [ Str "Sets"
+              , Space
+              , Str "and"
+              , Space
+              , Str "logic\8192\160"
+              ]
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\cup"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "union"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mathbb{R}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "RR"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "bb(R)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\forall"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "forall"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\cap"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sect"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mathbb{Z}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "ZZ"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "bb(Z)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\exists"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "exists"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\subset"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "subset"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mathbb{Q}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "QQ"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "bb(Q)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\neg"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "not"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\subseteq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "subset.eq"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mathbb{N}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "NN"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "bb(N)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\vee"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "or"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\supset"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "supset"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mathbb{C}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "CC"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "bb(C)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\land"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "and"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\supseteq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "supset.eq"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\varnothing"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "diameter"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\vdash"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tack.r"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\in"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "in"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\varnothing"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "nothing"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\models"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "models"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\notin"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "in.not"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\1488"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "alef"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\smallsetminus"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "without"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "Negate"
+          , Space
+          , Str "an"
+          , Space
+          , Str "operator,"
+          , Space
+          , Str "as"
+          , Space
+          , Str "in"
+          , Space
+          , Math InlineMath "\8836"
+          , Str ","
+          , Space
+          , Str "with"
+          , Space
+          , Code ( "" , [] , [] ) "subset.not"
+          , Str "."
+          , SoftBreak
+          , Str "Get"
+          , Space
+          , Str "the"
+          , Space
+          , Str "set"
+          , Space
+          , Str "complement"
+          , Space
+          , Math InlineMath "A^{\\mathsf{c}}"
+          , Space
+          , Str "with"
+          , Space
+          , Code ( "" , [] , [] ) "A^(sans(c))"
+          , Space
+          , Str "(or"
+          , Space
+          , Math InlineMath "A^{\\complement}"
+          , Space
+          , Str "with"
+          , Space
+          , Code ( "" , [] , [] ) "A^(complement)"
+          , Str ","
+          , Space
+          , Str "or"
+          , Space
+          , Math InlineMath "\\overline{A}"
+          , Space
+          , Str "with"
+          , Space
+          , Code ( "" , [] , [] ) "overline(A)"
+          , Str ")."
+          ]
+      , DefinitionList
+          [ ( [ Str "Remark" ]
+            , [ [ Para
+                    [ Str "Using"
+                    , Space
+                    , Code ( "" , [] , [] ) "diameter"
+                    , Space
+                    , Str "for"
+                    , Space
+                    , Code ( "" , [] , [] ) "\\varnothing"
+                    , Space
+                    , Str "may"
+                    , Space
+                    , Str "cause"
+                    , Space
+                    , Str "some"
+                    , Space
+                    , Str "confusion."
+                    , Space
+                    , Str "However,"
+                    , Space
+                    , Span
+                        ( "" , [ "box" ] , [] )
+                        [ Str "L\8202A\8202"
+                        , Span
+                            ( "" , [ "box" ] , [] )
+                            [ Str "T\8202E\8202X" ]
+                        ]
+                    , Space
+                    , Str "also"
+                    , Space
+                    , Str "uses"
+                    , Space
+                    , Math InlineMath "\\varnothing"
+                    , Space
+                    , Str "("
+                    , Code ( "" , [] , [] ) "\\u{2300}"
+                    , Str ")"
+                    , Space
+                    , Str "instead"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Math InlineMath "\\varnothing"
+                    , Space
+                    , Str "("
+                    , Code ( "" , [] , [] ) "\\u{2205}"
+                    , Str "),"
+                    , Space
+                    , Str "see"
+                    , Space
+                    , Underline
+                        [ Link
+                            ( "" , [] , [] )
+                            [ Str "newcm"
+                            , Space
+                            , Math InlineMath "\167"
+                            , Str "13.3"
+                            ]
+                            ( "https://mirrors.sustech.edu.cn/CTAN/fonts/newcomputermodern/doc/newcm-doc.pdf"
+                            , ""
+                            )
+                        ]
+                    , Str "."
+                    , SoftBreak
+                    , Str "Another"
+                    , Space
+                    , Str "solution"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "to"
+                    , Space
+                    , Str "use"
+                    , Space
+                    , Code
+                        ( "" , [] , [] )
+                        "text(font: \"Fira Sans\", nothing)"
+                    , Str ","
+                    , Space
+                    , Str "but"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "resultant"
+                    , Space
+                    , Str "glyph"
+                    , Space
+                    , Math InlineMath "\\varnothing"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "subtly"
+                    , Space
+                    , Str "different"
+                    , Space
+                    , Str "from"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "widely"
+                    , Space
+                    , Str "used"
+                    , Space
+                    , Str "one."
+                    , SoftBreak
+                    , Str "Ultimately,"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "choice"
+                    , Space
+                    , Str "is"
+                    , Space
+                    , Str "always"
+                    , Space
+                    , Strong [ Str "your" , Space , Str "decision" ]
+                    , Str "."
+                    ]
+                ]
+              ]
+            )
+          ]
+      , Para [ Strong [ Str "Decorations\8192\160" ] ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "f'"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "f'"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "f prime"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\dot{a}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "dot(a)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\widetilde{a}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tilde(a)"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "f''"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "f prime.double"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ddot{a}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "diaer(a)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\overline{a}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "macron(a)"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\Sigma^{\\ast}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "Sigma^*"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\hat{a}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "hat(a)"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math
+                                      InlineMath
+                                      "\\overset{\\rightarrow}{a}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arrow(a)"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "If"
+          , Space
+          , Str "the"
+          , Space
+          , Str "decorated"
+          , Space
+          , Str "letter"
+          , Space
+          , Str "is"
+          , Space
+          , Math InlineMath "i"
+          , Space
+          , Str "or"
+          , Space
+          , Math InlineMath "j"
+          , Space
+          , Str "then"
+          , Space
+          , Str "some"
+          , Space
+          , Str "decorations"
+          , Space
+          , Str "need"
+          , Space
+          , Code ( "" , [] , [] ) "\\u{1D6A4}"
+          , Space
+          , Link
+              ( "" , [ "ref" ] , [] )
+              [ Str "[tricky]" ]
+              ( "#tricky" , "" )
+          , Space
+          , Str "and"
+          , Space
+          , Code ( "" , [] , [] ) "\\u{1D6A5}"
+          , Space
+          , Link
+              ( "" , [ "ref" ] , [] )
+              [ Str "[tricky]" ]
+              ( "#tricky" , "" )
+          , Str ","
+          , Space
+          , Str "as"
+          , Space
+          , Str "in"
+          , Space
+          , Math InlineMath "\\overset{\\rightarrow}{\\imath}"
+          , Space
+          , Str "with"
+          , Space
+          , Code ( "" , [] , [] ) "arrow(\\u{1D6A4})"
+          , Str "."
+          , SoftBreak
+          , Str "Some"
+          , Space
+          , Str "authors"
+          , Space
+          , Str "use"
+          , Space
+          , Str "boldface"
+          , Space
+          , Str "for"
+          , Space
+          , Str "vectors:"
+          , Space
+          , Code ( "" , [] , [] ) "bold(x)"
+          , Str "."
+          ]
+      , Para
+          [ Str "Entering"
+          , Space
+          , Code ( "" , [] , [] ) "overline(x + y)"
+          , Space
+          , Str "produces"
+          , Space
+          , Math InlineMath "\\overline{x + y}"
+          , Str ","
+          , Space
+          , Str "and"
+          , Space
+          , Code ( "" , [] , [] ) "hat(x + y)"
+          , Space
+          , Str "gives"
+          , Space
+          , Math InlineMath "\\hat{x + y}"
+          , Str "."
+          , SoftBreak
+          , Str "Comment"
+          , Space
+          , Str "on"
+          , Space
+          , Str "an"
+          , Space
+          , Str "expression"
+          , Space
+          , Str "as"
+          , Space
+          , Str "here"
+          , Space
+          , Str "(there"
+          , Space
+          , Str "is"
+          , Space
+          , Str "also"
+          , Space
+          , Code ( "" , [] , [] ) "overbrace(..)"
+          , Str ")."
+          ]
+      , Para
+          [ Span
+              ( "" , [] , [ ( "align" , "center" ) ] )
+              [ Span
+                  ( "" , [ "box" ] , [] )
+                  [ Math
+                      InlineMath "\\underset{|A|}{\\underbrace{x + y}}"
+                  , Str "\8192"
+                  , Code ( "" , [] , [] ) "underbrace(x + y, |A|)"
+                  ]
+              ]
+          ]
+      , Para
+          [ Strong [ Str "Dots\8192\160" ]
+          , Str "Use"
+          , Space
+          , Str "low"
+          , Space
+          , Str "dots"
+          , Space
+          , Str "in"
+          , Space
+          , Str "a"
+          , Space
+          , Str "list"
+          , Space
+          , Math InlineMath "\\left\\{ 0,1,2,\\ldots \\right\\}"
+          , Str ","
+          , Space
+          , Str "entered"
+          , Space
+          , Str "as"
+          , Space
+          , Code ( "" , [] , [] ) "{0, 1, 2, ...}"
+          , Str "."
+          , SoftBreak
+          , Str "Use"
+          , Space
+          , Str "centered"
+          , Space
+          , Str "dots"
+          , Space
+          , Str "in"
+          , Space
+          , Str "a"
+          , Space
+          , Str "sum"
+          , Space
+          , Str "or"
+          , Space
+          , Str "product"
+          , Space
+          , Math InlineMath "1 + \\cdots + 100"
+          , Str ","
+          , Space
+          , Str "entered"
+          , Space
+          , Str "as"
+          , Space
+          , Code ( "" , [] , [] ) "1 + dots.h.c + 100"
+          , Str "."
+          , SoftBreak
+          , Str "You"
+          , Space
+          , Str "can"
+          , Space
+          , Str "also"
+          , Space
+          , Str "get"
+          , Space
+          , Str "vertical"
+          , Space
+          , Str "dots"
+          , Space
+          , Code ( "" , [] , [] ) "dots.v"
+          , Str ","
+          , Space
+          , Str "diagonal"
+          , Space
+          , Str "dots"
+          , Space
+          , Code ( "" , [] , [] ) "dots.down"
+          , Space
+          , Str "and"
+          , Space
+          , Str "anti-diagonal"
+          , Space
+          , Str "dots"
+          , Space
+          , Code ( "" , [] , [] ) "dots.up"
+          , Str "."
+          ]
+      , Para
+          [ Strong [ Str "Roman" , Space , Str "names\8192\160" ]
+          , Str "Just"
+          , Space
+          , Str "type"
+          , Space
+          , Str "them!"
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sin"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sin"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sinh"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sinh"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\arcsin"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arcsin"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\cos"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "cos"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\cosh"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "cosh"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\arccos"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arccos"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\tan"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tan"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\tanh"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tanh"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\arctan"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arctan"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sec"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sec"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\coth"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "coth"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\min"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "min"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\csc"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "csc"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\det"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "det"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\max"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "max"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\cot"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "cot"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\dim"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "dim"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\inf"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "inf"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\exp"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "exp"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ker"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "ker"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sup"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sup"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\log"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "log"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\deg"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "deg"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\liminf"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "liminf"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ln"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "ln"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\arg"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arg"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\limsup"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "limsup"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\lg"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "lg"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\gcd"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "gcd"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\lim"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "lim"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Strong [ Str "Other" , Space , Str "symbols\8192\160" ] ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "<"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "<"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "lt"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\angle"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "angle"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\cdot"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "dot"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\leq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "<="
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "lt.eq"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\measuredangle"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "angle.arc"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\pm"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "plus.minus"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath ">"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) ">"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "gt"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ell"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "ell"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mp"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "minus.plus"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\geq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) ">="
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "gt.eq"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\parallel"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "parallel"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\times"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "times"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\neq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "!="
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "eq.not"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "45{^\\circ}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "45 degree"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\div"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "div"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ll"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "<<"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "lt.double"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\cong"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tilde.equiv"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ast"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "*"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "ast"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\gg"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) ">>"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "gt.double"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ncong"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "tilde.equiv.not"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mid"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "divides"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\approx"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "approx"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sim"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tilde"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\nmid"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "divides.not"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\asymp"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "\\u{224D}"
+                                  , Space
+                                  , Link
+                                      ( "" , [ "ref" ] , [] )
+                                      [ Str "[tricky]" ]
+                                      ( "#tricky" , "" )
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\simeq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tilde.eq"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "n!"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "n!"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\equiv"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "equiv"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\nsim"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "tilde.not"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\partial"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "diff"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\prec"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "prec"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\oplus"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "plus.circle"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\nabla"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "nabla"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\preceq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "prec.eq"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\ominus"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "minus.circle"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\hslash"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "planck.reduce"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\succ"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "succ"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\odot"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "dot.circle"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\circ"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] )
+                                      "circle.stroked.tiny"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\succeq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "succ.eq"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\otimes"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "times.circle"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\star"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "star"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\propto"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "prop"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\oslash"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "\\u{2298}"
+                                  , Space
+                                  , Link
+                                      ( "" , [ "ref" ] , [] )
+                                      [ Str "[tricky]" ]
+                                      ( "#tricky" , "" )
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\sqrt{}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sqrt(\"\")"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\doteq"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "\\u{2250}"
+                                  , Space
+                                  , Link
+                                      ( "" , [ "ref" ] , [] )
+                                      [ Str "[tricky]" ]
+                                      ( "#tricky" , "" )
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\upharpoonright"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "harpoon.tr"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\10003"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "checkmark"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "Use"
+          , Space
+          , Code ( "" , [] , [] ) "a divides b"
+          , Space
+          , Str "for"
+          , Space
+          , Str "the"
+          , Space
+          , Str "divides"
+          , Space
+          , Str "relation,"
+          , Space
+          , Math InlineMath "a \\mid b"
+          , Str ","
+          , Space
+          , Str "and"
+          , Space
+          , Code ( "" , [] , [] ) "a divides.not b"
+          , Space
+          , Str "for"
+          , Space
+          , Str "the"
+          , Space
+          , Str "negation,"
+          , Space
+          , Math InlineMath "a \\nmid b"
+          , Str "."
+          , SoftBreak
+          , Str "Use"
+          , Space
+          , Code ( "" , [] , [] ) "|"
+          , Space
+          , Str "to"
+          , Space
+          , Str "get"
+          , Space
+          , Str "set"
+          , Space
+          , Str "builder"
+          , Space
+          , Str "notation"
+          , Space
+          , Math
+              InlineMath
+              "\\left\\{ a \\in S~|~a\\text{ is odd} \\right\\}"
+          , Space
+          , Str "with"
+          , Space
+          , Code ( "" , [] , [] ) "{a in S | a \"is odd\"}"
+          , Str "."
+          ]
+      , Para [ Strong [ Str "Arrows\8192\160" ] ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\rightarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "->"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "arrow.r"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\mapsto"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "|->"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "arrow.r.bar"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\nrightarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arrow.r.not"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\longmapsto"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] )
+                                      "arrow.r.long.bar"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\longrightarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arrow.r.long"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\leftarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "<-"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "arrow.l"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\Rightarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "=>"
+                                  , Str ","
+                                  , Space
+                                  , Code
+                                      ( "" , [] , [] ) "arrow.r.double"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\leftrightarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "<->"
+                                  , Str ","
+                                  , Space
+                                  , Code ( "" , [] , [] ) "arrow.l.r"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\nRightarrow"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] )
+                                      "arrow.r.double.not"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\downarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arrow.b"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\Longrightarrow"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] )
+                                      "arrow.r.double.long"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\uparrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arrow.t"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\rightsquigarrow"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "arrow.squiggly"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\updownarrow"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "arrow.t.b"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "The"
+          , Space
+          , Str "right"
+          , Space
+          , Str "arrows"
+          , Space
+          , Str "in"
+          , Space
+          , Str "the"
+          , Space
+          , Str "first"
+          , Space
+          , Str "column"
+          , Space
+          , Str "have"
+          , Space
+          , Str "matching"
+          , Space
+          , Str "left"
+          , Space
+          , Str "arrows,"
+          , Space
+          , Str "such"
+          , Space
+          , Str "as"
+          , Space
+          , Code ( "" , [] , [] ) "arrow.l.not"
+          , Str ","
+          , Space
+          , Str "and"
+          , Space
+          , Str "there"
+          , Space
+          , Str "are"
+          , Space
+          , Str "some"
+          , Space
+          , Str "other"
+          , Space
+          , Str "matches"
+          , Space
+          , Str "for"
+          , Space
+          , Str "down"
+          , Space
+          , Str "arrows,"
+          , Space
+          , Str "etc."
+          ]
+      , Para
+          [ Strong
+              [ Str "Variable-sized"
+              , Space
+              , Str "operators\8192\160"
+              ]
+          , Str "The"
+          , Space
+          , Str "summation"
+          , Space
+          , Math InlineMath "\\sum_{j = 0}^{3}j^{2}"
+          , Space
+          , Code ( "" , [] , [] ) "sum_(j = 0)^3 j^2"
+          , Space
+          , Str "and"
+          , Space
+          , Str "the"
+          , Space
+          , Str "integral"
+          , Space
+          , Math InlineMath "\\int_{x = 0}^{3}x^{2}dx"
+          , Space
+          , Code ( "" , [] , [] ) "integral_(x = 0)^3 x^2 dif x"
+          , Space
+          , Str "expand"
+          , Space
+          , Str "when"
+          , Space
+          , Str "displayed."
+          ]
+      , Para
+          [ Math
+              DisplayMath
+              "\\sum_{j = 0}^{3}j^{2}\\qquad\\int_{x = 0}^{3}x^{2}dx"
+          ]
+      , Para
+          [ Str "These"
+          , Space
+          , Str "do"
+          , Space
+          , Str "the"
+          , Space
+          , Str "same."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\int"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "integral"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\iiint"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "integral.triple"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\bigcup"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "union.big"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\iint"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "integral.double"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\oint"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "integral.cont"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\bigcap"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "sect.big"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para [ Strong [ Str "Fences\8192\160" ] ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "()"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "()"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\langle\\rangle"
+                                  , Str "\8192"
+                                  , Code
+                                      ( "" , [] , [] ) "angle.l angle.r"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math
+                                      InlineMath "\\left| {} \\right|"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "abs(\"\")"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math InlineMath "\\lbrack\\rbrack"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "[]"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math
+                                      InlineMath
+                                      "\\left\\lfloor {} \\right\\rfloor"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "floor(\"\")"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math
+                                      InlineMath
+                                      "\\left\\| {} \\right\\|"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "norm(\"\")"
+                                  ]
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math
+                                      InlineMath "\\left\\{ \\right\\}"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "{}"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Span
+                                  ( "" , [ "box" ] , [] )
+                                  [ Math
+                                      InlineMath
+                                      "\\left\\lceil {} \\right\\rceil"
+                                  , Str "\8192"
+                                  , Code ( "" , [] , [] ) "ceil(\"\")"
+                                  ]
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          []
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "Fix"
+          , Space
+          , Str "the"
+          , Space
+          , Str "size"
+          , Space
+          , Str "with"
+          , Space
+          , Str "the"
+          , Space
+          , Code ( "" , [] , [] ) "lr"
+          , Space
+          , Str "function."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\left. \\left\\lbrack \\sum_{k = 0}^{n}e^{k^{2}} \\right\\rbrack \\right."
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "lr([sum_(k = 0)^n e^(k^2)], size: #50%)\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "To"
+          , Space
+          , Str "have"
+          , Space
+          , Str "them"
+          , Space
+          , Str "grow"
+          , Space
+          , Str "with"
+          , Space
+          , Str "the"
+          , Space
+          , Str "enclosed"
+          , Space
+          , Str "formula,"
+          , Space
+          , Str "also"
+          , Space
+          , Str "use"
+          , Space
+          , Str "the"
+          , Space
+          , Code ( "" , [] , [] ) "lr"
+          , Space
+          , Str "function."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\left\\langle i,2^{2^{i}} \\right\\rangle"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "lr(angle.l i, 2^(2^i) angle.r)\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "Fences"
+          , Space
+          , Str "scale"
+          , Space
+          , Str "by"
+          , Space
+          , Str "default"
+          , Space
+          , Str "if"
+          , Space
+          , Str "entered"
+          , Space
+          , Str "directly"
+          , Space
+          , Str "as"
+          , Space
+          , Str "codepoints,"
+          , Space
+          , Str "and"
+          , Space
+          , Str "don\8217t"
+          , Space
+          , Str "scale"
+          , Space
+          , Str "automatically"
+          , Space
+          , Str "if"
+          , Space
+          , Str "entered"
+          , Space
+          , Str "as"
+          , Space
+          , Str "symbol"
+          , Space
+          , Str "notation."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\left( \\frac{1}{n^{\\alpha}} \\right)"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] ) "(1 / n^(alpha))\n  "
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath "(\\frac{1}{n^{\\alpha}})"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "paren.l 1 / n^(alpha) paren.r\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "The"
+          , Space
+          , Code ( "" , [] , [] ) "lr"
+          , Space
+          , Str "function"
+          , Space
+          , Str "also"
+          , Space
+          , Str "allows"
+          , Space
+          , Str "to"
+          , Space
+          , Str "scale"
+          , Space
+          , Str "unmatched"
+          , Space
+          , Str "delimiters"
+          , Space
+          , Str "and"
+          , Space
+          , Str "one-side"
+          , Space
+          , Str "fences."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\left. \\frac{df}{dx} \\right|_{x_{0}}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "lr(frac(dif f, dif x) |)_(x_0)\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Strong [ Str "Arrays," , Space , Str "Matrices\8192\160" ]
+          , Str "Get"
+          , Space
+          , Str "a"
+          , Space
+          , Str "matrix"
+          , Space
+          , Str "with"
+          , Space
+          , Str "the"
+          , Space
+          , Code ( "" , [] , [] ) "mat"
+          , Space
+          , Str "function."
+          , Space
+          , Str "You"
+          , Space
+          , Str "can"
+          , Space
+          , Str "pass"
+          , Space
+          , Str "an"
+          , Space
+          , Str "array"
+          , Space
+          , Str "to"
+          , Space
+          , Str "it."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\begin{pmatrix}\na & b \\\\\nc & d\n\\end{pmatrix}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] ) "$ mat(a, b; c, d) $\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "In"
+          , Space
+          , Str "Typst,"
+          , Space
+          , Underline
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "array" ]
+                  ( "https://typst.app/docs/reference/typst/array"
+                  , ""
+                  )
+              ]
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "sequence"
+          , Space
+          , Str "of"
+          , Space
+          , Str "values,"
+          , SoftBreak
+          , Str "while"
+          , Space
+          , Str "in"
+          , Space
+          , Span
+              ( "" , [ "box" ] , [] )
+              [ Str "L\8202A\8202"
+              , Span ( "" , [ "box" ] , [] ) [ Str "T\8202E\8202X" ]
+              ]
+          , Str ","
+          , Space
+          , Str "array"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "matrix"
+          , Space
+          , Str "without"
+          , Space
+          , Str "fences,"
+          , Space
+          , Str "which"
+          , Space
+          , Str "is"
+          , Space
+          , Code ( "" , [] , [] ) "$mat(delim: #none, ..)$"
+          , Space
+          , Str "in"
+          , Space
+          , Str "Typst."
+          ]
+      , Para
+          [ Str "For"
+          , Space
+          , Str "the"
+          , Space
+          , Str "determinant"
+          , Space
+          , Str "use"
+          , Space
+          , Code ( "" , [] , [] ) "|A|"
+          , Str ","
+          , Space
+          , Str "text"
+          , Space
+          , Str "operator"
+          , Space
+          , Math InlineMath "\\det"
+          , Space
+          , Code ( "" , [] , [] ) "det"
+          , Space
+          , Str "or"
+          , Space
+          , Code ( "" , [] , [] ) "mat(delim: \"|\", ..)"
+          , Str "."
+          ]
+      , Para
+          [ Str "Definition"
+          , Space
+          , Str "by"
+          , Space
+          , Str "cases"
+          , Space
+          , Str "can"
+          , Space
+          , Str "be"
+          , Space
+          , Str "easily"
+          , Space
+          , Str "obtained"
+          , Space
+          , Str "with"
+          , Space
+          , Str "the"
+          , Space
+          , Code ( "" , [] , [] ) "cases"
+          , Space
+          , Str "function."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "f_{n} = \\begin{cases}\na & \\text{if }n = 0 \\\\\nr \\cdot f_{n - 1} & \\text{else }\n\\end{cases}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "$ f_n = cases(\n    a &\"if\" n = 0,\n    r dot f_(n - 1) &\"else\"\n  ) $\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Strong
+              [ Str "Spacing"
+              , Space
+              , Str "in"
+              , Space
+              , Str "mathematics\8192\160"
+              ]
+          , Str "Improve"
+          , Space
+          , Math InlineMath "\\sqrt{2}x"
+          , Space
+          , Str "to"
+          , Space
+          , Math InlineMath "\\sqrt{2}\\, x"
+          , Space
+          , Str "with"
+          , Space
+          , Str "a"
+          , Space
+          , Str "thin"
+          , Space
+          , Str "space,"
+          , Space
+          , Str "as"
+          , Space
+          , Str "in"
+          , Space
+          , Code ( "" , [] , [] ) "sqrt(2) thin x"
+          , Str "."
+          , SoftBreak
+          , Str "Slightly"
+          , Space
+          , Str "wider"
+          , Space
+          , Str "are"
+          , Space
+          , Code ( "" , [] , [] ) "medium"
+          , Space
+          , Str "and"
+          , Space
+          , Code ( "" , [] , [] ) "thick"
+          , Space
+          , Str "(the"
+          , Space
+          , Str "three"
+          , Space
+          , Str "are"
+          , Space
+          , Str "in"
+          , Space
+          , Str "ratio"
+          , Space
+          , Math InlineMath "3:4:5"
+          , Str ")."
+          , SoftBreak
+          , Str "Bigger"
+          , Space
+          , Str "space"
+          , Space
+          , Str "is"
+          , Space
+          , Code ( "" , [] , [] ) "quad"
+          , Space
+          , Str "for"
+          , Space
+          , Math InlineMath "\\rightarrow \\quad \\leftarrow"
+          , Str ","
+          , Space
+          , Str "which"
+          , Space
+          , Str "is"
+          , Space
+          , Str "useful"
+          , Space
+          , Str "between"
+          , Space
+          , Str "parts"
+          , Space
+          , Str "of"
+          , Space
+          , Str "a"
+          , Space
+          , Str "display."
+          , SoftBreak
+          , Str "Get"
+          , Space
+          , Str "arbitrary"
+          , Space
+          , Str "space"
+          , Space
+          , Str "with"
+          , Space
+          , Str "the"
+          , Space
+          , Code ( "" , [] , [] ) "h"
+          , Space
+          , Str "function."
+          , SoftBreak
+          , Str "For"
+          , Space
+          , Str "example,"
+          , Space
+          , Str "use"
+          , Space
+          , Code ( "" , [] , [] ) "#h(2em)"
+          , Space
+          , Str "for"
+          , Space
+          , Code ( "" , [] , [] ) "\\qquad"
+          , Space
+          , Str "in"
+          , Space
+          , Span
+              ( "" , [ "box" ] , [] )
+              [ Str "L\8202A\8202"
+              , Span ( "" , [ "box" ] , [] ) [ Str "T\8202E\8202X" ]
+              ]
+          , Space
+          , Str "and"
+          , Space
+          , Code ( "" , [] , [] ) "#h(-0.1667em)"
+          , Space
+          , Str "for"
+          , Space
+          , Code ( "" , [] , [] ) "\\!"
+          , Str "."
+          ]
+      , Para
+          [ Strong
+              [ Str "Displayed" , Space , Str "equations\8192\160" ]
+          , Str "Display"
+          , Space
+          , Str "equations"
+          , Space
+          , Str "in"
+          , Space
+          , Str "a"
+          , Space
+          , Str "block"
+          , Space
+          , Str "level"
+          , Space
+          , Str "using"
+          , Space
+          , Code ( "" , [] , [] ) "$ ... $"
+          , Space
+          , Str "with"
+          , Space
+          , Str "at"
+          , Space
+          , Str "least"
+          , Space
+          , Str "one"
+          , Space
+          , Str "space"
+          , Space
+          , Str "separating"
+          , Space
+          , Str "the"
+          , Space
+          , Str "math"
+          , Space
+          , Str "content"
+          , Space
+          , Str "and"
+          , Space
+          , Str "the"
+          , Space
+          , Code ( "" , [] , [] ) "$"
+          , Str "."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math DisplayMath "S = k \\cdot \\lg W" ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] ) "$ S = k dot lg W $\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "You"
+          , Space
+          , Str "can"
+          , Space
+          , Str "break"
+          , Space
+          , Str "into"
+          , Space
+          , Str "multiple"
+          , Space
+          , Str "lines."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\begin{array}{r}\n\\sin(x) = x - \\frac{x^{3}}{3!} \\\\\n + \\frac{x^{5}}{5!} - \\cdots\n\\end{array}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "$ sin(x) = x - x^3 / 3! \\\n      + x^5 / 5! - dots.h.c $\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "Align"
+          , Space
+          , Str "equations"
+          , Space
+          , Str "using"
+          , Space
+          , Code ( "" , [] , [] ) "&"
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignLeft , ColWidthDefault )
+              , ( AlignLeft , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\begin{aligned}\n\\nabla \\cdot \\mathbf{D} & = \\rho \\\\\n\\nabla \\cdot \\mathbf{B} & = 0\n\\end{aligned}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "$ nabla dot bold(D) &= rho \\\n    nabla dot bold(B) &= 0 $\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "(the"
+          , Space
+          , Str "left"
+          , Space
+          , Str "or"
+          , Space
+          , Str "right"
+          , Space
+          , Str "side"
+          , Space
+          , Str "of"
+          , Space
+          , Str "an"
+          , Space
+          , Str "alignment"
+          , Space
+          , Str "can"
+          , Space
+          , Str "be"
+          , Space
+          , Str "empty)."
+          , SoftBreak
+          , Str "Get"
+          , Space
+          , Str "a"
+          , Space
+          , Str "numbered"
+          , Space
+          , Str "version"
+          , Space
+          , Str "by"
+          , Space
+          , Code ( "" , [] , [] ) "#set math.equation(numbering: ..)"
+          , Str "."
+          ]
+      , Para
+          [ Strong
+              [ Str "Calculus" , Space , Str "examples\8192\160" ]
+          , Str "The"
+          , Space
+          , Str "last"
+          , Space
+          , Str "three"
+          , Space
+          , Str "here"
+          , Space
+          , Str "are"
+          , Space
+          , Str "display"
+          , Space
+          , Str "style."
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignDefault , ColWidthDefault )
+              , ( AlignDefault , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  InlineMath
+                                  "f:{\\mathbb{R}} \\rightarrow {\\mathbb{R}}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock ( "" , [] , [] ) "f: RR -> RR\n  "
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math InlineMath "9.8\\ \\text{ m/s}^{2}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Code
+                                  ( "" , [] , [] ) "\"9.8\" \"m/s\"^2"
+                              , Space
+                              , Link
+                                  ( "" , [ "ref" ] , [] )
+                                  [ Str "[tricky]" ]
+                                  ( "#tricky" , "" )
+                              ]
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\lim\\limits_{h \\rightarrow 0}\\frac{f(x + h) - f(x)}{h}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "lim_(h -> 0) (f(x + h) - f(x)) / h\n  "
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\int x^{2}dx = x^{3}/3 + C"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "integral x^2 dif x = x^3 \\/ 3 + C\n  "
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  DisplayMath
+                                  "\\nabla = \\mathbf{i}\\frac{d}{dx} + \\mathbf{j}\\frac{d}{dy} + \\mathbf{k}\\frac{d}{dz}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "nabla = bold(i) dif / (dif x) + bold(j) dif / (dif y) + bold(k) dif / (dif z)\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Strong
+              [ Str "Discrete"
+              , Space
+              , Str "mathematics"
+              , Space
+              , Str "examples\8192\160"
+              ]
+          , Str "For"
+          , Space
+          , Str "modulo,"
+          , Space
+          , Str "there"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "symbol"
+          , Space
+          , Math InlineMath "\\equiv"
+          , Space
+          , Str "from"
+          , Space
+          , Code ( "" , [] , [] ) "equiv"
+          , Space
+          , Str "and"
+          , Space
+          , Str "a"
+          , Space
+          , Str "text"
+          , Space
+          , Str "operator"
+          , Space
+          , Math InlineMath "\\operatorname{mod}"
+          , Space
+          , Str "from"
+          , Space
+          , Code ( "" , [] , [] ) "mod"
+          , Str "."
+          ]
+      , Para
+          [ Str "For"
+          , Space
+          , Str "combinations"
+          , Space
+          , Str "the"
+          , Space
+          , Str "binomial"
+          , Space
+          , Str "symbol"
+          , Space
+          , Math InlineMath "\\binom{n}{k}"
+          , Space
+          , Str "is"
+          , Space
+          , Str "from"
+          , Space
+          , Code ( "" , [] , [] ) "binom(n, k)"
+          , Str "."
+          , SoftBreak
+          , Str "This"
+          , Space
+          , Str "resizes"
+          , Space
+          , Str "to"
+          , Space
+          , Str "be"
+          , Space
+          , Str "bigger"
+          , Space
+          , Str "in"
+          , Space
+          , Str "a"
+          , Space
+          , Str "display."
+          ]
+      , Para
+          [ Str "For"
+          , Space
+          , Str "permutations"
+          , Space
+          , Str "use"
+          , Space
+          , Math InlineMath "n^{\\underline{r}}"
+          , Space
+          , Str "from"
+          , Space
+          , Code ( "" , [] , [] ) "n^(underline(r))"
+          , Space
+          , Str "(some"
+          , Space
+          , Str "authors"
+          , Space
+          , Str "use"
+          , Space
+          , Math InlineMath "P(n,r)"
+          , Str ","
+          , Space
+          , Str "or"
+          , Space
+          , Math InlineMath "{}_{n}P_{r}"
+          , Space
+          , Str "from"
+          , Space
+          , Code ( "" , [] , [] ) "\"\"_n P_r"
+          , Str ")."
+          ]
+      , Para
+          [ Strong
+              [ Str "Statistics" , Space , Str "examples\8192\160" ]
+          ]
+      , Div
+          ( "" , [] , [ ( "align" , "center" ) ] )
+          [ Table
+              ( "" , [] , [] )
+              (Caption Nothing [])
+              [ ( AlignDefault , ColWidthDefault )
+              , ( AlignDefault , ColWidthDefault )
+              ]
+              (TableHead ( "" , [] , [] ) [])
+              [ TableBody
+                  ( "" , [] , [] )
+                  (RowHeadColumns 0)
+                  []
+                  [ Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  InlineMath
+                                  "\\sigma^{2} = \\sqrt{{\\sum(x_{i} - \\mu)}^{2}/N}"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "sigma^2 = sqrt(sum(x_i - mu)^2 \\/ N)\n  "
+                          ]
+                      ]
+                  , Row
+                      ( "" , [] , [] )
+                      [ Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ Para
+                              [ Math
+                                  InlineMath
+                                  "E(X) = \\mu_{X} = \\sum(x_{i} - P\\left( x_{i} \\right))"
+                              ]
+                          ]
+                      , Cell
+                          ( "" , [] , [] )
+                          AlignDefault
+                          (RowSpan 1)
+                          (ColSpan 1)
+                          [ CodeBlock
+                              ( "" , [] , [] )
+                              "E(X) = mu_X = sum(x_i - P(x_i))\n  "
+                          ]
+                      ]
+                  ]
+              ]
+              (TableFoot ( "" , [] , [] ) [])
+          ]
+      , Para
+          [ Str "The"
+          , Space
+          , Str "probability"
+          , Space
+          , Str "density"
+          , Space
+          , Str "of"
+          , Space
+          , Str "the"
+          , Space
+          , Str "normal"
+          , Space
+          , Str "distribution"
+          ]
+      , Para
+          [ Math
+              DisplayMath
+              "\\frac{1}{\\sqrt{2\\sigma^{2}\\pi}}e^{- \\frac{(x - \\mu)^{2}}{2\\sigma^{2}}}"
+          ]
+      , Para
+          [ Str "comes" , Space , Str "from" , Space , Str "this." ]
+      , Table
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ ( AlignDefault , ColWidthDefault )
+          , ( AlignDefault , ColWidthDefault )
+          ]
+          (TableHead ( "" , [] , [] ) [])
+          [ TableBody
+              ( "" , [] , [] )
+              (RowHeadColumns 0)
+              []
+              [ Row
+                  ( "" , [] , [] )
+                  [ Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      []
+                  , Cell
+                      ( "" , [] , [] )
+                      AlignDefault
+                      (RowSpan 1)
+                      (ColSpan 1)
+                      [ CodeBlock
+                          ( "" , [] , [] )
+                          "1 / sqrt(2 sigma^2 pi)\n    e^(- (x - mu)^2 / (2 sigma^2))\n  "
+                      ]
+                  ]
+              ]
+          ]
+          (TableFoot ( "" , [] , [] ) [])
+      , Para
+          [ Strong [ Str "For" , Space , Str "more\8192\160" ]
+          , Str "See"
+          , Space
+          , Str "also"
+          , Space
+          , Str "the"
+          , Space
+          , Str "Typst"
+          , Space
+          , Str "Documentation"
+          , Space
+          , Str "at"
+          , Space
+          , Underline
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "https://typst.app/docs" ]
+                  ( "https://typst.app/docs" , "" )
+              ]
+          , Str "."
+          ]
+      , HorizontalRule
+      , Para
+          [ Str "johanvx"
+          , Space
+          , Str "("
+          , Underline
+              [ Link
+                  ( "" , [] , [] )
+                  [ Str "https://github.com/johanvx" ]
+                  ( "https://github.com/johanvx" , "" )
+              ]
+          , Str ")"
+          , Space
+          , Str "\8202\8193"
+          , Space
+          , Str "2023-05-22"
+          ]
+      ]
+  ]

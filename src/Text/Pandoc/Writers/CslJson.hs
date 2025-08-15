@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.CslJson
-   Copyright   : Copyright (C) 2020-2023 John MacFarlane
+   Copyright   : Copyright (C) 2020-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -71,7 +71,8 @@ fromInline (Code _ t) = CslText t
 fromInline Space = CslText " "
 fromInline SoftBreak = CslText " "
 fromInline LineBreak = CslText "\n"
-fromInline (Math _ t) = CslText t
+fromInline (Math InlineMath t) = CslText $ "$" <> t <> "$"
+fromInline (Math DisplayMath t) = CslText $ "$$" <> t <> "$$"
 fromInline (RawInline _ _) = CslEmpty
 fromInline (Link _ ils _) = fromInlines ils
 fromInline (Image _ ils _) = fromInlines ils

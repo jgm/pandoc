@@ -1,26 +1,27 @@
 cabal-version:   2.4
 name:            pandoc-cli
-version:         0.1
+version:         3.7.0.2
 build-type:      Simple
 license:         GPL-2.0-or-later
 license-file:    COPYING.md
-copyright:       (c) 2006-2022 John MacFarlane
+copyright:       (c) 2006-2024 John MacFarlane
 author:          John MacFarlane <jgm@berkeley.edu>
 maintainer:      John MacFarlane <jgm@berkeley.edu>
 bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
-tested-with:     GHC == 8.6.5, GHC == 8.8.4, GHC == 8.10.7, GHC == 9.0.2,
-                 GHC == 9.2.5, GHC == 9.4.4
 synopsis:        Conversion between documentation formats
 description:     Pandoc-cli provides a command-line executable that uses the
                  pandoc library to convert between markup formats.
 -- data-files:
--- extra-source-files:
+extra-source-files:
+                 man/pandoc.1
+                 man/pandoc-lua.1
+                 man/pandoc-server.1
 source-repository head
   type:          git
-  location:      git://github.com/jgm/pandoc.git
+  location:      https://github.com/jgm/pandoc.git
 
 flag lua
   description:   Support custom modifications and conversions with the
@@ -67,7 +68,9 @@ executable pandoc
   hs-source-dirs:  src
   main-is:         pandoc.hs
   buildable:       True
-  build-depends:   pandoc >= 3.0,
+  -- Note: we always link to an exact version of pandoc, with the
+  -- same version as this package:
+  build-depends:   pandoc == 3.7.0.2,
                    text
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server
@@ -76,7 +79,7 @@ executable pandoc
     build-depends:  template-haskell,
                     time
   if flag(server)
-    build-depends:   pandoc-server >= 0.1 && < 0.2,
+    build-depends:   pandoc-server >= 0.1.0.9 && < 0.2,
                      wai-extra >= 3.0.24,
                      warp,
                      safe
@@ -85,8 +88,9 @@ executable pandoc
     hs-source-dirs:  no-server
 
   if flag(lua)
-    build-depends:   hslua-cli         >= 1.3 && < 1.4,
-                     pandoc-lua-engine >= 0.1 && < 0.2
+    build-depends:   hslua-cli         >= 1.4.1 && < 1.5,
+                     pandoc-lua-engine >= 0.4.3 && < 0.5,
+                     temporary         >= 1.1 && < 1.4
     hs-source-dirs:  lua
   else
     hs-source-dirs:  no-lua

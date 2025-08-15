@@ -5,7 +5,7 @@
 {-# LANGUAGE LambdaCase #-}
 {- |
    Module      : Text.Pandoc.Writers.Shared
-   Copyright   : Copyright (C) 2013-2023 John MacFarlane
+   Copyright   : Copyright (C) 2013-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -38,21 +38,27 @@ module Text.Pandoc.Writers.Shared (
                      , stripLeadingTrailingSpace
                      , toSubscript
                      , toSuperscript
+                     , toSubscriptInline
+                     , toSuperscriptInline
                      , toTableOfContents
                      , endsWithPlain
                      , toLegacyTable
                      , splitSentences
                      , ensureValidXmlIdentifiers
                      , setupTranslations
+                     , isOrderedListMarker
+                     , toTaskListItem
+                     , delimited
                      )
 where
-import Safe (lastMay)
+import Safe (lastMay, maximumMay)
 import qualified Data.ByteString.Lazy as BL
-import Control.Monad (zipWithM)
+import Control.Monad (MonadPlus, mzero)
+import Data.Either (isRight)
 import Data.Aeson (ToJSON (..), encode)
-import Data.Char (chr, ord, isSpace, isLetter)
-import Data.List (groupBy, intersperse, transpose, foldl')
-import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
+import Data.Char (chr, ord, isSpace, isLetter, isUpper)
+import Data.List (groupBy, intersperse, foldl', transpose)
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -61,6 +67,8 @@ import qualified Text.Pandoc.Builder as Builder
 import Text.Pandoc.CSS (cssAttributes)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
+import Text.Pandoc.Parsing (runParser, eof, defaultParserState,
+                            anyOrderedListMarker)
 import Text.DocLayout
 import Text.Pandoc.Shared (stringify, makeSections, blocksToInlines)
 import Text.Pandoc.Walk (Walkable(..))
@@ -73,6 +81,9 @@ import Text.Collate.Lang (Lang (..))
 import Text.Pandoc.Class (PandocMonad, toLang)
 import Text.Pandoc.Translations (setTranslations)
 import Data.Maybe (fromMaybe)
+import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+
+-- import Debug.Trace
 
 -- | Create template Context from a 'Meta' and an association list
 -- of variables, specified at the command line or in the writer.
@@ -274,121 +285,275 @@ unsmartify opts = T.concatMap $ \c -> case c of
   _       -> T.singleton c
 
 -- | Writes a grid table.
-gridTable :: (Monad m, HasChars a)
-          => WriterOptions
-          -> (WriterOptions -> [Block] -> m (Doc a)) -- ^ format Doc writer
-          -> Bool             -- ^ headless
-          -> [Alignment]      -- ^ column alignments
-          -> [Double]         -- ^ column widths
-          -> [[Block]]        -- ^ table header row
-          -> [[[Block]]]      -- ^ table body rows
-          -> m (Doc a)
-gridTable opts blocksToDoc headless aligns widths headers rows = do
-  -- the number of columns will be used in case of even widths
-  let numcols = maximum (length aligns :| length widths :
-                           map length (headers:rows))
-  let officialWidthsInChars :: [Double] -> [Int]
-      officialWidthsInChars widths' = map (
-                        (max 1) .
-                        (\x -> x - 3) . floor .
-                        (fromIntegral (writerColumns opts) *)
-                        ) widths'
-  -- handleGivenWidths wraps the given blocks in order for them to fit
-  -- in cells with given widths. the returned content can be
-  -- concatenated with borders and frames
-  let handleGivenWidthsInChars widthsInChars' = do
-        -- replace page width (in columns) in the options with a
-        -- given width if smaller (adjusting by two)
-        let useWidth w = opts{writerColumns = min (w - 2) (writerColumns opts)}
-        -- prepare options to use with header and row cells
-        let columnOptions = map useWidth widthsInChars'
-        rawHeaders' <- zipWithM blocksToDoc columnOptions headers
-        rawRows' <- mapM
-             (\cs -> zipWithM blocksToDoc columnOptions cs)
-             rows
-        return (widthsInChars', rawHeaders', rawRows')
-  let handleGivenWidths widths' = handleGivenWidthsInChars
-                                     (officialWidthsInChars widths')
-  -- handleFullWidths tries to wrap cells to the page width or even
-  -- more in cases where `--wrap=none`. thus the content here is left
-  -- as wide as possible
-  let handleFullWidths widths' = do
-        rawHeaders' <- mapM (blocksToDoc opts) headers
-        rawRows' <- mapM (mapM (blocksToDoc opts)) rows
-        let numChars = maybe 0 maximum . nonEmpty . map offset
-        let minWidthsInChars =
-                map numChars $ transpose (rawHeaders' : rawRows')
-        let widthsInChars' = zipWith max
-                              minWidthsInChars
-                              (officialWidthsInChars widths')
-        return (widthsInChars', rawHeaders', rawRows')
-  -- handleZeroWidths calls handleFullWidths to check whether a wide
-  -- table would fit in the page. if the produced table is too wide,
-  -- it calculates even widths and passes the content to
-  -- handleGivenWidths
-  let handleZeroWidths widths' = do
-        (widthsInChars', rawHeaders', rawRows') <- handleFullWidths widths'
-        if foldl' (+) 0 widthsInChars' > writerColumns opts
-           then do -- use even widths except for thin columns
-             let evenCols  = max 5
-                              (((writerColumns opts - 1) `div` numcols) - 3)
-             let (numToExpand, colsToExpand) =
-                   foldr (\w (n, tot) -> if w < evenCols
-                                            then (n, tot + (evenCols - w))
-                                            else (n + 1, tot))
-                                   (0,0) widthsInChars'
-             let expandAllowance = colsToExpand `div` numToExpand
-             let newWidthsInChars = map (\w -> if w < evenCols
+gridTable :: Monad m
+           => WriterOptions
+           -> (WriterOptions -> [Block] -> m (Doc Text)) -- ^ format Doc writer
+           -> [ColSpec]
+           -> TableHead
+           -> [TableBody]
+           -> TableFoot
+           -> m (Doc Text)
+gridTable opts blocksToDoc colspecs' thead' tbodies' tfoot' = do
+  let Ann.Table _ _ colspecs thead tbodies tfoot =
+        Ann.toTable mempty (Caption Nothing mempty)
+                    colspecs' thead' tbodies' tfoot'
+  let renderRows = fmap addDummies . mapM (gridRow opts blocksToDoc)
+  let getHeadCells (Ann.HeaderRow _ _ cells) = cells
+  let getHeadRows (Ann.TableHead _ rs) = map getHeadCells rs
+  headCells <- renderRows (getHeadRows thead)
+  let getFootRows (Ann.TableFoot _ xs) = map getHeadCells xs
+  footCells <- renderRows (getFootRows tfoot)
+  -- We don't distinguish between row head and regular cells here:
+  let getBodyCells (Ann.BodyRow _ _ rhcells cells) = rhcells ++ cells
+  let getBody (Ann.TableBody _ _ hs xs) = map getHeadCells hs <> map getBodyCells xs
+  bodyCells <- mapM (renderRows . getBody) tbodies
+  let rows = (setTopBorder SingleLine . setBottomBorder DoubleHeaderLine) headCells ++
+             (setTopBorder (if null headCells
+                               then SingleHeaderLine
+                               else SingleLine) . setBottomBorder SingleLine)
+                   (mconcat bodyCells) ++
+             (setTopBorder DoubleLine . setBottomBorder DoubleLine) footCells
+  pure $ gridRows $ redoWidths opts colspecs rows
+
+-- Returns (current widths, full widths, min widths)
+extractColWidths :: WriterOptions -> [[RenderedCell Text]] -> ([Int], [Int], [Int])
+extractColWidths opts rows = (currentwidths, fullwidths, minwidths)
+ where
+   getWidths calcOffset =
+     map (fromMaybe 0 . maximumMay) (transpose (map (concatMap (getCellWidths calcOffset)) rows))
+   getCellWidths calcOffset c = replicate (cellColSpan c)
+                                 (calcOffset c `div` (cellColSpan c) +
+                                  calcOffset c `rem` (cellColSpan c))
+   fullwidths = getWidths (max 1 . offset . cellContents)
+   currentwidths = getWidths cellWidth
+   minwidths =
+     case writerWrapText opts of
+       WrapNone -> fullwidths
+       _ -> getWidths (minOffset . cellContents)
+
+resetWidths :: [Int] -> [RenderedCell Text] -> [RenderedCell Text]
+resetWidths _ [] = []
+resetWidths [] cs = cs
+resetWidths (w:ws) (c:cs) =
+  case cellColSpan c of
+    1 -> c{ cellWidth = w } : resetWidths ws cs
+    n | n < 1 -> c : resetWidths ws cs
+      | otherwise -> c{ cellWidth = w + sum (take (n - 1) ws) + (3 * (n-1)) }
+                               : resetWidths (drop (n - 1) ws) cs
+
+redoWidths :: WriterOptions -> [ColSpec] -> [[RenderedCell Text]] -> [[RenderedCell Text]]
+redoWidths _ _ [] = []
+redoWidths opts colspecs rows = map (resetWidths newwidths) rows
+ where
+  numcols = length colspecs
+  isSimple = all ((== ColWidthDefault) . snd) colspecs
+  (actualwidths, fullwidths, minwidths) = extractColWidths opts rows
+  totwidth = writerColumns opts - (3 * numcols) - 1
+  evenwidth = totwidth `div` numcols + totwidth `rem` numcols
+  keepwidths = filter (< evenwidth) fullwidths
+  evenwidth' = (totwidth - sum keepwidths) `div`
+                (numcols - length keepwidths)
+  ensureMinWidths = zipWith max minwidths
+  newwidths = ensureMinWidths $
+              case isSimple of
+                True | sum fullwidths <= totwidth -> fullwidths
+                     | otherwise -> map (\w -> if w < evenwidth
                                                   then w
-                                                  else min
-                                                       (evenCols + expandAllowance)
-                                                       w)
-                                        widthsInChars'
-             handleGivenWidthsInChars newWidthsInChars
-           else return (widthsInChars', rawHeaders', rawRows')
-  -- render the contents of header and row cells differently depending
-  -- on command line options, widths given in this specific table, and
-  -- cells' contents
-  let handleWidths
-        | writerWrapText opts == WrapNone    = handleFullWidths widths
-        | all (== 0) widths                  = handleZeroWidths widths
-        | otherwise                          = handleGivenWidths widths
-  (widthsInChars, rawHeaders, rawRows) <- handleWidths
-  let hpipeBlocks blocks = hcat [beg, middle, end]
-        where sep'    = vfill " | "
-              beg     = vfill "| "
-              end     = vfill " |"
-              middle  = chomp $ hcat $ intersperse sep' blocks
-  let makeRow = hpipeBlocks . zipWith lblock widthsInChars
-  let head' = makeRow rawHeaders
-  let rows' = map (makeRow . map chomp) rawRows
-  let borderpart ch align widthInChars =
-           (if align == AlignLeft || align == AlignCenter
-               then char ':'
-               else char ch) <>
-           text (replicate widthInChars ch) <>
-           (if align == AlignRight || align == AlignCenter
-               then char ':'
-               else char ch)
-  let border ch aligns' widthsInChars' =
-        char '+' <>
-        hcat (intersperse (char '+') (zipWith (borderpart ch)
-                aligns' widthsInChars')) <> char '+'
-  let body = vcat $ intersperse (border '-' (repeat AlignDefault) widthsInChars)
-                    rows'
-  let head'' = if headless
-                  then empty
-                  else head' $$ border '=' aligns widthsInChars
-  if headless
-     then return $
-           border '-' aligns widthsInChars $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
-     else return $
-           border '-' (repeat AlignDefault) widthsInChars $$
-           head'' $$
-           body $$
-           border '-' (repeat AlignDefault) widthsInChars
+                                                  else evenwidth') fullwidths
+                False -> actualwidths
+
+makeDummy :: RenderedCell Text -> RenderedCell Text
+makeDummy c =
+    RenderedCell{ cellColNum = cellColNum c,
+                  cellColSpan = cellColSpan c,
+                  cellColSpecs = cellColSpecs c,
+                  cellAlign = AlignDefault,
+                  cellRowSpan = cellRowSpan c - 1,
+                  cellWidth = cellWidth c,
+                  cellContents = mempty,
+                  cellBottomBorder = NoLine,
+                  cellTopBorder = NoLine }
+
+addDummies :: [[RenderedCell Text]] -> [[RenderedCell Text]]
+addDummies = reverse . foldl' go []
+ where
+   go [] cs = [cs]
+   go (prevRow:rs) cs = addDummiesToRow prevRow cs : prevRow : rs
+   addDummiesToRow [] cs = cs
+   addDummiesToRow ds [] = map makeDummy ds
+   addDummiesToRow (d:ds) (c:cs) =
+     if cellColNum d < cellColNum c
+        then makeDummy d : addDummiesToRow ds (c:cs)
+        else c : addDummiesToRow
+                   (dropWhile (\x ->
+                       cellColNum x < cellColNum c + cellColSpan c) (d:ds))
+                   cs
+
+
+setTopBorder :: LineStyle -> [[RenderedCell Text]] -> [[RenderedCell Text]]
+setTopBorder _ [] = []
+setTopBorder sty (cs:rest) = (map (\c -> c{ cellTopBorder = sty }) cs) : rest
+
+setBottomBorder :: LineStyle -> [[RenderedCell Text]] -> [[RenderedCell Text]]
+setBottomBorder _ [] = []
+setBottomBorder sty [cs] = [map (\c -> c{ cellBottomBorder = sty }) cs]
+setBottomBorder sty (c:cs) = c : setBottomBorder sty cs
+
+gridRows :: [[RenderedCell Text]] -> Doc Text
+gridRows [] = mempty
+gridRows (x:xs) =
+  (case x of
+     [] -> mempty
+     (c:_) | isHeaderStyle (cellTopBorder c)
+            -> formatHeaderLine (cellTopBorder c) (x:xs)
+           | otherwise
+            -> formatBorder cellTopBorder False x)
+  $$
+  vcat (zipWith (rowAndBottom (x:xs)) (x:xs) (xs ++ [[]]))
+ where
+  -- generate wrapped contents. include pipe borders, bottom and left
+
+  renderCellContents c =
+    -- we don't use cblock or lblock because the content might
+    -- be interpreted as an indented code block...even though it
+    -- would look better to right-align right-aligned cells...
+    -- (TODO: change this on parsing side?)
+    lblock (cellWidth c) (cellContents c)
+
+  formatRow cs = vfill "| " <>
+   hcat (intersperse (vfill " | ") (map renderCellContents cs)) <> vfill " |"
+
+  rowAndBottom allRows thisRow nextRow =
+    let isLastRow = null nextRow
+        border1 = case thisRow of
+                     [] -> mempty
+                     (c:_) -> if isHeaderStyle (cellBottomBorder c)
+                                 then formatHeaderLine (cellBottomBorder c) allRows
+                                 else formatBorder cellBottomBorder False thisRow
+        border2 = case nextRow of
+                     [] -> mempty
+                     (c:_) -> if isHeaderStyle (cellTopBorder c)
+                                 then formatHeaderLine (cellTopBorder c) allRows
+                                 else formatBorder cellTopBorder False nextRow
+        combinedBorder = if isLastRow
+                            then border1
+                            else literal $ combineBorders
+                                  (render Nothing border1) (render Nothing border2)
+    in formatRow thisRow $$ combinedBorder
+
+combineBorders :: Text -> Text -> Text
+combineBorders t1 t2 =
+  if T.null t1
+     then t2
+     else T.zipWith go t1 t2
+ where
+   go '+' _ = '+'
+   go _ '+' = '+'
+   go ':' _ = ':'
+   go _ ':' = ':'
+   go '|' '-' = '+'
+   go '-' '|' = '+'
+   go '|' '=' = '+'
+   go '=' '|' = '+'
+   go '=' _ = '='
+   go _ '=' = '='
+   go ' ' d = d
+   go c _   = c
+
+formatHeaderLine :: Show a => LineStyle -> [[RenderedCell a]] -> Doc Text
+formatHeaderLine lineStyle rows =
+  literal $ foldl'
+    (\t row -> combineBorders t (render Nothing $ formatBorder (const lineStyle) True row))
+    mempty rows
+
+formatBorder :: Show a => (RenderedCell a -> LineStyle) -> Bool
+             -> [RenderedCell a] -> Doc Text
+formatBorder borderStyle alignMarkers cs =
+  borderParts <> if lastBorderStyle == NoLine
+                            then char '|'
+                            else char '+'
+ where
+   (lastBorderStyle, borderParts) = foldl' addBorder (NoLine, mempty) cs
+   addBorder (prevBorderStyle, accum) c =
+     (borderStyle c, accum <> char junctionChar <> toBorderSection c)
+      where junctionChar = case (borderStyle c, prevBorderStyle) of
+                               (NoLine, NoLine) -> '|'
+                               _ -> '+'
+   toBorderSection c =
+       text $ leftalign : replicate (cellWidth c) lineChar ++ [rightalign]
+     where
+       lineChar = case borderStyle c of
+                     NoLine -> ' '
+                     SingleLine -> '-'
+                     SingleHeaderLine -> '-'
+                     DoubleLine -> '='
+                     DoubleHeaderLine -> '='
+       (leftalign, rightalign) =
+           case cellAlign c of
+             _ | not alignMarkers -> (lineChar,lineChar)
+             AlignLeft -> (':',lineChar)
+             AlignCenter -> (':',':')
+             AlignRight -> (lineChar,':')
+             AlignDefault -> (lineChar,lineChar)
+
+data LineStyle = NoLine
+               | SingleLine
+               | DoubleLine
+               | SingleHeaderLine
+               | DoubleHeaderLine
+    deriving (Show, Ord, Eq)
+
+isHeaderStyle :: LineStyle -> Bool
+isHeaderStyle SingleHeaderLine = True
+isHeaderStyle DoubleHeaderLine = True
+isHeaderStyle _ = False
+
+data RenderedCell a =
+  RenderedCell{ cellColNum :: Int
+              , cellColSpan :: Int
+              , cellColSpecs :: NonEmpty ColSpec
+              , cellAlign :: Alignment
+              , cellRowSpan :: Int
+              , cellWidth :: Int
+              , cellContents :: Doc a
+              , cellBottomBorder :: LineStyle
+              , cellTopBorder :: LineStyle
+              }
+  deriving (Show)
+
+getColWidth :: ColSpec -> Double
+getColWidth (_, ColWidth n) = n
+getColWidth (_, ColWidthDefault) = 0 -- TODO?
+
+toCharWidth :: WriterOptions -> Double -> Int
+toCharWidth opts width =
+  max 1 (floor (width * fromIntegral (writerColumns opts)) - 3)
+
+gridRow :: (Monad m, HasChars a)
+        => WriterOptions
+        -> (WriterOptions -> [Block] -> m (Doc a)) -- ^ format Doc writer
+        -> [Ann.Cell]
+        -> m [RenderedCell a]
+gridRow opts blocksToDoc = mapM renderCell
+ where
+  renderer = blocksToDoc opts
+  renderCell (Ann.Cell cellcolspecs (Ann.ColNumber colnum)
+               (Cell _ _ (RowSpan rowspan) _ blocks)) = do
+    let ((align,_):|_) = cellcolspecs
+    let width = toCharWidth opts $ sum (fmap getColWidth cellcolspecs)
+    rendered <- renderer blocks
+    pure $ RenderedCell{ cellColNum = colnum,
+                         cellColSpan = length cellcolspecs,
+                         cellColSpecs = cellcolspecs,
+                         cellAlign = align,
+                         cellRowSpan = rowspan,
+                         cellWidth = width,
+                         cellContents = rendered,
+                         cellBottomBorder = if rowspan < 2
+                                               then SingleLine
+                                               else NoLine,
+                         cellTopBorder = SingleLine }
+
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to Bool.
@@ -403,6 +568,8 @@ lookupMetaBool key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract blocks.
+--
+-- Note that an empty list is returned for maps, lists, and booleans.
 lookupMetaBlocks :: Text -> Meta -> [Block]
 lookupMetaBlocks key meta =
   case lookupMeta key meta of
@@ -413,6 +580,8 @@ lookupMetaBlocks key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract inlines.
+--
+-- Note that an empty list is returned for maps and lists.
 lookupMetaInlines :: Text -> Meta -> [Inline]
 lookupMetaInlines key meta =
   case lookupMeta key meta of
@@ -424,6 +593,8 @@ lookupMetaInlines key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to String.
+--
+-- Note that an empty list is returned for maps, lists, and booleans.
 lookupMetaString :: Text -> Meta -> Text
 lookupMetaString key meta =
   case lookupMeta key meta of
@@ -464,6 +635,22 @@ toSubscript c
                  Just $ chr (0x2080 + (ord c - 48))
   | isSpace c = Just c
   | otherwise = Nothing
+
+toSubscriptInline :: Inline -> Maybe Inline
+toSubscriptInline Space = Just Space
+toSubscriptInline (Span attr ils) = Span attr <$> traverse toSubscriptInline ils
+toSubscriptInline (Str s) = Str . T.pack <$> traverse toSubscript (T.unpack s)
+toSubscriptInline LineBreak = Just LineBreak
+toSubscriptInline SoftBreak = Just SoftBreak
+toSubscriptInline _ = Nothing
+
+toSuperscriptInline :: Inline -> Maybe Inline
+toSuperscriptInline Space = Just Space
+toSuperscriptInline (Span attr ils) = Span attr <$> traverse toSuperscriptInline ils
+toSuperscriptInline (Str s) = Str . T.pack <$> traverse toSuperscript (T.unpack s)
+toSuperscriptInline LineBreak = Just LineBreak
+toSuperscriptInline SoftBreak = Just SoftBreak
+toSuperscriptInline _ = Nothing
 
 -- | Construct table of contents (as a bullet list) from document body.
 toTableOfContents :: WriterOptions
@@ -552,10 +739,10 @@ splitSentences :: Doc Text -> Doc Text
 splitSentences = go . toList
  where
   go [] = mempty
-  go (Text len t : BreakingSpace : xs) =
-     if isSentenceEnding t
-        then Text len t <> NewLine <> go xs
-        else Text len t <> BreakingSpace <> go xs
+  go (Text len t : AfterBreak _ : BreakingSpace : xs)
+    | isSentenceEnding t = Text len t <> NewLine <> go xs
+  go (Text len t : BreakingSpace : xs)
+    | isSentenceEnding t = Text len t <> NewLine <> go xs
   go (x:xs) = x <> go xs
 
   toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
@@ -565,12 +752,16 @@ splitSentences = go . toList
   isSentenceEnding t =
     case T.unsnoc t of
       Just (t',c)
-        | c == '.' || c == '!' || c == '?' -> True
+        | c == '.' || c == '!' || c == '?'
+        , not (isInitial t') -> True
         | c == ')' || c == ']' || c == '"' || c == '\x201D' ->
            case T.unsnoc t' of
-             Just (_,d) -> d == '.' || d == '!' || d == '?'
+             Just (t'',d) -> d == '.' || d == '!' || d == '?' &&
+                             not (isInitial t'')
              _ -> False
       _ -> False
+   where
+    isInitial x = T.length x == 1 && T.all isUpper x
 
 -- | Ensure that all identifiers start with a letter,
 -- and modify internal links accordingly. (Yes, XML allows an
@@ -622,3 +813,38 @@ setupTranslations meta = do
             "" -> pure defLang
             s  -> fromMaybe defLang <$> toLang (Just s)
   setTranslations lang
+
+-- True if the string would count as a Markdown ordered list marker.
+isOrderedListMarker :: Text -> Bool
+isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
+              isRight (runParser (anyOrderedListMarker >> eof)
+                       defaultParserState "" xs)
+
+toTaskListItem :: MonadPlus m => [Block] -> m (Bool, [Block])
+toTaskListItem (Plain (Str "☐":Space:ils):xs) = pure (False, Plain ils:xs)
+toTaskListItem (Plain (Str "☒":Space:ils):xs) = pure (True, Plain ils:xs)
+toTaskListItem (Para  (Str "☐":Space:ils):xs) = pure (False, Para ils:xs)
+toTaskListItem (Para  (Str "☒":Space:ils):xs) = pure (True, Para ils:xs)
+toTaskListItem _                              = mzero
+
+-- | Add an opener and closer to a Doc. If the Doc begins or ends
+-- with whitespace, export this outside the opener or closer.
+-- This is used for formats, like Markdown, which don't allow spaces
+-- after opening or before closing delimiters.
+delimited :: Doc Text -> Doc Text -> Doc Text -> Doc Text
+delimited opener closer content =
+  mconcat initialWS <> opener <> mconcat middle <> closer <> mconcat finalWS
+ where
+  contents = toList content
+  (initialWS, rest) = span isWS contents
+  (reverseFinalWS, reverseMiddle) = span isWS (reverse rest)
+  finalWS = reverse reverseFinalWS
+  middle = reverse reverseMiddle
+  isWS NewLine = True
+  isWS CarriageReturn = True
+  isWS BreakingSpace = True
+  isWS BlankLines{} = True
+  isWS _ = False
+  toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
+  toList (Concat a b) = a : toList b
+  toList x = [x]

@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.RTF
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -281,8 +281,9 @@ tableRowToRTF header indent aligns sizes' cols = do
                  else sizes'
   columns <- T.concat <$>
      zipWithM (tableItemToRTF indent) aligns cols
-  let rightEdges = tail $ scanl (\sofar new -> sofar + floor (new * totalTwips))
-                                (0 :: Integer) sizes
+  let rightEdges = drop 1 $
+                    scanl (\sofar new -> sofar + floor (new * totalTwips))
+                          (0 :: Integer) sizes
   let cellDefs = map (\edge -> (if header
                                    then "\\clbrdrb\\brdrs"
                                    else "") <> "\\cellx" <> tshow edge)

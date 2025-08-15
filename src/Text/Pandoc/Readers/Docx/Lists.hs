@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Docx.Lists
@@ -18,10 +19,11 @@ module Text.Pandoc.Readers.Docx.Lists ( blocksToBullets
                                       ) where
 
 import Data.List
+import Data.Char (isDigit)
 import Data.Maybe
 import Data.String (fromString)
 import qualified Data.Text as T
-import Text.Pandoc.Generic (bottomUp)
+import Text.Pandoc.Walk (walk)
 import Text.Pandoc.JSON
 import Text.Pandoc.Readers.Docx.Parse (ParaStyleName)
 import Text.Pandoc.Shared (trim, safeRead)
@@ -58,9 +60,9 @@ listStyleMap = [("upperLetter", UpperAlpha),
                 ("decimal", Decimal)]
 
 listDelimMap :: [(T.Text, ListNumberDelim)]
-listDelimMap = [("%1)", OneParen),
-                ("(%1)", TwoParens),
-                ("%1.", Period)]
+listDelimMap = [("%)", OneParen),
+                ("(%)", TwoParens),
+                ("%.", Period)]
 
 getListType :: Block -> Maybe ListType
 getListType b@(Div (_, _, kvs) _) | isListItem b =
@@ -72,7 +74,7 @@ getListType b@(Div (_, _, kvs) _) | isListItem b =
    case frmt of
      Just "bullet" -> Just Itemized
      Just f        ->
-       case txt of
+       case T.filter (not . isDigit) <$> txt of
          Just t -> Just $ Enumerated (
                   fromMaybe 1 (start >>= safeRead) :: Int,
                   fromMaybe DefaultStyle (lookup f listStyleMap),
@@ -122,25 +124,48 @@ separateBlocks blks = foldr separateBlocks' [[]] (reverse blks)
 
 flatToBullets' :: Integer -> [Block] -> [Block]
 flatToBullets' _ [] = []
-flatToBullets' num xs@(b : elems)
-  | getLevelN b == num = b : flatToBullets' num elems
-  | otherwise =
-    let bNumId = getNumIdN b
-        bLevel = getLevelN b
-        (children, remaining) =
-          span
-          (\b' ->
-            getLevelN b' > bLevel ||
-             (getLevelN b' == bLevel && getNumIdN b' == bNumId))
-          xs
-    in
-     case getListType b of
-       Just (Enumerated attr) ->
-         OrderedList attr (separateBlocks $ flatToBullets' bLevel children) :
-         flatToBullets' num remaining
-       _ ->
-         BulletList (separateBlocks $ flatToBullets' bLevel children) :
-         flatToBullets' num remaining
+flatToBullets' num xs@(b : elems) =
+  if getLevelN b == num
+     then (case bCheckmark of
+             Just checked -> addCheckmark checked b
+             Nothing -> b) : flatToBullets' num elems
+     else case getListType b of
+            Just (Enumerated attr) ->
+              OrderedList attr (separateBlocks $ flatToBullets' bLevel children) :
+              flatToBullets' num remaining
+            _ ->
+              BulletList (separateBlocks $ flatToBullets' bLevel children) :
+              flatToBullets' num remaining
+ where
+  bNumId = getNumIdN b
+  bLevel = getLevelN b
+  isCheckmark (Just "\9744") = Just False
+  isCheckmark (Just "\9746") = Just True
+  isCheckmark _ = Nothing
+  bCheckmark =
+    case getListType b of
+      Just Itemized -> isCheckmark (getText b)
+      _ -> Nothing
+  addCheckmark checked (Div attrs [Para ils]) =
+    Div attrs [Para (Str (if checked then "\9746" else "\9744") : Space : ils)]
+  addCheckmark checked (Div attrs [Plain ils]) =
+    Div attrs [Plain (Str (if checked then "\9746" else "\9744") : Space : ils)]
+  addCheckmark _ x = x
+  (children, remaining) =
+    span
+    (\b' ->
+      getLevelN b' > bLevel ||
+       (getLevelN b' == bLevel &&
+          (getNumIdN b' == bNumId ||
+            (case bCheckmark of
+               Just _ ->
+                 case getText b' of
+                   Just "" -> True
+                   Just " " -> True
+                   Just x -> isJust (isCheckmark (Just x))
+                   Nothing -> False
+               Nothing -> False))))
+    xs
 
 flatToBullets :: [Block] -> [Block]
 flatToBullets elems = flatToBullets' (-1) elems
@@ -153,7 +178,7 @@ singleItemHeaderToHeader blk                            = blk
 blocksToBullets :: [Block] -> [Block]
 blocksToBullets blks =
   map singleItemHeaderToHeader $
-  bottomUp removeListDivs $ flatToBullets (handleListParagraphs blks)
+  walk removeListDivs $ flatToBullets (handleListParagraphs blks)
 
 plainParaInlines :: Block -> [Inline]
 plainParaInlines (Plain ils) = ils

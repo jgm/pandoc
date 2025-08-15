@@ -3,9 +3,9 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
 Module      : Text.Pandoc.Lua.Marshal.Template
-Copyright   : © 2021-2023 Albert Krewinkel
+Copyright   : © 2021-2024 Albert Krewinkel
 License     : GNU GPL, version 2 or above
-Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Marshal 'Template' 'Text'.
 -}
@@ -40,4 +40,4 @@ peekTemplate idx = liftLua (ltype idx) >>= \case
 
 -- | Template object type.
 typeTemplate :: LuaError e => DocumentedType e (Template Text)
-typeTemplate = deftype "pandoc Template" [] []
+typeTemplate = deftype "Template" [] []

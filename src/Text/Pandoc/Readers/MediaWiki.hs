@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.MediaWiki
-   Copyright   : Copyright (C) 2012-2023 John MacFarlane
+   Copyright   : Copyright (C) 2012-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -19,7 +19,7 @@ module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Char (isAscii, isDigit, isLetter, isSpace)
+import Data.Char (isDigit, isLetter, isSpace)
 import qualified Data.Foldable as F
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -38,6 +38,7 @@ import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag, toAttr)
 import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
                            trim, splitTextBy, tshow, formatCode)
+import Text.Pandoc.Char (isCJK)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -54,6 +55,7 @@ readMediaWiki opts s = do
                                             , mwIdentifierList = Set.empty
                                             , mwLogMessages = []
                                             , mwInTT = False
+                                            , mwAllowNewlines = True
                                             }
             sources
   case parsed of
@@ -67,6 +69,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwIdentifierList  :: Set.Set Text
                        , mwLogMessages     :: [LogMessage]
                        , mwInTT            :: Bool
+                       , mwAllowNewlines   :: Bool
                        }
 
 type MWParser m = ParsecT Sources MWState m
@@ -208,10 +211,11 @@ table = do
                          Just w  -> fromMaybe 1.0 $ parseWidth w
                          Nothing -> 1.0
   caption <- option mempty tableCaption
+  optional newline
   optional rowsep
   hasheader <- option False $ True <$ lookAhead (skipSpaces *> char '!')
-  (cellspecs',hdr) <- unzip <$> tableRow
-  let widths = map (tableWidth *) cellspecs'
+  (cellwidths,hdr) <- unzip <$> tableRow
+  let widths = map (tableWidth *) (concat cellwidths)
   let restwidth = tableWidth - sum widths
   let zerocols = length $ filter (==0.0) widths
   let defaultwidth = if zerocols == 0 || zerocols == length widths
@@ -234,10 +238,10 @@ table = do
                    (TableFoot nullAttr [])
 
 calculateAlignments :: [Cell] -> [Alignment]
-calculateAlignments = map cellAligns
+calculateAlignments = concatMap cellAligns
   where
-    cellAligns :: Cell -> Alignment
-    cellAligns (Cell _ align _ _ _) = align
+    cellAligns :: Cell -> [Alignment]
+    cellAligns (Cell _ align _ (ColSpan colspan) _) = replicate colspan align
 
 parseAttrs :: PandocMonad m => MWParser m [(Text,Text)]
 parseAttrs = many1 parseAttr
@@ -245,11 +249,13 @@ parseAttrs = many1 parseAttr
 parseAttr :: PandocMonad m => MWParser m (Text, Text)
 parseAttr = try $ do
   skipMany spaceChar
-  k <- many1Char letter
+  kFirst <- letter
+  kRest <- many (alphaNum <|> oneOf "_-:.")
+  let k = T.pack (kFirst : kRest)
   skipMany spaceChar
   char '='
   skipMany spaceChar
-  v <- (char '"' >> many1TillChar (satisfy (/='\n')) (char '"'))
+  v <- (char '"' >> manyTillChar (satisfy (/='\n')) (char '"'))
        <|> many1Char (satisfy $ \c -> not (isSpace c) && c /= '|')
   return (k,v)
 
@@ -266,22 +272,16 @@ rowsep = try $ guardColumnOne *> skipSpaces *> sym "|-" <*
                                <* skipMany htmlComment
                                <* blanklines
 
-cellsep :: PandocMonad m => MWParser m ()
+cellsep :: PandocMonad m => MWParser m [(Text,Text)]
 cellsep = try $ do
   col <- sourceColumn <$> getPosition
-  skipSpaces
-  let pipeSep = do
-        char '|'
-        notFollowedBy (oneOf "-}+")
-        if col == 1
-           then optional (char '|')
-           else void (char '|')
-  let exclSep = do
-        char '!'
-        if col == 1
-           then optional (char '!')
-           else void (char '!')
-  pipeSep <|> exclSep
+  skipMany spaceChar
+  c <- oneOf "|!"
+  when (col > 1) $ void $ char c
+  notFollowedBy (oneOf "-}")
+  attribs <- option [] (parseAttrs <* skipMany spaceChar <* char '|')
+  skipMany spaceChar
+  pure attribs
 
 tableCaption :: PandocMonad m => MWParser m Inlines
 tableCaption = try $ do
@@ -291,20 +291,17 @@ tableCaption = try $ do
   sym "|+"
   optional (try $ parseAttrs *> skipSpaces *> char '|' *> blanklines)
   trimInlines . mconcat <$>
-    many (notFollowedBy (cellsep <|> rowsep) *> inline)
+    many (notFollowedBy (void cellsep <|> rowsep) *> inline)
 
-tableRow :: PandocMonad m => MWParser m [(Double, Cell)]
+tableRow :: PandocMonad m => MWParser m [([Double], Cell)]
 tableRow = try $ skipMany htmlComment *> many tableCell
 
-tableCell :: PandocMonad m => MWParser m (Double, Cell)
+-- multiple widths because cell might have colspan
+tableCell :: PandocMonad m => MWParser m ([Double], Cell)
 tableCell = try $ do
-  cellsep
-  skipMany spaceChar
-  attribs <- option [] $ try $ parseAttrs <* skipSpaces <* char '|' <*
-                                 notFollowedBy (char '|')
-  skipMany spaceChar
+  attribs <- cellsep
   pos' <- getPosition
-  ls <- T.concat <$> many (notFollowedBy (cellsep <|> rowsep <|> tableEnd) *>
+  ls <- T.concat <$> many (notFollowedBy (void cellsep <|> rowsep <|> tableEnd) *>
                             ((snd <$> withRaw table) <|> countChar 1 anyChar))
   bs <- parseFromString (do setPosition pos'
                             mconcat <$> many block) ls
@@ -313,18 +310,22 @@ tableCell = try $ do
                     Just "right"  -> AlignRight
                     Just "center" -> AlignCenter
                     _             -> AlignDefault
-  let width = case lookup "width" attribs of
-                    Just xs -> fromMaybe 0.0 $ parseWidth xs
-                    Nothing -> 0.0
   let rowspan = RowSpan . fromMaybe 1 $
                 safeRead =<< lookup "rowspan" attribs
   let colspan = ColSpan . fromMaybe 1 $
                 safeRead =<< lookup "colspan" attribs
+  let ColSpan rawcolspan = colspan
   let handledAttribs = ["align", "colspan", "rowspan"]
       attribs' = [ (k, v) | (k, v) <- attribs
                           , k `notElem` handledAttribs
                  ]
-  return (width, B.cellWith (toAttr attribs') align rowspan colspan bs)
+  let widths = case lookup "width" attribs of
+                    Just xs -> maybe (replicate rawcolspan 0.0)
+                                 (\w -> replicate rawcolspan
+                                    (w / fromIntegral rawcolspan))
+                                 (parseWidth xs)
+                    Nothing -> replicate rawcolspan 0.0
+  return (widths, B.cellWith (toAttr attribs') align rowspan colspan bs)
 
 parseWidth :: Text -> Maybe Double
 parseWidth s =
@@ -454,9 +455,8 @@ defListTerm = do
   guardColumnOne
   char ';'
   skipMany spaceChar
-  pos' <- getPosition
-  anyLine >>= parseFromString (do setPosition pos'
-                                  trimInlines . mconcat <$> many inline)
+  trimInlines . mconcat <$> many (notFollowedBy (oneOf ":\r\n") *> inline) <*
+    optional newline
 
 listStart :: PandocMonad m => Char -> MWParser m ()
 listStart c = char c *> notFollowedBy listStartChar
@@ -473,7 +473,7 @@ li = lookAhead (htmlTag (~== TagOpen ("li" :: Text) [])) *>
 
 listItem :: PandocMonad m => Char -> MWParser m Blocks
 listItem c = try $ do
-  guardColumnOne
+  guardColumnOne <|> guard (c == ':') -- def can start on same line as term
   extras <- many (try $ char c <* lookAhead listStartChar)
   if null extras
      then listItem' c
@@ -500,8 +500,9 @@ listItem c = try $ do
 -- }}
 -- * next list item
 -- which seems to be valid mediawiki.
+-- Also multiline math: see #9293.
 listChunk :: PandocMonad m => MWParser m Text
-listChunk = template <|> countChar 1 anyChar
+listChunk = template <|> (snd <$> withRaw math) <|> countChar 1 anyChar
 
 listItem' :: PandocMonad m => Char -> MWParser m Blocks
 listItem' c = try $ do
@@ -607,23 +608,25 @@ whitespace = B.space <$ (skipMany1 spaceChar <|> htmlComment)
          <|> B.softbreak <$ endline
 
 endline :: PandocMonad m => MWParser m ()
-endline = () <$ try (newline <*
-                     notFollowedBy spaceChar <*
-                     notFollowedBy newline <*
-                     notFollowedBy' hrule <*
-                     notFollowedBy tableStart <*
-                     notFollowedBy' header <*
-                     notFollowedBy anyListStart)
+endline = do
+ getState >>= guard . mwAllowNewlines
+ () <$ try (newline <* notFollowedBy spaceChar <*
+                       notFollowedBy newline <*
+                       notFollowedBy' hrule <*
+                       notFollowedBy tableStart <*
+                       notFollowedBy' header <*
+                       notFollowedBy anyListStart)
 
-imageIdentifiers :: PandocMonad m => [MWParser m ()]
-imageIdentifiers = [sym (identifier <> ":") | identifier <- identifiers]
-    where identifiers = ["File", "Image", "Archivo", "Datei", "Fichier",
-                         "Bild"]
+imageIdentifier :: PandocMonad m => MWParser m ()
+imageIdentifier = try $ do
+  ident <- T.pack <$> many1Till letter (char ':')
+  guard $ T.toLower ident `elem`
+            ["file", "image", "archivo", "datei", "fichier", "bild"]
 
 image :: PandocMonad m => MWParser m Inlines
 image = try $ do
   sym "[["
-  choice imageIdentifiers
+  imageIdentifier
   fname <- addUnderscores <$> many1Char (noneOf "|]")
   _ <- many imageOption
   dims <- try (char '|' *> sepBy (manyChar digit) (char 'x') <* string "px")
@@ -650,7 +653,7 @@ imageOption = try $ char '|' *> opt
       <|> try (oneOfStrings ["link=","alt=","page=","class="] <* many (noneOf "|]"))
 
 addUnderscores :: Text -> Text
-addUnderscores = T.intercalate "_" . splitTextBy sep
+addUnderscores = T.intercalate "_" . splitTextBy sep . T.strip
   where
     sep c = isSpace c || c == '_'
 
@@ -664,8 +667,9 @@ internalLink = try $ do
              -- [[Help:Contents|] -> "Contents"
              <|> return (B.text $ T.drop 1 $ T.dropWhile (/=':') pagename) )
   sym "]]"
-  linktrail <- B.text <$> manyChar (satisfy (\c -> isAscii c && isLetter c))
-  let link = B.link (addUnderscores pagename) "wikilink" (label <> linktrail)
+  -- see #8525:
+  linktrail <- B.text <$> manyChar (satisfy (\c -> isLetter c && not (isCJK c)))
+  let link = B.linkWith (mempty, ["wikilink"], mempty) (addUnderscores pagename) (stringify label) (label <> linktrail)
   if "Category:" `T.isPrefixOf` pagename
      then do
        updateState $ \st -> st{ mwCategoryLinks = link : mwCategoryLinks st }

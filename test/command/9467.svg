@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-9" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1" id="svg2" width="191.56267" height="151.71201" viewBox="0 0 191.56267 151.71201" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+  <defs id="defs6">
+    <clipPath clipPathUnits="userSpaceOnUse" id="clipPath24">
+      <path d="M 56.69362,0 113.38724,113.38724 170.08086,0 Z" id="path22" />
+    </clipPath>
+    <clipPath clipPathUnits="userSpaceOnUse" id="clipPath38">
+      <path d="M 0,0 H 100 V 100 H 0 Z" id="path36" />
+    </clipPath>
+    <radialGradient fx="50.000641" fy="50.000641" cx="50.000641" cy="50.000641" r="50.000641" gradientUnits="userSpaceOnUse" id="radialGradient46">
+      <stop style="stop-opacity:1;stop-color:#ffffff" offset="0" id="stop40" />
+      <stop style="stop-opacity:1;stop-color:#9999ff" offset="25.00032" id="stop42" />
+      <stop style="stop-opacity:1;stop-color:#9999ff" offset="50.00064" id="stop44" />
+    </radialGradient>
+  </defs>
+  <g id="g8" transform="matrix(1.3333333,0,0,-1.3333333,0,151.712)">
+    <g id="g10" transform="translate(-26.606,0.199)">
+      <g id="g12">
+        <g id="g14">
+          <g id="g16">
+            <g id="g18">
+              <g id="g20" clip-path="url(#clipPath24)">
+                <g id="g26" transform="matrix(2.26802,0,0,2.26802,113.38724,56.69362)">
+                  <g id="g28">
+                    <g id="g30" transform="translate(-50,-50)">
+                      <g id="g32">
+                        <g id="g34" clip-path="url(#clipPath38)">
+                          <path d="M 0,0 H 100 V 100 H 0 Z" style="fill:url(#radialGradient46);stroke:none" id="path48" />
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+            <path d="M 56.69362,0 113.38724,113.38724 170.08086,0 Z" style="fill:none;stroke:#9999ff;stroke-width:0.3985;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1" id="path50" />
+            <g id="g52">
+              <g id="g54" transform="translate(63.337,5.457)">
+                <g id="g56">
+                  <g id="g58" transform="translate(-36.731,-5.656)">
+                    <text xml:space="preserve" transform="matrix(1,0,0,-1,36.731,5.656)" style="font-variant:normal;font-weight:normal;font-size:9.9626px;font-family:CMSS10;-inkscape-font-specification:CMSS10;writing-mode:lr-tb;fill:#9999ff;fill-opacity:1;fill-rule:nonzero;stroke:none" id="text62"><tspan x="0 4.9812999 8.38552 13.173546 18.321222 20.701286 25.128666 30.27634 37.191383 41.010048 46.157722 50.945747 56.093422 60.520802 68.995987 72.593483 75.997704 78.377769 83.165794 88.303505 93.284805 95.664871" y="0" id="tspan60">gradientshadedtriangle</tspan></text>
+                    <g id="g64" transform="translate(36.731,5.656)" />
+                  </g>
+                </g>
+                <g id="g66" transform="translate(-63.337,-5.457)" />
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,3 +1,8 @@
+$if(tagging)$
+\setupbackend[format=pdf/ua-2]
+\enabledirectives[backend.usetags=mkiv]
+\setuptagging[state=start]
+$endif$
 $if(context-lang)$
 \mainlanguage[$context-lang$]
 $endif$
@@ -47,7 +52,6 @@ $if(pdfa)$
    profile={$if(pdfaiccprofile)$$for(pdfaiccprofile)$$pdfaiccprofile$$sep$,$endfor$$else$sRGB.icc$endif$},
    intent=$if(pdfaintent)$$pdfaintent$$else$sRGB IEC61966-2.1$endif$]
 $endif$
-\setupbackend[export=yes]
 \setupstructure[state=start,method=auto]
 
 % use microtypography
@@ -59,11 +63,21 @@ $endif$
 
 \setupbodyfontenvironment[default][em=italic] % use italic as em, not slanted
 
+$-- set up font fallbacks
+$for(mainfontfallback)$
+\definefallbackfamily[mainface][rm][$mainfontfallback/nowrap$][range=0x0000-0xFFFF, check=yes, force=no]
+$endfor$
+$for(sansfontfallback)$
+\definefallbackfamily[mainface][ss][$sansfontfallback/nowrap$][range=0x0000-0xFFFF, check=yes, force=no]
+$endfor$
+$for(monofontfallback)$
+\definefallbackfamily[mainface][tt][$monofontfallback/nowrap$][range=0x0000-0xFFFF, check=yes, force=no]
+$endfor$
 \definefallbackfamily[mainface][rm][CMU Serif][preset=range:greek, force=yes]
-\definefontfamily[mainface][rm][$if(mainfont)$$mainfont$$else$Latin Modern Roman$endif$]
-\definefontfamily[mainface][mm][$if(mathfont)$$mathfont$$else$Latin Modern Math$endif$]
-\definefontfamily[mainface][ss][$if(sansfont)$$sansfont$$else$Latin Modern Sans$endif$]
-\definefontfamily[mainface][tt][$if(monofont)$$monofont$$else$Latin Modern Typewriter$endif$][features=none]
+\definefontfamily[mainface][rm][$if(mainfont)$$mainfont/nowrap$$else$Latin Modern Roman$endif$]
+\definefontfamily[mainface][mm][$if(mathfont)$$mathfont/nowrap$$else$Latin Modern Math$endif$]
+\definefontfamily[mainface][ss][$if(sansfont)$$sansfont/nowrap$$else$Latin Modern Sans$endif$]
+\definefontfamily[mainface][tt][$if(monofont)$$monofont/nowrap$$else$Latin Modern Typewriter$endif$][features=none]
 \setupbodyfont[mainface$if(fontsize)$,$fontsize$$endif$]
 
 \setupwhitespace[$if(whitespace)$$whitespace$$else$medium$endif$]

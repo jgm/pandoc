@@ -1,9 +1,9 @@
 {- |
    Module      : Text.Pandoc.Readers.Org.Parsing
-   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2025 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Org-mode parsing utilities.
 
@@ -29,6 +29,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , orgArgWordChar
   , orgTagWord
   , orgTagWordChar
+  , orgAnchor
   -- * Re-exports from Text.Pandoc.Parser
   , ParserContext (..)
   , textStr
@@ -39,6 +40,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , many1Till
   , many1TillChar
   , notFollowedBy'
+  , sepBy1'
   , spaceChar
   , nonspaceChar
   , skipSpaces
@@ -216,3 +218,16 @@ orgTagWord = many1Char orgTagWordChar
 
 orgTagWordChar :: Monad m => OrgParser m Char
 orgTagWordChar = alphaNum <|> oneOf "@%#_"
+
+orgAnchor :: Monad m => OrgParser m Text
+orgAnchor = try $ do
+  string "<<"
+  anchorId <- many1Char (noneOf "\t\n\r<>\"' ")
+  string ">>"
+  skipSpaces
+  recordAnchorId anchorId
+  return anchorId
+
+recordAnchorId :: Monad m => Text -> OrgParser m ()
+recordAnchorId i = updateState $ \s ->
+  s{ orgStateAnchorIds = i : orgStateAnchorIds s }

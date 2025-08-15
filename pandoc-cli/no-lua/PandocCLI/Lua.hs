@@ -1,8 +1,8 @@
 {- |
    Module      : PandocCLI.Lua
-   Copyright   : © 2022-2023 Albert Krewinkel
+   Copyright   : © 2022-2024 Albert Krewinkel
    License     : GPL-2.0-or-later
-   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Placeholder values to be used when pandoc is compiled without support
 for the Lua scripting engine.

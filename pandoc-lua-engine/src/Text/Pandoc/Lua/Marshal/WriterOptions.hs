@@ -5,10 +5,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshaling.WriterOptions
-   Copyright   : © 2021-2023 Albert Krewinkel, John MacFarlane
+   Copyright   : © 2021-2024 Albert Krewinkel, John MacFarlane
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
 
 Marshaling instance for WriterOptions and its components.
@@ -95,6 +95,11 @@ typeWriterOptions = deftype "WriterOptions"
     (pushPandocList pushString, writerEpubFonts)
     (peekList peekString, \opts x -> opts{ writerEpubFonts = x })
 
+  , property "epub_title_page"
+    "Determines whether a title page is included in EPUB"
+    (pushBool, writerEpubTitlePage)
+    (peekBool, \opts x -> opts{ writerEpubTitlePage = x })
+
   , property "epub_metadata"
     "Metadata to include in EPUB"
     (maybe pushnil pushText, writerEpubMetadata)
@@ -120,6 +125,11 @@ typeWriterOptions = deftype "WriterOptions"
     (pushViaJSON, writerHTMLMathMethod)
     (peekViaJSON, \opts x -> opts{ writerHTMLMathMethod = x })
 
+  , property "link_images"
+    "Include links to images instead of embedding in ODT"
+    (pushBool, writerLinkImages)
+    (peekBool, \opts x -> opts{ writerLinkImages = x })
+
   , property "html_q_tags"
     "Use @<q>@ tags for quotes in HTML"
     (pushBool, writerHtmlQTags)
@@ -134,6 +144,16 @@ typeWriterOptions = deftype "WriterOptions"
     "True if lists should be incremental"
     (pushBool, writerIncremental)
     (peekBool, \opts x -> opts{ writerIncremental = x })
+
+  , property "list_of_figures"
+    "Include list of figures"
+    (pushBool, writerListOfFigures)
+    (peekBool, \opts x -> opts{ writerListOfFigures = x })
+
+  , property "list_of_tables"
+    "Include list of tables"
+    (pushBool, writerListOfTables)
+    (peekBool, \opts x -> opts{ writerListOfTables = x })
 
   , property "listings"
     "Use listings package for code"
@@ -170,6 +190,16 @@ typeWriterOptions = deftype "WriterOptions"
     (pushViaJSON, writerReferenceLocation)
     (peekViaJSON, \opts x -> opts{ writerReferenceLocation = x })
 
+  , property "figure_caption_position"
+    "Location of caption relative to the figure"
+    (pushViaJSON, writerFigureCaptionPosition)
+    (peekViaJSON, \opts x -> opts{ writerFigureCaptionPosition = x })
+
+  , property "table_caption_position"
+    "Location of caption relative to the table"
+    (pushViaJSON, writerTableCaptionPosition)
+    (peekViaJSON, \opts x -> opts{ writerTableCaptionPosition = x })
+
   , property "section_divs"
     "Put sections in div tags in HTML"
     (pushBool, writerSectionDivs)
@@ -179,6 +209,11 @@ typeWriterOptions = deftype "WriterOptions"
     "Use setext headers for levels 1-2 in markdown"
     (pushBool, writerSetextHeaders)
     (peekBool, \opts x -> opts{ writerSetextHeaders = x })
+
+  , property "list_tables"
+    "Render tables using list tables in RST output"
+    (pushBool, writerListTables)
+    (peekBool, \opts x -> opts{ writerListTables = x })
 
   , property "slide_level"
     "Force header level of slides"

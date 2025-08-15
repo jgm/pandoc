@@ -24,7 +24,7 @@ import Text.Pandoc.Builder (Inlines, Many(..), deleteMeta, setMeta)
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Definition as Pandoc
 import Text.Pandoc.Class (PandocMonad(..), getResourcePath, getUserDataDir,
-                          fetchItem, report, setResourcePath)
+                          fetchItem, report, setResourcePath, toTextM)
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Extensions (pandocExtensions)
@@ -32,7 +32,6 @@ import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options (ReaderOptions(..))
 import Text.Pandoc.Shared (stringify, tshow)
 import Data.Containers.ListUtils (nubOrd)
-import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Walk (query, walk, walkM)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError, throwError)
@@ -77,7 +76,9 @@ processCitations (Pandoc meta bs) = do
   let citations = getCitations locale otherIdsMap $ Pandoc meta' bs
 
 
-  let linkCites = maybe False truish $ lookupMeta "link-citations" meta
+  let linkCites = maybe False truish (lookupMeta "link-citations" meta) &&
+                  -- don't link citations if no bibliography to link to:
+             not (maybe False truish (lookupMeta "suppress-bibliography" meta))
   let linkBib = maybe True truish $ lookupMeta "link-bibliography" meta
   let opts = defaultCiteprocOptions{ linkCitations = linkCites
                                    , linkBibliography = linkBib }
@@ -88,7 +89,7 @@ processCitations (Pandoc meta bs) = do
                 "csl-bib-body" :
                 ["hanging-indent" | styleHangingIndent sopts]
   let refkvs = (case styleEntrySpacing sopts of
-                   Just es | es > 0 -> (("entry-spacing",T.pack $ show es):)
+                   Just es -> (("entry-spacing",T.pack $ show es):)
                    _ -> id) .
                (case styleLineSpacing sopts of
                    Just ls | ls > 1 -> (("line-spacing",T.pack $ show ls):)
@@ -143,7 +144,8 @@ getStyle (Pandoc meta _) = do
 
   let getCslDefault = readDataFile "default.csl"
 
-  cslContents <- UTF8.toText <$> maybe getCslDefault (getFile ".csl") cslfile
+  cslContents <- maybe getCslDefault (getFile ".csl") cslfile >>=
+                   toTextM (maybe mempty T.unpack cslfile)
 
   let abbrevFile = lookupMeta "citation-abbreviations" meta >>= metaValueToText
 
@@ -161,8 +163,8 @@ getStyle (Pandoc meta _) = do
   let getParentStyle url = do
         -- first, try to retrieve the style locally, then use HTTP.
         let basename = T.takeWhileEnd (/='/') url
-        UTF8.toText <$>
-          catchError (getFile ".csl" basename) (\_ -> fst <$> fetchItem url)
+        catchError (getFile ".csl" basename) (\_ -> fst <$> fetchItem url)
+          >>= toTextM (T.unpack url)
 
   styleRes <- Citeproc.parseStyle getParentStyle cslContents
   case styleRes of
@@ -254,13 +256,14 @@ getRefs :: PandocMonad m
 getRefs locale format idpred mbfp raw = do
   let err' = throwError .
              PandocBibliographyError (fromMaybe mempty mbfp)
+  let fp = maybe mempty T.unpack mbfp
   case format of
     Format_bibtex ->
-      either (err' . tshow) return .
-        readBibtexString Bibtex locale idpred . UTF8.toText $ raw
+      toTextM fp raw >>=
+        either (err' . tshow) return . readBibtexString Bibtex locale idpred
     Format_biblatex ->
-      either (err' . tshow) return .
-        readBibtexString Biblatex locale idpred . UTF8.toText $ raw
+      toTextM fp raw >>=
+      either (err' . tshow) return . readBibtexString Biblatex locale idpred
     Format_json ->
       either (err' . T.pack)
              (return . filter (idpred . unItemId . referenceId)) .
@@ -272,7 +275,7 @@ getRefs locale format idpred mbfp raw = do
               raw
       return $ mapMaybe metaValueToReference rs
     Format_ris -> do
-      Pandoc meta _ <- readRIS def (UTF8.toText raw)
+      Pandoc meta _ <- toTextM fp raw >>= readRIS def
       case lookupMeta "references" meta of
         Just (MetaList rs) -> return $ mapMaybe metaValueToReference rs
         _ -> return []
@@ -296,6 +299,8 @@ getCitations locale otherIdsMap = Foldable.toList . query getCitation
  where
   getCitation (Cite cs _fallback) = Seq.singleton $
     Citeproc.Citation { Citeproc.citationId = Nothing
+                      , Citeproc.citationPrefix = Nothing
+                      , Citeproc.citationSuffix = Nothing
                       , Citeproc.citationNoteNumber =
                           case cs of
                             []    -> Nothing
@@ -315,7 +320,7 @@ fromPandocCitations locale otherIdsMap = concatMap go
  where
   locmap = toLocatorMap locale
   go c =
-    let (mblocinfo, suffix) = parseLocator locmap (citationSuffix c)
+    let (mblocinfo, suffix) = parseLocator locmap (Pandoc.citationSuffix c)
         cit = CitationItem
                { citationItemId = fromMaybe
                    (ItemId $ Pandoc.citationId c)
@@ -323,7 +328,7 @@ fromPandocCitations locale otherIdsMap = concatMap go
                , citationItemLabel = locatorLabel <$> mblocinfo
                , citationItemLocator = locatorLoc <$> mblocinfo
                , citationItemType = NormalCite
-               , citationItemPrefix = case citationPrefix c of
+               , citationItemPrefix = case Pandoc.citationPrefix c of
                                         [] -> Nothing
                                         ils -> Just $ B.fromList ils <>
                                                       B.space
@@ -379,12 +384,12 @@ getBibliographyFormat fp mbmime = do
             _ -> Nothing
 
 isNote :: Inline -> Bool
-isNote (Cite _ [Note _]) = True
- -- the following allows citation styles that are "in-text" but use superscript
- -- references to be treated as if they are "notes" for the purposes of moving
- -- the citations after trailing punctuation (see <https://github.com/jgm/pandoc-citeproc/issues/382>):
-isNote (Cite _ [Superscript _]) = True
-isNote _                 = False
+isNote (Note _) = True
+-- the following allows citation styles that are "in-text" but use superscript
+-- references to be treated as if they are "notes" for the purposes of moving
+-- the citations after trailing punctuation (see <https://github.com/jgm/pandoc-citeproc/issues/382>):
+isNote (Superscript _) = True
+isNote _ = False
 
 isSpacy :: Inline -> Bool
 isSpacy Space     = True
@@ -402,9 +407,9 @@ mvPunct :: Bool -> Locale -> [Inline] -> [Inline]
 mvPunct moveNotes locale (x : xs)
   | isSpacy x = x : mvPunct moveNotes locale xs
 -- 'x [^1],' -> 'x,[^1]'
-mvPunct moveNotes locale (q : s : x : ys)
+mvPunct moveNotes locale (q : s : x@(Cite _ [il]) : ys)
   | isSpacy s
-  , isNote x
+  , isNote il
   = let spunct = T.takeWhile isPunctuation $ stringify ys
     in  if moveNotes
            then if T.null spunct
@@ -415,9 +420,8 @@ mvPunct moveNotes locale (q : s : x : ys)
                           (dropTextWhile isPunctuation (B.fromList ys)))
            else q : x : mvPunct moveNotes locale ys
 -- 'x[^1],' -> 'x,[^1]'
-mvPunct moveNotes locale (Cite cs ils : ys)
-   | not (null ils)
-   , isNote (last ils)
+mvPunct moveNotes locale (Cite cs ils@(_:_) : ys)
+   | isNote (last ils)
    , startWithPunct ys
    , moveNotes
    = let s = stringify ys
@@ -428,8 +432,10 @@ mvPunct moveNotes locale (Cite cs ils : ys)
                     ++ [last ils]) :
          mvPunct moveNotes locale
            (B.toList (dropTextWhile isPunctuation (B.fromList ys)))
-mvPunct moveNotes locale (s : x : ys) | isSpacy s, isNote x =
-  x : mvPunct moveNotes locale ys
+mvPunct moveNotes locale (s : x@(Cite _ [il]) : ys)
+  | isSpacy s
+  , isNote il
+  = x : mvPunct moveNotes locale ys
 mvPunct moveNotes locale (s : x@(Cite _ (Superscript _ : _)) : ys)
   | isSpacy s = x : mvPunct moveNotes locale ys
 mvPunct moveNotes locale (Cite cs ils : Str "." : ys)
@@ -478,9 +484,9 @@ isYesValue _ = False
 insertRefs :: [(Text,Text)] -> [Text] -> [Block] -> Pandoc -> Pandoc
 insertRefs _ _ [] d = d
 insertRefs refkvs refclasses refs (Pandoc meta bs) =
-  if isRefRemove meta
-     then Pandoc meta bs
-     else case runState (walkM go (Pandoc meta bs)) False of
+  case lookupMeta "suppress-bibliography" meta of
+    Just x | truish x -> Pandoc meta bs
+    _ -> case runState (walkM go (Pandoc meta bs)) False of
                (d', True) -> d'
                (Pandoc meta' bs', False)
                  -> Pandoc meta' $
@@ -515,10 +521,6 @@ refTitle meta =
     Just (MetaBlocks [Plain ils]) -> Just ils
     Just (MetaBlocks [Para ils])  -> Just ils
     _                             -> Nothing
-
-isRefRemove :: Meta -> Bool
-isRefRemove meta =
-  maybe False truish $ lookupMeta "suppress-bibliography" meta
 
 legacyDateRanges :: Reference Inlines -> Reference Inlines
 legacyDateRanges ref =

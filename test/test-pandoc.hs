@@ -1,6 +1,4 @@
-{-# OPTIONS_GHC -Wall #-}
-
-module Main where
+module Main (main) where
 
 import System.Environment (getArgs, getExecutablePath)
 import qualified Control.Exception as E
@@ -29,6 +27,8 @@ import qualified Tests.Readers.RST
 import qualified Tests.Readers.RTF
 import qualified Tests.Readers.Txt2Tags
 import qualified Tests.Readers.Man
+import qualified Tests.Readers.Mdoc
+import qualified Tests.Readers.Pod
 import qualified Tests.Shared
 import qualified Tests.Writers.AsciiDoc
 import qualified Tests.Writers.ConTeXt
@@ -50,6 +50,8 @@ import qualified Tests.Writers.RST
 import qualified Tests.Writers.AnnotatedTable
 import qualified Tests.Writers.TEI
 import qualified Tests.Writers.Markua
+import qualified Tests.XML
+import qualified Tests.MediaBag
 import Text.Pandoc.Shared (inDirectory)
 
 tests :: FilePath -> TestTree
@@ -57,6 +59,8 @@ tests pandocPath = testGroup "pandoc tests"
         [ Tests.Command.tests
         , testGroup "Old" (Tests.Old.tests pandocPath)
         , testGroup "Shared" Tests.Shared.tests
+        , testGroup "MediaBag" Tests.MediaBag.tests
+        , testGroup "XML" Tests.XML.tests
         , testGroup "Writers"
           [ testGroup "Native" Tests.Writers.Native.tests
           , testGroup "ConTeXt" Tests.Writers.ConTeXt.tests
@@ -95,8 +99,10 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Muse" Tests.Readers.Muse.tests
           , testGroup "Creole" Tests.Readers.Creole.tests
           , testGroup "Man" Tests.Readers.Man.tests
+          , testGroup "Mdoc" Tests.Readers.Mdoc.tests
           , testGroup "FB2" Tests.Readers.FB2.tests
           , testGroup "DokuWiki" Tests.Readers.DokuWiki.tests
+          , testGroup "Pod" Tests.Readers.Pod.tests
           ]
         ]
 

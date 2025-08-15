@@ -27,7 +27,7 @@
 !Makefile
 !README.md
 !README.template
-!RELEASE-CHECKLIST
+!RELEASE-CHECKLIST-TEMPLATE.org
 !SECURITY.md
 !Setup.hs
 !cabal.project
@@ -40,7 +40,7 @@
 !release.nix
 !shell.nix
 !stack.yaml
-!weeder.dhall
+!weeder.toml
 !app/**
 !benchmark/**
 !citeproc/**
@@ -65,5 +65,6 @@
 *.dyn_o
 *.dyn_hi
 *~
+.*sw?
 .DS_Store
 .stack-work

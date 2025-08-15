@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.HTML
-   Copyright   : © 2006-2023 John MacFarlane
+   Copyright   : © 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -87,16 +87,16 @@ tests = [ testGroup "base tag"
             setMeta "lang" (text "es") (doc (plain (text "hola")))
           ]
         , testGroup "main"
-          [ test htmlNativeDivs "<main> becomes <div role=main>" $ "<main>hello</main>" =?>
-            doc (divWith ("", [], [("role", "main")]) (plain (text "hello")))
+          [ test htmlNativeDivs "<main> contents are parsed" $ "<header>ignore me</header><nav><p>ignore me</p><main>hello</main><footer>ignore me</footer>" =?>
+            doc (plain (text "hello"))
           , test htmlNativeDivs "<main role=X> becomes <div role=X>" $ "<main role=foobar>hello</main>" =?>
             doc (divWith ("", [], [("role", "foobar")]) (plain (text "hello")))
           , test htmlNativeDivs "<main> has attributes preserved" $ "<main id=foo class=bar data-baz=qux>hello</main>" =?>
             doc (divWith ("foo", ["bar"], [("role", "main"), ("baz", "qux")]) (plain (text "hello")))
           , test htmlNativeDivs "<main> closes <p>" $ "<p>hello<main>main content</main>" =?>
-            doc (para (text "hello") <> divWith ("", [], [("role", "main")]) (plain (text "main content")))
+            doc (plain (text "main content"))
           , test htmlNativeDivs "<main> followed by text" $ "<main>main content</main>non-main content" =?>
-            doc (divWith ("", [], [("role", "main")]) (plain (text "main content")) <> plain (text "non-main content"))
+            doc (plain (text "main content"))
           ]
         , testGroup "code"
           [

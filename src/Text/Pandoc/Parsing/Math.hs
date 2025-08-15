@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
 Module      : Text.Pandoc.Parsing.Math
-Copyright   : © 2006-2023 John MacFarlane
+Copyright   : © 2006-2024 John MacFarlane
 License     : GPL-2.0-or-later
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -17,7 +17,7 @@ where
 
 import Control.Monad (mzero, when)
 import Data.Text (Text)
-import Text.Parsec ((<|>), ParsecT, Stream(..), notFollowedBy, skipMany, try)
+import Text.Parsec ((<|>), ParsecT, Stream(..), notFollowedBy, many1, try)
 import Text.Pandoc.Options
   ( Extension(Ext_tex_math_dollars, Ext_tex_math_single_backslash,
               Ext_tex_math_double_backslash) )
@@ -42,10 +42,8 @@ mathInlineWith op cl = try $ do
                            (try (string "text" >>
                                  (("\\text" <>) <$> inBalancedBraces 0 ""))
                             <|>  (\c -> T.pack ['\\',c]) <$> anyChar))
-                   <|> do (blankline <* notFollowedBy' blankline) <|>
-                             (spaceChar <* skipMany spaceChar)
-                          notFollowedBy (char '$')
-                          return " "
+                   <|> ("\n" <$ blankline <* notFollowedBy' blankline)
+                   <|> (T.pack <$> many1 spaceChar <* notFollowedBy (char '$'))
                     ) (try $ textStr cl)
   notFollowedBy digit  -- to prevent capture of $5
   return $ trimMath $ T.concat words'

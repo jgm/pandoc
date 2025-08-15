@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.ODT
-   Copyright   : Copyright (C) 2008-2023 John MacFarlane
+   Copyright   : Copyright (C) 2008-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -14,7 +14,8 @@ Conversion of 'Pandoc' documents to ODT.
 module Text.Pandoc.Writers.ODT ( writeODT ) where
 import Codec.Archive.Zip
 import Control.Monad.Except (catchError, throwError)
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict (StateT, evalStateT, gets, modify, lift)
+import Control.Monad (MonadPlus(mplus))
 import qualified Data.ByteString.Lazy as B
 import Data.Maybe (fromMaybe)
 import Data.Generics (everywhere', mkT)
@@ -23,7 +24,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Time
-import System.FilePath (takeDirectory, takeExtension, (<.>))
+import System.FilePath (takeDirectory, takeExtension, (<.>), (</>), isAbsolute)
 import Text.Collate.Lang (Lang (..), renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
 import qualified Text.Pandoc.Class.PandocMonad as P
@@ -47,7 +48,8 @@ import Text.Pandoc.XML
 import Text.Pandoc.XML.Light
 import Text.TeXMath
 import qualified Text.XML.Light as XL
-import Network.URI (parseRelativeReference, URI(uriPath))
+import Network.URI (parseRelativeReference, URI(uriPath), isURI)
+import Skylighting
 
 newtype ODTState = ODTState { stEntries :: [Entry]
                          }
@@ -113,7 +115,6 @@ pandocToODT opts doc@(Pandoc meta _) = do
                         Just m   -> selfClosingTag "manifest:file-entry"
                                      [("manifest:media-type", m)
                                      ,("manifest:full-path", T.pack fp)
-                                     ,("manifest:version", "1.2")
                                      ]
   let files = [ ent | ent <- filesInArchive archive,
                              not ("META-INF" `isPrefixOf` ent) ]
@@ -125,9 +126,10 @@ pandocToODT opts doc@(Pandoc meta _) = do
         $$
          inTags True "manifest:manifest"
             [("xmlns:manifest","urn:oasis:names:tc:opendocument:xmlns:manifest:1.0")
-            ,("manifest:version","1.2")] ( selfClosingTag "manifest:file-entry"
+            ,("manifest:version","1.3")] ( selfClosingTag "manifest:file-entry"
                  [("manifest:media-type","application/vnd.oasis.opendocument.text")
-                 ,("manifest:full-path","/")]
+                 ,("manifest:full-path","/")
+                 ,("manifest:version", "1.3")]
                 $$ vcat ( map toFileEntry files )
                 $$ vcat ( map toFileEntry formulas )
               )
@@ -157,7 +159,7 @@ pandocToODT opts doc@(Pandoc meta _) = do
            ,("xmlns:meta","urn:oasis:names:tc:opendocument:xmlns:meta:1.0")
            ,("xmlns:ooo","http://openoffice.org/2004/office")
            ,("xmlns:grddl","http://www.w3.org/2003/g/data-view#")
-           ,("office:version","1.2")] ( inTags True "office:meta" []
+           ,("office:version","1.3")] ( inTags True "office:meta" []
                  ( metaTag "meta:generator" ("Pandoc/" <> pandocVersionText)
                    $$
                    metaTag "dc:title" (stringify title)
@@ -187,28 +189,55 @@ pandocToODT opts doc@(Pandoc meta _) = do
   -- make sure mimetype is first
   let mimetypeEntry = toEntry "mimetype" epochtime
                       $ fromStringLazy "application/vnd.oasis.opendocument.text"
-  archive'' <- updateStyleWithLang lang
+  archive'' <- updateStyle opts lang
                   $ addEntryToArchive mimetypeEntry
                   $ addEntryToArchive metaEntry archive'
   return $ fromArchive archive''
 
-updateStyleWithLang :: PandocMonad m => Maybe Lang -> Archive -> O m Archive
-updateStyleWithLang Nothing arch = return arch
-updateStyleWithLang (Just lang) arch = do
+updateStyle :: forall m . PandocMonad m
+            => WriterOptions -> Maybe Lang -> Archive -> O m Archive
+updateStyle opts mbLang arch = do
   epochtime <- floor `fmap` lift P.getPOSIXTime
-  entries <- mapM (\e -> if eRelativePath e == "styles.xml"
-                            then case parseXMLElement
-                                    (toTextLazy (fromEntry e)) of
-                                    Left msg -> throwError $
-                                        PandocXMLError "styles.xml" msg
-                                    Right d -> return $
-                                      toEntry "styles.xml" epochtime
-                                      ( fromTextLazy
-                                      . TL.fromStrict
-                                      . ppTopElement
-                                      . addLang lang $ d )
-                            else return e) (zEntries arch)
+  let goEntry :: Entry -> O m Entry
+      goEntry e
+        | eRelativePath e == "styles.xml"
+          = case parseXMLElement (toTextLazy (fromEntry e)) of
+              Left msg -> throwError $ PandocXMLError "styles.xml" msg
+              Right d -> return $
+                toEntry "styles.xml" epochtime
+                ( fromTextLazy
+                . TL.fromStrict
+                . showTopElement
+                . maybe id addLang mbLang
+                . transformElement (\qn -> qName qn == "styles" &&
+                                      qPrefix qn == Just "office" )
+                     (maybe id addHlStyles (writerHighlightStyle opts))
+                $ d )
+        | otherwise = pure e
+  entries <- mapM goEntry (zEntries arch)
   return arch{ zEntries = entries }
+
+addHlStyles :: Style -> Element -> Element
+addHlStyles sty el =
+  el{ elContent = filter (not . isHlStyle) (elContent el) ++
+                styleToOpenDocument sty }
+ where
+   isHlStyle (Elem e) = "Tok" `T.isSuffixOf` (qName (elName e))
+   isHlStyle _ = False
+
+-- top-down search
+transformElement :: (QName -> Bool)
+                 -> (Element -> Element)
+                 -> Element
+                 -> Element
+transformElement g f el
+  | g (elName el)
+    = f el
+  | otherwise
+    = el{ elContent = map go (elContent el) }
+ where
+   go (Elem e) = Elem (transformElement g f e)
+   go x = x
 
 -- TODO FIXME avoid this generic traversal!
 addLang :: Lang -> Element -> Element
@@ -243,15 +272,23 @@ transformPicMath opts (Image attr@(id', cls, _) lab (src,t)) = catchError
                               Just dim         -> Just $ Inch $ inInch opts dim
                               Nothing          -> Nothing
        let  newattr = (id', cls, dims)
-       entries <- gets stEntries
-       let extension = maybe (takeExtension $ takeWhile (/='?') $ T.unpack src) T.unpack
-                           (mbMimeType >>= extensionFromMimeType)
-       let newsrc = "Pictures/" ++ show (length entries) <.> extension
-       let toLazy = B.fromChunks . (:[])
-       epochtime <- floor `fmap` lift P.getPOSIXTime
-       let entry = toEntry newsrc epochtime $ toLazy img
-       modify $ \st -> st{ stEntries = entry : entries }
-       return $ Image newattr lab (T.pack newsrc, t))
+       src' <- if writerLinkImages opts
+                  then
+                    case T.unpack src of
+                      s | isURI s -> return src
+                        | isAbsolute s -> return src
+                        | otherwise -> return $ T.pack $ ".." </> s
+                  else do
+                    entries <- gets stEntries
+                    let extension = maybe (takeExtension $ takeWhile (/='?') $ T.unpack src) T.unpack
+                                        (mbMimeType >>= extensionFromMimeType)
+                    let newsrc = "Pictures/" ++ show (length entries) <.> extension
+                    let toLazy = B.fromChunks . (:[])
+                    epochtime <- floor `fmap` lift P.getPOSIXTime
+                    let entry = toEntry newsrc epochtime $ toLazy img
+                    modify $ \st -> st{ stEntries = entry : entries }
+                    return $ T.pack newsrc
+       return $ Image newattr lab (src', t))
    (\e -> do
        report $ CouldNotFetchResource src $ T.pack (show e)
        return $ Emph lab)
@@ -297,10 +334,43 @@ documentSettings isTextMode = fromStringLazy $ render Nothing
       ,("xmlns:xlink","http://www.w3.org/1999/xlink")
       ,("xmlns:config","urn:oasis:names:tc:opendocument:xmlns:config:1.0")
       ,("xmlns:ooo","http://openoffice.org/2004/office")
-      ,("office:version","1.2")] (
+      ,("office:version","1.3")] (
        inTagsSimple "office:settings" $
          inTags False "config:config-item-set"
            [("config:name", "ooo:configuration-settings")] $
            inTags False "config:config-item" [("config:name", "IsTextMode")
                                              ,("config:type", "boolean")] $
                                               text $ if isTextMode then "true" else "false")
+
+styleToOpenDocument :: Style -> [Content]
+styleToOpenDocument style = map (Elem . toStyle) alltoktypes
+  where alltoktypes = enumFromTo KeywordTok NormalTok
+        styleName x =
+          case T.break (== ':') x of
+            (b, a) | T.null a  -> QName x Nothing (Just "style")
+                   | otherwise -> QName (T.drop 1 a) Nothing (Just b)
+        styleAttr (x, y) = Attr (styleName x) y
+        styleAttrs = map styleAttr
+        styleElement x attrs cs =
+          Element (styleName x) (styleAttrs attrs) cs Nothing
+        toStyle toktype =
+          styleElement "style"
+            [("name", tshow toktype), ("family", "text")]
+            [Elem (styleElement "text-properties"
+                      (tokColor toktype ++ tokBgColor toktype ++
+                        [("fo:font-style", "italic") |
+                           tokFeature tokenItalic toktype ] ++
+                        [("fo:font-weight", "bold") |
+                           tokFeature tokenBold toktype ] ++
+                        [("style:text-underline-style", "solid") |
+                           tokFeature tokenUnderline toktype ])
+                        [])]
+        tokStyles = tokenStyles style
+        tokFeature f toktype = maybe False f $ Map.lookup toktype tokStyles
+        tokColor toktype =
+          maybe [] (\c -> [("fo:color", T.pack (fromColor c))])
+                        ((tokenColor =<< Map.lookup toktype tokStyles)
+                           `mplus` defaultColor style)
+        tokBgColor toktype =
+          maybe [] (\c -> [("fo:background-color", T.pack (fromColor c))])
+                    (tokenBackground =<< Map.lookup toktype tokStyles)

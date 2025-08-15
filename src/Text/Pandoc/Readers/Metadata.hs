@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Readers.Metadata
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -21,32 +21,61 @@ module Text.Pandoc.Readers.Metadata (
 import Control.Monad.Except (throwError)
 import qualified Data.ByteString as B
 import qualified Data.Map as M
+import qualified Data.Vector as V
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
-import Data.Aeson (Value(..), Object, Result(..), fromJSON, (.:?), withObject)
-import Data.Aeson.Types (parse)
+import qualified Data.Yaml.Internal as Yaml
+import qualified Text.Libyaml as Y
+import Data.Aeson (Value(..), Object, Result(..), fromJSON, (.:?), withObject,
+                   FromJSON)
+import Data.Aeson.Types (formatRelativePath, parse)
 import Text.Pandoc.Shared (tshow, blocksToInlines)
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
+import Text.Pandoc.Class (PandocMonad (..), report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
+import Text.Pandoc.Logging (LogMessage(YamlWarning))
 import Text.Pandoc.Parsing hiding (tableWith, parse)
-
 import qualified Text.Pandoc.UTF8 as UTF8
+import System.IO.Unsafe (unsafePerformIO)
 
 yamlBsToMeta :: (PandocMonad m, HasLastStrPosition st)
              => ParsecT Sources st m (Future st MetaValue)
              -> B.ByteString
              -> ParsecT Sources st m (Future st Meta)
 yamlBsToMeta pMetaValue bstr = do
-  case Yaml.decodeAllEither' bstr of
-       Right (Object o:_) -> fmap Meta <$> yamlMap pMetaValue o
-       Right [] -> return . return $ mempty
-       Right [Null] -> return . return $ mempty
-       Right _  -> Prelude.fail "expected YAML object"
+  pos <- getPosition
+  case decodeAllWithWarnings bstr of
+       Right (warnings, xs) -> do
+         mapM_ (\(Yaml.DuplicateKey jpath) ->
+                          report (YamlWarning pos $ "Duplicate key: " <>
+                                  T.pack (formatRelativePath jpath)))
+           warnings
+         case xs of
+           (Object o : _) -> fmap Meta <$> yamlMap pMetaValue o
+           [Null] -> return . return $ mempty
+           [] -> return . return $ mempty
+           _  -> Prelude.fail "expected YAML object"
        Left err' -> do
-         throwError $ PandocParseError
-                    $ T.pack $ Yaml.prettyPrintParseException err'
+         let msg = T.pack $ "Error parsing YAML metadata at " <>
+                             show pos <> ":\n" <>
+                             Yaml.prettyPrintParseException err'
+         throwError $ PandocParseError $
+           if "did not find expected key" `T.isInfixOf` msg
+              then msg <>
+                   "\nConsider enclosing the entire field in 'single quotes'"
+              else msg
+
+decodeAllWithWarnings :: FromJSON a
+                      => B.ByteString
+                      -> (Either Yaml.ParseException ([Yaml.Warning], [a]))
+decodeAllWithWarnings = either Left (\(ws,res)
+                       -> case res of
+                            Left s  -> Left (Yaml.AesonException s)
+                            Right v -> Right (ws, v))
+                   . unsafePerformIO
+                   . Yaml.decodeAllHelper
+                   . Y.decode
 
 -- Returns filtered list of references.
 yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
@@ -57,21 +86,24 @@ yamlBsToRefs :: (PandocMonad m, HasLastStrPosition st)
 yamlBsToRefs pMetaValue idpred bstr =
   case Yaml.decodeAllEither' bstr of
        Right (Object m : _) -> do
-         let isSelected (String t) = idpred t
-             isSelected _ = False
-         let hasSelectedId (Object o) =
-               case parse (withObject "ref" (.:? "id")) (Object o) of
-                 Success (Just id') -> isSelected id'
-                 _ -> False
-             hasSelectedId _ = False
          case parse (withObject "metadata" (.:? "references")) (Object m) of
            Success (Just refs) -> sequence <$>
                  mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
            _ -> return $ return []
+       Right (Array v : _) -> do
+         let refs = filter hasSelectedId $ V.toList v
+         sequence <$> mapM (yamlToMetaValue pMetaValue) (filter hasSelectedId refs)
        Right _ -> return . return $ []
-       Left err' -> do
-         throwError $ PandocParseError
-                    $ T.pack $ Yaml.prettyPrintParseException err'
+       Left err' -> throwError $ PandocParseError
+                               $ T.pack $ Yaml.prettyPrintParseException err'
+ where
+   isSelected (String t) = idpred t
+   isSelected _ = False
+   hasSelectedId (Object o) =
+     case parse (withObject "ref" (.:? "id")) (Object o) of
+       Success (Just id') -> isSelected id'
+       _ -> False
+   hasSelectedId _ = False
 
 normalizeMetaValue :: (PandocMonad m, HasLastStrPosition st)
                    => ParsecT Sources st m (Future st MetaValue)
@@ -140,6 +172,7 @@ yamlMetaBlock :: (HasLastStrPosition st, PandocMonad m)
               => ParsecT Sources st m (Future st MetaValue)
               -> ParsecT Sources st m (Future st Meta)
 yamlMetaBlock parser = try $ do
+  pos <- getPosition
   string "---"
   blankline
   notFollowedBy blankline  -- if --- is followed by a blank it's an HRULE
@@ -147,7 +180,11 @@ yamlMetaBlock parser = try $ do
   -- by including --- and ..., we allow yaml blocks with just comments:
   let rawYaml = T.unlines ("---" : (rawYamlLines ++ ["..."]))
   optional blanklines
-  yamlBsToMeta parser $ UTF8.fromText rawYaml
+  oldPos <- getPosition
+  setPosition pos
+  res <- yamlBsToMeta parser $ UTF8.fromText rawYaml
+  setPosition oldPos
+  pure res
 
 stopLine :: Monad m => ParsecT Sources st m ()
 stopLine = try $ (string "---" <|> string "...") >> blankline >> return ()

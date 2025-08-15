@@ -3,10 +3,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Meta
-   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Parsers for Org-mode meta declarations.
 -}
@@ -252,7 +252,11 @@ todoSequence = try $ do
 
  where
    todoKeyword :: Monad m => OrgParser m Text
-   todoKeyword = many1Char nonspaceChar <* skipSpaces
+   todoKeyword = do
+     keyword <- many1Char nonspaceChar
+     let cleanKeyword = T.takeWhile (/= '(') keyword
+     skipSpaces
+     return cleanKeyword
 
    todoKeywords :: Monad m => OrgParser m [Text]
    todoKeywords = try $

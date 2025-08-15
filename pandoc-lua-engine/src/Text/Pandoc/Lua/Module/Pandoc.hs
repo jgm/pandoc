@@ -5,13 +5,11 @@
 {-# LANGUAGE TypeApplications  #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Pandoc
-   Copyright   : Copyright © 2017-2023 Albert Krewinkel
-   License     : GNU GPL, version 2 or above
+   Copyright   : Copyright © 2017-2024 Albert Krewinkel
+   License     : GPL-2.0-or-later
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
-   Stability   : alpha
-
-Pandoc module for lua.
+Main @pandoc@ module, containing element constructors and central functions.
 -}
 module Text.Pandoc.Lua.Module.Pandoc
   ( documentedModule
@@ -19,17 +17,24 @@ module Text.Pandoc.Lua.Module.Pandoc
 
 import Prelude hiding (read)
 import Control.Applicative ((<|>))
-import Control.Monad (forM_, when)
-import Control.Monad.Catch (catch, throwM)
+import Control.Monad (foldM, forM_, when)
+import Control.Monad.Catch (catch, handle, throwM)
+import Control.Monad.Except (MonadError (throwError))
 import Data.Data (Data, dataTypeConstrs, dataTypeOf, showConstr)
 import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Proxy (Proxy (Proxy))
+import Data.Text.Encoding.Error (UnicodeException)
+import Data.Version (makeVersion)
 import HsLua
 import System.Exit (ExitCode (..))
+import Text.Pandoc.Class ( PandocMonad, FileInfo (..), FileTree
+                         , addToFileTree, getCurrentTime
+                         , insertInFileTree, sandboxWithFileTree
+                         )
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (..))
-import Text.Pandoc.Format (parseFlavoredFormat)
+import Text.Pandoc.Format (FlavoredFormat, parseFlavoredFormat)
 import Text.Pandoc.Lua.Orphans ()
 import Text.Pandoc.Lua.Marshal.AST
 import Text.Pandoc.Lua.Marshal.Format (peekFlavoredFormat)
@@ -60,19 +65,22 @@ documentedModule :: Module PandocError
 documentedModule = Module
   { moduleName = "pandoc"
   , moduleDescription = T.unlines
-    [ "Lua functions for pandoc scripts; includes constructors for"
-    , "document elements, functions to parse text in a given"
+    [ "Fields and functions for pandoc scripts; includes constructors for"
+    , "document tree elements, functions to parse text in a given"
     , "format, and functions to filter and modify a subtree."
     ]
   , moduleFields = readersField : writersField :
                    stringConstants ++ [inlineField, blockField]
   , moduleOperations = []
   , moduleFunctions = mconcat
-      [ functions
-      , otherConstructors
-      , blockConstructors
-      , inlineConstructors
+      [ [mkPandoc, mkMeta]
       , metaValueConstructors
+      , blockConstructors
+      , [mkBlocks]
+      , inlineConstructors
+      , [mkInlines]
+      , otherConstructors
+      , functions
       ]
   , moduleTypeInitializers =
     [ initType typePandoc
@@ -143,30 +151,52 @@ pushWithConstructorsSubtable constructors = do
 
 otherConstructors :: [DocumentedFunction PandocError]
 otherConstructors =
-  [ mkPandoc
-  , mkMeta
-  , mkAttr
-  , mkAttributeList
-  , mkBlocks
-  , mkCitation
+  [ mkAttr
+  , mkCaption `since` makeVersion [3,6,1]
   , mkCell
-  , mkRow
-  , mkTableHead
-  , mkTableFoot
-  , mkInlines
+  , mkAttributeList
+  , mkCitation
   , mkListAttributes
+  , mkRow
+  , mkTableFoot
+  , mkTableHead
   , mkSimpleTable
 
   , defun "ReaderOptions"
     ### liftPure id
-    <#> parameter peekReaderOptions "ReaderOptions|table" "opts" "reader options"
+    <#> parameter peekReaderOptions "ReaderOptions|table" "opts"
+        (T.unlines
+         [ "Either a table with a subset of the properties of a"
+         , "[[ReaderOptions]] object, or another ReaderOptions object."
+         , "Uses the defaults specified in the manual for all"
+         , "properties that are not explicitly specified. Throws an"
+         , "error if a table contains properties which are not present"
+         , "in a ReaderOptions object."
+        ]
+        )
     =#> functionResult pushReaderOptions "ReaderOptions" "new object"
-    #? "Creates a new ReaderOptions value."
+    #? T.unlines
+    [ "Creates a new ReaderOptions value."
+    , ""
+    , "Usage:"
+    , ""
+    , "    -- copy of the reader options that were defined on the command line."
+    , "    local cli_opts = pandoc.ReaderOptions(PANDOC_READER_OPTIONS)"
+    , "    -- default reader options, but columns set to 66."
+    , "    local short_colums_opts = pandoc.ReaderOptions {columns = 66}"
+    ]
 
   , defun "WriterOptions"
     ### liftPure id
     <#> parameter peekWriterOptions "WriterOptions|table" "opts"
-          "writer options"
+        (T.unlines
+        [ "Either a table with a subset of the properties of a"
+        , "[[WriterOptions]] object, or another WriterOptions object."
+        , "Uses the defaults specified in the manual for all"
+        , "properties that are not explicitly specified. Throws an"
+        , "error if a table contains properties which are not present"
+        , "in a WriterOptions object."
+        ])
     =#> functionResult pushWriterOptions "WriterOptions" "new object"
     #? "Creates a new WriterOptions value."
   ]
@@ -210,21 +240,28 @@ functions =
     =?> "output string, or error triple"
 
   , defun "read"
-    ### (\content mformatspec mreaderOptions -> unPandocLua $ do
-            flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
+    ### (\content mformatspec mreaderOptions mreadEnv -> do
             let readerOpts = fromMaybe def mreaderOptions
-            getReader flvrd >>= \case
-              (TextReader r, es)       ->
-                 r readerOpts{readerExtensions = es}
-                   (case content of
+
+                readAction :: PandocMonad m => FlavoredFormat -> m Pandoc
+                readAction flvrd = getReader flvrd >>= \case
+                  (TextReader r, es)       ->
+                    r readerOpts{readerExtensions = es} $
+                    case content of
                       Left bs       -> toSources $ UTF8.toText bs
-                      Right sources -> sources)
-              (ByteStringReader r, es) ->
-                 case content of
-                   Left bs -> r readerOpts{readerExtensions = es}
-                                (BSL.fromStrict bs)
-                   Right _ -> throwM $ PandocLuaError
-                              "Cannot use bytestring reader with Sources")
+                      Right sources -> sources
+                  (ByteStringReader r, es) ->
+                    case content of
+                      Left bs -> r readerOpts{readerExtensions = es}
+                                 (BSL.fromStrict bs)
+                      Right _ -> throwError $ PandocLuaError
+                                 "Cannot use bytestring reader with Sources"
+
+            handle (failLua . show @UnicodeException) . unPandocLua $ do
+              flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
+              case mreadEnv of
+                Nothing   -> readAction flvrd
+                Just tree -> sandboxWithFileTree tree (readAction flvrd))
     <#> parameter (\idx -> (Left  <$> peekByteString idx)
                        <|> (Right <$> peekSources idx))
           "string|Sources" "content" "text to parse"
@@ -232,6 +269,15 @@ functions =
                        "formatspec" "format and extensions")
     <#> opt (parameter peekReaderOptions "ReaderOptions" "reader_options"
              "reader options")
+    <#> opt (parameter peekReadEnv "table" "read_env" $ T.unlines
+            [ "If the value is not given or `nil`, then the global environment"
+            , "is used. Passing a list of filenames causes the reader to"
+            , "be run in a sandbox. The given files are read from the file"
+            , "system and provided to the sandbox via an ersatz file system."
+            , "The table can also contain mappings from filenames to"
+            , "contents, which will be used to populate the ersatz file"
+            , "system."
+            ])
     =#> functionResult pushPandoc "Pandoc" "result document"
 
   , sha1
@@ -258,22 +304,59 @@ functions =
               (ByteStringWriter w, es) -> Left <$>
                 w writerOpts{ writerExtensions = es } doc)
     <#> parameter peekPandoc "Pandoc" "doc" "document to convert"
-    <#> opt (parameter peekFlavoredFormat "string|table"
-                       "formatspec" "format and extensions")
-    <#> opt (parameter peekWriterOptions "WriterOptions" "writer_options"
-              "writer options")
+    <#> opt (parameter peekFlavoredFormat "string|table" "formatspec"
+             (T.unlines
+              [ "format specification; defaults to `\"html\"`. See the"
+              , "documentation of [`pandoc.read`](#pandoc.read) for a complete"
+              , "description of this parameter."
+              ]))
+    <#> opt (parameter peekWriterOptions "WriterOptions|table" "writer_options"
+            (T.unlines
+            [ "options passed to the writer; may be a WriterOptions object"
+            , "or a table with a subset of the keys and values of a"
+            , "WriterOptions object; defaults to the default values"
+            , "documented in the manual."
+            ])
+            )
     =#> functionResult (either pushLazyByteString pushText) "string"
           "result document"
+    #? T.unlines
+    [ "Converts a document to the given target format."
+    , ""
+    , "Usage:"
+    , ""
+    , "    local doc = pandoc.Pandoc("
+    , "      {pandoc.Para {pandoc.Strong 'Tea'}}"
+    , "    )"
+    , "    local html = pandoc.write(doc, 'html')"
+    , "    assert(html == '<p><strong>Tea</strong></p>')"
+    ]
 
   , defun "write_classic"
     ### (\doc mwopts -> runCustom (fromMaybe def mwopts) doc)
     <#> parameter peekPandoc "Pandoc" "doc" "document to convert"
     <#> opt (parameter peekWriterOptions "WriterOptions" "writer_options"
-              "writer options")
+             (T.unlines
+              [ "options passed to the writer; may be a WriterOptions object"
+              , "or a table with a subset of the keys and values of a"
+              , "WriterOptions object; defaults to the default values"
+              , "documented in the manual."
+              ]))
     =#> functionResult pushText "string" "rendered document"
     #? (T.unlines
        [ "Runs a classic custom Lua writer, using the functions defined"
        , "in the current environment."
+       , ""
+       , "Usage:"
+       , ""
+       , "    -- Adding this function converts a classic writer into a"
+       , "    -- new-style custom writer."
+       , "    function Writer (doc, opts)"
+       , "      PANDOC_DOCUMENT = doc"
+       , "      PANDOC_WRITER_OPTIONS = opts"
+       , "      loadfile(PANDOC_SCRIPT_FILE)()"
+       , "      return pandoc.write_classic(doc, opts)"
+       , "    end"
        ])
   ]
  where
@@ -325,3 +408,24 @@ pushPipeError pipeErr = do
           , if output == mempty then BSL.pack "<no output>" else output
           ]
         return (NumResults 1)
+
+-- | Peek the environment in which the `read` function operates.
+peekReadEnv :: Peeker PandocError FileTree
+peekReadEnv idx = do
+  mtime <- liftLua . unPandocLua $ getCurrentTime
+
+  -- Add files from file system
+  files <- peekList peekString idx
+  tree1 <- liftLua $
+           foldM (\tree fp -> liftIO $ addToFileTree tree fp) mempty files
+
+  -- Add files from key-value pairs
+  let toFileInfo contents = FileInfo
+        { infoFileMTime = mtime
+        , infoFileContents = contents
+        }
+  pairs <- peekKeyValuePairs peekString (fmap toFileInfo . peekByteString) idx
+  let tree2 = foldr (uncurry insertInFileTree) tree1 pairs
+
+  -- Return ersatz file system.
+  pure tree2

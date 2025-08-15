@@ -91,6 +91,11 @@ $if(article.funding-statement)$
 <funding-statement>$article.funding-statement$</funding-statement>
 </funding-group>
 $endif$
+$if(supplementary-material)$
+<supplementary-material>
+$supplementary-material$
+</supplementary-material>
+$endif$
 </article-meta>
 </front>
 <body>

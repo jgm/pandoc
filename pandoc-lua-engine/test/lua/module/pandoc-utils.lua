@@ -1,5 +1,7 @@
 local tasty = require 'tasty'
+local pandoc = require 'pandoc'
 local utils = require 'pandoc.utils'
+local io = require 'io'
 
 local assert = tasty.assert
 local test = tasty.test_case
@@ -127,6 +129,48 @@ return {
     end)
   },
 
+  group 'run_lua_filter' {
+    test('runs a filter', function ()
+      local doc = pandoc.Pandoc("indivisible words")
+      pandoc.system.with_temporary_directory('lua-filter', function (dir)
+        local filter_path = pandoc.path.join{dir, 'test.lua'}
+        local filter = 'function Space() return " " end'
+        local fh = io.open(filter_path, 'wb')
+        fh:write(filter)
+        fh:close()
+        assert.are_equal(
+          utils.run_lua_filter(doc, filter_path),
+          pandoc.Pandoc(
+            pandoc.Plain(pandoc.Inlines{"indivisible", " ", "words"})
+          )
+        )
+      end)
+    end),
+    test("doesn't change the local environment by default", function ()
+      pandoc.system.with_temporary_directory('lua-filter', function (dir)
+        local filter_path = pandoc.path.join{dir, 'test.lua'}
+        local foo
+        local filter = 'foo = 42'
+        local fh = io.open(filter_path, 'wb')
+        fh:write(filter)
+        fh:close()
+        utils.run_lua_filter(pandoc.Pandoc{}, filter_path)
+        assert.is_nil(foo)
+      end)
+    end),
+    test("accepts an environment in which the filter is executed", function ()
+      pandoc.system.with_temporary_directory('lua-filter', function (dir)
+        local filter_path = pandoc.path.join{dir, 'test.lua'}
+        local filter = 'foo = 42'
+        local fh = io.open(filter_path, 'wb')
+        fh:write(filter)
+        fh:close()
+        utils.run_lua_filter(pandoc.Pandoc{}, filter_path, _ENV)
+        assert.are_equal(_ENV.foo, 42)
+      end)
+    end)
+  },
+
   group 'sha1' {
     test('hashing', function ()
       local ref_hash = '0a0a9f2a6772942557ab5355d76af442f8f65e01'
@@ -178,6 +222,22 @@ return {
     test('Inlines', function ()
       local inlines = pandoc.Inlines{pandoc.Str 'a', pandoc.Subscript('b')}
       assert.are_equal('ab', utils.stringify(inlines))
+    end),
+    test('Caption', function ()
+      local capt = pandoc.Caption(pandoc.Para{pandoc.Str 'a', pandoc.Emph('b')})
+      assert.are_equal('ab', utils.stringify(capt))
+    end),
+    test('Cell', function ()
+      local cell = pandoc.Cell(pandoc.Para{pandoc.Str 'a', pandoc.Emph('b')})
+      assert.are_equal('ab', utils.stringify(cell))
+    end),
+    test('TableFoot', function ()
+      local tf = pandoc.TableFoot{pandoc.Row{pandoc.Cell{pandoc.Plain "x y"}}}
+      assert.are_equal('x y', utils.stringify(tf))
+    end),
+    test('TableHead', function ()
+      local th = pandoc.TableHead{pandoc.Row{pandoc.Cell{pandoc.Plain "head1"}}}
+      assert.are_equal('head1', utils.stringify(th))
     end),
     test('Meta', function ()
       local meta = pandoc.Meta{

@@ -12,20 +12,20 @@
 
 [[Title|Name of page]]
 ^D
-<p><a href="https://example.org" title="wikilink">https://example.org</a></p>
-<p><a href="https://example.org" title="wikilink">title</a></p>
-<p><a href="Name of page" title="wikilink">Name of page</a></p>
-<p><a href="Name of page" title="wikilink">Title</a></p>
+<p><a href="https://example.org" class="wikilink">https://example.org</a></p>
+<p><a href="https://example.org" class="wikilink">title</a></p>
+<p><a href="Name of page" class="wikilink">Name of page</a></p>
+<p><a href="Name of page" class="wikilink">Title</a></p>
 ```
 
 ## Writer
 
 ```
 % pandoc -t commonmark_x+wikilinks_title_before_pipe -f html
-<p><a href="https://example.org" title="wikilink">https://example.org</a></p>
-<p><a href="https://example.org" title="wikilink">title</a></p>
-<p><a href="Home" title="wikilink">Home</a></p>
-<p><a href="Name of page" title="wikilink">Title</a></p>
+<p><a href="https://example.org" class="wikilink">https://example.org</a></p>
+<p><a href="https://example.org" class="wikilink">title</a></p>
+<p><a href="Home" class="wikilink">Home</a></p>
+<p><a href="Name of page" class="wikilink">Title</a></p>
 ^D
 [[https://example.org]]
 
@@ -59,20 +59,20 @@
 
 [[Title|Name of page]]
 ^D
-<p><a href="https://example.org" title="wikilink">https://example.org</a></p>
-<p><a href="https://example.org" title="wikilink">title</a></p>
-<p><a href="Name of page" title="wikilink">Name of page</a></p>
-<p><a href="Name of page" title="wikilink">Title</a></p>
+<p><a href="https://example.org" class="wikilink">https://example.org</a></p>
+<p><a href="https://example.org" class="wikilink">title</a></p>
+<p><a href="Name of page" class="wikilink">Name of page</a></p>
+<p><a href="Name of page" class="wikilink">Title</a></p>
 ```
 
 ## Writer
 
 ```
 % pandoc -t markdown+wikilinks_title_before_pipe -f html
-<p><a href="https://example.org" title="wikilink">https://example.org</a></p>
-<p><a href="https://example.org" title="wikilink">title</a></p>
-<p><a href="Home" title="wikilink">Home</a></p>
-<p><a href="Name of page" title="wikilink">Title</a></p>
+<p><a href="https://example.org" class="wikilink">https://example.org</a></p>
+<p><a href="https://example.org" class="wikilink">title</a></p>
+<p><a href="Home" class="wikilink">Home</a></p>
+<p><a href="Name of page" class="wikilink">Title</a></p>
 ^D
 [[https://example.org]]
 

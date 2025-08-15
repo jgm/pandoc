@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.Ms
-   Copyright   : Copyright (C) 2007-2023 John MacFarlane
+   Copyright   : Copyright (C) 2007-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -28,7 +28,7 @@ import Data.Char (isAscii, isLower, isUpper, ord)
 import Data.List (intercalate, intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import qualified Data.Map as Map
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, isNothing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (escapeURIString, isAllowedInURI)
@@ -41,12 +41,14 @@ import Text.Pandoc.Highlighting
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.DocLayout
+import Text.DocLayout hiding (Color)
+import Text.DocTemplates (lookupContext)
 import Text.Pandoc.Shared
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
+import Text.Pandoc.Writers.Markdown (writePlain)
 import Text.Printf (printf)
 import Text.TeXMath (writeEqn)
 import qualified Data.Text.Encoding as TE
@@ -63,6 +65,7 @@ pandocToMs opts (Pandoc meta blocks) = do
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
+  title <- chomp <$> inlineListToMs' opts (lookupMetaInlines "title" meta)
   metadata <- metaToContext opts
               (blockListToMs opts)
               (fmap chomp . inlineListToMs' opts)
@@ -82,7 +85,8 @@ pandocToMs opts (Pandoc meta blocks) = do
               $ defField "toc" (writerTableOfContents opts)
               $ defField "title-meta" titleMeta
               $ defField "author-meta" (T.intercalate "; " authorsMeta)
-              $ defField "highlighting-macros" highlightingMacros metadata
+              $ defField "highlighting-macros" highlightingMacros
+              $ resetField "title" title metadata
   return $ render colwidth $
     case writerTemplate opts of
        Nothing  -> main
@@ -90,14 +94,13 @@ pandocToMs opts (Pandoc meta blocks) = do
 
 escapeStr :: WriterOptions -> Text -> Text
 escapeStr opts =
-  escapeString (if writerPreferAscii opts then AsciiOnly else AllowUTF8)
+  escapeString False (if writerPreferAscii opts then AsciiOnly else AllowUTF8)
 
 -- In PDFs we need to escape parentheses and backslash.
 -- In PDF we need to encode as UTF-16 BE.
 escapePDFString :: Text -> Text
 escapePDFString t
-  | T.all isAscii t =
-    T.replace "(" "\\(" .  T.replace ")" "\\)" . T.replace "\\" "\\\\" $ t
+  | T.all (\c -> isAscii c && c /= '(' && c /= ')' && c /= '\\' && c /= '"') t = t
   | otherwise = ("\\376\\377" <>) .  -- add bom
     mconcat . map encodeChar .  T.unpack $ t
  where
@@ -125,12 +128,15 @@ toSmallCaps opts s = case T.uncons s of
 -- line.  roff treats the line-ending period differently.
 -- See http://code.google.com/p/pandoc/issues/detail?id=148.
 
+getPdfEngine :: WriterOptions -> Maybe Text
+getPdfEngine opts = lookupContext "pdf-engine" (writerVariables opts)
+
 blockToMs :: PandocMonad m
           => WriterOptions -- ^ Options
           -> Block         -- ^ Block element
           -> MS m (Doc Text)
 blockToMs opts (Div (ident,cls,kvs) bs) = do
-  let anchor = if T.null ident
+  let anchor = if isNothing (getPdfEngine opts) || T.null ident
                   then empty
                   else nowrap $
                          literal ".pdfhref M "
@@ -179,23 +185,30 @@ blockToMs _ HorizontalRule = do
 blockToMs opts (Header level (ident,classes,_) inlines) = do
   setFirstPara
   modify $ \st -> st{ stInHeader = True }
-  contents <- inlineListToMs' opts $ map breakToSpace inlines
+  let inlines' = map breakToSpace inlines
+  contents <- inlineListToMs' opts inlines'
+  plainContents <- inlinesToPlain inlines'
   modify $ \st -> st{ stInHeader = False }
   let (heading, secnum) = if writerNumberSections opts &&
                               "unnumbered" `notElem` classes
                              then (".NH", "\\*[SN]")
                              else (".SH", "")
+  let mbPdfEngine = getPdfEngine opts
   let anchor = if T.null ident
                   then empty
                   else nowrap $
                          literal ".pdfhref M "
                          <> doubleQuotes (literal (toAscii ident))
   let bookmark = literal ".pdfhref O " <> literal (tshow level <> " ") <>
-                      doubleQuotes (literal $ secnum <>
+                      nowrap (doubleQuotes
+                              (literal $ secnum <>
                                       (if T.null secnum
                                           then ""
                                           else "  ") <>
-                                      escapePDFString (stringify inlines))
+                                      (case mbPdfEngine of
+                                         Just "groff" -> id
+                                         _ -> escapePDFString)
+                                        plainContents))
   let backlink = nowrap (literal ".pdfhref L -D " <>
        doubleQuotes (literal (toAscii ident)) <> space <> literal "\\") <> cr <>
        literal " -- "
@@ -213,9 +226,9 @@ blockToMs opts (Header level (ident,classes,_) inlines) = do
   modify $ \st -> st{ stFirstPara = True }
   return $ (literal heading <> space <> literal (tshow level)) $$
            contents $$
-           bookmark $$
-           anchor $$
-           tocEntry
+           case mbPdfEngine of
+             Nothing -> mempty
+             Just _ -> bookmark $$ anchor $$ tocEntry
 blockToMs opts (CodeBlock attr str) = do
   hlCode <- highlightCode opts attr str
   setFirstPara
@@ -300,25 +313,18 @@ blockToMs opts (DefinitionList items) = do
   return (vcat contents)
 blockToMs opts (Figure figattr (Caption _ caption) body) =
   case body of
-    [Plain [ Image attr _alt (src, _tit) ]]
-     | let ext = takeExtension (T.unpack src)
-        in (ext == ".ps" || ext == ".eps")
-      -> do
-         let (mbW,mbH) = (inPoints opts <$> dimension Width attr,
-                          inPoints opts <$> dimension Height attr)
-         let sizeAttrs = case (mbW, mbH) of
-                              (Just wp, Nothing) -> space <> doubleQuotes
-                                     (literal (tshow (floor wp :: Int) <> "p"))
-                              (Just wp, Just hp) -> space <> doubleQuotes
-                                     (literal (tshow (floor wp :: Int) <> "p"))
-                                     <> space <>
-                                     doubleQuotes
-                                      (literal (tshow (floor hp :: Int)))
-                              _ -> empty
-         capt <- blockToMs opts (Div figattr caption)
-         let captlines = height capt
-         return $ nowrap (literal ".PSPIC " <>
-                    doubleQuotes (literal (escapeStr opts src)) <>
+    [Plain [ Image attr _alt (src, _tit) ]] -> do
+       let ext = takeExtension (T.unpack src)
+       let sizeAttrs = getSizeAttrs opts attr
+       capt <- blockToMs opts (Div figattr caption)
+       let captlines = height capt
+       let cmd = case ext of
+                   ".ps" -> ".PSPIC"
+                   ".eps" -> ".PSPIC"
+                   ".pdf" -> ".PDFPIC"
+                   _ -> "\\\" .IMAGE"
+       return $ nowrap (literal cmd <+>
+                    doubleQuotes (literal src) <>
                     sizeAttrs) $$
                   literal (".ce " <> tshow captlines) $$
                   capt $$
@@ -333,7 +339,7 @@ bulletListItemToMs opts (Para first:rest) =
 bulletListItemToMs opts (Plain first:rest) = do
   first' <- blockToMs opts (Plain first)
   rest' <- blockListToMs opts rest
-  let first'' = literal ".IP \\[bu] 3" $$ first'
+  let first'' = literal ".IP \\(bu 3" $$ first'
   let rest''  = if null rest
                    then empty
                    else literal ".RS 3" $$ rest' $$ literal ".RE"
@@ -341,7 +347,7 @@ bulletListItemToMs opts (Plain first:rest) = do
 bulletListItemToMs opts (first:rest) = do
   first' <- blockToMs opts first
   rest' <- blockListToMs opts rest
-  return $ literal "\\[bu] .RS 3" $$ first' $$ rest' $$ literal ".RE"
+  return $ literal "\\(bu .RS 3" $$ first' $$ rest' $$ literal ".RE"
 
 -- | Convert ordered list item (a list of blocks) to ms.
 orderedListItemToMs :: PandocMonad m
@@ -440,7 +446,7 @@ inlineToMs opts (Quoted SingleQuote lst) = do
   return $ char '`' <> contents <> char '\''
 inlineToMs opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMs opts lst
-  return $ literal "\\[lq]" <> contents <> literal "\\[rq]"
+  return $ literal "\\(lq" <> contents <> literal "\\(rq"
 inlineToMs opts (Cite _ lst) =
   inlineListToMs opts lst
 inlineToMs opts (Code attr str) = do
@@ -484,21 +490,39 @@ inlineToMs opts Space = handleNotes opts space
 inlineToMs opts (Link _ txt (T.uncons -> Just ('#',ident), _)) = do
   -- internal link
   contents <- inlineListToMs' opts $ map breakToSpace txt
-  return $ literal "\\c" <> cr <> nowrap (literal ".pdfhref L -D " <>
-       doubleQuotes (literal (toAscii ident)) <> literal " -A " <>
-       doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
-       literal " -- " <> doubleQuotes (nowrap contents) <> cr <> literal "\\&"
+  return $
+    case getPdfEngine opts of
+      Just _ -> literal "\\c" <> cr <> nowrap (literal ".pdfhref L -D " <>
+            doubleQuotes (literal (toAscii ident)) <> literal " -A " <>
+            doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
+            literal " -- " <> doubleQuotes (nowrap contents) <> cr <>
+            literal "\\&"
+      Nothing -> contents
 inlineToMs opts (Link _ txt (src, _)) = do
   -- external link
   contents <- inlineListToMs' opts $ map breakToSpace txt
-  return $ literal "\\c" <> cr <> nowrap (literal ".pdfhref W -D " <>
-       doubleQuotes (literal (escapeUri src)) <> literal " -A " <>
-       doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
-       literal " -- " <> doubleQuotes (nowrap contents) <> cr <> literal "\\&"
-inlineToMs opts (Image _ alternate (_, _)) =
-  return $ char '[' <> literal "IMAGE: " <>
-           literal (escapeStr opts (stringify alternate))
-             <> char ']'
+  return $
+    case getPdfEngine opts of
+      Just _ -> literal "\\c" <> cr <> nowrap (literal ".pdfhref W -D " <>
+            doubleQuotes (literal (escapeUri src)) <> literal " -A " <>
+            doubleQuotes (literal "\\c") <> space <> literal "\\") <> cr <>
+            literal " -- " <> doubleQuotes (nowrap contents) <> cr <>
+            literal "\\&"
+      Nothing -> contents
+inlineToMs opts (Image attr alternate (src, _)) = do
+  let desc = literal "[IMAGE: " <>
+             literal (escapeStr opts (stringify alternate)) <> char ']'
+  let sizeAttrs = getSizeAttrs opts attr
+  let ext = takeExtension (T.unpack src)
+  let cmd = case ext of
+             ".ps" -> ".PSPIC"
+             ".eps" -> ".PSPIC"
+             ".pdf" -> ".PDFPIC"
+             _ -> ""
+  return $ cr <> nowrap
+    (if T.null cmd
+        then desc <> " \\\" " <> doubleQuotes (literal src) <> sizeAttrs
+        else literal cmd <+> doubleQuotes (literal src) <> sizeAttrs) <> cr
 inlineToMs _ (Note contents) = do
   modify $ \st -> st{ stNotes = contents : stNotes st }
   return $ literal "\\**"
@@ -636,3 +660,22 @@ toAscii = T.concatMap
               Nothing -> "_u" <> tshow (ord c) <> "_"
               Just '/' -> "_u" <> tshow (ord c) <> "_" -- see #4515
               Just c' -> T.singleton c')
+
+getSizeAttrs :: WriterOptions -> Attr -> Doc Text
+getSizeAttrs opts attr =
+  case (mbW, mbH) of
+     (Just wp, Nothing) -> space <> doubleQuotes
+            (literal (tshow (floor wp :: Int) <> "p"))
+     (Just wp, Just hp) -> space <> doubleQuotes
+            (literal (tshow (floor wp :: Int) <> "p"))
+            <> space <>
+            doubleQuotes
+             (literal (tshow (floor hp :: Int) <> "p"))
+     _ -> empty
+ where
+  mbW = inPoints opts <$> dimension Width attr
+  mbH = inPoints opts <$> dimension Height attr
+
+inlinesToPlain :: PandocMonad m => [Inline] -> m Text
+inlinesToPlain ils = T.strip <$> writePlain def{ writerWrapText = WrapNone }
+                                    (Pandoc nullMeta [Plain ils])

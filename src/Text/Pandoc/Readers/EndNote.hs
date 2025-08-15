@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.EndNote
-   Copyright   : Copyright (C) 2022-2023 John MacFarlane
+   Copyright   : Copyright (C) 2022-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -72,15 +72,17 @@ readEndNoteXML _opts inp = do
     B.doc mempty
 
 readEndNoteXMLCitation :: PandocMonad m
-                    => Sources -> m (Citeproc.Citation Text)
-readEndNoteXMLCitation sources = do
+                    => Text -> m (Citeproc.Citation Text)
+readEndNoteXMLCitation xml = do
   tree <- either (throwError . PandocXMLError "EndNote references") return $
-              parseXMLElement (TL.fromStrict . sourcesToText $ sources)
+              parseXMLElement (TL.fromStrict xml)
   unless (qName (elName tree) == "EndNote") $
     throwError $ PandocXMLError "EndNote references" "Expected EndNote element"
   let items = map toCitationItem $ filterElementsName (name "Cite") tree
   return $ Citeproc.Citation{
                      Citeproc.citationId = Nothing
+                   , Citeproc.citationPrefix = Nothing
+                   , Citeproc.citationSuffix = Nothing
                    , Citeproc.citationNoteNumber = Nothing
                    , Citeproc.citationItems = items
                    }

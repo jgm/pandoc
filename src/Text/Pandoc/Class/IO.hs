@@ -37,20 +37,21 @@ module Text.Pandoc.Class.IO
 
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.ByteString.Base64 (decodeBase64Lenient)
 import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
 import Data.Unique (hashUnique)
-import Network.Connection (TLSSettings (TLSSettingsSimple))
+import Network.Connection (TLSSettings(..))
+import qualified Network.TLS as TLS
+import qualified Network.TLS.Extra as TLS
 import Network.HTTP.Client
-       (httpLbs, responseBody, responseHeaders,
+       (httpLbs, Manager, responseBody, responseHeaders,
         Request(port, host, requestHeaders), parseRequest, newManager)
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (mkManagerSettings)
 import Network.HTTP.Types.Header ( hContentType )
 import Network.Socket (withSocketsDo)
-import Network.URI (unEscapeString)
+import Network.URI (URI(..), parseURI, unEscapeString)
 import System.Directory (createDirectoryIfMissing)
 import System.Environment (getEnv)
 import System.FilePath ((</>), takeDirectory, normalise)
@@ -60,7 +61,8 @@ import System.IO.Error
 import System.Random (StdGen)
 import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
-       (PandocMonad, getsCommonState, getMediaBag, report)
+       (PandocMonad, getsCommonState, modifyCommonState,
+        getMediaBag, report, extractURIData)
 import Text.Pandoc.Definition (Pandoc, Inline (Image))
 import Text.Pandoc.Error (PandocError (..))
 import Text.Pandoc.Logging (LogMessage (..), messageVerbosity, showLogMessage)
@@ -80,6 +82,8 @@ import qualified System.Environment as Env
 import qualified System.FilePath.Glob
 import qualified System.Random
 import qualified Text.Pandoc.UTF8 as UTF8
+import Data.Default (def)
+import System.X509 (getSystemCertificateStore)
 #ifndef EMBED_DATA_FILES
 import qualified Paths_pandoc as Paths
 #endif
@@ -120,30 +124,55 @@ newStdGen = liftIO System.Random.newStdGen
 newUniqueHash :: MonadIO m => m Int
 newUniqueHash = hashUnique <$> liftIO Data.Unique.newUnique
 
+getManager :: (PandocMonad m, MonadIO m) => m Manager
+getManager = do
+  mbManager <- getsCommonState stManager
+  disableCertificateValidation <- getsCommonState stNoCheckCertificate
+  case mbManager of
+    Just manager -> pure manager
+    Nothing -> do
+      manager <- liftIO $ do
+        certificateStore <- getSystemCertificateStore
+        let tlsSettings = TLSSettings $
+               (TLS.defaultParamsClient "localhost.localdomain" "80")
+                  { TLS.clientSupported = def{ TLS.supportedCiphers =
+                                               TLS.ciphersuite_default
+                                             , TLS.supportedExtendedMainSecret =
+                                                TLS.AllowEMS }
+                  , TLS.clientShared = def
+                      { TLS.sharedCAStore = certificateStore
+                      , TLS.sharedValidationCache =
+                          if disableCertificateValidation
+                             then TLS.ValidationCache
+                                   (\_ _ _ -> return TLS.ValidationCachePass)
+                                   (\_ _ _ -> return ())
+                             else def
+                      }
+                  }
+        let tlsManagerSettings = mkManagerSettings tlsSettings  Nothing
+        newManager tlsManagerSettings
+      modifyCommonState $ \st -> st{ stManager = Just manager }
+      pure manager
+
 openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType)
 openURL u
- | Just u'' <- T.stripPrefix "data:" u = do
-     let mime     = T.takeWhile (/=',') u''
-     let contents = UTF8.fromString $
-                     unEscapeString $ T.unpack $ T.drop 1 $ T.dropWhile (/=',') u''
-     return (decodeBase64Lenient contents, Just mime)
+ | Just (URI{ uriScheme = "data:",
+              uriPath = upath }) <- parseURI (T.unpack u)
+     = pure $ extractURIData upath
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
-     disableCertificateValidation <- getsCommonState stNoCheckCertificate
      report $ Fetching u
+     manager <- getManager
      res <- liftIO $ E.try $ withSocketsDo $ do
-       let parseReq = parseRequest
        proxy <- tryIOError (getEnv "http_proxy")
        let addProxy' x = case proxy of
                             Left _ -> return x
-                            Right pr -> parseReq pr >>= \r ->
+                            Right pr -> parseRequest pr >>= \r ->
                                 return (addProxy (host r) (port r) x)
-       req <- parseReq (unpack u) >>= addProxy'
+       req <- parseRequest (unpack u) >>= addProxy'
        let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
-       let tlsSimple = TLSSettingsSimple disableCertificateValidation False False
-       let tlsManagerSettings = mkManagerSettings tlsSimple  Nothing
-       resp <- newManager tlsManagerSettings >>= httpLbs req'
+       resp <- httpLbs req' manager
        return (B.concat $ toChunks $ responseBody resp,
                UTF8.toText `fmap` lookup hContentType (responseHeaders resp))
 
@@ -224,8 +253,11 @@ writeMedia :: (PandocMonad m, MonadIO m)
            -> m ()
 writeMedia dir (fp, _mt, bs) = do
   -- we normalize to get proper path separators for the platform
+  -- we unescape URI encoding, but given how insertMedia
+  -- is written, we shouldn't have any % in a canonical media name...
   let fullpath = normalise $ dir </> unEscapeString fp
   liftIOError (createDirectoryIfMissing True) (takeDirectory fullpath)
+  report $ Extracting (T.pack fullpath)
   logIOError $ BL.writeFile fullpath bs
 
 -- | If the given Inline element is an image with a @src@ path equal to

@@ -6,7 +6,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Readers.Markdown
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -28,6 +28,7 @@ import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
+import qualified Data.Attoparsec.Text as A
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.ByteString as BS
@@ -48,10 +49,10 @@ import Text.Pandoc.Options
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlInBalanced, htmlTag, isBlockTag,
-                                 isCommentTag, isInlineTag, isTextTag)
+                                 isInlineTag, isTextTag)
 import Text.Pandoc.Readers.LaTeX (applyMacros, rawLaTeXBlock, rawLaTeXInline)
 import Text.Pandoc.Shared
-import Text.Pandoc.URI (escapeURI, isURI)
+import Text.Pandoc.URI (escapeURI, isURI, pBase64DataURI)
 import Text.Pandoc.XML (fromEntities)
 import Text.Pandoc.Readers.Metadata (yamlBsToMeta, yamlBsToRefs, yamlMetaBlock)
 -- import Debug.Trace (traceShowId)
@@ -142,12 +143,6 @@ isHruleChar _   = False
 setextHChars :: [Char]
 setextHChars = "=-"
 
-isBlank :: Char -> Bool
-isBlank ' '  = True
-isBlank '\t' = True
-isBlank '\n' = True
-isBlank _    = False
-
 --
 -- auxiliary functions
 --
@@ -195,12 +190,15 @@ litChar = T.singleton <$> escapedChar'
        <|> T.singleton <$> noneOf "\n"
        <|> try (newline >> notFollowedBy blankline >> return " ")
 
--- | Parse a sequence of inline elements between square brackets,
--- including inlines between balanced pairs of square brackets.
-inlinesInBalancedBrackets :: PandocMonad m => MarkdownParser m (F Inlines)
-inlinesInBalancedBrackets =
+-- | Parse a sequence of elements between square brackets,
+-- including between balanced pairs of square brackets.
+-- Skip brackets in standard inline escapes, code, raw HTML or LaTeX.
+inBalancedBrackets :: PandocMonad m
+                   => MarkdownParser m (F a)
+                   -> MarkdownParser m (F a)
+inBalancedBrackets innerParser =
   try $ char '[' >> withRaw (go 1) >>=
-          parseFromString inlines . stripBracket . snd
+          parseFromString innerParser . stripBracket . snd
   where stripBracket t = case T.unsnoc t of
           Just (t', ']') -> t'
           _              -> t
@@ -416,11 +414,14 @@ abbrevKey = do
     return $ return mempty
 
 noteMarker :: PandocMonad m => MarkdownParser m Text
-noteMarker = string "[^" >> many1TillChar (satisfy $ not . isBlank) (char ']')
+noteMarker = string "[^" >>
+  many1TillChar (satisfy (`notElem` ['\r','\n','\t',' ','^','[',']']))
+                (char ']')
 
 rawLine :: PandocMonad m => MarkdownParser m Text
 rawLine = try $ do
   notFollowedBy blankline
+  notFollowedByDivCloser
   notFollowedBy' $ try $ skipNonindentSpaces >> noteMarker
   optional indentSpaces
   anyLine
@@ -844,7 +845,9 @@ orderedListStart mbstydelim = try $ do
        return (num, style, delim))
 
 listStart :: PandocMonad m => MarkdownParser m ()
-listStart = bulletListStart <|> Control.Monad.void (orderedListStart Nothing)
+listStart = bulletListStart
+        <|> Control.Monad.void (orderedListStart Nothing)
+        <|> defListStart
 
 listLine :: PandocMonad m => Int -> MarkdownParser m Text
 listLine continuationIndent = try $ do
@@ -854,15 +857,7 @@ listLine continuationIndent = try $ do
   notFollowedByHtmlCloser
   notFollowedByDivCloser
   optional (() <$ gobbleSpaces continuationIndent)
-  listLineCommon
-
-listLineCommon :: PandocMonad m => MarkdownParser m Text
-listLineCommon = T.concat <$> manyTill
-              (  many1Char (satisfy $ \c -> c `notElem` ['\n', '<', '`'])
-             <|> fmap snd (withRaw code)
-             <|> fmap (renderTags . (:[]) . fst) (htmlTag isCommentTag)
-             <|> countChar 1 anyChar
-              ) newline
+  anyLine
 
 -- parse raw text for one list item, excluding start marker and continuations
 rawListItem :: PandocMonad m
@@ -876,7 +871,7 @@ rawListItem fourSpaceRule start = try $ do
   let continuationIndent = if fourSpaceRule
                               then 4
                               else sourceColumn pos2 - sourceColumn pos1
-  first <- listLineCommon
+  first <- anyLine
   rest <- many (do notFollowedBy listStart
                    notFollowedBy (() <$ codeBlockFenced)
                    notFollowedBy blankline
@@ -974,67 +969,39 @@ bulletList = do
 
 -- definition lists
 
-defListMarker :: PandocMonad m => MarkdownParser m ()
-defListMarker = do
-  sps <- nonindentSpaces
+defListStart :: PandocMonad m => MarkdownParser m ()
+defListStart = do
+  nonindentSpaces
   char ':' <|> char '~'
-  tabStop <- getOption readerTabStop
-  let remaining = tabStop - (T.length sps + 1)
-  if remaining > 0
-     then try (count remaining (char ' ')) <|> string "\t" <|> many1 spaceChar
-     else mzero
-  return ()
+  gobbleSpaces 1 <|> () <$ lookAhead newline
+  try (gobbleAtMostSpaces 3 >> notFollowedBy spaceChar) <|> return ()
 
-definitionListItem :: PandocMonad m => Bool -> MarkdownParser m (F (Inlines, [Blocks]))
-definitionListItem compact = try $ do
+definitionListItem :: PandocMonad m => MarkdownParser m (F (Inlines, [Blocks]))
+definitionListItem = try $ do
   rawLine' <- anyLine
-  raw <- many1 $ defRawBlock compact
   term <- parseFromString' (trimInlinesF <$> inlines) rawLine'
-  contents <- mapM (parseFromString' parseBlocks . (<> "\n")) raw
+  isTight <- (False <$ blanklines) <|> pure True
+  fourSpaceRule <- (True <$ guardEnabled Ext_four_space_rule) <|> pure False
+  contents <- many1 $ listItem fourSpaceRule defListStart
   optional blanklines
-  return $ liftM2 (,) term (sequence contents)
+  return $ liftM2 (,)
+              term
+              ((if isTight
+                   then fmap (fmap (fmap paraToPlain))
+                   else id) (sequence contents))
 
-defRawBlock :: PandocMonad m => Bool -> MarkdownParser m Text
-defRawBlock compact = try $ do
-  hasBlank <- option False $ blankline >> return True
-  defListMarker
-  firstline <- anyLineNewline
-  let dline = try
-               ( do notFollowedBy blankline
-                    notFollowedByHtmlCloser
-                    notFollowedByDivCloser
-                    if compact -- laziness not compatible with compact
-                       then () <$ indentSpaces
-                       else (() <$ indentSpaces)
-                             <|> notFollowedBy defListMarker
-                    anyLine )
-  rawlines <- many dline
-  cont <- fmap T.concat $ many $ try $ do
-            trailing <- option "" blanklines
-            ln <- indentSpaces >> notFollowedBy blankline >> anyLine
-            lns <- many dline
-            return $ trailing <> T.unlines (ln:lns)
-  return $ trimr (firstline <> T.unlines rawlines <> cont) <>
-            if hasBlank || not (T.null cont) then "\n\n" else ""
+paraToPlain :: Block -> Block
+paraToPlain (Para ils) = Plain ils
+paraToPlain x = x
 
 definitionList :: PandocMonad m => MarkdownParser m (F Blocks)
 definitionList = try $ do
+  guardEnabled Ext_definition_lists
   lookAhead (anyLine >>
              optional (blankline >> notFollowedBy (Control.Monad.void table)) >>
              -- don't capture table caption as def list!
-             defListMarker)
-  compactDefinitionList <|> normalDefinitionList
-
-compactDefinitionList :: PandocMonad m => MarkdownParser m (F Blocks)
-compactDefinitionList = do
-  guardEnabled Ext_compact_definition_lists
-  items <- fmap sequence $ many1 $ definitionListItem True
-  return $ B.definitionList <$> fmap compactifyDL items
-
-normalDefinitionList :: PandocMonad m => MarkdownParser m (F Blocks)
-normalDefinitionList = do
-  guardEnabled Ext_definition_lists
-  items <- fmap sequence $ many1 $ definitionListItem False
+             defListStart)
+  items <- fmap sequence $ many1 definitionListItem
   return $ B.definitionList <$> items
 
 --
@@ -1248,7 +1215,7 @@ simpleTableHeader headless = try $ do
   let (lengths, lines') = unzip dashes
   let indices  = scanl (+) (T.length initSp) lines'
   -- If no header, calculate alignment on basis of first row of text
-  rawHeads <- fmap (tail . splitTextByIndices (init indices)) $
+  rawHeads <- fmap (drop 1 . splitTextByIndices (init indices)) $
               if headless
                  then lookAhead anyLine
                  else return rawContent
@@ -1295,8 +1262,7 @@ rawTableLine :: PandocMonad m
 rawTableLine indices = do
   notFollowedBy' (blanklines' <|> tableFooter)
   line <- anyLine
-  return $ map trim $ tail $
-           splitTextByIndices (init indices) line
+  return $ map trim $ drop 1 $ splitTextByIndices (init indices) line
 
 -- Parse a table line and return a list of lists of blocks (columns).
 tableLine :: PandocMonad m
@@ -1372,10 +1338,10 @@ multilineTableHeader headless = try $ do
                       []     -> []
                       (x:xs) -> reverse (x+1:xs)
   rawHeadsList <- if headless
-                     then map (:[]) . tail . splitTextByIndices (init indices')
+                     then map (:[]) . drop 1 . splitTextByIndices (init indices')
                           <$> lookAhead anyLine
                      else return $ transpose $ map
-                           (tail . splitTextByIndices (init indices'))
+                           (drop 1 . splitTextByIndices (init indices'))
                            rawContent
   let aligns   = zipWith alignType rawHeadsList lengths
   let rawHeads = if headless
@@ -1527,7 +1493,7 @@ inline = do
      '_'     -> strongOrEmph
      '*'     -> strongOrEmph
      '^'     -> superscript <|> inlineNote -- in this order bc ^[link](/foo)^
-     '['     -> note <|> cite <|> bracketedSpan <|> wikilink <|> link
+     '['     -> note <|> cite <|> bracketedSpan <|> wikilink B.linkWith <|> link
      '!'     -> image
      '$'     -> math
      '~'     -> strikeout <|> subscript
@@ -1541,7 +1507,7 @@ inline = do
      '\145'  -> smart
      '\8220' -> smart
      '\147'  -> smart
-     '-'     -> smart
+     '-'     -> cite <|> smart
      '.'     -> smart
      '&'     -> return . B.singleton <$> charRef
      ':'     -> emoji
@@ -1553,10 +1519,11 @@ inline = do
 escapedChar' :: PandocMonad m => MarkdownParser m Char
 escapedChar' = try $ do
   char '\\'
-  (guardEnabled Ext_all_symbols_escapable >> satisfy (not . isAlphaNum))
+  (guardEnabled Ext_all_symbols_escapable >>
+     satisfy (\c -> c /= '\n' && c /= '\r' && not (isAlphaNum c)))
      <|> (guardEnabled Ext_angle_brackets_escapable >>
             oneOf "\\`*_{}[]()>#+-.!~\"<>")
-     <|> oneOf "\\`*_{}[]()>#+-.!~\""
+     <|> oneOf "\\`*_{}[]()>#+-.!"
 
 escapedNewline :: PandocMonad m => MarkdownParser m (F Inlines)
 escapedNewline = do
@@ -1815,49 +1782,65 @@ endline = try $ do
 -- a reference label for a link
 reference :: PandocMonad m => MarkdownParser m (F Inlines, Text)
 reference = do
-  guardDisabled Ext_footnotes <|> notFollowedBy' (string "[^")
-  withRaw $ trimInlinesF <$> inlinesInBalancedBrackets
-
-parenthesizedChars :: PandocMonad m => MarkdownParser m Text
-parenthesizedChars = do
-  result <- charsInBalanced '(' ')' litChar
-  return $ "(" <> result <> ")"
+  guardDisabled Ext_footnotes <|> notFollowedBy' noteMarker
+  withRaw $ trimInlinesF <$> inBalancedBrackets inlines
 
 -- source for a link, with optional title
 source :: PandocMonad m => MarkdownParser m (Text, Text)
 source = do
   char '('
   skipSpaces
-  let urlChunk =
-            try parenthesizedChars
-        <|> (notFollowedBy (oneOf " )") >> litChar)
-        <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
+  let parenthesizedChars = do
+        result <- charsInBalanced '(' ')' litChar
+        return $ "(" <> result <> ")"
+  let linkTitle' = try $ spnl >> linkTitle
+  let urlChunk = do
+        notFollowedBy linkTitle'
+        try parenthesizedChars
+          <|> (notFollowedBy (oneOf " )") >> litChar)
+          <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   let betweenAngles = try $
          char '<' >> mconcat <$> (manyTill litChar (char '>'))
-  src <- try betweenAngles <|> sourceURL
-  tit <- option "" $ try $ spnl >> linkTitle
+  src <- try betweenAngles <|> try base64DataURI <|> sourceURL
+  tit <- option "" linkTitle'
   skipSpaces
   char ')'
   return (escapeURI $ trimr src, tit)
 
+base64DataURI :: PandocMonad m => ParsecT Sources s m Text
+base64DataURI = do
+  Sources ((pos, txt):rest) <- getInput
+  let r = A.parse (fst <$> A.match pBase64DataURI) txt
+  case r of
+    A.Done remaining consumed -> do
+      let pos' = incSourceColumn pos (T.length consumed)
+      setInput $ Sources ((pos', remaining):rest)
+      return consumed
+    _ -> mzero
+
 linkTitle :: PandocMonad m => MarkdownParser m Text
 linkTitle = quotedTitle '"' <|> quotedTitle '\''
 
-wikilink :: PandocMonad m => MarkdownParser m (F Inlines)
-wikilink =
-  (guardEnabled Ext_wikilinks_title_after_pipe *> wikilink' swap) <|>
-  (guardEnabled Ext_wikilinks_title_before_pipe *> wikilink' id)
-  where
-    swap (a, b) = (b, a)
-    wikilink' order = try $ do
-      string "[["
-      notFollowedBy' (char '[')
-      raw <- many1TillChar (noneOf "\n\r\f\t") (try $ string "]]")
-      let (title, url) = case T.break (== '|') raw of
-            (before, "") -> (before, before)
-            (before, after) -> order (before, T.drop 1 after)
-      return . pure . B.link url "wikilink" $ B.str title
+wikilink :: PandocMonad m
+  => (Attr -> Text -> Text -> Inlines -> Inlines)
+  -> MarkdownParser m (F Inlines)
+wikilink constructor = do
+  let attr = (mempty, ["wikilink"], mempty)
+  titleAfter <-
+    (True <$ guardEnabled Ext_wikilinks_title_after_pipe) <|>
+    (False <$ guardEnabled Ext_wikilinks_title_before_pipe)
+  try $ do
+    string "[[" *> notFollowedBy' (char '[')
+    raw <- many1TillChar anyChar (try $ string "]]")
+    let (title, url) = case T.break (== '|') raw of
+          (before, "") -> (before, before)
+          (before, after)
+            | titleAfter -> (T.drop 1 after, before)
+            | otherwise -> (before, T.drop 1 after)
+    guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+    return . pure . constructor attr url "" $
+       B.text $ fromEntities title
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
@@ -1908,12 +1891,11 @@ regLink :: PandocMonad m
         -> F Inlines
         -> MarkdownParser m (F Inlines)
 regLink constructor lab = try $ do
-  (src, tit) <- source
+  (!src, !tit) <- source
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   pos <- getPosition
-  let src' = if rebase then rebasePath pos src else src
-  attr <- option nullAttr $
-          guardEnabled Ext_link_attributes >> attributes
+  let !src' = if rebase then rebasePath pos src else src
+  !attr <- option nullAttr $ guardEnabled Ext_link_attributes >> attributes
   return $ constructor attr src' tit <$> lab
 
 -- a link like [this][ref] or [this][] or [this]
@@ -1923,7 +1905,7 @@ referenceLink :: PandocMonad m
               -> MarkdownParser m (F Inlines)
 referenceLink constructor (lab, raw) = do
   sp <- (True <$ lookAhead (char ' ')) <|> return False
-  (_,raw') <- option (mempty, "") $
+  (_,!raw') <- option (mempty, "") $
       lookAhead (try (do guardEnabled Ext_citations
                          guardDisabled Ext_spaced_reference_links <|> spnl
                          normalCite
@@ -1931,16 +1913,25 @@ referenceLink constructor (lab, raw) = do
       <|>
       try ((guardDisabled Ext_spaced_reference_links <|> spnl) >> reference)
   when (raw' == "") $ guardEnabled Ext_shortcut_reference_links
-  let labIsRef = raw' == "" || raw' == "[]"
-  let key = toKey $ if labIsRef then raw else raw'
+  !attr <- option nullAttr $ guardEnabled Ext_link_attributes >> attributes
+  let !labIsRef = raw' == "" || raw' == "[]"
+  let (exclam, rawsuffix) =
+        case T.uncons raw of
+          Just ('!', rest) -> (True, rest)
+          _ -> (False, raw)
+  let !key = toKey $ if labIsRef then rawsuffix else raw'
   parsedRaw <- parseFromString' inlines raw'
-  fallback  <- parseFromString' inlines $ dropBrackets raw
+  fallback  <- parseFromString' inlines $ if exclam
+                                             then rawsuffix
+                                             else dropBrackets rawsuffix
   implicitHeaderRefs <- option False $
                          True <$ guardEnabled Ext_implicit_header_references
   let makeFallback = do
        parsedRaw' <- parsedRaw
        fallback' <- fallback
-       return $ B.str "[" <> fallback' <> B.str "]" <>
+       return $ (if exclam
+                    then "!" <> fallback'
+                    else B.str "[" <> fallback' <> B.str "]") <>
                 (if sp && not (T.null raw) then B.space else mempty) <>
                 parsedRaw'
   return $ do
@@ -1951,11 +1942,11 @@ referenceLink constructor (lab, raw) = do
             then do
               headerKeys <- asksF stateHeaderKeys
               case M.lookup key headerKeys of
-                   Just ((src, tit), _) -> constructor nullAttr src tit <$> lab
+                   Just ((src, tit), _) -> constructor attr src tit <$> lab
                    Nothing              -> makeFallback
             else makeFallback
-       Just ((src,tit), attr) ->
-           constructor attr src tit <$> lab
+       Just ((src,tit), defattr) ->
+           constructor (combineAttr attr defattr) src tit <$> lab
 
 dropBrackets :: Text -> Text
 dropBrackets = dropRB . dropLB
@@ -2008,14 +1999,17 @@ rebasePath pos path = do
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
   char '!'
-  (lab,raw) <- reference
-  defaultExt <- getOption readerDefaultImageExtension
-  let constructor attr' src =
-         case takeExtension (T.unpack src) of
-            "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                            $ T.unpack defaultExt)
-            _  -> B.imageWith attr' src
-  regLink constructor lab <|> referenceLink constructor (lab,raw)
+  wikilink B.imageWith <|>
+    do (lab,raw) <- reference
+       defaultExt <- getOption readerDefaultImageExtension
+       let constructor attr' src
+             | "data:" `T.isPrefixOf` src = B.imageWith attr' src  -- see #9118
+             | otherwise =
+                case takeExtension (T.unpack src) of
+                   "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                                   $ T.unpack defaultExt)
+                   _  -> B.imageWith attr' src
+       regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
@@ -2048,7 +2042,7 @@ inlineNote = do
     char '^'
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
-    contents <- inlinesInBalancedBrackets
+    contents <- inBalancedBrackets inlines
     updateState $ \st -> st{ stateInNote = False }
     return $ B.note . B.para <$> contents
 
@@ -2056,25 +2050,24 @@ rawLaTeXInline' :: PandocMonad m => MarkdownParser m (F Inlines)
 rawLaTeXInline' = do
   guardEnabled Ext_raw_tex
   notFollowedBy' rawConTeXtEnvironment
-  try $ do
-    s <- rawLaTeXInline
-    return $ return $ B.rawInline "tex" s -- "tex" because it might be context
+  !s <- rawLaTeXInline
+  return $ return $ B.rawInline "tex" s -- "tex" because it might be context
 
 rawConTeXtEnvironment :: PandocMonad m => ParsecT Sources st m Text
 rawConTeXtEnvironment = try $ do
   string "\\start"
   completion <- inBrackets (letter <|> digit <|> spaceChar)
                <|> many1Char letter
-  contents <- manyTill (rawConTeXtEnvironment <|> countChar 1 anyChar)
+  !contents <- manyTill (rawConTeXtEnvironment <|> countChar 1 anyChar)
                        (try $ string "\\stop" >> textStr completion)
-  return $ "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
+  return $! "\\start" <> completion <> T.concat contents <> "\\stop" <> completion
 
 inBrackets :: PandocMonad m => ParsecT Sources st m Char -> ParsecT Sources st m Text
 inBrackets parser = do
   char '['
   contents <- manyChar parser
   char ']'
-  return $ "[" <> contents <> "]"
+  return $! "[" <> contents <> "]"
 
 spanHtml :: PandocMonad m => MarkdownParser m (F Inlines)
 spanHtml = do
@@ -2091,30 +2084,29 @@ divHtml :: PandocMonad m => MarkdownParser m (F Blocks)
 divHtml = do
   guardEnabled Ext_native_divs
   try $ do
-    (TagOpen _ attrs, rawtag) <- htmlTag (~== TagOpen ("div" :: Text) [])
+    openpos <- getPosition
+    (TagOpen _ attrs, _) <- htmlTag (~== TagOpen ("div" :: Text) [])
     -- we set stateInHtmlBlock so that closing tags that can be either block
     -- or inline will not be parsed as inline tags
     oldInHtmlBlock <- stateInHtmlBlock <$> getState
     updateState $ \st -> st{ stateInHtmlBlock = Just "div" }
-    bls <- option "" (blankline >> option "" blanklines)
+    optional blanklines
     contents <- mconcat <$>
                 many (notFollowedBy' (htmlTag (~== TagClose ("div" :: Text)))
                       >> block)
-    closed <- option False (True <$ htmlTag (~== TagClose ("div" :: Text)))
-    if closed
-       then do
-         updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
-         let ident = fromMaybe "" $ lookup "id" attrs
-         let classes = maybe [] T.words $ lookup "class" attrs
-         let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
-         return $ B.divWith (ident, classes, keyvals) <$> contents
-       else -- avoid backtracing
-         return $ return (B.rawBlock "html" (rawtag <> bls)) <> contents
+    void (htmlTag (~== TagClose ("div" :: Text))) <|>
+       (getPosition >>= report . UnclosedDiv openpos)
+    let ident = fromMaybe "" $ lookup "id" attrs
+    let classes = maybe [] T.words $ lookup "class" attrs
+    let keyvals = [(k,v) | (k,v) <- attrs, k /= "id" && k /= "class"]
+    updateState $ \st -> st{ stateInHtmlBlock = oldInHtmlBlock }
+    return $ B.divWith (ident, classes, keyvals) <$> contents
 
 divFenced :: PandocMonad m => MarkdownParser m (F Blocks)
 divFenced = do
   guardEnabled Ext_fenced_divs
   try $ do
+    openpos <- getPosition
     string ":::"
     skipMany (char ':')
     skipMany spaceChar
@@ -2124,7 +2116,8 @@ divFenced = do
     blankline
     updateState $ \st ->
       st{ stateFencedDivLevel = stateFencedDivLevel st + 1 }
-    bs <- mconcat <$> manyTill block divFenceEnd
+    bs <- mconcat <$> many (notFollowedBy divFenceEnd >> block)
+    divFenceEnd <|> (getPosition >>= report . UnclosedDiv openpos)
     updateState $ \st ->
       st{ stateFencedDivLevel = stateFencedDivLevel st - 1 }
     return $ B.divWith attribs <$> bs
@@ -2155,15 +2148,12 @@ rawHtmlInline = do
 
 -- Emoji
 
-emojiChars :: [Char]
-emojiChars = ['a'..'z'] ++ ['0'..'9'] ++ ['_','+','-']
-
 emoji :: PandocMonad m => MarkdownParser m (F Inlines)
 emoji = do
   guardEnabled Ext_emoji
   try $ do
     char ':'
-    emojikey <- many1Char (oneOf emojiChars)
+    emojikey <- many1Char (alphaNum <|> oneOf "_+-")
     char ':'
     case emojiToInline emojikey of
       Just i -> return (return $ B.singleton i)
@@ -2250,15 +2240,19 @@ normalCite = try $ do
   citations <- citeList
   spnl
   char ']'
-  notFollowedBy (oneOf "{([")  -- not a link or a bracketed span
+  -- not a link or a bracketed span
+  notFollowedBy (try (void source) <|>
+                  (guardEnabled Ext_bracketed_spans *> void attributes) <|>
+                  void reference)
   return citations
 
 suffix :: PandocMonad m => MarkdownParser m (F Inlines)
 suffix = try $ do
   hasSpace <- option False (notFollowedBy nonspaceChar >> return True)
   spnl
-  rest <- trimInlinesF . mconcat <$> many (notFollowedBy (oneOf ";]") >> inline)
-  return $ if hasSpace
+  ils <- many (notFollowedBy (oneOf ";]") >> inline)
+  let rest = trimInlinesF (mconcat ils)
+  return $ if hasSpace && not (null ils)
               then (B.space <>) <$> rest
               else rest
 

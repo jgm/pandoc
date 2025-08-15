@@ -9,6 +9,12 @@ $if(date)$
 #+date: $date$
 
 $endif$
+$if(options/pairs)$
+$for(options/pairs)$
+#+options: ${it.key}:${it.value}
+$endfor$
+
+$endif$
 $for(header-includes)$
 $header-includes$
 

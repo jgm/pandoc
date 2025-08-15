@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Translations
-   Copyright   : Copyright (C) 2017-2023 John MacFarlane
+   Copyright   : Copyright (C) 2017-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -20,7 +20,8 @@ module Text.Pandoc.Translations (
                          )
 where
 import Text.Pandoc.Translations.Types
-import Text.Pandoc.Class (PandocMonad(..), CommonState(..), report)
+import Text.Pandoc.Class (PandocMonad(..), toTextM, report)
+import Text.Pandoc.Class.CommonState (CommonState(..))
 import Text.Pandoc.Data (readDataFile)
 import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Logging (LogMessage(..))
@@ -58,8 +59,8 @@ getTranslations = do
          let translationFile = "translations/" <> renderLang lang <> ".yaml"
          let fallbackFile = "translations/" <> langLanguage lang <> ".yaml"
          let getTrans fp = do
-               bs <- readDataFile fp
-               case readTranslations (UTF8.toText bs) of
+               txt <- readDataFile fp >>= toTextM fp
+               case readTranslations txt of
                     Left e   -> do
                       report $ CouldNotLoadTranslations (renderLang lang)
                         (T.pack fp <> ": " <> e)

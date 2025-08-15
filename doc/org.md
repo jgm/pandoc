@@ -208,8 +208,8 @@ the variable `org-emphasis-regexp-components`. A variable like
 this doesn't fit well with pandoc's model. Instead, it is
 possible to use special lines to change these values:
 
-    #+pandoc-emphasis-pre: "-\t ('\"{"
-    #+pandoc-emphasis-post: "-\t\n .,:!?;'\")}["
+    #+pandoc-emphasis-pre: "-\t ('\"{\x200B"
+    #+pandoc-emphasis-post: "-\t\n .,:!?;'\")}[\x200B"
 
 The above describes the default values of these variables. The
 arguments must be valid (Haskell) strings. If interpretation of
@@ -268,7 +268,7 @@ enabling the `fancy_lists` extension.
 
 When `fancy_lists` is enabled, Pandoc will also parse list
 markers starting with one lowercase or uppercase alphabetical
-character, like `a.` and `D)`. Countrary to the use of this
+character, like `a.` and `D)`. Contrary to the use of this
 extension in markdown, roman numerals or the `#` placeholder
 can't be used as markers as they are not allowed in Org-mode.
 

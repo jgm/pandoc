@@ -65,6 +65,8 @@ import           Data.Text (Text)
 import           Data.Default
 import           Data.Maybe
 import           Data.List (foldl')
+import qualified Data.List.NonEmpty as NonEmpty
+import           Data.List.NonEmpty (NonEmpty(..))
 
 import qualified Text.Pandoc.XML.Light as XML
 
@@ -101,7 +103,7 @@ data XMLConverterState nsID extraState where
          -- Arguably, a real Zipper would be better. But that is an
          -- optimization that can be made at a later time, e.g. when
          -- replacing Text.XML.Light.
-         parentElements    :: [XML.Element]
+         parentElements    :: NonEmpty XML.Element
          -- | A map from internal namespace IDs to the namespace prefixes
          -- used in XML elements
        , namespacePrefixes :: NameSpacePrefixes nsID
@@ -126,7 +128,7 @@ createStartState :: (NameSpaceID nsID)
                     -> XMLConverterState nsID extraState
 createStartState element extraState =
   XMLConverterState
-       { parentElements    = [element]
+       { parentElements    = element :| []
        , namespacePrefixes = M.empty
        , namespaceIRIs     = getInitialIRImap
        , moreState         = extraState
@@ -147,13 +149,14 @@ replaceExtraState x s
 --
 currentElement      :: XMLConverterState nsID extraState
                     -> XML.Element
-currentElement state = head (parentElements state)
+currentElement state = NonEmpty.head (parentElements state)
 
 -- | Replace the current position by another, modifying the extra state
 -- in the process
 swapStack'          :: XMLConverterState nsID extraState
-                    -> [XML.Element]
-                    -> ( XMLConverterState nsID extraState , [XML.Element] )
+                    -> NonEmpty XML.Element
+                    -> ( XMLConverterState nsID extraState
+                       , NonEmpty XML.Element )
 swapStack' state stack
                      = ( state { parentElements = stack }
                        , parentElements state
@@ -163,14 +166,16 @@ swapStack' state stack
 pushElement         :: XML.Element
                     -> XMLConverterState nsID extraState
                     -> XMLConverterState nsID extraState
-pushElement e state  = state { parentElements = e:parentElements state }
+pushElement e state  = state { parentElements =
+                                 NonEmpty.cons e (parentElements state) }
 
 -- | Pop the top element from the call stack, unless it is the last one.
 popElement          :: XMLConverterState nsID extraState
                     -> Maybe (XMLConverterState nsID extraState)
 popElement state
-  | _:es@(_:_) <- parentElements state = Just $ state { parentElements = es }
-  | otherwise                          = Nothing
+  | _ :| (e:es) <- parentElements state
+                = Just $ state { parentElements = e :| es }
+  | otherwise   = Nothing
 
 --------------------------------------------------------------------------------
 -- Main type
@@ -544,7 +549,8 @@ jumpThere              = withState (\state element
                                    )
 
 --
-swapStack             :: XMLConverter nsID extraState [XML.Element] [XML.Element]
+swapStack             :: XMLConverter nsID extraState (NonEmpty XML.Element)
+                                                      (NonEmpty XML.Element)
 swapStack             = withState swapStack'
 
 --
@@ -559,7 +565,7 @@ jumpBack               = tryModifyState (popElement >>> maybeToChoice)
 -- accessible to the converter.
 switchingTheStack      :: XMLConverter nsID moreState a b
                        -> XMLConverter nsID moreState (a, XML.Element) b
-switchingTheStack a    =     second ( (:[]) ^>> swapStack )
+switchingTheStack a    =     second ( (:| []) ^>> swapStack )
                          >>> first  a
                          >>> second swapStack
                          >>^ fst

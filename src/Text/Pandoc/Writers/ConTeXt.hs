@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.ConTeXt
-   Copyright   : Copyright (C) 2007-2023 John MacFarlane
+   Copyright   : Copyright (C) 2007-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -104,6 +104,8 @@ pandocToConTeXt options (Pandoc meta blocks) = do
   mblang <- fromBCP47 (getLang options meta)
   st <- get
   let context =   defField "toc" (writerTableOfContents options)
+                $ defField "lof" (writerListOfFigures options)
+                $ defField "lot" (writerListOfTables options)
                 $ defField "placelist"
                    (mconcat . intersperse ("," :: Doc Text) $
                      take (writerTOCDepth options +
@@ -115,6 +117,7 @@ pandocToConTeXt options (Pandoc meta blocks) = do
                         "subsubsubsection","subsubsubsubsection"])
                 $ defField "body" main
                 $ defField "layout" layoutFromMargins
+                $ defField "tagging" (isEnabled Ext_tagging options)
                 $ defField "number-sections" (writerNumberSections options)
                 $ defField "csl-refs" (stHasCslRefs st)
                 $ defField "csl-hanging-indent" (stCslHangingIndent st)
@@ -587,7 +590,7 @@ inlineToConTeXt :: PandocMonad m
                 -> WM m (Doc Text)
 inlineToConTeXt (Emph lst)      = highlightInlines "emph"      "\\em" lst
 inlineToConTeXt (Strong lst)    = highlightInlines "strong"    "\\bf" lst
-inlineToConTeXt (SmallCaps lst) = highlightInlines "smallcaps" "\\sc" lst
+inlineToConTeXt (SmallCaps lst) = highlightInlines "smallcaps" "\\setsmallcaps" lst
 inlineToConTeXt (Underline lst) = do
   contents <- inlineListToConTeXt lst
   return $ "\\underbar" <> braces contents
@@ -696,9 +699,9 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
       dims = if null dimList
                 then empty
                 else brackets $ mconcat (intersperse "," dimList)
-      clas = if null cls
-                then empty
-                else brackets $ literal $ toLabel $ head cls
+      clas = case cls of
+               [] -> empty
+               (cl:_) -> brackets $ literal $ toLabel cl
       -- Use / for path separators on Windows; see #4918
       fixPathSeparators = T.map $ \c -> case c of
                                           '\\' -> '/'
@@ -707,7 +710,7 @@ inlineToConTeXt (Image attr@(_,cls,_) _ (src, _)) = do
              if isURI src
                 then src
                 else T.pack $ unEscapeString $ T.unpack src
-  return $ braces $ "\\externalfigure" <> brackets (literal src') <> dims <> clas
+  return $ braces $ "\\externalfigure" <> brackets (literal src') <> clas <> dims
 inlineToConTeXt (Note contents) = do
   contents' <- blockListToConTeXt contents
   let codeBlock x@(CodeBlock _ _) = [x]
@@ -829,7 +832,6 @@ fromBCP47' (Just (Lang "grc"_ _ _ _ _))           = Just "agr"
 fromBCP47' (Just (Lang "el" _ _ _ _ _))           = Just "gr"
 fromBCP47' (Just (Lang "eu" _ _ _ _ _))           = Just "ba"
 fromBCP47' (Just (Lang "he" _ _ _ _ _))           = Just "il"
-fromBCP47' (Just (Lang "jp" _ _ _ _ _))           = Just "ja"
 fromBCP47' (Just (Lang "uk" _ _ _ _ _))           = Just "ua"
 fromBCP47' (Just (Lang "vi" _ _ _ _ _))           = Just "vn"
 fromBCP47' (Just (Lang "zh" _ _ _ _ _))           = Just "cn"

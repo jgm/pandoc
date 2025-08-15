@@ -25,9 +25,9 @@ Foo (Doe 1999).
 
 # References {#references .unnumbered}
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+:::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-doe1 .csl-entry}
 Doe, A. (1999). *Title*. The collection title. The publisher. 789 pp.
 :::
-:::
+::::
 ```

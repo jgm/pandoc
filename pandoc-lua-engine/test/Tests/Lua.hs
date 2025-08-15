@@ -3,10 +3,10 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Tests.Lua
-   Copyright   : © 2017-2023 Albert Krewinkel
+   Copyright   : © 2017-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
    Portability : portable
 
@@ -24,10 +24,11 @@ import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
                             linebreak, math, orderedList, para, plain, rawBlock,
                             singleQuoted, space, str, strong,
                             HasMeta (setMeta))
-import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
+import Text.Pandoc.Class ( runIOorExplode, setUserDataDir, setVerbosity )
 import Text.Pandoc.Definition (Attr, Block (BlockQuote, Div, Para), Pandoc,
                                Inline (Emph, Str), pandocTypesVersion)
 import Text.Pandoc.Error (PandocError (PandocLuaError))
+import Text.Pandoc.Logging (Verbosity (ERROR))
 import Text.Pandoc.Lua (Global (..), applyFilter, runLua, setGlobals)
 import Text.Pandoc.Options (def)
 import Text.Pandoc.Version (pandocVersionText)
@@ -238,6 +239,9 @@ assertFilterConversion msg filterPath docIn expectedDoc = do
 
 runLuaTest :: HasCallStack => Lua.LuaE PandocError a -> IO a
 runLuaTest op = runIOorExplode $ do
+  -- Disable printing of warnings on stderr: some tests will generate
+  -- warnings, we don't want to see those messages.
+  setVerbosity ERROR
   res <- runLua $ do
     setGlobals [ PANDOC_WRITER_OPTIONS def ]
     op

@@ -147,6 +147,7 @@ writeBibtexString opts variant mblang ref =
            , "volumes"
            , "number"
            , "pages"
+           , "pagetotal"
            , "version"
            , "date"
            , "eventdate"
@@ -205,7 +206,7 @@ writeBibtexString opts variant mblang ref =
 
   renderName name =
     case nameLiteral name of
-      Just t  -> B.text t
+      Just t  -> B.spanWith ("",[],[]) $ B.text t
       Nothing -> spacedMaybes
                   [ nameNonDroppingParticle name
                   , nameFamily name
@@ -327,6 +328,8 @@ writeBibtexString opts variant mblang ref =
   getContentsFor "year"  = getVariable "issued" >>= getYear
   getContentsFor "month"  = getVariable "issued" >>= getMonth
   getContentsFor "pages"  = getVariable "page" >>= toLaTeX . valToInlines
+  getContentsFor "pagetotal" = getVariable "number-of-pages"
+                                  >>= toLaTeX . valToInlines
   getContentsFor "langid"  = getVariable "language" >>= toLaTeX . valToInlines
   getContentsFor "number" = (getVariable "number"
                          <|> getVariable "collection-number"
@@ -391,7 +394,8 @@ itemToReference locale variant item = do
                   <|> return Nothing
     modify $ \s -> s{ untitlecase = untitlecase s &&
                                       case hyphenation of
-                                        Just x -> "en-" `T.isPrefixOf` x
+                                        Just x ->
+                                          "en-" `T.isPrefixOf` x || x == "en"
                                         _ -> True }
 
 

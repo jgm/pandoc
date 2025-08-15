@@ -149,7 +149,7 @@ table = try $ do
                  <$> (string "|=" >> many1Till inline cellEnd)
     row = try $ skipSpaces >> many1Till cell rowEnd
     cell = B.plain . B.trimInlines . mconcat
-           <$> (char '|' >> many1Till inline cellEnd)
+           <$> (char '|' >> manyTill inline cellEnd)
     rowEnd = try $ optional (char '|') >> skipSpaces >> newline
     cellEnd = lookAhead $ try $ char '|' <|> rowEnd
 

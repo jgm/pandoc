@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
 Module      : Text.Pandoc.Writers.Docx.Table
-Copyright   : Copyright (C) 2012-2023 John MacFarlane
+Copyright   : Copyright (C) 2012-2024 John MacFarlane
 License     : GNU GPL, version 2 or above
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -22,6 +22,7 @@ import Control.Monad ( unless , zipWithM )
 import Control.Monad.Except ( throwError )
 import Data.Array ( elems, (!), assocs, indices )
 import Data.Text (Text)
+import Data.Maybe (catMaybes, fromMaybe)
 import Text.Pandoc.Definition
     ( ColSpec,
       Caption(Caption),
@@ -32,7 +33,7 @@ import Text.Pandoc.Definition
       Alignment(..),
       RowSpan(..),
       ColSpan(..),
-      ColWidth(ColWidth) )
+      ColWidth(..) )
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Translations (translateTerm)
 import Text.Pandoc.Writers.Docx.Types
@@ -45,7 +46,7 @@ import Text.Pandoc.Writers.Docx.Types
       withParaPropM )
 import Control.Monad.Reader (asks)
 import Text.Pandoc.Shared ( tshow, stringify )
-import Text.Pandoc.Options (WriterOptions, isEnabled)
+import Text.Pandoc.Options (WriterOptions(..), isEnabled, CaptionPosition(..))
 import Text.Pandoc.Extensions (Extension(Ext_native_numbering))
 import Text.Pandoc.Error (PandocError(PandocSomeError))
 import Text.Printf (printf)
@@ -70,7 +71,7 @@ tableToOpenXML :: PandocMonad m
                -> WS m [Content]
 tableToOpenXML opts blocksToOpenXML gridTable = do
   setFirstPara
-  let (Grid.Table (ident,_,_) caption colspecs _rowheads thead tbodies tfoot) =
+  let (Grid.Table (ident,_,tableAttr) caption colspecs _rowheads thead tbodies tfoot) =
         gridTable
   let (Caption _maybeShortCaption captionBlocks) = caption
   tablenum <- gets stNextTableNum
@@ -108,22 +109,25 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
   let tblLookVal = if hasHeader then (0x20 :: Int) else 0
   let (gridCols, tblWattr) = tableLayout (elems colspecs)
   listLevel <- asks envListLevel
+  let tblStyle =  fromMaybe "Table" (lookup "custom-style" tableAttr)
   let indent = (listLevel + 1) * 720
+  let hasWidths = not $ all ((== ColWidthDefault) . snd) colspecs
   let tbl = mknode "w:tbl" []
         ( mknode "w:tblPr" []
-          ( mknode "w:tblStyle" [("w:val","Table")] () :
-            mknode "w:tblW" tblWattr () :
-            mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
-                               ,("w:lastRow",if hasFooter then "1" else "0")
-                               ,("w:firstColumn","0")
-                               ,("w:lastColumn","0")
-                               ,("w:noHBand","0")
-                               ,("w:noVBand","0")
-                               ,("w:val", T.pack $ printf "%04x" tblLookVal)
-                               ] () :
-            mknode "w:jc" [("w:val","start")] ()
-            : [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
+          ( [ mknode "w:tblStyle" [("w:val",tblStyle)] (),
+              mknode "w:tblW" tblWattr () ] ++
+            [ mknode "w:jc" [("w:val","left")] () | indent > 0 ] ++
+            [ mknode "w:tblInd" [("w:w", tshow indent),("w:type","dxa")] ()
                 | indent > 0 ] ++
+            [ mknode "w:tblLayout" [("w:type", "fixed")] () | hasWidths ] ++
+            [ mknode "w:tblLook" [("w:firstRow",if hasHeader then "1" else "0")
+                                 ,("w:lastRow",if hasFooter then "1" else "0")
+                                 ,("w:firstColumn","0")
+                                 ,("w:lastColumn","0")
+                                 ,("w:noHBand","0")
+                                 ,("w:noVBand","0")
+                                 ,("w:val", T.pack $ printf "%04x" tblLookVal)
+                                 ] () ] ++
             [ mknode "w:tblCaption" [("w:val", captionStr)] ()
             | not (T.null captionStr) ]
           )
@@ -131,7 +135,10 @@ tableToOpenXML opts blocksToOpenXML gridTable = do
           : head' ++ mconcat bodies ++ foot'
         )
   modify $ \s -> s { stInTable = False }
-  return $ captionXml ++ [Elem tbl]
+  return $
+    case writerTableCaptionPosition opts of
+      CaptionAbove -> captionXml ++ [Elem tbl]
+      CaptionBelow -> Elem tbl : captionXml
 
 addLabel :: Text -> Text -> Int -> [Block] -> [Block]
 addLabel tableid tablename tablenum bs =
@@ -156,7 +163,7 @@ alignmentToString = \case
   AlignLeft    -> "left"
   AlignRight   -> "right"
   AlignCenter  -> "center"
-  AlignDefault -> "left"
+  AlignDefault -> ""
 
 tableLayout :: [ColSpec] -> ([Element], [(Text, Text)])
 tableLayout specs =
@@ -187,7 +194,7 @@ cellGridToOpenXML blocksToOpenXML rowType aligns part@(Part _ cellArray _) =
   if null (elems cellArray)
   then return mempty
   else partToRows rowType aligns part >>=
-       mapM (rowToOpenXML blocksToOpenXML)
+       fmap catMaybes . mapM (rowToOpenXML blocksToOpenXML)
 
 data OOXMLCell
   = OOXMLCell Attr Alignment RowSpan ColSpan [Block]
@@ -226,15 +233,17 @@ partToRows rowType aligns part = do
 rowToOpenXML :: PandocMonad m
              => ([Block] -> WS m [Content])
              -> OOXMLRow
-             -> WS m Element
-rowToOpenXML blocksToOpenXML (OOXMLRow rowType _attr cells) = do
-  xmlcells <- mapM (ooxmlCellToOpenXML blocksToOpenXML) cells
-  let addTrPr = case rowType of
-        HeadRow -> (mknode "w:trPr" []
-                    [mknode "w:tblHeader" [("w:val", "true")] ()] :)
-        BodyRow -> id
-        FootRow -> id
-  return $ mknode "w:tr" [] (addTrPr xmlcells)
+             -> WS m (Maybe Element)
+rowToOpenXML blocksToOpenXML (OOXMLRow rowType _attr cells)
+  | null cells = return Nothing
+  | otherwise = do
+    xmlcells <- mapM (ooxmlCellToOpenXML blocksToOpenXML) cells
+    let addTrPr = case rowType of
+          HeadRow -> (mknode "w:trPr" []
+                      [mknode "w:tblHeader" [("w:val", "on")] ()] :)
+          BodyRow -> id
+          FootRow -> id
+    return $ Just $ mknode "w:tr" [] (addTrPr xmlcells)
 
 ooxmlCellToOpenXML :: PandocMonad m
                    => ([Block] -> WS m [Content])
@@ -248,7 +257,7 @@ ooxmlCellToOpenXML blocksToOpenXML = \case
       , mknode "w:p" [] [mknode "w:pPr" [] ()]]
   OOXMLCell _attr align rowspan (ColSpan colspan) contents -> do
     compactStyle <- pStyleM "Compact"
-    es <- withParaProp (alignmentFor align) $ blocksToOpenXML contents
+    es <- maybe id withParaProp (alignmentFor align) $ blocksToOpenXML contents
     -- Table cells require a <w:p> element, even an empty one!
     -- Not in the spec but in Word 2007, 2010. See #4953. And
     -- apparently the last element must be a <w:p>, see #6983.
@@ -266,5 +275,6 @@ ooxmlCellToOpenXML blocksToOpenXML = \case
              e:_   | qName (elName e) == "p" -> es
              _ -> es ++ [Elem $ mknode "w:p" [] ()]
 
-alignmentFor :: Alignment -> Element
-alignmentFor al = mknode "w:jc" [("w:val",alignmentToString al)] ()
+alignmentFor :: Alignment -> Maybe Element
+alignmentFor AlignDefault = Nothing
+alignmentFor al = Just $ mknode "w:jc" [("w:val",alignmentToString al)] ()

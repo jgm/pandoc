@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Text.Pandoc.Readers.Docx.StyleMaps
+   Module      : Text.Pandoc.Readers.Docx.Util
    Copyright   : © 2014-2020 Jesse Rosenthal <jrosenthal@jhu.edu>,
-                   2014-2023 John MacFarlane <jgm@berkeley.edu>,
+                   2014-2024 John MacFarlane <jgm@berkeley.edu>,
                    2015 Nikolay Yakimov <root@livid.pp.ru>
    License     : GNU GPL, version 2 or above
 
@@ -21,12 +21,14 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , findChildrenByName
                                       , findElementByName
                                       , findAttrByName
+                                      , extractChildren
                                       ) where
 
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.XML.Light
 import qualified Data.Map as M
+import Data.List (partition)
 
 type NameSpaces = M.Map Text Text
 
@@ -67,3 +69,17 @@ findAttrByName :: NameSpaces -> Text -> Text -> Element -> Maybe Text
 findAttrByName ns pref name el =
   let ns' = ns <> elemToNameSpaces el
   in  findAttr (elemName ns' pref name) el
+
+
+-- | Removes child elements that satisfy a given condition.
+-- Returns the modified element and the list of removed children.
+extractChildren :: Element -> (Element -> Bool) -> Maybe (Element, [Element])
+extractChildren el condition
+  | null removedChildren = Nothing  -- No children removed, return Nothing
+  | otherwise = Just (modifiedElement, removedChildren)  -- Children removed, return Just
+  where
+    -- Separate the children based on the condition
+    (removedChildren, keptChildren) = partition condition (onlyElems $ elContent el)
+
+    -- Reconstruct the element with the kept children
+    modifiedElement = el { elContent = map Elem keptChildren }

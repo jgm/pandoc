@@ -119,10 +119,7 @@ function Writer (doc, opts)
   return pandoc.write(doc:walk(filter), 'gfm', opts)
 end
 
-function Template ()
-  local template = pandoc.template
-  return template.compile(template.default 'gfm')
-end
+Template = pandoc.template.default 'gfm'
 ```
 
 [Lua filters documentation]: https://pandoc.org/lua-filters.html
@@ -176,7 +173,10 @@ result of that call.
 
 Similarly, the functions `Writer.Blocks` and `Writer.Inlines` can
 be used to render lists of elements, and `Writer.Pandoc` renders
-the document's blocks.
+the document's blocks. The function `Writer.Blocks` can take a
+separator as an optional second argument, e.g.,
+`Writer.Blocks(blks, pandoc.layout.cr)`; the default block
+separator is `pandoc.layout.blankline`.
 
 All predefined functions can be overwritten when needed.
 

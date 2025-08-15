@@ -50,7 +50,7 @@ tests = [ testGroup "code blocks"
         , testGroup "definition lists"
           [ "with internal link" =: definitionList [(link "#go" "" (str "testing"),
              [plain (text "hi there")])] =?>
-            "\\begin{description}\n\\tightlist\n\\item[{\\protect\\hyperlink{go}{testing}}]\nhi there\n\\end{description}"
+            "\\begin{description}\n\\tightlist\n\\item[{\\hyperref[go]{testing}}]\nhi there\n\\end{description}"
           ]
         , testGroup "math"
           [ "escape |" =: para (math "\\sigma|_{\\{x\\}}") =?>
@@ -60,7 +60,7 @@ tests = [ testGroup "code blocks"
           [ "unnumbered header" =:
             headerWith ("foo",["unnumbered"],[]) 1
               (text "Header 1" <> note (plain $ text "note")) =?>
-            "\\hypertarget{foo}{%\n\\section*{\\texorpdfstring{Header 1\\footnote{note}}{Header 1}}\\label{foo}}\n\\addcontentsline{toc}{section}{Header 1}\n"
+            "\\section*{\\texorpdfstring{Header 1\\footnote{note}}{Header 1}}\\label{foo}\n\\addcontentsline{toc}{section}{Header 1}\n"
           , "in list item" =:
             bulletList [header 2 (text "foo")] =?>
             "\\begin{itemize}\n\\item ~\n  \\subsection{foo}\n\\end{itemize}"
@@ -70,7 +70,7 @@ tests = [ testGroup "code blocks"
             "\\begin{description}\n\\item[foo] ~ \n\\subsection{bar}\n\nbaz\n\\end{description}"
           , "containing image" =:
             header 1 (image "imgs/foo.jpg" "" (text "Alt text")) =?>
-            "\\section{\\texorpdfstring{\\protect\\includegraphics{imgs/foo.jpg}}{Alt text}}"
+            "\\section{\\texorpdfstring{\\protect\\pandocbounded{\\includegraphics[keepaspectratio,alt={Alt text}]{imgs/foo.jpg}}}{Alt text}}"
           ]
         , testGroup "inline code"
           [ "struck out and highlighted" =:
@@ -85,6 +85,74 @@ tests = [ testGroup "code blocks"
               code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
           , "backtick" =:
               code "`nu?`" =?> "\\texttt{\\textasciigrave{}nu?\\textasciigrave{}}"
+          ]
+        , testGroup "inline note"
+          [ "Big note in emph" =:
+              emph (str "This sentence"
+                    <> note (para (str "paragraph1")
+                             <> para (str "paragraph2"))
+                    <> str " has footnote.")
+              =?>
+                 "\\emph{This sentence}\\footnote{paragraph1\n\n  paragraph2}"
+                 <> "\\emph{ has footnote.}"
+           , "Big note in strong" =:
+              strong (str "This sentence"
+                      <> note (para (str "paragraph1")
+                               <> para (str "paragraph2"))
+                      <> str " has footnote.")
+              =?>
+                 "\\textbf{This sentence}\\footnote{paragraph1\n\n  paragraph2}"
+                 <> "\\textbf{ has footnote.}"
+
+           , "Big note in underline" =:
+              underline (str "This sentence"
+                         <> note (para (str "paragraph1")
+                                  <> para (str "paragraph2"))
+                         <> str " has footnote.")
+              =?>
+                 "\\ul{This sentence}\\footnote{paragraph1\n\n  paragraph2}"
+                 <> "\\ul{ has footnote.}"
+
+           , "Big note in strikeout" =:
+              strikeout (str "This sentence"
+                         <> note (para (str "paragraph1")
+                                  <> para (str "paragraph2"))
+                         <> str " has footnote.")
+              =?>
+                 "\\st{This sentence}\\footnote{paragraph1\n\n  paragraph2}"
+                 <> "\\st{ has footnote.}"
+
+           , "Small note in emph" =:
+              emph (str "This sentence"
+                    <> note (para (str "paragraph"))
+                    <> str " has footnote.")
+              =?>
+                 "\\emph{This sentence\\footnote{paragraph} has footnote.}"
+
+           , "Big note nested in emph and strong" =:
+              emph (str "This "
+                    <> strong (str "nested sentence "
+                               <> note (para (str "paragraph1")
+                                        <> para (str "paragraph2"))
+                               <> str "has ")
+                    <> str "footnote."
+              )
+              =?>
+                 "\\emph{This \\textbf{nested sentence }}\\footnote{paragraph1\n\n"
+                 <> "  paragraph2}\\emph{\\textbf{has }footnote.}"
+
+          , "Two Big notes in emph" =:
+              emph (str "This sentence"
+                    <> note (para (str "1-paragraph1")
+                             <> para (str "1-paragraph2"))
+                    <> str " has"
+                    <> note (para (str "2-paragraph1")
+                             <> para (str "2-paragraph2"))
+                    <> str " footnote.")
+              =?>
+                 "\\emph{This sentence}\\footnote{1-paragraph1\n\n  1-paragraph2}"
+                 <> "\\emph{ has}\\footnote{2-paragraph1\n\n  2-paragraph2}"
+                 <> "\\emph{ footnote.}"
           ]
         , testGroup "writer options"
           [ testGroup "top-level division" $

@@ -12,16 +12,15 @@ How can I help?
 There are many ways in which you can support pandoc. Here are a few
 ideas:
 
-  * Participate in online discussions. The [pandoc-discuss] mailing
-    list is a good place for this. This gives valuable input and
-    makes it easier to improve the program.
+  * Participate in online discussions. The [discussion
+    forum] is a good place for this.
 
   * Help with questions. Every request that is answered by the wider
     community frees time for programming contributors. This will
     speed up development of new features and issue fixes. Don't
     underestimate your knowledge, please share it!
 
-    Good places to help are the [pandoc-discuss] mailing list, Q/A
+    Good places to help are the [discussion forum], Q/A
     sites like StackOverflow, community forums (e.g.
     [RStudio][RStudio Community], [Zettlr][Zettlr Forum]), and, for
     technical questions, the GitHub [issue tracker].
@@ -62,7 +61,7 @@ the boundaries of what is possible with pandoc.
 Have a question?
 ----------------
 
-Ask on [pandoc-discuss].
+Ask on the [discussion forum].
 
 
 Found a bug?
@@ -119,7 +118,7 @@ to `odt`.  (You can, however, customize margin size using `--reference-doc`.)
 So before submitting a bug report, consider whether it might be
 "out of scope." If it concerns a feature of documents that isn't
 representable in pandoc's Markdown, then it very likely is.
-(If in doubt, you can always ask on [pandoc-discuss].)
+(If in doubt, you can always ask on the [discussion forum].)
 
 Fixing bugs from the issue tracker
 ----------------------------------
@@ -133,8 +132,8 @@ summary of issues can be found on [GitHub labels].
   issue is generic and can be resolved without deep knowledge of the code
   base.
 * [enhancement] — A feature which would be desirable. We recommend
-  you discuss any proposed enhancement on pandoc-discuss before
-  writing code.
+  you discuss any proposed enhancement on the [discussion forum]
+  before writing code.
 * [bug] — A problem which needs to be fixed.
 * [complexity:low] — The fix should only be a couple of lines.
 * [complexity:high] — The fix might require structural changes or in depth
@@ -156,7 +155,8 @@ or bug reports related to Markdown are labelled with [format:markdown].
 Have an idea for a new feature?
 -------------------------------
 
-First, search [pandoc-discuss] and the issue tracker (both [open issues] *and*
+First, search the [discussion forum]
+and the issue tracker (both [open issues] *and*
 [closed issues]) to make sure that the idea has not been discussed before.
 
 Explain the rationale for the feature you're requesting.  Why would this
@@ -168,15 +168,16 @@ maintained. This is especially relevant for large or complex
 contributions. It is helpful to be sympathetic to that fact, and to
 communicate future plans and availability clearly.
 
-Any potential new feature is best discussed on [pandoc-discuss]
-before opening an issue.
+Any potential new feature is best discussed on the [discussion
+forum] before opening an issue.
 
 Patches and pull requests
 -------------------------
 
 Patches and pull requests are welcome.  Before you put time into a nontrivial
-patch, it is a good idea to discuss it on [pandoc-discuss], especially if it is
-for a new feature (rather than fixing a bug).
+patch, it is a good idea to discuss it on the
+[discussion forum], especially if it is for a new feature (rather
+than fixing a bug).
 
 Please follow these guidelines:
 
@@ -213,9 +214,10 @@ Please follow these guidelines:
 9.  It is better not to introduce new dependencies.  Dependencies on
     external C libraries should especially be avoided.
 
-10. We aim for compatibility with ghc versions from 8.0 to the
-    latest release.  All pull requests and commits are tested
-    automatically on GitHub Actions.
+10. We aim for compatibility with at least the last three
+    released ghc versions, and sometimes more. Currently pandoc
+    can be compiled on ghc 8.6 an higher. All pull requests and
+    commits are tested automatically on GitHub Actions.
 
 Tests
 -----
@@ -420,6 +422,29 @@ The library is structured as follows:
   - `Text.Pandoc.UUID` contains functions for generating UUIDs.
   - `Text.Pandoc.XML` contains functions for formatting XML.
 
+Adding a new command-line option
+--------------------------------
+
+To add a new command-line option, you'll need to make changes in several
+places:
+
+- `MANUAL.txt` -- documentation for new option, both in the list
+  of options and in the section on defaults files.
+- `Text.Pandoc.App.Opt` -- new constructor for Opt and default
+  value
+- `Text.Pandoc.App.CommandLineOptions` -- the option parser
+- `Text.Pandoc.App` or `Text.Pandoc.App.OutputSettings` --
+  handle the new option
+- possibly in pandoc-server: `Text.Pandoc.Server` -- handle the
+  new option
+
+If your change requires a new field for ReaderOptions or
+WriterOptions, you'll also need to
+
+- `Text.Pandoc.Options` -- type change and default value
+- in pandoc-lua-engine: Text.Pandoc.Lua.Marshal.WriterOptions
+  and/or Text.Pandoc.Lua.Marshal.ReaderOptions
+
 Lua filters
 -----------
 
@@ -456,3 +481,5 @@ you may want to consider submitting a pull request to the
 [status:more-discussion-needed]: https://github.com/jgm/pandoc/labels/status:more-discussion-needed
 [status:more-info-needed]: https://github.com/jgm/pandoc/labels/status:more-info-needed
 [stack]: https://github.com/commercialhaskell/stack
+[discussion forum]: https://github.com/jgm/pandoc/discussions
+

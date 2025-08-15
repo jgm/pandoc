@@ -21,7 +21,7 @@
 ```
 
 ```
-% pandoc -f latex -t native -M lang=sr
+% pandoc -f latex -t native -M lang=sr-Latn
 \figurename~2
 \figurename.
 ^D

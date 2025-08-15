@@ -7,7 +7,7 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {- |
    Module      : Text.Pandoc.Readers.LaTeX.Parsing
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -157,6 +157,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sLogMessages   :: [LogMessage]
                             , sIdentifiers   :: Set.Set Text
                             , sVerbatimMode  :: Bool
+                            , sMathMode      :: Bool
                             , sCaption       :: Maybe Caption
                             , sInListItem    :: Bool
                             , sInTableCell   :: Bool
@@ -173,6 +174,7 @@ data LaTeXState = LaTeXState{ sOptions       :: ReaderOptions
                             , sFileContents  :: M.Map Text Text
                             , sEnableWithRaw :: Bool
                             , sRawTokens     :: IntMap.IntMap [Tok]
+                            , sLigatures     :: Bool
                             }
      deriving Show
 
@@ -185,6 +187,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sLogMessages   = []
                               , sIdentifiers   = Set.empty
                               , sVerbatimMode  = False
+                              , sMathMode      = False
                               , sCaption       = Nothing
                               , sInListItem    = False
                               , sInTableCell   = False
@@ -201,6 +204,7 @@ defaultLaTeXState = LaTeXState{ sOptions       = def
                               , sFileContents  = M.empty
                               , sEnableWithRaw = True
                               , sRawTokens     = IntMap.empty
+                              , sLigatures     = True
                               }
 
 instance PandocMonad m => HasQuoteContext LaTeXState m where
@@ -354,41 +358,41 @@ getInputTokens = do
       Sources ((_,t):rest) -> tokenizeSources $ Sources ((pos,t):rest)
 
 tokenize :: SourcePos -> Text -> [Tok]
-tokenize = totoks
+tokenize = totoks False
  where
-  totoks pos t =
+  totoks atIsLetter pos t =
     case T.uncons t of
        Nothing        -> []
        Just (c, rest)
          | c == '\n' ->
            Tok pos Newline "\n"
-           : totoks (setSourceColumn (incSourceLine pos 1) 1) rest
+           : totoks atIsLetter (setSourceColumn (incSourceLine pos 1) 1) rest
          | isSpaceOrTab c ->
            let (sps, rest') = T.span isSpaceOrTab t
            in  Tok pos Spaces sps
-               : totoks (incSourceColumn pos (T.length sps))
+               : totoks atIsLetter (incSourceColumn pos (T.length sps))
                  rest'
          | isAlphaNum c ->
            let (ws, rest') = T.span isAlphaNum t
            in  Tok pos Word ws
-               : totoks (incSourceColumn pos (T.length ws)) rest'
+               : totoks atIsLetter (incSourceColumn pos (T.length ws)) rest'
          | c == '%' ->
            let (cs, rest') = T.break (== '\n') rest
            in  Tok pos Comment ("%" <> cs)
-               : totoks (incSourceColumn pos (1 + T.length cs)) rest'
+               : totoks atIsLetter (incSourceColumn pos (1 + T.length cs)) rest'
          | c == '\\' ->
            case T.uncons rest of
                 Nothing -> [Tok pos (CtrlSeq " ") "\\"]
                 Just (d, rest')
-                  | isLetterOrAt d ->
-                      -- \makeatletter is common in macro defs;
-                      -- ideally we should make tokenization sensitive
-                      -- to \makeatletter and \makeatother, but this is
-                      -- probably best for now
-                      let (ws, rest'') = T.span isLetterOrAt rest
+                  | isLetter' atIsLetter d ->
+                      let (ws, rest'') = T.span (isLetter' atIsLetter) rest
                           (ss, rest''') = T.span isSpaceOrTab rest''
+                          atIsLetter' = case ws of
+                                          "makeatletter" -> True
+                                          "makeatother" -> False
+                                          _ -> atIsLetter
                       in  Tok pos (CtrlSeq ws) ("\\" <> ws <> ss)
-                          : totoks (incSourceColumn pos
+                          : totoks atIsLetter' (incSourceColumn pos
                                (1 + T.length ws + T.length ss)) rest'''
                   | isSpaceOrTab d || d == '\n' ->
                       let (w1, r1) = T.span isSpaceOrTab rest
@@ -401,15 +405,15 @@ tokenize = totoks
                       in  case T.uncons r3 of
                                Just ('\n', _) ->
                                  Tok pos (CtrlSeq " ") ("\\" <> w1)
-                                 : totoks (incSourceColumn pos (T.length ws))
-                                   r1
+                                 : totoks atIsLetter
+                                    (incSourceColumn pos (T.length ws)) r1
                                _ ->
                                  Tok pos (CtrlSeq " ") ws
-                                 : totoks (incSourceColumn pos (T.length ws))
-                                   r3
+                                 : totoks atIsLetter
+                                    (incSourceColumn pos (T.length ws)) r3
                   | otherwise  ->
                       Tok pos (CtrlSeq (T.singleton d)) (T.pack [c,d])
-                      : totoks (incSourceColumn pos 2) rest'
+                      : totoks atIsLetter (incSourceColumn pos 2) rest'
          | c == '#' ->
            case T.uncons rest of
              Just ('#', t3) ->
@@ -417,18 +421,20 @@ tokenize = totoks
                in  case safeRead t1 of
                         Just i ->
                            Tok pos (DeferredArg i) ("##" <> t1)
-                           : totoks (incSourceColumn pos (2 + T.length t1)) t2
+                           : totoks atIsLetter
+                              (incSourceColumn pos (2 + T.length t1)) t2
                         Nothing -> Tok pos Symbol "#"
                                   : Tok (incSourceColumn pos 1) Symbol "#"
-                                  : totoks (incSourceColumn pos 1) t3
+                                  : totoks atIsLetter (incSourceColumn pos 1) t3
              _ ->
                let (t1, t2) = T.span (\d -> d >= '0' && d <= '9') rest
                in  case safeRead t1 of
                         Just i ->
                            Tok pos (Arg i) ("#" <> t1)
-                           : totoks (incSourceColumn pos (1 + T.length t1)) t2
+                           : totoks atIsLetter
+                               (incSourceColumn pos (1 + T.length t1)) t2
                         Nothing -> Tok pos Symbol "#"
-                                  : totoks (incSourceColumn pos 1) rest
+                                  : totoks atIsLetter (incSourceColumn pos 1) rest
          | c == '^' ->
            case T.uncons rest of
                 Just ('^', rest') ->
@@ -438,25 +444,34 @@ tokenize = totoks
                            case T.uncons rest'' of
                                 Just (e, rest''') | isLowerHex e ->
                                   Tok pos Esc2 (T.pack ['^','^',d,e])
-                                  : totoks (incSourceColumn pos 4) rest'''
+                                  : totoks atIsLetter
+                                     (incSourceColumn pos 4) rest'''
                                 _ ->
                                   Tok pos Esc1 (T.pack ['^','^',d])
-                                  : totoks (incSourceColumn pos 3) rest''
+                                  : totoks atIsLetter
+                                      (incSourceColumn pos 3) rest''
                          | d < '\128' ->
                                   Tok pos Esc1 (T.pack ['^','^',d])
-                                  : totoks (incSourceColumn pos 3) rest''
+                                  : totoks atIsLetter
+                                     (incSourceColumn pos 3) rest''
                        _ -> Tok pos Symbol "^" :
                             Tok (incSourceColumn pos 1) Symbol "^" :
-                            totoks (incSourceColumn pos 2) rest'
+                            totoks atIsLetter (incSourceColumn pos 2) rest'
                 _ -> Tok pos Symbol "^"
-                     : totoks (incSourceColumn pos 1) rest
+                     : totoks atIsLetter (incSourceColumn pos 1) rest
          | otherwise ->
-           Tok pos Symbol (T.singleton c) : totoks (incSourceColumn pos 1) rest
+           Tok pos Symbol (T.singleton c) :
+             totoks atIsLetter (incSourceColumn pos 1) rest
 
 isSpaceOrTab :: Char -> Bool
 isSpaceOrTab ' '  = True
 isSpaceOrTab '\t' = True
 isSpaceOrTab _    = False
+
+-- First parameter is True if @ is letter
+isLetter' :: Bool -> Char -> Bool
+isLetter' True '@' = True
+isLetter' _ c = isLetter c
 
 isLetterOrAt :: Char -> Bool
 isLetterOrAt '@' = True
@@ -490,7 +505,11 @@ parseFromToks parser toks = do
   case toks of
      Tok pos _ _ : _ -> setPosition pos
      _ -> return ()
-  result <- disablingWithRaw parser
+  -- we ignore existing raw tokens maps (see #9517)
+  oldRawTokens <- sRawTokens <$> getState
+  updateState $ \st -> st{ sRawTokens = mempty }
+  result <- parser
+  updateState $ \st -> st{ sRawTokens = oldRawTokens }
   setInput oldInput
   setPosition oldpos
   return result
@@ -633,6 +652,9 @@ trySpecialMacro "xspace" ts = do
     _ -> return ts'
 trySpecialMacro "iftrue" ts = handleIf True ts
 trySpecialMacro "iffalse" ts = handleIf False ts
+trySpecialMacro "ifmmode" ts = do
+  mathMode <- sMathMode <$> getState
+  handleIf mathMode ts
 trySpecialMacro _ _ = mzero
 
 handleIf :: PandocMonad m => Bool -> [Tok] -> LP m [Tok]
@@ -870,7 +892,12 @@ dimenarg = try $ do
   optional sp
   ch  <- option False $ True <$ symbol '='
   minus <- option "" $ "-" <$ symbol '-'
-  Tok _ _ s1 <- satisfyTok isWordTok
+  s1 <- option ""
+        (do Tok _ _ s1 <- satisfyTok isWordTok
+            guard (case T.uncons s1 of
+                     Just (c,_) -> isDigit c
+                     Nothing -> False)
+            pure s1)
   s2 <- option "" $ try $ do
           symbol '.'
           Tok _ _ t <-  satisfyTok isWordTok
@@ -878,7 +905,11 @@ dimenarg = try $ do
   let s = s1 <> s2
   let (num, rest) = T.span (\c -> isDigit c || c == '.') s
   guard $ T.length num > 0
-  guard $ rest `elem` ["", "pt","pc","in","bp","cm","mm","dd","cc","sp"]
+  guard $ rest `elem`
+    ["", "pt","pc","in","bp","cm","mm","dd","cc","sp","ex","em",
+     "mu", -- "mu" in math mode only
+     "px" -- "px" with pdftex and luatex only
+    ]
   return $ T.pack ['=' | ch] <> minus <> s
 
 ignore :: (Monoid a, PandocMonad m) => Text -> ParsecT s u m a
@@ -910,6 +941,7 @@ withRaw parser = do
 
 keyval :: PandocMonad m => LP m (Text, Text)
 keyval = try $ do
+  sp
   key <- untokenize <$> many1 (notFollowedBy (symbol '=') >>
                          (symbol '-' <|> symbol '_' <|> satisfyTok isWordTok))
   sp
@@ -928,6 +960,7 @@ keyval = try $ do
                                 Tok _ Symbol "{" -> False
                                 Tok _ Symbol "}" -> False
                                 _                -> True)))))
+  sp
   optional (symbol ',')
   sp
   return (key, T.strip val)
@@ -983,6 +1016,18 @@ getRawCommand name txt = do
              void (manyTill anyTok braced) <|>
                 void (satisfyTok isPreTok) -- see #7531
            _ | isFontSizeCommand name -> return ()
+             | name `elem` ["hfil", "hfill", "vfil", "vfill",
+                            "hfilneg", "vfilneg"] -> return ()
+             | name `elem` ["hskip", "vskip", "mskip"] -> do
+                 dimenarg
+                 skipMany $ try $ do
+                   sp
+                   satisfyTok $
+                     \case
+                       Tok _ Word "plus" -> True
+                       Tok _ Word "minus" -> True
+                       _ -> False
+                   dimenarg
              | otherwise -> do
                skipopts
                option "" (try dimenarg)

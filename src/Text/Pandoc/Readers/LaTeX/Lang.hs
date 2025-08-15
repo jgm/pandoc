@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.LaTeX.Lang
-   Copyright   : Copyright (C) 2018-2023 John MacFarlane
+   Copyright   : Copyright (C) 2018-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -171,7 +171,7 @@ polyglossiaLangToBCP47 = M.fromList
   , ("indonesian", \_ -> simpleLang "id")
   , ("icelandic", \_ -> simpleLang "is")
   , ("italian", \_ -> simpleLang "it")
-  , ("japanese", \_ -> simpleLang "jp")
+  , ("japanese", \_ -> simpleLang "ja")
   , ("khmer", \_ -> simpleLang "km")
   , ("kurmanji", \_ -> simpleLang "kmr")
   , ("kannada", \_ -> simpleLang "kn")
@@ -226,6 +226,7 @@ babelLangToBCP47 s =
        "ngerman" -> Just $ Lang "de" Nothing (Just "DE") [] [] []
        "lowersorbian" -> Just $ Lang "dsb" Nothing Nothing [] [] []
        "uppersorbian" -> Just $ Lang "hsb" Nothing Nothing [] [] []
+       "polytonicgreek" -> Just $ Lang "el" Nothing Nothing ["polyton"] [] []
        "polutonikogreek" -> Just $ Lang "el" Nothing Nothing ["polyton"] [] []
        "slovene" -> Just $ simpleLang "sl"
        "australian" -> Just $ Lang "en" Nothing (Just "AU") [] [] []

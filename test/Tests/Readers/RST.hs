@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Tests.Readers.RST
-   Copyright   : © 2006-2023 John MacFarlane
+   Copyright   : © 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -50,13 +50,13 @@ tests = [ "line block with blank line" =:
              , "  on two lines" ]
              =?>
               doc (para "para" <>
-                   definitionList [ (str "Hostname", [para "media08"])
-                                  , (text "IP address", [para "10.0.0.19"])
-                                  , (str "Size", [para "3ru"])
-                                  , (str "Version", [para "1"])
-                                  , (str "Indentation", [para "Since the field marker may be quite long, the second\nand subsequent lines of the field body do not have to line up\nwith the first line, but they must be indented relative to the\nfield name marker, and they must line up with each other."])
-                                  , (text "Parameter i", [para "integer"])
-                                  , (str "Final", [para "item\non two lines"])
+                   definitionList [ (str "Hostname", [plain "media08"])
+                                  , (text "IP address", [plain "10.0.0.19"])
+                                  , (str "Size", [plain "3ru"])
+                                  , (str "Version", [plain "1"])
+                                  , (str "Indentation", [plain "Since the field marker may be quite long, the second\nand subsequent lines of the field body do not have to line up\nwith the first line, but they must be indented relative to the\nfield name marker, and they must line up with each other."])
+                                  , (text "Parameter i", [plain "integer"])
+                                  , (str "Final", [plain "item\non two lines"])
                                   ])
           , "metadata" =: T.unlines
              [ "====="
@@ -69,7 +69,7 @@ tests = [ "line block with blank line" =:
              , ":Version: 1"
              ]
              =?>
-              setMeta "version" (para "1") (setMeta "title" ("Title" :: Inlines)
+              setMeta "version" (str "1") (setMeta "title" ("Title" :: Inlines)
                  $ setMeta "subtitle" ("Subtitle" :: Inlines)
                  $ doc mempty)
           , "with inline markup" =: T.unlines
@@ -87,10 +87,10 @@ tests = [ "line block with blank line" =:
              ]
              =?>
               setMeta "date" (str "today") (doc
-                 $ definitionList [ (emph "one", [para "emphasis"])
-                                  , (link "http://example.com" "" "two", [para "reference"])
-                                  , (link "http://example.org" "" "three", [para "another one"])
-                                  , (code "four", [para "literal"])
+                 $ definitionList [ (emph "one", [plain "emphasis"])
+                                  , (link "http://example.com" "" "two", [plain "reference"])
+                                  , (link "http://example.org" "" "three", [plain "another one"])
+                                  , (code "four", [plain "literal"])
                                   ])
           ]
         , "URLs with following punctuation" =:

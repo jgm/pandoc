@@ -1,8 +1,8 @@
-version?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
-pandoc=$(shell find dist -name pandoc -type f -exec ls -t {} \; | head -1)
+VERSION?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
+PANDOC_CLI_VERSION?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
 SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
-DOCKERIMAGE=registry.gitlab.b-data.ch/ghc/ghc4pandoc:9.4.4
+DOCKERIMAGE=quay.io/benz0li/ghc-musl:9.8
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
@@ -12,24 +12,26 @@ BASELINECMD=
 else
 BASELINECMD=--baseline $(BASELINE)
 endif
-GHCOPTS=-fwrite-ide-info -fdiagnostics-color=always -j4 +RTS -A8m -RTS
-CABALOPTS?=--disable-optimization -f-export-dynamic
+CABALOPTS?=--disable-optimization -f-export-dynamic --ghc-option=-fwrite-ide-info --ghc-option=-fdiagnostics-color=always --ghc-option=-j
 WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
+pandoc=$(shell cabal list-bin $(CABALOPTS) pandoc-cli)
 
-all: test build ## build executable and run tests
+all: build test binpath ## build executable and run tests
 .PHONY: all
 
 build: ## build executable
 	cabal build \
-	  --ghc-options='$(GHCOPTS)' \
 	  $(CABALOPTS) pandoc-cli
-	@cabal list-bin $(CABALOPTS) --ghc-options='$(GHCOPTS)' pandoc-cli
 .PHONY: build
 
+prof: ## build with profiling and optimizations
+	cabal build --enable-profiling all
+.PHONY: prof
+
 binpath: ## print path of built pandoc executable
-	@cabal list-bin $(CABALOPTS) pandoc-cli
+	@cabal list-bin -v0 $(CABALOPTS) pandoc-cli
 .PHONY: binpath
 
 ghcid: ## run ghcid
@@ -48,33 +50,30 @@ linecounts: ## print line counts for each module
 # make test TESTARGS='--accept'
 test:  ## unoptimized build and run tests with cabal
 	cabal test \
-	  --ghc-options='$(GHCOPTS)' \
 	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)" all
 .PHONY: test
 
 quick-stack: ## unoptimized build and tests with stack
 	stack install \
-	  --ghc-options='$(GHCOPTS)' \
 	  --system-ghc --flag 'pandoc:embed_data_files' \
 	  --fast \
 	  --test \
 	  --test-arguments='-j4 --hide-successes --ansi-tricks=false $(TESTARGS)'
 .PHONY: quick-stack
 
-prerelease: README.md fix_spacing check-cabal check-stack checkdocs man uncommitted_changes ## prerelease checks
+prerelease: validate-epub README.md fix_spacing check-cabal check-stack checkdocs man check-version-sync check-changelog check-manversion uncommitted_changes ## prerelease checks
 .PHONY: prerelease
 
 uncommitted_changes:
 	! git diff | grep '.'
 .PHONY: uncommitted_changes
 
-authors:  ## prints unique authors since LASTRELEASE (version)
-	git log --pretty=format:"%an" $(LASTRELEASE)..HEAD | sort | uniq
-
+authors:  ## prints unique authors since last released version
+	git log --pretty=format:"%an" $$(git tag -l | grep '[^0-9]' | sort | tail -1)..HEAD | sort | uniq | while read -r; do grep -i -q "^- $$REPLY" AUTHORS.md || echo $$REPLY ; done
 
 check-stack:
-	stack-lint-extra-deps # check that stack.yaml dependencies are up to date
+	$$HOME/.local/bin/stack-lint-extra-deps # check that stack.yaml dependencies are up to date
 	! grep 'git:' stack.yaml # use only released versions
 .PHONY: check-stack
 
@@ -84,7 +83,7 @@ check-cabal: git-files.txt sdist-files.txt
 	@for pkg in . pandoc-lua-engine pandoc-server pandoc-cli; \
 	do \
 	     pushd $$pkg ; \
-	     cabal check ; \
+	     cabal check --ignore=missing-upper-bounds ; \
 	     cabal outdated ; \
 	     popd ; \
 	done
@@ -92,9 +91,28 @@ check-cabal: git-files.txt sdist-files.txt
 
 .PHONY: check-cabal
 
+check-version-sync:
+	@echo "Checking for match between pandoc and pandoc-cli versions"
+	[ $(VERSION) == $(PANDOC_CLI_VERSION) ]
+	@echo "Checking that pandoc-cli depends on this version of pandoc"
+	grep 'pandoc == $(VERSION)' pandoc-cli/pandoc-cli.cabal
+.PHONY: check-version-sync
+
+check-changelog:
+	@echo "Checking for changelog entry for this version"
+	rg '## pandoc $(VERSION) \(\d\d\d\d-\d\d-\d\d\)' changelog.md
+.PHONY: check-changelog
+
+check-manversion:
+	@echo "Checking version number in man pages"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc-server.1"
+	grep '"pandoc $(VERSION)"' "pandoc-cli/man/pandoc-lua.1"
+.PHONY: check-manversion
+
 checkdocs:
 	@echo "Checking for tabs in manual."
-	! grep -q -n -e "\t" \
+	! rg -n -e '\t' \
 	   MANUAL.txt changelog.md doc/pandoc-server.md doc/pandoc-lua.md
 .PHONY: checkdocs
 
@@ -115,19 +133,19 @@ fix_spacing: ## fix trailing newlines and spaces
 .PHONY: fix_spacing
 
 changes_github: ## copy this release's changes in gfm
-	pandoc --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g' | pbcopy
+	@$(pandoc) --lua-filter tools/extract-changes.lua changelog.md -t gfm --wrap=none --template tools/changes_template.html | sed -e 's/\\#/#/g'
 .PHONY: changes_github
 
-man: man/pandoc.1 man/pandoc-server.1 man/pandoc-lua.1 ## build man pages
+man: pandoc-cli/man/pandoc.1 pandoc-cli/man/pandoc-server.1 pandoc-cli/man/pandoc-lua.1 ## build man pages
 .PHONY: man
 
 latex-package-dependencies: ## print packages used by default latex template
-	pandoc lua tools=latex-package-dependencies.lua
+	$(pandoc) lua tools/latex-package-dependencies.lua
 .PHONY: latex-package-dependencies
 
 coverage: ## code coverage information
 	cabal test \
-	  --ghc-options='-fhpc $(GHCOPTS)' \
+	  --ghc-option=-fhpc \
 	  $(CABALOPTS) \
 	  --test-options="--hide-successes --ansi-tricks=false $(TESTARGS)"
 	hpc markup --destdir=coverage test/test-pandoc.tix
@@ -147,6 +165,7 @@ debpkg: ## create linux package
                    -v `pwd`/linux/artifacts:/artifacts \
 		   --user $(id -u):$(id -g) \
 		   -e REVISION=$(REVISION) \
+       -e CABALOPTS="-f-export-dynamic -fembed_data_files -fserver -flua --enable-executable-static -j4 --ghc-option=-j4 --ghc-option=-split-sections --ghc-option=-optc-Os --ghc-option=-optl=-pthread" \
 		   -w /mnt \
 		   --memory=0 \
 		   --rm \
@@ -155,30 +174,40 @@ debpkg: ## create linux package
 		   /mnt/linux/make_artifacts.sh
 .PHONY: debpkg
 
-man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
-	pandoc $< -f markdown -t man -s \
+pandoc-cli/man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after pandoc.cabal
+	$(pandoc) $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
 		--include-before-body man/pandoc.1.before \
 		--include-after-body man/pandoc.1.after \
 		--metadata author="" \
-		--variable footer="pandoc $(version)" \
+    --variable section="1" \
+    --variable title="pandoc" \
+    --variable header='Pandoc User\[cq]s Guide' \
+		--variable footer="pandoc $(VERSION)" \
 		-o $@
 
-man/pandoc-%.1: doc/pandoc-%.md
-	pandoc $< -f markdown -t man -s \
+pandoc-cli/man/%.1: doc/%.md pandoc.cabal
+	$(pandoc) $< -f markdown -t man -s \
 		--lua-filter man/manfilter.lua \
-		--variable footer="pandoc-$* $(version)" \
+		--metadata author="" \
+    --variable section="1" \
+    --variable title="$(basename $(notdir $@))" \
+    --variable header='Pandoc User\[cq]s Guide' \
+		--variable footer="pandoc $(VERSION)" \
+    --include-after-body man/pandoc.1.after \
 		-o $@
+
 
 README.md: README.template MANUAL.txt tools/update-readme.lua
-	pandoc --lua-filter tools/update-readme.lua \
+	$(pandoc) --lua-filter tools/update-readme.lua \
 	      --reference-location=section -t gfm $< -o $@
 
 doc/lua-filters.md: tools/update-lua-module-docs.lua  ## update lua-filters.md module docs
-	cabal run pandoc -- --standalone \
+	cabal run pandoc-cli -- \
+		--standalone \
 		--reference-links \
-		--lua-filter=$< \
 		--columns=66 \
+		--from=$< \
 		--output=$@ \
 		$@
 .PHONY: doc/lua-filters.md
@@ -193,7 +222,7 @@ pandoc-templates: ## update pandoc-templates repo
 	cp data/templates/* ../pandoc-templates/ ; \
 	pushd ../pandoc-templates/ && \
 	git add * && \
-	git commit -m "Updated templates for pandoc $(version)" && \
+	git commit -m "Updated templates for pandoc $(VERSION)" && \
 	popd
 .PHONY: pandoc-templates
 
@@ -202,6 +231,41 @@ update-website: ## update website and upload
 	make -C $(WEBSITE)
 	make -C $(WEBSITE) upload
 .PHONY: update-website
+
+update-translations: ## update data/translations from Babel and Polyglossia
+	python tools/update-translations.py
+.PHONY: update-translations
+
+validate-docx-golden-tests: ## validate docx golden tests against schema
+	which xmllint || ("xmllint is required" && exit 1)
+	test -d ./docx-validator || \
+		(git clone https://github.com/devoidfury/docx-validator && \
+		cd docx-validator && patch -p1 <../wml.xsd.patch)
+	sh ./tools/validate-docx.sh test/docx/golden/*.docx
+.PHONY: validate-docx-golden-tests
+
+validate-docx-golden-tests2: ## validate docx golden tests using OOXMLValidator
+	which dotnet || ("dotnet is required" && exit 1)
+	which jq || ("jq is required" && exit 1)
+	test -d ./OOXML-Validator || \
+		(git clone https://github.com/mikeebowen/OOXML-Validator.git \
+		&& cd OOXML-Validator && dotnet build --configuration=Release)
+	sh ./tools/validate-docx2.sh test/docx/golden/
+.PHONY: validate-docx-golden-tests2
+
+node_modules/.bin/ace:
+	npm install @daisy/ace
+
+validate-epub: node_modules/.bin/ace ## generate an epub and validate it with epubcheck and ace
+	which epubcheck || exit 1
+	tmp=$$(mktemp -d) && \
+  for epubver in 2 3; do \
+    file=$$tmp/ver$$epubver.epub ; \
+	  $(pandoc) test/epub/wasteland.epub --epub-cover=test/lalune.jpg -Mtitle="The Wasteland" --resource-path test/epub -t epub$$epubver -o $$file --number-sections --toc --quiet && \
+	  echo $$file && \
+	  epubcheck $$file || exit 1 ; \
+  done && \
+	./node_modules/.bin/ace $$tmp/ver3.epub -o ace-report-v2 --force
 
 modules.csv: $(PANDOCSOURCEFILES)
 	@rg '^import.*Text\.Pandoc\.' --with-filename $^ \
@@ -227,7 +291,7 @@ modules.pdf: modules.dot
 # make moduledeps ROOT=Text.Pandoc.Parsing
 moduledeps: modules.csv  ## Print transitive dependencies of a module ROOT
 	@echo "$(ROOT)"
-	@lua tools/moduledeps.lua transitive $(ROOT) | sort
+	@$(pandoc) lua tools/moduledeps.lua transitive $(ROOT) | sort
 .PHONY: moduledeps
 
 clean: ## clean up
@@ -237,10 +301,10 @@ clean: ## clean up
 .PHONY: .FORCE
 
 sdist-files.txt: .FORCE
-	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)\/' | sort > $@
+	cabal sdist --list-only | sed 's/\.\///' | grep '^\(test\|data\)/' | sort > $@
 
 git-files.txt: .FORCE
-	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)\/' | sort > $@
+	git ls-tree -r --name-only HEAD | grep '^\(test\|data\)/' | sort > $@
 
 help: ## display this help
 	@echo "Targets:"
@@ -248,11 +312,16 @@ help: ## display this help
 	@echo
 	@echo "Environment variables with default values:"
 	@printf "%-16s%s\n" "CABALOPTS" "$(CABALOPTS)"
-	@printf "%-16s%s\n" "GHCOPTS" "$(GHCOPTS)"
 	@printf "%-16s%s\n" "TESTARGS" "$(TESTARGS)"
 	@printf "%-16s%s\n" "BASELINE" "$(BASELINE)"
 	@printf "%-16s%s\n" "REVISION" "$(REVISION)"
 .PHONY: help
+
+release-checklist: release-checklist-$(VERSION).org
+.PHONY: release-checklist
+
+release-checklist-$(VERSION).org: RELEASE-CHECKLIST-TEMPLATE.org
+	sed -e 's/RELEASE_VERSION/$(VERSION)/g' $< > $@
 
 hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@

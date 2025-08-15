@@ -3,10 +3,10 @@
 {-# LANGUAGE ScopedTypeVariables  #-}
 {- |
    Module      : Text.Pandoc.Lua.Marshal.PandocError
-   Copyright   : © 2020-2023 Albert Krewinkel
+   Copyright   : © 2020-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
 
 Marshal of @'PandocError'@ values.
@@ -23,7 +23,7 @@ import HsLua.Packaging
 import Text.Pandoc.Error (PandocError (PandocLuaError), renderError)
 
 import qualified HsLua as Lua
-import qualified Text.Pandoc.UTF8 as UTF8
+import qualified HsLua.Core.Utf8 as UTF8
 
 -- | Lua userdata type definition for PandocError.
 typePandocError :: LuaError e => DocumentedType e PandocError

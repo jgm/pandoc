@@ -1,0 +1,105 @@
+Simple table with caption:
+
+#figure(
+  align(center)[#table(
+    columns: 4,
+    align: (right,left,center,auto,),
+    table.header([Right], [Left], [Center], [Default],),
+    table.hline(),
+    [12], [12], [12], [12],
+    [123], [123], [123], [123],
+    [1], [1], [1], [1],
+  )]
+  , caption: [Demonstration of simple table syntax.]
+  , kind: table
+  )
+
+Simple table without caption:
+
+#figure(
+  align(center)[#table(
+    columns: 4,
+    align: (right,left,center,auto,),
+    table.header([Right], [Left], [Center], [Default],),
+    table.hline(),
+    [12], [12], [12], [12],
+    [123], [123], [123], [123],
+    [1], [1], [1], [1],
+  )]
+  , kind: table
+  )
+
+Simple table indented two spaces:
+
+#figure(
+  align(center)[#table(
+    columns: 4,
+    align: (right,left,center,auto,),
+    table.header([Right], [Left], [Center], [Default],),
+    table.hline(),
+    [12], [12], [12], [12],
+    [123], [123], [123], [123],
+    [1], [1], [1], [1],
+  )]
+  , caption: [Demonstration of simple table syntax.]
+  , kind: table
+  )
+
+Multiline table with caption:
+
+#figure(
+  align(center)[#table(
+    columns: (15%, 13.75%, 16.25%, 35%),
+    align: (center,left,right,left,),
+    table.header([Centered Header], [Left Aligned], [Right Aligned], [Default
+      aligned],),
+    table.hline(),
+    [First], [row], [12.0], [Example of a row that spans multiple lines.],
+    [Second], [row], [5.0], [Here's another one. Note the blank line between
+    rows.],
+  )]
+  , caption: [Here's the caption. It may span multiple lines.]
+  , kind: table
+  )
+
+Multiline table without caption:
+
+#figure(
+  align(center)[#table(
+    columns: (15%, 13.75%, 16.25%, 35%),
+    align: (center,left,right,left,),
+    table.header([Centered Header], [Left Aligned], [Right Aligned], [Default
+      aligned],),
+    table.hline(),
+    [First], [row], [12.0], [Example of a row that spans multiple lines.],
+    [Second], [row], [5.0], [Here's another one. Note the blank line between
+    rows.],
+  )]
+  , kind: table
+  )
+
+Table without column headers:
+
+#figure(
+  align(center)[#table(
+    columns: 4,
+    align: (right,left,center,right,),
+    [12], [12], [12], [12],
+    [123], [123], [123], [123],
+    [1], [1], [1], [1],
+  )]
+  , kind: table
+  )
+
+Multiline table without column headers:
+
+#figure(
+  align(center)[#table(
+    columns: (15%, 13.75%, 16.25%, 35%),
+    align: (center,left,right,auto,),
+    [First], [row], [12.0], [Example of a row that spans multiple lines.],
+    [Second], [row], [5.0], [Here's another one. Note the blank line between
+    rows.],
+  )]
+  , kind: table
+  )

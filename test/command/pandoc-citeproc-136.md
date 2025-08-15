@@ -15,9 +15,9 @@ references:
 ^D
 *Stanze in lode della donna brutta* (1547) is an anoynymous work.
 
-::: {#refs .references .csl-bib-body .hanging-indent}
+:::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-stanze .csl-entry}
 *Stanze in lode della donna brutta*. 1547. Florence.
 :::
-:::
+::::
 ```

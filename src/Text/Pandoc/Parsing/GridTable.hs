@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
    Module      : Text.Pandoc.Parsing.GridTable
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -248,4 +248,4 @@ widthsFromIndices numColumns' indices =
                    then fromIntegral totLength
                    else fromIntegral numColumns
       fracs = map (\l -> fromIntegral l / quotient) lengths in
-  tail fracs
+  drop 1 fracs

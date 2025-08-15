@@ -9,44 +9,26 @@ packages:
 - 'pandoc-lua-engine'
 - 'pandoc-server'
 extra-deps:
-- gridtables-0.1.0.0
-- hslua-2.3.0
-- hslua-aeson-2.3.0.1
-- hslua-classes-2.3.0
-- hslua-cli-1.3.0
-- hslua-core-2.3.0
-- hslua-list-1.1.0.1
-- hslua-marshalling-2.3.0
-- hslua-module-doclayout-1.1.0
-- hslua-module-path-1.1.0
-- hslua-module-system-1.1.0
-- hslua-module-text-1.1.0
-- hslua-module-version-1.1.0
-- hslua-module-zip-1.1.0
-- hslua-objectorientation-2.3.0
-- hslua-packaging-2.3.0
-- hslua-typing-0.1.0
-- jira-wiki-markup-1.5.1
-- lua-2.3.0
-- lua-arbitrary-1.0.1.1
-- lpeg-1.0.4
-- mime-types-0.1.1.0
-- doctemplates-0.11
-- texmath-0.12.6
-- citeproc-0.8.1
-- pandoc-types-1.23
-- pandoc-lua-marshal-0.2.1.1
-- commonmark-pandoc-0.2.1.3
-- skylighting-0.13.2.1
-- skylighting-core-0.13.2.1
-- skylighting-format-context-0.1.0.2
-- tasty-lua-1.1.0
-- tasty-hslua-1.1.0
-- zip-archive-0.4.3
-- commonmark-extensions-0.2.3.4
-
+- hslua-2.4.0
+- hslua-module-doclayout-1.2.0.1
+- hslua-module-system-1.2.3
+- hslua-objectorientation-2.4.0
+- hslua-packaging-2.3.2
+- pandoc-lua-marshal-0.3.1
+- tls-2.1.7
+- skylighting-core-0.14.6
+- skylighting-0.14.6
+- skylighting-format-typst-0.1
+- typst-symbols-0.1.8.1
+- typst-0.8.0.1
+- git: https://github.com/jgm/citeproc.git
+  commit: 31f1b8b972bd01f6e29c1cf9c50bf0ffd9fab9a2
+- git: https://github.com/jgm/texmath.git
+  commit: 2a40f5d26d9b888559fd573ea8e7cb9c0114f9ee
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-20.6
+resolver: lts-23.22
 nix:
-  packages: [zlib]
+  packages:
+  - pkg-config
+  - zlib

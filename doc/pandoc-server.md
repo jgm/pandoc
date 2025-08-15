@@ -190,6 +190,14 @@ the first one given is the default.
 
 :   Depth of sections to include in the table of contents.
 
+`list-of-figures` (boolean, default false)
+
+:   Include a list of figures (in supported formats).
+
+`list-of-tables` (boolean, default false)
+
+:   Include a list of tables (in supported formats).
+
 `strip-comments` (boolean, default false)
 
 :   Causes HTML comments to be stripped in Markdown or Textile

@@ -5,49 +5,49 @@
 <col width="50%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th align="center">Student ID</th>
 <th align="center">Name</th>
 </tr>
 </thead>
 <tbody class="souvereign-states">
-<tr class="odd">
+<tr>
 <th colspan="2" align="left">Computer Science</th>
 </tr>
 
-<tr class="odd">
+<tr>
 <td align="left">3741255</td>
 <td align="left">Jones, Martha</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="left">4077830</td>
 <td align="left">Pierce, Benjamin</td>
 </tr>
-<tr class="odd">
+<tr>
 <td align="left">5151701</td>
 <td align="left">Kirk, James</td>
 </tr>
 </tbody>
 <tbody>
-<tr class="odd">
+<tr>
 <th colspan="2" align="left">Russian Literature</th>
 </tr>
 
-<tr class="odd">
+<tr>
 <td align="left">3971244</td>
 <td align="left">Nim, Victor</td>
 </tr>
 </tbody>
 <tbody>
-<tr class="odd">
+<tr>
 <th colspan="2" align="left">Astrophysics</th>
 </tr>
 
-<tr class="odd">
+<tr>
 <td align="left">4100332</td>
 <td align="left">Petrov, Alexandra</td>
 </tr>
-<tr class="even">
+<tr>
 <td align="left">4100332</td>
 <td align="left">Toyota, Hiroko</td>
 </tr>

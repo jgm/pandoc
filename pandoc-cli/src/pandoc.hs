@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {- |
    Module      : Main
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -16,18 +16,12 @@ module Main where
 import qualified Control.Exception as E
 import System.Environment (getArgs, getProgName)
 import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
-                       , parseOptionsFromArgs, handleOptInfo )
+                       , parseOptionsFromArgs, handleOptInfo, versionInfo )
 import Text.Pandoc.Error (handleError)
-import qualified Text.Pandoc.UTF8 as UTF8
-import System.Exit (exitSuccess)
 import Data.Monoid (Any(..))
-import Control.Monad (when)
 import PandocCLI.Lua
 import PandocCLI.Server
-import Text.Pandoc.Version (pandocVersion)
-import Text.Pandoc.Data (defaultUserDataDir)
 import Text.Pandoc.Scripting (ScriptingEngine(..))
-import Data.Version (showVersion)
 import qualified Data.Text as T
 
 #ifdef NIGHTLY
@@ -48,58 +42,45 @@ versionSuffix = ""
 main :: IO ()
 main = E.handle (handleError . Left) $ do
   prg <- getProgName
-  rawArgs <- map UTF8.decodeArg <$> getArgs
+  rawArgs <- getArgs
   let hasVersion = getAny $ foldMap
          (\s -> Any (s == "-v" || s == "--version"))
          (takeWhile (/= "--") rawArgs)
-  when hasVersion versionInfo
+  let versionOr action = if hasVersion then versionInfoCLI else action
   case prg of
-    "pandoc-server.cgi" -> runCGI
-    "pandoc-server"     -> runServer rawArgs
+    "pandoc-server.cgi" -> versionOr runCGI
+    "pandoc-server"     -> versionOr $ runServer rawArgs
     "pandoc-lua"        -> runLuaInterpreter prg rawArgs
     _ ->
       case rawArgs of
         "lua" : args   -> runLuaInterpreter "pandoc lua" args
-        "server": args -> runServer args
-        args           -> do
+        "server": args -> versionOr $ runServer args
+        args           -> versionOr $ do
           engine <- getEngine
           res <- parseOptionsFromArgs options defaultOpts prg args
           case res of
             Left e -> handleOptInfo engine e
             Right opts -> convertWithOpts engine opts
 
-copyrightMessage :: String
-copyrightMessage =
- "Copyright (C) 2006-2023 John MacFarlane. Web:  https://pandoc.org\n"
- ++
- "This is free software; see the source for copying conditions. There is no\n"
- ++
- "warranty, not even for merchantability or fitness for a particular purpose."
 
-flagSettings :: String
-flagSettings = "Features: " ++
+getFeatures :: [String]
+getFeatures = [
 #ifdef VERSION_pandoc_server
   "+server"
 #else
   "-server"
 #endif
-  ++ " " ++
+  ,
 #ifdef VERSION_hslua_cli
   "+lua"
 #else
   "-lua"
 #endif
+  ]
 
-versionInfo :: IO ()
-versionInfo = do
-  progname <- getProgName
-  defaultDatadir <- defaultUserDataDir
+versionInfoCLI :: IO ()
+versionInfoCLI = do
   scriptingEngine <- getEngine
-  putStr $ unlines
-   [ progname ++ " " ++ showVersion pandocVersion ++ versionSuffix
-   , flagSettings
-   , "Scripting engine: " ++ T.unpack (engineName scriptingEngine)
-   , "User data directory: " ++ defaultDatadir
-   , copyrightMessage
-   ]
-  exitSuccess
+  versionInfo getFeatures
+              (Just $ T.unpack (engineName scriptingEngine))
+              versionSuffix

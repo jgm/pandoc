@@ -4,10 +4,6 @@
   <w:embedSystemFonts />
   <w:proofState w:spelling="clean" w:grammar="clean" />
   <w:stylePaneFormatFilter w:val="0004" />
-  <w:footnotePr>
-    <w:footnote w:id="-1" />
-    <w:footnote w:id="0" />
-  </w:footnotePr>
   <w:doNotTrackMoves />
   <w:defaultTabStop w:val="720" />
   <w:drawingGridHorizontalSpacing w:val="360" />
@@ -16,6 +12,10 @@
   <w:displayVerticalDrawingGridEvery w:val="0" />
   <w:characterSpacingControl w:val="doNotCompress" />
   <w:savePreviewPicture />
+  <w:footnotePr>
+    <w:footnote w:id="-1" />
+    <w:footnote w:id="0" />
+  </w:footnotePr>
   <w:rsids>
   </w:rsids>
   <m:mathPr>

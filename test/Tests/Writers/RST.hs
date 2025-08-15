@@ -32,7 +32,7 @@ tests :: [TestTree]
 tests = [ testGroup "rubrics"
           [ "in list item" =:
               bulletList [header 2 (text "foo")] =?>
-              "-  .. rubric:: foo"
+              "- .. rubric:: foo"
           , "in definition list item" =:
               definitionList [(text "foo", [header 2 (text "bar"),
                                             para $ text "baz"])] =?>
@@ -60,7 +60,7 @@ tests = [ testGroup "rubrics"
           [ "a list is closed by a comment before a quote" =: -- issue 4248
             bulletList [plain "bulleted"] <> blockQuote (plain "quoted") =?>
               unlines
-              [ "-  bulleted"
+              [ "- bulleted"
               , ""
               , ".."
               , ""

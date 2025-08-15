@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Org.Inline.Citation
-   Copyright   : © 2014-2023 Albert Krewinkel
+   Copyright   : © 2014-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
    Portability : portable
 
@@ -201,13 +201,6 @@ tests =
 
   , "LaTeX citation" =:
     "\\cite{Coffee}" =?>
-    let citation = Citation
-                   { citationId = "Coffee"
-                   , citationPrefix = []
-                   , citationSuffix = []
-                   , citationMode = NormalCitation
-                   , citationNoteNum = 0
-                   , citationHash = 0}
-    in (para . cite [citation] $ rawInline "latex" "\\cite{Coffee}")
+      para (rawInline "latex" "\\cite{Coffee}")
 
   ]

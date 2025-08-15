@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
 Module      : Text.Pandoc.Parsing.General
-Copyright   : © 2006-2023 John MacFarlane
+Copyright   : © 2006-2024 John MacFarlane
 License     : GPL-2.0-or-later
 Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -421,7 +421,6 @@ parseFromString parser str = do
   setInput $ toSources str
   setPosition $ initialPos $ sourceName oldPos <> "_chunk"
   result <- parser
-  spaces
   setInput oldInput
   setPosition oldPos
   return result
@@ -447,8 +446,8 @@ lineClump = blanklines
 -- | Parse a string of characters between an open character
 -- and a close character, including text between balanced
 -- pairs of open and close, which must be different. For example,
--- @charsInBalanced '(' ')' anyChar@ will parse "(hello (there))"
--- and return "hello (there)".
+-- @charsInBalanced '(' ')' (Data.Text.singleton <$> anyChar)@ will parse
+-- "(hello (there))" and return "hello (there)".
 charsInBalanced :: (Stream s m Char, UpdateSourcePos s Char)
                 => Char -> Char -> ParsecT s st m Text -> ParsecT s st m Text
 charsInBalanced open close parser = try $ do

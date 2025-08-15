@@ -3,7 +3,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown.Inline
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -113,11 +113,11 @@ escapeMarkuaString :: Text -> Text
 escapeMarkuaString s = foldr (uncurry T.replace) s [("--","~-~-"),
                         ("**","~*~*"),("//","~/~/"),("^^","~^~^"),(",,","~,~,")]
 
-attrsToMarkdown :: Attr -> Doc Text
-attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
+attrsToMarkdown :: WriterOptions -> Attr -> Doc Text
+attrsToMarkdown opts attribs = braces $ hsep [attribId, attribClasses, attribKeys]
         where attribId = case attribs of
                                 ("",_,_) -> empty
-                                (i,_,_)  -> "#" <> escAttr i
+                                (i,_,_)  -> "#" <> escAttr (writerIdentifierPrefix opts <> i)
               attribClasses = case attribs of
                                 (_,[],_) -> empty
                                 (_,cs,_) -> hsep $
@@ -134,13 +134,13 @@ attrsToMarkdown attribs = braces $ hsep [attribId, attribClasses, attribKeys]
               escAttrChar '\\' = literal "\\\\"
               escAttrChar c    = literal $ T.singleton c
 
-attrsToMarkua:: Attr -> Doc Text
-attrsToMarkua attributes
+attrsToMarkua:: WriterOptions -> Attr -> Doc Text
+attrsToMarkua opts attributes
      | null list = empty
      | otherwise = braces $ intercalateDocText list
         where attrId = case attributes of
                         ("",_,_) -> []
-                        (i,_,_)  -> [literal $ "id: " <> i]
+                        (i,_,_)  -> [literal $ "id: " <> writerIdentifierPrefix opts <> i]
               -- all non explicit (key,value) attributes besides id are getting
               -- a default class key to be Markua conform
               attrClasses = case attributes of
@@ -184,7 +184,7 @@ linkAttributes :: WriterOptions -> Attr -> Doc Text
 linkAttributes opts attr =
   if (isEnabled Ext_link_attributes opts ||
         isEnabled Ext_attributes opts) && attr /= nullAttr
-     then attrsToMarkdown attr
+     then attrsToMarkdown opts attr
      else empty
 
 getKey :: Doc Text -> Key
@@ -332,14 +332,6 @@ avoidBadWraps inListItem = go . toList
   toList (Concat a b) = a : toList b
   toList x = [x]
 
-isOrderedListMarker :: Text -> Bool
-isOrderedListMarker xs = not (T.null xs) && (T.last xs `elem` ['.',')']) &&
-              isRight (runParser (anyOrderedListMarker >> eof)
-                       defaultParserState "" xs)
- where
-  isRight (Right _) = True
-  isRight (Left  _) = False
-
 -- | Convert Pandoc inline element to markdown.
 inlineToMarkdown :: PandocMonad m => WriterOptions -> Inline -> MD m (Doc Text)
 inlineToMarkdown opts (Span ("",["emoji"],kvs) [Str s]) =
@@ -361,11 +353,11 @@ inlineToMarkdown opts (Span attrs ils) = do
              _ -> id
          $ case variant of
                 PlainText -> contents
-                Markua -> "`" <> contents <> "`" <> attrsToMarkua attrs
+                Markua -> "`" <> contents <> "`" <> attrsToMarkua opts attrs
                 _     | attrs == nullAttr -> contents
                       | isEnabled Ext_bracketed_spans opts ->
                         let attrs' = if attrs /= nullAttr
-                                        then attrsToMarkdown attrs
+                                        then attrsToMarkdown opts attrs
                                         else empty
                         in "[" <> contents <> "]" <> attrs'
                       | isEnabled Ext_raw_html opts ||
@@ -373,14 +365,16 @@ inlineToMarkdown opts (Span attrs ils) = do
                         tagWithAttrs "span" attrs <> contents <> literal "</span>"
                       | otherwise -> contents
 inlineToMarkdown _ (Emph []) = return empty
+inlineToMarkdown opts (Emph [Emph ils]) = -- #10642
+  inlineListToMarkdown opts ils
 inlineToMarkdown opts (Emph lst) = do
   variant <- asks envVariant
   contents <- inlineListToMarkdown opts lst
   return $ case variant of
              PlainText
-               | isEnabled Ext_gutenberg opts -> "_" <> contents <> "_"
+               | isEnabled Ext_gutenberg opts -> delimited "_" "_" contents
                | otherwise ->  contents
-             _ -> "*" <> contents <> "*"
+             _ -> delimited "*" "*" contents
 inlineToMarkdown _ (Underline []) = return empty
 inlineToMarkdown opts (Underline lst) = do
   variant <- asks envVariant
@@ -388,7 +382,7 @@ inlineToMarkdown opts (Underline lst) = do
   case variant of
     PlainText -> return contents
     _     | isEnabled Ext_bracketed_spans opts ->
-            return $ "[" <> contents <> "]" <> "{.underline}"
+            return $ delimited "[" "]{.underline}" contents
           | isEnabled Ext_native_spans opts ->
             return $ tagWithAttrs "span" ("", ["underline"], [])
               <> contents
@@ -407,12 +401,12 @@ inlineToMarkdown opts (Strong lst) = do
                   else lst
     _ -> do
        contents <- inlineListToMarkdown opts lst
-       return $ "**" <> contents <> "**"
+       return $ delimited "**" "**" contents
 inlineToMarkdown _ (Strikeout []) = return empty
 inlineToMarkdown opts (Strikeout lst) = do
   contents <- inlineListToMarkdown opts lst
   return $ if isEnabled Ext_strikeout opts
-              then "~~" <> contents <> "~~"
+              then delimited "~~" "~~" contents
               else if isEnabled Ext_raw_html opts
                        then "<s>" <> contents <> "</s>"
                        else contents
@@ -421,7 +415,7 @@ inlineToMarkdown opts (Superscript lst) =
   local (\env -> env {envEscapeSpaces = envVariant env == Markdown}) $ do
     contents <- inlineListToMarkdown opts lst
     if isEnabled Ext_superscript opts
-       then return $ "^" <> contents <> "^"
+       then return $ delimited "^" "^" contents
        else if isEnabled Ext_raw_html opts
                 then return $ "<sup>" <> contents <> "</sup>"
                 else
@@ -439,7 +433,7 @@ inlineToMarkdown opts (Subscript lst) =
   local (\env -> env {envEscapeSpaces = envVariant env == Markdown}) $ do
     contents <- inlineListToMarkdown opts lst
     if isEnabled Ext_subscript opts
-       then return $ "~" <> contents <> "~"
+       then return $ delimited "~" "~" contents
        else if isEnabled Ext_raw_html opts
                 then return $ "<sub>" <> contents <> "</sub>"
                 else
@@ -483,9 +477,9 @@ inlineToMarkdown opts (Code attr str) = do
   let attrsEnabled = isEnabled Ext_inline_code_attributes opts ||
                      isEnabled Ext_attributes opts
   let attrs = case variant of
-                       Markua -> attrsToMarkua attr
+                       Markua -> attrsToMarkua opts attr
                        _   -> if attrsEnabled && attr /= nullAttr
-                                        then attrsToMarkdown attr
+                                        then attrsToMarkdown opts attr
                                         else empty
   case variant of
      PlainText -> return $ literal str
@@ -514,8 +508,10 @@ inlineToMarkdown opts (Math InlineMath str) = do
             let str' = T.strip str
              in inlineToMarkdown opts
                   (Image nullAttr [Str str'] (url <> urlEncode str', str'))
-          _ | isEnabled Ext_tex_math_dollars opts ->
-                return $ "$" <> literal str <> "$"
+          _ | isEnabled Ext_tex_math_gfm opts ->
+                return $ "$`" <> literal str <> "`$"
+            | isEnabled Ext_tex_math_dollars opts ->
+                return $ delimited "$" "$" (literal str)
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\(" <> literal str <> "\\)"
             | isEnabled Ext_tex_math_double_backslash opts ->
@@ -529,7 +525,7 @@ inlineToMarkdown opts (Math DisplayMath str) = do
   variant <- asks envVariant
   case () of
     _ | variant == Markua -> do
-        let attributes = attrsToMarkua (addKeyValueToAttr ("",[],[])
+        let attributes = attrsToMarkua opts (addKeyValueToAttr ("",[],[])
                                                         ("format", "latex"))
         return $ blankline <> attributes <> cr <> literal "```" <> cr
             <> literal str <> cr <> literal "```" <> blankline
@@ -539,8 +535,12 @@ inlineToMarkdown opts (Math DisplayMath str) = do
              in (\x -> blankline <> x <> blankline) `fmap`
                  inlineToMarkdown opts (Image nullAttr [Str str']
                         (url <> urlEncode str', str'))
-          _ | isEnabled Ext_tex_math_dollars opts ->
-                return $ "$$" <> literal str <> "$$"
+          _ | isEnabled Ext_tex_math_gfm opts ->
+                return $ cr <> (literal "``` math"
+                             $$ literal (T.dropAround (=='\n') str)
+                             $$ literal "```") <> cr
+            | isEnabled Ext_tex_math_dollars opts ->
+                return $ delimited "$$" "$$" (literal str)
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\[" <> literal str <> "\\]"
             | isEnabled Ext_tex_math_double_backslash opts ->
@@ -651,13 +651,14 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
                 case txt of
                       [Str s] | escapeURI s == srcSuffix -> True
                       _       -> False
-  let useWikilink = tit == "wikilink" &&
+  let useWikilink = "wikilink" `elem` classes &&
                     (isEnabled Ext_wikilinks_title_after_pipe opts ||
                      isEnabled Ext_wikilinks_title_before_pipe opts)
   let useRefLinks = writerReferenceLinks opts && not useAuto
   shortcutable <- asks envRefShortcutable
   let useShortcutRefLinks = shortcutable &&
-                            isEnabled Ext_shortcut_reference_links opts
+                             (variant == Commonmark ||
+                              isEnabled Ext_shortcut_reference_links opts)
   reftext <- if useRefLinks
                 then literal <$> getReference attr linktext (src, tit)
                 else return mempty
@@ -666,8 +667,8 @@ inlineToMarkdown opts lnk@(Link attr@(ident,classes,kvs) txt (src, tit)) = do
       | useAuto -> return $ literal srcSuffix
       | otherwise -> return linktext
     Markua
-      | T.null tit -> return $ result <> attrsToMarkua attr
-      | otherwise ->  return $ result <> attrsToMarkua attributes
+      | T.null tit -> return $ result <> attrsToMarkua opts attr
+      | otherwise ->  return $ result <> attrsToMarkua opts attributes
         where result = "[" <> linktext <> "](" <> (literal src) <> ")"
               attributes = addKeyValueToAttr attr ("title", tit)
     -- Use wikilinks where possible
@@ -709,7 +710,7 @@ inlineToMarkdown opts img@(Image attr alternate (source, tit))
                else alternate
   linkPart <- inlineToMarkdown opts (Link attr txt (source, tit))
   alt <- inlineListToMarkdown opts alternate
-  let attributes | variant == Markua = attrsToMarkua $
+  let attributes | variant == Markua = attrsToMarkua opts $
             addKeyValueToAttr (addKeyValueToAttr attr ("title", tit))
             ("alt", render (Just (writerColumns opts)) alt)
                  | otherwise = empty
@@ -731,19 +732,3 @@ makeMathPlainer = walk go
   where
   go (Emph xs) = Span nullAttr xs
   go x         = x
-
-toSubscriptInline :: Inline -> Maybe Inline
-toSubscriptInline Space = Just Space
-toSubscriptInline (Span attr ils) = Span attr <$> traverse toSubscriptInline ils
-toSubscriptInline (Str s) = Str . T.pack <$> traverse toSubscript (T.unpack s)
-toSubscriptInline LineBreak = Just LineBreak
-toSubscriptInline SoftBreak = Just SoftBreak
-toSubscriptInline _ = Nothing
-
-toSuperscriptInline :: Inline -> Maybe Inline
-toSuperscriptInline Space = Just Space
-toSuperscriptInline (Span attr ils) = Span attr <$> traverse toSuperscriptInline ils
-toSuperscriptInline (Str s) = Str . T.pack <$> traverse toSuperscript (T.unpack s)
-toSuperscriptInline LineBreak = Just LineBreak
-toSuperscriptInline SoftBreak = Just SoftBreak
-toSuperscriptInline _ = Nothing

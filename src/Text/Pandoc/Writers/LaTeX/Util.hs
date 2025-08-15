@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX.Util
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -91,37 +91,50 @@ stringToLaTeX context zs = do
             '\'':_ -> cs <> "\\," <> xs -- add thin space
             _      -> cs <> xs
     in case x of
+         _ | isUrl ->
+           case x of
+             '\\' -> emitc '/' -- NB / works as path sep even on Windows
+             '#' -> emits "\\#" -- #9014
+             '%' -> emits "\\%" -- #9014
+             '{' -> emits "\\%7B"
+             '}' -> emits "\\%7D"
+             '|' -> emits "\\%7C"
+             '^' -> emits "\\%5E"
+             '[' -> emits "\\%5B"
+             ']' -> emits "\\%5D"
+             '`' -> emits "\\%60"
+             _ -> emitc x
+         '{' -> emits "\\{"
+         '}' -> emits "\\}"
          '?' | ligatures ->  -- avoid ?` ligature
            case xs of
-             '`':_ -> emits "?{}"
+             '`':_ -> emits "?{\\kern0pt}" -- se #10610
              _     -> emitc x
          '!' | ligatures ->  -- avoid !` ligature
            case xs of
-             '`':_ -> emits "!{}"
+             '`':_ -> emits "!{\\kern0pt}"
              _     -> emitc x
-         '{' -> emits "\\{"
-         '}' -> emits "\\}"
          '`' | ctx == CodeString -> emitcseq "\\textasciigrave"
-         '$' | not isUrl -> emits "\\$"
+         '$' -> emits "\\$"
          '%' -> emits "\\%"
          '&' -> emits "\\&"
-         '_' | not isUrl -> emits "\\_"
+         '_' -> emits "\\_"
          '#' -> emits "\\#"
-         '-' | not isUrl -> case xs of
+         '-' -> case xs of
                      -- prevent adjacent hyphens from forming ligatures
                      ('-':_) -> emits "-\\/"
                      _       -> emitc '-'
-         '~' | not isUrl -> emitcseq "\\textasciitilde"
+         '~' -> emitcseq "\\textasciitilde"
          '^' -> emits "\\^{}"
-         '\\'| isUrl     -> emitc '/' -- NB. / works as path sep even on Windows
-             | otherwise -> emitcseq "\\textbackslash"
-         '|' | not isUrl -> emitcseq "\\textbar"
-         '<' -> emitcseq "\\textless"
-         '>' -> emitcseq "\\textgreater"
-         '[' -> emits "{[}"  -- to avoid interpretation as
-         ']' -> emits "{]}"  -- optional arguments
+         '\\' -> emitcseq "\\textbackslash"
+         '|'  -> emitcseq "\\textbar"
+         '<'  -> emitcseq "\\textless"
+         '>'  -> emitcseq "\\textgreater"
+         '['  -> emits "{[}"  -- to avoid interpretation as
+         ']'  -> emits "{]}"  -- optional arguments
          '\'' -> emitcseq "\\textquotesingle"
          '\160' -> emits "~"
+         '\x00AD' -> emits "\\-"  -- shy hyphen
          '\x200B' -> emits "\\hspace{0pt}"  -- zero-width space
          '\x202F' -> emits "\\,"
          '\x2026' | ligatures -> emitcseq "\\ldots"
@@ -223,7 +236,7 @@ wrapDiv (_,classes,kvs) t = do
                                w = maybe "0.48" fromPct (lookup "width" kvs)
                            in  inCmd "begin" "column" <>
                                valign <>
-                               braces (literal w <> "\\textwidth")
+                               braces (literal w <> "\\linewidth")
                                $$ contents
                                $$ inCmd "end" "column"
                     else id
@@ -245,15 +258,17 @@ wrapDiv (_,classes,kvs) t = do
                        Nothing  -> txt
   return $ wrapColumns . wrapColumn . wrapDir . wrapLang $ t
 
-hypertarget :: PandocMonad m => Bool -> Text -> Doc Text -> LW m (Doc Text)
-hypertarget _ "" x    = return x
-hypertarget addnewline ident x = do
-  ref <- literal `fmap` toLabel ident
-  return $ text "\\hypertarget"
-              <> braces ref
-              <> braces ((if addnewline && not (isEmpty x)
-                             then "%" <> cr
-                             else empty) <> x)
+hypertarget :: PandocMonad m => Text -> LW m (Doc Text)
+hypertarget "" = return mempty
+hypertarget ident = do
+  inHeading <- gets stInHeading
+  if inHeading
+     then do -- see #9209 (these cases should be rare)
+      ref <- literal <$> toLabel ident
+      return $ text "\\protect\\hypertarget" <> braces ref <> "{}"
+     else do
+      label <- labelFor ident
+      return $ text "\\protect\\phantomsection" <> label
 
 labelFor :: PandocMonad m => Text -> LW m (Doc Text)
 labelFor ""    = return empty

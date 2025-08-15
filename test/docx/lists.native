@@ -2,7 +2,7 @@
 ,OrderedList (1,Decimal,Period)
  [[Para [Str "one"]]
  ,[Para [Str "two"]
-  ,OrderedList (1,LowerAlpha,DefaultDelim)
+  ,OrderedList (1,LowerAlpha,Period)
    [[Para [Str "a"]]
    ,[Para [Str "b"]]]]]
 ,BulletList

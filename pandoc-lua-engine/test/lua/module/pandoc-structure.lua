@@ -48,7 +48,7 @@ return {
       assert.are_equal('Div', hblks[1].t)
       assert.are_equal('Header', hblks[1].content[1].t)
       assert.are_equal('1',   hblks[1].content[1].attributes['number'])
-      assert.are_equal('1.1', hblks[1].content[3].attributes['number'])
+      assert.are_equal('1.0.1', hblks[1].content[3].attributes['number'])
     end)
   },
 
@@ -59,7 +59,7 @@ return {
     test('returns a chunked doc', function ()
       assert.are_equal(
         pandoc.utils.type(structure.split_into_chunks(pandoc.Pandoc{})),
-        'pandoc.ChunkedDoc'
+        'ChunkedDoc'
       )
     end),
   },
@@ -110,10 +110,10 @@ return {
       assert.are_equal(
         structure.table_of_contents(chunked),
         pandoc.BulletList{
-          {pandoc.Plain({pandoc.Link('First', 'chunk-001', '', {id='toc-first'})}),
-           pandoc.BulletList{{pandoc.Plain({pandoc.Link('Subsection', 'chunk-002', '', {id='toc-subsection'})})}}
+          {pandoc.Plain({pandoc.Link('First', 'chunk-001#first', '', {id='toc-first'})}),
+           pandoc.BulletList{{pandoc.Plain({pandoc.Link('Subsection', 'chunk-002#subsection', '', {id='toc-subsection'})})}}
           },
-          {pandoc.Plain({pandoc.Link('Second', 'chunk-003', '', {id='toc-second'})})}
+          {pandoc.Plain({pandoc.Link('Second', 'chunk-003#second', '', {id='toc-second'})})}
         }
       )
     end),
@@ -130,10 +130,34 @@ return {
       assert.are_equal(
         structure.table_of_contents(chunked, {toc_depth = 1}),
         pandoc.BulletList{
-          {pandoc.Plain({pandoc.Link('First', 'chunk-001', '', {id='toc-first'})})},
-          {pandoc.Plain({pandoc.Link('Second', 'chunk-002', '', {id='toc-second'})})}
+          {pandoc.Plain({pandoc.Link('First', 'chunk-001#first', '', {id='toc-first'})})},
+          {pandoc.Plain({pandoc.Link('Second', 'chunk-002#second', '', {id='toc-second'})})}
         }
       )
     end),
   },
+  group 'unique_identifier' {
+    test('returns an identifier based on the input', function ()
+      local inlines = pandoc.Inlines{pandoc.Emph{'This'}, ' is nice'}
+      local id = structure.unique_identifier(inlines)
+      assert.are_equal('this-is-nice', id)
+    end),
+    test('respects the list of used IDs', function ()
+      local inlines = pandoc.Inlines('Hello, World!')
+      local used = {['hello-world'] = true}
+      local id = structure.unique_identifier(inlines, used)
+      assert.are_equal('hello-world-1', id)
+    end),
+    test('defaults to pandoc Markdown identifiers', function ()
+      local inlines = pandoc.Inlines('Mr. Jones')
+      local id = structure.unique_identifier(inlines, {})
+      assert.are_equal('mr.-jones', id)
+    end),
+    test('can generate gfm identifiers', function ()
+      local inlines = pandoc.Inlines('Mr. Jones')
+      local exts = {'gfm_auto_identifiers'}
+      local id = structure.unique_identifier(inlines, {}, exts)
+      assert.are_equal('mr-jones', id)
+    end),
+  }
 }

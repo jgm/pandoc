@@ -5,10 +5,12 @@ on:
     branches:
     - '*'
     - '!rc/*'
+    - '!djot'
     paths-ignore:
     - 'doc/*.md'
     - 'MANUAL.txt'
     - '*.md'
+    - '.cirrus.yml'
     - 'RELEASE_CHECKLIST'
     - 'BUGS'
     - 'README.template'
@@ -46,29 +48,32 @@ jobs:
       fail-fast: true
       matrix:
         versions:
-          - ghc: '8.6.5'
+          - ghc: '8.10'
             cabal: 'latest'
-            cabalopts: '-f-embed_data_files'
-          - ghc: '8.8.4'
+            cabalopts: '--ghc-option=-Werror'
+          - ghc: '9.0'
             cabal: 'latest'
-            cabalopts: '-f-lua -f-server --enable-benchmarks'
-          - ghc: '8.10.7'
+            cabalopts: '--ghc-option=-Werror'
+          - ghc: '9.2'
             cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.0.2'
+            cabalopts: '--ghc-option=-Werror'
+          - ghc: '9.4'
             cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.2.5'
+            cabalopts: '--ghc-option=-Werror'
+          - ghc: '9.6'
             cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.4.4'
+            cabalopts: '--ghc-option=-Werror'
+          - ghc: '9.8'
             cabal: 'latest'
-            cabalopts: ''
-          - ghc: '9.4.4'
+            cabalopts: '--ghc-option=-Werror'
+          - ghc: '9.10'
             cabal: 'latest'
-            cabalopts: '--allow-newer --constrain "mtl >= 2.3.1"'
+            cabalopts: '--ghc-option=-Werror --ghc-option=-Wno-unused-imports'
+          - ghc: '9.12'
+            cabal: 'latest'
+            cabalopts: '--allow-newer --ghc-option=-Werror --ghc-option=-Wno-unused-imports --ghc-option=-Wno-deriving-typeable'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # needed by memory
     - name: Install numa
@@ -87,15 +92,15 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
-          ~/.cabal
+          ~/.local/state/cabal
         key: ${{ runner.os }}-${{ matrix.versions.ghc }}-${{ matrix.versions.cabal }}-cabal-global-${{ secrets.CACHE_VERSION }}
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           dist-newstyle
@@ -107,7 +112,8 @@ jobs:
 
     - name: Build and test
       run: |
-          cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
+          cabal build ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization all
+          cabal test ${{ matrix.versions.cabalopts }} --disable-optimization all
 
   linux-stack:
 
@@ -115,7 +121,7 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # needed by memory
     - name: Install numa
@@ -124,7 +130,7 @@ jobs:
     # declare/restore cached things
     - name: Cache stack global package db
       id:   stack-global
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.stack
@@ -132,7 +138,7 @@ jobs:
 
     - name: Cache stack work
       id:   stack-local
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           .stack-work
@@ -142,31 +148,50 @@ jobs:
       run: |
           stack test --fast
 
-  linux-nix-cabal:
+# linux-nix-cabal:
 
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-    - uses: actions/checkout@v3
-    - uses: cachix/install-nix-action@v20
-      with:
-        nix_path: nixpkgs=channel:nixos-unstable
-    - run: |
-        nix-shell --run "cabal update && cabal test --disable-optimization"
+#   runs-on: ubuntu-latest
+#   strategy:
+#     fail-fast: true
+#   steps:
+#   - uses: actions/checkout@v4
+#   - uses: cachix/install-nix-action@v30
+#     with:
+#       nix_path: nixpkgs=channel:nixos-24.05
+#   - name: Cache cabal global package db
+#     id:   cabal-global
+#     uses: actions/cache@v4
+#     with:
+#       path: |
+#         ~/.local/state/cabal
+#       key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
+#   - name: Cache cabal work
+#     id:   cabal-local
+#     uses: actions/cache@v4
+#     with:
+#       path: |
+#         dist-newstyle
+#       key: ${{ runner.os }}-nix-cabal-local-${{ secrets.CACHE_VERSION }}
+#   - run: |
+#       nix-shell --run "cabal update && cabal test --enable-tests --disable-optimization --ghc-options=-Werror all"
 
   windows:
 
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.4.4
+        ghcup install cabal --set 3.10
 
     # declare/restore cached things
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           C:\cabal\store
@@ -174,13 +199,13 @@ jobs:
 
     - name: Cache cabal work
       id: cabal-local
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           dist-newstyle
         key: ${{ runner.os }}-stack-work-${{ hashFiles('cabal.project') }}-${{ secrets.CACHE_VERSION }}
 
-    - name: Install dependencies
+    - name: Build and test
       run: |
           cabal update
           cabal test ${{ matrix.versions.cabalopts }} --enable-tests --disable-optimization --ghc-options=-Werror all
@@ -188,7 +213,7 @@ jobs:
 # We no longer run the macos tests, to make CI faster.
 # macos:
 
-#   runs-on: macos-11
+#   runs-on: macos-12
 #   strategy:
 #     fail-fast: true
 #     matrix:
@@ -197,7 +222,7 @@ jobs:
 #           cabal: '3.2'
 
 #   steps:
-#   - uses: actions/checkout@v3
+#   - uses: actions/checkout@v4
 
 #   - name: Install cabal/ghc
 #     run: |
@@ -208,7 +233,7 @@ jobs:
 
 #   - name: Cache cabal global package db
 #     id:   cabal-global
-#     uses: actions/cache@v3
+#     uses: actions/cache@v4
 #     with:
 #       path: |
 #         ~/.cabal
@@ -216,7 +241,7 @@ jobs:
 
 #   - name: Cache cabal work
 #     id:   cabal-local
-#     uses: actions/cache@v3
+#     uses: actions/cache@v4
 #     with:
 #       path: |
 #         dist-newstyle

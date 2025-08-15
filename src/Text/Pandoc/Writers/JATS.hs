@@ -4,7 +4,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.JATS
-   Copyright   : 2017-2023 John MacFarlane
+   Copyright   : 2017-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -26,9 +26,8 @@ import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics (everywhere, mkT)
-import Data.List (partition)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, isNothing)
 import Data.Time (toGregorian, Day, parseTimeM, defaultTimeLocale, formatTime)
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -44,7 +43,7 @@ import Text.DocLayout
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
-import Text.DocTemplates (Context(..), Val(..))
+import Text.DocTemplates (Context(..), Val(..), toVal)
 import Text.Pandoc.Writers.JATS.References (referencesToJATS)
 import Text.Pandoc.Writers.JATS.Table (tableToJATS)
 import Text.Pandoc.Writers.JATS.Types
@@ -54,6 +53,54 @@ import Text.Pandoc.XML
 import Text.TeXMath
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
 import qualified Text.XML.Light as Xml
+
+-- | Default human-readable names for roles in the Contributor Role
+-- Taxonomy (CRediT). This is useful for generating JATS that annotate
+-- contributor roles
+creditNames :: M.Map Text Text
+creditNames = M.fromList [
+    ("conceptualization", "Conceptualization"),
+    ("data-curation", "Data curation"),
+    ("formal-analysis", "Formal analysis"),
+    ("funding-acquisition", "Funding acquisition"),
+    ("investigation", "Investigation"),
+    ("methodology", "Methodology"),
+    ("project-administration", "Project administration"),
+    ("resources", "Resources"),
+    ("software", "Software"),
+    ("supervision", "Supervision"),
+    ("validation", "Validation"),
+    ("visualization", "Visualization"),
+    ("writing-original-draft", "Writing – original draft"),
+    ("writing-review-editing", "Writing – review &amp; editing")]
+
+-- | Ensure every role with a `credit` key also has a `credit-name`,
+-- using a default value if necessary
+addCreditNames :: Context Text -> Context Text
+addCreditNames context =
+  case getField "author" context of
+    -- If there is an "authors" key, then we replace the existing value
+    -- with one we mutate by running the addCreditNamesToAuthor helper
+    -- function on each
+    Just (ListVal authors) ->
+      resetField "author" (map addCreditNamesToAuthor authors) context
+    -- If there is no "authors" key in the context, then we don't have to do
+    -- anything, and just return the context as is
+    _ -> context
+  where
+    addCreditNamesToAuthor :: Val Text -> Val Text
+    addCreditNamesToAuthor val = fromMaybe val $ do
+      MapVal authorCtx <- pure val
+      ListVal roles <- getField "roles" authorCtx
+      return $ toVal $ resetField "roles" (map addCreditNameToRole roles) authorCtx
+
+    addCreditNameToRole :: Val Text -> Val Text
+    addCreditNameToRole val = fromMaybe val $ do
+      MapVal roleCtx <- pure val
+      guard $ isNothing (getField "credit-name" roleCtx :: Maybe (Val Text))
+      creditId <- getField "credit" roleCtx
+      creditName <- M.lookup creditId creditNames
+      return $ toVal $ resetField "credit-name" creditName roleCtx
 
 -- | Convert a @'Pandoc'@ document to JATS (Archiving and Interchange
 -- Tag Set.)
@@ -92,29 +139,47 @@ writeJats tagSet opts d = do
   runReaderT (evalStateT (docToJATS opts d) initialState)
              environment
 
+-- see #9017 for motivation
+ensureReferenceHeader :: [Block] -> [Block]
+ensureReferenceHeader [] = []
+ensureReferenceHeader (h@(Header{}):refs@(Div ("refs",_,_) _) : xs) =
+  h:refs:xs
+ensureReferenceHeader (refs@(Div ("refs",_,_) _) : xs) =
+  Header 1 nullAttr mempty : refs : xs
+ensureReferenceHeader (x:xs) = x :ensureReferenceHeader xs
+
 -- | Convert Pandoc document to string in JATS format.
 docToJATS :: PandocMonad m => WriterOptions -> Pandoc -> JATS m Text
-docToJATS opts (Pandoc meta blocks) = do
-  let isBackBlock (Div ("refs",_,_) _) = True
-      isBackBlock _                    = False
-  let (backblocks, bodyblocks) = partition isBackBlock blocks
+docToJATS opts (Pandoc meta blocks') = do
   -- The numbering here follows LaTeX's internal numbering
   let startLvl = case writerTopLevelDivision opts of
                    TopLevelPart    -> -1
                    TopLevelChapter -> 0
                    TopLevelSection -> 1
                    TopLevelDefault -> 1
-  let fromBlocks = blocksToJATS opts . makeSections False (Just startLvl)
+  let blocks = makeSections (writerNumberSections opts) (Just startLvl)
+                  $ ensureReferenceHeader blocks'
+  let splitBackBlocks b@(Div ("refs",_,_) _) (fs, bs) = (fs, b:bs)
+      splitBackBlocks (Div (ident,("section":_),_)
+                               ( Header lev (_,hcls,hkvs) hils
+                               : (Div rattrs@("refs",_,_) rs)
+                               : rest
+                               )) (fs, bs)
+                       = (fs ++ rest,
+                            Div rattrs
+                             (Header lev (ident,hcls,hkvs) hils : rs) : bs)
+      splitBackBlocks b (fs, bs) = (b:fs, bs)
+  let (bodyblocks, backblocks) = foldr splitBackBlocks ([],[]) blocks
   let colwidth = if writerWrapText opts == WrapAuto
                     then Just $ writerColumns opts
                     else Nothing
   metadata <- metaToContext opts
-                 fromBlocks
+                 (blocksToJATS opts . makeSections False (Just startLvl))
                  (fmap chomp . inlinesToJATS opts)
                  meta
-  main <- fromBlocks bodyblocks
+  main <- blocksToJATS opts bodyblocks
   notes <- gets (reverse . map snd . jatsNotes)
-  backs <- fromBlocks backblocks
+  backs <- blocksToJATS opts backblocks
   tagSet <- asks jatsTagSet
   -- In the "Article Authoring" tag set, occurrence of fn-group elements
   -- is restricted to table footers. Footnotes have to be placed inline.
@@ -142,6 +207,7 @@ docToJATS opts (Pandoc meta blocks) = do
                (lookupMetaInlines "title" meta)
   let context = defField "body" main
               $ defField "back" back
+              $ addCreditNames
               $ resetField "title" title'
               $ resetField "date" date
               $ defField "mathml" (case writerHTMLMathMethod opts of
@@ -252,14 +318,21 @@ fixLineBreak x = x
 
 -- | Convert a Pandoc block element to JATS.
 blockToJATS :: PandocMonad m => WriterOptions -> Block -> JATS m (Doc Text)
-blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl _ ils : xs)) = do
+blockToJATS opts (Div (id',"section":_,kvs) (Header _lvl (_,_,hkvs) ils : xs)) = do
   let idAttr = [ ("id", writerIdentifierPrefix opts <> escapeNCName id')
                | not (T.null id')]
   let otherAttrs = ["sec-type", "specific-use"]
   let attribs = idAttr ++ [(k,v) | (k,v) <- kvs, k `elem` otherAttrs]
   title' <- inlinesToJATS opts (map fixLineBreak ils)
+  let label = if writerNumberSections opts
+                 then
+                   case lookup "number" hkvs of
+                     Just num -> inTagsSimple "label" (literal num)
+                     Nothing -> mempty
+                 else mempty
   contents <- blocksToJATS opts xs
   return $ inTags True "sec" attribs $
+      label $$
       inTagsSimple "title" title' $$ contents
 -- Bibliography reference:
 blockToJATS opts (Div (ident,_,_) [Para lst]) | "ref-" `T.isPrefixOf` ident =
@@ -270,7 +343,13 @@ blockToJATS opts (Div ("refs",_,_) xs) = do
   refs <- asks jatsReferences
   contents <- if null refs
               then blocksToJATS opts xs
-              else referencesToJATS opts refs
+              else do
+                titleElement <- case xs of
+                  (Header _ _ title:_) ->
+                    inTagsSimple "title" <$> inlinesToJATS opts title
+                  _ -> return mempty
+                elementRefs <- referencesToJATS opts refs
+                return $ titleElement $$ elementRefs
   return $ inTagsIndented "ref-list" contents
 blockToJATS opts (Div (ident,[cls],kvs) bs) | cls `elem` ["fig", "caption", "table-wrap"] = do
   contents <- blocksToJATS opts bs
@@ -407,9 +486,8 @@ inlineToJATS opts (Quoted DoubleQuote lst) = do
   contents <- inlinesToJATS opts lst
   return $ char '“' <> contents <> char '”'
 inlineToJATS opts (Code a str) =
-  return $ inTags False tag attr $ literal (escapeStringForXML str)
-    where (lang, attr) = codeAttr opts a
-          tag          = if T.null lang then "monospace" else "code"
+  return $ inTags False "monospace" attr $ literal (escapeStringForXML str)
+    where (_lang, attr) = codeAttr opts a
 inlineToJATS _ il@(RawInline f x)
   | f == "jats" = return $ literal x
   | otherwise   = do

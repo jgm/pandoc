@@ -2,7 +2,7 @@
 {- |
    Module      : Tests.Readers.Man
    Copyright   : © 2018-2019 Yan Pas <yanp.bugz@gmail.com>,
-                   2018-2023 John MacFarlane
+                   2018-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -20,7 +20,6 @@ import Tests.Helpers
 import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
-import Text.Pandoc.Readers.Man
 
 man :: Text -> Pandoc
 man = purely $ readMan def

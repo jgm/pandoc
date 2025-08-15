@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.XML.Light.Output
-   Copyright   : Copyright (C) 2007 Galois, Inc., 2021-2023 John MacFarlane
+   Copyright   : Copyright (C) 2007 Galois, Inc., 2021-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
 
@@ -35,7 +35,7 @@ import Data.Text.Lazy.Builder (Builder, singleton, fromText, toLazyText)
 import Text.Pandoc.XML.Light.Types
 
 --
--- duplicates functinos from Text.XML.Output
+-- duplicates functions from Text.XML.Output
 --
 
 -- | The XML 1.0 header

@@ -1,4 +1,5 @@
 local tasty = require 'tasty'
+local pandoc = require 'pandoc'
 local template = require 'pandoc.template'
 
 local assert = tasty.assert
@@ -24,8 +25,25 @@ return {
       )
     end),
     test('fails on unknown format', function ()
+           local success, msg = pcall(function ()
+               return pandoc.utils.type(template.default 'nosuchformat')
+           end)
+           assert.is_falsy(success)
+    end),
+                  },
+  group 'get' {
+    test('is function', function ()
+           assert.are_equal(type(template.get), 'function')
+    end),
+    test('searches the template data directory', function ()
+      assert.are_equal(
+        template.default 'html5',
+        template.get 'default.html5'
+      )
+    end),
+    test('fails on non-existent file', function ()
       local success, msg = pcall(function ()
-          return pandoc.utils.type(template.default 'nosuchformat')
+        return pandoc.utils.type(template.get 'nosuchfile.nope')
       end)
       assert.is_falsy(success)
     end),
@@ -37,14 +55,14 @@ return {
     test('returns a Template', function ()
       assert.are_equal(
         pandoc.utils.type(template.compile('$title$')),
-        'pandoc Template'
+        'Template'
       )
     end),
     test('returns a Template', function ()
       local templ_path = pandoc.path.join{'lua', 'module', 'default.test'}
       assert.are_equal(
         pandoc.utils.type(template.compile('${ partial() }', templ_path)),
-        'pandoc Template'
+        'Template'
       )
     end),
     test('fails if template has non-existing partial', function ()
@@ -58,7 +76,7 @@ return {
       assert.are_equal(type(jats_template), 'string')
       assert.are_equal(
         pandoc.utils.type(template.compile(jats_template)),
-        'pandoc Template'
+        'Template'
       )
     end),
   },

@@ -29,7 +29,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (enclosed)
 import Text.Pandoc.Shared (trim, stringify, tshow)
-import Data.List (isPrefixOf, isSuffixOf)
+import Data.List (isPrefixOf, isSuffixOf, groupBy)
 import qualified Safe
 
 -- | Read DokuWiki from an input string and return a Pandoc document.
@@ -105,14 +105,13 @@ inline'' = br
       <|> superscript
       <|> deleted
       <|> footnote
-      <|> inlineCode
-      <|> inlineFile
       <|> inlineRaw
       <|> math
       <|> autoLink
       <|> autoEmail
       <|> notoc
       <|> nocache
+      <|> smartPunctuation inline
       <|> str
       <|> symbol
       <?> "inline"
@@ -193,12 +192,6 @@ deleted = try $ B.strikeout <$> between (string "<del>") (try $ string "</del>")
 footnote :: PandocMonad m => DWParser m B.Inlines
 footnote = try $ B.note . B.para <$> between (string "((") (try $ string "))") nestedInlines
 
-inlineCode :: PandocMonad m => DWParser m B.Inlines
-inlineCode = codeTag B.codeWith "code"
-
-inlineFile :: PandocMonad m => DWParser m B.Inlines
-inlineFile = codeTag B.codeWith "file"
-
 inlineRaw :: PandocMonad m => DWParser m B.Inlines
 inlineRaw = try $ do
   char '<'
@@ -230,6 +223,7 @@ autoLink = try $ do
   state <- getState
   guard $ stateAllowLinks state
   (text, url) <- uri
+  guard $ not $ T.isInfixOf "%%//%%" text  -- see #9153
   guard $ checkLink (T.last url)
   return $ makeLink (text, url)
   where
@@ -247,7 +241,7 @@ str :: PandocMonad m => DWParser m B.Inlines
 str = B.str <$> (many1Char alphaNum <|> characterReference)
 
 symbol :: PandocMonad m => DWParser m B.Inlines
-symbol = B.str <$> countChar 1 nonspaceChar
+symbol = B.str <$> (notFollowedBy' blockCode *> countChar 1 nonspaceChar)
 
 link :: PandocMonad m => DWParser m B.Inlines
 link = try $ do
@@ -307,8 +301,11 @@ parseLink :: PandocMonad m
 parseLink f l r = f
   <$  textStr l
   <*> many1TillChar anyChar (lookAhead (void (char '|') <|> try (void $ textStr r)))
-  <*> optionMaybe (B.trimInlines . mconcat <$> (char '|' *> manyTill inline (try $ lookAhead $ textStr r)))
-  <*  textStr r
+  <*> ( (char '|' *> optionMaybe (B.trimInlines . B.text . T.pack <$>
+                       many1Till anyChar (lookAhead (try (textStr r)))))
+       <|> pure Nothing
+      )
+  <* textStr r
 
 -- | Split Interwiki link into left and right part
 -- | Return Nothing if it is not Interwiki link
@@ -389,7 +386,11 @@ image = try $ parseLink fromRaw "{{" "}}"
         parameterList = T.splitOn "&" $ T.drop 1 parameters
         linkOnly = "linkonly" `elem` parameterList
         (width, height) = maybe (Nothing, Nothing) parseWidthHeight (F.find isWidthHeightParameter parameterList)
-        attributes = catMaybes [fmap ("width",) width, fmap ("height",) height]
+        attributes = catMaybes [
+                fmap ("width",) width,
+                fmap ("height",) height,
+                fmap ("query",) (if T.null parameters then Nothing else Just parameters)
+            ]
         defaultDescription = B.str $ urlToText path'
 
 -- * Block parsers
@@ -410,7 +411,6 @@ blockElements = horizontalLine
             <|> indentedCode
             <|> quote
             <|> blockCode
-            <|> blockFile
             <|> blockRaw
             <|> table
 
@@ -444,23 +444,49 @@ parseList prefix marker =
   many1 ((<>) <$> item <*> fmap mconcat (many continuation))
   where
     continuation = try $ list ("  " <> prefix)
-    item = try $ textStr prefix *> char marker *> char ' ' *> itemContents
-    itemContents = B.plain . mconcat <$> many1Till inline' eol
+    item = try $ textStr prefix *>
+                   optional (char ' ') *>  -- see #8863
+                   char marker *> char ' ' *>
+                   (mconcat <$> many1 itemContents <* eol)
+    itemContents = (B.plain . mconcat <$> many1 inline') <|>
+                   blockCode
 
 indentedCode :: PandocMonad m => DWParser m B.Blocks
 indentedCode = try $ B.codeBlock . T.unlines <$> many1 indentedLine
  where
    indentedLine = try $ string "  " *> manyTillChar anyChar eol
 
+-- Note that block quotes in dokuwiki parse as lists of hard-break
+-- separated lines; see #6461.
 quote :: PandocMonad m => DWParser m B.Blocks
-quote = try $ nestedQuote 0
-  where
-    prefix level = count level (char '>')
-    contents level = nestedQuote level <|> quoteLine
-    quoteLine = try $ B.plain . B.trimInlines . mconcat <$> many1Till inline' eol
-    quoteContents level = (<>) <$> contents level <*> quoteContinuation level
-    quoteContinuation level = mconcat <$> many (try $ prefix level *> contents level)
-    nestedQuote level = B.blockQuote <$ char '>' <*> quoteContents (level + 1 :: Int)
+quote = go <$> many1 blockQuoteLine
+ where
+   blockQuoteLine = try $ do
+     lev <- length <$> many1 (char '>')
+     skipMany spaceChar
+     contents <- (blockCode <* skipMany spaceChar <* optional eol) <|>
+       (B.plain . B.trimInlines . mconcat <$> many1Till inline' eol)
+     pure (lev, contents)
+   go [] = mempty
+   go xs = mconcat $ map go' (groupBy (\(x,_) (y,_) -> (x == 0 && y == 0) ||
+                                                        (x > 0 && y > 0)) xs)
+   go' [] = mempty
+   go' xs@((0,_):_) =
+        let (lns, bls) = F.foldl' consolidatePlains (mempty,mempty) (map snd xs)
+         in bls <> if lns == mempty
+                      then mempty
+                      else B.plain lns
+   go' xs = B.blockQuote (go $ map (\(x,y) -> (x - 1, y)) xs)
+   consolidatePlains (lns, bls) b =
+     case B.toList b of
+       [Plain ils] -> ((if lns == mempty
+                           then B.fromList ils
+                           else lns <> B.linebreak <> B.fromList ils), bls)
+       _ -> (mempty, bls <>
+                     (if lns == lns
+                         then mempty
+                         else B.plain lns)
+                      <> b)
 
 blockRaw :: PandocMonad m => DWParser m B.Blocks
 blockRaw = try $ do
@@ -482,7 +508,7 @@ table = do
   rows <- tableRows
   let firstRow = fromMaybe [] . Safe.headMay $ rows
   let (headerRow, body) = if firstSeparator == '^'
-                            then (firstRow, tail rows)
+                            then (firstRow, drop 1 rows)
                             else ([], rows)
   -- Since Pandoc only has column level alignment, we have to make an arbitrary
   -- choice of how to reconcile potentially different alignments in the row.
@@ -529,10 +555,8 @@ tableCell = try $ (second (B.plain . B.trimInlines . mconcat)) <$> cellContent
 
 
 blockCode :: PandocMonad m => DWParser m B.Blocks
-blockCode = codeTag B.codeBlockWith "code"
-
-blockFile :: PandocMonad m => DWParser m B.Blocks
-blockFile = codeTag B.codeBlockWith "file"
+blockCode = codeTag B.codeBlockWith "code" <|>
+            codeTag B.codeBlockWith "file"
 
 para :: PandocMonad m => DWParser m B.Blocks
 para = result . mconcat <$> many1Till inline endOfParaElement
@@ -540,7 +564,8 @@ para = result . mconcat <$> many1Till inline endOfParaElement
    endOfParaElement = lookAhead $ endOfInput <|> endOfPara <|> newBlockElement
    endOfInput       = try $ skipMany blankline >> skipSpaces >> eof
    endOfPara        = try $ blankline >> skipMany1 blankline
-   newBlockElement  = try $ blankline >> void blockElements
+   newBlockElement  = try (blankline >> void blockElements)
+                       <|> lookAhead (void blockCode)
    result content   = if F.all (==Space) content
                       then mempty
                       else B.para $ B.trimInlines content

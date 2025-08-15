@@ -7,7 +7,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {- |
    Module      : Text.Pandoc.Chunks
-   Copyright   : Copyright (C) 2022-2023 John MacFarlane
+   Copyright   : Copyright (C) 2022-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -28,8 +28,9 @@ module Text.Pandoc.Chunks
   ) where
 
 import Text.Pandoc.Definition
-import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier)
-import Text.Pandoc.Walk (Walkable(..))
+import Text.Pandoc.Shared (makeSections, stringify, inlineListToIdentifier,
+                           tshow, uniqueIdent)
+import Text.Pandoc.Walk (Walkable(..), query)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)
 import Text.Printf (printf)
@@ -42,6 +43,8 @@ import Text.HTML.TagSoup (Tag (TagOpen), fromAttrib, parseTags)
 import Data.Tree (Tree(..))
 import Data.Data (Data)
 import Data.Typeable (Typeable)
+import qualified Data.Set as Set
+import Control.Monad.State
 
 -- | Split 'Pandoc' into 'Chunk's, e.g. for conversion into
 -- a set of HTML pages or EPUB chapters.
@@ -62,7 +65,23 @@ splitIntoChunks pathTemplate numberSections mbBaseLevel
  where
   tocTree = fixTOCTreePaths chunks $ toTOCTree sections
   chunks = makeChunks chunklev pathTemplate meta $ sections
-  sections = makeSections numberSections mbBaseLevel $ blocks
+  sections = ensureIds $ makeSections numberSections mbBaseLevel blocks
+
+-- The TOC won't work if we don't have unique identifiers for all sections.
+ensureIds :: [Block] -> [Block]
+ensureIds bs = evalState (walkM go bs) mempty
+ where
+   go :: Block -> State (Set.Set Text) Block
+   go b@(Div (ident,"section":cls,kvs) bs'@(Header _ _ ils : _))
+     | T.null ident
+       = do ids <- get
+            let newid = uniqueIdent mempty ils ids
+            modify $ Set.insert newid
+            pure $ Div (newid,"section":cls,kvs) bs'
+     | otherwise
+       = do modify $ Set.insert ident
+            pure b
+   go b = pure b
 
 -- | Add chunkNext, chunkPrev, chunkUp
 addNav :: ChunkedDoc -> ChunkedDoc
@@ -80,7 +99,7 @@ addUp (c:cs) = c : addUp cs
 addUp [] = []
 
 addNext :: [Chunk] -> [Chunk]
-addNext cs = zipWith go cs (map Just (tail cs) ++ [Nothing])
+addNext cs = zipWith go cs (map Just (drop 1 cs) ++ [Nothing])
  where
   go c nxt = c{ chunkNext = nxt }
 
@@ -204,22 +223,26 @@ makeChunks chunklev pathTemplate meta = secsToChunks 1
                         divid
                         (fromMaybe "" secnum)
   toChunk chunknum (Div ("",["preamble"],[]) bs) =
-    Chunk
+      Chunk
       { chunkHeading = docTitle meta
-      , chunkId = inlineListToIdentifier mempty $ docTitle meta
+      , chunkId = chunkid
       , chunkLevel = 0
       , chunkNumber = chunknum
       , chunkSectionNumber = Nothing
-      , chunkPath = resolvePathTemplate pathTemplate chunknum
-                        (stringify (docTitle meta))
-                        (inlineListToIdentifier mempty (docTitle meta))
-                        "0"
+      , chunkPath = chunkpath
       , chunkUp = Nothing
       , chunkPrev = Nothing
       , chunkNext = Nothing
       , chunkUnlisted = False
       , chunkContents = bs
       }
+    where
+      chunkpath = resolvePathTemplate pathTemplate chunknum
+                        (stringify (docTitle meta))
+                        chunkid
+                        "0"
+      chunkid = inlineListToIdentifier mempty (docTitle meta) <>
+                      "-" <> tshow chunknum
   toChunk _ b = error $ "toChunk called on inappropriate block " <> show b
   -- should not happen
 
@@ -366,15 +389,20 @@ toTOCTree =
 fixTOCTreePaths :: [Chunk] -> Tree SecInfo -> Tree SecInfo
 fixTOCTreePaths chunks = go ""
  where
-  idMap = foldr (\chunk -> M.insert (chunkId chunk) (chunkPath chunk))
+  idMap = foldr (\chunk m ->
+                   let ids = filter (not . T.null)
+                               (chunkId chunk :
+                                  query getIds (chunkContents chunk))
+                    in foldr (\i -> M.insert i (chunkPath chunk)) m ids)
                 mempty chunks
+  getIds :: Block -> [Text]
+  getIds (Div (i,"section":_,_) _) = [i]
+  getIds _ = []
   go :: FilePath -> Tree SecInfo -> Tree SecInfo
   go fp (Node secinfo subtrees) =
     let newpath = M.lookup (secId secinfo) idMap
         fp' = fromMaybe fp newpath
-        fragment = case newpath of
-                     Nothing -> "#" <> secId secinfo
-                     Just _  -> "" -- link to top of file
+        fragment = "#" <> secId secinfo
      in Node secinfo{ secPath = T.pack fp' <> fragment }
              (map (go fp') subtrees)
 

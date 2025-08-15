@@ -10,11 +10,12 @@ Definition
     2. list
 ^D
 \begin{description}
+\tightlist
 \item[Definition]
+\hfill
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
-\item[]
 \item
   list
 \item
@@ -32,6 +33,7 @@ Definition
     2. list
 ^D
 \begin{description}
+\tightlist
 \item[Definition]
 Foo
 
@@ -53,10 +55,11 @@ Definition
     - list
 ^D
 \begin{description}
+\tightlist
 \item[Definition]
+\hfill
 \begin{itemize}
 \tightlist
-\item[]
 \item
   list
 \item

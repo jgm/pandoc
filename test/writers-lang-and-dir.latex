@@ -1,10 +1,17 @@
 % Options for packages loaded elsewhere
 \PassOptionsToPackage{unicode}{hyperref}
 \PassOptionsToPackage{hyphens}{url}
-%
 \documentclass[
+  ngerman,
+  british,
+  nswissgerman,
+  spanish,
+  french,
+  english,
 ]{article}
+\usepackage{xcolor}
 \usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[T1]{fontenc}
@@ -35,28 +42,17 @@
 }{% if KOMA class
   \KOMAoptions{parskip=half}}
 \makeatother
-\usepackage{xcolor}
+\ifLuaTeX
+\usepackage[bidi=basic,shorthands=off,]{babel}
+\else
+\usepackage[bidi=default,shorthands=off,]{babel}
+\fi
+\ifLuaTeX
+  \usepackage{selnolig} % disable illegal ligatures
+\fi
 \setlength{\emergencystretch}{3em} % prevent overfull lines
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\ifLuaTeX
-\usepackage[bidi=basic]{babel}
-\else
-\usepackage[bidi=default]{babel}
-\fi
-\babelprovide[main,import]{english}
-\babelprovide[import]{ngerman}
-\babelprovide[import]{british}
-\babelprovide[import]{nswissgerman}
-\babelprovide[import]{spanish}
-\babelprovide[import]{french}
-% get rid of language-specific shorthands (see #6817):
-\let\LanguageShortHands\languageshorthands
-\def\languageshorthands#1{}
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
 \ifPDFTeX
   \TeXXeTstate=1
   \newcommand{\RL}[1]{\beginR #1\endR}
@@ -64,7 +60,7 @@
   \newenvironment{RTL}{\beginR}{\endR}
   \newenvironment{LTR}{\beginL}{\endL}
 \fi
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
@@ -77,8 +73,7 @@
 
 \begin{document}
 
-\hypertarget{empty-divs-and-spans}{%
-\section{Empty Divs and Spans}\label{empty-divs-and-spans}}
+\section{Empty Divs and Spans}\label{empty-divs-and-spans}
 
 Some text and
 
@@ -88,8 +83,7 @@ and more text.
 
 Next paragraph with a {span} and a word-thatincludesa{span}right?
 
-\hypertarget{directionality}{%
-\section{Directionality}\label{directionality}}
+\section{Directionality}\label{directionality}
 
 Some text and
 
@@ -106,8 +100,7 @@ and a ltr div. with a \RL{rtl span}.
 Next paragraph with a \RL{rtl span} and a
 word-that-includesa\LR{ltrspan}right?
 
-\hypertarget{languages}{%
-\section{Languages}\label{languages}}
+\section{Languages}\label{languages}
 
 Some text and
 
@@ -125,8 +118,7 @@ span}right?
 
 Some \foreignlanguage{spanish}{Spanish text}.
 
-\hypertarget{combined}{%
-\section{Combined}\label{combined}}
+\section{Combined}\label{combined}
 
 Some text and
 

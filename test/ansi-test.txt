@@ -1,0 +1,127 @@
+---
+title: My Document
+author: John Doe
+date: July 25, 1933
+...
+
+# Level 1 heading
+
+Text
+
+## Level 2 heading
+
+Text
+
+### Level 3 heading
+
+Text
+
+#### Level 4 heading
+
+Text
+
+##### Level 5 heading
+
+Text
+
+- list
+  - nested
+    1) numbered
+
+       continuation paragraph
+
+[link](http://example.com)
+
+<mail@example.com>
+
+> Block quote
+>
+> > Nested block quote
+
+Multiline table with caption:
+
+:  Here's the caption.
+It may span multiple lines.
+
+---------------------------------------------------------------
+ Centered   Left             Right
+  Header    Aligned        Aligned  Default aligned
+----------  ---------  -----------  ---------------------------
+   First    row               12.0  Example of a row that spans
+                                    multiple lines.
+
+   Second   row                5.0  Here's another one.  Note
+                                    the blank line between rows.
+---------------------------------------------------------------
+
+Multiline table without caption:
+
+---------------------------------------------------------------
+ Centered   Left             Right
+  Header    Aligned        Aligned  Default aligned
+----------  ---------  -----------  ---------------------------
+   First    row               12.0  Example of a row that spans
+                                    multiple lines.
+
+   Second   row                5.0  Here's another one.  Note
+                                    the blank line between rows.
+---------------------------------------------------------------
+
+Table without column headers:
+
+-------     ------ ----------   -------
+     12     12        12             12
+    123     123       123           123
+      1     1          1              1
+-------     ------ ----------   -------
+
+Footnote^[Here's the note.]
+
+Multiple blocks in a cell
+
++------------------+-----------+------------+
+| # col 1          | # col 2   | # col 3    |
+| col 1            | col 2     | col 3      |
++------------------+-----------+------------+
+| r1 a             | - b       | c          |
+|                  | - b 2     | c 2        |
+| r1 bis           | - b 2     | c 2        |
++------------------+-----------+------------+
+
+East Asian characters have double width
+
++--+----+
+|魚|fish|
++--+----+
+
+This is inline code: `x >>= y ++ 3`.
+
+```
+code block
+   >>> ## ``
+```
+
+Highlighted:
+
+```html
+<p><a href="foobar" title="title">This is a link</a></p>
+<!-- comment -->
+```
+
+Math: $\pi^2 = \frac{1}{2}$
+
+$$e = mc^2$$
+
+----
+
+More text.
+
+**boldface text**, [underlined text]{.underline}, *emphasized text*.
+
+[small caps]{.smallcaps}
+
+We see a log~10~ reduction in 2^9^ seconds.
+
+| Hello
+|
+| Goodbye

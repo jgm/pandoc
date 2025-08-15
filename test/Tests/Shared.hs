@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Shared
-   Copyright   : © 2006-2023 John MacFarlane
+   Copyright   : © 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -51,7 +51,8 @@ makeSectionsIsIdempotent d =
    in d' == makeSections False Nothing d'
 
 givesTOC :: String -> (Blocks, Blocks) -> TestTree
-givesTOC desc (blocks, toc) = test (toTableOfContents def) desc (toList blocks, head . toList $ toc)
+givesTOC desc (blocks, toc) =
+  test (singleton . toTableOfContents def) desc (toList blocks, toc)
 
 linkId :: T.Text -> T.Text -> T.Text -> Inlines -> Inlines
 linkId lId = linkWith (lId,[],[])

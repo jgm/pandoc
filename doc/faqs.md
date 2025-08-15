@@ -11,7 +11,8 @@ On linux or OSX:
 
 In Windows Powershell:
 
-    gci -r -i *.txt |foreach{$rtf=$_.directoryname+"\"+$_.basename+".rtf";pandoc -f markdown -s $_.name -o $rtf}
+    gci -r -i *.txt
+    |foreach{$rtf=$_.directoryname+"\"+$_.basename+".rtf";pandoc -f markdown -s $_.fullname -o $rtf}
 
 ## I used pandoc to convert a document to ICML (or OPML or RTF), and when I try to open it I'm told it's invalid.  What have I done wrong?
 
@@ -116,7 +117,7 @@ and saving in a format from which pandoc can convert directly.
 No.  You can get by with a relatively small TeX installation,
 for example, by starting with MacTeX's Basic TeX distribution
 and using the `tlmgr` tool to install a few packages required by pandoc
-(see https://pandoc.org/MANUAL.html#creating-a-pdf).
+(see [the manual](https://pandoc.org/MANUAL.html#creating-a-pdf)).
 
 Or, you can produce PDFs via HTML and `wkhtmltopdf`,
 or via groff ms and `pdfroff`.  (These don't produce as nice
@@ -196,7 +197,7 @@ Or `--pdf-engine=lualatex` can be used with the following:
 
 Save this filter as `nowidths.lua` and then pass `--lua-filter
 nowidths.lua` as an additional option to pandoc.
-(See <https://github.com/jgm/pandoc/issues/8139>.)
+(See [issue 8139](https://github.com/jgm/pandoc/issues/8139).)
 
 ``` lua
 -- Unset the width attribute of HTML colspecs in tables

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown
-   Copyright   : © 2006-2023 John MacFarlane
+   Copyright   : © 2006-2024 John MacFarlane
    License     : GPL-2.0-or-later
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
 
@@ -36,23 +36,30 @@ pipeTable :: PandocMonad m
           -> MD m (Doc Text)
 pipeTable opts headless aligns widths rawHeaders rawRows = do
   let sp = literal " "
-  let blockFor AlignLeft   x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
-      blockFor AlignCenter x y = cblock (x + 2) (sp <> y <> sp) <> lblock 0 empty
-      blockFor AlignRight  x y = rblock (x + 2) (y <> sp) <> lblock 0 empty
-      blockFor _           x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
   let contentWidths = map (max 3 . maybe 3 maximum . nonEmpty . map offset) $
                        transpose (rawHeaders : rawRows)
   let colwidth = writerColumns opts
   let numcols = length contentWidths
   let maxwidth = sum contentWidths
+  -- if cell contents are > COLUMNS, adding padding looks bad
+  let pad = maxwidth <= writerColumns opts
+  let blockFor _ _ y | not pad = sp <> y <> sp <> lblock 0 empty
+      blockFor AlignLeft   x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
+      blockFor AlignCenter x y = cblock (x + 2) (sp <> y <> sp) <> lblock 0 empty
+      blockFor AlignRight  x y = rblock (x + 2) (y <> sp) <> lblock 0 empty
+      blockFor AlignDefault x y = lblock (x + 2) (sp <> y) <> lblock 0 empty
   variant <- asks envVariant
   let pipeWidths = if variant == Markdown &&
                       not (all (== 0) widths) &&
                       maxwidth + (numcols + 1) > colwidth
                       then map
-                            (floor . (* fromIntegral (colwidth - (numcols +1))))
+                            (max 0 .
+                              floor .
+                                (* fromIntegral (colwidth - (numcols +1))))
                             widths
-                      else contentWidths
+                      else if pad
+                              then contentWidths
+                              else map (const 2) widths
   let torow cs = nowrap $ literal "|" <>
                     hcat (intersperse (literal "|") $
                           zipWith3 blockFor aligns contentWidths (map chomp cs))

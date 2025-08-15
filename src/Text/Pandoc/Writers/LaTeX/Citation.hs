@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX.Citation
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -15,14 +15,22 @@ module Text.Pandoc.Writers.LaTeX.Citation
 
 import Data.Text (Text)
 import Data.Char (isPunctuation)
+import Control.Monad.State (gets)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
+import Text.Pandoc.Options
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
 import Data.List (foldl')
 import Text.DocLayout (Doc, brackets, empty, (<+>), text, isEmpty, literal,
                        braces)
 import Text.Pandoc.Walk
-import Text.Pandoc.Writers.LaTeX.Types ( LW )
+import Text.Pandoc.Writers.LaTeX.Types ( LW, WriterState(stLang, stOptions) )
+import Text.Pandoc.Citeproc.Locator (parseLocator, LocatorInfo(..),
+                                     toLocatorMap)
+import Citeproc.Types (Lang(..))
+import Citeproc.Locale (getLocale)
+import Safe (headMay, lastMay)
 
 citationsToNatbib :: PandocMonad m
                   => ([Inline] -> LW m (Doc Text))
@@ -43,16 +51,17 @@ citationsToNatbib inlineListToLaTeX [one]
              NormalCitation -> "citep"
 
 citationsToNatbib inlineListToLaTeX cits
-  | noPrefix (tail cits) && noSuffix (init cits) && ismode NormalCitation cits
+  | noInnerPrefix cits && noInnerSuffix cits && ismode NormalCitation cits
   = citeCommand inlineListToLaTeX "citep" p s ks
   where
-     noPrefix  = all (null . citationPrefix)
-     noSuffix  = all (null . citationSuffix)
+     noInnerPrefix []     = True
+     noInnerPrefix (_:xs) = all (null . citationPrefix) xs
+     noInnerSuffix []     = True
+     noInnerSuffix [_]    = True
+     noInnerSuffix (x:xs) = null (citationSuffix x) && noInnerSuffix xs
      ismode m  = all ((==) m  . citationMode)
-     p         = citationPrefix  $
-                 head cits
-     s         = citationSuffix  $
-                 last cits
+     p         = maybe mempty citationPrefix $ headMay cits
+     s         = maybe mempty citationSuffix $ lastMay cits
      ks        = T.intercalate ", " $ map citationId cits
 
 citationsToNatbib inlineListToLaTeX (c:cs)
@@ -101,11 +110,14 @@ citeArgumentsList :: PandocMonad m
               -> LW m (Doc Text)
 citeArgumentsList _inlineListToLaTeX (CiteGroup _ _ []) = return empty
 citeArgumentsList inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
-      pdoc <- inlineListToLaTeX pfxs
-      sdoc <- inlineListToLaTeX sfxs'
-      return $ optargs pdoc sdoc <>
-              braces (literal (T.intercalate "," (reverse ids)))
-      where sfxs' = stripLocatorBraces $ case sfxs of
+      opts <- gets stOptions
+      mblang <- gets stLang
+      let sfxs' = (case writerCiteMethod opts of
+                     -- In biblatex, the label p. or pp. can be omitted;
+                     -- ranges are treated as page ranges by default. See #9275.
+                     Biblatex -> removePageLabel mblang
+                     _ -> id) $
+              stripLocatorBraces $ case sfxs of
                 (Str t : r) -> case T.uncons t of
                   Just (x, xs)
                     | T.null xs
@@ -113,10 +125,14 @@ citeArgumentsList inlineListToLaTeX (CiteGroup pfxs sfxs ids) = do
                     | isPunctuation x -> Str xs : r
                   _ -> sfxs
                 _   -> sfxs
-            optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
+          optargs pdoc sdoc = case (isEmpty pdoc, isEmpty sdoc) of
                  (True, True ) -> empty
                  (True, False) -> brackets sdoc
                  (_   , _    ) -> brackets pdoc <> brackets sdoc
+      pdoc <- inlineListToLaTeX pfxs
+      sdoc <- inlineListToLaTeX sfxs'
+      return $ optargs pdoc sdoc <>
+              braces (literal (T.intercalate "," (reverse ids)))
 
 citeArguments :: PandocMonad m
               => ([Inline] -> LW m (Doc Text))
@@ -180,3 +196,14 @@ citationsToBiblatex inlineListToLaTeX (c:cs)
                cid = citationId cit
 
 citationsToBiblatex _ _ = return empty
+
+removePageLabel :: Maybe Lang -> [Inline] -> [Inline]
+removePageLabel mblang ils =
+  case mbLocinfo of
+    Just locinfo | locatorLabel locinfo == "page"
+      -> Str (locatorLoc locinfo) : ils'
+    _ -> ils
+ where
+   (mbLocinfo, ils') = parseLocator (toLocatorMap locale) ils
+   lang = fromMaybe (Lang "en" Nothing (Just "US") [] [] []) mblang
+   locale = either mempty id $ getLocale lang

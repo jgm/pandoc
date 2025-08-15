@@ -6,8 +6,9 @@ Chapter: Peatükk
 Contents: Sisukord
 Encl: Lisa(d)
 Figure: Joonis
-Glossary: Glossary
+Glossary: Sõnastik
 Index: Indeks
+Listing: Kood
 ListOfFigures: Joonised
 ListOfTables: Tabelid
 Page: Lk.
@@ -18,3 +19,4 @@ References: Viited
 See: vt.
 SeeAlso: vt. ka
 Table: Tabel
+To: Saaja

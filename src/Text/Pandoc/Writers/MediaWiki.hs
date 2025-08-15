@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.MediaWiki
-   Copyright   : Copyright (C) 2008-2023 John MacFarlane
+   Copyright   : Copyright (C) 2008-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -26,6 +26,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
+import Text.Pandoc.Walk
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
@@ -37,6 +38,7 @@ import Text.Pandoc.XML (escapeStringForXML)
 data WriterState = WriterState {
     stNotes   :: Bool            -- True if there are notes
   , stOptions :: WriterOptions   -- writer options
+  , stInDefLabel :: Bool         -- True if in definition list label
   }
 
 data WriterReader = WriterReader {
@@ -50,7 +52,8 @@ type MediaWikiWriter m = ReaderT WriterReader (StateT WriterState m)
 -- | Convert Pandoc to MediaWiki.
 writeMediaWiki :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeMediaWiki opts document =
-  let initialState = WriterState { stNotes = False, stOptions = opts }
+  let initialState = WriterState {
+        stNotes = False, stOptions = opts, stInDefLabel = False }
       env = WriterReader { options = opts, listLevel = [], useTags = False }
   in  evalStateT (runReaderT (pandocToMediaWiki document) env) initialState
 
@@ -116,9 +119,12 @@ blockToMediaWiki (Para inlines) = do
   tags <- asks useTags
   lev <- asks listLevel
   contents <- inlineListToMediaWiki inlines
+  let initEsc = if startsWithListMarker contents -- #9700
+                   then "\\"
+                   else ""
   return $ if tags
               then  "<p>" <> contents <> "</p>"
-              else contents <> if null lev then "\n" else ""
+              else initEsc <> contents <> if null lev then "\n" else ""
 
 blockToMediaWiki (LineBlock lns) =
   blockToMediaWiki $ linesToPara lns
@@ -233,7 +239,9 @@ definitionListItemToMediaWiki :: PandocMonad m
                               => ([Inline],[[Block]])
                               -> MediaWikiWriter m Text
 definitionListItemToMediaWiki (label, items) = do
+  modify $ \st -> st{ stInDefLabel = True }
   labelText <- inlineListToMediaWiki label
+  modify $ \st -> st{ stInDefLabel = False }
   contents <- mapM blockListToMediaWiki items
   tags <- asks useTags
   if tags
@@ -442,7 +450,13 @@ inlineToMediaWiki (Cite _  lst) = inlineListToMediaWiki lst
 inlineToMediaWiki (Code _ str) =
   return $ "<code>" <> escapeText str <> "</code>"
 
-inlineToMediaWiki (Str str) = return $ escapeText str
+inlineToMediaWiki (Str str) = do
+  inDefLabel <- gets stInDefLabel
+  return $
+    if inDefLabel
+       then T.intercalate "<nowiki>:</nowiki>" $
+              map escapeText $ T.splitOn ":" str
+       else escapeText str
 
 inlineToMediaWiki (Math mt str) = return $
   "<math display=\"" <>
@@ -470,7 +484,7 @@ inlineToMediaWiki SoftBreak = do
 inlineToMediaWiki Space = return " "
 
 inlineToMediaWiki (Link _ txt (src, _)) = do
-  label <- inlineListToMediaWiki txt
+  label <- inlineListToMediaWiki (removeLinks txt)
   case txt of
      [Str s] | isURI src && escapeURI s == src -> return src
      _  -> return $ if isURI src
@@ -503,6 +517,14 @@ inlineToMediaWiki (Note contents) = do
   modify (\s -> s { stNotes = True })
   return $ "<ref>" <> stripTrailingNewlines contents' <> "</ref>"
   -- note - does not work for notes with multiple blocks
+
+-- We need to remove links from link text, because an <a> element is
+-- not allowed inside another <a> element.
+removeLinks :: [Inline] -> [Inline]
+removeLinks = walk go
+ where
+  go (Link _ ils _) = SmallCaps ils
+  go x = x
 
 highlightingLangs :: Set.Set Text
 highlightingLangs = Set.fromList [
@@ -688,6 +710,7 @@ highlightingLangs = Set.fromList [
   "ex",
   "exs",
   "ezhil",
+  "f#",
   "factor",
   "fan",
   "fancy",
@@ -1134,3 +1157,9 @@ highlightingLangs = Set.fromList [
   "yaml",
   "yaml+jinja",
   "zephir" ]
+
+startsWithListMarker :: Text -> Bool
+startsWithListMarker t =
+  case T.uncons t of
+    Nothing -> False
+    Just (c,_) -> c == '#' || c == ':' || c == ';' || c == '*'

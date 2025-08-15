@@ -12,19 +12,30 @@ For parsing Field definitions in instText tags, as described in
 ECMA-376-1:2016, §17.16.5 -}
 
 module Text.Pandoc.Readers.Docx.Fields ( FieldInfo(..)
+                                       , IndexEntry(..)
                                        , parseFieldInfo
                                        ) where
 
 import Data.Functor (($>), void)
 import qualified Data.Text as T
 import Text.Pandoc.Parsing
+import Data.Maybe (isJust)
 
 type URL = T.Text
 type Anchor = T.Text
 
+data IndexEntry = IndexEntry
+  { entryTitle :: T.Text
+  , entrySee :: Maybe T.Text
+  , entryYomi :: Maybe T.Text
+  , entryBold :: Bool
+  , entryItalic :: Bool }
+  deriving (Show)
+
 data FieldInfo = HyperlinkField URL
                 -- The boolean indicates whether the field is a hyperlink.
                | PagerefField Anchor Bool
+               | IndexrefField IndexEntry
                | CslCitation T.Text
                | CslBibliography
                | EndNoteCite T.Text
@@ -38,26 +49,27 @@ parseFieldInfo :: T.Text -> Either ParseError FieldInfo
 parseFieldInfo = parse fieldInfo ""
 
 fieldInfo :: Parser FieldInfo
-fieldInfo =
-  try (HyperlinkField <$> hyperlink)
-  <|>
-  try ((uncurry PagerefField) <$> pageref)
-  <|>
-  try addIn
-  <|>
-  return UnknownField
+fieldInfo = do
+  spaces
+  hyperlink
+    <|>
+    pageref
+    <|>
+    indexref
+    <|>
+    addIn
+    <|>
+    return UnknownField
 
 addIn :: Parser FieldInfo
 addIn = do
-  spaces
   string "ADDIN"
   spaces
   try cslCitation <|> cslBibliography <|> endnoteCite <|> endnoteRefList
 
 cslCitation :: Parser FieldInfo
 cslCitation = do
-  optional (string "ZOTERO_ITEM")
-  spaces
+  optional (string "ZOTERO_ITEM" *> spaces)
   string "CSL_CITATION"
   spaces
   CslCitation <$> getInput
@@ -95,44 +107,49 @@ unquotedString :: Parser T.Text
 unquotedString = T.pack <$> manyTill anyChar (try $ void (lookAhead space) <|> eof)
 
 fieldArgument :: Parser T.Text
-fieldArgument = quotedString <|> unquotedString
+fieldArgument = do
+  notFollowedBy (char '\\') -- switch
+  quotedString <|> unquotedString
 
--- there are other switches, but this is the only one I've seen in the wild so far, so it's the first one I'll implement. See §17.16.5.25
-hyperlinkSwitch :: Parser (T.Text, T.Text)
-hyperlinkSwitch = do
-  sw <- string "\\l"
-  spaces
-  farg <- fieldArgument
-  return (T.pack sw, farg)
-
-hyperlink :: Parser URL
+hyperlink :: Parser FieldInfo
 hyperlink = do
-  many space
   string "HYPERLINK"
   spaces
-  farg <- fieldArgument
-  switches <- spaces *> many hyperlinkSwitch
-  let url = case switches of
-              ("\\l", s) : _ -> farg <> "#" <> s
-              _              -> farg
-  return url
+  farg <- option "" $ notFollowedBy (char '\\') *> fieldArgument
+  switches <- many fieldSwitch
+  let url = case [s | ('l',s) <- switches] of
+              [s] -> farg <> "#" <> s
+              _   -> farg
+  return $ HyperlinkField url
 
 -- See §17.16.5.45
-pagerefSwitch :: Parser (T.Text, T.Text)
-pagerefSwitch = do
-  sw <- string "\\h"
+fieldSwitch :: Parser (Char, T.Text)
+fieldSwitch = try $ do
   spaces
-  farg <- fieldArgument
-  return (T.pack sw, farg)
+  char '\\'
+  c <- anyChar
+  spaces
+  farg <- option mempty fieldArgument
+  return (c, farg)
 
-pageref :: Parser (Anchor, Bool)
+pageref :: Parser FieldInfo
 pageref = do
-  many space
   string "PAGEREF"
   spaces
   farg <- fieldArgument
-  switches <- spaces *> many pagerefSwitch
-  let isLink = case switches of
-              ("\\h", _) : _ -> True
-              _              -> False
-  return (farg, isLink)
+  switches <- many fieldSwitch
+  let isLink = any ((== 'h') . fst) switches
+  return $ PagerefField farg isLink
+
+-- second element of tuple is optional "see".
+indexref :: Parser FieldInfo
+indexref = do
+  string "XE"
+  spaces
+  farg <- fieldArgument
+  switches <- spaces *> many fieldSwitch
+  return $ IndexrefField $ IndexEntry{ entryTitle = farg
+                                     , entrySee = lookup 't' switches
+                                     , entryYomi = lookup 'y' switches
+                                     , entryBold = isJust (lookup 'b' switches)
+                                     , entryItalic = isJust (lookup 'i' switches) }

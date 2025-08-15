@@ -5,7 +5,7 @@
 #endif
 {- |
 Module      : Text.Pandoc.Data
-Copyright   : Copyright (C) 2013-2023 John MacFarlane
+Copyright   : Copyright (C) 2013-2024 John MacFarlane
 License     : GNU GPL, version 2 or above
 
 Maintainer  : John MacFarlane <jgm@berkeley@edu>
@@ -38,7 +38,7 @@ import Text.Pandoc.Shared (makeCanonical)
 import Paths_pandoc (getDataDir)
 #endif
 
--- | Read file from from the default data files.
+-- | Read file from the default data files.
 readDefaultDataFile :: PandocMonad m => FilePath -> m B.ByteString
 readDefaultDataFile "reference.docx" =
   B.concat . BL.toChunks . fromArchive <$> getDefaultReferenceDocx
@@ -123,9 +123,6 @@ getDefaultReferenceODT = do
                "styles.xml",
                "content.xml",
                "meta.xml",
-               "settings.xml",
-               "Configurations2/accelerator/current.xml",
-               "Thumbnails/thumbnail.png",
                "META-INF/manifest.xml"]
   let pathToEntry path = do epochtime <- floor `fmap` getPOSIXTime
                             contents <- (BL.fromChunks . (:[])) `fmap`

@@ -8,7 +8,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {- |
    Module      : Text.Pandoc.Shared
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -38,6 +38,7 @@ module Text.Pandoc.Shared (
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
+                     addPandocAttributes,
                      orderedListMarkers,
                      extractSpaces,
                      removeFormatting,
@@ -49,21 +50,19 @@ module Text.Pandoc.Shared (
                      linesToPara,
                      figureDiv,
                      makeSections,
+                     makeSectionsWithOffsets,
+                     combineAttr,
                      uniqueIdent,
                      inlineListToIdentifier,
                      textToIdentifier,
                      isHeaderBlock,
-                     headerShift,
-                     stripEmptyParagraphs,
                      onlySimpleTableCells,
                      isTightList,
                      taskListItemFromAscii,
                      taskListItemToAscii,
                      handleTaskListItem,
                      addMetaField,
-                     eastAsianLineBreakFilter,
                      htmlSpanLikeElements,
-                     filterIpynbOutput,
                      formatCode,
                      -- * TagSoup HTML handling
                      renderTags',
@@ -91,14 +90,15 @@ import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.List (find, foldl', groupBy, intercalate, intersperse,
-                  union, sortOn)
+import Data.List (find, foldl', groupBy, intercalate, intersperse, union)
 import qualified Data.Map as M
-import Data.Maybe (mapMaybe, fromMaybe)
-import Data.Monoid (Any (..))
+import Data.Maybe (mapMaybe)
+import Data.Monoid (Any (..) )
+import Data.Semigroup (Min (..))
 import Data.Sequence (ViewL (..), ViewR (..), viewl, viewr)
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import qualified Text.Emoji as Emoji
 import System.Directory
 import System.FilePath (isPathSeparator, splitDirectories)
 import qualified System.FilePath.Posix as Posix
@@ -110,9 +110,11 @@ import Data.Time
 import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Definition
 import Text.Pandoc.Extensions (Extensions, Extension(..), extensionEnabled)
-import Text.Pandoc.Generic (bottomUp)
 import Text.DocLayout (charWidth)
 import Text.Pandoc.Walk
+-- for addPandocAttributes:
+import Commonmark.Pandoc (Cm(..))
+import Commonmark (HasAttributes(..))
 
 --
 -- List processing
@@ -288,6 +290,16 @@ normalizeDate' s = fmap (formatTime defaultTimeLocale "%F")
 -- Pandoc block and inline list processing
 --
 
+-- | Add key-value attributes to a pandoc element. If the element
+-- does not have a slot for attributes, create an enclosing Span
+-- (for Inlines) or Div (for Blocks).  Note that both 'Cm () Inlines'
+-- and 'Cm () Blocks' are instances of 'HasAttributes'.
+addPandocAttributes
+  :: forall b . HasAttributes (Cm () b) => [(T.Text, T.Text)] -> b -> b
+addPandocAttributes [] bs = bs
+addPandocAttributes kvs bs =
+  unCm . addAttributes kvs $ (Cm bs :: Cm () b)
+
 -- | Generate infinite lazy list of markers for an ordered list,
 -- depending on list attributes.
 orderedListMarkers :: (Int, ListNumberStyle, ListNumberDelim) -> [T.Text]
@@ -453,7 +465,7 @@ isPara _        = False
 -- | Convert Pandoc inline list to plain text identifier.
 inlineListToIdentifier :: Extensions -> [Inline] -> T.Text
 inlineListToIdentifier exts =
-  textToIdentifier exts . stringify . walk unEmojify
+  textToIdentifier exts . stringify . unEmojify
   where
     unEmojify :: [Inline] -> [Inline]
     unEmojify
@@ -461,7 +473,10 @@ inlineListToIdentifier exts =
         extensionEnabled Ext_ascii_identifiers exts = walk unEmoji
       | otherwise = id
     unEmoji (Span ("",["emoji"],[("data-emoji",ename)]) _) = Str ename
+    unEmoji (Str t) = Str (Emoji.replaceEmojis emojisToAliases t)
     unEmoji x = x
+    emojisToAliases t [] = t
+    emojisToAliases _ (a:_) = a
 
 -- | Convert string to plain text identifier.
 textToIdentifier :: Extensions -> T.Text -> T.Text
@@ -494,29 +509,36 @@ textToIdentifier exts =
 -- element a Header).  If the 'numbering' parameter is True, Header
 -- numbers are added via the number attribute on the header.
 -- If the baseLevel parameter is Just n, Header levels are
--- adjusted to be gapless starting at level n.
+-- adjusted so that the lowest header level is n.
+-- (There may still be gaps in header level if the author leaves them.)
 makeSections :: Bool -> Maybe Int -> [Block] -> [Block]
-makeSections numbering mbBaseLevel bs =
-  S.evalState (go bs) (mbBaseLevel, [])
+makeSections = makeSectionsWithOffsets []
+
+-- | Like 'makeSections', but with a parameter for number offsets
+-- (a list of 'Int's, the first of which is added to the level 1
+-- section number, the second to the level 2, and so on).
+makeSectionsWithOffsets :: [Int] -> Bool -> Maybe Int -> [Block] -> [Block]
+makeSectionsWithOffsets numoffsets numbering mbBaseLevel bs =
+  S.evalState (go bs) numoffsets
  where
-  go :: [Block] -> S.State (Maybe Int, [Int]) [Block]
+  getLevel (Header level _ _) = Min level
+  getLevel _ = Min 99
+  minLevel = if all (== 0) numoffsets
+                then getMin $ query getLevel bs
+                else 1 -- see #5071, for backwards compatibility
+  go :: [Block] -> S.State [Int] [Block]
   go (Header level (ident,classes,kvs) title':xs) = do
-    (mbLevel, lastnum) <- S.get
-    let level' = fromMaybe level mbLevel
-    let lastnum' = take level' lastnum
-    let newnum =
-          if level' > 0
-             then case length lastnum' of
-                      x | "unnumbered" `elem` classes -> []
-                        | x >= level' -> init lastnum' ++ [last lastnum' + 1]
-                        | otherwise -> lastnum ++
-                             replicate (level' - length lastnum - 1) 0 ++ [1]
-             else []
-    unless (null newnum) $ S.modify $ \(mbl, _) -> (mbl, newnum)
+    lastnum <- S.get
+    let level' = maybe level (\n -> n + level - minLevel) mbBaseLevel
+    let adjustNum lev numComponent
+          | lev < level = numComponent
+          | lev == level = numComponent + 1
+          | otherwise = 0
+    let newnum = zipWith adjustNum [minLevel..level]
+                    (lastnum ++ repeat 0)
+    unless (null newnum || "unnumbered" `elem` classes) $ S.put newnum
     let (sectionContents, rest) = break (headerLtEq level) xs
-    S.modify $ \(_, ln) -> (fmap (+ 1) mbLevel, ln)
     sectionContents' <- go sectionContents
-    S.modify $ \(_, ln) -> (mbLevel, ln)
     rest' <- go rest
     let kvs' = -- don't touch number if already present
                case lookup "number" kvs of
@@ -525,9 +547,14 @@ makeSections numbering mbBaseLevel bs =
                         ("number", T.intercalate "." (map tshow newnum)) : kvs
                   _ -> kvs
     let divattr = (ident, "section":classes, kvs')
-    let attr = ("",classes,kvs')
+    let isHeadingAttr ("epub:type",_) = False
+        isHeadingAttr ("role",v) =
+          v `elem` ["tab", "presentation", "none", "treeitem",
+                    "menuitem", "button", "heading"]
+        isHeadingAttr _ = True
+    let hattr = ("",classes, filter isHeadingAttr kvs')
     return $
-      Div divattr (Header level' attr title' : sectionContents') : rest'
+      Div divattr (Header level' hattr title' : sectionContents') : rest'
   go (Div divattr@(dident,dclasses,_) (Header level hattr title':ys) : xs)
       | all (\case
                Header level' _ _ -> level' > level
@@ -550,13 +577,15 @@ makeSections numbering mbBaseLevel bs =
   go (x:xs) = (x :) <$> go xs
   go [] = return []
 
-  combineAttr :: Attr -> Attr -> Attr
-  combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
-    (if T.null id1 then id2 else id1,
-     nubOrd (classes1 ++ classes2),
-     foldr (\(k,v) kvs -> case lookup k kvs of
-                             Nothing -> (k,v):kvs
-                             Just _  -> kvs) mempty (kvs1 ++ kvs2))
+-- | Combine two 'Attr'. Classes are concatenated.  For the id and key-value
+-- attributes, the first one takes precedence in case of duplicates.
+combineAttr :: Attr -> Attr -> Attr
+combineAttr (id1, classes1, kvs1) (id2, classes2, kvs2) =
+  (if T.null id1 then id2 else id1,
+   nubOrd (classes1 ++ classes2),
+   foldr (\(k,v) kvs -> case lookup k kvs of
+                           Nothing -> (k,v):kvs
+                           Just _  -> kvs) kvs1 kvs2)
 
 headerLtEq :: Int -> Block -> Bool
 headerLtEq level (Header l _ _)  = l <= level
@@ -583,29 +612,6 @@ isHeaderBlock :: Block -> Bool
 isHeaderBlock Header{} = True
 isHeaderBlock _        = False
 
--- | Shift header levels up or down.
-headerShift :: Int -> Pandoc -> Pandoc
-headerShift n (Pandoc meta (Header m _ ils : bs))
-  | n < 0
-  , m + n == 0 = headerShift n $
-                 B.setTitle (B.fromList ils) $ Pandoc meta bs
-headerShift n (Pandoc meta bs) = Pandoc meta (walk shift bs)
-
- where
-   shift :: Block -> Block
-   shift (Header level attr inner)
-     | level + n > 0  = Header (level + n) attr inner
-     | otherwise      = Para inner
-   shift x            = x
-
--- | Remove empty paragraphs.
-stripEmptyParagraphs :: Pandoc -> Pandoc
-stripEmptyParagraphs = walk go
-  where go :: [Block] -> [Block]
-        go = filter (not . isEmptyParagraph)
-        isEmptyParagraph (Para []) = True
-        isEmptyParagraph _         = False
-
 -- | Detect if table rows contain only cells consisting of a single
 -- paragraph that has no @LineBreak@.
 onlySimpleTableCells :: [[[Block]]] -> Bool
@@ -621,9 +627,13 @@ onlySimpleTableCells = all isSimpleCell . concat
 
 -- | Detect if a list is tight.
 isTightList :: [[Block]] -> Bool
-isTightList = all (\item -> firstIsPlain item || null item)
-  where firstIsPlain (Plain _ : _) = True
-        firstIsPlain _             = False
+isTightList = all isPlainItem
+  where
+    isPlainItem [] = True
+    isPlainItem (Plain _ : _) = True
+    isPlainItem [BulletList xs] = isTightList xs
+    isPlainItem [OrderedList _ xs] = isTightList xs
+    isPlainItem _ = False
 
 -- | Convert a list item containing tasklist syntax (e.g. @[x]@)
 -- to using @U+2610 BALLOT BOX@ or @U+2612 BALLOT BOX WITH X@.
@@ -671,64 +681,10 @@ addMetaField key val (Meta meta) =
         tolist (MetaList ys) = ys
         tolist y             = [y]
 
--- | Remove soft breaks between East Asian characters.
-eastAsianLineBreakFilter :: Pandoc -> Pandoc
-eastAsianLineBreakFilter = bottomUp go
-  where go (x:SoftBreak:y:zs)
-          | Just (_, b) <- T.unsnoc $ stringify x
-          , Just (c, _) <- T.uncons $ stringify y
-          , charWidth b == 2
-          , charWidth c == 2
-          = x:y:zs
-          | otherwise
-          = x:SoftBreak:y:zs
-        go xs
-          = xs
-
 -- | Set of HTML elements that are represented as Span with a class equal as
 -- the element tag itself.
 htmlSpanLikeElements :: Set.Set T.Text
-htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn"]
-
--- | Process ipynb output cells.  If mode is Nothing,
--- remove all output.  If mode is Just format, select
--- best output for the format.  If format is not ipynb,
--- strip out ANSI escape sequences from CodeBlocks (see #5633).
-filterIpynbOutput :: Maybe Format -> Pandoc -> Pandoc
-filterIpynbOutput mode = walk go
-  where go (Div (ident, "output":os, kvs) bs) =
-          case mode of
-            Nothing  -> Div (ident, "output":os, kvs) []
-            -- "best" for ipynb includes all formats:
-            Just fmt
-              | fmt == Format "ipynb"
-                          -> Div (ident, "output":os, kvs) bs
-              | otherwise -> Div (ident, "output":os, kvs) $
-                              walk removeANSI $
-                              take 1 $ sortOn rank bs
-                 where
-                  rank (RawBlock (Format "html") _)
-                    | fmt == Format "html" = 1 :: Int
-                    | fmt == Format "markdown" = 3
-                    | otherwise = 4
-                  rank (RawBlock (Format "latex") _)
-                    | fmt == Format "latex" = 1
-                    | fmt == Format "markdown" = 3
-                    | otherwise = 4
-                  rank (RawBlock f _)
-                    | fmt == f = 1
-                    | otherwise = 4
-                  rank (Para [Image{}]) = 2
-                  rank _ = 3
-                  removeANSI (CodeBlock attr code) =
-                    CodeBlock attr (removeANSIEscapes code)
-                  removeANSI x = x
-                  removeANSIEscapes t
-                    | Just cs <- T.stripPrefix "\x1b[" t =
-                        removeANSIEscapes $ T.drop 1 $ T.dropWhile (/='m') cs
-                    | Just (c, cs) <- T.uncons t = T.cons c $ removeANSIEscapes cs
-                    | otherwise = ""
-        go x = x
+htmlSpanLikeElements = Set.fromList ["kbd", "mark", "dfn", "abbr"]
 
 -- | Reformat 'Inlines' as code, putting the stringlike parts in 'Code'
 -- elements while bringing other inline formatting outside.
@@ -758,7 +714,8 @@ formatCode attr = B.fromList . walk fmt . B.toList
 renderTags' :: [Tag T.Text] -> T.Text
 renderTags' = renderTagsOptions
                renderOptions{ optMinimize = matchTags ["hr", "br", "img",
-                                                       "meta", "link", "col"]
+                                                       "meta", "link", "col",
+                                                       "use", "path", "rect"]
                             , optRawTag   = matchTags ["script", "style"] }
               where matchTags tags = flip elem tags . T.toLower
 

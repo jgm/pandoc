@@ -265,12 +265,15 @@ blockToMuse (Header level (ident,_,_) inlines) = do
   return $ blankline <> attr' $$ nowrap (header' <> contents) <> blankline
 -- https://www.gnu.org/software/emacs-muse/manual/muse.html#Horizontal-Rules-and-Anchors
 blockToMuse HorizontalRule = return $ blankline $$ "----" $$ blankline
-blockToMuse (Table _ blkCapt specs thead tbody tfoot) =
+blockToMuse (Table _ blkCapt specs thead@(TableHead hattr hrows) tbody tfoot) =
   if isSimple && numcols > 1
     then simpleTable caption headers rows
     else do
       opts <- asks envOptions
-      gridTable opts blocksToDoc True (map (const AlignDefault) aligns) widths headers rows
+      let tbody' = case hrows of
+                     [] -> tbody
+                     _  -> TableBody nullAttr 0 [] hrows : tbody
+      gridTable opts blocksToDoc specs (TableHead hattr []) tbody' tfoot
   where
     (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
     blocksToDoc opts blocks =
@@ -719,7 +722,11 @@ inlineToMuse (Span (anchor,names,kvs) inlines) = do
                      then mempty
                      else literal ("#" <> anchor) <> space
   modify $ \st -> st { stUseTags = False }
-  return $ anchorDoc <> (if null inlines && not (T.null anchor)
-                         then mempty
-                         else (if null names then (if hasDir then contents' else "<class>" <> contents' <> "</class>")
-                               else "<class name=\"" <> literal (head names) <> "\">" <> contents' <> "</class>"))
+  return $ anchorDoc <>
+   if null inlines && not (T.null anchor)
+      then mempty
+      else case names of
+             [] | hasDir -> contents'
+                | otherwise -> "<class>" <> contents' <> "</class>"
+             (n:_) -> "<class name=\"" <> literal n <> "\">" <>
+                         contents' <> "</class>"

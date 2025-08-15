@@ -5,7 +5,7 @@
 {-# LANGUAGE BangPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.Markdown
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -21,11 +21,11 @@ module Text.Pandoc.Writers.Markdown (
   writeCommonMark,
   writeMarkua,
   writePlain) where
-import Control.Monad (foldM, zipWithM, MonadPlus(..), when)
+import Control.Monad (foldM, zipWithM, MonadPlus(..), when, liftM)
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import Control.Monad.State.Strict ( gets, modify )
 import Data.Default
-import Data.List (intersperse, sortOn, union)
+import Data.List (intersperse, sortOn, union, find)
 import Data.List.NonEmpty (nonEmpty, NonEmpty(..))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe, isNothing)
@@ -313,9 +313,9 @@ noteToMarkdown opts num blocks = do
 
 -- | (Code) blocks with a single class and no attributes can just use it
 -- standalone, no need to bother with curly braces.
-classOrAttrsToMarkdown :: Attr -> Doc Text
-classOrAttrsToMarkdown ("",[cls],[]) = literal cls
-classOrAttrsToMarkdown attrs = attrsToMarkdown attrs
+classOrAttrsToMarkdown :: WriterOptions -> Attr -> Doc Text
+classOrAttrsToMarkdown _ ("",[cls],[]) = literal cls
+classOrAttrsToMarkdown opts attrs = attrsToMarkdown opts attrs
 
 -- | Ordered list start parser for use in Para below.
 olMarker :: Parsec Text ParserState ()
@@ -368,39 +368,61 @@ blockToMarkdown' :: PandocMonad m
                  => WriterOptions -- ^ Options
                  -> Block         -- ^ Block element
                  -> MD m (Doc Text)
-blockToMarkdown' opts (Div attrs ils) = do
-  contents <- blockListToMarkdown opts ils
-  variant <- asks envVariant
-  return $
-     case () of
-         _ | variant == Markua ->
-                   case () of
-                        () | "blurb" `elem` classes' -> prefixed "B> " contents <> blankline
-                           | "aside" `elem` classes' -> prefixed "A> " contents <> blankline
-                           -- necessary to enable option to create a bibliography
-                           | (take 3 (T.unpack id')) == "ref" -> contents <> blankline
-                           | otherwise -> contents <> blankline
-           | isEnabled Ext_fenced_divs opts &&
-             attrs /= nullAttr ->
-                let attrsToMd = if variant == Commonmark
-                                then attrsToMarkdown
-                                else classOrAttrsToMarkdown
-                in nowrap (literal ":::" <+> attrsToMd attrs) $$
-                   chomp contents $$
-                   literal ":::" <> blankline
-           | isEnabled Ext_native_divs opts ||
-             (isEnabled Ext_raw_html opts &&
-              (variant == Commonmark ||
-               isEnabled Ext_markdown_in_html_blocks opts)) ->
-                tagWithAttrs "div" attrs <> blankline <>
-                contents <> blankline <> "</div>" <> blankline
-           | isEnabled Ext_raw_html opts &&
-             isEnabled Ext_markdown_attribute opts ->
-                tagWithAttrs "div" attrs' <> blankline <>
-                contents <> blankline <> "</div>" <> blankline
-           | otherwise -> contents <> blankline
-       where (id',classes',kvs') = attrs
-             attrs' = (id',classes',("markdown","1"):kvs')
+blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
+  | ("sourceCode":_) <- classes
+  , [CodeBlock (_,"sourceCode":_,_) _] <- bs
+     -- skip pandoc-generated Div wrappers around code blocks
+   = blockListToMarkdown opts bs
+  | isEnabled Ext_alerts opts
+  , (cls:_) <- classes
+  , cls `elem` ["note", "tip", "warning", "caution", "important"]
+  , (Div ("", ["title"], []) _ : Para ils : bs') <- bs
+   = blockToMarkdown' opts $ BlockQuote $
+       (Para (RawInline (Format "markdown") (case cls of
+         "note" -> "[!NOTE]\n"
+         "tip" -> "[!TIP]\n"
+         "warning" -> "[!WARNING]\n"
+         "caution" -> "[!CAUTION]\n"
+         "important" -> "[!IMPORTANT]\n"
+         _ -> "[!NOTE]\n") : ils)) : bs'
+  | otherwise = do
+    contents <- blockListToMarkdown opts bs
+    variant <- asks envVariant
+    return $
+       case () of
+           _ | variant == Markua ->
+                 case () of
+                      () | "blurb" `elem` classes'
+                           -> prefixed "B> " contents <> blankline
+                         | "aside" `elem` classes'
+                           -> prefixed "A> " contents <> blankline
+                         -- necessary to enable option to create a bibliography
+                         | (take 3 (T.unpack id')) == "ref"
+                           -> contents <> blankline
+                         | otherwise -> contents <> blankline
+             | isEnabled Ext_fenced_divs opts ->
+                  let attrsToMd = if variant == Commonmark
+                                  then attrsToMarkdown opts
+                                  else classOrAttrsToMarkdown opts
+                      divNesting = computeDivNestingLevel bs
+                      numcolons = 3 + divNesting
+                      colons = literal $ T.replicate numcolons ":"
+                  in nowrap (colons <+> attrsToMd attrs) $$
+                     chomp contents $$
+                     colons <> blankline
+             | isEnabled Ext_native_divs opts ||
+               (isEnabled Ext_raw_html opts &&
+                (variant == Commonmark ||
+                 isEnabled Ext_markdown_in_html_blocks opts)) ->
+                  tagWithAttrs "div" attrs <> blankline <>
+                  contents <> blankline <> "</div>" <> blankline
+             | isEnabled Ext_raw_html opts &&
+               isEnabled Ext_markdown_attribute opts ->
+                  tagWithAttrs "div" attrs' <> blankline <>
+                  contents <> blankline <> "</div>" <> blankline
+             | otherwise -> contents <> blankline
+         where (id',classes',kvs') = attrs
+               attrs' = (id',classes',("markdown","1"):kvs')
 blockToMarkdown' opts (Plain inlines) = do
   -- escape if para starts with ordered list marker
   variant <- asks envVariant
@@ -428,12 +450,19 @@ blockToMarkdown' opts (Plain inlines) = do
   return $ contents <> cr
 blockToMarkdown' opts (Para inlines) =
   (<> blankline) `fmap` blockToMarkdown opts (Plain inlines)
-blockToMarkdown' opts (LineBlock lns) =
-  if isEnabled Ext_line_blocks opts
-  then do
-    mdLines <- mapM (inlineListToMarkdown opts) lns
-    return $ vcat (map (hang 2 (literal "| ")) mdLines) <> blankline
-  else blockToMarkdown opts $ linesToPara lns
+blockToMarkdown' opts (LineBlock lns) = do
+  variant <- asks envVariant
+  case variant of
+    PlainText -> do
+      let emptyToBlank l = if isEmpty l then blankline else l
+      mdLines <- mapM (liftM emptyToBlank . inlineListToMarkdown opts) lns
+      return $ vcat mdLines <> blankline
+    _ ->
+      if isEnabled Ext_line_blocks opts
+      then do
+        mdLines <- mapM (inlineListToMarkdown opts) lns
+        return $ vcat (map (hang 2 (literal "| ")) mdLines) <> blankline
+      else blockToMarkdown opts $ linesToPara lns
 blockToMarkdown' opts b@(RawBlock f str) = do
   variant <- asks envVariant
   let Format fmt = f
@@ -444,19 +473,20 @@ blockToMarkdown' opts b@(RawBlock f str) = do
   let renderEmpty = mempty <$ report (BlockNotRendered b)
   case variant of
     PlainText
-      | f == "plain" -> return $ literal str <> literal "\n"
+      | f == "plain" -> return $ nest 0 (literal str) <> literal "\n"
     Commonmark
       | f `elem` ["gfm", "commonmark", "commonmark_x", "markdown"]
-         -> return $ literal str <> literal "\n"
+         -> return $ nest 0 (literal str) $$ blankline
       | f `elem` ["html", "html5", "html4"]
-         -> return $ literal (removeBlankLinesInHTML str) <> literal "\n"
+         -> return $ literal (removeBlankLinesInHTML str) $$ blankline
     Markdown
       | f `elem` ["markdown", "markdown_github", "markdown_phpextra",
                   "markdown_mmd", "markdown_strict"]
-         -> return $ literal str <> literal "\n"
+        -- the 'nest 0' ensures that leading and trailing newlines
+        -- don't get collapsed. See #10477 for context;
+         -> return $ nest 0 (literal str) <> literal "\n"
     Markua -> renderEmpty
-    _ | isEnabled Ext_raw_attribute opts -> rawAttribBlock
-      | f `elem` ["html", "html5", "html4"]
+    _ | f `elem` ["html", "html5", "html4"]
       , isEnabled Ext_markdown_attribute opts
          -> return $ literal (addMarkdownAttribute str) <> literal "\n"
       | f `elem` ["html", "html5", "html4"]
@@ -465,6 +495,7 @@ blockToMarkdown' opts b@(RawBlock f str) = do
       | f `elem` ["latex", "tex"]
       , isEnabled Ext_raw_tex opts
          -> return $ literal str <> literal "\n"
+      | isEnabled Ext_raw_attribute opts -> rawAttribBlock
     _ -> renderEmpty
 blockToMarkdown' opts HorizontalRule = do
   variant <- asks envVariant
@@ -493,10 +524,10 @@ blockToMarkdown' opts (Header level attr inlines) = do
                                  && id' == autoId -> empty
                    (id',_,_)   | isEnabled Ext_mmd_header_identifiers opts ->
                                     space <> brackets (literal id')
-                   _ | variant == Markua -> attrsToMarkua attr
+                   _ | variant == Markua -> attrsToMarkua opts attr
                      | isEnabled Ext_header_attributes opts ||
                        isEnabled Ext_attributes opts ->
-                                    space <> attrsToMarkdown attr
+                                    space <> attrsToMarkdown opts attr
                      | otherwise -> empty
   contents <- inlineListToMarkdown opts $
                  -- ensure no newlines; see #3736
@@ -546,7 +577,7 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
           backticks <> attrs <> cr <> literal str <> cr <> backticks <> blankline
            | isEnabled Ext_fenced_code_blocks opts ->
           tildes <> attrs <> cr <> literal str <> cr <> tildes <> blankline
-     _ | variant == Markua -> blankline <> attrsToMarkua attribs <> cr <> backticks <> cr <>
+     _ | variant == Markua -> blankline <> attrsToMarkua opts attribs <> cr <> backticks <> cr <>
                                 literal str <> cr <> backticks <> cr <> blankline
        | otherwise -> nest (writerTabStop opts) (literal str) <> blankline
    where
@@ -560,10 +591,12 @@ blockToMarkdown' opts (CodeBlock attribs str) = do
      tildes = endline '~'
      attrs  = if isEnabled Ext_fenced_code_attributes opts ||
                  isEnabled Ext_attributes opts
-                 then nowrap $ " " <> classOrAttrsToMarkdown attribs
-                 else case attribs of
-                            (_,cls:_,_) -> " " <> literal cls
-                            _             -> empty
+                 then nowrap $ " " <> classOrAttrsToMarkdown opts attribs
+                 else
+                   let (_,cls,_) = attribs
+                    in case getLangFromClasses cls of
+                              Just l -> " " <> literal l
+                              Nothing -> empty
 blockToMarkdown' opts (BlockQuote blocks) = do
   variant <- asks envVariant
   -- if we're writing literate haskell, put a space before the bird tracks
@@ -573,22 +606,34 @@ blockToMarkdown' opts (BlockQuote blocks) = do
         | variant == PlainText = "  "
         | otherwise            = "> "
   contents <- blockListToMarkdown opts blocks
-  return $ prefixed leader contents <> blankline
-blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
+  return $ text leader <> prefixed leader contents <> blankline
+blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  let isColRowSpans (Cell _ _ rs cs _) = rs > 1 || cs > 1
+  let rowHasColRowSpans (Row _ cs) = any isColRowSpans cs
+  let tbodyHasColRowSpans (TableBody _ _ rhs rs) =
+        any rowHasColRowSpans rhs || any rowHasColRowSpans rs
+  let theadHasColRowSpans (TableHead _ rs) = any rowHasColRowSpans rs
+  let tfootHasColRowSpans (TableFoot _ rs) = any rowHasColRowSpans rs
+  let hasColRowSpans = theadHasColRowSpans thead ||
+                       any tbodyHasColRowSpans tbody ||
+                       tfootHasColRowSpans tfoot
   let numcols = maximum (length aligns :| length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
-  let caption''
+  let caption'' = if T.null ident
+                     then caption'
+                     else caption' <+> attrsToMarkdown opts (ident,[],[])
+  let caption'''
         | null caption = blankline
         | isEnabled Ext_table_captions opts
-        = blankline $$ (": " <> caption') $$ blankline
-        | otherwise = blankline $$ caption' $$ blankline
+        = blankline $$ (": " <> caption'') $$ blankline
+        | otherwise = blankline $$ caption'' $$ blankline
   let hasSimpleCells = onlySimpleTableCells $ headers : rows
-  let isSimple = hasSimpleCells && all (==0) widths
+  let isSimple = hasSimpleCells && all (==0) widths && not hasColRowSpans
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
-  let hasBlocks = not (all isPlainBlock $ concat . concat $ headers:rows)
+  let hasBlocks = not (all (all (all isPlainBlock)) $ headers:rows)
   let padRow r = case numcols - length r of
                        x | x > 0 -> r ++ replicate x empty
                          | otherwise -> r
@@ -598,45 +643,54 @@ blockToMarkdown' opts t@(Table _ blkCapt specs thead tbody tfoot) = do
   let widths' = case numcols - length widths of
                      x | x > 0 -> widths ++ replicate x 0.0
                        | otherwise -> widths
-  (nst,tbl) <-
-     case True of
-          _ | isSimple &&
-              isEnabled Ext_simple_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (nest 2,) <$> pandocTable opts False (all null headers)
-                                aligns' widths' rawHeaders rawRows
-            | isSimple &&
-              isEnabled Ext_pipe_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (id,) <$> pipeTable opts (all null headers) aligns' widths'
-                            rawHeaders rawRows
-            | not hasBlocks &&
-              isEnabled Ext_multiline_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (nest 2,) <$> pandocTable opts True (all null headers)
-                                aligns' widths' rawHeaders rawRows
-            | isEnabled Ext_grid_tables opts &&
-               writerColumns opts >= 8 * numcols -> (id,) <$>
-                gridTable opts blockListToMarkdown
-                  (all null headers) aligns' widths' headers rows
-            | hasSimpleCells &&
-              isEnabled Ext_pipe_tables opts -> do
-                rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-                rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                           rows
-                (id,) <$> pipeTable opts (all null headers) aligns' widths'
-                           rawHeaders rawRows
-            | isEnabled Ext_raw_html opts -> fmap (id,) $
-                   literal . removeBlankLinesInHTML <$>
-                   writeHtml5String opts{ writerTemplate = Nothing } (Pandoc nullMeta [t])
-            | otherwise -> return (id, literal "[TABLE]")
-  return $ nst (tbl $$ caption'') $$ blankline
+  case True of
+     _ | isSimple &&
+         isEnabled Ext_simple_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pandocTable opts False (all null headers)
+                      aligns' widths' rawHeaders rawRows
+           return $ nest 2 (tbl $$ caption''') $$ blankline
+       | isSimple &&
+         isEnabled Ext_pipe_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pipeTable opts (all null headers) aligns' widths'
+                     rawHeaders rawRows
+           return $ (tbl $$ caption''') $$ blankline
+       | not (hasBlocks || hasColRowSpans) &&
+         isEnabled Ext_multiline_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pandocTable opts True (all null headers)
+                     aligns' widths' rawHeaders rawRows
+           return $ nest 2 (tbl $$ caption''') $$ blankline
+       | isEnabled Ext_grid_tables opts &&
+          (hasColRowSpans || writerColumns opts >= 8 * numcols) -> do
+           tbl <- gridTable opts blockListToMarkdown
+                     specs thead tbody tfoot
+           return $ (tbl $$ caption''') $$ blankline
+       | hasSimpleCells,
+         not hasColRowSpans,
+         isEnabled Ext_pipe_tables opts -> do
+           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
+                      rows
+           tbl <- pipeTable opts (all null headers) aligns' widths'
+                    rawHeaders rawRows
+           return $ (tbl $$ caption''') $$ blankline
+       | isEnabled Ext_raw_html opts -> do -- HTML fallback
+           tbl <- literal . removeBlankLinesInHTML <$>
+                     writeHtml5String opts{ writerTemplate = Nothing }
+                     (Pandoc nullMeta [t])
+           return $ tbl $$ blankline  -- caption is in the HTML table
+       | otherwise
+         -> do
+           report (BlockNotRendered t)
+           return $ (literal "[TABLE]" $$ caption''') $$ blankline
 blockToMarkdown' opts (BulletList items) = do
   contents <- inList $ mapM (bulletListItemToMarkdown opts) items
   return $ (if isTightList items then vcat else vsep)
@@ -670,14 +724,19 @@ blockToMarkdown' opts (DefinitionList items) = do
   return $ mconcat contents <> blankline
 blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
-        ("", cls, kv) | (figid, [], []) <- figattr -> Just (figid, cls, kv)
+        ("", cls, kv)
+          | (figid, [], []) <- figattr -> Just (figid, cls, kv)
         _ -> Nothing
   let combinedAlt alt = case capt of
         Caption Nothing [] -> if null alt
                               then Just [Str "image"]
                               else Just alt
         Caption Nothing [Plain captInlines]
-          | captInlines == alt || null alt -> Just captInlines
+          | null alt || stringify captInlines == stringify alt
+            -> Just captInlines
+        Caption Nothing [Para captInlines]
+          | null alt || stringify captInlines == stringify alt
+            -> Just captInlines
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
@@ -694,7 +753,10 @@ blockToMarkdown' opts (Figure figattr capt body) = do
       -- fallback to raw html if possible or div otherwise
       if isEnabled Ext_raw_html opts
       then figureToMarkdown opts figattr capt body
-      else blockToMarkdown' opts $ figureDiv figattr capt body
+      else if (isEnabled Ext_fenced_divs opts || isEnabled Ext_native_divs opts) ||
+                  not (isEnabled Ext_implicit_figures opts)
+              then blockToMarkdown' opts $ figureDiv figattr capt body
+              else blockListToMarkdown opts body
 
 inList :: Monad m => MD m a -> MD m a
 inList p = local (\env -> env {envInList = True}) p
@@ -721,8 +783,11 @@ figureToMarkdown opts attr@(ident, classes, kvs) capt body
       writeHtml5String
         opts{ writerTemplate = Nothing }
         (Pandoc nullMeta [Figure attr capt body])
-  | otherwise = let attr' = (ident, ["figure"] `union` classes, kvs)
-                in blockToMarkdown' opts (Div attr' body)
+  | otherwise = do
+      let attr' = (ident, ["figure"] `union` classes, kvs)
+      let Caption _mbshort caption = capt
+      let captionBs = [Div ("",["caption"],[]) caption | not (null caption)]
+      blockToMarkdown' opts (Div attr' (body <> captionBs))
 
 itemEndsWithTightList :: [Block] -> Bool
 itemEndsWithTightList bs =
@@ -740,7 +805,13 @@ bulletListItemToMarkdown opts bs = do
   let start = case variant of
               Markua -> "* "
               Commonmark -> "- "
-              _ -> "- " <> T.replicate (writerTabStop opts - 2) " "
+              Markdown
+                | isEnabled Ext_four_space_rule opts
+                  -> "- " <> T.replicate (writerTabStop opts - 2) " "
+              PlainText
+                | isEnabled Ext_four_space_rule opts
+                  -> "- " <> T.replicate (writerTabStop opts - 2) " "
+              _ -> "- "
   -- remove trailing blank line if item ends with a tight list
   let contents' = if itemEndsWithTightList bs
                      then chomp contents <> cr
@@ -785,26 +856,21 @@ definitionListItemToMarkdown opts (label, defs) = do
        let tabStop = writerTabStop opts
        variant <- asks envVariant
        let leader  = case variant of
-                        PlainText -> "   "
-                        Markua -> ":"
-                        _ -> ":  "
-       let sps = case writerTabStop opts - 3 of
-                      n | n > 0   -> literal $ T.replicate n " "
-                      _ -> literal " "
+                        PlainText -> " "
+                        _ -> ":"
+       let leadingChars = case tabStop of
+                            -- Always use two leading characters for Markua
+                            n | n >= 2 && variant /= Markua -> n
+                            _ -> 2
+       let sps = literal $ T.replicate (leadingChars - 1) " "
        let isTight = case defs of
                         ((Plain _ : _): _) -> True
                         _                  -> False
-       if isEnabled Ext_compact_definition_lists opts
-          then do
-            let contents = vcat $ map (\d -> hang tabStop (leader <> sps)
-                                $ vcat d <> cr) defs'
-            return $ nowrap labelText <> cr <> contents <> cr
-          else do
-            let contents = (if isTight then vcat else vsep) $ map
-                            (\d -> hang tabStop (leader <> sps) $ vcat d)
-                            defs'
-            return $ blankline <> nowrap labelText $$
-                     (if isTight then empty else blankline) <> contents <> blankline
+       let contents = (if isTight then vcat else vsep) $ map
+                       (\d -> hang leadingChars (leader <> sps) $ vcat d)
+                       defs'
+       return $ blankline <> nowrap labelText $$
+                (if isTight then empty else blankline) <> contents <> blankline
      else
        return $ nowrap (chomp labelText <> literal "  " <> cr) <>
                 vsep (map vsep defs') <> blankline
@@ -876,3 +942,20 @@ removeBlankLinesInHTML = T.pack . go False . T.unpack
         go !afternewline (!c:cs)
           | isSpace c = c : go afternewline cs
           | otherwise = c : go False cs
+
+computeDivNestingLevel :: [Block] -> Int
+computeDivNestingLevel = foldr go 0
+ where
+   go (Div _ bls') n = max (n + 1) (foldr go (n + 1) bls')
+   go _ n = n
+
+-- Identify the class in a list of classes that corresponds to
+-- the language syntax.  language-X turns to X.
+getLangFromClasses :: [Text] -> Maybe Text
+getLangFromClasses cs =
+  case find ("language-" `T.isPrefixOf`) cs of
+    Just x -> Just (T.drop 9 x)
+    Nothing ->
+      case filter (/= "sourceCode") cs of
+        (x:_) -> Just x
+        [] -> Nothing

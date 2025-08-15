@@ -200,12 +200,8 @@ Pandoc
       , Str "item"
       ]
   , BulletList
-      [ [ Plain
-            [ Str "one"
-            , SoftBreak
-            , RawInline (Format "html") "<!--\n- two\n-->"
-            ]
-        ]
+      [ [ Plain [ Str "one" , SoftBreak , Str "<!\8211" ] ]
+      , [ Plain [ Str "two" , SoftBreak , Str "\8211>" ] ]
       , [ Plain [ Str "three" ] ]
       ]
   , Header
@@ -316,8 +312,8 @@ Pandoc
       2
       ( "curly-smart-quotes" , [] , [] )
       [ Str "Curly" , Space , Str "smart" , Space , Str "quotes" ]
-  , Para [ Quoted DoubleQuote [ Str "Hi" ] ]
-  , Para [ Quoted SingleQuote [ Str "Hi" ] ]
+  , Para [ Str "\8220Hi\8221" ]
+  , Para [ Str "\8216Hi\8217" ]
   , Header
       2
       ( "consecutive-lists" , [] , [] )

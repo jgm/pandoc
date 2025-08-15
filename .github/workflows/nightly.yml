@@ -13,7 +13,12 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.8
+        ghcup install cabal --set 3.14
 
     - name: Install dependencies
       run: |
@@ -29,17 +34,21 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nightly-linux
         path: nightly-linux
 
   windows:
 
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.8
+        ghcup install cabal --set 3.14
     - name: Install dependencies
       run: |
           cabal update
@@ -55,20 +64,25 @@ jobs:
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nightly-windows
         path: nightly-windows
 
   macos:
 
-    runs-on: macos-11
+    runs-on: macos-13
 
     steps:
-    - uses: actions/checkout@v3
-    # pkg-config is now needed for some cabal builds
-    - name: Install pkg-config
-      run: brew install pkg-config
+    - uses: actions/checkout@v4
+    - name: Install ghcup
+      run: |
+        brew install ghcup
+    - name: Install ghc
+      run: |
+        ghcup install ghc --set 9.8
+        ghcup install cabal --set 3.14
+        echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
     - name: Install dependencies
       run: |
           cabal update
@@ -81,7 +95,7 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: nightly-macos
         path: nightly-macos

@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.RTF
-   Copyright   : Copyright (C) 2021-2023 John MacFarlane
+   Copyright   : Copyright (C) 2021-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane (<jgm@berkeley.edu>)
@@ -19,6 +19,7 @@ import qualified Data.IntMap as IntMap
 import qualified Data.Sequence as Seq
 import Control.Monad
 import Control.Monad.Except (throwError)
+import Crypto.Hash (hashWith, SHA1(SHA1))
 import Data.List (find, foldl')
 import Data.Word (Word8, Word16)
 import Data.Default
@@ -27,14 +28,14 @@ import qualified Data.Text as T
 import qualified Data.Text.Read as TR
 import Text.Pandoc.Builder (Blocks, Inlines)
 import qualified Text.Pandoc.Builder as B
-import Text.Pandoc.Class.PandocMonad (PandocMonad (..), insertMedia)
+import Text.Pandoc.Class (PandocMonad (..), insertMedia, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
+import Text.Pandoc.Logging (LogMessage(UnsupportedCodePage))
 import Text.Pandoc.Shared (tshow)
 import Data.Char (isAlphaNum, chr, isAscii, isLetter, isSpace, ord)
 import qualified Data.ByteString.Lazy as BL
-import Data.Digest.Pure.SHA (sha1, showDigest)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Safe (lastMay, initSafe, headDef)
 -- import Debug.Trace
@@ -217,7 +218,7 @@ data TokContents =
   | ControlSymbol !Char
   | UnformattedText !Text
   | BinData !BL.ByteString
-  | HexVal !Word8
+  | HexVals [Word8]
   | Grouped [Tok]
   deriving (Show, Eq)
 
@@ -229,7 +230,7 @@ tok = do
   controlThing = do
     char '\\' *>
       ( controlWord
-     <|> (HexVal <$> hexVal)
+     <|> (HexVals <$> many1 hexVal)
      <|> (ControlSymbol <$> anyChar) )
   controlWord = do
     name <- letterSequence
@@ -423,14 +424,27 @@ processTok :: PandocMonad m => Blocks -> Tok -> RTFParser m Blocks
 processTok bs (Tok pos tok') = do
   setPosition pos
   case tok' of
-    HexVal{} -> return ()
+    HexVals{} -> return ()
     UnformattedText{} -> return ()
     _ -> updateState $ \s -> s{ sEatChars = 0 }
   case tok' of
-    Grouped (Tok _ (ControlSymbol '*') : toks) ->
-      bs <$ (do oldTextContent <- sTextContent <$> getState
-                processTok mempty (Tok pos (Grouped toks))
-                updateState $ \st -> st{ sTextContent = oldTextContent })
+    Grouped (Tok _ (ControlSymbol '*') : toks@(firsttok:_)) ->
+      case firsttok of
+        Tok _ (ControlWord "shppict" _) -> inGroup (foldM processTok bs toks)
+        Tok _ (ControlWord "shpinst" _) -> inGroup (foldM processTok bs toks)
+        _ -> bs <$ (do oldTextContent <- sTextContent <$> getState
+                       processTok mempty (Tok pos (Grouped toks))
+                       updateState $ \st -> st{ sTextContent = oldTextContent })
+    Grouped (Tok _ (ControlWord "shp" _) : toks) ->
+      inGroup (foldM processTok bs toks)
+    Grouped [ Tok _ (ControlWord "sp" _)
+            , Tok _ (Grouped [Tok _ (ControlWord "sn" _),
+                      Tok _ (UnformattedText sn)])
+            , Tok _ (Grouped (Tok _ (ControlWord "sv" _) : svtoks))
+            ] ->
+      case sn of
+        "pib" -> inGroup (foldM processTok bs svtoks)
+        _ -> pure bs
     Grouped (Tok _ (ControlWord "fonttbl" _) : toks) -> inGroup $ do
       updateState $ \s -> s{ sFontTable = processFontTable toks }
       pure bs
@@ -498,19 +512,22 @@ processTok bs (Tok pos tok') = do
              addText (T.drop n t)
           | otherwise -> do
              updateState $ \s -> s{ sEatChars = n - T.length t }
-    HexVal n -> bs <$ do
+    HexVals ws -> bs <$ do
       eatChars <- sEatChars <$> getState
-      if eatChars == 0
-         then do
-           charset <- sCharSet <$> getState
-           case charset of
-             ANSI -> addText (T.singleton $ ansiToChar n)
-             Mac  -> addText (T.singleton $ macToChar n)
-             Pc   -> addText (T.singleton $ pcToChar n)
-             Pca  -> addText (T.singleton $ pcaToChar n)
-         else updateState $ \s -> s{ sEatChars = eatChars - 1 }
+      let ws' = drop eatChars ws
+      updateState $ \s -> s{ sEatChars = if null ws'
+                                            then eatChars - length ws
+                                            else 0 }
+      charset <- sCharSet <$> getState
+      case charset of
+        ANSI -> addText $ T.pack $ map defaultAnsiWordToChar ws'
+        Mac  -> addText $ T.pack $ map macToChar ws'
+        Pc   -> addText $ T.pack $ map pcToChar ws'
+        Pca  -> addText $ T.pack $ map pcaToChar ws'
     ControlWord "ansi" _ -> bs <$
       updateState (\s -> s{ sCharSet = ANSI })
+    ControlWord "ansicpg" (Just cpg) | cpg /= 1252 -> bs <$
+      report (UnsupportedCodePage cpg)
     ControlWord "mac" _ -> bs <$
       updateState (\s -> s{ sCharSet = Mac })
     ControlWord "pc" _ -> bs <$
@@ -541,7 +558,8 @@ processTok bs (Tok pos tok') = do
                                     TableRow (curCell : cs) : rs
                                   [] -> [TableRow [curCell]] -- shouldn't happen
                            , sCurrentCell = mempty }
-    ControlWord "intbl" _ -> bs <$ modifyGroup (\g -> g{ gInTable = True })
+    ControlWord "intbl" _ ->
+      emitBlocks bs <* modifyGroup (\g -> g{ gInTable = True })
     ControlWord "plain" _ -> bs <$ modifyGroup (const def)
     ControlWord "lquote" _ -> bs <$ addText "\x2018"
     ControlWord "rquote" _ -> bs <$ addText "\x2019"
@@ -902,7 +920,7 @@ handlePict toks = do
           Nothing -> (Nothing, "")
   case mimetype of
     Just mt -> do
-      let pictname = showDigest (sha1 bytes) <> ext
+      let pictname = show (hashWith SHA1 $ BL.toStrict bytes) <> ext
       insertMedia pictname (Just mt) bytes
       modifyGroup $ \g -> g{ gImage = Just pict{ picName = T.pack pictname,
                                                  picBytes = bytes } }
@@ -949,39 +967,38 @@ processFontTable = snd . foldl' go (0, mempty)
      (Grouped ts) -> foldl' go (fontnum, tbl) ts
      _ -> (fontnum, tbl)
 
-
-ansiToChar :: Word8 -> Char
-ansiToChar i = chr $
+defaultAnsiWordToChar :: Word8 -> Char
+defaultAnsiWordToChar i =
   case i of
-    128 -> 8364
-    130 -> 8218
-    131 -> 402
-    132 -> 8222
-    133 -> 8230
-    134 -> 8224
-    135 -> 8225
-    136 -> 710
-    137 -> 8240
-    138 -> 352
-    139 -> 8249
-    140 -> 338
-    142 -> 381
-    145 -> 8216
-    146 -> 8217
-    147 -> 8220
-    148 -> 8221
-    149 -> 8226
-    150 -> 8211
-    151 -> 8212
-    152 -> 732
-    153 -> 8482
-    154 -> 353
-    155 -> 8250
-    156 -> 339
-    158 -> 382
-    159 -> 376
-    173 -> 0xAD
-    _ -> fromIntegral i
+    128 -> '\8364'
+    130 -> '\8218'
+    131 -> '\402'
+    132 -> '\8222'
+    133 -> '\8230'
+    134 -> '\8224'
+    135 -> '\8225'
+    136 -> '\710'
+    137 -> '\8240'
+    138 -> '\352'
+    139 -> '\8249'
+    140 -> '\338'
+    142 -> '\381'
+    145 -> '\8216'
+    146 -> '\8217'
+    147 -> '\8220'
+    148 -> '\8221'
+    149 -> '\8226'
+    150 -> '\8211'
+    151 -> '\8212'
+    152 -> '\732'
+    153 -> '\8482'
+    154 -> '\353'
+    155 -> '\8250'
+    156 -> '\339'
+    158 -> '\382'
+    159 -> '\376'
+    173 -> '\xAD'
+    _ -> chr (fromIntegral i)
 
 macToChar :: Word8 -> Char
 macToChar i = chr $

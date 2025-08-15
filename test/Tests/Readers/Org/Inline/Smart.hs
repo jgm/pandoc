@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Tests.Readers.Org.Inline.Smart
-   Copyright   : © 2014-2023 Albert Krewinkel
+   Copyright   : © 2014-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
    Stability   : alpha
    Portability : portable
 
@@ -46,6 +46,10 @@ tests =
   , test orgSmart "Dashes are allowed at the borders of emphasis'"
     ("/foo---/" =?>
      para (emph "foo—"))
+
+  , test orgSmart "Support for shy (soft) hyphen"
+    ("Ur\\-instinkt" =?>
+     para "Ur\173instinkt")
 
   , test orgSmart "Single quotes can be followed by emphasized text"
     ("Singles on the '/meat market/'" =?>

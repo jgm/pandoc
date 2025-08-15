@@ -3,7 +3,7 @@
 {-# LANGUAGE ViewPatterns      #-}
 {- |
    Module      : Text.Pandoc.Writers.Man
-   Copyright   : Copyright (C) 2007-2023 John MacFarlane
+   Copyright   : Copyright (C) 2007-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -14,12 +14,13 @@ Conversion of 'Pandoc' documents to roff man page format.
 
 -}
 module Text.Pandoc.Writers.Man ( writeMan ) where
-import Control.Monad ( liftM, zipWithM, forM )
+import Control.Monad ( liftM, zipWithM, forM, unless )
 import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
 import Control.Monad.Trans (MonadTrans(lift))
 import Data.List (intersperse)
 import Data.List.NonEmpty (nonEmpty)
 import Data.Maybe (fromMaybe)
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Pandoc.Builder (deleteMeta)
@@ -34,7 +35,10 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.Roff
+import Text.Pandoc.Highlighting
 import Text.Printf (printf)
+import Skylighting (TokenType(..), SourceLine, FormatOptions, defaultFormatOpts,
+                    defStyle, TokenStyle(..), Style(..))
 
 -- | Convert Pandoc to Man.
 writeMan :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -75,7 +79,6 @@ pandocToMan opts (Pandoc meta blocks) = do
   let context = defField "body" main
               $ setFieldsFromTitle
               $ defField "has-tables" hasTables
-              $ defField "hyphenate" True
                 metadata
   return $ render colwidth $
     case writerTemplate opts of
@@ -83,9 +86,9 @@ pandocToMan opts (Pandoc meta blocks) = do
        Just tpl -> renderTemplate tpl context
 
 escString :: WriterOptions -> Text -> Text
-escString opts = escapeString (if writerPreferAscii opts
-                                  then AsciiOnly
-                                  else AllowUTF8)
+escString opts = escapeString True (if writerPreferAscii opts
+                                       then AsciiOnly
+                                       else AllowUTF8)
 
 -- | Return man representation of notes.
 notesToMan :: PandocMonad m => WriterOptions -> [[Block]] -> StateT WriterState m (Doc Text)
@@ -130,16 +133,18 @@ blockToMan opts (Header level _ inlines) = do
                   1 -> ".SH "
                   _ -> ".SS "
   return $ nowrap $ literal heading <> contents
-blockToMan opts (CodeBlock _ str) = return $
-  literal ".IP" $$
-  literal ".nf" $$
-  literal "\\f[C]" $$
-  ((case T.uncons str of
-    Just ('.',_) -> literal "\\&"
-    _            -> mempty) <>
-   literal (escString opts str)) $$
-  literal "\\f[R]" $$
-  literal ".fi"
+blockToMan opts (CodeBlock attr str) = do
+  hlCode <- case highlight (writerSyntaxMap opts) (formatSource opts)
+                  attr str of
+              Right d -> pure d
+              Left msg -> do
+                unless (T.null msg) $ report $ CouldNotHighlight msg
+                pure $ formatSource opts defaultFormatOpts
+                          (map (\t -> [(NormalTok,t)]) $ T.lines str)
+  pure $ literal ".IP" $$
+         literal ".EX" $$
+         hlCode $$
+         literal ".EE"
 blockToMan opts (BlockQuote blocks) = do
   contents <- blockListToMan opts blocks
   return $ literal ".RS" $$ contents $$ literal ".RE"
@@ -195,7 +200,7 @@ bulletListItemToMan opts (Para first:rest) =
 bulletListItemToMan opts (Plain first:rest) = do
   first' <- blockToMan opts (Plain first)
   rest' <- blockListToMan opts rest
-  let first'' = literal ".IP \\[bu] 2" $$ first'
+  let first'' = literal ".IP \\(bu 2" $$ first'
   let rest''  = if null rest
                    then empty
                    else literal ".RS 2" $$ rest' $$ literal ".RE"
@@ -203,7 +208,7 @@ bulletListItemToMan opts (Plain first:rest) = do
 bulletListItemToMan opts (first:rest) = do
   first' <- blockToMan opts first
   rest' <- blockListToMan opts rest
-  return $ literal "\\[bu] .RS 2" $$ first' $$ rest' $$ literal ".RE"
+  return $ literal "\\(bu .RS 2" $$ first' $$ rest' $$ literal ".RE"
 
 -- | Convert ordered list item (a list of blocks) to man.
 orderedListItemToMan :: PandocMonad m
@@ -257,7 +262,13 @@ blockListToMan :: PandocMonad m
                -> [Block]       -- ^ List of block elements
                -> StateT WriterState m (Doc Text)
 blockListToMan opts blocks =
-  vcat <$> mapM (blockToMan opts) blocks
+  vcat <$> mapM (blockToMan opts) (go blocks)
+ where
+   -- Avoid .PP right after .SH; this is a no-op in groff man and mandoc
+   -- but may cause unwanted extra space in some renderers (see #9020)
+   go [] = []
+   go (h@Header{} : Para ils : rest) = h : Plain ils : go rest
+   go (x : xs) = x : go xs
 
 -- | Convert list of Pandoc inline elements to man.
 inlineListToMan :: PandocMonad m => WriterOptions -> [Inline] -> StateT WriterState m (Doc Text)
@@ -288,12 +299,11 @@ inlineToMan opts (Quoted SingleQuote lst) = do
   return $ char '`' <> contents <> char '\''
 inlineToMan opts (Quoted DoubleQuote lst) = do
   contents <- inlineListToMan opts lst
-  return $ literal "\\[lq]" <> contents <> literal "\\[rq]"
+  return $ literal "\\(lq" <> contents <> literal "\\(rq"
 inlineToMan opts (Cite _ lst) =
   inlineListToMan opts lst
 inlineToMan opts (Code _ str) =
-  -- note that the V font is specially defined in the default man template
-  withFontFeature 'V' (return (literal $ escString opts str))
+  withFontFeature 'C' (return (literal $ escString opts str))
 inlineToMan opts (Str str@(T.uncons -> Just ('.',_))) =
   return $ afterBreak "\\&" <> literal (escString opts str)
 inlineToMan opts (Str str) = return $ literal $ escString opts str
@@ -309,18 +319,22 @@ inlineToMan _ il@(RawInline f str)
       return empty
 inlineToMan _ LineBreak = return $
   cr <> literal ".PD 0" $$ literal ".P" $$ literal ".PD" <> cr
-inlineToMan _ SoftBreak = return space
-inlineToMan _ Space = return space
+inlineToMan _ SoftBreak = return $ afterBreak "\\" <> space
+inlineToMan _ Space = return $ afterBreak "\\" <> space
 inlineToMan opts (Link _ txt (src, _))
   | not (isURI src) = inlineListToMan opts txt -- skip relative links
   | otherwise       = do
-  linktext <- inlineListToMan opts txt
   let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
-  return $ case txt of
-           [Str s]
-             | escapeURI s == srcSuffix ->
-                                 char '<' <> literal srcSuffix <> char '>'
-           _                  -> linktext <> literal " (" <> literal src <> char ')'
+  linktext <- case txt of
+                [Str s] | escapeURI s == srcSuffix -> pure mempty
+                _ -> inlineListToMan opts txt
+  let (start, end) = if "mailto:" `T.isPrefixOf` src
+                        then (".MT", ".ME")
+                        else (".UR", ".UE")
+  return $ "\\c" <> cr -- \c avoids extra space
+        $$ nowrap (start <+> literal srcSuffix)
+        $$ linktext
+        $$ (end <+> "\\c" <> cr)  -- \c avoids space after
 inlineToMan opts (Image attr alternate (source, tit)) = do
   let txt = if null alternate || (alternate == [Str ""]) ||
                (alternate == [Str source]) -- to prevent autolinks
@@ -334,3 +348,29 @@ inlineToMan _ (Note contents) = do
   notes <- gets stNotes
   let ref = tshow (length notes)
   return $ char '[' <> literal ref <> char ']'
+
+formatSource :: WriterOptions -> FormatOptions -> [SourceLine] -> Doc Text
+formatSource wopts fopts = vcat . map (formatSourceLine wopts fopts)
+
+formatSourceLine :: WriterOptions -> FormatOptions -> SourceLine -> Doc Text
+formatSourceLine _wopts _fopts [] = blankline
+formatSourceLine wopts fopts ts@((_,firstTxt):_) =
+  (case T.uncons firstTxt of
+     Just ('.',_) -> literal "\\&"
+     _ -> mempty) <> mconcat (map (formatTok wopts fopts) ts) <> literal "\n"
+
+formatTok :: WriterOptions -> FormatOptions -> (TokenType, Text) -> Doc Text
+formatTok wopts _fopts (toktype, t) =
+  let txt = literal (escString wopts t)
+      styleMap = tokenStyles <$> writerHighlightStyle wopts
+      tokStyle = fromMaybe defStyle $ styleMap >>= M.lookup toktype
+  in  if toktype == NormalTok
+         then txt
+         else
+           let fonts = ['B' | tokenBold tokStyle] ++
+                       ['I' | tokenItalic tokStyle || tokenUnderline tokStyle]
+            in if null fonts
+                  then txt
+                  else literal ("\\f[" <> T.pack fonts <> "]") <>
+                       txt <>
+                       literal "\\f[R]"

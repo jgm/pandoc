@@ -1,5 +1,6 @@
+ARCHITECTURE=$(shell cat architecture.txt)
 VERSION=$(shell cat version.txt)
-BASE=pandoc-$(VERSION)
+BASE=pandoc-$(VERSION)-$(ARCHITECTURE)
 DEST=pandoc/usr/local
 ALL=$(BASE)-macOS.pkg $(BASE)-macOS.zip
 
@@ -26,14 +27,18 @@ $(BASE)-macOS.zip: $(DEST)/bin/pandoc-server $(DEST)/bin/pandoc-lua signed.txt
 	mv $(DEST) $(BASE)
 	zip --symlinks -r $@ $(BASE)
 
-gon.hcl: version.txt
-	echo "notarize {\n  path = \"$(BASE)-macOS.pkg\"\n  bundle_id = \"org.pandoc.pandoc\"\n  staple = true\n}\napple_id {\n  username = \"jgm@berkeley.edu\"\n  password = \"@env:AC_PASSWORD\"\n}" > $@
+# gon.hcl: version.txt
+# 	echo "notarize {\n  path = \"$(BASE)-macOS.pkg\"\n  bundle_id = \"org.pandoc.pandoc\"\n  staple = true\n}\napple_id {\n  username = \"jgm@berkeley.edu\"\n  password = \"@env:AC_PASSWORD\"\n}" > $@
 
-notarize: gon.hcl $(BASE)-macOS.pkg
-	gon -log-level=warn ./gon.hcl
+#notarize: gon.hcl $(BASE)-macOS.pkg
+#	gon -log-level=warn ./gon.hcl
+
+notarize: $(BASE)-macOS.pkg
+	xcrun notarytool submit $< --keychain-profile=pandoc --wait && \
+    xcrun stapler staple $<
 
 clean:
-	rm signed.txt $(BASE) pandoc.pkg gon.hcl
+	rm signed.txt $(BASE) pandoc.pkg # gon.hcl
 
 distclean: clean
 	rm $(ALL)

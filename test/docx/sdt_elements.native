@@ -5,11 +5,11 @@
  ,(AlignDefault,ColWidth 0.5586085939783689)]
  (TableHead ("",[],[])
  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Plain [Strong [Str "col1Header"]]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Plain [Strong [Str "col2Header"]]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
     [Plain [Strong [Str "col3Header"]]]]])
  [(TableBody ("",[],[]) (RowHeadColumns 0)
   []

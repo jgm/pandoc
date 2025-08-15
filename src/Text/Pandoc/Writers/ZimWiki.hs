@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.ZimWiki
-   Copyright   : © 2008-2023 John MacFarlane,
+   Copyright   : © 2008-2024 John MacFarlane,
                    2017-2019 Alex Ivkin
    License     : GNU GPL, version 2 or above
 
@@ -128,7 +128,9 @@ blockToZimWiki opts (Table _ blkCapt specs thead tbody tfoot) = do
                       c <- inlineListToZimWiki opts capt
                       return $ "" <> c <> "\n"
   headers' <- if all null headers
-                 then zipWithM (tableItemToZimWiki opts) aligns (head rows)
+                 then case rows of
+                        [] -> pure mempty
+                        (r:_) -> zipWithM (tableItemToZimWiki opts) aligns r
                  else mapM (inlineListToZimWiki opts . removeFormatting)headers  -- emphasis, links etc. are not allowed in table headers
   rows' <- mapM (zipWithM (tableItemToZimWiki opts) aligns) rows
   let widths = map (maybe 0 maximum . nonEmpty . map T.length) $

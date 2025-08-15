@@ -6,7 +6,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {- |
    Module      : Text.Pandoc.Options
-   Copyright   : Copyright (C) 2012-2023 John MacFarlane
+   Copyright   : Copyright (C) 2012-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -28,9 +28,11 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , WriterOptions (..)
                            , TrackChanges (..)
                            , ReferenceLocation (..)
+                           , CaptionPosition (..)
                            , def
                            , isEnabled
                            , defaultMathJaxURL
+                           , defaultWebTeXURL
                            , defaultKaTeXURL
                            ) where
 import Control.Applicative ((<|>))
@@ -113,7 +115,8 @@ instance FromJSON HTMLMathMethod where
         mburl <- m .:? "url"
         case method :: Text of
           "plain" -> return PlainMath
-          "webtex" -> return $ WebTeX $ fromMaybe "" mburl
+          "webtex" -> return $ WebTeX $ 
+                         fromMaybe defaultWebTeXURL mburl
           "gladtex" -> return GladTeX
           "mathml" -> return MathML
           "mathjax" -> return $ MathJax $
@@ -123,7 +126,7 @@ instance FromJSON HTMLMathMethod where
           _ -> fail $ "Unknown HTML math method " ++ show method) node
        <|> (case node of
                String "plain" -> return PlainMath
-               String "webtex" -> return $ WebTeX ""
+               String "webtex" -> return $ WebTeX defaultWebTeXURL
                String "gladtex" -> return GladTeX
                String "mathml" -> return MathML
                String "mathjax" -> return $ MathJax defaultMathJaxURL
@@ -286,12 +289,30 @@ instance ToJSON ReferenceLocation where
    toJSON EndOfSection = "end-of-section"
    toJSON EndOfDocument = "end-of-document"
 
+-- | Positions for figure and table captions
+data CaptionPosition = CaptionAbove -- ^ above figure or table
+                     | CaptionBelow -- ^ below figure or table
+                     deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+instance FromJSON CaptionPosition where
+  parseJSON v =
+    case v of
+      String "above" -> return CaptionAbove
+      String "below" -> return CaptionBelow
+      _ -> fail $ "Unknown caption position " <> toStringLazy (encode v)
+
+instance ToJSON CaptionPosition where
+   toJSON CaptionAbove = "above"
+   toJSON CaptionBelow = "below"
+
 -- | Options for writers
 data WriterOptions = WriterOptions
   { writerTemplate          :: Maybe (Template Text) -- ^ Template to use
   , writerVariables         :: Context Text -- ^ Variables to set in template
   , writerTabStop           :: Int    -- ^ Tabstop for conversion btw spaces and tabs
   , writerTableOfContents   :: Bool   -- ^ Include table of contents
+  , writerListOfFigures     :: Bool   -- ^ Include list of figures
+  , writerListOfTables      :: Bool   -- ^ Include list of tables
   , writerIncremental       :: Bool   -- ^ True if lists should be incremental
   , writerHTMLMathMethod    :: HTMLMathMethod  -- ^ How to print math in HTML
   , writerNumberSections    :: Bool   -- ^ Number sections in LaTeX
@@ -323,8 +344,11 @@ data WriterOptions = WriterOptions
   , writerTOCDepth          :: Int            -- ^ Number of levels to include in TOC
   , writerReferenceDoc      :: Maybe FilePath -- ^ Path to reference document if specified
   , writerReferenceLocation :: ReferenceLocation    -- ^ Location of footnotes and references for writing markdown
+  , writerFigureCaptionPosition :: CaptionPosition -- ^ Position of figure caption
+  , writerTableCaptionPosition :: CaptionPosition -- ^ Position of table caption
   , writerSyntaxMap         :: SyntaxMap
   , writerPreferAscii       :: Bool           -- ^ Prefer ASCII representations of characters when possible
+  , writerLinkImages        :: Bool           -- ^ Use links rather than embedding ODT images
   } deriving (Show, Data, Typeable, Generic)
 
 instance Default WriterOptions where
@@ -332,6 +356,8 @@ instance Default WriterOptions where
                       , writerVariables        = mempty
                       , writerTabStop          = 4
                       , writerTableOfContents  = False
+                      , writerListOfFigures    = False
+                      , writerListOfTables     = False
                       , writerIncremental      = False
                       , writerHTMLMathMethod   = PlainMath
                       , writerNumberSections   = False
@@ -361,8 +387,11 @@ instance Default WriterOptions where
                       , writerTOCDepth         = 3
                       , writerReferenceDoc     = Nothing
                       , writerReferenceLocation = EndOfDocument
+                      , writerFigureCaptionPosition = CaptionBelow
+                      , writerTableCaptionPosition  = CaptionAbove
                       , writerSyntaxMap        = defaultSyntaxMap
                       , writerPreferAscii      = False
+                      , writerLinkImages       = False
                       }
 
 instance HasSyntaxExtensions WriterOptions where
@@ -375,8 +404,11 @@ isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 defaultMathJaxURL :: Text
 defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
 
+defaultWebTeXURL :: Text
+defaultWebTeXURL = "https://latex.codecogs.com/png.latex?"
+
 defaultKaTeXURL :: Text
-defaultKaTeXURL = "https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/"
+defaultKaTeXURL = "https://cdn.jsdelivr.net/npm/katex@latest/dist/"
 
 -- Update documentation in doc/filters.md if this is changed.
 $(deriveJSON defaultOptions{ fieldLabelModifier =

@@ -75,6 +75,12 @@ data ReaderState
                  , styleTrace       :: [Style]
                    -- | Keeps track of the current depth in nested lists
                  , currentListLevel :: ListLevel
+                   -- | Keeps track of the previous list start counters,
+                   -- so whenever a new list continues numbering,
+                   -- we know what number to start from.
+                   -- If  list does not continue numbering, the counter
+                   -- is being reset.
+                 , listContinuationStartCounters :: M.Map ListLevel Int
                    -- | Lists may provide their own style, but they don't have
                    -- to. If they do not, the style of a parent list may be used
                    -- or even a default list style from the paragraph style.
@@ -92,7 +98,7 @@ data ReaderState
   deriving ( Show )
 
 readerState :: Styles -> Media -> ReaderState
-readerState styles media = ReaderState styles [] 0 Nothing M.empty media mempty
+readerState styles media = ReaderState styles [] 0 M.empty Nothing M.empty media mempty
 
 --
 pushStyle'  :: Style -> ReaderState -> ReaderState
@@ -103,10 +109,14 @@ popStyle'   :: ReaderState -> ReaderState
 popStyle' state = case styleTrace state of
                    _:trace -> state  { styleTrace = trace  }
                    _       -> state
-
 --
 modifyListLevel :: (ListLevel -> ListLevel) -> (ReaderState -> ReaderState)
 modifyListLevel f state = state { currentListLevel = f (currentListLevel state) }
+
+--
+modifyListContinuationStartCounter :: ListLevel -> Int -> (ReaderState -> ReaderState)
+modifyListContinuationStartCounter listLevel count state =
+    state { listContinuationStartCounters = M.insert listLevel count (listContinuationStartCounters state) }
 
 --
 shiftListLevel :: ListLevel -> (ReaderState -> ReaderState)
@@ -197,6 +207,17 @@ popStyle =     keepingTheValue (
 --
 getCurrentListLevel :: ODTReaderSafe _x ListLevel
 getCurrentListLevel = getExtraState >>^ currentListLevel
+
+--
+getListContinuationStartCounters :: ODTReaderSafe _x (M.Map ListLevel Int)
+getListContinuationStartCounters = getExtraState >>^ listContinuationStartCounters
+
+
+--
+getPreviousListStartCounter :: ODTReaderSafe ListLevel Int
+getPreviousListStartCounter = proc listLevel -> do
+    counts <- getListContinuationStartCounters -< ()
+    returnA -< M.findWithDefault 0 listLevel counts
 
 --
 updateMediaWithResource :: ODTReaderSafe (FilePath, B.ByteString) (FilePath, B.ByteString)
@@ -372,39 +393,24 @@ _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_ = 5
 
 -- | Returns either 'id' or 'blockQuote' depending if any of the StyleProperties
 -- are indented at quote level.
-getParaModifier :: [StyleProperties] -> ParaModifier
-getParaModifier props | any isBlockQuote props
-                       = blockQuote
-                       | otherwise
-                       = id
+getParaModifier :: ListLevel -> [StyleProperties] -> ParaModifier
+getParaModifier listLevel props
+  | listLevel > 0 = id -- see #9505, list paragraphs need indentation
+  | any isBlockQuote props = blockQuote
+  | otherwise = id
   where
   isBlockQuote SProps {..} | Just paraProps <- paraProperties
-                                    , isQuoteWidth (indentation paraProps)
-                                                  (margin_left paraProps)
+                                    , isQuoteWidth (margin_left paraProps)
                                     = True
                                     | otherwise
                                     = False
-  isQuoteWidth mIndent mMargin
-    | LengthValueMM indent <- mIndent
-    ,  indent          > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-     = True
+  isQuoteWidth mMargin
     | LengthValueMM margin <- mMargin
     ,           margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-     = True
-    | LengthValueMM indent <- mIndent
-    , LengthValueMM margin <- mMargin
-     = indent + margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_MM_
-
-    | PercentValue  indent <- mIndent
-    ,  indent          > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
      = True
     | PercentValue  margin <- mMargin
     ,           margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
      = True
-    | PercentValue  indent <- mIndent
-    , PercentValue  margin <- mMargin
-     = indent + margin > _MINIMUM_INDENTATION_FOR_BLOCKQUOTES_IN_PERCENT_
-
     | otherwise
      = False
 
@@ -419,7 +425,8 @@ constructPara reader = proc blocks -> do
       arr tableCaptionP  -< blocks'
     Right (_, style) -> do
       props <- fromStyles extendedStylePropertyChain -< [style]
-      let modifier = getParaModifier props
+      listLevel <- getCurrentListLevel -< ()
+      let modifier = getParaModifier listLevel props
       blocks' <- reader   -<  blocks
       arr modifier        -<< blocks'
   where
@@ -430,15 +437,15 @@ constructPara reader = proc blocks -> do
 
 type ListConstructor = [Blocks] -> Blocks
 
-getListConstructor :: ListLevelStyle -> ListConstructor
-getListConstructor ListLevelStyle{..} =
+getListConstructor :: ListLevelStyle -> Int -> ListConstructor
+getListConstructor ListLevelStyle{..} startNum =
   case listLevelType of
     LltBullet   -> bulletList
     LltImage    -> bulletList
     LltNumbered -> let listNumberStyle = toListNumberStyle listItemFormat
                        listNumberDelim = toListNumberDelim listItemPrefix
                                                            listItemSuffix
-                   in  orderedListWith (listItemStart, listNumberStyle, listNumberDelim)
+                   in  orderedListWith (startNum, listNumberStyle, listNumberDelim)
   where
     toListNumberStyle  LinfNone      = DefaultStyle
     toListNumberStyle  LinfNumber    = Decimal
@@ -455,7 +462,6 @@ getListConstructor ListLevelStyle{..} =
     toListNumberDelim (Just "(") (Just ")") = TwoParens
     toListNumberDelim     _          _      = DefaultDelim
 
-
 -- | Determines which style to use for a list, which level to use of that
 -- style, and which type of list to create as a result of this information.
 -- Then prepares the state for eventual child lists and constructs the list from
@@ -467,42 +473,62 @@ getListConstructor ListLevelStyle{..} =
 -- If anything goes wrong, a default ordered-list-constructor is used.
 constructList :: ODTReaderSafe x [Blocks] -> ODTReaderSafe x Blocks
 constructList reader = proc x -> do
-  modifyExtraState (shiftListLevel 1)        -< ()
-  listLevel  <- getCurrentListLevel          -< ()
-  fStyleName <- findAttr NsText "style-name" -< ()
+  modifyExtraState (shiftListLevel 1)                                  -< ()
+  listLevel                    <- getCurrentListLevel                  -< ()
+  listContinuationStartCounter <- getPreviousListStartCounter          -< listLevel
+  fStyleName                   <- findAttr NsText "style-name"         -< ()
+  fContNumbering               <- findAttr NsText "continue-numbering" -< ()
+  listItemCount                <- reader >>^ length                    -< x
+
+  let continueNumbering = case fContNumbering of
+                            Right "true" -> True
+                            _            -> False
+
+  let startNumForListLevelStyle = listStartingNumber continueNumbering listContinuationStartCounter
+  let defaultOrderedListConstructor = constructOrderedList (startNumForListLevelStyle Nothing) listLevel listItemCount
+
   case fStyleName of
     Right styleName -> do
       fListStyle <- lookupListStyle -< styleName
       case fListStyle of
         Right listStyle -> do
-          fLLS <- arr (uncurry getListLevelStyle) -< (listLevel,listStyle)
-          case fLLS of
+          fListLevelStyle <- arr (uncurry getListLevelStyle) -< (listLevel, listStyle)
+          case fListLevelStyle of
             Just listLevelStyle -> do
-              oldListStyle <- switchCurrentListStyle           -<  Just listStyle
-              blocks       <- constructListWith listLevelStyle -<< x
-              switchCurrentListStyle                           -<  oldListStyle
-              returnA                                          -<  blocks
-            Nothing             -> constructOrderedList        -< x
-        Left _                  -> constructOrderedList        -< x
+              let startNum = startNumForListLevelStyle $ Just listLevelStyle
+              oldListStyle <- switchCurrentListStyle                    -<  Just listStyle
+              blocks       <- constructListWith listLevelStyle startNum listLevel listItemCount -<< x
+              switchCurrentListStyle                                    -<  oldListStyle
+              returnA                                                   -<  blocks
+            Nothing             -> defaultOrderedListConstructor -<< x
+        Left _                  -> defaultOrderedListConstructor -<< x
     Left _ -> do
       state      <- getExtraState        -< ()
       mListStyle <- arr currentListStyle -< state
       case mListStyle of
         Just listStyle -> do
-          fLLS <- arr (uncurry getListLevelStyle) -< (listLevel,listStyle)
-          case fLLS of
-            Just listLevelStyle -> constructListWith listLevelStyle -<< x
-            Nothing             -> constructOrderedList             -<  x
-        Nothing                 -> constructOrderedList             -<  x
+          fListLevelStyle <- arr (uncurry getListLevelStyle) -< (listLevel, listStyle)
+          case fListLevelStyle of
+            Just listLevelStyle -> do
+              let startNum = startNumForListLevelStyle $ Just listLevelStyle
+              constructListWith listLevelStyle startNum listLevel listItemCount -<< x
+            Nothing             -> defaultOrderedListConstructor -<< x
+        Nothing                 -> defaultOrderedListConstructor -<< x
   where
-    constructOrderedList =
+    listStartingNumber continueNumbering listContinuationStartCounter mListLevelStyle
+      | continueNumbering                = listContinuationStartCounter
+      | isJust mListLevelStyle           = listItemStart (fromJust mListLevelStyle)
+      | otherwise                        = 1
+    constructOrderedList startNum listLevel listItemCount =
           reader
       >>> modifyExtraState (shiftListLevel (-1))
-      >>^ orderedList
-    constructListWith listLevelStyle =
+      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount))
+      >>^ orderedListWith (startNum, DefaultStyle, DefaultDelim)
+    constructListWith listLevelStyle startNum listLevel listItemCount =
           reader
-      >>> getListConstructor listLevelStyle
+      >>> getListConstructor listLevelStyle startNum
       ^>> modifyExtraState (shiftListLevel (-1))
+      >>> modifyExtraState (modifyListContinuationStartCounter listLevel (startNum + listItemCount))
 
 --------------------------------------------------------------------------------
 -- Readers
@@ -597,6 +623,7 @@ read_span         = matchingElement NsText "span"
                                         , read_line_break
                                         , read_tab
                                         , read_link
+                                        , read_frame
                                         , read_note
                                         , read_citation
                                         , read_bookmark
@@ -665,9 +692,7 @@ read_header       = matchingElement NsText "h"
 --
 read_list        :: BlockMatcher
 read_list         = matchingElement NsText "list"
---                  $ withIncreasedListLevel
                     $ constructList
---                  $ liftA bulletList
                     $ matchChildContent' [ read_list_item
                                          , read_list_header
                                          ]
@@ -770,15 +795,26 @@ read_citation     = matchingElement NsText "bibliography-mark"
 read_table        :: BlockMatcher
 read_table         = matchingElement NsTable "table"
                      $ liftA simpleTable'
-                     $ matchChildContent'  [ read_table_row
-                                           ]
+                     $ (matchChildContent' [read_table_header]) &&&
+                       (matchChildContent'  [read_table_row])
 
--- | A simple table without a caption or headers
--- | Infers the number of headers from rows
-simpleTable' :: [[Blocks]] -> Blocks
-simpleTable' []         = simpleTable [] []
-simpleTable' (x : rest) = simpleTable (fmap (const defaults) x) (x : rest)
-  where defaults = fromList []
+-- | A simple table without a caption.
+simpleTable' :: ([[Blocks]], [[Blocks]]) -> Blocks
+simpleTable' (headers, rows) =
+  table emptyCaption (replicate numcols defaults) th [tb] tf
+  where
+    defaults = (AlignDefault, ColWidthDefault)
+    numcols = maximum $ map length $ headers ++ rows
+    toRow = Row nullAttr . map simpleCell
+    th = TableHead nullAttr $ map toRow headers
+    tb = TableBody nullAttr 0 [] $ map toRow rows
+    tf = TableFoot nullAttr []
+
+--
+read_table_header :: ElementMatcher [[Blocks]]
+read_table_header = matchingElement NsTable "table-header-rows"
+                      $ matchChildContent' [ read_table_row
+                                           ]
 
 --
 read_table_row    :: ElementMatcher [[Blocks]]
@@ -792,6 +828,7 @@ read_table_cell   :: ElementMatcher [Blocks]
 read_table_cell    = matchingElement NsTable "table-cell"
                      $ liftA (compactify.(:[]))
                      $ matchChildContent' [ read_paragraph
+                                          , read_list
                                           ]
 
 ----------------------

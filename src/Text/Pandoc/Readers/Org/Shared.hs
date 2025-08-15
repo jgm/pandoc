@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Shared
-   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Utility functions used in other Pandoc Org modules.
 -}
@@ -32,7 +32,7 @@ isImageFilename fp = hasImageExtension && (isValid (T.unpack fp) || isKnownProto
                        `elem` imageExtensions
    isKnownProtocolUri = any (\x -> (x <> "://") `T.isPrefixOf` fp) protocols
 
-   imageExtensions = [ ".jpeg", ".jpg", ".png", ".gif", ".svg", ".webp", ".jxl" ]
+   imageExtensions = [ ".jpeg", ".jpg", ".png", ".gif", ".svg", ".webp", ".jxl", ".avif" ]
    protocols = [ "file", "http", "https" ]
 
 -- | Cleanup and canonicalize a string describing a link.  Return @Nothing@ if

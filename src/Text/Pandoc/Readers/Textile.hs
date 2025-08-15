@@ -3,7 +3,7 @@
 {- |
    Module      : Text.Pandoc.Readers.Textile
    Copyright   : Copyright (C) 2010-2012 Paul Rivier
-                               2010-2023 John MacFarlane
+                               2010-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Paul Rivier <paul*rivier#demotera*com>
@@ -40,6 +40,7 @@ import Control.Monad.Except (throwError)
 import Data.Char (digitToInt, isUpper)
 import Data.List (intersperse, transpose, foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup (Tag (..), fromAttrib)
@@ -49,6 +50,7 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.CSS
 import Text.Pandoc.Definition
+import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isInlineTag)
@@ -79,7 +81,7 @@ parseTextile = do
   -- docMinusKeys is the raw document with blanks where the keys/notes were...
   let firstPassParser = do
         pos <- getPosition
-        t <- noteBlock <|> lineClump
+        t <- noteBlock <|> referenceKey <|> lineClump
         return (pos, t)
   manyTill firstPassParser eof >>= setInput . Sources
   setPosition startPos
@@ -108,6 +110,27 @@ noteBlock = try $ do
   updateState $ \s -> s { stateNotes = newnote : oldnotes }
   -- return blanks so line count isn't affected
   return $ T.replicate (sourceLine endPos - sourceLine startPos) "\n"
+
+referenceKey :: PandocMonad m => TextileParser m Text
+referenceKey = try $ do
+  pos <- getPosition
+  char '['
+  refName <- T.pack <$> many1Till nonspaceChar (char ']')
+  refDestination <- T.pack <$> many1Till anyChar newline
+  st <- getState
+  let oldKeys = stateKeys st
+  let key = toKey refName
+  -- Textile doesn't support link titles on the reference
+  -- definition, so use the empty string
+  let target = (refDestination, "")
+  case M.lookup key oldKeys of
+    Just (t, _) | not (t == target) ->
+      -- similar to Markdown, only warn when the targets
+      -- for matching named references differ
+      logMessage $ DuplicateLinkReference refName pos
+    _ -> return ()
+  updateState $ \s -> s {stateKeys = M.insert key (target, nullAttr) oldKeys }
+  return "\n"
 
 -- | Parse document blocks
 parseBlocks :: PandocMonad m => TextileParser m Blocks
@@ -478,6 +501,7 @@ inlineParsers = [ str
                 , endline
                 , code
                 , escapedInline
+                , spanGroup
                 , inlineMarkup
                 , groupedInlineMarkup
                 , rawHtmlInline
@@ -502,8 +526,20 @@ inlineMarkup = choice [ simpleInline (string "??") (B.cite [])
                       , simpleInline (char '-' <* notFollowedBy (char '-')) B.strikeout
                       , simpleInline (char '^') B.superscript
                       , simpleInline (char '~') B.subscript
-                      , simpleInline (char '%') id
                       ]
+
+-- "The <span> tag is created by percent % signs between whitespaces."
+-- e.g. My mother has %{color:green;}green% eyes.
+spanGroup :: PandocMonad m => TextileParser m Inlines
+spanGroup = try $ do
+  notAfterString >>= guard
+  char '%' *> notFollowedBy whitespace
+  attr <- option nullAttr attributes
+  contents <- mconcat <$> manyTill
+   (try (((B.space <>) <$> try (whitespace *> notFollowedBy newline *> inline))
+         <|> try (notFollowedBy newline *> inline)))
+   (try (char '%' <* lookAhead (newline <|> ' ' <$ whitespace)))
+  pure $ B.spanWith attr contents
 
 -- | Trademark, registered, copyright
 mark :: PandocMonad m => TextileParser m Inlines
@@ -624,7 +660,11 @@ linkUrl bracketed = do
                 else lookAhead $ space <|> eof' <|> oneOf "[]" <|>
                        try (oneOf "!.,;:*" *>
                               (space <|> newline <|> eof'))
-  T.pack <$> many1Till nonspaceChar stop
+  rawLink <- T.pack <$> many1Till nonspaceChar stop
+  st <- getState
+  return $ case M.lookup (toKey rawLink) (stateKeys st) of
+    Nothing -> rawLink
+    Just ((src, _), _) -> src
 
 -- | image embedding
 image :: PandocMonad m => TextileParser m Inlines
@@ -658,9 +698,12 @@ escapedTag = B.str . T.pack <$>
 
 -- | Any special symbol defined in wordBoundaries
 symbol :: PandocMonad m => TextileParser m Inlines
-symbol = B.str . T.singleton <$> (notFollowedBy newline *>
-                                  notFollowedBy rawHtmlBlock *>
-                                  oneOf wordBoundaries)
+symbol = do
+  c <- notFollowedBy newline *>
+         notFollowedBy rawHtmlBlock *>
+         oneOf wordBoundaries
+  updateLastStrPos
+  pure $ B.str . T.singleton $ c
 
 -- | Inline code
 code :: PandocMonad m => TextileParser m Inlines
@@ -748,12 +791,14 @@ simpleInline :: PandocMonad m
              -> (Inlines -> Inlines)                  -- ^ Inline constructor
              -> TextileParser m Inlines  -- ^ content parser (to be used repeatedly)
 simpleInline border construct = try $ do
-  notAfterString
+  notAfterString >>= guard
   border *> notFollowedBy (oneOf " \t\n\r")
   attr <- attributes
   body <- trimInlines . mconcat <$>
           withQuoteContext InSingleQuote
-            (manyTill (notFollowedBy newline >> inline)
+            (manyTill (((B.space <>) <$>
+                         try (whitespace *> notFollowedBy newline >> inline))
+                     <|> try (notFollowedBy newline >> inline))
              (try border <* notFollowedBy alphaNum))
   return $ construct $
         if attr == nullAttr

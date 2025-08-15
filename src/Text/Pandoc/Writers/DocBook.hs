@@ -3,7 +3,7 @@
 {-# LANGUAGE PatternGuards     #-}
 {- |
    Module      : Text.Pandoc.Writers.DocBook
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -174,7 +174,8 @@ imageToDocBook _ attr src = selfClosingTag "imagedata" $
 blockToDocBook :: PandocMonad m => WriterOptions -> Block -> DB m (Doc Text)
 -- Add ids to paragraphs in divs with ids - this is needed for
 -- pandoc-citeproc to get link anchors in bibliographies:
-blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils : xs)) = do
+blockToDocBook opts (Div (id',"section":_classes,divattrs)
+                     (Header lvl (_,hclasses,_) ils : xs)) = do
   version <- ask
   -- DocBook doesn't allow sections with no content, so insert some if needed
   let bs = if null xs
@@ -198,7 +199,7 @@ blockToDocBook opts (Div (id',"section":_,_) (Header lvl (_,classes,attrs) ils :
 
       -- Populate miscAttr with Header.Attr.attributes, filtering out non-valid DocBook section attributes, id, and xml:id
       -- Also enrich the role attribute with certain class tokens
-      miscAttr = enrichRole (filter (isSectionAttr version) attrs) classes
+      miscAttr = enrichRole (filter (isSectionAttr version) divattrs) hclasses
       attribs = nsAttr <> idAttr <> miscAttr
   title' <- inlinesToDocBook opts ils
   contents <- blocksToDocBook opts bs
@@ -245,16 +246,15 @@ blockToDocBook opts (Para lst)
                         <$> inlinesToDocBook opts lst
   | otherwise         = inTagsIndented "para" <$> inlinesToDocBook opts lst
 blockToDocBook opts (LineBlock lns) =
-  blockToDocBook opts $ linesToPara lns
+  inTags False "literallayout" [] . vcat <$> mapM (inlinesToDocBook opts) lns
 blockToDocBook opts (BlockQuote blocks) =
   inTagsIndented "blockquote" <$> blocksToDocBook opts blocks
 blockToDocBook opts (CodeBlock (_,classes,_) str) = return $
   literal ("<programlisting" <> lang <> ">") <> cr <>
      flush (literal (escapeStringForXML str) <> cr <> literal "</programlisting>")
-    where lang  = if null langs
-                     then ""
-                     else " language=\"" <> escapeStringForXML (head langs) <>
-                          "\""
+    where lang  = case langs of
+                     [] -> ""
+                     (l:_) -> " language=\"" <> escapeStringForXML l <> "\""
           syntaxMap = writerSyntaxMap opts
           isLang l    = T.toLower l `elem` map T.toLower (languages syntaxMap)
           langsFrom s = if isLang s
@@ -265,7 +265,7 @@ blockToDocBook opts (BulletList lst) = do
   let attribs = [("spacing", "compact") | isTightList lst]
   inTags True "itemizedlist" attribs <$> listItemsToDocBook opts lst
 blockToDocBook _ (OrderedList _ []) = return empty
-blockToDocBook opts (OrderedList (start, numstyle, _) (first:rest)) = do
+blockToDocBook opts (OrderedList (start, numstyle, _) items) = do
   let numeration = case numstyle of
                        DefaultStyle -> []
                        Decimal      -> [("numeration", "arabic")]
@@ -274,17 +274,10 @@ blockToDocBook opts (OrderedList (start, numstyle, _) (first:rest)) = do
                        LowerAlpha   -> [("numeration", "loweralpha")]
                        UpperRoman   -> [("numeration", "upperroman")]
                        LowerRoman   -> [("numeration", "lowerroman")]
-      spacing    = [("spacing", "compact") | isTightList (first:rest)]
-      attribs    = numeration <> spacing
-  items <- if start == 1
-              then listItemsToDocBook opts (first:rest)
-              else do
-                first' <- blocksToDocBook opts (map plainToPara first)
-                rest' <- listItemsToDocBook opts rest
-                return $
-                  inTags True "listitem" [("override",tshow start)] first' $$
-                   rest'
-  return $ inTags True "orderedlist" attribs items
+      spacing    = [("spacing", "compact") | isTightList items]
+      startnum   = [("startingnumber", tshow start) | start /= 1]
+      attribs    = numeration <> spacing <> startnum
+  inTags True "orderedlist" attribs <$> listItemsToDocBook opts items
 blockToDocBook opts (DefinitionList lst) = do
   let attribs = [("spacing", "compact") | isTightList $ concatMap snd lst]
   inTags True "variablelist" attribs <$> deflistItemsToDocBook opts lst

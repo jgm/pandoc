@@ -28,25 +28,32 @@ module Text.Pandoc.Class.PandocMonad
   , getZonedTime
   , readFileFromDirs
   , report
-  , setTrace
+  , runSilently
   , setRequestHeader
   , setNoCheckCertificate
   , getLog
   , setVerbosity
   , getVerbosity
+  , setTrace
+  , getTrace
   , getMediaBag
   , setMediaBag
   , insertMedia
   , setUserDataDir
   , getUserDataDir
   , fetchItem
+  , extractURIData
   , getInputFiles
   , setInputFiles
   , getOutputFile
   , setOutputFile
   , setResourcePath
   , getResourcePath
+  , setRequestHeaders
+  , getRequestHeaders
+  , getSourceURL
   , readMetadataFile
+  , toTextM
   , fillMediaBag
   , toLang
   , makeCanonical
@@ -74,16 +81,20 @@ import Text.Pandoc.Error
 import Text.Pandoc.Logging
 import Text.Pandoc.MIME (MimeType, getMimeType)
 import Text.Pandoc.MediaBag (MediaBag, lookupMedia, MediaItem(..))
-import Text.Pandoc.Shared (safeRead, makeCanonical)
-import Text.Pandoc.URI (uriPathToPath)
+import Text.Pandoc.Shared (safeRead, makeCanonical, tshow)
+import Text.Pandoc.URI (uriPathToPath, pBase64DataURI)
+import qualified Data.Attoparsec.Text as A
 import Text.Pandoc.Walk (walkM)
+import qualified Text.Pandoc.UTF8 as UTF8
+import Data.ByteString.Base64 (decodeLenient)
 import Text.Parsec (ParsecT, getPosition, sourceLine, sourceName)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Debug.Trace
 import qualified Text.Pandoc.MediaBag as MB
-import qualified Text.Pandoc.UTF8 as UTF8
+import qualified Data.Text.Encoding as TSE
+import qualified Data.Text.Encoding.Error as TSE
 
 -- | The PandocMonad typeclass contains all the potentially
 -- IO-related functions used in pandoc's readers and writers.
@@ -158,6 +169,15 @@ setVerbosity verbosity =
 getVerbosity :: PandocMonad m => m Verbosity
 getVerbosity = getsCommonState stVerbosity
 
+-- | Set tracing. This affects the behavior of 'trace'. If tracing
+-- is not enabled, 'trace' does nothing.
+setTrace :: PandocMonad m => Bool -> m ()
+setTrace enabled = modifyCommonState $ \st -> st{ stTrace = enabled }
+
+-- | Get tracing status.
+getTrace :: PandocMonad m => m Bool
+getTrace = getsCommonState stTrace
+
 -- | Get the accumulated log messages (in temporal order).
 getLog :: PandocMonad m => m [LogMessage]
 getLog = reverse <$> getsCommonState stLog
@@ -173,11 +193,22 @@ report msg = do
   when (level <= verbosity) $ logOutput msg
   modifyCommonState $ \st -> st{ stLog = msg : stLog st }
 
--- | Determine whether tracing is enabled.  This affects
--- the behavior of 'trace'.  If tracing is not enabled,
--- 'trace' does nothing.
-setTrace :: PandocMonad m => Bool -> m ()
-setTrace useTracing = modifyCommonState $ \st -> st{stTrace = useTracing}
+-- | Run an action, but suppress the output of any log messages;
+-- instead, all messages reported by @action@ are returned separately
+-- and not added to the main log.
+runSilently :: PandocMonad m => m a -> m (a, [LogMessage])
+runSilently action = do
+  -- get current settings
+  origLog <- getsCommonState stLog
+  origVerbosity <- getVerbosity
+  -- reset log level and set verbosity to the minimum
+  modifyCommonState (\st -> st { stVerbosity = ERROR, stLog = []})
+  result <- action
+  -- get log messages reported while running `action`
+  newLog <- getsCommonState stLog
+  modifyCommonState (\st -> st { stVerbosity = origVerbosity, stLog = origLog})
+
+  return (result, newLog)
 
 -- | Set request header to use in HTTP requests.
 setRequestHeader :: PandocMonad m
@@ -242,6 +273,18 @@ getResourcePath = getsCommonState stResourcePath
 setResourcePath :: PandocMonad m => [FilePath] -> m ()
 setResourcePath ps = modifyCommonState $ \st -> st{stResourcePath = ps}
 
+-- | Retrieve the request headers to add for HTTP requests.
+getRequestHeaders :: PandocMonad m => m [(T.Text, T.Text)]
+getRequestHeaders = getsCommonState stRequestHeaders
+
+-- | Set the request headers to add for HTTP requests.
+setRequestHeaders :: PandocMonad m => [(T.Text, T.Text)] -> m ()
+setRequestHeaders hs = modifyCommonState $ \st -> st{ stRequestHeaders = hs }
+
+-- | Get the absolute UL or directory of first source file.
+getSourceURL :: PandocMonad m => m (Maybe T.Text)
+getSourceURL = getsCommonState stSourceURL
+
 -- | Get the current UTC time. If the @SOURCE_DATE_EPOCH@ environment
 -- variable is set to a unix time (number of seconds since midnight
 -- Jan 01 1970 UTC), it is used instead of the current time, to support
@@ -271,7 +314,7 @@ getZonedTime = do
 readFileFromDirs :: PandocMonad m => [FilePath] -> FilePath -> m (Maybe T.Text)
 readFileFromDirs [] _ = return Nothing
 readFileFromDirs (d:ds) f = catchError
-    (Just . T.pack . UTF8.toStringLazy <$> readFileLazy (d </> f))
+    (Just <$> (readFileStrict (d </> f) >>= toTextM (d </> f)))
     (\_ -> readFileFromDirs ds f)
 
 -- | Convert BCP47 string to a Lang, issuing warning
@@ -328,10 +371,13 @@ fetchItem s = do
 downloadOrRead :: PandocMonad m
                => T.Text
                -> m (B.ByteString, Maybe MimeType)
-downloadOrRead s = do
+downloadOrRead s
+ | "data:" `T.isPrefixOf` s,
+   Right (bs, mt) <- A.parseOnly (pBase64DataURI <* A.endOfInput) s
+   = pure (bs, Just mt)
+ | otherwise = do
   sourceURL <- getsCommonState stSourceURL
-  case (sourceURL >>= parseURIReference' .
-                       ensureEscaped, ensureEscaped s) of
+  case (sourceURL >>= parseURIReference' . ensureEscaped, ensureEscaped s) of
     (Just u, s') -> -- try fetching from relative path at source
        case parseURIReference' s' of
             Just u' -> openURL $ T.pack $ show $ u' `nonStrictRelativeTo` u
@@ -343,8 +389,10 @@ downloadOrRead s = do
             Nothing -> openURL s' -- will throw error
     (Nothing, s') ->
        case parseURI (T.unpack s') of  -- requires absolute URI
-            Just u' | uriScheme u' == "file:" ->
-                 readLocalFile $ uriPathToPath (T.pack $ uriPath u')
+            Just URI{ uriScheme = "file:", uriPath = upath}
+              -> readLocalFile $ uriPathToPath (T.pack upath)
+            Just URI{ uriScheme = "data:", uriPath = upath}
+              -> pure $ extractURIData upath
             -- We don't want to treat C:/ as a scheme:
             Just u' | length (uriScheme u') > 2 -> openURL (T.pack $ show u')
             _ -> readLocalFile fp -- get from local file system
@@ -360,8 +408,7 @@ downloadOrRead s = do
                           uriPath = "",
                           uriQuery = "",
                           uriFragment = "" }
-         dropFragmentAndQuery = T.takeWhile (\c -> c /= '?' && c /= '#')
-         fp = unEscapeString $ T.unpack $ dropFragmentAndQuery s
+         fp = unEscapeString $ T.unpack s
          mime = getMimeType $ case takeExtension fp of
                      ".gz" -> dropExtension fp
                      ".svgz" -> dropExtension fp ++ ".svg"
@@ -369,6 +416,16 @@ downloadOrRead s = do
          ensureEscaped = T.pack . escapeURIString isAllowedInURI . T.unpack . T.map convertSlash
          convertSlash '\\' = '/'
          convertSlash x    = x
+
+-- Extract data from a data URI's path component.
+extractURIData :: String -> (B.ByteString, Maybe MimeType)
+extractURIData upath =
+  case break (== ';') (filter (/= ' ') mimespec) of
+     (mime', ";base64") -> (decodeLenient contents, Just (T.pack mime'))
+     (mime', _) -> (contents, Just (T.pack mime'))
+  where
+    (mimespec, rest) = break (== ',') $ unEscapeString upath
+    contents = UTF8.fromString $ drop 1 rest
 
 -- | Checks if the file path is relative to a parent directory.
 isRelativeToParentDir :: FilePath -> Bool
@@ -402,6 +459,27 @@ withPaths [] _ fp = throwError $ PandocResourceNotFound $ T.pack fp
 withPaths (p:ps) action fp =
   catchError ((p </> fp,) <$> action (p </> fp))
              (\_ -> withPaths ps action fp)
+
+-- | A variant of Text.Pandoc.UTF8.toText that takes a FilePath
+-- as well as the file's contents as parameter, and traps UTF8
+-- decoding errors so it can issue a more informative PandocUTF8DecodingError
+-- with source position.
+toTextM :: PandocMonad m => FilePath -> B.ByteString -> m T.Text
+toTextM fp bs =
+  case TSE.decodeUtf8' . filterCRs . dropBOM $ bs of
+    Left (TSE.DecodeError _ (Just w)) ->
+      case B.elemIndex w bs of
+        Just offset ->
+          throwError $ PandocUTF8DecodingError (T.pack fp) offset w
+        Nothing -> throwError $ PandocUTF8DecodingError (T.pack fp) 0 w
+    Left e -> throwError $ PandocAppError (tshow e)
+    Right t -> return t
+ where
+   dropBOM bs' =
+     if "\xEF\xBB\xBF" `B.isPrefixOf` bs'
+        then B.drop 3 bs'
+        else bs'
+   filterCRs = B.filter (/=13)
 
 -- | Returns @fp@ if the file exists in the current directory; otherwise
 -- searches for the data file relative to @/subdir/@. Returns @Nothing@
@@ -444,6 +522,11 @@ fillMediaBag d = walkM handleImage d
               return $ Image attr lab (src, tit))
           (\e ->
               case e of
+                PandocIOError text err -> do
+                  report $ CouldNotFetchResource text . T.pack $
+                            (show err ++ "\nReplacing image with description.")
+                  -- emit alt text
+                  return $ replacementSpan attr src tit lab
                 PandocResourceNotFound _ -> do
                   report $ CouldNotFetchResource src
                             "replacing image with description"

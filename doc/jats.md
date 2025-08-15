@@ -61,6 +61,85 @@ Metadata Values
         set it used, as affiliation links are not allowed in that
         schema.
 
+    `roles`
+    :   a list of dictionaries describing the author's role(s).
+        Each role is added as an [`<role>`] element to
+        the author's [`<contrib>`] element. The following examples
+        illustrate:
+
+        An ad-hoc role:
+
+        ```yaml
+        roles:
+          - name: Dolphin Catcher
+        ```
+
+        A role specified with CRediT.
+
+        ```yaml
+        roles:
+          - credit: writing-review-editing
+        ```
+
+        The `credit-name` is automatically looked up from
+        the CRediT taxonomy, but you can also specify it
+        yourself:
+
+        ```yaml
+        roles:
+          - credit: writing-review-editing
+            credit-name: Writing – review & editing
+        ```
+
+        A role specified with CRediT, including an
+        optional degree of contribution. Note that
+        specifying the degree only is allowed when
+        using CRediT roles and not ad-hoc roles.
+
+        ```yaml
+        roles:
+          - credit: writing-review-editing
+            degree: Lead
+        ```
+
+        A role specified with CRediT with a label override,
+        useful for internationalization:
+
+        ```yaml
+        roles:
+          - credit: writing-review-editing
+            name: Escrita – revisão e edição
+        ```
+
+        The value for `credit` and `credit-name`
+        must be from one of the 14 terms from the
+        Contribution Role Taxonomy (CRediT):
+
+        | `credit`                 | `credit-name`              |
+        |--------------------------|----------------------------|
+        | `conceptualization`      | Conceptualization          |
+        | `data-curation`          | Data curation              |
+        | `formal-analysis`        | Formal analysis            |
+        | `funding-acquisition`    | Funding acquisition        |
+        | `investigation`          | Investigation              |
+        | `methodology`            | Methodology                |
+        | `project-administration` | Project administration     |
+        | `resources`              | Resources                  |
+        | `software`               | Software                   |
+        | `supervision`            | Supervision                |
+        | `validation`             | Validation                 |
+        | `visualization`          | Visualization              |
+        | `writing-original-draft` | Writing – original draft   |
+        | `writing-review-editing` | Writing – review & editing |
+
+        JATS suggests in [`<degree-contribution>`] to use one of
+        the following three values when specifying the degree of
+        contribution:
+
+        1. `Lead`
+        2. `Equal`
+        3. `Supporting`
+
     `equal-contrib`
     :   boolean attribute used to mark authors who contributed
         equally to the work. The
@@ -394,6 +473,19 @@ Metadata Values
 :   The article title. Added to the document's front matter via the
     [`<article-title>`][elem:article-title] element.
 
+`supplementary-material`
+:   Supplementary metadata. Added to the document's front matter
+    via the [`<supplementary-material>`][elem:supplementary-material]
+    element.  Only available with `jats_articlepublishing`.
+
+`floats-group`
+:   List of floating objects, such as figures, tables, text boxes,
+    etc., that are not part of the main text. The value is
+    rendered by nesting it below a
+    [`<floats-group>`][elem:floats-group] element. Only available
+    with `jats_publishing` and `jats_archiving`.
+
+
 Required Metadata
 -----------------
 
@@ -433,11 +525,13 @@ Required metadata values:
 [elem:article-id]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-id.html
 [elem:article-meta]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-meta.html
 [elem:article-title]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/article-title.html
+[elem:supplementary-material]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/supplementary-material.html
 [elem:copyright-holder]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-holder.html
 [elem:copyright-statement]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-statement.html
 [elem:copyright-year]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/copyright-year.html
 [elem:corresp]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/corresp.html
 [elem:email]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/email.html
+[elem:floats-group]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/floats-group.html
 [elem:fn]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/fn.html
 [elem:funding-statement]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/funding-statement.html
 [elem:given-names]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/given-names.html
@@ -468,3 +562,5 @@ Required metadata values:
 [`<institution-wrap>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution-wrap.html
 [`<institution>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/institution.html
 [`<pub-date>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/pub-date.html
+[`<role>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/element/role.html
+[`<degree-contribution>`]: https://jats.nlm.nih.gov/publishing/tag-library/1.2/attribute/degree-contribution.html

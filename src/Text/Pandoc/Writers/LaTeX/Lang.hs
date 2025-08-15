@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX.Lang
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -33,7 +33,7 @@ toBabel (Lang "de" _ _ vars _ _)
   | otherwise                           = Just "ngerman"
 toBabel (Lang "dsb" _ _ _ _ _)          = Just "lowersorbian"
 toBabel (Lang "el" _ _ vars _ _)
-  | "polyton" `elem` vars               = Just "polutonikogreek"
+  | "polyton" `elem` vars               = Just "polytonicgreek"
 toBabel (Lang "en" _ (Just "AU") _ _ _) = Just "australian"
 toBabel (Lang "en" _ (Just "CA") _ _ _) = Just "canadian"
 toBabel (Lang "en" _ (Just "GB") _ _ _) = Just "british"
@@ -88,7 +88,7 @@ commonFromBcp47 (Lang l _ _ _ _ _) = fromIso l
     fromIso "es"  = Just "spanish"
     fromIso "et"  = Just "estonian"
     fromIso "eu"  = Just "basque"
-    fromIso "fa"  = Just "farsi"
+    fromIso "fa"  = Just "persian"
     fromIso "fi"  = Just "finnish"
     fromIso "fr"  = Just "french"
     fromIso "fur" = Just "friulan"

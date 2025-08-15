@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {- |
    Module      : Text.Pandoc.Readers.HTML.Types
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -60,6 +60,7 @@ data HTMLLocal = HTMLLocal
   { quoteContext :: QuoteContext
   , inChapter    :: Bool -- ^ Set if in chapter section
   , inPlain      :: Bool -- ^ Set if in pPlain
+  , inListItem   :: Bool -- ^ Set if in <li> tag
   }
 
 
@@ -91,7 +92,7 @@ instance HasMeta HTMLState where
   deleteMeta s st = st {parserState = deleteMeta s $ parserState st}
 
 instance Default HTMLLocal where
-  def = HTMLLocal NoQuote False False
+  def = HTMLLocal NoQuote False False False
 
 instance HasLastStrPosition HTMLState where
   setLastStrPos s st = st {parserState = setLastStrPos s (parserState st)}

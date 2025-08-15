@@ -21,6 +21,7 @@ import Text.Pandoc
 import Text.Pandoc.Writers.Shared (lookupMetaString)
 import Text.Pandoc.Citeproc (processCitations)
 import Text.Pandoc.Highlighting (lookupHighlightingStyle)
+import Text.Pandoc.Chunks (PathTemplate(..))
 import qualified Text.Pandoc.UTF8 as UTF8
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -29,7 +30,7 @@ import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Maybe (fromMaybe)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
-import Data.ByteString.Base64 (decodeBase64, encodeBase64)
+import qualified Data.ByteString.Base64 as Base64 (decodeLenient, encode)
 import Data.Default
 import Control.Monad (when, unless, foldM)
 import qualified Data.Set as Set
@@ -39,12 +40,13 @@ import Text.Collate.Lang (Lang (..), parseLang)
 import System.Console.GetOpt
 import System.Environment (getProgName)
 import qualified Control.Exception as E
-import Text.Pandoc.Shared (safeStrRead, headerShift, filterIpynbOutput,
-                           eastAsianLineBreakFilter)
+import Text.Pandoc.Shared (safeStrRead)
 import Text.Pandoc.App ( IpynbOutput (..), Opt(..), defaultOpts )
 import Text.Pandoc.Builder (setMeta)
 import Text.Pandoc.Format (parseFlavoredFormat, formatName)
 import Text.Pandoc.SelfContained (makeSelfContained)
+import Text.Pandoc.Transforms (headerShift, filterIpynbOutput,
+                               eastAsianLineBreakFilter)
 import System.Exit
 import GHC.Generics (Generic)
 import Network.Wai.Middleware.Cors ( cors,
@@ -111,15 +113,11 @@ newtype Blob = Blob BL.ByteString
   deriving (Show, Eq)
 
 instance ToJSON Blob where
-  toJSON (Blob bs) = toJSON (encodeBase64 $ BL.toStrict bs)
+  toJSON (Blob bs) = toJSON (UTF8.toText . Base64.encode $ BL.toStrict bs)
 
 instance FromJSON Blob where
- parseJSON = withText "Blob" $ \t -> do
-   let inp = UTF8.fromText t
-   case decodeBase64 inp of
-        Right bs -> return $ Blob $ BL.fromStrict bs
-        Left _ -> -- treat as regular text
-                    return $ Blob $ BL.fromStrict inp
+ parseJSON = withText "Blob" $
+   pure . Blob . BL.fromStrict . Base64.decodeLenient . UTF8.fromText
 
 -- This is the data to be supplied by the JSON payload
 -- of requests.  Maybe values may be omitted and will be
@@ -236,7 +234,8 @@ server = convertBytes
   --    handleErr =<< liftIO (runIO (convert' params))
   -- will allow the IO operations.
   convertText params = handleErr $
-    runPure (convert' return (return . encodeBase64 . BL.toStrict) params)
+    runPure (convert' return (return . UTF8.toText .
+                               Base64.encode . BL.toStrict) params)
 
   convertBytes params = handleErr $
     runPure (convert' (return . UTF8.fromText) (return . BL.toStrict) params)
@@ -245,7 +244,7 @@ server = convertBytes
     runPure
       (convert'
         (\t -> Succeeded t False . map toMessage <$> getLog)
-        (\bs -> Succeeded (encodeBase64 (BL.toStrict bs)) True
+        (\bs -> Succeeded (UTF8.toText $ Base64.encode (BL.toStrict bs)) True
                  . map toMessage <$> getLog)
         params)
 
@@ -304,8 +303,8 @@ server = convertBytes
                         , readerStripComments = optStripComments opts
                         }
 
-    let writeropts =
-          def{ writerExtensions = writerExts
+    let writeropts = WriterOptions
+             { writerExtensions = writerExts
              , writerTabStop = optTabStop opts
              , writerWrapText = optWrap opts
              , writerColumns = optColumns opts
@@ -313,6 +312,8 @@ server = convertBytes
              , writerSyntaxMap = defaultSyntaxMap
              , writerVariables = optVariables opts
              , writerTableOfContents = optTableOfContents opts
+             , writerListOfFigures = optListOfFigures opts
+             , writerListOfTables = optListOfTables opts
              , writerIncremental = optIncremental opts
              , writerHTMLMathMethod = optHTMLMathMethod opts
              , writerNumberSections = optNumberSections opts
@@ -329,23 +330,29 @@ server = convertBytes
              , writerListings = optListings opts
              , writerHighlightStyle = hlStyle
              , writerSetextHeaders = optSetextHeaders opts
+             , writerListTables = optListTables opts
              , writerEpubSubdirectory = T.pack $ optEpubSubdirectory opts
              , writerEpubMetadata = T.pack <$> optEpubMetadata opts
              , writerEpubFonts = optEpubFonts opts
+             , writerEpubTitlePage    = optEpubTitlePage opts
              , writerSplitLevel = optSplitLevel opts
+             , writerChunkTemplate = maybe (PathTemplate "%s-%i.html")
+                                         PathTemplate
+                                         (optChunkTemplate opts)
              , writerTOCDepth = optTOCDepth opts
              , writerReferenceDoc = optReferenceDoc opts
              , writerReferenceLocation = optReferenceLocation opts
+             , writerFigureCaptionPosition = optFigureCaptionPosition opts
+             , writerTableCaptionPosition = optTableCaptionPosition opts
              , writerPreferAscii = optAscii opts
+             , writerLinkImages = optLinkImages opts
              }
 
     let reader = case readerSpec of
                 TextReader r -> r readeropts
-                ByteStringReader r -> \t -> do
-                  let eitherbs = decodeBase64 $ UTF8.fromText t
-                  case eitherbs of
-                    Left errt -> throwError $ PandocSomeError errt
-                    Right bs -> r readeropts $ BL.fromStrict bs
+                ByteStringReader r ->
+                  r readeropts . BL.fromStrict . Base64.decodeLenient
+                    . UTF8.fromText
 
     let writer d@(Pandoc meta _) = do
           case lookupMetaString "lang" meta of

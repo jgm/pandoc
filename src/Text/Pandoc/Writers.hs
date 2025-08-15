@@ -5,7 +5,7 @@
 {-# LANGUAGE TupleSections       #-}
 {- |
    Module      : Text.Pandoc
-   Copyright   : Copyright (C) 2006-2023 John MacFarlane
+   Copyright   : Copyright (C) 2006-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -19,7 +19,9 @@ module Text.Pandoc.Writers
     -- * Writers: converting /from/ Pandoc format
       Writer(..)
     , writers
+    , writeANSI
     , writeAsciiDoc
+    , writeAsciiDocLegacy
     , writeAsciiDoctor
     , writeBeamer
     , writeBibTeX
@@ -29,6 +31,7 @@ module Text.Pandoc.Writers
     , writeConTeXt
     , writeCslJson
     , writeDZSlides
+    , writeDjot
     , writeDocBook4
     , writeDocBook5
     , writeDocx
@@ -72,6 +75,8 @@ module Text.Pandoc.Writers
     , writeTEI
     , writeTexinfo
     , writeTextile
+    , writeTypst
+    , writeXML
     , writeXWiki
     , writeZimWiki
     , getWriter
@@ -87,12 +92,14 @@ import qualified Text.Pandoc.Format as Format
 import Text.Pandoc.Options
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Error
+import Text.Pandoc.Writers.ANSI
 import Text.Pandoc.Writers.AsciiDoc
 import Text.Pandoc.Writers.BibTeX
 import Text.Pandoc.Writers.ChunkedHTML
 import Text.Pandoc.Writers.CommonMark
 import Text.Pandoc.Writers.ConTeXt
 import Text.Pandoc.Writers.CslJson
+import Text.Pandoc.Writers.Djot
 import Text.Pandoc.Writers.DocBook
 import Text.Pandoc.Writers.Docx
 import Text.Pandoc.Writers.DokuWiki
@@ -121,6 +128,8 @@ import Text.Pandoc.Writers.RTF
 import Text.Pandoc.Writers.TEI
 import Text.Pandoc.Writers.Texinfo
 import Text.Pandoc.Writers.Textile
+import Text.Pandoc.Writers.Typst
+import Text.Pandoc.Writers.XML
 import Text.Pandoc.Writers.XWiki
 import Text.Pandoc.Writers.ZimWiki
 
@@ -177,10 +186,12 @@ writers = [
   ,("xwiki"        , TextWriter writeXWiki)
   ,("zimwiki"      , TextWriter writeZimWiki)
   ,("textile"      , TextWriter writeTextile)
+  ,("typst"        , TextWriter writeTypst)
   ,("rtf"          , TextWriter writeRTF)
   ,("org"          , TextWriter writeOrg)
   ,("asciidoc"     , TextWriter writeAsciiDoc)
-  ,("asciidoctor"  , TextWriter writeAsciiDoctor)
+  ,("asciidoctor"  , TextWriter writeAsciiDoc)
+  ,("asciidoc_legacy" , TextWriter writeAsciiDocLegacy)
   ,("haddock"      , TextWriter writeHaddock)
   ,("commonmark"   , TextWriter writeCommonMark)
   ,("commonmark_x" , TextWriter writeCommonMark)
@@ -192,6 +203,9 @@ writers = [
   ,("biblatex"     , TextWriter writeBibLaTeX)
   ,("markua"       , TextWriter writeMarkua)
   ,("chunkedhtml"  , ByteStringWriter writeChunkedHTML)
+  ,("djot"         , TextWriter writeDjot)
+  ,("ansi"         , TextWriter writeANSI)
+  ,("xml"          , TextWriter writeXML)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).

@@ -2,10 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Inlines
-   Copyright   : Copyright (C) 2014-2023 Albert Krewinkel
+   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Parsers for Org-mode inline elements.
 -}
@@ -42,10 +42,6 @@ import qualified Data.Text as T
 --
 -- Functions acting on the parser state
 --
-recordAnchorId :: PandocMonad m => Text -> OrgParser m ()
-recordAnchorId i = updateState $ \s ->
-  s{ orgStateAnchorIds = i : orgStateAnchorIds s }
-
 pushToInlineCharStack :: PandocMonad m => Char -> OrgParser m ()
 pushToInlineCharStack c = updateState $ \s ->
   s{ orgStateEmphasisCharStack = c:orgStateEmphasisCharStack s }
@@ -102,7 +98,8 @@ inline =
          , inlineLaTeX
          , exportSnippet
          , macro
-         , smart
+         , smartQuotes
+         , specialStrings
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
@@ -203,10 +200,10 @@ addSuffixToLastItem aff cs = do
                                 citationSuffix d <> B.toList aff' }])
 
 citeItems :: PandocMonad m => OrgParser m (F [Citation])
-citeItems = sequence <$> citeItem `sepBy1` (char ';')
+citeItems = sequence <$> sepBy1' citeItem (char ';' <* void (many spaceChar))
 
 citeItem :: PandocMonad m => OrgParser m (F Citation)
-citeItem = do
+citeItem = try $ do
   pref <- citePrefix
   itemKey <- orgCiteKey
   suff <- citeSuffix
@@ -250,37 +247,36 @@ citePrefix =
 
 citeSuffix :: PandocMonad m => OrgParser m (F Inlines)
 citeSuffix =
-  rawAffix False >>= parseFromString parseSuffix
- where
-   parseSuffix = do
-     hasSpace <- option False
-              (True <$ try (spaceChar >> skipSpaces >> lookAhead nonspaceChar))
-     ils <- trimInlinesF . mconcat <$> many inline
-     return $ if hasSpace
-                 then (B.space <>) <$> ils
-                 else ils
+  rawAffix False >>= parseFromString (mconcat <$> many inline)
 
 citeStyle :: PandocMonad m => OrgParser m (CiteStyle, [CiteVariant])
-citeStyle = option (DefStyle, []) $ do
-  sty <- option DefStyle $ try $ char '/' *> orgCiteStyle
+citeStyle = do
+  sty <- option NilStyle $ try $ char '/' *> orgCiteStyle
   variants <- option [] $ try $ char '/' *> orgCiteVariants
   return (sty, variants)
 
 orgCiteStyle :: PandocMonad m => OrgParser m CiteStyle
-orgCiteStyle = choice $ map try
-  [ NoAuthorStyle <$ string "noauthor"
-  , NoAuthorStyle <$ string "na"
-  , LocatorsStyle <$ string "locators"
-  , LocatorsStyle <$ char 'l'
-  , NociteStyle <$ string "nocite"
-  , NociteStyle <$ char 'n'
-  , TextStyle <$ string "text"
-  , TextStyle <$ char 't'
-  ]
+orgCiteStyle = try $ do
+  s <- many1 letter
+  case s of
+    "author" -> pure AuthorStyle
+    "a" -> pure AuthorStyle
+    "noauthor" -> pure NoAuthorStyle
+    "na" -> pure NoAuthorStyle
+    "nocite" -> pure NociteStyle
+    "n" -> pure NociteStyle
+    "text" -> pure TextStyle
+    "t" -> pure TextStyle
+    "note" -> pure NoteStyle
+    "ft" -> pure NoteStyle
+    "numeric" -> pure NumericStyle
+    "nb" -> pure NumericStyle
+    "nil" -> pure NilStyle
+    _ -> fail $ "Unknown org cite style " <> show s
 
 orgCiteVariants :: PandocMonad m => OrgParser m [CiteVariant]
 orgCiteVariants =
-  (fullnameVariant `sepBy1` (char '-')) <|> (many1 onecharVariant)
+  (sepBy1' fullnameVariant (char '-')) <|> (many1 onecharVariant)
  where
   fullnameVariant = choice $ map try
      [ Bare <$ string "bare"
@@ -294,11 +290,14 @@ orgCiteVariants =
      ]
 
 data CiteStyle =
-    NoAuthorStyle
+    AuthorStyle
+  | NoAuthorStyle
   | LocatorsStyle
   | NociteStyle
   | TextStyle
-  | DefStyle
+  | NoteStyle
+  | NumericStyle
+  | NilStyle
   deriving Show
 
 data CiteVariant =
@@ -513,15 +512,9 @@ internalLink link title = do
 -- @anchor-id@ contains spaces, we are more restrictive in what is accepted as
 -- an anchor.
 anchor :: PandocMonad m => OrgParser m (F Inlines)
-anchor =  try $ do
-  anchorId <- parseAnchor
-  recordAnchorId anchorId
+anchor =  do
+  anchorId <- orgAnchor
   returnF $ B.spanWith (solidify anchorId, [], []) mempty
- where
-       parseAnchor = string "<<"
-                     *> many1Char (noneOf "\t\n\r<>\"' ")
-                     <* string ">>"
-                     <* skipSpaces
 
 -- | Replace every char but [a-zA-Z0-9_.-:] with a hyphen '-'.  This mirrors
 -- the org function @org-export-solidify-link-text@.
@@ -645,11 +638,11 @@ emphasisBetween c = try $ do
 verbatimBetween :: PandocMonad m
                 => Char
                 -> OrgParser m Text
-verbatimBetween c = try $
-  emphasisStart c *>
-  many1TillNOrLessNewlines 1 verbatimChar (emphasisEnd c)
+verbatimBetween c = newlinesToSpaces <$>
+  try (emphasisStart c *> many1TillNOrLessNewlines 1 verbatimChar (emphasisEnd c))
  where
    verbatimChar = noneOf "\n\r" >>= updatePositions
+   newlinesToSpaces = T.map (\d -> if d == '\n' then ' ' else d)
 
 -- | Parses a raw string delimited by @c@ using Org's math rules
 mathTextBetween :: PandocMonad m
@@ -758,7 +751,7 @@ many1TillNOrLessNewlines n p end = try $
 
 -- | Chars not allowed at the (inner) border of emphasis
 emphasisForbiddenBorderChars :: [Char]
-emphasisForbiddenBorderChars = "\t\n\r "
+emphasisForbiddenBorderChars = "\t\n\r \x200B"
 
 -- | The maximum number of newlines within
 emphasisAllowedNewlines :: Int
@@ -818,16 +811,20 @@ inlineLaTeX = try $ do
   allowEntities <- getExportSetting exportWithEntities
   ils <- parseAsInlineLaTeX cmd texOpt
   maybe mzero returnF $
-     parseAsMathMLSym allowEntities cmd `mplus`
-     parseAsMath cmd texOpt `mplus`
-     ils
+    if "\\begin{" `T.isPrefixOf` cmd
+       then ils
+       else parseAsMathMLSym allowEntities cmd `mplus`
+            parseAsMath cmd texOpt `mplus`
+            ils
  where
    parseAsInlineLaTeX :: PandocMonad m
                       => Text -> TeXExport -> OrgParser m (Maybe Inlines)
    parseAsInlineLaTeX cs = \case
-     TeXExport -> maybeRight <$> runParserT inlineCommand state "" (toSources cs)
+     TeXExport -> maybeRight <$> runParserT
+                  (B.rawInline "latex" . snd <$> withRaw inlineCommand)
+                  state "" (toSources cs)
      TeXIgnore -> return (Just mempty)
-     TeXVerbatim -> return (Just $ B.str cs)
+     TeXVerbatim -> return (Just $ B.text cs)
 
    parseAsMathMLSym :: Bool -> Text -> Maybe Inlines
    parseAsMathMLSym allowEntities cs = do
@@ -892,32 +889,31 @@ macro = try $ do
       updateState $ \s -> s { orgStateMacroDepth = recursionDepth }
       return res
  where
-  argument = manyChar $ notFollowedBy eoa *> noneOf ","
+  argument = manyChar $ notFollowedBy eoa *> (escapedComma <|> noneOf ",")
+  escapedComma = try $ char '\\' *> oneOf ",\\"
   eoa = string ")}}}"
 
-smart :: PandocMonad m => OrgParser m (F Inlines)
-smart = choice [doubleQuoted, singleQuoted, orgApostrophe, orgDash, orgEllipses]
+smartQuotes :: PandocMonad m => OrgParser m (F Inlines)
+smartQuotes = do
+  guard =<< getExportSetting exportSmartQuotes
+  choice [doubleQuoted, singleQuoted, orgApostrophe]
   where
-    orgDash = do
-      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      pure <$> dash <* updatePositions '-'
-    orgEllipses = do
-      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      pure <$> ellipses <* updatePositions '.'
     orgApostrophe = do
-      guardEnabled Ext_smart
       (char '\'' <|> char '\8217') <* updateLastPreCharPos
                                    <* updateLastForbiddenCharPos
       returnF (B.str "\x2019")
 
-guardOrSmartEnabled :: PandocMonad m => Bool -> OrgParser m ()
-guardOrSmartEnabled b = do
-  smartExtension <- extensionEnabled Ext_smart <$> getOption readerExtensions
-  guard (b || smartExtension)
+specialStrings :: PandocMonad m => OrgParser m (F Inlines)
+specialStrings = do
+  guard =<< getExportSetting exportSpecialStrings
+  choice [orgDash, orgEllipses, shyHyphen]
+  where
+    shyHyphen   = pure <$> (B.str "\173" <$ string "\\-") <* updatePositions '-'
+    orgDash     = pure <$> dash <* updatePositions '-'
+    orgEllipses = pure <$> ellipses <* updatePositions '.'
 
 singleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 singleQuoted = try $ do
-  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   singleQuoteStart
   updatePositions '\''
   withQuoteContext InSingleQuote $
@@ -929,7 +925,6 @@ singleQuoted = try $ do
 -- in the same paragraph.
 doubleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 doubleQuoted = try $ do
-  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)

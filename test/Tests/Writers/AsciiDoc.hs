@@ -9,10 +9,10 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 
 asciidoc :: (ToPandoc a) => a -> String
-asciidoc = unpack . purely (writeAsciiDoc def) . toPandoc
+asciidoc = unpack . purely (writeAsciiDocLegacy def) . toPandoc
 
 asciidoctor :: (ToPandoc a) => a -> String
-asciidoctor = unpack . purely (writeAsciiDoctor def) . toPandoc
+asciidoctor = unpack . purely (writeAsciiDoc def) . toPandoc
 
 testAsciidoc :: (ToString a, ToPandoc a)
              => String
@@ -36,7 +36,7 @@ tests = [ testGroup "emphasis"
                  "__foo__bar"
           , testAsciidoc "emph quoted" $
                para (doubleQuoted (emph (text "foo"))) =?>
-                 "``__foo__''"
+                 "``_foo_''"
           , testAsciidoc "strong word before" $
                para (text "foo" <> strong (text "bar")) =?>
                  "foo**bar**"
@@ -45,7 +45,7 @@ tests = [ testGroup "emphasis"
                  "**foo**bar"
           , testAsciidoc "strong quoted" $
                para (singleQuoted (strong (text "foo"))) =?>
-                 "`**foo**'"
+                 "`*foo*'"
           ]
         , testGroup "blocks"
           [ testAsciidoc "code block without line numbers" $
@@ -61,6 +61,19 @@ tests = [ testGroup "emphasis"
                                            , "----"
                                            , "foo"
                                            , "----"
+                                           ]
+          , testAsciidoc "sidebar block" $
+               divWith ("sidebar_id", ["sidebar"], [])
+                                           (divWith ("", ["title"], [])
+                                           (plain "Sidebar Title")
+                                           <> para "Sidebar paragraph"
+                                           ) =?> unlines
+                                           [ "[[sidebar_id]]"
+                                           , "[SIDEBAR]"
+                                           , ".Sidebar Title"
+                                           , "****"
+                                           , "Sidebar paragraph"
+                                           , "****"
                                            ]
           ]
         , testGroup "tables"

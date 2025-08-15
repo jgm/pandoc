@@ -5,10 +5,10 @@
 
 {- |
 Module      : Text.Pandoc.Writers.GridTable
-Copyright   : © 2020-2023 Albert Krewinkel
+Copyright   : © 2020-2024 Albert Krewinkel
 License     : GNU GPL, version 2 or above
 
-Maintainer  : Albert Krewinkel <albert@zeitkraut.de>
+Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Grid representation of pandoc tables. The structures in this module
 allow to describe 'Text.Pandoc.Definition.Table' elements without loss

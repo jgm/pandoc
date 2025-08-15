@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Writers.Textile
-   Copyright   : Copyright (C) 2010-2023 John MacFarlane
+   Copyright   : Copyright (C) 2010-2024 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -337,14 +337,10 @@ tableRowToTextile :: PandocMonad m
                   -> TW m Text
 tableRowToTextile opts alignStrings rownum cols' = do
   let celltype = if rownum == 0 then "th" else "td"
-  let rowclass = case rownum of
-                      0 -> "header"
-                      x | x `rem` 2 == 1 -> "odd"
-                      _ -> "even"
   cols'' <- zipWithM
             (\alignment item -> tableItemToTextile opts celltype alignment item)
             alignStrings cols'
-  return $ "<tr class=\"" <> rowclass <> "\">\n" <> T.unlines cols'' <> "</tr>"
+  return $ "<tr>\n" <> T.unlines cols'' <> "</tr>"
 
 alignmentToText :: Alignment -> Text
 alignmentToText alignment = case alignment of

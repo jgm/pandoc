@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+<w:body>
+$if(title)$
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="$title-style-id$" />
+      </w:pPr>
+      $title$
+    </w:p>
+$endif$
+$if(subtitle)$
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="$subtitle-style-id$" />
+      </w:pPr>
+      $subtitle$
+    </w:p>
+$endif$
+$for(author)$
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="$author-style-id$" />
+      </w:pPr>
+      $author$
+    </w:p>
+$endfor$
+$if(date)$
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="$date-style-id$" />
+      </w:pPr>
+      $date$
+    </w:p>
+$endif$
+$if(abstract)$
+$if(abstract-title)$
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="$abstract-title-style-id$" />
+      </w:pPr>
+      <w:r><w:t xml:space="preserve">$abstract-title$</w:t></w:r>
+    </w:p>
+$endif$
+    $abstract$
+$endif$
+$for(include-before)$
+    $include-before$
+$endfor$
+$if(toc)$
+    $toc$
+$endif$
+$if(lof)$
+    $lof$
+$endif$
+$if(lot)$
+    $lot$
+$endif$
+    $body$
+$for(include-after)$
+    $include-after$
+$endfor$
+    $sectpr$
+  </w:body>
+</w:document>

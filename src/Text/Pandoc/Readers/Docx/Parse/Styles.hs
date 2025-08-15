@@ -239,8 +239,8 @@ buildBasedOnList ns element rootStyle =
 
 stringToInteger :: Text -> Maybe Integer
 stringToInteger s = case Data.Text.Read.decimal s of
-                      Right (x,_) -> Just x
-                      Left _      -> Nothing
+                      Right (x,t) | T.null t -> Just x
+                      _                      -> Nothing
 
 checkOnOff :: NameSpaces -> Element -> QName -> Maybe Bool
 checkOnOff ns rPr tag

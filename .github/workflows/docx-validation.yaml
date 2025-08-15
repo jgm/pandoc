@@ -1,0 +1,60 @@
+name: docx-validation
+on:
+  push:
+    paths:
+      - test/docx/golden/*.docx
+      - tools/validate-docx.sh
+      - tools/validate-docx2.sh
+      - .github/workflows/docx-validation.yaml
+  pull_request:
+    paths:
+      - test/docx/golden/*.docx
+      - tools/validate-docx.sh
+      - tools/validate-docx2.sh
+      - .github/workflows/docx-validation.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  xmllint-docx:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install xmllint
+      run: |
+          sudo apt-get update
+          sudo apt-get install libxml2-utils -y
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+          sparse-checkout: |
+            test/docx/golden
+            tools/
+            Makefile
+
+    - name: Validate golden .docx files against standard XML schema
+      run: make validate-docx-golden-tests
+
+  dotnet-docx:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: ensure dotnet is present
+      uses: actions/setup-dotnet@v4
+        
+    - name: Install json_reformat
+      run: |
+          sudo apt-get update
+          sudo apt-get install yajl-tools -y
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+          sparse-checkout: |
+            test/docx/golden
+            tools/
+            Makefile
+
+    - name: Validate golden docx files using dotnet
+      run: make validate-docx-golden-tests2

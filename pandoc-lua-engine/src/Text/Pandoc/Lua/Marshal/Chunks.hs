@@ -4,7 +4,7 @@
    Module      : Text.Pandoc.Lua.Marshal.Chunks
    Copyright   : © 2022 Albert Krewinkel
    License     : GPL-2.0-or-later
-   Maintainer  : Albert Krewinkel <tarleb+pandoc@moltkeplatz.de>
+   Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Marshaling chunks, i.e., pandoc subdocuments.
 -}
@@ -30,7 +30,7 @@ pushChunk :: LuaError e => Pusher e Chunk
 pushChunk = pushUD typeChunk
 
 typeChunk :: LuaError e => DocumentedType e Chunk
-typeChunk = deftype "pandoc.Chunk"
+typeChunk = deftype "Chunk"
   [ operation Tostring $ lambda
     ### liftPure show
     <#> udparam typeChunk "chunk" "chunk to print in native format"
@@ -103,7 +103,7 @@ pushChunkedDoc = pushUD typeChunkedDoc
 
 -- | Lua type for 'ChunkedDoc' values.
 typeChunkedDoc :: LuaError e => DocumentedType e ChunkedDoc
-typeChunkedDoc = deftype "pandoc.ChunkedDoc"
+typeChunkedDoc = deftype "ChunkedDoc"
   []
   [ readonly "chunks"
     "list of chunks that make up the document"
