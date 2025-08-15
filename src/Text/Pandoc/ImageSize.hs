@@ -121,6 +121,7 @@ imageType img = case B.take 4 img of
                      "\x4D\x4D\x00\x2a" -> return Tiff
                      "\xff\xd8\xff\xe0" -> return Jpeg  -- JFIF
                      "\xff\xd8\xff\xe1" -> return Jpeg  -- Exif
+                     "\xff\xd8\xff\xee" -> return Jpeg  -- Exif see #11049
                      "%PDF"             -> return Pdf
                      "<svg"             -> return Svg
                      "<?xm"
