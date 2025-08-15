@@ -3325,14 +3325,14 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `includesource`
 :   include all source documents as file attachments in the PDF file
 
-[ConTeXt Paper Setup]: https://wiki.contextgarden.net/PaperSetup
-[ConTeXt Layout]: https://wiki.contextgarden.net/Layout
-[ConTeXt Font Switching]: https://wiki.contextgarden.net/Font_Switching
+[ConTeXt Paper Setup]: https://wiki.contextgarden.net/Document_layout_and_layers/Paper_setup
+[ConTeXt Layout]: https://wiki.contextgarden.net/Document_layout_and_layers/Tutorials
+[ConTeXt Font Switching]: https://wiki.contextgarden.net/Characters_words_and_fonts/Tutorials
 [ConTeXt Color]: https://wiki.contextgarden.net/Color
-[ConTeXt Headers and Footers]: https://wiki.contextgarden.net/Headers_and_Footers
-[ConTeXt Indentation]: https://wiki.contextgarden.net/Indentation
-[ConTeXt ICC Profiles]: https://wiki.contextgarden.net/PDFX#ICC_profiles
-[ConTeXt PDFA]: https://wiki.contextgarden.net/PDF/A
+[ConTeXt Headers and Footers]: https://wiki.contextgarden.net/Document_layout_and_layers/Headers_and_footers
+[ConTeXt Indentation]: https://wiki.contextgarden.net/Text_blocks/Typography/Indentation
+[ConTeXt PDFA]: https://wiki.contextgarden.net/Input_and_compilation/PDF/PDFA
+[ConTeXt ICC Profiles]: https://wiki.contextgarden.net/Input_and_compilation/PDF/PDFX#ICC_profiles
 [`setupwhitespace`]: https://wiki.contextgarden.net/Command/setupwhitespace
 [`setupinterlinespace`]: https://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: https://wiki.contextgarden.net/Command/setuppagenumbering
