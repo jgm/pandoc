@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE PatternSynonyms     #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE FlexibleContexts    #-}
@@ -43,7 +44,8 @@ import Text.Pandoc.Options (TopLevelDivision (TopLevelDefault),
                             ReferenceLocation (EndOfDocument),
                             CaptionPosition (..),
                             ObfuscationMethod (NoObfuscation),
-                            CiteMethod (Citeproc))
+                            CiteMethod (Citeproc),
+                            pattern DefaultHighlightingString)
 import Text.Pandoc.Class (readFileStrict, fileExists, setVerbosity, report,
                           PandocMonad(lookupEnv), getUserDataDir)
 import Text.Pandoc.Error (PandocError (PandocParseError, PandocSomeError))
@@ -124,8 +126,8 @@ data Opt = Opt
     , optEmbedResources        :: Bool    -- ^ Make HTML accessible offline
     , optLinkImages            :: Bool    -- ^ Link ODT images rather than embedding
     , optHtmlQTags             :: Bool    -- ^ Use <q> tags in HTML
-    , optHighlightStyle        :: Maybe Text -- ^ Style to use for highlighted code
     , optSyntaxDefinitions     :: [FilePath]  -- ^ xml syntax defs to load
+    , optSyntaxHighlighting    :: Text -- ^ Syntax highlighting method for code
     , optTopLevelDivision      :: TopLevelDivision -- ^ Type of the top-level divisions
     , optHTMLMathMethod        :: HTMLMathMethod -- ^ Method to print HTML math
     , optAbbreviations         :: Maybe FilePath -- ^ Path to abbrevs file
@@ -157,7 +159,6 @@ data Opt = Opt
     , optIndentedCodeClasses   :: [Text] -- ^ Default classes for indented code blocks
     , optDataDir               :: Maybe FilePath
     , optCiteMethod            :: CiteMethod -- ^ Method to output cites
-    , optListings              :: Bool       -- ^ Use listings package for code blocks
     , optPdfEngine             :: Maybe String -- ^ Program to use for latex/html -> pdf
     , optPdfEngineOpts         :: [String]   -- ^ Flags to pass to the engine
     , optSlideLevel            :: Maybe Int  -- ^ Header level that creates slides
@@ -211,8 +212,8 @@ instance FromJSON Opt where
        <*> o .:? "embed-resources" .!= optEmbedResources defaultOpts
        <*> o .:? "link-images" .!= optLinkImages defaultOpts
        <*> o .:? "html-q-tags" .!= optHtmlQTags defaultOpts
-       <*> o .:? "highlight-style"
        <*> o .:? "syntax-definitions" .!= optSyntaxDefinitions defaultOpts
+       <*> o .:? "syntax-highlighting" .!= optSyntaxHighlighting defaultOpts
        <*> o .:? "top-level-division" .!= optTopLevelDivision defaultOpts
        <*> o .:? "html-math-method" .!= optHTMLMathMethod defaultOpts
        <*> o .:? "abbreviations"
@@ -245,7 +246,6 @@ instance FromJSON Opt where
        <*> o .:? "indented-code-classes" .!= optIndentedCodeClasses defaultOpts
        <*> o .:? "data-dir"
        <*> o .:? "cite-method" .!= optCiteMethod defaultOpts
-       <*> o .:? "listings" .!= optListings defaultOpts
        <*> o .:? "pdf-engine"
        <*> o .:? "pdf-engine-opts" .!= optPdfEngineOpts defaultOpts
        <*> o .:? "slide-level"
@@ -319,6 +319,7 @@ resolveVarsInOpt
     , optOutputFile            = oOutputFile
     , optInputFiles            = oInputFiles
     , optSyntaxDefinitions     = oSyntaxDefinitions
+    , optSyntaxHighlighting    = oSyntaxHighlighting
     , optAbbreviations         = oAbbreviations
     , optReferenceDoc          = oReferenceDoc
     , optEpubMetadata          = oEpubMetadata
@@ -337,7 +338,6 @@ resolveVarsInOpt
     , optBibliography          = oBibliography
     , optCitationAbbreviations = oCitationAbbreviations
     , optPdfEngine             = oPdfEngine
-    , optHighlightStyle        = oHighlightStyle
     }
   = do
       oTo' <- mapM (fmap T.pack . resolveVars . T.unpack) oTo
@@ -365,7 +365,7 @@ resolveVarsInOpt
       oBibliography' <- mapM resolveVars oBibliography
       oCitationAbbreviations' <- mapM resolveVars oCitationAbbreviations
       oPdfEngine' <- mapM resolveVars oPdfEngine
-      oHighlightStyle' <- mapM (fmap T.pack . resolveVars . T.unpack) oHighlightStyle
+      oSyntaxHighlighting' <- T.pack <$> resolveVars (T.unpack oSyntaxHighlighting)
       return opt{ optTo                    = oTo'
                 , optFrom                  = oFrom'
                 , optTemplate              = oTemplate'
@@ -373,6 +373,7 @@ resolveVarsInOpt
                 , optOutputFile            = oOutputFile'
                 , optInputFiles            = oInputFiles'
                 , optSyntaxDefinitions     = oSyntaxDefinitions'
+                , optSyntaxHighlighting    = oSyntaxHighlighting'
                 , optAbbreviations         = oAbbreviations'
                 , optReferenceDoc          = oReferenceDoc'
                 , optEpubMetadata          = oEpubMetadata'
@@ -391,7 +392,6 @@ resolveVarsInOpt
                 , optBibliography          = oBibliography'
                 , optCitationAbbreviations = oCitationAbbreviations'
                 , optPdfEngine             = oPdfEngine'
-                , optHighlightStyle        = oHighlightStyle'
                 }
 
  where
@@ -555,8 +555,9 @@ doOpt (k,v) = do
       parseJSON v >>= \x -> return (\o -> o{ optLinkImages = x })
     "html-q-tags" ->
       parseJSON v >>= \x -> return (\o -> o{ optHtmlQTags = x })
+    -- Deprecated
     "highlight-style" ->
-      parseJSON v >>= \x -> return (\o -> o{ optHighlightStyle = x })
+      parseJSON v >>= \x -> return (\o -> o{ optSyntaxHighlighting = x })
     "syntax-definition" ->
       (parseJSON v >>= \x ->
                 return (\o -> o{ optSyntaxDefinitions =
@@ -569,6 +570,8 @@ doOpt (k,v) = do
       parseJSON v >>= \x ->
              return (\o -> o{ optSyntaxDefinitions =
                                 optSyntaxDefinitions o <> map unpack x })
+    "syntax-highlighting" ->
+      parseJSON v >>= \x -> return (\o -> o{ optSyntaxHighlighting = x })
     "top-level-division" ->
       parseJSON v >>= \x -> return (\o -> o{ optTopLevelDivision = x })
     "html-math-method" ->
@@ -647,7 +650,10 @@ doOpt (k,v) = do
     "cite-method" ->
       parseJSON v >>= \x -> return (\o -> o{ optCiteMethod = x })
     "listings" ->
-      parseJSON v >>= \x -> return (\o -> o{ optListings = x })
+      parseJSON v >>= \x ->
+        if x
+        then return (\o -> o{ optSyntaxHighlighting = "idiomatic" })
+        else return id
     "pdf-engine" ->
       parseJSON v >>= \x -> return (\o -> o{ optPdfEngine = unpack <$> x })
     "pdf-engine-opts" ->
@@ -773,8 +779,8 @@ defaultOpts = Opt
     , optEmbedResources        = False
     , optLinkImages            = False
     , optHtmlQTags             = False
-    , optHighlightStyle        = Just "pygments"
     , optSyntaxDefinitions     = []
+    , optSyntaxHighlighting    = DefaultHighlightingString
     , optTopLevelDivision      = TopLevelDefault
     , optHTMLMathMethod        = PlainMath
     , optAbbreviations         = Nothing
@@ -806,7 +812,6 @@ defaultOpts = Opt
     , optIndentedCodeClasses   = []
     , optDataDir               = Nothing
     , optCiteMethod            = Citeproc
-    , optListings              = False
     , optPdfEngine             = Nothing
     , optPdfEngineOpts         = []
     , optSlideLevel            = Nothing
