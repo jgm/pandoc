@@ -14,12 +14,16 @@ module Text.Pandoc.Parsing.GridTable
   , gridTableWith'
   , tableWith
   , tableWith'
+  , tableWithMultipleHeaderRows
+  , tableWithMultipleHeaderRows'
   , widthsFromIndices
     -- * Components of a plain-text table
   , TableComponents (..)
   , TableNormalization (..)
   , toTableComponents
   , toTableComponents'
+  , toTableComponentsWithMultipleHeaderRows
+  , toTableComponentsWithMultipleHeaderRows'
   )
 where
 
@@ -34,6 +38,7 @@ import Text.Pandoc.Parsing.General
 import Text.Pandoc.Sources
 import Text.Parsec (Stream (..), ParsecT, optional, sepEndBy1, try)
 
+import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import qualified Text.GridTable as GT
 import qualified Text.Pandoc.Builder as B
@@ -53,18 +58,30 @@ tableFromComponents :: TableComponents -> Blocks
 tableFromComponents (TableComponents attr capt colspecs th tb tf) =
   B.tableWith attr capt colspecs th tb tf
 
--- | Bundles basic table components into a single value.
+-- | Bundles basic table components with a single header row into a single value.
 toTableComponents :: [Alignment] -> [Double] -> [Blocks] -> [[Blocks]]
                   -> TableComponents
 toTableComponents = toTableComponents' NoNormalization
 
--- | Bundles basic table components into a single value, performing
--- normalizations as necessary.
+-- | Bundles basic table components with a single header row into a single value,
+-- performing normalizations as necessary.
 toTableComponents' :: TableNormalization
                    -> [Alignment] -> [Double] -> [Blocks] -> [[Blocks]]
                    -> TableComponents
 toTableComponents' normalization aligns widths heads rows =
-  let th = TableHead nullAttr (toHeaderRow normalization heads)
+  toTableComponentsWithMultipleHeaderRows' normalization aligns widths [heads] rows
+
+-- | Bundles basic table components with possibly multiple header rows into a single value.
+toTableComponentsWithMultipleHeaderRows :: [Alignment] -> [Double] -> [[Blocks]] -> [[Blocks]]
+                                        -> TableComponents
+toTableComponentsWithMultipleHeaderRows = toTableComponentsWithMultipleHeaderRows' NoNormalization
+
+
+toTableComponentsWithMultipleHeaderRows' :: TableNormalization
+                                         -> [Alignment] -> [Double] -> [[Blocks]] -> [[Blocks]]
+                                         -> TableComponents
+toTableComponentsWithMultipleHeaderRows' normalization aligns widths heads rows =
+  let th = TableHead nullAttr (mapMaybe (toHeaderRow normalization) heads)
       tb = TableBody nullAttr 0 [] (map toRow rows)
       tf = TableFoot nullAttr []
       colspecs = toColSpecs aligns widths
@@ -187,8 +204,8 @@ fractionalColumnWidths gt charColumns =
 
 ---
 
--- | Parse a table using 'headerParser', 'rowParser',
--- 'lineParser', and 'footerParser'.
+-- | Parse a table with a single header row using
+-- 'headerParser', 'rowParser', 'lineParser', and 'footerParser'.
 tableWith :: (Stream s m Char, UpdateSourcePos s Char,
               HasReaderOptions st, Monad mf)
           => ParsecT s st m (mf [Blocks], [Alignment], [Int]) -- ^ header parser
@@ -207,7 +224,32 @@ tableWith' :: (Stream s m Char, UpdateSourcePos s Char,
            -> ParsecT s st m sep                       -- ^ line parser
            -> ParsecT s st m end                       -- ^ footer parser
            -> ParsecT s st m (mf TableComponents)
-tableWith' n11n headerParser rowParser lineParser footerParser = try $ do
+tableWith' n11n headerParser rowParser lineParser footerParser =
+  tableWithMultipleHeaderRows' n11n singleHeaderParser rowParser lineParser footerParser
+  where
+    singleHeaderParser = fmap (\(a, b, c) -> (fmap (:[]) a, b, c)) headerParser
+
+-- | Parse a table with possibly multiple header rows using
+-- 'headerParser', 'rowParser', 'lineParser', and 'footerParser'.
+tableWithMultipleHeaderRows :: (Stream s m Char, UpdateSourcePos s Char,
+                                HasReaderOptions st, Monad mf)
+                            => ParsecT s st m (mf [[Blocks]], [Alignment], [Int]) -- ^ header parser
+                            -> ([Int] -> ParsecT s st m (mf [Blocks]))  -- ^ row parser
+                            -> ParsecT s st m sep                       -- ^ line parser
+                            -> ParsecT s st m end                       -- ^ footer parser
+                            -> ParsecT s st m (mf Blocks)
+tableWithMultipleHeaderRows hp rp lp fp = fmap tableFromComponents <$>
+  tableWithMultipleHeaderRows' NoNormalization hp rp lp fp
+
+tableWithMultipleHeaderRows' :: (Stream s m Char, UpdateSourcePos s Char,
+                                 HasReaderOptions st, Monad mf)
+                             => TableNormalization
+                             -> ParsecT s st m (mf [[Blocks]], [Alignment], [Int]) -- ^ header parser
+                             -> ([Int] -> ParsecT s st m (mf [Blocks]))  -- ^ row parser
+                             -> ParsecT s st m sep                       -- ^ line parser
+                             -> ParsecT s st m end                       -- ^ footer parser
+                             -> ParsecT s st m (mf TableComponents)
+tableWithMultipleHeaderRows' n11n headerParser rowParser lineParser footerParser = try $ do
   (heads, aligns, indices) <- headerParser
   lines' <- sequence <$> rowParser indices `sepEndBy1` lineParser
   footerParser
@@ -215,15 +257,15 @@ tableWith' n11n headerParser rowParser lineParser footerParser = try $ do
   let widths = if null indices
                then replicate (length aligns) 0.0
                else widthsFromIndices numColumns indices
-  return $ toTableComponents' n11n aligns widths <$> heads <*> lines'
+  return $ toTableComponentsWithMultipleHeaderRows' n11n aligns widths <$> heads <*> lines'
 
 toRow :: [Blocks] -> Row
 toRow =  Row nullAttr . map B.simpleCell
 
-toHeaderRow :: TableNormalization -> [Blocks] -> [Row]
+toHeaderRow :: TableNormalization -> [Blocks] -> Maybe Row
 toHeaderRow = \case
-  NoNormalization -> \l -> [toRow l | not (null l)]
-  NormalizeHeader -> \l -> [toRow l | not (null l) && not (all null l)]
+  NoNormalization -> \l -> if not (null l) then Just (toRow l) else Nothing
+  NormalizeHeader -> \l -> if not (all null l) then Just (toRow l) else Nothing
 
 -- | Calculate relative widths of table columns, based on indices
 widthsFromIndices :: Int      -- Number of columns on terminal
