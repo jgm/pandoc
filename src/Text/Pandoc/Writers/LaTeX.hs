@@ -179,7 +179,8 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   main <- blockListToLaTeX blocks'''
   biblioTitle <- inlineListToLaTeX lastHeader
   st <- get
-  titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
+  titleMeta <- escapeCommas <$> -- see #10501
+                stringToLaTeX TextString (stringify $ docTitle meta)
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   -- The trailer ID is as hash used to identify the PDF. Taking control of its
   -- value is important when aiming for reproducible PDF generation. Setting
@@ -300,6 +301,10 @@ pandocToLaTeX options (Pandoc meta blocks) = do
     case writerTemplate options of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context'
+
+-- Commas in title-meta need to be put in braces; see #10501
+escapeCommas :: Text -> Text
+escapeCommas = T.replace "," "{,}"
 
 toSlides :: PandocMonad m => [Block] -> LW m [Block]
 toSlides bs = do
