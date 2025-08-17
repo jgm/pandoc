@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Writers.Typst
@@ -77,9 +78,9 @@ pandocToTypst options (Pandoc meta blocks) = do
   let toPosition :: CaptionPosition -> Text
       toPosition CaptionAbove = "top"
       toPosition CaptionBelow = "bottom"
-  let nociteIds = query (\inln -> case inln of
-                                    Cite cs _ -> map citationId cs
-                                    _         -> [])
+  let nociteIds = query (\case
+                           Cite cs _ -> map citationId cs
+                           _         -> [])
                   $ lookupMetaInlines "nocite" meta
 
   let context = defField "body" main
@@ -160,12 +161,9 @@ blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
 blockToTypst :: PandocMonad m => Block -> TW m (Doc Text)
 blockToTypst block =
   case block of
-    Plain inlines -> do
-      opts <- gets stOptions
-      inlinesToTypst (addLineStartEscapes opts inlines)
+    Plain inlines -> inlinesToTypst inlines
     Para inlines -> do
-      opts <- gets stOptions
-      ($$ blankline) <$> inlinesToTypst (addLineStartEscapes opts inlines)
+      ($$ blankline) <$> inlinesToTypst inlines
     Header level (ident,cls,_) inlines -> do
       contents <- inlinesToTypst inlines
       let lab = toLabel FreestandingLabel ident
@@ -504,23 +502,17 @@ mkImage opts useBox src attr
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = do
-  opts <-  gets stOptions
-  (<> endCode) . (s <>) . brackets
-    <$> inlinesToTypst (addLineStartEscapes opts inlines)
+  (<> endCode) . (s <>) . brackets . fixInitialAfterBreakEscape
+    <$> inlinesToTypst inlines
 
-addLineStartEscapes :: WriterOptions -> [Inline] -> [Inline]
-addLineStartEscapes opts = go True
- where
-   go True (Str t : xs)
-        | isOrderedListMarker t = RawInline "typst" "\\" : Str t : go False xs
-        | Just (c, t') <- T.uncons t
-        , needsEscapeAtLineStart c
-        , T.null t' = RawInline "typst" "\\" : Str t : go False xs
-   go _ (SoftBreak : xs)
-        | writerWrapText opts == WrapPreserve = SoftBreak : go True xs
-   go _ (LineBreak : xs) = LineBreak : go True xs
-   go _ (x : xs) = x : go False xs
-   go _ [] = []
+fixInitialAfterBreakEscape :: Doc Text -> Doc Text
+fixInitialAfterBreakEscape (Concat x y) =
+  Concat (fixInitialAfterBreakEscape x) y
+-- make an initial AfterBreak escape unconditional (it will be rendered
+-- in a block [..] and there won't be an actual break to trigger it, but
+-- typst still needs the escape)
+fixInitialAfterBreakEscape (AfterBreak "\\") = Text 1 "\\"
+fixInitialAfterBreakEscape x = x
 
 isOrderedListMarker :: Text -> Bool
 isOrderedListMarker t = not (T.null ds) && rest == "."
@@ -530,7 +522,7 @@ escapeTypst :: Bool -> EscapeContext -> Text -> Doc Text
 escapeTypst smart context t =
   (case T.uncons t of
     Just (c, _)
-      | needsEscapeAtLineStart c
+      | needsEscapeAtLineStart c || isOrderedListMarker t
         -> afterBreak "\\"
     _ -> mempty) <>
   (literal (T.replace "//" "\\/\\/"
