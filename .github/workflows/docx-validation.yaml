@@ -26,7 +26,7 @@ jobs:
           sudo apt-get install libxml2-utils -y
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
           sparse-checkout: |
             test/docx/golden
@@ -49,7 +49,7 @@ jobs:
           sudo apt-get install yajl-tools -y
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
           sparse-checkout: |
             test/docx/golden

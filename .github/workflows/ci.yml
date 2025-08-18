@@ -73,7 +73,7 @@ jobs:
             cabal: 'latest'
             cabalopts: '--allow-newer --ghc-option=-Werror --ghc-option=-Wno-unused-imports --ghc-option=-Wno-deriving-typeable'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     # needed by memory
     - name: Install numa
@@ -121,7 +121,7 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     # needed by memory
     - name: Install numa
@@ -154,7 +154,7 @@ jobs:
 #   strategy:
 #     fail-fast: true
 #   steps:
-#   - uses: actions/checkout@v4
+#   - uses: actions/checkout@v5
 #   - uses: cachix/install-nix-action@v30
 #     with:
 #       nix_path: nixpkgs=channel:nixos-24.05
@@ -180,7 +180,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Install ghc
       run: |
@@ -222,7 +222,7 @@ jobs:
 #           cabal: '3.2'
 
 #   steps:
-#   - uses: actions/checkout@v4
+#   - uses: actions/checkout@v5
 
 #   - name: Install cabal/ghc
 #     run: |
