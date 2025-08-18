@@ -18,7 +18,7 @@ jobs:
             cabal_opts: '-fembed_data_files -fserver -flua'
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.8
@@ -80,7 +80,7 @@ jobs:
     runs-on: macos-13
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Install ghcup
       run: |
@@ -105,7 +105,7 @@ jobs:
 
 #   runs-on: ubuntu-latest
 #   steps:
-#   - uses: actions/checkout@v4
+#   - uses: actions/checkout@v5
 #   - name: Create linux package
 #     run: |
 #         make debpkg
