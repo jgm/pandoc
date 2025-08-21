@@ -1,0 +1,64 @@
+## Chapter 1: The Dust Year
+On the morning the ash fell like snow, Rhea Caldane cataloged a lie...
+
+## Chapter 2: The Soldier’s Writ
+Kael Serrin returns to Rhea in the Repository...
+
+## Chapter 3: The Manuscript Speaks
+Salin brings them to the Gnomon, testing Rhea...
+
+## Chapter 4: The Fire Parade
+The Fire Parade consumes Ariath’s books...
+
+## Chapter 5: Fate Intertwined
+By the kilns, Rhea and Kael finally share trust...
+
+## Chapter 6: Flight from Ariath
+Salin corners Rhea in the Repository...
+
+## Chapter 7: The Road of Ash
+On the road north, Rhea and Kael read the codex...
+
+## Chapter 8: The Circle and the Line
+They encounter rebels who cling to circles...
+
+## Chapter 9: The Prison of Salt
+Captured, they are dragged to the Prison of Salt...
+
+## Chapter 10: The Codex Unsealed
+Kael steals back the codex and breaks its clasp...
+
+## Chapter 11: The Burning City
+Salin burns Ariath’s northern quarter...
+
+## Chapter 12: The Choice of Lovers
+Rhea and Kael’s bond deepens into love...
+
+## Chapter 13: The Hidden Library
+They discover a hidden library of the First Age...
+
+## Chapter 14: The Prophecy of the Gnomon
+They learn the Gnomon is the true hinge of memory...
+
+## Chapter 15: The Betrayer’s Hand
+Orlan betrays Rhea, delivering her to Salin...
+
+## Chapter 16: The Siege of Ariath
+Rebels and soldiers clash before the Gnomon...
+
+## Chapter 17: The Last Shadow
+Kael sacrifices himself, their blood mingling...
+
+## Chapter 18: Ashes of Eternity
+The battle ends; Salin is destroyed...
+
+## Chapter 19: Epilogue
+Years later, Rhea tends the free library of Ariath...
+"""
+
+# Export to EPUB
+pypandoc.convert_text(manuscript, 'epub', format='md',
+                      outputfile='The_Ashes_of_Eternity.epub',
+                      extra_args=['--standalone'])
+
+print("Done! File saved as The_Ashes_of_Eternity.epub")
