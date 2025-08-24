@@ -542,6 +542,7 @@ library
                  text-conversions      >= 0.3      && < 0.4,
                  time                  >= 1.5      && < 1.15,
                  unicode-collation     >= 0.1.1    && < 0.2,
+                 unicode-data          >= 0.6      && < 0.7,
                  unicode-transforms    >= 0.3      && < 0.5,
                  yaml                  >= 0.11     && < 0.12,
                  libyaml               >= 0.1.4    && < 0.2,
