@@ -2730,7 +2730,7 @@ Currently the following pipes are predefined:
     documents
 
 `abstract-title`
-:   title of abstract, currently used only in HTML, EPUB, docx, and Typst.
+:   title of abstract, currently used only in HTML, EPUB, and docx.
     This will be set automatically to a localized value,
     depending on `lang`, but can be manually overridden.
 
@@ -3402,19 +3402,6 @@ The `--css` option also affects the output.
 
 `columns`
 :    Number of columns for body text.
-
-`thanks`
-:   contents of acknowledgments footnote after document title
-
-`mathfont`, `codefont`
-:    Name of system font to use for math and code, respectively.
-
-`linestretch`
-:   adjusts line spacing, e.g. `1.25`, `1.5`
-
-`linkcolor`, `filecolor`, `citecolor`
-:   color for external links, internal links, and citation links,
-    respectively: expects a hexadecimal color code
 
 ### Variables for ms
 
