@@ -183,21 +183,26 @@ adjustCiteStyle sty cs = do
 addPrefixToFirstItem :: (F Inlines) -> (F [Citation]) -> (F [Citation])
 addPrefixToFirstItem aff cs = do
   cs' <- cs
-  aff' <- aff
+  aff' <- B.toList <$> aff
   case cs' of
     [] -> return []
     (d:ds) -> return (d{ citationPrefix =
-                          B.toList aff' <> citationPrefix d }:ds)
+                          if null aff'
+                             then citationPrefix d
+                             else aff' ++ (Str "|" : citationPrefix d) }:ds)
 
 addSuffixToLastItem :: (F Inlines) -> (F [Citation]) -> (F [Citation])
 addSuffixToLastItem aff cs = do
   cs' <- cs
-  aff' <- aff
+  aff' <- B.toList <$> aff
   case lastMay cs' of
     Nothing -> return cs'
     Just d  ->
       return (init cs' ++ [d{ citationSuffix =
-                                citationSuffix d <> B.toList aff' }])
+                                citationSuffix d <>
+                                if null aff'
+                                   then []
+                                   else Str "|" : aff' }])
 
 citeItems :: PandocMonad m => OrgParser m (F [Citation])
 citeItems = sequence <$> sepBy1' citeItem (char ';' <* void (many spaceChar))
