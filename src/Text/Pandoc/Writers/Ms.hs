@@ -162,8 +162,10 @@ blockToMs opts (Div (ident,cls,kvs) bs) = do
                 ".." $$
                 res
     _ -> do
+       -- Apply unwrapWrapperDiv to handle wrapper divs
+       let unwrappedBlocks = map unwrapWrapperDiv bs
        setFirstPara
-       res <- blockListToMs opts bs
+       res <- blockListToMs opts unwrappedBlocks
        setFirstPara
        return $ anchor $$ res
 blockToMs opts (Plain inlines) =

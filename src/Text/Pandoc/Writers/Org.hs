@@ -144,7 +144,9 @@ blockToOrg (Div attr@(ident,_,_) bs) = do
   -- Strip off bibliography if citations enabled
   if ident == "refs" && isEnabled Ext_citations opts
      then return mempty
-     else divToOrg attr bs
+     else case unwrapWrapperDiv (Div attr bs) of
+            Para inlines -> blockToOrg (Para inlines)
+            _ -> divToOrg attr bs
 blockToOrg (Plain inlines) = inlineListToOrg inlines
 blockToOrg (Para inlines) = do
   contents <- inlineListToOrg inlines

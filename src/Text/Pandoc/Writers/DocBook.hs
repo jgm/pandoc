@@ -204,10 +204,11 @@ blockToDocBook opts (Div (id',"section":_classes,divattrs)
   title' <- inlinesToDocBook opts ils
   contents <- blocksToDocBook opts bs
   return $ inTags True tag attribs $ inTagsSimple "title" title' $$ contents
-blockToDocBook opts (Div (ident,classes,_) bs) = do
+blockToDocBook opts (Div (ident,classes,_kvs) bs) = do
   version <- ask
   let identAttribs = [(idName version, ident) | not (T.null ident)]
       admonitions = ["caution","danger","important","note","tip","warning"]
+
   case classes of
     (l:_) | l `elem` admonitions -> do
         let (mTitleBs, bodyBs) =
@@ -219,13 +220,15 @@ blockToDocBook opts (Div (ident,classes,_) bs) = do
                   _ -> (Nothing, bs)
         admonitionTitle <- case mTitleBs of
                               Nothing -> return mempty
-                              -- id will be attached to the admonition so let’s pass empty identAttrs.
+                              -- id will be attached to the admonition so let's pass empty identAttrs.
                               Just titleBs -> inTagsSimple "title" <$> titleBs
         admonitionBody <- handleDivBody [] bodyBs
         return (inTags True l identAttribs (admonitionTitle $$ admonitionBody))
     _ -> handleDivBody identAttribs bs
   where
     handleDivBody identAttribs [Para lst] =
+      -- For wrapper divs with single Para, apply attributes to para
+      -- For normal divs with single Para, also apply attributes to para (original behavior)
       if hasLineBreaks lst
          then flush . nowrap . inTags False "literallayout" identAttribs
                              <$> inlinesToDocBook opts lst

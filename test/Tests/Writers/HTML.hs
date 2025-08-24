@@ -16,10 +16,16 @@ htmlWithOpts opts = unpack . purely (writeHtml4String opts{ writerWrapText = Wra
 html :: (ToPandoc a) => a -> String
 html = htmlWithOpts def
 
+htmlWithParaAttrs :: (ToPandoc a) => a -> String
+htmlWithParaAttrs = htmlWithOpts def{ writerExtensions = enableExtension Ext_paragraph_attributes (writerExtensions def) }
+
 htmlQTags :: (ToPandoc a) => a -> String
 htmlQTags = unpack
   . purely (writeHtml4String def{ writerWrapText = WrapNone, writerHtmlQTags = True })
   . toPandoc
+
+html5WithParaAttrs :: (ToPandoc a) => a -> String
+html5WithParaAttrs = unpack . purely (writeHtml5String def{ writerWrapText = WrapNone, writerExtensions = enableExtension Ext_paragraph_attributes (writerExtensions def) }) . toPandoc
 
 {-
   "my test" =: X =?> Y
@@ -208,6 +214,35 @@ tests =
           , "</div>"
           ]
       ]
+  , testGroup "paragraph attributes"
+    [ test htmlWithParaAttrs "paragraph with id and class" $
+      (divWith ("mypara", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      , "<p id=\"mypara\" class=\"important\">This is a paragraph.</p>" :: String)
+    , test htmlWithParaAttrs "paragraph with id only" $
+      (divWith ("mypara", [], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      , "<p id=\"mypara\">This is a paragraph.</p>" :: String)
+    , test htmlWithParaAttrs "paragraph with class only" $
+      (divWith ("", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      , "<p class=\"important\">This is a paragraph.</p>" :: String)
+    , test htmlWithParaAttrs "paragraph with multiple classes" $
+      (divWith ("", ["important", "urgent"], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      , "<p class=\"important urgent\">This is a paragraph.</p>" :: String)
+    , test html5WithParaAttrs "paragraph with key-value attributes" $
+        (divWith ("", [], [("wrapper", "1"), ("foo", "bar")]) (para (text "This is a paragraph."))
+        , "<p data-foo=\"bar\">This is a paragraph.</p>" :: String)
+    , "paragraph without wrapper attribute" =:
+      divWith ("mydiv", ["someclass"], []) (para (text "This is a div, not a p."))
+      =?> "<div id=\"mydiv\" class=\"someclass\">\n<p>This is a div, not a p.</p>\n</div>"
+    , test htmlWithParaAttrs "paragraph with wrapper and other attributes" $
+      (divWith ("mypara", ["important"], [("wrapper", "1"), ("data-value", "123")]) (para (text "This is a paragraph."))
+      , "<p id=\"mypara\" class=\"important\" data-value=\"123\">This is a paragraph.</p>" :: String)
+    , test htmlWithParaAttrs "paragraph with wrapper and align" $
+      (divWith ("mypara", [], [("wrapper", "1"), ("align", "center")]) (para (text "Aligned paragraph."))
+      , "<p id=\"mypara\" align=\"center\">Aligned paragraph.</p>" :: String)
+    , test html "paragraph with wrapper (extension disabled)" $
+      (divWith ("mypara", ["important"], [("wrapper", "1")]) (para (text "This is a paragraph."))
+      , "<p>This is a paragraph.</p>" :: String)
+    ]
   ]
   where
     tQ :: (ToString a, ToPandoc a)

@@ -120,7 +120,7 @@ blockToTEI opts (Div attr@(_,"section":_,_) (Header lvl _ ils : xs)) =
 blockToTEI opts (Div attr [Para lst]) = do
   let attribs = idFromAttr opts attr
   inTags False "p" attribs <$> inlinesToTEI opts lst
-blockToTEI opts (Div _ bs) = blocksToTEI opts $ map plainToPara bs
+blockToTEI opts (Div _ bs) = blocksToTEI opts $ map (unwrapWrapperDiv . plainToPara) bs
 blockToTEI _ h@Header{} = do
   -- should not occur after makeSections, except inside lists/blockquotes
   report $ BlockNotRendered h

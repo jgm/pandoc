@@ -153,7 +153,7 @@ blockToTexinfo :: PandocMonad m
                => Block     -- ^ Block to convert
                -> TI m (Doc Text)
 
-blockToTexinfo (Div _ bs) = blockListToTexinfo bs
+blockToTexinfo (Div _ bs) = blockListToTexinfo (map unwrapWrapperDiv bs)
 
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst

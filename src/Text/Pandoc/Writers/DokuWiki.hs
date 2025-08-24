@@ -41,7 +41,7 @@ import Text.Pandoc.Shared (figureDiv, linesToPara, removeFormatting, trimr)
 import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.DocLayout (render, literal)
-import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
+import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unwrapWrapperDiv)
 import Data.Maybe (fromMaybe)
 import qualified Data.Map as M
 
@@ -101,7 +101,7 @@ blockToDokuWiki :: PandocMonad m
                 -> DokuWiki m Text
 
 blockToDokuWiki opts (Div _attrs bs) = do
-  contents <- blockListToDokuWiki opts bs
+  contents <- blockListToDokuWiki opts (map unwrapWrapperDiv bs)
   indent <- asks stIndent
   return $ contents <> if T.null indent then "\n" else ""
 

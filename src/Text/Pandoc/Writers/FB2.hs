@@ -41,7 +41,7 @@ import Text.Pandoc.Shared (blocksToInlines, capitalize, orderedListMarkers,
                            makeSections, tshow, stringify)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Writers.Shared (lookupMetaString, toLegacyTable,
-                                   ensureValidXmlIdentifiers)
+                                   ensureValidXmlIdentifiers, unwrapWrapperDiv)
 import Data.Generics (everywhere, mkT)
 
 -- | Data to be written at the end of the document:
@@ -315,7 +315,7 @@ blockToXml (RawBlock f str) =
          Left msg  -> throwError $ PandocXMLError "" msg
          Right nds -> return nds
     else return []
-blockToXml (Div _ bs) = cMapM blockToXml bs
+blockToXml (Div _ bs) = cMapM blockToXml (map unwrapWrapperDiv bs)
 blockToXml (BlockQuote bs) = list . el "cite" <$> cMapM blockToXml bs
 blockToXml (LineBlock lns) =
   list . el "poem" <$> mapM stanza (split null lns)

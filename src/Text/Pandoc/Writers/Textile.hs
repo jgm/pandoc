@@ -100,11 +100,14 @@ blockToTextile :: PandocMonad m
                -> Block         -- ^ Block element
                -> TW m Text
 
-blockToTextile opts (Div attr bs) = do
-  let startTag = render Nothing $ tagWithAttrs "div" attr
-  let endTag = "</div>"
-  contents <- blockListToTextile opts bs
-  return $ startTag <> "\n\n" <> contents <> "\n\n" <> endTag <> "\n"
+blockToTextile opts (Div (ident, classes, kvs) bs) = do
+  if Just "1" == lookup "wrapper" kvs
+    then blockListToTextile opts bs
+    else do
+      let startTag = render Nothing $ tagWithAttrs "div" (ident, classes, kvs)
+      let endTag = "</div>"
+      contents <- blockListToTextile opts bs
+      return $ startTag <> "\n\n" <> contents <> "\n\n" <> endTag <> "\n"
 
 blockToTextile opts (Plain inlines) =
   inlineListToTextile opts inlines
