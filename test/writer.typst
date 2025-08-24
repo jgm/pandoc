@@ -53,9 +53,11 @@
 ) = {
   set document(
     title: title,
-    author: authors.map(author => content-to-string(author.name)),
     keywords: keywords,
   )
+  set document(
+      author: authors.map(author => content-to-string(author.name)).join(", ", last: " & "),
+  ) if authors != none and authors != ()
   set page(
     paper: paper,
     margin: margin,
