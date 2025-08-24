@@ -274,6 +274,10 @@ tests = [ testGroup "document"
             "docx/i18n_blocks.docx"
             "docx/i18n_blocks.native"
           , testCompare
+            "Image before Title"
+            "docx/image-before-title.docx"
+            "docx/image-before-title.native"
+          , testCompare
             "lists"
             "docx/lists.docx"
             "docx/lists.native"
@@ -520,7 +524,7 @@ tests = [ testGroup "document"
             "docx/metadata.docx"
             "docx/metadata.native"
           , testCompareWithOpts def{readerStandalone=True}
-            "stop recording metadata with normal text"
+            "recording metadata after normal text only if author"
             "docx/metadata_after_normal.docx"
             "docx/metadata_after_normal.native"
           ]
