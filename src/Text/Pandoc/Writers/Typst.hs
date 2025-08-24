@@ -42,8 +42,9 @@ import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
-import Data.Char (isAlphaNum, isDigit)
+import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
+import Unicode.Char (isXIDContinue)
 
 -- | Convert Pandoc to Typst.
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
@@ -110,7 +111,7 @@ pandocToTypst options (Pandoc meta blocks) = do
               $ (if writerNumberSections options
                     then defField "section-numbering" ("1.1.1.1.1" :: Text)
                     else id)
-              $ metadata
+              metadata
   return $ render colwidth $
     case writerTemplate options of
        Nothing  -> main
@@ -121,15 +122,15 @@ pickTypstAttrs = foldr go ([],[])
   where
     go (k,v) =
       case T.splitOn ":" k of
-        "typst":"text":x:[] -> second ((x,v):)
-        "typst":x:[] -> first ((x,v):)
+        ["typst", "text", x] -> second ((x,v):)
+        ["typst", x] -> first ((x,v):)
         _ -> id
 
 formatTypstProp :: (Text, Text) -> Text
 formatTypstProp (k,v) = k <> ": " <> v
 
 toTypstPropsListSep :: [(Text, Text)] -> Doc Text
-toTypstPropsListSep = hsep . intersperse "," . (map $ literal . formatTypstProp)
+toTypstPropsListSep = hsep . intersperse "," . map (literal . formatTypstProp)
 
 toTypstPropsListTerm :: [(Text, Text)] -> Doc Text
 toTypstPropsListTerm [] = ""
@@ -583,7 +584,7 @@ toLabel labelType ident
    ident' = T.pack $ unEscapeString $ T.unpack ident
 
 isIdentChar :: Char -> Bool
-isIdentChar c = isAlphaNum c || c == '_' || c == '-' || c == '.' || c == ':'
+isIdentChar c = isXIDContinue c || c == '_' || c == '-' || c == '.' || c == ':'
 
 toCite :: PandocMonad m => Citation -> TW m (Doc Text)
 toCite cite = do
