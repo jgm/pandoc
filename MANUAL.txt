@@ -5634,7 +5634,8 @@ The link text will be used as the image's alt text:
 
 An image with nonempty alt text, occurring by itself in a
 paragraph, will be rendered as a figure with a caption.  The
-image's alt text will be used as the caption.
+image's alt text will be used as the caption. To set alt text 
+as well as a caption, use the 'alt' link_attribute (see below).
 
     ![This is the caption](/url/of/image.png)
 
@@ -5657,7 +5658,7 @@ and the caption and figure tags will be omitted.
 
 Attributes can be set on links and images:
 
-    An inline ![image](foo.jpg){#id .class width=30 height=20px}
+    An inline ![image](foo.jpg){#id .class width=30 height=20px alt="Alt text"}
     and a reference ![image][ref] with attributes.
 
     [ref]: foo.jpg "optional title" {#id .class key=val key2="val 2"}
