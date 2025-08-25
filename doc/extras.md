@@ -78,6 +78,10 @@ complete list, see the [Pandoc Extras wiki page](https://github.com/jgm/pandoc/w
     putting the Abstract into a section,
     multiple bibliographies,
     support the Citation Typing Ontology (CiTO), etc.
+  - [Baseprinter](https://try.perm.pub/baseprinter/) is an open-source pandoc wrapper to
+    generate Baseprint document snapshots and HTML/PDF previews.
+    These snapshots can be self-published/archived as editions of a
+    [Baseprint document succession](https://try.perm.pub/document_succession/).
   - [Pandoc Scholar](https://github.com/pandoc-scholar/pandoc-scholar) is a
     set of utilities to make publishing of scientific articles as simple and
     pleasant as possible. It simplifies setting authors' metadata in
