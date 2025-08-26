@@ -659,14 +659,10 @@ pCodeBlock = try $ do
                              else v ]
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents
-  -- drop leading newline if any
-  let result' = case T.uncons rawText of
-                     Just ('\n', xs) -> xs
-                     _               -> rawText
   -- drop trailing newline if any
-  let result = case T.unsnoc result' of
+  let result = case T.unsnoc rawText of
                     Just (result'', '\n') -> result''
-                    _                     -> result'
+                    _                     -> rawText
   return $ B.codeBlockWith attr result
 
 tagToText :: Tag Text -> Text

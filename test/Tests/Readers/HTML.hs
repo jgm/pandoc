@@ -130,10 +130,10 @@ tests = [ testGroup "base tag"
           [ test html "attributes in pre > code element" $
             "<pre><code id=\"a\" class=\"python\">\nprint('hi')\n</code></pre>"
             =?>
-            codeBlockWith ("a", ["python"], []) "print('hi')"
+            codeBlockWith ("a", ["python"], []) "\nprint('hi')"
 
           , test html "attributes in pre take precedence" $
-            "<pre id=\"c\"><code id=\"d\">\nprint('hi mom!')\n</code></pre>"
+            "<pre id=\"c\"><code id=\"d\">print('hi mom!')\n</code></pre>"
             =?>
             codeBlockWith ("c", [], []) "print('hi mom!')"
           ]
