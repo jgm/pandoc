@@ -6,16 +6,12 @@ Pandoc
             , MetaInlines
                 [ Str "Oct" , Space , Str "17," , Space , Str "2018" ]
             )
-          , ( "section" , MetaInlines [] )
-          , ( "title"
-            , MetaInlines
-                [ Str "Pandoc"
-                , Space
-                , Str "Man"
-                , Space
-                , Str "tests"
-                ]
+          , ( "footer" , MetaInlines [ Str "v1.0.1" ] )
+          , ( "header"
+            , MetaInlines [ Str "Pandoc" , Space , Str "Tests" ]
             )
+          , ( "section" , MetaInlines [ Str "1" ] )
+          , ( "title" , MetaInlines [ Str "PANDOC-MAN-TESTS" ] )
           ]
     }
   [ Para
