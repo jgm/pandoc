@@ -2730,7 +2730,7 @@ Currently the following pipes are predefined:
     documents
 
 `abstract-title`
-:   title of abstract, currently used only in HTML, EPUB, docx, and Typst.
+:   title of abstract, currently used only in HTML, EPUB, and docx.
     This will be set automatically to a localized value,
     depending on `lang`, but can be manually overridden.
 
@@ -3325,14 +3325,14 @@ Pandoc uses these variables when [creating a PDF] with ConTeXt.
 `includesource`
 :   include all source documents as file attachments in the PDF file
 
-[ConTeXt Paper Setup]: https://wiki.contextgarden.net/PaperSetup
-[ConTeXt Layout]: https://wiki.contextgarden.net/Layout
-[ConTeXt Font Switching]: https://wiki.contextgarden.net/Font_Switching
+[ConTeXt Paper Setup]: https://wiki.contextgarden.net/Document_layout_and_layers/Paper_setup
+[ConTeXt Layout]: https://wiki.contextgarden.net/Document_layout_and_layers/Tutorials
+[ConTeXt Font Switching]: https://wiki.contextgarden.net/Characters_words_and_fonts/Tutorials
 [ConTeXt Color]: https://wiki.contextgarden.net/Color
-[ConTeXt Headers and Footers]: https://wiki.contextgarden.net/Headers_and_Footers
-[ConTeXt Indentation]: https://wiki.contextgarden.net/Indentation
-[ConTeXt ICC Profiles]: https://wiki.contextgarden.net/PDFX#ICC_profiles
-[ConTeXt PDFA]: https://wiki.contextgarden.net/PDF/A
+[ConTeXt Headers and Footers]: https://wiki.contextgarden.net/Document_layout_and_layers/Headers_and_footers
+[ConTeXt Indentation]: https://wiki.contextgarden.net/Text_blocks/Typography/Indentation
+[ConTeXt PDFA]: https://wiki.contextgarden.net/Input_and_compilation/PDF/PDFA
+[ConTeXt ICC Profiles]: https://wiki.contextgarden.net/Input_and_compilation/PDF/PDFX#ICC_profiles
 [`setupwhitespace`]: https://wiki.contextgarden.net/Command/setupwhitespace
 [`setupinterlinespace`]: https://wiki.contextgarden.net/Command/setupinterlinespace
 [`setuppagenumbering`]: https://wiki.contextgarden.net/Command/setuppagenumbering
@@ -3402,19 +3402,6 @@ The `--css` option also affects the output.
 
 `columns`
 :    Number of columns for body text.
-
-`thanks`
-:   contents of acknowledgments footnote after document title
-
-`mathfont`, `codefont`
-:    Name of system font to use for math and code, respectively.
-
-`linestretch`
-:   adjusts line spacing, e.g. `1.25`, `1.5`
-
-`linkcolor`, `filecolor`, `citecolor`
-:   color for external links, internal links, and citation links,
-    respectively: expects a hexadecimal color code
 
 ### Variables for ms
 
@@ -7625,7 +7612,7 @@ assumed.
 
 ## Prince XML
 
-The non-free HTML-to-PDf converter `prince` has extensive support
+The non-free HTML-to-PDF converter `prince` has extensive support
 for various PDF standards as well as tagging. E.g.:
 
     pandoc --pdf-engine=prince \

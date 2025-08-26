@@ -2227,7 +2227,7 @@ bareloc c = try $ do
   rest <- option (return []) $ try $ char ';' >> spnl >> citeList
   spnl
   char ']'
-  notFollowedBy $ oneOf "[("
+  notFollowedBy $ oneOf "[({"
   return $ do
     suff' <- suff
     rest' <- rest

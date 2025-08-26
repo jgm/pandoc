@@ -115,7 +115,7 @@ attrFromBlockAttributes BlockAttributes{..} =
 
 stringyMetaAttribute :: Monad m => OrgParser m (Text, Text)
 stringyMetaAttribute = try $ do
-  metaLineStart
+  metaLineStart *> notFollowedBy (stringAnyCase "begin_")
   attrName <- T.toLower <$> many1TillChar nonspaceChar (char ':')
   skipSpaces
   attrValue <- anyLine <|> ("" <$ newline)
@@ -184,9 +184,9 @@ orgBlock = try $ do
     case T.toLower blkType of
       "export"    -> exportBlock
       "comment"   -> rawBlockLines (const mempty)
-      "html"      -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "latex"     -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "ascii"     -> rawBlockLines (return . B.rawBlock (lowercase blkType))
+      "html"      -> rawBlockLines (return . B.rawBlock (T.toLower blkType))
+      "latex"     -> rawBlockLines (return . B.rawBlock (T.toLower blkType))
+      "ascii"     -> rawBlockLines (return . B.rawBlock (T.toLower blkType))
       "example"   -> exampleBlock blockAttrs
       "quote"     -> parseBlockLines (fmap B.blockQuote)
       "verse"     -> verseBlock
@@ -205,10 +205,11 @@ orgBlock = try $ do
                    in fmap $ B.divWith (ident, classes ++ [blkType], kv)
  where
    blockHeaderStart :: Monad m => OrgParser m Text
-   blockHeaderStart = try $ skipSpaces *> stringAnyCase "#+begin_" *> orgArgWord
-
-   lowercase :: Text -> Text
-   lowercase = T.toLower
+   blockHeaderStart = try $ do
+     skipSpaces
+     metaLineStart
+     stringAnyCase "begin_"
+     many1Char (satisfy (not . isSpace))
 
 admonitionBlock :: PandocMonad m
                 => Text -> BlockAttributes -> Text -> OrgParser m (F Blocks)
@@ -427,10 +428,11 @@ blockOption = try $ do
   return (argKey, paramValue)
 
 orgParamValue :: Monad m => OrgParser m Text
-orgParamValue = try $ fmap T.pack $
+orgParamValue = try $
   skipSpaces
     *> notFollowedBy orgArgKey
-    *> noneOf "\n\r" `many1Till` endOfValue
+    *> ((char '"' *> manyChar (noneOf "\n\r\"") <* char '"') <|>
+        noneOf "\n\r" `many1TillChar` endOfValue)
     <* skipSpaces
  where
   endOfValue = lookAhead $  try (skipSpaces <* oneOf "\n\r")

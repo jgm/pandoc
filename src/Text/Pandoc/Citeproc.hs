@@ -410,14 +410,14 @@ mvPunct moveNotes locale (x : xs)
 mvPunct moveNotes locale (q : s : x@(Cite _ [il]) : ys)
   | isSpacy s
   , isNote il
-  = let spunct = T.takeWhile isPunctuation $ stringify ys
+  = let spunct = T.takeWhile isPunct $ stringify ys
     in  if moveNotes
            then if T.null spunct
                    then q : x : mvPunct moveNotes locale ys
                    else movePunctInsideQuotes locale
                         [q , Str spunct , x] ++ mvPunct moveNotes locale
                         (B.toList
-                          (dropTextWhile isPunctuation (B.fromList ys)))
+                          (dropTextWhile isPunct (B.fromList ys)))
            else q : x : mvPunct moveNotes locale ys
 -- 'x[^1],' -> 'x,[^1]'
 mvPunct moveNotes locale (Cite cs ils@(_:_) : ys)
@@ -425,13 +425,13 @@ mvPunct moveNotes locale (Cite cs ils@(_:_) : ys)
    , startWithPunct ys
    , moveNotes
    = let s = stringify ys
-         spunct = T.takeWhile isPunctuation s
+         spunct = T.takeWhile isPunct s
      in  Cite cs (movePunctInsideQuotes locale $
                     init ils
                     ++ [Str spunct | not (endWithPunct False (init ils))]
                     ++ [last ils]) :
          mvPunct moveNotes locale
-           (B.toList (dropTextWhile isPunctuation (B.fromList ys)))
+           (B.toList (dropTextWhile isPunct (B.fromList ys)))
 mvPunct moveNotes locale (s : x@(Cite _ [il]) : ys)
   | isSpacy s
   , isNote il
@@ -444,13 +444,18 @@ mvPunct moveNotes locale (Cite cs ils : Str "." : ys)
 mvPunct moveNotes locale (x:xs) = x : mvPunct moveNotes locale xs
 mvPunct _ _ [] = []
 
+-- We don't treat an em-dash or en-dash as punctuation here, because we don't
+-- want notes and quotes to move around them.
+isPunct :: Char -> Bool
+isPunct c = isPunctuation c && c /= '\x2014' && c /= '\x2013'
+
 endWithPunct :: Bool -> [Inline] -> Bool
 endWithPunct _ [] = False
 endWithPunct onlyFinal xs@(_:_) =
   case reverse (T.unpack $ stringify xs) of
        []                       -> True
        -- covers .), .", etc.:
-       (d:c:_) | isPunctuation d
+       (d:c:_) | isPunct d
                  && not onlyFinal
                  && isEndPunct c -> True
        (c:_) | isEndPunct c      -> True

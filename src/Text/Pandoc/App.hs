@@ -123,7 +123,8 @@ convertWithOpts scriptingEngine opts = do
         TextOutput t    -> writerFn eol outputFile t
         BinaryOutput bs -> writeFnBinary outputFile bs
         ZipOutput bs
-          | null (takeExtension outputFile) -> do
+          | null (takeExtension outputFile)
+          , outputFile /= "-" -> do
              -- create directory and unzip
              createDirectory outputFile -- will fail if directory exists
              let zipopts = [OptRecursive, OptDestination outputFile] ++
