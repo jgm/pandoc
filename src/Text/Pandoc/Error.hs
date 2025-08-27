@@ -65,6 +65,7 @@ data PandocError = PandocIOError Text IOError
                  | PandocUnsupportedExtensionError Text Text
                  | PandocCiteprocError CiteprocError
                  | PandocBibliographyError Text Text
+                 | PandocInputNotTextError Text
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
@@ -143,6 +144,13 @@ renderError e =
       prettyCiteprocError e'
     PandocBibliographyError fp msg ->
       "Error reading bibliography file " <> fp <> ":\n" <> msg
+    PandocInputNotTextError fp ->
+      "Expected text as an input, but received binary data from " <>
+      (if T.null fp
+        then "stdin"
+        else "file " <> fp) <>
+      ".\nIf you intended to convert from binary format, verify that it's " <>
+      "supported and use\nexplicit -f FORMAT."
 
 
 -- | Handle PandocError by exiting with an error message.
@@ -184,6 +192,7 @@ handleError (Left e) =
       PandocUTF8DecodingError{} -> 92
       PandocIpynbDecodingError{} -> 93
       PandocUnsupportedCharsetError{} -> 94
+      PandocInputNotTextError{} -> 95
       PandocCouldNotFindDataFileError{} -> 97
       PandocCouldNotFindMetadataFileError{} -> 98
       PandocResourceNotFound{} -> 99

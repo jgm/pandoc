@@ -181,6 +181,7 @@ formatFromFilePath x =
     ".ctx"      -> defFlavor "context"
     ".db"       -> defFlavor "docbook"
     ".dj"       -> defFlavor "djot"
+    ".djvu"     -> defFlavor "djvu" -- so we get an "unknown reader" error
     ".doc"      -> defFlavor "doc"  -- so we get an "unknown reader" error
     ".docx"     -> defFlavor "docx"
     ".dokuwiki" -> defFlavor "dokuwiki"
