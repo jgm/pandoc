@@ -54,6 +54,7 @@ module Text.Pandoc.Readers.Org.Parsing
   , guardEnabled
   , updateLastStrPos
   , notAfterString
+  , getLastStrPos
   , ParserState (..)
   , registerHeader
   , QuoteContext (..)

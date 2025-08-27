@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Inlines
-   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
-   License     : GNU GPL, version 2 or above
+   Copyright   : Copyright (C) 2014-2025 Albert Krewinkel
+   License     : GPL-2.0-or-later
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
@@ -88,13 +88,13 @@ inline =
          , inlineCodeBlock
          , str
          , endline
+         , subscript   -- takes precedence over underlined text
+         , superscript
          , emphasizedText
          , code
          , math
          , displayMath
          , verbatim
-         , subscript
-         , superscript
          , inlineLaTeX
          , exportSnippet
          , macro
@@ -594,11 +594,25 @@ verbatim  = return . B.codeWith ("", ["verbatim"], []) <$> verbatimBetween '='
 code      :: PandocMonad m => OrgParser m (F Inlines)
 code      = return . B.code     <$> verbatimBetween '~'
 
-subscript   :: PandocMonad m => OrgParser m (F Inlines)
-subscript   = fmap B.subscript   <$> try (char '_' *> subOrSuperExpr)
+-- | Returns 'True' if the parser position right after a string, and 'False'
+-- otherwise.
+isAfterString :: PandocMonad m => OrgParser m Bool
+isAfterString = do
+  pos <- getPosition
+  st  <- getState
+  pure $ getLastStrPos st == Just pos
 
+-- | Parses subscript markup. Subscripts must be preceded by a string.
+subscript   :: PandocMonad m => OrgParser m (F Inlines)
+subscript   = do
+  guard =<< isAfterString
+  fmap B.subscript   <$> try (char '_' *> subOrSuperExpr)
+
+-- | Parses superscript markup. Superscript must be preceded by a string.
 superscript :: PandocMonad m => OrgParser m (F Inlines)
-superscript = fmap B.superscript <$> try (char '^' *> subOrSuperExpr)
+superscript = do
+  guard =<< isAfterString
+  fmap B.superscript <$> try (char '^' *> subOrSuperExpr)
 
 math      :: PandocMonad m => OrgParser m (F Inlines)
 math      = return . B.math      <$> choice [ math1CharBetween '$'
