@@ -24,7 +24,7 @@ extra-deps:
 - git: https://github.com/jgm/citeproc.git
   commit: 31f1b8b972bd01f6e29c1cf9c50bf0ffd9fab9a2
 - git: https://github.com/jgm/texmath.git
-  commit: 2a40f5d26d9b888559fd573ea8e7cb9c0114f9ee
+  commit: 76c6d8356aa971b075cb887487e2157260edafc0
 - git: https://github.com/jgm/doclayout.git
   commit: eeb53975379e40166e36aec0315cd933607f2aff
 ghc-options:
