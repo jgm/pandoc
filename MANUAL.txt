@@ -1705,6 +1705,7 @@ Nonzero exit codes have the following meanings:
    92 PandocUTF8DecodingError
    93 PandocIpynbDecodingError
    94 PandocUnsupportedCharsetError
+   95 PandocInputNotTextError
    97 PandocCouldNotFindDataFileError
    98 PandocCouldNotFindMetadataFileError
    99 PandocResourceNotFound
