@@ -109,6 +109,9 @@ inputToText convTabs (fp, (bs,mt)) =
                            (toTextM fp bs)
                            (\case
                               PandocUTF8DecodingError{} -> do
+                                -- TODO check for binary file signatures
+                                -- here and exit with an error instead
+                                -- of treating as latin1e..
                                 report $ NotUTF8Encoded
                                   (if null fp
                                       then "input"
