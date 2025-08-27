@@ -156,7 +156,9 @@ packages are used if available, and [`csquotes`] will be used
 for [typography] if the `csquotes` variable or metadata field is
 set to a true value.  The [`natbib`], [`biblatex`], [`bibtex`],
 and [`biber`] packages can optionally be used for [citation
-rendering].  The following packages will be used to improve
+rendering].  If math with `\cancel`, `\bcancel`, or `\xcancel`
+is used, the [`cancel`] package is needed.
+The following packages will be used to improve
 output quality if present, but pandoc does not require them to
 be present: [`upquote`] (for straight quotes in verbatim
 environments), [`microtype`] (for better spacing adjustments),
@@ -182,6 +184,7 @@ better line breaks in URLs), and [`footnotehyper`] or
 [`framed`]: https://ctan.org/pkg/framed
 [`geometry`]: https://ctan.org/pkg/geometry
 [`graphicx`]: https://ctan.org/pkg/graphicx
+[`cancel`]: https://ctan.org/pkg/cancel
 [`hyperref`]: https://ctan.org/pkg/hyperref
 [`iftex`]: https://ctan.org/pkg/iftex
 [`listings`]: https://ctan.org/pkg/listings

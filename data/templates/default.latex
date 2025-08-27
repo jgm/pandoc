@@ -24,6 +24,9 @@ $if(geometry)$
 \usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 \usepackage{amsmath,amssymb}
+$if(cancel)$
+\usepackage{cancel}
+$endif$
 $--
 $-- section numbering
 $--

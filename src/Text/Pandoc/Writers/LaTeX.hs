@@ -65,8 +65,11 @@ import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        wrapDiv, hypertarget, labelFor,
                                        getListingsLanguage, mbBraced)
 import Text.Pandoc.Writers.Shared
+import qualified Data.Attoparsec.Text as A
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+import Data.Char (isLetter)
+import Control.Applicative ((<|>))
 
 -- Work around problems with notes inside emphasis (see #8982)
 isolateBigNotes :: ([Inline] -> Inline) -> [Inline] -> [Inline]
@@ -229,6 +232,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
                   defField "multirow" (stMultiRow st) $
+                  defField "cancel" (stCancel st) $
                   defField "strikeout" (stStrikeout st) $
                   defField "url" (stUrl st) $
                   defField "numbersections" (writerNumberSections options) $
@@ -1029,11 +1033,13 @@ inlineToLaTeX (Str str) = do
 inlineToLaTeX (Math _ str)
   | isMathEnv str -- see #9711
   = do setEmptyLine False
+       when (needsCancel str) $ modify $ \st -> st{ stCancel = True }
        pure $ literal str
 inlineToLaTeX (Math InlineMath str) = do
   setEmptyLine False
   inSoul <- gets stInSoulCommand
   let contents = literal (handleMathComment str)
+  when (needsCancel str) $ modify $ \st -> st{ stCancel = True }
   return $
     if inSoul -- #9597
        then "$" <> contents <> "$"
@@ -1042,6 +1048,7 @@ inlineToLaTeX (Math DisplayMath str) = do
   setEmptyLine False
   inSoul <- gets stInSoulCommand
   let contents = literal (handleMathComment str)
+  when (needsCancel str) $ modify $ \st -> st{ stCancel = True }
   return $
     if inSoul -- # 9597
        then "$$" <> contents <> "$$"
@@ -1339,3 +1346,21 @@ isMathEnv t =
       , "eqnarray"
       , "displaymath"
       ]
+
+-- True if the math needs the cancel package
+needsCancel :: Text -> Bool
+needsCancel t =
+  case A.parseOnly pCancel t of
+    Right True -> True
+    _ -> False
+ where
+  pCancel = (False <$ A.endOfInput) <|> do
+    c <- A.anyChar
+    case c of
+      '\\' -> do
+        x <- A.takeWhile isLetter
+        if x == "cancel" || x == "xcancel" || x == "bcancel"
+           then return True
+           else pCancel
+      _ -> pCancel
+

@@ -53,6 +53,7 @@ data WriterState =
   , stIsFirstInDefinition :: Bool    -- ^ first block in a defn list
   , stLang          :: Maybe Lang    -- ^ lang specified in metadata
   , stInSoulCommand :: Bool          -- ^ in a soul command like ul
+  , stCancel        :: Bool          -- ^ true if document uses \cancel
   }
 
 startingState :: WriterOptions -> WriterState
@@ -93,4 +94,5 @@ startingState options =
   , stIsFirstInDefinition = False
   , stLang = Nothing
   , stInSoulCommand = False
+  , stCancel = False
   }
