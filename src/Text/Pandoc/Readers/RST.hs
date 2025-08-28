@@ -1395,7 +1395,7 @@ simpleTableRawLineWithInitialEmptyCell indices = try $ do
 -- Parse a table row and return a list of blocks (columns).
 simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [Blocks]
 simpleTableRow indices = do
-  notFollowedBy' simpleTableFooter
+  notFollowedBy' (blanklines <|> simpleTableFooter)
   firstLine <- simpleTableRawLine indices
   conLines  <- many $ simpleTableRawLineWithInitialEmptyCell indices
   let cols = map T.unlines . transpose $ firstLine : conLines ++
@@ -1409,12 +1409,12 @@ simpleTableSplitLine indices line =
 
 simpleTableHeader :: PandocMonad m
                   => Bool  -- ^ Headerless table
-                  -> RSTParser m ([Blocks], [Alignment], [Int])
+                  -> RSTParser m ([[Blocks]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
   rawContent  <- if headless
-                    then return ""
-                    else simpleTableSep '=' >> anyLine
+                    then return [""]
+                    else simpleTableSep '=' >> many1 (notFollowedBy (simpleDashedLines '=') >> anyLine)
   dashes      <- if headless
                     then simpleDashedLines '='
                     else simpleDashedLines '=' <|> simpleDashedLines '-'
@@ -1424,8 +1424,8 @@ simpleTableHeader headless = try $ do
   let aligns   = replicate (length lines') AlignDefault
   let rawHeads = if headless
                     then []
-                    else simpleTableSplitLine indices rawContent
-  heads <- mapM ( parseFromString' (mconcat <$> many plain) . trim) rawHeads
+                    else map (simpleTableSplitLine indices) rawContent
+  heads <- mapM ( mapM $ parseFromString' (mconcat <$> many plain) . trim) rawHeads
   return (heads, aligns, indices)
 
 -- Parse a simple table.
@@ -1495,7 +1495,7 @@ hyphens = do
 
 escapedChar :: Monad m => RSTParser m Inlines
 escapedChar = do c <- escaped anyChar
-                 unless (canPrecedeOpener c) $ updateLastStrPos
+                 unless (canPrecedeOpener c) updateLastStrPos
                  return $ if c == ' ' || c == '\n' || c == '\r'
                              -- '\ ' is null in RST
                              then mempty
@@ -1509,7 +1509,7 @@ canPrecedeOpener c =
 symbol :: Monad m => RSTParser m Inlines
 symbol = do
   c <- oneOf specialChars
-  unless (canPrecedeOpener c) $ updateLastStrPos
+  unless (canPrecedeOpener c) updateLastStrPos
   return $ B.str $ T.singleton c
 
 -- parses inline code, between codeStart and codeEnd
