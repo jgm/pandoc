@@ -362,7 +362,10 @@ formatSourceLine wopts fopts ts@((_,firstTxt):_) =
 formatTok :: WriterOptions -> FormatOptions -> (TokenType, Text) -> Doc Text
 formatTok wopts _fopts (toktype, t) =
   let txt = literal (escString wopts t)
-      styleMap = tokenStyles <$> writerHighlightStyle wopts
+      styleMap = case writerHighlightMethod wopts of
+        Skylighting style   -> Just $ tokenStyles style
+        DefaultHighlighting -> Just $ tokenStyles defaultStyle
+        _ -> Nothing
       tokStyle = fromMaybe defStyle $ styleMap >>= M.lookup toktype
   in  if toktype == NormalTok
          then txt
