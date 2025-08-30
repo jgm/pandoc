@@ -1057,8 +1057,11 @@ implicitFigure (ident, classes, attribs) capt url title =
   let alt = case "alt" `lookup` attribs of
               Just alt'       -> B.text alt'
               _               -> capt
-      attribs' = filter ((/= "alt") . fst) attribs
-      figattr = (ident, mempty, mempty)
+      attribs' = filter ((/= "latex-pos") . fst) (filter ((/= "alt") . fst) attribs)
+      figattribs = case lookup "latex-pos" attribs of
+        Just p -> [("latex-pos", p)]
+        _      -> mempty
+      figattr = (ident, mempty, figattribs)
       caption = B.simpleCaption $ B.plain capt
       figbody = B.plain $ B.imageWith ("", classes, attribs') url title alt
   in B.figureWith figattr caption figbody

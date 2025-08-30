@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.LaTeX (tests) where
 
-import Data.Text (unpack)
+import Data.Text (pack, unpack)
 import Test.Tasty
 import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers
@@ -241,5 +241,15 @@ tests = [ testGroup "code blocks"
                       , "\\addcontentsline{toc}{paragraph}{header6}"
                       ]
             ]
+          ]
+        , testGroup "figures"
+          [ "placement" =:
+            figureWith ("", [], [("latex-pos", "htbp")])
+            (simpleCaption $ plain "caption")
+            (plain $ image (pack "img.jpg") (pack "") (text "alt text"))
+            =?>
+              "\\begin{figure}[htbp]\n\\centering\n"
+              <> "\\pandocbounded{\\includegraphics[keepaspectratio,alt={alt text}]{img.jpg}}\n"
+              <> "\\caption{caption}\n\\end{figure}"
           ]
         ]

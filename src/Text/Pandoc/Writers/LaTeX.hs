@@ -644,11 +644,14 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
-blockToLaTeX (Figure (ident, _, _) captnode body) = do
+blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
   opts <- gets stOptions
   (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
+      placement = case lookup "latex-pos" kvs of
+        Just p -> brackets (text (T.unpack p))
+        _      -> text ""
 
   isSubfigure <- gets stInFigure
   modify $ \st -> st{ stInFigure = True }
@@ -680,7 +683,7 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
           cr <> "\\begin{center}" $$ contents $+$ capt $$ "\\end{center}"
     _ | isSubfigure ->
           innards
-    _ ->  cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}")
+    _ ->  cr <> "\\begin{figure}" <> placement $$ innards $$ "\\end{figure}")
     $$ footnotes
 
 toSubfigure :: PandocMonad m => Int -> Block -> LW m (Doc Text)
