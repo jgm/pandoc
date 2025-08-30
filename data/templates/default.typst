@@ -71,8 +71,14 @@ $endif$
 $if(region)$
   region: "$region$",
 $endif$
+$if(abstract-title)$
+  abstract-title: [$abstract-title$],
+$endif$
 $if(abstract)$
   abstract: [$abstract$],
+$endif$
+$if(thanks)$
+  thanks: [$thanks$],
 $endif$
 $if(margin)$
   margin: ($for(margin/pairs)$$margin.key$: $margin.value$,$endfor$),
@@ -86,10 +92,28 @@ $endif$
 $if(fontsize)$
   fontsize: $fontsize$,
 $endif$
+$if(mathfont)$
+  mathfont: ($for(mathfont)$"$mathfont$",$endfor$),
+$endif$
+$if(codefont)$
+  codefont: ($for(codefont)$"$codefont$",$endfor$),
+$endif$
+$if(linestretch)$
+  linestretch: $linestretch$,
+$endif$
 $if(section-numbering)$
   sectionnumbering: "$section-numbering$",
 $endif$
   pagenumbering: $if(page-numbering)$"$page-numbering$"$else$none$endif$,
+$if(linkcolor)$
+  linkcolor: [$linkcolor$],
+$endif$
+$if(citecolor)$
+  citecolor: [$citecolor$],
+$endif$
+$if(filecolor)$
+  filecolor: [$filecolor$],
+$endif$
   cols: $if(columns)$$columns$$else$1$endif$,
   doc,
 )
