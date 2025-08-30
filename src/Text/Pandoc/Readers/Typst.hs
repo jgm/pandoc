@@ -50,7 +50,7 @@ import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, getField, P,
 import Typst.Methods (formatNumber, applyPureFunction)
 import Typst.Types
 import qualified Data.Vector as V
-import System.FilePath (takeDirectory, (</>))
+import System.FilePath (takeDirectory)
 import qualified System.FilePath.Windows as Windows
 import qualified System.FilePath.Posix as Posix
 
@@ -502,7 +502,7 @@ inlineHandlers = M.fromList
       let path' = T.pack $
                   if isAbsolutePath path || basedir == "."
                      then path
-                     else basedir </> path
+                     else basedir Posix.</> path
       (mbwidth :: Maybe Text) <-
         fmap (renderLength False) <$> getField "width" fields
       (mbheight :: Maybe Text) <-
