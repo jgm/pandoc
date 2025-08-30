@@ -20,13 +20,14 @@ extra-deps:
 - skylighting-0.14.6
 - skylighting-format-typst-0.1
 - typst-symbols-0.1.8.1
-- typst-0.8.0.1
 - git: https://github.com/jgm/citeproc.git
   commit: 31f1b8b972bd01f6e29c1cf9c50bf0ffd9fab9a2
 - git: https://github.com/jgm/texmath.git
   commit: 76c6d8356aa971b075cb887487e2157260edafc0
 - git: https://github.com/jgm/doclayout.git
   commit: eeb53975379e40166e36aec0315cd933607f2aff
+- git: https://github.com/jgm/typst-hs.git
+  commit: aaeb1ef60ade0efa28e77c74f0dd216e3d434480
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-23.22
