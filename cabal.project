@@ -21,4 +21,9 @@ source-repository-package
   location: https://github.com/jgm/texmath.git
   tag: 76c6d8356aa971b075cb887487e2157260edafc0
 
+source-repository-package
+  type: git
+  location: https://github.com/jgm/typst-hs.git
+  tag: aaeb1ef60ade0efa28e77c74f0dd216e3d434480
+
 -- TODO: release new skylighting-core, skylighting
