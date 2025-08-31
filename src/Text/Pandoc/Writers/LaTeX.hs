@@ -402,42 +402,46 @@ blockToLaTeX (Div (identifier@(T.uncons -> Just (_,_)),dclasses,dkvs)
   -- move identifier from div to header
   blockToLaTeX (Div ("",dclasses,dkvs)
                (Header lvl (identifier,hclasses,hkvs) ils : bs))
-blockToLaTeX (Div (identifier,classes,kvs) bs) = do
-  beamer <- gets stBeamer
-  oldIncremental <- gets stIncremental
-  if beamer && "incremental" `elem` classes
-     then modify $ \st -> st{ stIncremental = True }
-     else when (beamer && "nonincremental" `elem` classes) $
-             modify $ \st -> st { stIncremental = False }
-  result <- if (identifier == "refs" || -- <- for backwards compatibility
-                "csl-bib-body" `elem` classes) &&
-               (not (null bs))
-               then do
-                 modify $ \st -> st{ stHasCslRefs = True }
-                 inner <- blockListToLaTeX bs
-                 return $ ("\\begin{CSLReferences}"
-                            <> braces
-                                (if "hanging-indent" `elem` classes
-                                    then "1"
-                                    else "0")
-                            <> braces
-                               (maybe "1" literal (lookup "entry-spacing" kvs)))
-                          $$ inner
-                          $+$ "\\end{CSLReferences}"
-               else blockListToLaTeX bs
-  modify $ \st -> st{ stIncremental = oldIncremental }
-  let wrap txt
-       | beamer && "notes" `elem` classes
-         = pure ("\\note" <> braces txt) -- speaker notes
-       | "ref-" `T.isPrefixOf` identifier
-         = do
-             lab <- toLabel identifier
-             pure $ ("\\bibitem" <> brackets "\\citeproctext"
-                      <> braces (literal lab)) $$ txt
-         | otherwise = do
-             linkAnchor <- hypertarget identifier
-             pure $ linkAnchor $$ txt
-  wrapDiv (identifier,classes,kvs) result >>= wrap
+blockToLaTeX divBlock@(Div (identifier,classes,kvs) bs) = do
+  -- First try to unwrap wrapper divs
+  case unwrapWrapperDiv divBlock of
+    Para inlines -> blockToLaTeX (Para inlines)
+    _ -> do
+      beamer <- gets stBeamer
+      oldIncremental <- gets stIncremental
+      if beamer && "incremental" `elem` classes
+         then modify $ \st -> st{ stIncremental = True }
+         else when (beamer && "nonincremental" `elem` classes) $
+                 modify $ \st -> st { stIncremental = False }
+      result <- if (identifier == "refs" || -- <- for backwards compatibility
+                    "csl-bib-body" `elem` classes) &&
+                   (not (null bs))
+                   then do
+                     modify $ \st -> st{ stHasCslRefs = True }
+                     inner <- blockListToLaTeX bs
+                     return $ ("\\begin{CSLReferences}"
+                                <> braces
+                                    (if "hanging-indent" `elem` classes
+                                        then "1"
+                                        else "0")
+                                <> braces
+                                   (maybe "1" literal (lookup "entry-spacing" kvs)))
+                              $$ inner
+                              $+$ "\\end{CSLReferences}"
+                   else blockListToLaTeX bs
+      modify $ \st -> st{ stIncremental = oldIncremental }
+      let wrap txt
+           | beamer && "notes" `elem` classes
+             = pure ("\\note" <> braces txt) -- speaker notes
+           | "ref-" `T.isPrefixOf` identifier
+             = do
+                 lab <- toLabel identifier
+                 pure $ ("\\bibitem" <> brackets "\\citeproctext"
+                          <> braces (literal lab)) $$ txt
+             | otherwise = do
+                 linkAnchor <- hypertarget identifier
+                 pure $ linkAnchor $$ txt
+      wrapDiv (identifier,classes,kvs) result >>= wrap
 blockToLaTeX (Plain lst) =
   inlineListToLaTeX lst
 -- . . . indicates pause in beamer slides

@@ -31,7 +31,7 @@ import qualified Data.Text as T
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
-                                    setupTranslations )
+                                    setupTranslations, unwrapWrapperDiv )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.Walk (query)
@@ -351,21 +351,25 @@ blockToTypst block =
                           $$ ")" $$ lab $$ blankline
     Div (ident,_,_) (Header lev ("",cls,kvs) ils:rest) ->
       blocksToTypst (Header lev (ident,cls,kvs) ils:rest)
-    Div (ident,_,kvs) blocks -> do
-      let lab = toLabel FreestandingLabel ident
-      let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
-      -- Handle lang attribute for Div elements
-      let langAttrs = case lookup "lang" kvs of
-                        Nothing -> []
-                        Just lang -> case parseLang lang of
-                                       Left _ -> []
-                                       Right l -> [("lang",
-                                                    tshow (langLanguage l))]
-      let allTypstTextAttrs = typstTextAttrs ++ langAttrs
-      contents <- blocksToTypst blocks
-      return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
-        $$ toTypstPoundSetText allTypstTextAttrs <> contents
-        $$ ("]" <+> lab)
+    Div (ident,cls,kvs) blocks -> do
+      -- First try to unwrap wrapper divs
+      case unwrapWrapperDiv (Div (ident,cls,kvs) blocks) of
+        Para inlines -> blockToTypst (Para inlines)
+        _ -> do
+          let lab = toLabel FreestandingLabel ident
+          let (typstAttrs,typstTextAttrs) = pickTypstAttrs kvs
+          -- Handle lang attribute for Div elements
+          let langAttrs = case lookup "lang" kvs of
+                            Nothing -> []
+                            Just lang -> case parseLang lang of
+                                           Left _ -> []
+                                           Right l -> [("lang",
+                                                        tshow (langLanguage l))]
+          let allTypstTextAttrs = typstTextAttrs ++ langAttrs
+          contents <- blocksToTypst blocks
+          return $ "#block" <> toTypstPropsListParens typstAttrs <> "["
+            $$ toTypstPoundSetText allTypstTextAttrs <> contents
+            $$ ("]" <+> lab)
 
 defListItemToTypst :: PandocMonad m => ([Inline], [[Block]]) -> TW m (Doc Text)
 defListItemToTypst (term, defns) = do

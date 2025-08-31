@@ -231,7 +231,7 @@ blockToRTF :: PandocMonad m
            -> Block     -- ^ block to convert
            -> m Text
 blockToRTF indent alignment (Div _ bs) =
-  blocksToRTF indent alignment bs
+  blocksToRTF indent alignment (map unwrapWrapperDiv bs)
 blockToRTF indent alignment (Plain lst) =
   rtfCompact indent 0 alignment <$> inlinesToRTF lst
 blockToRTF indent alignment (Para lst) =

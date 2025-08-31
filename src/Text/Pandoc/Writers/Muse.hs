@@ -281,7 +281,12 @@ blockToMuse (Table _ blkCapt specs thead@(TableHead hattr hrows) tbody tfoot) =
     numcols = maximum
               (length aligns :| length widths : map length (headers:rows))
     isSimple = onlySimpleTableCells (headers : rows) && all (== 0) widths
-blockToMuse (Div _ bs) = flatBlockListToMuse bs
+blockToMuse (Div attr bs) =
+  case unwrapWrapperDiv (Div attr bs) of
+    Para inlines -> do
+      contents <- inlineListToMuse' inlines
+      return $ contents <> blankline
+    _ -> flatBlockListToMuse bs
 blockToMuse (Figure attr capt body) = do
   blockToMuse (figureDiv attr capt body)
 

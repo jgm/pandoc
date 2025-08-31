@@ -113,7 +113,7 @@ blockToMan :: PandocMonad m
            => WriterOptions -- ^ Options
            -> Block         -- ^ Block element
            -> StateT WriterState m (Doc Text)
-blockToMan opts (Div _ bs) = blockListToMan opts bs
+blockToMan opts (Div _ bs) = blockListToMan opts (map unwrapWrapperDiv bs)
 blockToMan opts (Plain inlines) =
   splitSentences <$> inlineListToMan opts inlines
 blockToMan opts (Para inlines) = do

@@ -109,6 +109,7 @@ data Extension =
     | Ext_ntb                 -- ^ ConTeXt Natural Tables
     | Ext_old_dashes          -- ^ -- = em, - before number = en
     | Ext_pandoc_title_block  -- ^ Pandoc title block
+    | Ext_paragraph_attributes -- ^ Allow paragraph attributes in HTML
     | Ext_pipe_tables         -- ^ Pipe tables (as in PHP markdown extra)
     | Ext_raw_attribute           -- ^ Allow explicit raw blocks/inlines
     | Ext_raw_html            -- ^ Allow raw HTML
@@ -603,6 +604,7 @@ getAllExtensions f = universalExtensions <> getAll f
     , Ext_literate_haskell
     , Ext_epub_html_exts
     , Ext_smart
+    , Ext_paragraph_attributes
     ]
   getAll "html4"           = getAll "html"
   getAll "html5"           = getAll "html"

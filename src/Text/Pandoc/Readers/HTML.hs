@@ -623,13 +623,38 @@ pPlain = do
      then return mempty
      else return $ B.plain contents
 
-pPara :: PandocMonad m => TagParser m Blocks
-pPara = do
+-- Helper function for pPara when significant attributes are present
+pParaWithWrapper :: PandocMonad m => Attr -> TagParser m Blocks
+pParaWithWrapper (ident, classes, kvs) = do
+  guardEnabled Ext_native_divs -- Ensure native_divs is enabled for this behavior
   contents <- trimInlines <$> pInTags "p" inline
   (do guardDisabled Ext_empty_paragraphs
       guard (null contents)
-      return mempty)
-    <|> return (B.para contents)
+      return mempty) <|> do
+    let wrapperAttr = ("wrapper", "1")
+    let finalKVs = wrapperAttr : kvs
+    let finalAttrs = (ident, classes, finalKVs)
+    return $ B.divWith finalAttrs (B.para contents)
+
+-- Helper function for pPara when no significant attributes are present
+pParaSimple :: PandocMonad m => TagParser m Blocks
+pParaSimple = do
+  contents <- trimInlines <$> pInTags "p" inline
+  (do guardDisabled Ext_empty_paragraphs
+      guard (null contents)
+      return mempty) <|>
+    return (B.para contents)
+
+pPara :: PandocMonad m => TagParser m Blocks
+pPara = do
+  TagOpen _ attr' <- lookAhead $ pSatisfy (matchTagOpen "p" [])
+  let attr@(ident, classes, kvs) = toAttr attr'
+  -- "Significant" attributes are any id, class, or key-value pair.
+  let hasSignificantAttributes = not (T.null ident) || not (null classes) || not (null kvs)
+
+  if hasSignificantAttributes
+    then pParaWithWrapper attr
+    else pParaSimple
 
 pFigure :: PandocMonad m => TagParser m Blocks
 pFigure = do

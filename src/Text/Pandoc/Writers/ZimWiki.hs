@@ -35,7 +35,7 @@ import Text.Pandoc.Options (WrapOption (..),
 import Text.Pandoc.Shared (figureDiv, linesToPara, removeFormatting, trimr)
 import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable)
+import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unwrapWrapperDiv)
 
 data WriterState = WriterState {
     stIndent  :: Text,           -- Indent after the marker at the beginning of list items
@@ -78,9 +78,12 @@ escapeText = T.replace "__" "''__''" .
 -- | Convert Pandoc block element to ZimWiki.
 blockToZimWiki :: PandocMonad m => WriterOptions -> Block -> ZW m Text
 
-blockToZimWiki opts (Div _attrs bs) = do
-  contents <- blockListToZimWiki opts bs
-  return $ contents <> "\n"
+blockToZimWiki opts divBlock@(Div _attrs bs) = do
+  case unwrapWrapperDiv divBlock of
+    Para inlines -> blockToZimWiki opts (Para inlines)
+    _ -> do
+      contents <- blockListToZimWiki opts bs
+      return $ contents <> "\n"
 
 blockToZimWiki opts (Plain inlines) = inlineListToZimWiki opts inlines
 
