@@ -578,4 +578,11 @@ tests = [ testGroup "inline code"
                   (str "@cita" <> space <> str "[foo]")
               )
           ]
+      , testGroup "figures"
+        [ "latex placement" =:
+          "![caption](img.jpg){latex-pos=\"htbp\" alt=\"alt text\"}" =?>
+          figureWith ("", [], [("latex-pos", "htbp")])
+            (simpleCaption $ plain "caption")
+            (plain $ image (T.pack "img.jpg") (T.pack "") (text "alt text"))
         ]
+      ]
