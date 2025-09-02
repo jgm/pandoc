@@ -40,6 +40,7 @@ data FieldInfo = HyperlinkField URL
                | CslBibliography
                | EndNoteCite T.Text
                | EndNoteRefList
+               | Eq T.Text
                | UnknownField
                deriving (Show)
 
@@ -59,7 +60,15 @@ fieldInfo = do
     <|>
     addIn
     <|>
+    eq
+    <|>
     return UnknownField
+
+eq :: Parser FieldInfo
+eq = do
+  stringAnyCase "EQ"
+  spaces
+  Eq <$> getInput
 
 addIn :: Parser FieldInfo
 addIn = do

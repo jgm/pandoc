@@ -96,7 +96,7 @@ instance Ord CIString where
   compare = compare `on` T.toCaseFold . coerce
 
 data VertAlign = BaseLn | SupScrpt | SubScrpt
-               deriving Show
+               deriving (Show, Eq)
 
 data CharStyle = CharStyle { cStyleId   :: CharStyleId
                            , cStyleName :: CharStyleName

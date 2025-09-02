@@ -120,6 +120,7 @@ data ReaderState = ReaderState { stateWarnings :: [T.Text]
 
 data FldCharState = FldCharOpen
                   | FldCharFieldInfo T.Text
+                  | FldCharSegment T.Text (Maybe VertAlign)
                   | FldCharContent FieldInfo [ParPart]
                   deriving (Show)
 
@@ -960,6 +961,12 @@ so we can have multiple fldchars open at the same time. When a fldchar is
 closed, we either add the resulting field to its parent or we return it if
 there is no parent.
 -}
+wrapSegment :: (Maybe VertAlign) -> T.Text -> T.Text
+wrapSegment vertAlign txt = case vertAlign of
+    Just SupScrpt -> "\\s\\up6(" <> txt <> ")"
+    Just SubScrpt -> "\\s\\do6(" <> txt <> ")"
+    _        -> txt
+
 elemToParPart ns element
   | isElem ns "w" "r" element
   , Just fldChar <- findChildByName ns "w" "fldChar" element
@@ -973,10 +980,32 @@ elemToParPart ns element
           info <- eitherToD $ parseFieldInfo t
           modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
           return []
+        FldCharSegment segmentText segmentVertAlign : FldCharFieldInfo t : ancestors | fldCharType == "separate" -> do
+          let wrappedSegment = wrapSegment segmentVertAlign segmentText
+          let finalText = t <> wrappedSegment
+          info <- eitherToD $ parseFieldInfo finalText
+          modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
+          return []
+        FldCharSegment segmentText segmentVertAlign : ancestors | fldCharType == "separate" -> do
+            let wrappedSegment = wrapSegment segmentVertAlign segmentText
+            info <- eitherToD $ parseFieldInfo wrappedSegment
+            modify $ \st -> st {stateFldCharState = FldCharContent info [] : ancestors}
+            return []
         -- Some fields have no content, e.g. index XE:
         FldCharFieldInfo t : ancestors | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = ancestors}
           info <- eitherToD $ parseFieldInfo t
+          return [Field info []]
+        FldCharSegment segmentText segmentVertAlign : FldCharFieldInfo t : ancestors | fldCharType == "end" -> do
+          let wrappedSegment = wrapSegment segmentVertAlign segmentText
+          let finalText = t <> wrappedSegment
+          modify $ \st -> st {stateFldCharState = ancestors}
+          info <- eitherToD $ parseFieldInfo finalText
+          return [Field info []]
+        FldCharSegment segmentText segmentVertAlign : ancestors | fldCharType == "end" -> do
+          let wrappedSegment = wrapSegment segmentVertAlign segmentText
+          modify $ \st -> st {stateFldCharState = ancestors}
+          info <- eitherToD $ parseFieldInfo wrappedSegment
           return [Field info []]
         [FldCharContent info children] | fldCharType == "end" -> do
           modify $ \st -> st {stateFldCharState = []}
@@ -987,20 +1016,42 @@ elemToParPart ns element
             return []
         _ -> throwError WrongElem
 elemToParPart ns element
-  | isElem ns "w" "r" element
-  , Just instrText <- findChildByName ns "w" "instrText" element = do
-      fldCharState <- gets stateFldCharState
-      case fldCharState of
-        FldCharOpen : ancestors -> do
-          modify $ \st -> st {stateFldCharState =
-                               FldCharFieldInfo (strContent instrText) : ancestors}
-          return []
-        FldCharFieldInfo t : ancestors -> do
-          modify $ \st -> st {stateFldCharState =
-                               FldCharFieldInfo (t <> strContent instrText) :
-                                ancestors}
-          return []
-        _ -> return []
+    | isElem ns "w" "r" element
+    , Just instrText <- findChildByName ns "w" "instrText" element = do
+        fldCharState <- gets stateFldCharState
+        runStyle <- elemToRunStyleD ns element
+        let ordinary = strContent instrText
+        let currentVertAlign = rVertAlign runStyle
+        
+        case fldCharState of
+            FldCharOpen : ancestors -> do
+                modify $ \st -> st {stateFldCharState =
+                    FldCharSegment ordinary currentVertAlign : ancestors}
+                return []
+            FldCharFieldInfo t : ancestors -> do
+                modify $ \st -> st {stateFldCharState =
+                    FldCharSegment (t <> ordinary) currentVertAlign : ancestors}
+                return []
+            FldCharSegment segmentText segmentVertAlign : ancestors -> do
+                if currentVertAlign == segmentVertAlign
+                    then do
+                        modify $ \st -> st {stateFldCharState =
+                            FldCharSegment (segmentText <> ordinary) currentVertAlign : ancestors}
+                        return []
+                    else do
+                        let wrappedSegment = wrapSegment segmentVertAlign segmentText
+                        case ancestors of
+                            FldCharFieldInfo existingText : restAncestors -> do
+                                modify $ \st -> st {stateFldCharState =
+                                    FldCharSegment ordinary currentVertAlign : 
+                                    FldCharFieldInfo (existingText <> wrappedSegment) : restAncestors}
+                                return []
+                            _ -> do
+                                modify $ \st -> st {stateFldCharState =
+                                    FldCharSegment ordinary currentVertAlign : 
+                                    FldCharFieldInfo wrappedSegment : ancestors}
+                                return []
+            _ -> return []
 {-
 There is an open fldchar, so we calculate the element and add it to the
 children. For this we need to first change the fldchar state to an empty

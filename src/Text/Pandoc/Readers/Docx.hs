@@ -89,6 +89,7 @@ import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.Combine
 import Text.Pandoc.Readers.Docx.Lists
+import Text.Pandoc.Readers.Docx.EqField
 import Text.Pandoc.Readers.Docx.Parse as Docx
 import Text.Pandoc.Shared
 import Text.Pandoc.Walk
@@ -518,6 +519,10 @@ parPartToInlines' (Field info children) =
       if isEnabled Ext_citations opts
          then return mempty -- omit EndNote-generated bibliography
          else smushInlines <$> mapM parPartToInlines' children
+    Eq t -> do
+      either (return . text . ("[EQ ERROR: " <>) . T.pack . show)
+                 (return . math)
+                 (eqToTeX t)
     _ -> smushInlines <$> mapM parPartToInlines' children
 
 -- Helper function to convert CitationItemType to CitationMode

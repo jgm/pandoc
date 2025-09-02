@@ -703,6 +703,7 @@ library
                    Text.Pandoc.Readers.Docx.Util,
                    Text.Pandoc.Readers.Docx.Symbols,
                    Text.Pandoc.Readers.Docx.Fields,
+                   Text.Pandoc.Readers.Docx.EqField,
                    Text.Pandoc.Readers.HTML.Parsing,
                    Text.Pandoc.Readers.HTML.Table,
                    Text.Pandoc.Readers.HTML.TagCategories,
