@@ -21,7 +21,7 @@ extra-deps:
 - skylighting-format-typst-0.1
 - typst-symbols-0.1.8.1
 - git: https://github.com/jgm/citeproc.git
-  commit: 31f1b8b972bd01f6e29c1cf9c50bf0ffd9fab9a2
+  commit: 29566dfad5dea2deadc56c2ec4e6e8901df4a9dd
 - git: https://github.com/jgm/texmath.git
   commit: 76c6d8356aa971b075cb887487e2157260edafc0
 - git: https://github.com/jgm/doclayout.git
