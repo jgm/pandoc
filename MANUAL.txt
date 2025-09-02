@@ -361,6 +361,7 @@ header when requesting a document from a URL:
     - `s5` ([S5] HTML and JavaScript slide show)
     - `tei` ([TEI Simple])
     - `typst` ([typst])
+    - `vimdoc` ([Vimdoc])
     - `xml` (XML version of native AST)
     - `xwiki` ([XWiki markup])
     - `zimwiki` ([ZimWiki markup])
@@ -511,6 +512,7 @@ header when requesting a document from a URL:
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: https://zim-wiki.org/manual/Help/Wiki_Syntax.html
 [XWiki markup]: https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/
+[Vimdoc]: https://vimhelp.org/helphelp.txt.html#help-writing
 [TWiki markup]: https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
 [Haddock markup]: https://www.haskell.org/haddock/doc/html/ch03s08.html
