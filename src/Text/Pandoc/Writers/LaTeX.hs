@@ -649,7 +649,7 @@ blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
   (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
-      placement = case lookup "latex-pos" kvs of
+      placement = case lookup "latex-placement" kvs of
         Just p -> brackets (text (T.unpack p))
         _      -> text ""
 

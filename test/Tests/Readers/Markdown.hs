@@ -580,8 +580,8 @@ tests = [ testGroup "inline code"
           ]
       , testGroup "figures"
         [ "latex placement" =:
-          "![caption](img.jpg){latex-pos=\"htbp\" alt=\"alt text\"}" =?>
-          figureWith ("", [], [("latex-pos", "htbp")])
+          "![caption](img.jpg){latex-placement=\"htbp\" alt=\"alt text\"}" =?>
+          figureWith ("", [], [("latex-placement", "htbp")])
             (simpleCaption $ plain "caption")
             (plain $ image (T.pack "img.jpg") (T.pack "") (text "alt text"))
         ]

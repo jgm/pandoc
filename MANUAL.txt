@@ -5647,9 +5647,9 @@ formats (e.g. RTF) do not yet support figures. In those
 formats, you'll just get an image in a paragraph by itself, with
 no caption. For LaTeX output, you can specify a [figure's
 positioning](https://www.overleaf.com/learn/latex/Positioning_images_and_tables#The_figure_environment)
-by adding the `latex-pos` attribute.
+by adding the `latex-placement` attribute.
 
-    ![This is the caption](/url/of/image.png){latex-pos="ht"}
+    ![This is the caption](/url/of/image.png){latex-placement="ht"}
 
 If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a

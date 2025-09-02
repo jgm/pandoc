@@ -1038,8 +1038,8 @@ environments = M.union (tableEnvironments block inline) $
    , ("letter", env "letter" letterContents)
    , ("minipage", divWith ("",["minipage"],[]) <$>
        env "minipage" (skipopts *> spaces *> optional braced *> spaces *> blocks))
-   , ("figure", env "figure" $ skipopts *> figure')
-   , ("figure*", env "figure*" $ skipopts *> figure')
+   , ("figure", env "figure" figure')
+   , ("figure*", env "figure*" figure')
    , ("subfigure", env "subfigure" $ skipopts *> tok *> figure')
    , ("center", divWith ("", ["center"], []) <$> env "center" blocks)
    , ("quote", blockQuote <$> env "quote" blocks)
@@ -1211,15 +1211,18 @@ letterContents = do
 
 figure' :: PandocMonad m => LP m Blocks
 figure' = try $ do
+  sp
+  poshint <- option "" $ untokenize <$> bracketedToks
+  sp
   resetCaption
   innerContent <- many $ try (Left <$> label) <|> (Right <$> block)
   let content = walk go $ mconcat $ snd $ partitionEithers innerContent
   st <- getState
   let caption' = fromMaybe B.emptyCaption $ sCaption st
   let mblabel  = sLastLabel st
-  let attr     = case mblabel of
-                   Just lab -> (lab, [], [])
-                   Nothing  -> nullAttr
+  let kvs = [("latex-placement", poshint) | not (T.null poshint)]
+  let ident = fromMaybe "" mblabel
+  let attr  = (ident, [], kvs)
   case mblabel of
     Nothing   -> pure ()
     Just lab  -> do

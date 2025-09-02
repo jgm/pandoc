@@ -244,7 +244,7 @@ tests = [ testGroup "code blocks"
           ]
         , testGroup "figures"
           [ "placement" =:
-            figureWith ("", [], [("latex-pos", "htbp")])
+            figureWith ("", [], [("latex-placement", "htbp")])
             (simpleCaption $ plain "caption")
             (plain $ image (pack "img.jpg") (pack "") (text "alt text"))
             =?>
