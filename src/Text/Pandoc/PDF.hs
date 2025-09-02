@@ -43,6 +43,7 @@ import qualified System.IO.Error as IE
 import Text.DocLayout (literal, render, hsep)
 import Text.Pandoc.Definition
 import Text.Pandoc.Error (PandocError (PandocPDFProgramNotFoundError))
+import Text.Pandoc.SelfContained (makeSelfContained)
 import Text.Pandoc.MIME (getMimeType)
 import Text.Pandoc.Options (HTMLMathMethod (..), WriterOptions (..))
 import Text.Pandoc.Extensions (disableExtension, Extension(Ext_smart))
@@ -57,7 +58,8 @@ import Control.Monad.Catch (MonadMask)
 import Data.List (intercalate)
 #endif
 import Data.List (isPrefixOf, find)
-import Text.Pandoc.Class (fillMediaBag, getVerbosity, setVerbosity,
+import Text.Pandoc.MediaBag (mediaItems)
+import Text.Pandoc.Class (fillMediaBag, getMediaBag, getVerbosity, setVerbosity,
                           readFileStrict, fileExists,
                           report, extractMedia, PandocMonad, runIOorExplode)
 import Text.Pandoc.Logging
@@ -94,8 +96,15 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
                             disableExtension Ext_smart
                              (writerExtensions opts) } doc'
   verbosity <- getVerbosity
-  let compileHTML mkOutArgs = liftIO $
-        toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source
+  let compileHTML mkOutArgs = do
+        -- check to see if there is anything in mediabag, and if so,
+        -- make the HTML self contained
+        mediabag <- getMediaBag
+        source' <- case mediaItems mediabag of
+                      [] -> pure source
+                      _ -> makeSelfContained source
+        liftIO $
+          toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source'
   case takeBaseName program of
     "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
     "pagedjs-cli" -> compileHTML (\f -> ["-o", f])
