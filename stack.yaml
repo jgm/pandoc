@@ -22,8 +22,7 @@ extra-deps:
 - typst-symbols-0.1.8.1
 - doclayout-0.5.0.1
 - citeproc-0.10
-- git: https://github.com/jgm/texmath.git
-  commit: 76c6d8356aa971b075cb887487e2157260edafc0
+- texmath-0.13
 - git: https://github.com/jgm/typst-hs.git
   commit: aaeb1ef60ade0efa28e77c74f0dd216e3d434480
 ghc-options:
