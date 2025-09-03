@@ -422,12 +422,19 @@ getData mimetype src
       return $ Fetched (mime, result)
    handler e = case e of
                  PandocResourceNotFound r -> do
-                   report $ CouldNotFetchResource r ""
-                   return $ CouldNotFetch e
+                   -- If fetch failed and we have a fragment and/or query,
+                   -- try the fetch again without these, since the resource
+                   -- may be local (see #1477, #11021)
+                   if T.any (\c -> c == '?' || c == '#') src && not (isURI src)
+                      then getData mimetype (removeQueryAndFragment src)
+                      else do
+                        report $ CouldNotFetchResource r ""
+                        return $ CouldNotFetch e
                  PandocHttpError u er -> do
                    report $ CouldNotFetchResource u (tshow er)
                    return $ CouldNotFetch e
                  _ -> throwError e
+   removeQueryAndFragment = T.takeWhile (\c -> c /= '#' && c /= '?')
 
 
 
