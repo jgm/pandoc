@@ -57,6 +57,7 @@ import           Safe                   (readMay)
 import           Text.Printf            (printf)
 import           Text.DocLayout         (literal, hsep, nest, hang, Doc(..),
                                          braces, ($$), cr)
+
 data Variant = Bibtex | Biblatex
   deriving (Show, Eq, Ord)
 
@@ -967,7 +968,7 @@ getField f = do
 getPeriodicalTitle :: Text -> Bib Inlines
 getPeriodicalTitle f = do
   ils <- getField f
-  return ils
+  return $ protectCase id ils
 
 protectCase :: (Inlines -> Inlines) -> (Inlines -> Inlines)
 protectCase f = Walk.walk unprotect . f . Walk.walk protect
