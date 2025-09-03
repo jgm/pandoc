@@ -50,7 +50,7 @@ references:
   author:
   - family: Angenendt
     given: Arnold
-  container-title: Revue d'Histoire Ecclésiastique
+  container-title: Revue d'Histoire Eccl[é]{.nocase}siastique
   id: angenendt
   issued: 2002
   language: de-DE
