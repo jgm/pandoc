@@ -330,7 +330,7 @@ variables.
     configured by the package maintainer to rely on a system-wide
     installation.
 
-    Note that the result of `require 're` is not necessarily
+    Note that the result of `require 're'` is not necessarily
     equal to this value; the `require` mechanism prefers the
     system's lpeg library over the built-in version.
 
