@@ -223,6 +223,7 @@ extra-source-files:
                  test/command/9358.docx
                  test/command/9002.docx
                  test/command/9603.docx
+                 test/command/11113.docx
                  test/command/biblio.bib
                  test/command/averroes.bib
                  test/command/A.txt

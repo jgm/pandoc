@@ -158,6 +158,19 @@ unwrapElement ns element
   = concatMap (unwrapElement ns) (elChildren sdtContent)
   | isElem ns "w" "smartTag" element
   = concatMap (unwrapElement ns) (elChildren element)
+  | isElem ns "w" "p" element
+  , textboxes@(_:_) <- findChildrenByName ns "w" "r" element >>=
+                       findChildrenByName ns "mc" "AlternateContent" >>=
+                       findChildrenByName ns "mc" "Fallback" >>=
+                       findChildrenByName ns "w" "pict" >>=
+                       findChildrenByName ns "v" "shape" >>=
+                       findChildrenByName ns "v" "textbox" >>=
+                       findChildrenByName ns "w" "txbxContent"
+  = concatMap (unwrapElement ns) (concatMap elChildren textboxes) -- handle #9214
+  | isElem ns "w" "r" element
+  , Just fallback <- findChildByName ns "mc" "AlternateContent" element >>=
+                     findChildByName ns "mc" "Fallback"
+  = [element{ elContent = concatMap (unwrapContent ns) (elContent fallback) }]
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
 
@@ -1157,15 +1170,6 @@ childElemToRun ns element
 childElemToRun _ _ = throwError WrongElem
 
 elemToRun :: NameSpaces -> Element -> D [Run]
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just altCont <- findChildByName ns "mc" "AlternateContent" element =
-    do let choices = findChildrenByName ns "mc" "Choice" altCont
-           choiceChildren = concatMap (take 1 . elChildren) choices
-       outputs <- mapD (childElemToRun ns) choiceChildren
-       case outputs of
-         r : _ -> return r
-         []    -> throwError WrongElem
 elemToRun ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element =
