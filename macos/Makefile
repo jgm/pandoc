@@ -3,6 +3,7 @@ VERSION=$(shell cat version.txt)
 BASE=pandoc-$(VERSION)-$(ARCHITECTURE)
 DEST=pandoc/usr/local
 ALL=$(BASE)-macOS.pkg $(BASE)-macOS.zip
+TOOLPATH=/Applications/XCode.app/Contents/Developer/usr/bin
 
 all: $(ALL) notarize
 
@@ -28,8 +29,8 @@ $(BASE)-macOS.zip: $(DEST)/bin/pandoc-server $(DEST)/bin/pandoc-lua signed.txt
 	zip --symlinks -r $@ $(BASE)
 
 notarize: $(BASE)-macOS.pkg
-	xcrun notarytool submit $< --keychain-profile=pandoc --wait && \
-    xcrun stapler staple $<
+	$(TOOLPATH)/notarytool submit $< --keychain-profile=pandoc --wait && \
+    $(TOOLPATH)/stapler staple $<
 
 clean:
 	rm signed.txt $(BASE) pandoc.pkg # gon.hcl
