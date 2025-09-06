@@ -326,6 +326,8 @@
 
     + Remove `Ext_compact_definition_lists` constructor for
       `Extension` [API change].
+    + Add `Ext_smart_quotes` and `Ext_special_strings` constructors.
+      [API change].
 
   * Text.Pandoc.SelfContained:
 
