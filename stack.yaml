@@ -16,8 +16,8 @@ extra-deps:
 - hslua-packaging-2.3.2
 - pandoc-lua-marshal-0.3.1
 - tls-2.1.7
-- skylighting-core-0.14.6
-- skylighting-0.14.6
+- skylighting-core-0.14.7
+- skylighting-0.14.7
 - skylighting-format-typst-0.1
 - typst-symbols-0.1.8.1
 - doclayout-0.5.0.1
