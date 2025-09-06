@@ -286,6 +286,13 @@
   * Text.Pandoc.Citeproc:
 
     + Don't move footnotes around em-dashes (#11046).
+    + Allow `--citeproc` to put the bibliography in a Div with id `refs`
+      even when `--file-scope` is used (#11072). When `--file-scope`
+      is used, a prefix will be added based on the filename, so the Div
+      will end up having an identifier like `myfile.md__refs`.
+      Previously, this prevented the bibliography from being added to
+      the marked Div. Now pandoc will add the bibliography to any Div
+      with the id `refs` or any id ending in `__refs`.
 
   * Text.Pandoc.Citeproc.BibTeX: Protect case in periodical titles (#11048).
     Thus, for example, `{npj} Quantum Information` should translate as

@@ -485,7 +485,10 @@ isYesValue _ = False
 
 -- if document contains a Div with id="refs", insert
 -- references as its contents.  Otherwise, insert references
--- at the end of the document in a Div with id="refs"
+-- at the end of the document in a Div with id="refs" or
+-- id=".*__refs" (where .* stands for any string -- this is
+-- because --file-scope will add such a prefix based on the filename,
+-- see #11072.)
 insertRefs :: [(Text,Text)] -> [Text] -> [Block] -> Pandoc -> Pandoc
 insertRefs _ _ [] d = d
 insertRefs refkvs refclasses refs (Pandoc meta bs) =
@@ -510,12 +513,13 @@ insertRefs refkvs refclasses refs (Pandoc meta bs) =
    refDiv = Div ("refs", refclasses, refkvs) refs
    addUnNumbered cs = "unnumbered" : [c | c <- cs, c /= "unnumbered"]
    go :: Block -> State Bool Block
-   go (Div ("refs",cs,kvs) xs) = do
-     put True
-     -- refHeader isn't used if you have an explicit references div
-     let cs' = nubOrd $ cs ++ refclasses
-     let kvs' = nubOrd $ kvs ++ refkvs
-     return $ Div ("refs",cs',kvs') (xs ++ refs)
+   go (Div (ident,cs,kvs) xs)
+     | ident == "refs" || "__refs" `T.isSuffixOf` ident = do
+       put True
+       -- refHeader isn't used if you have an explicit references div
+       let cs' = nubOrd $ cs ++ refclasses
+       let kvs' = nubOrd $ kvs ++ refkvs
+       return $ Div (ident,cs',kvs') (xs ++ refs)
    go x = return x
 
 refTitle :: Meta -> Maybe [Inline]
