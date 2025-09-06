@@ -78,6 +78,7 @@
 - Christoffer Ackelman
 - Christoffer Sawicki
 - Christophe Dervieux
+- Christopher Kenny
 - Clare Macrae
 - Clint Adams
 - Conal Elliott
@@ -113,6 +114,7 @@
 - Eric Kow
 - Eric Schrijver
 - Eric Seidel
+- Erik Post
 - Erik Rask
 - Ethan Riley
 - Étienne Bersac
@@ -342,11 +344,14 @@
 - Raniere Silva
 - Raymond Ehlers
 - Recai Oktaş
+- Repetitive
+- Reuben Thomas
 - Rowan Rodrik van der Molen
 - Roland Hieber
 - Roman Beránek
 - Ruqi
 - RyanGlScott
+- Ryan Gibb
 - S.P.H
 - Salim B
 - Sam S. Almahri
@@ -356,6 +361,7 @@
 - Santiago Zarate
 - Sascha Wilde
 - Scott Morrison
+- Sean Soon
 - Sebastian Talmon
 - Sebbones
 - Sen-wen Deng
@@ -465,6 +471,7 @@
 - lux-lth
 - luz paz
 - lwolfsonkin
+- massifrg
 - mbracke
 - mbrackeantidot
 - mh4ckt3mh4ckt1c4s
