@@ -105,6 +105,7 @@ It can convert *from*
   markup](https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
 - `typst` ([typst](https://typst.app))
 - `vimwiki` ([Vimwiki](https://vimwiki.github.io))
+- `xml` (XML version of native AST)
 - the path of a custom Lua reader, see [Custom readers and
   writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
   below
@@ -216,6 +217,7 @@ It can convert *to*
   slide show)
 - `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
 - `typst` ([typst](https://typst.app))
+- `xml` (XML version of native AST)
 - `xwiki` ([XWiki
   markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
 - `zimwiki` ([ZimWiki

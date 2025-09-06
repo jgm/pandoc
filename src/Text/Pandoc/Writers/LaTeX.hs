@@ -1377,4 +1377,3 @@ needsCancel t =
            then return True
            else pCancel
       _ -> pCancel
-

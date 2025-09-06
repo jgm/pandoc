@@ -1194,7 +1194,7 @@ parseEntry cn el = do
   let toRowSpan en = do
         case findAttr (unqual "morerows") en of
           Just moreRow -> rowDistance moreRow
-          _ -> 1   
+          _ -> 1
   let colSpan = toColSpan el
   let rowSpan = toRowSpan el
   let align = toAlignment el
