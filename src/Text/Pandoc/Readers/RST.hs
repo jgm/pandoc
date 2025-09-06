@@ -23,7 +23,7 @@ import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
                                   DashPunctuation, OtherSymbol))
 import Data.List (deleteFirstsBy, elemIndex, nub, partition, sort, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList, isJust)
+import Data.Maybe (fromMaybe, maybeToList, isJust, isNothing, catMaybes)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -1358,7 +1358,6 @@ anchor = try $ do
 --    support for them
 --
 -- Simple tables TODO:
---  - column spans
 --  - multiline support
 --  - ensure that rightmost column span does not need to reach end
 --  - require at least 2 columns
@@ -1367,10 +1366,17 @@ dashedLine :: Monad m => Char -> ParsecT Sources st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many (char ' ')
-  return (length dashes, length $ dashes ++ sp)
+  return (length dashes, length sp)
 
 simpleDashedLines :: Monad m => Char -> ParsecT Sources st m [(Int,Int)]
-simpleDashedLines ch = try $ many1 (dashedLine ch)
+simpleDashedLines ch = do
+  lines' <- try $ many1 (dashedLine ch)
+  return $ addSpaces lines'
+ where
+  addSpaces [] = []
+  addSpaces [(dashes, _)] = [(dashes, dashes)] -- Don't count trailing whitespaces
+  addSpaces ((dashes, sp) : moreLines) =
+    (dashes, dashes + sp) : addSpaces moreLines
 
 -- Parse a table row separator
 simpleTableSep :: Monad m => Char -> RSTParser m Char
@@ -1381,52 +1387,87 @@ simpleTableFooter :: Monad m => RSTParser m Text
 simpleTableFooter = try $ simpleTableSep '=' >> blanklines
 
 -- Parse a raw line and split it into chunks by indices.
-simpleTableRawLine :: Monad m => [Int] -> RSTParser m [Text]
-simpleTableRawLine indices = simpleTableSplitLine indices <$> anyLine
+simpleTableRawLine :: Monad m => [Int] -> RSTParser m [(Text, ColSpan)]
+simpleTableRawLine indices = do
+  row <- rowWithOptionalColSpan
 
-simpleTableRawLineWithInitialEmptyCell :: Monad m => [Int] -> RSTParser m [Text]
+  case simpleTableSplitLine indices row of
+    Just rowLine -> return rowLine
+    Nothing -> Prelude.fail "col spans don't match"
+
+simpleTableRawLineWithInitialEmptyCell :: Monad m => [Int] -> RSTParser m [(Text, ColSpan)]
 simpleTableRawLineWithInitialEmptyCell indices = try $ do
   cs <- simpleTableRawLine indices
   let isEmptyCell = T.all (\c -> c == ' ' || c == '\t')
   case cs of
-    c:_ | isEmptyCell c -> return cs
+    c:_ | isEmptyCell (fst c) -> return cs
     _ -> mzero
 
 -- Parse a table row and return a list of blocks (columns).
-simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [Blocks]
+simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [(Blocks, RowSpan, ColSpan)]
 simpleTableRow indices = do
   notFollowedBy' (blanklines <|> simpleTableFooter)
   firstLine <- simpleTableRawLine indices
   conLines  <- many $ simpleTableRawLineWithInitialEmptyCell indices
-  let cols = map T.unlines . transpose $ firstLine : conLines ++
+  let cols = map T.unlines . transpose $ (map fst firstLine) : (map (map fst) conLines) ++
                                   [replicate (length indices) ""
                                     | not (null conLines)]
-  mapM parseCell cols
+  let rowParser = mapM parseCell cols
+  fmap (\blocks -> zip3 blocks (repeat 1) (map snd firstLine)) rowParser
 
-simpleTableSplitLine :: [Int] -> Text -> [Text]
-simpleTableSplitLine indices line =
-  map trimr $ drop 1 $ splitTextByIndices (init indices) line
+simpleTableSplitLine :: [Int] -> (Text, Maybe [Int]) -> Maybe [(Text, ColSpan)]
+simpleTableSplitLine indices (line, maybeColspanIndices) =
+  fmap (zip tableLines) columnSpans
+ where
+  splitTableLines lineIndices = map trimr $ drop 1 $ splitTextByIndices (init lineIndices) line
+  (tableLines, columnSpans) = case maybeColspanIndices of
+      Nothing -> (splitTableLines indices, Just $ repeat 1)
+      Just colSpanIndices -> (splitTableLines colSpanIndices, colSpans indices colSpanIndices)
 
 simpleTableHeader :: PandocMonad m
                   => Bool  -- ^ Headerless table
-                  -> RSTParser m ([[Blocks]], [Alignment], [Int])
+                  -> RSTParser m ([[(Blocks, RowSpan, ColSpan)]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
-  rawContent  <- if headless
-                    then return [""]
-                    else simpleTableSep '=' >> many1 (notFollowedBy (simpleDashedLines '=') >> anyLine)
-  dashes      <- if headless
-                    then simpleDashedLines '='
-                    else simpleDashedLines '=' <|> simpleDashedLines '-'
+  dashes <- simpleDashedLines '='
   newline
-  let lines'   = map snd dashes
-  let indices  = scanl (+) 0 lines'
+
+  rawContent  <- if headless
+                    then return [("", Nothing)]
+                    else many1 $ notFollowedBy (simpleDashedLines '=') >> rowWithOptionalColSpan
+
+  if headless
+    then return ' '
+    else simpleTableSep '='
+
+  let (lines', indices) = dashedLinesToLinesWithIndices dashes
   let aligns   = replicate (length lines') AlignDefault
   let rawHeads = if headless
                     then []
                     else map (simpleTableSplitLine indices) rawContent
-  heads <- mapM ( mapM $ parseFromString' (mconcat <$> many plain) . trim) rawHeads
-  return (heads, aligns, indices)
+
+  when (any isNothing rawHeads) $ Prelude.fail "col spans don't match"
+
+  let justRawHeads  = catMaybes rawHeads
+  let rawHeads'     = map fst <$> justRawHeads
+  let columnSpans   = map snd <$> justRawHeads
+  heads <- mapM (mapM $ parseFromString' (mconcat <$> many plain) . trim) rawHeads'
+  let headsWithSpans = zipWith3 zip3 heads singleRowSpans columnSpans
+  return (headsWithSpans, aligns, indices)
+
+rowWithOptionalColSpan :: Monad m
+                       => RSTParser m (Text, Maybe [Int])
+rowWithOptionalColSpan = do
+  line <- anyLine
+  colSpanHyphens <- optionMaybe $ do
+    colHyphens <- simpleDashedLines '-'
+    newline
+    return colHyphens
+
+  let colSpan = fmap colSpanFromHyphens colSpanHyphens
+  return (line, colSpan)
+ where
+  colSpanFromHyphens colSpanHyphens = snd $ dashedLinesToLinesWithIndices colSpanHyphens
 
 -- Parse a simple table.
 simpleTable :: PandocMonad m
@@ -1435,7 +1476,7 @@ simpleTable :: PandocMonad m
 simpleTable headless = do
   let wrapIdFst (a, b, c) = (Identity a, b, c)
       wrapId = fmap Identity
-  tbl <- runIdentity <$> tableWith
+  tbl <- runIdentity <$> tableWithSpans
            (wrapIdFst <$> simpleTableHeader headless)
            (wrapId <$> simpleTableRow)
            sep simpleTableFooter
@@ -1806,3 +1847,37 @@ inlineAnchor = try $ do
     s{ stateKeys = M.insert (toKey name) (("#" <> ident, ""), nullAttr)
                     (stateKeys s) }
   pure $ B.spanWith (ident,[],[]) (B.text name)
+
+dashedLinesToLinesWithIndices :: [(Int, Int)] -> ([Int], [Int])
+dashedLinesToLinesWithIndices dashes =
+  let lines'  = map snd dashes
+      indices = scanl (+) 0 lines'
+  in  (lines', indices)
+
+-- | Determines column spans by appying indices of a table border with column span indices.
+--
+-- The indices need to align.
+colSpans :: [Int] -> [Int] -> Maybe [ColSpan]
+colSpans [] []  = Just []
+colSpans [] _   = Nothing
+colSpans _ []   = Nothing
+colSpans (index : indices) colSpanIndices@(colIndex : colSpanIndicesTail)
+    | index /= colIndex = colSpans indices colSpanIndices
+    | otherwise =
+        -- For a matching index start counting the column spans.
+        let (spanCount, remainingIndices, remainingColSpanindices) = colSpanCount indices colSpanIndicesTail 1
+        in  (:) spanCount <$> colSpans remainingIndices remainingColSpanindices
+
+-- | Counts column spans by consuming all non-matching indices until a matching one is encountered.
+--
+-- If the indices match, the end of a column span has been encountered and the
+-- column count can be returned. Otherwise, if the indices don't match, add to
+-- the span count until a matching index is found.
+colSpanCount :: [Int] -> [Int] -> ColSpan -> (ColSpan, [Int], [Int])
+colSpanCount [] colSpanIndices spanCount = (spanCount, [], colSpanIndices)
+colSpanCount _ [] spanCount = (spanCount, [], [])
+colSpanCount indices@(index : indicesTail) colSpanIndices@(colIndex : colSpanIndicesTail) spanCount
+    | index == colIndex = case colSpanIndicesTail of
+        [] -> (spanCount, indicesTail, colSpanIndicesTail)
+        _ -> (spanCount, indices, colSpanIndices)
+    | otherwise = colSpanCount indicesTail colSpanIndices $ spanCount + 1
