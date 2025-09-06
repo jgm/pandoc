@@ -48,6 +48,8 @@ https://api.github.com/repos/jgm/pandoc/actions/workflows/release-candidate.yml/
     (Windows and intel mac from GitHub, linux amd64 and arm64 and m1 mac
     from cirrus)
 *** TODO Use 'make' in macos and windows artifacts to sign code
+*** TODO Install pandoc from package
+So website will have the correct executable.
 *** TODO Update website
 #+begin_src sh
 make update-website
