@@ -1,6 +1,6 @@
 # Revision history for pandoc
 
-## pandoc 3.8 (2025-08-06)
+## pandoc 3.8 (2025-09-06)
 
   * Add a new input and output format `xml`, exactly representing a Pandoc
     AST and isomorphic to the existing `native` and `json` formats (massifrg).
