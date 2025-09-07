@@ -1,0 +1,13 @@
+[ Header
+    1
+    ( "single-column" , [] , [] )
+    [ Str "Single" , Space , Str "column" ]
+, Div
+    ( "" , [ "columns" ] , [] )
+    [ Div
+        ( "" , [ "column" ] , [] )
+        [ Para [ Str "One" , Space , Str "paragraph." ]
+        , Para [ Str "Another" , Space , Str "paragraph." ]
+        ]
+    ]
+]

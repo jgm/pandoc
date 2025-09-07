@@ -1,0 +1,22 @@
+[ Header
+    1
+    ( "single-column" , [] , [] )
+    [ Str "Single" , Space , Str "column" ]
+, Div
+    ( "" , [ "columns" ] , [] )
+    [ Div
+        ( "" , [ "column" ] , [] )
+        [ Figure
+            ( "" , [] , [] )
+            (Caption
+               Nothing [ Plain [ Str "an" , Space , Str "image" ] ])
+            [ Plain
+                [ Image
+                    ( "" , [] , [] )
+                    [ Str "an" , Space , Str "image" ]
+                    ( "lalune.jpg" , "" )
+                ]
+            ]
+        ]
+    ]
+]

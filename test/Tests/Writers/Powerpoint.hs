@@ -102,6 +102,14 @@ tests = let
       def
       "pptx/two-column/text-and-image/input.native"
       "pptx/two-column/text-and-image/output.pptx"
+    , pptxTests "single column text"
+      def
+      "pptx/single-column/text/input.native"
+      "pptx/single-column/text/output.pptx"
+    , pptxTests "single column image"
+      def
+      "pptx/single-column/image/input.native"
+      "pptx/single-column/image/output.pptx"
     , pptxTests "speaker notes"
       def
       "pptx/speaker-notes/input.native"
