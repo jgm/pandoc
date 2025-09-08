@@ -41,7 +41,7 @@ jobs:
 
     steps:
     - name: ensure dotnet is present
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
         
     - name: Install json_reformat
       run: |
