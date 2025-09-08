@@ -46,7 +46,7 @@ import qualified Network.TLS as TLS
 import qualified Network.TLS.Extra as TLS
 import Network.HTTP.Client
        (httpLbs, Manager, responseBody, responseHeaders,
-        Request(port, host, requestHeaders), parseRequest, newManager)
+        Request(port, host, requestHeaders), parseUrlThrow, newManager)
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (mkManagerSettings)
 import Network.HTTP.Types.Header ( hContentType )
@@ -168,9 +168,9 @@ openURL u
        proxy <- tryIOError (getEnv "http_proxy")
        let addProxy' x = case proxy of
                             Left _ -> return x
-                            Right pr -> parseRequest pr >>= \r ->
+                            Right pr -> parseUrlThrow pr >>= \r ->
                                 return (addProxy (host r) (port r) x)
-       req <- parseRequest (unpack u) >>= addProxy'
+       req <- parseUrlThrow (unpack u) >>= addProxy'
        let req' = req{requestHeaders = customHeaders ++ requestHeaders req}
        resp <- httpLbs req' manager
        return (B.concat $ toChunks $ responseBody resp,
