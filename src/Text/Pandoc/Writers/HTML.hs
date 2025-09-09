@@ -1548,6 +1548,9 @@ inlineToHtml opts inline = do
              _ -> do report $ InlineNotRendered inline
                      return mempty
     (Link attr txt (s,_)) | "mailto:" `T.isPrefixOf` s -> do
+                        -- We need to remove links from link text, because an
+                        -- <a> element is not allowed inside another <a>
+                        -- element.
                         linkText <- inlineListToHtml opts (removeLinks txt)
                         obfuscateLink opts attr linkText s
     (Link (ident,classes,kvs) txt (s,tit)) -> do
@@ -1767,15 +1770,6 @@ isRawHtml f = do
 isSlideVariant :: Format -> Bool
 isSlideVariant f = f `elem` [Format "s5", Format "slidy", Format "slideous",
                              Format "dzslides", Format "revealjs"]
-
-
--- We need to remove links from link text, because an <a> element is
--- not allowed inside another <a> element.
-removeLinks :: [Inline] -> [Inline]
-removeLinks = walk go
- where
-  go (Link attr ils _) = Span attr ils
-  go x = x
 
 toURI :: Bool -> Text -> Text
 toURI isHtml5 t = if isHtml5 then t else escapeURI t
