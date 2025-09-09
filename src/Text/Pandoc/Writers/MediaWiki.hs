@@ -26,7 +26,6 @@ import Text.Pandoc.Definition
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
-import Text.Pandoc.Walk
 import Text.DocLayout (render, literal)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
@@ -484,6 +483,8 @@ inlineToMediaWiki SoftBreak = do
 inlineToMediaWiki Space = return " "
 
 inlineToMediaWiki (Link _ txt (src, _)) = do
+  -- We need to remove links from link text, because an <a> element is
+  -- not allowed inside another <a> element.
   label <- inlineListToMediaWiki (removeLinks txt)
   case txt of
      [Str s] | isURI src && escapeURI s == src -> return src
@@ -517,14 +518,6 @@ inlineToMediaWiki (Note contents) = do
   modify (\s -> s { stNotes = True })
   return $ "<ref>" <> stripTrailingNewlines contents' <> "</ref>"
   -- note - does not work for notes with multiple blocks
-
--- We need to remove links from link text, because an <a> element is
--- not allowed inside another <a> element.
-removeLinks :: [Inline] -> [Inline]
-removeLinks = walk go
- where
-  go (Link _ ils _) = SmallCaps ils
-  go x = x
 
 highlightingLangs :: Set.Set Text
 highlightingLangs = Set.fromList [
