@@ -396,6 +396,7 @@ blockHandlers = M.fromList
       getField "body" fields >>= pWithContents pBlocks)
   ,("pad", \_ _ fields ->  -- ignore paddingy
       getField "body" fields >>= pWithContents pBlocks)
+  ,("pagebreak", \_ _ _ -> pure $ B.divWith ("", ["pagebreak"], []) B.horizontalRule)
   ]
 
 inlineHandlers :: PandocMonad m =>
