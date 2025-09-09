@@ -785,6 +785,7 @@ sectionHeader classes ident level lst = do
       removeInvalidInline x                    = [x]
   let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
+  txtNoLinksNoNotes <- inlineListToLaTeX (removeLinks lstNoNotes)
   -- footnotes in sections don't work (except for starred variants)
   -- unless you specify an optional argument:
   -- \section[mysec]{mysec\footnote{blah}}
@@ -837,7 +838,7 @@ sectionHeader classes ident level lst = do
                    $$ if unnumbered && not unlisted
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
-                                braces txtNoNotes
+                                braces txtNoLinksNoNotes
                          else empty
 
 -- | Convert list of inline elements to LaTeX.
