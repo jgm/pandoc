@@ -319,7 +319,7 @@
       parameter in a defaults file.
     + Add type `HighlightMethod` and patterns [API Change] (Albert Krewinkel).
     + The `writerListings` and `writerHighlightStyle` fields of the
-      `WriterOptions` type are replaced with `writerHighlightStyle`
+      `WriterOptions` type are replaced with `writerHighlightMethod`
       [API change] (Albert Krewinkel, #10525).
 
   * Text.Pandoc.Extensions:
