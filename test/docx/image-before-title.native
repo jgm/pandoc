@@ -1,0 +1,97 @@
+Pandoc
+  Meta
+    { unMeta =
+        fromList
+          [ ( "subtitle"
+            , MetaInlines
+                [ Str "This"
+                , Space
+                , Str "is"
+                , Space
+                , Str "a"
+                , Space
+                , Str "subtitle"
+                ]
+            )
+          , ( "title"
+            , MetaInlines
+                [ Str "This"
+                , Space
+                , Str "is"
+                , Space
+                , Str "a"
+                , Space
+                , Str "title"
+                ]
+            )
+          ]
+    }
+  [ Para
+      [ Image
+          ( ""
+          , []
+          , [ ( "width" , "6.268055555555556in" )
+            , ( "height" , "6.268055555555556in" )
+            ]
+          )
+          [ Str "A"
+          , Space
+          , Str "cat"
+          , Space
+          , Str "holding"
+          , Space
+          , Str "a"
+          , Space
+          , Str "rainbow"
+          , Space
+          , Str "flag."
+          ]
+          ( "media/image1.jpeg" , "" )
+      ]
+  , Header
+      1
+      ( "this-is-a-heading-1" , [] , [] )
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "heading"
+      , Space
+      , Str "1"
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "some"
+      , Space
+      , Str "text."
+      ]
+  , Header
+      2
+      ( "this-is-a-heading-2" , [] , [] )
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "heading"
+      , Space
+      , Str "2"
+      ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "also"
+      , Space
+      , Str "some"
+      , Space
+      , Str "text."
+      ]
+  ]
