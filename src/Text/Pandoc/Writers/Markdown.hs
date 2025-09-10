@@ -675,6 +675,14 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
                      writeHtml5String opts{ writerTemplate = Nothing }
                      (Pandoc nullMeta [t])
            return $ tbl $$ blankline  -- caption is in the HTML table
+       | hasSimpleCells,
+         hasColRowSpans,
+         isEnabled Ext_pipe_tables opts -> do
+           -- In this case an approximate pipe table will be rendered,
+           -- without col/row spans. This is better than nothing, since
+           -- we have no other way to render the table correctly (#11128).
+           tbl <- mkTable (pipeTable opts)
+           return $ (tbl $$ caption''') $$ blankline
        | otherwise
          -> do
            report (BlockNotRendered t)
