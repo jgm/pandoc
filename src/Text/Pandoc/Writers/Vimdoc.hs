@@ -74,15 +74,12 @@ docVimdocPrefix meta = case lookupMeta "vimdoc-prefix" meta of
 
 {- | Build a vim modeline
 >>> makeModeLine def
-" vim:tw=72:sw=4:ts=4:ft=help:norl:et:"
-
-Extra space in the beginning is deliberate because it appears in help pages
-bundled with vim
+"vim:tw=72:sw=4:ts=4:ft=help:norl:et:"
 -}
 makeModeLine :: WriterState -> Text
 makeModeLine ws =
   T.pack . intercalate ":" $
-    [ " vim"
+    [ "vim"
     , "tw=" <> show tw
     , "sw=" <> show sw
     , "ts=" <> show sw
