@@ -7,8 +7,8 @@ module Text.Pandoc.Writers.Vimdoc (writeVimdoc) where
 
 import Control.Applicative (optional, (<|>))
 import Control.Monad (forM)
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.Reader (MonadReader (..), ReaderT (..), asks)
+import Control.Monad.State (MonadState (..), StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersperse, transpose)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
