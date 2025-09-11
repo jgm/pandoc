@@ -2316,6 +2316,13 @@ citation = try $ do
                    , citationHash    = 0
                    }
 
+comment :: PandocMonad m => MarkdownParser m (F Inlines)
+comment = try $ do
+  guardEnabled Ext_comments
+  string "%%"
+  manyTill (anyChar <|> newline) (try (string "%%"))
+  return mempty
+
 smart :: PandocMonad m => MarkdownParser m (F Inlines)
 smart = do
   guardEnabled Ext_smart
@@ -2340,13 +2347,6 @@ doubleQuoted = do
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
       many1Till inline doubleQuoteEnd))
     <|> (return (return (B.str "\8220")))
-
-comment :: PandocMonad m => MarkdownParser m (F Inlines)
-comment = try $ do
-  guardEnabled Ext_percentage_comments
-  string "%%"
-  manyTill (anyChar <|> newline) (try (string "%%"))
-  return mempty
 
 blockId :: PandocMonad m => MarkdownParser m (F Inlines)
 blockId = try $ do

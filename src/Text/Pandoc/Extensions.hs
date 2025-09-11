@@ -31,8 +31,7 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , strictExtensions
                               , phpMarkdownExtraExtensions
                               , githubMarkdownExtensions
-                              , multimarkdownExtensions
-                              , obsidianExtensions )
+                              , multimarkdownExtensions )
 where
 import Data.Data (Data)
 import qualified Data.Text as T
@@ -58,11 +57,11 @@ data Extension =
     | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
-    | Ext_block_ids           -- ^ Block identifiers
-    | Ext_block_references    -- ^ Block references
+    | Ext_block_ids           -- ^ Block identifiers, used by Obsidian
+    | Ext_block_references    -- ^ Block references, used by Obsidian
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_citations           -- ^ Pandoc/citeproc citations
-    | Ext_comments             -- ^ Percent wrapped %%comments%%
+    | Ext_comments            -- ^ Percent wrapped %%comments%%
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_east_asian_line_breaks  -- ^ Newlines in paragraphs are ignored between
                                   --   East Asian wide characters. Note: this extension
@@ -148,7 +147,7 @@ data Extension =
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
-    | Ext_wikilinks_block_embeds    -- ^ Wikilinks block embeds
+    | Ext_wikilinks_block_embeds     -- ^ Wikilinks block embeds
     | CustomExtension T.Text  -- ^ Custom extension
     deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
@@ -349,22 +348,6 @@ multimarkdownExtensions = extensionsFromList
   , Ext_raw_attribute
   ]
 
--- | Extensions to be used with Obsidian.
-obsidianExtensions :: Extensions
-obsidianExtensions = extensionsFromList
-  [ Ext_wikilinks_block_embeds
-  , Ext_block_ids
-  , Ext_block_references
-  , Ext_comments
-  , Ext_alerts
-  , Ext_strikeout
-  , Ext_task_lists
-  , Ext_wikilinks_title_after_pipe
-  , Ext_tex_math_dollars
-  , Ext_yaml_metadata_block
-  , Ext_pipe_tables
-  ]
-
 -- | Extensions to be used with strict markdown.
 strictExtensions :: Extensions
 strictExtensions = extensionsFromList
@@ -388,7 +371,6 @@ getDefaultExtensions "markdown_github"   = githubMarkdownExtensions <>
     , Ext_lists_without_preceding_blankline
     , Ext_shortcut_reference_links
     ]
-getDefaultExtensions "obsidian"          = obsidianExtensions
 getDefaultExtensions "markdown"          = pandocExtensions
 getDefaultExtensions "ipynb"             =
   extensionsFromList
@@ -427,6 +409,24 @@ getDefaultExtensions "gfm"             = extensionsFromList
   , Ext_tex_math_gfm
   , Ext_alerts
   ]
+getDefaultExtensions "obsidian"          = extensionsFromList
+  [ Ext_alerts
+  , Ext_auto_identifiers
+  , Ext_autolink_bare_uris
+  , Ext_block_ids
+  , Ext_block_references
+  , Ext_comments
+  , Ext_emoji
+  , Ext_footnotes
+  , Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_strikeout
+  , Ext_task_lists
+  , Ext_tex_math_dollars
+  , Ext_wikilinks_block_embeds
+  , Ext_yaml_metadata_block
+  ]
+
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
 getDefaultExtensions "commonmark_x"    = extensionsFromList
