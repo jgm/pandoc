@@ -297,7 +297,7 @@ blockToVimdoc (Header level (ref, _, _) inlines) = do
 
 blockToVimdoc HorizontalRule = do
   tw <- asks (writerColumns . writerOptions)
-  pure $ literal (T.replicate tw "-") <> blankline
+  pure $ literal (T.replicate (tw `div` 2) " *") <> blankline
 
 -- Based on blockToMarkdown' from Text.Pandoc.Writers.Markdown
 blockToVimdoc t@(Table (_, _, _) blkCapt specs thead tbody tfoot) = do

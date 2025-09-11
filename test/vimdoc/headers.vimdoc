@@ -32,7 +32,7 @@ UNREMARKABLE HEADER 3                                  *unremarkable-header-3-2*
 
 UNREMARKABLE HEADER 3                                  *unremarkable-header-3-3*
 
-------------------------------------------------------------------------------
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 Headers with various inline elements
 
@@ -46,7 +46,7 @@ SMALLCAPS `code` `$inline math$` `$display math$`                      *short31*
 
 LINK example.com                                                       *short32*
 
-------------------------------------------------------------------------------
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 Headers with a long name and explicit short ref
 
@@ -67,7 +67,7 @@ LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADE
 
 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long34*
 
-------------------------------------------------------------------------------
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 Headers with a long name and implicit ref.
 
