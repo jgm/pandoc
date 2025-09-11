@@ -820,21 +820,8 @@ blockQuote :: PandocMonad m => MarkdownParser m (F Blocks)
 blockQuote = do
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
-  let raw' = T.intercalate "\n" raw
-  alerts <- guardEnabled Ext_alerts
-  let (mbTag, raw'') = if alerts
-        then case T.stripPrefix "[!" (trim raw') of
-               Just rest ->
-                 case T.break (== ']') rest of
-                   (tag, rest') -> (Just tag, T.drop 1 rest')
-               Nothing -> (Nothing, raw')
-        else (Nothing, raw')
-  contents <- parseFromString' parseBlocks $ raw'' <> "\n\n"
-  return $ case mbTag of
-    Just tag ->
-      let attr = ("", ["alert", "alert-" <> T.toLower tag], [])
-      in  B.divWith attr . B.blockQuote <$> contents
-    Nothing -> B.blockQuote <$> contents
+  contents <- parseFromString' parseBlocks $ T.intercalate "\n" raw <> "\n\n"
+  return $ B.blockQuote <$> contents
 
 --
 -- list blocks
