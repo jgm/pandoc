@@ -348,7 +348,7 @@ multimarkdownExtensions = extensionsFromList
   , Ext_raw_attribute
   ]
 
--- | Extensions to be used with strict markdown.
+-- | Language extensions to be used with strict markdown.
 strictExtensions :: Extensions
 strictExtensions = extensionsFromList
   [ Ext_raw_html
@@ -424,6 +424,7 @@ getDefaultExtensions "obsidian"          = extensionsFromList
   , Ext_task_lists
   , Ext_tex_math_dollars
   , Ext_wikilinks_block_embeds
+  , Ext_wikilinks_title_after_pipe
   , Ext_yaml_metadata_block
   ]
 
@@ -547,7 +548,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "markdown_mmd"      = allMarkdownExtensions
   getAll "markdown_github"   = allMarkdownExtensions
   getAll "markdown"          = allMarkdownExtensions
-  getAll "obsidian"          = allMarkdownExtensions
+  getAll "obsidian"          = getAll "commonmark"
   getAll "ipynb"             = allMarkdownExtensions <> extensionsFromList
     [ Ext_raw_markdown ]
   getAll "docx"            = autoIdExtensions <> extensionsFromList

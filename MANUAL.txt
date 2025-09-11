@@ -269,6 +269,7 @@ header when requesting a document from a URL:
     - `mdoc` ([mdoc] manual page markup)
     - `muse` ([Muse])
     - `native` (native Haskell)
+    - `obsidian` ([Obsidian-Flavored Markdown])
     - `odt` ([OpenDocument text document][ODT])
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
@@ -502,6 +503,7 @@ header when requesting a document from a URL:
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
 [txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub
+[Obsidian-Flavored Markdown]: https://help.obsidian.md/obsidian-flavored-markdown
 [OPML]: http://dev.opml.org/spec2.html
 [OpenDocument XML]: https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
@@ -6002,10 +6004,17 @@ or image itself, if these differ.
 
 ### Extension: `mark` ###
 
-To highlight out a section of text, begin and end it with
+To highlight a section of text, begin and end it with
 with `==`. Thus, for example,
 
     This ==is deleted text.==
+
+### Extension: `comments` ###
+
+To comment out a section of text, begin and end it
+with `%%`. Thus, for example,
+
+    This %%is a comment.%%
 
 ### Extension: `attributes` ###
 
@@ -6161,7 +6170,7 @@ Supports [GitHub-style Markdown alerts], like
   [GitHub-style Markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
 
 Note: This extension currently only works with commonmark:
-`commonmark`, `gfm`, `commonmark_x`.
+`commonmark`, `gfm`, `commonmark_x`, `obsidian`.
 
 ### Extension: `autolink_bare_uris` ###
 
@@ -6238,6 +6247,7 @@ variants are supported:
 - `markdown_strict` (Markdown.pl)
 - `commonmark` (CommonMark)
 - `gfm` (Github-Flavored Markdown)
+- `obsidian` (Obsidian-Flavored Markdown)
 - `commonmark_x` (CommonMark with many pandoc extensions)
 
 To see which extensions are supported for a given format,
