@@ -148,7 +148,7 @@ data Extension =
     | Ext_wikilinks_block_embeds -- ^ Wikilinks block embeds
     | Ext_block_ids -- ^ Block identifiers
     | Ext_block_references -- ^ Block references
-    | Ext_obsidian_comments -- ^ Obsidian-style comments
+    | Ext_percentage_comments -- ^ Obsidian-style %%comments%%
     | CustomExtension T.Text  -- ^ Custom extension
     deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
@@ -355,7 +355,7 @@ obsidianExtensions = extensionsFromList
   [ Ext_wikilinks_block_embeds
   , Ext_block_ids
   , Ext_block_references
-  , Ext_obsidian_comments
+  , Ext_percentage_comments
   , Ext_alerts
   , Ext_strikeout
   , Ext_task_lists

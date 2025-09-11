@@ -2343,7 +2343,7 @@ doubleQuoted = do
 
 comment :: PandocMonad m => MarkdownParser m (F Inlines)
 comment = try $ do
-  guardEnabled Ext_obsidian_comments
+  guardEnabled Ext_percentage_comments
   string "%%"
   manyTill (anyChar <|> newline) (try (string "%%"))
   return mempty
