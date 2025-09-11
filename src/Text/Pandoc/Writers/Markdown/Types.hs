@@ -48,7 +48,6 @@ data MarkdownVariant =
     | PlainText
     | Commonmark
     | Markdown
-    | Obsidian
     deriving (Show, Eq)
 
 instance Default WriterEnv

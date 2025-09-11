@@ -461,12 +461,26 @@ noteBlock = do
 -- parsing blocks
 --
 
+addBlockId :: Attr -> ParserState -> Attr
+addBlockId (id', classes, kvs) st =
+  case stateLastBlockId st of
+    Nothing -> (id', classes, kvs)
+    Just bid -> (if T.null id' then bid else id', classes, kvs)
+
+wikilinkEmbed :: PandocMonad m => MarkdownParser m (F Blocks)
+wikilinkEmbed = try $ do
+  guardEnabled Ext_wikilinks_block_embeds
+  char '!'
+  res <- wikilink B.linkWith
+  return $ B.divWith ("", ["wikilink-embed"], []) . B.para <$> res
+
 parseBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
 block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
   res <- choice [ mempty <$ blanklines
+               , wikilinkEmbed
                , codeBlockFenced
                , yamlMetaBlock'
                -- note: bulletList needs to be before header because of
@@ -491,8 +505,15 @@ block = do
                , para
                , plain
                ] <?> "block"
-  trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
-  return res
+  st <- getState
+  let addIdToBlock (Header lvl attr ils) = Header lvl (addBlockId attr st) ils
+      addIdToBlock (Para ils) =
+        case stateLastBlockId st of
+          Nothing -> Para ils
+          Just bid -> Div (bid, [], []) [Para ils]
+      addIdToBlock x = x
+  updateState $ \s -> s{ stateLastBlockId = Nothing }
+  return $ B.fromList . map addIdToBlock . B.toList <$> res
 
 --
 -- header blocks
@@ -799,8 +820,17 @@ blockQuote :: PandocMonad m => MarkdownParser m (F Blocks)
 blockQuote = do
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
-  contents <- parseFromString' parseBlocks $ T.intercalate "\n" raw <> "\n\n"
-  return $ B.blockQuote <$> contents
+  let raw' = T.intercalate "\n" raw
+  let (callout, raw'') = case T.stripPrefix "[!" (trim raw') of
+        Just rest -> case T.break (== ']') rest of
+          (tag, rest') -> (Just tag, T.drop 1 rest')
+        Nothing -> (Nothing, raw')
+  contents <- parseFromString' parseBlocks $ raw'' <> "\n\n"
+  return $ case callout of
+    Just tag ->
+      let attr = ("", ["callout"], [("callout-tag", tag)])
+      in  B.divWith attr . B.singleton . B.blockQuote <$> contents
+    Nothing -> B.blockQuote <$> contents
 
 --
 -- list blocks
@@ -1496,7 +1526,7 @@ inline = do
      '`'     -> code
      '_'     -> strongOrEmph
      '*'     -> strongOrEmph
-     '^'     -> superscript <|> inlineNote -- in this order bc ^[link](/foo)^
+     '^'     -> superscript <|> inlineNote <|> blockId -- in this order bc ^[link](/foo)^
      '['     -> note <|> cite <|> bracketedSpan <|> wikilink B.linkWith <|> link
      '!'     -> image
      '$'     -> math
@@ -1515,6 +1545,7 @@ inline = do
      '.'     -> smart
      '&'     -> return . B.singleton <$> charRef
      ':'     -> emoji
+     '%'     -> comment
      _       -> mzero)
    <|> bareURL
    <|> str
@@ -1837,13 +1868,17 @@ wikilink constructor = do
   try $ do
     string "[[" *> notFollowedBy' (char '[')
     raw <- many1TillChar anyChar (try $ string "]]")
-    let (title, url) = case T.break (== '|') raw of
+    let (target, title) = case T.break (== '|') raw of
           (before, "") -> (before, before)
           (before, after)
             | titleAfter -> (T.drop 1 after, before)
             | otherwise -> (before, T.drop 1 after)
+    let (url, blockRef) = T.break (== '#') target
     guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
-    return . pure . constructor attr url "" $
+    let attr' = if T.null blockRef
+                   then attr
+                   else (mempty, ["wikilink"], [("block-ref", T.drop 1 blockRef)])
+    return . pure . constructor attr' url "" $
        B.text $ fromEntities title
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -2314,3 +2349,19 @@ doubleQuoted = do
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
       many1Till inline doubleQuoteEnd))
     <|> (return (return (B.str "\8220")))
+
+comment :: PandocMonad m => MarkdownParser m (F Inlines)
+comment = try $ do
+  guardEnabled Ext_obsidian_comments
+  string "%%"
+  manyTill (anyChar <|> newline) (try (string "%%"))
+  return mempty
+
+blockId :: PandocMonad m => MarkdownParser m (F Inlines)
+blockId = try $ do
+  guardEnabled Ext_block_ids
+  char '^'
+  notFollowedBy space
+  bid <- T.pack <$> many1 (letter <|> digit <|> char '-')
+  updateState $ \st -> st{ stateLastBlockId = Just bid }
+  return mempty

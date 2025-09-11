@@ -31,7 +31,8 @@ module Text.Pandoc.Extensions ( Extension(..)
                               , strictExtensions
                               , phpMarkdownExtraExtensions
                               , githubMarkdownExtensions
-                              , multimarkdownExtensions )
+                              , multimarkdownExtensions
+                              , obsidianExtensions )
 where
 import Data.Data (Data)
 import qualified Data.Text as T
@@ -144,6 +145,11 @@ data Extension =
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
+    | Ext_wikilinks_block_embeds -- ^ Wikilinks block embeds
+    | Ext_block_ids -- ^ Block identifiers
+    | Ext_block_references -- ^ Block references
+    | Ext_obsidian_comments -- ^ Obsidian-style comments
+    | Ext_callouts -- ^ Callouts
     | CustomExtension T.Text  -- ^ Custom extension
     deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
@@ -344,6 +350,22 @@ multimarkdownExtensions = extensionsFromList
   , Ext_raw_attribute
   ]
 
+-- | Extensions to be used with Obsidian.
+obsidianExtensions :: Extensions
+obsidianExtensions = extensionsFromList
+  [ Ext_wikilinks_block_embeds
+  , Ext_block_ids
+  , Ext_block_references
+  , Ext_obsidian_comments
+  , Ext_callouts
+  , Ext_strikeout
+  , Ext_task_lists
+  , Ext_wikilinks_title_after_pipe
+  , Ext_tex_math_dollars
+  , Ext_yaml_metadata_block
+  , Ext_pipe_tables
+  ]
+
 -- | Language extensions to be used with strict markdown.
 strictExtensions :: Extensions
 strictExtensions = extensionsFromList
@@ -367,6 +389,7 @@ getDefaultExtensions "markdown_github"   = githubMarkdownExtensions <>
     , Ext_lists_without_preceding_blankline
     , Ext_shortcut_reference_links
     ]
+getDefaultExtensions "obsidian"          = obsidianExtensions
 getDefaultExtensions "markdown"          = pandocExtensions
 getDefaultExtensions "ipynb"             =
   extensionsFromList
@@ -525,6 +548,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "markdown_mmd"      = allMarkdownExtensions
   getAll "markdown_github"   = allMarkdownExtensions
   getAll "markdown"          = allMarkdownExtensions
+  getAll "obsidian"          = allMarkdownExtensions
   getAll "ipynb"             = allMarkdownExtensions <> extensionsFromList
     [ Ext_raw_markdown ]
   getAll "docx"            = autoIdExtensions <> extensionsFromList
