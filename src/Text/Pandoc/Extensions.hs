@@ -149,7 +149,6 @@ data Extension =
     | Ext_block_ids -- ^ Block identifiers
     | Ext_block_references -- ^ Block references
     | Ext_obsidian_comments -- ^ Obsidian-style comments
-    | Ext_callouts -- ^ Callouts
     | CustomExtension T.Text  -- ^ Custom extension
     deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
@@ -357,7 +356,7 @@ obsidianExtensions = extensionsFromList
   , Ext_block_ids
   , Ext_block_references
   , Ext_obsidian_comments
-  , Ext_callouts
+  , Ext_alerts
   , Ext_strikeout
   , Ext_task_lists
   , Ext_wikilinks_title_after_pipe
@@ -366,7 +365,7 @@ obsidianExtensions = extensionsFromList
   , Ext_pipe_tables
   ]
 
--- | Language extensions to be used with strict markdown.
+-- | Extensions to be used with strict markdown.
 strictExtensions :: Extensions
 strictExtensions = extensionsFromList
   [ Ext_raw_html

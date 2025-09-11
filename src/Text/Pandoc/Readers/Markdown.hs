@@ -821,15 +821,19 @@ blockQuote = do
   raw <- emailBlockQuote
   -- parse the extracted block, which may contain various block elements:
   let raw' = T.intercalate "\n" raw
-  let (callout, raw'') = case T.stripPrefix "[!" (trim raw') of
-        Just rest -> case T.break (== ']') rest of
-          (tag, rest') -> (Just tag, T.drop 1 rest')
-        Nothing -> (Nothing, raw')
+  alerts <- guardEnabled Ext_alerts
+  let (mbTag, raw'') = if alerts
+        then case T.stripPrefix "[!" (trim raw') of
+               Just rest ->
+                 case T.break (== ']') rest of
+                   (tag, rest') -> (Just tag, T.drop 1 rest')
+               Nothing -> (Nothing, raw')
+        else (Nothing, raw')
   contents <- parseFromString' parseBlocks $ raw'' <> "\n\n"
-  return $ case callout of
+  return $ case mbTag of
     Just tag ->
-      let attr = ("", ["callout"], [("callout-tag", tag)])
-      in  B.divWith attr . B.singleton . B.blockQuote <$> contents
+      let attr = ("", ["alert", "alert-" <> T.toLower tag], [])
+      in  B.divWith attr . B.blockQuote <$> contents
     Nothing -> B.blockQuote <$> contents
 
 --
@@ -1868,18 +1872,18 @@ wikilink constructor = do
   try $ do
     string "[[" *> notFollowedBy' (char '[')
     raw <- many1TillChar anyChar (try $ string "]]")
-    let (target, title) = case T.break (== '|') raw of
+    let (title', target') = case T.break (== '|') raw of
           (before, "") -> (before, before)
           (before, after)
             | titleAfter -> (T.drop 1 after, before)
             | otherwise -> (before, T.drop 1 after)
-    let (url, blockRef) = T.break (== '#') target
+    let (url, blockRef) = T.break (== '#') target'
     guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
     let attr' = if T.null blockRef
                    then attr
                    else (mempty, ["wikilink"], [("block-ref", T.drop 1 blockRef)])
     return . pure . constructor attr' url "" $
-       B.text $ fromEntities title
+       B.text $ fromEntities title'
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
