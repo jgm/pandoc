@@ -6221,6 +6221,30 @@ or
 
     Oxygen is O~2.
 
+### Extension: `block_ids` ###
+
+Follows the [Obsidan-style block identifiers] syntax. For example add `^123` at the end of a paragraph:
+
+    Text ^123
+
+[Obsidan-style block identifiers]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
+
+### Extension: `block_transclusions` ###
+
+Follows the [Obsidan-style block transclusions] syntax. For example to transclude block ID ^123 within the file "Title":
+
+    ![[Title#^123]]
+
+[Obsidan-style block transclusions]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
+
+### Extension: `wikilink_transclusions` ###
+
+Follows [Obsidan-style transclusions] using wikilink syntax to embed one file in another. For example to transclude the file "Title":
+
+    ![[Title]]
+
+[Obsidan-style transclusions]: https://help.obsidian.md/embeds
+
 ### Extension: `wikilinks_title_after_pipe` ###
 
 Pandoc supports multiple Markdown wikilink syntaxes, regardless of

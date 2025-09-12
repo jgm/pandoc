@@ -58,7 +58,7 @@ data Extension =
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
     | Ext_block_ids           -- ^ Block identifiers, used by Obsidian
-    | Ext_block_references    -- ^ Block references, used by Obsidian
+    | Ext_block_transclusion  -- ^ Block transclusions, used by Obsidian
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_citations           -- ^ Pandoc/citeproc citations
     | Ext_comments            -- ^ Percent wrapped %%comments%%
@@ -147,7 +147,7 @@ data Extension =
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
-    | Ext_wikilinks_block_embeds     -- ^ Wikilinks block embeds
+    | Ext_wikilink_transclusion     -- ^ Wikilink transclusion e.g. ![[title]]
     | CustomExtension T.Text  -- ^ Custom extension
     deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
@@ -413,7 +413,7 @@ getDefaultExtensions "obsidian"          = extensionsFromList
   [ Ext_alerts
   , Ext_autolink_bare_uris
   , Ext_block_ids
-  , Ext_block_references
+  , Ext_wikilink_transclusion
   , Ext_comments
   , Ext_footnotes
   , Ext_mark
@@ -422,7 +422,7 @@ getDefaultExtensions "obsidian"          = extensionsFromList
   , Ext_strikeout
   , Ext_task_lists
   , Ext_tex_math_dollars
-  , Ext_wikilinks_block_embeds
+  , Ext_wikilink_transclusion
   , Ext_wikilinks_title_after_pipe
   , Ext_yaml_metadata_block
   ]

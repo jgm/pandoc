@@ -467,12 +467,12 @@ addBlockId (id', classes, kvs) st =
     Nothing -> (id', classes, kvs)
     Just bid -> (if T.null id' then bid else id', classes, kvs)
 
-wikilinkEmbed :: PandocMonad m => MarkdownParser m (F Blocks)
-wikilinkEmbed = try $ do
-  guardEnabled Ext_wikilinks_block_embeds
+wikilinkTransclusion :: PandocMonad m => MarkdownParser m (F Blocks)
+wikilinkTransclusion = try $ do
+  guardEnabled Ext_wikilink_transclusion
   char '!'
   res <- wikilink B.linkWith
-  return $ B.divWith ("", ["wikilink-embed"], []) . B.para <$> res
+  return $ B.divWith ("", ["wikilink-transclusion"], []) . B.para <$> res
 
 parseBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
@@ -480,7 +480,7 @@ parseBlocks = mconcat <$> manyTill block eof
 block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
   res <- choice [ mempty <$ blanklines
-               , wikilinkEmbed
+               , wikilinkTransclusion
                , codeBlockFenced
                , yamlMetaBlock'
                -- note: bulletList needs to be before header because of
