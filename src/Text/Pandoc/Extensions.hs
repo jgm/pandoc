@@ -416,9 +416,11 @@ getDefaultExtensions "obsidian"          = extensionsFromList
   , Ext_block_ids
   , Ext_comments
   , Ext_footnotes
+  , Ext_hard_line_breaks
   , Ext_mark
   , Ext_pipe_tables
   , Ext_raw_html
+  , Ext_rebase_relative_paths
   , Ext_strikeout
   , Ext_task_lists
   , Ext_tex_math_dollars
@@ -551,7 +553,6 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "obsidian"          = extensionsFromList
     [ Ext_ascii_identifiers
     , Ext_alerts
-    , Ext_attributes
     , Ext_autolink_bare_uris
     , Ext_block_ids
     , Ext_comments
