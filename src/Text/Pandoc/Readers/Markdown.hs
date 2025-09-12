@@ -2055,12 +2055,15 @@ wikilinkTransclusion = try $ do
   if T.null blockRef
      then do
        guardEnabled Ext_wikilink_transclusion
-       let attr = (mempty, ["wikilink", "transclusion"], [("data-transclusion", "true")])
-       return $ return $ B.imageWith attr url "" (B.text $ fromEntities title')
+       currentDir <- takeDirectory . sourceName <$> getPosition
+       let filename = T.unpack url <> ".md"  -- Assume .md extension
+       insertIncludedFile (fmap B.toInlines <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
      else do
        guardEnabled Ext_block_transclusion
-       let attr = (mempty, ["wikilink", "transclusion"], [("block-ref", T.drop 1 blockRef), ("data-transclusion", "true")])
-       return $ return $ B.imageWith attr target' "" (B.text $ fromEntities title')
+       currentDir <- takeDirectory . sourceName <$> getPosition
+       let filename = T.unpack url <> ".md"  -- Assume .md extension
+       let blockId = T.drop 1 blockRef  -- Remove the '^' prefix
+       insertIncludedFile (extractBlockById blockId <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
@@ -2368,6 +2371,25 @@ doubleQuoted = do
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
       many1Till inline doubleQuoteEnd))
     <|> (return (return (B.str "\8220")))
+
+-- | Extract a block with a specific ID from a list of blocks
+extractBlockById :: Text -> Blocks -> F Inlines
+extractBlockById targetId blocks = 
+  case findBlockById targetId (B.toList blocks) of
+    Just block -> return $ B.toInlines $ B.fromList [block]
+    Nothing -> return mempty
+
+-- | Find a block with a specific ID in a list of blocks
+findBlockById :: Text -> [Block] -> Maybe Block
+findBlockById targetId = go
+  where
+    go [] = Nothing
+    go (block:rest) = 
+      case block of
+        Div (bid, _, _) [Para _] | bid == targetId -> Just block
+        Div (bid, _, _) _ | bid == targetId -> Just block
+        Header _ (bid, _, _) _ | bid == targetId -> Just block
+        _ -> go rest
 
 blockId :: PandocMonad m => MarkdownParser m (F Inlines)
 blockId = try $ do
