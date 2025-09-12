@@ -83,7 +83,7 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              notAfterString,
                              logMessage,
                              reportLogMessages,
-                             ParserState(..),
+                             ParserState (..),
                              HasReaderOptions (..),
                              HasIdentifierList (..),
                              HasMacros (..),
@@ -178,14 +178,7 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              Column,
                              ParseError,
                              errorMessages,
-                             messageString,
-                             stateFencedDivLevel,
-                             stateContainers,
-                             stateLogMessages,
-                             stateMarkdownAttribute,
-                             stateInHtmlBlock,
-                             stateRstCustomRoles,
-                             stateCaption )
+                             messageString )
 where
 
 import Text.Pandoc.Sources
