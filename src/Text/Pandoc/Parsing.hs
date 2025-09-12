@@ -178,7 +178,8 @@ module Text.Pandoc.Parsing ( module Text.Pandoc.Sources,
                              Column,
                              ParseError,
                              errorMessages,
-                             messageString )
+                             messageString
+                             )
 where
 
 import Text.Pandoc.Sources
