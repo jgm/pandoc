@@ -504,12 +504,24 @@ vimdocTable multiline headless aligns widths rawHeaders rawRows = do
       $$ (if multiline then blankline else empty)
       $$ body
 
+-- | Replace Unicode characters with their ASCII representation
+replaceSpecialStrings :: Text -> Text
+replaceSpecialStrings =
+  let expand c = case c of
+        '\x00ad' -> ""
+        '\x2013' -> "--"
+        '\x2014' -> "---"
+        '\x2019' -> "'"
+        '\x2026' -> "..."
+        _        -> T.singleton c
+  in T.concatMap expand
+
 inlineListToVimdoc :: (PandocMonad m) => [Inline] -> VW m (Doc Text)
 inlineListToVimdoc inlines = hcat <$> mapM inlineToVimdoc inlines
 
 inlineToVimdoc :: (PandocMonad m) => Inline -> VW m (Doc Text)
 
-inlineToVimdoc (Str str) = pure $ literal str
+inlineToVimdoc (Str str) = pure . literal $ replaceSpecialStrings str
 
 -- Neither `:h help-writing`, nor neovim's grammar.js for vimdoc and
 -- highlights.scm say anything about styling text, so we strip all the
