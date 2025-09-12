@@ -1243,7 +1243,7 @@ alignType strLst len =
   let nonempties = filter (not . T.null) $ map trimr strLst
       (leftSpace, rightSpace) =
            case sortOn T.length nonempties of
-                 (x:_) -> (T.head x `elem` [' ', '\t'], T.length x < len)
+                 (x:_) -> (T.head x `elem` [' ', '\t'], realLength x < len)
                  []    -> (False, False)
   in  case (leftSpace, rightSpace) of
         (True,  False) -> AlignRight
