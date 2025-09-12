@@ -2055,11 +2055,11 @@ wikilinkTransclusion = try $ do
   if T.null blockRef
      then do
        guardEnabled Ext_wikilink_transclusion
-       let attr = (mempty, ["wikilink", "transclusion"], [])
+       let attr = (mempty, ["wikilink", "transclusion"], [("data-transclusion", "true")])
        return $ return $ B.imageWith attr url "" (B.text $ fromEntities title')
      else do
        guardEnabled Ext_block_transclusion
-       let attr = (mempty, ["wikilink", "transclusion"], [("block-ref", T.drop 1 blockRef)])
+       let attr = (mempty, ["wikilink", "transclusion"], [("block-ref", T.drop 1 blockRef), ("data-transclusion", "true")])
        return $ return $ B.imageWith attr target' "" (B.text $ fromEntities title')
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
