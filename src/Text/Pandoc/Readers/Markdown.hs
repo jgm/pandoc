@@ -2028,17 +2028,23 @@ rebasePath pos path = do
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
   char '!'
-  wikilinkTransclusion <|>
-    do (lab,raw) <- reference
-       defaultExt <- getOption readerDefaultImageExtension
-       let constructor attr' src
-             | "data:" `T.isPrefixOf` src = B.imageWith attr' src  -- see #9118
-             | otherwise =
-                case takeExtension (T.unpack src) of
-                   "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                                   $ T.unpack defaultExt)
-                   _  -> B.imageWith attr' src
-       regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
+  -- First try wikilink transclusion
+  (try wikilinkTransclusion) <|>
+    -- Then try regular image parsing
+    (do (lab,raw) <- reference
+        defaultExt <- getOption readerDefaultImageExtension
+        let constructor attr' src
+              | "data:" `T.isPrefixOf` src = B.imageWith attr' src  -- see #9118
+              | otherwise =
+                 case takeExtension (T.unpack src) of
+                    "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                                    $ T.unpack defaultExt)
+                    _  -> B.imageWith attr' src
+        regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)) <|>
+    -- Fallback: if it looks like ![[...]], create a span with literal text
+    (do try $ string "[["
+        content <- many1TillChar anyChar (try $ string "]]")
+        return $ return $ B.spanWith ("", [], []) (B.str $ "![[" <> content <> "]]"))
 
 wikilinkTransclusion :: PandocMonad m => MarkdownParser m (F Inlines)
 wikilinkTransclusion = try $ do
@@ -2058,7 +2064,7 @@ wikilinkTransclusion = try $ do
        currentDir <- takeDirectory . sourceName <$> getPosition
        let filename = T.unpack url
        -- Support relative paths like "Folder/File" by using currentDir as base
-       insertIncludedFile (fmap B.toInlines <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
+       insertIncludedFile parseTranscludedInlines toSources [currentDir] filename Nothing Nothing
      else do
        let fragmentContent = T.drop 1 fragment  -- Remove the '#' prefix
        if T.take 1 fragmentContent == "^"
@@ -2069,7 +2075,7 @@ wikilinkTransclusion = try $ do
            let filename = T.unpack url <> ".md"  -- Assume .md extension for block transclusion
            let blockId = T.drop 1 fragmentContent  -- Remove the '^' prefix
            -- Support relative paths like "Folder/File" by using currentDir as base
-           insertIncludedFile (extractBlockById blockId <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
+           insertIncludedFile (parseBlockTransclusion blockId) toSources [currentDir] filename Nothing Nothing
          else do
            -- Heading transclusion: ![[File#Heading]]
            guardEnabled Ext_wikilink_heading_transclusions
@@ -2077,7 +2083,7 @@ wikilinkTransclusion = try $ do
            let filename = T.unpack url <> ".md"  -- Assume .md extension for heading transclusion
            let headingText = fragmentContent
            -- Support relative paths like "Folder/File" by using currentDir as base
-           insertIncludedFile (extractHeadingById headingText <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
+           insertIncludedFile (parseHeadingTransclusion headingText) toSources [currentDir] filename Nothing Nothing
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
@@ -2390,7 +2396,7 @@ doubleQuoted = do
 extractBlockById :: Text -> Blocks -> F Inlines
 extractBlockById targetId blocks = 
   case findBlockById targetId (B.toList blocks) of
-    Just block -> return $ B.toInlines $ B.fromList [block]
+    Just block -> return $ blocksToInlines' [block]
     Nothing -> return mempty
 
 -- | Find a block with a specific ID in a list of blocks
@@ -2410,7 +2416,25 @@ extractHeadingById :: Text -> Blocks -> F Inlines
 extractHeadingById targetHeading blocks = 
   case extractContentUnderHeading targetHeading (B.toList blocks) of
     [] -> return mempty
-    content -> return $ B.toInlines $ B.fromList content
+    content -> return $ blocksToInlines' content
+
+-- | Parse a file and convert all blocks to inlines for transclusion
+parseTranscludedInlines :: PandocMonad m => MarkdownParser m (F Inlines)
+parseTranscludedInlines = do
+  blocks <- parseBlocks
+  return $ fmap (blocksToInlines' . B.toList) blocks
+
+-- | Parse a file and extract a specific block by ID for transclusion
+parseBlockTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
+parseBlockTransclusion blockId = do
+  blocks <- parseBlocks
+  return $ blocks >>= extractBlockById blockId
+
+-- | Parse a file and extract content under a specific heading for transclusion
+parseHeadingTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
+parseHeadingTransclusion headingText = do
+  blocks <- parseBlocks
+  return $ blocks >>= extractHeadingById headingText
 
 -- | Extract all content under a heading until the next heading of same or higher level
 extractContentUnderHeading :: Text -> [Block] -> [Block]
