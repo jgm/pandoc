@@ -144,10 +144,10 @@ data Extension =
                                      -- [[target|title]]
     | Ext_wikilinks_title_before_pipe  -- ^ Support wikilinks of style
                                        -- [[title|target]]
+    | Ext_wikilink_transclusion     -- ^ Wikilink transclusion e.g. ![[title]]
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
-    | Ext_wikilink_transclusion     -- ^ Wikilink transclusion e.g. ![[title]]
     | CustomExtension T.Text  -- ^ Custom extension
     deriving (Show, Read, Eq, Ord, Data, Typeable, Generic)
 
@@ -413,7 +413,7 @@ getDefaultExtensions "obsidian"          = extensionsFromList
   [ Ext_alerts
   , Ext_autolink_bare_uris
   , Ext_block_ids
-  , Ext_wikilink_transclusion
+  , Ext_block_transclusion
   , Ext_comments
   , Ext_footnotes
   , Ext_mark
@@ -422,8 +422,8 @@ getDefaultExtensions "obsidian"          = extensionsFromList
   , Ext_strikeout
   , Ext_task_lists
   , Ext_tex_math_dollars
-  , Ext_wikilink_transclusion
   , Ext_wikilinks_title_after_pipe
+  , Ext_wikilink_transclusion
   , Ext_yaml_metadata_block
   ]
 getDefaultExtensions "commonmark"      = extensionsFromList
