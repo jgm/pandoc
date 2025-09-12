@@ -548,7 +548,28 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "markdown_mmd"      = allMarkdownExtensions
   getAll "markdown_github"   = allMarkdownExtensions
   getAll "markdown"          = allMarkdownExtensions
-  getAll "obsidian"          = getAll "commonmark"
+  getAll "obsidian"          = extensionsFromList
+    [ Ext_ascii_identifiers
+    , Ext_alerts
+    , Ext_attributes
+    , Ext_autolink_bare_uris
+    , Ext_block_ids
+    , Ext_comments
+    , Ext_footnotes
+    , Ext_hard_line_breaks
+    , Ext_mark
+    , Ext_pipe_tables
+    , Ext_raw_html
+    , Ext_rebase_relative_paths
+    , Ext_strikeout
+    , Ext_task_lists
+    , Ext_tex_math_dollars
+    , Ext_wikilink_block_transclusions
+    , Ext_wikilink_heading_transclusions
+    , Ext_wikilink_transclusions
+    , Ext_wikilinks_title_after_pipe
+    , Ext_yaml_metadata_block
+    ]
   getAll "ipynb"             = allMarkdownExtensions <> extensionsFromList
     [ Ext_raw_markdown ]
   getAll "docx"            = autoIdExtensions <> extensionsFromList

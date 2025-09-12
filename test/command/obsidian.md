@@ -18,35 +18,35 @@ A paragraph with a block ID. ^my-id
 % pandoc -f obsidian -t native
 An embed: ![[myfile.md]]
 ^D
-[ Para [ Str "An" , Space , Str "embed:" , Space ] ]
+[ Para [ Str "An" , Space , Str "embed:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile.md]]" ] ] ]
 ```
 
 ```
 % pandoc -f obsidian -t native
 A block reference embed: ![[myfile.md#^my-id]]
 ^D
-[ Para [ Str "A" , Space , Str "block" , Space , Str "reference" , Space , Str "embed:" , Space ] ]
+[ Para [ Str "A" , Space , Str "block" , Space , Str "reference" , Space , Str "embed:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile.md#^my-id]]" ] ] ]
 ```
 
 ```
 % pandoc -f obsidian -t native
 A wikilink transclusion: ![[my-wikilink]]
 ^D
-[ Para [ Str "A" , Space , Str "wikilink" , Space , Str "transclusion:" , Space ] ]
+[ Para [ Str "A" , Space , Str "wikilink" , Space , Str "transclusion:" , Space , Span ( "" , [] , [] ) [ Str "![[my-wikilink]]" ] ] ]
 ```
 
 ```
 % pandoc -f obsidian -t native
 A block transclusion: ![[myfile#^my-id]]
 ^D
-[ Para [ Str "A" , Space , Str "block" , Space , Str "transclusion:" , Space ] ]
+[ Para [ Str "A" , Space , Str "block" , Space , Str "transclusion:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile#^my-id]]" ] ] ]
 ```
 
 ```
 % pandoc -f obsidian -t native
 A heading transclusion: ![[myfile#Introduction]]
 ^D
-[ Para [ Str "A" , Space , Str "heading" , Space , Str "transclusion:" , Space ] ]
+[ Para [ Str "A" , Space , Str "heading" , Space , Str "transclusion:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile#Introduction]]" ] ] ]
 ```
 
 ```
