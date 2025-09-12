@@ -411,13 +411,12 @@ getDefaultExtensions "gfm"             = extensionsFromList
   ]
 getDefaultExtensions "obsidian"          = extensionsFromList
   [ Ext_alerts
-  , Ext_auto_identifiers
   , Ext_autolink_bare_uris
   , Ext_block_ids
   , Ext_block_references
   , Ext_comments
-  , Ext_emoji
   , Ext_footnotes
+  , Ext_mark
   , Ext_pipe_tables
   , Ext_raw_html
   , Ext_strikeout
@@ -427,7 +426,6 @@ getDefaultExtensions "obsidian"          = extensionsFromList
   , Ext_wikilinks_title_after_pipe
   , Ext_yaml_metadata_block
   ]
-
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
 getDefaultExtensions "commonmark_x"    = extensionsFromList
