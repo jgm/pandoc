@@ -2393,11 +2393,11 @@ doubleQuoted = do
     <|> (return (return (B.str "\8220")))
 
 -- | Extract a block with a specific ID from a list of blocks
-extractBlockById :: Text -> Blocks -> F Inlines
+extractBlockById :: Text -> Blocks -> Inlines
 extractBlockById targetId blocks = 
   case findBlockById targetId (B.toList blocks) of
-    Just block -> return $ blocksToInlines' [block]
-    Nothing -> return mempty
+    Just block -> blocksToInlines' [block]
+    Nothing -> mempty
 
 -- | Find a block with a specific ID in a list of blocks
 findBlockById :: Text -> [Block] -> Maybe Block
@@ -2412,11 +2412,11 @@ findBlockById targetId = go
         _ -> go rest
 
 -- | Extract content under a specific heading from a list of blocks
-extractHeadingById :: Text -> Blocks -> F Inlines
+extractHeadingById :: Text -> Blocks -> Inlines
 extractHeadingById targetHeading blocks = 
   case extractContentUnderHeading targetHeading (B.toList blocks) of
-    [] -> return mempty
-    content -> return $ blocksToInlines' content
+    [] -> mempty
+    content -> blocksToInlines' content
 
 -- | Parse a file and convert all blocks to inlines for transclusion
 parseTranscludedInlines :: PandocMonad m => MarkdownParser m (F Inlines)
@@ -2428,13 +2428,13 @@ parseTranscludedInlines = do
 parseBlockTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
 parseBlockTransclusion blockId = do
   blocks <- parseBlocks
-  return $ blocks >>= extractBlockById blockId
+  return $ fmap (extractBlockById blockId) blocks
 
 -- | Parse a file and extract content under a specific heading for transclusion
 parseHeadingTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
 parseHeadingTransclusion headingText = do
   blocks <- parseBlocks
-  return $ blocks >>= extractHeadingById headingText
+  return $ fmap (extractHeadingById headingText) blocks
 
 -- | Extract all content under a heading until the next heading of same or higher level
 extractContentUnderHeading :: Text -> [Block] -> [Block]
