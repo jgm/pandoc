@@ -24,7 +24,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Bifunctor (second)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
-import Data.List (transpose, elemIndex, sortOn, foldl')
+import Data.List (transpose, elemIndex, sortOn)
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
@@ -467,12 +467,12 @@ addBlockId (id', classes, kvs) st =
     Nothing -> (id', classes, kvs)
     Just bid -> (if T.null id' then bid else id', classes, kvs)
 
-blockTransclusion :: PandocMonad m => MarkdownParser m (F Blocks)
-blockTransclusion = try $ do
-  guardEnabled Ext_wikilink_block_transclusions
-  char '!'
-  res <- wikilink B.linkWith
-  return $ B.divWith ("", ["block-transclusion"], []) . B.para <$> res
+-- blockTransclusion :: PandocMonad m => MarkdownParser m (F Blocks)
+-- blockTransclusion = try $ do
+--   guardEnabled Ext_wikilink_block_transclusions
+--   char '!'
+--   res <- wikilink B.linkWith
+--   return $ B.divWith ("", ["block-transclusion"], []) . B.para <$> res
 
 parseBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
@@ -2051,7 +2051,7 @@ wikilinkTransclusion = try $ do
   string "[[" *> notFollowedBy' (char '[')
   raw <- many1TillChar anyChar (try $ string "]]")
   titleAfter <- (True <$ guardEnabled Ext_wikilinks_title_after_pipe) <|> pure False
-  let (title', target') = case T.break (== '|') raw of
+  let (_, target') = case T.break (== '|') raw of
         (before, "") -> (before, before)
         (before, after)
           | titleAfter -> (T.drop 1 after, before)
@@ -2073,9 +2073,9 @@ wikilinkTransclusion = try $ do
            guardEnabled Ext_wikilink_block_transclusions
            currentDir <- takeDirectory . sourceName <$> getPosition
            let filename = T.unpack url <> ".md"  -- Assume .md extension for block transclusion
-           let blockId = T.drop 1 fragmentContent  -- Remove the '^' prefix
+           let blockIdText = T.drop 1 fragmentContent  -- Remove the '^' prefix
            -- Support relative paths like "Folder/File" by using currentDir as base
-           insertIncludedFile (parseBlockTransclusion blockId) toSources [currentDir] filename Nothing Nothing
+           insertIncludedFile (parseBlockTransclusion blockIdText) toSources [currentDir] filename Nothing Nothing
          else do
            -- Heading transclusion: ![[File#Heading]]
            guardEnabled Ext_wikilink_heading_transclusions
@@ -2396,7 +2396,8 @@ doubleQuoted = do
 extractBlockById :: Text -> Blocks -> Inlines
 extractBlockById targetId blocks = 
   case findBlockById targetId (B.toList blocks) of
-    Just block -> blocksToInlines' [block]
+    Just (Div _ contents) -> blocksToInlines' contents  -- Extract content from Div wrapper
+    Just blk -> blocksToInlines' [blk]
     Nothing -> mempty
 
 -- | Find a block with a specific ID in a list of blocks
@@ -2404,11 +2405,10 @@ findBlockById :: Text -> [Block] -> Maybe Block
 findBlockById targetId = go
   where
     go [] = Nothing
-    go (block:rest) = 
-      case block of
-        Div (bid, _, _) [Para _] | bid == targetId -> Just block
-        Div (bid, _, _) _ | bid == targetId -> Just block
-        Header _ (bid, _, _) _ | bid == targetId -> Just block
+    go (blk:rest) = 
+      case blk of
+        Div (bid, _, _) _ | bid == targetId -> Just blk
+        Header _ (bid, _, _) _ | bid == targetId -> Just blk
         _ -> go rest
 
 -- | Extract content under a specific heading from a list of blocks
@@ -2426,9 +2426,9 @@ parseTranscludedInlines = do
 
 -- | Parse a file and extract a specific block by ID for transclusion
 parseBlockTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
-parseBlockTransclusion blockId = do
+parseBlockTransclusion blockIdText = do
   blocks <- parseBlocks
-  return $ fmap (extractBlockById blockId) blocks
+  return $ fmap (extractBlockById blockIdText) blocks
 
 -- | Parse a file and extract content under a specific heading for transclusion
 parseHeadingTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
@@ -2441,24 +2441,24 @@ extractContentUnderHeading :: Text -> [Block] -> [Block]
 extractContentUnderHeading targetHeading = go False 0
   where
     go _found _level [] = []
-    go found level (block:rest) =
-      case block of
-        Header lvl _ inlines 
-          | stringify inlines == targetHeading -> 
+    go found level (blk:rest) =
+      case blk of
+        Header lvl _ ils 
+          | stringify ils == targetHeading -> 
               -- Found target heading, start collecting content
-              block : go True lvl rest
+              blk : go True lvl rest
           | found && lvl <= level -> 
               -- Found heading of same or higher level, stop collecting
               []
           | found -> 
               -- Collecting content under target heading
-              block : go True level rest
+              blk : go True level rest
           | otherwise -> 
               -- Haven't found target heading yet
               go False level rest
         _ | found -> 
             -- Collecting content under target heading
-            block : go True level rest
+            blk : go True level rest
           | otherwise -> 
             -- Haven't found target heading yet
             go False level rest
