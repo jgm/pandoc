@@ -12,7 +12,7 @@ import Control.Monad.State (MonadState (..), StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
 import Data.List (intercalate, intersperse, transpose)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
-import Data.Maybe (fromJust, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.DocLayout hiding (char, link, text)
