@@ -6223,17 +6223,17 @@ or
 
 ### Extension: `block_ids` ###
 
-Follows the [Obsidan-style block identifiers] syntax. For example add `^123` at the end of a paragraph:
+Follows the [Obsidan-style block identifiers] syntax. For example add `^ref` at the end of a paragraph:
 
-    Text ^123
+    Text ^ref
 
 [Obsidan-style block identifiers]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
 
 ### Extension: `block_transclusions` ###
 
-Follows the [Obsidan-style block transclusions] syntax. For example to transclude block ID ^123 within the file "Title":
+Follows the [Obsidan-style block transclusions] syntax. For example to transclude block ID ^ref within the file "Title":
 
-    ![[Title#^123]]
+    ![[Title#^ref]]
 
 [Obsidan-style block transclusions]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
 

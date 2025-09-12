@@ -467,12 +467,12 @@ addBlockId (id', classes, kvs) st =
     Nothing -> (id', classes, kvs)
     Just bid -> (if T.null id' then bid else id', classes, kvs)
 
-wikilinkTransclusion :: PandocMonad m => MarkdownParser m (F Blocks)
-wikilinkTransclusion = try $ do
-  guardEnabled Ext_wikilink_transclusion
+blockTransclusion :: PandocMonad m => MarkdownParser m (F Blocks)
+blockTransclusion = try $ do
+  guardEnabled Ext_block_transclusion
   char '!'
   res <- wikilink B.linkWith
-  return $ B.divWith ("", ["wikilink-transclusion"], []) . B.para <$> res
+  return $ B.divWith ("", ["block-transclusion"], []) . B.para <$> res
 
 parseBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
@@ -480,7 +480,6 @@ parseBlocks = mconcat <$> manyTill block eof
 block :: PandocMonad m => MarkdownParser m (F Blocks)
 block = do
   res <- choice [ mempty <$ blanklines
-               , wikilinkTransclusion
                , codeBlockFenced
                , yamlMetaBlock'
                -- note: bulletList needs to be before header because of
@@ -2029,7 +2028,7 @@ rebasePath pos path = do
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
   char '!'
-  wikilink B.imageWith <|>
+  wikilinkTransclusion <|>
     do (lab,raw) <- reference
        defaultExt <- getOption readerDefaultImageExtension
        let constructor attr' src
@@ -2040,6 +2039,28 @@ image = try $ do
                                                    $ T.unpack defaultExt)
                    _  -> B.imageWith attr' src
        regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
+
+wikilinkTransclusion :: PandocMonad m => MarkdownParser m (F Inlines)
+wikilinkTransclusion = try $ do
+  string "[[" *> notFollowedBy' (char '[')
+  raw <- many1TillChar anyChar (try $ string "]]")
+  titleAfter <- (True <$ guardEnabled Ext_wikilinks_title_after_pipe) <|> pure False
+  let (title', target') = case T.break (== '|') raw of
+        (before, "") -> (before, before)
+        (before, after)
+          | titleAfter -> (T.drop 1 after, before)
+          | otherwise -> (before, T.drop 1 after)
+  let (url, blockRef) = T.break (== '#') target'
+  guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+  if T.null blockRef
+     then do
+       guardEnabled Ext_wikilink_transclusion
+       let attr = (mempty, ["wikilink", "transclusion"], [])
+       return $ return $ B.imageWith attr url "" (B.text $ fromEntities title')
+     else do
+       guardEnabled Ext_block_transclusion
+       let attr = (mempty, ["wikilink", "transclusion"], [("block-ref", T.drop 1 blockRef)])
+       return $ return $ B.imageWith attr target' "" (B.text $ fromEntities title')
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
