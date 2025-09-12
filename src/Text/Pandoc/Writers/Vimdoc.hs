@@ -563,26 +563,19 @@ inlineToVimdoc inline@(RawInline (Format format) text) = case format of
   _ -> "" <$ report (InlineNotRendered inline)
 
 inlineToVimdoc (Link _ txt (src, _)) = do
-  txt' <- render Nothing <$> inlineListToVimdoc txt
+  let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
+  linkText <- render Nothing <$> inlineListToVimdoc txt
 
-  let isShortlink = case txt of
-        [Str x] | escapeURI x == src -> True
+  let isAutolink = case txt of
+        [Str x] | escapeURI x `elem` [src, srcSuffix] -> True
         _ -> False
 
-  let delim =
-        if " " `T.isSuffixOf` txt' && not (T.null txt')
-          then ""
-          else " "
-
-  pure . literal $ case refdocLinkToLink src of
-    Right link | isShortlink -> "|" <> link <> "|"
-    Right link -> txt' <> delim <> "|" <> link <> "|"
-    Left _ | isURI src, isShortlink -> src
-    Left _
-      | "#" `T.isPrefixOf` src ->
-          let src' = fromJust (T.stripPrefix "#" src)
-           in txt' <> delim <> "|" <> src' <> "|"
-    Left _ -> txt' <> delim <> src
+  pure $ case refdocLinkToLink src of
+    Right link | isAutolink -> "|" <> literal link <> "|"
+    Right link ->
+      literal (T.stripEnd linkText) <> space <> "|" <> literal link <> "|"
+    Left _ | isURI src, isAutolink -> literal srcSuffix
+    Left _ -> literal (T.stripEnd linkText) <> space <> literal srcSuffix
 
 inlineToVimdoc (Image {}) = pure ""
 

@@ -447,8 +447,8 @@ Smart quotes, ellipses, dashes                      *smart-quotes-ellipses-dashe
 
 'He said, "I want to go."' Were you alive in the 70's?
 
-Here is some quoted '`code`' and a
-"quoted link http://example.com/?foo=1&bar=2".
+Here is some quoted '`code`' and a "quoted link
+http://example.com/?foo=1&bar=2".
 
 Some dashes: one---two --- three---four --- five.
 
@@ -557,7 +557,7 @@ URL and title /url/
 
 with_underscore /url/with_underscore
 
-Email link mailto:nobody@nowhere.net
+Email link nobody@nowhere.net
 
 Empty .
 
@@ -605,7 +605,7 @@ With an ampersand: http://example.com/?foo=1&bar=2
 - http://example.com/
 - It should.
 
-An e-mail address: nobody@nowhere.net mailto:nobody@nowhere.net
+An e-mail address: nobody@nowhere.net
 
 | Blockquoted: http://example.com/
 
