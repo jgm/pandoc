@@ -70,3 +70,19 @@ A block transclusion: ![[myfile#^my-id]]
 [ Para [ Str "A" , Space , Str "block" , Space , Str "transclusion:" , Space , Str "!" , Link ( "" , [ "wikilink" ] , [] ) [ Str "myfile#^my-id" ] ( "myfile#^my-id" , "" ) ] ]
 ```
 
+```
+% pandoc -f obsidian -t native
+Text with ==highlighted== content.
+^D
+[ Para
+    [ Str "Text"
+    , Space
+    , Str "with"
+    , Space
+    , Span ( "" , [ "mark" ] , [] ) [ Str "highlighted" ]
+    , Space
+    , Str "content."
+    ]
+]
+```
+
