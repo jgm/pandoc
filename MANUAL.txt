@@ -6162,11 +6162,12 @@ simply skipped (as opposed to being parsed as paragraphs).
 
 ### Extension: `alerts` ###
 
-Supports [GitHub-style Markdown alerts], like
+Supports [GitHub-style Markdown alerts] and [Obsidian callouts], like
 
     > [!TIP]
     > Helpful advice for doing things better or more easily.
 
+  [Obsidian callouts]: https://help.obsidian.md/callouts
   [GitHub-style Markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
 
 Note: This extension currently only works with commonmark:
