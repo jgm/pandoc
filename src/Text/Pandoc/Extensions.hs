@@ -550,7 +550,7 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "markdown_mmd"      = allMarkdownExtensions
   getAll "markdown_github"   = allMarkdownExtensions
   getAll "markdown"          = allMarkdownExtensions
-  getAll "obsidian"          = extensionsFromList
+  getAll "obsidian"          = getAll "commonmark" <> extensionsFromList
     [ Ext_ascii_identifiers
     , Ext_alerts
     , Ext_autolink_bare_uris
