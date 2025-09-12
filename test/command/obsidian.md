@@ -43,14 +43,28 @@ A block transclusion: ![[myfile#^my-id]]
 ```
 
 ```
-% pandoc -f obsidian-wikilink_transclusion -t native
+% pandoc -f obsidian -t native
+A heading transclusion: ![[myfile#Introduction]]
+^D
+[ Para [ Str "A" , Space , Str "heading" , Space , Str "transclusion:" , Space ] ]
+```
+
+```
+% pandoc -f obsidian-wikilink_transclusions -t native
 A wikilink transclusion: ![[my-wikilink]]
 ^D
 [ Para [ Str "A" , Space , Str "wikilink" , Space , Str "transclusion:" , Space , Str "!" , Link ( "" , [ "wikilink" ] , [] ) [ Str "my-wikilink" ] ( "my-wikilink" , "" ) ] ]
 ```
 
 ```
-% pandoc -f obsidian-block_transclusion -t native
+% pandoc -f obsidian-wikilink_heading_transclusions -t native
+A heading transclusion: ![[myfile#Introduction]]
+^D
+[ Para [ Str "A" , Space , Str "heading" , Space , Str "transclusion:" , Space , Str "!" , Link ( "" , [ "wikilink" ] , [] ) [ Str "myfile#Introduction" ] ( "myfile#Introduction" , "" ) ] ]
+```
+
+```
+% pandoc -f obsidian-wikilink_block_transclusions -t native
 A block transclusion: ![[myfile#^my-id]]
 ^D
 [ Para [ Str "A" , Space , Str "block" , Space , Str "transclusion:" , Space , Str "!" , Link ( "" , [ "wikilink" ] , [] ) [ Str "myfile#^my-id" ] ( "myfile#^my-id" , "" ) ] ]

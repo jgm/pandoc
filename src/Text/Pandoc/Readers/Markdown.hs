@@ -469,7 +469,7 @@ addBlockId (id', classes, kvs) st =
 
 blockTransclusion :: PandocMonad m => MarkdownParser m (F Blocks)
 blockTransclusion = try $ do
-  guardEnabled Ext_block_transclusion
+  guardEnabled Ext_wikilink_block_transclusions
   char '!'
   res <- wikilink B.linkWith
   return $ B.divWith ("", ["block-transclusion"], []) . B.para <$> res
@@ -2050,20 +2050,34 @@ wikilinkTransclusion = try $ do
         (before, after)
           | titleAfter -> (T.drop 1 after, before)
           | otherwise -> (before, T.drop 1 after)
-  let (url, blockRef) = T.break (== '#') target'
+  let (url, fragment) = T.break (== '#') target'
   guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
-  if T.null blockRef
+  if T.null fragment
      then do
-       guardEnabled Ext_wikilink_transclusion
+       guardEnabled Ext_wikilink_transclusions
        currentDir <- takeDirectory . sourceName <$> getPosition
-       let filename = T.unpack url <> ".md"  -- Assume .md extension
+       let filename = T.unpack url
+       -- Support relative paths like "Folder/File" by using currentDir as base
        insertIncludedFile (fmap B.toInlines <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
      else do
-       guardEnabled Ext_block_transclusion
-       currentDir <- takeDirectory . sourceName <$> getPosition
-       let filename = T.unpack url <> ".md"  -- Assume .md extension
-       let blockId = T.drop 1 blockRef  -- Remove the '^' prefix
-       insertIncludedFile (extractBlockById blockId <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
+       let fragmentContent = T.drop 1 fragment  -- Remove the '#' prefix
+       if T.take 1 fragmentContent == "^"
+         then do
+           -- Block ID transclusion: ![[File#^block-id]]
+           guardEnabled Ext_wikilink_block_transclusions
+           currentDir <- takeDirectory . sourceName <$> getPosition
+           let filename = T.unpack url <> ".md"  -- Assume .md extension for block transclusion
+           let blockId = T.drop 1 fragmentContent  -- Remove the '^' prefix
+           -- Support relative paths like "Folder/File" by using currentDir as base
+           insertIncludedFile (extractBlockById blockId <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
+         else do
+           -- Heading transclusion: ![[File#Heading]]
+           guardEnabled Ext_wikilink_heading_transclusions
+           currentDir <- takeDirectory . sourceName <$> getPosition
+           let filename = T.unpack url <> ".md"  -- Assume .md extension for heading transclusion
+           let headingText = fragmentContent
+           -- Support relative paths like "Folder/File" by using currentDir as base
+           insertIncludedFile (extractHeadingById headingText <$> parseBlocks) toSources [currentDir] filename Nothing Nothing
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
@@ -2390,6 +2404,40 @@ findBlockById targetId = go
         Div (bid, _, _) _ | bid == targetId -> Just block
         Header _ (bid, _, _) _ | bid == targetId -> Just block
         _ -> go rest
+
+-- | Extract content under a specific heading from a list of blocks
+extractHeadingById :: Text -> Blocks -> F Inlines
+extractHeadingById targetHeading blocks = 
+  case extractContentUnderHeading targetHeading (B.toList blocks) of
+    [] -> return mempty
+    content -> return $ B.toInlines $ B.fromList content
+
+-- | Extract all content under a heading until the next heading of same or higher level
+extractContentUnderHeading :: Text -> [Block] -> [Block]
+extractContentUnderHeading targetHeading = go False 0
+  where
+    go _found _level [] = []
+    go found level (block:rest) =
+      case block of
+        Header lvl _ inlines 
+          | stringify inlines == targetHeading -> 
+              -- Found target heading, start collecting content
+              block : go True lvl rest
+          | found && lvl <= level -> 
+              -- Found heading of same or higher level, stop collecting
+              []
+          | found -> 
+              -- Collecting content under target heading
+              block : go True level rest
+          | otherwise -> 
+              -- Haven't found target heading yet
+              go False level rest
+        _ | found -> 
+            -- Collecting content under target heading
+            block : go True level rest
+          | otherwise -> 
+            -- Haven't found target heading yet
+            go False level rest
 
 blockId :: PandocMonad m => MarkdownParser m (F Inlines)
 blockId = try $ do

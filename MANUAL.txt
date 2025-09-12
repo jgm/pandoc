@@ -6221,22 +6221,6 @@ or
 
     Oxygen is O~2.
 
-### Extension: `block_ids` ###
-
-Follows the [Obsidan-style block identifiers] syntax. For example add `^ref` at the end of a paragraph:
-
-    Text ^ref
-
-[Obsidan-style block identifiers]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
-
-### Extension: `block_transclusions` ###
-
-Follows the [Obsidan-style block transclusions] syntax. For example to transclude block ID ^ref within the file "Title":
-
-    ![[Title#^ref]]
-
-[Obsidan-style block transclusions]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
-
 ### Extension: `wikilink_transclusions` ###
 
 Follows [Obsidan-style transclusions] using wikilink syntax to embed one file in another. For example to transclude the file "Title":
@@ -6244,6 +6228,30 @@ Follows [Obsidan-style transclusions] using wikilink syntax to embed one file in
     ![[Title]]
 
 [Obsidan-style transclusions]: https://help.obsidian.md/embeds
+
+### Extension: `wilikink_heading_transclusions` ###
+
+Follows the [Obsidan-style heading transclusions] syntax. For example to transclude a heading within the file "Title":
+
+    ![[Title#Heading]]
+
+[Obsidan-style heading transclusions]: https://help.obsidian.md/links#Link+to+a+heading+in+a+note
+
+### Extension: `wilikink_block_transclusions` ###
+
+Follows the [Obsidan-style block transclusions] syntax. For example to transclude block ID ^ref within the file "Title":
+
+    ![[Title#^ref]]
+
+[Obsidan-style block transclusions]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
+
+### Extension: `block_ids` ###
+
+Follows the [Obsidan-style block identifiers] syntax. For example add `^ref` at the end of a paragraph:
+
+    Text ^ref
+
+[Obsidan-style block identifiers]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
 
 ### Extension: `wikilinks_title_after_pipe` ###
 
