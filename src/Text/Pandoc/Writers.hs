@@ -79,6 +79,7 @@ module Text.Pandoc.Writers
     , writeXML
     , writeXWiki
     , writeZimWiki
+    , writeVimdoc
     , getWriter
     ) where
 
@@ -132,6 +133,7 @@ import Text.Pandoc.Writers.Typst
 import Text.Pandoc.Writers.XML
 import Text.Pandoc.Writers.XWiki
 import Text.Pandoc.Writers.ZimWiki
+import Text.Pandoc.Writers.Vimdoc
 
 data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
               | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
@@ -206,6 +208,7 @@ writers = [
   ,("djot"         , TextWriter writeDjot)
   ,("ansi"         , TextWriter writeANSI)
   ,("xml"          , TextWriter writeXML)
+  ,("vimdoc"       , TextWriter writeVimdoc)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).

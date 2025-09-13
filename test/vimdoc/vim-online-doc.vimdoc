@@ -1,0 +1,53 @@
+                                       Type |gO| to see the table of contents.
+
+Online vim documentation ............................ |online-vim-documentation|
+  Links to vimhelp.org ......................................... |vimhelp-links|
+  Links to neo.vimhelp.org ................................. |neo-vimhelp-links|
+  Links to neovim.io ......................................... |neovim-io-links|
+  :h-style documentation ........................................ |colon-h-docs|
+
+==============================================================================
+Online vim documentation                              *online-vim-documentation*
+
+While vim documentation can be accessed with `:help`, it may be beneficial to
+link to the websites inside readme/markdown docs. Two most common websites
+are:
+
+- https://vimhelp.org/ and
+- https://neovim.io/doc/user
+
+Also it is not uncommon to reference documentation as |<topic>|
+
+------------------------------------------------------------------------------
+Links to vimhelp.org                                             *vimhelp-links*
+
+For introduction to writing help files see |help-writing|
+
+Named link: vimhelp link |help-writing|
+
+------------------------------------------------------------------------------
+Links to neo.vimhelp.org                                     *neo-vimhelp-links*
+
+For introduction to writing help files see |help-writing|
+
+Named link: vimhelp link |help-writing|
+
+------------------------------------------------------------------------------
+Links to neovim.io                                             *neovim-io-links*
+
+For introduction to writing help files see |help-writing|
+
+Named link: neovim.io link |help-writing|
+
+You can also reference whole files with topic omitted: |vim_diff.txt|
+
+------------------------------------------------------------------------------
+:h-style documentation                                            *colon-h-docs*
+
+For introduction to writing help files see |help-writing|
+
+Long name for `:help` is also supported: |help-writing|
+
+This is malformed: |help-writing|, but this is not: |help-writing|
+
+ vim:tw=78:sw=4:ts=4:ft=help:norl:et:

@@ -23,7 +23,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                    txt2tags, djot)
                  - HTML formats (HTML 4 and 5)
                  - Ebook formats (EPUB v2 and v3, FB2)
-                 - Documentation formats (GNU TexInfo, Haddock)
+                 - Documentation formats (GNU TexInfo, Haddock, Vimdoc)
                  - Roff formats (man, ms)
                  - TeX formats (LaTeX, ConTeXt)
                  - Typst
@@ -110,6 +110,7 @@ data-files:
                  data/templates/fonts.latex
                  data/templates/font-settings.latex
                  data/templates/after-header-includes.latex
+                 data/templates/default.vimdoc
 
                  -- translations
                  data/translations/*.yaml
@@ -660,6 +661,7 @@ library
                    Text.Pandoc.Writers.AnnotatedTable,
                    Text.Pandoc.Writers.BibTeX,
                    Text.Pandoc.Writers.ANSI,
+                   Text.Pandoc.Writers.Vimdoc,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Scripting,

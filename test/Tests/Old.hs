@@ -257,6 +257,24 @@ tests pandocPath =
       [ test' "pod" ["-f", "pod", "-t", "native"]
         "pod-reader.pod" "pod-reader.native"
       ]
+  , testGroup "vimdoc" [ testGroup "writer" $
+      writerTests' "vimdoc" ++
+        [ test' "vimdoc-specific definition lists"
+            ["-s", "-r", "markdown", "-w", "vimdoc", "--toc", "--columns=78"]
+            "vimdoc/definition-lists.markdown" "vimdoc/definition-lists.vimdoc"
+        , test' "linking to docs"
+            ["-s", "-r", "markdown", "-w", "vimdoc", "--toc", "--columns=78"]
+            "vimdoc/vim-online-doc.markdown" "vimdoc/vim-online-doc.vimdoc"
+        , test' "unnumbered TOC up to level 2 headers"
+            ["-s", "-r", "markdown", "-w", "vimdoc", "--toc", "--columns=78",
+             "--toc-depth=2"]
+            "vimdoc/headers.markdown" "vimdoc/headers.vimdoc"
+        , test' "numbered TOC"
+            ["-s", "-r", "markdown", "-w", "vimdoc", "--toc", "--columns=78",
+             "-N"]
+            "vimdoc/headers.markdown" "vimdoc/headers-numbered.vimdoc"
+        ]
+    ]
   ]
  where
     test'           = test pandocPath
