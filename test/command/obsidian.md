@@ -4,70 +4,395 @@ obsidian tests:
 % pandoc -f obsidian -t native
 %% a comment %%
 ^D
-[]
+[ Para [] ]
 ```
 
 ```
 % pandoc -f obsidian -t native
 A paragraph with a block ID. ^my-id
 ^D
-[ Div ( "my-id" , [] , [] ) [ Para [ Str "A" , Space , Str "paragraph" , Space , Str "with" , Space , Str "a" , Space , Str "block" , Space , Str "ID." ] ] ]
+[ Div
+    ( "my-id" , [] , [] )
+    [ Para
+        [ Str "A"
+        , Space
+        , Str "paragraph"
+        , Space
+        , Str "with"
+        , Space
+        , Str "a"
+        , Space
+        , Str "block"
+        , Space
+        , Str "ID."
+        ]
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian -t native
-An embed: ![[myfile.md]]
+An embed: ![[command/obsidian/transclusion]]
 ^D
-[ Para [ Str "An" , Space , Str "embed:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile.md]]" ] ] ]
+[ Para
+    [ Str "An"
+    , Space
+    , Str "embed:"
+    , Space
+    , Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "the"
+    , Space
+    , Str "content"
+    , Space
+    , Str "of"
+    , Space
+    , Str "the"
+    , Space
+    , Str "Obsidian"
+    , Space
+    , Str "transclusion"
+    , Space
+    , Str "test"
+    , Space
+    , Str "file."
+    , LineBreak
+    , Str "Introduction"
+    , LineBreak
+    , Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "the"
+    , Space
+    , Str "introduction"
+    , Space
+    , Str "section"
+    , Space
+    , Str "with"
+    , Space
+    , Str "some"
+    , Space
+    , Str "content"
+    , Space
+    , Str "for"
+    , Space
+    , Str "heading"
+    , Space
+    , Str "transclusions."
+    , LineBreak
+    , Str "A"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "with"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "ID"
+    , Space
+    , Str "for"
+    , Space
+    , Str "testing"
+    , Space
+    , Str "block"
+    , Space
+    , Str "transclusions."
+    , LineBreak
+    , Str "Another"
+    , Space
+    , Str "Section"
+    , LineBreak
+    , Str "More"
+    , Space
+    , Str "content"
+    , Space
+    , Str "here."
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian -t native
-A block reference embed: ![[myfile.md#^my-id]]
+A block reference embed: ![[command/obsidian/transclusion#^my-id]]
 ^D
-[ Para [ Str "A" , Space , Str "block" , Space , Str "reference" , Space , Str "embed:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile.md#^my-id]]" ] ] ]
+[ Para
+    [ Str "A"
+    , Space
+    , Str "block"
+    , Space
+    , Str "reference"
+    , Space
+    , Str "embed:"
+    , Space
+    , Str "A"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "with"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "ID"
+    , Space
+    , Str "for"
+    , Space
+    , Str "testing"
+    , Space
+    , Str "block"
+    , Space
+    , Str "transclusions."
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian -t native
-A wikilink transclusion: ![[my-wikilink]]
+A wikilink transclusion: ![[command/obsidian/transclusion]]
 ^D
-[ Para [ Str "A" , Space , Str "wikilink" , Space , Str "transclusion:" , Space , Span ( "" , [] , [] ) [ Str "![[my-wikilink]]" ] ] ]
+[ Para
+    [ Str "A"
+    , Space
+    , Str "wikilink"
+    , Space
+    , Str "transclusion:"
+    , Space
+    , Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "the"
+    , Space
+    , Str "content"
+    , Space
+    , Str "of"
+    , Space
+    , Str "the"
+    , Space
+    , Str "Obsidian"
+    , Space
+    , Str "transclusion"
+    , Space
+    , Str "test"
+    , Space
+    , Str "file."
+    , LineBreak
+    , Str "Introduction"
+    , LineBreak
+    , Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "the"
+    , Space
+    , Str "introduction"
+    , Space
+    , Str "section"
+    , Space
+    , Str "with"
+    , Space
+    , Str "some"
+    , Space
+    , Str "content"
+    , Space
+    , Str "for"
+    , Space
+    , Str "heading"
+    , Space
+    , Str "transclusions."
+    , LineBreak
+    , Str "A"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "with"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "ID"
+    , Space
+    , Str "for"
+    , Space
+    , Str "testing"
+    , Space
+    , Str "block"
+    , Space
+    , Str "transclusions."
+    , LineBreak
+    , Str "Another"
+    , Space
+    , Str "Section"
+    , LineBreak
+    , Str "More"
+    , Space
+    , Str "content"
+    , Space
+    , Str "here."
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian -t native
-A block transclusion: ![[myfile#^my-id]]
+A block transclusion: ![[command/obsidian/transclusion#^my-id]]
 ^D
-[ Para [ Str "A" , Space , Str "block" , Space , Str "transclusion:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile#^my-id]]" ] ] ]
+[ Para
+    [ Str "A"
+    , Space
+    , Str "block"
+    , Space
+    , Str "transclusion:"
+    , Space
+    , Str "A"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "with"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "ID"
+    , Space
+    , Str "for"
+    , Space
+    , Str "testing"
+    , Space
+    , Str "block"
+    , Space
+    , Str "transclusions."
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian -t native
-A heading transclusion: ![[myfile#Introduction]]
+A heading transclusion: ![[command/obsidian/transclusion#Introduction]]
 ^D
-[ Para [ Str "A" , Space , Str "heading" , Space , Str "transclusion:" , Space , Span ( "" , [] , [] ) [ Str "![[myfile#Introduction]]" ] ] ]
+[ Para
+    [ Str "A"
+    , Space
+    , Str "heading"
+    , Space
+    , Str "transclusion:"
+    , Space
+    , Str "Introduction"
+    , LineBreak
+    , Str "This"
+    , Space
+    , Str "is"
+    , Space
+    , Str "the"
+    , Space
+    , Str "introduction"
+    , Space
+    , Str "section"
+    , Space
+    , Str "with"
+    , Space
+    , Str "some"
+    , Space
+    , Str "content"
+    , Space
+    , Str "for"
+    , Space
+    , Str "heading"
+    , Space
+    , Str "transclusions."
+    , LineBreak
+    , Str "A"
+    , Space
+    , Str "paragraph"
+    , Space
+    , Str "with"
+    , Space
+    , Str "a"
+    , Space
+    , Str "block"
+    , Space
+    , Str "ID"
+    , Space
+    , Str "for"
+    , Space
+    , Str "testing"
+    , Space
+    , Str "block"
+    , Space
+    , Str "transclusions."
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian-wikilink_transclusions -t native
-A wikilink transclusion: ![[my-wikilink]]
+A wikilink transclusion: ![[obsidian/transclusion]]
 ^D
-[ Para [ Str "A" , Space , Str "wikilink" , Space , Str "transclusion:" , Space , Str "!" , Link ( "" , [ "wikilink" ] , [] ) [ Str "my-wikilink" ] ( "my-wikilink" , "" ) ] ]
+[ Para
+    [ Str "A"
+    , Space
+    , Str "wikilink"
+    , Space
+    , Str "transclusion:"
+    , Space
+    , Str "!"
+    , Link
+        ( "" , [ "wikilink" ] , [] )
+        [ Str "obsidian/transclusion" ]
+        ( "obsidian/transclusion" , "" )
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian-wikilink_heading_transclusions -t native
-A heading transclusion: ![[myfile#Introduction]]
+A heading transclusion: ![[obsidian/transclusion#Introduction]]
 ^D
-[ Para [ Str "A" , Space , Str "heading" , Space , Str "transclusion:" , Space , Str "!" , Link ( "" , [ "wikilink" ] , [] ) [ Str "myfile#Introduction" ] ( "myfile#Introduction" , "" ) ] ]
+[ Para
+    [ Str "A"
+    , Space
+    , Str "heading"
+    , Space
+    , Str "transclusion:"
+    , Space
+    , Str "!"
+    , Link
+        ( ""
+        , [ "wikilink" ]
+        , [ ( "block-ref" , "Introduction" ) ]
+        )
+        [ Str "obsidian/transclusion#Introduction" ]
+        ( "obsidian/transclusion" , "" )
+    ]
+]
 ```
 
 ```
 % pandoc -f obsidian-wikilink_block_transclusions -t native
-A block transclusion: ![[myfile#^my-id]]
+A block transclusion: ![[obsidian/transclusion#^my-id]]
 ^D
-[ Para [ Str "A" , Space , Str "block" , Space , Str "transclusion:" , Space , Str "!" , Link ( "" , [ "wikilink" ] , [] ) [ Str "myfile#^my-id" ] ( "myfile#^my-id" , "" ) ] ]
+[ Para
+    [ Str "A"
+    , Space
+    , Str "block"
+    , Space
+    , Str "transclusion:"
+    , Space
+    , Str "!"
+    , Link
+        ( "" , [ "wikilink" ] , [ ( "block-ref" , "^my-id" ) ] )
+        [ Str "obsidian/transclusion#^my-id" ]
+        ( "obsidian/transclusion" , "" )
+    ]
+]
 ```
 
 ```

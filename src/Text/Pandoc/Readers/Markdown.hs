@@ -2062,7 +2062,7 @@ wikilinkTransclusion = try $ do
      then do
        guardEnabled Ext_wikilink_transclusions
        currentDir <- takeDirectory . sourceName <$> getPosition
-       let filename = T.unpack url
+       let filename = T.unpack url <> ".md"  -- Assume .md extension for transclusion
        -- Support relative paths like "Folder/File" by using currentDir as base
        insertIncludedFile parseTranscludedInlines toSources [currentDir] filename Nothing Nothing
      else do
