@@ -59,25 +59,25 @@ Block Quotes                                                        *block-quote
 
 E-mail style:
 
-| This is a block quote. It is pretty short.
+  This is a block quote. It is pretty short.
 
-| Code in a block quote:
-|
-| >
-|     sub status {
-|         print "working";
-|     }
+  Code in a block quote:
+
+  >
+      sub status {
+          print "working";
+      }
 <
-| A list:
-|
-| 1. item one
-| 2. item two
-|
-| Nested block quotes:
-|
-| | nested
-|
-| | nested
+  A list:
+
+  1. item one
+  2. item two
+
+  Nested block quotes:
+
+    nested
+
+    nested
 
 This should not be a block quote: 2 > 1.
 
@@ -316,7 +316,7 @@ orange
     >
         { orange code block }
 <
-    | orange block quote
+      orange block quote
 
 Multiple definitions, tight:
 
@@ -607,7 +607,7 @@ With an ampersand: http://example.com/?foo=1&bar=2
 
 An e-mail address: nobody@nowhere.net
 
-| Blockquoted: http://example.com/
+  Blockquoted: http://example.com/
 
 Auto-links should not occur here: `<http://example.com/>`
 
@@ -632,7 +632,7 @@ Here is a footnote reference, |footnote1| and another. |footnote2| This should
 not be a footnote reference, because it contains a space.[^my note] Here is an
 inline note. |footnote3|
 
-| Notes can go in quotes. |footnote4|
+  Notes can go in quotes. |footnote4|
 
 1. And in list items. |footnote5|
 

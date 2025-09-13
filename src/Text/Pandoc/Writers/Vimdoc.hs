@@ -238,7 +238,7 @@ blockToVimdoc block@(RawBlock format raw) = case format of
 
 blockToVimdoc (BlockQuote blocks) = do
   content <- blockListToVimdoc blocks
-  pure $ prefixed "| " content <> blankline
+  pure $ nest 2 content <> blankline
 
 blockToVimdoc (OrderedList listAttr items) = do
   let itemSpacer = if isTightList items then empty else blankline
