@@ -24,7 +24,7 @@ import Control.Monad
 import Control.Monad.Except (throwError)
 import Data.Bifunctor (second)
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
-import Data.List (transpose, elemIndex, sortOn)
+import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Set as Set
