@@ -500,6 +500,9 @@ parseMetaMapEntry e =
 parseMetaMapEntryContents :: (PandocMonad m) => [Content] -> XMLReader m (Maybe MetaValue)
 parseMetaMapEntryContents cs = msum <$> mapM parseMeta cs
 
+getElementText :: Element -> T.Text
+getElementText el = T.concat [cdData c | Text c <- elContent el]
+
 parseMeta :: (PandocMonad m) => Content -> XMLReader m (Maybe MetaValue)
 parseMeta (Text (CData CDataRaw _ _)) = return Nothing
 parseMeta (Text (CData _ s _)) =
@@ -515,7 +518,7 @@ parseMeta (Elem e) = do
         "MetaBool" -> case (attrValue atNameMetaBoolValue e) of
           "true" -> return $ Just $ MetaBool True
           _ -> return $ Just $ MetaBool False
-        "MetaString" -> pure Nothing
+        "MetaString" -> return $ Just $ MetaString (getElementText e)
         "MetaInlines" -> do
           inlines <- getInlines (elContent e)
           return $ Just $ MetaInlines $ toList inlines
