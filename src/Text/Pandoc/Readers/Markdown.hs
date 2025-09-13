@@ -461,6 +461,19 @@ noteBlock = do
 -- parsing blocks
 --
 
+addBlockId :: Attr -> ParserState -> Attr
+addBlockId (id', classes, kvs) st =
+  case stateLastBlockId st of
+    Nothing -> (id', classes, kvs)
+    Just bid -> (if T.null id' then bid else id', classes, kvs)
+
+-- blockTransclusion :: PandocMonad m => MarkdownParser m (F Blocks)
+-- blockTransclusion = try $ do
+--   guardEnabled Ext_wikilink_block_transclusions
+--   char '!'
+--   res <- wikilink B.linkWith
+--   return $ B.divWith ("", ["block-transclusion"], []) . B.para <$> res
+
 parseBlocks :: PandocMonad m => MarkdownParser m (F Blocks)
 parseBlocks = mconcat <$> manyTill block eof
 
@@ -491,8 +504,15 @@ block = do
                , para
                , plain
                ] <?> "block"
-  trace (T.take 60 $ tshow $ B.toList $ runF res defaultParserState)
-  return res
+  st <- getState
+  let addIdToBlock (Header lvl attr ils) = Header lvl (addBlockId attr st) ils
+      addIdToBlock (Para ils) =
+        case stateLastBlockId st of
+          Nothing -> Para ils
+          Just bid -> Div (bid, [], []) [Para ils]
+      addIdToBlock x = x
+  updateState $ \s -> s{ stateLastBlockId = Nothing }
+  return $ B.fromList . map addIdToBlock . B.toList <$> res
 
 --
 -- header blocks
@@ -1496,7 +1516,7 @@ inline = do
      '`'     -> code
      '_'     -> strongOrEmph
      '*'     -> strongOrEmph
-     '^'     -> superscript <|> inlineNote -- in this order bc ^[link](/foo)^
+     '^'     -> superscript <|> inlineNote <|> blockId -- in this order bc ^[link](/foo)^
      '['     -> note <|> cite <|> bracketedSpan <|> wikilink B.linkWith <|> link
      '!'     -> image
      '$'     -> math
@@ -1515,6 +1535,7 @@ inline = do
      '.'     -> smart
      '&'     -> return . B.singleton <$> charRef
      ':'     -> emoji
+     '%'     -> comment
      _       -> mzero)
    <|> bareURL
    <|> str
@@ -1837,14 +1858,18 @@ wikilink constructor = do
   try $ do
     string "[[" *> notFollowedBy' (char '[')
     raw <- many1TillChar anyChar (try $ string "]]")
-    let (title, url) = case T.break (== '|') raw of
+    let (title', target') = case T.break (== '|') raw of
           (before, "") -> (before, before)
           (before, after)
             | titleAfter -> (T.drop 1 after, before)
             | otherwise -> (before, T.drop 1 after)
+    let (url, blockRef) = T.break (== '#') target'
     guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
-    return . pure . constructor attr url "" $
-       B.text $ fromEntities title
+    let attr' = if T.null blockRef
+                   then attr
+                   else (mempty, ["wikilink"], [("block-ref", T.drop 1 blockRef)])
+    return . pure . constructor attr' url "" $
+       B.text $ fromEntities title'
 
 link :: PandocMonad m => MarkdownParser m (F Inlines)
 link = try $ do
@@ -2003,17 +2028,62 @@ rebasePath pos path = do
 image :: PandocMonad m => MarkdownParser m (F Inlines)
 image = try $ do
   char '!'
-  wikilink B.imageWith <|>
-    do (lab,raw) <- reference
-       defaultExt <- getOption readerDefaultImageExtension
-       let constructor attr' src
-             | "data:" `T.isPrefixOf` src = B.imageWith attr' src  -- see #9118
-             | otherwise =
-                case takeExtension (T.unpack src) of
-                   "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
-                                                   $ T.unpack defaultExt)
-                   _  -> B.imageWith attr' src
-       regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)
+  -- First try wikilink transclusion
+  (try wikilinkTransclusion) <|>
+    -- Then try regular image parsing
+    (do (lab,raw) <- reference
+        defaultExt <- getOption readerDefaultImageExtension
+        let constructor attr' src
+              | "data:" `T.isPrefixOf` src = B.imageWith attr' src  -- see #9118
+              | otherwise =
+                 case takeExtension (T.unpack src) of
+                    "" -> B.imageWith attr' (T.pack $ addExtension (T.unpack src)
+                                                    $ T.unpack defaultExt)
+                    _  -> B.imageWith attr' src
+        regLink constructor lab <|> referenceLink constructor (lab, "!" <> raw)) <|>
+    -- Fallback: if it looks like ![[...]], create a span with literal text
+    (do try $ string "[["
+        content <- many1TillChar anyChar (try $ string "]]")
+        return $ return $ B.spanWith ("", [], []) (B.str $ "![[" <> content <> "]]"))
+
+wikilinkTransclusion :: PandocMonad m => MarkdownParser m (F Inlines)
+wikilinkTransclusion = try $ do
+  string "[[" *> notFollowedBy' (char '[')
+  raw <- many1TillChar anyChar (try $ string "]]")
+  titleAfter <- (True <$ guardEnabled Ext_wikilinks_title_after_pipe) <|> pure False
+  let (_, target') = case T.break (== '|') raw of
+        (before, "") -> (before, before)
+        (before, after)
+          | titleAfter -> (T.drop 1 after, before)
+          | otherwise -> (before, T.drop 1 after)
+  let (url, fragment) = T.break (== '#') target'
+  guard $ T.all (`notElem` ['\n','\r','\f','\t']) url
+  if T.null fragment
+     then do
+       guardEnabled Ext_wikilink_transclusions
+       currentDir <- takeDirectory . sourceName <$> getPosition
+       let filename = T.unpack url <> ".md"  -- Assume .md extension for transclusion
+       -- Support relative paths like "Folder/File" by using currentDir as base
+       insertIncludedFile parseTranscludedInlines toSources [currentDir] filename Nothing Nothing
+     else do
+       let fragmentContent = T.drop 1 fragment  -- Remove the '#' prefix
+       if T.take 1 fragmentContent == "^"
+         then do
+           -- Block ID transclusion: ![[File#^block-id]]
+           guardEnabled Ext_wikilink_block_transclusions
+           currentDir <- takeDirectory . sourceName <$> getPosition
+           let filename = T.unpack url <> ".md"  -- Assume .md extension for block transclusion
+           let blockIdText = T.drop 1 fragmentContent  -- Remove the '^' prefix
+           -- Support relative paths like "Folder/File" by using currentDir as base
+           insertIncludedFile (parseBlockTransclusion blockIdText) toSources [currentDir] filename Nothing Nothing
+         else do
+           -- Heading transclusion: ![[File#Heading]]
+           guardEnabled Ext_wikilink_heading_transclusions
+           currentDir <- takeDirectory . sourceName <$> getPosition
+           let filename = T.unpack url <> ".md"  -- Assume .md extension for heading transclusion
+           let headingText = fragmentContent
+           -- Support relative paths like "Folder/File" by using currentDir as base
+           insertIncludedFile (parseHeadingTransclusion headingText) toSources [currentDir] filename Nothing Nothing
 
 note :: PandocMonad m => MarkdownParser m (F Inlines)
 note = try $ do
@@ -2290,6 +2360,13 @@ citation = try $ do
                    , citationHash    = 0
                    }
 
+comment :: PandocMonad m => MarkdownParser m (F Inlines)
+comment = try $ do
+  guardEnabled Ext_comments
+  string "%%"
+  manyTill (anyChar <|> newline) (try (string "%%"))
+  return mempty
+
 smart :: PandocMonad m => MarkdownParser m (F Inlines)
 smart = do
   guardEnabled Ext_smart
@@ -2314,3 +2391,83 @@ doubleQuoted = do
     fmap B.doubleQuoted . trimInlinesF . mconcat <$>
       many1Till inline doubleQuoteEnd))
     <|> (return (return (B.str "\8220")))
+
+-- | Extract a block with a specific ID from a list of blocks
+extractBlockById :: Text -> Blocks -> Inlines
+extractBlockById targetId blocks = 
+  case findBlockById targetId (B.toList blocks) of
+    Just (Div _ contents) -> blocksToInlines' contents  -- Extract content from Div wrapper
+    Just blk -> blocksToInlines' [blk]
+    Nothing -> mempty
+
+-- | Find a block with a specific ID in a list of blocks
+findBlockById :: Text -> [Block] -> Maybe Block
+findBlockById targetId = go
+  where
+    go [] = Nothing
+    go (blk:rest) = 
+      case blk of
+        Div (bid, _, _) _ | bid == targetId -> Just blk
+        Header _ (bid, _, _) _ | bid == targetId -> Just blk
+        _ -> go rest
+
+-- | Extract content under a specific heading from a list of blocks
+extractHeadingById :: Text -> Blocks -> Inlines
+extractHeadingById targetHeading blocks = 
+  case extractContentUnderHeading targetHeading (B.toList blocks) of
+    [] -> mempty
+    content -> blocksToInlines' content
+
+-- | Parse a file and convert all blocks to inlines for transclusion
+parseTranscludedInlines :: PandocMonad m => MarkdownParser m (F Inlines)
+parseTranscludedInlines = do
+  blocks <- parseBlocks
+  return $ fmap (blocksToInlines' . B.toList) blocks
+
+-- | Parse a file and extract a specific block by ID for transclusion
+parseBlockTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
+parseBlockTransclusion blockIdText = do
+  blocks <- parseBlocks
+  return $ fmap (extractBlockById blockIdText) blocks
+
+-- | Parse a file and extract content under a specific heading for transclusion
+parseHeadingTransclusion :: PandocMonad m => Text -> MarkdownParser m (F Inlines)
+parseHeadingTransclusion headingText = do
+  blocks <- parseBlocks
+  return $ fmap (extractHeadingById headingText) blocks
+
+-- | Extract all content under a heading until the next heading of same or higher level
+extractContentUnderHeading :: Text -> [Block] -> [Block]
+extractContentUnderHeading targetHeading = go False 0
+  where
+    go _found _level [] = []
+    go found level (blk:rest) =
+      case blk of
+        Header lvl _ ils 
+          | stringify ils == targetHeading -> 
+              -- Found target heading, start collecting content
+              blk : go True lvl rest
+          | found && lvl <= level -> 
+              -- Found heading of same or higher level, stop collecting
+              []
+          | found -> 
+              -- Collecting content under target heading
+              blk : go True level rest
+          | otherwise -> 
+              -- Haven't found target heading yet
+              go False level rest
+        _ | found -> 
+            -- Collecting content under target heading
+            blk : go True level rest
+          | otherwise -> 
+            -- Haven't found target heading yet
+            go False level rest
+
+blockId :: PandocMonad m => MarkdownParser m (F Inlines)
+blockId = try $ do
+  guardEnabled Ext_block_ids
+  char '^'
+  notFollowedBy space
+  bid <- T.pack <$> many1 (letter <|> digit <|> char '-')
+  updateState $ \st -> st{ stateLastBlockId = Just bid }
+  return mempty
