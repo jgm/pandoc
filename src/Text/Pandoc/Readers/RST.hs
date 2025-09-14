@@ -855,8 +855,9 @@ directive' = do
            let figcls = concatMap (T.words . snd) figclasskv
            let figattr = ("", figcls ++ aligncls, [])
            let capt = B.caption Nothing (B.plain caption <> legend)
+           let alt = maybe caption (B.text . trim) (lookup "alt" fields)
            return $ B.figureWith figattr capt $
-             B.plain (B.imageWith (imgident, imgcls, imgkvs) src "" (B.text src))
+             B.plain (B.imageWith (imgident, imgcls, imgkvs) src "" alt)
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields

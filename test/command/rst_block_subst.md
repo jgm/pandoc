@@ -11,9 +11,7 @@
     (Caption Nothing [ Plain [ Str "capt" ] ])
     [ Plain
         [ Image
-            ( "" , [] , [] )
-            [ Str "img/dummy.png" ]
-            ( "img/dummy.png" , "" )
+            ( "" , [] , [] ) [ Str "capt" ] ( "img/dummy.png" , "" )
         ]
     ]
 ]
