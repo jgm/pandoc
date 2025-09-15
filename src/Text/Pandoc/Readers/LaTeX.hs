@@ -444,6 +444,9 @@ inlineCommands = M.unions
     , ("ifdim", ifdim)
     -- generally only used in \date
     , ("today", today)
+    -- this is used internally by pandoc but the definition is too complicated
+    -- for pandoc to handle (see #11140):
+    , ("pandocbounded", tok)
     ]
 
 bracedFilename :: PandocMonad m => LP m Text
