@@ -387,6 +387,7 @@ extra-source-files:
                  test/writer.zimwiki
                  test/writer.xwiki
                  test/writer.muse
+                 test/writer.vimdoc
                  test/ansi-test.ansi
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
@@ -434,6 +435,8 @@ extra-source-files:
                  test/odt/markdown/*.md
                  test/odt/native/*.native
                  test/pod-reader.pod
+                 test/vimdoc/*.markdown
+                 test/vimdoc/*.vimdoc
 source-repository head
   type:          git
   location:      https://github.com/jgm/pandoc.git
