@@ -720,30 +720,32 @@ blockToMarkdown' opts (DefinitionList items) = do
   return $ mconcat contents <> blankline
 blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
-        ("", cls, kv)
-          | (figid, [], []) <- figattr -> Just (figid, cls, kv)
-        _ -> Nothing
-  let combinedAlt alt = case capt of
-        Caption Nothing [] -> if null alt
-                              then Just [Str "image"]
-                              else Just alt
-        Caption Nothing [Plain captInlines]
-          | null alt || stringify captInlines == stringify alt
-            -> Just captInlines
-        Caption Nothing [Para captInlines]
-          | null alt || stringify captInlines == stringify alt
-            -> Just captInlines
+        ("", cls, kvs)
+          | (figid, [], []) <- figattr
+            -> Just (figid, cls, [(k,v) | (k,v) <- kvs
+                                        , k /= "alt" ||
+                                          v /= "" && v /= trim (stringify capt)])
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
       | isEnabled Ext_implicit_figures opts
-      , Just descr    <- combinedAlt alt
       , Just imgAttr' <- combinedAttr imgAttr
       , isEnabled Ext_link_attributes opts || imgAttr' == nullAttr
         -> do
           -- use implicit figures if possible
           let tgt' = (src, fromMaybe ttl $ T.stripPrefix "fig:" ttl)
-          contents <- inlineListToMarkdown opts [Image imgAttr' descr tgt']
+          let descr = case capt of
+                        Caption _ bs -> blocksToInlines bs
+          -- add alt attribute if image description different from caption,
+          -- so this won't be lost:
+          let imgAttr'' = case imgAttr' of
+                            (i,c,kv)
+                              | not (null alt)
+                              , Nothing <- lookup "alt" kv
+                              , stringify descr /= stringify alt ->
+                                 (i, c, ("alt", stringify alt) : kv)
+                            _ -> imgAttr'
+          contents <- inlineListToMarkdown opts [Image imgAttr'' descr tgt']
           return $ contents <> blankline
     _ ->
       -- fallback to raw html if possible or div otherwise
