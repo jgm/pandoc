@@ -32,7 +32,7 @@ import Control.Monad
       unless )
 import Crypto.Hash (hashWith, MD5(MD5))
 import Data.Containers.ListUtils (nubOrd)
-import Data.Char (isDigit, isAscii)
+import Data.Char (isDigit, isAscii, isLetter)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import Data.Monoid (Any (..))
@@ -68,7 +68,6 @@ import Text.Pandoc.Writers.Shared
 import qualified Data.Attoparsec.Text as A
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
-import Data.Char (isLetter)
 import Control.Applicative ((<|>))
 
 -- Work around problems with notes inside emphasis (see #8982)
@@ -677,7 +676,7 @@ blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
       , stSubfigure = stSubfigure st || isSubfigure
       }
 
-  let containsTable = getAny . (query $ \case
+  let containsTable = getAny . query (\case
         Table {}  -> Any True
         _         -> Any False)
   st <- get
@@ -948,6 +947,7 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   inHeading <- gets stInHeading
   inItem <- gets stInItem
   inSoul <- gets stInSoulCommand
+  inCaption <- gets stInCaption
   let listingsCode = do
         let listingsopts = (case getListingsLanguage classes of
                                 Just l  -> (("language", mbBraced l):)
@@ -1000,7 +1000,14 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   -- (see #1294). with regular texttt we don't get an error, but we get
   -- incorrect results if there is a space (see #5529).
   let inMbox x = "\\mbox" <> braces x
-  (if inSoul then inMbox else id) <$>
+
+  -- for captions we need to protect VERB with \protect (see #6821)
+  let protect x = "\\protect" <> x
+
+  let optionalProtect = case () of _ | inSoul -> inMbox
+                                     | inCaption -> protect
+                                     | otherwise -> id
+  optionalProtect <$>
    case writerHighlightMethod opts of
      _ | inHeading || inItem  -> rawCode  -- see #5574
      IdiomaticHighlighting    -> listingsCode
