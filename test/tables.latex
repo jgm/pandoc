@@ -19,6 +19,7 @@ Right & Left & Center & Default \\
 
 Simple table without caption:
 
+{\def\LTcaptype{} % do not increment counter
 \begin{longtable}[]{@{}rlcl@{}}
 \toprule\noalign{}
 Right & Left & Center & Default \\
@@ -30,6 +31,7 @@ Right & Left & Center & Default \\
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
 \end{longtable}
+}
 
 Simple table indented two spaces:
 
@@ -90,6 +92,7 @@ Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 
 Multiline table without caption:
 
+{\def\LTcaptype{} % do not increment counter
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1500}}
   >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1375}}
@@ -112,9 +115,11 @@ Default aligned
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 \end{longtable}
+}
 
 Table without column headers:
 
+{\def\LTcaptype{} % do not increment counter
 \begin{longtable}[]{@{}rlcr@{}}
 \toprule\noalign{}
 \endhead
@@ -124,9 +129,11 @@ Table without column headers:
 123 & 123 & 123 & 123 \\
 1 & 1 & 1 & 1 \\
 \end{longtable}
+}
 
 Multiline table without column headers:
 
+{\def\LTcaptype{} % do not increment counter
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1500}}
   >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1375}}
@@ -139,3 +146,4 @@ Multiline table without column headers:
 First & row & 12.0 & Example of a row that spans multiple lines. \\
 Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 \end{longtable}
+}

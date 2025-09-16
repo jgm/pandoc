@@ -98,8 +98,10 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
   beamer <- gets stBeamer
+  let makeUnnumbered x = "{\\def\\LTcaptype{} % do not increment counter" $$ x $$ "}"
   return
-    $  "\\begin{longtable}[]" <>
+    $ (if null capt then makeUnnumbered else id)
+    $ "\\begin{longtable}[]" <>
           braces ("@{}" <> colDescriptors isSimpleTable tbl <> "@{}")
           -- the @{} removes extra space at beginning and end
     $$ head'
