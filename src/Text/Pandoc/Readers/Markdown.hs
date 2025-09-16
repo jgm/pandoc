@@ -190,6 +190,11 @@ litChar = T.singleton <$> escapedChar'
        <|> T.singleton <$> noneOf "\n"
        <|> try (newline >> notFollowedBy blankline >> return " ")
 
+litBetween :: PandocMonad m => Char -> Char -> MarkdownParser m Text
+litBetween op cl = try $ do
+  char op
+  mconcat <$> (manyTill litChar (char cl))
+
 -- | Parse a sequence of elements between square brackets,
 -- including between balanced pairs of square brackets.
 -- Skip brackets in standard inline escapes, code, raw HTML or LaTeX.
@@ -356,11 +361,9 @@ referenceKey = try $ do
                                      try (spnl <* keyValAttr)
                     notFollowedBy' (() <$ reference)
                     mconcat <$> many1 (notFollowedBy space *> litChar)
-  let betweenAngles = try $ char '<' >>
-                             mconcat <$> (manyTill litChar (char '>'))
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   src <- (if rebase then rebasePath pos else id) <$>
-             (try betweenAngles <|> sourceURL)
+             (try (litBetween '<' '>') <|> sourceURL)
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
               do guardEnabled Ext_link_attributes
@@ -1804,9 +1807,7 @@ source = do
           <|> (notFollowedBy (oneOf " )") >> litChar)
           <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
-  let betweenAngles = try $
-         char '<' >> mconcat <$> (manyTill litChar (char '>'))
-  src <- try betweenAngles <|> try base64DataURI <|> sourceURL
+  src <- try (litBetween '<' '>') <|> try base64DataURI <|> sourceURL
   tit <- option "" linkTitle'
   skipSpaces
   char ')'
