@@ -195,6 +195,22 @@ litBetween op cl = try $ do
   char op
   mconcat <$> (manyTill litChar (char cl))
 
+litCharNoSpace :: PandocMonad m => MarkdownParser m Text
+litCharNoSpace = T.singleton <$> escapedChar''
+       <|> characterReference
+       <|> T.singleton <$> noneOf "\n \r\t"
+ where
+   escapedChar'' = do
+     c <- escapedChar'
+     pure $ case c of
+       ' ' -> '\160'
+       _ -> c
+
+litBetweenNoSpace :: PandocMonad m => Char -> Char -> MarkdownParser m Text
+litBetweenNoSpace op cl = try $ do
+  char op
+  mconcat <$> (manyTill litCharNoSpace (char cl))
+
 -- | Parse a sequence of elements between square brackets,
 -- including between balanced pairs of square brackets.
 -- Skip brackets in standard inline escapes, code, raw HTML or LaTeX.
@@ -1499,7 +1515,7 @@ inline = do
      '`'     -> code
      '_'     -> strongOrEmph
      '*'     -> strongOrEmph
-     '^'     -> superscript <|> inlineNote -- in this order bc ^[link](/foo)^
+     '^'     -> inlineNote <|> superscript
      '['     -> note <|> cite <|> bracketedSpan <|> wikilink B.linkWith <|> link
      '!'     -> image
      '$'     -> math
@@ -1705,29 +1721,29 @@ mark = fmap (B.spanWith ("",["mark"],[])) <$>
 
 superscript :: PandocMonad m => MarkdownParser m (F Inlines)
 superscript = do
-  fmap B.superscript <$> try (do
-    char '^'
-    mconcat <$> (try regularSuperscript <|> try mmdShortSuperscript))
-      where regularSuperscript = many1Till (do guardEnabled Ext_superscript
-                                               notFollowedBy spaceChar
-                                               notFollowedBy newline
-                                               inline) (char '^')
-            mmdShortSuperscript = do guardEnabled Ext_short_subsuperscripts
-                                     result <- T.pack <$> many1 alphaNum
-                                     return $ return $ return $ B.str result
+  fmap B.superscript <$> (regularSuperscript <|> mmdShortSuperscript)
+      where
+        regularSuperscript = do
+          guardEnabled Ext_superscript
+          litBetweenNoSpace '^' '^' >>= parseFromString inlines
+        mmdShortSuperscript = try $ do
+          guardEnabled Ext_short_subsuperscripts
+          char '^'
+          result <- T.pack <$> many1 alphaNum
+          return $ return $ B.str result
 
 subscript :: PandocMonad m => MarkdownParser m (F Inlines)
 subscript = do
-  fmap B.subscript <$> try (do
-    char '~'
-    mconcat <$> (try regularSubscript <|> mmdShortSubscript))
-      where regularSubscript = many1Till (do guardEnabled Ext_subscript
-                                             notFollowedBy spaceChar
-                                             notFollowedBy newline
-                                             inline) (char '~')
-            mmdShortSubscript = do guardEnabled Ext_short_subsuperscripts
-                                   result <- T.pack <$> many1 alphaNum
-                                   return $ return $ return $ B.str result
+  fmap B.subscript <$> (regularSubscript <|> mmdShortSubscript)
+      where
+        regularSubscript = do
+          guardEnabled Ext_subscript
+          litBetweenNoSpace '~' '~' >>= parseFromString inlines
+        mmdShortSubscript = try $ do
+          guardEnabled Ext_short_subsuperscripts
+          char '~'
+          result <- T.pack <$> many1 alphaNum
+          return $ return $ B.str result
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
 whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
@@ -2048,6 +2064,7 @@ inlineNote = do
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
     contents <- inBalancedBrackets inlines
+    notFollowedBy (char '(' <|> char '[') -- ^[link](foo)^ is superscript
     updateState $ \st -> st{ stateInNote = False }
     return $ B.note . B.para <$> contents
 
