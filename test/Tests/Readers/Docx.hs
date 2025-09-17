@@ -12,14 +12,15 @@ Tests for the word docx reader.
 -}
 module Tests.Readers.Docx (tests) where
 
+import Data.Algorithm.Diff (getDiff)
 import Codec.Archive.Zip
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
-import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Maybe
 import System.IO.Unsafe
 import Test.Tasty
+import Test.Tasty.Golden.Advanced
 import Test.Tasty.HUnit
 import Tests.Helpers
 import Text.Pandoc
@@ -27,51 +28,36 @@ import qualified Text.Pandoc.Class as P
 import qualified Text.Pandoc.MediaBag as MB
 import Text.Pandoc.UTF8 as UTF8
 
--- We define a wrapper around pandoc that doesn't normalize in the
--- tests. Since we do our own normalization, we want to make sure
--- we're doing it right.
-
-newtype NoNormPandoc = NoNormPandoc {unNoNorm :: Pandoc}
-                 deriving Show
-
-noNorm :: Pandoc -> NoNormPandoc
-noNorm = NoNormPandoc
-
 defopts :: ReaderOptions
 defopts = def{ readerExtensions = getDefaultExtensions "docx" }
 
-instance ToString NoNormPandoc where
-  toString d = T.unpack $ purely (writeNative def{ writerTemplate = s }) $ toPandoc d
-   where s = case d of
-                  NoNormPandoc (Pandoc (Meta m) _)
-                    | M.null m  -> Nothing
-                    | otherwise -> Just mempty -- need this to get meta output
-
-instance ToPandoc NoNormPandoc where
-  toPandoc = unNoNorm
-
-compareOutput :: ReaderOptions
-                 -> FilePath
-                 -> FilePath
-                 -> IO (NoNormPandoc, NoNormPandoc)
-compareOutput opts docxFile nativeFile = do
-  df <- B.readFile docxFile
-  nf <- UTF8.toText <$> BS.readFile nativeFile
-  p <- runIOorExplode $ readDocx opts df
-  df' <- runIOorExplode $ readNative def nf
-  return (noNorm p, noNorm df')
-
-testCompareWithOptsIO :: ReaderOptions -> String -> FilePath -> FilePath -> IO TestTree
-testCompareWithOptsIO opts name docxFile nativeFile = do
-  (dp, np) <- compareOutput opts docxFile nativeFile
-  return $ test id name (dp, np)
-
-testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> TestTree
-testCompareWithOpts opts name docxFile nativeFile =
-  unsafePerformIO $ testCompareWithOptsIO opts name docxFile nativeFile
-
 testCompare :: String -> FilePath -> FilePath -> TestTree
 testCompare = testCompareWithOpts defopts
+
+
+nativeDiff :: FilePath -> Pandoc -> Pandoc -> IO (Maybe String)
+nativeDiff normPath expectedNative actualNative
+  | expectedNative == actualNative = return Nothing
+  | otherwise = Just <$> do
+      expected <- T.unpack <$> runIOorExplode (writeNative def expectedNative)
+      actual <- T.unpack <$> runIOorExplode (writeNative def actualNative)
+      let dash = replicate 72 '-'
+      let diff = getDiff (lines actual) (lines expected)
+      return $ '\n' : dash ++
+               "\n--- " ++ normPath ++
+               "\n+++ " ++ "test" ++ "\n" ++
+               showDiff (1,1) diff ++ dash
+
+testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> TestTree
+testCompareWithOpts opts testName docxFP nativeFP =
+  goldenTest
+  testName
+  (do nf <- UTF8.toText <$> BS.readFile nativeFP
+      runIOorExplode (readNative def nf))
+  (do df <- B.readFile docxFP
+      runIOorExplode (readDocx opts df))
+  (nativeDiff nativeFP)
+  (\a -> runIOorExplode (writeNative def a) >>= BS.writeFile nativeFP . UTF8.fromText)
 
 testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO TestTree
 testForWarningsWithOptsIO opts name docxFile expected = do
