@@ -110,6 +110,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envParStyles     :: ParStyleMap
                            , envLocation      :: DocumentLocation
                            , envDocXmlPath    :: FilePath
+                           , envTextWidth     :: Int
                            }
                deriving Show
 
@@ -272,7 +273,7 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
               | HRule
               deriving Show
 
-type TblGrid = [Integer]
+type TblGrid = [Double]
 
 newtype TblLook = TblLook {firstRowFormatting::Bool}
               deriving Show
@@ -403,6 +404,7 @@ archiveToDocxWithWarnings archive = do
       rels      = archiveToRelationships archive docXmlPath
       media     = filteredFilesFromArchive archive filePathIsMedia
       (styles, parstyles) = archiveToStyles archive
+      textWidth = archiveToTextWidth archive
       rEnv = ReaderEnv { envNotes = notes
                        , envComments = comments
                        , envNumbering = numbering
@@ -413,6 +415,7 @@ archiveToDocxWithWarnings archive = do
                        , envParStyles = parstyles
                        , envLocation = InDocument
                        , envDocXmlPath = docXmlPath
+                       , envTextWidth = fromMaybe 9638 textWidth
                        }
       rState = ReaderState { stateWarnings = []
                            , stateFldCharState = []
@@ -636,6 +639,20 @@ archiveToNumbering :: Archive -> Numbering
 archiveToNumbering archive =
   fromMaybe (Numbering mempty [] []) (archiveToNumbering' archive)
 
+archiveToTextWidth :: Archive -> Maybe Int
+archiveToTextWidth zf = do
+  entry <- findEntryByPath "word/document.xml" zf
+  docElem <- parseXMLFromEntry entry
+  let ns = elemToNameSpaces docElem
+  sectElem <- findChildByName ns "w" "body" docElem >>= findChildByName ns "w" "sectPr"
+  pgWidth <- findChildByName ns "w" "pgSz" sectElem
+               >>= findAttrByName ns "w" "w" >>= safeRead
+  pgMar <- findChildByName ns "w" "pgMar" sectElem
+  leftMargin <- findAttrByName ns "w" "left" pgMar >>= safeRead
+  rightMargin <- findAttrByName ns "w" "right" pgMar >>= safeRead
+  gutter <- findAttrByName ns "w" "gutter" pgMar >>= safeRead
+  return $ pgWidth - (leftMargin + rightMargin + gutter)
+
 elemToNotes :: NameSpaces -> Text -> Element -> Maybe (M.Map T.Text Element)
 elemToNotes ns notetype element
   | isElem ns "w" (notetype <> "s") element =
@@ -664,11 +681,20 @@ elemToComments _ _ = M.empty
 ---------------------------------------------
 
 elemToTblGrid :: NameSpaces -> Element -> D TblGrid
-elemToTblGrid ns element | isElem ns "w" "tblGrid" element =
+elemToTblGrid ns element | isElem ns "w" "tblGrid" element = do
   let cols = findChildrenByName ns "w" "gridCol" element
-  in
-   mapD (\e -> maybeToD (findAttrByName ns "w" "w" e >>= stringToInteger))
-   cols
+  textWidth <- asks envTextWidth
+  -- space between cols is 10 twips, so we subtract this:
+  let totalWidth = textWidth - (10 * (length cols - 1))
+  let toFraction :: Int -> Double
+      toFraction x = fromIntegral x / fromIntegral totalWidth
+  let normalizeFractions xs =
+        case sum xs of
+          tot | tot > 1.0 -> map (/ tot) xs
+          _ -> xs
+  normalizeFractions <$>
+    mapD (\e -> maybeToD (findAttrByName ns "w" "w" e >>=
+                          fmap toFraction . safeRead)) cols
 elemToTblGrid _ _ = throwError WrongElem
 
 elemToTblLook :: NameSpaces -> Element -> D TblLook
