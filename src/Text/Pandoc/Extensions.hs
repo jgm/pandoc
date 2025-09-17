@@ -57,8 +57,10 @@ data Extension =
     | Ext_backtick_code_blocks    -- ^ GitHub style ``` code blocks
     | Ext_blank_before_blockquote -- ^ Require blank line before a blockquote
     | Ext_blank_before_header     -- ^ Require blank line before a header
+    | Ext_block_ids           -- ^ Block identifiers, used by Obsidian
     | Ext_bracketed_spans         -- ^ Bracketed spans with attributes
     | Ext_citations           -- ^ Pandoc/citeproc citations
+    | Ext_comments            -- ^ Percent wrapped %%comments%%
     | Ext_definition_lists    -- ^ Definition lists as in pandoc, mmd, php
     | Ext_east_asian_line_breaks  -- ^ Newlines in paragraphs are ignored between
                                   --   East Asian wide characters. Note: this extension
@@ -141,6 +143,9 @@ data Extension =
                                      -- [[target|title]]
     | Ext_wikilinks_title_before_pipe  -- ^ Support wikilinks of style
                                        -- [[title|target]]
+    | Ext_wikilink_transclusions          -- ^ Wikilink transclusion e.g. ![[title]]
+    | Ext_wikilink_heading_transclusions  -- ^ Wikilink heading transclusion e.g. ![[title#heading]] in Obsidian
+    | Ext_wikilink_block_transclusions    -- ^ Wikilink block transclusions, e.g. ![[title#^id]] in Obsidian
     | Ext_xrefs_name          -- ^ Use xrefs with names
     | Ext_xrefs_number        -- ^ Use xrefs with numbers
     | Ext_yaml_metadata_block -- ^ YAML metadata block
@@ -405,6 +410,26 @@ getDefaultExtensions "gfm"             = extensionsFromList
   , Ext_tex_math_gfm
   , Ext_alerts
   ]
+getDefaultExtensions "obsidian"          = extensionsFromList
+  [ Ext_alerts
+  , Ext_autolink_bare_uris
+  , Ext_block_ids
+  , Ext_comments
+  , Ext_footnotes
+  , Ext_hard_line_breaks
+  , Ext_mark
+  , Ext_pipe_tables
+  , Ext_raw_html
+  , Ext_rebase_relative_paths
+  , Ext_strikeout
+  , Ext_task_lists
+  , Ext_tex_math_dollars
+  , Ext_wikilinks_title_after_pipe
+  , Ext_wikilink_transclusions
+  , Ext_wikilink_block_transclusions
+  , Ext_wikilink_heading_transclusions
+  , Ext_yaml_metadata_block
+  ]
 getDefaultExtensions "commonmark"      = extensionsFromList
                                           [Ext_raw_html]
 getDefaultExtensions "commonmark_x"    = extensionsFromList
@@ -525,6 +550,27 @@ getAllExtensions f = universalExtensions <> getAll f
   getAll "markdown_mmd"      = allMarkdownExtensions
   getAll "markdown_github"   = allMarkdownExtensions
   getAll "markdown"          = allMarkdownExtensions
+  getAll "obsidian"          = allMarkdownExtensions <> extensionsFromList
+    [ Ext_ascii_identifiers
+    , Ext_alerts
+    , Ext_autolink_bare_uris
+    , Ext_block_ids
+    , Ext_comments
+    , Ext_footnotes
+    , Ext_hard_line_breaks
+    , Ext_mark
+    , Ext_pipe_tables
+    , Ext_raw_html
+    , Ext_rebase_relative_paths
+    , Ext_strikeout
+    , Ext_task_lists
+    , Ext_tex_math_dollars
+    , Ext_wikilink_block_transclusions
+    , Ext_wikilink_heading_transclusions
+    , Ext_wikilink_transclusions
+    , Ext_wikilinks_title_after_pipe
+    , Ext_yaml_metadata_block
+    ]
   getAll "ipynb"             = allMarkdownExtensions <> extensionsFromList
     [ Ext_raw_markdown ]
   getAll "docx"            = autoIdExtensions <> extensionsFromList

@@ -77,6 +77,7 @@ data ParserState = ParserState
   , stateContainers      :: [Text]        -- ^ parent include files
   , stateLogMessages     :: [LogMessage]  -- ^ log messages
   , stateMarkdownAttribute :: Bool        -- ^ True if in markdown=1 context
+  , stateLastBlockId       :: Maybe Text
   }
 
 instance Default ParserState where
@@ -166,6 +167,7 @@ defaultParserState = ParserState
   , stateContainers      = []
   , stateLogMessages     = []
   , stateMarkdownAttribute = False
+  , stateLastBlockId     = Nothing
   }
 
 type NoteTable = [(Text, Text)]
