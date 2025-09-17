@@ -1038,7 +1038,7 @@ singleParaToPlain bs =
 
 parseCell :: PandocMonad m => Text -> RSTParser m Blocks
 parseCell t = singleParaToPlain
-   <$> parseFromString' parseBlocks (t <> "\n\n")
+   <$> parseFromString' parseBlocks (trim t <> "\n\n")
 
 
 -- TODO:
