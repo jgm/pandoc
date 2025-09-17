@@ -415,7 +415,7 @@ archiveToDocxWithWarnings archive = do
                        , envParStyles = parstyles
                        , envLocation = InDocument
                        , envDocXmlPath = docXmlPath
-                       , envTextWidth = fromMaybe 9638 textWidth
+                       , envTextWidth = fromMaybe 9360 textWidth
                        }
       rState = ReaderState { stateWarnings = []
                            , stateFldCharState = []
