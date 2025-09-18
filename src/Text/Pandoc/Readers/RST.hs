@@ -15,7 +15,7 @@ Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
 import Control.Arrow (second)
-import Control.Monad (forM_, guard, liftM, mplus, mzero, when, unless)
+import Control.Monad (forM_, guard, liftM, mplus, mzero, when, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
@@ -288,7 +288,7 @@ rawFieldListItem minIndent = try $ do
   guard $ indent >= minIndent
   char ':'
   name <- many1TillChar (noneOf "\n") (char ':')
-  (() <$ lookAhead newline) <|> skipMany1 spaceChar
+  (void (lookAhead newline)) <|> skipMany1 spaceChar
   first <- anyLine
   rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
                                indentedBlock
@@ -343,7 +343,7 @@ optArg :: PandocMonad m => RSTParser m ()
 optArg = do
   c <- letter <|> char '<'
   if c == '<'
-     then () <$ manyTill (noneOf "<>") (char '>')
+     then void $ manyTill (noneOf "<>") (char '>')
      else skipMany (alphaNum <|> char '_' <|> char '-')
 
 longOpt :: PandocMonad m => RSTParser m ()
@@ -672,7 +672,7 @@ listItem :: PandocMonad m
 listItem start = try $ do
   (markerLength, first) <- rawListItem start
   rest <- many (listContinuation markerLength)
-  skipMany1 blankline <|> () <$ lookAhead start
+  skipMany1 blankline <|> void (lookAhead start)
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
@@ -710,7 +710,7 @@ bulletList = B.bulletList . compactify <$> many1 (listItem bulletListStart)
 comment :: Monad m => RSTParser m Blocks
 comment = try $ do
   string ".."
-  skipMany1 spaceChar <|> (() <$ lookAhead newline)
+  skipMany1 spaceChar <|> void (lookAhead newline)
   -- notFollowedBy' directiveLabel -- comment comes after directive so unnec.
   _ <- anyLine
   optional indentedBlock
@@ -1373,8 +1373,10 @@ dashedLine ch = do
   return (length dashes, length sp)
 
 simpleDashedLines :: Monad m => Char -> ParsecT Sources st m [(Int,Int)]
-simpleDashedLines ch = do
-  lines' <- try $ many1 (dashedLine ch)
+simpleDashedLines ch = try $ do
+  lines' <- many1 (dashedLine ch)
+  skipMany spaceChar
+  newline
   return $ addSpaces lines'
  where
   addSpaces [] = []
@@ -1383,12 +1385,12 @@ simpleDashedLines ch = do
     (dashes, dashes + sp) : addSpaces moreLines
 
 -- Parse a table row separator
-simpleTableSep :: Monad m => Char -> RSTParser m Char
-simpleTableSep ch = try $ simpleDashedLines ch >> newline
+simpleTableSep :: Monad m => Char -> RSTParser m ()
+simpleTableSep ch = void (simpleDashedLines ch)
 
 -- Parse a table footer
-simpleTableFooter :: Monad m => RSTParser m Text
-simpleTableFooter = try $ simpleTableSep '=' >> blanklines
+simpleTableFooter :: Monad m => RSTParser m ()
+simpleTableFooter = try $ simpleTableSep '=' >> void blanklines
 
 -- Parse a raw line and split it into chunks by indices.
 simpleTableRawLine :: Monad m => [Int] -> RSTParser m [(Text, ColSpan)]
@@ -1410,7 +1412,7 @@ simpleTableRawLineWithInitialEmptyCell indices = try $ do
 -- Parse a table row and return a list of blocks (columns).
 simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [(Blocks, RowSpan, ColSpan)]
 simpleTableRow indices = do
-  notFollowedBy' (blanklines <|> simpleTableFooter)
+  notFollowedBy' (void blanklines <|> simpleTableFooter)
   firstLine <- simpleTableRawLine indices
   conLines  <- many $ simpleTableRawLineWithInitialEmptyCell indices
   let cols = map T.unlines . transpose $ (map fst firstLine) : (map (map fst) conLines) ++
@@ -1434,15 +1436,12 @@ simpleTableHeader :: PandocMonad m
 simpleTableHeader headless = try $ do
   optional blanklines
   dashes <- simpleDashedLines '='
-  newline
 
   rawContent  <- if headless
                     then return [("", Nothing)]
                     else many1 $ notFollowedBy (simpleDashedLines '=') >> rowWithOptionalColSpan
 
-  if headless
-    then return ' '
-    else simpleTableSep '='
+  unless headless $ simpleTableSep '='
 
   let (lines', indices) = dashedLinesToLinesWithIndices dashes
   let aligns   = replicate (length lines') AlignDefault
@@ -1463,10 +1462,7 @@ rowWithOptionalColSpan :: Monad m
                        => RSTParser m (Text, Maybe [Int])
 rowWithOptionalColSpan = do
   line <- anyLine
-  colSpanHyphens <- optionMaybe $ do
-    colHyphens <- simpleDashedLines '-'
-    newline
-    return colHyphens
+  colSpanHyphens <- optionMaybe $ simpleDashedLines '-'
 
   let colSpan = fmap colSpanFromHyphens colSpanHyphens
   return (line, colSpan)
@@ -1703,7 +1699,7 @@ unmarkedInterpretedText = try $ do
       <|> (char '\\' >> ((\c -> ['\\',c]) <$> noneOf "\n"))
       <|> (string "\n" <* notFollowedBy blankline)
       <|> try (string "`" <*
-                notFollowedBy (() <$ roleMarker) <*
+                notFollowedBy (void roleMarker) <*
                 lookAhead (satisfy isAlphaNum))
        )
   char '`'
