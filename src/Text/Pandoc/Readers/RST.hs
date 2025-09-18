@@ -912,7 +912,10 @@ tableDirective top fields body = do
          let tspecs = zip aligns' widths
          return $ B.singleton $ Table attr (B.caption Nothing (B.plain title))
                                   tspecs thead tbody tfoot
-       _ -> return mempty
+       _ -> do
+         pos <- getPosition
+         logMessage $ SkippedContent body pos
+         return mempty
   where
     -- only valid on the very first row of a table section
     rowLength (Row _ rb) = sum $ cellLength <$> rb
