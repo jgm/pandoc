@@ -888,14 +888,16 @@ inlineToOpenXML' opts (Code attrs str) = do
           [ mknode "w:rPr" [] $
             maybeToList (lookup toktype tokTypesMap)
             , mknode "w:t" [("xml:space","preserve")] tok ]
-  withTextPropM (rStyleM "Verbatim Char")
-    $ case writerHighlightMethod opts of
-        Skylighting _ ->
-          case highlight (writerSyntaxMap opts) formatOpenXML attrs str of
+  let highlighted =
+        case highlight (writerSyntaxMap opts) formatOpenXML attrs str of
             Right h  -> return (map Elem h)
             Left msg -> do
               unless (T.null msg) $ report $ CouldNotHighlight msg
               unhighlighted
+  withTextPropM (rStyleM "Verbatim Char")
+    $ case writerHighlightMethod opts of
+        DefaultHighlighting -> highlighted
+        Skylighting _ -> highlighted
         _ -> unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
