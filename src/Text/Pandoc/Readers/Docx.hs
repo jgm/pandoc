@@ -810,6 +810,8 @@ bodyPartToBlocks (Captioned parstyle parparts bpart) = do
           -> singleton $ Figure attr' capt [Plain im]
         [Div attr bls']
           -> toCaptioned (attr <> attr') bls'
+        [BlockQuote bls']
+          -> toCaptioned attr' bls'
         _ -> captContents
   pure $ toCaptioned nullAttr (toList bs)
 bodyPartToBlocks (Tbl _ _ _ _ []) =
