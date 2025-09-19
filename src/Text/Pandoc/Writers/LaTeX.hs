@@ -215,7 +215,15 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                            _         -> [])
                     $ lookupMetaInlines "nocite" meta
 
-  let context  =  defField "toc" (writerTableOfContents options) $
+   -- see #7414, avoid escaped underscores
+  let unescapeUnderscore = T.replace "\\_" "_"
+  let bibliography' = map unescapeUnderscore <$>
+                        getField "bibliography" metadata
+
+  let context  =  (case bibliography' of
+                     Nothing -> id
+                     Just xs -> resetField "bibliography" xs) $
+                  defField "toc" (writerTableOfContents options) $
                   defField "lof" (writerListOfFigures options) $
                   defField "lot" (writerListOfTables options) $
                   defField "toc-depth" (tshow

@@ -98,7 +98,7 @@ Pandoc
           [ Para [ Str "Code in a block quote:" ]
           , CodeBlock
               ( "" , [ "" ] , [] )
-              "sub status {\nprint \"working\";\n}\n"
+              "sub status {\n    print \"working\";\n}\n"
           , Para [ Str "A list:" ]
           , OrderedList
               ( 1 , Decimal , Period )
