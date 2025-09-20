@@ -85,6 +85,7 @@ It can convert *from*
   markup)
 - `muse` ([Muse](https://amusewiki.org/library/manual))
 - `native` (native Haskell)
+- `obsidian` ([Obsidian-Flavored Markdown](https://help.obsidian.md/obsidian-flavored-markdown))
 - `odt` ([OpenDocument text
   document](https://en.wikipedia.org/wiki/OpenDocument))
 - `opml` ([OPML](http://dev.opml.org/spec2.html))
