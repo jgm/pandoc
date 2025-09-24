@@ -251,8 +251,8 @@ blockToRST (Div (ident,classes,_kvs) bs) = do
   let admonition = case classes of
                         (cl:_)
                           | cl `elem` admonitions
-                          -> ".. " <> literal cl <> "::"
-                        cls -> ".. container::" <> space <>
+                          -> blankline <> ".. " <> literal cl <> "::"
+                        cls -> blankline <> ".. container::" <> space <>
                                    literal (T.unwords (filter (/= "container") cls))
   -- if contents start with block quote, we need to insert
   -- an empty comment to fix the indentation point (#10236)
@@ -323,7 +323,7 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
                      c `notElem` ["sourceCode","literate","numberLines",
                                   "number-lines","example"]] of
              []       -> "::"
-             (lang:_) -> (".. code:: " <> literal lang) $$ numberlines)
+             (lang:_) -> (blankline <> ".. code:: " <> literal lang) $$ numberlines)
           $+$ nest 3 (literal str) $$ blankline
 blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
@@ -358,7 +358,7 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
   return $ blankline $$
            (if null caption || isList
                then tbl
-               else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl) $$
+               else (blankline <> ".. table:: " <> caption') $$ blankline $$ nest 3 tbl) $$
            blankline
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
