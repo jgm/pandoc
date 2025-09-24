@@ -3056,6 +3056,11 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
         - heightrounded
         ...
 
+`shorthands`
+:   Enable language-specific shorthands when loading `babel`.
+    (By default, pandoc includes `shorthands=off` when loading
+    `babel`, disabling language-specific shorthands.)
+
 `hyperrefoptions`
 :   option for [`hyperref`] package, e.g. `linktoc=all`;
     repeat for multiple options:

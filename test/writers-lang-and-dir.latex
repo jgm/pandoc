@@ -43,9 +43,9 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \ifLuaTeX
-\usepackage[bidi=basic,shorthands=off,]{babel}
+\usepackage[bidi=basic,shorthands=off]{babel}
 \else
-\usepackage[bidi=default,shorthands=off,]{babel}
+\usepackage[bidi=default,shorthands=off]{babel}
 \fi
 \ifLuaTeX
   \usepackage{selnolig} % disable illegal ligatures
