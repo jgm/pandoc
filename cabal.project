@@ -9,7 +9,3 @@ constraints: skylighting-format-blaze-html >= 0.1.1.3,
              -- for now (commercialhaskell/stackage#7545):
              data-default-class <= 0.2, data-default <= 0.8
 
-source-repository-package
-  type: git
-  location: https://github.com/jgm/djoths.git
-  tag: f022191efa477ab23f1c86a528ada69bbf03744b

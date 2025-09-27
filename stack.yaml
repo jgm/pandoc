@@ -17,8 +17,7 @@ extra-deps:
 - skylighting-0.14.7
 - citeproc-0.10
 - texmath-0.13
-- git: https://github.com/jgm/djoths.git
-  commit: f022191efa477ab23f1c86a528ada69bbf03744b
+- djot-0.1.2.3
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.9
