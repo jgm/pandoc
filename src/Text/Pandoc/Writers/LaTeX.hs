@@ -1212,9 +1212,12 @@ inlineToLaTeX (Note contents) = do
   let noteContents = nest 2 contents' <> optnl
   beamer <- gets stBeamer
   -- in beamer slides, display footnote from current overlay forward
-  -- and ensure that the note is on the frame, not e.g. the column (#5769)
+  -- and ensure that the note is on the frame, not e.g. the column (#5769, #5954)
+  incremental <- gets stIncremental
   let beamerMark = if beamer
-                      then text "<.->[frame]"
+                      then if incremental
+                           then text "<.->[frame]"
+                           else text "<\\value{beamerpauses}->[frame]"
                       else empty
   if externalNotes
      then do
