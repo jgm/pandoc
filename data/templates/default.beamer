@@ -108,12 +108,12 @@ $after-header-includes.latex()$
 $hypersetup.latex()$
 
 $if(title)$
-\title$if(shorttitle)$[$shorttitle$]$endif${$title$$if(thanks)$\thanks{$thanks$}$endif$}
+\title$if(shorttitle)$[$shorttitle$]$endif${\texorpdfstring{$title$}{$title-meta$}$if(thanks)$\thanks{$thanks$}$endif$}
 $endif$
 $if(subtitle)$
-\subtitle$if(shortsubtitle)$[$shortsubtitle$]$endif${$subtitle$}
+\subtitle$if(shortsubtitle)$[$shortsubtitle$]$endif${\texorpdfstring{$subtitle$}{$subtitle-meta$}}
 $endif$
-\author$if(shortauthor)$[$shortauthor$]$endif${$for(author)$$author$$sep$ \and $endfor$}
+\author$if(shortauthor)$[$shortauthor$]$endif${\texorpdfstring{$for(author)$$author$$sep$ \and $endfor$}{$author-meta$}}
 \date$if(shortdate)$[$shortdate$]$endif${$date$}
 $if(institute)$
 \institute$if(shortinstitute)$[$shortinstitute$]$endif${$for(institute)$$institute$$sep$ \and $endfor$}

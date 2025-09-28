@@ -183,6 +183,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   st <- get
   titleMeta <- escapeCommas <$> -- see #10501
                 stringToLaTeX TextString (stringify $ docTitle meta)
+  subtitleMeta <- stringToLaTeX TextString (stringify $ lookupMetaInlines "subtitle" meta)
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
   -- The trailer ID is as hash used to identify the PDF. Taking control of its
   -- value is important when aiming for reproducible PDF generation. Setting
@@ -233,6 +234,7 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                                  else 0)) $
                   defField "body" main $
                   defField "title-meta" titleMeta $
+                  defField "subtitle-meta" subtitleMeta $
                   defField "author-meta"
                         (T.intercalate "; " authorsMeta) $
                   defField "documentclass" documentClass $
