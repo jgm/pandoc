@@ -26,9 +26,6 @@ p {
   widows: 2;
   orphans: 2;
 }
-a, a:visited {
-  color: #1a1a1a;
-}
 img {
   max-width: 100%;
 }
