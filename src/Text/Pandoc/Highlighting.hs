@@ -31,9 +31,9 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , styleToConTeXt
                                 , formatANSI
                                 -- ** Typst
-                                , formatTypstBlock,
-                                , formatTypstInline,
-                                , styleToTypst,
+                                , formatTypstBlock
+                                , formatTypstInline
+                                , styleToTypst
                                 -- * Styles
                                 , defaultStyle
                                 , pygments

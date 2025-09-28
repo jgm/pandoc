@@ -18,21 +18,24 @@ module Text.Pandoc.Writers.Typst (
     writeTypst
   ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Class ( PandocMonad)
+import Text.Pandoc.Class ( PandocMonad, report )
 import Text.Pandoc.ImageSize ( dimension, Dimension(Pixel), Direction(..),
                                showInInch )
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled,
-                             CaptionPosition(..) )
+                             CaptionPosition(..), HighlightMethod(..) )
 import Data.Text (Text)
 import Data.List (intercalate, intersperse)
 import Data.Bifunctor (first, second)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
+import Control.Monad (unless)
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
                                     setupTranslations )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
+import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
+                                 styleToTypst)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
 import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Math (convertMath)
@@ -40,6 +43,7 @@ import qualified Text.TeXMath as TM
 import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
+import Text.Pandoc.Logging (LogMessage(..))
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
 import Data.Char (isDigit)
@@ -51,7 +55,8 @@ writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTypst options document =
   evalStateT (pandocToTypst options document)
     WriterState{ stOptions = options,
-                 stEscapeContext = NormalContext }
+                 stEscapeContext = NormalContext,
+                 stHighlighting = False }
 
 data EscapeContext = NormalContext | TermContext
   deriving (Show, Eq)
@@ -59,7 +64,9 @@ data EscapeContext = NormalContext | TermContext
 data WriterState =
   WriterState {
     stOptions :: WriterOptions,
-    stEscapeContext :: EscapeContext }
+    stEscapeContext :: EscapeContext,
+    stHighlighting :: Bool
+    }
 
 type TW m = StateT WriterState m
 
@@ -83,6 +90,7 @@ pandocToTypst options (Pandoc meta blocks) = do
                            Cite cs _ -> map citationId cs
                            _         -> [])
                   $ lookupMetaInlines "nocite" meta
+  hasHighlighting <- gets stHighlighting
 
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents options)
@@ -103,6 +111,13 @@ pandocToTypst options (Pandoc meta blocks) = do
               $ defField "smart" (isEnabled Ext_smart options)
               $ defField "abstract-title" abstractTitle
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
+              $ (if hasHighlighting
+                    then case writerHighlightMethod options of
+                           Skylighting sty ->
+                              defField "highlighting-definitions"
+                                (T.stripEnd $ styleToTypst sty)
+                           _ -> id
+                    else id)
               $ defField "figure-caption-position"
                    (toPosition $ writerFigureCaptionPosition options)
               $ defField "table-caption-position"
@@ -184,7 +199,7 @@ blockToTypst block =
       case fmt of
         Format "typst" -> return $ literal str
         _ -> return mempty
-    CodeBlock (_,cls,_) code -> do
+    CodeBlock (ident,cls,kvs) code -> do
       let go :: Char -> (Int, Int) -> (Int, Int)
           go '`' (longest, current) =
             let !new = current + 1 in (max longest new, new)
@@ -194,7 +209,19 @@ blockToTypst block =
       let lang = case cls of
                    (cl:_) -> literal cl
                    _ -> mempty
-      return $ fence <> lang <> cr <> literal code <> cr <> fence <> blankline
+      opts <-  gets stOptions
+      case writerHighlightMethod opts of
+        Skylighting _ ->
+          case highlight (writerSyntaxMap opts) formatTypstBlock
+                (ident,cls ++ ["default"],kvs) code of
+            Left msg -> do
+              unless (T.null msg) $ report $ CouldNotHighlight msg
+              return $ fence <> lang <> cr <> literal code <> cr <> fence <> blankline
+            Right h -> do
+              modify (\s -> s{ stHighlighting = True })
+              return (literal h)
+        NoHighlighting -> return $ fence <> cr <> literal code <> cr <> fence <> blankline
+        _ -> return $ fence <> lang <> cr <> literal code <> cr <> fence <> blankline
     LineBlock lns -> do
       contents <- inlinesToTypst (intercalate [LineBreak] lns)
       return $ contents <> blankline
@@ -410,13 +437,27 @@ inlineToTypst inline =
              case mathType of
                InlineMath -> return $ "$" <> literal r <> "$"
                DisplayMath -> return $ "$ " <> literal r <> " $"
-    Code (_,cls,_) code -> return $
-      case cls of
-        (lang:_) -> "#raw(lang:" <> doubleQuoted lang <>
-                        ", " <> doubleQuoted code <> ")" <> endCode
-        _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
-                                     <> endCode
-          | otherwise -> "`" <> literal code <> "`"
+    Code (ident,cls,kvs) code -> do
+      opts <- gets stOptions
+      let defaultHighlightedCode =
+            case cls of
+              (lang:_) | writerHighlightMethod opts /= NoHighlighting
+                       -> "#raw(lang:" <> doubleQuoted lang <>
+                              ", " <> doubleQuoted code <> ")" <> endCode
+              _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
+                                           <> endCode
+                | otherwise -> "`" <> literal code <> "`"
+      case writerHighlightMethod opts of
+        Skylighting _ ->
+          case highlight (writerSyntaxMap opts) formatTypstInline
+                (ident,cls ++ ["default"],kvs) code of
+            Left msg -> do
+              unless (T.null msg) $ report $ CouldNotHighlight msg
+              return defaultHighlightedCode
+            Right h -> do
+              modify (\s -> s{ stHighlighting = True })
+              return (literal h)
+        _ -> return defaultHighlightedCode
     RawInline fmt str ->
       case fmt of
         Format "typst" -> return $ literal str

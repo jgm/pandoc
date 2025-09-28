@@ -543,7 +543,7 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                Right h -> do
                   when inNote $ modify (\s -> s{ stVerbInNote = True })
                   modify (\s -> s{ stHighlighting = True })
-                  return (flush $ linkAnchor $$ text (T.unpack h))
+                  return (flush $ linkAnchor $$ literal h)
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes           -> lhsCodeBlock

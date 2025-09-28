@@ -7528,7 +7528,7 @@ Vim traditionally wraps at 78, but Pandoc defaults to 72. Use
 Pandoc will automatically highlight syntax in [fenced code blocks] that
 are marked with a language name.  The Haskell library [skylighting] is
 used for highlighting. Currently highlighting is supported only for
-HTML, EPUB, Docx, Ms, Man, and LaTeX/PDF output. To see a list
+HTML, EPUB, Docx, Ms, Man, Typst, and LaTeX/PDF output. To see a list
 of language names that pandoc will recognize, type `pandoc
 --list-highlight-languages`.
 

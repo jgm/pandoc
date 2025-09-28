@@ -22,6 +22,11 @@
   kind: image
 ): set figure.caption(position: $if(figure-caption-position)$$figure-caption-position$$else$bottom$endif$)
 
+$if(highlighting-definitions)$
+// syntax highlighting functions from skylighting:
+$highlighting-definitions$
+
+$endif$
 $if(template)$
 #import "$template$": conf
 $else$
