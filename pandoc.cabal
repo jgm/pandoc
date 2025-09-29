@@ -341,6 +341,7 @@ extra-source-files:
                  test/tables.txt
                  test/tables.fb2
                  test/tables.muse
+                 test/tables.vimdoc
                  test/tables.xwiki
                  test/tables/*.html4
                  test/tables/*.html5
