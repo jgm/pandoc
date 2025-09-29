@@ -342,6 +342,7 @@
 - R. N. West
 - Ralf Stephan
 - Raniere Silva
+- Raymond Berger
 - Raymond Ehlers
 - Recai Oktaş
 - Repetitive
@@ -490,6 +491,7 @@
 - priiduonu
 - qerub
 - quasicomputational
+- reptee
 - ricnorr
 - robabla
 - roblabla
