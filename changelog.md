@@ -1,5 +1,156 @@
 # Revision history for pandoc
 
+## pandoc 3.8.1 (2025-09-29)
+
+  * New output format `vimdoc` (Vim documentation format) (#11132, reptee).
+
+    + [API change] Added module Text.Pandoc.Writers.Vimdoc, exporting
+      `writeVimdoc`.
+
+  * Markdown reader:
+
+    + Improve superscript/subscript/inline note parsing (#8652).
+      We do not allow inline notes to be followed by `(` or `[`.
+      Otherwise, we parse inline notes before superscripts.
+      Also, the sub/superscript parsers have been adjusted so that they
+      really exclude unescaped spaces (as they did not before, when the
+      spaces occurred in nested inlines).
+    + Fix simple table alignment (#11136, Tuong Nguyen Manh). Take wide
+      characters into account when determining the alignment.
+
+  * LaTeX reader:
+
+    + Ignore `\pandocbounded` (#11140).
+
+  * XML reader:
+
+    + Parse `<MetaString>` (#11137, massifrg).
+
+  * Typst reader:
+
+    + Add support for reading typst pagebreak (#11101, Raymond Berger).
+      The pagebreak is parsed as a HorizontalRule inside a wrapper Div
+      with class `page-break`.
+
+  * Docx reader:
+
+    + Handle figures in indented paragraphs (#11028).
+    + Change default for textwidth. This should only be used if `sectPr`
+      is not found.
+    + Properly calculate table column widths (#9837, #11147).
+      Previously we assumed that every table took up the full text
+      width. Now we read the text width from the document's `sectPr`.
+    + Use Tasty.Golden for Docx reader tests. This way we can update
+      them with `--accept`.
+
+  * RST reader:
+
+    + Fix regression in simple table parsing (#11150).
+    + SkippedContent warning if table directive contains
+      non-tabular content.
+    + Simple tables: leading space in a cell should not cause the contents
+      to be parsed as a block quote (#11146).
+    + Parse `:alt:` on figure (#11140). Also give a better default if
+      `alt` is not specified, using the stringified caption rather
+      than the filename.
+    + Support col spans for simple tables (Tuong Nguyen Manh).
+
+  * Markdown writer:
+
+    + Improve handling of implicit figures (#11140).
+      Allow implicit figures when alt text differs from caption
+      (in this case, we use an image attribute to add the alt).
+    + Use approximate pipe tables when it's the only option (#11128).
+      If we have a table with row/colspans that can rendered as an
+      approximate pipe table (without row/colspans), and no other table
+      format is enabled that could render the table, we fall back to
+      an "approximate" pipe table, with no row/colspans.
+
+  * RST writer:
+
+    + Ensure blank line before directives (#11162).
+    + Add col spans for simple tables (#10127, Tuong Nguyen Manh).
+
+  * OpenDocument writer:
+
+    + Add missing table elements (#10002, Tuong Nguyen Manh).
+      Add missing header rows after the first one,
+      footer rows as well as TableBody header rows.
+
+  * Docx writer:
+
+    + Fix regression (from 3.8) in highlighted code (#11156).
+
+  * Powerpoint writer:
+
+    + Handle single column (Tuong Nguyen Manh).
+
+  * Typst writer:
+
+    + Fix syntax highlighting (#11171, completes #10525).
+      Previously the native typst highlighting was always used, regardless
+      of the setting of `--syntax-highlighting`. With this change,
+      `--syntax-highlighting=none` and `--syntax-highlighting=<stylename>`
+      (with skylighting style) will work.
+
+  * LaTeX writer:
+
+    + Make beamer footnotes compatible with pauses (#5954).
+      Previously they would appear before the content to which
+      the note was attached, when there were pauses in a slide.
+    + Avoid `\_` in bibliography variable (#11152).
+    + Ensure that unlabelled tables don't increment counter (#11141).
+    + Protect VERB in caption (#11139, Tuong Nguyen Manh).
+    + Don't add links to TOC (#11124, Albert Krewinkel).
+    + Fix strikeouts in beamer title (#11168, Tuong Nguyen Manh).
+
+  * LaTeX template: Add `shorthands` variable for LaTeX output
+    (#11160). If true, pandoc will allow language-specific shorthands
+    when loading babel. (This is helpful, for example, in getting
+    proper spacing around French punctuation.)
+
+  * epub.css: Remove coloring for `a, a:visiting` (#11174).
+    This was causing links in iOS books app not to be distinguished in
+    any way (since underlining is not used there).
+
+  * Text.Pandoc.Parsing:
+
+    + [API chage] (Tuong Nguyen Manh). New functions `tableWithSpans`,
+      `tableWithSpans'`, `toTableComponentsWithSpans` and
+      `toTableComponentsWithSpans'` take a list of lists of
+      (Blocks, RowSpan, ColSpan) to parse a Table with different RowSpan and
+      ColSpan values accordingly. New helper functions `singleRowSpans` and
+      `singleColumnSpans` help set all RowSpans or ColSpans to be 1 in case
+      the table format only allows setting one or the other.
+
+  * Text.Pandoc.Class:
+
+    + Let `fetchItem` fail if the HTTP request is not
+      successful (Albert Krewinkel). HTTP requests that don't return a 200
+      error code are now treated as an error. This ensures that a warning is
+      triggered when using `--embed-resources` or `--extract-media`.
+
+  * Text.Pandoc.Writers.Shared:
+
+    + Add new function `removeLinks` [API change] (Albert Krewinkel).
+      The function converts links to spans. It is used, for example, to avoid
+      nested links. The HTML writer used to put the description of nested links
+      into small caps, but uses a simple *span* now.
+
+  * Text.Pandoc.Highlighting: export typst functions
+    [API change]. New exported functions `formatTypstBlock`,
+    `formatTypstInline`, `styleToTypst`.
+
+  * Text.Pandoc.XML:
+
+    + Add `fetchpriority` to list of HTML attributes (#11176).
+
+  * Allow unicode-data 0.7.
+
+  * Use released djot 0.1.2.3. Fixes a bug in which indentation
+    was swallowed in a code block inside a blockquote.
+
+
 ## pandoc 3.8 (2025-09-06)
 
   * Add a new input and output format `xml`, exactly representing a Pandoc
