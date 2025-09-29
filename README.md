@@ -217,6 +217,8 @@ It can convert *to*
   slide show)
 - `tei` ([TEI Simple](https://github.com/TEIC/TEI-Simple))
 - `typst` ([typst](https://typst.app))
+- `vimdoc`
+  ([Vimdoc](https://vimhelp.org/helphelp.txt.html#help-writing))
 - `xml` (XML version of native AST)
 - `xwiki` ([XWiki
   markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
