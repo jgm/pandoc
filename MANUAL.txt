@@ -269,6 +269,7 @@ header when requesting a document from a URL:
     - `mdoc` ([mdoc] manual page markup)
     - `muse` ([Muse])
     - `native` (native Haskell)
+    - `obsidian` ([Obsidian-Flavored Markdown])
     - `odt` ([OpenDocument text document][ODT])
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
@@ -503,6 +504,7 @@ header when requesting a document from a URL:
 [Jira]: https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all
 [txt2tags]: https://txt2tags.org
 [EPUB]: http://idpf.org/epub
+[Obsidian-Flavored Markdown]: https://help.obsidian.md/obsidian-flavored-markdown
 [OPML]: http://dev.opml.org/spec2.html
 [OpenDocument XML]: https://www.oasis-open.org/2021/06/16/opendocument-v1-3-oasis-standard-published/
 [ODT]: https://en.wikipedia.org/wiki/OpenDocument
@@ -6009,10 +6011,17 @@ or image itself, if these differ.
 
 ### Extension: `mark` ###
 
-To highlight out a section of text, begin and end it with
+To highlight a section of text, begin and end it with
 with `==`. Thus, for example,
 
     This ==is deleted text.==
+
+### Extension: `comments` ###
+
+To comment out a section of text, begin and end it
+with `%%`. Thus, for example,
+
+    This %%is a comment.%%
 
 ### Extension: `attributes` ###
 
@@ -6160,15 +6169,16 @@ simply skipped (as opposed to being parsed as paragraphs).
 
 ### Extension: `alerts` ###
 
-Supports [GitHub-style Markdown alerts], like
+Supports [GitHub-style Markdown alerts] and [Obsidian callouts], like
 
     > [!TIP]
     > Helpful advice for doing things better or more easily.
 
+  [Obsidian callouts]: https://help.obsidian.md/callouts
   [GitHub-style Markdown alerts]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts
 
 Note: This extension currently only works with commonmark:
-`commonmark`, `gfm`, `commonmark_x`.
+`commonmark`, `gfm`, `commonmark_x`, `obsidian`.
 
 ### Extension: `autolink_bare_uris` ###
 
@@ -6218,6 +6228,38 @@ or
 
     Oxygen is O~2.
 
+### Extension: `wikilink_transclusions` ###
+
+Follows [Obsidan-style transclusions] using wikilink syntax to embed one file in another. For example to transclude the file "Title":
+
+    ![[Title]]
+
+[Obsidan-style transclusions]: https://help.obsidian.md/embeds
+
+### Extension: `wilikink_heading_transclusions` ###
+
+Follows the [Obsidan-style heading transclusions] syntax. For example to transclude a heading within the file "Title":
+
+    ![[Title#Heading]]
+
+[Obsidan-style heading transclusions]: https://help.obsidian.md/links#Link+to+a+heading+in+a+note
+
+### Extension: `wilikink_block_transclusions` ###
+
+Follows the [Obsidan-style block transclusions] syntax. For example to transclude block ID ^ref within the file "Title":
+
+    ![[Title#^ref]]
+
+[Obsidan-style block transclusions]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
+
+### Extension: `block_ids` ###
+
+Follows the [Obsidan-style block identifiers] syntax. For example add `^ref` at the end of a paragraph:
+
+    Text ^ref
+
+[Obsidan-style block identifiers]: https://help.obsidian.md/links#Link+to+a+block+in+a+note
+
 ### Extension: `wikilinks_title_after_pipe` ###
 
 Pandoc supports multiple Markdown wikilink syntaxes, regardless of
@@ -6245,6 +6287,7 @@ variants are supported:
 - `markdown_strict` (Markdown.pl)
 - `commonmark` (CommonMark)
 - `gfm` (Github-Flavored Markdown)
+- `obsidian` (Obsidian-Flavored Markdown)
 - `commonmark_x` (CommonMark with many pandoc extensions)
 
 To see which extensions are supported for a given format,
