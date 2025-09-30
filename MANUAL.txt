@@ -151,8 +151,7 @@ scheme that use a colored background. The use of `xelatex` or
 uses [`selnolig`] and [`lua-ul`]. `xelatex` uses [`bidi`] (with
 the `dir` variable set).
 If the `mathspec` variable is set, `xelatex` will use [`mathspec`]
-instead of [`unicode-math`].  The [`upquote`] and [`microtype`]
-packages are used if available, and [`csquotes`] will be used
+instead of [`unicode-math`].  The [`csquotes`] package will be used
 for [typography] if the `csquotes` variable or metadata field is
 set to a true value.  The [`natbib`], [`biblatex`], [`bibtex`],
 and [`biber`] packages can optionally be used for [citation
