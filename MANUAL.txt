@@ -193,6 +193,7 @@ better line breaks in URLs), and [`footnotehyper`] or
 [`longtable`]: https://ctan.org/pkg/longtable
 [`mathspec`]: https://ctan.org/pkg/mathspec
 [`microtype`]: https://ctan.org/pkg/microtype
+[`multirow`]: https://ctan.org/pkg/multirow
 [`natbib`]: https://ctan.org/pkg/natbib
 [`parskip`]: https://ctan.org/pkg/parskip
 [`polyglossia`]: https://ctan.org/pkg/polyglossia
