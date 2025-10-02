@@ -84,6 +84,7 @@ data Extension =
     | Ext_gutenberg           -- ^ Use Project Gutenberg conventions for plain
     | Ext_hard_line_breaks    -- ^ All newlines become hard line breaks
     | Ext_header_attributes   -- ^ Explicit header attributes {#id .class k=v}
+    | Ext_table_attributes    -- ^ Explicit table attributes after caption
     | Ext_ignore_line_breaks  -- ^ Newlines in paragraphs are ignored
     | Ext_implicit_figures    -- ^ A paragraph with just an image is a figure
     | Ext_implicit_header_references -- ^ Implicit reference links for headers
@@ -253,6 +254,7 @@ pandocExtensions = extensionsFromList
   , Ext_task_lists
   , Ext_auto_identifiers
   , Ext_header_attributes
+  , Ext_table_attributes
   , Ext_link_attributes
   , Ext_implicit_header_references
   , Ext_line_blocks

@@ -4927,6 +4927,14 @@ you'll need to add colons as above.
 
 [PHP Markdown Extra tables]: https://michelf.ca/projects/php-markdown/extra/#table
 
+### Extension: `table_attributes` ###
+
+Attributes may be attached to tables by including them at the end
+of the caption. (For the syntax, see
+[`header_attributes`][Extension: `header_attributes`].)
+
+      : Here's the caption. {#ident .class key="value"}
+
 ## Metadata blocks
 
 ### Extension: `pandoc_title_block` ###

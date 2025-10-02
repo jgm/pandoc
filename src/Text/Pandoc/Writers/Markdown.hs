@@ -607,7 +607,7 @@ blockToMarkdown' opts (BlockQuote blocks) = do
         | otherwise            = "> "
   contents <- blockListToMarkdown opts blocks
   return $ text leader <> prefixed leader contents <> blankline
-blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
+blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   let isColRowSpans (Cell _ _ rs cs _) = rs > 1 || cs > 1
   let rowHasColRowSpans (Row _ cs) = any isColRowSpans cs
@@ -621,9 +621,9 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let numcols = maximum (length aligns :| length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
-  let caption'' = if T.null ident
+  let caption'' = if attr == nullAttr
                      then caption'
-                     else caption' <+> attrsToMarkdown opts (ident,[],[])
+                     else caption' <+> attrsToMarkdown opts attr
   let caption'''
         | null caption = blankline
         | isEnabled Ext_table_captions opts

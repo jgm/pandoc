@@ -22,7 +22,7 @@ module Text.Pandoc.Readers.Markdown (
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Bifunctor (second)
+import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
 import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
@@ -1305,14 +1305,19 @@ multilineRow indices = do
 
 -- Parses a table caption:  inlines beginning with 'Table:'
 -- and followed by blank lines.
-tableCaption :: PandocMonad m => MarkdownParser m (F Inlines)
+tableCaption :: PandocMonad m => MarkdownParser m (F Inlines, Attr)
 tableCaption = do
   guardEnabled Ext_table_captions
   try $ do
     skipNonindentSpaces
     (string ":" <* notFollowedBy (satisfy isPunctuation)) <|>
       (oneOf ['T','t'] >> string "able:")
-    trimInlinesF <$> inlines1 <* blanklines
+    let attributes' = guardEnabled Ext_table_attributes *> attributes
+    ils <- trimInlinesF . mconcat <$>
+               many (notFollowedBy (attributes' *> blanklines) *> inline)
+    attr <- option nullAttr attributes'
+    blanklines
+    pure (ils, attr)
 
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: PandocMonad m
@@ -1326,7 +1331,8 @@ simpleTable headless = do
               (if headless then tableFooter else tableFooter <|> blanklines')
   -- All columns in simple tables have default widths.
   let useDefaultColumnWidths tc =
-        let cs' = map (second (const ColWidthDefault)) $ tableColSpecs tc
+        let cs' = map (Bifunctor.second (const ColWidthDefault)) $
+                   tableColSpecs tc
         in tc {tableColSpecs = cs'}
   return $ useDefaultColumnWidths <$> tableComponents
 
@@ -1476,7 +1482,8 @@ scanForPipe = do
 
 table :: PandocMonad m => MarkdownParser m (F Blocks)
 table = try $ do
-  frontCaption <- option Nothing (Just <$> tableCaption)
+  (frontCaption, frontAttr) <- option (Nothing, nullAttr)
+                               (Bifunctor.first Just <$> tableCaption)
   tableComponents <-
          (guardEnabled Ext_pipe_tables >> try (scanForPipe >> pipeTable)) <|>
          (guardEnabled Ext_multiline_tables >> try (multilineTable False)) <|>
@@ -1487,13 +1494,14 @@ table = try $ do
          (guardEnabled Ext_grid_tables >>
                 try gridTable) <?> "table"
   optional blanklines
-  caption <- case frontCaption of
-                  Nothing -> option (return mempty) tableCaption
-                  Just c  -> return c
+  (caption, attr) <- case frontCaption of
+                        Nothing -> option (return mempty, nullAttr) tableCaption
+                        Just c  -> return (c, frontAttr)
   return $ do
     caption' <- caption
     (TableComponents _attr _capt colspecs th tb tf) <- tableComponents
-    return $ B.table (B.simpleCaption $ B.plain caption') colspecs th tb tf
+    return $ B.tableWith attr
+                (B.simpleCaption $ B.plain caption') colspecs th tb tf
 
 --
 -- inline
