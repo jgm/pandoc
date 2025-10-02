@@ -26,6 +26,7 @@ import qualified HsLua.Module.DocLayout as Module.Layout
 import qualified HsLua.Module.Zip as Module.Zip
 import qualified Text.Pandoc.Lua.Module.CLI as Pandoc.CLI
 import qualified Text.Pandoc.Lua.Module.Format as Pandoc.Format
+import qualified Text.Pandoc.Lua.Module.Highlighting as Pandoc.Highlighting
 import qualified Text.Pandoc.Lua.Module.Image as Pandoc.Image
 import qualified Text.Pandoc.Lua.Module.JSON as Pandoc.JSON
 import qualified Text.Pandoc.Lua.Module.Log as Pandoc.Log
@@ -80,6 +81,7 @@ submodules :: [Module PandocError]
 submodules =
   [ Pandoc.CLI.documentedModule
   , Pandoc.Format.documentedModule
+  , Pandoc.Highlighting.documentedModule
   , Pandoc.Image.documentedModule
   , Pandoc.JSON.documentedModule
   , Pandoc.Log.documentedModule
