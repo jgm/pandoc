@@ -278,22 +278,18 @@ notFollowedBy' p  = try $ join $  do  a <- try p
 -- (This version due to Andrew Pimlott on the Haskell mailing list.)
 
 oneOfStrings' :: (Stream s m Char, UpdateSourcePos s Char)
-              => (Char -> Char -> Bool) -> [Text] -> ParsecT s st m Text
-oneOfStrings' f = fmap T.pack . oneOfStrings'' f . fmap T.unpack
-
--- TODO: This should be re-implemented in a Text-aware way
-oneOfStrings'' :: (Stream s m Char, UpdateSourcePos s Char)
-               => (Char -> Char -> Bool) -> [String] -> ParsecT s st m String
-oneOfStrings'' _ []   = Prelude.fail "no strings"
-oneOfStrings'' matches strs = try $ do
-  c <- anyChar
-  let strs' = [xs | (x:xs) <- strs, x `matches` c]
-  case strs' of
+               => (Char -> Char -> Bool) -> [Text] -> ParsecT s st m Text
+oneOfStrings' _ [] = Prelude.fail "no strings to match"
+oneOfStrings' matches strs = try $ go strs
+ where
+   go strs' = do
+     c <- anyChar
+     let strs'' = [t | Just (d, t) <- map T.uncons strs', matches c d]
+     case strs'' of
        []  -> Prelude.fail "not found"
-       _   -> (c:) <$> oneOfStrings'' matches strs'
-               <|> if "" `elem` strs'
-                      then return [c]
-                      else Prelude.fail "not found"
+       _   -> if any T.null strs''
+                 then option (T.singleton c) (T.cons c <$> try (go strs''))
+                 else T.cons c <$> go strs''
 
 -- | Parses one of a list of strings.  If the list contains
 -- two strings one of which is a prefix of the other, the longer
