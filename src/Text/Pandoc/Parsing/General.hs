@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {- |
@@ -86,6 +87,8 @@ import Data.List (intercalate, sortOn)
 import Data.Ord (Down(..))
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
+import qualified Data.Text.Lazy.Builder as TB
+import qualified Data.Text.Lazy as TL
 import Text.Pandoc.Asciify (toAsciiText)
 import Text.Pandoc.Builder (Attr, Inline(Str), Inlines, trimInlines)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, readFileFromDirs, report)
@@ -280,16 +283,18 @@ notFollowedBy' p  = try $ join $  do  a <- try p
 oneOfStrings' :: (Stream s m Char, UpdateSourcePos s Char)
                => (Char -> Char -> Bool) -> [Text] -> ParsecT s st m Text
 oneOfStrings' _ [] = Prelude.fail "no strings to match"
-oneOfStrings' matches strs = try $ go strs
+oneOfStrings' matches strs =
+  TL.toStrict . TB.toLazyText <$> try (go (TB.fromText mempty) strs)
  where
-   go strs' = do
+   go acc strs' = do
      c <- anyChar
      let strs'' = [t | Just (d, t) <- map T.uncons strs', matches c d]
+     let !acc' = acc <> TB.singleton c
      case strs'' of
        []  -> Prelude.fail "not found"
        _   -> if any T.null strs''
-                 then option (T.singleton c) (T.cons c <$> try (go strs''))
-                 else T.cons c <$> go strs''
+                 then option acc' (try (go acc' strs''))
+                 else go acc' strs''
 
 -- | Parses one of a list of strings.  If the list contains
 -- two strings one of which is a prefix of the other, the longer
