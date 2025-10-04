@@ -3419,7 +3419,7 @@ The `--css` option also affects the output.
 ### Variables for Typst
 
 `template`
-:   Typst template to use.
+:   Typst template to use (relative path only).
 
 `margin`
 :   A dictionary with the fields defined in the Typst documentation:
