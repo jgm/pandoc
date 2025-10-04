@@ -16,8 +16,9 @@ extra-deps:
 - skylighting-core-0.14.7
 - skylighting-0.14.7
 - citeproc-0.10
-- texmath-0.13
 - djot-0.1.2.3
+- git: https://github.com/jgm/texmath.git
+  commit: 26b2b8b5c199b6180a7eda96b603a1193d741693
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.9
