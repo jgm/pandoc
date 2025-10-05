@@ -89,9 +89,9 @@ popd
 *** TODO Copy binary to server, install it
 #+begin_src
 # example:
-cd 3.7
-tar xvzf pandoc-3.7-linux-amd64.tar.gz
-scp pandoc-3.7/bin/pandoc website:cgi-bin/pandoc-server.cgi
+cd RELEASE_VERSION
+tar xvzf pandoc-RELEASE_VERSION-linux-amd64.tar.gz
+scp pandoc-RELEASE_VERSION/bin/pandoc website:cgi-bin/pandoc-server.cgi
 #+end_src
 
 *** TODO create release announcement and add to GH release announcement
@@ -116,7 +116,7 @@ Thanks to all who contributed, especially new contributors ...
 *** TODO Add [[https://github.com/jgm/pandoc/releases/][release on GitHub]]
 #+begin_src sh :var announcement=relann :results output literal
 echo '```'
-cat $announcement
+cat relann-RELEASE_VERSION
 echo '```'
 echo ''
 make changes_github
