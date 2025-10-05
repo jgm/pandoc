@@ -1,5 +1,43 @@
 # Revision history for pandoc
 
+## pandoc 3.8.2 (2025-10-05)
+
+  * Markdown reader/writer: implement new `table_attributes` extension
+    (#10884). When `table_attributes` is enabled (as it is by default for
+    pandoc's Markdown), attributes can be attached to a table by
+    including them at the end of the caption. Previously the writer
+    would emit an identifier in this position, but the reader didn't
+    handle it. Now arbitrary attributes are allowed, and they work in
+    both the reader and writer.
+
+   * Typst writer: don't add superfluous semicolons (#11196).
+    Previously we added semicolons after inline commands not
+    followed by spaces, but mainly this was to deal with one issue:
+    the presence of a semicolon after an inline command, which
+    would be swallowed as a command separator (#9252).
+    This commits adopts an approach that should avoid so many
+    superfluous semicolons: it escapes semicolons that might come
+    right after a command.
+
+  * Typst template: fix 3.8 regression in which links disappear
+    (#11194). A template change in 3.8 added a show rule for links which
+    causes them to disappear except in special cases.
+
+  * Text.Pandoc.Parsing: rewrite `oneOfStrings` more efficiently.
+
+  * LaTeX writer: Fix strikeout in links (#11192, Tuong Nguyen Manh).
+    As in #1294 `\url` and `\href` need to be protected
+    inside an mbox for `soul` commands.
+
+  * Text.Pandoc.Extensions: Add `Ext_table_attributes` constructor for
+    `Extension` [API change].
+
+  * Use released texmath 0.13.0.1.
+
+  * Update FSF contact information in COPYING (#11183, Bensun Muite).
+
+  * MANUAL.txt: remove some redundancy (#11178, Reuben Thomas).
+
 ## pandoc 3.8.1 (2025-09-29)
 
   * New output format `vimdoc` (Vim documentation format) (#11132, reptee).
@@ -4283,7 +4321,7 @@
       image. The first `!` of image markup must now be followed by a
       non-space character; otherwise, the enclosed text is parsed as
       normal content.
-    
+
   * Ms writer:
 
     + Fix handling of Figure (#8660).
@@ -4391,7 +4429,7 @@
     Krewinkel). The table foot is made part of the table body, as
     otherwise it won't show up in the output. The root cause for
     this is that longtable cannot detect page breaks in Beamer.
-    
+
   * LaTeX template: Add CJKsansfont and CJKmonofont for XeLaTeX
     (#8656, Yudong Jin). `CJKsansfont` and `CJKmonofont` will be
     set for xelatex only if `CJKmainfont` is also provided.
