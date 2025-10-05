@@ -443,9 +443,8 @@ inlineToTypst inline =
             case cls of
               (lang:_) | writerHighlightMethod opts /= NoHighlighting
                        -> "#raw(lang:" <> doubleQuoted lang <>
-                              ", " <> doubleQuoted code <> ")" <> endCode
+                              ", " <> doubleQuoted code <> ")"
               _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
-                                           <> endCode
                 | otherwise -> "`" <> literal code <> "`"
       case writerHighlightMethod opts of
         Skylighting _ ->
@@ -503,7 +502,6 @@ inlineToTypst inline =
           -> if T.all isIdentChar ident
                 then pure $ literal $ "@" <> ident
                 else pure $ "#ref" <> parens (toLabel ArgumentLabel ident)
-                            <> endCode
         _ -> do
           contents <- inlinesToTypst inlines
           let dest = case T.uncons src of
@@ -512,13 +510,13 @@ inlineToTypst inline =
           pure $ "#link" <> parens dest <>
                     (if inlines == [Str src]
                           then mempty
-                          else nowrap $ brackets contents) <> endCode
+                          else nowrap $ brackets contents)
     Image attr _inlines (src,_tit) -> do
       opts <-  gets stOptions
       pure $ mkImage opts True src attr
     Note blocks -> do
       contents <- blocksToTypst blocks
-      return $ "#footnote" <> brackets (chomp contents) <> endCode
+      return $ "#footnote" <> brackets (chomp contents)
 
 -- see #9104; need box or image is treated as block-level
 mkImage :: WriterOptions -> Bool -> Text -> Attr -> Doc Text
@@ -544,7 +542,7 @@ mkImage opts useBox src attr
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = do
-  (<> endCode) . (s <>) . brackets . fixInitialAfterBreakEscape
+  (s <>) . brackets . fixInitialAfterBreakEscape
     <$> inlinesToTypst inlines
 
 fixInitialAfterBreakEscape :: Doc Text -> Doc Text
@@ -564,6 +562,7 @@ escapeTypst :: Bool -> EscapeContext -> Text -> Doc Text
 escapeTypst smart context t =
   (case T.uncons t of
     Just (c, _)
+      | c == ';' -> char '\\' -- see #9252
       | needsEscapeAtLineStart c || isOrderedListMarker t
         -> afterBreak "\\"
     _ -> mempty) <>
@@ -654,7 +653,7 @@ toCite cite = do
        pure $ (if citationMode cite == SuppressAuthor  -- see #11044
                   then parens
                   else id)
-            $ "#cite" <> parens (label <> form <> suppl) <> endCode
+            $ "#cite" <> parens (label <> form <> suppl)
 
 doubleQuoted :: Text -> Doc Text
 doubleQuoted = doubleQuotes . literal . escape
@@ -663,9 +662,6 @@ doubleQuoted = doubleQuotes . literal . escape
   escapeChar '\\' = "\\\\"
   escapeChar '"' = "\\\""
   escapeChar c = T.singleton c
-
-endCode :: Doc Text
-endCode = beforeNonBlank ";"
 
 extractLabel :: Text -> Maybe Text
 extractLabel = go . T.unpack
