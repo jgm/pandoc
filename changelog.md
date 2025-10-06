@@ -10,7 +10,7 @@
     handle it. Now arbitrary attributes are allowed, and they work in
     both the reader and writer.
 
-   * Typst writer: don't add superfluous semicolons (#11196).
+  * Typst writer: don't add superfluous semicolons (#11196).
     Previously we added semicolons after inline commands not
     followed by spaces, but mainly this was to deal with one issue:
     the presence of a semicolon after an inline command, which
