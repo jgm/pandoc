@@ -69,6 +69,7 @@ $-- tables
 $--
 $if(tables)$
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
 $if(multirow)$
 \usepackage{multirow}
 $endif$

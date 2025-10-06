@@ -19,7 +19,7 @@ Right & Left & Center & Default \\
 
 Simple table without caption:
 
-{\def\LTcaptype{} % do not increment counter
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}rlcl@{}}
 \toprule\noalign{}
 Right & Left & Center & Default \\
@@ -92,7 +92,7 @@ Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 
 Multiline table without caption:
 
-{\def\LTcaptype{} % do not increment counter
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1500}}
   >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1375}}
@@ -119,7 +119,7 @@ Second & row & 5.0 & Here's another one. Note the blank line between rows. \\
 
 Table without column headers:
 
-{\def\LTcaptype{} % do not increment counter
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}rlcr@{}}
 \toprule\noalign{}
 \endhead
@@ -133,7 +133,7 @@ Table without column headers:
 
 Multiline table without column headers:
 
-{\def\LTcaptype{} % do not increment counter
+{\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}
   >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1500}}
   >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1375}}

@@ -98,7 +98,7 @@ tableToLaTeX inlnsToLaTeX blksToLaTeX tbl = do
   modify $ \s -> s{ stTable = True }
   notes <- notesToLaTeX <$> gets stNotes
   beamer <- gets stBeamer
-  let makeUnnumbered x = "{\\def\\LTcaptype{} % do not increment counter" $$ x $$ "}"
+  let makeUnnumbered x = "{\\def\\LTcaptype{none} % do not increment counter" $$ x $$ "}"
   return
     $ (if null capt then makeUnnumbered else id)
     $ "\\begin{longtable}[]" <>
