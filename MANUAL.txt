@@ -301,6 +301,11 @@ header when requesting a document from a URL:
     - `asciidoc` (modern [AsciiDoc] as interpreted by [AsciiDoctor])
     - `asciidoc_legacy` ([AsciiDoc] as interpreted by [`asciidoc-py`]).
     - `asciidoctor` (deprecated synonym for `asciidoc`)
+    - `bbcode` [BBCode]
+    - `bbcode_fluxbb` [BBCode (FluxBB)]
+    - `bbcode_phpbb` [BBCode (phpBB)]
+    - `bbcode_steam` [BBCode (Hubzilla)]
+    - `bbcode_steam` [BBCode (Steam)]
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
@@ -546,6 +551,11 @@ header when requesting a document from a URL:
 [EndNote XML bibliography]: https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition
 [typst]: https://typst.app
 [mdoc]: https://mandoc.bsd.lv/man/mdoc.7.html
+[BBCode]: https://www.bbcode.org/reference.php
+[BBCode (FluxBB)]: https://web.archive.org/web/20210623155046/https://fluxbb.org/forums/help.php#bbcode
+[BBCode (Hubzilla)]: https://hubzilla.org/help/member/bbcode
+[BBCode (Steam)]: https://steamcommunity.com/comment/ForumTopic/formattinghelp
+[BBCode (phpBB)]: https://www.phpbb.com/community/help/bbcode
 
 ## Reader options {.options}
 
