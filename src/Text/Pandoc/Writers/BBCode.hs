@@ -1,0 +1,1001 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE Strict #-}
+
+module Text.Pandoc.Writers.BBCode (
+  -- * Predefined writers
+  --
+  -- Writers for different flavors of BBCode. 'writeBBCode' is a synonym for
+  -- 'writeBBCode_official'
+
+  writeBBCode,
+  writeBBCode_official,
+  writeBBCode_steam,
+  writeBBCode_phpBB,
+  writeBBCode_fluxBB,
+  writeBBCode_hubzilla,
+
+  -- * Extending the writer
+  --
+  -- $extending
+  FlavorSpec (..),
+  WriterState (..),
+  RR,
+  writeBBCode_custom,
+  inlineToBBCode,
+  inlineListToBBCode,
+  blockToBBCode,
+  blockListToBBCode,
+  attrToMap,
+  wrapSpanDivGeneric,
+
+  -- * Predefined flavor specifications
+  officialSpec,
+  steamSpec,
+  phpbbSpec,
+  fluxbbSpec,
+  hubzillaSpec,
+) where
+
+import Control.Monad (forM)
+import Control.Monad.Reader (MonadReader (..), ReaderT (..), asks)
+import Control.Monad.State (MonadState (..), StateT, evalStateT, gets, modify)
+import Data.Default (Default (..))
+import Data.Foldable (toList)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import Data.Maybe (fromMaybe, isJust)
+import Data.Sequence (Seq, (|>))
+import qualified Data.Sequence as Seq
+import Data.Text (Text)
+import qualified Data.Text as T
+import Text.DocLayout hiding (char, link, text)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
+import Text.Pandoc.Definition
+import Text.Pandoc.Logging (LogMessage (..))
+import Text.Pandoc.Options (WriterOptions (..))
+import Text.Pandoc.Shared (inquotes, onlySimpleTableCells, removeFormatting, trim, tshow)
+import Text.Pandoc.Templates (renderTemplate)
+import Text.Pandoc.URI (escapeURI, isURI)
+import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unsmartify)
+import Text.Read (readMaybe)
+import qualified Data.Set as Set
+
+-- Type synonym to prevent haddock-generated HTML from overflowing
+type PandocTable =
+  (Attr, Caption, [ColSpec], TableHead, [TableBody], TableFoot)
+
+-- $extending
+-- If you want to support more Pandoc elements (or render some of them
+-- differently) you can do so by creating your own 'FlavorSpec'
+--
+-- The module exports the @'FlavorSpec'@s underlying @writeBBCode_*@ functions,
+-- namely 'officialSpec', 'steamSpec', 'phpbbSpec', 'fluxbbSpec',
+-- 'hubzillaSpec'.
+--
+-- You can create and use your own renderers, for instance here we define a
+-- renderer for 'CodeBlock' and use it to create a derivative format:
+--
+-- > renderCodeBlockCustom :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
+-- > renderCodeBlockCustom (_, cls, _) code = do
+-- >   let opening = case cls of
+-- >         (lang : _) -> "[code=" <> lang <> "]"
+-- >         ("c++" : _) -> "[code=cpp]"
+-- >         _ -> "[code]"
+-- >   pure $ mconcat [literal opening, literal code, cr, "[/code]"]
+-- >
+-- > specCustom = officialSpec{renderCodeBlock = renderCodeBlockCustom}
+--
+-- Then we can use it to render 'Pandoc' document via 'writeBBCode_custom'
+
+{- | Data type that is a collection of renderers for most elements in a Pandoc
+AST (see 'Block' and 'Inline')
+
+The intention here is to allow inheritance between formats, for instance if
+format A and format @B@ differ only in rendering tables, @B@ can be implemented
+as @A{'renderTable' = renderTableB}@
+-}
+data FlavorSpec = FlavorSpec
+  { renderBlockQuote ::
+      forall m.
+      (PandocMonad m) =>
+      [Block] ->
+      RR m (Doc Text)
+  -- ^ Render 'BlockQuote'
+  , renderBulletList ::
+      forall m.
+      (PandocMonad m) =>
+      [[Block]] ->
+      RR m (Doc Text)
+  -- ^ Render 'BulletList'
+  , renderCodeBlock ::
+      forall m.
+      (PandocMonad m) =>
+      Attr ->
+      Text ->
+      RR m (Doc Text)
+  -- ^ Render 'CodeBlock'
+  , renderDefinitionList ::
+      forall m.
+      (PandocMonad m) =>
+      [([Inline], [[Block]])] ->
+      RR m (Doc Text)
+  -- ^ Render 'DefinitionList'
+  , renderHeader ::
+      forall m.
+      (PandocMonad m) =>
+      Int ->
+      Attr ->
+      [Inline] ->
+      RR m (Doc Text)
+  -- ^ Render 'Header'
+  , renderInlineCode ::
+      forall m.
+      (PandocMonad m) =>
+      Attr ->
+      Text ->
+      RR m (Doc Text)
+  -- ^ Render 'Code'
+  , renderLink ::
+      forall m.
+      (PandocMonad m) =>
+      Attr ->
+      [Inline] ->
+      Target ->
+      RR m (Doc Text)
+  -- ^ Render 'Link'
+  , renderOrderedList ::
+      forall m.
+      (PandocMonad m) =>
+      ListAttributes ->
+      [[Block]] ->
+      RR m (Doc Text)
+  -- ^ Render 'OrderedList'
+  , renderStrikeout ::
+      forall m.
+      (PandocMonad m) =>
+      [Inline] ->
+      RR m (Doc Text)
+  -- ^ Render 'Strikeout'
+  , renderTable :: forall m. (PandocMonad m) => PandocTable -> RR m (Doc Text)
+  -- ^ Render 'Table'
+  , renderHorizontalRule ::
+      forall m.
+      (PandocMonad m) =>
+      RR m (Doc Text)
+  -- ^ Render 'HorizontalRule'
+  , renderLineBlock ::
+      forall m.
+      (PandocMonad m) =>
+      [[Inline]] ->
+      RR m (Doc Text)
+  -- ^ Render 'LineBlock'
+  , renderPara ::
+      forall m.
+      (PandocMonad m) =>
+      [Inline] ->
+      RR m (Doc Text)
+  -- ^ Render 'Para'
+  , renderSuperscript ::
+      forall m.
+      (PandocMonad m) =>
+      [Inline] ->
+      RR m (Doc Text)
+  -- ^ Render 'Superscript'
+  , renderSubscript :: forall m. (PandocMonad m) => [Inline] -> RR m (Doc Text)
+  -- ^ Render 'Subscript'
+  , renderSmallCaps :: forall m. (PandocMonad m) => [Inline] -> RR m (Doc Text)
+  -- ^ Render 'SmallCaps'
+  , renderCite ::
+      forall m.
+      (PandocMonad m) =>
+      [Citation] ->
+      [Inline] ->
+      RR m (Doc Text)
+  -- ^ Render 'Cite'
+  , renderNote :: forall m. (PandocMonad m) => [Block] -> RR m (Doc Text)
+  -- ^ Render 'Note'
+  , renderFigure ::
+      forall m.
+      (PandocMonad m) =>
+      Attr ->
+      Caption ->
+      [Block] ->
+      RR m (Doc Text)
+  -- ^ Render 'Figure'
+  , renderQuoted ::
+      forall m.
+      (PandocMonad m) =>
+      QuoteType ->
+      [Inline] ->
+      RR m (Doc Text)
+  -- ^ Render 'Quoted'
+  , renderMath ::
+      forall m.
+      (PandocMonad m) =>
+      MathType ->
+      Text ->
+      RR m (Doc Text)
+  -- ^ Render 'Math'
+  , renderImage ::
+      forall m.
+      (PandocMonad m) =>
+      Attr ->
+      [Inline] ->
+      Target ->
+      RR m (Doc Text)
+  -- ^ Render 'Image'
+  , wrapSpanDiv :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+  -- ^ Wrap document in bbcode tags based on attributes/classes. Boolean flag
+  -- indicates whether passed argument is a Div or a Span (True means Div)
+  --
+  -- Consider attribute a key-value pair with a Just value, and respectively
+  -- class is key-value pair with Nothing value. For instance, given classes
+  -- @["cl1"]@ and attributes @[("k", "v")]@ Map should look like
+  -- @'Map.fromList' [("cl1", 'Nothing'), ("k", 'Just' "v")]@
+  }
+
+data WriterState = WriterState
+  { writerOptions :: WriterOptions
+  , flavorSpec :: FlavorSpec
+  , inList :: Bool
+  }
+
+instance Default WriterState where
+  def =
+    WriterState
+      { writerOptions = def
+      , flavorSpec = officialSpec
+      , inList = False
+      }
+
+-- | The base of a renderer monad.
+type RR m a = StateT (Seq (Doc Text)) (ReaderT WriterState m) a
+
+pandocToBBCode :: (PandocMonad m) => Pandoc -> RR m Text
+pandocToBBCode (Pandoc meta body) = do
+  opts <- asks writerOptions
+  -- Run the rendering that mutates the state by producing footnotes
+  bodyContents <- blockListToBBCode body
+  -- Get the footnotes
+  footnotes <- get
+  -- Separate footnotes (if any) with a horizontal rule
+  footnotesSep <-
+    if null footnotes
+      then pure empty
+      else (<> blankline) <$> blockToBBCode HorizontalRule
+  -- Put footnotes after the main text
+  let docText = bodyContents <> footnotesSep <> vsep (toList footnotes)
+  metadata <- metaToContext opts blockListToBBCode inlineListToBBCode meta
+  let context = defField "body" docText metadata
+  case writerTemplate opts of
+    Just tpl -> pure $ render Nothing (renderTemplate tpl context)
+    Nothing -> pure $ render Nothing docText
+
+writeBBCode
+  , writeBBCode_official
+  , writeBBCode_steam
+  , writeBBCode_phpBB
+  , writeBBCode_fluxBB
+  , writeBBCode_hubzilla ::
+    (PandocMonad m) => WriterOptions -> Pandoc -> m Text
+writeBBCode = writeBBCode_official
+writeBBCode_official = writeBBCode_custom officialSpec
+writeBBCode_steam = writeBBCode_custom steamSpec
+writeBBCode_phpBB = writeBBCode_custom phpbbSpec
+writeBBCode_fluxBB = writeBBCode_custom fluxbbSpec
+writeBBCode_hubzilla = writeBBCode_custom hubzillaSpec
+
+{- | Convert a 'Pandoc' document to BBCode using the given 'FlavorSpec' and
+'WriterOptions'.
+-}
+writeBBCode_custom ::
+  (PandocMonad m) => FlavorSpec -> WriterOptions -> Pandoc -> m Text
+writeBBCode_custom spec opts document =
+  runRR mempty def{writerOptions = opts, flavorSpec = spec} $
+    pandocToBBCode document
+ where
+  runRR :: (Monad m) => Seq (Doc Text) -> WriterState -> RR m a -> m a
+  runRR footnotes writerState action =
+    runReaderT (evalStateT action footnotes) writerState
+
+blockListToBBCode :: (PandocMonad m) => [Block] -> RR m (Doc Text)
+blockListToBBCode blocks = vcat <$> mapM blockToBBCode blocks
+
+blockToBBCode :: (PandocMonad m) => Block -> RR m (Doc Text)
+blockToBBCode block = do
+  spec <- asks flavorSpec
+  case block of
+    Plain inlines -> inlineListToBBCode inlines
+    Para inlines -> renderPara spec inlines
+    LineBlock inliness -> renderLineBlock spec inliness
+    CodeBlock attr code -> renderCodeBlock spec attr code
+    RawBlock format raw -> case format of
+      "bbcode" -> pure $ literal raw
+      _ -> "" <$ report (BlockNotRendered block)
+    BlockQuote blocks -> renderBlockQuote spec blocks
+    OrderedList attr items -> renderOrderedList spec attr items
+    BulletList items -> renderBulletList spec items
+    DefinitionList items -> renderDefinitionList spec items
+    Header level attr inlines -> renderHeader spec level attr inlines
+    HorizontalRule -> renderHorizontalRule spec
+    Table attr blkCapt specs thead tbody tfoot ->
+      renderTable spec (attr, blkCapt, specs, thead, tbody, tfoot)
+    Figure attr caption blocks -> renderFigure spec attr caption blocks
+    Div attr blocks -> do
+      contents <- blockListToBBCode blocks
+      let kvcMap = attrToMap attr
+      -- whether passed contents is a Div (Block) element
+      --                      vvvv
+      pure $ wrapSpanDiv spec True kvcMap contents
+
+inlineToBBCode :: (PandocMonad m) => Inline -> RR m (Doc Text)
+inlineToBBCode inline = do
+  spec <- asks flavorSpec
+  case inline of
+    Str str -> do
+      opts <- asks writerOptions
+      pure . literal $ unsmartify opts str
+    Emph inlines -> do
+      contents <- inlineListToBBCode inlines
+      pure $ mconcat ["[i]", contents, "[/i]"]
+    Underline inlines -> do
+      contents <- inlineListToBBCode inlines
+      pure $ mconcat ["[u]", contents, "[/u]"]
+    Strong inlines -> do
+      contents <- inlineListToBBCode inlines
+      pure $ mconcat ["[b]", contents, "[/b]"]
+    Strikeout inlines -> renderStrikeout spec inlines
+    Superscript inlines -> renderSuperscript spec inlines
+    Subscript inlines -> renderSubscript spec inlines
+    SmallCaps inlines -> renderSmallCaps spec inlines
+    Quoted typ inlines -> renderQuoted spec typ inlines
+    Cite cits inlines -> renderCite spec cits inlines
+    Code attr code -> renderInlineCode spec attr code
+    Space -> pure space
+    SoftBreak -> pure space
+    LineBreak -> pure cr
+    Math typ math -> renderMath spec typ math
+    RawInline (Format format) text -> case format of
+      "bbcode" -> pure $ literal text
+      _ -> "" <$ report (InlineNotRendered inline)
+    Link attr txt target -> renderLink spec attr txt target
+    Image attr alt target -> renderImage spec attr alt target
+    Note blocks -> renderNote spec blocks
+    Span attr inlines -> do
+      contents <- inlineListToBBCode inlines
+      let kvcMap = attrToMap attr
+      -- whether passed contents is a Div (Block element)
+      --                      vvvvv
+      pure $ wrapSpanDiv spec False kvcMap contents
+
+renderImageDefault ::
+  (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
+renderImageDefault (_, _, kvList) alt (source, title) = do
+  altText <-
+    trim . render Nothing
+      <$> inlineListToBBCode (removeFormatting alt)
+  let kvMap = Map.fromList kvList
+  -- No BBCode flavor supported by the Writer has local images support, but we
+  -- still allow source to be plain path or anything else
+  pure . literal $
+    mconcat
+      [ "[img"
+      , if T.null altText
+          then ""
+          else " alt=" <> inquotes altText
+      , if T.null title
+          then ""
+          else " title=" <> inquotes title
+      , case Map.lookup "width" kvMap of
+          Just w
+            | isJust (readMaybe @Int $ T.unpack w) ->
+                " width=" <> inquotes w
+          _ -> ""
+      , case Map.lookup "height" kvMap of
+          Just h
+            | isJust (readMaybe @Int $ T.unpack h) ->
+                " height=" <> inquotes h
+          _ -> ""
+      , "]"
+      , source
+      , "[/img]"
+      ]
+
+renderImageOmit ::
+  (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
+renderImageOmit _ _ _ = pure ""
+
+{- | Basic phpBB doesn't support any attributes, although
+@[img src=https://example.com]whatever[/img]@ is supported, but text in tag has
+no effect
+-}
+renderImagePhpBB ::
+  (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
+renderImagePhpBB _ _ (source, _) =
+  pure . literal $ mconcat ["[img]", source, "[/img]"]
+
+{- | Check whether character is a bracket
+
+>>> T.filter notBracket "[a]b[[ó]qü]]n®"
+"ab\243q\252n\174"
+-}
+notBracket :: Char -> Bool
+notBracket = \case
+  '[' -> False
+  ']' -> False
+  _ -> True
+
+-- FluxBB uses [img=alt text] instead of [img alt="alt text"]
+renderImageFluxBB ::
+  (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
+renderImageFluxBB _ alt (source, _) = do
+  alt' <- T.filter notBracket . render Nothing <$> inlineListToBBCode alt
+  pure . literal $
+    mconcat
+      [ "[img"
+      , if T.null alt'
+          then ""
+          else "=" <> alt'
+      , "]"
+      , source
+      , "[/img]"
+      ]
+
+inlineListToBBCode :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
+inlineListToBBCode inlines = mconcat <$> mapM inlineToBBCode inlines
+
+renderHeaderDefault ::
+  (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
+renderHeaderDefault level _attr inlines = do
+  headingText <- case level of
+    1 -> inlineToBBCode $ Underline [Strong inlines]
+    2 -> inlineToBBCode $ Strong inlines
+    3 -> inlineToBBCode $ Underline inlines
+    _ -> inlineListToBBCode inlines
+  pure $ vcat [blankline, headingText, blankline]
+
+renderLinkDefault ::
+  (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
+renderLinkDefault _attr txt (src, _) = do
+  let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
+  linkText <- inlineListToBBCode txt
+  let isAutoLink = case txt of
+        [Str x] | escapeURI x `elem` [src, srcSuffix] -> True
+        _ -> False
+  let isEmptySrc = T.null src
+  pure $
+    if
+      | isEmptySrc -> "[url]" <> linkText <> "[/url]"
+      | isURI src && isAutoLink -> "[url]" <> linkText <> "[/url]"
+      | otherwise ->
+          literal ("[url=" <> escapeURI src <> "]") <> linkText <> "[/url]"
+
+renderCodeBlockDefault :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
+renderCodeBlockDefault (_, cls, _) code = do
+  let opening = case cls of
+        (lang : _) -> "[code=" <> lang <> "]"
+        _ -> "[code]"
+  pure $ mconcat [literal opening, literal code, cr, "[/code]"]
+
+renderCodeBlockSimple :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
+renderCodeBlockSimple _ code = do
+  pure $ mconcat [literal "[code]", literal code, cr, "[/code]"]
+
+renderInlineCodeLiteral :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
+renderInlineCodeLiteral _ code = pure $ literal code
+
+renderInlineCodeNoParse :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
+renderInlineCodeNoParse _ code =
+  pure $ mconcat [literal "[noparse]", literal code, "[/noparse]"]
+
+renderInlineCodeHubzilla :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
+renderInlineCodeHubzilla _ code =
+  pure $ mconcat [literal "[code]", literal code, "[/code]"]
+
+renderStrikeoutDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
+renderStrikeoutDefault inlines = do
+  contents <- inlineListToBBCode inlines
+  pure $ mconcat ["[s]", contents, "[/s]"]
+
+renderStrikeoutSteam :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
+renderStrikeoutSteam inlines = do
+  contents <- inlineListToBBCode inlines
+  pure $ mconcat ["[strike]", contents, "[/strike]"]
+
+renderDefinitionListDefault ::
+  (PandocMonad m) => [([Inline], [[Block]])] -> RR m (Doc Text)
+renderDefinitionListDefault items = do
+  items' <- forM items $ \(term, definitions) -> do
+    term' <- inlineListToBBCode term
+    definitions' <- blockToBBCode (BulletList definitions)
+    pure $ term' $$ definitions'
+  pure $ vcat items'
+
+renderDefinitionListHubzilla ::
+  (PandocMonad m) => [([Inline], [[Block]])] -> RR m (Doc Text)
+renderDefinitionListHubzilla items = do
+  items' <- forM items $ \(term, definitions) -> do
+    term' <- inlineListToBBCode term
+    let term'' = "[*= " <> term' <> "]"
+    definitions' <- forM definitions blockListToBBCode
+    pure $ vcat (term'' : definitions')
+  pure $ vcat (literal "[dl terms=\"b\"]" : items' ++ [literal "[/dl]"])
+
+listWithTags ::
+  (PandocMonad m) =>
+  Text ->
+  Text ->
+  ([[Block]] -> RR m [Doc Text]) ->
+  [[Block]] ->
+  RR m (Doc Text)
+listWithTags open close renderItems items = do
+  contents <- local (\s -> s{inList = True}) (renderItems items)
+  pure $ vcat $ literal open : contents ++ [literal close]
+
+starListItems :: (PandocMonad m) => [[Block]] -> RR m [Doc Text]
+starListItems items = forM items $ \item -> do
+  item' <- blockListToBBCode item
+  pure $ literal "[*]" <> item'
+
+liListItems :: (PandocMonad m) => [[Block]] -> RR m [Doc Text]
+liListItems items = forM items $ \item -> do
+  item' <- blockListToBBCode item
+  pure $ literal "[li]" <> item' <> "[/li]"
+
+listStyleCode :: ListNumberStyle -> Maybe Text
+listStyleCode = \case
+  Decimal -> Just "1"
+  DefaultStyle -> Just "1"
+  LowerAlpha -> Just "a"
+  UpperAlpha -> Just "A"
+  LowerRoman -> Just "i"
+  UpperRoman -> Just "I"
+  Example -> Nothing
+
+renderBulletListOfficial :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
+renderBulletListOfficial = listWithTags "[list]" "[/list]" starListItems
+
+renderBulletListSteam :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
+renderBulletListSteam = listWithTags "[list]" "[/list]" starListItems
+
+renderBulletListHubzilla :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
+renderBulletListHubzilla = listWithTags "[ul]" "[/ul]" liListItems
+
+renderOrderedListHubzilla ::
+  (PandocMonad m) => ListAttributes -> [[Block]] -> RR m (Doc Text)
+renderOrderedListHubzilla _ = listWithTags "[ol]" "[/ol]" liListItems
+
+renderOrderedListOfficial ::
+  (PandocMonad m) => ListAttributes -> [[Block]] -> RR m (Doc Text)
+renderOrderedListOfficial (_, style, _) = do
+  let suffix = maybe "" ("=" <>) (listStyleCode style)
+  listWithTags ("[list" <> suffix <> "]") "[/list]" starListItems
+
+renderOrderedListSteam ::
+  (PandocMonad m) => ListAttributes -> [[Block]] -> RR m (Doc Text)
+renderOrderedListSteam _ =
+  listWithTags "[olist]" "[/olist]" starListItems
+
+renderHeaderSteam ::
+  (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
+renderHeaderSteam level attr inlines
+  | level >= 1 && level <= 3 = do
+      body <- inlineListToBBCode inlines
+      let tag = "[h" <> tshow level <> "]"
+      pure $
+        vcat
+          [ blankline
+          , literal tag <> body <> literal ("[/h" <> tshow level <> "]")
+          , blankline
+          ]
+  | otherwise = renderHeaderDefault level attr inlines
+
+renderHeaderHubzilla ::
+  (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
+renderHeaderHubzilla level _ inlines = do
+  body <- inlineListToBBCode inlines
+  let capped = max 1 (min 6 level)
+      open = "[h" <> tshow capped <> "]"
+      close = "[/h" <> tshow capped <> "]"
+  pure $ vcat [blankline, literal open <> body <> literal close, blankline]
+
+renderTableGeneric ::
+  (PandocMonad m) =>
+  Text ->
+  Text ->
+  Text ->
+  (Attr, Caption, [ColSpec], TableHead, [TableBody], TableFoot) ->
+  RR m (Doc Text)
+renderTableGeneric tableTag headerCellTag bodyCellTag table =
+  if not simpleCells
+    then "" <$ report (BlockNotRendered tableBlock)
+    else do
+      headerDocs <-
+        if null headers
+          then pure []
+          else pure <$> renderTableRow headerCellTag headers
+      rowDocs <- mapM (renderTableRow bodyCellTag) rows
+      pure $ renderTable' headerDocs rowDocs
+ where
+  (attr, blkCapt, specs, thead, tbody, tfoot) = table
+  (_, _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  tableBlock = Table attr blkCapt specs thead tbody tfoot
+  simpleCells = onlySimpleTableCells (headers : rows)
+  renderTable' headerDocs rowDocs =
+    vcat
+      [ literal ("[" <> tableTag <> "]")
+      , vcat headerDocs
+      , vcat rowDocs
+      , literal ("[/" <> tableTag <> "]")
+      ]
+  renderCell cellTag cellDoc =
+    mconcat
+      [ literal ("[" <> cellTag <> "]")
+      , cellDoc
+      , literal ("[/" <> cellTag <> "]")
+      ]
+  renderTableRow cellTag cells = do
+    renderedCells <- mapM blockListToBBCode cells
+    let cellsDoc = mconcat $ map (renderCell cellTag) renderedCells
+    pure $ literal "[tr]" <> cellsDoc <> literal "[/tr]"
+
+renderTableDefault ::
+  (PandocMonad m) =>
+  ( Attr
+  , Caption
+  , [ColSpec]
+  , TableHead
+  , [TableBody]
+  , TableFoot
+  ) ->
+  RR m (Doc Text)
+renderTableDefault (attr, blkCapt, specs, thead, tbody, tfoot) =
+  renderTableGeneric "table" "th" "td" (attr, blkCapt, specs, thead, tbody, tfoot)
+
+renderTableOmit ::
+  (PandocMonad m) =>
+  ( Attr
+  , Caption
+  , [ColSpec]
+  , TableHead
+  , [TableBody]
+  , TableFoot
+  ) ->
+  RR m (Doc Text)
+renderTableOmit _ = pure ""
+
+{- | The goal of the transformation is to treat classes and key-value pairs
+uniformly.
+
+Class list becomes Map where all values are Nothing, and key-value pairs are
+converted to Map via 'Map.toList'. Both Maps are then merged.
+-}
+attrToMap :: Attr -> Map Text (Maybe Text)
+attrToMap (_, classes, kvList) =
+  Map.fromList kvList' `Map.union` Map.fromList classes'
+ where
+  kvList' = map (\(k, v) -> (k, Just v)) kvList
+  classes' = map (\k -> (k, Nothing)) classes
+
+{- | 'wrapSpanDivGeneric' is the foundation under flavor-specific
+'wrapSpanDiv's.
+
+- Classes it supports: @"left", "center", "right", "spoiler", "box", "indent"@
+  (only for divs)
+- Key-value pairs it supports:
+
+    - key: @"size"@, value: text value that can be read as a positive integer
+    - key: @"color"@, value: any text
+    - key: @"spoiler"@, value: any text (only for divs)
+    - key: @"font"@, value: any text
+    - key: @"box"@, value: one of @"left"@, @"center"@, @"right"@ (only for divs)
+    - key: @"align"@, value: one of @"left"@, @"center"@, @"right"@ (only for divs)
+
+Function can be restricted to specific classes/key-value pairs via
+'Map.restrictKeys', for instance:
+
+> wrapSpanDivSteam :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+> wrapSpanDivSteam isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+>  where
+>   kvc' =
+>     Map.mapWithKey removeNamedSpoiler . Map.restrictKeys kvc $
+>       Set.fromList ["spoiler"]
+>   removeNamedSpoiler "spoiler" (Just _) = Nothing
+>   removeNamedSpoiler _ x = x
+
+The function above limits supported keys to "spoiler" and sets spoiler's value
+to Nothing, because Steam's flavor does not support named spoilers.
+
+>>> render Nothing $ wrapSpanDivGeneric True (Map.fromList [("spoiler", Just "Spoiler name")]) "Nasty details"
+"[spoiler=Spoiler name]Nasty details[/spoiler]"
+
+>>> render Nothing $ wrapSpanDivGeneric True (Map.fromList [("center", Nothing)]) "Centered text"
+"[center]Centered text[/center]"
+-}
+wrapSpanDivGeneric :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+wrapSpanDivGeneric isDiv kvc doc = Map.foldrWithKey wrap doc kvc
+ where
+  wrap :: Text -> Maybe Text -> Doc Text -> Doc Text
+  wrap k Nothing txt = case k of
+    "left" | isDiv -> "[left]" <> txt <> "[/left]"
+    "center" | isDiv -> "[center]" <> txt <> "[/center]"
+    "right" | isDiv -> "[right]" <> txt <> "[/right]"
+    "spoiler" | isDiv -> "[spoiler]" <> txt <> "[/spoiler]"
+    "box" | isDiv -> "[box]" <> txt <> "[/box]"
+    "indent" | isDiv -> "[indent]" <> txt <> "[/indent]"
+    _ -> txt
+  wrap k (Just v) txt = case k of
+    "size"
+      | Just v' <- readMaybe @Int (T.unpack v)
+      , v' > 0 ->
+          literal ("[size=" <> v <> "]") <> txt <> "[/size]"
+    "color" -> literal ("[color=" <> v <> "]") <> txt <> "[/color]"
+    "spoiler"
+      | isDiv ->
+          literal ("[spoiler=" <> T.filter notBracket v <> "]") <> txt <> "[/spoiler]"
+    "font" -> literal ("[font=" <> v <> "]") <> txt <> "[/font]"
+    "align"
+      | isDiv
+      , v `elem` ["left", "center", "right"] ->
+          literal ("[align=" <> v <> "]") <> txt <> "[/align]"
+    "box"
+      | isDiv
+      , v `elem` ["left", "center", "right"] ->
+          literal ("[box=" <> v <> "]") <> txt <> "[/box]"
+    _ -> txt
+
+wrapSpanDivOfficial :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+wrapSpanDivOfficial isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+ where
+  kvc' =
+    Map.restrictKeys kvc $
+      Set.fromList ["spoiler", "left", "center", "right", "size", "color"]
+
+wrapSpanDivSteam :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+wrapSpanDivSteam isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+ where
+  kvc' =
+    Map.mapWithKey removeNamedSpoiler
+      . Map.restrictKeys kvc
+      $ Set.fromList ["spoiler"]
+  removeNamedSpoiler "spoiler" (Just _) = Nothing
+  removeNamedSpoiler _ x = x
+
+wrapSpanDivPhpBB :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+wrapSpanDivPhpBB isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+ where
+  kvc' = Map.restrictKeys kvc (Set.fromList ["color"])
+
+wrapSpanDivFluxBB :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+wrapSpanDivFluxBB isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+ where
+  kvc' = Map.restrictKeys kvc (Set.fromList ["color"])
+
+wrapSpanDivHubzilla :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+wrapSpanDivHubzilla isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+ where
+  kvc' =
+    Map.restrictKeys kvc $
+      Set.fromList ["spoiler", "center", "size", "color", "font"]
+
+renderOrderedListFluxbb ::
+  (PandocMonad m) =>
+  ListAttributes ->
+  [[Block]] ->
+  RR m (Doc Text)
+renderOrderedListFluxbb (_, style, _) =
+  let suffix = case style of
+        LowerAlpha -> "=a"
+        UpperAlpha -> "=a"
+        _ -> "=1"
+   in listWithTags ("[list" <> suffix <> "]") "[/list]" starListItems
+
+renderLinkEmailAware ::
+  (PandocMonad m) =>
+  Attr ->
+  [Inline] ->
+  Target ->
+  RR m (Doc Text)
+renderLinkEmailAware attr txt target@(src, _) = do
+  case T.stripPrefix "mailto:" src of
+    Just address -> do
+      linkText <- inlineListToBBCode txt
+      let isAutoEmail = case txt of
+            [Str x] -> x == address
+            _ -> False
+      pure $
+        if isAutoEmail
+          then literal "[email]" <> literal address <> "[/email]"
+          else literal ("[email=" <> address <> "]") <> linkText <> "[/email]"
+    Nothing -> renderLinkDefault attr txt target
+
+renderBlockQuoteDefault :: PandocMonad m => [Block] -> RR m (Doc Text)
+renderBlockQuoteDefault blocks = do
+  contents <- blockListToBBCode blocks
+  pure $ vcat ["[quote]", contents, "[/quote]", blankline]
+
+renderBlockQuoteFluxBB :: (PandocMonad m) => [Block] -> RR m (Doc Text)
+renderBlockQuoteFluxBB blocks = do
+  contents <- blockListToBBCode blocks
+  isInList <- asks inList
+  if isInList
+    then "" <$ report (BlockNotRendered $ BlockQuote blocks)
+    else pure $ vcat ["[quote]", contents, "[/quote]"]
+
+renderHorizontalRuleDefault :: (PandocMonad m) => RR m (Doc Text)
+renderHorizontalRuleDefault = pure $ blankline <> "* * *" <> blankline
+
+renderHorizontalRuleHR :: (PandocMonad m) => RR m (Doc Text)
+renderHorizontalRuleHR = pure $ blankline <> "[hr]" <> blankline
+
+renderLineBlockDefault :: (PandocMonad m) => [[Inline]] -> RR m (Doc Text)
+renderLineBlockDefault inliness = vcat <$> mapM inlineListToBBCode inliness
+
+renderParaDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
+renderParaDefault inlines = do
+  contents <- inlineListToBBCode inlines
+  pure $ contents <> blankline
+
+renderSuperscriptDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
+renderSuperscriptDefault = inlineListToBBCode
+
+renderSubscriptDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
+renderSubscriptDefault = inlineListToBBCode
+
+renderSmallCapsDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
+renderSmallCapsDefault = inlineListToBBCode
+
+renderCiteDefault ::
+  (PandocMonad m) => [Citation] -> [Inline] -> RR m (Doc Text)
+renderCiteDefault _ = inlineListToBBCode
+
+renderNoteDefault :: (PandocMonad m) => [Block] -> RR m (Doc Text)
+renderNoteDefault blocks = do
+  -- NOTE: no BBCode flavor has native syntax for footnotes.
+  newN <- gets (succ . Seq.length)
+  contents <- blockListToBBCode blocks
+  let pointer = "(" <> tshow newN <> ")"
+  let contents' = literal pointer <> space <> contents
+  modify (|> contents')
+  pure $ literal pointer
+
+renderFigureDefault ::
+  (PandocMonad m) => Attr -> Caption -> [Block] -> RR m (Doc Text)
+renderFigureDefault _ (Caption _ caption) blocks = do
+  caption' <- blockListToBBCode caption
+  contents <- blockListToBBCode blocks
+  pure $ contents $$ caption'
+
+renderQuotedDefault ::
+  (PandocMonad m) => QuoteType -> [Inline] -> RR m (Doc Text)
+renderQuotedDefault typ inlines = do
+  let quote = case typ of SingleQuote -> "'"; DoubleQuote -> "\""
+  contents <- inlineListToBBCode inlines
+  pure $ mconcat [quote, contents, quote]
+
+renderMathDefault :: (PandocMonad m) => MathType -> Text -> RR m (Doc Text)
+renderMathDefault typ math = case typ of
+  InlineMath ->
+    inlineToBBCode $
+      Code ("", ["latex"], []) ("$" <> math <> "$")
+  DisplayMath ->
+    blockToBBCode $
+      CodeBlock ("", ["latex"], []) ("$$" <> math <> "$$")
+
+{- | Format documentation: <https://www.bbcode.org/reference.php>
+
+There is no such thing as «Official» bbcode format, nonetheless this spec
+implements what is described on bbcode.org, which is a reasonable base that can
+be extended/contracted as needed.
+-}
+officialSpec :: FlavorSpec
+officialSpec =
+  FlavorSpec
+    { renderOrderedList = renderOrderedListOfficial
+    , renderBulletList = renderBulletListOfficial
+    , renderDefinitionList = renderDefinitionListDefault
+    , renderHeader = renderHeaderDefault
+    , renderTable = renderTableDefault
+    , renderLink = renderLinkEmailAware
+    , renderCodeBlock = renderCodeBlockDefault
+    , renderInlineCode = renderInlineCodeLiteral
+    , renderStrikeout = renderStrikeoutDefault
+    , renderBlockQuote = renderBlockQuoteDefault
+    , renderHorizontalRule = renderHorizontalRuleDefault
+    , renderLineBlock = renderLineBlockDefault
+    , renderPara = renderParaDefault
+    , renderSuperscript = renderSuperscriptDefault
+    , renderSubscript = renderSubscriptDefault
+    , renderSmallCaps = renderSmallCapsDefault
+    , renderCite = renderCiteDefault
+    , renderNote = renderNoteDefault
+    , renderFigure = renderFigureDefault
+    , renderMath = renderMathDefault
+    , renderQuoted = renderQuotedDefault
+    , renderImage = renderImageDefault
+    , wrapSpanDiv = wrapSpanDivOfficial
+    }
+
+{- | Format documentation: <https://steamcommunity.com/comment/ForumTopic/formattinghelp>
+
+Used at: <https://steamcommunity.com/discussions/forum>
+
+Quirks:
+
+- There seems to be no way to show external images on steam.
+  https://steamcommunity.com/sharedfiles/filedetails/?id=2807121939 shows [img]
+  and [previewimg] can (could?) be used to show images, although it is likely
+  reserved for steam urls only.
+-}
+steamSpec :: FlavorSpec
+steamSpec =
+  officialSpec
+    { renderOrderedList = renderOrderedListSteam
+    , renderBulletList = renderBulletListSteam
+    , renderHeader = renderHeaderSteam
+    , renderLink = renderLinkDefault
+    , renderInlineCode = renderInlineCodeNoParse
+    , renderStrikeout = renderStrikeoutSteam
+    , renderImage = renderImageOmit
+    , wrapSpanDiv = wrapSpanDivSteam
+    , renderHorizontalRule = renderHorizontalRuleHR
+    }
+
+{- | Format documentation: <https://www.phpbb.com/community/help/bbcode>
+
+Used at: <https://www.phpbb.com/community>
+
+Quirks:
+
+- PhpBB docs don't mention strikeout support, but their
+  [support forum](https://www.phpbb.com/community) does support it.
+- Same for named code blocks.
+-}
+phpbbSpec :: FlavorSpec
+phpbbSpec =
+  officialSpec
+    { renderTable = renderTableOmit
+    , renderImage = renderImagePhpBB
+    , wrapSpanDiv = wrapSpanDivPhpBB
+    }
+
+{- | Format documentation: <https://web.archive.org/web/20210623155046/https://fluxbb.org/forums/help.php#bbcode>
+
+Used at: https://bbs.archlinux.org
+-}
+fluxbbSpec :: FlavorSpec
+fluxbbSpec =
+  officialSpec
+    { renderOrderedList = renderOrderedListFluxbb
+    , renderCodeBlock = renderCodeBlockSimple
+    , renderTable = renderTableOmit
+    , renderBlockQuote = renderBlockQuoteFluxBB
+    , renderImage = renderImageFluxBB
+    , wrapSpanDiv = wrapSpanDivFluxBB
+    }
+
+{- | Format documentation: <https://hubzilla.org/help/member/bbcode>
+
+Used at: <https://hub.netzgemeinde.eu> (see [other hubs](https://hubzilla.org/pubsites))
+
+Quirks:
+
+- If link target is not a URI, it simply points to https://$BASEURL/ when
+  rendered by a hub.
+-}
+hubzillaSpec :: FlavorSpec
+hubzillaSpec =
+  officialSpec
+    { renderOrderedList = renderOrderedListHubzilla
+    , renderBulletList = renderBulletListHubzilla
+    , renderDefinitionList = renderDefinitionListHubzilla
+    , renderHeader = renderHeaderHubzilla
+    , renderInlineCode = renderInlineCodeHubzilla
+    , renderLink = renderLinkDefault
+    , wrapSpanDiv = wrapSpanDivHubzilla
+    , renderHorizontalRule = renderHorizontalRuleHR
+    }

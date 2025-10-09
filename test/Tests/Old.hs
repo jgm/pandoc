@@ -275,6 +275,13 @@ tests pandocPath =
             "vimdoc/headers.markdown" "vimdoc/headers-numbered.vimdoc"
         ]
     ]
+  , testGroup "bbcode" $ mconcat
+    [ writerTests' "bbcode"
+    , writerTests' "bbcode_steam"
+    , writerTests' "bbcode_phpbb"
+    , writerTests' "bbcode_fluxbb"
+    , writerTests' "bbcode_hubzilla"
+    ]
   ]
  where
     test'           = test pandocPath

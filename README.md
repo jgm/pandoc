@@ -124,6 +124,11 @@ It can convert *to*
 - `asciidoc_legacy` ([AsciiDoc](https://asciidoc.org/) as interpreted by
   [`asciidoc-py`](https://github.com/asciidoc-py/asciidoc-py)).
 - `asciidoctor` (deprecated synonym for `asciidoc`)
+- `bbcode` ([Default flavor](https://www.bbcode.org/reference.php),
+  [FluxBB flavor](https://web.archive.org/web/20210623155046/https://fluxbb.org/forums/help.php#bbcode),
+  [phpBB flavor](https://www.phpbb.com/community/help/bbcode),
+  [Hubzilla flavor](https://hubzilla.org/help/member/bbcode),
+  [Steam flavor](https://steamcommunity.com/comment/ForumTopic/formattinghelp))
 - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
