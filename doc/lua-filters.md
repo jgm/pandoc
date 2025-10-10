@@ -377,7 +377,7 @@ default modules.
 
 The following snippet is an example of code that might be useful
 when added to `init.lua`. The snippet adds all Unicode-aware
-functions defined in the [`text` module](#module-text) to the
+functions defined in the [`text` module](#module-pandoc.text) to the
 default `string` module, prefixed with the string `uc_`.
 
 ``` lua
@@ -466,7 +466,7 @@ String library is not Unicode aware
     of the bytes `\240`, `\159`, `\154`, and `\178`, but
     **won't** match the "snowman" Unicode character.
 
-    Use the [pandoc.text](#module-text) module for Unicode-aware
+    Use the [pandoc.text](#module-pandoc.text) module for Unicode-aware
     transformation, and consider using using the lpeg or re
     library for pattern matching.
 
