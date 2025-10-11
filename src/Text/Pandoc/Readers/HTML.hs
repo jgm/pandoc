@@ -514,6 +514,7 @@ pIframe :: PandocMonad m => TagParser m Blocks
 pIframe = try $ do
   guardDisabled Ext_raw_html
   tag <- pSatisfy (tagOpen (=="iframe") (isJust . lookup "src"))
+  skipMany pBlank
   pCloses "iframe" <|> eof
   url <- canonicalizeUrl $ fromAttrib "src" tag
   if T.null url
