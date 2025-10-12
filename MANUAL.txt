@@ -7874,7 +7874,7 @@ set at startup. For full documentation, see the [pandoc-lua] man page.
    processed on a server, this has the potential to reveal anything
    readable by the process running the server. Using the `-f html+raw_html`
    will mitigate this threat by causing the whole `iframe`
-   to be parsed as a raw HTML block. Using `--sandbox will also
+   to be parsed as a raw HTML block. Using `--sandbox` will also
    protect against the threat.
 
 5. If your application uses pandoc as a Haskell library (rather than
