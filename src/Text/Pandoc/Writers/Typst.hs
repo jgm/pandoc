@@ -409,7 +409,25 @@ listItemToTypst ind marker blocks = do
   return $ hang ind (marker <> space) contents
 
 inlinesToTypst :: PandocMonad m => [Inline] -> TW m (Doc Text)
-inlinesToTypst ils = hcat <$> mapM inlineToTypst ils
+inlinesToTypst ils = hcat <$> mapM inlineToTypst (escapeParens ils)
+
+-- Add an escape before a parenthesis right after a non-space element.
+-- Otherwise we risk `#emph[test](3)` which will error. See #11210.
+escapeParens :: [Inline] -> [Inline]
+escapeParens [] = []
+escapeParens (s : x : xs)
+  | isSpacey s
+    = s : x : escapeParens xs
+escapeParens (Str t : xs)
+  | Just ('(',_) <- T.uncons t
+    = RawInline (Format "typst") "\\" : Str t : escapeParens xs
+escapeParens (x : xs) = x : escapeParens xs
+
+isSpacey :: Inline -> Bool
+isSpacey Space = True
+isSpacey SoftBreak = True
+isSpacey LineBreak = True
+isSpacey _ = False
 
 inlineToTypst :: PandocMonad m => Inline -> TW m (Doc Text)
 inlineToTypst inline =
