@@ -784,26 +784,40 @@ removeCommonFormatting =
 
 -- {\field{\*\fldinst{HYPERLINK "http://pandoc.org"}}{\fldrslt foo}}
 handleField :: PandocMonad m => Blocks -> [Tok] -> RTFParser m Blocks
-handleField bs
-  (Tok _
-    (Grouped
-     (Tok _ (ControlSymbol '*')
-     :Tok _ (ControlWord "fldinst" Nothing)
-     :Tok _ (Grouped (Tok _ (UnformattedText insttext):rest))
-     :_))
-  :linktoks)
-  | Just linkdest <- getHyperlink insttext
-  = do let linkdest' = case rest of
-                         (Tok _ (ControlSymbol '\\')
-                          : Tok _ (UnformattedText t)
-                          : _) | Just bkmrk <- T.stripPrefix "l" t
-                           -> "#" <> unquote bkmrk
-                         _ -> linkdest
-       modifyGroup $ \g -> g{ gHyperlink = Just linkdest' }
-       result <- foldM processTok bs linktoks
-       modifyGroup $ \g -> g{ gHyperlink = Nothing }
-       return result
-handleField bs _ = pure bs
+handleField bs ts = do
+  let isFieldMod (Tok _ (ControlWord w _)) =
+        w `elem` ["flddirty", "fldedit", "fldlock", "fldpriv"]
+      isFieldMod _ = False
+  case dropWhile isFieldMod ts of
+    [Tok _ (Grouped
+       (Tok _ (ControlSymbol '*')
+       :Tok _ (ControlWord "fldinst" Nothing)
+       :Tok _ (Grouped instrtoks)
+       :_)),
+     Tok _ (Grouped
+       (Tok _ (ControlWord "fldrslt" Nothing)
+       :Tok _ (Grouped resulttoks) : _))] -> do
+         case getHyperlink instrtoks of
+           Just linkdest -> do
+             modifyGroup $ \g -> g{ gHyperlink = Just linkdest }
+             result <- foldM processTok bs resulttoks
+             modifyGroup $ \g -> g{ gHyperlink = Nothing }
+             return result
+           Nothing -> foldM processTok bs resulttoks
+    _ -> pure bs
+
+getHyperlink :: [Tok] -> Maybe Text
+getHyperlink [] = Nothing
+getHyperlink (Tok _ (UnformattedText w) : rest)
+  | Just w' <- unquote <$> T.stripPrefix "HYPERLINK" (T.strip w)
+    = if T.null w'
+         then case rest of
+                (Tok _ (ControlSymbol '\\') : Tok _ (UnformattedText b) : _)
+                  | Just bkmrk <- unquote <$> T.stripPrefix "l " (T.strip b)
+                    -> Just $ "#" <> bkmrk
+                _ -> Just mempty
+         else Just w'
+getHyperlink (_:ts) = getHyperlink ts
 
 unquote :: Text -> Text
 unquote = T.dropWhile (=='"') . T.dropWhileEnd (=='"') . T.strip
@@ -943,12 +957,6 @@ handlePict toks = do
       UnformattedText t -> pict{ picData = t }
       _ -> pict
 
-
-getHyperlink :: Text -> Maybe Text
-getHyperlink t =
-  case T.stripPrefix "HYPERLINK" (T.strip t) of
-    Nothing -> Nothing
-    Just rest -> Just $ unquote rest
 
 processFontTable :: [Tok] -> FontTable
 processFontTable = snd . foldl' go (0, mempty)
