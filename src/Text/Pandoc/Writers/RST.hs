@@ -328,7 +328,7 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
 blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
-blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
+blockToRST (Table _attrs blkCapt specs thead@(TableHead _ theadRows) tbody tfoot@(TableFoot _ tfootRows)) = do
   let (caption, aligns, widths, headers, rows) =
         toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToRST caption
@@ -341,7 +341,9 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
   opts <- gets stOptions
   let specs' = map (\(_,width) -> (AlignDefault, width)) specs
       renderGrid = gridTable opts blocksToDoc specs' thead tbody tfoot
-      isSimple = all (== 0) widths && length widths > 1
+      rowHasRowSpan (Row _ cells) = any cellHasRowSpan cells
+      cellHasRowSpan (Cell _ _ rowSpan _ _) = rowSpan > 1
+      isSimple = all (== 0) widths && length widths > 1 && not (any rowHasRowSpan $ theadRows ++ tableBodiesToRows tbody ++ tfootRows)
       renderSimple = do
         tbl' <- simpleTable opts blocksToDoc thead tbody tfoot
         if offset tbl' > writerColumns opts
@@ -926,7 +928,7 @@ simpleTable opts blocksToDoc (TableHead _ headers) tbody (TableFoot _ footers) =
   headerDocs <- if all isEmptyRow headers
                    then return []
                    else fixEmpties <$> mapM rowToDoc headers
-  rowDocs <- fixEmpties <$> mapM rowToDoc ((concatMap tableBodyToRows tbody) ++ footers)
+  rowDocs <- fixEmpties <$> mapM rowToDoc ((tableBodiesToRows tbody) ++ footers)
   let numChars = maybe 0 maximum . NE.nonEmpty . map (offset . fst)
   let colWidths = map numChars $ transpose (headerDocs ++ rowDocs)
   let hline = nowrap $ hsep (map (\n -> literal (T.replicate n "=")) colWidths)
@@ -952,8 +954,6 @@ simpleTable opts blocksToDoc (TableHead _ headers) tbody (TableFoot _ footers) =
     rowToDoc (Row _ cells) = concat <$> mapM cellToDocs cells
 
     cellToDocs (Cell _ _ _ colSpan blocks) = applyColSpan colSpan <$> (blocksToDoc opts) blocks
-
-    tableBodyToRows (TableBody _ _ headerRows bodyRows) = headerRows ++ bodyRows
 
     applyColSpan col@(ColSpan colSpan) doc
       | colSpan > 1 =
@@ -991,3 +991,10 @@ simpleTable opts blocksToDoc (TableHead _ headers) tbody (TableFoot _ footers) =
             then colWidthsSum + colWidthsLength - 1
             else colWidthsSum
       in  literal $ T.replicate dashLength "-"
+
+-- | Concatenates the header and body Rows of a List of TableBody into a flat
+-- List of Rows.
+tableBodiesToRows :: [TableBody] -> [Row]
+tableBodiesToRows = concatMap tableBodyToRows
+  where
+    tableBodyToRows (TableBody _ _ headerRows bodyRows) = headerRows ++ bodyRows
