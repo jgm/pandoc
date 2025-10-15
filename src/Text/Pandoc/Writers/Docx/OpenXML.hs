@@ -773,17 +773,20 @@ inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
       kvs' = filter (("id" /=) . fst) kvs
   modify $ \st -> st{ stComments = (("id",ident'):kvs', ils) : stComments st }
   return [ Elem $ mknode "w:commentRangeStart" [("w:id", ident')] () ]
-inlineToOpenXML' _ (Span (ident,["comment-end"],kvs) _) =
+inlineToOpenXML' opts (Span (ident,["comment-end"],kvs) content) = do
   -- prefer the "id" in kvs, since that is the one produced by the docx
   -- reader.
   let ident' = fromMaybe ident (lookup "id" kvs)
-  in return . map Elem $
-     [ mknode "w:commentRangeEnd" [("w:id", ident')] ()
-     , mknode "w:r" []
-       [ mknode "w:rPr" []
-         [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
-       , mknode "w:commentReference" [("w:id", ident')] () ]
-     ]
+  -- process nested content: see #8189
+  nestedContent <- inlinesToOpenXML opts content
+  let thisCommentEnd =
+        [ mknode "w:commentRangeEnd" [("w:id", ident')] ()
+        , mknode "w:r" []
+          [ mknode "w:rPr" []
+            [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
+          , mknode "w:commentReference" [("w:id", ident')] () ]
+        ]
+  return $ map Elem thisCommentEnd ++ nestedContent
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just (fromString . T.unpack -> sty) -> do
