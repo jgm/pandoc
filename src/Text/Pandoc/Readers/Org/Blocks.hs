@@ -73,6 +73,7 @@ blocks = mconcat <$> manyTill block (void (lookAhead headerStart) <|> eof)
 block :: PandocMonad m => OrgParser m (F Blocks)
 block = choice [ mempty <$ blanklines
                , table
+               , dynamicBlock
                , orgBlock
                , figure
                , example
@@ -115,7 +116,7 @@ attrFromBlockAttributes BlockAttributes{..} =
 
 stringyMetaAttribute :: Monad m => OrgParser m (Text, Text)
 stringyMetaAttribute = try $ do
-  metaLineStart *> notFollowedBy (stringAnyCase "begin_")
+  metaLineStart *> notFollowedBy (stringAnyCase "begin" *> oneOf ":_")
   attrName <- T.toLower <$> many1TillChar nonspaceChar (char ':')
   skipSpaces
   attrValue <- anyLine <|> ("" <$ newline)
@@ -244,8 +245,13 @@ parseBlockLines f blockType = ignHeaders *> (f <$> parsedBlockContent)
 
 -- | Read the raw string content of a block
 rawBlockContent :: Monad m => Text -> OrgParser m Text
-rawBlockContent blockType = try $ do
-  blkLines <- manyTill rawLine blockEnder
+rawBlockContent blockType = rawBlockContent' $
+   stringAnyCase ("#+end_" <> blockType)
+
+-- | Read the raw string content of a block
+rawBlockContent' :: Monad m => OrgParser m Text -> OrgParser m Text
+rawBlockContent' blockEnder = try $ do
+  blkLines <- manyTill rawLine (try $ skipSpaces <* blockEnder)
   tabStop <- getOption readerTabStop
   trimP <- orgStateTrimLeadBlkIndent <$> getState
   -- split lines into indentation/contents tuples
@@ -264,9 +270,6 @@ rawBlockContent blockType = try $ do
  where
    rawLine :: Monad m => OrgParser m Text
    rawLine = try $ ("" <$ blankline) <|> anyLine
-
-   blockEnder :: Monad m => OrgParser m ()
-   blockEnder = try $ skipSpaces <* stringAnyCase ("#+end_" <> blockType)
 
    commaEscaped suff = case T.uncons suff of
      Just (',', cs)
@@ -437,6 +440,24 @@ orgParamValue = try $
  where
   endOfValue = lookAhead $  try (skipSpaces <* oneOf "\n\r")
                         <|> try (skipSpaces1 <* orgArgKey)
+
+
+--
+-- Dynamic block (#+begin: ...  #+end:)
+--
+
+-- | Parses a Dynamic Block, i.e., a block delimited by #+BEGIN: and
+-- #+END:.
+dynamicBlock :: PandocMonad m => OrgParser m (F Blocks)
+dynamicBlock = try $ do
+  metaLineStart *> stringAnyCase "begin:" *> spaces
+  blockname <- optionMaybe orgArgWord
+  ignHeaders
+  contents <- do
+    raw <- rawBlockContent' $ metaLineStart *> stringAnyCase "end:"
+    parseFromString blocks (raw <> "\n")
+  let attr = ("", maybe [] (:[]) blockname, [])
+  return $ B.divWith attr <$> contents
 
 
 --
