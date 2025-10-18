@@ -3140,7 +3140,7 @@ mainfontoptions:
 fonts to try if a glyph isn\(cqt found in \f[CR]mainfont\f[R],
 \f[CR]sansfont\f[R], or \f[CR]monofont\f[R] respectively.
 These are lists.
-The font name must be followed by a colon and optionally a set of
+For \f[CR]lualatex\f[R], the font name must be followed by a colon and optionally a set of
 options, for example:
 .RS
 .IP
@@ -3151,7 +3151,7 @@ mainfontfallback:
   \- \(dqNotoColorEmoji:mode=harf\(dq
 \&...
 .EE
-Font fallbacks currently only work with \f[CR]lualatex\f[R].
+Font fallbacks currently work with \f[CR]lualatex\f[R] and Typst.
 .RE
 .TP
 \f[CR]babelfonts\f[R]
@@ -3389,6 +3389,11 @@ Paper size: \f[CR]a4\f[R], \f[CR]us\-letter\f[R], etc.
 .TP
 \f[CR]mainfont\f[R]
 Name of system font to use for the main font.
+.TP
+\f[CR]mainfontfallback\f[R]
+List of additional fonts to try if a glyph is not found in
+\f[CR]mainfont\f[R]; appended after the main font when constructing
+Typst's font list.
 .TP
 \f[CR]fontsize\f[R]
 Font size (e.g., \f[CR]12pt\f[R]).
