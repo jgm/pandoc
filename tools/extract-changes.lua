@@ -2,7 +2,7 @@
 
 function Pandoc(el)
   local newblocks = {}
-  i = 1
+  local i = 1
   while i <= #el.blocks and
       not (el.blocks[i].t == "Header" and el.blocks[i].level == 2) do
     i = i+1
