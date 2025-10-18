@@ -72,9 +72,9 @@
     }
   }
 
-  block(below: 4mm)[
+  block(below: 1em, width: 100%)[
     #if title != none {
-      align(center)[#block(inset: 2em)[
+      align(center, block[
           #text(weight: "bold", size: 1.5em)[#title #if thanks != none {
               footnote(thanks, numbering: "*")
               counter(footnote).update(n => n - 1)
@@ -84,8 +84,7 @@
               parbreak()
               text(weight: "bold", size: 1.25em)[#subtitle]
             }
-          )
-        ]]
+           )])
     }
 
     #if authors != none and authors != [] {
