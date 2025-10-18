@@ -57,7 +57,8 @@ testCompareWithOpts opts testName docxFP nativeFP =
   (do df <- B.readFile docxFP
       runIOorExplode (readDocx opts df))
   (nativeDiff nativeFP)
-  (\a -> runIOorExplode (writeNative def a) >>= BS.writeFile nativeFP . UTF8.fromText)
+  (\a -> runIOorExplode (writeNative def{ writerTemplate = Just mempty} a)
+            >>= BS.writeFile nativeFP . UTF8.fromText)
 
 testForWarningsWithOptsIO :: ReaderOptions -> String -> FilePath -> [String] -> IO TestTree
 testForWarningsWithOptsIO opts name docxFile expected = do
