@@ -3170,8 +3170,8 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
 
 `mainfontfallback`, `sansfontfallback`, `monofontfallback`
 :   fonts to try if a glyph isn't found in `mainfont`, `sansfont`, or `monofont`
-    respectively. These are lists. For `lualatex`, the font name must be followed
-    by a colon and optionally a set of options, for example:
+    respectively. These are lists. The font name must be followed by a colon
+    and optionally a set of options, for example:
 
         ---
         mainfontfallback:
