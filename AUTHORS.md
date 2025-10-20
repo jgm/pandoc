@@ -108,6 +108,7 @@
 - Eigil Rischel
 - Elliot Bobrow
 - Emanuel Evans
+- Emmanuel Ferdman
 - Emerson Harkin
 - Emily Bourke
 - Emily Eisenberg
@@ -128,6 +129,7 @@
 - Florian Eitel
 - Florian Klink
 - Florian Kohrt
+- FoxChillz
 - Francesco Mazzoli
 - Francesco Occhipinti
 - François Gannaz
