@@ -149,7 +149,7 @@ $elseif(bibliographystyle)$
 $endif$
 $if(bibliography)$
 
-#bibliography($for(bibliography)$"$bibliography$"$sep$,$endfor$$if(full-bibliography)$, full: true$endif$)
+#bibliography(($for(bibliography)$"$bibliography$"$sep$,$endfor$)$if(full-bibliography)$, full: true$endif$)
 $endif$
 $endif$
 $for(include-after)$

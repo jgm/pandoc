@@ -1,5 +1,53 @@
 # Revision history for pandoc
 
+## pandoc 3.8.2.1 (2025-10-20)
+
+  * HTML reader: allow blank space between open and close `iframe`.
+
+  * RTF reader: improve hyperlink parsing (#11211).
+
+  * Org reader:
+
+    + Parse parameter lists on unknown blocks (#11188, Albert
+      Krewinkel). The reader tries to parse the rest of the opening
+      line of a block, e.g., `#+begin_myblock …`, as a parameters
+      list. It first assumes that the parameters are in lisp-style
+      (`:key value`), then alternatively tries to read python-style
+      key-value pairs (`key=value`) and falls back to reading the
+      entire remaining line as a single `parameter` attribute.
+    + Add support for dynamic blocks.
+
+  * Docx writer: properly handle nested comment spans (#8189, #6959,
+    mourino).
+
+  * RST writer: Don't use simple tables with RowSpans (#11214,
+    Tuong Nguyen Manh).
+
+  * Typst writer: Escape open paren after non-space (#11210).
+    This fixes an issue that occurs if an open paren comes
+    right after e.g. `#strong[test]`.
+
+  * Typst template: ensure that title block is properly centered (#11221).
+
+  * LaTeX writer/template: small fix for unnumbered tables for
+    compatibility with older LaTeX installations (#11201).
+    Thanks to @priiduonu for the solution.
+
+  * MANUAL.txt: Fixed missing backtick (#11209, FoxChillz).
+
+  * Correct anchor references to `pandoc.text` module documentation (#11111,
+    Emmanuel Ferdman).
+
+  * Fixed golden test regeneration in Docx reader test.
+
+  * Allow unicode-data 0.8.
+
+  * Use citeproc 0.11. This fixes a significant performance
+    regression in pandoc 3.8, which was due to a rewrite of the
+    default chicago-author-date.csl file. Performance with `--citeproc`
+    is now on par with what we had in pandoc 3.7, even with the
+    revised Chicago styles.
+
 ## pandoc 3.8.2 (2025-10-05)
 
   * Markdown reader/writer: implement new `table_attributes` extension
