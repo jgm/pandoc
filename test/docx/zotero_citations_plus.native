@@ -6,9 +6,7 @@ Pandoc
             , MetaList
                 [ MetaMap
                     (fromList
-                       [ ( "DOI"
-                         , MetaInlines [ Str "10.1002/2016GL069961" ]
-                         )
+                       [ ( "DOI" , MetaString "10.1002/2016GL069961" )
                        , ( "author"
                          , MetaList
                              [ MetaMap
@@ -97,16 +95,9 @@ Pandoc
                 , MetaMap
                     (fromList
                        [ ( "DOI"
-                         , MetaInlines
-                             [ Str "10.1007/s00382-013-1683-2" ]
+                         , MetaString "10.1007/s00382-013-1683-2"
                          )
-                       , ( "ISSN"
-                         , MetaInlines
-                             [ Str "0930-7575,"
-                             , Space
-                             , Str "1432-0894"
-                             ]
-                         )
+                       , ( "ISSN" , MetaString "0930-7575, 1432-0894" )
                        , ( "author"
                          , MetaList
                              [ MetaMap
@@ -174,7 +165,7 @@ Pandoc
                 , MetaMap
                     (fromList
                        [ ( "DOI"
-                         , MetaInlines [ Str "10.5194/gmd-9-3751-2016" ]
+                         , MetaString "10.5194/gmd-9-3751-2016"
                          )
                        , ( "author"
                          , MetaList

@@ -7,9 +7,9 @@ Pandoc
                 [ MetaMap
                     (fromList
                        [ ( "DOI"
-                         , MetaInlines [ Str "10.1145/1929887.1929902" ]
+                         , MetaString "10.1145/1929887.1929902"
                          )
-                       , ( "ISSN" , MetaInlines [ Str "2153-2184" ] )
+                       , ( "ISSN" , MetaString "2153-2184" )
                        , ( "author"
                          , MetaList
                              [ MetaMap
