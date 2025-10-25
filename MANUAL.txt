@@ -3179,7 +3179,7 @@ Pandoc uses these variables when [creating a PDF] with a LaTeX engine.
           - "NotoColorEmoji:mode=harf"
         ...
 
-    Font fallbacks currently only work with `lualatex`.
+    Font fallbacks currently work with `lualatex` and Typst.
 
 `babelfonts`
 :   a map of Babel language names (e.g. `chinese`) to the font
@@ -3430,6 +3430,11 @@ The `--css` option also affects the output.
 
 `mainfont`
 :    Name of system font to use for the main font.
+
+`mainfontfallback`
+:    List of additional fonts to try if a glyph is not found in
+     `mainfont`. These fonts are appended after `mainfont` when
+     constructing Typst's font list.
 
 `fontsize`
 :    Font size (e.g., `12pt`).
