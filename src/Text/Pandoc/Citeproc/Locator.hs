@@ -69,13 +69,47 @@ pLocatorDelimited locMap = try $ do
   (rawlab, la, _) <- pLocatorLabelDelimited locMap
   -- we only care about balancing {} and [] (because of the outer [] scope);
   -- the rest can be anything
-  let inner = do { t <- anyToken; return (True, stringify t) }
+  let inner = do { t <- anyToken; return (True, cslJsonify t) }
   gs <- many (pBalancedBraces [('{','}'), ('[',']')] inner)
   _ <- pMatchChar "}" (== '}')
-  let lo = T.concat $ map snd gs
+  let lo = mconcat $ map snd gs
   return $ LocatorInfo{ locatorLoc = lo,
                         locatorLabel = la,
                         locatorRaw = rawlab <> "{" <> lo <> "}" }
+
+-- a variant of stringify that preserves formatting using CSL JSON
+-- conventions
+cslJsonify :: Inline -> Text
+cslJsonify = go
+  where goMany :: [Inline] -> T.Text
+        goMany = mconcat . map go
+        go :: Inline -> T.Text
+        go (Str t) = t
+        go Space = " "
+        go SoftBreak = " "
+        go LineBreak = " "
+        go (Emph ils) = "<i>" <> goMany ils <> "</i>"
+        go (Underline ils) = "<u>" <> goMany ils <> "</u>"
+        go (Strong ils) = "<b>" <> goMany ils <> "</b>"
+        go (Strikeout ils) = goMany ils
+        go (Superscript ils) = "<sup>" <> goMany ils <> "</sup>"
+        go (Subscript ils) = "<sub>" <> goMany ils <> "</sub>"
+        go (SmallCaps ils) = "<span style=\"font-variant:small-caps;\">" <>
+                              goMany ils <> "</span>"
+        go (Quoted SingleQuote ils) = "'" <> goMany ils <> "'"
+        go (Quoted DoubleQuote ils) = "\"" <> goMany ils <> "\""
+        go (Cite _ ils) = goMany ils
+        go (Code _ t) = t
+        go (Math _ t) = t
+        go (RawInline _ _) = ""
+        go (Link _ ils _) = goMany ils
+        go (Image _ ils _) = goMany ils
+        go (Note _) = ""
+        go (Span (_,cls@(_:_),_) ils) =
+          "<span class=\"" <> T.unwords cls <> "\">" <> goMany ils <> "</span>"
+        go (Span (_,[],[("style","baseline")]) ils) =
+          "<span style=\"baseline\">" <> goMany ils <> "</span>"
+        go (Span _ ils) = goMany ils
 
 pLocatorLabelDelimited :: LocatorMap -> LocatorParser (Text, Text, Bool)
 pLocatorLabelDelimited locMap
