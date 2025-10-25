@@ -80,6 +80,7 @@ module Text.Pandoc.Writers
     , writeXWiki
     , writeZimWiki
     , writeVimdoc
+    , writeBBCode
     , getWriter
     ) where
 
@@ -134,6 +135,7 @@ import Text.Pandoc.Writers.XML
 import Text.Pandoc.Writers.XWiki
 import Text.Pandoc.Writers.ZimWiki
 import Text.Pandoc.Writers.Vimdoc
+import Text.Pandoc.Writers.BBCode
 
 data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
               | ByteStringWriter (WriterOptions -> Pandoc -> m BL.ByteString)
@@ -209,6 +211,11 @@ writers = [
   ,("ansi"         , TextWriter writeANSI)
   ,("xml"          , TextWriter writeXML)
   ,("vimdoc"       , TextWriter writeVimdoc)
+  ,("bbcode"       , TextWriter writeBBCode)
+  ,("bbcode_steam" , TextWriter writeBBCode_steam)
+  ,("bbcode_phpbb" , TextWriter writeBBCode_phpBB)
+  ,("bbcode_fluxbb", TextWriter writeBBCode_fluxBB)
+  ,("bbcode_hubzilla" , TextWriter writeBBCode_hubzilla)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).
