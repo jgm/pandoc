@@ -11,3 +11,13 @@ source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
   tag: 1a82c13ac1d8e9e07cf69fbf89ba2b57474b8e0f
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/typst-hs.git
+  tag: e6eb442bc0efbe3fcf8c1fe5f28be3f0fb278e8b
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/texmath.git
+  tag: 110322589698df20abf3f3a06c070271802ea598

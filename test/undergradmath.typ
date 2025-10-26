@@ -276,7 +276,7 @@ Use `|` to get set builder notation ${a in S | a "is odd"}$ with `{a in S | a "i
   cell($->$, [`->`, `arrow.r`]), cell($|->$, [`|->`, `arrow.r.bar`]),
   cell($arrow.r.not$, `arrow.r.not`), cell($arrow.r.long.bar$, `arrow.r.long.bar`),
   cell($arrow.r.long$, `arrow.r.long`), cell($<-$, [`<-`, `arrow.l`]),
-  cell($=>$, [`=>`, `arrow.r.double`]), cell($<->$, [`<->`, `arrow.l.r`]),
+  cell($=>$, [`=>`, `arrow.r.double`]), cell($<-->$, [`<-->`, `arrow.l.r.long`]),
   cell($arrow.r.double.not$, `arrow.r.double.not`), cell($arrow.b$, `arrow.b`),
   cell($arrow.r.double.long$, `arrow.r.double.long`), cell($arrow.t$, `arrow.t`),
   cell($arrow.squiggly$, `arrow.squiggly`), cell($arrow.t.b$, `arrow.t.b`),
