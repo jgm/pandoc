@@ -280,6 +280,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   (if null dirs
                      then id
                      else defField "dir" ("ltr" :: Text)) $
+                  (if beamer
+                   then defField "aspectratio" ("169" :: Text)
+                   else id) $
                   defField "section-titles" True $
                   defField "csl-refs" (stHasCslRefs st) $
                   defField "geometry" geometryFromMargins $
