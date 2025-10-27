@@ -16,7 +16,6 @@ extra-deps:
 - skylighting-core-0.14.7
 - skylighting-0.14.7
 - djot-0.1.2.3
-- texmath-0.13.0.1
 - typst-symbols-0.1.9.1
 - git: https://github.com/jgm/citeproc.git
   commit: 1a82c13ac1d8e9e07cf69fbf89ba2b57474b8e0f
