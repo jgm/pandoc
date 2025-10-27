@@ -186,7 +186,7 @@ convertInlines = fmap mconcat . mapM convertInline . F.toList . D.unMany
 convertInline :: PandocMonad m => D.Node D.Inline -> ReaderT Env m Inlines
 convertInline (D.Node pos attr il) = addAttrToInline pos attr <$>
   case il of
-    D.Str bs -> pure $ str (UTF8.toText bs)
+    D.Str bs -> pure $ text (UTF8.toText bs)
     D.Emph ils -> emph <$> convertInlines ils
     D.Strong ils -> strong <$> convertInlines ils
     D.Highlight ils -> spanWith ("",["mark"],[]) <$> convertInlines ils
