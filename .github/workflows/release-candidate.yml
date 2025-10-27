@@ -70,7 +70,7 @@ jobs:
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
           copy windows\Makefile windows-release-candidate
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: windows-release-candidate
         path: windows-release-candidate
@@ -96,7 +96,7 @@ jobs:
       run: |
         sh macos/make_macos_release.sh
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: macos-x86_64
         path: macos-x86_64
@@ -112,7 +112,7 @@ jobs:
 #         mkdir linux-release-candidate
 #         cp linux/artifacts/*.deb linux-release-candidate/
 #         cp linux/artifacts/*.tar.gz linux-release-candidate/
-#   - uses: actions/upload-artifact@v4
+#   - uses: actions/upload-artifact@v5
 #     with:
 #       name: linux-release-candidate
 #       path: linux-release-candidate
