@@ -8,9 +8,9 @@ This is a set of tests for pandoc. Most of them are adapted from John Gruber's m
 
 [h3]Level 3 with [i]emphasis[/i][/h3]
 
-Level 4
+[h3]Level 4[/h3]
 
-Level 5
+[h3]Level 5[/h3]
 
 [h1]Level 1[/h1]
 

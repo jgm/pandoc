@@ -63,6 +63,7 @@ import Text.Pandoc.URI (escapeURI, isURI)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unsmartify)
 import Text.Read (readMaybe)
 import qualified Data.Set as Set
+import Data.Ord (clamp)
 
 -- Type synonym to prevent haddock-generated HTML from overflowing
 type PandocTable =
@@ -453,7 +454,7 @@ inlineListToBBCode inlines = mconcat <$> mapM inlineToBBCode inlines
 renderHeaderDefault ::
   (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
 renderHeaderDefault level _attr inlines = do
-  headingText <- case level of
+  headingText <- case clamp (1, 4) level of
     1 -> inlineToBBCode $ Underline [Strong inlines]
     2 -> inlineToBBCode $ Strong inlines
     3 -> inlineToBBCode $ Underline inlines
@@ -582,23 +583,18 @@ renderOrderedListSteam _ =
 
 renderHeaderSteam ::
   (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
-renderHeaderSteam level attr inlines
-  | level >= 1 && level <= 3 = do
-      body <- inlineListToBBCode inlines
-      let tag = "[h" <> tshow level <> "]"
-      pure $
-        vcat
-          [ blankline
-          , literal tag <> body <> literal ("[/h" <> tshow level <> "]")
-          , blankline
-          ]
-  | otherwise = renderHeaderDefault level attr inlines
+renderHeaderSteam level _ inlines = do
+  body <- inlineListToBBCode inlines
+  let capped = clamp (1, 3) level
+      open = "[h" <> tshow capped <> "]"
+      close = "[/h" <> tshow capped <> "]"
+  pure $ vcat [blankline, literal open <> body <> literal close, blankline]
 
 renderHeaderHubzilla ::
   (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
 renderHeaderHubzilla level _ inlines = do
   body <- inlineListToBBCode inlines
-  let capped = max 1 (min 6 level)
+  let capped = clamp (1, 6) level
       open = "[h" <> tshow capped <> "]"
       close = "[/h" <> tshow capped <> "]"
   pure $ vcat [blankline, literal open <> body <> literal close, blankline]
