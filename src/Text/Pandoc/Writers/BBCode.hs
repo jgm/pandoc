@@ -562,11 +562,15 @@ renderBulletListOfficial :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
 renderBulletListOfficial = listWithTags "[list]" "[/list]" starListItems
 
 renderBulletListHubzilla :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
-renderBulletListHubzilla = listWithTags "[ul]" "[/ul]" liListItems
+renderBulletListHubzilla = listWithTags "[ul]" "[/ul]" starListItems
 
 renderOrderedListHubzilla ::
   (PandocMonad m) => ListAttributes -> [[Block]] -> RR m (Doc Text)
-renderOrderedListHubzilla _ = listWithTags "[ol]" "[/ol]" liListItems
+renderOrderedListHubzilla (_, style, _) = case style of
+  DefaultStyle -> listWithTags "[ol]" "[/ol]" starListItems
+  Example -> listWithTags "[ol]" "[/ol]" starListItems
+  _ -> listWithTags ("[list=" <> suffix <> "]") "[/list]" starListItems
+ where suffix = fromMaybe "1" $ listStyleCode style
 
 renderOrderedListOfficial ::
   (PandocMonad m) => ListAttributes -> [[Block]] -> RR m (Doc Text)

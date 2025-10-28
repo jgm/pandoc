@@ -57,10 +57,10 @@ Code in a block quote:
 [/code]
 A list:
 
-[ol]
-[li]item one[/li]
-[li]item two[/li]
-[/ol]
+[list=1]
+[*]item one
+[*]item two
+[/list]
 Nested block quotes:
 
 [quote]
@@ -109,222 +109,198 @@ These should not be escaped:  \$ \\ \> \[ \{
 Asterisks tight:
 
 [ul]
-[li]asterisk 1[/li]
-[li]asterisk 2[/li]
-[li]asterisk 3[/li]
+[*]asterisk 1
+[*]asterisk 2
+[*]asterisk 3
 [/ul]
 Asterisks loose:
 
 [ul]
-[li]asterisk 1
+[*]asterisk 1
 
-[/li]
-[li]asterisk 2
+[*]asterisk 2
 
-[/li]
-[li]asterisk 3
+[*]asterisk 3
 
-[/li]
 [/ul]
 Pluses tight:
 
 [ul]
-[li]Plus 1[/li]
-[li]Plus 2[/li]
-[li]Plus 3[/li]
+[*]Plus 1
+[*]Plus 2
+[*]Plus 3
 [/ul]
 Pluses loose:
 
 [ul]
-[li]Plus 1
+[*]Plus 1
 
-[/li]
-[li]Plus 2
+[*]Plus 2
 
-[/li]
-[li]Plus 3
+[*]Plus 3
 
-[/li]
 [/ul]
 Minuses tight:
 
 [ul]
-[li]Minus 1[/li]
-[li]Minus 2[/li]
-[li]Minus 3[/li]
+[*]Minus 1
+[*]Minus 2
+[*]Minus 3
 [/ul]
 Minuses loose:
 
 [ul]
-[li]Minus 1
+[*]Minus 1
 
-[/li]
-[li]Minus 2
+[*]Minus 2
 
-[/li]
-[li]Minus 3
+[*]Minus 3
 
-[/li]
 [/ul]
 
 [h2]Ordered[/h2]
 
 Tight:
 
-[ol]
-[li]First[/li]
-[li]Second[/li]
-[li]Third[/li]
-[/ol]
+[list=1]
+[*]First
+[*]Second
+[*]Third
+[/list]
 and:
 
-[ol]
-[li]One[/li]
-[li]Two[/li]
-[li]Three[/li]
-[/ol]
+[list=1]
+[*]One
+[*]Two
+[*]Three
+[/list]
 Loose using tabs:
 
-[ol]
-[li]First
+[list=1]
+[*]First
 
-[/li]
-[li]Second
+[*]Second
 
-[/li]
-[li]Third
+[*]Third
 
-[/li]
-[/ol]
+[/list]
 and using spaces:
 
-[ol]
-[li]One
+[list=1]
+[*]One
 
-[/li]
-[li]Two
+[*]Two
 
-[/li]
-[li]Three
+[*]Three
 
-[/li]
-[/ol]
+[/list]
 Multiple paragraphs:
 
-[ol]
-[li]Item 1, graf one.
+[list=1]
+[*]Item 1, graf one.
 
 Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
 
-[/li]
-[li]Item 2.
+[*]Item 2.
 
-[/li]
-[li]Item 3.
+[*]Item 3.
 
-[/li]
-[/ol]
+[/list]
 
 [h2]Nested[/h2]
 
 [ul]
-[li]Tab
+[*]Tab
 [ul]
-[li]Tab
+[*]Tab
 [ul]
-[li]Tab[/li]
-[/ul][/li]
-[/ul][/li]
+[*]Tab
+[/ul]
+[/ul]
 [/ul]
 Here's another:
 
-[ol]
-[li]First[/li]
-[li]Second:
+[list=1]
+[*]First
+[*]Second:
 [ul]
-[li]Fee[/li]
-[li]Fie[/li]
-[li]Foe[/li]
-[/ul][/li]
-[li]Third[/li]
-[/ol]
+[*]Fee
+[*]Fie
+[*]Foe
+[/ul]
+[*]Third
+[/list]
 Same thing but with paragraphs:
 
-[ol]
-[li]First
+[list=1]
+[*]First
 
-[/li]
-[li]Second:
+[*]Second:
 
 [ul]
-[li]Fee[/li]
-[li]Fie[/li]
-[li]Foe[/li]
-[/ul][/li]
-[li]Third
+[*]Fee
+[*]Fie
+[*]Foe
+[/ul]
+[*]Third
 
-[/li]
-[/ol]
+[/list]
 
 [h2]Tabs and spaces[/h2]
 
 [ul]
-[li]this is a list item indented with tabs
+[*]this is a list item indented with tabs
 
-[/li]
-[li]this is a list item indented with spaces
+[*]this is a list item indented with spaces
 
 [ul]
-[li]this is an example list item indented with tabs
+[*]this is an example list item indented with tabs
 
-[/li]
-[li]this is an example list item indented with spaces
+[*]this is an example list item indented with spaces
 
-[/li]
-[/ul][/li]
+[/ul]
 [/ul]
 
 [h2]Fancy list markers[/h2]
 
-[ol]
-[li]begins with 2
+[list=1]
+[*]begins with 2
 
-[/li]
-[li]and now 3
+[*]and now 3
 
 with a continuation
 
-[ol]
-[li]sublist with roman numerals, starting with 4[/li]
-[li]more items
-[ol]
-[li]a subsublist[/li]
-[li]a subsublist[/li]
-[/ol][/li]
-[/ol][/li]
-[/ol]
+[list=i]
+[*]sublist with roman numerals, starting with 4
+[*]more items
+[list=A]
+[*]a subsublist
+[*]a subsublist
+[/list]
+[/list]
+[/list]
 Nesting:
 
-[ol]
-[li]Upper Alpha
-[ol]
-[li]Upper Roman.
-[ol]
-[li]Decimal start with 6
-[ol]
-[li]Lower alpha with paren[/li]
-[/ol][/li]
-[/ol][/li]
-[/ol][/li]
-[/ol]
+[list=A]
+[*]Upper Alpha
+[list=I]
+[*]Upper Roman.
+[list=1]
+[*]Decimal start with 6
+[list=a]
+[*]Lower alpha with paren
+[/list]
+[/list]
+[/list]
+[/list]
 Autonumbering:
 
 [ol]
-[li]Autonumber.[/li]
-[li]More.
+[*]Autonumber.
+[*]More.
 [ol]
-[li]Nested.[/li]
-[/ol][/li]
+[*]Nested.
+[/ol]
 [/ol]
 Should not be a list item:
 
@@ -423,10 +399,10 @@ computer
 [*= orange]
 orange fruit
 
-[ol]
-[li]sublist[/li]
-[li]sublist[/li]
-[/ol]
+[list=1]
+[*]sublist
+[*]sublist
+[/list]
 [/dl]
 
 [h1]HTML Blocks[/h1]
@@ -529,23 +505,23 @@ Ellipses...and...and....
 [h1]LaTeX[/h1]
 
 [ul]
-[li][/li]
-[li][code]$2+2=4$[/code][/li]
-[li][code]$x \in y$[/code][/li]
-[li][code]$\alpha \wedge \omega$[/code][/li]
-[li][code]$223$[/code][/li]
-[li][code]$p$[/code]-Tree[/li]
-[li]Here's some display math: [code=latex]$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
-[/code][/li]
-[li]Here's one that has a line break in it: [code]$\alpha + \omega \times x^2$[/code].[/li]
+[*]
+[*][code]$2+2=4$[/code]
+[*][code]$x \in y$[/code]
+[*][code]$\alpha \wedge \omega$[/code]
+[*][code]$223$[/code]
+[*][code]$p$[/code]-Tree
+[*]Here's some display math: [code=latex]$$\frac{d}{dx}f(x)=\lim_{h\to 0}\frac{f(x+h)-f(x)}{h}$$
+[/code]
+[*]Here's one that has a line break in it: [code]$\alpha + \omega \times x^2$[/code].
 [/ul]
 These shouldn't be math:
 
 [ul]
-[li]To get the famous equation, write [code]$e = mc^2$[/code].[/li]
-[li]$22,000 is a [i]lot[/i] of money. So is $34,000. (It worked if "lot" is emphasized.)[/li]
-[li]Shoes ($20) and socks ($5).[/li]
-[li]Escaped [code]$[/code]: $73 [i]this should be emphasized[/i] 23$.[/li]
+[*]To get the famous equation, write [code]$e = mc^2$[/code].
+[*]$22,000 is a [i]lot[/i] of money. So is $34,000. (It worked if "lot" is emphasized.)
+[*]Shoes ($20) and socks ($5).
+[*]Escaped [code]$[/code]: $73 [i]this should be emphasized[/i] 23$.
 [/ul]
 Here's a LaTeX table:
 
@@ -556,11 +532,11 @@ Here's a LaTeX table:
 Here is some unicode:
 
 [ul]
-[li]I hat: Î[/li]
-[li]o umlaut: ö[/li]
-[li]section: §[/li]
-[li]set membership: ∈[/li]
-[li]copyright: ©[/li]
+[*]I hat: Î
+[*]o umlaut: ö
+[*]section: §
+[*]set membership: ∈
+[*]copyright: ©
 [/ul]
 AT&T has an ampersand in their name.
 
@@ -665,9 +641,9 @@ Here's an [url=/script?foo=1&bar=2]inline link in pointy braces[/url].
 With an ampersand: [url]http://example.com/?foo=1&bar=2[/url]
 
 [ul]
-[li]In a list?[/li]
-[li][url]http://example.com/[/url][/li]
-[li]It should.[/li]
+[*]In a list?
+[*][url]http://example.com/[/url]
+[*]It should.
 [/ul]
 An e-mail address: [url]nobody@nowhere.net[/url]
 
@@ -702,9 +678,9 @@ Notes can go in quotes.(4)
 
 [/quote]
 
-[ol]
-[li]And in list items.(5)[/li]
-[/ol]
+[list=1]
+[*]And in list items.(5)
+[/list]
 This paragraph should not be part of the note, as it is not indented.
 
 [hr]
