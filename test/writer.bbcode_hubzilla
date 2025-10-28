@@ -645,7 +645,7 @@ With an ampersand: [url]http://example.com/?foo=1&bar=2[/url]
 [*][url]http://example.com/[/url]
 [*]It should.
 [/ul]
-An e-mail address: [url]nobody@nowhere.net[/url]
+An e-mail address: [url=mailto:nobody@nowhere.net]nobody@nowhere.net[/url]
 
 [quote]
 Blockquoted: [url]http://example.com/[/url]

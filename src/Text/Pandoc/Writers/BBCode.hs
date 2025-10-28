@@ -460,21 +460,18 @@ renderHeaderDefault level _attr inlines = do
     _ -> inlineListToBBCode inlines
   pure $ vcat [blankline, headingText, blankline]
 
+-- Adapted from Text.Pandoc.Writers.Org
 renderLinkDefault ::
   (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
-renderLinkDefault _attr txt (src, _) = do
-  let srcSuffix = fromMaybe src (T.stripPrefix "mailto:" src)
-  linkText <- inlineListToBBCode txt
-  let isAutoLink = case txt of
-        [Str x] | escapeURI x `elem` [src, srcSuffix] -> True
-        _ -> False
-  let isEmptySrc = T.null src
-  pure $
-    if
-      | isEmptySrc -> "[url]" <> linkText <> "[/url]"
-      | isURI src && isAutoLink -> "[url]" <> linkText <> "[/url]"
-      | otherwise ->
-          literal ("[url=" <> escapeURI src <> "]") <> linkText <> "[/url]"
+renderLinkDefault _ txt (src, _) =
+  case txt of
+    [Str x]
+      | escapeURI x == src ->
+          pure $ "[url]" <> literal x <> "[/url]"
+    _ -> do
+      contents <- inlineListToBBCode txt
+      let suffix = if T.null src then "" else "=" <> src
+      pure $ "[url" <> literal suffix <> "]" <> contents <> "[/url]"
 
 renderCodeBlockDefault :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
 renderCodeBlockDefault (_, cls, _) code = do
@@ -956,6 +953,8 @@ Quirks:
 - PhpBB docs don't mention strikeout support, but their
   [support forum](https://www.phpbb.com/community) does support it.
 - Same for named code blocks.
+- @[email=example@example.com]the email[/url]@ is a valid use of [email] tag on
+  the phpBB community forum despite not being in the docs.
 -}
 phpbbSpec :: FlavorSpec
 phpbbSpec =
