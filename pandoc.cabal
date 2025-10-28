@@ -112,10 +112,6 @@ data-files:
                  data/templates/after-header-includes.latex
                  data/templates/default.vimdoc
                  data/templates/default.bbcode
-                 data/templates/default.bbcode_steam
-                 data/templates/default.bbcode_phpbb
-                 data/templates/default.bbcode_fluxbb
-                 data/templates/default.bbcode_hubzilla
 
                  -- translations
                  data/translations/*.yaml
