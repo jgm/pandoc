@@ -559,9 +559,6 @@ listStyleCode = \case
 renderBulletListOfficial :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
 renderBulletListOfficial = listWithTags "[list]" "[/list]" starListItems
 
-renderBulletListSteam :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
-renderBulletListSteam = listWithTags "[list]" "[/list]" starListItems
-
 renderBulletListHubzilla :: (PandocMonad m) => [[Block]] -> RR m (Doc Text)
 renderBulletListHubzilla = listWithTags "[ul]" "[/ul]" liListItems
 
@@ -935,7 +932,6 @@ steamSpec :: FlavorSpec
 steamSpec =
   officialSpec
     { renderOrderedList = renderOrderedListSteam
-    , renderBulletList = renderBulletListSteam
     , renderHeader = renderHeaderSteam
     , renderLink = renderLinkDefault
     , renderInlineCode = renderInlineCodeNoParse
