@@ -1025,6 +1025,12 @@ blockCommands = M.fromList
    , ("epigraph", epigraph)
    -- alignment
    , ("raggedright", pure mempty)
+   -- etoolbox
+   , ("ifstrequal", ifstrequal)
+   , ("newtoggle", braced >>= newToggle)
+   , ("toggletrue", braced >>= setToggle True)
+   , ("togglefalse", braced >>= setToggle False)
+   , ("iftoggle", try $ ifToggle >> block)
    ]
 
 skipSameFileToks :: PandocMonad m => LP m ()
@@ -1068,12 +1074,7 @@ environments = M.union (tableEnvironments block inline) $
    , ("ly", rawVerbEnv "ly")
    -- amsthm
    , ("proof", proof blocks opt)
-   -- etoolbox
-   , ("ifstrequal", ifstrequal)
-   , ("newtoggle", braced >>= newToggle)
-   , ("toggletrue", braced >>= setToggle True)
-   , ("togglefalse", braced >>= setToggle False)
-   , ("iftoggle", try $ ifToggle >> block)
+   -- other
    , ("CSLReferences", braced >> braced >> env "CSLReferences" blocks)
    , ("otherlanguage", env "otherlanguage" otherlanguageEnv)
    ]
