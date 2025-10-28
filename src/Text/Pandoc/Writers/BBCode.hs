@@ -303,7 +303,9 @@ writeBBCode_custom spec opts document =
     runReaderT (evalStateT action footnotes) writerState
 
 blockListToBBCode :: (PandocMonad m) => [Block] -> RR m (Doc Text)
-blockListToBBCode blocks = vcat <$> mapM blockToBBCode blocks
+blockListToBBCode blocks =
+  vcat . filter (not . null)
+    <$> mapM blockToBBCode blocks
 
 blockToBBCode :: (PandocMonad m) => Block -> RR m (Doc Text)
 blockToBBCode block = do
