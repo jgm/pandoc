@@ -69,6 +69,7 @@ $-- tables
 $--
 $if(tables)$
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
 $if(multirow)$
 \usepackage{multirow}
 $endif$
@@ -183,9 +184,9 @@ $-- Babel language support
 $--
 $if(lang)$
 \ifLuaTeX
-\usepackage[bidi=basic,shorthands=off,$for(babeloptions)$,$babeloptions$$endfor$]{babel}
+\usepackage[bidi=basic$if(shorthands)$$else$,shorthands=off$endif$$for(babeloptions)$,$babeloptions$$endfor$]{babel}
 \else
-\usepackage[bidi=default,shorthands=off,$for(babeloptions)$,$babeloptions$$endfor$]{babel}
+\usepackage[bidi=default$if(shorthands)$$else$,shorthands=off$endif$$for(babeloptions)$,$babeloptions$$endfor$]{babel}
 \fi
 $if(babel-lang)$
 $if(mainfont)$
@@ -233,6 +234,12 @@ $if(dir)$
   \newcommand{\LR}[1]{\beginL #1\endL}
   \newenvironment{RTL}{\beginR}{\endR}
   \newenvironment{LTR}{\beginL}{\endL}
+\fi
+\ifluatex
+  \newcommand{\RL}[1]{\bgroup\textdir TRT#1\egroup}
+  \newcommand{\LR}[1]{\bgroup\textdir TLT#1\egroup}
+  \newenvironment{RTL}{\textdir TRT\pardir TRT\bodydir TRT}{}
+  \newenvironment{LTR}{\textdir TLT\pardir TLT\bodydir TLT}{}
 \fi
 $endif$
 $--

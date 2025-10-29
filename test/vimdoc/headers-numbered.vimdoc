@@ -1,0 +1,108 @@
+                                       Type |gO| to see the table of contents.
+
+1. unremarkable header 1 ............................... |unremarkable-header-1|
+  1.1 unremarkable header 2 ............................ |unremarkable-header-2|
+      1.1.1 unremarkable header 3 ...................... |unremarkable-header-3|
+      1.1.2 unremarkable header 3 .................... |unremarkable-header-3-1|
+  unremarkable header 2 .............................. |unremarkable-header-2-1|
+    unremarkable header 3 ............................ |unremarkable-header-3-2|
+    unremarkable header 3 ............................ |unremarkable-header-3-3|
+2. bold italic underline strikethrough ............................... |short11|
+  2.1 superscript2 subscript3 ........................................ |short21|
+      2.1.1 smallcaps code inline math display math .................. |short31|
+      2.1.2 link image ............................................... |short32|
+3. Long header 1 long header 1 long header 1 long header 1 long heade... |long1|
+  3.1 Long header 2 long header 2 long header 2 long header 2 long h... |long21|
+      3.1.1 Long header 3 long header 3 long header 3 long header 3.... |long31|
+      3.1.2 Long header 3 long header 3 long header 3 long header 3.... |long32|
+  3.2 Long header 2 long header 2 long header 2 long header 2 long h... |long22|
+      3.2.1 Long header 3 long header 3 long header 3 long header 3.... |long33|
+      3.2.2 Long header 3 long header 3 long header 3 long header 3.... |long34|
+4. ... |long-header-1-long-header-1-long-header-1-long-header-1-long-header-1-long-header-1-long-header-1|
+  4.1 ... |long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2|
+      4.1.1 ... |long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3|
+      4.1.2 ... |long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-1|
+  4.2 ... |long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-1|
+      4.2.1 ... |long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-2|
+      4.2.2 ... |long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-3|
+
+
+Headers with a short title and implicit ref. Last 3 headers are unnumbered.
+
+==============================================================================
+unremarkable header 1                                    *unremarkable-header-1*
+
+------------------------------------------------------------------------------
+unremarkable header 2                                    *unremarkable-header-2*
+
+UNREMARKABLE HEADER 3                                    *unremarkable-header-3*
+
+UNREMARKABLE HEADER 3                                  *unremarkable-header-3-1*
+
+------------------------------------------------------------------------------
+unremarkable header 2                                  *unremarkable-header-2-1*
+
+UNREMARKABLE HEADER 3                                  *unremarkable-header-3-2*
+
+UNREMARKABLE HEADER 3                                  *unremarkable-header-3-3*
+
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+Headers with various inline elements
+
+==============================================================================
+bold italic underline strikethrough                                    *short11*
+
+------------------------------------------------------------------------------
+superscript2 subscript3                                                *short21*
+
+SMALLCAPS `code` `$inline math$` `$display math$`                      *short31*
+
+LINK example.com                                                       *short32*
+
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+Headers with a long name and explicit short ref
+
+==============================================================================
+Long header 1 long header 1 long header 1 long header 1 long header 1 long header 1 long header 1 *long1*
+
+------------------------------------------------------------------------------
+Long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 *long21*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long31*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long32*
+
+------------------------------------------------------------------------------
+Long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 *long22*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long33*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long34*
+
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+Headers with a long name and implicit ref.
+
+Since implicit ref is very lengthy, there is no way to fit it. Therefore title
+is not rendered and the references exceed the columns (textwidth) limit
+
+==============================================================================
+Long header 1 long header 1 long header 1 long header 1 long header 1 long header 1 long header 1 *long-header-1-long-header-1-long-header-1-long-header-1-long-header-1-long-header-1-long-header-1*
+
+------------------------------------------------------------------------------
+Long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 *long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-1*
+
+------------------------------------------------------------------------------
+Long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 long header 2 *long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-long-header-2-1*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-2*
+
+LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 LONG HEADER 3 *long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-long-header-3-3*
+
+ vim:tw=78:sw=4:ts=4:ft=help:norl:et:

@@ -15,6 +15,7 @@ import Data.Version (makeVersion)
 import HsLua
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua ()
+import Text.Pandoc.Writers.Shared (toSubscript, toSuperscript)
 
 import qualified Data.Text as T
 import qualified HsLua.Module.Text as TM
@@ -29,6 +30,8 @@ documentedModule = TM.documentedModule
     , TM.lower        `since` v[2,0,3]
     , TM.reverse      `since` v[2,0,3]
     , TM.sub          `since` v[2,0,3]
+    , subscript       `since` v[3,8]
+    , superscript     `since` v[3,8]
     , TM.toencoding   `since` v[3,0]
     , TM.upper        `since` v[2,0,3]
     ]
@@ -49,3 +52,29 @@ documentedModule = TM.documentedModule
   }
  where
   v = makeVersion
+
+-- | Convert all chars in a string to Unicode subscript.
+subscript :: LuaError e => DocumentedFunction e
+subscript = defun "subscript"
+  ### pure . traverse toSubscript
+  <#> stringParam "input" "string to convert to subscript characters"
+  =#> functionResult (maybe pushnil pushString) "string|nil"
+      "Subscript version of the input, or `nil` if not all characters\
+      \ could be converted."
+  #? "Tries to convert the string into a Unicode subscript version of the\
+     \ string.  Returns `nil` if not all characters of the input can be\
+     \ mapped to a subscript Unicode character.\
+     \ Supported characters include numbers, parentheses, and plus/minus."
+
+-- | Convert all chars in a string to Unicode superscript.
+superscript :: LuaError e => DocumentedFunction e
+superscript = defun "superscript"
+  ### pure . traverse toSuperscript
+  <#> stringParam "input" "string to convert to superscript characters"
+  =#> functionResult (maybe pushnil pushString) "string|nil"
+      "Superscript version of the input, or `nil` if not all characters\
+      \ could be converted."
+  #? "Tries to convert the string into a Unicode superscript version of the\
+     \ string.  Returns `nil` if not all characters of the input can be\
+     \ mapped to a superscript Unicode character.\
+     \ Supported characters include numbers, parentheses, and plus/minus."

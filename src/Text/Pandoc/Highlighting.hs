@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Highlighting
-   Copyright   : Copyright (C) 2008-2024 John MacFarlane
+   Copyright   : Copyright (C) 2008-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -30,7 +30,12 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , formatConTeXtBlock
                                 , styleToConTeXt
                                 , formatANSI
+                                -- ** Typst
+                                , formatTypstBlock
+                                , formatTypstInline
+                                , styleToTypst
                                 -- * Styles
+                                , defaultStyle
                                 , pygments
                                 , espresso
                                 , zenburn
@@ -44,17 +49,56 @@ module Text.Pandoc.Highlighting ( highlightingStyles
                                 , fromListingsLanguage
                                 , toListingsLanguage
                                 ) where
-import Control.Monad
+import Control.Monad ( msum )
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Skylighting
-import Text.Pandoc.Definition
+    ( SyntaxMap,
+      breezeDark,
+      espresso,
+      haddock,
+      kate,
+      monochrome,
+      pygments,
+      tango,
+      zenburn,
+      formatHtml4Block,
+      formatHtmlBlock,
+      formatHtmlInline,
+      styleToCss,
+      formatConTeXtBlock,
+      formatConTeXtInline,
+      styleToConTeXt,
+      formatLaTeXBlock,
+      formatLaTeXInline,
+      styleToLaTeX,
+      formatTypstBlock,
+      formatTypstInline,
+      styleToTypst,
+      formatANSI,
+      Style,
+      FormatOptions(containerClasses, startNumber, lineAnchors,
+                    numberLines, lineIdPrefix, codeClasses),
+      SourceLine,
+      lookupSyntax,
+      syntaxesByExtension,
+      parseTheme,
+      tokenize,
+      defaultFormatOpts,
+      TokenizerConfig(traceOutput, TokenizerConfig, syntaxMap),
+      Syntax(sShortname, sName),
+      TokenType(NormalTok) )
+import Text.Pandoc.Definition ( Attr )
 import Text.Pandoc.Class (PandocMonad, readFileLazy)
 import Text.Pandoc.Error (PandocError(..))
 import Control.Monad.Except (throwError)
 import System.FilePath (takeExtension)
 import Text.Pandoc.Shared (safeRead)
+
+-- | The default highlighting style used by pandoc (pygments).
+defaultStyle :: Style
+defaultStyle = pygments
 
 highlightingStyles :: [(T.Text, Style)]
 highlightingStyles =

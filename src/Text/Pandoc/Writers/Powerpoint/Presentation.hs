@@ -460,15 +460,17 @@ blockToParagraphs (CodeBlock attr str) = do
                                     , pPropIndent = Just 0
                                     }
                 , envRunProps = (envRunProps r){rPropCode = True}}) $ do
-    mbSty <- writerHighlightStyle <$> asks envOpts
+    highlightOpt <- writerHighlightMethod <$> asks envOpts
     synMap <- writerSyntaxMap <$> asks envOpts
-    case mbSty of
-      Just sty ->
-        case highlight synMap (formatSourceLines sty) attr str of
-          Right pElems -> do pPropsNew <- asks envParaProps
-                             return [Paragraph pPropsNew pElems]
-          Left _ -> blockToParagraphs $ Para [Str str]
-      Nothing -> blockToParagraphs $ Para [Str str]
+    let highlightWithStyle style = do
+          case highlight synMap (formatSourceLines style) attr str of
+            Right pElems -> do pPropsNew <- asks envParaProps
+                               return [Paragraph pPropsNew pElems]
+            Left _ -> blockToParagraphs $ Para [Str str]
+    case highlightOpt of
+      Skylighting sty -> highlightWithStyle sty
+      DefaultHighlighting -> highlightWithStyle defaultStyle
+      _ -> blockToParagraphs $ Para [Str str]
 -- We can't yet do incremental lists, but we should render a
 -- (BlockQuote List) as a list to maintain compatibility with other
 -- formats.
@@ -725,6 +727,7 @@ bodyBlocksToSlide _ (blk : blks) spkNotes
   , "columns" `elem` classes
   , Div (_, clsL, _) blksL : Div (_, clsR, _) blksR : remaining <- divBlks
   , "column" `elem` clsL, "column" `elem` clsR = do
+      -- At least 2 column elements
       mapM_ (addLogMessage . BlockNotRendered) (blks ++ remaining)
       let mkTwoColumn left right = do
             blksL' <- join . take 1 <$> splitBlocks left
@@ -753,6 +756,16 @@ bodyBlocksToSlide _ (blk : blks) spkNotes
       if (any null [blksL1, blksL2]) && (any null [blksR1, blksR2])
       then mkTwoColumn blksL blksR
       else mkComparison blksL1 blksL2 blksR1 blksR2
+  | Div (_, classes, _) divBlks <- blk
+  , "columns" `elem` classes
+  , Div (_, cls, _) columnBlks : remaining <- divBlks
+  , "column" `elem` cls = do
+      -- Only 1 column element.
+      mapM_ (addLogMessage . BlockNotRendered) (blks ++ remaining)
+      clBlks' <- join . take 1 <$> splitBlocks columnBlks
+      shapes <- blocksToShapes clBlks'
+      sldId <- asks envCurSlideId
+      return $ Slide sldId (ContentSlide [] shapes) spkNotes Nothing
 bodyBlocksToSlide _ (blk : blks) spkNotes = do
       sldId <- asks envCurSlideId
       inNoteSlide <- asks envInNoteSlide

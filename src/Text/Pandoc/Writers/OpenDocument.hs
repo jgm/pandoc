@@ -21,8 +21,7 @@ import Data.Char (chr)
 import Data.Foldable (find)
 import Data.List (sortOn, sortBy, foldl')
 import qualified Data.Map as Map
-import Data.Maybe (isNothing)
-import Data.Ord (comparing)
+import Data.Ord (comparing, Down (Down))
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -261,7 +260,7 @@ writeOpenDocument opts (Pandoc meta blocks) = do
            b <- blocksToOpenDocument opts blocks
            return (b, m)
   let styles   = stTableStyles s ++ stParaStyles s ++ formulaStyles ++
-                     map snd (sortBy (flip (comparing fst)) (
+                     map snd (sortBy (comparing (Down . fst)) (
                         Map.elems (stTextStyles s)))
       listStyle (n,l) = inTags True "text:list-style"
                           [("style:name", "L" <> tshow n)] (vcat l)
@@ -390,15 +389,16 @@ blockToOpenDocument o = \case
     OrderedList  a b -> setFirstPara >> orderedList a b
     CodeBlock attrs s -> do
       setFirstPara
-      if isNothing (writerHighlightStyle o)
-         then unhighlighted s
-         else case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
+      case writerHighlightMethod o of
+        Skylighting {} ->
+          case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
                 Right h  -> return $ flush . vcat $ map (inTags True "text:p"
                                           [("text:style-name",
                                             "Preformatted_20_Text")] . hcat) h
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
                   unhighlighted s
+        _ -> unhighlighted s
     Table a bc s th tb tf -> setFirstPara >>
                               table o (Ann.toTable a bc s th tb tf)
     HorizontalRule   -> setFirstPara >> return (selfClosingTag "text:p"
@@ -413,7 +413,7 @@ blockToOpenDocument o = \case
                            setInDefinitionList False
                            return r
       unhighlighted s = flush . vcat <$>
-            (mapM (inPreformattedTags . (:[])) (map preformatted (T.lines s)))
+            (mapM ((inPreformattedTags . (:[])) . preformatted) (T.lines s))
       mkDiv    attr s = do
         let (ident,_,kvs) = attr
             i = withLangFromAttr attr $
@@ -433,7 +433,7 @@ blockToOpenDocument o = \case
                                       <$> orderedListToOpenDocument o pn b
       table :: PandocMonad m => WriterOptions -> Ann.Table -> OD m (Doc Text)
       table opts
-          (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies _) = do
+          (Ann.Table (ident, _, _) (Caption _ c) colspecs thead tbodies tfoot) = do
         tn <- length <$> gets stTableStyles
         pn <- length <$> gets stParaStyles
         let  genIds      = map chr [65..]
@@ -459,10 +459,11 @@ blockToOpenDocument o = \case
                                 else unNumberedCaption "TableCaption"
         th <- colHeadsToOpenDocument o (map fst paraHStyles) thead
         tr <- mapM (tableBodyToOpenDocument o (map fst paraHStyles) (map fst paraStyles)) tbodies
+        tf <- tableFootToOpenDocument o (map fst paraStyles) tfoot
         let tableDoc = inTags True "table:table" [
                             ("table:name"      , name)
                           , ("table:style-name", name)
-                          ] (vcat columns $$ th $$ vcat tr)
+                          ] (vcat columns $$ th $$ vcat tr $$ tf)
         return $
           case writerTableCaptionPosition opts of
             CaptionAbove -> captionDoc $$ tableDoc
@@ -521,18 +522,33 @@ colHeadsToOpenDocument :: PandocMonad m
 colHeadsToOpenDocument o ns (Ann.TableHead _ hs) =
   case hs of
     [] -> return empty
-    (x:_) ->
-        let (Ann.HeaderRow _ _ c) = x
-        in inTagsIndented "table:table-header-rows" .
-        inTagsIndented "table:table-row" .
-        vcat <$> mapM (tableItemToOpenDocument o "TableHeaderRowCell") (zip ns c)
+    xs -> inTagsIndented "table:table-header-rows" <$>
+      tableHeaderRowsToOpenDocument o ns "TableHeaderRowCell" xs
+
+tableHeaderRowsToOpenDocument :: PandocMonad m
+                              => WriterOptions -> [Text] -> Text -> [Ann.HeaderRow]
+                              -> OD m (Doc Text)
+tableHeaderRowsToOpenDocument o ns s headerRows =
+  vcat <$> mapM headerRowToOpenDocument headerRows
+  where
+    headerRowToOpenDocument (Ann.HeaderRow _ _ c) =
+      inTagsIndented "table:table-row" .
+      vcat <$> mapM (tableItemToOpenDocument o s) (zip ns c)
 
 tableBodyToOpenDocument:: PandocMonad m
                        => WriterOptions -> [Text] -> [Text] -> Ann.TableBody
                        -> OD m (Doc Text)
-tableBodyToOpenDocument o headns bodyns tb =
-    let (Ann.TableBody _ _ _ r) = tb
-    in vcat <$> mapM (tableRowToOpenDocument o headns bodyns) r
+tableBodyToOpenDocument o headns bodyns tb = do
+    let (Ann.TableBody _ _ hs r) = tb
+    tableRowHeaders <- tableHeaderRowsToOpenDocument o headns "TableRowCell" hs
+    tableRows <- mapM (tableRowToOpenDocument o headns bodyns) r
+    return $ tableRowHeaders $$ vcat tableRows
+
+tableFootToOpenDocument :: PandocMonad m
+                        => WriterOptions -> [Text] -> Ann.TableFoot
+                        -> OD m (Doc Text)
+tableFootToOpenDocument o ns (Ann.TableFoot _ r) =
+  tableHeaderRowsToOpenDocument o ns "TableRowCell" r
 
 tableRowToOpenDocument :: PandocMonad m
                        => WriterOptions -> [Text] -> [Text] -> Ann.BodyRow
@@ -630,14 +646,14 @@ inlineToOpenDocument o ils
     Subscript   l -> withTextStyle Sub    $ inlinesToOpenDocument o l
     SmallCaps   l -> withTextStyle SmallC $ inlinesToOpenDocument o l
     Quoted    t l -> inQuotes t <$> inlinesToOpenDocument o l
-    Code      attrs s -> if isNothing (writerHighlightStyle o)
-      then unhighlighted s
-      else case highlight (writerSyntaxMap o)
-                  formatOpenDocument attrs s of
+    Code      attrs s -> case writerHighlightMethod o of
+      Skylighting {} ->
+        case highlight (writerSyntaxMap o) formatOpenDocument attrs s of
                 Right h  -> inlinedCode $ mconcat $ mconcat h
                 Left msg -> do
                   unless (T.null msg) $ report $ CouldNotHighlight msg
                   unhighlighted s
+      _ -> unhighlighted s
     Math      t s -> lift (texMathToInlines t s) >>=
                          inlinesToOpenDocument o
     Cite      _ l -> inlinesToOpenDocument o l

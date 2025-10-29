@@ -7,7 +7,7 @@
 {-# LANGUAGE ViewPatterns        #-}
 {- |
    Module      : Text.Pandoc.Writers.LaTeX
-   Copyright   : Copyright (C) 2006-2024 John MacFarlane
+   Copyright   : Copyright (C) 2006-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -30,8 +30,9 @@ import Control.Monad
       liftM,
       when,
       unless )
+import Crypto.Hash (hashWith, MD5(MD5))
 import Data.Containers.ListUtils (nubOrd)
-import Data.Char (isDigit)
+import Data.Char (isDigit, isAscii, isLetter)
 import Data.List (intersperse, (\\))
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
 import Data.Monoid (Any (..))
@@ -40,10 +41,11 @@ import qualified Data.Text as T
 import Network.URI (unEscapeString)
 import Text.DocTemplates (FromContext(lookupContext), Val(..), renderTemplate)
 import Text.Collate.Lang (renderLang)
-import Text.Pandoc.Class.PandocMonad (PandocMonad, report, toLang)
+import Text.Pandoc.Class.PandocMonad (PandocMonad, getPOSIXTime, lookupEnv,
+                                      report, toLang)
 import Text.Pandoc.Definition
 import Text.Pandoc.Highlighting (formatLaTeXBlock, formatLaTeXInline, highlight,
-                                 styleToLaTeX)
+                                 defaultStyle, styleToLaTeX)
 import Text.Pandoc.ImageSize
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
@@ -63,7 +65,10 @@ import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        wrapDiv, hypertarget, labelFor,
                                        getListingsLanguage, mbBraced)
 import Text.Pandoc.Writers.Shared
+import qualified Data.Attoparsec.Text as A
+import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Text.Pandoc.Writers.AnnotatedTable as Ann
+import Control.Applicative ((<|>))
 
 -- Work around problems with notes inside emphasis (see #8982)
 isolateBigNotes :: ([Inline] -> Inline) -> [Inline] -> [Inline]
@@ -176,8 +181,23 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   main <- blockListToLaTeX blocks'''
   biblioTitle <- inlineListToLaTeX lastHeader
   st <- get
-  titleMeta <- stringToLaTeX TextString $ stringify $ docTitle meta
+  titleMeta <- escapeCommas <$> -- see #10501
+                stringToLaTeX TextString (stringify $ docTitle meta)
+  subtitleMeta <- stringToLaTeX TextString (stringify $ lookupMetaInlines "subtitle" meta)
   authorsMeta <- mapM (stringToLaTeX TextString . stringify) $ docAuthors meta
+  -- The trailer ID is as hash used to identify the PDF. Taking control of its
+  -- value is important when aiming for reproducible PDF generation. Setting
+  -- `SOURCE_DATE_EPOCH` is the traditional method used to control
+  -- reproducible builds. There are no cryptographic requirements for the ID,
+  -- so the 128bits (16 bytes) of MD5 are appropriate.
+  reproduciblePDF <- isJust <$> lookupEnv "SOURCE_DATE_EPOCH"
+  trailerID <- do
+    time <- getPOSIXTime
+    let hash = T.pack . show . hashWith MD5 $ mconcat
+               [ UTF8.fromString $ show time
+               , UTF8.fromText $ render Nothing main
+               ]
+    pure $ mconcat [ "<", hash, "> <", hash, ">" ]
   -- we need a default here since lang is used in template conditionals
   let hasStringValue x = isJust (getField x metadata :: Maybe (Doc Text))
   let geometryFromMargins = mconcat $ intersperse ("," :: Doc Text) $
@@ -196,7 +216,15 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                            _         -> [])
                     $ lookupMetaInlines "nocite" meta
 
-  let context  =  defField "toc" (writerTableOfContents options) $
+   -- see #7414, avoid escaped underscores
+  let unescapeUnderscore = T.replace "\\_" "_"
+  let bibliography' = map unescapeUnderscore <$>
+                        getField "bibliography" metadata
+
+  let context  =  (case bibliography' of
+                     Nothing -> id
+                     Just xs -> resetField "bibliography" xs) $
+                  defField "toc" (writerTableOfContents options) $
                   defField "lof" (writerListOfFigures options) $
                   defField "lot" (writerListOfTables options) $
                   defField "toc-depth" (tshow
@@ -206,12 +234,14 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                                                  else 0)) $
                   defField "body" main $
                   defField "title-meta" titleMeta $
+                  defField "subtitle-meta" subtitleMeta $
                   defField "author-meta"
                         (T.intercalate "; " authorsMeta) $
                   defField "documentclass" documentClass $
                   defField "verbatim-in-note" (stVerbInNote st) $
                   defField "tables" (stTable st) $
                   defField "multirow" (stMultiRow st) $
+                  defField "cancel" (stCancel st) $
                   defField "strikeout" (stStrikeout st) $
                   defField "url" (stUrl st) $
                   defField "numbersections" (writerNumberSections options) $
@@ -221,15 +251,20 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                   defField "svg" (stSVG st) $
                   defField "has-chapters" (stHasChapters st) $
                   defField "has-frontmatter" (documentClass `elem` frontmatterClasses) $
-                  defField "listings" (writerListings options || stLHS st) $
+                  defField "listings" (writerHighlightMethod options ==
+                                       IdiomaticHighlighting
+                                       || stLHS st) $
                   defField "zero-width-non-joiner" (stZwnj st) $
                   defField "beamer" beamer $
                   (if stHighlighting st
-                      then case writerHighlightStyle options of
-                                Just sty ->
+                      then case writerHighlightMethod options of
+                             Skylighting sty ->
                                    defField "highlighting-macros"
                                       (T.stripEnd $ styleToLaTeX sty)
-                                Nothing -> id
+                             DefaultHighlighting ->
+                                   defField "highlighting-macros"
+                                      (T.stripEnd $ styleToLaTeX defaultStyle)
+                             _ -> id
                       else id) $
                   (case writerCiteMethod options of
                          Natbib   -> defField "biblio-title" biblioTitle .
@@ -254,7 +289,10 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       Just (Just ('A', ds))
                         | not (T.null ds) && T.all isDigit ds
                           -> resetField "papersize" ("a" <> ds)
-                      _   -> id)
+                      _   -> id) .
+                  (if reproduciblePDF
+                    then defField "pdf-trailer-id" trailerID
+                    else id) $
                   metadata
   let babelLang = mblang >>= toBabel
   let context' =
@@ -281,6 +319,10 @@ pandocToLaTeX options (Pandoc meta blocks) = do
     case writerTemplate options of
        Nothing  -> main
        Just tpl -> renderTemplate tpl context'
+
+-- Commas in title-meta need to be put in braces; see #10501
+escapeCommas :: Text -> Text
+escapeCommas = T.replace "," "{,}"
 
 toSlides :: PandocMonad m => [Block] -> LW m [Block]
 toSlides bs = do
@@ -469,7 +511,8 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
         ref <- toLabel identifier
         kvs <- mapM (\(k,v) -> (k,) <$>
                        stringToLaTeX TextString v) keyvalAttr
-        let params = if writerListings (stOptions st)
+        let params = if writerHighlightMethod (stOptions st)
+                        == IdiomaticHighlighting
                      then (case getListingsLanguage classes of
                                 Just l  -> [ "language=" <> mbBraced l ]
                                 Nothing -> []) ++
@@ -502,12 +545,15 @@ blockToLaTeX (CodeBlock (identifier,classes,keyvalAttr) str) = do
                Right h -> do
                   when inNote $ modify (\s -> s{ stVerbInNote = True })
                   modify (\s -> s{ stHighlighting = True })
-                  return (flush $ linkAnchor $$ text (T.unpack h))
+                  return (flush $ linkAnchor $$ literal h)
   case () of
      _ | isEnabled Ext_literate_haskell opts && "haskell" `elem` classes &&
          "literate" `elem` classes           -> lhsCodeBlock
-       | writerListings opts                 -> listingsCodeBlock
-       | not (null classes) && isJust (writerHighlightStyle opts)
+       | writerHighlightMethod opts == IdiomaticHighlighting
+                                             -> listingsCodeBlock
+       | not (null classes), Skylighting _ <- writerHighlightMethod opts
+                                             -> highlightedCodeBlock
+       | not (null classes), DefaultHighlighting <- writerHighlightMethod opts
                                              -> highlightedCodeBlock
        -- we don't want to use \begin{verbatim} if our code
        -- contains \end{verbatim}:
@@ -616,11 +662,14 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
 blockToLaTeX (Table attr blkCapt specs thead tbodies tfoot) =
   tableToLaTeX inlineListToLaTeX blockListToLaTeX
                (Ann.toTable attr blkCapt specs thead tbodies tfoot)
-blockToLaTeX (Figure (ident, _, _) captnode body) = do
+blockToLaTeX (Figure (ident, _, kvs) captnode body) = do
   opts <- gets stOptions
   (capt, captForLof, footnotes) <- getCaption inlineListToLaTeX True captnode
   lab <- labelFor ident
   let caption = "\\caption" <> captForLof <> braces capt <> lab
+      placement = case lookup "latex-placement" kvs of
+        Just p -> brackets (text (T.unpack p))
+        _      -> text ""
 
   isSubfigure <- gets stInFigure
   modify $ \st -> st{ stInFigure = True }
@@ -637,7 +686,7 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
       , stSubfigure = stSubfigure st || isSubfigure
       }
 
-  let containsTable = getAny . (query $ \case
+  let containsTable = getAny . query (\case
         Table {}  -> Any True
         _         -> Any False)
   st <- get
@@ -652,7 +701,7 @@ blockToLaTeX (Figure (ident, _, _) captnode body) = do
           cr <> "\\begin{center}" $$ contents $+$ capt $$ "\\end{center}"
     _ | isSubfigure ->
           innards
-    _ ->  cr <> "\\begin{figure}" $$ innards $$ "\\end{figure}")
+    _ ->  cr <> "\\begin{figure}" <> placement $$ innards $$ "\\end{figure}")
     $$ footnotes
 
 toSubfigure :: PandocMonad m => Int -> Block -> LW m (Doc Text)
@@ -745,6 +794,7 @@ sectionHeader classes ident level lst = do
       removeInvalidInline x                    = [x]
   let lstNoNotes = foldr (mappend . (\x -> walkM removeInvalidInline x)) mempty lst
   txtNoNotes <- inlineListToLaTeX lstNoNotes
+  txtNoLinksNoNotes <- inlineListToLaTeX (removeLinks lstNoNotes)
   -- footnotes in sections don't work (except for starred variants)
   -- unless you specify an optional argument:
   -- \section[mysec]{mysec\footnote{blah}}
@@ -797,7 +847,7 @@ sectionHeader classes ident level lst = do
                    $$ if unnumbered && not unlisted
                          then "\\addcontentsline{toc}" <>
                                 braces (text sectionType) <>
-                                braces txtNoNotes
+                                braces txtNoLinksNoNotes
                          else empty
 
 -- | Convert list of inline elements to LaTeX.
@@ -907,6 +957,7 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   inHeading <- gets stInHeading
   inItem <- gets stInItem
   inSoul <- gets stInSoulCommand
+  inCaption <- gets stInCaption
   let listingsCode = do
         let listingsopts = (case getListingsLanguage classes of
                                 Just l  -> (("language", mbBraced l):)
@@ -959,13 +1010,22 @@ inlineToLaTeX (Code (_,classes,kvs) str) = do
   -- (see #1294). with regular texttt we don't get an error, but we get
   -- incorrect results if there is a space (see #5529).
   let inMbox x = "\\mbox" <> braces x
-  (if inSoul then inMbox else id) <$>
-   case () of
+
+  -- for captions we need to protect VERB with \protect (see #6821)
+  let protect x = "\\protect" <> x
+
+  let optionalProtect = case () of _ | inSoul -> inMbox
+                                     | inCaption -> protect
+                                     | otherwise -> id
+  optionalProtect <$>
+   case writerHighlightMethod opts of
      _ | inHeading || inItem  -> rawCode  -- see #5574
-       | writerListings opts  -> listingsCode
-       | isJust (writerHighlightStyle opts) && not (null classes)
+     IdiomaticHighlighting    -> listingsCode
+     Skylighting _ | not (null classes)
                               -> highlightCode
-       | otherwise            -> rawCode
+     DefaultHighlighting | not (null classes)
+                              -> highlightCode
+     _noHighlighting          -> rawCode
 inlineToLaTeX (Quoted qt lst) = do
   contents <- inlineListToLaTeX lst
   csquotes <- liftM stCsquotes get
@@ -1002,10 +1062,16 @@ inlineToLaTeX (Quoted qt lst) = do
 inlineToLaTeX (Str str) = do
   setEmptyLine False
   liftM literal $ stringToLaTeX TextString str
+inlineToLaTeX (Math _ str)
+  | isMathEnv str -- see #9711
+  = do setEmptyLine False
+       when (needsCancel str) $ modify $ \st -> st{ stCancel = True }
+       pure $ literal str
 inlineToLaTeX (Math InlineMath str) = do
   setEmptyLine False
   inSoul <- gets stInSoulCommand
   let contents = literal (handleMathComment str)
+  when (needsCancel str) $ modify $ \st -> st{ stCancel = True }
   return $
     if inSoul -- #9597
        then "$" <> contents <> "$"
@@ -1014,6 +1080,7 @@ inlineToLaTeX (Math DisplayMath str) = do
   setEmptyLine False
   inSoul <- gets stInSoulCommand
   let contents = literal (handleMathComment str)
+  when (needsCancel str) $ modify $ \st -> st{ stCancel = True }
   return $
     if inSoul -- # 9597
        then "$$" <> contents <> "$$"
@@ -1053,21 +1120,25 @@ inlineToLaTeX (Link (id',_,_) txt (src,_)) =
                      then "\\hyperlink" <> braces (literal lab) <> braces contents
                      else "\\hyperref" <> brackets (literal lab) <> braces contents
      _ -> case txt of
-          [Str x] | unEscapeString (T.unpack x) == unEscapeString (T.unpack src) ->  -- autolink
+          -- For soul sommands we need to protect \url and \href in an mbox or
+          -- we get an error (see #9366)
+          [Str x] | T.all isAscii x  -- see #8802
+                  , unEscapeString (T.unpack x) ==
+                    unEscapeString (T.unpack src) ->  -- autolink
                do modify $ \s -> s{ stUrl = True }
                   src' <- stringToLaTeX URLString (escapeURI src)
-                  return $ literal $ "\\url{" <> src' <> "}"
+                  protectInMboxIfInSoul $ literal $ "\\url{" <> src' <> "}"
           [Str x] | Just rest <- T.stripPrefix "mailto:" src,
                     unEscapeString (T.unpack x) == unEscapeString (T.unpack rest) -> -- email autolink
                do modify $ \s -> s{ stUrl = True }
                   src' <- stringToLaTeX URLString (escapeURI src)
                   contents <- inlineListToLaTeX txt
-                  return $ "\\href" <> braces (literal src') <>
+                  protectInMboxIfInSoul $ "\\href" <> braces (literal src') <>
                      braces ("\\nolinkurl" <> braces contents)
           _ -> do contents <- inlineListToLaTeX txt
                   src' <- stringToLaTeX URLString (escapeURI src)
-                  return $ literal ("\\href{" <> src' <> "}{") <>
-                           contents <> char '}')
+                  protectInMboxIfInSoul $ literal ("\\href{" <> src' <> "}{") <>
+                    contents <> char '}')
      >>= (if T.null id'
              then return
              else \x -> do
@@ -1145,9 +1216,12 @@ inlineToLaTeX (Note contents) = do
   let noteContents = nest 2 contents' <> optnl
   beamer <- gets stBeamer
   -- in beamer slides, display footnote from current overlay forward
-  -- and ensure that the note is on the frame, not e.g. the column (#5769)
+  -- and ensure that the note is on the frame, not e.g. the column (#5769, #5954)
+  incremental <- gets stIncremental
   let beamerMark = if beamer
-                      then text "<.->[frame]"
+                      then if incremental
+                           then text "<.->[frame]"
+                           else text "<\\value{beamerpauses}->[frame]"
                       else empty
   if externalNotes
      then do
@@ -1196,6 +1270,15 @@ inSoulCommand pa = do
   result <- pa
   modify $ \st -> st{ stInSoulCommand = oldInSoulCommand }
   pure result
+
+-- Inside soul commands some commands need to be protected in an mbox
+-- or we get an error (e.g. see #1294)
+protectInMboxIfInSoul :: (PandocMonad m, HasChars a) => Doc a -> LW m (Doc a)
+protectInMboxIfInSoul command = do
+  inSoul <- gets stInSoulCommand
+  return $ if inSoul
+    then "\\mbox" <> braces command
+    else command
 
 -- Babel languages with a .ldf that works well with all engines (see #8283).
 -- We follow the guidance from the Babel documentation:
@@ -1289,3 +1372,40 @@ ldfLanguages =
   , "galician"
   , "slovene"
   ]
+
+isMathEnv :: Text -> Bool
+isMathEnv t =
+  case T.stripPrefix "\\begin{" t of
+    Nothing -> False
+    Just t' -> T.takeWhile (/= '}') t' `elem`
+      [ "align", "align*"
+      , "flalign", "flalign*"
+      , "alignat", "alignat*"
+      , "dmath", "dmath*"
+      , "dgroup", "dgroup*"
+      , "darray", "darray*"
+      , "gather", "gather*"
+      , "multline", "multline*"
+      , "split"
+      , "subequations"
+      , "equation", "equation*"
+      , "eqnarray"
+      , "displaymath"
+      ]
+
+-- True if the math needs the cancel package
+needsCancel :: Text -> Bool
+needsCancel t =
+  case A.parseOnly pCancel t of
+    Right True -> True
+    _ -> False
+ where
+  pCancel = (False <$ A.endOfInput) <|> do
+    c <- A.anyChar
+    case c of
+      '\\' -> do
+        x <- A.takeWhile isLetter
+        if x == "cancel" || x == "xcancel" || x == "bcancel"
+           then return True
+           else pCancel
+      _ -> pCancel

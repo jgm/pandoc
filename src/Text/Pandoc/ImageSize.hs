@@ -57,9 +57,10 @@ import qualified Data.Attoparsec.ByteString as AW
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Codec.Picture.Metadata as Metadata
 import Codec.Picture (decodeImageWithMetadata)
+import Codec.Compression.Zlib (decompress)
+-- import Debug.Trace
 
 -- quick and dirty functions to get image sizes
--- algorithms borrowed from wwwis.pl
 
 data ImageType = Png | Gif | Jpeg | Svg | Pdf | Eps | Emf | Tiff | Webp | Avif
                  deriving Show
@@ -72,6 +73,8 @@ data Dimension = Pixel Integer
                | Centimeter Double
                | Millimeter Double
                | Inch Double
+               | Point Double
+               | Pica Double
                | Percent Double
                | Em Double
                deriving Eq
@@ -81,6 +84,8 @@ instance Show Dimension where
   show (Centimeter a) = T.unpack (showFl a) ++ "cm"
   show (Millimeter a) = T.unpack (showFl a) ++ "mm"
   show (Inch a)       = T.unpack (showFl a) ++ "in"
+  show (Point a)      = T.unpack (showFl a) ++ "pt"
+  show (Pica a)       = T.unpack (showFl a) ++ "pc"
   show (Percent a)    = show a              ++ "%"
   show (Em a)         = T.unpack (showFl a) ++ "em"
 
@@ -113,8 +118,11 @@ imageType img = case B.take 4 img of
                      "\x47\x49\x46\x38" -> return Gif
                      "\x49\x49\x2a\x00" -> return Tiff
                      "\x4D\x4D\x00\x2a" -> return Tiff
-                     "\xff\xd8\xff\xe0" -> return Jpeg  -- JFIF
-                     "\xff\xd8\xff\xe1" -> return Jpeg  -- Exif
+                     "\xff\xd8\xff\xbd" -> return Jpeg  -- JPEG without application segment -- see p.32 in https://www.w3.org/Graphics/JPEG/itu-t81.pdf (and https://gist.github.com/leommoore/f9e57ba2aa4bf197ebc5?permalink_comment_id=3863054#gistcomment-3863054)
+                     _ | B.take 3 img == "\xff\xd8\xff"
+                          && (let byte4 = B.take 1 (B.drop 3 img)
+                              in byte4 >= "\xe0" && byte4 <= "\xef")  -- JPEG with application segment
+                                        -> return Jpeg
                      "%PDF"             -> return Pdf
                      "<svg"             -> return Svg
                      "<?xm"
@@ -203,6 +211,8 @@ inInch opts dim =
     (Centimeter a) -> a * 0.3937007874
     (Millimeter a) -> a * 0.03937007874
     (Inch a)       -> a
+    (Point a)      -> (a / 72)
+    (Pica a)       -> (a / 6)
     (Percent _)    -> 0
     (Em a)         -> a * (11/64)
 
@@ -210,11 +220,7 @@ inPixel :: WriterOptions -> Dimension -> Integer
 inPixel opts dim =
   case dim of
     (Pixel a)      -> a
-    (Centimeter a) -> floor $ dpi * a * 0.3937007874 :: Integer
-    (Millimeter a) -> floor $ dpi * a * 0.03937007874 :: Integer
-    (Inch a)       -> floor $ dpi * a :: Integer
-    (Percent _)    -> 0
-    (Em a)         -> floor $ dpi * a * (11/64) :: Integer
+    _              -> floor (dpi * inInch opts dim)
   where
     dpi = fromIntegral $ writerDpi opts
 
@@ -244,6 +250,8 @@ scaleDimension factor dim =
         Centimeter x -> Centimeter (factor * x)
         Millimeter x -> Millimeter (factor * x)
         Inch x       -> Inch (factor * x)
+        Point x      -> Point (factor * x)
+        Pica x       -> Pica (factor * x)
         Percent x    -> Percent (factor * x)
         Em x         -> Em (factor * x)
 
@@ -267,8 +275,8 @@ lengthToDim s = numUnit s >>= uncurry toDim
     toDim a "%"    = Just $ Percent a
     toDim a "px"   = Just $ Pixel (floor a::Integer)
     toDim a ""     = Just $ Pixel (floor a::Integer)
-    toDim a "pt"   = Just $ Inch (a / 72)
-    toDim a "pc"   = Just $ Inch (a / 6)
+    toDim a "pt"   = Just $ Point a
+    toDim a "pc"   = Just $ Pica a
     toDim a "em"   = Just $ Em a
     toDim _ _      = Nothing
 
@@ -296,10 +304,10 @@ pdfSize img =
     Right sz -> Just sz
 
 pPdfSize :: A.Parser ImageSize
-pPdfSize = do
-  A.skipWhile (/='/')
-  A.char8 '/'
-  (do A.string "MediaBox"
+pPdfSize =
+  (A.takeWhile1 (/= '/') *> pPdfSize)
+  <|>
+  (do A.string "/MediaBox"
       A.skipSpace
       A.char8 '['
       A.skipSpace
@@ -316,7 +324,27 @@ pPdfSize = do
             , pxY  = y2 - y1
             , dpiX = 72
             , dpiY = 72 }
-   ) <|> pPdfSize
+  )
+  <|> -- if we encounter a compressed object stream, uncompress it (#10902)
+  (do A.string "/Type"
+      A.skipSpace
+      A.string "/ObjStm"
+      _ <- A.manyTill pLine (A.string "stream" *> pEol)
+      stream <- BL.pack <$> A.manyTill
+                        (AW.satisfy (const True))
+                        (pEol *> A.string "endstream" *> pEol)
+      let contents = BL.toStrict (decompress stream)
+      case A.parseOnly pPdfSize contents of
+        Left _ -> pPdfSize
+        Right is -> pure is)
+  <|>
+  (A.char '/' *> pPdfSize)
+ where
+   iseol '\r' = True
+   iseol '\n' = True
+   iseol _ = False
+   pEol = A.satisfy iseol *> A.skipMany (A.satisfy iseol)
+   pLine = A.takeWhile (not . iseol) <* pEol
 
 getSize :: ByteString -> Either T.Text ImageSize
 getSize img =

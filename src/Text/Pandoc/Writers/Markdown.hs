@@ -400,8 +400,7 @@ blockToMarkdown' opts (Div attrs@(_,classes,_) bs)
                          | (take 3 (T.unpack id')) == "ref"
                            -> contents <> blankline
                          | otherwise -> contents <> blankline
-             | isEnabled Ext_fenced_divs opts &&
-               attrs /= nullAttr ->
+             | isEnabled Ext_fenced_divs opts ->
                   let attrsToMd = if variant == Commonmark
                                   then attrsToMarkdown opts
                                   else classOrAttrsToMarkdown opts
@@ -608,7 +607,7 @@ blockToMarkdown' opts (BlockQuote blocks) = do
         | otherwise            = "> "
   contents <- blockListToMarkdown opts blocks
   return $ text leader <> prefixed leader contents <> blankline
-blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
+blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   let isColRowSpans (Cell _ _ rs cs _) = rs > 1 || cs > 1
   let rowHasColRowSpans (Row _ cs) = any isColRowSpans cs
@@ -622,9 +621,9 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let numcols = maximum (length aligns :| length widths :
                            map length (headers:rows))
   caption' <- inlineListToMarkdown opts caption
-  let caption'' = if T.null ident
+  let caption'' = if attr == nullAttr
                      then caption'
-                     else caption' <+> attrsToMarkdown opts (ident,[],[])
+                     else caption' <+> attrsToMarkdown opts attr
   let caption'''
         | null caption = blankline
         | isEnabled Ext_table_captions opts
@@ -644,30 +643,22 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
   let widths' = case numcols - length widths of
                      x | x > 0 -> widths ++ replicate x 0.0
                        | otherwise -> widths
+  let mkTable f = do
+       rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
+       rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts)) rows
+       f (all null headers) aligns' widths' rawHeaders rawRows
   case True of
      _ | isSimple &&
          isEnabled Ext_simple_tables opts -> do
-           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                      rows
-           tbl <- pandocTable opts False (all null headers)
-                      aligns' widths' rawHeaders rawRows
+           tbl <- mkTable (pandocTable opts False)
            return $ nest 2 (tbl $$ caption''') $$ blankline
        | isSimple &&
          isEnabled Ext_pipe_tables opts -> do
-           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                      rows
-           tbl <- pipeTable opts (all null headers) aligns' widths'
-                     rawHeaders rawRows
+           tbl <- mkTable (pipeTable opts)
            return $ (tbl $$ caption''') $$ blankline
        | not (hasBlocks || hasColRowSpans) &&
          isEnabled Ext_multiline_tables opts -> do
-           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                      rows
-           tbl <- pandocTable opts True (all null headers)
-                     aligns' widths' rawHeaders rawRows
+           tbl <- mkTable (pandocTable opts True)
            return $ nest 2 (tbl $$ caption''') $$ blankline
        | isEnabled Ext_grid_tables opts &&
           (hasColRowSpans || writerColumns opts >= 8 * numcols) -> do
@@ -677,17 +668,21 @@ blockToMarkdown' opts t@(Table (ident,_,_) blkCapt specs thead tbody tfoot) = do
        | hasSimpleCells,
          not hasColRowSpans,
          isEnabled Ext_pipe_tables opts -> do
-           rawHeaders <- padRow <$> mapM (blockListToMarkdown opts) headers
-           rawRows <- mapM (fmap padRow . mapM (blockListToMarkdown opts))
-                      rows
-           tbl <- pipeTable opts (all null headers) aligns' widths'
-                    rawHeaders rawRows
+           tbl <- mkTable (pipeTable opts)
            return $ (tbl $$ caption''') $$ blankline
        | isEnabled Ext_raw_html opts -> do -- HTML fallback
            tbl <- literal . removeBlankLinesInHTML <$>
                      writeHtml5String opts{ writerTemplate = Nothing }
                      (Pandoc nullMeta [t])
            return $ tbl $$ blankline  -- caption is in the HTML table
+       | hasSimpleCells,
+         hasColRowSpans,
+         isEnabled Ext_pipe_tables opts -> do
+           -- In this case an approximate pipe table will be rendered,
+           -- without col/row spans. This is better than nothing, since
+           -- we have no other way to render the table correctly (#11128).
+           tbl <- mkTable (pipeTable opts)
+           return $ (tbl $$ caption''') $$ blankline
        | otherwise
          -> do
            report (BlockNotRendered t)
@@ -725,30 +720,32 @@ blockToMarkdown' opts (DefinitionList items) = do
   return $ mconcat contents <> blankline
 blockToMarkdown' opts (Figure figattr capt body) = do
   let combinedAttr imgattr = case imgattr of
-        ("", cls, kv)
-          | (figid, [], []) <- figattr -> Just (figid, cls, kv)
-        _ -> Nothing
-  let combinedAlt alt = case capt of
-        Caption Nothing [] -> if null alt
-                              then Just [Str "image"]
-                              else Just alt
-        Caption Nothing [Plain captInlines]
-          | null alt || stringify captInlines == stringify alt
-            -> Just captInlines
-        Caption Nothing [Para captInlines]
-          | null alt || stringify captInlines == stringify alt
-            -> Just captInlines
+        ("", cls, kvs)
+          | (figid, [], []) <- figattr
+            -> Just (figid, cls, [(k,v) | (k,v) <- kvs
+                                        , k /= "alt" ||
+                                          v /= "" && v /= trim (stringify capt)])
         _ -> Nothing
   case body of
     [Plain [Image imgAttr alt (src, ttl)]]
       | isEnabled Ext_implicit_figures opts
-      , Just descr    <- combinedAlt alt
       , Just imgAttr' <- combinedAttr imgAttr
       , isEnabled Ext_link_attributes opts || imgAttr' == nullAttr
         -> do
           -- use implicit figures if possible
           let tgt' = (src, fromMaybe ttl $ T.stripPrefix "fig:" ttl)
-          contents <- inlineListToMarkdown opts [Image imgAttr' descr tgt']
+          let descr = case capt of
+                        Caption _ bs -> blocksToInlines bs
+          -- add alt attribute if image description different from caption,
+          -- so this won't be lost:
+          let imgAttr'' = case imgAttr' of
+                            (i,c,kv)
+                              | not (null alt)
+                              , Nothing <- lookup "alt" kv
+                              , stringify descr /= stringify alt ->
+                                 (i, c, ("alt", stringify alt) : kv)
+                            _ -> imgAttr'
+          contents <- inlineListToMarkdown opts [Image imgAttr'' descr tgt']
           return $ contents <> blankline
     _ ->
       -- fallback to raw html if possible or div otherwise

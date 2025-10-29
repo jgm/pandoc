@@ -92,13 +92,20 @@ applies all filters (including JSON filters specified via
 `--filter` and Lua filters specified via `--lua-filter`) in the
 order they appear on the command line.
 
-Pandoc expects each Lua file to return a list of filters. The
-filters in that list are called sequentially, each on the result
-of the previous filter. If there is no value returned by the
-filter script, then pandoc will try to generate a single filter
-by collecting all top-level functions whose names correspond to
-those of pandoc elements (e.g., `Str`, `Para`, `Meta`, or
-`Pandoc`). (That is why the two examples above are equivalent.)
+Pandoc expects each Lua file to return a filter. If there is
+no value returned by the filter script, then pandoc will try to
+generate a single filter by collecting all top-level functions
+whose names correspond to those of pandoc elements (e.g., `Str`,
+`Para`, `Meta`, or `Pandoc`). (That is why the two examples above
+are equivalent.)
+
+It is currently also possible to return a list of filters
+from a Lua file which are called sequentially. Before the
+[walk](#type-pandoc:walk) method was made available, this was
+the only way to run multiple filters from one Lua file. However,
+returning a list of filters is now discouraged in favor of using
+the [walk](#type-pandoc:walk) method, and this functionality may
+be removed at some point.
 
 For each filter, the document is traversed and each element
 subjected to the filter. Elements for which the filter contains
@@ -203,23 +210,17 @@ fixed order, skipping any which are not present:
   3. the [`Meta`](#type-meta) filter function, and last
   4. the [`Pandoc`](#type-pandoc) filter function.
 
-It is still possible to force a different order by explicitly
-returning multiple filter sets. For example, if the filter for
-*Meta* is to be run before that for *Str*, one can write
+It is still possible to force a different order by manually
+running the filters using the [walk](#type-pandoc:walk) method.
+For example, if the filter for *Meta* is to be run before that
+for *Str*, one can write
 
 ``` lua
--- ... filter definitions ...
-
-return {
-  { Meta = Meta },  -- (1)
-  { Str = Str }     -- (2)
-}
+function Pandoc(doc)
+  doc = doc:walk { Meta = Meta } -- (1)
+  return doc:walk { Str = Str }  -- (2)
+end
 ```
-
-Filter sets are applied in the order in which they are returned.
-All functions in set (1) are thus run before those in (2),
-causing the filter function for *Meta* to be run before the
-filtering of *Str* elements is started.
 
 ### Topdown traversal
 
@@ -318,20 +319,12 @@ variables.
     unless it has been configured by the package maintainer to
     rely on a system-wide installation.
 
-    Note that the result of `require 'lpeg'` is not necessarily
-    equal to this value; the `require` mechanism prefers the
-    system's lpeg library over the built-in version.
-
 `re`
 :   Contains the LPeg.re module, which is built on top of LPeg
     and offers an implementation of a [regex engine].  Pandoc
     uses a built-in version of the library, unless it has been
     configured by the package maintainer to rely on a system-wide
     installation.
-
-    Note that the result of `require 're` is not necessarily
-    equal to this value; the `require` mechanism prefers the
-    system's lpeg library over the built-in version.
 
 [LPeg homepage]: http://www.inf.puc-rio.br/~roberto/lpeg/
 [regex engine]: http://www.inf.puc-rio.br/~roberto/lpeg/re.html
@@ -384,7 +377,7 @@ default modules.
 
 The following snippet is an example of code that might be useful
 when added to `init.lua`. The snippet adds all Unicode-aware
-functions defined in the [`text` module](#module-text) to the
+functions defined in the [`text` module](#module-pandoc.text) to the
 default `string` module, prefixed with the string `uc_`.
 
 ``` lua
@@ -473,7 +466,7 @@ String library is not Unicode aware
     of the bytes `\240`, `\159`, `\154`, and `\178`, but
     **won't** match the "snowman" Unicode character.
 
-    Use the [pandoc.text](#module-text) module for Unicode-aware
+    Use the [pandoc.text](#module-pandoc.text) module for Unicode-aware
     transformation, and consider using using the lpeg or re
     library for pattern matching.
 
@@ -490,15 +483,13 @@ emphasized text "Hello, World".
 
 ``` lua
 return {
-  {
-    Str = function (elem)
-      if elem.text == "{{helloworld}}" then
-        return pandoc.Emph {pandoc.Str "Hello, World"}
-      else
-        return elem
-      end
-    end,
-  }
+  Str = function (elem)
+    if elem.text == "{{helloworld}}" then
+      return pandoc.Emph {pandoc.Str "Hello, World"}
+    else
+      return elem
+    end
+  end,
 }
 ```
 
@@ -586,7 +577,7 @@ filters living in the same file:
 ``` lua
 local vars = {}
 
-function get_vars (meta)
+local function get_vars (meta)
   for k, v in pairs(meta) do
     if pandoc.utils.type(v) == 'Inlines' then
       vars["%" .. k .. "%"] = {table.unpack(v)}
@@ -594,7 +585,7 @@ function get_vars (meta)
   end
 end
 
-function replace (el)
+local function replace (el)
   if vars[el.text] then
     return pandoc.Span(vars[el.text])
   else
@@ -602,10 +593,12 @@ function replace (el)
   end
 end
 
-return {{Meta = get_vars}, {Str = replace}}
+function Pandoc(doc)
+  return doc:walk { Meta = get_vars }:walk { Str = replace }
+end
 ```
 
-If the contents of file `occupations.md` is
+If the contents of file `occupations.md` are
 
 ``` markdown
 ---
@@ -635,6 +628,9 @@ will output:
 </dd>
 </dl>
 ```
+Note that the placeholders must not contain any spaces, otherwise
+they will turn into two separate Str elements and the filter
+won't work.
 
 ## Modifying pandoc's `MANUAL.txt` for man pages
 
@@ -2393,8 +2389,7 @@ Fields:
 :   Output file from command line (string or nil)
 
 `log`
-:   A list of log messages in reverse order ([List] of
-    [LogMessage]s)
+:   A list of log messages ([List] of [LogMessage]s)
 
 `request_headers`
 :   Headers to add for HTTP requests; table with header names as
@@ -5668,6 +5663,48 @@ Returns:
 
 *Since: 3.0*
 
+### unique_identifier {#pandoc.structure.unique_identifier}
+
+`unique_identifier (inlines[, used[, exts]])`
+
+Generates a unique identifier from a list of inlines, similar to
+what's generated by the `auto_identifiers` extension.
+
+The method used to generated identifiers can be modified through
+`ext`, which is a list of format extensions.
+
+It can be used to generate IDs similar to what the
+`auto_identifiers` extension provides.
+
+Example:
+
+     local used_ids = {}
+     function Header (h)
+       local id =
+         pandoc.structure.unique_identifier(h.content, used_ids)
+       used_ids[id] = true
+       h.identifier = id
+       return h
+     end
+
+Parameters:
+
+`inlines`
+:   base for identifier ([Inlines])
+
+`used`
+:   set of identifiers (string keys, boolean values) that have
+    already been used. (table)
+
+`exts`
+:   list of format extensions ({string,\...})
+
+Returns:
+
+- unique identifier (string)
+
+*Since: 3.8*
+
 <!-- END: AUTOGENERATED CONTENT -->
 
 <!-- BEGIN: AUTOGENERATED CONTENT for module pandoc.system -->
@@ -6882,6 +6919,48 @@ Returns:
 - text substring (string)
 
 *Since: 2.0.3*
+
+### subscript {#pandoc.text.subscript}
+
+`subscript (input)`
+
+Tries to convert the string into a Unicode subscript version of
+the string. Returns `nil` if not all characters of the input can
+be mapped to a subscript Unicode character. Supported characters
+include numbers, parentheses, and plus/minus.
+
+Parameters:
+
+`input`
+:   string to convert to subscript characters (string)
+
+Returns:
+
+- Subscript version of the input, or `nil` if not all characters
+  could be converted. (string\|nil)
+
+*Since: 3.8*
+
+### superscript {#pandoc.text.superscript}
+
+`superscript (input)`
+
+Tries to convert the string into a Unicode superscript version of
+the string. Returns `nil` if not all characters of the input can
+be mapped to a superscript Unicode character. Supported characters
+include numbers, parentheses, and plus/minus.
+
+Parameters:
+
+`input`
+:   string to convert to superscript characters (string)
+
+Returns:
+
+- Superscript version of the input, or `nil` if not all characters
+  could be converted. (string\|nil)
+
+*Since: 3.8*
 
 ### toencoding {#pandoc.text.toencoding}
 

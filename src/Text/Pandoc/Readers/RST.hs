@@ -15,7 +15,7 @@ Conversion from reStructuredText to 'Pandoc' document.
 -}
 module Text.Pandoc.Readers.RST ( readRST ) where
 import Control.Arrow (second)
-import Control.Monad (forM_, guard, liftM, mplus, mzero, when, unless)
+import Control.Monad (forM_, guard, liftM, mplus, mzero, when, unless, void)
 import Control.Monad.Except (throwError)
 import Control.Monad.Identity (Identity (..))
 import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
@@ -23,7 +23,7 @@ import Data.Char (isHexDigit, isSpace, toUpper, isAlphaNum, generalCategory,
                                   DashPunctuation, OtherSymbol))
 import Data.List (deleteFirstsBy, elemIndex, nub, partition, sort, transpose)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, maybeToList, isJust)
+import Data.Maybe (fromMaybe, maybeToList, isJust, isNothing, catMaybes)
 import Data.Sequence (ViewR (..), viewr)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -288,7 +288,7 @@ rawFieldListItem minIndent = try $ do
   guard $ indent >= minIndent
   char ':'
   name <- many1TillChar (noneOf "\n") (char ':')
-  (() <$ lookAhead newline) <|> skipMany1 spaceChar
+  (void (lookAhead newline)) <|> skipMany1 spaceChar
   first <- anyLine
   rest <- option "" $ try $ do lookAhead (count indent (char ' ') >> spaceChar)
                                indentedBlock
@@ -343,7 +343,7 @@ optArg :: PandocMonad m => RSTParser m ()
 optArg = do
   c <- letter <|> char '<'
   if c == '<'
-     then () <$ manyTill (noneOf "<>") (char '>')
+     then void $ manyTill (noneOf "<>") (char '>')
      else skipMany (alphaNum <|> char '_' <|> char '-')
 
 longOpt :: PandocMonad m => RSTParser m ()
@@ -672,7 +672,7 @@ listItem :: PandocMonad m
 listItem start = try $ do
   (markerLength, first) <- rawListItem start
   rest <- many (listContinuation markerLength)
-  skipMany1 blankline <|> () <$ lookAhead start
+  skipMany1 blankline <|> void (lookAhead start)
   -- parsing with ListItemState forces markers at beginning of lines to
   -- count as list item markers, even if not separated by blank space.
   -- see definition of "endline"
@@ -710,7 +710,7 @@ bulletList = B.bulletList . compactify <$> many1 (listItem bulletListStart)
 comment :: Monad m => RSTParser m Blocks
 comment = try $ do
   string ".."
-  skipMany1 spaceChar <|> (() <$ lookAhead newline)
+  skipMany1 spaceChar <|> void (lookAhead newline)
   -- notFollowedBy' directiveLabel -- comment comes after directive so unnec.
   _ <- anyLine
   optional indentedBlock
@@ -855,8 +855,9 @@ directive' = do
            let figcls = concatMap (T.words . snd) figclasskv
            let figattr = ("", figcls ++ aligncls, [])
            let capt = B.caption Nothing (B.plain caption <> legend)
+           let alt = maybe caption (B.text . trim) (lookup "alt" fields)
            return $ B.figureWith figattr capt $
-             B.plain (B.imageWith (imgident, imgcls, imgkvs) src "" (B.text src))
+             B.plain (B.imageWith (imgident, imgcls, imgkvs) src "" alt)
         "image" -> do
            let src = escapeURI $ trim top
            let alt = B.str $ maybe "image" trim $ lookup "alt" fields
@@ -911,7 +912,10 @@ tableDirective top fields body = do
          let tspecs = zip aligns' widths
          return $ B.singleton $ Table attr (B.caption Nothing (B.plain title))
                                   tspecs thead tbody tfoot
-       _ -> return mempty
+       _ -> do
+         pos <- getPosition
+         logMessage $ SkippedContent body pos
+         return mempty
   where
     -- only valid on the very first row of a table section
     rowLength (Row _ rb) = sum $ cellLength <$> rb
@@ -1037,7 +1041,7 @@ singleParaToPlain bs =
 
 parseCell :: PandocMonad m => Text -> RSTParser m Blocks
 parseCell t = singleParaToPlain
-   <$> parseFromString' parseBlocks (t <> "\n\n")
+   <$> parseFromString' parseBlocks (trim t <> "\n\n")
 
 
 -- TODO:
@@ -1358,7 +1362,6 @@ anchor = try $ do
 --    support for them
 --
 -- Simple tables TODO:
---  - column spans
 --  - multiline support
 --  - ensure that rightmost column span does not need to reach end
 --  - require at least 2 columns
@@ -1367,66 +1370,104 @@ dashedLine :: Monad m => Char -> ParsecT Sources st m (Int, Int)
 dashedLine ch = do
   dashes <- many1 (char ch)
   sp     <- many (char ' ')
-  return (length dashes, length $ dashes ++ sp)
+  return (length dashes, length sp)
 
 simpleDashedLines :: Monad m => Char -> ParsecT Sources st m [(Int,Int)]
-simpleDashedLines ch = try $ many1 (dashedLine ch)
+simpleDashedLines ch = try $ do
+  lines' <- many1 (dashedLine ch)
+  skipMany spaceChar
+  newline
+  return $ addSpaces lines'
+ where
+  addSpaces [] = []
+  addSpaces [(dashes, _)] = [(dashes, dashes)] -- Don't count trailing whitespaces
+  addSpaces ((dashes, sp) : moreLines) =
+    (dashes, dashes + sp) : addSpaces moreLines
 
 -- Parse a table row separator
-simpleTableSep :: Monad m => Char -> RSTParser m Char
-simpleTableSep ch = try $ simpleDashedLines ch >> newline
+simpleTableSep :: Monad m => Char -> RSTParser m ()
+simpleTableSep ch = void (simpleDashedLines ch)
 
 -- Parse a table footer
-simpleTableFooter :: Monad m => RSTParser m Text
-simpleTableFooter = try $ simpleTableSep '=' >> blanklines
+simpleTableFooter :: Monad m => RSTParser m ()
+simpleTableFooter = try $ simpleTableSep '=' >> void blanklines
 
 -- Parse a raw line and split it into chunks by indices.
-simpleTableRawLine :: Monad m => [Int] -> RSTParser m [Text]
-simpleTableRawLine indices = simpleTableSplitLine indices <$> anyLine
+simpleTableRawLine :: Monad m => [Int] -> RSTParser m [(Text, ColSpan)]
+simpleTableRawLine indices = do
+  row <- rowWithOptionalColSpan
 
-simpleTableRawLineWithInitialEmptyCell :: Monad m => [Int] -> RSTParser m [Text]
+  case simpleTableSplitLine indices row of
+    Just rowLine -> return rowLine
+    Nothing -> Prelude.fail "col spans don't match"
+
+simpleTableRawLineWithInitialEmptyCell :: Monad m => [Int] -> RSTParser m [(Text, ColSpan)]
 simpleTableRawLineWithInitialEmptyCell indices = try $ do
   cs <- simpleTableRawLine indices
   let isEmptyCell = T.all (\c -> c == ' ' || c == '\t')
   case cs of
-    c:_ | isEmptyCell c -> return cs
+    c:_ | isEmptyCell (fst c) -> return cs
     _ -> mzero
 
 -- Parse a table row and return a list of blocks (columns).
-simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [Blocks]
+simpleTableRow :: PandocMonad m => [Int] -> RSTParser m [(Blocks, RowSpan, ColSpan)]
 simpleTableRow indices = do
-  notFollowedBy' simpleTableFooter
+  notFollowedBy' (void blanklines <|> simpleTableFooter)
   firstLine <- simpleTableRawLine indices
   conLines  <- many $ simpleTableRawLineWithInitialEmptyCell indices
-  let cols = map T.unlines . transpose $ firstLine : conLines ++
+  let cols = map T.unlines . transpose $ (map fst firstLine) : (map (map fst) conLines) ++
                                   [replicate (length indices) ""
                                     | not (null conLines)]
-  mapM parseCell cols
+  let rowParser = mapM parseCell cols
+  fmap (\blocks -> zip3 blocks (repeat 1) (map snd firstLine)) rowParser
 
-simpleTableSplitLine :: [Int] -> Text -> [Text]
-simpleTableSplitLine indices line =
-  map trimr $ drop 1 $ splitTextByIndices (init indices) line
+simpleTableSplitLine :: [Int] -> (Text, Maybe [Int]) -> Maybe [(Text, ColSpan)]
+simpleTableSplitLine indices (line, maybeColspanIndices) =
+  fmap (zip tableLines) columnSpans
+ where
+  splitTableLines lineIndices = map trimr $ drop 1 $ splitTextByIndices (init lineIndices) line
+  (tableLines, columnSpans) = case maybeColspanIndices of
+      Nothing -> (splitTableLines indices, Just $ repeat 1)
+      Just colSpanIndices -> (splitTableLines colSpanIndices, colSpans indices colSpanIndices)
 
 simpleTableHeader :: PandocMonad m
                   => Bool  -- ^ Headerless table
-                  -> RSTParser m ([Blocks], [Alignment], [Int])
+                  -> RSTParser m ([[(Blocks, RowSpan, ColSpan)]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   optional blanklines
+  dashes <- simpleDashedLines '='
+
   rawContent  <- if headless
-                    then return ""
-                    else simpleTableSep '=' >> anyLine
-  dashes      <- if headless
-                    then simpleDashedLines '='
-                    else simpleDashedLines '=' <|> simpleDashedLines '-'
-  newline
-  let lines'   = map snd dashes
-  let indices  = scanl (+) 0 lines'
+                    then return [("", Nothing)]
+                    else many1 $ notFollowedBy (simpleDashedLines '=') >> rowWithOptionalColSpan
+
+  unless headless $ simpleTableSep '='
+
+  let (lines', indices) = dashedLinesToLinesWithIndices dashes
   let aligns   = replicate (length lines') AlignDefault
   let rawHeads = if headless
                     then []
-                    else simpleTableSplitLine indices rawContent
-  heads <- mapM ( parseFromString' (mconcat <$> many plain) . trim) rawHeads
-  return (heads, aligns, indices)
+                    else map (simpleTableSplitLine indices) rawContent
+
+  when (any isNothing rawHeads) $ Prelude.fail "col spans don't match"
+
+  let justRawHeads  = catMaybes rawHeads
+  let rawHeads'     = map fst <$> justRawHeads
+  let columnSpans   = map snd <$> justRawHeads
+  heads <- mapM (mapM $ parseFromString' (mconcat <$> many plain) . trim) rawHeads'
+  let headsWithSpans = zipWith3 zip3 heads singleRowSpans columnSpans
+  return (headsWithSpans, aligns, indices)
+
+rowWithOptionalColSpan :: Monad m
+                       => RSTParser m (Text, Maybe [Int])
+rowWithOptionalColSpan = do
+  line <- anyLine
+  colSpanHyphens <- optionMaybe $ simpleDashedLines '-'
+
+  let colSpan = fmap colSpanFromHyphens colSpanHyphens
+  return (line, colSpan)
+ where
+  colSpanFromHyphens colSpanHyphens = snd $ dashedLinesToLinesWithIndices colSpanHyphens
 
 -- Parse a simple table.
 simpleTable :: PandocMonad m
@@ -1435,7 +1476,7 @@ simpleTable :: PandocMonad m
 simpleTable headless = do
   let wrapIdFst (a, b, c) = (Identity a, b, c)
       wrapId = fmap Identity
-  tbl <- runIdentity <$> tableWith
+  tbl <- runIdentity <$> tableWithSpans
            (wrapIdFst <$> simpleTableHeader headless)
            (wrapId <$> simpleTableRow)
            sep simpleTableFooter
@@ -1495,7 +1536,7 @@ hyphens = do
 
 escapedChar :: Monad m => RSTParser m Inlines
 escapedChar = do c <- escaped anyChar
-                 unless (canPrecedeOpener c) $ updateLastStrPos
+                 unless (canPrecedeOpener c) updateLastStrPos
                  return $ if c == ' ' || c == '\n' || c == '\r'
                              -- '\ ' is null in RST
                              then mempty
@@ -1509,7 +1550,7 @@ canPrecedeOpener c =
 symbol :: Monad m => RSTParser m Inlines
 symbol = do
   c <- oneOf specialChars
-  unless (canPrecedeOpener c) $ updateLastStrPos
+  unless (canPrecedeOpener c) updateLastStrPos
   return $ B.str $ T.singleton c
 
 -- parses inline code, between codeStart and codeEnd
@@ -1658,7 +1699,7 @@ unmarkedInterpretedText = try $ do
       <|> (char '\\' >> ((\c -> ['\\',c]) <$> noneOf "\n"))
       <|> (string "\n" <* notFollowedBy blankline)
       <|> try (string "`" <*
-                notFollowedBy (() <$ roleMarker) <*
+                notFollowedBy (void roleMarker) <*
                 lookAhead (satisfy isAlphaNum))
        )
   char '`'
@@ -1806,3 +1847,37 @@ inlineAnchor = try $ do
     s{ stateKeys = M.insert (toKey name) (("#" <> ident, ""), nullAttr)
                     (stateKeys s) }
   pure $ B.spanWith (ident,[],[]) (B.text name)
+
+dashedLinesToLinesWithIndices :: [(Int, Int)] -> ([Int], [Int])
+dashedLinesToLinesWithIndices dashes =
+  let lines'  = map snd dashes
+      indices = scanl (+) 0 lines'
+  in  (lines', indices)
+
+-- | Determines column spans by appying indices of a table border with column span indices.
+--
+-- The indices need to align.
+colSpans :: [Int] -> [Int] -> Maybe [ColSpan]
+colSpans [] []  = Just []
+colSpans [] _   = Nothing
+colSpans _ []   = Nothing
+colSpans (index : indices) colSpanIndices@(colIndex : colSpanIndicesTail)
+    | index /= colIndex = colSpans indices colSpanIndices
+    | otherwise =
+        -- For a matching index start counting the column spans.
+        let (spanCount, remainingIndices, remainingColSpanindices) = colSpanCount indices colSpanIndicesTail 1
+        in  (:) spanCount <$> colSpans remainingIndices remainingColSpanindices
+
+-- | Counts column spans by consuming all non-matching indices until a matching one is encountered.
+--
+-- If the indices match, the end of a column span has been encountered and the
+-- column count can be returned. Otherwise, if the indices don't match, add to
+-- the span count until a matching index is found.
+colSpanCount :: [Int] -> [Int] -> ColSpan -> (ColSpan, [Int], [Int])
+colSpanCount [] colSpanIndices spanCount = (spanCount, [], colSpanIndices)
+colSpanCount _ [] spanCount = (spanCount, [], [])
+colSpanCount indices@(index : indicesTail) colSpanIndices@(colIndex : colSpanIndicesTail) spanCount
+    | index == colIndex = case colSpanIndicesTail of
+        [] -> (spanCount, indicesTail, colSpanIndicesTail)
+        _ -> (spanCount, indices, colSpanIndices)
+    | otherwise = colSpanCount indicesTail colSpanIndices $ spanCount + 1

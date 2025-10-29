@@ -3208,7 +3208,7 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\hslash"
+                                  [ Math InlineMath "\295"
                                   , Str "\8192"
                                   , Code
                                       ( "" , [] , [] ) "planck.reduce"
@@ -3610,12 +3610,14 @@ Pandoc
                           [ Para
                               [ Span
                                   ( "" , [ "box" ] , [] )
-                                  [ Math InlineMath "\\leftrightarrow"
+                                  [ Math
+                                      InlineMath "\\longleftrightarrow"
                                   , Str "\8192"
-                                  , Code ( "" , [] , [] ) "<->"
+                                  , Code ( "" , [] , [] ) "<-->"
                                   , Str ","
                                   , Space
-                                  , Code ( "" , [] , [] ) "arrow.l.r"
+                                  , Code
+                                      ( "" , [] , [] ) "arrow.l.r.long"
                                   ]
                               ]
                           ]

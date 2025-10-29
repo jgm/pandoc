@@ -41,8 +41,8 @@ return {
         assert.are_equal(type(v), 'string')
       end
     end),
-    test('highlight_style', function ()
-      assert.are_equal(type(PANDOC_WRITER_OPTIONS.highlight_style), 'table')
+    test('highlight_method', function ()
+      assert.are_equal(type(PANDOC_WRITER_OPTIONS.highlight_method), 'string')
     end),
     test('html_math_method', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.html_math_method), 'string')
@@ -55,9 +55,6 @@ return {
     end),
     test('incremental', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.incremental), 'boolean')
-    end),
-    test('listings', function ()
-      assert.are_equal(type(PANDOC_WRITER_OPTIONS.listings), 'boolean')
     end),
     test('number_offset', function ()
       assert.are_equal(type(PANDOC_WRITER_OPTIONS.number_offset), 'table')
@@ -110,8 +107,8 @@ return {
   },
 
   group 'PANDOC_STATE' {
-    test('is a userdata object', function ()
-      assert.are_equal(type(PANDOC_STATE), 'userdata')
+    test('is a table object', function ()
+      assert.are_equal(type(PANDOC_STATE), 'table')
     end),
     test('has property "input_files"', function ()
       assert.are_equal(type(PANDOC_STATE.input_files), 'table')

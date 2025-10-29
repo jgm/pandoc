@@ -1,4 +1,4 @@
-.TH "Pandoc Man tests" "" "Oct 17, 2018" "" ""
+.TH "PANDOC-MAN-TESTS" "1" "Oct 17, 2018" "v1.0.1" "Pandoc Tests"
 .PP
 This is a set of tests for pandoc.
 .PP

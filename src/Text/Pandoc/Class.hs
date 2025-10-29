@@ -23,7 +23,9 @@ module Text.Pandoc.Class
   , Translations
   ) where
 
-import Text.Pandoc.Class.CommonState (CommonState (..))
+-- We export CommonState as an opaque object.  Accessors for
+-- its fields are provided in Text.Pandoc.Class.PandocMonad.
+import Text.Pandoc.Class.CommonState (CommonState)
 import Text.Pandoc.Class.PandocMonad
 import Text.Pandoc.Class.PandocIO
 import Text.Pandoc.Class.PandocPure

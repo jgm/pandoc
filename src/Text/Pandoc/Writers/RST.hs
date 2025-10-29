@@ -251,8 +251,8 @@ blockToRST (Div (ident,classes,_kvs) bs) = do
   let admonition = case classes of
                         (cl:_)
                           | cl `elem` admonitions
-                          -> ".. " <> literal cl <> "::"
-                        cls -> ".. container::" <> space <>
+                          -> blankline <> ".. " <> literal cl <> "::"
+                        cls -> blankline <> ".. container::" <> space <>
                                    literal (T.unwords (filter (/= "container") cls))
   -- if contents start with block quote, we need to insert
   -- an empty comment to fix the indentation point (#10236)
@@ -323,12 +323,12 @@ blockToRST (CodeBlock (_,classes,kvs) str) = do
                      c `notElem` ["sourceCode","literate","numberLines",
                                   "number-lines","example"]] of
              []       -> "::"
-             (lang:_) -> (".. code:: " <> literal lang) $$ numberlines)
+             (lang:_) -> (blankline <> ".. code:: " <> literal lang) $$ numberlines)
           $+$ nest 3 (literal str) $$ blankline
 blockToRST (BlockQuote blocks) = do
   contents <- blockListToRST blocks
   return $ nest 3 contents <> blankline
-blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
+blockToRST (Table _attrs blkCapt specs thead@(TableHead _ theadRows) tbody tfoot@(TableFoot _ tfootRows)) = do
   let (caption, aligns, widths, headers, rows) =
         toLegacyTable blkCapt specs thead tbody tfoot
   caption' <- inlineListToRST caption
@@ -341,9 +341,11 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
   opts <- gets stOptions
   let specs' = map (\(_,width) -> (AlignDefault, width)) specs
       renderGrid = gridTable opts blocksToDoc specs' thead tbody tfoot
-      isSimple = all (== 0) widths && length widths > 1
+      rowHasRowSpan (Row _ cells) = any cellHasRowSpan cells
+      cellHasRowSpan (Cell _ _ rowSpan _ _) = rowSpan > 1
+      isSimple = all (== 0) widths && length widths > 1 && not (any rowHasRowSpan $ theadRows ++ tableBodiesToRows tbody ++ tfootRows)
       renderSimple = do
-        tbl' <- simpleTable opts blocksToDoc headers rows
+        tbl' <- simpleTable opts blocksToDoc thead tbody tfoot
         if offset tbl' > writerColumns opts
           then renderGrid
           else return tbl'
@@ -358,7 +360,7 @@ blockToRST (Table _attrs blkCapt specs thead tbody tfoot) = do
   return $ blankline $$
            (if null caption || isList
                then tbl
-               else (".. table:: " <> caption') $$ blankline $$ nest 3 tbl) $$
+               else (blankline <> ".. table:: " <> caption') $$ blankline $$ nest 3 tbl) $$
            blankline
 blockToRST (BulletList items) = do
   contents <- mapM bulletListItemToRST items
@@ -918,25 +920,81 @@ imageDimsToRST attr = do
 simpleTable :: PandocMonad m
             => WriterOptions
             -> (WriterOptions -> [Block] -> m (Doc Text))
-            -> [[Block]]
-            -> [[[Block]]]
+            -> TableHead
+            -> [TableBody]
+            -> TableFoot
             -> m (Doc Text)
-simpleTable opts blocksToDoc headers rows = do
-  -- can't have empty cells in first column:
-  let fixEmpties (d:ds) = if isEmpty d
-                             then literal "\\ " : ds
-                             else d : ds
-      fixEmpties [] = []
-  headerDocs <- if all null headers
+simpleTable opts blocksToDoc (TableHead _ headers) tbody (TableFoot _ footers) = do
+  headerDocs <- if all isEmptyRow headers
                    then return []
-                   else fixEmpties <$> mapM (blocksToDoc opts) headers
-  rowDocs <- mapM (fmap fixEmpties . mapM (blocksToDoc opts)) rows
-  let numChars = maybe 0 maximum . NE.nonEmpty . map offset
-  let colWidths = map numChars $ transpose (headerDocs : rowDocs)
-  let toRow = mconcat . intersperse (lblock 1 " ") . zipWith lblock colWidths
+                   else fixEmpties <$> mapM rowToDoc headers
+  rowDocs <- fixEmpties <$> mapM rowToDoc ((tableBodiesToRows tbody) ++ footers)
+  let numChars = maybe 0 maximum . NE.nonEmpty . map (offset . fst)
+  let colWidths = map numChars $ transpose (headerDocs ++ rowDocs)
   let hline = nowrap $ hsep (map (\n -> literal (T.replicate n "=")) colWidths)
-  let hdr = if all null headers
+  let hdr = if all isEmptyRow headers
                then mempty
-               else hline $$ toRow headerDocs
-  let bdy = vcat $ map toRow rowDocs
+               else hline $$ mapToRow colWidths headerDocs
+  let bdy = mapToRow colWidths rowDocs
   return $ hdr $$ hline $$ bdy $$ hline
+  where
+    isEmptyRow (Row _ cells) = all isEmptyCell cells
+
+    isEmptyCell (Cell _ _ _ _ blocks) = null blocks
+
+    -- can't have empty cells in first column:
+    fixEmpties (d:ds) = fixEmpties' d : ds
+    fixEmpties [] = []
+
+    fixEmpties' ((d, colSpan):ds) = if isEmpty d
+                                     then (literal "\\ ", colSpan) : ds
+                                     else (d, colSpan) : ds
+    fixEmpties' [] = []
+
+    rowToDoc (Row _ cells) = concat <$> mapM cellToDocs cells
+
+    cellToDocs (Cell _ _ _ colSpan blocks) = applyColSpan colSpan <$> (blocksToDoc opts) blocks
+
+    applyColSpan col@(ColSpan colSpan) doc
+      | colSpan > 1 =
+          -- Fill up columns for the col spans by adding empty docs without a ColSpan.
+          let emptyDoc = (literal "", Nothing)
+          in  (doc, Just col) : replicate (colSpan - 1) emptyDoc
+      | otherwise = [(doc, Just col)]
+
+    mapToRow colWidths = vcat . concatMap (toRow colWidths)
+
+    toRow colWidths rowDocsWithColSpans =
+      let (rowDocs, colSpans) = unzip rowDocsWithColSpans
+          row = intersperseDivider $ zipWith lblock colWidths rowDocs
+          colSpanRow = intersperseDivider $ writeColSpans colSpans colWidths
+      in  if any (maybe False (> 1)) colSpans
+           then [row, colSpanRow]
+           else [row] -- Don't write out col spans if they are all just 1.
+
+    intersperseDivider = mconcat . intersperse (lblock 1 " ")
+
+    -- Write col span dashes to match the length of the col widths.
+    writeColSpans [] _ = []
+    writeColSpans _ [] = []
+    writeColSpans (Nothing : remainingColSpans) colWidths = writeColSpans remainingColSpans colWidths
+    writeColSpans (Just (ColSpan colSpan) : remainingColSpans) colWidths =
+      let (colWidths', remainingColWidths) = splitAt colSpan colWidths
+      in  writeColSpanDashes colWidths' : writeColSpans remainingColSpans remainingColWidths
+
+    writeColSpanDashes colWidths =
+      let colWidthsLength = length colWidths
+          colWidthsSum = sum colWidths
+          dashLength = if colWidthsLength > 1
+            -- Offset by 1 for the white spaces between columns so that the col
+            -- span dashes align with the end of the columns correctly.
+            then colWidthsSum + colWidthsLength - 1
+            else colWidthsSum
+      in  literal $ T.replicate dashLength "-"
+
+-- | Concatenates the header and body Rows of a List of TableBody into a flat
+-- List of Rows.
+tableBodiesToRows :: [TableBody] -> [Row]
+tableBodiesToRows = concatMap tableBodyToRows
+  where
+    tableBodyToRows (TableBody _ _ headerRows bodyRows) = headerRows ++ bodyRows

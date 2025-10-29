@@ -14,7 +14,7 @@ module Text.Pandoc.App.Input
   , readInput
   ) where
 
-import Control.Monad ((>=>))
+import Control.Monad ((>=>), when)
 import Control.Monad.Except (throwError, catchError)
 import Data.Text (Text)
 import Network.URI (URI (..), parseURI)
@@ -109,12 +109,29 @@ inputToText convTabs (fp, (bs,mt)) =
                            (toTextM fp bs)
                            (\case
                               PandocUTF8DecodingError{} -> do
+                                when (hasKnownSignature bs) $
+                                  throwError $
+                                    PandocInputNotTextError (T.pack fp)
                                 report $ NotUTF8Encoded
                                   (if null fp
                                       then "input"
                                       else fp)
                                 return $ T.pack $ B8.unpack bs
                               e -> throwError e)
+ where
+  -- "50 4B 03 04" is zip file signature
+  isZip bs' = "\x50\x4B\x03\x04" `BS.isPrefixOf` bs'
+  -- "25 50 44 46 2D" is PDF file signature
+  isPDF bs' = "\x25\x50\x44\x46\x2D" `BS.isPrefixOf` bs'
+  -- "D0 CF 11 E0 A1 B1 1A E1" is Compound File Binary Format signature used in
+  -- variety of old Microsoft formats (.doc and .xls among others)
+  isCFBF bs' = "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" `BS.isPrefixOf` bs'
+  -- "41 54 26 54 46 4F 52 4D ?? ?? ?? ?? 44 4A 56" is DjVu signature
+  isDjVu bs' = case BS.stripPrefix "\x41\x54\x26\x54\x46\x4F\x52\x4D" bs' of
+    Nothing -> False
+    Just x -> BS.isPrefixOf "\x44\x4A\x56" $ BS.drop 4 x
+
+  hasKnownSignature bs' = any ($ bs') [isZip, isPDF, isCFBF, isDjVu]
 
 inputToLazyByteString :: (FilePath, (BS.ByteString, Maybe MimeType))
                       -> BL.ByteString

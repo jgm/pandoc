@@ -50,8 +50,9 @@ import Text.Pandoc.Readers.Typst.Parsing (pTok, ignored, getField, P,
 import Typst.Methods (formatNumber, applyPureFunction)
 import Typst.Types
 import qualified Data.Vector as V
-
--- import Debug.Trace
+import System.FilePath (takeDirectory)
+import qualified System.FilePath.Windows as Windows
+import qualified System.FilePath.Posix as Posix
 
 -- | Read Typst from an input string and return a Pandoc document.
 readTypst :: (PandocMonad m, ToSources a)
@@ -73,9 +74,10 @@ readTypst _opts inp = do
       case res of
         Left e -> throwError $ PandocParseError $ tshow e
         Right content -> do
-          let labs = findLabels [content]
+          let content' = fixNesting content
+          let labs = findLabels [content']
           runParserT pPandoc defaultPState{ sLabels = labs }
-            inputName [content] >>=
+            inputName [content'] >>=
               either (throwError . PandocParseError . T.pack . show) pure
 
 pBlockElt :: PandocMonad m => P m B.Blocks
@@ -90,7 +92,7 @@ pBlockElt = try $ do
           ignored ("unknown block element " <> tname <>
                    " at " <> tshow pos)
           pure mempty
-        Just handler -> handler mbident fields
+        Just handler -> handler pos mbident fields
     _ -> pure mempty
 
 pInline :: PandocMonad m => P m B.Inlines
@@ -120,14 +122,37 @@ pInline = try $ do
                ignored ("unknown inline element " <> tname <>
                         " at " <> tshow pos)
                pure mempty
-             Just handler -> handler Nothing (M.mapKeys targetToKey fields)
+             Just handler -> handler pos Nothing (M.mapKeys targetToKey fields)
          else do
           case M.lookup name inlineHandlers of
             Nothing -> do
               ignored ("unknown inline element " <> tname <>
                        " at " <> tshow pos)
               pure mempty
-            Just handler -> handler Nothing fields
+            Just handler -> handler pos Nothing fields
+
+-- Pull block elements out of inline elements, e.g.
+-- Elt "smallcaps" [ Elt "heading" [..] ] ->
+-- Elt "heading" [ Elt "smallcaps" [..]]. See #11017.
+fixNesting :: Content -> Content
+fixNesting el@(Elt name pos fields)
+  | Just (VContent elts) <- M.lookup "body" fields
+  = let elts' = fmap fixNesting elts
+        fields' = M.insert "body" (VContent elts') fields
+        in if isInline el
+              then case getField "body" fields' of
+                        Just ([el'@(Elt name' pos' fields'')] :: Seq Content)
+                          | isBlock el'
+                          , not (isInline el')
+                          , "body" `M.member` fields''
+                          -> Elt name' pos' $
+                               M.insert "body" (VContent
+                                                (Seq.singleton
+                                                  (Elt name pos fields'')))
+                                        fields'
+                        _ -> Elt name pos fields'
+              else Elt name pos fields'
+fixNesting x = x
 
 pPandoc :: PandocMonad m => P m B.Pandoc
 pPandoc = do
@@ -208,31 +233,34 @@ isInline Txt{} = True
 blockKeys :: Set.Set Identifier
 blockKeys = Set.fromList $ M.keys
   (blockHandlers :: M.Map Identifier
-     (Maybe Text -> M.Map Identifier Val -> P PandocPure B.Blocks))
+     (Maybe SourcePos -> Maybe Text ->
+      M.Map Identifier Val -> P PandocPure B.Blocks))
 
 inlineKeys :: Set.Set Identifier
 inlineKeys = Set.fromList $ M.keys
   (inlineHandlers :: M.Map Identifier
-     (Maybe Text -> M.Map Identifier Val -> P PandocPure B.Inlines))
+     (Maybe SourcePos -> Maybe Text ->
+      M.Map Identifier Val -> P PandocPure B.Inlines))
 
 blockHandlers :: PandocMonad m =>
                    M.Map Identifier
-                   (Maybe Text -> M.Map Identifier Val -> P m B.Blocks)
+                   (Maybe SourcePos -> Maybe Text ->
+                    M.Map Identifier Val -> P m B.Blocks)
 blockHandlers = M.fromList
-  [("text", \_ fields -> do
+  [("text", \_ _ fields -> do
       body <- getField "body" fields
       -- sometimes text elements include para breaks
       notFollowedBy $ void $ pWithContents pInlines body
       pWithContents pBlocks body)
-  ,("box", \_ fields -> do
+  ,("box", \_ _ fields -> do
       body <- getField "body" fields
       B.divWith ("", ["box"], []) <$> pWithContents pBlocks body)
-  ,("heading", \mbident fields -> do
+  ,("heading", \_ mbident fields -> do
       body <- getField "body" fields
       lev <- getField "level" fields <|> pure 1
       B.headerWith (fromMaybe "" mbident,[],[]) lev
          <$> pWithContents pInlines body)
-  ,("quote", \_ fields -> do
+  ,("quote", \_ _ fields -> do
       getField "block" fields >>= guard
       body <- getField "body" fields >>= pWithContents pBlocks
       attribution' <- getField "attribution" fields
@@ -241,11 +269,11 @@ blockHandlers = M.fromList
                         else (\x -> B.para ("\x2014\xa0" <> x)) <$>
                               (pWithContents pInlines attribution')
       pure $ B.blockQuote $ body <> attribution)
-  ,("list", \_ fields -> do
+  ,("list", \_ _ fields -> do
       children <- V.toList <$> getField "children" fields
       B.bulletList <$> mapM (pWithContents pBlocks) children)
-  ,("list.item", \_ fields -> getField "body" fields >>= pWithContents pBlocks)
-  ,("enum", \_ fields -> do
+  ,("list.item", \_ _ fields -> getField "body" fields >>= pWithContents pBlocks)
+  ,("enum", \_ _ fields -> do
       children <- V.toList <$> getField "children" fields
       mbstart <- getField "start" fields
       start <- case mbstart of
@@ -274,8 +302,8 @@ blockHandlers = M.fromList
               _ -> (B.DefaultStyle, B.DefaultDelim)
       let listAttr = (start, sty, delim)
       B.orderedListWith listAttr <$> mapM (pWithContents pBlocks) children)
-  ,("enum.item", \_ fields -> getField "body" fields >>= pWithContents pBlocks)
-  ,("terms", \_ fields -> do
+  ,("enum.item", \_ _ fields -> getField "body" fields >>= pWithContents pBlocks)
+  ,("terms", \_ _ fields -> do
       children <- V.toList <$> getField "children" fields
       B.definitionList
         <$> mapM
@@ -287,38 +315,38 @@ blockHandlers = M.fromList
               _ -> pure (mempty, [])
           )
           children)
-  ,("terms.item", \_ fields -> getField "body" fields >>= pWithContents pBlocks)
-  ,("raw", \mbident fields -> do
+  ,("terms.item", \_ _ fields -> getField "body" fields >>= pWithContents pBlocks)
+  ,("raw", \_ mbident fields -> do
       txt <- T.filter (/= '\r') <$> getField "text" fields
       mblang <- getField "lang" fields
       let attr = (fromMaybe "" mbident, maybe [] (\l -> [l]) mblang, [])
       pure $ B.codeBlockWith attr txt)
-  ,("parbreak", \_ _ -> pure mempty)
-  ,("block", \mbident fields ->
+  ,("parbreak", \_ _ _ -> pure mempty)
+  ,("block", \_ mbident fields ->
       maybe id (\ident -> B.divWith (ident, [], [])) mbident
         <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("place", \_ fields -> do
+  ,("place", \_ _ fields -> do
       ignored "parameters of place"
       getField "body" fields >>= pWithContents pBlocks)
-  ,("columns", \_ fields -> do
+  ,("columns", \_ _ fields -> do
       (cnt :: Integer) <- getField "count" fields
       B.divWith ("", ["columns-flow"], [("count", T.pack (show cnt))])
         <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("rect", \_ fields ->
+  ,("rect", \_ _ fields ->
       B.divWith ("", ["rect"], []) <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("circle", \_ fields ->
+  ,("circle", \_ _ fields ->
       B.divWith ("", ["circle"], []) <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("ellipse", \_ fields ->
+  ,("ellipse", \_ _ fields ->
       B.divWith ("", ["ellipse"], []) <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("polygon", \_ fields ->
+  ,("polygon", \_ _ fields ->
       B.divWith ("", ["polygon"], []) <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("square", \_ fields ->
+  ,("square", \_ _ fields ->
       B.divWith ("", ["square"], []) <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("align", \_ fields -> do
+  ,("align", \_ _ fields -> do
       alignment <- getField "alignment" fields
       B.divWith ("", [], [("align", repr alignment)])
         <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("stack", \_ fields -> do
+  ,("stack", \_ _ fields -> do
       (dir :: Direction) <- getField "dir" fields `mplus` pure Ltr
       rawchildren <- getField "children" fields
       children <-
@@ -333,9 +361,9 @@ blockHandlers = M.fromList
         B.divWith ("", [], [("stack", repr (VDirection dir))]) $
           mconcat $
             map (B.divWith ("", [], [])) children)
-  ,("grid", \mbident fields -> parseTable mbident fields)
-  ,("table", \mbident fields -> parseTable mbident fields)
-  ,("figure", \mbident fields -> do
+  ,("grid", \_ mbident fields -> parseTable mbident fields)
+  ,("table", \_ mbident fields -> parseTable mbident fields)
+  ,("figure", \_ mbident fields -> do
       body <- getField "body" fields >>= pWithContents pBlocks
       (mbCaption :: Maybe (Seq Content)) <- getField "caption" fields
       (caption :: B.Blocks) <- maybe mempty (pWithContents pBlocks) mbCaption
@@ -345,13 +373,13 @@ blockHandlers = M.fromList
             (B.Table attr (B.Caption Nothing (B.toList caption)) colspecs thead tbodies tfoot)
         _ -> B.figureWith (fromMaybe "" mbident, [], [])
                           (B.Caption Nothing (B.toList caption)) body)
-  ,("line", \_ fields ->
+  ,("line", \_ _ fields ->
       case ( M.lookup "start" fields
               >> M.lookup "end" fields
               >> M.lookup "angle" fields ) of
         Nothing -> pure B.horizontalRule
         _ -> pure mempty)
-  ,("numbering", \_ fields -> do
+  ,("numbering", \_ _ fields -> do
       numStyle <- getField "numbering" fields
       (nums :: V.Vector Integer) <- getField "numbers" fields
       let toText v = fromMaybe "" $ fromVal v
@@ -364,16 +392,18 @@ blockHandlers = M.fromList
                   Failure _ -> "?"
               _ -> "?"
       pure $ B.plain . B.text . mconcat . map toNum $ V.toList nums)
-  ,("footnote.entry", \_ fields ->
+  ,("footnote.entry", \_ _ fields ->
       getField "body" fields >>= pWithContents pBlocks)
-  ,("pad", \_ fields ->  -- ignore paddingy
+  ,("pad", \_ _ fields ->  -- ignore paddingy
       getField "body" fields >>= pWithContents pBlocks)
+  ,("pagebreak", \_ _ _ -> pure $ B.divWith ("", ["page-break"], [("wrapper", "1")]) B.horizontalRule)
   ]
 
 inlineHandlers :: PandocMonad m =>
-    M.Map Identifier (Maybe Text -> M.Map Identifier Val -> P m B.Inlines)
+    M.Map Identifier (Maybe SourcePos -> Maybe Text ->
+                      M.Map Identifier Val -> P m B.Inlines)
 inlineHandlers = M.fromList
-  [("ref", \_ fields -> do
+  [("ref", \_ _ fields -> do
       VLabel target <- getField "target" fields
       supplement' <- getField "supplement" fields
       supplement <- case supplement' of
@@ -384,17 +414,17 @@ inlineHandlers = M.fromList
                            pure $ B.text ("[" <> target <> "]")
                       _ -> pure mempty
       pure $ B.linkWith ("", ["ref"], []) ("#" <> target) "" supplement)
-  ,("linebreak", \_ _ -> pure B.linebreak)
-  ,("text", \_ fields -> do
+  ,("linebreak", \_ _ _ -> pure B.linebreak)
+  ,("text", \_ _ fields -> do
       body <- getField "body" fields
       (mbweight :: Maybe Text) <- getField "weight" fields
       case mbweight of
         Just "bold" -> B.strong <$> pWithContents pInlines body
         _ -> pWithContents pInlines body)
-  ,("raw", \_ fields -> B.code . T.filter (/= '\r') <$> getField "text" fields)
-  ,("footnote", \_ fields ->
+  ,("raw", \_ _ fields -> B.code . T.filter (/= '\r') <$> getField "text" fields)
+  ,("footnote", \_ _ fields ->
       B.note <$> (getField "body" fields >>= pWithContents pBlocks))
-  ,("cite", \_ fields -> do
+  ,("cite", \_ _ fields -> do
       VLabel key <- getField "key" fields
       (form :: Text) <- getField "form" fields <|> pure "normal"
       let citation =
@@ -409,38 +439,38 @@ inlineHandlers = M.fromList
                 B.citationHash = 0
               }
       pure $ B.cite [citation] (B.text $ "[" <> key <> "]"))
-  ,("lower", \_ fields -> do
+  ,("lower", \_ _ fields -> do
       body <- getField "text" fields
       walk (modString T.toLower) <$> pWithContents pInlines body)
-  ,("upper", \_ fields -> do
+  ,("upper", \_ _ fields -> do
       body <- getField "text" fields
       walk (modString T.toUpper) <$> pWithContents pInlines body)
-  ,("emph", \_ fields -> do
+  ,("emph", \_ _ fields -> do
       body <- getField "body" fields
       B.emph <$> pWithContents pInlines body)
-  ,("strong", \_ fields -> do
+  ,("strong", \_ _ fields -> do
       body <- getField "body" fields
       B.strong <$> pWithContents pInlines body)
-  ,("sub", \_ fields -> do
+  ,("sub", \_ _ fields -> do
       body <- getField "body" fields
       B.subscript <$> pWithContents pInlines body)
-  ,("super", \_ fields -> do
+  ,("super", \_ _ fields -> do
       body <- getField "body" fields
       B.superscript <$> pWithContents pInlines body)
-  ,("strike", \_ fields -> do
+  ,("strike", \_ _ fields -> do
       body <- getField "body" fields
       B.strikeout <$> pWithContents pInlines body)
-  ,("smallcaps", \_ fields -> do
+  ,("smallcaps", \_ _ fields -> do
       body <- getField "body" fields
       B.smallcaps <$> pWithContents pInlines body)
-  ,("underline", \_ fields -> do
+  ,("underline", \_ _ fields -> do
       body <- getField "body" fields
       B.underline <$> pWithContents pInlines body)
-  ,("quote", \_ fields -> do
+  ,("quote", \_ _ fields -> do
       (getField "block" fields <|> pure False) >>= guard . not
       body <- getInlineBody fields >>= pWithContents pInlines
       pure $ B.doubleQuoted $ B.trimInlines body)
-  ,("link", \_ fields -> do
+  ,("link", \_ _ fields -> do
       dest <- getField "dest" fields
       src <- case dest of
         VString t -> pure t
@@ -448,7 +478,7 @@ inlineHandlers = M.fromList
         VDict _ -> do
           ignored "link to location, linking to #"
           pure "#"
-        _ -> fail $ "Expected string or label for dest"
+        _ -> fail "Expected string or label for dest"
       body <- getField "body" fields
       description <-
         if null body
@@ -465,9 +495,15 @@ inlineHandlers = M.fromList
                pWithContents
                 (B.fromList . blocksToInlines . B.toList <$> pBlocks) body
       pure $ B.link src "" description)
-  ,("image", \_ fields -> do
+  ,("image", \mbpos _ fields -> do
       path <- getField "source" fields <|> getField "path" fields
       alt <- (B.text <$> getField "alt" fields) `mplus` pure mempty
+      let basedir = maybe "." (takeDirectory . sourceName) mbpos
+      let isAbsolutePath p = Posix.isAbsolute p || Windows.isAbsolute p
+      let path' = T.pack $
+                  if isAbsolutePath path || basedir == "."
+                     then path
+                     else basedir Posix.</> path
       (mbwidth :: Maybe Text) <-
         fmap (renderLength False) <$> getField "width" fields
       (mbheight :: Maybe Text) <-
@@ -478,11 +514,11 @@ inlineHandlers = M.fromList
               maybe [] (\x -> [("width", x)]) mbwidth
                 ++ maybe [] (\x -> [("height", x)]) mbheight
             )
-      pure $ B.imageWith attr path "" alt)
-  ,("box", \_ fields -> do
+      pure $ B.imageWith attr path' "" alt)
+  ,("box", \_ _ fields -> do
       body <- getField "body" fields
       B.spanWith ("", ["box"], []) <$> pWithContents pInlines body)
-  ,("h", \_ fields -> do
+  ,("h", \_ _ fields -> do
       amount <- getField "amount" fields `mplus` pure (LExact 1 LEm)
       let em = case amount of
             LExact x LEm -> toRational x
@@ -490,21 +526,21 @@ inlineHandlers = M.fromList
               LExact x LPt -> toRational x / 12
               _ -> 1 / 3 -- guess!
       pure $ B.text $ getSpaceChars em)
-  ,("place", \_ fields -> do
+  ,("place", \_ _ fields -> do
       ignored "parameters of place"
       getField "body" fields >>= pWithContents pInlines)
-  ,("align", \_ fields -> do
+  ,("align", \_ _ fields -> do
       alignment <- getField "alignment" fields
       B.spanWith ("", [], [("align", repr alignment)])
         <$> (getField "body" fields >>= pWithContents pInlines))
-  ,("sys.version", \_ _ -> pure $ B.text "typst-hs")
-  ,("math.equation", \_ fields -> do
+  ,("sys.version", \_ _ _ -> pure $ B.text "typst-hs")
+  ,("math.equation", \_ _ fields -> do
       body <- getField "body" fields
       display <- getField "block" fields
       (if display then B.displayMath else B.math) . writeTeX <$> pMathMany body)
-  ,("pad", \_ fields ->  -- ignore paddingy
+  ,("pad", \_ _ fields ->  -- ignore paddingy
       getField "body" fields >>= pWithContents pInlines)
-  ,("block", \mbident fields ->
+  ,("block", \_ mbident fields ->
       maybe id (\ident -> B.spanWith (ident, [], [])) mbident
         <$> (getField "body" fields >>= pWithContents pInlines))
   ]

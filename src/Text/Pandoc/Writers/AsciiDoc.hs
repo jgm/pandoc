@@ -416,7 +416,7 @@ bulletListItemToAsciiDoc opts blocks = do
   let blocksWithTasks = if isLegacy
                           then blocks
                           else (taskListItemToAsciiDoc blocks)
-  contents <- foldM (addBlock opts) empty blocksWithTasks
+  contents <- snd <$> foldM (addBlock opts) (False, empty) blocksWithTasks
   modify $ \s -> s{ bulletListLevel = lev }
   let marker = text (replicate (lev + 1) '*')
   return $ marker <> text " " <> listBegin blocksWithTasks <>
@@ -433,18 +433,24 @@ taskListItemToAsciiDoc = handleTaskListItem toAd listExt
     listExt = extensionsFromList [Ext_task_lists]
 
 addBlock :: PandocMonad m
-         => WriterOptions -> Doc Text -> Block -> ADW m (Doc Text)
-addBlock opts d b = do
+         => WriterOptions -> (Bool, Doc Text) -> Block -> ADW m (Bool, Doc Text)
+addBlock opts (containsContinuation, d) b = do
   x <- chomp <$> blockToAsciiDoc opts b
   return $
     case b of
-        BulletList{} -> d <> cr <> x
-        OrderedList{} -> d <> cr <> x
-        Para (Math DisplayMath _:_) -> d <> cr <> x
-        Plain (Math DisplayMath _:_) -> d <> cr <> x
-        Para{} | isEmpty d -> x
-        Plain{} | isEmpty d -> x
-        _ -> d <> cr <> text "+" <> cr <> x
+        BulletList{}
+          | containsContinuation -> (False, d <> blankline <> x)  -- see #11006
+          | otherwise -> (False, d <> cr <> x)
+        OrderedList (start, sty, _) _
+          | containsContinuation
+          , start == 1
+          , sty == DefaultStyle -> (False, d <> blankline <> x)  -- see #11006
+          | otherwise -> (False, d <> cr <> x)
+        Para (Math DisplayMath _:_) -> (containsContinuation, d <> cr <> x)
+        Plain (Math DisplayMath _:_) -> (containsContinuation, d <> cr <> x)
+        Para{} | isEmpty d -> (containsContinuation, x)
+        Plain{} | isEmpty d -> (containsContinuation, x)
+        _ -> (True, d <> cr <> text "+" <> cr <> x)
 
 listBegin :: [Block] -> Doc Text
 listBegin blocks =
@@ -464,7 +470,7 @@ orderedListItemToAsciiDoc :: PandocMonad m
 orderedListItemToAsciiDoc opts blocks = do
   lev <- gets orderedListLevel
   modify $ \s -> s{ orderedListLevel = lev + 1 }
-  contents <- foldM (addBlock opts) empty blocks
+  contents <- snd <$> foldM (addBlock opts) (False, empty) blocks
   modify $ \s -> s{ orderedListLevel = lev }
   let marker = text (replicate (lev + 1) '.')
   return $ marker <> text " " <> listBegin blocks <> contents <> cr

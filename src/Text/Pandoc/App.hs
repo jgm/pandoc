@@ -42,11 +42,12 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TE
 import qualified Data.Text.Encoding.Error as TE
 import Data.Char (toLower)
-import System.Directory (doesDirectoryExist, createDirectory)
+import System.Directory (doesDirectoryExist, createDirectory,
+                         createDirectoryIfMissing)
 import Codec.Archive.Zip (toArchiveOrFail,
                           extractFilesFromArchive, ZipOption(..))
 import System.Exit (exitSuccess)
-import System.FilePath ( takeBaseName, takeExtension)
+import System.FilePath ( takeBaseName, takeExtension, takeDirectory)
 import System.IO (nativeNewline, stdout)
 import qualified System.IO as IO (Newline (..))
 import Text.Pandoc
@@ -116,11 +117,14 @@ convertWithOpts scriptingEngine opts = do
                      CRLF   -> IO.CRLF
                      LF     -> IO.LF
                      Native -> nativeNewline
+      let outputFileDir = takeDirectory outputFile
+      createDirectoryIfMissing True outputFileDir
       case output of
         TextOutput t    -> writerFn eol outputFile t
         BinaryOutput bs -> writeFnBinary outputFile bs
         ZipOutput bs
-          | null (takeExtension outputFile) -> do
+          | null (takeExtension outputFile)
+          , outputFile /= "-" -> do
              -- create directory and unzip
              createDirectory outputFile -- will fail if directory exists
              let zipopts = [OptRecursive, OptDestination outputFile] ++

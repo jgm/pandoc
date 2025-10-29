@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {- |
    Module      : Text.Pandoc.Options
@@ -21,6 +22,10 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , HTMLMathMethod (..)
                            , CiteMethod (..)
                            , ObfuscationMethod (..)
+                           , HighlightMethod (..)
+                           , pattern NoHighlightingString
+                           , pattern DefaultHighlightingString
+                           , pattern IdiomaticHighlightingString
                            , HTMLSlideVariant (..)
                            , EPUBVersion (..)
                            , WrapOption (..)
@@ -32,6 +37,7 @@ module Text.Pandoc.Options ( module Text.Pandoc.Extensions
                            , def
                            , isEnabled
                            , defaultMathJaxURL
+                           , defaultWebTeXURL
                            , defaultKaTeXURL
                            ) where
 import Control.Applicative ((<|>))
@@ -41,13 +47,14 @@ import Data.Default
 import Data.Char (toLower)
 import Data.Text (Text)
 import qualified Data.Set as Set
+import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Skylighting (SyntaxMap, defaultSyntaxMap)
 import Text.DocTemplates (Context(..), Template)
 import Text.Pandoc.Extensions
 import Text.Pandoc.Chunks (PathTemplate)
-import Text.Pandoc.Highlighting (Style, pygments)
+import Text.Pandoc.Highlighting (Style)
 import Text.Pandoc.UTF8 (toStringLazy)
 import Data.Aeson.TH (deriveJSON)
 import Data.Aeson
@@ -114,7 +121,8 @@ instance FromJSON HTMLMathMethod where
         mburl <- m .:? "url"
         case method :: Text of
           "plain" -> return PlainMath
-          "webtex" -> return $ WebTeX $ fromMaybe "" mburl
+          "webtex" -> return $ WebTeX $
+                         fromMaybe defaultWebTeXURL mburl
           "gladtex" -> return GladTeX
           "mathml" -> return MathML
           "mathjax" -> return $ MathJax $
@@ -124,7 +132,7 @@ instance FromJSON HTMLMathMethod where
           _ -> fail $ "Unknown HTML math method " ++ show method) node
        <|> (case node of
                String "plain" -> return PlainMath
-               String "webtex" -> return $ WebTeX ""
+               String "webtex" -> return $ WebTeX defaultWebTeXURL
                String "gladtex" -> return GladTeX
                String "mathml" -> return MathML
                String "mathjax" -> return $ MathJax defaultMathJaxURL
@@ -183,6 +191,43 @@ instance ToJSON ObfuscationMethod where
    toJSON NoObfuscation = String "none"
    toJSON ReferenceObfuscation = String "references"
    toJSON JavascriptObfuscation = String "javascript"
+
+-- | Method to provide code highlighting.
+data HighlightMethod =
+    Skylighting Style
+  | IdiomaticHighlighting
+  | DefaultHighlighting
+  | NoHighlighting
+  deriving (Show, Read, Eq, Data, Typeable, Generic)
+
+-- | String representation of the idiomatic highlighting option.
+pattern IdiomaticHighlightingString :: Text
+pattern IdiomaticHighlightingString = "idiomatic"
+
+-- | String representation of the default highlighting option.
+pattern DefaultHighlightingString :: Text
+pattern DefaultHighlightingString = "default"
+
+-- | String representation of the no highlighting option
+pattern NoHighlightingString :: Text
+pattern NoHighlightingString = "none"
+
+instance ToJSON HighlightMethod where
+  toJSON NoHighlighting        = String NoHighlightingString
+  toJSON IdiomaticHighlighting = String IdiomaticHighlightingString
+  toJSON DefaultHighlighting   = String DefaultHighlightingString
+  toJSON (Skylighting style)   = toJSON style
+
+instance FromJSON HighlightMethod where
+  parseJSON = \case
+    String NoHighlightingString        -> pure NoHighlighting
+    String IdiomaticHighlightingString -> pure IdiomaticHighlighting
+    String DefaultHighlightingString   -> pure DefaultHighlighting
+    String x           -> fail $ "Unknown highlighting method " <> T.unpack x
+    Bool True          -> pure DefaultHighlighting
+    Bool False         -> pure NoHighlighting
+    Null               -> pure NoHighlighting
+    v                  -> Skylighting <$> parseJSON v
 
 -- | Varieties of HTML slide shows.
 data HTMLSlideVariant = S5Slides
@@ -328,9 +373,7 @@ data WriterOptions = WriterOptions
   , writerHtmlQTags         :: Bool       -- ^ Use @<q>@ tags for quotes in HTML
   , writerSlideLevel        :: Maybe Int  -- ^ Force header level of slides
   , writerTopLevelDivision  :: TopLevelDivision -- ^ Type of top-level divisions
-  , writerListings          :: Bool       -- ^ Use listings package for code
-  , writerHighlightStyle    :: Maybe Style  -- ^ Style to use for highlighting
-                                           -- (Nothing = no highlighting)
+  , writerHighlightMethod   :: HighlightMethod  -- ^ Style to use for highlighting
   , writerSetextHeaders     :: Bool       -- ^ Use setext headers for levels 1-2 in markdown
   , writerListTables        :: Bool       -- ^ Use list tables for RST tables
   , writerEpubSubdirectory  :: Text       -- ^ Subdir for epub in OCF
@@ -372,8 +415,7 @@ instance Default WriterOptions where
                       , writerHtmlQTags        = False
                       , writerSlideLevel       = Nothing
                       , writerTopLevelDivision = TopLevelDefault
-                      , writerListings         = False
-                      , writerHighlightStyle   = Just pygments
+                      , writerHighlightMethod  = DefaultHighlighting
                       , writerSetextHeaders    = False
                       , writerListTables       = False
                       , writerEpubSubdirectory = "EPUB"
@@ -401,6 +443,9 @@ isEnabled ext opts = ext `extensionEnabled` getExtensions opts
 
 defaultMathJaxURL :: Text
 defaultMathJaxURL = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+
+defaultWebTeXURL :: Text
+defaultWebTeXURL = "https://latex.codecogs.com/png.latex?"
 
 defaultKaTeXURL :: Text
 defaultKaTeXURL = "https://cdn.jsdelivr.net/npm/katex@latest/dist/"

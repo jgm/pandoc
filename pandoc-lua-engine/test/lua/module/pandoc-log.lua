@@ -22,13 +22,13 @@ return {
     end),
     test('reports a warning', function ()
       log.info('info test')
-      local msg = json.decode(json.encode(PANDOC_STATE.log[1]))
+      local msg = json.decode(json.encode(PANDOC_STATE.log:at(-1)))
       assert.are_equal(msg.message, 'info test')
       assert.are_equal(msg.type, 'ScriptingInfo')
     end),
     test('info includes the correct number', function ()
       log.info('line number test')
-      local msg = json.decode(json.encode(PANDOC_STATE.log[1]))
+      local msg = json.decode(json.encode(PANDOC_STATE.log:at(-1)))
       -- THIS NEEDS UPDATING if lines above are shifted.
       assert.are_equal(msg.line, 30)
     end),
@@ -40,7 +40,7 @@ return {
     end),
     test('reports a warning', function ()
       log.warn('testing')
-      local msg = json.decode(json.encode(PANDOC_STATE.log[1]))
+      local msg = json.decode(json.encode(PANDOC_STATE.log:at(-1)))
       assert.are_equal(msg.message, 'testing')
       assert.are_equal(msg.type, 'ScriptingWarning')
     end),

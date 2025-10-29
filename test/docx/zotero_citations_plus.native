@@ -6,9 +6,7 @@ Pandoc
             , MetaList
                 [ MetaMap
                     (fromList
-                       [ ( "DOI"
-                         , MetaInlines [ Str "10.1002/2016GL069961" ]
-                         )
+                       [ ( "DOI" , MetaString "10.1002/2016GL069961" )
                        , ( "author"
                          , MetaList
                              [ MetaMap
@@ -54,10 +52,12 @@ Pandoc
                              ]
                          )
                        , ( "id" , MetaString "10" )
-                       , ( "issue" , MetaString "18" )
+                       , ( "issue" , MetaInlines [ Str "18" ] )
                        , ( "issued" , MetaString "2016" )
                        , ( "language" , MetaInlines [ Str "en" ] )
-                       , ( "page" , MetaString "9852\8211\&9859" )
+                       , ( "page"
+                         , MetaInlines [ Str "9852\8211\&9859" ]
+                         )
                        , ( "title"
                          , MetaInlines
                              [ Str "New"
@@ -90,21 +90,14 @@ Pandoc
                              ]
                          )
                        , ( "type" , MetaString "article-journal" )
-                       , ( "volume" , MetaString "43" )
+                       , ( "volume" , MetaInlines [ Str "43" ] )
                        ])
                 , MetaMap
                     (fromList
                        [ ( "DOI"
-                         , MetaInlines
-                             [ Str "10.1007/s00382-013-1683-2" ]
+                         , MetaString "10.1007/s00382-013-1683-2"
                          )
-                       , ( "ISSN"
-                         , MetaInlines
-                             [ Str "0930-7575,"
-                             , Space
-                             , Str "1432-0894"
-                             ]
-                         )
+                       , ( "ISSN" , MetaString "0930-7575, 1432-0894" )
                        , ( "author"
                          , MetaList
                              [ MetaMap
@@ -131,10 +124,12 @@ Pandoc
                              [ Str "Climate" , Space , Str "Dynamics" ]
                          )
                        , ( "id" , MetaString "109" )
-                       , ( "issue" , MetaString "11-12" )
+                       , ( "issue" , MetaInlines [ Str "11-12" ] )
                        , ( "issued" , MetaString "2013-12" )
                        , ( "language" , MetaInlines [ Str "en" ] )
-                       , ( "page" , MetaString "3325\8211\&3338" )
+                       , ( "page"
+                         , MetaInlines [ Str "3325\8211\&3338" ]
+                         )
                        , ( "title"
                          , MetaInlines
                              [ Str "A"
@@ -165,12 +160,12 @@ Pandoc
                              ]
                          )
                        , ( "type" , MetaString "article-journal" )
-                       , ( "volume" , MetaString "41" )
+                       , ( "volume" , MetaInlines [ Str "41" ] )
                        ])
                 , MetaMap
                     (fromList
                        [ ( "DOI"
-                         , MetaInlines [ Str "10.5194/gmd-9-3751-2016" ]
+                         , MetaString "10.5194/gmd-9-3751-2016"
                          )
                        , ( "author"
                          , MetaList
@@ -280,7 +275,9 @@ Pandoc
                        , ( "id" , MetaString "6" )
                        , ( "issued" , MetaString "2016" )
                        , ( "language" , MetaInlines [ Str "en" ] )
-                       , ( "page" , MetaString "3751\8211\&3777" )
+                       , ( "page"
+                         , MetaInlines [ Str "3751\8211\&3777" ]
+                         )
                        , ( "title"
                          , MetaInlines
                              [ Str "The"
@@ -297,7 +294,7 @@ Pandoc
                              ]
                          )
                        , ( "type" , MetaString "article-journal" )
-                       , ( "volume" , MetaString "9" )
+                       , ( "volume" , MetaInlines [ Str "9" ] )
                        ])
                 ]
             )
@@ -412,7 +409,7 @@ Pandoc
               { citationId = "10"
               , citationPrefix = [ Str "prefix" ]
               , citationSuffix =
-                  [ Str ",", Space , Str "2" , Space , Str "suffix" ]
+                  [ Str "," , Space , Str "2" , Space , Str "suffix" ]
               , citationMode = NormalCitation
               , citationNoteNum = 0
               , citationHash = 0

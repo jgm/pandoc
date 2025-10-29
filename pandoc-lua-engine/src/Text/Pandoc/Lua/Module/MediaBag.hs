@@ -18,8 +18,7 @@ import Data.Version (makeVersion)
 import HsLua ( LuaE, DocumentedFunction, Module (..)
              , (<#>), (###), (=#>), (=?>), (#?), defun, functionResult
              , opt, parameter, since, stringParam, textParam)
-import Text.Pandoc.Class ( CommonState (..), fetchItem, fillMediaBag
-                         , getMediaBag, modifyCommonState, setMediaBag)
+import Text.Pandoc.Class ( fetchItem, fillMediaBag, getMediaBag, setMediaBag )
 import Text.Pandoc.Class.IO (writeMedia)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.Marshal.Pandoc (peekPandoc, pushPandoc)
@@ -71,8 +70,9 @@ documentedModule = Module
 -- | Delete a single item from the media bag.
 delete :: DocumentedFunction PandocError
 delete = defun "delete"
-  ### (\fp -> unPandocLua $ modifyCommonState
-              (\st -> st { stMediaBag = MB.deleteMedia fp (stMediaBag st) }))
+  ### (\fp -> unPandocLua $ do
+          mb <- getMediaBag
+          setMediaBag $ MB.deleteMedia fp mb)
   <#> stringParam "filepath"
       ("Filename of the item to deleted. The media bag will be " <>
        "left unchanged if no entry with the given filename exists.")
@@ -82,7 +82,7 @@ delete = defun "delete"
 -- | Delete all items from the media bag.
 empty :: DocumentedFunction PandocError
 empty = defun "empty"
-  ### unPandocLua (modifyCommonState (\st -> st { stMediaBag = mempty }))
+  ### unPandocLua (setMediaBag mempty)
   =#> []
   #? "Clear-out the media bag, deleting all items."
 

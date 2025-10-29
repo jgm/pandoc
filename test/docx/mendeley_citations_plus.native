@@ -7,9 +7,9 @@ Pandoc
                 [ MetaMap
                     (fromList
                        [ ( "DOI"
-                         , MetaInlines [ Str "10.1145/1929887.1929902" ]
+                         , MetaString "10.1145/1929887.1929902"
                          )
-                       , ( "ISSN" , MetaInlines [ Str "2153-2184" ] )
+                       , ( "ISSN" , MetaString "2153-2184" )
                        , ( "author"
                          , MetaList
                              [ MetaMap
@@ -121,9 +121,9 @@ Pandoc
                              [ Str "ACM" , Space , Str "Inroads" ]
                          )
                        , ( "id" , MetaString "ITEM-1" )
-                       , ( "issue" , MetaString "1" )
+                       , ( "issue" , MetaInlines [ Str "1" ] )
                        , ( "issued" , MetaString "2011-02" )
-                       , ( "page" , MetaString "32-37" )
+                       , ( "page" , MetaInlines [ Str "32-37" ] )
                        , ( "publisher" , MetaInlines [ Str "ACM" ] )
                        , ( "publisher-place"
                          , MetaInlines
@@ -152,7 +152,7 @@ Pandoc
                              ]
                          )
                        , ( "type" , MetaString "article-journal" )
-                       , ( "volume" , MetaString "2" )
+                       , ( "volume" , MetaInlines [ Str "2" ] )
                        ])
                 , MetaMap
                     (fromList
@@ -206,7 +206,7 @@ Pandoc
                              ]
                          )
                        , ( "id" , MetaString "ITEM-2" )
-                       , ( "issue" , MetaString "4" )
+                       , ( "issue" , MetaInlines [ Str "4" ] )
                        , ( "issued" , MetaString "2015" )
                        , ( "title"
                          , MetaInlines
@@ -246,7 +246,7 @@ Pandoc
                              ]
                          )
                        , ( "type" , MetaString "article-journal" )
-                       , ( "volume" , MetaString "6" )
+                       , ( "volume" , MetaInlines [ Str "6" ] )
                        ])
                 ]
             )
@@ -268,7 +268,7 @@ Pandoc
               { citationId = "ITEM-1"
               , citationPrefix = [ Str "prefix" ]
               , citationSuffix =
-                  [ Str ",", Space , Str "123" , Space , Str "suffix" ]
+                  [ Str "," , Space , Str "123" , Space , Str "suffix" ]
               , citationMode = NormalCitation
               , citationNoteNum = 0
               , citationHash = 0
@@ -302,7 +302,12 @@ Pandoc
               { citationId = "ITEM-1"
               , citationPrefix = [ Str "prefix" ]
               , citationSuffix =
-                  [ Str ",", Space , Str "10-20" , Space , Str "suffix" ]
+                  [ Str ","
+                  , Space
+                  , Str "10-20"
+                  , Space
+                  , Str "suffix"
+                  ]
               , citationMode = NormalCitation
               , citationNoteNum = 0
               , citationHash = 0

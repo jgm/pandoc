@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Readers.Org.Inlines
-   Copyright   : Copyright (C) 2014-2024 Albert Krewinkel
-   License     : GNU GPL, version 2 or above
+   Copyright   : Copyright (C) 2014-2025 Albert Krewinkel
+   License     : GPL-2.0-or-later
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
@@ -88,17 +88,18 @@ inline =
          , inlineCodeBlock
          , str
          , endline
+         , subscript   -- takes precedence over underlined text
+         , superscript
          , emphasizedText
          , code
          , math
          , displayMath
          , verbatim
-         , subscript
-         , superscript
          , inlineLaTeX
          , exportSnippet
          , macro
-         , smart
+         , smartQuotes
+         , specialStrings
          , symbol
          ] <* (guard =<< newlinesCountWithinLimits)
   <?> "inline"
@@ -199,10 +200,10 @@ addSuffixToLastItem aff cs = do
                                 citationSuffix d <> B.toList aff' }])
 
 citeItems :: PandocMonad m => OrgParser m (F [Citation])
-citeItems = sequence <$> citeItem `sepBy1` (char ';')
+citeItems = sequence <$> sepBy1' citeItem (char ';' <* void (many spaceChar))
 
 citeItem :: PandocMonad m => OrgParser m (F Citation)
-citeItem = do
+citeItem = try $ do
   pref <- citePrefix
   itemKey <- orgCiteKey
   suff <- citeSuffix
@@ -246,37 +247,36 @@ citePrefix =
 
 citeSuffix :: PandocMonad m => OrgParser m (F Inlines)
 citeSuffix =
-  rawAffix False >>= parseFromString parseSuffix
- where
-   parseSuffix = do
-     hasSpace <- option False
-              (True <$ try (spaceChar >> skipSpaces >> lookAhead nonspaceChar))
-     ils <- trimInlinesF . mconcat <$> many inline
-     return $ if hasSpace
-                 then (B.space <>) <$> ils
-                 else ils
+  rawAffix False >>= parseFromString (mconcat <$> many inline)
 
 citeStyle :: PandocMonad m => OrgParser m (CiteStyle, [CiteVariant])
-citeStyle = option (DefStyle, []) $ do
-  sty <- option DefStyle $ try $ char '/' *> orgCiteStyle
+citeStyle = do
+  sty <- option NilStyle $ try $ char '/' *> orgCiteStyle
   variants <- option [] $ try $ char '/' *> orgCiteVariants
   return (sty, variants)
 
 orgCiteStyle :: PandocMonad m => OrgParser m CiteStyle
-orgCiteStyle = choice $ map try
-  [ NoAuthorStyle <$ string "noauthor"
-  , NoAuthorStyle <$ string "na"
-  , LocatorsStyle <$ string "locators"
-  , LocatorsStyle <$ char 'l'
-  , NociteStyle <$ string "nocite"
-  , NociteStyle <$ char 'n'
-  , TextStyle <$ string "text"
-  , TextStyle <$ char 't'
-  ]
+orgCiteStyle = try $ do
+  s <- many1 letter
+  case s of
+    "author" -> pure AuthorStyle
+    "a" -> pure AuthorStyle
+    "noauthor" -> pure NoAuthorStyle
+    "na" -> pure NoAuthorStyle
+    "nocite" -> pure NociteStyle
+    "n" -> pure NociteStyle
+    "text" -> pure TextStyle
+    "t" -> pure TextStyle
+    "note" -> pure NoteStyle
+    "ft" -> pure NoteStyle
+    "numeric" -> pure NumericStyle
+    "nb" -> pure NumericStyle
+    "nil" -> pure NilStyle
+    _ -> fail $ "Unknown org cite style " <> show s
 
 orgCiteVariants :: PandocMonad m => OrgParser m [CiteVariant]
 orgCiteVariants =
-  (fullnameVariant `sepBy1` (char '-')) <|> (many1 onecharVariant)
+  (sepBy1' fullnameVariant (char '-')) <|> (many1 onecharVariant)
  where
   fullnameVariant = choice $ map try
      [ Bare <$ string "bare"
@@ -290,11 +290,14 @@ orgCiteVariants =
      ]
 
 data CiteStyle =
-    NoAuthorStyle
+    AuthorStyle
+  | NoAuthorStyle
   | LocatorsStyle
   | NociteStyle
   | TextStyle
-  | DefStyle
+  | NoteStyle
+  | NumericStyle
+  | NilStyle
   deriving Show
 
 data CiteVariant =
@@ -591,11 +594,25 @@ verbatim  = return . B.codeWith ("", ["verbatim"], []) <$> verbatimBetween '='
 code      :: PandocMonad m => OrgParser m (F Inlines)
 code      = return . B.code     <$> verbatimBetween '~'
 
-subscript   :: PandocMonad m => OrgParser m (F Inlines)
-subscript   = fmap B.subscript   <$> try (char '_' *> subOrSuperExpr)
+-- | Returns 'True' if the parser position right after a string, and 'False'
+-- otherwise.
+isAfterString :: PandocMonad m => OrgParser m Bool
+isAfterString = do
+  pos <- getPosition
+  st  <- getState
+  pure $ getLastStrPos st == Just pos
 
+-- | Parses subscript markup. Subscripts must be preceded by a string.
+subscript   :: PandocMonad m => OrgParser m (F Inlines)
+subscript   = do
+  guard =<< isAfterString
+  fmap B.subscript   <$> try (char '_' *> subOrSuperExpr)
+
+-- | Parses superscript markup. Superscript must be preceded by a string.
 superscript :: PandocMonad m => OrgParser m (F Inlines)
-superscript = fmap B.superscript <$> try (char '^' *> subOrSuperExpr)
+superscript = do
+  guard =<< isAfterString
+  fmap B.superscript <$> try (char '^' *> subOrSuperExpr)
 
 math      :: PandocMonad m => OrgParser m (F Inlines)
 math      = return . B.math      <$> choice [ math1CharBetween '$'
@@ -890,29 +907,27 @@ macro = try $ do
   escapedComma = try $ char '\\' *> oneOf ",\\"
   eoa = string ")}}}"
 
-smart :: PandocMonad m => OrgParser m (F Inlines)
-smart = choice [doubleQuoted, singleQuoted, orgApostrophe, orgDash, orgEllipses]
+smartQuotes :: PandocMonad m => OrgParser m (F Inlines)
+smartQuotes = do
+  guard =<< getExportSetting exportSmartQuotes
+  choice [doubleQuoted, singleQuoted, orgApostrophe]
   where
-    orgDash = do
-      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      pure <$> dash <* updatePositions '-'
-    orgEllipses = do
-      guardOrSmartEnabled =<< getExportSetting exportSpecialStrings
-      pure <$> ellipses <* updatePositions '.'
     orgApostrophe = do
-      guardEnabled Ext_smart
       (char '\'' <|> char '\8217') <* updateLastPreCharPos
                                    <* updateLastForbiddenCharPos
       returnF (B.str "\x2019")
 
-guardOrSmartEnabled :: PandocMonad m => Bool -> OrgParser m ()
-guardOrSmartEnabled b = do
-  smartExtension <- extensionEnabled Ext_smart <$> getOption readerExtensions
-  guard (b || smartExtension)
+specialStrings :: PandocMonad m => OrgParser m (F Inlines)
+specialStrings = do
+  guard =<< getExportSetting exportSpecialStrings
+  choice [orgDash, orgEllipses, shyHyphen]
+  where
+    shyHyphen   = pure <$> (B.str "\173" <$ string "\\-") <* updatePositions '-'
+    orgDash     = pure <$> dash <* updatePositions '-'
+    orgEllipses = pure <$> ellipses <* updatePositions '.'
 
 singleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 singleQuoted = try $ do
-  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   singleQuoteStart
   updatePositions '\''
   withQuoteContext InSingleQuote $
@@ -924,7 +939,6 @@ singleQuoted = try $ do
 -- in the same paragraph.
 doubleQuoted :: PandocMonad m => OrgParser m (F Inlines)
 doubleQuoted = try $ do
-  guardOrSmartEnabled =<< getExportSetting exportSmartQuotes
   doubleQuoteStart
   updatePositions '"'
   contents <- mconcat <$> many (try $ notFollowedBy doubleQuoteEnd >> inline)

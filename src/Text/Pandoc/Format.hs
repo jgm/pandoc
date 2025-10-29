@@ -181,6 +181,7 @@ formatFromFilePath x =
     ".ctx"      -> defFlavor "context"
     ".db"       -> defFlavor "docbook"
     ".dj"       -> defFlavor "djot"
+    ".djvu"     -> defFlavor "djvu" -- so we get an "unknown reader" error
     ".doc"      -> defFlavor "doc"  -- so we get an "unknown reader" error
     ".docx"     -> defFlavor "docx"
     ".dokuwiki" -> defFlavor "dokuwiki"
@@ -204,6 +205,9 @@ formatFromFilePath x =
     ".ms"       -> defFlavor "ms"
     ".muse"     -> defFlavor "muse"
     ".native"   -> defFlavor "native"
+    ".ods"      -> defFlavor "ods"  -- so we get an "unknown reader" error
+    ".odp"      -> defFlavor "odp"  -- so we get an "unknown reader" error
+    ".odf"      -> defFlavor "odf"  -- so we get an "unknown reader" error
     ".odt"      -> defFlavor "odt"
     ".opml"     -> defFlavor "opml"
     ".org"      -> defFlavor "org"
@@ -229,6 +233,10 @@ formatFromFilePath x =
     ".typ"      -> defFlavor "typst"
     ".wiki"     -> defFlavor "mediawiki"
     ".xhtml"    -> defFlavor "html"
+    ".xls"      -> defFlavor "xls"   -- so we get an "unknown reader" error
+    ".xlsx"     -> defFlavor "xlsx"  -- so we get an "unknown reader" error
+    ".xml"      -> defFlavor "xml"
+    ".zip"      -> defFlavor "zip"  -- so we get an "unknown reader" error
     ['.',y]     | y `elem` ['1'..'9'] -> defFlavor "man"
     _           -> Nothing
  where

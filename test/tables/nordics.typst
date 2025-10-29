@@ -5,7 +5,7 @@
     table.header(table.cell(align: center)[Name], table.cell(align: center)[Capital], table.cell(align: center)[Population
       \
       (in 2018)], table.cell(align: center)[Area \
-      (in km#super[2];)],),
+      (in km#super[2])],),
     table.hline(),
     [Denmark], [Copenhagen], [5,809,502], [43,094],
     [Finland], [Helsinki], [5,537,364], [338,145],

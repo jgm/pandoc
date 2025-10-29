@@ -118,7 +118,7 @@ Accuracy~\eqref{eq:Accuracy} is the proportion, measuring true results among all
 , Para
     [ Math
         DisplayMath
-        "\\label{eq:Accuracy}\n  Accuracy = \\frac{t_p + t_n}{t_p + f_p + f_n + t_n}"
+        "\\begin{equation}\n  \\label{eq:Accuracy}\n  Accuracy = \\frac{t_p + t_n}{t_p + f_p + f_n + t_n}\n\\end{equation}"
     ]
 ]
 ```

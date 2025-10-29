@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
-   Copyright   : Copyright (C) 2012-2024 John MacFarlane
+   Copyright   : Copyright (C) 2012-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -48,6 +48,7 @@ import Data.Time
 import qualified Text.Pandoc.UTF8 as UTF8
 import Text.Pandoc.Definition
 import Text.Pandoc.Error
+import Text.Pandoc.Highlighting (defaultStyle)
 import Text.Pandoc.MIME (getMimeTypeDef)
 import Text.Pandoc.Options
 import Text.Pandoc.Readers.Docx.Parse (extractTarget)
@@ -350,7 +351,11 @@ writeDocx opts doc = do
 
   let newstyles = map newParaPropToOpenXml newDynamicParaProps ++
                   map newTextPropToOpenXml newDynamicTextProps ++
-                  maybe [] (styleToOpenXml styleMaps) (writerHighlightStyle opts)
+                  (case writerHighlightMethod opts of
+                     Skylighting sty -> styleToOpenXml styleMaps sty
+                     DefaultHighlighting -> styleToOpenXml styleMaps
+                                              defaultStyle
+                     _ -> [])
   let styledoc' = styledoc{ elContent = elContent styledoc ++
                                            map Elem newstyles }
   let styleEntry = toEntry stylepath epochtime $ renderXml styledoc'

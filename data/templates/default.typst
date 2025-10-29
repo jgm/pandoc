@@ -22,6 +22,11 @@
   kind: image
 ): set figure.caption(position: $if(figure-caption-position)$$figure-caption-position$$else$bottom$endif$)
 
+$if(highlighting-definitions)$
+// syntax highlighting functions from skylighting:
+$highlighting-definitions$
+
+$endif$
 $if(template)$
 #import "$template$": conf
 $else$
@@ -132,6 +137,9 @@ $endif$
 $body$
 
 $if(citations)$
+$for(nocite-ids)$
+#cite(label("${it}"), form: none)
+$endfor$
 $if(csl)$
 
 #set bibliography(style: "$csl$")
@@ -141,7 +149,7 @@ $elseif(bibliographystyle)$
 $endif$
 $if(bibliography)$
 
-#bibliography($for(bibliography)$"$bibliography$"$sep$,$endfor$)
+#bibliography(($for(bibliography)$"$bibliography$"$sep$,$endfor$)$if(full-bibliography)$, full: true$endif$)
 $endif$
 $endif$
 $for(include-after)$

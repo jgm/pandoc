@@ -1,24 +1,60 @@
-[Table ("",[],[]) (Caption Nothing
- [])
- [(AlignDefault,ColWidth 0.22069570301081556)
- ,(AlignDefault,ColWidth 0.22069570301081556)
- ,(AlignDefault,ColWidth 0.5586085939783689)]
- (TableHead ("",[],[])
- [Row ("",[],[])
-   [Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
-    [Plain [Strong [Str "col1Header"]]]
-   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
-    [Plain [Strong [Str "col2Header"]]]
-   ,Cell ("",[],[]) AlignCenter (RowSpan 1) (ColSpan 1)
-    [Plain [Strong [Str "col3Header"]]]]])
- [(TableBody ("",[],[]) (RowHeadColumns 0)
-  []
-  [Row ("",[],[])
-   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "col1",Space,Str "content"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "Body",Space,Str "copy"]]
-   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
-    [Plain [Str "col3",Space,Str "content"]]]])]
- (TableFoot ("",[],[])
- [])]
+[ Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidth 0.16167023554603854 )
+    , ( AlignDefault , ColWidth 0.16167023554603854 )
+    , ( AlignDefault , ColWidth 0.40920770877944324 )
+    ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignCenter
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Strong [ Str "col1Header" ] ] ]
+           , Cell
+               ( "" , [] , [] )
+               AlignCenter
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Strong [ Str "col2Header" ] ] ]
+           , Cell
+               ( "" , [] , [] )
+               AlignCenter
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Strong [ Str "col3Header" ] ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "col1" , Space , Str "content" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "Body" , Space , Str "copy" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "col3" , Space , Str "content" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+]

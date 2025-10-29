@@ -208,6 +208,7 @@ html5Attributes = Set.fromList
   , "draggable"
   , "enctype"
   , "enterkeyhint"
+  , "fetchpriority"
   , "for"
   , "form"
   , "formaction"

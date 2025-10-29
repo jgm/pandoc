@@ -43,9 +43,9 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \ifLuaTeX
-\usepackage[bidi=basic,shorthands=off,]{babel}
+\usepackage[bidi=basic,shorthands=off]{babel}
 \else
-\usepackage[bidi=default,shorthands=off,]{babel}
+\usepackage[bidi=default,shorthands=off]{babel}
 \fi
 \ifLuaTeX
   \usepackage{selnolig} % disable illegal ligatures
@@ -59,6 +59,12 @@
   \newcommand{\LR}[1]{\beginL #1\endL}
   \newenvironment{RTL}{\beginR}{\endR}
   \newenvironment{LTR}{\beginL}{\endL}
+\fi
+\ifluatex
+  \newcommand{\RL}[1]{\bgroup\textdir TRT#1\egroup}
+  \newcommand{\LR}[1]{\bgroup\textdir TLT#1\egroup}
+  \newenvironment{RTL}{\textdir TRT\pardir TRT\bodydir TRT}{}
+  \newenvironment{LTR}{\textdir TLT\pardir TLT\bodydir TLT}{}
 \fi
 \usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available

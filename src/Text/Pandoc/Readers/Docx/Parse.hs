@@ -110,6 +110,7 @@ data ReaderEnv = ReaderEnv { envNotes         :: Notes
                            , envParStyles     :: ParStyleMap
                            , envLocation      :: DocumentLocation
                            , envDocXmlPath    :: FilePath
+                           , envTextWidth     :: Int
                            }
                deriving Show
 
@@ -151,46 +152,26 @@ mapD f xs =
   in
    concatMapM handler xs
 
-isAltContentRun :: NameSpaces -> Element -> Bool
-isAltContentRun ns element
-  | isElem ns "w" "r" element
-  , Just _altContentElem <- findChildByName ns "mc" "AlternateContent" element
-  = True
-  | otherwise
-  = False
-
--- Elements such as <w:shape> are not always preferred
--- to be unwrapped. Only if they are part of an AlternateContent
--- element, they should be unwrapped.
--- This strategy prevents VML images breaking.
-unwrapAlternateContentElement :: NameSpaces -> Element -> [Element]
-unwrapAlternateContentElement ns element
-  | isElem ns "mc" "AlternateContent" element
-  || isElem ns "mc" "Fallback" element
-  || isElem ns "w" "pict" element
-  || isElem ns "v" "group" element
-  || isElem ns "v" "rect" element
-  || isElem ns "v" "roundrect" element
-  || isElem ns "v" "shape" element
-  || isElem ns "v" "textbox" element
-  || isElem ns "w" "txbxContent" element
-  = concatMap (unwrapAlternateContentElement ns) (elChildren element)
-  | otherwise
-  = unwrapElement ns element
-
 unwrapElement :: NameSpaces -> Element -> [Element]
 unwrapElement ns element
   | isElem ns "w" "sdt" element
   , Just sdtContent <- findChildByName ns "w" "sdtContent" element
   = concatMap (unwrapElement ns) (elChildren sdtContent)
-  | isElem ns "w" "r" element
-  , Just alternateContentElem <- findChildByName ns "mc" "AlternateContent" element
-  = unwrapAlternateContentElement ns alternateContentElem
   | isElem ns "w" "smartTag" element
   = concatMap (unwrapElement ns) (elChildren element)
   | isElem ns "w" "p" element
-  , Just (modified, altContentRuns) <- extractChildren element (isAltContentRun ns)
-  = (unwrapElement ns modified) ++ concatMap (unwrapElement ns) altContentRuns
+  , textboxes@(_:_) <- findChildrenByName ns "w" "r" element >>=
+                       findChildrenByName ns "mc" "AlternateContent" >>=
+                       findChildrenByName ns "mc" "Fallback" >>=
+                       findChildrenByName ns "w" "pict" >>=
+                       findChildrenByName ns "v" "shape" >>=
+                       findChildrenByName ns "v" "textbox" >>=
+                       findChildrenByName ns "w" "txbxContent"
+  = concatMap (unwrapElement ns) (concatMap elChildren textboxes) -- handle #9214
+  | isElem ns "w" "r" element
+  , Just fallback <- findChildByName ns "mc" "AlternateContent" element >>=
+                     findChildByName ns "mc" "Fallback"
+  = [element{ elContent = concatMap (unwrapContent ns) (elContent fallback) }]
   | otherwise
   = [element{ elContent = concatMap (unwrapContent ns) (elContent element) }]
 
@@ -292,7 +273,7 @@ data BodyPart = Paragraph ParagraphStyle [ParPart]
               | HRule
               deriving Show
 
-type TblGrid = [Integer]
+type TblGrid = [Double]
 
 newtype TblLook = TblLook {firstRowFormatting::Bool}
               deriving Show
@@ -423,6 +404,7 @@ archiveToDocxWithWarnings archive = do
       rels      = archiveToRelationships archive docXmlPath
       media     = filteredFilesFromArchive archive filePathIsMedia
       (styles, parstyles) = archiveToStyles archive
+      textWidth = archiveToTextWidth archive
       rEnv = ReaderEnv { envNotes = notes
                        , envComments = comments
                        , envNumbering = numbering
@@ -433,6 +415,7 @@ archiveToDocxWithWarnings archive = do
                        , envParStyles = parstyles
                        , envLocation = InDocument
                        , envDocXmlPath = docXmlPath
+                       , envTextWidth = fromMaybe 9360 textWidth
                        }
       rState = ReaderState { stateWarnings = []
                            , stateFldCharState = []
@@ -656,6 +639,20 @@ archiveToNumbering :: Archive -> Numbering
 archiveToNumbering archive =
   fromMaybe (Numbering mempty [] []) (archiveToNumbering' archive)
 
+archiveToTextWidth :: Archive -> Maybe Int
+archiveToTextWidth zf = do
+  entry <- findEntryByPath "word/document.xml" zf
+  docElem <- parseXMLFromEntry entry
+  let ns = elemToNameSpaces docElem
+  sectElem <- findChildByName ns "w" "body" docElem >>= findChildByName ns "w" "sectPr"
+  pgWidth <- findChildByName ns "w" "pgSz" sectElem
+               >>= findAttrByName ns "w" "w" >>= safeRead
+  pgMar <- findChildByName ns "w" "pgMar" sectElem
+  leftMargin <- findAttrByName ns "w" "left" pgMar >>= safeRead
+  rightMargin <- findAttrByName ns "w" "right" pgMar >>= safeRead
+  gutter <- findAttrByName ns "w" "gutter" pgMar >>= safeRead
+  return $ pgWidth - (leftMargin + rightMargin + gutter)
+
 elemToNotes :: NameSpaces -> Text -> Element -> Maybe (M.Map T.Text Element)
 elemToNotes ns notetype element
   | isElem ns "w" (notetype <> "s") element =
@@ -684,11 +681,20 @@ elemToComments _ _ = M.empty
 ---------------------------------------------
 
 elemToTblGrid :: NameSpaces -> Element -> D TblGrid
-elemToTblGrid ns element | isElem ns "w" "tblGrid" element =
+elemToTblGrid ns element | isElem ns "w" "tblGrid" element = do
   let cols = findChildrenByName ns "w" "gridCol" element
-  in
-   mapD (\e -> maybeToD (findAttrByName ns "w" "w" e >>= stringToInteger))
-   cols
+  textWidth <- asks envTextWidth
+  -- space between cols is 10 twips, so we subtract this:
+  let totalWidth = textWidth - (10 * (length cols - 1))
+  let toFraction :: Int -> Double
+      toFraction x = fromIntegral x / fromIntegral totalWidth
+  let normalizeFractions xs =
+        case sum xs of
+          tot | tot > 1.0 -> map (/ tot) xs
+          _ -> xs
+  normalizeFractions <$>
+    mapD (\e -> maybeToD (findAttrByName ns "w" "w" e >>=
+                          fmap toFraction . safeRead)) cols
 elemToTblGrid _ _ = throwError WrongElem
 
 elemToTblLook :: NameSpaces -> Element -> D TblLook
@@ -1190,15 +1196,6 @@ childElemToRun ns element
 childElemToRun _ _ = throwError WrongElem
 
 elemToRun :: NameSpaces -> Element -> D [Run]
-elemToRun ns element
-  | isElem ns "w" "r" element
-  , Just altCont <- findChildByName ns "mc" "AlternateContent" element =
-    do let choices = findChildrenByName ns "mc" "Choice" altCont
-           choiceChildren = concatMap (take 1 . elChildren) choices
-       outputs <- mapD (childElemToRun ns) choiceChildren
-       case outputs of
-         r : _ -> return r
-         []    -> throwError WrongElem
 elemToRun ns element
   | isElem ns "w" "r" element
   , Just drawingElem <- findChildByName ns "w" "drawing" element =

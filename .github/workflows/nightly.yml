@@ -13,7 +13,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Install ghc
       run: |
@@ -34,7 +34,7 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: nightly-linux
         path: nightly-linux
@@ -44,7 +44,7 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Install ghc
       run: |
         ghcup install ghc --set 9.8
@@ -64,7 +64,7 @@ jobs:
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: nightly-windows
         path: nightly-windows
@@ -74,7 +74,7 @@ jobs:
     runs-on: macos-13
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Install ghcup
       run: |
         brew install ghcup
@@ -95,7 +95,7 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: nightly-macos
         path: nightly-macos

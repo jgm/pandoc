@@ -42,6 +42,8 @@ return {
         fancy_lists = false,
         gfm_auto_identifiers = false,
         smart = false,
+        smart_quotes = false,
+        special_strings = true,
         task_lists = true,
       }
       assert.are_same(format.extensions 'org', org_default_exts)

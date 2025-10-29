@@ -22,7 +22,7 @@ module Text.Pandoc.Readers.Markdown (
 
 import Control.Monad
 import Control.Monad.Except (throwError)
-import Data.Bifunctor (second)
+import qualified Data.Bifunctor as Bifunctor
 import Data.Char (isAlphaNum, isPunctuation, isSpace)
 import Data.List (transpose, elemIndex, sortOn, foldl')
 import qualified Data.Map as M
@@ -190,6 +190,27 @@ litChar = T.singleton <$> escapedChar'
        <|> T.singleton <$> noneOf "\n"
        <|> try (newline >> notFollowedBy blankline >> return " ")
 
+litBetween :: PandocMonad m => Char -> Char -> MarkdownParser m Text
+litBetween op cl = try $ do
+  char op
+  mconcat <$> (manyTill litChar (char cl))
+
+litCharNoSpace :: PandocMonad m => MarkdownParser m Text
+litCharNoSpace = T.singleton <$> escapedChar''
+       <|> characterReference
+       <|> T.singleton <$> noneOf "\n \r\t"
+ where
+   escapedChar'' = do
+     c <- escapedChar'
+     pure $ case c of
+       ' ' -> '\160'
+       _ -> c
+
+litBetweenNoSpace :: PandocMonad m => Char -> Char -> MarkdownParser m Text
+litBetweenNoSpace op cl = try $ do
+  char op
+  mconcat <$> (manyTill litCharNoSpace (char cl))
+
 -- | Parse a sequence of elements between square brackets,
 -- including between balanced pairs of square brackets.
 -- Skip brackets in standard inline escapes, code, raw HTML or LaTeX.
@@ -356,11 +377,9 @@ referenceKey = try $ do
                                      try (spnl <* keyValAttr)
                     notFollowedBy' (() <$ reference)
                     mconcat <$> many1 (notFollowedBy space *> litChar)
-  let betweenAngles = try $ char '<' >>
-                             mconcat <$> (manyTill litChar (char '>'))
   rebase <- option False (True <$ guardEnabled Ext_rebase_relative_paths)
   src <- (if rebase then rebasePath pos else id) <$>
-             (try betweenAngles <|> sourceURL)
+             (try (litBetween '<' '>') <|> sourceURL)
   tit <- option "" referenceTitle
   attr   <- option nullAttr $ try $
               do guardEnabled Ext_link_attributes
@@ -1057,8 +1076,12 @@ implicitFigure (ident, classes, attribs) capt url title =
   let alt = case "alt" `lookup` attribs of
               Just alt'       -> B.text alt'
               _               -> capt
-      attribs' = filter ((/= "alt") . fst) attribs
-      figattr = (ident, mempty, mempty)
+      attribs' = filter ((/= "latex-placement") . fst)
+                    (filter ((/= "alt") . fst) attribs)
+      figattribs = case lookup "latex-placement" attribs of
+        Just p -> [("latex-placement", p)]
+        _      -> mempty
+      figattr = (ident, mempty, figattribs)
       caption = B.simpleCaption $ B.plain capt
       figbody = B.plain $ B.imageWith ("", classes, attribs') url title alt
   in B.figureWith figattr caption figbody
@@ -1204,7 +1227,7 @@ dashedLine ch = do
 -- one (or zero) line of text.
 simpleTableHeader :: PandocMonad m
                   => Bool  -- ^ Headerless table
-                  -> MarkdownParser m (F [Blocks], [Alignment], [Int])
+                  -> MarkdownParser m (F [[Blocks]], [Alignment], [Int])
 simpleTableHeader headless = try $ do
   rawContent  <- if headless
                     then return ""
@@ -1226,7 +1249,7 @@ simpleTableHeader headless = try $ do
   heads <- fmap sequence
            $
             mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads'
-  return (heads, aligns, indices)
+  return (fmap (:[]) heads, aligns, indices)
 
 -- Returns an alignment type for a table, based on a list of strings
 -- (the rows of the column header) and a number (the length of the
@@ -1239,7 +1262,7 @@ alignType strLst len =
   let nonempties = filter (not . T.null) $ map trimr strLst
       (leftSpace, rightSpace) =
            case sortOn T.length nonempties of
-                 (x:_) -> (T.head x `elem` [' ', '\t'], T.length x < len)
+                 (x:_) -> (T.head x `elem` [' ', '\t'], realLength x < len)
                  []    -> (False, False)
   in  case (leftSpace, rightSpace) of
         (True,  False) -> AlignRight
@@ -1282,14 +1305,19 @@ multilineRow indices = do
 
 -- Parses a table caption:  inlines beginning with 'Table:'
 -- and followed by blank lines.
-tableCaption :: PandocMonad m => MarkdownParser m (F Inlines)
+tableCaption :: PandocMonad m => MarkdownParser m (F Inlines, Attr)
 tableCaption = do
   guardEnabled Ext_table_captions
   try $ do
     skipNonindentSpaces
     (string ":" <* notFollowedBy (satisfy isPunctuation)) <|>
       (oneOf ['T','t'] >> string "able:")
-    trimInlinesF <$> inlines1 <* blanklines
+    let attributes' = guardEnabled Ext_table_attributes *> attributes
+    ils <- trimInlinesF . mconcat <$>
+               many (notFollowedBy (attributes' *> blanklines) *> inline)
+    attr <- option nullAttr attributes'
+    blanklines
+    pure (ils, attr)
 
 -- Parse a simple table with '---' header and one line per row.
 simpleTable :: PandocMonad m
@@ -1303,7 +1331,8 @@ simpleTable headless = do
               (if headless then tableFooter else tableFooter <|> blanklines')
   -- All columns in simple tables have default widths.
   let useDefaultColumnWidths tc =
-        let cs' = map (second (const ColWidthDefault)) $ tableColSpecs tc
+        let cs' = map (Bifunctor.second (const ColWidthDefault)) $
+                   tableColSpecs tc
         in tc {tableColSpecs = cs'}
   return $ useDefaultColumnWidths <$> tableComponents
 
@@ -1320,7 +1349,7 @@ multilineTable headless =
 
 multilineTableHeader :: PandocMonad m
                      => Bool -- ^ Headerless table
-                     -> MarkdownParser m (F [Blocks], [Alignment], [Int])
+                     -> MarkdownParser m (F [[Blocks]], [Alignment], [Int])
 multilineTableHeader headless = try $ do
   unless headless $
      tableSep >> notFollowedBy blankline
@@ -1349,7 +1378,7 @@ multilineTableHeader headless = try $ do
                     else map (T.unlines . map trim) rawHeadsList
   heads <- fmap sequence $
             mapM (parseFromString' (mconcat <$> many plain).trim) rawHeads
-  return (heads, aligns, indices')
+  return (fmap (:[]) heads, aligns, indices')
 
 -- Parse a grid table:  starts with row of '-' on top, then header
 -- (which may be grid), then the rows,
@@ -1394,7 +1423,7 @@ pipeTable = try $ do
   (rows :: F [[Blocks]]) <- sequence <$>
                             mapM (fmap sequence . mapM cellContents) lines''
   return $
-    toTableComponents' NormalizeHeader aligns widths <$> headCells <*> rows
+    toTableComponents' NormalizeHeader aligns widths <$> fmap (:[]) headCells <*> rows
 
 sepPipe :: PandocMonad m => MarkdownParser m ()
 sepPipe = try $ do
@@ -1453,7 +1482,8 @@ scanForPipe = do
 
 table :: PandocMonad m => MarkdownParser m (F Blocks)
 table = try $ do
-  frontCaption <- option Nothing (Just <$> tableCaption)
+  (frontCaption, frontAttr) <- option (Nothing, nullAttr)
+                               (Bifunctor.first Just <$> tableCaption)
   tableComponents <-
          (guardEnabled Ext_pipe_tables >> try (scanForPipe >> pipeTable)) <|>
          (guardEnabled Ext_multiline_tables >> try (multilineTable False)) <|>
@@ -1464,13 +1494,14 @@ table = try $ do
          (guardEnabled Ext_grid_tables >>
                 try gridTable) <?> "table"
   optional blanklines
-  caption <- case frontCaption of
-                  Nothing -> option (return mempty) tableCaption
-                  Just c  -> return c
+  (caption, attr) <- case frontCaption of
+                        Nothing -> option (return mempty, nullAttr) tableCaption
+                        Just c  -> return (c, frontAttr)
   return $ do
     caption' <- caption
     (TableComponents _attr _capt colspecs th tb tf) <- tableComponents
-    return $ B.table (B.simpleCaption $ B.plain caption') colspecs th tb tf
+    return $ B.tableWith attr
+                (B.simpleCaption $ B.plain caption') colspecs th tb tf
 
 --
 -- inline
@@ -1492,7 +1523,7 @@ inline = do
      '`'     -> code
      '_'     -> strongOrEmph
      '*'     -> strongOrEmph
-     '^'     -> superscript <|> inlineNote -- in this order bc ^[link](/foo)^
+     '^'     -> inlineNote <|> superscript
      '['     -> note <|> cite <|> bracketedSpan <|> wikilink B.linkWith <|> link
      '!'     -> image
      '$'     -> math
@@ -1698,29 +1729,29 @@ mark = fmap (B.spanWith ("",["mark"],[])) <$>
 
 superscript :: PandocMonad m => MarkdownParser m (F Inlines)
 superscript = do
-  fmap B.superscript <$> try (do
-    char '^'
-    mconcat <$> (try regularSuperscript <|> try mmdShortSuperscript))
-      where regularSuperscript = many1Till (do guardEnabled Ext_superscript
-                                               notFollowedBy spaceChar
-                                               notFollowedBy newline
-                                               inline) (char '^')
-            mmdShortSuperscript = do guardEnabled Ext_short_subsuperscripts
-                                     result <- T.pack <$> many1 alphaNum
-                                     return $ return $ return $ B.str result
+  fmap B.superscript <$> (regularSuperscript <|> mmdShortSuperscript)
+      where
+        regularSuperscript = do
+          guardEnabled Ext_superscript
+          litBetweenNoSpace '^' '^' >>= parseFromString inlines
+        mmdShortSuperscript = try $ do
+          guardEnabled Ext_short_subsuperscripts
+          char '^'
+          result <- T.pack <$> many1 alphaNum
+          return $ return $ B.str result
 
 subscript :: PandocMonad m => MarkdownParser m (F Inlines)
 subscript = do
-  fmap B.subscript <$> try (do
-    char '~'
-    mconcat <$> (try regularSubscript <|> mmdShortSubscript))
-      where regularSubscript = many1Till (do guardEnabled Ext_subscript
-                                             notFollowedBy spaceChar
-                                             notFollowedBy newline
-                                             inline) (char '~')
-            mmdShortSubscript = do guardEnabled Ext_short_subsuperscripts
-                                   result <- T.pack <$> many1 alphaNum
-                                   return $ return $ return $ B.str result
+  fmap B.subscript <$> (regularSubscript <|> mmdShortSubscript)
+      where
+        regularSubscript = do
+          guardEnabled Ext_subscript
+          litBetweenNoSpace '~' '~' >>= parseFromString inlines
+        mmdShortSubscript = try $ do
+          guardEnabled Ext_short_subsuperscripts
+          char '~'
+          result <- T.pack <$> many1 alphaNum
+          return $ return $ B.str result
 
 whitespace :: PandocMonad m => MarkdownParser m (F Inlines)
 whitespace = spaceChar >> return <$> (lb <|> regsp) <?> "whitespace"
@@ -1800,9 +1831,7 @@ source = do
           <|> (notFollowedBy (oneOf " )") >> litChar)
           <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
-  let betweenAngles = try $
-         char '<' >> mconcat <$> (manyTill litChar (char '>'))
-  src <- try betweenAngles <|> try base64DataURI <|> sourceURL
+  src <- try (litBetween '<' '>') <|> try base64DataURI <|> sourceURL
   tit <- option "" linkTitle'
   skipSpaces
   char ')'
@@ -2043,6 +2072,7 @@ inlineNote = do
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
     contents <- inBalancedBrackets inlines
+    notFollowedBy (char '(' <|> char '[') -- ^[link](foo)^ is superscript
     updateState $ \st -> st{ stateInNote = False }
     return $ B.note . B.para <$> contents
 
@@ -2227,7 +2257,7 @@ bareloc c = try $ do
   rest <- option (return []) $ try $ char ';' >> spnl >> citeList
   spnl
   char ']'
-  notFollowedBy $ oneOf "[("
+  notFollowedBy $ oneOf "[({"
   return $ do
     suff' <- suff
     rest' <- rest

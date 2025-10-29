@@ -73,6 +73,7 @@ blocks = mconcat <$> manyTill block (void (lookAhead headerStart) <|> eof)
 block :: PandocMonad m => OrgParser m (F Blocks)
 block = choice [ mempty <$ blanklines
                , table
+               , dynamicBlock
                , orgBlock
                , figure
                , example
@@ -115,7 +116,7 @@ attrFromBlockAttributes BlockAttributes{..} =
 
 stringyMetaAttribute :: Monad m => OrgParser m (Text, Text)
 stringyMetaAttribute = try $ do
-  metaLineStart
+  metaLineStart *> notFollowedBy (stringAnyCase "begin" *> oneOf ":_")
   attrName <- T.toLower <$> many1TillChar nonspaceChar (char ':')
   skipSpaces
   attrValue <- anyLine <|> ("" <$ newline)
@@ -184,11 +185,11 @@ orgBlock = try $ do
     case T.toLower blkType of
       "export"    -> exportBlock
       "comment"   -> rawBlockLines (const mempty)
-      "html"      -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "latex"     -> rawBlockLines (return . B.rawBlock (lowercase blkType))
-      "ascii"     -> rawBlockLines (return . B.rawBlock (lowercase blkType))
+      "html"      -> rawBlockLines (return . B.rawBlock (T.toLower blkType))
+      "latex"     -> rawBlockLines (return . B.rawBlock (T.toLower blkType))
+      "ascii"     -> rawBlockLines (return . B.rawBlock (T.toLower blkType))
       "example"   -> exampleBlock blockAttrs
-      "quote"     -> parseBlockLines (fmap B.blockQuote)
+      "quote"     -> \x -> ignHeaders *> parseBlockLines (fmap B.blockQuote) x
       "verse"     -> verseBlock
       "src"       -> codeBlock blockAttrs
       "note"      -> admonitionBlock "note" blockAttrs
@@ -200,20 +201,23 @@ orgBlock = try $ do
         -- case-sensitive checks
         case blkType of
           "abstract" -> metadataBlock
-          _ -> parseBlockLines $
-                   let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
-                   in fmap $ B.divWith (ident, classes ++ [blkType], kv)
+          _ -> \bt -> do
+            params <- blockParameters
+            let (ident, classes, kv) = attrFromBlockAttributes blockAttrs
+                toDiv = (B.divWith (ident, classes ++ [blkType], kv <> params))
+            parseBlockLines (fmap toDiv) bt
  where
    blockHeaderStart :: Monad m => OrgParser m Text
-   blockHeaderStart = try $ skipSpaces *> stringAnyCase "#+begin_" *> orgArgWord
-
-   lowercase :: Text -> Text
-   lowercase = T.toLower
+   blockHeaderStart = try $ do
+     skipSpaces
+     metaLineStart
+     stringAnyCase "begin_"
+     many1Char (satisfy (not . isSpace))
 
 admonitionBlock :: PandocMonad m
                 => Text -> BlockAttributes -> Text -> OrgParser m (F Blocks)
 admonitionBlock blockType blockAttrs rawtext = do
-  bls <- parseBlockLines id rawtext
+  bls <- ignHeaders *> parseBlockLines id rawtext
   let id' = fromMaybe mempty $ blockAttrName blockAttrs
   pure $ fmap
     (B.divWith (id', [blockType], []) .
@@ -234,7 +238,7 @@ rawBlockLines :: Monad m => (Text   -> F Blocks) -> Text -> OrgParser m (F Block
 rawBlockLines f blockType = ignHeaders *> (f <$> rawBlockContent blockType)
 
 parseBlockLines :: PandocMonad m => (F Blocks -> F Blocks) -> Text -> OrgParser m (F Blocks)
-parseBlockLines f blockType = ignHeaders *> (f <$> parsedBlockContent)
+parseBlockLines f blockType = (f <$> parsedBlockContent)
  where
    parsedBlockContent :: PandocMonad m => OrgParser m (F Blocks)
    parsedBlockContent = try $ do
@@ -243,8 +247,13 @@ parseBlockLines f blockType = ignHeaders *> (f <$> parsedBlockContent)
 
 -- | Read the raw string content of a block
 rawBlockContent :: Monad m => Text -> OrgParser m Text
-rawBlockContent blockType = try $ do
-  blkLines <- manyTill rawLine blockEnder
+rawBlockContent blockType = rawBlockContent' $
+   stringAnyCase ("#+end_" <> blockType)
+
+-- | Read the raw string content of a block
+rawBlockContent' :: Monad m => OrgParser m Text -> OrgParser m Text
+rawBlockContent' blockEnder = try $ do
+  blkLines <- manyTill rawLine (try $ skipSpaces <* blockEnder)
   tabStop <- getOption readerTabStop
   trimP <- orgStateTrimLeadBlkIndent <$> getState
   -- split lines into indentation/contents tuples
@@ -263,9 +272,6 @@ rawBlockContent blockType = try $ do
  where
    rawLine :: Monad m => OrgParser m Text
    rawLine = try $ ("" <$ blankline) <|> anyLine
-
-   blockEnder :: Monad m => OrgParser m ()
-   blockEnder = try $ skipSpaces <* stringAnyCase ("#+end_" <> blockType)
 
    commaEscaped suff = case T.uncons suff of
      Just (',', cs)
@@ -307,6 +313,7 @@ verseBlock blockType = try $ do
 -- metadata under a key of the same name.
 metadataBlock :: PandocMonad m => Text -> OrgParser m (F Blocks)
 metadataBlock blockType = try $ do
+  ignHeaders
   content <- parseBlockLines id blockType
   meta'   <- orgStateMeta <$> getState
   updateState $ \st ->
@@ -427,15 +434,44 @@ blockOption = try $ do
   return (argKey, paramValue)
 
 orgParamValue :: Monad m => OrgParser m Text
-orgParamValue = try $ fmap T.pack $
+orgParamValue = try $
   skipSpaces
     *> notFollowedBy orgArgKey
-    *> noneOf "\n\r" `many1Till` endOfValue
+    *> ((char '"' *> manyChar (noneOf "\n\r\"") <* char '"') <|>
+        noneOf "\n\r" `many1TillChar` endOfValue)
     <* skipSpaces
  where
   endOfValue = lookAhead $  try (skipSpaces <* oneOf "\n\r")
                         <|> try (skipSpaces1 <* orgArgKey)
 
+
+--
+-- Dynamic block (#+begin: ...  #+end:)
+--
+
+-- | Parses a Dynamic Block, i.e., a block delimited by #+BEGIN: and
+-- #+END:.
+dynamicBlock :: PandocMonad m => OrgParser m (F Blocks)
+dynamicBlock = try $ do
+  metaLineStart *> stringAnyCase "begin:" *> spaces
+  blockname <- optionMaybe orgArgWord
+  blockArgs <- blockParameters
+  contents <- do
+    raw <- rawBlockContent' $ metaLineStart *> stringAnyCase "end:"
+    parseFromString blocks (raw <> "\n")
+  let attr = ("", maybe [] (:[]) blockname, blockArgs)
+  return $ B.divWith attr <$> contents
+
+-- | Parse block arguments; in order, this tries to parse a Lisp-style
+-- argument list, a set of key-value pairs using /equals/, and as a
+-- fallback the whole line as a single /parameters/ argument.
+blockParameters :: PandocMonad m => OrgParser m [(Text, Text)]
+blockParameters = choice
+  [ try $ manyTill ((,) <$> orgArgKey <*> orgParamValue) newline
+  , try $ manyTill ((,) <$> (spaces *> orgArgWord <* char '=') <*> orgArgWord)
+                   newline
+  , (\x -> [ ("parameters", x) | not (T.null x)]) <$> (skipSpaces *> anyLine)
+  ]
 
 --
 -- Drawers

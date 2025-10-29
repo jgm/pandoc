@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Writers.Docx
-   Copyright   : Copyright (C) 2012-2024 John MacFarlane
+   Copyright   : Copyright (C) 2012-2025 John MacFarlane
    License     : GNU GPL, version 2 or above
 
    Maintainer  : John MacFarlane <jgm@berkeley.edu>
@@ -20,7 +20,7 @@ Conversion of 'Pandoc' documents to docx.
 -}
 module Text.Pandoc.Writers.Docx.OpenXML ( writeOpenXML, maxListLevel ) where
 
-import Control.Monad (when, unless)
+import Control.Monad ((>=>), when, unless)
 import Control.Applicative ((<|>))
 import Control.Monad.Except (catchError)
 import Crypto.Hash (hashWith, SHA1(SHA1))
@@ -30,7 +30,7 @@ import Text.Pandoc.Char (isCJK)
 import Data.Ord (comparing)
 import Data.String (fromString)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, isNothing, maybeToList, isJust)
+import Data.Maybe (fromMaybe, maybeToList, isJust)
 import Control.Monad.State ( gets, modify, MonadTrans(lift) )
 import Control.Monad.Reader ( asks, MonadReader(local) )
 import qualified Data.Set as Set
@@ -220,6 +220,15 @@ makeLOT opts = do
       ]) -- w:sdtContent
     ]] -- w:sdt
 
+-- | Separator element between sections
+sectionSeparator :: PandocMonad m => WS m (Maybe Content)
+sectionSeparator = do
+  asks envSectPr >>= \case
+    Just sectPrElem -> pure $
+      Just $ Elem (mknode "w:p" [] (mknode "w:pPr" [] [sectPrElem]))
+    Nothing -> pure
+      Nothing
+
 -- | Convert Pandoc document to rendered document contents plus two lists of
 -- OpenXML elements (footnotes and comments).
 writeOpenXML :: PandocMonad m
@@ -317,7 +326,17 @@ writeOpenXML opts (Pandoc meta blocks) = do
 
 -- | Convert a list of Pandoc blocks to OpenXML.
 blocksToOpenXML :: (PandocMonad m) => WriterOptions -> [Block] -> WS m [Content]
-blocksToOpenXML opts = fmap concat . mapM (blockToOpenXML opts) . separateTables . filter (not . isForeignRawBlock)
+blocksToOpenXML opts =
+  fmap concat . mapM (blockToOpenXML opts)
+  . separateTables . filter (not . isForeignRawBlock)
+  >=>
+  \case
+    a@(x:xs) -> do
+      sep <- sectionSeparator
+      if Just x == sep
+        then pure xs
+        else pure a
+    [] -> pure []
 
 isForeignRawBlock :: Block -> Bool
 isForeignRawBlock (RawBlock format _) = format /= "openxml"
@@ -395,13 +414,9 @@ blockToOpenXML' opts (Header lev (ident,_,kvs) lst) = do
                 Nothing -> return []
            else return []
   contents <- (number ++) <$> inlinesToOpenXML opts lst
-  sectpr <- asks envSectPr
-  let addSectionBreak
-       | isSection
-       , Just sectPrElem <- sectpr
-        = (Elem (mknode "w:p" []
-                   (mknode "w:pPr" [] [sectPrElem])) :)
-       | otherwise = id
+  addSectionBreak <- sectionSeparator >>= \case
+    Just sep | isSection -> pure (sep:)
+    _  -> pure id
   addSectionBreak <$>
     if T.null ident
        then return [Elem $ mknode "w:p" [] (map Elem paraProps ++ contents)]
@@ -758,17 +773,20 @@ inlineToOpenXML' _ (Span (ident,["comment-start"],kvs) ils) = do
       kvs' = filter (("id" /=) . fst) kvs
   modify $ \st -> st{ stComments = (("id",ident'):kvs', ils) : stComments st }
   return [ Elem $ mknode "w:commentRangeStart" [("w:id", ident')] () ]
-inlineToOpenXML' _ (Span (ident,["comment-end"],kvs) _) =
+inlineToOpenXML' opts (Span (ident,["comment-end"],kvs) content) = do
   -- prefer the "id" in kvs, since that is the one produced by the docx
   -- reader.
   let ident' = fromMaybe ident (lookup "id" kvs)
-  in return . map Elem $
-     [ mknode "w:commentRangeEnd" [("w:id", ident')] ()
-     , mknode "w:r" []
-       [ mknode "w:rPr" []
-         [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
-       , mknode "w:commentReference" [("w:id", ident')] () ]
-     ]
+  -- process nested content: see #8189
+  nestedContent <- inlinesToOpenXML opts content
+  let thisCommentEnd =
+        [ mknode "w:commentRangeEnd" [("w:id", ident')] ()
+        , mknode "w:r" []
+          [ mknode "w:rPr" []
+            [ mknode "w:rStyle" [("w:val", "CommentReference")] () ]
+          , mknode "w:commentReference" [("w:id", ident')] () ]
+        ]
+  return $ map Elem thisCommentEnd ++ nestedContent
 inlineToOpenXML' opts (Span (ident,classes,kvs) ils) = do
   stylemod <- case lookup dynamicStyleKey kvs of
                    Just (fromString . T.unpack -> sty) -> do
@@ -873,15 +891,17 @@ inlineToOpenXML' opts (Code attrs str) = do
           [ mknode "w:rPr" [] $
             maybeToList (lookup toktype tokTypesMap)
             , mknode "w:t" [("xml:space","preserve")] tok ]
+  let highlighted =
+        case highlight (writerSyntaxMap opts) formatOpenXML attrs str of
+            Right h  -> return (map Elem h)
+            Left msg -> do
+              unless (T.null msg) $ report $ CouldNotHighlight msg
+              unhighlighted
   withTextPropM (rStyleM "Verbatim Char")
-    $ if isNothing (writerHighlightStyle opts)
-          then unhighlighted
-          else case highlight (writerSyntaxMap opts)
-                      formatOpenXML attrs str of
-                    Right h  -> return (map Elem h)
-                    Left msg -> do
-                      unless (T.null msg) $ report $ CouldNotHighlight msg
-                      unhighlighted
+    $ case writerHighlightMethod opts of
+        DefaultHighlighting -> highlighted
+        Skylighting _ -> highlighted
+        _ -> unhighlighted
 inlineToOpenXML' opts (Note bs) = do
   notes <- gets stFootnotes
   notenum <- getUniqueId

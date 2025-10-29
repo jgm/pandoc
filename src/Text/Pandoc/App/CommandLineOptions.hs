@@ -520,13 +520,18 @@ options =
 
     , Option "" ["no-highlight"]
                 (NoArg
-                 (\opt -> return opt { optHighlightStyle = Nothing }))
+                 (\opt -> do
+                     deprecatedOption "--no-highlight"
+                       "Use --syntax-highlighting=none instead."
+                     return opt { optSyntaxHighlighting = NoHighlightingString }))
                  "" -- "Don't highlight source code"
 
     , Option "" ["highlight-style"]
                 (ReqArg
-                 (\arg opt ->
-                     return opt{ optHighlightStyle = Just $
+                 (\arg opt -> do
+                     deprecatedOption "--highlight-style"
+                       "Use --syntax-highlighting instead."
+                     return opt{ optSyntaxHighlighting =
                                  T.pack $ normalizePath arg })
                  "STYLE|FILE")
                  "" -- "Style for highlighted code"
@@ -538,6 +543,14 @@ options =
                                 optSyntaxDefinitions opt })
                  "FILE")
                 "" -- "Syntax definition (xml) file"
+
+    , Option "" ["syntax-highlighting"]
+                (ReqArg
+                 (\arg opt -> return opt{ optSyntaxHighlighting =
+                                 T.pack $ normalizePath arg })
+                 "none|default|idiomatic|<stylename>|<themepath>")
+                 "" -- "syntax highlighting method for code"
+
 
     , Option "" ["dpi"]
                  (ReqArg
@@ -809,8 +822,14 @@ options =
     , Option "" ["listings"]
                  (OptArg
                   (\arg opt -> do
-                        boolValue <- readBoolFromOptArg "--listings" arg
-                        return opt { optListings = boolValue })
+                      deprecatedOption "--listings"
+                        "Use --syntax-highlighting=idiomatic instead."
+                      boolValue <- readBoolFromOptArg "--listings" arg
+                      return $
+                        if boolValue
+                        then opt { optSyntaxHighlighting =
+                                   IdiomaticHighlightingString }
+                        else opt)
                   "true|false")
                  "" -- "Use listings package for LaTeX code blocks"
 
@@ -1023,8 +1042,8 @@ options =
     , Option "" ["webtex"]
                  (OptArg
                   (\arg opt -> do
-                      let url' = fromMaybe "https://latex.codecogs.com/png.latex?" arg
-                      return opt { optHTMLMathMethod = WebTeX $ T.pack url' })
+                      let url' = maybe defaultWebTeXURL T.pack arg
+                      return opt { optHTMLMathMethod = WebTeX url' })
                   "URL")
                  "" -- "Use web service for HTML math"
 

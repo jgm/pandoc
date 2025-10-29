@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.LaTeX (tests) where
 
-import Data.Text (unpack)
+import Data.Text (pack, unpack)
 import Test.Tasty
 import Test.Tasty.HUnit (HasCallStack)
 import Tests.Helpers
@@ -13,7 +13,7 @@ latex :: (ToPandoc a) => a -> String
 latex = latexWithOpts def
 
 latexListing :: (ToPandoc a) => a -> String
-latexListing = latexWithOpts def{ writerListings = True }
+latexListing = latexWithOpts def{ writerHighlightMethod = IdiomaticHighlighting }
 
 latexWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
 latexWithOpts opts = unpack . purely (writeLaTeX opts) . toPandoc
@@ -241,5 +241,15 @@ tests = [ testGroup "code blocks"
                       , "\\addcontentsline{toc}{paragraph}{header6}"
                       ]
             ]
+          ]
+        , testGroup "figures"
+          [ "placement" =:
+            figureWith ("", [], [("latex-placement", "htbp")])
+            (simpleCaption $ plain "caption")
+            (plain $ image (pack "img.jpg") (pack "") (text "alt text"))
+            =?>
+              "\\begin{figure}[htbp]\n\\centering\n"
+              <> "\\pandocbounded{\\includegraphics[keepaspectratio,alt={alt text}]{img.jpg}}\n"
+              <> "\\caption{caption}\n\\end{figure}"
           ]
         ]

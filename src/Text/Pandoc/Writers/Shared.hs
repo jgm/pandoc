@@ -45,6 +45,7 @@ module Text.Pandoc.Writers.Shared (
                      , toLegacyTable
                      , splitSentences
                      , ensureValidXmlIdentifiers
+                     , removeLinks
                      , setupTranslations
                      , isOrderedListMarker
                      , toTaskListItem
@@ -568,6 +569,8 @@ lookupMetaBool key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract blocks.
+--
+-- Note that an empty list is returned for maps, lists, and booleans.
 lookupMetaBlocks :: Text -> Meta -> [Block]
 lookupMetaBlocks key meta =
   case lookupMeta key meta of
@@ -578,6 +581,8 @@ lookupMetaBlocks key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and extract inlines.
+--
+-- Note that an empty list is returned for maps and lists.
 lookupMetaInlines :: Text -> Meta -> [Inline]
 lookupMetaInlines key meta =
   case lookupMeta key meta of
@@ -589,6 +594,8 @@ lookupMetaInlines key meta =
 
 -- | Retrieve the metadata value for a given @key@
 -- and convert to String.
+--
+-- Note that an empty list is returned for maps, lists, and booleans.
 lookupMetaString :: Text -> Meta -> Text
 lookupMetaString key meta =
   case lookupMeta key meta of
@@ -798,6 +805,14 @@ walkAttr f = walk goInline . walk goBlock
     Table (f attr) cap colspecs thead tbodies tfoot
   goBlock (Div attr bs) = Div (f attr) bs
   goBlock x = x
+
+-- | Convert links to spans; most useful when writing elements that must not
+-- contain links, e.g. to avoid nested links.
+removeLinks :: [Inline] -> [Inline]
+removeLinks = walk go
+ where
+  go (Link attr ils _) = Span attr ils
+  go x = x
 
 -- | Set translations based on the `lang` in metadata.
 setupTranslations :: PandocMonad m => Meta -> m ()

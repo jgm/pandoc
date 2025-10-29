@@ -31,7 +31,7 @@ references:
 :::: {#refs .references .csl-bib-body .hanging-indent}
 ::: {#ref-stotz:1996handbuch .csl-entry}
 Stotz, Peter. 1996--2004. *Handbuch zur lateinischen Sprache des
-Mittelalters*. 5 vols. Handbuch der Altertumswissenschaft 2.5. Beck.
+Mittelalters*. 5 vols. Handbuch der Altertumswissenschaft, 2.5. Beck.
 :::
 ::::
 ```

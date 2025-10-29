@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {- |
    Module      : Text.Pandoc.Writers.Typst
@@ -17,37 +18,45 @@ module Text.Pandoc.Writers.Typst (
     writeTypst
   ) where
 import Text.Pandoc.Definition
-import Text.Pandoc.Class ( PandocMonad)
+import Text.Pandoc.Class ( PandocMonad, report )
 import Text.Pandoc.ImageSize ( dimension, Dimension(Pixel), Direction(..),
                                showInInch )
 import Text.Pandoc.Options ( WriterOptions(..), WrapOption(..), isEnabled,
-                             CaptionPosition(..) )
+                             CaptionPosition(..), HighlightMethod(..) )
 import Data.Text (Text)
 import Data.List (intercalate, intersperse)
 import Data.Bifunctor (first, second)
 import Network.URI (unEscapeString)
 import qualified Data.Text as T
+import Control.Monad (unless)
 import Control.Monad.State ( StateT, evalStateT, gets, modify )
-import Text.Pandoc.Writers.Shared ( metaToContext, defField, resetField,
-                                    setupTranslations, lookupMetaString )
+import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
+                                    metaToContext, defField, resetField,
+                                    setupTranslations )
 import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
+import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
+                                 styleToTypst)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
+import Text.Pandoc.Walk (query)
 import Text.Pandoc.Writers.Math (convertMath)
 import qualified Text.TeXMath as TM
 import Text.DocLayout
 import Text.DocTemplates (renderTemplate)
 import Text.Pandoc.Extensions (Extension(..))
+import Text.Pandoc.Logging (LogMessage(..))
 import Text.Collate.Lang (Lang(..), parseLang)
 import Text.Printf (printf)
-import Data.Char (isAlphaNum, isDigit)
+import Data.Char (isDigit)
 import Data.Maybe (fromMaybe)
+import Unicode.Char (isXIDContinue)
 
 -- | Convert Pandoc to Typst.
 writeTypst :: PandocMonad m => WriterOptions -> Pandoc -> m Text
 writeTypst options document =
   evalStateT (pandocToTypst options document)
     WriterState{ stOptions = options,
-                 stEscapeContext = NormalContext }
+                 stEscapeContext = NormalContext,
+                 stHighlighting = False }
 
 data EscapeContext = NormalContext | TermContext
   deriving (Show, Eq)
@@ -55,7 +64,9 @@ data EscapeContext = NormalContext | TermContext
 data WriterState =
   WriterState {
     stOptions :: WriterOptions,
-    stEscapeContext :: EscapeContext }
+    stEscapeContext :: EscapeContext,
+    stHighlighting :: Bool
+    }
 
 type TW m = StateT WriterState m
 
@@ -75,10 +86,18 @@ pandocToTypst options (Pandoc meta blocks) = do
   let toPosition :: CaptionPosition -> Text
       toPosition CaptionAbove = "top"
       toPosition CaptionBelow = "bottom"
+  let nociteIds = query (\case
+                           Cite cs _ -> map citationId cs
+                           _         -> [])
+                  $ lookupMetaInlines "nocite" meta
+  hasHighlighting <- gets stHighlighting
+
   let context = defField "body" main
               $ defField "toc" (writerTableOfContents options)
               $ (if isEnabled Ext_citations options
                     then defField "citations" True
+                       . defField "nocite-ids" (filter (/= "*") nociteIds)
+                       . defField "full-bibliography" ("*" `elem` nociteIds)
                     else id)
               $ (case lookupMetaString "lang" meta of
                     "" -> id
@@ -92,6 +111,13 @@ pandocToTypst options (Pandoc meta blocks) = do
               $ defField "smart" (isEnabled Ext_smart options)
               $ defField "abstract-title" abstractTitle
               $ defField "toc-depth" (tshow $ writerTOCDepth options)
+              $ (if hasHighlighting
+                    then case writerHighlightMethod options of
+                           Skylighting sty ->
+                              defField "highlighting-definitions"
+                                (T.stripEnd $ styleToTypst sty)
+                           _ -> id
+                    else id)
               $ defField "figure-caption-position"
                    (toPosition $ writerFigureCaptionPosition options)
               $ defField "table-caption-position"
@@ -100,7 +126,7 @@ pandocToTypst options (Pandoc meta blocks) = do
               $ (if writerNumberSections options
                     then defField "section-numbering" ("1.1.1.1.1" :: Text)
                     else id)
-              $ metadata
+              metadata
   return $ render colwidth $
     case writerTemplate options of
        Nothing  -> main
@@ -111,15 +137,15 @@ pickTypstAttrs = foldr go ([],[])
   where
     go (k,v) =
       case T.splitOn ":" k of
-        "typst":"text":x:[] -> second ((x,v):)
-        "typst":x:[] -> first ((x,v):)
+        ["typst", "text", x] -> second ((x,v):)
+        ["typst", x] -> first ((x,v):)
         _ -> id
 
 formatTypstProp :: (Text, Text) -> Text
 formatTypstProp (k,v) = k <> ": " <> v
 
 toTypstPropsListSep :: [(Text, Text)] -> Doc Text
-toTypstPropsListSep = hsep . intersperse "," . (map $ literal . formatTypstProp)
+toTypstPropsListSep = hsep . intersperse "," . map (literal . formatTypstProp)
 
 toTypstPropsListTerm :: [(Text, Text)] -> Doc Text
 toTypstPropsListTerm [] = ""
@@ -151,12 +177,9 @@ blocksToTypst blocks = vcat <$> mapM blockToTypst blocks
 blockToTypst :: PandocMonad m => Block -> TW m (Doc Text)
 blockToTypst block =
   case block of
-    Plain inlines -> do
-      opts <- gets stOptions
-      inlinesToTypst (addLineStartEscapes opts inlines)
+    Plain inlines -> inlinesToTypst inlines
     Para inlines -> do
-      opts <- gets stOptions
-      ($$ blankline) <$> inlinesToTypst (addLineStartEscapes opts inlines)
+      ($$ blankline) <$> inlinesToTypst inlines
     Header level (ident,cls,_) inlines -> do
       contents <- inlinesToTypst inlines
       let lab = toLabel FreestandingLabel ident
@@ -176,7 +199,7 @@ blockToTypst block =
       case fmt of
         Format "typst" -> return $ literal str
         _ -> return mempty
-    CodeBlock (_,cls,_) code -> do
+    CodeBlock (ident,cls,kvs) code -> do
       let go :: Char -> (Int, Int) -> (Int, Int)
           go '`' (longest, current) =
             let !new = current + 1 in (max longest new, new)
@@ -186,7 +209,19 @@ blockToTypst block =
       let lang = case cls of
                    (cl:_) -> literal cl
                    _ -> mempty
-      return $ fence <> lang <> cr <> literal code <> cr <> fence <> blankline
+      opts <-  gets stOptions
+      case writerHighlightMethod opts of
+        Skylighting _ ->
+          case highlight (writerSyntaxMap opts) formatTypstBlock
+                (ident,cls ++ ["default"],kvs) code of
+            Left msg -> do
+              unless (T.null msg) $ report $ CouldNotHighlight msg
+              return $ fence <> lang <> cr <> literal code <> cr <> fence <> blankline
+            Right h -> do
+              modify (\s -> s{ stHighlighting = True })
+              return (literal h)
+        NoHighlighting -> return $ fence <> cr <> literal code <> cr <> fence <> blankline
+        _ -> return $ fence <> lang <> cr <> literal code <> cr <> fence <> blankline
     LineBlock lns -> do
       contents <- inlinesToTypst (intercalate [LineBreak] lns)
       return $ contents <> blankline
@@ -374,7 +409,25 @@ listItemToTypst ind marker blocks = do
   return $ hang ind (marker <> space) contents
 
 inlinesToTypst :: PandocMonad m => [Inline] -> TW m (Doc Text)
-inlinesToTypst ils = hcat <$> mapM inlineToTypst ils
+inlinesToTypst ils = hcat <$> mapM inlineToTypst (escapeParens ils)
+
+-- Add an escape before a parenthesis right after a non-space element.
+-- Otherwise we risk `#emph[test](3)` which will error. See #11210.
+escapeParens :: [Inline] -> [Inline]
+escapeParens [] = []
+escapeParens (s : x : xs)
+  | isSpacey s
+    = s : x : escapeParens xs
+escapeParens (Str t : xs)
+  | Just ('(',_) <- T.uncons t
+    = RawInline (Format "typst") "\\" : Str t : escapeParens xs
+escapeParens (x : xs) = x : escapeParens xs
+
+isSpacey :: Inline -> Bool
+isSpacey Space = True
+isSpacey SoftBreak = True
+isSpacey LineBreak = True
+isSpacey _ = False
 
 inlineToTypst :: PandocMonad m => Inline -> TW m (Doc Text)
 inlineToTypst inline =
@@ -402,13 +455,26 @@ inlineToTypst inline =
              case mathType of
                InlineMath -> return $ "$" <> literal r <> "$"
                DisplayMath -> return $ "$ " <> literal r <> " $"
-    Code (_,cls,_) code -> return $
-      case cls of
-        (lang:_) -> "#raw(lang:" <> doubleQuoted lang <>
-                        ", " <> doubleQuoted code <> ")" <> endCode
-        _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
-                                     <> endCode
-          | otherwise -> "`" <> literal code <> "`"
+    Code (ident,cls,kvs) code -> do
+      opts <- gets stOptions
+      let defaultHighlightedCode =
+            case cls of
+              (lang:_) | writerHighlightMethod opts /= NoHighlighting
+                       -> "#raw(lang:" <> doubleQuoted lang <>
+                              ", " <> doubleQuoted code <> ")"
+              _ | T.any (=='`') code -> "#raw(" <> doubleQuoted code <> ")"
+                | otherwise -> "`" <> literal code <> "`"
+      case writerHighlightMethod opts of
+        Skylighting _ ->
+          case highlight (writerSyntaxMap opts) formatTypstInline
+                (ident,cls ++ ["default"],kvs) code of
+            Left msg -> do
+              unless (T.null msg) $ report $ CouldNotHighlight msg
+              return defaultHighlightedCode
+            Right h -> do
+              modify (\s -> s{ stHighlighting = True })
+              return (literal h)
+        _ -> return defaultHighlightedCode
     RawInline fmt str ->
       case fmt of
         Format "typst" -> return $ literal str
@@ -454,7 +520,6 @@ inlineToTypst inline =
           -> if T.all isIdentChar ident
                 then pure $ literal $ "@" <> ident
                 else pure $ "#ref" <> parens (toLabel ArgumentLabel ident)
-                            <> endCode
         _ -> do
           contents <- inlinesToTypst inlines
           let dest = case T.uncons src of
@@ -463,13 +528,13 @@ inlineToTypst inline =
           pure $ "#link" <> parens dest <>
                     (if inlines == [Str src]
                           then mempty
-                          else nowrap $ brackets contents) <> endCode
+                          else nowrap $ brackets contents)
     Image attr _inlines (src,_tit) -> do
       opts <-  gets stOptions
       pure $ mkImage opts True src attr
     Note blocks -> do
       contents <- blocksToTypst blocks
-      return $ "#footnote" <> brackets (chomp contents) <> endCode
+      return $ "#footnote" <> brackets (chomp contents)
 
 -- see #9104; need box or image is treated as block-level
 mkImage :: WriterOptions -> Bool -> Text -> Attr -> Doc Text
@@ -495,23 +560,17 @@ mkImage opts useBox src attr
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = do
-  opts <-  gets stOptions
-  (<> endCode) . (s <>) . brackets
-    <$> inlinesToTypst (addLineStartEscapes opts inlines)
+  (s <>) . brackets . fixInitialAfterBreakEscape
+    <$> inlinesToTypst inlines
 
-addLineStartEscapes :: WriterOptions -> [Inline] -> [Inline]
-addLineStartEscapes opts = go True
- where
-   go True (Str t : xs)
-        | isOrderedListMarker t = RawInline "typst" "\\" : Str t : go False xs
-        | Just (c, t') <- T.uncons t
-        , needsEscapeAtLineStart c
-        , T.null t' = RawInline "typst" "\\" : Str t : go False xs
-   go _ (SoftBreak : xs)
-        | writerWrapText opts == WrapPreserve = SoftBreak : go True xs
-   go _ (LineBreak : xs) = LineBreak : go True xs
-   go _ (x : xs) = x : go False xs
-   go _ [] = []
+fixInitialAfterBreakEscape :: Doc Text -> Doc Text
+fixInitialAfterBreakEscape (Concat x y) =
+  Concat (fixInitialAfterBreakEscape x) y
+-- make an initial AfterBreak escape unconditional (it will be rendered
+-- in a block [..] and there won't be an actual break to trigger it, but
+-- typst still needs the escape)
+fixInitialAfterBreakEscape (AfterBreak "\\") = Text 1 "\\"
+fixInitialAfterBreakEscape x = x
 
 isOrderedListMarker :: Text -> Bool
 isOrderedListMarker t = not (T.null ds) && rest == "."
@@ -521,7 +580,8 @@ escapeTypst :: Bool -> EscapeContext -> Text -> Doc Text
 escapeTypst smart context t =
   (case T.uncons t of
     Just (c, _)
-      | needsEscapeAtLineStart c
+      | c == ';' -> char '\\' -- see #9252
+      | needsEscapeAtLineStart c || isOrderedListMarker t
         -> afterBreak "\\"
     _ -> mempty) <>
   (literal (T.replace "//" "\\/\\/"
@@ -582,7 +642,7 @@ toLabel labelType ident
    ident' = T.pack $ unEscapeString $ T.unpack ident
 
 isIdentChar :: Char -> Bool
-isIdentChar c = isAlphaNum c || c == '_' || c == '-' || c == '.' || c == ':'
+isIdentChar c = isXIDContinue c || c == '_' || c == '-' || c == '.' || c == ':'
 
 toCite :: PandocMonad m => Citation -> TW m (Doc Text)
 toCite cite = do
@@ -608,7 +668,10 @@ toCite cite = do
                   [] -> pure mempty
                   suff -> (", supplement: " <>) . brackets
                              <$> inlinesToTypst (eatComma suff)
-       pure $ "#cite" <> parens (label <> form <> suppl) <> endCode
+       pure $ (if citationMode cite == SuppressAuthor  -- see #11044
+                  then parens
+                  else id)
+            $ "#cite" <> parens (label <> form <> suppl)
 
 doubleQuoted :: Text -> Doc Text
 doubleQuoted = doubleQuotes . literal . escape
@@ -617,9 +680,6 @@ doubleQuoted = doubleQuotes . literal . escape
   escapeChar '\\' = "\\\\"
   escapeChar '"' = "\\\""
   escapeChar c = T.singleton c
-
-endCode :: Doc Text
-endCode = beforeNonBlank ";"
 
 extractLabel :: Text -> Maybe Text
 extractLabel = go . T.unpack

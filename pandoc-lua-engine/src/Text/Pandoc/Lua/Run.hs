@@ -61,7 +61,7 @@ runPandocLuaWith :: (PandocMonad m, MonadIO m)
                  -> m a
 runPandocLuaWith runner pLua = do
   origState <- getCommonState
-  globals <- defaultGlobals
+  let globals = defaultGlobals
   (result, newState) <- liftIO . runner . unPandocLua $ do
     putCommonState origState
     liftPandocLua $ setGlobals globals
@@ -72,11 +72,9 @@ runPandocLuaWith runner pLua = do
   return result
 
 -- | Global variables which should always be set.
-defaultGlobals :: PandocMonad m => m [Global]
-defaultGlobals = do
-  commonState <- getCommonState
-  return
-    [ PANDOC_API_VERSION
-    , PANDOC_STATE commonState
-    , PANDOC_VERSION
-    ]
+defaultGlobals :: [Global]
+defaultGlobals =
+  [ PANDOC_API_VERSION
+  , PANDOC_STATE
+  , PANDOC_VERSION
+  ]

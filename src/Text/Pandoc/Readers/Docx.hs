@@ -810,6 +810,8 @@ bodyPartToBlocks (Captioned parstyle parparts bpart) = do
           -> singleton $ Figure attr' capt [Plain im]
         [Div attr bls']
           -> toCaptioned (attr <> attr') bls'
+        [BlockQuote bls']
+          -> toCaptioned attr' bls'
         _ -> captContents
   pure $ toCaptioned nullAttr (toList bs)
 bodyPartToBlocks (Tbl _ _ _ _ []) =
@@ -833,8 +835,7 @@ bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
       alignments = case rows of
                      [] -> replicate width Pandoc.AlignDefault
                      Docx.Row _ cs : _ -> concatMap getAlignment cs
-      totalWidth = sum grid
-      widths = (\w -> ColWidth (fromInteger w / fromInteger totalWidth)) <$> grid
+      widths = map ColWidth grid
 
   extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
   let attr = case mbsty of

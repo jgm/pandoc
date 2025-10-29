@@ -23,7 +23,7 @@ import Text.Pandoc.Shared
 import Text.Pandoc.Walk
 import Text.Pandoc.Writers.LaTeX.Notes (notesToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Types
-  ( LW, WriterState (stExternalNotes, stNotes) )
+  ( LW, WriterState (stExternalNotes, stNotes, stInCaption) )
 
 
 -- | Produces the components of a LaTeX 'caption' command. Returns a triple
@@ -35,6 +35,7 @@ getCaption :: PandocMonad m
            -> Caption
            -> LW m (Doc Text, Doc Text, Doc Text)
 getCaption inlineListToLaTeX externalNotes (Caption maybeShort long) = do
+  modify $ \st -> st{ stInCaption = True }
   let long' = blocksToInlines long
   oldExternalNotes <- gets stExternalNotes
   modify $ \st -> st{ stExternalNotes = externalNotes, stNotes = [] }
@@ -53,4 +54,5 @@ getCaption inlineListToLaTeX externalNotes (Caption maybeShort long) = do
                              then toShortCapt long'
                              else return empty
                   Just short -> toShortCapt short
+  modify $ \st -> st{ stInCaption = False }
   return (capt, captForLof, footnotes)

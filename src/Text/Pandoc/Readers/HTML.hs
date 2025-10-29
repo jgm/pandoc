@@ -514,6 +514,7 @@ pIframe :: PandocMonad m => TagParser m Blocks
 pIframe = try $ do
   guardDisabled Ext_raw_html
   tag <- pSatisfy (tagOpen (=="iframe") (isJust . lookup "src"))
+  skipMany pBlank
   pCloses "iframe" <|> eof
   url <- canonicalizeUrl $ fromAttrib "src" tag
   if T.null url
@@ -659,14 +660,10 @@ pCodeBlock = try $ do
                              else v ]
   contents <- manyTill pAny (pCloses "pre" <|> eof)
   let rawText = T.concat $ map tagToText contents
-  -- drop leading newline if any
-  let result' = case T.uncons rawText of
-                     Just ('\n', xs) -> xs
-                     _               -> rawText
   -- drop trailing newline if any
-  let result = case T.unsnoc result' of
+  let result = case T.unsnoc rawText of
                     Just (result'', '\n') -> result''
-                    _                     -> result'
+                    _                     -> rawText
   return $ B.codeBlockWith attr result
 
 tagToText :: Tag Text -> Text

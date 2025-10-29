@@ -219,7 +219,16 @@ parseTitle = do
   (ControlLine _ args _) <- mmacro "TH"
   let adjustMeta =
        case args of
-         (x:y:z:_) -> setMeta "title" (linePartsToInlines x) .
+         (x:y:z:a:b:_) -> setMeta "title" (linePartsToInlines x) .
+                          setMeta "section" (linePartsToInlines y) .
+                          setMeta "date" (linePartsToInlines z) .
+                          setMeta "footer" (linePartsToInlines a) .
+                          setMeta "header" (linePartsToInlines b)
+         [x,y,z,a] -> setMeta "title" (linePartsToInlines x) .
+                      setMeta "section" (linePartsToInlines y) .
+                      setMeta "date" (linePartsToInlines z) .
+                      setMeta "footer" (linePartsToInlines a)
+         [x,y,z]   -> setMeta "title" (linePartsToInlines x) .
                       setMeta "section" (linePartsToInlines y) .
                       setMeta "date" (linePartsToInlines z)
          [x,y]     -> setMeta "title" (linePartsToInlines x) .

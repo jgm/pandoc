@@ -110,15 +110,15 @@ References
 ^D
 Doe (2006a) -- webpage, date
 
-Doe (2006b) -- webpage, date range
+Doe (2006c) -- webpage, date range
 
-Doe (2006d) -- webpage, date range YM
+Doe (2006b) -- webpage, date range YM
 
 Doe (2006--2007) -- webpage, date range across years
 
-Doe (2006c) -- article-newspaper
+Doe (2006e) -- article-newspaper
 
-Doe (2006e) -- article-newspaper YM
+Doe (2006d) -- article-newspaper YM
 
 # References {#references .unnumbered}
 
@@ -128,23 +128,23 @@ Doe, John. 2006a. "Title." The Web Site, October 26.
 <http://www.example.com>.
 :::
 
-::: {#ref-item2 .csl-entry}
-Doe, John. 2006b. "Title." The Web Site, October 26--November 27.
-<http://www.example.com>.
-:::
-
-::: {#ref-item3 .csl-entry}
-Doe, John. 2006c. "Title." *The Newspaper*, October 26--November 27.
-<http://www.example.com>.
-:::
-
 ::: {#ref-item2a .csl-entry}
-Doe, John. 2006d. "Title." The Web Site, October--November.
+Doe, John. 2006b. "Title." The Web Site, October--November.
+<http://www.example.com>.
+:::
+
+::: {#ref-item2 .csl-entry}
+Doe, John. 2006c. "Title." The Web Site, October 26--November 27.
 <http://www.example.com>.
 :::
 
 ::: {#ref-item3b .csl-entry}
-Doe, John. 2006e. "Title." *The Newspaper*, October--November.
+Doe, John. 2006d. "Title." *The Newspaper*, October--November.
+<http://www.example.com>.
+:::
+
+::: {#ref-item3 .csl-entry}
+Doe, John. 2006e. "Title." *The Newspaper*, October 26--November 27.
 <http://www.example.com>.
 :::
 

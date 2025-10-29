@@ -88,6 +88,10 @@ tests =
       "2^{n-1}" =?>
       para (str "2" <> superscript "n-1")
 
+  , "Superscript-like, but not after string" =:
+      "a ^caret" =?>
+      para "a ^caret"
+
   , "Subscript simple expression" =:
       "a_n" =?>
       para (str "a" <> subscript "n")
@@ -95,6 +99,14 @@ tests =
   , "Subscript multi char" =:
       "a_{n+1}" =?>
       para (str "a" <> subscript "n+1")
+
+  , "Subscript-like, but not after string" =:
+      "_underscore" =?>
+      para "_underscore"
+
+  , "Subscript takes precedence before underline" =:
+      "text_subscript_" =?>
+      para (str "text" <> subscript "subscript" <> str "_")
 
   , "Linebreak" =:
       "line \\\\ \nbreak" =?>
