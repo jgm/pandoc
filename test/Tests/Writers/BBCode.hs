@@ -13,44 +13,39 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Shared (tshow)
-import Text.Pandoc.Writers.BBCode
 import Text.Read (readMaybe)
-
-bbcodeExt :: (ToPandoc a) => a -> Text
-bbcodeExt x = purely (writeBBCodeCustom extendedSpec def) $ toPandoc x
- where
-  extendedSpec :: FlavorSpec
-  extendedSpec = officialSpec{wrapSpanDiv = wrapSpanDivGeneric}
 
 bbcodeDefault
   , bbcodeSteam
   , bbcodePhpBB
   , bbcodeFluxBB
-  , bbcodeHubzilla ::
+  , bbcodeHubzilla
+  , bbcodeXenforo ::
     (ToPandoc a) => a -> Text
 bbcodeDefault = purely (writeBBCode def) . toPandoc
 bbcodeSteam = purely (writeBBCodeSteam def) . toPandoc
 bbcodePhpBB = purely (writeBBCodePhpBB def) . toPandoc
 bbcodeFluxBB = purely (writeBBCodeFluxBB def) . toPandoc
 bbcodeHubzilla = purely (writeBBCodeHubzilla def) . toPandoc
+bbcodeXenforo = purely (writeBBCodeXenforo def) . toPandoc
 
-infix 4 =:, `bbcode`, `steam`, `phpbb`, `fluxbb`, `hubzilla`
+infix 4 =:, `steam`, `phpbb`, `fluxbb`, `hubzilla`, `xenforo`
 (=:)
-  , bbcode
   , steam
   , phpbb
   , fluxbb
-  , hubzilla ::
+  , hubzilla
+  , xenforo ::
     (ToString a, ToPandoc a, HasCallStack) =>
     String ->
     (a, Text) ->
     TestTree
-(=:) = test bbcodeExt
-bbcode = test bbcodeDefault
+(=:) = test bbcodeDefault
 steam = test bbcodeSteam
 phpbb = test bbcodePhpBB
 fluxbb = test bbcodeFluxBB
 hubzilla = test bbcodeHubzilla
+xenforo = test bbcodeXenforo
 
 spanClasses :: [Text] -> Inlines -> Inlines
 spanClasses cls = spanWith ("", cls, [])
@@ -72,23 +67,21 @@ tests =
       , "center" =: spanClasses ["center"] "foo" =?> "foo"
       , "right" =: spanClasses ["right"] "foo" =?> "foo"
       , "spoiler" =: spanClasses ["spoiler"] "foo" =?> "foo"
-      , "box" =: spanClasses ["box"] "foo" =?> "foo"
-      , "indent" =: spanClasses ["indent"] "foo" =?> "foo"
       ]
   , testGroup
       "spans attributes"
       [ testProperty "incorrect size ignored" . property $ do
           n <- arbitrary @String
           let nInt = readMaybe @Int n
-          let actual = bbcodeExt (spanAttrs [("size", T.pack n)] "foo")
+          let actual = bbcodeDefault (spanAttrs [("size", T.pack n)] "foo")
           pure $ isNothing nInt ==> actual === "foo"
       , testProperty "size<=0 ignored" . property $ do
           NonPositive n <- arbitrary @(NonPositive Int)
-          let actual = bbcodeExt (spanAttrs [("size", tshow n)] "foo")
+          let actual = bbcodeDefault (spanAttrs [("size", tshow n)] "foo")
           pure $ actual === "foo"
       , testProperty "size>0" . property $ do
           Positive n <- arbitrary @(Positive Int)
-          let actual = bbcodeExt (spanAttrs [("size", tshow n)] "foo")
+          let actual = bbcodeDefault (spanAttrs [("size", tshow n)] "foo")
           let expected = "[size=" <> tshow n <> "]" <> "foo[/size]"
           pure $ actual === expected
       , "size=20" =: spanAttrs [("size", "20")] "foo" =?> "[size=20]foo[/size]"
@@ -97,15 +90,6 @@ tests =
           =?> "[color=#AAAAAA]foo[/color]"
       , "spoiler ignored"
           =: spanAttrs [("spoiler", "name with spaces and ]brackets[]")] "foo"
-          =?> "foo"
-      , "font"
-          =: spanAttrs [("font", "serif")] "foo"
-          =?> "[font=serif]foo[/font]"
-      , "align ignored"
-          =: spanAttrs [("align", "left")] "foo"
-          =?> "foo"
-      , "box ignored"
-          =: spanAttrs [("box", "center")] "foo"
           =?> "foo"
       ]
   , testGroup
@@ -122,27 +106,21 @@ tests =
       , "spoiler"
           =: divClasses ["spoiler"] (para "foo")
           =?> "[spoiler]foo\n\n[/spoiler]"
-      , "box"
-          =: divClasses ["box"] (para "foo")
-          =?> "[box]foo\n\n[/box]"
-      , "indent"
-          =: divClasses ["indent"] (para "foo")
-          =?> "[indent]foo\n\n[/indent]"
       ]
   , testGroup
       "divs attributes"
       [ testProperty "incorrect size ignored" . property $ do
           n <- arbitrary @String
           let nInt = readMaybe @Int n
-          let actual = bbcodeExt (divAttrs [("size", T.pack n)] $ para "foo")
+          let actual = bbcodeDefault (divAttrs [("size", T.pack n)] $ para "foo")
           pure $ isNothing nInt ==> actual === "foo\n"
       , testProperty "size<=0 ignored" . property $ do
           NonPositive n <- arbitrary @(NonPositive Int)
-          let actual = bbcodeExt (divAttrs [("size", tshow n)] $ para "foo")
+          let actual = bbcodeDefault (divAttrs [("size", tshow n)] $ para "foo")
           pure $ actual === "foo\n"
       , testProperty "size>0" . property $ do
           Positive n <- arbitrary @(Positive Int)
-          let actual = bbcodeExt (divAttrs [("size", tshow n)] $ para "foo")
+          let actual = bbcodeDefault (divAttrs [("size", tshow n)] $ para "foo")
           let expected = "[size=" <> tshow n <> "]" <> "foo\n\n[/size]"
           pure $ actual === expected
       , "size=20"
@@ -156,39 +134,30 @@ tests =
             [("spoiler", "name with spaces and ]brackets[]")]
             (para "foo")
           =?> "[spoiler=name with spaces and brackets]foo\n\n[/spoiler]"
-      , "font"
-          =: divAttrs [("font", "serif")] (para "foo")
-          =?> "[font=serif]foo\n\n[/font]"
-      , "align"
-          =: divAttrs [("align", "left")] (para "foo")
-          =?> "[align=left]foo\n\n[/align]"
-      , "box"
-          =: divAttrs [("box", "center")] (para "foo")
-          =?> "[box=center]foo\n\n[/box]"
       ]
   , testGroup
       "default flavor"
       [ "link"
-          `bbcode` link "https://example.com" "title" "label"
+          =: link "https://example.com" "title" "label"
           =?> "[url=https://example.com]label[/url]"
       , "autolink"
-          `bbcode` link "https://example.com" "title" "https://example.com"
+          =: link "https://example.com" "title" "https://example.com"
           =?> "[url]https://example.com[/url]"
       , "email autolink"
-          `bbcode` link
+          =: link
             "mailto:example@example.com"
             "title"
             "example@example.com"
           =?> "[email]example@example.com[/email]"
       , "named email"
-          `bbcode` link "mailto:example@example.com" "title" "example email"
+          =: link "mailto:example@example.com" "title" "example email"
           =?> "[email=example@example.com]example email[/email]"
-      , "h0" `bbcode` header 0 "heading 0" =?> "[u][b]heading 0[/b][/u]"
-      , "h1" `bbcode` header 1 "heading 1" =?> "[u][b]heading 1[/b][/u]"
-      , "h2" `bbcode` header 2 "heading 2" =?> "[b]heading 2[/b]"
-      , "h3" `bbcode` header 3 "heading 3" =?> "[u]heading 3[/u]"
-      , "h4" `bbcode` header 4 "heading 4" =?> "heading 4"
-      , "h5" `bbcode` header 5 "heading 5" =?> "heading 5"
+      , "h0" =: header 0 "heading 0" =?> "[u][b]heading 0[/b][/u]"
+      , "h1" =: header 1 "heading 1" =?> "[u][b]heading 1[/b][/u]"
+      , "h2" =: header 2 "heading 2" =?> "[b]heading 2[/b]"
+      , "h3" =: header 3 "heading 3" =?> "[u]heading 3[/u]"
+      , "h4" =: header 4 "heading 4" =?> "heading 4"
+      , "h5" =: header 5 "heading 5" =?> "heading 5"
       ]
   , testGroup
       "steam"
@@ -322,5 +291,51 @@ tests =
                         <> codeWith ("id", ["haskell"], []) "map (2^) [1..5]"
                      )
           =?> "inline code: [code]map (2^) [1..5][/code]"
+      , "font"
+          `hubzilla` divAttrs [("font", "serif")] (para "foo")
+          =?> "[font=serif]foo\n\n[/font]"
+      ]
+  , testGroup
+      "xenForo"
+      [ "unordered list"
+          `xenforo` bulletList [para "foo", para "bar", para "baz"]
+          =?> "[list]\n[*]foo\n\n[*]bar\n\n[*]baz\n\n[/list]"
+      , testProperty "ordered list styleless" . property $ do
+          let listItems = [para "foo", para "bar", para "baz"]
+          attrsRand <- (,,) <$> arbitrary <*> arbitrary <*> arbitrary
+          let actual = bbcodeXenforo $ orderedListWith attrsRand listItems
+          let expected = "[list=1]\n[*]foo\n\n[*]bar\n\n[*]baz\n\n[/list]"
+          pure $ actual === expected
+      , "h0" `xenforo` header 0 "heading 0" =?> "[heading=1]heading 0[/heading]"
+      , "h1" `xenforo` header 1 "heading 1" =?> "[heading=1]heading 1[/heading]"
+      , "h2" `xenforo` header 2 "heading 2" =?> "[heading=2]heading 2[/heading]"
+      , "h3" `xenforo` header 3 "heading 3" =?> "[heading=3]heading 3[/heading]"
+      , "h4" `xenforo` header 4 "heading 4" =?> "[heading=4]heading 4[/heading]"
+      , "link"
+          `xenforo` link "https://example.com" "title" "label"
+          =?> "[url=https://example.com]label[/url]"
+      , "autolink"
+          `xenforo` link "https://example.com" "title" "https://example.com"
+          =?> "[url]https://example.com[/url]"
+      , "email autolink"
+          `xenforo` link
+            "mailto:example@example.com"
+            "title"
+            "example@example.com"
+          =?> "[email]example@example.com[/email]"
+      , "named email"
+          `xenforo` link "mailto:example@example.com" "title" "example email"
+          =?> "[email=example@example.com]example email[/email]"
+      , "inline code"
+          `xenforo` ( "inline code: "
+                        <> codeWith ("id", ["haskell"], []) "map (2^) [1..5]"
+                    )
+          =?> "inline code: [icode]map (2^) [1..5][/icode]"
+      , "font"
+          `xenforo` divAttrs [("font", "serif")] (para "foo")
+          =?> "[font=serif]foo\n\n[/font]"
+      , "inline spoiler"
+          `xenforo` ("It was " <> spanClasses ["spoiler"] ("DNS") <> "!")
+          =?> "It was [ispoiler]DNS[/ispoiler]!"
       ]
   ]
