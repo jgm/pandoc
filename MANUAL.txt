@@ -306,6 +306,7 @@ header when requesting a document from a URL:
     - `bbcode_phpbb` [BBCode (phpBB)]
     - `bbcode_steam` [BBCode (Hubzilla)]
     - `bbcode_steam` [BBCode (Steam)]
+    - `bbcode_xenforo` [BBCode (xenForo)]
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
@@ -556,6 +557,7 @@ header when requesting a document from a URL:
 [BBCode (Hubzilla)]: https://hubzilla.org/help/member/bbcode
 [BBCode (Steam)]: https://steamcommunity.com/comment/ForumTopic/formattinghelp
 [BBCode (phpBB)]: https://www.phpbb.com/community/help/bbcode
+[BBCode (xenForo)]: https://www.xenfocus.com/community/help/bb-codes/
 
 ## Reader options {.options}
 

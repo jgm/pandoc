@@ -85,6 +85,7 @@ module Text.Pandoc.Writers
     , writeBBCodeFluxBB
     , writeBBCodePhpBB
     , writeBBCodeHubzilla
+    , writeBBCodeXenforo
     , getWriter
     ) where
 
@@ -145,6 +146,7 @@ import Text.Pandoc.Writers.BBCode (
   writeBBCodeHubzilla,
   writeBBCodePhpBB,
   writeBBCodeSteam,
+  writeBBCodeXenforo,
  )
 
 data Writer m = TextWriter (WriterOptions -> Pandoc -> m Text)
@@ -226,6 +228,7 @@ writers = [
   ,("bbcode_phpbb" , TextWriter writeBBCodePhpBB)
   ,("bbcode_fluxbb", TextWriter writeBBCodeFluxBB)
   ,("bbcode_hubzilla" , TextWriter writeBBCodeHubzilla)
+  ,("bbcode_xenforo" , TextWriter writeBBCodeXenforo)
   ]
 
 -- | Retrieve writer, extensions based on formatSpec (format+extensions).

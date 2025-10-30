@@ -17,6 +17,7 @@ module Text.Pandoc.Writers.BBCode (
   writeBBCodePhpBB,
   writeBBCodeFluxBB,
   writeBBCodeHubzilla,
+  writeBBCodeXenforo,
 
   -- * Extending the writer
   --
@@ -37,6 +38,7 @@ module Text.Pandoc.Writers.BBCode (
   phpbbSpec,
   fluxbbSpec,
   hubzillaSpec,
+  xenforoSpec,
 ) where
 
 import Control.Monad (forM)
@@ -280,7 +282,8 @@ writeBBCode
   , writeBBCodeSteam
   , writeBBCodePhpBB
   , writeBBCodeFluxBB
-  , writeBBCodeHubzilla ::
+  , writeBBCodeHubzilla
+  , writeBBCodeXenforo ::
     (PandocMonad m) => WriterOptions -> Pandoc -> m Text
 writeBBCode = writeBBCodeOfficial
 writeBBCodeOfficial = writeBBCodeCustom officialSpec
@@ -288,6 +291,7 @@ writeBBCodeSteam = writeBBCodeCustom steamSpec
 writeBBCodePhpBB = writeBBCodeCustom phpbbSpec
 writeBBCodeFluxBB = writeBBCodeCustom fluxbbSpec
 writeBBCodeHubzilla = writeBBCodeCustom hubzillaSpec
+writeBBCodeXenforo = writeBBCodeCustom xenforoSpec
 
 {- | Convert a 'Pandoc' document to BBCode using the given 'FlavorSpec' and
 'WriterOptions'.
@@ -495,6 +499,11 @@ renderInlineCodeHubzilla :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
 renderInlineCodeHubzilla _ code =
   pure $ mconcat [literal "[code]", literal code, "[/code]"]
 
+renderInlineCodeXenforo :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
+renderInlineCodeXenforo _ code =
+  pure $ mconcat [literal "[icode]", literal code, "[/icode]"]
+
+
 renderStrikeoutDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
 renderStrikeoutDefault inlines = do
   contents <- inlineListToBBCode inlines
@@ -592,6 +601,17 @@ renderHeaderHubzilla level _ inlines = do
       open = "[h" <> tshow capped <> "]"
       close = "[/h" <> tshow capped <> "]"
   pure $ vcat [blankline, literal open <> body <> literal close, blankline]
+
+-- xenForo supports levels 1--3, but levels other than 1--3 become div with
+-- .bbHeading class which can be linked to.
+renderHeaderXenforo ::
+  (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
+renderHeaderXenforo level _ inlines = do
+  body <- inlineListToBBCode inlines
+  let capped = max 1 level
+      open = "[heading=" <> tshow capped <> "]"
+      close = "[/heading]"
+  pure $ vcat [blankline, literal open <> body <> literal close]
 
 renderTableGeneric ::
   (PandocMonad m) =>
@@ -731,6 +751,27 @@ wrapSpanDivHubzilla isDiv kvc doc = Map.foldrWithKey wrap doc kvc
   wrap "font" (Just v) acc = literal ("[font=" <> v <> "]") <> acc <> "[/font]"
   wrap _ _ acc = acc
 
+wrapSpanDivXenforo :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+wrapSpanDivXenforo isDiv kvc doc = Map.foldrWithKey wrap doc kvc
+ where
+  wrap "left" Nothing acc | isDiv = "[left]" <> acc <> "[/left]"
+  wrap "center" Nothing acc | isDiv = "[center]" <> acc <> "[/center]"
+  wrap "right" Nothing acc | isDiv = "[right]" <> acc <> "[/right]"
+  wrap "spoiler" _ acc | not isDiv = "[ispoiler]" <> acc <> "[/ispoiler]"
+  wrap "spoiler" Nothing acc | isDiv = "[spoiler]" <> acc <> "[/spoiler]"
+  wrap "spoiler" (Just v) acc
+    | isDiv =
+        literal ("[spoiler=" <> T.filter notBracket v <> "]")
+          <> acc
+          <> "[/spoiler]"
+  wrap "size" (Just v) acc
+    | Just v' <- readMaybe @Int (T.unpack v)
+    , v' > 0 =
+        literal ("[size=" <> v <> "]") <> acc <> "[/size]"
+  wrap "color" (Just v) acc =
+    literal ("[color=" <> v <> "]") <> acc <> "[/color]"
+  wrap "font" (Just v) acc = literal ("[font=" <> v <> "]") <> acc <> "[/font]"
+  wrap _ _ acc = acc
 
 renderOrderedListFluxbb ::
   (PandocMonad m) =>
@@ -743,6 +784,15 @@ renderOrderedListFluxbb (_, style, _) =
         UpperAlpha -> "=a"
         _ -> "=1"
    in listWithTags ("[list" <> suffix <> "]") "[/list]" starListItems
+
+renderOrderedListXenforo ::
+  (PandocMonad m) =>
+  ListAttributes ->
+  [[Block]] ->
+  RR m (Doc Text)
+renderOrderedListXenforo _ =
+  listWithTags "[list=1]" "[/list]" starListItems
+
 
 renderLinkEmailAware ::
   (PandocMonad m) =>
@@ -949,4 +999,18 @@ hubzillaSpec =
     , renderLink = renderLinkDefault
     , wrapSpanDiv = wrapSpanDivHubzilla
     , renderHorizontalRule = renderHorizontalRuleHR
+    }
+
+{- | Format documentation: <https://www.xenfocus.com/community/help/bb-codes/>
+
+Used at: see <https://xenforo.com/>
+-}
+xenforoSpec :: FlavorSpec
+xenforoSpec =
+  officialSpec
+    { wrapSpanDiv = wrapSpanDivXenforo
+    , renderHeader = renderHeaderXenforo
+    , renderInlineCode = renderInlineCodeXenforo
+    , renderHorizontalRule = renderHorizontalRuleHR
+    , renderOrderedList = renderOrderedListXenforo
     }
