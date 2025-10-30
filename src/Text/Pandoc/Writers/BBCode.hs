@@ -63,8 +63,10 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unsmartify)
 import Text.Read (readMaybe)
-import qualified Data.Set as Set
 import Data.Ord (clamp)
+import Text.Pandoc.Parsing (readWith, char, digit, eof)
+import Data.Either (isRight)
+import Control.Applicative (some)
 
 -- Type synonym to prevent haddock-generated HTML from overflowing
 type PandocTable =
@@ -423,6 +425,36 @@ renderImagePhpBB ::
   (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
 renderImagePhpBB _ _ (source, _) =
   pure . literal $ mconcat ["[img]", source, "[/img]"]
+
+renderImageXenforo ::
+  (PandocMonad m) => Attr -> [Inline] -> Target -> RR m (Doc Text)
+renderImageXenforo (_, _, kvList) alt (source, title) = do
+  altText <-
+    trim . render Nothing
+      <$> inlineListToBBCode (removeFormatting alt)
+  let kvMap = Map.fromList kvList
+  -- No BBCode flavor supported by the Writer has local images support, but we
+  -- still allow source to be plain path or anything else
+  pure . literal $
+    mconcat
+      [ "[img"
+      , if T.null altText
+          then ""
+          else " alt=" <> inquotes altText
+      , if T.null title
+          then ""
+          else " title=" <> inquotes title
+      , case Map.lookup "width" kvMap of
+          Just w
+            | isRight (readWith sizeP Nothing w) ->
+                " width=" <> w
+          _ -> ""
+      , "]"
+      , source
+      , "[/img]"
+      ]
+ where
+  sizeP = some digit >> char '%' >> eof
 
 {- | Check whether character is a bracket
 
@@ -1013,4 +1045,5 @@ xenforoSpec =
     , renderInlineCode = renderInlineCodeXenforo
     , renderHorizontalRule = renderHorizontalRuleHR
     , renderOrderedList = renderOrderedListXenforo
+    , renderImage = renderImageXenforo
     }

@@ -337,5 +337,19 @@ tests =
       , "inline spoiler"
           `xenforo` ("It was " <> spanClasses ["spoiler"] ("DNS") <> "!")
           =?> "It was [ispoiler]DNS[/ispoiler]!"
+      , "image w=50% h=50%"
+          `xenforo` imageWith
+            ("", [], [("width", "50%"), ("height", "50%")])
+            "https://example.com"
+            "title text"
+            "alt text"
+          =?> "[img alt=\"alt text\" title=\"title text\" width=50%]https://example.com[/img]"
+      , "image w=50 h=50"
+          `xenforo` imageWith
+            ("", [], [("width", "50"), ("height", "50")])
+            "https://example.com"
+            ""
+            ""
+          =?> "[img]https://example.com[/img]"
       ]
   ]
