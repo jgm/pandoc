@@ -13,6 +13,7 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Shared (tshow)
+import Text.Pandoc.Writers.BBCode
 import Text.Read (readMaybe)
 
 bbcodeExt :: (ToPandoc a) => a -> Text

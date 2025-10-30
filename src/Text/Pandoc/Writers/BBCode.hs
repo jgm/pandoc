@@ -59,7 +59,7 @@ import Text.Pandoc.Logging (LogMessage (..))
 import Text.Pandoc.Options (WriterOptions (..))
 import Text.Pandoc.Shared (inquotes, onlySimpleTableCells, removeFormatting, trim, tshow)
 import Text.Pandoc.Templates (renderTemplate)
-import Text.Pandoc.URI (escapeURI, isURI)
+import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unsmartify)
 import Text.Read (readMaybe)
 import qualified Data.Set as Set
@@ -540,11 +540,6 @@ starListItems :: (PandocMonad m) => [[Block]] -> RR m [Doc Text]
 starListItems items = forM items $ \item -> do
   item' <- blockListToBBCode item
   pure $ literal "[*]" <> item'
-
-liListItems :: (PandocMonad m) => [[Block]] -> RR m [Doc Text]
-liListItems items = forM items $ \item -> do
-  item' <- blockListToBBCode item
-  pure $ literal "[li]" <> item' <> "[/li]"
 
 listStyleCode :: ListNumberStyle -> Maybe Text
 listStyleCode = \case
