@@ -653,19 +653,22 @@ renderTableGeneric ::
   Text ->
   (Attr, Caption, [ColSpec], TableHead, [TableBody], TableFoot) ->
   RR m (Doc Text)
-renderTableGeneric tableTag headerCellTag bodyCellTag table =
-  if not simpleCells
-    then "" <$ report (BlockNotRendered tableBlock)
-    else do
-      headerDocs <-
-        if null headers
-          then pure []
-          else pure <$> renderTableRow headerCellTag headers
-      rowDocs <- mapM (renderTableRow bodyCellTag) rows
-      pure $ renderTable' headerDocs rowDocs
+renderTableGeneric tableTag headerCellTag bodyCellTag table = do
+  caption' <- inlineListToBBCode caption
+  table' <-
+    if not simpleCells
+      then "" <$ report (BlockNotRendered tableBlock)
+      else do
+        headerDocs <-
+          if null headers
+            then pure []
+            else pure <$> renderTableRow headerCellTag headers
+        rowDocs <- mapM (renderTableRow bodyCellTag) rows
+        pure $ renderTable' headerDocs rowDocs
+  pure $ caption' $$ table'
  where
   (attr, blkCapt, specs, thead, tbody, tfoot) = table
-  (_, _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
+  (caption, _, _, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   tableBlock = Table attr blkCapt specs thead tbody tfoot
   simpleCells = onlySimpleTableCells (headers : rows)
   renderTable' headerDocs rowDocs =
