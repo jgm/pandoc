@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -33,7 +34,7 @@ import Control.Monad.Except (throwError)
 import Control.Monad (MonadPlus (mplus), void, guard, foldM)
 import qualified Data.Foldable as F
 import qualified Data.Map as M
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import qualified Data.Set as Set
@@ -158,39 +159,34 @@ pPandoc :: PandocMonad m => P m B.Pandoc
 pPandoc = do
   Elt "document" _ fields <- pTok isDocument
   bs <- getField "body" fields >>= pWithContents pBlocks
-  pure $ B.doc bs
-  -- The following alternative code would add metadata from the
-  -- fields on the document element. It is commented out because
-  -- the typst metadata doesn't print anything by default, in contrast
-  -- to pandoc with its usual templates.  Hence, with this code,
-  -- converting a typst document might yield a double title, author, etc.
-  --
-  -- title <- (getField "title" fields >>= pWithContents pInlines) <|>
-  --             pure mempty
-  -- authors <- (getField "author" fields >>=
-  --                         mapM (pWithContents pInlines) . V.toList) <|>
-  --            ((:[]) <$> (getField "author" fields >>=
-  --                          (\x -> guard (not (null x)) *>
-  --                            pWithContents pInlines x))) <|>
-  --             pure []
-  -- date <- (getField "date" fields >>= pWithContents pInlines) <|>
-  --             pure mempty
-  -- keywords <- (getField "keywords" fields >>=
-  --                mapM (pWithContents pInlines) . V.toList)
-  --               <|> pure []
-  -- pure $
-  --   (if title == mempty
-  --       then id
-  --       else B.setMeta "title" title) .
-  --   (if null authors
-  --       then id
-  --       else B.setMeta "author" authors) .
-  --   (if null date
-  --       then id
-  --       else B.setMeta "date" date) .
-  --   (if null keywords
-  --       then id
-  --       else B.setMeta "keywords" keywords) $ B.doc bs
+  title <- (getField "title" fields >>= pWithContents pInlines) <|>
+              pure mempty
+  authors <- (getField "author" fields >>=
+                          mapM (pWithContents pInlines) . V.toList) <|>
+             ((:[]) <$> (getField "author" fields >>=
+                           (\x -> guard (not (null x)) *>
+                             pWithContents pInlines x))) <|>
+              pure []
+  date <- (getField "date" fields >>= pWithContents pInlines) <|>
+              pure mempty
+  keywords <- (getField "keywords" fields >>=
+                 mapM (pWithContents pInlines) . V.toList)
+                <|> pure []
+  meta <- sMeta <$> getState
+  let meta' =
+        (if title == mempty || isJust (lookupMeta "title" meta)
+            then id
+            else B.setMeta "title" title) .
+        (if null authors
+            then id
+            else B.setMeta "author" authors) .
+        (if null date
+            then id
+            else B.setMeta "date" date) .
+        (if null keywords
+            then id
+            else B.setMeta "keywords" keywords) $ meta
+  pure $ Pandoc meta' (B.toList bs)
 
 pBlocks :: PandocMonad m => P m B.Blocks
 pBlocks = mconcat <$> many pBlock
@@ -252,6 +248,14 @@ blockHandlers = M.fromList
       -- sometimes text elements include para breaks
       notFollowedBy $ void $ pWithContents pInlines body
       pWithContents pBlocks body)
+  ,("title", \_ _ fields -> do
+      body <- getField "body" fields
+      case body of
+        VContent cs -> do
+          ils <- pWithContents pInlines cs <|> pure mempty
+          updateState $ \s -> s{ sMeta = B.setMeta "title" ils (sMeta s) }
+          pure mempty
+        _ -> pure mempty)
   ,("box", \_ _ fields -> do
       body <- getField "body" fields
       B.divWith ("", ["box"], []) <$> pWithContents pBlocks body)

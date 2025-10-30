@@ -20,7 +20,7 @@ extra-deps:
 - git: https://github.com/jgm/citeproc.git
   commit: 1a82c13ac1d8e9e07cf69fbf89ba2b57474b8e0f
 - git: https://github.com/jgm/typst-hs.git
-  commit: e6eb442bc0efbe3fcf8c1fe5f28be3f0fb278e8b
+  commit: 13751c5b3a6b395ba667682bc7a876c0b993e9d3
 - git: https://github.com/jgm/texmath.git
   commit: 110322589698df20abf3f3a06c070271802ea598
 ghc-options:
