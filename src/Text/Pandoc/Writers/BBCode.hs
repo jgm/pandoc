@@ -270,7 +270,9 @@ pandocToBBCode (Pandoc meta body) = do
   footnotesSep <-
     if null footnotes
       then pure empty
-      else (<> blankline) <$> blockToBBCode HorizontalRule
+      else
+        (\hr -> blankline <> hr <> blankline)
+          <$> blockToBBCode HorizontalRule
   -- Put footnotes after the main text
   let docText = bodyContents <> footnotesSep <> vsep (toList footnotes)
   metadata <- metaToContext opts blockListToBBCode inlineListToBBCode meta
@@ -310,7 +312,7 @@ writeBBCodeCustom spec opts document =
 
 blockListToBBCode :: (PandocMonad m) => [Block] -> RR m (Doc Text)
 blockListToBBCode blocks =
-  vcat . filter (not . null)
+  chomp . vsep . filter (not . null)
     <$> mapM blockToBBCode blocks
 
 blockToBBCode :: (PandocMonad m) => Block -> RR m (Doc Text)
@@ -488,13 +490,12 @@ inlineListToBBCode inlines = mconcat <$> mapM inlineToBBCode inlines
 
 renderHeaderDefault ::
   (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
-renderHeaderDefault level _attr inlines = do
-  headingText <- case clamp (1, 4) level of
+renderHeaderDefault level _attr inlines =
+  case clamp (1, 4) level of
     1 -> inlineToBBCode $ Underline [Strong inlines]
     2 -> inlineToBBCode $ Strong inlines
     3 -> inlineToBBCode $ Underline inlines
     _ -> inlineListToBBCode inlines
-  pure $ vcat [blankline, headingText, blankline]
 
 -- Adapted from Text.Pandoc.Writers.Org
 renderLinkDefault ::
@@ -623,7 +624,7 @@ renderHeaderSteam level _ inlines = do
   let capped = clamp (1, 3) level
       open = "[h" <> tshow capped <> "]"
       close = "[/h" <> tshow capped <> "]"
-  pure $ vcat [blankline, literal open <> body <> literal close, blankline]
+  pure $ literal open <> body <> literal close
 
 renderHeaderHubzilla ::
   (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
@@ -632,7 +633,7 @@ renderHeaderHubzilla level _ inlines = do
   let capped = clamp (1, 6) level
       open = "[h" <> tshow capped <> "]"
       close = "[/h" <> tshow capped <> "]"
-  pure $ vcat [blankline, literal open <> body <> literal close, blankline]
+  pure $ literal open <> body <> literal close
 
 -- xenForo supports levels 1--3, but levels other than 1--3 become div with
 -- .bbHeading class which can be linked to.
@@ -643,7 +644,7 @@ renderHeaderXenforo level _ inlines = do
   let capped = max 1 level
       open = "[heading=" <> tshow capped <> "]"
       close = "[/heading]"
-  pure $ vcat [blankline, literal open <> body <> literal close]
+  pure $ literal open <> body <> literal close
 
 renderTableGeneric ::
   (PandocMonad m) =>
@@ -708,7 +709,7 @@ renderTableOmit ::
   , TableFoot
   ) ->
   RR m (Doc Text)
-renderTableOmit _ = pure $ "(TABLE)" <> blankline
+renderTableOmit _ = pure "(TABLE)"
 
 {- | The goal of the transformation is to treat classes and key-value pairs
 uniformly.
@@ -845,10 +846,10 @@ renderLinkEmailAware attr txt target@(src, _) = do
           else literal ("[email=" <> address <> "]") <> linkText <> "[/email]"
     Nothing -> renderLinkDefault attr txt target
 
-renderBlockQuoteDefault :: PandocMonad m => [Block] -> RR m (Doc Text)
+renderBlockQuoteDefault :: (PandocMonad m) => [Block] -> RR m (Doc Text)
 renderBlockQuoteDefault blocks = do
   contents <- blockListToBBCode blocks
-  pure $ vcat ["[quote]", contents, "[/quote]", blankline]
+  pure $ vcat ["[quote]", contents, "[/quote]"]
 
 renderBlockQuoteFluxBB :: (PandocMonad m) => [Block] -> RR m (Doc Text)
 renderBlockQuoteFluxBB blocks = do
@@ -859,18 +860,16 @@ renderBlockQuoteFluxBB blocks = do
     else pure $ vcat ["[quote]", contents, "[/quote]"]
 
 renderHorizontalRuleDefault :: (PandocMonad m) => RR m (Doc Text)
-renderHorizontalRuleDefault = pure $ blankline <> "* * *" <> blankline
+renderHorizontalRuleDefault = pure "* * *"
 
 renderHorizontalRuleHR :: (PandocMonad m) => RR m (Doc Text)
-renderHorizontalRuleHR = pure $ blankline <> "[hr]" <> blankline
+renderHorizontalRuleHR = pure "[hr]"
 
 renderLineBlockDefault :: (PandocMonad m) => [[Inline]] -> RR m (Doc Text)
 renderLineBlockDefault inliness = vcat <$> mapM inlineListToBBCode inliness
 
 renderParaDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
-renderParaDefault inlines = do
-  contents <- inlineListToBBCode inlines
-  pure $ contents <> blankline
+renderParaDefault inlines = inlineListToBBCode inlines
 
 renderSuperscriptDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
 renderSuperscriptDefault = inlineListToBBCode

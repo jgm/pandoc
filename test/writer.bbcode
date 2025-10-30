@@ -45,7 +45,6 @@ E-mail style:
 
 [quote]
 This is a block quote. It is pretty short.
-
 [/quote]
 
 [quote]
@@ -55,24 +54,23 @@ Code in a block quote:
     print "working";
 }
 [/code]
+
 A list:
 
 [list=1]
 [*]item one
 [*]item two
 [/list]
+
 Nested block quotes:
 
 [quote]
 nested
-
 [/quote]
 
 [quote]
 nested
-
 [/quote]
-
 [/quote]
 
 This should not be a block quote: 2 > 1.
@@ -93,6 +91,7 @@ sub status {
 
 this code block is indented by one tab
 [/code]
+
 And:
 
 [code]    this code block is indented by two tabs
@@ -113,16 +112,15 @@ Asterisks tight:
 [*]asterisk 2
 [*]asterisk 3
 [/list]
+
 Asterisks loose:
 
 [list]
 [*]asterisk 1
-
 [*]asterisk 2
-
 [*]asterisk 3
-
 [/list]
+
 Pluses tight:
 
 [list]
@@ -130,16 +128,15 @@ Pluses tight:
 [*]Plus 2
 [*]Plus 3
 [/list]
+
 Pluses loose:
 
 [list]
 [*]Plus 1
-
 [*]Plus 2
-
 [*]Plus 3
-
 [/list]
+
 Minuses tight:
 
 [list]
@@ -147,15 +144,13 @@ Minuses tight:
 [*]Minus 2
 [*]Minus 3
 [/list]
+
 Minuses loose:
 
 [list]
 [*]Minus 1
-
 [*]Minus 2
-
 [*]Minus 3
-
 [/list]
 
 [b]Ordered[/b]
@@ -167,6 +162,7 @@ Tight:
 [*]Second
 [*]Third
 [/list]
+
 and:
 
 [list=1]
@@ -174,55 +170,53 @@ and:
 [*]Two
 [*]Three
 [/list]
+
 Loose using tabs:
 
 [list=1]
 [*]First
-
 [*]Second
-
 [*]Third
-
 [/list]
+
 and using spaces:
 
 [list=1]
 [*]One
-
 [*]Two
-
 [*]Three
-
 [/list]
+
 Multiple paragraphs:
 
 [list=1]
 [*]Item 1, graf one.
 
 Item 1. graf two. The quick brown fox jumped over the lazy dog's back.
-
 [*]Item 2.
-
 [*]Item 3.
-
 [/list]
 
 [b]Nested[/b]
 
 [list]
 [*]Tab
+
 [list]
 [*]Tab
+
 [list]
 [*]Tab
 [/list]
 [/list]
 [/list]
+
 Here's another:
 
 [list=1]
 [*]First
 [*]Second:
+
 [list]
 [*]Fee
 [*]Fie
@@ -230,11 +224,11 @@ Here's another:
 [/list]
 [*]Third
 [/list]
+
 Same thing but with paragraphs:
 
 [list=1]
 [*]First
-
 [*]Second:
 
 [list]
@@ -243,21 +237,17 @@ Same thing but with paragraphs:
 [*]Foe
 [/list]
 [*]Third
-
 [/list]
 
 [b]Tabs and spaces[/b]
 
 [list]
 [*]this is a list item indented with tabs
-
 [*]this is a list item indented with spaces
 
 [list]
 [*]this is an example list item indented with tabs
-
 [*]this is an example list item indented with spaces
-
 [/list]
 [/list]
 
@@ -265,7 +255,6 @@ Same thing but with paragraphs:
 
 [list=1]
 [*]begins with 2
-
 [*]and now 3
 
 with a continuation
@@ -273,35 +262,43 @@ with a continuation
 [list=i]
 [*]sublist with roman numerals, starting with 4
 [*]more items
+
 [list=A]
 [*]a subsublist
 [*]a subsublist
 [/list]
 [/list]
 [/list]
+
 Nesting:
 
 [list=A]
 [*]Upper Alpha
+
 [list=I]
 [*]Upper Roman.
+
 [list=1]
 [*]Decimal start with 6
+
 [list=a]
 [*]Lower alpha with paren
 [/list]
 [/list]
 [/list]
 [/list]
+
 Autonumbering:
 
 [list=1]
 [*]Autonumber.
 [*]More.
+
 [list=1]
 [*]Nested.
 [/list]
 [/list]
+
 Should not be a list item:
 
 M.A. 2007
@@ -326,6 +323,7 @@ banana
 [list]
 [*]yellow fruit
 [/list]
+
 Tight using tabs:
 
 apple
@@ -340,23 +338,22 @@ banana
 [list]
 [*]yellow fruit
 [/list]
+
 Loose:
 
 apple
 [list]
 [*]red fruit
-
 [/list]
 orange
 [list]
 [*]orange fruit
-
 [/list]
 banana
 [list]
 [*]yellow fruit
-
 [/list]
+
 Multiple blocks with italics:
 
 [i]apple[/i]
@@ -364,7 +361,6 @@ Multiple blocks with italics:
 [*]red fruit
 
 contains seeds, crisp, pleasant to taste
-
 [/list]
 [i]orange[/i]
 [list]
@@ -372,12 +368,12 @@ contains seeds, crisp, pleasant to taste
 
 [code]{ orange code block }
 [/code]
+
 [quote]
 orange block quote
-
 [/quote]
-
 [/list]
+
 Multiple definitions, tight:
 
 apple
@@ -390,30 +386,26 @@ orange
 [*]orange fruit
 [*]bank
 [/list]
+
 Multiple definitions, loose:
 
 apple
 [list]
 [*]red fruit
-
 [*]computer
-
 [/list]
 orange
 [list]
 [*]orange fruit
-
 [*]bank
-
 [/list]
+
 Blank line after term, indented marker, alternate markers:
 
 apple
 [list]
 [*]red fruit
-
 [*]computer
-
 [/list]
 orange
 [list]
@@ -430,15 +422,19 @@ orange
 Simple block on one line:
 
 foo
+
 And nested without indentation:
 
 foo
 
 bar
+
 Interpreted markdown in a table:
 
 This is [i]emphasized[/i]
+
 And this is [b]strong[/b]
+
 Here's a simple block:
 
 foo
@@ -449,13 +445,16 @@ This should be a code block, though:
     foo
 </div>
 [/code]
+
 As should this:
 
 [code]<div>foo</div>
 [/code]
+
 Now, nested:
 
 foo
+
 This should just be an HTML comment:
 
 Multiline:
@@ -464,12 +463,14 @@ Code block:
 
 [code]<!-- Comment -->
 [/code]
+
 Just plain comment, with trailing spaces on the line:
 
 Code:
 
 [code]<hr />
 [/code]
+
 Hr's:
 
 * * *
@@ -535,6 +536,7 @@ Ellipses...and...and....
 [/code]
 [*]Here's one that has a line break in it: $\alpha + \omega \times x^2$.
 [/list]
+
 These shouldn't be math:
 
 [list]
@@ -543,6 +545,7 @@ These shouldn't be math:
 [*]Shoes ($20) and socks ($5).
 [*]Escaped $: $73 [i]this should be emphasized[/i] 23$.
 [/list]
+
 Here's a LaTeX table:
 
 * * *
@@ -558,6 +561,7 @@ Here is some unicode:
 [*]set membership: ∈
 [*]copyright: ©
 [/list]
+
 AT&T has an ampersand in their name.
 
 AT&T is another way to write it.
@@ -642,6 +646,7 @@ This should [not][] be a link.
 
 [code][not]: /url
 [/code]
+
 Foo [url=/url/]bar[/url].
 
 Foo [url=/url/]biz[/url].
@@ -665,11 +670,11 @@ With an ampersand: [url]http://example.com/?foo=1&bar=2[/url]
 [*][url]http://example.com/[/url]
 [*]It should.
 [/list]
+
 An e-mail address: [email]nobody@nowhere.net[/email]
 
 [quote]
 Blockquoted: [url]http://example.com/[/url]
-
 [/quote]
 
 Auto-links should not occur here: <http://example.com/>
@@ -685,6 +690,7 @@ From "Voyage dans la Lune" by Georges Melies (1902):
 
 [img alt="lalune" title="Voyage dans la Lune"]lalune.jpg[/img]
 lalune
+
 Here is a movie [img alt="movie"]movie.jpg[/img] icon.
 
 * * *
@@ -695,12 +701,12 @@ Here is a footnote reference,(1) and another.(2) This should [i]not[/i] be a foo
 
 [quote]
 Notes can go in quotes.(4)
-
 [/quote]
 
 [list=1]
 [*]And in list items.(5)
 [/list]
+
 This paragraph should not be part of the note, as it is not indented.
 
 * * *
@@ -713,6 +719,7 @@ Subsequent blocks are indented to show that they belong to the footnote (as with
 
 [code]  { <code> }
 [/code]
+
 If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.
 
 (3) This is [i]easier[/i] to type. Inline notes may contain [url=http://google.com]links[/url] and ] verbatim characters, as well as [bracketed text].

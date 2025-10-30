@@ -96,16 +96,16 @@ tests =
       "divs classes"
       [ "left"
           =: divClasses ["left"] (para "foo")
-          =?> "[left]foo\n\n[/left]"
+          =?> "[left]foo[/left]"
       , "center"
           =: divClasses ["center"] (para "foo")
-          =?> "[center]foo\n\n[/center]"
+          =?> "[center]foo[/center]"
       , "right"
           =: divClasses ["right"] (para "foo")
-          =?> "[right]foo\n\n[/right]"
+          =?> "[right]foo[/right]"
       , "spoiler"
           =: divClasses ["spoiler"] (para "foo")
-          =?> "[spoiler]foo\n\n[/spoiler]"
+          =?> "[spoiler]foo[/spoiler]"
       ]
   , testGroup
       "divs attributes"
@@ -113,27 +113,27 @@ tests =
           n <- arbitrary @String
           let nInt = readMaybe @Int n
           let actual = bbcodeDefault (divAttrs [("size", T.pack n)] $ para "foo")
-          pure $ isNothing nInt ==> actual === "foo\n"
+          pure $ isNothing nInt ==> actual === "foo"
       , testProperty "size<=0 ignored" . property $ do
           NonPositive n <- arbitrary @(NonPositive Int)
           let actual = bbcodeDefault (divAttrs [("size", tshow n)] $ para "foo")
-          pure $ actual === "foo\n"
+          pure $ actual === "foo"
       , testProperty "size>0" . property $ do
           Positive n <- arbitrary @(Positive Int)
           let actual = bbcodeDefault (divAttrs [("size", tshow n)] $ para "foo")
-          let expected = "[size=" <> tshow n <> "]" <> "foo\n\n[/size]"
+          let expected = "[size=" <> tshow n <> "]" <> "foo[/size]"
           pure $ actual === expected
       , "size=20"
           =: divAttrs [("size", "20")] (para "foo")
-          =?> "[size=20]foo\n\n[/size]"
+          =?> "[size=20]foo[/size]"
       , "color=#AAAAAA"
           =: divAttrs [("color", "#AAAAAA")] (para "foo")
-          =?> "[color=#AAAAAA]foo\n\n[/color]"
+          =?> "[color=#AAAAAA]foo[/color]"
       , "spoiler"
           =: divAttrs
             [("spoiler", "name with spaces and ]brackets[]")]
             (para "foo")
-          =?> "[spoiler=name with spaces and brackets]foo\n\n[/spoiler]"
+          =?> "[spoiler=name with spaces and brackets]foo[/spoiler]"
       ]
   , testGroup
       "default flavor"
@@ -163,12 +163,12 @@ tests =
       "steam"
       [ test bbcodeSteam "dename spoiler" $
           divAttrs [("spoiler", "bar")] (para "foo")
-            =?> ("[spoiler]foo\n\n[/spoiler]" :: Text)
+            =?> ("[spoiler]foo[/spoiler]" :: Text)
       , testProperty "ordered list styleless" . property $ do
           let listItems = [para "foo", para "bar", para "baz"]
           attrsRand <- (,,) <$> arbitrary <*> arbitrary <*> arbitrary
           let actual = bbcodeSteam $ orderedListWith attrsRand listItems
-          let expected = "[olist]\n[*]foo\n\n[*]bar\n\n[*]baz\n\n[/olist]"
+          let expected = "[olist]\n[*]foo\n[*]bar\n[*]baz\n[/olist]"
           pure $ actual === expected
       , "h0" `steam` header 0 "heading 0" =?> "[h1]heading 0[/h1]"
       , "h1" `steam` header 1 "heading 1" =?> "[h1]heading 1[/h1]"
@@ -206,11 +206,11 @@ tests =
                 (_, LowerAlpha, _) -> "[list=a]"
                 (_, UpperAlpha, _) -> "[list=a]"
                 _ -> "[list=1]"
-          let expected = opening <> "\n[*]foo\n\n[*]bar\n\n[*]baz\n\n[/list]"
+          let expected = opening <> "\n[*]foo\n[*]bar\n[*]baz\n[/list]"
           pure $ actual === expected
       , "ulist > BlockQuote not rendered"
           `fluxbb` bulletList [blockQuote (para "foo") <> para "bar"]
-          =?> "[list]\n[*]bar\n\n[/list]"
+          =?> "[list]\n[*]bar\n[/list]"
       , "code block"
           `fluxbb` codeBlockWith
             ("id", ["haskell"], [])
@@ -234,7 +234,7 @@ tests =
       "Hubzilla"
       [ "unordered list"
           `hubzilla` bulletList [para "foo", para "bar", para "baz"]
-          =?> "[ul]\n[*]foo\n\n[*]bar\n\n[*]baz\n\n[/ul]"
+          =?> "[ul]\n[*]foo\n[*]bar\n[*]baz\n[/ul]"
       , testProperty "ordered list" . property $ do
           let listItems = [para "foo", para "bar", para "baz"]
           attrsRand <- (,,) <$> arbitrary <*> arbitrary <*> arbitrary
@@ -248,7 +248,7 @@ tests =
                 (_, LowerRoman, _) -> ("[list=i]", "[/list]")
                 (_, UpperRoman, _) -> ("[list=I]", "[/list]")
           let expected =
-                opening <> "\n[*]foo\n\n[*]bar\n\n[*]baz\n\n" <> closing
+                opening <> "\n[*]foo\n[*]bar\n[*]baz\n" <> closing
           pure $ actual === expected
       , "definition list"
           `hubzilla` definitionList
@@ -258,9 +258,9 @@ tests =
             ]
           =?> mconcat
             [ "[dl terms=\"b\"]\n"
-            , "[*= term_foo]\ndef_foo1\n\ndef_foo2\n\n"
-            , "[*= term_bar]\ndef_bar1\n\ndef_bar2\n\n"
-            , "[*= term_baz]\ndef_baz1\n\ndef_baz2\n\n"
+            , "[*= term_foo]\ndef_foo1\ndef_foo2\n"
+            , "[*= term_bar]\ndef_bar1\ndef_bar2\n"
+            , "[*= term_baz]\ndef_baz1\ndef_baz2\n"
             , "[/dl]"
             ]
       , "h0" `hubzilla` header 0 "heading 0" =?> "[h1]heading 0[/h1]"
@@ -293,18 +293,18 @@ tests =
           =?> "inline code: [code]map (2^) [1..5][/code]"
       , "font"
           `hubzilla` divAttrs [("font", "serif")] (para "foo")
-          =?> "[font=serif]foo\n\n[/font]"
+          =?> "[font=serif]foo[/font]"
       ]
   , testGroup
       "xenForo"
       [ "unordered list"
           `xenforo` bulletList [para "foo", para "bar", para "baz"]
-          =?> "[list]\n[*]foo\n\n[*]bar\n\n[*]baz\n\n[/list]"
+          =?> "[list]\n[*]foo\n[*]bar\n[*]baz\n[/list]"
       , testProperty "ordered list styleless" . property $ do
           let listItems = [para "foo", para "bar", para "baz"]
           attrsRand <- (,,) <$> arbitrary <*> arbitrary <*> arbitrary
           let actual = bbcodeXenforo $ orderedListWith attrsRand listItems
-          let expected = "[list=1]\n[*]foo\n\n[*]bar\n\n[*]baz\n\n[/list]"
+          let expected = "[list=1]\n[*]foo\n[*]bar\n[*]baz\n[/list]"
           pure $ actual === expected
       , "h0" `xenforo` header 0 "heading 0" =?> "[heading=1]heading 0[/heading]"
       , "h1" `xenforo` header 1 "heading 1" =?> "[heading=1]heading 1[/heading]"
@@ -333,7 +333,7 @@ tests =
           =?> "inline code: [icode]map (2^) [1..5][/icode]"
       , "font"
           `xenforo` divAttrs [("font", "serif")] (para "foo")
-          =?> "[font=serif]foo\n\n[/font]"
+          =?> "[font=serif]foo[/font]"
       , "inline spoiler"
           `xenforo` ("It was " <> spanClasses ["spoiler"] ("DNS") <> "!")
           =?> "It was [ispoiler]DNS[/ispoiler]!"
