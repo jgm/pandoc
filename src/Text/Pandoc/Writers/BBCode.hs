@@ -30,7 +30,6 @@ module Text.Pandoc.Writers.BBCode (
   blockToBBCode,
   blockListToBBCode,
   attrToMap,
-  wrapSpanDivGeneric,
 
   -- * Predefined flavor specifications
   officialSpec,
@@ -672,106 +671,66 @@ attrToMap (_, classes, kvList) =
   kvList' = map (\(k, v) -> (k, Just v)) kvList
   classes' = map (\k -> (k, Nothing)) classes
 
-{- | 'wrapSpanDivGeneric' is the foundation under flavor-specific
-'wrapSpanDiv's.
-
-- Classes it supports: @"left", "center", "right", "spoiler", "box", "indent"@
-  (only for divs)
-- Key-value pairs it supports:
-
-    - key: @"size"@, value: text value that can be read as a positive integer
-    - key: @"color"@, value: any text
-    - key: @"spoiler"@, value: any text (only for divs)
-    - key: @"font"@, value: any text
-    - key: @"box"@, value: one of @"left"@, @"center"@, @"right"@ (only for divs)
-    - key: @"align"@, value: one of @"left"@, @"center"@, @"right"@ (only for divs)
-
-Function can be restricted to specific classes/key-value pairs via
-'Map.restrictKeys', for instance:
-
-> wrapSpanDivSteam :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
-> wrapSpanDivSteam isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
->  where
->   kvc' =
->     Map.mapWithKey removeNamedSpoiler . Map.restrictKeys kvc $
->       Set.fromList ["spoiler"]
->   removeNamedSpoiler "spoiler" (Just _) = Nothing
->   removeNamedSpoiler _ x = x
-
-The function above limits supported keys to "spoiler" and sets spoiler's value
-to Nothing, because Steam's flavor does not support named spoilers.
-
->>> render Nothing $ wrapSpanDivGeneric True (Map.fromList [("spoiler", Just "Spoiler name")]) "Nasty details"
-"[spoiler=Spoiler name]Nasty details[/spoiler]"
-
->>> render Nothing $ wrapSpanDivGeneric True (Map.fromList [("center", Nothing)]) "Centered text"
-"[center]Centered text[/center]"
--}
-wrapSpanDivGeneric :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
-wrapSpanDivGeneric isDiv kvc doc = Map.foldrWithKey wrap doc kvc
- where
-  wrap :: Text -> Maybe Text -> Doc Text -> Doc Text
-  wrap k Nothing txt = case k of
-    "left" | isDiv -> "[left]" <> txt <> "[/left]"
-    "center" | isDiv -> "[center]" <> txt <> "[/center]"
-    "right" | isDiv -> "[right]" <> txt <> "[/right]"
-    "spoiler" | isDiv -> "[spoiler]" <> txt <> "[/spoiler]"
-    "box" | isDiv -> "[box]" <> txt <> "[/box]"
-    "indent" | isDiv -> "[indent]" <> txt <> "[/indent]"
-    _ -> txt
-  wrap k (Just v) txt = case k of
-    "size"
-      | Just v' <- readMaybe @Int (T.unpack v)
-      , v' > 0 ->
-          literal ("[size=" <> v <> "]") <> txt <> "[/size]"
-    "color" -> literal ("[color=" <> v <> "]") <> txt <> "[/color]"
-    "spoiler"
-      | isDiv ->
-          literal ("[spoiler=" <> T.filter notBracket v <> "]") <> txt <> "[/spoiler]"
-    "font" -> literal ("[font=" <> v <> "]") <> txt <> "[/font]"
-    "align"
-      | isDiv
-      , v `elem` ["left", "center", "right"] ->
-          literal ("[align=" <> v <> "]") <> txt <> "[/align]"
-    "box"
-      | isDiv
-      , v `elem` ["left", "center", "right"] ->
-          literal ("[box=" <> v <> "]") <> txt <> "[/box]"
-    _ -> txt
-
 wrapSpanDivOfficial :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
-wrapSpanDivOfficial isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+wrapSpanDivOfficial isDiv kvc doc = Map.foldrWithKey wrap doc kvc
  where
-  kvc' =
-    Map.restrictKeys kvc $
-      Set.fromList ["spoiler", "left", "center", "right", "size", "color"]
+  wrap "left" Nothing acc | isDiv = "[left]" <> acc <> "[/left]"
+  wrap "center" Nothing acc | isDiv = "[center]" <> acc <> "[/center]"
+  wrap "right" Nothing acc | isDiv = "[right]" <> acc <> "[/right]"
+  wrap "spoiler" Nothing acc | isDiv = "[spoiler]" <> acc <> "[/spoiler]"
+  wrap "spoiler" (Just v) acc
+    | isDiv =
+        literal ("[spoiler=" <> T.filter notBracket v <> "]")
+          <> acc
+          <> "[/spoiler]"
+  wrap "size" (Just v) acc
+    | Just v' <- readMaybe @Int (T.unpack v)
+    , v' > 0 =
+        literal ("[size=" <> v <> "]") <> acc <> "[/size]"
+  wrap "color" (Just v) acc =
+    literal ("[color=" <> v <> "]") <> acc <> "[/color]"
+  wrap _ _ acc = acc
 
 wrapSpanDivSteam :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
-wrapSpanDivSteam isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+wrapSpanDivSteam isDiv kvc doc = Map.foldrWithKey wrap doc kvc
  where
-  kvc' =
-    Map.mapWithKey removeNamedSpoiler
-      . Map.restrictKeys kvc
-      $ Set.fromList ["spoiler"]
-  removeNamedSpoiler "spoiler" (Just _) = Nothing
-  removeNamedSpoiler _ x = x
+  wrap "spoiler" (Just _) acc | isDiv = "[spoiler]" <> acc <> "[/spoiler]"
+  wrap "spoiler" Nothing acc | isDiv = "[spoiler]" <> acc <> "[/spoiler]"
+  wrap _ _ acc = acc
 
 wrapSpanDivPhpBB :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
-wrapSpanDivPhpBB isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+wrapSpanDivPhpBB _ kvc doc = Map.foldrWithKey wrap doc kvc
  where
-  kvc' = Map.restrictKeys kvc (Set.fromList ["color"])
+  wrap "color" (Just v) acc =
+    literal ("[color=" <> v <> "]") <> acc <> "[/color]"
+  wrap _ _ acc = acc
 
 wrapSpanDivFluxBB :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
-wrapSpanDivFluxBB isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+wrapSpanDivFluxBB _ kvc doc = Map.foldrWithKey wrap doc kvc
  where
-  kvc' = Map.restrictKeys kvc (Set.fromList ["color"])
+  wrap "color" (Just v) acc =
+    literal ("[color=" <> v <> "]") <> acc <> "[/color]"
+  wrap _ _ acc = acc
 
 wrapSpanDivHubzilla :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
-wrapSpanDivHubzilla isDiv kvc doc = wrapSpanDivGeneric isDiv kvc' doc
+wrapSpanDivHubzilla isDiv kvc doc = Map.foldrWithKey wrap doc kvc
  where
-  kvc' =
-    Map.restrictKeys kvc $
-      Set.fromList ["spoiler", "center", "size", "color", "font"]
+  wrap "center" Nothing acc | isDiv = "[center]" <> acc <> "[/center]"
+  wrap "spoiler" Nothing acc | isDiv = "[spoiler]" <> acc <> "[/spoiler]"
+  wrap "spoiler" (Just v) acc
+    | isDiv =
+        literal ("[spoiler=" <> T.filter notBracket v <> "]")
+          <> acc
+          <> "[/spoiler]"
+  wrap "size" (Just v) acc
+    | Just v' <- readMaybe @Int (T.unpack v)
+    , v' > 0 =
+        literal ("[size=" <> v <> "]") <> acc <> "[/size]"
+  wrap "color" (Just v) acc =
+    literal ("[color=" <> v <> "]") <> acc <> "[/color]"
+  wrap "font" (Just v) acc = literal ("[font=" <> v <> "]") <> acc <> "[/font]"
+  wrap _ _ acc = acc
+
 
 renderOrderedListFluxbb ::
   (PandocMonad m) =>
