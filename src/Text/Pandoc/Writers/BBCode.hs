@@ -2,11 +2,12 @@
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE Strict #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Text.Pandoc.Writers.BBCode (
   -- * Predefined writers
+
   --
   -- Writers for different flavors of BBCode. 'writeBBCode' is a synonym for
   -- 'writeBBCode_official'
@@ -20,6 +21,7 @@ module Text.Pandoc.Writers.BBCode (
   writeBBCodeXenforo,
 
   -- * Extending the writer
+
   --
   -- $extending
   FlavorSpec (..),
@@ -41,14 +43,17 @@ module Text.Pandoc.Writers.BBCode (
   xenforoSpec,
 ) where
 
+import Control.Applicative (some)
 import Control.Monad (forM)
 import Control.Monad.Reader (MonadReader (..), ReaderT (..), asks)
 import Control.Monad.State (MonadState (..), StateT, evalStateT, gets, modify)
 import Data.Default (Default (..))
+import Data.Either (isRight)
 import Data.Foldable (toList)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe, isJust)
+import Data.Ord (clamp)
 import Data.Sequence (Seq, (|>))
 import qualified Data.Sequence as Seq
 import Data.Text (Text)
@@ -58,15 +63,12 @@ import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging (LogMessage (..))
 import Text.Pandoc.Options (WriterOptions (..))
+import Text.Pandoc.Parsing (char, digit, eof, readWith)
 import Text.Pandoc.Shared (inquotes, onlySimpleTableCells, removeFormatting, trim, tshow)
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.URI (escapeURI)
 import Text.Pandoc.Writers.Shared (defField, metaToContext, toLegacyTable, unsmartify)
 import Text.Read (readMaybe)
-import Data.Ord (clamp)
-import Text.Pandoc.Parsing (readWith, char, digit, eof)
-import Data.Either (isRight)
-import Control.Applicative (some)
 
 -- Type synonym to prevent haddock-generated HTML from overflowing
 type PandocTable =
@@ -240,6 +242,7 @@ data FlavorSpec = FlavorSpec
   -- class is key-value pair with Nothing value. For instance, given classes
   -- @["cl1"]@ and attributes @[("k", "v")]@ Map should look like
   -- @'Map.fromList' [("cl1", 'Nothing'), ("k", 'Just' "v")]@
+  -- TODO: documentation with example
   }
 
 data WriterState = WriterState
@@ -536,7 +539,6 @@ renderInlineCodeXenforo :: (PandocMonad m) => Attr -> Text -> RR m (Doc Text)
 renderInlineCodeXenforo _ code =
   pure $ mconcat [literal "[icode]", literal code, "[/icode]"]
 
-
 renderStrikeoutDefault :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
 renderStrikeoutDefault inlines = do
   contents <- inlineListToBBCode inlines
@@ -604,7 +606,8 @@ renderOrderedListHubzilla (_, style, _) = case style of
   DefaultStyle -> listWithTags "[ol]" "[/ol]" starListItems
   Example -> listWithTags "[ol]" "[/ol]" starListItems
   _ -> listWithTags ("[list=" <> suffix <> "]") "[/list]" starListItems
- where suffix = fromMaybe "1" $ listStyleCode style
+ where
+  suffix = fromMaybe "1" $ listStyleCode style
 
 renderOrderedListOfficial ::
   (PandocMonad m) => ListAttributes -> [[Block]] -> RR m (Doc Text)
@@ -828,7 +831,6 @@ renderOrderedListXenforo ::
   RR m (Doc Text)
 renderOrderedListXenforo _ =
   listWithTags "[list=1]" "[/list]" starListItems
-
 
 renderLinkEmailAware ::
   (PandocMonad m) =>
