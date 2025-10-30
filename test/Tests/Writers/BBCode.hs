@@ -13,29 +13,25 @@ import Text.Pandoc
 import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder
 import Text.Pandoc.Shared (tshow)
-import Text.Pandoc.Writers.BBCode
 import Text.Read (readMaybe)
 
 bbcodeExt :: (ToPandoc a) => a -> Text
-bbcodeExt x = purely (writeBBCode_custom extendedSpec def) $ toPandoc x
+bbcodeExt x = purely (writeBBCodeCustom extendedSpec def) $ toPandoc x
  where
   extendedSpec :: FlavorSpec
   extendedSpec = officialSpec{wrapSpanDiv = wrapSpanDivGeneric}
 
-bbcodeDefault :: (ToPandoc a) => a -> Text
-bbcodeDefault x = purely (writeBBCode def) $ toPandoc x
-
-bbcodeSteam :: (ToPandoc a) => a -> Text
-bbcodeSteam x = purely (writeBBCode_steam def) $ toPandoc x
-
-bbcodePhpBB :: (ToPandoc a) => a -> Text
-bbcodePhpBB x = purely (writeBBCode_phpBB def) $ toPandoc x
-
-bbcodeFluxBB :: (ToPandoc a) => a -> Text
-bbcodeFluxBB x = purely (writeBBCode_fluxBB def) $ toPandoc x
-
-bbcodeHubzilla :: (ToPandoc a) => a -> Text
-bbcodeHubzilla x = purely (writeBBCode_hubzilla def) $ toPandoc x
+bbcodeDefault
+  , bbcodeSteam
+  , bbcodePhpBB
+  , bbcodeFluxBB
+  , bbcodeHubzilla ::
+    (ToPandoc a) => a -> Text
+bbcodeDefault = purely (writeBBCode def) . toPandoc
+bbcodeSteam = purely (writeBBCodeSteam def) . toPandoc
+bbcodePhpBB = purely (writeBBCodePhpBB def) . toPandoc
+bbcodeFluxBB = purely (writeBBCodeFluxBB def) . toPandoc
+bbcodeHubzilla = purely (writeBBCodeHubzilla def) . toPandoc
 
 infix 4 =:, `bbcode`, `steam`, `phpbb`, `fluxbb`, `hubzilla`
 (=:)

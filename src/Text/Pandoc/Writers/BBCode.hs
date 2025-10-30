@@ -12,11 +12,11 @@ module Text.Pandoc.Writers.BBCode (
   -- 'writeBBCode_official'
 
   writeBBCode,
-  writeBBCode_official,
-  writeBBCode_steam,
-  writeBBCode_phpBB,
-  writeBBCode_fluxBB,
-  writeBBCode_hubzilla,
+  writeBBCodeOfficial,
+  writeBBCodeSteam,
+  writeBBCodePhpBB,
+  writeBBCodeFluxBB,
+  writeBBCodeHubzilla,
 
   -- * Extending the writer
   --
@@ -24,7 +24,7 @@ module Text.Pandoc.Writers.BBCode (
   FlavorSpec (..),
   WriterState (..),
   RR,
-  writeBBCode_custom,
+  writeBBCodeCustom,
   inlineToBBCode,
   inlineListToBBCode,
   blockToBBCode,
@@ -277,25 +277,25 @@ pandocToBBCode (Pandoc meta body) = do
     Nothing -> pure $ render Nothing docText
 
 writeBBCode
-  , writeBBCode_official
-  , writeBBCode_steam
-  , writeBBCode_phpBB
-  , writeBBCode_fluxBB
-  , writeBBCode_hubzilla ::
+  , writeBBCodeOfficial
+  , writeBBCodeSteam
+  , writeBBCodePhpBB
+  , writeBBCodeFluxBB
+  , writeBBCodeHubzilla ::
     (PandocMonad m) => WriterOptions -> Pandoc -> m Text
-writeBBCode = writeBBCode_official
-writeBBCode_official = writeBBCode_custom officialSpec
-writeBBCode_steam = writeBBCode_custom steamSpec
-writeBBCode_phpBB = writeBBCode_custom phpbbSpec
-writeBBCode_fluxBB = writeBBCode_custom fluxbbSpec
-writeBBCode_hubzilla = writeBBCode_custom hubzillaSpec
+writeBBCode = writeBBCodeOfficial
+writeBBCodeOfficial = writeBBCodeCustom officialSpec
+writeBBCodeSteam = writeBBCodeCustom steamSpec
+writeBBCodePhpBB = writeBBCodeCustom phpbbSpec
+writeBBCodeFluxBB = writeBBCodeCustom fluxbbSpec
+writeBBCodeHubzilla = writeBBCodeCustom hubzillaSpec
 
 {- | Convert a 'Pandoc' document to BBCode using the given 'FlavorSpec' and
 'WriterOptions'.
 -}
-writeBBCode_custom ::
+writeBBCodeCustom ::
   (PandocMonad m) => FlavorSpec -> WriterOptions -> Pandoc -> m Text
-writeBBCode_custom spec opts document =
+writeBBCodeCustom spec opts document =
   runRR mempty def{writerOptions = opts, flavorSpec = spec} $
     pandocToBBCode document
  where
