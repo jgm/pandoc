@@ -46,6 +46,7 @@
     paper: paper,
     margin: margin,
     numbering: pagenumbering,
+    columns: cols
   )
 
   set par(
