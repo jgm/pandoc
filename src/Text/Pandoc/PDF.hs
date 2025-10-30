@@ -90,11 +90,21 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
 #else
   let tmpdir = mediaDir
 #endif
-  doc' <- handleImages opts tmpdir doc
-  source <- writer opts{ writerExtensions = -- disable use of quote
-                            -- ligatures to avoid bad ligatures like ?`
-                            disableExtension Ext_smart
-                             (writerExtensions opts) } doc'
+  let isTeXFormat "context" = True
+      isTeXFormat "tectonic" = True
+      isTeXFormat "latexmk" = True
+      isTeXFormat "lualatex" = True
+      isTeXFormat "lualatex-dev" = True
+      isTeXFormat "pdflatex" = True
+      isTeXFormat "pdflatex-dev" = True
+      isTeXFormat "xelatex" = True
+      isTeXFormat _ = False
+  let opts' = if isTeXFormat program
+                 then -- disable quote ligatures to avoid bad ligatures like ?`
+                      opts{ writerExtensions = disableExtension Ext_smart
+                                (writerExtensions opts) }
+                 else opts
+  source <- handleImages opts' tmpdir doc >>= writer opts'
   verbosity <- getVerbosity
   let compileHTML mkOutArgs = do
         -- check to see if there is anything in mediabag, and if so,
@@ -106,7 +116,7 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
         liftIO $
           toPdfViaTempFile verbosity program pdfargs mkOutArgs ".html" source'
   case takeBaseName program of
-    "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts doc
+    "wkhtmltopdf" -> makeWithWkhtmltopdf program pdfargs writer opts' doc
     "pagedjs-cli" -> compileHTML (\f -> ["-o", f])
     "prince"      -> compileHTML (\f -> ["-o", f])
     "weasyprint"  -> compileHTML (:[])
@@ -114,7 +124,7 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
         toPdfViaTempFile verbosity program ("compile":pdfargs) (:[]) ".typ" source
     "pdfroff" -> do
       let paperargs =
-            case lookupContext "papersize" (writerVariables opts) of
+            case lookupContext "papersize" (writerVariables opts') of
               Just s
                 | T.takeEnd 1 s == "l" -> ["-P-p" <>
                                            T.unpack (T.dropEnd 1 s), "-P-l"]
@@ -127,7 +137,7 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
       generic2pdf program args source
     "groff" -> do
       let paperargs =
-            case lookupContext "papersize" (writerVariables opts) of
+            case lookupContext "papersize" (writerVariables opts') of
               Just s
                 | T.takeEnd 1 s == "l" -> ["-P-p" <>
                                            T.unpack (T.dropEnd 1 s), "-P-l"]
