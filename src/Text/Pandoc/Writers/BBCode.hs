@@ -708,7 +708,7 @@ renderTableOmit ::
   , TableFoot
   ) ->
   RR m (Doc Text)
-renderTableOmit _ = pure ""
+renderTableOmit _ = pure $ "(TABLE)" <> blankline
 
 {- | The goal of the transformation is to treat classes and key-value pairs
 uniformly.
