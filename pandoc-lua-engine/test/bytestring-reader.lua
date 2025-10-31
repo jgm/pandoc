@@ -1,4 +1,4 @@
-function ByteStringReader (input, opts)
+function ByteStringReader (input, _opts)
   local chars = pandoc.List{}
   for i = 1, #input do
     chars:insert(utf8.char(input:byte(i,i)))
