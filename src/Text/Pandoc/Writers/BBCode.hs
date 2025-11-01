@@ -50,7 +50,6 @@ import Data.Foldable (toList)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe, isJust)
-import Data.Ord (clamp)
 import Data.Sequence (Seq, (|>))
 import qualified Data.Sequence as Seq
 import Data.Text (Text)
@@ -481,6 +480,10 @@ renderImageFluxBB _ alt (source, _) = do
 
 inlineListToBBCode :: (PandocMonad m) => [Inline] -> RR m (Doc Text)
 inlineListToBBCode inlines = mconcat <$> mapM inlineToBBCode inlines
+
+-- Taken from Data.Ord
+clamp :: (Ord a) => (a, a) -> a -> a
+clamp (low, high) a = min high (max a low)
 
 renderHeaderDefault ::
   (PandocMonad m) => Int -> Attr -> [Inline] -> RR m (Doc Text)
