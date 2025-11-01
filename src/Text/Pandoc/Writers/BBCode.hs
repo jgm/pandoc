@@ -693,8 +693,7 @@ renderTableDefault ::
   , TableFoot
   ) ->
   RR m (Doc Text)
-renderTableDefault (attr, blkCapt, specs, thead, tbody, tfoot) =
-  renderTableGeneric "table" "th" "td" (attr, blkCapt, specs, thead, tbody, tfoot)
+renderTableDefault = renderTableGeneric "table" "th" "td"
 
 renderTableOmit ::
   (PandocMonad m) =>
@@ -706,7 +705,10 @@ renderTableOmit ::
   , TableFoot
   ) ->
   RR m (Doc Text)
-renderTableOmit _ = pure "(TABLE)"
+renderTableOmit (_, blkCapt, specs, thead, tbody, tfoot) = do
+  let (caption, _, _, _, _) = toLegacyTable blkCapt specs thead tbody tfoot
+  caption' <- inlineListToBBCode caption
+  pure $ caption' $$ "(TABLE)"
 
 -- $wrapping_spans_divs
 -- Consider attribute a key-value pair with a Just value, and respectively
