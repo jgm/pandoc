@@ -21,7 +21,7 @@ import qualified Data.Sequence as Seq
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.TeX
 import Text.Pandoc.Class
-import Text.Pandoc.Shared (trimMath, stripTrailingNewlines)
+import Text.Pandoc.Shared (trimMath, trimr)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>), optional)
@@ -82,7 +82,7 @@ mathEnv :: PandocMonad m => Text -> LP m Text
 mathEnv name = withMathMode $ do
   optional blankline
   res <- manyTill anyTok (end_ name)
-  return $ stripTrailingNewlines $ untokenize res
+  return $ trimr $ untokenize res
 
 inlineEnvironment :: PandocMonad m => LP m Inlines
 inlineEnvironment = try $ do
