@@ -7,11 +7,8 @@
 
 module Text.Pandoc.Writers.BBCode (
   -- * Predefined writers
-
-  --
   -- Writers for different flavors of BBCode. 'writeBBCode' is a synonym for
   -- 'writeBBCode_official'
-
   writeBBCode,
   writeBBCodeOfficial,
   writeBBCodeSteam,
@@ -21,8 +18,6 @@ module Text.Pandoc.Writers.BBCode (
   writeBBCodeXenforo,
 
   -- * Extending the writer
-
-  --
   -- $extending
   FlavorSpec (..),
   WriterState (..),
@@ -32,6 +27,9 @@ module Text.Pandoc.Writers.BBCode (
   inlineListToBBCode,
   blockToBBCode,
   blockListToBBCode,
+
+  -- ** Handling attributes
+  -- $wrapping_spans_divs
   attrToMap,
 
   -- * Predefined flavor specifications
@@ -237,12 +235,6 @@ data FlavorSpec = FlavorSpec
   , wrapSpanDiv :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
   -- ^ Wrap document in bbcode tags based on attributes/classes. Boolean flag
   -- indicates whether passed argument is a Div or a Span (True means Div)
-  --
-  -- Consider attribute a key-value pair with a Just value, and respectively
-  -- class is key-value pair with Nothing value. For instance, given classes
-  -- @["cl1"]@ and attributes @[("k", "v")]@ Map should look like
-  -- @'Map.fromList' [("cl1", 'Nothing'), ("k", 'Just' "v")]@
-  -- TODO: documentation with example
   }
 
 data WriterState = WriterState
@@ -717,11 +709,40 @@ renderTableOmit ::
   RR m (Doc Text)
 renderTableOmit _ = pure "(TABLE)"
 
+-- $wrapping_spans_divs
+-- Consider attribute a key-value pair with a Just value, and respectively
+-- class is key-value pair with Nothing value.
+-- For instance, given @("", ["cl1"], [("k", "v")]) :: 'Attr'@, respective Map
+-- should look like @'Map.fromList' [("cl1", 'Nothing'), ("k", 'Just' "v")]@
+--
+-- This transformation is handled by 'attrToMap'
+--
+-- Example definition of a wrapSpanDiv:
+--
+-- > {-# LANGUAGE OverloadedStrings #-}
+-- > import Data.Map (Map)
+-- > import qualified Data.Map as Map
+-- > import Text.DocLayout
+-- > import Data.Text (Text)
+-- > import qualified Data.Text as T
+-- >
+-- > wrapSpanDivSteam :: Bool -> Map Text (Maybe Text) -> Doc Text -> Doc Text
+-- > wrapSpanDivSteam isDiv kvc doc = Map.foldrWithKey wrap doc kvc
+-- >  where
+-- >   wrap "spoiler" (Just _) acc | isDiv = "[spoiler]" <> acc <> "[/spoiler]"
+-- >   wrap "spoiler" Nothing acc | isDiv = "[spoiler]" <> acc <> "[/spoiler]"
+-- >   wrap _ _ acc = acc
+--
+-- To verify it works, wrap some text in unnamed spoiler
+--
+-- >>> render Nothing $ wrapSpanDivSteam True (attrToMap ("", ["spoiler"], [])) "I am text"
+-- "[spoiler]I am text[/spoiler]"
+
 {- | The goal of the transformation is to treat classes and key-value pairs
 uniformly.
 
-Class list becomes Map where all values are Nothing, and key-value pairs are
-converted to Map via 'Map.toList'. Both Maps are then merged.
+Class list becomes Map where all values are Nothing, and list of key-value
+pairs is converted to Map via 'Map.toList'. Both Maps are then merged.
 -}
 attrToMap :: Attr -> Map Text (Maybe Text)
 attrToMap (_, classes, kvList) =
