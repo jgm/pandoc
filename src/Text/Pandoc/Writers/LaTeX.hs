@@ -1375,7 +1375,7 @@ ldfLanguages =
 
 isMathEnv :: Text -> Bool
 isMathEnv t =
-  case T.stripPrefix "\\begin{" t of
+  case T.stripPrefix "\\begin{" (T.dropWhile isSpaceChar t) of
     Nothing -> False
     Just t' -> T.takeWhile (/= '}') t' `elem`
       [ "align", "align*"
@@ -1392,6 +1392,12 @@ isMathEnv t =
       , "eqnarray"
       , "displaymath"
       ]
+ where
+   isSpaceChar '\n' = True
+   isSpaceChar '\r' = True
+   isSpaceChar '\t' = True
+   isSpaceChar ' ' = True
+   isSpaceChar _ = False
 
 -- True if the math needs the cancel package
 needsCancel :: Text -> Bool
