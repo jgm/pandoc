@@ -233,7 +233,7 @@ update-website: ## update website and upload
 .PHONY: update-website
 
 update-translations: ## update data/translations from Babel and Polyglossia
-	python tools/update-translations.py
+	python3 tools/update-translations.py
 .PHONY: update-translations
 
 validate-docx-golden-tests: ## validate docx golden tests against schema
