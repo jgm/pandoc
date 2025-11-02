@@ -50,6 +50,8 @@ module Text.Pandoc.Writers.Shared (
                      , isOrderedListMarker
                      , toTaskListItem
                      , delimited
+                     , allRowsEmpty
+                     , tableBodiesToRows
                      )
 where
 import Safe (lastMay, maximumMay)
@@ -59,7 +61,7 @@ import Data.Either (isRight)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter, isUpper)
 import Data.List (groupBy, intersperse, foldl', transpose)
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -857,3 +859,17 @@ delimited opener closer content =
   toList (Concat (Concat a b) c) = toList (Concat a (Concat b c))
   toList (Concat a b) = a : toList b
   toList x = [x]
+
+-- | Determine whether all rows and their cells are empty.
+allRowsEmpty :: [Row] -> Bool
+allRowsEmpty = all isEmptyRow
+ where
+  isEmptyRow (Row _ cells) = all isEmptyCell cells
+  isEmptyCell (Cell _ _ _ _ blocks) = null blocks
+
+-- | Concatenates the header and body Rows of a List of TableBody into a flat
+-- List of Rows.
+tableBodiesToRows :: [TableBody] -> [Row]
+tableBodiesToRows = concatMap tableBodyToRows
+  where
+    tableBodyToRows (TableBody _ _ headerRows bodyRows) = headerRows ++ bodyRows

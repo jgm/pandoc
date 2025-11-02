@@ -925,23 +925,19 @@ simpleTable :: PandocMonad m
             -> TableFoot
             -> m (Doc Text)
 simpleTable opts blocksToDoc (TableHead _ headers) tbody (TableFoot _ footers) = do
-  headerDocs <- if all isEmptyRow headers
+  headerDocs <- if allRowsEmpty headers
                    then return []
                    else fixEmpties <$> mapM rowToDoc headers
   rowDocs <- fixEmpties <$> mapM rowToDoc ((tableBodiesToRows tbody) ++ footers)
   let numChars = maybe 0 maximum . NE.nonEmpty . map (offset . fst)
   let colWidths = map numChars $ transpose (headerDocs ++ rowDocs)
   let hline = nowrap $ hsep (map (\n -> literal (T.replicate n "=")) colWidths)
-  let hdr = if all isEmptyRow headers
+  let hdr = if allRowsEmpty headers
                then mempty
                else hline $$ mapToRow colWidths headerDocs
   let bdy = mapToRow colWidths rowDocs
   return $ hdr $$ hline $$ bdy $$ hline
   where
-    isEmptyRow (Row _ cells) = all isEmptyCell cells
-
-    isEmptyCell (Cell _ _ _ _ blocks) = null blocks
-
     -- can't have empty cells in first column:
     fixEmpties (d:ds) = fixEmpties' d : ds
     fixEmpties [] = []
@@ -991,10 +987,3 @@ simpleTable opts blocksToDoc (TableHead _ headers) tbody (TableFoot _ footers) =
             then colWidthsSum + colWidthsLength - 1
             else colWidthsSum
       in  literal $ T.replicate dashLength "-"
-
--- | Concatenates the header and body Rows of a List of TableBody into a flat
--- List of Rows.
-tableBodiesToRows :: [TableBody] -> [Row]
-tableBodiesToRows = concatMap tableBodyToRows
-  where
-    tableBodyToRows (TableBody _ _ headerRows bodyRows) = headerRows ++ bodyRows
