@@ -177,8 +177,7 @@ rawLaTeXInline = do
           (   rawLaTeXParser toks
               (mempty <$ (controlSeq "input" >> skipMany rawopt >> braced))
               inlines
-          <|> rawLaTeXParser toks (inlineEnvironment <|> inlineCommand')
-              inlines
+          <|> rawLaTeXParser toks inline inlines
           )
   finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
   return $ raw <> T.pack finalbraces
@@ -426,7 +425,6 @@ inlineCommands = M.unions
     , ("textcolor", coloredInline "color")
     , ("colorbox", coloredInline "background-color")
     -- etoolbox
-    , ("ifstrequal", ifstrequal)
     , ("newtoggle", braced >>= newToggle)
     , ("toggletrue", braced >>= setToggle True)
     , ("togglefalse", braced >>= setToggle False)
@@ -565,18 +563,6 @@ ifToggle = do
                   pos <- getPosition
                   report $ UndefinedToggle name' pos
   return ()
-
-ifstrequal :: (PandocMonad m, Monoid a) => LP m a
-ifstrequal = do
-  str1 <- tok
-  str2 <- tok
-  ifequal <- withVerbatimMode braced
-  ifnotequal <- withVerbatimMode braced
-  TokStream _ ts <- getInput
-  if str1 == str2
-     then setInput $ TokStream False (ifequal ++ ts)
-     else setInput $ TokStream False (ifnotequal ++ ts)
-  return mempty
 
 coloredInline :: PandocMonad m => Text -> LP m Inlines
 coloredInline stylename = do
@@ -1026,7 +1012,6 @@ blockCommands = M.fromList
    -- alignment
    , ("raggedright", pure mempty)
    -- etoolbox
-   , ("ifstrequal", ifstrequal)
    , ("newtoggle", braced >>= newToggle)
    , ("toggletrue", braced >>= setToggle True)
    , ("togglefalse", braced >>= setToggle False)
