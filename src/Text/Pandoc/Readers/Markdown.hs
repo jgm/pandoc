@@ -1826,9 +1826,9 @@ source = do
         return $ "(" <> result <> ")"
   let linkTitle' = try $ spnl >> linkTitle
   let urlChunk = do
-        notFollowedBy linkTitle'
         try parenthesizedChars
-          <|> (notFollowedBy (oneOf " )") >> litChar)
+          <|> (notFollowedBy (oneOf "\n\r )") >> litChar)
+          <|> (lookAhead (oneOf "\n\r") >> notFollowedBy linkTitle' >> litChar)
           <|> try (many1Char spaceChar <* notFollowedBy (oneOf "\"')"))
   let sourceURL = T.unwords . T.words . T.concat <$> many urlChunk
   src <- try (litBetween '<' '>') <|> try base64DataURI <|> sourceURL
