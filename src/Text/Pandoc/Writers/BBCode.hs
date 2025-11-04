@@ -1025,8 +1025,8 @@ Quirks:
 - PhpBB docs don't mention strikeout support, but their
   [support forum](https://www.phpbb.com/community) does support it.
 - Same for named code blocks.
-- @[email=example@example.com]the email[/url]@ is a valid use of [email] tag on
-  the phpBB community forum despite not being in the docs.
+- @[email=example\@example.com]the email[/url]@ is a valid use of [email]
+  tag on the phpBB community forum despite not being in the docs.
 -}
 phpbbSpec :: FlavorSpec
 phpbbSpec =
