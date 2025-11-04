@@ -144,17 +144,12 @@ rawLaTeXBlock = do
   toks <- getInputTokens
   snd <$> (
           rawLaTeXParser toks
-             (skipMany1 (try
-              (skipMany (whitespace <|> newlineTok)
-               *> (macroDef (const ())
-                  <|> void (controlSeq "makeatletter" <|>
-                            controlSeq "mateatother")))
-              <|>
+             (macroDef (const mempty) <|>
               do choice (map controlSeq
                    ["include", "input", "subfile", "usepackage"])
                  skipMany opt
                  braced
-                 return mempty)) blocks
+                 return mempty) blocks
       <|> rawLaTeXParser toks
            (void (environment <|> blockCommand))
            (mconcat <$> many (block <|> beginOrEndCommand)))
