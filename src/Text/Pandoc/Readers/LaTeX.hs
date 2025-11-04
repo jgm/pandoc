@@ -144,7 +144,8 @@ rawLaTeXBlock = do
   toks <- getInputTokens
   snd <$> (
           rawLaTeXParser toks
-             (macroDef (const mempty) <|>
+             (makeAtLetterSection <|>
+              macroDef (const mempty) <|>
               do choice (map controlSeq
                    ["include", "input", "subfile", "usepackage"])
                  skipMany opt
@@ -153,6 +154,17 @@ rawLaTeXBlock = do
       <|> rawLaTeXParser toks
            (void (environment <|> blockCommand))
            (mconcat <$> many (block <|> beginOrEndCommand)))
+
+makeAtLetterSection :: PandocMonad m => LP m ()
+makeAtLetterSection = try $ do
+  controlSeq "makeatletter"
+  void $ manyTill
+    (   whitespace
+    <|> newlineTok
+    <|> macroDef (const ())
+    <|> void environment
+    <|> void blockCommand
+    ) (controlSeq "makeatother")
 
 -- See #4667 for motivation; sometimes people write macros
 -- that just evaluate to a begin or end command, which blockCommand
