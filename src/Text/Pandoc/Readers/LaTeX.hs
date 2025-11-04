@@ -151,7 +151,7 @@ rawLaTeXBlock = do
                  braced
                  return mempty) blocks
       <|> rawLaTeXParser toks
-           (environment <|> blockCommand)
+           (void (environment <|> blockCommand))
            (mconcat <$> many (block <|> beginOrEndCommand)))
 
 -- See #4667 for motivation; sometimes people write macros
@@ -177,7 +177,7 @@ rawLaTeXInline = do
           (   rawLaTeXParser toks
               (mempty <$ (controlSeq "input" >> skipMany rawopt >> braced))
               inlines
-          <|> rawLaTeXParser toks inline inlines
+          <|> rawLaTeXParser toks (void inline) inlines
           )
   finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
   return $ raw <> T.pack finalbraces
@@ -186,7 +186,7 @@ inlineCommand :: PandocMonad m => ParsecT Sources ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
-  fst <$> rawLaTeXParser toks (inlineEnvironment <|> inlineCommand')
+  fst <$> rawLaTeXParser toks (void (inlineEnvironment <|> inlineCommand'))
           inlines
 
 -- inline elements:

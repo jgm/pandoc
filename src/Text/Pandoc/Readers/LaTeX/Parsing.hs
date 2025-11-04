@@ -279,7 +279,7 @@ withVerbatimMode parser = do
        return result
 
 rawLaTeXParser :: (PandocMonad m, HasMacros s, HasReaderOptions s, Show a)
-               => [Tok] -> LP m a -> LP m a
+               => [Tok] -> LP m () -> LP m a
                -> ParsecT Sources s m (a, Text)
 rawLaTeXParser toks parser valParser = do
   pstate <- getState
