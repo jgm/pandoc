@@ -3,6 +3,17 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE Strict #-}
 {-# LANGUAGE TypeApplications #-}
+{- |
+   Module      : Text.Pandoc.Writers.BBCode
+   Copyright   : © 2025 Aleksey Myshko <git@crii.xyz>
+   License     : GNU GPL, version 2 or above
+
+   Maintainer  : Aleksey Myshko <git@crii.xyz>
+   Stability   : alpha
+   Portability : portable
+
+Conversion of 'Pandoc' documents to various BBCode flavors.
+-}
 
 module Text.Pandoc.Writers.BBCode (
   -- * Predefined writers
