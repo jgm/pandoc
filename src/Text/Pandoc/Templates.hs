@@ -125,6 +125,7 @@ getDefaultTemplate format = do
        "bbcode_fluxbb"     -> getDefaultTemplate "bbcode"
        "bbcode_steam"      -> getDefaultTemplate "bbcode"
        "bbcode_hubzilla"   -> getDefaultTemplate "bbcode"
+       "bbcode_xenforo"    -> getDefaultTemplate "bbcode"
        _        -> do
          let fname = "templates" </> "default" <.> T.unpack format
          readDataFile fname >>= toTextM fname
