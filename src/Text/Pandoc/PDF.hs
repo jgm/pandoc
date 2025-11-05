@@ -104,7 +104,13 @@ makePDF program pdfargs writer opts doc = withTempDir (program == "typst") "medi
                       opts{ writerExtensions = disableExtension Ext_smart
                                 (writerExtensions opts) }
                  else opts
-  source <- handleImages opts' tmpdir doc >>= writer opts'
+  source <- fillMediaBag doc
+              >>= extractMedia tmpdir
+              >>= (if isTeXFormat program
+                      then walkM (convertImages opts' tmpdir)
+                      else return)
+              >>= writer opts'
+
   verbosity <- getVerbosity
   let compileHTML mkOutArgs = do
         -- check to see if there is anything in mediabag, and if so,
@@ -212,16 +218,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
   verbosity <- getVerbosity
   liftIO $ toPdfViaTempFile verbosity program args (:[]) ".html" source
 
-handleImages :: (PandocMonad m, MonadIO m)
-             => WriterOptions
-             -> FilePath      -- ^ temp dir to store images
-             -> Pandoc        -- ^ document
-             -> m Pandoc
-handleImages opts tmpdir doc =
-  fillMediaBag doc >>=
-    extractMedia tmpdir >>=
-    walkM (convertImages opts tmpdir)
-
+-- convert SVG to PDF, and pixel formatst to PNG or JPEG, for TeX formats
 convertImages :: (PandocMonad m, MonadIO m)
               => WriterOptions -> FilePath -> Inline -> m Inline
 convertImages opts tmpdir (Image attr ils (src, tit)) = do
