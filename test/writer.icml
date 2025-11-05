@@ -85,6 +85,11 @@
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; Blockquote &gt; FirstParagraph" Name="Blockquote &gt; Blockquote &gt; FirstParagraph" LeftIndent="30">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+        </Properties>
+      </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; Blockquote &gt; Paragraph" Name="Blockquote &gt; Blockquote &gt; Paragraph" LeftIndent="30">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
@@ -94,6 +99,11 @@
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
           <AppliedFont type="string">Courier New</AppliedFont>
+        </Properties>
+      </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; FirstParagraph" Name="Blockquote &gt; FirstParagraph" LeftIndent="10">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; NumList" Name="Blockquote &gt; NumList" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="20">
@@ -202,6 +212,19 @@
           </TabList>
         </Properties>
       </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/BulList &gt; first &gt; FirstParagraph" Name="BulList &gt; first &gt; FirstParagraph" BulletsAndNumberingListType="BulletList" LeftIndent="0">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <TabList type="list">
+            <ListItem type="record">
+              <Alignment type="enumeration">LeftAlign</Alignment>
+              <AlignmentCharacter type="string">.</AlignmentCharacter>
+              <Leader type="string" />
+              <Position type="unit">10</Position>
+            </ListItem>
+          </TabList>
+        </Properties>
+      </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/BulList &gt; first &gt; Paragraph" Name="BulList &gt; first &gt; Paragraph" BulletsAndNumberingListType="BulletList" LeftIndent="0">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
@@ -231,7 +254,7 @@
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
-      <ParagraphStyle Self="ParagraphStyle/DefListDef &gt; Blockquote &gt; Paragraph" Name="DefListDef &gt; Blockquote &gt; Paragraph" LeftIndent="30">
+      <ParagraphStyle Self="ParagraphStyle/DefListDef &gt; Blockquote &gt; FirstParagraph" Name="DefListDef &gt; Blockquote &gt; FirstParagraph" LeftIndent="30">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
@@ -267,10 +290,20 @@
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/FirstParagraph" Name="FirstParagraph" LeftIndent="0">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+        </Properties>
+      </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Footnote &gt; CodeBlock" Name="Footnote &gt; CodeBlock" LeftIndent="0">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
           <AppliedFont type="string">Courier New</AppliedFont>
+        </Properties>
+      </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/Footnote &gt; FirstParagraph" Name="Footnote &gt; FirstParagraph" LeftIndent="0">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Footnote &gt; Paragraph" Name="Footnote &gt; Paragraph" LeftIndent="0">
@@ -332,6 +365,11 @@
               <Position type="unit">20</Position>
             </ListItem>
           </TabList>
+        </Properties>
+      </ParagraphStyle>
+      <ParagraphStyle Self="ParagraphStyle/NumList &gt; FirstParagraph" Name="NumList &gt; FirstParagraph" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
+        <Properties>
+          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" Name="NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" NumberingExpression="^#.^t" NumberingLevel="4" BulletsAndNumberingListType="NumberedList" LeftIndent="30">
@@ -400,7 +438,7 @@
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
       </ParagraphStyle>
-      <ParagraphStyle Self="ParagraphStyle/NumList &gt; first &gt; beginsWith-2 &gt; Paragraph" Name="NumList &gt; first &gt; beginsWith-2 &gt; Paragraph" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
+      <ParagraphStyle Self="ParagraphStyle/NumList &gt; first &gt; beginsWith-2 &gt; FirstParagraph" Name="NumList &gt; first &gt; beginsWith-2 &gt; FirstParagraph" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
         <Properties>
           <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
         </Properties>
@@ -436,7 +474,7 @@
     <StoryPreference OpticalMarginAlignment="true" OpticalMarginSize="12" />
 
 <!-- body needs to be non-indented, otherwise code blocks are indented too far -->
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.</Content>
   </CharacterStyleRange>
@@ -512,7 +550,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>with no blank line</Content>
   </CharacterStyleRange>
@@ -525,7 +563,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>with no blank line</Content>
   </CharacterStyleRange>
@@ -538,7 +576,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a regular paragraph.</Content>
   </CharacterStyleRange>
@@ -575,7 +613,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>E-mail style:</Content>
   </CharacterStyleRange>
@@ -587,7 +625,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Code in a block quote:</Content>
   </CharacterStyleRange>
@@ -601,7 +639,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>A list:</Content>
   </CharacterStyleRange>
@@ -619,7 +657,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Nested block quotes:</Content>
   </CharacterStyleRange>
@@ -631,13 +669,13 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Blockquote &gt; Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Blockquote &gt; Blockquote &gt; FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>nested</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This should not be a block quote: 2 &gt; 1.</Content>
   </CharacterStyleRange>
@@ -656,7 +694,7 @@
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Code:</Content>
   </CharacterStyleRange>
@@ -674,7 +712,7 @@ this code block is indented by one tab</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>And:</Content>
   </CharacterStyleRange>
@@ -702,7 +740,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Asterisks tight:</Content>
   </CharacterStyleRange>
@@ -726,7 +764,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Asterisks loose:</Content>
   </CharacterStyleRange>
@@ -750,7 +788,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Pluses tight:</Content>
   </CharacterStyleRange>
@@ -774,7 +812,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Pluses loose:</Content>
   </CharacterStyleRange>
@@ -798,7 +836,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minuses tight:</Content>
   </CharacterStyleRange>
@@ -822,7 +860,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Minuses loose:</Content>
   </CharacterStyleRange>
@@ -853,7 +891,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tight:</Content>
   </CharacterStyleRange>
@@ -877,7 +915,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>and:</Content>
   </CharacterStyleRange>
@@ -901,7 +939,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Loose using tabs:</Content>
   </CharacterStyleRange>
@@ -925,7 +963,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>and using spaces:</Content>
   </CharacterStyleRange>
@@ -949,7 +987,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple paragraphs:</Content>
   </CharacterStyleRange>
@@ -1004,7 +1042,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s another:</Content>
   </CharacterStyleRange>
@@ -1046,7 +1084,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Same thing but with paragraphs:</Content>
   </CharacterStyleRange>
@@ -1082,7 +1120,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/NumList &gt; FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Third</Content>
   </CharacterStyleRange>
@@ -1095,7 +1133,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first &gt; Paragraph" NumberingContinue="false">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/BulList &gt; first &gt; FirstParagraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>this is a list item indented with tabs</Content>
   </CharacterStyleRange>
@@ -1126,7 +1164,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange NumberingStartAt="2" AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; beginsWith-2 &gt; Paragraph" NumberingContinue="false">
+<ParagraphStyleRange NumberingStartAt="2" AppliedParagraphStyle="ParagraphStyle/NumList &gt; first &gt; beginsWith-2 &gt; FirstParagraph" NumberingContinue="false">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>begins with 2</Content>
   </CharacterStyleRange>
@@ -1168,7 +1206,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Nesting:</Content>
   </CharacterStyleRange>
@@ -1198,7 +1236,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Autonumbering:</Content>
   </CharacterStyleRange>
@@ -1222,7 +1260,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Should not be a list item:</Content>
   </CharacterStyleRange>
@@ -1247,7 +1285,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tight using spaces:</Content>
   </CharacterStyleRange>
@@ -1289,7 +1327,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Tight using tabs:</Content>
   </CharacterStyleRange>
@@ -1331,7 +1369,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Loose:</Content>
   </CharacterStyleRange>
@@ -1373,7 +1411,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple blocks with italics:</Content>
   </CharacterStyleRange>
@@ -1415,13 +1453,13 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Blockquote &gt; Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/DefListDef &gt; Blockquote &gt; FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>orange block quote</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple definitions, tight:</Content>
   </CharacterStyleRange>
@@ -1463,7 +1501,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Multiple definitions, loose:</Content>
   </CharacterStyleRange>
@@ -1505,7 +1543,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Blank line after term, indented marker, alternate markers:</Content>
   </CharacterStyleRange>
@@ -1560,7 +1598,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Simple block on one line:</Content>
   </CharacterStyleRange>
@@ -1640,7 +1678,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>As should this:</Content>
   </CharacterStyleRange>
@@ -1652,7 +1690,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Now, nested:</Content>
   </CharacterStyleRange>
@@ -1688,7 +1726,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Just plain comment, with trailing spaces on the line:</Content>
   </CharacterStyleRange>
@@ -1706,7 +1744,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Hr’s:</Content>
   </CharacterStyleRange>
@@ -1719,7 +1757,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This is </Content>
   </CharacterStyleRange>
@@ -1914,7 +1952,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>“Hello,”</Content>
   </CharacterStyleRange>
@@ -2156,7 +2194,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>These shouldn’t be math:</Content>
   </CharacterStyleRange>
@@ -2216,7 +2254,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a LaTeX table:</Content>
   </CharacterStyleRange>
@@ -2229,7 +2267,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here is some unicode:</Content>
   </CharacterStyleRange>
@@ -2265,7 +2303,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>AT&amp;T has an ampersand in their name.</Content>
   </CharacterStyleRange>
@@ -2405,7 +2443,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Just a </Content>
   </CharacterStyleRange>
@@ -2502,7 +2540,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
   </CharacterStyleRange>
@@ -2595,7 +2633,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Foo </Content>
   </CharacterStyleRange>
@@ -2630,7 +2668,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here’s a </Content>
   </CharacterStyleRange>
@@ -2693,7 +2731,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>With an ampersand: </Content>
   </CharacterStyleRange>
@@ -2724,7 +2762,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>An e-mail address: </Content>
   </CharacterStyleRange>
@@ -2746,7 +2784,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </HyperlinkTextSource>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Auto-links should not occur here: </Content>
   </CharacterStyleRange>
@@ -2768,7 +2806,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>From </Content>
   </CharacterStyleRange>
@@ -2814,7 +2852,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here is a movie </Content>
   </CharacterStyleRange>
@@ -2855,7 +2893,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>Here is a footnote reference,</Content>
   </CharacterStyleRange>
@@ -2901,7 +2939,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
         </CharacterStyleRange>
       </ParagraphStyleRange>
       <Br />
-      <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Footnote &gt; Paragraph">
+      <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Footnote &gt; FirstParagraph">
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>	If you want, you can indent every line, but you can also be lazy and just indent the first line of each block.</Content>
         </CharacterStyleRange>
@@ -2984,7 +3022,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
           <Content><?ACE 4?></Content>
         </CharacterStyleRange>
       </ParagraphStyleRange>
-      <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Footnote &gt; Paragraph">
+      <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Footnote &gt; FirstParagraph">
         <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
           <Content>	In list.</Content>
         </CharacterStyleRange>
@@ -2993,7 +3031,7 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</Content>
   </CharacterStyleRange>
 </ParagraphStyleRange>
 <Br />
-<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Paragraph">
+<ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/FirstParagraph">
   <CharacterStyleRange AppliedCharacterStyle="$ID/NormalCharacterStyle">
     <Content>This paragraph should not be part of the note, as it is not indented.</Content>
   </CharacterStyleRange>
