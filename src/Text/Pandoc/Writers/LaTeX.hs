@@ -1386,7 +1386,6 @@ isMathEnv t =
       , "darray", "darray*"
       , "gather", "gather*"
       , "multline", "multline*"
-      , "split"
       , "subequations"
       , "equation", "equation*"
       , "eqnarray"
