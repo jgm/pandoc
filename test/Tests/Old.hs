@@ -275,6 +275,7 @@ tests pandocPath =
             "vimdoc/headers.markdown" "vimdoc/headers-numbered.vimdoc"
         ]
     ]
+  , testGroup "bbcode" [testGroup "writer" $ writerTests' "bbcode"]
   ]
  where
     test'           = test pandocPath

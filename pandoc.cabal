@@ -111,6 +111,7 @@ data-files:
                  data/templates/font-settings.latex
                  data/templates/after-header-includes.latex
                  data/templates/default.vimdoc
+                 data/templates/default.bbcode
 
                  -- translations
                  data/translations/*.yaml
@@ -342,6 +343,7 @@ extra-source-files:
                  test/tables.fb2
                  test/tables.muse
                  test/tables.vimdoc
+                 test/tables.bbcode
                  test/tables.xwiki
                  test/tables/*.html4
                  test/tables/*.html5
@@ -389,6 +391,7 @@ extra-source-files:
                  test/writer.xwiki
                  test/writer.muse
                  test/writer.vimdoc
+                 test/writer.bbcode
                  test/ansi-test.ansi
                  test/writers-lang-and-dir.latex
                  test/writers-lang-and-dir.context
@@ -666,6 +669,7 @@ library
                    Text.Pandoc.Writers.BibTeX,
                    Text.Pandoc.Writers.ANSI,
                    Text.Pandoc.Writers.Vimdoc,
+                   Text.Pandoc.Writers.BBCode,
                    Text.Pandoc.PDF,
                    Text.Pandoc.UTF8,
                    Text.Pandoc.Scripting,
@@ -881,6 +885,7 @@ test-suite test-pandoc
                   Tests.Writers.OOXML
                   Tests.Writers.Ms
                   Tests.Writers.AnnotatedTable
+                  Tests.Writers.BBCode
 
 benchmark benchmark-pandoc
   import:          common-executable

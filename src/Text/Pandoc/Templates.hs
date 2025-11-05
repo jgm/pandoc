@@ -121,6 +121,11 @@ getDefaultTemplate format = do
        "markdown_phpextra" -> getDefaultTemplate "markdown"
        "gfm"               -> getDefaultTemplate "commonmark"
        "commonmark_x"      -> getDefaultTemplate "commonmark"
+       "bbcode_phpbb"      -> getDefaultTemplate "bbcode"
+       "bbcode_fluxbb"     -> getDefaultTemplate "bbcode"
+       "bbcode_steam"      -> getDefaultTemplate "bbcode"
+       "bbcode_hubzilla"   -> getDefaultTemplate "bbcode"
+       "bbcode_xenforo"    -> getDefaultTemplate "bbcode"
        _        -> do
          let fname = "templates" </> "default" <.> T.unpack format
          readDataFile fname >>= toTextM fname
