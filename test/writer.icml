@@ -87,7 +87,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; Blockquote &gt; FirstParagraph" Name="Blockquote &gt; Blockquote &gt; FirstParagraph" LeftIndent="30">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">Blockquote > Blockquote > Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; Blockquote &gt; Paragraph" Name="Blockquote &gt; Blockquote &gt; Paragraph" LeftIndent="30">
@@ -103,7 +103,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; FirstParagraph" Name="Blockquote &gt; FirstParagraph" LeftIndent="10">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">Blockquote > Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Blockquote &gt; NumList" Name="Blockquote &gt; NumList" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="20">
@@ -214,7 +214,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/BulList &gt; first &gt; FirstParagraph" Name="BulList &gt; first &gt; FirstParagraph" BulletsAndNumberingListType="BulletList" LeftIndent="0">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">BulList > first > Paragraph</BasedOn>
           <TabList type="list">
             <ListItem type="record">
               <Alignment type="enumeration">LeftAlign</Alignment>
@@ -256,7 +256,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/DefListDef &gt; Blockquote &gt; FirstParagraph" Name="DefListDef &gt; Blockquote &gt; FirstParagraph" LeftIndent="30">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">DefListDef > Blockquote > Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/DefListDef &gt; CodeBlock" Name="DefListDef &gt; CodeBlock" LeftIndent="10">
@@ -292,7 +292,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/FirstParagraph" Name="FirstParagraph" LeftIndent="0">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Footnote &gt; CodeBlock" Name="Footnote &gt; CodeBlock" LeftIndent="0">
@@ -303,7 +303,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Footnote &gt; FirstParagraph" Name="Footnote &gt; FirstParagraph" LeftIndent="0">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">Footnote > Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Footnote &gt; Paragraph" Name="Footnote &gt; Paragraph" LeftIndent="0">
@@ -369,7 +369,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/NumList &gt; FirstParagraph" Name="NumList &gt; FirstParagraph" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">NumList > Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" Name="NumList &gt; NumList &gt; NumList &gt; NumList &gt; first &gt; beginsWith-3 &gt; lowerAlpha" NumberingExpression="^#.^t" NumberingLevel="4" BulletsAndNumberingListType="NumberedList" LeftIndent="30">
@@ -440,7 +440,7 @@
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/NumList &gt; first &gt; beginsWith-2 &gt; FirstParagraph" Name="NumList &gt; first &gt; beginsWith-2 &gt; FirstParagraph" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">NumList > first > beginsWith-2 > Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/NumList &gt; first &gt; upperAlpha" Name="NumList &gt; first &gt; upperAlpha" NumberingExpression="^#.^t" NumberingLevel="1" BulletsAndNumberingListType="NumberedList" LeftIndent="0">

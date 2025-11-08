@@ -38,7 +38,7 @@ some more text that [links to](https://www.pandoc.org) Pandoc.
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/FirstParagraph" Name="FirstParagraph" LeftIndent="0">
         <Properties>
-          <BasedOn type="object">$ID/NormalParagraphStyle</BasedOn>
+          <BasedOn type="object">Paragraph</BasedOn>
         </Properties>
       </ParagraphStyle>
       <ParagraphStyle Self="ParagraphStyle/Header1" Name="Header1" LeftIndent="0" PointSize="36">

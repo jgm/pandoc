@@ -37,6 +37,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
+import qualified Data.Text as T
 
 type Style = [Text]
 type Hyperlink = [(Int, Text)]
@@ -238,7 +239,11 @@ parStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ blockStyles st
               font = if codeBlockName `Text.isInfixOf` s
                         then monospacedFont
                         else empty
-              basedOn = inTags False "BasedOn" [("type", "object")] (text "$ID/NormalParagraphStyle") $$ font
+              baseStyle = if firstParagraphName `T.isSuffixOf` s
+                             then T.replace firstParagraphName paragraphName s
+                             else "$ID/NormalParagraphStyle"
+              basedOn = inTags False "BasedOn" [("type", "object")]
+                             (literal baseStyle) $$ font
               tabList = if isBulletList
                            then inTags True "TabList" [("type","list")] $ inTags True "ListItem" [("type","record")]
                                 $ vcat [
