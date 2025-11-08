@@ -26,7 +26,6 @@ import Data.List (find)
 import qualified Data.Map.Strict as M
 import Data.Maybe (mapMaybe, fromMaybe)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
 import qualified Data.Vector as V
@@ -90,16 +89,16 @@ archiveToXlsx archive = do
   sharedStrings <- case findRelWithTarget workbookRels "sharedStrings" of
     Just (_, target) -> do
       let path = "xl/" ++ T.unpack target
-      elem <- loadXMLFromArchive archive path
-      parseSharedStrings elem
+      el <- loadXMLFromArchive archive path
+      parseSharedStrings el
     Nothing -> Right V.empty
 
   -- Parse styles
   styles <- case findRelWithTarget workbookRels "styles" of
     Just (_, target) -> do
       let path = "xl/" ++ T.unpack target
-      elem <- loadXMLFromArchive archive path
-      parseStyles elem
+      el <- loadXMLFromArchive archive path
+      parseStyles el
     Nothing -> Right $ Styles V.empty
 
   -- Parse worksheets
@@ -122,8 +121,8 @@ getWorkbookXmlPath archive = do
       target <- maybeToEither "Missing Target" $ findAttr (unqual "Target") rel
       return $ T.unpack target
   where
-    isOfficeDocRel elem =
-      case (findAttr (unqual "Type") elem, findAttr (unqual "Target") elem) of
+    isOfficeDocRel el =
+      case (findAttr (unqual "Type") el, findAttr (unqual "Target") el) of
         (Just relType, Just target) ->
           "officeDocument" `T.isInfixOf` relType && "workbook" `T.isInfixOf` target
         _ -> False
@@ -266,9 +265,9 @@ loadRelationships archive relsPath =
       let relElems = onlyElems $ elContent relsElem
       return $ mapMaybe extractRel relElems
   where
-    extractRel elem = do
-      relId <- findAttr (unqual "Id") elem
-      target <- findAttr (unqual "Target") elem
+    extractRel el = do
+      relId <- findAttr (unqual "Id") el
+      target <- findAttr (unqual "Target") el
       return (relId, target)
 
 relsPathFor :: FilePath -> FilePath
@@ -285,16 +284,12 @@ maybeToEither err Nothing = Left err
 maybeToEither _ (Just x) = Right x
 
 getAllText :: Element -> Text
-getAllText elem =
+getAllText el =
   let textFromContent (Text cdata) = cdData cdata
       textFromContent (Elem e) = getAllText e
       textFromContent _ = ""
-      texts = map textFromContent (elContent elem)
+      texts = map textFromContent (elContent el)
    in T.unwords $ filter (not . T.null) texts
-
-isJust :: Maybe a -> Bool
-isJust (Just _) = True
-isJust Nothing = False
 
 addContext :: Either Text a -> Text -> Either Text a
 addContext (Right x) _ = Right x
