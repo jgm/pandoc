@@ -26,6 +26,26 @@ __strong and emph__
 
 _<b>strong inside</b> emph_
 
+<strong>strong with
+
+blank lines</strong>
+
+<em>emphasis with
+
+blank lines</em>
+
+<b>bold with
+
+multiple
+
+blank lines</b>
+
+<code>inline code
+
+with blank
+
+lines</code>
+
 ---+ horizontal rule
 
 top

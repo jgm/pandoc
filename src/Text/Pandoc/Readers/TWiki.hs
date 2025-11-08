@@ -79,6 +79,20 @@ parseHtmlContentWithAttrs tag parser = do
     parseContent = parseFromString' $ manyTill parser endOfContent
     endOfContent = try $ skipMany blankline >> skipSpaces >> eof
 
+parseHtmlInlineContentWithAttrs :: PandocMonad m
+                                => Text -> TWParser m B.Inlines
+                                -> TWParser m (Attr, [B.Inlines])
+parseHtmlInlineContentWithAttrs tag inlineParser = do
+  (attr, content) <- htmlElement tag
+  parsedContent <- try $ parseContent content
+  return (attr, parsedContent)
+  where
+    parseContent = parseFromString' $ do
+      skipMany blankline
+      manyTill element endOfContent
+    element = (skipMany1 blankline >> return B.space) <|> inlineParser
+    endOfContent = try $ skipMany blankline >> skipSpaces >> eof
+
 parseCharHtmlContentWithAttrs :: PandocMonad m
                           => Text -> TWParser m Char -> TWParser m (Attr, Text)
 parseCharHtmlContentWithAttrs tag = fmap go . parseHtmlContentWithAttrs tag
@@ -87,6 +101,10 @@ parseCharHtmlContentWithAttrs tag = fmap go . parseHtmlContentWithAttrs tag
 
 parseHtmlContent :: PandocMonad m => Text -> TWParser m a -> TWParser m [a]
 parseHtmlContent tag p = snd <$> parseHtmlContentWithAttrs tag p
+
+parseHtmlInlineContent :: PandocMonad m
+                       => Text -> TWParser m B.Inlines -> TWParser m [B.Inlines]
+parseHtmlInlineContent tag p = snd <$> parseHtmlInlineContentWithAttrs tag p
 
 --
 -- main parser
@@ -401,7 +419,7 @@ strong :: PandocMonad m => TWParser m B.Inlines
 strong = try $ B.strong <$> enclosed (char '*') nestedInlines
 
 strongHtml :: PandocMonad m => TWParser m B.Inlines
-strongHtml = B.strong . mconcat <$> (parseHtmlContent "strong" inline <|> parseHtmlContent "b" inline)
+strongHtml = B.strong . mconcat <$> (parseHtmlInlineContent "strong" inline <|> parseHtmlInlineContent "b" inline)
 
 strongAndEmph :: PandocMonad m => TWParser m B.Inlines
 strongAndEmph = try $ B.emph . B.strong <$> enclosed (string "__") nestedInlines
@@ -412,7 +430,7 @@ emph = try $ B.emph <$> enclosed (char '_')
 -- emphasis closers can't cross table cell boundaries, see #3921
 
 emphHtml :: PandocMonad m => TWParser m B.Inlines
-emphHtml = B.emph . mconcat <$> (parseHtmlContent "em" inline <|> parseHtmlContent "i" inline)
+emphHtml = B.emph . mconcat <$> (parseHtmlInlineContent "em" inline <|> parseHtmlInlineContent "i" inline)
 
 nestedString :: (Show a, PandocMonad m)
              => TWParser m a -> TWParser m Text

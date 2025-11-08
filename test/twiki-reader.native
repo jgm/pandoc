@@ -79,6 +79,44 @@ Pandoc
           , Str "emph"
           ]
       ]
+  , Para
+      [ Strong
+          [ Str "strong"
+          , Space
+          , Str "with"
+          , Space
+          , Str "blank"
+          , Space
+          , Str "lines"
+          ]
+      ]
+  , Para
+      [ Emph
+          [ Str "emphasis"
+          , Space
+          , Str "with"
+          , Space
+          , Str "blank"
+          , Space
+          , Str "lines"
+          ]
+      ]
+  , Para
+      [ Strong
+          [ Str "bold"
+          , Space
+          , Str "with"
+          , Space
+          , Str "multiple"
+          , Space
+          , Str "blank"
+          , Space
+          , Str "lines"
+          ]
+      ]
+  , Para
+      [ Code ( "" , [] , [] ) "inline code\n\nwith blank\n\nlines"
+      ]
   , Header
       1
       ( "horizontal-rule" , [] , [] )
