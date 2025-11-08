@@ -610,6 +610,8 @@ library
                    Text.Pandoc.Readers.TikiWiki,
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
+                   Text.Pandoc.Readers.Pptx,
+                   Text.Pandoc.Readers.Xlsx,
                    Text.Pandoc.Readers.ODT,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
@@ -691,7 +693,15 @@ library
                    Text.Pandoc.Chunks,
                    Text.Pandoc.Transforms,
                    Text.Pandoc.Version
-  other-modules:   Text.Pandoc.App.CommandLineOptions,
+  other-modules:   Text.Pandoc.Readers.OOXML.Shared,
+                   Text.Pandoc.Readers.Pptx.Parse,
+                   Text.Pandoc.Readers.Pptx.Shapes,
+                   Text.Pandoc.Readers.Pptx.Slides,
+                   Text.Pandoc.Readers.Pptx.SmartArt,
+                   Text.Pandoc.Readers.Xlsx.Parse,
+                   Text.Pandoc.Readers.Xlsx.Cells,
+                   Text.Pandoc.Readers.Xlsx.Sheets,
+                   Text.Pandoc.App.CommandLineOptions,
                    Text.Pandoc.App.Input,
                    Text.Pandoc.App.Opt,
                    Text.Pandoc.App.OutputSettings,
@@ -854,6 +864,8 @@ test-suite test-pandoc
                   Tests.Readers.RST
                   Tests.Readers.RTF
                   Tests.Readers.Docx
+                  Tests.Readers.Pptx
+                  Tests.Readers.Xlsx
                   Tests.Readers.ODT
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
