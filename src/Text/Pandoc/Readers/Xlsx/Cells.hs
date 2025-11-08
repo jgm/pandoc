@@ -19,7 +19,7 @@ module Text.Pandoc.Readers.Xlsx.Cells
 
 import qualified Data.Text as T
 import Data.Text (Text)
-import Data.Char (ord, isAlpha, isDigit)
+import Data.Char (ord, isAlpha)
 import Text.Read (readMaybe)
 
 -- | Cell reference (A1 notation)

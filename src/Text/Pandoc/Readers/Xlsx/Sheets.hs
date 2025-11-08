@@ -16,7 +16,6 @@ module Text.Pandoc.Readers.Xlsx.Sheets
 
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
-import Data.Text (Text)
 import Data.List (sort)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (ReaderOptions)
@@ -68,10 +67,6 @@ cellsToTable sheet
           (headerRow, bodyRows) = case grid of
             (h:bs) -> (h, bs)
             [] -> ([], [])
-
-          -- Convert to table
-          headerCells = map cellToCell headerRow
-          bodyCells = map (map cellToCell) bodyRows
 
           makeCell mcell = case mcell of
             Just cell ->

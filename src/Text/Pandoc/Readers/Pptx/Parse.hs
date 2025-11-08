@@ -23,7 +23,6 @@ import qualified Data.ByteString.Lazy as B
 import Data.List (find)
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
 import System.FilePath (splitFileName)
@@ -96,8 +95,8 @@ getPresentationXmlPath archive = do
       return $ T.unpack target  -- Convert Text to FilePath
 
   where
-    isOfficeDocRel elem =
-      case findAttr (unqual "Type") elem of
+    isOfficeDocRel el =
+      case findAttr (unqual "Type") el of
         Just relType -> "officeDocument" `T.isInfixOf` relType  -- Changed to isInfixOf
         Nothing -> False
 
@@ -112,9 +111,7 @@ loadXMLFromArchive archive path = do
 
 -- | Parse XML from ByteString
 parseXMLFromBS :: B.ByteString -> Either Text Element
-parseXMLFromBS bs =
-  let lazyText = TL.decodeUtf8 bs
-   in parseXMLElement lazyText
+parseXMLFromBS = parseXMLElement . TL.decodeUtf8
 
 -- | Parse XML from Entry
 parseXMLFromEntry :: Entry -> Either Text Element
@@ -128,9 +125,9 @@ elemToPresentation presElem = do
   -- Extract slide size (with defaults)
   let sizeElem = findChildByName ns "p" "sldSz" presElem
       (widthEMU, heightEMU) = case sizeElem of
-        Just elem ->
-          let cx = readAttrInt "cx" elem
-              cy = readAttrInt "cy" elem
+        Just el ->
+          let cx = readAttrInt "cx" el
+              cy = readAttrInt "cy" el
            in (cx, cy)
         Nothing -> (9144000, 6858000)  -- Default 10" x 7.5"
 
@@ -161,8 +158,8 @@ extractSlideRef ns (idx, sldIdElem) = do
 
 -- | Safe read attribute as Integer (with default of 0)
 readAttrInt :: Text -> Element -> Integer
-readAttrInt attrName elem =
-  case findAttr (unqual attrName) elem of
+readAttrInt attrName el =
+  case findAttr (unqual attrName) el of
     Just str -> case readMaybe (T.unpack str) of
       Just n -> n
       Nothing -> 0
@@ -186,9 +183,9 @@ loadRelationships archive relsPath =
       let relElems = onlyElems $ elContent relsElem
       return $ mapMaybe extractRelationship relElems
   where
-    extractRelationship elem = do
-      relId <- findAttr (unqual "Id") elem
-      target <- findAttr (unqual "Target") elem
+    extractRelationship el = do
+      relId <- findAttr (unqual "Id") el
+      target <- findAttr (unqual "Target") el
       return (relId, target)
 
 -- | Parse a single slide
@@ -199,16 +196,16 @@ parseSlide archive rels (sid, relId) = do
             lookup relId rels
 
   -- Resolve relative path: ppt/slides/slide1.xml
-  let slidePath = "ppt/" <> T.unpack target
+  let slidePath' = "ppt/" <> T.unpack target
 
   -- Load and parse slide XML
-  slideElem <- loadXMLFromArchive archive slidePath
+  slideElem <- loadXMLFromArchive archive slidePath'
 
   -- Load slide-specific relationships
-  slideRelsPath <- getPresentationRelsPath archive slidePath
-  slideRels <- loadRelationships archive slideRelsPath
+  slideRelsPath <- getPresentationRelsPath archive slidePath'
+  slideRels' <- loadRelationships archive slideRelsPath
 
-  return $ PptxSlide sid slidePath slideElem slideRels
+  return $ PptxSlide sid slidePath' slideElem slideRels'
 
 -- | Helper: Maybe a -> Either Text a
 maybeToEither :: Text -> Maybe a -> Either Text a

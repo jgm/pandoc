@@ -17,15 +17,11 @@ module Text.Pandoc.Readers.Pptx.SmartArt
   ) where
 
 import Codec.Archive.Zip (Archive, findEntryByPath, fromEntry)
-import qualified Data.ByteString.Lazy as B
-import Data.List (find)
 import qualified Data.Map.Strict as M
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Text (Text)
-import System.FilePath ((</>), takeDirectory)
 import Text.Pandoc.Definition
 import Text.Pandoc.Readers.OOXML.Shared
 import Text.Pandoc.XML.Light
@@ -188,13 +184,6 @@ buildNodeWithChildren nodeMap parentMap nodeId =
                    map (\cid -> M.findWithDefault "" cid nodeMap) childIds
    in (nodeText, childTexts)
 
--- | Extract text from DrawingML element
-extractDrawingMLText :: Element -> Text
-extractDrawingMLText elem =
-  let textElems = filterElementsName (\qn -> qName qn == "t") elem
-      texts = map strContent textElems
-   in T.unwords $ filter (not . T.null) texts
-
 -- | Convert diagram to Pandoc blocks
 diagramToBlocks :: PptxDiagram -> [Block]
 diagramToBlocks diagram =
@@ -218,11 +207,11 @@ nodeToBlocks (nodeText, childTexts) =
 
 -- | Recursively extract all text from an element and its descendants
 getAllText :: Element -> Text
-getAllText elem =
+getAllText el =
   let textFromContent (Text cdata) = cdData cdata
       textFromContent (Elem e) = getAllText e
       textFromContent _ = ""
-      texts = map textFromContent (elContent elem)
+      texts = map textFromContent (elContent el)
    in T.unwords $ filter (not . T.null) texts
 
 -- Helper functions

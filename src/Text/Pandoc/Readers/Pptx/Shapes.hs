@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 {- |
    Module      : Text.Pandoc.Readers.Pptx.Shapes
    Copyright   : © 2025 Anton Antic
@@ -73,10 +74,10 @@ parseShapes ns spTreeElem =
 
 -- | Parse individual shape element
 parseShape :: NameSpaces -> Element -> Maybe PptxShape
-parseShape ns elem
+parseShape ns el
   -- Text box: <p:sp> with <p:txBody>
-  | isElem ns "p" "sp" elem =
-      case findChildByName ns "p" "txBody" elem of
+  | isElem ns "p" "sp" el =
+      case findChildByName ns "p" "txBody" el of
         Just txBody ->
           let paras = parseParagraphs ns txBody
            in if null paras
@@ -85,23 +86,23 @@ parseShape ns elem
         Nothing -> Nothing
 
   -- Picture: <p:pic>
-  | isElem ns "p" "pic" elem = do
-      nvPicPr <- findChildByName ns "p" "nvPicPr" elem
+  | isElem ns "p" "pic" el = do
+      nvPicPr <- findChildByName ns "p" "nvPicPr" el
       cNvPr <- findChildByName ns "p" "cNvPr" nvPicPr
 
       let title = maybe "" id $ findAttr (unqual "name") cNvPr
           alt = maybe "" id $ findAttr (unqual "descr") cNvPr
 
       -- Get blip relationship ID
-      blipFill <- findChildByName ns "p" "blipFill" elem
+      blipFill <- findChildByName ns "p" "blipFill" el
       blip <- findChildByName ns "a" "blip" blipFill
       relId <- findAttrByName ns "r" "embed" blip
 
       return $ PptxPicture relId title alt
 
   -- GraphicFrame: table or diagram
-  | isElem ns "p" "graphicFrame" elem =
-      case findChildByName ns "a" "graphic" elem >>=
+  | isElem ns "p" "graphicFrame" el =
+      case findChildByName ns "a" "graphic" el >>=
            findChildByName ns "a" "graphicData" of
         Nothing -> Nothing
         Just graphicData ->
@@ -278,8 +279,8 @@ extractParagraphText _ns pElem =
 
 -- | Extract text from DrawingML element (finds all <a:t> descendants)
 extractDrawingMLText :: Element -> Text
-extractDrawingMLText elem =
-  let textElems = filterElementsName (\qn -> qName qn == "t") elem
+extractDrawingMLText el =
+  let textElems = filterElementsName (\qn -> qName qn == "t") el
       texts = map strContent textElems
    in T.unwords $ filter (not . T.null) texts
 
@@ -316,8 +317,8 @@ groupBulletParagraphs paras =
 
 -- | Check if shape is title placeholder (also used in Slides module)
 isTitlePlaceholder :: NameSpaces -> Element -> Bool
-isTitlePlaceholder ns elem =
-  case findChildByName ns "p" "nvSpPr" elem >>=
+isTitlePlaceholder ns el =
+  case findChildByName ns "p" "nvSpPr" el >>=
        findChildByName ns "p" "nvPr" >>=
        findChildByName ns "p" "ph" of
     Just phElem ->
