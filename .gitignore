@@ -6,10 +6,6 @@
 /LOG
 /TAGS
 /bench-*
-/test-docs
-doc/pptx-reader-design-v2.md
-doc/pptx-reader-design.md
-doc/xlsx-reader-design.md
 !.circleci/**
 !.cirrus.yml
 !.envrc
@@ -50,9 +46,6 @@ doc/xlsx-reader-design.md
 !citeproc/**
 !data/**
 !doc/**
-doc/pptx-reader-design*.md
-doc/xlsx-reader-design.md
-test-docs/
 !linux/**
 !macos/**
 !man/**
