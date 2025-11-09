@@ -21,6 +21,7 @@ module Text.Pandoc.Readers.Pptx.Parse
 import Codec.Archive.Zip (Archive, Entry, findEntryByPath, fromEntry)
 import qualified Data.ByteString.Lazy as B
 import Data.List (find)
+import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Encoding as TL
@@ -97,7 +98,8 @@ getPresentationXmlPath archive = do
   where
     isOfficeDocRel el =
       case findAttr (unqual "Type") el of
-        Just relType -> "officeDocument" `T.isInfixOf` relType  -- Changed to isInfixOf
+        -- Must end with "/officeDocument" to avoid matching "/extended-properties"
+        Just relType -> "/officeDocument" `T.isSuffixOf` relType
         Nothing -> False
 
 -- | Load and parse XML from archive entry
@@ -135,12 +137,14 @@ elemToPresentation presElem = do
   let width = widthEMU `div` emusPerInch
       height = heightEMU `div` emusPerInch
 
-  -- Extract slide ID list
-  sldIdLstElem <- maybeToEither "Missing p:sldIdLst" $
-                  findChildByName ns "p" "sldIdLst" presElem
+  -- Extract slide ID list (optional - some presentations may have no slides)
+  let sldIdLstElem = findChildByName ns "p" "sldIdLst" presElem
 
-  let sldIdElems = findChildren (elemName ns "p" "sldId") sldIdLstElem
-  slideRefs <- mapM (extractSlideRef ns) (zip [1..] sldIdElems)
+  slideRefs <- case sldIdLstElem of
+    Nothing -> return []  -- No slides is valid for templates/masters-only presentations
+    Just elem -> do
+      let sldIdElems = findChildren (elemName ns "p" "sldId") elem
+      mapM (extractSlideRef ns) (zip [1..] sldIdElems)
 
   return $ PresentationDoc
     { presNameSpaces = ns

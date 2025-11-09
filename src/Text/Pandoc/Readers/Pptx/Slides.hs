@@ -16,6 +16,7 @@ module Text.Pandoc.Readers.Pptx.Slides
 
 import Codec.Archive.Zip (Archive)
 import Data.List (find)
+import Data.Maybe (mapMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
@@ -60,7 +61,10 @@ slideToBlocks archive slide = do
        findChildByName ns "p" "spTree" of
     Nothing -> return [header]
     Just spTree -> do
-      let shapes = parseShapes ns spTree
+      -- Filter out title placeholder shapes before parsing
+      let allShapeElems = onlyElems $ elContent spTree
+          nonTitleShapeElems = filter (not . isTitlePlaceholder ns) allShapeElems
+          shapes = mapMaybe (parseShape ns) nonTitleShapeElems
       shapeBlocks <- concat <$> mapM (shapeToBlocks archive rels) shapes
       return $ header : shapeBlocks
 
@@ -74,6 +78,6 @@ extractSlideTitle ns slideElem =
       -- Find shape with ph type="title"
       let shapes = onlyElems $ elContent spTree
           titleShape = find (isTitlePlaceholder ns) shapes
-       in maybe "" strContent titleShape
+       in maybe "" extractDrawingMLText titleShape
 
 -- isTitlePlaceholder is imported from Shapes module

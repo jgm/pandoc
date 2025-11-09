@@ -16,8 +16,10 @@ module Text.Pandoc.Readers.Pptx.Shapes
   , PptxParagraph(..)
   , BulletType(..)
   , parseShapes
+  , parseShape
   , shapeToBlocks
   , isTitlePlaceholder
+  , extractDrawingMLText
   ) where
 
 import Codec.Archive.Zip (Archive, findEntryByPath, fromEntry)
