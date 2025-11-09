@@ -438,6 +438,8 @@ extra-source-files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
+                 test/xlsx-reader/*.xlsx
+                 test/xlsx-reader/*.native
                  test/pod-reader.pod
                  test/vimdoc/*.markdown
                  test/vimdoc/*.vimdoc

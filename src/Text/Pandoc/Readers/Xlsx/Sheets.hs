@@ -16,7 +16,8 @@ module Text.Pandoc.Readers.Xlsx.Sheets
 
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
-import Data.List (sort)
+import Data.List (sort, dropWhileEnd)
+import Data.Char (isSpace)
 import Text.Pandoc.Definition
 import Text.Pandoc.Options (ReaderOptions)
 import Text.Pandoc.Readers.Xlsx.Parse
@@ -68,6 +69,9 @@ cellsToTable sheet
             (h:bs) -> (h, bs)
             [] -> ([], [])
 
+          -- Filter out trailing empty rows (rows with only whitespace)
+          filteredBodyRows = dropWhileEnd isEmptyRow bodyRows
+
           makeCell mcell = case mcell of
             Just cell ->
               let inlines = cellToInlines cell
@@ -78,12 +82,20 @@ cellsToTable sheet
           numCols = length headerRow
           colSpec = replicate numCols (AlignDefault, ColWidthDefault)
           thead = TableHead nullAttr [Row nullAttr $ map makeCell headerRow]
-          tbody = [TableBody nullAttr 0 [] $ map (Row nullAttr . map makeCell) bodyRows]
+          tbody = [TableBody nullAttr 0 [] $ map (Row nullAttr . map makeCell) filteredBodyRows]
           tfoot = TableFoot nullAttr []
 
        in Just $ Table nullAttr (Caption Nothing []) colSpec thead tbody tfoot
+
+-- | Check if a row contains only whitespace or empty cells
+isEmptyRow :: [Maybe XlsxCell] -> Bool
+isEmptyRow = all isEmptyCell
   where
-    cellToCell = id  -- For pattern matching
+    isEmptyCell Nothing = True
+    isEmptyCell (Just cell) = case cellValue cell of
+      EmptyValue -> True
+      TextValue t -> T.all isSpace t
+      NumberValue _ -> False
 
 -- | Convert cell to Pandoc inlines
 cellToInlines :: XlsxCell -> [Inline]
