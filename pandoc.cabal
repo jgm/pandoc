@@ -610,6 +610,7 @@ library
                    Text.Pandoc.Readers.TikiWiki,
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
+                   Text.Pandoc.Readers.Xlsx,
                    Text.Pandoc.Readers.ODT,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
@@ -718,6 +719,10 @@ library
                    Text.Pandoc.Readers.Docx.Util,
                    Text.Pandoc.Readers.Docx.Symbols,
                    Text.Pandoc.Readers.Docx.Fields,
+                   Text.Pandoc.Readers.OOXML.Shared,
+                   Text.Pandoc.Readers.Xlsx.Parse,
+                   Text.Pandoc.Readers.Xlsx.Cells,
+                   Text.Pandoc.Readers.Xlsx.Sheets,
                    Text.Pandoc.Readers.HTML.Parsing,
                    Text.Pandoc.Readers.HTML.Table,
                    Text.Pandoc.Readers.HTML.TagCategories,
@@ -854,6 +859,7 @@ test-suite test-pandoc
                   Tests.Readers.RST
                   Tests.Readers.RTF
                   Tests.Readers.Docx
+                  Tests.Readers.Xlsx
                   Tests.Readers.ODT
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB
