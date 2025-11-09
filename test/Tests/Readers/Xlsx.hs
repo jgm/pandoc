@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-   Module      : Tests.Readers.Pptx
+   Module      : Tests.Readers.Xlsx
    Copyright   : © 2025 Anton Antic
    License     : GNU GPL, version 2 or above
 
@@ -8,9 +8,9 @@
    Stability   : alpha
    Portability : portable
 
-Tests for the PPTX reader.
+Tests for the XLSX reader.
 -}
-module Tests.Readers.Pptx (tests) where
+module Tests.Readers.Xlsx (tests) where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
@@ -21,19 +21,19 @@ import Text.Pandoc
 import Text.Pandoc.UTF8 as UTF8
 
 defopts :: ReaderOptions
-defopts = def{ readerExtensions = getDefaultExtensions "pptx" }
+defopts = def{ readerExtensions = getDefaultExtensions "xlsx" }
 
 testCompare :: String -> FilePath -> FilePath -> TestTree
 testCompare = testCompareWithOpts defopts
 
 testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> TestTree
-testCompareWithOpts opts testName pptxFP nativeFP =
+testCompareWithOpts opts testName xlsxFP nativeFP =
   goldenTest
   testName
   (do nf <- UTF8.toText <$> BS.readFile nativeFP
       runIOorExplode (readNative def nf))
-  (do df <- B.readFile pptxFP
-      runIOorExplode (readPptx opts df))
+  (do df <- B.readFile xlsxFP
+      runIOorExplode (readXlsx opts df))
   (nativeDiff nativeFP)
   (\a -> runIOorExplode (writeNative def{ writerTemplate = Just mempty} a)
             >>= BS.writeFile nativeFP . UTF8.fromText)
@@ -41,8 +41,8 @@ testCompareWithOpts opts testName pptxFP nativeFP =
 tests :: [TestTree]
 tests = [ testGroup "basic"
           [ testCompare
-            "text extraction"
-            "pptx-reader/basic.pptx"
-            "pptx-reader/basic.native"
+            "sheet extraction"
+            "xlsx-reader/basic.xlsx"
+            "xlsx-reader/basic.native"
           ]
         ]

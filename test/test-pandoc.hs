@@ -13,6 +13,7 @@ import qualified Tests.Old
 import qualified Tests.Readers.Creole
 import qualified Tests.Readers.Docx
 import qualified Tests.Readers.Pptx
+import qualified Tests.Readers.Xlsx
 import qualified Tests.Readers.DokuWiki
 import qualified Tests.Readers.EPUB
 import qualified Tests.Readers.FB2
@@ -97,6 +98,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "RTF" Tests.Readers.RTF.tests
           , testGroup "Docx" Tests.Readers.Docx.tests
           , testGroup "Pptx" Tests.Readers.Pptx.tests
+          , testGroup "Xlsx" Tests.Readers.Xlsx.tests
           , testGroup "ODT" Tests.Readers.ODT.tests
           , testGroup "Txt2Tags" Tests.Readers.Txt2Tags.tests
           , testGroup "EPUB" Tests.Readers.EPUB.tests

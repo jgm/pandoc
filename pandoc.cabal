@@ -440,6 +440,8 @@ extra-source-files:
                  test/odt/odt/*.odt
                  test/odt/markdown/*.md
                  test/odt/native/*.native
+                 test/xlsx-reader/*.xlsx
+                 test/xlsx-reader/*.native
                  test/pod-reader.pod
                  test/vimdoc/*.markdown
                  test/vimdoc/*.vimdoc
@@ -613,6 +615,7 @@ library
                    Text.Pandoc.Readers.Txt2Tags,
                    Text.Pandoc.Readers.Docx,
                    Text.Pandoc.Readers.Pptx,
+                   Text.Pandoc.Readers.Xlsx,
                    Text.Pandoc.Readers.ODT,
                    Text.Pandoc.Readers.EPUB,
                    Text.Pandoc.Readers.Muse,
@@ -726,6 +729,9 @@ library
                    Text.Pandoc.Readers.Pptx.Shapes,
                    Text.Pandoc.Readers.Pptx.Slides,
                    Text.Pandoc.Readers.Pptx.SmartArt,
+                   Text.Pandoc.Readers.Xlsx.Parse,
+                   Text.Pandoc.Readers.Xlsx.Cells,
+                   Text.Pandoc.Readers.Xlsx.Sheets,
                    Text.Pandoc.Readers.HTML.Parsing,
                    Text.Pandoc.Readers.HTML.Table,
                    Text.Pandoc.Readers.HTML.TagCategories,
@@ -863,6 +869,7 @@ test-suite test-pandoc
                   Tests.Readers.RTF
                   Tests.Readers.Docx
                   Tests.Readers.Pptx
+                  Tests.Readers.Xlsx
                   Tests.Readers.ODT
                   Tests.Readers.Txt2Tags
                   Tests.Readers.EPUB

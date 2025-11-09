@@ -283,6 +283,7 @@ header when requesting a document from a URL:
     - `twiki` ([TWiki markup])
     - `typst` ([typst])
     - `vimwiki` ([Vimwiki])
+    - `xlsx` ([Excel spreadsheet][XLSX])
     - `xml` (XML version of native AST)
     - the path of a custom Lua reader, see [Custom readers and writers] below
     :::
@@ -519,6 +520,7 @@ header when requesting a document from a URL:
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: https://zim-wiki.org/manual/Help/Wiki_Syntax.html
 [XWiki markup]: https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/
+[XLSX]: https://en.wikipedia.org/wiki/Microsoft_Excel#File_formats
 [Vimdoc]: https://vimhelp.org/helphelp.txt.html#help-writing
 [TWiki markup]: https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
