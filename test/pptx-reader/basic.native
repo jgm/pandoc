@@ -1,5 +1,4 @@
-[ Header 2 ( "slide-1" , [] , [] ) [ Str "Slide 1" ]
-, Para [ Str "LLMs" ]
+[ Header 2 ( "slide-1" , [] , [] ) [ Str "LLMs" ]
 , BulletList
     [ [ Plain
           [ Str
@@ -19,8 +18,10 @@
     , [ Plain [ Str "Streaming support" ] ]
     , [ Plain [ Str "Multimodal (voice streaming) models?" ] ]
     ]
-, Header 2 ( "slide-2" , [] , [] ) [ Str "Slide 2" ]
-, Para [ Str "Everworker   venn   diagram" ]
+, Header
+    2
+    ( "slide-2" , [] , [] )
+    [ Str "Everworker   venn   diagram" ]
 , Para [ Str "SKILLS" ]
 , Para [ Str "" ]
 , Para [ Str "Specialized Workers / Workflows:" ]
@@ -43,8 +44,7 @@
     [ Str "Vector DBs, specialized data prep vendors, \8230" ]
 , Para [ Str "glean" ]
 , Para [ Str "EW" ]
-, Header 2 ( "slide-3" , [] , [] ) [ Str "Slide 3" ]
-, Para [ Str "Table" ]
+, Header 2 ( "slide-3" , [] , [] ) [ Str "Table" ]
 , Table
     ( "" , [] , [] )
     (Caption Nothing [])
@@ -129,8 +129,7 @@
     [ Image
         ( "" , [] , [] ) [] ( "ppt/media/image1.png" , "Picture 6" )
     ]
-, Header 2 ( "slide-4" , [] , [] ) [ Str "Slide 4" ]
-, Para [ Str "Smart Art" ]
+, Header 2 ( "slide-4" , [] , [] ) [ Str "Smart Art" ]
 , Div
     ( ""
     , [ "smartart" , "chevron2" ]
