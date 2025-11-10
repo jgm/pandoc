@@ -832,7 +832,7 @@ sectionHeader classes ident level lst = do
                           5  -> "subparagraph"
                           _  -> ""
   inQuote <- gets stInQuote
-  let prefix = if inQuote && level' >= 4
+  let prefix = if inQuote
                   then text "\\mbox{}%"
                   -- needed for \paragraph, \subparagraph in quote environment
                   -- see http://tex.stackexchange.com/questions/169830/
