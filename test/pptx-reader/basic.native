@@ -1,0 +1,149 @@
+[ Header 2 ( "slide-1" , [] , [] ) [ Str "LLMs" ]
+, BulletList
+    [ [ Plain
+          [ Str
+              "Provider  \61664 Available LLMs \8211 who manages? How?"
+          ]
+      ]
+    , [ Plain
+          [ Str
+              "EW maintained list of \8220approved\8221 LLMs for Universal workers"
+          ]
+      ]
+    , [ Plain
+          [ Str
+              "Rebuilding of UWs to the \8220Newgen\8221 thing completely"
+          ]
+      ]
+    , [ Plain [ Str "Streaming support" ] ]
+    , [ Plain [ Str "Multimodal (voice streaming) models?" ] ]
+    ]
+, Header
+    2
+    ( "slide-2" , [] , [] )
+    [ Str "Everworker   venn   diagram" ]
+, Para [ Str "SKILLS" ]
+, Para [ Str "" ]
+, Para [ Str "Specialized Workers / Workflows:" ]
+, Para [ Str "" ]
+, Para [ Str "n8n, UI Path, " ]
+, Para [ Str "other RPA" ]
+, Para [ Str "BRAINS" ]
+, Para [ Str "" ]
+, Para [ Str "Universal Workers / AI Agents:" ]
+, Para [ Str "" ]
+, Para [ Str "openai , anthropic," ]
+, Para [ Str "Crew AI, other " ]
+, Para [ Str "\8220AI natives\8221" ]
+, Para [ Str "KNOWLEDGE " ]
+, Para [ Str "" ]
+, Para [ Str "Data / " ]
+, Para [ Str "RAG Pipelines" ]
+, Para [ Str "" ]
+, Para
+    [ Str "Vector DBs, specialized data prep vendors, \8230" ]
+, Para [ Str "glean" ]
+, Para [ Str "EW" ]
+, Header 2 ( "slide-3" , [] , [] ) [ Str "Table" ]
+, Table
+    ( "" , [] , [] )
+    (Caption Nothing [])
+    [ ( AlignDefault , ColWidthDefault )
+    , ( AlignDefault , ColWidthDefault )
+    , ( AlignDefault , ColWidthDefault )
+    ]
+    (TableHead
+       ( "" , [] , [] )
+       [ Row
+           ( "" , [] , [] )
+           [ Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Col1" ] ]
+           , Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Col2" ] ]
+           , Cell
+               ( "" , [] , [] )
+               AlignDefault
+               (RowSpan 1)
+               (ColSpan 1)
+               [ Plain [ Str "Col3" ] ]
+           ]
+       ])
+    [ TableBody
+        ( "" , [] , [] )
+        (RowHeadColumns 0)
+        []
+        [ Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "Name" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "Anton" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "Antich" ] ]
+            ]
+        , Row
+            ( "" , [] , [] )
+            [ Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "Age" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "23" ] ]
+            , Cell
+                ( "" , [] , [] )
+                AlignDefault
+                (RowSpan 1)
+                (ColSpan 1)
+                [ Plain [ Str "years" ] ]
+            ]
+        ]
+    ]
+    (TableFoot ( "" , [] , [] ) [])
+, Para
+    [ Image
+        ( "" , [] , [] ) [] ( "ppt/media/image1.png" , "Picture 6" )
+    ]
+, Header 2 ( "slide-4" , [] , [] ) [ Str "Smart Art" ]
+, Div
+    ( ""
+    , [ "smartart" , "chevron2" ]
+    , [ ( "layout" , "chevron2" ) ]
+    )
+    [ Para [ Strong [ Str "First" ] ]
+    , BulletList
+        [ [ Plain [ Str "another" ] ]
+        , [ Plain [ Str "subtitle" ] ]
+        ]
+    , Para [ Strong [ Str "Second" ] ]
+    , BulletList
+        [ [ Plain [ Str "and yet again" ] ]
+        , [ Plain [ Str "yet more" ] ]
+        ]
+    ]
+]

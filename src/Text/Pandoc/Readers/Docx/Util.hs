@@ -24,51 +24,11 @@ module Text.Pandoc.Readers.Docx.Util (
                                       , extractChildren
                                       ) where
 
-import qualified Data.Text as T
-import Data.Text (Text)
-import Text.Pandoc.XML.Light
-import qualified Data.Map as M
 import Data.List (partition)
-
-type NameSpaces = M.Map Text Text
-
-elemToNameSpaces :: Element -> NameSpaces
-elemToNameSpaces = foldr (\(Attr qn val) ->
-                             case qn of
-                               QName s _ (Just "xmlns") -> M.insert s val
-                               _ -> id) mempty . elAttribs
-
-elemName :: NameSpaces -> Text -> Text -> QName
-elemName ns prefix name =
-  QName name (M.lookup prefix ns)
-             (if T.null prefix then Nothing else Just prefix)
-
-isElem :: NameSpaces -> Text -> Text -> Element -> Bool
-isElem ns prefix name element =
-  let ns' = ns <> elemToNameSpaces element
-  in qName (elName element) == name &&
-     qURI (elName element) == M.lookup prefix ns'
-
-findChildByName :: NameSpaces -> Text -> Text -> Element -> Maybe Element
-findChildByName ns pref name el =
-  let ns' = ns <> elemToNameSpaces el
-  in  findChild (elemName ns' pref name) el
-
-findChildrenByName :: NameSpaces -> Text -> Text -> Element -> [Element]
-findChildrenByName ns pref name el =
-  let ns' = ns <> elemToNameSpaces el
-  in  findChildren (elemName ns' pref name) el
-
--- | Like 'findChildrenByName', but searches descendants.
-findElementByName :: NameSpaces -> Text -> Text -> Element -> Maybe Element
-findElementByName ns pref name el =
-  let ns' = ns <> elemToNameSpaces el
-  in  findElement (elemName ns' pref name) el
-
-findAttrByName :: NameSpaces -> Text -> Text -> Element -> Maybe Text
-findAttrByName ns pref name el =
-  let ns' = ns <> elemToNameSpaces el
-  in  findAttr (elemName ns' pref name) el
+import Text.Pandoc.XML.Light
+import Text.Pandoc.Readers.OOXML.Shared
+  (NameSpaces, elemName, isElem, elemToNameSpaces,
+   findChildByName, findChildrenByName, findElementByName, findAttrByName)
 
 
 -- | Removes child elements that satisfy a given condition.
