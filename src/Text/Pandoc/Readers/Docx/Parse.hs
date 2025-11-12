@@ -1361,13 +1361,19 @@ findBlip el = do
   -- return svg if present:
   filterElementName (\(QName tag _ _) -> tag == "svgBlip") el `mplus` pure blip
 
+-- | Checks if any style in the style hierarchy is a caption style.
 hasCaptionStyle :: ParagraphStyle -> Bool
-hasCaptionStyle parstyle = any (isCaptionStyleName . pStyleName) (pStyle parstyle)
+hasCaptionStyle =
+  any (isCaptionStyleName . pStyleName) . concatMap nestedStyles . pStyle
  where -- note that these are case insensitive:
    isCaptionStyleName "caption" = True
    isCaptionStyleName "table caption" = True
    isCaptionStyleName "image caption" = True
    isCaptionStyleName _ = False
+
+   -- Gets all the style names in the style hierarchy
+   nestedStyles :: ParStyle -> [ParStyle]
+   nestedStyles ps = ps : maybe [] nestedStyles (psParentStyle ps)
 
 stripCaptionLabel :: [Element] -> [Element]
 stripCaptionLabel els =
