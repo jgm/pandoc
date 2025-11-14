@@ -46,8 +46,8 @@ Pandoc
   , Para
       [ Emph [ Str "emph" ] , Space , Strong [ Str "strong" ] ]
   , Para
-      [ Strong
-          [ Emph
+      [ Emph
+          [ Strong
               [ Str "strong" , Space , Str "and" , Space , Str "emph" ]
           ]
       ]
@@ -766,7 +766,7 @@ Pandoc
       , LineBreak
       , Emph [ Code ( "" , [] , [] ) "markups" ]
       , Code ( "" , [] , [] ) "\160"
-      , Strong [ Emph [ Code ( "" , [] , [] ) "can" ] ]
+      , Emph [ Strong [ Code ( "" , [] , [] ) "can" ] ]
       , Code ( "" , [] , [] ) "\160be\160done."
       ]
   , Para
