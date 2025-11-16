@@ -317,7 +317,8 @@ pandocToHtml opts (Pandoc meta blocks) = do
         MathJax url
           | slideVariant /= RevealJsSlides ->
           -- mathjax is handled via a special plugin in revealjs
-            H.script ! A.src (toValue $ toURI html5 url)
+            H.script ! A.defer mempty
+                    ! A.src (toValue $ toURI html5 url)
                     ! A.type_ "text/javascript"
                     $ case slideVariant of
                             SlideousSlides ->
