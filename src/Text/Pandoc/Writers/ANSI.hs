@@ -15,6 +15,7 @@ module Text.Pandoc.Writers.ANSI ( writeANSI ) where
 import Control.Monad.State.Strict ( StateT, gets, modify, evalStateT )
 import Control.Monad (foldM)
 import Data.List (intersperse)
+import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Text.DocLayout ((<+>), ($$), ($+$))
@@ -108,9 +109,7 @@ titleBlock :: Maybe Int -> Context Text -> D.Doc Text
 titleBlock width meta =
   if null most
      then D.empty
-     else (case width of
-             Just w -> D.cblock w
-             Nothing -> id) $ most $+$ hr
+     else (maybe id D.cblock width) $ most $+$ hr
   where
     title = D.bold (fromMaybe D.empty $ getField "title" meta)
     subtitle = fromMaybe D.empty $ getField "subtitle" meta
@@ -193,7 +192,6 @@ blockToANSI opts (BlockQuote blocks) = do
   contents <- withFewerColumns 2 $ blockListToANSI opts blocks
   return ( D.prefixed "│ " contents $$ D.blankline)
 
--- TODO: Row spans don't work
 blockToANSI opts (Table _ (Caption _ caption) colSpecs (TableHead _ thead) tbody (TableFoot _ tfoot)) = do
   let captionInlines = blocksToInlines caption
   captionMarkup <-
@@ -215,22 +213,40 @@ blockToANSI opts (Table _ (Caption _ caption) colSpecs (TableHead _ thead) tbody
       maxWidth k = claimWidth k
   let widths = map maxWidth inWidths
   let decor = [D.hsep $ map rule widths]
-  head' <- mapM (goRow widths . unRow) thead
-  body' <- mapM (goRow widths . unRow) (unBodies tbody)
-  foot' <- mapM (goRow widths . unRow) tfoot
+  head' <- (makeRows widths . map unRow) thead
+  body' <- (makeRows widths . map unRow) (tableBodiesToRows tbody)
+  foot' <- (makeRows widths . map unRow) tfoot
   modify $ \s -> s{stInTable = wasTable}
   return $ D.vcat (head' <> decor <> body' <> decor <> foot') $+$ captionMarkup
   where
     unRow (Row _ cs) = cs
-    unBody (TableBody _ _ hd bd) = hd <> bd
-    unBodies = concatMap unBody
-    goRow ws cs = do
-      (d, _) <- foldM goCell ([], ws) cs
-      return $ D.hcat $ intersperse (D.vfill " ") $ reverse d
-    goCell (r, ws) (Cell _ aln _ (ColSpan cspan) inner) = do
+    makeRows ws rows = do
+      (docs, _) <- foldM (goRow ws) ([], M.empty) rows
+      return $ reverse docs
+    goRow _ (r, spans) [] =
+      -- Empty rows are not displayed but previous row spans still apply for them.
+      let spans' = M.map decrementPreviousRowSpans spans
+      in  return (r, spans')
+    goRow ws (r, spans) cs = do
+      (d, (nextPos, spans'), _) <- foldM goCell ([], (0, spans), ws) cs
+      let spans'' = decrementTrailingRowSpans nextPos spans' -- Handle previous row spans next to the end of the current row
+      return (D.hcat (intersperse (D.vfill " ") $ reverse d):r, spans'')
+    goCell (r, (colPos, spans), ws) cell@(Cell _ aln (RowSpan rspan) (ColSpan cspan) inner)
+      | Just (ColSpan previousColSpan, spans') <- takePreviousSpansAtColumn colPos spans = do
+          (r', nextPos, ws') <- makeCell r colPos ws AlignDefault previousColSpan []
+          goCell (r', (nextPos, spans'), ws') cell
+      | otherwise = do
+          (r', nextPos, ws') <- makeCell r colPos ws aln cspan inner
+          let spans' = insertCurrentSpansAtColumn colPos spans (RowSpan rspan) (ColSpan cspan)
+          return (r', (nextPos, spans'), ws')
+    decrementPreviousRowSpans spans@(RowSpan rspan, cspan) =
+      if rspan >= 1
+        then (RowSpan rspan - 1, cspan)
+        else spans
+    makeCell r colPos ws aln cspan inner = do
       let (ws', render) = next ws aln cspan
       innerDoc <- blockListToANSI opts inner
-      return ((render innerDoc):r, ws')
+      return ((render innerDoc):r, colPos + cspan, ws')
     tcell AlignLeft    = D.lblock
     tcell AlignRight   = D.rblock
     tcell AlignCenter  = D.cblock
