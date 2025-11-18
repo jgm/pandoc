@@ -17,7 +17,7 @@ extra-deps:
 - skylighting-0.14.7
 - typst-symbols-0.1.9.1
 - git: https://github.com/jgm/citeproc.git
-  commit: 1a82c13ac1d8e9e07cf69fbf89ba2b57474b8e0f
+  commit: 3049a750679f9bedadf0a2965d65234880860b25
 - git: https://github.com/jgm/typst-hs.git
   commit: 49996ca5c9dffd9ced5c5887f392908100595f28
 - git: https://github.com/jgm/texmath.git

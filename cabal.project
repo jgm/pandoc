@@ -10,7 +10,7 @@ constraints: skylighting-format-blaze-html >= 0.1.1.3,
 source-repository-package
   type: git
   location: https://github.com/jgm/citeproc.git
-  tag: 1a82c13ac1d8e9e07cf69fbf89ba2b57474b8e0f
+  tag: 3049a750679f9bedadf0a2965d65234880860b25
 
 source-repository-package
   type: git
