@@ -1,8 +1,23 @@
 [ Para
-    [ Str "See" , Space , Str "Table" , Space , Str "1." ]
+    [ Str "See"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "Table" , Space , Str "1" ]
+        ( "#_Ref71265628" , "" )
+    , Str "."
+    ]
 , Table
     ( "" , [] , [] )
-    (Caption Nothing [ Para [ Str "Table" , Space , Str "1" ] ])
+    (Caption
+       Nothing
+       [ Para
+           [ Span ( "_Ref71265628" , [ "anchor" ] , [] ) []
+           , Str "Table"
+           , Space
+           , Str "1"
+           ]
+       ])
     [ ( AlignDefault , ColWidth 0.7605739372523824 )
     , ( AlignDefault , ColWidth 0.11971303137380876 )
     , ( AlignDefault , ColWidth 0.11971303137380876 )
@@ -79,7 +94,15 @@
 , Header 2 ( "section" , [] , [] ) []
 , Table
     ( "" , [] , [] )
-    (Caption Nothing [ Para [ Str "Table" , Space , Str "2" ] ])
+    (Caption
+       Nothing
+       [ Para
+           [ Span ( "_Ref71265695" , [ "anchor" ] , [] ) []
+           , Str "Table"
+           , Space
+           , Str "2"
+           ]
+       ])
     [ ( AlignDefault , ColWidth 0.33329636202307006 )
     , ( AlignDefault , ColWidth 0.33329636202307006 )
     , ( AlignDefault , ColWidth 0.33340727595385977 )
@@ -111,5 +134,12 @@
     [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
     (TableFoot ( "" , [] , [] ) [])
 , Para
-    [ Str "See" , Space , Str "Table" , Space , Str "2." ]
+    [ Str "See"
+    , Space
+    , Link
+        ( "" , [] , [] )
+        [ Str "Table" , Space , Str "2" ]
+        ( "#_Ref71265695" , "" )
+    , Str "."
+    ]
 ]
