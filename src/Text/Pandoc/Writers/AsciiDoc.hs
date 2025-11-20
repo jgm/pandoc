@@ -818,13 +818,8 @@ adjustFooters rows = adjustFooters' [] (0, length rows) M.empty rows
 
         -- Apply row spans from a previous row that are next to the end of the
         -- current row's cells to keep track of the correct column position.
-        previousRowSpans'' = M.mapWithKey (applyTrailingPreviousRowSpans nextColumnPosition) previousRowSpans'
+        previousRowSpans'' = decrementTrailingRowSpans nextColumnPosition previousRowSpans'
     in  (previousRowSpans'', Row attr cells'', catMaybes columnIndices)
-
-  applyTrailingPreviousRowSpans nextColumnPosition columnPosition previousRowSpan@(RowSpan rowSpan, ColSpan colSpan) =
-    if columnPosition >= nextColumnPosition && rowSpan >= 1
-      then (RowSpan rowSpan - 1, ColSpan colSpan)
-      else previousRowSpan
 
 -- | Adjust footer cell for the fact that AsciiDoc only supports a single footer row.
 --
@@ -832,11 +827,10 @@ adjustFooters rows = adjustFooters' [] (0, length rows) M.empty rows
 -- them as empty cells to that last footer row.
 adjustFooterCell :: (Int, Int) -> (Int, M.Map Int (RowSpan, ColSpan)) -> Cell -> ((Int, M.Map Int (RowSpan, ColSpan)), (Cell, Maybe (Int, Cell)))
 adjustFooterCell rowInfo@(rowIndex, footerLength) (columnPosition, previousSpans) cell@(Cell _ _ (RowSpan rowSpan) (ColSpan colSpan) _)
-  | Just previous@(RowSpan previousRowSpan, ColSpan previousColSpan) <- M.lookup columnPosition previousSpans
-  , previousRowSpan >= 1 =
+  | Just (ColSpan previousColSpan, previousSpans') <- takePreviousSpansAtColumn columnPosition previousSpans =
       -- Apply row span from a previous row that occupies this column to keep
       -- track of the correct column position.
-      adjustFooterCell rowInfo (columnPosition + previousColSpan, updatePreviousRowSpan previous) cell
+      adjustFooterCell rowInfo (columnPosition + previousColSpan, previousSpans') cell
   | rowSpan > 1 && rowIndex + rowSpan >= footerLength =
       -- Adjust row span that would reach all the way to the last footer row and
       -- keep track of that to apply it to the last footer row.
@@ -844,15 +838,7 @@ adjustFooterCell rowInfo@(rowIndex, footerLength) (columnPosition, previousSpans
   | otherwise = ((nextColumnPosition, previousRowSpans'), (cell, Nothing))
  where
   -- Keep track of this cell's RowSpan for the rows following it.
-  previousRowSpans' = if rowSpan > 1
-                      then M.insert columnPosition (RowSpan rowSpan - 1, ColSpan colSpan) previousSpans -- Minus its own row.
-                      else previousSpans
-
-  updatePreviousRowSpan (RowSpan previousRowSpan, previousColSpan) =
-    if previousRowSpan > 1
-      then M.insert columnPosition (RowSpan previousRowSpan - 1, previousColSpan) previousSpans
-      else M.delete columnPosition previousSpans
-
+  previousRowSpans' = insertCurrentSpansAtColumn columnPosition previousSpans (RowSpan rowSpan) (ColSpan colSpan)
   nextColumnPosition = columnPosition + colSpan
   emptyCellWithColSpan = Cell nullAttr AlignDefault (RowSpan 1) (ColSpan colSpan) []
 
