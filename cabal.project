@@ -26,3 +26,8 @@ source-repository-package
   type: git
   location: https://github.com/jgm/djoths.git
   tag: 7dc8da53fc092d2d4d91f5f0988840f4faf90368
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/asciidoc-hs.git
+  tag: 6a632651458c9b5334d638993a5ed23c6214cb26

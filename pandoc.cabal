@@ -275,6 +275,10 @@ extra-source-files:
                  test/command/6466-whole.hs
                  test/command/7861.yaml
                  test/command/7861/metadata/placeholder
+                 test/asciidoc-reader.adoc
+                 test/asciidoc-reader.native
+                 test/asciidoc-reader-include.rb
+                 test/asciidoc-reader-include.adoc
                  test/docbook-chapter.docbook
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
@@ -566,6 +570,7 @@ library
                  typst                 >= 0.8.0.2  && < 0.9,
                  vector                >= 0.12     && < 0.14,
                  djot                  >= 0.1.2.3  && < 0.2,
+                 asciidoc              >= 0.1      && < 0.2,
                  tls                   >= 2.0.1    && < 2.2,
                  crypton-x509-system   >= 1.6.7    && < 1.7
 
@@ -590,6 +595,7 @@ library
                    Text.Pandoc.Translations,
                    Text.Pandoc.Translations.Types,
                    Text.Pandoc.Readers,
+                   Text.Pandoc.Readers.AsciiDoc,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,

@@ -1,0 +1,908 @@
+// Some comment here.
+= AsciiDoc reader test
+John MacFarlane <jgm@berkeley.edu>; John Doe <doe@example.com>
+v1.0, 2025-11-24
+:custom: Foo bar \
+baz
+:flag:
+:stem: latexmath
+
+[#firsty]
+== Inline markup
+
+=== Characters and escapes
+
+Dog's has a curved apostrophe, but dog\'s does not.
+
+An escaped symbol: \*star\*.
+
+Character references: &auml;&#160;&#x22E0; 
+
+=== Line breaks
+
+This is a hard +
+break.
+
+Or set it for a whole paragraph
+
+[%hardbreaks]
+These are
+all
+hard
+breaks.
+
+=== Autolinks
+
+http://example.com/foobar?a=333&b=no%20body, me@example.com
+
+<http://example.com/foobar?a=333&b=no%20body>, <me@example.com>
+
+=== Cross-reference
+
+See <<firsty>>
+
+See <<firsty,My great section on Inline markup>>
+
+Go to <<anch,an inline anchor>>
+
+=== Anchors
+
+An [[anch]]inline anchor.
+
+[[[bibanchor]]Doe, John. A Book.
+
+=== Inline macros
+
+kbd:[F11]
+
+kbd:[Ctrl+Shift+F]
+
+menu:File[Save]
+
+menu:Reader[Markdown > Pandoc]
+
+btn:[Cancel]
+
+icon:heart[2x,role=red]
+
+anchor:tiger
+
+pass:[<b>*bold*</b>]
+
+link:downloads/report.pdf[Get Report]
+
+link:tools.html#editors[]
+
+link:file:///home/username[Your files]
+
+Tricky cases:
+
+link:pass:[My Documents/report.pdf][Get Report]
+
+link:My&#32;Documents/report.pdf[Get Report]
+
+link:My%20Documents/report.pdf[Get Report]
+
+link:++https://example.org/now_this__link_works.html++[]
+
+mailto:join@discuss.example.org[Subscribe]
+
+mailto:join@discuss.example.org["Click, subscribe, and participate!",role=mail]
+
+xref:link-macro-attributes[use attributes within the link macro]
+
+image::sunset.jpg[Sunset]
+
+image::name.png[]
+
+image::sunset.jpg[Sunset,300,400]
+
+image::sunset.jpg[alt=Sunset,width=300,height=400]
+
+[latexmath]
+++++
+e=mc^2
+++++
+
+[asciimath]
+++++
+sin n / 3
+++++
+
+[stem]
+++++
+e^i
+++++
+
+=== Attribute substitutions
+
+{custom}
+
+{nonexistent}
+
+Built in: x{blank}y{empty}z{sp}a{nbsp}b{zwsp}c{apos}d{lsquo}
+
+=== Bold and italic
+
+Constrained: *this is bold _and italic_*.
+
+Unconstrained: wild**content__with italic__stuff**.
+
+=== Monospace
+
+`simple`
+
+`complex *with bold* text and a link:foo.html[]`
+
+unconstrained``wwow``okay
+
+=== Span and inline attributes
+
+[.red]#Bonjour *monsieur*#
+
+Un[.red]##constrained##content
+
+With #no attribute# it's highlighted.
+
+=== Sub and superscript
+
+H~2~O
+
+H~a{sp}b~O
+
+Not subscript: H~a b~O.
+
+H^2&O
+
+H^a{sp}b^O
+
+Not subscript: H^a b^O.
+
+=== Passthrough
+
+Here the special characters just come through as literal:
+
++<b>*test*</b>+
+
+xx++<b>*test*</b>++xx
+
+But here they are passed through:
+
+xx+++<b>*test*</b>+++xx
+
+=== Quoted
+
+"`double quoted`"
+
+'`single quoted`'
+
+=== Footnotes
+
+Doublefootnote:[The double hail-and-rainbow level makes my toes tingle.]
+
+A bold statement!footnote:disclaimer[Opinions are my own.]
+Another outrageous statement.footnote:disclaimer[]
+
+== Block markup
+
+=== Sections
+
+==== Another level
+
+===== Level 5
+
+#### Markdown style
+
+##### Level 5
+
+=== Discrete heading
+
+[discrete]
+==== A discrete heading, not a section
+
+=== Paragraph
+
+This is a paragraph
+whose source fits on two lines.
+
+{.This is my title}
+A paragraph with a title.
+
+=== Example block
+
+.Optional title
+[example]
+This is an example of an example block.
+
+.Optional title
+====
+Paragraph *one*.
+
+Paragraph *two*.
+====
+
+=== Admonition
+
+Simple form:
+
+WARNING: This is very dangerous.
+Don't do it unless you understand the risks.
+
+[IMPORTANT]
+.Title of the admonition
+====
+Remember:
+
+. Don't do this.
+. And don't do that.
+====
+
+=== Sidebar
+
+[sidebar]
+A simple sidebar.
+
+.Optional Title *with strong emphasis*
+****
+Here is a sidebar.
+
+TIP: It can contain any type of content.
+****
+
+=== Literal block
+
+Short indented code:
+
+  $ ls -a
+  $ cat /foo/bar/baz \
+       /bi/bim/bop
+
+[literal]
+This is
+  a literal block too.
+
+....
+  Fenced
+    $+ *a* literal
+
+****
+not a sidebar
+****
+....
+
+=== Listing
+
+[source,ruby]
+----
+require 'sinatra'
+
+get '/hi' do
+  "Hello World!"
+end
+----
+
+Implied:
+
+[source,ruby]
+----
+require 'sinatra'
+
+get '/hi' do
+  "Hello World!"
+end
+----
+
+[,ruby]
+----
+include::asciidoc-reader-include.rb[]
+----
+
+[#hello.haskell]
+----
+putStrLn $ unwords ["Hello", "world"]
+----
+
+Line numbering:
+
+[%linenums,ruby]
+----
+puts 1
+puts 2
+puts 3
+----
+
+----
+This doesn't have a language.
+  +="hi"
+----
+
+And with a callout list:
+
+[source,ruby]
+----
+require 'sinatra' <1>
+
+get '/hi' do <2> <3>
+  "Hello World!"
+end
+----
+<1> Library import
+<2> URL mapping
+<3> Response block
+
+Markdown-style fenced:
+
+```ruby
+def foo
+  return 5
+end
+```
+
+=== Verse
+
+[verse,Carl Sandburg, two lines from the poem Fog]
+The fog comes
+on little cat feet.
+
+[verse,Carl Sandburg,Fog]
+____
+The fog comes
+on little cat feet.
+It sits looking
+over harbor and city
+on silent haunches
+and then moves on.
+____
+
+=== Collapsible
+
+Click here for more.
+[%collapsible%open]
+====
+This is collapsible.
+
+It can be hidden.
+====
+
+.Click me!
+[%collapsible]
+This paragraph is
+also collapsible.
+
+=== Quote
+
+[quote,Captain James T. Kirk,Star Trek IV: The Voyage Home]
+Everybody remember where we parked.
+
+[quote,Monty Python and the Holy Grail]
+____
+Dennis: Come and see the violence inherent in the system. Help! Help! I'm being
+repressed.
+
+King Arthur: Bloody peasant!
+
+Dennis: Oh, what a giveaway! Did you hear that? Did you hear that, eh? That's what I'm
+on about! Did you see him repressing me? You saw him, Didn't you?
+____
+
+[quote.movie#roads,Dr. Emmett Brown]
+____
+Roads? Where we're going, we don't need roads.
+____
+
+=== Pass
+
+++++
+<p>pass <em>through</em>
+  </p>
+++++
+
+=== Open block
+
+.A title.
+[key="a value"]
+--
+Any content can go here:
+
+. one
+. two
+--
+
+=== Anchor
+
+[[goals]]
+* one
+* two
+
+=== Breaks
+
+Asciidoc thematic break:
+
+'''
+
+Markdown style:
+
+---
+- - -
+***
+* * *
+
+Page breaks:
+
+<<<
+
+[%always]
+<<<
+
+=== List
+
+* Edgar Allan Poe
+* Sheri S. Tepper
+* Bill Bryson
+
+// titled
+
+.Kizmet's Favorite Authors
+* Edgar Allan Poe
+* Sheri S. Tepper
+* Bill Bryson
+
+// hyphen
+
+- Edgar Allan Poe
+- Sheri S. Tepper
+- Bill Bryson
+
+. Nested list
+* West wood maze
+** Maze heart
+*** Reflection pool
+** Secret exit
+* Level 1 list item
+** Level 2 list item
+*** Level 3 list item
+**** Level 4 list item
+***** Level 5 list item
+****** etc.
+* Level 1 list item
+
+// attributes
+
+[square]
+* one
+* two
+* three
+
+// ordered with actual numbers
+
+1. Protons
+2. Electrons
+3. Neutrons
+
+// ordered with .
+
+. Protons
+. Electrons
+. Neutrons
+
+Start with 4:
+
+4. Step four
+5. Step five
+6. Step six
+
+or
+
+[start=4]
+. Step four
+. Step five
+. Step six
+
+Reversed:
+
+[%reversed]
+.Parts of an atom
+. Protons
+. Electrons
+. Neutrons
+
+Nested
+
+. Step 1
+. Step 2
+.. Step 2a
+.. Step 2b
+. Step 3
+
+Mixed nested
+
+. Linux
+* Fedora
+* Ubuntu
+* Slackware
+. BSD
+* FreeBSD
+* NetBSD
+
+With spacing
+
+. Linux
+* Fedora
+* Ubuntu
+* Slackware
+. BSD
+* FreeBSD
+* NetBSD
+
+With number styles
+
+[lowerroman,start=5]
+. Five
+. Six
+[loweralpha]
+.. a
+.. b
+.. c
+. Seven
+
+Checklist
+
+* [*] checked
+* [x] also checked
+* [ ] not checked
+* normal list item
+
+Separate lists with block attribute
+
+* Apples
+* Oranges
+[]
+. Wash
+. Slice
+
+Multiline items
+
+* Blah blah.
+Blah blah.
+* The document header in AsciiDoc is optional.
+If present, it must start with a document title.
+
+* Optional author and revision information lines
+immediately follow the document title.
+
+* The document header must be separated from
+  the remainder of the document by one or more
+  empty lines and it cannot contain empty lines.
+
+Complex item
+
+* The header in AsciiDoc must start with a document title.
++
+----
+= Document Title
+----
++
+Keep in mind that the header is optional.
+* Optional author and revision information lines immediately follow the document
+title.
++
+----
+= Document Title
+Doc Writer <doc.writer@asciidoc.org>
+v1.0, 2022-01-01
+----
+* Second item
+
+Empty principle element:
+
+. {empty}
++
+----
+test
+----
+
+=== Table
+
+==== Simple with column specs
+
+[cols="3,2,3"]
+|===
+|This content is placed in the first cell of column 1
+|This line starts with a vertical bar so this content is placed in a new cell in
+column 2 |When the processor encounters a whitespace followed by a vertical bar it
+ends the previous cell and starts a new cell
+|===
+
+==== Repeated column in specs
+
+[cols="2*"]
+|===
+>s|This cell's specifier indicates that this cell's content is right-aligned and bold.
+|The cell specifier on this cell hasn't been set explicitly, so the default
+properties are applied.
+|===
+
+==== Simple without column specs
+
+|===
+|Column 1, header row |Column 2, header row
+
+|Cell in column 1, row 2
+|Cell in column 2, row 2
+
+|Cell in column 1, row 3
+|Cell in column 2, row 3
+|===
+
+==== With caption
+
+.My cool table.
+|===
+|Column 1, header row |Column 2, header row
+
+|Cell in column 1, row 2
+|Cell in column 2, row 2
+
+|Cell in column 1, row 3
+|Cell in column 2, row 3
+|===
+
+==== No header
+
+By default the first line should turn into the header, but this
+can be disabled:
+
+[%noheader]
+|===
+|Cell in column 1, row 1 |Cell in column 2, row 1
+|Cell in column 1, row 2 |Cell in column 2, row 2
+|===
+
+And also explicitly enabled:
+
+[%header%footer%autowidth,cols=2*~]
+|===
+|Cell A1 |Cell B1
+|Cell A2 |Cell B2
+|Cell A3 |Cell B3
+|===
+
+==== Footer
+
+[%header%footer,cols="2,2,1"]
+|===
+|Column 1, header row
+|Column 2, header row
+|Column 3, header row
+|Cell in column 1, row 2
+|Cell in column 2, row 2
+|Cell in column 3, row 2
+|Column 1, footer row
+|Column 2, footer row
+|Column 3, footer row
+|===
+
+or
+
+[options="footer"]
+|===
+|Column 1, header row |Column 2, header row
+|Cell in column 1, row 2
+|Cell in column 2, row 2
+|Cell in column 1, row 3
+|Cell in column 2, row 3
+|Column 1, footer row
+|Column 2, footer row
+|===
+
+==== Alignment
+
+|===
+|Column Name |Column Name
+2+^|This cell spans two columns, and its content is horizontally centered because the
+cell specifier includes the `+^+` operator.
+2*^|This content is duplicated in two adjacent columns.
+Its content is horizontally centered because the cell specifier
+includes the `+^+` operator.
+|===
+
+==== Multiple paragraphs in cells
+
+|===
+
+|Single paragraph on row 1
+
+|First paragraph on row 2
+
+Second paragraph on row 2
+|===
+
+==== Complex table
+
+|===
+
+2*>m|This content is duplicated across two columns.
+
+It is aligned right horizontally.
+
+And it is monospaced.
+
+.3+^.>s|This cell spans 3 rows. The content is centered horizontally, aligned to the bottom of the cell, and strong.
+e|This content is emphasized.
+
+.^l|This content is aligned to the top of the cell and literal.
+
+a|
+[source]
+puts "This is a source block!"
+
+|===
+
+==== Column styles
+
+[cols="m,m"]
+|===
+|monospace | mono
+d|default | mono
+|===
+
+==== Block elements in cells
+
+|===
+|Normal Style |AsciiDoc Style
+|This cell isn't prefixed with an `a`, so the processor doesn't interpret the
+following lines as an AsciiDoc list.
+
+* List item 1
+* List item 2
+* List item 3
+
+a|This cell is prefixed with an `a`, so the processor interprets the following lines
+as an AsciiDoc list.
+
+* List item 1
+* List item 2
+* List item 3
+
+|This cell isn't prefixed with an `a`, so the processor doesn't interpret the listing
+block delimiters or the `source` style.
+
+[source,python]
+----
+import os
+print ("%s" %(os.uname()))
+----
+
+a|This cell is prefixed with an `a`, so the listing block is processed and rendered
+according to the `source` style rules.
+
+[source,python]
+----
+import os
+print "%s" %(os.uname())
+----
+|===
+
+==== Col and rowspan
+
+|===
+|Column 1, header row |Column 2, header row | Column 3, header row
+2.2+|This cell spans 2 cols and 2 rows
+|Cell in column 3, row 2
+|Cell in column 3, row 3
+3+|Cell in column 1-3, row 4
+|===
+
+==== CSV table
+
+[%header,format=csv]
+|===
+Artist,Track,Genre
+Baauer,Harlem Shake,Hip Hop
+The Lumineers,Ho Hey,Folk Rock
+|===
+
+or
+
+,===
+Artist,Track,Genre
+Baauer,Harlem Shake,Hip Hop
+,===
+
+==== DSV table
+
+[format=dsv,separator=;]
+|===
+a;b;c
+d;e;f
+|===
+
+or
+
+:===
+Artist:Track:Genre
+Robyn:Indestructible:Dance
+:===
+
+=== Definition list
+
+CPU:: The brain of the computer.
+Hard drive:: Permanent storage for operating system and/or user files.
+
+Mixed
+
+Dairy::
+* Milk
+* Eggs
+Bakery::
+* Bread
+Produce::
+* Bananas
+
+With spaces
+
+Dairy::
+
+  * Milk
+  * Eggs
+
+Bakery::
+
+  * Bread
+
+Produce::
+
+  * Bananas
+
+Nested
+
+Operating Systems::
+Linux:::
+ . Fedora
+  * Desktop
+ . Ubuntu
+  * Desktop
+  * Server
+BSD:::
+ . FreeBSD
+ . NetBSD
+Cloud Providers::
+ PaaS:::
+  . OpenShift
+  . CloudBees
+ IaaS:::
+  . Amazon EC2
+
+This just affects the output:
+
+[horizontal,labelwidth=25,itemwidth=75]
+CPU:: The brain of the computer.
+RAM:: Temporarily stores information the CPU uses during operation.
+
+Q&A list
+
+[qanda]
+What is the answer?::
+This is the answer.
+Are cameras allowed?::
+Are backpacks allowed?::
+No.
+
+Ordered description list (with numbers)
+
+[ordered]
+&:: ampersand
+>:: greater than
+
+=== Block macros
+
+image::sunset.jpg[Sunset,300,200]
+
+video::mymovie.mp4[]
+
+audio::mysong.mp3[]
+
+toc::[]
+
+include::asciidoc-reader-include.adoc[]
+
