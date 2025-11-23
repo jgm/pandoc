@@ -233,6 +233,7 @@ header when requesting a document from a URL:
 :   Specify input format.  *FORMAT* can be:
 
     ::: {#input-formats}
+    - `asciidoc` ([AsciiDoc] markup)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
     - `bits` ([BITS] XML, alias for `jats`)

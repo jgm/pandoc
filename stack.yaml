@@ -13,8 +13,6 @@ extra-deps:
 - hslua-module-system-1.2.3
 - hslua-objectorientation-2.4.0
 - hslua-packaging-2.3.2
-- skylighting-core-0.14.7
-- skylighting-0.14.7
 - typst-symbols-0.1.9.1
 - git: https://github.com/jgm/citeproc.git
   commit: 0c062ce77056176d5901963c554053199b6592d5
@@ -24,9 +22,11 @@ extra-deps:
   commit: 110322589698df20abf3f3a06c070271802ea598
 - git: https://github.com/jgm/djoths.git
   commit: 7dc8da53fc092d2d4d91f5f0988840f4faf90368
+- git: https://github.com/jgm/asciidoc-hs.git
+  commit: 17df3ccc91102ad74a977d4cb1a43f03b4ef0bda
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
-resolver: lts-24.9
+resolver: lts-24.20
 nix:
   packages:
   - pkg-config
