@@ -587,6 +587,7 @@ library
                    Text.Pandoc.Translations,
                    Text.Pandoc.Translations.Types,
                    Text.Pandoc.Readers,
+                   Text.Pandoc.Readers.AsciiDoc,
                    Text.Pandoc.Readers.HTML,
                    Text.Pandoc.Readers.LaTeX,
                    Text.Pandoc.Readers.Markdown,
