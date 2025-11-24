@@ -12,7 +12,6 @@ Tests for the word docx reader.
 -}
 module Tests.Readers.Docx (tests) where
 
-import Data.Algorithm.Diff (getDiff)
 import Codec.Archive.Zip
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
