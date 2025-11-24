@@ -3,9 +3,7 @@ name: CI tests
 on:
   push:
     branches:
-    - '*'
-    - '!rc/*'
-    - '!djot'
+    - 'main'
     paths-ignore:
     - 'doc/*.md'
     - 'MANUAL.txt'
