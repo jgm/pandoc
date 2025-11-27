@@ -21,7 +21,6 @@ module Text.Pandoc.Readers.AsciiDoc
 where
 
 import Text.Pandoc.Class
-import Text.Pandoc.Sources
 import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Walk
@@ -34,8 +33,9 @@ import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Readers.HTML (readHtml)
 import Control.Monad.Except (throwError)
 import Control.Monad (mplus)
-import Text.Pandoc.Parsing (newPos)
+import Text.Pandoc.Parsing (newPos, sourceName)
 import Text.Pandoc.Logging
+import Text.Pandoc.Sources
 import Control.Monad.State
 import Data.List (intersperse, foldl')
 import Data.Char (chr)
@@ -47,9 +47,12 @@ import Data.Maybe (fromMaybe)
 
 -- | Read AsciiDoc from an input string and return a Pandoc document.
 readAsciiDoc :: (PandocMonad m, ToSources a) => ReaderOptions -> a -> m Pandoc
-readAsciiDoc _opts inp =
-  A.parseDocument getIncludeFile raiseError
-                 (sourcesToText (toSources inp))
+readAsciiDoc _opts inp = do
+  let Sources sources = toSources inp
+  (mconcat <$> mapM
+   (\(sourcepos, t) ->
+     A.parseDocument getIncludeFile raiseError (sourceName sourcepos) t)
+    sources)
    >>= resolveFootnotes
    >>= resolveStem
    >>= resolveIcons
