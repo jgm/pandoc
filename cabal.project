@@ -30,4 +30,4 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/asciidoc-hs.git
-  tag: 3ab89ea03c53f60423759878bb70ea4b3b1986fa
+  tag: 3726f94dbe8bc061ace9030de71124000c593aed

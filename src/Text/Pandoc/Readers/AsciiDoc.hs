@@ -389,6 +389,10 @@ doInline (A.Inline (A.Attr _ps kvs') it) = do
     A.AttributeReference (A.AttributeName t) -> -- if this is here, it's unresolved
       pure $ B.str ("{" <> t <> "}")
     A.Span ils -> B.spanWith B.nullAttr <$> doInlines ils
+    A.IndexEntry (A.TermInText t) ->
+      pure $ B.spanWith ("",["index"],[("term",t)]) (B.text t)
+    A.IndexEntry (A.TermConcealed ts) ->
+      pure $ B.spanWith ("",["index"],[("term",T.intercalate "," ts)]) mempty
     -- Passthrough is hard to get right, because pandoc's RawInline needs
     -- a format specifier. Often in asciidoc passthrough is used as a form
     -- of escaping, so the best approach seems to be treating it as HTML
