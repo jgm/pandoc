@@ -240,6 +240,8 @@ $if(view)$
         scrollProgress: $scrollProgress$,
         // see https://revealjs.com/scroll-view/#url-activation
         scrollActivationWidth: '$scrollActivationWidth$',
+        // see https://revealjs.com/scroll-view/#scroll-snapping
+        scrollSnap: '$scrollSnap$',
         // Experimental. see https://revealjs.com/scroll-view/#scroll-snapping
         scrollLayout: '$scrollLayout$',
 $endif$
