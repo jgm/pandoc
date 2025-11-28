@@ -222,7 +222,7 @@ doBlock (A.Block attr@(A.Attr ps kvs) mbtitle bt) = do
       pure $ B.codeBlockWith ("", classes, []) code
     A.IncludeListing _ _ Nothing -> pure mempty
     A.IncludeListing mblang _fp (Just lns) ->
-      doBlock (A.Block attr mbtitle (A.Listing mblang lns))
+      doBlock (A.Block mempty mbtitle (A.Listing mblang lns))
     A.ExampleBlock bs -> B.divWith ("",["example"],[]) <$> doBlocks bs
     A.Sidebar bs -> B.divWith ("",["sidebar"],[]) <$> doBlocks bs
     A.OpenBlock bs -> B.divWith ("",[],[]) <$> doBlocks bs
