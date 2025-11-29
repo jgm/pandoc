@@ -23,7 +23,7 @@ extra-deps:
 - git: https://github.com/jgm/djoths.git
   commit: 7dc8da53fc092d2d4d91f5f0988840f4faf90368
 - git: https://github.com/jgm/asciidoc-hs.git
-  commit: d92676a1e88e474fcd85ec29c6d4f40f4a95be59
+  commit: 91cbc83837feafea827211f128528d05eaa69d4b
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.20

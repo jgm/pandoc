@@ -38,7 +38,7 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Sources
 import Control.Monad.State
 import Data.List (intersperse, foldl')
-import Data.Char (chr)
+import Data.Char (chr, ord)
 import qualified Data.Text as T
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
@@ -59,8 +59,9 @@ readAsciiDoc _opts inp = do
    >>= toPandoc
  where
   getIncludeFile fp = UTF8.toText <$> readFileStrict fp
-  raiseError pos msg = throwError $ PandocParseError $ T.pack
-                          $ msg <> " at position " <> show pos
+  raiseError fp pos msg = throwError $ PandocParseError $ T.pack
+                            $ msg <> " at " <> show fp <>
+                              " char " <> show pos
 
 toPandoc :: PandocMonad m => A.Document -> m Pandoc
 toPandoc doc =
@@ -393,6 +394,12 @@ doInline (A.Inline (A.Attr _ps kvs') it) = do
       pure $ B.spanWith ("",["index"],[("term",t)]) (B.text t)
     A.IndexEntry (A.TermConcealed ts) ->
       pure $ B.spanWith ("",["index"],[("term",T.intercalate "," ts)]) mempty
+    A.Counter name ctype val ->
+      pure $ B.spanWith ("",["counter"],[("name",name)]) $ B.str $
+        case ctype of
+          A.DecimalCounter -> tshow val
+          A.UpperAlphaCounter -> T.singleton $ chr (ord 'A' + val - 1)
+          A.LowerAlphaCounter -> T.singleton $ chr (ord 'a' + val - 1)
     -- Passthrough is hard to get right, because pandoc's RawInline needs
     -- a format specifier. Often in asciidoc passthrough is used as a form
     -- of escaping, so the best approach seems to be treating it as HTML
