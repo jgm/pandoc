@@ -1134,7 +1134,7 @@ Pandoc
           , Str "I\8217m"
           , Space
           , Str "being"
-          , LineBreak
+          , SoftBreak
           , Str "repressed."
           ]
       , Para
@@ -1180,7 +1180,7 @@ Pandoc
           , Str "what"
           , Space
           , Str "I\8217m"
-          , LineBreak
+          , SoftBreak
           , Str "on"
           , Space
           , Str "about!"
