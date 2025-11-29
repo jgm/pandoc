@@ -43,7 +43,7 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false # for now
       matrix:
         versions:
           - ghc: '8.10'
