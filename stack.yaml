@@ -15,8 +15,7 @@ extra-deps:
 - hslua-packaging-2.3.2
 - typst-symbols-0.1.9.1
 - citeproc-0.12
-- git: https://github.com/jgm/typst-hs.git
-  commit: 49996ca5c9dffd9ced5c5887f392908100595f28
+- typst-0.8.1
 - git: https://github.com/jgm/texmath.git
   commit: 110322589698df20abf3f3a06c070271802ea598
 - git: https://github.com/jgm/djoths.git
