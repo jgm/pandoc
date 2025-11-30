@@ -1,0 +1,14 @@
+[ Header
+    2
+    ( "first-slide" , [] , [] )
+    [ Str "First" , Space , Str "Slide" ]
+, Para [ Str "Title" ]
+, Header
+    2
+    ( "second-slide" , [] , [] )
+    [ Str "Second" , Space , Str "Slide" ]
+, BulletList
+    [ [ Plain [ Str "First" , Space , Str "item" ] ]
+    , [ Plain [ Str "Second" , Space , Str "item" ] ]
+    ]
+]
