@@ -17,8 +17,7 @@ extra-deps:
 - citeproc-0.12
 - typst-0.8.1
 - texmath-0.13.0.2
-- git: https://github.com/jgm/djoths.git
-  commit: 7dc8da53fc092d2d4d91f5f0988840f4faf90368
+- djot-0.1.2.4
 - git: https://github.com/jgm/asciidoc-hs.git
   commit: b936642fb739e85f08afd44a35bc3ce0849d8cd7
 ghc-options:
