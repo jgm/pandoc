@@ -17,9 +17,9 @@ into InDesign with File -> Place.
 -}
 module Text.Pandoc.Writers.ICML (writeICML) where
 import Control.Monad.Except (catchError)
-import Control.Monad (liftM2)
+import Control.Monad (liftM2, when)
 import Control.Monad.State.Strict
-    ( MonadTrans(lift), StateT(runStateT), MonadState(state, get, put) )
+    ( MonadTrans(lift), StateT(runStateT), MonadState(state, get, put), gets, modify )
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Set as Set
@@ -37,6 +37,7 @@ import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Math (texMathToInlines)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.XML
+import qualified Data.Text as T
 
 type Style = [Text]
 type Hyperlink = [(Int, Text)]
@@ -47,6 +48,7 @@ data WriterState = WriterState{
   , links        :: Hyperlink
   , listDepth    :: Int
   , maxListDepth :: Int
+  , firstPara    :: Bool
   }
 
 type WS m = StateT WriterState m
@@ -58,7 +60,11 @@ defaultWriterState = WriterState{
   , links        = []
   , listDepth    = 1
   , maxListDepth = 0
+  , firstPara = False
   }
+
+setFirstPara :: PandocMonad m => WS m ()
+setFirstPara =  modify $ \s -> s { firstPara = True }
 
 -- inline names (appear in InDesign's character styles pane)
 emphName        :: Text
@@ -82,6 +88,8 @@ linkName        = "Link"
 
 -- block element names (appear in InDesign's paragraph styles pane)
 paragraphName     :: Text
+firstParagraphName :: Text
+bibliographyName  :: Text
 figureName        :: Text
 imgCaptionName    :: Text
 codeBlockName     :: Text
@@ -107,6 +115,8 @@ subListParName    :: Text
 footnoteName      :: Text
 citeName          :: Text
 paragraphName     = "Paragraph"
+firstParagraphName = "FirstParagraph"
+bibliographyName  = "Bibliography"
 figureName        = "Figure"
 imgCaptionName    = "Caption"
 codeBlockName     = "CodeBlock"
@@ -145,7 +155,8 @@ writeICML opts doc = do
              (renderBlockMeta blocksToICML)
              (renderInlineMeta inlinesToICML)
              meta
-  (main, st) <- runStateT (blocksToICML opts [] blocks) defaultWriterState
+  (main, st) <- runStateT (setFirstPara >> blocksToICML opts [] blocks)
+                    defaultWriterState
   let context = defField "body" main
               $ defField "charStyles" (charStylesToDoc st)
               $ defField "parStyles"  (parStylesToDoc st)
@@ -228,7 +239,11 @@ parStylesToDoc st = vcat $ map makeStyle $ Set.toAscList $ blockStyles st
               font = if codeBlockName `Text.isInfixOf` s
                         then monospacedFont
                         else empty
-              basedOn = inTags False "BasedOn" [("type", "object")] (text "$ID/NormalParagraphStyle") $$ font
+              baseStyle = if firstParagraphName `T.isSuffixOf` s
+                             then T.replace firstParagraphName paragraphName s
+                             else "$ID/NormalParagraphStyle"
+              basedOn = inTags False "BasedOn" [("type", "object")]
+                             (literal baseStyle) $$ font
               tabList = if isBulletList
                            then inTags True "TabList" [("type","list")] $ inTags True "ListItem" [("type","record")]
                                 $ vcat [
@@ -316,26 +331,48 @@ blocksToICML opts style lst = do
 -- | Convert a Pandoc block element to ICML.
 blockToICML :: PandocMonad m => WriterOptions -> Style -> Block -> WS m (Doc Text)
 blockToICML opts style (Plain lst) = parStyle opts style "" lst
-blockToICML opts style (Para lst) = parStyle opts (paragraphName:style) "" lst
+blockToICML opts style (Para lst) = do
+  isfirst <- gets firstPara
+  modify $ \s -> s{ firstPara = False }
+  parStyle opts ((if isfirst
+                      then firstParagraphName
+                      else paragraphName):style) "" lst
 blockToICML opts style (LineBlock lns) =
   blockToICML opts style $ linesToPara lns
-blockToICML opts style (CodeBlock _ str) = parStyle opts (codeBlockName:style) "" [Str str]
+blockToICML opts style (CodeBlock _ str) = do
+  setFirstPara
+  parStyle opts (codeBlockName:style) "" [Str str]
 blockToICML _ _ b@(RawBlock f str)
   | f == Format "icml" = return $ literal str
   | otherwise          = do
       report $ BlockNotRendered b
       return empty
-blockToICML opts style (BlockQuote blocks) = blocksToICML opts (blockQuoteName:style) blocks
-blockToICML opts style (OrderedList attribs lst) = listItemsToICML opts orderedListName style (Just attribs) lst
-blockToICML opts style (BulletList lst) = listItemsToICML opts bulletListName style Nothing lst
-blockToICML opts style (DefinitionList lst) = intersperseBrs `fmap` mapM (definitionListItemToICML opts style) lst
-blockToICML opts style (Header lvl (ident, cls, _) lst) =
+blockToICML opts style (BlockQuote blocks) = do
+  result <- blocksToICML opts (blockQuoteName:style) blocks
+  setFirstPara
+  return result
+blockToICML opts style (OrderedList attribs lst) = do
+  result <- listItemsToICML opts orderedListName style (Just attribs) lst
+  setFirstPara
+  return result
+blockToICML opts style (BulletList lst) = do
+  result <- listItemsToICML opts bulletListName style Nothing lst
+  setFirstPara
+  return result
+blockToICML opts style (DefinitionList lst) = do
+  result <- intersperseBrs `fmap` mapM (definitionListItemToICML opts style) lst
+  setFirstPara
+  return result
+blockToICML opts style (Header lvl (ident, cls, _) lst) = do
   let stl = (headerName <> tshow lvl <> unnumbered):style
       unnumbered = if "unnumbered" `elem` cls
                    then " (unnumbered)"
                    else ""
-  in parStyle opts stl ident lst
-blockToICML _ _ HorizontalRule = return empty -- we could insert a page break instead
+  setFirstPara
+  parStyle opts stl ident lst
+blockToICML _ _ HorizontalRule = do
+  setFirstPara
+  return empty -- we could insert a page break instead
 blockToICML opts style (Table attr blkCapt specs thead tbody tfoot) =
   let (caption, aligns, widths, headers, rows) =
         toLegacyTable blkCapt specs thead tbody tfoot
@@ -382,20 +419,24 @@ blockToICML opts style (Table attr blkCapt specs thead tbody tfoot) =
                        , ("BodyRowCount", tshow nrRows)
                        , ("ColumnCount", tshow nrCols)
                        ] (colDescs $$ cells)
-      liftM2 ($$) tableDoc $ parStyle opts (tableCaptionName:style) "" caption
-blockToICML opts style (Div (_ident, _, kvs) lst) =
+      result <- liftM2 ($$) tableDoc $ parStyle opts (tableCaptionName:style) "" caption
+      setFirstPara
+      return result
+blockToICML opts style (Div (_ident, cls, kvs) lst) = do
   let dynamicStyle = maybeToList $ lookup dynamicStyleKey kvs
-  in  blocksToICML opts (dynamicStyle <> style) lst
-blockToICML opts style (Figure attr capt@(Caption _ longcapt) body) =
-  case body of
+  let bibStyle = [bibliographyName | "csl-entry" `elem` cls]
+  blocksToICML opts (bibStyle <> dynamicStyle <> style) lst
+blockToICML opts style (Figure attr capt@(Caption _ longcapt) body) = do
+  result <- case body of
     [Plain [img@(Image {})]] -> do
       figure  <- parStyle opts (figureName:style) "" [img]
       caption <- parStyle opts (imgCaptionName:style) "" $
                  blocksToInlines longcapt
       return $ intersperseBrs [figure, caption]
-    _ -> -- fallback to rendering the figure as a Div
+    _ -> do -- fallback to rendering the figure as a Div
       blockToICML opts style $ figureDiv attr capt body
-
+  setFirstPara
+  return result
 
 -- | Convert a list of lists of blocks to ICML list items.
 listItemsToICML :: PandocMonad m => WriterOptions -> Text -> Style -> Maybe ListAttributes -> [[Block]] -> WS m (Doc Text)
@@ -474,7 +515,8 @@ inlineToICML opts style ident SoftBreak =
        WrapNone     -> charStyle style ident space
        WrapPreserve -> charStyle style ident cr
 inlineToICML _ style ident LineBreak = charStyle style ident $ literal lineSeparator
-inlineToICML opts style ident (Math mt str) =
+inlineToICML opts style ident (Math mt str) = do
+  when (mt == DisplayMath) setFirstPara
   lift (texMathToInlines mt str) >>=
     (fmap mconcat . mapM (inlineToICML opts style ident))
 inlineToICML _ _ _ il@(RawInline f str)
