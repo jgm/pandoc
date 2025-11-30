@@ -32,7 +32,7 @@ import Text.Pandoc.Error
 import qualified Text.Pandoc.Builder as B
 import Text.Pandoc.Readers.HTML (readHtml)
 import Control.Monad.Except (throwError)
-import Control.Monad (MonadPlus(..))
+import Control.Monad
 import Text.Pandoc.Parsing (newPos, sourceName)
 import Text.Pandoc.Logging
 import Text.Pandoc.Sources
