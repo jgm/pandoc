@@ -44,7 +44,7 @@ Markdown can be expected to be lossy.
 
 If no *input-files* are specified, input is read from *stdin*.
 Output goes to *stdout* by default. For output to a file,
-use the `-o` option:
+use the `-o`/`--output` option:
 
     pandoc -o output.html input.txt
 
