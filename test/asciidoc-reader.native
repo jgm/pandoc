@@ -4395,7 +4395,7 @@ Pandoc
   , Div
       ( ""
       , [ "included" ]
-      , [ ( "path" , "./asciidoc-reader-include.adoc" ) ]
+      , [ ( "path" , "asciidoc-reader-include.adoc" ) ]
       )
       [ Para
           [ Str "This"
