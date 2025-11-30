@@ -1,0 +1,70 @@
+[ Header
+    2
+    ( "first-slide" , [] , [] )
+    [ Str "First" , Space , Str "Slide" ]
+, Para
+    [ Str "First"
+    , Space
+    , Str "slide"
+    , Space
+    , Str "with"
+    , Space
+    , Str "notes"
+    ]
+, Div
+    ( "" , [ "notes" ] , [] )
+    [ Para
+        [ Str "Notes"
+        , Space
+        , Str "for"
+        , Space
+        , Str "the"
+        , Space
+        , Str "first"
+        , Space
+        , Str "slide"
+        ]
+    ]
+, Header
+    2
+    ( "second-slide" , [] , [] )
+    [ Str "Second" , Space , Str "Slide" ]
+, Para
+    [ Str "Slide"
+    , Space
+    , Str "without"
+    , Space
+    , Str "notes"
+    ]
+, Header
+    2
+    ( "third-slide" , [] , [] )
+    [ Str "Third" , Space , Str "Slide" ]
+, Para
+    [ Str "Slide"
+    , Space
+    , Str "with"
+    , Space
+    , Str "notes"
+    , Space
+    , Str "again"
+    ]
+, BulletList
+    [ [ Plain [ Str "First" , Space , Str "item" ] ]
+    , [ Plain [ Str "Second" , Space , Str "item" ] ]
+    ]
+, Div
+    ( "" , [ "notes" ] , [] )
+    [ Para
+        [ Str "Notes"
+        , Space
+        , Str "for"
+        , Space
+        , Str "the"
+        , Space
+        , Str "third"
+        , Space
+        , Str "slides"
+        ]
+    ]
+]

@@ -276,5 +276,17 @@ tests = let
       def {writerReferenceDoc = Just "pptx/reference-deleted-layouts.pptx"}
       "pptx/layouts/input.native"
       "pptx/layouts/deleted.pptx"
+    , ooxmlTest
+      writePowerpoint
+      "Slides can be missing from the reference doc"
+      def {writerReferenceDoc = Just "pptx/reference-no-slides.pptx"}
+      "pptx/reference-no-slides/add-slides/input.native"
+      "pptx/reference-no-slides/add-slides/output.pptx"
+    , ooxmlTest
+      writePowerpoint
+      "Notes are placed at the right position with a reference doc without slides"
+      def {writerReferenceDoc = Just "pptx/reference-no-slides.pptx"}
+      "pptx/reference-no-slides/with-notes/input.native"
+      "pptx/reference-no-slides/with-notes/output.pptx"
     ]
   in regularTests <> referenceSpecificTests

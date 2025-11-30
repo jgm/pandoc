@@ -1417,7 +1417,7 @@ getDefaultTableStyle = do
 graphicToElement :: PandocMonad m => Integer -> Graphic -> P m Element
 graphicToElement tableWidth (Tbl widths tblPr hdrCells rows) = do
   let totalWidth = sum widths
-  let colWidths = if any (== 0.0) widths
+  let colWidths = if 0.0 `elem` widths
                   then if null hdrCells
                       then case rows of
                          r@(_:_) : _ -> replicate (length r) $
@@ -2444,7 +2444,10 @@ presentationToSldIdLst ::
   P m Element
 presentationToSldIdLst minimumSlideRId (Presentation _ slides) = do
   ids <- mapM (slideToSldIdElement minimumSlideRId) slides
-  return $ mknode "p:sldIdLst" [] ids
+  return $ mkNodeSldIdLst ids
+
+mkNodeSldIdLst :: [Element] -> Element
+mkNodeSldIdLst = mknode "p:sldIdLst" []
 
 presentationToPresentationElement ::
   PandocMonad m =>
@@ -2459,10 +2462,9 @@ presentationToPresentationElement presentationUpdateRIdData pres = do
   sldIdLst <- presentationToSldIdLst minSlideRId pres
 
   let modifySldIdLst :: Content -> Content
-      modifySldIdLst (Elem e) = case elName e of
-        (QName "sldIdLst" _ _) -> Elem sldIdLst
-        _                      -> Elem e
-      modifySldIdLst ct = ct
+      modifySldIdLst ct = if isSldIdLst ct
+                          then Elem sldIdLst
+                          else ct
 
       notesMasterRId = maxSlideRId
 
@@ -2488,15 +2490,9 @@ presentationToPresentationElement presentationUpdateRIdData pres = do
       removeUnwantedMaster :: [Content] -> [Content]
       removeUnwantedMaster = concatMap removeUnwantedMaster'
 
-      insertNotesMaster' :: Content -> [Content]
-      insertNotesMaster' (Elem e) = case elName e of
-        (QName "sldMasterIdLst" _ _) -> [Elem e, Elem notesMasterElem]
-        _                            -> [Elem e]
-      insertNotesMaster' ct = [ct]
-
       insertNotesMaster :: [Content] -> [Content]
       insertNotesMaster = if presHasSpeakerNotes pres
-                          then concatMap insertNotesMaster'
+                          then insertAfterSldMasterIdLst notesMasterElem
                           else id
 
       updateRIds :: Content -> Content
@@ -2516,10 +2512,33 @@ presentationToPresentationElement presentationUpdateRIdData pres = do
         let newValue = updatePresentationRId presentationUpdateRIdData oldValue
         pure attr {attrVal = "rId" <> T.pack (show newValue)}
 
+      -- if there is no sldIdLst in the presentation.xml file, add an empty one
+      -- after the sldMasterIdLst so modifySldIdLst can replace it.
+
+      insertSldIdListIfMissing :: [Content] -> [Content]
+      insertSldIdListIfMissing contentList = if any isSldIdLst contentList
+                                             then contentList
+                                             else insertAfterSldMasterIdLst (mkNodeSldIdLst []) contentList
+
+      insertAfterSldMasterIdLst' :: Content -> Content -> [Content]
+      insertAfterSldMasterIdLst' newElement ct = if isElemName "sldMasterIdLst" ct
+                                                 then [ct, newElement]
+                                                 else [ct]
+
+      insertAfterSldMasterIdLst :: Element -> [Content] -> [Content]
+      insertAfterSldMasterIdLst newElement = concatMap $ insertAfterSldMasterIdLst' $ Elem newElement
+
+      isElemName :: T.Text -> Content -> Bool
+      isElemName name (Elem e) = qName (elName e) == name
+      isElemName _ _ = False
+
+      isSldIdLst :: Content -> Bool
+      isSldIdLst = isElemName "sldIdLst"
+
       newContent = insertNotesMaster $
                    removeUnwantedMaster $
                    (modifySldIdLst . updateRIds) <$>
-                   elContent element
+                   insertSldIdListIfMissing (elContent element)
 
   return $ element{elContent = newContent}
 
