@@ -1536,11 +1536,12 @@ hyphens = do
 
 escapedChar :: Monad m => RSTParser m Inlines
 escapedChar = do c <- escaped anyChar
-                 unless (canPrecedeOpener c) updateLastStrPos
-                 return $ if c == ' ' || c == '\n' || c == '\r'
-                             -- '\ ' is null in RST
-                             then mempty
-                             else B.str $ T.singleton c
+                 if c == ' ' || c == '\n' || c == '\r'
+                    -- '\ ' is null in RST
+                    then return mempty
+                    else do
+                      unless (canPrecedeOpener c) updateLastStrPos
+                      return $ B.str $ T.singleton c
 
 canPrecedeOpener :: Char -> Bool
 canPrecedeOpener c =
