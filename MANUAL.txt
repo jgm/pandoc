@@ -5712,28 +5712,36 @@ The link text will be used as the image's alt text:
 
 An image with nonempty alt text, occurring by itself in a
 paragraph, will be rendered as a figure with a caption.  The
-image's alt text will be used as the caption.
+image's description will be used as the caption.
 
-    ![This is the caption](/url/of/image.png)
+    ![This is the caption.](image.png)
 
 How this is rendered depends on the output format. Some output
 formats (e.g. RTF) do not yet support figures. In those
 formats, you'll just get an image in a paragraph by itself, with
-no caption. For LaTeX output, you can specify a [figure's
-positioning](https://www.overleaf.com/learn/latex/Positioning_images_and_tables#The_figure_environment)
-by adding the `latex-placement` attribute.
-
-    ![This is the caption](/url/of/image.png){latex-placement="ht"}
+no caption.
 
 If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\
+    ![This image won't be a figure](image.png)\
 
 Note that in reveal.js slide shows, an image in a paragraph
 by itself that has the `r-stretch` class will fill the screen,
 and the caption and figure tags will be omitted.
+
+To specify an alt text for the image that is different
+from the caption, you can use an explicit attribute (assuming the
+`link_attributes` extension is set):
+
+    ![The caption.](image.png){alt="description of image"}
+
+For LaTeX output, you can specify a [figure's
+positioning](https://www.overleaf.com/learn/latex/Positioning_images_and_tables#The_figure_environment)
+by adding the `latex-placement` attribute.
+
+    ![The caption.](image.png){latex-placement="ht"}
 
 ### Extension: `link_attributes` ###
 
