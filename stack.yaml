@@ -16,8 +16,7 @@ extra-deps:
 - typst-symbols-0.1.9.1
 - citeproc-0.12
 - typst-0.8.1
-- git: https://github.com/jgm/texmath.git
-  commit: 110322589698df20abf3f3a06c070271802ea598
+- texmath-0.13.0.2
 - git: https://github.com/jgm/djoths.git
   commit: 7dc8da53fc092d2d4d91f5f0988840f4faf90368
 - git: https://github.com/jgm/asciidoc-hs.git
