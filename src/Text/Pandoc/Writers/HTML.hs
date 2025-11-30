@@ -432,7 +432,11 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          defField "transitionSpeed" ("default" :: Doc Text) .
                          defField "backgroundTransition" ("fade" :: Doc Text) .
                          defField "viewDistance" ("3" :: Doc Text) .
-                         defField "mobileViewDistance" ("2" :: Doc Text)
+                         defField "mobileViewDistance" ("2" :: Doc Text) .
+                         defField "scrollProgress" True .
+                         defField "scrollActivationWidth" ("0" :: Doc Text) .
+                         defField "scrollSnap" ("mandatory" :: Doc Text) .
+                         defField "scrollLayout" ("full" :: Doc Text)
                       else id) .
                   defField "document-css" (isNothing mCss && slideVariant == NoSlides) .
                   defField "quotes" (stQuotes st) .
