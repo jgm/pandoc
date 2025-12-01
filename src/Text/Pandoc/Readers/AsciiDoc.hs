@@ -193,7 +193,7 @@ addBlockTitle tit' bs =
       B.singleton $ B.Div attr (B.Div ("",["title"],[]) [B.Para tit] : bs')
     [B.Div attr bs'] -> -- put title Div inside
       B.singleton $ B.Div attr (B.Div ("",["title"],[]) [B.Para tit] : bs')
-    _ -> B.divWith B.nullAttr (B.divWith ("",["title"],[]) (B.para tit') <> bs) 
+    _ -> B.divWith B.nullAttr (B.divWith ("",["title"],[]) (B.para tit') <> bs)
 
 doBlock :: PandocMonad m => A.Block -> m B.Blocks
 doBlock (A.Block attr@(A.Attr ps kvs) mbtitle bt) = do
