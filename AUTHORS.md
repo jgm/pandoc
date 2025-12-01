@@ -32,6 +32,7 @@
 - Aner Lucero
 - Anti-Distinctlyminty
 - Antoine Latter
+- Anton Antich
 - Antonio Terceiro
 - Arata Mizuki
 - Arata Mizuki
@@ -39,6 +40,7 @@
 - Arlo O'Keeffe
 - Artem Pelenitsyn
 - Artyom Kazak
+- Asliddinbek Azizovich
 - B. Scott Michel
 - Bastien Dumont
 - Ben Firshman
@@ -184,6 +186,7 @@
 - Jakob Voß
 - James Aspnes
 - James P. Ascher
+- James Barlow
 - James Scott-Brown
 - Jamie F. Olson
 - Jan Larres
