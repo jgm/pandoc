@@ -724,9 +724,7 @@ blockTags = Set.fromList $
   , "articleinfo"
   , "attribution"
   , "authorinitials"
-  , "bibliodiv"
   , "biblioentry"
-  , "bibliography"
   , "bibliomisc"
   , "bibliomixed"
   , "blockquote"
@@ -765,31 +763,19 @@ blockTags = Set.fromList $
   , "preface"
   , "procedure"
   , "programlisting"
-  , "qandadiv"
   , "question"
-  , "refsect1"
   , "refsect1info"
-  , "refsect2"
   , "refsect2info"
-  , "refsect3"
   , "refsect3info"
-  , "refsection"
   , "refsectioninfo"
   , "screen"
-  , "sect1"
   , "sect1info"
-  , "sect2"
   , "sect2info"
-  , "sect3"
   , "sect3info"
-  , "sect4"
   , "sect4info"
-  , "sect5"
   , "sect5info"
-  , "section"
   , "sectioninfo"
   , "simpara"
-  , "simplesect"
   , "substeps"
   , "subtitle"
   , "table"
@@ -797,7 +783,13 @@ blockTags = Set.fromList $
   , "titleabbrev"
   , "toc"
   , "variablelist"
-  ] ++ admonitionTags
+  ] ++ sectionTags ++ admonitionTags
+
+sectionTags :: [Text]
+sectionTags = ["bibliography", "bibliodiv"
+              , "sect1", "sect2", "sect3", "sect4", "sect5", "section", "simplesect"
+              , "refsect1", "refsect2", "refsect3", "refsection", "qandadiv"
+              ]
 
 admonitionTags :: [Text]
 admonitionTags = ["caution","danger","important","note","tip","warning"]
@@ -980,7 +972,9 @@ parseBlock (Elem e) = do
         "title" -> return mempty     -- handled in parent element
         "subtitle" -> return mempty  -- handled in parent element
         _ -> skip >> getBlocks e
-  return $ addPandocAttributes (getRoleAttr e) parsedBlock
+  if qName (elName e) `elem` sectionTags
+     then return parsedBlock
+     else return $ addPandocAttributes (getRoleAttr e) parsedBlock
    where skip = do
            let qn = qName $ elName e
            let name = if "pi-" `T.isPrefixOf` qn
@@ -1116,12 +1110,10 @@ parseBlock (Elem e) = do
            modify $ \st -> st{ dbSectionLevel = n }
            b <- getBlocks e
            modify $ \st -> st{ dbSectionLevel = n - 1 }
-           let content = headerWith (elId, classes, maybeToList titleabbrevElAsAttr)
-                          n' headerText <> b
-           return $ case attrValue "role" e of
-                      "" -> content
-                      _  -> divWith ("", ["section"],
-                             ("level", T.pack $ show n') : attrs) content
+           let hdr = addPandocAttributes (getRoleAttr e)
+                        $ headerWith (elId, classes, maybeToList titleabbrevElAsAttr ++ attrs)
+                                      n' headerText
+           return $ hdr <> b
          titleabbrevElAsAttr =
            case filterChild (named "titleabbrev") e `mplus`
                 (filterChild (named "info") e >>=
