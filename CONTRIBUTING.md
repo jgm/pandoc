@@ -216,7 +216,7 @@ Please follow these guidelines:
 
 10. We aim for compatibility with at least the last three
     released ghc versions, and sometimes more. Currently pandoc
-    can be compiled on ghc 8.6 and higher. All pull requests and
+    can be compiled on ghc 8.10 and higher. All pull requests and
     commits are tested automatically on GitHub Actions.
 
 Tests
