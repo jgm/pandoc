@@ -448,7 +448,7 @@ WriterOptions, you'll also need to
 Lua filters
 -----------
 
-If you've written a useful pandoc [lua filter](lua-filters.html),
+If you've written a useful pandoc [lua filter](./doc/lua-filters.md),
 you may want to consider submitting a pull request to the
 [lua-filters repository](https://github.com/pandoc/lua-filters).
 
