@@ -148,6 +148,19 @@ stringToTexinfo t
 inCmd :: Text -> Doc Text -> Doc Text
 inCmd cmd contents = char '@' <> literal cmd <> braces contents
 
+isCodeOrBreak :: Inline -> Bool
+isCodeOrBreak (Code{}) = True
+isCodeOrBreak LineBreak = True
+isCodeOrBreak _ = False
+
+isCode :: Inline -> Bool
+isCode (Code{}) = True
+isCode _ = False
+
+codeToStr :: Inline -> Inline
+codeToStr (Code _ s) = Str s
+codeToStr x = x
+
 -- | Convert Pandoc block element to Texinfo.
 blockToTexinfo :: PandocMonad m
                => Block     -- ^ Block to convert
@@ -158,8 +171,12 @@ blockToTexinfo (Div _ bs) = blockListToTexinfo bs
 blockToTexinfo (Plain lst) =
   inlineListToTexinfo lst
 
-blockToTexinfo (Para lst) =
-  inlineListToTexinfo lst    -- this is handled differently from Plain in blockListToTexinfo
+-- this is handled differently from Plain in blockListToTexinfo
+blockToTexinfo (Para lst)
+  | all isCodeOrBreak lst
+      = (\xs -> "@example" $$ vcat xs $$ "@end example")
+          <$> mapM (inlineToTexinfo . codeToStr) (filter isCode lst)
+  | otherwise = inlineListToTexinfo lst
 
 blockToTexinfo (LineBlock lns) =
   blockToTexinfo $ linesToPara lns
