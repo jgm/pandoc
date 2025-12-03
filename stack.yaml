@@ -18,7 +18,8 @@ extra-deps:
 - typst-0.8.1
 - texmath-0.13.0.2
 - djot-0.1.2.4
-- asciidoc-0.1
+- git: https://github.com/jgm/asciidoc-hs.git
+  commit: 4976e8b493808191358f4fadbe496e0a7c8e0fd1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.20
