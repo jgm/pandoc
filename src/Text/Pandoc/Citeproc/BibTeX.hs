@@ -117,7 +117,7 @@ writeBibtexString opts variant mblang ref =
       "manuscript"        -> "unpublished"
       "graphic"           | variant == Biblatex -> "artwork"
       "song"              | variant == Biblatex -> "music"
-      "legal_case"        | variant == Biblatex -> "jurisdictionN"
+      "legal_case"        | variant == Biblatex -> "jurisdiction"
       "legislation"       | variant == Biblatex -> "legislation"
       "treaty"            | variant == Biblatex -> "legal"
       "personal_communication" | variant == Biblatex -> "letter"
