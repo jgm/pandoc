@@ -821,7 +821,7 @@ bibComment :: BibParser ()
 bibComment = do
   cistring "comment"
   spaces'
-  void inBraces <|> bibSkip <|> return ()
+  void inBraces
 
 bibPreamble :: BibParser ()
 bibPreamble = do
