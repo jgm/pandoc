@@ -18,7 +18,7 @@ extra-deps:
 - texmath-0.13.0.2
 - djot-0.1.2.4
 - git: https://github.com/jgm/asciidoc-hs.git
-  commit: cdbcf6d854eef2a0a05a988dd879985e7f6474e4
+  commit: c2b4852e0002a7995793ec0e3c44b723a85a2ca2
 - git: https://github.com/jgm/typst-hs.git
   commit: 9b10ff32492304867b6cc410db6e843c2c9b913b
 ghc-options:
