@@ -713,6 +713,7 @@ inline = pTagText <|> do
         "input"
           | lookup "type" attr == Just "checkbox"
           -> asks inListItem >>= guard >> pCheckbox
+        "style" -> B.rawInline "html" <$> pHtmlBlock "style"
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath
@@ -1077,6 +1078,8 @@ isInlineTag :: Tag Text -> Bool
 isInlineTag t = isCommentTag t || case t of
   TagOpen "script" _ -> "math/tex" `T.isPrefixOf` fromAttrib "type" t
   TagClose "script"  -> True
+  TagOpen "style" _  -> True -- see #10643, invalid but it happens
+  TagClose "style"   -> True
   TagOpen name _     -> isInlineTagName name
   TagClose name      -> isInlineTagName name
   _                  -> False
