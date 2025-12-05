@@ -242,7 +242,7 @@ block = ((do
         "main" -> pDiv
         "figure" -> pFigure
         "iframe" -> pIframe
-        "style" -> mempty <$ pHtmlBlock "style" -- see #10643
+        "style" -> pRawHtmlBlock
         "textarea" -> pRawHtmlBlock
         "switch"
           | epubExts
@@ -538,7 +538,7 @@ pIframe = try $ do
 
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do
-  raw <- pHtmlBlock "script" <|> pHtmlBlock "textarea"
+  raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pHtmlBlock "textarea"
           <|> pRawTag
   exts <- getOption readerExtensions
   if extensionEnabled Ext_raw_html exts && not (T.null raw)
@@ -713,7 +713,6 @@ inline = pTagText <|> do
         "input"
           | lookup "type" attr == Just "checkbox"
           -> asks inListItem >>= guard >> pCheckbox
-        "style" -> mempty <$ pHtmlBlock "style" -- see #10643
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath
@@ -1078,8 +1077,6 @@ isInlineTag :: Tag Text -> Bool
 isInlineTag t = isCommentTag t || case t of
   TagOpen "script" _ -> "math/tex" `T.isPrefixOf` fromAttrib "type" t
   TagClose "script"  -> True
-  TagOpen "style" _  -> True -- see #10643, invalid but it happens
-  TagClose "style"   -> True
   TagOpen name _     -> isInlineTagName name
   TagClose name      -> isInlineTagName name
   _                  -> False
