@@ -62,10 +62,16 @@ Pandoc
       , Space
       , Str "suite."
       ]
-  , Header 1 ( "headers" , [] , [] ) [ Str "Headers" ]
+  , Header
+      1
+      ( "headers" , [] , [ ( "role" , "sect1role" ) ] )
+      [ Str "Headers" ]
   , Header
       2
-      ( "level-2-with-an-embedded-link" , [] , [] )
+      ( "level-2-with-an-embedded-link"
+      , []
+      , [ ( "role" , "sect2role" ) ]
+      )
       [ Str "Level"
       , Space
       , Str "2"
@@ -150,6 +156,29 @@ Pandoc
       , Str "regular"
       , Space
       , Str "paragraph."
+      ]
+  , Div
+      ( ""
+      , []
+      , [ ( "wrapper" , "1" ) , ( "role" , "pararole" ) ]
+      )
+      [ Para
+          [ Str "And"
+          , Space
+          , Str "here\8217s"
+          , Space
+          , Str "a"
+          , Space
+          , Str "regular"
+          , Space
+          , Str "paragraph"
+          , Space
+          , Str "with"
+          , Space
+          , Str "a"
+          , Space
+          , Str "role."
+          ]
       ]
   , Para
       [ Str "In"
@@ -251,6 +280,31 @@ Pandoc
           , Str "short."
           ]
       ]
+  , Div
+      ( ""
+      , []
+      , [ ( "wrapper" , "1" ) , ( "role" , "roleblockquote" ) ]
+      )
+      [ BlockQuote
+          [ Para
+              [ Str "This"
+              , Space
+              , Str "is"
+              , Space
+              , Str "a"
+              , Space
+              , Str "block"
+              , Space
+              , Str "quote"
+              , Space
+              , Str "with"
+              , Space
+              , Str "a"
+              , Space
+              , Str "role."
+              ]
+          ]
+      ]
   , BlockQuote
       [ Para
           [ Str "Code"
@@ -347,6 +401,19 @@ Pandoc
       [ [ Para [ Str "First" ] ]
       , [ Para [ Str "Second" ] ]
       , [ Para [ Str "Third" ] ]
+      ]
+  , Para [ Str "with" , Space , Str "role:" ]
+  , Div
+      ( ""
+      , []
+      , [ ( "wrapper" , "1" ) , ( "role" , "listrole" ) ]
+      )
+      [ OrderedList
+          ( 1 , Decimal , DefaultDelim )
+          [ [ Para [ Str "First" ] ]
+          , [ Para [ Str "Second" ] ]
+          , [ Para [ Str "Third" ] ]
+          ]
       ]
   , Para [ Str "and" , Space , Str "tight:" ]
   , OrderedList
@@ -930,6 +997,38 @@ Pandoc
       , Strong [ Emph [ Str "this" ] ]
       , Space
       , Str "word."
+      ]
+  , Para
+      [ Str "So"
+      , Space
+      , Str "is"
+      , Space
+      , Emph [ Emph [ Str "this" ] ]
+      , Space
+      , Str "word"
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "role."
+      ]
+  , Para
+      [ Str "So"
+      , Space
+      , Str "is"
+      , Space
+      , Span
+          ( "" , [ "phraserole" ] , [ ( "role" , "phraserole" ) ] )
+          [ Str "this" ]
+      , Space
+      , Str "phrase"
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "role."
       ]
   , Para
       [ Str "This"
@@ -2570,7 +2669,9 @@ Pandoc
   , Table
       ( "mytableid1"
       , [ "mytableclass1" , "mytableclass2" ]
-      , [ ( "custom-style" , "mytabstyle1" ) ]
+      , [ ( "role" , "tablerole1" )
+        , ( "custom-style" , "mytabstyle1" )
+        ]
       )
       (Caption
          Nothing
@@ -2636,7 +2737,9 @@ Pandoc
   , Table
       ( "mytableid2"
       , [ "mytableclass3" , "mytableclass4" ]
-      , [ ( "custom-style" , "mytabstyle2" ) ]
+      , [ ( "role" , "tablerole2" )
+        , ( "custom-style" , "mytabstyle2" )
+        ]
       )
       (Caption Nothing [])
       [ ( AlignDefault , ColWidthDefault )
