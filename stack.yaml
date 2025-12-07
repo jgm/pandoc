@@ -14,7 +14,6 @@ extra-deps:
 - hslua-objectorientation-2.4.0
 - hslua-packaging-2.3.2
 - typst-symbols-0.1.9.1
-- citeproc-0.12
 - texmath-0.13.0.2
 - djot-0.1.2.4
 - git: https://github.com/jgm/asciidoc-hs.git
