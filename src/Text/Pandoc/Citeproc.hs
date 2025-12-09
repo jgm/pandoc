@@ -592,7 +592,8 @@ deNote (Note bs) =
       = Cite (c:cs) (addCommas (needsPeriod zs) ils) :
         addParens zs
     | otherwise
-      = Cite (c:cs) (concatMap noteInParens ils) : addParens zs
+      = Cite (c:cs) (dropWhile (== Space) (concatMap noteInParens ils))
+         : addParens zs
   addParens (x:xs) = x : addParens xs
 
   removeNotes (Span ("",["csl-note"],[]) ils) = Span ("",[],[]) ils
