@@ -3596,7 +3596,7 @@ affect Markdown cells in Jupyter notebooks (as do command-line
 options like `--markdown-headings`).
 
 The following extensions are enabled by defaut. (See also 
-"Non-default extensions" below.)
+[Non-default extensions] below.)
 
 ## Typography
 
