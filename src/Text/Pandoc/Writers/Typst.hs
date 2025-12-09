@@ -584,11 +584,13 @@ escapeTypst smart context t =
       | needsEscapeAtLineStart c || isOrderedListMarker t
         -> afterBreak "\\"
     _ -> mempty) <>
-  (literal (T.replace "//" "\\/\\/"
-    (if T.any needsEscape t
-        then T.concatMap escapeChar t
-        else t)))
+   literal (snd $ T.foldl' go ('\n', mempty) t)
   where
+    go (lastc, t') c
+      | needsEscape c = (c, t' <> escapeChar c)
+      | c == '-', lastc == '-', smart = (c, t' <> T.pack ['\\',c])
+      | c == '/', lastc == '/' = (c, t' <> T.pack ['\\',c])
+      | otherwise = (c, T.snoc t' c)
     escapeChar c
       | c == '\160' = "~"
       | c == '\8217', smart = "'" -- apostrophe
