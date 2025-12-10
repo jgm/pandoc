@@ -99,7 +99,7 @@ tests =
            results' = "65\n"
        in codeBlockWith ("", classes, params) code'
           <>
-          codeBlockWith ("", ["example"], []) results'
+          codeBlockWith ("", [], []) results'
 
   , "Source block with results and :exports code" =:
        T.unlines [ "#+begin_src emacs-lisp :exports code"
@@ -126,7 +126,7 @@ tests =
                  , "#+RESULTS:"
                  , ": 65" ] =?>
        let results' = "65\n"
-       in codeBlockWith ("", ["example"], []) results'
+       in codeBlockWith ("", [], []) results'
 
   , "Source block with results and :exports none" =:
        T.unlines [ "#+begin_src emacs-lisp :exports none"
@@ -171,7 +171,7 @@ tests =
                  , "a rule."
                  , "#+eND_exAMPle"
                  ] =?>
-       codeBlockWith ("", ["example"], [])
+       codeBlockWith ("", [], [])
                      "A chosen representation of\na rule.\n"
 
   , "Code block with caption" =:
