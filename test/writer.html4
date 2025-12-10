@@ -172,6 +172,21 @@
       vertical-align: middle;
     }
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    @counter-style decimal-two-parens {
+      system: extends decimal;
+      prefix: "(";
+      suffix: ")";
+    }
+    @counter-style lower-alpha-one-paren {
+      system: extends lower-alpha;
+      prefix: "";
+      suffix: ")";
+    }
+    @counter-style upper-alpha-two-parens {
+      system: extends upper-alpha;
+      prefix: "(";
+      suffix: ")";
+    }
   </style>
 </head>
 <body>
@@ -359,14 +374,14 @@ back.</p></li>
 </ul></li>
 </ul>
 <h2 id="fancy-list-markers">Fancy list markers</h2>
-<ol start="2" style="list-style-type: decimal">
+<ol start="2" style="list-style-type: decimal-two-parens">
 <li><p>begins with 2</p></li>
 <li><p>and now 3</p>
 <p>with a continuation</p>
 <ol start="4" style="list-style-type: lower-roman">
 <li>sublist with roman numerals, starting with 4</li>
 <li>more items
-<ol style="list-style-type: upper-alpha">
+<ol style="list-style-type: upper-alpha-two-parens">
 <li>a subsublist</li>
 <li>a subsublist</li>
 </ol></li>
@@ -377,9 +392,9 @@ back.</p></li>
 <li>Upper Alpha
 <ol style="list-style-type: upper-roman">
 <li>Upper Roman.
-<ol start="6" style="list-style-type: decimal">
+<ol start="6" style="list-style-type: decimal-two-parens">
 <li>Decimal start with 6
-<ol start="3" style="list-style-type: lower-alpha">
+<ol start="3" style="list-style-type: lower-alpha-one-paren">
 <li>Lower alpha with paren</li>
 </ol></li>
 </ol></li>
