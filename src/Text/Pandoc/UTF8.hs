@@ -8,7 +8,7 @@
    Stability   : alpha
    Portability : portable
 
-UTF-8 aware string IO functions that will work with GHC 6.10, 6.12, or 7.
+UTF-8 aware string IO functions.
 -}
 module Text.Pandoc.UTF8 ( readFile
                         , getContents
