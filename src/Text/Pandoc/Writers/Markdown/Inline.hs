@@ -583,7 +583,7 @@ inlineToMarkdown opts LineBreak = do
   if variant == PlainText || isEnabled Ext_hard_line_breaks opts
      then return cr
      else return $
-          if isEnabled Ext_escaped_line_breaks opts
+          if variant == Commonmark || isEnabled Ext_escaped_line_breaks opts
              then "\\" <> cr
              else "  " <> cr
 inlineToMarkdown _ Space = do
