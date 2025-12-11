@@ -17,7 +17,7 @@ import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
 import Data.List (nub, partition)
 import Data.Maybe (isNothing)
-import Data.Monoid (All (..), Any (..))
+import Data.Monoid (All (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
