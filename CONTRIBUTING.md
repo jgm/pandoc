@@ -215,9 +215,9 @@ Please follow these guidelines:
     external C libraries should especially be avoided.
 
 10. We aim for compatibility with at least the last three
-    released ghc versions, and sometimes more. Currently pandoc
-    can be compiled on ghc 8.10 and higher. All pull requests and
-    commits are tested automatically on GitHub Actions.
+    released ghc versions, and sometimes more.  Currently we
+    support ghc versions 9.6 and higher. All pull requests
+    and commits are tested automatically on GitHub Actions.
 
 Tests
 -----

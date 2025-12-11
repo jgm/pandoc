@@ -47,18 +47,6 @@ jobs:
       matrix:
         versions:
           # NOTE: Update `CONTRIBUTING.md` when changing the minimum version
-          - ghc: '8.10'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
-          - ghc: '9.0'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
-          - ghc: '9.2'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
-          - ghc: '9.4'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.6'
             cabal: 'latest'
             cabalopts: '--ghc-option=-Werror'
@@ -183,8 +171,8 @@ jobs:
 
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.4.4
-        ghcup install cabal --set 3.10
+        ghcup install ghc --set 9.10
+        ghcup install cabal --set latest
 
     # declare/restore cached things
 
