@@ -439,12 +439,36 @@ blockToJATS opts (Figure (ident, _, kvs) (Caption _short longcapt) body) = do
   capt <- if null longcapt
           then pure empty
           else inTagsSimple "caption" <$> blocksToJATS opts longcapt
-  figbod <- blocksToJATS opts $ walk unsetAltIfDupl body
-  let figattr = [("id", escapeNCName ident) | not (T.null ident)] ++
-                [(k,v) | (k,v) <- kvs
-                       , k `elem` [ "fig-type", "orientation"
-                                  , "position", "specific-use"]]
-  return $ inTags True "fig" figattr $ capt $$ figbod
+
+  -- We handle the element specially if it's a figure with subfigures, i.e., if
+  -- all immediate children are figures themselves.
+  let hasSubfigures = all (\case { Figure{} -> True; _ -> False}) body
+      needsWrapping = if hasSubfigures
+                      then (const False)
+                      else \case
+                        -- Wrap all figure content elements, except for those
+                        -- allowed as direct subelements.
+                        BlockQuote{}    -> False
+                        CodeBlock{}     -> False
+                        Para{}          -> False
+                        Plain [Image{}] -> False
+                        Plain [Math{}]  -> False
+                        Table{}         -> False
+                        _               -> True
+
+  children <- wrappedBlocksToJATS needsWrapping opts $ walk unsetAltIfDupl body
+  let (tag, allowedAttributes) =
+        if hasSubfigures
+        then ( "fig-group"
+             , ["content-type", "orientation", "position", "specific-use"]
+             )
+        else ("fig"
+             , ["fig-type", "orientation", "position", "specific-use"]
+             )
+  let xmlattr =  [("id", escapeNCName ident) | not (T.null ident)] ++
+                 [(k,v) | (k,v) <- kvs
+                        , k `elem` allowedAttributes]
+  return $ inTags True tag xmlattr $ capt $$ children
 
 -- | Convert a list of inline elements to JATS.
 inlinesToJATS :: PandocMonad m => WriterOptions -> [Inline] -> JATS m (Doc Text)
