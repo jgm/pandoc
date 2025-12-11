@@ -529,15 +529,19 @@ blockToMarkdown' opts (Header level attr inlines) = do
                        isEnabled Ext_attributes opts ->
                                     space <> attrsToMarkdown opts attr
                      | otherwise -> empty
+  let setext = level <= 2 && writerSetextHeaders opts ||
+                              (variant == Commonmark &&
+                               hasLineBreaks inlines) -- #11341
   contents <- inlineListToMarkdown opts $
-                 -- ensure no newlines; see #3736
-                 walk lineBreakToSpace $
+                 (if variant == Commonmark && setext
+                     then id
+                     else -- ensure no newlines; see #3736
+                          walk lineBreakToSpace) $
                    if level == 1 && variant == PlainText &&
                       isEnabled Ext_gutenberg opts
                       then capitalize inlines
                       else inlines
 
-  let setext = writerSetextHeaders opts
   when (not setext && isEnabled Ext_literate_haskell opts) $
     report $ ATXHeadingInLHS level (render Nothing contents)
 
