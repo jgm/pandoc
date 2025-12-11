@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE CPP                 #-}
 {- |
    Module      : Text.Pandoc.Writers.HTML
    Copyright   : Copyright (C) 2006-2024 John MacFarlane
@@ -367,7 +368,13 @@ pandocToHtml opts (Pandoc meta blocks) = do
         ("extends", (camelCaseToHyphenated $ tshow num)),
         ("prefix", case del of
           OneParen -> ""
-          TwoParens -> "("),
+          TwoParens -> "("
+#if !MIN_VERSION_GLASGOW_HASKELL(9,0,0,0)
+          -- Older versions of GHC don't know this match is redundant. Drop this
+          -- when Pandoc drops GHC 8.10 testing.
+          _ -> ""
+#endif
+        ),
         ("suffix", ")") ]
   let context :: Context Text
       context =   (if stHighlighting st
