@@ -344,16 +344,6 @@ blockToDocBook opts (Figure attr capt@(Caption _ caption) body) = do
              inTagsSimple "title" title $$
              mconcat mediaobjects
 
-hasLineBreaks :: [Inline] -> Bool
-hasLineBreaks = getAny . query isLineBreak . walk removeNote
-  where
-    removeNote :: Inline -> Inline
-    removeNote (Note _) = Str ""
-    removeNote x        = x
-    isLineBreak :: Inline -> Any
-    isLineBreak LineBreak = Any True
-    isLineBreak _         = Any False
-
 alignmentToString :: Alignment -> Text
 alignmentToString alignment = case alignment of
                                  AlignLeft    -> "left"

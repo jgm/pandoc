@@ -56,6 +56,7 @@ module Text.Pandoc.Shared (
                      inlineListToIdentifier,
                      textToIdentifier,
                      isHeaderBlock,
+                     hasLineBreaks,
                      onlySimpleTableCells,
                      isTightList,
                      taskListItemFromAscii,
@@ -606,6 +607,18 @@ uniqueIdent exts title' usedIdents =
                      "" -> "section"
                      x  -> x
     numIdent n = baseIdent <> "-" <> tshow n
+
+-- | True if inlines include a LineBreak (possibly embedded), with the exception
+-- of line breaks in Notes.
+hasLineBreaks :: [Inline] -> Bool
+hasLineBreaks = getAny . query isLineBreak . walk removeNote
+  where
+    removeNote :: Inline -> Inline
+    removeNote (Note _) = Str ""
+    removeNote x        = x
+    isLineBreak :: Inline -> Any
+    isLineBreak LineBreak = Any True
+    isLineBreak _         = Any False
 
 -- | True if block is a Header block.
 isHeaderBlock :: Block -> Bool
