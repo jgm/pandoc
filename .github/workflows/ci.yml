@@ -43,7 +43,7 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         versions:
           # NOTE: Update `CONTRIBUTING.md` when changing the minimum version
@@ -55,10 +55,10 @@ jobs:
             cabalopts: '--ghc-option=-Werror'
           - ghc: '9.10'
             cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror --ghc-option=-Wno-unused-imports'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.12'
             cabal: 'latest'
-            cabalopts: '--allow-newer --ghc-option=-Werror --ghc-option=-Wno-unused-imports --ghc-option=-Wno-deriving-typeable'
+            cabalopts: '--allow-newer --ghc-option=-Werror' # --ghc-option=-Wno-unused-imports --ghc-option=-Wno-deriving-typeable'
     steps:
     - uses: actions/checkout@v6
 
