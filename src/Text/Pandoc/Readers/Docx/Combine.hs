@@ -57,7 +57,7 @@ module Text.Pandoc.Readers.Docx.Combine ( smushInlines
                                         )
        where
 
-import Data.List
+import qualified Data.List as L
 import Data.Bifunctor
 import Data.Sequence ( ViewL (..), ViewR (..), viewl, viewr, spanr, spanl
                      , (><), (|>) )
@@ -135,9 +135,9 @@ combineSingletonInlines :: Inlines -> Inlines -> Inlines
 combineSingletonInlines x y =
   let (xfs, xs) = unstackInlines x
       (yfs, ys) = unstackInlines y
-      shared = xfs `intersect` yfs
-      x_remaining = xfs \\ shared
-      y_remaining = yfs \\ shared
+      shared = xfs `L.intersect` yfs
+      x_remaining = xfs L.\\ shared
+      y_remaining = yfs L.\\ shared
       x_rem_attr = filter isAttrModifier x_remaining
       y_rem_attr = filter isAttrModifier y_remaining
   in
@@ -182,7 +182,7 @@ isAttrModifier _                  = False
 
 smushInlines :: [Inlines] -> Inlines
 smushInlines xs = combineInlines xs' mempty
-  where xs' = foldl' combineInlines mempty xs
+  where xs' = L.foldl' combineInlines mempty xs
 
 smushBlocks :: [Blocks] -> Blocks
-smushBlocks xs = foldl' combineBlocks mempty xs
+smushBlocks xs = L.foldl' combineBlocks mempty xs
