@@ -36,7 +36,6 @@ module Text.Pandoc.Readers.ODT.Arrows.State
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Monad
-import Data.Foldable
 import Text.Pandoc.Readers.ODT.Arrows.Utils
 import Text.Pandoc.Readers.ODT.Generic.Fallible
 

@@ -45,7 +45,7 @@ import Control.Arrow
 
 import Data.Default
 import qualified Data.Foldable as F
-import Data.List (unfoldr, foldl')
+import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Text (Text)
@@ -121,7 +121,7 @@ fontPitchReader = executeInSub NsOffice "font-face-decls" (
                               &&&
                               lookupDefaultingAttr NsStyle "font-pitch"
                             ))
-                    >>?^ ( M.fromList . foldl' accumLegalPitches [] )
+                    >>?^ ( M.fromList . L.foldl' accumLegalPitches [] )
                   ) `ifFailedDo` returnV (Right M.empty)
   where accumLegalPitches ls (Nothing,_) = ls
         accumLegalPitches ls (Just n,p)  = (n,p):ls
@@ -603,7 +603,7 @@ lookupListStyleByName name Styles{..} = M.lookup name listStylesByName
 -- be the first element of the list, followed by its parent and so on.
 -- The current style is not in the list.
 parents               :: Style       -> Styles ->      [Style]
-parents style styles = unfoldr findNextParent style -- Ha!
+parents style styles = L.unfoldr findNextParent style -- Ha!
   where findNextParent Style{..}
           = fmap duplicate $ (`lookupStyle` styles) =<< styleParentName
 

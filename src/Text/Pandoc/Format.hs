@@ -22,7 +22,7 @@ module Text.Pandoc.Format
 import Control.Monad.Except (throwError)
 import Data.Char (toLower)
 import Data.Foldable (asum)
-import Data.List (foldl')
+import qualified Data.List as L
 import System.FilePath (splitExtension, takeExtension)
 import Text.Pandoc.Class (PandocMonad)
 import Text.Pandoc.Error (PandocError (..))
@@ -142,7 +142,7 @@ parseFlavoredFormat spec =
 
 pExtensionsDiff :: (UpdateSourcePos s Char, Stream s m Char)
                 => ParsecT s u m ExtensionsDiff
-pExtensionsDiff = foldl' (flip ($)) mempty <$> many extMod
+pExtensionsDiff = L.foldl' (flip ($)) mempty <$> many extMod
   where
     extMod = do
       polarity <- oneOf "-+"

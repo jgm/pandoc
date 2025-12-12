@@ -38,7 +38,7 @@ import Data.Bifunctor (bimap)
 import Data.Char (isSpace)
 import Data.Default (Default)
 import Data.Functor (($>))
-import Data.List (find, foldl')
+import qualified Data.List as L
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 import Data.List.NonEmpty (nonEmpty)
@@ -130,9 +130,9 @@ blockAttributes :: PandocMonad m => OrgParser m BlockAttributes
 blockAttributes = try $ do
   kv <- many stringyMetaAttribute
   guard $ all (isBlockAttr . fst) kv
-  let caption = foldl' (appendValues "caption") Nothing kv
-  let kvAttrs = foldl' (appendValues "attr_html") Nothing kv
-  let name    = snd <$> find ((`elem` ["name", "label"]) . fst) (reverse kv)
+  let caption = L.foldl' (appendValues "caption") Nothing kv
+  let kvAttrs = L.foldl' (appendValues "attr_html") Nothing kv
+  let name    = snd <$> L.find ((`elem` ["name", "label"]) . fst) (reverse kv)
   caption' <- traverse (parseFromString inlines . (<> "\n")) caption
   kvAttrs' <- parseFromString keyValues . (<> "\n") $ fromMaybe mempty kvAttrs
   return BlockAttributes

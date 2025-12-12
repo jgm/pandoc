@@ -20,7 +20,7 @@ import qualified Data.Sequence as Seq
 import Control.Monad
 import Control.Monad.Except (throwError)
 import Crypto.Hash (hashWith, SHA1(SHA1))
-import Data.List (find, foldl')
+import qualified Data.List as L
 import Data.Word (Word8, Word16)
 import Data.Default
 import Data.Text (Text)
@@ -895,7 +895,7 @@ parseStyle (Tok _ (Grouped toks)) = do
                   _ -> mempty
   let isBasedOn (Tok _ (ControlWord "sbasedon" (Just _))) = True
       isBasedOn _ = False
-  let styBasedOn = case find isBasedOn toks of
+  let styBasedOn = case L.find isBasedOn toks of
                      Just (Tok _ (ControlWord "sbasedon" (Just i))) -> Just i
                      _ -> Nothing
   let isStyleControl (Tok _ (ControlWord x _)) =
@@ -920,7 +920,7 @@ hexToWord t = case TR.hexadecimal t of
 
 handlePict :: PandocMonad m => [Tok] -> RTFParser m ()
 handlePict toks = do
-  let pict = foldl' getPictData def toks
+  let pict = L.foldl' getPictData def toks
   let altText = "image"
   let bytes =
         if picBinary pict
@@ -959,7 +959,7 @@ handlePict toks = do
 
 
 processFontTable :: [Tok] -> FontTable
-processFontTable = snd . foldl' go (0, mempty)
+processFontTable = snd . L.foldl' go (0, mempty)
  where
   go (fontnum, tbl) (Tok _ tok') =
     case tok' of
@@ -972,7 +972,7 @@ processFontTable = snd . foldl' go (0, mempty)
      (ControlWord "fdecor" _) -> (fontnum, IntMap.insert fontnum Decor tbl)
      (ControlWord "ftech" _) -> (fontnum, IntMap.insert fontnum Tech tbl)
      (ControlWord "fbidi" _) -> (fontnum, IntMap.insert fontnum Bidi tbl)
-     (Grouped ts) -> foldl' go (fontnum, tbl) ts
+     (Grouped ts) -> L.foldl' go (fontnum, tbl) ts
      _ -> (fontnum, tbl)
 
 defaultAnsiWordToChar :: Word8 -> Char

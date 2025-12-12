@@ -19,7 +19,8 @@ import Control.Monad (unless, liftM)
 import Control.Monad.State.Strict ( StateT(..), modify, gets, lift )
 import Data.Char (chr)
 import Data.Foldable (find)
-import Data.List (sortOn, sortBy, foldl')
+import Data.List (sortOn, sortBy)
+import qualified Data.List as L
 import qualified Data.Map as Map
 import Data.Ord (comparing, Down (Down))
 import qualified Data.Set as Set
@@ -175,7 +176,7 @@ inTextStyle d = do
                        ,("style:family", "text")]
                        $ selfClosingTag "style:text-properties"
                           (sortOn fst . Map.toList
-                                $ foldl' textStyleAttr mempty (Set.toList at)))
+                                $ L.foldl' textStyleAttr mempty (Set.toList at)))
               return $ inTags False
                   "text:span" [("text:style-name",styleName)] d
 

@@ -20,7 +20,8 @@ import Data.Char (isSpace, generalCategory, isAscii, isAlphaNum,
                   GeneralCategory(
                         ClosePunctuation, OpenPunctuation, InitialQuote,
                          FinalQuote, DashPunctuation, OtherPunctuation))
-import Data.List (transpose, intersperse, foldl')
+import Data.List (transpose, intersperse)
+import qualified Data.List as L
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
@@ -674,7 +675,7 @@ flatten outer
   | null contents = [outer]
   | otherwise     = combineAll contents
   where contents = dropInlineParent outer
-        combineAll = foldl' combine []
+        combineAll = L.foldl' combine []
 
         combine :: [Inline] -> Inline -> [Inline]
         combine f i =

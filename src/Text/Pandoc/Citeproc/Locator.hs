@@ -11,7 +11,7 @@ import Citeproc.Types
 import Text.Pandoc.Citeproc.Util (splitStrWhen)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.List (foldl')
+import qualified Data.List as L
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing
 import Text.Pandoc.Shared (stringify)
@@ -196,7 +196,7 @@ pBalancedBraces braces p = try $ do
   where
       except = notFollowedBy pBraces >> p
       -- outer and inner
-      surround = foldl' (\a (open, close) -> sur open close except <|> a)
+      surround = L.foldl' (\a (open, close) -> sur open close except <|> a)
                        except
                        braces
 

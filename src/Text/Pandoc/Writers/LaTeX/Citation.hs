@@ -21,7 +21,7 @@ import qualified Data.Text as T
 import Text.Pandoc.Options
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Definition
-import Data.List (foldl')
+import qualified Data.List as L
 import Text.DocLayout (Doc, brackets, empty, (<+>), text, isEmpty, literal,
                        braces)
 import Text.Pandoc.Walk
@@ -73,7 +73,7 @@ citationsToNatbib inlineListToLaTeX (c:cs)
 
 citationsToNatbib inlineListToLaTeX cits = do
   cits' <- mapM convertOne cits
-  return $ text "\\citetext{" <> foldl' combineTwo empty cits' <> text "}"
+  return $ text "\\citetext{" <> L.foldl' combineTwo empty cits' <> text "}"
   where
     citeCommand' = citeCommand inlineListToLaTeX
     combineTwo a b | isEmpty a = b
@@ -182,7 +182,7 @@ citationsToBiblatex inlineListToLaTeX (c:cs)
                     NormalCitation -> "\\autocites"
 
       groups <- mapM (citeArgumentsList inlineListToLaTeX)
-                     (reverse (foldl' grouper [] (c:cs)))
+                     (reverse (L.foldl' grouper [] (c:cs)))
 
       return $ text cmd <> mconcat groups
 

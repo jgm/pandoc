@@ -63,7 +63,8 @@ import Control.Monad (MonadPlus, mzero)
 import Data.Either (isRight)
 import Data.Aeson (ToJSON (..), encode)
 import Data.Char (chr, ord, isSpace, isLetter, isUpper)
-import Data.List (groupBy, intersperse, foldl', transpose)
+import Data.List (groupBy, intersperse, transpose)
+import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Text.Conversions (FromText(..))
 import qualified Data.Map as M
@@ -381,7 +382,7 @@ makeDummy c =
                   cellTopBorder = NoLine }
 
 addDummies :: [[RenderedCell Text]] -> [[RenderedCell Text]]
-addDummies = reverse . foldl' go []
+addDummies = reverse . L.foldl' go []
  where
    go [] cs = [cs]
    go (prevRow:rs) cs = addDummiesToRow prevRow cs : prevRow : rs
@@ -468,7 +469,7 @@ combineBorders t1 t2 =
 
 formatHeaderLine :: Show a => LineStyle -> [[RenderedCell a]] -> Doc Text
 formatHeaderLine lineStyle rows =
-  literal $ foldl'
+  literal $ L.foldl'
     (\t row -> combineBorders t (render Nothing $ formatBorder (const lineStyle) True row))
     mempty rows
 
@@ -479,7 +480,7 @@ formatBorder borderStyle alignMarkers cs =
                             then char '|'
                             else char '+'
  where
-   (lastBorderStyle, borderParts) = foldl' addBorder (NoLine, mempty) cs
+   (lastBorderStyle, borderParts) = L.foldl' addBorder (NoLine, mempty) cs
    addBorder (prevBorderStyle, accum) c =
      (borderStyle c, accum <> char junctionChar <> toBorderSection c)
       where junctionChar = case (borderStyle c, prevBorderStyle) of

@@ -17,7 +17,8 @@ import Control.Monad.Except (throwError)
 import Control.Monad.State.Strict
     ( StateT, MonadState(get), gets, modify, evalStateT )
 import Data.Char (chr, ord, isAlphaNum)
-import Data.List (maximumBy, transpose, foldl')
+import Data.List (maximumBy, transpose)
+import qualified Data.List as L
 import Data.List.NonEmpty (nonEmpty)
 import Data.Ord (comparing)
 import qualified Data.Map as M
@@ -347,7 +348,7 @@ tableAnyRowToTexinfo :: PandocMonad m
                      -> [[Block]]
                      -> TI m (Doc Text)
 tableAnyRowToTexinfo itemtype aligns cols =
-  (literal itemtype $$) . foldl' (\row item -> row $$
+  (literal itemtype $$) . L.foldl' (\row item -> row $$
   (if isEmpty row then empty else text " @tab ") <> item) empty <$> zipWithM alignedBlock aligns cols
 
 alignedBlock :: PandocMonad m

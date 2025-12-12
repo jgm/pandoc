@@ -31,7 +31,8 @@ import Data.Aeson.Encode.Pretty (encodePretty', Config(..), keyOrder,
          defConfig, Indent(..), NumberFormat(..))
 import Data.Bifunctor (second)
 import Data.Char (toLower)
-import Data.List (intercalate, sort, foldl')
+import Data.List (intercalate, sort)
+import qualified Data.List as L
 #ifdef _WINDOWS
 import Data.List (isPrefixOf)
 #endif
@@ -100,7 +101,7 @@ parseOptionsFromArgs options' defaults prg rawArgs = do
 
   if (null errors && null unknownOptionErrors)
      then -- thread option data structure through all supplied option actions
-       runExceptT $ adjustOpts <$> (foldl' (>>=) (return defaults) actions)
+       runExceptT $ adjustOpts <$> (L.foldl' (>>=) (return defaults) actions)
      else return $ Left $ OptError $ PandocOptionError $ T.pack $
              concat errors ++ unlines unknownOptionErrors ++
              ("Try " ++ prg ++ " --help for more information.")

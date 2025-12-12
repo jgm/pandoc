@@ -23,7 +23,7 @@ import Text.Pandoc.Options
 import Text.Pandoc.Definition
 import Text.Pandoc.Parsing
 import Data.Char (isAsciiUpper, isDigit, isSpace, ord, chr)
-import Data.List (foldl')
+import qualified Data.List as L
 import Citeproc (Reference(..), ItemId(..), Val(..), Date(..), DateParts(..),
                  toVariable)
 import Text.Pandoc.Builder as B
@@ -185,7 +185,7 @@ risReferences = do
   return $ fixDuplicateIds $ map risRecordToReference recs
 
 fixDuplicateIds :: [Reference Text] -> [Reference Text]
-fixDuplicateIds = reverse . snd . foldl' go (mempty, [])
+fixDuplicateIds = reverse . snd . L.foldl' go (mempty, [])
  where
    go (ids_seen, refs) ref =
      case M.lookup (referenceId ref) ids_seen of

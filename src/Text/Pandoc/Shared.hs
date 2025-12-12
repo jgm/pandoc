@@ -91,7 +91,8 @@ import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isAlpha, isLower, isSpace, isUpper, toLower, isAlphaNum,
                   generalCategory, GeneralCategory(NonSpacingMark,
                   SpacingCombiningMark, EnclosingMark, ConnectorPunctuation))
-import Data.List (find, foldl', groupBy, intercalate, intersperse, union)
+import Data.List (find, groupBy, intercalate, intersperse, union)
+import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Maybe (mapMaybe)
 import Data.Monoid (Any (..) )
@@ -746,7 +747,7 @@ inDirectory path action = E.bracket
 -- | Canonicalizes a file path by removing redundant @.@ and @..@.
 makeCanonical :: FilePath -> FilePath
 makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
- where  transformPathParts = reverse . foldl' go []
+ where  transformPathParts = reverse . L.foldl' go []
         go as        "."  = as
         go ("..":as) ".." = ["..", ".."] <> as
         go (_:as)    ".." = as
@@ -762,7 +763,7 @@ makeCanonical = Posix.joinPath . transformPathParts . splitDirectories
 -- > collapseFilePath "parent/foo/.." ==  "parent"
 -- > collapseFilePath "/parent/foo/../../bar" ==  "/bar"
 collapseFilePath :: FilePath -> FilePath
-collapseFilePath = Posix.joinPath . reverse . foldl' go [] . splitDirectories
+collapseFilePath = Posix.joinPath . reverse . L.foldl' go [] . splitDirectories
   where
     go rs "." = rs
     go r@(p:rs) ".." = case p of

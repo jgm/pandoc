@@ -35,7 +35,8 @@ import Control.Monad.State.Strict
 import Control.Monad ( liftM, when, foldM, unless )
 import Control.Monad.Trans ( MonadTrans(lift) )
 import Data.Char (ord, isSpace, isAscii)
-import Data.List (intercalate, intersperse, partition, delete, (\\), foldl')
+import Data.List (intercalate, intersperse, partition, delete, (\\))
+import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Containers.ListUtils (nubOrd)
 import Data.Maybe (fromMaybe, isJust, isNothing)
@@ -125,7 +126,7 @@ defaultWriterState = WriterState {stNotes= [],
 strToHtml :: Text -> Html
 strToHtml t
     | T.any isSpecial t =
-       let !x = foldl' go mempty $ T.groupBy samegroup t
+       let !x = L.foldl' go mempty $ T.groupBy samegroup t
         in x
     | otherwise = toHtml t
   where
@@ -674,7 +675,7 @@ tagWithAttributes opts html5 selfClosing tagname attr =
 
 addAttrs :: PandocMonad m
          => WriterOptions -> Attr -> Html -> StateT WriterState m Html
-addAttrs opts attr h = foldl' (!) h <$> attrsToHtml opts attr
+addAttrs opts attr h = L.foldl' (!) h <$> attrsToHtml opts attr
 
 toAttrs :: PandocMonad m
         => [(Text, Text)] -> StateT WriterState m [Attribute]
@@ -1046,7 +1047,7 @@ blockToHtmlInner opts (OrderedList (startnum, numstyle, _) lst) = do
                                    numstyle']
                    else [])
   l <- ordList opts contents
-  return $ foldl' (!) l attribs
+  return $ L.foldl' (!) l attribs
 blockToHtmlInner opts (DefinitionList lst) = do
   contents <- mapM (\(term, defs) ->
                   do term' <- liftM H.dt $ inlineListToHtml opts term
@@ -1413,7 +1414,7 @@ inlineToHtml opts inline = do
                                = Just (t . H.u, cs)
                              | otherwise
                                = Just (t, c:cs)
-                            spanLikeTags = foldl' go Nothing
+                            spanLikeTags = L.foldl' go Nothing
                         in case spanLikeTags classes of
                             Just (tag, cs) -> do
                               h <- inlineListToHtml opts ils
@@ -1610,7 +1611,7 @@ inlineToHtml opts inline = do
                               Just "audio" -> mediaTag H5.audio "Audio"
                               Just _       -> (H5.embed, [])
                               _            -> imageTag
-                        return $ foldl' (!) tag $ attributes ++ specAttrs
+                        return $ L.foldl' (!) tag $ attributes ++ specAttrs
                         -- note:  null title included, as in Markdown.pl
     (Note contents) -> do
                         notes <- gets stNotes

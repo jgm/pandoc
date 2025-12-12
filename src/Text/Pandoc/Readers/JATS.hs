@@ -21,7 +21,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Data.Char (isDigit, isSpace)
 import Data.Default
 import Data.Generics
-import Data.List (foldl', intersperse)
+import qualified Data.List as L
 import qualified Data.Map as Map
 import Data.Maybe (maybeToList, fromMaybe, catMaybes)
 import Data.Text (Text)
@@ -290,11 +290,11 @@ parseBlock (Elem e) = do
                      let items = filterChildren (named "def") e'
                      terms' <- mapM getInlines terms
                      items' <- mapM getBlocks items
-                     return (mconcat $ intersperse (str "; ") terms', items')
+                     return (mconcat $ L.intersperse (str "; ") terms', items')
          parseFigure = do
            modify $ \st -> st{ jatsInFigure = True }
            capt <- case filterChild (named "caption") e of
-                     Just t  -> mconcat . intersperse linebreak <$>
+                     Just t  -> mconcat . L.intersperse linebreak <$>
                                 mapM getInlines (filterChildren (const True) t)
                      Nothing -> return mempty
            contents <- getBlocks e
@@ -350,7 +350,7 @@ parseBlock (Elem e) = do
                             n <- safeRead $ "0" <> T.filter (\x -> isDigit x || x == '.') w
                             if n > 0 then Just n else Nothing
                       let firstBody = fromMaybe [] (headMay multipleBodyRowElements)
-                      let numrows = foldl' max 0 $ map length firstBody
+                      let numrows = L.foldl' max 0 $ map length firstBody
                       let aligns = case colspecs of
                                      [] -> replicate numrows AlignDefault
                                      cs -> map toAlignment cs

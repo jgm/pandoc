@@ -37,7 +37,7 @@ import Text.Pandoc.Parsing (newPos, sourceName)
 import Text.Pandoc.Logging
 import Text.Pandoc.Sources
 import Control.Monad.State
-import Data.List (intersperse, foldl')
+import qualified Data.List as L
 import Data.Char (chr, ord)
 import qualified Data.Text as T
 import qualified Data.Map as M
@@ -148,7 +148,7 @@ doMeta meta = do
          B.setMeta "version" vers .
          maybe id (B.setMeta "date") mbdate .
          maybe id (B.setMeta "remark") mbremark) .
-    flip (foldl' (\m (k,v) ->
+    flip (L.foldl' (\m (k,v) ->
                     -- leave out flags that are set just for processing
                     if k == "sectids" || k == "stem"
                        then m
@@ -363,7 +363,7 @@ doInline (A.Inline (A.Attr _ps kvs') it) = do
                          (B.str ("[" <> t <> "]"))
     A.Button t -> pure $ B.spanWith ("",["button"],[])
                          (B.strong $ B.str ("[" <> t <> "]"))
-    A.Kbd ts -> pure $ mconcat $ intersperse (B.str "+") $
+    A.Kbd ts -> pure $ mconcat $ L.intersperse (B.str "+") $
          map (B.spanWith ("",["kbd"],[]) . B.strong . B.str) ts
     A.Menu ts -> pure $ B.spanWith ("",["menu"],[]) $
         B.strong $ B.text $ T.intercalate " › " ts

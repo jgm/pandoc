@@ -74,7 +74,8 @@ import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, first)
 import qualified Data.ByteString.Lazy as B
 import Data.Default (Default)
-import Data.List (delete, intersect, foldl')
+import Data.List (delete, intersect)
+import qualified Data.List as L
 import Data.Char (isSpace)
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -625,8 +626,8 @@ rowsToRows rows = do
 splitHeaderRows :: Bool -> [Docx.Row] -> ([Docx.Row], [Docx.Row])
 splitHeaderRows hasFirstRowFormatting rs = bimap reverse reverse $ fst
   $ if hasFirstRowFormatting
-    then foldl' f ((take 1 rs, []), True) (drop 1 rs)
-    else foldl' f (([], []), False) rs
+    then L.foldl' f ((take 1 rs, []), True) (drop 1 rs)
+    else L.foldl' f (([], []), False) rs
   where
     f ((headerRows, bodyRows), previousRowWasHeader) r@(Docx.Row h cs)
       | h == HasTblHeader || (previousRowWasHeader && any isContinuationCell cs)
