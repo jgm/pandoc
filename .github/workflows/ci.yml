@@ -58,7 +58,7 @@ jobs:
             cabalopts: '--ghc-option=-Werror'
           - ghc: '9.12'
             cabal: 'latest'
-            cabalopts: '--allow-newer --ghc-option=-Werror --ghc-option=-Wno-deriving-typeable'
+            cabalopts: '--ghc-option=-Werror --ghc-option=-Wno-deriving-typeable'
     steps:
     - uses: actions/checkout@v6
 
