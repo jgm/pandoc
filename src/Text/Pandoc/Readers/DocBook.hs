@@ -548,6 +548,7 @@ data DBState = DBState{ dbSectionLevel  :: Int
                       , dbBook          :: Bool
                       , dbContent       :: [Content]
                       , dbLiteralLayout :: Bool
+                      , dbElementStack  :: [Text]
                       } deriving Show
 
 instance Default DBState where
@@ -556,7 +557,9 @@ instance Default DBState where
                , dbMeta = mempty
                , dbBook = False
                , dbContent = []
-               , dbLiteralLayout = False }
+               , dbLiteralLayout = False
+               , dbElementStack = []
+               }
 
 
 readDocBook :: (PandocMonad m, ToSources a)
@@ -621,9 +624,13 @@ named s e = qName (elName e) == s
 --
 
 addMetadataFromElement :: PandocMonad m => Element -> DB m Blocks
-addMetadataFromElement e =
-  mempty <$ mapM_ handleMetadataElement
+addMetadataFromElement e = do
+  -- Add metadata if at root or appropriate parent element
+  elementStack <- gets dbElementStack
+  if take 1 elementStack `elem` [[], ["book"], ["article"]]
+    then mempty <$ mapM_ handleMetadataElement
                   (filterChildren ((isMetadataField . qName . elName)) e)
+    else return mempty
  where
   handleMetadataElement elt =
     case qName (elName elt) of
@@ -853,9 +860,11 @@ getMediaobject e = do
   fmap (imageWith attr imageUrl tit) capt
 
 getBlocks :: PandocMonad m => Element -> DB m Blocks
-getBlocks e =  mconcat <$>
-                 mapM parseBlock (elContent e)
-
+getBlocks e = do
+  modify (\st -> st{ dbElementStack = qName (elName e) : dbElementStack st })
+  blocks <- mconcat <$> mapM parseBlock (elContent e)
+  modify (\st -> st{ dbElementStack = drop 1 $ dbElementStack st })
+  return blocks
 
 parseBlock :: PandocMonad m => Content -> DB m Blocks
 parseBlock (Text (CData CDataRaw _ _)) = return mempty -- DOCTYPE
