@@ -42,7 +42,7 @@ mathInlineWith op cl = try $ do
                            (try (string "text" >>
                                  (("\\text" <>) <$> inBalancedBraces 0 ""))
                             <|>  (\c -> T.pack ['\\',c]) <$> anyChar))
-                   <|> ("\n" <$ blankline <* notFollowedBy' blankline)
+                   <|> ("\n" <$ blankline <* notFollowedBy' blankline <* notFollowedBy (char '$'))
                    <|> (T.pack <$> many1 spaceChar <* notFollowedBy (char '$'))
                     ) (try $ textStr cl)
   notFollowedBy digit  -- to prevent capture of $5
