@@ -40,6 +40,7 @@ import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
                            trim, splitTextBy, tshow, formatCode)
 import Text.Pandoc.Char (isCJK)
 import Text.Pandoc.XML (fromEntities)
+import Data.Functor (($>))
 
 -- | Read mediawiki from an input string and return a Pandoc document.
 readMediaWiki :: (PandocMonad m, ToSources a)
@@ -531,8 +532,8 @@ inline =  whitespace
       <|> url
       <|> str
       <|> doubleQuotes
-      <|> strong
       <|> emph
+      <|> strong
       <|> image
       <|> internalLink
       <|> externalLink
@@ -699,14 +700,27 @@ inlinesBetween start end =
   trimInlines . mconcat <$> try (start >> many1Till inline end)
 
 emph :: PandocMonad m => MWParser m Inlines
-emph = B.emph <$> inlinesBetween start end
-    where start = sym "''"
-          end   = try $ notFollowedBy' (() <$ strong) >> sym "''"
+emph = B.emph . trimInlines . mconcat <$> try (start >> rest)
+-- emph = B.emph <$> inlinesBetween start end
+    where start = sym "''" >> (lookAhead (void strong) <|> notFollowedBy (many1 (char '\'')))
+          rest = do
+            (ins, quots) <- manyUntil inline end
+            pure $ ins ++ [quots]
+          end   = try $ notBold >> end''
+          notBold = notFollowedBy' (void strong)
+          -- end' = sym "''" >> notFollowedBy (char '\'' >> noneOf "'")
+          end'' = try (sym "''''" >> notFollowedBy (char '\'') $> B.str "''")
+                    <|> try (sym "'''"  >> notFollowedBy (char '\'') $> B.str "'")
+                    <|> (sym "''" $> mempty)
 
 strong :: PandocMonad m => MWParser m Inlines
-strong = B.strong <$> inlinesBetween start end
-    where start = sym "'''"
-          end   = sym "'''"
+strong = B.strong . trimInlines . mconcat <$> try (start >> rest)
+    where start = sym "'''" >> (lookAhead (void emph) <|> notFollowedBy (many1 (char '\'')))
+          rest = do
+            (ins, quots) <- manyUntil inline end
+            pure $ ins ++ [quots]
+          end = try (sym "''''" >> (lookAhead (sym "''") <|> notFollowedBy (char '\'')) $> B.str "'")
+                    <|> (sym "'''" $> mempty)
 
 doubleQuotes :: PandocMonad m => MWParser m Inlines
 doubleQuotes = do
