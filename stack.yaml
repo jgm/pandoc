@@ -14,14 +14,15 @@ extra-deps:
 - hslua-objectorientation-2.4.0
 - hslua-packaging-2.3.2
 - typst-symbols-0.1.9.1
-- texmath-0.13.0.2
 - djot-0.1.2.4
 - git: https://github.com/jgm/asciidoc-hs.git
   commit: c2b4852e0002a7995793ec0e3c44b723a85a2ca2
 - git: https://github.com/jgm/typst-hs.git
-  commit: 9b10ff32492304867b6cc410db6e843c2c9b913b
+  commit: 2cfe81142dfed390a27d4bd58c7a52a323e9e048
 - git: https://github.com/jgm/citeproc.git
   commit: 777a916be683a40e9b5e17da25816917b6fb1208
+- git: https://github.com/jgm/texmath.git
+  commit: 72a188e01a3a766009da3f530c2b752891e616f1
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.20

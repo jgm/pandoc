@@ -528,8 +528,7 @@ Pandoc
                       (RowSpan 1)
                       (ColSpan 1)
                       [ CodeBlock
-                          ( "" , [] , [] )
-                          "-- document body here --\n  "
+                          ( "" , [] , [] ) "-- document body here --"
                       ]
                   ]
               ]
@@ -4132,7 +4131,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "lr([sum_(k = 0)^n e^(k^2)], size: #50%)\n  "
+                              "lr([sum_(k = 0)^n e^(k^2)], size: #50%)"
                           ]
                       ]
                   ]
@@ -4199,7 +4198,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "lr(angle.l i, 2^(2^i) angle.r)\n  "
+                              "lr(angle.l i, 2^(2^i) angle.r)"
                           ]
                       ]
                   ]
@@ -4274,8 +4273,7 @@ Pandoc
                           AlignDefault
                           (RowSpan 1)
                           (ColSpan 1)
-                          [ CodeBlock
-                              ( "" , [] , [] ) "(1 / n^(alpha))\n  "
+                          [ CodeBlock ( "" , [] , [] ) "(1 / n^(alpha))"
                           ]
                       ]
                   , Row
@@ -4297,7 +4295,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "paren.l 1 / n^(alpha) paren.r\n  "
+                              "paren.l 1 / n^(alpha) paren.r"
                           ]
                       ]
                   ]
@@ -4362,7 +4360,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "lr(frac(dif f, dif x) |)_(x_0)\n  "
+                              "lr(frac(dif f, dif x) |)_(x_0)"
                           ]
                       ]
                   ]
@@ -4431,7 +4429,7 @@ Pandoc
                           (RowSpan 1)
                           (ColSpan 1)
                           [ CodeBlock
-                              ( "" , [] , [] ) "$ mat(a, b; c, d) $\n  "
+                              ( "" , [] , [] ) "$ mat(a, b; c, d) $"
                           ]
                       ]
                   ]
@@ -4576,7 +4574,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "$ f_n = cases(\n    a &\"if\" n = 0,\n    r dot f_(n - 1) &\"else\"\n  ) $\n  "
+                              "$ f_n = cases(\n  a &\"if\" n = 0,\n  r dot f_(n - 1) &\"else\"\n) $"
                           ]
                       ]
                   ]
@@ -4784,7 +4782,7 @@ Pandoc
                           (RowSpan 1)
                           (ColSpan 1)
                           [ CodeBlock
-                              ( "" , [] , [] ) "$ S = k dot lg W $\n  "
+                              ( "" , [] , [] ) "$ S = k dot lg W $"
                           ]
                       ]
                   ]
@@ -4837,7 +4835,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "$ sin(x) = x - x^3 / 3! \\\n      + x^5 / 5! - dots.h.c $\n  "
+                              "$ sin(x) = x - x^3 / 3! \\\n    + x^5 / 5! - dots.h.c $"
                           ]
                       ]
                   ]
@@ -4886,7 +4884,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "$ nabla dot bold(D) &= rho \\\n    nabla dot bold(B) &= 0 $\n  "
+                              "$ nabla dot bold(D) &= rho \\\n  nabla dot bold(B) &= 0 $"
                           ]
                       ]
                   ]
@@ -4977,8 +4975,7 @@ Pandoc
                           AlignDefault
                           (RowSpan 1)
                           (ColSpan 1)
-                          [ CodeBlock ( "" , [] , [] ) "f: RR -> RR\n  "
-                          ]
+                          [ CodeBlock ( "" , [] , [] ) "f: RR -> RR" ]
                       ]
                   , Row
                       ( "" , [] , [] )
@@ -5027,7 +5024,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "lim_(h -> 0) (f(x + h) - f(x)) / h\n  "
+                              "lim_(h -> 0) (f(x + h) - f(x)) / h"
                           ]
                       ]
                   , Row
@@ -5050,7 +5047,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "integral x^2 dif x = x^3 \\/ 3 + C\n  "
+                              "integral x^2 dif x = x^3 \\/ 3 + C"
                           ]
                       ]
                   , Row
@@ -5073,7 +5070,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "nabla = bold(i) dif / (dif x) + bold(j) dif / (dif y) + bold(k) dif / (dif z)\n  "
+                              "nabla = bold(i) dif / (dif x) + bold(j) dif / (dif y) + bold(k) dif / (dif z)"
                           ]
                       ]
                   ]
@@ -5225,7 +5222,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "sigma^2 = sqrt(sum(x_i - mu)^2 \\/ N)\n  "
+                              "sigma^2 = sqrt(sum(x_i - mu)^2 \\/ N)"
                           ]
                       ]
                   , Row
@@ -5248,7 +5245,7 @@ Pandoc
                           (ColSpan 1)
                           [ CodeBlock
                               ( "" , [] , [] )
-                              "E(X) = mu_X = sum(x_i - P(x_i))\n  "
+                              "E(X) = mu_X = sum(x_i - P(x_i))"
                           ]
                       ]
                   ]
@@ -5303,7 +5300,7 @@ Pandoc
                       (ColSpan 1)
                       [ CodeBlock
                           ( "" , [] , [] )
-                          "1 / sqrt(2 sigma^2 pi)\n    e^(- (x - mu)^2 / (2 sigma^2))\n  "
+                          "1 / sqrt(2 sigma^2 pi)\n  e^(- (x - mu)^2 / (2 sigma^2))"
                       ]
                   ]
               ]
