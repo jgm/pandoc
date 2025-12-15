@@ -18,7 +18,7 @@ extra-deps:
 - git: https://github.com/jgm/asciidoc-hs.git
   commit: c2b4852e0002a7995793ec0e3c44b723a85a2ca2
 - git: https://github.com/jgm/typst-hs.git
-  commit: 2cfe81142dfed390a27d4bd58c7a52a323e9e048
+  commit: b4399d44d38c1935c02db9bfd62fb5a4450ad7af
 - git: https://github.com/jgm/citeproc.git
   commit: 777a916be683a40e9b5e17da25816917b6fb1208
 - git: https://github.com/jgm/texmath.git
