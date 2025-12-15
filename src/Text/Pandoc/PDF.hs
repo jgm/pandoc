@@ -628,6 +628,7 @@ showVerboseInfo mbTmpDir program programArgs env source = do
                                , "SELFAUTOPARENT"
                                , "SFDFONTS"
                                , "SHELL"
+                               , "SOURCE_DATE_EPOCH"
                                , "T1FONTS"
                                , "T1INPUTS"
                                , "T42FONTS"
