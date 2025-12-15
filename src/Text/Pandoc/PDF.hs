@@ -218,7 +218,7 @@ makeWithWkhtmltopdf program pdfargs writer opts doc@(Pandoc meta _) = do
   verbosity <- getVerbosity
   liftIO $ toPdfViaTempFile verbosity program args (:[]) ".html" source
 
--- convert SVG to PDF, and pixel formatst to PNG or JPEG, for TeX formats
+-- convert SVG to PDF, and pixel formats to PNG or JPEG, for TeX formats
 convertImages :: (PandocMonad m, MonadIO m)
               => WriterOptions -> FilePath -> Inline -> m Inline
 convertImages opts tmpdir (Image attr ils (src, tit)) = do
