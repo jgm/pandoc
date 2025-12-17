@@ -25,4 +25,4 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
-  tag: 72a188e01a3a766009da3f530c2b752891e616f1
+  tag: aee6b494595a58dbbf769264061876778f7aa269
