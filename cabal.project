@@ -26,3 +26,8 @@ source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
   tag: aee6b494595a58dbbf769264061876778f7aa269
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/djoths.git
+  tag: a6fc625fd58aa39df05dd1d82ee005e681815095
