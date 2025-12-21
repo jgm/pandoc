@@ -334,7 +334,7 @@ parseWidth :: Text -> Maybe Double
 parseWidth s =
   case T.unsnoc s of
     Just (ds, '%') | T.all isDigit ds -> safeRead $ "0." <> ds
-    _                                 -> Nothing
+    _ -> Nothing
 
 template :: PandocMonad m => MWParser m Text
 template = try $ do
@@ -571,7 +571,7 @@ singleParaToPlain :: Blocks -> Blocks
 singleParaToPlain bs =
   case B.toList bs of
     [Para ils] -> B.fromList [Plain ils]
-    _          -> bs
+    _ -> bs
 
 inlineTag :: PandocMonad m => MWParser m Inlines
 inlineTag = do
@@ -747,8 +747,8 @@ behaviorSwitch = try $ do
               , "NOTALK"
               ]
   string "__"
-  notFollowedBy (char '_')
-  name <- manyTill alphaNum (try $ string "__")
+  name <- many1 alphaNum
+  string "__"
   case name `elem` reservedMagicWords of
     True -> do
       updateState $ \st -> st{ mwMeta = B.setMeta (T.toLower $ T.pack name) True (mwMeta st) }
