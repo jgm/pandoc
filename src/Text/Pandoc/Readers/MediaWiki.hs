@@ -13,7 +13,7 @@ Conversion of mediawiki text to 'Pandoc' document.
 {-
 TODO:
 _ correctly handle tables within tables
-_ parse templates?
+_ parse templates(?) and built-in magic words
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -28,17 +28,17 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Char (isCJK)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableCaption)
 import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag, toAttr)
-import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
-                           trim, splitTextBy, tshow, formatCode)
-import Text.Pandoc.Char (isCJK)
+import Text.Pandoc.Shared (formatCode, safeRead, splitTextBy, stringify,
+                           stripTrailingNewlines, trim, tshow)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -56,6 +56,7 @@ readMediaWiki opts s = do
                                             , mwLogMessages = []
                                             , mwInTT = False
                                             , mwAllowNewlines = True
+                                            , mwMeta = nullMeta
                                             }
             sources
   case parsed of
@@ -70,6 +71,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwLogMessages     :: [LogMessage]
                        , mwInTT            :: Bool
                        , mwAllowNewlines   :: Bool
+                       , mwMeta            :: Meta
                        }
 
 type MWParser m = ParsecT Sources MWState m
@@ -90,7 +92,7 @@ instance HasLogMessages MWState where
 --
 
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\"
+specialChars = "'[]<=&*{}|\":\\_"
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -110,9 +112,9 @@ isBlockTag' tag@(TagClose t) = (isBlockTag tag || t `elem` newBlockTags) &&
 isBlockTag' tag = isBlockTag tag
 
 isInlineTag' :: Tag Text -> Bool
-isInlineTag' (TagComment _) = True
+isInlineTag' (TagComment _)   = True
 isInlineTag' (TagClose "ref") = False -- see below inlineTag
-isInlineTag' t              = not (isBlockTag' t)
+isInlineTag' t                = not (isBlockTag' t)
 
 eitherBlockOrInline :: [Text]
 eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
@@ -160,11 +162,12 @@ parseMediaWiki = do
   spaces
   eof
   categoryLinks <- reverse . mwCategoryLinks <$> getState
+  meta <- mwMeta <$> getState
   let categories = if null categoryLinks
                       then mempty
                       else B.para $ mconcat $ intersperse B.space categoryLinks
   reportLogMessages
-  return $ B.doc $ bs <> categories
+  return $ Pandoc meta (B.toList bs <> B.toList categories)
 
 --
 -- block parsers
@@ -533,6 +536,7 @@ inline =  whitespace
       <|> doubleQuotes
       <|> strong
       <|> emph
+      <|> behaviorSwitch
       <|> image
       <|> internalLink
       <|> externalLink
@@ -716,3 +720,37 @@ doubleQuotes = do
   B.doubleQuoted <$> inlinesBetween openDoubleQuote closeDoubleQuote
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""
+
+behaviorSwitch :: PandocMonad m => MWParser m Inlines
+behaviorSwitch = try $ do
+  let reservedMagicWords = [ "NOTOC"
+              , "FORCETOC"
+              , "TOC"
+              , "NOEDITSECTION"
+              , "NEWSECTIONLINK"
+              , "NONEWSECTIONLINK"
+              , "NOGALLERY"
+              , "HIDDENCAT"
+              , "EXPECTUNUSEDCATEGORY"
+              , "NOCONTENTCONVERT"
+              , "NOCC"
+              , "NOTITLECONVERT"
+              , "NOTC"
+              , "INDEX"
+              , "NOINDEX"
+              , "STATICREDIRECT"
+              , "EXPECTUNUSEDTEMPLATE"
+              -- From popular extensions
+              , "NOGLOBAL"
+              , "DISAMBIG"
+              , "ARCHIVEDTALK"
+              , "NOTALK"
+              ]
+  string "__"
+  name <- many1 alphaNum
+  string "__"
+  case name `elem` reservedMagicWords of
+    True -> do
+      updateState $ \st -> st{ mwMeta = B.setMeta (T.toLower $ T.pack name) True (mwMeta st) }
+      return mempty
+    False -> return $ B.str $ "__" <> T.pack name <> "__"
