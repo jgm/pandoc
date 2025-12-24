@@ -61,7 +61,7 @@ jobs:
             cabalopts: '--ghc-option=-Werror'
           - ghc: '9.12'
             cabal: 'latest'
-            cabalopts: '-f-http --ghc-option=-Werror'
+            cabalopts: '--ghc-option=-Werror -f-http --test-option="-p /XXXXX/"'
 
     steps:
     - uses: actions/checkout@v6
