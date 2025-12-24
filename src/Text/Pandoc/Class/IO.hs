@@ -188,7 +188,8 @@ openURL u
           Left (e :: HttpException)
                   -> throwError $ PandocHttpError u (T.pack (show e))
 #else
- | otherwise = error "Text.Pandoc.Class.IO.openURL"
+ | otherwise =
+     throwError $ PandocHttpError u "pandoc was compiled without HTTP support"
 #endif
 
 -- | Read the lazy ByteString contents from a file path, raising an error on
