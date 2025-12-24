@@ -455,6 +455,10 @@ flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
+flag http
+  Description:   Support for fetching resources using HTTP.
+  Default:       True
+
 common common-options
   default-language: Haskell2010
   build-depends:    base         >= 4.18 && < 5
@@ -517,7 +521,6 @@ library
                  commonmark-pandoc     >= 0.2.3    && < 0.3,
                  containers            >= 0.6.0.1  && < 0.9,
                  crypton               >= 0.30     && < 1.1,
-                 crypton-connection    >= 0.3.1    && < 0.5,
                  data-default          >= 0.4      && < 0.9,
                  deepseq               >= 1.3      && < 1.6,
                  directory             >= 1.2.3    && < 1.4,
@@ -529,14 +532,11 @@ library
                  filepath              >= 1.1      && < 1.6,
                  gridtables            >= 0.1      && < 0.2,
                  haddock-library       >= 1.10     && < 1.12,
-                 http-client           >= 0.4.30   && < 0.8,
-                 http-client-tls       >= 0.2.4    && < 0.4,
                  http-types            >= 0.8      && < 0.13,
                  ipynb                 >= 0.2      && < 0.3,
                  jira-wiki-markup      >= 1.5.1    && < 1.6,
                  mime-types            >= 0.1.1    && < 0.2,
                  mtl                   >= 2.2      && < 2.4,
-                 network               >= 2.6      && < 3.3,
                  network-uri           >= 2.6      && < 2.8,
                  pandoc-types          >= 1.23.1   && < 1.24,
                  parsec                >= 3.1      && < 3.2,
@@ -568,14 +568,21 @@ library
                  vector                >= 0.12     && < 0.14,
                  djot                  >= 0.1.2.4  && < 0.2,
                  asciidoc              >= 0.1      && < 0.2,
-                 tls                   >= 2.0.1    && < 2.2,
-                 crypton-x509-system   >= 1.6.7    && < 1.7
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
   if flag(embed_data_files)
      cpp-options:   -DEMBED_DATA_FILES
      other-modules: Text.Pandoc.Data.BakedIn
+  if flag(http)
+     cpp-options:   -DPANDOC_HTTP_SUPPORT
+     build-depends:
+                 crypton-connection    >= 0.3.1    && < 0.5,
+                 crypton-x509-system   >= 1.6.7    && < 1.7,
+                 http-client           >= 0.4.30   && < 0.8,
+                 http-client-tls       >= 0.2.4    && < 0.4,
+                 network               >= 2.6      && < 3.3,
+                 tls                   >= 2.0.1    && < 2.2
   hs-source-dirs:  src
 
   exposed-modules: Text.Pandoc,
