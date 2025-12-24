@@ -61,7 +61,7 @@ common common-options
 
 common common-executable
   import:           common-options
-  ghc-options:      -rtsopts -with-rtsopts=-A8m -threaded
+  ghc-options:      -rtsopts -with-rtsopts=-H64m
 
 executable pandoc
   import:          common-executable
@@ -74,6 +74,10 @@ executable pandoc
                    text
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server
+
+  if arch(wasm32)
+    ghc-options:    -optl-Wl,--export=__wasm_call_ctors,--export=hs_init_with_rtsopts,--export=malloc,--export=wasm_main
+
   if flag(nightly)
     cpp-options:    -DNIGHTLY
     build-depends:  template-haskell,
