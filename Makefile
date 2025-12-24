@@ -17,6 +17,7 @@ WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 pandoc=$(shell cabal list-bin $(CABALOPTS) pandoc-cli)
+OPTIMIZE_WASM?=1
 
 all: build test binpath ## build executable and run tests
 .PHONY: all
@@ -326,3 +327,11 @@ release-checklist-$(VERSION).org: RELEASE-CHECKLIST-TEMPLATE.org
 hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@
 .PHONY: hie.yaml
+
+pandoc.wasm:
+	-rm $@
+ifeq ($(OPTIMIZE_WASM),1)
+	echo 'wasm32-wasi-cabal build pandoc-cli && wasm-opt --low-memory-unused --converge --gufa --flatten --rereloop -Oz $$(wasm32-wasi-cabal list-bin pandoc-cli) -o $@' | nix shell 'gitlab:haskell-wasm/ghc-wasm-meta?host=gitlab.haskell.org'
+else
+	echo 'wasm32-wasi-cabal build pandoc-cli && cp $$(wasm32-wasi-cabal list-bin pandoc-cli) $@' | nix shell 'gitlab:haskell-wasm/ghc-wasm-meta?host=gitlab.haskell.org'
+endif
