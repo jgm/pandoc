@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
 Module      : Text.Pandoc.Class.IO
@@ -46,7 +47,7 @@ import qualified Network.TLS as TLS
 import qualified Network.TLS.Extra as TLS
 import Network.HTTP.Client
        (httpLbs, Manager, responseBody, responseHeaders,
-        Request(port, host, requestHeaders), parseUrlThrow, newManager)
+        Request(port, host, requestHeaders), parseUrlThrow, newManager, HttpException)
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (mkManagerSettings)
 import Network.HTTP.Types.Header ( hContentType )
@@ -178,7 +179,8 @@ openURL u
 
      case res of
           Right r -> return r
-          Left e  -> throwError $ PandocHttpError u e
+          Left (e :: HttpException)
+                  -> throwError $ PandocHttpError u (T.pack (show e))
 
 -- | Read the lazy ByteString contents from a file path, raising an error on
 -- failure.
