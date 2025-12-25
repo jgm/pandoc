@@ -1431,7 +1431,7 @@ header when requesting a document from a URL:
     In the template, `%n` will be replaced by the chunk number (padded
     with leading 0s to 3 digits), `%s` with the section number of the chunk,
     `%h` with the heading text (with formatting removed), `%i` with
-    the section identifier. For example, `%section-%s-%i.html` might
+    the section identifier. For example, `section-%s-%i.html` might
     be resolved to `section-1.1-introduction.html`. The characters
     `/` and `\` are not allowed in chunk templates and will be
     ignored. The default is `%s-%i.html`.
