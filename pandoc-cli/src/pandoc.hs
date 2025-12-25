@@ -17,7 +17,8 @@ writers.
 module Main where
 import qualified Control.Exception as E
 import System.Environment (getArgs, getProgName)
-import Text.Pandoc.App ( convertWithOpts, defaultOpts, options
+import Data.Maybe (fromMaybe)
+import Text.Pandoc.App ( convertWithOpts, defaultOpts, options, Opt(..)
                        , parseOptionsFromArgs, handleOptInfo, versionInfo )
 import Text.Pandoc.Error (handleError)
 import Data.Monoid (Any(..))
@@ -60,10 +61,14 @@ wasm_main raw_args_ptr raw_args_len =
       args <- words <$> peekCStringLen (raw_args_ptr, raw_args_len)
       free raw_args_ptr
       engine <- getEngine
-      res <- parseOptionsFromArgs options defaultOpts "pandoc.wasm" $ args <> ["/in", "-o", "/out"]
+      res <- parseOptionsFromArgs options defaultOpts "pandoc.wasm" args
       case res of
         Left e -> handleOptInfo engine e
-        Right opts -> convertWithOpts engine opts
+        Right opts -> do
+          let opts' = opts{ optOutputFile = Just $ fromMaybe "/out" (optOutputFile opts)
+                          , optInputFiles = Just $ fromMaybe ["/in"] (optInputFiles opts)
+                          }
+          convertWithOpts engine opts'
 #endif
 
 main :: IO ()
