@@ -58,7 +58,7 @@ paragraph
 <li><label><input type="checkbox" checked="" />checked</label></li>
 </ul>
 <p>paragraph</p>
-<ol type="1">
+<ol style="list-style-type: decimal" type="1">
 <li><label><input type="checkbox" />ordered unchecked</label></li>
 <li>[] plain item</li>
 <li><label><input type="checkbox" checked="" />ordered
