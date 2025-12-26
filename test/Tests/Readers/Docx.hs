@@ -246,6 +246,10 @@ tests = [ testGroup "document"
             "docx/i18n_blocks.docx"
             "docx/i18n_blocks.native"
           , testCompare
+            "Image as Title"
+            "docx/image-as-title.docx"
+            "docx/image-as-title.native"
+          , testCompare
             "lists"
             "docx/lists.docx"
             "docx/lists.native"
