@@ -1,4 +1,4 @@
-function ByteStringWriter (doc, opts)
+function ByteStringWriter (_doc, _opts)
   local buffer = {}
   for i=0, 255 do
     table.insert(buffer, string.char(i))

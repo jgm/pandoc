@@ -265,10 +265,9 @@ local function render_type (name, level, modulename)
   local properties = Blocks{}
   if next(metatable.docs.properties) then
     local propattr = {'type-' .. id .. '-properties'}
-    local attr
     properties:insert(Header(level + 1, "Properties", propattr))
     for propname, prop in sorted(metatable.docs.properties) do
-      attr = {'type-' .. nameprefix .. '.' .. name .. '.' .. propname}
+      local attr = {'type-' .. nameprefix .. '.' .. name .. '.' .. propname}
       properties:insert(Header(level + 2, propname, attr))
       properties:insert(
         Plain(read_inlines(prop.description) ..
@@ -281,9 +280,10 @@ local function render_type (name, level, modulename)
   if next(metatable.methods) then
     local attr = {'type-' .. id .. '-methods'}
     methods:insert(Header(level + 1, "Methods", attr))
-    for _, method in sorted(metatable.methods) do
-      -- attr = {'type-' .. modulename .. '.' .. name .. '.' .. name}
-      -- methods:insert(Header(level + 2, name, attr))
+    -- luacheck: ignore propname
+    for propname, method in sorted(metatable.methods) do
+      -- attr = {'type-' .. modulename .. '.' .. name .. '.' .. propname}
+      -- methods:insert(Header(level + 2, propname, attr))
       methods:extend(render_function(documentation(method), level+2, id))
     end
   end
@@ -346,9 +346,8 @@ local function render_main_pandoc_module (doc)
   for _, field in ipairs(doc.fields) do
     if tostring(field.type) == 'string' then
       constants_section:extend(render_field(field, 2, "pandoc"))
-    elseif field.name:match '^[A-Z]' then
-      -- Ignore (these are the `Block` and `Inline` tables)
-    else
+    -- Ignore (these are the `Block` and `Inline` tables)
+    elseif not field.name:match '^[A-Z]' then
       fields:insert(field)
     end
   end

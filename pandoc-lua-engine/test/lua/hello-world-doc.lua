@@ -1,6 +1,6 @@
 return {
   {
-    Pandoc = function(doc)
+    Pandoc = function(_doc)
       local meta = {}
       local hello = { pandoc.Str "Hello,", pandoc.Space(), pandoc.Str "World!" }
       local blocks = { pandoc.Para(hello) }
