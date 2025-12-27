@@ -627,9 +627,10 @@ processTok bs (Tok pos tok') = do
       modifyGroup (\g -> g{ gUnderline = boolParam mbp })
     ControlWord "ulnone" _ -> bs <$
       modifyGroup (\g -> g{ gUnderline = False })
-    ControlWord "pard" _ -> bs <$ do
+    ControlWord "pard" _ -> do
+      newbs <- emitBlocks bs
       modifyGroup (const def)
-      getStyleFormatting 0 >>= foldM processTok bs
+      getStyleFormatting 0 >>= foldM processTok newbs
     ControlWord "par" _ -> emitBlocks bs
     _ -> pure bs
 
