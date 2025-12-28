@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE OverloadedStrings  #-}
@@ -27,6 +28,7 @@ import Data.Aeson
 import Data.Aeson.Encode.Pretty (Config (..), defConfig, encodePretty',
                                  keyOrder)
 import qualified Data.ByteString.Lazy as BL
+import Control.Applicative ((<|>))
 import Data.Data (Data, toConstr)
 import qualified Data.Text as Text
 import Data.Text (Text)
@@ -106,6 +108,91 @@ data LogMessage =
   | UnsupportedCodePage Int
   | YamlWarning SourcePos Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
+
+instance FromJSON LogMessage where
+  parseJSON (Object v) = do
+    (typ :: Text) <- v .: "type"
+    let getPos x = do
+          line <- x .: "line"
+          column <- x .: "column"
+          source <- x .: "source"
+          pure $ newPos source line column
+    let getMbPos x = (Just <$> getPos x) <|> pure Nothing
+    case typ of
+      "SkippedContent" ->
+        SkippedContent <$> v .: "contents" <*> getPos v
+      "IgnoredElement" ->
+        IgnoredElement <$> v .: "contents"
+      "DuplicateLinkReference" ->
+        DuplicateLinkReference <$> v .: "contents" <*> getPos v
+      "NoteDefinedButNotUsed" ->
+        NoteDefinedButNotUsed <$> v .: "key" <*> getPos v
+      "DuplicateNoteReference" ->
+        DuplicateNoteReference <$> v .: "contents" <*> getPos v
+      "DuplicateIdentifier" ->
+        DuplicateIdentifier <$> v .: "contents" <*> getPos v
+      "ReferenceNotFound" ->
+        ReferenceNotFound <$> v .: "contents" <*> getPos v
+      "CircularReference" ->
+        CircularReference <$> v .: "contents" <*> getPos v
+      "UndefinedToggle" ->
+        UndefinedToggle <$> v .: "contents" <*> getPos v
+      "ParsingUnescaped" ->
+        ParsingUnescaped <$> v .: "contents" <*> getPos v
+      "CouldNotLoadIncludeFile" ->
+        CouldNotLoadIncludeFile <$> v .: "path" <*> getPos v
+      "CouldNotParseIncludeFile" ->
+        CouldNotParseIncludeFile <$> v .: "path" <*> getPos v
+      "MacroAlreadyDefined" ->
+        MacroAlreadyDefined <$> v .: "name" <*> getPos v
+      "InlineNotRendered" -> InlineNotRendered <$> v .: "contents"
+      "BlockNotRendered" -> BlockNotRendered <$> v .: "contents"
+      "DocxParserWarning" -> DocxParserWarning <$> v .: "contents"
+      "PowerpointTemplateWarning" -> PowerpointTemplateWarning <$> v .: "contents"
+      "IgnoredIOError" -> IgnoredIOError <$> v .: "contents"
+      "CouldNotFetchResource" -> CouldNotFetchResource <$> v .: "path" <*> v .: "message"
+      "CouldNotDetermineImageSize" ->
+        CouldNotDetermineImageSize <$> v .: "path" <*> v .: "message"
+      "CouldNotConvertImage" ->
+        CouldNotConvertImage <$> v .: "path" <*> v .: "message"
+      "CouldNotDetermineMimeType" -> CouldNotDetermineMimeType <$> v .: "path"
+      "CouldNotConvertTeXMath" ->
+        CouldNotConvertTeXMath <$> v .: "contents" <*> v .: "message"
+      "CouldNotParseCSS" -> CouldNotParseCSS <$> v .: "message"
+      "Fetching" -> Fetching <$> v .: "path"
+      "Extracting" -> Extracting <$> v .: "path"
+      "LoadedResource" -> LoadedResource <$> v .: "for" <*> v .: "from"
+      "ScriptingInfo" -> ScriptingInfo <$> v .: "message" <*> getMbPos v
+      "ScriptingWarning" -> ScriptingWarning <$> v .: "message" <*> getMbPos v
+      "NoTitleElement" -> NoTitleElement <$> v .: "fallback"
+      "NoLangSpecified" -> pure NoLangSpecified
+      "InvalidLang" -> InvalidLang <$> v .: "lang"
+      "CouldNotHighlight" -> CouldNotHighlight <$> v .: "message"
+      "MissingCharacter" -> MissingCharacter <$> v .: "message"
+      "Deprecated" -> Deprecated <$> v .: "thing" <*> v .: "message"
+      "NoTranslation" -> NoTranslation <$> v .: "term"
+      "CouldNotLoadTranslations" ->
+        CouldNotLoadTranslations <$> v .: "lang" <*> v .: "message"
+      "UnusualConversion" -> UnusualConversion <$> v .: "message"
+      "UnexpectedXmlElement" -> UnexpectedXmlElement <$> v .: "element" <*> v .: "parent"
+      "UnknownOrgExportOption" -> UnknownOrgExportOption <$> v .: "option"
+      "CouldNotDeduceFormat" -> CouldNotDeduceFormat <$> v .: "extensions" <*> v .: "format"
+      "RunningFilter" -> RunningFilter <$> v .: "path"
+      "FilterCompleted" -> FilterCompleted <$> v .: "path" <*> v .: "milliseconds"
+      "CiteprocWarning" -> CiteprocWarning <$> v .: "message"
+      "ATXHeadingInLHS" -> ATXHeadingInLHS <$> v .: "level" <*> v .: "contents"
+      "EnvironmentVariableUndefined" -> EnvironmentVariableUndefined <$> v .: "variable"
+      "DuplicateAttribute" -> DuplicateAttribute <$> v .: "attribute" <*> v .: "value"
+      "NotUTF8Encoded" -> NotUTF8Encoded <$> v .: "source"
+      "MakePDFInfo" -> MakePDFInfo <$> v .: "description" <*> v .: "contents"
+      "MakePDFWarning" -> MakePDFWarning <$> v .: "message"
+      "UnclosedDiv" ->
+        UnclosedDiv <$> (v .: "openpos" >>= getPos) <*> (v .: "closepos" >>= getPos)
+      "UnsupportedCodePage" -> UnsupportedCodePage <$> v .: "codepage"
+      "YamlWarning" -> YamlWarning <$> getPos v <*> v .: "message"
+      _ -> fail $ "Unknown LogMessage type " <> show typ
+  parseJSON _invalid =
+     fail "parsing LogMessage failed, expecting Object"
 
 instance ToJSON LogMessage where
   toJSON x = object $
