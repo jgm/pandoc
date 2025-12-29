@@ -794,42 +794,46 @@ read_citation     = matchingElement NsText "bibliography-mark"
 --
 read_table        :: BlockMatcher
 read_table         = matchingElement NsTable "table"
-                     $ liftA simpleTable'
+                     $ liftA table'
                      $ (matchChildContent' [read_table_header]) &&&
-                       (matchChildContent'  [read_table_row])
+                       (matchChildContent' [read_table_row])
 
--- | A simple table without a caption.
-simpleTable' :: ([[Blocks]], [[Blocks]]) -> Blocks
-simpleTable' (headers, rows) =
+-- | A table without a caption.
+table' :: ([[Cell]], [[Cell]]) -> Blocks
+table' (headers, rows) =
   table emptyCaption (replicate numcols defaults) th [tb] tf
   where
     defaults = (AlignDefault, ColWidthDefault)
     numcols = maximum $ map length $ headers ++ rows
-    toRow = Row nullAttr . map simpleCell
+    toRow = Row nullAttr
     th = TableHead nullAttr $ map toRow headers
     tb = TableBody nullAttr 0 [] $ map toRow rows
     tf = TableFoot nullAttr []
 
 --
-read_table_header :: ElementMatcher [[Blocks]]
+read_table_header :: ElementMatcher [[Cell]]
 read_table_header = matchingElement NsTable "table-header-rows"
                       $ matchChildContent' [ read_table_row
                                            ]
 
 --
-read_table_row    :: ElementMatcher [[Blocks]]
+read_table_row    :: ElementMatcher [[Cell]]
 read_table_row     = matchingElement NsTable "table-row"
                      $ liftA (:[])
                      $ matchChildContent'  [ read_table_cell
                                            ]
 
 --
-read_table_cell   :: ElementMatcher [Blocks]
+read_table_cell   :: ElementMatcher [Cell]
 read_table_cell    = matchingElement NsTable "table-cell"
-                     $ liftA (compactify.(:[]))
+                     $ liftA3 cell'
+                       (readAttrWithDefault NsTable "number-rows-spanned" 1 >>^ RowSpan)
+                       (readAttrWithDefault NsTable "number-columns-spanned" 1 >>^ ColSpan)
                      $ matchChildContent' [ read_paragraph
                                           , read_list
                                           ]
+  where
+    cell' rowSpan colSpan blocks = map (cell AlignDefault rowSpan colSpan) $ compactify [blocks]
 
 ----------------------
 -- Frames
