@@ -36,7 +36,7 @@ import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableCaption)
-import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag, toAttr)
+import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag, toAttr)
 import Text.Pandoc.Shared (formatCode, safeRead, splitTextBy, stringify,
                            stripTrailingNewlines, trim, tshow)
 import Text.Pandoc.XML (fromEntities)
@@ -104,21 +104,86 @@ newBlockTags :: [Text]
 newBlockTags = ["haskell","syntaxhighlight","source","gallery","references"]
 
 isBlockTag' :: Tag Text -> Bool
-isBlockTag' tag@(TagOpen t _) = (isBlockTag tag || t `elem` newBlockTags) &&
-  t `notElem` eitherBlockOrInline
-isBlockTag' (TagClose "ref") = True -- needed so 'special' doesn't parse it
-isBlockTag' tag@(TagClose t) = (isBlockTag tag || t `elem` newBlockTags) &&
-  t `notElem` eitherBlockOrInline
-isBlockTag' tag = isBlockTag tag
+isBlockTag' (TagOpen t _) = isBlockTagName t
+isBlockTag' (TagClose t) = isBlockTagName t
+isBlockTag' _ = False
+
+isBlockTagName :: Text -> Bool
+isBlockTagName t =
+  t `elem` [ "blockquote"
+           , "caption"
+           , "col"
+           , "colgroup"
+           , "dd"
+           , "div"
+           , "dl"
+           , "dt"
+           , "h1"
+           , "h2"
+           , "h3"
+           , "h4"
+           , "h5"
+           , "h6"
+           , "hr"
+           , "li"
+           , "meta"
+           , "ol"
+           , "p"
+           , "pre"
+           , "rp"
+           , "table"
+           , "td"
+           , "th"
+           , "time"
+           , "tr"
+           , "ul"
+           , "center"
+           ] || t `elem` newBlockTags
 
 isInlineTag' :: Tag Text -> Bool
-isInlineTag' (TagComment _)   = True
-isInlineTag' (TagClose "ref") = False -- see below inlineTag
-isInlineTag' t                = not (isBlockTag' t)
+isInlineTag' (TagComment _) = True
+isInlineTag' (TagOpen t _) = isInlineTagName t
+isInlineTag' (TagClose t) = isInlineTagName t
+isInlineTag' _ = False
 
-eitherBlockOrInline :: [Text]
-eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
-                               "map", "area", "object"]
+isInlineTagName :: Text -> Bool
+isInlineTagName t =
+  t `elem` [ "abbr"
+           , "b"
+           , "bdi"
+           , "bdo"
+           , "big"
+           , "br"
+           , "cite"
+           , "code"
+           , "data"
+           , "del"
+           , "dfn"
+           , "em"
+           , "i"
+           , "ins"
+           , "kbd"
+           , "link"
+           , "mark"
+           , "q"
+           , "rt"
+           , "ruby"
+           , "s"
+           , "samp"
+           , "small"
+           , "span"
+           , "strong"
+           , "sub"
+           , "sup"
+           , "u"
+           , "var"
+           , "wbr"
+           , "font"
+           , "rb"
+           , "rtc"
+           , "strike"
+           , "tt"
+           ]
 
 htmlComment :: PandocMonad m => MWParser m ()
 htmlComment = () <$ htmlTag isCommentTag
@@ -575,7 +640,11 @@ singleParaToPlain bs =
 
 inlineTag :: PandocMonad m => MWParser m Inlines
 inlineTag = do
-  (tag, _) <- lookAhead $ htmlTag isInlineTag'
+  (tag, _) <- lookAhead $ htmlTag (\tag -> case tag of
+                                      TagOpen "hask" _ -> True
+                                      TagOpen "ref" _ -> True
+                                      TagOpen "nowiki" _ -> True
+                                      _ -> isInlineTag' tag)
   case tag of
        TagOpen "ref" _ -> B.note . singleParaToPlain <$> blocksInTags "ref"
        TagOpen "nowiki" _ -> try $ do
@@ -601,8 +670,15 @@ inlineTag = do
        _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
 
 special :: PandocMonad m => MWParser m Inlines
-special = B.str <$> countChar 1 (notFollowedBy' (htmlTag isBlockTag') *>
-                                  oneOf specialChars)
+special = B.str . T.singleton <$>
+  (notFollowedBy' (htmlTag (\t -> isInlineTag' t ||
+                                  isBlockTag' t ||
+                                  case t of
+                                    TagClose "ref" -> True
+                                    TagClose "hask" -> True
+                                    TagClose "nowiki" -> True
+                                    _ -> False)
+                                  ) *> oneOf specialChars)
 
 inlineHtml :: PandocMonad m => MWParser m Inlines
 inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag'
