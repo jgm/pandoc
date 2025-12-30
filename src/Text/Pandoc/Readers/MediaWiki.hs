@@ -659,6 +659,10 @@ inlineTag = do
        TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
+       TagOpen "var" _ -> B.codeWith ("",["variable"],[]) <$> textInTags "var"
+       TagOpen "samp" _ -> B.codeWith ("",["sample"],[]) <$> textInTags "samp"
+       TagOpen "kbd" _ -> B.spanWith ("",["kbd"],[]) <$> inlinesInTags "kbd"
+       TagOpen "mark" _ -> B.spanWith ("",["mark"],[]) <$> inlinesInTags "mark"
        TagOpen "code" _ -> encode <$> inlinesInTags "code"
        TagOpen "tt" _ -> do
          inTT <- mwInTT <$> getState
