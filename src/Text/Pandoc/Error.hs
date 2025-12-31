@@ -68,6 +68,8 @@ data PandocError = PandocIOError Text IOError
                  deriving (Show, Typeable, Generic)
 
 instance Exception PandocError
+ where
+   displayException = T.unpack . renderError
 
 renderError :: PandocError -> Text
 renderError e =
