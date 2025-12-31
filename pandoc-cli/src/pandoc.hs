@@ -40,7 +40,6 @@ import qualified Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text.IO as TIO
 import qualified Data.ByteString.Lazy as BL
-import Text.Pandoc.Error (renderError, PandocError)
 import Text.Pandoc.Logging (showLogMessage)
 #else
 import System.Exit
@@ -62,7 +61,7 @@ foreign export ccall "wasm_main" wasm_main :: Ptr CChar -> Int -> IO ()
 
 wasm_main :: Ptr CChar -> Int -> IO ()
 wasm_main raw_args_ptr raw_args_len =
-  catch act (\(err :: SomeException) -> writeFile "/stderr" (show err))
+  E.catch act (\(err :: SomeException) -> writeFile "/stderr" (displayException err))
   where
     act = do
       args <- peekCStringLen (raw_args_ptr, raw_args_len)
@@ -76,8 +75,7 @@ wasm_main raw_args_ptr raw_args_len =
                           , optOutputFile = Just $ fromMaybe "/stdout" (optOutputFile opts)
                           , optLogFile = Just $ fromMaybe "/warnings" (optLogFile opts)
                           }
-          E.catch (convertWithOpts engine opts') $
-            \(e :: PandocError) -> TIO.writeFile "/stderr" (renderError e)
+          convertWithOpts engine opts'
           res <- Aeson.eitherDecode <$> BL.readFile "/warnings"
           case res of
             Left e -> writeFile "/stderr" e
