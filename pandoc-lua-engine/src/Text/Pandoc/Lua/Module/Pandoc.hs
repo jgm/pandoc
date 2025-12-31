@@ -57,7 +57,6 @@ import Text.Pandoc.Writers (Writer (..), getWriter, writers)
 import qualified HsLua as Lua
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -98,9 +97,13 @@ readersField = Field
     [ "Set of formats that pandoc can parse. All keys in this table can"
     , "be used as the `format` value in `pandoc.read`."
     ]
-  , fieldPushValue = pushSet pushText $
-                     Set.fromList (map fst (readers @PandocLua))
+  , fieldPushValue = pushKeyValuePairs pushText (pushText . readerType)
+                     (readers @PandocLua)
   }
+ where
+  readerType = \case
+    TextReader {} -> "text"
+    ByteStringReader {} -> "bytestring"
 
 -- | Set of input formats accepted by @write@.
 writersField :: Field PandocError
@@ -111,9 +114,13 @@ writersField = Field
     [ "Set of formats that pandoc can generate. All keys in this table"
     , "can be used as the `format` value in `pandoc.write`."
     ]
-  , fieldPushValue = pushSet pushText $
-                     Set.fromList (map fst (writers @PandocLua))
+  , fieldPushValue = pushKeyValuePairs pushText (pushText . writerType)
+                     (writers @PandocLua)
   }
+ where
+  writerType = \case
+    TextWriter {} -> "text"
+    ByteStringWriter {} -> "bytestring"
 
 -- | Inline table field
 inlineField :: Field PandocError
