@@ -25,13 +25,14 @@ import qualified Data.Aeson as Aeson
 import qualified Text.Pandoc.UTF8 as UTF8
 import qualified Data.Text.IO as TIO
 import qualified Data.ByteString.Lazy as BL
-import Text.Pandoc.Logging (showLogMessage)
+import Text.Pandoc.Logging (showLogMessage, messageVerbosity)
 
 foreign export ccall "wasm_main" wasm_main :: Ptr CChar -> Int -> IO ()
 
 wasm_main :: Ptr CChar -> Int -> IO ()
 wasm_main raw_args_ptr raw_args_len =
-  E.catch act (\(err :: SomeException) -> writeFile "/stderr" (displayException err))
+  E.catch act (\(err :: SomeException) ->
+                 writeFile "/stderr" ("ERROR: " <> displayException err))
   where
     act = do
       args <- peekCStringLen (raw_args_ptr, raw_args_len)
@@ -49,7 +50,9 @@ wasm_main raw_args_ptr raw_args_len =
           res <- Aeson.eitherDecode <$> BL.readFile "/warnings"
           case res of
             Left e -> writeFile "/stderr" e
-            Right msgs -> TIO.writeFile "/stderr" (T.unlines $ map showLogMessage msgs)
+            Right msgs -> do
+              let msgs' = filter (\msg -> messageVerbosity msg <= optVerbosity opts) msgs
+              TIO.writeFile "/stderr" (T.unlines $ map showLogMessage msgs')
 
 -- This must be included or we get an error:
 main :: IO ()
