@@ -14,7 +14,6 @@ category:        Text
 synopsis:        Conversion between documentation formats
 description:     Pandoc-cli provides a command-line executable that uses the
                  pandoc library to convert between markup formats.
--- data-files:
 extra-source-files:
                  man/pandoc.1
                  man/pandoc-lua.1
@@ -66,7 +65,6 @@ common common-executable
 executable pandoc
   import:          common-executable
   hs-source-dirs:  src
-  main-is:         pandoc.hs
   buildable:       True
   -- Note: we always link to an exact version of pandoc, with the
   -- same version as this package:
@@ -76,8 +74,11 @@ executable pandoc
                  , PandocCLI.Server
 
   if arch(wasm32)
+    main-is:       pandoc-wasm.hs
     build-depends: aeson, bytestring
     ghc-options:    -optl-Wl,--export=__wasm_call_ctors,--export=hs_init_with_rtsopts,--export=malloc,--export=wasm_main
+  else
+    main-is:       pandoc.hs
 
   if flag(nightly)
     cpp-options:    -DNIGHTLY
