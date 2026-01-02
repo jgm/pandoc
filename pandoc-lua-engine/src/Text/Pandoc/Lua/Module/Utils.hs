@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
-   Copyright   : Copyright © 2017-2026 Albert Krewinkel
+   Copyright   : © 2017-2026 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
@@ -19,6 +19,7 @@ module Text.Pandoc.Lua.Module.Utils
 
 import Control.Applicative ((<|>))
 import Control.Monad ((<$!>))
+import Control.Monad.Except (MonadError (throwError))
 import Crypto.Hash (hashWith, SHA1(SHA1))
 import Data.Data (showConstr, toConstr)
 import Data.Default (def)
@@ -28,12 +29,17 @@ import HsLua as Lua
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Citeproc (getReferences, processCitations)
 import Text.Pandoc.Definition
-import Text.Pandoc.Error (PandocError)
+import Text.Pandoc.Error (PandocError (PandocLuaError))
 import Text.Pandoc.Filter (applyJSONFilter)
+import Text.Pandoc.Format (FlavoredFormat (formatName), parseFlavoredFormat)
+import Text.Pandoc.Lua.Documentation (renderDocumentation)
 import Text.Pandoc.Lua.Filter (runFilterFile')
 import Text.Pandoc.Lua.Marshal.AST
+import Text.Pandoc.Lua.Marshal.Format (peekFlavoredFormat)
 import Text.Pandoc.Lua.Marshal.Reference
 import Text.Pandoc.Lua.PandocLua (PandocLua (unPandocLua))
+import Text.Pandoc.Options (WriterOptions (writerExtensions))
+import Text.Pandoc.Writers (Writer (..), getWriter)
 
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -52,6 +58,7 @@ documentedModule = defmodule "pandoc.utils"
   `withFunctions`
     [ blocks_to_inlines `since` v[2,2,3]
     , citeproc          `since` v[2,19,1]
+    , documentation     `since` v[3,8,4]
     , equals            `since` v[2,5]
     , from_simple_table `since` v[2,11]
     , make_sections     `since` v[2,8]
@@ -124,6 +131,27 @@ citeproc = defun "citeproc"
       , "      return pandoc.utils.citeproc(doc)"
       , "    end"
       ]
+
+documentation :: DocumentedFunction PandocError
+documentation = defun "documentation"
+  ### (\idx mformat -> do
+          docobj <- getdocumentation idx >>= \case
+            TypeNil -> fail "Undocumented object"
+            _ -> forcePeek $ peekDocumentationObject top
+          let blocks = renderDocumentation docobj
+          if maybe mempty formatName mformat == "blocks"
+            then pure . Left $ B.toList blocks
+            else unPandocLua $ do
+              flvrd <- maybe (parseFlavoredFormat "ansi") pure mformat
+              getWriter flvrd >>= \case
+                (TextWriter w, es) -> Right <$>
+                  w def{ writerExtensions = es } (B.doc blocks)
+                _ -> throwError $ PandocLuaError
+                  "ByteString writers are not supported here.")
+  <#> parameter pure "any" "object" "Retrieve documentation for this object"
+  <#> opt (parameter peekFlavoredFormat "string|table" "format" "result format")
+  =#> functionResult (either pushBlocks pushText) "string|Blocks"
+        "rendered documentation"
 
 equals :: LuaError e => DocumentedFunction e
 equals = defun "equals"
