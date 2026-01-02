@@ -3890,6 +3890,33 @@ Parameters:
 
 Returns: the transformed inline element
 
+### `with_state (options, callback)` {#pandoc.with_state}
+
+Runs a function with a modified pandoc state.
+
+The given callback is invoked after setting the pandoc state to the
+given values. The modifiable options are restored to their original
+values once the callback has returned.
+
+The following state variables can be controlled:
+
+  - `request_headers` (list of key-value tuples)
+  - `resource_path` (list of filepaths)
+  - `user_data_dir` (string)
+
+Other options are ignored, and the rest of the state is not modified.
+
+Usage:
+
+    local opts = {
+      request_headers = {
+        {'Authorization', 'Basic my-secret'}
+      }
+    }
+    pandoc.with_state(opts, function ()
+      local mime, contents = pandoc.mediabag.fetch(image_url)
+    )
+
 ### `read (markup[, format[, reader_options[, read_env]]])` {#pandoc.read}
 
 Parse the given string into a Pandoc document.
