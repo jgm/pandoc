@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Path
-   Copyright   : © 2019-2024 Albert Krewinkel
+   Copyright   : © 2019-2026 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>

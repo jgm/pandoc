@@ -69,6 +69,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Text.Pandoc.Lua
   other-modules:       Text.Pandoc.Lua.Custom
+                     , Text.Pandoc.Lua.Documentation
                      , Text.Pandoc.Lua.Engine
                      , Text.Pandoc.Lua.Filter
                      , Text.Pandoc.Lua.Global
