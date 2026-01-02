@@ -790,22 +790,29 @@ handleField bs ts = do
   let isFieldMod (Tok _ (ControlWord w _)) =
         w `elem` ["flddirty", "fldedit", "fldlock", "fldpriv"]
       isFieldMod _ = False
+
+  let instructionTokens (Tok _ (Grouped toks)) = Just toks
+      instructionTokens unformattedTok@(Tok _ (UnformattedText _)) = Just [unformattedTok]
+      instructionTokens _ = Nothing
   case dropWhile isFieldMod ts of
     [Tok _ (Grouped
        (Tok _ (ControlSymbol '*')
        :Tok _ (ControlWord "fldinst" Nothing)
-       :Tok _ (Grouped instrtoks)
+       :instrtoks
        :_)),
      Tok _ (Grouped
        (Tok _ (ControlWord "fldrslt" Nothing)
-       :Tok _ (Grouped resulttoks) : _))] -> do
-         case getHyperlink instrtoks of
-           Just linkdest -> do
-             modifyGroup $ \g -> g{ gHyperlink = Just linkdest }
-             result <- foldM processTok bs resulttoks
-             modifyGroup $ \g -> g{ gHyperlink = Nothing }
-             return result
-           Nothing -> foldM processTok bs resulttoks
+       :resulttoks))] -> do
+         case instructionTokens instrtoks of
+           Nothing -> pure bs
+           Just instrtoks' ->
+             case getHyperlink instrtoks' of
+               Just linkdest -> do
+                 modifyGroup $ \g -> g{ gHyperlink = Just linkdest }
+                 result <- foldM processTok bs resulttoks
+                 modifyGroup $ \g -> g{ gHyperlink = Nothing }
+                 return result
+               Nothing -> foldM processTok bs resulttoks
     _ -> pure bs
 
 getHyperlink :: [Tok] -> Maybe Text
