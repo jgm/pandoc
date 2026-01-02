@@ -463,6 +463,43 @@ return {
     end),
   },
 
+  group 'with_state' {
+    test('request_headers can be modified', function ()
+      local headers = {
+        {"Authorization", "Basic my-secret"}
+      }
+      pandoc.with_state({request_headers = headers}, function ()
+        assert.are_same(PANDOC_STATE.request_headers, headers)
+      end)
+    end),
+    test('resource_path can be modified', function ()
+      local paths = {'.', '/test/resource/path' }
+      pandoc.with_state({resource_path = paths}, function ()
+        assert.are_same(PANDOC_STATE.resource_path, paths)
+      end)
+    end),
+    test('user_data_dir can be modified', function ()
+      local opts = {user_data_dir = '/my/test/path'}
+      pandoc.with_state(opts, function ()
+        assert.are_equal(PANDOC_STATE.user_data_dir, '/my/test/path')
+      end)
+    end),
+    test('original value is restored afterwards', function ()
+      local orig_user_data_dir = PANDOC_STATE.user_data_dir
+      local opts = {user_data_dir = '/my/test/path'}
+      pandoc.with_state(opts, function () end)
+      assert.are_equal(PANDOC_STATE.user_data_dir, orig_user_data_dir)
+    end),
+    test('unsupported options are ignored', function ()
+      local orig_log = PANDOC_STATE.log
+      local opts = {log = 'nonsense'}
+      pandoc.with_state(opts, function ()
+        assert.are_same(PANDOC_STATE.log, orig_log)
+      end)
+      assert.are_same(PANDOC_STATE.log, orig_log)
+    end),
+  },
+
   group 'Marshal' {
     group 'Inlines' {
       test('Strings are broken into words', function ()
