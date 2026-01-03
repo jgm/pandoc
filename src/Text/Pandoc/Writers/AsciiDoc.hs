@@ -630,7 +630,9 @@ inlineToAsciiDoc opts (Superscript lst) = do
 inlineToAsciiDoc opts (Subscript lst) = do
   contents <- inlineListToAsciiDoc opts lst
   return $ "~" <> contents <> "~"
-inlineToAsciiDoc opts (SmallCaps lst) = inlineListToAsciiDoc opts lst
+inlineToAsciiDoc opts (SmallCaps lst) = do
+  contents <- inlineListToAsciiDoc opts lst
+  return $ "[smallcaps]#" <> contents <> "#"
 inlineToAsciiDoc opts (Quoted qt lst) = do
   isLegacy <- gets legacy
   contents <- inlineListToAsciiDoc opts lst
