@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -28,9 +29,15 @@ import Control.Monad (foldM)
 import Control.Monad.State.Strict
     ( StateT, MonadState(get), gets, modify, evalStateT )
 import Data.Char (isPunctuation, isSpace)
-import Data.List (delete, intercalate, intersperse)
-import Data.List.NonEmpty (NonEmpty(..))
-import Data.Maybe (fromMaybe, isJust)
+#if MIN_VERSION_base(4,19,0)
+import Data.List (delete, intercalate, intersperse, mapAccumL, uncons, sortOn, unsnoc)
+#else
+import Data.List (delete, intercalate, intersperse, mapAccumL, uncons, sortOn)
+#endif
+import Data.List.NonEmpty (NonEmpty((:|)), (<|))
+import qualified Data.List.NonEmpty as NonEmpty
+import Data.Maybe (fromMaybe, isJust, catMaybes)
+import qualified Data.Map as M
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -43,11 +50,17 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (blankline, space)
 import Text.DocLayout
+import Text.Pandoc.Builder (emptyCell)
 import Text.Pandoc.Shared
 import Text.Pandoc.URI
 import Text.Pandoc.Templates (renderTemplate)
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Walk (walk)
+
+#if !MIN_VERSION_base(4,19,0)
+unsnoc :: [a] -> Maybe ([a], a)
+unsnoc = foldr (\x -> Just . maybe ([], x) (\(~(a, b)) -> (x : a, b))) Nothing
+#endif
 
 data WriterState = WriterState { defListMarker       :: Text
                                , orderedListLevel    :: Int
@@ -150,6 +163,7 @@ escapeString context t
   needsEscape '+' = True
   needsEscape '`' = True
   needsEscape '*' = True
+  needsEscape '#' = True
   needsEscape '_' = True
   needsEscape '<' = True
   needsEscape '>' = True
@@ -269,9 +283,12 @@ blockToAsciiDoc opts (BlockQuote blocks) = do
                      else contents
   let bar = text "____"
   return $ bar $$ chomp contents' $$ bar <> blankline
-blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
-  let (caption, aligns, widths, headers, rows) =
-        toLegacyTable blkCapt specs thead tbody tfoot
+blockToAsciiDoc opts block@(Table _ blkCapt specs thead@(TableHead _ originalHeaders) originalTbody tfoot@(TableFoot _ originalFooters)) = do
+  let (caption, aligns, widths, _, _) =
+        toLegacyTable blkCapt specs thead originalTbody tfoot
+  let headers = adjustEmptyRows originalHeaders
+  let rows = adjustEmptyRows $ tableBodiesToRows originalTbody
+  let footers = adjustEmptyRows originalFooters
   caption' <- inlineListToAsciiDoc opts caption
   let caption'' = if null caption
                      then empty
@@ -290,15 +307,19 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
                      ws        -> ws
   let totalwidth :: Integer
       totalwidth = floor $ sum widths * 100
-  let colspec al wi = (case al of
-                         AlignLeft    -> "<"
-                         AlignCenter  -> "^"
-                         AlignRight   -> ">"
-                         AlignDefault -> "") ++
+  let alignmentOperator AlignLeft     = "<"
+      alignmentOperator AlignCenter   = "^"
+      alignmentOperator AlignRight    = ">"
+      alignmentOperator AlignDefault  = ""
+  let colspec al wi = (alignmentOperator al) ++
                       if wi == 0 then "" else show wi ++ "%"
-  let headerspec = if all null headers
+  let optionSpecForRows rowList spec = if allRowsEmpty rowList then Nothing else Just spec
+  let headerspec = optionSpecForRows headers "header"
+  let footerspec = optionSpecForRows footers "footer"
+  let optionsList = catMaybes [headerspec, footerspec]
+  let optionsspec = if null optionsList
                       then empty
-                      else text "options=\"header\","
+                      else text "options=\"" <> text (intercalate "," optionsList) <> text "\","
   let widthspec = if totalwidth == 0
                      then empty
                      else text "width="
@@ -310,7 +331,7 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
          <> doubleQuotes (text $ intercalate ","
              $ zipWith colspec aligns widths')
          <> text ","
-         <> headerspec <> text "]"
+         <> optionsspec <> text "]"
 
   -- construct cells and recurse in case of nested tables
   parentTableLevel <- gets tableNestingLevel
@@ -335,19 +356,48 @@ blockToAsciiDoc opts block@(Table _ blkCapt specs thead tbody tfoot) = do
                                d <- blockListToAsciiDoc opts bs
                                return $ (text "a" <> separator) $$ d
 
-  let makeRow cells = hsep `fmap` mapM makeCell cells
-  rows' <- mapM makeRow rows
-  head' <- makeRow headers
+  let colSpanFactor (ColSpan colSpan) = if colSpan > 1
+                                          then text $ show colSpan
+                                          else empty
+  let rowSpanFactor (RowSpan rowSpan) = if rowSpan > 1
+                                          then text $ "." ++ show rowSpan
+                                          else empty
+
+  let makeCellWithSpansAndAlignment (Cell _ alignment rowSpan colSpan blocks) = do
+        let spanFactor = colSpanFactor colSpan <> rowSpanFactor rowSpan
+        cell <- makeCell blocks
+        let alignedCell = alignmentOperator alignment <> cell
+
+        return $ if null spanFactor
+          then alignedCell
+          else spanFactor <> text "+" <> alignedCell
+
+  let makeRow (Row attr []) = makeRow $ Row attr $ replicate (length widths') emptyCell
+      makeRow (Row _ cells) = hsep `fmap` mapM makeCellWithSpansAndAlignment cells
+
+  -- AsciiDoc only supports 1 header row and 1 footer row.
+  let headerRow = Data.List.uncons $ adjustHeaders headers
+  let footerRow = unsnoc $ adjustFooters footers
+  let tailHeaderRows = if allRowsEmpty headers then [] else maybe [] snd headerRow
+  let initFooterRows = if allRowsEmpty footers then [] else maybe [] fst footerRow
+  rows' <- mapM makeRow $ tailHeaderRows ++ rows ++ initFooterRows
+  head' <- case headerRow of
+            Nothing -> return empty
+            Just (headerRow', _) -> makeRow headerRow'
+  foot <- case footerRow of
+            Nothing -> return empty
+            Just (_, footerRow') -> makeRow footerRow'
   modify $ \st -> st{ tableNestingLevel = parentTableLevel }
-  let head'' = if all null headers then empty else head'
+  let head'' = if allRowsEmpty headers then empty else head'
+  let foot' = if allRowsEmpty footers then empty else foot
   let colwidth = if writerWrapText opts == WrapAuto
                     then writerColumns opts
                     else 100000
-  let maxwidth = maximum $ fmap offset (head' :| rows')
+  let maxwidth = maximum $ fmap offset (foot <| (head' :| rows'))
   let body = if maxwidth > colwidth then vsep rows' else vcat rows'
   let border = separator <> text "==="
   return $
-    caption'' $$ tablespec $$ border $$ head'' $$ body $$ border $$ blankline
+    caption'' $$ tablespec $$ border $$ head'' $$ body $$ foot' $$ border $$ blankline
 blockToAsciiDoc opts (BulletList items) = do
   inlist <- gets inList
   modify $ \st -> st{ inList = True }
@@ -544,7 +594,9 @@ inlineListToAsciiDoc opts lst = do
                                    _           -> False
        isSpacy Start (Str xs)
          | Just (c, _) <- T.uncons xs = isPunctuation c || isSpace c
-       isSpacy _ _ = True
+       isSpacy End (Link{}) = True
+       isSpacy End (Image{}) = True
+       isSpacy _ _ = False
 
 setIntraword :: PandocMonad m => Bool -> ADW m ()
 setIntraword b = modify $ \st -> st{ intraword = b }
@@ -715,3 +767,144 @@ imageArguments opts attr altText src title = do
                 then empty
                 else "," <> mconcat (intersperse "," dimList)
   return $ literal src <> "[" <> linktext <> linktitle <> dims <> "]"
+
+-- | Adjust header rows for the fact that AsciiDoc only supports a single header row.
+--
+-- The first header row will become the single header row in AsciiDoc with the
+-- other rows becoming the top body rows.
+-- All cells of the first header row with a RowSpan > 1 will be mapped to
+-- RowSpan 1 and the remaining RowSpans of those cells wll be added as empty
+-- columns into the second row beneath them to preserve the original layout.
+adjustHeaders :: [Row] -> [Row]
+adjustHeaders [] = []
+adjustHeaders [row] = [row]
+adjustHeaders (Row attr firstHeaderCells:secondRow:remainingRows) =
+  let ((_, emptyHeaderCells), headerRow) = mapAccumL adjustHeaderRowCell (0, []) firstHeaderCells
+      secondRow' = applyEmptyCells secondRow emptyHeaderCells
+  in  Row attr headerRow:secondRow':remainingRows
+ where
+  adjustHeaderRowCell (columnPosition, emptyCells) cell@(Cell cellAttr alignment (RowSpan rowSpan) (ColSpan colSpan) blocks) =
+    let nextColumnPosition = columnPosition + colSpan
+        adjustedHeaderCell = Cell cellAttr alignment (RowSpan 1) (ColSpan colSpan) blocks
+        emptyHeaderRowCell = Cell nullAttr AlignDefault (RowSpan rowSpan - 1) (ColSpan colSpan) []
+        emptyCellPosition = (columnPosition, emptyHeaderRowCell)
+    in  if rowSpan > 1
+          then ((nextColumnPosition, emptyCellPosition:emptyCells), adjustedHeaderCell)
+          else ((nextColumnPosition, emptyCells), cell)
+
+-- | Adjust footer rows for the fact that AsciiDoc only supports a single footer row.
+--
+-- The last footer row will become the single footer row in AsciiDoc with the
+-- previous footer rows becoming the bottom body rows.
+-- All column indices of cells whose RowSpans would reach that last footer row
+-- are collected and subtracted by 1. Those collected column indices will then
+-- be applied as empty columns into the last footer row to preserve the original
+-- layout.
+adjustFooters :: [Row] -> [Row]
+adjustFooters [] = []
+adjustFooters [row] = [row]
+adjustFooters rows = adjustFooters' [] (0, length rows) M.empty rows
+ where
+  adjustFooters' _ _ _ [] = []
+  adjustFooters' columnIndices _ _ [row] = [applyEmptyCells row columnIndices]
+  adjustFooters' columnIndices rowInfo@(rowIndex, footerLength) previousRowSpans (row:rest) =
+    -- Need to keep track of RowSpans from previous rows and how they occupy
+    -- space in rows beneath them to be able to apply the correct column
+    -- position of RowSpans that would reach the last footer row.
+    let (previousRowSpans', row', columnIndices') = adjustFooterRow rowInfo previousRowSpans row
+        rows' = adjustFooters' (columnIndices ++ columnIndices') (rowIndex + 1, footerLength) previousRowSpans' rest
+    in  row':rows'
+
+  adjustFooterRow rowInfo previousRowSpans (Row attr cells) =
+    let ((nextColumnPosition, previousRowSpans'), cells') = mapAccumL (adjustFooterCell rowInfo) (0, previousRowSpans) cells
+        (cells'', columnIndices) = unzip cells'
+
+        -- Apply row spans from a previous row that are next to the end of the
+        -- current row's cells to keep track of the correct column position.
+        previousRowSpans'' = decrementTrailingRowSpans nextColumnPosition previousRowSpans'
+    in  (previousRowSpans'', Row attr cells'', catMaybes columnIndices)
+
+-- | Adjust footer cell for the fact that AsciiDoc only supports a single footer row.
+--
+-- Collects cells whose RowSpan would reach to the last footer row and applies
+-- them as empty cells to that last footer row.
+adjustFooterCell :: (Int, Int) -> (Int, M.Map Int (RowSpan, ColSpan)) -> Cell -> ((Int, M.Map Int (RowSpan, ColSpan)), (Cell, Maybe (Int, Cell)))
+adjustFooterCell rowInfo@(rowIndex, footerLength) (columnPosition, previousSpans) cell@(Cell _ _ (RowSpan rowSpan) (ColSpan colSpan) _)
+  | Just (ColSpan previousColSpan, previousSpans') <- takePreviousSpansAtColumn columnPosition previousSpans =
+      -- Apply row span from a previous row that occupies this column to keep
+      -- track of the correct column position.
+      adjustFooterCell rowInfo (columnPosition + previousColSpan, previousSpans') cell
+  | rowSpan > 1 && rowIndex + rowSpan >= footerLength =
+      -- Adjust row span that would reach all the way to the last footer row and
+      -- keep track of that to apply it to the last footer row.
+      ((nextColumnPosition, previousRowSpans'), (decrementRowSpanInCell cell, Just (columnPosition, emptyCellWithColSpan)))
+  | otherwise = ((nextColumnPosition, previousRowSpans'), (cell, Nothing))
+ where
+  -- Keep track of this cell's RowSpan for the rows following it.
+  previousRowSpans' = insertCurrentSpansAtColumn columnPosition previousSpans (RowSpan rowSpan) (ColSpan colSpan)
+  nextColumnPosition = columnPosition + colSpan
+  emptyCellWithColSpan = Cell nullAttr AlignDefault (RowSpan 1) (ColSpan colSpan) []
+
+-- | Adjust empty rows for AsciiDoc.
+--
+-- An empty row without any cells decrements RowSpans that cover it and is
+-- removed by them to adjust for being unable to express empty rows with no
+-- cells in AsciiDoc.
+adjustEmptyRows :: [Row] -> [Row]
+adjustEmptyRows = adjustEmptyRows' . map applyInitialRowsLeft
+ where
+  adjustEmptyRows' [] = []
+  adjustEmptyRows' (row:rest)
+    | maxRowSpan' <- maxRowSpan row
+    , maxRowSpan' > 1 =
+        -- Consume empty rows within the row's span.
+        let followingRows = take (maxRowSpan' - 1) rest
+            rows = consumeEmptyRows (row :| []) followingRows
+            rest' = drop (length followingRows) rest
+        in  rowFromCellsWithRowsLeft (NonEmpty.head rows) : adjustEmptyRows' (NonEmpty.tail rows ++ rest')
+    | otherwise = rowFromCellsWithRowsLeft row : adjustEmptyRows' rest
+
+  rowFromCellsWithRowsLeft (attr, cellsWithRowsLeft) = Row attr $ map fst cellsWithRowsLeft
+  cellRowSpan (Cell _ _ (RowSpan rowSpan) _ _) = rowSpan
+
+  consumeEmptyRows rows [] = NonEmpty.reverse rows
+  consumeEmptyRows rows (followingRow:restRows) =
+    if null (snd followingRow) && any rowHasRowSpanAndRowsLeft rows
+      then consumeEmptyRows (fmap (subtractRowsLeft decrementRowSpanInCell) rows) restRows -- Consume empty row for RowSpan and remove it
+      else consumeEmptyRows (followingRow <| fmap (subtractRowsLeft id) rows) restRows
+
+  rowHasRowSpanAndRowsLeft (_, cells) = any cellHasRowSpanAndRowsLeft cells
+  cellHasRowSpanAndRowsLeft (cell, rowsLeft) = cellRowSpan cell > 1 && rowsLeft >= 1
+
+  subtractRowsLeft changeCell (attr, cells) = (attr, map (subtractRowsLeftCell changeCell) cells)
+
+  subtractRowsLeftCell changeCell cellPair@(cell, rowsLeft)
+    | rowsLeft >= 1 = (changeCell cell, rowsLeft - 1)
+    | otherwise = cellPair
+
+  applyInitialRowsLeft (Row attr cells) = (attr, map applyInitialRowsLeftCell cells)
+
+  applyInitialRowsLeftCell cell
+    | rowSpan <- cellRowSpan cell, rowSpan > 1 = (cell, rowSpan - 1) -- Minus its own row
+    | otherwise = (cell, 0)
+
+  maxRowSpan (_, []) = 0
+  maxRowSpan (_, cells) = maximum $ map (cellRowSpan . fst) cells
+
+-- | Decrement the RowSpan of a Cell if that RowSpan > 1.
+decrementRowSpanInCell :: Cell -> Cell
+decrementRowSpanInCell cell@(Cell attr alignment (RowSpan rowSpan) colSpan blocks) =
+  if rowSpan > 1
+    then Cell attr alignment (RowSpan rowSpan - 1) colSpan blocks
+    else cell
+
+-- | Apply empty table cells at the given positions inside a Row.
+applyEmptyCells :: Row -> [(Int, Cell)] -> Row
+applyEmptyCells (Row attr cells) = Row attr . applyEmptyCells' 0 cells . sortOn fst
+ where
+  applyEmptyCells' _  cells' [] = cells'
+  applyEmptyCells' currentPosition cells' ((columnPosition, columnEmptyCell@(Cell _ _ _ (ColSpan colSpan) _)):rest)
+    | columnPosition == currentPosition = columnEmptyCell : applyEmptyCells' (currentPosition + colSpan) cells' rest
+  applyEmptyCells' _ [] _ = []
+  applyEmptyCells' currentPosition (cell@(Cell _ _ _ (ColSpan currentCellColSpan) _):restCells) emptyCellList =
+    cell : applyEmptyCells' (currentPosition + currentCellColSpan) restCells emptyCellList

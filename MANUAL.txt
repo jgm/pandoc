@@ -1,7 +1,7 @@
 ---
 title: Pandoc User's Guide
 author: John MacFarlane
-date: 2025-10-20
+date: 2025-12-01
 ---
 
 # Synopsis
@@ -44,7 +44,7 @@ Markdown can be expected to be lossy.
 
 If no *input-files* are specified, input is read from *stdin*.
 Output goes to *stdout* by default. For output to a file,
-use the `-o` option:
+use the `-o`/`--output` option:
 
     pandoc -o output.html input.txt
 
@@ -233,6 +233,7 @@ header when requesting a document from a URL:
 :   Specify input format.  *FORMAT* can be:
 
     ::: {#input-formats}
+    - `asciidoc` ([AsciiDoc] markup)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
     - `bits` ([BITS] XML, alias for `jats`)
@@ -273,6 +274,7 @@ header when requesting a document from a URL:
     - `opml` ([OPML])
     - `org` ([Emacs Org mode])
     - `pod` (Perl's [Plain Old Documentation])
+    - `pptx` ([PowerPoint])
     - `ris` ([RIS] bibliography)
     - `rtf` ([Rich Text Format])
     - `rst` ([reStructuredText])
@@ -282,6 +284,7 @@ header when requesting a document from a URL:
     - `twiki` ([TWiki markup])
     - `typst` ([typst])
     - `vimwiki` ([Vimwiki])
+    - `xlsx` ([Excel spreadsheet][XLSX])
     - `xml` (XML version of native AST)
     - the path of a custom Lua reader, see [Custom readers and writers] below
     :::
@@ -301,6 +304,12 @@ header when requesting a document from a URL:
     - `asciidoc` (modern [AsciiDoc] as interpreted by [AsciiDoctor])
     - `asciidoc_legacy` ([AsciiDoc] as interpreted by [`asciidoc-py`]).
     - `asciidoctor` (deprecated synonym for `asciidoc`)
+    - `bbcode` [BBCode]
+    - `bbcode_fluxbb` [BBCode (FluxBB)]
+    - `bbcode_phpbb` [BBCode (phpBB)]
+    - `bbcode_steam` [BBCode (Hubzilla)]
+    - `bbcode_hubzilla` [BBCode (Hubzilla)]
+    - `bbcode_xenforo` [BBCode (xenForo)]
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
     - `bibtex` ([BibTeX] bibliography)
     - `biblatex` ([BibLaTeX] bibliography)
@@ -512,6 +521,7 @@ header when requesting a document from a URL:
 [DokuWiki markup]: https://www.dokuwiki.org/dokuwiki
 [ZimWiki markup]: https://zim-wiki.org/manual/Help/Wiki_Syntax.html
 [XWiki markup]: https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/
+[XLSX]: https://en.wikipedia.org/wiki/Microsoft_Excel#File_formats
 [Vimdoc]: https://vimhelp.org/helphelp.txt.html#help-writing
 [TWiki markup]: https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules
 [TikiWiki markup]: https://doc.tiki.org/Wiki-Syntax-Text#The_Markup_Language_Wiki-Syntax
@@ -546,6 +556,12 @@ header when requesting a document from a URL:
 [EndNote XML bibliography]: https://support.clarivate.com/Endnote/s/article/EndNote-XML-Document-Type-Definition
 [typst]: https://typst.app
 [mdoc]: https://mandoc.bsd.lv/man/mdoc.7.html
+[BBCode]: https://www.bbcode.org/reference.php
+[BBCode (FluxBB)]: https://web.archive.org/web/20210623155046/https://fluxbb.org/forums/help.php#bbcode
+[BBCode (Hubzilla)]: https://hubzilla.org/help/member/bbcode
+[BBCode (Steam)]: https://steamcommunity.com/comment/ForumTopic/formattinghelp
+[BBCode (phpBB)]: https://www.phpbb.com/community/help/bbcode
+[BBCode (xenForo)]: https://www.xenfocus.com/community/help/bb-codes/
 
 ## Reader options {.options}
 
@@ -1415,7 +1431,7 @@ header when requesting a document from a URL:
     In the template, `%n` will be replaced by the chunk number (padded
     with leading 0s to 3 digits), `%s` with the section number of the chunk,
     `%h` with the heading text (with formatting removed), `%i` with
-    the section identifier. For example, `%section-%s-%i.html` might
+    the section identifier. For example, `section-%s-%i.html` might
     be resolved to `section-1.1-introduction.html`. The characters
     `/` and `\` are not allowed in chunk templates and will be
     ignored. The default is `%s-%i.html`.
@@ -5696,28 +5712,36 @@ The link text will be used as the image's alt text:
 
 An image with nonempty alt text, occurring by itself in a
 paragraph, will be rendered as a figure with a caption.  The
-image's alt text will be used as the caption.
+image's description will be used as the caption.
 
-    ![This is the caption](/url/of/image.png)
+    ![This is the caption.](image.png)
 
 How this is rendered depends on the output format. Some output
 formats (e.g. RTF) do not yet support figures. In those
 formats, you'll just get an image in a paragraph by itself, with
-no caption. For LaTeX output, you can specify a [figure's
-positioning](https://www.overleaf.com/learn/latex/Positioning_images_and_tables#The_figure_environment)
-by adding the `latex-placement` attribute.
-
-    ![This is the caption](/url/of/image.png){latex-placement="ht"}
+no caption.
 
 If you just want a regular inline image, just make sure it is not
 the only thing in the paragraph. One way to do this is to insert a
 nonbreaking space after the image:
 
-    ![This image won't be a figure](/url/of/image.png)\
+    ![This image won't be a figure](image.png)\
 
 Note that in reveal.js slide shows, an image in a paragraph
 by itself that has the `r-stretch` class will fill the screen,
 and the caption and figure tags will be omitted.
+
+To specify an alt text for the image that is different
+from the caption, you can use an explicit attribute (assuming the
+`link_attributes` extension is set):
+
+    ![The caption.](image.png){alt="description of image"}
+
+For LaTeX output, you can specify a [figure's
+positioning](https://www.overleaf.com/learn/latex/Positioning_images_and_tables#The_figure_environment)
+by adding the `latex-placement` attribute.
+
+    ![The caption.](image.png){latex-placement="ht"}
 
 ### Extension: `link_attributes` ###
 
@@ -5967,6 +5991,17 @@ contains a citation, note that normal citations will be put in
 parentheses, while author-in-text citations will not.  For
 this reason, it is sometimes preferable to use the
 author-in-text style inside notes when using a note style.
+
+Many CSL styles will format citations differently when the
+same source has been cited earlier.  In documents with chapters,
+it is usually desirable to reset this position information
+at the beginning of every chapter. To do this, add the class
+`reset-citation-positions` to the heading for each chapter:
+
+    # The Beginning {.reset-citation-positions}
+
+Note that this class only has an effect when placed on
+top-level headings; it is ignored in nested blocks.
 
 [CSL user documentation]: https://citationstyles.org/authors/
 [CSL]: https://docs.citationstyles.org/en/stable/specification.html

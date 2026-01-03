@@ -16,6 +16,7 @@ module Tests.Helpers ( test
                      , TestResult(..)
                      , setupEnvironment
                      , showDiff
+                     , nativeDiff
                      , testGolden
                      , (=?>)
                      , purely
@@ -131,6 +132,19 @@ vividize :: Diff String -> String
 vividize (Both s _) = "  " ++ s
 vividize (First s)  = "- " ++ s
 vividize (Second s) = "+ " ++ s
+
+nativeDiff :: FilePath -> Pandoc -> Pandoc -> IO (Maybe String)
+nativeDiff normPath expectedNative actualNative
+  | expectedNative == actualNative = return Nothing
+  | otherwise = Just <$> do
+      expected <- T.unpack <$> runIOorExplode (writeNative def expectedNative)
+      actual <- T.unpack <$> runIOorExplode (writeNative def actualNative)
+      let dash = replicate 72 '-'
+      let diff = getDiff (lines actual) (lines expected)
+      return $ '\n' : dash ++
+               "\n--- " ++ normPath ++
+               "\n+++ " ++ "test" ++ "\n" ++
+               showDiff (1,1) diff ++ dash
 
 purely :: (b -> PandocPure a) -> b -> a
 purely f = either (error . show) id . runPure . f

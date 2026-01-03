@@ -13,6 +13,8 @@ module Text.Pandoc.Lua.Marshal.LogMessage
   , typeLogMessage
   ) where
 
+import Control.Applicative (optional)
+import Data.Maybe (fromMaybe)
 import HsLua
 import Text.Pandoc.Logging (LogMessage, showLogMessage)
 import qualified Data.Aeson as Aeson
@@ -24,6 +26,11 @@ typeLogMessage = deftype "LogMessage"
       ### liftPure showLogMessage
       <#> udparam typeLogMessage "msg" "object"
       =#> functionResult pushText "string" "stringified log message"
+  , operation Eq $ lambda
+      ### liftPure2 (\a b -> fromMaybe False ((==) <$> a <*> b))
+      <#> parameter (optional . peekLogMessage) "a" "LogMessage" ""
+      <#> parameter (optional . peekLogMessage) "b" "LogMessage" ""
+      =#> functionResult pushBool "boolean" "whether the two are equal"
   , operation (CustomOperation "__tojson") $ lambda
       ### liftPure Aeson.encode
       <#> udparam typeLogMessage "msg" "object"

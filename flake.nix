@@ -52,6 +52,9 @@
             haskellPackages.hpc
             haskellPackages.ghcid
             haskellPackages.stylish-haskell
+            haskellPackages.eventlog2html
+            haskellPackages.profiterole
+            haskellPackages.profiteur
             zlib.dev
             git
             bashInteractive

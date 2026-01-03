@@ -28,6 +28,7 @@ It can convert *from*
 
 <div id="input-formats">
 
+- `asciidoc` ([AsciiDoc](https://asciidoc.org/) markup)
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)
 - `bits` ([BITS](https://jats.nlm.nih.gov/extensions/bits/) XML, alias
@@ -91,6 +92,8 @@ It can convert *from*
 - `org` ([Emacs Org mode](https://orgmode.org))
 - `pod` (Perl’s [Plain Old
   Documentation](https://perldoc.perl.org/perlpod))
+- `pptx`
+  ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint))
 - `ris` ([RIS](https://en.wikipedia.org/wiki/RIS_(file_format))
   bibliography)
 - `rtf` ([Rich Text
@@ -105,6 +108,8 @@ It can convert *from*
   markup](https://twiki.org/cgi-bin/view/TWiki/TextFormattingRules))
 - `typst` ([typst](https://typst.app))
 - `vimwiki` ([Vimwiki](https://vimwiki.github.io))
+- `xlsx` ([Excel
+  spreadsheet](https://en.wikipedia.org/wiki/Microsoft_Excel#File_formats))
 - `xml` (XML version of native AST)
 - the path of a custom Lua reader, see [Custom readers and
   writers](https://pandoc.org/MANUAL.html#custom-readers-and-writers)
@@ -124,6 +129,17 @@ It can convert *to*
 - `asciidoc_legacy` ([AsciiDoc](https://asciidoc.org/) as interpreted by
   [`asciidoc-py`](https://github.com/asciidoc-py/asciidoc-py)).
 - `asciidoctor` (deprecated synonym for `asciidoc`)
+- `bbcode` [BBCode](https://www.bbcode.org/reference.php)
+- `bbcode_fluxbb` [BBCode
+  (FluxBB)](https://web.archive.org/web/20210623155046/https://fluxbb.org/forums/help.php#bbcode)
+- `bbcode_phpbb` [BBCode
+  (phpBB)](https://www.phpbb.com/community/help/bbcode)
+- `bbcode_steam` [BBCode
+  (Hubzilla)](https://hubzilla.org/help/member/bbcode)
+- `bbcode_hubzilla` [BBCode
+  (Hubzilla)](https://hubzilla.org/help/member/bbcode)
+- `bbcode_xenforo` [BBCode
+  (xenForo)](https://www.xenfocus.com/community/help/bb-codes/)
 - `beamer` ([LaTeX beamer](https://ctan.org/pkg/beamer) slide show)
 - `bibtex` ([BibTeX](https://ctan.org/pkg/bibtex) bibliography)
 - `biblatex` ([BibLaTeX](https://ctan.org/pkg/biblatex) bibliography)

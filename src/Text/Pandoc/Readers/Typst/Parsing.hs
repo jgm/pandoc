@@ -27,15 +27,18 @@ import Typst.Types
     ( Identifier, Content(Elt), FromVal(..), Val(VNone) )
 import Text.Pandoc.Class.PandocMonad ( PandocMonad, report )
 import Text.Pandoc.Logging (LogMessage(..))
+import Text.Pandoc.Definition
 
-newtype PState = PState
-        { sLabels :: [Text]}
+data PState = PState
+        { sLabels :: [Text]
+        , sMeta :: Meta }
         deriving (Show)
 
 defaultPState :: PState
 defaultPState =
   PState
-  { sLabels = [] }
+  { sLabels = []
+  , sMeta = mempty }
 
 type P m a = ParsecT [Content] PState m a
 -- state tracks a list of labels in the document

@@ -12,7 +12,6 @@ Tests for the word docx reader.
 -}
 module Tests.Readers.Docx (tests) where
 
-import Data.Algorithm.Diff (getDiff)
 import Codec.Archive.Zip
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as B
@@ -33,20 +32,6 @@ defopts = def{ readerExtensions = getDefaultExtensions "docx" }
 
 testCompare :: String -> FilePath -> FilePath -> TestTree
 testCompare = testCompareWithOpts defopts
-
-
-nativeDiff :: FilePath -> Pandoc -> Pandoc -> IO (Maybe String)
-nativeDiff normPath expectedNative actualNative
-  | expectedNative == actualNative = return Nothing
-  | otherwise = Just <$> do
-      expected <- T.unpack <$> runIOorExplode (writeNative def expectedNative)
-      actual <- T.unpack <$> runIOorExplode (writeNative def actualNative)
-      let dash = replicate 72 '-'
-      let diff = getDiff (lines actual) (lines expected)
-      return $ '\n' : dash ++
-               "\n--- " ++ normPath ++
-               "\n+++ " ++ "test" ++ "\n" ++
-               showDiff (1,1) diff ++ dash
 
 testCompareWithOpts :: ReaderOptions -> String -> FilePath -> FilePath -> TestTree
 testCompareWithOpts opts testName docxFP nativeFP =

@@ -13,7 +13,7 @@ Conversion of mediawiki text to 'Pandoc' document.
 {-
 TODO:
 _ correctly handle tables within tables
-_ parse templates?
+_ parse templates(?) and built-in magic words
 -}
 module Text.Pandoc.Readers.MediaWiki ( readMediaWiki ) where
 
@@ -28,17 +28,17 @@ import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Text.HTML.TagSoup
-import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
 import qualified Text.Pandoc.Builder as B
+import Text.Pandoc.Builder (Blocks, Inlines, trimInlines)
+import Text.Pandoc.Char (isCJK)
 import Text.Pandoc.Class.PandocMonad (PandocMonad (..))
 import Text.Pandoc.Definition
 import Text.Pandoc.Logging
 import Text.Pandoc.Options
 import Text.Pandoc.Parsing hiding (tableCaption)
-import Text.Pandoc.Readers.HTML (htmlTag, isBlockTag, isCommentTag, toAttr)
-import Text.Pandoc.Shared (safeRead, stringify, stripTrailingNewlines,
-                           trim, splitTextBy, tshow, formatCode)
-import Text.Pandoc.Char (isCJK)
+import Text.Pandoc.Readers.HTML (htmlTag, isCommentTag, toAttr)
+import Text.Pandoc.Shared (formatCode, safeRead, splitTextBy, stringify,
+                           stripTrailingNewlines, trim, tshow)
 import Text.Pandoc.XML (fromEntities)
 
 -- | Read mediawiki from an input string and return a Pandoc document.
@@ -56,6 +56,7 @@ readMediaWiki opts s = do
                                             , mwLogMessages = []
                                             , mwInTT = False
                                             , mwAllowNewlines = True
+                                            , mwMeta = nullMeta
                                             }
             sources
   case parsed of
@@ -70,6 +71,7 @@ data MWState = MWState { mwOptions         :: ReaderOptions
                        , mwLogMessages     :: [LogMessage]
                        , mwInTT            :: Bool
                        , mwAllowNewlines   :: Bool
+                       , mwMeta            :: Meta
                        }
 
 type MWParser m = ParsecT Sources MWState m
@@ -90,7 +92,7 @@ instance HasLogMessages MWState where
 --
 
 specialChars :: [Char]
-specialChars = "'[]<=&*{}|\":\\"
+specialChars = "'[]<=&*{}|\":\\_"
 
 spaceChars :: [Char]
 spaceChars = " \n\t"
@@ -102,21 +104,86 @@ newBlockTags :: [Text]
 newBlockTags = ["haskell","syntaxhighlight","source","gallery","references"]
 
 isBlockTag' :: Tag Text -> Bool
-isBlockTag' tag@(TagOpen t _) = (isBlockTag tag || t `elem` newBlockTags) &&
-  t `notElem` eitherBlockOrInline
-isBlockTag' (TagClose "ref") = True -- needed so 'special' doesn't parse it
-isBlockTag' tag@(TagClose t) = (isBlockTag tag || t `elem` newBlockTags) &&
-  t `notElem` eitherBlockOrInline
-isBlockTag' tag = isBlockTag tag
+isBlockTag' (TagOpen t _) = isBlockTagName t
+isBlockTag' (TagClose t) = isBlockTagName t
+isBlockTag' _ = False
+
+isBlockTagName :: Text -> Bool
+isBlockTagName t =
+  t `elem` [ "blockquote"
+           , "caption"
+           , "col"
+           , "colgroup"
+           , "dd"
+           , "div"
+           , "dl"
+           , "dt"
+           , "h1"
+           , "h2"
+           , "h3"
+           , "h4"
+           , "h5"
+           , "h6"
+           , "hr"
+           , "li"
+           , "meta"
+           , "ol"
+           , "p"
+           , "pre"
+           , "rp"
+           , "table"
+           , "td"
+           , "th"
+           , "time"
+           , "tr"
+           , "ul"
+           , "center"
+           ] || t `elem` newBlockTags
 
 isInlineTag' :: Tag Text -> Bool
 isInlineTag' (TagComment _) = True
-isInlineTag' (TagClose "ref") = False -- see below inlineTag
-isInlineTag' t              = not (isBlockTag' t)
+isInlineTag' (TagOpen t _) = isInlineTagName t
+isInlineTag' (TagClose t) = isInlineTagName t
+isInlineTag' _ = False
 
-eitherBlockOrInline :: [Text]
-eitherBlockOrInline = ["applet", "button", "del", "iframe", "ins",
-                               "map", "area", "object"]
+isInlineTagName :: Text -> Bool
+isInlineTagName t =
+  t `elem` [ "abbr"
+           , "b"
+           , "bdi"
+           , "bdo"
+           , "big"
+           , "br"
+           , "cite"
+           , "code"
+           , "data"
+           , "del"
+           , "dfn"
+           , "em"
+           , "i"
+           , "ins"
+           , "kbd"
+           , "link"
+           , "mark"
+           , "q"
+           , "rt"
+           , "ruby"
+           , "s"
+           , "samp"
+           , "small"
+           , "span"
+           , "strong"
+           , "sub"
+           , "sup"
+           , "u"
+           , "var"
+           , "wbr"
+           , "font"
+           , "rb"
+           , "rtc"
+           , "strike"
+           , "tt"
+           ]
 
 htmlComment :: PandocMonad m => MWParser m ()
 htmlComment = () <$ htmlTag isCommentTag
@@ -160,11 +227,12 @@ parseMediaWiki = do
   spaces
   eof
   categoryLinks <- reverse . mwCategoryLinks <$> getState
+  meta <- mwMeta <$> getState
   let categories = if null categoryLinks
                       then mempty
                       else B.para $ mconcat $ intersperse B.space categoryLinks
   reportLogMessages
-  return $ B.doc $ bs <> categories
+  return $ Pandoc meta (B.toList bs <> B.toList categories)
 
 --
 -- block parsers
@@ -533,6 +601,7 @@ inline =  whitespace
       <|> doubleQuotes
       <|> strong
       <|> emph
+      <|> behaviorSwitch
       <|> image
       <|> internalLink
       <|> externalLink
@@ -571,7 +640,11 @@ singleParaToPlain bs =
 
 inlineTag :: PandocMonad m => MWParser m Inlines
 inlineTag = do
-  (tag, _) <- lookAhead $ htmlTag isInlineTag'
+  (tag, _) <- lookAhead $ htmlTag (\tag -> case tag of
+                                      TagOpen "hask" _ -> True
+                                      TagOpen "ref" _ -> True
+                                      TagOpen "nowiki" _ -> True
+                                      _ -> isInlineTag' tag)
   case tag of
        TagOpen "ref" _ -> B.note . singleParaToPlain <$> blocksInTags "ref"
        TagOpen "nowiki" _ -> try $ do
@@ -586,6 +659,10 @@ inlineTag = do
        TagOpen "del" _ -> B.strikeout <$> inlinesInTags "del"
        TagOpen "sub" _ -> B.subscript <$> inlinesInTags "sub"
        TagOpen "sup" _ -> B.superscript <$> inlinesInTags "sup"
+       TagOpen "var" _ -> B.codeWith ("",["variable"],[]) <$> textInTags "var"
+       TagOpen "samp" _ -> B.codeWith ("",["sample"],[]) <$> textInTags "samp"
+       TagOpen "kbd" _ -> B.spanWith ("",["kbd"],[]) <$> inlinesInTags "kbd"
+       TagOpen "mark" _ -> B.spanWith ("",["mark"],[]) <$> inlinesInTags "mark"
        TagOpen "code" _ -> encode <$> inlinesInTags "code"
        TagOpen "tt" _ -> do
          inTT <- mwInTT <$> getState
@@ -597,8 +674,15 @@ inlineTag = do
        _ -> B.rawInline "html" . snd <$> htmlTag (~== tag)
 
 special :: PandocMonad m => MWParser m Inlines
-special = B.str <$> countChar 1 (notFollowedBy' (htmlTag isBlockTag') *>
-                                  oneOf specialChars)
+special = B.str . T.singleton <$>
+  (notFollowedBy' (htmlTag (\t -> isInlineTag' t ||
+                                  isBlockTag' t ||
+                                  case t of
+                                    TagClose "ref" -> True
+                                    TagClose "hask" -> True
+                                    TagClose "nowiki" -> True
+                                    _ -> False)
+                                  ) *> oneOf specialChars)
 
 inlineHtml :: PandocMonad m => MWParser m Inlines
 inlineHtml = B.rawInline "html" . snd <$> htmlTag isInlineTag'
@@ -716,3 +800,37 @@ doubleQuotes = do
   B.doubleQuoted <$> inlinesBetween openDoubleQuote closeDoubleQuote
     where openDoubleQuote = sym "\"" >> lookAhead nonspaceChar
           closeDoubleQuote = try $ sym "\""
+
+behaviorSwitch :: PandocMonad m => MWParser m Inlines
+behaviorSwitch = try $ do
+  let reservedMagicWords = [ "NOTOC"
+              , "FORCETOC"
+              , "TOC"
+              , "NOEDITSECTION"
+              , "NEWSECTIONLINK"
+              , "NONEWSECTIONLINK"
+              , "NOGALLERY"
+              , "HIDDENCAT"
+              , "EXPECTUNUSEDCATEGORY"
+              , "NOCONTENTCONVERT"
+              , "NOCC"
+              , "NOTITLECONVERT"
+              , "NOTC"
+              , "INDEX"
+              , "NOINDEX"
+              , "STATICREDIRECT"
+              , "EXPECTUNUSEDTEMPLATE"
+              -- From popular extensions
+              , "NOGLOBAL"
+              , "DISAMBIG"
+              , "ARCHIVEDTALK"
+              , "NOTALK"
+              ]
+  string "__"
+  name <- many1 alphaNum
+  string "__"
+  case name `elem` reservedMagicWords of
+    True -> do
+      updateState $ \st -> st{ mwMeta = B.setMeta (T.toLower $ T.pack name) True (mwMeta st) }
+      return mempty
+    False -> return $ B.str $ "__" <> T.pack name <> "__"

@@ -30,7 +30,7 @@ import Text.Pandoc.Error (PandocError(..))
 import Text.Pandoc.Extensions (pandocExtensions)
 import Text.Pandoc.Logging (LogMessage(..))
 import Text.Pandoc.Options (ReaderOptions(..))
-import Text.Pandoc.Shared (stringify, tshow)
+import Text.Pandoc.Shared (stringify, tshow, makeSections)
 import Data.Containers.ListUtils (nubOrd)
 import Text.Pandoc.Walk (query, walk, walkM)
 import Control.Applicative ((<|>))
@@ -295,10 +295,22 @@ getCitations :: Locale
              -> M.Map Text ItemId
              -> Pandoc
              -> [Citeproc.Citation Inlines]
-getCitations locale otherIdsMap = Foldable.toList . query getCitation
+getCitations locale otherIdsMap (Pandoc meta blocks) =
+  Foldable.toList (query getCitation meta <>
+                   foldMap handleBlock (makeSections False Nothing blocks))
  where
+  handleBlock :: Block -> Seq.Seq (Citeproc.Citation Inlines)
+  handleBlock b@(Div (_,cls,_) _)
+    | "section" `elem` cls
+    , "reset-citation-positions" `elem` cls =
+      case Seq.viewl (query getCitation b) of
+        x Seq.:< xs -> addResetTo x Seq.<| xs
+        Seq.EmptyL -> mempty
+  handleBlock b = query getCitation b
+  addResetTo citation = citation{ Citeproc.citationResetPosition = True }
   getCitation (Cite cs _fallback) = Seq.singleton $
     Citeproc.Citation { Citeproc.citationId = Nothing
+                      , Citeproc.citationResetPosition = False
                       , Citeproc.citationPrefix = Nothing
                       , Citeproc.citationSuffix = Nothing
                       , Citeproc.citationNoteNumber =
@@ -580,7 +592,8 @@ deNote (Note bs) =
       = Cite (c:cs) (addCommas (needsPeriod zs) ils) :
         addParens zs
     | otherwise
-      = Cite (c:cs) (concatMap noteInParens ils) : addParens zs
+      = Cite (c:cs) (dropWhile (== Space) (concatMap noteInParens ils))
+         : addParens zs
   addParens (x:xs) = x : addParens xs
 
   removeNotes (Span ("",["csl-note"],[]) ils) = Span ("",[],[]) ils

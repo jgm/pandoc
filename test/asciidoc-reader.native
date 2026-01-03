@@ -1,0 +1,4418 @@
+Pandoc
+  Meta
+    { unMeta =
+        fromList
+          [ ( "author"
+            , MetaList
+                [ MetaInlines
+                    [ Str "John"
+                    , Space
+                    , Str "MacFarlane"
+                    , Space
+                    , Str "("
+                    , Link
+                        ( "" , [] , [] )
+                        [ Str "jgm@berkeley.edu" ]
+                        ( "mailto:jgm@berkeley.edu" , "" )
+                    , Str ")"
+                    ]
+                , MetaInlines
+                    [ Str "John"
+                    , Space
+                    , Str "Doe"
+                    , Space
+                    , Str "("
+                    , Link
+                        ( "" , [] , [] )
+                        [ Str "doe@example.com" ]
+                        ( "mailto:doe@example.com" , "" )
+                    , Str ")"
+                    ]
+                ]
+            )
+          , ( "custom" , MetaString "Foo bar baz" )
+          , ( "date" , MetaString "2025-11-24" )
+          , ( "flag" , MetaBool True )
+          , ( "title"
+            , MetaInlines
+                [ Str "AsciiDoc"
+                , Space
+                , Str "reader"
+                , Space
+                , Str "test"
+                ]
+            )
+          , ( "version" , MetaString "1.0" )
+          ]
+    }
+  [ Header
+      1
+      ( "firsty" , [] , [] )
+      [ Str "Inline" , Space , Str "markup" ]
+  , Header
+      2
+      ( "_characters_and_escapes" , [] , [] )
+      [ Str "Characters"
+      , Space
+      , Str "and"
+      , Space
+      , Str "escapes"
+      ]
+  , Para
+      [ Str "Dog\8217s"
+      , Space
+      , Str "has"
+      , Space
+      , Str "a"
+      , Space
+      , Str "curved"
+      , Space
+      , Str "apostrophe,"
+      , Space
+      , Str "but"
+      , Space
+      , Str "dog's"
+      , Space
+      , Str "does"
+      , Space
+      , Str "not."
+      ]
+  , Para
+      [ Str "An"
+      , Space
+      , Str "escaped"
+      , Space
+      , Str "symbol:"
+      , Space
+      , Str "*star*."
+      ]
+  , Para
+      [ Str "Character"
+      , Space
+      , Str "references:"
+      , Space
+      , Str "\228\160\8928"
+      ]
+  , Header
+      2
+      ( "_line_breaks" , [] , [] )
+      [ Str "Line" , Space , Str "breaks" ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "hard"
+      , LineBreak
+      , Str "break."
+      ]
+  , Para
+      [ Str "Or"
+      , Space
+      , Str "set"
+      , Space
+      , Str "it"
+      , Space
+      , Str "for"
+      , Space
+      , Str "a"
+      , Space
+      , Str "whole"
+      , Space
+      , Str "paragraph"
+      ]
+  , Div
+      ( ""
+      , []
+      , [ ( "wrapper" , "1" ) , ( "options" , "hardbreaks" ) ]
+      )
+      [ Para
+          [ Str "These"
+          , Space
+          , Str "are"
+          , LineBreak
+          , Str "all"
+          , LineBreak
+          , Str "hard"
+          , LineBreak
+          , Str "breaks."
+          ]
+      ]
+  , Header 2 ( "_autolinks" , [] , [] ) [ Str "Autolinks" ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "http://example.com/foobar?a=333&b=no%20body" ]
+          ( "http://example.com/foobar?a=333&b=no%20body" , "" )
+      , Str ","
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Str "me@example.com" ]
+          ( "me@example.com" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "http://example.com/foobar?a=333&b=no%20body" ]
+          ( "http://example.com/foobar?a=333&b=no%20body" , "" )
+      , Str ","
+      , Space
+      , Str "<"
+      , Link
+          ( "" , [] , [] )
+          [ Str "me@example.com" ]
+          ( "me@example.com" , "" )
+      , Str ">"
+      ]
+  , Header
+      2 ( "_cross_reference" , [] , [] ) [ Str "Cross-reference" ]
+  , Para
+      [ Str "See"
+      , Space
+      , Link
+          ( "" , [ "cross-reference" ] , [] )
+          [ Str "Inline" , Space , Str "markup" ]
+          ( "#firsty" , "" )
+      ]
+  , Para
+      [ Str "See"
+      , Space
+      , Link
+          ( "" , [ "cross-reference" ] , [] )
+          [ Str "My"
+          , Space
+          , Str "great"
+          , Space
+          , Str "section"
+          , Space
+          , Str "on"
+          , Space
+          , Str "Inline"
+          , Space
+          , Str "markup"
+          ]
+          ( "#firsty" , "" )
+      ]
+  , Para
+      [ Str "Go"
+      , Space
+      , Str "to"
+      , Space
+      , Link
+          ( "" , [ "cross-reference" ] , [] )
+          [ Str "an" , Space , Str "inline" , Space , Str "anchor" ]
+          ( "#anch" , "" )
+      ]
+  , Header 2 ( "_anchors" , [] , [] ) [ Str "Anchors" ]
+  , Para
+      [ Str "An"
+      , Space
+      , Span ( "anch" , [] , [] ) []
+      , Str "inline"
+      , Space
+      , Str "anchor."
+      ]
+  , Para
+      [ Span ( "[bibanchor" , [] , [] ) []
+      , Str "Doe,"
+      , Space
+      , Str "John."
+      , Space
+      , Str "A"
+      , Space
+      , Str "Book."
+      ]
+  , Header
+      2
+      ( "_inline_macros" , [] , [] )
+      [ Str "Inline" , Space , Str "macros" ]
+  , Para
+      [ Span ( "" , [ "kbd" ] , [] ) [ Strong [ Str "F11" ] ] ]
+  , Para
+      [ Span ( "" , [ "kbd" ] , [] ) [ Strong [ Str "Ctrl" ] ]
+      , Str "+"
+      , Span ( "" , [ "kbd" ] , [] ) [ Strong [ Str "Shift" ] ]
+      , Str "+"
+      , Span ( "" , [ "kbd" ] , [] ) [ Strong [ Str "F" ] ]
+      ]
+  , Para
+      [ Span
+          ( "" , [ "menu" ] , [] )
+          [ Strong [ Str "File\160\8250\160Save" ] ]
+      ]
+  , Para
+      [ Span
+          ( "" , [ "menu" ] , [] )
+          [ Strong
+              [ Str "Reader\160\8250\160Markdown\160\8250\160Pandoc" ]
+          ]
+      ]
+  , Para
+      [ Span
+          ( "" , [ "button" ] , [] ) [ Strong [ Str "[Cancel]" ] ]
+      ]
+  , Para
+      [ Image
+          ( "" , [ "red icon" ] , [] )
+          []
+          ( "./images/icons/heart.png" , "" )
+      ]
+  , Para [ Str "anchor:tiger" ]
+  , Para [ Strong [ Str "*bold*" ] ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Get" , Space , Str "Report" ]
+          ( "downloads/report.pdf" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "tools.html#editors" ]
+          ( "tools.html#editors" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Your" , Space , Str "files" ]
+          ( "file:///home/username" , "" )
+      ]
+  , Para [ Str "Tricky" , Space , Str "cases:" ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Get" , Space , Str "Report" ]
+          ( "My Documents/report.pdf" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Get" , Space , Str "Report" ]
+          ( "My&#32;Documents/report.pdf" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Get" , Space , Str "Report" ]
+          ( "My%20Documents/report.pdf" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "https://example.org/now_this__link_works.html" ]
+          ( "https://example.org/now_this__link_works.html" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [] , [] )
+          [ Str "Subscribe" ]
+          ( "join@discuss.example.org" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [ "mail" ] , [] )
+          [ Str "Click,"
+          , Space
+          , Str "subscribe,"
+          , Space
+          , Str "and"
+          , Space
+          , Str "participate!"
+          ]
+          ( "join@discuss.example.org" , "" )
+      ]
+  , Para
+      [ Link
+          ( "" , [ "cross-reference" ] , [] )
+          [ Str "use"
+          , Space
+          , Str "attributes"
+          , Space
+          , Str "within"
+          , Space
+          , Str "the"
+          , Space
+          , Str "link"
+          , Space
+          , Str "macro"
+          ]
+          ( "#link-macro-attributes" , "" )
+      ]
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ Plain
+          [ Image
+              ( "" , [] , [] ) [ Str "Sunset" ] ( "sunset.jpg" , "" )
+          ]
+      ]
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ Plain [ Image ( "" , [] , [] ) [] ( "name.png" , "" ) ] ]
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ Plain
+          [ Image
+              ( ""
+              , []
+              , [ ( "width" , "300px" ) , ( "height" , "400px" ) ]
+              )
+              [ Str "Sunset" ]
+              ( "sunset.jpg" , "" )
+          ]
+      ]
+  , Div
+      ( ""
+      , []
+      , [ ( "wrapper" , "1" )
+        , ( "alt" , "Sunset" )
+        , ( "height" , "400" )
+        , ( "width" , "300" )
+        ]
+      )
+      [ Figure
+          ( "" , [] , [] )
+          (Caption Nothing [])
+          [ Plain [ Image ( "" , [] , [] ) [] ( "sunset.jpg" , "" ) ]
+          ]
+      ]
+  , Para [ Math DisplayMath "e=mc^2\n" ]
+  , Para [ Math DisplayMath "sin n / 3\n" ]
+  , Para [ Math DisplayMath "e^i\n" ]
+  , Header
+      2
+      ( "_attribute_substitutions" , [] , [] )
+      [ Str "Attribute" , Space , Str "substitutions" ]
+  , Para [ Str "Foo" , Space , Str "bar" , Space , Str "baz" ]
+  , Para [ Str "{nonexistent}" ]
+  , Para
+      [ Str "Built"
+      , Space
+      , Str "in:"
+      , Space
+      , Str "xyz"
+      , Space
+      , Str "a\160b\8203c'd\8216"
+      ]
+  , Header
+      2
+      ( "_bold_and_italic" , [] , [] )
+      [ Str "Bold" , Space , Str "and" , Space , Str "italic" ]
+  , Para
+      [ Str "Constrained:"
+      , Space
+      , Strong
+          [ Str "this"
+          , Space
+          , Str "is"
+          , Space
+          , Str "bold"
+          , Space
+          , Emph [ Str "and" , Space , Str "italic" ]
+          ]
+      , Str "."
+      ]
+  , Para
+      [ Str "Unconstrained:"
+      , Space
+      , Str "wild"
+      , Strong
+          [ Str "content"
+          , Emph [ Str "with" , Space , Str "italic" ]
+          , Str "stuff"
+          ]
+      , Str "."
+      ]
+  , Header 2 ( "_monospace" , [] , [] ) [ Str "Monospace" ]
+  , Para [ Code ( "" , [] , [] ) "simple" ]
+  , Para
+      [ Code ( "" , [] , [] ) "complex"
+      , Space
+      , Strong
+          [ Code ( "" , [] , [] ) "with"
+          , Space
+          , Code ( "" , [] , [] ) "bold"
+          ]
+      , Space
+      , Code ( "" , [] , [] ) "text"
+      , Space
+      , Code ( "" , [] , [] ) "and"
+      , Space
+      , Code ( "" , [] , [] ) "a"
+      , Space
+      , Link
+          ( "" , [] , [] )
+          [ Code ( "" , [] , [] ) "foo.html" ]
+          ( "foo.html" , "" )
+      ]
+  , Para
+      [ Str "unconstrained"
+      , Code ( "" , [] , [] ) "wwow"
+      , Str "okay"
+      ]
+  , Header
+      2
+      ( "_span_and_inline_attributes" , [] , [] )
+      [ Str "Span"
+      , Space
+      , Str "and"
+      , Space
+      , Str "inline"
+      , Space
+      , Str "attributes"
+      ]
+  , Para
+      [ Span
+          ( "" , [ "red" ] , [] )
+          [ Str "Bonjour" , Space , Strong [ Str "monsieur" ] ]
+      ]
+  , Para
+      [ Str "Un"
+      , Span ( "" , [ "red" ] , [] ) [ Str "constrained" ]
+      , Str "content"
+      ]
+  , Para
+      [ Str "With"
+      , Space
+      , Span
+          ( "" , [ "mark" ] , [] )
+          [ Str "no" , Space , Str "attribute" ]
+      , Space
+      , Str "it\8217s"
+      , Space
+      , Str "highlighted."
+      ]
+  , Header
+      2
+      ( "_sub_and_superscript" , [] , [] )
+      [ Str "Sub"
+      , Space
+      , Str "and"
+      , Space
+      , Str "superscript"
+      ]
+  , Para [ Str "H" , Subscript [ Str "2" ] , Str "O" ]
+  , Para
+      [ Str "H"
+      , Subscript [ Str "a" , Space , Str "b" ]
+      , Str "O"
+      ]
+  , Para
+      [ Str "Not"
+      , Space
+      , Str "subscript:"
+      , Space
+      , Str "H~a"
+      , Space
+      , Str "b~O."
+      ]
+  , Para [ Str "H^2&O" ]
+  , Para
+      [ Str "H"
+      , Superscript [ Str "a" , Space , Str "b" ]
+      , Str "O"
+      ]
+  , Para
+      [ Str "Not"
+      , Space
+      , Str "subscript:"
+      , Space
+      , Str "H^a"
+      , Space
+      , Str "b^O."
+      ]
+  , Header
+      2 ( "_passthrough" , [] , [] ) [ Str "Passthrough" ]
+  , Para
+      [ Str "Here"
+      , Space
+      , Str "the"
+      , Space
+      , Str "special"
+      , Space
+      , Str "characters"
+      , Space
+      , Str "just"
+      , Space
+      , Str "come"
+      , Space
+      , Str "through"
+      , Space
+      , Str "as"
+      , Space
+      , Str "literal:"
+      ]
+  , Para [ Str "<b>*test*</b>" ]
+  , Para [ Str "xx<b>*test*</b>xx" ]
+  , Para
+      [ Str "But"
+      , Space
+      , Str "here"
+      , Space
+      , Str "they"
+      , Space
+      , Str "are"
+      , Space
+      , Str "passed"
+      , Space
+      , Str "through:"
+      ]
+  , Para [ Str "xx" , Strong [ Str "*test*" ] , Str "xx" ]
+  , Header 2 ( "_quoted" , [] , [] ) [ Str "Quoted" ]
+  , Para
+      [ Quoted DoubleQuote [ Str "double" , Space , Str "quoted" ]
+      ]
+  , Para
+      [ Quoted SingleQuote [ Str "single" , Space , Str "quoted" ]
+      ]
+  , Header 2 ( "_footnotes" , [] , [] ) [ Str "Footnotes" ]
+  , Para
+      [ Str "Double"
+      , Note
+          [ Para
+              [ Str "The"
+              , Space
+              , Str "double"
+              , Space
+              , Str "hail-and-rainbow"
+              , Space
+              , Str "level"
+              , Space
+              , Str "makes"
+              , Space
+              , Str "my"
+              , Space
+              , Str "toes"
+              , Space
+              , Str "tingle."
+              ]
+          ]
+      ]
+  , Para
+      [ Str "A"
+      , Space
+      , Str "bold"
+      , Space
+      , Str "statement!"
+      , Note
+          [ Para
+              [ Str "Opinions"
+              , Space
+              , Str "are"
+              , Space
+              , Str "my"
+              , Space
+              , Str "own."
+              ]
+          ]
+      , SoftBreak
+      , Str "Another"
+      , Space
+      , Str "outrageous"
+      , Space
+      , Str "statement."
+      , Note
+          [ Para
+              [ Str "Opinions"
+              , Space
+              , Str "are"
+              , Space
+              , Str "my"
+              , Space
+              , Str "own."
+              ]
+          ]
+      ]
+  , Header
+      1
+      ( "_block_markup" , [] , [] )
+      [ Str "Block" , Space , Str "markup" ]
+  , Header 2 ( "_sections" , [] , [] ) [ Str "Sections" ]
+  , Header
+      3
+      ( "_another_level" , [] , [] )
+      [ Str "Another" , Space , Str "level" ]
+  , Header
+      4 ( "_level_5" , [] , [] ) [ Str "Level" , Space , Str "5" ]
+  , Header
+      3
+      ( "_markdown_style" , [] , [] )
+      [ Str "Markdown" , Space , Str "style" ]
+  , Header
+      4
+      ( "_level_5_2" , [] , [] )
+      [ Str "Level" , Space , Str "5" ]
+  , Header
+      2
+      ( "_discrete_heading" , [] , [] )
+      [ Str "Discrete" , Space , Str "heading" ]
+  , Header
+      3
+      ( "" , [] , [] )
+      [ Str "A"
+      , Space
+      , Str "discrete"
+      , Space
+      , Str "heading,"
+      , Space
+      , Str "not"
+      , Space
+      , Str "a"
+      , Space
+      , Str "section"
+      ]
+  , Header 2 ( "_paragraph" , [] , [] ) [ Str "Paragraph" ]
+  , Para
+      [ Str "This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "a"
+      , Space
+      , Str "paragraph"
+      , SoftBreak
+      , Str "whose"
+      , Space
+      , Str "source"
+      , Space
+      , Str "fits"
+      , Space
+      , Str "on"
+      , Space
+      , Str "two"
+      , Space
+      , Str "lines."
+      ]
+  , Para
+      [ Str "{.This"
+      , Space
+      , Str "is"
+      , Space
+      , Str "my"
+      , Space
+      , Str "title}"
+      , SoftBreak
+      , Str "A"
+      , Space
+      , Str "paragraph"
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "title."
+      ]
+  , Header
+      2
+      ( "_example_block" , [] , [] )
+      [ Str "Example" , Space , Str "block" ]
+  , Div
+      ( "" , [] , [] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para [ Str "Optional" , Space , Str "title" ] ]
+      , Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "an"
+          , Space
+          , Str "example"
+          , Space
+          , Str "of"
+          , Space
+          , Str "an"
+          , Space
+          , Str "example"
+          , Space
+          , Str "block."
+          ]
+      ]
+  , Div
+      ( "" , [ "example" ] , [] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para [ Str "Optional" , Space , Str "title" ] ]
+      , Para
+          [ Str "Paragraph" , Space , Strong [ Str "one" ] , Str "." ]
+      , Para
+          [ Str "Paragraph" , Space , Strong [ Str "two" ] , Str "." ]
+      ]
+  , Header 2 ( "_admonition" , [] , [] ) [ Str "Admonition" ]
+  , Para [ Str "Simple" , Space , Str "form:" ]
+  , Div
+      ( "" , [ "warning" ] , [] )
+      [ Div ( "" , [ "title" ] , [] ) [ Para [ Str "Warning" ] ]
+      , Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "very"
+          , Space
+          , Str "dangerous."
+          , SoftBreak
+          , Str "Don\8217t"
+          , Space
+          , Str "do"
+          , Space
+          , Str "it"
+          , Space
+          , Str "unless"
+          , Space
+          , Str "you"
+          , Space
+          , Str "understand"
+          , Space
+          , Str "the"
+          , Space
+          , Str "risks."
+          ]
+      ]
+  , Div
+      ( "" , [ "important" ] , [] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para
+              [ Str "Title"
+              , Space
+              , Str "of"
+              , Space
+              , Str "the"
+              , Space
+              , Str "admonition"
+              ]
+          ]
+      , Para [ Str "Remember:" ]
+      , OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Para
+                [ Str "Don\8217t"
+                , Space
+                , Str "do"
+                , Space
+                , Str "this."
+                ]
+            ]
+          , [ Para
+                [ Str "And"
+                , Space
+                , Str "don\8217t"
+                , Space
+                , Str "do"
+                , Space
+                , Str "that."
+                ]
+            ]
+          ]
+      ]
+  , Header 2 ( "_sidebar" , [] , [] ) [ Str "Sidebar" ]
+  , Para
+      [ Str "A" , Space , Str "simple" , Space , Str "sidebar." ]
+  , Div
+      ( "" , [ "sidebar" ] , [] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para
+              [ Str "Optional"
+              , Space
+              , Str "Title"
+              , Space
+              , Strong
+                  [ Str "with"
+                  , Space
+                  , Str "strong"
+                  , Space
+                  , Str "emphasis"
+                  ]
+              ]
+          ]
+      , Para
+          [ Str "Here"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "sidebar."
+          ]
+      , Div
+          ( "" , [ "tip" ] , [] )
+          [ Div ( "" , [ "title" ] , [] ) [ Para [ Str "Tip" ] ]
+          , Para
+              [ Str "It"
+              , Space
+              , Str "can"
+              , Space
+              , Str "contain"
+              , Space
+              , Str "any"
+              , Space
+              , Str "type"
+              , Space
+              , Str "of"
+              , Space
+              , Str "content."
+              ]
+          ]
+      ]
+  , Header
+      2
+      ( "_literal_block" , [] , [] )
+      [ Str "Literal" , Space , Str "block" ]
+  , Para
+      [ Str "Short"
+      , Space
+      , Str "indented"
+      , Space
+      , Str "code:"
+      ]
+  , CodeBlock
+      ( "" , [] , [] )
+      "$ ls -a\n$ cat /foo/bar/baz \\\n     /bi/bim/bop\n"
+  , CodeBlock
+      ( "" , [] , [] ) "This is\n  a literal block too.\n"
+  , CodeBlock
+      ( "" , [] , [] )
+      "  Fenced\n    $+ *a* literal\n\n****\nnot a sidebar\n****\n"
+  , Header 2 ( "_listing" , [] , [] ) [ Str "Listing" ]
+  , CodeBlock
+      ( "" , [ "ruby" ] , [] )
+      "require 'sinatra'\n\nget '/hi' do\n  \"Hello World!\"\nend"
+  , Para [ Str "Implied:" ]
+  , CodeBlock
+      ( "" , [ "ruby" ] , [] )
+      "require 'sinatra'\n\nget '/hi' do\n  \"Hello World!\"\nend"
+  , CodeBlock
+      ( "" , [ "ruby" ] , [] )
+      "# A function\ndef foo\n  return 42\nend"
+  , CodeBlock
+      ( "hello" , [ "haskell" ] , [] )
+      "putStrLn $ unwords [\"Hello\", \"world\"]"
+  , Para [ Str "Line" , Space , Str "numbering:" ]
+  , CodeBlock
+      ( "" , [] , [ ( "options" , "linenums" ) ] )
+      "puts 1\nputs 2\nputs 3"
+  , CodeBlock
+      ( "" , [] , [] ) "This doesn't have a language.\n  +=\"hi\""
+  , Para
+      [ Str "And"
+      , Space
+      , Str "with"
+      , Space
+      , Str "a"
+      , Space
+      , Str "callout"
+      , Space
+      , Str "list:"
+      ]
+  , CodeBlock
+      ( "" , [ "ruby" ] , [] )
+      "require 'sinatra' \9312\n\nget '/hi' do \9313 \9314\n  \"Hello World!\"\nend"
+  , Div
+      ( "" , [ "callout-list" ] , [] )
+      [ OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Para [ Str "Library" , Space , Str "import" ] ]
+          , [ Para [ Str "URL" , Space , Str "mapping" ] ]
+          , [ Para [ Str "Response" , Space , Str "block" ] ]
+          ]
+      ]
+  , Para [ Str "Markdown-style" , Space , Str "fenced:" ]
+  , CodeBlock
+      ( "" , [ "ruby" ] , [] ) "def foo\n  return 5\nend"
+  , Header 2 ( "_verse" , [] , [] ) [ Str "Verse" ]
+  , BlockQuote
+      [ Para
+          [ Str "The"
+          , Space
+          , Str "fog"
+          , Space
+          , Str "comes"
+          , LineBreak
+          , Str "on"
+          , Space
+          , Str "little"
+          , Space
+          , Str "cat"
+          , Space
+          , Str "feet."
+          ]
+      , Para
+          [ Str "\8212"
+          , Space
+          , Str "Carl"
+          , Space
+          , Str "Sandburg,"
+          , Space
+          , Str "two"
+          , Space
+          , Str "lines"
+          , Space
+          , Str "from"
+          , Space
+          , Str "the"
+          , Space
+          , Str "poem"
+          , Space
+          , Str "Fog"
+          ]
+      ]
+  , BlockQuote
+      [ Para
+          [ Str "The"
+          , Space
+          , Str "fog"
+          , Space
+          , Str "comes"
+          , LineBreak
+          , Str "on"
+          , Space
+          , Str "little"
+          , Space
+          , Str "cat"
+          , Space
+          , Str "feet."
+          , LineBreak
+          , Str "It"
+          , Space
+          , Str "sits"
+          , Space
+          , Str "looking"
+          , LineBreak
+          , Str "over"
+          , Space
+          , Str "harbor"
+          , Space
+          , Str "and"
+          , Space
+          , Str "city"
+          , LineBreak
+          , Str "on"
+          , Space
+          , Str "silent"
+          , Space
+          , Str "haunches"
+          , LineBreak
+          , Str "and"
+          , Space
+          , Str "then"
+          , Space
+          , Str "moves"
+          , Space
+          , Str "on."
+          ]
+      , Para
+          [ Str "\8212"
+          , Space
+          , Str "Carl"
+          , Space
+          , Str "Sandburg,"
+          , Space
+          , Str "Fog"
+          ]
+      ]
+  , Header
+      2 ( "_collapsible" , [] , [] ) [ Str "Collapsible" ]
+  , Para
+      [ Str "Click"
+      , Space
+      , Str "here"
+      , Space
+      , Str "for"
+      , Space
+      , Str "more."
+      ]
+  , Div
+      ( ""
+      , [ "example" ]
+      , [ ( "options" , "collapsible,open" ) ]
+      )
+      [ Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "collapsible."
+          ]
+      , Para
+          [ Str "It"
+          , Space
+          , Str "can"
+          , Space
+          , Str "be"
+          , Space
+          , Str "hidden."
+          ]
+      ]
+  , Div
+      ( "" , [] , [ ( "options" , "collapsible" ) ] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para [ Str "Click" , Space , Str "me!" ] ]
+      , Para
+          [ Str "This"
+          , Space
+          , Str "paragraph"
+          , Space
+          , Str "is"
+          , SoftBreak
+          , Str "also"
+          , Space
+          , Str "collapsible."
+          ]
+      ]
+  , Header 2 ( "_quote" , [] , [] ) [ Str "Quote" ]
+  , BlockQuote
+      [ Para
+          [ Str "Everybody"
+          , Space
+          , Str "remember"
+          , Space
+          , Str "where"
+          , Space
+          , Str "we"
+          , Space
+          , Str "parked."
+          ]
+      , Para
+          [ Str "\8212"
+          , Space
+          , Str "Captain"
+          , Space
+          , Str "James"
+          , Space
+          , Str "T."
+          , Space
+          , Str "Kirk,"
+          , Space
+          , Str "Star"
+          , Space
+          , Str "Trek"
+          , Space
+          , Str "IV:"
+          , Space
+          , Str "The"
+          , Space
+          , Str "Voyage"
+          , Space
+          , Str "Home"
+          ]
+      ]
+  , BlockQuote
+      [ Para
+          [ Str "Dennis:"
+          , Space
+          , Str "Come"
+          , Space
+          , Str "and"
+          , Space
+          , Str "see"
+          , Space
+          , Str "the"
+          , Space
+          , Str "violence"
+          , Space
+          , Str "inherent"
+          , Space
+          , Str "in"
+          , Space
+          , Str "the"
+          , Space
+          , Str "system."
+          , Space
+          , Str "Help!"
+          , Space
+          , Str "Help!"
+          , Space
+          , Str "I\8217m"
+          , Space
+          , Str "being"
+          , SoftBreak
+          , Str "repressed."
+          ]
+      , Para
+          [ Str "King"
+          , Space
+          , Str "Arthur:"
+          , Space
+          , Str "Bloody"
+          , Space
+          , Str "peasant!"
+          ]
+      , Para
+          [ Str "Dennis:"
+          , Space
+          , Str "Oh,"
+          , Space
+          , Str "what"
+          , Space
+          , Str "a"
+          , Space
+          , Str "giveaway!"
+          , Space
+          , Str "Did"
+          , Space
+          , Str "you"
+          , Space
+          , Str "hear"
+          , Space
+          , Str "that?"
+          , Space
+          , Str "Did"
+          , Space
+          , Str "you"
+          , Space
+          , Str "hear"
+          , Space
+          , Str "that,"
+          , Space
+          , Str "eh?"
+          , Space
+          , Str "That\8217s"
+          , Space
+          , Str "what"
+          , Space
+          , Str "I\8217m"
+          , SoftBreak
+          , Str "on"
+          , Space
+          , Str "about!"
+          , Space
+          , Str "Did"
+          , Space
+          , Str "you"
+          , Space
+          , Str "see"
+          , Space
+          , Str "him"
+          , Space
+          , Str "repressing"
+          , Space
+          , Str "me?"
+          , Space
+          , Str "You"
+          , Space
+          , Str "saw"
+          , Space
+          , Str "him,"
+          , Space
+          , Str "Didn\8217t"
+          , Space
+          , Str "you?"
+          ]
+      , Para
+          [ Str "\8212"
+          , Space
+          , Str "Monty"
+          , Space
+          , Str "Python"
+          , Space
+          , Str "and"
+          , Space
+          , Str "the"
+          , Space
+          , Str "Holy"
+          , Space
+          , Str "Grail"
+          ]
+      ]
+  , Div
+      ( "roads" , [ "movie" ] , [ ( "wrapper" , "1" ) ] )
+      [ BlockQuote
+          [ Para
+              [ Str "Roads?"
+              , Space
+              , Str "Where"
+              , Space
+              , Str "we\8217re"
+              , Space
+              , Str "going,"
+              , Space
+              , Str "we"
+              , Space
+              , Str "don\8217t"
+              , Space
+              , Str "need"
+              , Space
+              , Str "roads."
+              ]
+          , Para
+              [ Str "\8212"
+              , Space
+              , Str "Dr."
+              , Space
+              , Str "Emmett"
+              , Space
+              , Str "Brown"
+              ]
+          ]
+      ]
+  , Header 2 ( "_pass" , [] , [] ) [ Str "Pass" ]
+  , Para [ Str "pass" , Space , Emph [ Str "through" ] ]
+  , Header
+      2
+      ( "_open_block" , [] , [] )
+      [ Str "Open" , Space , Str "block" ]
+  , Div
+      ( "" , [] , [ ( "key" , "a value" ) ] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para [ Str "A" , Space , Str "title." ] ]
+      , Para
+          [ Str "Any"
+          , Space
+          , Str "content"
+          , Space
+          , Str "can"
+          , Space
+          , Str "go"
+          , Space
+          , Str "here:"
+          ]
+      , OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Para [ Str "one" ] ] , [ Para [ Str "two" ] ] ]
+      ]
+  , Header 2 ( "_anchor" , [] , [] ) [ Str "Anchor" ]
+  , Div
+      ( "goals" , [] , [ ( "wrapper" , "1" ) ] )
+      [ BulletList
+          [ [ Para [ Str "one" ] ] , [ Para [ Str "two" ] ] ]
+      ]
+  , Header 2 ( "_breaks" , [] , [] ) [ Str "Breaks" ]
+  , Para
+      [ Str "Asciidoc"
+      , Space
+      , Str "thematic"
+      , Space
+      , Str "break:"
+      ]
+  , HorizontalRule
+  , Para [ Str "Markdown" , Space , Str "style:" ]
+  , HorizontalRule
+  , HorizontalRule
+  , HorizontalRule
+  , HorizontalRule
+  , Para [ Str "Page" , Space , Str "breaks:" ]
+  , Div
+      ( "" , [ "page-break" ] , [ ( "wrapper" , "1" ) ] )
+      [ HorizontalRule ]
+  , Div
+      ( ""
+      , [ "page-break" ]
+      , [ ( "options" , "always" ) , ( "wrapper" , "1" ) ]
+      )
+      [ HorizontalRule ]
+  , Header 2 ( "_list" , [] , [] ) [ Str "List" ]
+  , BulletList
+      [ [ Para
+            [ Str "Edgar" , Space , Str "Allan" , Space , Str "Poe" ]
+        ]
+      , [ Para
+            [ Str "Sheri" , Space , Str "S." , Space , Str "Tepper" ]
+        ]
+      , [ Para [ Str "Bill" , Space , Str "Bryson" ] ]
+      ]
+  , Div
+      ( "" , [] , [] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para
+              [ Str "Kizmet\8217s"
+              , Space
+              , Str "Favorite"
+              , Space
+              , Str "Authors"
+              ]
+          ]
+      , BulletList
+          [ [ Para
+                [ Str "Edgar"
+                , Space
+                , Str "Allan"
+                , Space
+                , Str "Poe"
+                ]
+            ]
+          , [ Para
+                [ Str "Sheri"
+                , Space
+                , Str "S."
+                , Space
+                , Str "Tepper"
+                ]
+            ]
+          , [ Para [ Str "Bill" , Space , Str "Bryson" ] ]
+          ]
+      ]
+  , BulletList
+      [ [ Para
+            [ Str "Edgar" , Space , Str "Allan" , Space , Str "Poe" ]
+        ]
+      , [ Para
+            [ Str "Sheri" , Space , Str "S." , Space , Str "Tepper" ]
+        ]
+      , [ Para [ Str "Bill" , Space , Str "Bryson" ] ]
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Nested" , Space , Str "list" ]
+        , BulletList
+            [ [ Para
+                  [ Str "West"
+                  , Space
+                  , Str "wood"
+                  , Space
+                  , Str "maze"
+                  ]
+              , BulletList
+                  [ [ Para [ Str "Maze" , Space , Str "heart" ]
+                    , BulletList
+                        [ [ Para
+                              [ Str "Reflection" , Space , Str "pool" ]
+                          ]
+                        ]
+                    ]
+                  , [ Para [ Str "Secret" , Space , Str "exit" ] ]
+                  ]
+              ]
+            , [ Para
+                  [ Str "Level"
+                  , Space
+                  , Str "1"
+                  , Space
+                  , Str "list"
+                  , Space
+                  , Str "item"
+                  ]
+              , BulletList
+                  [ [ Para
+                        [ Str "Level"
+                        , Space
+                        , Str "2"
+                        , Space
+                        , Str "list"
+                        , Space
+                        , Str "item"
+                        ]
+                    , BulletList
+                        [ [ Para
+                              [ Str "Level"
+                              , Space
+                              , Str "3"
+                              , Space
+                              , Str "list"
+                              , Space
+                              , Str "item"
+                              ]
+                          , BulletList
+                              [ [ Para
+                                    [ Str "Level"
+                                    , Space
+                                    , Str "4"
+                                    , Space
+                                    , Str "list"
+                                    , Space
+                                    , Str "item"
+                                    ]
+                                , BulletList
+                                    [ [ Para
+                                          [ Str "Level"
+                                          , Space
+                                          , Str "5"
+                                          , Space
+                                          , Str "list"
+                                          , Space
+                                          , Str "item"
+                                          ]
+                                      , BulletList
+                                          [ [ Para [ Str "etc." ] ] ]
+                                      ]
+                                    ]
+                                ]
+                              ]
+                          ]
+                        ]
+                    ]
+                  ]
+              ]
+            , [ Para
+                  [ Str "Level"
+                  , Space
+                  , Str "1"
+                  , Space
+                  , Str "list"
+                  , Space
+                  , Str "item"
+                  ]
+              ]
+            ]
+        ]
+      ]
+  , BulletList
+      [ [ Para [ Str "one" ] ]
+      , [ Para [ Str "two" ] ]
+      , [ Para [ Str "three" ] ]
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Protons" ] ]
+      , [ Para [ Str "Electrons" ] ]
+      , [ Para [ Str "Neutrons" ] ]
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Protons" ] ]
+      , [ Para [ Str "Electrons" ] ]
+      , [ Para [ Str "Neutrons" ] ]
+      ]
+  , Para
+      [ Str "Start" , Space , Str "with" , Space , Str "4:" ]
+  , OrderedList
+      ( 4 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Step" , Space , Str "four" ] ]
+      , [ Para [ Str "Step" , Space , Str "five" ] ]
+      , [ Para [ Str "Step" , Space , Str "six" ] ]
+      ]
+  , Para [ Str "or" ]
+  , OrderedList
+      ( 4 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Step" , Space , Str "four" ] ]
+      , [ Para [ Str "Step" , Space , Str "five" ] ]
+      , [ Para [ Str "Step" , Space , Str "six" ] ]
+      ]
+  , Para [ Str "Reversed:" ]
+  , Div
+      ( "" , [] , [ ( "options" , "reversed" ) ] )
+      [ Div
+          ( "" , [ "title" ] , [] )
+          [ Para
+              [ Str "Parts"
+              , Space
+              , Str "of"
+              , Space
+              , Str "an"
+              , Space
+              , Str "atom"
+              ]
+          ]
+      , OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Para [ Str "Protons" ] ]
+          , [ Para [ Str "Electrons" ] ]
+          , [ Para [ Str "Neutrons" ] ]
+          ]
+      ]
+  , Para [ Str "Nested" ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Step" , Space , Str "1" ] ]
+      , [ Para [ Str "Step" , Space , Str "2" ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Para [ Str "Step" , Space , Str "2a" ] ]
+            , [ Para [ Str "Step" , Space , Str "2b" ] ]
+            ]
+        ]
+      , [ Para [ Str "Step" , Space , Str "3" ] ]
+      ]
+  , Para [ Str "Mixed" , Space , Str "nested" ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Linux" ]
+        , BulletList
+            [ [ Para [ Str "Fedora" ] ]
+            , [ Para [ Str "Ubuntu" ] ]
+            , [ Para [ Str "Slackware" ] ]
+            ]
+        ]
+      , [ Para [ Str "BSD" ]
+        , BulletList
+            [ [ Para [ Str "FreeBSD" ] ] , [ Para [ Str "NetBSD" ] ] ]
+        ]
+      ]
+  , Para [ Str "With" , Space , Str "spacing" ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [ Str "Linux" ]
+        , BulletList
+            [ [ Para [ Str "Fedora" ] ]
+            , [ Para [ Str "Ubuntu" ] ]
+            , [ Para [ Str "Slackware" ] ]
+            ]
+        ]
+      , [ Para [ Str "BSD" ]
+        , BulletList
+            [ [ Para [ Str "FreeBSD" ] ] , [ Para [ Str "NetBSD" ] ] ]
+        ]
+      ]
+  , Para
+      [ Str "With" , Space , Str "number" , Space , Str "styles" ]
+  , OrderedList
+      ( 5 , LowerRoman , DefaultDelim )
+      [ [ Para [ Str "Five" ] ]
+      , [ Para [ Str "Six" ]
+        , OrderedList
+            ( 1 , LowerAlpha , DefaultDelim )
+            [ [ Para [ Str "a" ] ]
+            , [ Para [ Str "b" ] ]
+            , [ Para [ Str "c" ] ]
+            ]
+        ]
+      , [ Para [ Str "Seven" ] ]
+      ]
+  , Para [ Str "Checklist" ]
+  , BulletList
+      [ [ Para [ Str "\9746" , Space , Str "checked" ] ]
+      , [ Para
+            [ Str "\9746" , Space , Str "also" , Space , Str "checked" ]
+        ]
+      , [ Para
+            [ Str "\9744" , Space , Str "not" , Space , Str "checked" ]
+        ]
+      , [ Para
+            [ Str "normal" , Space , Str "list" , Space , Str "item" ]
+        ]
+      ]
+  , Para
+      [ Str "Separate"
+      , Space
+      , Str "lists"
+      , Space
+      , Str "with"
+      , Space
+      , Str "block"
+      , Space
+      , Str "attribute"
+      ]
+  , BulletList
+      [ [ Para [ Str "Apples" ] ]
+      , [ Para [ Str "Oranges" ]
+        , OrderedList
+            ( 1 , DefaultStyle , DefaultDelim )
+            [ [ Para [ Str "Wash" ] ] , [ Para [ Str "Slice" ] ] ]
+        ]
+      ]
+  , Para [ Str "Multiline" , Space , Str "items" ]
+  , BulletList
+      [ [ Para
+            [ Str "Blah"
+            , Space
+            , Str "blah."
+            , SoftBreak
+            , Str "Blah"
+            , Space
+            , Str "blah."
+            ]
+        ]
+      , [ Para
+            [ Str "The"
+            , Space
+            , Str "document"
+            , Space
+            , Str "header"
+            , Space
+            , Str "in"
+            , Space
+            , Str "AsciiDoc"
+            , Space
+            , Str "is"
+            , Space
+            , Str "optional."
+            , SoftBreak
+            , Str "If"
+            , Space
+            , Str "present,"
+            , Space
+            , Str "it"
+            , Space
+            , Str "must"
+            , Space
+            , Str "start"
+            , Space
+            , Str "with"
+            , Space
+            , Str "a"
+            , Space
+            , Str "document"
+            , Space
+            , Str "title."
+            ]
+        ]
+      ]
+  , BulletList
+      [ [ Para
+            [ Str "Optional"
+            , Space
+            , Str "author"
+            , Space
+            , Str "and"
+            , Space
+            , Str "revision"
+            , Space
+            , Str "information"
+            , Space
+            , Str "lines"
+            , SoftBreak
+            , Str "immediately"
+            , Space
+            , Str "follow"
+            , Space
+            , Str "the"
+            , Space
+            , Str "document"
+            , Space
+            , Str "title."
+            ]
+        ]
+      ]
+  , BulletList
+      [ [ Para
+            [ Str "The"
+            , Space
+            , Str "document"
+            , Space
+            , Str "header"
+            , Space
+            , Str "must"
+            , Space
+            , Str "be"
+            , Space
+            , Str "separated"
+            , Space
+            , Str "from"
+            , SoftBreak
+            , Str "the"
+            , Space
+            , Str "remainder"
+            , Space
+            , Str "of"
+            , Space
+            , Str "the"
+            , Space
+            , Str "document"
+            , Space
+            , Str "by"
+            , Space
+            , Str "one"
+            , Space
+            , Str "or"
+            , Space
+            , Str "more"
+            , SoftBreak
+            , Str "empty"
+            , Space
+            , Str "lines"
+            , Space
+            , Str "and"
+            , Space
+            , Str "it"
+            , Space
+            , Str "cannot"
+            , Space
+            , Str "contain"
+            , Space
+            , Str "empty"
+            , Space
+            , Str "lines."
+            ]
+        ]
+      ]
+  , Para [ Str "Complex" , Space , Str "item" ]
+  , BulletList
+      [ [ Para
+            [ Str "The"
+            , Space
+            , Str "header"
+            , Space
+            , Str "in"
+            , Space
+            , Str "AsciiDoc"
+            , Space
+            , Str "must"
+            , Space
+            , Str "start"
+            , Space
+            , Str "with"
+            , Space
+            , Str "a"
+            , Space
+            , Str "document"
+            , Space
+            , Str "title."
+            ]
+        , CodeBlock ( "" , [] , [] ) "= Document Title"
+        , Para
+            [ Str "Keep"
+            , Space
+            , Str "in"
+            , Space
+            , Str "mind"
+            , Space
+            , Str "that"
+            , Space
+            , Str "the"
+            , Space
+            , Str "header"
+            , Space
+            , Str "is"
+            , Space
+            , Str "optional."
+            ]
+        ]
+      , [ Para
+            [ Str "Optional"
+            , Space
+            , Str "author"
+            , Space
+            , Str "and"
+            , Space
+            , Str "revision"
+            , Space
+            , Str "information"
+            , Space
+            , Str "lines"
+            , Space
+            , Str "immediately"
+            , Space
+            , Str "follow"
+            , Space
+            , Str "the"
+            , Space
+            , Str "document"
+            , SoftBreak
+            , Str "title."
+            ]
+        , CodeBlock
+            ( "" , [] , [] )
+            "= Document Title\nDoc Writer <doc.writer@asciidoc.org>\nv1.0, 2022-01-01"
+        ]
+      , [ Para [ Str "Second" , Space , Str "item" ] ]
+      ]
+  , Para
+      [ Str "Empty"
+      , Space
+      , Str "principle"
+      , Space
+      , Str "element:"
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ Para [] , CodeBlock ( "" , [] , [] ) "test" ] ]
+  , Header 2 ( "_table" , [] , [] ) [ Str "Table" ]
+  , Header
+      3
+      ( "_simple_with_column_specs" , [] , [] )
+      [ Str "Simple"
+      , Space
+      , Str "with"
+      , Space
+      , Str "column"
+      , Space
+      , Str "specs"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.375 )
+      , ( AlignDefault , ColWidth 0.25 )
+      , ( AlignDefault , ColWidth 0.375 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "This"
+                     , Space
+                     , Str "content"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "placed"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "first"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "of"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "1"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "This"
+                     , Space
+                     , Str "line"
+                     , Space
+                     , Str "starts"
+                     , Space
+                     , Str "with"
+                     , Space
+                     , Str "a"
+                     , Space
+                     , Str "vertical"
+                     , Space
+                     , Str "bar"
+                     , Space
+                     , Str "so"
+                     , Space
+                     , Str "this"
+                     , Space
+                     , Str "content"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "placed"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "a"
+                     , Space
+                     , Str "new"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "in"
+                     , SoftBreak
+                     , Str "column"
+                     , Space
+                     , Str "2"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "When"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "processor"
+                     , Space
+                     , Str "encounters"
+                     , Space
+                     , Str "a"
+                     , Space
+                     , Str "whitespace"
+                     , Space
+                     , Str "followed"
+                     , Space
+                     , Str "by"
+                     , Space
+                     , Str "a"
+                     , Space
+                     , Str "vertical"
+                     , Space
+                     , Str "bar"
+                     , Space
+                     , Str "it"
+                     , SoftBreak
+                     , Str "ends"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "previous"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "and"
+                     , Space
+                     , Str "starts"
+                     , Space
+                     , Str "a"
+                     , Space
+                     , Str "new"
+                     , Space
+                     , Str "cell"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Header
+      3
+      ( "_repeated_column_in_specs" , [] , [] )
+      [ Str "Repeated"
+      , Space
+      , Str "column"
+      , Space
+      , Str "in"
+      , Space
+      , Str "specs"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignRight
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Strong
+                         [ Str "This"
+                         , Space
+                         , Str "cell\8217s"
+                         , Space
+                         , Str "specifier"
+                         , Space
+                         , Str "indicates"
+                         , Space
+                         , Str "that"
+                         , Space
+                         , Str "this"
+                         , Space
+                         , Str "cell\8217s"
+                         , Space
+                         , Str "content"
+                         , Space
+                         , Str "is"
+                         , Space
+                         , Str "right-aligned"
+                         , Space
+                         , Str "and"
+                         , Space
+                         , Str "bold."
+                         ]
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "The"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "specifier"
+                     , Space
+                     , Str "on"
+                     , Space
+                     , Str "this"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "hasn\8217t"
+                     , Space
+                     , Str "been"
+                     , Space
+                     , Str "set"
+                     , Space
+                     , Str "explicitly,"
+                     , Space
+                     , Str "so"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "default"
+                     , SoftBreak
+                     , Str "properties"
+                     , Space
+                     , Str "are"
+                     , Space
+                     , Str "applied."
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot ( "" , [] , [] ) [])
+  , Header
+      3
+      ( "_simple_without_column_specs" , [] , [] )
+      [ Str "Simple"
+      , Space
+      , Str "without"
+      , Space
+      , Str "column"
+      , Space
+      , Str "specs"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "1,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "2,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Cell"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "3"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Cell"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "3"
+                     ]
+                 ]
+             ]
+         ])
+  , Header
+      3
+      ( "_with_caption" , [] , [] )
+      [ Str "With" , Space , Str "caption" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption
+         Nothing
+         [ Plain
+             [ Str "My" , Space , Str "cool" , Space , Str "table." ]
+         ])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "1,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "2,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Cell"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "3"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Cell"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "3"
+                     ]
+                 ]
+             ]
+         ])
+  , Header
+      3
+      ( "_no_header" , [] , [] )
+      [ Str "No" , Space , Str "header" ]
+  , Para
+      [ Str "By"
+      , Space
+      , Str "default"
+      , Space
+      , Str "the"
+      , Space
+      , Str "first"
+      , Space
+      , Str "line"
+      , Space
+      , Str "should"
+      , Space
+      , Str "turn"
+      , Space
+      , Str "into"
+      , Space
+      , Str "the"
+      , Space
+      , Str "header,"
+      , Space
+      , Str "but"
+      , Space
+      , Str "this"
+      , SoftBreak
+      , Str "can"
+      , Space
+      , Str "be"
+      , Space
+      , Str "disabled:"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead ( "" , [] , [] ) [])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "1,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "1"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "2,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "1"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Cell"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "2"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Cell"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "2"
+                     ]
+                 ]
+             ]
+         ])
+  , Para
+      [ Str "And"
+      , Space
+      , Str "also"
+      , Space
+      , Str "explicitly"
+      , Space
+      , Str "enabled:"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Cell" , Space , Str "A1" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Cell" , Space , Str "B1" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Cell" , Space , Str "A2" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Cell" , Space , Str "B2" ] ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Cell" , Space , Str "A3" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Cell" , Space , Str "B3" ] ]
+             ]
+         ])
+  , Header 3 ( "_footer" , [] , [] ) [ Str "Footer" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidth 0.4 )
+      , ( AlignDefault , ColWidth 0.4 )
+      , ( AlignDefault , ColWidth 0.2 )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "3,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "1,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "2,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "3,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "footer"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "footer"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "3,"
+                     , Space
+                     , Str "footer"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             ]
+         ])
+  , Para [ Str "or" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "1,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "2,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "1,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "3"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "2,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "3"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "footer"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "footer"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             ]
+         ])
+  , Header 3 ( "_alignment" , [] , [] ) [ Str "Alignment" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Column" , Space , Str "Name" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Column" , Space , Str "Name" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignCenter
+                  (RowSpan 1)
+                  (ColSpan 2)
+                  [ Para
+                      [ Str "This"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "spans"
+                      , Space
+                      , Str "two"
+                      , Space
+                      , Str "columns,"
+                      , Space
+                      , Str "and"
+                      , Space
+                      , Str "its"
+                      , Space
+                      , Str "content"
+                      , Space
+                      , Str "is"
+                      , Space
+                      , Str "horizontally"
+                      , Space
+                      , Str "centered"
+                      , Space
+                      , Str "because"
+                      , Space
+                      , Str "the"
+                      , SoftBreak
+                      , Str "cell"
+                      , Space
+                      , Str "specifier"
+                      , Space
+                      , Str "includes"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Code ( "" , [] , [] ) "^"
+                      , Space
+                      , Str "operator."
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignCenter
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "This"
+                     , Space
+                     , Str "content"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "duplicated"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "two"
+                     , Space
+                     , Str "adjacent"
+                     , Space
+                     , Str "columns."
+                     , SoftBreak
+                     , Str "Its"
+                     , Space
+                     , Str "content"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "horizontally"
+                     , Space
+                     , Str "centered"
+                     , Space
+                     , Str "because"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "specifier"
+                     , SoftBreak
+                     , Str "includes"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Code ( "" , [] , [] ) "^"
+                     , Space
+                     , Str "operator."
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignCenter
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "This"
+                     , Space
+                     , Str "content"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "duplicated"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "two"
+                     , Space
+                     , Str "adjacent"
+                     , Space
+                     , Str "columns."
+                     , SoftBreak
+                     , Str "Its"
+                     , Space
+                     , Str "content"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "horizontally"
+                     , Space
+                     , Str "centered"
+                     , Space
+                     , Str "because"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "specifier"
+                     , SoftBreak
+                     , Str "includes"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Code ( "" , [] , [] ) "^"
+                     , Space
+                     , Str "operator."
+                     ]
+                 ]
+             ]
+         ])
+  , Header
+      3
+      ( "_multiple_paragraphs_in_cells" , [] , [] )
+      [ Str "Multiple"
+      , Space
+      , Str "paragraphs"
+      , Space
+      , Str "in"
+      , Space
+      , Str "cells"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault ) ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Single"
+                     , Space
+                     , Str "paragraph"
+                     , Space
+                     , Str "on"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "1"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "First"
+                     , Space
+                     , Str "paragraph"
+                     , Space
+                     , Str "on"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "2"
+                     ]
+                 , Para
+                     [ Str "Second"
+                     , Space
+                     , Str "paragraph"
+                     , Space
+                     , Str "on"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "2"
+                     ]
+                 ]
+             ]
+         ])
+  , Header
+      3
+      ( "_complex_table" , [] , [] )
+      [ Str "Complex" , Space , Str "table" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignRight
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Code ( "" , [] , [] ) "This"
+                     , Space
+                     , Code ( "" , [] , [] ) "content"
+                     , Space
+                     , Code ( "" , [] , [] ) "is"
+                     , Space
+                     , Code ( "" , [] , [] ) "duplicated"
+                     , Space
+                     , Code ( "" , [] , [] ) "across"
+                     , Space
+                     , Code ( "" , [] , [] ) "two"
+                     , Space
+                     , Code ( "" , [] , [] ) "columns."
+                     ]
+                 , Para
+                     [ Code ( "" , [] , [] ) "It"
+                     , Space
+                     , Code ( "" , [] , [] ) "is"
+                     , Space
+                     , Code ( "" , [] , [] ) "aligned"
+                     , Space
+                     , Code ( "" , [] , [] ) "right"
+                     , Space
+                     , Code ( "" , [] , [] ) "horizontally."
+                     ]
+                 , Para
+                     [ Code ( "" , [] , [] ) "And"
+                     , Space
+                     , Code ( "" , [] , [] ) "it"
+                     , Space
+                     , Code ( "" , [] , [] ) "is"
+                     , Space
+                     , Code ( "" , [] , [] ) "monospaced."
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignRight
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Code ( "" , [] , [] ) "This"
+                     , Space
+                     , Code ( "" , [] , [] ) "content"
+                     , Space
+                     , Code ( "" , [] , [] ) "is"
+                     , Space
+                     , Code ( "" , [] , [] ) "duplicated"
+                     , Space
+                     , Code ( "" , [] , [] ) "across"
+                     , Space
+                     , Code ( "" , [] , [] ) "two"
+                     , Space
+                     , Code ( "" , [] , [] ) "columns."
+                     ]
+                 , Para
+                     [ Code ( "" , [] , [] ) "It"
+                     , Space
+                     , Code ( "" , [] , [] ) "is"
+                     , Space
+                     , Code ( "" , [] , [] ) "aligned"
+                     , Space
+                     , Code ( "" , [] , [] ) "right"
+                     , Space
+                     , Code ( "" , [] , [] ) "horizontally."
+                     ]
+                 , Para
+                     [ Code ( "" , [] , [] ) "And"
+                     , Space
+                     , Code ( "" , [] , [] ) "it"
+                     , Space
+                     , Code ( "" , [] , [] ) "is"
+                     , Space
+                     , Code ( "" , [] , [] ) "monospaced."
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignCenter
+                  (RowSpan 2)
+                  (ColSpan 1)
+                  [ Para
+                      [ Strong
+                          [ Str "This"
+                          , Space
+                          , Str "cell"
+                          , Space
+                          , Str "spans"
+                          , Space
+                          , Str "3"
+                          , Space
+                          , Str "rows."
+                          , Space
+                          , Str "The"
+                          , Space
+                          , Str "content"
+                          , Space
+                          , Str "is"
+                          , Space
+                          , Str "centered"
+                          , Space
+                          , Str "horizontally,"
+                          , Space
+                          , Str "aligned"
+                          , Space
+                          , Str "to"
+                          , Space
+                          , Str "the"
+                          , Space
+                          , Str "bottom"
+                          , Space
+                          , Str "of"
+                          , Space
+                          , Str "the"
+                          , Space
+                          , Str "cell,"
+                          , Space
+                          , Str "and"
+                          , Space
+                          , Str "strong."
+                          ]
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Emph
+                          [ Str "This"
+                          , Space
+                          , Str "content"
+                          , Space
+                          , Str "is"
+                          , Space
+                          , Str "emphasized."
+                          ]
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ CodeBlock
+                      ( "" , [] , [] )
+                      "This content is aligned to the top of the cell and literal.\n\n"
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ CodeBlock
+                     ( "" , [] , [] ) "puts \"This is a source block!\""
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 []
+             ]
+         ])
+  , Header
+      3
+      ( "_column_styles" , [] , [] )
+      [ Str "Column" , Space , Str "styles" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Code ( "" , [] , [] ) "monospace" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Code ( "" , [] , [] ) "mono" ] ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "default" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Code ( "" , [] , [] ) "mono" ] ]
+             ]
+         ])
+  , Header
+      3
+      ( "_block_elements_in_cells" , [] , [] )
+      [ Str "Block"
+      , Space
+      , Str "elements"
+      , Space
+      , Str "in"
+      , Space
+      , Str "cells"
+      ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Normal" , Space , Str "Style" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "AsciiDoc" , Space , Str "Style" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "This"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "isn\8217t"
+                      , Space
+                      , Str "prefixed"
+                      , Space
+                      , Str "with"
+                      , Space
+                      , Str "an"
+                      , Space
+                      , Code ( "" , [] , [] ) "a"
+                      , Str ","
+                      , Space
+                      , Str "so"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Str "processor"
+                      , Space
+                      , Str "doesn\8217t"
+                      , Space
+                      , Str "interpret"
+                      , Space
+                      , Str "the"
+                      , SoftBreak
+                      , Str "following"
+                      , Space
+                      , Str "lines"
+                      , Space
+                      , Str "as"
+                      , Space
+                      , Str "an"
+                      , Space
+                      , Str "AsciiDoc"
+                      , Space
+                      , Str "list."
+                      ]
+                  , Para
+                      [ Str "*"
+                      , Space
+                      , Str "List"
+                      , Space
+                      , Str "item"
+                      , Space
+                      , Str "1"
+                      , SoftBreak
+                      , Str "*"
+                      , Space
+                      , Str "List"
+                      , Space
+                      , Str "item"
+                      , Space
+                      , Str "2"
+                      , SoftBreak
+                      , Str "*"
+                      , Space
+                      , Str "List"
+                      , Space
+                      , Str "item"
+                      , Space
+                      , Str "3"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "This"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "is"
+                      , Space
+                      , Str "prefixed"
+                      , Space
+                      , Str "with"
+                      , Space
+                      , Str "an"
+                      , Space
+                      , Code ( "" , [] , [] ) "a"
+                      , Str ","
+                      , Space
+                      , Str "so"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Str "processor"
+                      , Space
+                      , Str "interprets"
+                      , Space
+                      , Str "the"
+                      , Space
+                      , Str "following"
+                      , Space
+                      , Str "lines"
+                      , SoftBreak
+                      , Str "as"
+                      , Space
+                      , Str "an"
+                      , Space
+                      , Str "AsciiDoc"
+                      , Space
+                      , Str "list."
+                      ]
+                  , BulletList
+                      [ [ Para
+                            [ Str "List"
+                            , Space
+                            , Str "item"
+                            , Space
+                            , Str "1"
+                            ]
+                        ]
+                      , [ Para
+                            [ Str "List"
+                            , Space
+                            , Str "item"
+                            , Space
+                            , Str "2"
+                            ]
+                        ]
+                      , [ Para
+                            [ Str "List"
+                            , Space
+                            , Str "item"
+                            , Space
+                            , Str "3"
+                            ]
+                        ]
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "This"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "isn\8217t"
+                     , Space
+                     , Str "prefixed"
+                     , Space
+                     , Str "with"
+                     , Space
+                     , Str "an"
+                     , Space
+                     , Code ( "" , [] , [] ) "a"
+                     , Str ","
+                     , Space
+                     , Str "so"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "processor"
+                     , Space
+                     , Str "doesn\8217t"
+                     , Space
+                     , Str "interpret"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "listing"
+                     , SoftBreak
+                     , Str "block"
+                     , Space
+                     , Str "delimiters"
+                     , Space
+                     , Str "or"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Code ( "" , [] , [] ) "source"
+                     , Space
+                     , Str "style."
+                     ]
+                 , Para
+                     [ Str "----"
+                     , SoftBreak
+                     , Str "import"
+                     , Space
+                     , Str "os"
+                     , SoftBreak
+                     , Str "print"
+                     , Space
+                     , Str "(\"%s\""
+                     , Space
+                     , Str "%(os.uname()))"
+                     , SoftBreak
+                     , Str "----"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "This"
+                     , Space
+                     , Str "cell"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "prefixed"
+                     , Space
+                     , Str "with"
+                     , Space
+                     , Str "an"
+                     , Space
+                     , Code ( "" , [] , [] ) "a"
+                     , Str ","
+                     , Space
+                     , Str "so"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Str "listing"
+                     , Space
+                     , Str "block"
+                     , Space
+                     , Str "is"
+                     , Space
+                     , Str "processed"
+                     , Space
+                     , Str "and"
+                     , Space
+                     , Str "rendered"
+                     , SoftBreak
+                     , Str "according"
+                     , Space
+                     , Str "to"
+                     , Space
+                     , Str "the"
+                     , Space
+                     , Code ( "" , [] , [] ) "source"
+                     , Space
+                     , Str "style"
+                     , Space
+                     , Str "rules."
+                     ]
+                 , CodeBlock
+                     ( "" , [ "python" ] , [] )
+                     "import os\nprint \"%s\" %(os.uname())"
+                 ]
+             ]
+         ])
+  , Header
+      3
+      ( "_col_and_rowspan" , [] , [] )
+      [ Str "Col" , Space , Str "and" , Space , Str "rowspan" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "1,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "2,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para
+                     [ Str "Column"
+                     , Space
+                     , Str "3,"
+                     , Space
+                     , Str "header"
+                     , Space
+                     , Str "row"
+                     ]
+                 ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 2)
+                  (ColSpan 2)
+                  [ Para
+                      [ Str "This"
+                      , Space
+                      , Str "cell"
+                      , Space
+                      , Str "spans"
+                      , Space
+                      , Str "2"
+                      , Space
+                      , Str "cols"
+                      , Space
+                      , Str "and"
+                      , Space
+                      , Str "2"
+                      , Space
+                      , Str "rows"
+                      ]
+                  ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "3,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "2"
+                      ]
+                  ]
+              ]
+          , Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para
+                      [ Str "Cell"
+                      , Space
+                      , Str "in"
+                      , Space
+                      , Str "column"
+                      , Space
+                      , Str "3,"
+                      , Space
+                      , Str "row"
+                      , Space
+                      , Str "3"
+                      ]
+                  ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 3)
+                 [ Para
+                     [ Str "Cell"
+                     , Space
+                     , Str "in"
+                     , Space
+                     , Str "column"
+                     , Space
+                     , Str "1-3,"
+                     , Space
+                     , Str "row"
+                     , Space
+                     , Str "4"
+                     ]
+                 ]
+             ]
+         ])
+  , Header
+      3
+      ( "_csv_table" , [] , [] )
+      [ Str "CSV" , Space , Str "table" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Artist" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Track" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Genre" ] ]
+             ]
+         ])
+      [ TableBody
+          ( "" , [] , [] )
+          (RowHeadColumns 0)
+          []
+          [ Row
+              ( "" , [] , [] )
+              [ Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Baauer" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Harlem" , Space , Str "Shake" ] ]
+              , Cell
+                  ( "" , [] , [] )
+                  AlignDefault
+                  (RowSpan 1)
+                  (ColSpan 1)
+                  [ Para [ Str "Hip" , Space , Str "Hop" ] ]
+              ]
+          ]
+      ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "The" , Space , Str "Lumineers" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Ho" , Space , Str "Hey" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Folk" , Space , Str "Rock" ] ]
+             ]
+         ])
+  , Para [ Str "or" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Artist" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Track" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Genre" ] ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Baauer" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Harlem" , Space , Str "Shake" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Hip" , Space , Str "Hop" ] ]
+             ]
+         ])
+  , Header
+      3
+      ( "_dsv_table" , [] , [] )
+      [ Str "DSV" , Space , Str "table" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "a" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "b" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "c" ] ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "d" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "e" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "f" ] ]
+             ]
+         ])
+  , Para [ Str "or" ]
+  , Table
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      , ( AlignDefault , ColWidthDefault )
+      ]
+      (TableHead
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Artist" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Track" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Genre" ] ]
+             ]
+         ])
+      [ TableBody ( "" , [] , [] ) (RowHeadColumns 0) [] [] ]
+      (TableFoot
+         ( "" , [] , [] )
+         [ Row
+             ( "" , [] , [] )
+             [ Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Robyn" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Indestructible" ] ]
+             , Cell
+                 ( "" , [] , [] )
+                 AlignDefault
+                 (RowSpan 1)
+                 (ColSpan 1)
+                 [ Para [ Str "Dance" ] ]
+             ]
+         ])
+  , Header
+      2
+      ( "_definition_list" , [] , [] )
+      [ Str "Definition" , Space , Str "list" ]
+  , DefinitionList
+      [ ( [ Str "CPU" ]
+        , [ [ Para
+                [ Str "The"
+                , Space
+                , Str "brain"
+                , Space
+                , Str "of"
+                , Space
+                , Str "the"
+                , Space
+                , Str "computer."
+                ]
+            ]
+          ]
+        )
+      , ( [ Str "Hard" , Space , Str "drive" ]
+        , [ [ Para
+                [ Str "Permanent"
+                , Space
+                , Str "storage"
+                , Space
+                , Str "for"
+                , Space
+                , Str "operating"
+                , Space
+                , Str "system"
+                , Space
+                , Str "and/or"
+                , Space
+                , Str "user"
+                , Space
+                , Str "files."
+                ]
+            ]
+          ]
+        )
+      ]
+  , Para [ Str "Mixed" ]
+  , DefinitionList
+      [ ( [ Str "Dairy" ]
+        , [ [ BulletList
+                [ [ Para [ Str "Milk" ] ]
+                , [ Para [ Str "Eggs" ]
+                  , DefinitionList [ ( [ Str "Bakery" ] , [ [] ] ) ]
+                  ]
+                , [ Para [ Str "Bread" ]
+                  , DefinitionList [ ( [ Str "Produce" ] , [ [] ] ) ]
+                  ]
+                , [ Para [ Str "Bananas" ] ]
+                ]
+            ]
+          ]
+        )
+      ]
+  , Para [ Str "With" , Space , Str "spaces" ]
+  , DefinitionList [ ( [ Str "Dairy" ] , [ [] ] ) ]
+  , BulletList
+      [ [ Para [ Str "Milk" ] ] , [ Para [ Str "Eggs" ] ] ]
+  , DefinitionList [ ( [ Str "Bakery" ] , [ [] ] ) ]
+  , BulletList [ [ Para [ Str "Bread" ] ] ]
+  , DefinitionList [ ( [ Str "Produce" ] , [ [] ] ) ]
+  , BulletList [ [ Para [ Str "Bananas" ] ] ]
+  , Para [ Str "Nested" ]
+  , DefinitionList
+      [ ( [ Str "Operating" , Space , Str "Systems" ]
+        , [ [ DefinitionList
+                [ ( [ Str "Linux" ]
+                  , [ [ OrderedList
+                          ( 1 , DefaultStyle , DefaultDelim )
+                          [ [ Para [ Str "Fedora" ]
+                            , BulletList [ [ Para [ Str "Desktop" ] ] ]
+                            ]
+                          , [ Para [ Str "Ubuntu" ]
+                            , BulletList
+                                [ [ Para [ Str "Desktop" ] ]
+                                , [ Para [ Str "Server" ] ]
+                                ]
+                            ]
+                          ]
+                      ]
+                    ]
+                  )
+                , ( [ Str "BSD" ]
+                  , [ [ OrderedList
+                          ( 1 , DefaultStyle , DefaultDelim )
+                          [ [ Para [ Str "FreeBSD" ] ]
+                          , [ Para [ Str "NetBSD" ]
+                            , DefinitionList
+                                [ ( [ Str "Cloud"
+                                    , Space
+                                    , Str "Providers"
+                                    ]
+                                  , [ [ DefinitionList
+                                          [ ( [ Str "PaaS" ] , [ [] ] )
+                                          ]
+                                      ]
+                                    ]
+                                  )
+                                ]
+                            ]
+                          , [ Para [ Str "OpenShift" ] ]
+                          , [ Para [ Str "CloudBees" ] ]
+                          ]
+                      ]
+                    ]
+                  )
+                , ( [ Str "IaaS" ]
+                  , [ [ OrderedList
+                          ( 1 , DefaultStyle , DefaultDelim )
+                          [ [ Para [ Str "Amazon" , Space , Str "EC2" ]
+                            ]
+                          ]
+                      ]
+                    ]
+                  )
+                ]
+            , Para
+                [ Str "This"
+                , Space
+                , Str "just"
+                , Space
+                , Str "affects"
+                , Space
+                , Str "the"
+                , Space
+                , Str "output:"
+                ]
+            ]
+          ]
+        )
+      ]
+  , Div
+      ( ""
+      , []
+      , [ ( "wrapper" , "1" )
+        , ( "itemwidth" , "75" )
+        , ( "labelwidth" , "25" )
+        ]
+      )
+      [ DefinitionList
+          [ ( [ Str "CPU" ]
+            , [ [ Para
+                    [ Str "The"
+                    , Space
+                    , Str "brain"
+                    , Space
+                    , Str "of"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "computer."
+                    ]
+                ]
+              ]
+            )
+          , ( [ Str "RAM" ]
+            , [ [ Para
+                    [ Str "Temporarily"
+                    , Space
+                    , Str "stores"
+                    , Space
+                    , Str "information"
+                    , Space
+                    , Str "the"
+                    , Space
+                    , Str "CPU"
+                    , Space
+                    , Str "uses"
+                    , Space
+                    , Str "during"
+                    , Space
+                    , Str "operation."
+                    ]
+                ]
+              ]
+            )
+          ]
+      ]
+  , Para [ Str "Q&A" , Space , Str "list" ]
+  , DefinitionList
+      [ ( [ Str "What"
+          , Space
+          , Str "is"
+          , Space
+          , Str "the"
+          , Space
+          , Str "answer?"
+          ]
+        , [ [ Para
+                [ Str "This"
+                , Space
+                , Str "is"
+                , Space
+                , Str "the"
+                , Space
+                , Str "answer."
+                ]
+            ]
+          ]
+        )
+      , ( [ Str "Are"
+          , Space
+          , Str "cameras"
+          , Space
+          , Str "allowed?"
+          ]
+        , [ [] ]
+        )
+      , ( [ Str "Are"
+          , Space
+          , Str "backpacks"
+          , Space
+          , Str "allowed?"
+          ]
+        , [ [ Para [ Str "No." ] ] ]
+        )
+      ]
+  , Para
+      [ Str "Ordered"
+      , Space
+      , Str "description"
+      , Space
+      , Str "list"
+      , Space
+      , Str "(with"
+      , Space
+      , Str "numbers)"
+      ]
+  , OrderedList
+      ( 1 , DefaultStyle , DefaultDelim )
+      [ [ DefinitionList
+            [ ( [ Str "&" ] , [ [ Para [ Str "ampersand" ] ] ] ) ]
+        ]
+      , [ DefinitionList
+            [ ( [ Str ">" ]
+              , [ [ Para [ Str "greater" , Space , Str "than" ] ] ]
+              )
+            ]
+        ]
+      ]
+  , Header
+      2
+      ( "_block_macros" , [] , [] )
+      [ Str "Block" , Space , Str "macros" ]
+  , Figure
+      ( "" , [] , [] )
+      (Caption Nothing [])
+      [ Plain
+          [ Image
+              ( ""
+              , []
+              , [ ( "width" , "300px" ) , ( "height" , "200px" ) ]
+              )
+              [ Str "Sunset" ]
+              ( "sunset.jpg" , "" )
+          ]
+      ]
+  , Plain
+      [ Image
+          ( "" , [] , [] )
+          [ Str "mymovie.mp4" ]
+          ( "mymovie.mp4" , "" )
+      ]
+  , Plain
+      [ Image
+          ( "" , [] , [] ) [ Str "mysong.mp3" ] ( "mysong.mp3" , "" )
+      ]
+  , Div ( "toc" , [] , [] ) []
+  , Div
+      ( ""
+      , [ "included" ]
+      , [ ( "path" , "asciidoc-reader-include.adoc" ) ]
+      )
+      [ Para
+          [ Str "This"
+          , Space
+          , Str "is"
+          , Space
+          , Str "a"
+          , Space
+          , Str "test!"
+          ]
+      , OrderedList
+          ( 1 , DefaultStyle , DefaultDelim )
+          [ [ Para [ Str "one" ]
+            , OrderedList
+                ( 1 , DefaultStyle , DefaultDelim )
+                [ [ Para [ Str "two" ] ] ]
+            ]
+          ]
+      ]
+  ]

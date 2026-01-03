@@ -37,7 +37,6 @@ import Text.Pandoc.Logging
 import Text.Pandoc.Emoji (emojiToInline)
 import Control.Monad.Reader
 import qualified Data.Foldable as F
-import Data.List (foldl')
 import Data.ByteString (ByteString)
 -- import Debug.Trace
 
@@ -141,7 +140,7 @@ convertBlock (D.Node pos attr bl) =  addAttrToBlock pos attr <$>
                      (hs,bs):rs -> (hs,row:bs):rs
                      [] -> [([],[row])]
       let reverseSnd (as,bs) = (as,reverse bs)
-      let bodies = reverse $ map reverseSnd $ foldl' getBody [] rest
+      let bodies = reverse $ map reverseSnd $ F.foldl' getBody [] rest
       let toCell (D.Cell _ al ils) =
             Cell nullAttr (toAlign al) (RowSpan 1) (ColSpan 1)
                    . (\is -> [Para $ toList is]) <$> convertInlines ils

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- |
 Module      : Text.Pandoc.Class.CommonState
 Copyright   : Copyright (C) 2016-2020 Jesse Rosenthal, John MacFarlane
@@ -23,7 +24,9 @@ import Text.Collate.Lang (Lang)
 import Text.Pandoc.MediaBag (MediaBag)
 import Text.Pandoc.Logging (LogMessage, Verbosity (WARNING))
 import Text.Pandoc.Translations.Types (Translations)
+#ifdef PANDOC_HTTP_SUPPORT
 import Network.HTTP.Client (Manager)
+#endif
 
 -- | 'CommonState' represents state that is used by all
 -- instances of 'PandocMonad'.  Normally users should not
@@ -51,9 +54,11 @@ data CommonState = CommonState
   , stResourcePath :: [FilePath]
     -- ^ Path to search for resources like
     -- included images
+#ifdef PANDOC_HTTP_SUPPORT
   , stManager      :: Maybe Manager
     -- ^ Manager for HTTP client; this needs to persist across many requests
     -- for efficiency.
+#endif
   , stVerbosity    :: Verbosity
     -- ^ Verbosity level
   , stTrace        :: Bool
@@ -79,7 +84,9 @@ defaultCommonState = CommonState
   , stInputFiles = []
   , stOutputFile = Nothing
   , stResourcePath = ["."]
+#ifdef PANDOC_HTTP_SUPPORT
   , stManager = Nothing
+#endif
   , stVerbosity = WARNING
   , stTrace = False
   }

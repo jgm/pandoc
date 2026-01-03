@@ -2,7 +2,7 @@ VERSION?=$(shell grep '^[Vv]ersion:' pandoc.cabal | awk '{print $$2;}')
 PANDOC_CLI_VERSION?=$(shell grep '^[Vv]ersion:' pandoc-cli/pandoc-cli.cabal | awk '{print $$2;}')
 SOURCEFILES?=$(shell git ls-tree -r main --name-only src pandoc-cli pandoc-server pandoc-lua-engine | grep "\.hs$$")
 PANDOCSOURCEFILES?=$(shell git ls-tree -r main --name-only src | grep "\.hs$$")
-DOCKERIMAGE=quay.io/benz0li/ghc-musl:9.8
+DOCKERIMAGE=quay.io/benz0li/ghc-musl:9.10
 TIMESTAMP=$(shell date "+%Y%m%d_%H%M")
 LATESTBENCH=$(word 1,$(shell ls -t bench_*.csv 2>/dev/null))
 BASELINE?=$(LATESTBENCH)
@@ -233,7 +233,7 @@ update-website: ## update website and upload
 .PHONY: update-website
 
 update-translations: ## update data/translations from Babel and Polyglossia
-	python tools/update-translations.py
+	python3 tools/update-translations.py
 .PHONY: update-translations
 
 validate-docx-golden-tests: ## validate docx golden tests against schema

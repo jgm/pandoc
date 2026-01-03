@@ -529,7 +529,7 @@ Right paren: )
 
 Greater-than: ++>++
 
-Hash: #
+Hash: ++#++
 
 Period: .
 

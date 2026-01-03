@@ -377,8 +377,7 @@ showLogMessage msg =
        NoTitleElement fallback ->
          "This document format requires a nonempty <title> element.\n" <>
          "Defaulting to '" <> fallback <> "' as the title.\n" <>
-         "To specify a title, use 'title' in metadata or " <>
-         "--metadata title=\"...\"."
+         "To specify a title, use --variable pagetitle=\"...\"."
        NoLangSpecified ->
          "No value for 'lang' was specified in the metadata.\n" <>
          "It is recommended that lang be specified for this format."

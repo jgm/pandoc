@@ -30,7 +30,7 @@ import Text.Pandoc.Citeproc.Util (splitStrWhen)
 import qualified Data.Text              as T
 import           Data.List.Split        (splitWhen, wordsBy)
 import Data.Char (isUpper, isDigit)
-import Data.List (foldl')
+import qualified Data.List as L
 
 emptyName :: Name
 emptyName =
@@ -83,7 +83,7 @@ toName _ ils@(Str ys:_) | T.any (== '=') ys = do
         ag{ nameSuffix = Just $ stringify xs }
       addPart ag (Space : xs) = addPart ag xs
       addPart ag _ = ag
-  return $ foldl' addPart emptyName commaParts
+  return $ L.foldl' addPart emptyName commaParts
 -- First von Last
 -- von Last, First
 -- von Last, Jr ,First

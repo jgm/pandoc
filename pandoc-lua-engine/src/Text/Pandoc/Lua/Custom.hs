@@ -148,12 +148,19 @@ readerField = "Pandoc Reader function"
 writerField :: Name
 writerField = "Pandoc Writer function"
 
--- | Runs a Lua action in a continueable environment.
-inLua :: MonadIO m => GCManagedState -> LuaE PandocError a -> m a
-inLua st = liftIO . withGCManagedState @PandocError st
+-- | Runs a Lua action in a continuable environment and transfers the common
+-- state after the Lua action has finished.
+inLua :: (PandocMonad m, MonadIO m)
+  => GCManagedState -> LuaE PandocError a -> m a
+inLua st luaAction = do
+  let inLua' = liftIO . withGCManagedState @PandocError st
+  result <- inLua' luaAction
+  cstate <- inLua' (unPandocLua PandocMonad.getCommonState)
+  PandocMonad.putCommonState cstate
+  return result
 
 -- | Returns the ByteStringReader function
-byteStringReader :: MonadIO m => GCManagedState -> Reader m
+byteStringReader :: (PandocMonad m, MonadIO m) => GCManagedState -> Reader m
 byteStringReader st = ByteStringReader $ \ropts input -> inLua st $ do
   getfield registryindex readerField
   push input
@@ -163,12 +170,12 @@ byteStringReader st = ByteStringReader $ \ropts input -> inLua st $ do
     _ -> throwErrorAsException
 
 -- | Returns the TextReader function
-textReader :: MonadIO m => GCManagedState -> Reader m
+textReader :: (PandocMonad m, MonadIO m) => GCManagedState -> Reader m
 textReader st = TextReader $ \ropts srcs -> inLua st $ do
   let input = toSources srcs
   getfield registryindex readerField
   push input
   push ropts
   pcallTrace 2 1 >>= \case
-    OK -> forcePeek $ peekPandoc top
+    OK -> forcePeek (peekPandoc top)
     _ -> throwErrorAsException

@@ -1,0 +1,7 @@
+[ Header 1 ( "title" , [] , [] ) [ Str "TITLE" ]
+, Para
+    [ Str "Cross-reference:"
+    , Space
+    , Link ( "" , [] , [] ) [ Str "TITLE" ] ( "#title" , "" )
+    ]
+]

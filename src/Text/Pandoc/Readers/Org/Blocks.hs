@@ -38,7 +38,7 @@ import Data.Bifunctor (bimap)
 import Data.Char (isSpace)
 import Data.Default (Default)
 import Data.Functor (($>))
-import Data.List (find, foldl')
+import qualified Data.List as L
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Text (Text)
 import Data.List.NonEmpty (nonEmpty)
@@ -130,9 +130,9 @@ blockAttributes :: PandocMonad m => OrgParser m BlockAttributes
 blockAttributes = try $ do
   kv <- many stringyMetaAttribute
   guard $ all (isBlockAttr . fst) kv
-  let caption = foldl' (appendValues "caption") Nothing kv
-  let kvAttrs = foldl' (appendValues "attr_html") Nothing kv
-  let name    = snd <$> find ((`elem` ["name", "label"]) . fst) (reverse kv)
+  let caption = L.foldl' (appendValues "caption") Nothing kv
+  let kvAttrs = L.foldl' (appendValues "attr_html") Nothing kv
+  let name    = snd <$> L.find ((`elem` ["name", "label"]) . fst) (reverse kv)
   caption' <- traverse (parseFromString inlines . (<> "\n")) caption
   kvAttrs' <- parseFromString keyValues . (<> "\n") $ fromMaybe mempty kvAttrs
   return BlockAttributes
@@ -231,7 +231,7 @@ exampleBlock blockAttrs _label = do
   newline
   content <- rawBlockContent "example"
   let id' = fromMaybe mempty $ blockAttrName blockAttrs
-  let codeBlck = B.codeBlockWith (id', "example":classes, kv) content
+  let codeBlck = B.codeBlockWith (id', classes, kv) content
   return . return $ codeBlck
 
 rawBlockLines :: Monad m => (Text   -> F Blocks) -> Text -> OrgParser m (F Blocks)
@@ -558,7 +558,7 @@ example = try $ returnF . exampleCode . T.unlines =<< many1 exampleLine
    exampleLine = try $ exampleLineStart *> anyLine
 
 exampleCode :: Text -> Blocks
-exampleCode = B.codeBlockWith ("", ["example"], [])
+exampleCode = B.codeBlockWith ("", [], [])
 
 
 --

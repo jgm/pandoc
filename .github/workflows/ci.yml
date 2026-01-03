@@ -3,9 +3,7 @@ name: CI tests
 on:
   push:
     branches:
-    - '*'
-    - '!rc/*'
-    - '!djot'
+    - 'main'
     paths-ignore:
     - 'doc/*.md'
     - 'MANUAL.txt'
@@ -45,21 +43,10 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         versions:
-          - ghc: '8.10'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
-          - ghc: '9.0'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
-          - ghc: '9.2'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
-          - ghc: '9.4'
-            cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror'
+          # NOTE: Update `CONTRIBUTING.md` when changing the minimum version
           - ghc: '9.6'
             cabal: 'latest'
             cabalopts: '--ghc-option=-Werror'
@@ -68,12 +55,16 @@ jobs:
             cabalopts: '--ghc-option=-Werror'
           - ghc: '9.10'
             cabal: 'latest'
-            cabalopts: '--ghc-option=-Werror --ghc-option=-Wno-unused-imports'
+            cabalopts: '--ghc-option=-Werror'
           - ghc: '9.12'
             cabal: 'latest'
-            cabalopts: '--allow-newer --ghc-option=-Werror --ghc-option=-Wno-unused-imports --ghc-option=-Wno-deriving-typeable'
+            cabalopts: '--ghc-option=-Werror'
+          - ghc: '9.12'
+            cabal: 'latest'
+            cabalopts: '--ghc-option=-Werror -f-http --test-option="-p /XXXXX/"'
+
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     # needed by memory
     - name: Install numa
@@ -92,7 +83,7 @@ jobs:
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.local/state/cabal
@@ -100,7 +91,7 @@ jobs:
 
     - name: Cache cabal work
       id:   cabal-local
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           dist-newstyle
@@ -121,7 +112,7 @@ jobs:
     strategy:
       fail-fast: true
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     # needed by memory
     - name: Install numa
@@ -130,7 +121,7 @@ jobs:
     # declare/restore cached things
     - name: Cache stack global package db
       id:   stack-global
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.stack
@@ -138,7 +129,7 @@ jobs:
 
     - name: Cache stack work
       id:   stack-local
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           .stack-work
@@ -154,20 +145,20 @@ jobs:
 #   strategy:
 #     fail-fast: true
 #   steps:
-#   - uses: actions/checkout@v5
+#   - uses: actions/checkout@v6
 #   - uses: cachix/install-nix-action@v30
 #     with:
 #       nix_path: nixpkgs=channel:nixos-24.05
 #   - name: Cache cabal global package db
 #     id:   cabal-global
-#     uses: actions/cache@v4
+#     uses: actions/cache@v5
 #     with:
 #       path: |
 #         ~/.local/state/cabal
 #       key: ${{ runner.os }}-nix-cabal-global-${{ secrets.CACHE_VERSION }}
 #   - name: Cache cabal work
 #     id:   cabal-local
-#     uses: actions/cache@v4
+#     uses: actions/cache@v5
 #     with:
 #       path: |
 #         dist-newstyle
@@ -180,18 +171,18 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.4.4
-        ghcup install cabal --set 3.10
+        ghcup install ghc --set 9.10
+        ghcup install cabal --set latest
 
     # declare/restore cached things
 
     - name: Cache cabal global package db
       id:   cabal-global
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           C:\cabal\store
@@ -199,7 +190,7 @@ jobs:
 
     - name: Cache cabal work
       id: cabal-local
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           dist-newstyle
@@ -222,7 +213,7 @@ jobs:
 #           cabal: '3.2'
 
 #   steps:
-#   - uses: actions/checkout@v5
+#   - uses: actions/checkout@v6
 
 #   - name: Install cabal/ghc
 #     run: |
@@ -233,7 +224,7 @@ jobs:
 
 #   - name: Cache cabal global package db
 #     id:   cabal-global
-#     uses: actions/cache@v4
+#     uses: actions/cache@v5
 #     with:
 #       path: |
 #         ~/.cabal
@@ -241,7 +232,7 @@ jobs:
 
 #   - name: Cache cabal work
 #     id:   cabal-local
-#     uses: actions/cache@v4
+#     uses: actions/cache@v5
 #     with:
 #       path: |
 #         dist-newstyle

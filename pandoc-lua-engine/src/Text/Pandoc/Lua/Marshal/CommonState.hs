@@ -26,8 +26,10 @@ import Text.Pandoc.Class (CommonState)
 typeCommonState :: LuaError e => DocumentedType e CommonState
 typeCommonState = deftype "CommonState" [] []
 
+-- | Retrieves the common state from Lua
 peekCommonState :: LuaError e => Peeker e CommonState
 peekCommonState = peekUD typeCommonState
 
+-- | Pushes the common pandoc state to the Lua stack.
 pushCommonState :: LuaError e => Pusher e CommonState
 pushCommonState = pushUD typeCommonState

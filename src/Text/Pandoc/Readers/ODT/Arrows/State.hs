@@ -33,10 +33,10 @@ module Text.Pandoc.Readers.ODT.Arrows.State
   , iterateS'
   ) where
 
+import qualified Data.List as L
 import Control.Arrow
 import qualified Control.Category as Cat
 import Control.Monad
-import Data.List (foldl')
 import Text.Pandoc.Readers.ODT.Arrows.Utils
 import Text.Pandoc.Readers.ODT.Generic.Fallible
 
@@ -136,7 +136,7 @@ iterateS a = ArrowState $ \(s,f) -> foldr a' (s,mzero) f
 iterateSL :: (Foldable f, MonadPlus m)
           => ArrowState s    x     y
           -> ArrowState s (f x) (m y)
-iterateSL a = ArrowState $ \(s,f) -> foldl' a' (s,mzero) f
+iterateSL a = ArrowState $ \(s,f) -> L.foldl' a' (s,mzero) f
   where a' (s',m) x = second (mplus m.return) $ runArrowState a (s',x)
 
 

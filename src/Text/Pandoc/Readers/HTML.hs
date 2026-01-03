@@ -33,7 +33,7 @@ import Data.Char (isAlphaNum, isLetter)
 import Data.Default (Default (..), def)
 import Data.Foldable (for_)
 import Data.List.Split (splitWhen)
-import Data.List (foldl')
+import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Either (partitionEithers)
@@ -242,7 +242,7 @@ block = ((do
         "main" -> pDiv
         "figure" -> pFigure
         "iframe" -> pIframe
-        "style" -> mempty <$ pHtmlBlock "style" -- see #10643
+        "style" -> pRawHtmlBlock
         "textarea" -> pRawHtmlBlock
         "switch"
           | epubExts
@@ -444,9 +444,9 @@ pDefListItem = try $ do
   terms <- many1 (try $ skipMany nonItem >> pInTags "dt" inline)
   defs  <- many1 (try $ skipMany nonItem >> pInTags "dd" block)
   skipMany nonItem
-  let term = foldl' (\x y -> if null x
-                                then trimInlines y
-                                else x <> B.linebreak <> trimInlines y)
+  let term = L.foldl' (\x y -> if null x
+                                  then trimInlines y
+                                  else x <> B.linebreak <> trimInlines y)
                     mempty terms
   return (term, map (fixPlains True) defs)
 
@@ -538,7 +538,7 @@ pIframe = try $ do
 
 pRawHtmlBlock :: PandocMonad m => TagParser m Blocks
 pRawHtmlBlock = do
-  raw <- pHtmlBlock "script" <|> pHtmlBlock "textarea"
+  raw <- pHtmlBlock "script" <|> pHtmlBlock "style" <|> pHtmlBlock "textarea"
           <|> pRawTag
   exts <- getOption readerExtensions
   if extensionEnabled Ext_raw_html exts && not (T.null raw)
@@ -713,7 +713,7 @@ inline = pTagText <|> do
         "input"
           | lookup "type" attr == Just "checkbox"
           -> asks inListItem >>= guard >> pCheckbox
-        "style" -> mempty <$ pHtmlBlock "style" -- see #10643
+        "style" -> B.rawInline "html" <$> pHtmlBlock "style"
         "script"
           | Just x <- lookup "type" attr
           , "math/tex" `T.isPrefixOf` x -> pScriptMath

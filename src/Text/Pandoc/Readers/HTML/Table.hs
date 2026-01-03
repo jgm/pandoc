@@ -20,7 +20,7 @@ import Control.Applicative ((<|>))
 import Data.Maybe (fromMaybe, isJust)
 import Data.Either (lefts, rights)
 import Data.List.NonEmpty (nonEmpty)
-import Data.List (foldl')
+import qualified Data.List as L
 import Data.Text (Text)
 import Text.HTML.TagSoup
 import Text.Pandoc.Builder (Blocks)
@@ -204,9 +204,9 @@ pTableBody block = try $ do
   let adjustRowHeadCols
         headcolsv
         (currentrow, (numheads, Row _ cells)) =
-          foldl' (adjustRowHeadColsForCell currentrow) headcolsv
+          L.foldl' (adjustRowHeadColsForCell currentrow) headcolsv
             (take numheads cells)
-  let headcols = foldl' adjustRowHeadCols
+  let headcols = L.foldl' adjustRowHeadCols
                          (V.replicate numrows (0 :: Int))
                          (zip [(0 :: Int)..] rows)
   let rowHeadCols = case V.uncons headcols of

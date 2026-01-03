@@ -431,7 +431,7 @@ getData mimetype src
             report $ CouldNotFetchResource r ""
             return $ CouldNotFetch e
           PandocHttpError u er -> do
-            report $ CouldNotFetchResource u (tshow er)
+            report $ CouldNotFetchResource u er
             return $ CouldNotFetch e
           _ -> throwError e
    removeQueryAndFragment = T.takeWhile (\c -> c /= '#' && c /= '?')

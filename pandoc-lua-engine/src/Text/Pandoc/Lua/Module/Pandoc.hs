@@ -30,6 +30,8 @@ import HsLua
 import System.Exit (ExitCode (..))
 import Text.Pandoc.Class ( PandocMonad, FileInfo (..), FileTree
                          , addToFileTree, getCurrentTime
+                         , getRequestHeaders, getResourcePath, getUserDataDir
+                         , setRequestHeaders, setResourcePath, setUserDataDir
                          , insertInFileTree, sandboxWithFileTree
                          )
 import Text.Pandoc.Definition
@@ -57,7 +59,6 @@ import Text.Pandoc.Writers (Writer (..), getWriter, writers)
 import qualified HsLua as Lua
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -98,9 +99,13 @@ readersField = Field
     [ "Set of formats that pandoc can parse. All keys in this table can"
     , "be used as the `format` value in `pandoc.read`."
     ]
-  , fieldPushValue = pushSet pushText $
-                     Set.fromList (map fst (readers @PandocLua))
+  , fieldPushValue = pushKeyValuePairs pushText (pushText . readerType)
+                     (readers @PandocLua)
   }
+ where
+  readerType = \case
+    TextReader {} -> "text"
+    ByteStringReader {} -> "bytestring"
 
 -- | Set of input formats accepted by @write@.
 writersField :: Field PandocError
@@ -111,9 +116,13 @@ writersField = Field
     [ "Set of formats that pandoc can generate. All keys in this table"
     , "can be used as the `format` value in `pandoc.write`."
     ]
-  , fieldPushValue = pushSet pushText $
-                     Set.fromList (map fst (writers @PandocLua))
+  , fieldPushValue = pushKeyValuePairs pushText (pushText . writerType)
+                     (writers @PandocLua)
   }
+ where
+  writerType = \case
+    TextWriter {} -> "text"
+    ByteStringWriter {} -> "bytestring"
 
 -- | Inline table field
 inlineField :: Field PandocError
@@ -294,6 +303,37 @@ functions =
     <#> parameter peekFilter "Filter" "lua_filter" "filter functions"
     =#> functionResult pushInline "Inline" "modified Inline"
 
+  , defun "with_state"
+    ### with_state
+    <#> parameter peekStateOptions "table" "options" "state options"
+    <#> parameter pure "function" "callback"
+          "The action to run with the given state."
+    =?> "The results of the call to *callback*."
+    #? "Runs a function with a modified pandoc state.\n\
+       \\n\
+       \The given callback is invoked after setting the pandoc state to the\
+       \ given values. The modifiable options are restored to their original\
+       \ values once the callback has returned.\n\
+       \\n\
+       \The following state variables can be controlled:\n\
+       \\n\
+       \  - `request_headers` (list of key-value tuples)\n\
+       \  - `resource_path` (list of filepaths)\n\
+       \  - `user_data_dir` (string)\n\
+       \\n\
+       \Other options are ignored, and the rest of the state is not modified.\n\
+       \\n\
+       \Usage:\n\
+       \\n\
+       \    local opts = {\n\
+       \      request_headers = {\n\
+       \        {'Authorization', 'Basic my-secret'}\n\
+       \      }\n\
+       \    }\n\
+       \    pandoc.with_state(opts, function ()\n\
+       \      local mime, contents = pandoc.mediabag.fetch(image_url)\n\
+       \    )\n"
+
   , defun "write"
     ### (\doc mformatspec mwriterOpts -> unPandocLua $ do
             flvrd <- maybe (parseFlavoredFormat "markdown") pure mformatspec
@@ -429,3 +469,61 @@ peekReadEnv idx = do
 
   -- Return ersatz file system.
   pure tree2
+
+-- | Helper type that holds all common state values that can be controlled.
+--
+-- This is closely related to "CommonState", but that's an opaque value
+-- that can only be read and modified through accessor functions. All
+-- fields in this type can be modified through accessors.
+data StateOptions = StateOptions
+  { stateOptsRequestHeaders :: [(T.Text, T.Text)]
+  , stateOptsResourcePath :: [String]
+  , stateOptsUserDataDir :: Maybe String
+  }
+
+-- | Peek pandoc state options; the current state properties are used for
+-- unspecified values.
+peekStateOptions :: Peeker PandocError StateOptions
+peekStateOptions idx = do
+  opts <- liftLua getStateOptions
+  let peekStateField field defVal peeker =
+        peekFieldRaw (fmap (fromMaybe defVal) . peekNilOr peeker) field idx
+  let peekOptStateField field defVal peeker =
+        peekFieldRaw (fmap (maybe defVal Just ) . peekNilOr peeker) field idx
+  StateOptions
+    <$> peekStateField "request_headers"
+          (stateOptsRequestHeaders opts)
+          (peekList (peekPair peekText peekText))
+    <*> peekStateField "resource_path"
+          (stateOptsResourcePath opts)
+          (peekList peekString)
+    <*> peekOptStateField "user_data_dir"
+          (stateOptsUserDataDir opts)
+          peekString
+
+-- | Get the current options values from the pandoc state.
+getStateOptions :: LuaE PandocError StateOptions
+getStateOptions = unPandocLua $ StateOptions
+  <$> getRequestHeaders
+  <*> getResourcePath
+  <*> getUserDataDir
+
+-- | Update the pandoc state with the new options.
+setStateOptions :: StateOptions -> LuaE PandocError ()
+setStateOptions opts = unPandocLua $ do
+  setRequestHeaders $ stateOptsRequestHeaders opts
+  setResourcePath $ stateOptsResourcePath opts
+  setUserDataDir $ stateOptsUserDataDir opts
+
+-- | Run a callback with a modified pandoc state.
+with_state :: StateOptions -> StackIndex -> LuaE PandocError NumResults
+with_state options callback_idx = do
+  origState <- getStateOptions
+  setStateOptions options
+  -- Invoke the callback
+  oldTop <- gettop
+  pushvalue callback_idx
+  call 0 multret
+  newTop <- gettop
+  setStateOptions origState
+  return . NumResults . fromStackIndex $ newTop - oldTop

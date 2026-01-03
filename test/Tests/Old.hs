@@ -78,6 +78,14 @@ tests pandocPath =
     , s5WriterTest' "inserts"  ["-s", "-H", "insert",
       "-B", "insert", "-A", "insert", "-c", "main.css"] "html4"
     ]
+  , testGroup "asciidoc"
+    [ testGroup "writer" (writerTests' "asciidoc" ++
+                          writerTests' "asciidoc_legacy")
+    , testGroup "reader"
+      [ test' "basic" ["-f", "asciidoc", "-t", "native", "-s"]
+          "asciidoc-reader.adoc" "asciidoc-reader.native"
+      ]
+    ]
   , testGroup "textile"
     [ testGroup "writer" $ writerTests' "textile"
     , test' "reader" ["-r", "textile", "-w", "native", "-s"]
@@ -183,9 +191,7 @@ tests pandocPath =
         "tikiwiki-reader.tikiwiki" "tikiwiki-reader.native" ]
   , testGroup "other writers" $ map (\f -> testGroup f $ writerTests' f)
     [ "opendocument" , "context" , "texinfo", "icml", "tei"
-    , "man" , "plain" , "asciidoc", "asciidoc_legacy"
-    , "xwiki", "zimwiki"
-    ]
+    , "man" , "plain" , "xwiki", "zimwiki" ]
   , testGroup "writers-lang-and-dir"
     [ test' "latex" ["-f", "native", "-t", "latex", "-s"]
       "writers-lang-and-dir.native" "writers-lang-and-dir.latex"
@@ -275,6 +281,7 @@ tests pandocPath =
             "vimdoc/headers.markdown" "vimdoc/headers-numbered.vimdoc"
         ]
     ]
+  , testGroup "bbcode" [testGroup "writer" $ writerTests' "bbcode"]
   ]
  where
     test'           = test pandocPath

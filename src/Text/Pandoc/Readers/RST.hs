@@ -1520,27 +1520,20 @@ inlineContent = choice [ whitespace
                        , str
                        , endline
                        , smart
-                       , hyphens
                        , escapedChar
                        , symbol ] <?> "inline content"
 
 parseInlineFromText :: PandocMonad m => Text -> RSTParser m Inlines
 parseInlineFromText = parseFromString' (trimInlines . mconcat <$> many inline)
 
-hyphens :: Monad m => RSTParser m Inlines
-hyphens = do
-  result <- many1Char (char '-')
-  optional endline
-  -- don't want to treat endline after hyphen or dash as a space
-  return $ B.str result
-
 escapedChar :: Monad m => RSTParser m Inlines
 escapedChar = do c <- escaped anyChar
-                 unless (canPrecedeOpener c) updateLastStrPos
-                 return $ if c == ' ' || c == '\n' || c == '\r'
-                             -- '\ ' is null in RST
-                             then mempty
-                             else B.str $ T.singleton c
+                 if c == ' ' || c == '\n' || c == '\r'
+                    -- '\ ' is null in RST
+                    then return mempty
+                    else do
+                      unless (canPrecedeOpener c) updateLastStrPos
+                      return $ B.str $ T.singleton c
 
 canPrecedeOpener :: Char -> Bool
 canPrecedeOpener c =

@@ -14,14 +14,14 @@ module Text.Pandoc.Readers.LaTeX.Math
   )
 where
 import Data.Maybe (fromMaybe, mapMaybe, listToMaybe)
-import Data.List (foldl')
+import qualified Data.List as L
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.Builder as B
 import qualified Data.Sequence as Seq
 import Text.Pandoc.Readers.LaTeX.Parsing
 import Text.Pandoc.TeX
 import Text.Pandoc.Class
-import Text.Pandoc.Shared (trimMath, stripTrailingNewlines)
+import Text.Pandoc.Shared (trimMath, trimr)
 import Text.Pandoc.Parsing hiding (blankline, mathDisplay, mathInline,
                             optional, space, spaces, withRaw, (<|>))
 import Control.Applicative ((<|>), optional)
@@ -82,7 +82,7 @@ mathEnv :: PandocMonad m => Text -> LP m Text
 mathEnv name = withMathMode $ do
   optional blankline
   res <- manyTill anyTok (end_ name)
-  return $ stripTrailingNewlines $ untokenize res
+  return $ trimr $ untokenize res
 
 inlineEnvironment :: PandocMonad m => LP m Inlines
 inlineEnvironment = try $ do
@@ -160,7 +160,7 @@ newtheorem inline = do
 extractLabelFromBlock :: Block -> Maybe Text
 extractLabelFromBlock (Para inlines) = extractLabel Nothing inlines
   where
-    extractLabel = foldl' go
+    extractLabel = L.foldl' go
     go :: Maybe Text -> Inline -> Maybe Text
     go (Just t) _ = Just t
     go Nothing (Span (_, _, attrs) _) = lookup "label" attrs

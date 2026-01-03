@@ -17,7 +17,7 @@ import Control.Monad.Reader
 import Data.Generics (everywhere, mkT)
 import Data.List (nub, partition)
 import Data.Maybe (isNothing)
-import Data.Monoid (All (..), Any (..))
+import Data.Monoid (All (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Text.Pandoc.Builder as B
@@ -343,16 +343,6 @@ blockToDocBook opts (Figure attr capt@(Caption _ caption) body) = do
         else inTagsIndented "figure" $
              inTagsSimple "title" title $$
              mconcat mediaobjects
-
-hasLineBreaks :: [Inline] -> Bool
-hasLineBreaks = getAny . query isLineBreak . walk removeNote
-  where
-    removeNote :: Inline -> Inline
-    removeNote (Note _) = Str ""
-    removeNote x        = x
-    isLineBreak :: Inline -> Any
-    isLineBreak LineBreak = Any True
-    isLineBreak _         = Any False
 
 alignmentToString :: Alignment -> Text
 alignmentToString alignment = case alignment of

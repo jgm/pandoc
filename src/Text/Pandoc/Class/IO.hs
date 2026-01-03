@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
 Module      : Text.Pandoc.Class.IO
@@ -37,31 +38,37 @@ module Text.Pandoc.Class.IO
 
 import Control.Monad.Except (throwError)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.ByteString.Lazy (toChunks)
 import Data.Text (Text, pack, unpack)
 import Data.Time (TimeZone, UTCTime)
 import Data.Unique (hashUnique)
+#ifdef PANDOC_HTTP_SUPPORT
+import Data.ByteString.Lazy (toChunks)
+import System.Environment (getEnv)
+import Data.Default (def)
 import Network.Connection (TLSSettings(..))
 import qualified Network.TLS as TLS
 import qualified Network.TLS.Extra as TLS
+import System.X509 (getSystemCertificateStore)
 import Network.HTTP.Client
        (httpLbs, Manager, responseBody, responseHeaders,
-        Request(port, host, requestHeaders), parseUrlThrow, newManager)
+        Request(port, host, requestHeaders), parseUrlThrow, newManager, HttpException)
 import Network.HTTP.Client.Internal (addProxy)
 import Network.HTTP.Client.TLS (mkManagerSettings)
 import Network.HTTP.Types.Header ( hContentType )
 import Network.Socket (withSocketsDo)
+import Text.Pandoc.Class.CommonState (CommonState (..))
+import Text.Pandoc.Class.PandocMonad ( getsCommonState, modifyCommonState )
+import qualified Data.CaseInsensitive as CI
+#endif
 import Network.URI (URI(..), parseURI, unEscapeString)
 import System.Directory (createDirectoryIfMissing)
-import System.Environment (getEnv)
 import System.FilePath ((</>), takeDirectory, normalise)
 import qualified System.FilePath.Posix as Posix
 import System.IO (stderr)
 import System.IO.Error
 import System.Random (StdGen)
-import Text.Pandoc.Class.CommonState (CommonState (..))
 import Text.Pandoc.Class.PandocMonad
-       (PandocMonad, getsCommonState, modifyCommonState,
+       (PandocMonad,
         getMediaBag, report, extractURIData)
 import Text.Pandoc.Definition (Pandoc, Inline (Image))
 import Text.Pandoc.Error (PandocError (..))
@@ -72,7 +79,6 @@ import Text.Pandoc.Walk (walk)
 import qualified Control.Exception as E
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.CaseInsensitive as CI
 import qualified Data.Text as T
 import qualified Data.Time
 import qualified Data.Time.LocalTime
@@ -82,8 +88,6 @@ import qualified System.Environment as Env
 import qualified System.FilePath.Glob
 import qualified System.Random
 import qualified Text.Pandoc.UTF8 as UTF8
-import Data.Default (def)
-import System.X509 (getSystemCertificateStore)
 #ifndef EMBED_DATA_FILES
 import qualified Paths_pandoc as Paths
 #endif
@@ -124,6 +128,7 @@ newStdGen = liftIO System.Random.newStdGen
 newUniqueHash :: MonadIO m => m Int
 newUniqueHash = hashUnique <$> liftIO Data.Unique.newUnique
 
+#ifdef PANDOC_HTTP_SUPPORT
 getManager :: (PandocMonad m, MonadIO m) => m Manager
 getManager = do
   mbManager <- getsCommonState stManager
@@ -153,12 +158,14 @@ getManager = do
         newManager tlsManagerSettings
       modifyCommonState $ \st -> st{ stManager = Just manager }
       pure manager
+#endif
 
 openURL :: (PandocMonad m, MonadIO m) => Text -> m (B.ByteString, Maybe MimeType)
 openURL u
  | Just (URI{ uriScheme = "data:",
               uriPath = upath }) <- parseURI (T.unpack u)
      = pure $ extractURIData upath
+#ifdef PANDOC_HTTP_SUPPORT
  | otherwise = do
      let toReqHeader (n, v) = (CI.mk (UTF8.fromText n), UTF8.fromText v)
      customHeaders <- map toReqHeader <$> getsCommonState stRequestHeaders
@@ -178,7 +185,12 @@ openURL u
 
      case res of
           Right r -> return r
-          Left e  -> throwError $ PandocHttpError u e
+          Left (e :: HttpException)
+                  -> throwError $ PandocHttpError u (T.pack (show e))
+#else
+ | otherwise =
+     throwError $ PandocHttpError u "pandoc was compiled without HTTP support"
+#endif
 
 -- | Read the lazy ByteString contents from a file path, raising an error on
 -- failure.

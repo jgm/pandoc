@@ -215,9 +215,9 @@ Please follow these guidelines:
     external C libraries should especially be avoided.
 
 10. We aim for compatibility with at least the last three
-    released ghc versions, and sometimes more. Currently pandoc
-    can be compiled on ghc 8.6 an higher. All pull requests and
-    commits are tested automatically on GitHub Actions.
+    released ghc versions, and sometimes more.  Currently we
+    support ghc versions 9.6 and higher. All pull requests
+    and commits are tested automatically on GitHub Actions.
 
 Tests
 -----
@@ -448,7 +448,7 @@ WriterOptions, you'll also need to
 Lua filters
 -----------
 
-If you've written a useful pandoc [lua filter](lua-filters.html),
+If you've written a useful pandoc [lua filter](./doc/lua-filters.md),
 you may want to consider submitting a pull request to the
 [lua-filters repository](https://github.com/pandoc/lua-filters).
 

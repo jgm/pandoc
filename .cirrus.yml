@@ -7,9 +7,9 @@ task:
     image: ghcr.io/cirruslabs/macos-monterey-base:latest
   brew_script:
     - brew update
-    - brew install ghc@9.8 cabal-install
+    - brew install ghc@9.10 cabal-install
   env:
-    PATH: /opt/homebrew/opt/ghc@9.8/bin:${PATH}
+    PATH: /opt/homebrew/opt/ghc@9.10/bin:${PATH}
   cabal_store_cache:
     folder: ~/.cabal/store
     fingerprint_key: macos_2023_03_12
@@ -29,7 +29,7 @@ task:
   trigger_type: manual
   timeout_in: 90m
   arm_container:
-    image: quay.io/benz0li/ghc-musl:9.8
+    image: quay.io/benz0li/ghc-musl:9.10
     cpu: 4
     memory: 12G
   env:
@@ -55,7 +55,7 @@ task:
   trigger_type: manual
   timeout_in: 90m
   container:
-    image: quay.io/benz0li/ghc-musl:9.8
+    image: quay.io/benz0li/ghc-musl:9.10
     cpu: 4
     memory: 12G
   env:

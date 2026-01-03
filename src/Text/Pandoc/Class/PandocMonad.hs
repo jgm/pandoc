@@ -534,7 +534,7 @@ fillMediaBag d = walkM handleImage d
                   return $ replacementSpan attr src tit lab
                 PandocHttpError u er -> do
                   report $ CouldNotFetchResource u
-                            (T.pack $ show er ++ "\rReplacing image with description.")
+                            (er <> "\nReplacing image with description.")
                   -- emit alt text
                   return $ replacementSpan attr src tit lab
                 _ -> throwError e)

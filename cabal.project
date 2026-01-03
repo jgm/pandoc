@@ -9,15 +9,25 @@ constraints: skylighting-format-blaze-html >= 0.1.1.3,
 
 source-repository-package
   type: git
+  location: https://github.com/jgm/asciidoc-hs.git
+  tag: c2b4852e0002a7995793ec0e3c44b723a85a2ca2
+
+source-repository-package
+  type: git
   location: https://github.com/jgm/citeproc.git
-  tag: 1a82c13ac1d8e9e07cf69fbf89ba2b57474b8e0f
+  tag: 777a916be683a40e9b5e17da25816917b6fb1208
 
 source-repository-package
   type: git
   location: https://github.com/jgm/typst-hs.git
-  tag: e6eb442bc0efbe3fcf8c1fe5f28be3f0fb278e8b
+  tag: b4399d44d38c1935c02db9bfd62fb5a4450ad7af
 
 source-repository-package
   type: git
   location: https://github.com/jgm/texmath.git
-  tag: 110322589698df20abf3f3a06c070271802ea598
+  tag: aee6b494595a58dbbf769264061876778f7aa269
+
+source-repository-package
+  type: git
+  location: https://github.com/jgm/djoths.git
+  tag: a6fc625fd58aa39df05dd1d82ee005e681815095

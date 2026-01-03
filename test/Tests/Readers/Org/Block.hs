@@ -43,7 +43,7 @@ tests =
       T.unlines [ ": echo hello"
                 , ": echo dear tester"
                 ] =?>
-      codeBlockWith ("", ["example"], []) "echo hello\necho dear tester\n"
+      codeBlockWith ("", [], []) "echo hello\necho dear tester\n"
 
   , "Example block surrounded by text" =:
       T.unlines [ "Greetings"
@@ -52,7 +52,7 @@ tests =
                 , "Bye"
                 ] =?>
       mconcat [ para "Greetings"
-              , codeBlockWith ("", ["example"], [])
+              , codeBlockWith ("", [], [])
                               "echo hello\necho dear tester\n"
               , para "Bye"
               ]

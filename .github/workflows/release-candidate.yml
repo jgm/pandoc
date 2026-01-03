@@ -18,11 +18,11 @@ jobs:
             cabal_opts: '-fembed_data_files -fserver -flua'
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.8
-        ghcup install cabal --set 3.12
+        ghcup install ghc --set 9.10
+        ghcup install cabal --set 3.14
 
     - name: Install dependencies
       run: |
@@ -70,7 +70,7 @@ jobs:
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
           copy windows\Makefile windows-release-candidate
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: windows-release-candidate
         path: windows-release-candidate
@@ -80,7 +80,7 @@ jobs:
     runs-on: macos-15-intel
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Install ghcup
       run: |
@@ -88,15 +88,15 @@ jobs:
 
     - name: Install ghc and cabal
       run: |
-        ghcup install ghc --set 9.8
-        ghcup install cabal --set 3.12
+        ghcup install ghc --set 9.10
+        ghcup install cabal --set 3.14
         echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
 
     - name: Create release
       run: |
         sh macos/make_macos_release.sh
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: macos-x86_64
         path: macos-x86_64
@@ -105,14 +105,14 @@ jobs:
 
 #   runs-on: ubuntu-latest
 #   steps:
-#   - uses: actions/checkout@v5
+#   - uses: actions/checkout@v6
 #   - name: Create linux package
 #     run: |
 #         make debpkg
 #         mkdir linux-release-candidate
 #         cp linux/artifacts/*.deb linux-release-candidate/
 #         cp linux/artifacts/*.tar.gz linux-release-candidate/
-#   - uses: actions/upload-artifact@v5
+#   - uses: actions/upload-artifact@v6
 #     with:
 #       name: linux-release-candidate
 #       path: linux-release-candidate

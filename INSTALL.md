@@ -138,9 +138,6 @@ Or, you can install Pandoc using [Conda forge].
 
 You can also install from source, using the
 instructions below under [Compiling from source].
-Note that most distros have the Haskell platform in their
-package repositories.  For example, on Debian/Ubuntu,
-you can install it with `apt-get install haskell-platform`.
 
 By default, Pandoc creates PDFs using LaTeX.  We recommend installing
 [TeX Live](https://www.tug.org/texlive/) via your package
@@ -265,9 +262,12 @@ The easiest way to build pandoc from source is to use [stack][stack]:
 
     This procedure will install the released version of pandoc,
     which will be downloaded automatically from HackageDB.
-    The `pandoc` executable will be placed in `$HOME/.cabal/bin`
+    The `pandoc` executable will be symlinked in`$HOME/.cabal/bin`
     on linux/unix/macOS and in `%APPDATA%\cabal\bin` on Windows.
-    Make sure this directory is in your path.
+    Make sure this directory is in your path. To specify a
+    custom install directory, use `--installdir`. To have
+    the executable copied instead of symlinked, use
+    `--install-method=copy`.
 
     If you want to install a modified or development version of
     pandoc instead, switch to the source directory before running
@@ -293,12 +293,10 @@ For more details, see the [Cabal User's Guide].  These instructions
 assume that the pandoc source directory is your working directory.
 You will need cabal version 2.0 or higher.
 
-1.  Install dependencies:  in addition to the [Haskell platform],
-    you will need a number of additional libraries.  You can install
-    them all with
+1.  Install dependencies:
 
         cabal update
-        cabal install --only-dependencies
+        cabal build --only-dependencies
 
 2.  Configure:
 
@@ -335,6 +333,9 @@ You will need cabal version 2.0 or higher.
 
         cabal haddock --html-location=URL --hyperlink-source
 
+5.  Install
+
+        cabal install pandoc-cli
 
 ### Creating a relocatable binary
 
@@ -342,11 +343,9 @@ It is possible to compile pandoc such that the data files
 pandoc uses are embedded in the binary.  The resulting binary
 can be run from any directory and is completely self-contained.
 With cabal, add `-fembed_data_files` to the `cabal configure`
-or `cabal install` commands.
+or `cabal build` commands.
 
 With stack, use `--flag pandoc:embed_data_files`.
-
-
 
 ### Running tests
 
@@ -402,7 +401,6 @@ To run just the markdown benchmarks:
 [FreeBSD]: https://www.freshports.org/textproc/hs-pandoc/
 [GHC]:  https://www.haskell.org/ghc/
 [GitLab CI/CD]: https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/
-[Haskell platform]: https://hackage.haskell.org/platform/
 [MacPorts]: https://ports.macports.org/port/pandoc/
 [MacTeX]: https://tug.org/mactex/
 [OpenBSD ports]: https://cvsweb.openbsd.org/ports/textproc/pandoc/

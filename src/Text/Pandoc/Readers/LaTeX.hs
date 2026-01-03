@@ -144,15 +144,27 @@ rawLaTeXBlock = do
   toks <- getInputTokens
   snd <$> (
           rawLaTeXParser toks
-             (macroDef (const mempty) <|>
+             (makeAtLetterSection <|>
+              macroDef (const mempty) <|>
               do choice (map controlSeq
                    ["include", "input", "subfile", "usepackage"])
                  skipMany opt
                  braced
                  return mempty) blocks
       <|> rawLaTeXParser toks
-           (environment <|> blockCommand)
+           (void (environment <|> blockCommand))
            (mconcat <$> many (block <|> beginOrEndCommand)))
+
+makeAtLetterSection :: PandocMonad m => LP m ()
+makeAtLetterSection = try $ do
+  controlSeq "makeatletter"
+  void $ manyTill
+    (   whitespace
+    <|> newlineTok
+    <|> macroDef (const ())
+    <|> void environment
+    <|> void blockCommand
+    ) (controlSeq "makeatother")
 
 -- See #4667 for motivation; sometimes people write macros
 -- that just evaluate to a begin or end command, which blockCommand
@@ -177,8 +189,7 @@ rawLaTeXInline = do
           (   rawLaTeXParser toks
               (mempty <$ (controlSeq "input" >> skipMany rawopt >> braced))
               inlines
-          <|> rawLaTeXParser toks (inlineEnvironment <|> inlineCommand')
-              inlines
+          <|> rawLaTeXParser toks (void inline) inlines
           )
   finalbraces <- mconcat <$> many (try (string "{}")) -- see #5439
   return $ raw <> T.pack finalbraces
@@ -187,7 +198,7 @@ inlineCommand :: PandocMonad m => ParsecT Sources ParserState m Inlines
 inlineCommand = do
   lookAhead (try (char '\\' >> letter))
   toks <- getInputTokens
-  fst <$> rawLaTeXParser toks (inlineEnvironment <|> inlineCommand')
+  fst <$> rawLaTeXParser toks (void (inlineEnvironment <|> inlineCommand'))
           inlines
 
 -- inline elements:
@@ -397,7 +408,6 @@ inlineCommands = M.unions
     , ("thanks", skipopts >> note <$> grouped block)
     , ("footnote", skipopts >> footnote)
     , ("newline", pure B.linebreak)
-    , ("linebreak", pure B.linebreak)
     , ("passthrough", fixPassthroughEscapes <$> tok)
     -- \passthrough macro used by latex writer
                            -- for listings
@@ -426,7 +436,6 @@ inlineCommands = M.unions
     , ("textcolor", coloredInline "color")
     , ("colorbox", coloredInline "background-color")
     -- etoolbox
-    , ("ifstrequal", ifstrequal)
     , ("newtoggle", braced >>= newToggle)
     , ("toggletrue", braced >>= setToggle True)
     , ("togglefalse", braced >>= setToggle False)
@@ -565,18 +574,6 @@ ifToggle = do
                   pos <- getPosition
                   report $ UndefinedToggle name' pos
   return ()
-
-ifstrequal :: (PandocMonad m, Monoid a) => LP m a
-ifstrequal = do
-  str1 <- tok
-  str2 <- tok
-  ifequal <- withVerbatimMode braced
-  ifnotequal <- withVerbatimMode braced
-  TokStream _ ts <- getInput
-  if str1 == str2
-     then setInput $ TokStream False (ifequal ++ ts)
-     else setInput $ TokStream False (ifnotequal ++ ts)
-  return mempty
 
 coloredInline :: PandocMonad m => Text -> LP m Inlines
 coloredInline stylename = do
@@ -1026,7 +1023,6 @@ blockCommands = M.fromList
    -- alignment
    , ("raggedright", pure mempty)
    -- etoolbox
-   , ("ifstrequal", ifstrequal)
    , ("newtoggle", braced >>= newToggle)
    , ("toggletrue", braced >>= setToggle True)
    , ("togglefalse", braced >>= setToggle False)

@@ -13,11 +13,11 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
 
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.8
+        ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
 
     - name: Install dependencies
@@ -34,7 +34,7 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: nightly-linux
         path: nightly-linux
@@ -44,10 +44,10 @@ jobs:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.8
+        ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
     - name: Install dependencies
       run: |
@@ -64,23 +64,23 @@ jobs:
           copy COPYRIGHT %ARTIFACTS%
           ren %ARTIFACTS%\COPYRIGHT COPYRIGHT.txt
           echo Built from %GITHUB_SHA% > %ARTIFACTS%\README.nightly.txt
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: nightly-windows
         path: nightly-windows
 
   macos:
 
-    runs-on: macos-13
+    runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install ghcup
       run: |
         brew install ghcup
     - name: Install ghc
       run: |
-        ghcup install ghc --set 9.8
+        ghcup install ghc --set 9.10
         ghcup install cabal --set 3.14
         echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
     - name: Install dependencies
@@ -95,7 +95,7 @@ jobs:
           strip "${ARTIFACTS}/pandoc"
           cp COPYRIGHT ${ARTIFACTS}/
           echo "Built from ${GITHUB_SHA}" > ${ARTIFACTS}/README.nightly.txt
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: nightly-macos
         path: nightly-macos

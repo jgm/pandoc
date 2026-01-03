@@ -52,7 +52,8 @@ import qualified Data.Sequence          as Seq
 import           Data.Char              (isAlphaNum, isDigit, isLetter,
                                          isUpper, toLower, toUpper,
                                          isLower, isPunctuation, isSpace)
-import           Data.List              (foldl', intercalate, intersperse)
+import           Data.List              (intercalate, intersperse)
+import qualified Data.List as L
 import           Safe                   (readMay)
 import           Text.Printf            (printf)
 import           Text.DocLayout         (literal, hsep, nest, hang, Doc(..),
@@ -117,7 +118,7 @@ writeBibtexString opts variant mblang ref =
       "manuscript"        -> "unpublished"
       "graphic"           | variant == Biblatex -> "artwork"
       "song"              | variant == Biblatex -> "music"
-      "legal_case"        | variant == Biblatex -> "jurisdictionN"
+      "legal_case"        | variant == Biblatex -> "jurisdiction"
       "legislation"       | variant == Biblatex -> "legislation"
       "treaty"            | variant == Biblatex -> "legal"
       "personal_communication" | variant == Biblatex -> "letter"
@@ -821,7 +822,7 @@ bibComment :: BibParser ()
 bibComment = do
   cistring "comment"
   spaces'
-  void inBraces <|> bibSkip <|> return ()
+  void inBraces
 
 bibPreamble :: BibParser ()
 bibPreamble = do
@@ -1115,7 +1116,7 @@ toLiteralList [Plain xs] = toLiteralList [Para xs]
 toLiteralList _ = mzero
 
 concatWith :: Char -> [Inlines] -> Inlines
-concatWith sep = foldl' go mempty
+concatWith sep = L.foldl' go mempty
   where go :: Inlines -> Inlines -> Inlines
         go accum s
           | s == mempty = accum

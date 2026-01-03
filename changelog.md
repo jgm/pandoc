@@ -1,5 +1,206 @@
 # Revision history for pandoc
 
+## pandoc 3.8.3 (2025-12-01)
+
+  * Add `asciidoc` as an input format (#1456).
+
+  * Add `xlsx` (Microsoft Excel) as an input format (Anton Antich).
+    Each worksheet turns into a section containing a table.
+
+  * Add `pptx` (PowerPoint) as new input format (Anton Antich).
+
+  * Add `bbcode` as a new output format (#11242, reptee). Several variants
+    of BBCode are also supported: `bbcode_fluxbb` (FluxBB), `bbcode_phpbb`
+    (phpBB), `bbcode_steam` (Hubzilla), `bbcode_hubzilla` (Hubzilla),
+    and `bbcode_xenforo` (xenForo).
+
+  * New exported module Text.Pandoc.Readers.AsciiDoc,
+    exporting `readAsciiDoc` [API change].
+
+  * New module `Text.Pandoc.Readers.Pptx`,
+    exporting `readPptx` (Anton Antich) [API change].
+
+  * New module `Text.Pandoc.Readers.Xlsx`,
+    exporting `readXlsx` (Anton Antich) [API change].
+
+  * LaTeX reader:
+
+    + Revert `\linebreak` as LineBreak (#11272). `\linebreak` is more
+      of a hint, it shouldn't produce a hard break.
+    + Better handling of `\makeatletter` in parsing raw LaTeX (#11270).
+    + Fix spurious paragraph breaks in math environments (#11265,
+      Emmanuel Ferdman). Previously, a math environment with extra
+      space before the `\end` would get rendered with a blank line,
+      which LaTeX treats as a paragraph break.
+    + Change type on `rawLaTeXParser` in Text.Pandoc.LaTeX.Parsing.
+      The preparser doesn't need to return a value.
+    + Fix `rawTeXParser` (#11253).  Make macro expansion in raw LaTeX
+      depend on the setting of the `latex_macros` extension.  Previously
+      macros were always expanded, even in raw TeX in markdown. In
+      addition, there was previously a bug that caused content to be
+      garbled in certain cases.
+    + Handle `ifstrequal` at a lower level, like the other `if`
+      commands (#11253).
+    + Move `ifstrequal`, `iftoggle`, etc., which were misplaced in
+      `environments`, to `blockCommands`, so these commands work properly.
+
+  * Docx reader:
+
+    + Handle REF link instruction (#11296, Ezwal).
+    + Check recursively for caption styles (Albert Krewinkel).
+      The docx reader uses caption styles to identify figures and
+      captioned tables. It now checks for known caption styles in the
+      full styles hierarchy of a paragraph instead of just checking
+      the style directly. This allows to recognize caption styles that
+      are built on top of the basic *caption* style, as is sometimes
+      the case in sophisticated styles.
+
+  * Markdown reader:
+
+    + Fix performance issue in links with `'` (#10880).
+
+  * Typst reader:
+
+    + Handle document metadata and `#title` (jgm/typst-hs#80).
+      Note that previously, the typst reader never returned document
+      metadata.  Now it does, even if the typst document does not contain
+      a `#title` function that would result in actually printing the
+      title block.
+
+  * Djot reader:
+
+    + Add Space elements (#11250). Previously we just got big
+      Str elements with spaces included. But many pandoc writers
+      assume that breakable spaces will be Space elements, and this
+      is also required for automatic wrapping.
+
+  * RST reader:
+
+    + Correctly handle intraword emphasis (#11309).
+
+  * Text.Pandoc.Readers:
+
+    + Export `readAsciiDoc`, `readXlsx`, `readPptx` [API change].
+
+  * New module Text.Pandoc.Writers.BBCode, exporting
+    `writeBBCode`,  `writeBBCodeSteam`, `writeBBCodeFluxBB`,
+    `writeBBCodePhpBB`, `writeBBCodeHubzilla`, `writeBBCodeXenforo`
+    [API change].
+
+  * LaTeX writer:
+
+    + Make level 1-3 headings work inside blockquotes (#11281, James Barlow).
+    + Remove `split` from list of math environments (#11274).
+    + Improve handling of math environments in tex math (#11266).
+
+  * HTML writer:
+
+    + Add reveal.js `scroll` and `scrollSnap` options to writer and
+      template (#10052, Asliddinbek Azizovich).
+    + Use 'defer' when including mathjax script, as recommended in
+      MathJax docs (#11292).
+
+  * ANSI writer:
+
+    + Apply row spans in tables (#10149, Tuong Nguyen Manh).
+      The ANSI writer is now able to keep track of row spans and apply
+      them in rows.
+
+  * Pptx writer:
+
+    + Handle reference doc without slides (#7536, Tuong Nguyen Manh).
+
+  * AsciiDoc writer:
+
+    + Add more table features (#11267, Tuong Nguyen Manh):
+      Row span and column span, footer row, individual horizontal
+      cell alignment.
+
+  * Typst template:
+
+    + Fix font for compatibility with typst 0.14, which doesn't
+      permit an empty array for `font` (#11238).
+    + Re-add `columns` to typst template (#11259), fixing a
+      pandoc 3.8 regression.
+    + Fix syntax for bibliography inclusion (#11233, Mickaël Canouil).
+      Previously the syntax was wrong when multiple bibliography files
+      were specified. Typst expects an array.
+
+  * Text.Pandoc.Writers:
+
+    + Export `writeBBCode`,  `writeBBCodeSteam`, `writeBBCodeFluxBB`,
+      `writeBBCodePhpBB`, `writeBBCodeHubzilla`, `writeBBCodeXenforo`
+      [API change].
+
+  * Text.Pandoc.Writers.Shared:
+
+    + Add functions `insertCurrentSpansAtColumn`, `takePreviousSpansAtColumn`
+      and `decrementTrailingRowSpans` for applying and keeping track of
+      RowSpans over multiple rows (#10149, Tuong Nguyen Manh). [API change]
+
+  * Text.Pandoc.Logging:
+
+    + Change message for missing HTML title warning (#11307). Suggest
+      setting the `pagetitle` variable instead of setting `title` in metadata.
+
+  * Lua subsystem:
+
+    + Preserve common state of custom Lua readers (Albert Krewinkel).
+      The common state is transferred to Lua when calling a custom Lua
+      reader, and is now also transferred back after the reader has
+      finished. This ensures that info messages, warnings, and
+      mediabag entries are available to the main program and all
+      subsequent processing steps.
+
+  * Text.Pandoc.PDF:
+
+    + Avoid converting SVG to PDF when non-TeX PDF engine is used (#11275).
+      This fixes a 3.8 regression, which caused documents with SVGs to
+      raise an error when converted to PDF using WeasyPrint.
+    + Fix a 3.8 regression with typst and smart quotes (#11256).
+      Before 3.8, the default behavior when producing a PDF `-t typst`
+      was to produce smart quotes according to typst's defaults.
+      (This could be defeated by specifying `-t typst-smart`.)
+      This behavior broke in 3.8 because of a change to Text.Pandoc.PDF.
+      This change caused `smart` to be disabled for all formats when
+      producing PDFs, when before it was only disable for TeX-based
+      formats (to avoid bad ligatures). This commit restores the old
+      behavior. Possibly the regression also other affects other
+      non-TeX formats, e.g. HTML.
+
+  * Text.Pandoc.Shared:
+
+    + Add functions `allRowsEmpty` and `tableBodiesToRows` from the
+      RST writer for reuse in other writers. (Tuong Nguyen Manh) [API
+      change].
+
+  * Text.Pandoc.Citeproc:
+
+    + Allow formatting in locator to be transmitted to citeproc.
+      We do this indirectly, by rendering the formatting using the
+      HTML tags that citeproc recognizes.  Fixes jgm/citeproc#68
+      and jgm/citeproc#163. Note that formatting is only possible for
+      locators given in the explicit form, surrounded by curly braces.
+      It won't work for implicit locators, since these expect
+      number-like expressions.
+
+  * New non-exported module Text.Pandoc.Readers.OOXML.Shared
+    containing functions factored out from
+    Text.Pandoc.Readers.Docx.Util (Anton Antich).
+
+  * Tests: The common file `nativeDiff` has been extracted from
+    the Docx and Pptx text files and put in Tests.Helpers.
+
+  * Use asciidoc 0.1, djot 0.1.2.4, texmath 0.13.0.2, typst 0.8.1,
+    citeproc 0.12.
+
+  * MANUAL.txt:
+
+    + Improve `implicit_figure` documentation (#11082).
+    + Give both forms of options when referring to them (#11306).
+
+  * Update INSTALL.md (#11271).
+
 ## pandoc 3.8.2.1 (2025-10-20)
 
   * HTML reader: allow blank space between open and close `iframe`.

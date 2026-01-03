@@ -12,6 +12,8 @@ import qualified Tests.Command
 import qualified Tests.Old
 import qualified Tests.Readers.Creole
 import qualified Tests.Readers.Docx
+import qualified Tests.Readers.Pptx
+import qualified Tests.Readers.Xlsx
 import qualified Tests.Readers.DokuWiki
 import qualified Tests.Readers.EPUB
 import qualified Tests.Readers.FB2
@@ -50,6 +52,7 @@ import qualified Tests.Writers.RST
 import qualified Tests.Writers.AnnotatedTable
 import qualified Tests.Writers.TEI
 import qualified Tests.Writers.Markua
+import qualified Tests.Writers.BBCode
 import qualified Tests.XML
 import qualified Tests.MediaBag
 import Text.Pandoc.Shared (inDirectory)
@@ -82,6 +85,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "PowerPoint" Tests.Writers.Powerpoint.tests
           , testGroup "Ms" Tests.Writers.Ms.tests
           , testGroup "AnnotatedTable" Tests.Writers.AnnotatedTable.tests
+          , testGroup "BBCode" Tests.Writers.BBCode.tests
           ]
         , testGroup "Readers"
           [ testGroup "LaTeX" Tests.Readers.LaTeX.tests
@@ -93,6 +97,8 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "RST" Tests.Readers.RST.tests
           , testGroup "RTF" Tests.Readers.RTF.tests
           , testGroup "Docx" Tests.Readers.Docx.tests
+          , testGroup "Pptx" Tests.Readers.Pptx.tests
+          , testGroup "Xlsx" Tests.Readers.Xlsx.tests
           , testGroup "ODT" Tests.Readers.ODT.tests
           , testGroup "Txt2Tags" Tests.Readers.Txt2Tags.tests
           , testGroup "EPUB" Tests.Readers.EPUB.tests
