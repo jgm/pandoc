@@ -100,14 +100,14 @@
   block(below: 1em, width: 100%)[
     #if title != none {
       align(center, block[
-          #text(weight: "bold", size: 1.5em)[#title #if thanks != none {
+          #text(weight: "bold", size: 1.5em, hyphenate: false)[#title #if thanks != none {
               footnote(thanks, numbering: "*")
               counter(footnote).update(n => n - 1)
             }]
           #(
             if subtitle != none {
               parbreak()
-              text(weight: "bold", size: 1.25em)[#subtitle]
+              text(weight: "bold", size: 1.25em, hyphenate: false)[#subtitle]
             }
            )])
     }
