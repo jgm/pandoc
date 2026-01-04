@@ -297,7 +297,8 @@ writeDocx opts doc = do
                     map mkImageOverride imgs ++
                     [ mkMediaOverride (eRelativePath e)
                         | e <- zEntries refArchive
-                        , "word/media/" `isPrefixOf` eRelativePath e ]
+                        , "word/media/" `isPrefixOf` eRelativePath e
+                        , not ("/" `isSuffixOf` eRelativePath e) ]
 
   let mkDefaultNode (ext, mt) =
         mknode "Default" [("Extension",ext),("ContentType",mt)] ()
