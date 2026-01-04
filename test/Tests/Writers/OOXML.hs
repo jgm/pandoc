@@ -12,6 +12,8 @@ import Text.XML.Light
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import Data.Foldable (asum)
+import Data.Text (Text)
+import qualified Data.Text as Text
 import qualified Data.Text.IO as T
 import Data.List (isSuffixOf, sort, (\\), intercalate, union)
 import Data.Maybe (catMaybes, mapMaybe)
@@ -89,7 +91,8 @@ testArchive :: (WriterOptions -> Pandoc -> PandocIO BL.ByteString)
 testArchive writerFn opts fp = do
   txt <- T.readFile fp
   bs <- runIOorExplode $ do
-    setTranslations "en-US"
+    mblang <- toLang (Just (Text.pack "en-US") :: Maybe Text)
+    maybe (return ()) setTranslations mblang
     setVerbosity ERROR -- otherwise test output is confusingly noisy
     readNative def txt >>= writerFn opts
   return $ toArchive bs
