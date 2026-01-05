@@ -485,21 +485,29 @@ data StateOptions = StateOptions
 -- unspecified values.
 peekStateOptions :: Peeker PandocError StateOptions
 peekStateOptions idx = do
-  opts <- liftLua getStateOptions
-  let peekStateField field defVal peeker =
-        peekFieldRaw (fmap (fromMaybe defVal) . peekNilOr peeker) field idx
-  let peekOptStateField field defVal peeker =
-        peekFieldRaw (fmap (maybe defVal Just ) . peekNilOr peeker) field idx
-  StateOptions
-    <$> peekStateField "request_headers"
-          (stateOptsRequestHeaders opts)
-          (peekList (peekPair peekText peekText))
-    <*> peekStateField "resource_path"
-          (stateOptsResourcePath opts)
-          (peekList peekString)
-    <*> peekOptStateField "user_data_dir"
-          (stateOptsUserDataDir opts)
-          peekString
+  absidx <- liftLua $ absindex idx
+  let setOptions opts = do
+        liftLua (next absidx) >>= \case
+          False -> return opts
+          True -> do
+            key <- peekByteString (nth 2)
+            case key of
+              "request_headers" -> do
+                let peekHeaderPair = peekPair peekText peekText
+                value <- peekList peekHeaderPair top `lastly` pop 1
+                setOptions $ opts { stateOptsRequestHeaders = value }
+              "resource_path" -> do
+                value <- peekList peekString top `lastly` pop 1
+                setOptions $ opts { stateOptsResourcePath = value }
+              "user_data_dir" -> do
+                value <- peekNilOr peekString top `lastly` pop 1
+                setOptions $ opts { stateOptsUserDataDir = value }
+              _ -> do
+                liftLua $ pop 2 -- remove key and value
+                failPeek $ "Unknown or unsupported state option: " <> key
+
+  liftLua pushnil -- first "key"
+  liftLua getStateOptions >>= setOptions
 
 -- | Get the current options values from the pandoc state.
 getStateOptions :: LuaE PandocError StateOptions

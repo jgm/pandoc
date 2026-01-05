@@ -490,12 +490,17 @@ return {
       pandoc.with_state(opts, function () end)
       assert.are_equal(PANDOC_STATE.user_data_dir, orig_user_data_dir)
     end),
-    test('unsupported options are ignored', function ()
+    test('unsupported options trigger an error', function ()
       local orig_log = PANDOC_STATE.log
       local opts = {log = 'nonsense'}
-      pandoc.with_state(opts, function ()
-        assert.are_same(PANDOC_STATE.log, orig_log)
-      end)
+      assert.error_matches(
+        function ()
+          pandoc.with_state(opts, function ()
+            assert.are_same(PANDOC_STATE.log, orig_log)
+          end)
+        end,
+        "Unknown or unsupported"
+      )
       assert.are_same(PANDOC_STATE.log, orig_log)
     end),
   },
