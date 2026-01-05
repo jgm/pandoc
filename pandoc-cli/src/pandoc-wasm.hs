@@ -42,16 +42,20 @@ wasm_main raw_args_ptr raw_args_len =
       case aesonRes of
         Left e -> error e
         Right opts -> do
-          let opts' = opts{ optInputFiles = Just $ fromMaybe ["/stdin"] (optInputFiles opts)
-                          , optOutputFile = Just $ fromMaybe "/stdout" (optOutputFile opts)
-                          , optLogFile = Just $ fromMaybe "/warnings" (optLogFile opts)
+          let opts' = opts{ optInputFiles =
+                             Just $ fromMaybe ["/stdin"] (optInputFiles opts)
+                          , optOutputFile =
+                             Just $ fromMaybe "/stdout" (optOutputFile opts)
+                          , optLogFile =
+                             Just $ fromMaybe "/warnings" (optLogFile opts)
                           }
           convertWithOpts engine opts'
           res <- Aeson.eitherDecode <$> BL.readFile "/warnings"
           case res of
             Left e -> writeFile "/stderr" e
             Right msgs -> do
-              let msgs' = filter (\msg -> messageVerbosity msg <= optVerbosity opts) msgs
+              let msgs' = filter (\msg ->
+                                    messageVerbosity msg <= optVerbosity opts) msgs
               TIO.writeFile "/stderr" (T.unlines $ map showLogMessage msgs')
 
 -- This must be included or we get an error:
