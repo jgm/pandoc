@@ -138,7 +138,9 @@
       <input type="text" id="arguments" value="{&quot;from&quot;: &quot;markdown&quot;, &quot;to&quot;: &quot;rst&quot;}"/>
     </div>
     <script type="module">
-      import { pandoc, fileSystem, addFile } from "./pandoc.js";
+      import { pandoc } from "./pandoc.js";
+
+     const uploads = {};
 
       document.getElementById("input").readOnly = false;
       document.getElementById("input").placeholder = "Enter your input here...";
@@ -147,7 +149,7 @@
         for (const file of files) {
           const arrayBuffer = await file.arrayBuffer();
           const uint8Array = new Uint8Array(arrayBuffer);
-          addFile(file.name, uint8Array);
+          uploads[file.name] = uint8Array;
         }
         updateFileList();
       }
@@ -190,10 +192,8 @@
 
       function updateFileList() {
         const fileListDiv = document.getElementById("file-list");
-        let fs = Array.from(fileSystem.keys())
-                      .filter(name => name != "stdout" && name != "stdin" && name != "stderr"
-                                        && name != "warnings")
-                  .map(name => `<span data-filename="${name}"><a href="#" class="delete" title="Delete ${name}" data-filename="${name}">&#x00d7;</a><a href="#" class="download" title="Download ${name}" data-filename="${name}">${name}</a></span>`)
+        let fs = Object.getOwnPropertyNames(uploads)
+                        .map(name => `<span data-filename="${name}"><a href="#" class="delete" title="Delete ${name}" data-filename="${name}">&#x00d7;</a><a href="#" class="download" title="Download ${name}" data-filename="${name}">${name}</a></span>`)
         if (fs.size === 0) {
           fileListDiv.innerHTML = "";
         } else {
@@ -210,7 +210,7 @@
           fileListDiv.querySelectorAll("a.delete").forEach(link => {
             link.addEventListener("click", (e) => {
               e.preventDefault();
-              fileSystem.delete(e.target.dataset.filename);
+              delete uploads[e.target.dataset.filename];
               updateFileList();
             });
           });
@@ -218,7 +218,7 @@
       }
 
      function downloadFile(filename) {
-       const fileData = fileSystem.get(filename).data;
+       const fileData = uploads[filename];
        if (!fileData) return;
 
         const blob = new Blob([fileData]);
@@ -240,8 +240,7 @@
           try {
             document.getElementById("error").value = "";
             document.getElementById("output").value = "";
-            const result = pandoc(options, inputText);
-            console.log(result);
+            const result = pandoc(options, inputText, uploads);
             updateFileList();
             document.getElementById("output").style.visibility =
               (options["output-file"] && "hidden" || "visible");
@@ -250,7 +249,7 @@
             document.getElementById("error").style.display =
               (result.stderr.length == 0 && "none" || "block");
             if (options["output-file"] && result.stderr.match(/^ERROR:/)) {
-              fileSystem.delete(options["output-file"]);
+              delete uploads[options["output-file"]];
               updateFileList();
             }
             document.getElementById("output").value = result.stdout;

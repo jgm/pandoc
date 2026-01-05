@@ -16,12 +16,7 @@ const in_file = new File(new Uint8Array(), { readonly: true });
 const out_file = new File(new Uint8Array(), { readonly: false });
 const err_file = new File(new Uint8Array(), { readonly: false });
 const warnings_file = new File(new Uint8Array(), { readonly: false });
-export const fileSystem = new Map([
-  ["stdin", in_file],
-  ["stdout", out_file],
-  ["stderr", err_file],
-  ["warnings", warnings_file],
-]);
+const fileSystem = new Map();
 const fds = [
   new OpenFile(new File(new Uint8Array(), { readonly: true })),
   ConsoleStdout.lineBuffered((msg) => console.log(`[WASI stdout] ${msg}`)),
@@ -62,29 +57,48 @@ memory_data_view().setUint32(argv_ptr, argv, true);
 
 instance.exports.hs_init_with_rtsopts(argc_ptr, argv_ptr);
 
-export function pandoc(options, stdin) {
+export function pandoc(options, stdin, files) {
   const opts_str = JSON.stringify(options);
   const opts_ptr = instance.exports.malloc(opts_str.length);
   new TextEncoder().encodeInto(
     opts_str,
     new Uint8Array(instance.exports.memory.buffer, opts_ptr, opts_str.length)
   );
+  // add input files to fileSystem
+  fileSystem.clear()
+  const in_file = new File(new Uint8Array(), { readonly: true });
+  const out_file = new File(new Uint8Array(), { readonly: false });
+  const err_file = new File(new Uint8Array(), { readonly: false });
+  const warnings_file = new File(new Uint8Array(), { readonly: false });
+  fileSystem.set("stdin", in_file);
+  fileSystem.set("stdout", out_file);
+  fileSystem.set("stderr", err_file);
+  fileSystem.set("warnings", warnings_file);
+  for (const file in files) {
+    console.log(file, files[file]);
+    addFile(file, files[file]);
+  }
   // add output file if any
   if (options["output-file"]) {
     const file = new File("", { readonly: false });
     fileSystem.set(options["output-file"], file);
   }
+  console.log(files);
+  console.log(fileSystem);
   if (stdin) {
     in_file.data = new TextEncoder().encode(stdin);
   }
   instance.exports.wasm_main(opts_ptr, opts_str.length);
+  if (options["output-file"]) {
+    files[options["output-file"]] = fileSystem.get(options["output-file"]).data;
+  }
   return {
     stdout: new TextDecoder("utf-8", { fatal: true }).decode(out_file.data),
     stderr: new TextDecoder("utf-8", { fatal: true }).decode(err_file.data),
   };
 }
 
-export function addFile(filename, data) {
+function addFile(filename, data) {
   const file = new File(data, { readonly: true });
   fileSystem.set(filename, file);
 }
