@@ -87,7 +87,6 @@ export function pandoc(options, stdin, files) {
   fileSystem.set("stderr", err_file);
   fileSystem.set("warnings", warnings_file);
   for (const file in files) {
-    console.log(file, files[file]);
     addFile(file, files[file]);
   }
   // add output file if any
@@ -95,8 +94,6 @@ export function pandoc(options, stdin, files) {
     const file = new File("", { readonly: false });
     fileSystem.set(options["output-file"], file);
   }
-  console.log(files);
-  console.log(fileSystem);
   if (stdin) {
     in_file.data = new TextEncoder().encode(stdin);
   }
