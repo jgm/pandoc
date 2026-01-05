@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pandoc-wasm playground</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        margin: 0;
+        font-family: monospace;
+      }
+
+      #container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      textarea {
+        width: 50%;
+        height: 100%;
+        border: none;
+        padding: 1rem;
+        resize: none;
+        box-sizing: border-box;
+        font-size: 1rem;
+        font-family: monospace;
+      }
+
+      #input {
+        border-right: 1px solid #ccc;
+      }
+
+      #output {
+        background-color: #f5f5f5;
+        color: #333;
+      }
+
+      #error {
+        background-color: #f5f5f5;
+        color: #333;
+        height: 3em;
+        width: 100%;
+        display: none;
+      }
+
+      #arguments-container {
+        padding: 0.5rem;
+        border-top: 1px solid #ccc;
+        background-color: #f9f9f9;
+      }
+
+      #arguments {
+        width: calc(100% - 1rem);
+        padding: 0.5rem;
+        font-size: 1rem;
+        box-sizing: border-box;
+        font-family: monospace;
+      }
+
+      #upload-container {
+        padding: 0.5rem;
+        border-top: 1px solid #ccc;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      #file-list {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      #file-list span {
+        margin-right: 12pt;
+      }
+
+      #file-list a {
+        color: #007bff;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      #file-list a.delete {
+        margin-right: 3pt;
+      }
+
+      #file-list a:hover {
+        text-decoration: underline;
+      }
+
+      #upload-btn {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-family: monospace;
+        transition: background-color 0.2s;
+      }
+
+      #upload-btn:hover {
+        background-color: #0056b3;
+      }
+
+      #upload-btn.drag-over {
+        background-color: #0056b3;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <textarea
+        id="input"
+        readonly
+        placeholder="Loading wasm module..."></textarea>
+      <textarea
+        id="output"
+        readonly
+        placeholder="Output will be displayed here..."></textarea>
+    </div>
+    <textarea id="error" readonly></textarea>
+    <div id="upload-container">
+      <input type="file" id="file-input" multiple style="display: none;" />
+      <button id="upload-btn" onclick="document.getElementById('file-input').click()">
+        Upload Files
+      </button>
+      <div id="file-list"></div>
+    </div>
+    <div id="arguments-container">
+      <input type="text" id="arguments" value="{&quot;from&quot;: &quot;markdown&quot;, &quot;to&quot;: &quot;rst&quot;}"/>
+    </div>
+    <script type="module">
+      import { pandoc, fileSystem, addFile } from "./pandoc.js";
+
+      document.getElementById("input").readOnly = false;
+      document.getElementById("input").placeholder = "Enter your input here...";
+
+      async function handleFiles(files) {
+        for (const file of files) {
+          const arrayBuffer = await file.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          addFile(file.name, uint8Array);
+        }
+        updateFileList();
+      }
+
+      document.getElementById("file-input").addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files);
+        await handleFiles(files);
+        e.target.value = "";
+      });
+
+      // Drag and drop functionality
+      const uploadBtn = document.getElementById("upload-btn");
+
+      uploadBtn.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadBtn.classList.add("drag-over");
+      });
+
+      uploadBtn.addEventListener("dragenter", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadBtn.classList.add("drag-over");
+      });
+
+      uploadBtn.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadBtn.classList.remove("drag-over");
+      });
+
+      uploadBtn.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadBtn.classList.remove("drag-over");
+
+        const files = Array.from(e.dataTransfer.files);
+        await handleFiles(files);
+      });
+
+      function updateFileList() {
+        const fileListDiv = document.getElementById("file-list");
+        let fs = Array.from(fileSystem.keys())
+                      .filter(name => name != "stdout" && name != "stdin" && name != "stderr"
+                                        && name != "warnings")
+                  .map(name => `<span data-filename="${name}"><a href="#" class="delete" title="Delete ${name}" data-filename="${name}">&#x00d7;</a><a href="#" class="download" title="Download ${name}" data-filename="${name}">${name}</a></span>`)
+        if (fs.size === 0) {
+          fileListDiv.innerHTML = "";
+        } else {
+          fileListDiv.innerHTML = fs.join("");
+
+          // Add click handlers to download files
+          fileListDiv.querySelectorAll("a.download").forEach(link => {
+            link.addEventListener("click", (e) => {
+              e.preventDefault();
+              downloadFile(e.target.dataset.filename);
+            });
+          });
+          // Add click handlers to delete files.
+          fileListDiv.querySelectorAll("a.delete").forEach(link => {
+            link.addEventListener("click", (e) => {
+              e.preventDefault();
+              fileSystem.delete(e.target.dataset.filename);
+              updateFileList();
+            });
+          });
+        }
+      }
+
+     function downloadFile(filename) {
+       const fileData = fileSystem.get(filename).data;
+       if (!fileData) return;
+
+        const blob = new Blob([fileData]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      let updateTimeout = null;
+
+      async function updateOutput() {
+        let options;
+        try {
+          options = JSON.parse(document.getElementById("arguments").value);
+          const inputText = document.getElementById("input").value;
+          try {
+            document.getElementById("error").value = "";
+            document.getElementById("output").value = "";
+            const result = pandoc(options, inputText);
+            console.log(result);
+            updateFileList();
+            document.getElementById("output").style.visibility =
+              (options["output-file"] && "hidden" || "visible");
+            document.getElementById("input").style.visibility =
+              (options["input-files"] && "hidden" || "visible");
+            document.getElementById("error").style.display =
+              (result.stderr.length == 0 && "none" || "block");
+            if (options["output-file"] && result.stderr.match(/^ERROR:/)) {
+              fileSystem.delete(options["output-file"]);
+              updateFileList();
+            }
+            document.getElementById("output").value = result.stdout;
+            document.getElementById("error").value = result.stderr;
+          } catch (err) {
+            document.getElementById("error").value = `Error: ${err.message}`;
+          }
+        } catch (e) {
+          document.getElementById("error").value = `JSON parsing error: ${e}`;
+          options = {};
+        }
+      }
+
+      function debouncedUpdate() {
+        if (updateTimeout) {
+          clearTimeout(updateTimeout);
+        }
+        updateTimeout = setTimeout(updateOutput, 200);
+      }
+
+      document.getElementById("input").addEventListener("input", debouncedUpdate);
+      let args = document.getElementById("arguments");
+      args.addEventListener("keydown", function(e) {
+          if (e.key == "Enter") {
+            e.preventDefault();
+            updateOutput();
+          }
+        });
+      args.addEventListener("focusout", function(e) {
+            updateOutput();
+        });
+    </script>
+  </body>
+</html>
