@@ -875,9 +875,15 @@ elemToBodyPart ns element
                        Just l  -> elemToTblLook ns l
                        Nothing -> return defaultTblLook
 
-    grid <- grid'
+    grid'' <- grid'
     tblLook <- tblLook'
     rows <- mapD (elemToRow ns) (elChildren element)
+    let grid = if null grid''
+                  then let numcols = case rowsToRowspans rows of
+                                       (cs@(_:_):_) -> sum (map fst cs)
+                                       _ -> 0
+                       in replicate numcols 0.0
+                  else grid''
     return $ Tbl mbstyle (caption <> description) grid tblLook rows
 elemToBodyPart _ _ = throwError WrongElem
 

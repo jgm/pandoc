@@ -837,7 +837,9 @@ bodyPartToBlocks (Tbl mbsty cap grid look parts) = do
       alignments = case rows of
                      [] -> replicate width Pandoc.AlignDefault
                      Docx.Row _ cs : _ -> concatMap getAlignment cs
-      widths = map ColWidth grid
+      widths = map (\n -> if n == 0
+                             then ColWidthDefault
+                             else ColWidth n) grid
 
   extStylesEnabled <- asks (isEnabled Ext_styles . docxOptions)
   let attr = case mbsty of
