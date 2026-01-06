@@ -145,18 +145,16 @@
       document.getElementById("input").readOnly = false;
       document.getElementById("input").placeholder = "Enter your input here...";
 
-      async function handleFiles(files) {
+      function handleFiles(files) {
         for (const file of files) {
-          const arrayBuffer = await file.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          uploads[file.name] = uint8Array;
+          uploads[file.name] = file;
         }
         updateFileList();
       }
 
       document.getElementById("file-input").addEventListener("change", async (e) => {
         const files = Array.from(e.target.files);
-        await handleFiles(files);
+        handleFiles(files);
         e.target.value = "";
       });
 
@@ -187,7 +185,7 @@
         uploadBtn.classList.remove("drag-over");
 
         const files = Array.from(e.dataTransfer.files);
-        await handleFiles(files);
+        handleFiles(files);
       });
 
       function updateFileList() {
@@ -218,10 +216,9 @@
       }
 
      function downloadFile(filename) {
-       const fileData = uploads[filename];
-       if (!fileData) return;
+       const blob = uploads[filename];
+       if (!blob) return;
 
-        const blob = new Blob([fileData]);
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -240,7 +237,7 @@
           try {
             document.getElementById("error").value = "";
             document.getElementById("output").value = "";
-            const result = pandoc(options, inputText, uploads);
+            const result = await pandoc(options, inputText, uploads);
             updateFileList();
             document.getElementById("output").style.visibility =
               (options["output-file"] && "hidden" || "visible");
