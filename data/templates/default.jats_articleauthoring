@@ -31,7 +31,7 @@ $if(author.surname)$
 <surname>$if(author.non-dropping-particle)$${author.non-dropping-particle} $endif$${author.surname}</surname>
 <given-names>${author.given-names}$if(author.dropping-particle)$ ${author.dropping-particle}$endif$</given-names>
 $if(author.prefix)$
-<prefix>${author.suffix}</prefix>
+<prefix>${author.prefix}</prefix>
 $endif$
 $if(author.suffix)$
 <suffix>${author.suffix}</suffix>
