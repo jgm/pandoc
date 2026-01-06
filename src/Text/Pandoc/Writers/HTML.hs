@@ -1689,14 +1689,16 @@ blockListToNote opts ref blocks = do
       let kvs = [("role","doc-backlink") | html5]
       let backlink = Link ("",["footnote-back"],kvs)
                         [Str ref] ("#" <> "fnref" <> ref,"")
-      let blocks' =
-           case blocks of
-             (Para ils : rest) ->
-                Para (backlink : Str "." : Space : ils) : rest
-             (Plain ils : rest) ->
-                Plain (backlink : Str "." : Space : ils) : rest
-             _ -> Para [backlink , Str "."] : blocks
-      contents <- blockListToHtml opts blocks'
+      let addBacklinkInlines bs
+             | epubv == EPUB3 = bs
+             | otherwise =
+                 case bs of
+                   (Para ils : rest) ->
+                     Para (backlink : Str "." : Space : ils) : rest
+                   (Plain ils : rest) ->
+                     Plain (backlink : Str "." : Space : ils) : rest
+                   _ -> Para [backlink , Str "."] : blocks
+      contents <- blockListToHtml opts (addBacklinkInlines blocks)
       let noteItem = (if epubv == EPUB3
                          then H5.aside ! customAttribute "epub:type" "footnote" ! customAttribute "role" "doc-footnote"
                          else H.div) ! prefixedId opts ("fn" <> ref)
