@@ -70,6 +70,10 @@
         gap: 1rem;
       }
 
+      #instructions {
+        color: #666;
+      }
+
       #file-list {
         flex: 1;
         font-size: 0.9rem;
@@ -133,6 +137,7 @@
         Upload Files
       </button>
       <div id="file-list"></div>
+      <div id="instructions">(or drag files here to upload them)</div>
     </div>
     <div id="arguments-container">
       <input type="text" id="arguments" value="{&quot;from&quot;: &quot;markdown&quot;, &quot;to&quot;: &quot;rst&quot;}"/>
@@ -159,30 +164,30 @@
       });
 
       // Drag and drop functionality
-      const uploadBtn = document.getElementById("upload-btn");
+      const uploadContainer = document.getElementById("upload-container");
 
-      uploadBtn.addEventListener("dragover", (e) => {
+      uploadContainer.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        uploadBtn.classList.add("drag-over");
+        uploadContainer.classList.add("drag-over");
       });
 
-      uploadBtn.addEventListener("dragenter", (e) => {
+      uploadContainer.addEventListener("dragenter", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        uploadBtn.classList.add("drag-over");
+        uploadContainer.classList.add("drag-over");
       });
 
-      uploadBtn.addEventListener("dragleave", (e) => {
+      uploadContainer.addEventListener("dragleave", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        uploadBtn.classList.remove("drag-over");
+        uploadContainer.classList.remove("drag-over");
       });
 
-      uploadBtn.addEventListener("drop", async (e) => {
+      uploadContainer.addEventListener("drop", async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        uploadBtn.classList.remove("drag-over");
+        uploadContainer.classList.remove("drag-over");
 
         const files = Array.from(e.dataTransfer.files);
         handleFiles(files);
