@@ -71,17 +71,17 @@ executable pandoc
   buildable:       True
   -- Note: we always link to an exact version of pandoc, with the
   -- same version as this package:
-  build-depends:   pandoc == 3.8.3,
-                   text
+  build-depends:   pandoc == 3.8.3
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server
 
   if arch(wasm32)
     main-is:       pandoc-wasm.hs
-    build-depends: aeson, bytestring
+    build-depends: aeson
     ghc-options:    -optl-Wl,--export=__wasm_call_ctors,--export=hs_init_with_rtsopts,--export=malloc,--export=wasm_main
   else
     main-is:       pandoc.hs
+    build-depends: text
 
   if flag(nightly)
     cpp-options:    -DNIGHTLY
