@@ -13,7 +13,7 @@
         font-family: monospace;
       }
 
-      #container {
+      .container {
         display: flex;
         flex: 1;
         overflow: hidden;
@@ -37,6 +37,13 @@
       #output {
         background-color: #f5f5f5;
         color: #333;
+      }
+
+      #error {
+        background-color: red;
+        color: white;
+        padding: 6pt;
+        display: none;
       }
 
       #warnings {
@@ -134,7 +141,7 @@
     </style>
   </head>
   <body>
-    <div id="container">
+    <div class="container">
       <textarea
         id="input"
         readonly
@@ -144,6 +151,7 @@
         readonly
         placeholder="Output will be displayed here..."></textarea>
     </div>
+    <div id="error"></div>
     <div id="warnings" readonly></div>
     <div id="upload-container">
       <input type="file" id="file-input" multiple style="display: none;" />
@@ -249,6 +257,7 @@
       let updateTimeout = null;
       const inputPane = document.getElementById("input");
       const outputPane = document.getElementById("output");
+      const errorPane = document.getElementById("error");
       const warningDiv = document.getElementById("warnings");
 
       async function updateOutput() {
@@ -259,6 +268,7 @@
           try {
             warnings.innerHTML = "";
             outputPane.value = "";
+            errorPane.style.display = "none";
             const result = await pandoc(options, inputText, uploads);
             updateFileList();
             inputPane.style.visibility =
@@ -275,10 +285,12 @@
                  `<p class="${warning.verbosity}"><span class="verbosity">${warning.verbosity}</span> ${warning.pretty}</p>`);
              }
           } catch (err) {
-            outputPane.value = `Error: ${err.message}`;
+            errorPane.style.display = "block";
+            errorPane.innerText = `Error: ${err.message}`;
           }
         } catch (e) {
-          outputPane.value = `JSON parsing error: ${e}`;
+          errorPane.style.display = "block";
+          errorPane.innerText = `JSON parsing error: ${e}`;
           options = {};
         }
       }
