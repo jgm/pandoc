@@ -97,13 +97,21 @@ export async function pandoc(options, stdin, files) {
     in_file.data = new TextEncoder().encode(stdin);
   }
   instance.exports.wasm_main(opts_ptr, opts_str.length);
+
   if (options["output-file"]) {
     files[options["output-file"]] =
        new Blob([fileSystem.get(options["output-file"]).data]);
   }
+  const rawWarnings = new TextDecoder("utf-8", { fatal: true })
+                          .decode(warnings_file.data);
+  let warnings;
+  if (rawWarnings) {
+    warnings = JSON.parse(rawWarnings);
+  }
   return {
     stdout: new TextDecoder("utf-8", { fatal: true }).decode(out_file.data),
     stderr: new TextDecoder("utf-8", { fatal: true }).decode(err_file.data),
+    warnings: warnings
   };
 }
 

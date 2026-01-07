@@ -39,12 +39,26 @@
         color: #333;
       }
 
-      #error {
+      #warnings {
         background-color: #f5f5f5;
         color: #333;
-        height: 3em;
+        max-height: 4em;
+        overflow: scroll;
         width: 100%;
         display: none;
+      }
+
+      span.verbosity {
+        padding-left: 6pt;
+        min-width: 7em;
+      }
+
+      .WARNING {
+        color: red;
+      }
+
+      .INFO {
+        color: green;
       }
 
       #arguments-container {
@@ -130,7 +144,7 @@
         readonly
         placeholder="Output will be displayed here..."></textarea>
     </div>
-    <textarea id="error" readonly></textarea>
+    <div id="warnings" readonly></div>
     <div id="upload-container">
       <input type="file" id="file-input" multiple style="display: none;" />
       <button id="upload-btn" onclick="document.getElementById('file-input').click()">
@@ -233,34 +247,38 @@
       }
 
       let updateTimeout = null;
+      const inputPane = document.getElementById("input");
+      const outputPane = document.getElementById("output");
+      const warningDiv = document.getElementById("warnings");
 
       async function updateOutput() {
         let options;
         try {
           options = JSON.parse(document.getElementById("arguments").value);
-          const inputText = document.getElementById("input").value;
+          const inputText = inputPane.value;
           try {
-            document.getElementById("error").value = "";
-            document.getElementById("output").value = "";
+            warnings.innerHTML = "";
+            outputPane.value = "";
             const result = await pandoc(options, inputText, uploads);
             updateFileList();
-            document.getElementById("output").style.visibility =
-              (options["output-file"] && "hidden" || "visible");
-            document.getElementById("input").style.visibility =
+            inputPane.style.visibility =
               (options["input-files"] && "hidden" || "visible");
-            document.getElementById("error").style.display =
-              (result.stderr.length == 0 && "none" || "block");
+            warnings.style.display =
+              (result.warnings.length == 0 && "none" || "block");
             if (options["output-file"] && result.stderr.match(/^ERROR:/)) {
               delete uploads[options["output-file"]];
               updateFileList();
             }
-            document.getElementById("output").value = result.stdout;
-            document.getElementById("error").value = result.stderr;
+            outputPane.value = result.stderr || result.stdout;
+            for (const warning of result.warnings) {
+               warningDiv.insertAdjacentHTML("beforeend",
+                 `<p class="${warning.verbosity}"><span class="verbosity">${warning.verbosity}</span> ${warning.pretty}</p>`);
+             }
           } catch (err) {
-            document.getElementById("error").value = `Error: ${err.message}`;
+            outputPane.value = `Error: ${err.message}`;
           }
         } catch (e) {
-          document.getElementById("error").value = `JSON parsing error: ${e}`;
+          outputPane.value = `JSON parsing error: ${e}`;
           options = {};
         }
       }
@@ -272,7 +290,7 @@
         updateTimeout = setTimeout(updateOutput, 200);
       }
 
-      document.getElementById("input").addEventListener("input", debouncedUpdate);
+      inputPane.addEventListener("input", debouncedUpdate);
       let args = document.getElementById("arguments");
       args.addEventListener("keydown", function(e) {
           if (e.key == "Enter") {
