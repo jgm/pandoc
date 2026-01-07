@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pandoc in the browser</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    .header {
+      background: var(--gray-900);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .header .tagline {
+      color: var(--gray-400);
+      font-size: 0.9rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius);
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--gray-50);
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .drop-zone-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .drop-zone-text {
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+    }
+
+    .drop-zone-hint {
+      color: var(--gray-400);
+      font-size: 0.85rem;
+    }
+
+    .file-list {
+      margin-top: 1rem;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+    }
+
+    .file-item .file-icon {
+      font-size: 1.25rem;
+    }
+
+    .file-item .file-name {
+      flex: 1;
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+
+    .file-item .file-size {
+      color: var(--gray-500);
+      font-size: 0.8rem;
+    }
+
+    .file-item .file-remove {
+      color: var(--gray-400);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .file-item .file-remove:hover {
+      color: var(--danger);
+      background: #fef2f2;
+    }
+
+    /* Auxiliary files section */
+    .auxiliary-section {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .auxiliary-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .auxiliary-label {
+      font-size: 0.9rem;
+      color: var(--gray-600);
+    }
+
+    .upload-btn-small {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-btn-small:hover {
+      background: var(--gray-200);
+    }
+
+    .file-list-small .file-item {
+      padding: 0.5rem 0.75rem;
+    }
+
+    .file-list-small .file-item .file-icon {
+      font-size: 1rem;
+    }
+
+    .file-list-small .file-item .file-name {
+      font-size: 0.85rem;
+    }
+
+    /* Text input mode */
+    .input-mode-toggle {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .input-mode-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--gray-300);
+      background: white;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .input-mode-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .text-input-area {
+      display: none;
+    }
+
+    .text-input-area.active {
+      display: block;
+    }
+
+    .text-input-area textarea {
+      width: 100%;
+      height: 200px;
+      padding: 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+    }
+
+    .file-input-area {
+      display: none;
+    }
+
+    .file-input-area.active {
+      display: block;
+    }
+
+    /* Format Selection */
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--gray-700);
+    }
+
+    .form-group select, .form-group input[type="text"] {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      background: white;
+      transition: border-color 0.2s;
+    }
+
+    .form-group select:focus, .form-group input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group .hint {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+    }
+
+    /* Options Sections */
+    .options-section {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+    }
+
+    .options-header {
+      padding: 1rem 1.25rem;
+      background: var(--gray-50);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    .options-header:hover {
+      background: var(--gray-100);
+    }
+
+    .options-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .options-header .toggle-icon {
+      transition: transform 0.2s;
+    }
+
+    .options-section.open .toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .options-content {
+      display: none;
+      padding: 1.25rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .options-section.open .options-content {
+      display: block;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /* Resource uploads */
+    .resource-upload {
+      margin-top: 1rem;
+    }
+
+    .resource-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .upload-btn:hover {
+      background: var(--gray-200);
+    }
+
+    /* Convert Button */
+    .convert-section {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .convert-btn {
+      padding: 1rem 3rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .convert-btn:hover {
+      background: var(--primary-hover);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .convert-btn:disabled {
+      background: var(--gray-400);
+      cursor: not-allowed;
+    }
+
+    /* Output Section */
+    .output-section {
+      display: none;
+    }
+
+    .output-section.visible {
+      display: block;
+    }
+
+    .output-preview {
+      background: var(--gray-900);
+      color: #e5e7eb;
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.85rem;
+      max-height: 400px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .output-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--success);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .download-btn:hover {
+      background: #15803d;
+    }
+
+    .copy-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--gray-600);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--gray-700);
+    }
+
+    /* Warnings and Errors */
+    .messages {
+      margin-top: 1rem;
+    }
+
+    .message {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .message.error {
+      background: #fef2f2;
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+
+    .message.warning {
+      background: #fffbeb;
+      color: var(--warning);
+      border: 1px solid #fde68a;
+    }
+
+    .message.info {
+      background: #eff6ff;
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+    }
+
+    /* Loading state */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .loading.visible {
+      display: block;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .format-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Hidden file inputs */
+    input[type="file"].hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Pandoc in the Browser</h1>
+    <span class="tagline">Convert documents without leaving your browser, using the power of pandoc.wasm.</span>
+  </div>
+
+  <div class="container">
+    <!-- Input Section -->
+    <div class="card">
+      <div class="card-header">
+        <span>1. Input</span>
+      </div>
+      <div class="card-body">
+        <div class="input-mode-toggle">
+          <button class="input-mode-btn active" data-mode="file">Upload Files</button>
+          <button class="input-mode-btn" data-mode="text">Paste Text</button>
+        </div>
+
+        <div class="file-input-area active">
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-icon">&#128196;</div>
+            <div class="drop-zone-text">Drop files here or click to browse</div>
+            <div class="drop-zone-hint">Supports: .md, .docx, .html, .tex, .rst, .epub, .odt, and more</div>
+          </div>
+          <input type="file" id="file-input" class="hidden" multiple />
+          <div class="file-list" id="file-list"></div>
+        </div>
+
+        <div class="text-input-area" id="text-input-area">
+          <textarea id="text-input" placeholder="Paste or type your content here..."></textarea>
+        </div>
+
+        <!-- Additional Files -->
+        <div class="auxiliary-section">
+          <div class="auxiliary-header">
+            <span class="auxiliary-label">Additional files (images, includes, etc.)</span>
+            <button class="upload-btn-small" id="aux-upload-btn">+ Add Files</button>
+            <input type="file" id="aux-file-input" class="hidden" multiple />
+          </div>
+          <div class="file-list file-list-small" id="aux-file-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Format Selection -->
+    <div class="card">
+      <div class="card-header">
+        <span>2. Format</span>
+      </div>
+      <div class="card-body">
+        <div class="format-grid">
+          <div class="form-group">
+            <label for="input-format">Input Format</label>
+            <select id="input-format">
+              <option value="auto">Auto-detect</option>
+              <optgroup label="Markup">
+                <option value="markdown">Markdown</option>
+                <option value="gfm">GitHub Flavored Markdown</option>
+                <option value="commonmark">CommonMark</option>
+                <option value="commonmark_x">CommonMark (extensions)</option>
+                <option value="djot">Djot</option>
+                <option value="html">HTML</option>
+                <option value="latex">LaTeX</option>
+                <option value="rst">reStructuredText</option>
+                <option value="org">Org Mode</option>
+                <option value="textile">Textile</option>
+                <option value="mediawiki">MediaWiki</option>
+                <option value="dokuwiki">DokuWiki</option>
+                <option value="tikiwiki">TikiWiki</option>
+                <option value="twiki">TWiki</option>
+                <option value="vimwiki">Vimwiki</option>
+                <option value="jira">Jira Wiki</option>
+                <option value="creole">Creole</option>
+                <option value="muse">Muse</option>
+                <option value="t2t">txt2tags</option>
+              </optgroup>
+              <optgroup label="Documents">
+                <option value="docx">Word (docx)</option>
+                <option value="odt">OpenDocument (odt)</option>
+                <option value="rtf">RTF</option>
+                <option value="epub">EPUB</option>
+                <option value="fb2">FictionBook</option>
+                <option value="pptx">PowerPoint (pptx)</option>
+              </optgroup>
+              <optgroup label="Data">
+                <option value="csv">CSV</option>
+                <option value="tsv">TSV</option>
+                <option value="json">Pandoc JSON</option>
+                <option value="native">Pandoc Native</option>
+              </optgroup>
+              <optgroup label="Bibliography">
+                <option value="bibtex">BibTeX</option>
+                <option value="biblatex">BibLaTeX</option>
+                <option value="csljson">CSL JSON</option>
+                <option value="ris">RIS</option>
+                <option value="endnotexml">EndNote XML</option>
+              </optgroup>
+              <optgroup label="Technical">
+                <option value="docbook">DocBook</option>
+                <option value="jats">JATS</option>
+                <option value="bits">BITS</option>
+                <option value="opml">OPML</option>
+                <option value="haddock">Haddock</option>
+                <option value="man">Man page</option>
+                <option value="ipynb">Jupyter Notebook</option>
+                <option value="typst">Typst</option>
+              </optgroup>
+            </select>
+            <span class="hint">Based on file extension if auto-detect</span>
+          </div>
+
+          <div class="form-group">
+            <label for="output-format">Output Format</label>
+            <select id="output-format">
+              <optgroup label="Markup">
+                <option value="html" selected>HTML</option>
+                <option value="html5">HTML5</option>
+                <option value="markdown">Markdown</option>
+                <option value="gfm">GitHub Flavored Markdown</option>
+                <option value="commonmark">CommonMark</option>
+                <option value="commonmark_x">CommonMark (extensions)</option>
+                <option value="djot">Djot</option>
+                <option value="latex">LaTeX</option>
+                <option value="rst">reStructuredText</option>
+                <option value="org">Org Mode</option>
+                <option value="textile">Textile</option>
+                <option value="mediawiki">MediaWiki</option>
+                <option value="dokuwiki">DokuWiki</option>
+                <option value="jira">Jira Wiki</option>
+                <option value="xwiki">XWiki</option>
+                <option value="zimwiki">Zim Wiki</option>
+                <option value="muse">Muse</option>
+                <option value="asciidoc">AsciiDoc</option>
+                <option value="asciidoctor">AsciiDoctor</option>
+              </optgroup>
+              <optgroup label="Documents">
+                <option value="docx">Word (docx)</option>
+                <option value="odt">OpenDocument (odt)</option>
+                <option value="rtf">RTF</option>
+                <option value="epub">EPUB</option>
+                <option value="epub3">EPUB 3</option>
+                <option value="fb2">FictionBook</option>
+                <option value="pptx">PowerPoint (pptx)</option>
+                <option value="pdf">PDF (via LaTeX)</option>
+              </optgroup>
+              <optgroup label="Presentations">
+                <option value="revealjs">reveal.js</option>
+                <option value="slidy">Slidy</option>
+                <option value="slideous">Slideous</option>
+                <option value="dzslides">DZSlides</option>
+                <option value="s5">S5</option>
+                <option value="beamer">Beamer (LaTeX)</option>
+              </optgroup>
+              <optgroup label="Data">
+                <option value="json">Pandoc JSON</option>
+                <option value="native">Pandoc Native</option>
+                <option value="plain">Plain Text</option>
+              </optgroup>
+              <optgroup label="Bibliography">
+                <option value="bibtex">BibTeX</option>
+                <option value="biblatex">BibLaTeX</option>
+                <option value="csljson">CSL JSON</option>
+              </optgroup>
+              <optgroup label="Technical">
+                <option value="docbook">DocBook 4</option>
+                <option value="docbook5">DocBook 5</option>
+                <option value="jats">JATS</option>
+                <option value="tei">TEI</option>
+                <option value="opml">OPML</option>
+                <option value="man">Man page</option>
+                <option value="ms">groff ms</option>
+                <option value="texinfo">Texinfo</option>
+                <option value="context">ConTeXt</option>
+                <option value="icml">ICML</option>
+                <option value="ipynb">Jupyter Notebook</option>
+                <option value="typst">Typst</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="output-filename">Output Filename</label>
+            <input type="text" id="output-filename" placeholder="output.html" />
+            <span class="hint">Leave empty to preview in browser</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="card">
+      <div class="card-header">
+        <span>3. Options</span>
+      </div>
+      <div class="card-body" style="padding: 0.75rem;">
+        <!-- General Options -->
+        <div class="options-section open">
+          <div class="options-header">
+            <h3>General</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-standalone" checked />
+                <label for="opt-standalone">Standalone document</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-toc" />
+                <label for="opt-toc">Table of contents</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-number-sections" />
+                <label for="opt-number-sections">Number sections</label>
+              </div>
+            </div>
+            <div class="options-grid" style="margin-top: 1rem;">
+              <div class="form-group">
+                <label for="opt-toc-depth">TOC depth</label>
+                <select id="opt-toc-depth">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-shift-heading">Shift heading level by</label>
+                <select id="opt-shift-heading">
+                  <option value="-2">-2</option>
+                  <option value="-1">-1</option>
+                  <option value="0" selected>0</option>
+                  <option value="1">+1</option>
+                  <option value="2">+2</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Citations -->
+        <div class="options-section">
+          <div class="options-header">
+            <h3>Citations &amp; Bibliography</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-citeproc" />
+              <label for="opt-citeproc">Process citations (citeproc)</label>
+            </div>
+            <div class="resource-upload">
+              <label>Bibliography file (.bib, .json, .yaml)</label>
+              <input type="file" id="bib-input" class="hidden" accept=".bib,.bibtex,.json,.yaml,.yml" />
+              <button class="upload-btn" onclick="document.getElementById('bib-input').click()">
+                &#128196; Upload Bibliography
+              </button>
+              <div id="bib-file-display"></div>
+            </div>
+            <div class="resource-upload">
+              <label>Citation style (.csl)</label>
+              <input type="file" id="csl-input" class="hidden" accept=".csl" />
+              <button class="upload-btn" onclick="document.getElementById('csl-input').click()">
+                &#128196; Upload CSL Style
+              </button>
+              <div id="csl-file-display"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Math Rendering -->
+        <div class="options-section" id="math-options-section">
+          <div class="options-header">
+            <h3>Math Rendering</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="form-group">
+              <label for="opt-math">Math rendering method</label>
+              <select id="opt-math">
+                <option value="">Default (plain)</option>
+                <option value="mathjax">MathJax</option>
+                <option value="katex">KaTeX</option>
+                <option value="mathml">MathML</option>
+                <option value="webtex">WebTeX (images)</option>
+                <option value="gladtex">GladTeX</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Code Highlighting -->
+        <div class="options-section" id="highlight-options-section">
+          <div class="options-header">
+            <h3>Code Highlighting</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="form-group">
+              <label for="opt-highlight-style">Highlight style</label>
+              <select id="opt-highlight-style">
+                <option value="">Default (pygments)</option>
+                <option value="pygments">Pygments</option>
+                <option value="kate">Kate</option>
+                <option value="monochrome">Monochrome</option>
+                <option value="breezedark">Breeze Dark</option>
+                <option value="espresso">Espresso</option>
+                <option value="zenburn">Zenburn</option>
+                <option value="haddock">Haddock</option>
+                <option value="tango">Tango</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- HTML Options -->
+        <div class="options-section" id="html-options-section">
+          <div class="options-header">
+            <h3>HTML Options</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-self-contained" />
+              <label for="opt-self-contained">Self-contained (embed resources)</label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 0.5rem;">
+              <input type="checkbox" id="opt-html-q-tags" />
+              <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+            </div>
+            <div class="resource-upload">
+              <label>Custom CSS</label>
+              <input type="file" id="css-input" class="hidden" accept=".css" />
+              <button class="upload-btn" onclick="document.getElementById('css-input').click()">
+                &#127912; Upload CSS
+              </button>
+              <div id="css-file-display"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document Options (docx/odt) -->
+        <div class="options-section" id="doc-options-section" style="display: none;">
+          <div class="options-header">
+            <h3>Document Options</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="resource-upload">
+              <label>Reference document (for styles)</label>
+              <input type="file" id="reference-doc-input" class="hidden" accept=".docx,.odt,.pptx" />
+              <button class="upload-btn" onclick="document.getElementById('reference-doc-input').click()">
+                &#128196; Upload Reference Document
+              </button>
+              <div id="reference-doc-display"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide Options -->
+        <div class="options-section" id="slide-options-section" style="display: none;">
+          <div class="options-header">
+            <h3>Slide Options</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="form-group">
+              <label for="opt-slide-level">Slide level (heading depth)</label>
+              <select id="opt-slide-level">
+                <option value="">Auto</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+            <div class="checkbox-group" style="margin-top: 1rem;">
+              <input type="checkbox" id="opt-incremental" />
+              <label for="opt-incremental">Incremental lists</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="options-section">
+          <div class="options-header">
+            <h3>Metadata</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="meta-title">Title</label>
+                <input type="text" id="meta-title" placeholder="Document title" />
+              </div>
+              <div class="form-group">
+                <label for="meta-author">Author</label>
+                <input type="text" id="meta-author" placeholder="Author name" />
+              </div>
+              <div class="form-group">
+                <label for="meta-date">Date</label>
+                <input type="text" id="meta-date" placeholder="e.g., 2025-01-07" />
+              </div>
+              <div class="form-group">
+                <label for="meta-lang">Language</label>
+                <input type="text" id="meta-lang" placeholder="e.g., en, de, fr" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wrapping -->
+        <div class="options-section">
+          <div class="options-header">
+            <h3>Text Wrapping</h3>
+            <span class="toggle-icon">&#9660;</span>
+          </div>
+          <div class="options-content">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-wrap">Wrap mode</label>
+                <select id="opt-wrap">
+                  <option value="auto">Auto</option>
+                  <option value="none">None</option>
+                  <option value="preserve">Preserve</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-columns">Line width (columns)</label>
+                <input type="text" id="opt-columns" placeholder="72" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Convert Button -->
+    <div class="convert-section">
+      <button class="convert-btn" id="convert-btn" disabled>Convert</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Converting...</p>
+    </div>
+
+    <!-- Output Section -->
+    <div class="card output-section" id="output-section">
+      <div class="card-header">
+        <span>Output</span>
+      </div>
+      <div class="card-body">
+        <div class="messages" id="messages"></div>
+        <div class="output-preview" id="output-preview"></div>
+        <div class="output-actions">
+          <button class="download-btn" id="download-btn">&#128229; Download</button>
+          <button class="copy-btn" id="copy-btn">&#128203; Copy to Clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { pandoc } from "./pandoc.js";
+
+    // State
+    const state = {
+      inputMode: 'file',
+      files: {},
+      auxFiles: {},
+      bibFile: null,
+      cslFile: null,
+      cssFile: null,
+      referenceDoc: null,
+      output: null,
+      outputFilename: null
+    };
+
+    // Format detection by file extension
+    const formatByExtension = {
+      'md': 'markdown', 'markdown': 'markdown', 'mkd': 'markdown',
+      'html': 'html', 'htm': 'html',
+      'tex': 'latex', 'latex': 'latex',
+      'rst': 'rst',
+      'org': 'org',
+      'docx': 'docx',
+      'odt': 'odt',
+      'epub': 'epub',
+      'txt': 'markdown',
+      'json': 'json',
+      'ipynb': 'ipynb',
+      'xml': 'docbook',
+      'wiki': 'mediawiki',
+      'textile': 'textile',
+      'rtf': 'rtf',
+      'bib': 'bibtex',
+      'csv': 'csv',
+      'tsv': 'tsv',
+      'typ': 'typst',
+      'typst': 'typst',
+      'pptx': 'pptx'
+    };
+
+    // Output extensions by format
+    const extensionByFormat = {
+      'html': 'html', 'html5': 'html', 'html4': 'html',
+      'markdown': 'md', 'gfm': 'md', 'commonmark': 'md', 'commonmark_x': 'md',
+      'latex': 'tex', 'beamer': 'tex',
+      'pdf': 'pdf',
+      'docx': 'docx',
+      'odt': 'odt',
+      'epub': 'epub', 'epub2': 'epub', 'epub3': 'epub',
+      'rst': 'rst',
+      'org': 'org',
+      'plain': 'txt',
+      'json': 'json', 'native': 'native',
+      'docbook': 'xml', 'docbook5': 'xml', 'jats': 'xml', 'tei': 'xml',
+      'man': '1',
+      'rtf': 'rtf',
+      'textile': 'textile',
+      'mediawiki': 'wiki',
+      'asciidoc': 'adoc', 'asciidoctor': 'adoc',
+      'revealjs': 'html', 'slidy': 'html', 'slideous': 'html', 'dzslides': 'html', 's5': 'html',
+      'ipynb': 'ipynb',
+      'typst': 'typ',
+      'context': 'tex',
+      'texinfo': 'texi',
+      'ms': 'ms',
+      'icml': 'icml',
+      'opml': 'opml',
+      'bibtex': 'bib', 'biblatex': 'bib',
+      'csljson': 'json',
+      'pptx': 'pptx',
+      'djot': 'dj'
+    };
+
+    // Slide formats
+    const slideFormats = ['revealjs', 'slidy', 'slideous', 'dzslides', 's5', 'beamer', 'pptx'];
+
+    // HTML-like formats
+    const htmlFormats = ['html', 'html4', 'html5', 'revealjs', 'slidy', 'slideous', 'dzslides', 's5', 'epub', 'epub2', 'epub3'];
+
+    // Document formats that support reference-doc
+    const docFormats = ['docx', 'odt', 'pptx'];
+
+    // Binary output formats (don't show text preview)
+    const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf'];
+
+    // DOM elements
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const textInputArea = document.getElementById('text-input-area');
+    const textInput = document.getElementById('text-input');
+    const inputFormat = document.getElementById('input-format');
+    const outputFormat = document.getElementById('output-format');
+    const outputFilename = document.getElementById('output-filename');
+    const convertBtn = document.getElementById('convert-btn');
+    const loading = document.getElementById('loading');
+    const outputSection = document.getElementById('output-section');
+    const outputPreview = document.getElementById('output-preview');
+    const messages = document.getElementById('messages');
+    const downloadBtn = document.getElementById('download-btn');
+    const copyBtn = document.getElementById('copy-btn');
+
+    // Input mode toggle
+    document.querySelectorAll('.input-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.input-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.inputMode = btn.dataset.mode;
+
+        document.querySelector('.file-input-area').classList.toggle('active', state.inputMode === 'file');
+        textInputArea.classList.toggle('active', state.inputMode === 'text');
+        updateConvertButton();
+      });
+    });
+
+    // Options section toggles
+    document.querySelectorAll('.options-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.parentElement.classList.toggle('open');
+      });
+    });
+
+    // File drop zone
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      handleFiles(Array.from(e.dataTransfer.files));
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      handleFiles(Array.from(e.target.files));
+      e.target.value = '';
+    });
+
+    function handleFiles(files) {
+      files.forEach(file => {
+        state.files[file.name] = file;
+      });
+      updateFileList();
+      updateConvertButton();
+      autoDetectFormat();
+    }
+
+    function updateFileList() {
+      const names = Object.keys(state.files);
+      if (names.length === 0) {
+        fileList.innerHTML = '';
+        return;
+      }
+
+      fileList.innerHTML = names.map(name => {
+        const file = state.files[name];
+        const size = formatFileSize(file.size);
+        return `
+          <div class="file-item" data-filename="${name}">
+            <span class="file-icon">&#128196;</span>
+            <span class="file-name">${name}</span>
+            <span class="file-size">${size}</span>
+            <span class="file-remove" data-filename="${name}">&#10005;</span>
+          </div>
+        `;
+      }).join('');
+
+      fileList.querySelectorAll('.file-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          delete state.files[e.target.dataset.filename];
+          updateFileList();
+          updateConvertButton();
+        });
+      });
+    }
+
+    // Auxiliary files handling
+    const auxFileInput = document.getElementById('aux-file-input');
+    const auxFileList = document.getElementById('aux-file-list');
+    const auxUploadBtn = document.getElementById('aux-upload-btn');
+
+    auxUploadBtn.addEventListener('click', () => auxFileInput.click());
+
+    auxFileInput.addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(file => {
+        state.auxFiles[file.name] = file;
+      });
+      updateAuxFileList();
+      e.target.value = '';
+    });
+
+    function updateAuxFileList() {
+      const names = Object.keys(state.auxFiles);
+      if (names.length === 0) {
+        auxFileList.innerHTML = '';
+        return;
+      }
+
+      auxFileList.innerHTML = names.map(name => {
+        const file = state.auxFiles[name];
+        const size = formatFileSize(file.size);
+        return `
+          <div class="file-item" data-filename="${name}">
+            <span class="file-icon">&#128444;</span>
+            <span class="file-name">${name}</span>
+            <span class="file-size">${size}</span>
+            <span class="file-remove" data-filename="${name}">&#10005;</span>
+          </div>
+        `;
+      }).join('');
+
+      auxFileList.querySelectorAll('.file-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          delete state.auxFiles[e.target.dataset.filename];
+          updateAuxFileList();
+        });
+      });
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function autoDetectFormat() {
+      const names = Object.keys(state.files);
+      if (names.length > 0 && inputFormat.value === 'auto') {
+        const ext = names[0].split('.').pop().toLowerCase();
+        // Don't change the dropdown, just note for conversion
+      }
+
+      // Update output filename suggestion
+      if (names.length > 0 && !outputFilename.value) {
+        const baseName = names[0].replace(/\.[^.]+$/, '');
+        const outExt = extensionByFormat[outputFormat.value] || outputFormat.value;
+        outputFilename.placeholder = `${baseName}.${outExt}`;
+      }
+    }
+
+    // Text input changes
+    textInput.addEventListener('input', updateConvertButton);
+
+    // Format change handlers
+    outputFormat.addEventListener('change', () => {
+      updateOutputFilename();
+      updateFormatSpecificOptions();
+    });
+
+    function updateOutputFilename() {
+      const names = Object.keys(state.files);
+      if (names.length > 0) {
+        const baseName = names[0].replace(/\.[^.]+$/, '');
+        const outExt = extensionByFormat[outputFormat.value] || outputFormat.value;
+        outputFilename.placeholder = `${baseName}.${outExt}`;
+      }
+    }
+
+    function updateFormatSpecificOptions() {
+      const format = outputFormat.value;
+
+      // Show/hide HTML options
+      const htmlSection = document.getElementById('html-options-section');
+      htmlSection.style.display = htmlFormats.includes(format) ? '' : 'none';
+
+      // Show/hide math options (relevant for HTML and some other formats)
+      const mathSection = document.getElementById('math-options-section');
+      mathSection.style.display = htmlFormats.includes(format) ? '' : 'none';
+
+      // Show/hide document options
+      const docSection = document.getElementById('doc-options-section');
+      docSection.style.display = docFormats.includes(format) ? '' : 'none';
+
+      // Show/hide slide options
+      const slideSection = document.getElementById('slide-options-section');
+      slideSection.style.display = slideFormats.includes(format) ? '' : 'none';
+    }
+
+    // Resource file uploads
+    document.getElementById('bib-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.bibFile = e.target.files[0];
+        document.getElementById('bib-file-display').innerHTML =
+          `<div class="resource-item">&#128196; ${state.bibFile.name}
+           <span class="file-remove" onclick="removeBib()">&#10005;</span></div>`;
+      }
+    });
+
+    document.getElementById('csl-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.cslFile = e.target.files[0];
+        document.getElementById('csl-file-display').innerHTML =
+          `<div class="resource-item">&#128196; ${state.cslFile.name}
+           <span class="file-remove" onclick="removeCsl()">&#10005;</span></div>`;
+      }
+    });
+
+    document.getElementById('css-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.cssFile = e.target.files[0];
+        document.getElementById('css-file-display').innerHTML =
+          `<div class="resource-item">&#127912; ${state.cssFile.name}
+           <span class="file-remove" onclick="removeCss()">&#10005;</span></div>`;
+      }
+    });
+
+    document.getElementById('reference-doc-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.referenceDoc = e.target.files[0];
+        document.getElementById('reference-doc-display').innerHTML =
+          `<div class="resource-item">&#128196; ${state.referenceDoc.name}
+           <span class="file-remove" onclick="removeReferenceDoc()">&#10005;</span></div>`;
+      }
+    });
+
+    // Make remove functions global
+    window.removeBib = () => {
+      state.bibFile = null;
+      document.getElementById('bib-file-display').innerHTML = '';
+    };
+    window.removeCsl = () => {
+      state.cslFile = null;
+      document.getElementById('csl-file-display').innerHTML = '';
+    };
+    window.removeCss = () => {
+      state.cssFile = null;
+      document.getElementById('css-file-display').innerHTML = '';
+    };
+    window.removeReferenceDoc = () => {
+      state.referenceDoc = null;
+      document.getElementById('reference-doc-display').innerHTML = '';
+    };
+
+    function updateConvertButton() {
+      const hasInput = state.inputMode === 'file'
+        ? Object.keys(state.files).length > 0
+        : textInput.value.trim().length > 0;
+      convertBtn.disabled = !hasInput;
+    }
+
+    // Convert
+    convertBtn.addEventListener('click', convert);
+
+    async function convert() {
+      convertBtn.disabled = true;
+      loading.classList.add('visible');
+      outputSection.classList.remove('visible');
+      messages.innerHTML = '';
+
+      try {
+        // Build options object
+        const options = buildOptions();
+
+        // Build files object (input files + auxiliary files + resource files)
+        const files = { ...state.files, ...state.auxFiles };
+        if (state.bibFile) files[state.bibFile.name] = state.bibFile;
+        if (state.cslFile) files[state.cslFile.name] = state.cslFile;
+        if (state.cssFile) files[state.cssFile.name] = state.cssFile;
+        if (state.referenceDoc) files[state.referenceDoc.name] = state.referenceDoc;
+
+        // Get stdin
+        const stdin = state.inputMode === 'text' ? textInput.value : null;
+
+        // Run pandoc
+        const result = await pandoc(options, stdin, files);
+
+        // Display results
+        displayResults(result, options, files);
+
+      } catch (err) {
+        showMessage('error', `Conversion failed: ${err.message}`);
+      } finally {
+        loading.classList.remove('visible');
+        convertBtn.disabled = false;
+        updateConvertButton();
+      }
+    }
+
+    function buildOptions() {
+      const opts = {};
+
+      // Input format
+      const inFmt = inputFormat.value;
+      if (inFmt !== 'auto') {
+        opts.from = inFmt;
+      } else if (state.inputMode === 'file') {
+        const names = Object.keys(state.files);
+        if (names.length > 0) {
+          const ext = names[0].split('.').pop().toLowerCase();
+          if (formatByExtension[ext]) {
+            opts.from = formatByExtension[ext];
+          }
+        }
+      }
+
+      // Output format
+      opts.to = outputFormat.value;
+
+      // Output file
+      const outFile = outputFilename.value.trim() || outputFilename.placeholder;
+      if (outFile) {
+        opts['output-file'] = outFile;
+        state.outputFilename = outFile;
+      }
+
+      // Input files
+      if (state.inputMode === 'file') {
+        opts['input-files'] = Object.keys(state.files);
+      }
+
+      // General options
+      if (document.getElementById('opt-standalone').checked) {
+        opts.standalone = true;
+      }
+      if (document.getElementById('opt-toc').checked) {
+        opts['table-of-contents'] = true;
+        opts['toc-depth'] = parseInt(document.getElementById('opt-toc-depth').value);
+      }
+      if (document.getElementById('opt-number-sections').checked) {
+        opts['number-sections'] = true;
+      }
+      const shiftHeading = parseInt(document.getElementById('opt-shift-heading').value);
+      if (shiftHeading !== 0) {
+        opts['shift-heading-level-by'] = shiftHeading;
+      }
+
+      // Citations
+      if (document.getElementById('opt-citeproc').checked) {
+        opts.citeproc = true;
+      }
+      if (state.bibFile) {
+        opts.bibliography = state.bibFile.name;
+      }
+      if (state.cslFile) {
+        opts.csl = state.cslFile.name;
+      }
+
+      // Math rendering
+      const mathOpt = document.getElementById('opt-math').value;
+      if (mathOpt) {
+        opts['html-math-method'] = mathOpt;
+      }
+
+      // Code highlighting
+      const highlightStyle = document.getElementById('opt-highlight-style').value;
+      if (highlightStyle) {
+        opts['highlight-style'] = highlightStyle;
+      }
+
+      // HTML options
+      if (htmlFormats.includes(opts.to)) {
+        if (document.getElementById('opt-self-contained').checked) {
+          opts['embed-resources'] = true;
+        }
+        if (document.getElementById('opt-html-q-tags').checked) {
+          opts['html-q-tags'] = true;
+        }
+        if (state.cssFile) {
+          opts.css = [state.cssFile.name];
+        }
+      }
+
+      // Document options
+      if (docFormats.includes(opts.to) && state.referenceDoc) {
+        opts['reference-doc'] = state.referenceDoc.name;
+      }
+
+      // Slide options
+      if (slideFormats.includes(opts.to)) {
+        const slideLevel = document.getElementById('opt-slide-level').value;
+        if (slideLevel) {
+          opts['slide-level'] = parseInt(slideLevel);
+        }
+        if (document.getElementById('opt-incremental').checked) {
+          opts.incremental = true;
+        }
+      }
+
+      // Metadata
+      const metadata = {};
+      const title = document.getElementById('meta-title').value.trim();
+      if (title) metadata.title = title;
+      const author = document.getElementById('meta-author').value.trim();
+      if (author) metadata.author = [author];
+      const date = document.getElementById('meta-date').value.trim();
+      if (date) metadata.date = date;
+      const lang = document.getElementById('meta-lang').value.trim();
+      if (lang) metadata.lang = lang;
+      if (Object.keys(metadata).length > 0) {
+        opts.metadata = metadata;
+      }
+
+      // Wrapping
+      const wrap = document.getElementById('opt-wrap').value;
+      if (wrap !== 'auto') {
+        opts.wrap = wrap;
+      }
+      const columns = document.getElementById('opt-columns').value.trim();
+      if (columns) {
+        opts.columns = parseInt(columns);
+      }
+
+      return opts;
+    }
+
+    function displayResults(result, options, files) {
+      outputSection.classList.add('visible');
+
+      // Show warnings
+      if (result.warnings && result.warnings.length > 0) {
+        result.warnings.forEach(w => {
+          showMessage('warning', `${w.verbosity}: ${w.pretty || w.message || JSON.stringify(w)}`);
+        });
+      }
+
+      // Check for errors in stderr
+      if (result.stderr && result.stderr.includes('ERROR')) {
+        showMessage('error', result.stderr);
+        outputPreview.textContent = '';
+        return;
+      }
+
+      // Check if output is binary
+      const isBinary = binaryFormats.includes(options.to);
+
+      // Hide/show preview and copy button based on format
+      outputPreview.style.display = isBinary ? 'none' : '';
+      copyBtn.style.display = isBinary ? 'none' : '';
+
+      // Get output
+      let output;
+      if (options['output-file'] && files[options['output-file']]) {
+        state.output = files[options['output-file']];
+        if (!isBinary) {
+          // Try to read as text for preview
+          const reader = new FileReader();
+          reader.onload = () => {
+            outputPreview.textContent = reader.result.substring(0, 50000);
+            if (reader.result.length > 50000) {
+              outputPreview.textContent += '\n\n... (truncated)';
+            }
+          };
+          reader.onerror = () => {
+            outputPreview.textContent = '(Binary output - click Download to save)';
+          };
+          reader.readAsText(state.output);
+        }
+      } else {
+        output = result.stdout;
+        state.output = new Blob([output], { type: 'text/plain' });
+        if (!isBinary) {
+          outputPreview.textContent = output;
+        }
+      }
+
+      showMessage('info', 'Conversion successful!');
+    }
+
+    function showMessage(type, text) {
+      const div = document.createElement('div');
+      div.className = `message ${type}`;
+      div.textContent = text;
+      messages.appendChild(div);
+    }
+
+    // Download
+    downloadBtn.addEventListener('click', () => {
+      if (!state.output) return;
+
+      const filename = state.outputFilename || 'output';
+      const url = URL.createObjectURL(state.output);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Copy to clipboard
+    copyBtn.addEventListener('click', async () => {
+      const text = outputPreview.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = '&#10003; Copied!';
+        setTimeout(() => {
+          copyBtn.innerHTML = '&#128203; Copy to Clipboard';
+        }, 2000);
+      } catch (err) {
+        showMessage('error', 'Failed to copy to clipboard');
+      }
+    });
+
+    // Initialize
+    updateFormatSpecificOptions();
+    updateConvertButton();
+
+    // Enable convert button once pandoc is loaded
+    console.log('Pandoc converter ready');
+  </script>
+</body>
+</html>
