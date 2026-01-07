@@ -111,6 +111,7 @@ instance ToJSON LogMessage where
   toJSON x = object $
     "verbosity" .= toJSON (messageVerbosity x) :
     "type" .= toJSON (show $ toConstr x) :
+    "pretty" .= toJSON (showLogMessage x) :
     case x of
       SkippedContent s pos ->
            ["contents" .= s,
