@@ -9,8 +9,9 @@
    - files is a JavaScript object whose keys are filenames and whose values
      are the data in the corresponding file, as Blobs.
 
-   The return value is a JavaScript object with two properties, stdout and stderr,
-   both strings.  If the pandoc process produces an output file, it will be
+   The return value is a JavaScript object with 3 properties, stdout, stderr,
+   and warnings, all strings.  warnings is a JSON-encoded version of the warnings
+   produced by pandoc. If the pandoc process produces an output file, it will be
    added to files.
 */
 
