@@ -1,10 +1,15 @@
 module Tests.Writers.Docx (tests) where
 
-import Text.Pandoc
-import Test.Tasty
-import Tests.Writers.OOXML
-import Test.Tasty.HUnit
+import Codec.Archive.Zip (findEntryByPath, fromEntry, toArchive)
 import Data.List (isPrefixOf)
+import Data.Text (Text)
+import qualified Data.Text as Text
+import qualified Data.Text.IO as T
+import Test.Tasty
+import Test.Tasty.HUnit
+import Tests.Writers.OOXML
+import Text.Pandoc
+import Text.XML.Light (QName(QName), findAttr, findElements, parseXMLDoc)
 
 -- we add an extra check to make sure that we're not writing in the
 -- toplevel docx directory. We don't want to accidentally overwrite an
@@ -213,5 +218,30 @@ tests = [ testGroup "inlines"
             def
             "docx/document-properties-short-desc.native"
             "docx/golden/document-properties-short-desc.docx"
+          ]
+        , testGroup "reference docx"
+          [ testCase "no media directory override in content types" $ do
+              let opts = def{ writerReferenceDoc = Just "docx/inline_images.docx" }
+              txt <- T.readFile "docx/inline_formatting.native"
+              bs <- runIOorExplode $ do
+                mblang <- toLang (Just (Text.pack "en-US") :: Maybe Text)
+                maybe (return ()) setTranslations mblang
+                setVerbosity ERROR
+                readNative def txt >>= writeDocx opts
+              let archive = toArchive bs
+              entry <- case findEntryByPath "[Content_Types].xml" archive of
+                Nothing -> assertFailure "Missing [Content_Types].xml in output docx"
+                Just e -> return e
+              doc <- case parseXMLDoc (fromEntry entry) of
+                Nothing -> assertFailure "Failed to parse [Content_Types].xml"
+                Just d -> return d
+              let partNameAttr = QName "PartName" Nothing Nothing
+              let overrideName = QName "Override" Nothing Nothing
+              let overrides = findElements overrideName doc
+              let hasBadOverride =
+                    any (\el -> findAttr partNameAttr el == Just "/word/media/")
+                        overrides
+              assertBool "Found invalid /word/media/ Override in [Content_Types].xml"
+                (not hasBadOverride)
           ]
         ]
