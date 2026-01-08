@@ -220,10 +220,6 @@
       document.getElementById("input").readOnly = false;
       document.getElementById("input").placeholder = "Enter your input here...";
 
-      /* Fetch the tar at tarpath, use untar to unpack it. Create files for
-         every file in the tar except options.json and stdin, and put them in uploads.
-         Fill in the input textarea with stdin (or clear if not present).
-         Fill in the arguments field with the JSON from options.json. */
       async function loadExampleFromTar(tarpath) {
         const response = await fetch(tarpath);
         const arrayBuffer = await response.arrayBuffer();
@@ -231,6 +227,9 @@
 
         let optionsJson = '{}';
         let stdin = '';
+        for (const file in uploads) {
+           delete uploads[file];
+        }
 
         for (const file of files) {
           // Skip directories (they have no blob or empty size)
@@ -258,7 +257,6 @@
         const tarpath = e.target.value;
         if (tarpath) {
           await loadExampleFromTar(tarpath);
-          e.target.value = "";  // Reset dropdown
           updateOutput();  // Trigger conversion
         }
       });

@@ -105,7 +105,7 @@ export async function pandoc(options, stdin, files) {
   }
   const rawWarnings = new TextDecoder("utf-8", { fatal: true })
                           .decode(warnings_file.data);
-  let warnings;
+  let warnings = [];
   if (rawWarnings) {
     warnings = JSON.parse(rawWarnings);
   }
