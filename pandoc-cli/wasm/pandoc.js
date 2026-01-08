@@ -39,7 +39,7 @@ const fds = [
 const options = { debug: false };
 const wasi = new WASI(args, env, fds, options);
 const { instance } = await WebAssembly.instantiateStreaming(
-  fetch("./pandoc.wasm"),
+  fetch("./pandoc.wasm?sha1=0f9c94e87513b0a6268c869aa5a9fbce96557ccd"),
   {
     wasi_snapshot_preview1: wasi.wasiImport,
   }

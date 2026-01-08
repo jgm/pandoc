@@ -336,3 +336,7 @@ else
 	echo 'wasm32-wasi-cabal build pandoc-cli && cp "$$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1)" "$@"' | nix shell 'gitlab:haskell-wasm/ghc-wasm-meta?host=gitlab.haskell.org'
 endif
 .PHONY: pandoc.wasm
+
+wasm: pandoc.wasm
+	perl -p -i -e "s/pandoc.wasm\?sha1=[0-9abcdef]*/pandoc.wasm?sha1=$(shell openssl sha1 -r pandoc.wasm | sed 's/ .*$$//')/" pandoc-cli/wasm/pandoc.js
+.PHONY: wasm
