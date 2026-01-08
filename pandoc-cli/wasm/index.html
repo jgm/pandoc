@@ -138,9 +138,40 @@
         background-color: #0056b3;
         box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
       }
+
+      #examples-container {
+        padding: 0.5rem 1rem;
+        background-color: #f0f0f0;
+        border-bottom: 1px solid #ccc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      #examples-container h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+
+      #examples {
+        padding: 0.5rem;
+        font-family: monospace;
+        font-size: 0.9rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+      }
     </style>
   </head>
   <body>
+    <div id="examples-container">
+      <h1>Try pandoc.wasm</h1>
+      <select id="examples">
+        <option value="">Load example...</option>
+        <option value="examples/custom-template.tar">Custom template</option>
+      </select>
+    </div>
     <div class="container">
       <textarea
         id="input"
@@ -164,13 +195,57 @@
     <div id="arguments-container">
       <input type="text" id="arguments" value="{&quot;from&quot;: &quot;markdown&quot;, &quot;to&quot;: &quot;rst&quot;}"/>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
     <script type="module">
       import { pandoc } from "./pandoc.js";
 
-     const uploads = {};
+      const uploads = {};
 
       document.getElementById("input").readOnly = false;
       document.getElementById("input").placeholder = "Enter your input here...";
+
+      /* Fetch the tar at tarpath, use untar to unpack it. Create files for
+         every file in the tar except options.json and stdin, and put them in uploads.
+         Fill in the input textarea with stdin (or clear if not present).
+         Fill in the arguments field with the JSON from options.json. */
+      async function loadExampleFromTar(tarpath) {
+        const response = await fetch(tarpath);
+        const arrayBuffer = await response.arrayBuffer();
+        const files = await untar(arrayBuffer);
+
+        let optionsJson = '{}';
+        let stdin = '';
+
+        for (const file of files) {
+          // Skip directories (they have no blob or empty size)
+          if (file.name.endsWith('/') || file.size === 0) continue;
+
+          // Get just the filename without any directory prefix
+          const filename = file.name.split('/').pop();
+
+          if (filename === 'options.json') {
+            optionsJson = new TextDecoder().decode(file.buffer);
+          } else if (filename === 'stdin') {
+            stdin = new TextDecoder().decode(file.buffer);
+          } else {
+            // Add to uploads as a Blob
+            uploads[filename] = file.blob;
+          }
+        }
+
+        updateFileList();
+        document.getElementById("input").value = stdin;
+        document.getElementById("arguments").value = optionsJson;
+      }
+
+      document.getElementById("examples").addEventListener("change", async (e) => {
+        const tarpath = e.target.value;
+        if (tarpath) {
+          await loadExampleFromTar(tarpath);
+          e.target.value = "";  // Reset dropdown
+          updateOutput();  // Trigger conversion
+        }
+      });
 
       function handleFiles(files) {
         for (const file of files) {
