@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Structure
-   Copyright   : © 2023-2025 Albert Krewinkel <albert+pandoc@tarleb.com>
+   Copyright   : © 2023-2026 Albert Krewinkel <albert+pandoc@tarleb.com>
    License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
@@ -17,11 +17,11 @@ import Data.Default (Default (..))
 import Data.Maybe (fromMaybe)
 import Data.Version (makeVersion)
 import HsLua ( DocumentedFunction, LuaError, Module (..), Peeker
-             , (###), (<#>), (=#>), (#?)
+             , (###), (<#>), (=#>), (#?), defmodule
              , defun, functionResult, getfield, isnil, lastly, liftLua
              , opt, liftPure, parameter , peekBool, peekIntegral
              , peekFieldRaw, peekSet, peekText, pop, pushIntegral
-             , pushText, since, top )
+             , pushText, since, top, withDescription, withFunctions )
 import Text.Pandoc.Chunks ( ChunkedDoc (..), PathTemplate (..)
                           , tocToList, splitIntoChunks )
 import Text.Pandoc.Definition (Pandoc (..), Block)
@@ -41,22 +41,17 @@ import qualified Text.Pandoc.Shared as Shared
 
 -- | Push the pandoc.structure module on the Lua stack.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.structure"
-  , moduleDescription =
+documentedModule = defmodule "pandoc.structure"
+  `withDescription`
     "Access to the higher-level document structure, including " <>
     "hierarchical sections and the table of contents."
-  , moduleFields = []
-  , moduleFunctions =
+  `withFunctions`
       [ make_sections     `since` makeVersion [3,0]
       , slide_level       `since` makeVersion [3,0]
       , split_into_chunks `since` makeVersion [3,0]
       , table_of_contents `since` makeVersion [3,0]
       , unique_identifier `since` makeVersion [3,8]
       ]
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }
 
 make_sections :: LuaError e => DocumentedFunction e
 make_sections = defun "make_sections"

@@ -23,16 +23,11 @@ import qualified Data.Text as T
 
 -- | The "pandoc.format" module.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.format"
-  , moduleDescription = T.unlines
+documentedModule = defmodule "pandoc.format"
+  `withDescription` T.unlines
     [ "Information about the formats supported by pandoc."
     ]
-  , moduleFields = []
-  , moduleOperations = []
-  , moduleFunctions = functions
-  , moduleTypeInitializers = []
-  }
+  `withFunctions` functions
 
 -- | Extension module functions.
 functions :: [DocumentedFunction PandocError]

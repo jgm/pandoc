@@ -37,9 +37,8 @@ import qualified Text.Pandoc.MediaBag as MB
 -- MediaBag submodule
 --
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.mediabag"
-  , moduleDescription = T.unlines
+documentedModule = Lua.defmodule "pandoc.mediabag"
+  `Lua.withDescription` T.unlines
     [ "The `pandoc.mediabag` module allows accessing pandoc's media"
     , "storage. The \"media bag\" is used when pandoc is called with the"
     , "`--extract-media` or (for HTML only) `--embed-resources` option."
@@ -50,8 +49,7 @@ documentedModule = Module
     , ""
     , "    local mb = require 'pandoc.mediabag'"
     ]
-  , moduleFields = []
-  , moduleFunctions =
+  `Lua.withFunctions`
       [ delete  `since` makeVersion [2,7,3]
       , empty   `since` makeVersion [2,7,3]
       , fetch   `since` makeVersion [2,0]
@@ -63,9 +61,6 @@ documentedModule = Module
       , make_data_uri `since` makeVersion [3,7,1]
       , write   `since` makeVersion [3,0]
       ]
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }
 
 -- | Delete a single item from the media bag.
 delete :: DocumentedFunction PandocError

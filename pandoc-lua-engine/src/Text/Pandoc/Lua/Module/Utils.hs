@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Utils
-   Copyright   : Copyright © 2017-2024 Albert Krewinkel
+   Copyright   : Copyright © 2017-2026 Albert Krewinkel
    License     : GNU GPL, version 2 or above
 
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
@@ -44,16 +44,12 @@ import qualified Text.Pandoc.Writers.Shared as Shared
 
 -- | Push the "pandoc.utils" module to the Lua stack.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.utils"
-  , moduleDescription = T.unlines
+documentedModule = defmodule "pandoc.utils"
+  `withDescription` T.unlines
     [ "This module exposes internal pandoc functions and utility"
     , "functions."
     ]
-  , moduleFields = []
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  , moduleFunctions =
+  `withFunctions`
     [ blocks_to_inlines `since` v[2,2,3]
     , citeproc          `since` v[2,19,1]
     , equals            `since` v[2,5]
@@ -77,7 +73,6 @@ documentedModule = Module
       =#> functionResult pushVersion "Version" "new Version object"
       #? "Creates a Version object."
     ]
-  }
  where
   v = makeVersion
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Scaffolding
-   Copyright   : Copyright © 2022-2024 Albert Krewinkel, John MacFarlane
+   Copyright   : Copyright © 2022-2026 Albert Krewinkel, John MacFarlane
    License     : GNU GPL, version 2 or above
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
@@ -18,28 +18,20 @@ import qualified Data.Text as T
 
 -- | The "pandoc.template" module.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.scaffolding"
-  , moduleDescription = T.unlines
-    [ "Scaffolding for custom writers."
-    ]
-  , moduleFields = [writerScaffolding]
-  , moduleOperations = []
-  , moduleFunctions = []
-  , moduleTypeInitializers = []
-  }
+documentedModule = defmodule "pandoc.scaffolding"
+  `withDescription` "Scaffolding for custom writers."
+  `withFields` [writerScaffolding]
 
 -- | Template module functions.
 writerScaffolding :: Field PandocError
-writerScaffolding = Field
-  { fieldName = "Writer"
-  , fieldType = "table"
-  , fieldDescription = T.unlines
+writerScaffolding = deffield "Writer"
+  `withType` "table"
+  `withDescription` T.unlines
     [ "An object to be used as a `Writer` function; the construct handles"
     , "most of the boilerplate, expecting only render functions for all"
     , "AST elements"
     ]
-  , fieldPushValue = do
+  `withValue` do
       pushWriterScaffolding
       -- pretend that it's a submodule so we get better error messages
       getfield registryindex loaded
@@ -50,5 +42,4 @@ writerScaffolding = Field
       getfield (nth 2) "Block" *> setfield (nth 2) (submod "Writer.Block")
 
       pop 1 -- remove "LOADED_TABLE"
-  }
  where submod x = moduleName documentedModule <> "." <> x
