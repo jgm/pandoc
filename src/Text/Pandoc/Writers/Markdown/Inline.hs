@@ -500,24 +500,24 @@ inlineToMarkdown opts (Str str) = do
                         else escapeText opts) $ str
   return $ literal str'
 inlineToMarkdown opts (Math InlineMath str) = do
+  let str' = T.strip str
   variant <- asks envVariant
   case () of
     _ | variant == Markua -> return $ "`" <> literal str <> "`" <> "$"
       | otherwise -> case writerHTMLMathMethod opts of
           WebTeX url ->
-            let str' = T.strip str
-             in inlineToMarkdown opts
+             inlineToMarkdown opts
                   (Image nullAttr [Str str'] (url <> urlEncode str', str'))
           _ | isEnabled Ext_tex_math_gfm opts ->
-                return $ "$`" <> literal str <> "`$"
+                return $ "$`" <> literal str' <> "`$"
             | isEnabled Ext_tex_math_dollars opts ->
-                return $ delimited "$" "$" (literal str)
+                return $ "$" <> literal str' <> "$"
             | isEnabled Ext_tex_math_single_backslash opts ->
-                return $ "\\(" <> literal str <> "\\)"
+                return $ "\\(" <> literal str' <> "\\)"
             | isEnabled Ext_tex_math_double_backslash opts ->
-                return $ "\\\\(" <> literal str <> "\\\\)"
+                return $ "\\\\(" <> literal str' <> "\\\\)"
             | otherwise ->
-                texMathToInlines InlineMath str >>=
+                texMathToInlines InlineMath str' >>=
                   inlineListToMarkdown opts .
                     (if variant == PlainText then makeMathPlainer else id)
 
@@ -540,7 +540,7 @@ inlineToMarkdown opts (Math DisplayMath str) = do
                              $$ literal (T.dropAround (=='\n') str)
                              $$ literal "```") <> cr
             | isEnabled Ext_tex_math_dollars opts ->
-                return $ delimited "$$" "$$" (literal str)
+                return $ "$$" <> literal str <> "$$"
             | isEnabled Ext_tex_math_single_backslash opts ->
                 return $ "\\[" <> literal str <> "\\]"
             | isEnabled Ext_tex_math_double_backslash opts ->
