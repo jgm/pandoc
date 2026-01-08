@@ -22,9 +22,8 @@ import qualified HsLua.Module.Text as TM
 
 -- | The @aeson@ module specification.
 documentedModule :: Module PandocError
-documentedModule = TM.documentedModule
-  { moduleName = "pandoc.text"
-  , moduleFunctions =
+documentedModule = defmodule "pandoc.text"
+  `withFunctions`
     [ TM.fromencoding `since` v[3,0]
     , TM.len          `since` v[2,0,3]
     , TM.lower        `since` v[2,0,3]
@@ -35,7 +34,7 @@ documentedModule = TM.documentedModule
     , TM.toencoding   `since` v[3,0]
     , TM.upper        `since` v[2,0,3]
     ]
-  , moduleDescription = T.unlines
+  `withDescription` T.unlines
     [ "UTF-8 aware text manipulation functions, implemented in Haskell."
     , ""
     , "The text module can also be loaded under the name `text`, although"
@@ -49,7 +48,6 @@ documentedModule = TM.documentedModule
     , "end"
     , "```"
     ]
-  }
  where
   v = makeVersion
 

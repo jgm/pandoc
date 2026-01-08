@@ -34,22 +34,9 @@ import qualified Data.Text as T
 
 -- | The @pandoc.image@ module specification.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.image"
-  , moduleDescription = "Basic image querying functions."
-  , moduleFields = fields
-  , moduleFunctions = functions
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }
-
---
--- Fields
---
-
--- | Exported fields.
-fields :: LuaError e => [Field e]
-fields = []
+documentedModule = defmodule "pandoc.image"
+  `withDescription` "Basic image querying functions."
+  `withFunctions` functions
 
 --
 -- Functions

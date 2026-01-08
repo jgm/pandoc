@@ -26,12 +26,11 @@ import qualified HsLua.Core.Utf8 as UTF8
 
 -- | Push the pandoc.log module on the Lua stack.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.log"
-  , moduleDescription =
+documentedModule = defmodule "pandoc.log"
+  `withDescription`
       "Access to pandoc's logging system."
-  , moduleFields = []
-  , moduleFunctions =
+  `withFields` []
+  `withFunctions`
       [ defun "info"
         ### (\msg -> do
                 -- reporting levels:
@@ -78,9 +77,6 @@ documentedModule = Module
            ]
         `since` makeVersion [3, 2]
       ]
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }
 
 -- | Calls the function given as the first argument, but suppresses logging.
 -- Returns the list of generated log messages as the first result, and the other

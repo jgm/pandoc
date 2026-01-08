@@ -15,19 +15,19 @@ module Text.Pandoc.Lua.Module.Types
 
 import Data.Version (makeVersion)
 import HsLua ( Module (..), (###), (<#>), (=#>)
-             , defun, functionResult, parameter, since)
+             , defmodule, defun, functionResult, parameter, since
+             , withDescription, withFunctions
+             )
 import HsLua.Module.Version (peekVersionFuzzy, pushVersion)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua ()
 
 -- | Push the pandoc.types module on the Lua stack.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.types"
-  , moduleDescription =
+documentedModule = defmodule "pandoc.types"
+  `withDescription`
       "Constructors for types that are not part of the pandoc AST."
-  , moduleFields = []
-  , moduleFunctions =
+  `withFunctions`
       [ defun "Version"
         ### return
         <#> parameter peekVersionFuzzy "string|number|{integer,...}|Version"
@@ -40,6 +40,3 @@ documentedModule = Module
         =#> functionResult pushVersion "Version" "New Version object."
         `since` makeVersion [2,7,3]
       ]
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }

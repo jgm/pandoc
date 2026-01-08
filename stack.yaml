@@ -24,6 +24,30 @@ extra-deps:
   commit: aee6b494595a58dbbf769264061876778f7aa269
 - git: https://github.com/jgm/djoths.git
   commit: a6fc625fd58aa39df05dd1d82ee005e681815095
+- git: https://github.com/pandoc/pandoc-lua-marshal.git
+  commit: 7e5c0dc9c0a7078b374f67ea82a36c5621212e65
+- git: https://github.com/hslua/hslua-module-doclayout.git
+  commit: 04cc2911de15cd75dbfb3e1b27742bc2fb067151
+- git: https://github.com/hslua/hslua.git
+  commit: c8297598b0f268338bce93b6526e9d0d8e295a31
+  subdirs:
+    - hslua
+    - hslua-aeson
+    - hslua-classes
+    - hslua-core
+    - hslua-list
+    - hslua-marshalling
+    - hslua-module-path
+    - hslua-module-text
+    - hslua-module-system
+    - hslua-module-version
+    - hslua-module-zip
+    - hslua-objectorientation
+    - hslua-packaging
+    - lua
+    - lua-arbitrary
+    - tasty-lua
+>>>>>>> 57c182723 (Use HsLua 2.4)
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.20

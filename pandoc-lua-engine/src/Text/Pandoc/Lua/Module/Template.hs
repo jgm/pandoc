@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : Text.Pandoc.Lua.Module.Template
-   Copyright   : Copyright © 2022-2024 Albert Krewinkel, John MacFarlane
-   License     : GNU GPL, version 2 or above
+   Copyright   : Copyright © 2022-2026 Albert Krewinkel, John MacFarlane
+   License     : GPL-2.0-or-later
    Maintainer  : Albert Krewinkel <albert+pandoc@tarleb.com>
 
 Lua module to handle pandoc templates.
@@ -28,16 +28,10 @@ import qualified Data.Text as T
 
 -- | The "pandoc.template" module.
 documentedModule :: Module PandocError
-documentedModule = Module
-  { moduleName = "pandoc.template"
-  , moduleDescription = T.unlines
-    [ "Handle pandoc templates."
-    ]
-  , moduleFields = []
-  , moduleOperations = []
-  , moduleFunctions = functions
-  , moduleTypeInitializers = [initType typeTemplate]
-  }
+documentedModule = defmodule "pandoc.template"
+  `withDescription` "Handle pandoc templates."
+  `withFunctions` functions
+  `associateType` typeTemplate
 
 -- | Template module functions.
 functions :: [DocumentedFunction PandocError]

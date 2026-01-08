@@ -22,14 +22,13 @@ import qualified HsLua.Module.System as MSystem
 
 -- | Push the pandoc.system module on the Lua stack.
 documentedModule :: forall e. LuaError e => Module e
-documentedModule = Module
-  { moduleName = "pandoc.path"
-  , moduleDescription = moduleDescription @e MPath.documentedModule
-  , moduleFields =
+documentedModule = defmodule "pandoc.path"
+  `withDescription` moduleDescription @e MPath.documentedModule
+  `withFields`
       [ MPath.separator
       , MPath.search_path_separator
       ]
-  , moduleFunctions =
+  `withFunctions`
       [ MPath.directory              `since` v[2,12]
       , MSystem.exists               `since` v[3,7,1]
       , MPath.filename               `since` v[2,12]
@@ -43,8 +42,5 @@ documentedModule = Module
       , MPath.split_search_path      `since` v[2,12]
       , MPath.treat_strings_as_paths `since` v[2,12]
       ]
-  , moduleOperations = []
-  , moduleTypeInitializers = []
-  }
  where
   v = makeVersion
