@@ -15,7 +15,7 @@ writers (wasm version).
 module Main where
 import qualified Control.Exception as E
 import Data.Maybe (fromMaybe)
-import Text.Pandoc.App ( convertWithOpts, Opt(..) )
+import Text.Pandoc.App ( convertWithOpts, Opt(..), defaultOpts )
 import PandocCLI.Lua
 import Control.Exception
 import Foreign
@@ -38,7 +38,8 @@ wasm_main raw_args_ptr raw_args_len =
       let aesonRes = Aeson.eitherDecode (UTF8.fromStringLazy args)
       case aesonRes of
         Left e -> error e
-        Right opts -> do
+        Right (f :: Opt -> Opt) -> do
+          let opts = f defaultOpts
           let opts' = opts{ optInputFiles =
                              Just $ fromMaybe ["/stdin"] (optInputFiles opts)
                           , optOutputFile =
