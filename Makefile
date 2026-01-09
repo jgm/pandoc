@@ -330,10 +330,13 @@ hie.yaml: ## regenerate hie.yaml
 
 pandoc.wasm:
 	-rm $@
+	wasm32-wasi-cabal build pandoc-cli
 ifeq ($(OPTIMIZE_WASM),1)
-	echo 'wasm32-wasi-cabal build pandoc-cli && echo "Optimizing (this may take a long time, to avoid, set OPTIMIZE_WASM=0)..." && wasm-opt --low-memory-unused --converge --gufa --flatten --rereloop -Oz $$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1) -o $@' | nix shell 'gitlab:haskell-wasm/ghc-wasm-meta?host=gitlab.haskell.org'
+	echo "Optimizing (this may take a long time, to avoid, set OPTIMIZE_WASM=0)..."
+	wasm-opt --low-memory-unused --converge --gufa --flatten --rereloop -Oz $$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1) -o $@
 else
-	echo 'wasm32-wasi-cabal build pandoc-cli && cp "$$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1)" "$@"' | nix shell 'gitlab:haskell-wasm/ghc-wasm-meta?host=gitlab.haskell.org'
+	echo "Copying unoptimized pandoc.wasm..."
+	cp "$$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1)" "$@"
 endif
 .PHONY: pandoc.wasm
 
