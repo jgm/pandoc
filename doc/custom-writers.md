@@ -209,7 +209,7 @@ metadata value or a variable:
 
 ``` lua
 function Doc (body, meta, vars)
-  vars.date = vars.date or meta.data or os.date '%B %e, %Y'
+  vars.date = vars.date or meta.date or os.date '%B %e, %Y'
   return body, vars
 end
 ```
