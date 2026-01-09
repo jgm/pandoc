@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
@@ -15,11 +16,13 @@ module Text.Pandoc.Lua.Module.CLI
 import Control.Applicative ((<|>))
 import Data.Version (makeVersion)
 import HsLua
-import HsLua.REPL (defaultConfig, replWithEnv, setup)
 import Text.Pandoc.App (defaultOpts, options, parseOptionsFromArgs)
 import Text.Pandoc.Error (PandocError)
 import Text.Pandoc.Lua.PandocLua ()
 import qualified Data.Text as T
+#ifdef REPL
+import HsLua.REPL (defaultConfig, replWithEnv, setup)
+#endif
 
 -- | Push the pandoc.types module on the Lua stack.
 documentedModule :: Module PandocError
@@ -49,8 +52,9 @@ documentedModule = Module
            , "scripts, taking the list of arguments from the global `arg`."
            ]
         `since` makeVersion [3, 0]
-
+#ifdef REPL
       , repl `since` makeVersion [3, 1, 2]
+#endif
       ]
   , moduleOperations = []
   , moduleTypeInitializers = []
@@ -67,6 +71,7 @@ documentedModule = Module
       Left e     -> failLua $ "Cannot process info option: " ++ show e
       Right opts -> pure opts
 
+#ifdef REPL
 -- | Starts a REPL.
 repl :: DocumentedFunction PandocError
 repl = defun "repl"
@@ -123,3 +128,4 @@ repl = defun "repl"
             copyval
     copyval
     pop 1  -- global table
+#endif

@@ -49,7 +49,13 @@ if arch(wasm32)
     flags: +embed_data_files -http
 
   package pandoc-cli
-    flags: -lua -server
+    flags: +lua -server
+
+  package pandoc-lua-engine
+    flags: -repl
+
+  package pandoc-cli
+    flags: -repl
 
   allow-newer:
     all:base,

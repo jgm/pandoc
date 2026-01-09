@@ -34,6 +34,10 @@ flag server
   Description:   Include support for running pandoc as an HTTP server.
   Default:       True
 
+flag repl
+  Description:   Include support for running a pandoc Lua repl.
+  Default:       True
+
 flag nightly
   Description:   Add '-nightly-COMPILEDATE' to the output of '--version'.
   Default:       False
@@ -97,9 +101,12 @@ executable pandoc
     hs-source-dirs:  no-server
 
   if flag(lua)
-    build-depends:   hslua-cli         >= 1.4.1 && < 1.5,
-                     pandoc-lua-engine >= 0.5 && < 0.6,
-                     temporary         >= 1.1 && < 1.4
+    build-depends:   pandoc-lua-engine >= 0.5 && < 0.6
     hs-source-dirs:  lua
   else
     hs-source-dirs:  no-lua
+
+  if flag(repl)
+     build-depends:    hslua-cli       >= 1.4.1   && < 1.5,
+                       temporary         >= 1.1 && < 1.4
+     cpp-options:      -DREPL

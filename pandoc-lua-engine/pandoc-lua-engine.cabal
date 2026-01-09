@@ -44,6 +44,10 @@ source-repository head
   location:            https://github.com/jgm/pandoc.git
   subdir:              pandoc-lua-engine
 
+flag repl
+  Description:   Include pandoc Lua repl.
+  Default:       True
+
 common common-options
   default-language:    Haskell2010
   build-depends:       base              >= 4.12 && < 5
@@ -124,7 +128,6 @@ library
                      , hslua-module-text     >= 1.1     && < 1.2
                      , hslua-module-version  >= 1.1     && < 1.2
                      , hslua-module-zip      >= 1.1.3   && < 1.2
-                     , hslua-repl            >= 0.1.1   && < 0.2
                      , lpeg                  >= 1.1     && < 1.2
                      , mtl                   >= 2.2     && < 2.4
                      , pandoc                >= 3.8     && < 3.9
@@ -133,6 +136,9 @@ library
                      , parsec                >= 3.1     && < 3.2
                      , text                  >= 1.1.1   && < 2.2
 
+  if flag(repl)
+     build-depends:    hslua-repl            >= 0.1.1   && < 0.2
+     cpp-options:      -DREPL
 
 test-suite test-pandoc-lua-engine
   import:              common-options
