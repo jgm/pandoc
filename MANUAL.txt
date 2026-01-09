@@ -307,7 +307,7 @@ header when requesting a document from a URL:
     - `bbcode` [BBCode]
     - `bbcode_fluxbb` [BBCode (FluxBB)]
     - `bbcode_phpbb` [BBCode (phpBB)]
-    - `bbcode_steam` [BBCode (Hubzilla)]
+    - `bbcode_steam` [BBCode (Steam)]
     - `bbcode_hubzilla` [BBCode (Hubzilla)]
     - `bbcode_xenforo` [BBCode (xenForo)]
     - `beamer` ([LaTeX beamer][`beamer`] slide show)
