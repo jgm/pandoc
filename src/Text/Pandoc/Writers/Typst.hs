@@ -33,7 +33,7 @@ import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
                                     setupTranslations )
-import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
+import Text.Pandoc.Shared (isTightList, orderedListMarkers, stringify, tshow)
 import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
                                  styleToTypst)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
@@ -365,10 +365,12 @@ blockToTypst block =
       opts <-  gets stOptions
       contents <- case blocks of
                      -- don't need #box around block-level image
-                     [Para [Image attr _ (src, _)]]
+                     [Para [Image attr altInlines (src, _)]]
                        -> pure $ mkImage opts False src attr
-                     [Plain [Image attr _ (src, _)]]
+                                   (imageAltText attr altInlines)
+                     [Plain [Image attr altInlines (src, _)]]
                        -> pure $ mkImage opts False src attr
+                                   (imageAltText attr altInlines)
                      _ -> brackets <$> blocksToTypst blocks
       let lab = toLabel FreestandingLabel ident
       return $ "#figure(" <> nest 2 ((contents <> ",")
@@ -529,16 +531,21 @@ inlineToTypst inline =
                     (if inlines == [Str src]
                           then mempty
                           else nowrap $ brackets contents)
-    Image attr _inlines (src,_tit) -> do
+    Image attr inlines (src,_tit) -> do
       opts <-  gets stOptions
-      pure $ mkImage opts True src attr
+      pure $ mkImage opts True src attr (imageAltText attr inlines)
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents)
 
+-- Extract alt text: prefer explicit alt attribute, fall back to caption
+imageAltText :: Attr -> [Inline] -> Text
+imageAltText (_, _, kvs) caption =
+  fromMaybe (stringify caption) (lookup "alt" kvs)
+
 -- see #9104; need box or image is treated as block-level
-mkImage :: WriterOptions -> Bool -> Text -> Attr -> Doc Text
-mkImage opts useBox src attr
+mkImage :: WriterOptions -> Bool -> Text -> Attr -> Text -> Doc Text
+mkImage opts useBox src attr altText
   | useBox = "#box" <> parens coreImage
   | otherwise = coreImage
  where
@@ -552,11 +559,14 @@ mkImage opts useBox src attr
      (case dimension Width attr of
         Nothing -> mempty
         Just dim -> ", width: " <> showDim dim)
+  altAttr
+    | T.null altText = mempty
+    | otherwise = ", alt: " <> doubleQuoted altText
   isData = "data:" `T.isPrefixOf` src'
   dataSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"" <> src' <> "\" /></svg>"
   coreImage
-    | isData = "image.decode" <> parens(doubleQuoted dataSvg <> dimAttrs)
-    | otherwise = "image" <> parens (doubleQuoted src' <> dimAttrs)
+    | isData = "image.decode" <> parens(doubleQuoted dataSvg <> dimAttrs <> altAttr)
+    | otherwise = "image" <> parens (doubleQuoted src' <> dimAttrs <> altAttr)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = do
