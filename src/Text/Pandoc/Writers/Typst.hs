@@ -33,7 +33,7 @@ import Control.Monad.State ( StateT, evalStateT, gets, modify )
 import Text.Pandoc.Writers.Shared ( lookupMetaInlines, lookupMetaString,
                                     metaToContext, defField, resetField,
                                     setupTranslations )
-import Text.Pandoc.Shared (isTightList, orderedListMarkers, tshow)
+import Text.Pandoc.Shared (isTightList, orderedListMarkers, stringify, tshow)
 import Text.Pandoc.Highlighting (highlight, formatTypstBlock, formatTypstInline,
                                  styleToTypst)
 import Text.Pandoc.Translations (Term(Abstract), translateTerm)
@@ -365,10 +365,16 @@ blockToTypst block =
       opts <-  gets stOptions
       contents <- case blocks of
                      -- don't need #box around block-level image
-                     [Para [Image attr _ (src, _)]]
-                       -> pure $ mkImage opts False src attr
-                     [Plain [Image attr _ (src, _)]]
-                       -> pure $ mkImage opts False src attr
+                     [Para [Image attr imgInlines (src, _)]]
+                       -> let mbAlt = if null imgInlines
+                                         then Nothing
+                                         else Just (stringify imgInlines)
+                          in pure $ mkImage opts False src attr mbAlt
+                     [Plain [Image attr imgInlines (src, _)]]
+                       -> let mbAlt = if null imgInlines
+                                         then Nothing
+                                         else Just (stringify imgInlines)
+                          in pure $ mkImage opts False src attr mbAlt
                      _ -> brackets <$> blocksToTypst blocks
       let lab = toLabel FreestandingLabel ident
       return $ "#figure(" <> nest 2 ((contents <> ",")
@@ -529,34 +535,44 @@ inlineToTypst inline =
                     (if inlines == [Str src]
                           then mempty
                           else nowrap $ brackets contents)
-    Image attr _inlines (src,_tit) -> do
-      opts <-  gets stOptions
-      pure $ mkImage opts True src attr
+    Image attr imgInlines (src,_tit) -> do
+      opts <- gets stOptions
+      let mbAlt = if null imgInlines
+                     then Nothing
+                     else Just (stringify imgInlines)
+      pure $ mkImage opts True src attr mbAlt
     Note blocks -> do
       contents <- blocksToTypst blocks
       return $ "#footnote" <> brackets (chomp contents)
 
 -- see #9104; need box or image is treated as block-level
-mkImage :: WriterOptions -> Bool -> Text -> Attr -> Doc Text
-mkImage opts useBox src attr
+mkImage :: WriterOptions -> Bool -> Text -> Attr -> Maybe Text -> Doc Text
+mkImage opts useBox src (ident, cls, kvs) mbAlt
   | useBox = "#box" <> parens coreImage
   | otherwise = coreImage
  where
   src' = T.pack $ unEscapeString $ T.unpack src -- #9389
   showDim (Pixel a) = literal (showInInch opts (Pixel a) <> "in")
   showDim dim = text (show dim)
+  -- Priority: explicit alt attribute > inlines from markdown
+  altText = case lookup "alt" kvs of
+              Just alt -> if T.null alt then Nothing else Just alt
+              Nothing  -> mbAlt
+  altAttr = case altText of
+              Just alt -> ", alt: " <> doubleQuoted alt
+              Nothing  -> mempty
   dimAttrs =
-     (case dimension Height attr of
+     (case dimension Height (ident, cls, kvs) of
         Nothing -> mempty
         Just dim -> ", height: " <> showDim dim) <>
-     (case dimension Width attr of
+     (case dimension Width (ident, cls, kvs) of
         Nothing -> mempty
         Just dim -> ", width: " <> showDim dim)
   isData = "data:" `T.isPrefixOf` src'
   dataSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"" <> src' <> "\" /></svg>"
   coreImage
-    | isData = "image.decode" <> parens(doubleQuoted dataSvg <> dimAttrs)
-    | otherwise = "image" <> parens (doubleQuoted src' <> dimAttrs)
+    | isData = "image.decode" <> parens(doubleQuoted dataSvg <> altAttr <> dimAttrs)
+    | otherwise = "image" <> parens (doubleQuoted src' <> altAttr <> dimAttrs)
 
 textstyle :: PandocMonad m => Doc Text -> [Inline] -> TW m (Doc Text)
 textstyle s inlines = do
