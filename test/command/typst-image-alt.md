@@ -1,33 +1,33 @@
 ```
-% pandoc -t typst
+% pandoc -f markdown-implicit_figures -t typst
 ![Alt text from inlines](image.png)
 ^D
 #box(image("image.png", alt: "Alt text from inlines"))
 ```
 
 ```
-% pandoc -t typst
+% pandoc -f markdown-implicit_figures -t typst
 ![](image.png){alt="Explicit alt attribute"}
 ^D
 #box(image("image.png", alt: "Explicit alt attribute"))
 ```
 
 ```
-% pandoc -t typst
+% pandoc -f markdown-implicit_figures -t typst
 ![Inlines ignored](image.png){alt="Explicit wins"}
 ^D
 #box(image("image.png", alt: "Explicit wins"))
 ```
 
 ```
-% pandoc -t typst
+% pandoc -f markdown-implicit_figures -t typst
 ![](image.png)
 ^D
 #box(image("image.png"))
 ```
 
 ```
-% pandoc -t typst
+% pandoc -f markdown-implicit_figures -t typst
 ![Inlines ignored for decorative](image.png){alt=""}
 ^D
 #box(image("image.png"))
