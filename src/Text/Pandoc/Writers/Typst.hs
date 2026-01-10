@@ -555,12 +555,13 @@ mkImage opts useBox src (ident, cls, kvs) mbAlt
   showDim (Pixel a) = literal (showInInch opts (Pixel a) <> "in")
   showDim dim = text (show dim)
   -- Priority: explicit alt attribute > inlines from markdown
+  -- Empty alt="" is preserved (indicates decorative image)
   altText = case lookup "alt" kvs of
-              Just alt -> if T.null alt then Nothing else Just alt
+              Just alt -> Just alt
               Nothing  -> mbAlt
   altAttr = case altText of
-              Just alt -> ", alt: " <> doubleQuoted alt
-              Nothing  -> mempty
+              Just alt | not (T.null alt) -> ", alt: " <> doubleQuoted alt
+              _        -> mempty
   dimAttrs =
      (case dimension Height (ident, cls, kvs) of
         Nothing -> mempty

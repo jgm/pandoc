@@ -28,6 +28,13 @@
 
 ```
 % pandoc -t typst
+![Inlines ignored for decorative](image.png){alt=""}
+^D
+#box(image("image.png"))
+```
+
+```
+% pandoc -t typst
 ![Caption text](image.png){alt="Alt text describing the image"}
 
 ^D
