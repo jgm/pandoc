@@ -45,6 +45,11 @@ if arch(wasm32)
   package digest
     flags: -pkg-config
 
+  package lua
+    flags: +cross-compile
+    ghc-options: -optc-D_WASI_EMULATED_SIGNAL -optc-lwasi-emulated-signal -optc-mllvm -optc-wasm-enable-sjlj  -optc-mllvm -optc-wasm-use-legacy-eh -optc-D_WASI_EMULATED_PROCESS_CLOCKS -optc-lwasi-emulated-process-clocks -optc-DLUA_NOTEMP -optl-lsetjmp
+    ld-options: -lsetjmp
+
   package pandoc
     flags: +embed_data_files -http
 
@@ -100,4 +105,11 @@ if arch(wasm32)
     type: git
     location: https://github.com/amesgen/splitmix
     tag: 5f5b766d97dc735ac228215d240a3bb90bc2ff75
+
+  -- only needed if we have +lua
+  source-repository-package
+    type: git
+    location: https://github.com/jgm/hslua.git
+    subdir: lua
+    tag: 013a0751a29f810a1a954eee4f237441007772ef
 
