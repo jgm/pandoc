@@ -56,3 +56,23 @@
   ]
 )
 ```
+
+```
+% pandoc -f markdown -t typst
+![Caption](test.png){alt="A \"quoted\" phrase and C:\\path\\file"}
+^D
+#figure(image("test.png", alt: "A \"quoted\" phrase and C:\\path\\file"),
+  caption: [
+    Caption
+  ]
+)
+
+```
+
+```
+% pandoc -f html -t typst
+<img src="data:image/png;base64,iVBORw0KGgo=" alt="A small red dot">
+^D
+#box(image.decode("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"><image xlink:href=\"data:image/png;base64,iVBORw0KGgo=\" /></svg>", alt: "A small red dot"))
+
+```
