@@ -138,6 +138,21 @@
       background: var(--gray-50);
       border-radius: var(--radius);
       margin-bottom: 0.5rem;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .file-item:active {
+      cursor: grabbing;
+    }
+
+    .file-item.dragging {
+      opacity: 0.5;
+    }
+
+    .file-item.drag-over {
+      border-top: 2px solid var(--primary);
+      margin-top: -2px;
     }
 
     .file-item .file-icon {
@@ -622,7 +637,11 @@
       }
     }
 
-    /* Hidden file inputs */
+    /* Hidden elements */
+    .hidden {
+      display: none !important;
+    }
+
     input[type="file"].hidden {
       display: none;
     }
@@ -825,7 +844,7 @@
           <button class="options-tab" data-tab="math">Math</button>
           <button class="options-tab" data-tab="code">Code</button>
           <button class="options-tab" data-tab="html" id="html-tab">HTML</button>
-          <button class="options-tab hidden" data-tab="doc" id="doc-tab">Document</button>
+          <button class="options-tab" data-tab="template" id="template-tab">Template</button>
           <button class="options-tab hidden" data-tab="slides" id="slides-tab">Slides</button>
           <button class="options-tab" data-tab="metadata">Metadata</button>
           <button class="options-tab" data-tab="wrapping">Wrapping</button>
@@ -845,6 +864,10 @@
             <div class="checkbox-group">
               <input type="checkbox" id="opt-number-sections" />
               <label for="opt-number-sections">Number sections</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-file-scope" />
+              <label for="opt-file-scope">File scope (parse files separately)</label>
             </div>
           </div>
           <div class="options-grid" style="margin-top: 0.75rem;">
@@ -950,10 +973,18 @@
           </div>
         </div>
 
-        <!-- Document Options (docx/odt) -->
-        <div class="tab-panel" id="panel-doc">
+        <!-- Template Options -->
+        <div class="tab-panel" id="panel-template">
           <div class="resource-upload">
-            <label>Reference document (for styles)</label>
+            <label>Custom template</label>
+            <input type="file" id="template-input" class="hidden" />
+            <button class="upload-btn" onclick="document.getElementById('template-input').click()">
+              Upload Custom Template
+            </button>
+            <div id="template-file-display"></div>
+          </div>
+          <div class="resource-upload" id="reference-doc-section" style="display: none;">
+            <label>Reference document (for styles in docx/odt/pptx)</label>
             <input type="file" id="reference-doc-input" class="hidden" accept=".docx,.odt,.pptx" />
             <button class="upload-btn" onclick="document.getElementById('reference-doc-input').click()">
               Upload Reference Document
@@ -1049,10 +1080,12 @@
     const state = {
       inputMode: 'file',
       files: {},
+      fileOrder: [],
       auxFiles: {},
       bibFile: null,
       cslFile: null,
       cssFile: null,
+      templateFile: null,
       referenceDoc: null,
       output: null,
       outputFilename: null
@@ -1155,6 +1188,7 @@
         document.querySelector('.file-input-area').classList.toggle('active', state.inputMode === 'file');
         textInputArea.classList.toggle('active', state.inputMode === 'text');
         updateConvertButton();
+        updateOutputFilename();
       });
     });
 
@@ -1195,6 +1229,9 @@
 
     function handleFiles(files) {
       files.forEach(file => {
+        if (!state.files[file.name]) {
+          state.fileOrder.push(file.name);
+        }
         state.files[file.name] = file;
       });
       updateFileList();
@@ -1203,17 +1240,16 @@
     }
 
     function updateFileList() {
-      const names = Object.keys(state.files);
-      if (names.length === 0) {
+      if (state.fileOrder.length === 0) {
         fileList.innerHTML = '';
         return;
       }
 
-      fileList.innerHTML = names.map(name => {
+      fileList.innerHTML = state.fileOrder.map(name => {
         const file = state.files[name];
         const size = formatFileSize(file.size);
         return `
-          <div class="file-item" data-filename="${name}">
+          <div class="file-item" draggable="true" data-filename="${name}">
             <span class="file-icon">&#128196;</span>
             <span class="file-name">${name}</span>
             <span class="file-size">${size}</span>
@@ -1222,12 +1258,60 @@
         `;
       }).join('');
 
+      // Remove button handlers
       fileList.querySelectorAll('.file-remove').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          delete state.files[e.target.dataset.filename];
+          const filename = e.target.dataset.filename;
+          delete state.files[filename];
+          state.fileOrder = state.fileOrder.filter(n => n !== filename);
           updateFileList();
           updateConvertButton();
+        });
+      });
+
+      // Drag and drop handlers for reordering
+      let draggedItem = null;
+
+      fileList.querySelectorAll('.file-item').forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          draggedItem = item;
+          item.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragend', () => {
+          item.classList.remove('dragging');
+          fileList.querySelectorAll('.file-item').forEach(i => i.classList.remove('drag-over'));
+          draggedItem = null;
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (item !== draggedItem) {
+            item.classList.add('drag-over');
+          }
+        });
+
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('drag-over');
+        });
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          item.classList.remove('drag-over');
+          if (draggedItem && item !== draggedItem) {
+            const draggedName = draggedItem.dataset.filename;
+            const targetName = item.dataset.filename;
+            const draggedIdx = state.fileOrder.indexOf(draggedName);
+            const targetIdx = state.fileOrder.indexOf(targetName);
+
+            // Remove dragged item and insert at new position
+            state.fileOrder.splice(draggedIdx, 1);
+            state.fileOrder.splice(targetIdx, 0, draggedName);
+            updateFileList();
+          }
         });
       });
     }
@@ -1299,11 +1383,14 @@
     });
 
     function updateOutputFilename() {
-      const names = Object.keys(state.files);
-      if (names.length > 0 && outputFormat.value !== 'auto') {
-        const baseName = names[0].replace(/\.[^.]+$/, '');
+      if (outputFormat.value !== 'auto') {
         const outExt = extensionByFormat[outputFormat.value] || outputFormat.value;
-        outputFilename.placeholder = `${baseName}.${outExt}`;
+        if (state.fileOrder.length > 0) {
+          const baseName = state.fileOrder[0].replace(/\.[^.]+$/, '');
+          outputFilename.placeholder = `${baseName}.${outExt}`;
+        } else {
+          outputFilename.placeholder = `output.${outExt}`;
+        }
       } else {
         outputFilename.placeholder = '(preview)';
       }
@@ -1317,13 +1404,13 @@
       const htmlTab = document.getElementById('html-tab');
       htmlTab.classList.toggle('hidden', !(isAuto || htmlFormats.includes(format)));
 
-      // Show/hide document tab
-      const docTab = document.getElementById('doc-tab');
-      docTab.classList.toggle('hidden', !(isAuto || docFormats.includes(format)));
-
       // Show/hide slides tab
       const slidesTab = document.getElementById('slides-tab');
       slidesTab.classList.toggle('hidden', !(isAuto || slideFormats.includes(format)));
+
+      // Show/hide reference doc section in Template tab (for docx/odt/pptx)
+      const referenceDocSection = document.getElementById('reference-doc-section');
+      referenceDocSection.style.display = (isAuto || docFormats.includes(format)) ? '' : 'none';
     }
 
     // Resource file uploads
@@ -1354,6 +1441,15 @@
       }
     });
 
+    document.getElementById('template-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.templateFile = e.target.files[0];
+        document.getElementById('template-file-display').innerHTML =
+          `<div class="resource-item">&#128196; ${state.templateFile.name}
+           <span class="file-remove" onclick="removeTemplate()">&#10005;</span></div>`;
+      }
+    });
+
     document.getElementById('reference-doc-input').addEventListener('change', (e) => {
       if (e.target.files[0]) {
         state.referenceDoc = e.target.files[0];
@@ -1376,6 +1472,10 @@
       state.cssFile = null;
       document.getElementById('css-file-display').innerHTML = '';
     };
+    window.removeTemplate = () => {
+      state.templateFile = null;
+      document.getElementById('template-file-display').innerHTML = '';
+    };
     window.removeReferenceDoc = () => {
       state.referenceDoc = null;
       document.getElementById('reference-doc-display').innerHTML = '';
@@ -1383,7 +1483,7 @@
 
     function updateConvertButton() {
       const hasInput = state.inputMode === 'file'
-        ? Object.keys(state.files).length > 0
+        ? state.fileOrder.length > 0
         : textInput.value.trim().length > 0;
       convertBtn.disabled = !hasInput;
     }
@@ -1406,6 +1506,7 @@
         if (state.bibFile) files[state.bibFile.name] = state.bibFile;
         if (state.cslFile) files[state.cslFile.name] = state.cslFile;
         if (state.cssFile) files[state.cssFile.name] = state.cssFile;
+        if (state.templateFile) files[state.templateFile.name] = state.templateFile;
         if (state.referenceDoc) files[state.referenceDoc.name] = state.referenceDoc;
 
         // Get stdin
@@ -1433,13 +1534,10 @@
       const inFmt = inputFormat.value;
       if (inFmt !== 'auto') {
         opts.from = inFmt;
-      } else if (state.inputMode === 'file') {
-        const names = Object.keys(state.files);
-        if (names.length > 0) {
-          const ext = names[0].split('.').pop().toLowerCase();
-          if (formatByExtension[ext]) {
-            opts.from = formatByExtension[ext];
-          }
+      } else if (state.inputMode === 'file' && state.fileOrder.length > 0) {
+        const ext = state.fileOrder[0].split('.').pop().toLowerCase();
+        if (formatByExtension[ext]) {
+          opts.from = formatByExtension[ext];
         }
       }
 
@@ -1459,7 +1557,7 @@
 
       // Input files
       if (state.inputMode === 'file') {
-        opts['input-files'] = Object.keys(state.files);
+        opts['input-files'] = state.fileOrder;
       }
 
       // General options
@@ -1472,6 +1570,9 @@
       }
       if (document.getElementById('opt-number-sections').checked) {
         opts['number-sections'] = true;
+      }
+      if (document.getElementById('opt-file-scope').checked) {
+        opts['file-scope'] = true;
       }
       const shiftHeading = parseInt(document.getElementById('opt-shift-heading').value);
       if (shiftHeading !== 0) {
@@ -1514,7 +1615,12 @@
         }
       }
 
-      // Document options
+      // Template
+      if (state.templateFile) {
+        opts.template = state.templateFile.name;
+      }
+
+      // Reference document (for docx/odt/pptx)
       if (docFormats.includes(opts.to) && state.referenceDoc) {
         opts['reference-doc'] = state.referenceDoc.name;
       }
