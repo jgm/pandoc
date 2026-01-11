@@ -62,14 +62,14 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 1.5rem;
     }
 
     .card {
       background: white;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       overflow: hidden;
     }
 
@@ -85,18 +85,23 @@
     }
 
     .card-body {
-      padding: 1.5rem;
+      padding: 1rem;
     }
 
     /* Drop Zone */
     .drop-zone {
       border: 2px dashed var(--gray-300);
       border-radius: var(--radius);
-      padding: 3rem 2rem;
+      padding: 1rem;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
       background: var(--gray-50);
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-sizing: border-box;
     }
 
     .drop-zone:hover, .drop-zone.drag-over {
@@ -105,19 +110,20 @@
     }
 
     .drop-zone-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
       opacity: 0.5;
     }
 
     .drop-zone-text {
       color: var(--gray-600);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
     }
 
     .drop-zone-hint {
       color: var(--gray-400);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .file-list {
@@ -164,20 +170,20 @@
 
     /* Auxiliary files section */
     .auxiliary-section {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
       border-top: 1px solid var(--gray-200);
     }
 
     .auxiliary-header {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
+      gap: 0.75rem;
+      margin-bottom: 0.25rem;
     }
 
     .auxiliary-label {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: var(--gray-600);
     }
 
@@ -207,27 +213,33 @@
       font-size: 0.85rem;
     }
 
-    /* Text input mode */
+    /* Input mode toggle (segmented control) */
     .input-mode-toggle {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      display: inline-flex;
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      padding: 3px;
     }
 
     .input-mode-btn {
-      padding: 0.5rem 1rem;
-      border: 1px solid var(--gray-300);
-      background: white;
-      border-radius: var(--radius);
+      padding: 0.35rem 0.75rem;
+      border: none;
+      background: transparent;
+      border-radius: calc(var(--radius) - 2px);
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       transition: all 0.2s;
+      color: var(--gray-600);
+    }
+
+    .input-mode-btn:hover:not(.active) {
+      color: var(--gray-800);
     }
 
     .input-mode-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: white;
+      background: white;
+      color: var(--gray-900);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .text-input-area {
@@ -240,13 +252,14 @@
 
     .text-input-area textarea {
       width: 100%;
-      height: 200px;
+      height: 120px;
       padding: 1rem;
       border: 1px solid var(--gray-300);
       border-radius: var(--radius);
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       font-size: 0.9rem;
       resize: vertical;
+      box-sizing: border-box;
     }
 
     .file-input-area {
@@ -257,11 +270,48 @@
       display: block;
     }
 
-    /* Format Selection */
-    .format-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1.5rem;
+    /* Input header row */
+    .input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .input-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Format Selection Bar */
+    .format-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .format-bar .form-group {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .format-bar .form-group label {
+      white-space: nowrap;
+    }
+
+    .format-bar .form-group select,
+    .format-bar .form-group input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .format-bar .form-group input[type="text"] {
+      width: 140px;
     }
 
     .form-group {
@@ -296,50 +346,52 @@
       color: var(--gray-500);
     }
 
-    /* Options Sections */
-    .options-section {
-      border: 1px solid var(--gray-200);
-      border-radius: var(--radius);
-      margin-bottom: 1rem;
-    }
-
-    .options-header {
-      padding: 1rem 1.25rem;
-      background: var(--gray-50);
-      cursor: pointer;
+    /* Options Tabs */
+    .options-tabs {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      user-select: none;
-      transition: background 0.2s;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      border-bottom: 1px solid var(--gray-200);
+      margin-bottom: 0.75rem;
     }
 
-    .options-header:hover {
-      background: var(--gray-100);
+    .options-tab {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.85rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      color: var(--gray-600);
+      transition: all 0.2s;
+      white-space: nowrap;
     }
 
-    .options-header h3 {
-      margin: 0;
-      font-size: 0.95rem;
+    .options-tab:hover {
+      color: var(--gray-800);
+      background: var(--gray-50);
+    }
+
+    .options-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
       font-weight: 500;
     }
 
-    .options-header .toggle-icon {
-      transition: transform 0.2s;
-    }
-
-    .options-section.open .toggle-icon {
-      transform: rotate(180deg);
-    }
-
-    .options-content {
+    .options-tab.hidden {
       display: none;
-      padding: 1.25rem;
-      border-top: 1px solid var(--gray-200);
     }
 
-    .options-section.open .options-content {
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
       display: block;
+    }
+
+    .tab-panel.format-specific {
+      /* Format-specific panels handled by JS */
     }
 
     .options-grid {
@@ -399,14 +451,9 @@
     }
 
     /* Convert Button */
-    .convert-section {
-      text-align: center;
-      padding: 2rem;
-    }
-
     .convert-btn {
-      padding: 1rem 3rem;
-      font-size: 1.1rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
       font-weight: 600;
       background: var(--primary);
       color: white;
@@ -414,12 +461,10 @@
       border-radius: var(--radius);
       cursor: pointer;
       transition: all 0.2s;
-      box-shadow: var(--shadow);
     }
 
-    .convert-btn:hover {
+    .convert-btn:hover:not(:disabled) {
       background: var(--primary-hover);
-      box-shadow: var(--shadow-lg);
     }
 
     .convert-btn:disabled {
@@ -546,11 +591,30 @@
     /* Responsive */
     @media (max-width: 640px) {
       .container {
-        padding: 1rem;
+        padding: 0.75rem;
       }
 
-      .format-grid {
-        grid-template-columns: 1fr;
+      .input-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .input-controls {
+        justify-content: space-between;
+      }
+
+      .format-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .format-bar .form-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .format-bar .form-group input[type="text"] {
+        width: 100%;
       }
 
       .options-grid {
@@ -573,13 +637,157 @@
   <div class="container">
     <!-- Input Section -->
     <div class="card">
-      <div class="card-header">
-        <span>1. Input</span>
-      </div>
       <div class="card-body">
-        <div class="input-mode-toggle">
-          <button class="input-mode-btn active" data-mode="file">Upload Files</button>
-          <button class="input-mode-btn" data-mode="text">Paste Text</button>
+        <div class="input-header">
+          <div class="input-controls">
+            <div class="input-mode-toggle">
+              <button class="input-mode-btn active" data-mode="file">Upload Files</button>
+              <button class="input-mode-btn" data-mode="text">Paste Text</button>
+            </div>
+            <button class="convert-btn" id="convert-btn" disabled>Convert</button>
+          </div>
+          <div class="format-bar">
+            <div class="form-group">
+              <label for="input-format">From:</label>
+              <select id="input-format">
+                <option value="auto">Auto-detect</option>
+                <option value="asciidoc">asciidoc</option>
+                <option value="biblatex">biblatex</option>
+                <option value="bibtex">bibtex</option>
+                <option value="bits">bits</option>
+                <option value="commonmark">commonmark</option>
+                <option value="commonmark_x">commonmark_x</option>
+                <option value="creole">creole</option>
+                <option value="csljson">csljson</option>
+                <option value="csv">csv</option>
+                <option value="djot">djot</option>
+                <option value="docbook">docbook</option>
+                <option value="docx">docx</option>
+                <option value="dokuwiki">dokuwiki</option>
+                <option value="endnotexml">endnotexml</option>
+                <option value="epub">epub</option>
+                <option value="fb2">fb2</option>
+                <option value="gfm">gfm</option>
+                <option value="haddock">haddock</option>
+                <option value="html">html</option>
+                <option value="ipynb">ipynb</option>
+                <option value="jats">jats</option>
+                <option value="jira">jira</option>
+                <option value="json">json</option>
+                <option value="latex">latex</option>
+                <option value="man">man</option>
+                <option value="markdown">markdown</option>
+                <option value="markdown_mmd">markdown_mmd</option>
+                <option value="markdown_phpextra">markdown_phpextra</option>
+                <option value="markdown_strict">markdown_strict</option>
+                <option value="mdoc">mdoc</option>
+                <option value="mediawiki">mediawiki</option>
+                <option value="muse">muse</option>
+                <option value="native">native</option>
+                <option value="odt">odt</option>
+                <option value="opml">opml</option>
+                <option value="org">org</option>
+                <option value="pod">pod</option>
+                <option value="pptx">pptx</option>
+                <option value="ris">ris</option>
+                <option value="rst">rst</option>
+                <option value="rtf">rtf</option>
+                <option value="t2t">t2t</option>
+                <option value="textile">textile</option>
+                <option value="tikiwiki">tikiwiki</option>
+                <option value="tsv">tsv</option>
+                <option value="twiki">twiki</option>
+                <option value="typst">typst</option>
+                <option value="vimwiki">vimwiki</option>
+                <option value="xlsx">xlsx</option>
+                <option value="xml">xml</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="output-format">To:</label>
+              <select id="output-format">
+                <option value="auto">Auto-detect</option>
+                <option value="ansi">ansi</option>
+                <option value="asciidoc">asciidoc</option>
+                <option value="asciidoc_legacy">asciidoc_legacy</option>
+                <option value="asciidoctor">asciidoctor</option>
+                <option value="bbcode">bbcode</option>
+                <option value="bbcode_fluxbb">bbcode_fluxbb</option>
+                <option value="bbcode_hubzilla">bbcode_hubzilla</option>
+                <option value="bbcode_phpbb">bbcode_phpbb</option>
+                <option value="bbcode_steam">bbcode_steam</option>
+                <option value="bbcode_xenforo">bbcode_xenforo</option>
+                <option value="beamer">beamer</option>
+                <option value="biblatex">biblatex</option>
+                <option value="bibtex">bibtex</option>
+                <option value="chunkedhtml">chunkedhtml</option>
+                <option value="commonmark">commonmark</option>
+                <option value="commonmark_x">commonmark_x</option>
+                <option value="context">context</option>
+                <option value="csljson">csljson</option>
+                <option value="djot">djot</option>
+                <option value="docbook">docbook</option>
+                <option value="docbook4">docbook4</option>
+                <option value="docbook5">docbook5</option>
+                <option value="docx">docx</option>
+                <option value="dokuwiki">dokuwiki</option>
+                <option value="dzslides">dzslides</option>
+                <option value="epub">epub</option>
+                <option value="epub2">epub2</option>
+                <option value="epub3">epub3</option>
+                <option value="fb2">fb2</option>
+                <option value="gfm">gfm</option>
+                <option value="haddock">haddock</option>
+                <option value="html">html</option>
+                <option value="html4">html4</option>
+                <option value="html5">html5</option>
+                <option value="icml">icml</option>
+                <option value="ipynb">ipynb</option>
+                <option value="jats">jats</option>
+                <option value="jats_archiving">jats_archiving</option>
+                <option value="jats_articleauthoring">jats_articleauthoring</option>
+                <option value="jats_publishing">jats_publishing</option>
+                <option value="jira">jira</option>
+                <option value="json">json</option>
+                <option value="latex">latex</option>
+                <option value="man">man</option>
+                <option value="markdown">markdown</option>
+                <option value="markdown_mmd">markdown_mmd</option>
+                <option value="markdown_phpextra">markdown_phpextra</option>
+                <option value="markdown_strict">markdown_strict</option>
+                <option value="markua">markua</option>
+                <option value="mediawiki">mediawiki</option>
+                <option value="ms">ms</option>
+                <option value="muse">muse</option>
+                <option value="native">native</option>
+                <option value="odt">odt</option>
+                <option value="opendocument">opendocument</option>
+                <option value="opml">opml</option>
+                <option value="org">org</option>
+                <option value="pdf">pdf</option>
+                <option value="plain">plain</option>
+                <option value="pptx">pptx</option>
+                <option value="revealjs">revealjs</option>
+                <option value="rst">rst</option>
+                <option value="rtf">rtf</option>
+                <option value="s5">s5</option>
+                <option value="slideous">slideous</option>
+                <option value="slidy">slidy</option>
+                <option value="tei">tei</option>
+                <option value="texinfo">texinfo</option>
+                <option value="textile">textile</option>
+                <option value="typst">typst</option>
+                <option value="vimdoc">vimdoc</option>
+                <option value="xml">xml</option>
+                <option value="xwiki">xwiki</option>
+                <option value="zimwiki">zimwiki</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="output-filename">Output:</label>
+              <input type="text" id="output-filename" placeholder="(preview)" />
+            </div>
+          </div>
         </div>
 
         <div class="file-input-area active">
@@ -608,252 +816,90 @@
       </div>
     </div>
 
-    <!-- Format Selection -->
-    <div class="card">
-      <div class="card-header">
-        <span>2. Format</span>
-      </div>
-      <div class="card-body">
-        <div class="format-grid">
-          <div class="form-group">
-            <label for="input-format">Input Format</label>
-            <select id="input-format">
-              <option value="auto">Auto-detect</option>
-              <option value="asciidoc">asciidoc</option>
-              <option value="biblatex">biblatex</option>
-              <option value="bibtex">bibtex</option>
-              <option value="bits">bits</option>
-              <option value="commonmark">commonmark</option>
-              <option value="commonmark_x">commonmark_x</option>
-              <option value="creole">creole</option>
-              <option value="csljson">csljson</option>
-              <option value="csv">csv</option>
-              <option value="djot">djot</option>
-              <option value="docbook">docbook</option>
-              <option value="docx">docx</option>
-              <option value="dokuwiki">dokuwiki</option>
-              <option value="endnotexml">endnotexml</option>
-              <option value="epub">epub</option>
-              <option value="fb2">fb2</option>
-              <option value="gfm">gfm</option>
-              <option value="haddock">haddock</option>
-              <option value="html">html</option>
-              <option value="ipynb">ipynb</option>
-              <option value="jats">jats</option>
-              <option value="jira">jira</option>
-              <option value="json">json</option>
-              <option value="latex">latex</option>
-              <option value="man">man</option>
-              <option value="markdown">markdown</option>
-              <option value="markdown_mmd">markdown_mmd</option>
-              <option value="markdown_phpextra">markdown_phpextra</option>
-              <option value="markdown_strict">markdown_strict</option>
-              <option value="mdoc">mdoc</option>
-              <option value="mediawiki">mediawiki</option>
-              <option value="muse">muse</option>
-              <option value="native">native</option>
-              <option value="odt">odt</option>
-              <option value="opml">opml</option>
-              <option value="org">org</option>
-              <option value="pod">pod</option>
-              <option value="pptx">pptx</option>
-              <option value="ris">ris</option>
-              <option value="rst">rst</option>
-              <option value="rtf">rtf</option>
-              <option value="t2t">t2t</option>
-              <option value="textile">textile</option>
-              <option value="tikiwiki">tikiwiki</option>
-              <option value="tsv">tsv</option>
-              <option value="twiki">twiki</option>
-              <option value="typst">typst</option>
-              <option value="vimwiki">vimwiki</option>
-              <option value="xlsx">xlsx</option>
-              <option value="xml">xml</option>
-            </select>
-            <span class="hint">Based on file extension if auto-detect</span>
-          </div>
-
-          <div class="form-group">
-            <label for="output-format">Output Format</label>
-            <select id="output-format">
-              <option value="ansi">ansi</option>
-              <option value="asciidoc">asciidoc</option>
-              <option value="asciidoc_legacy">asciidoc_legacy</option>
-              <option value="asciidoctor">asciidoctor</option>
-              <option value="bbcode">bbcode</option>
-              <option value="bbcode_fluxbb">bbcode_fluxbb</option>
-              <option value="bbcode_hubzilla">bbcode_hubzilla</option>
-              <option value="bbcode_phpbb">bbcode_phpbb</option>
-              <option value="bbcode_steam">bbcode_steam</option>
-              <option value="bbcode_xenforo">bbcode_xenforo</option>
-              <option value="beamer">beamer</option>
-              <option value="biblatex">biblatex</option>
-              <option value="bibtex">bibtex</option>
-              <option value="chunkedhtml">chunkedhtml</option>
-              <option value="commonmark">commonmark</option>
-              <option value="commonmark_x">commonmark_x</option>
-              <option value="context">context</option>
-              <option value="csljson">csljson</option>
-              <option value="djot">djot</option>
-              <option value="docbook">docbook</option>
-              <option value="docbook4">docbook4</option>
-              <option value="docbook5">docbook5</option>
-              <option value="docx">docx</option>
-              <option value="dokuwiki">dokuwiki</option>
-              <option value="dzslides">dzslides</option>
-              <option value="epub">epub</option>
-              <option value="epub2">epub2</option>
-              <option value="epub3">epub3</option>
-              <option value="fb2">fb2</option>
-              <option value="gfm">gfm</option>
-              <option value="haddock">haddock</option>
-              <option value="html">html</option>
-              <option value="html4">html4</option>
-              <option value="html5" selected>html5</option>
-              <option value="icml">icml</option>
-              <option value="ipynb">ipynb</option>
-              <option value="jats">jats</option>
-              <option value="jats_archiving">jats_archiving</option>
-              <option value="jats_articleauthoring">jats_articleauthoring</option>
-              <option value="jats_publishing">jats_publishing</option>
-              <option value="jira">jira</option>
-              <option value="json">json</option>
-              <option value="latex">latex</option>
-              <option value="man">man</option>
-              <option value="markdown">markdown</option>
-              <option value="markdown_mmd">markdown_mmd</option>
-              <option value="markdown_phpextra">markdown_phpextra</option>
-              <option value="markdown_strict">markdown_strict</option>
-              <option value="markua">markua</option>
-              <option value="mediawiki">mediawiki</option>
-              <option value="ms">ms</option>
-              <option value="muse">muse</option>
-              <option value="native">native</option>
-              <option value="odt">odt</option>
-              <option value="opendocument">opendocument</option>
-              <option value="opml">opml</option>
-              <option value="org">org</option>
-              <option value="pdf">pdf</option>
-              <option value="plain">plain</option>
-              <option value="pptx">pptx</option>
-              <option value="revealjs">revealjs</option>
-              <option value="rst">rst</option>
-              <option value="rtf">rtf</option>
-              <option value="s5">s5</option>
-              <option value="slideous">slideous</option>
-              <option value="slidy">slidy</option>
-              <option value="tei">tei</option>
-              <option value="texinfo">texinfo</option>
-              <option value="textile">textile</option>
-              <option value="typst">typst</option>
-              <option value="vimdoc">vimdoc</option>
-              <option value="xml">xml</option>
-              <option value="xwiki">xwiki</option>
-              <option value="zimwiki">zimwiki</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="output-filename">Output Filename</label>
-            <input type="text" id="output-filename" />
-            <span class="hint">Leave empty to preview in browser</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Options -->
     <div class="card">
-      <div class="card-header">
-        <span>3. Options</span>
-      </div>
       <div class="card-body" style="padding: 0.75rem;">
-        <!-- General Options -->
-        <div class="options-section open">
-          <div class="options-header">
-            <h3>General</h3>
-            <span class="toggle-icon">&#9660;</span>
-          </div>
-          <div class="options-content">
-            <div class="options-grid">
-              <div class="checkbox-group">
-                <input type="checkbox" id="opt-standalone" checked />
-                <label for="opt-standalone">Standalone document</label>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="opt-toc" />
-                <label for="opt-toc">Table of contents</label>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="opt-number-sections" />
-                <label for="opt-number-sections">Number sections</label>
-              </div>
+        <div class="options-tabs">
+          <button class="options-tab active" data-tab="general">General</button>
+          <button class="options-tab" data-tab="citations">Citations</button>
+          <button class="options-tab" data-tab="code">Code</button>
+          <button class="options-tab" data-tab="html" id="html-tab">HTML</button>
+          <button class="options-tab hidden" data-tab="doc" id="doc-tab">Document</button>
+          <button class="options-tab hidden" data-tab="slides" id="slides-tab">Slides</button>
+          <button class="options-tab" data-tab="metadata">Metadata</button>
+          <button class="options-tab" data-tab="wrapping">Wrapping</button>
+        </div>
+
+        <!-- General -->
+        <div class="tab-panel active" id="panel-general">
+          <div class="options-grid">
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-standalone" checked />
+              <label for="opt-standalone">Standalone document</label>
             </div>
-            <div class="options-grid" style="margin-top: 1rem;">
-              <div class="form-group">
-                <label for="opt-toc-depth">TOC depth</label>
-                <select id="opt-toc-depth">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3" selected>3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="opt-shift-heading">Shift heading level by</label>
-                <select id="opt-shift-heading">
-                  <option value="-2">-2</option>
-                  <option value="-1">-1</option>
-                  <option value="0" selected>0</option>
-                  <option value="1">+1</option>
-                  <option value="2">+2</option>
-                </select>
-              </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-toc" />
+              <label for="opt-toc">Table of contents</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-number-sections" />
+              <label for="opt-number-sections">Number sections</label>
+            </div>
+          </div>
+          <div class="options-grid" style="margin-top: 0.75rem;">
+            <div class="form-group">
+              <label for="opt-toc-depth">TOC depth</label>
+              <select id="opt-toc-depth">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="opt-shift-heading">Shift heading level by</label>
+              <select id="opt-shift-heading">
+                <option value="-2">-2</option>
+                <option value="-1">-1</option>
+                <option value="0" selected>0</option>
+                <option value="1">+1</option>
+                <option value="2">+2</option>
+              </select>
             </div>
           </div>
         </div>
 
         <!-- Citations -->
-        <div class="options-section">
-          <div class="options-header">
-            <h3>Citations &amp; Bibliography</h3>
-            <span class="toggle-icon">&#9660;</span>
+        <div class="tab-panel" id="panel-citations">
+          <div class="checkbox-group">
+            <input type="checkbox" id="opt-citeproc" />
+            <label for="opt-citeproc">Process citations (citeproc)</label>
           </div>
-          <div class="options-content">
-            <div class="checkbox-group">
-              <input type="checkbox" id="opt-citeproc" />
-              <label for="opt-citeproc">Process citations (citeproc)</label>
-            </div>
-            <div class="resource-upload">
-              <label>Bibliography file (.bib, .json, .yaml)</label>
-              <input type="file" id="bib-input" class="hidden" accept=".bib,.bibtex,.json,.yaml,.yml" />
-              <button class="upload-btn" onclick="document.getElementById('bib-input').click()">
-                &#128196; Upload Bibliography
-              </button>
-              <div id="bib-file-display"></div>
-            </div>
-            <div class="resource-upload">
-              <label>Citation style (.csl)</label>
-              <input type="file" id="csl-input" class="hidden" accept=".csl" />
-              <button class="upload-btn" onclick="document.getElementById('csl-input').click()">
-                &#128196; Upload CSL Style
-              </button>
-              <div id="csl-file-display"></div>
-            </div>
+          <div class="resource-upload">
+            <label>Bibliography file (.bib, .json, .yaml)</label>
+            <input type="file" id="bib-input" class="hidden" accept=".bib,.bibtex,.json,.yaml,.yml" />
+            <button class="upload-btn" onclick="document.getElementById('bib-input').click()">
+              Upload Bibliography
+            </button>
+            <div id="bib-file-display"></div>
+          </div>
+          <div class="resource-upload">
+            <label>Citation style (.csl)</label>
+            <input type="file" id="csl-input" class="hidden" accept=".csl" />
+            <button class="upload-btn" onclick="document.getElementById('csl-input').click()">
+              Upload CSL Style
+            </button>
+            <div id="csl-file-display"></div>
           </div>
         </div>
 
-        <!-- Math Rendering -->
-        <div class="options-section" id="math-options-section">
-          <div class="options-header">
-            <h3>Math Rendering</h3>
-            <span class="toggle-icon">&#9660;</span>
-          </div>
-          <div class="options-content">
+        <!-- Code (Math + Highlighting) -->
+        <div class="tab-panel" id="panel-code">
+          <div class="options-grid">
             <div class="form-group">
-              <label for="opt-math">Math rendering method</label>
+              <label for="opt-math">Math rendering</label>
               <select id="opt-math">
                 <option value="">Default (plain)</option>
                 <option value="mathjax">MathJax</option>
@@ -863,16 +909,6 @@
                 <option value="gladtex">GladTeX</option>
               </select>
             </div>
-          </div>
-        </div>
-
-        <!-- Code Highlighting -->
-        <div class="options-section" id="highlight-options-section">
-          <div class="options-header">
-            <h3>Code Highlighting</h3>
-            <span class="toggle-icon">&#9660;</span>
-          </div>
-          <div class="options-content">
             <div class="form-group">
               <label for="opt-highlight-style">Highlight style</label>
               <select id="opt-highlight-style">
@@ -891,56 +927,40 @@
         </div>
 
         <!-- HTML Options -->
-        <div class="options-section" id="html-options-section">
-          <div class="options-header">
-            <h3>HTML Options</h3>
-            <span class="toggle-icon">&#9660;</span>
+        <div class="tab-panel" id="panel-html">
+          <div class="checkbox-group">
+            <input type="checkbox" id="opt-self-contained" />
+            <label for="opt-self-contained">Self-contained (embed resources)</label>
           </div>
-          <div class="options-content">
-            <div class="checkbox-group">
-              <input type="checkbox" id="opt-self-contained" />
-              <label for="opt-self-contained">Self-contained (embed resources)</label>
-            </div>
-            <div class="checkbox-group" style="margin-top: 0.5rem;">
-              <input type="checkbox" id="opt-html-q-tags" />
-              <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
-            </div>
-            <div class="resource-upload">
-              <label>Custom CSS</label>
-              <input type="file" id="css-input" class="hidden" accept=".css" />
-              <button class="upload-btn" onclick="document.getElementById('css-input').click()">
-                &#127912; Upload CSS
-              </button>
-              <div id="css-file-display"></div>
-            </div>
+          <div class="checkbox-group" style="margin-top: 0.5rem;">
+            <input type="checkbox" id="opt-html-q-tags" />
+            <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+          </div>
+          <div class="resource-upload">
+            <label>Custom CSS</label>
+            <input type="file" id="css-input" class="hidden" accept=".css" />
+            <button class="upload-btn" onclick="document.getElementById('css-input').click()">
+              Upload CSS
+            </button>
+            <div id="css-file-display"></div>
           </div>
         </div>
 
         <!-- Document Options (docx/odt) -->
-        <div class="options-section" id="doc-options-section" style="display: none;">
-          <div class="options-header">
-            <h3>Document Options</h3>
-            <span class="toggle-icon">&#9660;</span>
-          </div>
-          <div class="options-content">
-            <div class="resource-upload">
-              <label>Reference document (for styles)</label>
-              <input type="file" id="reference-doc-input" class="hidden" accept=".docx,.odt,.pptx" />
-              <button class="upload-btn" onclick="document.getElementById('reference-doc-input').click()">
-                &#128196; Upload Reference Document
-              </button>
-              <div id="reference-doc-display"></div>
-            </div>
+        <div class="tab-panel" id="panel-doc">
+          <div class="resource-upload">
+            <label>Reference document (for styles)</label>
+            <input type="file" id="reference-doc-input" class="hidden" accept=".docx,.odt,.pptx" />
+            <button class="upload-btn" onclick="document.getElementById('reference-doc-input').click()">
+              Upload Reference Document
+            </button>
+            <div id="reference-doc-display"></div>
           </div>
         </div>
 
         <!-- Slide Options -->
-        <div class="options-section" id="slide-options-section" style="display: none;">
-          <div class="options-header">
-            <h3>Slide Options</h3>
-            <span class="toggle-icon">&#9660;</span>
-          </div>
-          <div class="options-content">
+        <div class="tab-panel" id="panel-slides">
+          <div class="options-grid">
             <div class="form-group">
               <label for="opt-slide-level">Slide level (heading depth)</label>
               <select id="opt-slide-level">
@@ -950,7 +970,7 @@
                 <option value="3">3</option>
               </select>
             </div>
-            <div class="checkbox-group" style="margin-top: 1rem;">
+            <div class="checkbox-group">
               <input type="checkbox" id="opt-incremental" />
               <label for="opt-incremental">Incremental lists</label>
             </div>
@@ -958,62 +978,45 @@
         </div>
 
         <!-- Metadata -->
-        <div class="options-section">
-          <div class="options-header">
-            <h3>Metadata</h3>
-            <span class="toggle-icon">&#9660;</span>
-          </div>
-          <div class="options-content">
-            <div class="options-grid">
-              <div class="form-group">
-                <label for="meta-title">Title</label>
-                <input type="text" id="meta-title" placeholder="Document title" />
-              </div>
-              <div class="form-group">
-                <label for="meta-author">Author</label>
-                <input type="text" id="meta-author" placeholder="Author name" />
-              </div>
-              <div class="form-group">
-                <label for="meta-date">Date</label>
-                <input type="text" id="meta-date" placeholder="e.g., 2025-01-07" />
-              </div>
-              <div class="form-group">
-                <label for="meta-lang">Language</label>
-                <input type="text" id="meta-lang" placeholder="e.g., en, de, fr" />
-              </div>
+        <div class="tab-panel" id="panel-metadata">
+          <div class="options-grid">
+            <div class="form-group">
+              <label for="meta-title">Title</label>
+              <input type="text" id="meta-title" placeholder="Document title" />
+            </div>
+            <div class="form-group">
+              <label for="meta-author">Author</label>
+              <input type="text" id="meta-author" placeholder="Author name" />
+            </div>
+            <div class="form-group">
+              <label for="meta-date">Date</label>
+              <input type="text" id="meta-date" placeholder="e.g., 2025-01-07" />
+            </div>
+            <div class="form-group">
+              <label for="meta-lang">Language</label>
+              <input type="text" id="meta-lang" placeholder="e.g., en, de, fr" />
             </div>
           </div>
         </div>
 
         <!-- Wrapping -->
-        <div class="options-section">
-          <div class="options-header">
-            <h3>Text Wrapping</h3>
-            <span class="toggle-icon">&#9660;</span>
-          </div>
-          <div class="options-content">
-            <div class="options-grid">
-              <div class="form-group">
-                <label for="opt-wrap">Wrap mode</label>
-                <select id="opt-wrap">
-                  <option value="auto">Auto</option>
-                  <option value="none">None</option>
-                  <option value="preserve">Preserve</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="opt-columns">Line width (columns)</label>
-                <input type="text" id="opt-columns" placeholder="72" />
-              </div>
+        <div class="tab-panel" id="panel-wrapping">
+          <div class="options-grid">
+            <div class="form-group">
+              <label for="opt-wrap">Wrap mode</label>
+              <select id="opt-wrap">
+                <option value="auto">Auto</option>
+                <option value="none">None</option>
+                <option value="preserve">Preserve</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="opt-columns">Line width (columns)</label>
+              <input type="text" id="opt-columns" placeholder="72" />
             </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Convert Button -->
-    <div class="convert-section">
-      <button class="convert-btn" id="convert-btn" disabled>Convert</button>
     </div>
 
     <!-- Loading -->
@@ -1154,10 +1157,15 @@
       });
     });
 
-    // Options section toggles
-    document.querySelectorAll('.options-header').forEach(header => {
-      header.addEventListener('click', () => {
-        header.parentElement.classList.toggle('open');
+    // Options tab switching
+    document.querySelectorAll('.options-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Deactivate all tabs and panels
+        document.querySelectorAll('.options-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        // Activate clicked tab and corresponding panel
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
       });
     });
 
@@ -1274,17 +1282,9 @@
     }
 
     function autoDetectFormat() {
-      const names = Object.keys(state.files);
-      if (names.length > 0 && inputFormat.value === 'auto') {
-        const ext = names[0].split('.').pop().toLowerCase();
-        // Don't change the dropdown, just note for conversion
-      }
-
       // Update output filename suggestion
-      if (names.length > 0 && !outputFilename.value) {
-        const baseName = names[0].replace(/\.[^.]+$/, '');
-        const outExt = extensionByFormat[outputFormat.value] || outputFormat.value;
-        outputFilename.placeholder = `${baseName}.${outExt}`;
+      if (!outputFilename.value) {
+        updateOutputFilename();
       }
     }
 
@@ -1299,31 +1299,30 @@
 
     function updateOutputFilename() {
       const names = Object.keys(state.files);
-      if (names.length > 0) {
+      if (names.length > 0 && outputFormat.value !== 'auto') {
         const baseName = names[0].replace(/\.[^.]+$/, '');
         const outExt = extensionByFormat[outputFormat.value] || outputFormat.value;
         outputFilename.placeholder = `${baseName}.${outExt}`;
+      } else {
+        outputFilename.placeholder = '(preview)';
       }
     }
 
     function updateFormatSpecificOptions() {
       const format = outputFormat.value;
+      const isAuto = format === 'auto';
 
-      // Show/hide HTML options
-      const htmlSection = document.getElementById('html-options-section');
-      htmlSection.style.display = htmlFormats.includes(format) ? '' : 'none';
+      // Show/hide HTML tab (show if auto or HTML format)
+      const htmlTab = document.getElementById('html-tab');
+      htmlTab.classList.toggle('hidden', !(isAuto || htmlFormats.includes(format)));
 
-      // Show/hide math options (relevant for HTML and some other formats)
-      const mathSection = document.getElementById('math-options-section');
-      mathSection.style.display = htmlFormats.includes(format) ? '' : 'none';
+      // Show/hide document tab
+      const docTab = document.getElementById('doc-tab');
+      docTab.classList.toggle('hidden', !(isAuto || docFormats.includes(format)));
 
-      // Show/hide document options
-      const docSection = document.getElementById('doc-options-section');
-      docSection.style.display = docFormats.includes(format) ? '' : 'none';
-
-      // Show/hide slide options
-      const slideSection = document.getElementById('slide-options-section');
-      slideSection.style.display = slideFormats.includes(format) ? '' : 'none';
+      // Show/hide slides tab
+      const slidesTab = document.getElementById('slides-tab');
+      slidesTab.classList.toggle('hidden', !(isAuto || slideFormats.includes(format)));
     }
 
     // Resource file uploads
@@ -1444,13 +1443,17 @@
       }
 
       // Output format
-      opts.to = outputFormat.value;
+      if (outputFormat.value !== 'auto') {
+        opts.to = outputFormat.value;
+      }
 
       // Output file
-      const outFile = outputFilename.value.trim() || outputFilename.placeholder;
-      if (outFile) {
-        opts['output-file'] = outFile;
-        state.outputFilename = outFile;
+      const outFile = outputFilename.value.trim();
+      const placeholderFile = outputFilename.placeholder !== '(preview)' ? outputFilename.placeholder : null;
+      const finalOutFile = outFile || placeholderFile;
+      if (finalOutFile) {
+        opts['output-file'] = finalOutFile;
+        state.outputFilename = finalOutFile;
       }
 
       // Input files
