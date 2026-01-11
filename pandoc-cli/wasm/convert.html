@@ -1584,6 +1584,7 @@
       outputPreview.style.display = isBinary ? 'none' : '';
       copyBtn.style.display = isBinary ? 'none' : '';
       downloadBtn.style.display = 'block';
+      downloadBtn.innerText = "📥 Download " + state.outputFilename;
 
       // Get output
       let output;
