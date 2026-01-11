@@ -1030,16 +1030,13 @@
 
     <!-- Output Section -->
     <div class="card output-section" id="output-section">
-      <div class="card-header">
-        <span>Output</span>
-      </div>
       <div class="card-body">
-        <div class="messages" id="messages"></div>
-        <div class="output-preview" id="output-preview"></div>
         <div class="output-actions">
           <button class="download-btn" id="download-btn">&#128229; Download</button>
           <button class="copy-btn" id="copy-btn">&#128203; Copy to Clipboard</button>
         </div>
+        <div class="messages" id="messages"></div>
+        <div class="output-preview" id="output-preview"></div>
       </div>
     </div>
   </div>
@@ -1573,6 +1570,9 @@
       if (result.stderr && result.stderr.includes('ERROR')) {
         showMessage('error', result.stderr);
         outputPreview.textContent = '';
+        outputPreview.style.display = 'none';
+        downloadBtn.style.display = 'none';
+        copyBtn.style.display = 'none';
         return;
       }
 
@@ -1608,8 +1608,6 @@
           outputPreview.textContent = output;
         }
       }
-
-      showMessage('info', 'Conversion successful!');
     }
 
     function showMessage(type, text) {
