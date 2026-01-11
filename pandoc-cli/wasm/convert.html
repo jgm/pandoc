@@ -42,21 +42,21 @@
     .header {
       background: var(--gray-900);
       color: white;
-      padding: 1rem 2rem;
+      padding: 0.5rem 1.5rem;
       display: flex;
       align-items: center;
-      gap: 1rem;
+      justify-content: space-between;
     }
 
     .header h1 {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 1.1rem;
       font-weight: 600;
     }
 
     .header .tagline {
       color: var(--gray-400);
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
 
     .container {
@@ -630,8 +630,8 @@
 </head>
 <body>
   <div class="header">
-    <h1>Pandoc in the Browser</h1>
-    <span class="tagline">Convert documents without leaving your browser, using the power of pandoc.wasm.</span>
+    <h1>pandoc.wasm</h1>
+    <span class="tagline">Convert documents without leaving the browser</span>
   </div>
 
   <div class="container">
@@ -822,6 +822,7 @@
         <div class="options-tabs">
           <button class="options-tab active" data-tab="general">General</button>
           <button class="options-tab" data-tab="citations">Citations</button>
+          <button class="options-tab" data-tab="math">Math</button>
           <button class="options-tab" data-tab="code">Code</button>
           <button class="options-tab" data-tab="html" id="html-tab">HTML</button>
           <button class="options-tab hidden" data-tab="doc" id="doc-tab">Document</button>
@@ -895,34 +896,36 @@
           </div>
         </div>
 
-        <!-- Code (Math + Highlighting) -->
+        <!-- Math -->
+        <div class="tab-panel" id="panel-math">
+          <div class="form-group">
+            <label for="opt-math">Math rendering method</label>
+            <select id="opt-math">
+              <option value="">Default (plain)</option>
+              <option value="mathjax">MathJax</option>
+              <option value="katex">KaTeX</option>
+              <option value="mathml">MathML</option>
+              <option value="webtex">WebTeX (images)</option>
+              <option value="gladtex">GladTeX</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Code -->
         <div class="tab-panel" id="panel-code">
-          <div class="options-grid">
-            <div class="form-group">
-              <label for="opt-math">Math rendering</label>
-              <select id="opt-math">
-                <option value="">Default (plain)</option>
-                <option value="mathjax">MathJax</option>
-                <option value="katex">KaTeX</option>
-                <option value="mathml">MathML</option>
-                <option value="webtex">WebTeX (images)</option>
-                <option value="gladtex">GladTeX</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="opt-highlight-style">Highlight style</label>
-              <select id="opt-highlight-style">
-                <option value="">Default (pygments)</option>
-                <option value="pygments">Pygments</option>
-                <option value="kate">Kate</option>
-                <option value="monochrome">Monochrome</option>
-                <option value="breezedark">Breeze Dark</option>
-                <option value="espresso">Espresso</option>
-                <option value="zenburn">Zenburn</option>
-                <option value="haddock">Haddock</option>
-                <option value="tango">Tango</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label for="opt-highlight-style">Syntax highlight style</label>
+            <select id="opt-highlight-style">
+              <option value="">Default (pygments)</option>
+              <option value="pygments">Pygments</option>
+              <option value="kate">Kate</option>
+              <option value="monochrome">Monochrome</option>
+              <option value="breezedark">Breeze Dark</option>
+              <option value="espresso">Espresso</option>
+              <option value="zenburn">Zenburn</option>
+              <option value="haddock">Haddock</option>
+              <option value="tango">Tango</option>
+            </select>
           </div>
         </div>
 
