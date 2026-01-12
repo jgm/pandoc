@@ -74,7 +74,6 @@ jobs:
       id: upload-unsigned-artifact
       uses: actions/upload-artifact@v6
       with:
-        name: windows-release-candidate-unsigned
         path: windows-release-candidate-unsigned
 
     - name: sign-artifact
