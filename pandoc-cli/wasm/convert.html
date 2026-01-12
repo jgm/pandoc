@@ -731,6 +731,40 @@
       to { transform: rotate(360deg); }
     }
 
+    /* Loading overlay for initial wasm load */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .loading-overlay.hidden {
+      display: none;
+    }
+
+    .loading-box {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .loading-box p {
+      margin: 0;
+      color: var(--gray-600);
+      font-size: 0.95rem;
+    }
+
     /* Responsive */
     @media (max-width: 640px) {
       .container {
@@ -792,7 +826,6 @@
               <button class="input-mode-btn" data-mode="text">Paste Text</button>
             </div>
             <button class="convert-btn" id="convert-btn" disabled>Convert</button>
-            <span id="loading-message">Loading pandoc.wasm...</span>
           </div>
           <div class="format-bar">
             <div class="form-group">
@@ -1255,11 +1288,19 @@
     </div>
   </div>
 
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading-overlay">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p>Loading pandoc.wasm...</p>
+    </div>
+  </div>
+
   <script type="module">
     import { pandoc, getExtensionsForFormat } from "./pandoc.js?sha1=XX";
 
-    // remove loading message when it loads:
-    document.getElementById("loading-message").style.display = "none";
+    // Hide loading overlay once pandoc.wasm is loaded
+    document.getElementById("loading-overlay").classList.add("hidden");
 
     // State
     const state = {
