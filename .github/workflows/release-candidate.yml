@@ -63,30 +63,38 @@ jobs:
           %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%RELEASE% *.wxs -out wixobj\
           if %errorlevel% neq 0 exit /b %errorlevel%
           echo Running light...
-          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi wixobj\*.wixobj
+          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi wixobj\*.wixobj
           7z a "pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip" pandoc-%VERSION%
           cd ..
           mkdir windows-release-candidate
-          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
+          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
-          copy windows\Makefile windows-release-candidate
-    - name: upload-unsigned-artifact
+    - name: Upload unsigned artifact
       id: upload-unsigned-artifact
       uses: actions/upload-artifact@v6
       with:
+        name: windows-release-candidate-unsigned
         path: windows-release-candidate
 
-    - name: sign-artifact
+    - name: Sign artifact
       id: sign-artifact
       uses: signpath/github-action-submit-signing-request@v2
       with:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: 'd330f023-29aa-44e4-b90b-ae1c570f4a25'
         project-slug: 'pandoc'
-        signing-policy-slug: 'pandoc-msi-in-zip-artifact'
+        signing-policy-slug: 'test-signing'
+        artifact-configuration-slug: 'pandoc-msi-and-zip'
         github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: 'windows-release-candidate'
+
+    - name: upload-signed-artifact
+      id: upload-signed-artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: windows-release-candidate-signed
+        path: windows-release-candidate
 
   macos:
 
