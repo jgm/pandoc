@@ -76,6 +76,11 @@ jobs:
       with:
         path: windows-release-candidate-unsigned
 
+    - name: diagnostic
+      run: |
+        echo '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
+        echo '${{ steps.upload-unsigned-artifact.outputs.windows-release-candidate-unsigned }}'
+
     - name: sign-artifact
       id: sign-artifact
       uses: signpath/github-action-submit-signing-request@v2
