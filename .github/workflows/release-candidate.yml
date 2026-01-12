@@ -63,17 +63,17 @@ jobs:
           %WIXBIN%\candle -arch ${{ matrix.versions.arch }} -dVERSION=%VERSION% -dBINPATH=%RELEASE% *.wxs -out wixobj\
           if %errorlevel% neq 0 exit /b %errorlevel%
           echo Running light...
-          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi wixobj\*.wixobj
+          %WIXBIN%\light -sw1076 -ext WixUIExtension -ext WixUtilExtension -cultures:en-us -loc Pandoc-en-us.wxl -out %WORKDIR%\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi wixobj\*.wixobj
           7z a "pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip" pandoc-%VERSION%
           cd ..
           mkdir windows-release-candidate
-          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}-UNSIGNED.msi windows-release-candidate
+          copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
-          copy windows\Makefile windows-release-candidate
     - name: upload-unsigned-artifact
       id: upload-unsigned-artifact
       uses: actions/upload-artifact@v6
       with:
+        name: windows-release-candidate-unsigned
         path: windows-release-candidate
 
     - name: sign-artifact
@@ -88,6 +88,13 @@ jobs:
         github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: 'windows-release-candidate'
+
+    - name: upload-signed-artifact
+      id: upload-signed-artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: windows-release-candidated-signed
+        path: windows-release-candidate
 
 #  macos:
 #
