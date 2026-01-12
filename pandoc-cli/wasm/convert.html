@@ -1060,6 +1060,14 @@
             </button>
             <div id="csl-file-display"></div>
           </div>
+          <div class="resource-upload">
+            <label>Citation abbreviations (.json)</label>
+            <input type="file" id="abbrev-input" class="hidden" accept=".json" />
+            <button class="upload-btn" onclick="document.getElementById('abbrev-input').click()">
+              Upload Abbreviations
+            </button>
+            <div id="abbrev-file-display"></div>
+          </div>
         </div>
 
         <!-- Math -->
@@ -1112,6 +1120,14 @@
           <div class="checkbox-group" style="margin-top: 0.5rem;">
             <input type="checkbox" id="opt-html-q-tags" />
             <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+          </div>
+          <div class="checkbox-group" style="margin-top: 0.5rem;">
+            <input type="checkbox" id="opt-section-divs" />
+            <label for="opt-section-divs">Wrap sections in &lt;section&gt; tags</label>
+          </div>
+          <div class="form-group" style="margin-top: 0.75rem;">
+            <label for="opt-title-prefix">Title prefix</label>
+            <input type="text" id="opt-title-prefix" placeholder="Prefix for document title" />
           </div>
           <div class="resource-upload">
             <label>Custom CSS</label>
@@ -1169,6 +1185,14 @@
 
         <!-- Metadata -->
         <div class="tab-panel" id="panel-metadata">
+          <div class="resource-upload" style="margin-bottom: 0.75rem;">
+            <label>Metadata file (.yaml, .json)</label>
+            <input type="file" id="metadata-file-input" class="hidden" accept=".yaml,.yml,.json" />
+            <button class="upload-btn" onclick="document.getElementById('metadata-file-input').click()">
+              Upload Metadata File
+            </button>
+            <div id="metadata-file-display"></div>
+          </div>
           <div class="options-grid" id="metadata-fields">
             <div class="form-group">
               <label for="meta-title">title</label>
@@ -1241,9 +1265,11 @@
       auxFiles: {},
       bibFile: null,
       cslFile: null,
+      abbrevFile: null,
       cssFile: null,
       templateFile: null,
       referenceDoc: null,
+      metadataFile: null,
       output: null,
       outputFilename: null,
       inputExtensions: {},  // { extName: true/false } - true = enable, false = disable
@@ -1731,6 +1757,15 @@
       }
     });
 
+    document.getElementById('abbrev-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.abbrevFile = e.target.files[0];
+        document.getElementById('abbrev-file-display').innerHTML =
+          `<div class="resource-item">&#128196; ${state.abbrevFile.name}
+           <span class="file-remove" onclick="removeAbbrev()">&#10005;</span></div>`;
+      }
+    });
+
     document.getElementById('css-input').addEventListener('change', (e) => {
       if (e.target.files[0]) {
         state.cssFile = e.target.files[0];
@@ -1767,6 +1802,10 @@
       state.cslFile = null;
       document.getElementById('csl-file-display').innerHTML = '';
     };
+    window.removeAbbrev = () => {
+      state.abbrevFile = null;
+      document.getElementById('abbrev-file-display').innerHTML = '';
+    };
     window.removeCss = () => {
       state.cssFile = null;
       document.getElementById('css-file-display').innerHTML = '';
@@ -1779,6 +1818,19 @@
       state.referenceDoc = null;
       document.getElementById('reference-doc-display').innerHTML = '';
     };
+    window.removeMetadataFile = () => {
+      state.metadataFile = null;
+      document.getElementById('metadata-file-display').innerHTML = '';
+    };
+
+    document.getElementById('metadata-file-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.metadataFile = e.target.files[0];
+        document.getElementById('metadata-file-display').innerHTML =
+          `<div class="resource-item">&#128196; ${state.metadataFile.name}
+           <span class="file-remove" onclick="removeMetadataFile()">&#10005;</span></div>`;
+      }
+    });
 
     function updateConvertButton() {
       const hasInput = state.inputMode === 'file'
@@ -1804,9 +1856,11 @@
         const files = { ...state.files, ...state.auxFiles };
         if (state.bibFile) files[state.bibFile.name] = state.bibFile;
         if (state.cslFile) files[state.cslFile.name] = state.cslFile;
+        if (state.abbrevFile) files[state.abbrevFile.name] = state.abbrevFile;
         if (state.cssFile) files[state.cssFile.name] = state.cssFile;
         if (state.templateFile) files[state.templateFile.name] = state.templateFile;
         if (state.referenceDoc) files[state.referenceDoc.name] = state.referenceDoc;
+        if (state.metadataFile) files[state.metadataFile.name] = state.metadataFile;
 
         // Get stdin
         const stdin = state.inputMode === 'text' ? textInput.value : null;
@@ -1888,6 +1942,9 @@
       if (state.cslFile) {
         opts.csl = state.cslFile.name;
       }
+      if (state.abbrevFile) {
+        opts['citation-abbreviations'] = state.abbrevFile.name;
+      }
 
       // Math rendering
       const mathOpt = document.getElementById('opt-math').value;
@@ -1914,6 +1971,13 @@
         }
         if (document.getElementById('opt-html-q-tags').checked) {
           opts['html-q-tags'] = true;
+        }
+        if (document.getElementById('opt-section-divs').checked) {
+          opts['section-divs'] = true;
+        }
+        const titlePrefix = document.getElementById('opt-title-prefix').value.trim();
+        if (titlePrefix) {
+          opts['title-prefix'] = titlePrefix;
         }
         if (state.cssFile) {
           opts.css = [state.cssFile.name];
@@ -1952,6 +2016,11 @@
         if (document.getElementById('opt-incremental').checked) {
           opts.incremental = true;
         }
+      }
+
+      // Metadata file
+      if (state.metadataFile) {
+        opts['metadata-file'] = state.metadataFile.name;
       }
 
       // Metadata
