@@ -339,7 +339,3 @@ else
 	cp "$$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1)" "$@"
 endif
 .PHONY: pandoc.wasm
-
-wasm: pandoc.wasm
-	perl -p -i -e "s/pandoc.wasm\?sha1=[0-9abcdef]*/pandoc.wasm?sha1=$(shell openssl sha1 -r pandoc.wasm | sed 's/ .*$$//')/" pandoc-cli/wasm/pandoc.js
-.PHONY: wasm
