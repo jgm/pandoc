@@ -334,18 +334,7 @@
       width: 140px;
     }
 
-    /* Extensions section */
-    .extensions-section {
-      display: none;
-      margin-top: 0.75rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--gray-200);
-    }
-
-    .extensions-section.visible {
-      display: block;
-    }
-
+    /* Extensions */
     .extensions-row {
       display: flex;
       gap: 2rem;
@@ -354,23 +343,22 @@
 
     .extensions-group {
       flex: 1;
-      min-width: 250px;
+      min-width: 200px;
     }
 
-    .extensions-header {
-      font-size: 0.8rem;
+    .extensions-group-header {
+      font-size: 0.75rem;
       font-weight: 600;
-      color: var(--gray-600);
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      color: var(--gray-500);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
 
     .extensions-list {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.25rem 1rem;
+      gap: 0.15rem 0.75rem;
       max-height: 150px;
       overflow-y: auto;
     }
@@ -378,18 +366,18 @@
     .extension-item {
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.2rem;
       font-size: 0.8rem;
     }
 
     .extension-item input[type="checkbox"] {
-      width: 0.9rem;
-      height: 0.9rem;
+      width: 0.85rem;
+      height: 0.85rem;
     }
 
     .extension-item label {
       cursor: pointer;
-      color: var(--gray-700);
+      color: var(--gray-600);
     }
 
     .extension-item.default-on label {
@@ -878,18 +866,6 @@
               <input type="text" id="output-filename" placeholder="(preview)" />
             </div>
           </div>
-          <div class="extensions-section" id="extensions-section">
-            <div class="extensions-row">
-              <div class="extensions-group">
-                <div class="extensions-header">From extensions</div>
-                <div class="extensions-list" id="input-extensions"></div>
-              </div>
-              <div class="extensions-group">
-                <div class="extensions-header">To extensions</div>
-                <div class="extensions-list" id="output-extensions"></div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="file-input-area active">
@@ -923,6 +899,7 @@
       <div class="card-body" style="padding: 0.75rem;">
         <div class="options-tabs">
           <button class="options-tab active" data-tab="general">General</button>
+          <button class="options-tab hidden" data-tab="extensions" id="extensions-tab">Extensions</button>
           <button class="options-tab" data-tab="citations">Citations</button>
           <button class="options-tab" data-tab="math">Math</button>
           <button class="options-tab" data-tab="code">Code</button>
@@ -974,6 +951,20 @@
                 <option value="1">+1</option>
                 <option value="2">+2</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extensions -->
+        <div class="tab-panel" id="panel-extensions">
+          <div class="extensions-row">
+            <div class="extensions-group" id="input-extensions-group">
+              <div class="extensions-group-header" id="input-extensions-header">From</div>
+              <div class="extensions-list" id="input-extensions"></div>
+            </div>
+            <div class="extensions-group" id="output-extensions-group">
+              <div class="extensions-group-header" id="output-extensions-header">To</div>
+              <div class="extensions-list" id="output-extensions"></div>
             </div>
           </div>
         </div>
@@ -1157,7 +1148,7 @@
   </div>
 
   <script type="module">
-    import { pandoc } from "./pandoc.js";
+    import { pandoc, getExtensionsForFormat } from "./pandoc.js?1135";
 
     // State
     const state = {
@@ -1251,18 +1242,18 @@
     // Binary output formats (don't show text preview)
     const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'chunkedhtml'];
 
-    // Placeholder extension data - will be replaced with dynamic retrieval
-    // Each extension has: name, defaultOn (whether it's enabled by default for this format)
-    async function getExtensionsForFormat(format, direction) {
-      // TODO: Replace with dynamic call to pandoc
-      // For now, return empty array - extensions will appear when pandoc() supports listing them
-      // Example structure that will be returned:
-      // [
-      //   { name: 'smart', defaultOn: true },
-      //   { name: 'emoji', defaultOn: false },
-      //   { name: 'footnotes', defaultOn: true },
-      // ]
-      return [];
+    // Load extensions for a format from pandoc
+    async function loadExtensions(format, direction) {
+      try {
+        const extData = await getExtensionsForFormat(format);
+        // Transform { extName: boolean, ... } to [{ name, defaultOn }, ...]
+        return Object.entries(extData)
+          .map(([name, defaultOn]) => ({ name, defaultOn }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+      } catch (e) {
+        console.warn(`Could not get extensions for ${format}:`, e);
+        return [];
+      }
     }
 
     // Render extensions list
@@ -1275,17 +1266,15 @@
       container.innerHTML = extensions.map(ext => {
         const id = `ext-${direction}-${ext.name}`;
         const isToggled = stateObj[ext.name] !== undefined;
-        const isEnabled = stateObj[ext.name] === true;
-        const isDisabled = stateObj[ext.name] === false;
+        // Checked if: default on and not explicitly disabled, OR explicitly enabled
+        const isChecked = isToggled ? stateObj[ext.name] === true : ext.defaultOn;
         const defaultClass = ext.defaultOn ? 'default-on' : '';
         const toggledClass = isToggled ? 'toggled' : '';
 
-        // Three-state: unchecked (default), checked (enable +), indeterminate would be disable
-        // Using a simpler two-checkbox approach: [+] [-] for each extension
         return `
           <div class="extension-item ${defaultClass} ${toggledClass}" data-ext="${ext.name}" data-default="${ext.defaultOn}">
             <input type="checkbox" id="${id}"
-              ${isEnabled ? 'checked' : ''}
+              ${isChecked ? 'checked' : ''}
               data-ext="${ext.name}"
               data-direction="${direction}"
             />
@@ -1319,11 +1308,15 @@
       });
     }
 
-    // Update extensions section visibility and content
+    // Update extensions tab visibility and content
     async function updateExtensionsSection() {
-      const section = document.getElementById('extensions-section');
+      const extensionsTab = document.getElementById('extensions-tab');
       const inputExtsContainer = document.getElementById('input-extensions');
       const outputExtsContainer = document.getElementById('output-extensions');
+      const inputGroup = document.getElementById('input-extensions-group');
+      const outputGroup = document.getElementById('output-extensions-group');
+      const inputHeader = document.getElementById('input-extensions-header');
+      const outputHeader = document.getElementById('output-extensions-header');
 
       const inFmt = inputFormat.value;
       const outFmt = outputFormat.value;
@@ -1336,24 +1329,28 @@
       const showOutput = outFmt !== 'auto';
 
       if (!showInput && !showOutput) {
-        section.classList.remove('visible');
+        extensionsTab.classList.add('hidden');
         return;
       }
 
       // Get extensions for each format
-      const inputExts = showInput ? await getExtensionsForFormat(inFmt, 'input') : [];
-      const outputExts = showOutput ? await getExtensionsForFormat(outFmt, 'output') : [];
+      const inputExts = showInput ? await loadExtensions(inFmt, 'input') : [];
+      const outputExts = showOutput ? await loadExtensions(outFmt, 'output') : [];
 
       if (inputExts.length === 0 && outputExts.length === 0) {
-        section.classList.remove('visible');
+        extensionsTab.classList.add('hidden');
         return;
       }
 
-      section.classList.add('visible');
+      extensionsTab.classList.remove('hidden');
+
+      // Update headers with format names
+      inputHeader.textContent = `From (${inFmt})`;
+      outputHeader.textContent = `To (${outFmt})`;
 
       // Show/hide individual groups
-      inputExtsContainer.parentElement.style.display = showInput && inputExts.length > 0 ? '' : 'none';
-      outputExtsContainer.parentElement.style.display = showOutput && outputExts.length > 0 ? '' : 'none';
+      inputGroup.style.display = showInput && inputExts.length > 0 ? '' : 'none';
+      outputGroup.style.display = showOutput && outputExts.length > 0 ? '' : 'none';
 
       // Render extensions
       if (showInput) renderExtensions(inputExts, inputExtsContainer, state.inputExtensions, 'input');
