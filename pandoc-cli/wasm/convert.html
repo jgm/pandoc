@@ -792,6 +792,7 @@
               <button class="input-mode-btn" data-mode="text">Paste Text</button>
             </div>
             <button class="convert-btn" id="convert-btn" disabled>Convert</button>
+            <span id="loading-message">Loading pandoc.wasm...</span>
           </div>
           <div class="format-bar">
             <div class="form-group">
@@ -1256,6 +1257,9 @@
 
   <script type="module">
     import { pandoc, getExtensionsForFormat } from "./pandoc.js?sha1=XX";
+
+    // remove loading message when it loads:
+    document.getElementById("loading-message").style.display = "none";
 
     // State
     const state = {
