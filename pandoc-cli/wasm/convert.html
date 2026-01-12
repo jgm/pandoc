@@ -334,6 +334,72 @@
       width: 140px;
     }
 
+    /* Extensions section */
+    .extensions-section {
+      display: none;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .extensions-section.visible {
+      display: block;
+    }
+
+    .extensions-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .extensions-group {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .extensions-header {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .extensions-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1rem;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .extension-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.8rem;
+    }
+
+    .extension-item input[type="checkbox"] {
+      width: 0.9rem;
+      height: 0.9rem;
+    }
+
+    .extension-item label {
+      cursor: pointer;
+      color: var(--gray-700);
+    }
+
+    .extension-item.default-on label {
+      font-weight: 500;
+    }
+
+    .extension-item.toggled label {
+      color: var(--primary);
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
@@ -812,6 +878,18 @@
               <input type="text" id="output-filename" placeholder="(preview)" />
             </div>
           </div>
+          <div class="extensions-section" id="extensions-section">
+            <div class="extensions-row">
+              <div class="extensions-group">
+                <div class="extensions-header">From extensions</div>
+                <div class="extensions-list" id="input-extensions"></div>
+              </div>
+              <div class="extensions-group">
+                <div class="extensions-header">To extensions</div>
+                <div class="extensions-list" id="output-extensions"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="file-input-area active">
@@ -1093,7 +1171,9 @@
       templateFile: null,
       referenceDoc: null,
       output: null,
-      outputFilename: null
+      outputFilename: null,
+      inputExtensions: {},  // { extName: true/false } - true = enable, false = disable
+      outputExtensions: {}
     };
 
     // Format detection by file extension
@@ -1170,6 +1250,130 @@
 
     // Binary output formats (don't show text preview)
     const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'chunkedhtml'];
+
+    // Placeholder extension data - will be replaced with dynamic retrieval
+    // Each extension has: name, defaultOn (whether it's enabled by default for this format)
+    async function getExtensionsForFormat(format, direction) {
+      // TODO: Replace with dynamic call to pandoc
+      // For now, return empty array - extensions will appear when pandoc() supports listing them
+      // Example structure that will be returned:
+      // [
+      //   { name: 'smart', defaultOn: true },
+      //   { name: 'emoji', defaultOn: false },
+      //   { name: 'footnotes', defaultOn: true },
+      // ]
+      return [];
+    }
+
+    // Render extensions list
+    function renderExtensions(extensions, container, stateObj, direction) {
+      if (extensions.length === 0) {
+        container.innerHTML = '<span style="color: var(--gray-400); font-size: 0.8rem; font-style: italic;">No extensions available</span>';
+        return;
+      }
+
+      container.innerHTML = extensions.map(ext => {
+        const id = `ext-${direction}-${ext.name}`;
+        const isToggled = stateObj[ext.name] !== undefined;
+        const isEnabled = stateObj[ext.name] === true;
+        const isDisabled = stateObj[ext.name] === false;
+        const defaultClass = ext.defaultOn ? 'default-on' : '';
+        const toggledClass = isToggled ? 'toggled' : '';
+
+        // Three-state: unchecked (default), checked (enable +), indeterminate would be disable
+        // Using a simpler two-checkbox approach: [+] [-] for each extension
+        return `
+          <div class="extension-item ${defaultClass} ${toggledClass}" data-ext="${ext.name}" data-default="${ext.defaultOn}">
+            <input type="checkbox" id="${id}"
+              ${isEnabled ? 'checked' : ''}
+              data-ext="${ext.name}"
+              data-direction="${direction}"
+            />
+            <label for="${id}">${ext.name}</label>
+          </div>
+        `;
+      }).join('');
+
+      // Add event listeners
+      container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const extName = e.target.dataset.ext;
+          const item = e.target.closest('.extension-item');
+          const defaultOn = item.dataset.default === 'true';
+
+          if (e.target.checked) {
+            // If default is off, checking means enable (+)
+            // If default is on, checking means keep enabled (no change needed, or could toggle to disable)
+            stateObj[extName] = true;
+          } else {
+            // Unchecked - if default is on, this means disable (-)
+            // If default is off, unchecked means use default (remove from state)
+            if (defaultOn) {
+              stateObj[extName] = false;
+            } else {
+              delete stateObj[extName];
+            }
+          }
+          item.classList.toggle('toggled', stateObj[extName] !== undefined);
+        });
+      });
+    }
+
+    // Update extensions section visibility and content
+    async function updateExtensionsSection() {
+      const section = document.getElementById('extensions-section');
+      const inputExtsContainer = document.getElementById('input-extensions');
+      const outputExtsContainer = document.getElementById('output-extensions');
+
+      const inFmt = inputFormat.value;
+      const outFmt = outputFormat.value;
+
+      // Clear previous extension state when format changes
+      state.inputExtensions = {};
+      state.outputExtensions = {};
+
+      const showInput = inFmt !== 'auto';
+      const showOutput = outFmt !== 'auto';
+
+      if (!showInput && !showOutput) {
+        section.classList.remove('visible');
+        return;
+      }
+
+      // Get extensions for each format
+      const inputExts = showInput ? await getExtensionsForFormat(inFmt, 'input') : [];
+      const outputExts = showOutput ? await getExtensionsForFormat(outFmt, 'output') : [];
+
+      if (inputExts.length === 0 && outputExts.length === 0) {
+        section.classList.remove('visible');
+        return;
+      }
+
+      section.classList.add('visible');
+
+      // Show/hide individual groups
+      inputExtsContainer.parentElement.style.display = showInput && inputExts.length > 0 ? '' : 'none';
+      outputExtsContainer.parentElement.style.display = showOutput && outputExts.length > 0 ? '' : 'none';
+
+      // Render extensions
+      if (showInput) renderExtensions(inputExts, inputExtsContainer, state.inputExtensions, 'input');
+      if (showOutput) renderExtensions(outputExts, outputExtsContainer, state.outputExtensions, 'output');
+    }
+
+    // Build format string with extensions
+    function buildFormatWithExtensions(baseFormat, extensions) {
+      if (!baseFormat || baseFormat === 'auto') return baseFormat;
+
+      let formatStr = baseFormat;
+      for (const [ext, enabled] of Object.entries(extensions)) {
+        if (enabled === true) {
+          formatStr += `+${ext}`;
+        } else if (enabled === false) {
+          formatStr += `-${ext}`;
+        }
+      }
+      return formatStr;
+    }
 
     // DOM elements
     const dropZone = document.getElementById('drop-zone');
@@ -1387,9 +1591,14 @@
     textInput.addEventListener('input', updateConvertButton);
 
     // Format change handlers
+    inputFormat.addEventListener('change', () => {
+      updateExtensionsSection();
+    });
+
     outputFormat.addEventListener('change', () => {
       updateOutputFilename();
       updateFormatSpecificOptions();
+      updateExtensionsSection();
     });
 
     function updateOutputFilename() {
@@ -1543,17 +1752,17 @@
       // Input format
       const inFmt = inputFormat.value;
       if (inFmt !== 'auto') {
-        opts.from = inFmt;
+        opts.from = buildFormatWithExtensions(inFmt, state.inputExtensions);
       } else if (state.inputMode === 'file' && state.fileOrder.length > 0) {
         const ext = state.fileOrder[0].split('.').pop().toLowerCase();
         if (formatByExtension[ext]) {
-          opts.from = formatByExtension[ext];
+          opts.from = buildFormatWithExtensions(formatByExtension[ext], state.inputExtensions);
         }
       }
 
       // Output format
       if (outputFormat.value !== 'auto') {
-        opts.to = outputFormat.value;
+        opts.to = buildFormatWithExtensions(outputFormat.value, state.outputExtensions);
       }
 
       // Output file
@@ -1765,6 +1974,7 @@
 
     // Initialize
     updateFormatSpecificOptions();
+    updateExtensionsSection();
     updateConvertButton();
 
     // Enable convert button once pandoc is loaded
