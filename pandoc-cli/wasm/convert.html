@@ -1118,9 +1118,10 @@
 
     // Output extensions by format
     const extensionByFormat = {
-      'html': 'html', 'html5': 'html', 'html4': 'html',
-      'markdown': 'md', 'gfm': 'md', 'commonmark': 'md', 'commonmark_x': 'md',
-      'latex': 'tex', 'beamer': 'tex',
+      'html': 'html', 'html5': 'html', 'html4': 'html', 'chunkedhtml': 'zip',
+      'markdown': 'md', 'markdown_strict': 'md', 'markdown_mmd': 'md', 'markdown_phpextra': 'md',
+      'gfm': 'md', 'commonmark': 'md', 'commonmark_x': 'md',
+      'latex': 'tex', 'beamer': 'tex', 'context': 'tex',
       'pdf': 'pdf',
       'docx': 'docx',
       'odt': 'odt',
@@ -1129,16 +1130,17 @@
       'org': 'org',
       'plain': 'txt',
       'json': 'json', 'native': 'native',
-      'docbook': 'xml', 'docbook5': 'xml', 'jats': 'xml', 'tei': 'xml',
+      'docbook': 'xml', 'docbook4': 'xml', 'docbook5': 'xml',
+      'jats': 'xml', 'jats_archiving': 'xml', 'jats_articleauthoring': 'xml', 'jats_publishing': 'xml',
+      'tei': 'xml',
       'man': '1',
       'rtf': 'rtf',
       'textile': 'textile',
       'mediawiki': 'wiki',
-      'asciidoc': 'adoc', 'asciidoctor': 'adoc',
+      'asciidoc': 'adoc', 'asciidoctor': 'adoc', 'asciidoc_legacy': 'adoc',
       'revealjs': 'html', 'slidy': 'html', 'slideous': 'html', 'dzslides': 'html', 's5': 'html',
       'ipynb': 'ipynb',
       'typst': 'typ',
-      'context': 'tex',
       'texinfo': 'texi',
       'ms': 'ms',
       'icml': 'icml',
@@ -1146,7 +1148,10 @@
       'bibtex': 'bib', 'biblatex': 'bib',
       'csljson': 'json',
       'pptx': 'pptx',
-      'djot': 'dj'
+      'djot': 'dj',
+      'fb2': 'fb2',
+      'opendocument': 'xml',
+      'vimdoc': 'txt'
     };
 
     // Slide formats
@@ -1159,7 +1164,7 @@
     const docFormats = ['docx', 'odt', 'pptx'];
 
     // Binary output formats (don't show text preview)
-    const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf'];
+    const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'chunkedhtml'];
 
     // DOM elements
     const dropZone = document.getElementById('drop-zone');
