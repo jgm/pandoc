@@ -388,6 +388,75 @@
       color: var(--primary);
     }
 
+    /* Custom metadata */
+    .custom-metadata {
+      margin-top: 0.5rem;
+    }
+
+    .custom-meta-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .custom-meta-row input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+    }
+
+    .custom-meta-row input[name="key"] {
+      width: 120px;
+    }
+
+    .custom-meta-row input[name="value"] {
+      flex: 1;
+    }
+
+    .custom-meta-row .remove-meta {
+      padding: 0.25rem 0.5rem;
+      background: none;
+      border: none;
+      color: var(--gray-400);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .custom-meta-row .remove-meta:hover {
+      color: var(--danger);
+    }
+
+    .add-metadata-btn {
+      margin-top: 0.5rem;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: var(--gray-600);
+    }
+
+    .add-metadata-btn:hover {
+      background: var(--gray-200);
+    }
+
+    .variables-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    .variables-section > label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--gray-700);
+      margin-bottom: 0.5rem;
+    }
+
     .form-group {
       display: flex;
       flex-direction: column;
@@ -1010,20 +1079,27 @@
 
         <!-- Code -->
         <div class="tab-panel" id="panel-code">
-          <div class="form-group">
-            <label for="opt-highlight-style">Syntax highlight style</label>
-            <select id="opt-highlight-style">
-              <option value="">Default</option>
-              <option value="none">None</option>
-              <option value="pygments">Pygments</option>
-              <option value="kate">Kate</option>
-              <option value="monochrome">Monochrome</option>
-              <option value="breezedark">Breeze Dark</option>
-              <option value="espresso">Espresso</option>
-              <option value="zenburn">Zenburn</option>
-              <option value="haddock">Haddock</option>
-              <option value="tango">Tango</option>
-            </select>
+          <div class="options-grid">
+            <div class="form-group">
+              <label for="opt-highlight-style">Syntax highlight style</label>
+              <select id="opt-highlight-style">
+                <option value="">Default</option>
+                <option value="legacy">Legacy</option>
+                <option value="none">None</option>
+                <option value="pygments">Pygments</option>
+                <option value="kate">Kate</option>
+                <option value="monochrome">Monochrome</option>
+                <option value="breezedark">Breeze Dark</option>
+                <option value="espresso">Espresso</option>
+                <option value="zenburn">Zenburn</option>
+                <option value="haddock">Haddock</option>
+                <option value="tango">Tango</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="opt-indented-code-classes">Indented code classes</label>
+              <input type="text" id="opt-indented-code-classes" placeholder="e.g., haskell, python" />
+            </div>
           </div>
         </div>
 
@@ -1065,6 +1141,11 @@
             </button>
             <div id="reference-doc-display"></div>
           </div>
+          <div class="variables-section">
+            <label>Variables</label>
+            <div class="custom-metadata" id="custom-variables"></div>
+            <button type="button" class="add-metadata-btn" id="add-variable-btn">+ Add variable</button>
+          </div>
         </div>
 
         <!-- Slide Options -->
@@ -1088,24 +1169,26 @@
 
         <!-- Metadata -->
         <div class="tab-panel" id="panel-metadata">
-          <div class="options-grid">
+          <div class="options-grid" id="metadata-fields">
             <div class="form-group">
-              <label for="meta-title">Title</label>
+              <label for="meta-title">title</label>
               <input type="text" id="meta-title" placeholder="Document title" />
             </div>
             <div class="form-group">
-              <label for="meta-author">Author</label>
+              <label for="meta-author">author</label>
               <input type="text" id="meta-author" placeholder="Author name" />
             </div>
             <div class="form-group">
-              <label for="meta-date">Date</label>
+              <label for="meta-date">date</label>
               <input type="text" id="meta-date" placeholder="e.g., 2025-01-07" />
             </div>
             <div class="form-group">
-              <label for="meta-lang">Language</label>
+              <label for="meta-lang">lang</label>
               <input type="text" id="meta-lang" placeholder="e.g., en, de, fr" />
             </div>
           </div>
+          <div class="custom-metadata" id="custom-metadata"></div>
+          <button type="button" class="add-metadata-btn" id="add-metadata-btn">+ Add field</button>
         </div>
 
         <!-- Wrapping -->
@@ -1818,6 +1901,12 @@
         opts['highlight-style'] = highlightStyle;
       }
 
+      // Indented code classes
+      const indentedCodeClasses = document.getElementById('opt-indented-code-classes').value.trim();
+      if (indentedCodeClasses) {
+        opts['indented-code-classes'] = indentedCodeClasses;
+      }
+
       // HTML options
       if (htmlFormats.includes(opts.to)) {
         if (document.getElementById('opt-self-contained').checked) {
@@ -1834,6 +1923,19 @@
       // Template
       if (state.templateFile) {
         opts.template = state.templateFile.name;
+      }
+
+      // Variables
+      const variables = {};
+      document.querySelectorAll('#custom-variables .custom-meta-row').forEach(row => {
+        const key = row.querySelector('input[name="key"]').value.trim();
+        const value = row.querySelector('input[name="value"]').value.trim();
+        if (key && value) {
+          variables[key] = value;
+        }
+      });
+      if (Object.keys(variables).length > 0) {
+        opts.variable = variables;
       }
 
       // Reference document (for docx/odt/pptx)
@@ -1862,6 +1964,16 @@
       if (date) metadata.date = date;
       const lang = document.getElementById('meta-lang').value.trim();
       if (lang) metadata.lang = lang;
+
+      // Custom metadata fields
+      document.querySelectorAll('#custom-metadata .custom-meta-row').forEach(row => {
+        const key = row.querySelector('input[name="key"]').value.trim();
+        const value = row.querySelector('input[name="value"]').value.trim();
+        if (key && value) {
+          metadata[key] = value;
+        }
+      });
+
       if (Object.keys(metadata).length > 0) {
         opts.metadata = metadata;
       }
@@ -1967,6 +2079,34 @@
       } catch (err) {
         showMessage('error', 'Failed to copy to clipboard');
       }
+    });
+
+    // Custom metadata fields
+    document.getElementById('add-metadata-btn').addEventListener('click', () => {
+      const container = document.getElementById('custom-metadata');
+      const row = document.createElement('div');
+      row.className = 'custom-meta-row';
+      row.innerHTML = `
+        <input type="text" name="key" placeholder="field name" />
+        <input type="text" name="value" placeholder="value" />
+        <button type="button" class="remove-meta">&#10005;</button>
+      `;
+      row.querySelector('.remove-meta').addEventListener('click', () => row.remove());
+      container.appendChild(row);
+    });
+
+    // Custom variables
+    document.getElementById('add-variable-btn').addEventListener('click', () => {
+      const container = document.getElementById('custom-variables');
+      const row = document.createElement('div');
+      row.className = 'custom-meta-row';
+      row.innerHTML = `
+        <input type="text" name="key" placeholder="variable name" />
+        <input type="text" name="value" placeholder="value" />
+        <button type="button" class="remove-meta">&#10005;</button>
+      `;
+      row.querySelector('.remove-meta').addEventListener('click', () => row.remove());
+      container.appendChild(row);
     });
 
     // Initialize
