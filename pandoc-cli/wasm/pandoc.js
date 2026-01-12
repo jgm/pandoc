@@ -39,7 +39,7 @@ const fds = [
 const options = { debug: false };
 const wasi = new WASI(args, env, fds, options);
 const { instance } = await WebAssembly.instantiateStreaming(
-  fetch("./pandoc.wasm?sha1=0f9c94e87513b0a6268c869aa5a9fbce96557ccd"),
+  fetch("./pandoc.wasm?sha1=898ffb03830312f433ca649253fdc7eee6ea0394"),
   {
     wasi_snapshot_preview1: wasi.wasiImport,
   }
@@ -69,6 +69,24 @@ const argv_ptr = instance.exports.malloc(4);
 memory_data_view().setUint32(argv_ptr, argv, true);
 
 instance.exports.hs_init_with_rtsopts(argc_ptr, argv_ptr);
+
+export async function getExtensionsForFormat(options) {
+  const opts_str = JSON.stringify(options);
+  const opts_ptr = instance.exports.malloc(opts_str.length);
+  new TextEncoder().encodeInto(
+    opts_str,
+    new Uint8Array(instance.exports.memory.buffer, opts_ptr, opts_str.length)
+  );
+  // add input files to fileSystem
+  fileSystem.clear()
+  const out_file = new File(new Uint8Array(), { readonly: false });
+  const err_file = new File(new Uint8Array(), { readonly: false });
+  fileSystem.set("stdout", out_file);
+  fileSystem.set("stderr", err_file);
+  instance.exports.get_extensions_for_format(opts_ptr, opts_str.length);
+
+  return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(out_file.data));
+}
 
 export async function pandoc(options, stdin, files) {
   const opts_str = JSON.stringify(options);
