@@ -74,12 +74,7 @@ jobs:
       id: upload-unsigned-artifact
       uses: actions/upload-artifact@v6
       with:
-        path: windows-release-candidate-unsigned
-
-    - name: diagnostic
-      run: |
-        echo '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
-        echo '${{ steps.upload-unsigned-artifact.outputs.windows-release-candidate-unsigned }}'
+        path: windows-release-candidate
 
     - name: sign-artifact
       id: sign-artifact
@@ -88,7 +83,7 @@ jobs:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: 'd330f023-29aa-44e4-b90b-ae1c570f4a25'
         project-slug: 'pandoc'
-        signing-policy-slug: 'test-signing'
+        signing-policy-slug: 'pandoc-msi-in-zip-artifact'
         github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
         wait-for-completion: true
         output-artifact-directory: 'windows-release-candidate'
