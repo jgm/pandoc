@@ -75,6 +75,16 @@ jobs:
         name: windows-release-candidate
         path: windows-release-candidate
 
+    - uses: signpath/github-action-submit-signing-request@v2
+      with:
+        api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
+        organization-id: 'd330f023-29aa-44e4-b90b-ae1c570f4a25'
+        project-slug: 'pandoc'
+        signing-policy-slug: 'test-signing'
+        github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.windows-release-candidate }}'
+        wait-for-completion: true
+        output-artifact-directory: 'windows-release-candidate-signed'
+
   macos:
 
     runs-on: macos-15-intel
