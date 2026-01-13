@@ -89,49 +89,38 @@ jobs:
         wait-for-completion: true
         output-artifact-directory: 'windows-release-candidate'
 
-    - name: Delete unsigned artifact
-      id: delete-unsigned-artifact
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.actions.deleteArtifact({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            artifact_id: ${{ steps.upload-unsigned-artifact.outputs.artifact-id }}
-          });
-
     - name: upload-signed-artifact
       id: upload-signed-artifact
       uses: actions/upload-artifact@v6
       with:
-        name: windows-release-candidated
+        name: windows-release-candidate-signed
         path: windows-release-candidate
 
-#  macos:
-#
-#    runs-on: macos-15-intel
-#
-#    steps:
-#    - uses: actions/checkout@v6
-#
-#    - name: Install ghcup
-#      run: |
-#        brew install ghcup
-#
-#    - name: Install ghc and cabal
-#      run: |
-#        ghcup install ghc --set 9.10
-#        ghcup install cabal --set 3.14
-#        echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
-#
-#    - name: Create release
-#      run: |
-#        sh macos/make_macos_release.sh
-#
-#    - uses: actions/upload-artifact@v6
-#      with:
-#        name: macos-x86_64
-#        path: macos-x86_64
+  macos:
+
+    runs-on: macos-15-intel
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install ghcup
+      run: |
+        brew install ghcup
+
+    - name: Install ghc and cabal
+      run: |
+        ghcup install ghc --set 9.10
+        ghcup install cabal --set 3.14
+        echo "$HOME/.ghcup/bin" >> "${GITHUB_PATH}"
+
+    - name: Create release
+      run: |
+        sh macos/make_macos_release.sh
+
+    - uses: actions/upload-artifact@v6
+      with:
+        name: macos-x86_64
+        path: macos-x86_64
 
 # linux:
 
