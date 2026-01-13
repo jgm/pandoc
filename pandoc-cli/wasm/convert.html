@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pandoc in the browser</title>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-all-in-one.ts@0.7.0-rc2/dist/esm/index.js" id="typst"></script>
   <style>
     :root {
       --primary: #2563eb;
@@ -945,6 +946,7 @@
                 <option value="opendocument">opendocument (OpenDocument XML)</option>
                 <option value="opml">opml (OPML)</option>
                 <option value="org">org (Emacs Org mode)</option>
+                <option value="pdf-typst">pdf (via Typst)</option>
                 <option value="plain">plain (plain text)</option>
                 <option value="pptx">pptx (PowerPoint)</option>
                 <option value="revealjs">revealjs (reveal.js HTML slides)</option>
@@ -1352,6 +1354,7 @@
       'gfm': 'md', 'commonmark': 'md', 'commonmark_x': 'md',
       'latex': 'tex', 'beamer': 'tex', 'context': 'tex',
       'pdf': 'pdf',
+      'pdf-typst': 'pdf',
       'docx': 'docx',
       'odt': 'odt',
       'epub': 'epub', 'epub2': 'epub', 'epub3': 'epub',
@@ -1393,7 +1396,7 @@
     const docFormats = ['docx', 'odt', 'pptx'];
 
     // Binary output formats (don't show text preview)
-    const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'chunkedhtml'];
+    const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'pdf-typst', 'chunkedhtml'];
 
     // Load extensions for a format from pandoc
     async function loadExtensions(format, direction) {
@@ -1472,7 +1475,8 @@
       const outputHeader = document.getElementById('output-extensions-header');
 
       const inFmt = inputFormat.value;
-      const outFmt = outputFormat.value;
+      // Map pdf-typst to typst for extensions lookup
+      const outFmt = outputFormat.value === 'pdf-typst' ? 'typst' : outputFormat.value;
 
       // Clear previous extension state when format changes
       state.inputExtensions = {};
@@ -1499,7 +1503,7 @@
 
       // Update headers with format names
       inputHeader.textContent = `From (${inFmt})`;
-      outputHeader.textContent = `To (${outFmt})`;
+      outputHeader.textContent = `To (${outFmt})${outputFormat.value === 'pdf-typst' ? ' → pdf' : ''}`;
 
       // Show/hide individual groups
       inputGroup.style.display = showInput && inputExts.length > 0 ? '' : 'none';
@@ -1909,13 +1913,86 @@
         // Get stdin
         const stdin = state.inputMode === 'text' ? textInput.value : null;
 
-        // Run pandoc
-        const result = await pandoc(options, stdin, files);
+        // Check if we're doing pdf via typst
+        const isPdfTypst = outputFormat.value === 'pdf-typst';
 
-        // Display results
-        displayResults(result, options, files);
+        if (isPdfTypst) {
+          // Convert to typst first
+          const typstOptions = { ...options };
+          typstOptions.to = buildFormatWithExtensions('typst', state.outputExtensions);
+          typstOptions.standalone = true;
+          delete typstOptions['output-file'];
+
+          const typstResult = await pandoc(typstOptions, stdin, files);
+
+          if (typstResult.stderr && typstResult.stderr.includes('ERROR')) {
+            throw new Error(typstResult.stderr);
+          }
+
+          // Convert typst to PDF using typst.ts
+          const typstContent = typstResult.stdout;
+          console.log('Typst content length:', typstContent?.length);
+          console.log('Typst content preview:', typstContent?.substring(0, 500));
+
+          let pdfData;
+          try {
+            console.log('Calling $typst.pdf()...');
+            pdfData = await $typst.pdf({ mainContent: typstContent });
+            console.log('$typst.pdf() returned, pdfData:', pdfData);
+            console.log('pdfData type:', typeof pdfData);
+            console.log('pdfData length:', pdfData?.length || pdfData?.byteLength);
+          } catch (typstError) {
+            console.error('Typst error caught:', typstError);
+            // Extract message from string representation
+            const errorStr = String(typstError);
+            // Try to parse out the message field from the string representation
+            const messageMatch = errorStr.match(/message:\s*"([^"]+)"/);
+            const hintsMatch = errorStr.match(/hints:\s*\[([^\]]*)\]/);
+
+            let errorMsg = 'Typst compilation failed';
+            if (messageMatch) {
+              errorMsg = messageMatch[1];
+              if (hintsMatch && hintsMatch[1]) {
+                // Extract hint strings
+                const hints = hintsMatch[1].match(/"([^"]+)"/g);
+                if (hints) {
+                  errorMsg += '\nHints: ' + hints.map(h => h.replace(/"/g, '')).join('; ');
+                }
+              }
+            } else {
+              errorMsg = errorStr;
+            }
+            throw new Error(`Typst: ${errorMsg}`);
+          }
+
+          if (!pdfData || pdfData.length === 0) {
+            console.error('Empty PDF data');
+            throw new Error('Typst produced empty PDF output');
+          }
+
+          console.log('PDF generation successful, size:', pdfData.length || pdfData.byteLength);
+
+          // Create result object similar to pandoc output
+          const pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
+          state.output = pdfBlob;
+
+          // Remove output-file from options so displayResults doesn't try to find it in files
+          const displayOptions = { ...options };
+          delete displayOptions['output-file'];
+
+          // Display results
+          displayResults({ warnings: typstResult.warnings }, displayOptions, files);
+
+        } else {
+          // Run pandoc normally
+          const result = await pandoc(options, stdin, files);
+
+          // Display results
+          displayResults(result, options, files);
+        }
 
       } catch (err) {
+        outputSection.classList.add('visible');
         showMessage('error', `Conversion failed: ${err.message}`);
       } finally {
         loading.classList.remove('visible');
@@ -2133,9 +2210,11 @@
       downloadBtn.style.display = 'block';
       downloadBtn.innerText = "📥 Download " + state.outputFilename;
 
-      // Get output
+      // Get output (skip if already set, e.g., for pdf-typst)
       let output;
-      if (options['output-file'] && files[options['output-file']]) {
+      if (state.output && !options['output-file']) {
+        // Output already set (e.g., pdf via typst), nothing more to do
+      } else if (options['output-file'] && files[options['output-file']]) {
         state.output = files[options['output-file']];
         if (!isBinary) {
           // Try to read as text for preview
@@ -2151,7 +2230,7 @@
           };
           reader.readAsText(state.output);
         }
-      } else {
+      } else if (result.stdout) {
         output = result.stdout;
         state.output = new Blob([output], { type: 'text/plain' });
         if (!isBinary) {
