@@ -1943,6 +1943,9 @@
             console.log('pdfData length:', pdfData?.length || pdfData?.byteLength);
           } catch (typstError) {
             console.error('Typst error caught:', typstError);
+            outputPreview.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            copyBtn.style.display = 'none';
             // Extract message from string representation
             const errorStr = String(typstError);
             // Try to parse out the message field from the string representation
