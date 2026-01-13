@@ -69,14 +69,14 @@ jobs:
           mkdir windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.msi windows-release-candidate
           copy windows\pandoc-%VERSION%-${{ matrix.versions.osarch }}.zip windows-release-candidate
-    - name: upload-unsigned-artifact
+    - name: Upload unsigned artifact
       id: upload-unsigned-artifact
       uses: actions/upload-artifact@v6
       with:
         name: windows-release-candidate-unsigned
         path: windows-release-candidate
 
-    - name: sign-artifact
+    - name: Sign artifact
       id: sign-artifact
       uses: signpath/github-action-submit-signing-request@v2
       with:
@@ -89,11 +89,22 @@ jobs:
         wait-for-completion: true
         output-artifact-directory: 'windows-release-candidate'
 
+    - name: Delete unsigned artifact
+      id: delete-unsigned-artifact
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.actions.deleteArtifact({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            artifact_id: ${{ steps.upload-unsigned-artifact.outputs.artifact-id }}
+          });
+
     - name: upload-signed-artifact
       id: upload-signed-artifact
       uses: actions/upload-artifact@v6
       with:
-        name: windows-release-candidated-signed
+        name: windows-release-candidated
         path: windows-release-candidate
 
 #  macos:
