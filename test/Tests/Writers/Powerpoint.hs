@@ -126,6 +126,10 @@ tests = let
       def
       "pptx/speaker-notes-after-metadata/input.native"
       "pptx/speaker-notes-after-metadata/output.pptx"
+    , pptxTests "speaker notes from metadata field"
+      def
+      "pptx/metadata-speaker-notes/input.native"
+      "pptx/metadata-speaker-notes/output.pptx"
     , pptxTests "remove empty slides"
       def
       "pptx/remove-empty-slides/input.native"

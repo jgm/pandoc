@@ -6938,6 +6938,23 @@ in handouts and presenter view.
 Notes are not yet supported for other slide formats, but the notes
 will not appear on the slides themselves.
 
+### Speaker notes on the title slide (PowerPoint)
+
+For PowerPoint output, the title slide is generated from the document's
+YAML metadata block. To add speaker notes to this slide, use a `notes`
+field in the metadata:
+
+    ---
+    title: My Presentation
+    author: Jane Doe
+    notes: |
+      Welcome everyone to this presentation.
+
+      Remember to introduce yourself and mention the key topics.
+    ---
+
+The `notes` field can contain multiple paragraphs and Markdown formatting.
+
 ## Columns
 
 To put material in side by side columns, you can use a native
