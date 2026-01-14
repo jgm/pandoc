@@ -990,8 +990,10 @@
         <div class="auxiliary-section">
           <div class="auxiliary-header">
             <span class="auxiliary-label">Additional files (images, includes, etc.)</span>
-            <button class="upload-btn-small" id="aux-upload-btn">+ Add Files</button>
+            <button class="upload-btn-small" id="aux-upload-btn">+ Add Files...</button>
             <input type="file" id="aux-file-input" class="hidden" multiple />
+            <button class="upload-btn-small" id="aux-dir-btn">+ Add Directory...</button>
+            <input type="file" id="aux-dir-input" class="hidden" webkitdirectory />
           </div>
           <div class="file-list file-list-small" id="aux-file-list"></div>
         </div>
@@ -1686,14 +1688,27 @@
 
     // Auxiliary files handling
     const auxFileInput = document.getElementById('aux-file-input');
+    const auxDirInput = document.getElementById('aux-dir-input');
     const auxFileList = document.getElementById('aux-file-list');
     const auxUploadBtn = document.getElementById('aux-upload-btn');
+    const auxDirBtn = document.getElementById('aux-dir-btn');
 
     auxUploadBtn.addEventListener('click', () => auxFileInput.click());
+    auxDirBtn.addEventListener('click', () => auxDirInput.click());
 
     auxFileInput.addEventListener('change', (e) => {
       Array.from(e.target.files).forEach(file => {
         state.auxFiles[file.name] = file;
+      });
+      updateAuxFileList();
+      e.target.value = '';
+    });
+
+    auxDirInput.addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(file => {
+        // Use webkitRelativePath to preserve directory structure
+        const path = file.webkitRelativePath || file.name;
+        state.auxFiles[path] = file;
       });
       updateAuxFileList();
       e.target.value = '';
