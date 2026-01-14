@@ -887,6 +887,12 @@ getMetaSlide  = do
   subtitle <- inlinesToParElems $ lookupMetaInlines "subtitle" meta
   authors <- mapM inlinesToParElems $ docAuthors meta
   date <- inlinesToParElems $ docDate meta
+  -- Get speaker notes from metadata "notes" field
+  let notesBlocks = lookupMetaBlocks "notes" meta
+  speakerNotes <- if null notesBlocks
+                  then return mempty
+                  else local (\env -> env{envInSpeakerNotes=True}) $
+                       SpeakerNotes . mconcat <$> mapM blockToParagraphs notesBlocks
   if null title && null subtitle && null authors && null date
     then return Nothing
     else return $
@@ -894,7 +900,7 @@ getMetaSlide  = do
          Slide
          metadataSlideId
          (MetadataSlide title subtitle authors date)
-         mempty
+         speakerNotes
          Nothing
 
 addSpeakerNotesToMetaSlide :: Slide -> [Block] -> Pres (Slide, [Block])
