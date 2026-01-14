@@ -1951,8 +1951,26 @@
 
           let pdfData;
           try {
+            // Map auxiliary files into typst's virtual file system
+            $typst.resetShadow();
+            for (const [path, file] of Object.entries(files)) {
+              const arrayBuffer = await file.arrayBuffer();
+              const uint8Array = new Uint8Array(arrayBuffer);
+              // Map with both path variants to handle different references
+              $typst.mapShadow('/' + path, uint8Array);
+              if (!path.startsWith('/')) {
+                $typst.mapShadow(path, uint8Array);
+              }
+            }
+
+            // Write main content to a file in the VFS and compile from there
+            // This gives typst a proper project root context
+            const mainTypstPath = '/main.typ';
+            const typstBytes = new TextEncoder().encode(typstContent);
+            $typst.mapShadow(mainTypstPath, typstBytes);
+
             console.log('Calling $typst.pdf()...');
-            pdfData = await $typst.pdf({ mainContent: typstContent });
+            pdfData = await $typst.pdf({ mainFilePath: mainTypstPath });
             console.log('$typst.pdf() returned, pdfData:', pdfData);
             console.log('pdfData type:', typeof pdfData);
             console.log('pdfData length:', pdfData?.length || pdfData?.byteLength);
