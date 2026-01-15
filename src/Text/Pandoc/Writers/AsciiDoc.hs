@@ -612,27 +612,27 @@ inlineToAsciiDoc opts (Emph lst) = do
   contents <- inlineListToAsciiDoc opts lst
   isIntraword <- gets intraword
   let marker = if isIntraword then "__" else "_"
-  return $ marker <> contents <> marker
+  return $ delimited marker marker contents
 inlineToAsciiDoc opts (Underline lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "[.underline]#" <> contents <> "#"
+  return $ delimited "[.underline]#" "#" contents
 inlineToAsciiDoc opts (Strong lst) = do
   contents <- inlineListToAsciiDoc opts lst
   isIntraword <- gets intraword
   let marker = if isIntraword then "**" else "*"
-  return $ marker <> contents <> marker
+  return $ delimited marker marker contents
 inlineToAsciiDoc opts (Strikeout lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "[line-through]#" <> contents <> "#"
+  return $ delimited "[line-through]#" "#" contents
 inlineToAsciiDoc opts (Superscript lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "^" <> contents <> "^"
+  return $ delimited "^" "^" contents
 inlineToAsciiDoc opts (Subscript lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "~" <> contents <> "~"
+  return $ delimited "~" "~" contents
 inlineToAsciiDoc opts (SmallCaps lst) = do
   contents <- inlineListToAsciiDoc opts lst
-  return $ "[smallcaps]#" <> contents <> "#"
+  return $ delimited "[smallcaps]#" "#" contents
 inlineToAsciiDoc opts (Quoted qt lst) = do
   isLegacy <- gets legacy
   contents <- inlineListToAsciiDoc opts lst
