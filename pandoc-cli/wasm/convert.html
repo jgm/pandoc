@@ -1008,7 +1008,7 @@
           <button class="options-tab" data-tab="citations">Citations</button>
           <button class="options-tab" data-tab="math">Math</button>
           <button class="options-tab" data-tab="code">Code</button>
-          <button class="options-tab" data-tab="html" id="html-tab">HTML</button>
+          <button class="options-tab hidden" data-tab="format" id="format-tab">Format</button>
           <button class="options-tab" data-tab="template" id="template-tab">Template</button>
           <button class="options-tab hidden" data-tab="slides" id="slides-tab">Slides</button>
           <button class="options-tab" data-tab="metadata">Metadata</button>
@@ -1147,31 +1147,113 @@
           </div>
         </div>
 
-        <!-- HTML Options -->
-        <div class="tab-panel" id="panel-html">
-          <div class="checkbox-group">
-            <input type="checkbox" id="opt-self-contained" />
-            <label for="opt-self-contained">Self-contained (embed resources)</label>
+        <!-- Format-specific Options (dynamically shown based on output format) -->
+        <div class="tab-panel" id="panel-format">
+          <!-- HTML-specific options -->
+          <div id="format-html-opts" style="display: none;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-self-contained" />
+              <label for="opt-self-contained">Self-contained (embed resources)</label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 0.5rem;">
+              <input type="checkbox" id="opt-html-q-tags" />
+              <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 0.5rem;">
+              <input type="checkbox" id="opt-section-divs" />
+              <label for="opt-section-divs">Wrap sections in &lt;section&gt; tags</label>
+            </div>
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label for="opt-title-prefix">Title prefix</label>
+              <input type="text" id="opt-title-prefix" placeholder="Prefix for document title" />
+            </div>
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label for="opt-email-obfuscation">Email obfuscation</label>
+              <select id="opt-email-obfuscation">
+                <option value="">None</option>
+                <option value="javascript">JavaScript</option>
+                <option value="references">Character references</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label for="opt-id-prefix">ID prefix</label>
+              <input type="text" id="opt-id-prefix" placeholder="Prefix for identifiers" />
+            </div>
+            <div class="resource-upload">
+              <label>Custom CSS</label>
+              <input type="file" id="css-input" class="hidden" accept=".css" />
+              <button class="upload-btn" onclick="document.getElementById('css-input').click()">
+                Upload CSS
+              </button>
+              <div id="css-file-display"></div>
+            </div>
           </div>
-          <div class="checkbox-group" style="margin-top: 0.5rem;">
-            <input type="checkbox" id="opt-html-q-tags" />
-            <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+          <!-- Markdown-specific options -->
+          <div id="format-markdown-opts" style="display: none;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-reference-links" />
+              <label for="opt-reference-links">Use reference-style links</label>
+            </div>
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label for="opt-reference-location">Reference location</label>
+              <select id="opt-reference-location">
+                <option value="">Default (document)</option>
+                <option value="block">Block</option>
+                <option value="section">Section</option>
+                <option value="document">Document</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top: 0.75rem;">
+              <label for="opt-markdown-headings">Heading style</label>
+              <select id="opt-markdown-headings">
+                <option value="">Default (ATX)</option>
+                <option value="atx">ATX (#)</option>
+                <option value="setext">Setext (underlined)</option>
+              </select>
+            </div>
           </div>
-          <div class="checkbox-group" style="margin-top: 0.5rem;">
-            <input type="checkbox" id="opt-section-divs" />
-            <label for="opt-section-divs">Wrap sections in &lt;section&gt; tags</label>
+          <!-- RST-specific options -->
+          <div id="format-rst-opts" style="display: none;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-reference-links-rst" />
+              <label for="opt-reference-links-rst">Use reference-style links</label>
+            </div>
+            <div class="checkbox-group" style="margin-top: 0.5rem;">
+              <input type="checkbox" id="opt-list-tables" />
+              <label for="opt-list-tables">Use list tables</label>
+            </div>
           </div>
-          <div class="form-group" style="margin-top: 0.75rem;">
-            <label for="opt-title-prefix">Title prefix</label>
-            <input type="text" id="opt-title-prefix" placeholder="Prefix for document title" />
+          <!-- LaTeX/Beamer-specific options -->
+          <div id="format-latex-opts" style="display: none;">
+            <!-- LaTeX options will show caption position below -->
           </div>
-          <div class="resource-upload">
-            <label>Custom CSS</label>
-            <input type="file" id="css-input" class="hidden" accept=".css" />
-            <button class="upload-btn" onclick="document.getElementById('css-input').click()">
-              Upload CSS
-            </button>
-            <div id="css-file-display"></div>
+          <!-- Caption position options (shared by HTML, LaTeX, Docx, ODT, Typst) -->
+          <div id="format-caption-opts" style="display: none; margin-top: 0.75rem;">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-figure-caption-position">Figure caption position</label>
+                <select id="opt-figure-caption-position">
+                  <option value="">Default</option>
+                  <option value="above">Above</option>
+                  <option value="below">Below</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-table-caption-position">Table caption position</label>
+                <select id="opt-table-caption-position">
+                  <option value="">Default</option>
+                  <option value="above">Above</option>
+                  <option value="below">Below</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <!-- ASCII output option (shared by multiple formats) -->
+          <div id="format-ascii-opts" style="display: none; margin-top: 0.75rem;">
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-ascii" />
+              <label for="opt-ascii">ASCII output only (escape non-ASCII characters)</label>
+            </div>
           </div>
         </div>
 
@@ -1431,6 +1513,18 @@
 
     // Binary output formats (don't show text preview)
     const binaryFormats = ['docx', 'odt', 'pptx', 'epub', 'epub2', 'epub3', 'pdf', 'pdf-typst', 'chunkedhtml'];
+
+    // Markdown-like formats (support reference-links, reference-location, markdown-headings)
+    const markdownFormats = ['markdown', 'markdown_strict', 'markdown_mmd', 'markdown_phpextra', 'gfm', 'commonmark', 'commonmark_x'];
+
+    // Formats supporting reference-location (footnotes/links placement)
+    const refLocationFormats = [...markdownFormats, 'muse', 'html', 'html4', 'html5', 'epub', 'epub2', 'epub3', 'slidy', 's5', 'slideous', 'dzslides', 'revealjs'];
+
+    // Formats supporting caption position options
+    const captionPositionFormats = ['html', 'html4', 'html5', 'latex', 'beamer', 'docx', 'odt', 'typst', 'pdf-typst'];
+
+    // Formats supporting ASCII output
+    const asciiFormats = ['html', 'html4', 'html5', ...markdownFormats, 'commonmark', 'commonmark_x', 'gfm', 'docbook', 'docbook4', 'docbook5', 'jats', 'jats_archiving', 'jats_articleauthoring', 'jats_publishing', 'man', 'ms', 'latex', 'beamer'];
 
     // Load extensions for a format from pandoc
     async function loadExtensions(format, direction) {
@@ -1802,6 +1896,13 @@
       updateExtensionsSection();
     });
 
+    // Update format options when output filename changes (for auto-detect)
+    outputFilename.addEventListener('input', () => {
+      if (outputFormat.value === 'auto') {
+        updateFormatSpecificOptions();
+      }
+    });
+
     function updateOutputFilename() {
       if (outputFormat.value !== 'auto') {
         const outExt = extensionByFormat[outputFormat.value] || outputFormat.value;
@@ -1816,21 +1917,97 @@
       }
     }
 
-    function updateFormatSpecificOptions() {
-      const format = outputFormat.value;
-      const isAuto = format === 'auto';
+    // Map file extensions to output formats (for auto-detect)
+    const formatByOutputExtension = {
+      'html': 'html', 'htm': 'html',
+      'md': 'markdown', 'markdown': 'markdown',
+      'tex': 'latex',
+      'pdf': 'pdf-typst',
+      'docx': 'docx',
+      'odt': 'odt',
+      'epub': 'epub',
+      'rst': 'rst',
+      'org': 'org',
+      'txt': 'plain',
+      'json': 'json',
+      'native': 'native',
+      'xml': 'docbook',
+      'rtf': 'rtf',
+      'adoc': 'asciidoc',
+      'ipynb': 'ipynb',
+      'typ': 'typst',
+      'pptx': 'pptx',
+      'dj': 'djot',
+      'man': 'man', '1': 'man',
+      'ms': 'ms',
+      'texi': 'texinfo',
+      'icml': 'icml',
+      'opml': 'opml',
+      'bib': 'bibtex',
+      'wiki': 'mediawiki'
+    };
 
-      // Show/hide HTML tab (show if auto or HTML format)
-      const htmlTab = document.getElementById('html-tab');
-      htmlTab.classList.toggle('hidden', !(isAuto || htmlFormats.includes(format)));
+    function getEffectiveOutputFormat() {
+      const format = outputFormat.value;
+      if (format !== 'auto') {
+        return format;
+      }
+      // Try to detect from output filename
+      const outFile = outputFilename.value.trim() || outputFilename.placeholder;
+      if (outFile && outFile !== '(preview)') {
+        const ext = outFile.split('.').pop().toLowerCase();
+        return formatByOutputExtension[ext] || 'html';
+      }
+      // Default to HTML when auto-detect with no output file specified
+      return 'html';
+    }
+
+    function updateFormatSpecificOptions() {
+      const format = getEffectiveOutputFormat();
+
+      // Format tab - update name and visibility based on output format
+      const formatTab = document.getElementById('format-tab');
+      const isHtml = htmlFormats.includes(format);
+      const isMarkdown = markdownFormats.includes(format);
+      const isRst = format === 'rst';
+      const isLatex = format === 'latex' || format === 'beamer';
+      const isTypst = format === 'typst' || format === 'pdf-typst';
+      const supportsCaption = captionPositionFormats.includes(format);
+      const supportsAscii = asciiFormats.includes(format);
+
+      // Determine if we should show the format tab
+      const hasFormatOptions = isHtml || isMarkdown || isRst || isLatex || isTypst || supportsCaption || supportsAscii || docFormats.includes(format);
+
+      if (!hasFormatOptions) {
+        formatTab.classList.add('hidden');
+      } else {
+        formatTab.classList.remove('hidden');
+        // Set tab name based on format
+        let tabName = format;
+        if (isHtml) tabName = 'HTML';
+        else if (isMarkdown) tabName = 'Markdown';
+        else if (isRst) tabName = 'RST';
+        else if (isLatex) tabName = format === 'beamer' ? 'Beamer' : 'LaTeX';
+        else if (isTypst) tabName = 'Typst';
+        else if (docFormats.includes(format)) tabName = format.toUpperCase();
+        formatTab.textContent = tabName;
+      }
+
+      // Show/hide format-specific option sections
+      document.getElementById('format-html-opts').style.display = isHtml ? '' : 'none';
+      document.getElementById('format-markdown-opts').style.display = isMarkdown ? '' : 'none';
+      document.getElementById('format-rst-opts').style.display = isRst ? '' : 'none';
+      document.getElementById('format-latex-opts').style.display = isLatex ? '' : 'none';
+      document.getElementById('format-caption-opts').style.display = supportsCaption ? '' : 'none';
+      document.getElementById('format-ascii-opts').style.display = supportsAscii ? '' : 'none';
 
       // Show/hide slides tab
       const slidesTab = document.getElementById('slides-tab');
-      slidesTab.classList.toggle('hidden', !(isAuto || slideFormats.includes(format)));
+      slidesTab.classList.toggle('hidden', !slideFormats.includes(format));
 
       // Show/hide reference doc section in Template tab (for docx/odt/pptx)
       const referenceDocSection = document.getElementById('reference-doc-section');
-      referenceDocSection.style.display = (isAuto || docFormats.includes(format)) ? '' : 'none';
+      referenceDocSection.style.display = docFormats.includes(format) ? '' : 'none';
     }
 
     // Resource file uploads
@@ -2155,8 +2332,11 @@
         opts['indented-code-classes'] = indentedCodeClasses;
       }
 
+      // Get base output format (without extensions) for format checks
+      const baseOutFmt = getEffectiveOutputFormat() || outputFormat.value;
+
       // HTML options
-      if (htmlFormats.includes(opts.to)) {
+      if (htmlFormats.includes(baseOutFmt)) {
         if (document.getElementById('opt-self-contained').checked) {
           opts['embed-resources'] = true;
         }
@@ -2170,8 +2350,60 @@
         if (titlePrefix) {
           opts['title-prefix'] = titlePrefix;
         }
+        const emailObfuscation = document.getElementById('opt-email-obfuscation').value;
+        if (emailObfuscation) {
+          opts['email-obfuscation'] = emailObfuscation;
+        }
+        const idPrefix = document.getElementById('opt-id-prefix').value.trim();
+        if (idPrefix) {
+          opts['id-prefix'] = idPrefix;
+        }
         if (state.cssFile) {
           opts.css = [state.cssFile.name];
+        }
+      }
+
+      // Markdown options
+      if (markdownFormats.includes(baseOutFmt)) {
+        if (document.getElementById('opt-reference-links').checked) {
+          opts['reference-links'] = true;
+        }
+        const refLocation = document.getElementById('opt-reference-location').value;
+        if (refLocation) {
+          opts['reference-location'] = refLocation;
+        }
+        const mdHeadings = document.getElementById('opt-markdown-headings').value;
+        if (mdHeadings) {
+          opts['markdown-headings'] = mdHeadings;
+        }
+      }
+
+      // RST options
+      if (baseOutFmt === 'rst') {
+        if (document.getElementById('opt-reference-links-rst').checked) {
+          opts['reference-links'] = true;
+        }
+        if (document.getElementById('opt-list-tables').checked) {
+          opts['list-tables'] = true;
+        }
+      }
+
+      // Caption position options (HTML, LaTeX, Docx, ODT, Typst)
+      if (captionPositionFormats.includes(baseOutFmt)) {
+        const figCapPos = document.getElementById('opt-figure-caption-position').value;
+        if (figCapPos) {
+          opts['figure-caption-position'] = figCapPos;
+        }
+        const tblCapPos = document.getElementById('opt-table-caption-position').value;
+        if (tblCapPos) {
+          opts['table-caption-position'] = tblCapPos;
+        }
+      }
+
+      // ASCII output option
+      if (asciiFormats.includes(baseOutFmt)) {
+        if (document.getElementById('opt-ascii').checked) {
+          opts['ascii'] = true;
         }
       }
 
@@ -2194,12 +2426,12 @@
       }
 
       // Reference document (for docx/odt/pptx)
-      if (docFormats.includes(opts.to) && state.referenceDoc) {
+      if (docFormats.includes(baseOutFmt) && state.referenceDoc) {
         opts['reference-doc'] = state.referenceDoc.name;
       }
 
       // Slide options
-      if (slideFormats.includes(opts.to)) {
+      if (slideFormats.includes(baseOutFmt)) {
         const slideLevel = document.getElementById('opt-slide-level').value;
         if (slideLevel) {
           opts['slide-level'] = parseInt(slideLevel);
