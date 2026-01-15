@@ -104,8 +104,9 @@ insert = defun "insert"
           setMediaBag $ MB.insertMedia fp mmime contents mb
           return (Lua.NumResults 0))
   <#> stringParam "filepath" "filename and path relative to the output folder."
-  <#> opt (textParam "mimetype"
-           "the item's MIME type; omit if unknown or unavailable.")
+  <#> parameter (Lua.peekNilOr Lua.peekText) "string|nil" "mimetype"
+        "the item's MIME type; use `nil` if the MIME type is\
+        \ unknown or unavailable."
   <#> parameter Lua.peekLazyByteString "string" "contents"
         "the binary contents of the file."
   =#> []

@@ -24,7 +24,13 @@ local registry = debug.getregistry()
 
 --- Retrieves the documentation object for the given value.
 local function documentation (value)
-  return registry['HsLua docs'][value]
+  local docobj = registry['HsLua docs'][value]
+  if type(docobj) == 'userdata' then
+    -- Get the table representation by calling the object
+    return docobj()
+  else
+    return docobj
+  end
 end
 
 --- Table containing all known modules
@@ -201,9 +207,8 @@ end
 -- @param modulename  name of the module that contains this function
 -- @return Documentation rendered as list of Blocks
 local function render_function (doc, level, modulename)
-  local name = doc.name
+  local name = doc.name:match('[^%.]*$')
   level = level or 1
-  local id = modulename and modulename .. '.' .. doc.name or ''
   local args = argslist(doc.parameters)
   local paramlist = DefinitionList(
     List(doc.parameters):map(
@@ -219,7 +224,7 @@ local function render_function (doc, level, modulename)
     )
   )
   return Blocks{
-    Header(level, name, {id}),
+    Header(level, name, {doc.name}),
     Plain{Code(string.format('%s (%s)', name, args))},
   } .. read_blocks(doc.description)
     .. List(#doc.parameters > 0 and {Para 'Parameters:'} or {})
@@ -236,8 +241,8 @@ end
 -- @param modulename  name of the module that contains this function
 -- @return {Block,...}
 local function render_field (field, level, modulename)
-  local id = modulename and modulename .. '.' .. field.name or ''
-  return Blocks{Header(level, field.name, {id})} ..
+  local name = field.name:match('[^.]*$')
+  return Blocks{Header(level, name, {field.name})} ..
     {Plain(read_inlines(field.description) .. type_to_inlines(field.type))}
 end
 
@@ -346,7 +351,7 @@ local function render_main_pandoc_module (doc)
   for _, field in ipairs(doc.fields) do
     if tostring(field.type) == 'string' then
       constants_section:extend(render_field(field, 2, "pandoc"))
-    elseif field.name:match '^[A-Z]' then
+    elseif field.name:match '^pandoc%.[A-Z]' then
       -- Ignore (these are the `Block` and `Inline` tables)
     else
       fields:insert(field)
@@ -360,7 +365,7 @@ local function render_main_pandoc_module (doc)
     else
       functions:insert(fn)
     end
-    if fn.name == 'SimpleTable' then
+    if fn.name == 'pandoc.SimpleTable' then
       stop_rendering = true
     end
   end
@@ -392,10 +397,10 @@ local function process_document (input, blocks, start)
   if mstart and mstop and module_name then
     print('Generating docs for module ' .. module_name)
     blocks:insert(rawmd(input:sub(start, mstop)))
-    local object = modules[module_name] or modules[module_name:gsub('^pandoc%.', '')]
+    local object = require(module_name)
     local docblocks = (object == pandoc)
       and render_main_pandoc_module(documentation(object))
-      or render_module(documentation(object))
+      or pandoc.utils.documentation(object, 'blocks')
     blocks:extend(docblocks)
     return process_document(input, blocks, input:find(autogen_end, mstop) or -1)
   else
@@ -411,12 +416,15 @@ function Reader (inputs)
   local blocks = process_document(tostring(inputs), Blocks{}, 1)
   blocks = blocks:walk {
     Link = function (link)
-      if link.classes == pandoc.List{'wikilink'} then
+      if link.classes == pandoc.List{'documented-type'} or
+         link.classes == pandoc.List{'wikilink'} then
         link.classes = {}
-        if known_types[link.target] then
-          link.target = '#' .. known_types[link.target]
+        local ident = link.target:gsub('^#', '')
+        if known_types[ident] then
+          link.target = '#' .. known_types[ident]
         else
-          warn('Unknown type: ' .. link.target)
+          link.target = '#' .. ident
+          warn('Unknown type: ' .. ident)
         end
         return link
       end
@@ -431,17 +439,4 @@ function Reader (inputs)
     end,
   }
   return Pandoc(blocks)
-end
-
--- For usage as a standalone script.
--- E.g.
---
---     pandoc lua module-docs.lua
---
--- Generate Markdown docs for the given module and writes them to stdout.
-if arg and arg[1] then
-  local module_name = arg[1]
-  local object = modules[module_name]
-  local blocks = render_module(documentation(object))
-  print(write(Pandoc(blocks), 'markdown'))
 end
