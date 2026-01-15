@@ -945,7 +945,7 @@
                 <option value="opendocument">opendocument (OpenDocument XML)</option>
                 <option value="opml">opml (OPML)</option>
                 <option value="org">org (Emacs Org mode)</option>
-                <option value="pdf-typst" id="pdf-typst-option">pdf (via Typst)</option>
+                <option value="pdf-typst">pdf (via Typst)</option>
                 <option value="plain">plain (plain text)</option>
                 <option value="pptx">pptx (PowerPoint)</option>
                 <option value="revealjs">revealjs (reveal.js HTML slides)</option>
@@ -1301,22 +1301,37 @@
   <script type="module">
     import { pandoc, getExtensionsForFormat } from "./pandoc.js?sha1=XX";
 
-    // Check URL parameter for typst support (enabled by default, use ?typst=false to disable)
-    const urlParams = new URLSearchParams(window.location.search);
-    const typstEnabled = urlParams.get('typst') !== 'false';
+    // Lazy-load typst library only when needed
+    let typstLoaded = false;
+    let typstLoadingPromise = null;
 
-    // Conditionally load typst library and show/hide pdf-typst option
-    if (typstEnabled) {
-      const typstScript = document.createElement('script');
-      typstScript.type = 'module';
-      typstScript.src = 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-all-in-one.ts@0.7.0-rc2/dist/esm/index.js';
-      document.head.appendChild(typstScript);
-    } else {
-      // Hide the pdf-typst option if typst is disabled
-      const pdfTypstOption = document.getElementById('pdf-typst-option');
-      if (pdfTypstOption) {
-        pdfTypstOption.remove();
+    async function loadTypst() {
+      if (typstLoaded && typeof $typst !== 'undefined') {
+        return;
       }
+      if (typstLoadingPromise) {
+        return typstLoadingPromise;
+      }
+      typstLoadingPromise = new Promise((resolve, reject) => {
+        const typstScript = document.createElement('script');
+        typstScript.type = 'module';
+        typstScript.src = 'https://cdn.jsdelivr.net/npm/@myriaddreamin/typst-all-in-one.ts@0.7.0-rc2/dist/esm/index.js';
+        typstScript.onload = () => {
+          // Wait a bit for $typst to be initialized
+          const checkTypst = () => {
+            if (typeof $typst !== 'undefined') {
+              typstLoaded = true;
+              resolve();
+            } else {
+              setTimeout(checkTypst, 100);
+            }
+          };
+          checkTypst();
+        };
+        typstScript.onerror = () => reject(new Error('Failed to load Typst library'));
+        document.head.appendChild(typstScript);
+      });
+      return typstLoadingPromise;
     }
 
     // Hide loading overlay once pandoc.wasm is loaded
@@ -1949,9 +1964,8 @@
         const isPdfTypst = outputFormat.value === 'pdf-typst';
 
         if (isPdfTypst) {
-          if (!typstEnabled || typeof $typst === 'undefined') {
-            throw new Error('Typst support is not available. Make sure typst=false is not set in the URL.');
-          }
+          // Lazy-load typst library if not already loaded
+          await loadTypst();
           // Convert to typst first
           const typstOptions = { ...options };
           typstOptions.to = buildFormatWithExtensions('typst', state.outputExtensions);
