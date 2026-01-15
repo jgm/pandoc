@@ -1093,10 +1093,19 @@
           </div>
           <div class="resource-upload">
             <label>Citation style (.csl)</label>
-            <input type="file" id="csl-input" class="hidden" accept=".csl" />
-            <button class="upload-btn" onclick="document.getElementById('csl-input').click()">
-              Upload CSL Style
-            </button>
+            <div class="options-grid" style="margin-top: 0.5rem;">
+              <div>
+                <input type="file" id="csl-input" class="hidden" accept=".csl" />
+                <button class="upload-btn" onclick="document.getElementById('csl-input').click()">
+                  Upload CSL Style
+                </button>
+              </div>
+              <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+                <input type="text" id="csl-style-name" list="csl-styles-list" placeholder="Or select/type style name..." style="flex: 1;" />
+                <button class="upload-btn" id="fetch-csl-btn">Fetch</button>
+              </div>
+            </div>
+            <datalist id="csl-styles-list"></datalist>
             <div id="csl-file-display"></div>
           </div>
           <div class="resource-upload">
@@ -2119,6 +2128,77 @@
         document.getElementById('csl-file-display').innerHTML =
           `<div class="resource-item">&#128196; ${state.cslFile.name}
            <span class="file-remove" onclick="removeCsl()">&#10005;</span></div>`;
+        document.getElementById('csl-style-name').value = '';
+      }
+    });
+
+    // Load CSL styles list dynamically when input is focused
+    let cslStylesLoaded = false;
+    let cslStylesLoading = false;
+
+    document.getElementById('csl-style-name').addEventListener('focus', async () => {
+      if (cslStylesLoaded || cslStylesLoading) return;
+      cslStylesLoading = true;
+
+      try {
+        // Fetch the file list from jsDelivr flat API
+        const response = await fetch('https://data.jsdelivr.com/v1/package/gh/citation-style-language/styles@master/flat');
+        if (!response.ok) throw new Error('Failed to fetch styles list');
+        const data = await response.json();
+
+        // Extract .csl files from the flat file list (format: { files: [{ name: "/file.csl", ...}] })
+        const datalist = document.getElementById('csl-styles-list');
+        const styles = data.files
+          .map(f => f.name)
+          .filter(name => name.endsWith('.csl') && name.lastIndexOf('/') === 0)  // Root-level .csl files only
+          .map(name => name.slice(1, -4))  // Remove leading "/" and ".csl"
+          .sort();
+
+        // Populate datalist
+        datalist.innerHTML = styles.map(name => `<option value="${name}">`).join('');
+        cslStylesLoaded = true;
+      } catch (err) {
+        console.error('Failed to load CSL styles list:', err);
+        // Fall back to a small set of common styles
+        const fallbackStyles = ['apa', 'chicago-author-date', 'ieee', 'modern-language-association', 'vancouver', 'harvard-cite-them-right', 'nature', 'science', 'cell', 'ieee', 'american-chemical-society', 'american-medical-association'];
+        document.getElementById('csl-styles-list').innerHTML =
+          fallbackStyles.map(name => `<option value="${name}">`).join('');
+      } finally {
+        cslStylesLoading = false;
+      }
+    });
+
+    // Fetch CSL style from official repository
+    document.getElementById('fetch-csl-btn').addEventListener('click', async () => {
+      const styleName = document.getElementById('csl-style-name').value.trim();
+      if (!styleName) {
+        alert('Please enter or select a style name');
+        return;
+      }
+      const fetchBtn = document.getElementById('fetch-csl-btn');
+      const originalText = fetchBtn.textContent;
+      fetchBtn.textContent = '...';
+      fetchBtn.disabled = true;
+
+      try {
+        // Try fetching from GitHub raw URL (via jsDelivr CDN for better CORS support)
+        const url = `https://cdn.jsdelivr.net/gh/citation-style-language/styles@master/${styleName}.csl`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Style "${styleName}" not found`);
+        }
+        const cslContent = await response.text();
+        // Create a Blob and File from the fetched content
+        const blob = new Blob([cslContent], { type: 'application/xml' });
+        state.cslFile = new File([blob], `${styleName}.csl`, { type: 'application/xml' });
+        document.getElementById('csl-file-display').innerHTML =
+          `<div class="resource-item">&#128196; ${styleName}.csl (fetched)
+           <span class="file-remove" onclick="removeCsl()">&#10005;</span></div>`;
+      } catch (err) {
+        alert(`Failed to fetch style: ${err.message}`);
+      } finally {
+        fetchBtn.textContent = originalText;
+        fetchBtn.disabled = false;
       }
     });
 
