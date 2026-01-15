@@ -31,7 +31,7 @@ import Text.Pandoc.XML (lookupEntity)
 import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad)
 import Text.Pandoc.Options
-import Text.Pandoc.Shared (safeRead, extractSpaces)
+import Text.Pandoc.Shared (safeRead)
 import Text.Pandoc.Walk (walk)
 import Text.Pandoc.XML.Light
 import Text.TeXMath (readMathML, writeTeX)
@@ -733,8 +733,7 @@ parseInline (Elem e) =
         "fn" -> note . mconcat <$>
                          mapM parseBlock (elContent e)
         _          -> innerInlines id
-   where innerInlines f = extractSpaces f . mconcat <$>
-                          mapM parseInline (elContent e)
+   where innerInlines f = f . mconcat <$> mapM parseInline (elContent e)
          codeWithLang = do
            let classes' = case attrValue "language" e of
                                "" -> []

@@ -46,7 +46,7 @@ import Text.Pandoc.Builder
 import Text.Pandoc.Class.PandocMonad (PandocMonad, report)
 import Text.Pandoc.Options
 import Text.Pandoc.Logging (LogMessage(..))
-import Text.Pandoc.Shared (safeRead, extractSpaces, addPandocAttributes)
+import Text.Pandoc.Shared (safeRead, addPandocAttributes)
 import Text.Pandoc.Sources (ToSources(..), sourcesToText)
 import Text.Pandoc.Transforms (headerShift)
 import Text.TeXMath (readMathML, writeTeX)
@@ -1380,8 +1380,7 @@ parseInline (Elem e) = do
            lift $ report $ IgnoredElement name
            return mempty
 
-         innerInlines f = extractSpaces f . mconcat <$>
-                          mapM parseInline (elContent e)
+         innerInlines f = f . mconcat <$> mapM parseInline (elContent e)
          codeWithLang = do
            let classes' = case attrValue "language" e of
                                "" -> []
