@@ -1009,6 +1009,9 @@
           <button class="options-tab" data-tab="math">Math</button>
           <button class="options-tab" data-tab="code">Code</button>
           <button class="options-tab hidden" data-tab="format" id="format-tab">Format</button>
+          <button class="options-tab hidden" data-tab="epub" id="epub-tab">EPUB</button>
+          <button class="options-tab hidden" data-tab="chunkedhtml" id="chunkedhtml-tab">Chunked</button>
+          <button class="options-tab hidden" data-tab="ipynb" id="ipynb-tab">Notebook</button>
           <button class="options-tab" data-tab="template" id="template-tab">Template</button>
           <button class="options-tab hidden" data-tab="slides" id="slides-tab">Slides</button>
           <button class="options-tab" data-tab="metadata">Metadata</button>
@@ -1151,35 +1154,39 @@
         <div class="tab-panel" id="panel-format">
           <!-- HTML-specific options -->
           <div id="format-html-opts" style="display: none;">
-            <div class="checkbox-group">
-              <input type="checkbox" id="opt-self-contained" />
-              <label for="opt-self-contained">Self-contained (embed resources)</label>
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-self-contained" />
+                <label for="opt-self-contained">Self-contained (embed resources)</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-html-q-tags" />
+                <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-section-divs" />
+                <label for="opt-section-divs">Wrap sections in &lt;section&gt; tags</label>
+              </div>
             </div>
-            <div class="checkbox-group" style="margin-top: 0.5rem;">
-              <input type="checkbox" id="opt-html-q-tags" />
-              <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+            <div class="options-grid" style="margin-top: 0.75rem; grid-template-columns: repeat(3, 1fr);">
+              <div class="form-group">
+                <label for="opt-email-obfuscation">Email obfuscation</label>
+                <select id="opt-email-obfuscation">
+                  <option value="">None</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="references">Character references</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-title-prefix">Title prefix</label>
+                <input type="text" id="opt-title-prefix" placeholder="Prefix" />
+              </div>
+              <div class="form-group">
+                <label for="opt-id-prefix">ID prefix</label>
+                <input type="text" id="opt-id-prefix" placeholder="Prefix" />
+              </div>
             </div>
-            <div class="checkbox-group" style="margin-top: 0.5rem;">
-              <input type="checkbox" id="opt-section-divs" />
-              <label for="opt-section-divs">Wrap sections in &lt;section&gt; tags</label>
-            </div>
-            <div class="form-group" style="margin-top: 0.75rem;">
-              <label for="opt-title-prefix">Title prefix</label>
-              <input type="text" id="opt-title-prefix" placeholder="Prefix for document title" />
-            </div>
-            <div class="form-group" style="margin-top: 0.75rem;">
-              <label for="opt-email-obfuscation">Email obfuscation</label>
-              <select id="opt-email-obfuscation">
-                <option value="">None</option>
-                <option value="javascript">JavaScript</option>
-                <option value="references">Character references</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-top: 0.75rem;">
-              <label for="opt-id-prefix">ID prefix</label>
-              <input type="text" id="opt-id-prefix" placeholder="Prefix for identifiers" />
-            </div>
-            <div class="resource-upload">
+            <div class="resource-upload" style="margin-top: 0.75rem;">
               <label>Custom CSS</label>
               <input type="file" id="css-input" class="hidden" accept=".css" />
               <button class="upload-btn" onclick="document.getElementById('css-input').click()">
@@ -1190,37 +1197,41 @@
           </div>
           <!-- Markdown-specific options -->
           <div id="format-markdown-opts" style="display: none;">
-            <div class="checkbox-group">
-              <input type="checkbox" id="opt-reference-links" />
-              <label for="opt-reference-links">Use reference-style links</label>
-            </div>
-            <div class="form-group" style="margin-top: 0.75rem;">
-              <label for="opt-reference-location">Reference location</label>
-              <select id="opt-reference-location">
-                <option value="">Default (document)</option>
-                <option value="block">Block</option>
-                <option value="section">Section</option>
-                <option value="document">Document</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-top: 0.75rem;">
-              <label for="opt-markdown-headings">Heading style</label>
-              <select id="opt-markdown-headings">
-                <option value="">Default (ATX)</option>
-                <option value="atx">ATX (#)</option>
-                <option value="setext">Setext (underlined)</option>
-              </select>
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-reference-links" />
+                <label for="opt-reference-links">Use reference-style links</label>
+              </div>
+              <div class="form-group">
+                <label for="opt-reference-location">Reference location</label>
+                <select id="opt-reference-location">
+                  <option value="">Default (document)</option>
+                  <option value="block">Block</option>
+                  <option value="section">Section</option>
+                  <option value="document">Document</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-markdown-headings">Heading style</label>
+                <select id="opt-markdown-headings">
+                  <option value="">Default (ATX)</option>
+                  <option value="atx">ATX (#)</option>
+                  <option value="setext">Setext (underlined)</option>
+                </select>
+              </div>
             </div>
           </div>
           <!-- RST-specific options -->
           <div id="format-rst-opts" style="display: none;">
-            <div class="checkbox-group">
-              <input type="checkbox" id="opt-reference-links-rst" />
-              <label for="opt-reference-links-rst">Use reference-style links</label>
-            </div>
-            <div class="checkbox-group" style="margin-top: 0.5rem;">
-              <input type="checkbox" id="opt-list-tables" />
-              <label for="opt-list-tables">Use list tables</label>
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-reference-links-rst" />
+                <label for="opt-reference-links-rst">Use reference-style links</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-list-tables" />
+                <label for="opt-list-tables">Use list tables</label>
+              </div>
             </div>
           </div>
           <!-- LaTeX/Beamer-specific options -->
@@ -1253,6 +1264,71 @@
             <div class="checkbox-group">
               <input type="checkbox" id="opt-ascii" />
               <label for="opt-ascii">ASCII output only (escape non-ASCII characters)</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- EPUB Options -->
+        <div class="tab-panel" id="panel-epub">
+          <div class="options-grid">
+            <div class="resource-upload">
+              <label>Cover image</label>
+              <input type="file" id="epub-cover-input" class="hidden" accept="image/*" />
+              <button class="upload-btn" onclick="document.getElementById('epub-cover-input').click()">
+                Upload Cover Image
+              </button>
+              <div id="epub-cover-display"></div>
+            </div>
+            <div class="resource-upload">
+              <label>Embed fonts</label>
+              <input type="file" id="epub-font-input" class="hidden" accept=".ttf,.otf,.woff,.woff2" multiple />
+              <button class="upload-btn" onclick="document.getElementById('epub-font-input').click()">
+                Upload Fonts
+              </button>
+              <div id="epub-font-list" class="file-list file-list-small"></div>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="opt-epub-title-page" checked />
+              <label for="opt-epub-title-page">Include title page</label>
+            </div>
+            <div class="form-group">
+              <label for="opt-epub-subdirectory">EPUB subdirectory</label>
+              <input type="text" id="opt-epub-subdirectory" placeholder="EPUB (default)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Chunked HTML Options -->
+        <div class="tab-panel" id="panel-chunkedhtml">
+          <div class="options-grid">
+            <div class="form-group">
+              <label for="opt-split-level">Split level (heading depth)</label>
+              <select id="opt-split-level">
+                <option value="">Default (1)</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="opt-chunk-template">Chunk filename template</label>
+              <input type="text" id="opt-chunk-template" placeholder="%s-%i.html" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Jupyter Notebook Options -->
+        <div class="tab-panel" id="panel-ipynb">
+          <div class="options-grid">
+            <div class="form-group">
+              <label for="opt-ipynb-output">Output cell handling</label>
+              <select id="opt-ipynb-output">
+                <option value="">Default (best)</option>
+                <option value="all">All outputs</option>
+                <option value="none">No outputs</option>
+                <option value="best">Best output only</option>
+              </select>
             </div>
           </div>
         </div>
@@ -1432,6 +1508,8 @@
       templateFile: null,
       referenceDoc: null,
       metadataFile: null,
+      epubCoverImage: null,
+      epubFonts: [],
       output: null,
       outputFilename: null,
       inputExtensions: {},  // { extName: true/false } - true = enable, false = disable
@@ -1506,7 +1584,7 @@
     const slideFormats = ['revealjs', 'slidy', 'slideous', 'dzslides', 's5', 'beamer', 'pptx'];
 
     // HTML-like formats
-    const htmlFormats = ['html', 'html4', 'html5', 'revealjs', 'slidy', 'slideous', 'dzslides', 's5', 'epub', 'epub2', 'epub3'];
+    const htmlFormats = ['html', 'html4', 'html5', 'revealjs', 'slidy', 'slideous', 'dzslides', 's5', 'epub', 'epub2', 'epub3', 'chunkedhtml'];
 
     // Document formats that support reference-doc
     const docFormats = ['docx', 'odt', 'pptx'];
@@ -2001,6 +2079,21 @@
       document.getElementById('format-caption-opts').style.display = supportsCaption ? '' : 'none';
       document.getElementById('format-ascii-opts').style.display = supportsAscii ? '' : 'none';
 
+      // Show/hide EPUB tab
+      const isEpub = ['epub', 'epub2', 'epub3'].includes(format);
+      const epubTab = document.getElementById('epub-tab');
+      epubTab.classList.toggle('hidden', !isEpub);
+
+      // Show/hide Chunked HTML tab
+      const isChunkedHtml = format === 'chunkedhtml';
+      const chunkedhtmlTab = document.getElementById('chunkedhtml-tab');
+      chunkedhtmlTab.classList.toggle('hidden', !isChunkedHtml);
+
+      // Show/hide Notebook tab
+      const isIpynb = format === 'ipynb';
+      const ipynbTab = document.getElementById('ipynb-tab');
+      ipynbTab.classList.toggle('hidden', !isIpynb);
+
       // Show/hide slides tab
       const slidesTab = document.getElementById('slides-tab');
       slidesTab.classList.toggle('hidden', !slideFormats.includes(format));
@@ -2104,6 +2197,51 @@
       }
     });
 
+    // EPUB cover image
+    document.getElementById('epub-cover-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.epubCoverImage = e.target.files[0];
+        document.getElementById('epub-cover-display').innerHTML =
+          `<div class="resource-item">&#128444; ${state.epubCoverImage.name}
+           <span class="file-remove" onclick="removeEpubCover()">&#10005;</span></div>`;
+      }
+    });
+    window.removeEpubCover = () => {
+      state.epubCoverImage = null;
+      document.getElementById('epub-cover-display').innerHTML = '';
+    };
+
+    // EPUB fonts
+    document.getElementById('epub-font-input').addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(file => {
+        if (!state.epubFonts.find(f => f.name === file.name)) {
+          state.epubFonts.push(file);
+        }
+      });
+      updateEpubFontList();
+      e.target.value = '';
+    });
+
+    function updateEpubFontList() {
+      const container = document.getElementById('epub-font-list');
+      if (state.epubFonts.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = state.epubFonts.map(file => `
+        <div class="file-item">
+          <span class="file-icon">&#128288;</span>
+          <span class="file-name">${file.name}</span>
+          <span class="file-remove" data-filename="${file.name}" onclick="removeEpubFont('${file.name}')">&#10005;</span>
+        </div>
+      `).join('');
+    }
+
+    window.removeEpubFont = (filename) => {
+      state.epubFonts = state.epubFonts.filter(f => f.name !== filename);
+      updateEpubFontList();
+    };
+
     function updateConvertButton() {
       const hasInput = state.inputMode === 'file'
         ? state.fileOrder.length > 0
@@ -2133,6 +2271,8 @@
         if (state.templateFile) files[state.templateFile.name] = state.templateFile;
         if (state.referenceDoc) files[state.referenceDoc.name] = state.referenceDoc;
         if (state.metadataFile) files[state.metadataFile.name] = state.metadataFile;
+        if (state.epubCoverImage) files[state.epubCoverImage.name] = state.epubCoverImage;
+        state.epubFonts.forEach(font => { files[font.name] = font; });
 
         // Get stdin
         const stdin = state.inputMode === 'text' ? textInput.value : null;
@@ -2407,6 +2547,23 @@
         }
       }
 
+      // EPUB options
+      if (['epub', 'epub2', 'epub3'].includes(baseOutFmt)) {
+        if (state.epubCoverImage) {
+          opts['epub-cover-image'] = state.epubCoverImage.name;
+        }
+        if (state.epubFonts.length > 0) {
+          opts['epub-fonts'] = state.epubFonts.map(f => f.name);
+        }
+        if (!document.getElementById('opt-epub-title-page').checked) {
+          opts['epub-title-page'] = false;
+        }
+        const epubSubdir = document.getElementById('opt-epub-subdirectory').value.trim();
+        if (epubSubdir) {
+          opts['epub-subdirectory'] = epubSubdir;
+        }
+      }
+
       // Template
       if (state.templateFile) {
         opts.template = state.templateFile.name;
@@ -2423,6 +2580,26 @@
       });
       if (Object.keys(variables).length > 0) {
         opts.variables = variables;
+      }
+
+      // Chunked HTML options
+      if (baseOutFmt === 'chunkedhtml') {
+        const splitLevel = document.getElementById('opt-split-level').value;
+        if (splitLevel) {
+          opts['split-level'] = parseInt(splitLevel);
+        }
+        const chunkTemplate = document.getElementById('opt-chunk-template').value.trim();
+        if (chunkTemplate) {
+          opts['chunk-template'] = chunkTemplate;
+        }
+      }
+
+      // Jupyter Notebook options
+      if (baseOutFmt === 'ipynb') {
+        const ipynbOutput = document.getElementById('opt-ipynb-output').value;
+        if (ipynbOutput) {
+          opts['ipynb-output'] = ipynbOutput;
+        }
       }
 
       // Reference document (for docx/odt/pptx)
