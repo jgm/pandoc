@@ -543,6 +543,18 @@
       gap: 1rem;
     }
 
+    /* Compact options grid for format panel */
+    #panel-format .options-grid {
+      grid-template-columns: repeat(auto-fill, minmax(165px, max-content));
+      justify-content: start;
+      gap: 0.75rem 1.5rem;
+    }
+
+    #panel-format .form-group select {
+      width: auto;
+      min-width: 6em;
+    }
+
     .checkbox-group {
       display: flex;
       align-items: center;
@@ -1245,7 +1257,30 @@
           </div>
           <!-- LaTeX/Beamer-specific options -->
           <div id="format-latex-opts" style="display: none;">
-            <!-- LaTeX options will show caption position below -->
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-lof" />
+                <label for="opt-lof">List of figures</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-lot" />
+                <label for="opt-lot">List of tables</label>
+              </div>
+            </div>
+          </div>
+          <!-- Top-level division option (LaTeX, Beamer, ConTeXt, DocBook, TEI) -->
+          <div id="format-division-opts" style="display: none; margin-top: 0.75rem;">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-top-level-division">Top-level division</label>
+                <select id="opt-top-level-division">
+                  <option value="">Default</option>
+                  <option value="section">Section</option>
+                  <option value="chapter">Chapter</option>
+                  <option value="part">Part</option>
+                </select>
+              </div>
+            </div>
           </div>
           <!-- Typst-specific options -->
           <div id="format-typst-opts" style="display: none;">
@@ -1618,6 +1653,12 @@
 
     // Formats supporting ASCII output
     const asciiFormats = ['html', 'html4', 'html5', ...markdownFormats, 'commonmark', 'commonmark_x', 'gfm', 'docbook', 'docbook4', 'docbook5', 'jats', 'jats_archiving', 'jats_articleauthoring', 'jats_publishing', 'man', 'ms', 'latex', 'beamer'];
+
+    // Formats supporting top-level-division option
+    const topLevelDivisionFormats = ['latex', 'beamer', 'context', 'docbook', 'docbook4', 'docbook5', 'tei'];
+
+    // Formats supporting list-of-figures and list-of-tables
+    const listOfFormats = ['latex', 'beamer', 'context'];
 
     // Load extensions for a format from pandoc
     async function loadExtensions(format, direction) {
@@ -2067,9 +2108,11 @@
       const isTypst = format === 'typst' || format === 'pdf-typst';
       const supportsCaption = captionPositionFormats.includes(format);
       const supportsAscii = asciiFormats.includes(format);
+      const supportsTopLevelDivision = topLevelDivisionFormats.includes(format);
+      const supportsListOf = listOfFormats.includes(format);
 
       // Determine if we should show the format tab
-      const hasFormatOptions = isHtml || isMarkdown || isRst || isLatex || isTypst || supportsCaption || supportsAscii || docFormats.includes(format);
+      const hasFormatOptions = isHtml || isMarkdown || isRst || isLatex || isTypst || supportsCaption || supportsAscii || supportsTopLevelDivision || supportsListOf || docFormats.includes(format);
 
       if (!hasFormatOptions) {
         formatTab.classList.add('hidden');
@@ -2082,6 +2125,9 @@
         else if (isRst) tabName = 'RST';
         else if (isLatex) tabName = format === 'beamer' ? 'Beamer' : 'LaTeX';
         else if (isTypst) tabName = 'Typst';
+        else if (format === 'context') tabName = 'ConTeXt';
+        else if (format === 'tei') tabName = 'TEI';
+        else if (format.startsWith('docbook')) tabName = 'DocBook';
         else if (docFormats.includes(format)) tabName = format.toUpperCase();
         formatTab.textContent = tabName;
       }
@@ -2090,10 +2136,11 @@
       document.getElementById('format-html-opts').style.display = isHtml ? '' : 'none';
       document.getElementById('format-markdown-opts').style.display = isMarkdown ? '' : 'none';
       document.getElementById('format-rst-opts').style.display = isRst ? '' : 'none';
-      document.getElementById('format-latex-opts').style.display = isLatex ? '' : 'none';
+      document.getElementById('format-latex-opts').style.display = supportsListOf ? '' : 'none';
       document.getElementById('format-typst-opts').style.display = isTypst ? '' : 'none';
       document.getElementById('format-caption-opts').style.display = supportsCaption ? '' : 'none';
       document.getElementById('format-ascii-opts').style.display = supportsAscii ? '' : 'none';
+      document.getElementById('format-division-opts').style.display = supportsTopLevelDivision ? '' : 'none';
 
       // Show/hide EPUB tab
       const isEpub = ['epub', 'epub2', 'epub3'].includes(format);
@@ -2645,6 +2692,24 @@
       if (asciiFormats.includes(baseOutFmt)) {
         if (document.getElementById('opt-ascii').checked) {
           opts['ascii'] = true;
+        }
+      }
+
+      // List of figures / list of tables (LaTeX, Beamer, ConTeXt)
+      if (listOfFormats.includes(baseOutFmt)) {
+        if (document.getElementById('opt-lof').checked) {
+          opts['list-of-figures'] = true;
+        }
+        if (document.getElementById('opt-lot').checked) {
+          opts['list-of-tables'] = true;
+        }
+      }
+
+      // Top-level division (LaTeX, Beamer, ConTeXt, DocBook, TEI)
+      if (topLevelDivisionFormats.includes(baseOutFmt)) {
+        const topLevelDiv = document.getElementById('opt-top-level-division').value;
+        if (topLevelDiv) {
+          opts['top-level-division'] = topLevelDiv;
         }
       }
 
