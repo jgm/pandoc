@@ -2747,10 +2747,12 @@
     function displayResults(result, options, files) {
       outputSection.classList.add('visible');
 
-      // Show warnings
+      // Show warnings and info messages
       if (result.warnings && result.warnings.length > 0) {
         result.warnings.forEach(w => {
-          showMessage('warning', `${w.verbosity}: ${w.pretty || w.message || JSON.stringify(w)}`);
+          const msgType = w.verbosity === 'INFO' ? 'info' : 'warning';
+          const icon = w.verbosity === 'INFO' ? 'ℹ️' : '⚠️';
+          showMessage(msgType, `${icon} ${w.pretty || w.message || JSON.stringify(w)}`);
         });
       }
 
