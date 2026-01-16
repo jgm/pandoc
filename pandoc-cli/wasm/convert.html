@@ -1091,42 +1091,50 @@
 
         <!-- Citations -->
         <div class="tab-panel" id="panel-citations">
-          <div class="checkbox-group">
-            <input type="checkbox" id="opt-citeproc" />
-            <label for="opt-citeproc">Process citations (citeproc)</label>
+          <!-- Citation method selector -->
+          <div class="form-group" id="citation-method-group" style="max-width: 200px;">
+            <label for="opt-citation-method">Citation processing</label>
+            <select id="opt-citation-method">
+              <option value="">None</option>
+              <option value="citeproc">Citeproc</option>
+            </select>
           </div>
-          <div class="resource-upload">
-            <label>Bibliography file (.bib, .json, .yaml)</label>
+          <!-- Bibliography - shown when any citation processing is selected -->
+          <div class="resource-upload" id="bib-upload-group" style="display: none;">
+            <label id="bib-label">Bibliography file (.bib, .json, .yaml)</label>
             <input type="file" id="bib-input" class="hidden" accept=".bib,.bibtex,.json,.yaml,.yml" />
             <button class="upload-btn" onclick="document.getElementById('bib-input').click()">
               Upload Bibliography
             </button>
             <div id="bib-file-display"></div>
           </div>
-          <div class="resource-upload">
-            <label>Citation style (.csl)</label>
-            <div class="options-grid" style="margin-top: 0.5rem;">
-              <div>
-                <input type="file" id="csl-input" class="hidden" accept=".csl" />
-                <button class="upload-btn" onclick="document.getElementById('csl-input').click()">
-                  Upload CSL Style
-                </button>
+          <!-- CSL and abbreviations - only shown for citeproc -->
+          <div id="citeproc-options">
+            <div class="resource-upload">
+              <label>Citation style (.csl)</label>
+              <div class="options-grid" style="margin-top: 0.5rem;">
+                <div>
+                  <input type="file" id="csl-input" class="hidden" accept=".csl" />
+                  <button class="upload-btn" onclick="document.getElementById('csl-input').click()">
+                    Upload CSL Style
+                  </button>
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+                  <input type="text" id="csl-style-name" list="csl-styles-list" placeholder="Or select/type style name..." style="flex: 1;" />
+                  <button class="upload-btn" id="fetch-csl-btn">Fetch</button>
+                </div>
               </div>
-              <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
-                <input type="text" id="csl-style-name" list="csl-styles-list" placeholder="Or select/type style name..." style="flex: 1;" />
-                <button class="upload-btn" id="fetch-csl-btn">Fetch</button>
-              </div>
+              <datalist id="csl-styles-list"></datalist>
+              <div id="csl-file-display"></div>
             </div>
-            <datalist id="csl-styles-list"></datalist>
-            <div id="csl-file-display"></div>
-          </div>
-          <div class="resource-upload">
-            <label>Citation abbreviations (.json)</label>
-            <input type="file" id="abbrev-input" class="hidden" accept=".json" />
-            <button class="upload-btn" onclick="document.getElementById('abbrev-input').click()">
-              Upload Abbreviations
-            </button>
-            <div id="abbrev-file-display"></div>
+            <div class="resource-upload">
+              <label>Citation abbreviations (.json)</label>
+              <input type="file" id="abbrev-input" class="hidden" accept=".json" />
+              <button class="upload-btn" onclick="document.getElementById('abbrev-input').click()">
+                Upload Abbreviations
+              </button>
+              <div id="abbrev-file-display"></div>
+            </div>
           </div>
         </div>
 
@@ -2164,7 +2172,65 @@
       // Show/hide reference doc section in Template tab (for docx/odt/pptx)
       const referenceDocSection = document.getElementById('reference-doc-section');
       referenceDocSection.style.display = docFormats.includes(format) ? '' : 'none';
+
+      // Update citation options based on format
+      updateCitationOptions();
     }
+
+    // Formats that support natbib/biblatex
+    const latexCitationFormats = ['latex', 'beamer', 'context'];
+
+    function updateCitationOptions() {
+      const format = getEffectiveOutputFormat();
+      const isLatexLike = latexCitationFormats.includes(format);
+
+      const citationMethodSelect = document.getElementById('opt-citation-method');
+      const bibUploadGroup = document.getElementById('bib-upload-group');
+      const citeprocOptions = document.getElementById('citeproc-options');
+      const bibLabel = document.getElementById('bib-label');
+      const bibInput = document.getElementById('bib-input');
+
+      // Update dropdown options based on format
+      const currentValue = citationMethodSelect.value;
+      if (isLatexLike) {
+        citationMethodSelect.innerHTML = `
+          <option value="">None</option>
+          <option value="citeproc">Citeproc</option>
+          <option value="natbib">Natbib</option>
+          <option value="biblatex">BibLaTeX</option>
+        `;
+      } else {
+        citationMethodSelect.innerHTML = `
+          <option value="">None</option>
+          <option value="citeproc">Citeproc</option>
+        `;
+      }
+      // Restore value if still valid
+      if ([...citationMethodSelect.options].some(o => o.value === currentValue)) {
+        citationMethodSelect.value = currentValue;
+      }
+
+      // Update based on selected method
+      const method = citationMethodSelect.value;
+      const hasCitations = method !== '';
+      const isCiteproc = method === 'citeproc';
+      const isNatbibOrBiblatex = method === 'natbib' || method === 'biblatex';
+
+      // Show bibliography upload only when citation processing is enabled
+      bibUploadGroup.style.display = hasCitations ? '' : 'none';
+      citeprocOptions.style.display = isCiteproc ? '' : 'none';
+
+      if (isNatbibOrBiblatex) {
+        bibLabel.textContent = 'Bibliography file (.bib)';
+        bibInput.accept = '.bib,.bibtex';
+      } else {
+        bibLabel.textContent = 'Bibliography file (.bib, .json, .yaml)';
+        bibInput.accept = '.bib,.bibtex,.json,.yaml,.yml';
+      }
+    }
+
+    // Update citation options when citation method dropdown changes
+    document.getElementById('opt-citation-method').addEventListener('change', updateCitationOptions);
 
     // Resource file uploads
     document.getElementById('bib-input').addEventListener('change', (e) => {
@@ -2589,17 +2655,29 @@
       }
 
       // Citations
-      if (document.getElementById('opt-citeproc').checked) {
+      const citationMethod = document.getElementById('opt-citation-method').value;
+      let useCiteproc = false;
+
+      if (citationMethod === 'citeproc') {
         opts.citeproc = true;
+        useCiteproc = true;
+      } else if (citationMethod === 'natbib') {
+        opts.natbib = true;
+      } else if (citationMethod === 'biblatex') {
+        opts.biblatex = true;
       }
+
       if (state.bibFile) {
         opts.bibliography = state.bibFile.name;
       }
-      if (state.cslFile) {
-        opts.csl = state.cslFile.name;
-      }
-      if (state.abbrevFile) {
-        opts['citation-abbreviations'] = state.abbrevFile.name;
+      // CSL and abbreviations only apply to citeproc
+      if (useCiteproc) {
+        if (state.cslFile) {
+          opts.csl = state.cslFile.name;
+        }
+        if (state.abbrevFile) {
+          opts['citation-abbreviations'] = state.abbrevFile.name;
+        }
       }
 
       // Math rendering
