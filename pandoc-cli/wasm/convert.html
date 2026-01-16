@@ -1187,12 +1187,21 @@
                 <option value="zenburn">Zenburn</option>
                 <option value="haddock">Haddock</option>
                 <option value="tango">Tango</option>
+                <option value="custom">Custom...</option>
               </select>
             </div>
             <div class="form-group">
               <label for="opt-indented-code-classes">Indented code classes</label>
               <input type="text" id="opt-indented-code-classes" placeholder="e.g., haskell, python" />
             </div>
+          </div>
+          <div class="resource-upload" id="custom-highlight-section" style="margin-top: 0.75rem; display: none;">
+            <label>Custom highlight theme (.theme)</label>
+            <input type="file" id="highlight-theme-input" class="hidden" accept=".theme" />
+            <button class="upload-btn" onclick="document.getElementById('highlight-theme-input').click()">
+              Upload Theme
+            </button>
+            <div id="highlight-theme-display"></div>
           </div>
         </div>
 
@@ -1608,6 +1617,7 @@
       cslFile: null,
       abbrevFile: null,
       cssFiles: [],
+      highlightThemeFile: null,
       templateFile: null,
       referenceDoc: null,
       metadataFile: null,
@@ -2427,6 +2437,29 @@
       updateCssFileList();
     };
 
+    // Highlight theme file
+    document.getElementById('opt-highlight-style').addEventListener('change', (e) => {
+      const customSection = document.getElementById('custom-highlight-section');
+      customSection.style.display = e.target.value === 'custom' ? 'block' : 'none';
+      // Clear uploaded theme if switching away from custom
+      if (e.target.value !== 'custom' && state.highlightThemeFile) {
+        state.highlightThemeFile = null;
+        document.getElementById('highlight-theme-display').innerHTML = '';
+      }
+    });
+    document.getElementById('highlight-theme-input').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        state.highlightThemeFile = e.target.files[0];
+        document.getElementById('highlight-theme-display').innerHTML =
+          `<div class="resource-item">&#127912; ${state.highlightThemeFile.name}
+           <span class="file-remove" onclick="removeHighlightTheme()">&#10005;</span></div>`;
+      }
+    });
+    window.removeHighlightTheme = () => {
+      state.highlightThemeFile = null;
+      document.getElementById('highlight-theme-display').innerHTML = '';
+    };
+
     document.getElementById('template-input').addEventListener('change', (e) => {
       if (e.target.files[0]) {
         state.templateFile = e.target.files[0];
@@ -2652,6 +2685,7 @@
         if (state.cslFile) files[state.cslFile.name] = state.cslFile;
         if (state.abbrevFile) files[state.abbrevFile.name] = state.abbrevFile;
         state.cssFiles.forEach(file => { files[file.name] = file; });
+        if (state.highlightThemeFile) files[state.highlightThemeFile.name] = state.highlightThemeFile;
         if (state.templateFile) files[state.templateFile.name] = state.templateFile;
         if (state.referenceDoc) files[state.referenceDoc.name] = state.referenceDoc;
         if (state.metadataFile) files[state.metadataFile.name] = state.metadataFile;
@@ -2873,7 +2907,9 @@
 
       // Code highlighting
       const highlightStyle = document.getElementById('opt-highlight-style').value;
-      if (highlightStyle) {
+      if (highlightStyle === 'custom' && state.highlightThemeFile) {
+        opts['highlight-style'] = state.highlightThemeFile.name;
+      } else if (highlightStyle && highlightStyle !== 'custom') {
         opts['highlight-style'] = highlightStyle;
       }
 
