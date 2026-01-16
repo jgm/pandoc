@@ -1247,6 +1247,12 @@
           <div id="format-latex-opts" style="display: none;">
             <!-- LaTeX options will show caption position below -->
           </div>
+          <!-- Typst-specific options -->
+          <div id="format-typst-opts" style="display: none;">
+            <p style="color: var(--gray-500); font-size: 0.85rem; margin: 0;">
+              Output will be generated as Typst markup, then compiled to PDF.
+            </p>
+          </div>
           <!-- Caption position options (shared by HTML, LaTeX, Docx, ODT, Typst) -->
           <div id="format-caption-opts" style="display: none; margin-top: 0.75rem;">
             <div class="options-grid">
@@ -2085,6 +2091,7 @@
       document.getElementById('format-markdown-opts').style.display = isMarkdown ? '' : 'none';
       document.getElementById('format-rst-opts').style.display = isRst ? '' : 'none';
       document.getElementById('format-latex-opts').style.display = isLatex ? '' : 'none';
+      document.getElementById('format-typst-opts').style.display = isTypst ? '' : 'none';
       document.getElementById('format-caption-opts').style.display = supportsCaption ? '' : 'none';
       document.getElementById('format-ascii-opts').style.display = supportsAscii ? '' : 'none';
 
