@@ -2490,11 +2490,15 @@
       // Output file
       const outFile = outputFilename.value.trim();
       const placeholderFile = outputFilename.placeholder !== '(preview)' ? outputFilename.placeholder : null;
-      const finalOutFile = outFile || placeholderFile;
-      if (finalOutFile) {
-        opts['output-file'] = finalOutFile;
-        state.outputFilename = finalOutFile;
+      let finalOutFile = outFile || placeholderFile;
+      // Default to output.html when auto-detect with no filename specified
+      if (!finalOutFile) {
+        const effectiveFmt = getEffectiveOutputFormat() || 'html';
+        const defaultExt = extensionByFormat[effectiveFmt] || 'html';
+        finalOutFile = `output.${defaultExt}`;
       }
+      opts['output-file'] = finalOutFile;
+      state.outputFilename = finalOutFile;
 
       // Input files
       if (state.inputMode === 'file') {
