@@ -2329,12 +2329,20 @@
       updateEpubFontList();
     };
 
+    let needsConversion = false;
+
     function updateConvertButton() {
       const hasInput = state.inputMode === 'file'
         ? state.fileOrder.length > 0
         : textInput.value.trim().length > 0;
-      convertBtn.disabled = !hasInput;
+      convertBtn.disabled = !(hasInput && needsConversion);
     }
+
+    // Track changes to inputs and options
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+      el.addEventListener('change', () => { needsConversion = true; updateConvertButton(); });
+      el.addEventListener('input', () => { needsConversion = true; updateConvertButton(); });
+    });
 
     // Convert
     convertBtn.addEventListener('click', convert);
@@ -2465,12 +2473,14 @@
           displayResults(result, options, files);
         }
 
+        // Success - no longer needs conversion until user makes changes
+        needsConversion = false;
+
       } catch (err) {
         outputSection.classList.add('visible');
         showMessage('error', `Conversion failed: ${err.message}`);
       } finally {
         loading.classList.remove('visible');
-        convertBtn.disabled = false;
         updateConvertButton();
       }
     }
