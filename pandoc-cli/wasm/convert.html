@@ -1196,16 +1196,12 @@
                 <input type="checkbox" id="opt-section-divs" />
                 <label for="opt-section-divs">Wrap sections in &lt;section&gt; tags</label>
               </div>
-            </div>
-            <div class="options-grid" style="margin-top: 0.75rem; grid-template-columns: repeat(3, 1fr);">
-              <div class="form-group">
-                <label for="opt-email-obfuscation">Email obfuscation</label>
-                <select id="opt-email-obfuscation">
-                  <option value="">None</option>
-                  <option value="javascript">JavaScript</option>
-                  <option value="references">Character references</option>
-                </select>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-ascii-html" />
+                <label for="opt-ascii-html">ASCII only</label>
               </div>
+            </div>
+            <div class="options-grid" style="margin-top: 0.75rem;">
               <div class="form-group">
                 <label for="opt-title-prefix">Title prefix</label>
                 <input type="text" id="opt-title-prefix" placeholder="Prefix" />
@@ -1214,14 +1210,22 @@
                 <label for="opt-id-prefix">ID prefix</label>
                 <input type="text" id="opt-id-prefix" placeholder="Prefix" />
               </div>
+              <div class="form-group">
+                <label for="opt-email-obfuscation">Email obfuscation</label>
+                <select id="opt-email-obfuscation">
+                  <option value="">None</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="references">Character references</option>
+                </select>
+              </div>
             </div>
             <div class="resource-upload" style="margin-top: 0.75rem;">
               <label>Custom CSS</label>
-              <input type="file" id="css-input" class="hidden" accept=".css" />
+              <input type="file" id="css-input" class="hidden" accept=".css" multiple />
               <button class="upload-btn" onclick="document.getElementById('css-input').click()">
-                Upload CSS
+                Add CSS Files
               </button>
-              <div id="css-file-display"></div>
+              <div id="css-file-list" class="file-list file-list-small"></div>
             </div>
           </div>
           <!-- Markdown-specific options -->
@@ -1586,7 +1590,7 @@
       bibFile: null,
       cslFile: null,
       abbrevFile: null,
-      cssFile: null,
+      cssFiles: [],
       templateFile: null,
       referenceDoc: null,
       metadataFile: null,
@@ -2174,7 +2178,7 @@
       document.getElementById('format-latex-opts').style.display = supportsListOf ? '' : 'none';
       document.getElementById('format-typst-opts').style.display = isTypst ? '' : 'none';
       document.getElementById('format-caption-opts').style.display = supportsCaption ? '' : 'none';
-      document.getElementById('format-ascii-opts').style.display = supportsAscii ? '' : 'none';
+      document.getElementById('format-ascii-opts').style.display = (supportsAscii && !isHtml) ? '' : 'none';
       document.getElementById('format-division-opts').style.display = supportsTopLevelDivision ? '' : 'none';
 
       // Show/hide EPUB tab
@@ -2359,13 +2363,34 @@
     });
 
     document.getElementById('css-input').addEventListener('change', (e) => {
-      if (e.target.files[0]) {
-        state.cssFile = e.target.files[0];
-        document.getElementById('css-file-display').innerHTML =
-          `<div class="resource-item">&#127912; ${state.cssFile.name}
-           <span class="file-remove" onclick="removeCss()">&#10005;</span></div>`;
-      }
+      Array.from(e.target.files).forEach(file => {
+        if (!state.cssFiles.find(f => f.name === file.name)) {
+          state.cssFiles.push(file);
+        }
+      });
+      updateCssFileList();
+      e.target.value = '';
     });
+
+    function updateCssFileList() {
+      const container = document.getElementById('css-file-list');
+      if (state.cssFiles.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = state.cssFiles.map(file => `
+        <div class="file-item">
+          <span class="file-icon">&#127912;</span>
+          <span class="file-name">${file.name}</span>
+          <span class="file-remove" onclick="removeCssFile('${file.name}')">&#10005;</span>
+        </div>
+      `).join('');
+    }
+
+    window.removeCssFile = (filename) => {
+      state.cssFiles = state.cssFiles.filter(f => f.name !== filename);
+      updateCssFileList();
+    };
 
     document.getElementById('template-input').addEventListener('change', (e) => {
       if (e.target.files[0]) {
@@ -2397,10 +2422,6 @@
     window.removeAbbrev = () => {
       state.abbrevFile = null;
       document.getElementById('abbrev-file-display').innerHTML = '';
-    };
-    window.removeCss = () => {
-      state.cssFile = null;
-      document.getElementById('css-file-display').innerHTML = '';
     };
     window.removeTemplate = () => {
       state.templateFile = null;
@@ -2595,7 +2616,7 @@
         if (state.bibFile) files[state.bibFile.name] = state.bibFile;
         if (state.cslFile) files[state.cslFile.name] = state.cslFile;
         if (state.abbrevFile) files[state.abbrevFile.name] = state.abbrevFile;
-        if (state.cssFile) files[state.cssFile.name] = state.cssFile;
+        state.cssFiles.forEach(file => { files[file.name] = file; });
         if (state.templateFile) files[state.templateFile.name] = state.templateFile;
         if (state.referenceDoc) files[state.referenceDoc.name] = state.referenceDoc;
         if (state.metadataFile) files[state.metadataFile.name] = state.metadataFile;
@@ -2847,8 +2868,8 @@
         if (idPrefix) {
           opts['id-prefix'] = idPrefix;
         }
-        if (state.cssFile) {
-          opts.css = [state.cssFile.name];
+        if (state.cssFiles.length > 0) {
+          opts.css = state.cssFiles.map(f => f.name);
         }
       }
 
@@ -2891,7 +2912,10 @@
 
       // ASCII output option
       if (asciiFormats.includes(baseOutFmt)) {
-        if (document.getElementById('opt-ascii').checked) {
+        const asciiChecked = htmlFormats.includes(baseOutFmt)
+          ? document.getElementById('opt-ascii-html').checked
+          : document.getElementById('opt-ascii').checked;
+        if (asciiChecked) {
           opts['ascii'] = true;
         }
       }
