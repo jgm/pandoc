@@ -1016,6 +1016,7 @@
       <div class="card-body" style="padding: 0.75rem;">
         <div class="options-tabs">
           <button class="options-tab active" data-tab="general">General</button>
+          <button class="options-tab hidden" data-tab="track-changes" id="track-changes-tab">Track Changes</button>
           <button class="options-tab hidden" data-tab="extensions" id="extensions-tab">Extensions</button>
           <button class="options-tab" data-tab="citations">Citations</button>
           <button class="options-tab" data-tab="math">Math</button>
@@ -1073,6 +1074,22 @@
               </select>
             </div>
           </div>
+        </div>
+
+        <!-- Track Changes (Word documents) -->
+        <div class="tab-panel" id="panel-track-changes">
+          <div class="form-group" style="max-width: 250px;">
+            <label for="opt-track-changes">Handle tracked changes</label>
+            <select id="opt-track-changes">
+              <option value="">Default (accept)</option>
+              <option value="accept">Accept all changes</option>
+              <option value="reject">Reject all changes</option>
+              <option value="all">Include all (insertions, deletions, comments)</option>
+            </select>
+          </div>
+          <p style="color: var(--gray-500); font-size: 0.85rem; margin-top: 0.75rem;">
+            Controls how tracked changes and comments in Word documents are handled during conversion.
+          </p>
         </div>
 
         <!-- Extensions -->
@@ -1906,6 +1923,7 @@
       updateFileList();
       updateConvertButton();
       autoDetectFormat();
+      updateTrackChangesTab();
     }
 
     function updateFileList() {
@@ -1936,6 +1954,7 @@
           state.fileOrder = state.fileOrder.filter(n => n !== filename);
           updateFileList();
           updateConvertButton();
+          updateTrackChangesTab();
         });
       });
 
@@ -2058,9 +2077,25 @@
     // Text input changes
     textInput.addEventListener('input', updateConvertButton);
 
+    // Update track changes tab visibility based on input format
+    function updateTrackChangesTab() {
+      const trackChangesTab = document.getElementById('track-changes-tab');
+      let inFmt = inputFormat.value;
+
+      // If auto-detect, check the first file's extension
+      if (inFmt === 'auto' && state.fileOrder.length > 0) {
+        const ext = state.fileOrder[0].split('.').pop().toLowerCase();
+        inFmt = formatByExtension[ext] || '';
+      }
+
+      const isDocx = inFmt === 'docx';
+      trackChangesTab.classList.toggle('hidden', !isDocx);
+    }
+
     // Format change handlers
     inputFormat.addEventListener('change', () => {
       updateExtensionsSection();
+      updateTrackChangesTab();
     });
 
     outputFormat.addEventListener('change', () => {
@@ -2176,7 +2211,7 @@
       document.getElementById('format-markdown-opts').style.display = isMarkdown ? '' : 'none';
       document.getElementById('format-rst-opts').style.display = isRst ? '' : 'none';
       document.getElementById('format-latex-opts').style.display = supportsListOf ? '' : 'none';
-      document.getElementById('format-typst-opts').style.display = isTypst ? '' : 'none';
+      document.getElementById('format-typst-opts').style.display = format === 'pdf-typst' ? '' : 'none';
       document.getElementById('format-caption-opts').style.display = supportsCaption ? '' : 'none';
       document.getElementById('format-ascii-opts').style.display = (supportsAscii && !isHtml) ? '' : 'none';
       document.getElementById('format-division-opts').style.display = supportsTopLevelDivision ? '' : 'none';
@@ -2777,6 +2812,12 @@
       // Input files
       if (state.inputMode === 'file') {
         opts['input-files'] = state.fileOrder;
+      }
+
+      // Track changes (Word documents)
+      const trackChanges = document.getElementById('opt-track-changes').value;
+      if (trackChanges) {
+        opts['track-changes'] = trackChanges;
       }
 
       // General options
