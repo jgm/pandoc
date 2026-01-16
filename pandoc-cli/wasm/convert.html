@@ -356,10 +356,9 @@
     }
 
     .extensions-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.15rem 0.75rem;
-      max-height: 150px;
+      columns: 3;
+      column-gap: 1rem;
+      max-height: 200px;
       overflow-y: auto;
     }
 
@@ -368,6 +367,7 @@
       align-items: center;
       gap: 0.2rem;
       font-size: 0.8rem;
+      break-inside: avoid;
     }
 
     .extension-item input[type="checkbox"] {
