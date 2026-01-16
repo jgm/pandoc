@@ -1203,6 +1203,14 @@
             </button>
             <div id="highlight-theme-display"></div>
           </div>
+          <div class="resource-upload" style="margin-top: 0.75rem;">
+            <label>Custom syntax definitions (.xml)</label>
+            <input type="file" id="syntax-def-input" class="hidden" accept=".xml" multiple />
+            <button class="upload-btn" onclick="document.getElementById('syntax-def-input').click()">
+              Add Syntax Definitions
+            </button>
+            <div id="syntax-def-list" class="file-list file-list-small"></div>
+          </div>
         </div>
 
         <!-- Format-specific Options (dynamically shown based on output format) -->
@@ -1618,6 +1626,7 @@
       abbrevFile: null,
       cssFiles: [],
       highlightThemeFile: null,
+      syntaxDefinitions: [],
       templateFile: null,
       referenceDoc: null,
       metadataFile: null,
@@ -2460,6 +2469,37 @@
       document.getElementById('highlight-theme-display').innerHTML = '';
     };
 
+    // Syntax definition files
+    document.getElementById('syntax-def-input').addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(file => {
+        if (!state.syntaxDefinitions.find(f => f.name === file.name)) {
+          state.syntaxDefinitions.push(file);
+        }
+      });
+      updateSyntaxDefList();
+      e.target.value = '';
+    });
+
+    function updateSyntaxDefList() {
+      const container = document.getElementById('syntax-def-list');
+      if (state.syntaxDefinitions.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = state.syntaxDefinitions.map(file => `
+        <div class="file-item">
+          <span class="file-icon">&#128196;</span>
+          <span class="file-name">${file.name}</span>
+          <span class="file-remove" onclick="removeSyntaxDef('${file.name}')">&#10005;</span>
+        </div>
+      `).join('');
+    }
+
+    window.removeSyntaxDef = (filename) => {
+      state.syntaxDefinitions = state.syntaxDefinitions.filter(f => f.name !== filename);
+      updateSyntaxDefList();
+    };
+
     document.getElementById('template-input').addEventListener('change', (e) => {
       if (e.target.files[0]) {
         state.templateFile = e.target.files[0];
@@ -2686,6 +2726,7 @@
         if (state.abbrevFile) files[state.abbrevFile.name] = state.abbrevFile;
         state.cssFiles.forEach(file => { files[file.name] = file; });
         if (state.highlightThemeFile) files[state.highlightThemeFile.name] = state.highlightThemeFile;
+        state.syntaxDefinitions.forEach(file => { files[file.name] = file; });
         if (state.templateFile) files[state.templateFile.name] = state.templateFile;
         if (state.referenceDoc) files[state.referenceDoc.name] = state.referenceDoc;
         if (state.metadataFile) files[state.metadataFile.name] = state.metadataFile;
@@ -2911,6 +2952,11 @@
         opts['highlight-style'] = state.highlightThemeFile.name;
       } else if (highlightStyle && highlightStyle !== 'custom') {
         opts['highlight-style'] = highlightStyle;
+      }
+
+      // Syntax definitions
+      if (state.syntaxDefinitions.length > 0) {
+        opts['syntax-definition'] = state.syntaxDefinitions.map(f => f.name);
       }
 
       // Indented code classes
