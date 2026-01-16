@@ -1409,6 +1409,30 @@
             </button>
             <div id="reference-doc-display"></div>
           </div>
+          <div class="resource-upload">
+            <label>Include in header (custom CSS, scripts, LaTeX packages)</label>
+            <input type="file" id="header-input" class="hidden" multiple />
+            <button class="upload-btn" onclick="document.getElementById('header-input').click()">
+              Add Header Files
+            </button>
+            <div id="header-file-list" class="file-list file-list-small"></div>
+          </div>
+          <div class="resource-upload">
+            <label>Include before body</label>
+            <input type="file" id="before-body-input" class="hidden" multiple />
+            <button class="upload-btn" onclick="document.getElementById('before-body-input').click()">
+              Add Before-Body Files
+            </button>
+            <div id="before-body-file-list" class="file-list file-list-small"></div>
+          </div>
+          <div class="resource-upload">
+            <label>Include after body</label>
+            <input type="file" id="after-body-input" class="hidden" multiple />
+            <button class="upload-btn" onclick="document.getElementById('after-body-input').click()">
+              Add After-Body Files
+            </button>
+            <div id="after-body-file-list" class="file-list file-list-small"></div>
+          </div>
           <div class="variables-section">
             <label>Variables</label>
             <div class="custom-metadata" id="custom-variables"></div>
@@ -1568,6 +1592,9 @@
       metadataFile: null,
       epubCoverImage: null,
       epubFonts: [],
+      headerFiles: [],
+      beforeBodyFiles: [],
+      afterBodyFiles: [],
       output: null,
       outputFilename: null,
       inputExtensions: {},  // { extName: true/false } - true = enable, false = disable
@@ -2442,6 +2469,99 @@
       updateEpubFontList();
     };
 
+    // Include in header files
+    document.getElementById('header-input').addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(file => {
+        if (!state.headerFiles.find(f => f.name === file.name)) {
+          state.headerFiles.push(file);
+        }
+      });
+      updateHeaderFileList();
+      e.target.value = '';
+    });
+
+    function updateHeaderFileList() {
+      const container = document.getElementById('header-file-list');
+      if (state.headerFiles.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = state.headerFiles.map(file => `
+        <div class="file-item">
+          <span class="file-icon">&#128196;</span>
+          <span class="file-name">${file.name}</span>
+          <span class="file-remove" onclick="removeHeaderFile('${file.name}')">&#10005;</span>
+        </div>
+      `).join('');
+    }
+
+    window.removeHeaderFile = (filename) => {
+      state.headerFiles = state.headerFiles.filter(f => f.name !== filename);
+      updateHeaderFileList();
+    };
+
+    // Include before body files
+    document.getElementById('before-body-input').addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(file => {
+        if (!state.beforeBodyFiles.find(f => f.name === file.name)) {
+          state.beforeBodyFiles.push(file);
+        }
+      });
+      updateBeforeBodyFileList();
+      e.target.value = '';
+    });
+
+    function updateBeforeBodyFileList() {
+      const container = document.getElementById('before-body-file-list');
+      if (state.beforeBodyFiles.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = state.beforeBodyFiles.map(file => `
+        <div class="file-item">
+          <span class="file-icon">&#128196;</span>
+          <span class="file-name">${file.name}</span>
+          <span class="file-remove" onclick="removeBeforeBodyFile('${file.name}')">&#10005;</span>
+        </div>
+      `).join('');
+    }
+
+    window.removeBeforeBodyFile = (filename) => {
+      state.beforeBodyFiles = state.beforeBodyFiles.filter(f => f.name !== filename);
+      updateBeforeBodyFileList();
+    };
+
+    // Include after body files
+    document.getElementById('after-body-input').addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(file => {
+        if (!state.afterBodyFiles.find(f => f.name === file.name)) {
+          state.afterBodyFiles.push(file);
+        }
+      });
+      updateAfterBodyFileList();
+      e.target.value = '';
+    });
+
+    function updateAfterBodyFileList() {
+      const container = document.getElementById('after-body-file-list');
+      if (state.afterBodyFiles.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = state.afterBodyFiles.map(file => `
+        <div class="file-item">
+          <span class="file-icon">&#128196;</span>
+          <span class="file-name">${file.name}</span>
+          <span class="file-remove" onclick="removeAfterBodyFile('${file.name}')">&#10005;</span>
+        </div>
+      `).join('');
+    }
+
+    window.removeAfterBodyFile = (filename) => {
+      state.afterBodyFiles = state.afterBodyFiles.filter(f => f.name !== filename);
+      updateAfterBodyFileList();
+    };
+
     let needsConversion = false;
 
     function updateConvertButton() {
@@ -2481,6 +2601,9 @@
         if (state.metadataFile) files[state.metadataFile.name] = state.metadataFile;
         if (state.epubCoverImage) files[state.epubCoverImage.name] = state.epubCoverImage;
         state.epubFonts.forEach(font => { files[font.name] = font; });
+        state.headerFiles.forEach(file => { files[file.name] = file; });
+        state.beforeBodyFiles.forEach(file => { files[file.name] = file; });
+        state.afterBodyFiles.forEach(file => { files[file.name] = file; });
 
         // Get stdin
         const stdin = state.inputMode === 'text' ? textInput.value : null;
@@ -2811,6 +2934,17 @@
       // Template
       if (state.templateFile) {
         opts.template = state.templateFile.name;
+      }
+
+      // Include files
+      if (state.headerFiles.length > 0) {
+        opts['include-in-header'] = state.headerFiles.map(f => f.name);
+      }
+      if (state.beforeBodyFiles.length > 0) {
+        opts['include-before-body'] = state.beforeBodyFiles.map(f => f.name);
+      }
+      if (state.afterBodyFiles.length > 0) {
+        opts['include-after-body'] = state.afterBodyFiles.map(f => f.name);
       }
 
       // Variables
