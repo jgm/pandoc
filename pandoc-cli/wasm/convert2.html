@@ -116,6 +116,10 @@
     .file-item.drag-over { border-top: 2px solid var(--primary); margin-top: -2px; }
     .file-item .file-icon { font-size: 1.25rem; }
     .file-item .file-name { flex: 1; font-size: 0.9rem; word-break: break-all; }
+    .file-item a.file-name { color: var(--primary); text-decoration: none; cursor: pointer; }
+    .file-item a.file-name:hover { text-decoration: underline; }
+    .resource-item a { color: var(--primary); text-decoration: none; cursor: pointer; }
+    .resource-item a:hover { text-decoration: underline; }
     .file-item .file-size { color: var(--gray-500); font-size: 0.8rem; }
 
     .file-item .file-remove {
@@ -687,7 +691,7 @@
             <div class="file-list" v-if="fileOrder.length > 0">
               <div class="file-item" v-for="(name, idx) in fileOrder" :key="name" draggable="true" @dragstart="onFileDragStart(idx, $event)" @dragover.prevent="onFileDragOver(idx)" @dragleave="fileDragOverIdx = -1" @drop.prevent="onFileDrop(idx)" @dragend="fileDraggingIdx = -1" :class="{ dragging: fileDraggingIdx === idx, 'drag-over': fileDragOverIdx === idx && fileDraggingIdx !== idx }">
                 <span class="file-icon">&#128196;</span>
-                <span class="file-name">{{ name }}</span>
+                <a class="file-name" href="#" @click.prevent.stop="downloadFile(files[name], name)">{{ name }}</a>
                 <span class="file-size">{{ formatFileSize(files[name].size) }}</span>
                 <span class="file-remove" @click.stop="removeFile(name)">&#10005;</span>
               </div>
@@ -711,7 +715,7 @@
             <div class="file-list file-list-small" v-if="Object.keys(auxFiles).length > 0">
               <div class="file-item" v-for="(file, name) in auxFiles" :key="name">
                 <span class="file-icon">&#128444;</span>
-                <span class="file-name">{{ name }}</span>
+                <a class="file-name" href="#" @click.prevent="downloadFile(file, name)">{{ name }}</a>
                 <span class="file-size">{{ formatFileSize(file.size) }}</span>
                 <span class="file-remove" @click="removeAuxFile(name)">&#10005;</span>
               </div>
@@ -840,7 +844,7 @@
               <label>Bibliography file (.bib, .json, .yaml)</label>
               <input type="file" ref="bibInput" class="hidden" accept=".bib,.bibtex,.json,.yaml,.yml" @change="handleBibFile($event)" />
               <button class="upload-btn" @click="$refs.bibInput.click()">Upload Bibliography</button>
-              <div v-if="bibFile" class="resource-item">&#128196; {{ bibFile.name }} <span class="file-remove" @click="bibFile = null">&#10005;</span></div>
+              <div v-if="bibFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(bibFile, bibFile.name)">{{ bibFile.name }}</a> <span class="file-remove" @click="bibFile = null">&#10005;</span></div>
             </div>
             <div v-show="opts.citationMethod === 'citeproc'">
               <div class="resource-upload">
@@ -858,13 +862,13 @@
                 <datalist id="csl-styles-list">
                   <option v-for="style in cslStylesList" :key="style" :value="style"></option>
                 </datalist>
-                <div v-if="cslFile" class="resource-item">&#128196; {{ cslFile.name }} <span class="file-remove" @click="cslFile = null">&#10005;</span></div>
+                <div v-if="cslFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(cslFile, cslFile.name)">{{ cslFile.name }}</a> <span class="file-remove" @click="cslFile = null">&#10005;</span></div>
               </div>
               <div class="resource-upload">
                 <label>Citation abbreviations (.json)</label>
                 <input type="file" ref="abbrevInput" class="hidden" accept=".json" @change="handleAbbrevFile($event)" />
                 <button class="upload-btn" @click="$refs.abbrevInput.click()">Upload Abbreviations</button>
-                <div v-if="abbrevFile" class="resource-item">&#128196; {{ abbrevFile.name }} <span class="file-remove" @click="abbrevFile = null">&#10005;</span></div>
+                <div v-if="abbrevFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(abbrevFile, abbrevFile.name)">{{ abbrevFile.name }}</a> <span class="file-remove" @click="abbrevFile = null">&#10005;</span></div>
               </div>
             </div>
           </div>
@@ -913,7 +917,7 @@
               <label>Custom highlight theme (.theme)</label>
               <input type="file" ref="highlightThemeInput" class="hidden" accept=".theme" @change="handleHighlightTheme($event)" />
               <button class="upload-btn" @click="$refs.highlightThemeInput.click()">Upload Theme</button>
-              <div v-if="highlightThemeFile" class="resource-item">&#127912; {{ highlightThemeFile.name }} <span class="file-remove" @click="highlightThemeFile = null">&#10005;</span></div>
+              <div v-if="highlightThemeFile" class="resource-item">&#127912; <a href="#" @click.prevent="downloadFile(highlightThemeFile, highlightThemeFile.name)">{{ highlightThemeFile.name }}</a> <span class="file-remove" @click="highlightThemeFile = null">&#10005;</span></div>
             </div>
             <div class="resource-upload" style="margin-top: 0.75rem;">
               <label>Custom syntax definitions (.xml)</label>
@@ -922,7 +926,7 @@
               <div class="file-list file-list-small" v-if="syntaxDefinitions.length > 0">
                 <div class="file-item" v-for="file in syntaxDefinitions" :key="file.name">
                   <span class="file-icon">&#128196;</span>
-                  <span class="file-name">{{ file.name }}</span>
+                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
                   <span class="file-remove" @click="removeSyntaxDef(file.name)">&#10005;</span>
                 </div>
               </div>
@@ -976,7 +980,7 @@
                 <div class="file-list file-list-small" v-if="cssFiles.length > 0">
                   <div class="file-item" v-for="file in cssFiles" :key="file.name">
                     <span class="file-icon">&#127912;</span>
-                    <span class="file-name">{{ file.name }}</span>
+                    <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
                     <span class="file-remove" @click="removeCssFile(file.name)">&#10005;</span>
                   </div>
                 </div>
@@ -1091,7 +1095,7 @@
                 <label>Cover image</label>
                 <input type="file" ref="epubCoverInput" class="hidden" accept="image/*" @change="handleEpubCover($event)" />
                 <button class="upload-btn" @click="$refs.epubCoverInput.click()">Upload Cover Image</button>
-                <div v-if="epubCoverImage" class="resource-item">&#128444; {{ epubCoverImage.name }} <span class="file-remove" @click="epubCoverImage = null">&#10005;</span></div>
+                <div v-if="epubCoverImage" class="resource-item">&#128444; <a href="#" @click.prevent="downloadFile(epubCoverImage, epubCoverImage.name)">{{ epubCoverImage.name }}</a> <span class="file-remove" @click="epubCoverImage = null">&#10005;</span></div>
               </div>
               <div class="resource-upload">
                 <label>Embed fonts</label>
@@ -1100,7 +1104,7 @@
                 <div class="file-list file-list-small" v-if="epubFonts.length > 0">
                   <div class="file-item" v-for="file in epubFonts" :key="file.name">
                     <span class="file-icon">&#128288;</span>
-                    <span class="file-name">{{ file.name }}</span>
+                    <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
                     <span class="file-remove" @click="removeEpubFont(file.name)">&#10005;</span>
                   </div>
                 </div>
@@ -1157,13 +1161,13 @@
               <label>Custom template</label>
               <input type="file" ref="templateInput" class="hidden" @change="handleTemplateFile($event)" />
               <button class="upload-btn" @click="$refs.templateInput.click()">Upload Custom Template</button>
-              <div v-if="templateFile" class="resource-item">&#128196; {{ templateFile.name }} <span class="file-remove" @click="templateFile = null">&#10005;</span></div>
+              <div v-if="templateFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(templateFile, templateFile.name)">{{ templateFile.name }}</a> <span class="file-remove" @click="templateFile = null">&#10005;</span></div>
             </div>
             <div class="resource-upload" v-show="showReferenceDoc">
               <label>Reference document (for styles in docx/odt/pptx)</label>
               <input type="file" ref="referenceDocInput" class="hidden" accept=".docx,.odt,.pptx" @change="handleReferenceDoc($event)" />
               <button class="upload-btn" @click="$refs.referenceDocInput.click()">Upload Reference Document</button>
-              <div v-if="referenceDoc" class="resource-item">&#128196; {{ referenceDoc.name }} <span class="file-remove" @click="referenceDoc = null">&#10005;</span></div>
+              <div v-if="referenceDoc" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(referenceDoc, referenceDoc.name)">{{ referenceDoc.name }}</a> <span class="file-remove" @click="referenceDoc = null">&#10005;</span></div>
             </div>
             <div class="resource-upload">
               <label>Include in header (custom CSS, scripts, LaTeX packages)</label>
@@ -1172,7 +1176,7 @@
               <div class="file-list file-list-small" v-if="headerFiles.length > 0">
                 <div class="file-item" v-for="file in headerFiles" :key="file.name">
                   <span class="file-icon">&#128196;</span>
-                  <span class="file-name">{{ file.name }}</span>
+                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
                   <span class="file-remove" @click="removeHeaderFile(file.name)">&#10005;</span>
                 </div>
               </div>
@@ -1184,7 +1188,7 @@
               <div class="file-list file-list-small" v-if="beforeBodyFiles.length > 0">
                 <div class="file-item" v-for="file in beforeBodyFiles" :key="file.name">
                   <span class="file-icon">&#128196;</span>
-                  <span class="file-name">{{ file.name }}</span>
+                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
                   <span class="file-remove" @click="removeBeforeBodyFile(file.name)">&#10005;</span>
                 </div>
               </div>
@@ -1196,7 +1200,7 @@
               <div class="file-list file-list-small" v-if="afterBodyFiles.length > 0">
                 <div class="file-item" v-for="file in afterBodyFiles" :key="file.name">
                   <span class="file-icon">&#128196;</span>
-                  <span class="file-name">{{ file.name }}</span>
+                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
                   <span class="file-remove" @click="removeAfterBodyFile(file.name)">&#10005;</span>
                 </div>
               </div>
@@ -1239,7 +1243,7 @@
               <label>Metadata file (.yaml, .json)</label>
               <input type="file" ref="metadataFileInput" class="hidden" accept=".yaml,.yml,.json" @change="handleMetadataFile($event)" />
               <button class="upload-btn" @click="$refs.metadataFileInput.click()">Upload Metadata File</button>
-              <div v-if="metadataFile" class="resource-item">&#128196; {{ metadataFile.name }} <span class="file-remove" @click="metadataFile = null">&#10005;</span></div>
+              <div v-if="metadataFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(metadataFile, metadataFile.name)">{{ metadataFile.name }}</a> <span class="file-remove" @click="metadataFile = null">&#10005;</span></div>
             </div>
             <div class="options-grid">
               <div class="form-group">
@@ -1765,6 +1769,17 @@
           if (bytes < 1024) return bytes + ' B';
           if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
           return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        },
+
+        downloadFile(file, name) {
+          const url = URL.createObjectURL(file);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
         },
 
         handleDrop(e) {
