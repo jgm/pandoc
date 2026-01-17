@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pandoc in the browser</title>
   <script src="https://unpkg.com/petite-vue" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
+  <script type="module">
+    import { TarReader, TarWriter } from 'https://esm.sh/@gera2ld/tarjs@0.3.1';
+    window.tarjs = { TarReader, TarWriter };
+  </script>
   <style>
     :root {
       --primary: #2563eb;
@@ -677,6 +680,9 @@
                 <option value="examples/ris-to-formatted-markdown-bibliography.tar">RIS to Markdown bibliography</option>
                 <option value="examples/rst-table-from-yaml-data.tar">RST table from YAML data</option>
               </select>
+              <button class="upload-btn-small" @click="downloadAsExample">Download as example</button>
+              <button class="upload-btn-small" @click.stop="$refs.exampleInput.click()">Upload example</button>
+              <input type="file" ref="exampleInput" class="hidden" accept=".tar" @change.stop="uploadExample($event)" />
             </div>
           </div>
 
@@ -1604,165 +1610,296 @@
           try {
             const response = await fetch(tarpath);
             const arrayBuffer = await response.arrayBuffer();
-            const tarFiles = await untar(arrayBuffer);
-
-            // Clear existing state
-            this.files = {};
-            this.fileOrder = [];
-            this.auxFiles = {};
-            this.textInput = '';
-            this.templateFile = null;
-            this.referenceDoc = null;
-            this.bibFile = null;
-            this.cslFile = null;
-            this.cslStyleName = '';
-            this.cssFiles = [];
-            this.headerFiles = [];
-            this.beforeBodyFiles = [];
-            this.afterBodyFiles = [];
-            this.highlightThemeFile = null;
-            this.syntaxDefinitions = [];
-            this.abbrevFile = null;
-            this.metadataFile = null;
-            this.epubCoverImage = null;
-            this.epubFonts = [];
-
-            let optionsJson = null;
-            let stdinContent = null;
-            const extractedFiles = {};
-
-            // First pass: extract all files
-            for (const file of tarFiles) {
-              if (file.name.endsWith('/') || file.size === 0) continue;
-              const filename = file.name.split('/').pop();
-
-              if (filename === 'options.json') {
-                optionsJson = JSON.parse(new TextDecoder().decode(file.buffer));
-              } else if (filename === 'stdin') {
-                stdinContent = new TextDecoder().decode(file.buffer);
-              } else {
-                const blob = file.blob;
-                extractedFiles[filename] = new File([blob], filename, { type: blob.type });
-              }
-            }
-
-            // Helper to get file and remove from extractedFiles
-            const takeFile = (name) => {
-              if (name && extractedFiles[name]) {
-                const f = extractedFiles[name];
-                delete extractedFiles[name];
-                return f;
-              }
-              return null;
-            };
-
-            // Helper for arrays of filenames
-            const takeFiles = (names) => {
-              if (!names) return [];
-              const arr = Array.isArray(names) ? names : [names];
-              return arr.map(takeFile).filter(f => f);
-            };
-
-            // Route files based on options.json
-            if (optionsJson) {
-              // Template
-              this.templateFile = takeFile(optionsJson.template);
-
-              // Reference doc
-              this.referenceDoc = takeFile(optionsJson['reference-doc']);
-
-              // Bibliography
-              const bibFiles = takeFiles(optionsJson.bibliography);
-              if (bibFiles.length > 0) this.bibFile = bibFiles[0];
-
-              // CSL style
-              this.cslFile = takeFile(optionsJson.csl);
-
-              // CSS files
-              this.cssFiles = takeFiles(optionsJson.css);
-
-              // Include files
-              this.headerFiles = takeFiles(optionsJson['include-in-header']);
-              this.beforeBodyFiles = takeFiles(optionsJson['include-before-body']);
-              this.afterBodyFiles = takeFiles(optionsJson['include-after-body']);
-
-              // Highlight theme (if it's a file)
-              const hlStyle = optionsJson['highlight-style'];
-              if (hlStyle && extractedFiles[hlStyle]) {
-                this.highlightThemeFile = takeFile(hlStyle);
-                this.opts.highlightStyle = 'custom';
-              } else if (hlStyle) {
-                this.opts.highlightStyle = hlStyle;
-              }
-
-              // Syntax definitions
-              this.syntaxDefinitions = takeFiles(optionsJson['syntax-definition']);
-
-              // Abbreviations
-              this.abbrevFile = takeFile(optionsJson.abbreviations);
-
-              // Metadata file
-              this.metadataFile = takeFile(optionsJson['metadata-file']);
-
-              // EPUB cover image
-              this.epubCoverImage = takeFile(optionsJson['epub-cover-image']);
-
-              // EPUB fonts
-              this.epubFonts = takeFiles(optionsJson['epub-fonts']);
-
-              // Input files go to main files area
-              const inputFileNames = optionsJson['input-files'];
-              if (inputFileNames) {
-                const inputArr = Array.isArray(inputFileNames) ? inputFileNames : [inputFileNames];
-                for (const name of inputArr) {
-                  const f = takeFile(name);
-                  if (f) {
-                    this.files[name] = f;
-                    this.fileOrder.push(name);
-                  }
-                }
-              }
-
-              // Set input format
-              if (optionsJson.from) {
-                this.inputFormat = optionsJson.from.split(/[+-]/)[0];
-              }
-              // Set output format
-              if (optionsJson.to) {
-                this.outputFormat = optionsJson.to.split(/[+-]/)[0];
-              }
-              // Set standalone
-              if (optionsJson.standalone !== undefined) {
-                this.opts.standalone = optionsJson.standalone;
-              }
-              // Other options
-              if (optionsJson['table-of-contents']) this.opts.toc = true;
-              if (optionsJson['number-sections']) this.opts.numberSections = true;
-              if (optionsJson.citeproc) this.opts.citationMethod = 'citeproc';
-              if (optionsJson['embed-resources']) this.opts.selfContained = true;
-              if (optionsJson['mathml']) this.opts.mathMethod = 'mathml';
-            }
-
-            // Remaining files go to auxiliary files
-            for (const [name, file] of Object.entries(extractedFiles)) {
-              this.auxFiles[name] = file;
-            }
-
-            // Handle stdin content
-            if (stdinContent) {
-              this.inputMode = 'text';
-              this.textInput = stdinContent;
-            } else if (this.fileOrder.length > 0) {
-              this.inputMode = 'file';
-            }
-
-            this.onInputFormatChange();
-            this.onOutputFormatChange();
-
-            this.messages.push({ type: 'success', text: `Loaded example: ${tarpath.split('/').pop().replace('.tar', '')}` });
+            await this.loadExampleFromBuffer(arrayBuffer, tarpath.split('/').pop());
           } catch (err) {
             this.messages.push({ type: 'error', text: `Failed to load example: ${err.message}` });
           }
+        },
+
+        async uploadExample(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            e.target.value = '';
+            await this.loadExampleFromBuffer(arrayBuffer, file.name);
+          } catch (err) {
+            this.showOutput = true;
+            this.messages.push({ type: 'error', text: `Failed to load example: ${err.message}` });
+          }
+        },
+
+        async loadExampleFromBuffer(arrayBuffer, filename) {
+          const reader = await tarjs.TarReader.load(new Blob([arrayBuffer]));
+
+          // Clear existing state
+          this.files = {};
+          this.fileOrder = [];
+          this.auxFiles = {};
+          this.textInput = '';
+          this.templateFile = null;
+          this.referenceDoc = null;
+          this.bibFile = null;
+          this.cslFile = null;
+          this.cslStyleName = '';
+          this.cssFiles = [];
+          this.headerFiles = [];
+          this.beforeBodyFiles = [];
+          this.afterBodyFiles = [];
+          this.highlightThemeFile = null;
+          this.syntaxDefinitions = [];
+          this.abbrevFile = null;
+          this.metadataFile = null;
+          this.epubCoverImage = null;
+          this.epubFonts = [];
+
+          let optionsJson = null;
+          let stdinContent = null;
+          const extractedFiles = {};
+
+          // First pass: extract all files
+          for (const fileInfo of reader.fileInfos) {
+            const name = fileInfo.name;
+            if (name.endsWith('/') || fileInfo.size === 0) continue;
+            const fname = name.split('/').pop();
+
+            if (fname === 'options.json') {
+              optionsJson = JSON.parse(await reader.getTextFile(name));
+            } else if (fname === 'stdin') {
+              stdinContent = await reader.getTextFile(name);
+            } else {
+              const blob = await reader.getFileBlob(name);
+              extractedFiles[fname] = new File([blob], fname);
+            }
+          }
+
+          // Helper to get file and remove from extractedFiles
+          const takeFile = (name) => {
+            if (name && extractedFiles[name]) {
+              const f = extractedFiles[name];
+              delete extractedFiles[name];
+              return f;
+            }
+            return null;
+          };
+
+          // Helper for arrays of filenames
+          const takeFiles = (names) => {
+            if (!names) return [];
+            const arr = Array.isArray(names) ? names : [names];
+            return arr.map(takeFile).filter(f => f);
+          };
+
+          // Route files based on options.json
+          if (optionsJson) {
+            // Template
+            this.templateFile = takeFile(optionsJson.template);
+
+            // Reference doc
+            this.referenceDoc = takeFile(optionsJson['reference-doc']);
+
+            // Bibliography
+            const bibFiles = takeFiles(optionsJson.bibliography);
+            if (bibFiles.length > 0) this.bibFile = bibFiles[0];
+
+            // CSL style
+            this.cslFile = takeFile(optionsJson.csl);
+
+            // CSS files
+            this.cssFiles = takeFiles(optionsJson.css);
+
+            // Include files
+            this.headerFiles = takeFiles(optionsJson['include-in-header']);
+            this.beforeBodyFiles = takeFiles(optionsJson['include-before-body']);
+            this.afterBodyFiles = takeFiles(optionsJson['include-after-body']);
+
+            // Highlight theme (if it's a file)
+            const hlStyle = optionsJson['highlight-style'];
+            if (hlStyle && extractedFiles[hlStyle]) {
+              this.highlightThemeFile = takeFile(hlStyle);
+              this.opts.highlightStyle = 'custom';
+            } else if (hlStyle) {
+              this.opts.highlightStyle = hlStyle;
+            }
+
+            // Syntax definitions
+            this.syntaxDefinitions = takeFiles(optionsJson['syntax-definition']);
+
+            // Abbreviations
+            this.abbrevFile = takeFile(optionsJson.abbreviations);
+
+            // Metadata file
+            this.metadataFile = takeFile(optionsJson['metadata-file']);
+
+            // EPUB cover image
+            this.epubCoverImage = takeFile(optionsJson['epub-cover-image']);
+
+            // EPUB fonts
+            this.epubFonts = takeFiles(optionsJson['epub-fonts']);
+
+            // Input files go to main files area
+            const inputFileNames = optionsJson['input-files'];
+            if (inputFileNames) {
+              const inputArr = Array.isArray(inputFileNames) ? inputFileNames : [inputFileNames];
+              for (const name of inputArr) {
+                const f = takeFile(name);
+                if (f) {
+                  this.files[name] = f;
+                  this.fileOrder.push(name);
+                }
+              }
+            }
+
+            // Set input format
+            if (optionsJson.from) {
+              this.inputFormat = optionsJson.from.split(/[+-]/)[0];
+            }
+            // Set output format
+            if (optionsJson.to) {
+              this.outputFormat = optionsJson.to.split(/[+-]/)[0];
+            }
+            // Set standalone
+            if (optionsJson.standalone !== undefined) {
+              this.opts.standalone = optionsJson.standalone;
+            }
+            // Other options
+            if (optionsJson['table-of-contents']) this.opts.toc = true;
+            if (optionsJson['number-sections']) this.opts.numberSections = true;
+            if (optionsJson.citeproc) this.opts.citationMethod = 'citeproc';
+            if (optionsJson['embed-resources']) this.opts.selfContained = true;
+            if (optionsJson['mathml']) this.opts.mathMethod = 'mathml';
+          }
+
+          // Remaining files go to auxiliary files
+          for (const [name, file] of Object.entries(extractedFiles)) {
+            this.auxFiles[name] = file;
+          }
+
+          // Handle stdin content
+          if (stdinContent) {
+            this.inputMode = 'text';
+            this.textInput = stdinContent;
+          } else if (this.fileOrder.length > 0) {
+            this.inputMode = 'file';
+          }
+
+          this.onInputFormatChange();
+          this.onOutputFormatChange();
+
+          // Auto-convert after loading example
+          await this.convert();
+        },
+
+        async downloadAsExample() {
+          const writer = new tarjs.TarWriter();
+
+          // Build options for the example
+          const opts = {};
+          if (this.inputFormat !== 'auto') opts.from = this.inputFormat;
+          if (this.outputFormat !== 'auto') opts.to = this.outputFormat;
+          if (this.opts.standalone) opts.standalone = true;
+          if (this.opts.toc) opts['table-of-contents'] = true;
+          if (this.opts.numberSections) opts['number-sections'] = true;
+          if (this.opts.fileScope) opts['file-scope'] = true;
+          if (this.opts.citationMethod === 'citeproc') opts.citeproc = true;
+          if (this.opts.mathMethod === 'mathml') opts.mathml = true;
+          if (this.opts.selfContained) opts['embed-resources'] = true;
+          if (this.opts.highlightStyle && this.opts.highlightStyle !== 'custom') {
+            opts['highlight-style'] = this.opts.highlightStyle;
+          }
+
+          // Helper to add a file to the tar
+          const addFile = async (file, name) => {
+            writer.addFile(name, file);
+          };
+
+          // Input files or stdin
+          if (this.inputMode === 'text' && this.textInput.trim()) {
+            writer.addFile('stdin', this.textInput);
+          } else if (this.inputMode === 'file' && this.fileOrder.length > 0) {
+            opts['input-files'] = this.fileOrder;
+            for (const name of this.fileOrder) {
+              if (this.files[name]) await addFile(this.files[name], name);
+            }
+          }
+
+          // Auxiliary files
+          for (const [name, file] of Object.entries(this.auxFiles)) {
+            await addFile(file, name);
+          }
+
+          // Resource files
+          if (this.templateFile) {
+            opts.template = this.templateFile.name;
+            await addFile(this.templateFile, this.templateFile.name);
+          }
+          if (this.referenceDoc) {
+            opts['reference-doc'] = this.referenceDoc.name;
+            await addFile(this.referenceDoc, this.referenceDoc.name);
+          }
+          if (this.bibFile) {
+            opts.bibliography = this.bibFile.name;
+            await addFile(this.bibFile, this.bibFile.name);
+          }
+          if (this.cslFile) {
+            opts.csl = this.cslFile.name;
+            await addFile(this.cslFile, this.cslFile.name);
+          }
+          if (this.abbrevFile) {
+            opts.abbreviations = this.abbrevFile.name;
+            await addFile(this.abbrevFile, this.abbrevFile.name);
+          }
+          if (this.metadataFile) {
+            opts['metadata-file'] = this.metadataFile.name;
+            await addFile(this.metadataFile, this.metadataFile.name);
+          }
+          if (this.highlightThemeFile) {
+            opts['highlight-style'] = this.highlightThemeFile.name;
+            await addFile(this.highlightThemeFile, this.highlightThemeFile.name);
+          }
+          if (this.cssFiles.length > 0) {
+            opts.css = this.cssFiles.map(f => f.name);
+            for (const file of this.cssFiles) await addFile(file, file.name);
+          }
+          if (this.syntaxDefinitions.length > 0) {
+            opts['syntax-definition'] = this.syntaxDefinitions.map(f => f.name);
+            for (const file of this.syntaxDefinitions) await addFile(file, file.name);
+          }
+          if (this.headerFiles.length > 0) {
+            opts['include-in-header'] = this.headerFiles.map(f => f.name);
+            for (const file of this.headerFiles) await addFile(file, file.name);
+          }
+          if (this.beforeBodyFiles.length > 0) {
+            opts['include-before-body'] = this.beforeBodyFiles.map(f => f.name);
+            for (const file of this.beforeBodyFiles) await addFile(file, file.name);
+          }
+          if (this.afterBodyFiles.length > 0) {
+            opts['include-after-body'] = this.afterBodyFiles.map(f => f.name);
+            for (const file of this.afterBodyFiles) await addFile(file, file.name);
+          }
+          if (this.epubCoverImage) {
+            opts['epub-cover-image'] = this.epubCoverImage.name;
+            await addFile(this.epubCoverImage, this.epubCoverImage.name);
+          }
+          if (this.epubFonts.length > 0) {
+            opts['epub-fonts'] = this.epubFonts.map(f => f.name);
+            for (const file of this.epubFonts) await addFile(file, file.name);
+          }
+
+          // Add options.json
+          writer.addFile('options.json', JSON.stringify(opts, null, 2));
+
+          // Create tar and download
+          const blob = await writer.write();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'example.tar';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
         },
 
         formatFileSize(bytes) {
@@ -2252,6 +2389,7 @@
               this.output = pdfBlob;
               this.displayResults(typstResult, options, files);
             } else {
+console.log(options);
               const result = await window.pandocModule.pandoc(options, stdin, files);
               this.displayResults(result, options, files);
             }
