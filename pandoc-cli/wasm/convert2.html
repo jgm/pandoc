@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pandoc in the browser</title>
   <script src="https://unpkg.com/petite-vue" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-untar@2.0.0/build/dist/untar.min.js"></script>
   <style>
     :root {
       --primary: #2563eb;
@@ -201,10 +202,9 @@
     .format-bar .form-group select { padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 10em; }
     .format-bar .form-group input[type="text"] { padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 140px; }
 
-    .presets-bar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-200); }
-    .presets-label { font-size: 0.8rem; color: var(--gray-500); font-weight: 500; }
-    .preset-btn { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
-    .preset-btn:hover { background: var(--gray-200); border-color: var(--gray-400); }
+    .examples-bar { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-200); }
+    .examples-bar label { font-size: 0.8rem; color: var(--gray-500); font-weight: 500; }
+    .examples-bar select { padding: 0.25rem 0.5rem; font-size: 0.8rem; border: 1px solid var(--gray-300); border-radius: 4px; background: white; }
 
     .extensions-row { display: flex; gap: 2rem; flex-wrap: wrap; }
     .extensions-group { flex: 1; min-width: 200px; }
@@ -651,13 +651,28 @@
                 <input type="text" id="output-filename" v-model="outputFilename" :placeholder="outputFilenamePlaceholder" />
               </div>
             </div>
-            <div class="presets-bar">
-              <span class="presets-label">Presets:</span>
-              <button class="preset-btn" @click="loadPreset('academic')">Academic Paper</button>
-              <button class="preset-btn" @click="loadPreset('ebook')">E-Book</button>
-              <button class="preset-btn" @click="loadPreset('presentation')">Presentation</button>
-              <button class="preset-btn" @click="loadPreset('simple')">Simple HTML</button>
-              <button class="preset-btn" @click="resetOptions()">Reset</button>
+            <div class="examples-bar">
+              <label for="examples-select">Examples:</label>
+              <select id="examples-select" v-model="selectedExample" @change="loadExample">
+                <option value="">Load example...</option>
+                <option value="examples/bibtex-to-csljson.tar">BibTeX to CSL JSON</option>
+                <option value="examples/csv-table-to-org.tar">CSV table to Org</option>
+                <option value="examples/custom-template.tar">Custom template</option>
+                <option value="examples/docx-with-equations-to-latex.tar">DOCX with equations to LaTeX</option>
+                <option value="examples/hello-world.tar">Hello world</option>
+                <option value="examples/highlighted-code-to-html.tar">Highlighted code to HTML</option>
+                <option value="examples/ipynb-to-rtf.tar">Jupyter notebook to RTF</option>
+                <option value="examples/latex-to-docbook-with-mathml.tar">LaTeX to DocBook with MathML</option>
+                <option value="examples/latex-with-macros-to-restructured-text.tar">LaTeX with macros to RST</option>
+                <option value="examples/man-page-to-context.tar">Man page to ConTeXt</option>
+                <option value="examples/markdown-citations-to-plain-with-csl-style.tar">Markdown citations to plain</option>
+                <option value="examples/markdown-to-docbook-with-citations.tar">Markdown to DocBook with citations</option>
+                <option value="examples/markdown-to-revealjs-slides.tar">Markdown to reveal.js slides</option>
+                <option value="examples/markdown-to-rst.tar">Markdown to RST</option>
+                <option value="examples/mediawiki-to-docx-with-equations.tar">MediaWiki to DOCX with equations</option>
+                <option value="examples/ris-to-formatted-markdown-bibliography.tar">RIS to Markdown bibliography</option>
+                <option value="examples/rst-table-from-yaml-data.tar">RST table from YAML data</option>
+              </select>
             </div>
           </div>
 
@@ -1344,6 +1359,7 @@
       return {
         // State
         pandocReady: false,
+        selectedExample: '',
         inputMode: 'file',
         files: {},
         fileOrder: [],
@@ -1577,98 +1593,83 @@
           console.log('Pandoc converter ready (Petite Vue edition)');
         },
 
-        loadPreset(preset) {
-          if (preset === 'academic') {
-            this.outputFormat = 'latex';
-            Object.assign(this.opts, {
-              standalone: true,
-              toc: true,
-              tocDepth: '3',
-              numberSections: true,
-              citationMethod: 'citeproc',
-              highlightStyle: 'kate'
-            });
-          } else if (preset === 'ebook') {
-            this.outputFormat = 'epub3';
-            Object.assign(this.opts, {
-              standalone: true,
-              toc: true,
-              tocDepth: '2',
-              numberSections: false,
-              selfContained: true,
-              highlightStyle: 'zenburn',
-              epubTitlePage: true
-            });
-          } else if (preset === 'presentation') {
-            this.outputFormat = 'revealjs';
-            Object.assign(this.opts, {
-              standalone: true,
-              toc: false,
-              numberSections: false,
-              incremental: false,
-              slideLevel: '2'
-            });
-          } else if (preset === 'simple') {
-            this.outputFormat = 'html';
-            Object.assign(this.opts, {
-              standalone: true,
-              toc: false,
-              numberSections: false,
-              selfContained: true,
-              highlightStyle: 'pygments'
-            });
-          }
-          this.onOutputFormatChange();
-        },
+        async loadExample() {
+          const tarpath = this.selectedExample;
+          if (!tarpath) return;
 
-        resetOptions() {
-          this.inputFormat = 'auto';
-          this.outputFormat = 'auto';
-          this.outputFilename = '';
-          Object.assign(this.opts, {
-            standalone: true,
-            toc: false,
-            numberSections: false,
-            fileScope: false,
-            tocDepth: '3',
-            shiftHeading: '0',
-            trackChanges: '',
-            citationMethod: '',
-            mathMethod: '',
-            highlightStyle: '',
-            indentedCodeClasses: '',
-            selfContained: false,
-            htmlQTags: false,
-            sectionDivs: false,
-            asciiHtml: false,
-            titlePrefix: '',
-            idPrefix: '',
-            emailObfuscation: '',
-            referenceLinks: false,
-            referenceLocation: '',
-            markdownHeadings: '',
-            referenceLinksRst: false,
-            listTables: false,
-            lof: false,
-            lot: false,
-            figureCaptionPosition: '',
-            tableCaptionPosition: '',
-            topLevelDivision: '',
-            ascii: false,
-            epubTitlePage: true,
-            epubSubdirectory: '',
-            splitLevel: '',
-            chunkTemplate: '',
-            ipynbOutput: '',
-            slideLevel: '',
-            incremental: false,
-            wrap: 'auto',
-            columns: ''
-          });
-          this.metadata = { title: '', author: '', date: '', lang: '' };
-          this.customMetadata = [];
-          this.customVariables = [];
-          this.onOutputFormatChange();
+          try {
+            const response = await fetch(tarpath);
+            const arrayBuffer = await response.arrayBuffer();
+            const tarFiles = await untar(arrayBuffer);
+
+            // Clear existing files
+            this.files = {};
+            this.fileOrder = [];
+            this.auxFiles = {};
+            this.textInput = '';
+
+            let optionsJson = null;
+            let stdinContent = null;
+            const inputFiles = [];
+
+            for (const file of tarFiles) {
+              // Skip directories
+              if (file.name.endsWith('/') || file.size === 0) continue;
+
+              const filename = file.name.split('/').pop();
+
+              if (filename === 'options.json') {
+                optionsJson = JSON.parse(new TextDecoder().decode(file.buffer));
+              } else if (filename === 'stdin') {
+                stdinContent = new TextDecoder().decode(file.buffer);
+              } else {
+                // Add file to the appropriate place
+                const blob = file.blob;
+                const fileObj = new File([blob], filename, { type: blob.type });
+                this.auxFiles[filename] = fileObj;
+                inputFiles.push(filename);
+              }
+            }
+
+            // Apply options from options.json
+            if (optionsJson) {
+              // Set input format
+              if (optionsJson.from) {
+                this.inputFormat = optionsJson.from.split(/[+-]/)[0]; // Strip extensions
+              }
+              // Set output format
+              if (optionsJson.to) {
+                this.outputFormat = optionsJson.to.split(/[+-]/)[0]; // Strip extensions
+              }
+              // Set standalone
+              if (optionsJson.standalone !== undefined) {
+                this.opts.standalone = optionsJson.standalone;
+              }
+              // Set other options as needed
+              if (optionsJson['table-of-contents']) this.opts.toc = true;
+              if (optionsJson['number-sections']) this.opts.numberSections = true;
+              if (optionsJson['highlight-style']) this.opts.highlightStyle = optionsJson['highlight-style'];
+              if (optionsJson.citeproc) this.opts.citationMethod = 'citeproc';
+              if (optionsJson['embed-resources']) this.opts.selfContained = true;
+              if (optionsJson['mathml']) this.opts.mathMethod = 'mathml';
+            }
+
+            // Handle stdin content - put in text input
+            if (stdinContent) {
+              this.inputMode = 'text';
+              this.textInput = stdinContent;
+            } else if (inputFiles.length > 0) {
+              // Move first recognized input file to main files
+              this.inputMode = 'file';
+            }
+
+            this.onInputFormatChange();
+            this.onOutputFormatChange();
+
+            this.messages.push({ type: 'success', text: `Loaded example: ${tarpath.split('/').pop().replace('.tar', '')}` });
+          } catch (err) {
+            this.messages.push({ type: 'error', text: `Failed to load example: ${err.message}` });
+          }
         },
 
         formatFileSize(bytes) {
