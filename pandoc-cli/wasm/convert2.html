@@ -201,6 +201,11 @@
     .format-bar .form-group select { padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 10em; }
     .format-bar .form-group input[type="text"] { padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 140px; }
 
+    .presets-bar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-200); }
+    .presets-label { font-size: 0.8rem; color: var(--gray-500); font-weight: 500; }
+    .preset-btn { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; }
+    .preset-btn:hover { background: var(--gray-200); border-color: var(--gray-400); }
+
     .extensions-row { display: flex; gap: 2rem; flex-wrap: wrap; }
     .extensions-group { flex: 1; min-width: 200px; }
     .extensions-group-header {
@@ -645,6 +650,14 @@
                 <label for="output-filename">Output:</label>
                 <input type="text" id="output-filename" v-model="outputFilename" :placeholder="outputFilenamePlaceholder" />
               </div>
+            </div>
+            <div class="presets-bar">
+              <span class="presets-label">Presets:</span>
+              <button class="preset-btn" @click="loadPreset('academic')">Academic Paper</button>
+              <button class="preset-btn" @click="loadPreset('ebook')">E-Book</button>
+              <button class="preset-btn" @click="loadPreset('presentation')">Presentation</button>
+              <button class="preset-btn" @click="loadPreset('simple')">Simple HTML</button>
+              <button class="preset-btn" @click="resetOptions()">Reset</button>
             </div>
           </div>
 
@@ -1562,6 +1575,100 @@
         init() {
           this.pandocReady = true;
           console.log('Pandoc converter ready (Petite Vue edition)');
+        },
+
+        loadPreset(preset) {
+          if (preset === 'academic') {
+            this.outputFormat = 'latex';
+            Object.assign(this.opts, {
+              standalone: true,
+              toc: true,
+              tocDepth: '3',
+              numberSections: true,
+              citationMethod: 'citeproc',
+              highlightStyle: 'kate'
+            });
+          } else if (preset === 'ebook') {
+            this.outputFormat = 'epub3';
+            Object.assign(this.opts, {
+              standalone: true,
+              toc: true,
+              tocDepth: '2',
+              numberSections: false,
+              selfContained: true,
+              highlightStyle: 'zenburn',
+              epubTitlePage: true
+            });
+          } else if (preset === 'presentation') {
+            this.outputFormat = 'revealjs';
+            Object.assign(this.opts, {
+              standalone: true,
+              toc: false,
+              numberSections: false,
+              incremental: false,
+              slideLevel: '2'
+            });
+          } else if (preset === 'simple') {
+            this.outputFormat = 'html';
+            Object.assign(this.opts, {
+              standalone: true,
+              toc: false,
+              numberSections: false,
+              selfContained: true,
+              highlightStyle: 'pygments'
+            });
+          }
+          this.onOutputFormatChange();
+        },
+
+        resetOptions() {
+          this.inputFormat = 'auto';
+          this.outputFormat = 'auto';
+          this.outputFilename = '';
+          Object.assign(this.opts, {
+            standalone: true,
+            toc: false,
+            numberSections: false,
+            fileScope: false,
+            tocDepth: '3',
+            shiftHeading: '0',
+            trackChanges: '',
+            citationMethod: '',
+            mathMethod: '',
+            highlightStyle: '',
+            indentedCodeClasses: '',
+            selfContained: false,
+            htmlQTags: false,
+            sectionDivs: false,
+            asciiHtml: false,
+            titlePrefix: '',
+            idPrefix: '',
+            emailObfuscation: '',
+            referenceLinks: false,
+            referenceLocation: '',
+            markdownHeadings: '',
+            referenceLinksRst: false,
+            listTables: false,
+            lof: false,
+            lot: false,
+            figureCaptionPosition: '',
+            tableCaptionPosition: '',
+            topLevelDivision: '',
+            ascii: false,
+            epubTitlePage: true,
+            epubSubdirectory: '',
+            splitLevel: '',
+            chunkTemplate: '',
+            ipynbOutput: '',
+            slideLevel: '',
+            incremental: false,
+            wrap: 'auto',
+            columns: ''
+          });
+          this.metadata = { title: '', author: '', date: '', lang: '' };
+          this.customMetadata = [];
+          this.customVariables = [];
+          this.onOutputFormatChange();
         },
 
         formatFileSize(bytes) {
