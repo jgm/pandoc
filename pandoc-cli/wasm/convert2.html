@@ -1602,20 +1602,34 @@
             const arrayBuffer = await response.arrayBuffer();
             const tarFiles = await untar(arrayBuffer);
 
-            // Clear existing files
+            // Clear existing state
             this.files = {};
             this.fileOrder = [];
             this.auxFiles = {};
             this.textInput = '';
+            this.templateFile = null;
+            this.referenceDoc = null;
+            this.bibFile = null;
+            this.cslFile = null;
+            this.cslStyleName = '';
+            this.cssFiles = [];
+            this.headerFiles = [];
+            this.beforeBodyFiles = [];
+            this.afterBodyFiles = [];
+            this.highlightThemeFile = null;
+            this.syntaxDefinitions = [];
+            this.abbrevFile = null;
+            this.metadataFile = null;
+            this.epubCoverImage = null;
+            this.epubFonts = [];
 
             let optionsJson = null;
             let stdinContent = null;
-            const inputFiles = [];
+            const extractedFiles = {};
 
+            // First pass: extract all files
             for (const file of tarFiles) {
-              // Skip directories
               if (file.name.endsWith('/') || file.size === 0) continue;
-
               const filename = file.name.split('/').pop();
 
               if (filename === 'options.json') {
@@ -1623,43 +1637,118 @@
               } else if (filename === 'stdin') {
                 stdinContent = new TextDecoder().decode(file.buffer);
               } else {
-                // Add file to the appropriate place
                 const blob = file.blob;
-                const fileObj = new File([blob], filename, { type: blob.type });
-                this.auxFiles[filename] = fileObj;
-                inputFiles.push(filename);
+                extractedFiles[filename] = new File([blob], filename, { type: blob.type });
               }
             }
 
-            // Apply options from options.json
+            // Helper to get file and remove from extractedFiles
+            const takeFile = (name) => {
+              if (name && extractedFiles[name]) {
+                const f = extractedFiles[name];
+                delete extractedFiles[name];
+                return f;
+              }
+              return null;
+            };
+
+            // Helper for arrays of filenames
+            const takeFiles = (names) => {
+              if (!names) return [];
+              const arr = Array.isArray(names) ? names : [names];
+              return arr.map(takeFile).filter(f => f);
+            };
+
+            // Route files based on options.json
             if (optionsJson) {
+              // Template
+              this.templateFile = takeFile(optionsJson.template);
+
+              // Reference doc
+              this.referenceDoc = takeFile(optionsJson['reference-doc']);
+
+              // Bibliography
+              const bibFiles = takeFiles(optionsJson.bibliography);
+              if (bibFiles.length > 0) this.bibFile = bibFiles[0];
+
+              // CSL style
+              this.cslFile = takeFile(optionsJson.csl);
+
+              // CSS files
+              this.cssFiles = takeFiles(optionsJson.css);
+
+              // Include files
+              this.headerFiles = takeFiles(optionsJson['include-in-header']);
+              this.beforeBodyFiles = takeFiles(optionsJson['include-before-body']);
+              this.afterBodyFiles = takeFiles(optionsJson['include-after-body']);
+
+              // Highlight theme (if it's a file)
+              const hlStyle = optionsJson['highlight-style'];
+              if (hlStyle && extractedFiles[hlStyle]) {
+                this.highlightThemeFile = takeFile(hlStyle);
+                this.opts.highlightStyle = 'custom';
+              } else if (hlStyle) {
+                this.opts.highlightStyle = hlStyle;
+              }
+
+              // Syntax definitions
+              this.syntaxDefinitions = takeFiles(optionsJson['syntax-definition']);
+
+              // Abbreviations
+              this.abbrevFile = takeFile(optionsJson.abbreviations);
+
+              // Metadata file
+              this.metadataFile = takeFile(optionsJson['metadata-file']);
+
+              // EPUB cover image
+              this.epubCoverImage = takeFile(optionsJson['epub-cover-image']);
+
+              // EPUB fonts
+              this.epubFonts = takeFiles(optionsJson['epub-fonts']);
+
+              // Input files go to main files area
+              const inputFileNames = optionsJson['input-files'];
+              if (inputFileNames) {
+                const inputArr = Array.isArray(inputFileNames) ? inputFileNames : [inputFileNames];
+                for (const name of inputArr) {
+                  const f = takeFile(name);
+                  if (f) {
+                    this.files[name] = f;
+                    this.fileOrder.push(name);
+                  }
+                }
+              }
+
               // Set input format
               if (optionsJson.from) {
-                this.inputFormat = optionsJson.from.split(/[+-]/)[0]; // Strip extensions
+                this.inputFormat = optionsJson.from.split(/[+-]/)[0];
               }
               // Set output format
               if (optionsJson.to) {
-                this.outputFormat = optionsJson.to.split(/[+-]/)[0]; // Strip extensions
+                this.outputFormat = optionsJson.to.split(/[+-]/)[0];
               }
               // Set standalone
               if (optionsJson.standalone !== undefined) {
                 this.opts.standalone = optionsJson.standalone;
               }
-              // Set other options as needed
+              // Other options
               if (optionsJson['table-of-contents']) this.opts.toc = true;
               if (optionsJson['number-sections']) this.opts.numberSections = true;
-              if (optionsJson['highlight-style']) this.opts.highlightStyle = optionsJson['highlight-style'];
               if (optionsJson.citeproc) this.opts.citationMethod = 'citeproc';
               if (optionsJson['embed-resources']) this.opts.selfContained = true;
               if (optionsJson['mathml']) this.opts.mathMethod = 'mathml';
             }
 
-            // Handle stdin content - put in text input
+            // Remaining files go to auxiliary files
+            for (const [name, file] of Object.entries(extractedFiles)) {
+              this.auxFiles[name] = file;
+            }
+
+            // Handle stdin content
             if (stdinContent) {
               this.inputMode = 'text';
               this.textInput = stdinContent;
-            } else if (inputFiles.length > 0) {
-              // Move first recognized input file to main files
+            } else if (this.fileOrder.length > 0) {
               this.inputMode = 'file';
             }
 
