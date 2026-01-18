@@ -1790,11 +1790,12 @@
             this.inputMode = 'file';
           }
 
-          this.onInputFormatChange();
-          this.onOutputFormatChange();
-
           // Auto-convert after loading example
           await this.convert();
+
+          // Update extensions UI after conversion completes
+          this.onInputFormatChange();
+          this.onOutputFormatChange();
         },
 
         async downloadAsExample() {
@@ -2395,7 +2396,6 @@
               this.output = pdfBlob;
               this.displayResults(typstResult, options, files);
             } else {
-console.log(options);
               const result = await window.pandocModule.pandoc(options, stdin, files);
               this.displayResults(result, options, files);
             }
