@@ -736,7 +736,7 @@ header when requesting a document from a URL:
     affected paragraph break. This option only affects the docx
     reader.
 
-`--extract-media=`*DIR*
+`--extract-media=`*DIR*|*FILE*`.tar`
 
 :   Extract images and other media contained in or linked from
     the source document to the path *DIR*, creating it if
@@ -747,6 +747,10 @@ header when requesting a document from a URL:
     are used if they are relative paths not containing `..`.
     Otherwise filenames are constructed from the SHA1 hash of
     the contents.
+
+    If the path given ends in `.tar`, then instead of creating
+    a directory, pandoc will create a tar archive with the media
+    files.
 
 `--abbreviations=`*FILE*
 
