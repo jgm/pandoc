@@ -22,6 +22,7 @@ extra-deps:
 - hslua-typing-0.2.0
 - pandoc-lua-marshal-0.3.2
 - typst-symbols-0.1.9.1
+- tar-0.7.0.0
 - git: https://github.com/jgm/asciidoc-hs.git
   commit: 6b7d77db10f83cb58dc8059ac7bd739d5e37570b
 - git: https://github.com/jgm/typst-hs.git
