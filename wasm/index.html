@@ -518,7 +518,7 @@
   </div>
 
   <div id="app" v-scope="pandocApp()" @vue:mounted="init()">
-    <div class="container">
+    <div class="container" @input="hasChanges = true" @change="hasChanges = true">
       <!-- Input Section -->
       <div class="examples-toggle">
         <a href="#" @click.prevent="showExamplesBar = !showExamplesBar">
@@ -560,8 +560,8 @@
           <div class="input-header">
             <div class="input-controls">
               <div class="input-mode-toggle">
-                <button class="input-mode-btn" :class="{ active: inputMode === 'file' }" @click="inputMode = 'file'">Upload Files</button>
-                <button class="input-mode-btn" :class="{ active: inputMode === 'text' }" @click="inputMode = 'text'">Paste Text</button>
+                <button class="input-mode-btn" :class="{ active: inputMode === 'file' }" @click="inputMode = 'file'; hasChanges = true">Upload Files</button>
+                <button class="input-mode-btn" :class="{ active: inputMode === 'text' }" @click="inputMode = 'text'; hasChanges = true">Paste Text</button>
               </div>
               <button class="convert-btn" :disabled="!canConvert" @click="convert">Convert</button>
             </div>
@@ -868,7 +868,7 @@
               <label>Bibliography file (.bib, .json, .yaml)</label>
               <input type="file" ref="bibInput" class="hidden" accept=".bib,.bibtex,.json,.yaml,.yml" @change="handleBibFile($event)" />
               <button class="upload-btn" @click="$refs.bibInput.click()">Upload Bibliography</button>
-              <div v-if="bibFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(bibFile, bibFile.name)">{{ bibFile.name }}</a> <span class="file-remove" @click="bibFile = null">&#10005;</span></div>
+              <div v-if="bibFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(bibFile, bibFile.name)">{{ bibFile.name }}</a> <span class="file-remove" @click="bibFile = null; hasChanges = true">&#10005;</span></div>
             </div>
             <div v-show="opts.citationMethod === 'citeproc'">
               <div class="resource-upload">
@@ -886,13 +886,13 @@
                 <datalist id="csl-styles-list">
                   <option v-for="style in cslStylesList" :key="style" :value="style"></option>
                 </datalist>
-                <div v-if="cslFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(cslFile, cslFile.name)">{{ cslFile.name }}</a> <span class="file-remove" @click="cslFile = null">&#10005;</span></div>
+                <div v-if="cslFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(cslFile, cslFile.name)">{{ cslFile.name }}</a> <span class="file-remove" @click="cslFile = null; hasChanges = true">&#10005;</span></div>
               </div>
               <div class="resource-upload">
                 <label>Citation abbreviations (.json)</label>
                 <input type="file" ref="abbrevInput" class="hidden" accept=".json" @change="handleAbbrevFile($event)" />
                 <button class="upload-btn" @click="$refs.abbrevInput.click()">Upload Abbreviations</button>
-                <div v-if="abbrevFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(abbrevFile, abbrevFile.name)">{{ abbrevFile.name }}</a> <span class="file-remove" @click="abbrevFile = null">&#10005;</span></div>
+                <div v-if="abbrevFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(abbrevFile, abbrevFile.name)">{{ abbrevFile.name }}</a> <span class="file-remove" @click="abbrevFile = null; hasChanges = true">&#10005;</span></div>
               </div>
             </div>
           </div>
@@ -941,7 +941,7 @@
               <label>Custom highlight theme (.theme)</label>
               <input type="file" ref="highlightThemeInput" class="hidden" accept=".theme" @change="handleHighlightTheme($event)" />
               <button class="upload-btn" @click="$refs.highlightThemeInput.click()">Upload Theme</button>
-              <div v-if="highlightThemeFile" class="resource-item">&#127912; <a href="#" @click.prevent="downloadFile(highlightThemeFile, highlightThemeFile.name)">{{ highlightThemeFile.name }}</a> <span class="file-remove" @click="highlightThemeFile = null">&#10005;</span></div>
+              <div v-if="highlightThemeFile" class="resource-item">&#127912; <a href="#" @click.prevent="downloadFile(highlightThemeFile, highlightThemeFile.name)">{{ highlightThemeFile.name }}</a> <span class="file-remove" @click="highlightThemeFile = null; hasChanges = true">&#10005;</span></div>
             </div>
             <div class="resource-upload" style="margin-top: 0.75rem;">
               <label>Custom syntax definitions (.xml)</label>
@@ -1119,7 +1119,7 @@
                 <label>Cover image</label>
                 <input type="file" ref="epubCoverInput" class="hidden" accept="image/*" @change="handleEpubCover($event)" />
                 <button class="upload-btn" @click="$refs.epubCoverInput.click()">Upload Cover Image</button>
-                <div v-if="epubCoverImage" class="resource-item">&#128444; <a href="#" @click.prevent="downloadFile(epubCoverImage, epubCoverImage.name)">{{ epubCoverImage.name }}</a> <span class="file-remove" @click="epubCoverImage = null">&#10005;</span></div>
+                <div v-if="epubCoverImage" class="resource-item">&#128444; <a href="#" @click.prevent="downloadFile(epubCoverImage, epubCoverImage.name)">{{ epubCoverImage.name }}</a> <span class="file-remove" @click="epubCoverImage = null; hasChanges = true">&#10005;</span></div>
               </div>
               <div class="resource-upload">
                 <label>Embed fonts</label>
@@ -1185,13 +1185,13 @@
               <label>Custom template</label>
               <input type="file" ref="templateInput" class="hidden" @change="handleTemplateFile($event)" />
               <button class="upload-btn" @click="$refs.templateInput.click()">Upload Custom Template</button>
-              <div v-if="templateFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(templateFile, templateFile.name)">{{ templateFile.name }}</a> <span class="file-remove" @click="templateFile = null">&#10005;</span></div>
+              <div v-if="templateFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(templateFile, templateFile.name)">{{ templateFile.name }}</a> <span class="file-remove" @click="templateFile = null; hasChanges = true">&#10005;</span></div>
             </div>
             <div class="resource-upload" v-show="showReferenceDoc">
               <label>Reference document (for styles in docx/odt/pptx)</label>
               <input type="file" ref="referenceDocInput" class="hidden" accept=".docx,.odt,.pptx" @change="handleReferenceDoc($event)" />
               <button class="upload-btn" @click="$refs.referenceDocInput.click()">Upload Reference Document</button>
-              <div v-if="referenceDoc" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(referenceDoc, referenceDoc.name)">{{ referenceDoc.name }}</a> <span class="file-remove" @click="referenceDoc = null">&#10005;</span></div>
+              <div v-if="referenceDoc" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(referenceDoc, referenceDoc.name)">{{ referenceDoc.name }}</a> <span class="file-remove" @click="referenceDoc = null; hasChanges = true">&#10005;</span></div>
             </div>
             <div class="resource-upload">
               <label>Include in header (custom CSS, scripts, LaTeX packages)</label>
@@ -1267,7 +1267,7 @@
               <label>Metadata file (.yaml, .json)</label>
               <input type="file" ref="metadataFileInput" class="hidden" accept=".yaml,.yml,.json" @change="handleMetadataFile($event)" />
               <button class="upload-btn" @click="$refs.metadataFileInput.click()">Upload Metadata File</button>
-              <div v-if="metadataFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(metadataFile, metadataFile.name)">{{ metadataFile.name }}</a> <span class="file-remove" @click="metadataFile = null">&#10005;</span></div>
+              <div v-if="metadataFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(metadataFile, metadataFile.name)">{{ metadataFile.name }}</a> <span class="file-remove" @click="metadataFile = null; hasChanges = true">&#10005;</span></div>
             </div>
             <div class="options-grid">
               <div class="form-group">
@@ -1291,10 +1291,10 @@
               <div class="custom-meta-row" v-for="(m, idx) in customMetadata" :key="idx">
                 <input type="text" name="key" v-model="m.key" placeholder="field name" />
                 <input type="text" name="value" v-model="m.value" placeholder="value" />
-                <button type="button" class="remove-meta" @click="customMetadata.splice(idx, 1)">&#10005;</button>
+                <button type="button" class="remove-meta" @click="customMetadata.splice(idx, 1); hasChanges = true">&#10005;</button>
               </div>
             </div>
-            <button type="button" class="add-metadata-btn" @click="customMetadata.push({ key: '', value: '' })">+ Add field</button>
+            <button type="button" class="add-metadata-btn" @click="customMetadata.push({ key: '', value: '' }); hasChanges = true">+ Add field</button>
           </div>
 
           <!-- Wrapping -->
@@ -1479,6 +1479,7 @@
         outputExtensionsList: [],
 
         // Output
+        hasChanges: false,
         isConverting: false,
         showOutput: false,
         output: null,
@@ -1533,7 +1534,7 @@
         // Computed-like getters
         get canConvert() {
           const hasInput = this.inputMode === 'file' ? this.fileOrder.length > 0 : this.textInput.trim().length > 0;
-          return hasInput && this.pandocReady;
+          return hasInput && this.pandocReady && this.hasChanges;
         },
 
         get effectiveOutputFormat() {
@@ -1960,11 +1961,13 @@
             this.files[file.name] = file;
           });
           this.updateExtensions();
+          this.hasChanges = true;
         },
 
         removeFile(name) {
           delete this.files[name];
           this.fileOrder = this.fileOrder.filter(n => n !== name);
+          this.hasChanges = true;
         },
 
         onFileDragStart(idx, e) {
@@ -1982,12 +1985,14 @@
             const draggedName = this.fileOrder[this.fileDraggingIdx];
             this.fileOrder.splice(this.fileDraggingIdx, 1);
             this.fileOrder.splice(idx, 0, draggedName);
+            this.hasChanges = true;
           }
         },
 
         handleAuxFiles(e) {
           Array.from(e.target.files).forEach(file => { this.auxFiles[file.name] = file; });
           e.target.value = '';
+          this.hasChanges = true;
         },
 
         handleAuxDir(e) {
@@ -1996,67 +2001,74 @@
             this.auxFiles[path] = file;
           });
           e.target.value = '';
+          this.hasChanges = true;
         },
 
-        removeAuxFile(name) { delete this.auxFiles[name]; },
+        removeAuxFile(name) { delete this.auxFiles[name]; this.hasChanges = true; },
 
         // Resource file handlers
-        handleBibFile(e) { if (e.target.files[0]) this.bibFile = e.target.files[0]; },
-        handleCslFile(e) { if (e.target.files[0]) { this.cslFile = e.target.files[0]; this.cslStyleName = ''; } },
-        handleAbbrevFile(e) { if (e.target.files[0]) this.abbrevFile = e.target.files[0]; },
-        handleHighlightTheme(e) { if (e.target.files[0]) this.highlightThemeFile = e.target.files[0]; },
-        handleTemplateFile(e) { if (e.target.files[0]) this.templateFile = e.target.files[0]; },
-        handleReferenceDoc(e) { if (e.target.files[0]) this.referenceDoc = e.target.files[0]; },
-        handleMetadataFile(e) { if (e.target.files[0]) this.metadataFile = e.target.files[0]; },
-        handleEpubCover(e) { if (e.target.files[0]) this.epubCoverImage = e.target.files[0]; },
+        handleBibFile(e) { if (e.target.files[0]) { this.bibFile = e.target.files[0]; this.hasChanges = true; } },
+        handleCslFile(e) { if (e.target.files[0]) { this.cslFile = e.target.files[0]; this.cslStyleName = ''; this.hasChanges = true; } },
+        handleAbbrevFile(e) { if (e.target.files[0]) { this.abbrevFile = e.target.files[0]; this.hasChanges = true; } },
+        handleHighlightTheme(e) { if (e.target.files[0]) { this.highlightThemeFile = e.target.files[0]; this.hasChanges = true; } },
+        handleTemplateFile(e) { if (e.target.files[0]) { this.templateFile = e.target.files[0]; this.hasChanges = true; } },
+        handleReferenceDoc(e) { if (e.target.files[0]) { this.referenceDoc = e.target.files[0]; this.hasChanges = true; } },
+        handleMetadataFile(e) { if (e.target.files[0]) { this.metadataFile = e.target.files[0]; this.hasChanges = true; } },
+        handleEpubCover(e) { if (e.target.files[0]) { this.epubCoverImage = e.target.files[0]; this.hasChanges = true; } },
 
         handleCssFiles(e) {
           Array.from(e.target.files).forEach(file => {
             if (!this.cssFiles.find(f => f.name === file.name)) this.cssFiles.push(file);
           });
           e.target.value = '';
+          this.hasChanges = true;
         },
-        removeCssFile(name) { this.cssFiles = this.cssFiles.filter(f => f.name !== name); },
+        removeCssFile(name) { this.cssFiles = this.cssFiles.filter(f => f.name !== name); this.hasChanges = true; },
 
         handleSyntaxDefs(e) {
           Array.from(e.target.files).forEach(file => {
             if (!this.syntaxDefinitions.find(f => f.name === file.name)) this.syntaxDefinitions.push(file);
           });
           e.target.value = '';
+          this.hasChanges = true;
         },
-        removeSyntaxDef(name) { this.syntaxDefinitions = this.syntaxDefinitions.filter(f => f.name !== name); },
+        removeSyntaxDef(name) { this.syntaxDefinitions = this.syntaxDefinitions.filter(f => f.name !== name); this.hasChanges = true; },
 
         handleEpubFonts(e) {
           Array.from(e.target.files).forEach(file => {
             if (!this.epubFonts.find(f => f.name === file.name)) this.epubFonts.push(file);
           });
           e.target.value = '';
+          this.hasChanges = true;
         },
-        removeEpubFont(name) { this.epubFonts = this.epubFonts.filter(f => f.name !== name); },
+        removeEpubFont(name) { this.epubFonts = this.epubFonts.filter(f => f.name !== name); this.hasChanges = true; },
 
         handleHeaderFiles(e) {
           Array.from(e.target.files).forEach(file => {
             if (!this.headerFiles.find(f => f.name === file.name)) this.headerFiles.push(file);
           });
           e.target.value = '';
+          this.hasChanges = true;
         },
-        removeHeaderFile(name) { this.headerFiles = this.headerFiles.filter(f => f.name !== name); },
+        removeHeaderFile(name) { this.headerFiles = this.headerFiles.filter(f => f.name !== name); this.hasChanges = true; },
 
         handleBeforeBodyFiles(e) {
           Array.from(e.target.files).forEach(file => {
             if (!this.beforeBodyFiles.find(f => f.name === file.name)) this.beforeBodyFiles.push(file);
           });
           e.target.value = '';
+          this.hasChanges = true;
         },
-        removeBeforeBodyFile(name) { this.beforeBodyFiles = this.beforeBodyFiles.filter(f => f.name !== name); },
+        removeBeforeBodyFile(name) { this.beforeBodyFiles = this.beforeBodyFiles.filter(f => f.name !== name); this.hasChanges = true; },
 
         handleAfterBodyFiles(e) {
           Array.from(e.target.files).forEach(file => {
             if (!this.afterBodyFiles.find(f => f.name === file.name)) this.afterBodyFiles.push(file);
           });
           e.target.value = '';
+          this.hasChanges = true;
         },
-        removeAfterBodyFile(name) { this.afterBodyFiles = this.afterBodyFiles.filter(f => f.name !== name); },
+        removeAfterBodyFile(name) { this.afterBodyFiles = this.afterBodyFiles.filter(f => f.name !== name); this.hasChanges = true; },
 
         // CSL styles
         async loadCslStyles() {
@@ -2089,6 +2101,7 @@
             const cslContent = await response.text();
             const blob = new Blob([cslContent], { type: 'application/xml' });
             this.cslFile = new File([blob], `${this.cslStyleName}.csl`, { type: 'application/xml' });
+            this.hasChanges = true;
           } catch (err) {
             alert(`Failed to fetch style: ${err.message}`);
           }
@@ -2470,6 +2483,9 @@
           if (files['media.tar'] && files['media.tar'].size > 0) {
             this.mediaTar = files['media.tar'];
           }
+
+          // Disable convert button until next change
+          this.hasChanges = false;
         },
 
         download() {
