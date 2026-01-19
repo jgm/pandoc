@@ -783,6 +783,10 @@
                 <input type="checkbox" id="opt-file-scope" v-model="opts.fileScope" />
                 <label for="opt-file-scope">File scope (parse files separately)</label>
               </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-extract-media" v-model="opts.extractMedia" />
+                <label for="opt-extract-media">Extract media</label>
+              </div>
             </div>
             <div class="options-grid" style="margin-top: 0.75rem;">
               <div class="form-group">
@@ -1325,6 +1329,7 @@
           <div class="output-actions">
             <button class="download-btn" v-show="output" @click="download">&#128229; Download {{ outputFilenameActual }}</button>
             <button class="copy-btn" v-show="output && !isBinaryOutput" @click="copyToClipboard">{{ copyBtnText }}</button>
+            <button class="download-btn" v-show="mediaTar" @click="downloadMedia">&#128247; Download Media</button>
           </div>
           <div class="messages">
             <div v-for="(msg, idx) in messages" :key="idx" class="message" :class="msg.type">{{ msg.text }}</div>
@@ -1404,6 +1409,7 @@
           toc: false,
           numberSections: false,
           fileScope: false,
+          extractMedia: false,
           tocDepth: '3',
           shiftHeading: '0',
           trackChanges: '',
@@ -1480,6 +1486,7 @@
         outputPreview: '',
         messages: [],
         copyBtnText: '📋 Copy to Clipboard',
+        mediaTar: null,
 
         // Format constants
         formatByExtension: {
@@ -2331,6 +2338,9 @@
           if (this.opts.wrap !== 'auto') opts.wrap = this.opts.wrap;
           if (this.opts.columns.trim()) opts.columns = parseInt(this.opts.columns);
 
+          // Extract media
+          if (this.opts.extractMedia) opts['extract-media'] = 'media.tar';
+
           return opts;
         },
 
@@ -2340,6 +2350,7 @@
           this.messages = [];
           this.output = null;
           this.outputPreview = '';
+          this.mediaTar = null;
 
           try {
             const options = this.buildOptions();
@@ -2454,6 +2465,11 @@
               this.outputPreview = result.stdout;
             }
           }
+
+          // Check for extracted media
+          if (files['media.tar'] && files['media.tar'].size > 0) {
+            this.mediaTar = files['media.tar'];
+          }
         },
 
         download() {
@@ -2462,6 +2478,16 @@
           const a = document.createElement('a');
           a.href = url;
           a.download = this.outputFilenameActual || 'output';
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+
+        downloadMedia() {
+          if (!this.mediaTar) return;
+          const url = URL.createObjectURL(this.mediaTar);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'media.tar';
           a.click();
           URL.revokeObjectURL(url);
         },

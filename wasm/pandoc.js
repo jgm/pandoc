@@ -112,6 +112,10 @@ export async function pandoc(options, stdin, files) {
   if (options["output-file"]) {
     await addFile(options["output-file"], new Blob(), false);
   }
+  // add media file for extracted media
+  if (options["extract-media"]) {
+    await addFile(options["extract-media"], new Blob(), false);
+  }
   if (stdin) {
     in_file.data = new TextEncoder().encode(stdin);
   }
@@ -120,6 +124,13 @@ export async function pandoc(options, stdin, files) {
   if (options["output-file"]) {
     files[options["output-file"]] =
        new Blob([fileSystem.get(options["output-file"]).data]);
+  }
+  if (options["extract-media"]) {
+    const mediaFile = fileSystem.get(options["extract-media"]);
+    if (mediaFile && mediaFile.data && mediaFile.data.length > 0) {
+      files[options["extract-media"]] =
+         new Blob([mediaFile.data], { type: 'application/x-tar' });
+    }
   }
   const rawWarnings = new TextDecoder("utf-8", { fatal: true })
                           .decode(warnings_file.data);
