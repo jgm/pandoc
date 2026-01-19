@@ -23,13 +23,13 @@ extra-deps:
 - pandoc-lua-marshal-0.3.2
 - typst-symbols-0.1.9.1
 - git: https://github.com/jgm/asciidoc-hs.git
-  commit: c2b4852e0002a7995793ec0e3c44b723a85a2ca2
+  commit: 6b7d77db10f83cb58dc8059ac7bd739d5e37570b
 - git: https://github.com/jgm/typst-hs.git
   commit: b4399d44d38c1935c02db9bfd62fb5a4450ad7af
 - git: https://github.com/jgm/citeproc.git
   commit: 777a916be683a40e9b5e17da25816917b6fb1208
 - git: https://github.com/jgm/texmath.git
-  commit: aee6b494595a58dbbf769264061876778f7aa269
+  commit: e3c43559e98e46b3fd5e5a5719f64cc4f1f5ef0c
 - git: https://github.com/jgm/djoths.git
   commit: a6fc625fd58aa39df05dd1d82ee005e681815095
 ghc-options:
