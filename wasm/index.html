@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pandoc in the browser</title>
+  <script src="https://unpkg.com/petite-vue" defer></script>
+  <script type="module">
+    import { zipSync, unzipSync, strToU8, strFromU8 } from 'https://esm.sh/fflate@0.8.2';
+    window.fflate = { zipSync, unzipSync, strToU8, strFromU8 };
+  </script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    footer {
+      margin: 6pt;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    .header {
+      background: var(--gray-900);
+      color: white;
+      padding: 0.5rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+    .header .tagline { color: var(--gray-400); font-size: 0.8rem; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-body { padding: 1rem; }
+    .card-body.compact { padding: 0.75rem; }
+
+    .include-fieldset {
+      border: 1px solid var(--gray-300);
+      border-radius: 4px;
+      padding: 1rem;
+      margin: 0;
+    }
+    .include-fieldset legend { padding: 0 0.5rem; font-weight: 500; }
+    .include-fieldset-content { display: flex; flex-wrap: wrap; gap: 2rem; }
+
+    .drop-zone {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--gray-50);
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .drop-zone-icon { font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5; }
+    .drop-zone-text { color: var(--gray-600); margin-bottom: 0.25rem; font-size: 0.9rem; }
+    .drop-zone-hint { color: var(--gray-400); font-size: 0.8rem; }
+
+    .file-list { margin-top: 1rem; }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .file-item:active { cursor: grabbing; }
+    .file-item.dragging { opacity: 0.5; }
+    .file-item.drag-over { border-top: 2px solid var(--primary); margin-top: -2px; }
+    .file-item .file-icon { font-size: 1.25rem; }
+    .file-item .file-name { flex: 1; font-size: 0.9rem; word-break: break-all; }
+    .file-item a.file-name { color: var(--primary); text-decoration: none; cursor: pointer; }
+    .file-item a.file-name:hover { text-decoration: underline; }
+    .resource-item a { color: var(--primary); text-decoration: none; cursor: pointer; }
+    .resource-item a:hover { text-decoration: underline; }
+    .file-item .file-size { color: var(--gray-500); font-size: 0.8rem; }
+
+    .file-item .file-remove {
+      color: var(--gray-400);
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .file-item .file-remove:hover { color: var(--danger); background: #fef2f2; }
+
+    .auxiliary-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-200); }
+    .auxiliary-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; }
+    .auxiliary-label { font-size: 0.8rem; color: var(--gray-600); }
+
+    .upload-btn-small {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-btn-small:hover { background: var(--gray-200); }
+
+    .file-list-small .file-item { padding: 0.5rem 0.75rem; }
+    .file-list-small .file-item .file-icon { font-size: 1rem; }
+    .file-list-small .file-item .file-name { font-size: 0.85rem; }
+
+    .input-mode-toggle {
+      display: inline-flex;
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      padding: 3px;
+    }
+
+    .input-mode-btn {
+      padding: 0.35rem 0.75rem;
+      border: none;
+      background: transparent;
+      border-radius: calc(var(--radius) - 2px);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      color: var(--gray-600);
+    }
+
+    .input-mode-btn:hover:not(.active) { color: var(--gray-800); }
+
+    .input-mode-btn.active {
+      background: white;
+      color: var(--gray-900);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .text-input-area textarea {
+      width: 100%;
+      height: 120px;
+      padding: 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.9rem;
+      resize: vertical;
+    }
+
+    .input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .input-controls { display: flex; align-items: center; gap: 0.75rem; }
+
+    .format-bar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .format-bar .form-group { flex-direction: row; align-items: center; gap: 0.5rem; }
+    .format-bar .form-group label { white-space: nowrap; }
+    .format-bar .form-group select { padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 11.5em; }
+    .format-bar .form-group input[type="text"] { padding: 0.5rem 0.75rem; font-size: 0.85rem; width: 140px; }
+
+    .examples-toggle { margin-bottom: 0.5rem; }
+    .examples-toggle a { font-size: 0.85rem; color: var(--gray-600); text-decoration: none; }
+    .examples-toggle a:hover { color: var(--primary); }
+    .examples-bar { display: flex; align-items: center; gap: 0.5rem; }
+    .examples-bar label { font-size: 0.8rem; color: var(--gray-500); font-weight: 500; }
+    .examples-bar select { padding: 0.25rem 0.5rem; font-size: 0.8rem; border: 1px solid var(--gray-300); border-radius: 4px; background: white; }
+
+    .extensions-row { display: flex; gap: 2rem; flex-wrap: wrap; }
+    .extensions-group { flex: 1; min-width: 200px; }
+    .extensions-group-header {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-500);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .extensions-list {
+      columns: 3;
+      column-gap: 1rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .extension-item {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-size: 0.8rem;
+      break-inside: avoid;
+    }
+
+    .extension-item input[type="checkbox"] { width: 0.85rem; height: 0.85rem; }
+    .extension-item label { cursor: pointer; color: var(--gray-600); }
+    .extension-item.default-on label { font-weight: 500; }
+    .extension-item.toggled label { color: var(--primary); }
+
+    .custom-metadata { margin-top: 0.5rem; }
+
+    .custom-meta-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .custom-meta-row input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+    }
+
+    .custom-meta-row input[name="key"] { width: 180px; }
+    .custom-meta-row input[name="value"] { flex: 1; }
+
+    .custom-meta-row .remove-meta {
+      padding: 0.25rem 0.5rem;
+      background: none;
+      border: none;
+      color: var(--gray-400);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .custom-meta-row .remove-meta:hover { color: var(--danger); }
+
+    .add-metadata-btn {
+      margin-top: 0.5rem;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: var(--gray-600);
+    }
+
+    .add-metadata-btn:hover { background: var(--gray-200); }
+
+    .variables-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gray-200); }
+    .variables-section > label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--gray-700);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .form-group label { font-weight: 500; font-size: 0.9rem; color: var(--gray-700); }
+
+    .form-group select, .form-group input[type="text"] {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      background: white;
+      transition: border-color 0.2s;
+    }
+
+    .form-group select:focus, .form-group input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group .hint { font-size: 0.8rem; color: var(--gray-500); }
+
+    .options-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      border-bottom: 1px solid var(--gray-200);
+      margin-bottom: 0.75rem;
+    }
+
+    .options-tab {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.85rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      color: var(--gray-600);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .options-tab:hover { color: var(--gray-800); background: var(--gray-50); }
+    .options-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    #panel-format .options-grid {
+      grid-template-columns: repeat(auto-fill, minmax(165px, max-content));
+      justify-content: start;
+      gap: 0.75rem 1.5rem;
+    }
+
+    #panel-format .form-group select { width: auto; min-width: 6em; }
+
+    .checkbox-group { display: flex; align-items: center; gap: 0.5rem; }
+    .checkbox-group input[type="checkbox"] { width: 1.1rem; height: 1.1rem; cursor: pointer; }
+    .checkbox-group label { font-size: 0.9rem; cursor: pointer; }
+
+    .resource-upload { margin-top: 1rem; }
+
+    .resource-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .upload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .upload-btn:hover { background: var(--gray-200); }
+
+    .convert-btn {
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .convert-btn:hover:not(:disabled) { background: var(--primary-hover); }
+    .convert-btn:disabled { background: var(--gray-400); cursor: not-allowed; }
+
+    .output-preview {
+      background: var(--gray-900);
+      color: #e5e7eb;
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 0.85rem;
+      max-height: 400px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .output-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--success);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .download-btn:hover { background: #15803d; }
+
+    .copy-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--gray-600);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover { background: var(--gray-700); }
+
+    .messages { margin-top: 1rem; }
+
+    .message {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .message.error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+    .message.warning { background: #fffbeb; color: var(--warning); border: 1px solid #fde68a; }
+    .message.info { background: #eff6ff; color: var(--primary); border: 1px solid #bfdbfe; }
+
+    .loading { text-align: center; padding: 2rem; }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    button { line-height: 1.1; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .loading-box {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .loading-box p { margin: 0; color: var(--gray-600); font-size: 0.95rem; }
+
+    @media (max-width: 640px) {
+      .container { padding: 0.75rem; }
+      .input-header { flex-direction: column; align-items: stretch; }
+      .input-controls { justify-content: space-between; }
+      .format-bar { flex-direction: column; align-items: stretch; }
+      .format-bar .form-group { flex-direction: column; align-items: stretch; }
+      .format-bar .form-group input[type="text"] { width: 100%; }
+      .options-grid { grid-template-columns: 1fr; }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>pandoc for the people</h1>
+    <span class="tagline">Convert documents without leaving the browser</span>
+  </div>
+
+  <div id="app" v-scope="pandocApp()" @vue:mounted="init()">
+    <div class="container" @input="hasChanges = true" @change="hasChanges = true">
+      <!-- Input Section -->
+      <div class="examples-toggle">
+        <a href="#" @click.prevent="showExamplesBar = !showExamplesBar">
+          {{ showExamplesBar ? '&#9660;' : '&#9654;' }} Examples
+        </a>
+      </div>
+      <div class="card" v-show="showExamplesBar">
+        <div class="card-body">
+            <div class="examples-bar">
+              <label for="examples-select">Load:</label>
+              <select id="examples-select" v-model="selectedExample" @change="loadExample">
+                <option value="">Select example...</option>
+                <option value="examples/bibtex-to-csljson.zip">BibTeX to CSL JSON</option>
+                <option value="examples/csv-table-to-org.zip">CSV table to Org</option>
+                <option value="examples/custom-template.zip">Custom template</option>
+                <option value="examples/docx-with-equations-to-latex.zip">DOCX with equations to LaTeX</option>
+                <option value="examples/hello-world.zip">Hello world</option>
+                <option value="examples/lua-filters.zip">Lua filters</option>
+                <option value="examples/highlighted-code-to-html.zip">Highlighted code to HTML</option>
+                <option value="examples/ipynb-to-rtf.zip">Jupyter notebook to RTF</option>
+                <option value="examples/latex-to-docbook-with-mathml.zip">LaTeX to DocBook with MathML</option>
+                <option value="examples/latex-with-macros-to-restructured-text.zip">LaTeX with macros to RST</option>
+                <option value="examples/man-page-to-context.zip">Man page to ConTeXt</option>
+                <option value="examples/markdown-citations-to-plain-with-csl-style.zip">Markdown citations to plain</option>
+                <option value="examples/markdown-to-docbook-with-citations.zip">Markdown to DocBook with citations</option>
+                <option value="examples/markdown-to-revealjs-slides.zip">Markdown to reveal.js slides</option>
+                <option value="examples/markdown-to-rst.zip">Markdown to RST</option>
+                <option value="examples/mediawiki-to-docx-with-equations.zip">MediaWiki to DOCX with equations</option>
+                <option value="examples/ris-to-formatted-markdown-bibliography.zip">RIS to Markdown bibliography</option>
+                <option value="examples/rst-table-from-yaml-data.zip">RST table from YAML data</option>
+              </select>
+              <button class="upload-btn-small" @click="downloadAsExample">Download as example</button>
+              <button class="upload-btn-small" @click.stop="$refs.exampleInput.click()">Upload example</button>
+              <input type="file" ref="exampleInput" class="hidden" accept=".zip" @change.stop="uploadExample($event)" />
+            </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="input-header">
+            <div class="input-controls">
+              <div class="input-mode-toggle">
+                <button class="input-mode-btn" :class="{ active: inputMode === 'file' }" @click="inputMode = 'file'; hasChanges = true">Upload Files</button>
+                <button class="input-mode-btn" :class="{ active: inputMode === 'text' }" @click="inputMode = 'text'; hasChanges = true">Paste Text</button>
+              </div>
+              <button class="convert-btn" :disabled="!canConvert" @click="convert">Convert</button>
+            </div>
+            <div class="format-bar">
+              <div class="form-group">
+                <label for="input-format">From:</label>
+                <select id="input-format" v-model="inputFormat" @change="onInputFormatChange">
+                  <option value="auto">Auto-detect</option>
+                  <option v-for="fmt in inputFormats" :key="fmt" :value="fmt">{{ getFormatLabel(fmt, 'input') }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="output-format">To:</label>
+                <select id="output-format" v-model="outputFormat" @change="onOutputFormatChange">
+                  <option value="auto">Auto-detect</option>
+                  <option v-for="fmt in outputFormats" :key="fmt" :value="fmt">{{ getFormatLabel(fmt, 'output') }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="output-filename">Output:</label>
+                <input type="text" id="output-filename" v-model="outputFilename" :placeholder="outputFilenamePlaceholder" />
+              </div>
+            </div>
+          </div>
+
+          <!-- File input area -->
+          <div v-show="inputMode === 'file'">
+            <div class="drop-zone" @click="$refs.fileInput.click()" @dragover.prevent="dragOver = true" @dragleave="dragOver = false" @drop.prevent="handleDrop($event)" :class="{ 'drag-over': dragOver }">
+              <div class="drop-zone-icon">&#128196;</div>
+              <div class="drop-zone-text">Drop files here or click to browse</div>
+              <div class="drop-zone-hint">Supports: .md, .docx, .html, .tex, .rst, .epub, .odt, and more</div>
+            </div>
+            <input type="file" ref="fileInput" class="hidden" multiple @change="handleFileInput($event)" />
+            <div class="file-list" v-if="fileOrder.length > 0">
+              <div class="file-item" v-for="(name, idx) in fileOrder" :key="name" draggable="true" @dragstart="onFileDragStart(idx, $event)" @dragover.prevent="onFileDragOver(idx)" @dragleave="fileDragOverIdx = -1" @drop.prevent="onFileDrop(idx)" @dragend="fileDraggingIdx = -1" :class="{ dragging: fileDraggingIdx === idx, 'drag-over': fileDragOverIdx === idx && fileDraggingIdx !== idx }">
+                <span class="file-icon">&#128196;</span>
+                <a class="file-name" href="#" @click.prevent.stop="downloadFile(files[name], name)">{{ name }}</a>
+                <span class="file-size">{{ formatFileSize(files[name].size) }}</span>
+                <span class="file-remove" @click.stop="removeFile(name)">&#10005;</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Text input area -->
+          <div class="text-input-area" v-show="inputMode === 'text'">
+            <textarea v-model="textInput" placeholder="Paste or type your content here..."></textarea>
+          </div>
+
+          <!-- Auxiliary files -->
+          <div class="auxiliary-section">
+            <div class="auxiliary-header">
+              <span class="auxiliary-label">Additional files (images, includes, etc.)</span>
+              <button class="upload-btn-small" @click="$refs.auxFileInput.click()">+ Add Files...</button>
+              <input type="file" ref="auxFileInput" class="hidden" multiple @change="handleAuxFiles($event)" />
+              <button class="upload-btn-small" @click="$refs.auxDirInput.click()">+ Add Directory...</button>
+              <input type="file" ref="auxDirInput" class="hidden" webkitdirectory @change="handleAuxDir($event)" />
+            </div>
+            <div class="file-list file-list-small" v-if="Object.keys(auxFiles).length > 0">
+              <div class="file-item" v-for="(file, name) in auxFiles" :key="name">
+                <span class="file-icon">&#128444;</span>
+                <a class="file-name" href="#" @click.prevent="downloadFile(file, name)">{{ name }}</a>
+                <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                <span class="file-remove" @click="removeAuxFile(name)">&#10005;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="card">
+        <div class="card-body compact">
+          <div class="options-tabs">
+            <button class="options-tab" :class="{ active: activeTab === 'general' }" @click="activeTab = 'general'">General</button>
+            <button class="options-tab" :class="{ active: activeTab === 'headings' }" @click="activeTab = 'headings'">Headings</button>
+            <button class="options-tab" :class="{ active: activeTab === 'media' }" @click="activeTab = 'media'">Media</button>
+            <button class="options-tab" v-show="showTrackChangesTab" :class="{ active: activeTab === 'track-changes' }" @click="activeTab = 'track-changes'">Track changes</button>
+            <button class="options-tab" v-show="showExtensionsTab" :class="{ active: activeTab === 'extensions' }" @click="activeTab = 'extensions'">Extensions</button>
+            <button class="options-tab" :class="{ active: activeTab === 'citations' }" @click="activeTab = 'citations'">Citations</button>
+            <button class="options-tab" :class="{ active: activeTab === 'math' }" @click="activeTab = 'math'">Math</button>
+            <button class="options-tab" :class="{ active: activeTab === 'code' }" @click="activeTab = 'code'">Code</button>
+            <button class="options-tab" v-show="showFormatTab" :class="{ active: activeTab === 'format' }" @click="activeTab = 'format'">{{ formatTabName }}</button>
+            <button class="options-tab" v-show="showChunkedTab" :class="{ active: activeTab === 'chunked' }" @click="activeTab = 'chunked'">Chunked</button>
+            <button class="options-tab" v-show="showIpynbTab" :class="{ active: activeTab === 'ipynb' }" @click="activeTab = 'ipynb'">Notebook</button>
+            <button class="options-tab" :class="{ active: activeTab === 'template' }" @click="activeTab = 'template'">Template</button>
+            <button class="options-tab" v-show="showSlidesTab" :class="{ active: activeTab === 'slides' }" @click="activeTab = 'slides'">Slides</button>
+            <button class="options-tab" :class="{ active: activeTab === 'metadata' }" @click="activeTab = 'metadata'">Metadata</button>
+            <button class="options-tab" :class="{ active: activeTab === 'filters' }" @click="activeTab = 'filters'">Filters</button>
+            <button class="options-tab" :class="{ active: activeTab === 'wrapping' }" @click="activeTab = 'wrapping'">Wrapping</button>
+          </div>
+
+          <!-- General -->
+          <div class="tab-panel" v-show="activeTab === 'general'">
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-standalone" v-model="opts.standalone" />
+                <label for="opt-standalone">Standalone document</label>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-file-scope" v-model="opts.fileScope" />
+                <label for="opt-file-scope">File scope (parse files separately)</label>
+              </div>
+              <div class="form-group">
+                <label for="opt-tab-stop">Tab stop</label>
+                <select id="opt-tab-stop" v-model="opts.tabStop" style="width: 110px;">
+                  <option v-for="n in 8" :key="n" :value="n">{{ n }}</option>
+                  <option value="preserve">Preserve tabs</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-eol">Line endings</label>
+                <select id="opt-eol" v-model="opts.eol" style="width: 120px;">
+                  <option value="">Native</option>
+                  <option value="lf">LF (Unix)</option>
+                  <option value="crlf">CRLF (Windows)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Headings -->
+          <div class="tab-panel" v-show="activeTab === 'headings'">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-shift-heading">Shift heading level by</label>
+                <select id="opt-shift-heading" v-model="opts.shiftHeading">
+                  <option value="-2">-2</option>
+                  <option value="-1">-1</option>
+                  <option value="0">0</option>
+                  <option value="1">+1</option>
+                  <option value="2">+2</option>
+                </select>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-number-sections" v-model="opts.numberSections" />
+                <label for="opt-number-sections">Number sections</label>
+              </div>
+              <div class="form-group">
+                <label for="opt-number-offset">Number offset</label>
+                <input type="text" id="opt-number-offset" v-model="opts.numberOffset" placeholder="0,0,0" style="width: 100px;" />
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-toc" v-model="opts.toc" />
+                <label for="opt-toc">Table of contents</label>
+              </div>
+              <div class="form-group">
+                <label for="opt-toc-depth">TOC depth</label>
+                <select id="opt-toc-depth" v-model="opts.tocDepth">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Media -->
+          <div class="tab-panel" v-show="activeTab === 'media'">
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-extract-media" v-model="opts.extractMedia" />
+                <label for="opt-extract-media">Extract media</label>
+              </div>
+              <div class="form-group">
+                <label for="opt-dpi">DPI (for images)</label>
+                <input type="number" id="opt-dpi" v-model="opts.dpi" placeholder="96" min="1" style="width: 80px;" />
+              </div>
+              <div class="form-group">
+                <label for="opt-resource-path">Resource path</label>
+                <input type="text" id="opt-resource-path" v-model="opts.resourcePath" placeholder=".:images" style="width: 240px;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Track Changes -->
+          <div class="tab-panel" v-show="activeTab === 'track-changes'">
+            <div class="form-group" style="max-width: 250px;">
+              <label for="opt-track-changes">Handle tracked changes</label>
+              <select id="opt-track-changes" v-model="opts.trackChanges">
+                <option value="">Default (accept)</option>
+                <option value="accept">Accept all changes</option>
+                <option value="reject">Reject all changes</option>
+                <option value="all">Include all (insertions, deletions, comments)</option>
+              </select>
+            </div>
+            <p style="color: var(--gray-500); font-size: 0.85rem; margin-top: 0.75rem;">
+              Controls how tracked changes and comments in Word documents are handled during conversion.
+            </p>
+          </div>
+
+          <!-- Extensions -->
+          <div class="tab-panel" v-show="activeTab === 'extensions'">
+            <div class="extensions-row">
+              <div class="extensions-group" v-show="inputFormat !== 'auto'">
+                <div class="extensions-group-header">From ({{ inputFormat }})</div>
+                <div class="extensions-list">
+                  <div class="extension-item" v-for="ext in inputExtensionsList" :key="'in-' + ext.name" :class="{ 'default-on': ext.defaultOn, toggled: inputExtensions[ext.name] !== undefined }">
+                    <input type="checkbox" :id="'ext-in-' + ext.name" :checked="getExtensionChecked('input', ext)" @change="toggleExtension('input', ext, $event)" />
+                    <label :for="'ext-in-' + ext.name">{{ ext.name }}</label>
+                  </div>
+                </div>
+              </div>
+              <div class="extensions-group" v-show="outputFormat !== 'auto'">
+                <div class="extensions-group-header">To ({{ effectiveOutputFormat }})</div>
+                <div class="extensions-list">
+                  <div class="extension-item" v-for="ext in outputExtensionsList" :key="'out-' + ext.name" :class="{ 'default-on': ext.defaultOn, toggled: outputExtensions[ext.name] !== undefined }">
+                    <input type="checkbox" :id="'ext-out-' + ext.name" :checked="getExtensionChecked('output', ext)" @change="toggleExtension('output', ext, $event)" />
+                    <label :for="'ext-out-' + ext.name">{{ ext.name }}</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Citations -->
+          <div class="tab-panel" v-show="activeTab === 'citations'">
+            <div class="form-group" style="max-width: 200px;">
+              <label for="opt-citation-method">Citation processing</label>
+              <select id="opt-citation-method" v-model="opts.citationMethod">
+                <option value="">None</option>
+                <option value="citeproc">Citeproc</option>
+                <option v-if="isLatexLikeFormat" value="natbib">Natbib</option>
+                <option v-if="isLatexLikeFormat" value="biblatex">BibLaTeX</option>
+              </select>
+            </div>
+            <div class="resource-upload" v-show="opts.citationMethod">
+              <label>Bibliography file (.bib, .json, .yaml)</label>
+              <input type="file" ref="bibInput" class="hidden" accept=".bib,.bibtex,.json,.yaml,.yml" @change="handleBibFile($event)" />
+              <button class="upload-btn" @click="$refs.bibInput.click()">Upload Bibliography</button>
+              <div v-if="bibFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(bibFile, bibFile.name)">{{ bibFile.name }}</a> <span class="file-remove" @click="bibFile = null; hasChanges = true">&#10005;</span></div>
+            </div>
+            <div v-show="opts.citationMethod === 'citeproc'">
+              <div class="resource-upload">
+                <label>Citation style (.csl)</label>
+                <div class="options-grid" style="margin-top: 0.5rem;">
+                  <div>
+                    <input type="file" ref="cslInput" class="hidden" accept=".csl" @change="handleCslFile($event)" />
+                    <button class="upload-btn" @click="$refs.cslInput.click()">Upload CSL Style</button>
+                  </div>
+                  <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+                    <input type="text" v-model="cslStyleName" list="csl-styles-list" placeholder="Or select/type style name..." style="flex: 1;" @focus="loadCslStyles" />
+                    <button class="upload-btn" @click="fetchCslStyle">Fetch</button>
+                  </div>
+                </div>
+                <datalist id="csl-styles-list">
+                  <option v-for="style in cslStylesList" :key="style" :value="style"></option>
+                </datalist>
+                <div v-if="cslFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(cslFile, cslFile.name)">{{ cslFile.name }}</a> <span class="file-remove" @click="cslFile = null; hasChanges = true">&#10005;</span></div>
+              </div>
+              <div class="resource-upload">
+                <label>Citation abbreviations (.json)</label>
+                <input type="file" ref="abbrevInput" class="hidden" accept=".json" @change="handleAbbrevFile($event)" />
+                <button class="upload-btn" @click="$refs.abbrevInput.click()">Upload Abbreviations</button>
+                <div v-if="abbrevFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(abbrevFile, abbrevFile.name)">{{ abbrevFile.name }}</a> <span class="file-remove" @click="abbrevFile = null; hasChanges = true">&#10005;</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Math -->
+          <div class="tab-panel" v-show="activeTab === 'math'">
+            <div class="form-group">
+              <label for="opt-math">Math rendering method</label>
+              <select id="opt-math" v-model="opts.mathMethod">
+                <option value="">Default (plain)</option>
+                <option value="mathjax">MathJax</option>
+                <option value="katex">KaTeX</option>
+                <option value="mathml">MathML</option>
+                <option value="webtex">WebTeX (images)</option>
+                <option value="gladtex">GladTeX</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Code -->
+          <div class="tab-panel" v-show="activeTab === 'code'">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-highlight-style">Syntax highlight style</label>
+                <select id="opt-highlight-style" v-model="opts.highlightStyle">
+                  <option value="">Default</option>
+                  <option value="idiomatic">Idiomatic</option>
+                  <option value="none">None</option>
+                  <option value="pygments">Pygments</option>
+                  <option value="kate">Kate</option>
+                  <option value="monochrome">Monochrome</option>
+                  <option value="breezedark">Breeze Dark</option>
+                  <option value="espresso">Espresso</option>
+                  <option value="zenburn">Zenburn</option>
+                  <option value="haddock">Haddock</option>
+                  <option value="tango">Tango</option>
+                  <option value="custom">Custom...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-indented-code-classes">Indented code classes</label>
+                <input type="text" id="opt-indented-code-classes" v-model="opts.indentedCodeClasses" placeholder="e.g., haskell, python" />
+              </div>
+            </div>
+            <div class="resource-upload" v-show="opts.highlightStyle === 'custom'" style="margin-top: 0.75rem;">
+              <label>Custom highlight theme (.theme)</label>
+              <input type="file" ref="highlightThemeInput" class="hidden" accept=".theme" @change="handleHighlightTheme($event)" />
+              <button class="upload-btn" @click="$refs.highlightThemeInput.click()">Upload Theme</button>
+              <div v-if="highlightThemeFile" class="resource-item">&#127912; <a href="#" @click.prevent="downloadFile(highlightThemeFile, highlightThemeFile.name)">{{ highlightThemeFile.name }}</a> <span class="file-remove" @click="highlightThemeFile = null; hasChanges = true">&#10005;</span></div>
+            </div>
+            <div class="resource-upload" style="margin-top: 0.75rem;">
+              <label>Custom syntax definitions (.xml)</label>
+              <input type="file" ref="syntaxDefInput" class="hidden" accept=".xml" multiple @change="handleSyntaxDefs($event)" />
+              <button class="upload-btn" @click="$refs.syntaxDefInput.click()">Add Syntax Definitions</button>
+              <div class="file-list file-list-small" v-if="syntaxDefinitions.length > 0">
+                <div class="file-item" v-for="file in syntaxDefinitions" :key="file.name">
+                  <span class="file-icon">&#128196;</span>
+                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                  <span class="file-remove" @click="removeSyntaxDef(file.name)">&#10005;</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Format-specific Options -->
+          <div class="tab-panel" v-show="activeTab === 'format'">
+            <!-- Reader options for markdown/textile/latex -->
+            <div v-show="showStripComments || showDefaultImageExtension || showAbbreviations">
+              <div class="options-grid">
+                <div class="checkbox-group" v-show="showStripComments">
+                  <input type="checkbox" id="opt-strip-comments" v-model="opts.stripComments" />
+                  <label for="opt-strip-comments">Strip HTML comments (input)</label>
+                </div>
+                <div class="form-group" v-show="showDefaultImageExtension">
+                  <label for="opt-default-image-extension">Default image extension</label>
+                  <input type="text" id="opt-default-image-extension" v-model="opts.defaultImageExtension" placeholder=".png" style="width: 80px;" />
+                </div>
+                <div class="resource-upload" v-show="showAbbreviations">
+                  <label>Abbreviations file</label>
+                  <input type="file" ref="abbreviationsInput" class="hidden" @change="handleAbbreviationsFile($event)" />
+                  <button class="upload-btn" @click="$refs.abbreviationsInput.click()">Upload Abbreviations</button>
+                  <div v-if="abbreviationsFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(abbreviationsFile, abbreviationsFile.name)">{{ abbreviationsFile.name }}</a> <span class="file-remove" @click="abbreviationsFile = null; hasChanges = true">&#10005;</span></div>
+                </div>
+              </div>
+            </div>
+            <!-- HTML options -->
+            <div v-show="isHtmlFormat">
+              <div class="options-grid">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-self-contained" v-model="opts.selfContained" />
+                  <label for="opt-self-contained">Embed resources</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-html-q-tags" v-model="opts.htmlQTags" />
+                  <label for="opt-html-q-tags">Use &lt;q&gt; tags for quotes</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-section-divs" v-model="opts.sectionDivs" />
+                  <label for="opt-section-divs">Wrap sections in &lt;section&gt; tags</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-ascii-html" v-model="opts.asciiHtml" />
+                  <label for="opt-ascii-html">ASCII only</label>
+                </div>
+              </div>
+              <div class="options-grid" style="margin-top: 0.75rem;">
+                <div class="form-group">
+                  <label for="opt-title-prefix">Title prefix</label>
+                  <input type="text" id="opt-title-prefix" v-model="opts.titlePrefix" placeholder="Prefix" />
+                </div>
+                <div class="form-group">
+                  <label for="opt-id-prefix">ID prefix</label>
+                  <input type="text" id="opt-id-prefix" v-model="opts.idPrefix" placeholder="Prefix" />
+                </div>
+                <div class="form-group">
+                  <label for="opt-email-obfuscation">Email obfuscation</label>
+                  <select id="opt-email-obfuscation" v-model="opts.emailObfuscation">
+                    <option value="">None</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="references">Character references</option>
+                  </select>
+                </div>
+              </div>
+              <div class="resource-upload" style="margin-top: 0.75rem;">
+                <label>Custom CSS</label>
+                <input type="file" ref="cssInput" class="hidden" accept=".css" multiple @change="handleCssFiles($event)" />
+                <button class="upload-btn" @click="$refs.cssInput.click()">Add CSS Files</button>
+                <div class="file-list file-list-small" v-if="cssFiles.length > 0">
+                  <div class="file-item" v-for="file in cssFiles" :key="file.name">
+                    <span class="file-icon">&#127912;</span>
+                    <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                    <span class="file-remove" @click="removeCssFile(file.name)">&#10005;</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Markdown options -->
+            <div v-show="isMarkdownFormat">
+              <div class="options-grid">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-reference-links" v-model="opts.referenceLinks" />
+                  <label for="opt-reference-links">Use reference-style links</label>
+                </div>
+                <div class="form-group">
+                  <label for="opt-reference-location">Reference location</label>
+                  <select id="opt-reference-location" v-model="opts.referenceLocation">
+                    <option value="">Default (document)</option>
+                    <option value="block">Block</option>
+                    <option value="section">Section</option>
+                    <option value="document">Document</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="opt-markdown-headings">Heading style</label>
+                  <select id="opt-markdown-headings" v-model="opts.markdownHeadings">
+                    <option value="">Default (ATX)</option>
+                    <option value="atx">ATX (#)</option>
+                    <option value="setext">Setext (underlined)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <!-- RST options -->
+            <div v-show="effectiveOutputFormat === 'rst'">
+              <div class="options-grid">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-reference-links-rst" v-model="opts.referenceLinksRst" />
+                  <label for="opt-reference-links-rst">Use reference-style links</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-list-tables" v-model="opts.listTables" />
+                  <label for="opt-list-tables">Use list tables</label>
+                </div>
+              </div>
+            </div>
+            <!-- LaTeX options -->
+            <div v-show="supportsListOf">
+              <div class="options-grid">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-lof" v-model="opts.lof" />
+                  <label for="opt-lof">List of figures</label>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-lot" v-model="opts.lot" />
+                  <label for="opt-lot">List of tables</label>
+                </div>
+              </div>
+            </div>
+            <!-- Typst PDF note -->
+            <div v-show="effectiveOutputFormat === 'pdf-typst'">
+              <p style="color: var(--gray-500); font-size: 0.85rem; margin: 0;">
+                Output will be generated as Typst markup, then compiled to PDF.
+              </p>
+            </div>
+            <!-- Caption position and top-level division -->
+            <div v-show="supportsCaptionPosition || supportsTopLevelDivision" style="margin-top: 0.75rem;">
+              <div class="options-grid">
+                <div class="form-group" v-show="supportsCaptionPosition">
+                  <label for="opt-figure-caption-position">Figure caption</label>
+                  <select id="opt-figure-caption-position" v-model="opts.figureCaptionPosition" style="width: 100px;">
+                    <option value="">Default</option>
+                    <option value="above">Above</option>
+                    <option value="below">Below</option>
+                  </select>
+                </div>
+                <div class="form-group" v-show="supportsCaptionPosition">
+                  <label for="opt-table-caption-position">Table caption</label>
+                  <select id="opt-table-caption-position" v-model="opts.tableCaptionPosition" style="width: 100px;">
+                    <option value="">Default</option>
+                    <option value="above">Above</option>
+                    <option value="below">Below</option>
+                  </select>
+                </div>
+                <div class="form-group" v-show="supportsTopLevelDivision">
+                  <label for="opt-top-level-division">Top-level division</label>
+                  <select id="opt-top-level-division" v-model="opts.topLevelDivision" style="width: 100px;">
+                    <option value="">Default</option>
+                    <option value="section">Section</option>
+                    <option value="chapter">Chapter</option>
+                    <option value="part">Part</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <!-- ASCII (non-HTML) -->
+            <div v-show="supportsAscii && !isHtmlFormat" style="margin-top: 0.75rem;">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-ascii" v-model="opts.ascii" />
+                <label for="opt-ascii">ASCII output only (escape non-ASCII characters)</label>
+              </div>
+            </div>
+            <!-- ODT options -->
+            <div v-show="effectiveOutputFormat === 'odt'" style="margin-top: 0.75rem;">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-link-images" v-model="opts.linkImages" />
+                <label for="opt-link-images">Link images (reference instead of embed)</label>
+              </div>
+            </div>
+            <!-- EPUB options -->
+            <div v-show="isEpubFormat" style="margin-top: 0.75rem;">
+              <div class="options-grid">
+                <div class="resource-upload">
+                  <label>Cover image</label>
+                  <input type="file" ref="epubCoverInput" class="hidden" accept="image/*" @change="handleEpubCover($event)" />
+                  <button class="upload-btn" @click="$refs.epubCoverInput.click()">Upload Cover Image</button>
+                  <div v-if="epubCoverImage" class="resource-item">&#128444; <a href="#" @click.prevent="downloadFile(epubCoverImage, epubCoverImage.name)">{{ epubCoverImage.name }}</a> <span class="file-remove" @click="epubCoverImage = null; hasChanges = true">&#10005;</span></div>
+                </div>
+                <div class="resource-upload">
+                  <label>Embed fonts</label>
+                  <input type="file" ref="epubFontInput" class="hidden" accept=".ttf,.otf,.woff,.woff2" multiple @change="handleEpubFonts($event)" />
+                  <button class="upload-btn" @click="$refs.epubFontInput.click()">Upload Fonts</button>
+                  <div class="file-list file-list-small" v-if="epubFonts.length > 0">
+                    <div class="file-item" v-for="file in epubFonts" :key="file.name">
+                      <span class="file-icon">&#128288;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeEpubFont(file.name)">&#10005;</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="resource-upload">
+                  <label>EPUB metadata (XML)</label>
+                  <input type="file" ref="epubMetadataInput" class="hidden" accept=".xml" @change="handleEpubMetadata($event)" />
+                  <button class="upload-btn" @click="$refs.epubMetadataInput.click()">Upload Metadata</button>
+                  <div v-if="epubMetadataFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(epubMetadataFile, epubMetadataFile.name)">{{ epubMetadataFile.name }}</a> <span class="file-remove" @click="epubMetadataFile = null; hasChanges = true">&#10005;</span></div>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-epub-title-page" v-model="opts.epubTitlePage" />
+                  <label for="opt-epub-title-page">Include title page</label>
+                </div>
+                <div class="form-group">
+                  <label for="opt-epub-subdirectory">EPUB subdirectory</label>
+                  <input type="text" id="opt-epub-subdirectory" v-model="opts.epubSubdirectory" placeholder="EPUB (default)" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chunked HTML -->
+          <div class="tab-panel" v-show="activeTab === 'chunked'">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-split-level">Split level (heading depth)</label>
+                <select id="opt-split-level" v-model="opts.splitLevel">
+                  <option value="">Default (1)</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-chunk-template">Chunk filename template</label>
+                <input type="text" id="opt-chunk-template" v-model="opts.chunkTemplate" placeholder="%s-%i.html" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Notebook -->
+          <div class="tab-panel" v-show="activeTab === 'ipynb'">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-ipynb-output">Output cell handling</label>
+                <select id="opt-ipynb-output" v-model="opts.ipynbOutput">
+                  <option value="">Default (best)</option>
+                  <option value="all">All outputs</option>
+                  <option value="none">No outputs</option>
+                  <option value="best">Best output only</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template -->
+          <div class="tab-panel" v-show="activeTab === 'template'">
+            <div class="resource-upload">
+              <label>Custom template</label>
+              <input type="file" ref="templateInput" class="hidden" @change="handleTemplateFile($event)" />
+              <button class="upload-btn" @click="$refs.templateInput.click()">Upload Custom Template</button>
+              <div v-if="templateFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(templateFile, templateFile.name)">{{ templateFile.name }}</a> <span class="file-remove" @click="templateFile = null; hasChanges = true">&#10005;</span></div>
+            </div>
+            <div class="resource-upload" v-show="showReferenceDoc">
+              <label>Reference document (for styles in docx/odt/pptx)</label>
+              <input type="file" ref="referenceDocInput" class="hidden" accept=".docx,.odt,.pptx" @change="handleReferenceDoc($event)" />
+              <button class="upload-btn" @click="$refs.referenceDocInput.click()">Upload Reference Document</button>
+              <div v-if="referenceDoc" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(referenceDoc, referenceDoc.name)">{{ referenceDoc.name }}</a> <span class="file-remove" @click="referenceDoc = null; hasChanges = true">&#10005;</span></div>
+            </div>
+            <fieldset class="include-fieldset">
+              <legend>Files to include</legend>
+              <div class="include-fieldset-content">
+                <div class="resource-upload">
+                  <label>In header</label>
+                  <input type="file" ref="headerInput" class="hidden" multiple @change="handleHeaderFiles($event)" />
+                  <button class="upload-btn" @click="$refs.headerInput.click()">Add Header Files</button>
+                  <div class="file-list file-list-small" v-if="headerFiles.length > 0">
+                    <div class="file-item" v-for="file in headerFiles" :key="file.name">
+                      <span class="file-icon">&#128196;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeHeaderFile(file.name)">&#10005;</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="resource-upload">
+                  <label>Before body</label>
+                  <input type="file" ref="beforeBodyInput" class="hidden" multiple @change="handleBeforeBodyFiles($event)" />
+                  <button class="upload-btn" @click="$refs.beforeBodyInput.click()">Add Before-Body Files</button>
+                  <div class="file-list file-list-small" v-if="beforeBodyFiles.length > 0">
+                    <div class="file-item" v-for="file in beforeBodyFiles" :key="file.name">
+                      <span class="file-icon">&#128196;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeBeforeBodyFile(file.name)">&#10005;</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="resource-upload">
+                  <label>After body</label>
+                  <input type="file" ref="afterBodyInput" class="hidden" multiple @change="handleAfterBodyFiles($event)" />
+                  <button class="upload-btn" @click="$refs.afterBodyInput.click()">Add After-Body Files</button>
+                  <div class="file-list file-list-small" v-if="afterBodyFiles.length > 0">
+                    <div class="file-item" v-for="file in afterBodyFiles" :key="file.name">
+                      <span class="file-icon">&#128196;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeAfterBodyFile(file.name)">&#10005;</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+            <div class="variables-section">
+              <label>Variables</label>
+              <datalist id="variable-suggestions">
+                <option v-for="varName in suggestedVariables" :key="varName" :value="varName"></option>
+              </datalist>
+              <div class="custom-metadata">
+                <div class="custom-meta-row" v-for="(v, idx) in customVariables" :key="idx">
+                  <input type="text" name="key" v-model="v.key" placeholder="variable name" list="variable-suggestions" @input="onVariableInput()" />
+                  <input type="text" name="value" v-model="v.value" placeholder="value" @input="onVariableInput()" />
+                  <button type="button" class="remove-meta" @click="removeVariable(idx)" v-show="customVariables.length > 1 || v.key || v.value">&#10005;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slides -->
+          <div class="tab-panel" v-show="activeTab === 'slides'">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-slide-level">Slide level (heading depth)</label>
+                <select id="opt-slide-level" v-model="opts.slideLevel">
+                  <option value="">Auto</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </select>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-incremental" v-model="opts.incremental" />
+                <label for="opt-incremental">Incremental lists</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata -->
+          <div class="tab-panel" v-show="activeTab === 'metadata'">
+            <div class="resource-upload" style="margin-bottom: 0.75rem;">
+              <label>Metadata file (.yaml, .json)</label>
+              <input type="file" ref="metadataFileInput" class="hidden" accept=".yaml,.yml,.json" @change="handleMetadataFile($event)" />
+              <button class="upload-btn" @click="$refs.metadataFileInput.click()">Upload Metadata File</button>
+              <div v-if="metadataFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(metadataFile, metadataFile.name)">{{ metadataFile.name }}</a> <span class="file-remove" @click="metadataFile = null; hasChanges = true">&#10005;</span></div>
+            </div>
+            <datalist id="metadata-suggestions">
+              <option value="title"></option>
+              <option value="author"></option>
+              <option value="date"></option>
+              <option value="lang"></option>
+            </datalist>
+            <div class="custom-metadata">
+              <div class="custom-meta-row" v-for="(m, idx) in customMetadata" :key="idx">
+                <input type="text" name="key" v-model="m.key" placeholder="field name" list="metadata-suggestions" @input="onMetadataInput()" />
+                <input type="text" name="value" v-model="m.value" placeholder="value" @input="onMetadataInput()" />
+                <button type="button" class="remove-meta" @click="removeMetadata(idx)" v-show="customMetadata.length > 1 || m.key || m.value">&#10005;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="tab-panel" v-show="activeTab === 'filters'">
+            <div class="resource-upload">
+              <label>Lua filters (.lua)</label>
+              <input type="file" ref="luaFilterInput" class="hidden" accept=".lua" multiple @change="handleLuaFilters($event)" />
+              <button class="upload-btn" @click="$refs.luaFilterInput.click()">Add Lua Filters</button>
+              <div class="file-list file-list-small" v-if="luaFilters.length > 0">
+                <div class="file-item" v-for="(file, idx) in luaFilters" :key="file.name" draggable="true" @dragstart="onFilterDragStart(idx, $event)" @dragover.prevent="onFilterDragOver(idx)" @dragleave="filterDragOverIdx = -1" @drop.prevent="onFilterDrop(idx)" @dragend="filterDraggingIdx = -1" :class="{ dragging: filterDraggingIdx === idx, 'drag-over': filterDragOverIdx === idx && filterDraggingIdx !== idx }">
+                  <span class="file-icon">&#128196;</span>
+                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                  <span class="file-remove" @click="removeLuaFilter(file.name)">&#10005;</span>
+                </div>
+              </div>
+              <p v-if="luaFilters.length > 1" style="color: var(--gray-500); font-size: 0.8rem; margin-top: 0.5rem;">
+                Drag to reorder. Filters are applied in order from top to bottom.
+              </p>
+            </div>
+          </div>
+
+          <!-- Wrapping -->
+          <div class="tab-panel" v-show="activeTab === 'wrapping'">
+            <div class="options-grid">
+              <div class="form-group">
+                <label for="opt-wrap">Wrap mode</label>
+                <select id="opt-wrap" v-model="opts.wrap">
+                  <option value="auto">Auto</option>
+                  <option value="none">None</option>
+                  <option value="preserve">Preserve</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-columns">Line width (columns)</label>
+                <input type="text" id="opt-columns" v-model="opts.columns" placeholder="72" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading" v-show="isConverting">
+        <div class="spinner"></div>
+        <p>Converting...</p>
+      </div>
+
+      <!-- Output Section -->
+      <div class="card" v-show="showOutput">
+        <div class="card-body">
+          <div class="output-actions">
+            <button class="download-btn" v-show="output" @click="download">&#128229; Download {{ outputFilenameActual }}</button>
+            <button class="copy-btn" v-show="output && !isBinaryOutput" @click="copyToClipboard">{{ copyBtnText }}</button>
+            <button class="download-btn" v-show="mediaZip" @click="downloadMedia">&#128247; Download Media</button>
+          </div>
+          <div class="messages">
+            <div v-for="(msg, idx) in messages" :key="idx" class="message" :class="msg.type">{{ msg.text }}</div>
+          </div>
+          <div class="output-preview" v-show="!isBinaryOutput && outputPreview">{{ outputPreview }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" v-show="!pandocReady">
+      <div class="loading-box">
+        <div class="spinner"></div>
+        <p>Loading pandoc.wasm...</p>
+      </div>
+    </div>
+  </div>
+  <footer>
+    Copyright &copy; 2026 John MacFarlane
+  </footer>
+  <script type="module" src="index.js?sha1=SHA1_INDEX_JS"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+ "from": "docx",
+ "to": "latex",
+ "standalone": true,
+ "input-files": ["equations.docx"]
+}

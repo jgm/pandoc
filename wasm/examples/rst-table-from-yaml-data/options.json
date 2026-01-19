@@ -1,0 +1,8 @@
+{
+ "to": "rst",
+ "from": "markdown",
+ "standalone": true,
+ "citeproc": false,
+ "html-math-method": "plain",
+ "template": "custom.rst"
+}

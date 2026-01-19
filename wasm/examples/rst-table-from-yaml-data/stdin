@@ -1,0 +1,721 @@
+---
+# Data from https://www.fishwatch.gov
+fish:
+- calories: 92
+  human_health:
+  texture: Firm and meaty.
+  environmental_considerations:
+  species_name: Shortfin Squid
+  diseases_in_salmon:
+  path: |
+    /profiles/shortfin-squid
+  habitat_impacts: |
+    Fishing gears used to harvest shortfin squid have minimal impacts on
+    habitat.
+  location: |
+    -   Shortfin squid inhabits the continental shelf and slope waters of
+        the Northwest Atlantic Ocean, from Newfoundland to the central east
+        coast of Florida.
+    -   In the northwest Atlantic Ocean, shortfin squid are most often
+        caught along the continental shelf break in depths between 150 to
+        275 meters.
+  color: |
+    Raw squid is ivory colored with orange speckling and a brown stripe that
+    runs down the mantle. Cooked squid is opaque white.
+  species_aliases: |
+    [Illex squid](/species-aliases/illex-squid), [Summer
+    squid](/species-aliases/summer-squid)
+  image_gallery:
+  harvest_type: Wild
+  selenium: 44.8 mcg
+  management:
+  scientific_name: Illex illecebrosus
+  production:
+  fat_total: 1.38 g
+  bycatch: |
+    Regulations are in place to minimize bycatch.
+  availability: |
+    Summer and fall.
+  research:
+  fishing_rate: |
+    At recommended level.
+  sugars_total: |
+    0 g
+  taste: |
+    Mild, and subtly sweet.
+
+     
+  health_benefits: |
+    Squid are an excellent source of selenium, riboflavin, and vitamin B12.
+  disease_treatment_and_prevention:
+  species_illustration_photo:
+    src: |
+      https://www.fishwatch.gov/sites/default/files/Squid\_Illex\_NB\_W.png
+    title: |
+      Shortfin Squid
+    alt: |
+      shortfin squid
+  saturated_fatty_acids_total: |
+    0.358 g
+  quote: |
+    U.S. wild-caught shortfin squid is a smart seafood choice because it is
+    sustainably managed and responsibly harvested under U.S. regulations.
+  carbohydrate: |
+    3.08 g
+  serving_weight: |
+    100 g
+  ecosystem_services:
+  source: |
+    U.S. wild-caught from Maine to North Carolina.
+  noaa_fisheries_region: |
+    Greater Atlantic
+  animal_health:
+  population_status: |
+    -   According to the latest assessment, shortfin squid is not subject to
+        overfishing. There is currently not enough information to determine
+        the population size, so it is unknown.
+  population: |
+    The population level is unknown. The species has a lifespan of less than
+    one year.
+  protein: |
+    15.58 g
+  environmental_effects:
+    
+  cholesterol: |
+    233 mg
+  displayed_seafood_profile_illustration:
+  fiber_total_dietary: |
+    0 g
+  sodium: |
+    44 mg
+  feeds:
+  servings: |
+    1
+- calories: 90
+  human_health:
+  texture: The meat is firm and somewhat fibrous. The tail meat is firmer than the
+    meat from the claws.
+  environmental_considerations:
+  species_name: American Lobster
+  diseases_in_salmon:
+  path: |
+    /profiles/american-lobster
+  habitat_impacts: |
+    Fishing gears used to harvest American lobster have minimal impacts on
+    habitat.
+  location: |
+    -   American lobsters are found in the northwest Atlantic Ocean from
+        Labrador to Cape Hatteras. They’re most abundant in coastal waters
+        from Maine through New Jersey, and are also common offshore to
+        depths of 2,300 feet from Maine through North Carolina.
+  color: |
+    The meat is white with red tinges.
+  species_aliases: |
+    [Lobster](/species-aliases/lobster)
+  image_gallery:
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/1.JPG
+    title: |
+      American Lobster
+    alt: |
+      American Lobster
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/2\_6.jpg
+    title: |
+      American Lobster
+    alt: |
+      American Lobster
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/3\_5.jpg
+    title: |
+      American Lobster
+    alt: |
+      American Lobster
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/4\_0.png
+    title: |
+      American Lobster
+    alt: |
+      American Lobster
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/5\_3.jpg
+    title: |
+      American Lobster
+    alt: |
+      American Lobster
+  harvest_type: Wild
+  selenium: 41.4 mcg
+  management:
+  scientific_name: Homarus americanus
+  production:
+  fat_total: 0.9 g
+  bycatch: |
+    Regulations are in place to minimize bycatch.
+  availability: |
+    Year-round. In New England, where most lobsters are landed, the peak
+    harvest season extends from May to November.
+  research: |
+    -   State scientists, in cooperation with the lobster industry, are
+        conducting projects to assist with the effective management of the
+        lobster resource. Many states have established [ventless trap
+        survey](http://www.asmfc.org/fisheries-science/surveys)s to quantify
+        the abundance of juvenile lobsters. By removing escape vents from
+        the lobster traps and randomly placing those traps within certain
+        depth categories and geographic areas, researchers can assess the
+        abundance of juvenile lobsters and the potential for young lobsters
+        to reach a size or life stage that can be caught by the fishing gear
+        (recruitment) in the future. These surveys complement longstanding
+        fishery-independent bottom trawl surveys conducted by NOAA Fisheries
+        and the states. Because trawl gear cannot effectively sample rocky
+        or shallow coastal bottom types, the ventless trap surveys attempt
+        to fill this data gap by using fixed lobster gear without escape
+        vents.
+  fishing_rate: |
+    At recommended levels.
+  sugars_total: |
+    0 g
+  taste: |
+    Mild and sweet.
+  health_benefits: |
+    Lobster is low in saturated fat and is a very good source of protein and
+    selenium. The FDA
+    [advises](https://www.fda.gov/downloads/food/guidanceregulation/ucm252395.pdf)
+    consumers to not eat the tomalley, the light-green substance found in
+    the lobster.
+  disease_treatment_and_prevention:
+  species_illustration_photo:
+    src: |
+      https://www.fishwatch.gov/sites/default/files/Lobster\_American\_NB\_Web.png
+    title: |
+      American Lobster
+    alt: |
+      American Lobster
+  saturated_fatty_acids_total: |
+    0.18 g
+  quote: |
+    U.S. wild-caught American lobster is a smart seafood choice because it
+    is sustainably managed and responsibly harvested under U.S. regulations.
+  carbohydrate: |
+    0.5 g
+  serving_weight: |
+    100 g (raw)
+  ecosystem_services:
+  source: |
+    U.S. wild-caught from Maine to North Carolina.
+  noaa_fisheries_region: |
+    Greater Atlantic
+  animal_health:
+  population_status: |
+    -   According to the [2015 stock
+        assessment](http://www.asmfc.org/uploads/file/55d61d73AmLobsterStockAssmt_PeerReviewReport_Aug2015_red2.pdf)
+        conducted by the [Atlantic States Marine Fisheries
+        Commission](http://www.asmfc.org/) (ASMFC), there is record high
+        stock abundance and recruitment in the Gulf of Maine and Georges
+        Bank, and record low abundance and recruitment failure in Southern
+        New England. The Gulf of Maine and Georges Bank stock is not
+        overfished. However, the ASMFC considers the Southern New England
+        stock severely depleted due to environmental factors and fishing
+        pressure. Neither stock is subject to overfishing.
+    -   Since 2012, [Young of Year
+        surveys](http://umaine.edu/wahlelab/american-lobster-settlement-index-alsi/american-lobster-settlement-index/)
+        in the Gulf of Maine and George’s Bank stock have shown consistent
+        declines, which could indicate future declines in recruitment and
+        landings.
+  population: |
+    Above target population levels in the Gulf of Maine and Georges Bank.
+    Significantly below target levels in Southern New England.
+  protein: |
+    18.80 g
+  environmental_effects:
+  cholesterol: |
+    95 mg
+  displayed_seafood_profile_illustration:
+  fiber_total_dietary: |
+    0 g
+  sodium: |
+    296 mg
+  feeds:
+  servings: |
+    1
+- calories: 90
+  human_health:
+  texture: Very lean with medium to firm texture and medium sized flakes.
+  environmental_considerations:
+  species_name: Yellowtail rockfish
+  diseases_in_salmon:
+  path: |
+    /profiles/yellowtail-rockfish
+  habitat_impacts: |
+    Most fishing gear used to harvest yellowtail rockfish rarely contacts
+    the ocean floor and has minimal impacts on habitat. Area closures and
+    gear restrictions protect sensitive rocky, cold-water coral and sponge
+    habitats from bottom trawl gear.
+  location: |
+    -   Yellowtail rockfish are found along the Pacific coast of North
+        America and range from Kodiak Island, Alaska to Baja California,
+        Mexico.
+  color: |
+    Meat is glistening bright white with a pinkish sheen.
+  species_aliases: |
+    [Yellowtail rockfish](/species-aliases/yellowtail-rockfish),
+    [Greenie](/species-aliases/greenie), [Yellow sea
+    perch](/species-aliases/yellow-sea-perch), [Rock
+    Cod](/species-aliases/rock-cod), [Pacific
+    Snapper](/species-aliases/pacific-snapper)
+  image_gallery:
+  harvest_type: Wild
+  selenium: 63 mcg
+  management:
+  scientific_name: Sebastes flavidus
+  production:
+  fat_total: 1.34 g
+  bycatch: |
+    Regulations are in place to minimize bycatch of overfished and protected
+    species.
+  availability: |
+    Year-round.
+  research: |
+    -   NOAA’s [Northwest](https://www.nwfsc.noaa.gov/) and [Alaska](Alaska)
+        Fisheries Science Centers survey the abundance of yellowtail
+        rockfish off the West Coast and Alaska.
+    -   Yellowtail rockfish is not typically assessed as part of a
+        single-species abundance survey. It is more commonly assessed along
+        with other groundfish.
+  fishing_rate: |
+    At recommended levels.
+  sugars_total: |
+    0
+  taste: |
+    Very mild, slightly sweet flavor.
+  health_benefits: |
+    Rockfish are high in selenium.
+  disease_treatment_and_prevention:
+  species_illustration_photo:
+    src: |
+      https://www.fishwatch.gov/sites/default/files/Rockfish\_Yellowtail\_NB\_W.png
+    title: |
+      Yellowtail rockfish
+    alt: |
+      Yellowtail rockfish
+  saturated_fatty_acids_total: |
+    0.34 g
+  quote: |
+    U.S. wild-caught Yellowtail rockfish is a smart seafood choice because
+    it is sustainably managed and responsibly harvested under U.S.
+    regulations.
+  carbohydrate: |
+    0
+  serving_weight: |
+    100 g (raw)
+  ecosystem_services:
+  source: |
+    U.S. wild-caught from Kodiak Island Alaska to Baja California.
+  noaa_fisheries_region: |
+    West Coast, Alaska
+  animal_health:
+  population_status: |
+    -   According to the [2017 stock
+        assessment](https://www.pcouncil.org/wp-content/uploads/2018/01/YTRK_2017_Final.pdf),
+        the northern Pacific coast stock of yellowtail rockfish is not
+        overfished and not subject to overfishing.
+    -   The yellowtail rockfish stock on the West Coast is part of the
+        southern Pacific coast minor shelf rockfish complex. The overfished
+        status of this complex is unknown. The stock complex is not subject
+        to overfishing based on [2016 catch
+        data](https://www.nwfsc.noaa.gov/research/divisions/fram/observation/pdf/Groundfish_Mortality_2016.pdf).
+  population: |
+    The northern Pacific coast stock is above its target population level.
+    The southern Pacific coast stock is unknown.
+  protein: |
+    18.36 g
+  environmental_effects:
+  cholesterol: |
+    50 mg
+  displayed_seafood_profile_illustration:
+  fiber_total_dietary: |
+    0
+  sodium: |
+    74 mg
+  feeds:
+  servings: |
+    1
+- calories: 90
+  human_health:
+  texture: Lean and medium-firm, with a fine flake.
+  environmental_considerations:
+  species_name: Bocaccio
+  diseases_in_salmon:
+  path: |
+    /profiles/bocaccio
+  habitat_impacts: |
+    Area closures and gear restrictions protect sensitive rocky, cold-water
+    coral and sponge habitats from bottom trawl gear.
+  location: |
+    -   Bocaccio are found between Punta Blanca, Baja California, and the
+        Gulf of Alaska off Krozoff and Kodiak Islands. Within this range,
+        bocaccio is most common between Oregon and northern Baja California.
+    -   There are two partially isolated populations; one southern
+        population centered in California, and one northern population
+        centered in British Columbia. 
+  color: |
+    Whole fish should have shiny and bright skin. The raw flesh is white,
+    but turns opaque white when cooked.
+  species_aliases: |
+    [Bocaccio](/species-aliases/bocaccio), [Rock
+    Salmon](/species-aliases/rock-salmon), [Salmon
+    Rockfish](/species-aliases/salmon-rockfish), [Pacific Red
+    Snapper](/species-aliases/pacific-red-snapper), [Pacific
+    Snapper](/species-aliases/pacific-snapper), [Oregon Red
+    Snapper](/species-aliases/oregon-red-snapper), [Oregon
+    Snapper](/species-aliases/oregon-snapper),
+    [Longjaw](/species-aliases/longjaw), [Merou](/species-aliases/merou),
+    [Jack](/species-aliases/jack), [Snapper](/species-aliases/snapper),
+    [Rock Cod](/species-aliases/rock-cod),
+    [Rockfish](/species-aliases/rockfish)
+  image_gallery:
+  harvest_type: Wild
+  selenium: 63 mcg
+  management:
+  scientific_name: Sebastes paucispinis
+  production:
+  fat_total: 1.34 g
+  bycatch: |
+    Regulations are in place to minimize bycatch.
+  availability: |
+    Year-round.
+  research: |
+    -   [New Fishing Opportunities Emerge from Resurgence of West Coast
+        Groundfish](https://www.fisheries.noaa.gov/feature-story/new-fishing-opportunities-emerge-resurgence-west-coast-groundfish)
+    -   [Rebuilding success continues for West Coast
+        groundfish](https://www.westcoast.fisheries.noaa.gov/stories/2017/19_06192017_.html)
+    -   [Threatened Yelloweye and Endangered Bocaccio in Puget Sound/Georgia
+        Basin](https://www.westcoast.fisheries.noaa.gov/protected_species/rockfish/rockfish_in_puget_sound.html)
+  fishing_rate: |
+    At recommended level.
+  sugars_total: |
+    0
+  taste: |
+    Delicate, nutty, sweet flavor.
+  health_benefits: |
+    Low in saturated fat and very high in selenium, phosphorus, and
+    potassium.
+  disease_treatment_and_prevention:
+  species_illustration_photo:
+    src: |
+      https://www.fishwatch.gov/sites/default/files/Bocaccio\_NB\_W.png
+    title: |
+      Bocaccio rockfish.
+    alt: |
+      Illustration of a Bocaccio rockfish.
+  saturated_fatty_acids_total: |
+    0.34 g
+  quote: |
+    U.S. wild-caught bocaccio is a smart seafood choice because it is
+    sustainably managed and responsibly harvested under U.S. regulations.
+  carbohydrate: |
+    0
+  serving_weight: |
+    100 g (raw)
+  ecosystem_services:
+  source: |
+    U.S. wild-caught from California to Alaska.
+  noaa_fisheries_region: |
+    West Coast, Alaska
+  animal_health:
+  population_status: |
+    -   According to the [2018 stock
+        assessment](https://www.pcouncil.org/wp-content/uploads/2018/02/FINAL_2017_Bocaccio_Update_Assessment_February_2_2018.pdf),
+        the bocaccio stock on the southern Pacific coast is not overfished,
+        and is not subject to overfishing. The stock rebuilt in 2017, faster
+        than estimated in the rebuilding plan, due in large part to several
+        strong year classes and an improved understanding of the
+        productivity of this stock.
+    -   Along the northern Pacific coast, bocaccio is part of the northern
+        Pacific coast minor shelf rockfish complex and the status of this
+        complex is unknown.
+    -   In the Gulf of Alaska, bocaccio is part of the other rockfish
+        complex.
+        -   According to the [2017 stock
+            assessment](https://www.afsc.noaa.gov/REFM/Docs/2017/GOAorock.pdf),
+            the status of this complex is unknown.
+  population: |
+    Above target population levels.
+  protein: |
+    18.36 g
+  environmental_effects:
+  cholesterol: |
+    50 mg
+  displayed_seafood_profile_illustration:
+  fiber_total_dietary: |
+    0
+  sodium: |
+    74 mg
+  feeds:
+  servings: |
+    1
+- calories: 110
+  human_health:
+  texture: A lean fish with fine-grained, dense meat. When cooked, the meat is firm
+    yet flaky and tender.
+  environmental_considerations:
+  species_name: Atlantic Halibut
+  diseases_in_salmon:
+  path: |
+    /profiles/atlantic-halibut
+  habitat_impacts: |
+    Trawl gear used to harvest Atlantic halibut have minimal or temporary
+    effects on habitat. Area closures and gear restrictions protect
+    sensitive habitats from bottom trawl gear. Hook and line gear has little
+    or no impact on habitat.
+  location: |
+    -   Atlantic halibut are found from Labrador and Greenland to Iceland,
+        and from the Barents Sea south to the Bay of Biscay and Virginia.
+    -   In U.S. waters, halibut is most common in the Gulf of Maine.
+  color: |
+    Uncooked, white and almost translucent. It should not look dull,
+    yellowish or dried out. When cooked, the meat is white.
+  species_aliases: |
+    [Atlantic halibut](/species-aliases/atlantic-halibut),
+    [Halibut](/species-aliases/halibut)
+  image_gallery:
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/1%20-%20atl\_halibut\_noa.jpg
+    title: |
+      Atlantic halibut face and mouth. Photo credit: NOAA.
+    alt: |
+      Picture of an Atlantic halibut face and mouth.
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/2%20-%20nefsc.jpg
+    title: |
+      Atlantic halibut. Photo credit: NOAA.
+    alt: |
+      Picture of Atlantic halibut.
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/3%20-%20halibut2\_fullsize.jpg
+    title: |
+      Picture of Atlantic halibut. Photo credit: NOAA.
+    alt: |
+      Picture of Atlantic halibut.
+  harvest_type: Wild
+  selenium: 36.5 mcg
+  management:
+  scientific_name: Hippoglossus hippoglossus
+  production:
+  fat_total: 2.29 g
+  bycatch: |
+    Regulations are in place to minimize bycatch.
+  availability: |
+    Year-round.
+  research: |
+    -   Scientists at NOAA’s [Northeast Fisheries Science
+        Center](https://www.nefsc.noaa.gov/) conduct research bottom trawl
+        surveys throughout the Northeast continental shelf every year during
+        the fall and spring. These surveys collect data on the environment
+        as well as biological samples from fish caught during research
+        trawling. The data from these and other sources are used by
+        scientists in stock assessments to estimate population size and
+        fishing pressure.
+  fishing_rate: |
+    At recommended levels.
+  sugars_total: |
+    0
+  taste: |
+    Halibut has a very mild, sweet taste.
+  health_benefits: |
+    Halibut is low in saturated fat and sodium, and is a very good source of
+    protein, niacin, phosphorus, and selenium.
+  disease_treatment_and_prevention:
+  species_illustration_photo:
+    src: |
+      https://www.fishwatch.gov/sites/default/files/atlantic-halibut-illustration.png
+    title: |
+      Illustration of Atlantic Halibut.
+    alt: |
+      Illustration of Atlantic Halibut.
+  saturated_fatty_acids_total: |
+    0.325 g
+  quote: |
+    Although populations are well below target levels, U.S. wild-caught
+    Atlantic halibut is still a smart seafood choice because it is
+    sustainably managed under a rebuilding plan that allows limited harvest
+    by U.S. fishermen.
+  carbohydrate: |
+    0
+  serving_weight: |
+    100 g (raw)
+  ecosystem_services:
+  source: |
+    Wild-caught from Maine to Connecticut.
+  noaa_fisheries_region: |
+    Greater Atlantic
+  animal_health:
+  population_status: |
+    -   The Atlantic halibut stock is at a very low level. Fishing is still
+        allowed, but at reduced levels.
+    -   According to the [2012 stock
+        assessment](https://www.nefsc.noaa.gov/publications/crd/crd1206/),
+        the Atlantic halibut stock is overfished, but is not subject to
+        overfishing. The estimated biomass is only 3 percent of its target
+        level. It will remain in a rebuilding plan for the foreseeable
+        future.
+  population: |
+    Significantly below target population levels.
+  protein: |
+    20.81 g
+  environmental_effects:
+  cholesterol: |
+    32 mg
+  displayed_seafood_profile_illustration:
+  fiber_total_dietary: |
+    0
+  sodium: |
+    54 mg
+  feeds:
+  servings: |
+    1
+- calories: 90
+  human_health:
+  texture: Firm, coarse flake.
+  environmental_considerations:
+  species_name: Shortspine Thornyhead
+  diseases_in_salmon:
+  path: |
+    /profiles/shortspine-thornyhead
+  habitat_impacts: |
+    The trawl, longline, and pot gear used to harvest shortspine thornyhead
+    have minimal or temporary effects on habitat. Area closures and gear
+    restrictions protect sensitive rocky, cold-water coral, and sponge
+    habitats from bottom trawl gear.
+  location: |
+    -   Shortspine thornyhead are found from the Bering Sea to Baja
+        California, Mexico.
+  color: |
+    White.
+  species_aliases: |
+    [Thornyhead](/species-aliases/thornyhead), [Idiot
+    fish](/species-aliases/idiot-fish), [Idiot
+    cod](/species-aliases/idiot-cod), [Rockfish](/species-aliases/rockfish)
+  image_gallery:
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/1%20photo-west-coast-region-photo-gallery.jpg
+    title: |
+      Close-up photo of a shortspine thornyhead. (Photo credit: NOAA)
+    alt: |
+      Close-up photo of a shortspine thornyhead. (Photo credit: NOAA)
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/2%20basket%20of%20shortspine%20thornyhead.jpg
+    title: |
+      Basket of shortspine thornyhead. (Photo credit: NOAA)
+    alt: |
+      Basket of shortspine thornyhead. (Photo credit: NOAA)
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/3%20graphic%20with%20morphology%20ID\_large.jpg
+    title: |
+      Shortspine thornyhead graphic identifying several physical
+      characteristics, including head spines, pelvic and anal fins. (Photo
+      credit: NOAA)
+    alt: |
+      Shortspine thornyhead graphic identifying several physical
+      characteristics, including head spines, pelvic and anal fins. (Photo
+      credit: NOAA)
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/4%20Head-on%20view%20of%20shortspine%20thornyhead.jpg
+    title: |
+      Head-on view of shortspine thornyhead. (Photo credit: NOAA)
+    alt: |
+      Head-on view of shortspine thornyhead. (Photo credit: NOAA)
+  - src: |
+      https://www.fishwatch.gov/sites/default/files/5%20shortspine%20thornyhead%20amongst%20its%20habitat.jpg
+    title: |
+      Shortspine thornyhead rockfish snuggled amongst a sea star, smaller
+      brittle stars, and sea cucumbers with white tentacles on a mixed rocky
+      and mud-covered habitat. (Photo credit: NOAA/OER)
+    alt: |
+      Shortspine thornyhead rockfish snuggled amongst a sea star, smaller
+      brittle stars, and sea cucumbers with white tentacles on a mixed rocky
+      and mud-covered habitat. (Photo credit: NOAA/OER)
+  harvest_type: Wild
+  selenium: 63 mcg
+  management:
+  scientific_name: Sebastolobus alascanus
+  production:
+  fat_total: 1.34 g
+  bycatch: |
+    Regulations are in place to minimize bycatch of overfished and protected
+    species.
+  availability: |
+    Year-round.
+  research: |
+    [Tagging study of shortspine thornyhead in
+    Alaska](http://agris.fao.org/agris-search/search.do?recordID=US201700202112)
+    confirms that the management range is appropriate.
+  fishing_rate: |
+    At recommended levels.
+  sugars_total: |
+    0
+  taste: |
+    Sweet and mild.
+  health_benefits: |
+    Rockfish are high in selenium.
+  disease_treatment_and_prevention:
+  species_illustration_photo:
+    src: |
+      https://www.fishwatch.gov/sites/default/files/shortspine-thornyhead-illustration.png
+    title: |
+      Illustration of shortspine thornyhead.
+    alt: |
+      Illustration of shortspine thornyhead.
+  saturated_fatty_acids_total: |
+    0.34 g
+  quote: |
+    U.S. wild-caught shortspine thornyhead is a smart seafood choice because
+    it is sustainably managed and responsibly harvested under U.S.
+    regulations.
+  carbohydrate: |
+    0
+  serving_weight: |
+    100 g (raw)
+  ecosystem_services:
+  source: |
+    U.S. wild-caught from the Bering Sea to Baja California, Mexico.
+  noaa_fisheries_region: |
+    West Coast
+  animal_health:
+  population_status: |
+    -   According to the [2013 stock
+        assessment](https://www.pcouncil.org/wp-content/uploads/Shortspine_2013_Assessment.pdf),
+        shortspine thornyhead on the Pacific Coast are not overfished and
+        are not subject to overfishing based on the [2016 catch
+        data](https://www.nwfsc.noaa.gov/research/divisions/fram/observation/pdf/Groundfish_Mortality_2016.pdf).
+    -   In the Gulf of Alaska, shortspine thornyhead are part of the
+        thornyhead rockfish complex, which also contains longspine and
+        broadfin thornyhead.
+        -   According to the [2018 stock
+            assessment](https://www.fisheries.noaa.gov/resource/data/2018-assessment-thornyhead-stock-complex-gulf-alaska),
+            the status of this complex is unknown.
+        -   According to the 2017 catch data, the complex was not subject to
+            overfishing, and the fishery’s total allowable catch has not
+            been attained since 1995.
+    -   In the Bering Sea and Aleutian Islands, shortspine thornyhead are
+        part of the other rockfish complex.
+        -   According to the [2018 stock
+            assessment](https://www.fisheries.noaa.gov/resource/data/2018-assessment-other-rockfish-stock-complex-bering-sea-and-aleutian-islands),
+            the status of this complex is unknown.
+        -   According to the 2017 catch data, the complex was not subject to
+            overfishing.
+  population: |
+    Above target population levels on the Pacific Coast.
+  protein: |
+    18.36 g
+  environmental_effects:
+  cholesterol: |
+    50 mg
+  displayed_seafood_profile_illustration:
+  fiber_total_dietary: |
+    0
+  sodium: |
+    74 mg
+  feeds:
+  servings: |
+    1
+...

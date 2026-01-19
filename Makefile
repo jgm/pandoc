@@ -17,6 +17,7 @@ WEBSITE=../../web/pandoc.org
 REVISION?=1
 BENCHARGS?=--csv bench_$(TIMESTAMP).csv $(BASELINECMD) --timeout=6 +RTS -T --nonmoving-gc -RTS $(if $(PATTERN),--pattern "$(PATTERN)",)
 pandoc=$(shell cabal list-bin $(CABALOPTS) pandoc-cli)
+OPTIMIZE_WASM?=1
 
 all: build test binpath ## build executable and run tests
 .PHONY: all
@@ -326,3 +327,19 @@ release-checklist-$(VERSION).org: RELEASE-CHECKLIST-TEMPLATE.org
 hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@
 .PHONY: hie.yaml
+
+pandoc.wasm:
+	-rm $@
+	wasm32-wasi-cabal build pandoc-cli
+ifeq ($(OPTIMIZE_WASM),1)
+	echo "Optimizing (this may take a long time, to avoid, set OPTIMIZE_WASM=0)..."
+	wasm-opt -Oz $$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1) -o $@
+else
+	echo "Copying unoptimized pandoc.wasm..."
+	cp "$$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1)" "$@"
+endif
+.PHONY: pandoc.wasm
+
+wasm: pandoc.wasm
+	perl -p -i -e "s/pandoc.wasm\?sha1=[0-9abcdef]*/pandoc.wasm?sha1=$(shell openssl sha1 -r pandoc.wasm | sed 's/ .*$$//')/" pandoc-cli/wasm/pandoc.js
+.PHONY: wasm

@@ -1,0 +1,7 @@
+{
+  "from": "markdown",
+  "to": "plain",
+  "citeproc": true,
+  "csl": "le-tapuscrit-note.csl",
+  "bibliography": "refs.bib"
+}

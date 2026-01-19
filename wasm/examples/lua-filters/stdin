@@ -1,0 +1,5 @@
+The first filter turns all *emphasized text* into
+ALL CAPS, even when it is [*embedded* in a *link*](https://pandoc.org).
+
+The second filter adds a word count to the end of the document.
+

@@ -1,0 +1,9 @@
+{
+ "to": "markdown_strict",
+ "from": "ris",
+ "standalone": false,
+ "embed-resources": false,
+ "citeproc": true,
+ "html-math-method": "mathml",
+ "wrap": "auto"
+}

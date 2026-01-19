@@ -1,0 +1,7 @@
+---
+csl: 'le-tapuscrit-note.csl'
+lang: fr-FR
+bibliography: refs.bib
+---
+
+Foo [@legras_michel_2010].

@@ -1,0 +1,10 @@
+{
+ "to": "rst",
+ "from": "markdown",
+ "standalone": true,
+ "embed-resources": false,
+ "citeproc": false,
+ "html-math-method": "plain",
+ "wrap": "auto",
+ "template": null
+}

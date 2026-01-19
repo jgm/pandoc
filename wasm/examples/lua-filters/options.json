@@ -1,0 +1,7 @@
+{
+  "from": "markdown",
+  "to": "html5",
+  "standalone": false,
+  "wrap": "preserve",
+  "filters": ["emph_to_allcaps.lua", "count_words.lua"]
+}

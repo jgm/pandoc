@@ -1,0 +1,6 @@
+{
+ "from": "markdown",
+ "to": "docbook5",
+ "standalone": true,
+ "citeproc": true
+}
