@@ -50,8 +50,9 @@ if arch(wasm32)
 
   package lua
     flags: +cross-compile
-    ghc-options: -optc-D_WASI_EMULATED_SIGNAL -optc-lwasi-emulated-signal -optc-mllvm -optc-wasm-enable-sjlj  -optc-mllvm -optc-wasm-use-legacy-eh -optc-D_WASI_EMULATED_PROCESS_CLOCKS -optc-lwasi-emulated-process-clocks -optc-DLUA_NOTEMP -optl-lsetjmp
+    ghc-options: -optc-D_WASI_EMULATED_SIGNAL -optc-lwasi-emulated-signal -optc-mllvm -optc-wasm-enable-sjlj  -optc-mllvm -optc-wasm-use-legacy-eh=false -optc-D_WASI_EMULATED_PROCESS_CLOCKS -optc-lwasi-emulated-process-clocks -optc-DLUA_NOTEMP -optl-lsetjmp
     ld-options: -lsetjmp
+    extra-libraries: setjmp
 
   package pandoc
     flags: +embed_data_files -http
