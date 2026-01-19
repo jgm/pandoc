@@ -1,0 +1,6 @@
+{
+ "from": "mediawiki",
+ "to": "docx",
+ "output-file": "vectors.docx",
+ "standalone": true
+}

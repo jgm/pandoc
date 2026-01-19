@@ -1,0 +1,40 @@
+.TP
+\f[C]-L\f[R] \f[I]SCRIPT\f[R], \f[C]--lua-filter=\f[R]\f[I]SCRIPT\f[R]
+Transform the document in a similar fashion as JSON filters (see
+\f[C]--filter\f[R]), but use pandoc\[cq]s built-in Lua filtering system.
+The given Lua script is expected to return a list of Lua filters which
+will be applied in order.
+Each Lua filter must contain element-transforming functions indexed by
+the name of the AST element on which the filter function should be
+applied.
+.RS
+.PP
+The \f[C]pandoc\f[R] Lua module provides helper functions for element
+creation.
+It is always loaded into the script\[cq]s Lua environment.
+.PP
+See the Lua filters documentation for further details.
+.PP
+In order of preference, pandoc will look for Lua filters in
+.IP "1." 3
+a specified full or relative path,
+.IP "2." 3
+\f[C]$DATADIR/filters\f[R] where \f[C]$DATADIR\f[R] is the user data
+directory (see \f[C]--data-dir\f[R], above).
+.PP
+Filters, Lua filters, and citeproc processing are applied in the order
+specified on the command line.
+.RE
+.TP
+\f[C]-M\f[R] \f[I]KEY\f[R][\f[C]=\f[R]\f[I]VAL\f[R]], \f[C]--metadata=\f[R]\f[I]KEY\f[R][\f[C]:\f[R]\f[I]VAL\f[R]]
+Set the metadata field \f[I]KEY\f[R] to the value \f[I]VAL\f[R].
+A value specified on the command line overrides a value specified in the
+document using YAML metadata blocks.
+Values will be parsed as YAML boolean or string values.
+If no value is specified, the value will be treated as Boolean true.
+Like \f[C]--variable\f[R], \f[C]--metadata\f[R] causes template
+variables to be set.
+But unlike \f[C]--variable\f[R], \f[C]--metadata\f[R] affects the
+metadata of the underlying document (which is accessible from filters
+and may be printed in some output formats) and metadata values will be
+escaped when inserted into the template.

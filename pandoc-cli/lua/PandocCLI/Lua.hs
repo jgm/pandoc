@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {- |
    Module      : PandocCLI.Lua
@@ -9,8 +10,8 @@ Functions to run the pandoc Lua scripting engine.
 -}
 module PandocCLI.Lua (runLuaInterpreter, getEngine) where
 
+#ifdef REPL
 import Control.Monad ((<=<))
-import HsLua.CLI (EnvBehavior (..), Settings (..), runStandalone)
 import System.Environment (lookupEnv)
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)
@@ -18,6 +19,12 @@ import Text.Pandoc.Class (runIOorExplode)
 import Text.Pandoc.Error (handleError)
 import Text.Pandoc.Lua (runLua, runLuaNoEnv, getEngine)
 import Text.Pandoc.Version (pandocVersionText)
+import HsLua.CLI (EnvBehavior (..), Settings (..), runStandalone)
+#else
+import Text.Pandoc.Lua (getEngine)
+import System.IO (stderr, hPutStrLn)
+import System.Exit (exitWith, ExitCode(..))
+#endif
 
 -- | Runs pandoc as a Lua interpreter that is (mostly) compatible with
 -- the default @lua@ program shipping with Lua.
@@ -28,6 +35,7 @@ import Text.Pandoc.Version (pandocVersionText)
 runLuaInterpreter :: String    -- ^ Program name
                   -> [String]  -- ^ Command line arguments
                   -> IO ()
+#ifdef REPL
 runLuaInterpreter progName args = do
   -- We need some kind of temp
   mbhistfile <- lookupEnv "PANDOC_REPL_HISTORY"
@@ -54,3 +62,8 @@ runLuaInterpreter progName args = do
                       IgnoreEnvVars  -> runLuaNoEnv
                       ConsultEnvVars -> runLua
       in handleError <=< runIOorExplode . runLua'
+#else
+runLuaInterpreter _ _ = do
+  hPutStrLn stderr "Pandoc not compiled with Lua interpreter support."
+  exitWith $ ExitFailure 4
+#endif

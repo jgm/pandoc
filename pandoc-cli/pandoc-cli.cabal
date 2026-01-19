@@ -14,11 +14,13 @@ category:        Text
 synopsis:        Conversion between documentation formats
 description:     Pandoc-cli provides a command-line executable that uses the
                  pandoc library to convert between markup formats.
--- data-files:
 extra-source-files:
                  man/pandoc.1
                  man/pandoc-lua.1
                  man/pandoc-server.1
+                 wasm/pandoc.js
+                 wasm/index.html
+                 wasm/LICENSE
 source-repository head
   type:          git
   location:      https://github.com/jgm/pandoc.git
@@ -30,6 +32,10 @@ flag lua
 
 flag server
   Description:   Include support for running pandoc as an HTTP server.
+  Default:       True
+
+flag repl
+  Description:   Include support for running a pandoc Lua repl.
   Default:       True
 
 flag nightly
@@ -61,19 +67,26 @@ common common-options
 
 common common-executable
   import:           common-options
-  ghc-options:      -rtsopts -with-rtsopts=-A8m -threaded
+  ghc-options:      -rtsopts -with-rtsopts=-H64m
 
 executable pandoc
   import:          common-executable
   hs-source-dirs:  src
-  main-is:         pandoc.hs
   buildable:       True
   -- Note: we always link to an exact version of pandoc, with the
   -- same version as this package:
-  build-depends:   pandoc == 3.8.3,
-                   text
+  build-depends:   pandoc == 3.8.3
   other-modules:   PandocCLI.Lua
                  , PandocCLI.Server
+
+  if arch(wasm32)
+    main-is:       pandoc-wasm.hs
+    build-depends: aeson, containers, bytestring
+    ghc-options:    -optl-Wl,--export=__wasm_call_ctors,--export=hs_init_with_rtsopts,--export=malloc,--export=wasm_main,--export=get_extensions_for_format
+  else
+    main-is:       pandoc.hs
+    build-depends: text
+
   if flag(nightly)
     cpp-options:    -DNIGHTLY
     build-depends:  template-haskell,
@@ -88,9 +101,12 @@ executable pandoc
     hs-source-dirs:  no-server
 
   if flag(lua)
-    build-depends:   hslua-cli         >= 1.4.1 && < 1.5,
-                     pandoc-lua-engine >= 0.5 && < 0.6,
-                     temporary         >= 1.1 && < 1.4
+    build-depends:   pandoc-lua-engine >= 0.5 && < 0.6
     hs-source-dirs:  lua
   else
     hs-source-dirs:  no-lua
+
+  if flag(repl)
+     build-depends:    hslua-cli       >= 1.4.1   && < 1.5,
+                       temporary         >= 1.1 && < 1.4
+     cpp-options:      -DREPL

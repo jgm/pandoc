@@ -1,0 +1,6 @@
+{
+ "from": "markdown",
+ "to": "html",
+ "template": "custom.tpl",
+ "standalone": true
+}

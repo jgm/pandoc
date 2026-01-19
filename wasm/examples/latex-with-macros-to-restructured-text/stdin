@@ -1,0 +1,9 @@
+% from https://en.wikibooks.org/wiki/LaTeX/Macros
+\newcommand{\wbalTwo}[2][Wikimedia]{
+This is the Wikibook about LaTeX
+supported by {#1} and {#2}!}
+
+\begin{itemize}
+\item \wbalTwo{John Doe}
+\item \wbalTwo[lots of users]{John Doe}
+\end{itemize}

@@ -1,0 +1,9 @@
+{
+ "to": "revealjs",
+ "from": "markdown",
+ "standalone": true,
+ "citeproc": false,
+ "html-math-method": "mathjax",
+ "highlight-style": "pygments",
+ "template": null
+}

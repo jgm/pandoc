@@ -1,0 +1,13 @@
+{
+ "to": "html",
+ "from": "markdown",
+ "standalone": true,
+ "embed-resources": false,
+ "table-of-contents": false,
+ "number-sections": false,
+ "citeproc": false,
+ "html-math-method": "plain",
+ "wrap": "preserve",
+ "highlight-style": "kate",
+ "template": null
+}
