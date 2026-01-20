@@ -1129,6 +1129,13 @@
                 <label for="opt-ascii">ASCII output only (escape non-ASCII characters)</label>
               </div>
             </div>
+            <!-- ODT options -->
+            <div v-show="effectiveOutputFormat === 'odt'" style="margin-top: 0.75rem;">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-link-images" v-model="opts.linkImages" />
+                <label for="opt-link-images">Link images (reference instead of embed)</label>
+              </div>
+            </div>
           </div>
 
           <!-- EPUB -->
@@ -1464,7 +1471,8 @@
           slideLevel: '',
           incremental: false,
           wrap: 'auto',
-          columns: ''
+          columns: '',
+          linkImages: false
         },
 
         // Metadata
@@ -2318,6 +2326,11 @@
             if (this.epubFonts.length > 0) opts['epub-fonts'] = this.epubFonts.map(f => f.name);
             if (!this.opts.epubTitlePage) opts['epub-title-page'] = false;
             if (this.opts.epubSubdirectory.trim()) opts['epub-subdirectory'] = this.opts.epubSubdirectory.trim();
+          }
+
+          // ODT options
+          if (baseOutFmt === 'odt') {
+            if (this.opts.linkImages) opts['link-images'] = true;
           }
 
           // Template
