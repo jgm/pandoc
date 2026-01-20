@@ -755,7 +755,6 @@
             <button class="options-tab" :class="{ active: activeTab === 'math' }" @click="activeTab = 'math'">Math</button>
             <button class="options-tab" :class="{ active: activeTab === 'code' }" @click="activeTab = 'code'">Code</button>
             <button class="options-tab" v-show="showFormatTab" :class="{ active: activeTab === 'format' }" @click="activeTab = 'format'">{{ formatTabName }}</button>
-            <button class="options-tab" v-show="showEpubTab" :class="{ active: activeTab === 'epub' }" @click="activeTab = 'epub'">EPUB</button>
             <button class="options-tab" v-show="showChunkedTab" :class="{ active: activeTab === 'chunked' }" @click="activeTab = 'chunked'">Chunked</button>
             <button class="options-tab" v-show="showIpynbTab" :class="{ active: activeTab === 'ipynb' }" @click="activeTab = 'ipynb'">Notebook</button>
             <button class="options-tab" :class="{ active: activeTab === 'template' }" @click="activeTab = 'template'">Template</button>
@@ -823,15 +822,19 @@
                   <option value="8">8</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label for="opt-eol">Line endings</label>
+                <select id="opt-eol" v-model="opts.eol">
+                  <option value="">Native</option>
+                  <option value="lf">LF (Unix)</option>
+                  <option value="crlf">CRLF (Windows)</option>
+                </select>
+              </div>
             </div>
             <div class="options-grid" style="margin-top: 0.75rem;">
               <div class="checkbox-group">
                 <input type="checkbox" id="opt-preserve-tabs" v-model="opts.preserveTabs" />
                 <label for="opt-preserve-tabs">Preserve tabs</label>
-              </div>
-              <div class="checkbox-group" v-show="showStripComments">
-                <input type="checkbox" id="opt-strip-comments" v-model="opts.stripComments" />
-                <label for="opt-strip-comments">Strip HTML comments</label>
               </div>
             </div>
           </div>
@@ -982,6 +985,15 @@
 
           <!-- Format-specific Options -->
           <div class="tab-panel" v-show="activeTab === 'format'">
+            <!-- Strip comments (reader option for markdown/textile) -->
+            <div v-show="showStripComments">
+              <div class="options-grid">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-strip-comments" v-model="opts.stripComments" />
+                  <label for="opt-strip-comments">Strip HTML comments</label>
+                </div>
+              </div>
+            </div>
             <!-- HTML options -->
             <div v-show="isHtmlFormat">
               <div class="options-grid">
@@ -1140,36 +1152,35 @@
                 <label for="opt-link-images">Link images (reference instead of embed)</label>
               </div>
             </div>
-          </div>
-
-          <!-- EPUB -->
-          <div class="tab-panel" v-show="activeTab === 'epub'">
-            <div class="options-grid">
-              <div class="resource-upload">
-                <label>Cover image</label>
-                <input type="file" ref="epubCoverInput" class="hidden" accept="image/*" @change="handleEpubCover($event)" />
-                <button class="upload-btn" @click="$refs.epubCoverInput.click()">Upload Cover Image</button>
-                <div v-if="epubCoverImage" class="resource-item">&#128444; <a href="#" @click.prevent="downloadFile(epubCoverImage, epubCoverImage.name)">{{ epubCoverImage.name }}</a> <span class="file-remove" @click="epubCoverImage = null; hasChanges = true">&#10005;</span></div>
-              </div>
-              <div class="resource-upload">
-                <label>Embed fonts</label>
-                <input type="file" ref="epubFontInput" class="hidden" accept=".ttf,.otf,.woff,.woff2" multiple @change="handleEpubFonts($event)" />
-                <button class="upload-btn" @click="$refs.epubFontInput.click()">Upload Fonts</button>
-                <div class="file-list file-list-small" v-if="epubFonts.length > 0">
-                  <div class="file-item" v-for="file in epubFonts" :key="file.name">
-                    <span class="file-icon">&#128288;</span>
-                    <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
-                    <span class="file-remove" @click="removeEpubFont(file.name)">&#10005;</span>
+            <!-- EPUB options -->
+            <div v-show="isEpubFormat" style="margin-top: 0.75rem;">
+              <div class="options-grid">
+                <div class="resource-upload">
+                  <label>Cover image</label>
+                  <input type="file" ref="epubCoverInput" class="hidden" accept="image/*" @change="handleEpubCover($event)" />
+                  <button class="upload-btn" @click="$refs.epubCoverInput.click()">Upload Cover Image</button>
+                  <div v-if="epubCoverImage" class="resource-item">&#128444; <a href="#" @click.prevent="downloadFile(epubCoverImage, epubCoverImage.name)">{{ epubCoverImage.name }}</a> <span class="file-remove" @click="epubCoverImage = null; hasChanges = true">&#10005;</span></div>
+                </div>
+                <div class="resource-upload">
+                  <label>Embed fonts</label>
+                  <input type="file" ref="epubFontInput" class="hidden" accept=".ttf,.otf,.woff,.woff2" multiple @change="handleEpubFonts($event)" />
+                  <button class="upload-btn" @click="$refs.epubFontInput.click()">Upload Fonts</button>
+                  <div class="file-list file-list-small" v-if="epubFonts.length > 0">
+                    <div class="file-item" v-for="file in epubFonts" :key="file.name">
+                      <span class="file-icon">&#128288;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeEpubFont(file.name)">&#10005;</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="opt-epub-title-page" v-model="opts.epubTitlePage" />
-                <label for="opt-epub-title-page">Include title page</label>
-              </div>
-              <div class="form-group">
-                <label for="opt-epub-subdirectory">EPUB subdirectory</label>
-                <input type="text" id="opt-epub-subdirectory" v-model="opts.epubSubdirectory" placeholder="EPUB (default)" />
+                <div class="checkbox-group">
+                  <input type="checkbox" id="opt-epub-title-page" v-model="opts.epubTitlePage" />
+                  <label for="opt-epub-title-page">Include title page</label>
+                </div>
+                <div class="form-group">
+                  <label for="opt-epub-subdirectory">EPUB subdirectory</label>
+                  <input type="text" id="opt-epub-subdirectory" v-model="opts.epubSubdirectory" placeholder="EPUB (default)" />
+                </div>
               </div>
             </div>
           </div>
@@ -1444,6 +1455,7 @@
           shiftHeading: '0',
           preserveTabs: false,
           tabStop: '4',
+          eol: '',
           stripComments: false,
           trackChanges: '',
           citationMethod: '',
@@ -1636,28 +1648,17 @@
 
         get showFormatTab() {
           const fmt = this.effectiveOutputFormat;
-          return this.isHtmlFormat || this.isMarkdownFormat || fmt === 'rst' ||
+          return this.showStripComments || this.isHtmlFormat || this.isMarkdownFormat || fmt === 'rst' ||
                  ['latex', 'beamer'].includes(fmt) || ['typst', 'pdf-typst'].includes(fmt) ||
                  this.supportsCaptionPosition || this.supportsAscii || this.supportsTopLevelDivision ||
                  this.supportsListOf || this.docFormats.includes(fmt);
         },
 
         get formatTabName() {
-          const fmt = this.effectiveOutputFormat;
-          if (this.isHtmlFormat) return 'HTML';
-          if (this.isMarkdownFormat) return 'Markdown';
-          if (fmt === 'rst') return 'RST';
-          if (fmt === 'latex') return 'LaTeX';
-          if (fmt === 'beamer') return 'Beamer';
-          if (['typst', 'pdf-typst'].includes(fmt)) return 'Typst';
-          if (fmt === 'context') return 'ConTeXt';
-          if (fmt === 'tei') return 'TEI';
-          if (fmt.startsWith('docbook')) return 'DocBook';
-          if (this.docFormats.includes(fmt)) return fmt.toUpperCase();
-          return fmt;
+          return 'Format-Specific';
         },
 
-        get showEpubTab() { return ['epub', 'epub2', 'epub3'].includes(this.effectiveOutputFormat); },
+        get isEpubFormat() { return ['epub', 'epub2', 'epub3'].includes(this.effectiveOutputFormat); },
         get showChunkedTab() { return this.effectiveOutputFormat === 'chunkedhtml'; },
         get showIpynbTab() { return this.effectiveOutputFormat === 'ipynb'; },
         get showSlidesTab() { return this.slideFormats.includes(this.effectiveOutputFormat); },
@@ -2255,6 +2256,7 @@
           if (this.opts.preserveTabs) opts['preserve-tabs'] = true;
           const tabStop = parseInt(this.opts.tabStop);
           if (tabStop !== 4) opts['tab-stop'] = tabStop;
+          if (this.opts.eol) opts.eol = this.opts.eol;
           if (this.opts.stripComments) opts['strip-comments'] = true;
 
           // Track changes
