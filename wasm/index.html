@@ -984,12 +984,16 @@
 
           <!-- Format-specific Options -->
           <div class="tab-panel" v-show="activeTab === 'format'">
-            <!-- Strip comments (reader option for markdown/textile) -->
-            <div v-show="showStripComments">
+            <!-- Reader options for markdown/textile/latex -->
+            <div v-show="showStripComments || showDefaultImageExtension">
               <div class="options-grid">
-                <div class="checkbox-group">
+                <div class="checkbox-group" v-show="showStripComments">
                   <input type="checkbox" id="opt-strip-comments" v-model="opts.stripComments" />
-                  <label for="opt-strip-comments">Strip HTML comments</label>
+                  <label for="opt-strip-comments">Strip HTML comments (input)</label>
+                </div>
+                <div class="form-group" v-show="showDefaultImageExtension">
+                  <label for="opt-default-image-extension">Default image extension</label>
+                  <input type="text" id="opt-default-image-extension" v-model="opts.defaultImageExtension" placeholder=".png" style="width: 80px;" />
                 </div>
               </div>
             </div>
@@ -1455,6 +1459,7 @@
           tabStop: '4',
           eol: '',
           dpi: '',
+          defaultImageExtension: '',
           stripComments: false,
           trackChanges: '',
           citationMethod: '',
@@ -1640,6 +1645,11 @@
           return fmt === 'auto' || this.markdownFormats.includes(fmt) || fmt === 'textile';
         },
 
+        get showDefaultImageExtension() {
+          const fmt = this.effectiveInputFormat;
+          return fmt === 'auto' || this.markdownFormats.includes(fmt) || fmt === 'latex';
+        },
+
         get showExtensionsTab() {
           return (this.inputFormat !== 'auto' && this.inputExtensionsList.length > 0) ||
                  (this.outputFormat !== 'auto' && this.outputExtensionsList.length > 0);
@@ -1647,7 +1657,8 @@
 
         get showFormatTab() {
           const fmt = this.effectiveOutputFormat;
-          return this.showStripComments || this.isHtmlFormat || this.isMarkdownFormat || fmt === 'rst' ||
+          return this.showStripComments || this.showDefaultImageExtension ||
+                 this.isHtmlFormat || this.isMarkdownFormat || fmt === 'rst' ||
                  ['latex', 'beamer'].includes(fmt) || ['typst', 'pdf-typst'].includes(fmt) ||
                  this.supportsCaptionPosition || this.supportsAscii || this.supportsTopLevelDivision ||
                  this.supportsListOf || this.docFormats.includes(fmt);
@@ -2261,6 +2272,7 @@
           if (this.opts.eol) opts.eol = this.opts.eol;
           if (this.opts.dpi) opts.dpi = parseInt(this.opts.dpi);
           if (this.opts.stripComments) opts['strip-comments'] = true;
+          if (this.opts.defaultImageExtension.trim()) opts['default-image-extension'] = this.opts.defaultImageExtension.trim();
 
           // Track changes
           if (this.opts.trackChanges) opts['track-changes'] = this.opts.trackChanges;
