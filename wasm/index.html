@@ -820,6 +820,7 @@
                   <option value="6">6</option>
                   <option value="7">7</option>
                   <option value="8">8</option>
+                  <option value="preserve">Preserve tabs</option>
                 </select>
               </div>
               <div class="form-group">
@@ -830,11 +831,9 @@
                   <option value="crlf">CRLF (Windows)</option>
                 </select>
               </div>
-            </div>
-            <div class="options-grid" style="margin-top: 0.75rem;">
-              <div class="checkbox-group">
-                <input type="checkbox" id="opt-preserve-tabs" v-model="opts.preserveTabs" />
-                <label for="opt-preserve-tabs">Preserve tabs</label>
+              <div class="form-group">
+                <label for="opt-dpi">DPI (for images)</label>
+                <input type="number" id="opt-dpi" v-model="opts.dpi" placeholder="96" min="1" style="width: 80px;" />
               </div>
             </div>
           </div>
@@ -1453,9 +1452,9 @@
           extractMedia: false,
           tocDepth: '3',
           shiftHeading: '0',
-          preserveTabs: false,
           tabStop: '4',
           eol: '',
+          dpi: '',
           stripComments: false,
           trackChanges: '',
           citationMethod: '',
@@ -2253,10 +2252,14 @@
           if (this.opts.fileScope) opts['file-scope'] = true;
           const shiftHeading = parseInt(this.opts.shiftHeading);
           if (shiftHeading !== 0) opts['shift-heading-level-by'] = shiftHeading;
-          if (this.opts.preserveTabs) opts['preserve-tabs'] = true;
-          const tabStop = parseInt(this.opts.tabStop);
-          if (tabStop !== 4) opts['tab-stop'] = tabStop;
+          if (this.opts.tabStop === 'preserve') {
+            opts['preserve-tabs'] = true;
+          } else {
+            const tabStop = parseInt(this.opts.tabStop);
+            if (tabStop !== 4) opts['tab-stop'] = tabStop;
+          }
           if (this.opts.eol) opts.eol = this.opts.eol;
+          if (this.opts.dpi) opts.dpi = parseInt(this.opts.dpi);
           if (this.opts.stripComments) opts['strip-comments'] = true;
 
           // Track changes
