@@ -836,6 +836,12 @@
                 <input type="number" id="opt-dpi" v-model="opts.dpi" placeholder="96" min="1" style="width: 80px;" />
               </div>
             </div>
+            <div class="options-grid" style="margin-top: 0.75rem;">
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="opt-resource-path">Resource path</label>
+                <input type="text" id="opt-resource-path" v-model="opts.resourcePath" placeholder=".:images" />
+              </div>
+            </div>
           </div>
 
           <!-- Track Changes -->
@@ -1459,6 +1465,7 @@
           tabStop: '4',
           eol: '',
           dpi: '',
+          resourcePath: '',
           defaultImageExtension: '',
           stripComments: false,
           trackChanges: '',
@@ -2271,6 +2278,7 @@
           }
           if (this.opts.eol) opts.eol = this.opts.eol;
           if (this.opts.dpi) opts.dpi = parseInt(this.opts.dpi);
+          if (this.opts.resourcePath.trim()) opts['resource-path'] = this.opts.resourcePath.trim();
           if (this.opts.stripComments) opts['strip-comments'] = true;
           if (this.opts.defaultImageExtension.trim()) opts['default-image-extension'] = this.opts.defaultImageExtension.trim();
 
