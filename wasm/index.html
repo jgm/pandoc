@@ -810,6 +810,25 @@
                   <option value="2">+2</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label for="opt-tab-stop">Tab stop</label>
+                <select id="opt-tab-stop" v-model="opts.tabStop">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                </select>
+              </div>
+            </div>
+            <div class="options-grid" style="margin-top: 0.75rem;">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-preserve-tabs" v-model="opts.preserveTabs" />
+                <label for="opt-preserve-tabs">Preserve tabs</label>
+              </div>
             </div>
           </div>
 
@@ -1412,6 +1431,8 @@
           extractMedia: false,
           tocDepth: '3',
           shiftHeading: '0',
+          preserveTabs: false,
+          tabStop: '4',
           trackChanges: '',
           citationMethod: '',
           mathMethod: '',
@@ -2209,6 +2230,9 @@
           if (this.opts.fileScope) opts['file-scope'] = true;
           const shiftHeading = parseInt(this.opts.shiftHeading);
           if (shiftHeading !== 0) opts['shift-heading-level-by'] = shiftHeading;
+          if (this.opts.preserveTabs) opts['preserve-tabs'] = true;
+          const tabStop = parseInt(this.opts.tabStop);
+          if (tabStop !== 4) opts['tab-stop'] = tabStop;
 
           // Track changes
           if (this.opts.trackChanges) opts['track-changes'] = this.opts.trackChanges;
