@@ -3276,6 +3276,17 @@ These variables function when using BibLaTeX for [citation rendering].
 
     See the section on [reproducible builds].
 
+`pdfstandard`
+:   PDF standard(s) for the document, e.g. `ua-2`, `a-4f`.
+    Supports PDF/A, PDF/X, and PDF/UA variants.
+    Requires LuaLaTeX and LaTeX 2023+. Repeat for multiple standards:
+
+        ---
+        pdfstandard:
+        - ua-2
+        - a-4f
+        ...
+
 [KOMA-Script]: https://ctan.org/pkg/koma-script
 [LaTeX Font Catalogue]: https://tug.org/FontCatalogue/
 [LaTeX font encodings guide]: https://ctan.org/pkg/encguide
@@ -7780,10 +7791,10 @@ page but do not contain semantic information on the content.
 However, it is possible to generate accessible PDFs, which use
 tagging to add semantic information to the document.
 
-Pandoc defaults to LaTeX to generate PDF. Tagging support in LaTeX
-is in development and not readily available, so PDFs generated in
-this way will always be untagged and not accessible. This means
-that alternative engines must be used to generate accessible PDFs.
+Pandoc defaults to LaTeX to generate PDF. LaTeX's `\DocumentMetadata`
+interface supports PDF standards and tagging when using LuaLaTeX;
+set the `pdfstandard` variable to enable this (see below). For older
+LaTeX installations, alternative engines must be used.
 
 The PDF standards PDF/A and PDF/UA define further restrictions
 intended to optimize PDFs for archiving and accessibility. Tagging
@@ -7794,6 +7805,24 @@ Note, however, that standard compliance depends on many things,
 including the colorspace of embedded images. Pandoc cannot check
 this, and external programs must be used to ensure that generated
 PDFs are in compliance.
+
+## LaTeX
+
+Set the `pdfstandard` variable to produce tagged PDFs conforming
+to PDF/A, PDF/X, or PDF/UA standards. For example:
+
+    pandoc -V pdfstandard=ua-2 --pdf-engine=lualatex doc.md -o doc.pdf
+
+Multiple standards can be combined:
+
+    ---
+    pdfstandard:
+      - ua-2
+      - a-4f
+    ---
+
+The required PDF version is inferred automatically. This feature
+requires LuaLaTeX and a recent LaTeX installation.
 
 ## ConTeXt
 

@@ -1,0 +1,20 @@
+$--
+$-- PDF standard support (PDF/A, PDF/UA, PDF/X)
+$-- Requires LuaLaTeX and recent LaTeX (2023+)
+$--
+$if(pdfstandard)$
+\DocumentMetadata{
+$if(pdfstandard.version)$
+  pdfversion=$pdfstandard.version$,
+$endif$
+$if(pdfstandard.standards)$
+  pdfstandard={$for(pdfstandard.standards)$$it$$sep$,$endfor$},
+$endif$
+$if(pdfstandard.tagging)$
+  tagging=on,
+$endif$
+$if(lang)$
+  lang=$lang$,
+$endif$
+  xmp=true}
+$endif$

@@ -33,13 +33,15 @@ import Control.Monad
 import Crypto.Hash (hashWith, MD5(MD5))
 import Data.Containers.ListUtils (nubOrd)
 import Data.Char (isDigit, isAscii, isLetter)
-import Data.List (intersperse, (\\))
-import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, isNothing)
+import Data.List (intersperse, partition, (\\))
+import qualified Data.Set as Set
+import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe, mapMaybe, isNothing)
 import Data.Monoid (Any (..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Network.URI (unEscapeString)
-import Text.DocTemplates (FromContext(lookupContext), Val(..), renderTemplate)
+import Text.DocTemplates (Context(..), FromContext(lookupContext), Val(..), renderTemplate)
+import qualified Data.Map as M
 import Text.Collate.Lang (renderLang)
 import Text.Pandoc.Class.PandocMonad (PandocMonad, getPOSIXTime, lookupEnv,
                                       report, toLang)
@@ -58,7 +60,8 @@ import Text.Pandoc.Writers.LaTeX.Caption (getCaption)
 import Text.Pandoc.Writers.LaTeX.Table (tableToLaTeX)
 import Text.Pandoc.Writers.LaTeX.Citation (citationsToNatbib,
                                            citationsToBiblatex)
-import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState (..), startingState)
+import Text.Pandoc.Writers.LaTeX.Types (LW, WriterState (..), startingState,
+                                        PdfStandard (..))
 import Text.Pandoc.Writers.LaTeX.Lang (toBabel)
 import Text.Pandoc.Writers.LaTeX.Util (stringToLaTeX, StringContext(..),
                                        toLabel, inCmd,
@@ -221,6 +224,9 @@ pandocToLaTeX options (Pandoc meta blocks) = do
   let bibliography' = map unescapeUnderscore <$>
                         getField "bibliography" metadata
 
+  -- Process PDF standard metadata for DocumentMetadata
+  pdfStd <- processPdfStandard metadata
+
   let context  =  (case bibliography' of
                      Nothing -> id
                      Just xs -> resetField "bibliography" xs) $
@@ -292,6 +298,13 @@ pandocToLaTeX options (Pandoc meta blocks) = do
                       _   -> id) .
                   (if reproduciblePDF
                     then defField "pdf-trailer-id" trailerID
+                    else id) $
+                  (if not (null (pdfStandards pdfStd)) || isJust (pdfVersion pdfStd)
+                    then resetField "pdfstandard" $ MapVal $ Context $ M.fromList
+                           [ ("standards", ListVal $ map (SimpleVal . literal) (pdfStandards pdfStd))
+                           , ("version", maybe NullVal (SimpleVal . literal) (pdfVersion pdfStd))
+                           , ("tagging", BoolVal (pdfTagging pdfStd))
+                           ]
                     else id) $
                   metadata
   let babelLang = mblang >>= toBabel
@@ -1414,3 +1427,85 @@ needsCancel t =
            then return True
            else pCancel
       _ -> pCancel
+
+-- PDF standard support for DocumentMetadata
+
+-- | PDF standards supported by LaTeX's DocumentMetadata
+-- See: https://github.com/latex3/latex2e documentmetadata-support.dtx
+latexSupportedStandards :: Set.Set Text
+latexSupportedStandards = Set.fromList
+  [ -- PDF/A standards (note: a-1a is NOT supported by LaTeX, only a-1b)
+    "a-1b", "a-2a", "a-2b", "a-2u", "a-3a", "a-3b", "a-3u"
+  , "a-4", "a-4e", "a-4f"
+    -- PDF/X standards
+  , "x-4", "x-4p", "x-5g", "x-5n", "x-5pg", "x-6", "x-6n", "x-6p"
+    -- PDF/UA standards
+  , "ua-1", "ua-2"
+  ]
+
+-- | Standards that require PDF tagging (document structure)
+-- PDF/A level "a" variants and PDF/UA require tagged structure
+taggingRequiredStandards :: Set.Set Text
+taggingRequiredStandards = Set.fromList
+  ["a-2a", "a-3a", "ua-1", "ua-2"]
+
+-- | Valid PDF versions for DocumentMetadata
+validPdfVersions :: Set.Set Text
+validPdfVersions = Set.fromList
+  ["1.4", "1.5", "1.6", "1.7", "2.0"]
+
+-- | PDF version required by each standard
+-- LaTeX defaults to PDF 2.0 with \DocumentMetadata, but some standards
+-- have maximum version requirements that are incompatible with 2.0
+standardRequiredVersion :: M.Map Text Text
+standardRequiredVersion = M.fromList
+  [ ("a-1b", "1.4")  -- PDF/A-1 requires exactly PDF 1.4
+    -- PDF/A-2 and PDF/A-3 require 1.7; must set explicitly since LaTeX defaults to 2.0
+  , ("a-2a", "1.7"), ("a-2b", "1.7"), ("a-2u", "1.7")
+  , ("a-3a", "1.7"), ("a-3b", "1.7"), ("a-3u", "1.7")
+    -- PDF/A-4, PDF/UA-1, PDF/UA-2 work with PDF 2.0 (the default)
+  ]
+
+-- | Normalize a PDF standard string: lowercase, strip "pdf" prefix
+normalizePdfStandard :: Text -> Text
+normalizePdfStandard t =
+  let lower = T.toLower t
+  in case T.stripPrefix "pdf" lower of
+       Just rest -> T.dropWhile (`elem` ['-', '/']) rest
+       Nothing   -> lower
+
+-- | Normalize a PDF version string
+-- Handles YAML parsing quirk where 2.0 becomes integer 2, then string "2"
+normalizeVersion :: Text -> Text
+normalizeVersion t
+  | t == "2" = "2.0"
+  | otherwise = t
+
+-- | Check if text is a valid PDF version (after normalization)
+isPdfVersion :: Text -> Bool
+isPdfVersion t = Set.member (normalizeVersion t) validPdfVersions
+
+-- | Process pdfstandard metadata, returning PDF standard settings
+processPdfStandard :: PandocMonad m
+                   => Context Text
+                   -> m PdfStandard
+processPdfStandard ctx = do
+  let standards = fromMaybe [] $ getField "pdfstandard" ctx
+      normalized = map normalizePdfStandard standards
+      (versions, pdfStds) = partition isPdfVersion normalized
+      validStandards = filter (`Set.member` latexSupportedStandards) pdfStds
+      invalidStandards = filter (\s -> not (Set.member s latexSupportedStandards)
+                                    && not (isPdfVersion s)) pdfStds
+      needsTagging = any (`Set.member` taggingRequiredStandards) validStandards
+      -- Use explicit version if provided, otherwise infer from standards
+      -- Apply normalizeVersion to handle YAML parsing "2" -> "2.0"
+      explicitVersion = normalizeVersion <$> listToMaybe versions
+      inferredVersion = listToMaybe $ mapMaybe (`M.lookup` standardRequiredVersion) validStandards
+      version = explicitVersion <|> inferredVersion
+  -- Warn about unsupported standards
+  mapM_ (report . UnsupportedPdfStandard) invalidStandards
+  return PdfStandard
+    { pdfStandards = validStandards
+    , pdfVersion = version
+    , pdfTagging = needsTagging
+    }
