@@ -991,7 +991,7 @@
           <!-- Format-specific Options -->
           <div class="tab-panel" v-show="activeTab === 'format'">
             <!-- Reader options for markdown/textile/latex -->
-            <div v-show="showStripComments || showDefaultImageExtension">
+            <div v-show="showStripComments || showDefaultImageExtension || showAbbreviations">
               <div class="options-grid">
                 <div class="checkbox-group" v-show="showStripComments">
                   <input type="checkbox" id="opt-strip-comments" v-model="opts.stripComments" />
@@ -1000,6 +1000,12 @@
                 <div class="form-group" v-show="showDefaultImageExtension">
                   <label for="opt-default-image-extension">Default image extension</label>
                   <input type="text" id="opt-default-image-extension" v-model="opts.defaultImageExtension" placeholder=".png" style="width: 80px;" />
+                </div>
+                <div class="resource-upload" v-show="showAbbreviations">
+                  <label>Abbreviations file</label>
+                  <input type="file" ref="abbreviationsInput" class="hidden" @change="handleAbbreviationsFile($event)" />
+                  <button class="upload-btn" @click="$refs.abbreviationsInput.click()">Upload Abbreviations</button>
+                  <div v-if="abbreviationsFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(abbreviationsFile, abbreviationsFile.name)">{{ abbreviationsFile.name }}</a> <span class="file-remove" @click="abbreviationsFile = null; hasChanges = true">&#10005;</span></div>
                 </div>
               </div>
             </div>
@@ -1512,6 +1518,7 @@
         bibFile: null,
         cslFile: null,
         abbrevFile: null,
+        abbreviationsFile: null,
         cssFiles: [],
         highlightThemeFile: null,
         syntaxDefinitions: [],
@@ -1657,6 +1664,11 @@
           return fmt === 'auto' || this.markdownFormats.includes(fmt) || fmt === 'latex';
         },
 
+        get showAbbreviations() {
+          const fmt = this.effectiveInputFormat;
+          return fmt === 'auto' || fmt === 'markdown';
+        },
+
         get showExtensionsTab() {
           return (this.inputFormat !== 'auto' && this.inputExtensionsList.length > 0) ||
                  (this.outputFormat !== 'auto' && this.outputExtensionsList.length > 0);
@@ -1664,7 +1676,7 @@
 
         get showFormatTab() {
           const fmt = this.effectiveOutputFormat;
-          return this.showStripComments || this.showDefaultImageExtension ||
+          return this.showStripComments || this.showDefaultImageExtension || this.showAbbreviations ||
                  this.isHtmlFormat || this.isMarkdownFormat || fmt === 'rst' ||
                  ['latex', 'beamer'].includes(fmt) || ['typst', 'pdf-typst'].includes(fmt) ||
                  this.supportsCaptionPosition || this.supportsAscii || this.supportsTopLevelDivision ||
@@ -1734,6 +1746,7 @@
           this.highlightThemeFile = null;
           this.syntaxDefinitions = [];
           this.abbrevFile = null;
+          this.abbreviationsFile = null;
           this.metadataFile = null;
           this.epubCoverImage = null;
           this.epubFonts = [];
@@ -1932,8 +1945,12 @@
             await addFile(this.cslFile, this.cslFile.name);
           }
           if (this.abbrevFile) {
-            opts.abbreviations = this.abbrevFile.name;
+            opts['citation-abbreviations'] = this.abbrevFile.name;
             await addFile(this.abbrevFile, this.abbrevFile.name);
+          }
+          if (this.abbreviationsFile) {
+            opts.abbreviations = this.abbreviationsFile.name;
+            await addFile(this.abbreviationsFile, this.abbreviationsFile.name);
           }
           if (this.metadataFile) {
             opts['metadata-file'] = this.metadataFile.name;
@@ -2071,6 +2088,7 @@
         handleBibFile(e) { if (e.target.files[0]) { this.bibFile = e.target.files[0]; this.hasChanges = true; } },
         handleCslFile(e) { if (e.target.files[0]) { this.cslFile = e.target.files[0]; this.cslStyleName = ''; this.hasChanges = true; } },
         handleAbbrevFile(e) { if (e.target.files[0]) { this.abbrevFile = e.target.files[0]; this.hasChanges = true; } },
+        handleAbbreviationsFile(e) { if (e.target.files[0]) { this.abbreviationsFile = e.target.files[0]; this.hasChanges = true; } },
         handleHighlightTheme(e) { if (e.target.files[0]) { this.highlightThemeFile = e.target.files[0]; this.hasChanges = true; } },
         handleTemplateFile(e) { if (e.target.files[0]) { this.templateFile = e.target.files[0]; this.hasChanges = true; } },
         handleReferenceDoc(e) { if (e.target.files[0]) { this.referenceDoc = e.target.files[0]; this.hasChanges = true; } },
@@ -2281,6 +2299,7 @@
           if (this.opts.resourcePath.trim()) opts['resource-path'] = this.opts.resourcePath.trim();
           if (this.opts.stripComments) opts['strip-comments'] = true;
           if (this.opts.defaultImageExtension.trim()) opts['default-image-extension'] = this.opts.defaultImageExtension.trim();
+          if (this.abbreviationsFile) opts.abbreviations = this.abbreviationsFile.name;
 
           // Track changes
           if (this.opts.trackChanges) opts['track-changes'] = this.opts.trackChanges;
@@ -2450,6 +2469,7 @@
             if (this.bibFile) files[this.bibFile.name] = this.bibFile;
             if (this.cslFile) files[this.cslFile.name] = this.cslFile;
             if (this.abbrevFile) files[this.abbrevFile.name] = this.abbrevFile;
+            if (this.abbreviationsFile) files[this.abbreviationsFile.name] = this.abbreviationsFile;
             this.cssFiles.forEach(file => { files[file.name] = file; });
             if (this.highlightThemeFile) files[this.highlightThemeFile.name] = this.highlightThemeFile;
             this.syntaxDefinitions.forEach(file => { files[file.name] = file; });
