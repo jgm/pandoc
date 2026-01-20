@@ -771,14 +771,6 @@
                 <label for="opt-standalone">Standalone document</label>
               </div>
               <div class="checkbox-group">
-                <input type="checkbox" id="opt-toc" v-model="opts.toc" />
-                <label for="opt-toc">Table of contents</label>
-              </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="opt-number-sections" v-model="opts.numberSections" />
-                <label for="opt-number-sections">Number sections</label>
-              </div>
-              <div class="checkbox-group">
                 <input type="checkbox" id="opt-file-scope" v-model="opts.fileScope" />
                 <label for="opt-file-scope">File scope (parse files separately)</label>
               </div>
@@ -788,6 +780,28 @@
               </div>
             </div>
             <div class="options-grid" style="margin-top: 0.75rem;">
+              <div class="form-group">
+                <label for="opt-shift-heading">Shift heading level by</label>
+                <select id="opt-shift-heading" v-model="opts.shiftHeading">
+                  <option value="-2">-2</option>
+                  <option value="-1">-1</option>
+                  <option value="0">0</option>
+                  <option value="1">+1</option>
+                  <option value="2">+2</option>
+                </select>
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-number-sections" v-model="opts.numberSections" />
+                <label for="opt-number-sections">Number sections</label>
+              </div>
+              <div class="form-group">
+                <label for="opt-number-offset">Number offset</label>
+                <input type="text" id="opt-number-offset" v-model="opts.numberOffset" placeholder="0,0,0" style="width: 100px;" />
+              </div>
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-toc" v-model="opts.toc" />
+                <label for="opt-toc">Table of contents</label>
+              </div>
               <div class="form-group">
                 <label for="opt-toc-depth">TOC depth</label>
                 <select id="opt-toc-depth" v-model="opts.tocDepth">
@@ -799,16 +813,8 @@
                   <option value="6">6</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label for="opt-shift-heading">Shift heading level by</label>
-                <select id="opt-shift-heading" v-model="opts.shiftHeading">
-                  <option value="-2">-2</option>
-                  <option value="-1">-1</option>
-                  <option value="0">0</option>
-                  <option value="1">+1</option>
-                  <option value="2">+2</option>
-                </select>
-              </div>
+            </div>
+            <div class="options-grid" style="margin-top: 0.75rem;">
               <div class="form-group">
                 <label for="opt-tab-stop">Tab stop</label>
                 <select id="opt-tab-stop" v-model="opts.tabStop">
@@ -1188,6 +1194,12 @@
                     </div>
                   </div>
                 </div>
+                <div class="resource-upload">
+                  <label>EPUB metadata (XML)</label>
+                  <input type="file" ref="epubMetadataInput" class="hidden" accept=".xml" @change="handleEpubMetadata($event)" />
+                  <button class="upload-btn" @click="$refs.epubMetadataInput.click()">Upload Metadata</button>
+                  <div v-if="epubMetadataFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(epubMetadataFile, epubMetadataFile.name)">{{ epubMetadataFile.name }}</a> <span class="file-remove" @click="epubMetadataFile = null; hasChanges = true">&#10005;</span></div>
+                </div>
                 <div class="checkbox-group">
                   <input type="checkbox" id="opt-epub-title-page" v-model="opts.epubTitlePage" />
                   <label for="opt-epub-title-page">Include title page</label>
@@ -1471,6 +1483,7 @@
           tabStop: '4',
           eol: '',
           dpi: '',
+          numberOffset: '',
           resourcePath: '',
           defaultImageExtension: '',
           stripComments: false,
@@ -1526,6 +1539,7 @@
         referenceDoc: null,
         metadataFile: null,
         epubCoverImage: null,
+        epubMetadataFile: null,
         epubFonts: [],
         headerFiles: [],
         beforeBodyFiles: [],
@@ -1749,6 +1763,7 @@
           this.abbreviationsFile = null;
           this.metadataFile = null;
           this.epubCoverImage = null;
+          this.epubMetadataFile = null;
           this.epubFonts = [];
 
           let optionsJson = null;
@@ -2094,6 +2109,7 @@
         handleReferenceDoc(e) { if (e.target.files[0]) { this.referenceDoc = e.target.files[0]; this.hasChanges = true; } },
         handleMetadataFile(e) { if (e.target.files[0]) { this.metadataFile = e.target.files[0]; this.hasChanges = true; } },
         handleEpubCover(e) { if (e.target.files[0]) { this.epubCoverImage = e.target.files[0]; this.hasChanges = true; } },
+        handleEpubMetadata(e) { if (e.target.files[0]) { this.epubMetadataFile = e.target.files[0]; this.hasChanges = true; } },
 
         handleCssFiles(e) {
           Array.from(e.target.files).forEach(file => {
@@ -2296,6 +2312,9 @@
           }
           if (this.opts.eol) opts.eol = this.opts.eol;
           if (this.opts.dpi) opts.dpi = parseInt(this.opts.dpi);
+          if (this.opts.numberOffset.trim()) {
+            opts['number-offset'] = this.opts.numberOffset.trim().split(',').map(n => parseInt(n.trim()) || 0);
+          }
           if (this.opts.resourcePath.trim()) opts['resource-path'] = this.opts.resourcePath.trim();
           if (this.opts.stripComments) opts['strip-comments'] = true;
           if (this.opts.defaultImageExtension.trim()) opts['default-image-extension'] = this.opts.defaultImageExtension.trim();
@@ -2382,6 +2401,7 @@
           // EPUB options
           if (['epub', 'epub2', 'epub3'].includes(baseOutFmt)) {
             if (this.epubCoverImage) opts['epub-cover-image'] = this.epubCoverImage.name;
+            if (this.epubMetadataFile) opts['epub-metadata'] = this.epubMetadataFile.name;
             if (this.epubFonts.length > 0) opts['epub-fonts'] = this.epubFonts.map(f => f.name);
             if (!this.opts.epubTitlePage) opts['epub-title-page'] = false;
             if (this.opts.epubSubdirectory.trim()) opts['epub-subdirectory'] = this.opts.epubSubdirectory.trim();
@@ -2477,6 +2497,7 @@
             if (this.referenceDoc) files[this.referenceDoc.name] = this.referenceDoc;
             if (this.metadataFile) files[this.metadataFile.name] = this.metadataFile;
             if (this.epubCoverImage) files[this.epubCoverImage.name] = this.epubCoverImage;
+            if (this.epubMetadataFile) files[this.epubMetadataFile.name] = this.epubMetadataFile;
             this.epubFonts.forEach(font => { files[font.name] = font; });
             this.headerFiles.forEach(file => { files[file.name] = file; });
             this.beforeBodyFiles.forEach(file => { files[file.name] = file; });
