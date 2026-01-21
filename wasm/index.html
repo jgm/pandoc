@@ -263,7 +263,7 @@
       font-size: 0.9rem;
     }
 
-    .custom-meta-row input[name="key"] { width: 120px; }
+    .custom-meta-row input[name="key"] { width: 180px; }
     .custom-meta-row input[name="value"] { flex: 1; }
 
     .custom-meta-row .remove-meta {
@@ -1132,33 +1132,28 @@
                 Output will be generated as Typst markup, then compiled to PDF.
               </p>
             </div>
-            <!-- Caption position -->
-            <div v-show="supportsCaptionPosition" style="margin-top: 0.75rem;">
+            <!-- Caption position and top-level division -->
+            <div v-show="supportsCaptionPosition || supportsTopLevelDivision" style="margin-top: 0.75rem;">
               <div class="options-grid">
-                <div class="form-group">
-                  <label for="opt-figure-caption-position">Figure caption position</label>
-                  <select id="opt-figure-caption-position" v-model="opts.figureCaptionPosition">
+                <div class="form-group" v-show="supportsCaptionPosition">
+                  <label for="opt-figure-caption-position">Figure caption</label>
+                  <select id="opt-figure-caption-position" v-model="opts.figureCaptionPosition" style="width: 100px;">
                     <option value="">Default</option>
                     <option value="above">Above</option>
                     <option value="below">Below</option>
                   </select>
                 </div>
-                <div class="form-group">
-                  <label for="opt-table-caption-position">Table caption position</label>
-                  <select id="opt-table-caption-position" v-model="opts.tableCaptionPosition">
+                <div class="form-group" v-show="supportsCaptionPosition">
+                  <label for="opt-table-caption-position">Table caption</label>
+                  <select id="opt-table-caption-position" v-model="opts.tableCaptionPosition" style="width: 100px;">
                     <option value="">Default</option>
                     <option value="above">Above</option>
                     <option value="below">Below</option>
                   </select>
                 </div>
-              </div>
-            </div>
-            <!-- Top-level division -->
-            <div v-show="supportsTopLevelDivision" style="margin-top: 0.75rem;">
-              <div class="options-grid">
-                <div class="form-group">
+                <div class="form-group" v-show="supportsTopLevelDivision">
                   <label for="opt-top-level-division">Top-level division</label>
-                  <select id="opt-top-level-division" v-model="opts.topLevelDivision">
+                  <select id="opt-top-level-division" v-model="opts.topLevelDivision" style="width: 100px;">
                     <option value="">Default</option>
                     <option value="section">Section</option>
                     <option value="chapter">Chapter</option>
@@ -1312,14 +1307,16 @@
             </fieldset>
             <div class="variables-section">
               <label>Variables</label>
+              <datalist id="variable-suggestions">
+                <option v-for="varName in suggestedVariables" :key="varName" :value="varName"></option>
+              </datalist>
               <div class="custom-metadata">
                 <div class="custom-meta-row" v-for="(v, idx) in customVariables" :key="idx">
-                  <input type="text" name="key" v-model="v.key" placeholder="variable name" />
-                  <input type="text" name="value" v-model="v.value" placeholder="value" />
-                  <button type="button" class="remove-meta" @click="customVariables.splice(idx, 1)">&#10005;</button>
+                  <input type="text" name="key" v-model="v.key" placeholder="variable name" list="variable-suggestions" @input="onVariableInput()" />
+                  <input type="text" name="value" v-model="v.value" placeholder="value" @input="onVariableInput()" />
+                  <button type="button" class="remove-meta" @click="removeVariable(idx)" v-show="customVariables.length > 1 || v.key || v.value">&#10005;</button>
                 </div>
               </div>
-              <button type="button" class="add-metadata-btn" @click="customVariables.push({ key: '', value: '' })">+ Add variable</button>
             </div>
           </div>
 
@@ -1350,32 +1347,19 @@
               <button class="upload-btn" @click="$refs.metadataFileInput.click()">Upload Metadata File</button>
               <div v-if="metadataFile" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(metadataFile, metadataFile.name)">{{ metadataFile.name }}</a> <span class="file-remove" @click="metadataFile = null; hasChanges = true">&#10005;</span></div>
             </div>
-            <div class="options-grid">
-              <div class="form-group">
-                <label for="meta-title">title</label>
-                <input type="text" id="meta-title" v-model="metadata.title" placeholder="Document title" />
-              </div>
-              <div class="form-group">
-                <label for="meta-author">author</label>
-                <input type="text" id="meta-author" v-model="metadata.author" placeholder="Author name" />
-              </div>
-              <div class="form-group">
-                <label for="meta-date">date</label>
-                <input type="text" id="meta-date" v-model="metadata.date" placeholder="e.g., 2025-01-07" />
-              </div>
-              <div class="form-group">
-                <label for="meta-lang">lang</label>
-                <input type="text" id="meta-lang" v-model="metadata.lang" placeholder="e.g., en, de, fr" />
-              </div>
-            </div>
+            <datalist id="metadata-suggestions">
+              <option value="title"></option>
+              <option value="author"></option>
+              <option value="date"></option>
+              <option value="lang"></option>
+            </datalist>
             <div class="custom-metadata">
               <div class="custom-meta-row" v-for="(m, idx) in customMetadata" :key="idx">
-                <input type="text" name="key" v-model="m.key" placeholder="field name" />
-                <input type="text" name="value" v-model="m.value" placeholder="value" />
-                <button type="button" class="remove-meta" @click="customMetadata.splice(idx, 1); hasChanges = true">&#10005;</button>
+                <input type="text" name="key" v-model="m.key" placeholder="field name" list="metadata-suggestions" @input="onMetadataInput()" />
+                <input type="text" name="value" v-model="m.value" placeholder="value" @input="onMetadataInput()" />
+                <button type="button" class="remove-meta" @click="removeMetadata(idx)" v-show="customMetadata.length > 1 || m.key || m.value">&#10005;</button>
               </div>
             </div>
-            <button type="button" class="add-metadata-btn" @click="customMetadata.push({ key: '', value: '' }); hasChanges = true">+ Add field</button>
           </div>
 
           <!-- Wrapping -->
@@ -1536,9 +1520,8 @@
         },
 
         // Metadata
-        metadata: { title: '', author: '', date: '', lang: '' },
-        customMetadata: [],
-        customVariables: [],
+        customMetadata: [{ key: '', value: '' }],
+        customVariables: [{ key: '', value: '' }],
 
         // Resource files
         bibFile: null,
@@ -1622,6 +1605,50 @@
         listOfFormats: ['latex', 'beamer', 'context'],
         latexCitationFormats: ['latex', 'beamer', 'context'],
 
+        // Template variables by category
+        templateVariablesByCategory: {
+          all: ['title', 'author', 'date', 'subtitle', 'abstract', 'abstract-title', 'keywords', 'subject', 'description', 'category', 'lang', 'dir', 'header-includes', 'include-before', 'include-after', 'toc-title'],
+          html: ['document-css', 'mainfont', 'fontsize', 'fontcolor', 'linkcolor', 'monofont', 'monobackgroundcolor', 'linestretch', 'maxwidth', 'backgroundcolor', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom'],
+          htmlSlides: ['institute', 'revealjs-url', 's5-url', 'slidy-url', 'slideous-url', 'title-slide-attributes'],
+          beamer: ['aspectratio', 'beameroption', 'institute', 'logo', 'navigation', 'section-titles', 'theme', 'colortheme', 'fonttheme', 'innertheme', 'outertheme', 'themeoptions', 'titlegraphic'],
+          latex: ['block-headings', 'classoption', 'documentclass', 'geometry', 'hyperrefoptions', 'indent', 'linestretch', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom', 'pagestyle', 'papersize', 'secnumdepth', 'fontenc', 'fontfamily', 'fontfamilyoptions', 'fontsize', 'mainfont', 'sansfont', 'monofont', 'mathfont', 'CJKmainfont', 'mainfontoptions', 'sansfontoptions', 'monofontoptions', 'colorlinks', 'linkcolor', 'filecolor', 'citecolor', 'urlcolor', 'toccolor', 'links-as-notes', 'lof', 'lot', 'thanks', 'toc-depth', 'biblatexoptions', 'biblio-style', 'biblio-title', 'natbiboptions'],
+          context: ['fontsize', 'headertext', 'footertext', 'indenting', 'interlinespace', 'layout', 'linkcolor', 'contrastcolor', 'linkstyle', 'lof', 'lot', 'mainfont', 'sansfont', 'monofont', 'mathfont', 'margin-left', 'margin-right', 'margin-top', 'margin-bottom', 'pagenumbering', 'papersize', 'whitespace'],
+          typst: ['papersize', 'mainfont', 'fontsize', 'section-numbering', 'page-numbering', 'columns', 'thanks', 'mathfont', 'codefont', 'linestretch', 'linkcolor', 'filecolor', 'citecolor', 'margin'],
+          ms: ['fontfamily', 'indent', 'lineheight', 'pointsize'],
+          man: ['adjusting', 'footer', 'header', 'section'],
+          epub: ['cover-image', 'epub-title-page'],
+          docx: ['reference-doc'],
+          pptx: ['monofont'],
+          odt: ['reference-doc']
+        },
+
+        // Format to variable categories mapping
+        formatVariableCategories: {
+          html: ['all', 'html'],
+          html4: ['all', 'html'],
+          html5: ['all', 'html'],
+          revealjs: ['all', 'html', 'htmlSlides'],
+          slidy: ['all', 'html', 'htmlSlides'],
+          slideous: ['all', 'html', 'htmlSlides'],
+          dzslides: ['all', 'html', 'htmlSlides'],
+          s5: ['all', 'html', 'htmlSlides'],
+          epub: ['all', 'html', 'epub'],
+          epub2: ['all', 'html', 'epub'],
+          epub3: ['all', 'html', 'epub'],
+          chunkedhtml: ['all', 'html'],
+          latex: ['all', 'latex'],
+          beamer: ['all', 'latex', 'beamer'],
+          context: ['all', 'context'],
+          typst: ['all', 'typst'],
+          'pdf-typst': ['all', 'typst'],
+          ms: ['all', 'ms'],
+          man: ['all', 'man'],
+          docx: ['all', 'docx'],
+          pptx: ['all', 'pptx'],
+          odt: ['all', 'odt'],
+          opendocument: ['all', 'odt']
+        },
+
         // Computed-like getters
         get canConvert() {
           const hasInput = this.inputMode === 'file' ? this.fileOrder.length > 0 : this.textInput.trim().length > 0;
@@ -1667,6 +1694,17 @@
         get supportsTopLevelDivision() { return this.topLevelDivisionFormats.includes(this.effectiveOutputFormat); },
         get supportsListOf() { return this.listOfFormats.includes(this.effectiveOutputFormat); },
         get isBinaryOutput() { return this.binaryFormats.includes(this.effectiveOutputFormat); },
+
+        get suggestedVariables() {
+          const fmt = this.effectiveOutputFormat;
+          const categories = this.formatVariableCategories[fmt] || ['all'];
+          const vars = new Set();
+          for (const cat of categories) {
+            const catVars = this.templateVariablesByCategory[cat] || [];
+            for (const v of catVars) vars.add(v);
+          }
+          return Array.from(vars).sort();
+        },
 
         get effectiveInputFormat() {
           let inFmt = this.inputFormat;
@@ -2178,6 +2216,38 @@
         },
         removeAfterBodyFile(name) { this.afterBodyFiles = this.afterBodyFiles.filter(f => f.name !== name); this.hasChanges = true; },
 
+        // Metadata auto-add row
+        onMetadataInput() {
+          const last = this.customMetadata[this.customMetadata.length - 1];
+          if (last && (last.key || last.value)) {
+            this.customMetadata.push({ key: '', value: '' });
+          }
+          this.hasChanges = true;
+        },
+        removeMetadata(idx) {
+          this.customMetadata.splice(idx, 1);
+          if (this.customMetadata.length === 0) {
+            this.customMetadata.push({ key: '', value: '' });
+          }
+          this.hasChanges = true;
+        },
+
+        // Variables auto-add row
+        onVariableInput() {
+          const last = this.customVariables[this.customVariables.length - 1];
+          if (last && (last.key || last.value)) {
+            this.customVariables.push({ key: '', value: '' });
+          }
+          this.hasChanges = true;
+        },
+        removeVariable(idx) {
+          this.customVariables.splice(idx, 1);
+          if (this.customVariables.length === 0) {
+            this.customVariables.push({ key: '', value: '' });
+          }
+          this.hasChanges = true;
+        },
+
         // CSL styles
         async loadCslStyles() {
           if (this.cslStylesLoaded) return;
@@ -2467,12 +2537,17 @@
 
           // Metadata
           const metadata = {};
-          if (this.metadata.title.trim()) metadata.title = this.metadata.title.trim();
-          if (this.metadata.author.trim()) metadata.author = [this.metadata.author.trim()];
-          if (this.metadata.date.trim()) metadata.date = this.metadata.date.trim();
-          if (this.metadata.lang.trim()) metadata.lang = this.metadata.lang.trim();
           this.customMetadata.forEach(m => {
-            if (m.key.trim() && m.value.trim()) metadata[m.key.trim()] = m.value.trim();
+            if (m.key.trim() && m.value.trim()) {
+              const key = m.key.trim();
+              const value = m.value.trim();
+              // author should be an array
+              if (key === 'author') {
+                metadata[key] = [value];
+              } else {
+                metadata[key] = value;
+              }
+            }
           });
           if (Object.keys(metadata).length > 0) opts.metadata = metadata;
 
