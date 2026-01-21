@@ -749,6 +749,8 @@
         <div class="card-body" style="padding: 0.75rem;">
           <div class="options-tabs">
             <button class="options-tab" :class="{ active: activeTab === 'general' }" @click="activeTab = 'general'">General</button>
+            <button class="options-tab" :class="{ active: activeTab === 'headings' }" @click="activeTab = 'headings'">Headings</button>
+            <button class="options-tab" :class="{ active: activeTab === 'media' }" @click="activeTab = 'media'">Media</button>
             <button class="options-tab" v-show="showTrackChangesTab" :class="{ active: activeTab === 'track-changes' }" @click="activeTab = 'track-changes'">Track Changes</button>
             <button class="options-tab" v-show="showExtensionsTab" :class="{ active: activeTab === 'extensions' }" @click="activeTab = 'extensions'">Extensions</button>
             <button class="options-tab" :class="{ active: activeTab === 'citations' }" @click="activeTab = 'citations'">Citations</button>
@@ -774,12 +776,34 @@
                 <input type="checkbox" id="opt-file-scope" v-model="opts.fileScope" />
                 <label for="opt-file-scope">File scope (parse files separately)</label>
               </div>
-              <div class="checkbox-group">
-                <input type="checkbox" id="opt-extract-media" v-model="opts.extractMedia" />
-                <label for="opt-extract-media">Extract media</label>
+              <div class="form-group">
+                <label for="opt-tab-stop">Tab stop</label>
+                <select id="opt-tab-stop" v-model="opts.tabStop" style="width: 110px;">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="preserve">Preserve tabs</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="opt-eol">Line endings</label>
+                <select id="opt-eol" v-model="opts.eol" style="width: 120px;">
+                  <option value="">Native</option>
+                  <option value="lf">LF (Unix)</option>
+                  <option value="crlf">CRLF (Windows)</option>
+                </select>
               </div>
             </div>
-            <div class="options-grid" style="margin-top: 0.75rem;">
+          </div>
+
+          <!-- Headings -->
+          <div class="tab-panel" v-show="activeTab === 'headings'">
+            <div class="options-grid">
               <div class="form-group">
                 <label for="opt-shift-heading">Shift heading level by</label>
                 <select id="opt-shift-heading" v-model="opts.shiftHeading">
@@ -814,38 +838,22 @@
                 </select>
               </div>
             </div>
-            <div class="options-grid" style="margin-top: 0.75rem;">
-              <div class="form-group">
-                <label for="opt-tab-stop">Tab stop</label>
-                <select id="opt-tab-stop" v-model="opts.tabStop">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="preserve">Preserve tabs</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="opt-eol">Line endings</label>
-                <select id="opt-eol" v-model="opts.eol">
-                  <option value="">Native</option>
-                  <option value="lf">LF (Unix)</option>
-                  <option value="crlf">CRLF (Windows)</option>
-                </select>
+          </div>
+
+          <!-- Media -->
+          <div class="tab-panel" v-show="activeTab === 'media'">
+            <div class="options-grid">
+              <div class="checkbox-group">
+                <input type="checkbox" id="opt-extract-media" v-model="opts.extractMedia" />
+                <label for="opt-extract-media">Extract media</label>
               </div>
               <div class="form-group">
                 <label for="opt-dpi">DPI (for images)</label>
                 <input type="number" id="opt-dpi" v-model="opts.dpi" placeholder="96" min="1" style="width: 80px;" />
               </div>
-            </div>
-            <div class="options-grid" style="margin-top: 0.75rem;">
-              <div class="form-group" style="grid-column: 1 / -1;">
+              <div class="form-group">
                 <label for="opt-resource-path">Resource path</label>
-                <input type="text" id="opt-resource-path" v-model="opts.resourcePath" placeholder=".:images" />
+                <input type="text" id="opt-resource-path" v-model="opts.resourcePath" placeholder=".:images" style="width: 240px;" />
               </div>
             </div>
           </div>
@@ -1261,42 +1269,47 @@
               <button class="upload-btn" @click="$refs.referenceDocInput.click()">Upload Reference Document</button>
               <div v-if="referenceDoc" class="resource-item">&#128196; <a href="#" @click.prevent="downloadFile(referenceDoc, referenceDoc.name)">{{ referenceDoc.name }}</a> <span class="file-remove" @click="referenceDoc = null; hasChanges = true">&#10005;</span></div>
             </div>
-            <div class="resource-upload">
-              <label>Include in header (custom CSS, scripts, LaTeX packages)</label>
-              <input type="file" ref="headerInput" class="hidden" multiple @change="handleHeaderFiles($event)" />
-              <button class="upload-btn" @click="$refs.headerInput.click()">Add Header Files</button>
-              <div class="file-list file-list-small" v-if="headerFiles.length > 0">
-                <div class="file-item" v-for="file in headerFiles" :key="file.name">
-                  <span class="file-icon">&#128196;</span>
-                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
-                  <span class="file-remove" @click="removeHeaderFile(file.name)">&#10005;</span>
+            <fieldset style="border: 1px solid var(--gray-300); border-radius: 4px; padding: 1rem; margin: 0;">
+              <legend style="padding: 0 0.5rem; font-weight: 500;">Files to include</legend>
+              <div style="display: flex; flex-wrap: wrap; gap: 2rem;">
+                <div class="resource-upload">
+                  <label>In header</label>
+                  <input type="file" ref="headerInput" class="hidden" multiple @change="handleHeaderFiles($event)" />
+                  <button class="upload-btn" @click="$refs.headerInput.click()">Add Header Files</button>
+                  <div class="file-list file-list-small" v-if="headerFiles.length > 0">
+                    <div class="file-item" v-for="file in headerFiles" :key="file.name">
+                      <span class="file-icon">&#128196;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeHeaderFile(file.name)">&#10005;</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="resource-upload">
+                  <label>Before body</label>
+                  <input type="file" ref="beforeBodyInput" class="hidden" multiple @change="handleBeforeBodyFiles($event)" />
+                  <button class="upload-btn" @click="$refs.beforeBodyInput.click()">Add Before-Body Files</button>
+                  <div class="file-list file-list-small" v-if="beforeBodyFiles.length > 0">
+                    <div class="file-item" v-for="file in beforeBodyFiles" :key="file.name">
+                      <span class="file-icon">&#128196;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeBeforeBodyFile(file.name)">&#10005;</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="resource-upload">
+                  <label>After body</label>
+                  <input type="file" ref="afterBodyInput" class="hidden" multiple @change="handleAfterBodyFiles($event)" />
+                  <button class="upload-btn" @click="$refs.afterBodyInput.click()">Add After-Body Files</button>
+                  <div class="file-list file-list-small" v-if="afterBodyFiles.length > 0">
+                    <div class="file-item" v-for="file in afterBodyFiles" :key="file.name">
+                      <span class="file-icon">&#128196;</span>
+                      <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
+                      <span class="file-remove" @click="removeAfterBodyFile(file.name)">&#10005;</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="resource-upload">
-              <label>Include before body</label>
-              <input type="file" ref="beforeBodyInput" class="hidden" multiple @change="handleBeforeBodyFiles($event)" />
-              <button class="upload-btn" @click="$refs.beforeBodyInput.click()">Add Before-Body Files</button>
-              <div class="file-list file-list-small" v-if="beforeBodyFiles.length > 0">
-                <div class="file-item" v-for="file in beforeBodyFiles" :key="file.name">
-                  <span class="file-icon">&#128196;</span>
-                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
-                  <span class="file-remove" @click="removeBeforeBodyFile(file.name)">&#10005;</span>
-                </div>
-              </div>
-            </div>
-            <div class="resource-upload">
-              <label>Include after body</label>
-              <input type="file" ref="afterBodyInput" class="hidden" multiple @change="handleAfterBodyFiles($event)" />
-              <button class="upload-btn" @click="$refs.afterBodyInput.click()">Add After-Body Files</button>
-              <div class="file-list file-list-small" v-if="afterBodyFiles.length > 0">
-                <div class="file-item" v-for="file in afterBodyFiles" :key="file.name">
-                  <span class="file-icon">&#128196;</span>
-                  <a class="file-name" href="#" @click.prevent="downloadFile(file, file.name)">{{ file.name }}</a>
-                  <span class="file-remove" @click="removeAfterBodyFile(file.name)">&#10005;</span>
-                </div>
-              </div>
-            </div>
+            </fieldset>
             <div class="variables-section">
               <label>Variables</label>
               <div class="custom-metadata">
