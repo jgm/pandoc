@@ -6578,7 +6578,7 @@ Returns:
 `render (doc[, colwidth[, style]])`
 
 Render a [Doc]. The text is reflowed on breakable spaces to match
-the given line length. Text is not reflowed if the line line
+the given line length. Text is not reflowed if the line
 length parameter is omitted or nil.
 
 Parameters:

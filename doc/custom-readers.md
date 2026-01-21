@@ -102,7 +102,7 @@ of extensions that are enabled default have the value `true` or
 `enable`, while those that are supported but disabled have value
 `false` or `disable`.
 
-Example: A writer with the following global table supports the
+Example: A reader with the following global table supports the
 extensions `smart`, `citations`, and `foobar`, with `smart` enabled and
 the other two disabled by default:
 
