@@ -2073,7 +2073,8 @@ inlineNote = do
     updateState $ \st -> st{ stateInNote = True
                            , stateNoteNumber = stateNoteNumber st + 1 }
     contents <- inBalancedBrackets inlines
-    notFollowedBy (char '(' <|> char '[') -- ^[link](foo)^ is superscript
+    notFollowedBy (char '(' <|> char '[' <|> ('{' <$ attributes))
+      -- ^[link](foo)^ is superscript
     updateState $ \st -> st{ stateInNote = False }
     return $ B.note . B.para <$> contents
 
