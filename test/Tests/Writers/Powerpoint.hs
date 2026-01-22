@@ -78,6 +78,10 @@ tests = let
       def
       "pptx/tables/input.native"
       "pptx/tables/output.pptx"
+    , pptxTests "table with surrounding content stays on same slide"
+      def
+      "pptx/table-with-surrounding-content/input.native"
+      "pptx/table-with-surrounding-content/output.pptx"
     , pptxTests "table of contents"
       def{ writerTableOfContents = True }
       "pptx/slide-breaks/input.native"

@@ -1,0 +1,34 @@
+[Header 2 ("slide-with-bullets-and-table",[],[]) [Str "Slide",Space,Str "with",Space,Str "Bullets",Space,Str "and",Space,Str "Table"]
+,BulletList
+ [[Plain [Str "First",Space,Str "bullet",Space,Str "point",Space,Str "before",Space,Str "the",Space,Str "table"]]
+ ,[Plain [Str "Second",Space,Str "bullet",Space,Str "point",Space,Str "before",Space,Str "the",Space,Str "table"]]]
+,Table ("",[],[]) (Caption Nothing [])
+ [(AlignDefault,ColWidthDefault)
+ ,(AlignDefault,ColWidthDefault)]
+ (TableHead ("",[],[])
+ [Row ("",[],[])
+  [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Column",Space,Str "A"]]
+  ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+   [Plain [Str "Column",Space,Str "B"]]]])
+ [(TableBody ("",[],[]) (RowHeadColumns 0)
+  []
+  [Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Value",Space,Str "1"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Value",Space,Str "2"]]]
+  ,Row ("",[],[])
+   [Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Value",Space,Str "3"]]
+   ,Cell ("",[],[]) AlignDefault (RowSpan 1) (ColSpan 1)
+    [Plain [Str "Value",Space,Str "4"]]]])]
+ (TableFoot ("",[],[]) [])
+,BulletList
+ [[Plain [Str "Third",Space,Str "bullet",Space,Str "point",Space,Str "after",Space,Str "the",Space,Str "table"]]
+ ,[Plain [Str "Fourth",Space,Str "bullet",Space,Str "point",Space,Str "after",Space,Str "the",Space,Str "table"]]]
+,Header 2 ("second-slide-for-reference",[],[]) [Str "Second",Space,Str "Slide",Space,Str "for",Space,Str "Reference"]
+,BulletList
+ [[Plain [Str "This",Space,Str "slide",Space,Str "has",Space,Str "just",Space,Str "bullets"]]
+ ,[Plain [Str "No",Space,Str "table",Space,Str "here"]]
+ ,[Plain [Str "Everything",Space,Str "stays",Space,Str "together"]]]]
