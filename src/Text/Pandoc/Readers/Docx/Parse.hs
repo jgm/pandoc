@@ -164,7 +164,8 @@ unwrapElement ns element
                        findChildrenByName ns "mc" "AlternateContent" >>=
                        findChildrenByName ns "mc" "Fallback" >>=
                        findChildrenByName ns "w" "pict" >>=
-                       findChildrenByName ns "v" "shape" >>=
+                       (\e -> findChildrenByName ns "v" "shape" e <>
+                              findChildrenByName ns "v" "rect" e) >>=
                        findChildrenByName ns "v" "textbox" >>=
                        findChildrenByName ns "w" "txbxContent"
   = concatMap (unwrapElement ns) (concatMap elChildren textboxes) -- handle #9214
