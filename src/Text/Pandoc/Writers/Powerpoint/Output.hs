@@ -1365,16 +1365,6 @@ shapesToElements :: PandocMonad m => Element -> [Shape] -> P m [(Maybe ShapeId, 
 shapesToElements layout shps =
  concat <$> mapM (shapeToElements layout) shps
 
--- | Estimate the height of a table based on number of rows
--- This is a rough estimate: header row + data rows, with some padding
-estimateTableHeight :: [Graphic] -> Integer -> Integer
-estimateTableHeight tbls totalHeight =
-  let numRows = maximum $ 1 : [1 + length rows | Tbl _ _ _ rows <- tbls]
-      -- Use a portion of the total height based on rows
-      -- Minimum 40% for a table, cap at 80%
-      rowFraction = min 0.8 $ max 0.4 $ fromIntegral numRows * 0.15
-  in round $ rowFraction * fromIntegral totalHeight
-
 -- | Create a GraphicFrame element with explicit positioning
 graphicFrameToElementsWithPosition ::
   PandocMonad m =>
@@ -1474,6 +1464,7 @@ shapesToElementsStacked layout x y cx totalCy shapes = do
 
       -- Calculate total units and height per unit
       totalUnits = sum $ map shapeUnits shapes
+      heightPerUnit :: Double
       heightPerUnit = if totalUnits > 0
                       then fromIntegral totalCy / fromIntegral totalUnits
                       else fromIntegral totalCy
