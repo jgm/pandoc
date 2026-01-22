@@ -1,3 +1,4 @@
+$document-metadata.latex()$
 $passoptions.latex()$
 \documentclass[
 $for(babel-otherlangs)$

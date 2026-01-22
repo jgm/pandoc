@@ -105,6 +105,7 @@ data LogMessage =
   | UnclosedDiv SourcePos SourcePos
   | UnsupportedCodePage Int
   | YamlWarning SourcePos Text
+  | UnsupportedPdfStandard Text
   deriving (Show, Eq, Data, Ord, Typeable, Generic)
 
 instance ToJSON LogMessage where
@@ -291,6 +292,8 @@ instance ToJSON LogMessage where
            , "column" .= toJSON (sourceColumn pos)
            , "message" .= msg
            ]
+      UnsupportedPdfStandard s ->
+           ["contents" .= s]
 
 showPos :: SourcePos -> Text
 showPos pos = Text.pack $ sn ++ "line " ++
@@ -438,6 +441,8 @@ showLogMessage msg =
        UnsupportedCodePage cpg -> "Unsupported code page " <> tshow cpg <>
           ". Text will likely be garbled."
        YamlWarning pos m -> "YAML warning (" <> showPos pos <> "): " <> m
+       UnsupportedPdfStandard s ->
+         "PDF standard '" <> s <> "' is not supported by LaTeX and will be ignored."
 
 messageVerbosity :: LogMessage -> Verbosity
 messageVerbosity msg =
@@ -497,3 +502,4 @@ messageVerbosity msg =
        UnclosedDiv{}                 -> WARNING
        UnsupportedCodePage{}         -> WARNING
        YamlWarning{}                 -> WARNING
+       UnsupportedPdfStandard{}      -> WARNING

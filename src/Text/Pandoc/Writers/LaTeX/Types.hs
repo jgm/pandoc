@@ -2,6 +2,7 @@ module Text.Pandoc.Writers.LaTeX.Types
   ( LW
   , WriterState (..)
   , startingState
+  , PdfStandard (..)
   ) where
 
 import Control.Monad.State.Strict (StateT)
@@ -55,6 +56,13 @@ data WriterState =
   , stInSoulCommand :: Bool          -- ^ in a soul command like ul
   , stCancel        :: Bool          -- ^ true if document uses \cancel
   , stInCaption     :: Bool          -- ^ true if in a caption
+  }
+
+-- | PDF standard settings for DocumentMetadata
+data PdfStandard = PdfStandard
+  { pdfStandards :: [Text]     -- ^ list of standards (e.g., ["a-2b", "ua-1"])
+  , pdfVersion   :: Maybe Text -- ^ PDF version (e.g., "1.7", "2.0")
+  , pdfTagging   :: Bool       -- ^ whether tagging is required
   }
 
 startingState :: WriterOptions -> WriterState
