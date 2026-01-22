@@ -7843,7 +7843,8 @@ Multiple standards can be combined:
     ---
 
 The required PDF version is inferred automatically. This feature
-requires LuaLaTeX and a recent LaTeX installation.
+requires LuaLaTeX in TeX Live 2025 with LaTeX kernel 2025-06-01
+or newer.
 
 ## ConTeXt
 
