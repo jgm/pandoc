@@ -57,10 +57,12 @@
             haskellPackages.profiteur
             zlib.dev
             git
+            gnumake
             bashInteractive
             epubcheck # for validate-epub
             nodejs # for validate-epub
             ripgrep
+            unzip
             libxml2 # for xmllint
             jq
           ];
