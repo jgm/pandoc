@@ -1,7 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Docx (tests) where
 
 import Codec.Archive.Zip (findEntryByPath, fromEntry, toArchive)
-import Data.List (isPrefixOf)
+import qualified Data.ByteString.Lazy as BL
+import Data.List (isInfixOf, isPrefixOf)
+import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.IO as T
@@ -243,5 +246,50 @@ tests = [ testGroup "inlines"
                         overrides
               assertBool "Found invalid /word/media/ Override in [Content_Types].xml"
                 (not hasBadOverride)
+          , testCase "language from reference docx is preserved" $ do
+              -- First, verify that the german-reference.docx actually has de-DE
+              refBs <- BL.readFile "docx/german-reference.docx"
+              let refArchive = toArchive refBs
+              refEntry <- case findEntryByPath "word/styles.xml" refArchive of
+                Nothing -> assertFailure "Missing word/styles.xml in german-reference.docx"
+                Just e -> return e
+              let refStylesXml = show (fromEntry refEntry)
+              let getLangLines = filter ("w:lang" `isInfixOf`) . lines
+              assertBool ("german-reference.docx w:lang line: " ++
+                  unlines (getLangLines refStylesXml))
+                (any ("de-DE" `isInfixOf`) (getLangLines refStylesXml))
+              -- Now test that using this reference preserves the language
+              let opts = def{ writerReferenceDoc = Just "docx/german-reference.docx" }
+              txt <- T.readFile "docx/inline_formatting.native"
+              bs <- runIOorExplode $ do
+                setVerbosity ERROR
+                readNative def txt >>= writeDocx opts
+              let archive = toArchive bs
+              entry <- case findEntryByPath "word/styles.xml" archive of
+                Nothing -> assertFailure "Missing word/styles.xml in output docx"
+                Just e -> return e
+              let stylesXml = show (fromEntry entry)
+              -- Find the w:lang line for debugging
+              -- Check that the styles.xml contains the German language
+              assertBool ("Language from reference docx not preserved. w:lang lines: " ++ unlines (getLangLines stylesXml))
+                (any ("de-DE" `isInfixOf`) (getLangLines stylesXml))
+          , testCase "language from metadata overrides reference docx" $ do
+              -- Use a reference docx with German language, but specify French in metadata
+              let opts = def{ writerReferenceDoc = Just "docx/german-reference.docx" }
+              bs <- runIOorExplode $ do
+                setVerbosity ERROR
+                -- Create a document with French language metadata
+                let doc = Pandoc (Meta $ M.fromList [("lang", MetaString "fr-FR")])
+                                 [Para [Str "Test"]]
+                writeDocx opts doc
+              let archive = toArchive bs
+              entry <- case findEntryByPath "word/styles.xml" archive of
+                Nothing -> assertFailure "Missing word/styles.xml in output docx"
+                Just e -> return e
+              let stylesXml = show (fromEntry entry)
+              -- Check that the styles.xml contains the French language (not German)
+              let getLangLines = filter ("w:lang" `isInfixOf`) . lines
+              assertBool "Language from metadata did not override reference docx (expected fr-FR)"
+                (any ("fr-FR" `isInfixOf`) (getLangLines stylesXml))
           ]
         ]

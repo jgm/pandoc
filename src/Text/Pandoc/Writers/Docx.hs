@@ -61,7 +61,6 @@ import Text.Pandoc.Walk
 import Text.Pandoc.Writers.Shared
 import Text.Pandoc.Writers.OOXML
 import Text.Pandoc.XML.Light as XML
-import Data.Generics (mkT, everywhere)
 import Text.Collate.Lang (renderLang, Lang(..))
 
 writeDocx :: (PandocMonad m)
@@ -85,8 +84,6 @@ writeDocx opts doc = do
 
   -- Phase 4: Language & style setup
   mblang <- toLang $ getLang opts meta
-  -- TODO FIXME avoid this generic traversal!
-  -- lang is in w:docDefaults /  w:rPr  /  w:lang
   let addLang = mkLangTransformer mblang
   styledoc <- addLang <$> parseXml refArchive distArchive "word/styles.xml"
   let styleMaps = getStyleMaps refArchive
@@ -450,36 +447,36 @@ mkLvl marker lvl =
           patternFor TwoParens s = "(" <> s <> ")"
           patternFor _ s         = s <> "."
 
--- | Build language transformer function for modifying XML elements
+-- | Build language transformer function for modifying XML elements.
+-- Navigates directly to w:docDefaults/w:rPr/w:lang instead of generic traversal.
 mkLangTransformer :: Maybe Lang -> (Element -> Element)
 mkLangTransformer Nothing  = id
-mkLangTransformer (Just l) = everywhere (mkT (go l))
+mkLangTransformer (Just lang) = modifyAtPath path updateLangAttrs
   where
-    go :: Lang -> Element -> Element
-    go lang e'
-     | qName (elName e') == "lang"
-       = if isEastAsianLang lang
-            then e'{ elAttribs =
-                       map (setattr "eastAsia" (renderLang lang)) $
-                       elAttribs e' }
-            else
-              if isBidiLang lang
-                 then e'{ elAttribs =
-                           map (setattr "bidi" (renderLang lang)) $
-                           elAttribs e' }
-                 else e'{ elAttribs =
-                           map (setattr "val" (renderLang lang)) $
-                           elAttribs e' }
-     | otherwise = e'
+    -- Path is: w:docDefaults / w:rPrDefault / w:rPr / w:lang
+    path = [named "docDefaults", named "rPrDefault", named "rPr", named "lang"]
+    named n = (== n) . qName
 
-    setattr attrname lval (XML.Attr qn@(QName s _ _) _)
-      | s == attrname  = XML.Attr qn lval
-    setattr _ _ x      = x
+    updateLangAttrs e
+      | isEastAsianLang lang = e{ elAttribs = map (setattr "eastAsia") $ elAttribs e }
+      | isBidiLang lang      = e{ elAttribs = map (setattr "bidi") $ elAttribs e }
+      | otherwise            = e{ elAttribs = map (setattr "val") $ elAttribs e }
 
-    isEastAsianLang Lang{ langLanguage = lang } =
-       lang == "zh" || lang == "ja" || lang == "ko"
-    isBidiLang Lang{ langLanguage = lang } =
-       lang == "he" || lang == "ar"
+    setattr attrname (XML.Attr qn@(QName s _ _) _)
+      | s == attrname  = XML.Attr qn (renderLang lang)
+    setattr _ x        = x
+
+    isEastAsianLang Lang{ langLanguage = l } = l == "zh" || l == "ja" || l == "ko"
+    isBidiLang Lang{ langLanguage = l } = l == "he" || l == "ar"
+
+-- | Modify an element at a specific path in the XML tree.
+-- The path is a list of predicates that match element names at each level.
+modifyAtPath :: [(QName -> Bool)] -> (Element -> Element) -> Element -> Element
+modifyAtPath [] f e = f e
+modifyAtPath (p:ps) f e = e{ elContent = map go (elContent e) }
+  where
+    go (Elem el) | p (elName el) = Elem (modifyAtPath ps f el)
+    go c = c
 
 -- | Load reference and distribution archives
 loadArchives :: PandocMonad m
