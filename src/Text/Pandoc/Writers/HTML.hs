@@ -795,8 +795,8 @@ blockToHtmlInner opts (Div (ident, "section":dclasses, dkvs)
         if titleSlide
            -- title slides have no content of their own
            then let (as, bs) = break isSec xs
-                in  (breakOnPauses as, bs)
-           else ([], breakOnPauses xs)
+                in  (walk breakOnPauses as, bs)
+           else ([], walk breakOnPauses xs)
   let secttag  = if html5
                     then H5.section
                     else H.div
