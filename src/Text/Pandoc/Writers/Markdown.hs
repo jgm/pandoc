@@ -615,6 +615,9 @@ blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
   let (caption, aligns, widths, headers, rows) = toLegacyTable blkCapt specs thead tbody tfoot
   let isColRowSpans (Cell _ _ rs cs _) = rs > 1 || cs > 1
   let rowHasColRowSpans (Row _ cs) = any isColRowSpans cs
+  let hasFooter = case tfoot of
+                    TableFoot _ [] -> False
+                    _ -> True
   let tbodyHasColRowSpans (TableBody _ _ rhs rs) =
         any rowHasColRowSpans rhs || any rowHasColRowSpans rs
   let theadHasColRowSpans (TableHead _ rs) = any rowHasColRowSpans rs
@@ -634,7 +637,8 @@ blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
         = blankline $$ (": " <> caption'') $$ blankline
         | otherwise = blankline $$ caption'' $$ blankline
   let hasSimpleCells = onlySimpleTableCells $ headers : rows
-  let isSimple = hasSimpleCells && all (==0) widths && not hasColRowSpans
+  let isSimple = hasSimpleCells && not hasFooter &&
+                 all (==0) widths && not hasColRowSpans
   let isPlainBlock (Plain _) = True
       isPlainBlock _         = False
   let hasBlocks = not (all (all (all isPlainBlock)) $ headers:rows)
@@ -660,12 +664,13 @@ blockToMarkdown' opts t@(Table attr blkCapt specs thead tbody tfoot) = do
          isEnabled Ext_pipe_tables opts -> do
            tbl <- mkTable (pipeTable opts)
            return $ (tbl $$ caption''') $$ blankline
-       | not (hasBlocks || hasColRowSpans) &&
+       | not (hasBlocks || hasColRowSpans || hasFooter) &&
          isEnabled Ext_multiline_tables opts -> do
            tbl <- mkTable (pandocTable opts True)
            return $ nest 2 (tbl $$ caption''') $$ blankline
        | isEnabled Ext_grid_tables opts &&
-          (hasColRowSpans || writerColumns opts >= 8 * numcols) -> do
+          (hasColRowSpans || writerColumns opts >= 8 * numcols
+                          || hasFooter) -> do
            tbl <- gridTable opts blockListToMarkdown
                      specs thead tbody tfoot
            return $ (tbl $$ caption''') $$ blankline
