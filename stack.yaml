@@ -32,7 +32,7 @@ extra-deps:
 - git: https://github.com/jgm/texmath.git
   commit: e3c43559e98e46b3fd5e5a5719f64cc4f1f5ef0c
 - git: https://github.com/jgm/djoths.git
-  commit: a6fc625fd58aa39df05dd1d82ee005e681815095
+  commit: 67afd6c0485898b9a00e23794fc08e1d9d1e3afb
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
 resolver: lts-24.20

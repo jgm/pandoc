@@ -30,4 +30,4 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/jgm/djoths.git
-  tag: a6fc625fd58aa39df05dd1d82ee005e681815095
+  tag: 67afd6c0485898b9a00e23794fc08e1d9d1e3afb
