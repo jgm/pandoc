@@ -1,6 +1,5 @@
 This is a set of tests for pandoc. Most of them are adapted from John Gruber’s markdown test suite.
 
-
 -----
 
 <span id="headers"></span>
@@ -34,7 +33,6 @@ with no blank line
 
 with no blank line
 
-
 -----
 
 <span id="paragraphs"></span>
@@ -48,7 +46,6 @@ Here’s one with a bullet. * criminey.
 
 There should be a hard line break<br />
 here.
-
 
 -----
 
@@ -74,11 +71,11 @@ Nested block quotes:
 <blockquote>nested
 </blockquote>
 <blockquote>nested
-</blockquote></blockquote>
+</blockquote>
+</blockquote>
 This should not be a block quote: 2 &gt; 1.
 
 And a following paragraph.
-
 
 -----
 
@@ -224,9 +221,7 @@ Same thing but with paragraphs:
 <li>more items
 <ol style="list-style-type: upper-alpha;">
 <li>a subsublist</li>
-<li>a subsublist</li></ol>
-</li></ol>
-</li></ol>
+<li>a subsublist</li></ol></li></ol></li></ol>
 
 Nesting:
 
@@ -237,10 +232,7 @@ Nesting:
 <ol start="6" style="list-style-type: decimal;">
 <li>Decimal start with 6
 <ol start="3" style="list-style-type: lower-alpha;">
-<li>Lower alpha with paren</li></ol>
-</li></ol>
-</li></ol>
-</li></ol>
+<li>Lower alpha with paren</li></ol></li></ol></li></ol></li></ol>
 
 Autonumbering:
 
@@ -253,7 +245,6 @@ Should not be a list item:
 M.A. 2007
 
 B. Williams
-
 
 -----
 
@@ -296,7 +287,8 @@ Multiple blocks with italics:
 <dt>''orange''</dt>
 <dd><p>orange fruit</p>
 <pre>{ orange code block }</pre>
-<blockquote><p>orange block quote</p></blockquote></dd></dl>
+<blockquote><p>orange block quote</p>
+</blockquote></dd></dl>
 
 Multiple definitions, tight:
 
@@ -346,7 +338,6 @@ And nested without indentation:
 
 foo
 
-
 </div>
 
 </div>
@@ -375,7 +366,6 @@ Here’s a simple block:
 <div>
 
 foo
-
 
 </div>
 This should be a code block, though:
@@ -463,7 +453,6 @@ Subscripts: H<sub>2</sub>O, H<sub>23</sub>O, H<sub>many of them</sub>O.
 
 These should not be superscripts or subscripts, because of the unescaped spaces: a^b c^d, a~b c~d.
 
-
 -----
 
 <span id="smart-quotes-ellipses-dashes"></span>
@@ -485,13 +474,12 @@ Dashes between numbers: 5–7, 255–66, 1987–1999.
 
 Ellipses…and…and….
 
-
 -----
 
 <span id="latex"></span>
 = LaTeX =
 
-* 
+*
 * <math display="inline">2+2=4</math>
 * <math display="inline">x \in y</math>
 * <math display="inline">\alpha \wedge \omega</math>
@@ -508,8 +496,6 @@ These shouldn’t be math:
 * Escaped <code>$</code>: $73 ''this should be emphasized'' 23$.
 
 Here’s a LaTeX table:
-
-
 
 -----
 
@@ -565,7 +551,6 @@ Bang: !
 Plus: +
 
 Minus: -
-
 
 -----
 
@@ -656,7 +641,6 @@ From “Voyage dans la Lune” by Georges Melies (1902):
 
 </div>
 Here is a movie [[File:movie.jpg|movie]] icon.
-
 
 -----
 

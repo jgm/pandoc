@@ -9,6 +9,5 @@ Figure float with caption at the figure level.
 
 [[File:foo.png|thumb|none]]
 
-
 </div>
 ```
