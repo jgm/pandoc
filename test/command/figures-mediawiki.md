@@ -6,8 +6,6 @@ Figure float with caption at the figure level.
 
 ^D
 <div id="fig-id" class="figure">
-
 [[File:foo.png|thumb|none]]
-
 </div>
 ```

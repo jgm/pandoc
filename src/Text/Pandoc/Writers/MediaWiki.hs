@@ -88,8 +88,10 @@ blockToMediaWiki :: PandocMonad m
 
 blockToMediaWiki (Div attrs bs) = do
   contents <- blockListToMediaWiki bs
-  return $ tagWithAttrs "div" attrs <> blankline <>
-                     contents <> blankline <> literal "</div>"
+  return $ tagWithAttrs "div" attrs $$
+            contents $$
+            literal "</div>" $$
+            blankline
 
 blockToMediaWiki (Plain inlines) =
   inlineListToMediaWiki inlines
@@ -125,7 +127,8 @@ blockToMediaWiki (Para inlines) = do
                    else mempty
   return $ if tags
               then  literal "<p>" <> contents <> literal "</p>"
-              else initEsc <> contents <> if null lev then blankline else mempty
+              else initEsc <> contents $$
+                   if null lev then blankline else mempty
 
 blockToMediaWiki (LineBlock lns) =
   blockToMediaWiki $ linesToPara lns

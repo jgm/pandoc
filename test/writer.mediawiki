@@ -324,30 +324,26 @@ Blank line after term, indented marker, alternate markers:
 Simple block on one line:
 
 <div>
-
 foo
-
 </div>
+
 And nested without indentation:
 
 <div>
-
 <div>
-
 <div>
-
 foo
 
 </div>
 
 </div>
+
 <div>
-
 bar
-
 </div>
 
 </div>
+
 Interpreted markdown in a table:
 
 <table>
@@ -364,10 +360,10 @@ And this is '''strong'''
 Here’s a simple block:
 
 <div>
-
 foo
 
 </div>
+
 This should be a code block, though:
 
 <pre>&lt;div&gt;
@@ -379,18 +375,15 @@ As should this:
 Now, nested:
 
 <div>
-
 <div>
-
 <div>
-
 foo
-
 </div>
 
 </div>
 
 </div>
+
 This should just be an HTML comment:
 
 <!-- Comment -->
@@ -636,10 +629,9 @@ Auto-links should not occur here: <code>&lt;http://example.com/&gt;</code>
 From “Voyage dans la Lune” by Georges Melies (1902):
 
 <div class="figure">
-
 [[File:lalune.jpg|lalune]]
-
 </div>
+
 Here is a movie [[File:movie.jpg|movie]] icon.
 
 -----
