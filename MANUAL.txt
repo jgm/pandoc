@@ -949,27 +949,20 @@ header when requesting a document from a URL:
     inside raw HTML blocks when the `markdown_in_html_blocks`
     extension is not set.
 
-`--syntax-highlighting="default"|"none"|"idiomatic"|`*STYLE*`|`*FILE*
+`--syntax-highlighting=default|none|idiomatic|`*STYLE*`|`*FILE*
 
 :   The method to use for code syntax highlighting. Setting a
     specific *STYLE* causes highlighting to be performed with the
     internal highlighting engine, using KDE syntax definitions and
-    styles. The `"idiomatic"` method uses a format-specific
+    styles. The `idiomatic` method uses a format-specific
     highlighter if one is available, or the default style if the
     target format has no idiomatic highlighting method. Setting this
     option to `none` disables all syntax highlighting. The
-    `"default"` method uses a format-specific default.
+    `default` method uses a format-specific default.
 
     The default for HTML, EPUB, Docx, Ms, Man, and LaTeX output is
-    to use the internal highlighter with the default style; Typst
-    output relies on Typst's own syntax highlighting system by
-    default.
-
-    The [`listings`][] LaTeX package is used for idiomatic
-    highlighting in LaTeX. The package does not support multi-byte
-    encoding for source code. To handle UTF-8 you would need to
-    use a custom template. This issue is fully documented here:
-    [Encoding issue with the listings package][].
+    to use the internal highlighter with the default style; for Typst
+    it is to use Typst's own syntax highlighting system.
 
     Style options are `pygments` (the default), `kate`,
     `monochrome`, `breezeDark`, `espresso`, `zenburn`, `haddock`,
@@ -7643,6 +7636,24 @@ If you receive an error that pandoc "Could not read highlighting theme",
 check that the JSON file is encoded with UTF-8 and has no Byte-Order Mark (BOM).
 
 To disable highlighting, use `--syntax-highlighting=none`.
+
+To use a format's idiomatic syntax highlighting instead of
+pandoc's built-in highlighting, use `--syntax-highlighting=idiomatic`.
+Currently, `idiomatic` only affects the following formats:
+
+- In reveal.js, it causes reveal.js's highlighting plugin to be
+  used for source code highlighting.  The style may be customized
+  by setting the `highlightjs-theme` variable.
+
+- In Typst, it causes Typst's built-in highlighting to be used.
+  (This is also the default for Typst.)
+
+- In LaTeX, it causes the [`listings`][] package  to be used. Note that
+  `listings` does not support multi-byte encoding for source code. To handle
+  UTF-8 you would need to use a custom template. This issue is fully
+  documented here: [Encoding issue with the listings package][].
+
+- In other formats, `idiomatic` will have the same result as `default`.
 
 [skylighting]: https://github.com/jgm/skylighting
 
