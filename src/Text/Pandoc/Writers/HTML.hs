@@ -437,7 +437,13 @@ pandocToHtml opts (Pandoc meta blocks) = do
                          defField "scrollProgress" True .
                          defField "scrollActivationWidth" ("0" :: Doc Text) .
                          defField "scrollSnap" ("mandatory" :: Doc Text) .
-                         defField "scrollLayout" ("full" :: Doc Text)
+                         defField "scrollLayout" ("full" :: Doc Text) .
+                         (case writerHighlightMethod opts of
+                            IdiomaticHighlighting
+                             | slideVariant == RevealJsSlides ->
+                              defField "highlight-js" True .
+                              defField "highlightjs-theme" ("monokai" :: Doc Text)
+                            _ -> id)
                       else id) .
                   defField "document-css" (isNothing mCss && slideVariant == NoSlides) .
                   defField "quotes" (stQuotes st) .
@@ -941,6 +947,7 @@ blockToHtmlInner _ HorizontalRule = do
   return $ if html5 then H5.hr else H.hr
 blockToHtmlInner opts (CodeBlock (id',classes,keyvals) rawCode) = do
   html5 <- gets stHtml5
+  slideVariant <- gets stSlideVariant
   id'' <- if T.null id'
              then do
                modify $ \st -> st{ stCodeBlockNum = stCodeBlockNum st + 1 }
@@ -958,23 +965,37 @@ blockToHtmlInner opts (CodeBlock (id',classes,keyvals) rawCode) = do
       adjCode  = if tolhs
                     then T.unlines . map ("> " <>) . T.lines $ rawCode
                     else rawCode
-      highlighted = highlight (writerSyntaxMap opts)
-                      (if html5 then formatHtmlBlock else formatHtml4Block)
-                      (id'',classes',keyvals) adjCode
-      hlCode   = case writerHighlightMethod opts of
-                   Skylighting _ -> highlighted
-                   DefaultHighlighting -> highlighted
-                   _ -> Left ""
-  case hlCode of
-         Left msg -> do
-           unless (T.null msg) $
-             report $ CouldNotHighlight msg
-           addAttrs opts (id',classes,keyvals)
-             $ H.pre $ H.code $ toHtml adjCode
-         Right h -> modify (\st -> st{ stHighlighting = True }) >>
-                    -- we set writerIdentifierPrefix to "" since id'' already
-                    -- includes it:
-                    addAttrs opts{writerIdentifierPrefix = ""} (id'',[],keyvals) h
+      isIdiomaticRevealJs = slideVariant == RevealJsSlides &&
+                            writerHighlightMethod opts == IdiomaticHighlighting
+  if isIdiomaticRevealJs
+     then do
+       -- For idiomatic reveal.js highlighting, put attributes on <code>
+       -- with language- prefix, and let highlight.js do the highlighting.
+       modify (\st -> st{ stHighlighting = True })
+       let (langClasses, otherClasses) = case classes' of
+             (lang:rest) -> (["language-" <> lang], rest)
+             []          -> ([], [])
+           codeAttrs = (id', langClasses ++ otherClasses, keyvals)
+       codeTag <- addAttrs opts codeAttrs $ H.code $ toHtml adjCode
+       return $ H.pre codeTag
+     else do
+       let highlighted = highlight (writerSyntaxMap opts)
+                           (if html5 then formatHtmlBlock else formatHtml4Block)
+                           (id'',classes',keyvals) adjCode
+           hlCode   = case writerHighlightMethod opts of
+                        Skylighting _ -> highlighted
+                        DefaultHighlighting -> highlighted
+                        _ -> Left ""
+       case hlCode of
+              Left msg -> do
+                unless (T.null msg) $
+                  report $ CouldNotHighlight msg
+                addAttrs opts (id',classes,keyvals)
+                  $ H.pre $ H.code $ toHtml adjCode
+              Right h -> modify (\st -> st{ stHighlighting = True }) >>
+                         -- we set writerIdentifierPrefix to "" since id'' already
+                         -- includes it:
+                         addAttrs opts{writerIdentifierPrefix = ""} (id'',[],keyvals) h
 blockToHtmlInner opts (BlockQuote blocks) = do
   -- in S5, treat list in blockquote specially
   -- if default is incremental, make it nonincremental;

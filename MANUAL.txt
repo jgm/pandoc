@@ -2968,6 +2968,13 @@ pandoc](#slide-shows).
 :   additional attributes for the title slide of reveal.js slide shows.
     See [background in reveal.js, beamer, and pptx] for an example.
 
+`highlightjs-theme`
+:   highlight.js theme for code highlighting when using
+    `--syntax-highlighting=idiomatic` with reveal.js (defaults to
+    `monokai`). See the [highlight.js demo page] for available themes.
+
+[highlight.js demo page]: https://highlightjs.org/demo
+
 All [reveal.js configuration options] are available as variables.
 To turn off boolean flags that default to true in reveal.js, use `0`.
 
