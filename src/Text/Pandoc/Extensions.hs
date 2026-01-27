@@ -521,6 +521,7 @@ getAllExtensions f = universalExtensions <> getAll f
        , Ext_rebase_relative_paths
        , Ext_wikilinks_title_after_pipe
        , Ext_wikilinks_title_before_pipe
+       , Ext_alerts
        ]
   getAll "markdown_strict"   = allMarkdownExtensions
   getAll "markdown_phpextra" = allMarkdownExtensions
