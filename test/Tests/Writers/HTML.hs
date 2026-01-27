@@ -102,13 +102,13 @@ tests =
   , testGroup "sample with style"
     [ "samp should wrap highlighted code" =:
       codeWith ("",["sample","haskell"],[]) ">>="
-      =?> ("<samp><code class=\"sourceCode haskell\">" ++
+      =?> ("<samp><code class=\"sourceCode haskell sample\">" ++
           "<span class=\"op\">&gt;&gt;=</span></code></samp>")
     ]
   , testGroup "variable with style"
     [ "var should wrap highlighted code" =:
       codeWith ("",["haskell","variable"],[]) ">>="
-      =?> ("<var><code class=\"sourceCode haskell\">" ++
+      =?> ("<var><code class=\"sourceCode haskell variable\">" ++
           "<span class=\"op\">&gt;&gt;=</span></code></var>")
     ]
   , testGroup "footnotes"
