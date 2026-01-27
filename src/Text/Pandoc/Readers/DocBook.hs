@@ -173,7 +173,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] errorname - An error name
 [ ] errortext - An error message.
 [ ] errortype - The classification of an error message
-[ ] example - A formal example, with a title
+[x] example - A formal example, with a title
 [ ] exceptionname - The name of an exception
 [ ] fax - A fax number
 [ ] fieldsynopsis - The name of a field in a class definition
@@ -438,7 +438,7 @@ List of all DocBook tags, with [x] indicating implemented,
 [ ] shortaffil - A brief description of an affiliation
 [ ] shortcut - A key combination for an action that is also accessible through
     a menu
-[ ] sidebar - A portion of a document that is isolated from the main
+[x] sidebar - A portion of a document that is isolated from the main
     narrative flow
 [ ] sidebarinfo - Meta-information for a Sidebar
 [x] simpara - A paragraph that contains only text and inline markup, no block
@@ -919,8 +919,8 @@ parseBlock (Elem e) = do
         "refsect2" -> sect 2
         "refsect3" -> sect 3
         "refsection" -> gets dbSectionLevel >>= sect . (+1)
-        l | l `elem` titledBlockElements -> parseAdmonition l
-        l | l `elem` admonitionTags -> parseAdmonition l
+        l | l `elem` titledBlockElements -> parseAdmonition False l
+        l | l `elem` admonitionTags -> parseAdmonition True l
         "area" -> skip
         "areaset" -> skip
         "areaspec" -> skip
@@ -1152,11 +1152,14 @@ parseBlock (Elem e) = do
          -- Admonitions are parsed into a div. Following other Docbook tools that output HTML,
          -- we parse the optional title as a div with the @title@ class, and give the
          -- block itself a class corresponding to the admonition name.
-         parseAdmonition label = do
+         parseAdmonition alwaysIncludeTitle label = do
            mbt <- getTitle
            -- this will ignore the title element if it is present:
            b <- getBlocks e
-           let t = divWith ("", ["title"], []) (plain $ fromMaybe mempty mbt)
+           let t = maybe mempty (divWith ("", ["title"], []) . plain)
+                        (case mbt of
+                           Nothing | alwaysIncludeTitle -> Just mempty
+                           _ -> mbt)
            -- we also attach the label as a class, so it can be styled properly
            return $ divWith (attrValue "id" e,[label],[]) (t <> b)
 
