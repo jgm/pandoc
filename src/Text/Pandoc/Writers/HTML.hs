@@ -39,7 +39,7 @@ import Data.List (intercalate, intersperse, partition, delete, (\\))
 import qualified Data.List as L
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Containers.ListUtils (nubOrd)
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -85,6 +85,8 @@ import Text.XML.Light (elChildren, unode, unqual)
 import qualified Text.XML.Light as XML
 import Text.XML.Light.Output
 import Data.String (fromString)
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 
 data WriterState = WriterState
     { stNotes        :: [Html]  -- ^ List of notes
@@ -102,6 +104,7 @@ data WriterState = WriterState
     , stCsl          :: Bool    -- ^ Has CSL references
     , stCslEntrySpacing :: Maybe Int  -- ^ CSL entry spacing
     , stBlockLevel   :: Int     -- ^ Current block depth, excluding section divs
+    , stCounterStyles   :: Set.Set (ListNumberStyle, ListNumberDelim)    -- ^ List styles used in this document
     }
 
 defaultWriterState :: WriterState
@@ -119,7 +122,8 @@ defaultWriterState = WriterState {stNotes= [],
                                   stCodeBlockNum = 0,
                                   stCsl = False,
                                   stCslEntrySpacing = Nothing,
-                                  stBlockLevel = 0}
+                                  stBlockLevel = 0,
+                                  stCounterStyles = Set.empty}
 
 -- Helpers to render HTML with the appropriate function.
 
@@ -356,6 +360,16 @@ pandocToHtml opts (Pandoc meta blocks) = do
 
         _ -> mempty
   let mCss :: Maybe [Text] = lookupContext "css" metadata
+  let counterStyle :: ListNumberStyle -> ListNumberDelim -> Maybe (Map Text Text)
+      counterStyle _ DefaultDelim = Nothing
+      counterStyle _ Period = Nothing
+      counterStyle num del = Just $ Map.fromList [
+        ("name", (counterStyleName num del)),
+        ("extends", (camelCaseToHyphenated $ tshow num)),
+        ("prefix", case del of
+          OneParen -> ""
+          TwoParens -> "("),
+        ("suffix", ")") ]
   let context :: Context Text
       context =   (if stHighlighting st
                       then case writerHighlightMethod opts of
@@ -467,6 +481,7 @@ pandocToHtml opts (Pandoc meta blocks) = do
                   defField "s5-url" ("s5/default" :: Doc Text) .
                   defField "table-caption-below"
                      (writerTableCaptionPosition opts == CaptionBelow) .
+                  defField "counter-styles" (mapMaybe (uncurry counterStyle) (Set.toList $ stCounterStyles st)) .
                   defField "html5" (stHtml5 st) $
                   metadata
   return (thebody, context)
@@ -1046,26 +1061,28 @@ blockToHtmlInner opts (BulletList lst) = do
   contents <- mapM (listItemToHtml opts) lst
   (if isJust (mapM toTaskListItem lst) then (! A.class_ "task-list") else id) <$>
     unordList opts contents
-blockToHtmlInner opts (OrderedList (startnum, numstyle, _) lst) = do
+blockToHtmlInner opts (OrderedList (startnum, numstyle, delstyle) lst) = do
   contents <- mapM (listItemToHtml opts) lst
   html5 <- gets stHtml5
-  let numstyle' = case numstyle of
-                       Example -> "decimal"
-                       _       -> camelCaseToHyphenated $ tshow numstyle
+  modify (\st -> st{stCounterStyles = Set.insert (numstyle, delstyle) (stCounterStyles st)})
+  let counterStyle = case writerTemplate opts of
+                       Nothing -> case numstyle of
+                         Example -> "decimal"
+                         _       -> camelCaseToHyphenated $ tshow numstyle
+                       Just _ -> counterStyleName numstyle delstyle
   let attribs = [A.start $ toValue startnum | startnum /= 1] ++
                 [A.class_ "example" | numstyle == Example] ++
                 (if numstyle /= DefaultStyle
-                   then if html5
-                           then [A.type_ $
-                                 case numstyle of
-                                      Decimal    -> "1"
-                                      LowerAlpha -> "a"
-                                      UpperAlpha -> "A"
-                                      LowerRoman -> "i"
-                                      UpperRoman -> "I"
-                                      _          -> "1"]
-                           else [A.style $ toValue $ "list-style-type: " <>
-                                   numstyle']
+                    then [A.style $ toValue $ "list-style-type: " <> counterStyle] ++
+                      if html5 then [A.type_ $
+                           case numstyle of
+                                Decimal    -> "1"
+                                LowerAlpha -> "a"
+                                UpperAlpha -> "A"
+                                LowerRoman -> "i"
+                                UpperRoman -> "I"
+                                _          -> "1"]
+                      else []
                    else [])
   l <- ordList opts contents
   return $ L.foldl' (!) l attribs
@@ -1736,6 +1753,12 @@ inDiv cls x = do
 isRef :: Text -> Bool
 isRef t = "\\ref{" `T.isPrefixOf` t || "\\eqref{" `T.isPrefixOf` t
 
+counterStyleName :: ListNumberStyle -> ListNumberDelim -> Text
+counterStyleName Example _ = "decimal"
+counterStyleName num DefaultDelim = camelCaseToHyphenated $ tshow num
+counterStyleName num Period = camelCaseToHyphenated $ tshow num
+counterStyleName num del = mconcat [camelCaseToHyphenated $ tshow num, "-", camelCaseToHyphenated $ tshow del]
+
 isMathEnvironment :: Text -> Bool
 isMathEnvironment s = "\\begin{" `T.isPrefixOf` s &&
                          envName `elem` mathmlenvs
@@ -1818,3 +1841,4 @@ hasVariable var = checkVar
    checkVar (DT.Concat t1 t2) = checkVar t1 || checkVar t2
    checkVar (DT.Literal _) = False
    checkVar DT.Empty = False
+
