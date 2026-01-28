@@ -89,6 +89,7 @@ library
                      , Text.Pandoc.Lua.Marshal.WriterOptions
                      , Text.Pandoc.Lua.Module.CLI
                      , Text.Pandoc.Lua.Module.Format
+                     , Text.Pandoc.Lua.Module.Highlighting
                      , Text.Pandoc.Lua.Module.Image
                      , Text.Pandoc.Lua.Module.JSON
                      , Text.Pandoc.Lua.Module.Log
@@ -110,6 +111,7 @@ library
                      , Text.Pandoc.Lua.Writer.Scaffolding
 
   build-depends:       aeson
+                     , blaze-html            >= 0.9     && < 0.10
                      , bytestring            >= 0.9     && < 0.13
                      , crypton               >= 0.30    && < 1.1
                      , citeproc              >= 0.8     && < 0.13
@@ -133,7 +135,6 @@ library
                      , pandoc-types          >= 1.22    && < 1.24
                      , parsec                >= 3.1     && < 3.2
                      , text                  >= 1.1.1   && < 2.2
-
 
 test-suite test-pandoc-lua-engine
   import:              common-options

@@ -25,6 +25,8 @@ tests =
                   ("lua" </> "module" </> "pandoc-list.lua")
   , testPandocLua "pandoc.format"
                   ("lua" </> "module" </> "pandoc-format.lua")
+  , testPandocLua "pandoc.highlighting"
+                  ("lua" </> "module" </> "pandoc-highlighting.lua")
   , testPandocLua "pandoc.image"
                   ("lua" </> "module" </> "pandoc-image.lua")
   , testPandocLua "pandoc.json"
