@@ -88,8 +88,7 @@ import qualified System.Environment as Env
 import qualified System.FilePath.Glob
 import qualified System.Random
 import qualified Text.Pandoc.UTF8 as UTF8
-import Codec.Archive.Tar (write)
-import Codec.Archive.Tar.Entry (fileEntry, toTarPath)
+import Codec.Archive.Zip
 #ifndef EMBED_DATA_FILES
 import qualified Paths_pandoc as Paths
 #endif
@@ -247,31 +246,26 @@ alertIndent (l:ls) = do
   where go l' = do UTF8.hPutStr stderr "  "
                    UTF8.hPutStrLn stderr l'
 
--- | Extract media from the mediabag into a directory (or a tar archive if the
--- path supplied ends in @.tar@.
+-- | Extract media from the mediabag into a directory (or a zip archive if the
+-- path supplied ends in @.zip@.
 extractMedia :: (PandocMonad m, MonadIO m) => FilePath -> Pandoc -> m Pandoc
 extractMedia path d = do
   media <- getMediaBag
   let items = mediaItems media
-  let (dir, mbTar) = case takeExtension path of
-                       ".tar" -> (takeDirectory path, Just (takeFileName path))
+  let (dir, mbZip) = case takeExtension path of
+                       ".zip" -> (takeDirectory path, Just (takeFileName path))
                        _ -> (path, Nothing)
   if null items
     then return d
     else do
-      case mbTar of
-        Just fname -> case write <$> traverse toEntry items of
-                    Left e -> throwError
-                               (PandocSomeError (T.pack
-                                 ("Could not create " <> path <> ":\n" <> e)))
-                    Right tar -> writeMedia dir
-                                  (fname, "application/x-tar", tar)
+      let archive = foldr addEntry emptyArchive items
+      case mbZip of
+        Just fname -> writeMedia dir
+                        (fname, "application/zip", fromArchive archive)
         Nothing -> mapM_ (writeMedia dir) items
       return $ walk (adjustImagePath dir media) d
  where
-  toEntry (fp, _mime, content) = do
-    tarPath <- toTarPath False fp  -- False = file, not directory
-    pure $ fileEntry tarPath content
+  addEntry (fp, _mime, content) = addEntryToArchive (toEntry fp 0 content)
 
 -- | Write the contents of a media bag to a path.
 -- If the path contains URI escape sequences (percent-encoding),

@@ -567,8 +567,7 @@ library
                  typst                 >= 0.8.1    && < 0.9,
                  vector                >= 0.12     && < 0.14,
                  djot                  >= 0.1.2.4  && < 0.2,
-                 asciidoc              >= 0.1      && < 0.2,
-                 tar                   >= 0.7      && < 0.8
+                 asciidoc              >= 0.1      && < 0.2
 
   if !os(windows)
     build-depends:  unix >= 2.4 && < 2.9
