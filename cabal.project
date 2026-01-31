@@ -88,41 +88,46 @@ if arch(wasm32)
 
   source-repository-package
     type: git
-    location: https://github.com/haskell-wasm/conduit.git
-    tag: ff33329247f2ef321dcab836e98c1bcfaff2bd13
+    location: https://github.com/snoyberg/conduit.git
+    tag: 6b98f070fea09a3bf0a5d0897a2e27e3aa91c8fe
     subdir: conduit-extra
+    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/conduit-extra.patch"
 
   source-repository-package
     type: git
-    location: https://github.com/haskell-wasm/foundation.git
-    tag: 8e6dd48527fb429c1922083a5030ef88e3d58dd3
+    location: https://github.com/haskell-foundation/foundation.git
+    tag: foundation-v0.0.30
     subdir: basement
+    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/basement.patch"
 
   source-repository-package
     type: git
-    location: https://github.com/haskell-wasm/hs-memory.git
-    tag: a198a76c584dc2cfdcde6b431968de92a5fed65e
+    location: https://github.com/vincenthz/hs-memory.git
+    tag: memory-v0.18.0
+    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/memory.patch"
 
   source-repository-package
     type: git
-    location: https://github.com/haskell-wasm/streaming-commons.git
-    tag: 7e9c38b2fd55ce50d3f74fe708ca47db8c9bb315
+    location: https://github.com/fpco/streaming-commons.git
+    tag: v0.2.3.1
+    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/streaming-commons.patch"
 
   source-repository-package
     type: git
-    location: https://github.com/haskell-wasm/xml.git
-    tag: bc793dc9bc29c92245d3482a54d326abd3ae1403
+    location: https://github.com/snoyberg/xml.git
+    tag: xml-conduit/1.10.1.0
     subdir: xml-conduit
+    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/xml-conduit.patch"
 
-  -- https://github.com/haskellari/splitmix/pull/73
   source-repository-package
     type: git
-    location: https://github.com/amesgen/splitmix
-    tag: 5f5b766d97dc735ac228215d240a3bb90bc2ff75
+    location: https://github.com/haskellari/splitmix.git
+    tag: v0.1.3.2
+    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/splitmix.patch"
 
   source-repository-package
     type: git
     location: https://github.com/hslua/hslua
     tag: lua-2.3.4
     subdir: lua
-    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/lua-tmpfile.patch && patch -N -p1 < ../../../wasm/patches/lua-tmpnam.patch && patch -N -p1 < ../../../wasm/patches/lua-system.patch"
+    post-checkout-command: sh -c "patch -N -p1 < ../../../wasm/patches/lua.patch"

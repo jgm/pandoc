@@ -1,0 +1,37 @@
+--- a/streaming-commons.cabal
++++ b/streaming-commons.cabal
+@@ -30,20 +30,21 @@ library
+                        Data.Streaming.ByteString.Builder.Buffer
+                        Data.Streaming.FileRead
+                        Data.Streaming.Filesystem
+-                       Data.Streaming.Network
+-                       Data.Streaming.Network.Internal
+                        Data.Streaming.Process
+                        Data.Streaming.Process.Internal
+                        Data.Streaming.Text
+                        Data.Streaming.Zlib
+                        Data.Streaming.Zlib.Lowlevel
+
++  if !arch(wasm32)
++      exposed-modules: Data.Streaming.Network
++                       Data.Streaming.Network.Internal
++
+   build-depends:       base >= 4.12 && < 5
+                      , array
+                      , async
+                      , bytestring
+                      , directory
+-                     , network >= 2.4.0.0
+                      , random
+                      , process
+                      , stm
+@@ -51,6 +52,9 @@ library
+                      , transformers
+                      , zlib
+
++  if !arch(wasm32)
++      build-depends: network >= 2.4.0.0
++
+   c-sources:           cbits/zlib-helper.c
+                        cbits/text-helper.c
+   include-dirs:        include

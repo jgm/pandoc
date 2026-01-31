@@ -1,0 +1,18 @@
+--- a/xml-conduit/xml-conduit.cabal
++++ b/xml-conduit/xml-conduit.cabal
+@@ -12,13 +12,10 @@ description:     Hackage documentation generation is not reliable. For up to dat
+ category:        XML, Conduit
+ stability:       Stable
+-build-type:      Custom
++build-type:      Simple
+ homepage:        http://github.com/snoyberg/xml
+ extra-source-files: README.md
+                     ChangeLog.md
+-tested-with:     GHC >=8.0 && <9.12
+-
+-custom-setup
+-    setup-depends:   base >= 4 && <5, Cabal <4, cabal-doctest >= 1 && <1.1
++tested-with:     GHC >=8.0 && <9.14
+
+ library
+     build-depends:   base                      >= 4.12     && < 5

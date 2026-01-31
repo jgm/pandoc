@@ -1,0 +1,44 @@
+--- a/conduit-extra/conduit-extra.cabal
++++ b/conduit-extra/conduit-extra.cabal
+@@ -26,9 +26,6 @@ Library
+                        Data.Conduit.Filesystem
+                        Data.Conduit.Foldl
+                        Data.Conduit.Lazy
+-                       Data.Conduit.Network
+-                       Data.Conduit.Network.UDP
+-                       Data.Conduit.Network.Unix
+                        Data.Conduit.Process
+                        Data.Conduit.Process.Typed
+                        Data.Conduit.Text
+@@ -38,6 +35,12 @@ Library
+       -- These architectures are able to perform unaligned memory accesses
+       cpp-options: -DALLOW_UNALIGNED_ACCESS
+
++  if !arch(wasm32)
++      Exposed-modules: Data.Conduit.Network
++                       Data.Conduit.Network.UDP
++  if !os(windows) && !arch(wasm32)
++      Exposed-modules: Data.Conduit.Network.Unix
++
+   Build-depends:       base                     >= 4.12         && < 5
+                      , conduit                  >= 1.3          && < 1.4
+
+@@ -49,7 +52,6 @@ Library
+                      , async
+                      , attoparsec               >= 0.10
+                      , directory
+                      , filepath
+-                     , network                  >= 2.3
+                      , primitive                >= 0.5
+                      , process
+                      , resourcet                >= 1.1
+@@ -58,6 +60,9 @@ Library
+                      , unliftio-core
+                      , typed-process            >= 0.2.6
+
++  if !arch(wasm32)
++      Build-depends: network >= 2.3
++
+   ghc-options:     -Wall
+
+ test-suite test

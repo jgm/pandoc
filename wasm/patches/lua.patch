@@ -1,0 +1,58 @@
+--- a/lua/cbits/lua-5.4.8/liolib.c
++++ b/lua/cbits/lua-5.4.8/liolib.c
+@@ -301,10 +301,14 @@
+
+
+ static int io_tmpfile (lua_State *L) {
++#if defined(LUA_STUB_TMPFILE)
++  return 1;
++#else
+   LStream *p = newfile(L);
+   errno = 0;
+   p->f = tmpfile();
+   return (p->f == NULL) ? luaL_fileresult(L, 0, NULL) : 1;
++#endif
+ }
+
+
+--- a/lua/cbits/lua-5.4.8/loslib.c
++++ b/lua/cbits/lua-5.4.8/loslib.c
+@@ -101,7 +101,12 @@
+ */
+ #if !defined(lua_tmpnam)	/* { */
+
+-#if defined(LUA_USE_POSIX)	/* { */
++#if defined(LUA_STUB_TMPNAM) /* { */
++
++#define LUA_TMPNAMBUFSIZE	32
++#define lua_tmpnam(b,e) { e = 1; }
++
++#elif defined(LUA_USE_POSIX)	/* }{ */
+
+ #include <unistd.h>
+
+@@ -131,7 +136,7 @@
+ /* }================================================================== */
+
+
+-#if !defined(l_system)
++#if !defined(l_system) && !defined(LUA_STUB_SYSTEM)
+ #if defined(LUA_USE_IOS)
+ /* Despite claiming to be ISO C, iOS does not implement 'system'. */
+ #define l_system(cmd) ((cmd) == NULL ? 0 : -1)
+@@ -142,6 +147,9 @@
+
+
+ static int os_execute (lua_State *L) {
++#if defined(LUA_STUB_SYSTEM)
++  return 1;
++#else
+   const char *cmd = luaL_optstring(L, 1, NULL);
+   int stat;
+   errno = 0;
+@@ -152,6 +160,7 @@
+     lua_pushboolean(L, stat);  /* true if there is a shell */
+     return 1;
+   }
++#endif
+ }

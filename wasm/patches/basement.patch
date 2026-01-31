@@ -1,0 +1,306 @@
+--- a/basement/Basement/Bits.hs
++++ b/basement/Basement/Bits.hs
+@@ -53,10 +53,6 @@ import GHC.Word
+ import GHC.Int
+ import Basement.Compat.Primitive
+
+-#if WORD_SIZE_IN_BITS < 64
+-import GHC.IntWord64
+-#endif
+-
+ -- | operation over finite bits
+ class FiniteBitsOps bits where
+     -- | get the number of bits in the given object
+--- a/basement/Basement/From.hs
++++ b/basement/Basement/From.hs
+@@ -272,23 +272,14 @@ instance (NatWithinBound (CountOf ty) n, KnownNat n, PrimType ty)
+     tryFrom = BlockN.toBlockN . UArray.toBlock . BoxArray.mapToUnboxed id
+
+ instance (KnownNat n, NatWithinBound Word8 n) => From (Zn64 n) Word8 where
+-#if __GLASGOW_HASKELL__ >= 904
+-    from = narrow . unZn64 where narrow (W64# w) = W8# (wordToWord8# (word64ToWord# (GHC.Prim.word64ToWord# w)))
+-#else
+-    from = narrow . unZn64 where narrow (W64# w) = W8# (wordToWord8# (word64ToWord# w))
+-#endif
++    from = narrow . unZn64 where narrow (W64# w) = W8# (wordToWord8# (GHC.Prim.word64ToWord# w))
++
+ instance (KnownNat n, NatWithinBound Word16 n) => From (Zn64 n) Word16 where
+-#if __GLASGOW_HASKELL__ >= 904
+-    from = narrow . unZn64 where narrow (W64# w) = W16# (wordToWord16# (word64ToWord# (GHC.Prim.word64ToWord# w)))
+-#else
+-    from = narrow . unZn64 where narrow (W64# w) = W16# (wordToWord16# (word64ToWord# w))
+-#endif
++    from = narrow . unZn64 where narrow (W64# w) = W16# (wordToWord16# (GHC.Prim.word64ToWord# w))
++
+ instance (KnownNat n, NatWithinBound Word32 n) => From (Zn64 n) Word32 where
+-#if __GLASGOW_HASKELL__ >= 904
+-    from = narrow . unZn64 where narrow (W64# w) = W32# (wordToWord32# (word64ToWord# (GHC.Prim.word64ToWord# w)))
+-#else
+-    from = narrow . unZn64 where narrow (W64# w) = W32# (wordToWord32# (word64ToWord# w))
+-#endif
++    from = narrow . unZn64 where narrow (W64# w) = W32# (wordToWord32# (GHC.Prim.word64ToWord# w))
++
+ instance From (Zn64 n) Word64 where
+     from = unZn64
+ instance From (Zn64 n) Word128 where
+@@ -297,23 +288,14 @@ instance From (Zn64 n) Word256 where
+     from = from . unZn64
+
+ instance (KnownNat n, NatWithinBound Word8 n) => From (Zn n) Word8 where
+-#if __GLASGOW_HASKELL__ >= 904
+-    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W8# (wordToWord8# (word64ToWord# (GHC.Prim.word64ToWord# w)))
+-#else
+-    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W8# (wordToWord8# (word64ToWord# w))
+-#endif
++    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W8# (wordToWord8# (GHC.Prim.word64ToWord# w))
++
+ instance (KnownNat n, NatWithinBound Word16 n) => From (Zn n) Word16 where
+-#if __GLASGOW_HASKELL__ >= 904
+-    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W16# (wordToWord16# (word64ToWord# (GHC.Prim.word64ToWord# w)))
+-#else
+-    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W16# (wordToWord16# (word64ToWord# w))
+-#endif
++    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W16# (wordToWord16# (GHC.Prim.word64ToWord# w))
++
+ instance (KnownNat n, NatWithinBound Word32 n) => From (Zn n) Word32 where
+-#if __GLASGOW_HASKELL__ >= 904
+-    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W32# (wordToWord32# (word64ToWord# (GHC.Prim.word64ToWord# w)))
+-#else
+-    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W32# (wordToWord32# (word64ToWord# w))
+-#endif
++    from = narrow . naturalToWord64 . unZn where narrow (W64# w) = W32# (wordToWord32# (GHC.Prim.word64ToWord# w))
++
+ instance (KnownNat n, NatWithinBound Word64 n) => From (Zn n) Word64 where
+     from = naturalToWord64 . unZn
+ instance (KnownNat n, NatWithinBound Word128 n) => From (Zn n) Word128 where
+--- a/basement/Basement/Numerical/Additive.hs
++++ b/basement/Basement/Numerical/Additive.hs
+@@ -29,10 +29,6 @@ import           Basement.Types.Word256 (Word256)
+ import qualified Basement.Types.Word128 as Word128
+ import qualified Basement.Types.Word256 as Word256
+
+-#if WORD_SIZE_IN_BITS < 64
+-import           GHC.IntWord64
+-#endif
+-
+ -- | Represent class of things that can be added together,
+ -- contains a neutral element and is commutative.
+ --
+@@ -80,15 +76,9 @@ instance Additive Int32 where
+ instance Additive Int64 where
+     azero = 0
+ #if WORD_SIZE_IN_BITS == 64
+-#if __GLASGOW_HASKELL__ >= 904
+     (I64# a) + (I64# b) = I64# (GHC.Prim.intToInt64# (GHC.Prim.int64ToInt# a +# GHC.Prim.int64ToInt# b))
+-
+-#else
+-    (I64# a) + (I64# b) = I64# (a +# b)
+-
+-#endif
+ #else
+-    (I64# a) + (I64# b) = I64# (a `plusInt64#` b)
++    (I64# a) + (I64# b) = I64# (a `GHC.Prim.plusInt64#` b)
+ #endif
+     scale = scaleNum
+ instance Additive Word where
+@@ -114,15 +104,9 @@ instance Additive Word32 where
+ instance Additive Word64 where
+     azero = 0
+ #if WORD_SIZE_IN_BITS == 64
+-#if __GLASGOW_HASKELL__ >= 904
+     (W64# a) + (W64# b) = W64# (GHC.Prim.wordToWord64# (GHC.Prim.word64ToWord# a `plusWord#` GHC.Prim.word64ToWord# b))
+-
+-#else
+-    (W64# a) + (W64# b) = W64# (a `plusWord#` b)
+-
+-#endif
+ #else
+-    (W64# a) + (W64# b) = W64# (int64ToWord64# (word64ToInt64# a `plusInt64#` word64ToInt64# b))
++    (W64# a) + (W64# b) = W64# (GHC.Prim.int64ToWord64# (GHC.Prim.word64ToInt64# a `GHC.Prim.plusInt64#` GHC.Prim.word64ToInt64# b))
+ #endif
+     scale = scaleNum
+ instance Additive Word128 where
+--- a/basement/Basement/Numerical/Conversion.hs
++++ b/basement/Basement/Numerical/Conversion.hs
+@@ -19,16 +19,12 @@ module Basement.Numerical.Conversion
+ #include "MachDeps.h"
+
+ import GHC.Types
+-import GHC.Prim hiding (word64ToWord#)
++import GHC.Prim
+ import qualified GHC.Prim
+ import GHC.Int
+ import GHC.Word
+ import Basement.Compat.Primitive
+
+-#if WORD_SIZE_IN_BITS < 64
+-import GHC.IntWord64
+-#endif
+-
+ intToInt64 :: Int -> Int64
+ #if WORD_SIZE_IN_BITS == 64
+ #if __GLASGOW_HASKELL__ >= 904
+@@ -41,15 +37,7 @@ intToInt64 (I# i) = I64# (intToInt64# i)
+ #endif
+
+ int64ToInt :: Int64 -> Int
+-#if WORD_SIZE_IN_BITS == 64
+-#if __GLASGOW_HASKELL__ >= 904
+ int64ToInt (I64# i) = I# (int64ToInt# i)
+-#else
+-int64ToInt (I64# i) = I# i
+-#endif
+-#else
+-int64ToInt (I64# i) = I# (int64ToInt# i)
+-#endif
+
+ wordToWord64 :: Word -> Word64
+ #if WORD_SIZE_IN_BITS == 64
+@@ -63,15 +51,7 @@ wordToWord64 (W# i) = W64# (wordToWord64# i)
+ #endif
+
+ word64ToWord :: Word64 -> Word
+-#if WORD_SIZE_IN_BITS == 64
+-#if __GLASGOW_HASKELL__ >= 904
+-word64ToWord (W64# i) = W# (GHC.Prim.word64ToWord# i)
+-#else
+-word64ToWord (W64# i) = W# i
+-#endif
+-#else
+ word64ToWord (W64# i) = W# (word64ToWord# i)
+-#endif
+
+ word64ToInt64 :: Word64 -> Int64
+ #if WORD_SIZE_IN_BITS == 64
+@@ -105,17 +85,8 @@ word64ToWord# i = i
+ data Word32x2 = Word32x2 {-# UNPACK #-} !Word32
+                          {-# UNPACK #-} !Word32
+
+-#if WORD_SIZE_IN_BITS == 64
+ word64ToWord32s :: Word64 -> Word32x2
+-#if __GLASGOW_HASKELL__ >= 904
+-word64ToWord32s (W64# w64) = Word32x2 (W32# (wordToWord32# (uncheckedShiftRL# (GHC.Prim.word64ToWord# w64 ) 32#))) (W32# (wordToWord32# (GHC.Prim.word64ToWord# w64)))
+-#else
+-word64ToWord32s (W64# w64) = Word32x2 (W32# (wordToWord32# (uncheckedShiftRL# w64 32#))) (W32# (wordToWord32# w64))
+-#endif
+-#else
+-word64ToWord32s :: Word64 -> Word32x2
+-word64ToWord32s (W64# w64) = Word32x2 (W32# (word64ToWord# (uncheckedShiftRL64# w64 32#))) (W32# (word64ToWord# w64))
+-#endif
++word64ToWord32s (W64# w64) = Word32x2 (W32# (wordToWord32# (word64ToWord# (uncheckedShiftRL64# w64 32#)))) (W32# (wordToWord32# (GHC.Prim.word64ToWord# w64)))
+
+ wordToChar :: Word -> Char
+ wordToChar (W# word) = C# (chr# (word2Int# word))
+--- a/basement/Basement/PrimType.hs
++++ b/basement/Basement/PrimType.hs
+@@ -53,10 +53,6 @@ import           Basement.Monad
+ import           Basement.Nat
+ import qualified Prelude (quot)
+
+-#if WORD_SIZE_IN_BITS < 64
+-import           GHC.IntWord64
+-#endif
+-
+ #ifdef FOUNDATION_BOUNDS_CHECK
+
+ divBytes :: PrimType ty => Offset ty -> (Int -> Int)
+--- a/basement/Basement/Terminal/Size.hsc
++++ b/basement/Basement/Terminal/Size.hsc
+@@ -31,6 +31,13 @@ import           Graphics.Win32.Misc (getStdHandle, sTD_OUTPUT_HANDLE, StdHandle
+ #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
+ #endif
+
++#if defined(wasm32_HOST_ARCH)
++
++getDimensions :: IO (CountOf Char, CountOf Char)
++getDimensions = error "Basement.Terminal.Size.getDimensions"
++
++#else
++
+ #ifdef FOUNDATION_SYSTEM_UNIX
+ data Winsize = Winsize
+     { ws_row    :: !Word16
+@@ -188,3 +195,5 @@ getDimensions =
+ #endif
+   where
+     defaultSize = (80, 24)
++
++#endif
+--- a/basement/Basement/Types/OffsetSize.hs
++++ b/basement/Basement/Types/OffsetSize.hs
+@@ -69,10 +69,6 @@ import Basement.IntegralConv
+ import Data.List (foldl')
+ import qualified Prelude
+
+-#if WORD_SIZE_IN_BITS < 64
+-import GHC.IntWord64
+-#endif
+-
+ -- | File size in bytes
+ newtype FileSize = FileSize Word64
+     deriving (Show,Eq,Ord)
+@@ -225,49 +221,31 @@ countOfRoundUp alignment (CountOf n) = CountOf ((n + (alignment-1)) .&. compleme
+
+ csizeOfSize :: CountOf Word8 -> CSize
+ #if WORD_SIZE_IN_BITS < 64
+-csizeOfSize (CountOf (I# sz)) = CSize (W32# (int2Word# sz))
++csizeOfSize (CountOf (I# sz)) = CSize (W32# (wordToWord32# (int2Word# sz)))
+ #else
+-#if __GLASGOW_HASKELL__ >= 904
+ csizeOfSize (CountOf (I# sz)) = CSize (W64# (wordToWord64# (int2Word# sz)))
+-
+-#else
+-csizeOfSize (CountOf (I# sz)) = CSize (W64# (int2Word# sz))
+-
+-#endif
+ #endif
+
+ csizeOfOffset :: Offset8 -> CSize
+ #if WORD_SIZE_IN_BITS < 64
+-csizeOfOffset (Offset (I# sz)) = CSize (W32# (int2Word# sz))
++csizeOfOffset (Offset (I# sz)) = CSize (W32# (wordToWord32# (int2Word# sz)))
+ #else
+-#if __GLASGOW_HASKELL__ >= 904
+ csizeOfOffset (Offset (I# sz)) = CSize (W64# (wordToWord64# (int2Word# sz)))
+-#else
+-csizeOfOffset (Offset (I# sz)) = CSize (W64# (int2Word# sz))
+-#endif
+ #endif
+
+ sizeOfCSSize :: CSsize -> CountOf Word8
+ sizeOfCSSize (CSsize (-1))      = error "invalid size: CSSize is -1"
+ #if WORD_SIZE_IN_BITS < 64
+-sizeOfCSSize (CSsize (I32# sz)) = CountOf (I# sz)
++sizeOfCSSize (CSsize (I32# sz)) = CountOf (I# (int32ToInt# sz))
+ #else
+-#if __GLASGOW_HASKELL__ >= 904
+ sizeOfCSSize (CSsize (I64# sz)) = CountOf (I# (int64ToInt# sz))
+-#else
+-sizeOfCSSize (CSsize (I64# sz)) = CountOf (I# sz)
+-#endif
+ #endif
+
+ sizeOfCSize :: CSize -> CountOf Word8
+ #if WORD_SIZE_IN_BITS < 64
+-sizeOfCSize (CSize (W32# sz)) = CountOf (I# (word2Int# sz))
++sizeOfCSize (CSize (W32# sz)) = CountOf (I# (word2Int# (word32ToWord# sz)))
+ #else
+-#if __GLASGOW_HASKELL__ >= 904
+ sizeOfCSize (CSize (W64# sz)) = CountOf (I# (word2Int# (word64ToWord# sz)))
+-#else
+-sizeOfCSize (CSize (W64# sz)) = CountOf (I# (word2Int# sz))
+-#endif
+ #endif
+
+ natValCountOf :: forall n ty proxy . (KnownNat n, NatWithinBound (CountOf ty) n) => proxy n -> CountOf ty
+--- a/basement/cbits/foundation_system.h
++++ b/basement/cbits/foundation_system.h
+@@ -53,6 +53,8 @@
+ #elif defined(_POSIX_VERSION)
+     #define FOUNDATION_SYSTEM_UNIX
+     // POSIX
++#elif defined(wasm32_HOST_ARCH)
++    #define FOUNDATION_SYSTEM_UNIX
+ #else
+ #   error "foundation: system: Unknown compiler"
+ #endif

@@ -1,0 +1,25 @@
+--- /dev/null
++++ b/cbits-wasi/init.c
+@@ -0,0 +1,8 @@
++#include <stdint.h>
++#include <sys/random.h>
++
++uint64_t splitmix_init() {
++  uint64_t result;
++  int r = getentropy(&result, sizeof(uint64_t));
++  return r == 0 ? result : 0xfeed1000;
++}
+--- a/splitmix.cabal
++++ b/splitmix.cabal
+@@ -80,7 +80,10 @@ library
+         frameworks: Security
+
+       else
+-        c-sources: cbits-unix/init.c
++        if arch(wasm32)
++          c-sources: cbits-wasi/init.c
++        else
++          c-sources: cbits-unix/init.c
+
+     else
+       cpp-options:   -DSPLITMIX_INIT_COMPAT=1

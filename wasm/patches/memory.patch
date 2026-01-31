@@ -1,0 +1,128 @@
+--- a/Data/Memory/Internal/CompatPrim64.hs
++++ b/Data/Memory/Internal/CompatPrim64.hs
+@@ -150,14 +150,8 @@
+ w64# w _ _ = w
+ 
+ #elif WORD_SIZE_IN_BITS == 32
+-import GHC.IntWord64
+-import GHC.Prim (Word#)
+ 
+-timesWord64# :: Word64# -> Word64# -> Word64#
+-timesWord64# a b =
+-    let !ai = word64ToInt64# a
+-        !bi = word64ToInt64# b
+-     in int64ToWord64# (timesInt64# ai bi)
++import GHC.Prim
+ 
+ w64# :: Word# -> Word# -> Word# -> Word64#
+ w64# _ hw lw =
+--- a/Data/Memory/MemMap/Posix.hsc
++++ b/Data/Memory/MemMap/Posix.hsc
+@@ -17,7 +17,9 @@
+ --
+ -----------------------------------------------------------------------------
+ 
++#if !defined(wasm32_HOST_ARCH)
+ #include <sys/mman.h>
++#endif
+ #include <unistd.h>
+ 
+ {-# LANGUAGE ForeignFunctionInterface #-}
+@@ -117,18 +119,26 @@
+     deriving (Show,Read,Eq)
+ 
+ cvalueOfMemoryProts :: [MemoryProtection] -> CInt
++#if defined(wasm32_HOST_ARCH)
++cvalueOfMemoryProts _ = error "Data.Memory.MemMap.cvalueOfMemoryProts"
++#else
+ cvalueOfMemoryProts = foldl (.|.) 0 . map toProt
+   where toProt :: MemoryProtection -> CInt
+         toProt MemoryProtectionNone    = (#const PROT_NONE)
+         toProt MemoryProtectionRead    = (#const PROT_READ)
+         toProt MemoryProtectionWrite   = (#const PROT_WRITE)
+         toProt MemoryProtectionExecute = (#const PROT_EXEC)
++#endif
+ 
+ cvalueOfMemorySync :: [MemorySyncFlag] -> CInt
++#if defined(wasm32_HOST_ARCH)
++cvalueOfMemorySync _ = error "Data.Memory.MemMap.cvalueOfMemorySync"
++#else
+ cvalueOfMemorySync = foldl (.|.) 0 . map toSync
+   where toSync MemorySyncAsync      = (#const MS_ASYNC)
+         toSync MemorySyncSync       = (#const MS_SYNC)
+         toSync MemorySyncInvalidate = (#const MS_INVALIDATE)
++#endif
+ 
+ -- | Map pages of memory.
+ --
+@@ -139,10 +149,13 @@
+ memoryMap :: Maybe (Ptr a)      -- ^ The address to map to if MapFixed is used.
+           -> CSize              -- ^ The length of the mapping
+           -> [MemoryProtection] -- ^ the memory protection associated with the mapping
+-          -> MemoryMapFlag      -- ^ 
++          -> MemoryMapFlag      -- ^
+           -> Maybe Fd
+           -> COff
+           -> IO (Ptr a)
++#if defined(wasm32_HOST_ARCH)
++memoryMap _ _ _ _ _ _ = error "Data.Memory.MemMap.memoryMap"
++#else
+ memoryMap initPtr sz prots flag mfd off =
+     throwErrnoIf (== m1ptr) "mmap" (c_mmap (maybe nullPtr id initPtr) sz cprot cflags fd off)
+   where m1ptr  = nullPtr `plusPtr` (-1)
+@@ -161,6 +174,7 @@
+ 
+         toMapFlag MemoryMapShared  = (#const MAP_SHARED)
+         toMapFlag MemoryMapPrivate = (#const MAP_PRIVATE)
++#endif
+ 
+ -- | Unmap pages of memory
+ --
+@@ -172,6 +186,9 @@
+ --
+ -- call 'madvise'
+ memoryAdvise :: Ptr a -> CSize -> MemoryAdvice -> IO ()
++#if defined(wasm32_HOST_ARCH)
++memoryAdvise _ _ _ = error "Data.Memory.MemMap.memoryAdvise"
++#else
+ memoryAdvise ptr sz adv = throwErrnoIfMinus1_ "madvise" (c_madvise ptr sz cadv)
+   where cadv = toAdvice adv
+ #if defined(POSIX_MADV_NORMAL)
+@@ -187,6 +204,7 @@
+         toAdvice MemoryAdviceWillNeed = (#const MADV_WILLNEED)
+         toAdvice MemoryAdviceDontNeed = (#const MADV_DONTNEED)
+ #endif
++#endif
+ 
+ -- | lock a range of process address space
+ --
+--- a/Data/Memory/PtrMethods.hs
++++ b/Data/Memory/PtrMethods.hs
+@@ -35,7 +35,7 @@
+ memCreateTemporary size f = allocaBytesAligned size 8 f
+ 
+ -- | xor bytes from source1 and source2 to destination
+--- 
++--
+ -- d = s1 xor s2
+ --
+ -- s1, nor s2 are modified unless d point to s1 or s2
+@@ -63,7 +63,7 @@
+ 
+ -- | Copy a set number of bytes from @src to @dst
+ memCopy :: Ptr Word8 -> Ptr Word8 -> Int -> IO ()
+-memCopy dst src n = c_memcpy dst src (fromIntegral n)
++memCopy dst src n = c_memcpy dst src (fromIntegral n) >>= \_ -> return ()
+ {-# INLINE memCopy #-}
+ 
+ -- | Set @n number of bytes to the same value @v
+@@ -114,7 +114,7 @@
+             loop (i+1) (acc .|. e)
+ 
+ foreign import ccall unsafe "memset"
+-    c_memset :: Ptr Word8 -> Word8 -> CSize -> IO ()
++    c_memset :: Ptr Word8 -> Word8 -> CSize -> IO (Ptr Word8)
+ 
+ foreign import ccall unsafe "memcpy"
+-    c_memcpy :: Ptr Word8 -> Ptr Word8 -> CSize -> IO ()
++    c_memcpy :: Ptr Word8 -> Ptr Word8 -> CSize -> IO (Ptr Word8)

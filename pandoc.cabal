@@ -212,6 +212,10 @@ extra-source-files:
                  -- documentation
                  INSTALL.md, AUTHORS.md, README.md,
                  CONTRIBUTING.md, BUGS,
+                 -- patches for dependencies to build with wasm32
+                 wasm/patches/*.patch
+                 -- JavaScript interface for pandoc.wasm
+                 wasm/pandoc.js
                  -- tests
                  test/bodybg.gif
                  test/*.native
