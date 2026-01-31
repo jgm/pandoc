@@ -83,7 +83,7 @@ jobs:
         api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
         organization-id: 'd330f023-29aa-44e4-b90b-ae1c570f4a25'
         project-slug: 'pandoc'
-        signing-policy-slug: 'test-signing'
+        signing-policy-slug: 'release-signing'
         artifact-configuration-slug: 'pandoc-msi-and-zip'
         github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
         wait-for-completion: true
