@@ -120,7 +120,7 @@ if arch(wasm32)
     location: https://github.com/amesgen/splitmix
     tag: 5f5b766d97dc735ac228215d240a3bb90bc2ff75
 
-source-repository-package
+  source-repository-package
     type: git
     location: https://github.com/hslua/hslua
     tag: lua-2.3.4
