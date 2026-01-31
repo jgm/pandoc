@@ -153,10 +153,6 @@ coverage: ## code coverage information
 	open coverage/hpc_index.html
 .PHONY: coverage
 
-weeder: ## run weeder to find dead code
-	weeder
-.PHONY: weeder
-
 transitive-deps: ## print transitive dependencies
 	cabal-plan topo | sort | sed -e 's/-[0-9]\..*//'
 .PHONY: transitive-deps
@@ -328,7 +324,7 @@ hie.yaml: ## regenerate hie.yaml
 	gen-hie > $@
 .PHONY: hie.yaml
 
-pandoc.wasm:
+pandoc.wasm: ## build pandoc.wasm
 	-rm $@
 	wasm32-wasi-cabal build pandoc-cli
 ifeq ($(OPTIMIZE_WASM),1)
@@ -339,7 +335,3 @@ else
 	cp "$$(wasm32-wasi-cabal list-bin pandoc-cli | tail -1)" "$@"
 endif
 .PHONY: pandoc.wasm
-
-wasm: pandoc.wasm
-	perl -p -i -e "s/pandoc.wasm\?sha1=[0-9abcdef]*/pandoc.wasm?sha1=$(shell openssl sha1 -r pandoc.wasm | sed 's/ .*$$//')/" pandoc-cli/wasm/pandoc.js
-.PHONY: wasm
