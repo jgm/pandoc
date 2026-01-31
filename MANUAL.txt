@@ -416,17 +416,17 @@ header when requesting a document from a URL:
 
 `-d` *FILE*, `--defaults=`*FILE*
 
-:   Specify a set of default option settings.  *FILE* is a YAML
+:   Specify a set of default option settings.  *FILE* is a YAML or JSON
     file whose fields correspond to command-line option
     settings.  All options for document conversion, including input
     and output files, can be set using a defaults file.  The file will
     be searched for first in the working directory, and then in
     the `defaults` subdirectory of the user data directory
-    (see `--data-dir`).  The `.yaml` extension may be omitted.
-    See the section [Defaults files] for more information on the
-    file format.  Settings from the defaults file may be
-    overridden or extended by subsequent options on the command
-    line.
+    (see `--data-dir`).  The `.yaml` extension will be added if
+    *FILE* lacs an extension. See the section [Defaults files]
+    for more information on the file format. Settings from the
+    defaults file may be overridden or extended by subsequent
+    options on the command line.
 
 `--bash-completion`
 
@@ -1759,7 +1759,9 @@ Nonzero exit codes have the following meanings:
 # Defaults files
 
 The `--defaults` option may be used to specify a package
-of options, in the form of a YAML file.
+of options, in the form of a YAML or JSON file. Examples in
+this section will be given in YAML, but the equivalent forms in
+JSON will also work.
 
 Fields that are omitted will just have their regular
 default values.  So a defaults file can be as simple as
@@ -1767,6 +1769,12 @@ one line:
 
 ``` yaml
 verbosity: INFO
+```
+
+or in JSON:
+
+``` json
+{ "verbosity": "INFO" }
 ```
 
 In fields that expect a file path (or list of file paths), the

@@ -33,7 +33,7 @@ import Control.Monad ((>=>), foldM)
 import Control.Monad.State.Strict (StateT, modify, gets)
 import System.FilePath ( addExtension, (</>), takeExtension, takeDirectory )
 import System.Directory ( canonicalizePath )
-import Data.Char (toLower)
+import Data.Char (toLower, isSpace)
 import Data.Maybe (fromMaybe)
 import GHC.Generics hiding (Meta)
 import Text.Pandoc.Filter (Filter (..))
@@ -62,7 +62,7 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as B8
 import Text.Pandoc.Definition (Meta(..), MetaValue(..))
 import Data.Aeson (defaultOptions, Options(..), Result(..),
-                   genericToJSON, fromJSON, camelTo2)
+                   genericToJSON, fromJSON, camelTo2, eitherDecodeStrict)
 import Data.Aeson.TH (deriveJSON)
 import Control.Applicative ((<|>))
 import Data.Yaml
@@ -858,11 +858,19 @@ applyDefaults opt file = do
   setVerbosity $ optVerbosity opt
   modify $ \defsState -> defsState{ curDefaults = Just file }
   inp <- readFileStrict file
-  case decodeEither' (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
-      Right f -> f opt
-      Left err'  -> throwError $
-         PandocParseError
-             $ T.pack $ Data.Yaml.prettyPrintParseException err'
+  let isJSON = B8.take 1 (B8.dropWhile isSpace inp) == "{"
+  if isJSON
+     then
+       case eitherDecodeStrict inp of
+         Right f -> f opt
+         Left err' -> throwError $ PandocParseError $ T.pack $
+            "Error parsing " <> file <> ":\n" <> err'
+     else
+       case decodeEither' (B8.unlines . takeWhile (/= "...") . B8.lines $ inp) of
+           Right f -> f opt
+           Left err'  -> throwError $ PandocParseError $ T.pack $
+                  "Error parsing " <> file <> ":\n" <>
+                  Data.Yaml.prettyPrintParseException err'
 
 fullDefaultsPath :: (PandocMonad m, MonadIO m)
                  => Maybe FilePath
