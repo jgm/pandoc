@@ -248,6 +248,8 @@ extra-source-files:
                  test/command/defaults7.yaml
                  test/command/defaults8.yaml
                  test/command/defaults9.yaml
+                 test/command/8024a.yaml
+                 test/command/8024b.yaml
                  test/command/3533-rst-csv-tables.csv
                  test/command/3880.txt
                  test/command/5182.txt
