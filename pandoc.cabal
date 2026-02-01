@@ -572,7 +572,7 @@ library
                  xml                   >= 1.3.12   && < 1.4,
                  typst                 >= 0.9      && < 0.10,
                  vector                >= 0.12     && < 0.14,
-                 djot                  >= 0.1.2.4  && < 0.2,
+                 djot                  >= 0.1.3    && < 0.2,
                  asciidoc              >= 0.1.0.1  && < 0.2
 
   if !os(windows)
