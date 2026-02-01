@@ -25,11 +25,6 @@ source-repository-package
 
 source-repository-package
   type: git
-  location: https://github.com/jgm/djoths.git
-  tag: 67afd6c0485898b9a00e23794fc08e1d9d1e3afb
-
-source-repository-package
-  type: git
   location: https://github.com/jgm/skylighting.git
   subdir: skylighting-format-blaze-html
   tag: 06f07acba1badd75bd923751017c9d8e4e80b3a2
