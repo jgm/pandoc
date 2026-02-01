@@ -27,8 +27,7 @@ extra-deps:
 - texmath-0.13.1
 - skylighting-format-blaze-html-0.1.2
 - asciidoc-0.1.0.1
-- git: https://github.com/jgm/typst-hs.git
-  commit: b4399d44d38c1935c02db9bfd62fb5a4450ad7af
+- typst-0.9
 
 ghc-options:
    "$locals": -fhide-source-paths -Wno-missing-home-modules
